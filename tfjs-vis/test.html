@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Hello!</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- import the webpage's stylesheet -->
+    <link rel="stylesheet" href="/style.css">
+
+    <!-- import the webpage's javascript file -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@1.4.3"></script>
+    <!-- <script src="./dist/tfjs-vis.umd.min.js"></script> -->
+
+  </head>
+  <body>
+    <h1>Training a model from 2D Data</h1>
+
+    <script>
+      const series1 = Array(100).fill(0)
+        .map(y => Math.random() * 100 - (Math.random() * 50))
+        .map((y, x) => ({ x, y, }));
+
+      const series2 = Array(100).fill(0)
+        .map(y => Math.random() * 100 - (Math.random() * 150))
+        .map((y, x) => ({ x, y, }));
+
+      const series = ['First', 'Second'];
+      const data = { values: [series1, series2], series }
+
+      const surface = { name: 'Scatterplot', tab: 'Charts' };
+      tfvis.render.scatterplot(surface, data);
+    </script>
+  </body>
+</html>

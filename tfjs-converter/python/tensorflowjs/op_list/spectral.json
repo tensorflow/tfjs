@@ -1,0 +1,58 @@
+[
+  {
+    "tfOpName": "FFT",
+    "category": "spectral",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      }
+    ]
+  },
+  {
+    "tfOpName": "IFFT",
+    "category": "spectral",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      }
+    ]
+  },
+  {
+    "tfOpName": "RFFT",
+    "category": "spectral",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "fft_length",
+        "type": "number",
+        "notSupported": true
+      }
+    ]
+  },
+  {
+    "tfOpName": "IRFFT",
+    "category": "spectral",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "x",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "fft_length",
+        "type": "number",
+        "notSupported": true
+      }
+    ]
+  }
+]

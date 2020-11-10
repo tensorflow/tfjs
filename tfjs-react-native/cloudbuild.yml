@@ -1,0 +1,46 @@
+steps:
+# Install common dependencies.
+- name: 'node:10'
+  id: 'yarn-common'
+  entrypoint: 'yarn'
+  args: ['install']
+
+# Install react native dependencies.
+- name: 'node:10'
+  dir: 'tfjs-react-native'
+  id: 'yarn'
+  entrypoint: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-common']
+
+# Build tfjs-react-native.
+- name: 'node:10'
+  dir: 'tfjs-react-native'
+  id: 'build'
+  entrypoint: 'yarn'
+  args: ['build-ci']
+  waitFor: ['yarn']
+
+# Run unit tests in react native. Tests against version published on NPM.
+- name: 'node:10'
+  dir: 'tfjs-react-native/integration_rn59'
+  id: 'test-ci'
+  entrypoint: 'yarn'
+  args: ['test-ci']
+  waitFor: ['build']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  secretEnv: ['BROWSERSTACK_KEY']
+
+# General configuration
+secrets:
+- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
+  secretEnv:
+    BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
+timeout: 1800s
+logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _NIGHTLY: ''
+options:
+  logStreamingOption: 'STREAM_ON'
+  machineType: 'N1_HIGHCPU_8'
+  substitution_option: 'ALLOW_LOOSE'

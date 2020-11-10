@@ -1,0 +1,28 @@
+{
+  "name": "wasm-parcel",
+  "version": "1.0.0",
+  "description": "Sample parcel app that uses the WASM backend",
+  "scripts": {
+    "watch": "parcel index.html --open",
+    "build": "parcel build index.html"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs-backend-wasm": "2.0.1",
+    "@tensorflow/tfjs-core": "2.0.1"
+  },
+  "browserslist": [
+    "defaults"
+  ],
+  "staticFiles": {
+    "staticPath": "./node_modules/@tensorflow/tfjs-backend-wasm/dist",
+    "excludeGlob": ["**/!(*.wasm)"]
+  },
+  "devDependencies": {
+    "@babel/core": "7.7.5",
+    "@babel/plugin-transform-runtime": "^7.7.6",
+    "@babel/preset-env": "^7.7.6",
+    "parcel-bundler": "^1.12.4",
+    "parcel-plugin-static-files-copy": "^2.2.1"
+  },
+  "keywords": []
+}

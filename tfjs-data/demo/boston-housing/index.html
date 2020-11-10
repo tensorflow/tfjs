@@ -1,0 +1,56 @@
+<!--
+Copyright 2018 Google LLC. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================
+-->
+
+<html>
+
+<head>
+  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+  <style>
+    textarea {
+      border: none;
+      resize: none;
+      font-size: 20px;
+      text-align: center;
+    }
+    .container {
+      width: 80%;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+    }
+    #plot {
+      width: auto;
+      height: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h3>TensorFlow.js: Train Multivariate Regression with the Layers API</h3>
+    <div id="plot"></div>
+    <textarea rows="3" cols="60" readonly="true" id="status">Loading data...</textarea>
+    <textarea rows="3" cols="60" readonly="true" id="baselineStatus">Baseline not computed...</textarea>
+    <div id="buttons">
+      <button id="simple-mlr">Train Linear Regressor</button>
+      <button id="nn-mlr">Train Neural Network Regressor</button>
+    </div>
+  </div>
+  <script src="./index.ts"></script>
+</body>
+
+</html>

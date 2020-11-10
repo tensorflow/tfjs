@@ -1,36 +1,64 @@
-[![Build Status](https://travis-ci.org/tensorflow/tfjs.svg?branch=master)](https://travis-ci.org/tensorflow/tfjs)
 # TensorFlow.js
 
 TensorFlow.js is an open-source hardware-accelerated JavaScript library for
 training and deploying machine learning models.
 
+> :warning: We recently released **TensorFlow.js 2.0**. If you have been using TensorFlow.js
+> via a script tag without specifying a version and see an error saying no backends
+> are found, then you should read our [release notes](https://github.com/tensorflow/tfjs/releases/tag/tfjs-v2.0.0)
+> for instructions on how to upgrade.
+
+
 **Develop ML in the Browser** <br/>
 Use flexible and intuitive APIs to build models from scratch using the low-level
 JavaScript linear algebra library or the high-level layers API.
+
+**Develop ML in Node.js** <br/>
+Execute native TensorFlow with the same TensorFlow.js API under the Node.js
+runtime.
 
 **Run Existing models** <br/>
 Use TensorFlow.js model converters to run pre-existing TensorFlow models right
 in the browser.
 
 **Retrain Existing models** <br/>
-Retrain pre-existing ML models using sensor data connected to the browser, or
+Retrain pre-existing ML models using sensor data connected to the browser or
 other client-side data.
 
 ## About this repo
 
 This repository contains the logic and scripts that combine
-two packages:
-- [TensorFlow.js Core](https://github.com/tensorflow/tfjs-core),
-  a flexible low-level API, formerly known as *deeplearn.js*.
-- [TensorFlow.js Layers](https://github.com/tensorflow/tfjs-layers),
+several packages.
+
+APIs:
+- [TensorFlow.js Core](/tfjs-core),
+  a flexible low-level API for neural networks and numerical computation.
+- [TensorFlow.js Layers](/tfjs-layers),
   a high-level API which implements functionality similar to
   [Keras](https://keras.io/).
-- [TensorFlow.js Converter](https://github.com/tensorflow/tfjs-converter),
+- [TensorFlow.js Data](/tfjs-data),
+  a simple API to load and prepare data analogous to
+  [tf.data](https://www.tensorflow.org/guide/datasets).
+- [TensorFlow.js Converter](/tfjs-converter),
   tools to import a TensorFlow SavedModel to TensorFlow.js
+- [TensorFlow.js Vis](/tfjs-vis),
+  in-browser visualization for TensorFlow.js models
+- [TensorFlow.js AutoML](/tfjs-automl),
+  Set of APIs to load and run models produced by
+  [AutoML Edge](https://cloud.google.com/vision/automl/docs/edge-quickstart).
+
+
+Backends/Platforms:
+- [TensorFlow.js CPU Backend](/tfjs-backend-cpu), pure-JS backend for Node.js and the browser.
+- [TensorFlow.js WebGL Backend](/tfjs-backend-webgl), WebGL backend for the browser.
+- [TensorFlow.js WASM Backend](/tfjs-backend-wasm), WebAssembly backend for the browser.
+- [TensorFlow.js WebGPU](/tfjs-backend-webgpu), WebGPU backend for the browser.
+- [TensorFlow.js Node](/tfjs-node), Node.js platform via TensorFlow C++ adapter.
+- [TensorFlow.js React Native](/tfjs-react-native), React Native platform via expo-gl adapter.
 
 If you care about bundle size, you can import those packages individually.
 
-If you are looking for Node.js support, check out the [TensorFlow.js Node repository](https://github.com/tensorflow/tfjs-node).
+If you are looking for Node.js support, check out the [TensorFlow.js Node directory](/tfjs-node).
 
 ## Examples
 
@@ -44,8 +72,13 @@ Be sure to check out [the gallery](GALLERY.md) of all projects related to Tensor
 
 ## Pre-trained models
 
-Be sure to also check out our [models repository](https://github.com/tensorflow/tfjs-models) where we host pretrained models
+Be sure to also check out our [models repository](https://github.com/tensorflow/tfjs-models) where we host pre-trained models
 on NPM.
+
+## Benchmarks
+
+* [Local benchmark tool](https://tensorflow.github.io/tfjs/e2e/benchmarks/local-benchmark/index.html). Use this webpage tool to collect the performance related metrics (speed, memory, etc) of TensorFlow.js models and kernels **on your local device** with CPU, WebGL or WASM backends. You can benchmark custom models by following this [guide](https://github.com/tensorflow/tfjs/blob/master/e2e/benchmarks/local-benchmark/README.md).
+* [Multi-device benchmark tool](https://github.com/tensorflow/tfjs/tree/master/e2e/benchmarks/browserstack-benchmark/README.md). Use this tool to collect the same performance related metrics **on a collection of remote devices**.
 
 ## Getting started
 
@@ -63,7 +96,7 @@ Add the following code to an HTML file:
   <head>
     <!-- Load TensorFlow.js -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"> </script>
-  
+
 
     <!-- Place your code in the script tag below. You can also use an external .js file -->
     <script>
@@ -95,7 +128,7 @@ Add the following code to an HTML file:
 </html>
 ```
 
-Open up that html file in your browser and the code should run!
+Open up that HTML file in your browser, and the code should run!
 
 ### via NPM
 
@@ -104,7 +137,7 @@ we use ES2017 syntax (such as `import`), this workflow assumes you are using a m
 to convert your code to something older browsers understand. See our
 <a href='https://github.com/tensorflow/tfjs-examples' target="_blank">examples</a>
 to see how we use <a href="https://parceljs.org/" target="_blank">Parcel</a> to build
-our code. However you are free to use any build tool that you prefer.
+our code. However, you are free to use any build tool that you prefer.
 
 
 
@@ -142,9 +175,11 @@ We support porting pre-trained models from:
 
 [TensorFlow.js](https://js.tensorflow.org) is a part of the
 [TensorFlow](https://www.tensorflow.org) ecosystem. For more info:
+- For help from the community, use [`tensorflow.js`](https://stackoverflow.com/questions/tagged/tensorflow.js) tag on Stack Overflow.
 - [js.tensorflow.org](https://js.tensorflow.org)
 - [Tutorials](https://js.tensorflow.org/tutorials)
 - [API reference](https://js.tensorflow.org/api/latest/)
-- [Help mailing list](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs)
+- [Discussion mailing list](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs)
+- [TensorFlow.js Blog](https://blog.tensorflow.org/search?label=TensorFlow.js)
 
-Thanks <a href="https://www.browserstack.com/">BrowserStack</a> for providing testing support.
+Thanks, <a href="https://www.browserstack.com/">BrowserStack</a>, for providing testing support.

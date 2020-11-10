@@ -1,14 +1,18 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "ES2015",
     "moduleResolution": "node",
     "noImplicitAny": true,
     "sourceMap": true,
-    "removeComments": true,
+    "removeComments": false,
     "preserveConstEnums": true,
+    "allowSyntheticDefaultImports": true,
     "declaration": true,
-    "target": "es5",
-    "lib": ["es2015", "dom"],
+    "target": "es2017",
+    "lib": [
+      "es2017",
+      "dom"
+    ],
     "outDir": "./dist",
     "noUnusedLocals": true,
     "noImplicitReturns": true,
@@ -18,7 +22,12 @@
     "pretty": true,
     "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
-    "experimentalDecorators": true
+    "incremental": true
   },
-  "include": ["src/"]
+  "include": [
+    "src/"
+  ],
+  "exclude": [
+    "node_modules/"
+  ]
 }

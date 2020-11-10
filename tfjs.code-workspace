@@ -1,0 +1,118 @@
+{
+  "folders": [
+    {
+      "name": "Common",
+      "path": "."
+    },
+    {
+      "name": "Union",
+      "path": "tfjs"
+    },
+    {
+      "name": "E2E",
+      "path": "e2e"
+    },
+    {
+      "name": "Core",
+      "path": "tfjs-core"
+    },
+    {
+      "name": "Cpu",
+      "path": "tfjs-backend-cpu"
+    },
+    {
+      "name": "Webgl",
+      "path": "tfjs-backend-webgl"
+    },
+    {
+      "name": "Node",
+      "path": "tfjs-node"
+    },
+    {
+      "name": "NodeGpu",
+      "path": "tfjs-node-gpu"
+    },
+    {
+      "name": "Wasm",
+      "path": "tfjs-backend-wasm"
+    },
+    {
+      "name": "NodeGL",
+      "path": "tfjs-backend-nodegl"
+    },
+    {
+      "name": "WebGPU",
+      "path": "tfjs-backend-webgpu"
+    },
+    {
+      "name": "Converter",
+      "path": "tfjs-converter"
+    },
+    {
+      "name": "Layers",
+      "path": "tfjs-layers"
+    },
+    {
+      "name": "Data",
+      "path": "tfjs-data"
+    },
+    {
+      "name": "ReactNative",
+      "path": "tfjs-react-native"
+    },
+    {
+      "name": "Vis",
+      "path": "tfjs-vis"
+    },
+    {
+      "name": "AutoML",
+      "path": "tfjs-automl"
+    },
+    {
+      "name": "InferenceAPI",
+      "path": "tfjs-inference"
+    }
+  ],
+  "settings": {
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/coverage/": true,
+      "**/dist/": true,
+      "**/yarn.lock": true,
+      "**/.rpt2_cache/": true,
+      "**/.yalc/**/*": true,
+      "**/.cache/**/*": true
+    },
+    "tslint.configFile": "tslint.json",
+    "files.trimTrailingWhitespace": true,
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true,
+    "[typescript]": {
+      "editor.formatOnSave": true
+    },
+    "[javascript]": {
+      "editor.formatOnSave": true
+    },
+    "[cpp]": {
+      "editor.formatOnSave": true
+    },
+    "editor.defaultFormatter": "xaver.clang-format",
+    "editor.rulers": [80],
+    "clang-format.style": "Google",
+    "files.insertFinalNewline": true,
+    "editor.detectIndentation": false,
+    "editor.wrappingIndent": "none",
+    "typescript.tsdk": "${workspaceRoot}/node_modules/typescript/lib",
+    "clang-format.executable": "${workspaceRoot}/node_modules/.bin/clang-format"
+  },
+  "extensions": {
+    "recommendations": [
+      // Formats typescript, javascript and c++ code.
+      "xaver.clang-format",
+      // Lints typescipt code.
+      "ms-vscode.vscode-typescript-tslint-plugin",
+      // Running custom linters on save.
+      "emeraldwalk.RunOnSave"
+    ]
+  }
+}

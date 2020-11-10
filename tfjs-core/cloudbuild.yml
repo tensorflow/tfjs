@@ -1,0 +1,86 @@
+steps:
+# Install common dependencies.
+- name: 'node:10'
+  id: 'yarn-common'
+  entrypoint: 'yarn'
+  args: ['install']
+
+# Install tfjs-core dependencies.
+- name: 'node:10'
+  dir: 'tfjs-core'
+  id: 'yarn'
+  entrypoint: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-common']
+
+# Build deps.
+- name: 'node:10'
+  dir: 'tfjs-core'
+  id: 'build-deps'
+  entrypoint: 'yarn'
+  args: ['build-deps-ci']
+  waitFor: ['yarn']
+
+# Build.
+- name: 'node:10'
+  dir: 'tfjs-core'
+  id: 'build'
+  entrypoint: 'yarn'
+  args: ['build-ci']
+  waitFor: ['yarn', 'build-deps']
+
+# Lint.
+- name: 'node:10'
+  dir: 'tfjs-core'
+  id: 'lint'
+  entrypoint: 'yarn'
+  args: ['lint']
+  waitFor: ['yarn', 'build-deps']
+
+# Run unit tests.
+- name: 'node:10'
+  dir: 'tfjs-core'
+  id: 'test'
+  entrypoint: 'yarn'
+  args: ['test-ci']
+  waitFor: ['yarn', 'build-deps', 'lint']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
+  secretEnv: ['BROWSERSTACK_KEY']
+
+# bundle size check
+- name: 'node:10'
+  dir: 'tfjs-core'
+  id: 'test-bundle-size'
+  entrypoint: 'yarn'
+  args: ['test-bundle-size']
+  waitFor: ['yarn']
+
+# test doc snippets
+- name: 'node:10'
+  dir: 'tfjs-core'
+  id: 'test-snippets'
+  entrypoint: 'yarn'
+  args: ['test-snippets']
+  waitFor: ['yarn']
+
+# test Async backends
+- name: 'node:10'
+  dir: 'tfjs-core'
+  id: 'test-async-backends'
+  entrypoint: 'yarn'
+  args: ['test-async-backends-ci']
+  waitFor: ['build']
+
+# General configuration
+secrets:
+- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
+  secretEnv:
+    BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
+timeout: 3600s
+logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _NIGHTLY: ''
+options:
+  logStreamingOption: 'STREAM_ON'
+  machineType: 'N1_HIGHCPU_8'
+  substitution_option: 'ALLOW_LOOSE'

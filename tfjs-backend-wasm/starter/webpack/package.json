@@ -1,0 +1,25 @@
+{
+  "name": "wasm-webpack",
+  "version": "1.0.0",
+  "description": "Sample webpack app that uses the WASM backend",
+  "private": true,
+  "scripts": {
+    "watch": "webpack-dev-server --open",
+    "build": "webpack"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs-backend-wasm": "2.6.0",
+    "@tensorflow/tfjs-core": "2.6.0"
+  },
+  "browserslist": [
+    "defaults"
+  ],
+  "devDependencies": {
+    "file-loader": "^5.0.2",
+    "html-webpack-plugin": "^3.2.0",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.9.0"
+  },
+  "keywords": []
+}

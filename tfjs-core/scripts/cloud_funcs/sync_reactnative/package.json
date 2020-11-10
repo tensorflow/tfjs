@@ -1,0 +1,15 @@
+{
+  "name": "cloudfunc-tfjs-rn",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "functions-framework --target=sync_reactnative"
+  },
+  "dependencies": {
+    "@google-cloud/functions-framework": "^1.3.2",
+    "@google-cloud/kms": "^1.5.3",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.8"
+  }
+}

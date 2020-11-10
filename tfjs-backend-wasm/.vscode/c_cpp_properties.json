@@ -1,0 +1,20 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}",
+                "${workspaceFolder}/bazel-tfjs-backend-wasm/external/emsdk/emsdk/upstream/emscripten/system/include",
+                "${workspaceFolder}/bazel-tfjs-backend-wasm/external/com_google_googletest/googletest/include",
+                "${workspaceFolder}/bazel-tfjs-backend-wasm/external/xnnpack/include",
+                "${workspaceFolder}/bazel-tfjs-backend-wasm/external/pthreadpool/include"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}

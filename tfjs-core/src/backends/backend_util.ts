@@ -1,0 +1,123 @@
+/**
+ * @license
+ * Copyright 2018 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+import {ENGINE} from '../engine';
+import {cast} from '../ops/cast';
+import {scalar} from '../ops/scalar';
+import {tensor1d} from '../ops/tensor1d';
+import {zeros} from '../ops/zeros';
+import {Tensor} from '../tensor';
+import {Rank} from '../types';
+import {DataType, ShapeMap} from '../types';
+import {decodeString, encodeString, hasEncodingLoss, makeZerosTypedArray} from '../util';
+
+import {KernelBackend} from './backend';
+
+// Utilities needed by backend consumers of tf-core.
+export * from '../ops/axis_util';
+export * from '../ops/broadcast_util';
+export * from '../ops/concat_util';
+export * from '../ops/conv_util';
+export * from '../ops/fused_util';
+export * from '../ops/fused_types';
+export * from '../ops/reduce_util';
+
+import * as slice_util from '../ops/slice_util';
+export {slice_util};
+
+export {BackendValues, TypedArray, upcastType, PixelData} from '../types';
+export {MemoryInfo, TimingInfo} from '../engine';
+export * from '../ops/rotate_util';
+export * from '../ops/array_ops_util';
+export * from '../ops/gather_nd_util';
+export * from '../ops/scatter_nd_util';
+export * from '../ops/selu_util';
+export * from '../ops/fused_util';
+export * from '../ops/erf_util';
+export * from '../log';
+export * from '../backends/complex_util';
+export * from '../ops/split_util';
+
+import * as segment_util from '../ops/segment_util';
+export {segment_util};
+
+export function castTensor<T extends Tensor>(
+    x: T, dtype: DataType, backend: KernelBackend): T {
+  if (dtype === 'complex64') {
+    if (x.dtype === 'complex64') {
+      return x.clone();
+    }
+    const zerosTensor = zeros(x.shape);
+    const floatX = cast(x, 'float32');
+    const result = backend.complex(floatX, zerosTensor);
+    zerosTensor.dispose();
+    floatX.dispose();
+    return result as T;
+  }
+
+  if (!hasEncodingLoss(x.dtype, dtype)) {
+    // We don't change the underlying data, since we cast to higher
+    // precision.
+    return ENGINE.makeTensorFromDataId(x.dataId, x.shape, dtype) as T;
+  }
+  if (x.dtype === 'complex64') {
+    const real = backend.real(x);
+    const result = cast(real, dtype);
+    real.dispose();
+    return result;
+  }
+  if (dtype === 'int32') {
+    return backend.int(x);
+  } else if (dtype === 'bool') {
+    const zero = scalar(0, x.dtype);
+    const result = backend.notEqual(x, zero) as T;
+    zero.dispose();
+    return result;
+  } else {
+    throw new Error(`Error in Cast: failed to cast ${x.dtype} to ${dtype}`);
+  }
+}
+
+export function reshapeTensor<T extends Tensor, R extends Rank>(
+    x: T, shape: ShapeMap[R]): Tensor<R> {
+  return ENGINE.makeTensorFromDataId(x.dataId, shape, x.dtype) as Tensor<R>;
+}
+
+export function linspaceImpl(start: number, stop: number, num: number) {
+  const step = (stop - start) / (num - 1);
+
+  const values = makeZerosTypedArray(num, 'float32');
+  values[0] = start;
+  for (let i = 1; i < values.length; i++) {
+    values[i] = values[i - 1] + step;
+  }
+
+  return tensor1d(values, 'float32');
+}
+
+export function fromUint8ToStringArray(vals: Uint8Array[]) {
+  try {
+    // Decode the bytes into string.
+    return vals.map(val => decodeString(val));
+  } catch (err) {
+    throw new Error(
+        `Failed to decode encoded string bytes into utf-8, error: ${err}`);
+  }
+}
+
+export function fromStringArrayToUint8(strings: string[]) {
+  return strings.map(s => encodeString(s));
+}

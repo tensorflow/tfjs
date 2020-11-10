@@ -16,21 +16,37 @@
  * =============================================================================
  */
 
-import * as release_notes from './release_notes';
-import {RepoCommits, OctokitGetCommit} from './util';
 import * as util from './util';
-import {release} from 'os';
+import {OctokitGetCommit, RepoCommits} from './util';
 
-const fakeCommitContributors = {
+const fakeCommitContributors: {[key: string]: string;} = {
   'sha1': 'fakecontributor1',
   'sha2': 'fakecontributor2',
   'sha3': 'fakecontributor3'
 };
 
+const missingAuthorLoginFake = {
+  name: 'example',
+  email: 'example@example.com'
+};
+
+
 const fakeOctokit: OctokitGetCommit = {
   repos: {
     getCommit: (config: {owner: string, repo: string, sha: string}) => {
-      return {data: {author: {login: fakeCommitContributors[config.sha]}}};
+      return {
+        data: {
+          author: {
+            login: fakeCommitContributors[config.sha],
+          },
+          commit: {
+            author: {
+              name: missingAuthorLoginFake.name,
+              email: missingAuthorLoginFake.email
+            }
+          }
+        }
+      };
     }
   }
 };
@@ -38,7 +54,7 @@ const fakeOctokit: OctokitGetCommit = {
 describe('getReleaseNotesDraft', () => {
   it('Basic draft written', done => {
     const repoCommits: RepoCommits[] = [{
-      repo: {name: 'Core', identifier: 'tfjs-core'},
+      repo: {name: 'Core', identifier: 'tfjs', path: 'tfjs-core'},
       startVersion: '0.9.0',
       endVersion: '0.10.0',
       startCommit: 'fakecommit',
@@ -57,7 +73,7 @@ describe('getReleaseNotesDraft', () => {
       expect(notes).toEqual([
         '## Core (0.9.0 ==> 0.10.0)', '', '### Features',
         '- Add tf.toPixels. ([#900]' +
-            '(https://github.com/tensorflow/tfjs-core/pull/900)).'
+            '(https://github.com/tensorflow/tfjs/pull/900)).'
       ].join('\n'));
       done();
     });
@@ -65,7 +81,7 @@ describe('getReleaseNotesDraft', () => {
 
   it('Basic draft external contributor thanks them', done => {
     const repoCommits: RepoCommits[] = [{
-      repo: {name: 'Core', identifier: 'tfjs-core'},
+      repo: {name: 'Core', identifier: 'tfjs', path: 'tfjs-core'},
       startVersion: '0.9.0',
       endVersion: '0.10.0',
       startCommit: 'fakecommit',
@@ -84,7 +100,7 @@ describe('getReleaseNotesDraft', () => {
       expect(notes).toEqual([
         '## Core (0.9.0 ==> 0.10.0)', '', '### Features',
         '- Add tf.toPixels. ([#900]' +
-            '(https://github.com/tensorflow/tfjs-core/pull/900)).' +
+            '(https://github.com/tensorflow/tfjs/pull/900)).' +
             ' Thanks, @fakecontributor1.'
       ].join('\n'));
       done();
@@ -94,7 +110,7 @@ describe('getReleaseNotesDraft', () => {
   it('Complex draft', done => {
     const repoCommits: RepoCommits[] = [
       {
-        repo: {name: 'Core', identifier: 'tfjs-core'},
+        repo: {name: 'Core', identifier: 'tfjs', path: 'tfjs-core'},
         startVersion: '0.9.0',
         endVersion: '0.10.0',
         startCommit: 'fakecommit',
@@ -120,7 +136,7 @@ describe('getReleaseNotesDraft', () => {
         ]
       },
       {
-        repo: {name: 'Layers', identifier: 'tfjs-layers'},
+        repo: {name: 'Layers', identifier: 'tfjs', path: 'tfjs-layers'},
         startVersion: '0.4.0',
         endVersion: '0.5.1',
         startCommit: 'fakecommit2',
@@ -144,31 +160,31 @@ describe('getReleaseNotesDraft', () => {
         '',
         '### Features',
         '- Adds transpose bit. [Improvements to matMul.] ([#901]' +
-            '(https://github.com/tensorflow/tfjs-core/pull/901)).' +
+            '(https://github.com/tensorflow/tfjs/pull/901)).' +
             ' Thanks, @fakecontributor2.',
         '### Performance',
         '- Improves speed of matMul by 100%. [Improvements to matMul.]' +
-            ' ([#901](https://github.com/tensorflow/tfjs-core/pull/901)).' +
+            ' ([#901](https://github.com/tensorflow/tfjs/pull/901)).' +
             ' Thanks, @fakecontributor2.',
         '### Misc',
         '- Add tf.toPixels. ([#900]' +
-            '(https://github.com/tensorflow/tfjs-core/pull/900)).' +
+            '(https://github.com/tensorflow/tfjs/pull/900)).' +
             ' Thanks, @fakecontributor1.',
         '',
         '## Layers (0.4.0 ==> 0.5.1)',
         '',
         '### Features',
         '- Add automatic argument parsing. [Change API of layers.] ' +
-            '([#100](https://github.com/tensorflow/tfjs-layers/pull/100)).' +
+            '([#100](https://github.com/tensorflow/tfjs/pull/100)).' +
             ' Thanks, @fakecontributor1.',
 
         '### Breaking changes',
         '- Change API of layers. ' +
-            '([#100](https://github.com/tensorflow/tfjs-layers/pull/100)).' +
+            '([#100](https://github.com/tensorflow/tfjs/pull/100)).' +
             ' Thanks, @fakecontributor1.',
         '### Documentation',
         '- Update docstrings of tf.layers.dense. [Change API of layers.] ' +
-            '([#100](https://github.com/tensorflow/tfjs-layers/pull/100)).' +
+            '([#100](https://github.com/tensorflow/tfjs/pull/100)).' +
             ' Thanks, @fakecontributor1.',
       ].join('\n'));
       done();
@@ -177,7 +193,7 @@ describe('getReleaseNotesDraft', () => {
 
   it('Subject has no pull request number', done => {
     const repoCommits: RepoCommits[] = [{
-      repo: {name: 'Core', identifier: 'tfjs-core'},
+      repo: {name: 'Core', identifier: 'tfjs', path: 'tfjs-core'},
       startVersion: '0.9.0',
       endVersion: '0.10.0',
       startCommit: 'fakecommit',

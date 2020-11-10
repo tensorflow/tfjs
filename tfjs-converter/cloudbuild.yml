@@ -1,0 +1,83 @@
+steps:
+
+# Install common dependencies.
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'yarn-common'
+  args: ['install']
+
+# Install tfjs-converter dependencies.
+- name: 'node:10'
+  dir: 'tfjs-converter'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-common']
+
+# Build deps.
+- name: 'node:10'
+  dir: 'tfjs-converter'
+  entrypoint: 'yarn'
+  id: 'build-deps'
+  args: ['build-deps-ci']
+  waitFor: ['yarn-common']
+
+# Build.
+- name: 'node:10'
+  dir: 'tfjs-converter'
+  entrypoint: 'yarn'
+  id: 'build'
+  args: ['build-ci']
+  waitFor: ['yarn', 'build-deps']
+
+# Lint.
+- name: 'node:10'
+  dir: 'tfjs-converter'
+  entrypoint: 'yarn'
+  id: 'lint'
+  args: ['lint']
+  waitFor: ['yarn', 'build-deps']
+
+# Run javascript tests.
+- name: 'node:10'
+  dir: 'tfjs-converter'
+  entrypoint: 'yarn'
+  id: 'test-js'
+  args: ['test-ci']
+  waitFor: ['yarn', 'build-deps', 'lint']
+  env: ['NIGHTLY=$_NIGHTLY']
+
+# Run python tests.
+- name: 'gcr.io/google-appengine/python'
+  dir: 'tfjs-converter/python'
+  entrypoint: 'bash'
+  args: ['./build-pip-package.sh', '--test', '/tmp/tfjs-pips']
+  waitFor: ['yarn-common']
+
+- name: 'python:2'
+  dir: 'tfjs-converter/python'
+  entrypoint: 'bash'
+  args: ['./run-python-tests.sh']
+  waitFor: ['yarn-common']
+
+- name: 'python:3.6'
+  dir: 'tfjs-converter/python'
+  entrypoint: 'bash'
+  args: ['./run-python-tests.sh']
+  waitFor: ['yarn-common']
+
+- name: 'node:10'
+  dir: 'tfjs-converter'
+  entrypoint: 'yarn'
+  id: 'test-snippets'
+  args: ['test-snippets']
+  waitFor: ['build']
+
+timeout: 1800s
+logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _NIGHTLY: ''
+options:
+  logStreamingOption: 'STREAM_ON'
+  substitution_option: 'ALLOW_LOOSE'
+  machineType: 'N1_HIGHCPU_8'

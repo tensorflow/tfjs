@@ -1,0 +1,20 @@
+{
+  "extends": "../tsconfig",
+  "compilerOptions": {
+    "target": "es2017",
+    "esModuleInterop": true,
+    "lib": [
+      "es2017",
+      "dom"
+    ],
+    "outDir": "./dist/",
+    "skipLibCheck": true,
+    "jsx": "react-native"
+  },
+  "include": [
+    "src/"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

@@ -1,0 +1,18 @@
+load("@npm_bazel_typescript//:defs.bzl", "ts_library")
+
+TEST_SRCS = [
+  "jasmine_*",
+  "test_*",
+  "**/*_test.ts"
+]
+
+ts_library(
+    name = "src",
+    srcs = glob(
+        ["**/*.ts"],
+        # exclude = TEST_SRCS,
+    ),
+    deps = [
+      "@npm//@types",
+    ]
+)

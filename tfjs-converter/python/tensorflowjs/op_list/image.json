@@ -1,0 +1,98 @@
+[
+  {
+    "tfOpName": "ResizeBilinear",
+    "category": "image",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "images",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "size",
+        "type": "number[]"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "align_corners",
+        "name": "alignCorners",
+        "type": "bool"
+      },
+      {
+        "tfName": "T",
+        "name": "dtype",
+        "type": "dtype",
+        "notSupported": true
+      }
+    ]
+  },
+  {
+    "tfOpName": "ResizeNearestNeighbor",
+    "category": "image",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "images",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "size",
+        "type": "number[]"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "align_corners",
+        "name": "alignCorners",
+        "type": "bool"
+      },
+      {
+        "tfName": "T",
+        "name": "dtype",
+        "type": "dtype",
+        "notSupported": true
+      }
+    ]
+  },
+  {
+    "tfOpName": "CropAndResize",
+    "category": "image",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "image",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "boxes",
+        "type": "tensor"
+      },
+      {
+        "start": 2,
+        "name": "boxInd",
+        "type": "tensor"
+      },
+      {
+        "start": 3,
+        "name": "cropSize",
+        "type": "number[]"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "method",
+        "name": "method",
+        "type": "string"
+      },
+      {
+        "tfName": "extrapolation_value",
+        "name": "extrapolationValue",
+        "type": "number"
+      }
+    ]
+  }
+]
