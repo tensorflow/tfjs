@@ -17,18 +17,14 @@
 
 import {env, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '@tensorflow/tfjs-core';
-// import {FromPixelsAsync} from '@tensorflow/tfjs-core';
 import {backend_util, Tensor3D} from '@tensorflow/tfjs-core';
 import {util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {FromPixelsAsync} from '../ops/from_pixels_async';
 
 import {FromPixelsProgram} from './FromPixels_utils/from_pixels_webgpu';
 import * as webgpu_program from './webgpu_program';
-
-// TODO: Import from tfjs-core once dependency is updated to >2.7.0.
-// tslint:disable-next-line: variable-name
-export const FromPixelsAsync = 'FromPixelsAsync';
 
 export const fromPixelsConfig: KernelConfig = {
   kernelName: FromPixels,
