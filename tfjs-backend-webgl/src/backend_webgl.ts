@@ -19,11 +19,11 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {DataId, div, engine, env, max, MemoryInfo, range, RecursiveArray, reshape, scalar, softmax, sum, tensor, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
+import {buffer, DataId, DataValues, div, engine, env, max, MemoryInfo, range, RecursiveArray, reshape, scalar, softmax, sum, tensor, TensorBuffer, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
 import {backend_util, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
-import {ceilImplCPU, expImplCPU, expm1ImplCPU, floorImplCPU, greaterImplCPU, lessImplCPU, logImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU} from './kernel_utils/shared';
+import {ceilImplCPU, expImplCPU, expm1ImplCPU, floorImplCPU, greaterImplCPU, lessImplCPU, logImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
@@ -462,6 +462,21 @@ export class MathBackendWebGL extends KernelBackend {
     return dTypeVals;
   }
 
+  bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {
+    const data = this.readSync(t.dataId);
+    let decodedData = data as DataValues;
+    if (t.dtype === 'string') {
+      try {
+        // Decode the bytes into string.
+        decodedData = (data as Uint8Array[]).map(d => util.decodeString(d));
+      } catch {
+        throw new Error('Failed to decode encoded string bytes into utf-8');
+      }
+    }
+    return buffer(t.shape as ShapeMap[R], t.dtype, decodedData) as
+        TensorBuffer<R>;
+  }
+
   private checkNumericalProblems(values: BackendValues): void {
     if (values == null) {
       return;
@@ -722,10 +737,16 @@ export class MathBackendWebGL extends KernelBackend {
 
   stridedSlice<T extends Tensor>(
       x: T, begin: number[], end: number[], strides: number[]): T {
-    const cpuRes = this.tryRunOnCpuOrThrow(
-        [x], () => this.cpuBackend.stridedSlice(x, begin, end, strides));
-    if (cpuRes) {
-      return cpuRes;
+    if (this.shouldExecuteOnCPU([x])) {
+      const outShape = slice_util.computeOutShape(begin, end, strides);
+      if (outShape.some(axis => axis === 0)) {
+        return this.makeOutput(outShape, x.dtype, []);
+      }
+
+      const xBuf = this.bufferSync(x);
+      const outBuf = stridedSliceImplCPU(outShape, xBuf, strides, begin);
+
+      return this.makeOutput(outBuf.shape, outBuf.dtype, outBuf.values);
     }
 
     const outShape = slice_util.computeOutShape(begin, end, strides);

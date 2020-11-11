@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, slice_util, Tensor, Tensor1D, Tensor2D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
 const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppressionV3Impl;
 const split = kernel_impls.split;
@@ -203,31 +203,6 @@ export class MathBackendCPU extends KernelBackend {
           ['The reported memory is an upper bound. Due to automatic garbage ' +
            'collection, the true allocated memory may be less.']
     };
-  }
-
-  stridedSlice<T extends Tensor>(
-      x: T, begin: number[], end: number[], strides: number[]): T {
-    assertNotComplex(x, 'stridedSlice');
-
-    const outShape = slice_util.computeOutShape(begin, end, strides);
-
-    if (outShape.some(axis => axis === 0)) {
-      return tf.tensor([], outShape) as T;
-    }
-
-    const buffer = tf.buffer(outShape, x.dtype);
-    const xBuf = this.bufferSync(x);
-    for (let i = 0; i < buffer.size; i++) {
-      const loc = buffer.indexToLoc(i);
-
-      const newLoc: number[] = new Array(loc.length);
-      for (let j = 0; j < newLoc.length; j++) {
-        newLoc[j] = loc[j] * strides[j] + begin[j];
-      }
-      buffer.set(xBuf.get(...newLoc), ...loc);
-    }
-
-    return buffer.toTensor() as T;
   }
 
   diag(x: Tensor): Tensor {
