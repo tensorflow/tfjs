@@ -823,8 +823,6 @@ export interface FromPixelsAttrs {
   numChannels: number;
 }
 
-export const FromPixelsAsync = 'FromPixelsAsync';
-
 export const RotateWithOffset = 'RotateWithOffset';
 export type RotateWithOffsetInputs = Pick<NamedTensorInfoMap, 'image'>;
 export interface RotateWithOffsetAttrs {
