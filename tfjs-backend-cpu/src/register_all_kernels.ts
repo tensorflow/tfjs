@@ -93,6 +93,7 @@ import {oneHotConfig} from './kernels/OneHot';
 import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
+import {prodConfig} from './kernels/Prod';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reciprocalConfig} from './kernels/Reciprocal';
@@ -122,6 +123,7 @@ import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
 import {transposeConfig} from './kernels/Transpose';
 import {uniqueConfig} from './kernels/Unique';
+import {unpackConfig} from './kernels/Unpack';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
@@ -200,6 +202,7 @@ const kernelConfigs: KernelConfig[] = [
   padV2Config,
   powConfig,
   preluConfig,
+  prodConfig,
   realConfig,
   reciprocalConfig,
   reluConfig,
@@ -228,6 +231,7 @@ const kernelConfigs: KernelConfig[] = [
   tanhConfig,
   transposeConfig,
   uniqueConfig,
+  unpackConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {

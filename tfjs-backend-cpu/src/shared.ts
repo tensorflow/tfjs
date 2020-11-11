@@ -30,6 +30,7 @@ export {maxImpl} from './kernels/Max_impl';
 export {multiplyImpl} from './kernels/Multiply';
 export {negImpl} from './kernels/Neg';
 export {notEqualImpl} from './kernels/NotEqual';
+export {prodImpl} from './kernels/Prod';
 export {rsqrtImpl} from './kernels/Rsqrt';
 export {sliceImpl} from './kernels/Slice';
 export {squaredDifferenceImpl} from './kernels/SquaredDifference';
