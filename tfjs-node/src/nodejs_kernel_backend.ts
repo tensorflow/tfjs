@@ -295,24 +295,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     throw new Error('Method not implemented.');
   }
 
-  complexAbs<T extends Tensor>(x: T): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Tout', 'float32')
-    ];
-    return this.executeSingleOutput('ComplexAbs', opAttrs, [x]) as T;
-  }
-
-  fft(x: Tensor<Rank.R2>): Tensor<Rank.R2> {
-    const opAttrs = [createTensorsTypeOpAttr('Tcomplex', x.dtype)];
-    return this.executeSingleOutput('FFT', opAttrs, [x]) as Tensor<Rank.R2>;
-  }
-
-  ifft(x: Tensor2D): Tensor2D {
-    const opAttrs = [createTensorsTypeOpAttr('Tcomplex', x.dtype)];
-    return this.executeSingleOutput('IFFT', opAttrs, [x]) as Tensor2D;
-  }
-
   decodeJpeg(
       contents: Uint8Array, channels: number, ratio: number,
       fancyUpscaling: boolean, tryRecoverTruncated: boolean,
