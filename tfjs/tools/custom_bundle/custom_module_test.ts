@@ -62,6 +62,28 @@ describe('getCustomModuleString forwardModeOnly=true', () => {
     expect(tfjs).not.toContain('GRADIENT');
   });
 
+  it('one kernel, one backend, one model', () => {
+    const config = {
+      kernels: ['MathKrnl'],
+      backends: ['FastBcknd'],
+      models: ['model1.json'],
+      forwardModeOnly
+    };
+    const {tfjs, core} = getCustomModuleString(
+        // cast because FastBcknd is not a valid backend per the type
+        config as CustomTFJSBundleConfig, mockImportProvider);
+
+    expect(core).toContain('import CORE');
+    expect(tfjs).toContain('import CORE');
+    expect(tfjs).toContain('import CONVERTER');
+
+    expect(tfjs).toContain('import BACKEND FastBcknd');
+    expect(tfjs).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
+    expect(tfjs).toContain('registerKernel(MathKrnl_FastBcknd)');
+
+    expect(tfjs).not.toContain('GRADIENT');
+  });
+
   it('one kernel, two backend', () => {
     const config = {
       kernels: ['MathKrnl'],
