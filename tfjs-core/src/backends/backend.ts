@@ -535,8 +535,8 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   }
 
   resizeBilinear(
-      x: Tensor4D, newHeight: number, newWidth: number,
-      alignCorners: boolean): Tensor4D {
+      x: Tensor4D, newHeight: number, newWidth: number, alignCorners: boolean,
+      halfPixelCenters: boolean): Tensor4D {
     return notYetImplemented('resizeBilinear');
   }
 

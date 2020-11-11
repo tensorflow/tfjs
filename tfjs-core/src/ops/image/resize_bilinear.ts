@@ -34,15 +34,19 @@ import {reshape} from '../reshape';
  *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
  * @param size The new shape `[newHeight, newWidth]` to resize the
  *     images to. Each channel is resized individually.
- * @param alignCorners Defaults to False. If true, rescale
+ * @param alignCorners Defaults to `false`. If true, rescale
  *     input by `(new_height - 1) / (height - 1)`, which exactly aligns the 4
  *     corners of images and resized images. If false, rescale by
  *     `new_height / height`. Treat similarly the width dimension.
+ * @param halfPixelCenters Defaults to `false`. Whether to assume pixel centers
+ *     are at 0.5, which would make the floating point coordinates of the top
+ *     left pixel 0.5, 0.5.
  *
  * @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'}
  */
 function resizeBilinear_<T extends Tensor3D|Tensor4D>(
-    images: T|TensorLike, size: [number, number], alignCorners = false): T {
+    images: T|TensorLike, size: [number, number], alignCorners = false,
+    halfPixelCenters = false): T {
   const $images = convertToTensor(images, 'images', 'resizeBilinear');
 
   util.assert(
@@ -53,6 +57,10 @@ function resizeBilinear_<T extends Tensor3D|Tensor4D>(
       size.length === 2,
       () => `Error in resizeBilinear: new shape must 2D, but got shape ` +
           `${size}.`);
+  util.assert(
+      halfPixelCenters === false || alignCorners === false,
+      () => `Error in resizeBilinear: If halfPixelCenters is true, ` +
+          `alignCorners must be false.`);
 
   let batchImages = $images as Tensor4D;
   let reshapedTo4D = false;
@@ -66,11 +74,11 @@ function resizeBilinear_<T extends Tensor3D|Tensor4D>(
   const forward: ForwardFunc<Tensor4D> = (backend, save) => {
     save([batchImages]);
     return backend.resizeBilinear(
-        batchImages, newHeight, newWidth, alignCorners);
+        batchImages, newHeight, newWidth, alignCorners, halfPixelCenters);
   };
 
   const inputs: ResizeBilinearInputs = {images: batchImages};
-  const attrs: ResizeBilinearAttrs = {alignCorners, size};
+  const attrs: ResizeBilinearAttrs = {alignCorners, halfPixelCenters, size};
 
   const res = ENGINE.runKernelFunc(
       forward, inputs as {} as NamedTensorMap, null /* gradient */,

@@ -1746,12 +1746,13 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   resizeBilinear(
-      x: Tensor4D, newHeight: number, newWidth: number,
-      alignCorners: boolean): Tensor4D {
+      x: Tensor4D, newHeight: number, newWidth: number, alignCorners: boolean,
+      halfPixelCenters: boolean): Tensor4D {
     const program = env().getBool('WEBGL_PACK_IMAGE_OPERATIONS') ?
         new ResizeBilinearPackedProgram(
-            x.shape, newHeight, newWidth, alignCorners) :
-        new ResizeBilinearProgram(x.shape, newHeight, newWidth, alignCorners);
+            x.shape, newHeight, newWidth, alignCorners, halfPixelCenters) :
+        new ResizeBilinearProgram(
+            x.shape, newHeight, newWidth, alignCorners, halfPixelCenters);
     return this.compileAndRun(program, [x], 'float32');
   }
 
