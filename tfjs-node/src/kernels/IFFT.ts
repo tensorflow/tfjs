@@ -19,6 +19,7 @@ import {IFFT, IFFTInputs, KernelConfig} from '@tensorflow/tfjs';
 
 import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
+// tslint:disable-next-line: variable-name
 export const IFFTConfig: KernelConfig = {
   kernelName: IFFT,
   backendName: 'tensorflow',
