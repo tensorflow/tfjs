@@ -43,6 +43,7 @@ import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
+import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {conv2DBackpropFilterConfig} from './kernels/Conv2DBackpropFilter';
@@ -78,6 +79,7 @@ import {gatherNdConfig} from './kernels/GatherNd';
 import {gatherV2Config} from './kernels/GatherV2';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
+import {imagConfig} from './kernels/Imag';
 import {isFiniteConfig} from './kernels/IsFinite';
 import {isInfConfig} from './kernels/IsInf';
 import {isNanConfig} from './kernels/IsNan';
@@ -114,6 +116,7 @@ import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
+import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reciprocalConfig} from './kernels/Reciprocal';
 import {reluConfig} from './kernels/Relu';
@@ -183,6 +186,7 @@ const kernelConfigs: KernelConfig[] = [
   castConfig,
   ceilConfig,
   clipByValueConfig,
+  complexConfig,
   concatConfig,
   conv2DBackpropFilterConfig,
   conv2DBackpropInputConfig,
@@ -218,6 +222,7 @@ const kernelConfigs: KernelConfig[] = [
   gatherV2Config,
   greaterConfig,
   greaterEqualConfig,
+  imagConfig,
   isFiniteConfig,
   isInfConfig,
   isNanConfig,
@@ -252,6 +257,7 @@ const kernelConfigs: KernelConfig[] = [
   powConfig,
   preluConfig,
   prodConfig,
+  realConfig,
   realDivConfig,
   reciprocalConfig,
   relu6Config,
