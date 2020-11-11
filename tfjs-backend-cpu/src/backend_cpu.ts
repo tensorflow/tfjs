@@ -926,8 +926,8 @@ export class MathBackendCPU extends KernelBackend {
   }
 
   resizeBilinear(
-      x: Tensor4D, newHeight: number, newWidth: number,
-      alignCorners: boolean): Tensor4D {
+      x: Tensor4D, newHeight: number, newWidth: number, alignCorners: boolean,
+      halfPixelCenters: boolean): Tensor4D {
     assertNotComplex(x, 'resizeBilinear');
 
     const [batch, oldHeight, oldWidth, numChannels] = x.shape;
@@ -951,15 +951,26 @@ export class MathBackendCPU extends KernelBackend {
         effectiveInputSize[1] / effectiveOutputSize[1];
     for (let b = 0; b < batch; b++) {
       for (let r = 0; r < newHeight; r++) {
-        const sourceFracRow = effectiveRowSizeRatio * r;
-        const sourceRowFloor = Math.floor(sourceFracRow);
+        let sourceFracRow: number;
+        if (halfPixelCenters) {
+          sourceFracRow = effectiveRowSizeRatio * (r + 0.5) - 0.5;
+        } else {
+          sourceFracRow = effectiveRowSizeRatio * r;
+        }
+
+        const sourceRowFloor = Math.max(0, Math.floor(sourceFracRow));
         const rowFrac = sourceFracRow - sourceRowFloor;
         const sourceRowCeil = Math.min(oldHeight - 1, Math.ceil(sourceFracRow));
         const topRowOffset = b * x.strides[0] + sourceRowFloor * x.strides[1];
         const botRowOffset = b * x.strides[0] + sourceRowCeil * x.strides[1];
         for (let c = 0; c < newWidth; c++) {
-          const sourceFracCol = effectiveColSizeRatio * c;
-          const sourceColFloor = Math.floor(sourceFracCol);
+          let sourceFracCol: number;
+          if (halfPixelCenters) {
+            sourceFracCol = effectiveColSizeRatio * (c + 0.5) - 0.5;
+          } else {
+            sourceFracCol = effectiveColSizeRatio * c;
+          }
+          const sourceColFloor = Math.max(0, Math.floor(sourceFracCol));
           const colFrac = sourceFracCol - sourceColFloor;
           const sourceColCeil =
               Math.min(oldWidth - 1, Math.ceil(sourceFracCol));
