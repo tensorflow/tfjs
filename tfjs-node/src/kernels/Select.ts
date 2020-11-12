@@ -15,14 +15,19 @@
  * =============================================================================
  */
 
-import {Negate} from '../kernel_names';
-import {GradConfig} from '../kernel_registry';
-import {neg} from '../ops/neg';
-import {Tensor} from '../tensor';
+import {backend_util, KernelConfig, Select, SelectInputs} from '@tensorflow/tfjs';
 
-export const negateGradConfig: GradConfig = {
-  kernelName: Negate,
-  gradFunc: (dy: Tensor) => {
-    return {x: () => neg(dy)};
+import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
+
+export const selectConfig: KernelConfig = {
+  kernelName: Select,
+  backendName: 'tensorflow',
+  kernelFunc: (args) => {
+    const {condition, t, e} = args.inputs as SelectInputs;
+    const backend = args.backend as NodeJSKernelBackend;
+
+    const opAttrs = [createTensorsTypeOpAttr(
+        'T', backend_util.upcastType(t.dtype, e.dtype))];
+    return backend.executeSingleOutput(Select, opAttrs, [condition, t, e]);
   }
 };

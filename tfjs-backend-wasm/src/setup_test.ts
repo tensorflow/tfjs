@@ -86,7 +86,8 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'resizeBilinear',
     excludes: [
-      'gradients'  // Not yet implemented.
+      'gradients',        // Not yet implemented.
+      'halfPixelCenters'  // Not yet implemented.
     ]
   },
   {
@@ -378,6 +379,7 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: ['complex'],
   },
   {include: 'prod'},
+  {include: 'floor'},
 ];
 
 const customInclude = (testName: string) => {

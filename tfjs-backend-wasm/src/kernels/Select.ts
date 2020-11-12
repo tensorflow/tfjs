@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, SelectV2, SelectV2Inputs, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Select, SelectInputs, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -24,7 +24,7 @@ let wasmSelect: (
     outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmSelect = backend.wasm.cwrap(SelectV2, null, [
+  wasmSelect = backend.wasm.cwrap('SelectV2', null, [
     'number',  // conditionId
     'number',  // tId
     'number',  // eId
@@ -33,7 +33,7 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
-function select(args: {inputs: SelectV2Inputs, backend: BackendWasm}) {
+function select(args: {inputs: SelectInputs, backend: BackendWasm}) {
   const {inputs, backend} = args;
   const {condition, t, e} = inputs;
 
@@ -54,8 +54,8 @@ function select(args: {inputs: SelectV2Inputs, backend: BackendWasm}) {
   return out;
 }
 
-export const selectV2Config: KernelConfig = {
-  kernelName: SelectV2,
+export const selectConfig: KernelConfig = {
+  kernelName: Select,
   backendName: 'wasm',
   kernelFunc: select as {} as KernelFunc,
   setupFunc: setup

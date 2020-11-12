@@ -14,7 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
-import {KernelConfig, Negate} from '@tensorflow/tfjs-core';
 
-import {createUnaryKernelConfig} from './unary_kernel';
-export const negateConfig: KernelConfig = createUnaryKernelConfig(Negate);
+import {KernelConfig, Neg, NegInputs} from '@tensorflow/tfjs';
+import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
+
+export const negConfig: KernelConfig = {
+  kernelName: Neg,
+  backendName: 'tensorflow',
+  kernelFunc: (args) => {
+    const {x} = args.inputs as NegInputs;
+    const backend = args.backend as NodeJSKernelBackend;
+
+    return backend.executeSingleInput(Neg, x);
+  }
+};

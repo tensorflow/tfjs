@@ -25,7 +25,8 @@ export const resizeBilinearConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {images} = args.inputs as ResizeBilinearInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {alignCorners, size} = args.attrs as {} as ResizeBilinearAttrs;
+    const {alignCorners, halfPixelCenters, size} =
+        args.attrs as {} as ResizeBilinearAttrs;
 
     const opAttrs = [
       createTensorsTypeOpAttr('T', images.dtype),
@@ -33,6 +34,11 @@ export const resizeBilinearConfig: KernelConfig = {
         name: 'align_corners',
         type: backend.binding.TF_ATTR_BOOL,
         value: alignCorners
+      },
+      {
+        name: 'half_pixel_centers',
+        type: backend.binding.TF_ATTR_BOOL,
+        value: halfPixelCenters
       },
     ];
     const [newHeight, newWidth] = size;

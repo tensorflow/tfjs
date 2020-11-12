@@ -1,40 +1,38 @@
 {
     "format": "graph-model",
-    "userDefinedMetadata": {
-        "signature": {
-            "inputs": {
-                "dense_dense1_input:0": {
-                    "dtype": "DT_FLOAT",
-                    "name": "dense_dense1_input:0",
-                    "tensorShape": {
-                        "dim": [
-                            {
-                                "size": "-1"
-                            },
-                            {
-                                "size": "1"
-                            }
-                        ]
-                    }
-                }
-            },
-            "outputs": {
-                "Identity:0": {
-                    "dtype": "DT_FLOAT",
-                    "name": "Identity:0",
-                    "tensorShape": {
-                        "dim": [
-                            {
-                                "size": "-1"
-                            },
-                            {
-                                "size": "1"
-                            }
-                        ]
-                    }
-                }
-            }
-        }
+    "signature": {
+      "inputs": {
+          "dense_dense1_input:0": {
+              "dtype": "DT_FLOAT",
+              "name": "dense_dense1_input:0",
+              "tensorShape": {
+                  "dim": [
+                      {
+                          "size": "-1"
+                      },
+                      {
+                          "size": "1"
+                      }
+                  ]
+              }
+          }
+      },
+      "outputs": {
+          "Identity:0": {
+              "dtype": "DT_FLOAT",
+              "name": "Identity:0",
+              "tensorShape": {
+                  "dim": [
+                      {
+                          "size": "-1"
+                      },
+                      {
+                          "size": "1"
+                      }
+                  ]
+              }
+          }
+      }
     },
     "modelTopology": {
         "node": [

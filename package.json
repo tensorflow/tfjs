@@ -3,26 +3,31 @@
     "@octokit/rest": "15.17.0",
     "@types/argparse": "^1.0.38",
     "@types/jasmine": "2.8.7",
-    "@types/node": "^12.7.5",
     "@types/mkdirp": "^0.5.2",
+    "@types/node": "^12.7.5",
     "@types/shelljs": "^0.8.7",
     "argparse": "^1.0.10",
     "chalk": "~2.4.2",
     "clang-format": "~1.2.4",
+    "console-table-printer": "^2.4.32",
     "jasmine": "3.1.0",
-    "shelljs": "~0.8.3",
+    "js-yaml": "^3.14.0",
     "mkdirp": "~0.5.1",
+    "shelljs": "~0.8.3",
     "ts-node": "~8.8.2",
     "tslint": "~5.20.0",
     "typescript": "3.5.3"
   },
   "scripts": {
-    "find-affected-packages": "./scripts/find-affected-packages.js",
+    "test-packages-ci": "yarn generate-cloudbuild-for-packages && ./scripts/run-build.sh",
+    "generate-cloudbuild-for-packages": "./scripts/generate_cloudbuild_for_packages.js",
+    "test-generate-cloudbuild": "jasmine run scripts/generate_cloudbuild_test.js",
     "release": "ts-node -s ./scripts/release.ts",
     "release-tfjs": "ts-node -s ./scripts/release-tfjs.ts",
     "publish-npm": "ts-node -s ./scripts/publish-npm.ts",
     "release-notes": "ts-node -s ./scripts/release_notes/release_notes.ts",
     "test-release-notes": "ts-node -s ./scripts/release_notes/run_tests.ts",
-    "update-tfjs-lockfiles": "ts-node -s ./scripts/update-tfjs-lockfiles"
+    "update-tfjs-lockfiles": "ts-node -s ./scripts/update-tfjs-lockfiles",
+    "update-cloudbuild-tests": "yarn generate-cloudbuild-for-packages tfjs-node -o scripts/cloudbuild_tfjs_node_expected.yml && yarn generate-cloudbuild-for-packages tfjs-core -o scripts/cloudbuild_tfjs_core_expected.yml"
   }
 }

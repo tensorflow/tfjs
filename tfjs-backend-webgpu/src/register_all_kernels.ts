@@ -17,8 +17,9 @@
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
 import {divConfig} from './kernels/Div';
+import {fromPixelsConfig} from './kernels/FromPixels';
+import {fromPixelsAsyncConfig} from './kernels/FromPixelsAsync';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
-import {fromPixelsConfig, fromPixelsAsyncConfig} from './kernels/FromPixels';
 import {mirrorPadConfig} from './kernels/MirrorPad';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
