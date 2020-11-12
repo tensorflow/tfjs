@@ -31,8 +31,8 @@ import {reshapeConfig as Reshape_wasm} from '@tensorflow/tfjs-backend-wasm/dist/
 registerKernel(Reshape_wasm);
 import {resizeBilinearConfig as ResizeBilinear_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/ResizeBilinear';
 registerKernel(ResizeBilinear_wasm);
-import {divConfig as Div_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/Div';
-registerKernel(Div_wasm);
+import {realDivConfig as RealDiv_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/RealDiv';
+registerKernel(RealDiv_wasm);
 import {subConfig as Sub_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/Sub';
 registerKernel(Sub_wasm);
 import {multiplyConfig as Multiply_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/Multiply';
