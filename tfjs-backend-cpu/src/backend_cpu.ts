@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, slice_util, Tensor, Tensor1D, Tensor2D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
 const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppressionV3Impl;
 const split = kernel_impls.split;
@@ -203,31 +203,6 @@ export class MathBackendCPU extends KernelBackend {
           ['The reported memory is an upper bound. Due to automatic garbage ' +
            'collection, the true allocated memory may be less.']
     };
-  }
-
-  stridedSlice<T extends Tensor>(
-      x: T, begin: number[], end: number[], strides: number[]): T {
-    assertNotComplex(x, 'stridedSlice');
-
-    const outShape = slice_util.computeOutShape(begin, end, strides);
-
-    if (outShape.some(axis => axis === 0)) {
-      return tf.tensor([], outShape) as T;
-    }
-
-    const buffer = tf.buffer(outShape, x.dtype);
-    const xBuf = this.bufferSync(x);
-    for (let i = 0; i < buffer.size; i++) {
-      const loc = buffer.indexToLoc(i);
-
-      const newLoc: number[] = new Array(loc.length);
-      for (let j = 0; j < newLoc.length; j++) {
-        newLoc[j] = loc[j] * strides[j] + begin[j];
-      }
-      buffer.set(xBuf.get(...newLoc), ...loc);
-    }
-
-    return buffer.toTensor() as T;
   }
 
   diag(x: Tensor): Tensor {
@@ -926,8 +901,8 @@ export class MathBackendCPU extends KernelBackend {
   }
 
   resizeBilinear(
-      x: Tensor4D, newHeight: number, newWidth: number,
-      alignCorners: boolean): Tensor4D {
+      x: Tensor4D, newHeight: number, newWidth: number, alignCorners: boolean,
+      halfPixelCenters: boolean): Tensor4D {
     assertNotComplex(x, 'resizeBilinear');
 
     const [batch, oldHeight, oldWidth, numChannels] = x.shape;
@@ -951,15 +926,26 @@ export class MathBackendCPU extends KernelBackend {
         effectiveInputSize[1] / effectiveOutputSize[1];
     for (let b = 0; b < batch; b++) {
       for (let r = 0; r < newHeight; r++) {
-        const sourceFracRow = effectiveRowSizeRatio * r;
-        const sourceRowFloor = Math.floor(sourceFracRow);
+        let sourceFracRow: number;
+        if (halfPixelCenters) {
+          sourceFracRow = effectiveRowSizeRatio * (r + 0.5) - 0.5;
+        } else {
+          sourceFracRow = effectiveRowSizeRatio * r;
+        }
+
+        const sourceRowFloor = Math.max(0, Math.floor(sourceFracRow));
         const rowFrac = sourceFracRow - sourceRowFloor;
         const sourceRowCeil = Math.min(oldHeight - 1, Math.ceil(sourceFracRow));
         const topRowOffset = b * x.strides[0] + sourceRowFloor * x.strides[1];
         const botRowOffset = b * x.strides[0] + sourceRowCeil * x.strides[1];
         for (let c = 0; c < newWidth; c++) {
-          const sourceFracCol = effectiveColSizeRatio * c;
-          const sourceColFloor = Math.floor(sourceFracCol);
+          let sourceFracCol: number;
+          if (halfPixelCenters) {
+            sourceFracCol = effectiveColSizeRatio * (c + 0.5) - 0.5;
+          } else {
+            sourceFracCol = effectiveColSizeRatio * c;
+          }
+          const sourceColFloor = Math.max(0, Math.floor(sourceFracCol));
           const colFrac = sourceFracCol - sourceColFloor;
           const sourceColCeil =
               Math.min(oldWidth - 1, Math.ceil(sourceFracCol));

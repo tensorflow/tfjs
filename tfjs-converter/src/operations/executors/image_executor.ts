@@ -37,8 +37,12 @@ export const executeOp: InternalOpExecutor =
           const alignCorners =
               getParamValue('alignCorners', node, tensorMap, context) as
               boolean;
+          const halfPixelCenters =
+              getParamValue('halfPixelCenters', node, tensorMap, context) as
+              boolean;
           return [tfOps.image.resizeBilinear(
-              images as Tensor3D | Tensor4D, [size[0], size[1]], alignCorners)];
+              images as Tensor3D | Tensor4D, [size[0], size[1]], alignCorners,
+              halfPixelCenters)];
         }
         case 'ResizeNearestNeighbor': {
           const images =
