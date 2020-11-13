@@ -1337,11 +1337,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  sign<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SIGN);
-    return this.compileAndRun(program, [x]);
-  }
-
   isNaN<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.IS_NAN);
     return this.compileAndRun(program, [x], 'bool');

@@ -76,11 +76,6 @@ export const CEIL = `return ceil(x);`;
 
 export const FLOOR = `return floor(x);`;
 
-export const SIGN = `
-  if (isnan(x)) { return 0.0; }
-  return sign(x);
-`;
-
 export const IS_NAN = `return float(isnan(x));`;
 
 export const IS_INF = `return float(isinf(x));`;
