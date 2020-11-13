@@ -30,6 +30,7 @@ import {conv2DConfig} from './kernels/Conv2D';
 import {cosConfig} from './kernels/Cos';
 import {fftConfig} from './kernels/FFT';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
+import {floorConfig} from './kernels/Floor';
 import {fromPixelsConfig} from './kernels/FromPixels';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {identityConfig} from './kernels/Identity';
@@ -78,6 +79,7 @@ const kernelConfigs: KernelConfig[] = [
   cosConfig,
   fftConfig,
   flipLeftRightConfig,
+  floorConfig,
   fromPixelsConfig,
   fusedConv2DConfig,
   identityConfig,
