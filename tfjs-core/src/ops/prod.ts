@@ -63,6 +63,7 @@ import {transpose} from './transpose';
 function prod_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
   let $x = convertToTensor(x, 'x', 'prod');
+
   if ($x.dtype === 'bool') {
     // bool is not an allowed type for the underlying kernel.
     $x = cast($x, 'int32');

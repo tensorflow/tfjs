@@ -28,7 +28,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Negate(const int x_id, const int out_id) {
+void Neg(const int x_id, const int out_id) {
   unary_xnn_f32(x_id, out_id, xnn_create_negate_nc_f32,
                 xnn_setup_negate_nc_f32);
 }

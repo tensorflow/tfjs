@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, fill, greater, isNaN as tfIsNan, KernelConfig, ones, scalar, Step, StepAttrs, StepInputs, Tensor, tidy} from '@tensorflow/tfjs';
+import {backend_util, fill, greater, isNaN as tfIsNan, KernelConfig, ones, scalar, Step, StepAttrs, StepInputs, Tensor, tidy, where} from '@tensorflow/tfjs';
 
 import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
@@ -30,7 +30,7 @@ export const stepConfig: KernelConfig = {
     const dtype = x.dtype;
     return tidy(() => {
       const nans = tfIsNan(x as Tensor);
-      const stepNoNans = backend.select(
+      const stepNoNans = where(
           greater(x as Tensor, scalar(0, dtype)), ones(x.shape),
           fill(x.shape, alpha, dtype));
 

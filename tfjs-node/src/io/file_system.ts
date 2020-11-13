@@ -107,6 +107,9 @@ export class NodeFileSystem implements tf.io.IOHandler {
       if (modelArtifacts.trainingConfig != null) {
         modelJSON.trainingConfig = modelArtifacts.trainingConfig;
       }
+      if (modelArtifacts.signature != null) {
+        modelJSON.signature = modelArtifacts.signature;
+      }
       if (modelArtifacts.userDefinedMetadata != null) {
         modelJSON.userDefinedMetadata = modelArtifacts.userDefinedMetadata;
       }
@@ -184,6 +187,9 @@ export class NodeFileSystem implements tf.io.IOHandler {
       }
       if (modelJSON.trainingConfig != null) {
         modelArtifacts.trainingConfig = modelJSON.trainingConfig;
+      }
+      if (modelJSON.signature != null) {
+        modelArtifacts.signature = modelJSON.signature;
       }
       if (modelJSON.userDefinedMetadata != null) {
         modelArtifacts.userDefinedMetadata = modelJSON.userDefinedMetadata;

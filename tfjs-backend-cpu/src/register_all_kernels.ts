@@ -52,7 +52,6 @@ import {depthwiseConv2dNativeBackpropInputConfig} from './kernels/DepthwiseConv2
 import {dilation2dConfig} from './kernels/Dilation2D';
 import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
 import {dilation2dBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
-import {divConfig} from './kernels/Div';
 import {eluConfig} from './kernels/Elu';
 import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
@@ -86,7 +85,7 @@ import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {mirrorPadConfig} from './kernels/MirrorPad';
 import {multiplyConfig} from './kernels/Multiply';
-import {negateConfig} from './kernels/Negate';
+import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
@@ -94,7 +93,9 @@ import {oneHotConfig} from './kernels/OneHot';
 import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
+import {prodConfig} from './kernels/Prod';
 import {realConfig} from './kernels/Real';
+import {realDivConfig} from './kernels/RealDiv';
 import {reciprocalConfig} from './kernels/Reciprocal';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
@@ -116,12 +117,14 @@ import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {stepConfig} from './kernels/Step';
+import {stridedSliceConfig} from './kernels/StridedSlice';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
 import {transposeConfig} from './kernels/Transpose';
 import {uniqueConfig} from './kernels/Unique';
+import {unpackConfig} from './kernels/Unpack';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
@@ -158,7 +161,7 @@ const kernelConfigs: KernelConfig[] = [
   dilation2dConfig,
   dilation2dBackpropInputConfig,
   dilation2dBackpropFilterConfig,
-  divConfig,
+  realDivConfig,
   eluConfig,
   equalConfig,
   erfConfig,
@@ -192,7 +195,7 @@ const kernelConfigs: KernelConfig[] = [
   maxConfig,
   mirrorPadConfig,
   multiplyConfig,
-  negateConfig,
+  negConfig,
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
@@ -200,6 +203,7 @@ const kernelConfigs: KernelConfig[] = [
   padV2Config,
   powConfig,
   preluConfig,
+  prodConfig,
   realConfig,
   reciprocalConfig,
   reluConfig,
@@ -222,12 +226,14 @@ const kernelConfigs: KernelConfig[] = [
   squareConfig,
   squaredDifferenceConfig,
   stepConfig,
+  stridedSliceConfig,
   subConfig,
   sumConfig,
   tanConfig,
   tanhConfig,
   transposeConfig,
   uniqueConfig,
+  unpackConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {

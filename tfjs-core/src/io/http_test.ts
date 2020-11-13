@@ -138,6 +138,7 @@ describeWithFlags('http-load fetch', NODE_ENVS, () => {
               format: 'tfjs-layers',
               generatedBy: '1.15',
               convertedBy: '1.3.1',
+              signature: null,
               userDefinedMetadata: {}
             }),
             contentType: 'application/json'
@@ -192,7 +193,9 @@ describeWithFlags('http-save', CHROME_ENVS, () => {
     weightData: weightData1,
     format: 'layers-model',
     generatedBy: 'TensorFlow.js v0.0.0',
-    convertedBy: null
+    convertedBy: null,
+    signature: null,
+    userDefinedMetadata: {}
   };
 
   let requestInits: RequestInit[] = [];
@@ -470,6 +473,7 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
                 format: 'tfjs-graph-model',
                 generatedBy: '1.15',
                 convertedBy: '1.3.1',
+                signature: null,
                 userDefinedMetadata: {}
               }),
               contentType: 'application/json'

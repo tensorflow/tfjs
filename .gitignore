@@ -28,6 +28,7 @@ tfjs-layers/integration_tests/tfjs2keras/test-data/
 tfjs-layers/integration/typescript/yarn.lock
 e2e/integration_tests/create_save_predict_data
 e2e/integration_tests/convert_predict_data
+e2e/integration_tests/metadata
 e2e/scripts/storage
 e2e/scripts/htpasswd
 e2e/benchmarks/browserstack-benchmark/browsers.json
@@ -58,3 +59,4 @@ tfjs-backend-wasm/wasm-out/*.js
 tfjs-backend-wasm/wasm-out/*.wasm
 yalc.lock
 yarn-error.log
+cloudbuild_generated.yml

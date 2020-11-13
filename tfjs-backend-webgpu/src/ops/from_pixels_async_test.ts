@@ -15,9 +15,14 @@
  * =============================================================================
  */
 
-import * as tf from '../index';
-import {BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
-import {expectArraysClose, expectArraysEqual} from '../test_util';
+import * as tf from '@tensorflow/tfjs-core';
+import {test_util} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import {BROWSER_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
+import {fromPixelsAsync} from './from_pixels_async';
+
+const {expectArraysClose, expectArraysEqual} = test_util;
 
 describeWithFlags('fromPixelsAsync', BROWSER_ENVS, () => {
   it('ImageData 1x1x3', async () => {
@@ -27,7 +32,7 @@ describeWithFlags('fromPixelsAsync', BROWSER_ENVS, () => {
     pixels.data[2] = 160;
     pixels.data[3] = 240;
 
-    const array = await tf.browser.fromPixelsAsync(pixels, 3);
+    const array = await fromPixelsAsync(pixels, 3);
 
     expectArraysEqual(await array.data(), [0, 80, 160]);
   });
@@ -39,7 +44,7 @@ describeWithFlags('fromPixelsAsync', BROWSER_ENVS, () => {
     pixels.data[2] = 160;
     pixels.data[3] = 240;
 
-    const array = await tf.browser.fromPixelsAsync(pixels, 4);
+    const array = await fromPixelsAsync(pixels, 4);
 
     expectArraysEqual(await array.data(), [0, 80, 160, 240]);
   });
@@ -54,7 +59,7 @@ describeWithFlags('fromPixelsAsync', BROWSER_ENVS, () => {
       pixels.data[i] = i * 2;
     }
 
-    const array = await tf.browser.fromPixelsAsync(pixels, 3);
+    const array = await fromPixelsAsync(pixels, 3);
     console.log('2x2x3');
     console.log(array.data());
 
@@ -71,7 +76,7 @@ describeWithFlags('fromPixelsAsync', BROWSER_ENVS, () => {
       pixels.data[i] = i * 2;
     }
 
-    const array = await tf.browser.fromPixelsAsync(pixels, 4);
+    const array = await fromPixelsAsync(pixels, 4);
 
     console.log('2x2x4');
     console.log(array.data());
@@ -92,7 +97,7 @@ describeWithFlags('fromPixelsAsync', BROWSER_ENVS, () => {
     pixels.data[5] = 6;
     pixels.data[6] = 7;
     pixels.data[7] = 255;  // Not used.
-    const res = await tf.browser.fromPixelsAsync(pixels, 3);
+    const res = await fromPixelsAsync(pixels, 3);
     expect(res.shape).toEqual([2, 1, 3]);
     expect(res.dtype).toBe('int32');
     expectArraysClose(await res.data(), [2, 3, 4, 5, 6, 7]);
@@ -104,8 +109,7 @@ describeWithFlags('fromPixelsAsync', BROWSER_ENVS, () => {
     pixels.data[1] = 3;
     pixels.data[2] = 4;
     pixels.data[3] = 255;  // Not used.
-    const a = (await tf.browser.fromPixelsAsync(pixels, 3))
-                  .reshape([1, 1, 1, 3]);
+    const a = (await fromPixelsAsync(pixels, 3)).reshape([1, 1, 1, 3]);
     const res = a.add(tf.scalar(2, 'int32'));
     expect(res.shape).toEqual([1, 1, 1, 3]);
     expect(res.dtype).toBe('int32');
@@ -137,8 +141,8 @@ describeWithFlags('fromPixelsAsync', BROWSER_ENVS, () => {
 
     const dataB = new Uint8Array([5, 6, 7, 255]);
     const pixelsB = {width: 1, height: 1, data: dataB};
-    const a = (await tf.browser.fromPixelsAsync(pixelsA, 3)).toFloat();
-    const b = (await tf.browser.fromPixelsAsync(pixelsB, 3)).toFloat();
+    const a = (await fromPixelsAsync(pixelsA, 3)).toFloat();
+    const b = (await fromPixelsAsync(pixelsB, 3)).toFloat();
     const res = a.add(b);
     expect(res.shape).toEqual([1, 1, 3]);
     expect(res.dtype).toBe('float32');
@@ -156,7 +160,7 @@ describeWithFlags('fromPixelsAsync', BROWSER_ENVS, () => {
     pixels.data[2] = 160;
     pixels.data[3] = 240;
     ctx.putImageData(pixels, 1, 1);
-    const res = await tf.browser.fromPixelsAsync(canvas);
+    const res = await fromPixelsAsync(canvas);
     expect(res.shape).toEqual([1, 1, 3]);
     const data = await res.data();
     expect(data.length).toEqual(1 * 1 * 3);
@@ -167,10 +171,10 @@ describeWithFlags('fromPixelsAsync', BROWSER_ENVS, () => {
     img.src = 'data:image/gif;base64' +
         ',R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
     await new Promise(resolve => {
-          img.onload = () => resolve(img);
+      img.onload = () => resolve(img);
     });
 
-    const res = await tf.browser.fromPixelsAsync(img);
+    const res = await fromPixelsAsync(img);
     expect(res.shape).toEqual([10, 10, 3]);
     const data = await res.data();
     expect(data.length).toEqual(10 * 10 * 3);
@@ -194,7 +198,7 @@ describeWithFlags('fromPixelsAsync', BROWSER_ENVS, () => {
       });
     }
 
-    const res = await tf.browser.fromPixelsAsync(video);
+    const res = await fromPixelsAsync(video);
     expect(res.shape).toEqual([90, 160, 3]);
     const data = await res.data();
     expect(data.length).toEqual(90 * 160 * 3);
@@ -216,7 +220,7 @@ describeWithFlags('fromPixelsAsync', BROWSER_ENVS, () => {
     img.width = size;
     img.height = size;
 
-    const pixels = await tf.browser.fromPixelsAsync(img, 4);
+    const pixels = await fromPixelsAsync(img, 4);
 
     const canvas = document.createElement('canvas');
     canvas.width = size;

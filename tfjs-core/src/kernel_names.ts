@@ -205,17 +205,18 @@ export interface Conv3DAttrs {
 }
 
 export const Conv3DBackpropFilterV2 = 'Conv3DBackpropFilterV2';
-export type Conv3DBackpropFilterInputs = Pick<NamedTensorInfoMap, 'x'|'dy'>;
+export type Conv3DBackpropFilterV2Inputs = Pick<NamedTensorInfoMap, 'x'|'dy'>;
 
-export interface Conv3DBackpropFilterAttrs {
+export interface Conv3DBackpropFilterV2Attrs {
   strides: [number, number, number]|number;
   pad: 'valid'|'same';
   filterShape: [number, number, number, number, number];
 }
 
 export const Conv3DBackpropInputV2 = 'Conv3DBackpropInputV2';
-export type Conv3DBackpropInputInputs = Pick<NamedTensorInfoMap, 'dy'|'filter'>;
-export interface Conv3DBackpropInputAttrs {
+export type Conv3DBackpropInputV2Inputs =
+    Pick<NamedTensorInfoMap, 'dy'|'filter'>;
+export interface Conv3DBackpropInputV2Attrs {
   strides: [number, number, number]|number;
   pad: 'valid'|'same';
   inputShape: [number, number, number, number, number];
@@ -305,8 +306,8 @@ export const Dilation2DBackpropFilter = 'Dilation2DBackpropFilter';
 export type Dilation2DBackpropFilterInputs =
     Pick<NamedTensorInfoMap, 'x'|'filter'|'dy'>;
 
-export const Div = 'Div';
-export type DivInputs = BinaryInputs;
+export const RealDiv = 'Div';
+export type RealDivInputs = BinaryInputs;
 
 export const Elu = 'Elu';
 export type EluInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -533,8 +534,8 @@ export interface MultinomialAttrs {
 export const Multiply = 'Multiply';
 export type MultiplyInputs = BinaryInputs;
 
-export const Negate = 'Negate';
-export type NegateInputs = UnaryInputs;
+export const Neg = 'Neg';
+export type NegInputs = UnaryInputs;
 
 export const NotEqual = 'NotEqual';
 export type NotEqualInputs = BinaryInputs;
@@ -641,6 +642,7 @@ export const ResizeBilinear = 'ResizeBilinear';
 export type ResizeBilinearInputs = Pick<NamedTensorInfoMap, 'images'>;
 export interface ResizeBilinearAttrs {
   alignCorners: boolean;
+  halfPixelCenters: boolean;
   size: [number, number];
 }
 
@@ -669,8 +671,8 @@ export interface ScatterNdAttrs {
   shape: number[];
 }
 
-export const SelectV2 = 'SelectV2';
-export type SelectV2Inputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
+export const Select = 'Select';
+export type SelectInputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
 
 export const Selu = 'Selu';
 export type SeluInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -821,8 +823,6 @@ export interface FromPixelsInputs {
 export interface FromPixelsAttrs {
   numChannels: number;
 }
-
-export const FromPixelsAsync = 'FromPixelsAsync';
 
 export const RotateWithOffset = 'RotateWithOffset';
 export type RotateWithOffsetInputs = Pick<NamedTensorInfoMap, 'image'>;
