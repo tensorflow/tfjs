@@ -74,7 +74,7 @@ export interface GatherOpShapeInfo {
 export function collectGatherOpShapeInfo(
     x: Tensor, indices: Tensor, axis: number,
     batchDims: number): GatherOpShapeInfo {
-  if (batchDims != 0) {
+  if (batchDims !== 0) {
     if (batchDims < -indices.rank || batchDims > indices.rank) {
       throw new Error(`Expect batchDims in the range of [-${indices.rank}, ${
           indices.rank}], but got ${batchDims}`);
@@ -89,7 +89,6 @@ export function collectGatherOpShapeInfo(
     throw new Error(`batchDims (${batchDims}) must be less than rank(x) (
     ${x.rank}).`);
   }
-
 
   if (axis < batchDims) {
     throw new Error(`batchDims (${

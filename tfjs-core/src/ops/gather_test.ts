@@ -82,7 +82,7 @@ describeWithFlags('gather', ALL_ENVS, () => {
 
   it('2D (gather), 2D indices, non-zero batchDims', async () => {
     const t = tf.tensor2d([1, 11, 2, 22], [2, 2]);
-    let t2 = tf.gather(t, tf.tensor2d([1, 0, 0, 1], [2, 2], 'int32'), 1, 1);
+    const t2 = tf.gather(t, tf.tensor2d([1, 0, 0, 1], [2, 2], 'int32'), 1, 1);
     expect(t2.shape).toEqual([2, 2]);
     expectArraysClose(await t2.data(), [11, 1, 2, 22]);
   });
