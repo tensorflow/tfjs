@@ -278,28 +278,27 @@ describe('slice join', () => {
         spyOn(tfOps, 'gather');
         node.op = 'Gather';
         node.inputParams.indices = createTensorAttr(1);
-        node.inputParams.axis = createNumberAttrFromIndex(2);
         const input5 = [tfOps.scalar(2, 'int32')];
-        node.inputNames = ['input1', 'input5', 'input3'];
+        node.inputNames = ['input1', 'input5'];
         executeOp(node, {input1, input5, input3}, context);
 
         expect(tfOps.gather)
             .toHaveBeenCalledWith(
                 input1[0], jasmine.objectContaining({dataId: input5[0].dataId}),
-                3);
+                0);
       });
       it('should match json def for gather', () => {
         node.op = 'Gather';
         node.inputParams.indices = createTensorAttr(1);
-        node.inputParams.axis = createNumberAttrFromIndex(2);
 
-        expect(validateParam(node, slice_join.json, 'GatherV2')).toBeTruthy();
+        expect(validateParam(node, slice_join.json, 'Gather')).toBeTruthy();
       });
       it('should call tfOps.gather', () => {
         spyOn(tfOps, 'gather');
         node.op = 'GatherV2';
         node.inputParams.indices = createTensorAttr(1);
         node.inputParams.axis = createNumberAttrFromIndex(2);
+        node.attrParams.batchDims = createNumberAttr(1);
         const input5 = [tfOps.scalar(2, 'int32')];
         node.inputNames = ['input1', 'input5', 'input3'];
         executeOp(node, {input1, input5, input3}, context);
@@ -307,26 +306,26 @@ describe('slice join', () => {
         expect(tfOps.gather)
             .toHaveBeenCalledWith(
                 input1[0], jasmine.objectContaining({dataId: input5[0].dataId}),
-                3);
+                3, 1);
       });
 
       it('should make indices param of int32 dtype', () => {
         spyOn(tfOps, 'gather');
         node.op = 'Gather';
         node.inputParams.indices = createTensorAttr(1);
-        node.inputParams.axis = createNumberAttrFromIndex(2);
-        node.inputNames = ['input1', 'input5', 'input3'];
+        node.inputNames = ['input1', 'input5'];
         const input5 = [tfOps.scalar(2, 'float32')];
-        executeOp(node, {input1, input5, input3}, context);
+        executeOp(node, {input1, input5}, context);
 
         expect(tfOps.gather)
             .toHaveBeenCalledWith(
-                input1[0], jasmine.objectContaining({dtype: 'int32'}), 3);
+                input1[0], jasmine.objectContaining({dtype: 'int32'}), 0);
       });
       it('should match json def for gather', () => {
         node.op = 'GatherV2';
         node.inputParams.indices = createTensorAttr(1);
         node.inputParams.axis = createNumberAttrFromIndex(2);
+        node.attrParams.batchDims = createNumberAttr(1);
 
         expect(validateParam(node, slice_join.json, 'GatherV2')).toBeTruthy();
       });

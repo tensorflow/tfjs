@@ -45,7 +45,13 @@ export const json: OpMapper[] = [
       {'start': 0, 'name': 'x', 'type': 'tensor'},
       {'start': 1, 'name': 'indices', 'type': 'tensor'},
       {'start': 2, 'name': 'axis', 'type': 'number', 'defaultValue': 0}
-    ]
+    ],
+    'attrs': [{
+      'tfName': 'batch_dims',
+      'name': 'batchDims',
+      'type': 'number',
+      'defaultValue': 0
+    }]
   },
   {
     'tfOpName': 'Gather',
@@ -54,14 +60,12 @@ export const json: OpMapper[] = [
       {'start': 0, 'name': 'x', 'type': 'tensor'},
       {'start': 1, 'name': 'indices', 'type': 'tensor'},
     ],
-    'attrs': [
-      {'tfName': 'axis', 'name': 'axis', 'type': 'number', 'defaultValue': 0}, {
-        'tfName': 'validate_indices',
-        'name': 'validateIndices',
-        'type': 'bool',
-        'notSupported': true
-      }
-    ]
+    'attrs': [{
+      'tfName': 'validate_indices',
+      'name': 'validateIndices',
+      'type': 'bool',
+      'notSupported': true
+    }]
   },
   {
     'tfOpName': 'Reverse',

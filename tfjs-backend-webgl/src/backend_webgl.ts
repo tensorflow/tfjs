@@ -98,6 +98,8 @@ import {UnaryOpPackedProgram} from './unaryop_packed_gpu';
 import {UnpackProgram} from './unpack_gpu';
 import * as webgl_util from './webgl_util';
 import {BackendValues} from '@tensorflow/tfjs-core';
+import {parseAxisParam} from '@tensorflow/tfjs-core/dist/util';
+import {collectGatherOpShapeInfo} from '@tensorflow/tfjs-core/dist/ops/segment_util';
 
 export const EPSILON_FLOAT32 = 1e-7;
 export const EPSILON_FLOAT16 = 1e-4;
@@ -832,15 +834,31 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
+  gather<T extends Tensor>(
+      x: T, indices: Tensor1D, axis: number, batchDims = 0): T {
     const cpuRes = this.tryRunOnCpuOrThrow(
-        [x, indices], () => this.cpuBackend.gather(x, indices, axis));
+        [x, indices],
+        () => this.cpuBackend.gather(x, indices, axis, batchDims));
     if (cpuRes) {
       return cpuRes;
     }
+    const parsedAxis = parseAxisParam(axis, x.shape)[0];
+    const shapeInfo =
+        collectGatherOpShapeInfo(x, indices, parsedAxis, batchDims);
 
-    const program = new GatherProgram(x.shape, indices.size, axis);
-    return this.compileAndRun(program, [x, indices]);
+    const flattenX = x.reshape([
+      shapeInfo.batchSize, shapeInfo.outerSize, shapeInfo.dimSize,
+      shapeInfo.sliceSize
+    ]);
+    const flattenIndex = indices.reshape(
+        [shapeInfo.batchSize, indices.size / shapeInfo.batchSize]);
+    const flattenOutputShape = [
+      shapeInfo.batchSize, shapeInfo.outerSize,
+      indices.size / shapeInfo.batchSize, shapeInfo.sliceSize
+    ];
+    const program = new GatherProgram(flattenX.shape, flattenOutputShape);
+    const res: Tensor = this.compileAndRun(program, [flattenX, flattenIndex]);
+    return res.reshape(shapeInfo.outputShape);
   }
 
   batchToSpaceND<T extends Tensor>(

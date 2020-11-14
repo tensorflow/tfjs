@@ -25,6 +25,8 @@ const topkImpl = kernel_impls.topkImpl;
 const whereImpl = kernel_impls.whereImpl;
 import * as seedrandom from 'seedrandom';
 import {assertNotComplex} from './cpu_util';
+import {parseAxisParam} from '@tensorflow/tfjs-core/dist/util';
+import {collectGatherOpShapeInfo} from '@tensorflow/tfjs-core/dist/ops/segment_util';
 
 interface DataId {}
 
@@ -504,25 +506,39 @@ export class MathBackendCPU extends KernelBackend {
     return tile(this.bufferSync(x), reps) as T;
   }
 
-  gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
+  gather<T extends Tensor>(
+      x: T, indices: Tensor1D, axis: number, batchDims = 0): T {
     assertNotComplex([x, indices], 'gather');
+    const parsedAxis = parseAxisParam(axis, x.shape)[0];
+    const shapeInfo =
+        collectGatherOpShapeInfo(x, indices, parsedAxis, batchDims);
 
-    const newShape: number[] = x.shape.slice();
-    const indicesValues = this.readSync(indices.dataId) as TypedArray;
-    newShape[axis] = indicesValues.length;
-    const result = tf.buffer(newShape, x.dtype);
-    const xBuf = this.bufferSync(x);
+    const flattenX = x.reshape([
+      shapeInfo.batchSize, shapeInfo.outerSize, shapeInfo.dimSize,
+      shapeInfo.sliceSize
+    ]);
+    const flattenIndex = indices.reshape(
+        [shapeInfo.batchSize, indices.size / shapeInfo.batchSize]);
+    const flattenOutputShape = [
+      shapeInfo.batchSize, shapeInfo.outerSize,
+      indices.size / shapeInfo.batchSize, shapeInfo.sliceSize
+    ];
+    const indicesBuf = this.bufferSync(flattenIndex);
+    const result = tf.buffer(flattenOutputShape, x.dtype);
+    const xBuf = this.bufferSync(flattenX);
 
     for (let i = 0; i < result.size; ++i) {
       const newLoc = result.indexToLoc(i);
 
       const originalLoc: number[] = newLoc.slice();
-      originalLoc[axis] = indicesValues[newLoc[axis]];
+      const indicesIndex =
+          indicesBuf.locToIndex([originalLoc[0], originalLoc[2]]);
+      originalLoc[2] = indicesBuf.values[indicesIndex];
 
       const originalIndex = xBuf.locToIndex(originalLoc);
       result.values[i] = xBuf.values[originalIndex];
     }
-    return result.toTensor() as T;
+    return result.toTensor().reshape(shapeInfo.outputShape) as T;
   }
 
   batchToSpaceND<T extends Tensor>(

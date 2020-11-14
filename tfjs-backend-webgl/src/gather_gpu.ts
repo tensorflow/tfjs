@@ -24,13 +24,11 @@ export class GatherProgram implements GPGPUProgram {
   userCode: string;
   rank: number;
 
-  constructor(aShape: number[], indicesLength: number, axis: number) {
-    const outputShape: number[] = aShape.slice();
-    outputShape[axis] = indicesLength;
+  constructor(aShape: number[], outputShape: number[]) {
     this.outputShape = outputShape;
     this.rank = outputShape.length;
     const dtype = getCoordsDataType(this.rank);
-    const sourceCoords = getSourceCoords(aShape, axis);
+    const sourceCoords = getSourceCoords(aShape, 2);
 
     this.userCode = `
       void main() {
@@ -41,21 +39,14 @@ export class GatherProgram implements GPGPUProgram {
   }
 }
 
+// The input and output are always flattened into rank 4 tensors.
 function getSourceCoords(aShape: number[], axis: number): string {
-  const rank = aShape.length;
-  if (rank > 4) {
-    throw Error(`Gather for rank ${rank} is not yet supported`);
-  }
-  if (rank === 1) {
-    return `int(getIndices(resRC))`;
-  }
-
   const currentCoords = ['resRC.x', 'resRC.y', 'resRC.z', 'resRC.w'];
 
   const sourceCoords = [];
   for (let i = 0; i < aShape.length; i++) {
-    if (i === axis) {
-      sourceCoords.push(`int(getIndices(${currentCoords[i]}))`);
+    if (i === 2) {
+      sourceCoords.push('int(getIndices(resRC.x, resRC.z))');
     } else {
       sourceCoords.push(`${currentCoords[i]}`);
     }
