@@ -25,8 +25,6 @@ const topkImpl = kernel_impls.topkImpl;
 const whereImpl = kernel_impls.whereImpl;
 import * as seedrandom from 'seedrandom';
 import {assertNotComplex} from './cpu_util';
-import {parseAxisParam} from '@tensorflow/tfjs-core/dist/util';
-import {collectGatherOpShapeInfo} from '@tensorflow/tfjs-core/dist/ops/segment_util';
 
 interface DataId {}
 
@@ -509,9 +507,9 @@ export class MathBackendCPU extends KernelBackend {
   gather<T extends Tensor>(
       x: T, indices: Tensor1D, axis: number, batchDims = 0): T {
     assertNotComplex([x, indices], 'gather');
-    const parsedAxis = parseAxisParam(axis, x.shape)[0];
-    const shapeInfo =
-        collectGatherOpShapeInfo(x, indices, parsedAxis, batchDims);
+    const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
+    const shapeInfo = backend_util.segment_util.collectGatherOpShapeInfo(
+        x, indices, parsedAxis, batchDims);
 
     const flattenX = x.reshape([
       shapeInfo.batchSize, shapeInfo.outerSize, shapeInfo.dimSize,
@@ -538,7 +536,7 @@ export class MathBackendCPU extends KernelBackend {
       const originalIndex = xBuf.locToIndex(originalLoc);
       result.values[i] = xBuf.values[originalIndex];
     }
-    return result.toTensor().reshape(shapeInfo.outputShape) as T;
+    return result.toTensor().reshape(shapeInfo.outputShape);
   }
 
   batchToSpaceND<T extends Tensor>(

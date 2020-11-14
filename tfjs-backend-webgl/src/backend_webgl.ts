@@ -20,7 +20,7 @@ import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
 import {buffer, DataId, DataValues, div, engine, env, max, MemoryInfo, range, RecursiveArray, reshape, scalar, softmax, sum, tensor, TensorBuffer, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
-import {backend_util, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
+import {backend_util, kernel_impls, segment_util, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
 import {ceilImplCPU, expImplCPU, expm1ImplCPU, floorImplCPU, greaterImplCPU, lessImplCPU, logImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU} from './kernel_utils/shared';
@@ -98,8 +98,6 @@ import {UnaryOpPackedProgram} from './unaryop_packed_gpu';
 import {UnpackProgram} from './unpack_gpu';
 import * as webgl_util from './webgl_util';
 import {BackendValues} from '@tensorflow/tfjs-core';
-import {parseAxisParam} from '@tensorflow/tfjs-core/dist/util';
-import {collectGatherOpShapeInfo} from '@tensorflow/tfjs-core/dist/ops/segment_util';
 
 export const EPSILON_FLOAT32 = 1e-7;
 export const EPSILON_FLOAT16 = 1e-4;
@@ -842,9 +840,9 @@ export class MathBackendWebGL extends KernelBackend {
     if (cpuRes) {
       return cpuRes;
     }
-    const parsedAxis = parseAxisParam(axis, x.shape)[0];
-    const shapeInfo =
-        collectGatherOpShapeInfo(x, indices, parsedAxis, batchDims);
+    const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
+    const shapeInfo = segment_util.collectGatherOpShapeInfo(
+        x, indices, parsedAxis, batchDims);
 
     const flattenX = x.reshape([
       shapeInfo.batchSize, shapeInfo.outerSize, shapeInfo.dimSize,
