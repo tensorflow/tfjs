@@ -111,7 +111,7 @@ export function stridedSlice(args: {
 
   const nonStrided = strides.every(v => v === 1);
   if (nonStrided) {
-    const xSliced = slice({inputs: {x}, attrs: {begin, size}, backend});
+    const xSliced = slice({inputs: {x: xReshaped}, attrs: {begin, size}, backend});
     return reshape({inputs: {x: xSliced}, attrs: {shape: outShape}, backend});
   }
 
