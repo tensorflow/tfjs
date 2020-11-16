@@ -26,8 +26,9 @@ import {complex} from '../kernels/Complex';
 import * as unary_op from '../unaryop_gpu';
 import {UnaryOpProgram} from '../unaryop_gpu';
 import * as unary_packed_op from '../unaryop_packed_gpu';
+import {UnaryOpPackedProgram} from '../unaryop_packed_gpu';
 
-import {SimpleBinaryKernelImplCPU} from './shared';
+import {SimpleBinaryKernelImplCPU, SimpleUnaryKernelImplCPU} from './shared';
 
 export const CHECK_NAN_SNIPPET_UNARY = `if (isnan(x)) return x;`;
 
@@ -43,16 +44,49 @@ export const CHECK_NAN_SNIPPET_BINARY_PACKED = `
   result.a = isNaN.a > 0. ? NAN : result.a;
 `;
 
+type UnaryKernelFuncConfig = {
+  opSnippet: string,
+  packedOpSnippet?: string,
+  cpuKernelImpl?: SimpleUnaryKernelImplCPU,
+  dtype?: DataType
+};
+
 /**
  * Template that creates a `KernelFunc` for unary ops.
- * @param opSnippets Op snippet to create `UnaryOpProgram`.
+ * @param opSnippet Op snippet to create `UnaryOpProgram`.
+ * @param packedOpSnippet Op snippet to create `UnaryOpPackedProgram`.
+ * @param dtype Optional. If set, the result has this dtype. Otherwise, the
+ *     result has the same dtype as the first input. This is mainly used in
+ *     comparison kernels, such as Equal, Less, Greater, etc.
  */
-export function unaryKernelFunc(opSnippet: string): KernelFunc {
+export function unaryKernelFunc(
+    {opSnippet, packedOpSnippet, cpuKernelImpl, dtype}: UnaryKernelFuncConfig):
+    KernelFunc {
   return ({inputs, backend}) => {
     const {x} = inputs as UnaryInputs;
     const webglBackend = backend as MathBackendWebGL;
-    const program = new UnaryOpProgram(x.shape, opSnippet);
-    return webglBackend.runWebGLProgram(program, [x], x.dtype);
+
+    const $dtype = dtype || x.dtype;
+    if (webglBackend.shouldExecuteOnCPU([x]) && cpuKernelImpl != null) {
+      const xData = webglBackend.texData.get(x.dataId);
+      const outValues = cpuKernelImpl(xData.values as TypedArray, $dtype);
+
+      const out = webglBackend.makeTensorInfo(x.shape, $dtype);
+      const outData = webglBackend.texData.get(out.dataId);
+      outData.values = outValues;
+      return out;
+    }
+
+    const shouldUsePackedProgram =
+        env().getBool('WEBGL_PACK_UNARY_OPERATIONS') && packedOpSnippet != null;
+    let program: UnaryOpProgram|UnaryOpPackedProgram;
+    if (shouldUsePackedProgram) {
+      program = new UnaryOpPackedProgram(x.shape, packedOpSnippet);
+    } else {
+      program = new UnaryOpProgram(x.shape, opSnippet);
+    }
+
+    return webglBackend.runWebGLProgram(program, [x], $dtype);
   };
 }
 
