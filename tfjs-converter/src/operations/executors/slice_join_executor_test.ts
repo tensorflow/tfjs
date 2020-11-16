@@ -22,7 +22,7 @@ import * as slice_join from '../op_list/slice_join';
 import {Node} from '../types';
 
 import {executeOp} from './slice_join_executor';
-import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, createTensorsAttr, validateParam} from './test_helper';
+import {createBooleanArrayAttrFromIndex, createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, createTensorsAttr, validateParam} from './test_helper';
 
 describe('slice join', () => {
   let node: Node;
@@ -181,17 +181,18 @@ describe('slice join', () => {
       it('should call tfOps.reverse', () => {
         spyOn(tfOps, 'reverse');
         node.op = 'Reverse';
-        node.inputParams.axis = createNumericArrayAttrFromIndex(1);
-        node.inputNames = ['input1', 'input4'];
-        executeOp(node, {input1, input4}, context);
+        node.inputParams.dims = createBooleanArrayAttrFromIndex(1);
+        node.inputNames = ['input1', 'input6'];
+        const input6 = [tfOps.tensor1d([false, true], 'bool')];
+        executeOp(node, {input1, input6}, context);
 
-        expect(tfOps.reverse).toHaveBeenCalledWith(input1[0], [3]);
+        expect(tfOps.reverse).toHaveBeenCalledWith(input1[0], [1]);
       });
       it('should match json def for reverse', () => {
         node.op = 'Reverse';
-        node.inputParams.axis = createNumericArrayAttrFromIndex(1);
+        node.inputParams.dims = createBooleanArrayAttrFromIndex(1);
 
-        expect(validateParam(node, slice_join.json, 'ReverseV2')).toBeTruthy();
+        expect(validateParam(node, slice_join.json, 'Reverse')).toBeTruthy();
       });
       it('should call tfOps.reverse', () => {
         spyOn(tfOps, 'reverse');
