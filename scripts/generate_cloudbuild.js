@@ -133,8 +133,10 @@ function findSubgraph(node, graph, subnodes = new Set()) {
  * Find the transitive closure of dependencies of the given packages.
  */
 function findDeps(packages) {
-  return new Set(...packages.map(
-      packageName => findSubgraph(packageName, DEPENDENCY_GRAPH)));
+  return new Set(
+      [...packages]
+          .map(packageName => findSubgraph(packageName, DEPENDENCY_GRAPH))
+          .reduce((a, b) => [...a, ...b]));
 }
 
 /**
@@ -143,8 +145,10 @@ function findDeps(packages) {
  * their transitive closure of dependencies.
  */
 function findReverseDeps(packages) {
-  return new Set(...packages.map(
-      packageName => findSubgraph(packageName, REVERSE_DEPENDENCY_GRAPH)));
+  return new Set([
+    ...packages
+  ].map(packageName => findSubgraph(packageName, REVERSE_DEPENDENCY_GRAPH))
+                     .reduce((a, b) => [...a, ...b]));
 }
 
 /**
@@ -166,8 +170,10 @@ function generateCloudbuild(packages, print = true) {
 
   const deps = findDeps(packages);
   const reverseDeps = findReverseDeps(packages);
+  const depsOfReverseDeps = findDeps(reverseDeps);
 
-  const toBuild = new Set([...deps, ...packages, ...reverseDeps]);
+  const toBuild =
+      new Set([...deps, ...packages, ...reverseDeps, ...depsOfReverseDeps]);
   const toTest = new Set([...packages, ...reverseDeps]);
 
   if (print) {
