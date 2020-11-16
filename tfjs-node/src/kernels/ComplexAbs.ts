@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,16 +15,21 @@
  * =============================================================================
  */
 
-import {KernelConfig, Square} from '@tensorflow/tfjs-core';
+import {ComplexAbs, ComplexAbsInputs, KernelConfig} from '@tensorflow/tfjs';
 
-import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-const SQUARE = `return x * x;`;
+export const complexAbsConfig: KernelConfig = {
+  kernelName: ComplexAbs,
+  backendName: 'tensorflow',
+  kernelFunc: (args) => {
+    const {x} = args.inputs as ComplexAbsInputs;
+    const backend = args.backend as NodeJSKernelBackend;
 
-export const square = unaryKernelFunc({opSnippet: SQUARE});
-
-export const squareConfig: KernelConfig = {
-  kernelName: Square,
-  backendName: 'webgl',
-  kernelFunc: square,
+    const opAttrs = [
+      createTensorsTypeOpAttr('T', x.dtype),
+      createTensorsTypeOpAttr('Tout', 'float32')
+    ];
+    return backend.executeSingleOutput(ComplexAbs, opAttrs, [x]);
+  }
 };

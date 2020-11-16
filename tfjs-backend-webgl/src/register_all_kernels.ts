@@ -30,6 +30,7 @@ import {conv2DConfig} from './kernels/Conv2D';
 import {cosConfig} from './kernels/Cos';
 import {fftConfig} from './kernels/FFT';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
+import {floorConfig} from './kernels/Floor';
 import {fromPixelsConfig} from './kernels/FromPixels';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {identityConfig} from './kernels/Identity';
@@ -50,6 +51,7 @@ import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reshapeConfig} from './kernels/Reshape';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
+import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
 import {sliceConfig} from './kernels/Slice';
 import {squareConfig} from './kernels/Square';
@@ -77,6 +79,7 @@ const kernelConfigs: KernelConfig[] = [
   cosConfig,
   fftConfig,
   flipLeftRightConfig,
+  floorConfig,
   fromPixelsConfig,
   fusedConv2DConfig,
   identityConfig,
@@ -97,6 +100,7 @@ const kernelConfigs: KernelConfig[] = [
   realDivConfig,
   reshapeConfig,
   rotateWithOffsetConfig,
+  signConfig,
   sinConfig,
   sliceConfig,
   squareConfig,

@@ -15,18 +15,24 @@
  * =============================================================================
  */
 
-import {KernelConfig, Sin} from '@tensorflow/tfjs-core';
+import {KernelConfig, Real, RealInputs, Tensor} from '@tensorflow/tfjs';
+import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-import {CHECK_NAN_SNIPPET_UNARY, unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+export const realConfig: KernelConfig = {
+  kernelName: Real,
+  backendName: 'tensorflow',
+  kernelFunc: (args) => {
+    const {input} = args.inputs as RealInputs;
+    const backend = args.backend as NodeJSKernelBackend;
 
-const SIN = CHECK_NAN_SNIPPET_UNARY + `
-  return sin(x);
-`;
-
-export const sin = unaryKernelFunc({opSnippet: SIN});
-
-export const sinConfig: KernelConfig = {
-  kernelName: Sin,
-  backendName: 'webgl',
-  kernelFunc: sin,
+    const opAttrs = [
+      createTensorsTypeOpAttr('T', input as Tensor), {
+        name: 'Tout',
+        type: backend.binding.TF_ATTR_TYPE,
+        value: backend.binding.TF_FLOAT
+      }
+    ];
+    const inputs = [input];
+    return backend.executeSingleOutput(Real, opAttrs, inputs);
+  }
 };

@@ -159,6 +159,9 @@ export interface ClipByValueAttrs {
 export const Complex = 'Complex';
 export type ComplexInputs = Pick<NamedTensorInfoMap, 'real'|'imag'>;
 
+export const ComplexAbs = 'ComplexAbs';
+export type ComplexAbsInputs = UnaryInputs;
+
 export const Concat = 'Concat';
 export type ConcatInputs = TensorInfo[];
 export interface ConcatAttrs {

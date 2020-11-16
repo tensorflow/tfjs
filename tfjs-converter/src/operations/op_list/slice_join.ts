@@ -72,7 +72,7 @@ export const json: OpMapper[] = [
     'category': 'slice_join',
     'inputs': [
       {'start': 0, 'name': 'x', 'type': 'tensor'},
-      {'start': 1, 'name': 'dims', 'type': 'bool', 'notSupported': true}
+      {'start': 1, 'name': 'dims', 'type': 'bool[]'}
     ]
   },
   {

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,16 +15,12 @@
  * =============================================================================
  */
 
-import {KernelConfig, Square} from '@tensorflow/tfjs-core';
+import {ComplexAbs} from '../kernel_names';
+import {GradConfig} from '../kernel_registry';
+import {absGradConfig} from './Abs_grad';
 
-import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-
-const SQUARE = `return x * x;`;
-
-export const square = unaryKernelFunc({opSnippet: SQUARE});
-
-export const squareConfig: KernelConfig = {
-  kernelName: Square,
-  backendName: 'webgl',
-  kernelFunc: square,
+export const complexAbsGradConfig: GradConfig = {
+  kernelName: ComplexAbs,
+  inputsToSave: ['x'],
+  gradFunc: absGradConfig.gradFunc,
 };

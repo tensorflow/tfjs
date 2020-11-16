@@ -115,8 +115,7 @@
       {
         "start": 1,
         "name": "dims",
-        "type": "bool",
-        "notSupported": true
+        "type": "bool[]"
       }
     ]
   },

@@ -56,8 +56,19 @@ export const executeOp: InternalOpExecutor =
           return [tfOps.gather(
               input, tfOps.cast(indices, 'int32'), axis, batchDims)];
         }
-        case 'ReverseV2':
         case 'Reverse': {
+          const dims =
+              getParamValue('dims', node, tensorMap, context) as boolean[];
+          const axis = [];
+          for (let i = 0; i < dims.length; i++) {
+            if (dims[i]) {
+              axis.push(i);
+            }
+          }
+          const input = getParamValue('x', node, tensorMap, context) as Tensor;
+          return [tfOps.reverse(input, axis)];
+        }
+        case 'ReverseV2': {
           const axis =
               getParamValue('axis', node, tensorMap, context) as number[];
           const input = getParamValue('x', node, tensorMap, context) as Tensor;
