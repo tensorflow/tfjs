@@ -44,6 +44,7 @@
     "tslint": "~5.11.0",
     "tslint-no-circular-imports": "~0.5.0",
     "typescript": "3.5.3",
+    "ts-morph": "^8.1.2",
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
