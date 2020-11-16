@@ -70,7 +70,6 @@ import {LRNPackedProgram} from './lrn_packed_gpu';
 import {MaxPool3DBackpropProgram} from './max_pool_backprop_gpu';
 import {MatMulPackedProgram} from './mulmat_packed_gpu';
 import {MultinomialProgram} from './multinomial_gpu';
-import {OneHotProgram} from './onehot_gpu';
 import {PackProgram} from './pack_gpu';
 import {PadProgram} from './pad_gpu';
 import {PadPackedProgram} from './pad_packed_gpu';
@@ -1787,12 +1786,6 @@ export class MathBackendWebGL extends KernelBackend {
     const program = new MultinomialProgram(batchSize, numOutcomes, numSamples);
     const customSetup = program.getCustomSetupFunc(seed);
     return this.compileAndRun(program, [probs], 'int32', customSetup);
-  }
-
-  oneHot(indices: Tensor1D, depth: number, onValue: number, offValue: number):
-      Tensor2D {
-    const program = new OneHotProgram(indices.size, depth, onValue, offValue);
-    return this.compileAndRun(program, [indices]);
   }
 
   diag(x: Tensor): Tensor {

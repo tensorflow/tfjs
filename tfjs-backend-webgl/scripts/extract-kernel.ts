@@ -82,8 +82,9 @@ function getPreamble() {
 function getImports(kernelName: string, attrs: string[]) {
   const kernelInfoImport = attrs.length > 0 ?
       `import {KernelConfig, ${kernelName}, ${kernelName}Inputs, ${
-          kernelName}Attrs}` :
-      `import {KernelConfig, ${kernelName}, ${kernelName}Inputs}`;
+          kernelName}Attrs, KernelFunc, TensorInfo}` :
+      `import {KernelConfig, ${kernelName}, ${
+          kernelName}Inputs, KernelFunc, TensorInfo}`;
   const imports = `${kernelInfoImport} from '@tensorflow/tfjs-core';
 import {MathBackendWebGL} from '../backend_webgl';
 `;
@@ -93,10 +94,20 @@ import {MathBackendWebGL} from '../backend_webgl';
 function getKernelConfigBody(
     kernelFuncName: string, kernelName: string, inputs: string[],
     attrs: string[], kernelFuncBody: string) {
+  const argsDestructure = [];
+  if (inputs.length > 0) {
+    argsDestructure.push('inputs');
+  }
+  argsDestructure.push('backend');
+  if (attrs.length > 0) {
+    argsDestructure.push('attrs');
+  }
+
+  const argsDestructureStr = `const {${argsDestructure.join(', ')}} = args;`;
+
   let inputDestructure = `const {${inputs.join(', ')}} = inputs;`;
   if (attrs.length > 0) {
-    inputDestructure += `\n\t\tconst {${
-        attrs.join(', ')}} = args.attrs as {} as ${kernelName}Attrs;`;
+    inputDestructure += `\n\t\tconst {${attrs.join(', ')}} = attrs`;
   }
 
   const kernelFuncInputsType =
@@ -110,14 +121,17 @@ function getKernelConfigBody(
   const kernelFuncArgsType = `{${kernelFuncArgsTypeParts.join(', ')}}`;
 
   const configBody = `
+export const ${kernelFuncName} = (args: ${kernelFuncArgsType}): TensorInfo => {
+    ${argsDestructureStr}
+    ${inputDestructure}
+
+    ${kernelFuncBody.replace(/compileAndRun/g, 'runWebGLProgram')}
+};
+
 export const ${kernelFuncName}Config: KernelConfig = {
   kernelName: ${kernelName},
   backendName: 'webgl',
-  kernelFunc: (args: ${kernelFuncArgsType}) => {
-    ${inputDestructure}
-
-    ${kernelFuncBody}
-  }
+  kernelFunc: ${kernelFuncName} as {} as KernelFunc
 };
 `;
 

@@ -46,6 +46,7 @@ import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
+import {oneHotConfig} from './kernels/OneHot';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reshapeConfig} from './kernels/Reshape';
@@ -93,6 +94,7 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
+  oneHotConfig,
   realConfig,
   realDivConfig,
   reshapeConfig,
@@ -100,13 +102,13 @@ const kernelConfigs: KernelConfig[] = [
   sinConfig,
   sliceConfig,
   squareConfig,
+  squaredDifferenceConfig,
   subConfig,
   sumConfig,
-  squaredDifferenceConfig,
   tanConfig,
   tileConfig,
   transposeConfig,
-  uniqueConfig,
+  uniqueConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {
