@@ -23,7 +23,7 @@ import {buffer, DataId, DataValues, div, engine, env, max, MemoryInfo, range, Re
 import {backend_util, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
-import {ceilImplCPU, expImplCPU, expm1ImplCPU, floorImplCPU, greaterImplCPU, lessImplCPU, logImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU} from './kernel_utils/shared';
+import {ceilImplCPU, expImplCPU, expm1ImplCPU, greaterImplCPU, lessImplCPU, logImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
@@ -1319,26 +1319,6 @@ export class MathBackendWebGL extends KernelBackend {
     }
 
     const program = new UnaryOpProgram(x.shape, unary_op.CEIL);
-    return this.compileAndRun(program, [x]);
-  }
-
-  floor<T extends Tensor>(x: T): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      const outValues = floorImplCPU(
-          this.texData.get(x.dataId).values as TypedArray, x.dtype);
-      return this.makeOutput(x.shape, x.dtype, outValues);
-    }
-
-    if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
-      return this.packedUnaryOp(x, unary_op.FLOOR, x.dtype) as T;
-    }
-
-    const program = new UnaryOpProgram(x.shape, unary_op.FLOOR);
-    return this.compileAndRun(program, [x]);
-  }
-
-  sign<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SIGN);
     return this.compileAndRun(program, [x]);
   }
 
