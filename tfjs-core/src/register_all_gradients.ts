@@ -34,6 +34,7 @@ import {broadcastToGradConfig} from './gradients/BroadcastTo_grad';
 import {castGradConfig} from './gradients/Cast_grad';
 import {ceilGradConfig} from './gradients/Ceil_grad';
 import {clipByValueGradConfig} from './gradients/ClipByValue_grad';
+import {complexAbsGradConfig} from './gradients/ComplexAbs_grad';
 import {concatGradConfig} from './gradients/Concat_grad';
 import {conv2DGradConfig} from './gradients/Conv2D_grad';
 import {conv2DBackpropInputGradConfig} from './gradients/Conv2DBackpropInput_grad';
@@ -134,6 +135,7 @@ const gradConfigs: GradConfig[] = [
   castGradConfig,
   ceilGradConfig,
   clipByValueGradConfig,
+  complexAbsGradConfig,
   concatGradConfig,
   conv2DBackpropInputGradConfig,
   conv2DGradConfig,
