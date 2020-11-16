@@ -109,7 +109,7 @@ function validateArgs(): CustomTFJSBundleConfig {
 
   finalConfig.models = finalConfig.models.map(normalizePath);
   finalConfig.entries = finalConfig.entries.map(normalizePath);
-  finalConfig.outputPath = normalizePath(finalConfig.outputPath);
+  finalConfig.normalizedOutputPath = normalizePath(finalConfig.outputPath);
 
   moduleProvider = getModuleProvider(finalConfig.moduleOptions);
 
