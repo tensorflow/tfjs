@@ -1,3 +1,4 @@
+
 /**
  * @license
  * Copyright 2020 Google LLC. All Rights Reserved.
@@ -23,7 +24,7 @@ const COS = CHECK_NAN_SNIPPET_UNARY + `
   return cos(x);
 `;
 
-export const cos = unaryKernelFunc(COS);
+export const cos = unaryKernelFunc({opSnippet: COS});
 
 export const cosConfig: KernelConfig = {
   kernelName: Cos,

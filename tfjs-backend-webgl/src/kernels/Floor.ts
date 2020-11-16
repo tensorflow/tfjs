@@ -16,42 +16,17 @@
  * =============================================================================
  */
 
-import {Floor, KernelConfig, TypedArray} from '@tensorflow/tfjs-core';
-import {MathBackendWebGL} from '../backend_webgl';
-import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {floorImplCPU} from '../kernel_utils/shared';
-
-// import { UnaryOpPackedProgram } from '../unaryop_packed_gpu';
+import { Floor, KernelConfig } from '@tensorflow/tfjs-core';
+import { unaryKernelFunc } from '../kernel_utils/kernel_funcs_utils';
+import { floorImplCPU } from '../kernel_utils/shared';
 
 const FLOOR = `return floor(x);`;
 
-const floorWebgl = unaryKernelFunc(FLOOR);
+export const floor = unaryKernelFunc({opSnippet: FLOOR, packedOpSnippet: FLOOR,
+                                      cpuKernelImpl: floorImplCPU});
 
 export const floorConfig: KernelConfig = {
   kernelName: Floor,
   backendName: 'webgl',
-  kernelFunc: ({inputs, attrs, backend}) => {
-    const {x} = inputs;
-    const webglBackend = backend as MathBackendWebGL;
-
-    const shouldExecuteOnCPU = webglBackend.shouldExecuteOnCPU([x]);
-
-    if (shouldExecuteOnCPU) {
-      const outValues = floorImplCPU(
-          webglBackend.texData.get(x.dataId).values as TypedArray, x.dtype);
-
-      const out = webglBackend.makeTensorInfo(x.shape, x.dtype);
-      const outData = webglBackend.texData.get(out.dataId);
-      outData.values = outValues;
-      return out;
-    }
-
-    // if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
-    //   const program = new UnaryOpPackedProgram(x.shape, FLOOR);
-
-    //   return this.packedUnaryOp(x, unary_op.FLOOR, x.dtype) as T;
-    // }
-
-    return floorWebgl({inputs, attrs, backend});
-  },
+  kernelFunc: floor,
 };

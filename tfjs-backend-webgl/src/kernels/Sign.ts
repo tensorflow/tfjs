@@ -25,7 +25,7 @@ const SIGN = `
   return sign(x);
 `;
 
-export const sign = unaryKernelFunc(SIGN);
+export const sign = unaryKernelFunc({opSnippet: SIGN});
 
 export const signConfig: KernelConfig = {
   kernelName: Sign,
