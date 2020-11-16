@@ -16,14 +16,14 @@
  * =============================================================================
  */
 
-import { Floor, KernelConfig } from '@tensorflow/tfjs-core';
-import { unaryKernelFunc } from '../kernel_utils/kernel_funcs_utils';
-import { floorImplCPU } from '../kernel_utils/shared';
+import {Floor, KernelConfig} from '@tensorflow/tfjs-core';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {floorImplCPU} from '../kernel_utils/shared';
 
 const FLOOR = `return floor(x);`;
 
-export const floor = unaryKernelFunc({opSnippet: FLOOR, packedOpSnippet: FLOOR,
-                                      cpuKernelImpl: floorImplCPU});
+export const floor = unaryKernelFunc(
+    {opSnippet: FLOOR, packedOpSnippet: FLOOR, cpuKernelImpl: floorImplCPU});
 
 export const floorConfig: KernelConfig = {
   kernelName: Floor,
