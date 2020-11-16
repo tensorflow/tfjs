@@ -118,6 +118,7 @@ import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {stepConfig} from './kernels/Step';
+import {stridedSliceConfig} from './kernels/StridedSlice';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
@@ -227,6 +228,7 @@ const kernelConfigs: KernelConfig[] = [
   squareConfig,
   squaredDifferenceConfig,
   stepConfig,
+  stridedSliceConfig,
   subConfig,
   sumConfig,
   tanConfig,

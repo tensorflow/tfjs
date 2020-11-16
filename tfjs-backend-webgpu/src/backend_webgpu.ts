@@ -33,7 +33,9 @@ import {Conv2DNaiveProgram} from './kernels/conv2d_naive_webgpu';
 import {CropAndResizeProgram} from './kernels/crop_and_resize_webgpu';
 import {DepthwiseConv2DProgram} from './kernels/depthwise_conv2d_webgpu';
 import {FillProgram} from './kernels/fill_webgpu';
+import {FromPixelsProgram} from './kernels/FromPixels_utils/from_pixels_webgpu';
 import {Im2ColProgram} from './kernels/im2col_webgpu';
+import {MatMulPackedVec4Program} from './kernels/matmul_packed_vec4_webgpu';
 import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
 import {MatMulProgram} from './kernels/matmul_webgpu';
 import {MaxPoolWithFilterSizeEqualsOneProgram} from './kernels/maxpool_filtersizeone_webgpu';
@@ -51,7 +53,6 @@ import {UnaryOpProgram} from './kernels/unary_op_webgpu';
 import * as webgpu_program from './kernels/webgpu_program';
 import {WebGPUBinary} from './kernels/webgpu_program';
 import * as webgpu_util from './webgpu_util';
-import { FromPixelsProgram } from './kernels/FromPixels_utils/from_pixels_webgpu';
 
 export interface WebGPUMemoryInfo extends backend_util.MemoryInfo {
   numBytesInGPU: number;
@@ -102,7 +103,7 @@ export class WebGPUBackend extends KernelBackend {
   glslang: Glslang;
   commandQueue: GPUCommandEncoder[];
   tensorMap: DataStorage<TensorBufferInfo>;
-  fromPixelProgram : FromPixelsProgram;
+  fromPixelProgram: FromPixelsProgram;
 
   private commandQueueOwnedIds = new WeakSet<DataId>();
   private binaryCache: {[key: string]: WebGPUBinary};
@@ -363,9 +364,9 @@ export class WebGPUBackend extends KernelBackend {
     const tensorData = this.tensorMap.get(tensor.dataId);
 
     return {
-        offset: 0,
-        size: tensorData.bufferInfo.byteSize,
-        buffer: tensorData.bufferInfo.buffer
+      offset: 0,
+      size: tensorData.bufferInfo.byteSize,
+      buffer: tensorData.bufferInfo.buffer
     };
   }
 
@@ -483,8 +484,7 @@ export class WebGPUBackend extends KernelBackend {
     return output as {} as K;
   }
 
-  private makeUniforms(data: Uint32Array|
-                       Int32Array): GPUBindingResource {
+  private makeUniforms(data: Uint32Array|Int32Array): GPUBindingResource {
     const dimensionsBuffer = this.acquireBuffer(
         data.byteLength, GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
     this.queue.writeBuffer(dimensionsBuffer, 0, data);
@@ -1141,7 +1141,7 @@ export class WebGPUBackend extends KernelBackend {
     const output = engine().makeTensorFromDataId(
         dataId, [batch, outerShapeA, outerShapeB], a.dtype, this);
 
-    let program: MatMulProgram|MatMulPackedProgram;
+    let program: MatMulProgram|MatMulPackedProgram|MatMulPackedVec4Program;
     // TODO: We should eventually use the blocked version, but keeping around
     // the old version while we try to understand conditions under which blocked
     // is faster.
@@ -1149,6 +1149,15 @@ export class WebGPUBackend extends KernelBackend {
       program = new MatMulProgram(
           a.shape, output.shape as [number, number, number], transposeA,
           transposeB);
+    } else if (
+        a.shape[2] % 4 === 0 && b.shape[2] % 4 === 0 && !transposeA &&
+        !transposeB) {
+      // TODO: Currently we need to make sure that a.shape[2] and b.shape[2] are
+      // divisible by 4 since we use vec4 to get data. In future, we can remove
+      // this limitation by insert 0 to pack data.
+      program = new MatMulPackedVec4Program(
+          a.shape, output.shape as [number, number, number],
+          env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number);
     } else {
       program = new MatMulPackedProgram(
           a.shape, output.shape as [number, number, number],
