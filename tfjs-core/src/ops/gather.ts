@@ -44,10 +44,10 @@ import {op} from './operation';
  * @param x The input tensor whose slices to be gathered.
  * @param indices The indices of the values to extract.
  * @param axis The axis over which to select values. Defaults to 0.
- * @param batchDims optional, indicate the end of the batch dims for the
- *     indices tensor, Defaults to 0.
- * The output tensor will have shape of
- * `x.shape[:axis] + indices.shape[batchDims:] + x.shape[axis + 1:]`
+ * @param batchDims Optional. The number of batch dimensions. It must be less
+ *     than or equal to rank(indices). Defaults to 0.
+ *     The output tensor will have shape of
+ *     `x.shape[:axis] + indices.shape[batchDims:] + x.shape[axis + 1:]`
  *
  * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */

@@ -29,8 +29,8 @@ void gather_impl(const T* x_ptr, const std::vector<size_t>& x_strides,
   for (size_t i = 0; i < out_size; ++i) {
     auto loc = tfjs::util::offset_to_loc(i, out_strides);
     const size_t batch_loc = loc[0];
-    const size_t new_loc = loc[2];
-    loc[2] = indices_ptr[batch_loc * batch_size + new_loc];
+    const size_t indices_loc = loc[2];
+    loc[2] = indices_ptr[batch_loc * batch_size + indices_loc];
 
     const size_t original_index = tfjs::util::loc_to_offset(loc, x_strides);
 
