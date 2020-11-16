@@ -18,6 +18,7 @@
 import {Abs, AbsInputs, KernelConfig, KernelFunc, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
+import {assertNotComplex} from '../cpu_util';
 
 export function simpleAbsImpl(vals: TypedArray): Float32Array {
   const resultValues = new Float32Array(vals.length);
@@ -30,6 +31,9 @@ export function simpleAbsImpl(vals: TypedArray): Float32Array {
 export const abs = (args: {inputs: AbsInputs, backend: MathBackendCPU}) => {
   const {x} = args.inputs;
   const cpuBackend = args.backend;
+
+  assertNotComplex(x, 'abs');
+
   let resultValues = new Float32Array(util.sizeFromShape(x.shape));
   const values = cpuBackend.data.get(x.dataId).values as TypedArray;
   resultValues = simpleAbsImpl(values);
