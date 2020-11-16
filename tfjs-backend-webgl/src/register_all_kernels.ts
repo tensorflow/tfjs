@@ -28,6 +28,7 @@ import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {cosConfig} from './kernels/Cos';
+import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {fftConfig} from './kernels/FFT';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {fromPixelsConfig} from './kernels/FromPixels';
@@ -76,6 +77,7 @@ const kernelConfigs: KernelConfig[] = [
   concatConfig,
   conv2DConfig,
   cosConfig,
+  cropAndResizeConfig,
   fftConfig,
   flipLeftRightConfig,
   fromPixelsConfig,

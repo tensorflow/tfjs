@@ -107,7 +107,7 @@ function getKernelConfigBody(
 
   let inputDestructure = `const {${inputs.join(', ')}} = inputs;`;
   if (attrs.length > 0) {
-    inputDestructure += `\n\t\tconst {${attrs.join(', ')}} = attrs`;
+    inputDestructure += `\n\t\tconst {${attrs.join(', ')}} = attrs;`;
   }
 
   const kernelFuncInputsType =
