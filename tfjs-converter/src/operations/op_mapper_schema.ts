@@ -69,7 +69,7 @@ export const json = {
       'type': 'string',
       'enum': [
         'number', 'string', 'number[]', 'bool', 'shape', 'tensor', 'tensors',
-        'dtype', 'string[]', 'func', 'dtype[]'
+        'dtype', 'string[]', 'func', 'dtype[]', 'bool[]'
       ]
     },
     'AttrParamMapper': {
