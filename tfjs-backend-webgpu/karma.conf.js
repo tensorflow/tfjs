@@ -69,7 +69,9 @@ module.exports = function(config) {
     customLaunchers: {
       chrome_webgpu: {
         base: 'Chrome',
-        flags: ['--enable-unsafe-webgpu'],
+        flags: [
+          '--enable-unsafe-webgpu', '--enable-dawn-features=disable_robustness'
+        ],
       }
     },
     client: {jasmine: {random: false}, args: args}
