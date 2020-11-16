@@ -28,6 +28,7 @@ import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {cosConfig} from './kernels/Cos';
+import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {fftConfig} from './kernels/FFT';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
@@ -47,6 +48,7 @@ import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
+import {oneHotConfig} from './kernels/OneHot';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reshapeConfig} from './kernels/Reshape';
@@ -77,6 +79,7 @@ const kernelConfigs: KernelConfig[] = [
   concatConfig,
   conv2DConfig,
   cosConfig,
+  cropAndResizeConfig,
   fftConfig,
   flipLeftRightConfig,
   floorConfig,
@@ -96,6 +99,7 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
+  oneHotConfig,
   realConfig,
   realDivConfig,
   reshapeConfig,
@@ -104,13 +108,13 @@ const kernelConfigs: KernelConfig[] = [
   sinConfig,
   sliceConfig,
   squareConfig,
+  squaredDifferenceConfig,
   subConfig,
   sumConfig,
-  squaredDifferenceConfig,
   tanConfig,
   tileConfig,
   transposeConfig,
-  uniqueConfig,
+  uniqueConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {

@@ -48,7 +48,6 @@ import {DepthwiseConv2DDerFilterProgram, DepthwiseConv2DDerInputProgram} from '.
 import {Conv3DProgram} from './conv_gpu';
 import {DepthwiseConv2DProgram} from './conv_gpu_depthwise';
 import {DepthwiseConvPacked2DProgram} from './conv_packed_gpu_depthwise';
-import {CropAndResizeProgram} from './crop_and_resize_gpu';
 import {CumSumProgram} from './cumsum_gpu';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
 import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
@@ -70,7 +69,6 @@ import {LRNPackedProgram} from './lrn_packed_gpu';
 import {MaxPool3DBackpropProgram} from './max_pool_backprop_gpu';
 import {MatMulPackedProgram} from './mulmat_packed_gpu';
 import {MultinomialProgram} from './multinomial_gpu';
-import {OneHotProgram} from './onehot_gpu';
 import {PackProgram} from './pack_gpu';
 import {PadProgram} from './pad_gpu';
 import {PadPackedProgram} from './pad_packed_gpu';
@@ -1769,24 +1767,9 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [probs], 'int32', customSetup);
   }
 
-  oneHot(indices: Tensor1D, depth: number, onValue: number, offValue: number):
-      Tensor2D {
-    const program = new OneHotProgram(indices.size, depth, onValue, offValue);
-    return this.compileAndRun(program, [indices]);
-  }
-
   diag(x: Tensor): Tensor {
     const program = new DiagProgram(x.size);
     return this.compileAndRun(program, [x]);
-  }
-
-  cropAndResize(
-      image: Tensor4D, boxes: Tensor2D, boxIndex: Tensor1D,
-      cropSize: [number, number], method: 'bilinear'|'nearest',
-      extrapolationValue: number): Tensor4D {
-    const program = new CropAndResizeProgram(
-        image.shape, boxes.shape, cropSize, method, extrapolationValue);
-    return this.compileAndRun(program, [image, boxes, boxIndex], 'float32');
   }
 
   depthToSpace(x: Tensor4D, blockSize: number, dataFormat: 'NHWC'|'NCHW'):
