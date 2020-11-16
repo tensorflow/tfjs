@@ -133,7 +133,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     this.workPerThread = workPerThread;
     const tileAOuter = this.workGroupSize[1] * workPerThread;
     const tileBOuter = this.workGroupSize[0] * vecSize;
-    const tileInner = tileBOuter;  // Make sure tileInner is divided by 4.
+    const tileInner = tileBOuter;  // Make sure tileInner is divisible by 4.
 
     const tileSizeA = [tileAOuter, tileInner];
     const tileSizeB = [tileInner, tileBOuter];

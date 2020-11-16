@@ -364,9 +364,9 @@ export class WebGPUBackend extends KernelBackend {
     const tensorData = this.tensorMap.get(tensor.dataId);
 
     return {
-        offset: 0,
-        size: tensorData.bufferInfo.byteSize,
-        buffer: tensorData.bufferInfo.buffer
+      offset: 0,
+      size: tensorData.bufferInfo.byteSize,
+      buffer: tensorData.bufferInfo.buffer
     };
   }
 
@@ -484,8 +484,7 @@ export class WebGPUBackend extends KernelBackend {
     return output as {} as K;
   }
 
-  private makeUniforms(data: Uint32Array|
-                       Int32Array): GPUBindingResource {
+  private makeUniforms(data: Uint32Array|Int32Array): GPUBindingResource {
     const dimensionsBuffer = this.acquireBuffer(
         data.byteLength, GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
     this.queue.writeBuffer(dimensionsBuffer, 0, data);
@@ -1154,7 +1153,7 @@ export class WebGPUBackend extends KernelBackend {
         a.shape[2] % 4 === 0 && b.shape[2] % 4 === 0 && !transposeA &&
         !transposeB) {
       // TODO: Currently we need to make sure that a.shape[2] and b.shape[2] are
-      // divided by 4 since we use vec4 to get data. In future, we can remove
+      // divisible by 4 since we use vec4 to get data. In future, we can remove
       // this limitation by insert 0 to pack data.
       program = new MatMulPackedVec4Program(
           a.shape, output.shape as [number, number, number],
