@@ -34,6 +34,7 @@ export {prodImpl} from './kernels/Prod';
 export {rsqrtImpl} from './kernels/Rsqrt';
 export {sliceImpl} from './kernels/Slice';
 export {squaredDifferenceImpl} from './kernels/SquaredDifference';
+export {stridedSliceImpl} from './kernels/StridedSlice';
 export {subImpl} from './kernels/Sub';
 export {transposeImpl} from './kernels/Transpose_impl';
 export {uniqueImpl} from './kernels/Unique_impl';
