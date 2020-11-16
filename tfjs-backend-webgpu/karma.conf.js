@@ -21,14 +21,12 @@ const karmaTypescriptConfig = {
   coverageOptions: {instrumentation: false},
   reports: {},
   bundlerOptions: {
-    transforms: [
-      require('karma-typescript-es6-transform')({
-        presets: [
-          // ensure we get es5 by adding IE 11 as a target
-          ['@babel/env', {'targets': {'ie': '11'}, 'loose': true}]
-        ]
-      })
-    ],
+    transforms: [require('karma-typescript-es6-transform')({
+      presets: [
+        // ensure we get es5 by adding IE 11 as a target
+        ['@babel/env', {'targets': {'ie': '11'}, 'loose': true}]
+      ]
+    })],
     // worker_node_test in tfjs-core contains a conditional require statement
     // that confuses the bundler of karma-typescript.
     ignore: ['./worker_node_test']
@@ -71,7 +69,9 @@ module.exports = function(config) {
     customLaunchers: {
       chrome_webgpu: {
         base: 'Chrome',
-        flags: ['--enable-unsafe-webgpu'],
+        flags: [
+          '--enable-unsafe-webgpu', '--enable-dawn-features=disable_robustness'
+        ],
       }
     },
     client: {jasmine: {random: false}, args: args}

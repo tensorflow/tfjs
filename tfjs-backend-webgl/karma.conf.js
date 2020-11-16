@@ -21,6 +21,7 @@ const karmaTypescriptConfig = {
   coverageOptions: {instrumentation: false},
   reports: {},
   bundlerOptions: {
+    sourceMap: true,
     // Ignore the import of the `worker_threads` package used in a core test
     // meant to run in node.
     exclude: ['worker_threads'],
@@ -96,7 +97,7 @@ module.exports = function(config) {
     reportSlowerThan: 500,
     browserNoActivityTimeout: 3e5,
     browserDisconnectTimeout: 3e5,
-    browserDisconnectTolerance: 0,
+    browserDisconnectTolerance: 3,
     browserSocketTimeout: 1.2e5,
     customLaunchers: {
       // For browserstack configs see:

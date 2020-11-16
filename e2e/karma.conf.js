@@ -19,6 +19,7 @@ const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.json',
   coverageOptions: {instrumentation: false},
   bundlerOptions: {
+    sourceMap: true,
     acornOptions: {ecmaVersion: 8},
     transforms: [
       require('karma-typescript-es6-transform')({
@@ -44,6 +45,29 @@ const devConfig = {
       served: true,
       nocache: true
     },
+    {
+      pattern: 'integration_tests/metadata/**/*',
+      watched: true,
+      included: false,
+      served: true,
+      nocache: true
+    },
+    // Serve program bundles as files
+    {
+      pattern: 'custom_bundle/*/dist/**/*',
+      watched: true,
+      included: false,
+      served: true,
+      nocache: true
+    },
+    // Serve model assets as files
+    {
+      pattern: 'custom_bundle/*/model/**/*',
+      watched: true,
+      included: false,
+      served: true,
+      nocache: true
+    },
   ],
   include: ['integration_tests/**/*.ts'],
   preprocessors: {
@@ -62,6 +86,12 @@ const browserstackConfig = {
 module.exports = function(config) {
   const args = [];
 
+  if (config.testEnv) {
+    args.push('--testEnv', config.testEnv);
+  }
+  if (config.flags) {
+    args.push('--flags', config.flags);
+  }
   if (config.grep) {
     args.push('--grep', config.grep);
   }
@@ -136,6 +166,7 @@ module.exports = function(config) {
         os_version: '10'
       }
     },
-    client: {jasmine: {random: false}, args: args}
+    client: {jasmine: {random: false}, args: args, captureConsole: true},
+    logLevel: 'info'
   });
 };

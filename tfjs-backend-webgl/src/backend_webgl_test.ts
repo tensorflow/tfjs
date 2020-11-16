@@ -182,6 +182,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
   it('read packed and then use by an unpacked op', async () => {
     const backend = new MathBackendWebGL(null);
     tf.registerBackend('test-storage', () => backend);
+    tf.copyRegisteredKernels('webgl', 'test-storage');
     tf.setBackend('test-storage');
 
     const webglPackFlagSaved = tf.env().getBool('WEBGL_PACK');
@@ -559,17 +560,20 @@ describeWithFlags('memory webgl', WEBGL_ENVS, () => {
 describeWithFlags('backend without render float32 support', WEBGL_ENVS, () => {
   const savedRenderFloat32Flag =
       tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED');
+  const customWebGLBackendName = 'half-float-webgl';
 
   beforeAll(() => {
     tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
   });
 
   beforeEach(() => {
-    tf.registerBackend('half-float-webgl', () => new MathBackendWebGL(null));
+    tf.copyRegisteredKernels('webgl', customWebGLBackendName);
+    tf.registerBackend(
+        customWebGLBackendName, () => new MathBackendWebGL(null));
   });
 
   afterEach(() => {
-    tf.removeBackend('half-float-webgl');
+    tf.removeBackend(customWebGLBackendName);
   });
 
   afterAll(() => {
@@ -577,7 +581,7 @@ describeWithFlags('backend without render float32 support', WEBGL_ENVS, () => {
   });
 
   it('basic usage', async () => {
-    tf.setBackend('half-float-webgl');
+    tf.setBackend(customWebGLBackendName);
 
     const a = tf.tensor2d([1, 2], [1, 2]);
     const b = tf.tensor2d([1, 2], [1, 2]);
@@ -586,7 +590,7 @@ describeWithFlags('backend without render float32 support', WEBGL_ENVS, () => {
   });
 
   it('disposing tensors should not cause errors', () => {
-    tf.setBackend('half-float-webgl');
+    tf.setBackend(customWebGLBackendName);
     expect(() => tf.tidy(() => {
       const a = tf.tensor2d([1, 2], [1, 2]);
       const b = tf.tensor2d([1, 2], [1, 2]);
@@ -711,15 +715,19 @@ describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
 
 describeWithFlags('WebGL backend has sync init', WEBGL_ENVS, () => {
   it('can do matmul without waiting for ready', async () => {
-    tf.registerBackend('my-webgl', () => {
+    const customWebGLBackendName = 'my-webgl';
+
+    tf.copyRegisteredKernels('webgl', customWebGLBackendName);
+
+    tf.registerBackend(customWebGLBackendName, () => {
       return new MathBackendWebGL();
     });
-    tf.setBackend('my-webgl');
+    tf.setBackend(customWebGLBackendName);
     const a = tf.tensor1d([5]);
     const b = tf.tensor1d([3]);
     const res = tf.dot(a, b);
     expectArraysClose(await res.data(), 15);
     tf.dispose([a, b, res]);
-    tf.removeBackend('my-webgl');
+    tf.removeBackend(customWebGLBackendName);
   });
 });

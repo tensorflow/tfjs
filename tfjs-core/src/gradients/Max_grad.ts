@@ -17,8 +17,6 @@
 
 import {Max, MaxAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
-import * as axis_util from '../ops/axis_util';
-import {transpose} from '../ops/transpose';
 import {Tensor} from '../tensor';
 import * as util from '../util';
 
@@ -31,17 +29,13 @@ export const maxGradConfig: GradConfig = {
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const maxAttrs: MaxAttrs = attrs as {} as MaxAttrs;
     const {reductionIndices} = maxAttrs;
-    const [x, y] = saved;
+    const x = saved[0];
+    const y = saved[1];
     const origAxes = util.parseAxisParam(reductionIndices, x.shape);
-    const permutedAxes = axis_util.getAxesPermutation(origAxes, x.rank);
-    const maxGrad = gradForMinAndMax(dy, y, x, origAxes, permutedAxes);
+    const maxGrad = gradForMinAndMax(dy, y, x, origAxes);
     return {
       x: () => {
-        let out = maxGrad['x']();
-        if (permutedAxes != null) {
-          out = transpose(out);
-        }
-        return out;
+        return maxGrad['x']();
       }
     };
   }

@@ -23,7 +23,12 @@ import sys
 import tempfile
 import traceback
 
-import PyInquirer
+try:
+  import PyInquirer
+except ImportError:
+  sys.exit("""Please install PyInquirer using following command:
+              pip install PyInquirer==1.0.3""")
+
 import h5py
 import tensorflow.compat.v2 as tf
 from tensorflow.core.framework import types_pb2
@@ -567,6 +572,14 @@ def run(dryrun):
           'when': lambda answers: value_in_list(answers, common.INPUT_FORMAT,
                                                 (common.TF_SAVED_MODEL,
                                                  common.TF_HUB_MODEL))
+      },
+      {
+          'type': 'input',
+          'name': common.METADATA,
+          'message': 'Do you want to provide metadata? \n'
+                     'Provide your own metadata in the form: \n'
+                     'metadata_key:path/metadata.json \n'
+                     'Separate multiple metadata by comma.'
       }
   ]
   params = PyInquirer.prompt(questions, format_params, style=prompt_style)

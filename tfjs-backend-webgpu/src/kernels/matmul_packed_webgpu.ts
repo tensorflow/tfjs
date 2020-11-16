@@ -163,37 +163,41 @@ export class MatMulPackedProgram implements WebGPUProgram {
     const tileSizeA = [tileAOuter, tileInner];
     const tileSizeB = [tileInner, tileBOuter];
     const fitA = tilesFitEvenlyIntoShape(tileSizeA, aShape.slice(1));
+    const batchASize = aShape[1] * aShape[2];
+    const batchBSize = bShape[1] * bShape[2];
     let sampleA;
+
     if (transposeA === false) {
       sampleA = fitA ?
-          `A[row * dimInner + col]` :
+          `A[batch * ${batchASize} + row * dimInner + col]` :
           `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
-            A[row * dimInner + col] : 0`;
+            A[batch * ${batchASize} + row * dimInner + col] : 0`;
     } else {
       sampleA = fitA ?
-          `A[col * dimAOuter + row]` :
+          `A[batch * ${batchASize} + col * dimAOuter + row]` :
           `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
-            A[col * dimAOuter + row] : 0`;
+            A[batch* ${batchASize} + col * dimAOuter + row] : 0`;
     }
 
     const fitB = tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1));
     let sampleB;
     if (transposeB === false) {
       sampleB = fitB ?
-          `B[row * dimBOuter + col]` :
+          `B[batch * ${batchBSize} + row * dimBOuter + col]` :
           `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
-            B[row * dimBOuter + col] : 0`;
+            B[batch * ${batchBSize} + row * dimBOuter + col] : 0`;
     } else {
       sampleB = fitB ?
-          `B[col * dimInner + row]` :
+          `B[batch * ${batchBSize} + col * dimInner + row]` :
           `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
-            B[col * dimInner + row] : 0`;
+            B[batch * ${batchBSize} + col * dimInner + row] : 0`;
     }
 
     this.userCode = `
       int dimAOuter = ${transposeA === true ? `${aShape[2]}` : `${aShape[1]}`};
       int dimInner = ${transposeA === true ? `${aShape[1]}` : `${aShape[2]}`};
       int dimBOuter = ${transposeB === true ? `${bShape[1]}` : `${bShape[2]}`};
+      int batch;
 
       ${makeMatMulPackedSource([
       workPerThread, workPerThread, 1
@@ -207,10 +211,11 @@ export class MatMulPackedProgram implements WebGPUProgram {
       }
 
       void mm_write(int row, int col, float value) {
-        setOutput(row * dimBOuter + col, value);
+        setOutput(batch, row, col, value);
       }
 
       void main() {
+        batch = int(gl_GlobalInvocationID.z);
         mm_matMul(dimAOuter, dimInner, dimBOuter);
       }
     `;

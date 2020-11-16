@@ -14,7 +14,6 @@
  * limitations under the License.
  * =============================================================================
  */
-
 import {ENGINE} from '../engine';
 import {cast} from '../ops/cast';
 import {scalar} from '../ops/scalar';
@@ -23,7 +22,7 @@ import {zeros} from '../ops/zeros';
 import {Tensor} from '../tensor';
 import {Rank} from '../types';
 import {DataType, ShapeMap} from '../types';
-import {hasEncodingLoss, makeZerosTypedArray} from '../util';
+import {decodeString, encodeString, hasEncodingLoss, makeZerosTypedArray} from '../util';
 
 import {KernelBackend} from './backend';
 
@@ -107,4 +106,18 @@ export function linspaceImpl(start: number, stop: number, num: number) {
   }
 
   return tensor1d(values, 'float32');
+}
+
+export function fromUint8ToStringArray(vals: Uint8Array[]) {
+  try {
+    // Decode the bytes into string.
+    return vals.map(val => decodeString(val));
+  } catch (err) {
+    throw new Error(
+        `Failed to decode encoded string bytes into utf-8, error: ${err}`);
+  }
+}
+
+export function fromStringArrayToUint8(strings: string[]) {
+  return strings.map(s => encodeString(s));
 }

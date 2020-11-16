@@ -14,8 +14,13 @@
  * limitations under the License.
  * =============================================================================
  */
+
+import {ENGINE, ForwardFunc} from '../engine';
 import {customGrad} from '../gradients';
+import {Mean, MeanAttrs, MeanInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {parseAxisParam, sizeFromShape} from '../util';
@@ -68,16 +73,24 @@ function mean_<T extends Tensor>(
   const reduceShape = shapes[1];
   const reduceSize = sizeFromShape(reduceShape);
 
+  const inputs: MeanInputs = {x: $x};
+  const attrs: MeanAttrs = {axis, keepDims};
+  const forward: ForwardFunc<Tensor> = () => {
+    const reduceSizeScalar = scalar(reduceSize);
+    // Cast if needed.
+    const xReduce = reduceSizeScalar.dtype === $x.dtype ?
+        $x :
+        cast($x, reduceSizeScalar.dtype);
+    const res = div(xReduce, reduceSizeScalar);
+    return sum(res, axis, keepDims);
+  };
+
   // Use a custom gradient to bypass 2 gradient backprops since mean is used
   // extremely often.
   const customOp = customGrad((x: Tensor) => {
-    const reduceSizeScalar = scalar(reduceSize);
-    // Cast if needed.
-    const xReduce = reduceSizeScalar.dtype === x.dtype ?
-        x :
-        cast(x, reduceSizeScalar.dtype);
-    const res = div(xReduce, reduceSizeScalar);
-    const value = sum(res, axis, keepDims);
+    const value = ENGINE.runKernelFunc(
+        forward, inputs as {} as NamedTensorMap, null /* grad */, Mean,
+        attrs as {} as NamedAttrMap);
 
     const gradFunc = (dy: Tensor) => {
       const expandedDyShape = x.shape.slice();

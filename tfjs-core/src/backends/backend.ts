@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -535,8 +535,8 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   }
 
   resizeBilinear(
-      x: Tensor4D, newHeight: number, newWidth: number,
-      alignCorners: boolean): Tensor4D {
+      x: Tensor4D, newHeight: number, newWidth: number, alignCorners: boolean,
+      halfPixelCenters: boolean): Tensor4D {
     return notYetImplemented('resizeBilinear');
   }
 
@@ -664,5 +664,5 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
 function notYetImplemented(kernelName: string): never {
   throw new Error(
       `'${kernelName}' not yet implemented or not found in the registry. ` +
-      `Did you forget to import the kernel?`);
+      `This kernel may not be supported by the tfjs backend you have chosen`);
 }

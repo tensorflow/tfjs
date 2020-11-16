@@ -279,9 +279,19 @@ export declare interface ModelArtifacts {
   convertedBy?: string|null;
 
   /**
+   * Inputs and outputs signature for saved model.
+   */
+  signature?: {};
+
+  /**
    * User-defined metadata about the model.
    */
-  userDefinedMetadata?: {};
+  userDefinedMetadata?: {[key: string]: {}};
+
+  /**
+   * Initializer for the model.
+   */
+  modelInitializer?: {};
 }
 
 /**
@@ -339,9 +349,19 @@ export declare interface ModelJSON {
   convertedBy?: string|null;
 
   /**
+   * Inputs and outputs signature for saved model.
+   */
+  signature?: {};
+
+  /**
    * User-defined metadata about the model.
    */
-  userDefinedMetadata?: {};
+  userDefinedMetadata?: {[key: string]: {}};
+
+  /**
+   * Initializer for the model.
+   */
+  modelInitializer?: {};
 }
 
 /**

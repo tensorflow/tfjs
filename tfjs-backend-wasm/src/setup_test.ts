@@ -86,7 +86,8 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'resizeBilinear',
     excludes: [
-      'gradients'  // Not yet implemented.
+      'gradients',        // Not yet implemented.
+      'halfPixelCenters'  // Not yet implemented.
     ]
   },
   {
@@ -376,7 +377,9 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'onesLike',
     // Complex numbers not supported yet.
     excludes: ['complex'],
-  }
+  },
+  {include: 'prod'},
+  {include: 'floor'},
 ];
 
 const customInclude = (testName: string) => {

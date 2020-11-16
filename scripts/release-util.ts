@@ -92,7 +92,7 @@ export const NODE_PHASE: Phase = {
 
 export const WASM_PHASE: Phase = {
   packages: ['tfjs-backend-wasm'],
-  deps: ['tfjs-core']
+  deps: ['tfjs-core', 'tfjs-backend-cpu']
 };
 
 export const VIS_PHASE: Phase = {

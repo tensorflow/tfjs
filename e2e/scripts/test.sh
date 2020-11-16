@@ -45,10 +45,20 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
   echo "Create saved models and convert."
   python convert_predict.py
 
+  echo "Convert model with user defined metadata."
+  python metadata.py
+
   # Cleanup python env.
   source ../scripts/cleanup-py-env.sh
 
   cd ..
+
+
+  # Build the wasm backend
+  yarn build-backend-wasm
+
+  # Generate custom bundle files for tests
+  ./scripts/run-custom-builds.sh
 fi
 
 echo "Karma tests."

@@ -20,13 +20,11 @@ import '@tensorflow/tfjs-backend-webgl';
 
 import * as tfconverter from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import * as tfl from '@tensorflow/tfjs-layers';
 
-import {BACKENDS, KARMA_SERVER, SMOKE} from './constants';
-
-function getModelUrl(modelType: string) {
-  return `${KARMA_SERVER}/load_predict_data/${modelType}/model.json`;
-}
+import {KARMA_SERVER, SMOKE} from './constants';
 
 /**
  *  This file is the test suites for CUJ: load->predict.
@@ -36,7 +34,7 @@ function getModelUrl(modelType: string) {
  *  - Make inference using each backends.
  */
 describe(`${SMOKE} load_predict`, () => {
-  describe('layers_model', () => {
+  describeWithFlags(`layers_model`, ALL_ENVS, () => {
     let model: tfl.LayersModel;
     let inputs: tfc.Tensor;
 
@@ -46,7 +44,8 @@ describe(`${SMOKE} load_predict`, () => {
     ];
 
     beforeAll(async () => {
-      model = await tfl.loadLayersModel(getModelUrl('layers_model'));
+      model = await tfl.loadLayersModel(
+          `${KARMA_SERVER}/load_predict_data/layers_model/model.json`);
     });
 
     beforeEach(() => {
@@ -57,27 +56,19 @@ describe(`${SMOKE} load_predict`, () => {
       inputs.dispose();
     });
 
-    BACKENDS.forEach(backend => {
-      it(`predict with ${backend}.`, async () => {
-        await tfc.setBackend(backend);
-        const result = model.predict(inputs) as tfc.Tensor;
-        tfc.test_util.expectArraysClose(await result.data(), expected);
-      });
+    it(`predict`, async () => {
+      const result = model.predict(inputs) as tfc.Tensor;
+      tfc.test_util.expectArraysClose(await result.data(), expected);
     });
   });
 
-  describe('graph_model', () => {
-    let model: tfconverter.GraphModel;
+  describeWithFlags(`graph_model`, ALL_ENVS, async () => {
     let a: tfc.Tensor;
 
     const expected = [
       0.7567615509033203, -0.18349379301071167, 0.7567615509033203,
       -0.18349379301071167
     ];
-
-    beforeAll(async () => {
-      model = await tfconverter.loadGraphModel(getModelUrl('graph_model'));
-    });
 
     beforeEach(() => {
       a = tfc.tensor2d([1, 1, 1, 1], [2, 2], 'float32');
@@ -87,12 +78,18 @@ describe(`${SMOKE} load_predict`, () => {
       a.dispose();
     });
 
-    BACKENDS.forEach(backend => {
-      it(`predict with ${backend}.`, async () => {
-        await tfc.setBackend(backend);
-        const result = await model.executeAsync(a) as tfc.Tensor;
-        tfc.test_util.expectArraysClose(await result.data(), expected);
-      });
+    it(`predict with ${tfc.getBackend()} for old model.`, async () => {
+      const model = await tfconverter.loadGraphModel(
+          `${KARMA_SERVER}/load_predict_data/graph_model/model.json`);
+      const result = await model.executeAsync({'Placeholder': a}) as tfc.Tensor;
+      tfc.test_util.expectArraysClose(await result.data(), expected);
+    });
+
+    it(`predict with ${tfc.getBackend()} for new model.`, async () => {
+      const model = await tfconverter.loadGraphModel(
+          `${KARMA_SERVER}/load_predict_data/graph_model/model_new.json`);
+      const result = await model.executeAsync({'Placeholder': a}) as tfc.Tensor;
+      tfc.test_util.expectArraysClose(await result.data(), expected);
     });
   });
 });

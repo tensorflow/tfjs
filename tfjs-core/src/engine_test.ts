@@ -482,6 +482,19 @@ describeWithFlags('profile', ALL_ENVS, () => {
       'extraInfo': profile.kernels[0].extraInfo
     });
   });
+
+  it('reports correct kernelNames', async () => {
+    const profile = await tf.profile(() => {
+      const x = tf.tensor1d([1, 2, 3]);
+      const x2 = x.square();
+      const x3 = x2.abs();
+      return x3;
+    });
+
+    expect(profile.kernelNames).toEqual(jasmine.arrayWithExactContents([
+      'Square', 'Abs'
+    ]));
+  });
 });
 
 describeWithFlags('disposeVariables', ALL_ENVS, () => {
@@ -546,6 +559,10 @@ describeWithFlags(
       });
 
       it('can execute op with data from mixed backends', async () => {
+        const kernelFunc = tf.getKernel('Add', 'cpu').kernelFunc;
+        tf.registerKernel({kernelName: 'Add', backendName: 'cpu1', kernelFunc});
+        tf.registerKernel({kernelName: 'Add', backendName: 'cpu2', kernelFunc});
+
         tf.setBackend('cpu1');
         // This scalar lives in cpu1.
         const a = tf.scalar(5);
@@ -562,13 +579,8 @@ describeWithFlags(
         tf.setBackend('cpu2');
         expectArraysClose(await tf.add(a, b).data(), [8]);
         ENGINE.endScope();
-        expect(tf.memory().numTensors).toBe(2);
-        expect(tf.memory().numDataBuffers).toBe(2);
 
         tf.dispose([a, b]);
-
-        expect(tf.memory().numTensors).toBe(0);
-        expect(tf.memory().numDataBuffers).toBe(0);
       });
     });
 

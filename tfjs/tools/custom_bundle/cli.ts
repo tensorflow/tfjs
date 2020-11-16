@@ -20,19 +20,20 @@
 /**
  * Entry point for cli tool to build custom tfjs bundles
  */
-
-import * as argparse from 'argparse';
-import * as chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as mkdirp from 'mkdirp';
+import * as chalk from 'chalk';
+import * as yargs from 'yargs';
 
 import {OP_SCOPE_SUFFIX} from '@tensorflow/tfjs-core';
 
-import {getCustomModuleString, getCustomConverterOpsModule} from './custom_module';
-import {CustomTFJSBundleConfig, SupportedBackends} from './types';
-import {esmModuleProvider} from './esm_module_provider';
-import {getOps} from './model_parser';
+import {CustomTFJSBundleConfig, SupportedBackends, ModuleProvider} from './types';
+import {getModuleProvider} from './esm_module_provider';
+
+// Will be configured when loading the config file.
+let moduleProvider: ModuleProvider;
+
+const BASE_PATH = process.env.BASE_PATH || process.cwd();
 
 const DEFAULT_CUSTOM_BUNDLE_ARGS: Partial<CustomTFJSBundleConfig> = {
   entries: [],
@@ -40,11 +41,18 @@ const DEFAULT_CUSTOM_BUNDLE_ARGS: Partial<CustomTFJSBundleConfig> = {
   kernels: [],
   forwardModeOnly: true,
   backends: ['cpu', 'webgl'],
+  moduleOptions: {},
 };
 
-const parser = new argparse.ArgumentParser();
-parser.addArgument(
-    '--config', {help: 'path to custom bundle config file.', required: true});
+const argParser = yargs.options({
+  config: {
+    description: 'Path to custom bundle config file.',
+    type: 'string',
+    demandOption: true
+  }
+});
+
+const args = argParser.argv;
 
 function bail(errorMsg: string) {
   console.log(chalk.red(errorMsg));
@@ -52,8 +60,13 @@ function bail(errorMsg: string) {
 }
 
 function validateArgs(): CustomTFJSBundleConfig {
-  const args = parser.parseArgs();
-  const configFilePath = args.config;
+  let configFilePath = args.config;
+  if (configFilePath == null) {
+    bail(`Error: no config file passed`);
+  }
+
+  configFilePath = path.resolve(BASE_PATH, configFilePath);
+
   if (!fs.existsSync(configFilePath)) {
     bail(`Error: config file does not exist at ${configFilePath}`);
   }
@@ -68,11 +81,7 @@ function validateArgs(): CustomTFJSBundleConfig {
     bail('Error: config must specify "outputPath" property');
   }
 
-  console.log(`Using custom bundle configuration from ${
-      configFilePath}. Final config:`);
-  const replacer: null = null;
-  const space = 2;
-  console.log(`${JSON.stringify(config, replacer, space)}\n`);
+  console.log(`Using custom bundle configuration from ${configFilePath}.`);
 
   const finalConfig = Object.assign({}, DEFAULT_CUSTOM_BUNDLE_ARGS, config);
 
@@ -93,13 +102,26 @@ function validateArgs(): CustomTFJSBundleConfig {
     }
   }
 
+  // Normalize the paths to absolute paths.
+  function normalizePath(p: string) {
+    return path.resolve(BASE_PATH, p);
+  }
+
+  finalConfig.models = finalConfig.models.map(normalizePath);
+  finalConfig.entries = finalConfig.entries.map(normalizePath);
+  finalConfig.normalizedOutputPath = normalizePath(finalConfig.outputPath);
+
+  moduleProvider = getModuleProvider(finalConfig.moduleOptions);
+
+  console.log('Final Configuration', finalConfig);
+
   return finalConfig;
 }
 
 function getKernelNamesForConfig(config: CustomTFJSBundleConfig) {
-  // Later on this will do a union of kernels from entries, models and kernels,
-  // (and kernels used by the converter itself) Currently we only support
-  // directly listing kernels. remember that this also needs to handle
+  // Later on this will do a union of kernels from entries, models and
+  // kernels, (and kernels used by the converter itself) Currently we only
+  // support directly listing kernels. remember that this also needs to handle
   // kernels used by gradients if forwardModeOnly is false.
 
   // Ops in core that are implemented as custom ops may appear in tf.profile
@@ -114,56 +136,11 @@ function getKernelNamesForConfig(config: CustomTFJSBundleConfig) {
   return config.kernels.filter(isNotCustomOp);
 }
 
-function getOpsForConfig(config: CustomTFJSBundleConfig) {
-  // This will return a list of ops used by the model.json(s) passed in.
-  const results: Set<string> = new Set();
-  for (const modelJsonPath of config.models) {
-    let modelJson;
-    try {
-      modelJson = JSON.parse(fs.readFileSync(modelJsonPath, 'utf-8'));
-    } catch (e) {
-      console.log(`Error loading JSON file ${modelJsonPath}`);
-      console.log(e);
-    }
-
-    const ops = getOps(modelJson);
-    ops.forEach((op: string) => results.add(op));
-  }
-  return Array.from(results);
-}
-
-function produceCustomTFJSModule(
-    kernels: string[], backends: string[], forwardModeOnly: boolean,
-    converterOps: string[], outputPath: string) {
-  const moduleStrs = getCustomModuleString(
-      kernels, backends, forwardModeOnly, esmModuleProvider);
-
-  mkdirp.sync(outputPath);
-  console.log(`Writing custom tfjs module to ${outputPath}`);
-
-  const customTfjsFileName = 'custom_tfjs.js';
-  const customTfjsCoreFileName = 'custom_tfjs_core.js';
-
-  // Write a custom module for @tensorflow/tfjs and @tensorflow/tfjs-core
-  fs.writeFileSync(
-      path.join(outputPath, customTfjsCoreFileName), moduleStrs.core);
-  fs.writeFileSync(path.join(outputPath, customTfjsFileName), moduleStrs.tfjs);
-
-  // Write a custom module tfjs-core ops used by converter executors
-  if (converterOps.length > 0) {
-    const converterOpsModule =
-        getCustomConverterOpsModule(converterOps, esmModuleProvider);
-
-    const customConverterOpsFileName = 'custom_ops_for_converter.js';
-
-    fs.writeFileSync(
-        path.join(outputPath, customConverterOpsFileName), converterOpsModule);
-  }
-}
-
 const customConfig = validateArgs();
 const kernelsToInclude = getKernelNamesForConfig(customConfig);
-const converterOps = getOpsForConfig(customConfig);
-produceCustomTFJSModule(
-    kernelsToInclude, customConfig.backends, customConfig.forwardModeOnly,
-    converterOps, customConfig.outputPath);
+customConfig.kernels = kernelsToInclude;
+if (moduleProvider != null) {
+  moduleProvider.produceCustomTFJSModule(customConfig);
+} else {
+  throw new Error('No module provider has been initialized.');
+}

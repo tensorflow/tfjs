@@ -16,25 +16,97 @@
  */
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
-import {divConfig} from './kernels/Div';
+import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
+import {addConfig} from './kernels/Add';
+import {atan2Config} from './kernels/Atan2';
+import {avgPoolConfig} from './kernels/AvgPool';
+import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
+import {batchMatMulConfig} from './kernels/BatchMatMul';
+import {batchNormConfig} from './kernels/BatchNorm';
+import {castConfig} from './kernels/Cast';
+import {complexConfig} from './kernels/Complex';
+import {concatConfig} from './kernels/Concat';
+import {conv2DConfig} from './kernels/Conv2D';
+import {cosConfig} from './kernels/Cos';
+import {fftConfig} from './kernels/FFT';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {fromPixelsConfig} from './kernels/FromPixels';
+import {fusedConv2DConfig} from './kernels/FusedConv2D';
+import {identityConfig} from './kernels/Identity';
+import {ifftConfig} from './kernels/IFFT';
+import {imagConfig} from './kernels/Imag';
 import {maxConfig} from './kernels/Max';
+import {maxPoolConfig} from './kernels/MaxPool';
+import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
+import {meanConfig} from './kernels/Mean';
+import {mirrorPadConfig} from './kernels/MirrorPad';
+import {multiplyConfig} from './kernels/Multiply';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
+import {notEqualConfig} from './kernels/NotEqual';
+import {realConfig} from './kernels/Real';
+import {realDivConfig} from './kernels/RealDiv';
+import {reshapeConfig} from './kernels/Reshape';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
+import {sinConfig} from './kernels/Sin';
+import {sliceConfig} from './kernels/Slice';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {subConfig} from './kernels/Sub';
+import {sumConfig} from './kernels/Sum';
+import {tanConfig} from './kernels/Tan';
+import {tileConfig} from './kernels/Tile';
 import {transposeConfig} from './kernels/Transpose';
+import {uniqueConfig} from './kernels/Unique';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
-  maxConfig, flipLeftRightConfig, fromPixelsConfig, divConfig,
-  maxPoolWithArgmaxConfig, nonMaxSuppressionV3Config, nonMaxSuppressionV4Config,
-  nonMaxSuppressionV5Config, rotateWithOffsetConfig, squareConfig,
-  squaredDifferenceConfig, transposeConfig
+  _fusedMatMulConfig,
+  addConfig,
+  atan2Config,
+  avgPoolConfig,
+  avgPoolGradConfig,
+  batchMatMulConfig,
+  batchNormConfig,
+  castConfig,
+  complexConfig,
+  concatConfig,
+  conv2DConfig,
+  cosConfig,
+  fftConfig,
+  flipLeftRightConfig,
+  fromPixelsConfig,
+  fusedConv2DConfig,
+  identityConfig,
+  ifftConfig,
+  imagConfig,
+  maxConfig,
+  maxPoolConfig,
+  maxPoolGradConfig,
+  maxPoolWithArgmaxConfig,
+  meanConfig,
+  mirrorPadConfig,
+  multiplyConfig,
+  nonMaxSuppressionV3Config,
+  nonMaxSuppressionV4Config,
+  nonMaxSuppressionV5Config,
+  notEqualConfig,
+  realConfig,
+  realDivConfig,
+  reshapeConfig,
+  rotateWithOffsetConfig,
+  sinConfig,
+  sliceConfig,
+  squareConfig,
+  subConfig,
+  sumConfig,
+  squaredDifferenceConfig,
+  tanConfig,
+  tileConfig,
+  transposeConfig,
+  uniqueConfig,
 ];
 
 for (const kernelConfig of kernelConfigs) {

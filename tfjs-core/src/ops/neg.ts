@@ -16,7 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
-import {Negate, NegateInputs} from '../kernel_names';
+import {Neg, NegInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
@@ -40,9 +40,9 @@ import {op} from './operation';
 function neg_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'neg');
 
-  const inputs: NegateInputs = {x: $x};
+  const inputs: NegInputs = {x: $x};
   return ENGINE.runKernelFunc(
       backend => backend.neg($x), inputs as {} as NamedTensorMap,
-      null /* grad */, Negate);
+      null /* grad */, Neg);
 }
 export const neg = op({neg_});

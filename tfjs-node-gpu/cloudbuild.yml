@@ -19,7 +19,7 @@ steps:
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
-  waitFor: ['yarn-common']
+  waitFor: ['yarn-common', 'prep-gpu']
 
 # Build add-on.
 - name: 'node:10'
@@ -35,7 +35,7 @@ steps:
   entrypoint: 'yarn'
   id: 'build-deps'
   args: ['build-deps-ci']
-  waitFor: ['yarn-common']
+  waitFor: ['yarn-common', 'prep-gpu']
 
 # Build.
 - name: 'node:10'
@@ -67,10 +67,11 @@ steps:
   entrypoint: 'yarn'
   id: 'ensure-cpu-gpu-packages-align'
   args: ['ensure-cpu-gpu-packages-align']
-  waitFor: ['yarn-common']
+  waitFor: ['yarn-common', 'prep-gpu']
 
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
 options:
   logStreamingOption: 'STREAM_ON'
+  machineType: 'N1_HIGHCPU_8'
   substitution_option: 'ALLOW_LOOSE'

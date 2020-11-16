@@ -372,6 +372,61 @@ def _create_saved_model_v2_with_tensorlist_ops(save_dir):
               "shape": result.shape,
               "dtype": "float32"}}}
 
+def _create_saved_model_v1_with_hashtable(save_dir):
+  """Test a TF V1 model with HashTable Ops.
+
+  Args:
+    save_dir: directory name of where the saved model will be stored.
+  """
+  graph = tf.Graph()
+
+  with graph.as_default():
+    # Create a builder.
+    builder = tf.compat.v1.saved_model.builder.SavedModelBuilder(save_dir)
+
+    with tf.compat.v1.Session() as sess:
+      keys_tensor = tf.constant(["a", "b"])
+      vals_tensor = tf.constant([3, 4])
+
+      table = tf.lookup.StaticHashTable(
+        tf.lookup.KeyValueTensorInitializer(keys=keys_tensor, values=vals_tensor
+        ),
+        default_value=-1
+      )
+      input = tf.compat.v1.placeholder(tf.string, shape=[2])
+      output = table.lookup(input)
+
+      sess.run(tf.compat.v1.tables_initializer())
+
+      # output_val = [3, -1]
+      output_val = sess.run(output, {input: ["a", "c"]})
+
+      builder.add_meta_graph_and_variables(
+          sess, [tf.compat.v1.saved_model.tag_constants.SERVING],
+          signature_def_map={
+              "serving_default":
+                  tf.compat.v1.saved_model \
+                      .signature_def_utils.predict_signature_def(
+                          inputs={"input": input},
+                          outputs={"output": output})
+          },
+          assets_collection=None)
+
+    builder.save()
+    return {
+        "async": False,
+        "inputs": {
+            "Placeholder:0": {
+                "value": ["a", "c"], "shape": [2], "dtype": "string"
+            }
+        },
+        "outputs": {
+            "hash_table_Lookup/LookupTableFindV2:0": {
+                "value": output_val.tolist(), "shape": [2], "dtype": "int32"
+            }
+        }
+    }
+
 def _layers_mobilenet():
   model = tf.keras.applications.MobileNetV2()
   model_path = 'mobilenet'
@@ -414,6 +469,8 @@ def main():
       'saved_model_with_prelu')
   _save_and_convert_model(_create_saved_model_v2_with_tensorlist_ops,
       'saved_model_v2_with_tensorlist_ops', control_flow_v2=True)
+  _save_and_convert_model(_create_saved_model_v1_with_hashtable,
+      'saved_model_v1_with_hashtable')
 
   _layers_mobilenet()
 if __name__ == '__main__':

@@ -89,6 +89,9 @@ git_repository(
 
 http_archive(
     name = "rules_cc",
-    strip_prefix = "rules_cc-master",
-    urls = ["https://github.com/bazelbuild/rules_cc/archive/master.zip"],
+    sha256 = "90d5a66950b492cbf86201cdc49c4b59796a85a4eb9fd63c07afe5f7132ea623",
+    strip_prefix = "rules_cc-8346df34b6593b051403b8e429db15c7f4ead937",
+    urls = [
+        "https://github.com/bazelbuild/rules_cc/archive/8346df34b6593b051403b8e429db15c7f4ead937.zip",
+    ],
 )

@@ -72,11 +72,11 @@ class ConvertTest(tf.test.TestCase):
         builder.add_meta_graph_and_variables(
             sess, [tf.compat.v1.saved_model.tag_constants.SERVING],
             signature_def_map={
-                "serving_default":
+                'serving_default':
                     tf.compat.v1.saved_model \
                         .signature_def_utils.predict_signature_def(
-                            inputs={"x": x},
-                            outputs={"output": output})
+                            inputs={'x': x},
+                            outputs={'output': output})
             },
             assets_collection=None)
 
@@ -87,9 +87,10 @@ class ConvertTest(tf.test.TestCase):
 
     graph = tf.Graph()
     with graph.as_default():
-      x = tf.compat.v1.placeholder('float32', [2, 2])
+      x = tf.compat.v1.placeholder('int32', [None, 2, 2])
+      t = tf.compat.v1.to_float(x)
       w = tf.compat.v1.get_variable('w', shape=[2, 2])
-      output = tf.compat.v1.matmul(x, w)
+      output = tf.compat.v1.matmul(t, w)
       init_op = w.initializer
 
       # Add a hash table that is not used by the output.
@@ -110,11 +111,11 @@ class ConvertTest(tf.test.TestCase):
         builder.add_meta_graph_and_variables(
             sess, [tf.compat.v1.saved_model.tag_constants.SERVING],
             signature_def_map={
-                "serving_default":
+                'serving_default':
                     tf.compat.v1.saved_model \
                         .signature_def_utils.predict_signature_def(
-                            inputs={"x": x},
-                            outputs={"output": output})
+                            inputs={'t': t},
+                            outputs={'output': output})
             },
             assets_collection=None)
 
@@ -330,7 +331,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['userDefinedMetadata']['signature']
+    signature = model_json['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -360,7 +361,11 @@ class ConvertTest(tf.test.TestCase):
 
     expected_weights_manifest = [{
         'paths': ['group1-shard1of1.bin'],
-        'weights': [{'dtype': 'float32', 'name': 'w', 'shape': [2, 2]}]}]
+        'weights': [
+            {'dtype': 'float32', 'name': 'w', 'shape': [2, 2]},
+            {'dtype': 'string', 'name': 'Const', 'shape': [1]},
+            {'dtype': 'int32', 'name': 'Const_1', 'shape': [1]}
+        ]}]
 
     tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'js')
     # Check model.json and weights manifest.
@@ -368,11 +373,17 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['userDefinedMetadata']['signature']
+    signature = model_json['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
+    self.assertTrue(model_json['modelInitializer'])
 
+    for node in model_json['modelTopology']['node']:
+      if node['name'] == 'ToFloat' and node['op'] == 'Placeholder':
+        self.assertEqual(node['attr']['shape'],
+                         {'shape': {'dim': [
+                             {'size': '-1'}, {'size': '2'}, {'size': '2'}]}})
 
     weights_manifest = model_json['weightsManifest']
     self.assertEqual(weights_manifest, expected_weights_manifest)
@@ -384,6 +395,25 @@ class ConvertTest(tf.test.TestCase):
     self.assertEqual(model_json['generatedBy'],
                      tf.__version__)
     self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
+
+  def test_convert_saved_model_v1_with_metadata(self):
+    self._create_saved_model_v1()
+
+    input_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    output_dir = os.path.join(input_dir, 'js')
+
+    metadata_json = {'a': 1}
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        input_dir,
+        output_dir,
+        metadata={'key': metadata_json}
+    )
+
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'js')
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertEqual(metadata_json, model_json['userDefinedMetadata']['key'])
 
   def test_convert_saved_model(self):
     self._create_saved_model()
@@ -399,7 +429,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['userDefinedMetadata']['signature']
+    signature = model_json['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -407,6 +437,23 @@ class ConvertTest(tf.test.TestCase):
     self.assertCountEqual(weights_manifest[0]['paths'],
                           ['group1-shard1of1.bin'])
     self.assertIn('weights', weights_manifest[0])
+
+  def test_convert_saved_model_with_metadata(self):
+    self._create_saved_model()
+
+    metadata_json = {'a': 1}
+
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        metadata={'key': metadata_json}
+    )
+
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertEqual(metadata_json, model_json['userDefinedMetadata']['key'])
 
   def test_convert_saved_model_with_fused_conv2d(self):
     for use_bias in [True, False]:
@@ -422,7 +469,7 @@ class ConvertTest(tf.test.TestCase):
         model_json = json.load(f)
       self.assertTrue(model_json['modelTopology'])
       self.assertIsNot(model_json['modelTopology']['versions'], None)
-      signature = model_json['userDefinedMetadata']['signature']
+      signature = model_json['signature']
       self.assertIsNot(signature, None)
       self.assertIsNot(signature['inputs'], None)
       self.assertIsNot(signature['outputs'], None)
@@ -468,7 +515,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['userDefinedMetadata']['signature']
+    signature = model_json['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -515,7 +562,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['userDefinedMetadata']['signature']
+    signature = model_json['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -563,7 +610,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['userDefinedMetadata']['signature']
+    signature = model_json['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -617,7 +664,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['userDefinedMetadata']['signature']
+    signature = model_json['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -657,7 +704,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['userDefinedMetadata']['signature']
+    signature = model_json['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -691,7 +738,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['userDefinedMetadata']['signature']
+    signature = model_json['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -780,7 +827,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['userDefinedMetadata']['signature']
+    signature = model_json['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -810,7 +857,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['userDefinedMetadata']['signature']
+    signature = model_json['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -835,7 +882,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['userDefinedMetadata']['signature']
+    signature = model_json['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -878,6 +925,20 @@ class ConvertTest(tf.test.TestCase):
     self.assertEqual(weight_file_sizes[0], weight_file_sizes[1])
     self.assertLess(weight_file_sizes[2], weight_file_sizes[0])
 
+  def test_convert_hub_module_v1_with_metadata(self):
+    self._create_hub_module()
+    module_path = os.path.join(self._tmp_dir, HUB_MODULE_DIR)
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+
+    metadata_json = {'a': 1}
+    tf_saved_model_conversion_v2.convert_tf_hub_module(
+        module_path, tfjs_path, metadata={'key': metadata_json})
+
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertEqual(metadata_json, model_json['userDefinedMetadata']['key'])
+
   def test_convert_hub_module_v2(self):
     self._create_saved_model()
     module_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
@@ -891,7 +952,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['userDefinedMetadata']['signature']
+    signature = model_json['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -904,6 +965,21 @@ class ConvertTest(tf.test.TestCase):
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
+  def test_convert_hub_module_v2_with_metadata(self):
+    self._create_saved_model()
+    module_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+
+    metadata_json = {'a': 1}
+    tf_saved_model_conversion_v2.convert_tf_hub_module(
+        module_path, tfjs_path, "serving_default", "serve",
+        metadata={'key': metadata_json})
+
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertEqual(metadata_json, model_json['userDefinedMetadata']['key'])
 
   def test_convert_frozen_model(self):
     self.create_frozen_model()
@@ -921,7 +997,7 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['userDefinedMetadata']['signature']
+    signature = model_json['signature']
     self.assertIsNot(signature, None)
     # frozen model signature has no input nodes.
     self.assertIsNot(signature['outputs'], None)
@@ -933,6 +1009,24 @@ class ConvertTest(tf.test.TestCase):
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, 'group*-*')))
+
+  def test_convert_frozen_model_with_metadata(self):
+    self.create_frozen_model()
+    print(glob.glob(
+        os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, '*')))
+
+    metadata_json = {'a': 1}
+    tf_saved_model_conversion_v2.convert_tf_frozen_model(
+        os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, 'model.frozen'),
+        'Softmax',
+        os.path.join(self._tmp_dir, FROZEN_MODEL_DIR),
+        metadata={'key': metadata_json})
+
+    tfjs_path = os.path.join(self._tmp_dir, FROZEN_MODEL_DIR)
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertEqual(metadata_json, model_json['userDefinedMetadata']['key'])
 
 if __name__ == '__main__':
   tf.test.main()

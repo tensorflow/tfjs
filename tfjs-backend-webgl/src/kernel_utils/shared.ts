@@ -19,7 +19,50 @@
 // side effects.
 // tslint:disable-next-line: no-imports-from-dist
 import * as shared from '@tensorflow/tfjs-backend-cpu/dist/shared';
+// tslint:disable-next-line: no-imports-from-dist
+import {SimpleBinaryKernelImpl} from '@tensorflow/tfjs-backend-cpu/dist/shared';
 
-const {maxImpl: maxImplCPU, transposeImpl: transposeImplCPU} = shared;
+export type SimpleBinaryKernelImplCPU = SimpleBinaryKernelImpl;
+const {
+  addImpl: addImplCPU,
+  ceilImpl: ceilImplCPU,
+  expImpl: expImplCPU,
+  expm1Impl: expm1ImplCPU,
+  floorImpl: floorImplCPU,
+  greaterImpl: greaterImplCPU,
+  lessImpl: lessImplCPU,
+  logImpl: logImplCPU,
+  maxImpl: maxImplCPU,
+  multiplyImpl: multiplyImplCPU,
+  negImpl: negImplCPU,
+  prodImpl: prodImplCPU,
+  rsqrtImpl: rsqrtImplCPU,
+  simpleAbsImpl: simpleAbsImplCPU,
+  sliceImpl: sliceImplCPU,
+  stridedSliceImpl: stridedSliceImplCPU,
+  subImpl: subImplCPU,
+  transposeImpl: transposeImplCPU,
+  uniqueImpl: uniqueImplCPU,
+} = shared;
 
-export {maxImplCPU, transposeImplCPU};
+export {
+  addImplCPU,
+  ceilImplCPU,
+  expImplCPU,
+  expm1ImplCPU,
+  floorImplCPU,
+  greaterImplCPU,
+  lessImplCPU,
+  logImplCPU,
+  maxImplCPU,
+  multiplyImplCPU,
+  negImplCPU,
+  prodImplCPU,
+  simpleAbsImplCPU,
+  sliceImplCPU,
+  stridedSliceImplCPU,
+  subImplCPU,
+  rsqrtImplCPU,
+  transposeImplCPU,
+  uniqueImplCPU,
+};

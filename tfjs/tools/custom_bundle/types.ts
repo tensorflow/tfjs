@@ -29,12 +29,15 @@ export interface CustomTFJSBundleConfig {
   forwardModeOnly?: boolean;      // whether to drop gradients
   outputPath: string;             // path to output folder
   kernels?: string[];             // Kernels to include
+  // tslint:disable-next-line: no-any
+  moduleOptions: any;             // Extra params to pass to a module provider
+  normalizedOutputPath?: string;  // Computed internally
 }
 
 // Interface for an object that can provide functionality to generate
-// a correct custom module for that build environment (e.g. node vs g3).
-export interface ModuleProvider {
-  importCoreStr: () => string;
+// imports for module in that build environment (e.g. OSS vs g3).
+export interface ImportProvider {
+  importCoreStr: (forwardModeOnly: boolean) => string;
   importOpForConverterStr: (opSymbol: string) => string;
   importNamespacedOpsForConverterStr:
       (namespace: string, opSymbols: string[]) => string;
@@ -46,7 +49,11 @@ export interface ModuleProvider {
   importGradientConfigStr: (kernelName: string) => {
     importStatement: string, gradConfigId: string
   };
-  kernelToOpsMapPath: () => string;
+}
+
+// An object that can output a custom model given a config
+export interface ModuleProvider {
+  produceCustomTFJSModule: (config: CustomTFJSBundleConfig) => void;
 }
 
 export interface CustomModuleFiles {

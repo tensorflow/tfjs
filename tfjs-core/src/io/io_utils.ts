@@ -214,6 +214,8 @@ export function decodeWeights(
         const realTensor = tensor(real, shape, 'float32');
         const imageTensor = tensor(image, shape, 'float32');
         out[name] = complex(realTensor, imageTensor);
+        realTensor.dispose();
+        imageTensor.dispose();
       } else {
         throw new Error(`Unsupported dtype in weight '${name}': ${dtype}`);
       }

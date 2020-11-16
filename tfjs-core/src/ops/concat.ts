@@ -23,6 +23,7 @@ import {convertToTensorArray} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert, parseAxisParam, sizeFromShape} from '../util';
 
+import {clone} from './clone';
 import {assertParamsConsistent, computeOutShape} from './concat_util';
 import {op} from './operation';
 import {tensor} from './tensor';
@@ -71,6 +72,7 @@ function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
   assert(tensors.length >= 1, () => 'Pass at least one tensor to concat');
 
   let $tensors = convertToTensorArray(tensors, 'tensors', 'concat');
+
   if ($tensors[0].dtype === 'complex64') {
     $tensors.forEach(tensor => {
       if (tensor.dtype !== 'complex64') {
@@ -80,21 +82,25 @@ function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
     });
   }
 
-  const $axis = parseAxisParam(axis, $tensors[0].shape)[0];
-  const outShape = computeOutShape($tensors.map(t => t.shape), $axis);
-  if (sizeFromShape(outShape) === 0) {
-    return tensor([], outShape) as T;
-  }
-  // Keep only non-empty tensors (ignore tensors with 0 in their shape).
-  $tensors = $tensors.filter(t => t.size > 0);
   if ($tensors.length === 1) {
-    return $tensors[0];
+    return clone($tensors[0]);
   }
-
-  const shapes = $tensors.map(t => t.shape);
-  assertParamsConsistent(shapes, $axis);
 
   const forward: ForwardFunc<Tensor> = (backend, save) => {
+    const $axis = parseAxisParam(axis, $tensors[0].shape)[0];
+    const outShape = computeOutShape($tensors.map(t => t.shape), $axis);
+    if (sizeFromShape(outShape) === 0) {
+      return tensor([], outShape) as T;
+    }
+    // Keep only non-empty tensors (ignore tensors with 0 in their shape).
+    $tensors = $tensors.filter(t => t.size > 0);
+    if ($tensors.length === 1) {
+      return clone($tensors[0]);
+    }
+
+    const shapes = $tensors.map(t => t.shape);
+    assertParamsConsistent(shapes, $axis);
+
     const res = backend.concat($tensors, $axis);
     save($tensors);
     return res;

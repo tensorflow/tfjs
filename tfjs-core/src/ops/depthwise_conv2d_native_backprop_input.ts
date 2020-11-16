@@ -15,7 +15,8 @@
  * =============================================================================
  */
 import {ENGINE, ForwardFunc} from '../engine';
-import {DepthwiseConv2dNativeBackpropInput, DepthwiseConv2dNativeBackpropInputInputs} from '../kernel_names';
+import {DepthwiseConv2dNativeBackpropInput, DepthwiseConv2dNativeBackpropInputAttrs, DepthwiseConv2dNativeBackpropInputInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 
@@ -24,8 +25,10 @@ import {op} from './operation';
 import {reshape} from './reshape';
 
 function depthwiseConv2dNativeBackpropInput_<T extends Tensor3D|Tensor4D>(
-    xShape: [number, number, number, number]|[number, number, number], dy: T,
-    filter: Tensor4D, convInfo: conv_util.Conv2DInfo): T {
+    xShape: [number, number, number, number], dy: T, filter: Tensor4D,
+    strides: [number, number]|number, pad: 'valid'|'same'|number,
+    dilations: [number, number]|number = [1, 1],
+    dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   let dy4D = dy as Tensor4D;
   let reshapedTo4D = false;
   if (dy.rank === 3) {
@@ -33,14 +36,20 @@ function depthwiseConv2dNativeBackpropInput_<T extends Tensor3D|Tensor4D>(
     dy4D = reshape(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
   }
 
-  const forward: ForwardFunc<Tensor> = backend =>
-      backend.depthwiseConv2DDerInput(dy4D, filter, convInfo);
+  const forward: ForwardFunc<Tensor> = backend => {
+    const convInfo = conv_util.computeConv2DInfo(
+        xShape, filter.shape, strides, dilations, pad, dimRoundingMode,
+        true /* depthwise */);
 
-  const inputs: DepthwiseConv2dNativeBackpropInputInputs = {dy: dy4D};
+    return backend.depthwiseConv2DDerInput(dy4D, filter, convInfo);
+  };
 
+  const inputs: DepthwiseConv2dNativeBackpropInputInputs = {dy: dy4D, filter};
+  const attrs: DepthwiseConv2dNativeBackpropInputAttrs =
+      {strides, pad, dimRoundingMode, dilations, inputShape: xShape};
   const res = ENGINE.runKernelFunc(
       forward, inputs as {} as NamedTensorMap, null,
-      DepthwiseConv2dNativeBackpropInput);
+      DepthwiseConv2dNativeBackpropInput, attrs as {} as NamedAttrMap);
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;

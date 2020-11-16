@@ -66,6 +66,7 @@ export type ProfileInfo = {
   newBytes: number; newTensors: number; peakBytes: number;
   kernels: KernelInfo[];
   result: TensorContainer;
+  kernelNames: string[];
 };
 
 export interface TimingInfo extends BackendTimingInfo {
@@ -119,8 +120,16 @@ class EngineState {
   }>();
 
   profiling = false;
-  activeProfile: ProfileInfo =
-      {newBytes: 0, newTensors: 0, peakBytes: 0, kernels: [], result: null};
+  activeProfile: ProfileInfo = {
+    newBytes: 0,
+    newTensors: 0,
+    peakBytes: 0,
+    kernels: [],
+    result: null,
+    get kernelNames() {
+      return Array.from(new Set(this.kernels.map(k => k.name)));
+    }
+  };
 
   dispose() {
     for (const variableName in this.registeredVariables) {
@@ -290,8 +299,13 @@ export class Engine implements TensorTracker, DataMover {
 
     try {
       const backend = registryFactoryEntry.factory();
-      // Test if the factory returns a promise.
-      if (Promise.resolve(backend) === backend) {
+      /* Test if the factory returns a promise.
+      Done in a more liberal way than
+      previous 'Promise.resolve(backend)===backend'
+      as we needed to account for custom Promise
+      implementations (e.g. Angular) */
+      if (backend && !(backend instanceof KernelBackend) &&
+          typeof backend.then === 'function') {
         const promiseId = ++this.pendingBackendInitId;
         const success =
             backend
@@ -578,9 +592,17 @@ export class Engine implements TensorTracker, DataMover {
         if (this.shouldCheckForMemLeaks()) {
           this.checkKernelForMemLeak(kernelName, numDataIdsBefore, outInfos);
         }
-        const outTensors = outInfos.map(
-            ({dataId, shape, dtype}) =>
-                this.makeTensorFromDataId(dataId, shape, dtype));
+
+        const outTensors = outInfos.map((outInfo: TensorInfo|Tensor) => {
+          // todo (yassogba) remove this option (Tensor) when node backend
+          // methods have been modularized and they all return tensorInfo.
+          // TensorInfos do not have a rank attribute.
+          if ((outInfo as Tensor).rank != null) {
+            return outInfo as Tensor;
+          }
+          const {dataId, shape, dtype} = outInfo as TensorInfo;
+          return this.makeTensorFromDataId(dataId, shape, dtype);
+        });
 
         // Save the inputs and outputs.
         // Do not save unless we are recording to the tape. Otherwise it would

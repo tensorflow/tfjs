@@ -29,6 +29,7 @@
     "@types/mkdirp": "^0.5.2",
     "@types/node": "~9.6.1",
     "@types/shelljs": "^0.8.4",
+    "@types/yargs": "^15.0.7",
     "clang-format": "~1.2.2",
     "commander": "~2.14.1",
     "jasmine": "3.1.0",
@@ -74,7 +75,7 @@
     "build-deps": "yarn build-core && yarn build-layers && yarn build-converter && yarn build-data && yarn build-backend-cpu && yarn build-backend-webgl",
     "build-deps-ci": "yarn build-core-ci && yarn build-layers-ci && yarn build-converter-ci && yarn build-data-ci && yarn build-backend-cpu-ci && yarn build-backend-webgl-ci",
     "build-cli": "tsc --project ./tools/custom_bundle/tsconfig.json && chmod +x ./dist/tools/custom_bundle/cli.js",
-    "run-custom-build": "ts-node -s ./src/tools/custom_bundle/cli.ts",
+    "run-custom-build": "ts-node -s ./tools/custom_bundle/cli.ts",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
@@ -94,6 +95,7 @@
     "argparse": "^1.0.10",
     "chalk": "^4.1.0",
     "core-js": "3",
-    "regenerator-runtime": "^0.13.5"
+    "regenerator-runtime": "^0.13.5",
+    "yargs": "^16.0.3"
   }
 }
