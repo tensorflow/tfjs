@@ -511,7 +511,8 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
     return notYetImplemented('transpose');
   }
 
-  gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
+  gather<T extends Tensor>(x: T, indices: Tensor, axis: number, batchDims = 0):
+      T {
     return notYetImplemented('gather');
   }
 

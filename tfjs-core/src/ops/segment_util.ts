@@ -66,22 +66,60 @@ export function computeOutShape(
 export interface GatherOpShapeInfo {
   batchSize: number;
   sliceSize: number;
+  outerSize: number;
   dimSize: number;
   outputShape: number[];
 }
+
 export function collectGatherOpShapeInfo(
-    x: Tensor, indices: Tensor, axis: number): GatherOpShapeInfo {
+    x: Tensor, indices: Tensor, axis: number,
+    batchDims: number): GatherOpShapeInfo {
+  if (batchDims !== 0) {
+    if (batchDims < -indices.rank || batchDims > indices.rank) {
+      throw new Error(`Expect batchDims in the range of [-${indices.rank}, ${
+          indices.rank}], but got ${batchDims}`);
+    }
+  }
+
+  if (batchDims < 0) {
+    batchDims += indices.rank;
+  }
+
+  if (batchDims > x.rank) {
+    throw new Error(`batchDims (${batchDims}) must be less than rank(x) (
+    ${x.rank}).`);
+  }
+
+  if (axis < batchDims) {
+    throw new Error(`batchDims (${
+        batchDims}) must be less than or equal to axis (${axis}).`);
+  }
+
+  for (let i = 0; i < batchDims; ++i) {
+    if (x.shape[i] !== indices.shape[i]) {
+      throw new Error(
+          `x.shape[${i}]: ${x.shape[i]} should be equal to indices.shape[${
+              i}]: ${indices.shape[i]}.`);
+    }
+  }
   const dimSize = x.shape[axis];
 
   const outputShape: number[] = [];
   let batchSize = 1;
+  let outerSize = 1;
   let sliceSize = 1;
-  for (let i = 0; i < axis; i++) {
+
+  for (let i = 0; i < batchDims; ++i) {
     outputShape.push(x.shape[i]);
     batchSize *= x.shape[i];
   }
 
-  for (let i = 0; i < indices.rank; i++) {
+  for (let i = batchDims; i < axis; i++) {
+    outputShape.push(x.shape[i]);
+    outerSize *= x.shape[i];
+  }
+
+  for (let i = batchDims; i < indices.rank; i++) {
     outputShape.push(indices.shape[i]);
   }
 
@@ -90,5 +128,5 @@ export function collectGatherOpShapeInfo(
     sliceSize *= x.shape[i];
   }
 
-  return {batchSize, sliceSize, dimSize, outputShape};
+  return {batchSize, sliceSize, outerSize, dimSize, outputShape};
 }

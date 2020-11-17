@@ -360,6 +360,7 @@ export const GatherV2 = 'GatherV2';
 export type GatherV2Inputs = Pick<NamedTensorInfoMap, 'x'|'indices'>;
 export interface GatherV2Attrs {
   axis: number;
+  batchDims: number;
 }
 
 export const GatherNd = 'GatherNd';
