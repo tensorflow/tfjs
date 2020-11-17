@@ -43,11 +43,6 @@ import {getWebGLContext} from './canvas_util';
 import {ClipProgram} from './clip_gpu';
 import {ClipPackedProgram} from './clip_packed_gpu';
 import {ComplexAbsProgram} from './complex_abs_gpu';
-import {Conv2DDerFilterProgram, Conv2DDerInputProgram, Conv3DDerFilterProgram, Conv3DDerInputProgram} from './conv_backprop_gpu';
-import {DepthwiseConv2DDerFilterProgram, DepthwiseConv2DDerInputProgram} from './conv_backprop_gpu_depthwise';
-import {Conv3DProgram} from './conv_gpu';
-import {DepthwiseConv2DProgram} from './conv_gpu_depthwise';
-import {DepthwiseConvPacked2DProgram} from './conv_packed_gpu_depthwise';
 import {CumSumProgram} from './cumsum_gpu';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
 import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
@@ -1593,98 +1588,6 @@ export class MathBackendWebGL extends KernelBackend {
   step<T extends Tensor>(x: T, alpha: number): T {
     const program = new UnaryOpProgram(x.shape, unary_op.STEP(alpha));
     return this.compileAndRun(program, [x]);
-  }
-
-  conv2dDerInput(
-      dy: Tensor4D, filter: Tensor4D,
-      convInfo: backend_util.Conv2DInfo): Tensor4D {
-    const program = new Conv2DDerInputProgram(convInfo);
-    return this.compileAndRun(program, [dy, filter]);
-  }
-
-  conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: backend_util.Conv2DInfo):
-      Tensor4D {
-    const program = new Conv2DDerFilterProgram(convInfo);
-    return this.compileAndRun(program, [x, dy]);
-  }
-
-  fusedDepthwiseConv2D(
-      {input, filter, convInfo, bias, activation, preluActivationWeights}:
-          backend_util.FusedConv2DConfig): Tensor4D {
-    const shouldPackDepthwiseConv = env().getBool('WEBGL_PACK_DEPTHWISECONV') &&
-        convInfo.strideWidth <= 2 &&
-        convInfo.outChannels / convInfo.inChannels === 1;
-    const fusedActivation = activation ?
-        mapActivationToShaderProgram(activation, shouldPackDepthwiseConv) :
-        null;
-    const inputs: Tensor[] = [input, filter];
-
-    const hasBias = bias != null;
-    const hasPreluActivationWeights = preluActivationWeights != null;
-    if (hasBias) {
-      inputs.push(bias);
-    }
-    if (hasPreluActivationWeights) {
-      inputs.push(preluActivationWeights);
-    }
-
-    let program: DepthwiseConv2DProgram|DepthwiseConvPacked2DProgram;
-    if (shouldPackDepthwiseConv) {
-      program = new DepthwiseConvPacked2DProgram(
-          convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
-      return this.compileAndRun(program, inputs);
-    }
-
-    program = new DepthwiseConv2DProgram(
-        convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
-    return this.compileAndRun(program, inputs);
-  }
-
-  depthwiseConv2D(
-      x: Tensor4D, filter: Tensor4D,
-      convInfo: backend_util.Conv2DInfo): Tensor4D {
-    let program: DepthwiseConv2DProgram|DepthwiseConvPacked2DProgram;
-    if (env().getBool('WEBGL_PACK_DEPTHWISECONV') &&
-        convInfo.strideWidth <= 2 &&
-        convInfo.outChannels / convInfo.inChannels === 1) {
-      program = new DepthwiseConvPacked2DProgram(convInfo);
-      return this.compileAndRun(program, [x, filter]);
-    }
-
-    program = new DepthwiseConv2DProgram(convInfo);
-    return this.compileAndRun(program, [x, filter]);
-  }
-
-  depthwiseConv2DDerInput(
-      dy: Tensor4D, filter: Tensor4D,
-      convInfo: backend_util.Conv2DInfo): Tensor4D {
-    const program = new DepthwiseConv2DDerInputProgram(convInfo);
-    return this.compileAndRun(program, [dy, filter]);
-  }
-
-  depthwiseConv2DDerFilter(
-      x: Tensor4D, dy: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
-    const program = new DepthwiseConv2DDerFilterProgram(convInfo);
-    return this.compileAndRun(program, [x, dy]);
-  }
-
-  conv3d(x: Tensor5D, filter: Tensor5D, convInfo: backend_util.Conv3DInfo):
-      Tensor5D {
-    const program = new Conv3DProgram(convInfo);
-    return this.compileAndRun(program, [x, filter]);
-  }
-
-  conv3dDerInput(
-      dy: Tensor5D, filter: Tensor5D,
-      convInfo: backend_util.Conv3DInfo): Tensor5D {
-    const program = new Conv3DDerInputProgram(convInfo);
-    return this.compileAndRun(program, [dy, filter]);
-  }
-
-  conv3dDerFilter(x: Tensor5D, dy: Tensor5D, convInfo: backend_util.Conv3DInfo):
-      Tensor5D {
-    const program = new Conv3DDerFilterProgram(convInfo);
-    return this.compileAndRun(program, [x, dy]);
   }
 
   unstack(x: Tensor, axis: number): Tensor[] {
