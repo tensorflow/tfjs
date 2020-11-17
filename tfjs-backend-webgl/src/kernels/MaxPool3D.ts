@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {backend_util, KernelConfig, KernelFunc, MaxPool3D, MaxPool3DAttrs, MaxPool3DInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, MaxPool3D, MaxPool3DAttrs, MaxPool3DInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {Pool3DProgram} from '../pool_gpu';
@@ -26,13 +26,12 @@ export function maxPool3d(args: {
 }): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
-  const {filterSize, strides, pad, dataFormat, dilations, dimRoundingMode} =
-      attrs;
+  const {filterSize, strides, pad, dataFormat, dimRoundingMode} = attrs;
+  const dilations: [number, number, number] = [1, 1, 1];
 
   const convInfo = backend_util.computePool3DInfo(
       x.shape as [number, number, number, number, number], filterSize, strides,
       dilations, pad, dimRoundingMode, dataFormat);
-
   const maxPoolProgram = new Pool3DProgram(convInfo, 'max', false);
   return backend.runWebGLProgram(maxPoolProgram, [x], x.dtype);
 }

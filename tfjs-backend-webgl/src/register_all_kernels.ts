@@ -20,6 +20,7 @@ import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {addConfig} from './kernels/Add';
 import {atan2Config} from './kernels/Atan2';
 import {avgPoolConfig} from './kernels/AvgPool';
+import {avgPool3DConfig} from './kernels/AvgPool3D';
 import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
@@ -72,6 +73,7 @@ const kernelConfigs: KernelConfig[] = [
   addConfig,
   atan2Config,
   avgPoolConfig,
+  avgPool3DConfig,
   avgPoolGradConfig,
   batchMatMulConfig,
   batchNormConfig,
