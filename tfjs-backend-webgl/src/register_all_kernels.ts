@@ -21,6 +21,7 @@ import {addConfig} from './kernels/Add';
 import {atan2Config} from './kernels/Atan2';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {avgPool3DConfig} from './kernels/AvgPool3D';
+import {avgPoolGrad3DConfig} from './kernels/AvgPool3DGrad';
 import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
@@ -75,6 +76,7 @@ const kernelConfigs: KernelConfig[] = [
   avgPoolConfig,
   avgPool3DConfig,
   avgPoolGradConfig,
+  avgPoolGrad3DConfig,
   batchMatMulConfig,
   batchNormConfig,
   castConfig,
