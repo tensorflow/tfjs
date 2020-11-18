@@ -15,17 +15,18 @@
  * =============================================================================
  */
 
-import './flags_wasm';
+import {KernelConfig, Tanh} from '@tensorflow/tfjs-core';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {registerBackend} from '@tensorflow/tfjs-core';
+const TANH = `
+  float e2x = exp(-2.0 * abs(x));
+  return sign(x) * (1.0 - e2x) / (1.0 + e2x);
+`;
 
-import {BackendWasm, init} from './backend_wasm';
+export const tanh = unaryKernelFunc({opSnippet: TANH});
 
-export {BackendWasm, setWasmPath, setWasmPaths} from './backend_wasm';
-export {version as version_wasm} from './version';
-
-const WASM_PRIORITY = 2;
-registerBackend('wasm', async () => {
-  const {wasm} = await init();
-  return new BackendWasm(wasm);
-}, WASM_PRIORITY);
+export const tanhConfig: KernelConfig = {
+  kernelName: Tanh,
+  backendName: 'webgl',
+  kernelFunc: tanh,
+};
