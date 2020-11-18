@@ -84,10 +84,11 @@ export const json: OpMapper[] = [
     'category': 'basic_math',
     'inputs': [
       {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'clipValueMin', 'type': 'number'},
+      {'start': 2, 'name': 'clipValueMax', 'type': 'number'},
     ],
     'attrs': [
-      {'tfName': 'clip_value_min', 'name': 'clipValueMin', 'type': 'number'},
-      {'tfName': 'clip_value_max', 'name': 'clipValueMax', 'type': 'number'}
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
@@ -239,18 +240,7 @@ export const json: OpMapper[] = [
       {'start': 0, 'name': 'x', 'type': 'tensor'},
     ],
     'attrs': [
-      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}, {
-        'tfName': 'clipValueMin',
-        'name': 'clipValueMin',
-        'type': 'number',
-        'defaultValue': 0
-      },
-      {
-        'tfName': 'clipValueMax',
-        'name': 'clipValueMax',
-        'type': 'number',
-        'defaultValue': 6
-      }
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
