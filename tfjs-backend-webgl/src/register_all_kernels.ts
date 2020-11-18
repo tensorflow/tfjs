@@ -17,8 +17,14 @@
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
 import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
+import {acosConfig} from './kernels/Acos';
+import {acoshConfig} from './kernels/Acosh';
 import {addConfig} from './kernels/Add';
+import {asinConfig} from './kernels/Asin';
+import {asinhConfig} from './kernels/Asinh';
+import {atanConfig} from './kernels/Atan';
 import {atan2Config} from './kernels/Atan2';
+import {atanhConfig} from './kernels/Atanh';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
@@ -28,8 +34,10 @@ import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {cosConfig} from './kernels/Cos';
+import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {equalConfig} from './kernels/Equal';
+import {erfConfig} from './kernels/Erf';
 import {fftConfig} from './kernels/FFT';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
@@ -62,14 +70,18 @@ import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reshapeConfig} from './kernels/Reshape';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
+import {sigmoidConfig} from './kernels/Sigmoid';
 import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
+import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
+import {softplusConfig} from './kernels/Softplus';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
+import {tanhConfig} from './kernels/Tanh';
 import {tileConfig} from './kernels/Tile';
 import {transposeConfig} from './kernels/Transpose';
 import {uniqueConfig} from './kernels/Unique';
@@ -77,8 +89,14 @@ import {uniqueConfig} from './kernels/Unique';
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
   _fusedMatMulConfig,
+  acosConfig,
+  acoshConfig,
   addConfig,
+  asinConfig,
+  asinhConfig,
   atan2Config,
+  atanConfig,
+  atanhConfig,
   avgPoolConfig,
   avgPoolGradConfig,
   batchMatMulConfig,
@@ -88,8 +106,10 @@ const kernelConfigs: KernelConfig[] = [
   concatConfig,
   conv2DConfig,
   cosConfig,
+  coshConfig,
   cropAndResizeConfig,
   equalConfig,
+  erfConfig,
   fftConfig,
   flipLeftRightConfig,
   floorConfig,
@@ -122,14 +142,18 @@ const kernelConfigs: KernelConfig[] = [
   realDivConfig,
   reshapeConfig,
   rotateWithOffsetConfig,
+  sigmoidConfig,
   signConfig,
   sinConfig,
+  sinhConfig,
   sliceConfig,
+  softplusConfig,
   squareConfig,
   squaredDifferenceConfig,
   subConfig,
   sumConfig,
   tanConfig,
+  tanhConfig,
   tileConfig,
   transposeConfig,
   uniqueConfig
