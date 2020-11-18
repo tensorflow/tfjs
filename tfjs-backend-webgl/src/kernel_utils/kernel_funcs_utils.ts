@@ -15,17 +15,13 @@
  * =============================================================================
  */
 
-import {backend_util, BinaryInputs, DataType, env, KernelFunc, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
+import {BinaryInputs, DataType, env, KernelFunc, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import * as binaryop_gpu from '../binaryop_gpu';
 import {BinaryOpProgram} from '../binaryop_gpu';
-import * as binaryop_packed_gpu from '../binaryop_packed_gpu';
 import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 import {complex} from '../kernels/Complex';
-import * as unary_op from '../unaryop_gpu';
 import {UnaryOpProgram} from '../unaryop_gpu';
-import * as unary_packed_op from '../unaryop_packed_gpu';
 import {UnaryOpPackedProgram} from '../unaryop_packed_gpu';
 
 import {SimpleBinaryKernelImplCPU, SimpleUnaryKernelImplCPU} from './shared';
@@ -185,36 +181,4 @@ export function binaryKernelFunc({
 
     return webglBackend.runWebGLProgram(program, [a, b], $dtype);
   };
-}
-
-export function mapActivationToShaderProgram(
-    activation: backend_util.Activation, packed = false): string {
-  if (activation === 'linear') {
-    if (packed) {
-      return unary_packed_op.LINEAR;
-    }
-    return unary_op.LINEAR;
-  } else if (activation === 'relu') {
-    if (packed) {
-      return unary_packed_op.RELU;
-    }
-    return unary_op.RELU;
-  } else if (activation === 'elu') {
-    if (packed) {
-      return unary_packed_op.ELU;
-    }
-    return unary_op.ELU;
-  } else if (activation === 'relu6') {
-    if (packed) {
-      return unary_packed_op.RELU6;
-    }
-    return unary_op.RELU6;
-  } else if (activation === 'prelu') {
-    if (packed) {
-      return binaryop_packed_gpu.PRELU;
-    }
-    return binaryop_gpu.PRELU;
-  }
-  throw new Error(`Activation ${
-      activation} has not been implemented for the WebGL backend.`);
 }

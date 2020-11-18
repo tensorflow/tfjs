@@ -40,6 +40,10 @@ import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
 import {ifftConfig} from './kernels/IFFT';
 import {imagConfig} from './kernels/Imag';
+import {lessConfig} from './kernels/Less';
+import {lessEqualConfig} from './kernels/LessEqual';
+import {logicalAndConfig} from './kernels/LogicalAnd';
+import {logicalOrConfig} from './kernels/LogicalOr';
 import {maxConfig} from './kernels/Max';
 import {maxPoolConfig} from './kernels/MaxPool';
 import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
@@ -52,6 +56,8 @@ import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
 import {oneHotConfig} from './kernels/OneHot';
+import {powConfig} from './kernels/Pow';
+import {preluConfig} from './kernels/Prelu';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reshapeConfig} from './kernels/Reshape';
@@ -94,6 +100,10 @@ const kernelConfigs: KernelConfig[] = [
   identityConfig,
   ifftConfig,
   imagConfig,
+  lessConfig,
+  lessEqualConfig,
+  logicalAndConfig,
+  logicalOrConfig,
   maxConfig,
   maxPoolConfig,
   maxPoolGradConfig,
@@ -106,6 +116,8 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV5Config,
   notEqualConfig,
   oneHotConfig,
+  powConfig,
+  preluConfig,
   realConfig,
   realDivConfig,
   reshapeConfig,

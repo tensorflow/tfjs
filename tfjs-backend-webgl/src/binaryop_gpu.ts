@@ -40,27 +40,7 @@ export const INT_DIV = `
   }
 `;
 
-export const POW = `
-if(a < 0.0 && floor(b) < b){
-  return NAN;
-}
-if (b == 0.0) {
-  return 1.0;
-}
-return (round(mod(b, 2.0)) != 1) ?
-    pow(abs(a), b) : sign(a) * pow(abs(a), b);
-`;
 export const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
-
-export const LESS = `return float(a < b);`;
-
-export const LESS_EQUAL = `return float(a <= b);`;
-
-export const GREATER_EQUAL = `return float(a >= b);`;
-
-export const LOGICAL_AND = `return float(a >= 1.0 && b >= 1.0);`;
-
-export const LOGICAL_OR = `return float(a >= 1.0 || b >= 1.0);`;
 
 export const MAX = CHECK_NAN_SNIPPET + `
   return max(a, b);
@@ -72,9 +52,6 @@ export const MOD = `if (b == 0.0) return NAN;
   return mod(a, b);`;
 
 export const ELU_DER = `return (b >= 1.0) ? a : a * (b + 1.0);`;
-
-export const PRELU = `return (a < 0.) ? b * a : a;`;
-
 export class BinaryOpProgram implements GPGPUProgram {
   variableNames = ['A', 'B'];
   outputShape: number[];

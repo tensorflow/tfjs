@@ -18,7 +18,7 @@
 import {backend_util, TensorInfo, upcastType, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
+import {mapActivationToShaderProgram} from '../kernel_utils/fused_kernel_utils';
 import {MatMulPackedProgram} from '../mulmat_packed_gpu';
 
 import {multiply} from './Multiply';

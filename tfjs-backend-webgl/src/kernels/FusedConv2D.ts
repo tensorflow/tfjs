@@ -19,7 +19,7 @@ import {backend_util, env, FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs, Ker
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {Conv2DProgram} from '../conv_gpu';
-import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
+import {mapActivationToShaderProgram} from '../kernel_utils/fused_kernel_utils';
 
 import {conv2dByMatMul, conv2dWithIm2Row} from './Conv2D_impl';
 import {reshape} from './Reshape';

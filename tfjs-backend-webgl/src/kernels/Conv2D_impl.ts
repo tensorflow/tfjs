@@ -19,7 +19,7 @@ import {backend_util, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {Im2ColPackedProgram} from '../im2col_packed_gpu';
-import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
+import {mapActivationToShaderProgram} from '../kernel_utils/fused_kernel_utils';
 import {MatMulPackedProgram} from '../mulmat_packed_gpu';
 import * as webgl_util from '../webgl_util';
 
