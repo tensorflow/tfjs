@@ -126,18 +126,24 @@
         "start": 0,
         "name": "x",
         "type": "tensor"
-      }
-    ],
-    "attrs": [
+      },
       {
-        "tfName": "clip_value_min",
+        "start": 1,
         "name": "clipValueMin",
         "type": "number"
       },
       {
-        "tfName": "clip_value_max",
+        "start": 2,
         "name": "clipValueMax",
         "type": "number"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "T",
+        "name": "dtype",
+        "type": "dtype",
+        "notSupported": true
       }
     ]
   },
@@ -426,18 +432,6 @@
         "name": "dtype",
         "type": "dtype",
         "notSupported": true
-      },
-      {
-        "tfName": "clipValueMin",
-        "name": "clipValueMin",
-        "type": "number",
-        "defaultValue": 0
-      },
-      {
-        "tfName": "clipValueMax",
-        "name": "clipValueMax",
-        "type": "number",
-        "defaultValue": 6
       }
     ]
   },
