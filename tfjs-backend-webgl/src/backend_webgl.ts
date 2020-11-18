@@ -23,7 +23,7 @@ import {buffer, DataId, DataValues, div, engine, env, max, MemoryInfo, range, Re
 import {backend_util, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
-import {ceilImplCPU, expImplCPU, expm1ImplCPU, greaterImplCPU, lessImplCPU, logImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU} from './kernel_utils/shared';
+import {ceilImplCPU, expImplCPU, expm1ImplCPU, gatherV2ImplCPU, greaterImplCPU, lessImplCPU, logImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
@@ -832,12 +832,6 @@ export class MathBackendWebGL extends KernelBackend {
 
   gather<T extends Tensor>(
       x: T, indices: Tensor1D, axis: number, batchDims = 0): T {
-    const cpuRes = this.tryRunOnCpuOrThrow(
-        [x, indices],
-        () => this.cpuBackend.gather(x, indices, axis, batchDims));
-    if (cpuRes) {
-      return cpuRes;
-    }
     const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
     const shapeInfo = segment_util.collectGatherOpShapeInfo(
         x, indices, parsedAxis, batchDims);
@@ -852,6 +846,18 @@ export class MathBackendWebGL extends KernelBackend {
       shapeInfo.batchSize, shapeInfo.outerSize,
       indices.size / shapeInfo.batchSize, shapeInfo.sliceSize
     ];
+
+    if (this.shouldExecuteOnCPU([x, indices]) || x.dtype === 'string') {
+      const indicesBuf = this.bufferSync(flattenIndex);
+      const xBuf = this.bufferSync(flattenX);
+      const outBuf = buffer(flattenOutputShape, x.dtype);
+
+      gatherV2ImplCPU(xBuf, indicesBuf, outBuf);
+
+      return this.makeOutput(
+          shapeInfo.outputShape, outBuf.dtype, outBuf.values as TypedArray);
+    }
+
     const program = new GatherProgram(flattenX.shape, flattenOutputShape);
     const res: Tensor = this.compileAndRun(program, [flattenX, flattenIndex]);
     return res.reshape(shapeInfo.outputShape);
