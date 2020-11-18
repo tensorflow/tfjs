@@ -15,5 +15,17 @@
  * =============================================================================
  */
 
+import './flags_wasm';
+
+import {registerBackend} from '@tensorflow/tfjs-core';
+
+import {BackendWasm, init} from './backend_wasm';
+
 export {BackendWasm, setWasmPath, setWasmPaths} from './backend_wasm';
 export {version as version_wasm} from './version';
+
+const WASM_PRIORITY = 2;
+registerBackend('wasm', async () => {
+  const {wasm} = await init();
+  return new BackendWasm(wasm);
+}, WASM_PRIORITY);
