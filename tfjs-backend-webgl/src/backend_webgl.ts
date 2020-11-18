@@ -96,7 +96,6 @@ import {UnaryOpPackedProgram} from './unaryop_packed_gpu';
 import {UnpackProgram} from './unpack_gpu';
 import * as webgl_util from './webgl_util';
 import {BackendValues} from '@tensorflow/tfjs-core';
-import {mapActivationToShaderProgram} from './kernel_utils/fused_kernel_utils';
 
 export const EPSILON_FLOAT32 = 1e-7;
 export const EPSILON_FLOAT16 = 1e-4;
@@ -152,6 +151,46 @@ function numMBBeforeWarning(): number {
   return (env().global.screen.height * env().global.screen.width *
           window.devicePixelRatio) *
       BEFORE_PAGING_CONSTANT / 1024 / 1024;
+}
+
+// TODO(yassogba) remove this once the backend has been modularized
+// a copy is needed here to break a circular dependency.
+function mapActivationToShaderProgram(
+    activation: backend_util.Activation, packed = false): string {
+  if (activation === 'linear') {
+    if (packed) {
+      return unary_packed_op.LINEAR;
+    }
+    return unary_op.LINEAR;
+  } else if (activation === 'relu') {
+    if (packed) {
+      return unary_packed_op.RELU;
+    }
+    return unary_op.RELU;
+  } else if (activation === 'elu') {
+    if (packed) {
+      return unary_packed_op.ELU;
+    }
+    return unary_op.ELU;
+  } else if (activation === 'relu6') {
+    if (packed) {
+      return unary_packed_op.RELU6;
+    }
+    return unary_op.RELU6;
+  } else if (activation === 'prelu') {
+    // Duplicated to avoid a circular dependency
+    const PRELU = `return (a < 0.) ? b * a : a;`;
+    const PRELU_PACKED = `
+  vec4 aLessThanZero = vec4(lessThan(a, vec4(0.)));
+  return (aLessThanZero * (b * a)) + ((vec4(1.0) - aLessThanZero) * a);
+`;
+    if (packed) {
+      return PRELU_PACKED;
+    }
+    return PRELU;
+  }
+  throw new Error(`Activation ${
+      activation} has not been implemented for the WebGL backend.`);
 }
 
 export class MathBackendWebGL extends KernelBackend {
