@@ -1758,10 +1758,10 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   resizeNearestNeighbor(
-      x: Tensor4D, newHeight: number, newWidth: number,
-      alignCorners: boolean): Tensor4D {
+      x: Tensor4D, newHeight: number, newWidth: number, alignCorners: boolean,
+      halfPixelCenters: boolean): Tensor4D {
     const program = new ResizeNearestNeighborProgram(
-        x.shape, newHeight, newWidth, alignCorners);
+        x.shape, newHeight, newWidth, alignCorners, halfPixelCenters);
     return this.compileAndRun(program, [x]);
   }
 
