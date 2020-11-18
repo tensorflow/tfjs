@@ -56,8 +56,6 @@ export const LESS = `return float(a < b);`;
 
 export const LESS_EQUAL = `return float(a <= b);`;
 
-export const GREATER = `return float(a > b);`;
-
 export const GREATER_EQUAL = `return float(a >= b);`;
 
 export const LOGICAL_AND = `return float(a >= 1.0 && b >= 1.0);`;

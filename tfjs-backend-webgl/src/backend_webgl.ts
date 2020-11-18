@@ -23,7 +23,7 @@ import {buffer, DataId, DataValues, div, engine, env, max, MemoryInfo, range, Re
 import {backend_util, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
-import {ceilImplCPU, expImplCPU, expm1ImplCPU, greaterImplCPU, lessImplCPU, logImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU} from './kernel_utils/shared';
+import {ceilImplCPU, expImplCPU, expm1ImplCPU, lessImplCPU, logImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
@@ -1112,33 +1112,6 @@ export class MathBackendWebGL extends KernelBackend {
     }
     const program =
         new BinaryOpProgram(binaryop_gpu.LESS_EQUAL, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b], 'bool');
-  }
-
-  greater(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      const aVals = this.texData.get(a.dataId).values as TypedArray;
-      const bVals = this.texData.get(b.dataId).values as TypedArray;
-      const [outVals, newShape] =
-          greaterImplCPU(a.shape, b.shape, aVals, bVals, 'bool');
-      return this.makeOutput(newShape, 'bool', outVals);
-    }
-
-    if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-      return this.packedBinaryOp(a, b, binaryop_packed_gpu.GREATER, 'bool');
-    }
-
-    const program = new BinaryOpProgram(binaryop_gpu.GREATER, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b], 'bool');
-  }
-
-  greaterEqual(a: Tensor, b: Tensor): Tensor {
-    if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-      return this.packedBinaryOp(
-          a, b, binaryop_packed_gpu.GREATER_EQUAL, 'bool');
-    }
-    const program =
-        new BinaryOpProgram(binaryop_gpu.GREATER_EQUAL, a.shape, b.shape);
     return this.compileAndRun(program, [a, b], 'bool');
   }
 

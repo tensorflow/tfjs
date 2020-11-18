@@ -92,14 +92,6 @@ export const LESS_EQUAL = `
   return vec4(lessThanEqual(a, b));
 `;
 
-export const GREATER = `
-  return vec4(greaterThan(a, b));
-`;
-
-export const GREATER_EQUAL = `
-  return vec4(greaterThanEqual(a, b));
-`;
-
 export const LOGICAL_AND = `
   return vec4(
     vec4(greaterThanEqual(a, vec4(1.0))) *
