@@ -30,7 +30,8 @@ export interface CustomTFJSBundleConfig {
   outputPath: string;             // path to output folder
   kernels?: string[];             // Kernels to include
   // tslint:disable-next-line: no-any
-  moduleOptions: any;  // Extra params to pass to a module provider
+  moduleOptions: any;             // Extra params to pass to a module provider
+  normalizedOutputPath?: string;  // Computed internally
 }
 
 // Interface for an object that can provide functionality to generate

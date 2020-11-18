@@ -22,7 +22,7 @@ import * as slice_join from '../op_list/slice_join';
 import {Node} from '../types';
 
 import {executeOp} from './slice_join_executor';
-import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, createTensorsAttr, validateParam} from './test_helper';
+import {createBooleanArrayAttrFromIndex, createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, createTensorsAttr, validateParam} from './test_helper';
 
 describe('slice join', () => {
   let node: Node;
@@ -181,17 +181,18 @@ describe('slice join', () => {
       it('should call tfOps.reverse', () => {
         spyOn(tfOps, 'reverse');
         node.op = 'Reverse';
-        node.inputParams.axis = createNumericArrayAttrFromIndex(1);
-        node.inputNames = ['input1', 'input4'];
-        executeOp(node, {input1, input4}, context);
+        node.inputParams.dims = createBooleanArrayAttrFromIndex(1);
+        node.inputNames = ['input1', 'input6'];
+        const input6 = [tfOps.tensor1d([false, true], 'bool')];
+        executeOp(node, {input1, input6}, context);
 
-        expect(tfOps.reverse).toHaveBeenCalledWith(input1[0], [3]);
+        expect(tfOps.reverse).toHaveBeenCalledWith(input1[0], [1]);
       });
       it('should match json def for reverse', () => {
         node.op = 'Reverse';
-        node.inputParams.axis = createNumericArrayAttrFromIndex(1);
+        node.inputParams.dims = createBooleanArrayAttrFromIndex(1);
 
-        expect(validateParam(node, slice_join.json, 'ReverseV2')).toBeTruthy();
+        expect(validateParam(node, slice_join.json, 'Reverse')).toBeTruthy();
       });
       it('should call tfOps.reverse', () => {
         spyOn(tfOps, 'reverse');
@@ -278,28 +279,27 @@ describe('slice join', () => {
         spyOn(tfOps, 'gather');
         node.op = 'Gather';
         node.inputParams.indices = createTensorAttr(1);
-        node.inputParams.axis = createNumberAttrFromIndex(2);
         const input5 = [tfOps.scalar(2, 'int32')];
-        node.inputNames = ['input1', 'input5', 'input3'];
+        node.inputNames = ['input1', 'input5'];
         executeOp(node, {input1, input5, input3}, context);
 
         expect(tfOps.gather)
             .toHaveBeenCalledWith(
                 input1[0], jasmine.objectContaining({dataId: input5[0].dataId}),
-                3);
+                0);
       });
       it('should match json def for gather', () => {
         node.op = 'Gather';
         node.inputParams.indices = createTensorAttr(1);
-        node.inputParams.axis = createNumberAttrFromIndex(2);
 
-        expect(validateParam(node, slice_join.json, 'GatherV2')).toBeTruthy();
+        expect(validateParam(node, slice_join.json, 'Gather')).toBeTruthy();
       });
       it('should call tfOps.gather', () => {
         spyOn(tfOps, 'gather');
         node.op = 'GatherV2';
         node.inputParams.indices = createTensorAttr(1);
         node.inputParams.axis = createNumberAttrFromIndex(2);
+        node.attrParams.batchDims = createNumberAttr(1);
         const input5 = [tfOps.scalar(2, 'int32')];
         node.inputNames = ['input1', 'input5', 'input3'];
         executeOp(node, {input1, input5, input3}, context);
@@ -307,26 +307,26 @@ describe('slice join', () => {
         expect(tfOps.gather)
             .toHaveBeenCalledWith(
                 input1[0], jasmine.objectContaining({dataId: input5[0].dataId}),
-                3);
+                3, 1);
       });
 
       it('should make indices param of int32 dtype', () => {
         spyOn(tfOps, 'gather');
         node.op = 'Gather';
         node.inputParams.indices = createTensorAttr(1);
-        node.inputParams.axis = createNumberAttrFromIndex(2);
-        node.inputNames = ['input1', 'input5', 'input3'];
+        node.inputNames = ['input1', 'input5'];
         const input5 = [tfOps.scalar(2, 'float32')];
-        executeOp(node, {input1, input5, input3}, context);
+        executeOp(node, {input1, input5}, context);
 
         expect(tfOps.gather)
             .toHaveBeenCalledWith(
-                input1[0], jasmine.objectContaining({dtype: 'int32'}), 3);
+                input1[0], jasmine.objectContaining({dtype: 'int32'}), 0);
       });
       it('should match json def for gather', () => {
         node.op = 'GatherV2';
         node.inputParams.indices = createTensorAttr(1);
         node.inputParams.axis = createNumberAttrFromIndex(2);
+        node.attrParams.batchDims = createNumberAttr(1);
 
         expect(validateParam(node, slice_join.json, 'GatherV2')).toBeTruthy();
       });

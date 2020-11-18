@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppressionV3Impl;
 const split = kernel_impls.split;
@@ -205,16 +205,6 @@ export class MathBackendCPU extends KernelBackend {
     };
   }
 
-  diag(x: Tensor): Tensor {
-    const xVals = this.readSync(x.dataId) as TypedArray;
-    const buffer = tf.buffer([x.size, x.size], x.dtype);
-    const vals = buffer.values;
-    for (let i = 0; i < xVals.length; i++) {
-      vals[i * x.size + i] = xVals[i];
-    }
-    return buffer.toTensor();
-  }
-
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D, numSegments: number): Tensor {
     assertNotComplex(x, 'unsortedSegmentSum');
@@ -238,121 +228,6 @@ export class MathBackendCPU extends KernelBackend {
     return tf.stack(res);
   }
 
-  argMin(x: Tensor, axis: number): Tensor {
-    assertNotComplex(x, 'argMin');
-
-    const axes = [axis];
-    backend_util.assertAxesAreInnerMostDims('argMin', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const result = tf.zeros(outShape, 'int32');
-    const reduceSize = util.sizeFromShape(reduceShape);
-    const vals = this.readSync(result.dataId) as TypedArray;
-
-    const aVals = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < vals.length; ++i) {
-      const offset = i * reduceSize;
-      let min = aVals[offset];
-      let minIndex = 0;
-      for (let j = 0; j < reduceSize; ++j) {
-        const value = aVals[offset + j];
-        if (value < min) {
-          min = value;
-          minIndex = j;
-        }
-      }
-      vals[i] = minIndex;
-    }
-    return result;
-  }
-
-  argMax(x: Tensor, axis: number): Tensor {
-    assertNotComplex(x, 'argMax');
-
-    const axes = [axis];
-    backend_util.assertAxesAreInnerMostDims('argMax', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const result = tf.zeros(outShape, 'int32');
-    const reduceSize = util.sizeFromShape(reduceShape);
-    const vals = this.readSync(result.dataId) as TypedArray;
-
-    const aVals = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < vals.length; ++i) {
-      const offset = i * reduceSize;
-      let max = aVals[offset];
-      let maxIndex = 0;
-      for (let j = 0; j < reduceSize; ++j) {
-        const value = aVals[offset + j];
-        if (value > max) {
-          max = value;
-          maxIndex = j;
-        }
-      }
-      vals[i] = maxIndex;
-    }
-    return result;
-  }
-
-  cumsum(x: Tensor, axis: number, exclusive: boolean, reverse: boolean):
-      Tensor {
-    assertNotComplex(x, 'cumsum');
-
-    if (axis !== x.rank - 1) {
-      throw new Error(
-          `backend.cumsum in CPU expects an inner-most axis=${x.rank - 1} ` +
-          `but got axis=${axis}`);
-    }
-    const resultDtype = upcastType(x.dtype, 'int32');
-    const result = tf.zeros(x.shape, resultDtype);
-    const vals = this.readSync(result.dataId) as TypedArray;
-
-    const aVals = this.readSync(x.dataId) as TypedArray;
-    const finalDim = x.shape[x.rank - 1];
-    const indexAdjuster = reverse ?
-        (i: number, j: number) => i + finalDim - j - 1 :
-        (i: number, j: number) => i + j;
-    for (let i = 0; i < aVals.length; i += finalDim) {
-      for (let j = 0; j < finalDim; j++) {
-        const idx = indexAdjuster(i, j);
-        if (j === 0) {
-          vals[idx] = exclusive ? 0 : aVals[idx];
-        } else {
-          const prevIdx = indexAdjuster(i, j - 1);
-          vals[idx] = exclusive ? aVals[prevIdx] + vals[prevIdx] :
-                                  aVals[idx] + vals[prevIdx];
-        }
-      }
-    }
-    return result;
-  }
-
-  select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([condition, a, b], 'select');
-
-    const values = this.readSync(condition.dataId) as TypedArray;
-    const aValues = this.readSync(a.dataId) as TypedArray;
-    const bValues = this.readSync(b.dataId) as TypedArray;
-    const result = tf.zeros(a.shape, upcastType(a.dtype, b.dtype));
-    const newValues = this.readSync(result.dataId) as TypedArray;
-    let index = 0;
-    const offset = condition.rank === 0 || condition.rank > 1 || a.rank === 1 ?
-        1 :
-        util.sizeFromShape(a.shape.slice(1));
-
-    for (let i = 0; i < values.length; i++) {
-      for (let j = 0; j < offset; j++) {
-        if (values[i] === 1) {
-          newValues[index++] = aValues[i];
-        } else {
-          newValues[index++] = bValues[i];
-        }
-      }
-    }
-
-    return result;
-  }
-
   where(condition: Tensor): Tensor2D {
     assertNotComplex([condition], 'where');
 
@@ -367,31 +242,6 @@ export class MathBackendCPU extends KernelBackend {
     return topkImpl(xVals, x.shape, x.dtype as NumericDataType, k, sorted);
   }
 
-  min(x: Tensor, axes: number[]): Tensor {
-    assertNotComplex(x, 'min');
-
-    backend_util.assertAxesAreInnerMostDims('min', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const result = tf.zeros(outShape, x.dtype);
-    const reduceSize = util.sizeFromShape(reduceShape);
-    const vals = this.readSync(result.dataId) as TypedArray;
-
-    const aVals = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < vals.length; ++i) {
-      const offset = i * reduceSize;
-      let min = aVals[offset];
-      for (let j = 0; j < reduceSize; ++j) {
-        const value = aVals[offset + j];
-        if (value < min) {
-          min = value;
-        }
-      }
-      vals[i] = min;
-    }
-    return result;
-  }
-
   minimum(a: Tensor, b: Tensor): Tensor {
     assertNotComplex([a, b], 'minimum');
 
@@ -399,79 +249,11 @@ export class MathBackendCPU extends KernelBackend {
         a, b, a.dtype, (aVal, bVal) => Math.min(aVal, bVal));
   }
 
-  mod(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'mod');
-
-    return this.broadcastedBinaryOp(a, b, a.dtype, (aVal, bVal) => {
-      const rem = aVal % bVal;
-      if ((aVal < 0 && bVal < 0) || (aVal >= 0 && bVal >= 0)) {
-        return rem;
-      } else {
-        return (rem + bVal) % bVal;
-      }
-    });
-  }
-
   maximum(a: Tensor, b: Tensor): Tensor {
     assertNotComplex([a, b], 'maximum');
 
     return this.broadcastedBinaryOp(
         a, b, a.dtype, (aVal, bVal) => Math.max(aVal, bVal));
-  }
-
-  all(x: Tensor, axes: number[]): Tensor {
-    assertNotComplex(x, 'all');
-
-    backend_util.assertAxesAreInnerMostDims('all', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const result = tf.zeros(outShape, x.dtype);
-    const reduceSize = util.sizeFromShape(reduceShape);
-    const vals = this.readSync(result.dataId) as TypedArray;
-
-    const aVals = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < vals.length; ++i) {
-      const offset = i * reduceSize;
-      let all = aVals[offset];
-      for (let j = 0; j < reduceSize; ++j) {
-        const value = aVals[offset + j];
-        all = all && value;
-      }
-      vals[i] = all;
-    }
-    return result;
-  }
-
-  any(x: Tensor, axes: number[]): Tensor {
-    assertNotComplex(x, 'any');
-
-    backend_util.assertAxesAreInnerMostDims('any', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const result = tf.zeros(outShape, x.dtype);
-    const reduceSize = util.sizeFromShape(reduceShape);
-    const vals = this.readSync(result.dataId) as TypedArray;
-
-    const aVals = this.readSync(x.dataId) as TypedArray;
-    for (let i = 0; i < vals.length; ++i) {
-      const offset = i * reduceSize;
-      let anyVal = aVals[offset];
-      for (let j = 0; j < reduceSize; ++j) {
-        const value = aVals[offset + j];
-        anyVal = anyVal || value;
-      }
-      vals[i] = anyVal;
-    }
-    return result;
-  }
-
-  squaredDifference(a: Tensor, b: Tensor): Tensor {
-    assertNotComplex([a, b], 'squaredDifference');
-
-    return this.broadcastedBinaryOp(a, b, a.dtype, (aVal, bVal) => {
-      const diff = aVal - bVal;
-      return diff * diff;
-    });
   }
 
   eluDer<T extends Tensor>(dy: T, y: T): T {
@@ -491,38 +273,45 @@ export class MathBackendCPU extends KernelBackend {
     return this.makeOutput(resultValues, y.shape, 'float32');
   }
 
-  atan2<T extends Tensor>(a: T, b: T): T {
-    assertNotComplex([a, b], 'atan2');
-
-    return this.broadcastedBinaryOp(
-               a, b, a.dtype, (aValue, bValue) => Math.atan2(aValue, bValue)) as
-        T;
-  }
-
   tile<T extends Tensor>(x: T, reps: number[]): T {
     assertNotComplex(x, 'tile');
     return tile(this.bufferSync(x), reps) as T;
   }
 
-  gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
+  gather<T extends Tensor>(
+      x: T, indices: Tensor1D, axis: number, batchDims = 0): T {
     assertNotComplex([x, indices], 'gather');
+    const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
+    const shapeInfo = backend_util.segment_util.collectGatherOpShapeInfo(
+        x, indices, parsedAxis, batchDims);
 
-    const newShape: number[] = x.shape.slice();
-    const indicesValues = this.readSync(indices.dataId) as TypedArray;
-    newShape[axis] = indicesValues.length;
-    const result = tf.buffer(newShape, x.dtype);
-    const xBuf = this.bufferSync(x);
+    const flattenX = x.reshape([
+      shapeInfo.batchSize, shapeInfo.outerSize, shapeInfo.dimSize,
+      shapeInfo.sliceSize
+    ]);
+    const flattenIndex = indices.reshape(
+        [shapeInfo.batchSize, indices.size / shapeInfo.batchSize]);
+    const flattenOutputShape = [
+      shapeInfo.batchSize, shapeInfo.outerSize,
+      indices.size / shapeInfo.batchSize, shapeInfo.sliceSize
+    ];
+    const indicesBuf = this.bufferSync(flattenIndex);
+    const result = tf.buffer(flattenOutputShape, x.dtype);
+    const xBuf = this.bufferSync(flattenX);
 
     for (let i = 0; i < result.size; ++i) {
       const newLoc = result.indexToLoc(i);
 
       const originalLoc: number[] = newLoc.slice();
-      originalLoc[axis] = indicesValues[newLoc[axis]];
+      const batchIdx = originalLoc[0];
+      const indicesIdx = originalLoc[2];
+      const indicesIndex = indicesBuf.locToIndex([batchIdx, indicesIdx]);
+      originalLoc[2] = indicesBuf.values[indicesIndex];
 
       const originalIndex = xBuf.locToIndex(originalLoc);
       result.values[i] = xBuf.values[originalIndex];
     }
-    return result.toTensor() as T;
+    return result.toTensor().reshape(shapeInfo.outputShape);
   }
 
   batchToSpaceND<T extends Tensor>(

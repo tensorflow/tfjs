@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {GatherV2, GatherV2Attrs, GatherV2Inputs, KernelConfig, scalar} from '@tensorflow/tfjs';
+import {backend_util, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelConfig, scalar, Tensor} from '@tensorflow/tfjs';
 
 import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
@@ -25,10 +25,15 @@ export const gatherV2Config: KernelConfig = {
   kernelFunc: (args) => {
     const {x, indices} = args.inputs as GatherV2Inputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {axis} = args.attrs as {} as GatherV2Attrs;
+    const {axis, batchDims} = args.attrs as {} as GatherV2Attrs;
+
+    // validate the inputs
+    backend_util.segment_util.collectGatherOpShapeInfo(
+        x as Tensor, indices as Tensor, axis, batchDims);
 
     const axisTensor = scalar(axis, 'int32');
     const opAttrs = [
+      {name: 'batch_dims', type: backend.binding.TF_ATTR_INT, value: batchDims},
       createTensorsTypeOpAttr('Tparams', x.dtype),
       createTensorsTypeOpAttr('Tindices', indices.dtype),
       createTensorsTypeOpAttr('Taxis', 'int32')

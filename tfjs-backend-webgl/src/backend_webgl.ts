@@ -23,7 +23,7 @@ import {buffer, DataId, DataValues, div, engine, env, max, MemoryInfo, range, Re
 import {backend_util, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
-import {ceilImplCPU, expImplCPU, expm1ImplCPU, floorImplCPU, greaterImplCPU, lessImplCPU, logImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU} from './kernel_utils/shared';
+import {ceilImplCPU, expImplCPU, expm1ImplCPU, greaterImplCPU, lessImplCPU, logImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
@@ -48,7 +48,6 @@ import {DepthwiseConv2DDerFilterProgram, DepthwiseConv2DDerInputProgram} from '.
 import {Conv3DProgram} from './conv_gpu';
 import {DepthwiseConv2DProgram} from './conv_gpu_depthwise';
 import {DepthwiseConvPacked2DProgram} from './conv_packed_gpu_depthwise';
-import {CropAndResizeProgram} from './crop_and_resize_gpu';
 import {CumSumProgram} from './cumsum_gpu';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
 import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
@@ -70,7 +69,6 @@ import {LRNPackedProgram} from './lrn_packed_gpu';
 import {MaxPool3DBackpropProgram} from './max_pool_backprop_gpu';
 import {MatMulPackedProgram} from './mulmat_packed_gpu';
 import {MultinomialProgram} from './multinomial_gpu';
-import {OneHotProgram} from './onehot_gpu';
 import {PackProgram} from './pack_gpu';
 import {PadProgram} from './pad_gpu';
 import {PadPackedProgram} from './pad_packed_gpu';
@@ -832,15 +830,31 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
+  gather<T extends Tensor>(
+      x: T, indices: Tensor1D, axis: number, batchDims = 0): T {
     const cpuRes = this.tryRunOnCpuOrThrow(
-        [x, indices], () => this.cpuBackend.gather(x, indices, axis));
+        [x, indices],
+        () => this.cpuBackend.gather(x, indices, axis, batchDims));
     if (cpuRes) {
       return cpuRes;
     }
+    const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
+    const shapeInfo = segment_util.collectGatherOpShapeInfo(
+        x, indices, parsedAxis, batchDims);
 
-    const program = new GatherProgram(x.shape, indices.size, axis);
-    return this.compileAndRun(program, [x, indices]);
+    const flattenX = x.reshape([
+      shapeInfo.batchSize, shapeInfo.outerSize, shapeInfo.dimSize,
+      shapeInfo.sliceSize
+    ]);
+    const flattenIndex = indices.reshape(
+        [shapeInfo.batchSize, indices.size / shapeInfo.batchSize]);
+    const flattenOutputShape = [
+      shapeInfo.batchSize, shapeInfo.outerSize,
+      indices.size / shapeInfo.batchSize, shapeInfo.sliceSize
+    ];
+    const program = new GatherProgram(flattenX.shape, flattenOutputShape);
+    const res: Tensor = this.compileAndRun(program, [flattenX, flattenIndex]);
+    return res.reshape(shapeInfo.outputShape);
   }
 
   batchToSpaceND<T extends Tensor>(
@@ -1322,26 +1336,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  floor<T extends Tensor>(x: T): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      const outValues = floorImplCPU(
-          this.texData.get(x.dataId).values as TypedArray, x.dtype);
-      return this.makeOutput(x.shape, x.dtype, outValues);
-    }
-
-    if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
-      return this.packedUnaryOp(x, unary_op.FLOOR, x.dtype) as T;
-    }
-
-    const program = new UnaryOpProgram(x.shape, unary_op.FLOOR);
-    return this.compileAndRun(program, [x]);
-  }
-
-  sign<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SIGN);
-    return this.compileAndRun(program, [x]);
-  }
-
   isNaN<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.IS_NAN);
     return this.compileAndRun(program, [x], 'bool');
@@ -1534,66 +1528,6 @@ export class MathBackendWebGL extends KernelBackend {
     ];
 
     return this.compileAndRun<Tensor>(program, inputs) as T;
-  }
-
-  sigmoid<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SIGMOID);
-    return this.compileAndRun(program, [x]);
-  }
-
-  softplus<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SOFTPLUS);
-    return this.compileAndRun(program, [x]);
-  }
-
-  asin<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ASIN);
-    return this.compileAndRun(program, [x]);
-  }
-
-  acos<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ACOS);
-    return this.compileAndRun(program, [x]);
-  }
-
-  atan<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ATAN);
-    return this.compileAndRun(program, [x]);
-  }
-
-  sinh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SINH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  cosh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.COSH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  tanh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.TANH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  asinh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ASINH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  acosh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ACOSH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  atanh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ATANH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  erf<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ERF);
-    return this.compileAndRun(program, [x]);
   }
 
   step<T extends Tensor>(x: T, alpha: number): T {
@@ -1789,24 +1723,9 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [probs], 'int32', customSetup);
   }
 
-  oneHot(indices: Tensor1D, depth: number, onValue: number, offValue: number):
-      Tensor2D {
-    const program = new OneHotProgram(indices.size, depth, onValue, offValue);
-    return this.compileAndRun(program, [indices]);
-  }
-
   diag(x: Tensor): Tensor {
     const program = new DiagProgram(x.size);
     return this.compileAndRun(program, [x]);
-  }
-
-  cropAndResize(
-      image: Tensor4D, boxes: Tensor2D, boxIndex: Tensor1D,
-      cropSize: [number, number], method: 'bilinear'|'nearest',
-      extrapolationValue: number): Tensor4D {
-    const program = new CropAndResizeProgram(
-        image.shape, boxes.shape, cropSize, method, extrapolationValue);
-    return this.compileAndRun(program, [image, boxes, boxIndex], 'float32');
   }
 
   depthToSpace(x: Tensor4D, blockSize: number, dataFormat: 'NHWC'|'NCHW'):

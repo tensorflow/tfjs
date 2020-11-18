@@ -69,6 +69,14 @@
         "type": "number",
         "defaultValue": 0
       }
+    ],
+    "attrs": [
+      {
+        "tfName": "batch_dims",
+        "name": "batchDims",
+        "type": "number",
+        "defaultValue": 0
+      }
     ]
   },
   {
@@ -87,12 +95,6 @@
       }
     ],
     "attrs": [
-      {
-        "tfName": "axis",
-        "name": "axis",
-        "type": "number",
-        "defaultValue": 0
-      },
       {
         "tfName": "validate_indices",
         "name": "validateIndices",
@@ -113,8 +115,7 @@
       {
         "start": 1,
         "name": "dims",
-        "type": "bool",
-        "notSupported": true
+        "type": "bool[]"
       }
     ]
   },
