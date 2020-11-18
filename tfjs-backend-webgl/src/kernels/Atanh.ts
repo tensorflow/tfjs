@@ -15,17 +15,19 @@
  * =============================================================================
  */
 
-import './flags_wasm';
+import {Atanh, KernelConfig} from '@tensorflow/tfjs-core';
 
-import {registerBackend} from '@tensorflow/tfjs-core';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {CHECK_NAN_SNIPPET} from '../unaryop_gpu';
 
-import {BackendWasm, init} from './backend_wasm';
+const ATANH = CHECK_NAN_SNIPPET + `
+  if ((x < -1.0) || (x > 1.0)) return NAN;
+return (log(1.0 + x) - log(1.0 - x)) / 2.0;`;
 
-export {BackendWasm, setWasmPath, setWasmPaths} from './backend_wasm';
-export {version as version_wasm} from './version';
+export const atanh = unaryKernelFunc({opSnippet: ATANH});
 
-const WASM_PRIORITY = 2;
-registerBackend('wasm', async () => {
-  const {wasm} = await init();
-  return new BackendWasm(wasm);
-}, WASM_PRIORITY);
+export const atanhConfig: KernelConfig = {
+  kernelName: Atanh,
+  backendName: 'webgl',
+  kernelFunc: atanh,
+};

@@ -1530,66 +1530,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun<Tensor>(program, inputs) as T;
   }
 
-  sigmoid<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SIGMOID);
-    return this.compileAndRun(program, [x]);
-  }
-
-  softplus<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SOFTPLUS);
-    return this.compileAndRun(program, [x]);
-  }
-
-  asin<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ASIN);
-    return this.compileAndRun(program, [x]);
-  }
-
-  acos<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ACOS);
-    return this.compileAndRun(program, [x]);
-  }
-
-  atan<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ATAN);
-    return this.compileAndRun(program, [x]);
-  }
-
-  sinh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SINH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  cosh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.COSH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  tanh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.TANH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  asinh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ASINH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  acosh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ACOSH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  atanh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ATANH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  erf<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ERF);
-    return this.compileAndRun(program, [x]);
-  }
-
   step<T extends Tensor>(x: T, alpha: number): T {
     const program = new UnaryOpProgram(x.shape, unary_op.STEP(alpha));
     return this.compileAndRun(program, [x]);

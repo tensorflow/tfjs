@@ -15,17 +15,22 @@
  * =============================================================================
  */
 
-import './flags_wasm';
+import {Acos, KernelConfig} from '@tensorflow/tfjs-core';
 
-import {registerBackend} from '@tensorflow/tfjs-core';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {CHECK_NAN_SNIPPET} from '../unaryop_gpu';
 
-import {BackendWasm, init} from './backend_wasm';
+const ACOS = CHECK_NAN_SNIPPET + `
+  if (abs(x) > 1.) {
+    return NAN;
+  }
+  return acos(x);
+`;
 
-export {BackendWasm, setWasmPath, setWasmPaths} from './backend_wasm';
-export {version as version_wasm} from './version';
+export const acos = unaryKernelFunc({opSnippet: ACOS});
 
-const WASM_PRIORITY = 2;
-registerBackend('wasm', async () => {
-  const {wasm} = await init();
-  return new BackendWasm(wasm);
-}, WASM_PRIORITY);
+export const acosConfig: KernelConfig = {
+  kernelName: Acos,
+  backendName: 'webgl',
+  kernelFunc: acos,
+};

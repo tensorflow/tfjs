@@ -15,17 +15,35 @@
  * =============================================================================
  */
 
-import './flags_wasm';
+import {KernelConfig, Softplus} from '@tensorflow/tfjs-core';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {registerBackend} from '@tensorflow/tfjs-core';
+const SOFTPLUS = `
+  float epsilon = 1.1920928955078125e-7;
+  float threshold = log(epsilon) + 2.0;
 
-import {BackendWasm, init} from './backend_wasm';
+  bool too_large = x > -threshold;
+  bool too_small = x < threshold;
 
-export {BackendWasm, setWasmPath, setWasmPaths} from './backend_wasm';
-export {version as version_wasm} from './version';
+  float result;
+  float exp_x = exp(x);
 
-const WASM_PRIORITY = 2;
-registerBackend('wasm', async () => {
-  const {wasm} = await init();
-  return new BackendWasm(wasm);
-}, WASM_PRIORITY);
+  if (too_large){
+    result = x;
+  }
+  else if (too_small){
+    result = exp_x;
+  }
+  else{
+    result = log(exp_x + 1.0);
+  }
+  return result;
+`;
+
+export const softplus = unaryKernelFunc({opSnippet: SOFTPLUS});
+
+export const softplusConfig: KernelConfig = {
+  kernelName: Softplus,
+  backendName: 'webgl',
+  kernelFunc: softplus,
+};
