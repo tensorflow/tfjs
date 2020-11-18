@@ -28,29 +28,6 @@ export const CHECK_NAN_SNIPPET = `
   result.a = isNaN.a > 0. ? NAN : result.a;
 `;
 
-export const INT_DIV = `
-  ivec4 ia = round(a);
-  ivec4 ib = round(b);
-  bvec4 cond = notEqual(ib, ivec4(0));
-  ivec4 result = ivec4(0);
-  vec4 s = sign(a) * sign(b);
-
-  // Windows (D3D) wants guaranteed non-zero int division at compile-time.
-  if (cond[0]) {
-    result[0] = idiv(ia[0], ib[0], s[0]);
-  }
-  if (cond[1]) {
-    result[1] = idiv(ia[1], ib[1], s[1]);
-  }
-  if (cond[2]) {
-    result[2] = idiv(ia[2], ib[2], s[2]);
-  }
-  if (cond[3]) {
-    result[3] = idiv(ia[3], ib[3], s[3]);
-  }
-  return vec4(result);
-`;
-
 export const ELU_DER = `
   vec4 bGTEZero = vec4(greaterThanEqual(b, vec4(0.)));
   return (bGTEZero * a) + ((vec4(1.0) - bGTEZero) * (a * (b + vec4(1.0))));
@@ -71,14 +48,6 @@ export const MAX = `
 export const MIN = `
   vec4 result = vec4(min(a, b));
   vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
-  ` +
-    CHECK_NAN_SNIPPET + `
-  return result;
-`;
-
-export const MOD = `
-  vec4 result = mod(a, b);
-  vec4 isNaN = vec4(equal(b, vec4(0.0)));
   ` +
     CHECK_NAN_SNIPPET + `
   return result;

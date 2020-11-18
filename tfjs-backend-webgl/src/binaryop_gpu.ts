@@ -24,22 +24,6 @@ const CHECK_NAN_SNIPPET = `
   if (isnan(b)) return b;
 `;
 
-// We use native integer division to deal with floating point imprecision. Since
-// we implement floor division and glsl implements truncated division, we
-// correct for this by subtracting 1 from result when the result is negative and
-// there is a remainder.
-export const INT_DIV = `
-  float s = sign(a) * sign(b);
-  int ia = round(a);
-  int ib = round(b);
-  if (ib != 0) {
-    // Windows (D3D) wants guaranteed non-zero int division at compile-time.
-    return float(idiv(ia, ib, s));
-  } else {
-    return NAN;
-  }
-`;
-
 export const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
 
 export const MAX = CHECK_NAN_SNIPPET + `
@@ -48,8 +32,6 @@ export const MAX = CHECK_NAN_SNIPPET + `
 export const MIN = CHECK_NAN_SNIPPET + `
   return min(a, b);
 `;
-export const MOD = `if (b == 0.0) return NAN;
-  return mod(a, b);`;
 
 export const ELU_DER = `return (b >= 1.0) ? a : a * (b + 1.0);`;
 export class BinaryOpProgram implements GPGPUProgram {

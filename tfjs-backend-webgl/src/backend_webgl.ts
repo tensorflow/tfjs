@@ -1143,13 +1143,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [a, b]);
   }
 
-  mod(a: Tensor, b: Tensor): Tensor {
-    const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
-        new BinaryOpPackedProgram(binaryop_packed_gpu.MOD, a.shape, b.shape) :
-        new BinaryOpProgram(binaryop_gpu.MOD, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b]);
-  }
-
   maximum(a: Tensor, b: Tensor): Tensor {
     const cpuRes =
         this.tryRunOnCpuOrThrow([a, b], () => this.cpuBackend.maximum(a, b));
@@ -1181,28 +1174,9 @@ export class MathBackendWebGL extends KernelBackend {
     return this.reduce(a2D, 'any', a2D.dtype).reshape(outShape);
   }
 
-  floorDiv(a: Tensor, b: Tensor): Tensor {
-    const op = binaryop_gpu.INT_DIV;
-    const outputDtype = 'int32';
-    if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-      return this.packedBinaryOp(
-          a, b, binaryop_packed_gpu.INT_DIV, outputDtype);
-    }
-    const program = new BinaryOpProgram(op, a.shape, b.shape);
-    return this.compileAndRun<Tensor>(program, [a, b], outputDtype);
-  }
-
   private packedUnaryOp(x: TensorInfo, op: string, dtype: DataType) {
     const program = new UnaryOpPackedProgram(x.shape, op);
     return this.compileAndRun<Tensor>(program, [x], dtype);
-  }
-
-  private packedBinaryOp(
-      a: TensorInfo, b: TensorInfo, op: string, dtype: DataType,
-      checkOutOfBounds = false) {
-    const program =
-        new BinaryOpPackedProgram(op, a.shape, b.shape, checkOutOfBounds);
-    return this.compileAndRun<Tensor>(program, [a, b], dtype);
   }
 
   // Returns a TensorInfo with the complex shape and the dataId of the

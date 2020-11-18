@@ -41,6 +41,7 @@ import {erfConfig} from './kernels/Erf';
 import {fftConfig} from './kernels/FFT';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
+import {floorDivConfig} from './kernels/FloorDiv';
 import {fromPixelsConfig} from './kernels/FromPixels';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {greaterConfig} from './kernels/Greater';
@@ -58,6 +59,7 @@ import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {meanConfig} from './kernels/Mean';
 import {mirrorPadConfig} from './kernels/MirrorPad';
+import {modConfig} from './kernels/Mod';
 import {multiplyConfig} from './kernels/Multiply';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
@@ -113,6 +115,7 @@ const kernelConfigs: KernelConfig[] = [
   fftConfig,
   flipLeftRightConfig,
   floorConfig,
+  floorDivConfig,
   fromPixelsConfig,
   fusedConv2DConfig,
   greaterConfig,
@@ -130,6 +133,7 @@ const kernelConfigs: KernelConfig[] = [
   maxPoolWithArgmaxConfig,
   meanConfig,
   mirrorPadConfig,
+  modConfig,
   multiplyConfig,
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV4Config,
