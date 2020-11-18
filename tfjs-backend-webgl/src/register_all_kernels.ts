@@ -29,6 +29,7 @@ import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {cosConfig} from './kernels/Cos';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
+import {equalConfig} from './kernels/Equal';
 import {fftConfig} from './kernels/FFT';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
@@ -80,6 +81,7 @@ const kernelConfigs: KernelConfig[] = [
   conv2DConfig,
   cosConfig,
   cropAndResizeConfig,
+  equalConfig,
   fftConfig,
   flipLeftRightConfig,
   floorConfig,

@@ -80,10 +80,6 @@ export const ELU_DER = `
   return (bGTEZero * a) + ((vec4(1.0) - bGTEZero) * (a * (b + vec4(1.0))));
 `;
 
-export const EQUAL = `
-  return vec4(equal(a, b));
-`;
-
 export const NOT_EQUAL = `
   return vec4(notEqual(a, b));
 `;

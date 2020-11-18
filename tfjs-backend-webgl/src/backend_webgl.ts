@@ -1089,14 +1089,6 @@ export class MathBackendWebGL extends KernelBackend {
     return result;
   }
 
-  equal(a: Tensor, b: Tensor): Tensor {
-    if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-      return this.packedBinaryOp(a, b, binaryop_packed_gpu.EQUAL, 'bool');
-    }
-    const program = new BinaryOpProgram(binaryop_gpu.EQUAL, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b], 'bool');
-  }
-
   less(a: Tensor, b: Tensor): Tensor {
     if (this.shouldExecuteOnCPU([a, b])) {
       const aVals = this.texData.get(a.dataId).values as TypedArray;
