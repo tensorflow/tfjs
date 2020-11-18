@@ -23,7 +23,7 @@ import * as basic_math from '../op_list/basic_math';
 import {Node} from '../types';
 
 import {executeOp} from './basic_math_executor';
-import {createNumberAttr, createNumericArrayAttrFromIndex, createTensorAttr, validateParam} from './test_helper';
+import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, validateParam} from './test_helper';
 
 describe('basic math', () => {
   let node: Node;
@@ -64,20 +64,37 @@ describe('basic math', () => {
           });
         });
     describe('Relu6', () => {
-      it('should call tfOps.clipByValue', () => {
-        spyOn(tfOps, 'clipByValue');
+      it('should call tfOps.relu6', () => {
+        spyOn(tfOps, 'relu6');
         node.op = 'Relu6';
-        node.attrParams['clipValueMax'] = createNumberAttr(6);
-        node.attrParams['clipValueMin'] = createNumberAttr(0);
 
         executeOp(node, {input1}, context);
 
-        expect(tfOps.clipByValue).toHaveBeenCalledWith(input1[0], 0, 6);
+        expect(tfOps.relu6).toHaveBeenCalledWith(input1[0]);
       });
       it('should match op def', () => {
         node.op = 'Relu6';
-        node.attrParams['clipValueMax'] = createNumberAttr(6);
-        node.attrParams['clipValueMin'] = createNumberAttr(0);
+
+        expect(validateParam(node, basic_math.json)).toBeTruthy();
+      });
+    });
+    describe('ClipByValue', () => {
+      it('should call tfOps.clipByValue', () => {
+        spyOn(tfOps, 'clipByValue');
+        node.op = 'ClipByValue';
+        node.inputNames = ['input1', 'input2', 'input3'];
+        node.inputParams['clipValueMin'] = createNumberAttrFromIndex(1);
+        node.inputParams['clipValueMax'] = createNumberAttrFromIndex(2);
+        const input2 = [tfOps.scalar(2)];
+        const input3 = [tfOps.scalar(3)];
+        executeOp(node, {input1, input2, input3}, context);
+
+        expect(tfOps.clipByValue).toHaveBeenCalledWith(input1[0], 2, 3);
+      });
+      it('should match op def', () => {
+        node.op = 'ClipByValue';
+        node.inputParams['clipValueMin'] = createNumberAttrFromIndex(1);
+        node.inputParams['clipValueMax'] = createNumberAttrFromIndex(2);
 
         expect(validateParam(node, basic_math.json)).toBeTruthy();
       });
