@@ -29,6 +29,7 @@ import {avgPoolConfig} from './kernels/AvgPool';
 import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
+import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {castConfig} from './kernels/Cast';
 import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
@@ -80,6 +81,7 @@ import {sinConfig} from './kernels/Sin';
 import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
 import {softplusConfig} from './kernels/Softplus';
+import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {subConfig} from './kernels/Sub';
@@ -105,6 +107,7 @@ const kernelConfigs: KernelConfig[] = [
   avgPoolGradConfig,
   batchMatMulConfig,
   batchNormConfig,
+  batchToSpaceNDConfig,
   castConfig,
   complexConfig,
   concatConfig,
@@ -156,6 +159,7 @@ const kernelConfigs: KernelConfig[] = [
   sinhConfig,
   sliceConfig,
   softplusConfig,
+  spaceToBatchNDConfig,
   squareConfig,
   squaredDifferenceConfig,
   subConfig,

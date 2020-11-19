@@ -19,7 +19,7 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {buffer, DataId, DataValues, div, engine, env, max, MemoryInfo, range, RecursiveArray, reshape, scalar, softmax, sum, tensor, TensorBuffer, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
+import {buffer, DataId, DataValues, div, engine, env, max, MemoryInfo, range, RecursiveArray, scalar, softmax, sum, tensor, TensorBuffer, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
 import {backend_util, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
@@ -853,61 +853,6 @@ export class MathBackendWebGL extends KernelBackend {
     const program = new GatherProgram(flattenX.shape, flattenOutputShape);
     const res: Tensor = this.compileAndRun(program, [flattenX, flattenIndex]);
     return res.reshape(shapeInfo.outputShape);
-  }
-
-  batchToSpaceND<T extends Tensor>(
-      x: T, blockShape: number[], crops: number[][]): T {
-    util.assert(
-        x.rank <= 4,
-        () => 'batchToSpaceND for rank > 4 with a WebGL backend not ' +
-            'implemented yet');
-    const prod = blockShape.reduce((a, b) => a * b);
-
-    const reshaped = backend_util.getReshaped(x.shape, blockShape, prod);
-    const permuted =
-        backend_util.getPermuted(reshaped.length, blockShape.length);
-    const reshapedPermuted =
-        backend_util.getReshapedPermuted(x.shape, blockShape, prod);
-    const sliceBeginCoords =
-        backend_util.getSliceBeginCoords(crops, blockShape.length);
-    const sliceSize =
-        backend_util.getSliceSize(reshapedPermuted, crops, blockShape.length);
-
-    return transpose(x.reshape(reshaped), permuted)
-               .reshape(reshapedPermuted)
-               .slice(sliceBeginCoords, sliceSize) as T;
-  }
-
-  spaceToBatchND<T extends Tensor>(
-      x: T, blockShape: number[], paddings: Array<[number, number]>): T {
-    util.assert(
-        x.rank <= 4,
-        () => 'spaceToBatchND for rank > 4 with a WebGL backend not ' +
-            'implemented yet');
-
-    const prod = blockShape.reduce((a, b) => a * b);
-
-    const completePaddings: Array<[number, number]> = [[0, 0]];
-    completePaddings.push(...paddings);
-    for (let i = 1 + blockShape.length; i < x.shape.length; ++i) {
-      completePaddings.push([0, 0]);
-    }
-
-    const paddedX = x.pad(completePaddings);
-
-    const reshapedPaddedShape =
-        backend_util.getReshaped(paddedX.shape, blockShape, prod, false);
-
-    const permutedReshapedPaddedPermutation = backend_util.getPermuted(
-        reshapedPaddedShape.length, blockShape.length, false);
-
-    const flattenShape = backend_util.getReshapedPermuted(
-        paddedX.shape, blockShape, prod, false);
-
-    const paddedXT = transpose(
-        paddedX.reshape(reshapedPaddedShape),
-        permutedReshapedPaddedPermutation);
-    return reshape(paddedXT, flattenShape) as T;
   }
 
   private reduce(
