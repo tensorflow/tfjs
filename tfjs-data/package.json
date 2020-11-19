@@ -58,7 +58,7 @@
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build-npm && yalc push",
     "publish-npm": "npm publish",
-    "test": "yarn && yarn build-deps && ts-node --transpile-only --project tsconfig.test.json src/test_node.ts",
+    "test": "yarn && yarn build-deps && yarn build && ts-node --transpile-only --project tsconfig.test.json src/test_node.ts",
     "test-browsers": "karma start --browsers='Chrome,Firefox'",
     "test-ci": "ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/test_node.ts",
     "test-snippets": "ts-node --transpile-only --skip-ignore --project tsconfig.test.json ./scripts/test_snippets.ts",
