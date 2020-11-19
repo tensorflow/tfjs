@@ -1,3 +1,4 @@
+
 /**
  * @license
  * Copyright 2020 Google LLC. All Rights Reserved.
@@ -15,17 +16,19 @@
  * =============================================================================
  */
 
-import './flags_wasm';
+import {Acosh, KernelConfig} from '@tensorflow/tfjs-core';
 
-import {registerBackend} from '@tensorflow/tfjs-core';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {CHECK_NAN_SNIPPET} from '../unaryop_gpu';
 
-import {BackendWasm, init} from './backend_wasm';
+const ACOSH = CHECK_NAN_SNIPPET + `
+  if (x < 1.0) return NAN;
+return log(x + sqrt(x * x - 1.0));`;
 
-export {BackendWasm, setWasmPath, setWasmPaths} from './backend_wasm';
-export {version as version_wasm} from './version';
+export const acosh = unaryKernelFunc({opSnippet: ACOSH});
 
-const WASM_PRIORITY = 2;
-registerBackend('wasm', async () => {
-  const {wasm} = await init();
-  return new BackendWasm(wasm);
-}, WASM_PRIORITY);
+export const acoshConfig: KernelConfig = {
+  kernelName: Acosh,
+  backendName: 'webgl',
+  kernelFunc: acosh,
+};

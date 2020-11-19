@@ -15,17 +15,24 @@
  * =============================================================================
  */
 
-import './flags_wasm';
+import {KernelConfig, Mod} from '@tensorflow/tfjs-core';
 
-import {registerBackend} from '@tensorflow/tfjs-core';
+import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
+import {binaryKernelFunc} from '../utils/binary_utils';
 
-import {BackendWasm, init} from './backend_wasm';
+export const modImpl = createSimpleBinaryKernelImpl(((aValue, bValue) => {
+  const rem = aValue % bValue;
+  if ((aValue < 0 && bValue < 0) || (aValue >= 0 && bValue >= 0)) {
+    return rem;
+  } else {
+    return (rem + bValue) % bValue;
+  }
+}));
 
-export {BackendWasm, setWasmPath, setWasmPaths} from './backend_wasm';
-export {version as version_wasm} from './version';
+export const mod = binaryKernelFunc(Mod, modImpl);
 
-const WASM_PRIORITY = 2;
-registerBackend('wasm', async () => {
-  const {wasm} = await init();
-  return new BackendWasm(wasm);
-}, WASM_PRIORITY);
+export const modConfig: KernelConfig = {
+  kernelName: Mod,
+  backendName: 'cpu',
+  kernelFunc: mod
+};

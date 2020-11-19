@@ -15,17 +15,18 @@
  * =============================================================================
  */
 
-import './flags_wasm';
+import {KernelConfig, Sinh} from '@tensorflow/tfjs-core';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {registerBackend} from '@tensorflow/tfjs-core';
+const SINH = `
+  float e2x = exp(x);
+  return (e2x - 1.0 / e2x) / 2.0;
+`;
 
-import {BackendWasm, init} from './backend_wasm';
+export const sinh = unaryKernelFunc({opSnippet: SINH});
 
-export {BackendWasm, setWasmPath, setWasmPaths} from './backend_wasm';
-export {version as version_wasm} from './version';
-
-const WASM_PRIORITY = 2;
-registerBackend('wasm', async () => {
-  const {wasm} = await init();
-  return new BackendWasm(wasm);
-}, WASM_PRIORITY);
+export const sinhConfig: KernelConfig = {
+  kernelName: Sinh,
+  backendName: 'webgl',
+  kernelFunc: sinh,
+};

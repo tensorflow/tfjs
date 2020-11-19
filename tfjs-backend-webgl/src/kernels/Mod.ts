@@ -15,17 +15,29 @@
  * =============================================================================
  */
 
-import './flags_wasm';
+import {KernelConfig, KernelFunc, Mod} from '@tensorflow/tfjs-core';
 
-import {registerBackend} from '@tensorflow/tfjs-core';
+import {CHECK_NAN_SNIPPET} from '../binaryop_packed_gpu';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {BackendWasm, init} from './backend_wasm';
+const MOD = `if (b == 0.0) return NAN;
+  return mod(a, b);`;
 
-export {BackendWasm, setWasmPath, setWasmPaths} from './backend_wasm';
-export {version as version_wasm} from './version';
+const MOD_PACKED = `
+  vec4 result = mod(a, b);
+  vec4 isNaN = vec4(equal(b, vec4(0.0)));
+  ` +
+    CHECK_NAN_SNIPPET + `
+  return result;
+`;
 
-const WASM_PRIORITY = 2;
-registerBackend('wasm', async () => {
-  const {wasm} = await init();
-  return new BackendWasm(wasm);
-}, WASM_PRIORITY);
+export const mod = binaryKernelFunc({
+  opSnippet: MOD,
+  packedOpSnippet: MOD_PACKED,
+});
+
+export const modConfig: KernelConfig = {
+  kernelName: Mod,
+  backendName: 'webgl',
+  kernelFunc: mod as {} as KernelFunc
+};

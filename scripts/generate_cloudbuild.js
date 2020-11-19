@@ -136,7 +136,7 @@ function findDeps(packages) {
   return new Set(
       [...packages]
           .map(packageName => findSubgraph(packageName, DEPENDENCY_GRAPH))
-          .reduce((a, b) => [...a, ...b]));
+          .reduce((a, b) => [...a, ...b], []));
 }
 
 /**
@@ -148,7 +148,7 @@ function findReverseDeps(packages) {
   return new Set([
     ...packages
   ].map(packageName => findSubgraph(packageName, REVERSE_DEPENDENCY_GRAPH))
-                     .reduce((a, b) => [...a, ...b]));
+                     .reduce((a, b) => [...a, ...b], []));
 }
 
 /**
