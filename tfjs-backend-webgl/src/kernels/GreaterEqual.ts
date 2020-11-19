@@ -15,17 +15,22 @@
  * =============================================================================
  */
 
-import './flags_wasm';
+import {GreaterEqual, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {registerBackend} from '@tensorflow/tfjs-core';
+const GREATER_EQUAL = `return float(a >= b);`;
+const GREATER_EQUAL_PACKED = `
+  return vec4(greaterThanEqual(a, b));
+`;
 
-import {BackendWasm, init} from './backend_wasm';
+export const greaterEqual = binaryKernelFunc({
+  opSnippet: GREATER_EQUAL,
+  packedOpSnippet: GREATER_EQUAL_PACKED,
+  dtype: 'bool'
+});
 
-export {BackendWasm, setWasmPath, setWasmPaths} from './backend_wasm';
-export {version as version_wasm} from './version';
-
-const WASM_PRIORITY = 2;
-registerBackend('wasm', async () => {
-  const {wasm} = await init();
-  return new BackendWasm(wasm);
-}, WASM_PRIORITY);
+export const greaterEqualConfig: KernelConfig = {
+  kernelName: GreaterEqual,
+  backendName: 'webgl',
+  kernelFunc: greaterEqual as {} as KernelFunc
+};

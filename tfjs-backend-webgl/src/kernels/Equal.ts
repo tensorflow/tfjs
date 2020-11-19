@@ -15,17 +15,20 @@
  * =============================================================================
  */
 
-import './flags_wasm';
+import {Equal, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {registerBackend} from '@tensorflow/tfjs-core';
+const PACKED_EQUAL = `
+  return vec4(equal(a, b));
+`;
 
-import {BackendWasm, init} from './backend_wasm';
+const EQUAL = `return float(a == b);`;
 
-export {BackendWasm, setWasmPath, setWasmPaths} from './backend_wasm';
-export {version as version_wasm} from './version';
+export const equal = binaryKernelFunc(
+    {opSnippet: EQUAL, packedOpSnippet: PACKED_EQUAL, dtype: 'bool'});
 
-const WASM_PRIORITY = 2;
-registerBackend('wasm', async () => {
-  const {wasm} = await init();
-  return new BackendWasm(wasm);
-}, WASM_PRIORITY);
+export const equalConfig: KernelConfig = {
+  kernelName: Equal,
+  backendName: 'webgl',
+  kernelFunc: equal as {} as KernelFunc
+};

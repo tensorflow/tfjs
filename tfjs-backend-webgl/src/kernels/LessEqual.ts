@@ -15,17 +15,20 @@
  * =============================================================================
  */
 
-import './flags_wasm';
+import {KernelConfig, KernelFunc, LessEqual} from '@tensorflow/tfjs-core';
 
-import {registerBackend} from '@tensorflow/tfjs-core';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {BackendWasm, init} from './backend_wasm';
+export const LESS_EQUAL = `return float(a <= b);`;
+export const LESS_EQUAL_PACKED = `
+  return vec4(lessThanEqual(a, b));
+`;
 
-export {BackendWasm, setWasmPath, setWasmPaths} from './backend_wasm';
-export {version as version_wasm} from './version';
+export const lessEqual = binaryKernelFunc(
+    {opSnippet: LESS_EQUAL, packedOpSnippet: LESS_EQUAL_PACKED, dtype: 'bool'});
 
-const WASM_PRIORITY = 2;
-registerBackend('wasm', async () => {
-  const {wasm} = await init();
-  return new BackendWasm(wasm);
-}, WASM_PRIORITY);
+export const lessEqualConfig: KernelConfig = {
+  kernelName: LessEqual,
+  backendName: 'webgl',
+  kernelFunc: lessEqual as {} as KernelFunc
+};

@@ -15,17 +15,25 @@
  * =============================================================================
  */
 
-import './flags_wasm';
+import {Greater, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
-import {registerBackend} from '@tensorflow/tfjs-core';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {greaterImplCPU} from '../kernel_utils/shared';
 
-import {BackendWasm, init} from './backend_wasm';
+const GREATER = `return float(a > b);`;
+const GREATER_PACKED = `
+  return vec4(greaterThan(a, b));
+`;
 
-export {BackendWasm, setWasmPath, setWasmPaths} from './backend_wasm';
-export {version as version_wasm} from './version';
+export const greater = binaryKernelFunc({
+  opSnippet: GREATER,
+  packedOpSnippet: GREATER_PACKED,
+  cpuKernelImpl: greaterImplCPU,
+  dtype: 'bool'
+});
 
-const WASM_PRIORITY = 2;
-registerBackend('wasm', async () => {
-  const {wasm} = await init();
-  return new BackendWasm(wasm);
-}, WASM_PRIORITY);
+export const greaterConfig: KernelConfig = {
+  kernelName: Greater,
+  backendName: 'webgl',
+  kernelFunc: greater as {} as KernelFunc
+};

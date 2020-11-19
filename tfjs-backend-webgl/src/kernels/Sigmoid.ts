@@ -15,17 +15,15 @@
  * =============================================================================
  */
 
-import './flags_wasm';
+import {KernelConfig, Sigmoid} from '@tensorflow/tfjs-core';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {registerBackend} from '@tensorflow/tfjs-core';
+const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * x));`;
 
-import {BackendWasm, init} from './backend_wasm';
+export const sigmoid = unaryKernelFunc({opSnippet: SIGMOID});
 
-export {BackendWasm, setWasmPath, setWasmPaths} from './backend_wasm';
-export {version as version_wasm} from './version';
-
-const WASM_PRIORITY = 2;
-registerBackend('wasm', async () => {
-  const {wasm} = await init();
-  return new BackendWasm(wasm);
-}, WASM_PRIORITY);
+export const sigmoidConfig: KernelConfig = {
+  kernelName: Sigmoid,
+  backendName: 'webgl',
+  kernelFunc: sigmoid,
+};

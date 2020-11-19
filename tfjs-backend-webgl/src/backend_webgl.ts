@@ -23,7 +23,7 @@ import {buffer, DataId, DataValues, div, engine, env, max, MemoryInfo, range, Re
 import {backend_util, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
 import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
 
-import {ceilImplCPU, expImplCPU, expm1ImplCPU, greaterImplCPU, lessImplCPU, logImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU} from './kernel_utils/shared';
+import {ceilImplCPU, expImplCPU, expm1ImplCPU, logImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
@@ -131,6 +131,25 @@ export function getBinaryCache(webGLVersion: number) {
   return binaryCaches[webGLVersion];
 }
 
+// Empirically determined constant used to determine size threshold for handing
+// off execution to the CPU.
+const CPU_HANDOFF_SIZE_THRESHOLD = 128;
+
+// Empirically determined constant used to decide the number of MB on GPU
+// before we warn about high memory use. The MB are this constant * screen area
+// * dpi / 1024 / 1024.
+const BEFORE_PAGING_CONSTANT = 600;
+function numMBBeforeWarning(): number {
+  if (env().global.screen == null) {
+    return 1024;  // 1 GB.
+  }
+  return (env().global.screen.height * env().global.screen.width *
+          window.devicePixelRatio) *
+      BEFORE_PAGING_CONSTANT / 1024 / 1024;
+}
+
+// TODO(yassogba) remove this once the backend has been modularized
+// a copy is needed here to break a circular dependency.
 function mapActivationToShaderProgram(
     activation: backend_util.Activation, packed = false): string {
   if (activation === 'linear') {
@@ -154,30 +173,19 @@ function mapActivationToShaderProgram(
     }
     return unary_op.RELU6;
   } else if (activation === 'prelu') {
+    // Duplicated to avoid a circular dependency
+    const PRELU = `return (a < 0.) ? b * a : a;`;
+    const PRELU_PACKED = `
+  vec4 aLessThanZero = vec4(lessThan(a, vec4(0.)));
+  return (aLessThanZero * (b * a)) + ((vec4(1.0) - aLessThanZero) * a);
+`;
     if (packed) {
-      return binaryop_packed_gpu.PRELU;
+      return PRELU_PACKED;
     }
-    return binaryop_gpu.PRELU;
+    return PRELU;
   }
   throw new Error(`Activation ${
       activation} has not been implemented for the WebGL backend.`);
-}
-
-// Empirically determined constant used to determine size threshold for handing
-// off execution to the CPU.
-const CPU_HANDOFF_SIZE_THRESHOLD = 128;
-
-// Empirically determined constant used to decide the number of MB on GPU
-// before we warn about high memory use. The MB are this constant * screen area
-// * dpi / 1024 / 1024.
-const BEFORE_PAGING_CONSTANT = 600;
-function numMBBeforeWarning(): number {
-  if (env().global.screen == null) {
-    return 1024;  // 1 GB.
-  }
-  return (env().global.screen.height * env().global.screen.width *
-          window.devicePixelRatio) *
-      BEFORE_PAGING_CONSTANT / 1024 / 1024;
 }
 
 export class MathBackendWebGL extends KernelBackend {
@@ -1084,88 +1092,9 @@ export class MathBackendWebGL extends KernelBackend {
     return result;
   }
 
-  equal(a: Tensor, b: Tensor): Tensor {
-    if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-      return this.packedBinaryOp(a, b, binaryop_packed_gpu.EQUAL, 'bool');
-    }
-    const program = new BinaryOpProgram(binaryop_gpu.EQUAL, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b], 'bool');
-  }
-
-  less(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      const aVals = this.texData.get(a.dataId).values as TypedArray;
-      const bVals = this.texData.get(b.dataId).values as TypedArray;
-      const [outVals, newShape] =
-          lessImplCPU(a.shape, b.shape, aVals, bVals, 'bool');
-      return this.makeOutput(newShape, 'bool', outVals);
-    }
-
-    if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-      return this.packedBinaryOp(a, b, binaryop_packed_gpu.LESS, 'bool');
-    }
-
-    const program = new BinaryOpProgram(binaryop_gpu.LESS, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b], 'bool');
-  }
-
-  lessEqual(a: Tensor, b: Tensor): Tensor {
-    if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-      return this.packedBinaryOp(a, b, binaryop_packed_gpu.LESS_EQUAL, 'bool');
-    }
-    const program =
-        new BinaryOpProgram(binaryop_gpu.LESS_EQUAL, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b], 'bool');
-  }
-
-  greater(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      const aVals = this.texData.get(a.dataId).values as TypedArray;
-      const bVals = this.texData.get(b.dataId).values as TypedArray;
-      const [outVals, newShape] =
-          greaterImplCPU(a.shape, b.shape, aVals, bVals, 'bool');
-      return this.makeOutput(newShape, 'bool', outVals);
-    }
-
-    if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-      return this.packedBinaryOp(a, b, binaryop_packed_gpu.GREATER, 'bool');
-    }
-
-    const program = new BinaryOpProgram(binaryop_gpu.GREATER, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b], 'bool');
-  }
-
-  greaterEqual(a: Tensor, b: Tensor): Tensor {
-    if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-      return this.packedBinaryOp(
-          a, b, binaryop_packed_gpu.GREATER_EQUAL, 'bool');
-    }
-    const program =
-        new BinaryOpProgram(binaryop_gpu.GREATER_EQUAL, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b], 'bool');
-  }
-
   logicalNot<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.LOGICAL_NOT);
     return this.compileAndRun(program, [x]);
-  }
-
-  logicalAnd(a: Tensor, b: Tensor): Tensor {
-    if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-      return this.packedBinaryOp(a, b, binaryop_packed_gpu.LOGICAL_AND, 'bool');
-    }
-    const program =
-        new BinaryOpProgram(binaryop_gpu.LOGICAL_AND, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b], 'bool');
-  }
-
-  logicalOr(a: Tensor, b: Tensor): Tensor {
-    if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-      return this.packedBinaryOp(a, b, binaryop_packed_gpu.LOGICAL_OR, 'bool');
-    }
-    const program =
-        new BinaryOpProgram(binaryop_gpu.LOGICAL_OR, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b], 'bool');
   }
 
   select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
@@ -1209,13 +1138,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [a, b]);
   }
 
-  mod(a: Tensor, b: Tensor): Tensor {
-    const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
-        new BinaryOpPackedProgram(binaryop_packed_gpu.MOD, a.shape, b.shape) :
-        new BinaryOpProgram(binaryop_gpu.MOD, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b]);
-  }
-
   maximum(a: Tensor, b: Tensor): Tensor {
     const cpuRes =
         this.tryRunOnCpuOrThrow([a, b], () => this.cpuBackend.maximum(a, b));
@@ -1247,28 +1169,9 @@ export class MathBackendWebGL extends KernelBackend {
     return this.reduce(a2D, 'any', a2D.dtype).reshape(outShape);
   }
 
-  floorDiv(a: Tensor, b: Tensor): Tensor {
-    const op = binaryop_gpu.INT_DIV;
-    const outputDtype = 'int32';
-    if (env().getBool('WEBGL_PACK_BINARY_OPERATIONS')) {
-      return this.packedBinaryOp(
-          a, b, binaryop_packed_gpu.INT_DIV, outputDtype);
-    }
-    const program = new BinaryOpProgram(op, a.shape, b.shape);
-    return this.compileAndRun<Tensor>(program, [a, b], outputDtype);
-  }
-
   private packedUnaryOp(x: TensorInfo, op: string, dtype: DataType) {
     const program = new UnaryOpPackedProgram(x.shape, op);
     return this.compileAndRun<Tensor>(program, [x], dtype);
-  }
-
-  private packedBinaryOp(
-      a: TensorInfo, b: TensorInfo, op: string, dtype: DataType,
-      checkOutOfBounds = false) {
-    const program =
-        new BinaryOpPackedProgram(op, a.shape, b.shape, checkOutOfBounds);
-    return this.compileAndRun<Tensor>(program, [a, b], dtype);
   }
 
   // Returns a TensorInfo with the complex shape and the dataId of the
@@ -1305,15 +1208,6 @@ export class MathBackendWebGL extends KernelBackend {
         new AddNPackedProgram(tensors[0].shape, shapes) :
         new AddNProgram(tensors[0].shape, shapes);
     return this.compileAndRun<T>(program, tensors, dtype);
-  }
-
-  pow<T extends Tensor>(a: T, b: Tensor): T {
-    const usePackedOp = env().getBool('WEBGL_PACK_BINARY_OPERATIONS');
-    const program = usePackedOp ?
-        new BinaryOpPackedProgram(binaryop_packed_gpu.POW, a.shape, b.shape) :
-        new BinaryOpProgram(binaryop_gpu.POW, a.shape, b.shape);
-    const dtype = upcastType(a.dtype, b.dtype);
-    return this.compileAndRun<T>(program, [a, b], dtype);
   }
 
   ceil<T extends Tensor>(x: T): T {
@@ -1457,28 +1351,12 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  prelu<T extends Tensor>(x: T, alpha: T): T {
-    const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
-        new BinaryOpPackedProgram(
-            binaryop_packed_gpu.PRELU, x.shape, alpha.shape) :
-        new BinaryOpProgram(binaryop_gpu.PRELU, x.shape, alpha.shape);
-    return this.compileAndRun(program, [x, alpha]);
-  }
-
   elu<T extends Tensor>(x: T): T {
     if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
       return this.packedUnaryOp(x, unary_packed_op.ELU, x.dtype) as T;
     }
     const program = new UnaryOpProgram(x.shape, unary_op.ELU);
     return this.compileAndRun(program, [x]);
-  }
-
-  eluDer<T extends Tensor>(dy: T, y: T): T {
-    const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
-        new BinaryOpPackedProgram(
-            binaryop_packed_gpu.ELU_DER, dy.shape, y.shape) :
-        new BinaryOpProgram(binaryop_gpu.ELU_DER, dy.shape, y.shape);
-    return this.compileAndRun(program, [dy, y]);
   }
 
   selu<T extends Tensor>(x: T): T {
@@ -1523,66 +1401,6 @@ export class MathBackendWebGL extends KernelBackend {
     ];
 
     return this.compileAndRun<Tensor>(program, inputs) as T;
-  }
-
-  sigmoid<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SIGMOID);
-    return this.compileAndRun(program, [x]);
-  }
-
-  softplus<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SOFTPLUS);
-    return this.compileAndRun(program, [x]);
-  }
-
-  asin<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ASIN);
-    return this.compileAndRun(program, [x]);
-  }
-
-  acos<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ACOS);
-    return this.compileAndRun(program, [x]);
-  }
-
-  atan<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ATAN);
-    return this.compileAndRun(program, [x]);
-  }
-
-  sinh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SINH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  cosh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.COSH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  tanh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.TANH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  asinh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ASINH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  acosh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ACOSH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  atanh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ATANH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  erf<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ERF);
-    return this.compileAndRun(program, [x]);
   }
 
   step<T extends Tensor>(x: T, alpha: number): T {

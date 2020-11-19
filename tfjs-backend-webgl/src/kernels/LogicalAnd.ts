@@ -15,17 +15,25 @@
  * =============================================================================
  */
 
-import './flags_wasm';
+import {KernelConfig, KernelFunc, LogicalAnd} from '@tensorflow/tfjs-core';
 
-import {registerBackend} from '@tensorflow/tfjs-core';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {BackendWasm, init} from './backend_wasm';
+const LOGICAL_AND = `return float(a >= 1.0 && b >= 1.0);`;
+const LOGICAL_AND_PACKED = `
+  return vec4(
+    vec4(greaterThanEqual(a, vec4(1.0))) *
+    vec4(greaterThanEqual(b, vec4(1.0))));
+`;
 
-export {BackendWasm, setWasmPath, setWasmPaths} from './backend_wasm';
-export {version as version_wasm} from './version';
+export const logicalAnd = binaryKernelFunc({
+  opSnippet: LOGICAL_AND,
+  packedOpSnippet: LOGICAL_AND_PACKED,
+  dtype: 'bool'
+});
 
-const WASM_PRIORITY = 2;
-registerBackend('wasm', async () => {
-  const {wasm} = await init();
-  return new BackendWasm(wasm);
-}, WASM_PRIORITY);
+export const logicalAndConfig: KernelConfig = {
+  kernelName: LogicalAnd,
+  backendName: 'webgl',
+  kernelFunc: logicalAnd as {} as KernelFunc
+};
