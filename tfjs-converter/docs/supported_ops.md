@@ -67,7 +67,11 @@
 |Square|square|
 |Tan|tan|
 |Tanh|tanh|
+|Not mapped|isFinite|
+|Not mapped|isInf|
+|Not mapped|isNaN|
 |Not mapped|logSigmoid|
+|Not mapped|step|
 
 ## Operations - Control Flow
 
@@ -143,20 +147,17 @@
 |TruncatedNormal|truncatedNormal|
 |Zeros|zeros|
 |ZerosLike|zerosLike|
-|Complex|complex|
 |Not mapped|eye|
-|Imag|imag|
-|Real|real|
 
 ## Operations - Dynamic
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
 |ListDiff|ListDiff|
-|NonMaxSuppressionV2|nonMaxSuppressionAsync|
-|NonMaxSuppressionV3|nonMaxSuppressionAsync|
-|NonMaxSuppressionV4|nonMaxSuppressionPaddedAsync|
-|NonMaxSuppressionV5|nonMaxSuppressionWithScoreAsync|
+|NonMaxSuppressionV2|NonMaxSuppressionV2|
+|NonMaxSuppressionV3|NonMaxSuppressionV3|
+|NonMaxSuppressionV4|NonMaxSuppressionV4|
+|NonMaxSuppressionV5|NonMaxSuppressionV5|
 |Where|Where|
 
 ## Operations - Evaluation
@@ -206,6 +207,17 @@
 |SelectV2|SelectV2|
 |Not mapped|logicalXor|
 
+## Operations - Hashtable
+
+|Tensorflow Op Name|Tensorflow.js Op Name|
+|---|---|
+|HashTable|HashTable|
+|HashTableV2|HashTableV2|
+|LookupTableFind|LookupTableFind|
+|LookupTableFindV2|LookupTableFindV2|
+|LookupTableImport|LookupTableImport|
+|LookupTableImportV2|LookupTableImportV2|
+
 ## Operations - Images
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
@@ -247,7 +259,6 @@
 |Softmax|softmax|
 |SparseToDense|sparseToDense|
 |Not mapped|batchNorm|
-|Not mapped|localResponseNormalization|
 |Not mapped|moments|
 
 ## Operations - Reduction

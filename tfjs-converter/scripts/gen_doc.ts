@@ -24,6 +24,7 @@ import * as creation from '../src/operations/op_list/creation';
 import * as dynamic from '../src/operations/op_list/dynamic';
 import * as evaluation from '../src/operations/op_list/evaluation';
 import * as graph from '../src/operations/op_list/graph';
+import * as hashtable from '../src/operations/op_list/hash_table';
 import * as image from '../src/operations/op_list/image';
 import * as logical from '../src/operations/op_list/logical';
 import * as matrices from '../src/operations/op_list/matrices';
@@ -87,6 +88,9 @@ async function genDoc() {
       coreApis);
   generateTable(
       'Operations', 'Logical', (logical.json as {}) as OpMapper[], output,
+      coreApis);
+  generateTable(
+      'Operations', 'Hashtable', (hashtable.json as {}) as OpMapper[], output,
       coreApis);
   generateTable(
       'Operations', 'Images', (image.json as {}) as OpMapper[], output,
