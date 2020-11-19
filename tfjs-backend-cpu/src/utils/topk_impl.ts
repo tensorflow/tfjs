@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,19 +17,17 @@
 
 /** An implementation of the TopK kernel shared between webgl and cpu. */
 
-import {tensor} from '../ops/tensor';
-import {Tensor} from '../tensor';
-import {NumericDataType, TypedArray} from '../types';
-import {getTypedArrayFromDType} from '../util';
+import {buffer, NumericDataType, Rank, ShapeMap, Tensor, TensorBuffer, TypedArray, util} from '@tensorflow/tfjs-core';
 
-export function topkImpl<T extends Tensor>(
+export function topkImpl<T extends Tensor, R extends Rank>(
     x: TypedArray, xShape: number[], xDtype: NumericDataType, k: number,
-    sorted: boolean): [T, T] {
+    sorted: boolean):
+    [TensorBuffer<R, NumericDataType>, TensorBuffer<R, 'int32'>] {
   // Reshape into a 2d tensor [batch, lastDim] and compute topk along lastDim.
   const lastDim = xShape[xShape.length - 1];
   const [batch, size] = [x.length / lastDim, lastDim];
-  const allTopKVals = getTypedArrayFromDType(xDtype, batch * k);
-  const allTopKIndices = getTypedArrayFromDType('int32', batch * k);
+  const allTopKVals = util.getTypedArrayFromDType(xDtype, batch * k);
+  const allTopKIndices = util.getTypedArrayFromDType('int32', batch * k);
 
   for (let b = 0; b < batch; b++) {
     const offset = b * size;
@@ -52,8 +50,9 @@ export function topkImpl<T extends Tensor>(
   // dimension is k.
   const outputShape = xShape.slice();
   outputShape[outputShape.length - 1] = k;
+
   return [
-    tensor(allTopKVals, outputShape, xDtype) as T,
-    tensor(allTopKIndices, outputShape, 'int32') as T
+    buffer(outputShape as ShapeMap[R], xDtype, allTopKVals),
+    buffer(outputShape as ShapeMap[R], 'int32', allTopKIndices)
   ];
 }
