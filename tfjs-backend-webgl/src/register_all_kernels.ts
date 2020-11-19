@@ -26,6 +26,8 @@ import {atanConfig} from './kernels/Atan';
 import {atan2Config} from './kernels/Atan2';
 import {atanhConfig} from './kernels/Atanh';
 import {avgPoolConfig} from './kernels/AvgPool';
+import {avgPool3DConfig} from './kernels/AvgPool3D';
+import {avgPoolGrad3DConfig} from './kernels/AvgPool3DGrad';
 import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
@@ -56,6 +58,8 @@ import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalOrConfig} from './kernels/LogicalOr';
 import {maxConfig} from './kernels/Max';
 import {maxPoolConfig} from './kernels/MaxPool';
+import {maxPool3DConfig} from './kernels/MaxPool3D';
+import {maxPoolGrad3DConfig} from './kernels/MaxPool3DGrad';
 import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {meanConfig} from './kernels/Mean';
@@ -101,7 +105,9 @@ const kernelConfigs: KernelConfig[] = [
   atanConfig,
   atanhConfig,
   avgPoolConfig,
+  avgPool3DConfig,
   avgPoolGradConfig,
+  avgPoolGrad3DConfig,
   batchMatMulConfig,
   batchNormConfig,
   castConfig,
@@ -131,7 +137,9 @@ const kernelConfigs: KernelConfig[] = [
   logicalOrConfig,
   maxConfig,
   maxPoolConfig,
+  maxPool3DConfig,
   maxPoolGradConfig,
+  maxPoolGrad3DConfig,
   maxPoolWithArgmaxConfig,
   meanConfig,
   mirrorPadConfig,
