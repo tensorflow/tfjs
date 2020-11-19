@@ -32,7 +32,6 @@ import {AddNProgram} from './addn_gpu';
 import {AddNPackedProgram} from './addn_packed_gpu';
 import {ArgMinMaxProgram} from './argminmax_gpu';
 import {ArgMinMaxPackedProgram} from './argminmax_packed_gpu';
-import {AvgPool3DBackpropProgram} from './avg_pool_backprop_gpu';
 import * as binaryop_gpu from './binaryop_gpu';
 import {BinaryOpProgram} from './binaryop_gpu';
 import * as binaryop_packed_gpu from './binaryop_packed_gpu';
@@ -59,13 +58,11 @@ import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
 import {LRNProgram} from './lrn_gpu';
 import {LRNGradProgram} from './lrn_grad_gpu';
 import {LRNPackedProgram} from './lrn_packed_gpu';
-import {MaxPool3DBackpropProgram} from './max_pool_backprop_gpu';
 import {MatMulPackedProgram} from './mulmat_packed_gpu';
 import {MultinomialProgram} from './multinomial_gpu';
 import {PackProgram} from './pack_gpu';
 import {PadProgram} from './pad_gpu';
 import {PadPackedProgram} from './pad_packed_gpu';
-import {Pool3DProgram} from './pool_gpu';
 import {ReduceProgram} from './reduce_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
 import {ResizeBilinearBackpropProgram} from './resize_bilinear_backprop_gpu';
@@ -1431,37 +1428,6 @@ export class MathBackendWebGL extends KernelBackend {
       res[i] = x.slice(begin, size).reshape(outShape);
     }
     return res;
-  }
-
-  avgPool3d(x: Tensor5D, convInfo: backend_util.Conv3DInfo): Tensor5D {
-    const program = new Pool3DProgram(convInfo, 'avg', false);
-    return this.compileAndRun(program, [x], 'float32');
-  }
-
-  avgPool3dBackprop(
-      dy: Tensor5D, x: Tensor5D, convInfo: backend_util.Conv3DInfo): Tensor5D {
-    const avgPool3dBackpropProgram = new AvgPool3DBackpropProgram(convInfo);
-    return this.compileAndRun(avgPool3dBackpropProgram, [dy], x.dtype);
-  }
-
-  maxPool3d(x: Tensor5D, convInfo: backend_util.Conv3DInfo): Tensor5D {
-    const program = new Pool3DProgram(convInfo, 'max', false);
-    return this.compileAndRun(program, [x], 'float32');
-  }
-
-  maxPool3dBackprop(
-      dy: Tensor5D, x: Tensor5D, y: Tensor5D,
-      convInfo: backend_util.Conv3DInfo): Tensor5D {
-    const getPositions = true;
-    const maxPool3dPositionsProgram =
-        new Pool3DProgram(convInfo, 'max', getPositions);
-    const maxPool3dPositions: Tensor5D =
-        this.compileAndRun(maxPool3dPositionsProgram, [x]);
-    const maxPool3dBackPropProgram = new MaxPool3DBackpropProgram(convInfo);
-    const result = this.compileAndRun(
-        maxPool3dBackPropProgram, [dy, maxPool3dPositions], x.dtype);
-    maxPool3dPositions.dispose();
-    return result as Tensor5D;
   }
 
   resizeBilinear(
