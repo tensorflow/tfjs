@@ -55,6 +55,8 @@ import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalOrConfig} from './kernels/LogicalOr';
+import {LRNConfig} from './kernels/LRN';
+import {LRNGradConfig} from './kernels/LRNGrad';
 import {maxConfig} from './kernels/Max';
 import {maxPoolConfig} from './kernels/MaxPool';
 import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
@@ -94,6 +96,8 @@ import {uniqueConfig} from './kernels/Unique';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  LRNConfig,
+  LRNGradConfig,
   _fusedMatMulConfig,
   acosConfig,
   acoshConfig,

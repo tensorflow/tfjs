@@ -63,9 +63,6 @@ import {GatherNDProgram} from './gather_nd_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
 import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
-import {LRNProgram} from './lrn_gpu';
-import {LRNGradProgram} from './lrn_grad_gpu';
-import {LRNPackedProgram} from './lrn_packed_gpu';
 import {MaxPool3DBackpropProgram} from './max_pool_backprop_gpu';
 import {MatMulPackedProgram} from './mulmat_packed_gpu';
 import {MultinomialProgram} from './multinomial_gpu';
@@ -808,24 +805,6 @@ export class MathBackendWebGL extends KernelBackend {
       inputs.push(preluActivationWeights);
     }
     return this.compileAndRun<Tensor3D>(program, inputs, dtype);
-  }
-
-  localResponseNormalization4D(
-      x: Tensor4D, radius: number, bias: number, alpha: number,
-      beta: number): Tensor4D {
-    const program = env().getBool('WEBGL_PACK_NORMALIZATION') ?
-        new LRNPackedProgram(x.shape, radius, bias, alpha, beta) :
-        new LRNProgram(x.shape, radius, bias, alpha, beta);
-    return this.compileAndRun(program, [x]);
-  }
-
-  LRNGrad(
-      dy: Tensor4D, inputImage: Tensor4D, outputImage: Tensor4D,
-      depthRadius: number, bias: number, alpha: number,
-      beta: number): Tensor4D {
-    const program =
-        new LRNGradProgram(inputImage.shape, depthRadius, bias, alpha, beta);
-    return this.compileAndRun(program, [inputImage, outputImage, dy]);
   }
 
   gather<T extends Tensor>(
