@@ -27,6 +27,8 @@ export {greaterImpl} from './kernels/Greater';
 export {lessImpl} from './kernels/Less';
 export {logImpl} from './kernels/Log';
 export {maxImpl} from './kernels/Max_impl';
+export {maximumImpl} from './kernels/Maximum';
+export {minimumImpl} from './kernels/Minimum';
 export {multiplyImpl} from './kernels/Multiply';
 export {negImpl} from './kernels/Neg';
 export {notEqualImpl} from './kernels/NotEqual';

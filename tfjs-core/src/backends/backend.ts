@@ -547,8 +547,8 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   }
 
   resizeNearestNeighbor(
-      x: Tensor4D, newHEight: number, newWidth: number,
-      alignCorners: boolean): Tensor4D {
+      x: Tensor4D, newHEight: number, newWidth: number, alignCorners: boolean,
+      halfPixelCenters: boolean): Tensor4D {
     return notYetImplemented('resizeNearestNeighbor');
   }
 
