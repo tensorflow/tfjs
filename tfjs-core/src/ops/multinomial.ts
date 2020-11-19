@@ -60,6 +60,8 @@ function multinomial_(
   if (origRank > 2) {
     throw new Error(`Rank of probabilities must be 1 or 2, but is ${origRank}`);
   }
+  // TODO(lina128): Investigate correct seed behavior. The code seems not allow
+  // setting see to 0.
   seed = seed || Math.random();
 
   // The kernel only accepts (and returns) rank 2 tensors.
