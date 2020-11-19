@@ -842,8 +842,8 @@ export class MathBackendCPU extends KernelBackend {
   }
 
   resizeNearestNeighbor(
-      x: Tensor4D, newHeight: number, newWidth: number,
-      alignCorners: boolean): Tensor4D {
+      x: Tensor4D, newHeight: number, newWidth: number, alignCorners: boolean,
+      halfPixelCenters: boolean): Tensor4D {
     assertNotComplex(x, 'resizeNearestNeighbor');
 
     const [batch, oldHeight, oldWidth, numChannels] = x.shape;
@@ -869,18 +869,28 @@ export class MathBackendCPU extends KernelBackend {
     for (let b = 0; b < batch; b++) {
       const batchOffset = b * x.strides[0];
       for (let r = 0; r < newHeight; r++) {
-        const sourceFracRow = effectiveRowSizeRatio * r;
-        const sourceNearestRow = Math.min(
+        const sourceFracRow = halfPixelCenters ?
+            effectiveRowSizeRatio * (r + 0.5) :
+            effectiveRowSizeRatio * r;
+        let sourceNearestRow = Math.min(
             oldHeight - 1,
             alignCorners ? Math.round(sourceFracRow) :
                            Math.floor(sourceFracRow));
+        if (halfPixelCenters) {
+          sourceNearestRow = Math.max(0, sourceNearestRow);
+        }
         const rowOffset = batchOffset + sourceNearestRow * x.strides[1];
         for (let c = 0; c < newWidth; c++) {
-          const sourceFracCol = effectiveColSizeRatio * c;
-          const sourceNearestCol = Math.min(
+          const sourceFracCol = halfPixelCenters ?
+              effectiveColSizeRatio * (c + 0.5) :
+              effectiveColSizeRatio * c;
+          let sourceNearestCol = Math.min(
               oldWidth - 1,
               alignCorners ? Math.round(sourceFracCol) :
                              Math.floor(sourceFracCol));
+          if (halfPixelCenters) {
+            sourceNearestCol = Math.max(0, sourceNearestCol);
+          }
           const colOffset = rowOffset + sourceNearestCol * x.strides[2];
           for (let d = 0; d < numChannels; d++) {
             // Begin shader.
