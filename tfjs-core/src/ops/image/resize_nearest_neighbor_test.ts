@@ -41,7 +41,6 @@ describeWithFlags('resizeNearestNeighbor', ALL_ENVS, () => {
     expectArraysClose(await output.data(), [2, 4, 2, 4]);
   });
 
-
   it('2x2To1x1 alignCorners=false halfPixelCenters=true', async () => {
     const input = tf.tensor4d([1, 2, 3, 4], [1, 2, 2, 1]);
     const output = input.resizeNearestNeighbor([1, 1], false, true);
@@ -84,7 +83,6 @@ describeWithFlags('resizeNearestNeighbor', ALL_ENVS, () => {
 
     expectArraysClose(await output.data(), [1, 2, 1, 2, 3, 4, 3, 4, 3, 4]);
   });
-
 
   it('2x2To4x4 alignCorners=false halfPixelCenters=true', async () => {
     const input = tf.tensor4d([1, 2, 3, 4], [1, 2, 2, 1]);
