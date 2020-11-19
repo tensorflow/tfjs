@@ -160,6 +160,7 @@ export {slice4d} from './slice4d';
 export {softmax} from './softmax';
 export {softplus} from './softplus';
 export {spaceToBatchND} from './space_to_batch_nd';
+export {spaceToDepth} from './space_to_depth'
 export {fft} from './spectral/fft';
 export {ifft} from './spectral/ifft';
 export {irfft} from './spectral/irfft';
