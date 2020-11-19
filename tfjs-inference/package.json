@@ -31,7 +31,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "ts-node --skip-ignore -P tsconfig.test.json src/test_node.ts",
+    "test": "ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/test_node.ts",
     "test-ci": "yarn test",
     "build-binary": "yarn build && pkg . --targets=node10-macos-x64,node10-linux-x64,node10-win-x64 --out-path=binaries",
     "test-python": "yarn build-binary && ./scripts/run_python.sh"

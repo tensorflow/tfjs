@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "prep": "yalc link @tensorflow/tfjs-node && cd node_modules/@tensorflow/tfjs-node && yarn clean-deps && yarn",
-    "test": "ts-node -P tsconfig.test.json src/test.ts && tsc && node dist/test.js"
+    "test": "ts-node --transpile-only -P tsconfig.test.json src/test.ts && tsc && node dist/test.js"
   },
   "dependencies": {
     "ts-node": "~8.8.2",

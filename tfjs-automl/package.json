@@ -10,7 +10,7 @@
     "build": "tsc",
     "lint": "tslint -p . -t verbose",
     "test": "karma start",
-    "test-node": "ts-node src/test_node.ts",
+    "test-node": "ts-node --transpile-only src/test_node.ts",
     "build-npm": "./scripts/build-npm.sh"
   },
   "license": "Apache-2.0",
