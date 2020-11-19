@@ -41,6 +41,7 @@ import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
+import {expandDimsConfig} from './kernels/ExpandDims';
 import {fftConfig} from './kernels/FFT';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
@@ -120,6 +121,7 @@ const kernelConfigs: KernelConfig[] = [
   eluGradConfig,
   equalConfig,
   erfConfig,
+  expandDimsConfig,
   fftConfig,
   flipLeftRightConfig,
   floorConfig,
