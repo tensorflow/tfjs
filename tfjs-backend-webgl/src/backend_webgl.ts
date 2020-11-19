@@ -19,11 +19,13 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {buffer, DataId, DataValues, div, engine, env, max, MemoryInfo, range, RecursiveArray, reshape, scalar, softmax, sum, tensor, TensorBuffer, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
-import {backend_util, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
-import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, DataId, DataStorage, DataType, DataValues, div, engine, env, kernel_impls, KernelBackend, max, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, reshape, scalar, Scalar, ShapeMap, slice_util, softmax, sum, tensor, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
+<<<<<<< HEAD
 import {ceilImplCPU, expImplCPU, expm1ImplCPU, logImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU} from './kernel_utils/shared';
+=======
+import {ceilImplCPU, expImplCPU, expm1ImplCPU, greaterImplCPU, lessImplCPU, logImplCPU, maximumImplCPU, minimumImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU} from './kernel_utils/shared';
+>>>>>>> e34ab886 (Modularize 8 more kernels.)
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
@@ -1131,10 +1133,13 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   minimum(a: Tensor, b: Tensor): Tensor {
-    const cpuRes =
-        this.tryRunOnCpuOrThrow([a, b], () => this.cpuBackend.minimum(a, b));
-    if (cpuRes) {
-      return cpuRes;
+    if (this.shouldExecuteOnCPU([a, b])) {
+      const aVals = this.texData.get(a.dataId).values as TypedArray;
+      const bVals = this.texData.get(b.dataId).values as TypedArray;
+      const [result, newShape] =
+          minimumImplCPU(a.shape, b.shape, aVals, bVals, a.dtype);
+
+      return this.makeOutput(newShape, a.dtype, result);
     }
 
     const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
@@ -1144,10 +1149,13 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   maximum(a: Tensor, b: Tensor): Tensor {
-    const cpuRes =
-        this.tryRunOnCpuOrThrow([a, b], () => this.cpuBackend.maximum(a, b));
-    if (cpuRes) {
-      return cpuRes;
+    if (this.shouldExecuteOnCPU([a, b])) {
+      const aVals = this.texData.get(a.dataId).values as TypedArray;
+      const bVals = this.texData.get(b.dataId).values as TypedArray;
+      const [result, newShape] =
+          maximumImplCPU(a.shape, b.shape, aVals, bVals, a.dtype);
+
+      return this.makeOutput(newShape, a.dtype, result);
     }
 
     const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
