@@ -19,7 +19,7 @@
 
 import {buffer, NumericDataType, Rank, ShapeMap, Tensor, TensorBuffer, TypedArray, util} from '@tensorflow/tfjs-core';
 
-export function topkImpl<T extends Tensor, R extends Rank>(
+export function topKImpl<T extends Tensor, R extends Rank>(
     x: TypedArray, xShape: number[], xDtype: NumericDataType, k: number,
     sorted: boolean):
     [TensorBuffer<R, NumericDataType>, TensorBuffer<R, 'int32'>] {
