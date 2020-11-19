@@ -70,8 +70,6 @@ import {MaxPool3DBackpropProgram} from './max_pool_backprop_gpu';
 import {MatMulPackedProgram} from './mulmat_packed_gpu';
 import {MultinomialProgram} from './multinomial_gpu';
 import {PackProgram} from './pack_gpu';
-import {PadProgram} from './pad_gpu';
-import {PadPackedProgram} from './pad_packed_gpu';
 import {Pool3DProgram} from './pool_gpu';
 import {ReduceProgram} from './reduce_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
@@ -828,14 +826,6 @@ export class MathBackendWebGL extends KernelBackend {
     const program =
         new LRNGradProgram(inputImage.shape, depthRadius, bias, alpha, beta);
     return this.compileAndRun(program, [inputImage, outputImage, dy]);
-  }
-
-  pad<T extends Tensor>(
-      x: T, paddings: Array<[number, number]>, constantValue: number): T {
-    const program = env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') ?
-        new PadPackedProgram(x.shape, paddings, constantValue) :
-        new PadProgram(x.shape, paddings, constantValue);
-    return this.compileAndRun(program, [x]);
   }
 
   gather<T extends Tensor>(
