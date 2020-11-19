@@ -42,6 +42,7 @@ import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {depthwiseConv2dNativeBackpropFilterConfig} from './kernels/DepthwiseConv2dNativeBackpropFilter';
 import {depthwiseConv2dNativeBackpropInputConfig} from './kernels/DepthwiseConv2dNativeBackpropInput';
 import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
@@ -116,15 +117,16 @@ const kernelConfigs: KernelConfig[] = [
   complexConfig,
   concatConfig,
   conv2DConfig,
-  conv2DBackpropInputConfig,
   conv2DBackpropFilterConfig,
+  conv2DBackpropInputConfig,
   conv3DConfig,
-  conv3DBackpropInputConfig,
   conv3DBackpropFilterV2Config,
+  conv3DBackpropInputConfig,
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
   depthwiseConv2dNativeConfig,
+  depthwiseConv2dNativeBackpropFilterConfig,
   depthwiseConv2dNativeBackpropInputConfig,
   eluGradConfig,
   equalConfig,
