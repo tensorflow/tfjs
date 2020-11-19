@@ -20,6 +20,7 @@ import * as seedrandom from 'seedrandom';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
+
 import {softmax} from './Softmax';
 
 export function multinomial(args: {
@@ -32,8 +33,6 @@ export function multinomial(args: {
   const {numSamples, seed, normalized} = attrs;
 
   assertNotComplex(logits, 'multinomial');
-
-  const $seed = seed || Math.random();
 
   const probabilities = normalized ?
       logits :
@@ -56,7 +55,7 @@ export function multinomial(args: {
       cdf[event] = cdf[event - 1] + probVals[offset + event];
     }
 
-    const random = seedrandom.alea($seed.toString());
+    const random = seedrandom.alea(seed.toString());
     const outOffset = b * numSamples;
     for (let sampleId = 0; sampleId < numSamples; ++sampleId) {
       const r = random();

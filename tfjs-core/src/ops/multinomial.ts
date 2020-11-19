@@ -60,16 +60,14 @@ function multinomial_(
   if (origRank > 2) {
     throw new Error(`Rank of probabilities must be 1 or 2, but is ${origRank}`);
   }
+  seed = seed || Math.random();
 
   // The kernel only accepts (and returns) rank 2 tensors.
   const logits2D: Tensor2D =
       origRank === 1 ? reshape($logits, [1, -1]) : $logits as Tensor2D;
 
-  const forward: ForwardFunc<Tensor> = (backend) => {
-    seed = seed || Math.random();
-
-    return backend.multinomial(logits2D, normalized, numSamples, seed);
-  };
+  const forward: ForwardFunc<Tensor> = (backend) =>
+      backend.multinomial(logits2D, normalized, numSamples, seed);
 
   const inputs: MultinomialInputs = {logits: logits2D};
   const attrs: MultinomialAttrs = {numSamples, seed, normalized};
