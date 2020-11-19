@@ -36,6 +36,7 @@ import {conv2DConfig} from './kernels/Conv2D';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
+import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
@@ -111,6 +112,7 @@ const kernelConfigs: KernelConfig[] = [
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
+  depthwiseConv2dNativeConfig,
   eluGradConfig,
   equalConfig,
   erfConfig,
