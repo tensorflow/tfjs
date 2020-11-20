@@ -19,7 +19,7 @@ import {KernelConfig, KernelFunc, NumericDataType, TensorInfo, TopK, TopKAttrs, 
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
-import {topkImpl} from './TopK_impl';
+import {topKImpl} from './TopK_impl';
 
 export function topK(
     args: {inputs: TopKInputs, backend: MathBackendCPU, attrs: TopKAttrs}):
@@ -32,7 +32,7 @@ export function topK(
 
   const xVals = backend.data.get(x.dataId).values as TypedArray;
   const [allTopKVals, allTopKIndices] =
-      topkImpl(xVals, x.shape, x.dtype as NumericDataType, k, sorted);
+      topKImpl(xVals, x.shape, x.dtype as NumericDataType, k, sorted);
 
   return [
     backend.makeTensorInfo(
