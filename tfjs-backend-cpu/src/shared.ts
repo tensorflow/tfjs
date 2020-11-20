@@ -25,6 +25,7 @@ export {expm1Impl} from './kernels/Expm1';
 export {floorImpl} from './kernels/Floor';
 export {greaterImpl} from './kernels/Greater';
 export {lessImpl} from './kernels/Less';
+export {linSpaceImpl} from './kernels/LinSpace_impl';
 export {logImpl} from './kernels/Log';
 export {maxImpl} from './kernels/Max_impl';
 export {maximumImpl} from './kernels/Maximum';

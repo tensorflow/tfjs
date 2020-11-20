@@ -88,6 +88,7 @@ import {isInfConfig} from './kernels/IsInf';
 import {isNaNConfig} from './kernels/IsNaN';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
+import {linSpaceConfig} from './kernels/LinSpace';
 import {logConfig} from './kernels/Log';
 import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
@@ -140,6 +141,7 @@ import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
+import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
@@ -228,6 +230,7 @@ const kernelConfigs: KernelConfig[] = [
   isNaNConfig,
   lessConfig,
   lessEqualConfig,
+  linSpaceConfig,
   logConfig,
   log1pConfig,
   logicalAndConfig,
@@ -279,6 +282,7 @@ const kernelConfigs: KernelConfig[] = [
   softmaxConfig,
   softplusConfig,
   spaceToBatchNDConfig,
+  splitVConfig,
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,

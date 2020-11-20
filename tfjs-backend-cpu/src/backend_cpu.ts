@@ -19,7 +19,6 @@ import * as tf from '@tensorflow/tfjs-core';
 import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor4D, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppressionV3Impl;
-const split = kernel_impls.split;
 const whereImpl = kernel_impls.whereImpl;
 import {assertNotComplex} from './cpu_util';
 
@@ -369,10 +368,6 @@ export class MathBackendCPU extends KernelBackend {
         boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   }
 
-  split<T extends Tensor>(x: T, sizeSplits: number[], axis: number): T[] {
-    return split(x, sizeSplits, axis);
-  }
-
   dispose() {}
 
   floatPrecision(): 16|32 {
@@ -438,10 +433,6 @@ export class MathBackendCPU extends KernelBackend {
     return this.scatter(
         indices, updates, shape, outputSize, sliceSize, numUpdates, sliceRank,
         strides, defaultValue, sumDupeIndices);
-  }
-
-  linspace(start: number, stop: number, num: number): Tensor1D {
-    return backend_util.linspaceImpl(start, stop, num);
   }
 
   private scatter<R extends Rank>(
