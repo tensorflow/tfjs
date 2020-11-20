@@ -19,11 +19,9 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {buffer, DataId, DataValues, div, engine, env, max, MemoryInfo, range, RecursiveArray, reshape, scalar, softmax, sum, tensor, TensorBuffer, tidy, TimingInfo, transpose} from '@tensorflow/tfjs-core';
-import {backend_util, kernel_impls, slice_util, util} from '@tensorflow/tfjs-core';
-import {DataStorage, DataType, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorInfo, TypedArray, upcastType} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, DataId, DataStorage, DataType, DataValues, div, engine, env, kernel_impls, KernelBackend, max, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, reshape, scalar, Scalar, ShapeMap, slice_util, softmax, sum, tensor, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
-import {ceilImplCPU, expImplCPU, expm1ImplCPU, logImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU} from './kernel_utils/shared';
+import {ceilImplCPU, expImplCPU, expm1ImplCPU, logImplCPU, maximumImplCPU, minimumImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
@@ -34,7 +32,6 @@ import {AddNProgram} from './addn_gpu';
 import {AddNPackedProgram} from './addn_packed_gpu';
 import {ArgMinMaxProgram} from './argminmax_gpu';
 import {ArgMinMaxPackedProgram} from './argminmax_packed_gpu';
-import {AvgPool3DBackpropProgram} from './avg_pool_backprop_gpu';
 import * as binaryop_gpu from './binaryop_gpu';
 import {BinaryOpProgram} from './binaryop_gpu';
 import * as binaryop_packed_gpu from './binaryop_packed_gpu';
@@ -66,13 +63,11 @@ import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
 import {LRNProgram} from './lrn_gpu';
 import {LRNGradProgram} from './lrn_grad_gpu';
 import {LRNPackedProgram} from './lrn_packed_gpu';
-import {MaxPool3DBackpropProgram} from './max_pool_backprop_gpu';
 import {MatMulPackedProgram} from './mulmat_packed_gpu';
 import {MultinomialProgram} from './multinomial_gpu';
 import {PackProgram} from './pack_gpu';
 import {PadProgram} from './pad_gpu';
 import {PadPackedProgram} from './pad_packed_gpu';
-import {Pool3DProgram} from './pool_gpu';
 import {ReduceProgram} from './reduce_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
 import {ResizeBilinearBackpropProgram} from './resize_bilinear_backprop_gpu';
@@ -1131,10 +1126,13 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   minimum(a: Tensor, b: Tensor): Tensor {
-    const cpuRes =
-        this.tryRunOnCpuOrThrow([a, b], () => this.cpuBackend.minimum(a, b));
-    if (cpuRes) {
-      return cpuRes;
+    if (this.shouldExecuteOnCPU([a, b])) {
+      const aVals = this.texData.get(a.dataId).values as TypedArray;
+      const bVals = this.texData.get(b.dataId).values as TypedArray;
+      const [result, newShape] =
+          minimumImplCPU(a.shape, b.shape, aVals, bVals, a.dtype);
+
+      return this.makeOutput(newShape, a.dtype, result);
     }
 
     const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
@@ -1144,10 +1142,13 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   maximum(a: Tensor, b: Tensor): Tensor {
-    const cpuRes =
-        this.tryRunOnCpuOrThrow([a, b], () => this.cpuBackend.maximum(a, b));
-    if (cpuRes) {
-      return cpuRes;
+    if (this.shouldExecuteOnCPU([a, b])) {
+      const aVals = this.texData.get(a.dataId).values as TypedArray;
+      const bVals = this.texData.get(b.dataId).values as TypedArray;
+      const [result, newShape] =
+          maximumImplCPU(a.shape, b.shape, aVals, bVals, a.dtype);
+
+      return this.makeOutput(newShape, a.dtype, result);
     }
 
     const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
@@ -1526,37 +1527,6 @@ export class MathBackendWebGL extends KernelBackend {
     return res;
   }
 
-  avgPool3d(x: Tensor5D, convInfo: backend_util.Conv3DInfo): Tensor5D {
-    const program = new Pool3DProgram(convInfo, 'avg', false);
-    return this.compileAndRun(program, [x], 'float32');
-  }
-
-  avgPool3dBackprop(
-      dy: Tensor5D, x: Tensor5D, convInfo: backend_util.Conv3DInfo): Tensor5D {
-    const avgPool3dBackpropProgram = new AvgPool3DBackpropProgram(convInfo);
-    return this.compileAndRun(avgPool3dBackpropProgram, [dy], x.dtype);
-  }
-
-  maxPool3d(x: Tensor5D, convInfo: backend_util.Conv3DInfo): Tensor5D {
-    const program = new Pool3DProgram(convInfo, 'max', false);
-    return this.compileAndRun(program, [x], 'float32');
-  }
-
-  maxPool3dBackprop(
-      dy: Tensor5D, x: Tensor5D, y: Tensor5D,
-      convInfo: backend_util.Conv3DInfo): Tensor5D {
-    const getPositions = true;
-    const maxPool3dPositionsProgram =
-        new Pool3DProgram(convInfo, 'max', getPositions);
-    const maxPool3dPositions: Tensor5D =
-        this.compileAndRun(maxPool3dPositionsProgram, [x]);
-    const maxPool3dBackPropProgram = new MaxPool3DBackpropProgram(convInfo);
-    const result = this.compileAndRun(
-        maxPool3dBackPropProgram, [dy, maxPool3dPositions], x.dtype);
-    maxPool3dPositions.dispose();
-    return result as Tensor5D;
-  }
-
   resizeBilinear(
       x: Tensor4D, newHeight: number, newWidth: number, alignCorners: boolean,
       halfPixelCenters: boolean): Tensor4D {
@@ -1576,10 +1546,10 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   resizeNearestNeighbor(
-      x: Tensor4D, newHeight: number, newWidth: number,
-      alignCorners: boolean): Tensor4D {
+      x: Tensor4D, newHeight: number, newWidth: number, alignCorners: boolean,
+      halfPixelCenters: boolean): Tensor4D {
     const program = new ResizeNearestNeighborProgram(
-        x.shape, newHeight, newWidth, alignCorners);
+        x.shape, newHeight, newWidth, alignCorners, halfPixelCenters);
     return this.compileAndRun(program, [x]);
   }
 
