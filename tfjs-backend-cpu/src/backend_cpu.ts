@@ -20,7 +20,6 @@ import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValu
 
 const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppressionV3Impl;
 const split = kernel_impls.split;
-const tile = kernel_impls.tile;
 const topkImpl = kernel_impls.topkImpl;
 const whereImpl = kernel_impls.whereImpl;
 import {assertNotComplex} from './cpu_util';
@@ -256,11 +255,6 @@ export class MathBackendCPU extends KernelBackend {
       }
     }
     return this.makeOutput(resultValues, y.shape, 'float32');
-  }
-
-  tile<T extends Tensor>(x: T, reps: number[]): T {
-    assertNotComplex(x, 'tile');
-    return tile(this.bufferSync(x), reps) as T;
   }
 
   gather<T extends Tensor>(

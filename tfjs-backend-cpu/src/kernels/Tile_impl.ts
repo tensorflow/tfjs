@@ -15,17 +15,16 @@
  * =============================================================================
  */
 
+import {buffer, DataType, Rank, TensorBuffer} from '@tensorflow/tfjs-core';
+
 /**
  * An implementation of the tile kernel shared between webgl and cpu for string
  * tensors only.
  */
 
-import {buffer} from '../ops/buffer';
-import {Tensor, TensorBuffer} from '../tensor';
-import {DataType, Rank} from '../types';
-
-export function tile<R extends Rank>(
-    xBuf: TensorBuffer<R, DataType>, reps: number[]): Tensor<R> {
+export function tileImpl<R extends Rank>(
+    xBuf: TensorBuffer<R, DataType>,
+    reps: number[]): TensorBuffer<R, DataType> {
   const newShape: number[] = new Array(xBuf.rank);
   for (let i = 0; i < newShape.length; i++) {
     newShape[i] = xBuf.shape[i] * reps[i];
@@ -43,5 +42,5 @@ export function tile<R extends Rank>(
 
     result.values[i] = xBuf.values[originalIndex];
   }
-  return result.toTensor() as Tensor<R>;
+  return result as TensorBuffer<R, DataType>;
 }
