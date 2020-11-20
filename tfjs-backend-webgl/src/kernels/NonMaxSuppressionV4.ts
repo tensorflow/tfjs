@@ -16,7 +16,7 @@
  */
 
 import {backend_util, kernel_impls, KernelConfig, KernelFunc, NonMaxSuppressionV4, NonMaxSuppressionV4Attrs, NonMaxSuppressionV4Inputs, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
-const nonMaxSuppressionV4Impl = kernel_impls.nonMaxSuppresionV4Impl;
+const nonMaxSuppressionV4Impl = kernel_impls.nonMaxSuppressionV4Impl;
 
 import {MathBackendWebGL} from '../backend_webgl';
 

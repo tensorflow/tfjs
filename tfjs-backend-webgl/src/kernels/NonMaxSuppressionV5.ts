@@ -17,7 +17,7 @@
 
 import {backend_util, kernel_impls, KernelConfig, KernelFunc, NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
 
-const nonMaxSuppressionV5Impl = kernel_impls.nonMaxSuppresionV5Impl;
+const nonMaxSuppressionV5Impl = kernel_impls.nonMaxSuppressionV5Impl;
 import {MathBackendWebGL} from '../backend_webgl';
 
 export function nonMaxSuppressionV5(args: {
