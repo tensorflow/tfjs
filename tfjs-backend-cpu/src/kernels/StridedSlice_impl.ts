@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import {buffer, DataType, Rank, TensorBuffer} from '@tensorflow/tfjs-core';
+import {buffer, Rank, TensorBuffer} from '@tensorflow/tfjs-core';
 
-export function stridedSliceImpl<R extends Rank, D extends DataType>(
-    outShape: number[], xBuf: TensorBuffer<R, D>, strides: number[],
-    begin: number[]): TensorBuffer<R, D> {
+export function stridedSliceImpl<R extends Rank>(
+    outShape: number[], xBuf: TensorBuffer<R>, strides: number[],
+    begin: number[]): TensorBuffer<R> {
   const outBuf = buffer(outShape, xBuf.dtype);
 
   for (let i = 0; i < outBuf.size; i++) {
@@ -32,5 +32,5 @@ export function stridedSliceImpl<R extends Rank, D extends DataType>(
     outBuf.set(xBuf.get(...newLoc), ...loc);
   }
 
-  return outBuf as TensorBuffer<R, D>;
+  return outBuf as TensorBuffer<R>;
 }

@@ -89,8 +89,7 @@ export function avgPool3DGrad(args: {
                   }
 
                   const pixel =
-                      dyBuf.get(batch, dyDepth, dyRow, dyCol, channel) as
-                      number;
+                      dyBuf.get(batch, dyDepth, dyRow, dyCol, channel);
                   dotProd += pixel;
                 }
               }
