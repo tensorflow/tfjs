@@ -47,6 +47,7 @@ import {dilation2dGradConfig} from './gradients/Dilation2D_grad';
 import {eluGradConfig} from './gradients/Elu_grad';
 import {erfGradConfig} from './gradients/Erf_grad';
 import {expGradConfig} from './gradients/Exp_grad';
+import {expandDimsGradConfig} from './gradients/ExpandDims_grad';
 import {expm1GradConfig} from './gradients/Expm1_grad';
 import {floorGradConfig} from './gradients/Floor_grad';
 import {floorDivGradConfig} from './gradients/FloorDiv_grad';
@@ -149,6 +150,7 @@ const gradConfigs: GradConfig[] = [
   eluGradConfig,
   erfGradConfig,
   expGradConfig,
+  expandDimsGradConfig,
   expm1GradConfig,
   floorDivGradConfig,
   floorGradConfig,
