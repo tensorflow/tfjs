@@ -149,3 +149,186 @@ export function maxPoolPositions(
   }
   return maxPositions;
 }
+
+export function pool3d(
+    xValues: TypedArray, xShape: number[], dtype: DataType, strides: number[],
+    convInfo: backend_util.Conv3DInfo,
+    poolType: 'max'|'avg'): TensorBuffer<Rank, DataType> {
+  const strideDepth = convInfo.strideDepth;
+  const strideHeight = convInfo.strideHeight;
+  const strideWidth = convInfo.strideWidth;
+  const dilationDepth = convInfo.dilationDepth;
+  const dilationHeight = convInfo.dilationHeight;
+  const dilationWidth = convInfo.dilationWidth;
+  const effectiveFilterDepth = convInfo.effectiveFilterDepth;
+  const effectiveFilterHeight = convInfo.effectiveFilterHeight;
+  const effectiveFilterWidth = convInfo.effectiveFilterWidth;
+  const padFront = convInfo.padInfo.front;
+  const padTop = convInfo.padInfo.top;
+  const padLeft = convInfo.padInfo.left;
+
+  const initialValue =
+      (poolType === 'max' ? Number.NEGATIVE_INFINITY :
+                            Number.POSITIVE_INFINITY);
+
+  const output = buffer(convInfo.outShape, dtype);
+  const outputVals = output.values;
+
+  const outputBatchStrides = convInfo.outShape[1] * convInfo.outShape[2] *
+      convInfo.outShape[3] * convInfo.outShape[4];
+  const outputDepthStrides =
+      convInfo.outShape[2] * convInfo.outShape[3] * convInfo.outShape[4];
+  const outputRowStrides = convInfo.outShape[3] * convInfo.outShape[4];
+  const outputColStrides = convInfo.outShape[4];
+
+  for (let batch = 0; batch < convInfo.batchSize; ++batch) {
+    const outputBatchOffset = batch * outputBatchStrides;
+    const inputBatchOffset = batch * strides[0];
+    for (let channel = 0; channel < convInfo.inChannels; ++channel) {
+      for (let yDepth = 0; yDepth < convInfo.outDepth; ++yDepth) {
+        const xDepthCorner = yDepth * strideDepth - padFront;
+        let xDepthMin = xDepthCorner;
+        while (xDepthMin < 0) {
+          xDepthMin += dilationDepth;
+        }
+        const xDepthMax =
+            Math.min(convInfo.inDepth, effectiveFilterDepth + xDepthCorner);
+        const outputDepthOffset =
+            outputBatchOffset + yDepth * outputDepthStrides;
+        for (let yRow = 0; yRow < convInfo.outHeight; ++yRow) {
+          const xRowCorner = yRow * strideHeight - padTop;
+          let xRowMin = xRowCorner;
+          while (xRowMin < 0) {
+            xRowMin += dilationHeight;
+          }
+          const xRowMax =
+              Math.min(convInfo.inHeight, effectiveFilterHeight + xRowCorner);
+          const outputRowOffset = outputDepthOffset + yRow * outputRowStrides;
+          for (let yCol = 0; yCol < convInfo.outWidth; ++yCol) {
+            const xColCorner = yCol * strideWidth - padLeft;
+            let xColMin = xColCorner;
+            while (xColMin < 0) {
+              xColMin += dilationWidth;
+            }
+            const xColMax =
+                Math.min(convInfo.inWidth, effectiveFilterWidth + xColCorner);
+            // Shader code begins
+            const outputColOffset = outputRowOffset + yCol * outputColStrides;
+            let minMaxValue = initialValue;
+            let avgValue = 0;
+            let count = 0;
+            for (let xDepth = xDepthMin; xDepth < xDepthMax;
+                 xDepth += dilationDepth) {
+              const xDepthOffset = inputBatchOffset + xDepth * strides[1];
+              for (let xRow = xRowMin; xRow < xRowMax; xRow += dilationHeight) {
+                const xRowOffset = xDepthOffset + xRow * strides[2];
+                for (let xCol = xColMin; xCol < xColMax;
+                     xCol += dilationWidth) {
+                  const xColOffset = xRowOffset + xCol * strides[3];
+                  const pixel = xValues[xColOffset + channel];
+                  if ((poolType === 'max' && pixel > minMaxValue)) {
+                    minMaxValue = pixel;
+                  } else if (poolType === 'avg') {
+                    avgValue += pixel;
+                    count++;
+                  }
+                  if (isNaN(minMaxValue)) {
+                    break;
+                  }
+                }
+                if (isNaN(minMaxValue)) {
+                  break;
+                }
+              }
+              if (isNaN(minMaxValue)) {
+                break;
+              }
+            }
+            const outputOffset = outputColOffset + channel;
+            outputVals[outputOffset] =
+                poolType === 'avg' ? avgValue / count : minMaxValue;
+          }
+        }
+      }
+    }
+  }
+
+  return output;
+}
+
+export function maxPool3dPositions(
+    xBuf: TensorBuffer<Rank, DataType>,
+    convInfo: backend_util.Conv3DInfo): TensorBuffer<Rank, DataType> {
+  const maxPositions = buffer(convInfo.outShape, 'int32');
+  const strideDepth = convInfo.strideDepth;
+  const strideHeight = convInfo.strideHeight;
+  const strideWidth = convInfo.strideWidth;
+  const dilationDepth = convInfo.dilationDepth;
+  const dilationHeight = convInfo.dilationHeight;
+  const dilationWidth = convInfo.dilationWidth;
+  const effectiveFilterDepth = convInfo.effectiveFilterDepth;
+  const effectiveFilterHeight = convInfo.effectiveFilterHeight;
+  const effectiveFilterWidth = convInfo.effectiveFilterWidth;
+  const padFront = convInfo.padInfo.front;
+  const padTop = convInfo.padInfo.top;
+  const padLeft = convInfo.padInfo.left;
+
+  for (let batch = 0; batch < convInfo.batchSize; ++batch) {
+    for (let channel = 0; channel < convInfo.inChannels; ++channel) {
+      for (let yDepth = 0; yDepth < convInfo.outDepth; ++yDepth) {
+        const xDepthCorner = yDepth * strideDepth - padFront;
+        let xDepthMin = xDepthCorner;
+        while (xDepthMin < 0) {
+          xDepthMin += dilationDepth;
+        }
+        const xDepthMax =
+            Math.min(convInfo.inDepth, effectiveFilterDepth + xDepthCorner);
+        for (let yRow = 0; yRow < convInfo.outHeight; ++yRow) {
+          const xRowCorner = yRow * strideHeight - padTop;
+          let xRowMin = xRowCorner;
+          while (xRowMin < 0) {
+            xRowMin += dilationHeight;
+          }
+          const xRowMax =
+              Math.min(convInfo.inHeight, effectiveFilterHeight + xRowCorner);
+          for (let yCol = 0; yCol < convInfo.outWidth; ++yCol) {
+            const xColCorner = yCol * strideWidth - padLeft;
+            let xColMin = xColCorner;
+            while (xColMin < 0) {
+              xColMin += dilationWidth;
+            }
+            const xColMax =
+                Math.min(convInfo.inWidth, effectiveFilterWidth + xColCorner);
+
+            // Shader code begins
+            let maxValue = Number.NEGATIVE_INFINITY;
+            let maxPosition = -1;
+
+            for (let xDepth = xDepthMin; xDepth < xDepthMax;
+                 xDepth += dilationDepth) {
+              const wDepth = xDepth - xDepthCorner;
+              for (let xRow = xRowMin; xRow < xRowMax; xRow += dilationHeight) {
+                const wRow = xRow - xRowCorner;
+                for (let xCol = xColMin; xCol < xColMax;
+                     xCol += dilationWidth) {
+                  const wCol = xCol - xColCorner;
+                  const pixel = xBuf.get(batch, xDepth, xRow, xCol, channel);
+                  if (pixel >= maxValue) {
+                    maxValue = pixel as number;
+                    maxPosition =
+                        wDepth * effectiveFilterHeight * effectiveFilterWidth +
+                        wRow * effectiveFilterHeight + wCol;
+                  }
+                }
+              }
+            }
+
+            maxPositions.set(maxPosition, batch, yDepth, yRow, yCol, channel);
+          }
+        }
+      }
+    }
+  }
+
+  return maxPositions;
+}
