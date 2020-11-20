@@ -48,12 +48,10 @@ void topk(const T* x_data, const size_t x_len,
     for (int i = offset; i < offset + size; i++) {
       val_and_ind.push_back({.value = x_data[i], .index = i - offset});
     }
-    if (sorted) {
-      std::sort(val_and_ind.begin(), val_and_ind.end(),
-                [](const ValAndInd<T>& a, const ValAndInd<T>& b) -> bool {
-                  return a.value > b.value;
-                });
-    }
+    std::sort(val_and_ind.begin(), val_and_ind.end(),
+              [](const ValAndInd<T>& a, const ValAndInd<T>& b) -> bool {
+                return a.value > b.value;
+              });
     int out_offset = b * k;
     for (int i = 0; i < k; i++) {
       int index = out_offset + i;
