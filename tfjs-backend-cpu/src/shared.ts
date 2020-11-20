@@ -39,6 +39,7 @@ export {squaredDifferenceImpl} from './kernels/SquaredDifference';
 export {stridedSliceImpl} from './kernels/StridedSlice';
 export {subImpl} from './kernels/Sub';
 export {tileImpl} from './kernels/Tile_impl';
+export {topKImpl} from './kernels/TopK_impl';
 export {transposeImpl} from './kernels/Transpose_impl';
 export {uniqueImpl} from './kernels/Unique_impl';
 export {ComplexBinaryKernelImpl, SimpleBinaryKernelImpl} from './utils/binary_types';

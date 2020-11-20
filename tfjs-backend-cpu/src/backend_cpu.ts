@@ -16,11 +16,10 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor4D, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor4D, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppressionV3Impl;
 const split = kernel_impls.split;
-const topkImpl = kernel_impls.topkImpl;
 const whereImpl = kernel_impls.whereImpl;
 import {assertNotComplex} from './cpu_util';
 
@@ -231,13 +230,6 @@ export class MathBackendCPU extends KernelBackend {
 
     const condVals = this.readSync(condition.dataId) as TypedArray;
     return whereImpl(condition.shape, condVals);
-  }
-
-  topk<T extends Tensor>(x: T, k: number, sorted: boolean): [T, T] {
-    assertNotComplex(x, 'topk');
-
-    const xVals = this.readSync(x.dataId) as TypedArray;
-    return topkImpl(xVals, x.shape, x.dtype as NumericDataType, k, sorted);
   }
 
   eluDer<T extends Tensor>(dy: T, y: T): T {
