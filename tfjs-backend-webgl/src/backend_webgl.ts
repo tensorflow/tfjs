@@ -1690,9 +1690,20 @@ export class MathBackendWebGL extends KernelBackend {
     return backend_util.linspaceImpl(start, stop, num);
   }
 
-  makeTensorInfo(shape: number[], dtype: DataType, values?: BackendValues):
-      TensorInfo {
-    const dataId = this.write(values, shape, dtype);
+  makeTensorInfo(
+      shape: number[], dtype: DataType,
+      values?: BackendValues|string[]): TensorInfo {
+    let dataId;
+    if (dtype === 'string' && values != null && values.length > 0 &&
+        util.isString(values[0])) {
+      const encodedValues =
+          (values as {} as string[]).map(d => util.encodeString(d));
+
+      dataId = this.write(encodedValues, shape, dtype);
+    } else {
+      dataId = this.write(values as TypedArray, shape, dtype);
+    }
+
     this.texData.get(dataId).usage = null;
     return {dataId, shape, dtype};
   }
