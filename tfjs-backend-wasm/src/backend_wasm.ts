@@ -16,15 +16,13 @@
  */
 import './flags_wasm';
 
-import {backend_util, BackendTimingInfo, DataStorage, DataType, deprecationWarn, engine, env, KernelBackend, registerBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, DataStorage, DataType, deprecationWarn, engine, env, KernelBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
 import wasmFactoryThreadedSimd from '../wasm-out/tfjs-backend-wasm-threaded-simd.js';
 // @ts-ignore
 import {wasmWorkerContents} from '../wasm-out/tfjs-backend-wasm-threaded-simd.worker.js';
 import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
-
-const WASM_PRIORITY = 2;
 
 interface TensorData {
   id: number;
@@ -174,11 +172,6 @@ export class BackendWasm extends KernelBackend {
     }
   }
 }
-
-registerBackend('wasm', async () => {
-  const {wasm} = await init();
-  return new BackendWasm(wasm);
-}, WASM_PRIORITY);
 
 function createInstantiateWasmFunc(path: string) {
   // tslint:disable-next-line:no-any

@@ -295,67 +295,6 @@ export class NodeJSKernelBackend extends KernelBackend {
     throw new Error('Method not implemented.');
   }
 
-  // todo(yassogba) consider removing. core does not call this directly
-  complexAbs<T extends Tensor>(x: T): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Tout', 'float32')
-    ];
-    return this.executeSingleOutput('ComplexAbs', opAttrs, [x]) as T;
-  }
-
-  fft(x: Tensor<Rank.R2>): Tensor<Rank.R2> {
-    const opAttrs = [createTensorsTypeOpAttr('Tcomplex', x.dtype)];
-    return this.executeSingleOutput('FFT', opAttrs, [x]) as Tensor<Rank.R2>;
-  }
-
-  ifft(x: Tensor2D): Tensor2D {
-    const opAttrs = [createTensorsTypeOpAttr('Tcomplex', x.dtype)];
-    return this.executeSingleOutput('IFFT', opAttrs, [x]) as Tensor2D;
-  }
-
-  complex<T extends Tensor>(real: T, imag: T): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', real),
-      {
-        name: 'Tout',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_COMPLEX64
-      },
-    ];
-    const inputs = [real, imag];
-    return this.executeSingleOutput('Complex', opAttrs, inputs) as T;
-  }
-
-  real<T extends Tensor>(input: T): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', input), {
-        name: 'Tout',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_FLOAT
-      }
-    ];
-    const inputs = [input];
-    return this.executeSingleOutput('Real', opAttrs, inputs) as T;
-  }
-
-  imag<T extends Tensor>(input: T): T {
-    const opAttrs = [
-      {
-        name: 'T',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_COMPLEX64
-      },
-      {
-        name: 'Tout',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_FLOAT
-      }
-    ];
-    const inputs = [input];
-    return this.executeSingleOutput('Imag', opAttrs, inputs) as T;
-  }
-
   decodeJpeg(
       contents: Uint8Array, channels: number, ratio: number,
       fancyUpscaling: boolean, tryRecoverTruncated: boolean,

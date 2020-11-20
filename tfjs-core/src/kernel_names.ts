@@ -159,6 +159,9 @@ export interface ClipByValueAttrs {
 export const Complex = 'Complex';
 export type ComplexInputs = Pick<NamedTensorInfoMap, 'real'|'imag'>;
 
+export const ComplexAbs = 'ComplexAbs';
+export type ComplexAbsInputs = UnaryInputs;
+
 export const Concat = 'Concat';
 export type ConcatInputs = TensorInfo[];
 export interface ConcatAttrs {
@@ -357,6 +360,7 @@ export const GatherV2 = 'GatherV2';
 export type GatherV2Inputs = Pick<NamedTensorInfoMap, 'x'|'indices'>;
 export interface GatherV2Attrs {
   axis: number;
+  batchDims: number;
 }
 
 export const GatherNd = 'GatherNd';
@@ -630,6 +634,7 @@ export const ResizeNearestNeighbor = 'ResizeNearestNeighbor';
 export type ResizeNearestNeighborInputs = Pick<NamedTensorInfoMap, 'images'>;
 export interface ResizeNearestNeighborAttrs {
   alignCorners: boolean;
+  halfPixelCenters: boolean;
   size: [number, number];
 }
 

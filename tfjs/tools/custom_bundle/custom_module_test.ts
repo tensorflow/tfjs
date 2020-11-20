@@ -16,7 +16,7 @@
  */
 
 import {getCustomConverterOpsModule, getCustomModuleString} from './custom_module';
-import {ImportProvider} from './types';
+import {CustomTFJSBundleConfig, ImportProvider} from './types';
 
 const mockImportProvider: ImportProvider = {
   importCoreStr: () => 'import CORE',
@@ -42,8 +42,36 @@ const mockImportProvider: ImportProvider = {
 describe('getCustomModuleString forwardModeOnly=true', () => {
   const forwardModeOnly = true;
   it('one kernel, one backend', () => {
+    const config = {
+      kernels: ['MathKrnl'],
+      backends: ['FastBcknd'],
+      models: [] as string[],
+      forwardModeOnly
+    };
     const {tfjs, core} = getCustomModuleString(
-        ['MathKrnl'], ['FastBcknd'], forwardModeOnly, mockImportProvider);
+        // cast because FastBcknd is not a valid backend per the type
+        config as CustomTFJSBundleConfig, mockImportProvider);
+
+    expect(core).toContain('import CORE');
+    expect(tfjs).toContain('import CORE');
+
+    expect(tfjs).toContain('import BACKEND FastBcknd');
+    expect(tfjs).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
+    expect(tfjs).toContain('registerKernel(MathKrnl_FastBcknd)');
+
+    expect(tfjs).not.toContain('GRADIENT');
+  });
+
+  it('one kernel, one backend, one model', () => {
+    const config = {
+      kernels: ['MathKrnl'],
+      backends: ['FastBcknd'],
+      models: ['model1.json'],
+      forwardModeOnly
+    };
+    const {tfjs, core} = getCustomModuleString(
+        // cast because FastBcknd is not a valid backend per the type
+        config as CustomTFJSBundleConfig, mockImportProvider);
 
     expect(core).toContain('import CORE');
     expect(tfjs).toContain('import CORE');
@@ -57,12 +85,18 @@ describe('getCustomModuleString forwardModeOnly=true', () => {
   });
 
   it('one kernel, two backend', () => {
+    const config = {
+      kernels: ['MathKrnl'],
+      backends: ['FastBcknd', 'SlowBcknd'],
+      models: [] as string[],
+      forwardModeOnly
+    };
+
     const {tfjs} = getCustomModuleString(
-        ['MathKrnl'], ['FastBcknd', 'SlowBcknd'], forwardModeOnly,
-        mockImportProvider);
+        // cast because the backends are not truly valid backend per the type
+        config as CustomTFJSBundleConfig, mockImportProvider);
 
     expect(tfjs).toContain('import CORE');
-    expect(tfjs).toContain('import CONVERTER');
 
     expect(tfjs).toContain('import BACKEND FastBcknd');
     expect(tfjs).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
@@ -76,12 +110,16 @@ describe('getCustomModuleString forwardModeOnly=true', () => {
   });
 
   it('two kernels, one backend', () => {
+    const config = {
+      kernels: ['MathKrnl', 'MathKrn2'],
+      backends: ['FastBcknd'],
+      models: [] as string[],
+      forwardModeOnly
+    };
     const {tfjs} = getCustomModuleString(
-        ['MathKrnl', 'MathKrn2'], ['FastBcknd'], forwardModeOnly,
-        mockImportProvider);
+        config as CustomTFJSBundleConfig, mockImportProvider);
 
     expect(tfjs).toContain('import CORE');
-    expect(tfjs).toContain('import CONVERTER');
 
     expect(tfjs).toContain('import BACKEND FastBcknd');
     expect(tfjs).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
@@ -93,12 +131,16 @@ describe('getCustomModuleString forwardModeOnly=true', () => {
   });
 
   it('two kernels, two backends', () => {
+    const config = {
+      kernels: ['MathKrnl', 'MathKrn2'],
+      backends: ['FastBcknd', 'SlowBcknd'],
+      models: [] as string[],
+      forwardModeOnly
+    };
     const {tfjs} = getCustomModuleString(
-        ['MathKrnl', 'MathKrn2'], ['FastBcknd', 'SlowBcknd'], forwardModeOnly,
-        mockImportProvider);
+        config as CustomTFJSBundleConfig, mockImportProvider);
 
     expect(tfjs).toContain('import CORE');
-    expect(tfjs).toContain('import CONVERTER');
 
     expect(tfjs).toContain('import BACKEND FastBcknd');
     expect(tfjs).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
@@ -120,11 +162,17 @@ describe('getCustomModuleString forwardModeOnly=false', () => {
   const forwardModeOnly = false;
 
   it('one kernel, one backend', () => {
+    const config = {
+      kernels: ['MathKrnl'],
+      backends: ['FastBcknd'],
+      models: [] as string[],
+      forwardModeOnly
+    };
+
     const {tfjs} = getCustomModuleString(
-        ['MathKrnl'], ['FastBcknd'], forwardModeOnly, mockImportProvider);
+        config as CustomTFJSBundleConfig, mockImportProvider);
 
     expect(tfjs).toContain('import CORE');
-    expect(tfjs).toContain('import CONVERTER');
 
     expect(tfjs).toContain('import BACKEND FastBcknd');
     expect(tfjs).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
@@ -135,9 +183,15 @@ describe('getCustomModuleString forwardModeOnly=false', () => {
   });
 
   it('one kernel, two backend', () => {
+    const config = {
+      kernels: ['MathKrnl'],
+      backends: ['FastBcknd', 'SlowBcknd'],
+      models: [] as string[],
+      forwardModeOnly
+    };
+
     const {tfjs} = getCustomModuleString(
-        ['MathKrnl'], ['FastBcknd', 'SlowBcknd'], forwardModeOnly,
-        mockImportProvider);
+        config as CustomTFJSBundleConfig, mockImportProvider);
 
     expect(tfjs).toContain('import GRADIENT MathKrnl');
     expect(tfjs).toContain('registerGradient(MathKrnl_GRAD_CONFIG)');
@@ -148,9 +202,15 @@ describe('getCustomModuleString forwardModeOnly=false', () => {
   });
 
   it('two kernels, one backend', () => {
+    const config = {
+      kernels: ['MathKrnl', 'MathKrn2'],
+      backends: ['FastBcknd'],
+      models: [] as string[],
+      forwardModeOnly
+    };
+
     const {tfjs} = getCustomModuleString(
-        ['MathKrnl', 'MathKrn2'], ['FastBcknd'], forwardModeOnly,
-        mockImportProvider);
+        config as CustomTFJSBundleConfig, mockImportProvider);
 
     expect(tfjs).toContain('import GRADIENT MathKrnl');
     expect(tfjs).toContain('registerGradient(MathKrnl_GRAD_CONFIG)');
@@ -160,9 +220,15 @@ describe('getCustomModuleString forwardModeOnly=false', () => {
   });
 
   it('two kernels, two backends', () => {
+    const config = {
+      kernels: ['MathKrnl', 'MathKrn2'],
+      backends: ['FastBcknd', 'SlowBcknd'],
+      models: [] as string[],
+      forwardModeOnly
+    };
+
     const {tfjs} = getCustomModuleString(
-        ['MathKrnl', 'MathKrn2'], ['FastBcknd', 'SlowBcknd'], forwardModeOnly,
-        mockImportProvider);
+        config as CustomTFJSBundleConfig, mockImportProvider);
 
     expect(tfjs).toContain('import GRADIENT MathKrnl');
     expect(tfjs).toContain('registerGradient(MathKrnl_GRAD_CONFIG)');

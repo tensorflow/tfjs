@@ -15,20 +15,22 @@
  * =============================================================================
  */
 
-import {CustomModuleFiles, ImportProvider} from './types';
+import {CustomModuleFiles, CustomTFJSBundleConfig, ImportProvider} from './types';
 import {getPreamble} from './util';
 
 export function getCustomModuleString(
-    kernels: string[],
-    backends: string[],
-    forwardModeOnly: boolean,
+    config: CustomTFJSBundleConfig,
     moduleProvider: ImportProvider,
     ): CustomModuleFiles {
+  const {kernels, backends, forwardModeOnly, models} = config;
   const tfjs: string[] = [getPreamble()];
 
   // A custom tfjs module
   addLine(tfjs, moduleProvider.importCoreStr(forwardModeOnly));
-  addLine(tfjs, moduleProvider.importConverterStr());
+  if (models.length > 0) {
+    // A model.json has been passed.
+    addLine(tfjs, moduleProvider.importConverterStr());
+  }
 
   for (const backend of backends) {
     addLine(tfjs, `\n//backend = ${backend}`);

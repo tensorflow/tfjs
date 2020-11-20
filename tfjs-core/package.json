@@ -93,6 +93,7 @@
   },
   "sideEffects": [
     "./dist/index.js",
+    "./dist/engine.js",
     "./dist/base_side_effects.js",
     "./dist/flags.js",
     "./dist/platforms/*.js",

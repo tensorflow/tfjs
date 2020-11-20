@@ -371,7 +371,7 @@
     "relu"
   ],
   "Relu6": [
-    "clipByValue"
+    "relu6"
   ],
   "Reshape": [
     "reshape"

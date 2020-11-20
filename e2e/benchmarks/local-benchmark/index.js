@@ -18,7 +18,7 @@
 const BACKEND_FLAGS_MAP = {
   general: [],
   cpu: [],
-  wasm: ['WASM_HAS_SIMD_SUPPORT'],
+  wasm: ['WASM_HAS_SIMD_SUPPORT', 'WASM_HAS_MULTITHREAD_SUPPORT'],
   webgl: [
     'WEBGL_VERSION', 'WEBGL_CPU_FORWARD', 'WEBGL_PACK',
     'WEBGL_FORCE_F16_TEXTURES', 'WEBGL_RENDER_FLOAT32_CAPABLE'
@@ -28,6 +28,7 @@ const TUNABLE_FLAG_NAME_MAP = {
   PROD: 'production mode',
   WEBGL_VERSION: 'webgl version',
   WASM_HAS_SIMD_SUPPORT: 'wasm SIMD',
+  WASM_HAS_MULTITHREAD_SUPPORT: 'wasm multithread',
   WEBGL_CPU_FORWARD: 'cpu forward',
   WEBGL_PACK: 'webgl pack',
   WEBGL_FORCE_F16_TEXTURES: 'enforce float16',

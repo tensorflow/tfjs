@@ -9,7 +9,7 @@
     "rollup:full": "rollup -c",
     "rollup:custom": "rollup -c --useCustomTfjs",
     "webpack:full": "webpack",
-    "webpack:custom": "webpack --useCustomTfjs"
+    "webpack:custom": "webpack --env useCustomTfjs"
   },
   "dependencies": {
     "@tensorflow-models/blazeface": "^0.0.5",
@@ -27,7 +27,7 @@
     "rollup-plugin-terser": "^6.1.0",
     "rollup-plugin-visualizer": "^4.0.4",
     "terser-webpack-plugin": "^4.2.1",
-    "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "webpack": "^5.5.1",
+    "webpack-cli": "^4.2.0"
   }
 }
