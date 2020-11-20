@@ -258,7 +258,7 @@ export class MathBackendCPU extends KernelBackend {
       const batchIdx = originalLoc[0];
       const indicesIdx = originalLoc[2];
       const indicesIndex = indicesBuf.locToIndex([batchIdx, indicesIdx]);
-      originalLoc[2] = indicesBuf.values[indicesIndex] as number;
+      originalLoc[2] = indicesBuf.values[indicesIndex];
 
       const originalIndex = xBuf.locToIndex(originalLoc);
       result.values[i] = xBuf.values[originalIndex];
