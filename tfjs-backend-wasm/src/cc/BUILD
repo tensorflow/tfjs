@@ -240,6 +240,7 @@ tfjs_cc_library(
         ":Maximum",
         ":Min",
         ":Minimum",
+        ":Mod",
         ":Multiply",
         ":Neg",
         ":NonMaxSuppressionV3",
@@ -677,6 +678,16 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Minimum",
     srcs = ["kernels/Minimum.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Mod",
+    srcs = ["kernels/Mod.cc"],
     deps = [
         ":backend",
         ":binary",
