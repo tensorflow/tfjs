@@ -83,8 +83,7 @@ describeWithFlags('pool', ALL_ENVS, () => {
 
   it('max x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor', () => {
     // Feed forward.
-    const a = tf.tensor3d(
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
+    const a = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
 
     const windowShape = 1;
     const padding = 1;
@@ -92,10 +91,8 @@ describeWithFlags('pool', ALL_ENVS, () => {
     const strides = 2;
     const dimRoundingMode = 'floor';
 
-    const result =
-        tf.pool(a, windowShape, 'max', padding, dilationRate, strides,
-                dimRoundingMode);
-
+    const result = tf.pool(
+        a, windowShape, 'max', padding, dilationRate, strides, dimRoundingMode);
     expect(result.shape).toEqual([2, 2, 3]);
   });
 
@@ -161,8 +158,7 @@ describeWithFlags('pool', ALL_ENVS, () => {
 
   it('avg x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor', () => {
     // Feed forward.
-    const a = tf.tensor3d(
-        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
+    const a = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
 
     const windowShape = 1;
     const padding = 1;
@@ -170,10 +166,8 @@ describeWithFlags('pool', ALL_ENVS, () => {
     const strides = 2;
     const dimRoundingMode = 'floor';
 
-    const result =
-        tf.pool(a, windowShape, 'avg', padding, dilationRate, strides,
-                dimRoundingMode);
-
+    const result = tf.pool(
+        a, windowShape, 'avg', padding, dilationRate, strides, dimRoundingMode);
     expect(result.shape).toEqual([2, 2, 3]);
   });
 
