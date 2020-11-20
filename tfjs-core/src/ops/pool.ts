@@ -65,7 +65,7 @@ function pool_<T extends Tensor3D|Tensor4D>(
   if (strides == null) {
     strides = 1;
   }
-  if (pad === 0) {
+  if (dimRoundingMode == null && pad === 0) {
     pad = 'valid';
   }
 
@@ -109,10 +109,10 @@ function pool_<T extends Tensor3D|Tensor4D>(
       isDilationOne ? x4D : spaceToBatchND(x4D, dilation, adjustedPadding);
 
   const forwardOp = poolingType === 'avg' ?
-      () => avgPool(convertedX, windowShape, strides, convertedPad,
-                    dimRoundingMode) :
-      () => maxPool(convertedX, windowShape, strides, convertedPad,
-                    dimRoundingMode);
+      () => avgPool(
+          convertedX, windowShape, strides, convertedPad, dimRoundingMode) :
+      () => maxPool(
+          convertedX, windowShape, strides, convertedPad, dimRoundingMode);
   const y = forwardOp();
 
   const res = isDilationOne ? y : batchToSpaceND(y, dilation, adjustedCrops);
