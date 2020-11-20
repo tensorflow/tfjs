@@ -18,7 +18,6 @@
 import * as tf from '@tensorflow/tfjs-core';
 import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor4D, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
-const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppressionV3Impl;
 const split = kernel_impls.split;
 const whereImpl = kernel_impls.whereImpl;
 import {assertNotComplex} from './cpu_util';
@@ -356,17 +355,6 @@ export class MathBackendCPU extends KernelBackend {
       }
     }
     return tf.tensor4d(result, dy.shape);
-  }
-
-  nonMaxSuppression(
-      boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
-      iouThreshold: number, scoreThreshold: number): Tensor1D {
-    assertNotComplex(boxes, 'nonMaxSuppression');
-
-    const boxesVals = this.readSync(boxes.dataId) as TypedArray;
-    const scoresVals = this.readSync(scores.dataId) as TypedArray;
-    return nonMaxSuppressionV3Impl(
-        boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   }
 
   split<T extends Tensor>(x: T, sizeSplits: number[], axis: number): T[] {
