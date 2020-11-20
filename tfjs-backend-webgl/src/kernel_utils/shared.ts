@@ -37,6 +37,8 @@ const {
   lessImpl: lessImplCPU,
   logImpl: logImplCPU,
   maxImpl: maxImplCPU,
+  maximumImpl: maximumImplCPU,
+  minimumImpl: minimumImplCPU,
   multiplyImpl: multiplyImplCPU,
   negImpl: negImplCPU,
   prodImpl: prodImplCPU,
@@ -45,6 +47,7 @@ const {
   sliceImpl: sliceImplCPU,
   stridedSliceImpl: stridedSliceImplCPU,
   subImpl: subImplCPU,
+  tileImpl: tileImplCPU,
   transposeImpl: transposeImplCPU,
   uniqueImpl: uniqueImplCPU,
 } = shared;
@@ -59,6 +62,8 @@ export {
   lessImplCPU,
   logImplCPU,
   maxImplCPU,
+  maximumImplCPU,
+  minimumImplCPU,
   multiplyImplCPU,
   negImplCPU,
   prodImplCPU,
@@ -67,6 +72,7 @@ export {
   stridedSliceImplCPU,
   subImplCPU,
   rsqrtImplCPU,
+  tileImplCPU,
   transposeImplCPU,
   uniqueImplCPU,
 };

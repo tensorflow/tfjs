@@ -15,7 +15,17 @@
  * =============================================================================
  */
 
-export {nonMaxSuppressionV3Impl, nonMaxSuppressionV4Impl, nonMaxSuppressionV5Impl} from './non_max_suppression_impl';
-export {split} from './split_shared';
-export {topkImpl} from './topk_impl';
-export {whereImpl} from './where_impl';
+import {KernelConfig, Maximum} from '@tensorflow/tfjs-core';
+
+import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
+import {binaryKernelFunc} from '../utils/binary_utils';
+
+export const maximumImpl = createSimpleBinaryKernelImpl(
+    ((aValue, bValue) => Math.max(aValue, bValue)));
+export const maximum = binaryKernelFunc(Maximum, maximumImpl);
+
+export const maximumConfig: KernelConfig = {
+  kernelName: Maximum,
+  backendName: 'cpu',
+  kernelFunc: maximum
+};
