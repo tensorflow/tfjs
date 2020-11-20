@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, NumericDataType, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor4D, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, NumericDataType, Rank, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor4D, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppressionV3Impl;
 const split = kernel_impls.split;
@@ -286,7 +286,7 @@ export class MathBackendCPU extends KernelBackend {
       const batchIdx = originalLoc[0];
       const indicesIdx = originalLoc[2];
       const indicesIndex = indicesBuf.locToIndex([batchIdx, indicesIdx]);
-      originalLoc[2] = indicesBuf.values[indicesIndex];
+      originalLoc[2] = indicesBuf.values[indicesIndex] as number;
 
       const originalIndex = xBuf.locToIndex(originalLoc);
       result.values[i] = xBuf.values[originalIndex];
