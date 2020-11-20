@@ -81,6 +81,24 @@ describeWithFlags('pool', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [4, 4, 4, 4]);
   });
 
+  it('max x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor', () => {
+    // Feed forward.
+    const a = tf.tensor3d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
+
+    const windowShape = 1;
+    const padding = 1;
+    const dilationRate: number = undefined;
+    const strides = 2;
+    const dimRoundingMode = 'floor';
+
+    const result =
+        tf.pool(a, windowShape, 'max', padding, dilationRate, strides,
+                dimRoundingMode);
+
+    expect(result.shape).toEqual([2, 2, 3]);
+  });
+
   it('avg x=[1,1,1] f=[1,1] s=1 d=1 [0] => [0]', async () => {
     const a = tf.tensor3d([0], [1, 1, 1]);
 
@@ -139,6 +157,24 @@ describeWithFlags('pool', ALL_ENVS, () => {
 
     expect(result.shape).toEqual([2, 2, 1]);
     expectArraysClose(await result.data(), [2.5, 3, 3.5, 4]);
+  });
+
+  it('avg x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor', () => {
+    // Feed forward.
+    const a = tf.tensor3d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
+
+    const windowShape = 1;
+    const padding = 1;
+    const dilationRate: number = undefined;
+    const strides = 2;
+    const dimRoundingMode = 'floor';
+
+    const result =
+        tf.pool(a, windowShape, 'avg', padding, dilationRate, strides,
+                dimRoundingMode);
+
+    expect(result.shape).toEqual([2, 2, 3]);
   });
 
   // tf.pool supports dilation, unlike maxPool or avgPool
