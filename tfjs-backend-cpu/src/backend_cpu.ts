@@ -138,8 +138,7 @@ export class MathBackendCPU extends KernelBackend {
     return this.data.get(dataId).values;
   }
 
-  bufferSync<R extends Rank, D extends DataType>(t: TensorInfo):
-      TensorBuffer<R, D> {
+  bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {
     const data = this.readSync(t.dataId);
     let decodedData = data as DataValues;
     if (t.dtype === 'string') {
@@ -151,7 +150,7 @@ export class MathBackendCPU extends KernelBackend {
       }
     }
     return buffer(t.shape as ShapeMap[R], t.dtype, decodedData) as
-        TensorBuffer<R, D>;
+        TensorBuffer<R>;
   }
 
   makeOutput<T extends Tensor>(

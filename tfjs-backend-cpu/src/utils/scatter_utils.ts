@@ -1,5 +1,3 @@
-import {buffer, DataType, Rank, ShapeMap, TensorBuffer, TypedArray} from '@tensorflow/tfjs-core';
-
 /**
  * @license
  * Copyright 2020 Google LLC. All Rights Reserved.
@@ -16,23 +14,24 @@ import {buffer, DataType, Rank, ShapeMap, TensorBuffer, TypedArray} from '@tenso
  * limitations under the License.
  * =============================================================================
  */
-export function scatterImpl<R1 extends Rank, R2 extends Rank, R3 extends
-                                Rank, D1 extends DataType, D2 extends DataType>(
-    indices: TensorBuffer<R1, D1>, updates: TensorBuffer<R2, D2>,
-    shape: number[], outputSize: number, sliceSize: number, numUpdates: number,
+import {buffer, Rank, ShapeMap, TensorBuffer, TypedArray} from '@tensorflow/tfjs-core';
+
+export function scatterImpl<R extends Rank>(
+    indices: TensorBuffer<R>, updates: TensorBuffer<R>, shape: number[],
+    outputSize: number, sliceSize: number, numUpdates: number,
     sliceRank: number, strides: number[], defaultValue: number,
-    sumDupeIndices: boolean): TensorBuffer<R3, D2> {
+    sumDupeIndices: boolean): TensorBuffer<R> {
   const flattenShape = [outputSize / sliceSize, sliceSize];
 
   const indicesData = indices.values as TypedArray;
   const updatesData = updates.values as TypedArray;
 
   if (outputSize === 0) {
-    return buffer(shape as ShapeMap[R3], updates.dtype);
+    return buffer(shape as ShapeMap[R], updates.dtype);
   }
 
-  const outBuf = buffer(flattenShape, updates.dtype as 'float32');
-  outBuf.values.fill(defaultValue);
+  const outBuf = buffer(flattenShape, updates.dtype);
+  (outBuf.values as TypedArray).fill(defaultValue);
 
   for (let i = 0; i < numUpdates; i++) {
     const index = [];
@@ -59,5 +58,5 @@ export function scatterImpl<R1 extends Rank, R2 extends Rank, R3 extends
     }
   }
 
-  return outBuf as TensorBuffer<R3, D2>;
+  return outBuf as TensorBuffer<R>;
 }
