@@ -1510,7 +1510,9 @@ export class MathBackendWebGL extends KernelBackend {
 
   linspace(start: number, stop: number, num: number): Tensor1D {
     // TODO: Use CPU implementation due to the precision problem in Safari.
-    return linSpaceImplCPU(start, stop, num);
+    const outVals = linSpaceImplCPU(start, stop, num);
+
+    return this.makeOutput([outVals.length], 'float32', outVals);
   }
 
   makeTensorInfo(
