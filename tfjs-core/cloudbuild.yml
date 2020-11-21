@@ -57,7 +57,7 @@ steps:
   id: 'test-bundle-size'
   entrypoint: 'yarn'
   args: ['test-bundle-size']
-  waitFor: [build']
+  waitFor: ['build']
 
 # test doc snippets
 - name: 'node:10'
