@@ -36,7 +36,10 @@ export function concat(
   // Keep only non-empty tensors (ignore tensors with 0 in their shape).
   const $inputs = inputs.filter(t => util.sizeFromShape(t.shape) > 0);
   if ($inputs.length === 1) {
-    return $inputs[0];
+    const inVals = backend.typedArrayFromHeap($inputs[0]);
+    const outVals = backend.typedArrayFromHeap(out);
+    outVals.set(inVals);
+    return out;
   }
 
   const shapes = $inputs.map(t => t.shape);
