@@ -19,7 +19,7 @@ import {backend_util, Concat, ConcatAttrs, ConcatInputs, KernelConfig, KernelFun
 
 import {BackendWasm} from '../backend_wasm';
 
-function concat(
+export function concat(
     args: {inputs: ConcatInputs, backend: BackendWasm, attrs: ConcatAttrs}) {
   const {inputs, backend} = args;
 
