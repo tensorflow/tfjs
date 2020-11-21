@@ -69,6 +69,7 @@ import {eluConfig} from './kernels/Elu';
 import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
+import {expandDimsConfig} from './kernels/ExpandDims';
 import {expm1Config} from './kernels/Expm1';
 import {fftConfig} from './kernels/FFT';
 import {fillConfig} from './kernels/Fill';
@@ -208,6 +209,7 @@ const kernelConfigs: KernelConfig[] = [
   equalConfig,
   erfConfig,
   expConfig,
+  expandDimsConfig,
   expm1Config,
   fftConfig,
   fillConfig,
