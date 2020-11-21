@@ -47,10 +47,19 @@ export function pack(
         () => 'All tensors passed to stack must have matching dtypes');
   });
 
-  const expandedTensors = inputs.map(
-      t => expandDims({inputs: {input: t}, backend, attrs: {dim: axis}}));
+  const intermediateTensorInfos: TensorInfo[] = [];
+  const expandedTensors = inputs.map(t => {
+    const expandedT =
+        expandDims({inputs: {input: t}, backend, attrs: {dim: axis}});
+    intermediateTensorInfos.push(expandedT);
+    return expandedT;
+  });
 
-  return concat({inputs: expandedTensors, backend, attrs: {axis}});
+  const result = concat({inputs: expandedTensors, backend, attrs: {axis}});
+
+  intermediateTensorInfos.forEach(t => backend.disposeData(t.dataId));
+
+  return result;
 }
 
 export const packConfig: KernelConfig = {

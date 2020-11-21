@@ -74,6 +74,7 @@ import {multiplyGradConfig} from './gradients/Multiply_grad';
 import {negGradConfig} from './gradients/Neg_grad';
 import {oneHotGradConfig} from './gradients/OneHot_grad';
 import {onesLikeGradConfig} from './gradients/OnesLike_grad';
+import {packGradConfig} from './gradients/Pack_grad';
 import {padV2GradConfig} from './gradients/PadV2_grad';
 import {powGradConfig} from './gradients/Pow_grad';
 import {preluGradConfig} from './gradients/Prelu_grad';
@@ -178,6 +179,7 @@ const gradConfigs: GradConfig[] = [
   negGradConfig,
   oneHotGradConfig,
   onesLikeGradConfig,
+  packGradConfig,
   padV2GradConfig,
   padV2GradConfig,
   powGradConfig,

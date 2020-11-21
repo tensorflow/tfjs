@@ -18,14 +18,14 @@
 import {Pack, PackAttrs} from '../kernel_names';
 import {GradConfig, NamedAttrMap} from '../kernel_registry';
 import {unstack} from '../ops/unstack';
-import {NamedGradientMap} from '../tape';
 import {Tensor} from '../tensor';
 
-export const expandDimsGradConfig: GradConfig = {
+export const packGradConfig: GradConfig = {
   kernelName: Pack,
-  inputsToSave: ['input'],
+  saveAllInputs: true,
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const {axis} = attrs as {} as PackAttrs;
-    return unstack(dy, axis) as {} as NamedGradientMap;
+    const derTensors = unstack(dy, axis);
+    return derTensors.map(t => () => t) as {};
   }
 };
