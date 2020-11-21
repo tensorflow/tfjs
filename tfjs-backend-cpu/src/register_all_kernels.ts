@@ -69,6 +69,7 @@ import {eluConfig} from './kernels/Elu';
 import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
+import {expandDimsConfig} from './kernels/ExpandDims';
 import {expm1Config} from './kernels/Expm1';
 import {fftConfig} from './kernels/FFT';
 import {fillConfig} from './kernels/Fill';
@@ -121,6 +122,10 @@ import {reciprocalConfig} from './kernels/Reciprocal';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
+import {resizeBilinearConfig} from './kernels/ResizeBilinear';
+import {resizeBilinearGradConfig} from './kernels/ResizeBilinearGrad';
+import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
+import {resizeNearestNeighborGradConfig} from './kernels/ResizeNearestNeighborGrad';
 import {reverseConfig} from './kernels/Reverse';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {roundConfig} from './kernels/Round';
@@ -145,6 +150,7 @@ import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
 import {tileConfig} from './kernels/Tile';
+import {topKConfig} from './kernels/TopK';
 import {transposeConfig} from './kernels/Transpose';
 import {uniqueConfig} from './kernels/Unique';
 import {unpackConfig} from './kernels/Unpack';
@@ -203,6 +209,7 @@ const kernelConfigs: KernelConfig[] = [
   equalConfig,
   erfConfig,
   expConfig,
+  expandDimsConfig,
   expm1Config,
   fftConfig,
   fillConfig,
@@ -254,6 +261,10 @@ const kernelConfigs: KernelConfig[] = [
   reluConfig,
   relu6Config,
   reshapeConfig,
+  resizeBilinearConfig,
+  resizeBilinearGradConfig,
+  resizeNearestNeighborConfig,
+  resizeNearestNeighborGradConfig,
   reverseConfig,
   rotateWithOffsetConfig,
   roundConfig,
@@ -278,6 +289,7 @@ const kernelConfigs: KernelConfig[] = [
   tanConfig,
   tanhConfig,
   tileConfig,
+  topKConfig,
   transposeConfig,
   uniqueConfig,
   unpackConfig,
