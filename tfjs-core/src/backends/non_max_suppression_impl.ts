@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {TypedArray} from '@tensorflow/tfjs-core';
+import {TypedArray} from '../types';
 import {binaryInsert} from './non_max_suppression_util';
 
 /**

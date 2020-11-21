@@ -57,7 +57,7 @@ steps:
   id: 'test-bundle-size'
   entrypoint: 'yarn'
   args: ['test-bundle-size']
-  waitFor: ['build']
+  waitFor: ['yarn']
 
 # test doc snippets
 - name: 'node:10'
@@ -65,7 +65,7 @@ steps:
   id: 'test-snippets'
   entrypoint: 'yarn'
   args: ['test-snippets']
-  waitFor: ['build']
+  waitFor: ['yarn']
 
 # test Async backends
 - name: 'node:10'
