@@ -120,6 +120,8 @@ export function memory(): MemoryInfo {
  * - `kernels`: an array of objects for each kernel involved that reports
  * their input and output shapes, number of bytes used, and number of new
  * tensors created.
+ * - `kernelNames`: an array of unique strings with just the names of the
+ * kernels in the `kernels` array.
  *
  * ```js
  * const profile = await tf.profile(() => {

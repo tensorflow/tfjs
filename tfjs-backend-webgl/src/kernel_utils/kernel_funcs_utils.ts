@@ -15,15 +15,19 @@
  * =============================================================================
  */
 
-import {BinaryInputs, DataType, env, KernelFunc, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
+import {backend_util, BinaryInputs, DataType, env, KernelFunc, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {BinaryOpProgram} from '../binaryop_gpu';
 import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 import {complex} from '../kernels/Complex';
+import {PRELU, PRELU_PACKED} from '../kernels/Prelu';
+import * as unary_op from '../unaryop_gpu';
 import {UnaryOpProgram} from '../unaryop_gpu';
+import * as unary_packed_op from '../unaryop_packed_gpu';
+import {UnaryOpPackedProgram} from '../unaryop_packed_gpu';
 
-import {SimpleBinaryKernelImplCPU} from './shared';
+import {SimpleBinaryKernelImplCPU, SimpleUnaryKernelImplCPU} from './shared';
 
 export const CHECK_NAN_SNIPPET_UNARY = `if (isnan(x)) return x;`;
 
@@ -39,16 +43,49 @@ export const CHECK_NAN_SNIPPET_BINARY_PACKED = `
   result.a = isNaN.a > 0. ? NAN : result.a;
 `;
 
+type UnaryKernelFuncConfig = {
+  opSnippet: string,
+  packedOpSnippet?: string,
+  cpuKernelImpl?: SimpleUnaryKernelImplCPU,
+  dtype?: DataType
+};
+
 /**
  * Template that creates a `KernelFunc` for unary ops.
- * @param opSnippets Op snippet to create `UnaryOpProgram`.
+ * @param opSnippet Op snippet to create `UnaryOpProgram`.
+ * @param packedOpSnippet Op snippet to create `UnaryOpPackedProgram`.
+ * @param dtype Optional. If set, the result has this dtype. Otherwise, the
+ *     result has the same dtype as the first input. This is mainly used in
+ *     comparison kernels, such as Equal, Less, Greater, etc.
  */
-export function unaryKernelFunc(opSnippet: string): KernelFunc {
+export function unaryKernelFunc(
+    {opSnippet, packedOpSnippet, cpuKernelImpl, dtype}: UnaryKernelFuncConfig):
+    KernelFunc {
   return ({inputs, backend}) => {
     const {x} = inputs as UnaryInputs;
     const webglBackend = backend as MathBackendWebGL;
-    const program = new UnaryOpProgram(x.shape, opSnippet);
-    return webglBackend.runWebGLProgram(program, [x], x.dtype);
+
+    const $dtype = dtype || x.dtype;
+    if (webglBackend.shouldExecuteOnCPU([x]) && cpuKernelImpl != null) {
+      const xData = webglBackend.texData.get(x.dataId);
+      const outValues = cpuKernelImpl(xData.values as TypedArray, $dtype);
+
+      const out = webglBackend.makeTensorInfo(x.shape, $dtype);
+      const outData = webglBackend.texData.get(out.dataId);
+      outData.values = outValues;
+      return out;
+    }
+
+    const shouldUsePackedProgram =
+        env().getBool('WEBGL_PACK_UNARY_OPERATIONS') && packedOpSnippet != null;
+    let program: UnaryOpProgram|UnaryOpPackedProgram;
+    if (shouldUsePackedProgram) {
+      program = new UnaryOpPackedProgram(x.shape, packedOpSnippet);
+    } else {
+      program = new UnaryOpProgram(x.shape, opSnippet);
+    }
+
+    return webglBackend.runWebGLProgram(program, [x], $dtype);
   };
 }
 
@@ -147,4 +184,36 @@ export function binaryKernelFunc({
 
     return webglBackend.runWebGLProgram(program, [a, b], $dtype);
   };
+}
+
+export function mapActivationToShaderProgram(
+    activation: backend_util.Activation, packed = false): string {
+  if (activation === 'linear') {
+    if (packed) {
+      return unary_packed_op.LINEAR;
+    }
+    return unary_op.LINEAR;
+  } else if (activation === 'relu') {
+    if (packed) {
+      return unary_packed_op.RELU;
+    }
+    return unary_op.RELU;
+  } else if (activation === 'elu') {
+    if (packed) {
+      return unary_packed_op.ELU;
+    }
+    return unary_op.ELU;
+  } else if (activation === 'relu6') {
+    if (packed) {
+      return unary_packed_op.RELU6;
+    }
+    return unary_op.RELU6;
+  } else if (activation === 'prelu') {
+    if (packed) {
+      return PRELU_PACKED;
+    }
+    return PRELU;
+  }
+  throw new Error(`Activation ${
+      activation} has not been implemented for the WebGL backend.`);
 }

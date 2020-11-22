@@ -3,7 +3,7 @@
         "Cast",
         "Reshape",
         "ResizeBilinear",
-        "Div",
+        "RealDiv",
         "Sub",
         "Multiply",
         "FusedConv2D",

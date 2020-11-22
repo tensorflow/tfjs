@@ -25,15 +25,18 @@ import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 import {BufferManager} from './buffer_manager';
 import {ArgMinMaxProgram} from './kernels/argminmax_webgpu';
 import {BinaryOpProgram} from './kernels/binary_op_webgpu';
-import * as binary_op from './kernels/binary_ops';
+import {BinaryOpType, getBinaryOpString, getBinaryProgram} from './kernels/binary_ops';
 import {ClipProgram} from './kernels/clip_webgpu';
 import {ConcatProgram} from './kernels/concat_webgpu';
+import {Conv2DMMVec4Program} from './kernels/conv2d_mm_vec4_webgpu';
 import {Conv2DMMProgram} from './kernels/conv2d_mm_webgpu';
 import {Conv2DNaiveProgram} from './kernels/conv2d_naive_webgpu';
 import {CropAndResizeProgram} from './kernels/crop_and_resize_webgpu';
 import {DepthwiseConv2DProgram} from './kernels/depthwise_conv2d_webgpu';
 import {FillProgram} from './kernels/fill_webgpu';
+import {FromPixelsProgram} from './kernels/FromPixels_utils/from_pixels_webgpu';
 import {Im2ColProgram} from './kernels/im2col_webgpu';
+import {MatMulPackedVec4Program} from './kernels/matmul_packed_vec4_webgpu';
 import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
 import {MatMulProgram} from './kernels/matmul_webgpu';
 import {MaxPoolWithFilterSizeEqualsOneProgram} from './kernels/maxpool_filtersizeone_webgpu';
@@ -101,6 +104,7 @@ export class WebGPUBackend extends KernelBackend {
   glslang: Glslang;
   commandQueue: GPUCommandEncoder[];
   tensorMap: DataStorage<TensorBufferInfo>;
+  fromPixelProgram: FromPixelsProgram;
 
   private commandQueueOwnedIds = new WeakSet<DataId>();
   private binaryCache: {[key: string]: WebGPUBinary};
@@ -172,7 +176,7 @@ export class WebGPUBackend extends KernelBackend {
     return this.bufferManager;
   }
 
-  private acquireBuffer(
+  acquireBuffer(
       byteSize: number, usage: GPUBufferUsageFlags = DEFAULT_GPUBUFFER_USAGE) {
     return this.bufferManager.acquireBuffer(byteSize, usage);
   }
@@ -214,7 +218,7 @@ export class WebGPUBackend extends KernelBackend {
     });
   }
 
-  private submitQueue() {
+  submitQueue() {
     this.queue.submit(this.commandQueue.map(enc => enc.finish()));
     this.commandQueue = [];
 
@@ -347,14 +351,13 @@ export class WebGPUBackend extends KernelBackend {
     return this.binaryCache[key];
   }
 
-  makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
-      T {
+  makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType): T {
     const dataId = this.write(null /* values */, shape, dtype);
 
     return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
   }
 
-  private tensorToBinding(tensor?: TensorInfo): webgpu_program.BindingInfo {
+  private tensorToBinding(tensor?: TensorInfo): GPUBindingResource {
     if (!tensor) {
       return null;
     }
@@ -362,11 +365,9 @@ export class WebGPUBackend extends KernelBackend {
     const tensorData = this.tensorMap.get(tensor.dataId);
 
     return {
-      resource: {
-        offset: 0,
-        size: tensorData.bufferInfo.byteSize,
-        buffer: tensorData.bufferInfo.buffer
-      }
+      offset: 0,
+      size: tensorData.bufferInfo.byteSize,
+      buffer: tensorData.bufferInfo.buffer
     };
   }
 
@@ -409,7 +410,7 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     let uniformDataLength;
-    let uniforms: webgpu_program.BindingInfo;
+    let uniforms: GPUBindingResource;
     if (program.uniforms) {
       // TODO: handle padding of program-specific uniforms
       const uniformData = new Int32Array(programUniforms);
@@ -467,7 +468,7 @@ export class WebGPUBackend extends KernelBackend {
       const uniformInfo = {
         byteSize: uniformDataLength,
         usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
-        buffer: uniforms.resource.buffer
+        buffer: (uniforms as GPUBufferBinding).buffer
       };
       this.uniformDisposalQueue.push(uniformInfo);
     }
@@ -484,15 +485,12 @@ export class WebGPUBackend extends KernelBackend {
     return output as {} as K;
   }
 
-  private makeUniforms(data: Uint32Array|
-                       Int32Array): webgpu_program.BindingInfo {
+  private makeUniforms(data: Uint32Array|Int32Array): GPUBindingResource {
     const dimensionsBuffer = this.acquireBuffer(
         data.byteLength, GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
     this.queue.writeBuffer(dimensionsBuffer, 0, data);
 
-    return {
-      resource: {offset: 0, size: data.byteLength, buffer: dimensionsBuffer}
-    };
+    return {offset: 0, size: data.byteLength, buffer: dimensionsBuffer};
   }
 
   private getCPUBackend(): KernelBackend|null {
@@ -566,8 +564,16 @@ export class WebGPUBackend extends KernelBackend {
     return this.compileAndRun(program, [x], output, dimensions);
   }
 
-  private binaryOp(a: Tensor, b: Tensor, op: string): Tensor {
-    const program = binary_op.getBinaryProgram(op, a.shape, b.shape);
+  private binaryOp(a: Tensor, b: Tensor, op: BinaryOpType, boolType?: boolean):
+      Tensor {
+    const program = getBinaryProgram(op, a.shape, b.shape);
+    if (boolType) {
+      const dataId = this.write(null /*values*/, program.outputShape, 'bool');
+      const output = engine().makeTensorFromDataId(
+          dataId, program.outputShape, 'bool', this);
+
+      return this.compileAndRun(program, [a, b], output);
+    }
     const dtype = backend_util.upcastType(a.dtype, b.dtype);
     const dataId = this.write(null /*values*/, program.outputShape, dtype);
     const output =
@@ -580,45 +586,36 @@ export class WebGPUBackend extends KernelBackend {
     if (this.shouldExecuteOnCPU([a, b])) {
       return this.cpuBackend.add(a, b);
     }
-    return this.binaryOp(a, b, binary_op.ADD);
+    return this.binaryOp(a, b, BinaryOpType.ADD);
   }
 
   subtract(a: Tensor, b: Tensor): Tensor {
     if (this.shouldExecuteOnCPU([a, b])) {
       return this.cpuBackend.subtract(a, b);
     }
-    return this.binaryOp(a, b, binary_op.SUB);
-  }
-
-  private binaryCompareOp(a: Tensor, b: Tensor, op: string): Tensor {
-    const program = new BinaryOpProgram(op, a.shape, b.shape);
-    const dataId = this.write(null /*values*/, program.outputShape, 'bool');
-    const output = engine().makeTensorFromDataId(
-        dataId, program.outputShape, 'bool', this);
-
-    return this.compileAndRun(program, [a, b], output);
+    return this.binaryOp(a, b, BinaryOpType.SUB);
   }
 
   less(a: Tensor, b: Tensor): Tensor {
-    return this.binaryCompareOp(a, b, binary_op.LESS);
+    return this.binaryOp(a, b, BinaryOpType.LESS, true);
   }
 
   lessEqual(a: Tensor, b: Tensor): Tensor {
-    return this.binaryCompareOp(a, b, binary_op.LESS_EQUAL);
+    return this.binaryOp(a, b, BinaryOpType.LESS_EQUAL, true);
   }
 
   greater(a: Tensor, b: Tensor): Tensor {
     if (this.shouldExecuteOnCPU([a, b])) {
       return this.cpuBackend.greater(a, b);
     }
-    return this.binaryCompareOp(a, b, binary_op.GREATER);
+    return this.binaryOp(a, b, BinaryOpType.GREATER, true);
   }
 
   greaterEqual(a: Tensor, b: Tensor): Tensor {
     if (this.shouldExecuteOnCPU([a, b])) {
       return this.cpuBackend.greaterEqual(a, b);
     }
-    return this.binaryCompareOp(a, b, binary_op.GREATER_EQUAL);
+    return this.binaryOp(a, b, BinaryOpType.GREATER_EQUAL, true);
   }
 
   private conv2dWithIm2Col(
@@ -700,12 +697,20 @@ export class WebGPUBackend extends KernelBackend {
     const dataId = this.write(null /*values*/, convInfo.outShape, x.dtype);
     const output =
         engine().makeTensorFromDataId(dataId, convInfo.outShape, x.dtype, this);
-    let program: Conv2DMMProgram|Conv2DNaiveProgram;
+    let program: Conv2DMMProgram|Conv2DNaiveProgram|Conv2DMMVec4Program;
 
     const workPerThread = env().get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
     if (workPerThread === -1) {
       // TODO(kainino0x): This may be obsolete, but is kept for reference.
       program = new Conv2DNaiveProgram(convInfo);
+    } else if (
+        // TODO(jiajia.qin@intel.com): It seems that the vec4 version is not
+        // good if convInfo.outChannels is too small. For example, input = [1,
+        // 128, 128, 4], filter = [25, 25, 4, 4]. In this case, lots of theads
+        // will run idle. So temporarily, use 64 as the threshold.
+        convInfo.inChannels % 4 === 0 && convInfo.outChannels % 4 === 0 &&
+        convInfo.outChannels >= 64) {
+      program = new Conv2DMMVec4Program(convInfo);
     } else {
       program = new Conv2DMMProgram(convInfo, workPerThread);
     }
@@ -745,7 +750,7 @@ export class WebGPUBackend extends KernelBackend {
     } else if (activation === 'relu6') {
       return unary_op.RELU6;
     } else if (activation === 'prelu') {
-      return binary_op.PRELU;
+      return getBinaryOpString(BinaryOpType.PRELU);
     }
     throw new Error(`Activation ${
         activation} has not been implemented for the WebGL backend.`);
@@ -914,22 +919,22 @@ export class WebGPUBackend extends KernelBackend {
     if (this.shouldExecuteOnCPU([a, b])) {
       return this.cpuBackend.multiply(a, b);
     }
-    return this.binaryOp(a, b, binary_op.MUL);
+    return this.binaryOp(a, b, BinaryOpType.MUL);
   }
 
   realDivide(a: Tensor, b: Tensor): Tensor {
-    return this.binaryOp(a, b, binary_op.DIV);
+    return this.binaryOp(a, b, BinaryOpType.DIV);
   }
 
   floorDiv(a: Tensor, b: Tensor): Tensor {
-    return this.binaryOp(a, b, binary_op.INT_DIV);
+    return this.binaryOp(a, b, BinaryOpType.INT_DIV);
   }
 
   maximum(a: Tensor, b: Tensor): Tensor {
     if (this.shouldExecuteOnCPU([a, b])) {
       return this.cpuBackend.maximum(a, b);
     }
-    return this.binaryOp(a, b, binary_op.MAX);
+    return this.binaryOp(a, b, BinaryOpType.MAX);
   }
 
   neg<T extends Tensor>(x: T): T {
@@ -997,7 +1002,8 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   prelu<T extends Tensor>(x: T, alpha: T): T {
-    const program = new BinaryOpProgram(binary_op.PRELU, x.shape, alpha.shape);
+    const program = new BinaryOpProgram(
+        getBinaryOpString(BinaryOpType.PRELU), x.shape, alpha.shape);
     return this.compileAndRun(program, [x, alpha]);
   }
 
@@ -1144,7 +1150,7 @@ export class WebGPUBackend extends KernelBackend {
     const output = engine().makeTensorFromDataId(
         dataId, [batch, outerShapeA, outerShapeB], a.dtype, this);
 
-    let program: MatMulProgram|MatMulPackedProgram;
+    let program: MatMulProgram|MatMulPackedProgram|MatMulPackedVec4Program;
     // TODO: We should eventually use the blocked version, but keeping around
     // the old version while we try to understand conditions under which blocked
     // is faster.
@@ -1152,6 +1158,15 @@ export class WebGPUBackend extends KernelBackend {
       program = new MatMulProgram(
           a.shape, output.shape as [number, number, number], transposeA,
           transposeB);
+    } else if (
+        a.shape[2] % 4 === 0 && b.shape[2] % 4 === 0 && !transposeA &&
+        !transposeB) {
+      // TODO: Currently we need to make sure that a.shape[2] and b.shape[2] are
+      // divisible by 4 since we use vec4 to get data. In future, we can remove
+      // this limitation by insert 0 to pack data.
+      program = new MatMulPackedVec4Program(
+          a.shape, output.shape as [number, number, number],
+          env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number);
     } else {
       program = new MatMulPackedProgram(
           a.shape, output.shape as [number, number, number],
@@ -1171,6 +1186,9 @@ export class WebGPUBackend extends KernelBackend {
       return;
     }
     this.bufferManager.dispose();
+    if (this.fromPixelProgram) {
+      this.fromPixelProgram.dispose();
+    }
     this.disposed = true;
   }
 }

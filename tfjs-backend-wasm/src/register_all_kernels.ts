@@ -36,11 +36,12 @@ import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {cumsumConfig} from './kernels/Cumsum';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
-import {divConfig} from './kernels/Div';
 import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
+import {expandDimsConfig} from './kernels/ExpandDims';
 import {fillConfig} from './kernels/Fill';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
+import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
@@ -60,7 +61,7 @@ import {maxPoolConfig} from './kernels/MaxPool';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
 import {multiplyConfig} from './kernels/Multiply';
-import {negateConfig} from './kernels/Negate';
+import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
@@ -70,6 +71,8 @@ import {onesLikeConfig} from './kernels/OnesLike';
 import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
+import {prodConfig} from './kernels/Prod';
+import {realDivConfig} from './kernels/RealDiv';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
@@ -78,7 +81,7 @@ import {reverseConfig} from './kernels/Reverse';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {scatterNdConfig} from './kernels/ScatterNd';
-import {selectV2Config} from './kernels/SelectV2';
+import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {sinConfig} from './kernels/Sin';
 import {sliceConfig} from './kernels/Slice';
@@ -114,11 +117,12 @@ const kernelConfigs: KernelConfig[] = [
   cumsumConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
-  divConfig,
   equalConfig,
   expConfig,
+  expandDimsConfig,
   fillConfig,
   flipLeftRightConfig,
+  floorConfig,
   floorDivConfig,
   fusedMatMulConfig,
   fusedBatchNormConfig,
@@ -139,7 +143,7 @@ const kernelConfigs: KernelConfig[] = [
   minConfig,
   minimumConfig,
   multiplyConfig,
-  negateConfig,
+  negConfig,
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
@@ -149,6 +153,8 @@ const kernelConfigs: KernelConfig[] = [
   padV2Config,
   powConfig,
   preluConfig,
+  prodConfig,
+  realDivConfig,
   reluConfig,
   relu6Config,
   reshapeConfig,
@@ -157,7 +163,7 @@ const kernelConfigs: KernelConfig[] = [
   rotateWithOffsetConfig,
   rsqrtConfig,
   scatterNdConfig,
-  selectV2Config,
+  selectConfig,
   sigmoidConfig,
   sinConfig,
   sliceConfig,

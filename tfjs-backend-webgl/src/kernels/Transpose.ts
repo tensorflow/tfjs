@@ -15,40 +15,47 @@
  * =============================================================================
  */
 
-import {KernelConfig, TensorInfo, Transpose, TransposeAttrs, TransposeInputs, TypedArray} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, TensorInfo, Transpose, TransposeAttrs, TransposeInputs, TypedArray} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 
 import {transposeImpl} from './Transpose_impl';
 import {transposeImplCPU as cpuTranspose} from './Transpose_impl';
 
+export function transpose(args: {
+  inputs: TransposeInputs,
+  attrs: TransposeAttrs,
+  backend: MathBackendWebGL
+}) {
+  const {inputs, backend, attrs} = args;
+  const {x} = inputs;
+  const {perm} = attrs;
+  const webglBackend = backend;
+
+  const xRank = x.shape.length;
+
+  const newShape: number[] = new Array(xRank);
+  for (let i = 0; i < newShape.length; i++) {
+    newShape[i] = x.shape[perm[i]];
+  }
+
+  let out: TensorInfo;
+  if (webglBackend.shouldExecuteOnCPU([x])) {
+    const xTexData = webglBackend.texData.get(x.dataId);
+    const values = xTexData.values as TypedArray;
+    const outValues = cpuTranspose(values, x.shape, x.dtype, perm, newShape);
+
+    out = webglBackend.makeTensorInfo(newShape, x.dtype);
+    const outData = webglBackend.texData.get(out.dataId);
+    outData.values = outValues;
+  } else {
+    out = transposeImpl(x, perm, webglBackend);
+  }
+  return out;
+}
+
 export const transposeConfig: KernelConfig = {
   kernelName: Transpose,
   backendName: 'webgl',
-  kernelFunc: ({inputs, attrs, backend}) => {
-    const {x} = inputs as TransposeInputs;
-    const {perm} = attrs as {} as TransposeAttrs;
-    const webglBackend = backend as MathBackendWebGL;
-
-    const xRank = x.shape.length;
-
-    const newShape: number[] = new Array(xRank);
-    for (let i = 0; i < newShape.length; i++) {
-      newShape[i] = x.shape[perm[i]];
-    }
-
-    let out: TensorInfo;
-    if (webglBackend.shouldExecuteOnCPU([x])) {
-      const xTexData = webglBackend.texData.get(x.dataId);
-      const values = xTexData.values as TypedArray;
-      const outValues = cpuTranspose(values, x.shape, x.dtype, perm, newShape);
-
-      out = webglBackend.makeTensorInfo(newShape, x.dtype);
-      const outData = webglBackend.texData.get(out.dataId);
-      outData.values = outValues;
-    } else {
-      out = transposeImpl(x, perm, webglBackend);
-    }
-    return out;
-  }
+  kernelFunc: transpose as {} as KernelFunc
 };

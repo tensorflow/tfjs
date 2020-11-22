@@ -60,8 +60,6 @@ function cropAndResize_(
   const $image = convertToTensor(image, 'image', 'cropAndResize');
   const $boxes = convertToTensor(boxes, 'boxes', 'cropAndResize', 'float32');
   const $boxInd = convertToTensor(boxInd, 'boxInd', 'cropAndResize', 'int32');
-  method = method || 'bilinear';
-  extrapolationValue = extrapolationValue || 0;
 
   const numBoxes = $boxes.shape[0];
 
@@ -88,8 +86,12 @@ function cropAndResize_(
       method === 'bilinear' || method === 'nearest',
       () => `method must be bilinear or nearest, but was ${method}`);
 
-  const forward: ForwardFunc<Tensor4D> = (backend) => backend.cropAndResize(
-      $image, $boxes, $boxInd, cropSize, method, extrapolationValue);
+  const forward: ForwardFunc<Tensor4D> = (backend) => {
+    method = method || 'bilinear';
+    extrapolationValue = extrapolationValue || 0;
+    return backend.cropAndResize(
+        $image, $boxes, $boxInd, cropSize, method, extrapolationValue);
+  };
 
   const inputs:
       CropAndResizeInputs = {image: $image, boxes: $boxes, boxInd: $boxInd};

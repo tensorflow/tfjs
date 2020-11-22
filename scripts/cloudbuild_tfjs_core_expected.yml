@@ -1,0 +1,1118 @@
+steps:
+  - name: 'node:10'
+    entrypoint: yarn
+    id: yarn-common
+    args:
+      - install
+  - name: 'node:10'
+    dir: tfjs-core
+    id: yarn-tfjs-core
+    entrypoint: yarn
+    args:
+      - install
+    waitFor:
+      - yarn-common
+  - name: 'node:10'
+    dir: tfjs-core
+    id: build-deps-always-tfjs-core
+    entrypoint: yarn
+    args:
+      - build-deps-ci
+    waitFor:
+      - yarn-tfjs-core
+      - yarn-common
+  - name: 'node:10'
+    dir: tfjs-core
+    id: build-tfjs-core
+    entrypoint: yarn
+    args:
+      - build-ci
+    waitFor:
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - yarn-common
+  - name: 'node:10'
+    dir: tfjs-core
+    id: lint-tfjs-core
+    entrypoint: yarn
+    args:
+      - lint
+    waitFor:
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - yarn-common
+  - name: 'node:10'
+    dir: tfjs-core
+    id: test-tfjs-core
+    entrypoint: yarn
+    args:
+      - test-ci
+    waitFor:
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - lint-tfjs-core
+      - yarn-common
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+  - name: 'node:10'
+    dir: tfjs-core
+    id: test-bundle-size-tfjs-core
+    entrypoint: yarn
+    args:
+      - test-bundle-size
+    waitFor:
+      - yarn-tfjs-core
+      - yarn-common
+  - name: 'node:10'
+    dir: tfjs-core
+    id: test-snippets-tfjs-core
+    entrypoint: yarn
+    args:
+      - test-snippets
+    waitFor:
+      - yarn-tfjs-core
+      - yarn-common
+  - name: 'node:10'
+    dir: tfjs-core
+    id: test-async-backends-tfjs-core
+    entrypoint: yarn
+    args:
+      - test-async-backends-ci
+    waitFor:
+      - build-tfjs-core
+      - yarn-common
+  - name: 'node:10'
+    dir: tfjs-backend-cpu
+    id: yarn-tfjs-backend-cpu
+    entrypoint: yarn
+    args:
+      - install
+    waitFor:
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+  - name: 'node:10'
+    dir: tfjs-backend-cpu
+    id: build-tfjs-backend-cpu
+    entrypoint: yarn
+    args:
+      - build-ci
+    waitFor:
+      - yarn-tfjs-backend-cpu
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+  - name: 'node:10'
+    dir: tfjs-backend-cpu
+    id: lint-tfjs-backend-cpu
+    entrypoint: yarn
+    args:
+      - lint
+    waitFor:
+      - yarn-tfjs-backend-cpu
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+  - name: 'node:10'
+    dir: tfjs-backend-cpu
+    entrypoint: yarn
+    id: test-backend-cpu-tfjs-backend-cpu
+    args:
+      - test-ci
+    waitFor:
+      - yarn-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+  - name: 'node:10'
+    dir: tfjs-converter
+    entrypoint: yarn
+    id: yarn-tfjs-converter
+    args:
+      - install
+    waitFor:
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'node:10'
+    dir: tfjs-converter
+    entrypoint: yarn
+    id: build-tfjs-converter
+    args:
+      - build-ci
+    waitFor:
+      - yarn-tfjs-converter
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'node:10'
+    dir: tfjs-converter
+    entrypoint: yarn
+    id: lint-tfjs-converter
+    args:
+      - lint
+    waitFor:
+      - yarn-tfjs-converter
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'node:10'
+    dir: tfjs-converter
+    entrypoint: yarn
+    id: test-js-tfjs-converter
+    args:
+      - test-ci
+    waitFor:
+      - yarn-tfjs-converter
+      - lint-tfjs-converter
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+    env:
+      - NIGHTLY=$_NIGHTLY
+  - name: gcr.io/google-appengine/python
+    dir: tfjs-converter/python
+    entrypoint: bash
+    id: test-python-pip-tfjs-converter
+    args:
+      - ./build-pip-package.sh
+      - '--test'
+      - /tmp/tfjs-pips
+    waitFor:
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'python:2'
+    dir: tfjs-converter/python
+    entrypoint: bash
+    id: test-python2-tfjs-converter
+    args:
+      - ./run-python-tests.sh
+    waitFor:
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'python:3.6'
+    dir: tfjs-converter/python
+    entrypoint: bash
+    id: test-python3.6-tfjs-converter
+    args:
+      - ./run-python-tests.sh
+    waitFor:
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'node:10'
+    dir: tfjs-converter
+    entrypoint: yarn
+    id: test-snippets-tfjs-converter
+    args:
+      - test-snippets
+    waitFor:
+      - build-tfjs-converter
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'node:10'
+    dir: tfjs-backend-wasm
+    entrypoint: yarn
+    id: yarn-tfjs-backend-wasm
+    args:
+      - install
+    waitFor:
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: gcr.io/learnjs-174218/wasm
+    dir: tfjs-backend-wasm
+    entrypoint: bash
+    id: build-tfjs-backend-wasm
+    args:
+      - ./scripts/build-ci.sh
+    waitFor:
+      - yarn-tfjs-backend-wasm
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'node:10'
+    dir: tfjs-backend-wasm
+    entrypoint: yarn
+    id: lint-tfjs-backend-wasm
+    args:
+      - lint
+    waitFor:
+      - yarn-tfjs-backend-wasm
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'node:10'
+    dir: tfjs-backend-wasm
+    entrypoint: yarn
+    id: test-wasm-tfjs-backend-wasm
+    args:
+      - test-ci
+    waitFor:
+      - yarn-tfjs-backend-wasm
+      - build-tfjs-backend-wasm
+      - lint-tfjs-backend-wasm
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+  - name: gcr.io/learnjs-174218/wasm
+    dir: tfjs-backend-wasm
+    entrypoint: yarn
+    id: test-cc-tfjs-backend-wasm
+    args:
+      - test-cc
+    waitFor:
+      - build-tfjs-backend-wasm
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: gcr.io/learnjs-174218/wasm
+    dir: tfjs-backend-wasm
+    id: test-bundle-size-tfjs-backend-wasm
+    entrypoint: yarn
+    args:
+      - test-bundle-size
+    waitFor:
+      - yarn-tfjs-backend-wasm
+      - build-tfjs-backend-wasm
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'node:10'
+    dir: tfjs-backend-wasm
+    id: buildifier-tfjs-backend-wasm
+    entrypoint: yarn
+    args:
+      - buildifier-ci
+    waitFor:
+      - yarn-tfjs-backend-wasm
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'node:10'
+    dir: tfjs-backend-webgl
+    id: yarn-tfjs-backend-webgl
+    entrypoint: yarn
+    args:
+      - install
+    waitFor:
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'node:10'
+    dir: tfjs-backend-webgl
+    id: build-tfjs-backend-webgl
+    entrypoint: yarn
+    args:
+      - build-ci
+    waitFor:
+      - yarn-tfjs-backend-webgl
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'node:10'
+    dir: tfjs-backend-webgl
+    id: lint-tfjs-backend-webgl
+    entrypoint: yarn
+    args:
+      - lint
+    waitFor:
+      - yarn-tfjs-backend-webgl
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'node:10'
+    dir: tfjs-backend-webgl
+    entrypoint: yarn
+    id: test-tfjs-backend-webgl
+    args:
+      - test-ci
+    waitFor:
+      - yarn-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+  - name: 'node:10'
+    dir: tfjs-layers
+    entrypoint: yarn
+    id: yarn-tfjs-layers
+    args:
+      - install
+    waitFor:
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
+  - name: 'node:10'
+    dir: tfjs-layers
+    entrypoint: yarn
+    id: build-tfjs-layers
+    args:
+      - build-ci
+    waitFor:
+      - yarn-tfjs-layers
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
+  - name: 'node:10'
+    dir: tfjs-layers
+    entrypoint: yarn
+    id: lint-tfjs-layers
+    args:
+      - lint
+    waitFor:
+      - yarn-tfjs-layers
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
+  - name: 'node:10'
+    dir: tfjs-layers
+    entrypoint: yarn
+    id: test-browser-tfjs-layers
+    args:
+      - test-ci
+    waitFor:
+      - yarn-tfjs-layers
+      - lint-tfjs-layers
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+  - name: 'node:10'
+    dir: tfjs-layers
+    entrypoint: yarn
+    id: test-snippets-tfjs-layers
+    args:
+      - test-snippets
+    waitFor:
+      - build-tfjs-layers
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
+  - name: 'node:10'
+    dir: tfjs-data
+    entrypoint: yarn
+    id: yarn-tfjs-data
+    args:
+      - install
+    waitFor:
+      - yarn-common
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-layers
+      - build-tfjs-layers
+      - lint-tfjs-layers
+  - name: 'node:10'
+    dir: tfjs-data
+    entrypoint: yarn
+    id: build-tfjs-data
+    args:
+      - build-ci
+    waitFor:
+      - yarn-tfjs-data
+      - yarn-common
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-layers
+      - build-tfjs-layers
+      - lint-tfjs-layers
+  - name: 'node:10'
+    dir: tfjs-data
+    entrypoint: yarn
+    id: lint-tfjs-data
+    args:
+      - lint
+    waitFor:
+      - yarn-tfjs-data
+      - yarn-common
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-layers
+      - build-tfjs-layers
+      - lint-tfjs-layers
+  - name: 'node:10'
+    dir: tfjs-data
+    entrypoint: yarn
+    id: test-tfjs-data
+    args:
+      - test-ci
+    waitFor:
+      - yarn-tfjs-data
+      - lint-tfjs-data
+      - yarn-common
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-layers
+      - build-tfjs-layers
+      - lint-tfjs-layers
+  - name: 'node:10'
+    dir: tfjs-data
+    entrypoint: yarn
+    id: test-snippets-tfjs-data
+    args:
+      - test-snippets
+    waitFor:
+      - build-tfjs-data
+      - yarn-common
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-layers
+      - build-tfjs-layers
+      - lint-tfjs-layers
+  - name: 'node:10'
+    dir: tfjs
+    entrypoint: yarn
+    id: yarn-tfjs
+    args:
+      - install
+    waitFor:
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-converter
+      - build-tfjs-converter
+      - lint-tfjs-converter
+      - yarn-tfjs-layers
+      - build-tfjs-layers
+      - lint-tfjs-layers
+      - yarn-tfjs-data
+      - build-tfjs-data
+      - lint-tfjs-data
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
+  - name: 'node:10'
+    dir: tfjs
+    entrypoint: yarn
+    id: build-tfjs
+    args:
+      - build-ci
+    waitFor:
+      - yarn-tfjs
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-converter
+      - build-tfjs-converter
+      - lint-tfjs-converter
+      - yarn-tfjs-layers
+      - build-tfjs-layers
+      - lint-tfjs-layers
+      - yarn-tfjs-data
+      - build-tfjs-data
+      - lint-tfjs-data
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
+  - name: 'node:10'
+    dir: tfjs
+    entrypoint: yarn
+    id: lint-tfjs
+    args:
+      - lint
+    waitFor:
+      - yarn-tfjs
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-converter
+      - build-tfjs-converter
+      - lint-tfjs-converter
+      - yarn-tfjs-layers
+      - build-tfjs-layers
+      - lint-tfjs-layers
+      - yarn-tfjs-data
+      - build-tfjs-data
+      - lint-tfjs-data
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
+  - name: 'node:10'
+    dir: tfjs
+    entrypoint: yarn
+    id: test-tfjs
+    args:
+      - test-ci
+    waitFor:
+      - yarn-tfjs
+      - lint-tfjs
+      - yarn-common
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-converter
+      - build-tfjs-converter
+      - lint-tfjs-converter
+      - yarn-tfjs-layers
+      - build-tfjs-layers
+      - lint-tfjs-layers
+      - yarn-tfjs-data
+      - build-tfjs-data
+      - lint-tfjs-data
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+      - FIREBASE_KEY
+  - name: 'node:12'
+    dir: tfjs-node
+    entrypoint: yarn
+    id: yarn-tfjs-node
+    args:
+      - install
+    waitFor:
+      - yarn-common
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+  - name: 'node:12'
+    dir: tfjs-node
+    entrypoint: yarn
+    id: build-addon-tfjs-node
+    args:
+      - build-addon-from-source
+    waitFor:
+      - yarn-tfjs-node
+      - yarn-common
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+  - name: 'node:12'
+    dir: tfjs-node
+    entrypoint: yarn
+    id: build-tfjs-node
+    args:
+      - build-ci
+    waitFor:
+      - yarn-tfjs-node
+      - yarn-common
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+  - name: 'node:12'
+    dir: tfjs-node
+    entrypoint: yarn
+    id: lint-tfjs-node
+    args:
+      - lint
+    waitFor:
+      - yarn-tfjs-node
+      - yarn-common
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+  - name: 'node:12'
+    dir: tfjs-node
+    entrypoint: yarn
+    id: test-tfjs-node
+    args:
+      - test-ci
+    waitFor:
+      - yarn-tfjs-node
+      - lint-tfjs-node
+      - yarn-common
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+  - name: 'node:12'
+    dir: tfjs-node
+    entrypoint: yarn
+    id: ensure-cpu-gpu-packages-align-tfjs-node
+    args:
+      - ensure-cpu-gpu-packages-align
+    waitFor:
+      - yarn-common
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+  - name: 'node:10'
+    dir: tfjs-node-gpu
+    id: prep-gpu-tfjs-node-gpu
+    entrypoint: yarn
+    args:
+      - prep-gpu
+    waitFor:
+      - yarn-common
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+  - name: 'node:10'
+    dir: tfjs-node-gpu
+    entrypoint: yarn
+    id: yarn-tfjs-node-gpu
+    args:
+      - install
+    waitFor:
+      - prep-gpu-tfjs-node-gpu
+      - yarn-common
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+  - name: 'node:10'
+    dir: tfjs-node-gpu
+    entrypoint: yarn
+    id: build-addon-tfjs-node-gpu
+    args:
+      - build-addon-from-source
+    waitFor:
+      - yarn-tfjs-node-gpu
+      - yarn-common
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+  - name: 'node:10'
+    dir: tfjs-node-gpu
+    entrypoint: yarn
+    id: build-tfjs-node-gpu
+    args:
+      - build-ci
+    waitFor:
+      - yarn-tfjs-node-gpu
+      - yarn-common
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+  - name: 'node:10'
+    dir: tfjs-node-gpu
+    entrypoint: yarn
+    id: lint-tfjs-node-gpu
+    args:
+      - lint
+    waitFor:
+      - yarn-tfjs-node-gpu
+      - yarn-common
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+  - name: 'node:10'
+    dir: tfjs-node-gpu
+    entrypoint: yarn
+    id: test-tfjs-node-gpu
+    args:
+      - test-ci
+    waitFor:
+      - yarn-tfjs-node-gpu
+      - lint-tfjs-node-gpu
+      - yarn-common
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+  - name: 'node:10'
+    dir: tfjs-node-gpu
+    entrypoint: yarn
+    id: ensure-cpu-gpu-packages-align-tfjs-node-gpu
+    args:
+      - ensure-cpu-gpu-packages-align
+    waitFor:
+      - prep-gpu-tfjs-node-gpu
+      - yarn-common
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+  - name: gcr.io/learnjs-174218/release
+    dir: e2e
+    entrypoint: yarn
+    id: yarn-e2e
+    args:
+      - install
+    waitFor:
+      - yarn-common
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
+      - yarn-tfjs-converter
+      - build-tfjs-converter
+      - lint-tfjs-converter
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-data
+      - build-tfjs-data
+      - lint-tfjs-data
+      - yarn-tfjs-layers
+      - build-tfjs-layers
+      - lint-tfjs-layers
+      - yarn-tfjs-node
+      - build-addon-tfjs-node
+      - build-tfjs-node
+      - lint-tfjs-node
+      - ensure-cpu-gpu-packages-align-tfjs-node
+      - yarn-tfjs-backend-wasm
+      - build-tfjs-backend-wasm
+      - lint-tfjs-backend-wasm
+      - buildifier-tfjs-backend-wasm
+  - name: gcr.io/learnjs-174218/release
+    dir: e2e
+    entrypoint: yarn
+    id: build-node-e2e
+    args:
+      - build-node-ci
+    waitFor:
+      - yarn-common
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
+      - yarn-tfjs-converter
+      - build-tfjs-converter
+      - lint-tfjs-converter
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-data
+      - build-tfjs-data
+      - lint-tfjs-data
+      - yarn-tfjs-layers
+      - build-tfjs-layers
+      - lint-tfjs-layers
+      - yarn-tfjs-node
+      - build-addon-tfjs-node
+      - build-tfjs-node
+      - lint-tfjs-node
+      - ensure-cpu-gpu-packages-align-tfjs-node
+      - yarn-tfjs-backend-wasm
+      - build-tfjs-backend-wasm
+      - lint-tfjs-backend-wasm
+      - buildifier-tfjs-backend-wasm
+  - name: gcr.io/learnjs-174218/release
+    dir: e2e
+    entrypoint: yarn
+    id: test-e2e
+    args:
+      - test-ci
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+    waitFor:
+      - yarn-e2e
+      - yarn-common
+      - yarn-tfjs
+      - build-tfjs
+      - lint-tfjs
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
+      - yarn-tfjs-converter
+      - build-tfjs-converter
+      - lint-tfjs-converter
+      - yarn-tfjs-core
+      - build-deps-always-tfjs-core
+      - build-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-data
+      - build-tfjs-data
+      - lint-tfjs-data
+      - yarn-tfjs-layers
+      - build-tfjs-layers
+      - lint-tfjs-layers
+      - yarn-tfjs-node
+      - build-addon-tfjs-node
+      - build-tfjs-node
+      - lint-tfjs-node
+      - ensure-cpu-gpu-packages-align-tfjs-node
+      - yarn-tfjs-backend-wasm
+      - build-tfjs-backend-wasm
+      - lint-tfjs-backend-wasm
+      - buildifier-tfjs-backend-wasm
+secrets:
+  - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
+    secretEnv:
+      BROWSERSTACK_KEY: >-
+        CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
+      FIREBASE_KEY: >-
+        CiQAkwyoIXmET39jOD3ywloCIa6+WUpu3w49twpMmkMqy0vS+YsSUAAD8BdZQGOL8FKEBxr/1jl0G78OigwlNVHjD3usZobNtlOp8tV/9iacb8zPFqy0SwIO1gvz3HRr+VU7c7LS2qqaTCdacZF+dx3VJNewvdZu
+timeout: 3600s
+logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _NIGHTLY: ''
+options:
+  logStreamingOption: STREAM_ON
+  machineType: N1_HIGHCPU_32
+  substitution_option: ALLOW_LOOSE

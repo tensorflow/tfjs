@@ -23,7 +23,7 @@ const SIN = CHECK_NAN_SNIPPET_UNARY + `
   return sin(x);
 `;
 
-export const sin = unaryKernelFunc(SIN);
+export const sin = unaryKernelFunc({opSnippet: SIN});
 
 export const sinConfig: KernelConfig = {
   kernelName: Sin,
