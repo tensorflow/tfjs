@@ -32,11 +32,8 @@ export function pack(
         {inputs: {input: inputs[0]}, backend, attrs: {dim: axis}});
   }
 
-  const rank = inputs[0].shape.length;
   const shape = inputs[0].shape;
   const dtype = inputs[0].dtype;
-
-  util.assert(axis <= rank, () => 'Axis must be <= rank of the tensor');
 
   inputs.forEach(t => {
     util.assertShapesMatch(
