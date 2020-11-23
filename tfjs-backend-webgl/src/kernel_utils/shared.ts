@@ -47,6 +47,8 @@ const {
   sliceImpl: sliceImplCPU,
   stridedSliceImpl: stridedSliceImplCPU,
   subImpl: subImplCPU,
+  tileImpl: tileImplCPU,
+  topKImpl: topKImplCPU,
   transposeImpl: transposeImplCPU,
   uniqueImpl: uniqueImplCPU,
 } = shared;
@@ -71,6 +73,8 @@ export {
   stridedSliceImplCPU,
   subImplCPU,
   rsqrtImplCPU,
+  tileImplCPU,
+  topKImplCPU,
   transposeImplCPU,
   uniqueImplCPU,
 };

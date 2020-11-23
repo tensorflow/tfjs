@@ -35,18 +35,28 @@ import {castConfig} from './kernels/Cast';
 import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
+import {conv2DBackpropFilterConfig} from './kernels/Conv2DBackpropFilter';
+import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
+import {conv3DConfig} from './kernels/Conv3D';
+import {conv3DBackpropFilterV2Config} from './kernels/Conv3DBackpropFilterV2';
+import {conv3DBackpropInputConfig} from './kernels/Conv3DBackpropInputV2';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
+import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {depthwiseConv2dNativeBackpropFilterConfig} from './kernels/DepthwiseConv2dNativeBackpropFilter';
+import {depthwiseConv2dNativeBackpropInputConfig} from './kernels/DepthwiseConv2dNativeBackpropInput';
 import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
+import {expandDimsConfig} from './kernels/ExpandDims';
 import {fftConfig} from './kernels/FFT';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {fromPixelsConfig} from './kernels/FromPixels';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
+import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
@@ -114,18 +124,28 @@ const kernelConfigs: KernelConfig[] = [
   complexConfig,
   concatConfig,
   conv2DConfig,
+  conv2DBackpropFilterConfig,
+  conv2DBackpropInputConfig,
+  conv3DConfig,
+  conv3DBackpropFilterV2Config,
+  conv3DBackpropInputConfig,
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
+  depthwiseConv2dNativeConfig,
+  depthwiseConv2dNativeBackpropFilterConfig,
+  depthwiseConv2dNativeBackpropInputConfig,
   eluGradConfig,
   equalConfig,
   erfConfig,
+  expandDimsConfig,
   fftConfig,
   flipLeftRightConfig,
   floorConfig,
   floorDivConfig,
   fromPixelsConfig,
   fusedConv2DConfig,
+  fusedDepthwiseConv2DConfig,
   greaterConfig,
   greaterEqualConfig,
   identityConfig,

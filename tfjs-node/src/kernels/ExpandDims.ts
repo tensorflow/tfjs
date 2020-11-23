@@ -15,6 +15,22 @@
  * =============================================================================
  */
 
-export {nonMaxSuppressionV3Impl, nonMaxSuppressionV4Impl, nonMaxSuppressionV5Impl} from './non_max_suppression_impl';
-export {split} from './split_shared';
-export {whereImpl} from './where_impl';
+import {ExpandDims, ExpandDimsAttrs, ExpandDimsInputs, KernelConfig, scalar} from '@tensorflow/tfjs';
+
+import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
+
+export const expandDimsConfig: KernelConfig = {
+  kernelName: ExpandDims,
+  backendName: 'tensorflow',
+  kernelFunc: (args) => {
+    const {input} = args.inputs as ExpandDimsInputs;
+    const backend = args.backend as NodeJSKernelBackend;
+    const {dim} = args.attrs as {} as ExpandDimsAttrs;
+
+    const dimTensor = scalar(dim, 'int32');
+
+    const res = backend.executeSingleOutput(ExpandDims, [], [input, dimTensor]);
+    dimTensor.dispose();
+    return res;
+  }
+};

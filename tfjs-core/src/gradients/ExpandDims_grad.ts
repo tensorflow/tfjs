@@ -15,6 +15,16 @@
  * =============================================================================
  */
 
-export {nonMaxSuppressionV3Impl, nonMaxSuppressionV4Impl, nonMaxSuppressionV5Impl} from './non_max_suppression_impl';
-export {split} from './split_shared';
-export {whereImpl} from './where_impl';
+import {ExpandDims} from '../kernel_names';
+import {GradConfig} from '../kernel_registry';
+import {reshape} from '../ops/reshape';
+import {Tensor} from '../tensor';
+
+export const expandDimsGradConfig: GradConfig = {
+  kernelName: ExpandDims,
+  inputsToSave: ['input'],
+  gradFunc: (dy: Tensor, saved: Tensor[]) => {
+    const [input] = saved;
+    return {input: () => reshape(dy, input.shape)};
+  }
+};
