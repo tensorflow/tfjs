@@ -51,6 +51,9 @@ import {spaceToBatchND} from './space_to_batch_nd';
  *     1, then all values of `strides` must be 1.
  * @param strides The strides of the pooling: `[strideHeight, strideWidth]`. If
  *     `strides` is a single number, then `strideHeight == strideWidth`.
+ * @param dimRoundingMode The rounding mode used when computing output
+ *     dimensions if pad is a number. If none is provided, it will not round
+ *     and error if the output is of fractional size.
  *
  * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
