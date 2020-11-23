@@ -48,6 +48,11 @@ function stack_<T extends Tensor>(
   util.assert(
       $tensors.length >= 1, () => 'Pass at least one tensor to tf.stack');
 
+  if ($tensors.length > 0) {
+    util.assert(
+        axis <= $tensors[0].rank, () => 'Axis must be <= rank of the tensor');
+  }
+
   const inputs: PackInputs = $tensors;
   const attrs: PackAttrs = {axis};
 
