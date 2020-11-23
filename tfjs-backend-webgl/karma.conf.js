@@ -87,6 +87,7 @@ module.exports = function(config) {
   config.set({
     ...extraConfig,
     exclude,
+    port: 9886,
     browsers: ['Chrome'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
