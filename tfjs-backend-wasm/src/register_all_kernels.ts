@@ -38,6 +38,7 @@ import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
+import {expandDimsConfig} from './kernels/ExpandDims';
 import {fillConfig} from './kernels/Fill';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
@@ -118,6 +119,7 @@ const kernelConfigs: KernelConfig[] = [
   depthwiseConv2dNativeConfig,
   equalConfig,
   expConfig,
+  expandDimsConfig,
   fillConfig,
   flipLeftRightConfig,
   floorConfig,
