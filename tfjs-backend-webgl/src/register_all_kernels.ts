@@ -31,6 +31,7 @@ import {avgPoolGrad3DConfig} from './kernels/AvgPool3DGrad';
 import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
+import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {castConfig} from './kernels/Cast';
 import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
@@ -66,6 +67,8 @@ import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalOrConfig} from './kernels/LogicalOr';
+import {LRNConfig} from './kernels/LRN';
+import {LRNGradConfig} from './kernels/LRNGrad';
 import {maxConfig} from './kernels/Max';
 import {maxPoolConfig} from './kernels/MaxPool';
 import {maxPool3DConfig} from './kernels/MaxPool3D';
@@ -81,6 +84,7 @@ import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
 import {oneHotConfig} from './kernels/OneHot';
+import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {realConfig} from './kernels/Real';
@@ -93,6 +97,7 @@ import {sinConfig} from './kernels/Sin';
 import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
 import {softplusConfig} from './kernels/Softplus';
+import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {subConfig} from './kernels/Sub';
@@ -105,6 +110,8 @@ import {uniqueConfig} from './kernels/Unique';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  LRNConfig,
+  LRNGradConfig,
   _fusedMatMulConfig,
   acosConfig,
   acoshConfig,
@@ -120,6 +127,7 @@ const kernelConfigs: KernelConfig[] = [
   avgPoolGrad3DConfig,
   batchMatMulConfig,
   batchNormConfig,
+  batchToSpaceNDConfig,
   castConfig,
   complexConfig,
   concatConfig,
@@ -170,6 +178,7 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV5Config,
   notEqualConfig,
   oneHotConfig,
+  padV2Config,
   powConfig,
   preluConfig,
   realConfig,
@@ -182,6 +191,7 @@ const kernelConfigs: KernelConfig[] = [
   sinhConfig,
   sliceConfig,
   softplusConfig,
+  spaceToBatchNDConfig,
   squareConfig,
   squaredDifferenceConfig,
   subConfig,

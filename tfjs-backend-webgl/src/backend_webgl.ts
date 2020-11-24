@@ -19,7 +19,7 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, buffer, DataId, DataStorage, DataType, DataValues, div, engine, env, kernel_impls, KernelBackend, max, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, reshape, scalar, Scalar, ShapeMap, slice_util, softmax, sum, tensor, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, DataId, DataStorage, DataType, DataValues, div, engine, env, kernel_impls, KernelBackend, max, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, scalar, Scalar, ShapeMap, slice_util, softmax, sum, tensor, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
 import {ceilImplCPU, expImplCPU, expm1ImplCPU, logImplCPU, maximumImplCPU, minimumImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
 
@@ -54,14 +54,9 @@ import {GatherNDProgram} from './gather_nd_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
 import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
-import {LRNProgram} from './lrn_gpu';
-import {LRNGradProgram} from './lrn_grad_gpu';
-import {LRNPackedProgram} from './lrn_packed_gpu';
 import {MatMulPackedProgram} from './mulmat_packed_gpu';
 import {MultinomialProgram} from './multinomial_gpu';
 import {PackProgram} from './pack_gpu';
-import {PadProgram} from './pad_gpu';
-import {PadPackedProgram} from './pad_packed_gpu';
 import {ReduceProgram} from './reduce_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
 import {ResizeBilinearBackpropProgram} from './resize_bilinear_backprop_gpu';
@@ -801,32 +796,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun<Tensor3D>(program, inputs, dtype);
   }
 
-  localResponseNormalization4D(
-      x: Tensor4D, radius: number, bias: number, alpha: number,
-      beta: number): Tensor4D {
-    const program = env().getBool('WEBGL_PACK_NORMALIZATION') ?
-        new LRNPackedProgram(x.shape, radius, bias, alpha, beta) :
-        new LRNProgram(x.shape, radius, bias, alpha, beta);
-    return this.compileAndRun(program, [x]);
-  }
-
-  LRNGrad(
-      dy: Tensor4D, inputImage: Tensor4D, outputImage: Tensor4D,
-      depthRadius: number, bias: number, alpha: number,
-      beta: number): Tensor4D {
-    const program =
-        new LRNGradProgram(inputImage.shape, depthRadius, bias, alpha, beta);
-    return this.compileAndRun(program, [inputImage, outputImage, dy]);
-  }
-
-  pad<T extends Tensor>(
-      x: T, paddings: Array<[number, number]>, constantValue: number): T {
-    const program = env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') ?
-        new PadPackedProgram(x.shape, paddings, constantValue) :
-        new PadProgram(x.shape, paddings, constantValue);
-    return this.compileAndRun(program, [x]);
-  }
-
   gather<T extends Tensor>(
       x: T, indices: Tensor1D, axis: number, batchDims = 0): T {
     const cpuRes = this.tryRunOnCpuOrThrow(
@@ -852,61 +821,6 @@ export class MathBackendWebGL extends KernelBackend {
     const program = new GatherProgram(flattenX.shape, flattenOutputShape);
     const res: Tensor = this.compileAndRun(program, [flattenX, flattenIndex]);
     return res.reshape(shapeInfo.outputShape);
-  }
-
-  batchToSpaceND<T extends Tensor>(
-      x: T, blockShape: number[], crops: number[][]): T {
-    util.assert(
-        x.rank <= 4,
-        () => 'batchToSpaceND for rank > 4 with a WebGL backend not ' +
-            'implemented yet');
-    const prod = blockShape.reduce((a, b) => a * b);
-
-    const reshaped = backend_util.getReshaped(x.shape, blockShape, prod);
-    const permuted =
-        backend_util.getPermuted(reshaped.length, blockShape.length);
-    const reshapedPermuted =
-        backend_util.getReshapedPermuted(x.shape, blockShape, prod);
-    const sliceBeginCoords =
-        backend_util.getSliceBeginCoords(crops, blockShape.length);
-    const sliceSize =
-        backend_util.getSliceSize(reshapedPermuted, crops, blockShape.length);
-
-    return transpose(x.reshape(reshaped), permuted)
-               .reshape(reshapedPermuted)
-               .slice(sliceBeginCoords, sliceSize) as T;
-  }
-
-  spaceToBatchND<T extends Tensor>(
-      x: T, blockShape: number[], paddings: Array<[number, number]>): T {
-    util.assert(
-        x.rank <= 4,
-        () => 'spaceToBatchND for rank > 4 with a WebGL backend not ' +
-            'implemented yet');
-
-    const prod = blockShape.reduce((a, b) => a * b);
-
-    const completePaddings: Array<[number, number]> = [[0, 0]];
-    completePaddings.push(...paddings);
-    for (let i = 1 + blockShape.length; i < x.shape.length; ++i) {
-      completePaddings.push([0, 0]);
-    }
-
-    const paddedX = x.pad(completePaddings);
-
-    const reshapedPaddedShape =
-        backend_util.getReshaped(paddedX.shape, blockShape, prod, false);
-
-    const permutedReshapedPaddedPermutation = backend_util.getPermuted(
-        reshapedPaddedShape.length, blockShape.length, false);
-
-    const flattenShape = backend_util.getReshapedPermuted(
-        paddedX.shape, blockShape, prod, false);
-
-    const paddedXT = transpose(
-        paddedX.reshape(reshapedPaddedShape),
-        permutedReshapedPaddedPermutation);
-    return reshape(paddedXT, flattenShape) as T;
   }
 
   private reduce(
