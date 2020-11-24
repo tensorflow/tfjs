@@ -19,7 +19,7 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, buffer, DataId, DataStorage, DataType, DataValues, div, engine, env, kernel_impls, KernelBackend, max, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, scalar, Scalar, ShapeMap, slice_util, softmax, sum, tensor, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, DataId, DataStorage, DataType, DataValues, div, engine, env, kernel_impls, KernelBackend, max, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, scalar, ShapeMap, slice_util, softmax, sum, tensor, Tensor, Tensor1D, Tensor2D, Tensor3D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
 import {ceilImplCPU, expImplCPU, expm1ImplCPU, logImplCPU, maximumImplCPU, minimumImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
 
@@ -42,8 +42,6 @@ import {ComplexAbsProgram} from './complex_abs_gpu';
 import {CumSumProgram} from './cumsum_gpu';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
 import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
-import {DepthToSpaceProgram} from './depth_to_space_gpu';
-import {DiagProgram} from './diag_gpu';
 import {EncodeFloatProgram} from './encode_float_gpu';
 import {EncodeFloatPackedProgram} from './encode_float_packed_gpu';
 import {EncodeMatrixProgram} from './encode_matrix_gpu';
@@ -1356,35 +1354,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [probs], 'int32', customSetup);
   }
 
-  diag(x: Tensor): Tensor {
-    const program = new DiagProgram(x.size);
-    return this.compileAndRun(program, [x]);
-  }
-
-  depthToSpace(x: Tensor4D, blockSize: number, dataFormat: 'NHWC'|'NCHW'):
-      Tensor4D {
-    util.assert(
-        blockSize > 1,
-        () =>
-            `blockSize should be > 1 for depthToSpace, but was: ${blockSize}`);
-
-    const batchSize = x.shape[0];
-    const inputHeight = (dataFormat === 'NHWC') ? x.shape[1] : x.shape[2];
-    const inputWidth = (dataFormat === 'NHWC') ? x.shape[2] : x.shape[3];
-    const inputDepth = (dataFormat === 'NHWC') ? x.shape[3] : x.shape[1];
-
-    const outputHeight = inputHeight * blockSize;
-    const outputWidth = inputWidth * blockSize;
-    const outputDepth = inputDepth / (blockSize * blockSize);
-
-    const outputShape = (dataFormat === 'NHWC') ?
-        [batchSize, outputHeight, outputWidth, outputDepth] :
-        [batchSize, outputDepth, outputHeight, outputWidth];
-
-    const program = new DepthToSpaceProgram(outputShape, blockSize, dataFormat);
-    return this.compileAndRun(program, [x]);
-  }
-
   split<T extends Tensor>(x: T, sizeSplits: number[], axis: number): T[] {
     return split(x, sizeSplits, axis);
   }
@@ -1408,21 +1377,6 @@ export class MathBackendWebGL extends KernelBackend {
     const res: Tensor =
         this.compileAndRun(program, [flattenX, flattenIndices, defaultValue]);
     return res.reshape(shape);
-  }
-
-  sparseToDense<R extends Rank>(
-      sparseIndices: Tensor, sparseValues: Tensor, outputShape: ShapeMap[R],
-      defaultValue: Scalar): Tensor<R> {
-    const {sliceRank, numUpdates, strides, outputSize} =
-        backend_util.calculateShapes(sparseValues, sparseIndices, outputShape);
-
-    const sumDupeIndices = false;
-    const program = new ScatterProgram(
-        numUpdates, sliceRank, sparseIndices.rank, sparseValues.rank, strides,
-        [outputSize, 1], sumDupeIndices);
-    const res: Tensor = this.compileAndRun(
-        program, [sparseValues, sparseIndices, defaultValue]);
-    return res.reshape(outputShape);
   }
 
   gatherND(x: Tensor, indices: Tensor): Tensor {
