@@ -48,7 +48,6 @@ import {EncodeFloatProgram} from './encode_float_gpu';
 import {EncodeFloatPackedProgram} from './encode_float_packed_gpu';
 import {EncodeMatrixProgram} from './encode_matrix_gpu';
 import {EncodeMatrixPackedProgram} from './encode_matrix_packed_gpu';
-import {FillProgram} from './fill_gpu';
 import {GatherProgram} from './gather_gpu';
 import {GatherNDProgram} from './gather_nd_gpu';
 import {GPGPUContext} from './gpgpu_context';
@@ -1476,36 +1475,6 @@ export class MathBackendWebGL extends KernelBackend {
         new GatherNDProgram(sliceRank, strides, [numSlices, sliceSize]);
     const res: Tensor = this.compileAndRun(program, [flattenX, flattenIndices]);
     return res.reshape(resultShape);
-  }
-
-  fill<R extends Rank>(
-      shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
-    dtype = dtype || util.inferDtype(value);
-
-    if (dtype === 'string') {
-      // String type should be handled in CPU memory.
-      const values = util.getArrayFromDType(dtype, util.sizeFromShape(shape));
-      values.fill(value as string);
-      return engine().makeTensor(values, shape, dtype, this) as Tensor<R>;
-    } else {
-      const program = new FillProgram(shape, value as number);
-      const customSetup = program.getCustomSetupFunc(value as number);
-      return this.compileAndRun(program, [], dtype, customSetup);
-    }
-  }
-
-  onesLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
-    if (x.dtype === 'string') {
-      throw new Error('onesLike is not supported under string dtype');
-    } else {
-      // TODO(cais, smilkov): Add WebGL shader for onesLike:
-      //   https://github.com/tensorflow/tfjs/issues/1293
-      return this.fill(x.shape, 1, x.dtype);
-    }
-  }
-
-  zerosLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
-    return this.fill(x.shape, x.dtype === 'string' ? '' : 0, x.dtype);
   }
 
   linspace(start: number, stop: number, num: number): Tensor1D {

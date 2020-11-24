@@ -52,6 +52,7 @@ import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
 import {expandDimsConfig} from './kernels/ExpandDims';
 import {fftConfig} from './kernels/FFT';
+import {fillConfig} from './kernels/Fill';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
@@ -84,6 +85,7 @@ import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
 import {oneHotConfig} from './kernels/OneHot';
+import {onesLikeConfig} from './kernels/OnesLike';
 import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
@@ -107,6 +109,7 @@ import {tanhConfig} from './kernels/Tanh';
 import {tileConfig} from './kernels/Tile';
 import {transposeConfig} from './kernels/Transpose';
 import {uniqueConfig} from './kernels/Unique';
+import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
@@ -121,33 +124,34 @@ const kernelConfigs: KernelConfig[] = [
   atan2Config,
   atanConfig,
   atanhConfig,
-  avgPoolConfig,
   avgPool3DConfig,
-  avgPoolGradConfig,
+  avgPoolConfig,
   avgPoolGrad3DConfig,
+  avgPoolGradConfig,
   batchMatMulConfig,
   batchNormConfig,
   batchToSpaceNDConfig,
   castConfig,
   complexConfig,
   concatConfig,
-  conv2DConfig,
   conv2DBackpropFilterConfig,
   conv2DBackpropInputConfig,
-  conv3DConfig,
+  conv2DConfig,
   conv3DBackpropFilterV2Config,
   conv3DBackpropInputConfig,
+  conv3DConfig,
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
-  depthwiseConv2dNativeConfig,
   depthwiseConv2dNativeBackpropFilterConfig,
   depthwiseConv2dNativeBackpropInputConfig,
+  depthwiseConv2dNativeConfig,
   eluGradConfig,
   equalConfig,
   erfConfig,
   expandDimsConfig,
   fftConfig,
+  fillConfig,
   flipLeftRightConfig,
   floorConfig,
   floorDivConfig,
@@ -164,10 +168,10 @@ const kernelConfigs: KernelConfig[] = [
   logicalAndConfig,
   logicalOrConfig,
   maxConfig,
-  maxPoolConfig,
   maxPool3DConfig,
-  maxPoolGradConfig,
+  maxPoolConfig,
   maxPoolGrad3DConfig,
+  maxPoolGradConfig,
   maxPoolWithArgmaxConfig,
   meanConfig,
   mirrorPadConfig,
@@ -178,6 +182,7 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV5Config,
   notEqualConfig,
   oneHotConfig,
+  onesLikeConfig,
   padV2Config,
   powConfig,
   preluConfig,
@@ -200,7 +205,8 @@ const kernelConfigs: KernelConfig[] = [
   tanhConfig,
   tileConfig,
   transposeConfig,
-  uniqueConfig
+  uniqueConfig,
+  zerosLikeConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {
