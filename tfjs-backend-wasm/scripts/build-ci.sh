@@ -18,4 +18,9 @@ set -e
 
 yarn tsc
 
-./scripts/build-wasm.sh
+# Only build simd and multithreaded backends in nightly test.
+if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
+  ./scripts/build-wasm.sh
+else
+  ./scripts/build-wasm.sh --dev
+fi
