@@ -90,6 +90,10 @@ import {preluConfig} from './kernels/Prelu';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reshapeConfig} from './kernels/Reshape';
+import {resizeBilinearConfig} from './kernels/ResizeBilinear';
+import {resizeBilinearGradConfig} from './kernels/ResizeBilinearGrad';
+import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
+import {resizeNearestNeighborGradConfig} from './kernels/ResizeNearestNeighborGrad';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {signConfig} from './kernels/Sign';
@@ -121,28 +125,28 @@ const kernelConfigs: KernelConfig[] = [
   atan2Config,
   atanConfig,
   atanhConfig,
-  avgPoolConfig,
   avgPool3DConfig,
-  avgPoolGradConfig,
+  avgPoolConfig,
   avgPoolGrad3DConfig,
+  avgPoolGradConfig,
   batchMatMulConfig,
   batchNormConfig,
   batchToSpaceNDConfig,
   castConfig,
   complexConfig,
   concatConfig,
-  conv2DConfig,
   conv2DBackpropFilterConfig,
   conv2DBackpropInputConfig,
-  conv3DConfig,
+  conv2DConfig,
   conv3DBackpropFilterV2Config,
   conv3DBackpropInputConfig,
+  conv3DConfig,
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
-  depthwiseConv2dNativeConfig,
   depthwiseConv2dNativeBackpropFilterConfig,
   depthwiseConv2dNativeBackpropInputConfig,
+  depthwiseConv2dNativeConfig,
   eluGradConfig,
   equalConfig,
   erfConfig,
@@ -164,10 +168,10 @@ const kernelConfigs: KernelConfig[] = [
   logicalAndConfig,
   logicalOrConfig,
   maxConfig,
-  maxPoolConfig,
   maxPool3DConfig,
-  maxPoolGradConfig,
+  maxPoolConfig,
   maxPoolGrad3DConfig,
+  maxPoolGradConfig,
   maxPoolWithArgmaxConfig,
   meanConfig,
   mirrorPadConfig,
@@ -184,6 +188,10 @@ const kernelConfigs: KernelConfig[] = [
   realConfig,
   realDivConfig,
   reshapeConfig,
+  resizeBilinearConfig,
+  resizeBilinearGradConfig,
+  resizeNearestNeighborConfig,
+  resizeNearestNeighborGradConfig,
   rotateWithOffsetConfig,
   sigmoidConfig,
   signConfig,

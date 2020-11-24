@@ -59,11 +59,6 @@ import {MultinomialProgram} from './multinomial_gpu';
 import {PackProgram} from './pack_gpu';
 import {ReduceProgram} from './reduce_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
-import {ResizeBilinearBackpropProgram} from './resize_bilinear_backprop_gpu';
-import {ResizeBilinearProgram} from './resize_bilinear_gpu';
-import {ResizeBilinearPackedProgram} from './resize_bilinear_packed_gpu';
-import {ResizeNearestNeigborBackpropProgram} from './resize_nearest_neighbor_backprop_gpu';
-import {ResizeNearestNeighborProgram} from './resize_nearest_neighbor_gpu';
 import {ReverseProgram} from './reverse_gpu';
 import {ReversePackedProgram} from './reverse_packed_gpu';
 import {ScatterProgram} from './scatter_gpu';
@@ -1348,39 +1343,6 @@ export class MathBackendWebGL extends KernelBackend {
       res[i] = x.slice(begin, size).reshape(outShape);
     }
     return res;
-  }
-
-  resizeBilinear(
-      x: Tensor4D, newHeight: number, newWidth: number, alignCorners: boolean,
-      halfPixelCenters: boolean): Tensor4D {
-    const program = env().getBool('WEBGL_PACK_IMAGE_OPERATIONS') ?
-        new ResizeBilinearPackedProgram(
-            x.shape, newHeight, newWidth, alignCorners, halfPixelCenters) :
-        new ResizeBilinearProgram(
-            x.shape, newHeight, newWidth, alignCorners, halfPixelCenters);
-    return this.compileAndRun(program, [x], 'float32');
-  }
-
-  resizeBilinearBackprop(dy: Tensor4D, x: Tensor4D, alignCorners: boolean):
-      Tensor4D {
-    const program = new ResizeBilinearBackpropProgram(dy, x, alignCorners);
-
-    return this.compileAndRun(program, [dy]);
-  }
-
-  resizeNearestNeighbor(
-      x: Tensor4D, newHeight: number, newWidth: number, alignCorners: boolean,
-      halfPixelCenters: boolean): Tensor4D {
-    const program = new ResizeNearestNeighborProgram(
-        x.shape, newHeight, newWidth, alignCorners, halfPixelCenters);
-    return this.compileAndRun(program, [x]);
-  }
-
-  resizeNearestNeighborBackprop(
-      dy: Tensor4D, x: Tensor4D, alignCorners: boolean): Tensor4D {
-    const program =
-        new ResizeNearestNeigborBackpropProgram(dy, x, alignCorners);
-    return this.compileAndRun(program, [dy]);
   }
 
   multinomial(
