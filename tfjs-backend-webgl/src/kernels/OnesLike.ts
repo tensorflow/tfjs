@@ -18,7 +18,12 @@
 import {KernelConfig, KernelFunc, OnesLike, OnesLikeInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
+
+import {complex} from './Complex';
 import {fill} from './Fill';
+import {imag} from './Imag';
+import {real} from './Real';
+import {zerosLike} from './ZerosLike';
 
 export const onesLike =
     (args: {inputs: OnesLikeInputs, backend: MathBackendWebGL}): TensorInfo => {
@@ -27,6 +32,20 @@ export const onesLike =
 
       if (x.dtype === 'string') {
         throw new Error('onesLike is not supported under string dtype');
+      } else if (x.dtype === 'complex64') {
+        const realPart = real({inputs: {input: x}, backend});
+        const r = onesLike({inputs: {x: realPart}, backend});
+        const imagPart = imag({inputs: {input: x}, backend});
+        const i = zerosLike({inputs: {x: imagPart}, backend});
+
+        const result = complex({inputs: {real: r, imag: i}, backend});
+
+        backend.disposeIntermediateTensorInfo(realPart);
+        backend.disposeIntermediateTensorInfo(r);
+        backend.disposeIntermediateTensorInfo(imagPart);
+        backend.disposeIntermediateTensorInfo(i);
+
+        return result;
       } else {
         // TODO(cais, smilkov): Add WebGL shader for onesLike:
         //   https://github.com/tensorflow/tfjs/issues/1293
