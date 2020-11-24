@@ -57,9 +57,12 @@ module.exports = function(config) {
   config.set({
     ...extraConfig,
     browsers: ['Chrome'],
+    port: 9811,
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
-      accessKey: process.env.BROWSERSTACK_KEY
+      accessKey: process.env.BROWSERSTACK_KEY,
+      tunnelIdentifier:
+          `e2e_script_tag_tests_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     },
     captureTimeout: 3e5,
     reportSlowerThan: 500,
