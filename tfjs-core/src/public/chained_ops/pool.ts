@@ -23,17 +23,14 @@ declare module '../../tensor' {
     pool<T extends Tensor3D|Tensor4D>(
         windowShape: [number, number]|number, poolingType: 'avg'|'max',
         padding: 'valid'|'same'|number, diationRate?: [number, number]|number,
-	strides?: [number, number]|number,
-        dimRoundingMode?: 'floor'|'round'|'ceil'): T;
+        strides?: [number, number]|number): T;
   }
 }
 
 Tensor.prototype.pool = function<T extends Tensor3D|Tensor4D>(
     this: T, windowShape: [number, number]|number, poolingType: 'max'|'avg',
     padding: 'valid'|'same'|number, dilationRate?: [number, number]|number,
-    strides?: [number, number]|number,
-    dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+    strides?: [number, number]|number): T {
   this.throwIfDisposed();
-  return pool(this, windowShape, poolingType, padding, dilationRate, strides,
-              dimRoundingMode);
+  return pool(this, windowShape, poolingType, padding, dilationRate, strides);
 };

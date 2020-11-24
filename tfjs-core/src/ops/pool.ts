@@ -51,24 +51,20 @@ import {spaceToBatchND} from './space_to_batch_nd';
  *     1, then all values of `strides` must be 1.
  * @param strides The strides of the pooling: `[strideHeight, strideWidth]`. If
  *     `strides` is a single number, then `strideHeight == strideWidth`.
- * @param dimRoundingMode The rounding mode used when computing output
- *     dimensions if pad is a number. If none is provided, it will not round
- *     and error if the output is of fractional size.
  *
  * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
 function pool_<T extends Tensor3D|Tensor4D>(
     input: T|TensorLike, windowShape: [number, number]|number,
     poolingType: 'avg'|'max', pad: 'valid'|'same'|number,
-    dilations?: [number, number]|number, strides?: [number, number]|number,
-    dimRoundingMode?: 'floor'|'round'|'ceil') {
+    dilations?: [number, number]|number, strides?: [number, number]|number) {
   if (dilations == null) {
     dilations = [1, 1];
   }
   if (strides == null) {
     strides = 1;
   }
-  if (dimRoundingMode == null && pad === 0) {
+  if (pad === 0) {
     pad = 'valid';
   }
 
@@ -87,7 +83,7 @@ function pool_<T extends Tensor3D|Tensor4D>(
           `Got strides ${strides} and dilations '${dilations}'`);
 
   const convInfo = conv_util.computePool2DInfo(
-      x4D.shape, windowShape, strides, dilations, pad, dimRoundingMode);
+      x4D.shape, windowShape, strides, dilations, pad);
   const dilation: [number, number] =
       [convInfo.dilationHeight, convInfo.dilationWidth];
 
@@ -112,10 +108,8 @@ function pool_<T extends Tensor3D|Tensor4D>(
       isDilationOne ? x4D : spaceToBatchND(x4D, dilation, adjustedPadding);
 
   const forwardOp = poolingType === 'avg' ?
-      () => avgPool(
-          convertedX, windowShape, strides, convertedPad, dimRoundingMode) :
-      () => maxPool(
-          convertedX, windowShape, strides, convertedPad, dimRoundingMode);
+      () => avgPool(convertedX, windowShape, strides, convertedPad) :
+      () => maxPool(convertedX, windowShape, strides, convertedPad);
   const y = forwardOp();
 
   const res = isDilationOne ? y : batchToSpaceND(y, dilation, adjustedCrops);
