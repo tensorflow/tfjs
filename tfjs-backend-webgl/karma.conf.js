@@ -87,12 +87,14 @@ module.exports = function(config) {
   config.set({
     ...extraConfig,
     exclude,
-    port: 9886,
     browsers: ['Chrome'],
+    port: 9886,
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
-      timeout: 1800
+      timeout: 1800,
+      tunnelIdentifier:
+          `tfjs_backend_webgl_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     },
     captureTimeout: 3e5,
     reportSlowerThan: 500,
