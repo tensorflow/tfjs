@@ -35,6 +35,7 @@
     "test-ci": "./scripts/test-ci.sh",
     "test-node": "ts-node --skip-ignore -P tsconfig.test.json src/test_node.ts",
     "test-bundle-size": "./scripts/test-bundle-size.js",
+    "test-bundle-size-ci": "./scripts/test-bundle-size-ci.sh",
     "test-cc": "bazel test //src/cc:cc_tests --test_output=all",
     "run-browserstack": "karma start --browserstack"
   },
