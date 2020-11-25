@@ -66,6 +66,7 @@ import {dilation2dConfig} from './kernels/Dilation2D';
 import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
 import {dilation2dBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
 import {eluConfig} from './kernels/Elu';
+import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
@@ -78,6 +79,7 @@ import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
+import {gatherNdConfig} from './kernels/GatherNd';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
@@ -94,6 +96,8 @@ import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalNotConfig} from './kernels/LogicalNot';
 import {logicalOrConfig} from './kernels/LogicalOr';
+import {lRNConfig} from './kernels/LRN';
+import {lRNGradConfig} from './kernels/LRNGrad';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
@@ -209,6 +213,7 @@ const kernelConfigs: KernelConfig[] = [
   dilation2dBackpropFilterConfig,
   realDivConfig,
   eluConfig,
+  eluGradConfig,
   equalConfig,
   erfConfig,
   expConfig,
@@ -221,6 +226,7 @@ const kernelConfigs: KernelConfig[] = [
   floorDivConfig,
   fusedConv2DConfig,
   fusedDepthwiseConv2DConfig,
+  gatherNdConfig,
   greaterConfig,
   greaterEqualConfig,
   identityConfig,
@@ -237,6 +243,8 @@ const kernelConfigs: KernelConfig[] = [
   logicalAndConfig,
   logicalNotConfig,
   logicalOrConfig,
+  lRNConfig,
+  lRNGradConfig,
   maximumConfig,
   maxPoolConfig,
   maxPool3DConfig,
