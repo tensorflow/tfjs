@@ -18,7 +18,7 @@
 import {backend_util, KernelConfig, KernelFunc, SparseToDense, SparseToDenseAttrs, SparseToDenseInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
-import {scatterImpl} from '../utils/scatter_utils';
+import {scatterImpl} from './Scatter_impl';
 
 export function sparseToDense(args: {
   inputs: SparseToDenseInputs,
