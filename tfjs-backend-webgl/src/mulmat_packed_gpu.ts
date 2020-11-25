@@ -48,7 +48,7 @@ export class MatMulPackedProgram implements GPGPUProgram {
         }`;
       } else if (hasLeakyreluActivation) {
         activationSnippet = `vec4 activation(vec4 a) {
-          float b = getLeakyreluAlphaAtOutCoords().r;
+          vec4 b = getLeakyreluAlphaAtOutCoords();
           ${activation}
         }`;
       } else {
