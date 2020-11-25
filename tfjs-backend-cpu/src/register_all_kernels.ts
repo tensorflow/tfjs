@@ -164,6 +164,7 @@ import {topKConfig} from './kernels/TopK';
 import {transposeConfig} from './kernels/Transpose';
 import {uniqueConfig} from './kernels/Unique';
 import {unpackConfig} from './kernels/Unpack';
+import {unsortedSegmentSumConfig} from './kernels/UnsortedSegmentSum';
 import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
@@ -313,6 +314,7 @@ const kernelConfigs: KernelConfig[] = [
   transposeConfig,
   uniqueConfig,
   unpackConfig,
+  unsortedSegmentSumConfig,
   zerosLikeConfig
 ];
 
