@@ -137,6 +137,7 @@ import {reverseConfig} from './kernels/Reverse';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {roundConfig} from './kernels/Round';
 import {rsqrtConfig} from './kernels/Rsqrt';
+import {scatterNdConfig} from './kernels/ScatterNd';
 import {selectConfig} from './kernels/Select';
 import {seluConfig} from './kernels/Selu';
 import {sigmoidConfig} from './kernels/Sigmoid';
@@ -147,7 +148,11 @@ import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
+<<<<<<< HEAD
 import {splitVConfig} from './kernels/SplitV';
+=======
+import {sparseToDenseConfig} from './kernels/SparseToDense';
+>>>>>>> 48141ca19 (Modularize scatter kernels.)
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
@@ -284,6 +289,7 @@ const kernelConfigs: KernelConfig[] = [
   rotateWithOffsetConfig,
   roundConfig,
   rsqrtConfig,
+  scatterNdConfig,
   selectConfig,
   seluConfig,
   sigmoidConfig,
@@ -294,7 +300,11 @@ const kernelConfigs: KernelConfig[] = [
   softmaxConfig,
   softplusConfig,
   spaceToBatchNDConfig,
+<<<<<<< HEAD
   splitVConfig,
+=======
+  sparseToDenseConfig,
+>>>>>>> 48141ca19 (Modularize scatter kernels.)
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
