@@ -97,8 +97,6 @@ export const ROUND = `
   }
 `;
 
-export const EXP = `return exp(x);`;
-
 export const EXPM1 = `return exp(x) - 1.0;`;
 
 export const LOG = `if (x < 0.0) return NAN;
