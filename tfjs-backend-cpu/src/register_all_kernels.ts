@@ -148,11 +148,8 @@ import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
-<<<<<<< HEAD
-import {splitVConfig} from './kernels/SplitV';
-=======
 import {sparseToDenseConfig} from './kernels/SparseToDense';
->>>>>>> 48141ca19 (Modularize scatter kernels.)
+import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
@@ -300,11 +297,8 @@ const kernelConfigs: KernelConfig[] = [
   softmaxConfig,
   softplusConfig,
   spaceToBatchNDConfig,
-<<<<<<< HEAD
-  splitVConfig,
-=======
   sparseToDenseConfig,
->>>>>>> 48141ca19 (Modularize scatter kernels.)
+  splitVConfig,
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
