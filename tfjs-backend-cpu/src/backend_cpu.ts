@@ -200,29 +200,6 @@ export class MathBackendCPU extends KernelBackend {
     };
   }
 
-  unsortedSegmentSum<T extends Tensor>(
-      x: T, segmentIds: Tensor1D, numSegments: number): Tensor {
-    assertNotComplex(x, 'unsortedSegmentSum');
-
-    const res = [];
-
-    // Reshape the segment id's so that they can be broadcast with
-    // x. The new shape should be [segmentIds.shape, 1, ..., 1]
-    const numIters = x.rank - segmentIds.rank;
-    for (let i = 0; i < numIters; ++i) {
-      segmentIds = segmentIds.expandDims(i + 1);
-    }
-
-    for (let i = 0; i < numSegments; ++i) {
-      const segmentId = tf.scalar(i, 'int32');
-      const mask = tf.equal(segmentId, segmentIds).asType('float32');
-      const sum = mask.mul(x).sum(0);
-      res.push(sum);
-    }
-
-    return tf.stack(res);
-  }
-
   where(condition: Tensor): Tensor2D {
     assertNotComplex([condition], 'where');
 
