@@ -16,13 +16,13 @@
  */
 
 import {KernelConfig, KernelFunc, Pack, PackAttrs, PackInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {BackendWasm} from '../backend_wasm';
 
-import {MathBackendCPU} from '../backend_cpu';
 import {concat} from './Concat';
 import {expandDims} from './ExpandDims';
 
 export function pack(
-    args: {inputs: PackInputs, backend: MathBackendCPU, attrs: PackAttrs}):
+    args: {inputs: PackInputs, backend: BackendWasm, attrs: PackAttrs}):
     TensorInfo {
   const {inputs, backend, attrs} = args;
   const {axis} = attrs;
@@ -55,6 +55,6 @@ export function pack(
 
 export const packConfig: KernelConfig = {
   kernelName: Pack,
-  backendName: 'cpu',
+  backendName: 'wasm',
   kernelFunc: pack as {} as KernelFunc
 };
