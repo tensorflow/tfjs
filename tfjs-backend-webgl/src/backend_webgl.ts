@@ -21,7 +21,7 @@ import './flags_webgl';
 import * as tf from '@tensorflow/tfjs-core';
 import {backend_util, buffer, DataId, DataStorage, DataType, DataValues, div, engine, env, kernel_impls, KernelBackend, max, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, scalar, ShapeMap, slice_util, softmax, sum, tensor, Tensor, Tensor1D, Tensor2D, Tensor3D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
-import {ceilImplCPU, expImplCPU, expm1ImplCPU, logImplCPU, maximumImplCPU, minimumImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
+import {ceilImplCPU, expImplCPU, expm1ImplCPU, linSpaceImplCPU, logImplCPU, maximumImplCPU, minimumImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
@@ -1426,7 +1426,9 @@ export class MathBackendWebGL extends KernelBackend {
 
   linspace(start: number, stop: number, num: number): Tensor1D {
     // TODO: Use CPU implementation due to the precision problem in Safari.
-    return backend_util.linspaceImpl(start, stop, num);
+    const outVals = linSpaceImplCPU(start, stop, num);
+
+    return this.makeOutput([outVals.length], 'float32', outVals);
   }
 
   makeTensorInfo(
