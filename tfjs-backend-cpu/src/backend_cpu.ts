@@ -230,23 +230,6 @@ export class MathBackendCPU extends KernelBackend {
     return whereImpl(condition.shape, condVals);
   }
 
-  eluDer<T extends Tensor>(dy: T, y: T): T {
-    assertNotComplex([dy, y], 'eluDer');
-
-    const resultValues = new Float32Array(y.size);
-    const values = this.readSync(y.dataId) as TypedArray;
-    const dyValues = this.readSync(dy.dataId) as TypedArray;
-    for (let i = 0; i < values.length; ++i) {
-      const v = values[i];
-      if (v >= 1) {
-        resultValues[i] = dyValues[i];
-      } else {
-        resultValues[i] = dyValues[i] * (v + 1);
-      }
-    }
-    return this.makeOutput(resultValues, y.shape, 'float32');
-  }
-
   gather<T extends Tensor>(
       x: T, indices: Tensor1D, axis: number, batchDims = 0): T {
     assertNotComplex([x, indices], 'gather');
@@ -283,79 +266,6 @@ export class MathBackendCPU extends KernelBackend {
     return result.toTensor().reshape(shapeInfo.outputShape);
   }
 
-  localResponseNormalization4D(
-      x: Tensor4D, depthRadius: number, bias: number, alpha: number,
-      beta: number): Tensor4D {
-    assertNotComplex(x, 'localResponseNormalization4D');
-
-    const channels = x.shape[3];
-    const maxD = channels - 1;
-    const xValues = this.readSync(x.dataId) as TypedArray;
-    const size = x.size;
-    const result = new Float32Array(size);
-
-    function sumAcrossChannels(offset: number) {
-      const currentChannel = offset % channels;
-      let beginSumOffset =
-          offset - currentChannel + Math.max(0, currentChannel - depthRadius);
-      const endSumOffset = offset - currentChannel +
-          Math.min(currentChannel + depthRadius, maxD);
-
-      let sum = 0.0;
-      for (; beginSumOffset <= endSumOffset; beginSumOffset++) {
-        const z = xValues[beginSumOffset];
-        sum += z * z;
-      }
-      return sum;
-    }
-
-    for (let offset = 0; offset < size; offset++) {
-      const sum = sumAcrossChannels(offset);
-      const val = xValues[offset] * Math.pow(bias + alpha * sum, -beta);
-      result[offset] = val;
-    }
-
-    return tf.tensor4d(result, x.shape);
-  }
-
-  LRNGrad(
-      dy: Tensor4D, inputImage: Tensor4D, outputImage: Tensor4D,
-      depthRadius: number, bias: number, alpha: number,
-      beta: number): Tensor4D {
-    assertNotComplex(dy, 'LRNGrad');
-    const channels = dy.shape[3];
-    const dyValues = this.readSync(dy.dataId) as TypedArray;
-    const inputImageValues = this.readSync(inputImage.dataId) as TypedArray;
-    const outputImageValues = this.readSync(outputImage.dataId) as TypedArray;
-    const result = new Float32Array(dy.size);
-    const size = dy.size;
-
-    for (let offset = 0; offset < size; offset++) {
-      const currentChannel = offset % channels;
-      const depthBegin =
-          (offset - currentChannel) + Math.max(0, currentChannel - depthRadius);
-      const depthEnd = (offset - currentChannel) +
-          Math.min(channels, currentChannel + depthRadius + 1);
-
-      let norm = 0;
-      for (let k = depthBegin; k < depthEnd; k++) {
-        norm += Math.pow(inputImageValues[k], 2);
-      }
-      norm = alpha * norm + bias;
-
-      for (let k = depthBegin; k < depthEnd; k++) {
-        let dyi = -2 * alpha * beta * inputImageValues[k] *
-            outputImageValues[offset] / norm;
-        if (offset === k) {
-          dyi += Math.pow(norm, -beta);
-        }
-        dyi *= dyValues[offset];
-        result[k] += dyi;
-      }
-    }
-    return tf.tensor4d(result, dy.shape);
-  }
-
   dispose() {}
 
   floatPrecision(): 16|32 {
@@ -376,40 +286,6 @@ export class MathBackendCPU extends KernelBackend {
     return this.scatter(
         sparseIndices, sparseValues, outputShape, outputSize, sliceSize,
         numUpdates, sliceRank, strides, defaultValue, sumDupeIndices);
-  }
-
-  gatherND(x: Tensor, indices: Tensor): Tensor {
-    const indicesShape = indices.shape;
-    const sliceRank = indicesShape[indicesShape.length - 1];
-
-    const [resultShape, numSlices, sliceSize, strides] =
-        backend_util.prepareAndValidate(x, indices);
-    if (numSlices === 0) {
-      return tf.tensor([], resultShape, x.dtype);
-    }
-
-    const buffer = new TensorBuffer([numSlices, sliceSize], x.dtype);
-    const indicesData = this.readSync(indices.dataId) as TypedArray;
-    const xData = this.readSync(x.dataId) as TypedArray;
-
-    for (let i = 0; i < numSlices; i++) {
-      const index = [];
-      let flattenIndex = 0;
-      for (let j = 0; j < sliceRank; j++) {
-        const dim = indicesData[i * sliceRank + j];
-        flattenIndex += dim * strides[j];
-        index.push(dim);
-      }
-      if (flattenIndex < 0 || flattenIndex >= x.size / sliceSize) {
-        throw new Error(
-            `Invalid indices: ${index} does not index into ${x.shape}`);
-      }
-
-      for (let k = 0; k < sliceSize; k++) {
-        buffer.values[i * sliceSize + k] = xData[flattenIndex * sliceSize + k];
-      }
-    }
-    return buffer.toTensor().reshape(resultShape);
   }
 
   scatterND<R extends Rank>(
