@@ -24,37 +24,36 @@ import {fill} from './Fill';
 import {imag} from './Imag';
 import {real} from './Real';
 
-export const zerosLike =
-    (args: {inputs: ZerosLikeInputs, backend: MathBackendWebGL}):
-        TensorInfo => {
-          const {inputs, backend} = args;
-          const {x} = inputs;
+export function zerosLike(
+    args: {inputs: ZerosLikeInputs, backend: MathBackendWebGL}): TensorInfo {
+  const {inputs, backend} = args;
+  const {x} = inputs;
 
-          if (x.dtype === 'complex64') {
-            const realPart = real({inputs: {input: x}, backend});
-            const r = zerosLike({inputs: {x: realPart}, backend});
-            const imagPart = imag({inputs: {input: x}, backend});
-            const i = zerosLike({inputs: {x: imagPart}, backend});
+  if (x.dtype === 'complex64') {
+    const realPart = real({inputs: {input: x}, backend});
+    const r = zerosLike({inputs: {x: realPart}, backend});
+    const imagPart = imag({inputs: {input: x}, backend});
+    const i = zerosLike({inputs: {x: imagPart}, backend});
 
-            const result = complex({inputs: {real: r, imag: i}, backend});
+    const result = complex({inputs: {real: r, imag: i}, backend});
 
-            backend.disposeIntermediateTensorInfo(realPart);
-            backend.disposeIntermediateTensorInfo(r);
-            backend.disposeIntermediateTensorInfo(imagPart);
-            backend.disposeIntermediateTensorInfo(i);
+    backend.disposeIntermediateTensorInfo(realPart);
+    backend.disposeIntermediateTensorInfo(r);
+    backend.disposeIntermediateTensorInfo(imagPart);
+    backend.disposeIntermediateTensorInfo(i);
 
-            return result;
-          } else {
-            return fill({
-              attrs: {
-                shape: x.shape,
-                dtype: x.dtype,
-                value: x.dtype === 'string' ? '' : 0
-              },
-              backend
-            });
-          }
-        };
+    return result;
+  } else {
+    return fill({
+      attrs: {
+        shape: x.shape,
+        dtype: x.dtype,
+        value: x.dtype === 'string' ? '' : 0
+      },
+      backend
+    });
+  }
+}
 
 export const zerosLikeConfig: KernelConfig = {
   kernelName: ZerosLike,

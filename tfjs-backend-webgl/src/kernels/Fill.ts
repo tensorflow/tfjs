@@ -20,25 +20,25 @@ import {Fill, FillAttrs, KernelConfig, KernelFunc, TensorInfo, util} from '@tens
 import {MathBackendWebGL} from '../backend_webgl';
 import {FillProgram} from '../fill_gpu';
 
-export const fill =
-    (args: {backend: MathBackendWebGL, attrs: FillAttrs}): TensorInfo => {
-      const {backend, attrs} = args;
-      const {shape, value} = attrs;
-      let {dtype} = attrs;
+export function fill(args: {backend: MathBackendWebGL, attrs: FillAttrs}):
+    TensorInfo {
+  const {backend, attrs} = args;
+  const {shape, value} = attrs;
+  let {dtype} = attrs;
 
-      dtype = dtype || util.inferDtype(value);
+  dtype = dtype || util.inferDtype(value);
 
-      if (dtype === 'string') {
-        // String type should be handled in CPU memory.
-        const values = util.getArrayFromDType(dtype, util.sizeFromShape(shape));
-        values.fill(value as string);
-        return backend.makeTensorInfo(shape, dtype, values);
-      } else {
-        const program = new FillProgram(shape, value as number);
-        const customSetup = program.getCustomSetupFunc(value as number);
-        return backend.runWebGLProgram(program, [], dtype, customSetup);
-      }
-    };
+  if (dtype === 'string') {
+    // String type should be handled in CPU memory.
+    const values = util.getArrayFromDType(dtype, util.sizeFromShape(shape));
+    values.fill(value as string);
+    return backend.makeTensorInfo(shape, dtype, values);
+  } else {
+    const program = new FillProgram(shape, value as number);
+    const customSetup = program.getCustomSetupFunc(value as number);
+    return backend.runWebGLProgram(program, [], dtype, customSetup);
+  }
+}
 
 export const fillConfig: KernelConfig = {
   kernelName: Fill,

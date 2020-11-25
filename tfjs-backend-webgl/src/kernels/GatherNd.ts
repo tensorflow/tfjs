@@ -21,10 +21,8 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {GatherNDProgram} from '../gather_nd_gpu';
 import {reshape} from './Reshape';
 
-export const gatherNd = (args: {
-  inputs: GatherNdInputs,
-  backend: MathBackendWebGL
-}): TensorInfo => {
+export function gatherNd(
+    args: {inputs: GatherNdInputs, backend: MathBackendWebGL}): TensorInfo {
   const {inputs, backend} = args;
   const {params, indices} = inputs;
 
@@ -55,7 +53,7 @@ export const gatherNd = (args: {
   backend.disposeIntermediateTensorInfo(res);
 
   return reshaped;
-};
+}
 
 export const gatherNdConfig: KernelConfig = {
   kernelName: GatherNd,

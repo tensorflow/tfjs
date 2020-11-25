@@ -21,11 +21,11 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {ScatterProgram} from '../scatter_gpu';
 import {reshape} from './Reshape';
 
-export const scatterNd = (args: {
+export function scatterNd(args: {
   inputs: ScatterNdInputs,
   backend: MathBackendWebGL,
   attrs: ScatterNdAttrs
-}): TensorInfo => {
+}): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {indices, updates} = inputs;
   const {shape} = attrs;
@@ -60,7 +60,7 @@ export const scatterNd = (args: {
   backend.disposeIntermediateTensorInfo(defaultValue);
 
   return reshaped;
-};
+}
 
 export const scatterNdConfig: KernelConfig = {
   kernelName: ScatterNd,

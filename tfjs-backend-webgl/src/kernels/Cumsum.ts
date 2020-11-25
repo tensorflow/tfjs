@@ -23,11 +23,10 @@ import {CumSumProgram} from '../cumsum_gpu';
 import {identity} from './Identity';
 import {transpose} from './Transpose';
 
-export const cumsum = (args: {
-  inputs: CumsumInputs,
-  backend: MathBackendWebGL,
-  attrs: CumsumAttrs
-}): TensorInfo => {
+export function cumsum(
+    args:
+        {inputs: CumsumInputs, backend: MathBackendWebGL, attrs: CumsumAttrs}):
+    TensorInfo {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
   const {axis, exclusive, reverse} = attrs;
@@ -80,7 +79,7 @@ export const cumsum = (args: {
   }
 
   return result;
-};
+}
 
 export const cumsumConfig: KernelConfig = {
   kernelName: Cumsum,
