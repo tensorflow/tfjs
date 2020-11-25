@@ -175,7 +175,9 @@ async function build() {
     }
     if (platform === 'win32') {
       // Move libtensorflow to module path, where tfjs_binding.node locates.
-      cp.exec('node scripts/deps-stage.js symlink ' + modulePath);
+      cp.exec('node scripts/deps-stage.js symlink ' + modulePath, (error) => {
+        console.error('symlink ' + modulePath + ' failed: ', error);
+      });
     }
     revertAddonName(origBinary);
   });
