@@ -36,21 +36,24 @@ export class Profiler {
     }
   }
 
-  profileKernel(kernelName: string, inputs: NamedTensorMap, f: () => Tensor[]):
-      KernelProfile {
+  profileKernel(
+      kernelName: string, inputs: NamedTensorMap, f: () => Tensor[],
+      shouldCheckComputationForErrors = true): KernelProfile {
     let outputs: Tensor[];
     const holdResultWrapperFn = () => {
       outputs = f();
     };
     const timer = this.backendTimer.time(holdResultWrapperFn);
 
-    for (let i = 0; i < outputs.length; i++) {
-      const output = outputs[i];
-      // Dangling promise here because we don't want to propagate up
-      // asynchronicity.
-      output.data().then(tensorVals => {
-        checkComputationForErrors(tensorVals, output.dtype, kernelName);
-      });
+    if (shouldCheckComputationForErrors) {
+      for (let i = 0; i < outputs.length; i++) {
+        const output = outputs[i];
+        // Dangling promise here because we don't want to propagate up
+        // asynchronicity.
+        output.data().then(tensorVals => {
+          checkComputationForErrors(tensorVals, output.dtype, kernelName);
+        });
+      }
     }
 
     const kernelProfile = {
