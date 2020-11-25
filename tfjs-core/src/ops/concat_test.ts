@@ -580,7 +580,7 @@ describeWithFlags('concat throws for non-tensors', ALL_ENVS, () => {
 });
 
 describeWithFlags('memory test', ALL_ENVS, () => {
-  it('does not directly return input.', async () => {
+  it('returns a new tensor when op is effectively a no-op.', async () => {
     const a = tf.tensor1d([]);
     const b = tf.tensor1d([3]);
 
