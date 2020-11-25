@@ -19,6 +19,8 @@ import {backend_util, Cumsum, CumsumAttrs, CumsumInputs, KernelConfig, KernelFun
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {CumSumProgram} from '../cumsum_gpu';
+
+import {identity} from './Identity';
 import {transpose} from './Transpose';
 
 export const cumsum = (args: {
@@ -45,14 +47,13 @@ export const cumsum = (args: {
         `but got axis=${axis}`);
   }
   const size = x.shape[permutedAxis];
-  let result = permutedX;
+  let result = identity({inputs: {x: permutedX}, backend});
   // Use cumsum parallel algorithm, ref:
   // https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
 
   for (let i = 0; i <= Math.ceil(Math.log2(size)) - 1; i++) {
     const program = new CumSumProgram(permutedX.shape, false, reverse);
     const customSetup = program.getCustomSetupFunc(i);
-    // TODO(yassogba) fix. this will dispose the input
     const prevResult = result;
     result =
         backend.runWebGLProgram(program, [result], result.dtype, customSetup);
