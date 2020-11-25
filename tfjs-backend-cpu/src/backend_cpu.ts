@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, Tensor4D, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, Rank, Scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 const whereImpl = kernel_impls.whereImpl;
 import {assertNotComplex} from './cpu_util';
