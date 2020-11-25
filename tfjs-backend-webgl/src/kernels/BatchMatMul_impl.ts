@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, fill, TensorInfo, upcastType, util} from '@tensorflow/tfjs-core';
+import {backend_util, TensorInfo, upcastType, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
@@ -172,14 +172,24 @@ export function batchMatMulImpl({
     if (bias != null) {
       inputs.push(bias);
     }
-    if (preluActivationWeights != null) {
+    if (hasPreluActivationWeights) {
       inputs.push(preluActivationWeights);
     }
-    if (leakyreluAlpha != null) {
-      const $leakyreluAlpha = fill(bias.shape, leakyreluAlpha, 'float32');
+    if (hasLeakyreluAlpha) {
+      const $leakyreluAlpha = backend.makeTensorInfo(
+          [], 'float32',
+          util.createScalarValue(leakyreluAlpha as {} as 'float32', 'float32'));
       inputs.push($leakyreluAlpha);
+      intermediates.push($leakyreluAlpha);
     }
 
+    console.log('hellohellohello');
+    console.log(hasLeakyreluAlpha);
+    console.log(program.variableNames);
+    console.log('===');
+    console.log(fusedActivation);
+    console.log('===');
+    console.log(program.userCode);
     out = backend.runWebGLProgram(program, inputs, dtype);
   }
 

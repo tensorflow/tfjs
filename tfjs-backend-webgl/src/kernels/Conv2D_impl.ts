@@ -260,6 +260,7 @@ export function conv2dWithIm2Row({
         [], 'float32',
         util.createScalarValue(leakyreluAlpha as {} as 'float32', 'float32'));
     inputs.push($leakyreluAlpha);
+    intermediates.push($leakyreluAlpha);
   }
   const product = backend.runWebGLProgram(matmulProgram, inputs, 'float32');
 

@@ -144,12 +144,6 @@ function fusedMatMul_<T extends Tensor>({
           preluActivationWeights, 'prelu weights', 'fused matMul');
     }
 
-    let $leakyreluAlpha: Tensor;
-    if (leakyreluAlpha != null) {
-      $leakyreluAlpha =
-          convertToTensor(leakyreluAlpha, 'leakyrelu alpha', 'fused matMul');
-    }
-
     const grad = (dy: Tensor3D, saved: Tensor[]) => {
       const [a3D, b3D, y, $bias] = saved;
       // we reshape dy because the result of the forward is not
@@ -190,8 +184,7 @@ function fusedMatMul_<T extends Tensor>({
         transposeB,
         bias: $bias,
         activation,
-        preluActivationWeights: $preluActivationWeights,
-        leakyreluAlpha: $leakyreluAlpha
+        preluActivationWeights: $preluActivationWeights
       });
       return y;
     };
@@ -200,10 +193,10 @@ function fusedMatMul_<T extends Tensor>({
       a: a3D,
       b: b3D,
       bias: $bias,
-      preluActivationWeights: $preluActivationWeights,
-      leakyreluAlpha: $leakyreluAlpha
+      preluActivationWeights: $preluActivationWeights
     };
-    const attrs: _FusedMatMulAttrs = {transposeA, transposeB, activation};
+    const attrs: _FusedMatMulAttrs =
+        {transposeA, transposeB, activation, leakyreluAlpha};
 
     // Depending on the the params passed in we will have different number of
     // inputs and thus a a different number of elements in the gradient.
