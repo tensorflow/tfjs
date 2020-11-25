@@ -29,8 +29,6 @@ export function _fusedMatMul(args: {
   const {a, b, bias, preluActivationWeights} = inputs;
   const {transposeA, transposeB, activation, leakyreluAlpha} = attrs;
 
-  console.log('in _fusedMatMul');
-  console.log(leakyreluAlpha);
   return batchMatMulImpl({
     a,
     b,

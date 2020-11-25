@@ -56,7 +56,7 @@ export function fusedDepthwiseConv2D(args: {
 
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
-  const hasLeakyreluAlpha = leakyreluAlpha != null;
+  const hasLeakyreluAlpha = !!leakyreluAlpha;
   if (hasBias) {
     programInputs.push(bias);
   }
