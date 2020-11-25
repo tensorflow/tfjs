@@ -15,26 +15,26 @@
  * =============================================================================
  */
 
-import {backend_util, kernel_impls, KernelConfig, KernelFunc, NonMaxSuppressionV3, NonMaxSuppressionV3Attrs, NonMaxSuppressionV3Inputs, TypedArray} from '@tensorflow/tfjs-core';
+import {kernel_impls, KernelConfig, KernelFunc, NonMaxSuppressionV3, NonMaxSuppressionV3Attrs, NonMaxSuppressionV3Inputs, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
 
-const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppresionV3Impl;
-import {MathBackendWebGL} from '../backend_webgl';
+const nonMaxSuppressionV3Impl = kernel_impls.nonMaxSuppressionV3Impl;
+
+import {MathBackendCPU} from '../backend_cpu';
+import {assertNotComplex} from '../cpu_util';
 
 export function nonMaxSuppressionV3(args: {
   inputs: NonMaxSuppressionV3Inputs,
-  backend: MathBackendWebGL,
+  backend: MathBackendCPU,
   attrs: NonMaxSuppressionV3Attrs
-}) {
-  backend_util.warn(
-      'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
-      'Call tf.nonMaxSuppressionAsync() instead');
-
+}): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {boxes, scores} = inputs;
   const {maxOutputSize, iouThreshold, scoreThreshold} = attrs;
 
-  const boxesVals = backend.readSync(boxes.dataId) as TypedArray;
-  const scoresVals = backend.readSync(scores.dataId) as TypedArray;
+  assertNotComplex(boxes, 'NonMaxSuppression');
+
+  const boxesVals = backend.data.get(boxes.dataId).values as TypedArray;
+  const scoresVals = backend.data.get(scores.dataId).values as TypedArray;
 
   const {selectedIndices} = nonMaxSuppressionV3Impl(
       boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
@@ -45,6 +45,6 @@ export function nonMaxSuppressionV3(args: {
 
 export const nonMaxSuppressionV3Config: KernelConfig = {
   kernelName: NonMaxSuppressionV3,
-  backendName: 'webgl',
+  backendName: 'cpu',
   kernelFunc: nonMaxSuppressionV3 as {} as KernelFunc
 };
