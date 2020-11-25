@@ -528,6 +528,10 @@ export class Engine implements TensorTracker, DataMover {
     return this.ENV.getBool('IS_TEST');
   }
 
+  private shouldCheckForDisposedInputs(): boolean {
+    return this.ENV.getBool('IS_TEST');
+  }
+
   private checkKernelForMemLeak(
       kernelName: string, numDataIdsBefore: number,
       outInfos: TensorInfo[]): void {
@@ -554,6 +558,44 @@ export class Engine implements TensorTracker, DataMover {
       throw new Error(
           `Backend '${this.backendName}' has an internal memory leak ` +
           `(${dataIdsLeaked} data ids) after running '${kernelName}'`);
+    }
+  }
+
+  private checkForDisposedInputs<I extends NamedTensorMap>(
+      kernelName: string, inputsContainer: I): void {
+    if (Array.isArray(inputsContainer)) {
+      const inputs = inputsContainer as Tensor[];
+      inputs.forEach((input, i) => {
+        this.testDisposedInput(input, `#${i}`, kernelName);
+      });
+    } else {
+      Object.keys(inputsContainer).forEach((inputName) => {
+        const input = inputsContainer[inputName];
+        if (input != null) {
+          this.testDisposedInput(input, inputName, kernelName);
+        }
+      });
+    }
+  }
+
+  private testDisposedInput(
+      input: Tensor, inputName: string, kernelName: string): void {
+    try {
+      // Skip non tensor inputs
+      if (input instanceof Tensor) {
+        input.dataSync();
+      }
+    } catch (e) {
+      if (e.message.match('is disposed')) {
+        throw new Error(
+            `Kernel ${kernelName} in backend '${this.backendName}' is ` +
+            `disposing its inputs. Input ${
+                inputName} is disposed after execution`);
+      } else {
+        console.log(
+            'Error testing if input is disposed in ', kernelName, inputName);
+        throw e;
+      }
     }
   }
 
@@ -591,6 +633,9 @@ export class Engine implements TensorTracker, DataMover {
         const outInfos = Array.isArray(out) ? out : [out];
         if (this.shouldCheckForMemLeaks()) {
           this.checkKernelForMemLeak(kernelName, numDataIdsBefore, outInfos);
+        }
+        if (this.shouldCheckForDisposedInputs()) {
+          this.checkForDisposedInputs(kernelName, inputs);
         }
 
         const outTensors = outInfos.map((outInfo: TensorInfo|Tensor) => {
