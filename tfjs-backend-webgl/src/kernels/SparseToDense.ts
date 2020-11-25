@@ -21,11 +21,11 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {ScatterProgram} from '../scatter_gpu';
 import {reshape} from './Reshape';
 
-export const sparseToDense = (args: {
+export function sparseToDense(args: {
   inputs: SparseToDenseInputs,
   backend: MathBackendWebGL,
   attrs: SparseToDenseAttrs
-}): TensorInfo => {
+}): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {sparseIndices, sparseValues, defaultValue} = inputs;
   const {outputShape} = attrs;
@@ -46,7 +46,7 @@ export const sparseToDense = (args: {
 
   backend.disposeIntermediateTensorInfo(res);
   return reshaped;
-};
+}
 
 export const sparseToDenseConfig: KernelConfig = {
   kernelName: SparseToDense,

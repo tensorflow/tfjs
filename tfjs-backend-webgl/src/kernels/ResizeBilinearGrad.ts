@@ -20,11 +20,11 @@ import {KernelConfig, KernelFunc, ResizeBilinearGrad, ResizeBilinearGradAttrs, R
 import {MathBackendWebGL} from '../backend_webgl';
 import {ResizeBilinearBackpropProgram} from '../resize_bilinear_backprop_gpu';
 
-export const resizeBilinearGrad = (args: {
+export function resizeBilinearGrad(args: {
   inputs: ResizeBilinearGradInputs,
   backend: MathBackendWebGL,
   attrs: ResizeBilinearGradAttrs
-}): TensorInfo => {
+}): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {images, dy} = inputs;
   const {alignCorners} = attrs;
@@ -34,7 +34,7 @@ export const resizeBilinearGrad = (args: {
       images.shape as [number, number, number, number], alignCorners);
 
   return backend.runWebGLProgram(program, [dy], dy.dtype);
-};
+}
 
 export const resizeBilinearGradConfig: KernelConfig = {
   kernelName: ResizeBilinearGrad,

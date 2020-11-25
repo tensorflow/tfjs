@@ -21,27 +21,26 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {DiagProgram} from '../diag_gpu';
 import {reshape} from './Reshape';
 
-export const diag =
-    (args: {inputs: DiagInputs, backend: MathBackendWebGL}): TensorInfo => {
-      const {inputs, backend} = args;
-      const {x} = inputs;
+export function diag(args: {inputs: DiagInputs, backend: MathBackendWebGL}):
+    TensorInfo {
+  const {inputs, backend} = args;
+  const {x} = inputs;
 
-      const outShape = [...x.shape, ...x.shape];
-      const xSize = util.sizeFromShape(x.shape);
+  const outShape = [...x.shape, ...x.shape];
+  const xSize = util.sizeFromShape(x.shape);
 
-      const flat = reshape({inputs: {x}, backend, attrs: {shape: [xSize]}});
+  const flat = reshape({inputs: {x}, backend, attrs: {shape: [xSize]}});
 
-      const program = new DiagProgram(xSize);
-      const res = backend.runWebGLProgram(program, [flat], flat.dtype);
+  const program = new DiagProgram(xSize);
+  const res = backend.runWebGLProgram(program, [flat], flat.dtype);
 
-      const out =
-          reshape({inputs: {x: res}, backend, attrs: {shape: outShape}});
+  const out = reshape({inputs: {x: res}, backend, attrs: {shape: outShape}});
 
-      backend.disposeIntermediateTensorInfo(flat);
-      backend.disposeIntermediateTensorInfo(res);
+  backend.disposeIntermediateTensorInfo(flat);
+  backend.disposeIntermediateTensorInfo(res);
 
-      return out;
-    };
+  return out;
+}
 
 export const diagConfig: KernelConfig = {
   kernelName: Diag,

@@ -20,11 +20,11 @@ import {DepthToSpace, DepthToSpaceAttrs, DepthToSpaceInputs, KernelConfig, Kerne
 import {MathBackendWebGL} from '../backend_webgl';
 import {DepthToSpaceProgram} from '../depth_to_space_gpu';
 
-export const depthToSpace = (args: {
+export function depthToSpace(args: {
   inputs: DepthToSpaceInputs,
   backend: MathBackendWebGL,
   attrs: DepthToSpaceAttrs
-}): TensorInfo => {
+}): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
   const {blockSize, dataFormat} = attrs;
@@ -48,7 +48,7 @@ export const depthToSpace = (args: {
 
   const program = new DepthToSpaceProgram(outputShape, blockSize, dataFormat);
   return backend.runWebGLProgram(program, [x], x.dtype);
-};
+}
 
 export const depthToSpaceConfig: KernelConfig = {
   kernelName: DepthToSpace,

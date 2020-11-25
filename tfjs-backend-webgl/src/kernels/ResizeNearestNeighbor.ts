@@ -20,11 +20,11 @@ import {KernelConfig, KernelFunc, ResizeNearestNeighbor, ResizeNearestNeighborAt
 import {MathBackendWebGL} from '../backend_webgl';
 import {ResizeNearestNeighborProgram} from '../resize_nearest_neighbor_gpu';
 
-export const resizeNearestNeighbor = (args: {
+export function resizeNearestNeighbor(args: {
   inputs: ResizeNearestNeighborInputs,
   backend: MathBackendWebGL,
   attrs: ResizeNearestNeighborAttrs
-}): TensorInfo => {
+}): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {images} = inputs;
   const {alignCorners, halfPixelCenters, size} = attrs;
@@ -35,7 +35,7 @@ export const resizeNearestNeighbor = (args: {
       images.shape as [number, number, number, number], newHeight, newWidth,
       alignCorners, halfPixelCenters);
   return backend.runWebGLProgram(program, [images], images.dtype);
-};
+}
 
 export const resizeNearestNeighborConfig: KernelConfig = {
   kernelName: ResizeNearestNeighbor,

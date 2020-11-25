@@ -21,11 +21,11 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {ResizeBilinearProgram} from '../resize_bilinear_gpu';
 import {ResizeBilinearPackedProgram} from '../resize_bilinear_packed_gpu';
 
-export const resizeBilinear = (args: {
+export function resizeBilinear(args: {
   inputs: ResizeBilinearInputs,
   backend: MathBackendWebGL,
   attrs: ResizeBilinearAttrs
-}): TensorInfo => {
+}): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {images} = inputs;
   const {alignCorners, halfPixelCenters, size} = attrs;
@@ -40,7 +40,7 @@ export const resizeBilinear = (args: {
           images.shape as [number, number, number, number], newHeight, newWidth,
           alignCorners, halfPixelCenters);
   return backend.runWebGLProgram(program, [images], 'float32');
-};
+}
 
 export const resizeBilinearConfig: KernelConfig = {
   kernelName: ResizeBilinear,
