@@ -56,7 +56,8 @@ const devConfig = {
 const browserstackConfig = {
   ...devConfig,
   hostname: 'bs-local.com',
-  singleRun: true
+  singleRun: true,
+  port: 9886
 };
 
 module.exports = function(config) {
@@ -88,7 +89,6 @@ module.exports = function(config) {
     ...extraConfig,
     exclude,
     browsers: ['Chrome'],
-    port: 9886,
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,

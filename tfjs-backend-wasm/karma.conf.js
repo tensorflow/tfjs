@@ -67,7 +67,8 @@ const devConfig = {
 const browserstackConfig = {
   ...devConfig,
   hostname: 'bs-local.com',
-  singleRun: true
+  singleRun: true,
+  port: 9206
 };
 
 module.exports = function(config) {
@@ -96,7 +97,6 @@ module.exports = function(config) {
           '/base/wasm-out/tfjs-backend-wasm.wasm',
     },
     browsers: ['Chrome'],
-    port: 9206,
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
