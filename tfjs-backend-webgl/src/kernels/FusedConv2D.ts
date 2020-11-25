@@ -47,6 +47,7 @@ export function fusedConv2d(args: {
       filter.shape as [number, number, number, number], strides, dilations, pad,
       dimRoundingMode, false /* depthwise */, $dataFormat);
   let out: TensorInfo;
+  const intermediates: TensorInfo[] = [];
 
   if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
@@ -94,13 +95,16 @@ export function fusedConv2d(args: {
           [], 'float32',
           util.createScalarValue(leakyreluAlpha as {} as 'float32', 'float32'));
       inputs.push($leakyreluAlpha);
+      intermediates.push($leakyreluAlpha);
     }
     out = backend.runWebGLProgram(program, inputs, 'float32');
   }
 
   const outReshaped =
       reshape({inputs: {x: out}, backend, attrs: {shape: convInfo.outShape}});
-  backend.disposeIntermediateTensorInfo(out);
+
+  intermediates.push(out);
+  intermediates.forEach(t => backend.disposeIntermediateTensorInfo(t));
 
   return outReshaped;
 }
