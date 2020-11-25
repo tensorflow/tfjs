@@ -571,6 +571,8 @@ steps:
     id: build-node-e2e
     args:
       - build-node-ci
+    env:
+      - NIGHTLY=$_NIGHTLY
     waitFor:
       - yarn-common
       - yarn-tfjs
