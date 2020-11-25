@@ -30,6 +30,7 @@ filesElement.addEventListener('change', evt => {
 
 let global_model = null;
 async function run() {
+  tf.ENV.set('WEBGL_PACK', false);
   await tf.setBackend('webgl');
   const modelUrl = 'http://localhost:8080/tmp_web_model/model.json';
   global_model = await tfconv.loadGraphModel(modelUrl);

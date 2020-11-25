@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, env, fill, FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, env, FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {Conv2DProgram} from '../conv_gpu';
@@ -89,8 +89,10 @@ export function fusedConv2d(args: {
     if (preluActivationWeights) {
       inputs.push(preluActivationWeights);
     }
-    if (leakyreluAlpha) {
-      const $leakyreluAlpha = fill(x.shape, leakyreluAlpha, 'float32');
+    if (hasLeakyreluAlpha) {
+      const $leakyreluAlpha = backend.makeTensorInfo(
+          [], 'float32',
+          util.createScalarValue(leakyreluAlpha as {} as 'float32', 'float32'));
       inputs.push($leakyreluAlpha);
     }
     out = backend.runWebGLProgram(program, inputs, 'float32');
