@@ -77,9 +77,14 @@ export function fusedConv2d(args: {
   } else {
     const hasBias = bias != null;
     const hasPreluActivationWeights = preluActivationWeights != null;
-    const hasLeakyreluAlpha = leakyreluAlpha != null;
+    const hasLeakyreluAlpha = !!leakyreluAlpha;
+    console.log('hihihi');
+    console.log(hasLeakyreluAlpha);
+    console.log(leakyreluAlpha);
+    console.log(activation);
     const fusedActivation =
         activation ? mapActivationToShaderProgram(activation, false) : null;
+    console.log(fusedActivation);
     const program = new Conv2DProgram(
         convInfo, hasBias, fusedActivation, hasPreluActivationWeights,
         hasLeakyreluAlpha);

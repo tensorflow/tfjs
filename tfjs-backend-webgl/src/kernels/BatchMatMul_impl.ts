@@ -107,7 +107,7 @@ export function batchMatMulImpl({
 
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
-  const hasLeakyreluAlpha = leakyreluAlpha != null;
+  const hasLeakyreluAlpha = !!leakyreluAlpha;
   const fusedActivation = activation != null ?
       mapActivationToShaderProgram(activation, true) :
       null;
@@ -183,13 +183,6 @@ export function batchMatMulImpl({
       intermediates.push($leakyreluAlpha);
     }
 
-    console.log('hellohellohello');
-    console.log(hasLeakyreluAlpha);
-    console.log(program.variableNames);
-    console.log('===');
-    console.log(fusedActivation);
-    console.log('===');
-    console.log(program.userCode);
     out = backend.runWebGLProgram(program, inputs, dtype);
   }
 

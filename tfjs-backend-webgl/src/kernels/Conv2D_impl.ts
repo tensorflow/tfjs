@@ -240,7 +240,7 @@ export function conv2dWithIm2Row({
 
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
-  const hasLeakyreluAlpha = leakyreluAlpha != null;
+  const hasLeakyreluAlpha = !!leakyreluAlpha;
   const fusedActivation =
       activation ? mapActivationToShaderProgram(activation, true) : null;
   const matmulProgram = new MatMulPackedProgram(

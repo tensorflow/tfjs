@@ -79,7 +79,6 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
     }
     return {name: program.variableNames[i], shapeInfo};
   });
-  console.log(inputInfos);
   const inShapeInfos = inputInfos.map(x => x.shapeInfo);
   const outShapeInfo: ShapeInfo = {
     logicalShape: output.shape,
