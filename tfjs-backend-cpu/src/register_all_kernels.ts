@@ -108,6 +108,7 @@ import {modConfig} from './kernels/Mod';
 import {multinomialConfig} from './kernels/Multinomial';
 import {multiplyConfig} from './kernels/Multiply';
 import {negConfig} from './kernels/Neg';
+import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
@@ -250,6 +251,7 @@ const kernelConfigs: KernelConfig[] = [
   multinomialConfig,
   multiplyConfig,
   negConfig,
+  nonMaxSuppressionV3Config,
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
