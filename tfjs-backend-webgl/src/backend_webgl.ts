@@ -39,16 +39,13 @@ import {getWebGLContext} from './canvas_util';
 import {ClipProgram} from './clip_gpu';
 import {ClipPackedProgram} from './clip_packed_gpu';
 import {ComplexAbsProgram} from './complex_abs_gpu';
-import {CumSumProgram} from './cumsum_gpu';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
 import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
 import {EncodeFloatProgram} from './encode_float_gpu';
 import {EncodeFloatPackedProgram} from './encode_float_packed_gpu';
 import {EncodeMatrixProgram} from './encode_matrix_gpu';
 import {EncodeMatrixPackedProgram} from './encode_matrix_packed_gpu';
-import {FillProgram} from './fill_gpu';
 import {GatherProgram} from './gather_gpu';
-import {GatherNDProgram} from './gather_nd_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
 import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
@@ -59,7 +56,6 @@ import {ReduceProgram} from './reduce_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
 import {ReverseProgram} from './reverse_gpu';
 import {ReversePackedProgram} from './reverse_packed_gpu';
-import {ScatterProgram} from './scatter_gpu';
 import {SegmentOpProgram} from './segment_gpu';
 import {SelectProgram} from './select_gpu';
 import {StridedSliceProgram} from './strided_slice_gpu';
@@ -963,36 +959,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.argMinMaxReduce(x, axis, 'max');
   }
 
-  cumsum(x: Tensor, axis: number, exclusive: boolean, reverse: boolean):
-      Tensor {
-    if (axis !== x.rank - 1) {
-      throw new Error(
-          `WebGL cumsum shader expects an inner-most axis=${x.rank - 1} ` +
-          `but got axis=${axis}`);
-    }
-    const size = x.shape[axis];
-    let result = x;
-    // Use cumsum parallel algorithm, ref:
-    // https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
-    for (let i = 0; i <= Math.ceil(Math.log2(size)) - 1; i++) {
-      const program = new CumSumProgram(x.shape, false, reverse);
-      const customSetup = program.getCustomSetupFunc(i);
-      const prevResult = result;
-      result = this.compileAndRun(program, [result], result.dtype, customSetup);
-      prevResult.dispose();
-    }
-    // For exclusive cumsum, shift the end result in the direction of sum and
-    // add 0 to the front index.
-    if (exclusive) {
-      const program = new CumSumProgram(x.shape, exclusive, reverse);
-      const prevResult = result;
-      result = this.compileAndRun(program, [result]);
-      prevResult.dispose();
-    }
-
-    return result;
-  }
-
   logicalNot<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.LOGICAL_NOT);
     return this.compileAndRun(program, [x]);
@@ -1356,72 +1322,6 @@ export class MathBackendWebGL extends KernelBackend {
 
   split<T extends Tensor>(x: T, sizeSplits: number[], axis: number): T[] {
     return split(x, sizeSplits, axis);
-  }
-
-  scatterND<R extends Rank>(
-      indices: Tensor, updates: Tensor, shape: ShapeMap[R]): Tensor<R> {
-    const {sliceRank, numUpdates, sliceSize, strides, outputSize} =
-        backend_util.calculateShapes(updates, indices, shape);
-
-    const flattenShape = [outputSize / sliceSize, sliceSize];
-    const flattenIndices = indices.reshape([numUpdates, sliceRank]);
-    const flattenX = updates.reshape([numUpdates, sliceSize]);
-
-    if (outputSize === 0) {
-      return backend_util.reshapeTensor(tensor([]), shape);
-    }
-    const defaultValue = scalar(0);
-    const program = new ScatterProgram(
-        numUpdates, sliceRank, flattenIndices.rank, flattenX.rank, strides,
-        flattenShape);
-    const res: Tensor =
-        this.compileAndRun(program, [flattenX, flattenIndices, defaultValue]);
-    return res.reshape(shape);
-  }
-
-  gatherND(x: Tensor, indices: Tensor): Tensor {
-    const indicesShape = indices.shape;
-    const sliceRank = indicesShape[indicesShape.length - 1];
-
-    const [resultShape, numSlices, sliceSize, strides] =
-        backend_util.prepareAndValidate(x, indices);
-
-    const flattenIndices = indices.reshape([numSlices, sliceRank]);
-    const flattenX = x.reshape([x.size / sliceSize, sliceSize]);
-    const program =
-        new GatherNDProgram(sliceRank, strides, [numSlices, sliceSize]);
-    const res: Tensor = this.compileAndRun(program, [flattenX, flattenIndices]);
-    return res.reshape(resultShape);
-  }
-
-  fill<R extends Rank>(
-      shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
-    dtype = dtype || util.inferDtype(value);
-
-    if (dtype === 'string') {
-      // String type should be handled in CPU memory.
-      const values = util.getArrayFromDType(dtype, util.sizeFromShape(shape));
-      values.fill(value as string);
-      return engine().makeTensor(values, shape, dtype, this) as Tensor<R>;
-    } else {
-      const program = new FillProgram(shape, value as number);
-      const customSetup = program.getCustomSetupFunc(value as number);
-      return this.compileAndRun(program, [], dtype, customSetup);
-    }
-  }
-
-  onesLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
-    if (x.dtype === 'string') {
-      throw new Error('onesLike is not supported under string dtype');
-    } else {
-      // TODO(cais, smilkov): Add WebGL shader for onesLike:
-      //   https://github.com/tensorflow/tfjs/issues/1293
-      return this.fill(x.shape, 1, x.dtype);
-    }
-  }
-
-  zerosLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
-    return this.fill(x.shape, x.dtype === 'string' ? '' : 0, x.dtype);
   }
 
   linspace(start: number, stop: number, num: number): Tensor1D {
