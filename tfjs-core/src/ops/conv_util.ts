@@ -548,7 +548,8 @@ function get3DPadAndOutInfo(
 /**
  * Rounds a value depending on the rounding mode
  * @param value
- * @param roundingMode
+ * @param roundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
  */
 function round(value: number, roundingMode?: 'floor'|'round'|'ceil') {
   if (!roundingMode) {

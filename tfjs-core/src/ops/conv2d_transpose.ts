@@ -36,9 +36,8 @@ import {op} from './operation';
  *     `[strideHeight, strideWidth]`.
  * @param pad  The type of padding algorithm used in the non-transpose version
  *    of the op.
- * @param dimRoundingMode The rounding mode used when computing output
- *    dimensions if pad is a number. If none is provided, it will not round
- *    and error if the output is of fractional size.
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
  *
  * @doc {heading: 'Operations', subheading: 'Convolution'}
  */

@@ -438,7 +438,8 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
 
       const x = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], inShape);
       const w = tf.tensor4d([2, 2, 1], [fSize, fSize, inputDepth, outputDepth]);
-      const pad = 1;
+      const pad =
+          [[0, 0], [1, 1], [1, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
       const strides = 2;
 
       const result = tf.conv2d(x, w, strides, pad);
