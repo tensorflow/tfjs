@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, buffer, GatherNd, GatherNdInputs, KernelConfig, KernelFunc, Tensor, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, GatherNd, GatherNdInputs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 
@@ -30,7 +30,7 @@ export function gatherNd(
   const sliceRank = indicesShape[indicesShape.length - 1];
 
   const [resultShape, numSlices, sliceSize, strides] =
-      backend_util.prepareAndValidate(params as Tensor, indices as Tensor);
+      backend_util.prepareAndValidate(params, indices);
   if (numSlices === 0) {
     return backend.makeTensorInfo(resultShape, params.dtype, []);
   }
