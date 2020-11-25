@@ -1279,11 +1279,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun<Tensor>(program, inputs) as T;
   }
 
-  step<T extends Tensor>(x: T, alpha: number): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.STEP(alpha));
-    return this.compileAndRun(program, [x]);
-  }
-
   unstack(x: Tensor, axis: number): Tensor[] {
     const num = x.shape[axis];
     const outShape: number[] = new Array(x.rank - 1);

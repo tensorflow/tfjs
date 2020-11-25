@@ -115,6 +115,7 @@ import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {sparseToDenseConfig} from './kernels/SparseToDense';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {stepConfig} from './kernels/Step';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
@@ -224,6 +225,7 @@ const kernelConfigs: KernelConfig[] = [
   sparseToDenseConfig,
   squareConfig,
   squaredDifferenceConfig,
+  stepConfig,
   subConfig,
   sumConfig,
   tanConfig,
