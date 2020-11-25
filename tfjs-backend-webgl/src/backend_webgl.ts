@@ -993,11 +993,6 @@ export class MathBackendWebGL extends KernelBackend {
     return result;
   }
 
-  logicalNot<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.LOGICAL_NOT);
-    return this.compileAndRun(program, [x]);
-  }
-
   select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
     const program = new SelectProgram(condition.rank, a.shape, a.rank);
     return this.compileAndRun(
@@ -1139,24 +1134,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  isNaN<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.IS_NAN);
-    return this.compileAndRun(program, [x], 'bool');
-  }
-  isInf<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.IS_INF);
-    return this.compileAndRun(program, [x], 'bool');
-  }
-  isFinite<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.IS_FINITE);
-    return this.compileAndRun(program, [x], 'bool');
-  }
-
-  round<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ROUND);
-    return this.compileAndRun(program, [x]);
-  }
-
   exp<T extends Tensor>(x: T): T {
     if (this.shouldExecuteOnCPU([x])) {
       const outValues =
@@ -1220,11 +1197,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  log1p<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.LOG1P);
-    return this.compileAndRun(program, [x]);
-  }
-
   sqrt<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SQRT);
     return this.compileAndRun(program, [x]);
@@ -1237,11 +1209,6 @@ export class MathBackendWebGL extends KernelBackend {
       return this.makeOutput(x.shape, x.dtype, outValues);
     }
     const program = new UnaryOpProgram(x.shape, unary_op.RSQRT);
-    return this.compileAndRun(program, [x]);
-  }
-
-  reciprocal<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.RECIPROCAL);
     return this.compileAndRun(program, [x]);
   }
 
@@ -1270,11 +1237,6 @@ export class MathBackendWebGL extends KernelBackend {
       return this.packedUnaryOp(x, unary_packed_op.ELU, x.dtype) as T;
     }
     const program = new UnaryOpProgram(x.shape, unary_op.ELU);
-    return this.compileAndRun(program, [x]);
-  }
-
-  selu<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SELU);
     return this.compileAndRun(program, [x]);
   }
 

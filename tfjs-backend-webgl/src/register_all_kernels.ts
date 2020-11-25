@@ -65,9 +65,14 @@ import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
 import {ifftConfig} from './kernels/IFFT';
 import {imagConfig} from './kernels/Imag';
+import {isFiniteConfig} from './kernels/IsFinite';
+import {isInfConfig} from './kernels/IsInf';
+import {isNaNConfig} from './kernels/IsNaN';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
+import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
+import {logicalNotConfig} from './kernels/LogicalNot';
 import {logicalOrConfig} from './kernels/LogicalOr';
 import {LRNConfig} from './kernels/LRN';
 import {LRNGradConfig} from './kernels/LRNGrad';
@@ -91,12 +96,15 @@ import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
+import {reciprocalConfig} from './kernels/Reciprocal';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {resizeBilinearGradConfig} from './kernels/ResizeBilinearGrad';
 import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
 import {resizeNearestNeighborGradConfig} from './kernels/ResizeNearestNeighborGrad';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
+import {roundConfig} from './kernels/Round';
+import {seluConfig} from './kernels/Selu';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
@@ -168,9 +176,14 @@ const kernelConfigs: KernelConfig[] = [
   identityConfig,
   ifftConfig,
   imagConfig,
+  isFiniteConfig,
+  isInfConfig,
+  isNaNConfig,
   lessConfig,
   lessEqualConfig,
+  log1pConfig,
   logicalAndConfig,
+  logicalNotConfig,
   logicalOrConfig,
   maxConfig,
   maxPool3DConfig,
@@ -192,12 +205,15 @@ const kernelConfigs: KernelConfig[] = [
   preluConfig,
   realConfig,
   realDivConfig,
+  reciprocalConfig,
   reshapeConfig,
   resizeBilinearConfig,
   resizeBilinearGradConfig,
   resizeNearestNeighborConfig,
   resizeNearestNeighborGradConfig,
   rotateWithOffsetConfig,
+  roundConfig,
+  seluConfig,
   sigmoidConfig,
   signConfig,
   sinConfig,
