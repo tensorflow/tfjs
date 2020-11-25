@@ -18,8 +18,9 @@
 import {backend_util, Concat, ConcatAttrs, ConcatInputs, KernelConfig, KernelFunc, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+import {identity} from './Identity';
 
-function concat(
+export function concat(
     args: {inputs: ConcatInputs, backend: BackendWasm, attrs: ConcatAttrs}) {
   const {inputs, backend} = args;
 
@@ -27,16 +28,16 @@ function concat(
 
   const outShape = backend_util.computeOutShape(inputs.map(t => t.shape), axis);
 
+  // Keep only non-empty tensors (ignore tensors with 0 in their shape).
+  const $inputs = inputs.filter(t => util.sizeFromShape(t.shape) > 0);
+  if ($inputs.length === 1) {
+    return identity({inputs: {x: $inputs[0]}, backend});
+  }
+
   const out = backend.makeOutput(outShape, inputs[0].dtype);
 
   if (util.sizeFromShape(outShape) === 0) {
     return out;
-  }
-
-  // Keep only non-empty tensors (ignore tensors with 0 in their shape).
-  const $inputs = inputs.filter(t => util.sizeFromShape(t.shape) > 0);
-  if ($inputs.length === 1) {
-    return $inputs[0];
   }
 
   const shapes = $inputs.map(t => t.shape);
