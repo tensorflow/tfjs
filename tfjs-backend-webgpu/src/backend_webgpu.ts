@@ -106,6 +106,14 @@ export class WebGPUBackend extends KernelBackend {
   tensorMap: DataStorage<TensorBufferInfo>;
   fromPixelProgram: FromPixelsProgram;
 
+  // Maps data ids that have a pending read operation, to list of subscribers.
+  private pendingRead =
+      new WeakMap<DataId, Array<(arr: backend_util.TypedArray) => void>>();
+  // List of data ids that are scheduled for disposal, but are waiting on a
+  // pending read operation.
+  private pendingDisposal = new WeakSet<DataId>();
+  private pendingDeletes = 0;
+
   private commandQueueOwnedIds = new WeakSet<DataId>();
   private binaryCache: {[key: string]: WebGPUBinary};
   private bufferManager: BufferManager;
@@ -150,6 +158,15 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   disposeData(dataId: DataId): void {
+    if (this.pendingDisposal.has(dataId)) {
+      return;
+    }
+    if (this.pendingRead.has(dataId)) {
+      this.pendingDisposal.add(dataId);
+      this.pendingDeletes++;
+      return;
+    }
+
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
@@ -288,13 +305,28 @@ export class WebGPUBackend extends KernelBackend {
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
+    if (this.pendingRead.has(dataId)) {
+      const subscribers = this.pendingRead.get(dataId);
+      return new Promise<backend_util.TypedArray>(
+          resolve => subscribers.push(resolve));
+    }
+    this.pendingRead.set(dataId, []);
     const info = this.tensorMap.get(dataId);
     const data = await this.getBufferData(info);
 
     const dataAsTypedArray =
         webgpu_util.ArrayBufferToTypedArray(data as ArrayBuffer, info.dtype);
     this.convertAndCacheOnCPU(dataId, dataAsTypedArray);
+    const subscribers = this.pendingRead.get(dataId);
+    this.pendingRead.delete(dataId);
 
+    // Notify all pending reads.
+    subscribers.forEach(resolve => resolve(dataAsTypedArray));
+    if (this.pendingDisposal.has(dataId)) {
+      this.pendingDisposal.delete(dataId);
+      this.disposeData(dataId);
+      this.pendingDeletes--;
+    }
     return dataAsTypedArray;
   }
 
@@ -1178,7 +1210,9 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   numDataIds() {
-    return this.tensorMap.numDataIds();
+    return this.tensorMap.numDataIds() +
+        (this.cpuBackend ? this.cpuBackend.numDataIds() : 0) -
+        this.pendingDeletes;
   }
 
   dispose() {

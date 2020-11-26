@@ -88,6 +88,9 @@ setTestEnvs([{
 
 const TEST_FILTERS: TestFilter[] = [
   {
+    include: 'profile',
+  },
+  {
     include: 'less',
     excludes: [
       'upcasts when dtypes dont match',  // Actual != expected.
