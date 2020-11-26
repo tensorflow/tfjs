@@ -15,30 +15,13 @@
  * =============================================================================
  */
 
-import {buffer, KernelConfig, KernelFunc, Rank, slice_util, StridedSlice, StridedSliceAttrs, StridedSliceInputs, TensorBuffer, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, slice_util, StridedSlice, StridedSliceAttrs, StridedSliceInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 import {reshape} from './Reshape';
 import {slice} from './Slice';
-
-export function stridedSliceImpl<R extends Rank>(
-    outShape: number[], xBuf: TensorBuffer<R>, strides: number[],
-    begin: number[]): TensorBuffer<R> {
-  const outBuf = buffer(outShape, xBuf.dtype);
-
-  for (let i = 0; i < outBuf.size; i++) {
-    const loc = outBuf.indexToLoc(i);
-
-    const newLoc: number[] = new Array(loc.length);
-    for (let j = 0; j < newLoc.length; j++) {
-      newLoc[j] = loc[j] * strides[j] + begin[j];
-    }
-    outBuf.set(xBuf.get(...newLoc), ...loc);
-  }
-
-  return outBuf as TensorBuffer<R>;
-}
+import {stridedSliceImpl} from './StridedSlice_impl';
 
 export function stridedSlice(args: {
   inputs: StridedSliceInputs,
