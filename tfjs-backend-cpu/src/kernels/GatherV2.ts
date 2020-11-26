@@ -15,28 +15,12 @@
  * =============================================================================
  */
 
-import {backend_util, buffer, DataType, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelConfig, KernelFunc, Rank, TensorBuffer, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
+import {gatherV2Impl} from './GatherV2_impl';
 import {reshape} from './Reshape';
-
-export function gatherV2Impl<R extends Rank, D extends DataType>(
-    xBuf: TensorBuffer<R, D>, indicesBuf: TensorBuffer<R, D>,
-    outBuf: TensorBuffer<R, D>): void {
-  for (let i = 0; i < outBuf.size; ++i) {
-    const newLoc = outBuf.indexToLoc(i);
-
-    const originalLoc: number[] = newLoc.slice();
-    const batchIdx = originalLoc[0];
-    const indicesIdx = originalLoc[2];
-    const indicesIndex = indicesBuf.locToIndex([batchIdx, indicesIdx]);
-    originalLoc[2] = indicesBuf.values[indicesIndex] as number;
-
-    const originalIndex = xBuf.locToIndex(originalLoc);
-    outBuf.values[i] = xBuf.values[originalIndex];
-  }
-}
 
 export function gatherV2(args: {
   inputs: GatherV2Inputs,

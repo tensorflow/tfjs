@@ -23,7 +23,7 @@ export {ceilImpl} from './kernels/Ceil';
 export {expImpl} from './kernels/Exp';
 export {expm1Impl} from './kernels/Expm1';
 export {floorImpl} from './kernels/Floor';
-export {gatherV2Impl} from './kernels/GatherV2';
+export {gatherV2Impl} from './kernels/GatherV2_impl';
 export {greaterImpl} from './kernels/Greater';
 export {lessImpl} from './kernels/Less';
 export {linSpaceImpl} from './kernels/LinSpace_impl';
