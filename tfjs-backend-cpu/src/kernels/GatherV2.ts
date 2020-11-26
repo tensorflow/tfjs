@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, buffer, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
@@ -69,9 +69,7 @@ export function gatherV2(args: {
 
   const indicesBuf = backend.bufferSync(flattenIndex);
   const xBuf = backend.bufferSync(flattenX);
-  const outBuf = buffer(flattenOutputShape, x.dtype);
-
-  gatherV2Impl(xBuf, indicesBuf, outBuf);
+  const outBuf = gatherV2Impl(xBuf, indicesBuf, flattenOutputShape);
 
   backend.disposeIntermediateTensorInfo(flattenX);
   backend.disposeIntermediateTensorInfo(flattenIndex);

@@ -15,11 +15,12 @@
  * =============================================================================
  */
 
-import {DataType, Rank, TensorBuffer} from '@tensorflow/tfjs-core';
+import {buffer, DataType, Rank, TensorBuffer} from '@tensorflow/tfjs-core';
 
 export function gatherV2Impl<R extends Rank, D extends DataType>(
     xBuf: TensorBuffer<R, D>, indicesBuf: TensorBuffer<R, D>,
-    outBuf: TensorBuffer<R, D>): void {
+    flattenOutputShape: number[]): TensorBuffer<R, D> {
+  const outBuf = buffer(flattenOutputShape, xBuf.dtype);
   for (let i = 0; i < outBuf.size; ++i) {
     const newLoc = outBuf.indexToLoc(i);
 
@@ -32,4 +33,6 @@ export function gatherV2Impl<R extends Rank, D extends DataType>(
     const originalIndex = xBuf.locToIndex(originalLoc);
     outBuf.values[i] = xBuf.values[originalIndex];
   }
+
+  return outBuf as TensorBuffer<R, D>;
 }

@@ -805,9 +805,7 @@ export class MathBackendWebGL extends KernelBackend {
     if (this.shouldExecuteOnCPU([x, indices]) || x.dtype === 'string') {
       const indicesBuf = this.bufferSync(flattenIndex);
       const xBuf = this.bufferSync(flattenX);
-      const outBuf = buffer(flattenOutputShape, x.dtype);
-
-      gatherV2ImplCPU(xBuf, indicesBuf, outBuf);
+      const outBuf = gatherV2ImplCPU(xBuf, indicesBuf, flattenOutputShape);
 
       return this.makeOutput(
           shapeInfo.outputShape, outBuf.dtype, outBuf.values as TypedArray);
@@ -1725,20 +1723,6 @@ export class MathBackendWebGL extends KernelBackend {
 
   private computeBytes(shape: [number, number], dtype: DataType) {
     return shape[0] * shape[1] * util.bytesPerElement(dtype);
-  }
-
-  private tryRunOnCpuOrThrow<T extends Tensor>(
-      inputs: TensorInfo[], fn: () => T): T|null {
-    if (this.shouldExecuteOnCPU(inputs)) {
-      try {
-        return fn();
-      } catch (e) {
-        if (env().getBool('IS_TEST')) {
-          throw new Error('CPU forwarding failed');
-        }
-      }
-    }
-    return null;
   }
 }
 
