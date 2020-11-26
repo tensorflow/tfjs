@@ -230,42 +230,6 @@ export class MathBackendCPU extends KernelBackend {
     return whereImpl(condition.shape, condVals);
   }
 
-  gather<T extends Tensor>(
-      x: T, indices: Tensor1D, axis: number, batchDims = 0): T {
-    assertNotComplex([x, indices], 'gather');
-    const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
-    const shapeInfo = backend_util.segment_util.collectGatherOpShapeInfo(
-        x, indices, parsedAxis, batchDims);
-
-    const flattenX = x.reshape([
-      shapeInfo.batchSize, shapeInfo.outerSize, shapeInfo.dimSize,
-      shapeInfo.sliceSize
-    ]);
-    const flattenIndex = indices.reshape(
-        [shapeInfo.batchSize, indices.size / shapeInfo.batchSize]);
-    const flattenOutputShape = [
-      shapeInfo.batchSize, shapeInfo.outerSize,
-      indices.size / shapeInfo.batchSize, shapeInfo.sliceSize
-    ];
-    const indicesBuf = this.bufferSync(flattenIndex);
-    const result = tf.buffer(flattenOutputShape, x.dtype);
-    const xBuf = this.bufferSync(flattenX);
-
-    for (let i = 0; i < result.size; ++i) {
-      const newLoc = result.indexToLoc(i);
-
-      const originalLoc: number[] = newLoc.slice();
-      const batchIdx = originalLoc[0];
-      const indicesIdx = originalLoc[2];
-      const indicesIndex = indicesBuf.locToIndex([batchIdx, indicesIdx]);
-      originalLoc[2] = indicesBuf.values[indicesIndex];
-
-      const originalIndex = xBuf.locToIndex(originalLoc);
-      result.values[i] = xBuf.values[originalIndex];
-    }
-    return result.toTensor().reshape(shapeInfo.outputShape);
-  }
-
   dispose() {}
 
   floatPrecision(): 16|32 {
