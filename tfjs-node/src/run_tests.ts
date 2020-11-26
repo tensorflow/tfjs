@@ -82,7 +82,9 @@ const IGNORE_LIST: string[] = [
   'maxPoolWithArgmax', 'rotate', 'flipLeftRight', 'unique',
   // libtensorflow does not yet support tf.matmul with broadcast
   'broadcast with unequal batch dims', 'broadcast with unequal ranks',
+  // tslint:disable-next-line:max-line-length
   'pool test-tensorflow {} max x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding',
+  // tslint:disable-next-line:max-line-length
   'pool test-tensorflow {} avg x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding'
 ];
 
