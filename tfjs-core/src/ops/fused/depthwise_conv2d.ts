@@ -96,7 +96,8 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   dimRoundingMode,
   bias,
   activation = 'linear',
-  preluActivationWeights
+  preluActivationWeights,
+  leakyreluAlpha
 }: {
   x: T|TensorLike,
   filter: Tensor4D|TensorLike,
@@ -107,7 +108,8 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   dimRoundingMode?: 'floor'|'round'|'ceil',
   bias?: Tensor|TensorLike,
   activation?: Activation,
-  preluActivationWeights?: Tensor
+  preluActivationWeights?: Tensor,
+  leakyreluAlpha?: number
 }): T {
   if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
     let result = unfusedDepthwiseConv2d(
@@ -116,7 +118,8 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
       result = add(result, bias);
     }
 
-    return applyActivation(result, activation, preluActivationWeights) as T;
+    return applyActivation(
+               result, activation, preluActivationWeights, leakyreluAlpha) as T;
   }
 
   const $x = convertToTensor(x, 'x', 'depthwiseConv2d');
@@ -174,6 +177,11 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
     $preluActivationWeights = convertToTensor(
         preluActivationWeights, 'prelu weights', 'fused depthwiseConv2d');
   }
+  let $leakyreluAlpha: Tensor;
+  if (leakyreluAlpha != null) {
+    $leakyreluAlpha =
+        convertToTensor(leakyreluAlpha, 'leakyrelu alpha', 'fused conv2d');
+  }
 
   const grad = (dy: Tensor4D, saved: Tensor[]) => {
     util.assert(
@@ -206,7 +214,8 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
       convInfo,
       bias: $bias,
       activation,
-      preluActivationWeights: $preluActivationWeights
+      preluActivationWeights: $preluActivationWeights,
+      leakyreluAlpha: $leakyreluAlpha
     });
     return res;
   };
@@ -215,7 +224,8 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
     x: x4D,
     filter: $filter,
     bias: $bias,
-    preluActivationWeights: $preluActivationWeights
+    preluActivationWeights: $preluActivationWeights,
+    leakyreluAlpha: $leakyreluAlpha
   };
   const attrs: FusedDepthwiseConv2DAttrs =
       {strides, pad, dataFormat, dilations, dimRoundingMode, activation};

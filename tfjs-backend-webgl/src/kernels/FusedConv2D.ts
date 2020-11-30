@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, env, FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, env, fill, FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {Conv2DProgram} from '../conv_gpu';
@@ -31,8 +31,15 @@ export function fusedConv2d(args: {
 }) {
   const {inputs, backend, attrs} = args;
   const {x, filter, bias, preluActivationWeights} = inputs;
-  const {strides, pad, dataFormat, dilations, dimRoundingMode, activation} =
-      attrs;
+  const {
+    strides,
+    pad,
+    dataFormat,
+    dilations,
+    dimRoundingMode,
+    activation,
+    leakyreluAlpha
+  } = attrs;
 
   const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
   const convInfo = backend_util.computeConv2DInfo(
@@ -52,7 +59,8 @@ export function fusedConv2d(args: {
       backend,
       bias,
       activation,
-      preluActivationWeights
+      preluActivationWeights,
+      leakyreluAlpha
     });
   } else if (env().getBool('WEBGL_CONV_IM2COL') && x.shape[0] === 1) {
     out = conv2dWithIm2Row({
@@ -62,21 +70,28 @@ export function fusedConv2d(args: {
       backend,
       bias,
       activation,
-      preluActivationWeights
+      preluActivationWeights,
+      leakyreluAlpha
     });
   } else {
     const hasBias = bias != null;
     const hasPreluActivationWeights = preluActivationWeights != null;
+    const hasLeakyreluAlpha = leakyreluAlpha != null;
     const fusedActivation =
         activation ? mapActivationToShaderProgram(activation, false) : null;
     const program = new Conv2DProgram(
-        convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
+        convInfo, hasBias, fusedActivation, hasPreluActivationWeights,
+        hasLeakyreluAlpha);
     const inputs: TensorInfo[] = [x, filter];
     if (bias) {
       inputs.push(bias);
     }
     if (preluActivationWeights) {
       inputs.push(preluActivationWeights);
+    }
+    if (leakyreluAlpha) {
+      const $leakyreluAlpha = fill(x.shape, leakyreluAlpha, 'float32');
+      inputs.push($leakyreluAlpha);
     }
     out = backend.runWebGLProgram(program, inputs, 'float32');
   }

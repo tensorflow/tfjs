@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, TensorInfo, upcastType, util} from '@tensorflow/tfjs-core';
+import {backend_util, fill, TensorInfo, upcastType, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
@@ -39,6 +39,7 @@ type BatchMatMulConfig = {
   backend: MathBackendWebGL,
   bias?: TensorInfo,
   preluActivationWeights?: TensorInfo,
+  leakyreluAlpha?: number,
   activation?: backend_util.Activation
 };
 
@@ -50,6 +51,7 @@ export function batchMatMulImpl({
   backend,
   bias = null,
   preluActivationWeights = null,
+  leakyreluAlpha = null,
   activation = null
 }: BatchMatMulConfig): TensorInfo {
   const aRank = a.shape.length;
@@ -105,11 +107,12 @@ export function batchMatMulImpl({
 
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
+  const hasLeakyreluAlpha = leakyreluAlpha != null;
   const fusedActivation = activation != null ?
       mapActivationToShaderProgram(activation, true) :
       null;
-  const containsFusedOps =
-      hasBias || hasPreluActivationWeights || fusedActivation != null;
+  const containsFusedOps = hasBias || hasPreluActivationWeights ||
+      hasLeakyreluAlpha || fusedActivation != null;
   let out: TensorInfo;
 
   // Since the matrices are vectors, it is faster to call mul().sum()
@@ -162,7 +165,8 @@ export function batchMatMulImpl({
 
     const program = new MatMulPackedProgram(
         a3dShape, b3dShape, [batchDim, outerShapeA, outerShapeB], transposeA,
-        transposeB, hasBias, fusedActivation, hasPreluActivationWeights);
+        transposeB, hasBias, fusedActivation, hasPreluActivationWeights,
+        hasLeakyreluAlpha);
 
     const inputs: TensorInfo[] = [a3d, b3d];
     if (bias != null) {
@@ -170,6 +174,10 @@ export function batchMatMulImpl({
     }
     if (preluActivationWeights != null) {
       inputs.push(preluActivationWeights);
+    }
+    if (leakyreluAlpha != null) {
+      const $leakyreluAlpha = fill(bias.shape, leakyreluAlpha, 'float32');
+      inputs.push($leakyreluAlpha);
     }
 
     out = backend.runWebGLProgram(program, inputs, dtype);

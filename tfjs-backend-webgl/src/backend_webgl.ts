@@ -160,6 +160,16 @@ function mapActivationToShaderProgram(
       return PRELU_PACKED;
     }
     return PRELU;
+  } else if (activation === 'leakyrelu') {
+    const LEAKYRELU = `return (a < 0.) ? b * a : a;`;
+    const LEAKYRELU_PACKED = `
+  vec4 aLessThanZero = vec4(lessThan(a, vec4(0.)));
+  return (aLessThanZero * (b * a)) + ((vec4(1.0) - aLessThanZero) * a);
+`;
+    if (packed) {
+      return LEAKYRELU_PACKED;
+    }
+    return LEAKYRELU;
   }
   throw new Error(`Activation ${
       activation} has not been implemented for the WebGL backend.`);
@@ -758,9 +768,16 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  fusedBatchMatMul(
-      {a, b, transposeA, transposeB, bias, activation, preluActivationWeights}:
-          backend_util.FusedBatchMatMulConfig): Tensor3D {
+  fusedBatchMatMul({
+    a,
+    b,
+    transposeA,
+    transposeB,
+    bias,
+    activation,
+    preluActivationWeights,
+    leakyreluAlpha
+  }: backend_util.FusedBatchMatMulConfig): Tensor3D {
     const outerShapeA = transposeA ? a.shape[2] : a.shape[1];
     const outerShapeB = transposeB ? b.shape[1] : b.shape[2];
     const batch = Math.max(a.shape[0], b.shape[0]);
@@ -769,17 +786,27 @@ export class MathBackendWebGL extends KernelBackend {
 
     const hasBias = bias != null;
     const hasPreluActivationWeights = preluActivationWeights != null;
+    const hasLeakyreluActivation = leakyreluAlpha != null;
     const fusedActivation =
         activation ? mapActivationToShaderProgram(activation, true) : null;
     const program = new MatMulPackedProgram(
         a.shape, b.shape, [batch, outerShapeA, outerShapeB], transposeA,
-        transposeB, hasBias, fusedActivation, hasPreluActivationWeights);
+        transposeB, hasBias, fusedActivation, hasPreluActivationWeights,
+        hasLeakyreluActivation);
     const inputs: TensorInfo[] = [a, b];
     if (bias) {
       inputs.push(bias);
     }
-    if (preluActivationWeights) {
+
+    if (hasPreluActivationWeights && hasLeakyreluActivation) {
+      throw new Error('Use either prelu or leakyrelu, but not both.');
+    }
+
+    if (hasPreluActivationWeights) {
       inputs.push(preluActivationWeights);
+    }
+    if (hasLeakyreluActivation) {
+      inputs.push(leakyreluAlpha);
     }
     return this.compileAndRun<Tensor3D>(program, inputs, dtype);
   }
