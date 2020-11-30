@@ -131,9 +131,8 @@ def quantize_weights(data, quantization_dtype):
       # Quantize data.
       scale, min_val, max_val = _get_affine_quantization_range(
           min_val, max_val, quantization_dtype)
-      quantized_data = np.round(
-          (data.clip(min_val, max_val) - min_val) / scale).astype(
-              quantization_dtype)
+      quantized_data = ((data.clip(min_val, max_val) - min_val) / scale
+                       ).astype(quantization_dtype)
 
     return quantized_data, {'min': min_val, 'scale': scale}
   elif quantization_dtype == np.float16:
