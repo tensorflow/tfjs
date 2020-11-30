@@ -53,6 +53,10 @@ export const executeOp: InternalOpExecutor =
 
           const numArgs =
               (getParamValue('numArgs', node, tensorMap, context) as number);
+          const leakyreluAlpha =
+              getParamValue('leakyreluAlpha', node, tensorMap, context) as
+              number;
+
           if (isBiasAdd) {
             if (isPrelu && numArgs !== 2) {
               throw new Error(
@@ -75,7 +79,8 @@ export const executeOp: InternalOpExecutor =
                 boolean,
             bias: biasArg,
             activation: activationFunc as tfOps.fused.Activation,
-            preluActivationWeights: preluArg
+            preluActivationWeights: preluArg,
+            leakyreluAlpha
           })];
 
         default:

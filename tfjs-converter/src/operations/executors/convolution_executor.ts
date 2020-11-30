@@ -147,7 +147,8 @@ export const executeOp: InternalOpExecutor =
             dilations,
             biasArg,
             preluArg,
-            activationFunc
+            activationFunc,
+            leakyreluAlpha,
           } = fusedConvAndDepthWiseParams(node, tensorMap, context);
 
           return [tfOps.fused.depthwiseConv2d({
@@ -161,7 +162,8 @@ export const executeOp: InternalOpExecutor =
             dilations: [dilations[1], dilations[2]],
             bias: biasArg,
             activation: activationFunc as tfOps.fused.Activation,
-            preluActivationWeights: preluArg
+            preluActivationWeights: preluArg,
+            leakyreluAlpha
           })];
         }
         case 'Conv2DBackpropInput':
