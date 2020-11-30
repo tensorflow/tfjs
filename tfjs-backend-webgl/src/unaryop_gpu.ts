@@ -64,7 +64,6 @@ export function STEP(alpha = 0.0) {
 export const NEG = `return -x;`;
 
 export const CEIL = `return ceil(x);`;
-export const EXP = `return exp(x);`;
 
 export const EXPM1 = `return exp(x) - 1.0;`;
 

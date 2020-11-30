@@ -53,6 +53,7 @@ import {diagConfig} from './kernels/Diag';
 import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
+import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
 import {fftConfig} from './kernels/FFT';
 import {fillConfig} from './kernels/Fill';
@@ -73,6 +74,7 @@ import {isInfConfig} from './kernels/IsInf';
 import {isNaNConfig} from './kernels/IsNaN';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
+import {linSpaceConfig} from './kernels/LinSpace';
 import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalNotConfig} from './kernels/LogicalNot';
@@ -88,6 +90,7 @@ import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {meanConfig} from './kernels/Mean';
 import {mirrorPadConfig} from './kernels/MirrorPad';
 import {modConfig} from './kernels/Mod';
+import {multinomialConfig} from './kernels/Multinomial';
 import {multiplyConfig} from './kernels/Multiply';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
@@ -116,6 +119,7 @@ import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
 import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
+import {softmaxConfig} from './kernels/Softmax';
 import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {sparseToDenseConfig} from './kernels/SparseToDense';
@@ -164,9 +168,6 @@ const kernelConfigs: KernelConfig[] = [
   coshConfig,
   cropAndResizeConfig,
   cumsumConfig,
-  depthwiseConv2dNativeBackpropFilterConfig,
-  depthwiseConv2dNativeBackpropInputConfig,
-  depthwiseConv2dNativeConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeBackpropFilterConfig,
   depthwiseConv2dNativeBackpropInputConfig,
@@ -175,6 +176,7 @@ const kernelConfigs: KernelConfig[] = [
   eluGradConfig,
   equalConfig,
   erfConfig,
+  expConfig,
   expandDimsConfig,
   fftConfig,
   fillConfig,
@@ -195,6 +197,7 @@ const kernelConfigs: KernelConfig[] = [
   isNaNConfig,
   lessConfig,
   lessEqualConfig,
+  linSpaceConfig,
   log1pConfig,
   logicalAndConfig,
   logicalNotConfig,
@@ -208,6 +211,7 @@ const kernelConfigs: KernelConfig[] = [
   meanConfig,
   mirrorPadConfig,
   modConfig,
+  multinomialConfig,
   multiplyConfig,
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV4Config,
@@ -236,6 +240,7 @@ const kernelConfigs: KernelConfig[] = [
   sinConfig,
   sinhConfig,
   sliceConfig,
+  softmaxConfig,
   softplusConfig,
   spaceToBatchNDConfig,
   sparseToDenseConfig,

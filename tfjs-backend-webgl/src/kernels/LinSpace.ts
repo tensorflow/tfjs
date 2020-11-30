@@ -15,22 +15,23 @@
  * =============================================================================
  */
 
-import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, LinSpace, LinSpaceAttrs, TensorInfo} from '@tensorflow/tfjs-core';
 
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {subImplCPU as cpuSub} from '../kernel_utils/shared';
+import {MathBackendWebGL} from '../backend_webgl';
+import {linSpaceImplCPU} from '../kernel_utils/shared';
 
-const SUB = 'return a - b;';
+export function linSpace(
+    args: {backend: MathBackendWebGL, attrs: LinSpaceAttrs}): TensorInfo {
+  const {backend, attrs} = args;
+  const {start, stop, num} = attrs;
 
-export const sub = binaryKernelFunc({
-  opSnippet: SUB,
-  packedOpSnippet: SUB,
-  supportsComplex: true,
-  cpuKernelImpl: cpuSub
-});
+  // TODO: Use CPU implementation due to the precision problem in Safari.
+  const outVals = linSpaceImplCPU(start, stop, num);
+  return backend.makeTensorInfo([outVals.length], 'float32', outVals);
+}
 
-export const subConfig: KernelConfig = {
-  kernelName: Sub,
+export const linSpaceConfig: KernelConfig = {
+  kernelName: LinSpace,
   backendName: 'webgl',
-  kernelFunc: sub
+  kernelFunc: linSpace as {} as KernelFunc
 };
