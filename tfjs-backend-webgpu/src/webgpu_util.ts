@@ -113,6 +113,8 @@ export function flatDispatchLayout(shape: number[]) {
 export function GPUBytesPerElement(dtype: DataType): number {
   if (dtype === 'float32' || dtype === 'int32' || dtype === 'bool') {
     return 4;
+  } else if (dtype === 'float16') {
+    return 2;
   } else if (dtype === 'complex64') {
     return 8;
   } else {
@@ -123,6 +125,8 @@ export function GPUBytesPerElement(dtype: DataType): number {
 export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
   if (dtype === 'float32') {
     return new Float32Array(data);
+  } else if (dtype === 'float16') {
+    return new Uint16Array(data);
   } else if (dtype === 'int32') {
     return new Int32Array(data);
   } else if (dtype === 'bool') {

@@ -17,6 +17,7 @@
 
 import './flags_webgpu';
 import './register_all_kernels';
+import {env} from '@tensorflow/tfjs-core';
 
 import * as tf from '@tensorflow/tfjs-core';
 import glslangInit from '@webgpu/glslang/dist/web-devel/glslang.onefile';
@@ -34,8 +35,31 @@ tf.registerBackend('webgpu', async () => {
   };
 
   const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
-  const device = await adapter.requestDevice({});
-  return new WebGPUBackend(device, glslang);
+
+  let driverSupportFp16 = false;
+  for(let i=0; i<adapter.extensions.length; i++){
+    if (adapter.extensions[i] === 'shader-float16')
+    {
+      driverSupportFp16 = true;
+      break;
+    }
+  }
+
+  if (driverSupportFp16)
+  {
+    const ENV = env();
+    ENV.registerFlag('DRIVER_SUPPORT_FLOAT16', () => true);
+    const deviceDescriptor: GPUDeviceDescriptor = {
+      extensions: ['shader-float16']
+    };
+    const device = await adapter.requestDevice(deviceDescriptor);
+    return new WebGPUBackend(device, glslang);
+  }
+  else
+  {
+    const device = await adapter.requestDevice({});
+    return new WebGPUBackend(device, glslang);
+  }
 }, 3 /*priority*/);
 
 export {webgpu};
