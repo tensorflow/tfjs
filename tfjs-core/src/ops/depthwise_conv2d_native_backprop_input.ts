@@ -26,7 +26,8 @@ import {reshape} from './reshape';
 
 function depthwiseConv2dNativeBackpropInput_<T extends Tensor3D|Tensor4D>(
     xShape: [number, number, number, number], dy: T, filter: Tensor4D,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
+    strides: [number, number]|number,
+    pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
     dilations: [number, number]|number = [1, 1],
     dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   let dy4D = dy as Tensor4D;
