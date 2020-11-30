@@ -947,6 +947,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "TopK",
+    srcs = ["kernels/TopK.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "Transpose",
     srcs = ["kernels/Transpose.cc"],
     deps = [
