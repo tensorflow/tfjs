@@ -28,8 +28,8 @@ export function prodImpl(
   const [outShape, reduceShape] =
       backend_util.computeOutAndReduceShapes(xShape, reductionAxes);
   const outDtype = upcastType(xDtype, 'int32');
-  const outVals =
-      util.makeZerosTypedArray(util.sizeFromShape(outShape), outDtype);
+  const outVals = util.makeZerosTypedArray(
+                      util.sizeFromShape(outShape), outDtype) as TypedArray;
   const reduceSize = util.sizeFromShape(reduceShape);
 
   for (let i = 0; i < outVals.length; ++i) {
@@ -66,7 +66,7 @@ export function prod(
     reductionAxes = backend_util.getInnerMostAxes(reductionAxes.length, xRank);
   }
 
-  const xVals = backend.data.get(permutedX.dataId).values;
+  const xVals = backend.data.get(permutedX.dataId).values as TypedArray;
   const {outVals, outShape, outDtype} =
       prodImpl(permutedX.shape, permutedX.dtype, xVals, reductionAxes);
 
