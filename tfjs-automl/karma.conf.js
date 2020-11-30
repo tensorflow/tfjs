@@ -40,7 +40,7 @@ module.exports = function(config) {
     preprocessors: {'**/*.ts': ['karma-typescript']},
     karmaTypescriptConfig,
     reporters: ['progress', 'karma-typescript'],
-    port: 9876,
+    port: 9866,
     colors: true,
     browsers: ['Chrome'],
     reportSlowerThan: 5000,

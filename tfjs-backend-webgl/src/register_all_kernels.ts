@@ -31,6 +31,7 @@ import {avgPoolGrad3DConfig} from './kernels/AvgPool3DGrad';
 import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
+import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {castConfig} from './kernels/Cast';
 import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
@@ -43,20 +44,25 @@ import {conv3DBackpropInputConfig} from './kernels/Conv3DBackpropInputV2';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
+import {cumsumConfig} from './kernels/Cumsum';
+import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {depthwiseConv2dNativeBackpropFilterConfig} from './kernels/DepthwiseConv2dNativeBackpropFilter';
 import {depthwiseConv2dNativeBackpropInputConfig} from './kernels/DepthwiseConv2dNativeBackpropInput';
+import {diagConfig} from './kernels/Diag';
 import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
 import {expandDimsConfig} from './kernels/ExpandDims';
 import {fftConfig} from './kernels/FFT';
+import {fillConfig} from './kernels/Fill';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {fromPixelsConfig} from './kernels/FromPixels';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
+import {gatherNdConfig} from './kernels/GatherNd';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
@@ -66,6 +72,8 @@ import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalOrConfig} from './kernels/LogicalOr';
+import {LRNConfig} from './kernels/LRN';
+import {LRNGradConfig} from './kernels/LRNGrad';
 import {maxConfig} from './kernels/Max';
 import {maxPoolConfig} from './kernels/MaxPool';
 import {maxPool3DConfig} from './kernels/MaxPool3D';
@@ -81,18 +89,28 @@ import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
 import {oneHotConfig} from './kernels/OneHot';
+import {onesLikeConfig} from './kernels/OnesLike';
+import {packConfig} from './kernels/Pack';
+import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reshapeConfig} from './kernels/Reshape';
+import {resizeBilinearConfig} from './kernels/ResizeBilinear';
+import {resizeBilinearGradConfig} from './kernels/ResizeBilinearGrad';
+import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
+import {resizeNearestNeighborGradConfig} from './kernels/ResizeNearestNeighborGrad';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
+import {scatterNdConfig} from './kernels/ScatterNd';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
 import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
 import {softplusConfig} from './kernels/Softplus';
+import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
+import {sparseToDenseConfig} from './kernels/SparseToDense';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {subConfig} from './kernels/Sub';
@@ -102,9 +120,12 @@ import {tanhConfig} from './kernels/Tanh';
 import {tileConfig} from './kernels/Tile';
 import {transposeConfig} from './kernels/Transpose';
 import {uniqueConfig} from './kernels/Unique';
+import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  LRNConfig,
+  LRNGradConfig,
   _fusedMatMulConfig,
   acosConfig,
   acoshConfig,
@@ -114,38 +135,47 @@ const kernelConfigs: KernelConfig[] = [
   atan2Config,
   atanConfig,
   atanhConfig,
-  avgPoolConfig,
   avgPool3DConfig,
-  avgPoolGradConfig,
+  avgPoolConfig,
   avgPoolGrad3DConfig,
+  avgPoolGradConfig,
   batchMatMulConfig,
   batchNormConfig,
+  batchToSpaceNDConfig,
   castConfig,
   complexConfig,
   concatConfig,
-  conv2DConfig,
   conv2DBackpropFilterConfig,
   conv2DBackpropInputConfig,
-  conv3DConfig,
+  conv2DConfig,
   conv3DBackpropFilterV2Config,
   conv3DBackpropInputConfig,
+  conv3DConfig,
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
-  depthwiseConv2dNativeConfig,
+  cumsumConfig,
   depthwiseConv2dNativeBackpropFilterConfig,
   depthwiseConv2dNativeBackpropInputConfig,
+  depthwiseConv2dNativeConfig,
+  depthToSpaceConfig,
+  depthwiseConv2dNativeBackpropFilterConfig,
+  depthwiseConv2dNativeBackpropInputConfig,
+  depthwiseConv2dNativeConfig,
+  diagConfig,
   eluGradConfig,
   equalConfig,
   erfConfig,
   expandDimsConfig,
   fftConfig,
+  fillConfig,
   flipLeftRightConfig,
   floorConfig,
   floorDivConfig,
   fromPixelsConfig,
   fusedConv2DConfig,
   fusedDepthwiseConv2DConfig,
+  gatherNdConfig,
   greaterConfig,
   greaterEqualConfig,
   identityConfig,
@@ -156,10 +186,10 @@ const kernelConfigs: KernelConfig[] = [
   logicalAndConfig,
   logicalOrConfig,
   maxConfig,
-  maxPoolConfig,
   maxPool3DConfig,
-  maxPoolGradConfig,
+  maxPoolConfig,
   maxPoolGrad3DConfig,
+  maxPoolGradConfig,
   maxPoolWithArgmaxConfig,
   meanConfig,
   mirrorPadConfig,
@@ -170,18 +200,28 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV5Config,
   notEqualConfig,
   oneHotConfig,
+  onesLikeConfig,
+  packConfig,
+  padV2Config,
   powConfig,
   preluConfig,
   realConfig,
   realDivConfig,
   reshapeConfig,
+  resizeBilinearConfig,
+  resizeBilinearGradConfig,
+  resizeNearestNeighborConfig,
+  resizeNearestNeighborGradConfig,
   rotateWithOffsetConfig,
+  scatterNdConfig,
   sigmoidConfig,
   signConfig,
   sinConfig,
   sinhConfig,
   sliceConfig,
   softplusConfig,
+  spaceToBatchNDConfig,
+  sparseToDenseConfig,
   squareConfig,
   squaredDifferenceConfig,
   subConfig,
@@ -190,7 +230,8 @@ const kernelConfigs: KernelConfig[] = [
   tanhConfig,
   tileConfig,
   transposeConfig,
-  uniqueConfig
+  uniqueConfig,
+  zerosLikeConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {

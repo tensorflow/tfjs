@@ -161,7 +161,8 @@ export class GraphModel implements InferenceModel {
     // such as `HashTable`.
     this.executor.resourceManager = this.resourceManager;
 
-    if (artifacts.modelInitializer != null) {
+    if (artifacts.modelInitializer != null &&
+        (artifacts.modelInitializer as tensorflow.IGraphDef).node != null) {
       const initializer =
           OperationMapper.Instance.transformGraph(artifacts.modelInitializer);
       this.initializer = new GraphExecutor(initializer);

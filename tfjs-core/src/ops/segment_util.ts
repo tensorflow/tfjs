@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor} from '../tensor';
+import {TensorInfo} from '../kernel_registry';
 import {nearestDivisor} from '../util';
 
 import {PARALLELIZE_THRESHOLD} from './reduce_util';
@@ -72,22 +72,25 @@ export interface GatherOpShapeInfo {
 }
 
 export function collectGatherOpShapeInfo(
-    x: Tensor, indices: Tensor, axis: number,
+    x: TensorInfo, indices: TensorInfo, axis: number,
     batchDims: number): GatherOpShapeInfo {
+  const indicesRank = indices.shape.length;
+  const xRank = x.shape.length;
+
   if (batchDims !== 0) {
-    if (batchDims < -indices.rank || batchDims > indices.rank) {
-      throw new Error(`Expect batchDims in the range of [-${indices.rank}, ${
-          indices.rank}], but got ${batchDims}`);
+    if (batchDims < -indicesRank || batchDims > indicesRank) {
+      throw new Error(`Expect batchDims in the range of [-${indicesRank}, ${
+          indicesRank}], but got ${batchDims}`);
     }
   }
 
   if (batchDims < 0) {
-    batchDims += indices.rank;
+    batchDims += indicesRank;
   }
 
-  if (batchDims > x.rank) {
+  if (batchDims > xRank) {
     throw new Error(`batchDims (${batchDims}) must be less than rank(x) (
-    ${x.rank}).`);
+    ${xRank}).`);
   }
 
   if (axis < batchDims) {
@@ -119,11 +122,11 @@ export function collectGatherOpShapeInfo(
     outerSize *= x.shape[i];
   }
 
-  for (let i = batchDims; i < indices.rank; i++) {
+  for (let i = batchDims; i < indicesRank; i++) {
     outputShape.push(indices.shape[i]);
   }
 
-  for (let i = axis + 1; i < x.rank; i++) {
+  for (let i = axis + 1; i < xRank; i++) {
     outputShape.push(x.shape[i]);
     sliceSize *= x.shape[i];
   }
