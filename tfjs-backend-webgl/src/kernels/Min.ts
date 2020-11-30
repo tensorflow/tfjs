@@ -30,16 +30,18 @@ export function min(
   const {x} = inputs;
   const {axis, keepDims} = attrs;
 
+  const xRank = x.shape.length;
+
   const origAxes = util.parseAxisParam(axis, x.shape);
   let axes = origAxes;
-  const permutedAxes = backend_util.getAxesPermutation(axes, x.shape.length);
+  const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
   let permutedX = x;
   if (permutedAxes != null) {
     permutedX = transpose({inputs: {x}, backend, attrs: {perm: permutedAxes}});
     axes = backend_util.getInnerMostAxes(axes.length, x.shape.length);
   }
 
-  backend_util.assertAxesAreInnerMostDims('min', axes, permutedX.shape.length);
+  backend_util.assertAxesAreInnerMostDims('min', axes, xRank);
   const [outShape, reduceShape] =
       backend_util.computeOutAndReduceShapes(permutedX.shape, axes);
   const inSize = util.sizeFromShape(reduceShape);

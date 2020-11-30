@@ -42,10 +42,10 @@ export function prod(
     axes = backend_util.getInnerMostAxes(axes.length, xRank);
   }
 
-  backend_util.assertAxesAreInnerMostDims('prod', axes, permutedX.shape.length);
+  backend_util.assertAxesAreInnerMostDims('prod', axes, xRank);
 
   if (backend.shouldExecuteOnCPU([permutedX])) {
-    const xVals = backend.texData.get(permutedX.dataId).values as TypedArray;
+    const xVals = backend.texData.get(permutedX.dataId).values;
     const {outVals, outShape, outDtype} =
         prodImplCPU(permutedX.shape, permutedX.dtype, xVals, axes);
     if (permutedAxes != null) {

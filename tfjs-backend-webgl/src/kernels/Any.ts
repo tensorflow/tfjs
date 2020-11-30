@@ -40,7 +40,7 @@ export function any(
     axes = backend_util.getInnerMostAxes(axes.length, xRank);
   }
 
-  backend_util.assertAxesAreInnerMostDims('any', axes, permutedX.shape.length);
+  backend_util.assertAxesAreInnerMostDims('any', axes, xRank);
   const [outShape, reduceShape] =
       backend_util.computeOutAndReduceShapes(permutedX.shape, axes);
   const inSize = util.sizeFromShape(reduceShape);
