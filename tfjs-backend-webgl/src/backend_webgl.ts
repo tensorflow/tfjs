@@ -21,7 +21,7 @@ import './flags_webgl';
 import * as tf from '@tensorflow/tfjs-core';
 import {backend_util, buffer, DataId, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, scalar, ShapeMap, slice_util, tensor, Tensor, Tensor1D, Tensor2D, Tensor3D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
-import {ceilImplCPU, expm1ImplCPU, logImplCPU, maximumImplCPU, minimumImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
+import {ceilImplCPU, expm1ImplCPU, gatherV2ImplCPU, logImplCPU, maximumImplCPU, minimumImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
@@ -786,12 +786,6 @@ export class MathBackendWebGL extends KernelBackend {
 
   gather<T extends Tensor>(
       x: T, indices: Tensor1D, axis: number, batchDims = 0): T {
-    const cpuRes = this.tryRunOnCpuOrThrow(
-        [x, indices],
-        () => this.cpuBackend.gather(x, indices, axis, batchDims));
-    if (cpuRes) {
-      return cpuRes;
-    }
     const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
     const shapeInfo = segment_util.collectGatherOpShapeInfo(
         x, indices, parsedAxis, batchDims);
@@ -806,6 +800,16 @@ export class MathBackendWebGL extends KernelBackend {
       shapeInfo.batchSize, shapeInfo.outerSize,
       indices.size / shapeInfo.batchSize, shapeInfo.sliceSize
     ];
+
+    if (this.shouldExecuteOnCPU([x, indices]) || x.dtype === 'string') {
+      const indicesBuf = this.bufferSync(flattenIndex);
+      const xBuf = this.bufferSync(flattenX);
+      const outBuf = gatherV2ImplCPU(xBuf, indicesBuf, flattenOutputShape);
+
+      return this.makeOutput(
+          shapeInfo.outputShape, outBuf.dtype, outBuf.values as TypedArray);
+    }
+
     const program = new GatherProgram(flattenX.shape, flattenOutputShape);
     const res: Tensor = this.compileAndRun(program, [flattenX, flattenIndex]);
     return res.reshape(shapeInfo.outputShape);
@@ -958,11 +962,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.argMinMaxReduce(x, axis, 'max');
   }
 
-  logicalNot<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.LOGICAL_NOT);
-    return this.compileAndRun(program, [x]);
-  }
-
   select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
     const program = new SelectProgram(condition.rank, a.shape, a.rank);
     return this.compileAndRun(
@@ -1104,24 +1103,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  isNaN<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.IS_NAN);
-    return this.compileAndRun(program, [x], 'bool');
-  }
-  isInf<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.IS_INF);
-    return this.compileAndRun(program, [x], 'bool');
-  }
-  isFinite<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.IS_FINITE);
-    return this.compileAndRun(program, [x], 'bool');
-  }
-
-  round<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ROUND);
-    return this.compileAndRun(program, [x]);
-  }
-
   expm1<T extends Tensor>(x: T): T {
     if (this.shouldExecuteOnCPU([x])) {
       const outValues = expm1ImplCPU(
@@ -1152,11 +1133,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  log1p<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.LOG1P);
-    return this.compileAndRun(program, [x]);
-  }
-
   sqrt<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SQRT);
     return this.compileAndRun(program, [x]);
@@ -1169,11 +1145,6 @@ export class MathBackendWebGL extends KernelBackend {
       return this.makeOutput(x.shape, x.dtype, outValues);
     }
     const program = new UnaryOpProgram(x.shape, unary_op.RSQRT);
-    return this.compileAndRun(program, [x]);
-  }
-
-  reciprocal<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.RECIPROCAL);
     return this.compileAndRun(program, [x]);
   }
 
@@ -1202,11 +1173,6 @@ export class MathBackendWebGL extends KernelBackend {
       return this.packedUnaryOp(x, unary_packed_op.ELU, x.dtype) as T;
     }
     const program = new UnaryOpProgram(x.shape, unary_op.ELU);
-    return this.compileAndRun(program, [x]);
-  }
-
-  selu<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SELU);
     return this.compileAndRun(program, [x]);
   }
 
@@ -1247,11 +1213,6 @@ export class MathBackendWebGL extends KernelBackend {
     ];
 
     return this.compileAndRun<Tensor>(program, inputs) as T;
-  }
-
-  step<T extends Tensor>(x: T, alpha: number): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.STEP(alpha));
-    return this.compileAndRun(program, [x]);
   }
 
   unstack(x: Tensor, axis: number): Tensor[] {
@@ -1667,20 +1628,6 @@ export class MathBackendWebGL extends KernelBackend {
 
   private computeBytes(shape: [number, number], dtype: DataType) {
     return shape[0] * shape[1] * util.bytesPerElement(dtype);
-  }
-
-  private tryRunOnCpuOrThrow<T extends Tensor>(
-      inputs: TensorInfo[], fn: () => T): T|null {
-    if (this.shouldExecuteOnCPU(inputs)) {
-      try {
-        return fn();
-      } catch (e) {
-        if (env().getBool('IS_TEST')) {
-          throw new Error('CPU forwarding failed');
-        }
-      }
-    }
-    return null;
   }
 }
 

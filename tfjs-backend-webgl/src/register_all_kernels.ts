@@ -69,10 +69,15 @@ import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
 import {ifftConfig} from './kernels/IFFT';
 import {imagConfig} from './kernels/Imag';
+import {isFiniteConfig} from './kernels/IsFinite';
+import {isInfConfig} from './kernels/IsInf';
+import {isNaNConfig} from './kernels/IsNaN';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {linSpaceConfig} from './kernels/LinSpace';
+import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
+import {logicalNotConfig} from './kernels/LogicalNot';
 import {logicalOrConfig} from './kernels/LogicalOr';
 import {LRNConfig} from './kernels/LRN';
 import {LRNGradConfig} from './kernels/LRNGrad';
@@ -93,18 +98,22 @@ import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
 import {oneHotConfig} from './kernels/OneHot';
 import {onesLikeConfig} from './kernels/OnesLike';
+import {packConfig} from './kernels/Pack';
 import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
+import {reciprocalConfig} from './kernels/Reciprocal';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {resizeBilinearGradConfig} from './kernels/ResizeBilinearGrad';
 import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
 import {resizeNearestNeighborGradConfig} from './kernels/ResizeNearestNeighborGrad';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
+import {roundConfig} from './kernels/Round';
 import {scatterNdConfig} from './kernels/ScatterNd';
+import {seluConfig} from './kernels/Selu';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
@@ -116,6 +125,7 @@ import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {sparseToDenseConfig} from './kernels/SparseToDense';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {stepConfig} from './kernels/Step';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
@@ -182,10 +192,15 @@ const kernelConfigs: KernelConfig[] = [
   identityConfig,
   ifftConfig,
   imagConfig,
+  isFiniteConfig,
+  isInfConfig,
+  isNaNConfig,
   lessConfig,
   lessEqualConfig,
   linSpaceConfig,
+  log1pConfig,
   logicalAndConfig,
+  logicalNotConfig,
   logicalOrConfig,
   maxConfig,
   maxPool3DConfig,
@@ -204,18 +219,22 @@ const kernelConfigs: KernelConfig[] = [
   notEqualConfig,
   oneHotConfig,
   onesLikeConfig,
+  packConfig,
   padV2Config,
   powConfig,
   preluConfig,
   realConfig,
   realDivConfig,
+  reciprocalConfig,
   reshapeConfig,
   resizeBilinearConfig,
   resizeBilinearGradConfig,
   resizeNearestNeighborConfig,
   resizeNearestNeighborGradConfig,
   rotateWithOffsetConfig,
+  roundConfig,
   scatterNdConfig,
+  seluConfig,
   sigmoidConfig,
   signConfig,
   sinConfig,
@@ -227,6 +246,7 @@ const kernelConfigs: KernelConfig[] = [
   sparseToDenseConfig,
   squareConfig,
   squaredDifferenceConfig,
+  stepConfig,
   subConfig,
   sumConfig,
   tanConfig,

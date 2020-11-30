@@ -590,6 +590,12 @@ export interface OneHotAttrs {
   offValue: number;
 }
 
+export const Pack = 'Pack';
+export type PackInputs = TensorInfo[];
+export interface PackAttrs {
+  axis: number;
+}
+
 export const PadV2 = 'PadV2';
 export type PadV2Inputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface PadV2Attrs {
