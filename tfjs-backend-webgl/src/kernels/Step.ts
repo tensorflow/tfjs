@@ -15,27 +15,24 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, Step, StepAttrs} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Step, StepAttrs, TensorInfo, UnaryInputs} from '@tensorflow/tfjs-core';
 
-import {OpGenerator, unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {CHECK_NAN_SNIPPET} from '../unaryop_gpu';
+import {MathBackendWebGL} from '../backend_webgl';
+import {CHECK_NAN_SNIPPET, UnaryOpProgram} from '../unaryop_gpu';
 
-export function STEP(attrs: StepAttrs) {
-  let alpha = 0.0;
-  if (attrs.alpha !== undefined) {
-    if (typeof attrs.alpha !== 'number') {
-      throw new Error('Expected \'alpha\' to be a number');
-    }
-
-    alpha = attrs.alpha;
-  }
-
-  return CHECK_NAN_SNIPPET + `
-    return x > 0.0 ? 1.0 : float(${alpha});
+export function step(
+    {inputs, attrs, backend}:
+        {inputs: UnaryInputs, attrs: StepAttrs, backend: MathBackendWebGL}):
+    TensorInfo {
+  const {x} = inputs;
+  const opSnippet = CHECK_NAN_SNIPPET + `
+    return x > 0.0 ? 1.0 : float(${attrs.alpha});
   `;
-}
 
-const step = unaryKernelFunc({opSnippet: STEP as {} as OpGenerator});
+  const program = new UnaryOpProgram(x.shape, opSnippet);
+
+  return backend.runWebGLProgram(program, [x], x.dtype);
+}
 
 export const stepConfig: KernelConfig = {
   kernelName: Step,

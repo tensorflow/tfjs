@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, BinaryInputs, DataType, env, KernelFunc, NamedAttrMap, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
+import {backend_util, BinaryInputs, DataType, env, KernelFunc, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {BinaryOpProgram} from '../binaryop_gpu';
@@ -43,11 +43,9 @@ export const CHECK_NAN_SNIPPET_BINARY_PACKED = `
   result.a = isNaN.a > 0. ? NAN : result.a;
 `;
 
-export type OpGenerator = (attrs?: NamedAttrMap) => string;
-
 type UnaryKernelFuncConfig = {
-  opSnippet: string|OpGenerator,
-  packedOpSnippet?: string|OpGenerator,
+  opSnippet: string,
+  packedOpSnippet?: string,
   cpuKernelImpl?: SimpleUnaryKernelImplCPU,
   dtype?: DataType
 };
@@ -63,7 +61,7 @@ type UnaryKernelFuncConfig = {
 export function unaryKernelFunc(
     {opSnippet, packedOpSnippet, cpuKernelImpl, dtype}: UnaryKernelFuncConfig):
     KernelFunc {
-  return ({inputs, attrs, backend}) => {
+  return ({inputs, backend}) => {
     const {x} = inputs as UnaryInputs;
     const webglBackend = backend as MathBackendWebGL;
 
@@ -82,16 +80,9 @@ export function unaryKernelFunc(
         env().getBool('WEBGL_PACK_UNARY_OPERATIONS') && packedOpSnippet != null;
     let program: UnaryOpProgram|UnaryOpPackedProgram;
     if (shouldUsePackedProgram) {
-      const snippet = typeof packedOpSnippet === 'string' ?
-          packedOpSnippet :
-          packedOpSnippet(attrs);
-
-      program = new UnaryOpPackedProgram(x.shape, snippet);
+      program = new UnaryOpPackedProgram(x.shape, packedOpSnippet);
     } else {
-      const snippet =
-          typeof opSnippet === 'string' ? opSnippet : opSnippet(attrs);
-
-      program = new UnaryOpProgram(x.shape, snippet);
+      program = new UnaryOpProgram(x.shape, opSnippet);
     }
 
     return webglBackend.runWebGLProgram(program, [x], $dtype);
