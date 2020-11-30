@@ -54,10 +54,8 @@ import {reshape} from './reshape';
  *     If it is greater than 1, then all values of `strides` must be 1.
  * @param pad A string from: 'same', 'valid'. The type of padding algorithm
  *     used in the forward prop of the op.
- * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
- *     rounding mode used when computing output dimensions if pad is a
- *     number. If none is provided, it will not round and error if the output
- *     is of fractional size.
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
  */
 function maxPool3dGrad_<T extends Tensor4D|Tensor5D>(
     dy: T|TensorLike, input: T|TensorLike, output: T|TensorLike,
