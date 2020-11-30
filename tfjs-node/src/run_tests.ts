@@ -81,7 +81,11 @@ const IGNORE_LIST: string[] = [
   'conv2d test-tensorflow {} gradient x=[2,1,3,3] f=[2,2,1,1] s=1 p=0 NCHW',
   'maxPoolWithArgmax', 'rotate', 'flipLeftRight', 'unique',
   // libtensorflow does not yet support tf.matmul with broadcast
-  'broadcast with unequal batch dims', 'broadcast with unequal ranks'
+  'broadcast with unequal batch dims', 'broadcast with unequal ranks',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} max x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} avg x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding'
 ];
 
 if (process.platform === 'win32') {
