@@ -15,22 +15,22 @@
  * =============================================================================
  */
 
-import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, Selu} from '@tensorflow/tfjs-core';
 
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {subImplCPU as cpuSub} from '../kernel_utils/shared';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-const SUB = 'return a - b;';
+const SELU = `
+  // Stable and Attracting Fixed Point (0, 1) for Normalized Weights.
+  // see: https://arxiv.org/abs/1706.02515
+  float scaleAlpha = ${backend_util.SELU_SCALEALPHA};
+  float scale = ${backend_util.SELU_SCALE};
+  return (x >= 0.0) ? scale * x : scaleAlpha * (exp(x) - 1.0);
+`;
 
-export const sub = binaryKernelFunc({
-  opSnippet: SUB,
-  packedOpSnippet: SUB,
-  supportsComplex: true,
-  cpuKernelImpl: cpuSub
-});
+export const selu = unaryKernelFunc({opSnippet: SELU});
 
-export const subConfig: KernelConfig = {
-  kernelName: Sub,
+export const seluConfig: KernelConfig = {
+  kernelName: Selu,
   backendName: 'webgl',
-  kernelFunc: sub
+  kernelFunc: selu,
 };

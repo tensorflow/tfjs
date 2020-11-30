@@ -55,6 +55,7 @@ import {diagConfig} from './kernels/Diag';
 import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
+import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
 import {fftConfig} from './kernels/FFT';
 import {fillConfig} from './kernels/Fill';
@@ -70,9 +71,15 @@ import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
 import {ifftConfig} from './kernels/IFFT';
 import {imagConfig} from './kernels/Imag';
+import {isFiniteConfig} from './kernels/IsFinite';
+import {isInfConfig} from './kernels/IsInf';
+import {isNaNConfig} from './kernels/IsNaN';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
+import {linSpaceConfig} from './kernels/LinSpace';
+import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
+import {logicalNotConfig} from './kernels/LogicalNot';
 import {logicalOrConfig} from './kernels/LogicalOr';
 import {LRNConfig} from './kernels/LRN';
 import {LRNGradConfig} from './kernels/LRNGrad';
@@ -88,6 +95,7 @@ import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
 import {mirrorPadConfig} from './kernels/MirrorPad';
 import {modConfig} from './kernels/Mod';
+import {multinomialConfig} from './kernels/Multinomial';
 import {multiplyConfig} from './kernels/Multiply';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
@@ -102,23 +110,28 @@ import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
+import {reciprocalConfig} from './kernels/Reciprocal';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {resizeBilinearGradConfig} from './kernels/ResizeBilinearGrad';
 import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
 import {resizeNearestNeighborGradConfig} from './kernels/ResizeNearestNeighborGrad';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
+import {roundConfig} from './kernels/Round';
 import {scatterNdConfig} from './kernels/ScatterNd';
+import {seluConfig} from './kernels/Selu';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {signConfig} from './kernels/Sign';
 import {sinConfig} from './kernels/Sin';
 import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
+import {softmaxConfig} from './kernels/Softmax';
 import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {sparseToDenseConfig} from './kernels/SparseToDense';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {stepConfig} from './kernels/Step';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
@@ -174,6 +187,7 @@ const kernelConfigs: KernelConfig[] = [
   eluGradConfig,
   equalConfig,
   erfConfig,
+  expConfig,
   expandDimsConfig,
   fftConfig,
   fillConfig,
@@ -189,9 +203,15 @@ const kernelConfigs: KernelConfig[] = [
   identityConfig,
   ifftConfig,
   imagConfig,
+  isFiniteConfig,
+  isInfConfig,
+  isNaNConfig,
   lessConfig,
   lessEqualConfig,
+  linSpaceConfig,
+  log1pConfig,
   logicalAndConfig,
+  logicalNotConfig,
   logicalOrConfig,
   maxConfig,
   maxPool3DConfig,
@@ -205,6 +225,7 @@ const kernelConfigs: KernelConfig[] = [
   minimumConfig,
   mirrorPadConfig,
   modConfig,
+  multinomialConfig,
   multiplyConfig,
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV4Config,
@@ -219,23 +240,28 @@ const kernelConfigs: KernelConfig[] = [
   prodConfig,
   realConfig,
   realDivConfig,
+  reciprocalConfig,
   reshapeConfig,
   resizeBilinearConfig,
   resizeBilinearGradConfig,
   resizeNearestNeighborConfig,
   resizeNearestNeighborGradConfig,
   rotateWithOffsetConfig,
+  roundConfig,
   scatterNdConfig,
+  seluConfig,
   sigmoidConfig,
   signConfig,
   sinConfig,
   sinhConfig,
   sliceConfig,
+  softmaxConfig,
   softplusConfig,
   spaceToBatchNDConfig,
   sparseToDenseConfig,
   squareConfig,
   squaredDifferenceConfig,
+  stepConfig,
   subConfig,
   sumConfig,
   tanConfig,

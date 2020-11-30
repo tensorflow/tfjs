@@ -15,22 +15,15 @@
  * =============================================================================
  */
 
-import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
+import {KernelConfig, Reciprocal} from '@tensorflow/tfjs-core';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {subImplCPU as cpuSub} from '../kernel_utils/shared';
+const RECIPROCAL = `return 1.0 / x;`;
 
-const SUB = 'return a - b;';
+export const reciprocal = unaryKernelFunc({opSnippet: RECIPROCAL});
 
-export const sub = binaryKernelFunc({
-  opSnippet: SUB,
-  packedOpSnippet: SUB,
-  supportsComplex: true,
-  cpuKernelImpl: cpuSub
-});
-
-export const subConfig: KernelConfig = {
-  kernelName: Sub,
+export const reciprocalConfig: KernelConfig = {
+  kernelName: Reciprocal,
   backendName: 'webgl',
-  kernelFunc: sub
+  kernelFunc: reciprocal,
 };

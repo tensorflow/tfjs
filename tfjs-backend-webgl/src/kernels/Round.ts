@@ -15,22 +15,30 @@
  * =============================================================================
  */
 
-import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
+import {KernelConfig, Round} from '@tensorflow/tfjs-core';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {subImplCPU as cpuSub} from '../kernel_utils/shared';
+const ROUND = `
+  // OpenGL ES does not support round function.
+  // The algorithm is based on banker's rounding.
+  float base = floor(x);
+  if ((x - base) < 0.5) {
+    return floor(x);
+  } else if ((x - base) > 0.5) {
+    return ceil(x);
+  } else {
+    if (mod(base, 2.0) == 0.0) {
+      return base;
+    } else {
+      return base + 1.0;
+    }
+  }
+`;
 
-const SUB = 'return a - b;';
+export const round = unaryKernelFunc({opSnippet: ROUND});
 
-export const sub = binaryKernelFunc({
-  opSnippet: SUB,
-  packedOpSnippet: SUB,
-  supportsComplex: true,
-  cpuKernelImpl: cpuSub
-});
-
-export const subConfig: KernelConfig = {
-  kernelName: Sub,
+export const roundConfig: KernelConfig = {
+  kernelName: Round,
   backendName: 'webgl',
-  kernelFunc: sub
+  kernelFunc: round,
 };

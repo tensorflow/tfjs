@@ -15,22 +15,15 @@
  * =============================================================================
  */
 
-import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
+import {IsFinite, KernelConfig} from '@tensorflow/tfjs-core';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {subImplCPU as cpuSub} from '../kernel_utils/shared';
+const IS_FINITE = `return float(!isnan(x) && !isinf(x));`;
 
-const SUB = 'return a - b;';
+export const isFinite = unaryKernelFunc({opSnippet: IS_FINITE, dtype: 'bool'});
 
-export const sub = binaryKernelFunc({
-  opSnippet: SUB,
-  packedOpSnippet: SUB,
-  supportsComplex: true,
-  cpuKernelImpl: cpuSub
-});
-
-export const subConfig: KernelConfig = {
-  kernelName: Sub,
+export const isFiniteConfig: KernelConfig = {
+  kernelName: IsFinite,
   backendName: 'webgl',
-  kernelFunc: sub
+  kernelFunc: isFinite,
 };
