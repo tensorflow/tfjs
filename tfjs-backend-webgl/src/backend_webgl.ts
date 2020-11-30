@@ -48,7 +48,6 @@ import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
 import {MatMulPackedProgram} from './mulmat_packed_gpu';
 import {MultinomialProgram} from './multinomial_gpu';
 import {PackProgram} from './pack_gpu';
-import {ReduceProgram} from './reduce_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
 import {ReverseProgram} from './reverse_gpu';
 import {ReversePackedProgram} from './reverse_packed_gpu';
@@ -808,23 +807,6 @@ export class MathBackendWebGL extends KernelBackend {
     return res.reshape(shapeInfo.outputShape);
   }
 
-  private reduce(
-      x: Tensor2D, reduceType: 'all'|'any'|'max'|'min'|'sum'|'prod',
-      dtype: DataType): Tensor2D {
-    const batchSize = x.shape[0];
-    const inSize = x.shape[1];
-    const windowSize = backend_util.computeOptimalWindowSize(inSize);
-    const outSize = Math.ceil(inSize / windowSize);
-    const reduceInfo = {windowSize, inSize, batchSize, outSize};
-    const program = new ReduceProgram(reduceInfo, reduceType);
-    const output = this.compileAndRun<Tensor2D>(program, [x], dtype);
-    // No need to run another GPGPU program.
-    if (output.shape[1] === 1) {
-      return output;
-    }
-    return this.reduce(output, reduceType, dtype);
-  }
-
   private argReduce(
       x: Tensor2D, reduceType: 'max'|'min',
       bestIndicesA: Tensor2D = null): Tensor2D {
@@ -968,15 +950,6 @@ export class MathBackendWebGL extends KernelBackend {
       this.makeOutput(
           allTopKIndices.shape, allTopKIndices.dtype, allTopKIndices.values)
     ];
-  }
-
-  min(x: Tensor, axes: number[]): Tensor {
-    backend_util.assertAxesAreInnerMostDims('min', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, inSize);
-    return this.reduce(a2D, 'min', a2D.dtype).reshape(outShape);
   }
 
   private packedUnaryOp(x: TensorInfo, op: string, dtype: DataType) {
