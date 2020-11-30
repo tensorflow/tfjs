@@ -42,10 +42,8 @@ import {reshape} from './reshape';
  *     "NHWC". Specify the data format of the input and output data. With the
  *     default format "NHWC", the data is stored in the order of: [batch,
  *     height, width, channels].
- * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
- *     rounding mode used when computing output dimensions if pad is a
- *     number. If none is provided, it will not round and error if the output
- *     is of fractional size.
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
  */
 function conv2DBackpropFilter_<T extends Tensor3D|Tensor4D>(
     x: T, dy: T, filterShape: [number, number, number, number],

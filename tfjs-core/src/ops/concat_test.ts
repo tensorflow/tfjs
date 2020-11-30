@@ -578,3 +578,17 @@ describeWithFlags('concat throws for non-tensors', ALL_ENVS, () => {
     expectArraysClose(await values.data(), [1, 2, 3, 4, 4, 5, 6, 7]);
   });
 });
+
+describeWithFlags('memory test', ALL_ENVS, () => {
+  it('returns a new tensor when op is effectively a no-op.', async () => {
+    const a = tf.tensor1d([]);
+    const b = tf.tensor1d([3]);
+
+    const result = tf.concat([a, b]);
+
+    a.dispose();
+    b.dispose();
+
+    expectArraysClose(await result.data(), [3]);
+  });
+});

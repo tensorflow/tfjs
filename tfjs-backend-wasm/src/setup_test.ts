@@ -380,7 +380,8 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {include: 'prod'},
   {include: 'floor'},
-  {include: 'expandDims'}
+  {include: 'expandDims'},
+  {include: 'stack'}
 ];
 
 const customInclude = (testName: string) => {

@@ -67,9 +67,12 @@ module.exports = function(config) {
     karmaTypescriptConfig,
     reporters: ['progress', 'karma-typescript'],
     browsers: ['Chrome'],
+    port: 9836,
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
-      accessKey: process.env.BROWSERSTACK_KEY
+      accessKey: process.env.BROWSERSTACK_KEY,
+      tunnelIdentifier:
+          `tfjs_vis_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     },
     captureTimeout: 120000,
     reportSlowerThan: 500,

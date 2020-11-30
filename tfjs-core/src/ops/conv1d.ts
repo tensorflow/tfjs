@@ -47,9 +47,8 @@ import {reshape} from './reshape';
  * @param dilation The dilation rate in which we sample input values in
  *     atrous convolution. Defaults to `1`. If it is greater than 1, then
  *     stride must be `1`.
- * @param dimRoundingMode The rounding mode used when computing output
- *     dimensions if pad is a number. If none is provided, it will not round
- *     and error if the output is of fractional size.
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
  *
  * @doc {heading: 'Operations', subheading: 'Convolution'}
  */

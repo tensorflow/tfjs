@@ -43,10 +43,8 @@ import {op} from './operation';
  *     `strides` is a single number, then `strideHeight == strideWidth`.
  * @param pad A string from: 'same', 'valid'. The type of padding algorithm
  *     used in the forward prop of the op.
- * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
- *     rounding mode used when computing output dimensions if pad is a
- *     number. If none is provided, it will not round and error if the output
- *     is of fractional size.
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
  */
 function maxPoolGrad_(
     dy: Tensor4D|TensorLike, input: Tensor4D|TensorLike,
