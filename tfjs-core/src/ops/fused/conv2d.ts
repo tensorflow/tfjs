@@ -90,6 +90,8 @@ import {reshape} from '../reshape';
  *      after biasAdd.
  * @param preluActivationWeights Tensor of prelu weights to be applied as part
  *     of a `prelu` activation, typically the same shape as `x`.
+ * @param leakyreluAlpha Optional. Alpha to be applied as part of a `leakyrelu`
+ *     activation.
  */
 function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   x,

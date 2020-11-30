@@ -28,8 +28,15 @@ export const fusedConv2DConfig: KernelConfig = {
     const {x, filter, bias, preluActivationWeights} =
         args.inputs as FusedConv2DInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {strides, pad, dataFormat, dilations, dimRoundingMode, activation} =
-        args.attrs as {} as FusedConv2DAttrs;
+    const {
+      strides,
+      pad,
+      dataFormat,
+      dilations,
+      dimRoundingMode,
+      activation,
+      leakyreluAlpha
+    } = args.attrs as {} as FusedConv2DAttrs;
 
     const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
     const convInfo = backend_util.computeConv2DInfo(
@@ -47,7 +54,7 @@ export const fusedConv2DConfig: KernelConfig = {
 
     const temp = result;
     result = backend.applyActivation(
-        result, activation, preluActivationWeights as Tensor);
+        result, activation, preluActivationWeights as Tensor, leakyreluAlpha);
     if (temp !== result) {
       toDispose.push(temp);
     }

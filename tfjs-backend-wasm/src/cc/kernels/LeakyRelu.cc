@@ -1,4 +1,4 @@
-/* Copyright 2020 Google LLC. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,23 +12,34 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef BATCH_MAT_MUL_IMPL_H_
-#define BATCH_MAT_MUL_IMPL_H_
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
+#include "src/cc/kernels/LeakyRelu.h"
 
 #include <cstddef>
 
+#include "src/cc/backend.h"
+#include "src/cc/leakyrelu_impl.h"
+#include "src/cc/util.h"
+
 namespace tfjs {
 namespace wasm {
+// We use C-style API to interface with Javascript.
+extern "C" {
 
-void fused_batch_mat_mul(const size_t a_id, const size_t* a_shape_ptr,
-                         const size_t a_shape_len, const size_t b_id,
-                         const size_t* b_shape_ptr, const size_t b_shape_len,
-                         const bool transpose_a, const bool transpose_b,
-                         const FusableActivation activation,
-                         const size_t bias_id, const size_t prelu_weights_id,
-                         const float leakyrelu_alpha, const size_t out_id);
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif
+void LeakyRelu(const size_t x_id, const float leakyrelu_alpha,
+               const size_t out_id) {
+  auto& x_info = backend::get_tensor_info(x_id);
+  const float* x_buf = x_info.f32();
 
+  tfjs::wasm::leakyrelu(x_buf, x_info.size, leakyrelu_alpha, out_id);
+}
+
+}  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs
-
-#endif  // BATCH_MAT_MUL_IMPL_H_

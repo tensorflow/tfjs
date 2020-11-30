@@ -85,6 +85,8 @@ import {reshape} from '../reshape';
  * @param activation Name of activation kernel (defaults to `linear`).
  * @param preluActivationWeights Tensor of prelu weights to be applied as part
  *     of a `prelu` activation, typically the same shape as `x`.
+ * @param leakyreluAlpha Optional. Alpha to be applied as part of a `leakyrelu`
+ *     activation.
  */
 function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   x,
@@ -177,11 +179,6 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
     $preluActivationWeights = convertToTensor(
         preluActivationWeights, 'prelu weights', 'fused depthwiseConv2d');
   }
-  let $leakyreluAlpha: Tensor;
-  if (leakyreluAlpha != null) {
-    $leakyreluAlpha =
-        convertToTensor(leakyreluAlpha, 'leakyrelu alpha', 'fused conv2d');
-  }
 
   const grad = (dy: Tensor4D, saved: Tensor[]) => {
     util.assert(
@@ -214,8 +211,7 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
       convInfo,
       bias: $bias,
       activation,
-      preluActivationWeights: $preluActivationWeights,
-      leakyreluAlpha: $leakyreluAlpha
+      preluActivationWeights: $preluActivationWeights
     });
     return res;
   };
@@ -224,11 +220,17 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
     x: x4D,
     filter: $filter,
     bias: $bias,
-    preluActivationWeights: $preluActivationWeights,
-    leakyreluAlpha: $leakyreluAlpha
+    preluActivationWeights: $preluActivationWeights
   };
-  const attrs: FusedDepthwiseConv2DAttrs =
-      {strides, pad, dataFormat, dilations, dimRoundingMode, activation};
+  const attrs: FusedDepthwiseConv2DAttrs = {
+    strides,
+    pad,
+    dataFormat,
+    dilations,
+    dimRoundingMode,
+    activation,
+    leakyreluAlpha
+  };
 
   // Depending on the the params passed in we will have different number of
   // inputs and thus a a different number of elements in the gradient.

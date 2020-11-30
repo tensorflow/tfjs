@@ -53,6 +53,7 @@ import {reshape} from '../reshape';
  * - `bias` Matrix to be added to the result.
  * - `activation` Name of activation kernel (defaults to `linear`).
  * - `preluActivationWeights` Tensor of prelu weights.
+ * - `leakyreluAlpha` Alpha of leakyrelu.
  */
 function fusedMatMul_<T extends Tensor>({
   a,

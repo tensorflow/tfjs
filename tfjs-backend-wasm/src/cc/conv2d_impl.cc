@@ -30,6 +30,7 @@
 #include <vector>
 
 #include "src/cc/backend.h"
+#include "src/cc/leakyrelu_impl.h"
 #include "src/cc/prelu_impl.h"
 #include "src/cc/transpose_impl.h"
 #include "src/cc/util.h"
@@ -118,7 +119,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
             const size_t stride_width, const size_t input_channels,
             const size_t output_channels, const bool is_depthwise,
             const FusableActivation activation, const size_t prelu_weights_id,
-            const size_t leaky_relu_alpha_id, const size_t out_id) {
+            const float leakyrelu_alpha, const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& filter_info = backend::get_tensor_info(filter_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
@@ -138,7 +139,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
     out_buf = intermediate_output.data();
   }
 
-  if (leaky_relu_alpha_id != 0) {
+  if (activation == FusableActivation::LEAKYRELU) {
     intermediate_output.resize(out_info.size);
     out_buf = intermediate_output.data();
   }
@@ -281,7 +282,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
     prelu(out_buf, out_info.size, prelu_weights_id, out_id);
   }
   if (activation == FusableActivation::LEAKYRELU) {
-    leakyrelu(out_buf, out_info.size, leaky_relu_alpha_id, out_id);
+    leakyrelu(out_buf, out_info.size, leakyrelu_alpha, out_id);
   }
 }
 
