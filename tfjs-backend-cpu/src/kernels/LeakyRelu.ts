@@ -33,7 +33,7 @@ export function leakyRelu(args: {
 
   const xSize = util.sizeFromShape(x.shape);
   const xVals = backend.data.get(x.dataId).values as TypedArray;
-  const outVals = util.makeZerosTypedArray(xSize, 'float32');
+  const outVals = util.getTypedArrayFromDType('float32', xSize);
 
   for (let i = 0; i < xVals.length; i++) {
     outVals[i] = xVals[i] < 0 ? alpha * xVals[i] : xVals[i];
