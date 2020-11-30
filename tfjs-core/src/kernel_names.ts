@@ -327,6 +327,12 @@ export type EqualInputs = BinaryInputs;
 export const Exp = 'Exp';
 export type ExpInputs = UnaryInputs;
 
+export const ExpandDims = 'ExpandDims';
+export type ExpandDimsInputs = Pick<NamedTensorInfoMap, 'input'>;
+export interface ExpandDimsAttrs {
+  dim: number;
+}
+
 export const Expm1 = 'Expm1';
 export type Expm1Inputs = UnaryInputs;
 
@@ -584,6 +590,12 @@ export interface OneHotAttrs {
   offValue: number;
 }
 
+export const Pack = 'Pack';
+export type PackInputs = TensorInfo[];
+export interface PackAttrs {
+  axis: number;
+}
+
 export const PadV2 = 'PadV2';
 export type PadV2Inputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface PadV2Attrs {
@@ -634,6 +646,7 @@ export const ResizeNearestNeighbor = 'ResizeNearestNeighbor';
 export type ResizeNearestNeighborInputs = Pick<NamedTensorInfoMap, 'images'>;
 export interface ResizeNearestNeighborAttrs {
   alignCorners: boolean;
+  halfPixelCenters: boolean;
   size: [number, number];
 }
 

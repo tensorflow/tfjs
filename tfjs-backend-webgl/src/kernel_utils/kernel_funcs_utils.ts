@@ -18,11 +18,10 @@
 import {backend_util, BinaryInputs, DataType, env, KernelFunc, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import * as binaryop_gpu from '../binaryop_gpu';
 import {BinaryOpProgram} from '../binaryop_gpu';
-import * as binaryop_packed_gpu from '../binaryop_packed_gpu';
 import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 import {complex} from '../kernels/Complex';
+import {PRELU, PRELU_PACKED} from '../kernels/Prelu';
 import * as unary_op from '../unaryop_gpu';
 import {UnaryOpProgram} from '../unaryop_gpu';
 import * as unary_packed_op from '../unaryop_packed_gpu';
@@ -211,9 +210,9 @@ export function mapActivationToShaderProgram(
     return unary_op.RELU6;
   } else if (activation === 'prelu') {
     if (packed) {
-      return binaryop_packed_gpu.PRELU;
+      return PRELU_PACKED;
     }
-    return binaryop_gpu.PRELU;
+    return PRELU;
   }
   throw new Error(`Activation ${
       activation} has not been implemented for the WebGL backend.`);

@@ -79,9 +79,8 @@ import {reshape} from '../reshape';
  *     "NHWC". Specify the data format of the input and output data. With the
  *     default format "NHWC", the data is stored in the order of: [batch,
  *     height, width, channels]. Only "NHWC" is currently supported.
- * @param dimRoundingMode The rounding mode used when computing output
- *     dimensions if pad is a number. If none is provided, it will not round
- *     and error if the output is of fractional size.
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
  * @param bias Tensor to be added to the result.
  * @param activation Name of activation kernel (defaults to `linear`).
  * @param preluActivationWeights Tensor of prelu weights to be applied as part
