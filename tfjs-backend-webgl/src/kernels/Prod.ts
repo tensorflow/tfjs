@@ -44,7 +44,7 @@ export function prod(
 
   backend_util.assertAxesAreInnerMostDims('prod', axes, permutedX.shape.length);
 
-  if (backend.shouldExecuteOnCPU([x])) {
+  if (backend.shouldExecuteOnCPU([permutedX])) {
     const xVals = backend.texData.get(permutedX.dataId).values as TypedArray;
     const {outVals, outShape, outDtype} =
         prodImplCPU(permutedX.shape, permutedX.dtype, xVals, axes);
