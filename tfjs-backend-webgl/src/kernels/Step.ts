@@ -15,11 +15,12 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, NamedAttrMap, Step} from '@tensorflow/tfjs-core';
-import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {KernelConfig, KernelFunc, Step, StepAttrs} from '@tensorflow/tfjs-core';
+
+import {OpGenerator, unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {CHECK_NAN_SNIPPET} from '../unaryop_gpu';
 
-export function STEP(attrs: NamedAttrMap) {
+export function STEP(attrs: StepAttrs) {
   let alpha = 0.0;
   if (attrs.alpha !== undefined) {
     if (typeof attrs.alpha !== 'number') {
@@ -34,7 +35,7 @@ export function STEP(attrs: NamedAttrMap) {
   `;
 }
 
-const step = unaryKernelFunc({opSnippet: STEP});
+const step = unaryKernelFunc({opSnippet: STEP as {} as OpGenerator});
 
 export const stepConfig: KernelConfig = {
   kernelName: Step,

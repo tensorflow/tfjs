@@ -43,7 +43,7 @@ export const CHECK_NAN_SNIPPET_BINARY_PACKED = `
   result.a = isNaN.a > 0. ? NAN : result.a;
 `;
 
-type OpGenerator = (attrs?: NamedAttrMap) => string;
+export type OpGenerator = (attrs?: NamedAttrMap) => string;
 
 type UnaryKernelFuncConfig = {
   opSnippet: string|OpGenerator,
