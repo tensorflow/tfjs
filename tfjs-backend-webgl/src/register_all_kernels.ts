@@ -20,6 +20,8 @@ import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {acosConfig} from './kernels/Acos';
 import {acoshConfig} from './kernels/Acosh';
 import {addConfig} from './kernels/Add';
+import {allConfig} from './kernels/All';
+import {anyConfig} from './kernels/Any';
 import {asinConfig} from './kernels/Asin';
 import {asinhConfig} from './kernels/Asinh';
 import {atanConfig} from './kernels/Atan';
@@ -82,12 +84,15 @@ import {logicalOrConfig} from './kernels/LogicalOr';
 import {LRNConfig} from './kernels/LRN';
 import {LRNGradConfig} from './kernels/LRNGrad';
 import {maxConfig} from './kernels/Max';
+import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
 import {maxPool3DConfig} from './kernels/MaxPool3D';
 import {maxPoolGrad3DConfig} from './kernels/MaxPool3DGrad';
 import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
 import {maxPoolWithArgmaxConfig} from './kernels/MaxPoolWithArgmax';
 import {meanConfig} from './kernels/Mean';
+import {minConfig} from './kernels/Min';
+import {minimumConfig} from './kernels/Minimum';
 import {mirrorPadConfig} from './kernels/MirrorPad';
 import {modConfig} from './kernels/Mod';
 import {multinomialConfig} from './kernels/Multinomial';
@@ -102,6 +107,7 @@ import {packConfig} from './kernels/Pack';
 import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
+import {prodConfig} from './kernels/Prod';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reciprocalConfig} from './kernels/Reciprocal';
@@ -143,6 +149,8 @@ const kernelConfigs: KernelConfig[] = [
   acosConfig,
   acoshConfig,
   addConfig,
+  allConfig,
+  anyConfig,
   asinConfig,
   asinhConfig,
   atan2Config,
@@ -170,7 +178,10 @@ const kernelConfigs: KernelConfig[] = [
   cumsumConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeBackpropFilterConfig,
+  depthwiseConv2dNativeBackpropFilterConfig,
   depthwiseConv2dNativeBackpropInputConfig,
+  depthwiseConv2dNativeBackpropInputConfig,
+  depthwiseConv2dNativeConfig,
   depthwiseConv2dNativeConfig,
   diagConfig,
   eluGradConfig,
@@ -208,7 +219,10 @@ const kernelConfigs: KernelConfig[] = [
   maxPoolGrad3DConfig,
   maxPoolGradConfig,
   maxPoolWithArgmaxConfig,
+  maximumConfig,
   meanConfig,
+  minConfig,
+  minimumConfig,
   mirrorPadConfig,
   modConfig,
   multinomialConfig,
@@ -223,6 +237,7 @@ const kernelConfigs: KernelConfig[] = [
   padV2Config,
   powConfig,
   preluConfig,
+  prodConfig,
   realConfig,
   realDivConfig,
   reciprocalConfig,

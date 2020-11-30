@@ -21,7 +21,7 @@ import './flags_webgl';
 import * as tf from '@tensorflow/tfjs-core';
 import {backend_util, buffer, DataId, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, scalar, ShapeMap, slice_util, tensor, Tensor, Tensor1D, Tensor2D, Tensor3D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
-import {ceilImplCPU, expm1ImplCPU, gatherV2ImplCPU, logImplCPU, maximumImplCPU, minimumImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
+import {ceilImplCPU, expm1ImplCPU, gatherV2ImplCPU, logImplCPU, negImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
@@ -31,10 +31,6 @@ import {AddNProgram} from './addn_gpu';
 import {AddNPackedProgram} from './addn_packed_gpu';
 import {ArgMinMaxProgram} from './argminmax_gpu';
 import {ArgMinMaxPackedProgram} from './argminmax_packed_gpu';
-import * as binaryop_gpu from './binaryop_gpu';
-import {BinaryOpProgram} from './binaryop_gpu';
-import * as binaryop_packed_gpu from './binaryop_packed_gpu';
-import {BinaryOpPackedProgram} from './binaryop_packed_gpu';
 import {getWebGLContext} from './canvas_util';
 import {ClipProgram} from './clip_gpu';
 import {ClipPackedProgram} from './clip_packed_gpu';
@@ -51,7 +47,6 @@ import * as gpgpu_math from './gpgpu_math';
 import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
 import {MatMulPackedProgram} from './mulmat_packed_gpu';
 import {PackProgram} from './pack_gpu';
-import {ReduceProgram} from './reduce_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
 import {ReverseProgram} from './reverse_gpu';
 import {ReversePackedProgram} from './reverse_packed_gpu';
@@ -815,23 +810,6 @@ export class MathBackendWebGL extends KernelBackend {
     return res.reshape(shapeInfo.outputShape);
   }
 
-  private reduce(
-      x: Tensor2D, reduceType: 'all'|'any'|'max'|'min'|'sum'|'prod',
-      dtype: DataType): Tensor2D {
-    const batchSize = x.shape[0];
-    const inSize = x.shape[1];
-    const windowSize = backend_util.computeOptimalWindowSize(inSize);
-    const outSize = Math.ceil(inSize / windowSize);
-    const reduceInfo = {windowSize, inSize, batchSize, outSize};
-    const program = new ReduceProgram(reduceInfo, reduceType);
-    const output = this.compileAndRun<Tensor2D>(program, [x], dtype);
-    // No need to run another GPGPU program.
-    if (output.shape[1] === 1) {
-      return output;
-    }
-    return this.reduce(output, reduceType, dtype);
-  }
-
   private argReduce(
       x: Tensor2D, reduceType: 'max'|'min',
       bestIndicesA: Tensor2D = null): Tensor2D {
@@ -875,22 +853,6 @@ export class MathBackendWebGL extends KernelBackend {
       return this.argReducePacked(x, reduceType, output);
     }
     return output;
-  }
-
-  prod(x: Tensor, axes: number[]): Tensor {
-    if (this.shouldExecuteOnCPU([x])) {
-      const xVals = this.texData.get(x.dataId).values as TypedArray;
-      const {outVals, outShape, outDtype} =
-          prodImplCPU(x.shape, x.dtype, xVals, axes);
-      return this.makeOutput(outShape, outDtype, outVals);
-    }
-
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, inSize);
-    const outputDType = tf.sumOutType(x.dtype);
-    return this.reduce(a2D, 'prod', outputDType).reshape(outShape);
   }
 
   unsortedSegmentSum<T extends Tensor>(
@@ -986,65 +948,6 @@ export class MathBackendWebGL extends KernelBackend {
       this.makeOutput(
           allTopKIndices.shape, allTopKIndices.dtype, allTopKIndices.values)
     ];
-  }
-
-  min(x: Tensor, axes: number[]): Tensor {
-    backend_util.assertAxesAreInnerMostDims('min', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, inSize);
-    return this.reduce(a2D, 'min', a2D.dtype).reshape(outShape);
-  }
-
-  minimum(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      const aVals = this.texData.get(a.dataId).values as TypedArray;
-      const bVals = this.texData.get(b.dataId).values as TypedArray;
-      const [result, newShape] =
-          minimumImplCPU(a.shape, b.shape, aVals, bVals, a.dtype);
-
-      return this.makeOutput(newShape, a.dtype, result);
-    }
-
-    const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
-        new BinaryOpPackedProgram(binaryop_packed_gpu.MIN, a.shape, b.shape) :
-        new BinaryOpProgram(binaryop_gpu.MIN, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b]);
-  }
-
-  maximum(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      const aVals = this.texData.get(a.dataId).values as TypedArray;
-      const bVals = this.texData.get(b.dataId).values as TypedArray;
-      const [result, newShape] =
-          maximumImplCPU(a.shape, b.shape, aVals, bVals, a.dtype);
-
-      return this.makeOutput(newShape, a.dtype, result);
-    }
-
-    const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
-        new BinaryOpPackedProgram(binaryop_packed_gpu.MAX, a.shape, b.shape) :
-        new BinaryOpProgram(binaryop_gpu.MAX, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b]);
-  }
-
-  all(x: Tensor, axes: number[]): Tensor {
-    backend_util.assertAxesAreInnerMostDims('all', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, inSize);
-    return this.reduce(a2D, 'all', a2D.dtype).reshape(outShape);
-  }
-
-  any(x: Tensor, axes: number[]): Tensor {
-    backend_util.assertAxesAreInnerMostDims('any', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, inSize);
-    return this.reduce(a2D, 'any', a2D.dtype).reshape(outShape);
   }
 
   private packedUnaryOp(x: TensorInfo, op: string, dtype: DataType) {
