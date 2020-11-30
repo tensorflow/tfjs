@@ -21,6 +21,7 @@ import {tensor} from '../ops/tensor';
 import {NamedTensor, NamedTensorMap} from '../tensor_types';
 import {TypedArray} from '../types';
 import {sizeFromShape} from '../util';
+import {env} from '../environment';
 
 import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, WeightGroup, WeightsManifestEntry} from './types';
 
@@ -115,13 +116,14 @@ export function decodeWeights(
   // TODO(adarob, cais): Support quantization.
   const out: NamedTensorMap = {};
   let float16Decode: (buffer: Uint16Array) => Float32Array | undefined;
+  let floatToFloat16Decode: (buffer: Float32Array) => Uint16Array | undefined;
   let offset = 0;
   for (const spec of specs) {
     const name = spec.name;
-    const dtype = spec.dtype;
+    let dtype = spec.dtype;
     const shape = spec.shape;
     const size = sizeFromShape(shape);
-    let values: TypedArray|string[]|Uint8Array[];
+    let values: TypedArray|string[]|Uint8Array[]|Uint16Array;
 
     if ('quantization' in spec) {
       const quantization = spec.quantization;
@@ -152,16 +154,37 @@ export function decodeWeights(
           new Uint16Array(byteBuffer);
       if (dtype === 'float32') {
         if (quantization.dtype === 'uint8' || quantization.dtype === 'uint16') {
-          values = new Float32Array(quantizedArray.length);
-          for (let i = 0; i < quantizedArray.length; i++) {
-            const v = quantizedArray[i];
-            values[i] = v * quantization.scale + quantization.min;
+          if (env().getBool('FLOAT16') && env().getBool('DRIVER_SUPPORT_FLOAT16'))
+          {
+            const floatVaules = new Float32Array(quantizedArray.length);
+            for (let i = 0; i < quantizedArray.length; i++) {
+              const v = quantizedArray[i];
+              floatVaules[i] = v * quantization.scale + quantization.min;
+            }
+            if (floatToFloat16Decode === undefined) {
+              floatToFloat16Decode = getFloatToFloat16Decoder();
+            }
+              values = floatToFloat16Decode(floatVaules as Float32Array);
+              dtype = 'float16';
+          }
+          else
+          {
+            values = new Float32Array(quantizedArray.length);
+            for (let i = 0; i < quantizedArray.length; i++) {
+              const v = quantizedArray[i];
+              values[i] = v * quantization.scale + quantization.min;
+            }
           }
         } else if (quantization.dtype === 'float16') {
-          if (float16Decode === undefined) {
-            float16Decode = getFloat16Decoder();
+          if (!(env().getBool('FLOAT16') && env().getBool('DRIVER_SUPPORT_FLOAT16'))) {
+            if (float16Decode === undefined) {
+              float16Decode = getFloat16Decoder();
+            }
+            values = float16Decode(quantizedArray as Uint16Array);
+          } else {
+            values = quantizedArray as Uint16Array;
+            dtype = 'float16';
           }
-          values = float16Decode(quantizedArray as Uint16Array);
         } else {
           throw new Error(
               `Unsupported quantization type ${quantization.dtype} ` +
@@ -497,5 +520,77 @@ export function getFloat16Decoder(): (buffer: Uint16Array) => Float32Array {
       bufferUint32View[index] = float32Bits;
     }
     return new Float32Array(buffer);
+  };
+}
+
+/**
+ * Retrieve a Float decoder which will decode a ByteArray of Float values
+ * to a Uint16Array.
+ *
+ * @returns Function (buffer: Float32Array) => Uint16Array which decodes
+ *          the Float32Array of Float bytes to a Uint16Array.
+ */
+export function getFloatToFloat16Decoder(): (buffer: Float32Array) => Uint16Array {
+  // Algorithm is based off of
+  // http://www.fox-toolkit.org/ftp/fasthalffloatconversion.pdf
+
+  // Cache lookup tables
+  const baseTable = new Uint16Array(512);
+  const shiftTable = new Uint8Array(512);
+  let i;
+	let e;
+	for (i = 0; i < 256; ++i)
+	{
+		e = i - 127;
+		if (e < -24)
+		{
+			baseTable[i | 0x000] = 0x0000;
+			baseTable[i | 0x100] = 0x8000;
+			shiftTable[i | 0x000] = 24;
+			shiftTable[i | 0x100] = 24;
+		}
+		else if (e < -14)
+		{
+			baseTable[i | 0x000] = (0x0400 >> (-e - 14));
+			baseTable[i | 0x100] = (0x0400 >> (-e - 14)) | 0x8000;
+			shiftTable[i | 0x000] = -e - 1;
+			shiftTable[i | 0x100] = -e - 1;
+		}
+		else if (e <= 15)
+		{
+			baseTable[i | 0x000] = ((e + 15) << 10);
+			baseTable[i | 0x100] = ((e + 15) << 10) | 0x8000;
+			shiftTable[i | 0x000] = 13;
+			shiftTable[i | 0x100] = 13;
+		}
+		else if (e < 128)
+		{
+			baseTable[i | 0x000] = 0x7C00;
+			baseTable[i | 0x100] = 0xFC00;
+			shiftTable[i | 0x000] = 24;
+			shiftTable[i | 0x100] = 24;
+		}
+		else
+		{
+			baseTable[i | 0x000] = 0x7C00;
+			baseTable[i | 0x100] = 0xFC00;
+			shiftTable[i | 0x000] = 13;
+			shiftTable[i | 0x100] = 13;
+		}
+	}
+
+  return (float32Array: Float32Array) => {
+    const buffer = new ArrayBuffer(2 * float32Array.length);
+    const bufferUint16View = new Uint16Array(buffer);
+    for (let index = 0; index < float32Array.length; index++) {
+      const buf = new ArrayBuffer(4);
+      const bufFloat32View = new Float32Array(buf);
+      bufFloat32View[0] = float32Array[index];
+      const bufUint32View = new Uint32Array(buf);
+      const float16Bits =
+      baseTable[(bufUint32View[0] >> 23) & 0x1ff] + ((bufUint32View[0] & 0x007fffff) >> shiftTable[(bufUint32View[0] >> 23) & 0x1ff]);
+      bufferUint16View[index] = float16Bits;
+    }
+    return new Uint16Array(buffer);
   };
 }

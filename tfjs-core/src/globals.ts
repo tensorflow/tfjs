@@ -52,6 +52,18 @@ export function enableDebugMode(): void {
   env().set('DEBUG', true);
 }
 
+/**
+ * Enables fp16 mode which allows developers to use 16bit float arithmetic
+ * feature and 16bit storage features for improving performance.
+ *
+ * The fp16 mode is available on webgpu backend.
+ *
+ * @doc {heading: 'Environment'}
+ */
+export function enableFp16Mode(): void {
+  env().set('FLOAT16', true);
+}
+
 /** Globally disables deprecation warnings */
 export function disableDeprecationWarnings(): void {
   env().set('DEPRECATION_WARNINGS_ENABLED', false);

@@ -24,6 +24,35 @@ import * as webgpu_program from './webgpu_program';
 import {FromPixelsProgram} from './FromPixels_utils/from_pixels_webgpu';
 import {util} from '@tensorflow/tfjs-core';
 
+var uint8ToFloat16Table = [
+  0, 15360, 16384, 16896, 17408, 17664, 17920, 18176, 18432, 18560, 18688,
+  18816, 18944, 19072, 19200, 19328, 19456, 19520, 19584, 19648, 19712,
+  19776, 19840, 19904, 19968, 20032, 20096, 20160, 20224, 20288, 20352,
+  20416, 20480, 20512, 20544, 20576, 20608, 20640, 20672, 20704, 20736,
+  20768, 20800, 20832, 20864, 20896, 20928, 20960, 20992, 21024, 21056,
+  21088, 21120, 21152, 21184, 21216, 21248, 21280, 21312, 21344, 21376,
+  21408, 21440, 21472, 21504, 21520, 21536, 21552, 21568, 21584, 21600,
+  21616, 21632, 21648, 21664, 21680, 21696, 21712, 21728, 21744, 21760,
+  21776, 21792, 21808, 21824, 21840, 21856, 21872, 21888, 21904, 21920,
+  21936, 21952, 21968, 21984, 22000, 22016, 22032, 22048, 22064, 22080,
+  22096, 22112, 22128, 22144, 22160, 22176, 22192, 22208, 22224, 22240,
+  22256, 22272, 22288, 22304, 22320, 22336, 22352, 22368, 22384, 22400,
+  22416, 22432, 22448, 22464, 22480, 22496, 22512, 22528, 22536, 22544,
+  22552, 22560, 22568, 22576, 22584, 22592, 22600, 22608, 22616, 22624,
+  22632, 22640, 22648, 22656, 22664, 22672, 22680, 22688, 22696, 22704,
+  22712, 22720, 22728, 22736, 22744, 22752, 22760, 22768, 22776, 22784,
+  22792, 22800, 22808, 22816, 22824, 22832, 22840, 22848, 22856, 22864,
+  22872, 22880, 22888, 22896, 22904, 22912, 22920, 22928, 22936, 22944,
+  22952, 22960, 22968, 22976, 22984, 22992, 23000, 23008, 23016, 23024,
+  23032, 23040, 23048, 23056, 23064, 23072, 23080, 23088, 23096, 23104,
+  23112, 23120, 23128, 23136, 23144, 23152, 23160, 23168, 23176, 23184,
+  23192, 23200, 23208, 23216, 23224, 23232, 23240, 23248, 23256, 23264,
+  23272, 23280, 23288, 23296, 23304, 23312, 23320, 23328, 23336, 23344,
+  23352, 23360, 23368, 23376, 23384, 23392, 23400, 23408, 23416, 23424,
+  23432, 23440, 23448, 23456, 23464, 23472, 23480, 23488, 23496, 23504,
+  23512, 23520, 23528, 23536, 23544
+];
+
 export const fromPixelsConfig: KernelConfig = {
   kernelName: FromPixels,
   backendName: 'webgpu',
@@ -71,7 +100,7 @@ async function fromPixelsAsync(args: {
         }
       }
 
-      const imageBitmap = 
+      const imageBitmap =
             // tslint:disable-next-line:no-any
           await (createImageBitmap as any)
             // tslint:disable-next-line:no-any
@@ -173,6 +202,33 @@ function fromPixels(args: {
   // TODO: Encoding should happen on GPU once we no longer have to download
   // image data to the CPU.
   let pixelArray = imageData;
+
+  if (env().getBool('FLOAT16') && env().getBool('DRIVER_SUPPORT_FLOAT16')) {
+    let pixelFloat16Array = new Uint16Array(pixels.width * pixels.height * numChannels);
+    const dataLength = imageData.length;
+    let j = 0;
+    if (numChannels != null && numChannels !== 4) {
+      for (let i = 0; i < dataLength; i++) {
+        if (i % 4 < numChannels) {
+          pixelFloat16Array[j++] = uint8ToFloat16Table[imageData[i]];;
+        }
+      }
+    } else {
+      for (let i = 0; i < dataLength; i++) {
+        pixelFloat16Array[j++] = uint8ToFloat16Table[imageData[i]];;
+      }
+    }
+
+    const output = backend.makeOutputArray(outShape, 'float16');
+
+    const info = backend.tensorMap.get(output.dataId);
+    info.values = new Uint16Array(pixelFloat16Array);
+    backend.maybeReleaseBuffer(output.dataId);
+
+    backend.uploadToGPU(output.dataId);
+    return output as Tensor3D;
+  }
+
   if (numChannels != null && numChannels !== 4) {
     pixelArray = new Uint8Array(pixels.width * pixels.height * numChannels);
 
