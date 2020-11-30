@@ -51,7 +51,7 @@ class TestQuantizationUtil(unittest.TestCase):
     if data_dtype != np.float32:
       np.testing.assert_allclose(de_q, d)
     else:
-      np.testing.assert_array_almost_equal(de_q, d, decimal=1)
+      np.testing.assert_array_almost_equal(de_q, d, decimal=2)
 
     if quantization_dtype in [np.uint8, np.uint16]:
       s = metadata['scale']
