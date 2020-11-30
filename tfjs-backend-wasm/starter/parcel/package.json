@@ -7,7 +7,7 @@
     "build": "parcel build index.html"
   },
   "dependencies": {
-    "@tensorflow/tfjs-backend-webgl": "link:../../../tfjs-backend-webgl",
+    "@tensorflow/tfjs-backend-wasm": "link:../../../tfjs-backend-wasm",
     "@tensorflow/tfjs-converter": "link:../../../tfjs-converter",
     "@tensorflow/tfjs-core": "link:../../../tfjs-core"
   },

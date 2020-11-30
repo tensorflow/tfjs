@@ -48,7 +48,7 @@ export function conv2dByMatMul({
   backend,
   bias = null,
   preluActivationWeights = null,
-  leakyreluAlpha = null,
+  leakyreluAlpha = 0,
   activation = null
 }: Conv2DConfig) {
   // Reshapes conv2D input to 2D tensors, uses matMul and then reshape the
@@ -187,7 +187,7 @@ export function conv2dWithIm2Row({
   backend,
   bias = null,
   preluActivationWeights = null,
-  leakyreluAlpha = null,
+  leakyreluAlpha = 0,
   activation = null
 }: Conv2DConfig) {
   // Rearranges conv2d input so each block to be convolved over forms the
@@ -240,8 +240,7 @@ export function conv2dWithIm2Row({
 
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
-  const hasLeakyreluAlpha =
-      (activation === 'leakyrelu') && (leakyreluAlpha != null);
+  const hasLeakyreluAlpha = activation === 'leakyrelu';
   const fusedActivation =
       activation ? mapActivationToShaderProgram(activation, true) : null;
   const matmulProgram = new MatMulPackedProgram(

@@ -36,13 +36,6 @@ export function leakyRelu(
     TensorInfo {
   const {inputs: {x}, attrs: {alpha}, backend} = args;
 
-  // const intermediates: TensorInfo[] = [];
-
-  // const alphaTensorInfo = backend.makeOutput([], 'float32');
-  // const alphaVals = backend.typedArrayFromHeap(alphaTensorInfo);
-  // alphaVals.set([alpha]);
-  // intermediates.push(alphaTensorInfo);
-
   const xId = backend.dataIdMap.get(x.dataId).id;
   const out = backend.makeOutput(x.shape, x.dtype);
 
@@ -50,8 +43,6 @@ export function leakyRelu(
     const outId = backend.dataIdMap.get(out.dataId).id;
     wasmFunc(xId, alpha, outId);
   }
-
-  // backend.disposeData(alphaTensorInfo);
 
   return out;
 }

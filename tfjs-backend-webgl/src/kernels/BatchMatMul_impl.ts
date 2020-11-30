@@ -51,7 +51,7 @@ export function batchMatMulImpl({
   backend,
   bias = null,
   preluActivationWeights = null,
-  leakyreluAlpha = null,
+  leakyreluAlpha = 0,
   activation = null
 }: BatchMatMulConfig): TensorInfo {
   const aRank = a.shape.length;
@@ -107,8 +107,7 @@ export function batchMatMulImpl({
 
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
-  const hasLeakyreluAlpha =
-      (activation === 'leakyrelu') && (leakyreluAlpha != null);
+  const hasLeakyreluAlpha = activation === 'leakyrelu';
   const fusedActivation = activation != null ?
       mapActivationToShaderProgram(activation, true) :
       null;

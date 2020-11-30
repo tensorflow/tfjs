@@ -1,4 +1,4 @@
-import '@tensorflow/tfjs-backend-webgl';
+import '@tensorflow/tfjs-backend-wasm';
 
 import * as tfconv from '@tensorflow/tfjs-converter';
 import * as tf from '@tensorflow/tfjs-core';
@@ -30,8 +30,7 @@ filesElement.addEventListener('change', evt => {
 
 let global_model = null;
 async function run() {
-  tf.ENV.set('WEBGL_PACK', false);
-  await tf.setBackend('webgl');
+  await tf.setBackend('wasm');
   const modelUrl = 'http://localhost:8080/tmp_web_model/model.json';
   global_model = await tfconv.loadGraphModel(modelUrl);
 }

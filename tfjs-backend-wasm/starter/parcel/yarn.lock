@@ -769,7 +769,7 @@
   version "0.0.0"
   uid ""
 
-"@tensorflow/tfjs-backend-webgl@link:../../../tfjs-backend-webgl":
+"@tensorflow/tfjs-backend-wasm@link:../..":
   version "0.0.0"
   uid ""
 
@@ -780,6 +780,11 @@
 "@tensorflow/tfjs-core@link:../../../tfjs-core":
   version "0.0.0"
   uid ""
+
+"@types/emscripten@~0.0.34":
+  version "0.0.34"
+  resolved "https://registry.npmjs.org/@types/emscripten/-/emscripten-0.0.34.tgz#12b4a344274fb102ff2f6c877b37587bc3e46008"
+  integrity sha512-QSb9ojDincskc+uKMI0KXp8e1NALFINCrMlp8VGKGcTSxeEyRTTKyjWw75NYrCZHUsVEEEpr1tYHpbtaC++/sQ==
 
 "@types/offscreencanvas@~2019.3.0":
   version "2019.3.0"
@@ -800,11 +805,6 @@
   version "0.0.30"
   resolved "https://registry.yarnpkg.com/@types/webgl-ext/-/webgl-ext-0.0.30.tgz#0ce498c16a41a23d15289e0b844d945b25f0fb9d"
   integrity sha512-LKVgNmBxN0BbljJrVUwkxwRYqzsAEPcZOe6S2T6ZaBDIrFp0qu4FNlpc5sM1tGbXUYFgdVQIoeLk1Y1UoblyEg==
-
-"@types/webgl2@0.0.5":
-  version "0.0.5"
-  resolved "https://registry.npmjs.org/@types/webgl2/-/webgl2-0.0.5.tgz#dd925e20ab8ace80eb4b1e46fda5b109c508fb0d"
-  integrity sha512-oGaKsBbxQOY5+aJFV3KECDhGaXt+yZJt2y/OZsnQGLRkH6Fvr7rv4pCt3SRH1somIHfej/c4u7NSpCyd9x+1Ow==
 
 abab@^2.0.0:
   version "2.0.3"

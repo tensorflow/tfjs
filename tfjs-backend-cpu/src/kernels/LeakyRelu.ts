@@ -19,10 +19,6 @@ import {KernelConfig, KernelFunc, LeakyRelu, LeakyReluAttrs, LeakyReluInputs, Te
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
-import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
-
-const leakyReluImpl = createSimpleBinaryKernelImpl(
-    (xValue: number, aValue: number) => xValue < 0 ? aValue * xValue : xValue);
 
 export function leakyRelu(args: {
   inputs: LeakyReluInputs,
@@ -35,18 +31,15 @@ export function leakyRelu(args: {
 
   assertNotComplex([x], 'leakyRelu');
 
-  const $alpha = backend.makeTensorInfo(
-      [], 'float32',
-      util.createScalarValue(alpha as {} as 'float32', 'float32'));
-
+  const xSize = util.sizeFromShape(x.shape);
   const xVals = backend.data.get(x.dataId).values as TypedArray;
-  const $alphaVals = backend.data.get($alpha.dataId).values as TypedArray;
-  const [resultData, resultShape] =
-      leakyReluImpl(x.shape, $alpha.shape, xVals, $alphaVals, x.dtype);
+  const outVals = util.makeZerosTypedArray(xSize, 'float32');
 
-  backend.disposeIntermediateTensorInfo($alpha);
+  for (let i = 0; i < xVals.length; i++) {
+    outVals[i] = xVals[i] < 0 ? alpha * xVals[i] : xVals[i];
+  }
 
-  return backend.makeTensorInfo(resultShape, x.dtype, resultData);
+  return backend.makeTensorInfo(x.shape, 'float32', outVals);
 }
 
 export const leakyReluConfig: KernelConfig = {
