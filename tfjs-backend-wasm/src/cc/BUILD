@@ -594,8 +594,8 @@ tfjs_cc_library(
 
 tfjs_cc_library(
     name = "LeakyRelu",
-    hdrs = ["kernels/LeakyRelu.h"],
     srcs = ["kernels/LeakyRelu.cc"],
+    hdrs = ["kernels/LeakyRelu.h"],
     deps = [
         ":backend",
         ":leakyrelu_impl",
