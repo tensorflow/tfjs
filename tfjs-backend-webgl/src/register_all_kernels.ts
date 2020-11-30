@@ -98,6 +98,7 @@ import {packConfig} from './kernels/Pack';
 import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
+import {prodConfig} from './kernels/Prod';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reshapeConfig} from './kernels/Reshape';
@@ -213,6 +214,7 @@ const kernelConfigs: KernelConfig[] = [
   padV2Config,
   powConfig,
   preluConfig,
+  prodConfig,
   realConfig,
   realDivConfig,
   reshapeConfig,

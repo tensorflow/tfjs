@@ -21,7 +21,7 @@ import './flags_webgl';
 import * as tf from '@tensorflow/tfjs-core';
 import {backend_util, buffer, DataId, DataStorage, DataType, DataValues, div, engine, env, kernel_impls, KernelBackend, max, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, scalar, ShapeMap, slice_util, softmax, sum, tensor, Tensor, Tensor1D, Tensor2D, Tensor3D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
-import {ceilImplCPU, expImplCPU, expm1ImplCPU, linSpaceImplCPU, logImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
+import {ceilImplCPU, expImplCPU, expm1ImplCPU, linSpaceImplCPU, logImplCPU, negImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
@@ -868,22 +868,6 @@ export class MathBackendWebGL extends KernelBackend {
       return this.argReducePacked(x, reduceType, output);
     }
     return output;
-  }
-
-  prod(x: Tensor, axes: number[]): Tensor {
-    if (this.shouldExecuteOnCPU([x])) {
-      const xVals = this.texData.get(x.dataId).values as TypedArray;
-      const {outVals, outShape, outDtype} =
-          prodImplCPU(x.shape, x.dtype, xVals, axes);
-      return this.makeOutput(outShape, outDtype, outVals);
-    }
-
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, inSize);
-    const outputDType = tf.sumOutType(x.dtype);
-    return this.reduce(a2D, 'prod', outputDType).reshape(outShape);
   }
 
   unsortedSegmentSum<T extends Tensor>(
