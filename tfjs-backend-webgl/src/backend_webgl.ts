@@ -753,32 +753,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  fusedBatchMatMul(
-      {a, b, transposeA, transposeB, bias, activation, preluActivationWeights}:
-          backend_util.FusedBatchMatMulConfig): Tensor3D {
-    const outerShapeA = transposeA ? a.shape[2] : a.shape[1];
-    const outerShapeB = transposeB ? b.shape[1] : b.shape[2];
-    const batch = Math.max(a.shape[0], b.shape[0]);
-
-    const dtype = upcastType(a.dtype, b.dtype);
-
-    const hasBias = bias != null;
-    const hasPreluActivationWeights = preluActivationWeights != null;
-    const fusedActivation =
-        activation ? mapActivationToShaderProgram(activation, true) : null;
-    const program = new MatMulPackedProgram(
-        a.shape, b.shape, [batch, outerShapeA, outerShapeB], transposeA,
-        transposeB, hasBias, fusedActivation, hasPreluActivationWeights);
-    const inputs: TensorInfo[] = [a, b];
-    if (bias) {
-      inputs.push(bias);
-    }
-    if (preluActivationWeights) {
-      inputs.push(preluActivationWeights);
-    }
-    return this.compileAndRun<Tensor3D>(program, inputs, dtype);
-  }
-
   gather<T extends Tensor>(
       x: T, indices: Tensor1D, axis: number, batchDims = 0): T {
     const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
