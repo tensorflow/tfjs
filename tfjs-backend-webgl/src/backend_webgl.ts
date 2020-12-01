@@ -29,8 +29,6 @@ const whereImpl = kernel_impls.whereImpl;
 
 import {AddNProgram} from './addn_gpu';
 import {AddNPackedProgram} from './addn_packed_gpu';
-import {ArgMinMaxProgram} from './argminmax_gpu';
-import {ArgMinMaxPackedProgram} from './argminmax_packed_gpu';
 import {getWebGLContext} from './canvas_util';
 import {ClipProgram} from './clip_gpu';
 import {ClipPackedProgram} from './clip_packed_gpu';
@@ -743,51 +741,6 @@ export class MathBackendWebGL extends KernelBackend {
     return res.reshape(shapeInfo.outputShape);
   }
 
-  private argReduce(
-      x: Tensor2D, reduceType: 'max'|'min',
-      bestIndicesA: Tensor2D = null): Tensor2D {
-    let batchSize = x.shape[0];
-    let inSize = x.shape[1];
-    if (bestIndicesA != null) {
-      batchSize = bestIndicesA.shape[0];
-      inSize = bestIndicesA.shape[1];
-    }
-    const windowSize = backend_util.computeOptimalWindowSize(inSize);
-    const reduceInfo = {
-      windowSize,
-      inSize,
-      batchSize,
-      outSize: Math.ceil(inSize / windowSize)
-    };
-    const program =
-        new ArgMinMaxProgram(reduceInfo, reduceType, bestIndicesA == null);
-    const inputs = [x];
-    if (bestIndicesA != null) {
-      inputs.push(bestIndicesA);
-    }
-    const output = this.compileAndRun<Tensor2D>(program, inputs, 'int32');
-    // No need to run another GPGPU program.
-    if (output.shape[1] === 1) {
-      return output;
-    }
-    return this.argReduce(x, reduceType, output);
-  }
-
-  private argReducePacked(
-      x: Tensor, reduceType: 'max'|'min', bestIndicesA: Tensor = null): Tensor {
-    const inShape = bestIndicesA != null ? bestIndicesA.shape : x.shape;
-    const inSize = inShape[inShape.length - 1];
-    const windowSize = backend_util.computeOptimalWindowSize(inSize);
-    const program = new ArgMinMaxPackedProgram(
-        inShape, windowSize, reduceType, bestIndicesA == null);
-    const inputs = bestIndicesA == null ? [x] : [x, bestIndicesA];
-    const output = this.compileAndRun<Tensor>(program, inputs, 'int32');
-    if (output.rank === x.rank) {
-      return this.argReducePacked(x, reduceType, output);
-    }
-    return output;
-  }
-
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D, numSegments: number): Tensor {
     let axis = 0;
@@ -831,22 +784,6 @@ export class MathBackendWebGL extends KernelBackend {
     }
     segmentIds = range(0, numSegments).tile([inSize / windowSize]);
     return this.segOpCompute(output, segOpType, segmentIds, dtype, numSegments);
-  }
-
-  private argMinMaxReduce(x: Tensor, axis: number, reduceType: 'min'|'max'):
-      Tensor {
-    const axes = [axis];
-    backend_util.assertAxesAreInnerMostDims(
-        'arg' + reduceType.charAt(0).toUpperCase() + reduceType.slice(1), axes,
-        x.rank);
-    if (!env().getBool('WEBGL_PACK_REDUCE') || x.rank <= 2) {
-      const [outShape, reduceShape] =
-          backend_util.computeOutAndReduceShapes(x.shape, axes);
-      const inSize = util.sizeFromShape(reduceShape);
-      const a2D = x.as2D(-1, inSize);
-      return this.argReduce(a2D, reduceType).reshape(outShape);
-    }
-    return this.argReducePacked(x, reduceType);
   }
 
   select(condition: Tensor, a: Tensor, b: Tensor): Tensor {

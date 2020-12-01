@@ -15,9 +15,11 @@
  * =============================================================================
  */
 
-import {ArgMax, ArgMaxAttrs, ArgMaxInputs, backend_util, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {ArgMax, ArgMaxAttrs, ArgMaxInputs, backend_util, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
+import {argMinMaxReduce} from '../kernel_utils/argMinMax';
+
 import {transpose} from './Transpose';
 
 export function argMax(
@@ -38,34 +40,10 @@ export function argMax(
     axes = backend_util.getInnerMostAxes(axes.length, $x.shape.length);
   }
 
-  axes = [axes[0]];
-  backend_util.assertAxesAreInnerMostDims('argMax', axes, $x.shape.length);
-  const [outShape, reduceShape] =
-      backend_util.computeOutAndReduceShapes($x.shape, axes);
+  backend_util.assertAxesAreInnerMostDims('argMax', [axes[0]], $x.shape.length);
 
-  const outSize = util.sizeFromShape(outShape);
-  const vals = util.makeZerosTypedArray(outSize, 'int32');
-  const reduceSize = util.sizeFromShape(reduceShape);
-
-  const aVals = backend.data.get($x.dataId).values as TypedArray;
-  for (let i = 0; i < vals.length; ++i) {
-    const offset = i * reduceSize;
-    let max = aVals[offset];
-    let maxIndex = 0;
-    for (let j = 0; j < reduceSize; ++j) {
-      const value = aVals[offset + j];
-      if (value > max) {
-        max = value;
-        maxIndex = j;
-      }
-    }
-    vals[i] = maxIndex;
-  }
-
-  intermediateTensorInfos.forEach(
-      t => backend.disposeIntermediateTensorInfo(t));
-
-  return backend.makeTensorInfo(outShape, 'int32', vals);
+  const out = argMinMaxReduce(backend, $x, axes[0], 'max');
+  return out;
 }
 
 export const argMaxConfig: KernelConfig = {

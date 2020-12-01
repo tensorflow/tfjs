@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
-import {ArgMin, ArgMinAttrs, ArgMinInputs, backend_util, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {ArgMin, ArgMinAttrs, ArgMinInputs, backend_util, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
+import {argMinMaxReduce} from '../kernel_utils/argMinMax';
 import {transpose} from './Transpose';
 
 export function argMin(
@@ -38,34 +39,10 @@ export function argMin(
     axes = backend_util.getInnerMostAxes(axes.length, $x.shape.length);
   }
 
-  axes = [axes[0]];
-  backend_util.assertAxesAreInnerMostDims('argMin', axes, $x.shape.length);
-  const [outShape, reduceShape] =
-      backend_util.computeOutAndReduceShapes($x.shape, axes);
+  backend_util.assertAxesAreInnerMostDims('argMin', [axes[0]], $x.shape.length);
 
-  const outSize = util.sizeFromShape(outShape);
-  const vals = util.makeZerosTypedArray(outSize, 'int32');
-  const reduceSize = util.sizeFromShape(reduceShape);
-
-  const aVals = backend.data.get($x.dataId).values as TypedArray;
-  for (let i = 0; i < vals.length; ++i) {
-    const offset = i * reduceSize;
-    let min = aVals[offset];
-    let minIndex = 0;
-    for (let j = 0; j < reduceSize; ++j) {
-      const value = aVals[offset + j];
-      if (value < min) {
-        min = value;
-        minIndex = j;
-      }
-    }
-    vals[i] = minIndex;
-  }
-
-  intermediateTensorInfos.forEach(
-      t => backend.disposeIntermediateTensorInfo(t));
-
-  return backend.makeTensorInfo(outShape, 'int32', vals);
+  const out = argMinMaxReduce(backend, $x, axes[0], 'min');
+  return out;
 }
 
 export const argMinConfig: KernelConfig = {
