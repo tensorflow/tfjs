@@ -31,8 +31,6 @@ import {AddNPackedProgram} from './addn_packed_gpu';
 import {ArgMinMaxProgram} from './argminmax_gpu';
 import {ArgMinMaxPackedProgram} from './argminmax_packed_gpu';
 import {getWebGLContext} from './canvas_util';
-import {ClipProgram} from './clip_gpu';
-import {ClipPackedProgram} from './clip_packed_gpu';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
 import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
 import {EncodeFloatProgram} from './encode_float_gpu';
@@ -1031,17 +1029,6 @@ export class MathBackendWebGL extends KernelBackend {
     }
     const program = new UnaryOpProgram(x.shape, unary_op.ELU);
     return this.compileAndRun(program, [x]);
-  }
-
-  clip<T extends Tensor>(x: T, min: number, max: number): T {
-    let program;
-    if (env().getBool('WEBGL_PACK_CLIP')) {
-      program = new ClipPackedProgram(x.shape);
-    } else {
-      program = new ClipProgram(x.shape);
-    }
-    const customSetup = program.getCustomSetupFunc(min, max);
-    return this.compileAndRun(program, [x], null, customSetup);
   }
 
   abs<T extends Tensor>(x: T): T {

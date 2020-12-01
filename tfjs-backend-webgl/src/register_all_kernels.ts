@@ -35,6 +35,7 @@ import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {castConfig} from './kernels/Cast';
+import {clipByValueConfig} from './kernels/ClipByValue';
 import {complexConfig} from './kernels/Complex';
 import {complexAbsConfig} from './kernels/ComplexAbs';
 import {concatConfig} from './kernels/Concat';
@@ -167,6 +168,7 @@ const kernelConfigs: KernelConfig[] = [
   batchNormConfig,
   batchToSpaceNDConfig,
   castConfig,
+  clipByValueConfig,
   complexAbsConfig,
   complexConfig,
   concatConfig,
