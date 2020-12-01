@@ -72,16 +72,20 @@ export function argMinMaxReduce(
       'arg' + reduceType.charAt(0).toUpperCase() + reduceType.slice(1), axes,
       x.shape.length);
   if (!env().getBool('WEBGL_PACK_REDUCE') || x.shape.length <= 2) {
+    const intermediateTensorInfos = [];
     const [outShape, reduceShape] =
         backend_util.computeOutAndReduceShapes(x.shape, axes);
     const inSize = util.sizeFromShape(reduceShape);
-    // const a2D = x.as2D(-1, inSize);
     const a2D = reshape({inputs: {x}, backend, attrs: {shape: [-1, inSize]}});
+    intermediateTensorInfos.push(a2D);
+
     const reduced = argReduce(backend, a2D, reduceType);
-    // const reshaped = .reshape(outShape);
+    intermediateTensorInfos.push(reduced);
     const reshaped =
         reshape({inputs: {x: reduced}, backend, attrs: {shape: outShape}});
 
+    intermediateTensorInfos.forEach(
+        t => backend.disposeIntermediateTensorInfo(t));
     return reshaped;
   }
   return argReducePacked(backend, x, reduceType);
