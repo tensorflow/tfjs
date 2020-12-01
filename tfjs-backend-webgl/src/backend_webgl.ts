@@ -19,7 +19,7 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, buffer, DataId, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, scalar, ShapeMap, slice_util, tensor, Tensor, Tensor1D, Tensor2D, Tensor3D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, DataId, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, scalar, ShapeMap, slice_util, tensor, Tensor, Tensor1D, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
 import {ceilImplCPU, expm1ImplCPU, gatherV2ImplCPU, logImplCPU, negImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
 
@@ -45,7 +45,6 @@ import {GatherProgram} from './gather_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
 import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
-import {MatMulPackedProgram} from './mulmat_packed_gpu';
 import {PackProgram} from './pack_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
 import {ReverseProgram} from './reverse_gpu';
@@ -118,46 +117,6 @@ function numMBBeforeWarning(): number {
   return (env().global.screen.height * env().global.screen.width *
           window.devicePixelRatio) *
       BEFORE_PAGING_CONSTANT / 1024 / 1024;
-}
-
-// TODO(yassogba) remove this once the backend has been modularized
-// a copy is needed here to break a circular dependency.
-function mapActivationToShaderProgram(
-    activation: backend_util.Activation, packed = false): string {
-  if (activation === 'linear') {
-    if (packed) {
-      return unary_packed_op.LINEAR;
-    }
-    return unary_op.LINEAR;
-  } else if (activation === 'relu') {
-    if (packed) {
-      return unary_packed_op.RELU;
-    }
-    return unary_op.RELU;
-  } else if (activation === 'elu') {
-    if (packed) {
-      return unary_packed_op.ELU;
-    }
-    return unary_op.ELU;
-  } else if (activation === 'relu6') {
-    if (packed) {
-      return unary_packed_op.RELU6;
-    }
-    return unary_op.RELU6;
-  } else if (activation === 'prelu') {
-    // Duplicated to avoid a circular dependency
-    const PRELU = `return (a < 0.) ? b * a : a;`;
-    const PRELU_PACKED = `
-  vec4 aLessThanZero = vec4(lessThan(a, vec4(0.)));
-  return (aLessThanZero * (b * a)) + ((vec4(1.0) - aLessThanZero) * a);
-`;
-    if (packed) {
-      return PRELU_PACKED;
-    }
-    return PRELU;
-  }
-  throw new Error(`Activation ${
-      activation} has not been implemented for the WebGL backend.`);
 }
 
 export class MathBackendWebGL extends KernelBackend {
