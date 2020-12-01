@@ -20,6 +20,7 @@ import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {acosConfig} from './kernels/Acos';
 import {acoshConfig} from './kernels/Acosh';
 import {addConfig} from './kernels/Add';
+import {addNConfig} from './kernels/AddN';
 import {allConfig} from './kernels/All';
 import {anyConfig} from './kernels/Any';
 import {asinConfig} from './kernels/Asin';
@@ -155,6 +156,7 @@ const kernelConfigs: KernelConfig[] = [
   acosConfig,
   acoshConfig,
   addConfig,
+  addNConfig,
   allConfig,
   anyConfig,
   asinConfig,

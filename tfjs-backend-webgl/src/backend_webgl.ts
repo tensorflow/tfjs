@@ -26,8 +26,6 @@ import {ceilImplCPU, expm1ImplCPU, logImplCPU, negImplCPU, rsqrtImplCPU, simpleA
 const {segment_util} = backend_util;
 const whereImpl = kernel_impls.whereImpl;
 
-import {AddNProgram} from './addn_gpu';
-import {AddNPackedProgram} from './addn_packed_gpu';
 import {ArgMinMaxProgram} from './argminmax_gpu';
 import {ArgMinMaxPackedProgram} from './argminmax_packed_gpu';
 import {getWebGLContext} from './canvas_util';
@@ -898,30 +896,6 @@ export class MathBackendWebGL extends KernelBackend {
   private packedUnaryOp(x: TensorInfo, op: string, dtype: DataType) {
     const program = new UnaryOpPackedProgram(x.shape, op);
     return this.compileAndRun<Tensor>(program, [x], dtype);
-  }
-
-  addN<T extends Tensor>(tensors: T[]): T {
-    if (tensors.length === 1) {
-      return tensors[0];
-    }
-
-    // Limit the number of uploaded textures for optimization.
-    if (tensors.length > env().get('WEBGL_MAX_TEXTURES_IN_SHADER')) {
-      const midIndex = Math.floor(tensors.length / 2);
-      const leftSide = this.addN(tensors.slice(0, midIndex));
-      const rightSide = this.addN(tensors.slice(midIndex));
-      return this.addN([leftSide, rightSide]);
-    }
-
-    const dtype =
-        tensors.map(t => t.dtype).reduce((d1, d2) => upcastType(d1, d2));
-    const shapes = tensors.map(t => t.shape);
-    // We can make sure shapes are identical in op level.
-    const usePackedOp = env().getBool('WEBGL_PACK');
-    const program = usePackedOp ?
-        new AddNPackedProgram(tensors[0].shape, shapes) :
-        new AddNProgram(tensors[0].shape, shapes);
-    return this.compileAndRun<T>(program, tensors, dtype);
   }
 
   ceil<T extends Tensor>(x: T): T {
