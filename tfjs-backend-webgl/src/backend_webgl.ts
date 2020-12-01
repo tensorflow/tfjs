@@ -849,14 +849,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.argReducePacked(x, reduceType);
   }
 
-  argMin(x: Tensor, axis: number): Tensor {
-    return this.argMinMaxReduce(x, axis, 'min');
-  }
-
-  argMax(x: Tensor, axis: number): Tensor {
-    return this.argMinMaxReduce(x, axis, 'max');
-  }
-
   select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
     const program = new SelectProgram(condition.rank, a.shape, a.rank);
     return this.compileAndRun(
