@@ -129,6 +129,7 @@ import {softmaxConfig} from './kernels/Softmax';
 import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {sparseToDenseConfig} from './kernels/SparseToDense';
+import {splitVConfig} from './kernels/SplitV';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {stepConfig} from './kernels/Step';
@@ -259,6 +260,7 @@ const kernelConfigs: KernelConfig[] = [
   softplusConfig,
   spaceToBatchNDConfig,
   sparseToDenseConfig,
+  splitVConfig,
   squareConfig,
   squaredDifferenceConfig,
   stepConfig,

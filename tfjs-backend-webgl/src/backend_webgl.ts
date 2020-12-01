@@ -24,7 +24,6 @@ import {backend_util, buffer, DataId, DataStorage, DataType, DataValues, engine,
 import {ceilImplCPU, expm1ImplCPU, gatherV2ImplCPU, logImplCPU, negImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
-const split = kernel_impls.split;
 const whereImpl = kernel_impls.whereImpl;
 
 import {AddNProgram} from './addn_gpu';
@@ -1137,10 +1136,6 @@ export class MathBackendWebGL extends KernelBackend {
       res[i] = x.slice(begin, size).reshape(outShape);
     }
     return res;
-  }
-
-  split<T extends Tensor>(x: T, sizeSplits: number[], axis: number): T[] {
-    return split(x, sizeSplits, axis);
   }
 
   makeTensorInfo(
