@@ -1118,27 +1118,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun<Tensor>(program, inputs) as T;
   }
 
-  unstack(x: Tensor, axis: number): Tensor[] {
-    const num = x.shape[axis];
-    const outShape: number[] = new Array(x.rank - 1);
-    let outIndex = 0;
-    for (let i = 0; i < x.rank; i++) {
-      if (i !== axis) {
-        outShape[outIndex++] = x.shape[i];
-      }
-    }
-
-    const begin = new Array(x.rank).fill(0);
-    const size = x.shape.slice();
-    size[axis] = 1;
-    const res = new Array(num);
-    for (let i = 0; i < res.length; i++) {
-      begin[axis] = i;
-      res[i] = x.slice(begin, size).reshape(outShape);
-    }
-    return res;
-  }
-
   split<T extends Tensor>(x: T, sizeSplits: number[], axis: number): T[] {
     return split(x, sizeSplits, axis);
   }
