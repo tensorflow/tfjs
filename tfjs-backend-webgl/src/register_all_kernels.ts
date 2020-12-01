@@ -36,6 +36,7 @@ import {batchNormConfig} from './kernels/BatchNorm';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {castConfig} from './kernels/Cast';
 import {complexConfig} from './kernels/Complex';
+import {complexAbsConfig} from './kernels/ComplexAbs';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {conv2DBackpropFilterConfig} from './kernels/Conv2DBackpropFilter';
@@ -166,6 +167,7 @@ const kernelConfigs: KernelConfig[] = [
   batchNormConfig,
   batchToSpaceNDConfig,
   castConfig,
+  complexAbsConfig,
   complexConfig,
   concatConfig,
   conv2DBackpropFilterConfig,

@@ -33,7 +33,6 @@ import {ArgMinMaxPackedProgram} from './argminmax_packed_gpu';
 import {getWebGLContext} from './canvas_util';
 import {ClipProgram} from './clip_gpu';
 import {ClipPackedProgram} from './clip_packed_gpu';
-import {ComplexAbsProgram} from './complex_abs_gpu';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
 import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
 import {EncodeFloatProgram} from './encode_float_gpu';
@@ -922,18 +921,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun<Tensor>(program, [x], dtype);
   }
 
-  // Returns a TensorInfo with the complex shape and the dataId of the
-  // underlying part. We need to do this because a reshaped complex tensor is
-  // not reflected in its parts.
-  private makeComplexComponentTensorInfo(
-      complexTensor: Tensor, complexPart: TensorInfo): TensorInfo {
-    return {
-      dataId: complexPart.dataId,
-      dtype: complexPart.dtype,
-      shape: complexTensor.shape
-    };
-  }
-
   addN<T extends Tensor>(tensors: T[]): T {
     if (tensors.length === 1) {
       return tensors[0];
@@ -1071,18 +1058,6 @@ export class MathBackendWebGL extends KernelBackend {
 
     const program = new UnaryOpProgram(x.shape, unary_op.ABS);
     return this.compileAndRun(program, [x]);
-  }
-
-  complexAbs<T extends Tensor>(x: T): T {
-    const xData = this.texData.get(x.dataId);
-
-    const program = new ComplexAbsProgram(x.shape);
-    const inputs = [
-      this.makeComplexComponentTensorInfo(x, xData.complexTensorInfos.real),
-      this.makeComplexComponentTensorInfo(x, xData.complexTensorInfos.imag),
-    ];
-
-    return this.compileAndRun<Tensor>(program, inputs) as T;
   }
 
   unstack(x: Tensor, axis: number): Tensor[] {
