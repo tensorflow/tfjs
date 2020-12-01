@@ -21,7 +21,7 @@ import './flags_webgl';
 import * as tf from '@tensorflow/tfjs-core';
 import {backend_util, buffer, DataId, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, scalar, ShapeMap, slice_util, tensor, Tensor, Tensor1D, Tensor2D, Tensor3D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
-import {ceilImplCPU, expm1ImplCPU, gatherV2ImplCPU, logImplCPU, negImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
+import {ceilImplCPU, expm1ImplCPU, logImplCPU, negImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const whereImpl = kernel_impls.whereImpl;
@@ -40,7 +40,6 @@ import {EncodeFloatProgram} from './encode_float_gpu';
 import {EncodeFloatPackedProgram} from './encode_float_packed_gpu';
 import {EncodeMatrixProgram} from './encode_matrix_gpu';
 import {EncodeMatrixPackedProgram} from './encode_matrix_packed_gpu';
-import {GatherProgram} from './gather_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
 import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
@@ -776,37 +775,6 @@ export class MathBackendWebGL extends KernelBackend {
       inputs.push(preluActivationWeights);
     }
     return this.compileAndRun<Tensor3D>(program, inputs, dtype);
-  }
-
-  gather<T extends Tensor>(
-      x: T, indices: Tensor1D, axis: number, batchDims = 0): T {
-    const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
-    const shapeInfo = segment_util.collectGatherOpShapeInfo(
-        x, indices, parsedAxis, batchDims);
-
-    const flattenX = x.reshape([
-      shapeInfo.batchSize, shapeInfo.outerSize, shapeInfo.dimSize,
-      shapeInfo.sliceSize
-    ]);
-    const flattenIndex = indices.reshape(
-        [shapeInfo.batchSize, indices.size / shapeInfo.batchSize]);
-    const flattenOutputShape = [
-      shapeInfo.batchSize, shapeInfo.outerSize,
-      indices.size / shapeInfo.batchSize, shapeInfo.sliceSize
-    ];
-
-    if (this.shouldExecuteOnCPU([x, indices]) || x.dtype === 'string') {
-      const indicesBuf = this.bufferSync(flattenIndex);
-      const xBuf = this.bufferSync(flattenX);
-      const outBuf = gatherV2ImplCPU(xBuf, indicesBuf, flattenOutputShape);
-
-      return this.makeOutput(
-          shapeInfo.outputShape, outBuf.dtype, outBuf.values as TypedArray);
-    }
-
-    const program = new GatherProgram(flattenX.shape, flattenOutputShape);
-    const res: Tensor = this.compileAndRun(program, [flattenX, flattenIndex]);
-    return res.reshape(shapeInfo.outputShape);
   }
 
   private argReduce(
