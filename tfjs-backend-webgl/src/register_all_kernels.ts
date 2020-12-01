@@ -122,6 +122,7 @@ import {resizeNearestNeighborGradConfig} from './kernels/ResizeNearestNeighborGr
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {roundConfig} from './kernels/Round';
 import {scatterNdConfig} from './kernels/ScatterNd';
+import {selectConfig} from './kernels/Select';
 import {seluConfig} from './kernels/Selu';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {signConfig} from './kernels/Sign';
@@ -141,6 +142,7 @@ import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
 import {tileConfig} from './kernels/Tile';
+import {topKConfig} from './kernels/TopK';
 import {transposeConfig} from './kernels/Transpose';
 import {uniqueConfig} from './kernels/Unique';
 import {zerosLikeConfig} from './kernels/ZerosLike';
@@ -256,6 +258,7 @@ const kernelConfigs: KernelConfig[] = [
   rotateWithOffsetConfig,
   roundConfig,
   scatterNdConfig,
+  selectConfig,
   seluConfig,
   sigmoidConfig,
   signConfig,
@@ -275,6 +278,7 @@ const kernelConfigs: KernelConfig[] = [
   tanConfig,
   tanhConfig,
   tileConfig,
+  topKConfig,
   transposeConfig,
   uniqueConfig,
   zerosLikeConfig
