@@ -134,12 +134,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
   float* out_buf = out_info.f32_write();
   std::vector<float> intermediate_output;
 
-  if (prelu_weights_id != 0) {
-    intermediate_output.resize(out_info.size);
-    out_buf = intermediate_output.data();
-  }
-
-  if (activation == FusableActivation::LEAKYRELU) {
+  if (prelu_weights_id != 0 || activation == FusableActivation::LEAKYRELU) {
     intermediate_output.resize(out_info.size);
     out_buf = intermediate_output.data();
   }
@@ -169,10 +164,8 @@ void conv2d(const size_t x_id, const size_t batch_size,
   }
 
   FusableActivation clamp_method = activation;
-  if (activation == FusableActivation::PRELU) {
-    clamp_method = FusableActivation::LINEAR;
-  }
-  if (activation == FusableActivation::LEAKYRELU) {
+  if (activation == FusableActivation::PRELU ||
+      activation == FusableActivation::LEAKYRELU) {
     clamp_method = FusableActivation::LINEAR;
   }
 

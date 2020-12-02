@@ -275,10 +275,8 @@ void fused_batch_mat_mul(const size_t a_id, const size_t* a_shape_ptr,
                          const size_t bias_id, const size_t prelu_weights_id,
                          const float leakyrelu_alpha, const size_t out_id) {
   FusableActivation clamp_method = activation;
-  if (activation == FusableActivation::PRELU) {
-    clamp_method = FusableActivation::LINEAR;
-  }
-  if (activation == FusableActivation::LEAKYRELU) {
+  if (activation == FusableActivation::PRELU ||
+      activation == FusableActivation::LEAKYRELU) {
     clamp_method = FusableActivation::LINEAR;
   }
 
