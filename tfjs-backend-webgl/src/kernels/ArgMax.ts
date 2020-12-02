@@ -18,7 +18,7 @@
 import {ArgMax, ArgMaxAttrs, ArgMaxInputs, backend_util, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-// import {argMinMaxReduce} from '../kernel_utils/arg_min_max';
+import {argMinMaxReduce} from '../kernel_utils/arg_min_max';
 
 import {transpose} from './Transpose';
 
@@ -41,16 +41,11 @@ export function argMax(
   }
 
   backend_util.assertAxesAreInnerMostDims('argMax', [axes[0]], $x.shape.length);
-  // const out = argMinMaxReduce(backend, $x, axes[0], 'max');
+  const out = argMinMaxReduce(backend, $x, axes[0], 'max');
 
   intermediateTensorInfos.forEach(
       t => backend.disposeIntermediateTensorInfo(t));
-  // return out;
-
-  const [outShape, ] = backend_util.computeOutAndReduceShapes($x.shape, axes);
-  const outSize = util.sizeFromShape(outShape);
-  const vals = util.makeZerosTypedArray(outSize, 'int32');
-  return backend.makeTensorInfo(outShape, 'int32', vals);
+  return out;
 }
 
 export const argMaxConfig: KernelConfig = {
