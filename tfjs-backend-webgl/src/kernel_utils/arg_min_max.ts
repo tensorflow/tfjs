@@ -45,7 +45,9 @@ function argReduce(
   if (output.shape[1] === 1) {
     return output;
   }
-  return argReduce(backend, x, reduceType, output);
+  const result = argReduce(backend, x, reduceType, output);
+  backend.disposeIntermediateTensorInfo(output);
+  return result;
 }
 
 function argReducePacked(
@@ -59,7 +61,9 @@ function argReducePacked(
   const inputs = bestIndicesA == null ? [x] : [x, bestIndicesA];
   const output = backend.runWebGLProgram(program, inputs, 'int32');
   if (output.shape.length === x.shape.length) {
-    return argReducePacked(backend, x, reduceType, output);
+    const result = argReducePacked(backend, x, reduceType, output);
+    backend.disposeIntermediateTensorInfo(output);
+    return result;
   }
   return output;
 }
