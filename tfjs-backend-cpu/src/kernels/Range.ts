@@ -15,37 +15,10 @@
  * =============================================================================
  */
 
-import {DataTypeMap, KernelConfig, KernelFunc, Range, RangeAttrs, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Range, RangeAttrs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
-
-export function rangeImpl(
-    start: number, stop: number, step: number,
-    dtype: 'float32'|'int32'): DataTypeMap['float32' | 'int32'] {
-  const sameStartStop = start === stop;
-  const increasingRangeNegativeStep = start < stop && step < 0;
-  const decreasingRangePositiveStep = stop < start && step > 1;
-
-  if (sameStartStop || increasingRangeNegativeStep ||
-      decreasingRangePositiveStep) {
-    return util.makeZerosTypedArray(0, dtype);
-  }
-
-  const numElements = Math.abs(Math.ceil((stop - start) / step));
-  const values = util.makeZerosTypedArray(numElements, dtype);
-
-  if (stop < start && step === 1) {
-    // Auto adjust the step's sign if it hasn't been set
-    // (or was set to 1)
-    step = -1;
-  }
-
-  values[0] = start;
-  for (let i = 1; i < values.length; i++) {
-    values[i] = values[i - 1] + step;
-  }
-  return values;
-}
+import {rangeImpl} from './Range_impl';
 
 export function range(args: {backend: MathBackendCPU, attrs: RangeAttrs}):
     TensorInfo {
@@ -58,6 +31,6 @@ export function range(args: {backend: MathBackendCPU, attrs: RangeAttrs}):
 
 export const rangeConfig: KernelConfig = {
   kernelName: Range,
-  backendName: 'webgl',
+  backendName: 'cpu',
   kernelFunc: range as {} as KernelFunc
 };

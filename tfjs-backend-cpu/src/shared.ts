@@ -35,7 +35,7 @@ export {multiplyImpl} from './kernels/Multiply';
 export {negImpl} from './kernels/Neg';
 export {notEqualImpl} from './kernels/NotEqual';
 export {prodImpl} from './kernels/Prod';
-export {rangeImpl} from './kernels/Range';
+export {rangeImpl} from './kernels/Range_impl';
 export {rsqrtImpl} from './kernels/Rsqrt';
 export {sliceImpl} from './kernels/Slice';
 export {squaredDifferenceImpl} from './kernels/SquaredDifference';
