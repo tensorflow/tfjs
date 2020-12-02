@@ -33,7 +33,7 @@
     "test": "yarn && yarn build-deps && yarn build && karma start",
     "test-dev": "yarn && yarn build-deps && yarn build-dev && karma start",
     "test-ci": "./scripts/test-ci.sh",
-    "test-node": "ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/test_node.ts",
+    "test-node": "tsc && ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/test_node.ts",
     "test-bundle-size": "./scripts/test-bundle-size.js",
     "test-cc": "bazel test //src/cc:cc_tests --test_output=all",
     "run-browserstack": "karma start --browserstack"
