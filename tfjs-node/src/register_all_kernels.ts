@@ -69,6 +69,7 @@ import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
+import {expandDimsConfig} from './kernels/ExpandDims';
 import {expm1Config} from './kernels/Expm1';
 import {FFTConfig} from './kernels/FFT';
 import {fillConfig} from './kernels/Fill';
@@ -115,6 +116,7 @@ import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
 import {oneHotConfig} from './kernels/OneHot';
 import {onesLikeConfig} from './kernels/OnesLike';
+import {packConfig} from './kernels/Pack';
 import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
@@ -217,6 +219,7 @@ const kernelConfigs: KernelConfig[] = [
   equalConfig,
   erfConfig,
   expConfig,
+  expandDimsConfig,
   expm1Config,
   fillConfig,
   floorConfig,
@@ -259,6 +262,7 @@ const kernelConfigs: KernelConfig[] = [
   notEqualConfig,
   oneHotConfig,
   onesLikeConfig,
+  packConfig,
   padV2Config,
   powConfig,
   preluConfig,

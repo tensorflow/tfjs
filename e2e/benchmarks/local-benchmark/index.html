@@ -200,8 +200,9 @@ limitations under the License.
 
     async function showEnvironment() {
       await tf.time(() => tf.add(tf.tensor1d([1]), tf.tensor1d([1])).data());
-      envDiv.innerHTML += `<br/>${JSON.stringify(tf.env().features, null, 2)
-        } `;
+      const sortedFeatures = Object.keys(tf.env().features).sort().map(
+          name=>`  ${name}: ${tf.env().features[name]}`);
+      envDiv.innerHTML += `<br/>{<br>${sortedFeatures.join('<br>')}<br>}`;
     }
 
     function showBenchmarkingParameters() {
@@ -327,7 +328,7 @@ limitations under the License.
       }
 
       await tf.nextFrame();
-      return variableShape;
+      return state.benchmark === 'custom' &&  variableShape;
     }
 
     function createRangeInput(range, index) {
@@ -496,7 +497,7 @@ limitations under the License.
     }
 
     async function loadModel() {
-      if (state.isModelChanged || !state.isModelLoaded) {
+      if (state.isModelChanged || !state.isModelLoaded || state.isFlagChanged) {
         await loadModelAndRecordTime();
         state.isModelLoaded = true;
         const needInputShape = await showInputs();
@@ -511,7 +512,6 @@ limitations under the License.
     async function runBenchmark() {
       if (state.isFlagChanged) {
         await setEnvFlags(state.flags);
-        state.isFlagChanged = false;
         envDiv.innerHTML = '';
         showVersions();
         await showEnvironment();
@@ -520,6 +520,9 @@ limitations under the License.
       await setupKernelTable();
 
       const canProceed = await loadModel();
+      if (state.isFlagChanged) {
+        state.isFlagChanged = false;
+      }
       // return immediately if load model failed or need user input.
       if (!canProceed) {
         return;
