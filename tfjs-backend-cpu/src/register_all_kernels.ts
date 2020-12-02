@@ -80,6 +80,7 @@ import {floorDivConfig} from './kernels/FloorDiv';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
 import {gatherNdConfig} from './kernels/GatherNd';
+import {gatherV2Config} from './kernels/GatherV2';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
@@ -137,6 +138,7 @@ import {reverseConfig} from './kernels/Reverse';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {roundConfig} from './kernels/Round';
 import {rsqrtConfig} from './kernels/Rsqrt';
+import {scatterNdConfig} from './kernels/ScatterNd';
 import {selectConfig} from './kernels/Select';
 import {seluConfig} from './kernels/Selu';
 import {sigmoidConfig} from './kernels/Sigmoid';
@@ -147,6 +149,7 @@ import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
+import {sparseToDenseConfig} from './kernels/SparseToDense';
 import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
@@ -162,6 +165,7 @@ import {topKConfig} from './kernels/TopK';
 import {transposeConfig} from './kernels/Transpose';
 import {uniqueConfig} from './kernels/Unique';
 import {unpackConfig} from './kernels/Unpack';
+import {unsortedSegmentSumConfig} from './kernels/UnsortedSegmentSum';
 import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
@@ -228,6 +232,7 @@ const kernelConfigs: KernelConfig[] = [
   fusedConv2DConfig,
   fusedDepthwiseConv2DConfig,
   gatherNdConfig,
+  gatherV2Config,
   greaterConfig,
   greaterEqualConfig,
   identityConfig,
@@ -284,6 +289,7 @@ const kernelConfigs: KernelConfig[] = [
   rotateWithOffsetConfig,
   roundConfig,
   rsqrtConfig,
+  scatterNdConfig,
   selectConfig,
   seluConfig,
   sigmoidConfig,
@@ -294,6 +300,7 @@ const kernelConfigs: KernelConfig[] = [
   softmaxConfig,
   softplusConfig,
   spaceToBatchNDConfig,
+  sparseToDenseConfig,
   splitVConfig,
   sqrtConfig,
   squareConfig,
@@ -309,6 +316,7 @@ const kernelConfigs: KernelConfig[] = [
   transposeConfig,
   uniqueConfig,
   unpackConfig,
+  unsortedSegmentSumConfig,
   zerosLikeConfig
 ];
 
