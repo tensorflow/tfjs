@@ -1,6 +1,7 @@
 {
     "kernels": [
         "Cast",
+        "ExpandDims",
         "Reshape",
         "ResizeBilinear",
         "RealDiv",
@@ -12,6 +13,7 @@
         "Add",
         "Relu",
         "PadV2",
+        "Pack",
         "MaxPool",
         "Slice",
         "StridedSlice",
