@@ -77,6 +77,7 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|EmptyTensorList|EmptyTensorList|
 |Enter|Enter|
 |Exit|Exit|
 |If|If|
