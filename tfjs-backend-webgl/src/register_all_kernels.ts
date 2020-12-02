@@ -118,6 +118,7 @@ import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {resizeBilinearGradConfig} from './kernels/ResizeBilinearGrad';
 import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
 import {resizeNearestNeighborGradConfig} from './kernels/ResizeNearestNeighborGrad';
+import {reverseConfig} from './kernels/Reverse';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {roundConfig} from './kernels/Round';
 import {scatterNdConfig} from './kernels/ScatterNd';
@@ -250,6 +251,7 @@ const kernelConfigs: KernelConfig[] = [
   resizeBilinearGradConfig,
   resizeNearestNeighborConfig,
   resizeNearestNeighborGradConfig,
+  reverseConfig,
   rotateWithOffsetConfig,
   roundConfig,
   scatterNdConfig,

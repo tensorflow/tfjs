@@ -45,8 +45,6 @@ import * as gpgpu_math from './gpgpu_math';
 import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
 import {PackProgram} from './pack_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
-import {ReverseProgram} from './reverse_gpu';
-import {ReversePackedProgram} from './reverse_packed_gpu';
 import {SegmentOpProgram} from './segment_gpu';
 import {SelectProgram} from './select_gpu';
 import {StridedSliceProgram} from './strided_slice_gpu';
@@ -686,13 +684,6 @@ export class MathBackendWebGL extends KernelBackend {
     }
 
     const program = new StridedSliceProgram(begin, strides, outShape);
-    return this.compileAndRun(program, [x]);
-  }
-
-  reverse<T extends Tensor>(x: T, axis: number[]): T {
-    const program = env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') ?
-        new ReversePackedProgram(x.shape, axis) :
-        new ReverseProgram(x.shape, axis);
     return this.compileAndRun(program, [x]);
   }
 
