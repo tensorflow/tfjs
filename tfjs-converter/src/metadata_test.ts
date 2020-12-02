@@ -29,6 +29,7 @@ describe('kernel2op metadata file', () => {
   it('only known unmapped kernel are unmmapped', () => {
     const knownUnmappedKernels = [
       'Const',
+      'EmptyTensorList',
       'Enter',
       'Exit',
       'FakeQuantWithMinMaxVars',
