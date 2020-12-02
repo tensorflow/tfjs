@@ -19,20 +19,12 @@ import {backend_util} from '@tensorflow/tfjs-core';
 
 import {GPGPUProgram} from './gpgpu_math';
 
-const CHECK_NAN_SNIPPET = `
+export const CHECK_NAN_SNIPPET = `
   if (isnan(a)) return a;
   if (isnan(b)) return b;
 `;
 
 export const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
-
-export const MAX = CHECK_NAN_SNIPPET + `
-  return max(a, b);
-`;
-export const MIN = CHECK_NAN_SNIPPET + `
-  return min(a, b);
-`;
-
 export class BinaryOpProgram implements GPGPUProgram {
   variableNames = ['A', 'B'];
   outputShape: number[];

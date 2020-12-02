@@ -19,9 +19,9 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, buffer, DataId, DataStorage, DataType, DataValues, div, engine, env, kernel_impls, KernelBackend, max, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, scalar, ShapeMap, slice_util, softmax, sum, tensor, Tensor, Tensor1D, Tensor2D, Tensor3D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, DataId, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, scalar, ShapeMap, slice_util, tensor, Tensor, Tensor1D, Tensor2D, Tensor3D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
-import {ceilImplCPU, expImplCPU, expm1ImplCPU, gatherV2ImplCPU, linSpaceImplCPU, logImplCPU, maximumImplCPU, minimumImplCPU, negImplCPU, prodImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
+import {ceilImplCPU, expm1ImplCPU, gatherV2ImplCPU, logImplCPU, negImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
 const split = kernel_impls.split;
@@ -31,10 +31,6 @@ import {AddNProgram} from './addn_gpu';
 import {AddNPackedProgram} from './addn_packed_gpu';
 import {ArgMinMaxProgram} from './argminmax_gpu';
 import {ArgMinMaxPackedProgram} from './argminmax_packed_gpu';
-import * as binaryop_gpu from './binaryop_gpu';
-import {BinaryOpProgram} from './binaryop_gpu';
-import * as binaryop_packed_gpu from './binaryop_packed_gpu';
-import {BinaryOpPackedProgram} from './binaryop_packed_gpu';
 import {getWebGLContext} from './canvas_util';
 import {ClipProgram} from './clip_gpu';
 import {ClipPackedProgram} from './clip_packed_gpu';
@@ -50,9 +46,7 @@ import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
 import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
 import {MatMulPackedProgram} from './mulmat_packed_gpu';
-import {MultinomialProgram} from './multinomial_gpu';
 import {PackProgram} from './pack_gpu';
-import {ReduceProgram} from './reduce_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
 import {ReverseProgram} from './reverse_gpu';
 import {ReversePackedProgram} from './reverse_packed_gpu';
@@ -816,23 +810,6 @@ export class MathBackendWebGL extends KernelBackend {
     return res.reshape(shapeInfo.outputShape);
   }
 
-  private reduce(
-      x: Tensor2D, reduceType: 'all'|'any'|'max'|'min'|'sum'|'prod',
-      dtype: DataType): Tensor2D {
-    const batchSize = x.shape[0];
-    const inSize = x.shape[1];
-    const windowSize = backend_util.computeOptimalWindowSize(inSize);
-    const outSize = Math.ceil(inSize / windowSize);
-    const reduceInfo = {windowSize, inSize, batchSize, outSize};
-    const program = new ReduceProgram(reduceInfo, reduceType);
-    const output = this.compileAndRun<Tensor2D>(program, [x], dtype);
-    // No need to run another GPGPU program.
-    if (output.shape[1] === 1) {
-      return output;
-    }
-    return this.reduce(output, reduceType, dtype);
-  }
-
   private argReduce(
       x: Tensor2D, reduceType: 'max'|'min',
       bestIndicesA: Tensor2D = null): Tensor2D {
@@ -876,22 +853,6 @@ export class MathBackendWebGL extends KernelBackend {
       return this.argReducePacked(x, reduceType, output);
     }
     return output;
-  }
-
-  prod(x: Tensor, axes: number[]): Tensor {
-    if (this.shouldExecuteOnCPU([x])) {
-      const xVals = this.texData.get(x.dataId).values as TypedArray;
-      const {outVals, outShape, outDtype} =
-          prodImplCPU(x.shape, x.dtype, xVals, axes);
-      return this.makeOutput(outShape, outDtype, outVals);
-    }
-
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, inSize);
-    const outputDType = tf.sumOutType(x.dtype);
-    return this.reduce(a2D, 'prod', outputDType).reshape(outShape);
   }
 
   unsortedSegmentSum<T extends Tensor>(
@@ -963,11 +924,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.argMinMaxReduce(x, axis, 'max');
   }
 
-  logicalNot<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.LOGICAL_NOT);
-    return this.compileAndRun(program, [x]);
-  }
-
   select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
     const program = new SelectProgram(condition.rank, a.shape, a.rank);
     return this.compileAndRun(
@@ -992,65 +948,6 @@ export class MathBackendWebGL extends KernelBackend {
       this.makeOutput(
           allTopKIndices.shape, allTopKIndices.dtype, allTopKIndices.values)
     ];
-  }
-
-  min(x: Tensor, axes: number[]): Tensor {
-    backend_util.assertAxesAreInnerMostDims('min', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, inSize);
-    return this.reduce(a2D, 'min', a2D.dtype).reshape(outShape);
-  }
-
-  minimum(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      const aVals = this.texData.get(a.dataId).values as TypedArray;
-      const bVals = this.texData.get(b.dataId).values as TypedArray;
-      const [result, newShape] =
-          minimumImplCPU(a.shape, b.shape, aVals, bVals, a.dtype);
-
-      return this.makeOutput(newShape, a.dtype, result);
-    }
-
-    const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
-        new BinaryOpPackedProgram(binaryop_packed_gpu.MIN, a.shape, b.shape) :
-        new BinaryOpProgram(binaryop_gpu.MIN, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b]);
-  }
-
-  maximum(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      const aVals = this.texData.get(a.dataId).values as TypedArray;
-      const bVals = this.texData.get(b.dataId).values as TypedArray;
-      const [result, newShape] =
-          maximumImplCPU(a.shape, b.shape, aVals, bVals, a.dtype);
-
-      return this.makeOutput(newShape, a.dtype, result);
-    }
-
-    const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
-        new BinaryOpPackedProgram(binaryop_packed_gpu.MAX, a.shape, b.shape) :
-        new BinaryOpProgram(binaryop_gpu.MAX, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b]);
-  }
-
-  all(x: Tensor, axes: number[]): Tensor {
-    backend_util.assertAxesAreInnerMostDims('all', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, inSize);
-    return this.reduce(a2D, 'all', a2D.dtype).reshape(outShape);
-  }
-
-  any(x: Tensor, axes: number[]): Tensor {
-    backend_util.assertAxesAreInnerMostDims('any', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const inSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, inSize);
-    return this.reduce(a2D, 'any', a2D.dtype).reshape(outShape);
   }
 
   private packedUnaryOp(x: TensorInfo, op: string, dtype: DataType) {
@@ -1109,39 +1006,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  isNaN<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.IS_NAN);
-    return this.compileAndRun(program, [x], 'bool');
-  }
-  isInf<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.IS_INF);
-    return this.compileAndRun(program, [x], 'bool');
-  }
-  isFinite<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.IS_FINITE);
-    return this.compileAndRun(program, [x], 'bool');
-  }
-
-  round<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ROUND);
-    return this.compileAndRun(program, [x]);
-  }
-
-  exp<T extends Tensor>(x: T): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      const outValues =
-          expImplCPU(this.texData.get(x.dataId).values as TypedArray, x.dtype);
-      return this.makeOutput(x.shape, x.dtype, outValues);
-    }
-
-    if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
-      return this.packedUnaryOp(x, unary_op.EXP, x.dtype) as T;
-    }
-
-    const program = new UnaryOpProgram(x.shape, unary_op.EXP);
-    return this.compileAndRun(program, [x]);
-  }
-
   expm1<T extends Tensor>(x: T): T {
     if (this.shouldExecuteOnCPU([x])) {
       const outValues = expm1ImplCPU(
@@ -1155,24 +1019,6 @@ export class MathBackendWebGL extends KernelBackend {
 
     const program = new UnaryOpProgram(x.shape, unary_op.EXPM1);
     return this.compileAndRun(program, [x]);
-  }
-
-  softmax<T extends Tensor>(logits: T, dim: number): T {
-    const axes = util.parseAxisParam([dim], logits.shape);
-    // TODO(annxingyuan): Call maxImpl rather than op as part of softmax kernel
-    // modularization.
-    const maxLogit = max(logits, axes);
-    const expandedShape =
-        backend_util.expandShapeToKeepDim(maxLogit.shape, axes);
-    // TODO(annxingyuan): Call sub directly as part of softmax kernel
-    // modularization.
-    const a = tf.sub(logits, maxLogit.reshape(expandedShape));
-    const b = this.exp(a);
-    const sumExp = sum(b, axes).reshape(expandedShape);
-
-    // TODO(annxingyuan): Call divImpl rather than op as part of softmax kernel
-    // modularization.
-    return div(b, sumExp);
   }
 
   log<T extends Tensor>(x: T): T {
@@ -1190,11 +1036,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  log1p<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.LOG1P);
-    return this.compileAndRun(program, [x]);
-  }
-
   sqrt<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SQRT);
     return this.compileAndRun(program, [x]);
@@ -1207,11 +1048,6 @@ export class MathBackendWebGL extends KernelBackend {
       return this.makeOutput(x.shape, x.dtype, outValues);
     }
     const program = new UnaryOpProgram(x.shape, unary_op.RSQRT);
-    return this.compileAndRun(program, [x]);
-  }
-
-  reciprocal<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.RECIPROCAL);
     return this.compileAndRun(program, [x]);
   }
 
@@ -1240,11 +1076,6 @@ export class MathBackendWebGL extends KernelBackend {
       return this.packedUnaryOp(x, unary_packed_op.ELU, x.dtype) as T;
     }
     const program = new UnaryOpProgram(x.shape, unary_op.ELU);
-    return this.compileAndRun(program, [x]);
-  }
-
-  selu<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SELU);
     return this.compileAndRun(program, [x]);
   }
 
@@ -1287,11 +1118,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun<Tensor>(program, inputs) as T;
   }
 
-  step<T extends Tensor>(x: T, alpha: number): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.STEP(alpha));
-    return this.compileAndRun(program, [x]);
-  }
-
   unstack(x: Tensor, axis: number): Tensor[] {
     const num = x.shape[axis];
     const outShape: number[] = new Array(x.rank - 1);
@@ -1313,26 +1139,8 @@ export class MathBackendWebGL extends KernelBackend {
     return res;
   }
 
-  multinomial(
-      logits: Tensor2D, normalized: boolean, numSamples: number,
-      seed: number): Tensor2D {
-    const probs = normalized ? logits : softmax(logits);
-    const batchSize = probs.shape[0];
-    const numOutcomes = probs.shape[1];
-    const program = new MultinomialProgram(batchSize, numOutcomes, numSamples);
-    const customSetup = program.getCustomSetupFunc(seed);
-    return this.compileAndRun(program, [probs], 'int32', customSetup);
-  }
-
   split<T extends Tensor>(x: T, sizeSplits: number[], axis: number): T[] {
     return split(x, sizeSplits, axis);
-  }
-
-  linspace(start: number, stop: number, num: number): Tensor1D {
-    // TODO: Use CPU implementation due to the precision problem in Safari.
-    const outVals = linSpaceImplCPU(start, stop, num);
-
-    return this.makeOutput([outVals.length], 'float32', outVals);
   }
 
   makeTensorInfo(

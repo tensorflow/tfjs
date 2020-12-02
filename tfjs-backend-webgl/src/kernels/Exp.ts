@@ -15,22 +15,17 @@
  * =============================================================================
  */
 
-import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
+import {Exp, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {subImplCPU as cpuSub} from '../kernel_utils/shared';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {expImplCPU} from '../kernel_utils/shared';
 
-const SUB = 'return a - b;';
+export const EXP = `return exp(x);`;
+export const exp = unaryKernelFunc(
+    {opSnippet: EXP, packedOpSnippet: EXP, cpuKernelImpl: expImplCPU});
 
-export const sub = binaryKernelFunc({
-  opSnippet: SUB,
-  packedOpSnippet: SUB,
-  supportsComplex: true,
-  cpuKernelImpl: cpuSub
-});
-
-export const subConfig: KernelConfig = {
-  kernelName: Sub,
+export const expConfig: KernelConfig = {
+  kernelName: Exp,
   backendName: 'webgl',
-  kernelFunc: sub
+  kernelFunc: exp as {} as KernelFunc
 };

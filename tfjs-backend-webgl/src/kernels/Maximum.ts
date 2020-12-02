@@ -15,22 +15,33 @@
  * =============================================================================
  */
 
-import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Maximum} from '@tensorflow/tfjs-core';
 
+import {CHECK_NAN_SNIPPET} from '../binaryop_gpu';
+import {CHECK_NAN_SNIPPET as CHECK_NAN_SNIPPET_PACKED} from '../binaryop_packed_gpu';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {subImplCPU as cpuSub} from '../kernel_utils/shared';
+import {maximumImplCPU} from '../kernel_utils/shared';
 
-const SUB = 'return a - b;';
+const MAXIMUM = CHECK_NAN_SNIPPET + `
+  return max(a, b);
+`;
 
-export const sub = binaryKernelFunc({
-  opSnippet: SUB,
-  packedOpSnippet: SUB,
-  supportsComplex: true,
-  cpuKernelImpl: cpuSub
+const MAXIMUM_PACKED = `
+  vec4 result = vec4(max(a, b));
+  vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
+  ` +
+    CHECK_NAN_SNIPPET_PACKED + `
+  return result;
+`;
+
+export const maximum = binaryKernelFunc({
+  opSnippet: MAXIMUM,
+  packedOpSnippet: MAXIMUM_PACKED,
+  cpuKernelImpl: maximumImplCPU
 });
 
-export const subConfig: KernelConfig = {
-  kernelName: Sub,
+export const maximumConfig: KernelConfig = {
+  kernelName: Maximum,
   backendName: 'webgl',
-  kernelFunc: sub
+  kernelFunc: maximum as {} as KernelFunc
 };

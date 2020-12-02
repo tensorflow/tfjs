@@ -39,7 +39,7 @@ export function cumsum(
   }
   const permutedAxis = backend_util.getInnerMostAxes(1, xRank)[0];
 
-  if (permutedAxis !== permutedX.shape.length - 1) {
+  if (permutedAxis !== xRank - 1) {
     throw new Error(
         `WebGL cumsum shader expects an inner-most axis=${
             x.shape.length - 1} ` +

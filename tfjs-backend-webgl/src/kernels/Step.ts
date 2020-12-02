@@ -15,22 +15,27 @@
  * =============================================================================
  */
 
-import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Step, StepAttrs, TensorInfo, UnaryInputs} from '@tensorflow/tfjs-core';
 
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {subImplCPU as cpuSub} from '../kernel_utils/shared';
+import {MathBackendWebGL} from '../backend_webgl';
+import {CHECK_NAN_SNIPPET, UnaryOpProgram} from '../unaryop_gpu';
 
-const SUB = 'return a - b;';
+export function step(
+    {inputs, attrs, backend}:
+        {inputs: UnaryInputs, attrs: StepAttrs, backend: MathBackendWebGL}):
+    TensorInfo {
+  const {x} = inputs;
+  const opSnippet = CHECK_NAN_SNIPPET + `
+    return x > 0.0 ? 1.0 : float(${attrs.alpha});
+  `;
 
-export const sub = binaryKernelFunc({
-  opSnippet: SUB,
-  packedOpSnippet: SUB,
-  supportsComplex: true,
-  cpuKernelImpl: cpuSub
-});
+  const program = new UnaryOpProgram(x.shape, opSnippet);
 
-export const subConfig: KernelConfig = {
-  kernelName: Sub,
+  return backend.runWebGLProgram(program, [x], x.dtype);
+}
+
+export const stepConfig: KernelConfig = {
+  kernelName: Step,
   backendName: 'webgl',
-  kernelFunc: sub
+  kernelFunc: step as {} as KernelFunc,
 };
