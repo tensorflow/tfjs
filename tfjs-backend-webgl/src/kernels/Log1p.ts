@@ -15,22 +15,15 @@
  * =============================================================================
  */
 
-import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
+import {KernelConfig, Log1p} from '@tensorflow/tfjs-core';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {subImplCPU as cpuSub} from '../kernel_utils/shared';
+const LOG1P = `return log(1.0 + x);`;
 
-const SUB = 'return a - b;';
+export const log1p = unaryKernelFunc({opSnippet: LOG1P});
 
-export const sub = binaryKernelFunc({
-  opSnippet: SUB,
-  packedOpSnippet: SUB,
-  supportsComplex: true,
-  cpuKernelImpl: cpuSub
-});
-
-export const subConfig: KernelConfig = {
-  kernelName: Sub,
+export const log1pConfig: KernelConfig = {
+  kernelName: Log1p,
   backendName: 'webgl',
-  kernelFunc: sub
+  kernelFunc: log1p,
 };

@@ -15,22 +15,15 @@
  * =============================================================================
  */
 
-import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
+import {IsInf, KernelConfig} from '@tensorflow/tfjs-core';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {subImplCPU as cpuSub} from '../kernel_utils/shared';
+const IS_INF = `return float(isinf(x));`;
 
-const SUB = 'return a - b;';
+export const isInf = unaryKernelFunc({opSnippet: IS_INF, dtype: 'bool'});
 
-export const sub = binaryKernelFunc({
-  opSnippet: SUB,
-  packedOpSnippet: SUB,
-  supportsComplex: true,
-  cpuKernelImpl: cpuSub
-});
-
-export const subConfig: KernelConfig = {
-  kernelName: Sub,
+export const isInfConfig: KernelConfig = {
+  kernelName: IsInf,
   backendName: 'webgl',
-  kernelFunc: sub
+  kernelFunc: isInf,
 };
