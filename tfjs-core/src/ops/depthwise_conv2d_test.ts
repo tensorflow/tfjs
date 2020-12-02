@@ -67,8 +67,8 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     const result = tf.depthwiseConv2d(x, w, stride, pad);
     expect(result.shape).toEqual([1, 5, 3, 1]);
     const expected = [
-      0.3896667, 1.0702161, 1.0316753, 0.1556986, 0.6704096, 0.7788632,
-      0.0170062, 0.1163575, 0.2049083, 0, 0, 0, 0, 0, 0
+      0.826533, 0.197560, 0.0098898, 1.070216, 1.031675, 0.126422, 0.6704096,
+      0.778863, 0.273041, 0.116357, 0.204908, 0.106774, 0, 0, 0
     ];
     expectArraysClose(await result.data(), expected);
   });
@@ -357,10 +357,10 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
 
     const result = tf.depthwiseConv2d(x, w, stride, pad);
     expect(result.shape).toEqual([1, 3, 4, 1]);
-    const expected = [[
+    const expected = [
       2.540022, 2.505885, 2.454062, 1.871258, 2.35170, 2.459601, 3.076421,
       1.32399, 3.298480, 3.437421, 2.93419, 1.823238
-    ]];
+    ];
     expectArraysClose(await result.data(), expected);
   });
 
