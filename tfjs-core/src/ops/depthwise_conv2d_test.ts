@@ -331,7 +331,7 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('input=1x5x5x1,f=3,s=1,d=2,p=same,chMul=1', async () => {
+  it('input=1x5x5x1,f=3,s=1,d=2,p=explicit,chMul=1', async () => {
     const fSize = 3;
     const pad =
         [[0, 0], [0, 0], [0, 1], [0, 1]] as tf.backend_util.ExplicitPadding;
