@@ -20,6 +20,7 @@ import {AddN, AddNInputs, env, KernelConfig, KernelFunc, TensorInfo, upcastType}
 import {AddNProgram} from '../addn_gpu';
 import {AddNPackedProgram} from '../addn_packed_gpu';
 import {MathBackendWebGL} from '../backend_webgl';
+import {identity} from './Identity';
 
 export function addN(args: {inputs: AddNInputs, backend: MathBackendWebGL}):
     TensorInfo {
@@ -27,7 +28,7 @@ export function addN(args: {inputs: AddNInputs, backend: MathBackendWebGL}):
 
   const tensors = inputs;
   if (tensors.length === 1) {
-    return tensors[0];
+    return identity({inputs: {x: tensors[0]}, backend});
   }
 
   // Limit the number of uploaded textures for optimization.
