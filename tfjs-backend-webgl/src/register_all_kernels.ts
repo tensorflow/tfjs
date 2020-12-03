@@ -114,6 +114,7 @@ import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
+import {rangeConfig} from './kernels/Range';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reciprocalConfig} from './kernels/Reciprocal';
@@ -151,6 +152,7 @@ import {topKConfig} from './kernels/TopK';
 import {transposeConfig} from './kernels/Transpose';
 import {uniqueConfig} from './kernels/Unique';
 import {unpackConfig} from './kernels/Unpack';
+import {unsortedSegmentSumConfig} from './kernels/UnsortedSegmentSum';
 import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
@@ -253,6 +255,7 @@ const kernelConfigs: KernelConfig[] = [
   powConfig,
   preluConfig,
   prodConfig,
+  rangeConfig,
   realConfig,
   realDivConfig,
   reciprocalConfig,
@@ -289,6 +292,7 @@ const kernelConfigs: KernelConfig[] = [
   topKConfig,
   transposeConfig,
   uniqueConfig,
+  unsortedSegmentSumConfig,
   unpackConfig,
   zerosLikeConfig
 ];
