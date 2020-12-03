@@ -23,6 +23,8 @@ import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
 import {allConfig} from './kernels/All';
 import {anyConfig} from './kernels/Any';
+import {argMaxConfig} from './kernels/ArgMax';
+import {argMinConfig} from './kernels/ArgMin';
 import {asinConfig} from './kernels/Asin';
 import {asinhConfig} from './kernels/Asinh';
 import {atanConfig} from './kernels/Atan';
@@ -121,6 +123,7 @@ import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {resizeBilinearGradConfig} from './kernels/ResizeBilinearGrad';
 import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
 import {resizeNearestNeighborGradConfig} from './kernels/ResizeNearestNeighborGrad';
+import {reverseConfig} from './kernels/Reverse';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {roundConfig} from './kernels/Round';
 import {scatterNdConfig} from './kernels/ScatterNd';
@@ -139,6 +142,7 @@ import {splitVConfig} from './kernels/SplitV';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {stepConfig} from './kernels/Step';
+import {stridedSliceConfig} from './kernels/StridedSlice';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
@@ -162,6 +166,8 @@ const kernelConfigs: KernelConfig[] = [
   addNConfig,
   allConfig,
   anyConfig,
+  argMinConfig,
+  argMaxConfig,
   asinConfig,
   asinhConfig,
   atan2Config,
@@ -258,6 +264,7 @@ const kernelConfigs: KernelConfig[] = [
   resizeBilinearGradConfig,
   resizeNearestNeighborConfig,
   resizeNearestNeighborGradConfig,
+  reverseConfig,
   rotateWithOffsetConfig,
   roundConfig,
   scatterNdConfig,
@@ -276,6 +283,7 @@ const kernelConfigs: KernelConfig[] = [
   squareConfig,
   squaredDifferenceConfig,
   stepConfig,
+  stridedSliceConfig,
   subConfig,
   sumConfig,
   tanConfig,
