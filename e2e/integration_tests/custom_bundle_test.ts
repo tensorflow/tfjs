@@ -65,9 +65,25 @@ describe(`${REGRESSION} blazeface`, () => {
           await executeInWorker(programUrl, {debug: DEBUG_WORKER_SCRIPT});
       const kernelNames = result.kernelNames;
       expect(kernelNames).toEqual(jasmine.arrayWithExactContents([
-        'Cast', 'Reshape', 'ResizeBilinear', 'Div', 'Sub', 'Multiply',
-        'FusedConv2D', 'DepthwiseConv2dNative', 'Add', 'Relu', 'PadV2',
-        'MaxPool', 'Slice', 'StridedSlice', 'Concat', 'Identity', 'Sigmoid',
+        'Cast',
+        'ExpandDims',
+        'Reshape',
+        'ResizeBilinear',
+        'Div',
+        'Sub',
+        'Multiply',
+        'FusedConv2D',
+        'DepthwiseConv2dNative',
+        'Add',
+        'Relu',
+        'Pack',
+        'PadV2',
+        'MaxPool',
+        'Slice',
+        'StridedSlice',
+        'Concat',
+        'Identity',
+        'Sigmoid',
         'NonMaxSuppressionV3'
       ]));
 
