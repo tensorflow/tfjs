@@ -27,6 +27,8 @@ export * from '@tensorflow/tfjs-converter';
 export * from '@tensorflow/tfjs-backend-wasm/dist/base';
 import {castConfig as Cast_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/Cast';
 registerKernel(Cast_wasm);
+import {expandDimsConfig as ExpandDims_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/ExpandDims';
+registerKernel(ExpandDims_wasm);
 import {reshapeConfig as Reshape_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/Reshape';
 registerKernel(Reshape_wasm);
 import {resizeBilinearConfig as ResizeBilinear_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/ResizeBilinear';
@@ -47,6 +49,8 @@ import {reluConfig as Relu_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernel
 registerKernel(Relu_wasm);
 import {padV2Config as PadV2_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/PadV2';
 registerKernel(PadV2_wasm);
+import {packConfig as Pack_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/Pack';
+registerKernel(Pack_wasm);
 import {maxPoolConfig as MaxPool_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/MaxPool';
 registerKernel(MaxPool_wasm);
 import {sliceConfig as Slice_wasm} from '@tensorflow/tfjs-backend-wasm/dist/kernels/Slice';
