@@ -21,27 +21,20 @@ import './flags_webgl';
 import * as tf from '@tensorflow/tfjs-core';
 import {backend_util, buffer, DataId, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, scalar, ShapeMap, slice_util, tensor, Tensor, Tensor1D, Tensor2D, Tensor3D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
-import {ceilImplCPU, expm1ImplCPU, gatherV2ImplCPU, logImplCPU, negImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
+import {ceilImplCPU, expm1ImplCPU, logImplCPU, negImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU} from './kernel_utils/shared';
 
 const {segment_util} = backend_util;
-const split = kernel_impls.split;
 const whereImpl = kernel_impls.whereImpl;
 
-import {AddNProgram} from './addn_gpu';
-import {AddNPackedProgram} from './addn_packed_gpu';
 import {ArgMinMaxProgram} from './argminmax_gpu';
 import {ArgMinMaxPackedProgram} from './argminmax_packed_gpu';
 import {getWebGLContext} from './canvas_util';
-import {ClipProgram} from './clip_gpu';
-import {ClipPackedProgram} from './clip_packed_gpu';
-import {ComplexAbsProgram} from './complex_abs_gpu';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
 import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
 import {EncodeFloatProgram} from './encode_float_gpu';
 import {EncodeFloatPackedProgram} from './encode_float_packed_gpu';
 import {EncodeMatrixProgram} from './encode_matrix_gpu';
 import {EncodeMatrixPackedProgram} from './encode_matrix_packed_gpu';
-import {GatherProgram} from './gather_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
 import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
@@ -51,7 +44,6 @@ import {ReshapePackedProgram} from './reshape_packed_gpu';
 import {ReverseProgram} from './reverse_gpu';
 import {ReversePackedProgram} from './reverse_packed_gpu';
 import {SegmentOpProgram} from './segment_gpu';
-import {SelectProgram} from './select_gpu';
 import {StridedSliceProgram} from './strided_slice_gpu';
 import * as tex_util from './tex_util';
 import {TextureData, TextureUsage} from './tex_util';
@@ -779,37 +771,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun<Tensor3D>(program, inputs, dtype);
   }
 
-  gather<T extends Tensor>(
-      x: T, indices: Tensor1D, axis: number, batchDims = 0): T {
-    const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
-    const shapeInfo = segment_util.collectGatherOpShapeInfo(
-        x, indices, parsedAxis, batchDims);
-
-    const flattenX = x.reshape([
-      shapeInfo.batchSize, shapeInfo.outerSize, shapeInfo.dimSize,
-      shapeInfo.sliceSize
-    ]);
-    const flattenIndex = indices.reshape(
-        [shapeInfo.batchSize, indices.size / shapeInfo.batchSize]);
-    const flattenOutputShape = [
-      shapeInfo.batchSize, shapeInfo.outerSize,
-      indices.size / shapeInfo.batchSize, shapeInfo.sliceSize
-    ];
-
-    if (this.shouldExecuteOnCPU([x, indices]) || x.dtype === 'string') {
-      const indicesBuf = this.bufferSync(flattenIndex);
-      const xBuf = this.bufferSync(flattenX);
-      const outBuf = gatherV2ImplCPU(xBuf, indicesBuf, flattenOutputShape);
-
-      return this.makeOutput(
-          shapeInfo.outputShape, outBuf.dtype, outBuf.values as TypedArray);
-    }
-
-    const program = new GatherProgram(flattenX.shape, flattenOutputShape);
-    const res: Tensor = this.compileAndRun(program, [flattenX, flattenIndex]);
-    return res.reshape(shapeInfo.outputShape);
-  }
-
   private argReduce(
       x: Tensor2D, reduceType: 'max'|'min',
       bestIndicesA: Tensor2D = null): Tensor2D {
@@ -924,12 +885,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.argMinMaxReduce(x, axis, 'max');
   }
 
-  select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
-    const program = new SelectProgram(condition.rank, a.shape, a.rank);
-    return this.compileAndRun(
-        program, [condition, a, b], upcastType(a.dtype, b.dtype));
-  }
-
   where(condition: Tensor): Tensor2D {
     backend_util.warn(
         'tf.where() in webgl locks the UI thread. ' +
@@ -938,57 +893,9 @@ export class MathBackendWebGL extends KernelBackend {
     return whereImpl(condition.shape, condVals);
   }
 
-  topk<T extends Tensor>(x: T, k: number, sorted: boolean): [T, T] {
-    const xVals = x.dataSync();
-    const [allTopKVals, allTopKIndices] =
-        topKImplCPU(xVals, x.shape, x.dtype as NumericDataType, k, sorted);
-
-    return [
-      this.makeOutput(allTopKVals.shape, allTopKVals.dtype, allTopKVals.values),
-      this.makeOutput(
-          allTopKIndices.shape, allTopKIndices.dtype, allTopKIndices.values)
-    ];
-  }
-
   private packedUnaryOp(x: TensorInfo, op: string, dtype: DataType) {
     const program = new UnaryOpPackedProgram(x.shape, op);
     return this.compileAndRun<Tensor>(program, [x], dtype);
-  }
-
-  // Returns a TensorInfo with the complex shape and the dataId of the
-  // underlying part. We need to do this because a reshaped complex tensor is
-  // not reflected in its parts.
-  private makeComplexComponentTensorInfo(
-      complexTensor: Tensor, complexPart: TensorInfo): TensorInfo {
-    return {
-      dataId: complexPart.dataId,
-      dtype: complexPart.dtype,
-      shape: complexTensor.shape
-    };
-  }
-
-  addN<T extends Tensor>(tensors: T[]): T {
-    if (tensors.length === 1) {
-      return tensors[0];
-    }
-
-    // Limit the number of uploaded textures for optimization.
-    if (tensors.length > env().get('WEBGL_MAX_TEXTURES_IN_SHADER')) {
-      const midIndex = Math.floor(tensors.length / 2);
-      const leftSide = this.addN(tensors.slice(0, midIndex));
-      const rightSide = this.addN(tensors.slice(midIndex));
-      return this.addN([leftSide, rightSide]);
-    }
-
-    const dtype =
-        tensors.map(t => t.dtype).reduce((d1, d2) => upcastType(d1, d2));
-    const shapes = tensors.map(t => t.shape);
-    // We can make sure shapes are identical in op level.
-    const usePackedOp = env().getBool('WEBGL_PACK');
-    const program = usePackedOp ?
-        new AddNPackedProgram(tensors[0].shape, shapes) :
-        new AddNProgram(tensors[0].shape, shapes);
-    return this.compileAndRun<T>(program, tensors, dtype);
   }
 
   ceil<T extends Tensor>(x: T): T {
@@ -1079,17 +986,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  clip<T extends Tensor>(x: T, min: number, max: number): T {
-    let program;
-    if (env().getBool('WEBGL_PACK_CLIP')) {
-      program = new ClipPackedProgram(x.shape);
-    } else {
-      program = new ClipProgram(x.shape);
-    }
-    const customSetup = program.getCustomSetupFunc(min, max);
-    return this.compileAndRun(program, [x], null, customSetup);
-  }
-
   abs<T extends Tensor>(x: T): T {
     // TODO: handle cases when x is complex.
     if (this.shouldExecuteOnCPU([x]) && x.dtype !== 'complex64') {
@@ -1104,22 +1000,6 @@ export class MathBackendWebGL extends KernelBackend {
 
     const program = new UnaryOpProgram(x.shape, unary_op.ABS);
     return this.compileAndRun(program, [x]);
-  }
-
-  complexAbs<T extends Tensor>(x: T): T {
-    const xData = this.texData.get(x.dataId);
-
-    const program = new ComplexAbsProgram(x.shape);
-    const inputs = [
-      this.makeComplexComponentTensorInfo(x, xData.complexTensorInfos.real),
-      this.makeComplexComponentTensorInfo(x, xData.complexTensorInfos.imag),
-    ];
-
-    return this.compileAndRun<Tensor>(program, inputs) as T;
-  }
-
-  split<T extends Tensor>(x: T, sizeSplits: number[], axis: number): T[] {
-    return split(x, sizeSplits, axis);
   }
 
   makeTensorInfo(
