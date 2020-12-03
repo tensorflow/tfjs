@@ -26,7 +26,11 @@ export function unpack(
     TensorInfo[] {
   const {inputs, backend, attrs} = args;
   const {value} = inputs;
-  const {axis} = attrs;
+  let {axis} = attrs;
+
+  if (axis < 0) {
+    axis += value.shape.length;
+  }
 
   const valueRank = value.shape.length;
 

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,12 +17,14 @@
 
 import {KernelConfig, KernelFunc, TensorInfo, Unpack, UnpackAttrs, UnpackInputs} from '@tensorflow/tfjs-core';
 
-import {BackendWasm} from '../backend_wasm';
+import {MathBackendWebGL} from '../backend_webgl';
 
+import {reshape} from './Reshape';
 import {slice} from './Slice';
 
-function unpack(
-    args: {inputs: UnpackInputs, backend: BackendWasm, attrs: UnpackAttrs}):
+export function unpack(
+    args:
+        {inputs: UnpackInputs, backend: MathBackendWebGL, attrs: UnpackAttrs}):
     TensorInfo[] {
   const {inputs, backend, attrs} = args;
   const {value} = inputs;
@@ -32,28 +34,40 @@ function unpack(
     axis += value.shape.length;
   }
 
-  const numOutputs = value.shape[axis];
-  const rank = value.shape.length;
-  const outShape: number[] = new Array(rank - 1);
+  const x = value;
+  const xRank = x.shape.length;
+
+  const num = value.shape[axis];
+  const outShape: number[] = new Array(xRank - 1);
   let outIndex = 0;
-  for (let i = 0; i < rank; i++) {
+  for (let i = 0; i < xRank; i++) {
     if (i !== axis) {
-      outShape[outIndex++] = value.shape[i];
+      outShape[outIndex++] = x.shape[i];
     }
   }
-  const outs: TensorInfo[] = new Array(numOutputs);
-  const begin = new Array(rank).fill(0);
-  const size = value.shape.slice();
+
+  const toDispose = [];
+
+  const begin = new Array(xRank).fill(0);
+  const size = x.shape.slice();
   size[axis] = 1;
-  for (let i = 0; i < outs.length; i++) {
+  const res: TensorInfo[] = new Array(num);
+  for (let i = 0; i < res.length; i++) {
     begin[axis] = i;
-    outs[i] = slice({inputs: {x: value}, attrs: {begin, size}, backend});
+    const sliced = slice({inputs: {x}, backend, attrs: {begin, size}});
+    const reshaped =
+        reshape({inputs: {x: sliced}, backend, attrs: {shape: outShape}});
+    res[i] = reshaped;
+
+    toDispose.push(sliced);
   }
-  return outs.map(({dataId, dtype}) => ({dataId, dtype, shape: outShape}));
+
+  toDispose.forEach(t => backend.disposeIntermediateTensorInfo(t));
+  return res;
 }
 
 export const unpackConfig: KernelConfig = {
   kernelName: Unpack,
-  backendName: 'wasm',
-  kernelFunc: unpack as {} as KernelFunc,
+  backendName: 'webgl',
+  kernelFunc: unpack as {} as KernelFunc
 };
