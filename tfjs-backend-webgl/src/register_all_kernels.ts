@@ -20,6 +20,7 @@ import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {acosConfig} from './kernels/Acos';
 import {acoshConfig} from './kernels/Acosh';
 import {addConfig} from './kernels/Add';
+import {addNConfig} from './kernels/AddN';
 import {allConfig} from './kernels/All';
 import {anyConfig} from './kernels/Any';
 import {asinConfig} from './kernels/Asin';
@@ -35,7 +36,9 @@ import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {castConfig} from './kernels/Cast';
+import {clipByValueConfig} from './kernels/ClipByValue';
 import {complexConfig} from './kernels/Complex';
+import {complexAbsConfig} from './kernels/ComplexAbs';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {conv2DBackpropFilterConfig} from './kernels/Conv2DBackpropFilter';
@@ -66,6 +69,7 @@ import {fromPixelsConfig} from './kernels/FromPixels';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
 import {gatherNdConfig} from './kernels/GatherNd';
+import {gatherV2Config} from './kernels/GatherV2';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
@@ -119,6 +123,7 @@ import {resizeNearestNeighborGradConfig} from './kernels/ResizeNearestNeighborGr
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {roundConfig} from './kernels/Round';
 import {scatterNdConfig} from './kernels/ScatterNd';
+import {selectConfig} from './kernels/Select';
 import {seluConfig} from './kernels/Selu';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {signConfig} from './kernels/Sign';
@@ -129,6 +134,7 @@ import {softmaxConfig} from './kernels/Softmax';
 import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {sparseToDenseConfig} from './kernels/SparseToDense';
+import {splitVConfig} from './kernels/SplitV';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {stepConfig} from './kernels/Step';
@@ -137,6 +143,7 @@ import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
 import {tileConfig} from './kernels/Tile';
+import {topKConfig} from './kernels/TopK';
 import {transposeConfig} from './kernels/Transpose';
 import {uniqueConfig} from './kernels/Unique';
 import {zerosLikeConfig} from './kernels/ZerosLike';
@@ -149,6 +156,7 @@ const kernelConfigs: KernelConfig[] = [
   acosConfig,
   acoshConfig,
   addConfig,
+  addNConfig,
   allConfig,
   anyConfig,
   asinConfig,
@@ -164,6 +172,8 @@ const kernelConfigs: KernelConfig[] = [
   batchNormConfig,
   batchToSpaceNDConfig,
   castConfig,
+  clipByValueConfig,
+  complexAbsConfig,
   complexConfig,
   concatConfig,
   conv2DBackpropFilterConfig,
@@ -198,6 +208,7 @@ const kernelConfigs: KernelConfig[] = [
   fusedConv2DConfig,
   fusedDepthwiseConv2DConfig,
   gatherNdConfig,
+  gatherV2Config,
   greaterConfig,
   greaterEqualConfig,
   identityConfig,
@@ -249,6 +260,7 @@ const kernelConfigs: KernelConfig[] = [
   rotateWithOffsetConfig,
   roundConfig,
   scatterNdConfig,
+  selectConfig,
   seluConfig,
   sigmoidConfig,
   signConfig,
@@ -259,6 +271,7 @@ const kernelConfigs: KernelConfig[] = [
   softplusConfig,
   spaceToBatchNDConfig,
   sparseToDenseConfig,
+  splitVConfig,
   squareConfig,
   squaredDifferenceConfig,
   stepConfig,
@@ -267,6 +280,7 @@ const kernelConfigs: KernelConfig[] = [
   tanConfig,
   tanhConfig,
   tileConfig,
+  topKConfig,
   transposeConfig,
   uniqueConfig,
   zerosLikeConfig
