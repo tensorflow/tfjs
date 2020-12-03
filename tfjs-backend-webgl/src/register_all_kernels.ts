@@ -146,6 +146,7 @@ import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
 import {transposeConfig} from './kernels/Transpose';
 import {uniqueConfig} from './kernels/Unique';
+import {unpackConfig} from './kernels/Unpack';
 import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
@@ -188,10 +189,7 @@ const kernelConfigs: KernelConfig[] = [
   cumsumConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeBackpropFilterConfig,
-  depthwiseConv2dNativeBackpropFilterConfig,
   depthwiseConv2dNativeBackpropInputConfig,
-  depthwiseConv2dNativeBackpropInputConfig,
-  depthwiseConv2dNativeConfig,
   depthwiseConv2dNativeConfig,
   diagConfig,
   eluGradConfig,
@@ -283,6 +281,7 @@ const kernelConfigs: KernelConfig[] = [
   topKConfig,
   transposeConfig,
   uniqueConfig,
+  unpackConfig,
   zerosLikeConfig
 ];
 
