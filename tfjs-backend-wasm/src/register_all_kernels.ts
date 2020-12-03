@@ -87,7 +87,7 @@ import {sigmoidConfig} from './kernels/Sigmoid';
 import {sinConfig} from './kernels/Sin';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
-import {splitVConfig} from './kernels/Split';
+import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
