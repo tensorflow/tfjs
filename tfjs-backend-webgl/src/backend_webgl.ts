@@ -19,13 +19,7 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, buffer, DataId, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, scalar, ShapeMap, slice_util, tensor, Tensor, Tensor1D, Tensor2D, Tensor3D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
-
-import {ceilImplCPU, expm1ImplCPU, gatherV2ImplCPU, logImplCPU, negImplCPU, rsqrtImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
-
-const {segment_util} = backend_util;
-const split = kernel_impls.split;
-const whereImpl = kernel_impls.whereImpl;
+import {backend_util, BackendValues, buffer, DataId, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, scalar, ShapeMap, slice_util, tensor, Tensor, Tensor1D, Tensor2D, Tensor3D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, upcastType, util} from '@tensorflow/tfjs-core';
 
 import {AddNProgram} from './addn_gpu';
 import {AddNPackedProgram} from './addn_packed_gpu';
@@ -45,6 +39,7 @@ import {GatherProgram} from './gather_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
 import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
+import {gatherV2ImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
 import {MatMulPackedProgram} from './mulmat_packed_gpu';
 import {PackProgram} from './pack_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
@@ -62,7 +57,10 @@ import * as unary_packed_op from './unaryop_packed_gpu';
 import {UnaryOpPackedProgram} from './unaryop_packed_gpu';
 import {UnpackProgram} from './unpack_gpu';
 import * as webgl_util from './webgl_util';
-import {BackendValues} from '@tensorflow/tfjs-core';
+
+const {segment_util} = backend_util;
+const split = kernel_impls.split;
+const whereImpl = kernel_impls.whereImpl;
 
 export const EPSILON_FLOAT32 = 1e-7;
 export const EPSILON_FLOAT16 = 1e-4;
@@ -122,6 +120,7 @@ function numMBBeforeWarning(): number {
 
 // TODO(yassogba) remove this once the backend has been modularized
 // a copy is needed here to break a circular dependency.
+// Also remove the ops from unary_op and unary_packed_op.
 function mapActivationToShaderProgram(
     activation: backend_util.Activation, packed = false): string {
   if (activation === 'linear') {
@@ -739,20 +738,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  neg<T extends Tensor>(x: T): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      const [outVals, newShape] = negImplCPU(
-          this.texData.get(x.dataId).values as TypedArray, x.shape, x.dtype);
-      return this.makeOutput(newShape, x.dtype, outVals);
-    }
-
-    if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
-      return this.packedUnaryOp(x, unary_op.NEG, x.dtype) as T;
-    }
-    const program = new UnaryOpProgram(x.shape, unary_op.NEG);
-    return this.compileAndRun(program, [x]);
-  }
-
   fusedBatchMatMul(
       {a, b, transposeA, transposeB, bias, activation, preluActivationWeights}:
           backend_util.FusedBatchMatMulConfig): Tensor3D {
@@ -950,11 +935,6 @@ export class MathBackendWebGL extends KernelBackend {
     ];
   }
 
-  private packedUnaryOp(x: TensorInfo, op: string, dtype: DataType) {
-    const program = new UnaryOpPackedProgram(x.shape, op);
-    return this.compileAndRun<Tensor>(program, [x], dtype);
-  }
-
   // Returns a TensorInfo with the complex shape and the dataId of the
   // underlying part. We need to do this because a reshaped complex tensor is
   // not reflected in its parts.
@@ -991,91 +971,8 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun<T>(program, tensors, dtype);
   }
 
-  ceil<T extends Tensor>(x: T): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      const outValues =
-          ceilImplCPU(this.texData.get(x.dataId).values as TypedArray, x.dtype);
-      return this.makeOutput(x.shape, x.dtype, outValues);
-    }
-
-    if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
-      return this.packedUnaryOp(x, unary_op.CEIL, x.dtype) as T;
-    }
-
-    const program = new UnaryOpProgram(x.shape, unary_op.CEIL);
-    return this.compileAndRun(program, [x]);
-  }
-
-  expm1<T extends Tensor>(x: T): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      const outValues = expm1ImplCPU(
-          this.texData.get(x.dataId).values as TypedArray, x.dtype);
-      return this.makeOutput(x.shape, x.dtype, outValues);
-    }
-
-    if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
-      return this.packedUnaryOp(x, unary_op.EXPM1, x.dtype) as T;
-    }
-
-    const program = new UnaryOpProgram(x.shape, unary_op.EXPM1);
-    return this.compileAndRun(program, [x]);
-  }
-
-  log<T extends Tensor>(x: T): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      const outValues =
-          logImplCPU(this.texData.get(x.dataId).values as TypedArray, x.dtype);
-      return this.makeOutput(x.shape, x.dtype, outValues);
-    }
-
-    if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
-      return this.packedUnaryOp(x, unary_packed_op.LOG, x.dtype) as T;
-    }
-
-    const program = new UnaryOpProgram(x.shape, unary_op.LOG);
-    return this.compileAndRun(program, [x]);
-  }
-
   sqrt<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SQRT);
-    return this.compileAndRun(program, [x]);
-  }
-
-  rsqrt<T extends Tensor>(x: T): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      const outValues = rsqrtImplCPU(
-          this.texData.get(x.dataId).values as TypedArray, x.dtype);
-      return this.makeOutput(x.shape, x.dtype, outValues);
-    }
-    const program = new UnaryOpProgram(x.shape, unary_op.RSQRT);
-    return this.compileAndRun(program, [x]);
-  }
-
-  relu<T extends Tensor>(x: T): T {
-    let program: UnaryOpProgram|UnaryOpPackedProgram;
-    if (env().getBool('WEBGL_PACK')) {
-      program = new UnaryOpPackedProgram(x.shape, unary_packed_op.RELU);
-    } else {
-      program = new UnaryOpProgram(x.shape, unary_op.RELU);
-    }
-    return this.compileAndRun(program, [x]);
-  }
-
-  relu6<T extends Tensor>(x: T): T {
-    let program: UnaryOpProgram|UnaryOpPackedProgram;
-    if (env().getBool('WEBGL_PACK')) {
-      program = new UnaryOpPackedProgram(x.shape, unary_packed_op.RELU6);
-    } else {
-      program = new UnaryOpProgram(x.shape, unary_op.RELU6);
-    }
-    return this.compileAndRun(program, [x]);
-  }
-
-  elu<T extends Tensor>(x: T): T {
-    if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
-      return this.packedUnaryOp(x, unary_packed_op.ELU, x.dtype) as T;
-    }
-    const program = new UnaryOpProgram(x.shape, unary_op.ELU);
     return this.compileAndRun(program, [x]);
   }
 
@@ -1088,22 +985,6 @@ export class MathBackendWebGL extends KernelBackend {
     }
     const customSetup = program.getCustomSetupFunc(min, max);
     return this.compileAndRun(program, [x], null, customSetup);
-  }
-
-  abs<T extends Tensor>(x: T): T {
-    // TODO: handle cases when x is complex.
-    if (this.shouldExecuteOnCPU([x]) && x.dtype !== 'complex64') {
-      const outValues =
-          simpleAbsImplCPU(this.texData.get(x.dataId).values as TypedArray);
-      return this.makeOutput(x.shape, x.dtype, outValues);
-    }
-
-    if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
-      return this.packedUnaryOp(x, unary_op.ABS, x.dtype) as T;
-    }
-
-    const program = new UnaryOpProgram(x.shape, unary_op.ABS);
-    return this.compileAndRun(program, [x]);
   }
 
   complexAbs<T extends Tensor>(x: T): T {
