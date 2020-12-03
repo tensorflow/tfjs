@@ -39,7 +39,7 @@ import {GatherProgram} from './gather_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
 import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
-import {gatherV2ImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
+import {gatherV2ImplCPU, simpleAbsImplCPU, stridedSliceImplCPU, topKImplCPU} from './kernel_utils/shared';
 import {MatMulPackedProgram} from './mulmat_packed_gpu';
 import {PackProgram} from './pack_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
@@ -923,6 +923,11 @@ export class MathBackendWebGL extends KernelBackend {
     return whereImpl(condition.shape, condVals);
   }
 
+  private packedUnaryOp(x: TensorInfo, op: string, dtype: DataType) {
+    const program = new UnaryOpPackedProgram(x.shape, op);
+    return this.compileAndRun<Tensor>(program, [x], dtype);
+  }
+
   topk<T extends Tensor>(x: T, k: number, sorted: boolean): [T, T] {
     const xVals = x.dataSync();
     const [allTopKVals, allTopKIndices] =
@@ -1022,6 +1027,25 @@ export class MathBackendWebGL extends KernelBackend {
 
   split<T extends Tensor>(x: T, sizeSplits: number[], axis: number): T[] {
     return split(x, sizeSplits, axis);
+  }
+
+  // TODO(msoulanille) remove this once the backend has been modularized
+  // a copy is needed here to break a circular dependency.
+  // Also remove the op from unary_op.
+  abs<T extends Tensor>(x: T): T {
+    // TODO: handle cases when x is complex.
+    if (this.shouldExecuteOnCPU([x]) && x.dtype !== 'complex64') {
+      const outValues =
+          simpleAbsImplCPU(this.texData.get(x.dataId).values as TypedArray);
+      return this.makeOutput(x.shape, x.dtype, outValues);
+    }
+
+    if (env().getBool('WEBGL_PACK_UNARY_OPERATIONS')) {
+      return this.packedUnaryOp(x, unary_op.ABS, x.dtype) as T;
+    }
+
+    const program = new UnaryOpProgram(x.shape, unary_op.ABS);
+    return this.compileAndRun(program, [x]);
   }
 
   makeTensorInfo(
@@ -1301,6 +1325,7 @@ export class MathBackendWebGL extends KernelBackend {
     }
     return this.floatPrecisionValue;
   }
+
   /** Returns the smallest representable number.  */
   epsilon(): number {
     return this.floatPrecision() === 32 ? EPSILON_FLOAT32 : EPSILON_FLOAT16;

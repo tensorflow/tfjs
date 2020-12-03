@@ -43,6 +43,8 @@ export const CHECK_NAN_SNIPPET = `if (isnan(x)) return x;`;
 
 export const LINEAR = `return x;`;
 
+export const ABS = `return abs(x);`;
+
 export function STEP(alpha = 0.0) {
   return CHECK_NAN_SNIPPET + `
     return x > 0.0 ? 1.0 : float(${alpha});
