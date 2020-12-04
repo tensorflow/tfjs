@@ -53,6 +53,7 @@ function setup(backend: BackendWasm) {
     'number',  // outputChannels
     'number',  // activation
     'number',  // preluActivationWeightsId
+    'number',  // leakyreluAlphaId
     'number',  // outId
   ]);
 }
@@ -63,7 +64,7 @@ function fusedConv2d(args: {
   attrs: FusedConv2DAttrs
 }) {
   const {inputs, attrs, backend} = args;
-  const {x, filter, bias, preluActivationWeights} = inputs;
+  const {x, filter, bias, preluActivationWeights, leakyreluAlpha} = inputs;
   const {strides, pad, dilations, dataFormat, dimRoundingMode, activation} =
       attrs;
 
@@ -127,11 +128,14 @@ function fusedConv2d(args: {
   const preluActivationWeightsId = preluActivationWeights == null ?
       0 :
       backend.dataIdMap.get(preluActivationWeights.dataId).id;
+  const leakyreluAlphaId = leakyreluAlpha == null ?
+      0 :
+      backend.dataIdMap.get(leakyreluAlpha.dataId).id;
   wasmFusedConv2d(
       xId, batchSize, inHeight, inWidth, filterId, filterHeight, filterWidth,
       biasId, padTop, padRight, padBottom, padLeft, isSamePad, dilationHeight,
       dilationWidth, strideHeight, strideWidth, inputChannels, outputChannels,
-      fusedActivation, preluActivationWeightsId, outId);
+      fusedActivation, preluActivationWeightsId, leakyreluAlphaId, outId);
   return out;
 }
 

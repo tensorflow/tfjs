@@ -34,6 +34,7 @@ type Conv2DConfig = {
   backend: MathBackendWebGL,
   bias?: TensorInfo,
   preluActivationWeights?: TensorInfo,
+  leakyreluAlpha?: number,
   activation?: backend_util.Activation
 };
 
@@ -47,6 +48,7 @@ export function conv2dByMatMul({
   backend,
   bias = null,
   preluActivationWeights = null,
+  leakyreluAlpha = null,
   activation = null
 }: Conv2DConfig) {
   // Reshapes conv2D input to 2D tensors, uses matMul and then reshape the
@@ -93,7 +95,8 @@ export function conv2dByMatMul({
       backend,
       bias,
       activation,
-      preluActivationWeights
+      preluActivationWeights,
+      leakyreluAlpha
     });
 
     out = reshape(
@@ -148,7 +151,8 @@ export function conv2dByMatMul({
       transposeB,
       bias,
       activation,
-      preluActivationWeights
+      preluActivationWeights,
+      leakyreluAlpha
     });
 
     const pointwiseConvTexData = backend.texData.get(pointwiseConv.dataId);
@@ -183,6 +187,7 @@ export function conv2dWithIm2Row({
   backend,
   bias = null,
   preluActivationWeights = null,
+  leakyreluAlpha = null,
   activation = null
 }: Conv2DConfig) {
   // Rearranges conv2d input so each block to be convolved over forms the
@@ -235,19 +240,26 @@ export function conv2dWithIm2Row({
 
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
+  const hasLeakyreluAlpha = leakyreluAlpha != null;
   const fusedActivation =
       activation ? mapActivationToShaderProgram(activation, true) : null;
   const matmulProgram = new MatMulPackedProgram(
       im2ColReshaped.shape as [number, number, number],
       w2Row.shape as [number, number, number],
       [1, numCols, convInfo.outChannels], transposeA, transposeB, hasBias,
-      fusedActivation, hasPreluActivationWeights);
+      fusedActivation, hasPreluActivationWeights, hasLeakyreluAlpha);
   const inputs: TensorInfo[] = [im2ColReshaped, w2Row];
   if (bias) {
     inputs.push(bias);
   }
   if (hasPreluActivationWeights) {
     inputs.push(preluActivationWeights);
+  }
+  if (hasLeakyreluAlpha) {
+    const $leakyreluAlpha = backend.makeTensorInfo(
+        [], 'float32',
+        util.createScalarValue(leakyreluAlpha as {} as 'float32', 'float32'));
+    inputs.push($leakyreluAlpha);
   }
   const product = backend.runWebGLProgram(matmulProgram, inputs, 'float32');
 

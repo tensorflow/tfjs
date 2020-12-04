@@ -20,6 +20,7 @@ import {Tensor} from '../tensor';
 import * as broadcast_util from './broadcast_util';
 import {elu} from './elu';
 import {Activation} from './fused_types';
+import {leakyRelu} from './leaky_relu';
 import {mul} from './mul';
 import {prelu} from './prelu';
 import {relu} from './relu';
@@ -54,8 +55,8 @@ export function getFusedBiasGradient(
 }
 
 export function applyActivation(
-    x: Tensor, activation: Activation,
-    preluActivationWeights?: Tensor): Tensor {
+    x: Tensor, activation: Activation, preluActivationWeights?: Tensor,
+    leakyreluAlpha?: number): Tensor {
   if (activation === 'linear') {
     return x;
   } else if (activation === 'relu') {
@@ -66,6 +67,8 @@ export function applyActivation(
     return relu6(x);
   } else if (activation === 'prelu') {
     return prelu(x, preluActivationWeights);
+  } else if (activation === 'leakyrelu') {
+    return leakyRelu(x, leakyreluAlpha);
   }
   throw new Error(`Unknown fused activation ${activation}.`);
 }
