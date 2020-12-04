@@ -286,7 +286,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
         }`;
       } else if (hasLeakyReluAlpha) {
         activationSnippet = `vec4 activation(vec4 a) {
-          vec4 b = getLeakyReluAlphaAtOutCoords();
+          vec4 b = getLeakyreluAlphaAtOutCoords();
           ${activation}
         }`;
       } else {

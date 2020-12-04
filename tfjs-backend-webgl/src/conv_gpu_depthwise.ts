@@ -50,7 +50,7 @@ export class DepthwiseConv2DProgram implements GPGPUProgram {
         }`;
       } else if (hasLeakyReluAlpha) {
         activationSnippet = `float activation(float a) {
-          float b = getLeakyReluAlphaAtOutCoords();
+          float b = getLeakyreluAlphaAtOutCoords();
           ${activation}
         }`;
       } else {

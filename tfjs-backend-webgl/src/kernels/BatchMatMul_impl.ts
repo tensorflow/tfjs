@@ -107,7 +107,8 @@ export function batchMatMulImpl({
 
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
-  const hasLeakyreluAlpha = !!leakyreluAlpha;
+  const hasLeakyreluAlpha =
+      (activation === 'leakyrelu') && (leakyreluAlpha != null);
   const fusedActivation = activation != null ?
       mapActivationToShaderProgram(activation, true) :
       null;
