@@ -38,6 +38,7 @@ import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
+import {bincountConfig} from './kernels/Bincount';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
@@ -54,6 +55,7 @@ import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {cumsumConfig} from './kernels/Cumsum';
+import {denseBincountConfig} from './kernels/DenseBincount';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {depthwiseConv2dNativeBackpropFilterConfig} from './kernels/DepthwiseConv2dNativeBackpropFilter';
@@ -191,6 +193,7 @@ const kernelConfigs: KernelConfig[] = [
   batchMatMulConfig,
   batchNormConfig,
   batchToSpaceNDConfig,
+  bincountConfig,
   castConfig,
   ceilConfig,
   clipByValueConfig,
@@ -207,6 +210,7 @@ const kernelConfigs: KernelConfig[] = [
   coshConfig,
   cropAndResizeConfig,
   cumsumConfig,
+  denseBincountConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeBackpropFilterConfig,
   depthwiseConv2dNativeBackpropInputConfig,
