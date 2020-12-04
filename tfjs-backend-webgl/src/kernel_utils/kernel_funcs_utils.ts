@@ -69,11 +69,7 @@ export function unaryKernelFunc(
     if (webglBackend.shouldExecuteOnCPU([x]) && cpuKernelImpl != null) {
       const xData = webglBackend.texData.get(x.dataId);
       const outValues = cpuKernelImpl(xData.values as TypedArray, $dtype);
-
-      const out = webglBackend.makeTensorInfo(x.shape, $dtype);
-      const outData = webglBackend.texData.get(out.dataId);
-      outData.values = outValues;
-      return out;
+      return webglBackend.makeTensorInfo(x.shape, $dtype, outValues);
     }
 
     const shouldUsePackedProgram =

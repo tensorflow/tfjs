@@ -17,6 +17,7 @@
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
 import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
+import {absConfig} from './kernels/Abs';
 import {acosConfig} from './kernels/Acos';
 import {acoshConfig} from './kernels/Acosh';
 import {addConfig} from './kernels/Add';
@@ -38,6 +39,7 @@ import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {castConfig} from './kernels/Cast';
+import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
 import {complexConfig} from './kernels/Complex';
 import {complexAbsConfig} from './kernels/ComplexAbs';
@@ -57,11 +59,13 @@ import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {depthwiseConv2dNativeBackpropFilterConfig} from './kernels/DepthwiseConv2dNativeBackpropFilter';
 import {depthwiseConv2dNativeBackpropInputConfig} from './kernels/DepthwiseConv2dNativeBackpropInput';
 import {diagConfig} from './kernels/Diag';
+import {eluConfig} from './kernels/Elu';
 import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
 import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
+import {expm1Config} from './kernels/Expm1';
 import {fftConfig} from './kernels/FFT';
 import {fillConfig} from './kernels/Fill';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
@@ -83,6 +87,7 @@ import {isNaNConfig} from './kernels/IsNaN';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {linSpaceConfig} from './kernels/LinSpace';
+import {logConfig} from './kernels/Log';
 import {log1pConfig} from './kernels/Log1p';
 import {logicalAndConfig} from './kernels/LogicalAnd';
 import {logicalNotConfig} from './kernels/LogicalNot';
@@ -103,6 +108,7 @@ import {mirrorPadConfig} from './kernels/MirrorPad';
 import {modConfig} from './kernels/Mod';
 import {multinomialConfig} from './kernels/Multinomial';
 import {multiplyConfig} from './kernels/Multiply';
+import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV4Config} from './kernels/NonMaxSuppressionV4';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
@@ -118,6 +124,8 @@ import {rangeConfig} from './kernels/Range';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reciprocalConfig} from './kernels/Reciprocal';
+import {reluConfig} from './kernels/Relu';
+import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {resizeBilinearGradConfig} from './kernels/ResizeBilinearGrad';
@@ -126,6 +134,7 @@ import {resizeNearestNeighborGradConfig} from './kernels/ResizeNearestNeighborGr
 import {reverseConfig} from './kernels/Reverse';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {roundConfig} from './kernels/Round';
+import {rsqrtConfig} from './kernels/Rsqrt';
 import {scatterNdConfig} from './kernels/ScatterNd';
 import {selectConfig} from './kernels/Select';
 import {seluConfig} from './kernels/Selu';
@@ -160,6 +169,7 @@ const kernelConfigs: KernelConfig[] = [
   LRNConfig,
   LRNGradConfig,
   _fusedMatMulConfig,
+  absConfig,
   acosConfig,
   acoshConfig,
   addConfig,
@@ -181,6 +191,7 @@ const kernelConfigs: KernelConfig[] = [
   batchNormConfig,
   batchToSpaceNDConfig,
   castConfig,
+  ceilConfig,
   clipByValueConfig,
   complexAbsConfig,
   complexConfig,
@@ -200,11 +211,13 @@ const kernelConfigs: KernelConfig[] = [
   depthwiseConv2dNativeBackpropInputConfig,
   depthwiseConv2dNativeConfig,
   diagConfig,
+  eluConfig,
   eluGradConfig,
   equalConfig,
   erfConfig,
   expConfig,
   expandDimsConfig,
+  expm1Config,
   fftConfig,
   fillConfig,
   flipLeftRightConfig,
@@ -227,6 +240,7 @@ const kernelConfigs: KernelConfig[] = [
   lessEqualConfig,
   linSpaceConfig,
   log1pConfig,
+  logConfig,
   logicalAndConfig,
   logicalNotConfig,
   logicalOrConfig,
@@ -244,6 +258,7 @@ const kernelConfigs: KernelConfig[] = [
   modConfig,
   multinomialConfig,
   multiplyConfig,
+  negConfig,
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV4Config,
   nonMaxSuppressionV5Config,
@@ -259,6 +274,8 @@ const kernelConfigs: KernelConfig[] = [
   realConfig,
   realDivConfig,
   reciprocalConfig,
+  relu6Config,
+  reluConfig,
   reshapeConfig,
   resizeBilinearConfig,
   resizeBilinearGradConfig,
@@ -267,6 +284,7 @@ const kernelConfigs: KernelConfig[] = [
   reverseConfig,
   rotateWithOffsetConfig,
   roundConfig,
+  rsqrtConfig,
   scatterNdConfig,
   selectConfig,
   seluConfig,
