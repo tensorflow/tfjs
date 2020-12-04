@@ -158,7 +158,7 @@ describeWithFlags('dilation2d', ALL_ENVS, () => {
         .toThrowError();
   });
 
-  it('gradient valid padding.', async () => {
+  it('dilation gradient valid padding.', async () => {
     const inputShape: [number, number, number, number] = [1, 3, 3, 1];
     const filterShape: [number, number, number] = [1, 1, 1];
     const x = tf.tensor4d([.1, .2, .3, .4, .5, .6, .7, .8, .9], inputShape);
@@ -178,7 +178,7 @@ describeWithFlags('dilation2d', ALL_ENVS, () => {
     expectArraysClose(await dfilter.data(), [3.1]);
   });
 
-  it('gradient same padding.', async () => {
+  it('dilation gradient same padding.', async () => {
     const inputShape: [number, number, number, number] = [1, 3, 3, 1];
     const filterShape: [number, number, number] = [1, 1, 1];
     const x = tf.tensor4d([.1, .2, .3, .4, .5, .6, .7, .8, .9], inputShape);
@@ -198,7 +198,7 @@ describeWithFlags('dilation2d', ALL_ENVS, () => {
     expectArraysClose(await dfilter.data(), [3.1]);
   });
 
-  it('gradient same padding depth 2.', async () => {
+  it('dilation gradient same padding depth 2.', async () => {
     const inputShape: [number, number, number, number] = [1, 2, 2, 3];
     const filterShape: [number, number, number] = [1, 1, 3];
     const x = tf.tensor4d(
@@ -221,7 +221,7 @@ describeWithFlags('dilation2d', ALL_ENVS, () => {
     expectArraysClose(await dfilter.data(), [1.4, .6, 1.9]);
   });
 
-  it('gradient valid padding filter 2.', async () => {
+  it('dilation gradient valid padding filter 2.', async () => {
     const inputShape: [number, number, number, number] = [1, 3, 3, 1];
     const filterShape: [number, number, number] = [2, 2, 1];
     const dyShape: [number, number, number, number] = [1, 2, 2, 1];
@@ -242,7 +242,7 @@ describeWithFlags('dilation2d', ALL_ENVS, () => {
     expectArraysClose(await dfilter.data(), [0, 0, 0, 1.1]);
   });
 
-  it('gradient same padding filter 2 depth 3.', async () => {
+  it('dilation gradient same padding filter 2 depth 3.', async () => {
     const inputShape: [number, number, number, number] = [1, 3, 3, 3];
     const filterShape: [number, number, number] = [2, 2, 3];
     const x = tf.tensor4d(
