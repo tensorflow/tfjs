@@ -62,7 +62,7 @@ function convertToRunKernel(sourceFile: SourceFile) {
       // console.log(c.getText());
       // console.log('\n\n');
     });
-    return false;
+    return true;
   }
 }
 
@@ -74,6 +74,8 @@ async function run() {
     if (!opFile.getFilePath().match('_test.ts')) {
       const found = convertToRunKernel(opFile);
       if (found) {
+        opFile.fixUnusedIdentifiers();
+        await opFile.save();
         opFile.fixUnusedIdentifiers();
         await opFile.save();
       }
