@@ -66,11 +66,9 @@ export function bincountReduceImpl<R extends Rank>(
         outBuf.set(1, i, value);
       } else {
         if (weightsBuf.size > 0) {
-          outBuf.set(
-              (outBuf.get(i, value) as number) + weightsBuf.get(i, j), i,
-              value);
+          outBuf.set(outBuf.get(i, value) + weightsBuf.get(i, j), i, value);
         } else {
-          outBuf.set((outBuf.get(i, value) as number) + 1, i, value);
+          outBuf.set(outBuf.get(i, value) + 1, i, value);
         }
       }
     }
