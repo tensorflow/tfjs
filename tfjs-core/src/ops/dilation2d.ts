@@ -90,6 +90,7 @@ function dilation2d_<T extends Tensor3D|Tensor4D>(
   const inputs: Dilation2DInputs = {x: x4D, filter: $filter};
   const attrs: Dilation2DAttrs = {strides, pad, dilations};
 
+  // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
                   Dilation2D, inputs as {} as NamedTensorMap,
                   attrs as {} as NamedAttrMap) as T;
