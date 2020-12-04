@@ -20,13 +20,14 @@ import {_FusedMatMul, _FusedMatMulAttrs, _FusedMatMulInputs, backend_util, Tenso
 import {MathBackendCPU} from '../backend_cpu';
 import {elu} from '../kernels/Elu';
 import {identity} from '../kernels/Identity';
+import {leakyRelu} from '../kernels/LeakyRelu';
 import {prelu} from '../kernels/Prelu';
 import {relu} from '../kernels/Relu';
 import {relu6} from '../kernels/Relu6';
 
 export function applyActivation(
     backend: MathBackendCPU, x: TensorInfo, activation: backend_util.Activation,
-    preluActivationWeights?: TensorInfo): TensorInfo {
+    preluActivationWeights?: TensorInfo, leakyreluAlpha?: number): TensorInfo {
   if (activation === 'linear') {
     return identity({inputs: {x}, backend});
   } else if (activation === 'relu') {
@@ -37,6 +38,8 @@ export function applyActivation(
     return relu6({inputs: {x}, backend}) as TensorInfo;
   } else if (activation === 'prelu') {
     return prelu({inputs: {x, alpha: preluActivationWeights}, backend});
+  } else if (activation === 'leakyrelu') {
+    return leakyRelu({inputs: {x}, backend, attrs: {alpha: leakyreluAlpha}});
   }
   throw new Error(
       `Activation ${activation} has not been implemented for the CPU backend.`);

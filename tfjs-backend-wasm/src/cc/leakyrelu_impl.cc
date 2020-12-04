@@ -1,4 +1,4 @@
-/* Copyright 2020 Google LLC. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,23 +12,38 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef BATCH_MAT_MUL_IMPL_H_
-#define BATCH_MAT_MUL_IMPL_H_
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
+#include "src/cc/leakyrelu_impl.h"
+
+#include <cmath>
 #include <cstddef>
+
+#include "src/cc/backend.h"
+#include "src/cc/util.h"
+
+namespace {
+template <class T>
+inline T leakyrelu_op(T a, T b) {
+  return a < 0 ? b * a : a;
+}
+}  // namespace
 
 namespace tfjs {
 namespace wasm {
 
-void fused_batch_mat_mul(const size_t a_id, const size_t* a_shape_ptr,
-                         const size_t a_shape_len, const size_t b_id,
-                         const size_t* b_shape_ptr, const size_t b_shape_len,
-                         const bool transpose_a, const bool transpose_b,
-                         const FusableActivation activation,
-                         const size_t bias_id, const size_t prelu_weights_id,
-                         const float leakyrelu_alpha, const size_t out_id);
+void leakyrelu(const float* x_buf, const size_t x_size,
+               const float leakyrelu_alpha, const size_t out_id) {
+  auto& out_info = backend::get_tensor_info_out(out_id);
+
+  float* out_buf = out_info.f32_write();
+
+  for (size_t i = 0; i < out_info.size; i++) {
+    out_buf[i] = x_buf[i] < 0 ? leakyrelu_alpha * x_buf[i] : x_buf[i];
+  }
+}
 
 }  // namespace wasm
 }  // namespace tfjs
-
-#endif  // BATCH_MAT_MUL_IMPL_H_

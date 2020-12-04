@@ -75,7 +75,8 @@ describe('matrices', () => {
           transposeB: false,
           bias: input3[0],
           activation: 'relu',
-          preluActivationWeights: undefined
+          preluActivationWeights: undefined,
+          leakyreluAlpha: undefined
         });
       });
       it('should call tfOps.fused.matMul - prelu activation', () => {
@@ -98,7 +99,33 @@ describe('matrices', () => {
           transposeB: false,
           bias: input3[0],
           activation: 'prelu',
-          preluActivationWeights: input4[0]
+          preluActivationWeights: input4[0],
+          leakyreluAlpha: undefined
+        });
+      });
+      it('should call tfOps.fused.matMul - leakyrelu activation', () => {
+        spyOn(tfOps.fused, 'matMul');
+        node.op = '_FusedMatMul';
+        node.inputParams['args'] = createTensorsAttr(2, 0);
+        node.attrParams['fusedOps'] =
+            createStrArrayAttr(['biasadd', 'leakyrelu']);
+        node.attrParams['numArgs'] = createNumberAttr(1);
+        node.attrParams.transposeA = createBoolAttr(true);
+        node.attrParams.transposeB = createBoolAttr(false);
+        node.attrParams.leakyreluAlpha = createNumberAttr(0.3);
+        const input3 = [tfOps.scalar(3.0)];
+        node.inputNames = ['input1', 'input2', 'input3'];
+        executeOp(node, {input1, input2, input3}, context);
+
+        expect(tfOps.fused.matMul).toHaveBeenCalledWith({
+          a: input1[0],
+          b: input2[0],
+          transposeA: true,
+          transposeB: false,
+          bias: input3[0],
+          activation: 'leakyrelu',
+          preluActivationWeights: undefined,
+          leakyreluAlpha: 0.3
         });
       });
     });
