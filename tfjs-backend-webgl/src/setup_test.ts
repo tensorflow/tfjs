@@ -22,7 +22,8 @@ import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, Te
 
 const TEST_FILTERS: TestFilter[] = [];
 const customInclude = (testName: string) => {
-  const toExclude = ['isBrowser: false', 'tensor in worker'];
+  const toExclude =
+      ['isBrowser: false', 'tensor in worker', 'dilation gradient'];
   for (const subStr of toExclude) {
     if (testName.includes(subStr)) {
       return false;
