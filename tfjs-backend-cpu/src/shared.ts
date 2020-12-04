@@ -16,10 +16,10 @@
  */
 
 // Shared functionality among backends.
-
 export {simpleAbsImpl} from './kernels/Abs';
 export {addImpl} from './kernels/Add';
 export {ceilImpl} from './kernels/Ceil';
+export {bincountImpl, bincountReduceImpl} from './kernels/DenseBincount_impl';
 export {expImpl} from './kernels/Exp';
 export {expm1Impl} from './kernels/Expm1';
 export {floorImpl} from './kernels/Floor';
