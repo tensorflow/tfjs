@@ -69,6 +69,7 @@
     "lint": "tslint -p . -t verbose",
     "coverage": "KARMA_COVERAGE=1 karma start --browsers='Chrome' --singleRun",
     "test": "yarn && yarn build-deps && karma start",
+    "test-dev": "karma start",
     "test-ci": "./scripts/test-ci.sh",
     "test-webworker": "karma start --worker",
     "run-browserstack": "karma start --browserstack",
