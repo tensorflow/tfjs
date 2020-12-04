@@ -113,6 +113,10 @@ export class HTTPRequest implements IOHandler {
       modelTopologyAndWeightManifest.userDefinedMetadata =
           modelArtifacts.userDefinedMetadata;
     }
+    if (modelArtifacts.modelInitializer != null) {
+      modelTopologyAndWeightManifest.modelInitializer =
+          modelArtifacts.modelInitializer;
+    }
 
     init.body.append(
         'model.json',
