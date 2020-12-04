@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../../engine';
+import {ENGINE} from '../../engine';
 import {ResizeNearestNeighbor, ResizeNearestNeighborAttrs, ResizeNearestNeighborInputs} from '../../kernel_names';
 import {NamedAttrMap} from '../../kernel_registry';
 import {Tensor3D, Tensor4D} from '../../tensor';
@@ -73,26 +73,21 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
     batchImages = reshape(
         $images, [1, $images.shape[0], $images.shape[1], $images.shape[2]]);
   }
-  const [newHeight, newWidth] = size;
+  const [] = size;
 
   const inputs: ResizeNearestNeighborInputs = {images: batchImages};
   const attrs:
       ResizeNearestNeighborAttrs = {alignCorners, halfPixelCenters, size};
 
-  const forward: ForwardFunc<Tensor4D> = (backend, save) => {
-    save([batchImages]);
-    return backend.resizeNearestNeighbor(
-        batchImages, newHeight, newWidth, alignCorners, halfPixelCenters);
-  };
-
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* gradient */,
-      ResizeNearestNeighbor, attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  ResizeNearestNeighbor, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   }
-  return res as T;
+  return res;
 }
 
 export const resizeNearestNeighbor = op({resizeNearestNeighbor_});

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Tile, TileAttrs, TileInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
@@ -59,19 +59,12 @@ function tile_<T extends Tensor>(x: T|TensorLike, reps: number[]): T {
       () => `Error in transpose: rank of input ${$x.rank} ` +
           `must match length of reps ${reps}.`);
 
-  const forward: ForwardFunc<T> = (backend, save) => {
-    const res = backend.tile($x, reps);
-    save([$x]);
-    return res;
-  };
-
-  const inputsToSave = [$x];
   const inputs: TileInputs = {x: $x};
   const attrs: TileAttrs = {reps};
 
-  return ENGINE.runKernelFunc(
-      forward, inputs as unknown as NamedTensorMap, null /* grad */, Tile,
-      attrs as unknown as NamedAttrMap, inputsToSave);
+  return ENGINE.runKernel(
+      Tile, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
 export const tile = op({tile_});

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../../engine';
+import {ENGINE} from '../../engine';
 import {customGrad} from '../../gradients';
 import {_FusedMatMul, _FusedMatMulAttrs, _FusedMatMulInputs} from '../../kernel_names';
 import {NamedAttrMap} from '../../kernel_registry';
@@ -173,19 +173,6 @@ function fusedMatMul_<T extends Tensor>({
     }
   };
 
-  const forward: ForwardFunc<Tensor> = (backend) => {
-    const y = backend.fusedBatchMatMul({
-      a: a3D,
-      b: b3D,
-      transposeA,
-      transposeB,
-      bias: $bias,
-      activation,
-      preluActivationWeights: $preluActivationWeights
-    });
-    return y;
-  };
-
   const inputs: _FusedMatMulInputs = {
     a: a3D,
     b: b3D,
@@ -199,9 +186,10 @@ function fusedMatMul_<T extends Tensor>({
   if (bias == null) {
     const customOp =
         customGrad((a3D: Tensor3D, b3D: Tensor3D, save: GradSaveFunc) => {
-          const res = ENGINE.runKernelFunc(
-              forward, inputs as {} as NamedTensorMap, null /* grad */,
-              _FusedMatMul, attrs as {} as NamedAttrMap);
+          // tslint:disable-next-line: no-unnecessary-type-assertion
+          const res = ENGINE.runKernel(
+                          _FusedMatMul, inputs as {} as NamedTensorMap,
+                          attrs as {} as NamedAttrMap) as T;
 
           save([a3D, b3D, res]);
 
@@ -211,9 +199,10 @@ function fusedMatMul_<T extends Tensor>({
   } else {
     const customOpWithBias = customGrad(
         (a3D: Tensor3D, b3D: Tensor3D, $bias: Tensor, save: GradSaveFunc) => {
-          const res = ENGINE.runKernelFunc(
-              forward, inputs as {} as NamedTensorMap, null /* grad */,
-              _FusedMatMul, attrs as {} as NamedAttrMap);
+          // tslint:disable-next-line: no-unnecessary-type-assertion
+          const res = ENGINE.runKernel(
+                          _FusedMatMul, inputs as {} as NamedTensorMap,
+                          attrs as {} as NamedAttrMap) as T;
 
           save([a3D, b3D, res, $bias]);
 

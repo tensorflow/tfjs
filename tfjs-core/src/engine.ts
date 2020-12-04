@@ -511,9 +511,9 @@ export class Engine implements TensorTracker, DataMover {
    *     for the backprop computation. These are booleans since the output
    * tensors are not visible to the user.
    */
-  runKernel(
-      kernelName: string, inputs: NamedTensorMap, attrs: NamedAttrMap,
-      inputsToSave?: Tensor[], outputsToSave?: boolean[]): Tensor|Tensor[] {
+  runKernel<T extends Tensor|Tensor[]>(
+      kernelName: string, inputs: NamedTensorMap, attrs?: NamedAttrMap,
+      inputsToSave?: Tensor[], outputsToSave?: boolean[]): T {
     const forwardFunc: null = null;
     const backwardsFunc: null = null;
     // Call runKernel as a stop-gap until we modularize all kernels.

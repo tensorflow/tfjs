@@ -52,8 +52,7 @@ function expandDims_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
   const attrs: ExpandDimsAttrs = {dim: axis};
 
   return ENGINE.runKernel(
-             ExpandDims, inputs as {} as NamedTensorMap,
-             attrs as {} as NamedAttrMap) as T;
+      ExpandDims, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const expandDims = op({expandDims_});

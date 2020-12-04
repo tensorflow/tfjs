@@ -40,15 +40,12 @@ import {op} from './operation';
  */
 function clone_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'clone', null);
-  const forward = () =>
-      ENGINE.makeTensorFromDataId($x.dataId, $x.shape, $x.dtype) as T;
 
   const inputs: IdentityInputs = {x: $x};
 
   // Note this op is called tf.identity in python. Hence the kernel name used
   // here.
-  return ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, Identity);
+  return ENGINE.runKernel(Identity, inputs as {} as NamedTensorMap);
 }
 
 export const clone = op({clone_});

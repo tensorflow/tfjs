@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {AddN, AddNInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -64,17 +64,9 @@ function addN_<T extends Tensor>(tensors: Array<T|TensorLike>): T {
     }
   });
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.addN($tensors);
-    save($tensors);
-    return res;
-  };
-
   const inputs: AddNInputs = $tensors;
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */, AddN) as
-      T;
+  return ENGINE.runKernel(AddN, inputs as {} as NamedTensorMap);
 }
 
 export const addN = op({addN_});

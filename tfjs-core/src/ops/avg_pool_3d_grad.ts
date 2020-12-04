@@ -16,10 +16,10 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {AvgPool3DGrad, AvgPool3DGradAttrs, AvgPool3DGradInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor4D, Tensor5D} from '../tensor';
+import {Tensor4D, Tensor5D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -99,21 +99,15 @@ function avgPool3dGrad_<T extends Tensor4D|Tensor5D>(
             `using, dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
   }
 
-  const forward: ForwardFunc<Tensor> = backend => {
-    const convInfo = conv_util.computePool3DInfo(
-        input5D.shape, filterSize, strides, dilations, pad, dimRoundingMode);
-
-    return backend.avgPool3dBackprop(dy5D, input5D, convInfo);
-  };
-
   const inputs: AvgPool3DGradInputs = {dy: dy5D, input: input5D};
 
   const attrs: AvgPool3DGradAttrs =
       {filterSize, strides, dilations, pad, dimRoundingMode};
 
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, AvgPool3DGrad,
-      attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  AvgPool3DGrad, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap) as T;
 
   if (reshapedTo5D) {
     return reshape(
@@ -121,7 +115,7 @@ function avgPool3dGrad_<T extends Tensor4D|Tensor5D>(
         T;
   }
 
-  return res as T;
+  return res;
 }
 
 export const avgPool3dGrad = op({avgPool3dGrad_});

@@ -15,20 +15,15 @@
  * =============================================================================
  */
 
-import {KernelBackend} from '../backends/backend';
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Max, MaxAttrs, MaxInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
-import {GradSaveFunc, NamedTensorMap} from '../tensor_types';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import * as util from '../util';
 
-import * as axis_util from './axis_util';
 import {op} from './operation';
-import {reshape} from './reshape';
-import {transpose} from './transpose';
 
 /**
  * Computes the maximum of elements across dimensions of a `tf.Tensor`.
@@ -62,40 +57,12 @@ import {transpose} from './transpose';
 function max_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
   const $x = convertToTensor(x, 'x', 'max');
-  const forward: ForwardFunc<Tensor> =
-      (backend: KernelBackend, save: GradSaveFunc) => {
-        const origAxes = util.parseAxisParam(axis, $x.shape);
-        let axes = origAxes;
-        const permutedAxes = axis_util.getAxesPermutation(axes, $x.rank);
-        let maxInput = $x;
-        if (permutedAxes != null) {
-          maxInput = transpose($x, permutedAxes);
-          axes = axis_util.getInnerMostAxes(axes.length, maxInput.rank);
-        }
-
-        const y = backend.max(maxInput, axes);
-        if (permutedAxes != null) {
-          maxInput.dispose();
-        }
-
-        let res = y;
-        if (keepDims) {
-          const expandedShape = axis_util.expandShapeToKeepDim(
-              res.shape, util.parseAxisParam(axis, $x.shape));
-          res = reshape(res, expandedShape) as T;
-          y.dispose();
-        }
-
-        save([$x, res]);
-        return res;
-      };
 
   const inputs: MaxInputs = {x: $x};
   const attrs: MaxAttrs = {reductionIndices: axis, keepDims};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */, Max,
-             attrs as {} as NamedAttrMap) as T;
+  return ENGINE.runKernel(
+      Max, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const max = op({max_});

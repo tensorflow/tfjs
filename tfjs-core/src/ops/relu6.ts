@@ -15,14 +15,13 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Relu6, Relu6Inputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
-import {cast} from './cast';
 import {op} from './operation';
 
 /**
@@ -41,21 +40,9 @@ import {op} from './operation';
 function relu6_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'relu6');
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    save([$x]);
-
-    if ($x.dtype === 'bool') {
-      return cast($x, 'int32');
-    }
-
-    return backend.relu6($x);
-  };
-
   const inputs: Relu6Inputs = {x: $x};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */, Relu6) as
-      T;
+  return ENGINE.runKernel(Relu6, inputs as {} as NamedTensorMap);
 }
 
 export const relu6 = op({relu6_});
