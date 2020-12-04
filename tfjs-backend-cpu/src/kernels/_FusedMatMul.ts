@@ -30,7 +30,7 @@ export function _fusedMatMul(args: {
 }) {
   const {inputs, backend, attrs} = args;
   const {a, b, bias, preluActivationWeights} = inputs;
-  const {transposeA, transposeB, activation} = attrs;
+  const {transposeA, transposeB, activation, leakyreluAlpha} = attrs;
 
   let current;
   let addRes;
@@ -48,8 +48,8 @@ export function _fusedMatMul(args: {
     current = addRes;
   }
   if (activation) {
-    activationRes =
-        applyActivation(backend, current, activation, preluActivationWeights);
+    activationRes = applyActivation(
+        backend, current, activation, preluActivationWeights, leakyreluAlpha);
     intermediates.push(current);
     current = activationRes;
   }

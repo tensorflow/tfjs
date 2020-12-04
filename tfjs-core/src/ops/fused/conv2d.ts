@@ -90,6 +90,8 @@ import {reshape} from '../reshape';
  *      after biasAdd.
  * @param preluActivationWeights Tensor of prelu weights to be applied as part
  *     of a `prelu` activation, typically the same shape as `x`.
+ * @param leakyreluAlpha Optional. Alpha to be applied as part of a `leakyrelu`
+ *     activation.
  */
 function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   x,
@@ -101,7 +103,8 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   dimRoundingMode,
   bias,
   activation = 'linear',
-  preluActivationWeights
+  preluActivationWeights,
+  leakyreluAlpha
 }: {
   x: T|TensorLike,
   filter: Tensor4D|TensorLike,
@@ -112,7 +115,8 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   dimRoundingMode?: 'floor'|'round'|'ceil',
   bias?: Tensor|TensorLike,
   activation?: Activation,
-  preluActivationWeights?: Tensor
+  preluActivationWeights?: Tensor,
+  leakyreluAlpha?: number
 }): T {
   activation = activation || 'linear';
 
@@ -123,7 +127,8 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
       result = add(result, bias);
     }
 
-    return applyActivation(result, activation, preluActivationWeights) as T;
+    return applyActivation(
+               result, activation, preluActivationWeights, leakyreluAlpha) as T;
   }
 
   const $x = convertToTensor(x, 'x', 'conv2d');
@@ -213,8 +218,15 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
     preluActivationWeights: $preluActivationWeights
   };
 
-  const attrs: FusedConv2DAttrs =
-      {strides, pad, dataFormat, dilations, dimRoundingMode, activation};
+  const attrs: FusedConv2DAttrs = {
+    strides,
+    pad,
+    dataFormat,
+    dilations,
+    dimRoundingMode,
+    activation,
+    leakyreluAlpha
+  };
 
   // Depending on the the params passed in we will have different number of
   // inputs and thus a a different number of elements in the gradient.

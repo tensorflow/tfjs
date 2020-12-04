@@ -39,6 +39,7 @@ type BatchMatMulConfig = {
   backend: MathBackendWebGL,
   bias?: TensorInfo,
   preluActivationWeights?: TensorInfo,
+  leakyreluAlpha?: number,
   activation?: backend_util.Activation
 };
 
@@ -50,6 +51,7 @@ export function batchMatMulImpl({
   backend,
   bias = null,
   preluActivationWeights = null,
+  leakyreluAlpha = 0,
   activation = null
 }: BatchMatMulConfig): TensorInfo {
   const aRank = a.shape.length;
@@ -105,11 +107,12 @@ export function batchMatMulImpl({
 
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
+  const hasLeakyreluAlpha = activation === 'leakyrelu';
   const fusedActivation = activation != null ?
       mapActivationToShaderProgram(activation, true) :
       null;
-  const containsFusedOps =
-      hasBias || hasPreluActivationWeights || fusedActivation != null;
+  const containsFusedOps = hasBias || hasPreluActivationWeights ||
+      hasLeakyreluAlpha || fusedActivation != null;
   let out: TensorInfo;
 
   // Since the matrices are vectors, it is faster to call mul().sum()
@@ -162,14 +165,22 @@ export function batchMatMulImpl({
 
     const program = new MatMulPackedProgram(
         a3dShape, b3dShape, [batchDim, outerShapeA, outerShapeB], transposeA,
-        transposeB, hasBias, fusedActivation, hasPreluActivationWeights);
+        transposeB, hasBias, fusedActivation, hasPreluActivationWeights,
+        hasLeakyreluAlpha);
 
     const inputs: TensorInfo[] = [a3d, b3d];
     if (bias != null) {
       inputs.push(bias);
     }
-    if (preluActivationWeights != null) {
+    if (hasPreluActivationWeights) {
       inputs.push(preluActivationWeights);
+    }
+    if (hasLeakyreluAlpha) {
+      const $leakyreluAlpha = backend.makeTensorInfo(
+          [], 'float32',
+          util.createScalarValue(leakyreluAlpha as {} as 'float32', 'float32'));
+      inputs.push($leakyreluAlpha);
+      intermediates.push($leakyreluAlpha);
     }
 
     out = backend.runWebGLProgram(program, inputs, dtype);
