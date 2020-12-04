@@ -32,6 +32,7 @@ export function prod(
   const {axis, keepDims} = attrs;
 
   const xRank = x.shape.length;
+  const toDispose = [];
 
   const origAxes = util.parseAxisParam(axis, x.shape);
   let axes = origAxes;
@@ -40,41 +41,38 @@ export function prod(
   if (permutedAxes != null) {
     permutedX = transpose({inputs: {x}, backend, attrs: {perm: permutedAxes}});
     axes = backend_util.getInnerMostAxes(axes.length, xRank);
+    toDispose.push(permutedX);
   }
 
   backend_util.assertAxesAreInnerMostDims('prod', axes, xRank);
 
+  let res;
   if (backend.shouldExecuteOnCPU([permutedX])) {
     const xVals = backend.texData.get(permutedX.dataId).values as TypedArray;
     const {outVals, outShape, outDtype} =
         prodImplCPU(permutedX.shape, permutedX.dtype, xVals, axes);
-    if (permutedAxes != null) {
-      backend.disposeIntermediateTensorInfo(permutedX);
-    }
-    return backend.makeTensorInfo(outShape, outDtype, outVals);
-  }
-  const [outShape, reduceShape] =
-      backend_util.computeOutAndReduceShapes(permutedX.shape, axes);
-  const inSize = util.sizeFromShape(reduceShape);
-  const a2D =
-      reshape({inputs: {x: permutedX}, backend, attrs: {shape: [-1, inSize]}});
-  const outputDType = sumOutType(x.dtype);
-  const reduced = reduce(a2D, outputDType, 'prod', backend);
-
-  let res;
-  if (keepDims) {
-    const newShape = backend_util.expandShapeToKeepDim(outShape, origAxes);
-    res = reshape({inputs: {x: reduced}, backend, attrs: {shape: newShape}});
+    res = backend.makeTensorInfo(outShape, outDtype, outVals);
   } else {
+    const [outShape, reduceShape] =
+        backend_util.computeOutAndReduceShapes(permutedX.shape, axes);
+    const inSize = util.sizeFromShape(reduceShape);
+    const a2D = reshape(
+        {inputs: {x: permutedX}, backend, attrs: {shape: [-1, inSize]}});
+    const outputDType = sumOutType(x.dtype);
+    const reduced = reduce(a2D, outputDType, 'prod', backend);
     res = reshape({inputs: {x: reduced}, backend, attrs: {shape: outShape}});
+
+    toDispose.push(a2D);
+    toDispose.push(reduced);
   }
 
-  backend.disposeIntermediateTensorInfo(a2D);
-  backend.disposeIntermediateTensorInfo(reduced);
-
-  if (permutedAxes != null) {
-    backend.disposeIntermediateTensorInfo(permutedX);
+  if (keepDims) {
+    toDispose.push(res);
+    const newShape = backend_util.expandShapeToKeepDim(res.shape, origAxes);
+    res = reshape({inputs: {x: res}, backend, attrs: {shape: newShape}});
   }
+
+  toDispose.forEach(t => backend.disposeIntermediateTensorInfo(t));
 
   return res;
 }

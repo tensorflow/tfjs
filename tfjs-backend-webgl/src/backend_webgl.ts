@@ -19,7 +19,7 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendValues, buffer, DataId, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, MemoryInfo, NumericDataType, range, Rank, RecursiveArray, scalar, ShapeMap, Tensor, Tensor1D, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, transpose, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendValues, buffer, DataId, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, MemoryInfo, NumericDataType, Rank, RecursiveArray, scalar, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {getWebGLContext} from './canvas_util';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
@@ -34,7 +34,6 @@ import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
 import {simpleAbsImplCPU} from './kernel_utils/shared';
 import {PackProgram} from './pack_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
-import {SegmentOpProgram} from './segment_gpu';
 import * as tex_util from './tex_util';
 import {TextureData, TextureUsage} from './tex_util';
 import {TextureManager} from './texture_manager';
@@ -44,7 +43,6 @@ import {UnaryOpPackedProgram} from './unaryop_packed_gpu';
 import {UnpackProgram} from './unpack_gpu';
 import * as webgl_util from './webgl_util';
 
-const {segment_util} = backend_util;
 const whereImpl = kernel_impls.whereImpl;
 
 export const EPSILON_FLOAT32 = 1e-7;
@@ -649,51 +647,6 @@ export class MathBackendWebGL extends KernelBackend {
 
   getGPGPUContext(): GPGPUContext {
     return this.gpgpu;
-  }
-
-  unsortedSegmentSum<T extends Tensor>(
-      x: T, segmentIds: Tensor1D, numSegments: number): Tensor {
-    let axis = 0;
-    const permutation = backend_util.getAxesPermutation([axis], x.rank);
-    let permutedX = x;
-    if (permutation != null) {
-      permutedX = transpose(x, permutation);
-      axis = backend_util.getInnerMostAxes(1, x.rank)[0];
-    }
-
-    const outShape =
-        segment_util.computeOutShape(permutedX.shape, axis, numSegments);
-    const inSize = util.sizeFromShape([permutedX.shape[axis]]);
-    const a2D = permutedX.as2D(-1, inSize);
-    const outputDType = tf.sumOutType(x.dtype);
-    let result =
-        this.segOpCompute(
-                a2D, 'unsortedSegmentSum', segmentIds, outputDType, numSegments)
-            .reshape(outShape);
-    if (permutation != null) {
-      result =
-          transpose(result, backend_util.getUndoAxesPermutation(permutation));
-    }
-    return result;
-  }
-
-  private segOpCompute(
-      x: Tensor2D, segOpType: 'unsortedSegmentSum', segmentIds: Tensor1D,
-      dtype: DataType, numSegments: number): Tensor2D {
-    const batchSize = x.shape[0];
-    const inSize = x.shape[1];
-    const windowSize =
-        segment_util.segOpComputeOptimalWindowSize(inSize, numSegments);
-    const segOpInfo = {windowSize, inSize, batchSize, numSegments};
-    const program = new SegmentOpProgram(segOpInfo, segOpType);
-    const output =
-        this.compileAndRun<Tensor2D>(program, [x, segmentIds], dtype);
-    // No need to run another GPGPU program.
-    if (output.shape[1] === numSegments) {
-      return output;
-    }
-    segmentIds = range(0, numSegments).tile([inSize / windowSize]);
-    return this.segOpCompute(output, segOpType, segmentIds, dtype, numSegments);
   }
 
   where(condition: Tensor): Tensor2D {
