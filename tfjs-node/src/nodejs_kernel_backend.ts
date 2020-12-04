@@ -84,9 +84,7 @@ export class NodeJSKernelBackend extends KernelBackend {
         dtype = 'int32';
         break;
       case this.binding.TF_INT64:
-        console.warn(
-            'INT64 output tensor has been casted to int32, ' +
-            'you may lose precision.');
+        console.warn('INT64 output tensor will be stored as BigInt64Array.');
         // INT64 is not supported in TFJS yet, cast it to int32.
         dtype = 'int32';
         break;
