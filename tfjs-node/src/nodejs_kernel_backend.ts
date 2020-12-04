@@ -251,7 +251,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   applyActivation<T extends Tensor>(
-      input: T, activation: string, preluActivationWeights?: Tensor): T {
+      input: T, activation: string, preluActivationWeights?: Tensor,
+      leakyreluAlpha?: number): T {
     let result = input;
     if (activation != null) {
       if (activation === 'linear') {
@@ -260,6 +261,8 @@ export class NodeJSKernelBackend extends KernelBackend {
         result = tf.relu(result);
       } else if (activation === 'prelu') {
         result = tf.prelu(result, preluActivationWeights) as T;
+      } else if (activation === 'leakyrelu') {
+        result = tf.leakyRelu(result, leakyreluAlpha);
       } else if (activation === 'elu') {
         result = tf.elu(result);
       } else if (activation === 'relu6') {
