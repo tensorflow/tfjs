@@ -61,6 +61,4 @@ export const RELU6 = CHECK_NAN_SNIPPET + `
   return (x < 0.0) ? 0.0 : min(6.0, x);
 `;
 
-export const SQRT = `return sqrt(x);`;
-
 export const CLONE = 'return x;';
