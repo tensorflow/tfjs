@@ -30,25 +30,39 @@ function convertToRunKernel(sourceFile: SourceFile) {
     console.log(`Found runKernelFunc in ${sourceFile.getFilePath()}`);
     runKernelFuncCalls.forEach(c => {
       const callArgs = c.getArguments();
-      // we want the 2nd, 4th and 5th (if present) arguments to construct our
-      // new call.
-      // const [/*forwardFunc*/, inputsArg, /*grad*/, kernelNameArg, attrsArg] =
-      //     callArgs;
-
-      // remove forwardFunc and grad from the call then change it to runKernel
-      const [forwardFuncArg, , gradArg] = callArgs;
-
       console.log(c.getText());
 
+      // we want the 2nd, 4th and 5th (if present) arguments to construct our
+      // new call.
+      const [forwardFuncArg, inputsArg, gradArg, kernelNameArg, attrsArg] =
+          callArgs;
+
+      const kernelNameArgText = kernelNameArg.getText();
+      const inputsArgText = inputsArg.getText();
+      const attrsArgText = attrsArg == null ? '' : attrsArg.getText();
+
+      // remove forwardFunc and grad from the call then change it to runKernel
+      c.removeArgument(inputsArg);
+      c.removeArgument(kernelNameArg);
       c.removeArgument(forwardFuncArg);
       c.removeArgument(gradArg);
+      if (attrsArg != null) {
+        c.removeArgument(attrsArg);
+      }
       c.getChildAtIndex(0).replaceWithText('ENGINE.runKernel');
+
+      // put the arguments back in the correct order
+      c.addArgument(kernelNameArgText);
+      c.addArgument(inputsArgText);
+      if (attrsArgText.length > 0) {
+        c.addArgument(attrsArgText);
+      }
 
       // console.log('Modifed');
       // console.log(c.getText());
       // console.log('\n\n');
     });
-    return true;
+    return false;
   }
 }
 
