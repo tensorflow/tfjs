@@ -148,6 +148,7 @@ import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {sparseToDenseConfig} from './kernels/SparseToDense';
 import {splitVConfig} from './kernels/SplitV';
+import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {stepConfig} from './kernels/Step';
@@ -176,8 +177,8 @@ const kernelConfigs: KernelConfig[] = [
   addNConfig,
   allConfig,
   anyConfig,
-  argMinConfig,
   argMaxConfig,
+  argMinConfig,
   asinConfig,
   asinhConfig,
   atan2Config,
@@ -298,6 +299,7 @@ const kernelConfigs: KernelConfig[] = [
   spaceToBatchNDConfig,
   sparseToDenseConfig,
   splitVConfig,
+  sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
   stepConfig,
@@ -310,8 +312,8 @@ const kernelConfigs: KernelConfig[] = [
   topKConfig,
   transposeConfig,
   uniqueConfig,
-  unsortedSegmentSumConfig,
   unpackConfig,
+  unsortedSegmentSumConfig,
   zerosLikeConfig
 ];
 
