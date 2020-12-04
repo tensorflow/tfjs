@@ -66,7 +66,7 @@ describeWithFlags('denseBincount', ALL_ENVS, () => {
 
   it('with 2d inputs and 0-length weights.', async () => {
     const x = tf.tensor2d([[1, 1], [1, 2]], [2, 2], 'int32');
-    const weights = tf.tensor2d([]);
+    const weights = tf.tensor2d([], [0, 0]);
     const size = 3;
 
     const result = tf.denseBincount(x, weights, size);
@@ -78,7 +78,7 @@ describeWithFlags('denseBincount', ALL_ENVS, () => {
   it('with 2d inputs and 0-length weights and number out of range.',
      async () => {
        const x = tf.tensor2d([[1, 1], [1, 2]], [2, 2], 'int32');
-       const weights = tf.tensor2d([]);
+       const weights = tf.tensor2d([], [0, 0]);
        const size = 2;
 
        const result = tf.denseBincount(x, weights, size);
