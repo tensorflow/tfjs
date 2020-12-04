@@ -34,11 +34,7 @@ export function neg(args: {inputs: NegInputs, backend: MathBackendWebGL}):
     const xData = backend.texData.get(x.dataId);
     const [outValues, newShape] =
         negImplCPU(xData.values as TypedArray, x.shape, x.dtype);
-
-    const out = backend.makeTensorInfo(newShape, x.dtype);
-    const outData = backend.texData.get(out.dataId);
-    outData.values = outValues;
-    return out;
+    return backend.makeTensorInfo(newShape, x.dtype, outValues);
   }
 
   let program: UnaryOpProgram|UnaryOpPackedProgram;

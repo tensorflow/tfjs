@@ -34,10 +34,7 @@ export function abs(args: {inputs: AbsInputs, backend: MathBackendWebGL}):
   if (backend.shouldExecuteOnCPU([x]) && x.dtype !== 'complex64') {
     const xData = backend.texData.get(x.dataId);
     const outValues = simpleAbsImplCPU(xData.values as TypedArray);
-    const out = backend.makeTensorInfo(x.shape, x.dtype);
-    const outData = backend.texData.get(out.dataId);
-    outData.values = outValues;
-    return out;
+    return backend.makeTensorInfo(x.shape, x.dtype, outValues);
   }
 
   let program: UnaryOpProgram|UnaryOpPackedProgram;
