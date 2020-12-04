@@ -1,2 +1,19 @@
 # Allow typescript rules in any package to reference this file
 exports_files(["tsconfig.json"])
+
+load("@npm//@bazel/typescript:index.bzl", "ts_project")
+
+
+ts_project(
+    name = "tfjs-core",
+    srcs = glob(["src/**/*.ts"]),
+    declaration = True,
+    extends = ["//:tsconfig.json"],
+    incremental = True,
+    source_map = True,
+    tsconfig = "tsconfig.json",
+    deps = [
+        "@npm//@types",
+        "@npm//seedrandom",
+    ],
+)
