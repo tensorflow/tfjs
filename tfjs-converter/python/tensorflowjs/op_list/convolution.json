@@ -390,6 +390,11 @@
         "name": "epsilon",
         "type": "number",
         "defaultValue": 0.0001
+      },
+      {
+        "tfName": "leakyrelu_alpha",
+        "name": "leakyreluAlpha",
+        "type": "number"
       }
     ]
   },

@@ -174,8 +174,7 @@ export const json: OpMapper[] = [
       {'tfName': 'num_args', 'name': 'numArgs', 'type': 'number'},
       {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true},
       {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
-      {'tfName': 'padding', 'name': 'pad', 'type': 'string'},
-      {
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'}, {
         'tfName': 'explicit_paddings',
         'name': 'explicitPaddings',
         'type': 'number[]',
@@ -211,6 +210,11 @@ export const json: OpMapper[] = [
         'type': 'number',
         'defaultValue': 0.0001
       },
+      {
+        'tfName': 'leakyrelu_alpha',
+        'name': 'leakyreluAlpha',
+        'type': 'number'
+      }
     ]
   },
   {

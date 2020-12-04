@@ -19,7 +19,7 @@ import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
-describeWithFlags('leakyRelu', ALL_ENVS, () => {
+describeWithFlags('leakyrelu', ALL_ENVS, () => {
   it('basic', async () => {
     const a = tf.tensor1d([0, 1, -2]);
     const result = tf.leakyRelu(a);

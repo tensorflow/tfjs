@@ -28,8 +28,14 @@ export const fusedDepthwiseConv2DConfig: KernelConfig = {
     const {x, filter, bias, preluActivationWeights} =
         args.inputs as FusedDepthwiseConv2DInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {strides, pad, dilations, dimRoundingMode, activation} =
-        args.attrs as {} as FusedDepthwiseConv2DAttrs;
+    const {
+      strides,
+      pad,
+      dilations,
+      dimRoundingMode,
+      activation,
+      leakyreluAlpha
+    } = args.attrs as {} as FusedDepthwiseConv2DAttrs;
 
     let $dilations = dilations;
     if ($dilations == null) {
@@ -51,7 +57,7 @@ export const fusedDepthwiseConv2DConfig: KernelConfig = {
 
     const temp = result;
     result = backend.applyActivation(
-        result, activation, preluActivationWeights as Tensor);
+        result, activation, preluActivationWeights as Tensor, leakyreluAlpha);
     if (temp !== result) {
       toDispose.push(temp);
     }
