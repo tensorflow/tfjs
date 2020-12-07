@@ -75,6 +75,7 @@ function nonMaxSuppressionWithScore_(
   const attrs: NonMaxSuppressionV5Attrs =
       {maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma};
 
+  // tslint:disable-next-line: no-unnecessary-type-assertion
   const result = ENGINE.runKernel(
                      NonMaxSuppressionV5, inputs as {} as NamedTensorMap,
                      attrs as {} as NamedAttrMap) as Tensor[];
