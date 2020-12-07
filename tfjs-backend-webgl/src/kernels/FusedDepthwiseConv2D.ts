@@ -29,7 +29,10 @@ export function fusedDepthwiseConv2D(args: {
 }) {
   const {inputs, backend, attrs} = args;
   const {x, filter, bias, preluActivationWeights} = inputs;
-  const {strides, pad, dilations, dimRoundingMode, activation} = attrs;
+  const {strides, pad, dilations, dimRoundingMode, activation, leakyreluAlpha} =
+      attrs;
+
+  const intermediates: TensorInfo[] = [];
 
   let $dilations = dilations;
   if ($dilations == null) {
@@ -56,23 +59,38 @@ export function fusedDepthwiseConv2D(args: {
 
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
+  const hasLeakyreluAlpha = activation === 'leakyrelu';
+
   if (hasBias) {
     programInputs.push(bias);
   }
   if (hasPreluActivationWeights) {
     programInputs.push(preluActivationWeights);
   }
+  if (hasLeakyreluAlpha) {
+    const $leakyreluAlpha = backend.makeTensorInfo(
+        [], 'float32',
+        util.createScalarValue(leakyreluAlpha as {} as 'float32', 'float32'));
+    programInputs.push($leakyreluAlpha);
+    intermediates.push($leakyreluAlpha);
+  }
 
   let program: DepthwiseConv2DProgram|DepthwiseConvPacked2DProgram;
   if (shouldPackDepthwiseConv) {
     program = new DepthwiseConvPacked2DProgram(
-        convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
+        convInfo, hasBias, fusedActivation, hasPreluActivationWeights,
+        hasLeakyreluAlpha);
   } else {
     program = new DepthwiseConv2DProgram(
-        convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
+        convInfo, hasBias, fusedActivation, hasPreluActivationWeights,
+        hasLeakyreluAlpha);
   }
 
-  return backend.runWebGLProgram(program, programInputs, 'float32');
+  const result = backend.runWebGLProgram(program, programInputs, 'float32');
+
+  intermediates.forEach(t => backend.disposeIntermediateTensorInfo(t));
+
+  return result;
 }
 
 export const fusedDepthwiseConv2DConfig: KernelConfig = {

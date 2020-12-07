@@ -28,7 +28,7 @@ export class MatMulPackedProgram implements GPGPUProgram {
       aShape: [number, number, number], bShape: [number, number, number],
       outputShape: [number, number, number], transposeA = false,
       transposeB = false, addBias = false, activation: string = null,
-      hasPreluActivation = false) {
+      hasPreluActivation = false, hasLeakyreluActivation = false) {
     this.outputShape = outputShape;
 
     const sharedDim = transposeA ? aShape[1] : aShape[2];
@@ -44,6 +44,11 @@ export class MatMulPackedProgram implements GPGPUProgram {
       if (hasPreluActivation) {
         activationSnippet = `vec4 activation(vec4 a) {
           vec4 b = getPreluActivationWeightsAtOutCoords();
+          ${activation}
+        }`;
+      } else if (hasLeakyreluActivation) {
+        activationSnippet = `vec4 activation(vec4 a) {
+          vec4 b = getLeakyreluAlphaAtOutCoords();
           ${activation}
         }`;
       } else {
@@ -62,6 +67,10 @@ export class MatMulPackedProgram implements GPGPUProgram {
 
     if (hasPreluActivation) {
       this.variableNames.push('preluActivationWeights');
+    }
+
+    if (hasLeakyreluActivation) {
+      this.variableNames.push('leakyreluAlpha');
     }
 
     let batchASnippet = 'rc.x';

@@ -19,13 +19,13 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export const LINEAR = `return x;`;
 
-export const LOG = `
-  vec4 result = log(x);
-  vec4 isNaN = vec4(lessThan(x, vec4(0.0)));
-  result.r = isNaN.r == 1.0 ? NAN : result.r;
-  result.g = isNaN.g == 1.0 ? NAN : result.g;
-  result.b = isNaN.b == 1.0 ? NAN : result.b;
-  result.a = isNaN.a == 1.0 ? NAN : result.a;
+export const ELU = `
+  vec4 result;
+
+  result.r = (x.r >= 0.0) ? x.r : (exp(x.r) - 1.0);
+  result.g = (x.g >= 0.0) ? x.g : (exp(x.g) - 1.0);
+  result.b = (x.b >= 0.0) ? x.b : (exp(x.b) - 1.0);
+  result.a = (x.a >= 0.0) ? x.a : (exp(x.a) - 1.0);
 
   return result;
 `;
@@ -50,17 +50,6 @@ export const RELU6 = `
   result.g = isNaN.g ? x.g : result.g;
   result.b = isNaN.b ? x.b : result.b;
   result.a = isNaN.a ? x.a : result.a;
-
-  return result;
-`;
-
-export const ELU = `
-  vec4 result;
-
-  result.r = (x.r >= 0.0) ? x.r : (exp(x.r) - 1.0);
-  result.g = (x.g >= 0.0) ? x.g : (exp(x.g) - 1.0);
-  result.b = (x.b >= 0.0) ? x.b : (exp(x.b) - 1.0);
-  result.a = (x.a >= 0.0) ? x.a : (exp(x.a) - 1.0);
 
   return result;
 `;

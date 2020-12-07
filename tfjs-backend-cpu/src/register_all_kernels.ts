@@ -89,6 +89,7 @@ import {imagConfig} from './kernels/Imag';
 import {isFiniteConfig} from './kernels/IsFinite';
 import {isInfConfig} from './kernels/IsInf';
 import {isNaNConfig} from './kernels/IsNaN';
+import {leakyReluConfig} from './kernels/LeakyRelu';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {linSpaceConfig} from './kernels/LinSpace';
@@ -242,6 +243,7 @@ const kernelConfigs: KernelConfig[] = [
   isFiniteConfig,
   isInfConfig,
   isNaNConfig,
+  leakyReluConfig,
   lessConfig,
   lessEqualConfig,
   linSpaceConfig,
