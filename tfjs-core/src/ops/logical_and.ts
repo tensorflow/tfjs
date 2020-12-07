@@ -47,9 +47,7 @@ function logicalAnd_<T extends Tensor>(
 
   const inputs: LogicalAndInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernelFunc(
-             backend => backend.logicalAnd($a, $b),
-             inputs as {} as NamedTensorMap, null /* grad */, LogicalAnd) as T;
+  return ENGINE.runKernel(LogicalAnd, inputs as {} as NamedTensorMap);
 }
 
 export const logicalAnd = op({logicalAnd_});
