@@ -59,6 +59,7 @@ import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {depthwiseConv2dNativeBackpropFilterConfig} from './kernels/DepthwiseConv2dNativeBackpropFilter';
 import {depthwiseConv2dNativeBackpropInputConfig} from './kernels/DepthwiseConv2dNativeBackpropInput';
 import {diagConfig} from './kernels/Diag';
+import {dilation2DConfig} from './kernels/Dilation2D';
 import {eluConfig} from './kernels/Elu';
 import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
@@ -213,6 +214,7 @@ const kernelConfigs: KernelConfig[] = [
   depthwiseConv2dNativeBackpropInputConfig,
   depthwiseConv2dNativeConfig,
   diagConfig,
+  dilation2DConfig,
   eluConfig,
   eluGradConfig,
   equalConfig,
