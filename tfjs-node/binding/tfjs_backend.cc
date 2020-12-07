@@ -471,6 +471,9 @@ void CopyTFE_TensorHandleDataToJSData(napi_env env, TFE_Context *tfe_context,
     case TF_INT32:
       typed_array_type = napi_int32_array;
       break;
+    case TF_INT64:
+      typed_array_type = napi_bigint64_array;
+      break;
     case TF_BOOL:
       typed_array_type = napi_uint8_array;
       break;
