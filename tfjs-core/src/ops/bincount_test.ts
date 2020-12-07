@@ -79,4 +79,12 @@ describeWithFlags('bincount', ALL_ENVS, () => {
 
     expect(() => tf.bincount(x, weights, size)).toThrowError();
   });
+
+  it('throws error if x and weights shape donot match.', async () => {
+    const x = tf.tensor1d([1, 1, 1, 2], 'int32');
+    const weights = tf.tensor1d([0.5]);
+    const size = 3;
+
+    expect(() => tf.bincount(x, weights, size)).toThrowError();
+  });
 });

@@ -18,7 +18,7 @@
 import {DenseBincount, DenseBincountAttrs, DenseBincountInputs, KernelConfig, KernelFunc, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
-import {bincountImpl, bincountReduceImpl} from './DenseBincount_impl';
+import {bincountImpl, bincountReduceImpl} from './Bincount_impl';
 
 export function denseBincount(args: {
   inputs: DenseBincountInputs,
