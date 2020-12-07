@@ -49,10 +49,10 @@ export class Dilation2DProgram implements GPGPUProgram {
         ivec4 coords = getOutputCoords();
         int batch = coords.x;
         int d1 = coords.w;
-        ivec2 outCorner =
+        ivec2 outTopLeftCorner =
             coords.yz * strides - pads;
-        int hBeg = outCorner.x;
-        int wBeg = outCorner.y;
+        int hBeg = outTopLeftCorner.x;
+        int wBeg = outTopLeftCorner.y;
 
         float curVal = neg_infinity;
         for (int h = 0; h < ${filterHeight}; h++) {
