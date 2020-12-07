@@ -662,11 +662,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.compileAndRun<Tensor>(program, [x], dtype);
   }
 
-  sqrt<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SQRT);
-    return this.compileAndRun(program, [x]);
-  }
-
   // TODO(msoulanille) remove this once the backend has been modularized
   // a copy is needed here to break a circular dependency.
   // Also remove the op from unary_op.

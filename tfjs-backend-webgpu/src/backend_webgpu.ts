@@ -26,6 +26,7 @@ import {BufferManager} from './buffer_manager';
 import {ArgMinMaxProgram} from './kernels/argminmax_webgpu';
 import {BinaryOpProgram} from './kernels/binary_op_webgpu';
 import {BinaryOpType, getBinaryOpString, getBinaryProgram} from './kernels/binary_ops';
+import {ClipVec4Program} from './kernels/clip_vec4_webgpu';
 import {ClipProgram} from './kernels/clip_webgpu';
 import {ConcatProgram} from './kernels/concat_webgpu';
 import {Conv2DMMVec4Program} from './kernels/conv2d_mm_vec4_webgpu';
@@ -855,7 +856,12 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   clip<T extends Tensor>(x: T, min: number, max: number): T {
-    const program = new ClipProgram(x.shape, min, max);
+    let program: ClipProgram|ClipVec4Program;
+    if (util.sizeFromShape(x.shape) % 4 === 0) {
+      program = new ClipVec4Program(x.shape, min, max);
+    } else {
+      program = new ClipProgram(x.shape, min, max);
+    }
     return this.compileAndRun(program, [x]);
   }
 
