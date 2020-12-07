@@ -69,9 +69,8 @@ function transpose_<T extends Tensor>(x: T|TensorLike, perm?: number[]): T {
   const inputs: TransposeInputs = {x: $x};
   const attrs: TransposeAttrs = {perm};
 
-  return ENGINE.runKernelFunc(
-      backend => backend.transpose($x, perm), inputs as {} as NamedTensorMap,
-      null /* gradient */, Transpose, attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(
+      Transpose, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const transpose = op({transpose_});
