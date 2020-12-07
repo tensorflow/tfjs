@@ -40,8 +40,6 @@ function ceil_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'ceil');
 
   const inputs: CeilInputs = {x: $x};
-  return ENGINE.runKernelFunc(
-      backend => backend.ceil($x), inputs as {} as NamedTensorMap,
-      null /* grad */, Ceil);
+  return ENGINE.runKernel(Ceil, inputs as {} as NamedTensorMap);
 }
 export const ceil = op({ceil_});
