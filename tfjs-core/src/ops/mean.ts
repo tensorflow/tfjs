@@ -16,7 +16,6 @@
  */
 
 import {ENGINE, ForwardFunc} from '../engine';
-import {customGrad} from '../gradients';
 import {Mean, MeanAttrs, MeanInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
@@ -28,10 +27,7 @@ import {parseAxisParam, sizeFromShape} from '../util';
 import {computeOutAndReduceShapes} from './axis_util';
 import {cast} from './cast';
 import {div} from './div';
-import {mul} from './mul';
-import {ones} from './ones';
 import {op} from './operation';
-import {reshape} from './reshape';
 import {scalar} from './scalar';
 import {sum} from './sum';
 
@@ -68,14 +64,14 @@ function mean_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
   const $x = convertToTensor(x, 'x', 'mean');
 
-  const axes = parseAxisParam(axis, $x.shape);
-  const shapes = computeOutAndReduceShapes($x.shape, axes);
-  const reduceShape = shapes[1];
-  const reduceSize = sizeFromShape(reduceShape);
-
   const inputs: MeanInputs = {x: $x};
   const attrs: MeanAttrs = {axis, keepDims};
   const forward: ForwardFunc<Tensor> = () => {
+    const axes = parseAxisParam(axis, $x.shape);
+    const shapes = computeOutAndReduceShapes($x.shape, axes);
+    const reduceShape = shapes[1];
+    const reduceSize = sizeFromShape(reduceShape);
+
     const reduceSizeScalar = scalar(reduceSize);
     // Cast if needed.
     const xReduce = reduceSizeScalar.dtype === $x.dtype ?
@@ -85,26 +81,9 @@ function mean_<T extends Tensor>(
     return sum(res, axis, keepDims);
   };
 
-  // Use a custom gradient to bypass 2 gradient backprops since mean is used
-  // extremely often.
-  const customOp = customGrad((x: Tensor) => {
-    const value = ENGINE.runKernelFunc(
-        forward, inputs as {} as NamedTensorMap, null /* grad */, Mean,
-        attrs as {} as NamedAttrMap);
-
-    const gradFunc = (dy: Tensor) => {
-      const expandedDyShape = x.shape.slice();
-      axes.forEach(axis => {
-        expandedDyShape[axis] = 1;
-      });
-      const expandedDy = reshape(dy, expandedDyShape);
-      const derX = div(mul(expandedDy, ones(x.shape, 'float32')), reduceSize);
-      return derX;
-    };
-    return {value, gradFunc};
-  });
-
-  return customOp($x) as T;
+  return ENGINE.runKernelFunc(
+             forward, inputs as {} as NamedTensorMap, null /* grad */, Mean,
+             attrs as {} as NamedAttrMap) as T;
 }
 
 export const mean = op({mean_});
