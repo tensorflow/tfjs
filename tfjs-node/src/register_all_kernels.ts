@@ -82,6 +82,7 @@ import {gatherNdConfig} from './kernels/GatherNd';
 import {gatherV2Config} from './kernels/GatherV2';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
+import {identityConfig} from './kernels/Identity';
 import {IFFTConfig} from './kernels/IFFT';
 import {imagConfig} from './kernels/Imag';
 import {isFiniteConfig} from './kernels/IsFinite';
@@ -232,6 +233,7 @@ const kernelConfigs: KernelConfig[] = [
   gatherV2Config,
   greaterConfig,
   greaterEqualConfig,
+  identityConfig,
   imagConfig,
   isFiniteConfig,
   isInfConfig,
