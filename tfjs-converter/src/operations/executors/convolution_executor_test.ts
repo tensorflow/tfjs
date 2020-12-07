@@ -325,7 +325,8 @@ describe('convolution', () => {
           dilations: [2, 2],
           bias: input3[0],
           activation: 'relu',
-          preluActivationWeights: undefined
+          preluActivationWeights: undefined,
+          leakyreluAlpha: undefined
         });
       });
       it('should support explicit padding', () => {
@@ -357,7 +358,8 @@ describe('convolution', () => {
           dilations: [2, 2],
           bias: input3[0],
           activation: 'relu',
-          preluActivationWeights: undefined
+          preluActivationWeights: undefined,
+          leakyreluAlpha: undefined
         });
       });
       it('with bias and prelu activation func', () => {
@@ -387,7 +389,40 @@ describe('convolution', () => {
           dilations: [2, 2],
           bias: input3[0],
           activation: 'prelu',
-          preluActivationWeights: input4[0]
+          preluActivationWeights: input4[0],
+          leakyreluAlpha: undefined
+        });
+      });
+      it('with bias and leakyrelu activation func', () => {
+        spyOn(tfOps.fused, 'conv2d');
+        node.op = '_FusedConv2D';
+        node.inputParams['filter'] = createTensorAttr(1);
+        node.inputParams['args'] = createTensorsAttr(2, 0);
+        node.attrParams['fusedOps'] =
+            createStrArrayAttr(['biasadd', 'leakyrelu']);
+        node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
+        node.attrParams['pad'] = createStrAttr('same');
+        node.attrParams['dataFormat'] = createStrAttr('NHWC');
+        node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
+        node.attrParams['numArgs'] = createNumberAttr(1);
+        node.attrParams['leakyreluAlpha'] = createNumberAttr(0.3);
+        const input1 = [tfOps.scalar(1.0)];
+        const input2 = [tfOps.scalar(2.0)];
+        const input3 = [tfOps.scalar(3.0)];
+        node.inputNames = ['input1', 'input2', 'input3'];
+        executeOp(node, {input1, input2, input3}, context);
+
+        expect(tfOps.fused.conv2d).toHaveBeenCalledWith({
+          x: input1[0],
+          filter: input2[0],
+          strides: [2, 2],
+          pad: 'same',
+          dataFormat: 'NHWC',
+          dilations: [2, 2],
+          bias: input3[0],
+          activation: 'leakyrelu',
+          preluActivationWeights: undefined,
+          leakyreluAlpha: 0.3
         });
       });
 
@@ -418,7 +453,8 @@ describe('convolution', () => {
           dilations: [2, 2],
           bias: input3[0],
           activation: undefined,
-          preluActivationWeights: undefined
+          preluActivationWeights: undefined,
+          leakyreluAlpha: undefined
         });
       });
       it('fail with batchnorm', () => {
@@ -472,7 +508,8 @@ describe('convolution', () => {
         dilations: [2, 2],
         bias: input3[0],
         activation: 'relu',
-        preluActivationWeights: undefined
+        preluActivationWeights: undefined,
+        leakyreluAlpha: undefined
       });
     });
     it('with bias and activation func', () => {
@@ -502,7 +539,8 @@ describe('convolution', () => {
         dilations: [2, 2],
         bias: input3[0],
         activation: 'relu',
-        preluActivationWeights: undefined
+        preluActivationWeights: undefined,
+        leakyreluAlpha: undefined
       });
     });
     it('with bias and prelu activation func', () => {
@@ -532,7 +570,40 @@ describe('convolution', () => {
         dilations: [2, 2],
         bias: input3[0],
         activation: 'prelu',
-        preluActivationWeights: input4[0]
+        preluActivationWeights: input4[0],
+        leakyreluAlpha: undefined
+      });
+    });
+    it('with bias and leakyrelu activation func', () => {
+      spyOn(tfOps.fused, 'depthwiseConv2d');
+      node.op = 'FusedDepthwiseConv2dNative';
+      node.inputParams['filter'] = createTensorAttr(1);
+      node.inputParams['args'] = createTensorsAttr(2, 0);
+      node.attrParams['fusedOps'] =
+          createStrArrayAttr(['biasadd', 'leakyrelu']);
+      node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
+      node.attrParams['pad'] = createStrAttr('same');
+      node.attrParams['dataFormat'] = createStrAttr('NHWC');
+      node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
+      node.attrParams['numArgs'] = createNumberAttr(1);
+      node.attrParams['leakyreluAlpha'] = createNumberAttr(0.3);
+      const input1 = [tfOps.scalar(1.0)];
+      const input2 = [tfOps.scalar(2.0)];
+      const input3 = [tfOps.scalar(3.0)];
+      node.inputNames = ['input1', 'input2', 'input3'];
+      executeOp(node, {input1, input2, input3}, context);
+
+      expect(tfOps.fused.depthwiseConv2d).toHaveBeenCalledWith({
+        x: input1[0],
+        filter: input2[0],
+        strides: [2, 2],
+        pad: 'same',
+        dataFormat: 'NHWC',
+        dilations: [2, 2],
+        bias: input3[0],
+        activation: 'leakyrelu',
+        preluActivationWeights: undefined,
+        leakyreluAlpha: 0.3
       });
     });
 
@@ -563,7 +634,8 @@ describe('convolution', () => {
         dilations: [2, 2],
         bias: input3[0],
         activation: undefined,
-        preluActivationWeights: undefined
+        preluActivationWeights: undefined,
+        leakyreluAlpha: undefined
       });
     });
   });

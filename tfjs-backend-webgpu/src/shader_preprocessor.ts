@@ -231,12 +231,12 @@ function getSetOutputSnippet(
       void setOutput(${dims.map(d => `int ${d}`).join(', ')}, vec4 value) {
         int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), ${
           getShapeCoords(outShape)});
-        setOutput(flatIndex, value);
+        setOutput(flatIndex / 4, value);
       }
       void setOutput(${dims.map(d => `int ${d}`).join(', ')}, ivec4 value) {
         int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), ${
           getShapeCoords(outShape)});
-        setOutput(flatIndex, value);
+        setOutput(flatIndex / 4, value);
       }
     `;
     } else {
