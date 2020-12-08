@@ -41,10 +41,6 @@ function sin_<T extends Tensor>(x: T|TensorLike): T {
 
   const inputs: SinInputs = {x: $x};
 
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.sin($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Sin);
+  return ENGINE.runKernel(Sin, inputs as {} as NamedTensorMap);
 }
 export const sin = op({sin_});
