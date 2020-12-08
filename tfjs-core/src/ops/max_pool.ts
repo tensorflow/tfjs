@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {MaxPool, MaxPoolAttrs, MaxPoolInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -81,37 +81,19 @@ function maxPool_<T extends Tensor3D|Tensor4D>(
             `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
   }
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const convInfo = conv_util.computePool2DInfo(
-        x4D.shape, filterSize, strides, 1 /* dilations */, pad,
-        dimRoundingMode);
-
-    let y;
-
-    if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
-        util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
-      y = x4D.clone();
-    } else {
-      y = backend.maxPool(x4D, convInfo);
-    }
-
-    save([x4D, y]);
-
-    return y;
-  };
-
   const inputs: MaxPoolInputs = {x: x4D};
 
   const attrs: MaxPoolAttrs = {filterSize, strides, pad, dimRoundingMode};
 
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, MaxPool,
-      attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  MaxPool, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   }
-  return res as T;
+  return res;
 }
 
 export const maxPool = op({maxPool_});

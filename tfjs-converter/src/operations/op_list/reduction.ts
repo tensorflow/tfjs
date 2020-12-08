@@ -19,6 +19,26 @@ import {OpMapper} from '../types';
 
 export const json: OpMapper[] = [
   {
+    'tfOpName': 'Bincount',
+    'category': 'reduction',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'size', 'type': 'number'},
+      {'start': 2, 'name': 'weights', 'type': 'tensor'}
+    ]
+  },
+  {
+    'tfOpName': 'DenseBincount',
+    'category': 'reduction',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'size', 'type': 'number'},
+      {'start': 2, 'name': 'weights', 'type': 'tensor'}
+    ],
+    'attrs':
+        [{'tfName': 'binary_output', 'name': 'binaryOutput', 'type': 'bool'}]
+  },
+  {
     'tfOpName': 'Max',
     'category': 'reduction',
     'inputs': [

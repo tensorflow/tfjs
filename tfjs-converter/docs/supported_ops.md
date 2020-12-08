@@ -270,6 +270,8 @@
 |Any|any|
 |ArgMax|argMax|
 |ArgMin|argMin|
+|Bincount|bincount|
+|DenseBincount|denseBincount|
 |Max|max|
 |Mean|mean|
 |Min|min|

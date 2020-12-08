@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc",
     "lint": "tslint -p . -t verbose",
-    "test": "ts-node src/run_tests.ts"
+    "test": "yarn && yarn build && ts-node --transpile-only src/run_tests.ts",
+    "test-dev": "tsc && ts-node --transpile-only src/run_tests.ts"
   },
   "author": "",
   "license": "Apache-2.0",

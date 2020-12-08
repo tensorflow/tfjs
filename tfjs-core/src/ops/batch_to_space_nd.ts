@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {BatchToSpaceND, BatchToSpaceNDAttrs, BatchToSpaceNDInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
@@ -96,16 +96,12 @@ function batchToSpaceND_<T extends Tensor>(
                 $x.shape[0]} but is not divisible by the product of ` +
           `the elements of blockShape ${blockShape.join(' * ')} === ${prod}`);
 
-  const forward: ForwardFunc<T> = backend => {
-    return backend.batchToSpaceND($x, blockShape, crops);
-  };
-
   const inputs: BatchToSpaceNDInputs = {x: $x};
   const attrs: BatchToSpaceNDAttrs = {blockShape, crops};
 
-  return ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* gradient */,
-      BatchToSpaceND, attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(
+      BatchToSpaceND, inputs as {} as NamedTensorMap,
+      attrs as {} as NamedAttrMap);
 }
 
 export const batchToSpaceND = op({batchToSpaceND_});
