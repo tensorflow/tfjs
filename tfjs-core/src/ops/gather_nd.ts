@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {GatherNd, GatherNdInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -64,14 +64,9 @@ function gatherND_(x: Tensor|TensorLike, indices: Tensor|TensorLike): Tensor {
   const $indices = convertToTensor(indices, 'indices', 'gatherND', 'int32');
   const $x = convertToTensor(x, 'x', 'gatherND');
 
-  const forward: ForwardFunc<Tensor> = (backend) => {
-    return backend.gatherND($x, $indices);
-  };
-
   const inputs: GatherNdInputs = {params: $x, indices: $indices};
 
-  return ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* gradient */, GatherNd);
+  return ENGINE.runKernel(GatherNd, inputs as {} as NamedTensorMap);
 }
 
 export const gatherND = op({gatherND_});

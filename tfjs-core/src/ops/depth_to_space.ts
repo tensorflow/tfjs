@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {DepthToSpace, DepthToSpaceAttrs, DepthToSpaceInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor4D} from '../tensor';
@@ -90,15 +90,12 @@ function depthToSpace_(
           blockSize * blockSize} but is ${
           inputDepth} for depthToSpace with input shape ${$x.shape}`);
 
-  const forward: ForwardFunc<Tensor4D> = backend =>
-      backend.depthToSpace($x, blockSize, dataFormat);
-
   const inputs: DepthToSpaceInputs = {x: $x};
   const attrs: DepthToSpaceAttrs = {blockSize, dataFormat};
 
-  return ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* gradient */,
-      DepthToSpace, attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(
+      DepthToSpace, inputs as {} as NamedTensorMap,
+      attrs as {} as NamedAttrMap);
 }
 
 export const depthToSpace = op({depthToSpace_});

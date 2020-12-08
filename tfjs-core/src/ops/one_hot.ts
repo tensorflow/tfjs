@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {OneHot, OneHotAttrs, OneHotInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
@@ -24,7 +24,6 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
 import {op} from './operation';
-import {reshape} from './reshape';
 
 /**
  * Creates a one-hot `tf.Tensor`. The locations represented by `indices` take
@@ -52,21 +51,12 @@ function oneHot_(
     throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
   }
   const $indices = convertToTensor(indices, 'indices', 'oneHot', 'int32');
-  const outShape = [...$indices.shape, depth];
-
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    save([$indices]);
-    return reshape(
-        backend.oneHot(
-            reshape($indices, [$indices.size]), depth, onValue, offValue),
-        outShape);
-  };
 
   const inputs: OneHotInputs = {indices: $indices};
   const attrs: OneHotAttrs = {depth, onValue, offValue};
 
-  return ENGINE.runKernelFunc(
-      forward, inputs as unknown as NamedTensorMap, null /* grad */, OneHot,
+  return ENGINE.runKernel(
+      OneHot, inputs as unknown as NamedTensorMap,
       attrs as unknown as NamedAttrMap);
 }
 

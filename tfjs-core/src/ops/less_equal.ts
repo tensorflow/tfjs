@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {LessEqual, LessEqualInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -48,17 +48,9 @@ function lessEqual_<T extends Tensor>(
 
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.lessEqual($a, $b);
-    save([$a, $b]);
-    return res;
-  };
-
   const inputs: LessEqualInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */,
-             LessEqual) as T;
+  return ENGINE.runKernel(LessEqual, inputs as {} as NamedTensorMap);
 }
 
 export const lessEqual = op({lessEqual_});
