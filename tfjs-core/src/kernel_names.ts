@@ -133,6 +133,12 @@ export interface BatchToSpaceNDAttrs {
 
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
+export const Bincount = 'Bincount';
+export type BincountInputs = Pick<NamedTensorInfoMap, 'x'|'weights'>;
+export interface BincountAttrs {
+  size: number;
+}
+
 export const BroadcastTo = 'BroadcastTo';
 export type BroadcastToInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface BroadCastToAttrs {
@@ -246,6 +252,13 @@ export interface CropAndResizeAttrs {
   cropSize: [number, number];
   method: 'bilinear'|'nearest';
   extrapolationValue: number;
+}
+
+export const DenseBincount = 'DenseBincount';
+export type DenseBincountInputs = Pick<NamedTensorInfoMap, 'x'|'weights'>;
+export interface DenseBincountAttrs {
+  size: number;
+  binaryOutput?: boolean;
 }
 
 export const DepthToSpace = 'DepthToSpace';
