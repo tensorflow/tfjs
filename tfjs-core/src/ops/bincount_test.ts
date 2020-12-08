@@ -64,6 +64,17 @@ describeWithFlags('bincount', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [0, 1.1]);
   });
 
+  it('with 1d float weights and different shape.', async () => {
+    const x = tf.tensor1d([1, 1, 1, 2], 'int32');
+    const weights = tf.tensor1d([0.5, 0.3]);
+    const size = 2;
+
+    const result = tf.bincount(x, weights, size);
+
+    expect(result.shape).toEqual([2]);
+    expectArraysClose(await result.data(), [0, 0.8]);
+  });
+
   it('throws error for non int x tensor.', async () => {
     const x = tf.tensor1d([1, 1, 1, 2], 'float32');
     const weights = tf.tensor1d([]);
@@ -76,14 +87,6 @@ describeWithFlags('bincount', ALL_ENVS, () => {
     const x = tf.tensor1d([1, 1, 1, 2], 'int32');
     const weights = tf.tensor1d([]);
     const size = -1;
-
-    expect(() => tf.bincount(x, weights, size)).toThrowError();
-  });
-
-  it('throws error if x and weights shape donot match.', async () => {
-    const x = tf.tensor1d([1, 1, 1, 2], 'int32');
-    const weights = tf.tensor1d([0.5]);
-    const size = 3;
 
     expect(() => tf.bincount(x, weights, size)).toThrowError();
   });

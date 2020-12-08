@@ -53,20 +53,13 @@ function bincount_<T extends Tensor1D>(
       () => `Error in bincount: input ` +
           `dtype must be int32, but got ${$x.dtype}`);
   util.assert(size >= 0, () => `size must be non-negative, but got ${size}.`);
-  util.assert(
-      $x.size === $weights.size || $weights.size === 0,
-      () => `Error in bincount: weights must have the same shape as x or ` +
-          `0-length, but got x shape: ${$x.shape}, weights shape: ` +
-          `${$weights.shape}.`);
 
   const inputs: BincountInputs = {x: $x, weights: $weights};
   const attrs: BincountAttrs = {size};
 
-  const res = ENGINE.runKernel(
-                  Bincount, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as T;
-
-  return res;
+  return ENGINE.runKernel(
+             Bincount, inputs as {} as NamedTensorMap,
+             attrs as {} as NamedAttrMap) as T;
 }
 
 export const bincount = op({bincount_});

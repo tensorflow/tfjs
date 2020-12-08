@@ -34,7 +34,9 @@ export function bincountImpl(
     }
 
     if (weightsSize > 0) {
-      outVals[value] += weightsVals[i];
+      // weights can be any size, for out of range reference, set weights
+      // to be zero.
+      outVals[value] += weightsVals[i] || 0;
     } else {
       outVals[value] += 1;
     }

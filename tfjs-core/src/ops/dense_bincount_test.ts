@@ -64,6 +64,17 @@ describeWithFlags('denseBincount', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [0, 1.1]);
   });
 
+  it('with 1d float weights and different shape.', async () => {
+    const x = tf.tensor1d([1, 1, 1, 2], 'int32');
+    const weights = tf.tensor1d([0.5, 0.3]);
+    const size = 2;
+
+    const result = tf.bincount(x, weights, size);
+
+    expect(result.shape).toEqual([2]);
+    expectArraysClose(await result.data(), [0, 0.8]);
+  });
+
   it('with 2d inputs and 0-length weights.', async () => {
     const x = tf.tensor2d([[1, 1], [1, 2]], [2, 2], 'int32');
     const weights = tf.tensor2d([], [0, 0]);
@@ -110,14 +121,6 @@ describeWithFlags('denseBincount', ALL_ENVS, () => {
     const x = tf.tensor1d([1, 1, 1, 2], 'int32');
     const weights = tf.tensor1d([]);
     const size = -1;
-
-    expect(() => tf.denseBincount(x, weights, size)).toThrowError();
-  });
-
-  it('throws error if x and weights shape donot match.', async () => {
-    const x = tf.tensor1d([1, 1, 1, 2], 'int32');
-    const weights = tf.tensor1d([0.5]);
-    const size = 3;
 
     expect(() => tf.denseBincount(x, weights, size)).toThrowError();
   });
