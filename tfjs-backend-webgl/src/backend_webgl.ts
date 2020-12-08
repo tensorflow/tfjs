@@ -166,6 +166,22 @@ export class MathBackendWebGL extends KernelBackend {
         this.pendingDeletes;
   }
 
+  writeTexture(
+      texture: WebGLTexture, shape: number[], dtype: DataType,
+      texShape: [number, number]): DataId {
+    const dataId = {};
+    this.texData.set(dataId, {
+      shape,
+      dtype,
+      usage: TextureUsage.UPLOAD,
+      texture,
+      texShape,
+      refCount: 1,
+      complexParentRefCount: 0
+    });
+    return dataId;
+  }
+
   write(values: BackendValues, shape: number[], dtype: DataType): DataId {
     if (env().getBool('WEBGL_CHECK_NUMERICAL_PROBLEMS') ||
         env().getBool('DEBUG')) {

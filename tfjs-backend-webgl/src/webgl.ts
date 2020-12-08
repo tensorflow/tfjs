@@ -15,8 +15,9 @@
  * =============================================================================
  */
 
-import {env} from '@tensorflow/tfjs-core';
+import {engine, env, Tensor} from '@tensorflow/tfjs-core';
 
+import {MathBackendWebGL} from './backend_webgl';
 import * as gpgpu_util from './gpgpu_util';
 import * as webgl_util from './webgl_util';
 
@@ -34,4 +35,12 @@ export {gpgpu_util, webgl_util};
  */
 export function forceHalfFloat(): void {
   env().set('WEBGL_FORCE_F16_TEXTURES', true);
+}
+
+export function createTensorFromTexture(
+    texture: WebGLTexture, shape: number[],
+    texShape: [number, number]): Tensor {
+  const backend = engine().backend as MathBackendWebGL;
+  const dataId = backend.writeTexture(texture, shape, 'float32', texShape);
+  return engine().makeTensorFromDataId(dataId, shape, 'float32', backend);
 }

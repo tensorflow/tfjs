@@ -119,9 +119,10 @@ export class TextureManager {
     const texList = this.usedTextures[shapeKey];
     const texIndex = texList.indexOf(texture);
     if (texIndex < 0) {
-      throw new Error(
-          'Cannot release a texture that was never provided by this ' +
-          'texture manager');
+      return;
+      // throw new Error(
+      //     'Cannot release a texture that was never provided by this ' +
+      //     'texture manager');
     }
     texList.splice(texIndex, 1);
     this.log();
