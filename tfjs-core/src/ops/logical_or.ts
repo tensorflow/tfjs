@@ -45,8 +45,6 @@ function logicalOr_<T extends Tensor>(
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
   const inputs: LogicalOrInputs = {a: $a, b: $b};
-  return ENGINE.runKernelFunc(
-             backend => backend.logicalOr($a, $b),
-             inputs as {} as NamedTensorMap, null /* grad */, LogicalOr) as T;
+  return ENGINE.runKernel(LogicalOr, inputs as {} as NamedTensorMap);
 }
 export const logicalOr = op({logicalOr_});
