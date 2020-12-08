@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-import * as util from '../util';
-
 type PadType = 'SAME'|'VALID'|'NUMBER'|'EXPLICIT';
 
 // For NHWC should be in the following form:
@@ -355,19 +353,10 @@ function computeOutputShape2D(
   const inputRows = inShape[0];
   const inputCols = inShape[1];
 
-  const outputRows = conditionalRound(
-      (inputRows - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  util.assert(
-      util.isInt(outputRows),
-      () => `The output # of rows (${outputRows}) must be an integer. ` +
-          `Change the stride and/or zero pad parameters`);
-
-  const outputCols = conditionalRound(
-      (inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  util.assert(
-      util.isInt(outputCols),
-      () => `The output # of columns (${outputCols}) must be an integer. ` +
-          `Change the stride and/or zero pad parameters`);
+  const outputRows =
+      round((inputRows - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
+  const outputCols =
+      round((inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
 
   return [outputRows, outputCols];
 }
@@ -383,26 +372,12 @@ function computeOutputShape4D(
   const inputRows = inShape[1];
   const inputCols = inShape[2];
 
-  const outputDepths = conditionalRound(
-      (inputDepth - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  util.assert(
-      util.isInt(outputDepths),
-      () => `The output # of depths (${outputDepths}) must be an integer. ` +
-          `Change the stride and/or zero pad parameters`);
-
-  const outputRows = conditionalRound(
-      (inputRows - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  util.assert(
-      util.isInt(outputRows),
-      () => `The output # of rows (${outputRows}) must be an integer. ` +
-          `Change the stride and/or zero pad parameters`);
-
-  const outputCols = conditionalRound(
-      (inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  util.assert(
-      util.isInt(outputCols),
-      () => `The output # of columns (${outputCols}) must be an integer. ` +
-          `Change the stride and/or zero pad parameters`);
+  const outputDepths =
+      round((inputDepth - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
+  const outputRows =
+      round((inputRows - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
+  const outputCols =
+      round((inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
 
   return [outputDepths, outputRows, outputCols, outChannels];
 }
@@ -492,10 +467,10 @@ function getPadAndOutInfo(
         'VALID' :
         'EXPLICIT';
     padInfo = {top, bottom, left, right, type: padType};
-    outHeight = conditionalRound(
+    outHeight = round(
         (inHeight - filterHeight + top + bottom) / strideHeight + 1,
         roundingMode);
-    outWidth = conditionalRound(
+    outWidth = round(
         (inWidth - filterWidth + left + right) / strideWidth + 1, roundingMode);
   } else {
     throw Error(`Unknown padding parameter: ${pad}`);
@@ -573,12 +548,12 @@ function get3DPadAndOutInfo(
 /**
  * Rounds a value depending on the rounding mode
  * @param value
- * @param roundingMode
+ * @param roundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
  */
-function conditionalRound(
-    value: number, roundingMode?: 'floor'|'round'|'ceil') {
+function round(value: number, roundingMode?: 'floor'|'round'|'ceil') {
   if (!roundingMode) {
-    return value;
+    return Math.trunc(value);
   }
   switch (roundingMode) {
     case 'round':

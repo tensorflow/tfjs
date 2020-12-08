@@ -6,17 +6,18 @@
 |---|---|
 |Add|add|
 |AddN|addN|
-|BiasAdd|add|
+|AddV2|AddV2|
+|BiasAdd|BiasAdd|
 |Div|div|
 |DivNoNan|divNoNan|
 |FloorDiv|floorDiv|
-|FloorMod|mod|
+|FloorMod|FloorMod|
 |Maximum|maximum|
 |Minimum|minimum|
 |Mod|mod|
 |Mul|mul|
 |Pow|pow|
-|RealDiv|div|
+|RealDiv|RealDiv|
 |SquaredDifference|squaredDifference|
 |Sub|sub|
 
@@ -34,26 +35,26 @@
 |Atanh|atanh|
 |Ceil|ceil|
 |ClipByValue|clipByValue|
+|Complex|Complex|
+|ComplexAbs|ComplexAbs|
 |Cos|cos|
 |Cosh|cosh|
-|Complex|complex|
-|ComplexAbs|abs|
 |Elu|elu|
 |Erf|erf|
 |Exp|exp|
 |Expm1|expm1|
 |Floor|floor|
+|Imag|Imag|
 |LeakyRelu|leakyRelu|
 |Log|log|
 |Log1p|log1p|
-|Imag|imag|
 |Neg|neg|
-|Prod|prod|
+|Prelu|prelu|
+|Prod|Prod|
+|Real|Real|
 |Reciprocal|reciprocal|
-|Reciprocal|reciprocal|
-|Real|real|
 |Relu|relu|
-|Relu6|clipByValue|
+|Relu6|relu6|
 |Round|round|
 |Rsqrt|rsqrt|
 |Selu|selu|
@@ -66,55 +67,69 @@
 |Square|square|
 |Tan|tan|
 |Tanh|tanh|
+|Not mapped|isFinite|
+|Not mapped|isInf|
+|Not mapped|isNaN|
 |Not mapped|logSigmoid|
-|Prelu|prelu|
 |Not mapped|step|
 
 ## Operations - Control Flow
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
-|Enter|enter|
-|Exit|exit|
-|LoopCond|loopCond|
-|Merge|merge|
-|NextIteration|nextIteration|
-|Switch|switch|
-|TensorArrayCloseV3|tensorArrayClose|
-|TensorArrayConcatV3|tensorArrayConcat|
-|TensorArrayGatherV3|tensorArrayGather|
-|TensorArrayReadV3|tensorArrayRead|
-|TensorArrayScatterV3|tensorArrayScatter|
-|TensorArraySizeV3|tensorArraySize|
-|TensorArraySplitV3|tensorArraySplit|
-|TensorArrayV3|tensorArray|
-|TensorArrayWriteV3|tensorArrayWrite|
-|TensorListReserve|TensorListReserve|
-|TensorListSetItem|TensorListSetItem|
+|EmptyTensorList|EmptyTensorList|
+|Enter|Enter|
+|Exit|Exit|
+|If|If|
+|LoopCond|LoopCond|
+|Merge|Merge|
+|NextIteration|NextIteration|
+|StatelessIf|StatelessIf|
+|StatelessWhile|StatelessWhile|
+|Switch|Switch|
+|TensorArrayCloseV3|TensorArrayCloseV3|
+|TensorArrayConcatV3|TensorArrayConcatV3|
+|TensorArrayGatherV3|TensorArrayGatherV3|
+|TensorArrayReadV3|TensorArrayReadV3|
+|TensorArrayScatterV3|TensorArrayScatterV3|
+|TensorArraySizeV3|TensorArraySizeV3|
+|TensorArraySplitV3|TensorArraySplitV3|
+|TensorArrayV3|TensorArrayV3|
+|TensorArrayWriteV3|TensorArrayWriteV3|
+|TensorListConcat|TensorListConcat|
+|TensorListFromTensor|TensorListFromTensor|
+|TensorListGather|TensorListGather|
 |TensorListGetItem|TensorListGetItem|
+|TensorListPopBack|TensorListPopBack|
+|TensorListPushBack|TensorListPushBack|
+|TensorListReserve|TensorListReserve|
 |TensorListScatter|TensorListScatter|
+|TensorListScatterV2|TensorListScatterV2|
+|TensorListSetItem|TensorListSetItem|
 |TensorListSplit|TensorListSplit|
 |TensorListStack|TensorListStack|
-|TensorArrayGather|TensorArrayGather|
-|TensorArrayConcat|TensorArrayConcat|
-|TensorArrayFromTensor|TensorArrayFromTensor|
-|TensorArrayPushBack|TensorArrayPushBack|
-|TensorArrayPopBack|TensorArrayPopBack|
+|While|While|
 
 ## Operations - Convolution
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
-|AvgPool|avgPool|
+|_FusedConv2D|_FusedConv2D|
+|AvgPool|AvgPool|
 |AvgPool3D|avgPool3d|
 |Conv1D|conv1d|
 |Conv2D|conv2d|
-|Conv2DBackpropInput|conv2dTranspose|
+|Conv2DBackpropInput|Conv2DBackpropInput|
+|Conv3D|conv3d|
 |DepthwiseConv2d|depthwiseConv2d|
-|DepthwiseConv2dNative|depthwiseConv2d|
-|Dilation2D|dilation2d|
-|MaxPool|maxPool|
+|DepthwiseConv2dNative|DepthwiseConv2dNative|
+|Dilation2D|Dilation2D|
+|FusedDepthwiseConv2dNative|FusedDepthwiseConv2dNative|
+|MaxPool|MaxPool|
 |MaxPool3D|maxPool3d|
+|MaxPoolWithArgmax|maxPoolWithArgmax|
+|Not mapped|conv2dTranspose|
+|Not mapped|conv3dTranspose|
 |Not mapped|pool|
 |Not mapped|separableConv2d|
 
@@ -124,70 +139,57 @@
 |---|---|
 |Fill|fill|
 |LinSpace|linspace|
+|Multinomial|Multinomial|
 |OneHot|oneHot|
 |Ones|ones|
 |OnesLike|onesLike|
-|RandomUniform|randomUniform|
+|RandomUniform|RandomUniform|
 |Range|range|
-|truncatedNormal|truncatedNormal|
+|TruncatedNormal|truncatedNormal|
 |Zeros|zeros|
 |ZerosLike|zerosLike|
-|Not mapped|buffer|
-|Not mapped|clone|
-|Not mapped|complex|
 |Not mapped|eye|
-|Not mapped|fromPixels|
-|Not mapped|imag|
-|Not mapped|print|
-|Not mapped|real|
-|Not mapped|scalar|
-|Not mapped|tensor|
-|Not mapped|tensor1d|
-|Not mapped|tensor2d|
-|Not mapped|tensor3d|
-|Not mapped|tensor4d|
-|Not mapped|tensor5d|
-|Not mapped|tensor6d|
-|Not mapped|variable|
 
 ## Operations - Dynamic
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
-|ListDiff|setdiff1dAsync|
-|NonMaxSuppressionV2|nonMaxSuppression|
-|NonMaxSuppressionV3|nonMaxSuppression|
-|NonMaxSuppressionV4|nonMaxSuppression|
-|NonMaxSuppressionV5|nonMaxSuppression|
-|Where|whereAsync|
+|ListDiff|ListDiff|
+|NonMaxSuppressionV2|NonMaxSuppressionV2|
+|NonMaxSuppressionV3|NonMaxSuppressionV3|
+|NonMaxSuppressionV4|NonMaxSuppressionV4|
+|NonMaxSuppressionV5|NonMaxSuppressionV5|
+|Where|Where|
 
 ## Operations - Evaluation
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
-|TopKV2|topK|
-|Unique|unique|
-|UniqueV2|unique|
+|TopKV2|TopKV2|
+|Unique|Unique|
+|UniqueV2|UniqueV2|
 |Not mapped|confusionMatrix|
+|Not mapped|inTopKAsync|
 |Not mapped|topk|
 
 ## Tensorflow - Graph
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
-|Const|const|
-|FakeQuantWithMinMaxVars|fakeQuantWithMinMaxVars|
-|Identity|identity|
-|NoOp|noop|
-|Placeholder|placeholder|
-|PlaceholderWithDefault|placeholder|
-|Print|print|
-|Rank|rank|
-|Shape|shape|
-|ShapeN|shapeN|
-|Size|size|
-|Snapshot|snapshot|
-|StopGradient|stopGradient|
+|Const|Const|
+|FakeQuantWithMinMaxVars|FakeQuantWithMinMaxVars|
+|Identity|Identity|
+|IdentityN|IdentityN|
+|NoOp|NoOp|
+|Placeholder|Placeholder|
+|PlaceholderWithDefault|PlaceholderWithDefault|
+|Print|Print|
+|Rank|Rank|
+|Shape|Shape|
+|ShapeN|ShapeN|
+|Size|Size|
+|Snapshot|Snapshot|
+|StopGradient|StopGradient|
 
 ## Operations - Logical
 
@@ -202,33 +204,20 @@
 |LogicalNot|logicalNot|
 |LogicalOr|logicalOr|
 |NotEqual|notEqual|
-|Select|where|
+|Select|Select|
+|SelectV2|SelectV2|
 |Not mapped|logicalXor|
-|Not mapped|whereAsync|
 
-## Operations - Matrices
-
-|Tensorflow Op Name|Tensorflow.js Op Name|
-|---|---|
-|BatchMatMul|matMul|
-|MatMul|matMul|
-|Transpose|transpose|
-|Not mapped|dot|
-|Not mapped|norm|
-|Not mapped|outerProduct|
-
-## Operations - Normalization
+## Operations - Hashtable
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
-|FusedBatchNorm|batchNormalization|
-|FusedBatchNormV2|batchNormalization|
-|FusedBatchNormV3|batchNormalization|
-|LogSoftmax|logSoftmax|
-|LRN|localResponseNormalization|
-|Softmax|softmax|
-|SparseToDense|sparseToDense|
-|Not mapped|moments|
+|HashTable|HashTable|
+|HashTableV2|HashTableV2|
+|LookupTableFind|LookupTableFind|
+|LookupTableFindV2|LookupTableFindV2|
+|LookupTableImport|LookupTableImport|
+|LookupTableImportV2|LookupTableImportV2|
 
 ## Operations - Images
 
@@ -237,7 +226,41 @@
 |CropAndResize|cropAndResize|
 |ResizeBilinear|resizeBilinear|
 |ResizeNearestNeighbor|resizeNearestNeighbor|
-|Not mapped|nonMaxSuppression|
+|Not mapped|flipLeftRight|
+|Not mapped|rotateWithOffset|
+
+## Operations - Matrices
+
+|Tensorflow Op Name|Tensorflow.js Op Name|
+|---|---|
+|_FusedMatMul|_FusedMatMul|
+|BatchMatMul|BatchMatMul|
+|BatchMatMulV2|BatchMatMulV2|
+|MatMul|matMul|
+|Transpose|transpose|
+|Not mapped|dot|
+|Not mapped|norm|
+|Not mapped|outerProduct|
+
+## Operations - Moving Average
+
+|Tensorflow Op Name|Tensorflow.js Op Name|
+|---|---|
+|Not mapped|movingAverage|
+
+## Operations - Normalization
+
+|Tensorflow Op Name|Tensorflow.js Op Name|
+|---|---|
+|FusedBatchNorm|FusedBatchNorm|
+|FusedBatchNormV2|FusedBatchNormV2|
+|FusedBatchNormV3|FusedBatchNormV3|
+|LogSoftmax|logSoftmax|
+|LRN|LRN|
+|Softmax|softmax|
+|SparseToDense|sparseToDense|
+|Not mapped|batchNorm|
+|Not mapped|moments|
 
 ## Operations - Reduction
 
@@ -247,7 +270,6 @@
 |Any|any|
 |ArgMax|argMax|
 |ArgMin|argMin|
-|Cumsum|cumsum|
 |Max|max|
 |Mean|mean|
 |Min|min|
@@ -255,58 +277,87 @@
 |Sum|sum|
 |Not mapped|logSumExp|
 
+## Tensors - RNN
+
+|Tensorflow Op Name|Tensorflow.js Op Name|
+|---|---|
+
+## Operations - Scan
+
+|Tensorflow Op Name|Tensorflow.js Op Name|
+|---|---|
+|Cumsum|cumsum|
+
+## Operations - Segment
+
+|Tensorflow Op Name|Tensorflow.js Op Name|
+|---|---|
+|Not mapped|unsortedSegmentSum|
+
 ## Tensors - Slicing and Joining
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
 |Concat|concat|
-|ConcatV2|concat|
+|ConcatV2|ConcatV2|
 |Gather|gather|
-|GatherNd|gatherNd|
-|GatherV2|gather|
-|Pack|stack|
+|GatherNd|GatherNd|
+|GatherV2|GatherV2|
+|Pack|Pack|
 |Reverse|reverse|
-|ReverseV2|reverse|
-|ScatterNd|scatterNd|
+|ReverseV2|ReverseV2|
+|ScatterNd|ScatterNd|
 |Slice|slice|
-|SparseToDense|sparseToDense|
+|SparseToDense|SparseToDense|
 |Split|split|
-|SplitV|split|
-|StridedSlice|stridedSlice|
+|SplitV|SplitV|
+|StridedSlice|StridedSlice|
 |Tile|tile|
-|Unpack|unstack|
+|Unpack|Unpack|
+|Not mapped|booleanMaskAsync|
+|Not mapped|stack|
+|Not mapped|unstack|
 
 ## Operations - Spectral
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
-|Not mapped|fft|
-|Not mapped|ifft|
-|Not mapped|rfft|
+|FFT|fft|
+|IFFT|ifft|
+|IRFFT|irfft|
+|RFFT|rfft|
+
+## Operations - Signal
+
+|Tensorflow Op Name|Tensorflow.js Op Name|
+|---|---|
+|Not mapped|frame|
+|Not mapped|hammingWindow|
+|Not mapped|hannWindow|
+|Not mapped|stft|
+
+## Operations - Linear Algebra
+
+|Tensorflow Op Name|Tensorflow.js Op Name|
+|---|---|
+|Not mapped|bandPart|
+|Not mapped|gramSchmidt|
+|Not mapped|qr|
 
 ## Tensors - Transformations
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
 |BatchToSpaceND|batchToSpaceND|
-|BroadcstTo|broadcastTo|
+|BroadcastTo|broadcastTo|
 |Cast|cast|
 |DepthToSpace|depthToSpace|
 |ExpandDims|expandDims|
-|MirrorPad|mirrorPad|
+|MirrorPad|MirrorPad|
 |Pad|pad|
-|PadV2|pad|
+|PadV2|PadV2|
 |Reshape|reshape|
 |SpaceToBatchND|spaceToBatchND|
 |Squeeze|squeeze|
 |Not mapped|setdiff1dAsync|
 
-## Operations - HashTable
-|Tensorflow Op Name|Tensorflow.js Op Name|
-|---|---|
-|HashTable|hashTable|
-|HashTableV2|hashTableV2|
-|LookupTableImport|lookupTableImport|
-|LookupTableImportV2|lookupTableImportV2|
-|LookupTableFind|lookupTableFind|
-|LookupTableFindV2|lookupTableFindV2|

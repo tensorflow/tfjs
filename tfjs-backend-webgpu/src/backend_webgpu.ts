@@ -26,8 +26,10 @@ import {BufferManager} from './buffer_manager';
 import {ArgMinMaxProgram} from './kernels/argminmax_webgpu';
 import {BinaryOpProgram} from './kernels/binary_op_webgpu';
 import {BinaryOpType, getBinaryOpString, getBinaryProgram} from './kernels/binary_ops';
+import {ClipVec4Program} from './kernels/clip_vec4_webgpu';
 import {ClipProgram} from './kernels/clip_webgpu';
 import {ConcatProgram} from './kernels/concat_webgpu';
+import {Conv2DMMVec4Program} from './kernels/conv2d_mm_vec4_webgpu';
 import {Conv2DMMProgram} from './kernels/conv2d_mm_webgpu';
 import {Conv2DNaiveProgram} from './kernels/conv2d_naive_webgpu';
 import {CropAndResizeProgram} from './kernels/crop_and_resize_webgpu';
@@ -696,12 +698,20 @@ export class WebGPUBackend extends KernelBackend {
     const dataId = this.write(null /*values*/, convInfo.outShape, x.dtype);
     const output =
         engine().makeTensorFromDataId(dataId, convInfo.outShape, x.dtype, this);
-    let program: Conv2DMMProgram|Conv2DNaiveProgram;
+    let program: Conv2DMMProgram|Conv2DNaiveProgram|Conv2DMMVec4Program;
 
     const workPerThread = env().get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
     if (workPerThread === -1) {
       // TODO(kainino0x): This may be obsolete, but is kept for reference.
       program = new Conv2DNaiveProgram(convInfo);
+    } else if (
+        // TODO(jiajia.qin@intel.com): It seems that the vec4 version is not
+        // good if convInfo.outChannels is too small. For example, input = [1,
+        // 128, 128, 4], filter = [25, 25, 4, 4]. In this case, lots of theads
+        // will run idle. So temporarily, use 64 as the threshold.
+        convInfo.inChannels % 4 === 0 && convInfo.outChannels % 4 === 0 &&
+        convInfo.outChannels >= 64) {
+      program = new Conv2DMMVec4Program(convInfo);
     } else {
       program = new Conv2DMMProgram(convInfo, workPerThread);
     }
@@ -846,7 +856,12 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   clip<T extends Tensor>(x: T, min: number, max: number): T {
-    const program = new ClipProgram(x.shape, min, max);
+    let program: ClipProgram|ClipVec4Program;
+    if (util.sizeFromShape(x.shape) % 4 === 0) {
+      program = new ClipVec4Program(x.shape, min, max);
+    } else {
+      program = new ClipProgram(x.shape, min, max);
+    }
     return this.compileAndRun(program, [x]);
   }
 

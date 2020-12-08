@@ -47,6 +47,7 @@ import {dilation2dGradConfig} from './gradients/Dilation2D_grad';
 import {eluGradConfig} from './gradients/Elu_grad';
 import {erfGradConfig} from './gradients/Erf_grad';
 import {expGradConfig} from './gradients/Exp_grad';
+import {expandDimsGradConfig} from './gradients/ExpandDims_grad';
 import {expm1GradConfig} from './gradients/Expm1_grad';
 import {floorGradConfig} from './gradients/Floor_grad';
 import {floorDivGradConfig} from './gradients/FloorDiv_grad';
@@ -57,6 +58,7 @@ import {identityGradConfig} from './gradients/Identity_grad';
 import {isFiniteGradConfig} from './gradients/IsFinite_grad';
 import {isInfGradConfig} from './gradients/IsInf_grad';
 import {isNanGradConfig} from './gradients/IsNan_grad';
+import {leakyReluGradConfig} from './gradients/LeakyRelu_grad';
 import {log1pGradConfig} from './gradients/Log1p_grad';
 import {logGradConfig} from './gradients/Log_grad';
 import {logSoftmaxGradConfig} from './gradients/LogSoftmax_grad';
@@ -73,6 +75,7 @@ import {multiplyGradConfig} from './gradients/Multiply_grad';
 import {negGradConfig} from './gradients/Neg_grad';
 import {oneHotGradConfig} from './gradients/OneHot_grad';
 import {onesLikeGradConfig} from './gradients/OnesLike_grad';
+import {packGradConfig} from './gradients/Pack_grad';
 import {padV2GradConfig} from './gradients/PadV2_grad';
 import {powGradConfig} from './gradients/Pow_grad';
 import {preluGradConfig} from './gradients/Prelu_grad';
@@ -149,6 +152,7 @@ const gradConfigs: GradConfig[] = [
   eluGradConfig,
   erfGradConfig,
   expGradConfig,
+  expandDimsGradConfig,
   expm1GradConfig,
   floorDivGradConfig,
   floorGradConfig,
@@ -159,6 +163,7 @@ const gradConfigs: GradConfig[] = [
   isFiniteGradConfig,
   isInfGradConfig,
   isNanGradConfig,
+  leakyReluGradConfig,
   log1pGradConfig,
   logGradConfig,
   logSoftmaxGradConfig,
@@ -176,6 +181,7 @@ const gradConfigs: GradConfig[] = [
   negGradConfig,
   oneHotGradConfig,
   onesLikeGradConfig,
+  packGradConfig,
   padV2GradConfig,
   padV2GradConfig,
   powGradConfig,

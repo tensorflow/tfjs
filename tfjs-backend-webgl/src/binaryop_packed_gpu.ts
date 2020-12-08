@@ -21,58 +21,11 @@ import {GPGPUProgram} from './gpgpu_math';
 import {getChannels} from './packing_util';
 import {getCoordsDataType} from './shader_compiler';
 
-const CHECK_NAN_SNIPPET = `
+export const CHECK_NAN_SNIPPET = `
   result.r = isNaN.r > 0. ? NAN : result.r;
   result.g = isNaN.g > 0. ? NAN : result.g;
   result.b = isNaN.b > 0. ? NAN : result.b;
   result.a = isNaN.a > 0. ? NAN : result.a;
-`;
-
-export const INT_DIV = `
-  ivec4 ia = round(a);
-  ivec4 ib = round(b);
-  bvec4 cond = notEqual(ib, ivec4(0));
-  ivec4 result = ivec4(0);
-  vec4 s = sign(a) * sign(b);
-
-  // Windows (D3D) wants guaranteed non-zero int division at compile-time.
-  if (cond[0]) {
-    result[0] = idiv(ia[0], ib[0], s[0]);
-  }
-  if (cond[1]) {
-    result[1] = idiv(ia[1], ib[1], s[1]);
-  }
-  if (cond[2]) {
-    result[2] = idiv(ia[2], ib[2], s[2]);
-  }
-  if (cond[3]) {
-    result[3] = idiv(ia[3], ib[3], s[3]);
-  }
-  return vec4(result);
-`;
-
-export const POW = `
-  // isModRound1 has 1 for components with round(mod(b, 2.0)) == 1, 0 otherwise.
-  vec4 isModRound1 = vec4(equal(round(mod(b, 2.0)), ivec4(1)));
-  vec4 multiplier = sign(a) * isModRound1 + (vec4(1.0) - isModRound1);
-  vec4 result = multiplier * pow(abs(a), b);
-
-  // Ensure that a^0 = 1, including 0^0 = 1 as this correspond to TF and JS
-  bvec4 isExpZero = equal(b, vec4(0.0));
-  result.r = isExpZero.r ? 1.0 : result.r;
-  result.g = isExpZero.g ? 1.0 : result.g;
-  result.b = isExpZero.b ? 1.0 : result.b;
-  result.a = isExpZero.a ? 1.0 : result.a;
-
-  vec4 isNaN = vec4(lessThan(a, vec4(0.0))) * vec4(lessThan(floor(b), b));
-  ` +
-    CHECK_NAN_SNIPPET + `
-  return result;
-`;
-
-export const PRELU = `
-  vec4 aLessThanZero = vec4(lessThan(a, vec4(0.)));
-  return (aLessThanZero * (b * a)) + ((vec4(1.0) - aLessThanZero) * a);
 `;
 
 export const ELU_DER = `
@@ -80,65 +33,8 @@ export const ELU_DER = `
   return (bGTEZero * a) + ((vec4(1.0) - bGTEZero) * (a * (b + vec4(1.0))));
 `;
 
-export const EQUAL = `
-  return vec4(equal(a, b));
-`;
-
 export const NOT_EQUAL = `
   return vec4(notEqual(a, b));
-`;
-
-export const LESS = `
-  return vec4(lessThan(a, b));
-`;
-
-export const LESS_EQUAL = `
-  return vec4(lessThanEqual(a, b));
-`;
-
-export const GREATER = `
-  return vec4(greaterThan(a, b));
-`;
-
-export const GREATER_EQUAL = `
-  return vec4(greaterThanEqual(a, b));
-`;
-
-export const LOGICAL_AND = `
-  return vec4(
-    vec4(greaterThanEqual(a, vec4(1.0))) *
-    vec4(greaterThanEqual(b, vec4(1.0))));
-`;
-
-export const LOGICAL_OR = `
-  return min(
-    vec4(greaterThanEqual(a, vec4(1.0))) +
-    vec4(greaterThanEqual(b, vec4(1.0))),
-    vec4(1.0));
-`;
-
-export const MAX = `
-  vec4 result = vec4(max(a, b));
-  vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
-  ` +
-    CHECK_NAN_SNIPPET + `
-  return result;
-`;
-
-export const MIN = `
-  vec4 result = vec4(min(a, b));
-  vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
-  ` +
-    CHECK_NAN_SNIPPET + `
-  return result;
-`;
-
-export const MOD = `
-  vec4 result = mod(a, b);
-  vec4 isNaN = vec4(equal(b, vec4(0.0)));
-  ` +
-    CHECK_NAN_SNIPPET + `
-  return result;
 `;
 
 export class BinaryOpPackedProgram implements GPGPUProgram {

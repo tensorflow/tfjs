@@ -18,11 +18,11 @@
 import {backend_util, BinaryInputs, DataType, env, KernelFunc, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import * as binaryop_gpu from '../binaryop_gpu';
 import {BinaryOpProgram} from '../binaryop_gpu';
-import * as binaryop_packed_gpu from '../binaryop_packed_gpu';
 import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 import {complex} from '../kernels/Complex';
+import {LEAKYRELU, LEAKYRELU_PACKED} from '../kernels/LeakyRelu';
+import {PRELU, PRELU_PACKED} from '../kernels/Prelu';
 import * as unary_op from '../unaryop_gpu';
 import {UnaryOpProgram} from '../unaryop_gpu';
 import * as unary_packed_op from '../unaryop_packed_gpu';
@@ -70,11 +70,7 @@ export function unaryKernelFunc(
     if (webglBackend.shouldExecuteOnCPU([x]) && cpuKernelImpl != null) {
       const xData = webglBackend.texData.get(x.dataId);
       const outValues = cpuKernelImpl(xData.values as TypedArray, $dtype);
-
-      const out = webglBackend.makeTensorInfo(x.shape, $dtype);
-      const outData = webglBackend.texData.get(out.dataId);
-      outData.values = outValues;
-      return out;
+      return webglBackend.makeTensorInfo(x.shape, $dtype, outValues);
     }
 
     const shouldUsePackedProgram =
@@ -211,9 +207,14 @@ export function mapActivationToShaderProgram(
     return unary_op.RELU6;
   } else if (activation === 'prelu') {
     if (packed) {
-      return binaryop_packed_gpu.PRELU;
+      return PRELU_PACKED;
     }
-    return binaryop_gpu.PRELU;
+    return PRELU;
+  } else if (activation === 'leakyrelu') {
+    if (packed) {
+      return LEAKYRELU_PACKED;
+    }
+    return LEAKYRELU;
   }
   throw new Error(`Activation ${
       activation} has not been implemented for the WebGL backend.`);

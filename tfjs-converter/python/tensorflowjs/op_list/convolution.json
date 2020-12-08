@@ -72,6 +72,13 @@
         "type": "number[]"
       },
       {
+        "tfName": "explicit_paddings",
+        "name": "explicitPaddings",
+        "type": "number[]",
+        "defaultValue": [],
+        "notSupported": true
+      },
+      {
         "tfName": "T",
         "name": "dtype",
         "type": "dtype",
@@ -383,6 +390,11 @@
         "name": "epsilon",
         "type": "number",
         "defaultValue": 0.0001
+      },
+      {
+        "tfName": "leakyrelu_alpha",
+        "name": "leakyreluAlpha",
+        "type": "number"
       }
     ]
   },
@@ -428,6 +440,12 @@
         "name": "explicitPaddings",
         "type": "number[]",
         "defaultValue": []
+      },
+      {
+        "tfName": "dilations",
+        "name": "dilations",
+        "type": "number[]",
+        "notSupported": true
       }
     ]
   },
@@ -585,6 +603,12 @@
         "tfName": "fused_ops",
         "name": "fusedOps",
         "type": "string[]",
+        "defaultValue": []
+      },
+      {
+        "tfName": "explicit_paddings",
+        "name": "explicitPaddings",
+        "type": "number[]",
         "defaultValue": []
       }
     ]

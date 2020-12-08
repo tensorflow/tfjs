@@ -19,6 +19,7 @@ import {backend_util, Concat, ConcatAttrs, ConcatInputs, KernelConfig, KernelFun
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {concatImpl} from './Concat_impl';
+import {identity} from './Identity';
 
 export function concat(
     args:
@@ -38,7 +39,7 @@ export function concat(
   // Keep only non-empty tensors (ignore tensors with 0 in their shape).
   const $inputs = inputs.filter(t => util.sizeFromShape(t.shape) > 0);
   if ($inputs.length === 1) {
-    return $inputs[0];
+    return identity({inputs: {x: $inputs[0]}, backend});
   }
 
   const shapes = $inputs.map(t => t.shape);

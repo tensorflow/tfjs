@@ -24,7 +24,7 @@ import {cast} from './Cast';
 let wasmResizeBilinear: (
     xId: number, batch: number, oldHeight: number, oldWidth: number,
     numChannels: number, newHeight: number, newWidth: number,
-    alignCorners: number, outId: number) => void;
+    alignCorners: number, halfPixelCenters: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmResizeBilinear = backend.wasm.cwrap(ResizeBilinear, null /*void*/, [
@@ -36,6 +36,7 @@ function setup(backend: BackendWasm): void {
     'number',  // newHeight
     'number',  // newWidth
     'number',  // alignCorners
+    'number',  // halfPixelCenters
     'number'   // outId
   ]);
 }
@@ -54,12 +55,6 @@ function resizeBilinear(args: {
   const [batch, oldHeight, oldWidth, numChannels] = images.shape;
   const outShape = [batch, newHeight, newWidth, numChannels];
 
-  if (halfPixelCenters) {
-    throw new Error(
-        `The wasm resizeBilinear kernel does not yet support ` +
-        `halfPixelCenters being true.`);
-  }
-
   let xData = backend.dataIdMap.get(images.dataId);
   let castedData;
   if (xData.dtype !== 'float32') {
@@ -77,7 +72,7 @@ function resizeBilinear(args: {
 
   wasmResizeBilinear(
       xId, batch, oldHeight, oldWidth, numChannels, newHeight, newWidth,
-      alignCorners ? 1 : 0, outId);
+      alignCorners ? 1 : 0, halfPixelCenters ? 1 : 0, outId);
 
   if (castedData != null) {
     backend.disposeData(castedData.dataId);

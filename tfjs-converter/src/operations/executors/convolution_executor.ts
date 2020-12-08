@@ -61,6 +61,8 @@ function fusedConvAndDepthWiseParams(
       getParamValue('dilations', node, tensorMap, context) as number[];
   const [biasArg, preluArg] =
       getParamValue('args', node, tensorMap, context) as Tensor[];
+  const leakyreluAlpha =
+      getParamValue('leakyreluAlpha', node, tensorMap, context) as number;
 
   return {
     stride,
@@ -69,7 +71,8 @@ function fusedConvAndDepthWiseParams(
     dilations,
     biasArg,
     preluArg,
-    activationFunc
+    activationFunc,
+    leakyreluAlpha
   };
 }
 
@@ -116,7 +119,8 @@ export const executeOp: InternalOpExecutor =
             dilations,
             biasArg,
             preluArg,
-            activationFunc
+            activationFunc,
+            leakyreluAlpha
           } = fusedConvAndDepthWiseParams(node, tensorMap, context);
 
           return [tfOps.fused.conv2d({
@@ -130,7 +134,8 @@ export const executeOp: InternalOpExecutor =
             dilations: [dilations[1], dilations[2]],
             bias: biasArg,
             activation: activationFunc as tfOps.fused.Activation,
-            preluActivationWeights: preluArg
+            preluActivationWeights: preluArg,
+            leakyreluAlpha
           })];
         }
 
@@ -142,7 +147,8 @@ export const executeOp: InternalOpExecutor =
             dilations,
             biasArg,
             preluArg,
-            activationFunc
+            activationFunc,
+            leakyreluAlpha,
           } = fusedConvAndDepthWiseParams(node, tensorMap, context);
 
           return [tfOps.fused.depthwiseConv2d({
@@ -156,7 +162,8 @@ export const executeOp: InternalOpExecutor =
             dilations: [dilations[1], dilations[2]],
             bias: biasArg,
             activation: activationFunc as tfOps.fused.Activation,
-            preluActivationWeights: preluArg
+            preluActivationWeights: preluArg,
+            leakyreluAlpha
           })];
         }
         case 'Conv2DBackpropInput':
