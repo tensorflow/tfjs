@@ -72,6 +72,7 @@ function nonMaxSuppressionPadded_(
     padToMaxOutputSize
   };
 
+  // tslint:disable-next-line: no-unnecessary-type-assertion
   const result = ENGINE.runKernel(
                      NonMaxSuppressionV4, inputs as {} as NamedTensorMap,
                      attrs as {} as NamedAttrMap) as Tensor[];

@@ -29,8 +29,15 @@ export function fusedDepthwiseConv2D(args: {
 }): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {x, filter, bias, preluActivationWeights} = inputs;
-  const {strides, pad, dataFormat, dilations, dimRoundingMode, activation} =
-      attrs;
+  const {
+    strides,
+    pad,
+    dataFormat,
+    dilations,
+    dimRoundingMode,
+    activation,
+    leakyreluAlpha
+  } = attrs;
 
   let result = depthwiseConv2dNative({
     inputs: {x, filter},
@@ -45,8 +52,8 @@ export function fusedDepthwiseConv2D(args: {
   }
   if (activation) {
     const oldResult = result;
-    result =
-        applyActivation(backend, result, activation, preluActivationWeights);
+    result = applyActivation(
+        backend, result, activation, preluActivationWeights, leakyreluAlpha);
     backend.disposeIntermediateTensorInfo(oldResult);
   }
 

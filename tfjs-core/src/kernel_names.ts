@@ -396,6 +396,12 @@ export type IsInfInputs = UnaryInputs;
 export const IsNan = 'IsNan';
 export type IsNanInputs = UnaryInputs;
 
+export const LeakyRelu = 'LeakyRelu';
+export type LeakyReluInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface LeakyReluAttrs {
+  alpha: number;
+}
+
 export const Less = 'Less';
 export type LessInputs = BinaryInputs;
 
@@ -862,6 +868,7 @@ export interface _FusedMatMulAttrs {
   transposeA: boolean;
   transposeB: boolean;
   activation: Activation;
+  leakyreluAlpha?: number;
 }
 
 export const FusedConv2D = 'FusedConv2D';
@@ -878,6 +885,7 @@ export interface FusedConv2DAttrs {
   dilations: [number, number]|number;
   dimRoundingMode: 'floor'|'round'|'ceil';
   activation: Activation;
+  leakyreluAlpha?: number;
 }
 
 export const FusedDepthwiseConv2D = 'FusedDepthwiseConv2D';
@@ -894,4 +902,5 @@ export interface FusedDepthwiseConv2DAttrs {
   dilations: [number, number]|number;
   dimRoundingMode: 'floor'|'round'|'ceil';
   activation: Activation;
+  leakyreluAlpha?: number;
 }

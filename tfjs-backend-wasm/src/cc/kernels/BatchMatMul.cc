@@ -37,10 +37,12 @@ void BatchMatMul(const size_t a_id, const size_t* a_shape_ptr,
                  const size_t out_id) {
   const size_t bias_id = 0;
   const size_t prelu_weights_id = 0;
+  const float leakyrelu_alpha = 0;
   const FusableActivation activation = FusableActivation::LINEAR;
-  tfjs::wasm::fused_batch_mat_mul(
-      a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr, b_shape_len,
-      transpose_a, transpose_b, activation, bias_id, prelu_weights_id, out_id);
+  tfjs::wasm::fused_batch_mat_mul(a_id, a_shape_ptr, a_shape_len, b_id,
+                                  b_shape_ptr, b_shape_len, transpose_a,
+                                  transpose_b, activation, bias_id,
+                                  prelu_weights_id, leakyrelu_alpha, out_id);
 }
 
 }  // extern "C"
