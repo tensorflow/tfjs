@@ -1,3 +1,4 @@
+
 /**
  * @license
  * Copyright 2020 Google LLC. All Rights Reserved.
@@ -21,26 +22,36 @@
 import * as shared from '@tensorflow/tfjs-backend-cpu/dist/shared';
 // tslint:disable-next-line: no-imports-from-dist
 import {SimpleBinaryKernelImpl} from '@tensorflow/tfjs-backend-cpu/dist/shared';
+// tslint:disable-next-line: no-imports-from-dist
+import {SimpleUnaryImpl} from '@tensorflow/tfjs-backend-cpu/dist/utils/unary_types';
 
 export type SimpleBinaryKernelImplCPU = SimpleBinaryKernelImpl;
+export type SimpleUnaryKernelImplCPU = SimpleUnaryImpl;
 const {
   addImpl: addImplCPU,
   ceilImpl: ceilImplCPU,
   expImpl: expImplCPU,
   expm1Impl: expm1ImplCPU,
   floorImpl: floorImplCPU,
+  gatherV2Impl: gatherV2ImplCPU,
   greaterImpl: greaterImplCPU,
   lessImpl: lessImplCPU,
+  linSpaceImpl: linSpaceImplCPU,
   logImpl: logImplCPU,
   maxImpl: maxImplCPU,
+  maximumImpl: maximumImplCPU,
+  minimumImpl: minimumImplCPU,
   multiplyImpl: multiplyImplCPU,
   negImpl: negImplCPU,
   prodImpl: prodImplCPU,
+  rangeImpl: rangeImplCPU,
   rsqrtImpl: rsqrtImplCPU,
   simpleAbsImpl: simpleAbsImplCPU,
   sliceImpl: sliceImplCPU,
   stridedSliceImpl: stridedSliceImplCPU,
   subImpl: subImplCPU,
+  tileImpl: tileImplCPU,
+  topKImpl: topKImplCPU,
   transposeImpl: transposeImplCPU,
   uniqueImpl: uniqueImplCPU,
 } = shared;
@@ -51,10 +62,14 @@ export {
   expImplCPU,
   expm1ImplCPU,
   floorImplCPU,
+  gatherV2ImplCPU,
   greaterImplCPU,
   lessImplCPU,
+  linSpaceImplCPU,
   logImplCPU,
   maxImplCPU,
+  maximumImplCPU,
+  minimumImplCPU,
   multiplyImplCPU,
   negImplCPU,
   prodImplCPU,
@@ -62,7 +77,10 @@ export {
   sliceImplCPU,
   stridedSliceImplCPU,
   subImplCPU,
+  rangeImplCPU,
   rsqrtImplCPU,
+  tileImplCPU,
+  topKImplCPU,
   transposeImplCPU,
   uniqueImplCPU,
 };

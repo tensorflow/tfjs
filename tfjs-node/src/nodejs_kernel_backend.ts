@@ -83,6 +83,11 @@ export class NodeJSKernelBackend extends KernelBackend {
       case this.binding.TF_INT32:
         dtype = 'int32';
         break;
+      case this.binding.TF_INT64:
+        console.warn('INT64 output tensor will be stored as BigInt64Array.');
+        // INT64 is not supported in TFJS yet, cast it to int32.
+        dtype = 'int32';
+        break;
       case this.binding.TF_BOOL:
         dtype = 'bool';
         break;
@@ -246,7 +251,8 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   applyActivation<T extends Tensor>(
-      input: T, activation: string, preluActivationWeights?: Tensor): T {
+      input: T, activation: string, preluActivationWeights?: Tensor,
+      leakyreluAlpha?: number): T {
     let result = input;
     if (activation != null) {
       if (activation === 'linear') {
@@ -255,6 +261,8 @@ export class NodeJSKernelBackend extends KernelBackend {
         result = tf.relu(result);
       } else if (activation === 'prelu') {
         result = tf.prelu(result, preluActivationWeights) as T;
+      } else if (activation === 'leakyrelu') {
+        result = tf.leakyRelu(result, leakyreluAlpha);
       } else if (activation === 'elu') {
         result = tf.elu(result);
       } else if (activation === 'relu6') {
@@ -293,67 +301,6 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   int<T extends Tensor>(x: T): T {
     throw new Error('Method not implemented.');
-  }
-
-  // todo(yassogba) consider removing. core does not call this directly
-  complexAbs<T extends Tensor>(x: T): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', x.dtype),
-      createTensorsTypeOpAttr('Tout', 'float32')
-    ];
-    return this.executeSingleOutput('ComplexAbs', opAttrs, [x]) as T;
-  }
-
-  fft(x: Tensor<Rank.R2>): Tensor<Rank.R2> {
-    const opAttrs = [createTensorsTypeOpAttr('Tcomplex', x.dtype)];
-    return this.executeSingleOutput('FFT', opAttrs, [x]) as Tensor<Rank.R2>;
-  }
-
-  ifft(x: Tensor2D): Tensor2D {
-    const opAttrs = [createTensorsTypeOpAttr('Tcomplex', x.dtype)];
-    return this.executeSingleOutput('IFFT', opAttrs, [x]) as Tensor2D;
-  }
-
-  complex<T extends Tensor>(real: T, imag: T): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', real),
-      {
-        name: 'Tout',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_COMPLEX64
-      },
-    ];
-    const inputs = [real, imag];
-    return this.executeSingleOutput('Complex', opAttrs, inputs) as T;
-  }
-
-  real<T extends Tensor>(input: T): T {
-    const opAttrs = [
-      createTensorsTypeOpAttr('T', input), {
-        name: 'Tout',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_FLOAT
-      }
-    ];
-    const inputs = [input];
-    return this.executeSingleOutput('Real', opAttrs, inputs) as T;
-  }
-
-  imag<T extends Tensor>(input: T): T {
-    const opAttrs = [
-      {
-        name: 'T',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_COMPLEX64
-      },
-      {
-        name: 'Tout',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_FLOAT
-      }
-    ];
-    const inputs = [input];
-    return this.executeSingleOutput('Imag', opAttrs, inputs) as T;
   }
 
   decodeJpeg(

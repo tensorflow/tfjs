@@ -429,6 +429,25 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
         ]));
   });
 
+  it('x=[1,2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding',
+    async () => {
+      const inputDepth = 3;
+      const inShape: [number, number, number, number] = [1, 2, 2, inputDepth];
+      const outputDepth = 1;
+      const fSize = 1;
+
+      const x = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], inShape);
+      const w = tf.tensor4d([2, 2, 1], [fSize, fSize, inputDepth, outputDepth]);
+      const pad =
+          [[0, 0], [1, 1], [1, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
+      const strides = 2;
+
+      const result = tf.conv2d(x, w, strides, pad);
+
+      expect(result.shape).toEqual([1, 2, 2, 1]);
+      expectArraysClose(await result.data(), [0, 0, 0, 54]);
+  });
+
   it('throws when x is not rank 3', () => {
     const inputDepth = 1;
     const outputDepth = 1;

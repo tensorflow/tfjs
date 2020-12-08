@@ -25,7 +25,8 @@ export const resizeNearestNeighborConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {images} = args.inputs as ResizeNearestNeighborInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {alignCorners, size} = args.attrs as {} as ResizeNearestNeighborAttrs;
+    const {alignCorners, halfPixelCenters, size} =
+        args.attrs as {} as ResizeNearestNeighborAttrs;
 
     const opAttrs = [
       createTensorsTypeOpAttr('T', images.dtype),
@@ -33,6 +34,11 @@ export const resizeNearestNeighborConfig: KernelConfig = {
         name: 'align_corners',
         type: backend.binding.TF_ATTR_BOOL,
         value: alignCorners
+      },
+      {
+        name: 'half_pixel_centers',
+        type: backend.binding.TF_ATTR_BOOL,
+        value: halfPixelCenters
       },
     ];
     const [newHeight, newWidth] = size;

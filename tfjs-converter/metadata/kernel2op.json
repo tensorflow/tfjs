@@ -135,6 +135,7 @@
   "Elu": [
     "elu"
   ],
+  "EmptyTensorList": [],
   "Enter": [],
   "Equal": [
     "equal"
@@ -371,7 +372,7 @@
     "relu"
   ],
   "Relu6": [
-    "clipByValue"
+    "relu6"
   ],
   "Reshape": [
     "reshape"

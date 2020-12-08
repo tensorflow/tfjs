@@ -159,6 +159,9 @@ export interface ClipByValueAttrs {
 export const Complex = 'Complex';
 export type ComplexInputs = Pick<NamedTensorInfoMap, 'real'|'imag'>;
 
+export const ComplexAbs = 'ComplexAbs';
+export type ComplexAbsInputs = UnaryInputs;
+
 export const Concat = 'Concat';
 export type ConcatInputs = TensorInfo[];
 export interface ConcatAttrs {
@@ -324,6 +327,12 @@ export type EqualInputs = BinaryInputs;
 export const Exp = 'Exp';
 export type ExpInputs = UnaryInputs;
 
+export const ExpandDims = 'ExpandDims';
+export type ExpandDimsInputs = Pick<NamedTensorInfoMap, 'input'>;
+export interface ExpandDimsAttrs {
+  dim: number;
+}
+
 export const Expm1 = 'Expm1';
 export type Expm1Inputs = UnaryInputs;
 
@@ -357,6 +366,7 @@ export const GatherV2 = 'GatherV2';
 export type GatherV2Inputs = Pick<NamedTensorInfoMap, 'x'|'indices'>;
 export interface GatherV2Attrs {
   axis: number;
+  batchDims: number;
 }
 
 export const GatherNd = 'GatherNd';
@@ -385,6 +395,12 @@ export type IsInfInputs = UnaryInputs;
 
 export const IsNan = 'IsNan';
 export type IsNanInputs = UnaryInputs;
+
+export const LeakyRelu = 'LeakyRelu';
+export type LeakyReluInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface LeakyReluAttrs {
+  alpha: number;
+}
 
 export const Less = 'Less';
 export type LessInputs = BinaryInputs;
@@ -580,6 +596,12 @@ export interface OneHotAttrs {
   offValue: number;
 }
 
+export const Pack = 'Pack';
+export type PackInputs = TensorInfo[];
+export interface PackAttrs {
+  axis: number;
+}
+
 export const PadV2 = 'PadV2';
 export type PadV2Inputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface PadV2Attrs {
@@ -630,6 +652,7 @@ export const ResizeNearestNeighbor = 'ResizeNearestNeighbor';
 export type ResizeNearestNeighborInputs = Pick<NamedTensorInfoMap, 'images'>;
 export interface ResizeNearestNeighborAttrs {
   alignCorners: boolean;
+  halfPixelCenters: boolean;
   size: [number, number];
 }
 
@@ -845,6 +868,7 @@ export interface _FusedMatMulAttrs {
   transposeA: boolean;
   transposeB: boolean;
   activation: Activation;
+  leakyreluAlpha?: number;
 }
 
 export const FusedConv2D = 'FusedConv2D';
@@ -861,6 +885,7 @@ export interface FusedConv2DAttrs {
   dilations: [number, number]|number;
   dimRoundingMode: 'floor'|'round'|'ceil';
   activation: Activation;
+  leakyreluAlpha?: number;
 }
 
 export const FusedDepthwiseConv2D = 'FusedDepthwiseConv2D';
@@ -877,4 +902,5 @@ export interface FusedDepthwiseConv2DAttrs {
   dilations: [number, number]|number;
   dimRoundingMode: 'floor'|'round'|'ceil';
   activation: Activation;
+  leakyreluAlpha?: number;
 }

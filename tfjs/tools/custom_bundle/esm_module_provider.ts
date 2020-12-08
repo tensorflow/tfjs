@@ -33,22 +33,22 @@ class ESMModuleProvider implements ModuleProvider {
    * Writes out custom tfjs module(s) to disk.
    */
   produceCustomTFJSModule(config: CustomTFJSBundleConfig) {
-    const {kernels, backends, forwardModeOnly, outputPath} = config;
+    const {normalizedOutputPath} = config;
 
-    const moduleStrs = getCustomModuleString(
-        kernels, backends, forwardModeOnly, esmImportProvider);
+    const moduleStrs = getCustomModuleString(config, esmImportProvider);
 
-    mkdirp.sync(outputPath);
-    console.log(`Writing custom tfjs module to ${outputPath}`);
+    mkdirp.sync(normalizedOutputPath);
+    console.log(`Writing custom tfjs module to ${normalizedOutputPath}`);
 
     const customTfjsFileName = 'custom_tfjs.js';
     const customTfjsCoreFileName = 'custom_tfjs_core.js';
 
     // Write a custom module for @tensorflow/tfjs and @tensorflow/tfjs-core
     fs.writeFileSync(
-        path.join(outputPath, customTfjsCoreFileName), moduleStrs.core);
+        path.join(normalizedOutputPath, customTfjsCoreFileName),
+        moduleStrs.core);
     fs.writeFileSync(
-        path.join(outputPath, customTfjsFileName), moduleStrs.tfjs);
+        path.join(normalizedOutputPath, customTfjsFileName), moduleStrs.tfjs);
 
     // Write a custom module tfjs-core ops used by converter executors
 
@@ -71,7 +71,7 @@ class ESMModuleProvider implements ModuleProvider {
       const customConverterOpsFileName = 'custom_ops_for_converter.js';
 
       fs.writeFileSync(
-          path.join(outputPath, customConverterOpsFileName),
+          path.join(normalizedOutputPath, customConverterOpsFileName),
           converterOpsModule);
     }
   }
@@ -91,7 +91,7 @@ export const esmImportProvider: ImportProvider = {
 
     if (!forwardModeOnly) {
       importLines.push(
-          `import {registerGradient} from '@tensorflow/tfjs-core/dist/base';`)
+          `import {registerGradient} from '@tensorflow/tfjs-core/dist/base';`);
     }
     return importLines.join('\n');
   },

@@ -25,7 +25,11 @@ export const unpackConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {value} = args.inputs as UnpackInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {axis} = args.attrs as {} as UnpackAttrs;
+    let {axis} = args.attrs as {} as UnpackAttrs;
+
+    if (axis < 0) {
+      axis += value.shape.length;
+    }
 
     if (axis >= value.shape.length) {
       throw new Error(

@@ -19,6 +19,7 @@ import os
 import tensorflow as tf
 from tensorflow.python.eager import def_function
 from tensorflow.python.framework import constant_op
+from tensorflow.python.framework import dtypes
 from tensorflow.python.ops import variables
 from tensorflow.python.training.tracking import tracking
 from tensorflow.python.saved_model.save import save
@@ -26,9 +27,9 @@ from tensorflow.python.saved_model.save import save
 """Test a basic model with functions to make sure functions are inlined."""
 input_data = constant_op.constant(1, shape=[2], dtype=tf.int64)
 root = tracking.AutoTrackable()
-root.v1 = variables.Variable(3)
-root.v2 = variables.Variable(2)
-root.f = def_function.function(lambda x: root.v1 * root.v2 * tf.cast(x, tf.int32))
+root.v1 = variables.Variable(3, dtype=tf.int64)
+root.v2 = variables.Variable(2, dtype=tf.int64)
+root.f = def_function.function(lambda x: root.v1 * root.v2 * x)
 to_save = root.f.get_concrete_function(input_data)
 
 save_dir = os.path.join('..', 'test_objects', 'saved_model', 'int64_multiply')

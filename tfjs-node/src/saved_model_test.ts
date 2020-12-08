@@ -414,7 +414,9 @@ describe('SavedModel', () => {
     const output = model.predict(input) as tf.Tensor;
     expect(output.shape).toEqual([2]);
     expect(output.dtype).toBe('int32');
-    test_util.expectArraysClose(await output.data(), [18, 24]);
+    const data = await output.data();
+    expect(Number(data[0])).toEqual(18);
+    expect(Number(data[1])).toEqual(24);
     model.dispose();
   });
 
@@ -516,7 +518,7 @@ describe('SavedModel', () => {
     expect(tf.node.getNumOfSavedModels()).toBe(0);
   });
 
-  it('return inputs and outputs', async () =>{
+  it('return inputs and outputs', async () => {
     const model = await tf.node.loadSavedModel(
         './test_objects/saved_model/model_multi_output', ['serve'],
         'serving_default');

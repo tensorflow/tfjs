@@ -50,7 +50,13 @@ export const json: OpMapper[] = [
         'type': 'string',
         'notSupported': true
       },
-      {'tfName': 'ksize', 'name': 'kernelSize', 'type': 'number[]'},
+      {'tfName': 'ksize', 'name': 'kernelSize', 'type': 'number[]'}, {
+        'tfName': 'explicit_paddings',
+        'name': 'explicitPaddings',
+        'type': 'number[]',
+        'defaultValue': [],
+        'notSupported': true
+      },
       {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
@@ -168,8 +174,7 @@ export const json: OpMapper[] = [
       {'tfName': 'num_args', 'name': 'numArgs', 'type': 'number'},
       {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true},
       {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
-      {'tfName': 'padding', 'name': 'pad', 'type': 'string'},
-      {
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'}, {
         'tfName': 'explicit_paddings',
         'name': 'explicitPaddings',
         'type': 'number[]',
@@ -205,6 +210,11 @@ export const json: OpMapper[] = [
         'type': 'number',
         'defaultValue': 0.0001
       },
+      {
+        'tfName': 'leakyrelu_alpha',
+        'name': 'leakyreluAlpha',
+        'type': 'number'
+      }
     ]
   },
   {
@@ -217,8 +227,7 @@ export const json: OpMapper[] = [
     ],
     'attrs': [
       {'tfName': 'strides', 'name': 'strides', 'type': 'number[]'},
-      {'tfName': 'padding', 'name': 'pad', 'type': 'string'},
-      {
+      {'tfName': 'padding', 'name': 'pad', 'type': 'string'}, {
         'tfName': 'data_format',
         'name': 'dataFormat',
         'type': 'string',
@@ -230,6 +239,12 @@ export const json: OpMapper[] = [
         'type': 'number[]',
         'defaultValue': []
       },
+      {
+        'tfName': 'dilations',
+        'name': 'dilations',
+        'type': 'number[]',
+        'notSupported': true
+      }
     ]
   },
   {
@@ -308,6 +323,12 @@ export const json: OpMapper[] = [
         'tfName': 'fused_ops',
         'name': 'fusedOps',
         'type': 'string[]',
+        'defaultValue': []
+      },
+      {
+        'tfName': 'explicit_paddings',
+        'name': 'explicitPaddings',
+        'type': 'number[]',
         'defaultValue': []
       }
     ]

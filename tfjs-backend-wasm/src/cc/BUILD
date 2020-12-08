@@ -134,6 +134,7 @@ tfjs_cc_library(
     hdrs = ["conv2d_impl.h"],
     deps = [
         ":backend",
+        ":leakyrelu_impl",
         ":prelu_impl",
         ":transpose_impl",
         ":util",
@@ -146,6 +147,7 @@ tfjs_cc_library(
     hdrs = ["batch_mat_mul_impl.h"],
     deps = [
         ":backend",
+        ":leakyrelu_impl",
         ":prelu_impl",
         ":transpose_impl",
         ":util",
@@ -156,6 +158,16 @@ tfjs_cc_library(
     name = "interpolate_bilinear_impl",
     srcs = ["interpolate_bilinear_impl.cc"],
     hdrs = ["interpolate_bilinear_impl.h"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "leakyrelu_impl",
+    srcs = ["leakyrelu_impl.cc"],
+    hdrs = ["leakyrelu_impl.h"],
     deps = [
         ":backend",
         ":util",
@@ -233,6 +245,7 @@ tfjs_cc_library(
         ":GatherNd",
         ":Greater",
         ":GreaterEqual",
+        ":LeakyRelu",
         ":Less",
         ":LessEqual",
         ":Max",
@@ -575,6 +588,17 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LeakyRelu",
+    srcs = ["kernels/LeakyRelu.cc"],
+    hdrs = ["kernels/LeakyRelu.h"],
+    deps = [
+        ":backend",
+        ":leakyrelu_impl",
         ":util",
     ],
 )
@@ -940,6 +964,15 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Tile",
     srcs = ["kernels/Tile.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "TopK",
+    srcs = ["kernels/TopK.cc"],
     deps = [
         ":backend",
         ":util",
