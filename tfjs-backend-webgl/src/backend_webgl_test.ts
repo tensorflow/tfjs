@@ -32,6 +32,76 @@ function decodeStrings(bytes: Uint8Array[]): string[] {
   return bytes.map(b => decodeString(b));
 }
 
+const WEBGL1_ENVS = {
+  flags: {'WEBGL_VERSION': 1},
+  predicate: WEBGL_ENVS.predicate
+};
+
+const WEBGL2_ENVS = {
+  flags: {'WEBGL_VERSION': 2},
+  predicate: WEBGL_ENVS.predicate
+};
+
+describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
+  let gpgpu: GPGPUContext;
+
+  beforeEach(() => {
+    gpgpu = new GPGPUContext();
+  });
+
+  afterEach(() => {
+    gpgpu.dispose();
+  });
+
+  fit('basic f32', () => {
+    // Create a texture.
+    const gl = gpgpu.gl;
+    const texture = gl.createTexture();
+    const tex2d = gl.TEXTURE_2D;
+    gl.bindTexture(tex2d, texture);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texImage2D(
+        tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType,
+        null);
+
+    // Create tensor from texture.
+
+    // Perform basic operation on texture.
+
+    // Verify that the result is correct.
+  });
+
+  fit('basic f16',
+      () => {
+
+      });
+});
+
+describeWithFlags('create tensor from texture', WEBGL1_ENVS, () => {
+  let gpgpu: GPGPUContext;
+
+  beforeEach(() => {
+    gpgpu = new GPGPUContext();
+  });
+
+  afterEach(() => {
+    gpgpu.dispose();
+  });
+
+  fit('basic f32',
+      () => {
+
+      });
+
+  fit('f16',
+      () => {
+
+      });
+});
+
 const RENDER_FLOAT32_ENVS = {
   flags: {'WEBGL_RENDER_FLOAT32_ENABLED': true},
   predicate: WEBGL_ENVS.predicate
@@ -441,16 +511,6 @@ describeWithFlags('debug on webgl', WEBGL_ENVS, () => {
     tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', savedRenderFloat32Flag);
   });
 });
-
-const WEBGL1_ENVS = {
-  flags: {'WEBGL_VERSION': 1},
-  predicate: WEBGL_ENVS.predicate
-};
-
-const WEBGL2_ENVS = {
-  flags: {'WEBGL_VERSION': 2},
-  predicate: WEBGL_ENVS.predicate
-};
 
 describeWithFlags('computeBytes counts bytes correctly', WEBGL1_ENVS, () => {
   it('for all physical texture types', () => {
