@@ -69,11 +69,9 @@ function denseBincount_<T extends Tensor1D|Tensor2D>(
   const inputs: DenseBincountInputs = {x: $x, weights: $weights};
   const attrs: DenseBincountAttrs = {size, binaryOutput};
 
-  const res = ENGINE.runKernel(
-                  DenseBincount, inputs as {} as NamedTensorMap,
-                  attrs as {} as NamedAttrMap) as T;
-
-  return res;
+  return ENGINE.runKernel(
+      DenseBincount, inputs as {} as NamedTensorMap,
+      attrs as {} as NamedAttrMap);
 }
 
 export const denseBincount = op({denseBincount_});
