@@ -66,7 +66,8 @@ function mean_<T extends Tensor>(
 
   const inputs: MeanInputs = {x: $x};
   const attrs: MeanAttrs = {axis, keepDims};
-  const forward: ForwardFunc<Tensor> = () => {
+  const forward: ForwardFunc<Tensor> = (backend, save) => {
+    save([$x]);
     const axes = parseAxisParam(axis, $x.shape);
     const shapes = computeOutAndReduceShapes($x.shape, axes);
     const reduceShape = shapes[1];
