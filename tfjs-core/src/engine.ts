@@ -557,12 +557,6 @@ export class Engine implements TensorTracker, DataMover {
     }
   }
 
-  private shouldCheckComputationForErrors(): boolean {
-    // Don't do checkComputationForErrors for webgpu backend since it's in an
-    // async function. It may result the tensor is disposed before it's read.
-    return this.backendName !== 'webgpu';
-  }
-
   /**
    * @deprecated Use `runKernel` for newly added kernels. Keep using this method
    *     only for kernels that are not yet fully modularized.
@@ -666,8 +660,7 @@ export class Engine implements TensorTracker, DataMover {
             outputs = kernelFunc();
           } else {
             kernelProfile = this.profiler.profileKernel(
-                kernelName, inputs, () => kernelFunc(),
-                this.shouldCheckComputationForErrors());
+                kernelName, inputs, () => kernelFunc());
             if (this.ENV.getBool('DEBUG')) {
               this.profiler.logKernelProfile(kernelProfile);
             }

@@ -16,6 +16,7 @@
  */
 
 import {BackendTimer} from './backends/backend';
+import {env} from './environment';
 import {Tensor} from './tensor';
 import {NamedTensorMap} from './tensor_types';
 import {DataType, DataTypeMap, TypedArray} from './types';
@@ -36,16 +37,15 @@ export class Profiler {
     }
   }
 
-  profileKernel(
-      kernelName: string, inputs: NamedTensorMap, f: () => Tensor[],
-      shouldCheckComputationForErrors = true): KernelProfile {
+  profileKernel(kernelName: string, inputs: NamedTensorMap, f: () => Tensor[]):
+      KernelProfile {
     let outputs: Tensor[];
     const holdResultWrapperFn = () => {
       outputs = f();
     };
     const timer = this.backendTimer.time(holdResultWrapperFn);
 
-    if (shouldCheckComputationForErrors) {
+    if (env().getBool('CHECK_COMPUTATION_FOR_ERRORS')) {
       for (let i = 0; i < outputs.length; i++) {
         const output = outputs[i];
         // Dangling promise here because we don't want to propagate up

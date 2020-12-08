@@ -14,9 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import './engine';
-
 import * as device_util from './device_util';
+import {ENGINE} from './engine';
 import {env} from './environment';
 
 const ENV = env();
@@ -70,3 +69,7 @@ ENV.registerFlag('DEPRECATION_WARNINGS_ENABLED', () => true);
 
 /** True if running unit tests. */
 ENV.registerFlag('IS_TEST', () => false);
+
+/**Whether to check computation result for errors. */
+ENV.registerFlag(
+    'CHECK_COMPUTATION_FOR_ERRORS', () => ENGINE.backendName !== 'webgpu');
