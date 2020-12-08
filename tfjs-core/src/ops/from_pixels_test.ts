@@ -282,4 +282,23 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
 
     expectArraysClose(pixelsData, actualInt32, 10);
   });
+
+  it('fromPixels for ImageBitmap', async () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 2;
+    canvas.height = 3;
+    const ctx = canvas.getContext('2d');
+    const pixels = new ImageData(1, 1);
+    for (let i = 0; i < canvas.width * canvas.height; ++i) {
+      pixels.data[i] = i;
+    }
+    ctx.putImageData(pixels, canvas.width, canvas.height);
+
+    const imageBitmap = await createImageBitmap(canvas);
+    const res = tf.browser.fromPixels(imageBitmap);
+    expect(res.shape).toEqual([canvas.height, canvas.width, 3]);
+    const data = await res.data();
+    expect(data.length).toEqual(canvas.height * canvas.width * 3);
+    imageBitmap.close();
+  });
 });

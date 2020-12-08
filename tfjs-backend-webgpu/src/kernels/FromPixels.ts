@@ -20,6 +20,7 @@ import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '@tensorflow/tfjs-co
 import {backend_util, Tensor3D} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {fromPixelsImageBitmap} from './FromPixelsImageBitmap';
 
 export const fromPixelsConfig: KernelConfig = {
   kernelName: FromPixels,
@@ -50,13 +51,20 @@ export function fromPixels(args: {
         !(pixels instanceof HTMLImageElement) &&
         !(pixels instanceof HTMLCanvasElement) &&
         !(pixels instanceof ImageData) &&
+        !(pixels instanceof ImageBitmap) &&
         !(pixels.data instanceof Uint8Array)) {
       throw new Error(
           'pixels passed to tf.browser.fromPixels() must be either an ' +
-          `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData` +
-          ` or {data: Uint32Array, width: number, height: number}, ` +
+          `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData, ` +
+          `ImageBitmap ` +
+          `or {data: Uint32Array, width: number, height: number}, ` +
           `but was ${(pixels as {}).constructor.name}`);
     }
+  
+    if (pixels instanceof ImageBitmap) {
+      return fromPixelsImageBitmap({imageBitmap: pixels, backend, attrs});
+    }
+
     if (pixels instanceof HTMLVideoElement ||
         pixels instanceof HTMLImageElement ||
         pixels instanceof HTMLCanvasElement) {

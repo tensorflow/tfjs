@@ -841,7 +841,7 @@ export interface StepAttrs {
 export const FromPixels = 'FromPixels';
 export interface FromPixelsInputs {
   pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-      HTMLVideoElement;
+      HTMLVideoElement|ImageBitmap;
 }
 export interface FromPixelsAttrs {
   numChannels: number;
