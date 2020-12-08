@@ -33,6 +33,30 @@ export class TextureManager {
 
   constructor(private gpgpu: GPGPUContext) {}
 
+  registerRenderTexture(texture: WebGLTexture, shape: [number, number]) {
+    const usage = TextureUsage.RENDER;
+    const isPacked = false;
+    const physicalTexType = getPhysicalFromLogicalTextureType(usage, isPacked);
+
+    const shapeKey = getKeyFromTextureShape(shape, physicalTexType, isPacked);
+    if (!(shapeKey in this.freeTextures)) {
+      this.freeTextures[shapeKey] = [];
+    }
+    if (!(shapeKey in this.usedTextures)) {
+      this.usedTextures[shapeKey] = [];
+    }
+
+    const texBytes = computeBytes(
+        shape, physicalTexType, this.gpgpu.gl, this.gpgpu.textureConfig,
+        isPacked);
+
+    this.usedTextures[shapeKey].push(texture);
+
+    this.numUsedTextures++;
+    this._numBytesAllocated += texBytes;
+    this.log();
+  }
+
   acquireTexture(
       shapeRC: [number, number], usage: TextureUsage,
       isPacked: boolean): WebGLTexture {
@@ -119,10 +143,9 @@ export class TextureManager {
     const texList = this.usedTextures[shapeKey];
     const texIndex = texList.indexOf(texture);
     if (texIndex < 0) {
-      return;
-      // throw new Error(
-      //     'Cannot release a texture that was never provided by this ' +
-      //     'texture manager');
+      throw new Error(
+          'Cannot release a texture that was never provided by this ' +
+          'texture manager');
     }
     texList.splice(texIndex, 1);
     this.log();

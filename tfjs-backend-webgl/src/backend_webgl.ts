@@ -173,12 +173,13 @@ export class MathBackendWebGL extends KernelBackend {
     this.texData.set(dataId, {
       shape,
       dtype,
-      usage: TextureUsage.UPLOAD,
+      usage: TextureUsage.RENDER,
       texture,
       texShape,
       refCount: 1,
       complexParentRefCount: 0
     });
+    this.textureManager.registerRenderTexture(texture, texShape);
     return dataId;
   }
 
