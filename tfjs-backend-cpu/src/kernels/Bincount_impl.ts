@@ -36,7 +36,8 @@ export function bincountImpl(
     if (weightsSize > 0) {
       // weights can be any size, for out of range reference, set weights
       // to be zero.
-      outVals[value] += weightsVals[i] || 0;
+      const weightsVal = i < weightsVals.length ? weightsVals[i] : 0;
+      outVals[value] += weightsVal || 0;
     } else {
       outVals[value] += 1;
     }
@@ -68,6 +69,12 @@ export function bincountReduceImpl<R extends Rank>(
         outBuf.set(1, i, value);
       } else {
         if (weightsBuf.size > 0) {
+          // The behavior here is different than bincountImpl above. We don't
+          // set weight to be zero for out of range reference. This is because,
+          // in TF c++ implementation, it does not handle this case explicitly.
+          // TF will output random numbers. Instead, TFJS will throw error.
+          // If TF changes implementation to default to zero, we should make
+          // that change too.
           outBuf.set(outBuf.get(i, value) + weightsBuf.get(i, j), i, value);
         } else {
           outBuf.set(outBuf.get(i, value) + 1, i, value);
