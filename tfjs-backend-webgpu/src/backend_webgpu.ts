@@ -106,6 +106,7 @@ export class WebGPUBackend extends KernelBackend {
   commandQueue: GPUCommandEncoder[];
   tensorMap: DataStorage<TensorBufferInfo>;
   fromPixelProgram: FromPixelsProgram;
+  supportTimeQuery: boolean;
 
   private commandQueueOwnedIds = new WeakSet<DataId>();
   private binaryCache: {[key: string]: WebGPUBinary};
@@ -121,17 +122,25 @@ export class WebGPUBackend extends KernelBackend {
   private uploadWaitMs = 0;
   private downloadWaitMs = 0;
   private cpuBackend: KernelBackend;
+  private querySet: GPUQuerySet;
 
-  constructor(device: GPUDevice, glslang: Glslang) {
+  constructor(device: GPUDevice, glslang: Glslang, supportTimeQuery = false) {
     super();
     this.binaryCache = {};
     this.device = device;
     this.queue = device.defaultQueue;
     this.commandQueue = [];
     this.glslang = glslang;
+    this.supportTimeQuery = supportTimeQuery;
 
     this.bufferManager = new BufferManager(this.device);
     this.tensorMap = new DataStorage(this, engine());
+    if (this.supportTimeQuery) {
+      this.querySet = this.device.createQuerySet({
+        type: 'timestamp',
+        count: 2,
+      });
+    }
   }
 
   floatPrecision(): 32 {
@@ -381,9 +390,13 @@ export class WebGPUBackend extends KernelBackend {
     return query;
   }
 
-  async getQueryTime(query: CPUTimerQuery): Promise<number> {
-    const timerQuery = query;
-    return timerQuery.endMs - timerQuery.startMs;
+  async getQueryTime(query: CPUTimerQuery | GPUQuerySet): Promise<number> {
+    if (this.supportTimeQuery) {
+      return this.getTimeFromQuerySet(query as GPUQuerySet);
+    } else {
+      const timerQuery = query as CPUTimerQuery;
+      return timerQuery.endMs - timerQuery.startMs;
+    }
   }
 
   uploadToGPU(dataId: DataId): void {
@@ -442,9 +455,6 @@ export class WebGPUBackend extends KernelBackend {
 
     const shouldTimeProgram = this.activeTimers != null;
     let query: CPUTimerQuery;
-    if (shouldTimeProgram) {
-      query = this.startTimer();
-    }
 
     // Creating bind groups on the fly should never be a bottleneck.
     const bg = webgpu_program.makeBindGroup(
@@ -453,11 +463,26 @@ export class WebGPUBackend extends KernelBackend {
 
     const encoder = this.device.createCommandEncoder();
     const pass = encoder.beginComputePass();
+    if (shouldTimeProgram) {
+      if (this.supportTimeQuery) {
+        pass.writeTimestamp(this.querySet, 0);
+      } else {
+        query = this.startTimer();
+      }
+    }
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bg);
     pass.dispatch(
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+    if (shouldTimeProgram) {
+      if (this.supportTimeQuery) {
+        pass.writeTimestamp(this.querySet, 1);
+      } else {
+        query = this.endTimer(query);
+      }
+    }
     pass.endPass();
+
     this.commandQueue.push(encoder);
 
     inputs.forEach(input => {
@@ -479,11 +504,39 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     if (shouldTimeProgram) {
-      query = this.endTimer(query);
-      this.activeTimers.push(
-          {name: program.constructor.name, query: this.getQueryTime(query)});
+      if (this.supportTimeQuery) {
+        this.activeTimers.push({
+            name: program.constructor.name,
+            query: this.getQueryTime(this.querySet)});
+      } else {
+        this.activeTimers.push(
+            {name: program.constructor.name, query: this.getQueryTime(query)});
+      }
     }
     return output as {} as K;
+  }
+  async getTimeFromQuerySet(querySet: GPUQuerySet) {
+    const queryBuffer = this.acquireBuffer(16,
+            GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);
+    const dst = this.acquireBuffer(
+        16, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
+
+    const encoder = this.device.createCommandEncoder();
+    // tslint:disable-next-line:no-any
+    (encoder as any).resolveQuerySet(querySet, 0, 2, queryBuffer, 0);
+    encoder.copyBufferToBuffer(queryBuffer, 0, dst, 0, 16);
+    this.commandQueue.push(encoder);
+    this.submitQueue();
+    await dst.mapAsync(GPUMapMode.READ);
+    const arrayBuf = new BigUint64Array(dst.getMappedRange());
+    const timeElapsedNanos = Number((arrayBuf[1] - arrayBuf[0]));
+    dst.unmap();
+    this.bufferManager.releaseBuffer(dst, 16,
+        GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
+    this.bufferManager.releaseBuffer(queryBuffer, 16,
+        GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);
+    // Return milliseconds.
+    return timeElapsedNanos / 1000000;
   }
 
   private makeUniforms(data: Uint32Array|Int32Array): GPUBindingResource {
