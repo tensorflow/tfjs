@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Select, SelectInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -75,19 +75,12 @@ function where_<T extends Tensor>(
         $condition.shape, $broadcastedB.shape, 'Error in where: ');
   }
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.select($condition, $broadcastedA, $broadcastedB);
-    save([$condition]);
-    return res;
-  };
   const inputs: SelectInputs = {
     condition: $condition,
     t: $broadcastedA,
     e: $broadcastedB
   };
-  return ENGINE.runKernelFunc(
-             forward, inputs as unknown as NamedTensorMap, null /* gradient */,
-             Select) as T;
+  return ENGINE.runKernel(Select, inputs as unknown as NamedTensorMap);
 }
 
 export const where = op({where_});

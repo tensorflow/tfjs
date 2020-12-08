@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {FloorDiv, FloorDivInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -57,16 +57,9 @@ function floorDiv_<T extends Tensor>(
   let $b = convertToTensor(b, 'b', 'floorDiv');
   [$a, $b] = makeTypesMatch($a, $b);
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.floorDiv($a, $b);
-    save([$a, $b]);
-    return res;
-  };
   const inputs: FloorDivInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */,
-             FloorDiv) as T;
+  return ENGINE.runKernel(FloorDiv, inputs as {} as NamedTensorMap);
 }
 
 export const floorDiv = op({floorDiv_});

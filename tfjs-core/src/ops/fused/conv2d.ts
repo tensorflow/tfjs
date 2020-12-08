@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../../engine';
+import {ENGINE} from '../../engine';
 import {customGrad} from '../../gradients';
 import {FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs} from '../../kernel_names';
 import {NamedAttrMap} from '../../kernel_registry';
@@ -211,18 +211,6 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
     return der;
   };
 
-  const forward: ForwardFunc<Tensor> = (backend) => {
-    const res = backend.fusedConv2d({
-      input: x4D,
-      filter: $filter,
-      convInfo,
-      bias: $bias,
-      activation,
-      preluActivationWeights: $preluActivationWeights
-    });
-    return res;
-  };
-
   const inputs: FusedConv2DInputs = {
     x: x4D,
     filter: $filter,
@@ -245,14 +233,18 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   if (bias == null) {
     const customOp =
         customGrad((x4D: Tensor4D, filter: Tensor4D, save: GradSaveFunc) => {
-          let res = ENGINE.runKernelFunc(
-              forward, inputs as {} as NamedTensorMap, null /* grad */,
-              FusedConv2D, attrs as {} as NamedAttrMap);
+          let res: Tensor4D|Tensor3D =
+              // tslint:disable-next-line: no-unnecessary-type-assertion
+              ENGINE.runKernel(
+                  FusedConv2D, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap);
 
           save([filter, x4D, res]);
 
           if (reshapedTo4D) {
-            res = reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
+            // tslint:disable-next-line: no-unnecessary-type-assertion
+            res = reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as
+                Tensor3D;
           }
 
           return {value: res, gradFunc: grad};
@@ -261,14 +253,16 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   } else {
     const customOpWithBias = customGrad(
         (x4D: Tensor4D, filter: Tensor4D, bias: Tensor, save: GradSaveFunc) => {
-          let res = ENGINE.runKernelFunc(
-              forward, inputs as {} as NamedTensorMap, null /* grad */,
-              FusedConv2D, attrs as {} as NamedAttrMap);
+          let res: Tensor4D|Tensor3D = ENGINE.runKernel(
+              FusedConv2D, inputs as {} as NamedTensorMap,
+              attrs as {} as NamedAttrMap);
 
           save([filter, x4D, res, bias]);
 
           if (reshapedTo4D) {
-            res = reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
+            // tslint:disable-next-line: no-unnecessary-type-assertion
+            res = reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as
+                Tensor3D;
           }
 
           return {value: res, gradFunc: grad};

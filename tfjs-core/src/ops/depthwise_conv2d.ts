@@ -14,16 +14,15 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {DepthwiseConv2dNative, DepthwiseConv2dNativeAttrs, DepthwiseConv2dNativeInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import * as conv_util from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -108,36 +107,19 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
             `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
   }
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    if (dilations == null) {
-      dilations = [1, 1];
-    }
-
-    util.assert(
-        conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
-        () => 'Error in depthwiseConv2d: Either strides or dilations must be ' +
-            `1. Got strides ${strides} and dilations '${dilations}'`);
-
-    const convInfo = conv_util.computeConv2DInfo(
-        x4D.shape, $filter.shape, strides, dilations, pad, dimRoundingMode,
-        true /* depthwise */);
-    const res = backend.depthwiseConv2D(x4D, $filter, convInfo);
-    save([x4D, $filter]);
-    return res;
-  };
-
   const inputs: DepthwiseConv2dNativeInputs = {x: x4D, filter: $filter};
   const attrs: DepthwiseConv2dNativeAttrs =
       {strides, pad, dataFormat, dilations, dimRoundingMode};
 
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */,
-      DepthwiseConv2dNative, attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  DepthwiseConv2dNative, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   }
-  return res as T;
+  return res;
 }
 
 export const depthwiseConv2d = op({depthwiseConv2d_});

@@ -41,16 +41,10 @@ function abs_<T extends Tensor>(x: T|TensorLike): T {
 
   if ($x.dtype === 'complex64') {
     const inputs: ComplexAbsInputs = {x: $x};
-    return ENGINE.runKernelFunc((backend, save) => {
-      save([$x]);
-      return backend.complexAbs($x);
-    }, inputs as {} as NamedTensorMap, null /* grad */, ComplexAbs);
+    return ENGINE.runKernel(ComplexAbs, inputs as {} as NamedTensorMap);
   } else {
     const inputs: AbsInputs = {x: $x};
-    return ENGINE.runKernelFunc((backend, save) => {
-      save([$x]);
-      return backend.abs($x);
-    }, inputs as {} as NamedTensorMap, null /* grad */, Abs);
+    return ENGINE.runKernel(Abs, inputs as {} as NamedTensorMap);
   }
 }
 

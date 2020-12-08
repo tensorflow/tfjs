@@ -18,6 +18,16 @@ import {OpMapper} from '../types';
 
 export const json: OpMapper[] = [
   {
+    'tfOpName': 'EmptyTensorList',
+    'category': 'control',
+    'inputs': [
+      {'start': 0, 'name': 'elementShape', 'type': 'shape'},
+      {'start': 1, 'name': 'maxNumElements', 'type': 'number'},
+    ],
+    'attrs':
+        [{'tfName': 'element_dtype', 'name': 'elementDType', 'type': 'dtype'}]
+  },
+  {
     'tfOpName': 'LoopCond',
     'category': 'control',
     'inputs': [{'start': 0, 'name': 'pred', 'type': 'tensor'}]

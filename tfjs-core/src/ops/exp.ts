@@ -40,10 +40,6 @@ function exp_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'exp');
 
   const inputs: ExpInputs = {x: $x};
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.exp($x);
-    save([res]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Exp);
+  return ENGINE.runKernel(Exp, inputs as {} as NamedTensorMap);
 }
 export const exp = op({exp_});

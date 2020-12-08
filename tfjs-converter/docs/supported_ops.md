@@ -77,6 +77,7 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|EmptyTensorList|EmptyTensorList|
 |Enter|Enter|
 |Exit|Exit|
 |If|If|
@@ -269,6 +270,8 @@
 |Any|any|
 |ArgMax|argMax|
 |ArgMin|argMin|
+|Bincount|bincount|
+|DenseBincount|denseBincount|
 |Max|max|
 |Mean|mean|
 |Min|min|
