@@ -85,7 +85,9 @@ const IGNORE_LIST: string[] = [
   // tslint:disable-next-line:max-line-length
   'pool test-tensorflow {} max x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding',
   // tslint:disable-next-line:max-line-length
-  'pool test-tensorflow {} avg x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding'
+  'pool test-tensorflow {} avg x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding',
+  // not available in tf yet.
+  'denseBincount'
 ];
 
 if (process.platform === 'win32') {

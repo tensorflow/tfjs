@@ -40,6 +40,7 @@ import {avgPool3DGradConfig} from './kernels/AvgPool3DGrad';
 import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
+import {bincountConfig} from './kernels/Bincount';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
@@ -207,6 +208,7 @@ const kernelConfigs: KernelConfig[] = [
   coshConfig,
   cropAndResizeConfig,
   cumsumConfig,
+  bincountConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeBackpropFilterConfig,
   depthwiseConv2dNativeBackpropInputConfig,
