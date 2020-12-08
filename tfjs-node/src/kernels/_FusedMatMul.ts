@@ -26,7 +26,7 @@ export const _fusedMatMulConfig: KernelConfig = {
     const {a, b, bias, preluActivationWeights} =
         args.inputs as _FusedMatMulInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {transposeA, transposeB, activation} =
+    const {transposeA, transposeB, activation, leakyreluAlpha} =
         args.attrs as {} as _FusedMatMulAttrs;
 
     // Core TensorFlow does not have a fused BatchMatMul op. Combine calls to
@@ -39,7 +39,7 @@ export const _fusedMatMulConfig: KernelConfig = {
       }
 
       result = backend.applyActivation(
-          result, activation, preluActivationWeights as Tensor);
+          result, activation, preluActivationWeights as Tensor, leakyreluAlpha);
 
       return result;
     });

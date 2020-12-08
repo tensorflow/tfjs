@@ -41,6 +41,7 @@ void DepthwiseConv2dNative(
     const size_t output_channels, const size_t out_id) {
   const size_t bias_id = 0;
   const size_t prelu_weights_id = 0;
+  const float leakyrelu_alpha = 0;
   const bool is_depthwise = true;
   const FusableActivation activation = FusableActivation::LINEAR;
   tfjs::wasm::conv2d(x_id, batch_size, input_height, input_width, filter_id,
@@ -48,7 +49,7 @@ void DepthwiseConv2dNative(
                      pad_bottom, pad_left, is_same_pad, dilation_height,
                      dilation_width, stride_height, stride_width,
                      input_channels, output_channels, is_depthwise, activation,
-                     prelu_weights_id, out_id);
+                     prelu_weights_id, leakyrelu_alpha, out_id);
 }
 
 }  // extern "C"

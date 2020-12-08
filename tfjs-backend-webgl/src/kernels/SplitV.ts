@@ -15,36 +15,38 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, SplitV, SplitVAttrs, SplitVInputs, util} from '@tensorflow/tfjs-core';
-import {backend_util} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, SplitV, SplitVAttrs, SplitVInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import {BackendWasm} from '../backend_wasm';
-
+import {MathBackendWebGL} from '../backend_webgl';
 import {slice} from './Slice';
 
-export function split(
-    args: {inputs: SplitVInputs, attrs: SplitVAttrs, backend: BackendWasm}) {
-  const {inputs, attrs, backend} = args;
+export function splitV(
+    args:
+        {inputs: SplitVInputs, backend: MathBackendWebGL, attrs: SplitVAttrs}):
+    TensorInfo[] {
+  const {inputs, backend, attrs} = args;
   const {x} = inputs;
   const {numOrSizeSplits, axis} = attrs;
 
   const $axis = util.parseAxisParam(axis, x.shape)[0];
+  const splitSizes = backend_util.prepareSplitSize(x, numOrSizeSplits, $axis);
 
-  const splitSizes = backend_util.prepareSplitSize(x, numOrSizeSplits, axis);
-  const begin = new Array(x.shape.length).fill(0);
+  const xRank = x.shape.length;
+  const begin = new Array(xRank).fill(0);
   const size = x.shape.slice();
+
   return splitSizes.map(s => {
-    const xSliceSize = [...size];
-    xSliceSize[$axis] = s;
-    const xSlice =
-        slice({inputs: {x}, attrs: {begin, size: xSliceSize}, backend});
-    begin[$axis] += s;
-    return xSlice;
+    const sliceSize = [...size];
+    sliceSize[axis] = s;
+    const sliceT =
+        slice({inputs: {x}, backend, attrs: {begin, size: sliceSize}});
+    begin[axis] += s;
+    return sliceT;
   });
 }
 
 export const splitVConfig: KernelConfig = {
   kernelName: SplitV,
-  backendName: 'wasm',
-  kernelFunc: split as {} as KernelFunc
+  backendName: 'webgl',
+  kernelFunc: splitV as {} as KernelFunc
 };

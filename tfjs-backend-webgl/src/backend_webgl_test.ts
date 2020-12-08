@@ -229,6 +229,7 @@ describeWithFlags('Webgl backend disposal', WEBGL_ENVS, () => {
 
     const backend = new MathBackendWebGL();
     tf.registerBackend('test-disposal', () => backend);
+    tf.copyRegisteredKernels('webgl', 'test-disposal');
     tf.setBackend('test-disposal');
     // Compile and run a program.
     tf.zeros([1000]).sqrt().dataSync();
@@ -248,6 +249,7 @@ describeWithFlags('Webgl backend disposal', WEBGL_ENVS, () => {
 
     const backend = new MathBackendWebGL();
     tf.registerBackend('test-disposal', () => backend);
+    tf.copyRegisteredKernels('webgl', 'test-disposal');
     tf.setBackend('test-disposal');
     // Compile and run a program.
     tf.zeros([1000]).sqrt().dataSync();
@@ -266,6 +268,7 @@ describeWithFlags('Webgl backend disposal', WEBGL_ENVS, () => {
     tf.ENV.set('IS_TEST', false);
 
     tf.registerBackend('test-disposal', () => new MathBackendWebGL());
+    tf.copyRegisteredKernels('webgl', 'test-disposal');
     tf.setBackend('test-disposal');
     // Compile and run a program.
     tf.zeros([1000]).sqrt().dataSync();
@@ -276,6 +279,7 @@ describeWithFlags('Webgl backend disposal', WEBGL_ENVS, () => {
 
     // Re-register a backend.
     tf.registerBackend('test-disposal', () => new MathBackendWebGL());
+    tf.copyRegisteredKernels('webgl', 'test-disposal');
     tf.setBackend('test-disposal');
     // Compile and run a program.
     tf.zeros([1000]).sqrt().dataSync();

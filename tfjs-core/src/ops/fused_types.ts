@@ -24,7 +24,8 @@ export type FusedConv2DConfig = {
   convInfo: Conv2DInfo,
   bias?: Tensor,
   activation?: Activation,
-  preluActivationWeights?: Tensor
+  preluActivationWeights?: Tensor,
+  leakyreluAlpha?: number
 };
 
 export type FusedBatchMatMulConfig = {
@@ -34,7 +35,8 @@ export type FusedBatchMatMulConfig = {
   transposeB: boolean,
   bias?: Tensor,
   activation?: Activation,
-  preluActivationWeights?: Tensor
+  preluActivationWeights?: Tensor,
+  leakyreluAlpha?: number
 };
 
-export type Activation = 'linear'|'relu'|'prelu'|'elu'|'relu6';
+export type Activation = 'linear'|'relu'|'prelu'|'elu'|'relu6'|'leakyrelu';

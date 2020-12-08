@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, Rank, ShapeMap, Tensor, Tensor1D, Tensor2D, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, Rank, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 const whereImpl = kernel_impls.whereImpl;
 import {assertNotComplex} from './cpu_util';
@@ -200,70 +199,11 @@ export class MathBackendCPU extends KernelBackend {
     };
   }
 
-  unsortedSegmentSum<T extends Tensor>(
-      x: T, segmentIds: Tensor1D, numSegments: number): Tensor {
-    assertNotComplex(x, 'unsortedSegmentSum');
-
-    const res = [];
-
-    // Reshape the segment id's so that they can be broadcast with
-    // x. The new shape should be [segmentIds.shape, 1, ..., 1]
-    const numIters = x.rank - segmentIds.rank;
-    for (let i = 0; i < numIters; ++i) {
-      segmentIds = segmentIds.expandDims(i + 1);
-    }
-
-    for (let i = 0; i < numSegments; ++i) {
-      const segmentId = tf.scalar(i, 'int32');
-      const mask = tf.equal(segmentId, segmentIds).asType('float32');
-      const sum = mask.mul(x).sum(0);
-      res.push(sum);
-    }
-
-    return tf.stack(res);
-  }
-
   where(condition: Tensor): Tensor2D {
     assertNotComplex([condition], 'where');
 
     const condVals = this.readSync(condition.dataId) as TypedArray;
     return whereImpl(condition.shape, condVals);
-  }
-
-  gather<T extends Tensor>(
-      x: T, indices: Tensor1D, axis: number, batchDims = 0): T {
-    assertNotComplex([x, indices], 'gather');
-    const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
-    const shapeInfo = backend_util.segment_util.collectGatherOpShapeInfo(
-        x, indices, parsedAxis, batchDims);
-
-    const flattenX = x.reshape([
-      shapeInfo.batchSize, shapeInfo.outerSize, shapeInfo.dimSize,
-      shapeInfo.sliceSize
-    ]);
-    const flattenIndex = indices.reshape(
-        [shapeInfo.batchSize, indices.size / shapeInfo.batchSize]);
-    const flattenOutputShape = [
-      shapeInfo.batchSize, shapeInfo.outerSize,
-      indices.size / shapeInfo.batchSize, shapeInfo.sliceSize
-    ];
-    const indicesBuf = this.bufferSync(flattenIndex);
-    const result = tf.buffer(flattenOutputShape, x.dtype);
-    const xBuf = this.bufferSync(flattenX);
-
-    for (let i = 0; i < result.size; ++i) {
-      const newLoc = result.indexToLoc(i);
-
-      const originalLoc: number[] = newLoc.slice();
-      const batchIdx = originalLoc[0];
-      const indicesIdx = originalLoc[2];
-      const indicesIndex = indicesBuf.locToIndex([batchIdx, indicesIdx]);
-      originalLoc[2] = indicesBuf.values[indicesIndex];
-
-      const originalIndex = xBuf.locToIndex(originalLoc);
-      result.values[i] = xBuf.values[originalIndex];
-    }
-    return result.toTensor().reshape(shapeInfo.outputShape);
   }
 
   dispose() {}

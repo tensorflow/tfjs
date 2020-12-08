@@ -135,6 +135,7 @@
   "Elu": [
     "elu"
   ],
+  "EmptyTensorList": [],
   "Enter": [],
   "Equal": [
     "equal"
