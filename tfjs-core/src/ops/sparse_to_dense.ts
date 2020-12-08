@@ -85,10 +85,8 @@ function sparseToDense_<R extends Rank>(
 
   const attrs: SparseToDenseAttrs = {outputShape};
 
-  return ENGINE.runKernelFunc(
-      backend => backend.sparseToDense(
-          $sparseIndices, $sparseValues, outputShape, $defaultValue),
-      inputs as {} as NamedTensorMap, null /* grad */, SparseToDense,
+  return ENGINE.runKernel(
+      SparseToDense, inputs as {} as NamedTensorMap,
       attrs as {} as NamedAttrMap);
 }
 

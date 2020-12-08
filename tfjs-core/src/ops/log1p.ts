@@ -41,10 +41,6 @@ function log1p_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'log1p');
 
   const inputs: Log1pInputs = {x: $x};
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.log1p($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Log1p);
+  return ENGINE.runKernel(Log1p, inputs as {} as NamedTensorMap);
 }
 export const log1p = op({log1p_});

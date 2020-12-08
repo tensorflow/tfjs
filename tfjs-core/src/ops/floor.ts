@@ -39,8 +39,6 @@ function floor_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'floor');
 
   const inputs: FloorInputs = {x: $x};
-  return ENGINE.runKernelFunc(
-      backend => backend.floor($x), inputs as {} as NamedTensorMap,
-      null /* grad */, Floor);
+  return ENGINE.runKernel(Floor, inputs as {} as NamedTensorMap);
 }
 export const floor = op({floor_});

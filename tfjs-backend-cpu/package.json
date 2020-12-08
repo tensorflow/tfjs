@@ -57,8 +57,9 @@
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "npm publish",
     "lint": "tslint -p . -t verbose",
-    "test": "yarn && yarn build-deps && ts-node --project tsconfig.test.json run_tests.ts",
-    "test-ci": "ts-node --skip-ignore --project tsconfig.test.json run_tests.ts"
+    "test": "yarn && yarn build-deps && yarn build && ts-node --transpile-only --project tsconfig.test.json src/run_tests.ts",
+    "test-dev": "tsc && ts-node --transpile-only --project tsconfig.test.json src/run_tests.ts",
+    "test-ci": "ts-node --transpile-only --skip-ignore --project tsconfig.test.json src/run_tests.ts"
   },
   "dependencies": {
     "@types/seedrandom": "2.4.27",
