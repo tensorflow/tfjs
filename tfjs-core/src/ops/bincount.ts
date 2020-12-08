@@ -53,6 +53,11 @@ function bincount_<T extends Tensor1D>(
       () => `Error in bincount: input ` +
           `dtype must be int32, but got ${$x.dtype}`);
   util.assert(size >= 0, () => `size must be non-negative, but got ${size}.`);
+  util.assert(
+      $weights.size === $x.size || $weights.size === 0,
+      () => `Error in bincount: weights must have the same size as input or` +
+          `0-length, but got input shape: ${$x.shape}, weights shape: ` +
+          `${$weights.shape}.`);
 
   const inputs: BincountInputs = {x: $x, weights: $weights};
   const attrs: BincountAttrs = {size};
