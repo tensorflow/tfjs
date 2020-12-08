@@ -16,7 +16,7 @@
  */
 
 // Register the backend.
-import './src/index';
+import './index';
 // tslint:disable-next-line: no-imports-from-dist
 import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
