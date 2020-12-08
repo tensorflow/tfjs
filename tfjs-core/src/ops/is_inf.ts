@@ -41,8 +41,6 @@ function isInf_<T extends Tensor>(x: T|TensorLike): T {
 
   const inputs: IsInfInputs = {x: $x};
 
-  return ENGINE.runKernelFunc(
-      (backend) => backend.isInf($x), inputs as {} as NamedTensorMap,
-      null /* grad */, IsInf);
+  return ENGINE.runKernel(IsInf, inputs as {} as NamedTensorMap);
 }
 export const isInf = op({isInf_});

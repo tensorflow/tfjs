@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {GatherV2, GatherV2Attrs, GatherV2Inputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
@@ -59,16 +59,8 @@ function gather_<T extends Tensor>(
   const inputs: GatherV2Inputs = {x: $x, indices: $indices};
   const attrs: GatherV2Attrs = {axis, batchDims};
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.gather($x, $indices, axis, batchDims);
-    save([$x, $indices]);
-
-    return res;
-  };
-
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */, GatherV2,
-             attrs as {} as NamedAttrMap) as T;
+  return ENGINE.runKernel(
+      GatherV2, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const gather = op({gather_});
