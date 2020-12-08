@@ -58,6 +58,7 @@ import {identityGradConfig} from './gradients/Identity_grad';
 import {isFiniteGradConfig} from './gradients/IsFinite_grad';
 import {isInfGradConfig} from './gradients/IsInf_grad';
 import {isNanGradConfig} from './gradients/IsNan_grad';
+import {leakyReluGradConfig} from './gradients/LeakyRelu_grad';
 import {log1pGradConfig} from './gradients/Log1p_grad';
 import {logGradConfig} from './gradients/Log_grad';
 import {logSoftmaxGradConfig} from './gradients/LogSoftmax_grad';
@@ -162,6 +163,7 @@ const gradConfigs: GradConfig[] = [
   isFiniteGradConfig,
   isInfGradConfig,
   isNanGradConfig,
+  leakyReluGradConfig,
   log1pGradConfig,
   logGradConfig,
   logSoftmaxGradConfig,

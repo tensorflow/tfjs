@@ -77,7 +77,8 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
     weightData: weightData1,
     format: 'layers-model',
     generatedBy: 'TensorFlow.js v0.0.0',
-    convertedBy: null
+    convertedBy: null,
+    modelInitializer: {}
   };
 
   const weightSpecs2: tf.io.WeightsManifestEntry[] = [
@@ -119,6 +120,7 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
     expect(loadedArtifacts.format).toEqual('layers-model');
     expect(loadedArtifacts.generatedBy).toEqual('TensorFlow.js v0.0.0');
     expect(loadedArtifacts.convertedBy).toEqual(null);
+    expect(loadedArtifacts.modelInitializer).toEqual({});
     expectArrayBuffersEqual(loadedArtifacts.weightData, weightData1);
   });
 

@@ -89,6 +89,7 @@ import {imagConfig} from './kernels/Imag';
 import {isFiniteConfig} from './kernels/IsFinite';
 import {isInfConfig} from './kernels/IsInf';
 import {isNaNConfig} from './kernels/IsNaN';
+import {leakyReluConfig} from './kernels/LeakyRelu';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {linSpaceConfig} from './kernels/LinSpace';
@@ -124,6 +125,7 @@ import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
+import {rangeConfig} from './kernels/Range';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reciprocalConfig} from './kernels/Reciprocal';
@@ -241,6 +243,7 @@ const kernelConfigs: KernelConfig[] = [
   isFiniteConfig,
   isInfConfig,
   isNaNConfig,
+  leakyReluConfig,
   lessConfig,
   lessEqualConfig,
   linSpaceConfig,
@@ -276,6 +279,7 @@ const kernelConfigs: KernelConfig[] = [
   powConfig,
   preluConfig,
   prodConfig,
+  rangeConfig,
   realConfig,
   reciprocalConfig,
   reluConfig,

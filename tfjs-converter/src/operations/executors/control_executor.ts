@@ -269,13 +269,23 @@ export const executeOp: InternalOpAsyncExecutor = async(
       context.addTensorList(tensorList);
       return [tensorList.idTensor];
     }
-    case 'TensorListReserve': {
+    case 'TensorListReserve':
+    case 'EmptyTensorList': {
       const elementShape =
           getParamValue('elementShape', node, tensorMap, context) as number[];
       const elementDtype =
           getParamValue('elementDType', node, tensorMap, context) as DataType;
+      let numElementsParam;
+
+      if (node.op === 'TensorListReserve') {
+        numElementsParam = 'numElements';
+      } else {
+        numElementsParam = 'maxNumElements';
+      }
+
       const numElements =
-          getParamValue('numElements', node, tensorMap, context) as number;
+          getParamValue(numElementsParam, node, tensorMap, context) as number;
+
       const tensorList = reserve(elementShape, elementDtype, numElements);
       context.addTensorList(tensorList);
       return [tensorList.idTensor];

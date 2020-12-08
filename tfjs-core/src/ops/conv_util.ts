@@ -353,10 +353,10 @@ function computeOutputShape2D(
   const inputRows = inShape[0];
   const inputCols = inShape[1];
 
-  const outputRows = round(
-      (inputRows - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  const outputCols = round(
-      (inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
+  const outputRows =
+      round((inputRows - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
+  const outputCols =
+      round((inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
 
   return [outputRows, outputCols];
 }
@@ -372,12 +372,12 @@ function computeOutputShape4D(
   const inputRows = inShape[1];
   const inputCols = inShape[2];
 
-  const outputDepths = round(
-      (inputDepth - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  const outputRows = round(
-      (inputRows - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  const outputCols = round(
-      (inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
+  const outputDepths =
+      round((inputDepth - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
+  const outputRows =
+      round((inputRows - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
+  const outputCols =
+      round((inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
 
   return [outputDepths, outputRows, outputCols, outChannels];
 }
