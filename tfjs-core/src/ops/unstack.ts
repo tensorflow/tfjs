@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {KernelBackend} from '../backends/backend';
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Unpack, UnpackAttrs, UnpackInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
@@ -50,16 +49,9 @@ function unstack_(x: Tensor|TensorLike, axis = 0): Tensor[] {
 
   const inputs: UnpackInputs = {value: $x};
   const attrs: UnpackAttrs = {axis};
-  const forward: ForwardFunc<Tensor[]> = (backend: KernelBackend) => {
-    if (axis < 0) {
-      axis += $x.shape.length;
-    }
-    return backend.unstack($x, axis);
-  };
 
-  return ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, Unpack,
-      attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(
+      Unpack, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const unstack = op({unstack_});

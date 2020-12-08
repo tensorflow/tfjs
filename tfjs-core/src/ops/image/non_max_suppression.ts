@@ -56,11 +56,8 @@ function nonMaxSuppression_(
   scoreThreshold = inputs.scoreThreshold;
 
   const attrs = {maxOutputSize, iouThreshold, scoreThreshold};
-  return ENGINE.runKernelFunc(
-      b => b.nonMaxSuppression(
-          $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold),
-      {boxes: $boxes, scores: $scores}, null /* grad */, NonMaxSuppressionV3,
-      attrs);
+  return ENGINE.runKernel(
+      NonMaxSuppressionV3, {boxes: $boxes, scores: $scores}, attrs);
 }
 
 export const nonMaxSuppression = op({nonMaxSuppression_});
