@@ -16,7 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
-import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '../kernel_names';
+import {FromPixels, FromPixelsAttrs, FromPixelsInputs, FromPixelsAsync} from '../kernel_names';
 import {getKernel, NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -152,6 +152,71 @@ function fromPixels_(
   }
   const outShape: [number, number, number] = [height, width, numChannels];
   return tensor3d(values, outShape, 'int32');
+}
+
+/**
+ * Creates a `tf.Tensor` from an image in async way.
+ *
+ * ```js
+ * const image = new ImageData(1, 1);
+ * image.data[0] = 100;
+ * image.data[1] = 150;
+ * image.data[2] = 200;
+ * image.data[3] = 255;
+ *
+ * (await tf.browser.fromPixelsAsync(image)).print();
+ * ```
+ *
+ * @param pixels The input image to construct the tensor from. The
+ * supported image types are all 4-channel. You can also pass in an image
+ * object with following attributes:
+ * `{data: Uint8Array; width: number; height: number}`
+ * @param numChannels The number of channels of the output tensor. A
+ * numChannels value less than 4 allows you to ignore channels. Defaults to
+ * 3 (ignores alpha channel of input image).
+ *
+ * @doc {heading: 'Browser', namespace: 'browser', ignoreCI: true}
+ */
+export async function fromPixelsAsync(
+  pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
+  HTMLVideoElement,
+  numChannels = 3) {
+// Check whether the backend has FromPixelsAsycn kernel support,
+// if not fallback to normal fromPixels.
+// fromPixelAsync kernel doesn't support pixelData now, so fallback
+// to normal fromPixels.
+const kernel = getKernel(FromPixelsAsync, ENGINE.backendName);
+if (kernel == null ||
+  (pixels as PixelData).data instanceof Uint8Array) {
+  return fromPixels_(pixels, numChannels);
+}
+
+// Sanity checks.
+if (numChannels > 4) {
+  throw new Error(
+      'Cannot construct Tensor with more than 4 channels from pixels.');
+}
+if (pixels == null) {
+  throw new Error('pixels passed to tf.browser.fromPixels() can not be null');
+}
+
+if ( typeof (HTMLVideoElement) !== 'undefined' &&
+     pixels instanceof HTMLVideoElement) {
+  const HAVE_CURRENT_DATA_READY_STATE = 2;
+  if (typeof (HTMLVideoElement) !== 'undefined' &&
+      pixels instanceof HTMLVideoElement &&
+      pixels.readyState <
+          HAVE_CURRENT_DATA_READY_STATE) {
+    throw new Error(
+        'The video element has not loaded data yet. Please wait for ' +
+        '`loadeddata` event on the <video> element.');
+  }
+}
+
+const inputs: NamedTensorMap = {pixels} as {} as NamedTensorMap;
+const attrs: NamedAttrMap = {numChannels} as {} as NamedAttrMap;
+return await kernel.kernelFunc(
+    {inputs, attrs, backend: ENGINE.backend}) as Tensor3D;
 }
 
 /**
