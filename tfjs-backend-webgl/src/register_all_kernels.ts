@@ -59,6 +59,7 @@ import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {depthwiseConv2dNativeBackpropFilterConfig} from './kernels/DepthwiseConv2dNativeBackpropFilter';
 import {depthwiseConv2dNativeBackpropInputConfig} from './kernels/DepthwiseConv2dNativeBackpropInput';
 import {diagConfig} from './kernels/Diag';
+import {dilation2DConfig} from './kernels/Dilation2D';
 import {eluConfig} from './kernels/Elu';
 import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
@@ -149,6 +150,7 @@ import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {sparseToDenseConfig} from './kernels/SparseToDense';
 import {splitVConfig} from './kernels/SplitV';
+import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {stepConfig} from './kernels/Step';
@@ -177,8 +179,8 @@ const kernelConfigs: KernelConfig[] = [
   addNConfig,
   allConfig,
   anyConfig,
-  argMinConfig,
   argMaxConfig,
+  argMinConfig,
   asinConfig,
   asinhConfig,
   atan2Config,
@@ -212,6 +214,7 @@ const kernelConfigs: KernelConfig[] = [
   depthwiseConv2dNativeBackpropInputConfig,
   depthwiseConv2dNativeConfig,
   diagConfig,
+  dilation2DConfig,
   eluConfig,
   eluGradConfig,
   equalConfig,
@@ -300,6 +303,7 @@ const kernelConfigs: KernelConfig[] = [
   spaceToBatchNDConfig,
   sparseToDenseConfig,
   splitVConfig,
+  sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
   stepConfig,
@@ -312,8 +316,8 @@ const kernelConfigs: KernelConfig[] = [
   topKConfig,
   transposeConfig,
   uniqueConfig,
-  unsortedSegmentSumConfig,
   unpackConfig,
+  unsortedSegmentSumConfig,
   zerosLikeConfig
 ];
 

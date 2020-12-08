@@ -57,8 +57,7 @@ function stack_<T extends Tensor>(
   const attrs: PackAttrs = {axis};
 
   return ENGINE.runKernel(
-             Pack, inputs as {} as NamedTensorMap,
-             attrs as {} as NamedAttrMap) as Tensor;
+      Pack, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const stack = op({stack_});
