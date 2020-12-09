@@ -37,26 +37,27 @@ tf.registerBackend('webgpu', async () => {
   const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
 
   let driverSupportFp16 = false;
-  for(let i=0; i<adapter.extensions.length; i++){
-    if (adapter.extensions[i] === 'shader-float16')
-    {
+  for (let i=0; i<adapter.extensions.length; i++) {
+    // shader-float16 is available in chromium, but is not exported by webgpu
+    // types now.
+    if (adapter.extensions[i] as String === 'shader-float16') {
       driverSupportFp16 = true;
       break;
     }
   }
 
-  if (driverSupportFp16)
-  {
+  if (driverSupportFp16) {
     const ENV = env();
     ENV.registerFlag('DRIVER_SUPPORT_FLOAT16', () => true);
+
+    let fp16extension: GPUExtensionName[] = [];
+    fp16extension[0] = 'shader-float16' as GPUExtensionName;
     const deviceDescriptor: GPUDeviceDescriptor = {
-      extensions: ['shader-float16']
+      extensions: fp16extension
     };
     const device = await adapter.requestDevice(deviceDescriptor);
     return new WebGPUBackend(device, glslang);
-  }
-  else
-  {
+  } else {
     const device = await adapter.requestDevice({});
     return new WebGPUBackend(device, glslang);
   }

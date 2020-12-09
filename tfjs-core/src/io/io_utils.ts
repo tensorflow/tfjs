@@ -156,15 +156,15 @@ export function decodeWeights(
         if (quantization.dtype === 'uint8' || quantization.dtype === 'uint16') {
           if (env().getBool('FLOAT16') && env().getBool('DRIVER_SUPPORT_FLOAT16'))
           {
-            const floatVaules = new Float32Array(quantizedArray.length);
+            const floatValues = new Float32Array(quantizedArray.length);
             for (let i = 0; i < quantizedArray.length; i++) {
               const v = quantizedArray[i];
-              floatVaules[i] = v * quantization.scale + quantization.min;
+              floatValues[i] = v * quantization.scale + quantization.min;
             }
             if (floatToFloat16Decode === undefined) {
               floatToFloat16Decode = getFloatToFloat16Decoder();
             }
-              values = floatToFloat16Decode(floatVaules as Float32Array);
+              values = floatToFloat16Decode(floatValues as Float32Array);
               dtype = 'float16';
           }
           else

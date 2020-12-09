@@ -21,6 +21,7 @@ import {backend_util, Tensor3D} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 
+// This is a quick table that converts int8 data into float16 data.
 var uint8ToFloat16Table = [
   0, 15360, 16384, 16896, 17408, 17664, 17920, 18176, 18432, 18560, 18688,
   18816, 18944, 19072, 19200, 19328, 19456, 19520, 19584, 19648, 19712,
