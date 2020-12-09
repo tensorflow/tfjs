@@ -21,6 +21,7 @@ import {engine, test_util, util} from '@tensorflow/tfjs-core';
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 const {expectArraysClose, expectArraysEqual} = test_util;
 const {decodeString} = util;
+import {createTensorFromTexture} from './base';
 
 import {getBinaryCache, MathBackendWebGL, WebGLMemoryInfo, WebGLTimingInfo} from './backend_webgl';
 import {computeBytes} from './texture_manager';
@@ -42,6 +43,11 @@ const WEBGL2_ENVS = {
   predicate: WEBGL_ENVS.predicate
 };
 
+const RENDER_FLOAT32_ENVS = {
+  flags: {'WEBGL_RENDER_FLOAT32_ENABLED': true},
+  predicate: WEBGL_ENVS.predicate
+};
+
 describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
   let gpgpu: GPGPUContext;
 
@@ -53,8 +59,7 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     gpgpu.dispose();
   });
 
-  fit('basic f32', () => {
-    // Create a texture.
+  fit('basic f32', async () => {
     const width = 3;
     const height = 4;
 
@@ -64,6 +69,8 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     const internalFormat = (gl as any).R32F;
     const textureFormat = (gl as any).RED;
     const textureType = (gl as any).FLOAT;
+    const dataForUpload =
+        new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 
     gl.bindTexture(tex2d, texture);
     gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -72,13 +79,16 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texImage2D(
         tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType,
-        null);
+        dataForUpload);
 
-    // Create tensor from texture.
+    const logicalShape = [height, width];
+    const physicalShape: [number, number] = [height, width];
+    const a = createTensorFromTexture(texture, logicalShape, physicalShape);
+    const b = tf.mul(a, 2);
 
-    // Perform basic operation on texture.
-
-    // Verify that the result is correct.
+    expect(b.shape).toEqual(logicalShape);
+    expectArraysClose(
+        await b.data(), [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]);
   });
 
   // fit('basic f16',
@@ -108,11 +118,6 @@ describeWithFlags('create tensor from texture', WEBGL1_ENVS, () => {
 
   //     });
 });
-
-const RENDER_FLOAT32_ENVS = {
-  flags: {'WEBGL_RENDER_FLOAT32_ENABLED': true},
-  predicate: WEBGL_ENVS.predicate
-};
 
 describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
   beforeAll(() => {
