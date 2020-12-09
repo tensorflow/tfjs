@@ -33,12 +33,12 @@ export class TextureManager {
 
   constructor(private gpgpu: GPGPUContext) {}
 
-  registerRenderTexture(texture: WebGLTexture, shape: [number, number]) {
+  registerRenderTexture(texture: WebGLTexture, shapeRC: [number, number]) {
     const usage = TextureUsage.RENDER;
     const isPacked = false;
     const physicalTexType = getPhysicalFromLogicalTextureType(usage, isPacked);
 
-    const shapeKey = getKeyFromTextureShape(shape, physicalTexType, isPacked);
+    const shapeKey = getKeyFromTextureShape(shapeRC, physicalTexType, isPacked);
     if (!(shapeKey in this.freeTextures)) {
       this.freeTextures[shapeKey] = [];
     }
@@ -47,7 +47,7 @@ export class TextureManager {
     }
 
     const texBytes = computeBytes(
-        shape, physicalTexType, this.gpgpu.gl, this.gpgpu.textureConfig,
+        shapeRC, physicalTexType, this.gpgpu.gl, this.gpgpu.textureConfig,
         isPacked);
 
     this.usedTextures[shapeKey].push(texture);

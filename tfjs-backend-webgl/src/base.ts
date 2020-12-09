@@ -29,5 +29,8 @@ if (device_util.isBrowser()) {
 export * from './webgl';
 
 // Export forceHalfFlost under webgl namespace for the union bundle.
-import {forceHalfFloat} from './webgl';
-export const webgl = {forceHalfFloat};
+import {forceHalfFloat, createTensorFromTexture} from './webgl';
+export const webgl = {
+  forceHalfFloat,
+  createTensorFromTexture
+};

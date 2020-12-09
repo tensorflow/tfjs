@@ -55,9 +55,16 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
 
   fit('basic f32', () => {
     // Create a texture.
+    const width = 3;
+    const height = 4;
+
     const gl = gpgpu.gl;
     const texture = gl.createTexture();
     const tex2d = gl.TEXTURE_2D;
+    const internalFormat = (gl as any).R32F;
+    const textureFormat = (gl as any).RED;
+    const textureType = (gl as any).FLOAT;
+
     gl.bindTexture(tex2d, texture);
     gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -74,10 +81,10 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     // Verify that the result is correct.
   });
 
-  fit('basic f16',
-      () => {
+  // fit('basic f16',
+  //     () => {
 
-      });
+  //     });
 });
 
 describeWithFlags('create tensor from texture', WEBGL1_ENVS, () => {
@@ -91,15 +98,15 @@ describeWithFlags('create tensor from texture', WEBGL1_ENVS, () => {
     gpgpu.dispose();
   });
 
-  fit('basic f32',
-      () => {
+  // fit('basic f32',
+  //     () => {
 
-      });
+  //     });
 
-  fit('f16',
-      () => {
+  // fit('f16',
+  //     () => {
 
-      });
+  //     });
 });
 
 const RENDER_FLOAT32_ENVS = {

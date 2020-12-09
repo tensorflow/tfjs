@@ -39,8 +39,8 @@ export function forceHalfFloat(): void {
 
 export function createTensorFromTexture(
     texture: WebGLTexture, shape: number[],
-    texShape: [number, number]): Tensor {
+    texShapeRC: [number, number]): Tensor {
   const backend = engine().backend as MathBackendWebGL;
-  const dataId = backend.writeTexture(texture, shape, 'float32', texShape);
+  const dataId = backend.writeTexture(texture, shape, 'float32', texShapeRC);
   return engine().makeTensorFromDataId(dataId, shape, 'float32', backend);
 }

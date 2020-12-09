@@ -176,6 +176,7 @@ export class MathBackendWebGL extends KernelBackend {
       usage: TextureUsage.RENDER,
       texture,
       texShape,
+      isPacked: false,
       refCount: 1,
       complexParentRefCount: 0
     });
