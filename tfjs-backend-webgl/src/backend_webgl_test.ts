@@ -103,24 +103,114 @@ describeWithFlags('create tensor from texture', WEBGL_2_F32_ENVS, () => {
 });
 
 describeWithFlags('create tensor from texture', WEBGL_2_F16_ENVS, () => {
-  fit('basic usage',
-      async () => {
+  fit('basic usage', async () => {
+    const gpgpu = new GPGPUContext();
+    const width = 3;
+    const height = 4;
 
-      });
+    const gl = gpgpu.gl;
+    const texture = gl.createTexture();
+    const tex2d = gl.TEXTURE_2D;
+    const internalFormat = (gl as any).R16F;
+    const textureFormat = (gl as any).RED;
+    const textureType = (gl as any).HALF_FLOAT;
+    const dataForUpload =
+        new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+
+    gl.bindTexture(tex2d, texture);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texImage2D(
+        tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType,
+        dataForUpload);
+
+    const logicalShape = [height, width];
+    const physicalShape: [number, number] = [height, width];
+    const a = createTensorFromTexture(texture, logicalShape, physicalShape);
+    const b = tf.mul(a, 2);
+
+    gpgpu.dispose();
+
+    expect(b.shape).toEqual(logicalShape);
+    expectArraysClose(
+        await b.data(), [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]);
+  });
 });
 
 describeWithFlags('create tensor from texture', WEBGL_1_F32_ENVS, () => {
-  fit('basic usage',
-      async () => {
+  fit('basic usage', async () => {
+    const gpgpu = new GPGPUContext();
+    const width = 3;
+    const height = 4;
 
-      });
+    const gl = gpgpu.gl;
+    const texture = gl.createTexture();
+    const tex2d = gl.TEXTURE_2D;
+    const internalFormat = gl.RGBA;
+    const textureFormat = gl.RGBA;
+    const textureType = gl.FLOAT;
+    const dataForUpload =
+        new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+
+    gl.bindTexture(tex2d, texture);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texImage2D(
+        tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType,
+        dataForUpload);
+
+    const logicalShape = [height, width];
+    const physicalShape: [number, number] = [height, width];
+    const a = createTensorFromTexture(texture, logicalShape, physicalShape);
+    const b = tf.mul(a, 2);
+
+    gpgpu.dispose();
+
+    expect(b.shape).toEqual(logicalShape);
+    expectArraysClose(
+        await b.data(), [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]);
+  });
 });
 
 describeWithFlags('create tensor from texture', WEBGL_1_F16_ENVS, () => {
-  fit('basic usage',
-      async () => {
+  fit('basic usage', async () => {
+    const gpgpu = new GPGPUContext();
+    const width = 3;
+    const height = 4;
 
-      });
+    const gl = gpgpu.gl;
+    const texture = gl.createTexture();
+    const tex2d = gl.TEXTURE_2D;
+    const internalFormat = gl.RGBA;
+    const textureFormat = gl.RGBA;
+    const textureType = gl.FLOAT;
+    const dataForUpload =
+        new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+
+    gl.bindTexture(tex2d, texture);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texImage2D(
+        tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType,
+        dataForUpload);
+
+    const logicalShape = [height, width];
+    const physicalShape: [number, number] = [height, width];
+    const a = createTensorFromTexture(texture, logicalShape, physicalShape);
+    const b = tf.mul(a, 2);
+
+    gpgpu.dispose();
+
+    expect(b.shape).toEqual(logicalShape);
+    expectArraysClose(
+        await b.data(), [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]);
+  });
 });
 
 describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
