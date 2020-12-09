@@ -60,7 +60,7 @@ export function mean(
       backend_util.computeOutAndReduceShapes(input.shape, reductionAxes);
   const reduceSize = util.sizeFromShape(reduceShape);
 
-  const out = backend.makeOutput(outShape, input.dtype);
+  const out = backend.makeOutput(outShape, 'float32');
   if (util.sizeFromShape(input.shape) !== 0) {
     const outId = backend.dataIdMap.get(out.dataId).id;
     wasmMean(inputId, reduceSize, outId);
