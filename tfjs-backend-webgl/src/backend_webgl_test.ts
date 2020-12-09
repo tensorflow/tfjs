@@ -48,18 +48,26 @@ const RENDER_FLOAT32_ENVS = {
   predicate: WEBGL_ENVS.predicate
 };
 
-describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
-  let gpgpu: GPGPUContext;
+const WEBGL_2_F32_ENVS = {
+  flags: {'WEBGL_VERSION': 2, 'WEBGL_RENDER_FLOAT32_ENABLED': true},
+  predicate: WEBGL_ENVS.predicate
+};
+const WEBGL_2_F16_ENVS = {
+  flags: {'WEBGL_VERSION': 2, 'WEBGL_RENDER_FLOAT32_ENABLED': false},
+  predicate: WEBGL_ENVS.predicate
+};
+const WEBGL_1_F32_ENVS = {
+  flags: {'WEBGL_VERSION': 1, 'WEBGL_RENDER_FLOAT32_ENABLED': true},
+  predicate: WEBGL_ENVS.predicate
+};
+const WEBGL_1_F16_ENVS = {
+  flags: {'WEBGL_VERSION': 1, 'WEBGL_RENDER_FLOAT32_ENABLED': false},
+  predicate: WEBGL_ENVS.predicate
+};
 
-  beforeEach(() => {
-    gpgpu = new GPGPUContext();
-  });
-
-  afterEach(() => {
-    gpgpu.dispose();
-  });
-
-  fit('basic f32', async () => {
+describeWithFlags('create tensor from texture', WEBGL_2_F32_ENVS, () => {
+  fit('basic usage', async () => {
+    const gpgpu = new GPGPUContext();
     const width = 3;
     const height = 4;
 
@@ -86,37 +94,33 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     const a = createTensorFromTexture(texture, logicalShape, physicalShape);
     const b = tf.mul(a, 2);
 
+    gpgpu.dispose();
+
     expect(b.shape).toEqual(logicalShape);
     expectArraysClose(
         await b.data(), [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]);
   });
-
-  // fit('basic f16',
-  //     () => {
-
-  //     });
 });
 
-describeWithFlags('create tensor from texture', WEBGL1_ENVS, () => {
-  let gpgpu: GPGPUContext;
+describeWithFlags('create tensor from texture', WEBGL_2_F16_ENVS, () => {
+  fit('basic usage',
+      async () => {
 
-  beforeEach(() => {
-    gpgpu = new GPGPUContext();
-  });
+      });
+});
 
-  afterEach(() => {
-    gpgpu.dispose();
-  });
+describeWithFlags('create tensor from texture', WEBGL_1_F32_ENVS, () => {
+  fit('basic usage',
+      async () => {
 
-  // fit('basic f32',
-  //     () => {
+      });
+});
 
-  //     });
+describeWithFlags('create tensor from texture', WEBGL_1_F16_ENVS, () => {
+  fit('basic usage',
+      async () => {
 
-  // fit('f16',
-  //     () => {
-
-  //     });
+      });
 });
 
 describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
