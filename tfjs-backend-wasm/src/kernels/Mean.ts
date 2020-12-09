@@ -18,6 +18,7 @@
 import {backend_util, KernelConfig, KernelFunc, Mean, MeanAttrs, MeanInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+import {cast} from './Cast';
 
 import {permuteAxesAndTranspose} from './kernel_utils';
 
@@ -59,6 +60,12 @@ export function mean(
   const [outShape, reduceShape] =
       backend_util.computeOutAndReduceShapes(input.shape, reductionAxes);
   const reduceSize = util.sizeFromShape(reduceShape);
+  let castedInput = input;
+  if (input.dtype !== 'float32') {
+    castedInput =
+        cast({backend, inputs: {x: input}, attrs: {dtype: 'float32'}});
+    inputId = backend.dataIdMap.get(castedInput.dataId).id;
+  }
 
   const out = backend.makeOutput(outShape, 'float32');
   if (util.sizeFromShape(input.shape) !== 0) {
@@ -75,6 +82,10 @@ export function mean(
     // reshape
     const newShape = backend_util.expandShapeToKeepDim(out.shape, originalAxes);
     out.shape = newShape;
+  }
+
+  if (input.dtype !== 'float32') {
+    backend.disposeData(castedInput.dataId);
   }
 
   return out;
