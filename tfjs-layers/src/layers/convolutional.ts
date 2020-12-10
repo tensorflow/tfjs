@@ -1233,7 +1233,6 @@ export class UpSampling2D extends Layer {
     this.dataFormat =
         args.dataFormat == null ? 'channelsLast' : args.dataFormat;
     checkDataFormat(this.dataFormat);
-    checkInterpolationFormat(args.interpolation);
     this.interpolation =
         args.interpolation == null ? 'nearest' : args.interpolation;
     checkInterpolationFormat(this.interpolation);
