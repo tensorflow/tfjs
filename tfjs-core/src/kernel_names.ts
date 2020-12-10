@@ -322,7 +322,7 @@ export const Dilation2DBackpropFilter = 'Dilation2DBackpropFilter';
 export type Dilation2DBackpropFilterInputs =
     Pick<NamedTensorInfoMap, 'x'|'filter'|'dy'>;
 
-export const RealDiv = 'RealDiv';
+export const RealDiv = 'Div';
 export type RealDivInputs = BinaryInputs;
 
 export const Elu = 'Elu';
