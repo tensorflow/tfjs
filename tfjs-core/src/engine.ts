@@ -511,9 +511,9 @@ export class Engine implements TensorTracker, DataMover {
    *     for the backprop computation. These are booleans since the output
    * tensors are not visible to the user.
    */
-  runKernel(
-      kernelName: string, inputs: NamedTensorMap, attrs: NamedAttrMap,
-      inputsToSave?: Tensor[], outputsToSave?: boolean[]): Tensor|Tensor[] {
+  runKernel<T extends Tensor|Tensor[]>(
+      kernelName: string, inputs: NamedTensorMap, attrs?: NamedAttrMap,
+      inputsToSave?: Tensor[], outputsToSave?: boolean[]): T {
     const forwardFunc: null = null;
     const backwardsFunc: null = null;
     // Call runKernel as a stop-gap until we modularize all kernels.
@@ -627,6 +627,10 @@ export class Engine implements TensorTracker, DataMover {
         return outTensors;
       };
     } else {
+      if (forwardFunc == null) {
+        throw new Error(`Error running ${
+            kernelName}: Neither modular kernel nor forward func passed`);
+      }
       const saveFunc: GradSaveFunc = (tensors) => {
         // Do not save unless we are recording to the tape. Otherwise it would
         // cause a mem leak since we would never run backprop, which disposes

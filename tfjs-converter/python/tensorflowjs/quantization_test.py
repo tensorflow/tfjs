@@ -48,7 +48,10 @@ class TestQuantizationUtil(unittest.TestCase):
 
     de_q = quantization.dequantize_weights(
         q, metadata, data_dtype)
-    np.testing.assert_allclose(de_q, d)
+    if data_dtype != np.float32:
+      np.testing.assert_allclose(de_q, d)
+    else:
+      np.testing.assert_array_almost_equal(de_q, d, decimal=2)
 
     if quantization_dtype in [np.uint8, np.uint16]:
       s = metadata['scale']
@@ -117,6 +120,13 @@ class TestQuantizationUtil(unittest.TestCase):
     self._runQuantizeTest(
         1, 3, np.float32, np.uint16,
         expected_metadata={'scale': 2/65536})
+
+  def testAffineQuantizeNormalizedFloats(self):
+    data = np.array(
+        [-0.29098126, -0.24776903, -0.27248842, 0.23848203], dtype=np.float32)
+    q, metadata = quantization.quantize_weights(data, np.uint16)
+    de_q = quantization.dequantize_weights(q, metadata, data.dtype)
+    np.testing.assert_array_almost_equal(de_q, data, decimal=5)
 
   def testAffineQuantizeNegativeInts(self):
     self._runQuantizeTest(

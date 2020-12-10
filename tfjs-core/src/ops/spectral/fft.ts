@@ -47,15 +47,7 @@ function fft_(input: Tensor): Tensor {
 
   const inputs: FFTInputs = {input};
 
-  return ENGINE.runKernelFunc(backend => {
-    // Collapse all outer dimensions to a single batch dimension.
-    const innerDimensionSize = input.shape[input.shape.length - 1];
-    const batch = input.size / innerDimensionSize;
-
-    const input2D = input.as2D(batch, innerDimensionSize);
-    const result = backend.fft(input2D);
-    return result.reshape(input.shape);
-  }, inputs as {} as NamedTensorMap, null /* gradient */, FFT);
+  return ENGINE.runKernel(FFT, inputs as {} as NamedTensorMap);
 }
 
 export const fft = op({fft_});

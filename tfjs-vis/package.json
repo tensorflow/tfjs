@@ -12,7 +12,8 @@
   "scripts": {
     "build": "tsc && NODE_ENV=production webpack",
     "lint": "tslint -p . -t verbose",
-    "test": "karma start",
+    "test": "yarn && yarn build && karma start",
+    "test-dev": "karma start",
     "run-browserstack": "karma start --singleRun --reporters='dots,karma-typescript,BrowserStack' --hostname='bs-local.com'",
     "test-ci": "./scripts/test-ci.sh",
     "build-npm": "./scripts/build-npm.sh",

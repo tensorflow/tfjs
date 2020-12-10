@@ -690,6 +690,31 @@ describe('control', () => {
     });
   });
 
+  describe('EmptyTensorList', () => {
+    it('should create new tensor on the context', async () => {
+      node.op = 'EmptyTensorList';
+      node.inputParams['elementShape'] = createNumericArrayAttrFromIndex(0);
+      node.inputParams['maxNumElements'] = createNumberAttrFromIndex(1);
+      node.attrParams['elementDType'] = createDtypeAttr('int32');
+      node.inputNames = ['input4', 'input1'];
+      const input4 = [tensor1d([10, 10], 'int32')];
+      const tensorListId =
+          (await executeOp(node, {input1, input4}, context))[0];
+      const tensorList = context.getTensorList(tensorListId.id);
+      expect(tensorList.elementDtype).toEqual('int32');
+      expect(tensorList.elementShape).toEqual([10, 10]);
+      expect(tensorList.maxNumElements).toEqual(1);
+    });
+    it('should match json def', () => {
+      node.op = 'EmptyTensorList';
+      node.inputParams['elementShape'] = createShapeAttrFromIndex(0);
+      node.inputParams['maxNumElements'] = createNumberAttrFromIndex(1);
+      node.attrParams['elementDType'] = createDtypeAttr('int32');
+
+      expect(validateParam(node, control.json)).toBeTruthy();
+    });
+  });
+
   describe('TensorListConcat', () => {
     it('should concat the tensors from tensorList', async () => {
       const input4 = tensor1d([0, 0, 0], 'int32');

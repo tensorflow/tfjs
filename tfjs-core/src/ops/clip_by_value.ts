@@ -50,14 +50,8 @@ function clipByValue_<T extends Tensor>(
   const inputs: ClipByValueInputs = {x: $x};
   const attrs: ClipByValueAttrs = {clipValueMin, clipValueMax};
 
-  return ENGINE.runKernelFunc(
-      (backend, save) => {
-        const res = backend.clip($x, clipValueMin, clipValueMax);
-        save([$x]);
-        return res;
-      },
-      inputs as {} as NamedTensorMap, null /* grad */, ClipByValue,
-      attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(
+      ClipByValue, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const clipByValue = op({clipByValue_});
