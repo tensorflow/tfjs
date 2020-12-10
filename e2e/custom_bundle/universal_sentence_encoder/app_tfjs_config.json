@@ -1,0 +1,47 @@
+{
+  "kernels": [
+    "StridedSlice",
+    "Less",
+    "Cast",
+    "Reshape",
+    "GatherV2",
+    "Max",
+    "Add",
+    "Maximum",
+    "SparseToDense",
+    "Greater",
+    "Sum",
+    "ExpandDims",
+    "Concat",
+    "LogicalNot",
+    "Multiply",
+    "ScatterNd",
+    "GatherNd",
+    "Cos",
+    "Sin",
+    "BatchMatMul",
+    "Mean",
+    "Sub",
+    "Square",
+    "Rsqrt",
+    "Conv2D",
+    "SplitV",
+    "Pack",
+    "Transpose",
+    "Slice",
+    "Softmax",
+    "Prod",
+    "Relu",
+    "Range",
+    "RealDiv",
+    "Tanh"
+  ],
+  "backends": [
+      "webgl"
+  ],
+  "models": [
+      "./model.json"
+  ],
+  "outputPath": "./custom_tfjs",
+  "forwardModeOnly": true
+}
