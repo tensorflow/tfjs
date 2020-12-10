@@ -1225,7 +1225,6 @@ export class UpSampling2D extends Layer {
   protected readonly dataFormat: DataFormat;
   protected readonly interpolation: InterpolationFormat;
 
-
   constructor(args: UpSampling2DLayerArgs) {
     super(args);
     this.inputSpec = [{ndim: 4}];
@@ -1272,7 +1271,6 @@ export class UpSampling2D extends Layer {
         return this.interpolation === 'nearest' ?
             input.resizeNearestNeighbor([height, width]) :
             input.resizeBilinear([height, width]);
-        ;
       }
     });
   }
