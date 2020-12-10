@@ -44,3 +44,16 @@ export function createTensorFromTexture(
   const dataId = backend.writeTexture(texture, shape, 'float32', texShapeRC);
   return engine().makeTensorFromDataId(dataId, shape, 'float32', backend);
 }
+
+// type TensorFromTextureConfig = {
+//   texture: WebGLTexture,
+//   shape: number[],
+//   texShapeRC: [number, number],
+//   internalFormat: any,
+//   textureFormat: any,
+//   textureType: any
+// };
+
+// export function createTensorFromTexture2(): Tensor {
+
+// }
