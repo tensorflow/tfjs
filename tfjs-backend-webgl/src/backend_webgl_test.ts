@@ -119,7 +119,7 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
 });
 
 describeWithFlags('create tensor from texture', WEBGL1_ENVS, () => {
-  fit('basic usage', async () => {
+  it('basic usage', async () => {
     const gpgpu = new GPGPUContext();
     const width = 3;
     const height = 4;
