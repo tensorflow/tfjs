@@ -35,14 +35,17 @@ export function fromPixelsImageBitmap(args: {
   const uniformData: [number, number] = [size, numChannels];
 
   const output = backend.makeOutputArray(outShape, 'int32');
-  if (!backend.fromPixelProgram ||
-      backend.fromPixelProgram.outputShape !== outShape) {
+  if (!backend.fromPixelProgram) {
     backend.fromPixelProgram = new FromPixelsProgram(outShape);
 
     const {bindGroupLayout, pipeline} = webgpu_program.compileProgram(
         backend.glslang, backend.device, backend.fromPixelProgram, [], output);
 
     backend.fromPixelProgram.setWebGPUBinary(bindGroupLayout, pipeline);
+  }
+
+  if (backend.fromPixelProgram.outputShape !== outShape) {
+    backend.fromPixelProgram.updateOutputShape(outShape);
   }
 
   backend.queue.copyImageBitmapToTexture(

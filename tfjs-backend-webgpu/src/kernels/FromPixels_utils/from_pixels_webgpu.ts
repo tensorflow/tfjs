@@ -76,6 +76,15 @@ export class FromPixelsProgram implements WebGPUProgram {
     `;
   }
 
+  updateOutputShape(outputShape: number[]) {
+    this.outputShape = outputShape;
+    this.workPerThread = outputShape[2];  // numChannels in outputShape.
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+      this.dispatchLayout, this.outputShape, this.workGroupSize,
+      [this.workPerThread, 1, 1]);
+  }
+
   setWebGPUBinary(
     bindGroupLayout: GPUBindGroupLayout, pipeline: GPUComputePipeline) {
       this.bindGroupLayout = bindGroupLayout;
