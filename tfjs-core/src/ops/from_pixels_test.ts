@@ -284,21 +284,25 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
   });
 
   it('fromPixels for ImageBitmap', async () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 2;
-    canvas.height = 3;
-    const ctx = canvas.getContext('2d');
-    const pixels = new ImageData(1, 1);
-    for (let i = 0; i < canvas.width * canvas.height; ++i) {
-      pixels.data[i] = i;
+    var imageDataWidth = 1;
+    var imageDataHeight = 2;
+    var numChannel = 3;
+    const pixels = new ImageData(imageDataWidth,imageDataHeight);
+    for (let i = 0; i < imageDataWidth * imageDataHeight * 4; ++i) {
+      if (i % 4 == 3) {
+        pixels.data[i] = 255;
+      } else {
+        pixels.data[i] = i;
+      }
     }
-    ctx.putImageData(pixels, canvas.width, canvas.height);
 
-    const imageBitmap = await createImageBitmap(canvas);
-    const res = tf.browser.fromPixels(imageBitmap);
-    expect(res.shape).toEqual([canvas.height, canvas.width, 3]);
-    const data = await res.data();
-    expect(data.length).toEqual(canvas.height * canvas.width * 3);
+    const imageBitmap = await createImageBitmap(pixels);
+    const res = tf.browser.fromPixels(imageBitmap, numChannel);
     imageBitmap.close();
+    expect(res.shape).toEqual([imageDataHeight, imageDataWidth, numChannel]);
+    const data = await res.data();
+    expect(data.length).toEqual(imageDataHeight * imageDataWidth * numChannel);
+    var dst = await res.data();
+    expectArraysEqual(dst, [0, 1, 2, 4, 5, 6]);
   });
 });
