@@ -124,10 +124,13 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
 });
 
 describeWithFlags('create tensor from texture', WEBGL_1_F32_ENVS, () => {
-  it('basic usage', async () => {
+  fit('basic usage', async () => {
     const gpgpu = new GPGPUContext();
     const width = 3;
     const height = 4;
+
+    const logicalShape: [number, number] = [height, width];
+    const physicalShape: [number, number] = [height, width];
 
     const gl = gpgpu.gl;
     const texture = gl.createTexture();
@@ -135,8 +138,10 @@ describeWithFlags('create tensor from texture', WEBGL_1_F32_ENVS, () => {
     const internalFormat = gl.RGBA;
     const textureFormat = gl.RGBA;
     const textureType = gl.FLOAT;
-    const dataForUpload =
-        new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    const dataForUpload = new Float32Array([
+      0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4,  0, 0, 0, 5,  0, 0, 0,
+      6, 0, 0, 0, 7, 0, 0, 0, 8, 0, 0, 0, 9, 0, 0, 0, 10, 0, 0, 0, 11, 0, 0, 0,
+    ]);
 
     gl.bindTexture(tex2d, texture);
     gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -147,17 +152,13 @@ describeWithFlags('create tensor from texture', WEBGL_1_F32_ENVS, () => {
         tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType,
         dataForUpload);
 
-    const logicalShape = [height, width];
-    const physicalShape: [number, number] = [height, width];
     const a = createTensorFromTexture(texture, logicalShape, physicalShape);
     const b = tf.mul(a, 2);
-    b.print();
-
-    gpgpu.dispose();
 
     expect(b.shape).toEqual(logicalShape);
-    // expectArraysClose(
-    //     await b.data(), [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]);
+    expectArraysClose(
+        await b.data(), [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]);
+    gpgpu.dispose();
   });
 });
 
