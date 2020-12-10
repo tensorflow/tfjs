@@ -48,6 +48,5 @@ export function range(
 
   const attrs: RangeAttrs = {start, stop, step, dtype};
 
-  return ENGINE.runKernel(
-             Range, {} /* inputs */, attrs as {} as NamedAttrMap) as Tensor1D;
+  return ENGINE.runKernel(Range, {} /* inputs */, attrs as {} as NamedAttrMap);
 }
