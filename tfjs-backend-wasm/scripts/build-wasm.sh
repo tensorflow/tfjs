@@ -31,7 +31,7 @@ if [[ "$1" != "--dev" ]]; then
         wasm-out/
 
   # Threaded + SIMD build.
-  yarn bazel build -c opt //src/cc:tfjs-backend-wasm-threaded-simd.js --config=wasm --copt="-pthread" --copt="-msimd128" --pre-js prejs.js
+  yarn bazel build -c opt //src/cc:tfjs-backend-wasm-threaded-simd.js --config=wasm --copt="-pthread" --copt="-msimd128"
   cp -f bazel-bin/src/cc/tfjs-backend-wasm-threaded-simd.js \
         bazel-bin/src/cc/tfjs-backend-wasm-threaded-simd.worker.js \
         bazel-bin/src/cc/tfjs-backend-wasm-threaded-simd.wasm \
