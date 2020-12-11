@@ -57,9 +57,11 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     const gl = gpgpu.gl;
     const texture = gl.createTexture();
     const tex2d = gl.TEXTURE_2D;
-    const internalFormat = (gl as any).R32F;
-    const textureFormat = (gl as any).RED;
-    const textureType = (gl as any).FLOAT;
+    // tslint:disable-next-line:no-any
+    const glany = gl as any;
+    const internalFormat = glany.R32F;
+    const textureFormat = glany.RED;
+    const textureType = glany.FLOAT;
     const dataForUpload =
         new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
 
@@ -74,7 +76,15 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
 
     const logicalShape = [height, width];
     const physicalShape: [number, number] = [height, width];
-    const a = createTensorFromTexture(texture, logicalShape, physicalShape);
+    const a = createTensorFromTexture({
+      texture,
+      shape: logicalShape,
+      dtype: 'float32',
+      texShapeRC: physicalShape,
+      internalFormat,
+      textureFormat,
+      textureType
+    });
     const b = tf.mul(a, 2);
 
     expect(b.shape).toEqual(logicalShape);
@@ -85,6 +95,11 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
   });
 
   it('force f16', async () => {
+    const gpgpu = new GPGPUContext();
+    const gl = gpgpu.gl;
+    // tslint:disable-next-line:no-any
+    const glany = gl as any;
+
     // Unlike in the F32 test, rather than creating a texture from scratch, we
     // must extract the output texture from an operation because we cannot
     // upload Float16 data directly to the GPU.
@@ -106,7 +121,15 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     const a = tf.tensor2d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], logicalShape);
     const b = tf.relu(a);
     const bTexture = (tf.backend() as MathBackendWebGL).getTexture(b.dataId);
-    const c = createTensorFromTexture(bTexture, logicalShape, physicalShape);
+    const c = createTensorFromTexture({
+      texture: bTexture,
+      shape: logicalShape,
+      dtype: 'float32',
+      texShapeRC: physicalShape,
+      internalFormat: glany.R16F,
+      textureFormat: glany.RED,
+      textureType: glany.HALF_FLOAT
+    });
     const d = tf.mul(c, 2);
 
     expect(d.shape).toEqual(logicalShape);
@@ -115,6 +138,8 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
 
     tf.env().set('WEBGL_FORCE_F16_TEXTURES', webglForceF16FlagSaved);
     tf.env().set('WEBGL_PACK', webglPackedFlagSaved);
+
+    gpgpu.dispose();
   });
 });
 
@@ -147,7 +172,15 @@ describeWithFlags('create tensor from texture', WEBGL1_ENVS, () => {
         tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType,
         dataForUpload);
 
-    const a = createTensorFromTexture(texture, logicalShape, physicalShape);
+    const a = createTensorFromTexture({
+      texture,
+      shape: logicalShape,
+      texShapeRC: physicalShape,
+      dtype: 'float32',
+      internalFormat,
+      textureFormat,
+      textureType
+    });
     const b = tf.mul(a, 2);
 
     expect(b.shape).toEqual(logicalShape);
@@ -157,6 +190,9 @@ describeWithFlags('create tensor from texture', WEBGL1_ENVS, () => {
   });
 
   it('chained', async () => {
+    const gpgpu = new GPGPUContext();
+    const gl = gpgpu.gl;
+
     const webglPackedFlagSaved = tf.env().getBool('WEBGL_PACK');
     tf.env().set('WEBGL_PACK', false);
 
@@ -168,7 +204,15 @@ describeWithFlags('create tensor from texture', WEBGL1_ENVS, () => {
     const a = tf.tensor2d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], logicalShape);
     const b = tf.relu(a);
     const bTexture = (tf.backend() as MathBackendWebGL).getTexture(b.dataId);
-    const c = createTensorFromTexture(bTexture, logicalShape, physicalShape);
+    const c = createTensorFromTexture({
+      texture: bTexture,
+      shape: logicalShape,
+      texShapeRC: physicalShape,
+      dtype: 'float32',
+      internalFormat: gl.RGBA,
+      textureFormat: gl.RGBA,
+      textureType: gl.FLOAT
+    });
     const d = tf.mul(c, 2);
 
     expect(d.shape).toEqual(logicalShape);

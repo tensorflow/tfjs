@@ -38,14 +38,6 @@ export function forceHalfFloat(): void {
   env().set('WEBGL_FORCE_F16_TEXTURES', true);
 }
 
-export function createTensorFromTexture(
-    texture: WebGLTexture, shape: number[],
-    texShapeRC: [number, number]): Tensor {
-  const backend = engine().backend as MathBackendWebGL;
-  const dataId = backend.writeTexture(texture, shape, 'float32', texShapeRC);
-  return engine().makeTensorFromDataId(dataId, shape, 'float32', backend);
-}
-
 type TensorFromTextureConfig = {
   texture: WebGLTexture,
   shape: number[],
@@ -56,7 +48,7 @@ type TensorFromTextureConfig = {
   textureType: number
 };
 
-export function createTensorFromTexture2({
+export function createTensorFromTexture({
   texture,
   shape,
   dtype,
