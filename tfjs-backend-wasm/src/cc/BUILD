@@ -67,7 +67,7 @@ cc_binary(
         "-s SIMD=1",
         "-s USE_PTHREADS=1",
         "-s PROXY_TO_PTHREAD=1",
-        "--pre-js './src/prejs.js'",
+        "--pre-js './src/emscripten_threaded_module_prejs.js'",
     ],
     deps = [
         ":all_kernels",
