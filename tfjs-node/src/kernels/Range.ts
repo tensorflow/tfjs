@@ -43,7 +43,6 @@ export const rangeConfig: KernelConfig = {
       step = -1;
     }
 
-
     const opAttrs = [createTensorsTypeOpAttr('Tidx', dtype)];
     const startTensor = scalar(start);
     const stopTensor = scalar(stop);
