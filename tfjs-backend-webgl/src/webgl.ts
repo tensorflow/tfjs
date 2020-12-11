@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
-import {engine, env, Tensor} from '@tensorflow/tfjs-core';
+import {DataType, engine, env, Tensor, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from './backend_webgl';
 import * as gpgpu_util from './gpgpu_util';
+import {getTextureConfig} from './tex_util';
 import * as webgl_util from './webgl_util';
 
 export {MathBackendWebGL, WebGLMemoryInfo, WebGLTimingInfo} from './backend_webgl';
@@ -45,15 +46,46 @@ export function createTensorFromTexture(
   return engine().makeTensorFromDataId(dataId, shape, 'float32', backend);
 }
 
-// type TensorFromTextureConfig = {
-//   texture: WebGLTexture,
-//   shape: number[],
-//   texShapeRC: [number, number],
-//   internalFormat: any,
-//   textureFormat: any,
-//   textureType: any
-// };
+type TensorFromTextureConfig = {
+  texture: WebGLTexture,
+  shape: number[],
+  dtype: DataType,
+  texShapeRC: [number, number],
+  internalFormat: number,
+  textureFormat: number,
+  textureType: number
+};
 
-// export function createTensorFromTexture2(): Tensor {
+export function createTensorFromTexture2({
+  texture,
+  shape,
+  dtype,
+  texShapeRC,
+  internalFormat,
+  textureFormat,
+  textureType
+}: TensorFromTextureConfig): Tensor {
+  const backend = engine().backend as MathBackendWebGL;
+  const gl = backend.gpgpu.gl;
+  const texConfig = backend.gpgpu.textureConfig;
+  let params: gpgpu_util.TextureCreationParams;
 
-// }
+  if (env().getBool('WEBGL_RENDER_FLOAT32_ENABLED') === true) {
+    params = gpgpu_util.getTextureParamsForFloat32MatrixTexture(gl, texConfig);
+  } else {
+    params = gpgpu_util.getTextureParamsForFloat16MatrixTexture(gl, texConfig);
+  }
+
+  util.assert(
+      internalFormat === params.internalFormat,
+      () => `The internalFormat must be ${params.internalFormat}.`);
+  util.assert(
+      textureFormat === params.textureFormat,
+      () => `The textureFormat must be ${params.textureFormat}.`);
+  util.assert(
+      textureType === params.textureType,
+      () => `The textureType must be ${params.textureType}.`);
+
+  const dataId = backend.writeTexture(texture, shape, dtype, texShapeRC);
+  return engine().makeTensorFromDataId(dataId, shape, dtype, backend);
+}
