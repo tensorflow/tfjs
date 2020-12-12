@@ -41,10 +41,6 @@ function sqrt_<T extends Tensor>(x: T|TensorLike): T {
 
   const inputs: SqrtInputs = {x: $x};
 
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.sqrt($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Sqrt);
+  return ENGINE.runKernel(Sqrt, inputs as {} as NamedTensorMap);
 }
 export const sqrt = op({sqrt_});
