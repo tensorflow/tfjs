@@ -63,7 +63,8 @@
     "test": "yarn && yarn build-deps && karma start",
     "test-dev": "karma start",
     "test-ci": "./scripts/test-ci.sh",
-    "test-snippets": "ts-node --skip-ignore -s ./scripts/test_snippets.ts",
+    "test-snippets": "yarn && yarn build-deps && yarn build && ts-node --skip-ignore -s ./scripts/test_snippets.ts",
+    "test-snippets-ci": "ts-node --skip-ignore -s ./scripts/test_snippets.ts",
     "run-browserstack": "karma start --browsers='bs_chrome_mac' --singleRun --reporters='dots,karma-typescript'",
     "lint": "tslint -p . -t verbose"
   },
