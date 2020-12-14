@@ -79,7 +79,7 @@
     "test-node-ci": "ts-node --transpile-only -P tsconfig.test.json  dist/test_node.js",
     "test-async-backends": "rimraf dist/ && yarn build && ts-node --transpile-only -P tsconfig.test.json dist/test_async_backends.js",
     "test-async-backends-ci": "ts-node --transpile-only -P tsconfig.test.json dist/test_async_backends.js",
-    "test-snippets": "yarn build && yarn build-cpu-backend && ts-node -P tsconfig.test.json ./scripts/test_snippets/test_snippets.ts"
+    "test-snippets": "yarn build && yarn build-cpu-backend && ts-node -P tsconfig.test.json ./scripts/test_snippets/test_snippets.ts",
     "test-snippets-ci": "ts-node -P tsconfig.test.json ./scripts/test_snippets/test_snippets.ts"
   },
   "dependencies": {
