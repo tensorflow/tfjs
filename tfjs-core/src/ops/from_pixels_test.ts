@@ -284,9 +284,9 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
   });
 
   it('fromPixels for ImageBitmap', async () => {
-    var imageDataWidth = 1;
-    var imageDataHeight = 2;
-    var numChannel = 3;
+    const imageDataWidth = 1;
+    const imageDataHeight = 2;
+    const numChannel = 3;
     const pixels = new ImageData(imageDataWidth,imageDataHeight);
     for (let i = 0; i < imageDataWidth * imageDataHeight * 4; ++i) {
       if (i % 4 == 3) {
@@ -302,7 +302,6 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     expect(res.shape).toEqual([imageDataHeight, imageDataWidth, numChannel]);
     const data = await res.data();
     expect(data.length).toEqual(imageDataHeight * imageDataWidth * numChannel);
-    var dst = await res.data();
-    expectArraysEqual(dst, [0, 1, 2, 4, 5, 6]);
+    expectArraysEqual(await res.data(), [0, 1, 2, 4, 5, 6]);
   });
 });

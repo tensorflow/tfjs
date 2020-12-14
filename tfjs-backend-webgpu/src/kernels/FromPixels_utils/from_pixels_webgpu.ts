@@ -20,7 +20,7 @@ import {computeDispatch, flatDispatchLayout} from '../../webgpu_util';
 import {WebGPUProgram} from '../webgpu_program';
 
 export class FromPixelsProgram implements WebGPUProgram {
-  outputShape: number[];
+  outputShape: number[] = [0];
   shaderKey: string;
   userCode: string;
   workPerThread:number;
@@ -40,13 +40,22 @@ export class FromPixelsProgram implements WebGPUProgram {
 
   private disposed = false;
 
-  constructor(outputShape: number[]) {
+  updateOutputShape(outputShape: number[]) {
+    if (this.outputShape.length === outputShape.length &&
+        this.outputShape.every((v, i) => v === outputShape[i])) {
+      return;
+    }
+
     this.outputShape = outputShape;
     this.workPerThread = outputShape[2];  // numChannels in outputShape.
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
       this.dispatchLayout, this.outputShape, this.workGroupSize,
       [this.workPerThread, 1, 1]);
+  }
+
+  constructor(outputShape: number[]) {
+    this.updateOutputShape(outputShape);
 
     this.userCode = `
     layout (local_size_x = ${this.workGroupSize[0]},
@@ -74,15 +83,6 @@ export class FromPixelsProgram implements WebGPUProgram {
       }
     }
     `;
-  }
-
-  updateOutputShape(outputShape: number[]) {
-    this.outputShape = outputShape;
-    this.workPerThread = outputShape[2];  // numChannels in outputShape.
-    this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.dispatch = computeDispatch(
-      this.dispatchLayout, this.outputShape, this.workGroupSize,
-      [this.workPerThread, 1, 1]);
   }
 
   setWebGPUBinary(
