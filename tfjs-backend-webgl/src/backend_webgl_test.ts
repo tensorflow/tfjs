@@ -103,19 +103,24 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     // scratch, we must extract the output texture from an operation because we
     // cannot upload Float16 data directly to the GPU.
 
-    const gpgpu = new GPGPUContext();
-    const gl = gpgpu.gl;
-    // tslint:disable-next-line:no-any
-    const glany = gl as any;
+    // We clean up explicitly so that we have full control over the environment
+    // flags during texture initialization / disposal.
+    tf.engine().startScope();
 
-    const webglForceF16FlagSaved = tf.env().getBool('WEBGL_FORCE_F16_TEXTURES');
+    const webglRenderF32EnabledFlagSaved =
+        tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED');
     const webglPackedFlagSaved = tf.env().getBool('WEBGL_PACK');
-    tf.env().set('WEBGL_FORCE_F16_TEXTURES', true);
+    tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
 
     // We must set `WEBGL_PACK` to false because createTensorFromTexture only
     // accepts unpacked textures so this ensures the output texture (`bTexture`
     // below) is unpacked.
     tf.env().set('WEBGL_PACK', false);
+
+    const gpgpu = new GPGPUContext();
+    const gl = gpgpu.gl;
+    // tslint:disable-next-line:no-any
+    const glany = gl as any;
 
     const width = 3;
     const height = 4;
@@ -140,10 +145,12 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     expectArraysClose(
         await d.data(), [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]);
 
-    tf.env().set('WEBGL_FORCE_F16_TEXTURES', webglForceF16FlagSaved);
-    tf.env().set('WEBGL_PACK', webglPackedFlagSaved);
-
     gpgpu.dispose();
+
+    tf.env().set(
+        'WEBGL_RENDER_FLOAT32_ENABLED', webglRenderF32EnabledFlagSaved);
+    tf.env().set('WEBGL_PACK', webglPackedFlagSaved);
+    tf.engine().startScope();
   });
 });
 
