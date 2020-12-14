@@ -166,6 +166,8 @@ export class MathBackendWebGL extends KernelBackend {
         this.pendingDeletes;
   }
 
+  // Writes a new entry to the data store with a WebGL texture, and registers it
+  // to the texture manager.
   writeTexture(
       texture: WebGLTexture, shape: number[], dtype: DataType,
       texShape: [number, number]): DataId {
@@ -180,6 +182,7 @@ export class MathBackendWebGL extends KernelBackend {
       refCount: 1,
       complexParentRefCount: 0
     });
+
     this.textureManager.registerRenderTexture(texture, texShape);
     return dataId;
   }

@@ -50,6 +50,10 @@ const RENDER_FLOAT32_ENVS = {
 
 describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
   it('basic usage', async () => {
+    // In this test we create a WebGL texture using the GL context from the
+    // WebGL backend. Then we create a tensor from that texture, and ensure that
+    // we can perform a TF operation on that tensor and get the expected result.
+
     const gpgpu = new GPGPUContext();
     const width = 3;
     const height = 4;
@@ -95,14 +99,14 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
   });
 
   it('force f16', async () => {
+    // Unlike in the basic usage test, rather than creating a texture from
+    // scratch, we must extract the output texture from an operation because we
+    // cannot upload Float16 data directly to the GPU.
+
     const gpgpu = new GPGPUContext();
     const gl = gpgpu.gl;
     // tslint:disable-next-line:no-any
     const glany = gl as any;
-
-    // Unlike in the F32 test, rather than creating a texture from scratch, we
-    // must extract the output texture from an operation because we cannot
-    // upload Float16 data directly to the GPU.
 
     const webglForceF16FlagSaved = tf.env().getBool('WEBGL_FORCE_F16_TEXTURES');
     const webglPackedFlagSaved = tf.env().getBool('WEBGL_PACK');
@@ -158,6 +162,8 @@ describeWithFlags('create tensor from texture', WEBGL1_ENVS, () => {
     const internalFormat = gl.RGBA;
     const textureFormat = gl.RGBA;
     const textureType = gl.FLOAT;
+    // WebGL 1 does not accept gl.RED as an internalFormat, so we have to
+    // upload values for the unused channels as well.
     const dataForUpload = new Float32Array([
       0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4,  0, 0, 0, 5,  0, 0, 0,
       6, 0, 0, 0, 7, 0, 0, 0, 8, 0, 0, 0, 9, 0, 0, 0, 10, 0, 0, 0, 11, 0, 0, 0,
