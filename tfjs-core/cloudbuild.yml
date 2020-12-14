@@ -65,7 +65,7 @@ steps:
   id: 'test-snippets'
   entrypoint: 'yarn'
   args: ['test-snippets-ci']
-  waitFor: ['yarn']
+  waitFor: ['yarn', 'build']
 
 # test Async backends
 - name: 'node:10'
