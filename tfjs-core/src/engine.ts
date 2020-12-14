@@ -1224,9 +1224,5 @@ export const ENGINE = getOrMakeEngine();
 export function add(a: Tensor, b: Tensor): Tensor {
   // We duplicate Add here to avoid a circular dependency with add.ts.
   const inputs = {a, b};
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.add(a, b);
-    save([a, b]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* gradient */, Add);
+  return ENGINE.runKernel(Add, inputs as {} as NamedTensorMap);
 }
