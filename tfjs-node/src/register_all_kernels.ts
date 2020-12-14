@@ -106,6 +106,7 @@ import {maxPoolConfig} from './kernels/MaxPool';
 import {maxPool3DConfig} from './kernels/MaxPool3D';
 import {maxPool3DGradConfig} from './kernels/MaxPool3DGrad';
 import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
+import {meanConfig} from './kernels/Mean';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
 import {mirrorPadConfig} from './kernels/MirrorPad';
@@ -124,6 +125,7 @@ import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
+import {rangeConfig} from './kernels/Range';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reciprocalConfig} from './kernels/Reciprocal';
@@ -255,6 +257,7 @@ const kernelConfigs: KernelConfig[] = [
   maxPoolConfig,
   maxPoolGradConfig,
   maximumConfig,
+  meanConfig,
   minConfig,
   minimumConfig,
   mirrorPadConfig,
@@ -273,6 +276,7 @@ const kernelConfigs: KernelConfig[] = [
   powConfig,
   preluConfig,
   prodConfig,
+  rangeConfig,
   realConfig,
   realDivConfig,
   reciprocalConfig,
