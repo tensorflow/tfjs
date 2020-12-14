@@ -44,9 +44,7 @@ export function fromPixelsImageBitmap(args: {
     backend.fromPixelProgram.setWebGPUBinary(bindGroupLayout, pipeline);
   }
 
-  if (backend.fromPixelProgram.outputShape !== outShape) {
-    backend.fromPixelProgram.updateOutputShape(outShape);
-  }
+  backend.fromPixelProgram.updateOutputShape(outShape);
 
   backend.queue.copyImageBitmapToTexture(
       {imageBitmap, origin: {x: 0, y: 0}}, {
