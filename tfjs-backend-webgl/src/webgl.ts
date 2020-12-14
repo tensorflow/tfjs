@@ -48,6 +48,23 @@ type TensorFromTextureConfig = {
   textureType: number
 };
 
+/**
+ * Create a tensor out of an existing WebGL texture.
+ *
+ * @param obj An object with the following properties:
+ *  @param texture The WebGL texture to create a tensor from.
+ *  @param shape The logical shape of the texture.
+ *  @param dtype The dtype of the tensor to be created.
+ *  @param texShapeRC The physical dimensions of the texture expressed as [rows,
+ * columns].
+ *  @param internalFormat The internalFormat of the texture provided to
+ * gl.texImage2D during texture creation.
+ *  @param textureFormat The textureFormat of the texture provided to
+ * gl.texImage2D during texture creation.
+ *  @param textureType The textureType of the texture provided to gl.texImage2D
+ * during texture creation.
+ * @doc {heading: 'Environment', namespace: 'webgl'}
+ */
 export function createTensorFromTexture({
   texture,
   shape,
@@ -57,6 +74,15 @@ export function createTensorFromTexture({
   textureFormat,
   textureType
 }: TensorFromTextureConfig): Tensor {
+  // OpenGL / WebGL do not make it possible to query textures for their
+  // properties (physical dimensions, internalFormat, etc.), therefore we ask
+  // the user to provide this information in order to validate their texture.
+
+  // StackOverflow posts confirming that this information cannot be queried:
+  // https://stackoverflow.com/questions/30140178/opengl-es-2-0-get-texture-size-and-other-info
+  // https://stackoverflow.com/questions/26315021/is-there-a-way-to-retrieve-the-dimensions-of-a-texture-after-binding-with-gl-bin
+  // https://stackoverflow.com/questions/46387922/how-to-check-a-texture-is-2d-texture-or-cube-texture-in-webgl
+
   const backend = engine().backend as MathBackendWebGL;
   const gl = backend.gpgpu.gl;
   const texConfig = backend.gpgpu.textureConfig;
@@ -68,6 +94,8 @@ export function createTensorFromTexture({
     params = gpgpu_util.getTextureParamsForFloat16MatrixTexture(gl, texConfig);
   }
 
+  // Ensure that the properties of the texture match the expectations of the
+  // WebGL backend.
   util.assert(
       internalFormat === params.internalFormat,
       () => `The internalFormat must be ${params.internalFormat}.`);
