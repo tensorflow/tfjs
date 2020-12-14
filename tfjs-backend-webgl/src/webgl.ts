@@ -19,7 +19,6 @@ import {DataType, engine, env, Tensor, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from './backend_webgl';
 import * as gpgpu_util from './gpgpu_util';
-import {getTextureConfig} from './tex_util';
 import * as webgl_util from './webgl_util';
 
 export {MathBackendWebGL, WebGLMemoryInfo, WebGLTimingInfo} from './backend_webgl';
