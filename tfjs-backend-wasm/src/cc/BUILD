@@ -233,7 +233,6 @@ tfjs_cc_library(
         ":Cumsum",
         ":DepthToSpace",
         ":DepthwiseConv2dNative",
-        ":Div",
         ":Equal",
         ":Exp",
         ":FlipLeftRight",
@@ -263,6 +262,7 @@ tfjs_cc_library(
         ":PadV2",
         ":Pow",
         ":Prelu",
+        ":RealDiv",
         ":Relu",
         ":Relu6",
         ":ResizeBilinear",
@@ -465,8 +465,8 @@ tfjs_unit_test(
 )
 
 tfjs_cc_library(
-    name = "Div",
-    srcs = ["kernels/Div.cc"],
+    name = "RealDiv",
+    srcs = ["kernels/RealDiv.cc"],
     deps = [
         ":binary",
         ":util",
