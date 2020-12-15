@@ -289,7 +289,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     const numChannel = 3;
     const pixels = new ImageData(imageDataWidth,imageDataHeight);
     for (let i = 0; i < imageDataWidth * imageDataHeight * 4; ++i) {
-      if (i % 4 == 3) {
+      if (i % 4 === 3) {
         pixels.data[i] = 255;
       } else {
         pixels.data[i] = i;
