@@ -17,6 +17,8 @@
 
 // We import index.ts so that the Node backend gets registered.
 import './index';
+// tslint:disable-next-line: no-imports-from-dist
+import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
 
 import * as tf from '@tensorflow/tfjs';
 // tslint:disable-next-line:no-imports-from-dist
