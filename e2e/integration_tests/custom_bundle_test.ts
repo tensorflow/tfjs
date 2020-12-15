@@ -83,7 +83,7 @@ describe(`${REGRESSION} blazeface`, () => {
         'ExpandDims',
         'Reshape',
         'ResizeBilinear',
-        'Div',
+        'RealDiv',
         'Sub',
         'Multiply',
         'FusedConv2D',
