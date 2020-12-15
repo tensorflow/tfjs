@@ -29,9 +29,12 @@ export const cropAndResize = (args: {
   const {image, boxes, boxInd} = inputs;
   const {cropSize, method, extrapolationValue} = attrs;
 
+  const $method = method || 'bilinear';
+  const $extrapolationValue = extrapolationValue || 0;
+
   const program = new CropAndResizeProgram(
       image.shape as [number, number, number, number],
-      boxes.shape as [number, number], cropSize, method, extrapolationValue);
+      boxes.shape as [number, number], cropSize, $method, $extrapolationValue);
   return backend.runWebGLProgram(program, [image, boxes, boxInd], 'float32');
 };
 
