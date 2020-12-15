@@ -76,11 +76,6 @@ type TensorBufferInfo = {
 
 interface DataId {}
 
-export interface CPUTimerQuery {
-  startMs: number;
-  endMs: number;
-}
-
 export type WebGPUKernelInfo = {
   name: string; query: Promise<number>;
 };
@@ -335,19 +330,26 @@ export class WebGPUBackend extends KernelBackend {
     if (outerMostTime) {
       this.programTimersStack = null;
     }
-
-    const kernelMs = await Promise.all(flattenedActiveTimerQueries);
-
     const res: WebGPUTimingInfo = {
       uploadWaitMs: this.uploadWaitMs,
       downloadWaitMs: this.downloadWaitMs,
-      kernelMs: util.sum(kernelMs),
-      getExtraProfileInfo: () =>
-          kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
-              .map(d => `${d.name}: ${d.ms}`)
-              .join(', '),
+      kernelMs: null,
       wallMs: null
     };
+
+    if (this.supportTimeQuery) {
+      const kernelMs = await Promise.all(flattenedActiveTimerQueries);
+      res['kernelMs'] = util.sum(kernelMs);
+      res['getExtraProfileInfo'] = () =>
+            kernelMs.map((d, i) => ({
+                name: flattenedActiveTimerNames[i], ms: d}))
+                .map(d => `${d.name}: ${d.ms}`)
+                .join(', ');
+    } else {
+      res['kernelMs'] = {
+        error: 'WebGPU timestamp query was not supported in this environment.'
+      };
+    }
     this.uploadWaitMs = 0;
     this.downloadWaitMs = 0;
     return res;
@@ -381,21 +383,11 @@ export class WebGPUBackend extends KernelBackend {
     };
   }
 
-  startTimer() {
-    return {startMs: util.now(), endMs: 0};
-  }
-
-  endTimer(query: CPUTimerQuery) {
-    query.endMs = util.now();
-    return query;
-  }
-
-  async getQueryTime(query: CPUTimerQuery | GPUQuerySet): Promise<number> {
+  async getQueryTime(query: GPUQuerySet): Promise<number> {
     if (this.supportTimeQuery) {
-      return this.getTimeFromQuerySet(query as GPUQuerySet);
+      return this.getTimeFromQuerySet(query);
     } else {
-      const timerQuery = query as CPUTimerQuery;
-      return timerQuery.endMs - timerQuery.startMs;
+      return 0;
     }
   }
 
@@ -454,7 +446,6 @@ export class WebGPUBackend extends KernelBackend {
     });
 
     const shouldTimeProgram = this.activeTimers != null;
-    let query: CPUTimerQuery;
 
     // Creating bind groups on the fly should never be a bottleneck.
     const bg = webgpu_program.makeBindGroup(
@@ -466,8 +457,6 @@ export class WebGPUBackend extends KernelBackend {
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
         pass.writeTimestamp(this.querySet, 0);
-      } else {
-        query = this.startTimer();
       }
     }
     pass.setPipeline(pipeline);
@@ -477,8 +466,6 @@ export class WebGPUBackend extends KernelBackend {
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
         pass.writeTimestamp(this.querySet, 1);
-      } else {
-        query = this.endTimer(query);
       }
     }
     pass.endPass();
@@ -508,9 +495,6 @@ export class WebGPUBackend extends KernelBackend {
         this.activeTimers.push({
             name: program.constructor.name,
             query: this.getQueryTime(this.querySet)});
-      } else {
-        this.activeTimers.push(
-            {name: program.constructor.name, query: this.getQueryTime(query)});
       }
     }
     return output as {} as K;

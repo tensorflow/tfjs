@@ -40,7 +40,7 @@ tf.registerBackend('webgpu', async () => {
 
   if (supportTimeQuery) {
     deviceDescriptor = {
-      extensions: ['timestamp-query' as GPUExtensionName]
+      extensions: ['timestamp-query' as const]
     };
   }
   const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
