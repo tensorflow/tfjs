@@ -33,6 +33,11 @@ interface TensorData {
   stringBytes?: Uint8Array[];
 }
 
+if (env().get('IS_NODE')) {
+  (global as any).Worker = null;
+  (global as any).performance = null;
+}
+
 export type DataId = object;  // object instead of {} to force non-primitive.
 
 export class BackendWasm extends KernelBackend {
@@ -271,7 +276,8 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
     if (threadsSupported && simdSupported && wasmPath == null) {
       wasm = wasmFactoryThreadedSimd(factoryConfig);
       wasm.mainScriptUrlOrBlob = new Blob(
-          [`var _scriptDir = undefined; var WasmBackendModuleThreadedSimd = ` +
+          [`"var _scriptDir = undefined; ` +
+           `var WasmBackendModuleThreadedSimd = ` +
            wasmFactoryThreadedSimd.toString()],
           {type: 'text/javascript'});
     } else {
