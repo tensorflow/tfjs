@@ -47,9 +47,10 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
 
   cd ..
 
-  # Generate custom bundle files for tests
-  ./scripts/run-custom-builds.sh
 fi
+
+# Generate custom bundle files for tests
+./scripts/run-custom-builds.sh
 
 if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
   yarn run-browserstack --browsers=bs_safari_mac --tags $TAGS --testEnv webgl --flags '{"WEBGL_VERSION": 1, "WEBGL_CPU_FORWARD": false, "WEBGL_SIZE_UPLOAD_UNIFORM": 0}'
