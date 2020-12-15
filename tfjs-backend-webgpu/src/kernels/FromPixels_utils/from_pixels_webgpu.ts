@@ -17,6 +17,7 @@
 
 import {computeDispatch, flatDispatchLayout} from '../../webgpu_util';
 
+import {util} from '@tensorflow/tfjs-core';
 import {WebGPUProgram} from '../webgpu_program';
 
 export class FromPixelsProgram implements WebGPUProgram {
@@ -41,8 +42,7 @@ export class FromPixelsProgram implements WebGPUProgram {
   private disposed = false;
 
   updateOutputShape(outputShape: number[]) {
-    if (this.outputShape.length === outputShape.length &&
-        this.outputShape.every((v, i) => v === outputShape[i])) {
+    if (util.arraysEqual(this.outputShape, outputShape)) {
       return;
     }
 
