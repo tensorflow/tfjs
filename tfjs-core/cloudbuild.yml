@@ -68,12 +68,13 @@ steps:
   waitFor: ['yarn', 'build']
 
 # test Async backends
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'test-async-backends'
-  entrypoint: 'yarn'
-  args: ['test-async-backends-ci']
-  waitFor: ['build']
+# TODO(yassogba) restore
+# - name: 'node:10'
+#   dir: 'tfjs-core'
+#   id: 'test-async-backends'
+#   entrypoint: 'yarn'
+#   args: ['test-async-backends-ci']
+#   waitFor: ['build']
 
 # General configuration
 secrets:
