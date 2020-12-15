@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import '../../public/chained_ops/register_all_chained_ops';
+
 import * as tf from '../../index';
 import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 

@@ -22,5 +22,3 @@ export * from './base';
 
 // Register all the gradients.
 import './register_all_gradients';
-// Import all op chainers and add type info to Tensor.
-import './public/chained_ops/register_all_chained_ops';
