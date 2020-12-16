@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {CropAndResize, CropAndResizeAttrs, CropAndResizeInputs, KernelConfig, tensor1d} from '@tensorflow/tfjs';
+import {CropAndResize, CropAndResizeAttrs, CropAndResizeInputs, KernelConfig, tensor1d, util} from '@tensorflow/tfjs';
 
 import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
@@ -30,6 +30,9 @@ export const cropAndResizeConfig: KernelConfig = {
 
     const $method = method || 'bilinear';
     const $extrapolationValue = extrapolationValue || 0;
+    util.assert(
+        $method === 'bilinear' || $method === 'nearest',
+        () => `method must be bilinear or nearest, but was ${$method}`);
 
     const opAttrs = [
       createTensorsTypeOpAttr('T', image.dtype),

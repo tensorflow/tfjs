@@ -82,9 +82,6 @@ function cropAndResize_(
   util.assert(
       cropSize[0] >= 1 && cropSize[1] >= 1,
       () => `cropSize must be atleast [1,1], but was ${cropSize}`);
-  util.assert(
-      method === 'bilinear' || method === 'nearest',
-      () => `method must be bilinear or nearest, but was ${method}`);
 
   const inputs:
       CropAndResizeInputs = {image: $image, boxes: $boxes, boxInd: $boxInd};

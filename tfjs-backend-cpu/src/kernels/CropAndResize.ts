@@ -30,6 +30,9 @@ export function cropAndResize(args: {
 
   const $method = method || 'bilinear';
   const $extrapolationValue = extrapolationValue || 0;
+  util.assert(
+      $method === 'bilinear' || $method === 'nearest',
+      () => `method must be bilinear or nearest, but was ${$method}`);
 
   const [batch, imageHeight, imageWidth, numChannels] = image.shape;
   const numBoxes = boxes.shape[0];
