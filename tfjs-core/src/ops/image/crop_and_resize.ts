@@ -54,8 +54,8 @@ function cropAndResize_(
     boxes: Tensor2D|TensorLike,
     boxInd: Tensor1D|TensorLike,
     cropSize: [number, number],
-    method?: 'bilinear'|'nearest',
-    extrapolationValue?: number,
+    method: 'bilinear'|'nearest' = 'bilinear',
+    extrapolationValue = 0,
     ): Tensor4D {
   const $image = convertToTensor(image, 'image', 'cropAndResize');
   const $boxes = convertToTensor(boxes, 'boxes', 'cropAndResize', 'float32');
@@ -82,6 +82,9 @@ function cropAndResize_(
   util.assert(
       cropSize[0] >= 1 && cropSize[1] >= 1,
       () => `cropSize must be atleast [1,1], but was ${cropSize}`);
+  util.assert(
+      method === 'bilinear' || method === 'nearest',
+      () => `method must be bilinear or nearest, but was ${method}`);
 
   const inputs:
       CropAndResizeInputs = {image: $image, boxes: $boxes, boxInd: $boxInd};

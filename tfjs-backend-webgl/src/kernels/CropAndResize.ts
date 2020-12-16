@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {CropAndResize, CropAndResizeAttrs, CropAndResizeInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {CropAndResize, CropAndResizeAttrs, CropAndResizeInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {CropAndResizeProgram} from '../crop_and_resize_gpu';
@@ -29,15 +29,9 @@ export const cropAndResize = (args: {
   const {image, boxes, boxInd} = inputs;
   const {cropSize, method, extrapolationValue} = attrs;
 
-  const $method = method || 'bilinear';
-  const $extrapolationValue = extrapolationValue || 0;
-  util.assert(
-      $method === 'bilinear' || $method === 'nearest',
-      () => `method must be bilinear or nearest, but was ${$method}`);
-
   const program = new CropAndResizeProgram(
       image.shape as [number, number, number, number],
-      boxes.shape as [number, number], cropSize, $method, $extrapolationValue);
+      boxes.shape as [number, number], cropSize, method, extrapolationValue);
   return backend.runWebGLProgram(program, [image, boxes, boxInd], 'float32');
 };
 

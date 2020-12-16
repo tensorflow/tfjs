@@ -28,18 +28,12 @@ export const cropAndResizeConfig: KernelConfig = {
     const {cropSize, method, extrapolationValue} =
         args.attrs as {} as CropAndResizeAttrs;
 
-    const $method = method || 'bilinear';
-    const $extrapolationValue = extrapolationValue || 0;
-    util.assert(
-        $method === 'bilinear' || $method === 'nearest',
-        () => `method must be bilinear or nearest, but was ${$method}`);
-
     const opAttrs = [
       createTensorsTypeOpAttr('T', image.dtype),
-      {name: 'method', type: backend.binding.TF_ATTR_STRING, value: $method}, {
+      {name: 'method', type: backend.binding.TF_ATTR_STRING, value: method}, {
         name: 'extrapolation_value',
         type: backend.binding.TF_ATTR_FLOAT,
-        value: $extrapolationValue
+        value: extrapolationValue
       }
     ];
     const cropSizeTensor = tensor1d(cropSize, 'int32');
