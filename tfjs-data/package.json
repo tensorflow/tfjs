@@ -58,10 +58,12 @@
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build-npm && yalc push",
     "publish-npm": "npm publish",
-    "test": "yarn && yarn build-deps && ts-node --project tsconfig.test.json src/test_node.ts",
+    "test": "yarn && yarn build-deps && yarn build && ts-node --transpile-only --project tsconfig.test.json src/test_node.ts",
+    "test-dev": "tsc && ts-node --transpile-only --project tsconfig.test.json src/test_node.ts",
     "test-browsers": "karma start --browsers='Chrome,Firefox'",
-    "test-ci": "ts-node --skip-ignore -P tsconfig.test.json src/test_node.ts",
-    "test-snippets": "ts-node --skip-ignore --project tsconfig.test.json ./scripts/test_snippets.ts",
+    "test-ci": "ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/test_node.ts",
+    "test-snippets": "yarn && yarn build-deps && yarn build && ts-node --skip-ignore --project tsconfig.test.json ./scripts/test_snippets.ts",
+    "test-snippets-ci": "ts-node --skip-ignore --project tsconfig.test.json ./scripts/test_snippets.ts",
     "lint": "tslint -p . -t verbose"
   },
   "peerDependencies": {

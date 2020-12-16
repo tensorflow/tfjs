@@ -74,7 +74,7 @@ steps:
   dir: 'tfjs-converter'
   entrypoint: 'yarn'
   id: 'test-snippets'
-  args: ['test-snippets']
+  args: ['test-snippets-ci']
   waitFor: ['build']
 
 timeout: 1800s

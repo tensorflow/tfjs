@@ -40,6 +40,7 @@ import {avgPool3DGradConfig} from './kernels/AvgPool3DGrad';
 import {avgPoolGradConfig} from './kernels/AvgPoolGrad';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
+import {bincountConfig} from './kernels/Bincount';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
@@ -82,6 +83,7 @@ import {gatherNdConfig} from './kernels/GatherNd';
 import {gatherV2Config} from './kernels/GatherV2';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
+import {identityConfig} from './kernels/Identity';
 import {IFFTConfig} from './kernels/IFFT';
 import {imagConfig} from './kernels/Imag';
 import {isFiniteConfig} from './kernels/IsFinite';
@@ -104,6 +106,7 @@ import {maxPoolConfig} from './kernels/MaxPool';
 import {maxPool3DConfig} from './kernels/MaxPool3D';
 import {maxPool3DGradConfig} from './kernels/MaxPool3DGrad';
 import {maxPoolGradConfig} from './kernels/MaxPoolGrad';
+import {meanConfig} from './kernels/Mean';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
 import {mirrorPadConfig} from './kernels/MirrorPad';
@@ -122,6 +125,7 @@ import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
+import {rangeConfig} from './kernels/Range';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reciprocalConfig} from './kernels/Reciprocal';
@@ -207,6 +211,7 @@ const kernelConfigs: KernelConfig[] = [
   coshConfig,
   cropAndResizeConfig,
   cumsumConfig,
+  bincountConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeBackpropFilterConfig,
   depthwiseConv2dNativeBackpropInputConfig,
@@ -232,6 +237,7 @@ const kernelConfigs: KernelConfig[] = [
   gatherV2Config,
   greaterConfig,
   greaterEqualConfig,
+  identityConfig,
   imagConfig,
   isFiniteConfig,
   isInfConfig,
@@ -251,6 +257,7 @@ const kernelConfigs: KernelConfig[] = [
   maxPoolConfig,
   maxPoolGradConfig,
   maximumConfig,
+  meanConfig,
   minConfig,
   minimumConfig,
   mirrorPadConfig,
@@ -269,6 +276,7 @@ const kernelConfigs: KernelConfig[] = [
   powConfig,
   preluConfig,
   prodConfig,
+  rangeConfig,
   realConfig,
   realDivConfig,
   reciprocalConfig,

@@ -51,7 +51,7 @@ steps:
   dir: 'tfjs-layers'
   entrypoint: 'yarn'
   id: 'test-snippets'
-  args: ['test-snippets']
+  args: ['test-snippets-ci']
   waitFor: ['build']
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc

@@ -18,13 +18,13 @@ import {fused, serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, ti
 import {Activation, getActivation, serializeActivation} from '../activations';
 import {imageDataFormat} from '../backend/common';
 import * as K from '../backend/tfjs_backend';
-import {checkDataFormat, checkPaddingMode} from '../common';
+import {checkDataFormat, checkInterpolationFormat, checkPaddingMode} from '../common';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerArgs} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {ActivationIdentifier} from '../keras_format/activation_config';
-import {DataFormat, PaddingMode, Shape} from '../keras_format/common';
+import {DataFormat, InterpolationFormat, PaddingMode, Shape} from '../keras_format/common';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs} from '../types';
 import {convOutputLength, deconvLength, normalizeArray} from '../utils/conv_utils';
@@ -564,7 +564,7 @@ export abstract class Conv extends BaseConv {
       let outputs: Tensor;
       const biasValue = this.bias == null ? null : this.bias.read();
       const fusedActivationName = generic_utils.mapActivationToFusedKernel(
-                                            this.activation.getClassName());
+          this.activation.getClassName());
 
       if (fusedActivationName != null && this.rank === 2) {
         outputs = conv2dWithBiasActivation(
@@ -1210,6 +1210,11 @@ export declare interface UpSampling2DLayerArgs extends LayerArgs {
    * Defaults to `"channelsLast"`.
    */
   dataFormat?: DataFormat;
+  /**
+   * The interpolation mechanism, one of `"nearest"` or `"bilinear"`, default
+   * to `"nearest"`.
+   */
+  interpolation?: InterpolationFormat;
 }
 
 export class UpSampling2D extends Layer {
@@ -1218,6 +1223,7 @@ export class UpSampling2D extends Layer {
   protected readonly DEFAULT_SIZE = [2, 2];
   protected readonly size: number[];
   protected readonly dataFormat: DataFormat;
+  protected readonly interpolation: InterpolationFormat;
 
   constructor(args: UpSampling2DLayerArgs) {
     super(args);
@@ -1225,6 +1231,10 @@ export class UpSampling2D extends Layer {
     this.size = args.size == null ? this.DEFAULT_SIZE : args.size;
     this.dataFormat =
         args.dataFormat == null ? 'channelsLast' : args.dataFormat;
+    checkDataFormat(this.dataFormat);
+    this.interpolation =
+        args.interpolation == null ? 'nearest' : args.interpolation;
+    checkInterpolationFormat(this.interpolation);
   }
 
   computeOutputShape(inputShape: Shape): Shape {
@@ -1250,12 +1260,17 @@ export class UpSampling2D extends Layer {
         input = tfc.transpose(input, [0, 2, 3, 1]);
         const height = this.size[0] * inputShape[2];
         const width = this.size[1] * inputShape[3];
-        const resized = input.resizeNearestNeighbor([height, width]);
+
+        const resized = this.interpolation === 'nearest' ?
+            input.resizeNearestNeighbor([height, width]) :
+            input.resizeBilinear([height, width]);
         return tfc.transpose(resized, [0, 3, 1, 2]);
       } else {
         const height = this.size[0] * inputShape[1];
         const width = this.size[1] * inputShape[2];
-        return input.resizeNearestNeighbor([height, width]);
+        return this.interpolation === 'nearest' ?
+            input.resizeNearestNeighbor([height, width]) :
+            input.resizeBilinear([height, width]);
       }
     });
   }

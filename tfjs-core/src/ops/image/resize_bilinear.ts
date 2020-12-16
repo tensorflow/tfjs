@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../../engine';
+import {ENGINE} from '../../engine';
 import {ResizeBilinear, ResizeBilinearAttrs, ResizeBilinearInputs} from '../../kernel_names';
 import {NamedAttrMap} from '../../kernel_registry';
 import {Tensor3D, Tensor4D} from '../../tensor';
@@ -70,24 +70,20 @@ function resizeBilinear_<T extends Tensor3D|Tensor4D>(
         $images, [1, $images.shape[0], $images.shape[1], $images.shape[2]]);
   }
 
-  const [newHeight, newWidth] = size;
-  const forward: ForwardFunc<Tensor4D> = (backend, save) => {
-    save([batchImages]);
-    return backend.resizeBilinear(
-        batchImages, newHeight, newWidth, alignCorners, halfPixelCenters);
-  };
+  const [] = size;
 
   const inputs: ResizeBilinearInputs = {images: batchImages};
   const attrs: ResizeBilinearAttrs = {alignCorners, halfPixelCenters, size};
 
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* gradient */,
-      ResizeBilinear, attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  ResizeBilinear, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   }
-  return res as T;
+  return res;
 }
 
 export const resizeBilinear = op({resizeBilinear_});

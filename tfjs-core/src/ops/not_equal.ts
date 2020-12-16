@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {NotEqual, NotEqualInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -47,13 +47,9 @@ function notEqual_<T extends Tensor>(
 
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  const forward: ForwardFunc<Tensor> = (backend) => backend.notEqual($a, $b);
-
   const inputs: NotEqualInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */,
-             NotEqual) as T;
+  return ENGINE.runKernel(NotEqual, inputs as {} as NamedTensorMap);
 }
 
 export const notEqual = op({notEqual_});
