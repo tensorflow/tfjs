@@ -17,7 +17,7 @@
 
 // TODO update import path once op is modularized.
 import {divStrict} from '../../ops/ops';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -26,7 +26,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.divStrict = function<T extends Tensor>(
+getGlobalTensorClass().prototype.divStrict = function<T extends Tensor>(
     this: T, x: T|TensorLike): T {
   this.throwIfDisposed();
   return divStrict(this, x);

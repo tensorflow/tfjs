@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {prelu} from '../../ops/prelu';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.prelu = function<T extends Tensor>(
+getGlobalTensorClass().prototype.prelu = function<T extends Tensor>(
     this: T, alpha: T|TensorLike): T {
   this.throwIfDisposed();
   return prelu(this, alpha);

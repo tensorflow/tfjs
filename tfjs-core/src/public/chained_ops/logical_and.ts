@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {logicalAnd} from '../../ops/logical_and';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -24,8 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.logicalAnd = function<T extends Tensor>(b: Tensor|
-                                                         TensorLike): T {
+getGlobalTensorClass().prototype.logicalAnd = function<T extends Tensor>(
+    b: Tensor|TensorLike): T {
   this.throwIfDisposed();
   return logicalAnd(this, b);
 };

@@ -17,7 +17,7 @@
 
 // TODO update import path once op is modularized.
 import {squaredDifferenceStrict} from '../../ops/ops';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -29,8 +29,8 @@ declare module '../../tensor' {
 /**
  * @deprecated strict variants of ops have been deprecated
  */
-Tensor.prototype.squaredDifferenceStrict = function<T extends Tensor>(
-    this: T, x: T|TensorLike): T {
+getGlobalTensorClass().prototype.squaredDifferenceStrict =
+    function<T extends Tensor>(this: T, x: T|TensorLike): T {
   this.throwIfDisposed();
   return squaredDifferenceStrict(this, x);
 };

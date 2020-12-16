@@ -17,7 +17,7 @@
 
 // TODO update import path once op is modularized.
 import {lessStrict} from '../../ops/ops';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -26,7 +26,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.lessStrict = function<T extends Tensor>(
+getGlobalTensorClass().prototype.lessStrict = function<T extends Tensor>(
     this: T, x: T|TensorLike) {
   this.throwIfDisposed();
   return lessStrict(this, x);
