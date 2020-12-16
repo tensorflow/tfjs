@@ -26,7 +26,7 @@ import chalk from 'chalk';
 import * as argparse from 'argparse';
 import * as shell from 'shelljs';
 
-import { $, TFJS_RELEASE_UNIT, prepareReleaseBuild, getReleaseBranch, checkoutReleaseBranch, createPR } from './release-util';
+import {$, TFJS_RELEASE_UNIT, prepareReleaseBuild, getReleaseBranch, checkoutReleaseBranch, createPR} from './release-util';
 
 const parser = new argparse.ArgumentParser();
 
@@ -53,11 +53,11 @@ async function main() {
   // ========== Delete a possible prior lockfiles branch from a failed run =====
   const lockfilesBranch = `${releaseBranch}_lockfiles`;
   console.log(chalk.magenta.bold(
-    `~~~ Creating new lockfiles branch ${lockfilesBranch} ~~~`));
+      `~~~ Creating new lockfiles branch ${lockfilesBranch} ~~~`));
 
   // Delete possible branch from a prior execution of this script
   const branchCmd = `git branch -D ${lockfilesBranch}`;
-  const result = shell.exec(branchCmd, { silent: true });
+  const result = shell.exec(branchCmd, {silent: true});
   const okErrCode = `error: branch '${lockfilesBranch}' not found.`;
   if (result.code > 0 && result.stderr.trim() !== okErrCode) {
     console.log('$', branchCmd);

@@ -22,7 +22,7 @@
 
 import * as argparse from 'argparse';
 import * as shell from 'shelljs';
-import { $, checkoutReleaseBranch, getReleaseBranch } from './release-util';
+import {$, checkoutReleaseBranch, getReleaseBranch} from './release-util';
 
 const parser = new argparse.ArgumentParser();
 
