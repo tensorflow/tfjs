@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {CropAndResize, CropAndResizeAttrs, CropAndResizeInputs, KernelConfig, tensor1d, util} from '@tensorflow/tfjs';
+import {CropAndResize, CropAndResizeAttrs, CropAndResizeInputs, KernelConfig, tensor1d} from '@tensorflow/tfjs';
 
 import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
