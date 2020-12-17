@@ -69,6 +69,7 @@ const devConfig = {
       nocache: true
     },
   ],
+  exclude: ['integration_tests/custom_bundle_test.ts'],
   include: ['integration_tests/**/*.ts'],
   preprocessors: {
     '**/*.ts': ['karma-typescript'],  // *.tsx for React Jsx

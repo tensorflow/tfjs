@@ -46,9 +46,6 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
   source ../scripts/cleanup-py-env.sh
 
   cd ..
-
-  # Generate custom bundle files for tests
-  ./scripts/run-custom-builds.sh
 fi
 
 if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
