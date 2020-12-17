@@ -54,8 +54,8 @@ function cropAndResize_(
     boxes: Tensor2D|TensorLike,
     boxInd: Tensor1D|TensorLike,
     cropSize: [number, number],
-    method?: 'bilinear'|'nearest',
-    extrapolationValue?: number,
+    method: 'bilinear'|'nearest' = 'bilinear',
+    extrapolationValue = 0,
     ): Tensor4D {
   const $image = convertToTensor(image, 'image', 'cropAndResize');
   const $boxes = convertToTensor(boxes, 'boxes', 'cropAndResize', 'float32');
