@@ -41,10 +41,6 @@ function acosh_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'acosh');
   const inputs: AcoshInputs = {x: $x};
 
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.acosh($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Acosh);
+  return ENGINE.runKernel(Acosh, inputs as {} as NamedTensorMap);
 }
 export const acosh = op({acosh_});

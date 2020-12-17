@@ -262,6 +262,10 @@ describeWithFlags('concat2d', ALL_ENVS, () => {
 });
 
 describeWithFlags('concat3d', ALL_ENVS, () => {
+  beforeAll(() => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
+  });
+
   it('shapes correct concat axis=-1', async () => {
     const tensor1 = tf.tensor3d([1, 2, 3], [1, 1, 3]);
     const tensor2 = tf.tensor3d([4, 5, 6], [1, 1, 3]);

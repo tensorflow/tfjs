@@ -47,8 +47,9 @@
     "prep-gpu-windows": "./prep-gpu-windows.bat",
     "publish-local": "yarn prep && yalc push",
     "publish-npm": "npm publish",
-    "test": "yarn && yarn build-deps && yarn build && ts-node -P tsconfig.test.json src/run_tests.ts",
-    "test-ci": "ts-node --skip-ignore -P tsconfig.test.json src/run_tests.ts",
+    "test": "yarn && yarn build-deps && yarn build && ts-node --transpile-only -P tsconfig.test.json src/run_tests.ts",
+    "test-dev": "tsc && ts-node --transpile-only -P tsconfig.test.json src/run_tests.ts",
+    "test-ci": "ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/run_tests.ts",
     "upload-windows-addon": "prep-gpu-windows.bat && ./scripts/build-and-upload-windows-addon-gpu.bat"
   },
   "devDependencies": {

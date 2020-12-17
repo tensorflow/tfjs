@@ -15,19 +15,15 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Any, AnyAttrs, AnyInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import {parseAxisParam} from '../util';
 
-import {expandShapeToKeepDim, getAxesPermutation, getInnerMostAxes} from './axis_util';
 import {op} from './operation';
-import {reshape} from './reshape';
-import {transpose} from './transpose';
 
 /**
  * Computes the logical or of elements across dimensions of a `tf.Tensor`.
@@ -60,30 +56,13 @@ import {transpose} from './transpose';
  */
 function any_<T extends Tensor>(
     x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
-  let $x = convertToTensor(x, 'x', 'any', 'bool');
-
-  const forward: ForwardFunc<Tensor> = (backend) => {
-    const origAxes = parseAxisParam(axis, $x.shape);
-    let axes = origAxes;
-    const permutedAxes = getAxesPermutation(axes, $x.rank);
-    if (permutedAxes != null) {
-      $x = transpose($x, permutedAxes);
-      axes = getInnerMostAxes(axes.length, $x.rank);
-    }
-    const res = backend.any($x, axes);
-    if (keepDims) {
-      const newShape = expandShapeToKeepDim(res.shape, origAxes);
-      return reshape(res, newShape);
-    }
-    return res as T;
-  };
+  const $x = convertToTensor(x, 'x', 'any', 'bool');
 
   const inputs: AnyInputs = {x: $x};
   const attrs: AnyAttrs = {axis, keepDims};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */, Any,
-             attrs as {} as NamedAttrMap) as T;
+  return ENGINE.runKernel(
+      Any, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 // tslint:disable-next-line:variable-name

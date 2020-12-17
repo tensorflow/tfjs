@@ -133,6 +133,12 @@ export interface BatchToSpaceNDAttrs {
 
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 
+export const Bincount = 'Bincount';
+export type BincountInputs = Pick<NamedTensorInfoMap, 'x'|'weights'>;
+export interface BincountAttrs {
+  size: number;
+}
+
 export const BroadcastTo = 'BroadcastTo';
 export type BroadcastToInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface BroadCastToAttrs {
@@ -248,6 +254,13 @@ export interface CropAndResizeAttrs {
   extrapolationValue: number;
 }
 
+export const DenseBincount = 'DenseBincount';
+export type DenseBincountInputs = Pick<NamedTensorInfoMap, 'x'|'weights'>;
+export interface DenseBincountAttrs {
+  size: number;
+  binaryOutput?: boolean;
+}
+
 export const DepthToSpace = 'DepthToSpace';
 export type DepthToSpaceInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface DepthToSpaceAttrs {
@@ -309,7 +322,7 @@ export const Dilation2DBackpropFilter = 'Dilation2DBackpropFilter';
 export type Dilation2DBackpropFilterInputs =
     Pick<NamedTensorInfoMap, 'x'|'filter'|'dy'>;
 
-export const RealDiv = 'Div';
+export const RealDiv = 'RealDiv';
 export type RealDivInputs = BinaryInputs;
 
 export const Elu = 'Elu';

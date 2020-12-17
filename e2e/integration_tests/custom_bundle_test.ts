@@ -15,10 +15,12 @@
  * =============================================================================
  */
 // tslint:disable-next-line: no-imports-from-dist
-import {CHROME_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {CHROME_ENVS, Constraints, describeWithFlags, HAS_WORKER} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {REGRESSION} from './constants';
 
+const CHROME_ENVS_WITH_WORKER: Constraints =
+    Object.assign({}, CHROME_ENVS, HAS_WORKER);
 /**
  *  This file is the test suite for CUJ: custom_module->custom_bundle->predict.
  */
@@ -28,21 +30,33 @@ function getBundleUrl(folder: string, custom: boolean, bundler: string) {
   return `./base/custom_bundle/${folder}/dist/${distFolder}/app_${bundler}.js`;
 }
 
-const DEBUG_WORKER_SCRIPT = false;
+const DEBUG_WORKER_SCRIPT = true;
 
 describe(`${REGRESSION} blazeface`, () => {
-  describeWithFlags('webpack', CHROME_ENVS, () => {
+  describeWithFlags('webpack', CHROME_ENVS_WITH_WORKER, () => {
     let webpackBundle: {full: string, custom: string};
     let originalTimeout: number;
     beforeAll(async () => {
       originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-      jasmine.DEFAULT_TIMEOUT_INTERVAL = 500000;
+      jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
 
       const [webpackFull, webpackCustom] = await Promise.all([
         fetch(getBundleUrl('blazeface', false /* custom */, 'webpack'))
-            .then(r => r.text()),
+            .then(r => r.text())
+            .catch(e => {
+              console.error(
+                  'Failed to fetch blazeface full bundle at ',
+                  getBundleUrl('blazeface', false /* custom */, 'webpack'));
+              throw e;
+            }),
         fetch(getBundleUrl('blazeface', true /* custom */, 'webpack'))
-            .then(r => r.text()),
+            .then(r => r.text())
+            .catch(e => {
+              console.error(
+                  'Failed to fetch blazeface custom bundle at ',
+                  getBundleUrl('blazeface', false /* custom */, 'webpack'));
+              throw e;
+            }),
       ]);
 
       webpackBundle = {full: webpackFull, custom: webpackCustom};
@@ -69,7 +83,7 @@ describe(`${REGRESSION} blazeface`, () => {
         'ExpandDims',
         'Reshape',
         'ResizeBilinear',
-        'Div',
+        'RealDiv',
         'Sub',
         'Multiply',
         'FusedConv2D',
@@ -93,14 +107,14 @@ describe(`${REGRESSION} blazeface`, () => {
 });
 
 describe(`${REGRESSION} dense model`, () => {
-  describeWithFlags('webpack', CHROME_ENVS, () => {
+  describeWithFlags('webpack', CHROME_ENVS_WITH_WORKER, () => {
     let webpackBundle: {full: string, custom: string};
     let originalTimeout: number;
 
     let modelUrl: string;
     beforeAll(async () => {
       originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-      jasmine.DEFAULT_TIMEOUT_INTERVAL = 500000;
+      jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
 
       modelUrl = `/base/custom_bundle/dense_model/model/model.json`;
       const [webpackFull, webpackCustom] = await Promise.all([
@@ -138,7 +152,7 @@ describe(`${REGRESSION} dense model`, () => {
     });
   });
 
-  describeWithFlags('rollup', CHROME_ENVS, () => {
+  describeWithFlags('rollup', CHROME_ENVS_WITH_WORKER, () => {
     let rollupBundle: {full: string, custom: string};
     let originalTimeout: number;
 
@@ -180,6 +194,112 @@ describe(`${REGRESSION} dense model`, () => {
       ]));
 
       expect(Math.floor(result.predictions[0])).toEqual(38);
+    });
+  });
+});
+
+describe(`${REGRESSION} universal sentence encoder model`, () => {
+  const expectedKernels = [
+    'StridedSlice', 'Less',       'Cast',      'Reshape',       'GatherV2',
+    'Max',          'Add',        'Maximum',   'SparseToDense', 'Greater',
+    'Sum',          'ExpandDims', 'Concat',    'LogicalNot',    'Multiply',
+    'ScatterNd',    'GatherNd',   'Cos',       'Sin',           'BatchMatMul',
+    'Mean',         'Sub',        'Square',    'Rsqrt',         'Conv2D',
+    'SplitV',       'Pack',       'Transpose', 'Slice',         'Softmax',
+    'Prod',         'Relu',       'Range',     'RealDiv',       'Tanh'
+  ];
+
+  describeWithFlags('webpack', CHROME_ENVS_WITH_WORKER, () => {
+    let webpackBundle: {full: string, custom: string};
+    let originalTimeout: number;
+
+    beforeAll(async () => {
+      originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+      jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
+
+      const [webpackFull, webpackCustom] = await Promise.all([
+        fetch(getBundleUrl(
+                  'universal_sentence_encoder', false /* custom */, 'webpack'))
+            .then(r => r.text()),
+        fetch(getBundleUrl(
+                  'universal_sentence_encoder', true /* custom */, 'webpack'))
+            .then(r => r.text()),
+      ]);
+
+      webpackBundle = {full: webpackFull, custom: webpackCustom};
+    });
+
+    afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
+
+    it('custom webpack should be smaller', async () => {
+      expect(webpackBundle.custom.length)
+          .toBeLessThan(
+              webpackBundle.full.length / 2,
+              'Custom bundle should be smaller than full bundle');
+    });
+
+    it('custom bundle should execute with exact kernels', async () => {
+      const programUrl = getBundleUrl(
+          'universal_sentence_encoder', true /* custom */, 'webpack');
+
+      // tslint:disable-next-line: no-any
+      const result: any = await executeInWorker(
+          programUrl,
+          {debug: DEBUG_WORKER_SCRIPT, workerParams: {profile: false}});
+      const kernelNames = result.kernelNames;
+      expect(kernelNames)
+          .toEqual(jasmine.arrayWithExactContents(expectedKernels));
+
+      expect(result.predictions.shape[0]).toEqual(2);
+      expect(result.predictions.shape[1]).toEqual(512);
+      expect(result.predictions.shape.length).toEqual(2);
+    });
+  });
+
+  describeWithFlags('rollup', CHROME_ENVS_WITH_WORKER, () => {
+    let rollupBundle: {full: string, custom: string};
+    let originalTimeout: number;
+
+    beforeAll(async () => {
+      originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+      jasmine.DEFAULT_TIMEOUT_INTERVAL = 500000;
+
+      const [rollupFull, rollupCustom] = await Promise.all([
+        fetch(getBundleUrl(
+                  'universal_sentence_encoder', false /* custom */, 'rollup'))
+            .then(r => r.text()),
+        fetch(getBundleUrl(
+                  'universal_sentence_encoder', true /* custom */, 'rollup'))
+            .then(r => r.text()),
+      ]);
+
+      rollupBundle = {full: rollupFull, custom: rollupCustom};
+    });
+
+    afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
+
+    it('custom rollup should be smaller', async () => {
+      expect(rollupBundle.custom.length)
+          .toBeLessThan(
+              rollupBundle.full.length / 2,
+              'Custom bundle should be smaller than full bundle');
+    });
+
+    it('custom bundle should execute with exact kernels', async () => {
+      const programUrl = getBundleUrl(
+          'universal_sentence_encoder', true /* custom */, 'webpack');
+
+      // tslint:disable-next-line: no-any
+      const result: any = await executeInWorker(
+          programUrl,
+          {debug: DEBUG_WORKER_SCRIPT, workerParams: {profile: false}});
+      const kernelNames = result.kernelNames;
+      expect(kernelNames)
+          .toEqual(jasmine.arrayWithExactContents(expectedKernels));
+
+      expect(result.predictions.shape[0]).toEqual(2);
+      expect(result.predictions.shape[1]).toEqual(512);
+      expect(result.predictions.shape.length).toEqual(2);
     });
   });
 });

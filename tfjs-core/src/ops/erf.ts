@@ -50,10 +50,6 @@ function erf_<T extends Tensor>(x: T|TensorLike): T {
   }
 
   const inputs: ErfInputs = {x: $x};
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.erf($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Erf);
+  return ENGINE.runKernel(Erf, inputs as {} as NamedTensorMap);
 }
 export const erf = op({erf_});

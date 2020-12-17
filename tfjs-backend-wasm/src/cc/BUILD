@@ -67,6 +67,7 @@ cc_binary(
         "-s SIMD=1",
         "-s USE_PTHREADS=1",
         "-s PROXY_TO_PTHREAD=1",
+        "--pre-js './toolchain/emscripten_threaded_module_prejs.js'",
     ],
     deps = [
         ":all_kernels",
@@ -233,7 +234,6 @@ tfjs_cc_library(
         ":Cumsum",
         ":DepthToSpace",
         ":DepthwiseConv2dNative",
-        ":Div",
         ":Equal",
         ":Exp",
         ":FlipLeftRight",
@@ -263,6 +263,7 @@ tfjs_cc_library(
         ":PadV2",
         ":Pow",
         ":Prelu",
+        ":RealDiv",
         ":Relu",
         ":Relu6",
         ":ResizeBilinear",
@@ -465,8 +466,8 @@ tfjs_unit_test(
 )
 
 tfjs_cc_library(
-    name = "Div",
-    srcs = ["kernels/Div.cc"],
+    name = "RealDiv",
+    srcs = ["kernels/RealDiv.cc"],
     deps = [
         ":binary",
         ":util",

@@ -14,16 +14,15 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Conv3D, Conv3DAttrs, Conv3DInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor4D, Tensor5D} from '../tensor';
+import {Tensor4D, Tensor5D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import * as conv_util from './conv_util';
 import {eitherStridesOrDilationsAreOne} from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
@@ -95,30 +94,21 @@ function conv3d_<T extends Tensor4D|Tensor5D>(
       () => `Error in conv3d: got dataFormat of ${
           dataFormat} but only NDHWC is currently supported.`);
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const convInfo = conv_util.computeConv3DInfo(
-        x5D.shape, $filter.shape, strides, dilations, pad);
-    const res = backend.conv3d(x5D, $filter, convInfo);
-
-    save([x5D, $filter]);
-
-    return res;
-  };
-
   const inputs: Conv3DInputs = {x: x5D, filter: $filter};
 
   const attrs: Conv3DAttrs = {strides, pad, dataFormat, dilations};
 
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, Conv3D,
-      attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  Conv3D, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap) as T;
 
   if (reshapedTo5D) {
     return reshape(
                res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]) as
         T;
   }
-  return res as T;
+  return res;
 }
 
 export const conv3d = op({conv3d_});
