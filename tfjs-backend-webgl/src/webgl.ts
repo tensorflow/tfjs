@@ -50,8 +50,37 @@ type TensorFromTextureConfig = {
 /**
  * Create a tensor out of an existing WebGL texture.
  *
+ * ```js
+ * // Example for WebGL2:
+ * const gl = tf.backend().gpgpu.gl;
+ * const texture = gl.createTexture();
+ * const tex2d = gl.TEXTURE_2D;
+ * const width = 3;
+ * const height = 4;
+ *
+ * gl.bindTexture(tex2d, texture);
+ * gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+ * gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+ * gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+ * gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+ * gl.texImage2D(
+ *   tex2d, 0, gl.R32F, // internalFormat
+ *   width, height, 0,
+ *   gl.RED, // textureFormat
+ *   gl.FLOAT, // textureType
+ *   new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]) // data
+ * );
+ *
+ * const logicalShape = [height, width];
+ * const physicalShape = [height, width];
+ * const a = tf.webgl.createTensorFromTexture(texture, logicalShape,
+ *   physicalShape);
+ *
+ * ```
+ *
  * @param obj An object with the following properties:
- *  @param texture The WebGL texture to create a tensor from.
+ *  @param texture The WebGL texture to create a tensor from. The texture must
+ * be unpacked - each texel should only store a single value.
  *  @param shape The logical shape of the texture.
  *  @param dtype The dtype of the tensor to be created.
  *  @param texShapeRC The physical dimensions of the texture expressed as [rows,
@@ -77,7 +106,7 @@ export function createTensorFromTexture({
   // properties (physical dimensions, internalFormat, etc.), therefore we ask
   // the user to provide this information in order to validate their texture.
 
-  // StackOverflow posts confirming that this information cannot be queried:
+  // References that this information cannot be queried:
   // https://stackoverflow.com/questions/30140178/opengl-es-2-0-get-texture-size-and-other-info
   // https://stackoverflow.com/questions/26315021/is-there-a-way-to-retrieve-the-dimensions-of-a-texture-after-binding-with-gl-bin
   // https://stackoverflow.com/questions/46387922/how-to-check-a-texture-is-2d-texture-or-cube-texture-in-webgl
