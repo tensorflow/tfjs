@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {mul} from '../../ops/mul';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.mul = function<T extends Tensor>(b: Tensor|TensorLike): T {
+getGlobalTensorClass().prototype.mul = function<T extends Tensor>(
+    b: Tensor|TensorLike): T {
   this.throwIfDisposed();
   return mul(this, b);
 };

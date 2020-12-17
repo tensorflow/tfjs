@@ -16,7 +16,7 @@
  */
 
 import {transpose} from '../../ops/transpose';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -25,7 +25,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.transpose = function<T extends Tensor>(
+getGlobalTensorClass().prototype.transpose = function<T extends Tensor>(
     this: T, perm?: number[]): T {
   this.throwIfDisposed();
   return transpose(this, perm);

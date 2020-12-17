@@ -16,7 +16,7 @@
  */
 
 import {gather} from '../../ops/gather';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -26,7 +26,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.gather = function<T extends Tensor>(
+getGlobalTensorClass().prototype.gather = function<T extends Tensor>(
     this: T, indices: Tensor|TensorLike, axis?: number): T {
   this.throwIfDisposed();
   return gather(this, indices, axis);
