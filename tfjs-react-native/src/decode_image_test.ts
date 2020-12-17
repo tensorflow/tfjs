@@ -82,4 +82,12 @@ describeWithFlags('decode images', RN_ENVS, () => {
         [240, 100, 0, 50, 50, 50, 99, 49, 0, 199, 99, 49]);
     expect(memory().numTensors).toBe(beforeNumTensors + 1);
   });
+
+  it('can call toFloat', async () => {
+    const imageTensor = await tf.decodeJpeg(uint8array);
+    expect(imageTensor.dtype).toBe('int32');
+    expect(imageTensor.shape).toEqual([2, 2, 3]);
+    expect(imageTensor.toFloat).toBeDefined();
+    expect(imageTensor.toFloat().dtype).toBe('float32');
+  });
 });
