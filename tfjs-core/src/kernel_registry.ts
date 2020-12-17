@@ -155,6 +155,7 @@ export function registerKernel(config: KernelConfig) {
  * - `gradFunc` The function to run during back-propagation.
  */
 export function registerGradient(config: GradConfig) {
+  console.log('Registering Gradient', config.kernelName);
   const {kernelName} = config;
 
   if (gradRegistry.has(kernelName)) {
