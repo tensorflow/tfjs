@@ -19,6 +19,7 @@ import {DataType, engine, env, Tensor, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from './backend_webgl';
 import * as gpgpu_util from './gpgpu_util';
+import {WebGLTextureFormat, WebGLTextureInternalFormat, WebGLTextureType} from './tex_util';
 import * as webgl_util from './webgl_util';
 
 export {MathBackendWebGL, WebGLMemoryInfo, WebGLTimingInfo} from './backend_webgl';
@@ -42,13 +43,9 @@ type TensorFromTextureConfig = {
   shape: number[],
   dtype: DataType,
   texShapeRC: [number, number],
-  internalFormat: WebGL2RenderingContext['R32F']|WebGL2RenderingContext['R16F']|
-  WebGL2RenderingContext['RGBA16F']|WebGL2RenderingContext['RGBA32F']|
-  WebGLRenderingContext['RGBA'],
-  textureFormat: WebGL2RenderingContext['RED']|WebGLRenderingContext['RGBA'],
-  textureType: WebGL2RenderingContext['HALF_FLOAT']|
-  WebGL2RenderingContext['FLOAT']|WebGLRenderingContext['FLOAT']|
-  OES_texture_half_float
+  internalFormat: WebGLTextureInternalFormat,
+  textureFormat: WebGLTextureFormat,
+  textureType: WebGLTextureType
 };
 
 /**
