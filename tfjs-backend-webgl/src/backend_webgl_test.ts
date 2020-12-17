@@ -147,10 +147,10 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
 
     gpgpu.dispose();
 
+    tf.engine().endScope();
     tf.env().set(
         'WEBGL_RENDER_FLOAT32_ENABLED', webglRenderF32EnabledFlagSaved);
     tf.env().set('WEBGL_PACK', webglPackedFlagSaved);
-    tf.engine().startScope();
   });
 });
 
