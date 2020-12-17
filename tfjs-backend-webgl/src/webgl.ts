@@ -42,9 +42,13 @@ type TensorFromTextureConfig = {
   shape: number[],
   dtype: DataType,
   texShapeRC: [number, number],
-  internalFormat: number,
-  textureFormat: number,
-  textureType: number
+  internalFormat: WebGL2RenderingContext['R32F']|WebGL2RenderingContext['R16F']|
+  WebGL2RenderingContext['RGBA16F']|WebGL2RenderingContext['RGBA32F']|
+  WebGLRenderingContext['RGBA'],
+  textureFormat: WebGL2RenderingContext['RED']|WebGLRenderingContext['RGBA'],
+  textureType: WebGL2RenderingContext['HALF_FLOAT']|
+  WebGL2RenderingContext['FLOAT']|WebGLRenderingContext['FLOAT']|
+  OES_texture_half_float
 };
 
 /**
