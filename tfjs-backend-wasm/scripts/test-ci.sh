@@ -17,7 +17,6 @@ if [ "$NIGHTLY" = true ]; then
   yarn run-browserstack --browsers=bs_firefox_mac
   yarn run-browserstack --browsers=bs_chrome_mac
   yarn run-browserstack --browsers=win_10_chrome
-  yarn run-browserstack --browsers=bs_android_9
   yarn run-browserstack --browsers=bs_ios_11
 else
   yarn run-browserstack --browsers=bs_chrome_mac
