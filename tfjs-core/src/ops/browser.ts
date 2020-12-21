@@ -160,6 +160,69 @@ function fromPixels_(
 }
 
 /**
+ * Creates a `tf.Tensor` from an image in async way.
+ *
+ * ```js
+ * const image = new ImageData(1, 1);
+ * image.data[0] = 100;
+ * image.data[1] = 150;
+ * image.data[2] = 200;
+ * image.data[3] = 255;
+ *
+ * (await tf.browser.fromPixelsAsync(image)).print();
+ * ```
+ *
+ * @param pixels The input image to construct the tensor from. The
+ * supported image types are all 4-channel. You can also pass in an image
+ * object with following attributes:
+ * `{data: Uint8Array; width: number; height: number}`
+ * @param numChannels The number of channels of the output tensor. A
+ * numChannels value less than 4 allows you to ignore channels. Defaults to
+ * 3 (ignores alpha channel of input image).
+ *
+ * @doc {heading: 'Browser', namespace: 'browser', ignoreCI: true}
+ */
+export async function fromPixelsAsync(
+  pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
+  HTMLVideoElement,
+  numChannels = 3) {
+  let inputs: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
+  HTMLVideoElement | ImageBitmap = null;
+
+  // General fromPixel path handles imageBitmap on rendering it to canvas
+  // and extract the imageData. It will have some tiny errors when handling
+  // transparent content (alpha channel value is not e.g. 255). Use origin
+  // input source instead of ImageBitmap when there is no registed kernels. 
+  const kernel = getKernel(FromPixels, ENGINE.backendName);
+
+  // Check whether browser support ImageBitmap or the input is PixelData.
+  if (typeof ImageBitmap === 'undefined' ||
+      kernel === null ||
+      (pixels as PixelData).data instanceof Uint8Array) {
+    inputs = pixels;
+  } else {
+    // Force the imageBitmap creation to not do any premultiply alpha
+    // ops.
+    const imageBitmap = 
+        // tslint:disable-next-line: no-any
+        await (createImageBitmap as any)(pixels as ImageBitmapSource,
+                                         {premultiplyAlpha: 'none'});
+
+    // ImageBitmap will clip the source size to the content size.
+    // In some cases, the input will have larger size than the content
+    // e.g. new Image(10, 10) but with 1 x 1 content. Avoid using
+    // imageBitmap as input in these cases. 
+    if (imageBitmap.width !== pixels.width ||
+        imageBitmap.height !== pixels.height) {
+      inputs = pixels;
+    } else {
+      inputs = imageBitmap;
+    }
+ }
+ return fromPixels_(inputs, numChannels);
+}
+
+/**
  * Draws a `tf.Tensor` of pixel values to a byte array or optionally a
  * canvas.
  *

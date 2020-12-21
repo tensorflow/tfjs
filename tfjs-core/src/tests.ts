@@ -96,6 +96,7 @@ import './ops/expm1_test';
 import './ops/eye_test';
 import './ops/fill_test';
 import './ops/floor_test';
+import './ops/from_pixels_async_test';
 import './ops/from_pixels_test';
 import './ops/fused/fused_conv2d_test';
 import './ops/fused/fused_depthwise_conv2d_test';
