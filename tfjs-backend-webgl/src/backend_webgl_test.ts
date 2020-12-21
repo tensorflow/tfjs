@@ -147,6 +147,57 @@ describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
     gpgpu.dispose();
   });
 
+  it('physical texture has empty entries', async () => {
+    // In this test we create a WebGL texture using the GL context from the
+    // WebGL backend. Then we create a tensor from that texture, and ensure that
+    // we can perform a TF operation on that tensor and get the expected result.
+
+    const gpgpu = new GPGPUContext();
+    const width = 3;
+    const height = 5;
+
+    const gl = gpgpu.gl;
+    const texture = gl.createTexture();
+    const tex2d = gl.TEXTURE_2D;
+    // tslint:disable-next-line:no-any
+    const glany = gl as any;
+    const internalFormat = glany.R32F;
+    const textureFormat = glany.RED;
+    const textureType = glany.FLOAT;
+
+    const dataForUpload = new Float32Array(width * height);
+    const data = new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    dataForUpload.set(data);
+
+    gl.bindTexture(tex2d, texture);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texImage2D(
+        tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType,
+        dataForUpload);
+
+    const logicalShape = [1, 13];
+    const physicalShape: [number, number] = [height, width];
+    const a = createTensorFromTexture({
+      texture,
+      shape: logicalShape,
+      dtype: 'float32',
+      texShapeRC: physicalShape,
+      internalFormat,
+      textureFormat,
+      textureType
+    });
+    const b = tf.mul(a, 2);
+
+    expect(b.shape).toEqual(logicalShape);
+    expectArraysClose(
+        await b.data(), [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24]);
+
+    gpgpu.dispose();
+  });
+
   it('force f16', async () => {
     // Unlike in the basic usage test, rather than creating a texture from
     // scratch, we must extract the output texture from an operation because we
