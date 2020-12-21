@@ -89,7 +89,7 @@ type TensorFromTextureConfig = {
  * be unpacked - each texel should only store a single value. The flattened
  * values of the tensor will be read from left to right, and top to bottom. The
  * texture can have empty texels at the end, but the values must be written
- * densely - all empty texels must be contiguous.
+ * densely - in other words, all empty texels must be contiguous.
  *  @param shape The logical shape of the texture.
  *  @param dtype The dtype of the tensor to be created.
  *  @param texShapeRC The physical dimensions of the texture expressed as [rows,
@@ -114,8 +114,8 @@ export function createTensorFromTexture({
   // OpenGL / WebGL do not make it possible to query textures for their
   // properties (physical dimensions, internalFormat, etc.), therefore we ask
   // the user to provide this information in order to validate their texture.
-
-  // References that this information cannot be queried:
+  // This information cannot be queried.
+  // References:
   // https://stackoverflow.com/questions/30140178/opengl-es-2-0-get-texture-size-and-other-info
   // https://stackoverflow.com/questions/26315021/is-there-a-way-to-retrieve-the-dimensions-of-a-texture-after-binding-with-gl-bin
   // https://stackoverflow.com/questions/46387922/how-to-check-a-texture-is-2d-texture-or-cube-texture-in-webgl
