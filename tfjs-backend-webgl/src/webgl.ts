@@ -49,12 +49,13 @@ type TensorFromTextureConfig = {
 };
 
 /**
- * Create a tensor out of an existing WebGL texture. The texture is added to the
- * WebGL texture registry.
+ * Create a TF.js tensor out of an existing WebGL texture. The texture is added
+ * to the WebGL texture registry.
  *
- * This can speed up applications that include a preprocessing step on the GPU -
- * in this case you would be able to upload the GPU output directly to TF.js,
- * rather than first downloading the values.
+ * This makes it possible for TF.js applications to avoid GPU / CPU sync. For
+ * example, if your application includes a preprocessing step on the GPU, you
+ * could upload the GPU output directly to TF.js, rather than first downloading
+ * the values.
  *
  * ```js
  * // Example for WebGL2:
