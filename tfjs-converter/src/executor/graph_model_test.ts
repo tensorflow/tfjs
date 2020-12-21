@@ -16,7 +16,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {scalar} from '@tensorflow/tfjs-core';
+import {io, scalar} from '@tensorflow/tfjs-core';
 
 import * as tensorflow from '../data/compiled_api';
 import {deregisterOp, registerOp} from '../operations/custom_op/register';
@@ -317,6 +317,55 @@ class IOHandlerForTest implements tfc.io.IOHandler {
     return {modelArtifactsInfo: null};
   }
 }
+
+describe('loadSync', () => {
+  let artifacts: io.ModelArtifacts;
+
+  beforeEach(() => {
+    model = new GraphModel(MODEL_URL);
+    artifacts = {
+      format: 'graph-model',
+      generatedBy: '0.0.0',
+      modelTopology: SIMPLE_MODEL,
+      weightSpecs: weightsManifest,
+      weightData: new Int32Array([5]).buffer
+    };
+  });
+
+  it('Can load old model.', () => {
+    artifacts.convertedBy = 'TensorFlow.js Converter v1.3.2';
+    artifacts.userDefinedMetadata = {signature: SIGNATURE};
+    const loaded = model.loadSync(artifacts);
+
+    expect(loaded).toBe(true);
+    expect(model.modelSignature).toEqual(SIGNATURE);
+  });
+
+  it('Can load new model.', () => {
+    artifacts.convertedBy = 'TensorFlow.js Converter v2.8.0';
+    artifacts.signature = SIGNATURE;
+    const loaded = model.loadSync(artifacts);
+
+    expect(loaded).toBe(true);
+    expect(model.modelSignature).toEqual(SIGNATURE);
+  });
+
+  it('Can load model without signature.', () => {
+    const loaded = model.loadSync(artifacts);
+
+    expect(loaded).toBe(true);
+    expect(model.modelSignature).toBeUndefined();
+  });
+
+  it('Can load model with different convertedBy language.', () => {
+    artifacts.convertedBy = '1.3.2';
+    artifacts.userDefinedMetadata = {signature: SIGNATURE};
+    const loaded = model.loadSync(artifacts);
+
+    expect(loaded).toBe(true);
+    expect(model.modelSignature).toEqual(SIGNATURE);
+  });
+});
 
 describe('loadGraphModel', () => {
   it('Pass a custom io handler', async () => {
