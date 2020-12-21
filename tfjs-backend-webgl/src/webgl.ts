@@ -49,7 +49,12 @@ type TensorFromTextureConfig = {
 };
 
 /**
- * Create a tensor out of an existing WebGL texture.
+ * Create a tensor out of an existing WebGL texture. The texture is added to the
+ * WebGL texture registry.
+ *
+ * This can speed up applications that include a preprocessing step on the GPU -
+ * in this case you would be able to upload the GPU output directly to TF.js,
+ * rather than first downloading the values.
  *
  * ```js
  * // Example for WebGL2:
@@ -81,7 +86,10 @@ type TensorFromTextureConfig = {
  *
  * @param obj An object with the following properties:
  *  @param texture The WebGL texture to create a tensor from. The texture must
- * be unpacked - each texel should only store a single value.
+ * be unpacked - each texel should only store a single value. The flattened
+ * values of the tensor will be read from left to right, and top to bottom. The
+ * texture can have empty texels at the end, but the values must be written
+ * densely - all empty texels must be contiguous.
  *  @param shape The logical shape of the texture.
  *  @param dtype The dtype of the tensor to be created.
  *  @param texShapeRC The physical dimensions of the texture expressed as [rows,
