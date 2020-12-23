@@ -15,19 +15,25 @@
  * =============================================================================
  */
 
-import {RealDiv, RealDivInputs} from '@tensorflow/tfjs-core';
-import {KernelConfig} from '@tensorflow/tfjs-core';
+import {BatchMatMul, BatchMatMulAttrs, BatchMatMulInputs, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
+
 import {WebGPUBackend} from '../backend_webgpu';
-import {divImpl} from './Div_impl';
+import {batchMatMulImpl} from './BatchMatMul_impl';
 
-export const divConfig: KernelConfig = {
-  kernelName: RealDiv,
+export function batchMatMul(args: {
+  inputs: BatchMatMulInputs,
+  attrs: BatchMatMulAttrs,
+  backend: WebGPUBackend 
+}) {
+  const {inputs, backend, attrs} = args;
+  const {a, b} = inputs;
+  const {transposeA, transposeB} = attrs;
+
+  return batchMatMulImpl({a, b, transposeA, transposeB, backend});
+}
+
+export const batchMatMulConfig: KernelConfig = {
+  kernelName: BatchMatMul,
   backendName: 'webgpu',
-  kernelFunc: ({inputs, backend}) => {
-    const {a, b} = inputs as RealDivInputs;
-
-    const webgpuBackend = backend as WebGPUBackend;
-
-    return divImpl(a, b, webgpuBackend);
-  }
+  kernelFunc: batchMatMul as {} as KernelFunc,
 };

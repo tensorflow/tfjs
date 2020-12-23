@@ -754,7 +754,7 @@ export class WebGPUBackend extends KernelBackend {
       return getBinaryOpString(BinaryOpType.PRELU);
     }
     throw new Error(`Activation ${
-        activation} has not been implemented for the WebGL backend.`);
+        activation} has not been implemented for the WebGPU backend.`);
   }
 
   fusedConv2d(

@@ -15,19 +15,26 @@
  * =============================================================================
  */
 
-import {RealDiv, RealDivInputs} from '@tensorflow/tfjs-core';
-import {KernelConfig} from '@tensorflow/tfjs-core';
+import {engine, KernelConfig, KernelFunc, Reshape, ReshapeAttrs, ReshapeInputs, TensorInfo} from '@tensorflow/tfjs-core';
+
 import {WebGPUBackend} from '../backend_webgpu';
-import {divImpl} from './Div_impl';
 
-export const divConfig: KernelConfig = {
-  kernelName: RealDiv,
+export function reshape(args: {
+  inputs: ReshapeInputs,
+  backend: WebGPUBackend,
+  attrs: ReshapeAttrs
+}): TensorInfo {
+  const {inputs, backend, attrs} = args;
+  const {x} = inputs;
+  const {shape} = attrs;
+  const webgpuBackend = backend;
+
+  return engine().makeTensorFromDataId(x.dataId, shape, x.dtype, webgpuBackend) as
+        TensorInfo;
+}
+
+export const reshapeConfig: KernelConfig = {
+  kernelName: Reshape,
   backendName: 'webgpu',
-  kernelFunc: ({inputs, backend}) => {
-    const {a, b} = inputs as RealDivInputs;
-
-    const webgpuBackend = backend as WebGPUBackend;
-
-    return divImpl(a, b, webgpuBackend);
-  }
+  kernelFunc: reshape as {} as KernelFunc
 };

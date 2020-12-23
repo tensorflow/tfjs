@@ -16,22 +16,30 @@
  */
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
+import {conv2DConfig} from './kernels/Conv2D';
+import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {divConfig} from './kernels/Div';
 import {fromPixelsConfig} from './kernels/FromPixels';
 import {fromPixelsAsyncConfig} from './kernels/FromPixelsAsync';
+import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
 import {mirrorPadConfig} from './kernels/MirrorPad';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
+import {reshapeConfig} from './kernels/Reshape';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  conv2DConfig,
+  depthwiseConv2dNativeConfig,
   divConfig,
   mirrorPadConfig,
+  reshapeConfig,
   squareConfig,
   squaredDifferenceConfig,
+  fusedConv2DConfig,
   fusedBatchNormConfig,
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV5Config,
