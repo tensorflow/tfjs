@@ -114,8 +114,8 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
     expectArraysClose(outcomeProbs, [0, 1], EPSILON);
   });
 
-  function computeProbs(
-      events: Float32Array|Uint8Array|Int32Array, numOutcomes: number) {
+  function computeProbs(events: Float32Array|Uint16Array|Uint8Array|Int32Array,
+      numOutcomes: number) {
     const counts = [];
     for (let i = 0; i < numOutcomes; ++i) {
       counts[i] = 0;

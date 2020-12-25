@@ -21,7 +21,8 @@ export enum CppDType {
   int32 = 1,
   bool = 2,
   string = 3,
-  complex64 = 4
+  complex64 = 4,
+  float16 = 5
 }
 
 // Must match enum in cc/fusable_activations.h.

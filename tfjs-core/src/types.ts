@@ -39,6 +39,7 @@ export interface ArrayMap {
 
 export interface DataTypeMap {
   float32: Float32Array;
+  float16: Uint16Array;
   int32: Int32Array;
   bool: Uint8Array;
   complex64: Float32Array;
@@ -49,18 +50,19 @@ export interface SingleValueMap {
   bool: boolean;
   int32: number;
   float32: number;
+  float16: number;
   complex64: number;
   string: string;
 }
 
-/** @docalias 'float32'|'int32'|'bool'|'complex64'|'string' */
+/** @docalias 'float32'|'float16'|'int32'|'bool'|'complex64'|'string' */
 export type DataType = keyof DataTypeMap;
-export type NumericDataType = 'float32'|'int32'|'bool'|'complex64';
-export type TypedArray = Float32Array|Int32Array|Uint8Array;
+export type NumericDataType = 'float32'|'float16'|'int32'|'bool'|'complex64';
+export type TypedArray = Float32Array|Uint16Array|Int32Array|Uint8Array;
 /** Tensor data used in tensor creation and user-facing API. */
 export type DataValues = DataTypeMap[DataType];
 /** The underlying tensor data that gets stored in a backend. */
-export type BackendValues = Float32Array|Int32Array|Uint8Array|Uint8Array[];
+export type BackendValues = Float32Array|Uint16Array|Int32Array|Uint8Array|Uint8Array[];
 
 export enum Rank {
   R0 = 'R0',
@@ -85,6 +87,7 @@ export interface RecursiveArray<T extends any> {
 // inputs.
 enum UpcastInt32AndMap {
   'float32' = 'float32',
+  'float16' = 'float32',
   'int32' = 'int32',
   'bool' = 'int32',
   'complex64' = 'complex64'
@@ -92,6 +95,7 @@ enum UpcastInt32AndMap {
 
 enum UpcastBoolAndMap {
   'float32' = 'float32',
+  'float16' = 'float16',
   'int32' = 'int32',
   'bool' = 'bool',
   'complex64' = 'complex64'
@@ -99,13 +103,23 @@ enum UpcastBoolAndMap {
 
 enum UpcastFloat32AndMap {
   'float32' = 'float32',
+  'float16' = 'float32',
   'int32' = 'float32',
   'bool' = 'float32',
   'complex64' = 'complex64'
 }
 
+enum UpcastFloat16AndMap {
+  'float32' = 'float32',
+  'float16' = 'float16',
+  'int32' = 'float32',
+  'bool' = 'float16',
+  'complex64' = 'complex64'
+}
+
 enum UpcastComplex64AndMap {
   'float32' = 'complex64',
+  'float16' = 'complex64',
   'int32' = 'complex64',
   'bool' = 'complex64',
   'complex64' = 'complex64'
@@ -113,6 +127,7 @@ enum UpcastComplex64AndMap {
 
 const upcastTypeMap = {
   'float32': UpcastFloat32AndMap,
+  'float16': UpcastFloat16AndMap,
   'int32': UpcastInt32AndMap,
   'bool': UpcastBoolAndMap,
   'complex64': UpcastComplex64AndMap
