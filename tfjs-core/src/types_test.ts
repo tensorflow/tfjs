@@ -27,15 +27,23 @@ describe('upcastType', () => {
     expect(upcastType('int32', 'int32')).toBe('int32');
   });
 
-  it('upcasts bool/int32/float32 to float32', () => {
+  it('upcasts bool/float16 to float16', () => {
+    expect(upcastType('bool', 'float16')).toBe('float16');
+    expect(upcastType('float16', 'float16')).toBe('float16');
+  });
+
+  it('upcasts bool/int32/float16/float32 to float32', () => {
     expect(upcastType('bool', 'float32')).toBe('float32');
     expect(upcastType('int32', 'float32')).toBe('float32');
     expect(upcastType('float32', 'float32')).toBe('float32');
+    expect(upcastType('float16', 'float32')).toBe('float32');
+    expect(upcastType('float16', 'int32')).toBe('float32');
   });
 
-  it('upcasts bool/int32/float32/complex64 to complex64', () => {
+  it('upcasts bool/int32/float16/float32/complex64 to complex64', () => {
     expect(upcastType('bool', 'complex64')).toBe('complex64');
     expect(upcastType('int32', 'complex64')).toBe('complex64');
+    expect(upcastType('float16', 'complex64')).toBe('complex64');
     expect(upcastType('float32', 'complex64')).toBe('complex64');
     expect(upcastType('complex64', 'complex64')).toBe('complex64');
   });
@@ -43,6 +51,7 @@ describe('upcastType', () => {
   it('fails to upcast anything other than string with string', () => {
     expect(() => upcastType('bool', 'string')).toThrowError();
     expect(() => upcastType('int32', 'string')).toThrowError();
+    expect(() => upcastType('float16', 'string')).toThrowError();
     expect(() => upcastType('float32', 'string')).toThrowError();
     expect(() => upcastType('complex64', 'string')).toThrowError();
     // Ok upcasting string to string.
