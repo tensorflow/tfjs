@@ -14,38 +14,45 @@
  * limitations under the License.
  * =============================================================================
  */
-import {kernel_impls, KernelConfig, NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs} from '@tensorflow/tfjs-core';
+import {kernel_impls, KernelConfig, KernelFunc, NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 export type TypedArray = Float32Array|Int32Array|Uint8Array;
 
-export const nonMaxSuppressionV5Config: KernelConfig = {
-  kernelName: NonMaxSuppressionV5,
-  backendName: 'webgpu',
-  kernelFunc: ({inputs, backend, attrs}) => {
-    console.warn(
+function nonMaxSuppressionV5(args: {
+  inputs: NonMaxSuppressionV5Inputs,
+  backend: WebGPUBackend,
+  attrs: NonMaxSuppressionV5Attrs
+}) {
+  console.warn(
         'tf.nonMaxSuppression() in webgpu locks the UI thread. ' +
         'Call tf.nonMaxSuppressionAsync() instead');
 
-    const {boxes, scores} = inputs as NonMaxSuppressionV5Inputs;
-    const {maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma} =
-        attrs as unknown as NonMaxSuppressionV5Attrs;
+  const {inputs, backend, attrs} = args;
+  const {boxes, scores} = inputs as NonMaxSuppressionV5Inputs;
+  const {maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma} =
+      attrs as unknown as NonMaxSuppressionV5Attrs;
 
-    const gpuBackend = backend as WebGPUBackend;
+  const gpuBackend = backend as WebGPUBackend;
 
-    const boxesVals = gpuBackend.readSync(boxes.dataId) as TypedArray;
-    const scoresVals = gpuBackend.readSync(scores.dataId) as TypedArray;
+  const boxesVals = gpuBackend.readSync(boxes.dataId) as TypedArray;
+  const scoresVals = gpuBackend.readSync(scores.dataId) as TypedArray;
 
-    const maxOutputSizeVal = maxOutputSize;
-    const iouThresholdVal = iouThreshold;
-    const scoreThresholdVal = scoreThreshold;
-    const softNmsSigmaVal = softNmsSigma;
+  const maxOutputSizeVal = maxOutputSize;
+  const iouThresholdVal = iouThreshold;
+  const scoreThresholdVal = scoreThreshold;
+  const softNmsSigmaVal = softNmsSigma;
 
-    const {selectedIndices, selectedScores} =
-        kernel_impls.nonMaxSuppressionV5Impl(
-            boxesVals, scoresVals, maxOutputSizeVal, iouThresholdVal,
-            scoreThresholdVal, softNmsSigmaVal);
+  const {selectedIndices, selectedScores} =
+      kernel_impls.nonMaxSuppressionV5Impl(
+          boxesVals, scoresVals, maxOutputSizeVal, iouThresholdVal,
+          scoreThresholdVal, softNmsSigmaVal);
 
-    return [selectedIndices, selectedScores];
-  }
+  return [selectedIndices, selectedScores]
+}
+
+export const nonMaxSuppressionV5Config: KernelConfig = {
+  kernelName: NonMaxSuppressionV5,
+  backendName: 'webgpu',
+  kernelFunc: nonMaxSuppressionV5 as {} as KernelFunc
 };

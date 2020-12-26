@@ -15,17 +15,18 @@
  * =============================================================================
  */
 
-import {kernel_impls, KernelConfig, NonMaxSuppressionV3, NonMaxSuppressionV3Attrs, NonMaxSuppressionV3Inputs, TypedArray} from '@tensorflow/tfjs-core';
+import {kernel_impls, KernelConfig, KernelFunc, NonMaxSuppressionV3, NonMaxSuppressionV3Attrs, NonMaxSuppressionV3Inputs, TypedArray} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
 
-export const nonMaxSuppressionV3Config: KernelConfig = {
-  kernelName: NonMaxSuppressionV3,
-  backendName: 'webgpu',
-  kernelFunc: ({inputs, backend, attrs}) => {
+function nonMaxSuppressionV3(args: {
+  inputs: NonMaxSuppressionV3Inputs,
+  backend: WebGPUBackend,
+  attrs: NonMaxSuppressionV3Attrs
+}) {
     console.warn(
         'tf.nonMaxSuppression() in webgpu locks the UI thread. ' +
         'Call tf.nonMaxSuppressionAsync() instead');
-
+    const {inputs, backend, attrs} = args;
     const {boxes, scores} = inputs as NonMaxSuppressionV3Inputs;
     const {maxOutputSize, iouThreshold, scoreThreshold} =
         attrs as unknown as NonMaxSuppressionV3Attrs;
@@ -36,5 +37,48 @@ export const nonMaxSuppressionV3Config: KernelConfig = {
 
     return kernel_impls.nonMaxSuppressionV3Impl(
         boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
-  }
+}
+//  backend_util.warn(
+//      'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
+//      'Call tf.nonMaxSuppressionAsync() instead');
+//
+//  const {inputs, backend, attrs} = args;
+//  const {boxes, scores} = inputs;
+//  const {maxOutputSize, iouThreshold, scoreThreshold} = attrs;
+//
+//  const boxesVals = backend.readSync(boxes.dataId) as TypedArray;
+//  const scoresVals = backend.readSync(scores.dataId) as TypedArray;
+//
+//  const {selectedIndices} = nonMaxSuppressionV3Impl(
+//      boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
+//
+//  return backend.makeOutputArray(
+//      [selectedIndices.length], 'int32', new Int32Array(selectedIndices));
+//}
+
+export const nonMaxSuppressionV3Config: KernelConfig = {
+  kernelName: NonMaxSuppressionV3,
+  backendName: 'webgpu',
+  kernelFunc: nonMaxSuppressionV3 as {} as KernelFunc
 };
+
+//export const nonMaxSuppressionV3Config: KernelConfig = {
+//  kernelName: NonMaxSuppressionV3,
+//  backendName: 'webgpu',
+//  kernelFunc as KernelFunc: ({inputs, backend, attrs}) => {
+//    console.warn(
+//        'tf.nonMaxSuppression() in webgpu locks the UI thread. ' +
+//        'Call tf.nonMaxSuppressionAsync() instead');
+//
+//    const {boxes, scores} = inputs as NonMaxSuppressionV3Inputs;
+//    const {maxOutputSize, iouThreshold, scoreThreshold} =
+//        attrs as unknown as NonMaxSuppressionV3Attrs;
+//
+//    const gpuBackend = backend as WebGPUBackend;
+//    const boxesVals = gpuBackend.readSync(boxes.dataId) as TypedArray;
+//    const scoresVals = gpuBackend.readSync(scores.dataId) as TypedArray;
+//
+//    return kernel_impls.nonMaxSuppressionV3Impl(
+//        boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
+//  }
+//};

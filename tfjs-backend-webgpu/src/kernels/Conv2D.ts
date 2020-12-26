@@ -19,6 +19,8 @@ import {backend_util, Conv2D, Conv2DAttrs, Conv2DInputs, env, engine, KernelConf
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {Conv2DMMProgram} from './conv2d_mm_webgpu';
+import {Conv2DNaiveProgram} from './conv2d_naive_webgpu';
+import {Conv2DMMVec4Program} from './conv2d_mm_vec4_webgpu';
 import {conv2dByMatMul, conv2dWithIm2Col} from './Conv2D_impl';
 
 export function conv2d(
@@ -52,20 +54,20 @@ export function conv2d(
     let program: Conv2DMMProgram;
 
     const workPerThread = env().get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
-    //if (workPerThread === -1) {
-    //  // TODO(kainino0x): This may be obsolete, but is kept for reference.
-    //  program = new Conv2DNaiveProgram(convInfo);
-    //} else if (
-    //    // TODO(jiajia.qin@intel.com): It seems that the vec4 version is not
-    //    // good if convInfo.outChannels is too small. For example, input = [1,
-    //    // 128, 128, 4], filter = [25, 25, 4, 4]. In this case, lots of theads
-    //    // will run idle. So temporarily, use 64 as the threshold.
-    //    convInfo.inChannels % 4 === 0 && convInfo.outChannels % 4 === 0 &&
-    //    convInfo.outChannels >= 64) {
-    //  program = new Conv2DMMVec4Program(convInfo);
-    //} else {
-      program = new Conv2DMMProgram(convInfo, workPerThread);
-    //}
+    if (workPerThread === -1) {
+      // TODO(kainino0x): This may be obsolete, but is kept for reference.
+      program = new Conv2DNaiveProgram(convInfo);
+    } else if (
+        // TODO(jiajia.qin@intel.com): It seems that the vec4 version is not
+        // good if convInfo.outChannels is too small. For example, input = [1,
+        // 128, 128, 4], filter = [25, 25, 4, 4]. In this case, lots of theads
+        // will run idle. So temporarily, use 64 as the threshold.
+        convInfo.inChannels % 4 === 0 && convInfo.outChannels % 4 === 0 &&
+        convInfo.outChannels >= 64) {
+      program = new Conv2DMMVec4Program(convInfo);
+    } else {
+    program = new Conv2DMMProgram(convInfo, workPerThread);
+    }
 
     const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
 

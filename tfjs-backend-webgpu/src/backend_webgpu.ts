@@ -506,7 +506,7 @@ export class WebGPUBackend extends KernelBackend {
     return this.cpuBackend;
   }
 
-  private shouldExecuteOnCPU(
+  shouldExecuteOnCPU(
       inputs: Tensor[], sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
     return this.getCPUBackend() != null &&
         inputs.every(
