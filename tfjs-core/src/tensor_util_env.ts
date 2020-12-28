@@ -72,7 +72,7 @@ function deepAssertShapeConsistency(
 function assertDtype(
     expectedDtype: DataType|'numeric'|'string_or_numeric',
     actualDType: DataType, argName: string, functionName: string) {
-  if (expectedDtype == 'string_or_numeric') {
+  if (expectedDtype === 'string_or_numeric') {
     return;
   }
   if (expectedDtype == null) {
