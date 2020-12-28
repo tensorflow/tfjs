@@ -26,10 +26,10 @@ describe('CLI binary', () => {
     );
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
     const binEntry = packageJson.bin;
-    expect(binEntry['tfjs-custom-bundle']).toBeDefined();
+    expect(binEntry['tfjs-custom-module']).toBeDefined();
 
     const toolPath = path.resolve(
-        path.dirname(packageJsonPath), binEntry['tfjs-custom-bundle']);
+        path.dirname(packageJsonPath), binEntry['tfjs-custom-module']);
 
     expect(() => {
       fs.accessSync(toolPath, fs.constants.X_OK);

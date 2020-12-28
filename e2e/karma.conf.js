@@ -54,7 +54,7 @@ const devConfig = {
     },
     // Serve program bundles as files
     {
-      pattern: 'custom_bundle/*/dist/**/*',
+      pattern: 'custom_module/*/dist/**/*',
       watched: true,
       included: false,
       served: true,
@@ -62,7 +62,7 @@ const devConfig = {
     },
     // Serve model assets as files
     {
-      pattern: 'custom_bundle/*/model/**/*',
+      pattern: 'custom_module/*/model/**/*',
       watched: true,
       included: false,
       served: true,
@@ -114,8 +114,7 @@ module.exports = function(config) {
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
-      tunnelIdentifier:
-          `e2e_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+      tunnelIdentifier: `e2e_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     },
     captureTimeout: 3e5,
     reportSlowerThan: 500,
