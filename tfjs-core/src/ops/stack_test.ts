@@ -114,6 +114,15 @@ describeWithFlags('stack', ALL_ENVS, () => {
     expectArraysClose(await res.data(), [1, 2, 3, 4]);
   });
 
+  it('accepts string.', async () => {
+    const a = tf.scalar('three', 'string');
+    const b = tf.scalar('five', 'string');
+    const c = tf.scalar('seven', 'string');
+    const res = tf.stack([a, b, c]);
+    expect(res.shape).toEqual([3]);
+    expectArraysClose(await res.data(), ['three', 'five', 'seven']);
+  });
+
   it('chain api', async () => {
     const a = tf.tensor([1, 2]);
     const res = a.stack(tf.tensor([3, 4]));

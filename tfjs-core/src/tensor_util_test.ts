@@ -175,14 +175,14 @@ describeWithFlags('convertToTensor', ALL_ENVS, () => {
   });
 
   it('primitive string, do not force numeric', () => {
-    const t = convertToTensor('hello', 'p', 'test', null /* Allow any dtype */);
+    const t = convertToTensor('hello', 'p', 'test', 'string_or_numeric');
     expect(t.dtype).toBe('string');
     expect(t.shape).toEqual([]);
   });
 
   it('string[], do not force numeric', () => {
-    const t = convertToTensor(
-        ['a', 'b', 'c'], 'p', 'test', null /* Allow any dtype */);
+    const t =
+        convertToTensor(['a', 'b', 'c'], 'p', 'test', 'string_or_numeric');
     expect(t.dtype).toBe('string');
     expect(t.shape).toEqual([3]);
   });
@@ -192,6 +192,11 @@ describeWithFlags('convertToTensor', ALL_ENVS, () => {
         .toThrowError(
             'Argument \'argName\' passed to \'func\' must be bool tensor' +
             ', but got string tensor');
+  });
+
+  it('string, throw error if pass null.', () => {
+    expect(() => convertToTensor('a', 'argName', 'func', null))
+        .toThrowError('Expected dtype cannot be null.');
   });
 
   it('fails to convert a dict to tensor', () => {

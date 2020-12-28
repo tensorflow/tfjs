@@ -20,6 +20,7 @@ export {simpleAbsImpl} from './kernels/Abs';
 export {addImpl} from './kernels/Add';
 export {bincountImpl, bincountReduceImpl} from './kernels/Bincount_impl';
 export {ceilImpl} from './kernels/Ceil';
+export {concatImpl} from './kernels/Concat_impl';
 export {expImpl} from './kernels/Exp';
 export {expm1Impl} from './kernels/Expm1';
 export {floorImpl} from './kernels/Floor';
