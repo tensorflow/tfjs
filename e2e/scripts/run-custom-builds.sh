@@ -24,6 +24,8 @@ cd ..
 e2e_root_path=$PWD
 
 cd custom_bundle/blazeface
+echo "blazeface which yarn"
+which yarn
 yarn
 echo "blazeface ls node_modules/.bin"
 ls node_modules/.bin
@@ -40,6 +42,8 @@ echo $PWD
 cd $e2e_root_path
 echo $PWD
 cd custom_bundle/dense_model
+echo "dense model which yarn"
+which yarn
 yarn
 echo "dense_model ls node_modules/.bin"
 ls node_modules/.bin
