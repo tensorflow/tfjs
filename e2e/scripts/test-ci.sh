@@ -16,6 +16,8 @@
 
 set -e
 
+node --version
+
 # Smoke tests run in PR and nightly builds.
 TAGS="#SMOKE"
 
