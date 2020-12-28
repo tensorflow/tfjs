@@ -5,14 +5,14 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "make-custom-tfjs-modules": "npx tfjs-custom-module --config app_tfjs_config.json",
+    "make-custom-tfjs-modules": "node ./node_modules/@tensorflow/tfjs/dist/tools/custom_module/cli.js --config app_tfjs_config.json",
     "rollup:full": "rollup -c",
     "rollup:custom": "rollup -c --useCustomTfjs",
     "webpack:full": "webpack",
     "webpack:custom": "webpack --useCustomTfjs"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "file:../../../tfjs"
+    "@tensorflow/tfjs": "link:../../../tfjs"
   },
   "devDependencies": {
     "@rollup/plugin-alias": "^3.1.1",
