@@ -30,7 +30,6 @@ then
   yarn run-browserstack --browsers=bs_firefox_mac --flags '{"HAS_WEBGL": false}' --testEnv cpu
   yarn run-browserstack --browsers=bs_safari_mac --flags '{"HAS_WEBGL": false}' --testEnv cpu
   yarn run-browserstack --browsers=bs_ios_11 --flags '{"HAS_WEBGL": false}' --testEnv cpu
-  yarn run-browserstack --browsers=bs_android_9 --flags '{"HAS_WEBGL": false}' --testEnv cpu
 
 
   ### The next section tests TF.js in a webworker using the CPU backend.
