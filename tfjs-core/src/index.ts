@@ -17,6 +17,5 @@
 
 // Required side effectful code.
 import './base_side_effects';
-
 // All exports from this package should be in base.
 export * from './base';
