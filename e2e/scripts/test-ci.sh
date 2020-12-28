@@ -16,10 +16,6 @@
 
 set -e
 
-echo "node --version" && node --version
-echo "yarn --version" && yarn --version
-
-
 # Smoke tests run in PR and nightly builds.
 TAGS="#SMOKE"
 
