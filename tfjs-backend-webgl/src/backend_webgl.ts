@@ -554,6 +554,11 @@ export class MathBackendWebGL extends KernelBackend {
     // shouldn't actually dispose the texture.
     if (this.texData.get(dataId).complexParentRefCount > 0) {
       this.texData.get(dataId).refCount--;
+      this.texData.get(dataId).complexParentRefCount--;
+
+      if (this.texData.get(dataId).complexParentRefCount === 0) {
+        this.releaseGPUData(dataId);
+      }
       return;
     }
 
@@ -561,10 +566,10 @@ export class MathBackendWebGL extends KernelBackend {
     const {complexTensorInfos} = this.texData.get(dataId);
     if (complexTensorInfos != null) {
       this.texData.get(complexTensorInfos.real.dataId).complexParentRefCount--;
-      this.disposeIntermediateTensorInfo(complexTensorInfos.real);
+      this.disposeData(complexTensorInfos.real.dataId);
 
       this.texData.get(complexTensorInfos.imag.dataId).complexParentRefCount--;
-      this.disposeIntermediateTensorInfo(complexTensorInfos.imag);
+      this.disposeData(complexTensorInfos.imag.dataId);
     }
     this.texData.delete(dataId);
   }
