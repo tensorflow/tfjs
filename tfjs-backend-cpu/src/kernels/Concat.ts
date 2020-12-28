@@ -80,9 +80,7 @@ export function concat(
   });
 
   const inputsValShapes = inputs2D.map(t => {
-    return {
-      vals: backend.data.get(t.dataId).values, shape: t.shape
-    }
+    return {vals: backend.data.get(t.dataId).values, shape: t.shape};
   });
 
   // Concats 2d tensors along axis=1.

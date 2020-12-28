@@ -18,7 +18,7 @@
 import {backend_util, BackendValues, DataType, TypedArray, util} from '@tensorflow/tfjs-core';
 
 export function concatImpl(
-    inputs: {vals: BackendValues, shape: number[]}[], outShape: number[],
+    inputs: Array<{vals: BackendValues, shape: number[]}>, outShape: number[],
     dtype: DataType, simplyConcat: boolean): TypedArray|string[] {
   const outVals = util.getArrayFromDType(dtype, util.sizeFromShape(outShape));
 

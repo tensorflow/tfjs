@@ -57,9 +57,7 @@ export function concatImpl(
   if (dtype === 'string') {
     const {tensors2D, outShape} = computeTensors2D(inputs, axis, backend);
     const inputsValShapes = tensors2D.map(t => {
-      return {
-        vals: backend.texData.get(t.dataId).values, shape: t.shape
-      }
+      return {vals: backend.texData.get(t.dataId).values, shape: t.shape};
     });
     const simplyConcat = tensors2D[0].shape[0] === 1;
     const outVals =
