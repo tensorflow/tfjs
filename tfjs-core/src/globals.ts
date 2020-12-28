@@ -53,25 +53,15 @@ export function enableDebugMode(): void {
 }
 
 /**
- * Try to enables float16 mode which allows developers to use 16bit float
+ * Enables float16 mode which allows developers to use 16bit float
  * arithmetic feature and 16bit storage features for improving performance.
  *
  * Currently, the float16 mode is only available on webgpu backend.
  *
- * Returns true if underlying driver supports float16 feature and enable the
- * feature successfully.
- *
  * @doc {heading: 'Environment'}
  */
-export function tryToEnableFloat16Mode(): boolean {
-  if (ENGINE.backendName === 'webgpu' &&
-      env().getBool('DRIVER_SUPPORT_FLOAT16')) {
-    env().set('FLOAT16', true);
-    return true;
-  } else {
-    env().set('FLOAT16', false);
-    return false;
-  }
+export function enableFloat16Mode() {
+  env().set('FLOAT16', true);
 }
 
 /** Globally disables deprecation warnings */
