@@ -885,10 +885,10 @@
   resolved "https://registry.yarnpkg.com/@webgpu/glslang/-/glslang-0.0.12.tgz#ee40e8d38c31436508147feaf0f646fde9bb4da6"
   integrity sha512-GfEVo1GUxNfXjO4Z7I06XXYJA45N6sHoKqI5Ptf3vafnPowq2C1woCqVe7frsClMfBB2yLn1vJss2oWl5EdTig==
 
-"@webgpu/types@0.0.30":
-  version "0.0.30"
-  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.0.30.tgz#c2912de0d15c916f12d35579bf9efb44392c7784"
-  integrity sha512-MWVOk6ACnm8wFMaRa7SGa3FK2FetDkdmAVi8homWEGIS28X8Kgdf1i6sdeLsaeV47sqxJG3NQ++e3M23l5xUbA==
+"@webgpu/types@0.0.32":
+  version "0.0.32"
+  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.0.32.tgz#a447b38f3843788c5ea870de2196db1c54393ec5"
+  integrity sha512-fu2yAHYCtdL7PWrR97iK9s5riIKnbliA0WIthKZ83YDjpBZSFsMISwNyXli2X7ucEuKa5B390DKxTtkpORu9EQ==
 
 accepts@~1.3.4:
   version "1.3.5"
