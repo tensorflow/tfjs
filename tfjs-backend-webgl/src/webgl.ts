@@ -85,6 +85,14 @@ type TensorFromTextureConfig = {
  *
  * ```
  *
+ * For postprocessing on the GPU, it's possible to retrieve the texture backing
+ * any tensor by calling the WebGL backend's `getTexture` method like so:
+ *
+ * ```js
+ * const a = tf.tensor1d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+ * const tex = tf.backend().getTexture(a.dataId);
+ * ```
+ *
  * @param obj An object with the following properties:
  *  @param texture The WebGL texture to create a tensor from. The texture must
  * be unpacked - each texel should only store a single value. The flattened
@@ -115,7 +123,6 @@ export function createTensorFromTexture({
   // OpenGL / WebGL do not make it possible to query textures for their
   // properties (physical dimensions, internalFormat, etc.), therefore we ask
   // the user to provide this information in order to validate their texture.
-  // This information cannot be queried.
   // References:
   // https://stackoverflow.com/questions/30140178/opengl-es-2-0-get-texture-size-and-other-info
   // https://stackoverflow.com/questions/26315021/is-there-a-way-to-retrieve-the-dimensions-of-a-texture-after-binding-with-gl-bin
