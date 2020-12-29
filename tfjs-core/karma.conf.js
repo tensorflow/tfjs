@@ -105,7 +105,7 @@ module.exports = function(config) {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
       tunnelIdentifier:
-          `tfjs_union_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+          `tfjs_core_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     },
     captureTimeout: 3e5,
     reportSlowerThan: 500,
