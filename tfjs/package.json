@@ -10,7 +10,7 @@
   "types": "dist/index.d.ts",
   "miniprogram": "dist/miniprogram",
   "bin": {
-    "tfjs-custom-bundle": "dist/tools/custom_bundle/cli.js"
+    "tfjs-custom-module": "dist/tools/custom_module/cli.js"
   },
   "repository": {
     "type": "git",
@@ -74,8 +74,8 @@
     "build-backend-webgl-ci": "cd ../tfjs-backend-webgl && yarn && yarn build-ci",
     "build-deps": "yarn build-core && yarn build-layers && yarn build-converter && yarn build-data && yarn build-backend-cpu && yarn build-backend-webgl",
     "build-deps-ci": "yarn build-core-ci && yarn build-layers-ci && yarn build-converter-ci && yarn build-data-ci && yarn build-backend-cpu-ci && yarn build-backend-webgl-ci",
-    "build-cli": "tsc --project ./tools/custom_bundle/tsconfig.json && chmod +x ./dist/tools/custom_bundle/cli.js",
-    "run-custom-build": "ts-node -s ./tools/custom_bundle/cli.ts",
+    "build-cli": "tsc --project ./tools/custom_module/tsconfig.json && chmod +x ./dist/tools/custom_module/cli.js",
+    "run-custom-build": "ts-node -s ./tools/custom_module/cli.ts",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
@@ -83,7 +83,7 @@
     "lint": "tslint -p . -t verbose",
     "test": "yarn && yarn build-deps && yarn build && karma start",
     "test-dev": "karma start",
-    "test-tools": "ts-node --project ./tools/custom_bundle/tsconfig.json run_tools_tests.ts",
+    "test-tools": "ts-node --project ./tools/custom_module/tsconfig.json run_tools_tests.ts",
     "test-ci": "./scripts/test-ci.sh"
   },
   "dependencies": {
