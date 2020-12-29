@@ -689,9 +689,6 @@ export class Engine implements TensorTracker, DataMover {
   /**
    * Returns a list of tensors to save for a given gradient calculation.
    *
-   * Returns undefined if their is no registered gradient for this kernel in the
-   * gradient registry.
-   *
    * @param kernelName name of kernel to look up gradient for.
    * @param inputs a map of input tensors.
    * @param outputs an array of output tensors from forward mode of kernel.
@@ -722,9 +719,13 @@ export class Engine implements TensorTracker, DataMover {
 
       return inputTensorsToSave.concat(outputTensorsToSave);
     }
-    // TODO(yassogba) throw exception here once all runkernelFunc calls with
-    // inputsToSave/outputsToSave are removed
-    return null;
+    // We return an empty list rather than throw an error because the kernel we
+    // are looking up may not actually be relevant to backproping through the
+    // overall function
+    //
+    // See 'does not error if irrelevant (pruned) ops are missing grads' test
+    // in gradients_test.ts for an example.
+    return [];
   }
 
   /**
