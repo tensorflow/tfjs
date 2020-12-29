@@ -75,7 +75,7 @@ const devConfig = {
     '**/*.ts': ['karma-typescript'],  // *.tsx for React Jsx
   },
   karmaTypescriptConfig,
-  reporters: ['progress', 'karma-typescript']
+  reporters: ['spec', 'karma-typescript']
 };
 
 const browserstackConfig = {
@@ -115,8 +115,7 @@ module.exports = function(config) {
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
-      tunnelIdentifier:
-          `e2e_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+      tunnelIdentifier: `e2e_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     },
     captureTimeout: 3e5,
     reportSlowerThan: 500,
