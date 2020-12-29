@@ -78,14 +78,14 @@ describe(`${SMOKE} load_predict`, () => {
       a.dispose();
     });
 
-    it(`predict with ${tfc.getBackend()} for old model.`, async () => {
+    it(`predict for old model.`, async () => {
       const model = await tfconverter.loadGraphModel(
           `${KARMA_SERVER}/load_predict_data/graph_model/model.json`);
       const result = await model.executeAsync({'Placeholder': a}) as tfc.Tensor;
       tfc.test_util.expectArraysClose(await result.data(), expected);
     });
 
-    it(`predict with ${tfc.getBackend()} for new model.`, async () => {
+    it(`predict for new model.`, async () => {
       const model = await tfconverter.loadGraphModel(
           `${KARMA_SERVER}/load_predict_data/graph_model/model_new.json`);
       const result = await model.executeAsync({'Placeholder': a}) as tfc.Tensor;
