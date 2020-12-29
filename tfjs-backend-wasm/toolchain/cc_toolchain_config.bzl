@@ -112,7 +112,7 @@ def _impl(ctx):
         ),
         flag_set(
             actions = all_compile_actions + all_link_actions,
-            flag_groups = [flag_group(flags = ["-g0", "-O3"])],
+            flag_groups = [flag_group(flags = ["-g3", "-O3"])],
             with_features = [with_feature_set(features = ["opt"])],
         ),
         # Fastbuild.
@@ -124,7 +124,7 @@ def _impl(ctx):
         # Dbg.
         flag_set(
             actions = all_compile_actions + all_link_actions,
-            flag_groups = [flag_group(flags = ["-g2", "-O0"])],
+            flag_groups = [flag_group(flags = ["-g3", "-O0"])],
             with_features = [with_feature_set(features = ["dbg"])],
         ),
     ]

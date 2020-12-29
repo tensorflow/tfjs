@@ -89,6 +89,7 @@ async function main() {
     }
 
     // tfjs-backend-wasm needs emsdk to build.
+    // BJONES TEST To see if this works. If not remove it like I did before, because I have it installed locally.
     if (pkg === 'tfjs-backend-wasm') {
       shell.cd('..');
       $('git clone https://github.com/emscripten-core/emsdk.git');
@@ -115,10 +116,11 @@ async function main() {
     }
 
     console.log(chalk.magenta.bold(`~~~ Publishing ${pkg} to npm ~~~`));
-    const otp =
-        await question(`Enter one-time password from your authenticator: `);
-    $(`YARN_REGISTRY="https://registry.npmjs.org/" npm publish --otp=${otp}`);
-    console.log(`Yay! Published ${pkg} to npm.`);
+    // BJONES REMOVING BECAUSE I DON'T WANT TO PUBLISH FOR REAL
+    // const otp =
+    //     await question(`Enter one-time password from your authenticator: `);
+    // $(`YARN_REGISTRY="https://registry.npmjs.org/" npm publish --otp=${otp}`);
+    // console.log(`Yay! Published ${pkg} to npm.`);
 
     shell.cd('..');
     console.log();
