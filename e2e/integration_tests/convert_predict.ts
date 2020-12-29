@@ -39,6 +39,19 @@ import {createInputTensors} from './test_util';
 const DATA_URL = 'convert_predict_data';
 
 describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, () => {
+  let originalTimeout: number;
+
+  beforeAll(() => {
+    // This test needs more time to finish the async fetch, adjusting
+    // jasmine timeout for this test to avoid flakiness. See jasmine
+    // documentation for detail:
+    // https://jasmine.github.io/2.0/introduction.html#section-42
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
+  });
+
+  afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
+
   for (const modelType in CONVERT_PREDICT_MODELS) {
     const models =
         (CONVERT_PREDICT_MODELS as {[key: string]: string[]})[modelType];
@@ -53,15 +66,7 @@ describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, () => {
         let tfOutputShapes: number[][];
         let tfOutputDtypes: tfc.DataType[];
 
-        let originalTimeout: number;
-
         beforeAll(async () => {
-          // This test needs more time to finish the async fetch, adjusting
-          // jasmine timeout for this test to avoid flakiness. See jasmine
-          // documentation for detail:
-          // https://jasmine.github.io/2.0/introduction.html#section-42
-          originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-          jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
           const fetches = [
             fetch(`${KARMA_SERVER}/${DATA_URL}/${model}.xs-data.json`)
                 .then(response => response.json()),
@@ -87,8 +92,6 @@ describeWithFlags(`${REGRESSION} convert_predict`, ALL_ENVS, () => {
            inputsDtypes, tfOutputNames, tfOutputDtypes] =
               await Promise.all(fetches);
         });
-
-        afterAll(() => jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout);
 
         it(`.`, async () => {
           if (modelType === 'graph_model') {
