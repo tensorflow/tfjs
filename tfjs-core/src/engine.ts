@@ -512,16 +512,11 @@ export class Engine implements TensorTracker, DataMover {
    * tensors are not visible to the user.
    */
   runKernel<T extends Tensor|Tensor[]>(
-      kernelName: string, inputs: NamedTensorMap, attrs?: NamedAttrMap,
-      inputsToSave?: Tensor[], outputsToSave?: boolean[]): T {
+      kernelName: string, inputs: NamedTensorMap, attrs?: NamedAttrMap): T {
     const forwardFunc: null = null;
     const backwardsFunc: null = null;
-    // Call runKernel as a stop-gap until we modularize all kernels.
-    // Once we modularize all kernels, we will remove the existing
-    // `runKernelFunc`.
     return this.runKernelFunc(
-        forwardFunc, inputs, backwardsFunc, kernelName, attrs, inputsToSave,
-        outputsToSave);
+        forwardFunc, inputs, backwardsFunc, kernelName, attrs);
   }
 
   private shouldCheckForMemLeaks(): boolean {
@@ -558,14 +553,16 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   /**
-   * @deprecated Use `runKernel` for newly added kernels. Keep using this method
-   *     only for kernels that are not yet fully modularized.
+   * Internal helper method to execute a kernelFunc
+   *
+   * Use `runKernel` to execute kernels from outside of engine.
+   *
+   *
    */
-  runKernelFunc<T extends Tensor|Tensor[], I extends NamedTensorMap>(
+  private runKernelFunc<T extends Tensor|Tensor[], I extends NamedTensorMap>(
       forwardFunc: ForwardFunc<T>, inputs: I,
       backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
-      kernelName?: string, attrs?: NamedAttrMap, inputsToSave?: Tensor[],
-      outputsToSave?: boolean[]): T {
+      kernelName?: string, attrs?: NamedAttrMap): T {
     let outputs: Tensor[];
     let saved: Tensor[] = [];
     const isTapeOn = this.isTapeOn();
@@ -611,17 +608,6 @@ export class Engine implements TensorTracker, DataMover {
         if (isTapeOn) {
           let tensorsToSave =
               this.getTensorsForGradient(kernelName, inputs, outTensors);
-          if (tensorsToSave == null) {
-            // Fallback for ops that call runKernelFunc and pass in
-            // inputsToSave and outputsToSave. Currently this is the set of ops
-            // with kernel support in the WASM backend. Once those ops and
-            // respective gradients are modularised we can remove this path.
-            if (outputsToSave == null) {
-              outputsToSave = [];
-            }
-            const outsToSave = outTensors.filter((_, i) => outputsToSave[i]);
-            tensorsToSave = (inputsToSave || []).slice().concat(outsToSave);
-          }
           saved = this.saveTensorsForBackwardMode(tensorsToSave);
         }
         return outTensors;
