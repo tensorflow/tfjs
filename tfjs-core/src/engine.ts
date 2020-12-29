@@ -606,7 +606,7 @@ export class Engine implements TensorTracker, DataMover {
         // cause a mem leak since we would never run backprop, which disposes
         // the kept tensors.
         if (isTapeOn) {
-          let tensorsToSave =
+          const tensorsToSave =
               this.getTensorsForGradient(kernelName, inputs, outTensors);
           saved = this.saveTensorsForBackwardMode(tensorsToSave);
         }
