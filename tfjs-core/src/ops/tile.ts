@@ -21,7 +21,7 @@ import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
-import {DataType, TensorLike} from '../types';
+import {TensorLike} from '../types';
 import * as util from '../util';
 
 import {op} from './operation';
@@ -52,8 +52,7 @@ import {op} from './operation';
  * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
 function tile_<T extends Tensor>(x: T|TensorLike, reps: number[]): T {
-  const parseAs: DataType = null;
-  const $x = convertToTensor(x, 'x', 'tile', parseAs);
+  const $x = convertToTensor(x, 'x', 'tile', 'string_or_numeric');
   util.assert(
       $x.rank === reps.length,
       () => `Error in transpose: rank of input ${$x.rank} ` +
