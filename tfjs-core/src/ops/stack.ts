@@ -43,7 +43,8 @@ import {op} from './operation';
  */
 function stack_<T extends Tensor>(
     tensors: Array<T|TensorLike>, axis = 0): Tensor {
-  const $tensors = convertToTensorArray(tensors, 'tensors', 'stack');
+  const $tensors =
+      convertToTensorArray(tensors, 'tensors', 'stack', 'string_or_numeric');
 
   util.assert(
       $tensors.length >= 1, () => 'Pass at least one tensor to tf.stack');

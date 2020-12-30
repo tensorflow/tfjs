@@ -55,7 +55,7 @@
   },
   "dependencies": {
     "@webgpu/glslang": "0.0.12",
-    "@webgpu/types": "0.0.30"
+    "@webgpu/types": "0.0.32"
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "2.7.0"
