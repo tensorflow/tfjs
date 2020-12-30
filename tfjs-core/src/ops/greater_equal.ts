@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {GreaterEqual, GreaterEqualInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -48,17 +48,9 @@ function greaterEqual_<T extends Tensor>(
 
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.greaterEqual($a, $b);
-    save([$a, $b]);
-    return res;
-  };
-
   const inputs: GreaterEqualInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */,
-             GreaterEqual) as T;
+  return ENGINE.runKernel(GreaterEqual, inputs as {} as NamedTensorMap);
 }
 
 export const greaterEqual = op({greaterEqual_});

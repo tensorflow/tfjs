@@ -28,9 +28,6 @@ export function cropAndResize(args: {
   const {image, boxes, boxInd} = inputs;
   const {cropSize, method, extrapolationValue} = attrs;
 
-  const $method = method || 'bilinear';
-  const $extrapolationValue = extrapolationValue || 0;
-
   const [batch, imageHeight, imageWidth, numChannels] = image.shape;
   const numBoxes = boxes.shape[0];
 
@@ -77,13 +74,13 @@ export function cropAndResize(args: {
           for (let c = 0; c < numChannels; c++) {
             const ind =
                 c + x * outStride[2] + y * outStride[1] + b * outStride[0];
-            output.values[ind] = $extrapolationValue;
+            output.values[ind] = extrapolationValue;
           }
         }
         continue;
       }
 
-      if ($method === 'bilinear') {
+      if (method === 'bilinear') {
         const topInd = Math.floor(yInd);
         const bottomInd = Math.ceil(yInd);
         const yLerp = yInd - topInd;
@@ -97,7 +94,7 @@ export function cropAndResize(args: {
             for (let c = 0; c < numChannels; c++) {
               const ind =
                   c + x * outStride[2] + y * outStride[1] + b * outStride[0];
-              output.values[ind] = $extrapolationValue;
+              output.values[ind] = extrapolationValue;
             }
             continue;
           }
@@ -140,7 +137,7 @@ export function cropAndResize(args: {
             for (let c = 0; c < numChannels; c++) {
               const ind =
                   c + x * outStride[2] + y * outStride[1] + b * outStride[0];
-              output.values[ind] = $extrapolationValue;
+              output.values[ind] = extrapolationValue;
             }
             continue;
           }

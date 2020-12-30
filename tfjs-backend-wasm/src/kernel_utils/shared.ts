@@ -18,6 +18,10 @@
 // Import shared functionality from tfjs-backend-cpu without triggering
 // side effects.
 // tslint:disable-next-line: no-imports-from-dist
+import {concatImpl as concatImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
+// tslint:disable-next-line: no-imports-from-dist
 import {sliceImpl as sliceImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
+// tslint:disable-next-line: no-imports-from-dist
+import {rangeImpl as rangeImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
 
-export {sliceImplCPU};
+export {concatImplCPU, rangeImplCPU, sliceImplCPU};

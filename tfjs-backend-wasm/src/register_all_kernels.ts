@@ -38,6 +38,7 @@ import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
+import {expandDimsConfig} from './kernels/ExpandDims';
 import {fillConfig} from './kernels/Fill';
 import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
@@ -50,6 +51,7 @@ import {gatherV2Config} from './kernels/GatherV2';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
+import {leakyReluConfig} from './kernels/LeakyRelu';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
@@ -57,6 +59,7 @@ import {logicalAndConfig} from './kernels/LogicalAnd';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
+import {meanConfig} from './kernels/Mean';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
 import {multiplyConfig} from './kernels/Multiply';
@@ -67,10 +70,12 @@ import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
 import {oneHotConfig} from './kernels/OneHot';
 import {onesLikeConfig} from './kernels/OnesLike';
+import {packConfig} from './kernels/Pack';
 import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
+import {rangeConfig} from './kernels/Range';
 import {realDivConfig} from './kernels/RealDiv';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
@@ -85,7 +90,7 @@ import {sigmoidConfig} from './kernels/Sigmoid';
 import {sinConfig} from './kernels/Sin';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
-import {splitVConfig} from './kernels/Split';
+import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
@@ -94,6 +99,7 @@ import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanhConfig} from './kernels/Tanh';
 import {tileConfig} from './kernels/Tile';
+import {topKConfig} from './kernels/TopK';
 import {transposeConfig} from './kernels/Transpose';
 import {unpackConfig} from './kernels/Unpack';
 import {zerosLikeConfig} from './kernels/ZerosLike';
@@ -118,6 +124,7 @@ const kernelConfigs: KernelConfig[] = [
   depthwiseConv2dNativeConfig,
   equalConfig,
   expConfig,
+  expandDimsConfig,
   fillConfig,
   flipLeftRightConfig,
   floorConfig,
@@ -131,6 +138,7 @@ const kernelConfigs: KernelConfig[] = [
   greaterConfig,
   greaterEqualConfig,
   identityConfig,
+  leakyReluConfig,
   lessConfig,
   lessEqualConfig,
   logConfig,
@@ -138,6 +146,7 @@ const kernelConfigs: KernelConfig[] = [
   maxConfig,
   maximumConfig,
   maxPoolConfig,
+  meanConfig,
   minConfig,
   minimumConfig,
   multiplyConfig,
@@ -148,10 +157,12 @@ const kernelConfigs: KernelConfig[] = [
   notEqualConfig,
   oneHotConfig,
   onesLikeConfig,
+  packConfig,
   padV2Config,
   powConfig,
   preluConfig,
   prodConfig,
+  rangeConfig,
   realDivConfig,
   reluConfig,
   relu6Config,
@@ -175,6 +186,7 @@ const kernelConfigs: KernelConfig[] = [
   sumConfig,
   tanhConfig,
   tileConfig,
+  topKConfig,
   transposeConfig,
   unpackConfig,
   zerosLikeConfig

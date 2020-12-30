@@ -71,9 +71,10 @@ steps:
     id: test-snippets-tfjs-core
     entrypoint: yarn
     args:
-      - test-snippets
+      - test-snippets-ci
     waitFor:
       - yarn-tfjs-core
+      - build-tfjs-core
       - yarn-common
   - name: 'node:10'
     dir: tfjs-core
@@ -259,7 +260,7 @@ steps:
     entrypoint: yarn
     id: test-snippets-tfjs-converter
     args:
-      - test-snippets
+      - test-snippets-ci
     waitFor:
       - build-tfjs-converter
       - yarn-common
@@ -544,7 +545,7 @@ steps:
     entrypoint: yarn
     id: test-snippets-tfjs-layers
     args:
-      - test-snippets
+      - test-snippets-ci
     waitFor:
       - build-tfjs-layers
       - yarn-common
@@ -639,7 +640,7 @@ steps:
     entrypoint: yarn
     id: test-snippets-tfjs-data
     args:
-      - test-snippets
+      - test-snippets-ci
     waitFor:
       - build-tfjs-data
       - yarn-common
@@ -1023,6 +1024,8 @@ steps:
     id: build-node-e2e
     args:
       - build-node-ci
+    env:
+      - NIGHTLY=$_NIGHTLY
     waitFor:
       - yarn-common
       - yarn-tfjs

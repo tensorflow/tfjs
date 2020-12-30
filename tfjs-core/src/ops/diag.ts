@@ -15,14 +15,13 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Diag, DiagInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 
 import {op} from './operation';
-import {reshape} from './reshape';
 
 /**
  * Returns a diagonal tensor with a given diagonal values.
@@ -48,18 +47,9 @@ import {reshape} from './reshape';
 function diag_(x: Tensor): Tensor {
   const $x = convertToTensor(x, 'x', 'diag');
 
-  const forward: ForwardFunc<Tensor> = backend => {
-    const flat = reshape($x, [$x.size]);
-    const result = backend.diag(flat);
-    const outShape = [...x.shape, ...x.shape];
-
-    return reshape(result, outShape);
-  };
-
   const inputs: DiagInputs = {x: $x};
 
-  return ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, Diag);
+  return ENGINE.runKernel(Diag, inputs as {} as NamedTensorMap);
 }
 
 export const diag = op({diag_});

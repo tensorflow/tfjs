@@ -42,10 +42,6 @@ function rsqrt_<T extends Tensor>(x: T|TensorLike): T {
 
   const inputs: RsqrtInputs = {x: $x};
 
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.rsqrt($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Rsqrt);
+  return ENGINE.runKernel(Rsqrt, inputs as {} as NamedTensorMap);
 }
 export const rsqrt = op({rsqrt_});

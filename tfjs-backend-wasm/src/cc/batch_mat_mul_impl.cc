@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "src/cc/backend.h"
+#include "src/cc/leakyrelu_impl.h"
 #include "src/cc/prelu_impl.h"
 #include "src/cc/util.h"
 
@@ -272,9 +273,10 @@ void fused_batch_mat_mul(const size_t a_id, const size_t* a_shape_ptr,
                          const bool transpose_a, const bool transpose_b,
                          const FusableActivation activation,
                          const size_t bias_id, const size_t prelu_weights_id,
-                         const size_t out_id) {
+                         const float leakyrelu_alpha, const size_t out_id) {
   FusableActivation clamp_method = activation;
-  if (activation == FusableActivation::PRELU) {
+  if (activation == FusableActivation::PRELU ||
+      activation == FusableActivation::LEAKYRELU) {
     clamp_method = FusableActivation::LINEAR;
   }
 
@@ -302,6 +304,9 @@ void fused_batch_mat_mul(const size_t a_id, const size_t* a_shape_ptr,
   float* out_buf = out_info.f32_write();
   if (activation == FusableActivation::PRELU) {
     prelu(out_buf, out_info.size, prelu_weights_id, out_id);
+  }
+  if (activation == FusableActivation::LEAKYRELU) {
+    leakyrelu(out_buf, out_info.size, leakyrelu_alpha, out_id);
   }
 }
 }  // namespace wasm

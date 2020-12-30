@@ -35,7 +35,7 @@
     "jasmine": "3.1.0",
     "jasmine-core": "~3.1.0",
     "karma": "~4.2.0",
-    "karma-browserstack-launcher": "~1.4.0",
+    "karma-browserstack-launcher": "~1.6.0",
     "karma-chrome-launcher": "~2.2.0",
     "karma-firefox-launcher": "~1.1.0",
     "karma-jasmine": "~1.1.1",
@@ -82,6 +82,7 @@
     "publish-npm": "npm publish",
     "lint": "tslint -p . -t verbose",
     "test": "yarn && yarn build-deps && yarn build && karma start",
+    "test-dev": "karma start",
     "test-tools": "ts-node --project ./tools/custom_bundle/tsconfig.json run_tools_tests.ts",
     "test-ci": "./scripts/test-ci.sh"
   },

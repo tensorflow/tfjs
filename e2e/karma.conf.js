@@ -69,18 +69,20 @@ const devConfig = {
       nocache: true
     },
   ],
+  exclude: ['integration_tests/custom_bundle_test.ts'],
   include: ['integration_tests/**/*.ts'],
   preprocessors: {
     '**/*.ts': ['karma-typescript'],  // *.tsx for React Jsx
   },
   karmaTypescriptConfig,
-  reporters: ['progress', 'karma-typescript']
+  reporters: ['spec', 'karma-typescript']
 };
 
 const browserstackConfig = {
   ...devConfig,
   hostname: 'bs-local.com',
-  singleRun: true
+  singleRun: true,
+  port: 9816
 };
 
 module.exports = function(config) {
@@ -112,7 +114,9 @@ module.exports = function(config) {
     browsers: ['Chrome'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
-      accessKey: process.env.BROWSERSTACK_KEY
+      accessKey: process.env.BROWSERSTACK_KEY,
+      timeout: 1800,
+      tunnelIdentifier: `e2e_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     },
     captureTimeout: 3e5,
     reportSlowerThan: 500,

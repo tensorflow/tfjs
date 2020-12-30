@@ -9,8 +9,9 @@
   "scripts": {
     "build": "tsc",
     "lint": "tslint -p . -t verbose",
-    "test": "karma start",
-    "test-node": "ts-node src/test_node.ts",
+    "test": "yarn && yarn build && karma start",
+    "test-dev": "karma start",
+    "test-node": "tsc && ts-node --transpile-only src/test_node.ts",
     "build-npm": "./scripts/build-npm.sh"
   },
   "license": "Apache-2.0",
@@ -22,7 +23,6 @@
     "jasmine": "^3.4.0",
     "jasmine-core": "~3.1.0",
     "karma": "~4.0.0",
-    "karma-browserstack-launcher": "~1.4.0",
     "karma-chrome-launcher": "~2.2.0",
     "karma-jasmine": "~1.1.1",
     "karma-typescript": "~4.1.1",

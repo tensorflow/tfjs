@@ -38,7 +38,5 @@ export function linspace(start: number, stop: number, num: number): Tensor1D {
   }
 
   const attrs: LinSpaceAttrs = {start, stop, num};
-  return ENGINE.runKernelFunc(
-      backend => backend.linspace(start, stop, num), {} /* inputs */,
-      null /* grad */, LinSpace, attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(LinSpace, {}, attrs as {} as NamedAttrMap);
 }

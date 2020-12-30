@@ -121,12 +121,12 @@ function getKernelConfigBody(
   const kernelFuncArgsType = `{${kernelFuncArgsTypeParts.join(', ')}}`;
 
   const configBody = `
-export const ${kernelFuncName} = (args: ${kernelFuncArgsType}): TensorInfo => {
+export function ${kernelFuncName}(args: ${kernelFuncArgsType}): TensorInfo {
     ${argsDestructureStr}
     ${inputDestructure}
 
     ${kernelFuncBody.replace(/compileAndRun/g, 'runWebGLProgram')}
-};
+}
 
 export const ${kernelFuncName}Config: KernelConfig = {
   kernelName: ${kernelName},

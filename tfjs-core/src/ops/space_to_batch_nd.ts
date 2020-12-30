@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {SpaceToBatchND, SpaceToBatchNDAttrs, SpaceToBatchNDInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
@@ -104,15 +104,12 @@ function spaceToBatchND_<T extends Tensor>(
           paddings.toString()} must be divisible by blockShapes ${
           blockShape.toString()}`);
 
-  const forward: ForwardFunc<T> = backend =>
-      backend.spaceToBatchND($x, blockShape, paddings);
-
   const inputs: SpaceToBatchNDInputs = {x: $x};
   const attrs: SpaceToBatchNDAttrs = {blockShape, paddings};
 
-  return ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* gradient */,
-      SpaceToBatchND, attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(
+      SpaceToBatchND, inputs as {} as NamedTensorMap,
+      attrs as {} as NamedAttrMap);
 }
 
 export const spaceToBatchND = op({spaceToBatchND_});

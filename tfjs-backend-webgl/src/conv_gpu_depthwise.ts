@@ -25,7 +25,8 @@ export class DepthwiseConv2DProgram implements GPGPUProgram {
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
-      activation: string = null, hasPreluActivation = false) {
+      activation: string = null, hasPreluActivation = false,
+      hasLeakyReluAlpha = false) {
     this.outputShape = convInfo.outShape;
 
     const xNumRows = convInfo.inHeight;
@@ -47,6 +48,11 @@ export class DepthwiseConv2DProgram implements GPGPUProgram {
           float b = getPreluActivationWeightsAtOutCoords();
           ${activation}
         }`;
+      } else if (hasLeakyReluAlpha) {
+        activationSnippet = `float activation(float a) {
+          float b = getLeakyreluAlphaAtOutCoords();
+          ${activation}
+        }`;
       } else {
         activationSnippet = `
           float activation(float x) {
@@ -65,6 +71,9 @@ export class DepthwiseConv2DProgram implements GPGPUProgram {
 
     if (hasPreluActivation) {
       this.variableNames.push('preluActivationWeights');
+    }
+    if (hasLeakyReluAlpha) {
+      this.variableNames.push('leakyreluAlpha');
     }
 
     this.userCode = `

@@ -63,10 +63,15 @@ async function main() {
 
   self.postMessage({msg: true, payload: `model loaded`});
 
-  const input = tf.tensor3d(STUBBED_IMAGE_VALS, [128, 128, 3]);
-  const predictions = await model.estimateFaces(input, false /*returnTensors*/);
+  let predictions;
+  try {
+    const input = tf.tensor3d(STUBBED_IMAGE_VALS, [128, 128, 3]);
+    predictions = await model.estimateFaces(input, false /*returnTensors*/);
+    input.dispose();
+  } catch (e) {
+    self.postMessage({error: true, payload: {e}});
+  }
 
-  input.dispose();
   // send the final result of the test.
   self.postMessage({
     result: true,

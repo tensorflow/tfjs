@@ -208,7 +208,7 @@ if [[ "${IS_TFJS_NODE}" == "1" ]]; then
   fi
 
   echo "Starting benchmark karma tests in Node.js..."
-  yarn ts-node run_node_tests.ts \
+  yarn ts-node --transpile-only run_node_tests.ts \
       --filename "models/benchmarks.ts" \
       ${GPU_FLAG} \
       ${LOG_FLAG} \

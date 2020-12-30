@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {gather_util, GatherNd, GatherNdInputs, KernelConfig, Tensor, TensorInfo} from '@tensorflow/tfjs-core';
+import {gather_util, GatherNd, GatherNdInputs, KernelConfig, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -45,7 +45,7 @@ function gatherNd(args: {backend: BackendWasm, inputs: GatherNdInputs}):
   const {params, indices} = inputs;
 
   const [resultShape, numSlices, sliceSize, strides] =
-      gather_util.prepareAndValidate(params as Tensor, indices as Tensor);
+      gather_util.prepareAndValidate(params, indices);
 
   const out = backend.makeOutput(resultShape, params.dtype);
   if (numSlices === 0) {

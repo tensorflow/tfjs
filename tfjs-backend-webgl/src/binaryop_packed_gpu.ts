@@ -37,22 +37,6 @@ export const NOT_EQUAL = `
   return vec4(notEqual(a, b));
 `;
 
-export const MAX = `
-  vec4 result = vec4(max(a, b));
-  vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
-  ` +
-    CHECK_NAN_SNIPPET + `
-  return result;
-`;
-
-export const MIN = `
-  vec4 result = vec4(min(a, b));
-  vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
-  ` +
-    CHECK_NAN_SNIPPET + `
-  return result;
-`;
-
 export class BinaryOpPackedProgram implements GPGPUProgram {
   variableNames = ['A', 'B'];
   outputShape: number[];

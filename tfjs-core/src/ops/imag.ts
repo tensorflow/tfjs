@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Imag, ImagInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -39,14 +39,8 @@ import {op} from './operation';
 function imag_<T extends Tensor>(input: T|TensorLike): T {
   const $input = convertToTensor(input, 'input', 'imag');
 
-  const forward: ForwardFunc<Tensor> = (backend) => {
-    return backend.imag($input);
-  };
-
   const inputs: ImagInputs = {input: $input};
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */,
-             Imag) as T;
+  return ENGINE.runKernel(Imag, inputs as {} as NamedTensorMap);
 }
 
 export const imag = op({imag_});

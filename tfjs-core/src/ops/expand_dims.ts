@@ -15,13 +15,16 @@
  * =============================================================================
  */
 
+import {ENGINE} from '../engine';
+import {ExpandDims, ExpandDimsAttrs, ExpandDimsInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
-import {DataType, TensorLike} from '../types';
+import {TensorLike} from '../types';
 import * as util from '../util';
 
 import {op} from './operation';
-import {reshape} from './reshape';
 
 /**
  * Returns a `tf.Tensor` that has expanded rank, by inserting a dimension
@@ -40,20 +43,15 @@ import {reshape} from './reshape';
  * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
 function expandDims_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
-  const parseAs: DataType = null;
-  const $x = convertToTensor(x, 'x', 'expandDims', parseAs);
+  const $x = convertToTensor(x, 'x', 'expandDims', 'string_or_numeric');
 
   util.assert(axis <= $x.rank, () => 'Axis must be <= rank of the tensor');
-  const newShape = $x.shape.slice();
-  if (axis < 0) {
-    // Negative value is counted from the tail of rank.
-    util.assert(
-        -($x.rank + 1) <= axis,
-        () => `Axis must be in the interval [${- ($x.rank + 1)}, ${$x.rank}]`);
-    axis = $x.rank + axis + 1;
-  }
-  newShape.splice(axis, 0, 1);
-  return reshape($x, newShape) as T;
+
+  const inputs: ExpandDimsInputs = {input: $x};
+  const attrs: ExpandDimsAttrs = {dim: axis};
+
+  return ENGINE.runKernel(
+      ExpandDims, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const expandDims = op({expandDims_});
