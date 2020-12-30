@@ -82,6 +82,30 @@ interface ScopeState {
   id: number;
 }
 
+interface RegisteredKernelInvocation<I extends NamedTensorMap> {
+  kernelName: string;
+  inputs: I;
+  attrs?: NamedAttrMap;
+}
+
+interface CustomGradKernelInvocation<T extends Tensor|Tensor[],
+                                               I extends NamedTensorMap> {
+  forwardFunc: ForwardFunc<T>;
+  backwardsFunc: (dy: T, saved: Tensor[]) => {
+    [P in keyof I]: () => I[P]
+  };
+  inputs: I;
+  attrs?: NamedAttrMap;
+}
+
+function isRegisteredKernelInvocation<T extends Tensor|Tensor[],
+                                                I extends NamedTensorMap>(
+    kernelInvocation: RegisteredKernelInvocation<I>|
+    CustomGradKernelInvocation<T, I>):
+    kernelInvocation is RegisteredKernelInvocation<I> {
+  return (kernelInvocation as RegisteredKernelInvocation<I>).kernelName != null;
+}
+
 class EngineState {
   // Public since optimizers will use it.
   registeredVariables: NamedVariableMap = {};
@@ -486,6 +510,7 @@ export class Engine implements TensorTracker, DataMover {
 
         return ENGINE.runKernel(
                    Cast, gradInputs as {} as NamedTensorMap,
+                   // tslint:disable-next-line: no-unnecessary-type-assertion
                    attrs as {} as NamedAttrMap) as Tensor;
       }
     });
@@ -509,15 +534,12 @@ export class Engine implements TensorTracker, DataMover {
    */
   runKernel<T extends Tensor|Tensor[]>(
       kernelName: string, inputs: NamedTensorMap, attrs?: NamedAttrMap): T {
-    const forwardFunc: null = null;
-    const backwardsFunc: null = null;
     const hasKernel = getKernel(kernelName, this.backendName) != null;
     if (!hasKernel) {
       throw new Error(`Kernel '${kernelName}' not registered for backend '${
           this.backendName}'`);
     }
-    return this.runKernelFunc(
-        forwardFunc, inputs, backwardsFunc, kernelName, attrs);
+    return this.runKernelFunc({kernelName, inputs, attrs});
   }
 
   private shouldCheckForMemLeaks(): boolean {
@@ -559,17 +581,8 @@ export class Engine implements TensorTracker, DataMover {
    * Use `runKernel` to execute kernels from outside of engine.
    */
   private runKernelFunc<T extends Tensor|Tensor[], I extends NamedTensorMap>(
-      forwardFunc: ForwardFunc<T>, inputs: I,
-      backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
-      kernelName?: string, attrs?: NamedAttrMap): T {
-    // Either kernelName or forwardFunc must be passed.
-    if (forwardFunc == null && kernelName == null) {
-      const scopeName =
-          this.state.activeScope != null ? this.state.activeScope.name : '';
-      throw new Error(`Error executing runKernelFunc in scope '${scopeName}'.
-        Neither modular kernel nor forward func passed`);
-    }
-
+      kernelParams: RegisteredKernelInvocation<I>|
+      CustomGradKernelInvocation<T, I>): T {
     let outputs: Tensor[];
     let saved: Tensor[] = [];
     const isTapeOn = this.isTapeOn();
@@ -584,11 +597,16 @@ export class Engine implements TensorTracker, DataMover {
     let kernelFunc: () => Tensor[];
     let out: TensorInfo|TensorInfo[];
 
+    const kernelOrScopeName = isRegisteredKernelInvocation(kernelParams) ?
+        kernelParams.kernelName :
+        this.state.activeScope != null ? this.state.activeScope.name : '';
+
     // Create the kernelFunc from either a registered kernel OR passed in
     // forward/backward functions (used by custom grad). In this context a
     // kernelFunc wraps a kernel implementation with some bookkeeping.
 
-    if (kernelName != null) {
+    if (isRegisteredKernelInvocation(kernelParams)) {
+      const {kernelName, inputs, attrs} = kernelParams;
       const kernel = getKernel(kernelName, this.backendName);
       util.assert(
           kernel != null,
@@ -627,6 +645,7 @@ export class Engine implements TensorTracker, DataMover {
         return outTensors;
       };
     } else {
+      const {forwardFunc} = kernelParams;
       // Running a customGrad op.
       const saveFunc: GradSaveFunc = (tensors) => {
         // Do not save unless we are recording to the tape. Otherwise it would
@@ -644,9 +663,7 @@ export class Engine implements TensorTracker, DataMover {
         const outs = (Array.isArray(out) ? out : [out]) as Tensor[];
         if (this.shouldCheckForMemLeaks()) {
           // Scope name is used to print a more helpful error message if needed.
-          const scopeName =
-              this.state.activeScope != null ? this.state.activeScope.name : '';
-          this.checkKernelForMemLeak(scopeName, numDataIdsBefore, outs);
+          this.checkKernelForMemLeak(kernelOrScopeName, numDataIdsBefore, outs);
         }
         return outs;
       };
@@ -655,6 +672,10 @@ export class Engine implements TensorTracker, DataMover {
     //
     // Run the kernelFunc. Optionally profiling it.
     //
+    const {inputs, attrs} = kernelParams;
+    const backwardsFunc = isRegisteredKernelInvocation(kernelParams) ?
+        null :
+        kernelParams.backwardsFunc;
 
     let kernelProfile: KernelProfile;
     this.scopedRun(
@@ -664,7 +685,7 @@ export class Engine implements TensorTracker, DataMover {
             outputs = kernelFunc();
           } else {
             kernelProfile = this.profiler.profileKernel(
-                kernelName, inputs, () => kernelFunc());
+                kernelOrScopeName, inputs, () => kernelFunc());
             if (this.ENV.getBool('DEBUG')) {
               this.profiler.logKernelProfile(kernelProfile);
             }
@@ -674,12 +695,12 @@ export class Engine implements TensorTracker, DataMover {
 
     if (isTapeOn) {
       this.addTapeNode(
-          kernelName, inputs, outputs, backwardsFunc, saved, attrs);
+          kernelOrScopeName, inputs, outputs, backwardsFunc, saved, attrs);
     }
 
     if (this.state.profiling) {
       this.state.activeProfile.kernels.push({
-        name: kernelName,
+        name: kernelOrScopeName,
         bytesAdded: this.state.numBytes - startingBytecount,
         totalBytesSnapshot: this.state.numBytes,
         tensorsAdded: this.state.numTensors - startingNumTensors,
@@ -693,6 +714,153 @@ export class Engine implements TensorTracker, DataMover {
     }
     return (Array.isArray(out) ? outputs : outputs[0]) as T;
   }
+
+  /**
+   * Internal helper method to execute a kernel Func
+   *
+   * Use `runKernel` to execute kernels from outside of engine.
+   */
+  // private runKernelFunc<T extends Tensor|Tensor[], I extends NamedTensorMap>(
+  //     forwardFunc: ForwardFunc<T>, inputs: I,
+  //     backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () =>
+  //     I[P]}, kernelName?: string, attrs?: NamedAttrMap): T {
+  //   // Either kernelName or forwardFunc must be passed.
+  //   if (forwardFunc == null && kernelName == null) {
+  //     const scopeName =
+  //         this.state.activeScope != null ? this.state.activeScope.name : '';
+  //     throw new Error(`Error executing runKernelFunc in scope '${scopeName}'.
+  //       Neither modular kernel nor forward func passed`);
+  //   }
+
+  //   let outputs: Tensor[];
+  //   let saved: Tensor[] = [];
+  //   const isTapeOn = this.isTapeOn();
+
+  //   const startingBytecount = this.state.numBytes;
+  //   const startingNumTensors = this.state.numTensors;
+
+  //   if (this.shouldCheckForMemLeaks()) {
+  //     this.state.numDataMovesStack.push(0);
+  //   }
+
+  //   let kernelFunc: () => Tensor[];
+  //   let out: TensorInfo|TensorInfo[];
+
+  //   // Create the kernelFunc from either a registered kernel OR passed in
+  //   // forward/backward functions (used by custom grad). In this context a
+  //   // kernelFunc wraps a kernel implementation with some bookkeeping.
+
+  //   if (kernelName != null) {
+  //     const kernel = getKernel(kernelName, this.backendName);
+  //     util.assert(
+  //         kernel != null,
+  //         () => `Cannot find registered kernel '${kernelName}' for backend
+  //         '${
+  //             this.backendName}'`);
+
+  //     kernelFunc = () => {
+  //       const numDataIdsBefore = this.backend.numDataIds();
+  //       out = kernel.kernelFunc({inputs, attrs, backend: this.backend});
+  //       const outInfos = Array.isArray(out) ? out : [out];
+  //       if (this.shouldCheckForMemLeaks()) {
+  //         this.checkKernelForMemLeak(kernelName, numDataIdsBefore, outInfos);
+  //       }
+
+  //       const outTensors = outInfos.map((outInfo: TensorInfo|Tensor) => {
+  //         // todo (yassogba) remove this option (Tensor) when node backend
+  //         // methods have been modularized and they all return tensorInfo.
+  //         // TensorInfos do not have a rank attribute.
+  //         if ((outInfo as Tensor).rank != null) {
+  //           return outInfo as Tensor;
+  //         }
+  //         const {dataId, shape, dtype} = outInfo as TensorInfo;
+  //         return this.makeTensorFromDataId(dataId, shape, dtype);
+  //       });
+
+  //       // Save any required inputs and outputs.
+
+  //       // Do not save unless we are recording to the tape. Otherwise it
+  //       would
+  //       // cause a mem leak since there would be no backprop for these
+  //       tensors
+  //       // (which would otherwise dispose them).
+  //       if (isTapeOn) {
+  //         const tensorsToSave =
+  //             this.getTensorsForGradient(kernelName, inputs, outTensors);
+  //         saved = this.saveTensorsForBackwardMode(tensorsToSave);
+  //       }
+  //       return outTensors;
+  //     };
+  //   } else {
+  //     // Running a customGrad op.
+  //     const saveFunc: GradSaveFunc = (tensors) => {
+  //       // Do not save unless we are recording to the tape. Otherwise it
+  //       would
+  //       // cause a mem leak since we would never run backprop, which disposes
+  //       // the kept tensors.
+  //       if (!isTapeOn) {
+  //         return;
+  //       }
+  //       saved = tensors.map(tensor => this.keep(this.clone(tensor)));
+  //     };
+
+  //     kernelFunc = () => {
+  //       const numDataIdsBefore = this.backend.numDataIds();
+  //       out = this.tidy(() => forwardFunc(this.backend, saveFunc));
+  //       const outs = (Array.isArray(out) ? out : [out]) as Tensor[];
+  //       if (this.shouldCheckForMemLeaks()) {
+  //         // Scope name is used to print a more helpful error message if
+  //         needed. const scopeName =
+  //             this.state.activeScope != null ? this.state.activeScope.name :
+  //             '';
+  //         this.checkKernelForMemLeak(scopeName, numDataIdsBefore, outs);
+  //       }
+  //       return outs;
+  //     };
+  //   }
+
+  //   //
+  //   // Run the kernelFunc. Optionally profiling it.
+  //   //
+
+  //   let kernelProfile: KernelProfile;
+  //   this.scopedRun(
+  //       // Stop recording to a tape when running a kernel.
+  //       () => this.state.kernelDepth++, () => this.state.kernelDepth--, ()
+  //       => {
+  //         if (!this.ENV.getBool('DEBUG') && !this.state.profiling) {
+  //           outputs = kernelFunc();
+  //         } else {
+  //           kernelProfile = this.profiler.profileKernel(
+  //               kernelName, inputs, () => kernelFunc());
+  //           if (this.ENV.getBool('DEBUG')) {
+  //             this.profiler.logKernelProfile(kernelProfile);
+  //           }
+  //           outputs = kernelProfile.outputs;
+  //         }
+  //       });
+
+  //   if (isTapeOn) {
+  //     this.addTapeNode(
+  //         kernelName, inputs, outputs, backwardsFunc, saved, attrs);
+  //   }
+
+  //   if (this.state.profiling) {
+  //     this.state.activeProfile.kernels.push({
+  //       name: kernelName,
+  //       bytesAdded: this.state.numBytes - startingBytecount,
+  //       totalBytesSnapshot: this.state.numBytes,
+  //       tensorsAdded: this.state.numTensors - startingNumTensors,
+  //       totalTensorsSnapshot: this.state.numTensors,
+  //       inputShapes: Object.keys(inputs).map(
+  //           key => inputs[key] != null ? inputs[key].shape : null),
+  //       outputShapes: outputs.map(item => item.shape),
+  //       kernelTimeMs: kernelProfile.timeMs,
+  //       extraInfo: kernelProfile.extraInfo
+  //     });
+  //   }
+  //   return (Array.isArray(out) ? outputs : outputs[0]) as T;
+  // }
 
   /**
    * Saves tensors used in forward mode for use in backward mode.
@@ -1102,40 +1270,45 @@ export class Engine implements TensorTracker, DataMover {
       inputs.forEach((input, i) => {
         inputMap[i] = input;
       });
-      return this.runKernelFunc(
-          (_, save) => {
-            res = f(...[...inputs, save]);
-            util.assert(
-                res.value instanceof Tensor,
-                () => 'The function f passed in customGrad(f) must return an ' +
-                    'object where `obj.value` is a tensor');
-            util.assert(
-                util.isFunction(res.gradFunc),
-                () => 'The function f passed in customGrad(f) must return an ' +
-                    'object where `obj.gradFunc` is a function.');
-            return res.value;
-          },
-          inputMap,
-          (dy: T, saved: Tensor[]) => {
-            const gradRes = res.gradFunc(dy, saved);
-            const grads: Tensor[] =
-                Array.isArray(gradRes) ? gradRes : [gradRes];
-            util.assert(
-                grads.length === inputs.length,
-                () => 'The function f passed in customGrad(f) must return an ' +
-                    'object where `obj.gradFunc` is a function that returns ' +
-                    'the same number of tensors as inputs passed to f(...).');
-            util.assert(
-                grads.every(t => t instanceof Tensor),
-                () => 'The function f passed in customGrad(f) must return an ' +
-                    'object where `obj.gradFunc` is a function that returns ' +
-                    'a list of only tensors.');
-            const gradMap: {[key: string]: () => Tensor} = {};
-            grads.forEach((grad, i) => {
-              gradMap[i] = () => grad;
-            });
-            return gradMap;
-          });
+
+      const forwardFunc: ForwardFunc<T> = (_, save) => {
+        res = f(...[...inputs, save]);
+        util.assert(
+            res.value instanceof Tensor,
+            () => 'The function f passed in customGrad(f) must return an ' +
+                'object where `obj.value` is a tensor');
+        util.assert(
+            util.isFunction(res.gradFunc),
+            () => 'The function f passed in customGrad(f) must return an ' +
+                'object where `obj.gradFunc` is a function.');
+        return res.value;
+      };
+
+      const backwardsFunc = (dy: T, saved: Tensor[]) => {
+        const gradRes = res.gradFunc(dy, saved);
+        const grads: Tensor[] = Array.isArray(gradRes) ? gradRes : [gradRes];
+        util.assert(
+            grads.length === inputs.length,
+            () => 'The function f passed in customGrad(f) must return an ' +
+                'object where `obj.gradFunc` is a function that returns ' +
+                'the same number of tensors as inputs passed to f(...).');
+        util.assert(
+            grads.every(t => t instanceof Tensor),
+            () => 'The function f passed in customGrad(f) must return an ' +
+                'object where `obj.gradFunc` is a function that returns ' +
+                'a list of only tensors.');
+        const gradMap: {[key: string]: () => Tensor} = {};
+        grads.forEach((grad, i) => {
+          gradMap[i] = () => grad;
+        });
+        return gradMap;
+      };
+
+      return this.runKernelFunc({
+        forwardFunc,
+        backwardsFunc,
+        inputs: inputMap,
+      });
     };
   }
 
