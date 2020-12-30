@@ -474,9 +474,6 @@ export class Engine implements TensorTracker, DataMover {
    * saving a tensor for backwards pass. It makes sure to add the clone
    * operation to the tape regardless of being called inside a kernel
    * execution.
-   *
-   * This method will go away once all kernels are modularized since we won't
-   * need to turn off the tape inside runKernel().
    */
   private clone(x: Tensor): Tensor {
     const y = this.makeTensorFromDataId(x.dataId, x.shape, x.dtype);
@@ -487,10 +484,9 @@ export class Engine implements TensorTracker, DataMover {
         const gradInputs = {x: dy};
         const attrs = {dtype};
 
-        return ENGINE.runKernelFunc(
-            backend => backend.cast(dy, dtype),
-            gradInputs as {} as NamedTensorMap, null /* grad */, Cast,
-            attrs as {} as NamedAttrMap);
+        return ENGINE.runKernel(
+                   Cast, gradInputs as {} as NamedTensorMap,
+                   attrs as {} as NamedAttrMap) as Tensor;
       }
     });
     const saved: Tensor[] = [];
@@ -515,6 +511,11 @@ export class Engine implements TensorTracker, DataMover {
       kernelName: string, inputs: NamedTensorMap, attrs?: NamedAttrMap): T {
     const forwardFunc: null = null;
     const backwardsFunc: null = null;
+    const hasKernel = getKernel(kernelName, this.backendName) != null;
+    if (!hasKernel) {
+      throw new Error(`Kernel '${kernelName}' not registered for backend '${
+          this.backendName}'`);
+    }
     return this.runKernelFunc(
         forwardFunc, inputs, backwardsFunc, kernelName, attrs);
   }
@@ -553,23 +554,25 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   /**
-   * Internal helper method to execute a kernelFunc
+   * Internal helper method to execute a kernel Func
    *
    * Use `runKernel` to execute kernels from outside of engine.
-   *
-   *
    */
   private runKernelFunc<T extends Tensor|Tensor[], I extends NamedTensorMap>(
       forwardFunc: ForwardFunc<T>, inputs: I,
       backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
       kernelName?: string, attrs?: NamedAttrMap): T {
+    // Either kernelName or forwardFunc must be passed.
+    if (forwardFunc == null && kernelName == null) {
+      const scopeName =
+          this.state.activeScope != null ? this.state.activeScope.name : '';
+      throw new Error(`Error executing runKernelFunc in scope '${scopeName}'.
+        Neither modular kernel nor forward func passed`);
+    }
+
     let outputs: Tensor[];
     let saved: Tensor[] = [];
     const isTapeOn = this.isTapeOn();
-    if (kernelName == null) {
-      kernelName =
-          this.state.activeScope != null ? this.state.activeScope.name : '';
-    }
 
     const startingBytecount = this.state.numBytes;
     const startingNumTensors = this.state.numTensors;
@@ -579,9 +582,19 @@ export class Engine implements TensorTracker, DataMover {
     }
 
     let kernelFunc: () => Tensor[];
-    const kernel = getKernel(kernelName, this.backendName);
     let out: TensorInfo|TensorInfo[];
-    if (kernel != null) {
+
+    // Create the kernelFunc from either a registered kernel OR passed in
+    // forward/backward functions (used by custom grad). In this context a
+    // kernelFunc wraps a kernel implementation with some bookkeeping.
+
+    if (kernelName != null) {
+      const kernel = getKernel(kernelName, this.backendName);
+      util.assert(
+          kernel != null,
+          () => `Cannot find registered kernel '${kernelName}' for backend '${
+              this.backendName}'`);
+
       kernelFunc = () => {
         const numDataIdsBefore = this.backend.numDataIds();
         out = kernel.kernelFunc({inputs, attrs, backend: this.backend});
@@ -601,10 +614,11 @@ export class Engine implements TensorTracker, DataMover {
           return this.makeTensorFromDataId(dataId, shape, dtype);
         });
 
-        // Save the inputs and outputs.
+        // Save any required inputs and outputs.
+
         // Do not save unless we are recording to the tape. Otherwise it would
-        // cause a mem leak since we would never run backprop, which disposes
-        // the kept tensors.
+        // cause a mem leak since there would be no backprop for these tensors
+        // (which would otherwise dispose them).
         if (isTapeOn) {
           const tensorsToSave =
               this.getTensorsForGradient(kernelName, inputs, outTensors);
@@ -613,10 +627,7 @@ export class Engine implements TensorTracker, DataMover {
         return outTensors;
       };
     } else {
-      if (forwardFunc == null) {
-        throw new Error(`Error running ${
-            kernelName}: Neither modular kernel nor forward func passed`);
-      }
+      // Running a customGrad op.
       const saveFunc: GradSaveFunc = (tensors) => {
         // Do not save unless we are recording to the tape. Otherwise it would
         // cause a mem leak since we would never run backprop, which disposes
@@ -632,15 +643,22 @@ export class Engine implements TensorTracker, DataMover {
         out = this.tidy(() => forwardFunc(this.backend, saveFunc));
         const outs = (Array.isArray(out) ? out : [out]) as Tensor[];
         if (this.shouldCheckForMemLeaks()) {
-          this.checkKernelForMemLeak(kernelName, numDataIdsBefore, outs);
+          // Scope name is used to print a more helpful error message if needed.
+          const scopeName =
+              this.state.activeScope != null ? this.state.activeScope.name : '';
+          this.checkKernelForMemLeak(scopeName, numDataIdsBefore, outs);
         }
         return outs;
       };
     }
 
-    // Stop recording to a tape when running a kernel.
+    //
+    // Run the kernelFunc. Optionally profiling it.
+    //
+
     let kernelProfile: KernelProfile;
     this.scopedRun(
+        // Stop recording to a tape when running a kernel.
         () => this.state.kernelDepth++, () => this.state.kernelDepth--, () => {
           if (!this.ENV.getBool('DEBUG') && !this.state.profiling) {
             outputs = kernelFunc();
