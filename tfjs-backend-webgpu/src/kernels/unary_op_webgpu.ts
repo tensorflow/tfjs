@@ -25,6 +25,7 @@ export const RELU = 'return max(a, 0.0);';
 export const RELU6 = 'return (a < 0.0) ? 0.0 : min(6.0, a);';
 export const LINEAR = `return a;`;
 export const ELU = `return (a >= 0.0) ? a : (exp(a) - 1.0);`;
+export const PRELU = `return (a < 0.) ? b * a : a;`;
 
 export const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
 export const ABS = `return abs(a);`;
