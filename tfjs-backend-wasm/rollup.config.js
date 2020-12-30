@@ -39,7 +39,13 @@ const PREAMBLE = `/**
  * =============================================================================
  */`;
 
-function config({plugins = [], output = {}, tsCompilerOptions = {}}) {
+function config({
+  plugins = [],
+  output = {},
+  external = [],
+  visualize = false,
+  tsCompilerOptions = {}
+}) {
   if (visualize) {
     const filename = output.file + '.html';
     plugins.push(visualizer(
@@ -77,8 +83,13 @@ function config({plugins = [], output = {}, tsCompilerOptions = {}}) {
       ...output,
     },
     external: [
-      'crypto', '@tensorflow/tfjs-core', 'fs', 'path', 'worker_threads',
-      'perf_hooks'
+      'crypto',
+      '@tensorflow/tfjs-core',
+      'fs',
+      'path',
+      'worker_threads',
+      'perf_hooks',
+      ...external,
     ],
     onwarn: warning => {
       let {code} = warning;
@@ -110,15 +121,13 @@ module.exports = cmdOptions => {
     tsCompilerOptions: {target: 'es5'}
   }));
 
-  if (cmdOptions.ci) {
-    const browserBundles = getBrowserBundleConfigOptions(
-        config, name, fileName, PREAMBLE, cmdOptions.visualize, true /* CI */);
-    bundles.push(...browserBundles);
-  }
-
   if (cmdOptions.npm) {
     const browserBundles = getBrowserBundleConfigOptions(
         config, name, fileName, PREAMBLE, cmdOptions.visualize, false /* CI */);
+    bundles.push(...browserBundles);
+  } else {
+    const browserBundles = getBrowserBundleConfigOptions(
+        config, name, fileName, PREAMBLE, cmdOptions.visualize, true /* CI */);
     bundles.push(...browserBundles);
   }
 
