@@ -15,15 +15,15 @@
  * =============================================================================
  */
 
-import {SquaredDifference, KernelConfig} from '@tensorflow/tfjs-core';
+import {FloorDiv, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
+
 import {binaryKernelFunc, BinaryOpType} from '../kernel_utils/kernel_funcs_utils';
 
-export const squaredDifference = binaryKernelFunc({
-  opSnippet: BinaryOpType.SQUARED_DIFFERENCE,
-});
+export const floorDiv = binaryKernelFunc(
+    {opSnippet: BinaryOpType.INT_DIV, dtype: 'int32'});
 
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
+export const floorDivConfig: KernelConfig = {
+  kernelName: FloorDiv,
   backendName: 'webgpu',
-  kernelFunc: squaredDifference
+  kernelFunc: floorDiv as {} as KernelFunc
 };

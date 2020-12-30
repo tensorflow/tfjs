@@ -15,15 +15,23 @@
  * =============================================================================
  */
 
-import {SquaredDifference, KernelConfig} from '@tensorflow/tfjs-core';
-import {binaryKernelFunc, BinaryOpType} from '../kernel_utils/kernel_funcs_utils';
+import {Prelu, PreluInputs, KernelConfig, TensorInfo} from '@tensorflow/tfjs-core';
+import {WebGPUBackend} from '../backend_webgpu';
+import {BinaryOpProgram} from '../kernels/binary_op_webgpu';
+import {BinaryOpType, getBinaryOpString} from '../kernel_utils/kernel_funcs_utils';
 
-export const squaredDifference = binaryKernelFunc({
-  opSnippet: BinaryOpType.SQUARED_DIFFERENCE,
-});
+export function prelu(args: {inputs: PreluInputs, backend: WebGPUBackend}):
+    TensorInfo {
+  const {inputs, backend} = args;
+  const {x, alpha} = inputs;
 
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
+  const program = new BinaryOpProgram(
+      getBinaryOpString(BinaryOpType.PRELU), x.shape, alpha.shape);
+  return backend.compileAndRun(program, [x, alpha]);
+}
+
+export const preluConfig: KernelConfig = {
+  kernelName: Prelu,
   backendName: 'webgpu',
-  kernelFunc: squaredDifference
+  kernelFunc: prelu 
 };

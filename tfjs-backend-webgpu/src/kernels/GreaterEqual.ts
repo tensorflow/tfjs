@@ -15,15 +15,16 @@
  * =============================================================================
  */
 
-import {SquaredDifference, KernelConfig} from '@tensorflow/tfjs-core';
+import {GreaterEqual, KernelConfig} from '@tensorflow/tfjs-core';
 import {binaryKernelFunc, BinaryOpType} from '../kernel_utils/kernel_funcs_utils';
 
-export const squaredDifference = binaryKernelFunc({
-  opSnippet: BinaryOpType.SQUARED_DIFFERENCE,
+export const greaterEqual = binaryKernelFunc({
+  boolType: true,
+  opSnippet: BinaryOpType.GREATER_EQUAL,
 });
 
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
+export const greaterEqualConfig: KernelConfig = {
+  kernelName: GreaterEqual,
   backendName: 'webgpu',
-  kernelFunc: squaredDifference
+  kernelFunc: greaterEqual
 };
