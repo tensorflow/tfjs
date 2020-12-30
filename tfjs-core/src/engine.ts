@@ -487,10 +487,10 @@ export class Engine implements TensorTracker, DataMover {
         const gradInputs = {x: dy};
         const attrs = {dtype};
 
-        return ENGINE.runKernelFunc(
-            backend => backend.cast(dy, dtype),
-            gradInputs as {} as NamedTensorMap, null /* grad */, Cast,
-            attrs as {} as NamedAttrMap);
+        return ENGINE.runKernel(
+                   Cast, gradInputs as {} as NamedTensorMap,
+                   // tslint:disable-next-line: no-unnecessary-type-assertion
+                   attrs as {} as NamedAttrMap) as Tensor;
       }
     });
     const saved: Tensor[] = [];
