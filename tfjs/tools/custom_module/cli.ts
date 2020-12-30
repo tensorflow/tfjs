@@ -22,11 +22,11 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
-import * as chalk from 'chalk';
 import * as yargs from 'yargs';
 
 import {OP_SCOPE_SUFFIX} from '@tensorflow/tfjs-core';
 
+import {bail} from './util';
 import {CustomTFJSBundleConfig, SupportedBackends, ModuleProvider} from './types';
 import {getModuleProvider} from './esm_module_provider';
 
@@ -54,10 +54,7 @@ const argParser = yargs.options({
 
 const args = argParser.argv;
 
-function bail(errorMsg: string) {
-  console.log(chalk.red(errorMsg));
-  process.exit(1);
-}
+
 
 function validateArgs(): CustomTFJSBundleConfig {
   let configFilePath = args.config;
