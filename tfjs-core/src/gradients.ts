@@ -62,7 +62,7 @@ function grad(f: (x: Tensor) => Tensor): (
       util.isFunction(f), () => 'The f passed in grad(f) must be a function');
   return (x: TensorLike|Tensor, dy?: TensorLike|Tensor): Tensor => {
     // x can be of any dtype, thus null as the last argument.
-    const $x = convertToTensor(x, 'x', 'tf.grad', null);
+    const $x = convertToTensor(x, 'x', 'tf.grad', 'string_or_numeric');
     const $dy: Tensor =
         (dy != null) ? convertToTensor(dy, 'dy', 'tf.grad') : null;
     return ENGINE.tidy(() => {
@@ -118,7 +118,8 @@ function grads(f: (...args: Tensor[]) => Tensor): (
         () => 'The args passed in grads(f)(args) must be an array ' +
             'of `Tensor`s or `TensorLike`s');
     // args can be of any dtype, thus null as the last argument.
-    const $args = convertToTensorArray(args, 'args', 'tf.grads', null);
+    const $args =
+        convertToTensorArray(args, 'args', 'tf.grads', 'string_or_numeric');
     const $dy: Tensor =
         (dy != null) ? convertToTensor(dy, 'dy', 'tf.grads') : null;
     return ENGINE.tidy(() => {
