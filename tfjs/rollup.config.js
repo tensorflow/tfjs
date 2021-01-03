@@ -118,7 +118,8 @@ module.exports = cmdOptions => {
   const terserPlugin = terser({output: {preamble: PREAMBLE, comments: false}});
   const name = 'tf';
   const extend = true;
-  const browserFormat = 'umd';
+  const umdFormat = 'umd';
+  const fesmFormat = 'es';
   const fileName = 'tf';
 
   // Node
@@ -142,12 +143,12 @@ module.exports = cmdOptions => {
   }));
 
   if (cmdOptions.ci || cmdOptions.npm) {
-    // Browser default minified (ES5)
+    // UMD ES5
     bundles.push(config({
       entry: 'src/index_with_polyfills.ts',
       plugins: [babelPlugin, terserPlugin],
       output: {
-        format: browserFormat,
+        format: umdFormat,
         name,
         extend,
         file: `dist/${fileName}.min.js`,
@@ -159,12 +160,12 @@ module.exports = cmdOptions => {
   }
 
   if (cmdOptions.npm) {
-    // Browser default unminified (ES5)
+    // UMD ES5
     bundles.push(config({
       entry: 'src/index_with_polyfills.ts',
       plugins: [babelPlugin],
       output: {
-        format: browserFormat,
+        format: umdFormat,
         name,
         extend,
         file: `dist/${fileName}.js`,
@@ -173,25 +174,41 @@ module.exports = cmdOptions => {
       tsCompilerOptions: {target: 'es5'}
     }));
 
-    // Browser ES2017
+    // UMD ES2017
     bundles.push(config({
-      output: {
-        format: browserFormat,
-        name,
-        extend,
-        file: `dist/${fileName}.es2017.js`
-      },
+      output:
+          {format: umdFormat, name, extend, file: `dist/${fileName}.es2017.js`},
       tsCompilerOptions: {target: 'es2017'}
     }));
 
-    // Browser ES2017 minified
+    // UMD ES2017 minified
     bundles.push(config({
       plugins: [terserPlugin],
       output: {
-        format: browserFormat,
+        format: umdFormat,
         name,
         extend,
         file: `dist/${fileName}.es2017.min.js`
+      },
+      tsCompilerOptions: {target: 'es2017'},
+      visualize: cmdOptions.visualize
+    }));
+
+    // FESM ES2017
+    bundles.push(config({
+      output:
+          {format: fesmFormat, name, extend, file: `dist/${fileName}.fesm.js`},
+      tsCompilerOptions: {target: 'es2017'}
+    }));
+
+    // FESM ES2017 minified
+    bundles.push(config({
+      plugins: [terserPlugin],
+      output: {
+        format: fesmFormat,
+        name,
+        extend,
+        file: `dist/${fileName}.fesm.min.js`
       },
       tsCompilerOptions: {target: 'es2017'},
       visualize: cmdOptions.visualize
