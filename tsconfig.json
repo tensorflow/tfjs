@@ -22,7 +22,7 @@
     "pretty": true,
     "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
-    "incremental": true
+    "incremental": false
   },
   "include": [
     "src/"

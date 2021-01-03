@@ -198,6 +198,7 @@ describeMathCPUAndGPU('rnn', () => {
 class RNNCellForTest extends RNNCell {
   /** @nocollapse */
   static className = 'RNNCellForTest';
+  stateSize;
   constructor(stateSizes: number|number[]) {
     super({});
     this.stateSize = stateSizes;
