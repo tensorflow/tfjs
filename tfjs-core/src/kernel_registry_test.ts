@@ -215,9 +215,8 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
       },
     });
 
-    const gradFunc = tf.grad(
-        x => tf.engine().runKernel(
-            kernelName, {x}, {} /* attrs */, [x] /* inputsToSave */));
+    const gradFunc =
+        tf.grad(x => tf.engine().runKernel(kernelName, {x}, {} /* attrs */));
     const dx = gradFunc(x);
     expect(kernelWasCalled).toBe(true);
     expect(gradientWasCalled).toBe(true);
@@ -381,9 +380,8 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
       kernelFunc: () => ({dtype: 'float32', shape: [3, 3], dataId: {}})
     });
 
-    const gradFunc = tf.grad(
-        x => tf.engine().runKernel(
-            kernelName, {x}, {} /* attrs */, [x] /* inputsToSave */));
+    const gradFunc =
+        tf.grad(x => tf.engine().runKernel(kernelName, {x}, {} /* attrs */));
     expect(() => gradFunc(x))
         .toThrowError(/gradient function not found for MyKernel/);
 
