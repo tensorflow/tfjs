@@ -36,7 +36,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
-      activation: string = null, hasPreluActivationWeights = false) {
+      activation: string = null, hasPreluActivationWeights = false,
+      hasLeakyreluAlpha = false) {
     this.outputShape = convInfo.outShape;
 
     util.assert(
@@ -74,9 +75,47 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         elementsPerThread);
     const batchSize =
         this.outputShape[1] * this.outputShape[2] * this.outputShape[3] / 4;
+    let activationSnippet = '', applyActivationSnippet = '';
+    if (activation) {
+      if (hasPreluActivationWeights) {
+        activationSnippet = `vec4 activation(vec4 a, ivec4 outCoord) {
+          vec4 b = getPreluActivationWeightsAtOutCoords(outCoord);
+          ${activation}
+        }`;
+      } else if (hasLeakyreluAlpha) {
+        activationSnippet = `vec4 activation(vec4 a) {
+          vec4 b = getLeakyreluAlphaAtOutCoords();
+          ${activation}
+        }`;
+        throw new Error(
+          'Leakyrelu is not supported.');
+      } else {
+        activationSnippet = `
+        vec4 activation(vec4 a, ivec4 outCoord) {
+          ${activation}
+        }`;
+      }
 
+      applyActivationSnippet = `value = activation(value, outCoord);`;
+    }
+
+    const addBiasSnippet = addBias ? 'ivec4 coords = getOutputCoords(); ' +
+            'value += getBiasAtOutCoords(outCoord);' :
+                                     '';
+    if (addBias) {
+      this.variableNames.push('bias');
+    }
+
+    if (hasPreluActivationWeights) {
+      this.variableNames.push('preluActivationWeights');
+    }
+
+    if (hasLeakyreluAlpha) {
+      this.variableNames.push('leakyreluAlpha');
+    }
     // TODO(jiajia.qin@intel.com): Add the fused conv2d vec4 support.
     this.userCode = `
+        ${activationSnippet}
         ${matMulSource}
 
         int batch;
@@ -107,6 +146,13 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         void mm_write(int row, int col, vec4 value) {
           if (row < dimAOuter && col < dimBOuter)
           {
+            ivec4 outCoord = ivec4(
+              batch,
+              row / ${this.outputShape[2]},
+              row % ${this.outputShape[2]},
+              col * 4);
+            ${addBiasSnippet}
+            ${applyActivationSnippet}
             result[batch * ${batchSize} + row * dimBOuter + col] = value;
           }
         }
