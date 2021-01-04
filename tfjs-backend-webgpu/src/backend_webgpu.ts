@@ -341,10 +341,9 @@ export class WebGPUBackend extends KernelBackend {
       const kernelMs = await Promise.all(flattenedActiveTimerQueries);
       res['kernelMs'] = util.sum(kernelMs);
       res['getExtraProfileInfo'] = () =>
-            kernelMs.map((d, i) => ({
-                name: flattenedActiveTimerNames[i], ms: d}))
-                .map(d => `${d.name}: ${d.ms}`)
-                .join(', ');
+          kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
+              .map(d => `${d.name}: ${d.ms}`)
+              .join(', ');
     } else {
       res['kernelMs'] = {
         error: 'WebGPU timestamp query was not supported in this environment.'
@@ -493,15 +492,16 @@ export class WebGPUBackend extends KernelBackend {
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
         this.activeTimers.push({
-            name: program.constructor.name,
-            query: this.getQueryTime(this.querySet)});
+          name: program.constructor.name,
+          query: this.getQueryTime(this.querySet)
+        });
       }
     }
     return output as {} as K;
   }
   async getTimeFromQuerySet(querySet: GPUQuerySet) {
-    const queryBuffer = this.acquireBuffer(16,
-            GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);
+    const queryBuffer = this.acquireBuffer(
+        16, GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);
     const dst = this.acquireBuffer(
         16, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
 
@@ -515,9 +515,10 @@ export class WebGPUBackend extends KernelBackend {
     const arrayBuf = new BigUint64Array(dst.getMappedRange());
     const timeElapsedNanos = Number((arrayBuf[1] - arrayBuf[0]));
     dst.unmap();
-    this.bufferManager.releaseBuffer(dst, 16,
-        GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
-    this.bufferManager.releaseBuffer(queryBuffer, 16,
+    this.bufferManager.releaseBuffer(
+        dst, 16, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
+    this.bufferManager.releaseBuffer(
+        queryBuffer, 16,
         GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);
     // Return milliseconds.
     return timeElapsedNanos / 1000000;
@@ -778,7 +779,8 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   mapActivationToShaderProgram(
-      activation: backend_util.Activation, packed = false): string {
+      activation: backend_util.Activation, packed = false,
+      useVec4 = false): string {
     if (activation === 'linear') {
       return unary_op.LINEAR;
     } else if (activation === 'relu') {
@@ -788,7 +790,7 @@ export class WebGPUBackend extends KernelBackend {
     } else if (activation === 'relu6') {
       return unary_op.RELU6;
     } else if (activation === 'prelu') {
-      return getBinaryOpString(BinaryOpType.PRELU);
+      return getBinaryOpString(BinaryOpType.PRELU, useVec4);
     }
     throw new Error(`Activation ${
         activation} has not been implemented for the WebGL backend.`);
@@ -813,6 +815,18 @@ export class WebGPUBackend extends KernelBackend {
       // TODO(kainino0x): This may be obsolete, but is kept for reference.
       program = new Conv2DNaiveProgram(
           convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
+    } else if (
+        // TODO(jiajia.qin@intel.com): It seems that the vec4 version is not
+        // good if convInfo.outChannels is too small. For example, input = [1,
+        // 128, 128, 4], filter = [25, 25, 4, 4]. In this case, lots of theads
+        // will run idle. So temporarily, use 64 as the threshold.
+        convInfo.inChannels % 4 === 0 && convInfo.outChannels % 4 === 0 &&
+        convInfo.outChannels >= 64) {
+      const fusedActivation2 = activation ?
+          this.mapActivationToShaderProgram(activation, false, true) :
+          null;
+      program = new Conv2DMMVec4Program(
+          convInfo, hasBias, fusedActivation2, hasPreluActivationWeights);
     } else {
       program = new Conv2DMMProgram(
           convInfo, workPerThread, hasBias, fusedActivation,
