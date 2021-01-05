@@ -68,8 +68,8 @@ export function unaryKernelFunc(
 
     const $dtype = dtype || x.dtype;
     if (webglBackend.shouldExecuteOnCPU([x]) && cpuKernelImpl != null) {
-      const xData = webglBackend.readSync(x.dataId);
-      const outValues = cpuKernelImpl(xData as TypedArray, $dtype);
+      const xData = webglBackend.texData.get(x.dataId);
+      const outValues = cpuKernelImpl(xData.values as TypedArray, $dtype);
       return webglBackend.makeTensorInfo(x.shape, $dtype, outValues);
     }
 

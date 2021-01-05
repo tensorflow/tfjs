@@ -41,7 +41,8 @@ export function transpose(args: {
 
   let out: TensorInfo;
   if (webglBackend.shouldExecuteOnCPU([x])) {
-    const values = webglBackend.readSync(x.dataId) as TypedArray;
+    const xTexData = webglBackend.texData.get(x.dataId);
+    const values = xTexData.values as TypedArray;
     const outValues = cpuTranspose(values, x.shape, x.dtype, perm, newShape);
 
     out = webglBackend.makeTensorInfo(newShape, x.dtype);
