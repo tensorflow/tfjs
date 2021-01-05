@@ -582,6 +582,11 @@ export class Engine implements TensorTracker, DataMover {
     }
 
     let kernelFunc: () => Tensor[];
+    if (this.backendName == null) {
+      // backend has not been initialized yet. Fetch it to trigger
+      // initialization.
+      this.backend;
+    }
     const kernel = getKernel(kernelName, this.backendName);
     let out: TensorInfo|TensorInfo[];
     if (kernel != null) {
