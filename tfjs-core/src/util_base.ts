@@ -60,7 +60,8 @@ export function shuffle(array: any[]|Uint32Array|Int32Array|
  * ```
  *
  * @param array The first array to shuffle in-place.
- * @param array2 The second array to shuffle in-place with the same permutation as the first array.
+ * @param array2 The second array to shuffle in-place with the same permutation
+ *     as the first array.
  *
  * @doc {heading: 'Util', namespace: 'util'}
  */
