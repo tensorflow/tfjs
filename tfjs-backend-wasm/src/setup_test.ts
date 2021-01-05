@@ -387,7 +387,12 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'floor'},
   {include: 'topk'},
   {include: 'expandDims'},
-  {include: 'stack'}
+  {include: 'stack'},
+  {
+    include: 'round',
+    // Pool is not supported yet.
+    excludes: ['pool'],
+  },
 ];
 
 const customInclude = (testName: string) => {

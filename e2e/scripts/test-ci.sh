@@ -46,7 +46,6 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
   source ../scripts/cleanup-py-env.sh
 
   cd ..
-
 fi
 
 # Generate custom bundle files for tests
@@ -59,7 +58,6 @@ if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
   yarn run-browserstack --browsers=bs_firefox_mac --tags $TAGS
   yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS
   yarn run-browserstack --browsers=win_10_chrome --tags $TAGS
-  yarn run-browserstack --browsers=bs_android_9 --tags $TAGS
 
   # Test script tag bundles
   karma start ./script_tag_tests/karma.conf.js --browserstack --browsers=bs_chrome_mac --testBundle tf.min.js

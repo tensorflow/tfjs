@@ -28,6 +28,7 @@
     "release-notes": "ts-node -s ./scripts/release_notes/release_notes.ts",
     "test-release-notes": "ts-node -s ./scripts/release_notes/run_tests.ts",
     "update-tfjs-lockfiles": "ts-node -s ./scripts/update-tfjs-lockfiles",
+    "tag-tfjs-release": "ts-node -s ./scripts/tag-tfjs-release",
     "update-cloudbuild-tests": "yarn generate-cloudbuild-for-packages tfjs-node -o scripts/cloudbuild_tfjs_node_expected.yml && yarn generate-cloudbuild-for-packages tfjs-core -o scripts/cloudbuild_tfjs_core_expected.yml"
   }
 }

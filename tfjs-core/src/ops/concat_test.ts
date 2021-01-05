@@ -303,6 +303,16 @@ describeWithFlags('concat3d', ALL_ENVS, () => {
       1, 11, 111, 2, 22, 222, 5, 55, 555, 6, 66, 666, 7, 77, 777, 8, 88, 888
     ]);
   });
+
+  it('Accepts string tensor.', async () => {
+    const tensor1 = tf.tensor3d(['one', 'two', 'three'], [1, 1, 3], 'string');
+    const tensor2 = tf.tensor3d(['four', 'five', 'six'], [1, 1, 3], 'string');
+    const values = tf.concat3d([tensor1, tensor2], 0);
+    expect(values.shape).toEqual([2, 1, 3]);
+    expectArraysClose(
+        await values.data(), ['one', 'two', 'three', 'four', 'five', 'six']);
+  });
+
   it('TensorLike Chained concat axis=0', async () => {
     const tensor1 = tf.tensor3d([1, 11, 111, 2, 22, 222], [1, 2, 3]);
     const tensor2 =

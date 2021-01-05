@@ -69,7 +69,8 @@ import {op} from './operation';
 function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
   assert(tensors.length >= 1, () => 'Pass at least one tensor to concat');
 
-  const $tensors = convertToTensorArray(tensors, 'tensors', 'concat');
+  const $tensors =
+      convertToTensorArray(tensors, 'tensors', 'concat', 'string_or_numeric');
 
   if ($tensors[0].dtype === 'complex64') {
     $tensors.forEach(tensor => {
