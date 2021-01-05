@@ -43,7 +43,7 @@ Note that if you are using in a managed expo app the install instructions may be
 
 > After this point, if you are using Xcode to build for ios, you should use a ‘.workspace’ file instead of the ‘.xcodeproj’
 
-### Step 3: Configure [Metro](https://facebook.github.io/metro/en/)
+### Step 3: Configure [Metro](https://facebook.github.io/metro/)
 
 This step is only needed if you want to use the [bundleResourceIO](https://js.tensorflow.org/api_react_native/latest/#bundleResourceIO) loader.
 

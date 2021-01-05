@@ -1,0 +1,1 @@
+var _scriptDir = undefined; // The contents of this file are prepended to the emscripten module. We pass a stringified instance of the emscripten module to the web worker, so without this variable definition we get a reference error in the worker because the `_scriptDir` definition lies outside the stringified instance.

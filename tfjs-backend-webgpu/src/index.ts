@@ -37,8 +37,17 @@ registerBackend('webgpu', async () => {
   };
 
   const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
-  const device = await adapter.requestDevice({});
-  return new WebGPUBackend(device, glslang);
+  let deviceDescriptor: GPUDeviceDescriptor = {};
+  const supportTimeQuery =
+    adapter.extensions.includes('timestamp-query' as GPUExtensionName);
+
+  if (supportTimeQuery) {
+    deviceDescriptor = {
+      extensions: ['timestamp-query' as const]
+    };
+  }
+  const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
+  return new WebGPUBackend(device, glslang, supportTimeQuery);
 }, 3 /*priority*/);
 
 export {webgpu};
