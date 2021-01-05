@@ -29,8 +29,8 @@ export function bincount(args: {
   const {x, weights} = inputs;
   const {size} = attrs;
 
-  const xVals = backend.texData.get(x.dataId).values as TypedArray;
-  const weightsVals = backend.texData.get(weights.dataId).values as TypedArray;
+  const xVals = backend.readSync(x.dataId) as TypedArray;
+  const weightsVals = backend.readSync(weights.dataId) as TypedArray;
 
   const outVals =
       bincountImplCPU(xVals, weightsVals, weights.dtype, weights.shape, size);
