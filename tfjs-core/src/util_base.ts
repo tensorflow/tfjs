@@ -65,10 +65,10 @@ export function shuffle(array: any[]|Uint32Array|Int32Array|
  * @doc {heading: 'Util', namespace: 'util'}
  */
 // tslint:disable-next-line:no-any
-function shuffleCombo(array: any[]|Uint32Array|Int32Array|Float32Array, 
+export function shuffleCombo(array: any[]|Uint32Array|Int32Array|Float32Array,
                       array2: any[]|Uint32Array|Int32Array|Float32Array): void {
   console.assert(array.length === array2.length)
-  let counter = array.length;  
+  let counter = array.length;
   let temp, temp2;
   let index = 0;
   // While there are elements in the array
@@ -85,7 +85,7 @@ function shuffleCombo(array: any[]|Uint32Array|Int32Array|Float32Array,
     array[index] = temp;
     array2[index] = temp2;
   }
-} 
+}
 
 /** Clamps a value to a specified range. */
 export function clamp(min: number, x: number, max: number): number {
