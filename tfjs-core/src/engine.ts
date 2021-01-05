@@ -585,7 +585,8 @@ export class Engine implements TensorTracker, DataMover {
     if (this.backendName == null) {
       // backend has not been initialized yet. Fetch it to trigger
       // initialization.
-      this.backend;
+      // tslint:disable-next-line: no-unused-expression
+      this.backend;  // this getter has side effects
     }
     const kernel = getKernel(kernelName, this.backendName);
     let out: TensorInfo|TensorInfo[];
