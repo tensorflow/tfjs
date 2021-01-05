@@ -136,7 +136,7 @@ describeWithFlags('denseBincount', ALL_ENVS, () => {
     const size = 4;
 
     const result = tf.denseBincount(
-        tf.add(x, tf.scalar(1, 'int32')) as tf.Tensor1D, weights, size);
+        tf.add<tf.Tensor1D>(x, tf.scalar(1, 'int32')), weights, size);
 
     expect(result.shape).toEqual([4]);
     expectArraysClose(await result.data(), [0, 0, 3, 1]);
