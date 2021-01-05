@@ -67,8 +67,9 @@ export function shuffle(array: any[]|Uint32Array|Int32Array|
  */
 // tslint:disable-next-line:no-any
 export function shuffleCombo(array: any[]|Uint32Array|Int32Array|Float32Array,
+// tslint:disable-next-line:no-any
                       array2: any[]|Uint32Array|Int32Array|Float32Array): void {
-  console.assert(array.length === array2.length)
+  console.assert(array.length === array2.length);
   let counter = array.length;
   let temp, temp2;
   let index = 0;
