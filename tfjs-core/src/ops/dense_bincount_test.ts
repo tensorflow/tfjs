@@ -129,4 +129,16 @@ describeWithFlags('denseBincount', ALL_ENVS, () => {
 
     expect(() => tf.denseBincount(x, weights, size)).toThrowError();
   });
+
+  it('handle output from other ops.', async () => {
+    const x = tf.tensor1d([1, 1, 1, 2], 'int32');
+    const weights = tf.tensor1d([]);
+    const size = 4;
+
+    const result = tf.denseBincount(
+        tf.add<tf.Tensor1D>(x, tf.scalar(1, 'int32')), weights, size);
+
+    expect(result.shape).toEqual([4]);
+    expectArraysClose(await result.data(), [0, 0, 3, 1]);
+  });
 });

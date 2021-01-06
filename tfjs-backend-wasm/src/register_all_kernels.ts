@@ -83,6 +83,7 @@ import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {reverseConfig} from './kernels/Reverse';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
+import {roundConfig} from './kernels/Round';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {scatterNdConfig} from './kernels/ScatterNd';
 import {selectConfig} from './kernels/Select';
@@ -171,6 +172,7 @@ const kernelConfigs: KernelConfig[] = [
   reverseConfig,
   rotateWithOffsetConfig,
   rsqrtConfig,
+  roundConfig,
   scatterNdConfig,
   selectConfig,
   sigmoidConfig,
