@@ -305,6 +305,76 @@ describe('Backend registration', () => {
         .toThrowError(/Backend 'async' has not yet been initialized/);
     expect(await success).toBe(false);
   });
+
+  describe('prioritizeBackend', () => {
+    let testBackend: TestKernelBackend;
+
+    beforeEach(() => {
+      testBackend = new TestKernelBackend();
+      tf.registerBackend('test', () => testBackend, 1);
+
+      const backends = tf.getSortedBackends();
+      expect(backends.length).toEqual(2);
+      expect(backends).toContain({name: 'test', priority: 1});
+      // cpu backend is automatically registered for tests
+      expect(backends).toContain({name: 'cpu', priority: 1});
+    });
+
+    it('prioritize higher and ready', async () => {
+      tf.prioritizeBackend('test', 2);
+
+      expect(tf.getSortedBackends()).toEqual([
+        {name: 'test', priority: 2},
+        {name: 'cpu', priority: 1},
+      ]);
+
+      await tf.ready();
+      expect(tf.getBackend()).toEqual('test');
+      expect(tf.backend()).toEqual(testBackend);
+    });
+
+    it('prioritize lower and ready', async () => {
+      tf.prioritizeBackend('test', 0.5);
+
+      expect(tf.getSortedBackends()).toEqual([
+        {name: 'cpu', priority: 1},
+        {name: 'test', priority: 0.5},
+      ]);
+
+      await tf.ready();
+      expect(tf.getBackend()).toEqual('cpu');
+    });
+
+    it('prioritize higher and backend', () => {
+      tf.prioritizeBackend('test', 2);
+
+      expect(tf.getSortedBackends()).toEqual([
+        {name: 'test', priority: 2},
+        {name: 'cpu', priority: 1},
+      ]);
+
+      const backend = tf.backend();
+      expect(tf.getBackend()).toEqual('test');
+      expect(backend).toEqual(testBackend);
+    });
+
+    it('prioritize lower and backend', async () => {
+      tf.prioritizeBackend('test', 0.5);
+
+      expect(tf.getSortedBackends()).toEqual([
+        {name: 'cpu', priority: 1},
+        {name: 'test', priority: 0.5},
+      ]);
+
+      tf.backend();
+      expect(tf.getBackend()).toEqual('cpu');
+    });
+
+    it('prioritize unregistered', () => {
+      expect(() => tf.prioritizeBackend('unregistered', 1))
+        .toThrowError(/Cannot prioritize backend unregistered/);
+    });
+  });
 });
 
 describeWithFlags('memory', ALL_ENVS, () => {
