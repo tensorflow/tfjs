@@ -37,10 +37,10 @@ export function splitV(
 
   return splitSizes.map(s => {
     const sliceSize = [...size];
-    sliceSize[axis] = s;
+    sliceSize[$axis] = s;
     const sliceT =
         slice({inputs: {x}, backend, attrs: {begin, size: sliceSize}});
-    begin[axis] += s;
+    begin[$axis] += s;
     return sliceT;
   });
 }
