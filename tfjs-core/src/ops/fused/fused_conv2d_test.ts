@@ -287,7 +287,7 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
                          ]));
      });
 
-     it('relu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=64 p=same',
+  it('relu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=64 p=same',
      async () => {
        const inputDepth = 16;
        const xSize = 8;

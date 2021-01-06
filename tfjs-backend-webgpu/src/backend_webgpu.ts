@@ -779,21 +779,20 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   mapActivationToShaderProgram(
-      activation: backend_util.Activation, packed = false,
-      useVec4 = false): string {
+      activation: backend_util.Activation, packed = false): string {
     if (activation === 'linear') {
       return unary_op.LINEAR;
     } else if (activation === 'relu') {
-      return unary_op.RELU;
+      return packed ? unary_op.RELU_VEC4 : unary_op.RELU;
     } else if (activation === 'elu') {
-      return unary_op.ELU;
+      return packed ? unary_op.ELU_VEC4 : unary_op.ELU;
     } else if (activation === 'relu6') {
       return unary_op.RELU6;
     } else if (activation === 'prelu') {
-      return getBinaryOpString(BinaryOpType.PRELU, useVec4);
+      return getBinaryOpString(BinaryOpType.PRELU, packed);
     }
     throw new Error(`Activation ${
-        activation} has not been implemented for the WebGL backend.`);
+        activation} has not been implemented for the WebGPU backend.`);
   }
 
   fusedConv2d(
@@ -816,17 +815,12 @@ export class WebGPUBackend extends KernelBackend {
       program = new Conv2DNaiveProgram(
           convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
     } else if (
-        // TODO(jiajia.qin@intel.com): It seems that the vec4 version is not
-        // good if convInfo.outChannels is too small. For example, input = [1,
-        // 128, 128, 4], filter = [25, 25, 4, 4]. In this case, lots of theads
-        // will run idle. So temporarily, use 64 as the threshold.
-        convInfo.inChannels % 4 === 0 && convInfo.outChannels % 4 === 0 &&
-        convInfo.outChannels >= 64) {
-      const fusedActivation2 = activation ?
-          this.mapActivationToShaderProgram(activation, false, true) :
+        convInfo.inChannels % 4 === 0 && convInfo.outChannels % 4 === 0) {
+      const fusedActivation = activation ?
+          this.mapActivationToShaderProgram(activation, true) :
           null;
       program = new Conv2DMMVec4Program(
-          convInfo, hasBias, fusedActivation2, hasPreluActivationWeights);
+          convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
     } else {
       program = new Conv2DMMProgram(
           convInfo, workPerThread, hasBias, fusedActivation,

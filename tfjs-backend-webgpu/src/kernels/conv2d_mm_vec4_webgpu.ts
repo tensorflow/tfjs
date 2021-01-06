@@ -73,8 +73,6 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         elementsPerThread);
-    const batchSize =
-        this.outputShape[1] * this.outputShape[2] * this.outputShape[3] / 4;
     let activationSnippet = '', applyActivationSnippet = '';
     if (activation) {
       if (hasPreluActivationWeights) {
@@ -87,8 +85,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
           vec4 b = getLeakyreluAlphaAtOutCoords();
           ${activation}
         }`;
-        throw new Error(
-          'Leakyrelu is not supported.');
+        throw new Error('Leakyrelu is not supported.');
       } else {
         activationSnippet = `
         vec4 activation(vec4 a, ivec4 outCoord) {
@@ -153,7 +150,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
               col * 4);
             ${addBiasSnippet}
             ${applyActivationSnippet}
-            result[batch * ${batchSize} + row * dimBOuter + col] = value;
+            setOutput(outCoord[0], outCoord[1], outCoord[2], outCoord[3],
+              value);
           }
         }
 
