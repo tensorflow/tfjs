@@ -84,6 +84,18 @@ describeWithFlags('split', ALL_ENVS, () => {
     expect(f).toThrowError();
   });
 
+  it('can split, axis=-2', async () => {
+    const a = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
+    const numSplits = 2;
+    const axis = -2;
+    const res = tf.split(a, numSplits, axis);
+    expect(res.length).toBe(2);
+    expect(res[0].shape).toEqual([2, 1, 2]);
+    expect(res[1].shape).toEqual([2, 1, 2]);
+    expectArraysClose(await res[0].data(), [1, 2, 5, 6]);
+    expectArraysClose(await res[1].data(), [3, 4, 7, 8]);
+  });
+
   it('can split a zero-sized tensor, axis=0', async () => {
     const a = tf.zeros([4, 0]);
     const numSplits = 4;
