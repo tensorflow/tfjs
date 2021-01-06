@@ -282,4 +282,26 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
 
     expectArraysClose(pixelsData, actualInt32, 10);
   });
+
+  it('fromPixels for ImageBitmap', async () => {
+    const imageDataWidth = 1;
+    const imageDataHeight = 2;
+    const numChannel = 3;
+    const pixels = new ImageData(imageDataWidth,imageDataHeight);
+    for (let i = 0; i < imageDataWidth * imageDataHeight * 4; ++i) {
+      if (i % 4 === 3) {
+        pixels.data[i] = 255;
+      } else {
+        pixels.data[i] = i;
+      }
+    }
+
+    const imageBitmap = await createImageBitmap(pixels);
+    const res = tf.browser.fromPixels(imageBitmap, numChannel);
+    imageBitmap.close();
+    expect(res.shape).toEqual([imageDataHeight, imageDataWidth, numChannel]);
+    const data = await res.data();
+    expect(data.length).toEqual(imageDataHeight * imageDataWidth * numChannel);
+    expectArraysEqual(await res.data(), [0, 1, 2, 4, 5, 6]);
+  });
 });
