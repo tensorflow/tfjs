@@ -307,67 +307,71 @@ describe('Backend registration', () => {
   });
 
   describe('prioritizeBackend', () => {
-    let testBackend: TestKernelBackend;
+    let testA: TestKernelBackend;
+    let testB: TestKernelBackend;
 
     beforeEach(() => {
-      testBackend = new TestKernelBackend();
-      tf.registerBackend('test', () => testBackend, 1);
+      testA = new TestKernelBackend();
+      tf.registerBackend('testA', () => testA, 100);
+      testB = new TestKernelBackend();
+      tf.registerBackend('testB', () => testB, 100);
 
       const backends = tf.getSortedBackends();
-      expect(backends.length).toEqual(2);
-      expect(backends).toContain({name: 'test', priority: 1});
-      // cpu backend is automatically registered for tests
-      expect(backends).toContain({name: 'cpu', priority: 1});
+      expect(backends.length).toBeGreaterThanOrEqual(2);
+      expect(backends).toContain({name: 'testA', priority: 100});
+      expect(backends).toContain({name: 'testB', priority: 100});
     });
 
     it('prioritize higher and ready', async () => {
-      tf.prioritizeBackend('test', 2);
+      tf.prioritizeBackend('testA', 101);
 
-      expect(tf.getSortedBackends()).toEqual([
-        {name: 'test', priority: 2},
-        {name: 'cpu', priority: 1},
-      ]);
+      const backends = tf.getSortedBackends();
+      const indexA = backends.findIndex(backend => backend.name === 'testA');
+      const indexB = backends.findIndex(backend => backend.name === 'testB');
+      expect(indexA).toBeLessThan(indexB);
 
       await tf.ready();
-      expect(tf.getBackend()).toEqual('test');
-      expect(tf.backend()).toEqual(testBackend);
+      expect(tf.getBackend()).toEqual('testA');
+      expect(tf.backend()).toEqual(testA);
     });
 
     it('prioritize lower and ready', async () => {
-      tf.prioritizeBackend('test', 0.5);
+      tf.prioritizeBackend('testA', 99);
 
-      expect(tf.getSortedBackends()).toEqual([
-        {name: 'cpu', priority: 1},
-        {name: 'test', priority: 0.5},
-      ]);
+      const backends = tf.getSortedBackends();
+      const indexA = backends.findIndex(backend => backend.name === 'testA');
+      const indexB = backends.findIndex(backend => backend.name === 'testB');
+      expect(indexA).toBeGreaterThan(indexB);
 
       await tf.ready();
-      expect(tf.getBackend()).toEqual('cpu');
+      expect(tf.getBackend()).toEqual('testB');
+      expect(tf.backend()).toEqual(testB);
     });
 
     it('prioritize higher and backend', () => {
-      tf.prioritizeBackend('test', 2);
+      tf.prioritizeBackend('testA', 101);
 
-      expect(tf.getSortedBackends()).toEqual([
-        {name: 'test', priority: 2},
-        {name: 'cpu', priority: 1},
-      ]);
+      const backends = tf.getSortedBackends();
+      const indexA = backends.findIndex(backend => backend.name === 'testA');
+      const indexB = backends.findIndex(backend => backend.name === 'testB');
+      expect(indexA).toBeLessThan(indexB);
 
       const backend = tf.backend();
-      expect(tf.getBackend()).toEqual('test');
-      expect(backend).toEqual(testBackend);
+      expect(tf.getBackend()).toEqual('testA');
+      expect(backend).toEqual(testA);
     });
 
     it('prioritize lower and backend', async () => {
-      tf.prioritizeBackend('test', 0.5);
+      tf.prioritizeBackend('testA', 99);
 
-      expect(tf.getSortedBackends()).toEqual([
-        {name: 'cpu', priority: 1},
-        {name: 'test', priority: 0.5},
-      ]);
+      const backends = tf.getSortedBackends();
+      const indexA = backends.findIndex(backend => backend.name === 'testA');
+      const indexB = backends.findIndex(backend => backend.name === 'testB');
+      expect(indexA).toBeGreaterThan(indexB);
 
-      tf.backend();
-      expect(tf.getBackend()).toEqual('cpu');
+      const backend = tf.backend();
+      expect(tf.getBackend()).toEqual('testB');
+      expect(backend).toEqual(testB);
     });
 
     it('prioritize unregistered', () => {
