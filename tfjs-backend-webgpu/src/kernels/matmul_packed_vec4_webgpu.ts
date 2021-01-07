@@ -41,7 +41,7 @@ export function makeMatMulPackedVec4Source(workPerThread: number[]): string {
       int globalRow = int(gl_GlobalInvocationID.y) * RowPerThread;
       int globalCol = int(gl_GlobalInvocationID.x);
 
-      int numTiles = (dimInner * ColPerThread - 1) / TileInner + 1;
+      int numTiles = (dimInner - 1) / TileInner + 1;
 
       vec4 acc[RowPerThread];
       vec4 ACached;
@@ -165,17 +165,17 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     const batchBSize = bShape[1] * bShape[2] / vecSize;
 
     const sampleA = fitA ?
-        `A[batch * ${batchASize} + row * dimInner + col]` :
-        `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
+        `A[batch * ${batchASize} + row * dimInner / 4 + col]` :
+        `coordsInBounds(ivec2(row, col * 4), ivec2(dimAOuter, dimInner)) ?
             A[batch * ${
-            batchASize} + row * dimInner + col] : vec4(0.0, 0.0, 0.0, 0.0)`;
+            batchASize} + row * dimInner / 4 + col] : vec4(0.0, 0.0, 0.0, 0.0)`;
 
     const fitB = tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1));
     const sampleB = fitB ?
-        `B[batch * ${batchBSize} + row * dimBOuter + col]` :
-        `coordsInBounds(ivec2(row, col), ivec2(dimInner * 4, dimBOuter)) ?
+        `B[batch * ${batchBSize} + row * dimBOuter / 4 + col]` :
+        `coordsInBounds(ivec2(row, col * 4), ivec2(dimInner, dimBOuter)) ?
             B[batch * ${
-            batchBSize} + row * dimBOuter + col] : vec4(0.0, 0.0, 0.0, 0.0)`;
+            batchBSize} + row * dimBOuter / 4 + col] : vec4(0.0, 0.0, 0.0, 0.0)`;
 
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
@@ -200,8 +200,8 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     const userCode = `
       ${activationSnippet}
       int dimAOuter = ${this.aShape[1]};
-      int dimInner = ${this.aShape[2] / vecSize};
-      int dimBOuter = ${bShape[2] / vecSize};
+      int dimInner = ${this.aShape[2]};
+      int dimBOuter = ${bShape[2]};
       int batch;
 
       ${makeMatMulPackedVec4Source([
@@ -217,7 +217,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
       }
 
       void mm_write(int row, int col, vec4 value) {
-        if (row < dimAOuter && col < dimBOuter)
+        if (row < dimAOuter && col * 4 < dimBOuter)
         {
           ivec3 outCoord = ivec3(batch, row, col * 4);
           ${addBiasSnippet}
