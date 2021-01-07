@@ -252,6 +252,7 @@ const TEST_FILTERS: TestFilter[] = [
       'has zero in its shape',           // Test times out.
       'valueAndGradients',               // backend.sum() not yet implemented.
       'upcasts when dtypes dont match',  // Missing cast().
+      'broadcast',  // matmul broadcasting not yet implemented.
     ]
   },
   {
