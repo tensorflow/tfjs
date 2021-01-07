@@ -29,16 +29,16 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 void Step(const int x_id, const float alpha, const int out_id) {
-  auto& a_info = backend::get_tensor_info(x_id);
+  auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
-  const float* a_buf = a_info.f32();
+  const float* x_buf = x_info.f32();
   float* out_buf = out_info.f32_write();
-  for (size_t i = 0; i < a_info.size; ++i) {
-    if (isnan(a_buf[i])) {
-      out_buf[i] = a_buf[i];
+  for (size_t i = 0; i < x_info.size; ++i) {
+    if (isnan(x_buf[i])) {
+      out_buf[i] = x_buf[i];
     } else {
-      out_buf[i] = a_buf[i] > 0 ? 1 : alpha;
+      out_buf[i] = x_buf[i] > 0 ? 1 : alpha;
     }
   }
 }

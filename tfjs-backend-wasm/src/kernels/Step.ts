@@ -22,8 +22,11 @@ import {BackendWasm} from '../backend_wasm';
 let wasmStep: (xId: number, alpha: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
-  wasmStep =
-      backend.wasm.cwrap(Step, null /*void*/, ['number, number, number']);
+  wasmStep = backend.wasm.cwrap(Step, null /*void*/, [
+    'number',  // x_id
+    'number',  // alpha
+    'number',  // out_id
+  ]);
 }
 
 function step(
