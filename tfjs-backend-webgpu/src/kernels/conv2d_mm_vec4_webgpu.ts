@@ -110,7 +110,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     if (hasLeakyreluAlpha) {
       this.variableNames.push('leakyreluAlpha');
     }
-    // TODO(jiajia.qin@intel.com): Add the fused conv2d vec4 support.
+
     this.userCode = `
         ${activationSnippet}
         ${matMulSource}
