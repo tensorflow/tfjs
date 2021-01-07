@@ -387,6 +387,7 @@ const TEST_FILTERS: TestFilter[] = [
     // Pool is not supported yet.
     excludes: ['pool'],
   },
+  {include: 'step'},
 ];
 
 const customInclude = (testName: string) => {
