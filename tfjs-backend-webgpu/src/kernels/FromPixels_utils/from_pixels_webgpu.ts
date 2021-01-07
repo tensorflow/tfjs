@@ -92,25 +92,32 @@ export class FromPixelsProgram implements WebGPUProgram {
   }
 
   setUniform(device: GPUDevice, uniformData: number[]) {
+    // Create the uniform buffer if it is not exists.
+    // The uniform buffer size is stick so we can hold
+    // and reuse it always.
+    if (!this.uniform) {
+      const uniformBuffer = device.createBuffer({
+        size: 8, // The uniform buffer contains two 4 bytes element always.
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+      });
+
+      this.uniform = uniformBuffer;
+    }
+
     // No need to update uniform buffer if no changes.
+    // The initial lastUniformData will have value [0, 0],
+    // which is not a valid numChannels or valid size.
     if (!uniformData ||
        (uniformData[0] === this.lastUniformData[0] &&
         uniformData[1] === this.lastUniformData[1])) {
       return;
     }
 
-    if (this.uniform) {
-      this.uniform.destroy();
-    }
-
-    const uniformBuffer = device.createBuffer({
-      size: uniformData.length * 4 , // bytesLength 
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-    });
-
-    device.defaultQueue.writeBuffer(uniformBuffer, 0, 
+    device.defaultQueue.writeBuffer(this.uniform, 0,
                                       new Uint32Array(uniformData));
-    this.uniform = uniformBuffer;
+
+    this.lastUniformData[0] = uniformData[0];
+    this.lastUniformData[1] = uniformData[1];
   }
 
   makeInputTexture(device: GPUDevice,

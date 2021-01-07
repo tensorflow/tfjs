@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {FromPixelsAttrs, } from '@tensorflow/tfjs-core';
+import {FromPixelsAttrs} from '@tensorflow/tfjs-core';
 import {Tensor3D} from '@tensorflow/tfjs-core';
 import {util} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
@@ -37,12 +37,24 @@ export function fromPixelsImageBitmap(args: {
   const output = backend.makeOutputArray(outShape, 'int32');
   if (!backend.fromPixelProgram) {
     backend.fromPixelProgram = new FromPixelsProgram(outShape);
-
-    const {bindGroupLayout, pipeline} = webgpu_program.compileProgram(
-        backend.glslang, backend.device, backend.fromPixelProgram, [], output);
-
-    backend.fromPixelProgram.setWebGPUBinary(bindGroupLayout, pipeline);
   }
+
+  // Different outShape will affect preprocessor result,
+  // e.g. getCoordsFromFlatIndex. FromPixelsImageBitmap need
+  // to recompile the pipeline to get the correct result.
+  // FromPixelsImageBitmap leverages webgpu backend pipeline
+  // cache system to avoid useless recompile.
+  const outputShapes = [output.shape];
+  const outputTypes = [output.dtype];
+  const key =
+      webgpu_program.makeShaderKey(
+          backend.fromPixelProgram, outputShapes, outputTypes);
+
+  const {bindGroupLayout, pipeline} = backend.getAndSavePipeline(key, () => {
+      return webgpu_program.compileProgram(
+         backend.glslang, backend.device, backend.fromPixelProgram, [], output);
+  });
+  backend.fromPixelProgram.setWebGPUBinary(bindGroupLayout, pipeline);
 
   backend.fromPixelProgram.updateOutputShape(outShape);
 
