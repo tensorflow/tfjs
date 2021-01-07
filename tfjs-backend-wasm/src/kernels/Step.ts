@@ -33,12 +33,10 @@ function step(
   const {alpha} = attrs;
   const {x} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
-  let inputId = xId;
-  let input = x;
 
-  const out = backend.makeOutput(x.shape, input.dtype);
+  const out = backend.makeOutput(x.shape, x.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
-  wasmStep(inputId, alpha, outId);
+  wasmStep(xId, alpha, outId);
   return out;
 }
 

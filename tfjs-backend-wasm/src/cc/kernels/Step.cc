@@ -17,10 +17,8 @@
 #endif
 
 #include <math.h>
-#include <stdio.h>
 
 #include "src/cc/backend.h"
-#include "src/cc/unary.h"
 
 namespace tfjs {
 namespace wasm {
