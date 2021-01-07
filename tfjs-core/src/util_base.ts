@@ -69,7 +69,13 @@ export function shuffle(array: any[]|Uint32Array|Int32Array|
 export function shuffleCombo(array: any[]|Uint32Array|Int32Array|Float32Array,
 // tslint:disable-next-line:no-any
                       array2: any[]|Uint32Array|Int32Array|Float32Array): void {
-  console.assert(array.length === array2.length);
+
+  if (array.length !== array2.length) {
+    throw Error(
+      `Array sizes must match to be shuffled together ` +
+      `First array length was ${array.length}` +
+      `Second array length was ${array2.length}`);
+  }
   let counter = array.length;
   let temp, temp2;
   let index = 0;
