@@ -994,6 +994,6 @@ tfjs_cc_library(
     name = "Step",
     srcs = ["kernels/Step.cc"],
     deps = [
-        ":backend"
+        ":backend",
     ],
 )
