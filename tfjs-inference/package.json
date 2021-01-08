@@ -15,10 +15,10 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@tensorflow/tfjs-core": "2.0.1",
-    "@tensorflow/tfjs-converter": "2.0.1",
-    "@tensorflow/tfjs-backend-cpu": "2.0.1",
-    "@tensorflow/tfjs-backend-wasm": "2.0.1",
+    "@tensorflow/tfjs-core": "2.8.3",
+    "@tensorflow/tfjs-converter": "2.8.3",
+    "@tensorflow/tfjs-backend-cpu": "2.8.3",
+    "@tensorflow/tfjs-backend-wasm": "2.8.3",
     "@types/jasmine": "~3.0.0",
     "@types/rimraf":  "~3.0.0",
     "clang-format": "~1.2.4",
@@ -44,12 +44,11 @@
     "yargs": "~15.3.1",
     "pkg": "~4.4.8"
   },
-  "peerDependencies": {
-    "@tensorflow/tfjs-core": "2.0.0",
-    "@tensorflow/tfjs-converter": "2.0.0",
-    "@tensorflow/tfjs-backend-cpu": "2.0.0"
-  },
   "pkg": {
-    "assets": "node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm"
+    "assets": [
+      "node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm",
+      "node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-simd.wasm",
+      "node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-threaded-simd.wasm"
+    ]
   }
 }
