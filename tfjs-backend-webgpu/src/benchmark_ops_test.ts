@@ -18,6 +18,19 @@
 import * as tf from '@tensorflow/tfjs-core';
 import {describeWebGPU} from './test_util';
 
+function getMeanAndMin(kernels: any, trials: number, reps: number) {
+  let sum = 0;
+  let min = Number.MAX_VALUE;
+  kernels.forEach((kernel: {name: string|number; kernelTimeMs: any;}) => {
+    sum += kernel.kernelTimeMs;
+    if (kernel.kernelTimeMs < min) {
+      min = kernel.kernelTimeMs;
+    }
+  });
+
+  return [sum / trials, min * reps];
+}
+
 describeWebGPU('Ops benchmarks', () => {
   // Performs `trials` trials, of `reps` repetitions each. At the end of each
   // trial, endTrial() is run (and included in the benchmark time). This
@@ -31,8 +44,6 @@ describeWebGPU('Ops benchmarks', () => {
       doRep: (r: number) => tf.Tensor[] | tf.Tensor,
       endTrial?: () => Promise<void>, disposeAfterEachTrial = false,
       trials = 50, reps = 1) {
-    const times = [];
-
     let toDispose: tf.Tensor[] = [];
     const dispose = () => {
       for (const t of toDispose) {
@@ -62,21 +73,24 @@ describeWebGPU('Ops benchmarks', () => {
     await trial();
     dispose();
 
-    for (let t = 0; t < trials; ++t) {
-      const start = tf.util.now();
-      await trial();
-      times.push(tf.util.now() - start);
-      if (disposeAfterEachTrial) {
-        dispose();
+    const times = await tf.profile(async () => {
+      for (let t = 0; t < trials; ++t) {
+        await trial();
+        if (disposeAfterEachTrial) {
+          dispose();
+        }
       }
-    }
-
-    const mean = times.reduce((a, b) => a + b, 0) / trials;
-    const min = Math.min(...times);
+    });
+    const [mean, min] = getMeanAndMin(times.kernels, trials, reps);
     const fmt = (n: number) => n.toFixed(3);
     console.log(`Mean time: ${fmt(mean)} ms -> ${fmt(mean / reps)} / rep`);
     console.log(`Min time: ${fmt(min)} ms -> ${fmt(min / reps)} / rep`);
   }
+
+  it('argMax', async () => {
+    const tensor = tf.randomNormal([100, 100, 100]);
+    await time(() => tf.argMax(tensor, 0), null, true, 1, 1);
+  }, 60000);
 
   it('argMax', async () => {
     const n = 2;
