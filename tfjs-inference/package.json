@@ -45,10 +45,6 @@
     "pkg": "~4.4.8"
   },
   "pkg": {
-    "assets": [
-      "node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm",
-      "node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-simd.wasm",
-      "node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-threaded-simd.wasm"
-    ]
+    "assets": "node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm"
   }
 }
