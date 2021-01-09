@@ -330,7 +330,7 @@ def write_artifacts(topology,
   if metadata:
     model_json[common.USER_DEFINED_METADATA_KEY] = metadata
 
-  if initializer_graph_def:
+  if initializer_graph_def and initializer_graph_def.node:
     model_json[common.ARTIFACT_MODEL_INITIALIZER] = MessageToDict(
         initializer_graph_def)
 
