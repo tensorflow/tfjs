@@ -804,21 +804,22 @@ export class WebGPUBackend extends KernelBackend {
 
     const hasBias = bias != null;
     const hasPreluActivationWeights = preluActivationWeights != null;
-    const fusedActivation = activation ?
-        this.mapActivationToShaderProgram(activation, false) :
-        null;
     let program: Conv2DMMProgram|Conv2DNaiveProgram;
 
     const workPerThread = env().get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
+
+    const useVec4 =
+        convInfo.inChannels % 4 === 0 && convInfo.outChannels % 4 === 0;
+    const packed = (workPerThread !== -1) && useVec4;
+    const fusedActivation = activation ?
+        this.mapActivationToShaderProgram(activation, packed) :
+        null;
+
     if (workPerThread === -1) {
       // TODO(kainino0x): This may be obsolete, but is kept for reference.
       program = new Conv2DNaiveProgram(
           convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
-    } else if (
-        convInfo.inChannels % 4 === 0 && convInfo.outChannels % 4 === 0) {
-      const fusedActivation = activation ?
-          this.mapActivationToShaderProgram(activation, true) :
-          null;
+    } else if (useVec4) {
       program = new Conv2DMMVec4Program(
           convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
     } else {
