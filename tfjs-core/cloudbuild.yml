@@ -31,7 +31,7 @@ steps:
   dir: 'tfjs-core'
   id: 'build-cpu-backend'
   entrypoint: 'yarn'
-  args: ['build-cpu-backend']
+  args: ['build-cpu-backend-ci']
   waitFor: ['build']
 
 # Lint.
