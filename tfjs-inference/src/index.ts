@@ -25,8 +25,8 @@
  *   ts-node inference.ts -h
  */
 
-import '@tensorflow/tfjs-backend-wasm'
-import '@tensorflow/tfjs-backend-cpu'
+import '@tensorflow/tfjs-backend-wasm';
+import '@tensorflow/tfjs-backend-cpu';
 import * as tfconv from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
 import * as fs from 'fs';
@@ -34,6 +34,8 @@ import * as path from 'path';
 import * as yargs from 'yargs';
 
 import {FileHandler} from './file_handler';
+
+// Placeholder for g3 import.
 
 // Following cmd options casing tradition.
 // tslint:disable-next-line:enforce-name-casing
@@ -116,6 +118,7 @@ async function main() {
   const options = argParser.argv as {} as Options;
 
   if (options.backend === 'wasm') {
+    // Placeholder for g3 specific code.
     await tfc.setBackend('wasm');
   } else if (options.backend === 'cpu') {
     await tfc.setBackend('cpu');
