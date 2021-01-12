@@ -18,7 +18,7 @@
 /**
  *  This file is used to load a saved model and perform inference.
  *  Run this script in console:
- *   ts-node inference.ts --model_path=MODEL_PATH --inputs_dir=INPUTS_DIR
+ *   ts-node index.ts --model_path=MODEL_PATH --inputs_dir=INPUTS_DIR
  *   --outputs_dir=OUTPUTS_DIR
  *
  *  For help, run:
@@ -56,7 +56,7 @@ interface Options {
 async function main() {
   const argParser = yargs.options({
     model_path: {
-      description: 'Directory to a tfjs model json file.',
+      description: 'Path to the tfjs model json file.',
       type: 'string',
       demandOption: true
     },
@@ -190,7 +190,7 @@ async function main() {
  * @private
  * @param inputsData An array with each element being the value to
  *    create a tensor.
- * @param inputsShapes An array with each element being
+ * @param inputsShape An array with each element being
  *    the shape to create a tensor.
  * @param inputsDtype An array with each element being the
  *    dtype to create a tensor.
@@ -199,11 +199,11 @@ async function main() {
  * @return An array of tensors.
  */
 function createInputTensors(
-    inputsData: tfc.TypedArray[], inputsShapes: number[][],
+    inputsData: tfc.TypedArray[], inputsShape: number[][],
     inputsDtype: tfc.DataType[], inputName: string[]): tfc.NamedTensorMap {
   const xs: tfc.Tensor[] = [];
   for (let i = 0; i < inputsData.length; i++) {
-    const input = tfc.tensor(inputsData[i], inputsShapes[i], inputsDtype[i]);
+    const input = tfc.tensor(inputsData[i], inputsShape[i], inputsDtype[i]);
     xs.push(input);
   }
 

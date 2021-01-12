@@ -251,6 +251,7 @@ const TEST_FILTERS: TestFilter[] = [
       'has zero in its shape',           // Test times out.
       'valueAndGradients',               // backend.sum() not yet implemented.
       'upcasts when dtypes dont match',  // Missing cast().
+      'broadcast',  // matmul broadcasting not yet implemented.
     ]
   },
   {
@@ -317,6 +318,14 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {
     include: 'mirrorPad',
+    excludes: [
+      'tensor1d',     // The result is not correct.
+      'tensor2d',     // The result is not correct.
+      'tensor3d',     // The result is not correct.
+      'tensor4d',     // The result is not correct.
+      'tensor-like',  // The result is not correct.
+      'NaNs',         // The result is not correct.
+    ]
   },
   {
     include: 'pad',

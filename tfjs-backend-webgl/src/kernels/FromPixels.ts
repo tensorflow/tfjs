@@ -45,6 +45,8 @@ function fromPixels(args: {
       pixels instanceof HTMLVideoElement;
   const isImage = typeof (HTMLImageElement) !== 'undefined' &&
       pixels instanceof HTMLImageElement;
+  const isImageBitmap = typeof(ImageBitmap) !== 'undefined' &&
+      pixels instanceof ImageBitmap;
   const [width, height] = isVideo ?
       [
         (pixels as HTMLVideoElement).videoWidth,
@@ -55,7 +57,7 @@ function fromPixels(args: {
   const texShape: [number, number] = [height, width];
   const outShape = [height, width, numChannels];
 
-  if (isImage || isVideo) {
+  if (isImage || isVideo || isImageBitmap) {
     if (fromPixels2DContext == null) {
       fromPixels2DContext = document.createElement('canvas').getContext('2d');
     }
@@ -63,7 +65,8 @@ function fromPixels(args: {
     fromPixels2DContext.canvas.width = width;
     fromPixels2DContext.canvas.height = height;
     fromPixels2DContext.drawImage(
-        pixels as HTMLVideoElement | HTMLImageElement, 0, 0, width, height);
+        pixels as HTMLVideoElement | HTMLImageElement | ImageBitmap,
+        0, 0, width, height);
     pixels = fromPixels2DContext.canvas;
   }
 

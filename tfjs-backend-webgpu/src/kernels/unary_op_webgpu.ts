@@ -27,6 +27,29 @@ export const LINEAR = `return a;`;
 export const ELU = `return (a >= 0.0) ? a : (exp(a) - 1.0);`;
 export const PRELU = `return (a < 0.) ? b * a : a;`;
 
+export const ELU_VEC4 = `
+  vec4 result;
+
+  result.r = (a.r >= 0.0) ? a.r : (exp(a.r) - 1.0);
+  result.g = (a.g >= 0.0) ? a.g : (exp(a.g) - 1.0);
+  result.b = (a.b >= 0.0) ? a.b : (exp(a.b) - 1.0);
+  result.a = (a.a >= 0.0) ? a.a : (exp(a.a) - 1.0);
+
+  return result;
+`;
+
+export const RELU_VEC4 = `
+  vec4 result = a * vec4(greaterThanEqual(a, vec4(0.0)));
+  bvec4 isNaN = isnan(a);
+
+  result.r = isNaN.r ? a.r : result.r;
+  result.g = isNaN.g ? a.g : result.g;
+  result.b = isNaN.b ? a.b : result.b;
+  result.a = isNaN.a ? a.a : result.a;
+
+  return result;
+`;
+
 export const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
 export const ABS = `return abs(a);`;
 export const SQUARE = `return a * a;`;

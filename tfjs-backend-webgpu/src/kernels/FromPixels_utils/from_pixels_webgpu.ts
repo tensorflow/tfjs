@@ -17,10 +17,11 @@
 
 import {computeDispatch, flatDispatchLayout} from '../../webgpu_util';
 
+import {util} from '@tensorflow/tfjs-core';
 import {WebGPUProgram} from '../webgpu_program';
 
 export class FromPixelsProgram implements WebGPUProgram {
-  outputShape: number[];
+  outputShape: number[] = [0];
   shaderKey: string;
   userCode: string;
   workPerThread:number;
@@ -40,13 +41,21 @@ export class FromPixelsProgram implements WebGPUProgram {
 
   private disposed = false;
 
-  constructor(outputShape: number[]) {
+  updateOutputShape(outputShape: number[]) {
+    if (util.arraysEqual(this.outputShape, outputShape)) {
+      return;
+    }
+
     this.outputShape = outputShape;
     this.workPerThread = outputShape[2];  // numChannels in outputShape.
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
       this.dispatchLayout, this.outputShape, this.workGroupSize,
       [this.workPerThread, 1, 1]);
+  }
+
+  constructor(outputShape: number[]) {
+    this.updateOutputShape(outputShape);
 
     this.userCode = `
     layout (local_size_x = ${this.workGroupSize[0]},
@@ -83,25 +92,32 @@ export class FromPixelsProgram implements WebGPUProgram {
   }
 
   setUniform(device: GPUDevice, uniformData: number[]) {
+    // Create the uniform buffer if it does not exist.
+    // The uniform buffer size is fixed so we can hold
+    // and reuse it always.
+    if (!this.uniform) {
+      const uniformBuffer = device.createBuffer({
+        size: 8, // The uniform buffer contains two 4 bytes element always.
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
+      });
+
+      this.uniform = uniformBuffer;
+    }
+
     // No need to update uniform buffer if no changes.
+    // The initial lastUniformData will have value [0, 0],
+    // which is not a valid numChannels or valid size.
     if (!uniformData ||
        (uniformData[0] === this.lastUniformData[0] &&
         uniformData[1] === this.lastUniformData[1])) {
       return;
     }
 
-    if (this.uniform) {
-      this.uniform.destroy();
-    }
-
-    const uniformBuffer = device.createBuffer({
-      size: uniformData.length * 4 , // bytesLength 
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
-    });
-
-    device.defaultQueue.writeBuffer(uniformBuffer, 0, 
+    device.defaultQueue.writeBuffer(this.uniform, 0,
                                       new Uint32Array(uniformData));
-    this.uniform = uniformBuffer;
+
+    this.lastUniformData[0] = uniformData[0];
+    this.lastUniformData[1] = uniformData[1];
   }
 
   makeInputTexture(device: GPUDevice,
