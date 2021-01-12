@@ -63,7 +63,7 @@ steps:
     args:
       - build-binary
     waitFor:
-      - test-tfjs-inference
+      - yarn-tfjs-inference
       - yarn-common
   - name: 'node:10'
     dir: tfjs-react-native

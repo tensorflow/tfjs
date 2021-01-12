@@ -35,7 +35,8 @@
     "test-dev": "tsc && ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/test_node.ts",
     "test-ci": "ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/test_node.ts",
     "build-binary": "yarn build && pkg . --targets=node12-macos-x64,node12-linux-x64,node12-win-x64 --out-path=binaries",
-    "test-python": "yarn build-binary && ./scripts/run_python.sh"
+    "test-python": "yarn build-binary && ./scripts/run_python.sh",
+    "test-python-ci": "./scripts/run_python.sh"
   },
   "dependencies": {
     "@types/seedrandom": "2.4.27",
