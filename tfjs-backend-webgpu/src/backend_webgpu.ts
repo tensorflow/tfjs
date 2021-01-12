@@ -355,7 +355,7 @@ export class WebGPUBackend extends KernelBackend {
     return res;
   }
 
-  private getAndSavePipeline(
+  getAndSavePipeline(
       key: string, getBinary: () => webgpu_program.WebGPUBinary) {
     if (!(key in this.binaryCache)) {
       this.binaryCache[key] = getBinary();
