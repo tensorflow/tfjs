@@ -92,8 +92,8 @@ export class FromPixelsProgram implements WebGPUProgram {
   }
 
   setUniform(device: GPUDevice, uniformData: number[]) {
-    // Create the uniform buffer if it is not exists.
-    // The uniform buffer size is stick so we can hold
+    // Create the uniform buffer if it does not exist.
+    // The uniform buffer size is fixed so we can hold
     // and reuse it always.
     if (!this.uniform) {
       const uniformBuffer = device.createBuffer({
