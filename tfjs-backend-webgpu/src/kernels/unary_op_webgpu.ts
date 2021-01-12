@@ -25,6 +25,7 @@ export const RELU = 'return max(a, 0.0);';
 export const RELU6 = 'return (a < 0.0) ? 0.0 : min(6.0, a);';
 export const LINEAR = `return a;`;
 export const ELU = `return (a >= 0.0) ? a : (exp(a) - 1.0);`;
+export const PRELU = `return (a < 0.) ? b * a : a;`;
 
 export const ELU_VEC4 = `
   vec4 result;

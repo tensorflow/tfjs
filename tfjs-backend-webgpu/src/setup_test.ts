@@ -126,7 +126,6 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'depthwise',
     excludes: [
       'gradient',  // depthwiseConv2DDerInput not yet implemented.
-      'fused',     // Not yet implemented.
     ]
   },
   {

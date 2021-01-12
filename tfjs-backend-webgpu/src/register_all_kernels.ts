@@ -20,6 +20,7 @@ import {divConfig} from './kernels/Div';
 import {fromPixelsConfig} from './kernels/FromPixels';
 import {fromPixelsAsyncConfig} from './kernels/FromPixelsAsync';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
+import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
 import {mirrorPadConfig} from './kernels/MirrorPad';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
@@ -33,6 +34,7 @@ const kernelConfigs: KernelConfig[] = [
   squareConfig,
   squaredDifferenceConfig,
   fusedBatchNormConfig,
+  fusedDepthwiseConv2DConfig,
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV5Config,
   fromPixelsConfig,
