@@ -13,6 +13,22 @@
   "tfjs-inference": [],
   "tfjs-react-native": [],
   "tfjs-vis": [],
-  "scripts": [],
+  "scripts": [
+    "tfjs-core",
+    "tfjs-converter",
+    "tfjs-layers",
+    "tfjs-data",
+    "tfjs",
+    "tfjs-node",
+    "tfjs-node-gpu",
+    "tfjs-backend-wasm",
+    "tfjs-backend-cpu",
+    "tfjs-backend-webgl",
+    "tfjs-backend-webgpu",
+    "tfjs-inference",
+    "tfjs-react-native",
+    "tfjs-vis",
+    "e2e"
+  ],
   "e2e": ["tfjs", "tfjs-backend-cpu", "tfjs-backend-webgl", "tfjs-converter", "tfjs-core", "tfjs-data", "tfjs-layers", "tfjs-node", "tfjs-backend-wasm"]
 }
