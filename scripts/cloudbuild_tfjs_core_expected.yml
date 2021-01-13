@@ -5,6 +5,14 @@ steps:
     args:
       - install
   - name: 'node:10'
+    dir: scripts
+    id: test-generate-cloudbuild
+    entrypoint: yarn
+    args:
+      - test-generate-cloudbuild
+    waitFor:
+      - yarn-common
+  - name: 'node:10'
     dir: tfjs-core
     id: yarn-tfjs-core
     entrypoint: yarn
@@ -14,22 +22,21 @@ steps:
       - yarn-common
   - name: 'node:10'
     dir: tfjs-core
-    id: build-deps-always-tfjs-core
-    entrypoint: yarn
-    args:
-      - build-deps-ci
-    waitFor:
-      - yarn-tfjs-core
-      - yarn-common
-  - name: 'node:10'
-    dir: tfjs-core
     id: build-tfjs-core
     entrypoint: yarn
     args:
       - build-ci
     waitFor:
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
+      - yarn-common
+  - name: 'node:10'
+    dir: tfjs-core
+    id: build-cpu-backend-tfjs-core
+    entrypoint: yarn
+    args:
+      - build-cpu-backend-ci
+    waitFor:
+      - build-tfjs-core
       - yarn-common
   - name: 'node:10'
     dir: tfjs-core
@@ -39,7 +46,7 @@ steps:
       - lint
     waitFor:
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
+      - build-cpu-backend-tfjs-core
       - yarn-common
   - name: 'node:10'
     dir: tfjs-core
@@ -49,7 +56,7 @@ steps:
       - test-ci
     waitFor:
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-common
     env:
@@ -74,7 +81,7 @@ steps:
       - test-snippets-ci
     waitFor:
       - yarn-tfjs-core
-      - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - yarn-common
   - name: 'node:10'
     dir: tfjs-core
@@ -83,7 +90,7 @@ steps:
     args:
       - test-async-backends-ci
     waitFor:
-      - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - yarn-common
   - name: 'node:10'
     dir: tfjs-backend-cpu
@@ -94,8 +101,8 @@ steps:
     waitFor:
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
   - name: 'node:10'
     dir: tfjs-backend-cpu
@@ -107,8 +114,8 @@ steps:
       - yarn-tfjs-backend-cpu
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
   - name: 'node:10'
     dir: tfjs-backend-cpu
@@ -120,8 +127,8 @@ steps:
       - yarn-tfjs-backend-cpu
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
   - name: 'node:10'
     dir: tfjs-backend-cpu
@@ -134,8 +141,8 @@ steps:
       - lint-tfjs-backend-cpu
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
     env:
       - BROWSERSTACK_USERNAME=deeplearnjs1
@@ -151,8 +158,8 @@ steps:
     waitFor:
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -167,8 +174,8 @@ steps:
       - yarn-tfjs-converter
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -183,8 +190,8 @@ steps:
       - yarn-tfjs-converter
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -200,8 +207,8 @@ steps:
       - lint-tfjs-converter
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -219,8 +226,8 @@ steps:
     waitFor:
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -234,8 +241,8 @@ steps:
     waitFor:
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -249,8 +256,8 @@ steps:
     waitFor:
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -265,8 +272,8 @@ steps:
       - build-tfjs-converter
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -280,8 +287,8 @@ steps:
     waitFor:
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -296,8 +303,8 @@ steps:
       - yarn-tfjs-backend-wasm
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -312,8 +319,8 @@ steps:
       - yarn-tfjs-backend-wasm
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -330,8 +337,8 @@ steps:
       - lint-tfjs-backend-wasm
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -351,8 +358,8 @@ steps:
       - build-tfjs-backend-wasm
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -368,8 +375,8 @@ steps:
       - build-tfjs-backend-wasm
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -384,8 +391,8 @@ steps:
       - yarn-tfjs-backend-wasm
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -399,8 +406,8 @@ steps:
     waitFor:
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -415,8 +422,8 @@ steps:
       - yarn-tfjs-backend-webgl
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -431,8 +438,8 @@ steps:
       - yarn-tfjs-backend-webgl
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -448,8 +455,8 @@ steps:
       - lint-tfjs-backend-webgl
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -468,8 +475,8 @@ steps:
     waitFor:
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -487,8 +494,8 @@ steps:
       - yarn-tfjs-layers
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -506,8 +513,8 @@ steps:
       - yarn-tfjs-layers
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -526,8 +533,8 @@ steps:
       - lint-tfjs-layers
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -550,8 +557,8 @@ steps:
       - build-tfjs-layers
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
@@ -571,8 +578,8 @@ steps:
       - build-tfjs-backend-cpu
       - lint-tfjs-backend-cpu
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-layers
       - build-tfjs-layers
@@ -590,8 +597,8 @@ steps:
       - build-tfjs-backend-cpu
       - lint-tfjs-backend-cpu
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-layers
       - build-tfjs-layers
@@ -609,8 +616,8 @@ steps:
       - build-tfjs-backend-cpu
       - lint-tfjs-backend-cpu
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-layers
       - build-tfjs-layers
@@ -629,8 +636,8 @@ steps:
       - build-tfjs-backend-cpu
       - lint-tfjs-backend-cpu
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-layers
       - build-tfjs-layers
@@ -648,8 +655,8 @@ steps:
       - build-tfjs-backend-cpu
       - lint-tfjs-backend-cpu
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-layers
       - build-tfjs-layers
@@ -663,8 +670,8 @@ steps:
     waitFor:
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-converter
       - build-tfjs-converter
@@ -691,8 +698,8 @@ steps:
       - yarn-tfjs
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-converter
       - build-tfjs-converter
@@ -719,8 +726,8 @@ steps:
       - yarn-tfjs
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-converter
       - build-tfjs-converter
@@ -748,8 +755,8 @@ steps:
       - lint-tfjs
       - yarn-common
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-converter
       - build-tfjs-converter
@@ -784,8 +791,8 @@ steps:
       - build-tfjs
       - lint-tfjs
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
   - name: 'node:12'
     dir: tfjs-node
@@ -800,8 +807,8 @@ steps:
       - build-tfjs
       - lint-tfjs
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
   - name: 'node:12'
     dir: tfjs-node
@@ -816,8 +823,8 @@ steps:
       - build-tfjs
       - lint-tfjs
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
   - name: 'node:12'
     dir: tfjs-node
@@ -832,8 +839,8 @@ steps:
       - build-tfjs
       - lint-tfjs
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
   - name: 'node:12'
     dir: tfjs-node
@@ -849,8 +856,8 @@ steps:
       - build-tfjs
       - lint-tfjs
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
   - name: 'node:12'
     dir: tfjs-node
@@ -864,8 +871,8 @@ steps:
       - build-tfjs
       - lint-tfjs
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
   - name: 'node:10'
     dir: tfjs-node-gpu
@@ -879,8 +886,8 @@ steps:
       - build-tfjs
       - lint-tfjs
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
   - name: 'node:10'
     dir: tfjs-node-gpu
@@ -895,8 +902,8 @@ steps:
       - build-tfjs
       - lint-tfjs
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
   - name: 'node:10'
     dir: tfjs-node-gpu
@@ -911,8 +918,8 @@ steps:
       - build-tfjs
       - lint-tfjs
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
   - name: 'node:10'
     dir: tfjs-node-gpu
@@ -927,8 +934,8 @@ steps:
       - build-tfjs
       - lint-tfjs
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
   - name: 'node:10'
     dir: tfjs-node-gpu
@@ -943,8 +950,8 @@ steps:
       - build-tfjs
       - lint-tfjs
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
   - name: 'node:10'
     dir: tfjs-node-gpu
@@ -960,8 +967,8 @@ steps:
       - build-tfjs
       - lint-tfjs
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
   - name: 'node:10'
     dir: tfjs-node-gpu
@@ -976,8 +983,8 @@ steps:
       - build-tfjs
       - lint-tfjs
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
   - name: gcr.io/learnjs-174218/release
     dir: e2e
@@ -1000,8 +1007,8 @@ steps:
       - build-tfjs-converter
       - lint-tfjs-converter
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-data
       - build-tfjs-data
@@ -1041,8 +1048,8 @@ steps:
       - build-tfjs-converter
       - lint-tfjs-converter
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-data
       - build-tfjs-data
@@ -1086,8 +1093,8 @@ steps:
       - build-tfjs-converter
       - lint-tfjs-converter
       - yarn-tfjs-core
-      - build-deps-always-tfjs-core
       - build-tfjs-core
+      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-tfjs-data
       - build-tfjs-data
