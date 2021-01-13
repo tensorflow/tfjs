@@ -25,7 +25,6 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import * as conv_util from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -44,13 +43,6 @@ import {reshape} from './reshape';
  * @param strides The strides of the pooling:
  *     `[strideDepth, strideHeight, strideWidth]`. If
  *     `strides` is a single number, then `strideHeight == strideWidth`.
- * @param dilations Deprecated, this field will be gone in v3.0.0. The dilation
- *     rates: `[dilationDepth, dilationHeight, dilationWidth]`
- *     in which we sample input values across the depth, height and width
- *     dimensions in dilated pooling.
- *     Defaults to `[1, 1, 1]`. If `dilations` is a single number,
- *     then `dilationDepth == dilationHeight == dilationWidth`.
- *     If it is greater than 1, then all values of `strides` must be 1.
  * @param pad A string from: 'same', 'valid'. The type of padding algorithm
  *     used in the forward prop of the op.
  * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
@@ -59,9 +51,8 @@ import {reshape} from './reshape';
 function avgPool3dGrad_<T extends Tensor4D|Tensor5D>(
     dy: T|TensorLike, input: T|TensorLike,
     filterSize: [number, number, number]|number,
-    strides: [number, number, number]|number,
-    dilations: [number, number, number]|number = [1, 1, 1],
-    pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+    strides: [number, number, number]|number, pad: 'valid'|'same'|number,
+    dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   const $dy = convertToTensor(dy, 'dy', 'avgPool3dGrad');
   const $input = convertToTensor(input, 'input', 'avgPool3dGrad');
 
@@ -87,11 +78,6 @@ function avgPool3dGrad_<T extends Tensor4D|Tensor5D>(
       () => `Error in avgPool3dGrad: input must be rank 5 but got rank ` +
           `${input5D.rank}.`);
 
-  util.assert(
-      conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
-      () => 'Error in avgPool3dGrad: Either strides or dilations ' +
-          `must be 1. Got strides ${strides} and dilations '${dilations}'`);
-
   if (dimRoundingMode != null) {
     util.assert(
         util.isInt(pad as number),
@@ -101,8 +87,7 @@ function avgPool3dGrad_<T extends Tensor4D|Tensor5D>(
 
   const inputs: AvgPool3DGradInputs = {dy: dy5D, input: input5D};
 
-  const attrs: AvgPool3DGradAttrs =
-      {filterSize, strides, dilations, pad, dimRoundingMode};
+  const attrs: AvgPool3DGradAttrs = {filterSize, strides, pad, dimRoundingMode};
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
