@@ -5,6 +5,15 @@ steps:
   id: 'yarn-common'
   args: ['install']
 
+# Test generate_cloudbuild.js
+# See #4523 for why this is special-cased into every cloudbuild.
+- name: 'node:10'
+  dir: 'scripts'
+  id: 'test-generate-cloudbuild'
+  entrypoint: 'yarn'
+  args: ['test-generate-cloudbuild']
+  waitFor: ['yarn-common']
+
 # General configuration
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
