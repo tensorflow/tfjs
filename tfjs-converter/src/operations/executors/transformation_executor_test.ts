@@ -28,25 +28,25 @@ describe('transformation', () => {
   const input2 = [tfOps.tensor1d([1, 1])];
   const context = new ExecutionContext({}, {}, {});
 
-  beforeAll(() => {
-    // Set all properties of tfOps to writable
-    // See https://github.com/jasmine/jasmine/issues/1817 as of
-    // ts > 3.9 module properties are effectively frozen (and thus made
-    // immutable as per module spec). Thus spyOn does not work. This
-    // is an attempt to workaroudn that.
-    const props = Object.getOwnPropertyNames(tfOps);
-    // console.log('tf ops proeperties', props);
-    console.log('tfops isFrozen', Object.isFrozen(tfOps));
-    console.log('tfops isSealed', Object.isSealed(tfOps));
-    console.log('tfops isExtensible', Object.isExtensible(tfOps));
-    props.filter(p => !p.startsWith('_')).forEach((propName) => {
-      let descriptor = Object.getOwnPropertyDescriptor(tfOps, propName);
+  // beforeAll(() => {
+  //   // Set all properties of tfOps to writable
+  //   // See https://github.com/jasmine/jasmine/issues/1817 as of
+  //   // ts > 3.9 module properties are effectively frozen (and thus made
+  //   // immutable as per module spec). Thus spyOn does not work. This
+  //   // is an attempt to workaroudn that.
+  //   const props = Object.getOwnPropertyNames(tfOps);
+  //   // console.log('tf ops proeperties', props);
+  //   console.log('tfops isFrozen', Object.isFrozen(tfOps));
+  //   console.log('tfops isSealed', Object.isSealed(tfOps));
+  //   console.log('tfops isExtensible', Object.isExtensible(tfOps));
+  //   props.filter(p => !p.startsWith('_')).forEach((propName) => {
+  //     let descriptor = Object.getOwnPropertyDescriptor(tfOps, propName);
 
-      console.log('descriptor for', propName, descriptor);
-      // console.log('redefining property', propName);
-      Object.defineProperty(tfOps, propName, {writable: true});
-    })
-  })
+  //     console.log('descriptor for', propName, descriptor);
+  //     // console.log('redefining property', propName);
+  //     Object.defineProperty(tfOps, propName, {writable: true});
+  //   })
+  // })
 
   beforeEach(() => {
     node = {
