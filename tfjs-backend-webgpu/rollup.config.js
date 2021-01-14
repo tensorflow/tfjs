@@ -101,6 +101,19 @@ module.exports = cmdOptions => {
     visualize: cmdOptions.visualize
   }));
 
+  // Browser/Node ES module minified
+  bundles.push(config({
+    plugins: [terserPlugin],
+    output: {
+      format: 'esm',
+      name,
+      extend,
+      file: `dist/${fileName}.esm.js`,
+      freeze: false
+    },
+    tsCompilerOptions: {target: 'es6'}
+  }));
+
   // Browser ES2017
   bundles.push(config({
     output: {
