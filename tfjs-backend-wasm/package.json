@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-backend-wasm",
-  "version": "0.0.0",
+  "version": "2.8.4",
   "main": "dist/tf-backend-wasm.node.js",
   "types": "dist/index.d.ts",
   "jsnext:main": "dist/index.js",
@@ -45,10 +45,10 @@
     "perf_hooks": false
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../tfjs-core"
+    "@tensorflow/tfjs-core": "2.8.4"
   },
   "dependencies": {
-    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
+    "@tensorflow/tfjs-backend-cpu": "2.8.4",
     "@types/emscripten": "~0.0.34"
   },
   "devDependencies": {
@@ -58,7 +58,7 @@
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@tensorflow/tfjs-core": "2.8.4",
     "@types/jasmine": "~2.8.6",
     "clang-format": "~1.2.4",
     "jasmine": "~3.1.0",
