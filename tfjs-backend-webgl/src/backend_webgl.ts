@@ -565,14 +565,14 @@ export class MathBackendWebGL extends KernelBackend {
     this.releaseGPUData(dataId);
     const {complexTensorInfos} = this.texData.get(dataId);
     if (complexTensorInfos != null) {
-      const realDataInfo = this.texData.get(complexTensorInfos.real.dataId)
+      const realDataInfo = this.texData.get(complexTensorInfos.real.dataId);
       realDataInfo.complexParentRefCount--;
       realDataInfo.refCount--;
       if (realDataInfo.refCount < 1) {
         this.disposeData(complexTensorInfos.real.dataId);
       }
 
-      const imagDataInfo = this.texData.get(complexTensorInfos.imag.dataId)
+      const imagDataInfo = this.texData.get(complexTensorInfos.imag.dataId);
       imagDataInfo.complexParentRefCount--;
       imagDataInfo.refCount--;
       if (imagDataInfo.refCount < 1) {
