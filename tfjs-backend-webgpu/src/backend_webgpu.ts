@@ -804,7 +804,7 @@ export class WebGPUBackend extends KernelBackend {
 
     const hasBias = bias != null;
     const hasPreluActivationWeights = preluActivationWeights != null;
-    let program: Conv2DMMProgram|Conv2DNaiveProgram;
+    let program: Conv2DMMProgram|Conv2DNaiveProgram|Conv2DMMVec4Program;
 
     const workPerThread = env().get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
 
