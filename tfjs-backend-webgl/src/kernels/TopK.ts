@@ -27,7 +27,7 @@ export function topK(
   const {x} = inputs;
   const {k, sorted} = attrs;
 
-  const xVals = backend.texData.get(x.dataId).values as TypedArray;
+  const xVals = backend.readSync(x.dataId) as TypedArray;
   const [allTopKVals, allTopKIndices] =
       topKImplCPU(xVals, x.shape, x.dtype as NumericDataType, k, sorted);
 

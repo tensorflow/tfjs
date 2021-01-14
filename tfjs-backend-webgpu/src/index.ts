@@ -28,7 +28,9 @@ import * as webgpu from './webgpu';
 registerBackend('webgpu', async () => {
   // Remove it once we figure out how to correctly read the tensor data before
   // the tensor is disposed in profiling mode.
-  env().setFlags({'CHECK_COMPUTATION_FOR_ERRORS': false});
+  // Comment it out temporarily since this flag is added in tfjs-core 2.8.0.
+  // Otherwise, it will report 'it has not been registered' error.
+  // env().set('CHECK_COMPUTATION_FOR_ERRORS', false);
 
   const glslang = await glslangInit();
   const gpuDescriptor: GPURequestAdapterOptions = {
@@ -37,8 +39,15 @@ registerBackend('webgpu', async () => {
   };
 
   const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
-  const device = await adapter.requestDevice({});
-  return new WebGPUBackend(device, glslang);
+  let deviceDescriptor: GPUDeviceDescriptor = {};
+  const supportTimeQuery =
+      adapter.extensions.includes('timestamp-query' as GPUExtensionName);
+
+  if (supportTimeQuery) {
+    deviceDescriptor = {extensions: ['timestamp-query' as const ]};
+  }
+  const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
+  return new WebGPUBackend(device, glslang, supportTimeQuery);
 }, 3 /*priority*/);
 
 export {webgpu};

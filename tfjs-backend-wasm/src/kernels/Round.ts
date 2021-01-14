@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,14 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
+import {KernelConfig, Round} from '@tensorflow/tfjs-core';
 
-// Import shared functionality from tfjs-backend-cpu without triggering
-// side effects.
-// tslint:disable-next-line: no-imports-from-dist
-import {concatImpl as concatImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
-// tslint:disable-next-line: no-imports-from-dist
-import {sliceImpl as sliceImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
-// tslint:disable-next-line: no-imports-from-dist
-import {rangeImpl as rangeImplCPU} from '@tensorflow/tfjs-backend-cpu/dist/shared';
+import {createUnaryKernelConfig} from './unary_kernel';
 
-export {concatImplCPU, rangeImplCPU, sliceImplCPU};
+export const roundConfig: KernelConfig = createUnaryKernelConfig(Round);

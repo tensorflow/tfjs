@@ -39,7 +39,7 @@ import {op} from './operation';
  * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
 function clone_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'clone', null);
+  const $x = convertToTensor(x, 'x', 'clone', 'string_or_numeric');
   const inputs: IdentityInputs = {x: $x};
 
   // Note this op is called tf.identity in python. Hence the kernel name used

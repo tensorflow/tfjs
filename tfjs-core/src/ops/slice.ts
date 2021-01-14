@@ -61,7 +61,7 @@ import {op} from './operation';
  */
 function slice_<R extends Rank, T extends Tensor<R>>(
     x: T|TensorLike, begin: number|number[], size?: number|number[]): T {
-  const $x = convertToTensor(x, 'x', 'slice', null /* parseAsDtype */);
+  const $x = convertToTensor(x, 'x', 'slice', 'string_or_numeric');
 
   if ($x.rank === 0) {
     throw new Error('Slicing scalar is not possible');
