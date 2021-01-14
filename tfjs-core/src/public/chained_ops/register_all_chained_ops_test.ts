@@ -62,7 +62,6 @@ const CHAINED_OPS = [
   'cumsum',
   'depthToSpace',
   'depthwiseConv2d',
-  'depthwiseConv2D',
   'dilation2d',
   'div',
   'divNoNan',
