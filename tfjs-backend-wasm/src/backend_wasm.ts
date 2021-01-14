@@ -362,7 +362,7 @@ function typedArrayFromBuffer(
 const wasmBinaryNames = [
   'tfjs-backend-wasm.wasm', 'tfjs-backend-wasm-simd.wasm',
   'tfjs-backend-wasm-threaded-simd.wasm'
-] as const ;
+] as const;
 type WasmBinaryName = typeof wasmBinaryNames[number];
 
 let wasmPath: string = null;

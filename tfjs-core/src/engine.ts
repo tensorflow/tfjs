@@ -603,6 +603,7 @@ export class Engine implements TensorTracker, DataMover {
       // tslint:disable-next-line: no-unused-expression
       this.backend;
     }
+    const kernel = getKernel(kernelName, this.backendName);
     let out: TensorInfo|TensorInfo[];
 
     const kernelOrScopeName = isRegisteredKernelInvocation(kernelParams) ?
