@@ -17,22 +17,22 @@
 // tslint:disable-next-line: no-imports-from-dist
 import {CHROME_ENVS, Constraints, describeWithFlags, HAS_WORKER} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-import {REGRESSION} from './constants';
+import {SMOKE} from './constants';
 
 const CHROME_ENVS_WITH_WORKER: Constraints =
     Object.assign({}, CHROME_ENVS, HAS_WORKER);
 /**
- *  This file is the test suite for CUJ: custom_module->custom_bundle->predict.
+ *  This file is the test suite for CUJ: custom_module->custom_module->predict.
  */
 
 function getBundleUrl(folder: string, custom: boolean, bundler: string) {
   const distFolder = custom ? 'custom' : 'full';
-  return `./base/custom_bundle/${folder}/dist/${distFolder}/app_${bundler}.js`;
+  return `./base/custom_module/${folder}/dist/${distFolder}/app_${bundler}.js`;
 }
 
 const DEBUG_WORKER_SCRIPT = true;
 
-describe(`${REGRESSION} blazeface`, () => {
+describe(`${SMOKE} blazeface`, () => {
   describeWithFlags('webpack', CHROME_ENVS_WITH_WORKER, () => {
     let webpackBundle: {full: string, custom: string};
     let originalTimeout: number;
@@ -106,7 +106,7 @@ describe(`${REGRESSION} blazeface`, () => {
   });
 });
 
-describe(`${REGRESSION} dense model`, () => {
+describe(`${SMOKE} dense model`, () => {
   describeWithFlags('webpack', CHROME_ENVS_WITH_WORKER, () => {
     let webpackBundle: {full: string, custom: string};
     let originalTimeout: number;
@@ -116,7 +116,7 @@ describe(`${REGRESSION} dense model`, () => {
       originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
       jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
 
-      modelUrl = `/base/custom_bundle/dense_model/model/model.json`;
+      modelUrl = `/base/custom_module/dense_model/model/model.json`;
       const [webpackFull, webpackCustom] = await Promise.all([
         fetch(getBundleUrl('dense_model', false /* custom */, 'webpack'))
             .then(r => r.text()),
@@ -161,7 +161,7 @@ describe(`${REGRESSION} dense model`, () => {
       originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
       jasmine.DEFAULT_TIMEOUT_INTERVAL = 500000;
 
-      modelUrl = `/base/custom_bundle/dense_model/model/model.json`;
+      modelUrl = `/base/custom_module/dense_model/model/model.json`;
       const [rollupFull, rollupCustom] = await Promise.all([
         fetch(getBundleUrl('dense_model', false /* custom */, 'rollup'))
             .then(r => r.text()),
@@ -198,7 +198,7 @@ describe(`${REGRESSION} dense model`, () => {
   });
 });
 
-describe(`${REGRESSION} universal sentence encoder model`, () => {
+describe(`${SMOKE} universal sentence encoder model`, () => {
   const expectedKernels = [
     'StridedSlice', 'Less',       'Cast',      'Reshape',       'GatherV2',
     'Max',          'Add',        'Maximum',   'SparseToDense', 'Greater',

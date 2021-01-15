@@ -18,15 +18,15 @@
  */
 
 /**
- * Entry point for cli tool to build custom tfjs bundles
+ * Entry point for cli tool to build custom tfjs modules
  */
 import * as fs from 'fs';
 import * as path from 'path';
-import * as chalk from 'chalk';
 import * as yargs from 'yargs';
 
 import {OP_SCOPE_SUFFIX} from '@tensorflow/tfjs-core';
 
+import {bail} from './util';
 import {CustomTFJSBundleConfig, SupportedBackends, ModuleProvider} from './types';
 import {getModuleProvider} from './esm_module_provider';
 
@@ -46,7 +46,7 @@ const DEFAULT_CUSTOM_BUNDLE_ARGS: Partial<CustomTFJSBundleConfig> = {
 
 const argParser = yargs.options({
   config: {
-    description: 'Path to custom bundle config file.',
+    description: 'Path to custom module config file.',
     type: 'string',
     demandOption: true
   }
@@ -54,10 +54,7 @@ const argParser = yargs.options({
 
 const args = argParser.argv;
 
-function bail(errorMsg: string) {
-  console.log(chalk.red(errorMsg));
-  process.exit(1);
-}
+
 
 function validateArgs(): CustomTFJSBundleConfig {
   let configFilePath = args.config;
@@ -81,7 +78,7 @@ function validateArgs(): CustomTFJSBundleConfig {
     bail('Error: config must specify "outputPath" property');
   }
 
-  console.log(`Using custom bundle configuration from ${configFilePath}.`);
+  console.log(`Using custom module configuration from ${configFilePath}.`);
 
   const finalConfig = Object.assign({}, DEFAULT_CUSTOM_BUNDLE_ARGS, config);
 

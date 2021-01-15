@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {any} from '../../ops/any';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -25,7 +25,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.any = function<T extends Tensor>(
+getGlobalTensorClass().prototype.any = function<T extends Tensor>(
     this: T, axis?: number|number[], keepDims?: boolean): T {
   this.throwIfDisposed();
   return any(this, axis, keepDims);

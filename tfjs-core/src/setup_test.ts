@@ -25,6 +25,10 @@ require('@tensorflow/tfjs-backend-cpu');
  * executing tests.
  */
 import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from './jasmine_util';
+// Register all chained ops for tests.
+import './public/chained_ops/register_all_chained_ops';
+// Register all gradients for tests
+import './register_all_gradients';
 
 // Set up a CPU test env as the default test env
 setTestEnvs([{name: 'cpu', backendName: 'cpu', isDataSync: true}]);

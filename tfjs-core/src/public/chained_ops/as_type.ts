@@ -17,7 +17,7 @@
 
 // TODO update import path once op is modularized.
 import {cast} from '../../ops/ops';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {DataType, Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -33,7 +33,7 @@ declare module '../../tensor' {
  *
  * @doc {heading: 'Tensors', subheading: 'Classes'}
  */
-Tensor.prototype.asType = function<T extends Tensor>(
+getGlobalTensorClass().prototype.asType = function<T extends Tensor>(
     this: T, dtype: DataType): T {
   this.throwIfDisposed();
   return cast<T>(this, dtype);

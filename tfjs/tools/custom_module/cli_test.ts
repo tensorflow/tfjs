@@ -15,21 +15,24 @@
  * =============================================================================
  */
 
-// TODO update import path once op is modularized.
-import {powStrict} from '../../ops/ops';
-import {Tensor} from '../../tensor';
-import {Rank} from '../../types';
+import * as fs from 'fs';
+import * as path from 'path';
 
-declare module '../../tensor' {
-  interface Tensor<R extends Rank = Rank> {
-    powStrict<T extends Tensor>(exp: Tensor): Tensor;
-  }
-}
+describe('CLI binary', () => {
+  it('should be present and executable', () => {
+    const packageJsonPath = path.resolve(
+        __dirname,
+        '../../package.json',
+    );
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
+    const binEntry = packageJson.bin;
+    expect(binEntry['tfjs-custom-module']).toBeDefined();
 
-/**
- * @deprecated strict variants of ops have been deprecated
- */
-Tensor.prototype.powStrict = function<T extends Tensor>(exp: Tensor): T {
-  this.throwIfDisposed();
-  return powStrict(this, exp) as T;
-};
+    const toolPath = path.resolve(
+        path.dirname(packageJsonPath), binEntry['tfjs-custom-module']);
+
+    expect(() => {
+      fs.accessSync(toolPath, fs.constants.X_OK);
+    }).not.toThrow();
+  });
+});
