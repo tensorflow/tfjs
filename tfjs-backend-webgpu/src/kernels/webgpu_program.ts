@@ -24,7 +24,8 @@ export interface WebGPUProgram {
   // The unique key to distinguish different shader source code. If shaderKey is
   // not specified, use userCode to replace.
   shaderKey?: string;
-  userCode: string;
+  // TODO: Remove userCode once we finish all Program refactor.
+  userCode?: string;
   outputShape: number[];
   // dispatchLayout enumerates how tensor dimensions are distributed among
   // dispatch x,y,z dimensions.
@@ -42,6 +43,7 @@ export interface WebGPUProgram {
   // the group.
   workGroupSize?: [number, number, number];
   isVec4?: boolean;
+  getUserCode?: () => string;
 }
 
 export interface WebGPUBinary {
@@ -94,6 +96,8 @@ export function makeShaderKey<R extends Rank>(
     types: string[]): string {
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
       shapes.join(',') + types.join(',') + program.variableNames.join(',') +
-      (program.shaderKey ? program.shaderKey : program.userCode);
+      (program.shaderKey ?
+           program.shaderKey :
+           (program.userCode ? program.userCode : program.getUserCode()));
   return key;
 }
