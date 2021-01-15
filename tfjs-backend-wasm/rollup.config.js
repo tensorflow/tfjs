@@ -96,55 +96,22 @@ module.exports = cmdOptions => {
     tsCompilerOptions: {target: 'es5'}
   }));
 
-  if (!cmdOptions.ci || cmdOptions.npm) {
-    // tf-backend-wasm.min.js
-  bundles.push(config({
-    plugins: [terserPlugin],
-    output: {
-      format: 'umd',
-      name,
-      extend,
-      file: `dist/${fileName}.min.js`,
-    },
-  }));
-
-  }
-
+  // Without this, the terser plugin will turn `typeof _scriptDir ==
+  // "undefined"` into `_scriptDir === void 0` in minified JS file which will
+  // cause "_scriptDir is undefined" error in web worker's inline script.
+  //
+  // For more context, see scripts/patch-threaded-simd-module.js.
+  const terserExtraOptions = {compress: {typeofs: false}};
   if (cmdOptions.npm) {
-    // Browser default unminified (ES5)
-    bundles.push(config({
-      output: {
-        format: browserFormat,
-        name,
-        extend,
-        file: `dist/${fileName}.js`,
-        freeze: false
-      },
-      tsCompilerOptions: {target: 'es5'}
-    }));
-
-    // Browser ES2017
-    bundles.push(config({
-      output: {
-        format: browserFormat,
-        name,
-        extend,
-        file: `dist/${fileName}.es2017.js`
-      },
-      tsCompilerOptions: {target: 'es2017'}
-    }));
-
-    // Browser ES2017 minified
-    bundles.push(config({
-      plugins: [terserPlugin],
-      output: {
-        format: browserFormat,
-        name,
-        extend,
-        file: `dist/${fileName}.es2017.min.js`
-      },
-      tsCompilerOptions: {target: 'es2017'}
-    }));
+    const browserBundles = getBrowserBundleConfigOptions(
+        config, name, fileName, PREAMBLE, cmdOptions.visualize, false /* CI */,
+        terserExtraOptions);
+    bundles.push(...browserBundles);
+  } else {
+    const browserBundles = getBrowserBundleConfigOptions(
+        config, name, fileName, PREAMBLE, cmdOptions.visualize, true /* CI */,
+        terserExtraOptions);
+    bundles.push(...browserBundles);
   }
 
   return bundles;
