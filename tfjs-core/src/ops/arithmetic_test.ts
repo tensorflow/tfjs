@@ -350,52 +350,6 @@ describeWithFlags('div', ALL_ENVS, () => {
 });
 
 describeWithFlags('mul', ALL_ENVS, () => {
-  it('strict same-shaped tensors', async () => {
-    const a = tf.tensor2d([1, 2, -3, -4], [2, 2]);
-    const b = tf.tensor2d([5, 3, 4, -7], [2, 2]);
-    const expected = [5, 6, -12, 28];
-    const result = tf.mulStrict(a, b);
-
-    expect(result.shape).toEqual([2, 2]);
-    expect(result.dtype).toBe('float32');
-    expectArraysClose(await result.data(), expected);
-  });
-
-  it('strict propagates NaNs', async () => {
-    const a = tf.tensor2d([1, 3, 4, 0], [2, 2]);
-    const b = tf.tensor2d([NaN, 3, NaN, 3], [2, 2]);
-
-    const result = tf.mulStrict(a, b);
-
-    expect(result.dtype).toBe('float32');
-    expectArraysClose(await result.data(), [NaN, 9, NaN, 0]);
-  });
-
-  it('strict throws when passed tensors of different shapes', () => {
-    const a = tf.tensor2d([1, 2, -3, -4, 5, 6], [2, 3]);
-    const b = tf.tensor2d([5, 3, 4, -7], [2, 2]);
-
-    expect(() => tf.mulStrict(a, b)).toThrowError();
-    expect(() => tf.mulStrict(b, a)).toThrowError();
-  });
-
-  it('strict throws when dtypes do not match', () => {
-    const a = tf.tensor2d([1, 2, -3, -4, 5, 6], [2, 3], 'float32');
-    const b = tf.tensor2d([5, 3, 4, -7], [2, 2], 'int32');
-
-    expect(() => tf.mulStrict(a, b)).toThrowError();
-    expect(() => tf.mulStrict(b, a)).toThrowError();
-  });
-
-  it('strict int32 * int32', async () => {
-    const a = tf.tensor2d([1, 2, -3, -4], [2, 2], 'int32');
-    const b = tf.tensor2d([2, 1, 3, -4], [2, 2], 'int32');
-    const res = tf.mulStrict(a, b);
-
-    expect(res.dtype).toBe('int32');
-    expectArraysClose(await res.data(), [2, 2, -9, 16]);
-  });
-
   it('same-shaped tensors', async () => {
     const a = tf.tensor2d([1, 2, -3, -4], [2, 2]);
     const b = tf.tensor2d([5, 3, 4, -7], [2, 2]);
@@ -783,32 +737,6 @@ describeWithFlags('pow', ALL_ENVS, () => {
     expect(result.shape).toEqual([2, 2]);
     const expected = [1, 4, -3, 16];
 
-    expectArraysClose(await result.data(), expected);
-  });
-
-  it('powStrict same-shaped tensors', async () => {
-    const a = tf.tensor2d([1, -2, -3, 0, 7, 1], [2, 3]);
-    const b = tf.tensor2d([5, 3, 4, 5, 2, -3], [2, 3], 'int32');
-    const expected = [1, -8, 81, 0, 49, 1];
-    const result = tf.powStrict(a, b);
-
-    expect(result.shape).toEqual([2, 3]);
-    expectArraysClose(await result.data(), expected, 0.01);
-  });
-
-  it('powStrict throws when passed tensors of different shapes', () => {
-    const a = tf.tensor2d([1, 2, -3, -4, 5, 6], [2, 3]);
-    const b = tf.tensor2d([5, 3, 4, -7], [2, 2], 'int32');
-
-    expect(() => tf.powStrict(a, b)).toThrowError();
-  });
-
-  it('powStrict handles non int32 exponent param', async () => {
-    const a = tf.tensor1d([2, 4]);
-    const b = tf.tensor1d([.5, 1.2]);
-
-    const result = tf.powStrict(a, b);
-    const expected = [Math.pow(2, 0.5), Math.pow(4, 1.2)];
     expectArraysClose(await result.data(), expected);
   });
 

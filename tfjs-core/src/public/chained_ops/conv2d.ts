@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {conv2d} from '../../ops/conv2d';
-import {Tensor, Tensor3D, Tensor4D} from '../../tensor';
+import {getGlobalTensorClass, Tensor3D, Tensor4D} from '../../tensor';
 import {Rank, TensorLike4D} from '../../types';
 
 declare module '../../tensor' {
@@ -28,7 +28,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.conv2d = function<T extends Tensor3D|Tensor4D>(
+getGlobalTensorClass().prototype.conv2d = function<T extends Tensor3D|Tensor4D>(
     filter: Tensor4D|TensorLike4D, strides: [number, number]|number,
     pad: 'valid'|'same'|number, dataFormat?: 'NHWC'|'NCHW',
     dilations?: [number, number]|number,

@@ -104,7 +104,6 @@ export interface AvgPool3DAttrs {
   pad: 'valid'|'same'|number;
   dimRoundingMode?: 'floor'|'round'|'ceil';
   dataFormat: 'NDHWC'|'NCDHW';
-  dilations?: [number, number, number]|number;
 }
 
 export const AvgPool3DGrad = 'AvgPool3DGrad';
@@ -113,7 +112,6 @@ export interface AvgPool3DGradAttrs {
   filterSize: [number, number, number]|number;
   strides: [number, number, number]|number;
   pad: 'valid'|'same'|number;
-  dilations: [number, number, number]|number;
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 
@@ -501,7 +499,6 @@ export interface MaxPool3DAttrs {
   strides: [number, number, number]|number;
   pad: 'valid'|'same'|number;
   dataFormat: 'NDHWC'|'NCDHW';
-  dilations?: [number, number, number]|number;
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 
@@ -512,7 +509,6 @@ export interface MaxPool3DGradAttrs {
   filterSize: [number, number, number]|number;
   strides: [number, number, number]|number;
   pad: 'valid'|'same'|number;
-  dilations?: [number, number, number]|number;
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 
