@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {dilation2d} from '../../ops/dilation2d';
-import {Tensor, Tensor3D, Tensor4D} from '../../tensor';
+import {getGlobalTensorClass, Tensor3D, Tensor4D} from '../../tensor';
 import {Rank, TensorLike3D} from '../../types';
 
 declare module '../../tensor' {
@@ -27,10 +27,11 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.dilation2d = function<T extends Tensor3D|Tensor4D>(
-    filter: Tensor3D|TensorLike3D, strides: [number, number]|number,
-    pad: 'valid'|'same', dilations?: [number, number]|number,
-    dataFormat?: 'NHWC'): T {
+getGlobalTensorClass().prototype.dilation2d =
+    function<T extends Tensor3D|Tensor4D>(
+        filter: Tensor3D|TensorLike3D, strides: [number, number]|number,
+        pad: 'valid'|'same', dilations?: [number, number]|number,
+        dataFormat?: 'NHWC'): T {
   this.throwIfDisposed();
   return dilation2d(this, filter, strides, pad, dilations, dataFormat) as T;
 };

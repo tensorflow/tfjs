@@ -25,16 +25,12 @@ export const avgPool3DGradConfig: GradConfig = {
   inputsToSave: ['x'],
   gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
     const [x] = saved as [Tensor5D];
-    const {filterSize, strides, dilations, pad, dimRoundingMode} =
+    const {filterSize, strides, pad, dimRoundingMode} =
         attrs as {} as AvgPool3DAttrs;
-
-    const $dilations =
-        dilations == null ? [1, 1, 1] as [number, number, number] : dilations;
 
     return {
       x: () => avgPool3dGrad(
-          dy as Tensor5D, x, filterSize, strides, $dilations, pad,
-          dimRoundingMode)
+          dy as Tensor5D, x, filterSize, strides, pad, dimRoundingMode)
     };
   }
 };

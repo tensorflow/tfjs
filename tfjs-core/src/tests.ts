@@ -66,7 +66,6 @@ import './ops/broadcast_util_test';
 import './ops/ceil_test';
 import './ops/clip_by_value_test';
 import './ops/clone_test';
-import './ops/compare_ops_test';
 import './ops/complex_ops_test';
 import './ops/concat_test';
 import './ops/concat_util_test';

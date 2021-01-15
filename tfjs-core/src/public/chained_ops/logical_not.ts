@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {logicalNot} from '../../ops/logical_not';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.logicalNot = function<T extends Tensor>(): T {
+getGlobalTensorClass().prototype.logicalNot = function<T extends Tensor>(): T {
   this.throwIfDisposed();
   return logicalNot(this) as T;
 };

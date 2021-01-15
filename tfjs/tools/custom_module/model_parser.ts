@@ -20,6 +20,7 @@ import * as tensorflow from '@tensorflow/tfjs-converter/dist/data/compiled_api';
 import {io} from '@tensorflow/tfjs-core';
 import * as fs from 'fs';
 import {CustomTFJSBundleConfig} from './types';
+import {bail} from './util';
 
 export function getOpsForConfig(
     // tslint:disable-next-line: no-any
@@ -31,8 +32,7 @@ export function getOpsForConfig(
     try {
       modelJson = JSON.parse(fs.readFileSync(modelJsonPath, 'utf-8'));
     } catch (e) {
-      console.log(`Error loading JSON file ${modelJsonPath}`);
-      console.log(e);
+      bail(`Error loading JSON file ${modelJsonPath}`);
     }
 
     const ops = getOps(modelJson, kernelToOps);

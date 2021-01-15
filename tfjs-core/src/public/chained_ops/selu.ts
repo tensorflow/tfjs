@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {selu} from '../../ops/selu';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.selu = function<T extends Tensor>(this: T): T {
+getGlobalTensorClass().prototype.selu = function<T extends Tensor>(this: T): T {
   this.throwIfDisposed();
   return selu(this);
 };
