@@ -270,36 +270,9 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
     // If `wasmPath` has been defined we must initialize the vanilla module.
     if (threadsSupported && simdSupported && wasmPath == null) {
       wasm = wasmFactoryThreadedSimd(factoryConfig);
-      let strFactory = wasmFactoryThreadedSimd.toString();
-      // We need to pass the content of the wasmFactoryThreadedSimd script
-      // (*after* it is self-executed in the previous line) to WASM module's
-      // mainScriptUrlOrBlob field so that the web worker can correctly load the
-      // script "inline". The resulting content after the self-execution is a
-      // anonymous function object in which we have the following if block:
-      //
-      // if (_scriptDir) {
-      //   scriptDirectory = _scriptDir;
-      // }
-      //
-      // It works great if the script runs in the main page, where _scriptDir is
-      // initialized to the path of the tf-backend-wasm.js file, outside of the
-      // function object. However, when the script runs in a web worker, the
-      // code that initializes _scriptDir won't be present since it is outside
-      // of the scope of the function object. As a result, a "Uncaught
-      // ReferenceError: _scriptDir is not defined" error will be thrown fron
-      // the web worker.
-      //
-      // To fix this, we will replace all the occurences of "if(_scriptDir)"
-      // with a better version that first checks whether _scriptDir is defined
-      // or not
-      //
-      // For more context, see:
-      // https://github.com/emscripten-core/emscripten/pull/12832
-      strFactory = strFactory.replace(
-          /if\s*\(\s*_scriptDir\s*\)/g,
-          'if(typeof _scriptDir !== "undefined" && _scriptDir)');
       wasm.mainScriptUrlOrBlob = new Blob(
-          [`var WasmBackendModuleThreadedSimd = ` + strFactory],
+          [`var WasmBackendModuleThreadedSimd = ` +
+           wasmFactoryThreadedSimd.toString()],
           {type: 'text/javascript'});
     } else {
       // The wasmFactory works for both vanilla and SIMD binaries.
@@ -362,7 +335,7 @@ function typedArrayFromBuffer(
 const wasmBinaryNames = [
   'tfjs-backend-wasm.wasm', 'tfjs-backend-wasm-simd.wasm',
   'tfjs-backend-wasm-threaded-simd.wasm'
-] as const;
+] as const ;
 type WasmBinaryName = typeof wasmBinaryNames[number];
 
 let wasmPath: string = null;

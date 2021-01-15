@@ -113,6 +113,17 @@ setWasmPaths(yourCustomPathPrefix, usePlatformFetch);
 tf.setBackend('wasm').then(() => {...});
 ```
 
+## JS Minification
+
+If your bundler is capable of minifying JS code, please turn off the option
+that transforms ```typeof foo == "undefined"``` into ```foo === void 0```. For
+example, in [terser](https://github.com/terser/terser), the option is called
+"typeofs" (located under the
+[Compress options](https://github.com/terser/terser#compress-options) section).
+Without this feature turned off, the minified code will throw "_scriptDir is not
+defined" error from web workers when running in browsers with
+SIMD+multi-threading support.
+
 ## Benchmarks
 
 The benchmarks below show inference times (ms) for two different edge-friendly
