@@ -38,6 +38,24 @@ describe('Util', () => {
     expect(util.arraysEqual([1, 2, 5], [1, 2])).toBe(false);
   });
 
+  it('Arrays shuffle randomly', () => {
+    const a = [...Array(1000).keys()] // ordered array 0-999
+    const b = [...a] // copy of a
+    util.shuffle(a)
+    expect(a).not.toEqual(b);
+    expect(a.length).toEqual(b.length)
+  });
+
+  it('Multiple arrays shuffle together', () => {
+    const a = [...Array(1000).keys()] // ordered array 0-999
+    const b = [...a] // copies
+    const c = [...a]
+    util.shuffleCombo(a, b)
+    expect(a).not.toEqual(c);
+    expect(a).toEqual(b)
+    expect(a.length).toEqual(c.length)
+  });
+
   it('Is integer', () => {
     expect(util.isInt(0.5)).toBe(false);
     expect(util.isInt(1)).toBe(true);
