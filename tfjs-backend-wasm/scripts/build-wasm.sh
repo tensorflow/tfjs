@@ -38,6 +38,7 @@ if [[ "$1" != "--dev" ]]; then
         wasm-out/
 
   node ./scripts/create-worker-module.js
+  node ./scripts/patch-threaded-simd-module.js
 fi
 
 mkdir -p dist

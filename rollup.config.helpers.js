@@ -26,12 +26,14 @@ import {terser} from 'rollup-plugin-terser';
  * @param {boolean} visualize - produce bundle visualizations for certain
  *     bundles
  * @param {boolean} ci is this a CI build
+ * @param {object} terserExtraOptions is any extra options passed to terser
  */
 export function getBrowserBundleConfigOptions(
-    config, name, fileName, preamble, visualize, ci) {
+    config, name, fileName, preamble, visualize, ci, terserExtraOptions = {}) {
   const bundles = [];
 
-  const terserPlugin = terser({output: {preamble, comments: false}});
+  const terserPlugin =
+      terser({output: {preamble, comments: false}, ...terserExtraOptions});
   const extend = true;
   const umdFormat = 'umd';
   const fesmFormat = 'es';
