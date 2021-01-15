@@ -16,7 +16,7 @@
  */
 
 import {mirrorPad} from '../../ops/mirror_pad';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -26,7 +26,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.mirrorPad = function<T extends Tensor>(
+getGlobalTensorClass().prototype.mirrorPad = function<T extends Tensor>(
     this: T, paddings: Array<[number, number]>,
     mode: 'reflect'|'symmetric'): T {
   this.throwIfDisposed();

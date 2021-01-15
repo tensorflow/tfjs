@@ -27,13 +27,13 @@ export function avgPool3DGrad(args: {
 }): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {dy, input} = inputs;
-  const {filterSize, strides, pad, dilations, dimRoundingMode} = attrs;
+  const {filterSize, strides, pad, dimRoundingMode} = attrs;
 
   assertNotComplex([dy, input], 'avgPool3DGrad');
 
   const convInfo = backend_util.computePool3DInfo(
       input.shape as [number, number, number, number, number], filterSize,
-      strides, dilations, pad, dimRoundingMode);
+      strides, 1 /* dilations */, pad, dimRoundingMode);
 
   const strideDepth = convInfo.strideDepth;
   const strideHeight = convInfo.strideHeight;

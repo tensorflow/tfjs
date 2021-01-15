@@ -17,7 +17,7 @@
 
 // TODO update import path once op is modularized.
 import {step} from '../../ops/ops';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -26,7 +26,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.step = function<T extends Tensor>(this: T, alpha?: number) {
+getGlobalTensorClass().prototype.step = function<T extends Tensor>(
+    this: T, alpha?: number) {
   this.throwIfDisposed();
   return step(this, alpha);
 };

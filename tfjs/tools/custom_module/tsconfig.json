@@ -5,6 +5,6 @@
   ],
   "compilerOptions": {
     "module": "commonjs",
-    "outDir": "../../dist/tools/custom_bundle"
+    "outDir": "../../dist/tools/custom_module"
   }
 }
