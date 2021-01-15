@@ -547,37 +547,23 @@ export class MathBackendWebGL extends KernelBackend {
     if (!this.texData.has(dataId)) {
       return;
     }
-
     // Trying to dispose a textureData that has a 'kept' refCount, e.g. trying
     // to dispose a tensor whose data bucket is shared with a complex tensor. In
     // this case we are removing a reference to the textureData, but we
     // shouldn't actually dispose the texture.
     if (this.texData.get(dataId).complexParentRefCount > 0) {
       this.texData.get(dataId).refCount--;
-      this.texData.get(dataId).complexParentRefCount--;
-
-      if (this.texData.get(dataId).complexParentRefCount === 0) {
-        this.releaseGPUData(dataId);
-      }
       return;
     }
 
     this.releaseGPUData(dataId);
     const {complexTensorInfos} = this.texData.get(dataId);
     if (complexTensorInfos != null) {
-      const realDataInfo = this.texData.get(complexTensorInfos.real.dataId);
-      realDataInfo.complexParentRefCount--;
-      realDataInfo.refCount--;
-      if (realDataInfo.refCount < 1) {
-        this.disposeData(complexTensorInfos.real.dataId);
-      }
+      this.texData.get(complexTensorInfos.real.dataId).complexParentRefCount--;
+      this.disposeIntermediateTensorInfo(complexTensorInfos.real);
 
-      const imagDataInfo = this.texData.get(complexTensorInfos.imag.dataId);
-      imagDataInfo.complexParentRefCount--;
-      imagDataInfo.refCount--;
-      if (imagDataInfo.refCount < 1) {
-        this.disposeData(complexTensorInfos.imag.dataId);
-      }
+      this.texData.get(complexTensorInfos.imag.dataId).complexParentRefCount--;
+      this.disposeIntermediateTensorInfo(complexTensorInfos.imag);
     }
     this.texData.delete(dataId);
   }
