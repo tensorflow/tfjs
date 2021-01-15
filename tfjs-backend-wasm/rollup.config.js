@@ -17,9 +17,10 @@
 
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
-import typescript from '@rollup/plugin-typescript';
 import node from '@rollup/plugin-node-resolve';
-import {terser} from 'rollup-plugin-terser';
+import typescript from '@rollup/plugin-typescript';
+import visualizer from 'rollup-plugin-visualizer';
+import {getBrowserBundleConfigOptions} from '../rollup.config.helpers';
 
 const PREAMBLE = `/**
  * @license
@@ -38,7 +39,20 @@ const PREAMBLE = `/**
  * =============================================================================
  */`;
 
-function config({plugins = [], output = {}, tsCompilerOptions = {}}) {
+function config({
+  plugins = [],
+  output = {},
+  external = [],
+  visualize = false,
+  tsCompilerOptions = {}
+}) {
+  if (visualize) {
+    const filename = output.file + '.html';
+    plugins.push(visualizer(
+        {sourcemap: true, filename, template: 'sunburst', gzipSize: true}));
+    console.log(`Will output a bundle visualization in ${filename}`);
+  }
+
   const defaultTsOptions = {
     include: ['src/**/*.ts'],
     module: 'ES2015',
@@ -48,8 +62,7 @@ function config({plugins = [], output = {}, tsCompilerOptions = {}}) {
   return {
     input: 'src/index.ts',
     plugins: [
-      typescript(tsoptions), resolve(),
-      node({preferBuiltins: true}),
+      typescript(tsoptions), resolve(), node({preferBuiltins: true}),
       // Polyfill require() from dependencies.
       commonjs({
         ignore: ['crypto', 'node-fetch', 'util'],
@@ -60,10 +73,24 @@ function config({plugins = [], output = {}, tsCompilerOptions = {}}) {
     output: {
       banner: PREAMBLE,
       sourcemap: true,
-      globals: {'@tensorflow/tfjs-core': 'tf', 'fs': 'fs', 'path': 'path', 'worker_threads': 'worker_threads', 'perf_hooks': 'perf_hooks'},
+      globals: {
+        '@tensorflow/tfjs-core': 'tf',
+        'fs': 'fs',
+        'path': 'path',
+        'worker_threads': 'worker_threads',
+        'perf_hooks': 'perf_hooks'
+      },
       ...output,
     },
-    external: ['crypto', '@tensorflow/tfjs-core', 'fs', 'path', 'worker_threads', 'perf_hooks'],
+    external: [
+      'crypto',
+      '@tensorflow/tfjs-core',
+      'fs',
+      'path',
+      'worker_threads',
+      'perf_hooks',
+      ...external,
+    ],
     onwarn: warning => {
       let {code} = warning;
       if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR' ||
@@ -78,10 +105,8 @@ function config({plugins = [], output = {}, tsCompilerOptions = {}}) {
 module.exports = cmdOptions => {
   const bundles = [];
 
-  const terserPlugin = terser({output: {preamble: PREAMBLE, comments: false}});
   const name = 'tf.wasm';
   const extend = true;
-  const browserFormat = 'umd';
   const fileName = 'tf-backend-wasm';
 
   // Node
