@@ -54,7 +54,7 @@ const devConfig = {
     },
     // Serve program bundles as files
     {
-      pattern: 'custom_bundle/*/dist/**/*',
+      pattern: 'custom_module/*/dist/**/*',
       watched: true,
       included: false,
       served: true,
@@ -62,7 +62,7 @@ const devConfig = {
     },
     // Serve model assets as files
     {
-      pattern: 'custom_bundle/*/model/**/*',
+      pattern: 'custom_module/*/model/**/*',
       watched: true,
       included: false,
       served: true,
