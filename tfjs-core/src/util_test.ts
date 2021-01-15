@@ -39,17 +39,19 @@ describe('Util', () => {
   });
 
   it('Arrays shuffle randomly', () => {
-    const a = [...Array(1000).keys()]; // ordered array 0-999
-    const b = [...a]; // copy of a
+    // Create 1000 numbers ordered
+    const a = Array.apply(0,{length:1000}).map(Number.call,Number).slice(1)
+    const b = [].concat(a); // copy ES5 style
     util.shuffle(a);
     expect(a).not.toEqual(b);
     expect(a.length).toEqual(b.length);
   });
 
   it('Multiple arrays shuffle together', () => {
-    const a = [...Array(1000).keys()]; // ordered array 0-999
-    const b = [...a]; // copies
-    const c = [...a];
+    // Create 1000 numbers ordered
+    const a = Array.apply(0,{length:1000}).map(Number.call,Number).slice(1)
+    const b = [].concat(a); // copies
+    const c = [].concat(a);
     util.shuffleCombo(a, b);
     expect(a).not.toEqual(c);
     expect(a).toEqual(b);
