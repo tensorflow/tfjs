@@ -116,7 +116,7 @@ tf.setBackend('wasm').then(() => {...});
 ## JS Minification
 
 If your bundler is capable of minifying JS code, please turn off the option
-that transforms ```typeof foo == "undefined"``` into ```foo === void ```. For
+that transforms ```typeof foo == "undefined"``` into ```foo === void 0```. For
 example, in [terser](https://github.com/terser/terser), the option is called
 "typeofs" (located under the
 [Compress options](https://github.com/terser/terser#compress-options) section).
