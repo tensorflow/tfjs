@@ -22,31 +22,36 @@ export class FillProgram implements WebGPUProgram {
   variableNames: string[] = [];
   outputShape: number[] = [];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workPerThread = 4;
   workGroupSize: [number, number, number] = [16, 1, 1];
+  value: number;
 
   constructor(shape: number[], value: number) {
     this.outputShape = shape;
-    const size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
 
-    this.userCode = `
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
-        for (int i = 0; i < ${this.workPerThread}; i++) {
-          int flatIndex = index * ${this.workPerThread} + i;
-          if (flatIndex < ${size}) {
-            setOutput(flatIndex,${value});
-          }
+    this.value = value;
+    this.shaderKey = `fill${value}`;
+  }
+
+  getUserCode(): string {
+    const size = util.sizeFromShape(this.outputShape);
+    const userCode = `
+    void main() {
+      int index = int(gl_GlobalInvocationID.x);
+      for (int i = 0; i < ${this.workPerThread}; i++) {
+        int flatIndex = index * ${this.workPerThread} + i;
+        if (flatIndex < ${size}) {
+          setOutput(flatIndex,${this.value});
         }
       }
-    `;
-    this.shaderKey = `fill${size}${value}`;
+    }
+  `;
+    return userCode;
   }
 }

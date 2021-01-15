@@ -25,31 +25,39 @@ import {WebGPUProgram} from './webgpu_program';
 export class MirrorPadProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
   workPerThread = 8;
   workGroupSize: [number, number, number] = [16, 1, 1];
+  xShape: number[];
+  paddings: Array<[number, number]>;
+  offset: number;
 
   constructor(
       xShape: number[], paddings: Array<[number, number]>,
       mode: 'reflect'|'symmetric') {
     this.outputShape = paddings.map(
         (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
-    const rank = xShape.length;
-    const size = util.sizeFromShape(this.outputShape);
-    const type = getCoordsDataType(rank);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
 
-    const start = paddings.map(p => p[0]).join(',');
-    const end = paddings.map((p, i) => p[0] + xShape[i]).join(',');
+    this.xShape = xShape;
+    this.paddings = paddings;
+    this.offset = mode === 'reflect' ? 0 : 1;
+    this.shaderKey = `mirrorPad${mode}${paddings}`;
+  }
+
+  getUserCode(): string {
+    const rank = this.xShape.length;
+    const size = util.sizeFromShape(this.outputShape);
+    const type = getCoordsDataType(rank);
+    const start = this.paddings.map(p => p[0]).join(',');
+    const end = this.paddings.map((p, i) => p[0] + this.xShape[i]).join(',');
     const startValue = rank > 1 ? `${type}(${start})` : `${start}`;
     const endValue = rank > 1 ? `${type}(${end})` : `${end}`;
-    const offset = mode === 'reflect' ? 0 : 1;
 
     const shaderStart = rank === 1 ? 'start' : 'start[i]';
     const shaderEnd = rank === 1 ? 'end' : 'end[i]';
@@ -60,7 +68,7 @@ export class MirrorPadProgram implements WebGPUProgram {
         ['coords[0]', 'coords[1]', 'coords[2]', 'coords[3]'].slice(0, rank) :
         'coords';
 
-    this.userCode = `
+    const userCode = `
       ${type} start = ${startValue};
       ${type} end = ${endValue};
 
@@ -74,10 +82,11 @@ export class MirrorPadProgram implements WebGPUProgram {
             ${type} outC = getCoordsFromFlatIndex(flatIndex);
             ${rank === 1 ? '' : coordsLoop}
             if (${shaderOutC} < ${shaderStart}) {
-              ${shaderOutC} = ${shaderStart} * 2 - ${shaderOutC} - ${offset};
+              ${shaderOutC} = ${shaderStart} * 2 - ${shaderOutC} - ${
+        this.offset};
             } else if (${shaderOutC} >= ${shaderStart}) {
               ${shaderOutC} = (${shaderEnd} - 1) * 2 - ${shaderOutC} + ${
-        offset};
+        this.offset};
             }
             ${rank === 1 ? '' : '}'}
             ${type} coords = outC - start;
@@ -86,7 +95,6 @@ export class MirrorPadProgram implements WebGPUProgram {
         }
       }
     `;
-    this.shaderKey =
-        `mirrorPad${startValue}${endValue}${rank}${size}${type}${mode}`;
+    return userCode;
   }
 }

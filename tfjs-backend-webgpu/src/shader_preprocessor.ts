@@ -68,9 +68,8 @@ interface ProgramParams {
   workGroupSize?: [number, number, number];
   variableNames: string[];
   uniforms?: string;
-  userCode?: string;
   isVec4?: boolean;
-  getUserCode?: () => string;
+  getUserCode: () => string;
 }
 
 export interface InputInfo {
@@ -140,7 +139,7 @@ export function makeShader(
     sources.push(inputSamplingSnippet);
   }
 
-  sources.push(program.userCode ? program.userCode : program.getUserCode());
+  sources.push(program.getUserCode());
   const source = sources.join('\n');
   return source;
 }
