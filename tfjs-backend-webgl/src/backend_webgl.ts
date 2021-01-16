@@ -202,6 +202,19 @@ export class MathBackendWebGL extends KernelBackend {
     }
   }
 
+  /**
+   * Decrease refCount of a `TextureData` if it is a component of complex
+   * tensor.
+   */
+  decComplexRef(dataId: DataId): void {
+    if (this.texData.has(dataId)) {
+      const texData = this.texData.get(dataId);
+      if (texData.complexParentRefCount > 0) {
+        texData.refCount--;
+      }
+    }
+  }
+
   move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
       void {
     if (env().getBool('DEBUG')) {

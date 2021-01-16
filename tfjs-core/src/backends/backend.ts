@@ -94,12 +94,13 @@ export interface BackendTimer {
  */
 export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   /**
-   * Decrease the ref count for the dataId, this is useful for WebGL backend to
-   * keep sync with the engine. WASM and node do not have internal ref count,
-   * they will rely on the default implementation.
+   * Decrease the complex ref count for the dataId, this is useful for WebGL
+   * backend to keep the real and imag components of the complex tensor in sync
+   * with the engine. WASM and node do not have internal ref count, they will
+   * use on the default implementation.
    * @param dataId
    */
-  decRef(dataId: DataId): void {
+  decComplexRef(dataId: DataId): void {
     return;
   }
   time(f: () => void): Promise<BackendTimingInfo> {
