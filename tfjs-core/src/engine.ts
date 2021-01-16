@@ -902,6 +902,11 @@ export class Engine implements TensorTracker, DataMover {
       info.backend.disposeData(a.dataId);
       this.state.tensorInfo.delete(a.dataId);
     } else {
+      // Notify the backend to descrease the ref count for complex tensor
+      // components. This method is only implemented in WebGL right now. When
+      // there are multiple references, complex tensor cannot dispose the
+      // components if ref count is not in sync with engine.
+      info.backend.decComplexRef(a.dataId);
       this.state.tensorInfo.get(a.dataId).refCount--;
     }
     // TODO(nsthorat): Construct an error and save the stack trace for
