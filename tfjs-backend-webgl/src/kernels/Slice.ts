@@ -29,6 +29,8 @@ function shallowSlice(
   const newTexData = backend.texData.get(t.dataId);
   // Copy texture data from the original tensor.
   Object.assign(newTexData, xTexData);
+  newTexData.complexParentRefCount = 0;
+  newTexData.refCount = 1;
   newTexData.shape = size;
   newTexData.dtype = x.dtype;
   let flatOffset =
