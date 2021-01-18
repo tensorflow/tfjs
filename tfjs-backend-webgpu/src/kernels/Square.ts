@@ -26,6 +26,6 @@ export const squareConfig: KernelConfig = {
     const {x} = inputs as SquareInputs;
     const webGPUBackend = backend as WebGPUBackend;
     const program = new UnaryOpProgram(x.shape, SQUARE);
-    return webGPUBackend.compileAndRun(program, [x as Tensor]);
+    return webGPUBackend.runWebGPUProgram(program, [x as Tensor]);
   }
 };

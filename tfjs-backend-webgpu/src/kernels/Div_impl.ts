@@ -24,6 +24,6 @@ import {BinaryOpType, getBinaryProgram} from './binary_ops';
 export function divImpl(
     a: TensorInfo, b: TensorInfo, backend: WebGPUBackend): TensorInfo {
   const program = getBinaryProgram(BinaryOpType.DIV, a.shape, b.shape);
-  const output = backend.compileAndRun(program, [a as Tensor, b as Tensor]);
+  const output = backend.runWebGPUProgram(program, [a as Tensor, b as Tensor]);
   return output;
 }

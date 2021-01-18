@@ -30,7 +30,7 @@ export const mirrorPadConfig: KernelConfig = {
     const webGPUBackend = backend as WebGPUBackend;
 
     const program = new MirrorPadProgram(x.shape, paddings, mode);
-    const output = webGPUBackend.compileAndRun(program, [x]);
+    const output = webGPUBackend.runWebGPUProgram(program, [x]);
 
     return output;
   }

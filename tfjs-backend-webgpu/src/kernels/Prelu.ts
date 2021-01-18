@@ -27,7 +27,7 @@ export function prelu(args: {inputs: PreluInputs, backend: WebGPUBackend}):
 
   const program = new BinaryOpProgram(
       getBinaryOpString(BinaryOpType.PRELU), x.shape, alpha.shape);
-  return backend.compileAndRun(program, [x, alpha]);
+  return backend.runWebGPUProgram(program, [x, alpha]);
 }
 
 export const preluConfig: KernelConfig = {

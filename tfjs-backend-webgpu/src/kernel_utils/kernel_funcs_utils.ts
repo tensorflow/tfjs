@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {BinaryInputs, DataType, engine, KernelFunc, Tensor, TypedArray, UnaryInputs, upcastType, util} from '@tensorflow/tfjs-core';
+import {BinaryInputs, DataType, engine, KernelFunc, TypedArray, UnaryInputs, upcastType, util} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
 import {BinaryOpVec4Program} from '../kernels/binary_op_vec4_webgpu';
 import {BinaryOpSharedProgram} from '../kernels/binary_op_shared_webgpu';
@@ -45,18 +45,15 @@ export function unaryKernelFunc(
     const webgpuBackend = backend as WebGPUBackend;
 
     const $dtype = dtype || x.dtype;
-    if (webgpuBackend.shouldExecuteOnCPU([x as Tensor]) &&
+    if (webgpuBackend.shouldExecuteOnCPU([x]) &&
         cpuKernelImpl != null) {
       const xData = webgpuBackend.tensorMap.get(x.dataId);
       const outValues = cpuKernelImpl(xData.values as TypedArray, $dtype);
-      const dataId = webgpuBackend.write(outValues, x.shape, $dtype);
-      const output =
-          engine().makeTensorFromDataId(dataId, x.shape, $dtype, webgpuBackend);
-      return output;
+      return webgpuBackend.makeTensorInfo(x.shape, $dtype, outValues);
     }
 
     const program: UnaryOpProgram = new UnaryOpProgram(x.shape, opSnippet);
-    return webgpuBackend.compileAndRun(program, [x]);
+    return webgpuBackend.runWebGPUProgram(program, [x]);
   };
 }
 
@@ -87,7 +84,7 @@ export function binaryKernelFunc({
     const {a, b} = inputs as BinaryInputs;
     const webgpuBackend = backend as WebGPUBackend;
     const $dtype = dtype || upcastType(a.dtype, b.dtype);
-    if (webgpuBackend.shouldExecuteOnCPU([a as Tensor, b as Tensor]) &&
+    if (webgpuBackend.shouldExecuteOnCPU([a, b]) &&
         cpuKernelImpl != null) {
       const aData = webgpuBackend.tensorMap.get(a.dataId);
       const bData = webgpuBackend.tensorMap.get(b.dataId);
@@ -95,11 +92,7 @@ export function binaryKernelFunc({
           a.shape, b.shape, aData.values as TypedArray,
           bData.values as TypedArray, $dtype);
 
-      const dataId = webgpuBackend.write(outValues, outShape, $dtype);
-      const output =
-          engine().makeTensorFromDataId(
-              dataId, outShape, $dtype, webgpuBackend);
-      return output;
+      return webgpuBackend.makeTensorInfo(outShape, $dtype, outValues);
     }
     const program = getBinaryProgram(opSnippet, a.shape, b.shape);
     if (boolType) {
@@ -108,7 +101,7 @@ export function binaryKernelFunc({
       const output = engine().makeTensorFromDataId(
           dataId, program.outputShape, 'bool', webgpuBackend);
 
-      return webgpuBackend.compileAndRun(program, [a, b], output);
+      return webgpuBackend.runWebGPUProgram(program, [a, b], output);
     }
     const dataId = webgpuBackend.write(
         null /*values*/, program.outputShape, $dtype);
@@ -116,7 +109,7 @@ export function binaryKernelFunc({
         engine().makeTensorFromDataId(
             dataId, program.outputShape, $dtype, webgpuBackend);
 
-    return webgpuBackend.compileAndRun(program, [a, b], output);
+    return webgpuBackend.runWebGPUProgram(program, [a, b], output);
   };
 }
 

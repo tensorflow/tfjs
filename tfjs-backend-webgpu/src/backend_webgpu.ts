@@ -367,6 +367,13 @@ export class WebGPUBackend extends KernelBackend {
     return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
   }
 
+  makeTensorInfo(
+      shape: number[], dtype: DataType,
+      values?: backend_util.BackendValues): TensorInfo {
+    const dataId = this.write(values, shape, dtype);
+    return {dataId, shape, dtype};
+  }
+
   private tensorToBinding(tensor?: TensorInfo): GPUBindingResource {
     if (!tensor) {
       return null;
@@ -406,11 +413,11 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
-  public compileAndRun<K extends TensorInfo>(
+  public runWebGPUProgram(
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
-      output?: TensorInfo, programUniforms?: number[]): K {
+      output?: TensorInfo, programUniforms?: number[]): TensorInfo {
     if (output == null) {
-      output = this.makeOutputArray(program.outputShape, inputs[0].dtype);
+      output = this.makeTensorInfo(program.outputShape, inputs[0].dtype);
     }
 
     let uniformDataLength;
@@ -496,8 +503,19 @@ export class WebGPUBackend extends KernelBackend {
         });
       }
     }
-    return output as {} as K;
+    return output;
   }
+
+  public compileAndRun<K extends TensorInfo>(
+      program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
+      output?: TensorInfo, programUniforms?: number[]): K {
+    if (output == null) {
+      output = this.makeOutputArray(program.outputShape, inputs[0].dtype);
+    }
+    const out = this.runWebGPUProgram(program, inputs, output, programUniforms);
+    return out as {} as K;
+  }
+
   async getTimeFromQuerySet(querySet: GPUQuerySet) {
     const queryBuffer = this.acquireBuffer(
         16, GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);
@@ -544,12 +562,13 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   shouldExecuteOnCPU(
-      inputs: Tensor[], sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
+      inputs: TensorInfo[],
+      sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
     return this.getCPUBackend() != null &&
         inputs.every(
             input =>
                 this.tensorMap.get(input.dataId).bufferInfo.buffer == null &&
-                input.size < sizeThreshold);
+                util.sizeFromShape(input.shape) < sizeThreshold);
   }
 
   pad<T extends Tensor>(
