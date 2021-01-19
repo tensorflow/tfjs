@@ -137,7 +137,6 @@ const TEST_FILTERS: TestFilter[] = [
                                                    // implemented
       'backProp',                                  // conv2dDerInput not yet
                                                    // implemented
-      'fused matmul with relu6',                   // step not yet implemented
     ]
   },
   {
@@ -185,7 +184,6 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'valueAndGradients',     // sum not yet implemented.
       'gradient',              // sum not yet implemented.
-      'fused',                 // Not yet implemented.
       '5D',                    // Rank 5 is not yet implemented.
       '6D',                    // Rank 5 is not yet implemented.
       'propagates NaNs',       // Arrays differ.
@@ -205,10 +203,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'fused',
     excludes: [
-      'A x B',                 // fusedBatchMatMul not yet implemented.
-      'elu',                   // elu not yet implemented.
-      'A x B with bias only',  // fusedBatchMatMul not yet implemented.
-      'basic with bias',       // Actual != expected.
       'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // conv2dDerInput not yet
                                                    // implemented.
       'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias',  // conv2dDerInput
@@ -246,7 +240,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'matmul',
     excludes: [
-      'fused matmul',                    // FusedMatmul not yet implemented.
       'gradient',                        // Various: sum not yet implemented.
       'has zero in its shape',           // Test times out.
       'valueAndGradients',               // backend.sum() not yet implemented.
