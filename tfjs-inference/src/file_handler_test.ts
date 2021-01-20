@@ -98,6 +98,9 @@ describe('File Handler', () => {
       const modelJSON: tf.io.ModelJSON = {
         modelTopology: modelTopology1,
         weightsManifest,
+        signature: {},
+        userDefinedMetadata: {},
+        modelInitializer: {}
       };
 
       // Write model.json file.
@@ -119,6 +122,8 @@ describe('File Handler', () => {
       const modelArtifacts = await handler.load();
 
       expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
+      expect(modelArtifacts.signature).toEqual({});
+      expect(modelArtifacts.userDefinedMetadata).toEqual({});
       expect(modelArtifacts.weightSpecs).toEqual([
         {
           name: 'dense/kernel',

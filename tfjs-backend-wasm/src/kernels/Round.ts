@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,23 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
+import {KernelConfig, Round} from '@tensorflow/tfjs-core';
 
-// TODO update import path once op is modularized.
-import {notEqualStrict} from '../../ops/ops';
-import {Tensor} from '../../tensor';
-import {Rank, TensorLike} from '../../types';
+import {createUnaryKernelConfig} from './unary_kernel';
 
-declare module '../../tensor' {
-  interface Tensor<R extends Rank = Rank> {
-    notEqualStrict<T extends Tensor>(this: T, x: T|TensorLike): T;
-  }
-}
-
-/**
- * @deprecated strict variants of ops have been deprecated
- */
-Tensor.prototype.notEqualStrict = function<T extends Tensor>(
-    this: T, x: T|TensorLike): T {
-  this.throwIfDisposed();
-  return notEqualStrict(this, x);
-};
+export const roundConfig: KernelConfig = createUnaryKernelConfig(Round);

@@ -31,7 +31,8 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
   // This is an experimental value.
   workGroupSize: [number, number, number] = [256, 1, 1];
 
-  constructor(convInfo: backend_util.Conv2DInfo) {
+  constructor(convInfo: backend_util.Conv2DInfo, addBias = false,
+      activation: string = null, hasPreluActivation = false) {
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -42,7 +43,36 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
         convInfo.dataFormat === 'channelsLast',
         () => 'TODO: NCHW is unimplemented');
 
+    let activationSnippet = '', applyActivationSnippet = '';
+    if (activation) {
+      if (hasPreluActivation) {
+        activationSnippet = `float activation(float a) {
+          float b = getPreluActivationWeightsAtOutCoords();
+          ${activation}
+        }`;
+      } else {
+        activationSnippet = `
+          float activation(float a) {
+            ${activation}
+          }
+        `;
+      }
+
+      applyActivationSnippet = `dotProd = activation(dotProd);`;
+    }
+
+    const addBiasSnippet = addBias ? 'dotProd += getBiasAtOutCoords();' : '';
+    if (addBias) {
+      this.variableNames.push('bias');
+    }
+
+    if (hasPreluActivation) {
+      this.variableNames.push('preluActivationWeights');
+    }
+
     this.userCode = `
+      ${activationSnippet}
+
       void writeResult(int batch, int row, int col, int chan, float value) {
         ivec4 coord = ivec4(batch, row, col, chan);
         if (coordsInBounds(coord, ${getShapeCoords(this.outputShape)})) {
@@ -84,10 +114,14 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
             dotProd += xVal * wVal;
           }
         }
+
+        ${addBiasSnippet}
+        ${applyActivationSnippet}
         writeResult(batch, coords[1], coords[2], d2, dotProd);
       }
     `;
 
-    this.shaderKey = `depthwise${channelMul}`;
+    this.shaderKey = `depthwise${channelMul}${activation}
+        ${hasPreluActivation}${addBias}`;
   }
 }

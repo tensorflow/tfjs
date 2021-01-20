@@ -57,7 +57,6 @@
     "bundle-ci": "rollup -c --ci",
     "build-npm": "./scripts/build-npm.sh",
     "build-deps": "yarn build && yarn build-cpu-backend",
-    "build-deps-ci": "yarn build-ci && yarn build-cpu-backend-ci",
     "build-cpu-backend": "cd ../tfjs-backend-cpu && yarn && yarn build",
     "build-cpu-backend-ci": "cd ../tfjs-backend-cpu && yarn && yarn build-ci",
     "build:bazel": "bazelisk build //...",
@@ -97,6 +96,7 @@
   "sideEffects": [
     "./dist/index.js",
     "./dist/engine.js",
+    "./dist/tensor.js",
     "./dist/base_side_effects.js",
     "./dist/flags.js",
     "./dist/platforms/*.js",

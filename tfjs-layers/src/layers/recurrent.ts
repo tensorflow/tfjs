@@ -859,7 +859,9 @@ export abstract class RNNCell extends Layer {
    * Size(s) of the states.
    * For RNN cells with only a single state, this is a single integer.
    */
-  public stateSize: number|number[];
+  // See
+  // https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-0.html#properties-overriding-accessors-and-vice-versa-is-an-error
+  public abstract stateSize: number|number[];
   public dropoutMask: Tensor|Tensor[];
   public recurrentDropoutMask: Tensor|Tensor[];
 }

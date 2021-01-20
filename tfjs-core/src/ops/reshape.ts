@@ -53,7 +53,7 @@ import {op} from './operation';
  */
 function reshape_<R extends Rank>(
     x: Tensor|TensorLike, shape: ShapeMap[R]): Tensor<R> {
-  const $x = convertToTensor(x, 'x', 'reshape', null);
+  const $x = convertToTensor(x, 'x', 'reshape', 'string_or_numeric');
 
   const inputs: ReshapeInputs = {x: $x};
   const attrs: ReshapeAttrs = {shape};
