@@ -1,3 +1,4 @@
+steps:
 # Install common dependencies.
 - name: 'node:10'
   entrypoint: 'yarn'
@@ -26,7 +27,7 @@
   entrypoint: 'yarn'
   id: 'lint'
   args: ['lint']
-  waitFor: ['yarn', 'build']
+  waitFor: ['yarn']
 
 # Run javascript tests.
 - name: 'node:10'
@@ -35,7 +36,9 @@
   id: 'test-js'
   args: ['test-node']
   waitFor: ['yarn', 'build', 'lint']
+  env: ['NIGHTLY=$_NIGHTLY']
 
+# General settings.
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
 substitutions:
