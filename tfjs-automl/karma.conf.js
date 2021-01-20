@@ -56,13 +56,12 @@ module.exports = function(config) {
     port: 9866,
     colors: true,
     browsers: ['Chrome'],
-    reportSlowerThan: 5000,
     client: {jasmine: {random: false}, args: args},
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
       tunnelIdentifier:
-          `tfjs_vis_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+          `tfjs_automl_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     },
     captureTimeout: 120000,
     reportSlowerThan: 500,
