@@ -1,7 +1,7 @@
 # Install common dependencies.
 - name: 'node:10'
   entrypoint: 'yarn'
-  id: 'yarn'
+  id: 'yarn-common'
   args: ['install']
 
 # Install tfjs-automl dependencies.

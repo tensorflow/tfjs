@@ -1,4 +1,5 @@
 {
+  "tfjs-automl": [],
   "tfjs-core": [],
   "tfjs-converter": ["tfjs-core", "tfjs-backend-cpu"],
   "tfjs-layers": ["tfjs-core", "tfjs-backend-cpu", "tfjs-backend-webgl"],
@@ -13,6 +14,5 @@
   "tfjs-inference": [],
   "tfjs-react-native": [],
   "tfjs-vis": [],
-  "tfjs-automl": [],
   "e2e": ["tfjs", "tfjs-backend-cpu", "tfjs-backend-webgl", "tfjs-converter", "tfjs-core", "tfjs-data", "tfjs-layers", "tfjs-node", "tfjs-backend-wasm"]
 }
