@@ -96,6 +96,7 @@ function centerCropAndResize(img: Tensor3D) {
     ];
     const boxIndices = [0];
     return image.cropAndResize(
+        // tslint:disable-next-line
         expandDims(cast(img, 'float32')) as Tensor4D, boxes, boxIndices,
         IMG_SIZE);
   });

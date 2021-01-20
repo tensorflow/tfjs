@@ -26,7 +26,7 @@
     "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@types/argparse": "^1.0.38",
     "@types/deep-equal": "^1.0.1",
-    "@types/jasmine": "~2.5.53",
+    "@types/jasmine": "~2.8.6",
     "@types/long": "~3.0.32",
     "@types/node-fetch": "1.6.9",
     "ajv": "~6.3.0",
