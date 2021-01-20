@@ -121,13 +121,21 @@ module.exports = cmdOptions => {
     tsCompilerOptions: {target: 'es5'}
   }));
 
+  // Without this, the terser plugin will turn `typeof _scriptDir ==
+  // "undefined"` into `_scriptDir === void 0` in minified JS file which will
+  // cause "_scriptDir is undefined" error in web worker's inline script.
+  //
+  // For more context, see scripts/patch-threaded-simd-module.js.
+  const terserExtraOptions = {compress: {typeofs: false}};
   if (cmdOptions.npm) {
     const browserBundles = getBrowserBundleConfigOptions(
-        config, name, fileName, PREAMBLE, cmdOptions.visualize, false /* CI */);
+        config, name, fileName, PREAMBLE, cmdOptions.visualize, false /* CI */,
+        terserExtraOptions);
     bundles.push(...browserBundles);
   } else {
     const browserBundles = getBrowserBundleConfigOptions(
-        config, name, fileName, PREAMBLE, cmdOptions.visualize, true /* CI */);
+        config, name, fileName, PREAMBLE, cmdOptions.visualize, true /* CI */,
+        terserExtraOptions);
     bundles.push(...browserBundles);
   }
 

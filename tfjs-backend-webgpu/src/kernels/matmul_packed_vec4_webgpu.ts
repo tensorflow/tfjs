@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {computeDispatch, tilesFitEvenlyIntoShape} from '../webgpu_util';
+import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -124,6 +124,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     const dimBOuter = outputShape[2];
     const bShape = [outputShape[0], dimInner, dimBOuter];
     this.outputShape = outputShape;
+    this.workGroupSize = computeWorkGroupSizeForMatMul(dimInner, dimBOuter);
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
     const vecSize = 4;
     this.dispatch = computeDispatch(
