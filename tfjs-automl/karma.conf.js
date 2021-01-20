@@ -57,6 +57,45 @@ module.exports = function(config) {
     colors: true,
     browsers: ['Chrome'],
     reportSlowerThan: 5000,
-    client: {jasmine: {random: false}, args: args}
+    client: {jasmine: {random: false}, args: args},
+    browserStack: {
+      username: process.env.BROWSERSTACK_USERNAME,
+      accessKey: process.env.BROWSERSTACK_KEY,
+      tunnelIdentifier:
+          `tfjs_vis_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+    },
+    captureTimeout: 120000,
+    reportSlowerThan: 500,
+    browserNoActivityTimeout: 180000,
+    customLaunchers: {
+      bs_chrome_mac: {
+        base: 'BrowserStack',
+        browser: 'chrome',
+        browser_version: 'latest',
+        os: 'OS X',
+        os_version: 'High Sierra'
+      },
+      bs_firefox_mac: {
+        base: 'BrowserStack',
+        browser: 'firefox',
+        browser_version: 'latest',
+        os: 'OS X',
+        os_version: 'High Sierra'
+      },
+      bs_safari_mac: {
+        base: 'BrowserStack',
+        browser: 'safari',
+        browser_version: 'latest',
+        os: 'OS X',
+        os_version: 'High Sierra'
+      },
+      bs_ios_11: {
+        base: 'BrowserStack',
+        device: 'iPhone X',
+        os: 'iOS',
+        os_version: '11.0',
+        real_mobile: true
+      },
+    }
   })
 }
