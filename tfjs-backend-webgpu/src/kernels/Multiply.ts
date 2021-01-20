@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,7 @@
 
 import {Multiply, KernelConfig} from '@tensorflow/tfjs-core';
 
-import {BinaryOpType} from '../kernels/binary_ops';
+import {BinaryOpType} from './binary_ops';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {multiplyImplCPU as cpuMultiply} from '../kernel_utils/shared';
 

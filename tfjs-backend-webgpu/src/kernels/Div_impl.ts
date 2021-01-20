@@ -19,7 +19,7 @@ import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 
-import {BinaryOpType, getBinaryProgram} from '../kernels/binary_ops';
+import {BinaryOpType, getBinaryProgram} from './binary_ops';
 
 export function divImpl(
     a: TensorInfo, b: TensorInfo, backend: WebGPUBackend): TensorInfo {

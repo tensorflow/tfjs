@@ -16,7 +16,7 @@
  */
 
 import {SquaredDifference, KernelConfig} from '@tensorflow/tfjs-core';
-import {BinaryOpType} from '../kernels/binary_ops';
+import {BinaryOpType} from './binary_ops';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 export const squaredDifference = binaryKernelFunc({
