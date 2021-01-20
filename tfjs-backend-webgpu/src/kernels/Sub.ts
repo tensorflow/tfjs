@@ -17,7 +17,8 @@
 
 import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
 
-import {binaryKernelFunc, BinaryOpType} from '../kernel_utils/kernel_funcs_utils';
+import {BinaryOpType} from '../kernels/binary_ops';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {subImplCPU as cpuSub} from '../kernel_utils/shared';
 
 export const sub = binaryKernelFunc({

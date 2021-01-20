@@ -66,9 +66,9 @@ export function fusedDepthwiseConv2D(args: {
     convInfo.dilationHeight, convInfo.dilationWidth, convInfo.inHeight,
     convInfo.inWidth
   ];
-  const output = backend.makeOutputArray(program.outputShape, 'float32');
-  const result = backend.compileAndRun(
-      program, programInputs, output, dimensions);
+  //const output = backend.makeOutputArray(program.outputShape, 'float32');
+  const result = backend.runWebGPUProgram(
+      program, programInputs, 'float32', dimensions);
 
   return result;
 }

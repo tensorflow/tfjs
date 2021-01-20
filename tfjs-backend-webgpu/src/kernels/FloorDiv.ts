@@ -17,7 +17,8 @@
 
 import {FloorDiv, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
-import {binaryKernelFunc, BinaryOpType} from '../kernel_utils/kernel_funcs_utils';
+import {BinaryOpType} from '../kernels/binary_ops';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 export const floorDiv = binaryKernelFunc(
     {opSnippet: BinaryOpType.INT_DIV, dtype: 'int32'});

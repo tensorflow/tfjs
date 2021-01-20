@@ -415,10 +415,8 @@ export class WebGPUBackend extends KernelBackend {
 
   public runWebGPUProgram(
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
-      output?: TensorInfo, programUniforms?: number[]): TensorInfo {
-    if (output == null) {
-      output = this.makeTensorInfo(program.outputShape, inputs[0].dtype);
-    }
+      outputDtype: DataType, programUniforms?: number[]): TensorInfo {
+    const output = this.makeTensorInfo(program.outputShape, outputDtype);
 
     let uniformDataLength;
     let uniforms: GPUBindingResource;
@@ -512,8 +510,10 @@ export class WebGPUBackend extends KernelBackend {
     if (output == null) {
       output = this.makeOutputArray(program.outputShape, inputs[0].dtype);
     }
-    const out = this.runWebGPUProgram(program, inputs, output, programUniforms);
-    return out as {} as K;
+    const outInfo = this.runWebGPUProgram(program, inputs, output.dtype,
+        programUniforms);
+    return engine().makeTensorFromDataId(
+               outInfo.dataId, outInfo.shape, outInfo.dtype) as {} as K;
   }
 
   async getTimeFromQuerySet(querySet: GPUQuerySet) {
