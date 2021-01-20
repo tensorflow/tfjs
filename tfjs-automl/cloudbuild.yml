@@ -1,0 +1,46 @@
+# Install common dependencies.
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+
+# Install tfjs-automl dependencies.
+- name: 'node:10'
+  dir: 'tfjs-automl'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-common']
+
+# Build.
+- name: 'node:10'
+  dir: 'tfjs-automl'
+  entrypoint: 'yarn'
+  id: 'build'
+  args: ['build']
+  waitFor: ['yarn']
+
+# Lint.
+- name: 'node:10'
+  dir: 'tfjs-automl'
+  entrypoint: 'yarn'
+  id: 'lint'
+  args: ['lint']
+  waitFor: ['yarn', 'build']
+
+# Run javascript tests.
+- name: 'node:10'
+  dir: 'tfjs-automl'
+  entrypoint: 'yarn'
+  id: 'test-js'
+  args: ['test-node']
+  waitFor: ['yarn', 'build', 'lint']
+
+timeout: 1800s
+logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _NIGHTLY: ''
+options:
+  logStreamingOption: 'STREAM_ON'
+  substitution_option: 'ALLOW_LOOSE'
+  machineType: 'N1_HIGHCPU_8'

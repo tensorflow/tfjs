@@ -19,9 +19,10 @@
     "yalc": "~1.0.0-pre.27"
   },
   "dependencies": {
-    "@tensorflow/tfjs-converter": "^1.2.8",
-    "@tensorflow/tfjs-core": "^1.2.8",
-    "@tensorflow/tfjs-automl": "^1.0.0"
+    "@tensorflow/tfjs-converter": "^3.0.0-rc.1",
+    "@tensorflow/tfjs-core": "^3.0.0-rc.1",
+    "@tensorflow/tfjs-backend-webgl": "^3.0.0-rc.1",
+    "@tensorflow/tfjs-automl": "file:../../dist"
   },
   "license": "Apache-2.0"
 }

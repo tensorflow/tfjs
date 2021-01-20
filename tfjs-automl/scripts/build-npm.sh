@@ -22,3 +22,4 @@ yarn build
 yarn rollup -c
 
 echo "Stored standalone library at dist/tf-automl(.min).js"
+npm pack

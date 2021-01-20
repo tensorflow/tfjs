@@ -16,11 +16,23 @@
  */
 
 const karmaTypescriptConfig = {
-  tsconfig: 'tsconfig.json',
+  tsconfig: 'tsconfig.test.json',
   // Disable coverage reports and instrumentation by default for tests
   coverageOptions: {instrumentation: false},
   reports: {},
-  bundlerOptions: {sourceMap: true}
+  bundlerOptions: {
+    sourceMap: true,  // Process any non es5 code through
+                      // karma-typescript-es6-transform (babel)
+    acornOptions: {ecmaVersion: 8},
+    transforms: [
+      require('karma-typescript-es6-transform')({
+        presets: [
+          // ensure we get es5 by adding IE 11 as a target
+          ['@babel/env', {'targets': {'ie': '11'}, 'loose': true}]
+        ]
+      }),
+    ]
+  }
 };
 
 module.exports = function(config) {
@@ -33,6 +45,7 @@ module.exports = function(config) {
     basePath: '',
     frameworks: ['jasmine', 'karma-typescript'],
     files: [
+      {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
       'src/test_browser.ts',
       {pattern: 'src/**/*.ts'},
     ],
