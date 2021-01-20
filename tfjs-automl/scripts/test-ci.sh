@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2019 Google LLC. All Rights Reserved.
+# Copyright 2018 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,9 +16,16 @@
 
 set -e
 
-yarn rimraf dist/
 yarn
+yarn lint
 yarn build
-yarn rollup -c
 
-echo "Stored standalone library at dist/tf-automl(.min).js"
+# Run the first karma separately so it can download the BrowserStack binary
+# without conflicting with others.
+yarn run-browserstack --browsers=bs_chrome_mac
+
+# Run the rest of the karma tests in parallel. These runs will reuse the
+# already downloaded binary.
+npm-run-all -p -c --aggregate-output \
+  "run-browserstack --browsers=bs_firefox_mac" \
+  "run-browserstack --browsers=bs_safari_mac"
