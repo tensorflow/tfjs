@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {floorDiv} from '../../ops/floorDiv';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -24,8 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.floorDiv = function<T extends Tensor>(b: Tensor|
-                                                       TensorLike): T {
+getGlobalTensorClass().prototype.floorDiv = function<T extends Tensor>(
+    b: Tensor|TensorLike): T {
   this.throwIfDisposed();
   return floorDiv(this, b);
 };

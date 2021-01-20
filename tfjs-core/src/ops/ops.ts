@@ -198,8 +198,6 @@ export {zeros} from './zeros';
 export {zerosLike} from './zeros_like';
 
 export * from './boolean_mask';
-export * from './compare';
-export * from './binary_ops';
 export * from './transpose';
 export * from './norm';
 export * from './moving_average';

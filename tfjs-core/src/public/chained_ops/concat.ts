@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {concat} from '../../ops/concat';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.concat = function<T extends Tensor>(
+getGlobalTensorClass().prototype.concat = function<T extends Tensor>(
     x: T|Array<T|TensorLike>, axis?: number): T {
   this.throwIfDisposed();
   if (x instanceof Tensor) {

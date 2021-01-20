@@ -23,7 +23,7 @@ echo $PWD
 cd ..
 e2e_root_path=$PWD
 
-cd custom_bundle/blazeface
+cd custom_module/blazeface
 yarn
 # Ensure that we test against freshly generated custom modules.
 rm -f ./custom_tfjs_blazeface/*.js
@@ -37,7 +37,7 @@ yarn webpack:custom
 echo $PWD
 cd $e2e_root_path
 echo $PWD
-cd custom_bundle/dense_model
+cd custom_module/dense_model
 yarn
 # Ensure that we test against freshly generated custom modules.
 rm -f ./custom_tfjs/*.js
@@ -50,7 +50,7 @@ yarn rollup:custom
 
 cd $e2e_root_path
 echo $PWD
-cd custom_bundle/universal_sentence_encoder
+cd custom_module/universal_sentence_encoder
 yarn
 # Ensure that we test against freshly generated custom modules.
 rm -f ./custom_tfjs/*.js

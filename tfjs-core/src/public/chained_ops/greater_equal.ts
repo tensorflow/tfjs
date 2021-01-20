@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {greaterEqual} from '../../ops/greater_equal';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -24,8 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.greaterEqual = function<T extends Tensor>(b: Tensor|
-                                                           TensorLike): T {
+getGlobalTensorClass().prototype.greaterEqual = function<T extends Tensor>(
+    b: Tensor|TensorLike): T {
   this.throwIfDisposed();
   return greaterEqual(this, b);
 };
