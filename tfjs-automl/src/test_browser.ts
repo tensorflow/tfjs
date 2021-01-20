@@ -43,5 +43,5 @@ if (testEnv != null) {
     },
     // CPU.
     {name: 'cpu', backendName: 'cpu'}
-  ])
-};
+  ]);
+}
