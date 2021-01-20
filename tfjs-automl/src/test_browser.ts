@@ -28,7 +28,7 @@ const testEnv = parseTestEnvFromKarmaFlags(__karma__.config.args, TEST_ENVS);
 if (testEnv != null) {
   setTestEnvs([testEnv]);
 } else {
-  // Run browser tests againts both the cpu and webgl backends.
+  // Run browser tests againts both the webgl backends.
   setTestEnvs([
     // WebGL.
     {
@@ -40,8 +40,6 @@ if (testEnv != null) {
         'WEBGL_SIZE_UPLOAD_UNIFORM': 0
       },
       isDataSync: true
-    },
-    // CPU.
-    {name: 'cpu', backendName: 'cpu'}
+    }
   ]);
 }

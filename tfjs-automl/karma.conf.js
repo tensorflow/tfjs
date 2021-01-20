@@ -37,8 +37,14 @@ const karmaTypescriptConfig = {
 
 module.exports = function(config) {
   const args = [];
+  if (config.testEnv) {
+    args.push('--testEnv', config.testEnv);
+  }
   if (config.grep) {
     args.push('--grep', config.grep);
+  }
+  if (config.flags) {
+    args.push('--flags', config.flags);
   }
 
   config.set({
