@@ -28,4 +28,4 @@ yarn run-browserstack --browsers=bs_chrome_mac
 # already downloaded binary.
 npm-run-all -p -c --aggregate-output \
   "run-browserstack --browsers=bs_firefox_mac" \
-  "run-browserstack --browsers=bs_safari_mac"
+  "run-browserstack --browsers=bs_safari_mac  --testEnv webgl1"
