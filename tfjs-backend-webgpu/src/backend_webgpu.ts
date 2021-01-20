@@ -504,6 +504,7 @@ export class WebGPUBackend extends KernelBackend {
     return output;
   }
 
+  // TODO remove this once webgpu backend has been all modularized
   public compileAndRun<K extends TensorInfo>(
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
       output?: TensorInfo, programUniforms?: number[]): K {
