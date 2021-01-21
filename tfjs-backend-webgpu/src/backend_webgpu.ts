@@ -39,7 +39,6 @@ import {FromPixelsProgram} from './kernels/FromPixels_utils/from_pixels_webgpu';
 import {Im2ColProgram} from './kernels/im2col_webgpu';
 import {MatMulPackedVec4Program} from './kernels/matmul_packed_vec4_webgpu';
 import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
-import {MatMulProgram} from './kernels/matmul_webgpu';
 import {MaxPoolWithFilterSizeEqualsOneProgram} from './kernels/maxpool_filtersizeone_webgpu';
 import {PadProgram} from './kernels/pad_webgpu';
 import {Pool2DProgram} from './kernels/pool2d_webgpu';
@@ -698,8 +697,9 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   private conv2dByMatMul(
-      x: Tensor4D, filter: Tensor4D,
-      convInfo: backend_util.Conv2DInfo): Tensor4D {
+      x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo,
+      bias?: TensorInfo, preluActivationWeights?: TensorInfo,
+      leakyreluAlpha?: number, activation?: backend_util.Activation): Tensor4D {
     const xShape = x.shape;
     const isChannelsLast = convInfo.dataFormat === 'channelsLast';
     const transposeA = false;
@@ -712,9 +712,10 @@ export class WebGPUBackend extends KernelBackend {
         this.reshape(filter, [1, convInfo.inChannels, convInfo.outChannels]);
 
     return this.reshape(
-        this.batchMatMul(
+        this.batchMatMulImpl(
             xReshaped as Tensor3D, filterReshaped as Tensor3D, transposeA,
-            transposeB),
+            transposeB, bias, preluActivationWeights, leakyreluAlpha,
+            activation),
         convInfo.outShape);
   }
 
@@ -738,8 +739,7 @@ export class WebGPUBackend extends KernelBackend {
         engine().makeTensorFromDataId(dataId, convInfo.outShape, x.dtype, this);
     let program: Conv2DMMProgram|Conv2DNaiveProgram|Conv2DMMVec4Program;
 
-    const workPerThread = env().get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
-    if (workPerThread === -1) {
+    if (env().getBool('WEBGPU_USE_NAIVE_CONV2D')) {
       // TODO(kainino0x): This may be obsolete, but is kept for reference.
       program = new Conv2DNaiveProgram(convInfo);
     } else if (
@@ -751,7 +751,7 @@ export class WebGPUBackend extends KernelBackend {
         convInfo.outChannels >= 64) {
       program = new Conv2DMMVec4Program(convInfo);
     } else {
-      program = new Conv2DMMProgram(convInfo, workPerThread);
+      program = new Conv2DMMProgram(convInfo);
     }
 
     const pad = [convInfo.padInfo.top, convInfo.padInfo.left];
@@ -798,6 +798,15 @@ export class WebGPUBackend extends KernelBackend {
   fusedConv2d(
       {input, filter, convInfo, bias, activation, preluActivationWeights}:
           backend_util.FusedConv2DConfig): Tensor4D {
+    if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
+        convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
+        convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
+        (convInfo.padInfo.type === 'SAME' ||
+         convInfo.padInfo.type === 'VALID')) {
+      return this.conv2dByMatMul(
+          input, filter, convInfo, bias, preluActivationWeights, null,
+          activation);
+    }
     const dataId = this.write(null /*values*/, convInfo.outShape, input.dtype);
     const output = engine().makeTensorFromDataId(
         dataId, convInfo.outShape, input.dtype, this);
@@ -806,16 +815,16 @@ export class WebGPUBackend extends KernelBackend {
     const hasPreluActivationWeights = preluActivationWeights != null;
     let program: Conv2DMMProgram|Conv2DNaiveProgram|Conv2DMMVec4Program;
 
-    const workPerThread = env().get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
+    const useNaive = env().getBool('WEBGPU_USE_NAIVE_CONV2D');
 
     const useVec4 =
         convInfo.inChannels % 4 === 0 && convInfo.outChannels % 4 === 0;
-    const packed = (workPerThread !== -1) && useVec4;
+    const packed = !useNaive && useVec4;
     const fusedActivation = activation ?
         this.mapActivationToShaderProgram(activation, packed) :
         null;
 
-    if (workPerThread === -1) {
+    if (useNaive) {
       // TODO(kainino0x): This may be obsolete, but is kept for reference.
       program = new Conv2DNaiveProgram(
           convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
@@ -824,8 +833,7 @@ export class WebGPUBackend extends KernelBackend {
           convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
     } else {
       program = new Conv2DMMProgram(
-          convInfo, workPerThread, hasBias, fusedActivation,
-          hasPreluActivationWeights);
+          convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
     }
 
     const pad = [convInfo.padInfo.top, convInfo.padInfo.left];
@@ -1190,43 +1198,59 @@ export class WebGPUBackend extends KernelBackend {
         .reshape(flattenShape);
   }
 
-  batchMatMul(
-      a: Tensor3D, b: Tensor3D, transposeA: boolean,
-      transposeB: boolean): Tensor3D {
+  private batchMatMulImpl(
+      a: Tensor3D, b: Tensor3D, transposeA: boolean, transposeB: boolean,
+      bias?: TensorInfo, preluActivationWeights?: TensorInfo,
+      leakyreluAlpha?: number, activation?: backend_util.Activation): Tensor3D {
     const outerShapeA = transposeA ? a.shape[2] : a.shape[1];
     const outerShapeB = transposeB ? b.shape[1] : b.shape[2];
     const [batch, , ] = a.shape;
 
-    const dataId =
-        this.write(null /*values*/, [batch, outerShapeA, outerShapeB], a.dtype);
-    const output = engine().makeTensorFromDataId(
-        dataId, [batch, outerShapeA, outerShapeB], a.dtype, this);
-
-    let program: MatMulProgram|MatMulPackedProgram|MatMulPackedVec4Program;
-    // TODO: We should eventually use the blocked version, but keeping around
-    // the old version while we try to understand conditions under which blocked
-    // is faster.
-    if (env().get('WEBGPU_MATMUL_WORK_PER_THREAD') === 0) {
-      program = new MatMulProgram(
-          a.shape, output.shape as [number, number, number], transposeA,
-          transposeB);
-    } else if (
-        a.shape[2] % 4 === 0 && b.shape[2] % 4 === 0 && !transposeA &&
-        !transposeB) {
-      // TODO: Currently we need to make sure that a.shape[2] and b.shape[2] are
-      // divisible by 4 since we use vec4 to get data. In future, we can remove
-      // this limitation by insert 0 to pack data.
+    const hasBias = bias != null;
+    const hasPreluActivationWeights = preluActivationWeights != null;
+    const useVec4 = a.shape[2] % 4 === 0 && b.shape[2] % 4 === 0 &&
+        !transposeA && !transposeB;
+    const fusedActivation = activation ?
+        this.mapActivationToShaderProgram(activation, useVec4) :
+        null;
+    let program: MatMulPackedProgram|MatMulPackedVec4Program;
+    if (useVec4) {
+      // TODO: Currently we need to make sure that a.shape[2] and b.shape[2]
+      // are divisible by 4 since we use vec4 to get data. In future, we can
+      // remove this limitation by insert 0 to pack data.
       program = new MatMulPackedVec4Program(
-          a.shape, output.shape as [number, number, number],
-          env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number);
+          a.shape, [batch, outerShapeA, outerShapeB],
+          env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, hasBias,
+          fusedActivation, hasPreluActivationWeights);
     } else {
       program = new MatMulPackedProgram(
-          a.shape, output.shape as [number, number, number],
+          a.shape, [batch, outerShapeA, outerShapeB],
           env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, transposeA,
-          transposeB);
+          transposeB, hasBias, fusedActivation, hasPreluActivationWeights);
     }
 
-    return this.compileAndRun(program, [a, b], output);
+    const inputs: TensorInfo[] = [a, b];
+    if (bias) {
+      inputs.push(bias);
+    }
+    if (preluActivationWeights) {
+      inputs.push(preluActivationWeights);
+    }
+    return this.compileAndRun<Tensor3D>(program, inputs);
+  }
+
+  batchMatMul(
+      a: Tensor3D, b: Tensor3D, transposeA: boolean,
+      transposeB: boolean): Tensor3D {
+    return this.batchMatMulImpl(a, b, transposeA, transposeB);
+  }
+
+  fusedBatchMatMul(
+      {a, b, transposeA, transposeB, bias, activation, preluActivationWeights}:
+          backend_util.FusedBatchMatMulConfig): Tensor3D {
+    return this.batchMatMulImpl(
+        a, b, transposeA, transposeB, bias, preluActivationWeights, null,
+        activation);
   }
 
   numDataIds() {
