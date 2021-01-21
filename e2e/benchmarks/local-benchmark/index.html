@@ -546,7 +546,7 @@ limitations under the License.
 
     function isInputSizeSupported() {
       const benchmark = benchmarks[state.benchmark];
-      if (typeof benchmark['supportedInput'] !== 'undefined') {
+      if (typeof benchmark['supportedInput'] != 'undefined') {
         return true;
       }
       // Model doesn't support input size.
@@ -610,8 +610,7 @@ limitations under the License.
       parameterFolder.open();
 
       modelParameterFolder = gui.addFolder('Model Parameters');
-      const benchmark = benchmarks[state.benchmark];
-      if (typeof benchmark['supportedInput'] !== 'undefined') {
+      if (isInputSizeSupported()) {
         inputSizeController = modelParameterFolder.add(state, 'inputSize', []);
       }
       modelParameterFolder.open();
