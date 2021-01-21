@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {computeDispatch, tilesFitEvenlyIntoShape} from '../webgpu_util';
+import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -119,11 +119,13 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
-      workPerThread: number) {
+      workPerThread: number, addBias = false, activation: string = null,
+      hasPreluActivationWeights = false) {
     const dimInner = aShape[2];
     const dimBOuter = outputShape[2];
     const bShape = [outputShape[0], dimInner, dimBOuter];
     this.outputShape = outputShape;
+    this.workGroupSize = computeWorkGroupSizeForMatMul(dimInner, dimBOuter);
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
     const vecSize = 4;
     this.dispatch = computeDispatch(
@@ -140,7 +142,6 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     const fitA = tilesFitEvenlyIntoShape(tileSizeA, aShape.slice(1));
     const batchASize = aShape[1] * aShape[2] / vecSize;
     const batchBSize = bShape[1] * bShape[2] / vecSize;
-    const batchSize = outputShape[1] * outputShape[2] / vecSize;
     const sampleA = fitA ?
         `A[batch * ${batchASize} + row * dimInner + col]` :
         `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
@@ -154,7 +155,35 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
             B[batch * ${
             batchBSize} + row * dimBOuter + col] : vec4(0.0, 0.0, 0.0, 0.0)`;
 
+    let activationSnippet = '', applyActivationSnippet = '';
+    if (activation) {
+      if (hasPreluActivationWeights) {
+        activationSnippet = `vec4 activation(vec4 a, ivec3 outCoord) {
+                  vec4 b = getPreluActivationWeightsAtOutCoords(outCoord);
+                  ${activation}
+                }`;
+      } else {
+        activationSnippet = `
+                vec4 activation(vec4 a, ivec3 outCoord) {
+                  ${activation}
+                }`;
+      }
+
+      applyActivationSnippet = 'value = activation(value, outCoord);';
+    }
+
+    const addBiasSnippet =
+        addBias ? 'value += getBiasAtOutCoords(outCoord);' : '';
+    if (addBias) {
+      this.variableNames.push('bias');
+    }
+
+    if (hasPreluActivationWeights) {
+      this.variableNames.push('preluActivationWeights');
+    }
+
     this.userCode = `
+      ${activationSnippet}
       int dimAOuter = ${aShape[1]};
       int dimInner = ${aShape[2] / vecSize};
       int dimBOuter = ${bShape[2] / vecSize};
@@ -175,7 +204,10 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
       void mm_write(int row, int col, vec4 value) {
         if (row < dimAOuter && col < dimBOuter)
         {
-          result[batch * ${batchSize} + row * dimBOuter + col] = value;
+          ivec3 outCoord = ivec3(batch, row, col * 4);
+          ${addBiasSnippet}
+          ${applyActivationSnippet}
+          setOutput(outCoord[0], outCoord[1], outCoord[2], value);
         }
       }
 

@@ -21,7 +21,6 @@ import {getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {makeMatMulPackedSource} from './matmul_packed_webgpu';
-import {makeMatMulSource} from './matmul_webgpu';
 import {WebGPUProgram} from './webgpu_program';
 
 export class Conv2DMMProgram implements WebGPUProgram {
@@ -35,7 +34,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
   workGroupSize: [number, number, number];
 
   constructor(
-      convInfo: backend_util.Conv2DInfo, workPerThread: number, addBias = false,
+      convInfo: backend_util.Conv2DInfo, addBias = false,
       activation: string = null, hasPreluActivationWeights = false) {
     this.outputShape = convInfo.outShape;
 
@@ -45,16 +44,9 @@ export class Conv2DMMProgram implements WebGPUProgram {
     this.dispatchLayout = {x: [3], y: [1, 2], z: [0]};
     this.workGroupSize =
         computeWorkGroupSizeForConv2d(this.dispatchLayout, this.outputShape);
-    let elementsPerThread: [number, number, number];
-    let matMulSource: string;
-    if (workPerThread === 0) {
-      elementsPerThread = [1, 1, 1];
-      matMulSource = makeMatMulSource();
-    } else {
-      elementsPerThread =
-          computeWorkPerThreadForConv2d(this.dispatchLayout, this.outputShape);
-      matMulSource = makeMatMulPackedSource(elementsPerThread);
-    }
+    const elementsPerThread =
+        computeWorkPerThreadForConv2d(this.dispatchLayout, this.outputShape);
+    const matMulSource = makeMatMulPackedSource(elementsPerThread);
 
     const tileAOuter = this.workGroupSize[1] * elementsPerThread[1];
     const tileBOuter = this.workGroupSize[0] * elementsPerThread[0];

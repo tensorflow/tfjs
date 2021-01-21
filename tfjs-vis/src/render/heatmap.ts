@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs-core';
 import embed, {Mode, VisualizationSpec} from 'vega-embed';
 
 import {Drawable, HeatmapData, HeatmapOptions} from '../types';
