@@ -17,10 +17,21 @@
 import '@tensorflow/tfjs-backend-webgl';
 
 // tslint:disable-next-line: no-imports-from-dist
-import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {parseTestEnvFromKarmaFlags, registerTestEnv, setTestEnvs, TEST_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 // Increase test timeout since we are fetching the model files from GCS.
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
+
+registerTestEnv({
+  name: 'webgl1',
+  backendName: 'webgl',
+  flags: {
+    'WEBGL_VERSION': 1,
+    'WEBGL_CPU_FORWARD': false,
+    'WEBGL_SIZE_UPLOAD_UNIFORM': 0
+  },
+  isDataSync: true
+});
 
 // tslint:disable-next-line:no-any
 declare let __karma__: any;
