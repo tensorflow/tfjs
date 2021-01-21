@@ -18,12 +18,14 @@
 import {util} from '@tensorflow/tfjs-core';
 import {computeDispatch, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
-import {matMulHeader} from './matmul_webgpu';
 import {WebGPUProgram} from './webgpu_program';
 
 export function makeMatMulPackedSource(workPerThread: number[]): string {
   return `
-    ${matMulHeader}
+    float mm_readA(int row, int col);
+    float mm_readB(int row, int col);
+    void mm_write(int row, int col, float value);
+    void mm_matMul(int dimAOuter, int dimInner, int dimBOuter);
 
     const int RowPerThread = ${workPerThread[1]};
     const int ColPerThread = ${workPerThread[0]};
@@ -130,7 +132,9 @@ export class MatMulPackedProgram implements WebGPUProgram {
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
-      workPerThread: number, transposeA = false, transposeB = false) {
+      workPerThread: number, transposeA = false, transposeB = false,
+      addBias = false, activation: string = null,
+      hasPreluActivationWeights = false) {
     const dimInner = transposeA ? aShape[1] : aShape[2];
     const dimBOuter = outputShape[2];
     const bShape = transposeB ? [outputShape[0], dimBOuter, dimInner] :
@@ -193,7 +197,37 @@ export class MatMulPackedProgram implements WebGPUProgram {
             B[batch * ${batchBSize} + col * dimInner + row] : 0`;
     }
 
+    let activationSnippet = '', applyActivationSnippet = '';
+    if (activation) {
+      if (hasPreluActivationWeights) {
+        activationSnippet = `float activation(float a, ivec3 outCoord) {
+              float b = getPreluActivationWeightsAtOutCoords(outCoord);
+              ${activation}
+            }`;
+      } else {
+        activationSnippet = `
+              float activation(float a, ivec3 outCoord) {
+                ${activation}
+              }
+            `;
+      }
+
+      applyActivationSnippet = 'value = activation(value, outCoord);';
+    }
+
+    const addBiasSnippet =
+        addBias ? 'value += getBiasAtOutCoords(outCoord);' : '';
+    if (addBias) {
+      this.variableNames.push('bias');
+    }
+
+    if (hasPreluActivationWeights) {
+      this.variableNames.push('preluActivationWeights');
+    }
+
     this.userCode = `
+      ${activationSnippet}
+
       int dimAOuter = ${transposeA === true ? `${aShape[2]}` : `${aShape[1]}`};
       int dimInner = ${transposeA === true ? `${aShape[1]}` : `${aShape[2]}`};
       int dimBOuter = ${transposeB === true ? `${bShape[1]}` : `${bShape[2]}`};
@@ -211,6 +245,9 @@ export class MatMulPackedProgram implements WebGPUProgram {
       }
 
       void mm_write(int row, int col, float value) {
+        ivec3 outCoord = ivec3(batch, row, col);
+        ${addBiasSnippet}
+        ${applyActivationSnippet}
         setOutput(batch, row, col, value);
       }
 
@@ -220,6 +257,6 @@ export class MatMulPackedProgram implements WebGPUProgram {
       }
     `;
     this.shaderKey = `matmulpacked${this.workPerThread}${fitA}${fitB}${
-        transposeA}${transposeB}`;
+        transposeA}${transposeB}${activation}`;
   }
 }

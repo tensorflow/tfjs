@@ -29,17 +29,15 @@ ENV.registerFlag('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', () => true);
 ENV.registerFlag('WEBGPU_CPU_FORWARD', () => true);
 
 /**
- * Thread register block size for matmul kernel. If 0, we use the version of
- * matMul without register blocking.
+ * Thread register block size for matmul kernel.
  */
 ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
 
 /**
- * -1: conv2d_naive
- *  0: conv2d_mm with matmul without register blocking
- * >0: conv2d_mm with matmul_packed with WPT=this
+ * Whether to use conv2d_naive which directly implement the conv2d logic rather
+ * than using a matmul to simulate.
  */
-ENV.registerFlag('WEBGPU_CONV2D_WORK_PER_THREAD', () => 2);
+ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D', () => false);
 
 /**
  * Whether we will run im2col as a separate shader for convolution.

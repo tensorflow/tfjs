@@ -20,7 +20,8 @@ limitations under the License.
   <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
   <link href="./main.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
-  <link rel="shortcut icon" href="https://www.gstatic.com/devrel-devsite/prod/vf4ca28c48392b1412e7b030290622a0dd55b62dec1202c59f119b1e23227c988/tensorflow/images/favicon.png">
+  <link rel="shortcut icon"
+    href="https://www.gstatic.com/devrel-devsite/prod/vf4ca28c48392b1412e7b030290622a0dd55b62dec1202c59f119b1e23227c988/tensorflow/images/favicon.png">
 </head>
 
 <body>
@@ -160,9 +161,11 @@ limitations under the License.
       },
       backend: 'wasm',
       kernelTiming: 'aggregate',
+      inputSize: 0,
       modelType: '',
       modelUrl: '',
       isModelChanged: false,
+      isInputSizeChanged: false,
       flags: {},
       isFlagChanged: false,
       isModelLoaded: false,
@@ -201,7 +204,7 @@ limitations under the License.
     async function showEnvironment() {
       await tf.time(() => tf.add(tf.tensor1d([1]), tf.tensor1d([1])).data());
       const sortedFeatures = Object.keys(tf.env().features).sort().map(
-          name=>`  ${name}: ${tf.env().features[name]}`);
+        name => `  ${name}: ${tf.env().features[name]}`);
       envDiv.innerHTML += `<br/>{<br>${sortedFeatures.join('<br>')}<br>}`;
     }
 
@@ -215,6 +218,8 @@ limitations under the License.
       appendRow(parameterTable, 'numRuns', state.numRuns);
       appendRow(parameterTable, 'backend', state.backend);
       appendRow(parameterTable, 'kernelTiming', state.kernelTiming);
+      if (isInputSizeSupported())
+        appendRow(parameterTable, 'inputSize', state.inputSize);
     }
 
     async function setupKernelTable() {
@@ -287,9 +292,9 @@ limitations under the License.
       let variableShape = false;
       const modelInputsElement = document.getElementById('modelInputs');
       if (model['inputs'] == null) {
-        modelInputsElement.style.display='none';
+        modelInputsElement.style.display = 'none';
       } else {
-        modelInputsElement.style.display='';
+        modelInputsElement.style.display = '';
         // construct the input table for the new model
         state.inputs.forEach((modelInput, inputIndex) => {
           if (modelInput.shape != null) {
@@ -301,7 +306,7 @@ limitations under the License.
               shapeInput.setAttribute('value', shape);
               shapeInput.addEventListener('focusout', () => {
                 state.inputs[inputIndex].shape =
-                    shapeInput.value.split(',').map(x => +x);
+                  shapeInput.value.split(',').map(x => +x);
               });
               shape = shapeInput;
             }
@@ -311,9 +316,9 @@ limitations under the License.
             // add data range for input generator
             if (state.benchmark === 'custom') {
               const minInput = createRangeInput(state.inputs[inputIndex].range,
-                    0);
+                0);
               const maxInput = createRangeInput(state.inputs[inputIndex].range,
-                    1);
+                1);
               const seperator = document.createElement('span');
               seperator.textContent = ' - '
               const div = document.createElement('div');
@@ -328,7 +333,7 @@ limitations under the License.
       }
 
       await tf.nextFrame();
-      return state.benchmark === 'custom' &&  variableShape;
+      return state.benchmark === 'custom' && variableShape;
     }
 
     function createRangeInput(range, index) {
@@ -344,6 +349,7 @@ limitations under the License.
       const benchmark = benchmarks[state.benchmark];
       state.modelType = benchmark['type'];
       state.isModelChanged = false; // used to clean the performance history
+      state.isInputSizeChanged = false;
 
       if (benchmark['load'] == null) {
         throw new Error(`Please provide a load method for '${state.benchmark}' model.`);
@@ -351,23 +357,24 @@ limitations under the License.
 
       await showMsg('Loading the model');
       let start = performance.now();
-      model = await benchmark.load();
+      const inputSize = parseInt(state.inputSize);
+      model = await benchmark.load(inputSize);
       state.inputs = [];
       if (model.inputs) {
         // construct the input state for the model
         for (let modelInputIndex = 0; modelInputIndex < model.inputs.length; modelInputIndex++) {
-            let modelInput = model.inputs[modelInputIndex];
-            if (modelInput.shape == null) continue;
-            let shape = modelInput.shape.map(e => e == null ? -1 : e);
-            state.inputs.push({
-              name: modelInput.name,
-              shape: [...shape],
-              dtype: modelInput.dtype,
-              range: [0, 1000]
-            });
+          let modelInput = model.inputs[modelInputIndex];
+          if (modelInput.shape == null) continue;
+          let shape = modelInput.shape.map(e => e == null ? -1 : e);
+          state.inputs.push({
+            name: modelInput.name,
+            shape: [...shape],
+            dtype: modelInput.dtype,
+            range: [0, 1000]
+          });
         }
       }
-      predict = benchmark.predictFunc();
+      predict = benchmark.predictFunc(inputSize);
       const elapsed = performance.now() - start;
 
       await showMsg(null);
@@ -497,7 +504,7 @@ limitations under the License.
     }
 
     async function loadModel() {
-      if (state.isModelChanged || !state.isModelLoaded || state.isFlagChanged) {
+      if (state.isModelChanged || !state.isModelLoaded || state.isFlagChanged || state.isInputSizeChanged) {
         await loadModelAndRecordTime();
         state.isModelLoaded = true;
         const needInputShape = await showInputs();
@@ -537,19 +544,49 @@ limitations under the License.
       await measureAveragePredictTime();
     }
 
+    function isInputSizeSupported() {
+      const benchmark = benchmarks[state.benchmark];
+      if (benchmark['supportedInput'] != null) {
+        return true;
+      }
+      // Model doesn't support input size.
+      return false;
+    }
 
     async function onPageLoad() {
-      const gui = new dat.gui.GUI({width: 550});
+      const gui = new dat.gui.GUI({ width: 550 });
       gui.domElement.id = 'gui';
 
       await tf.setBackend(state.backend);
 
       const modelFolder = gui.addFolder('Benchmark');
       let modelUrlController = null;
+      let modelParameterFolder = null;
+      let inputSizeController = null;
       modelFolder.add(state, 'benchmark', Object.keys(benchmarks)).name('models').onChange(async model => {
         await showMsg(null);
         state.isModelChanged = true;
         state.isModelLoaded = false;
+        if (inputSizeController !== null) {
+          modelParameterFolder.remove(inputSizeController);
+          inputSizeController = null;
+        }
+        const benchmark = benchmarks[state.benchmark];
+        if (isInputSizeSupported()) {
+          inputSizeController = modelParameterFolder.add(state, 'inputSize', benchmark['supportedInput']).name('inputSizes').onChange(async inputSize => {
+            state.inputSize = inputSize;
+            state.isInputSizeChanged = true;
+          });
+          // Current use first value as default.
+          const defaultInputSize = benchmark['supportedInput'][0];
+          inputSizeController.setValue(defaultInputSize);
+          state.inputSize = defaultInputSize;
+          modelParameterFolder.open();
+        } else {
+          // Model doesn't support input size.
+          state.inputSize = 0;
+        }
+
         if (model === 'custom') {
           if (modelUrlController === null) {
             modelUrlController = modelFolder.add(state, 'modelUrl').onChange(async modelUrl => {
@@ -558,7 +595,7 @@ limitations under the License.
               await showMsg(null);
             });
             modelUrlController.domElement.querySelector('input').placeholder =
-                'https://your-domain.com/model-path/model.json';
+              'https://your-domain.com/model-path/model.json';
           }
         } else if (modelUrlController != null) {
           modelFolder.remove(modelUrlController);
@@ -571,6 +608,12 @@ limitations under the License.
       parameterFolder.add(state, 'numRuns');
       parameterFolder.add(state, 'kernelTiming', ['aggregate', 'individual']);
       parameterFolder.open();
+
+      modelParameterFolder = gui.addFolder('Model Parameters');
+      if (isInputSizeSupported()) {
+        inputSizeController = modelParameterFolder.add(state, 'inputSize', []);
+      }
+      modelParameterFolder.open();
 
       const envFolder = gui.addFolder('Environment');
       envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu']).onChange(async backend => {

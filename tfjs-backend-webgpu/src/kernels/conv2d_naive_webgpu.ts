@@ -17,6 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
+import {getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -73,19 +74,19 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
       ${activationSnippet}
       float readInp(int batch, int row, int col, int chan) {
         ivec4 coord = ivec4(batch, row, col, chan);
-        return coordsInBounds(coord, xShape) ?
+        return coordsInBounds(coord, ${getShapeCoords(convInfo.inShape)}) ?
           getX(batch, row, col, chan) : 0;
       }
 
       float readFilt(int row, int col, int xChannel, int outChannel) {
         ivec4 coord = ivec4(row, col, xChannel, outChannel);
-        return coordsInBounds(coord, wShape) ?
+        return coordsInBounds(coord, ${getShapeCoords(convInfo.filterShape)}) ?
           getW(row, col, xChannel, outChannel) : 0;
       }
 
       void writeResult(int batch, int row, int col, int chan, float value) {
         ivec4 coord = ivec4(batch, row, col, chan);
-        if (coordsInBounds(coord, outShape)) {
+        if (coordsInBounds(coord, ${getShapeCoords(convInfo.outShape)})) {
           ${addBiasSnippet}
           ${applyActivationSnippet}
           setOutput(batch, row, col, chan, value);
@@ -101,10 +102,11 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
 
         for (int row = 0; row < filterDims[0]; ++row) {
           for (int col = 0; col < filterDims[1]; ++col) {
-            for (int xChannel = 0; xChannel < xShape[3]; ++xChannel) {
+            for (int xChannel = 0; xChannel < ${
+        convInfo.inChannels}; ++xChannel) {
               float v = readInp(batch,
-                  pad[0] + coords[1] * stride[0] + dilation[0] * row,
-                  pad[1] + coords[2] * stride[1] + dilation[1] * col,
+                  coords[1] * stride[0] + dilation[0] * row - pad[0],
+                  coords[2] * stride[1] + dilation[1] * col - pad[1],
                   xChannel);
               float f = readFilt(row, col, xChannel, outChannel);
               acc += v * f;
@@ -115,6 +117,6 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
         writeResult(batch, coords[1], coords[2], outChannel, acc);
       }
     `;
-    this.shaderKey = 'conv2dnaive';
+    this.shaderKey = `conv2dnaive${activation}`;
   }
 }
