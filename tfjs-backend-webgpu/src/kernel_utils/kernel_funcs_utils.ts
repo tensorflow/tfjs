@@ -30,7 +30,8 @@ type UnaryKernelFuncConfig = {
 /**
  * Template that creates a `KernelFunc` for unary ops.
  * @param opSnippet Op snippet to create `UnaryOpProgram`.
- * @param packedOpSnippet Op snippet to create `UnaryOpPackedProgram`.
+ * @param cpuKernelImpl Optional. Shared functionality from tfjs-backend-cpu, it
+ *     will be involved when necessary.
  * @param dtype Optional. If set, the result has this dtype. Otherwise, the
  *     result has the same dtype as the first input. This is mainly used in
  *     comparison kernels, such as Equal, Less, Greater, etc.
@@ -57,7 +58,6 @@ export function unaryKernelFunc(
 
 type BinaryKernelFuncConfig = {
   opSnippet: number,
-  boolType?: boolean,
   cpuKernelImpl?: SimpleBinaryKernelImplCPU,
   dtype?: DataType
 };
@@ -65,16 +65,14 @@ type BinaryKernelFuncConfig = {
 /**
  * Template that creates a `KernelFunc` for binary ops.
  * @param opSnippet Op snippet to create `BinaryOpProgram`.
- * @param packedOpSnippet Op snippet to create `BinaryOpPackedProgram`.
- * @param checkOutOfBoundsForPackedProgram Whether to set checkOutOfBounds=true
- *     when creating BinaryOpPackedProgram.
+ * @param cpuKernelImpl Optional. Shared functionality from tfjs-backend-cpu, it
+ *     will be involved when necessary.
  * @param dtype Optional. If set, the result has this dtype. Otherwise, the
  *     result has the same dtype as the first input. This is mainly used in
  *     comparison kernels, such as Equal, Less, Greater, etc.
  */
 export function binaryKernelFunc({
   opSnippet,
-  boolType = false,
   cpuKernelImpl,
   dtype
 }: BinaryKernelFuncConfig): KernelFunc {
@@ -93,7 +91,6 @@ export function binaryKernelFunc({
       return webgpuBackend.makeTensorInfo(outShape, $dtype, outValues);
     }
     const program = getBinaryProgram(opSnippet, a.shape, b.shape);
-    const $$dtype = boolType ? 'bool' : $dtype;
-    return webgpuBackend.runWebGPUProgram(program, [a, b], $$dtype);
+    return webgpuBackend.runWebGPUProgram(program, [a, b], $dtype);
   };
 }

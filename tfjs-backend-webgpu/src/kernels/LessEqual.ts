@@ -20,7 +20,7 @@ import {BinaryOpType} from './binary_ops';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 export const lessEqual = binaryKernelFunc({
-  boolType: true,
+  dtype: 'bool',
   opSnippet: BinaryOpType.LESS_EQUAL,
 });
 
