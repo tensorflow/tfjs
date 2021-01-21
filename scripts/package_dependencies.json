@@ -1,4 +1,5 @@
 {
+  "tfjs-automl": [],
   "tfjs-core": [],
   "tfjs-converter": ["tfjs-core", "tfjs-backend-cpu"],
   "tfjs-layers": ["tfjs-core", "tfjs-backend-cpu", "tfjs-backend-webgl"],

@@ -1,0 +1,62 @@
+steps:
+# Install common dependencies.
+- name: 'node:10'
+  entrypoint: 'yarn'
+  id: 'yarn-common'
+  args: ['install']
+
+# Install tfjs-automl dependencies.
+- name: 'node:10'
+  dir: 'tfjs-automl'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-common']
+
+# Build.
+- name: 'node:10'
+  dir: 'tfjs-automl'
+  entrypoint: 'yarn'
+  id: 'build'
+  args: ['build']
+  waitFor: ['yarn']
+
+# Lint.
+- name: 'node:10'
+  dir: 'tfjs-automl'
+  entrypoint: 'yarn'
+  id: 'lint'
+  args: ['lint']
+  waitFor: ['yarn']
+
+# Run node tests.
+- name: 'node:10'
+  dir: 'tfjs-automl'
+  entrypoint: 'yarn'
+  id: 'test-js'
+  args: ['test-node']
+  waitFor: ['yarn', 'build', 'lint']
+
+  # Run browser tests.
+- name: 'node:10'
+  dir: 'tfjs-automl'
+  entrypoint: 'yarn'
+  id: 'test-browser'
+  args: ['test-ci']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  secretEnv: ['BROWSERSTACK_KEY']
+  waitFor: ['yarn', 'build', 'lint']
+
+# General settings.
+secrets:
+- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
+  secretEnv:
+    BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
+timeout: 1800s
+logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _NIGHTLY: ''
+options:
+  logStreamingOption: 'STREAM_ON'
+  substitution_option: 'ALLOW_LOOSE'
+  machineType: 'N1_HIGHCPU_8'
