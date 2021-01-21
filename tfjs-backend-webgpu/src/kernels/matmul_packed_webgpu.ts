@@ -245,7 +245,6 @@ export class MatMulPackedProgram implements WebGPUProgram {
     const addBiasSnippet =
         this.addBias ? 'value += getBiasAtOutCoords(outCoord);' : '';
 
-
     const userCode = `
       ${activationSnippet}
 

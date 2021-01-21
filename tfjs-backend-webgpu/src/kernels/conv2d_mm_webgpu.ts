@@ -51,11 +51,9 @@ export class Conv2DMMProgram implements WebGPUProgram {
     this.elementsPerThread =
         computeWorkPerThreadForConv2d(this.dispatchLayout, this.outputShape);
 
-
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         this.elementsPerThread);
-
 
     if (addBias) {
       this.variableNames.push('bias');

@@ -44,7 +44,6 @@ export class Pool2DProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [1, this.workPerThread, 1]);
 
-
     this.shaderKey = `pool2d${poolType}`;
     this.poolType = poolType;
   }
