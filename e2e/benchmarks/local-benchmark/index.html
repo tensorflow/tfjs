@@ -546,7 +546,7 @@ limitations under the License.
 
     function isInputSizeSupported() {
       const benchmark = benchmarks[state.benchmark];
-      if (typeof benchmark['supportedInput'] != 'undefined') {
+      if (benchmark['supportedInput'] != null) {
         return true;
       }
       // Model doesn't support input size.
