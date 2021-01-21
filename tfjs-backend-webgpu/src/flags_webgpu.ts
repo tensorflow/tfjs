@@ -34,7 +34,8 @@ ENV.registerFlag('WEBGPU_CPU_FORWARD', () => true);
 ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
 
 /**
- * Whether to use conv2d_naive.
+ * Whether to use conv2d_naive which directly implement the conv2d logic rather
+ * than using a matmul to simulate.
  */
 ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D', () => false);
 
