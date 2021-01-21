@@ -435,31 +435,6 @@ yarn ts-node tools/pb2json_converter.ts pb_model_directory/ json_model_directory
 version is located.
 `json_model_directory` is the destination directory for the converted model.
 
-__7. I have a model formatted as a Session bundle. How do I convert it to TensorFlow.js?__
-
-You can install a previous version of TensorFlow.js in a virtual environment to
-convert the model to the JSON format. Here is how you can achieve this.
-
-* Set up the virtual environment:
-
-```bash
-virtualenv --no-site-packages venv
-. venv/bin/activate
-pip install tensorflowjs==0.8.6
-```
-
-`venv` is the name of the virtual environment.
-
-* Convert a session bundle model:
-
-```bash
-tensorflowjs_converter \
-    --input_format=tf_session_bundle \
-    --output_json=true \
-    --output_node_names='MobilenetV1/Predictions/Reshape_1' \
-    /mobilenet/session_bundle \
-    /mobilenet/web_model
-```
 
 ## Development
 
