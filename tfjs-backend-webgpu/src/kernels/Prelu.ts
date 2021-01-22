@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,17 +15,23 @@
  * =============================================================================
  */
 
-import {KernelConfig, Square, SquareInputs} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Prelu, PreluInputs, TensorInfo} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
-import {SQUARE, UnaryOpProgram} from './unary_op_webgpu';
+import {BinaryOpProgram} from './binary_op_webgpu';
+import {BinaryOpType, getBinaryOpString} from './binary_ops';
 
-export const squareConfig: KernelConfig = {
-  kernelName: Square,
+export function prelu(args: {inputs: PreluInputs, backend: WebGPUBackend}):
+    TensorInfo {
+  const {inputs, backend} = args;
+  const {x, alpha} = inputs;
+
+  const program = new BinaryOpProgram(
+      getBinaryOpString(BinaryOpType.PRELU), x.shape, alpha.shape);
+  return backend.runWebGPUProgram(program, [x, alpha], x.dtype);
+}
+
+export const preluConfig: KernelConfig = {
+  kernelName: Prelu,
   backendName: 'webgpu',
-  kernelFunc: ({inputs, backend}) => {
-    const {x} = inputs as SquareInputs;
-    const webGPUBackend = backend as WebGPUBackend;
-    const program = new UnaryOpProgram(x.shape, SQUARE);
-    return webGPUBackend.runWebGPUProgram(program, [x], x.dtype);
-  }
+  kernelFunc: prelu as {} as KernelFunc
 };
