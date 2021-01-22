@@ -150,7 +150,7 @@ class EngineState {
     peakBytes: 0,
     kernels: [],
     result: null,
-    get kernelNames() {
+    get kernelNames(): string[] {
       return Array.from(new Set(this.kernels.map(k => k.name)));
     }
   };

@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import '@tensorflow/tfjs-backend-webgl';
 import * as automl from '@tensorflow/tfjs-automl';
 
 const MODEL_URL =
