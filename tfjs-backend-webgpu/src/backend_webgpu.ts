@@ -511,8 +511,8 @@ export class WebGPUBackend extends KernelBackend {
     if (output == null) {
       output = this.makeOutputArray(program.outputShape, inputs[0].dtype);
     }
-    const outInfo = this.runWebGPUProgram(program, inputs, output.dtype,
-        programUniforms);
+    const outInfo =
+        this.runWebGPUProgram(program, inputs, output.dtype, programUniforms);
     return engine().makeTensorFromDataId(
                outInfo.dataId, outInfo.shape, outInfo.dtype) as {} as K;
   }

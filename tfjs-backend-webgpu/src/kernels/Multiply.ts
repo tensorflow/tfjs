@@ -15,16 +15,13 @@
  * =============================================================================
  */
 
-import {Multiply, KernelConfig} from '@tensorflow/tfjs-core';
-
-import {BinaryOpType} from './binary_ops';
+import {KernelConfig, Multiply} from '@tensorflow/tfjs-core';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {multiplyImplCPU as cpuMultiply} from '../kernel_utils/shared';
+import {BinaryOpType} from './binary_ops';
 
-export const multiplyKernelFunc = binaryKernelFunc({
-  opSnippet: BinaryOpType.MUL,
-  cpuKernelImpl: cpuMultiply
-});
+export const multiplyKernelFunc =
+    binaryKernelFunc({opSnippet: BinaryOpType.MUL, cpuKernelImpl: cpuMultiply});
 
 export const multiplyConfig: KernelConfig = {
   kernelName: Multiply,

@@ -15,16 +15,15 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, Exp} from '@tensorflow/tfjs-core';
+import {Exp, KernelConfig} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {EXP} from './unary_op_webgpu';
 import {expImplCPU} from '../kernel_utils/shared';
+import {EXP} from './unary_op_webgpu';
 
-export const exp =
-    unaryKernelFunc({opSnippet: EXP, cpuKernelImpl:expImplCPU});
+export const exp = unaryKernelFunc({opSnippet: EXP, cpuKernelImpl: expImplCPU});
 
 export const expConfig: KernelConfig = {
   kernelName: Exp,
   backendName: 'webgpu',
-  kernelFunc: exp as {} as KernelFunc
+  kernelFunc: exp
 };

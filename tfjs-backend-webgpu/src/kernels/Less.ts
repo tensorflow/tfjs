@@ -15,17 +15,17 @@
  * =============================================================================
  */
 
-import {Less, KernelConfig} from '@tensorflow/tfjs-core';
-import {BinaryOpType} from './binary_ops';
+import {KernelConfig, Less} from '@tensorflow/tfjs-core';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {BinaryOpType} from './binary_ops';
 
 export const less = binaryKernelFunc({
-  dtype: 'bool',
   opSnippet: BinaryOpType.LESS,
+  dtype: 'bool',
 });
 
 export const lessConfig: KernelConfig = {
   kernelName: Less,
   backendName: 'webgpu',
-  kernelFunc: less 
+  kernelFunc: less
 };

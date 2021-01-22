@@ -16,13 +16,11 @@
  */
 
 import {GreaterEqual, KernelConfig} from '@tensorflow/tfjs-core';
-import {BinaryOpType} from './binary_ops';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {BinaryOpType} from './binary_ops';
 
-export const greaterEqual = binaryKernelFunc({
-  dtype: 'bool',
-  opSnippet: BinaryOpType.GREATER_EQUAL,
-});
+export const greaterEqual =
+    binaryKernelFunc({opSnippet: BinaryOpType.GREATER_EQUAL, dtype: 'bool'});
 
 export const greaterEqualConfig: KernelConfig = {
   kernelName: GreaterEqual,

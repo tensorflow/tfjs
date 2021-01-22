@@ -15,15 +15,14 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, Relu6} from '@tensorflow/tfjs-core';
+import {KernelConfig, Relu6} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {RELU6} from './unary_op_webgpu';
 
-export const relu6 =
-    unaryKernelFunc({opSnippet: RELU6});
+export const relu6 = unaryKernelFunc({opSnippet: RELU6});
 
 export const relu6Config: KernelConfig = {
   kernelName: Relu6,
   backendName: 'webgpu',
-  kernelFunc: relu6 as {} as KernelFunc
+  kernelFunc: relu6
 };

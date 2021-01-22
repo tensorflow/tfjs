@@ -16,14 +16,12 @@
  */
 
 import {Add, KernelConfig} from '@tensorflow/tfjs-core';
-import {BinaryOpType} from './binary_ops';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {addImplCPU as cpuAdd} from '../kernel_utils/shared';
+import {BinaryOpType} from './binary_ops';
 
-export const addKernelFunc = binaryKernelFunc({
-  opSnippet: BinaryOpType.ADD,
-  cpuKernelImpl: cpuAdd
-});
+export const addKernelFunc =
+    binaryKernelFunc({opSnippet: BinaryOpType.ADD, cpuKernelImpl: cpuAdd});
 
 export const addConfig: KernelConfig = {
   kernelName: Add,

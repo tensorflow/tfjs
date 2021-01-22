@@ -15,16 +15,15 @@
  * =============================================================================
  */
 
-import {FloorDiv, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
-
-import {BinaryOpType} from './binary_ops';
+import {FloorDiv, KernelConfig} from '@tensorflow/tfjs-core';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {BinaryOpType} from './binary_ops';
 
-export const floorDiv = binaryKernelFunc(
-    {opSnippet: BinaryOpType.INT_DIV, dtype: 'int32'});
+export const floorDiv =
+    binaryKernelFunc({opSnippet: BinaryOpType.INT_DIV, dtype: 'int32'});
 
 export const floorDivConfig: KernelConfig = {
   kernelName: FloorDiv,
   backendName: 'webgpu',
-  kernelFunc: floorDiv as {} as KernelFunc
+  kernelFunc: floorDiv
 };

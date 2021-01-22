@@ -15,16 +15,16 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, Abs} from '@tensorflow/tfjs-core';
+import {Abs, KernelConfig} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {ABS} from './unary_op_webgpu';
 import {simpleAbsImplCPU} from '../kernel_utils/shared';
+import {ABS} from './unary_op_webgpu';
 
 export const abs =
-    unaryKernelFunc({opSnippet: ABS, cpuKernelImpl:simpleAbsImplCPU});
+    unaryKernelFunc({opSnippet: ABS, cpuKernelImpl: simpleAbsImplCPU});
 
 export const absConfig: KernelConfig = {
   kernelName: Abs,
   backendName: 'webgpu',
-  kernelFunc: abs as {} as KernelFunc
+  kernelFunc: abs
 };

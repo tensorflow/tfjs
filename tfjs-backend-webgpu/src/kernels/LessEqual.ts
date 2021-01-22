@@ -15,17 +15,17 @@
  * =============================================================================
  */
 
-import {LessEqual, KernelConfig} from '@tensorflow/tfjs-core';
-import {BinaryOpType} from './binary_ops';
+import {KernelConfig, LessEqual} from '@tensorflow/tfjs-core';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {BinaryOpType} from './binary_ops';
 
 export const lessEqual = binaryKernelFunc({
-  dtype: 'bool',
   opSnippet: BinaryOpType.LESS_EQUAL,
+  dtype: 'bool',
 });
 
 export const lessEqualConfig: KernelConfig = {
   kernelName: LessEqual,
   backendName: 'webgpu',
-  kernelFunc: lessEqual 
+  kernelFunc: lessEqual
 };

@@ -15,15 +15,14 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, Tanh} from '@tensorflow/tfjs-core';
+import {KernelConfig, Tanh} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {TANH} from './unary_op_webgpu';
 
-export const tanh =
-    unaryKernelFunc({opSnippet: TANH});
+export const tanh = unaryKernelFunc({opSnippet: TANH});
 
 export const tanhConfig: KernelConfig = {
   kernelName: Tanh,
   backendName: 'webgpu',
-  kernelFunc: tanh as {} as KernelFunc
+  kernelFunc: tanh
 };

@@ -15,16 +15,15 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, Log} from '@tensorflow/tfjs-core';
+import {KernelConfig, Log} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {LOG} from './unary_op_webgpu';
 import {logImplCPU} from '../kernel_utils/shared';
+import {LOG} from './unary_op_webgpu';
 
-export const log =
-    unaryKernelFunc({opSnippet: LOG, cpuKernelImpl:logImplCPU});
+export const log = unaryKernelFunc({opSnippet: LOG, cpuKernelImpl: logImplCPU});
 
 export const logConfig: KernelConfig = {
   kernelName: Log,
   backendName: 'webgpu',
-  kernelFunc: log as {} as KernelFunc
+  kernelFunc: log
 };

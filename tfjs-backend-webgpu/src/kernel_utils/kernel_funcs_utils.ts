@@ -17,9 +17,9 @@
 
 import {BinaryInputs, DataType, KernelFunc, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
+import {getBinaryProgram} from '../kernels/binary_ops';
 import {UnaryOpProgram} from '../kernels/unary_op_webgpu';
 import {SimpleBinaryKernelImplCPU, SimpleUnaryKernelImplCPU} from './shared';
-import {getBinaryProgram} from '../kernels/binary_ops';
 
 type UnaryKernelFuncConfig = {
   opSnippet: string,
@@ -37,15 +37,13 @@ type UnaryKernelFuncConfig = {
  *     comparison kernels, such as Equal, Less, Greater, etc.
  */
 export function unaryKernelFunc(
-    {opSnippet, cpuKernelImpl, dtype}: UnaryKernelFuncConfig):
-    KernelFunc {
+    {opSnippet, cpuKernelImpl, dtype}: UnaryKernelFuncConfig): KernelFunc {
   return ({inputs, backend}) => {
     const {x} = inputs as UnaryInputs;
     const webgpuBackend = backend as WebGPUBackend;
 
     const $dtype = dtype || x.dtype;
-    if (webgpuBackend.shouldExecuteOnCPU([x]) &&
-        cpuKernelImpl != null) {
+    if (webgpuBackend.shouldExecuteOnCPU([x]) && cpuKernelImpl != null) {
       const xData = webgpuBackend.tensorMap.get(x.dataId);
       const outValues = cpuKernelImpl(xData.values as TypedArray, $dtype);
       return webgpuBackend.makeTensorInfo(x.shape, $dtype, outValues);
@@ -71,17 +69,13 @@ type BinaryKernelFuncConfig = {
  *     result has the same dtype as the first input. This is mainly used in
  *     comparison kernels, such as Equal, Less, Greater, etc.
  */
-export function binaryKernelFunc({
-  opSnippet,
-  cpuKernelImpl,
-  dtype
-}: BinaryKernelFuncConfig): KernelFunc {
+export function binaryKernelFunc(
+    {opSnippet, cpuKernelImpl, dtype}: BinaryKernelFuncConfig): KernelFunc {
   return ({inputs, backend}) => {
     const {a, b} = inputs as BinaryInputs;
     const webgpuBackend = backend as WebGPUBackend;
     const $dtype = dtype || upcastType(a.dtype, b.dtype);
-    if (webgpuBackend.shouldExecuteOnCPU([a, b]) &&
-        cpuKernelImpl != null) {
+    if (webgpuBackend.shouldExecuteOnCPU([a, b]) && cpuKernelImpl != null) {
       const aData = webgpuBackend.tensorMap.get(a.dataId);
       const bData = webgpuBackend.tensorMap.get(b.dataId);
       const [outValues, outShape] = cpuKernelImpl(
