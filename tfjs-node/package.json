@@ -68,11 +68,11 @@
     "tslint-no-circular-imports": "^0.7.0",
     "typescript": "3.5.3",
     "yalc": "~1.0.0-pre.21",
-    "yargs": "^14.2.0"
+    "yargs": "^14.2.0",
+    "@tensorflow/tfjs-core": "link:../tfjs-core"
   },
   "dependencies": {
     "@tensorflow/tfjs": "link:../tfjs",
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "adm-zip": "^0.4.11",
     "google-protobuf": "^3.9.2",
     "https-proxy-agent": "^2.2.1",
