@@ -790,10 +790,6 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-tfjs-core
-      - build-cpu-backend-tfjs-core
-      - lint-tfjs-core
   - name: 'node:12'
     dir: tfjs-node
     entrypoint: yarn
@@ -806,10 +802,6 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-tfjs-core
-      - build-cpu-backend-tfjs-core
-      - lint-tfjs-core
   - name: 'node:12'
     dir: tfjs-node
     entrypoint: yarn
@@ -822,10 +814,6 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-tfjs-core
-      - build-cpu-backend-tfjs-core
-      - lint-tfjs-core
   - name: 'node:12'
     dir: tfjs-node
     entrypoint: yarn
@@ -838,10 +826,6 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-tfjs-core
-      - build-cpu-backend-tfjs-core
-      - lint-tfjs-core
   - name: 'node:12'
     dir: tfjs-node
     entrypoint: yarn
@@ -855,10 +839,6 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-tfjs-core
-      - build-cpu-backend-tfjs-core
-      - lint-tfjs-core
   - name: 'node:12'
     dir: tfjs-node
     entrypoint: yarn
@@ -870,10 +850,6 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-tfjs-core
-      - build-cpu-backend-tfjs-core
-      - lint-tfjs-core
   - name: 'node:10'
     dir: tfjs-node-gpu
     id: prep-gpu-tfjs-node-gpu
@@ -885,10 +861,6 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-tfjs-core
-      - build-cpu-backend-tfjs-core
-      - lint-tfjs-core
   - name: 'node:10'
     dir: tfjs-node-gpu
     entrypoint: yarn
@@ -901,10 +873,6 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-tfjs-core
-      - build-cpu-backend-tfjs-core
-      - lint-tfjs-core
   - name: 'node:10'
     dir: tfjs-node-gpu
     entrypoint: yarn
@@ -917,10 +885,6 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-tfjs-core
-      - build-cpu-backend-tfjs-core
-      - lint-tfjs-core
   - name: 'node:10'
     dir: tfjs-node-gpu
     entrypoint: yarn
@@ -933,10 +897,6 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-tfjs-core
-      - build-cpu-backend-tfjs-core
-      - lint-tfjs-core
   - name: 'node:10'
     dir: tfjs-node-gpu
     entrypoint: yarn
@@ -949,10 +909,6 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-tfjs-core
-      - build-cpu-backend-tfjs-core
-      - lint-tfjs-core
   - name: 'node:10'
     dir: tfjs-node-gpu
     entrypoint: yarn
@@ -966,10 +922,6 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-tfjs-core
-      - build-cpu-backend-tfjs-core
-      - lint-tfjs-core
   - name: 'node:10'
     dir: tfjs-node-gpu
     entrypoint: yarn
@@ -982,10 +934,6 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-core
-      - build-tfjs-core
-      - build-cpu-backend-tfjs-core
-      - lint-tfjs-core
   - name: gcr.io/learnjs-174218/release
     dir: e2e
     entrypoint: yarn
