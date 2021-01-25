@@ -1,3 +1,4 @@
+
 /**
  * @license
  * Copyright 2021 Google LLC. All Rights Reserved.
@@ -32,12 +33,16 @@ const {
   expImpl: expImplCPU,
   expm1Impl: expm1ImplCPU,
   floorImpl: floorImplCPU,
+  greaterImpl: greaterImplCPU,
   logImpl: logImplCPU,
   maxImpl: maxImplCPU,
+  maximumImpl: maximumImplCPU,
   multiplyImpl: multiplyImplCPU,
+  negImpl: negImplCPU,
   rsqrtImpl: rsqrtImplCPU,
   simpleAbsImpl: simpleAbsImplCPU,
   sliceImpl: sliceImplCPU,
+  stridedSliceImpl: stridedSliceImplCPU,
   subImpl: subImplCPU,
   transposeImpl: transposeImplCPU,
   uniqueImpl: uniqueImplCPU,
@@ -49,11 +54,15 @@ export {
   expImplCPU,
   expm1ImplCPU,
   floorImplCPU,
+  greaterImplCPU,
   logImplCPU,
   maxImplCPU,
+  maximumImplCPU,
   multiplyImplCPU,
+  negImplCPU,
   simpleAbsImplCPU,
   sliceImplCPU,
+  stridedSliceImplCPU,
   subImplCPU,
   rsqrtImplCPU,
   transposeImplCPU,

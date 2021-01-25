@@ -402,6 +402,7 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'softmax',
     excludes: [
       'gradient',
+      'MEAN',
       'Weighted - Reduction.SUM_BY_NONZERO_WEIGHTS',
     ]
   }
