@@ -49,3 +49,6 @@ ENV.registerFlag('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', () => false);
  * requested.
  */
 ENV.registerFlag('WEBGPU_USE_LOW_POWER_GPU', () => false);
+
+/** Whether we enable float16 feature. */
+ENV.registerFlag('WEBGPU_ENABLE_FLOAT16', () => false);

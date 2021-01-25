@@ -73,9 +73,3 @@ ENV.registerFlag('IS_TEST', () => false);
 
 /** Whether to check computation result for errors. */
 ENV.registerFlag('CHECK_COMPUTATION_FOR_ERRORS', () => true);
-
-/** Whether underlying driver supports float16 feature. */
-ENV.registerFlag('DRIVER_SUPPORT_FLOAT16', () => false);
-
-/** Whether developer enables float16 feature. */
-ENV.registerFlag('FLOAT16', () => false);

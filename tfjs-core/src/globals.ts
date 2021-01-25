@@ -35,24 +35,6 @@ export function enableProdMode(): void {
 }
 
 /**
- * Enables debug mode which will log information about all executed kernels:
- * the elapsed time of the kernel execution, as well as the rank, shape, and
- * size of the output tensor.
- *
- * Debug mode will significantly slow down your application as it will
- * download the result of every operation to the CPU. This should not be used in
- * production. Debug mode does not affect the timing information of the kernel
- * execution as we do not measure download time in the kernel execution time.
- *
- * See also: `tf.profile`, `tf.memory`.
- *
- * @doc {heading: 'Environment'}
- */
-export function enableDebugMode(): void {
-  env().set('DEBUG', true);
-}
-
-/**
  * Enables float16 mode which allows developers to use 16bit float
  * arithmetic feature and 16bit storage features for improving performance.
  *
