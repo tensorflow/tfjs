@@ -23,13 +23,16 @@ import {argMaxConfig} from './kernels/ArgMax';
 import {argMinConfig} from './kernels/ArgMin';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
+import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {castConfig} from './kernels/Cast';
 import {clipByValueConfig} from './kernels/ClipByValue';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
+import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {expandDimsConfig} from './kernels/ExpandDims';
 import {expConfig} from './kernels/Exp';
+import {fillConfig} from './kernels/Fill';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {fromPixelsAsyncConfig} from './kernels/FromPixelsAsync';
 import {fromPixelsConfig} from './kernels/FromPixels';
@@ -38,6 +41,7 @@ import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
+import {identityConfig} from './kernels/Identity';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
@@ -58,16 +62,19 @@ import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
+import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {sliceConfig} from './kernels/Slice';
 import {stridedSliceConfig} from './kernels/StridedSlice';
 import {softmaxConfig} from './kernels/Softmax';
+import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanhConfig} from './kernels/Tanh';
 import {transposeConfig} from './kernels/Transpose';
+import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
@@ -78,13 +85,16 @@ const kernelConfigs: KernelConfig[] = [
   argMinConfig,
   avgPoolConfig,
   batchMatMulConfig,
+  batchToSpaceNDConfig,
   castConfig,
   clipByValueConfig,
   concatConfig,
   conv2DConfig,
+  cropAndResizeConfig,
   depthwiseConv2dNativeConfig,
   expandDimsConfig,
   expConfig,
+  fillConfig,
   fromPixelsAsyncConfig,
   fromPixelsConfig,
   floorDivConfig,
@@ -93,6 +103,7 @@ const kernelConfigs: KernelConfig[] = [
   fusedDepthwiseConv2DConfig,
   greaterConfig,
   greaterEqualConfig,
+  identityConfig,
   lessConfig,
   lessEqualConfig,
   logConfig,
@@ -113,16 +124,19 @@ const kernelConfigs: KernelConfig[] = [
   relu6Config,
   reshapeConfig,
   resizeBilinearConfig,
+  selectConfig,
   sigmoidConfig,
   sliceConfig,
   stridedSliceConfig,
   softmaxConfig,
+  spaceToBatchNDConfig,
   squareConfig,
   squaredDifferenceConfig,
   subConfig,
   sumConfig,
   tanhConfig,
-  transposeConfig
+  transposeConfig,
+  zerosLikeConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {

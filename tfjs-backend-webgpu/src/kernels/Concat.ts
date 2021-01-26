@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, Concat, ConcatAttrs, ConcatInputs, KernelConfig, KernelFunc, Tensor2D, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, Concat, ConcatAttrs, ConcatInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {ConcatProgram} from './concat_webgpu';
@@ -32,20 +32,19 @@ export function concat(
     return inputs[0];
   }
 
-  const $axis = util.parseAxisParam(axis, inputs[0].shape)[0];
   const outShape =
-      backend_util.computeOutShape(inputs.map(t => t.shape), $axis);
+      backend_util.computeOutShape(inputs.map(t => t.shape), axis);
   const tensors2D: TensorInfo[] = inputs.map(t => 
     reshape({
       inputs: {x: t},
       backend,
       attrs: {shape: [
-          util.sizeFromShape(t.shape.slice(0, $axis)),
-          util.sizeFromShape(t.shape.slice($axis))]}
+          util.sizeFromShape(t.shape.slice(0, axis)),
+          util.sizeFromShape(t.shape.slice(axis))]}
     })
   );
-  const program = new ConcatProgram((tensors2D as Tensor2D[])
-      .map(t => t.shape));
+  const program = new ConcatProgram((tensors2D).map(t =>
+      t.shape as [number, number]));
   const res = backend.runWebGPUProgram(program, tensors2D, tensors2D[0].dtype);
   return reshape({
     inputs: {x: res},

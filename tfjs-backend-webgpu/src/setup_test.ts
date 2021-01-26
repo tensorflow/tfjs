@@ -111,6 +111,7 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting Tensor2D shapes',    // Actual != expected.
       'works with 0 sized tensors',      // Timeout.
       'gradient',                        // zerosLike not yet implemented.
+      'gather',                          // Not yet implemented.
     ]
   },
   {
@@ -126,6 +127,9 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'depthwise',
     excludes: [
       'gradient',  // depthwiseConv2DDerInput not yet implemented.
+      'leakyrelu', // Not yet implemented.
+      'input=1x3x3x2,f=2,s=1,d=2,p=same,chMul=1',  // Pack not implemented
+      'input=2x3x3x2,f=2,s=1,d=2,p=same,chMul=2',  // Pack not implemented
     ]
   },
   {
@@ -137,6 +141,7 @@ const TEST_FILTERS: TestFilter[] = [
                                                    // implemented
       'backProp',                                  // conv2dDerInput not yet
                                                    // implemented
+      'leakyrelu',                                 // Not yet implemented
     ]
   },
   {
@@ -177,6 +182,13 @@ const TEST_FILTERS: TestFilter[] = [
       'shape has ones',  // Actual != expected.
       '5D',              // Rank 5 is not yet implemented.
       '6D',              // Rank 5 is not yet implemented.
+      'gradient',
+    ]
+  },
+  {
+    include: 'leakyrelu',
+    excludes: [
+      'leakyrelu',
     ]
   },
   {
@@ -195,8 +207,9 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'resizeBilinear',
     excludes: [
-      'gradient',       // Not yet implemented.
-      'works for ints'  // Actual != expected.
+      'gradient',          // Not yet implemented.
+      'works for ints',    // Actual != expected.
+      'halfPixelCenters',  // Not yet implemented.
     ]
   },
   {include: 'floor divide ', excludes: []},
@@ -208,6 +221,7 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias',  // conv2dDerInput
                                                              // not yet
                                                              // implemented.
+      'leakyrelu',  // Not yet implemented.
     ]
   },
   {
@@ -245,6 +259,7 @@ const TEST_FILTERS: TestFilter[] = [
       'valueAndGradients',               // backend.sum() not yet implemented.
       'upcasts when dtypes dont match',  // Missing cast().
       'broadcast',  // matmul broadcasting not yet implemented.
+      'leakyrelu',  // Not yet implemented.
     ]
   },
   {
@@ -268,7 +283,8 @@ const TEST_FILTERS: TestFilter[] = [
       'upcasts when dtypes dont match',  // Upcasts not supported.
       '5D',                              // Rank 5 is not yet implemented.
       '6D',                              // Rank 6 is not yet implemented.
-      'dilation2d'                       // 'dilation2d' not yet implemented.
+      'dilation2d',                       // 'dilation2d' not yet implemented.
+      'gradient',
     ]
   },
   {
@@ -280,8 +296,11 @@ const TEST_FILTERS: TestFilter[] = [
       'reshape a sliced 1d into a 2d tensor and',  // square not yet
                                                    // implemented.
       '5D',                  // Rank 5 is not yet implemented.
+      'slice5d',            // Rank 5 is not yet implemented.
       '6D',                  // Rank 6 is not yet implemented.
+      'slice6d',            // Rank 6 is not yet implemented.
       'strided slice with',  // Rank 6 is not yet implemented.
+      'string',              // String is not yet implemented.
     ]
   },
   {
@@ -307,6 +326,7 @@ const TEST_FILTERS: TestFilter[] = [
       'NCHW',             // Not yet implemented.
       'gradient',         // 'conv2dDerInput' not yet implemented
       'conv2dTranspose',  // DerInput is not Implemented.
+      'leakyrelu',        // Not yet implemented.
     ]
   },
   {
@@ -318,6 +338,8 @@ const TEST_FILTERS: TestFilter[] = [
       'tensor4d',     // The result is not correct.
       'tensor-like',  // The result is not correct.
       'NaNs',         // The result is not correct.
+      'gradient',     // Not yet implemented.
+      'grad',     // Not yet implemented.
     ]
   },
   {

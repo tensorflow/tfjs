@@ -15,30 +15,28 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, ResizeBilinear, ResizeBilinearAttrs, ResizeBilinearInputs, Tensor4D, TensorInfo} from '@tensorflow/tfjs-core';
+import {CropAndResize, CropAndResizeAttrs, CropAndResizeInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {ResizeBilinearProgram} from './resize_bilinear_webgpu';
+import {CropAndResizeProgram} from './crop_and_resize_webgpu';
 
-export function resizeBilinear(args: {
-  inputs: ResizeBilinearInputs,
+export const cropAndResize = (args: {
+  inputs: CropAndResizeInputs,
   backend: WebGPUBackend,
-  attrs: ResizeBilinearAttrs
-}): TensorInfo {
+  attrs: CropAndResizeAttrs
+}): TensorInfo => {
   const {inputs, backend, attrs} = args;
-  const {images} = inputs;
-  const {alignCorners, size} = attrs;
+  const {image, boxes, boxInd} = inputs;
+  const {cropSize, method, extrapolationValue} = attrs;
 
-  const [newHeight, newWidth] = size;
-  const program =
-      new ResizeBilinearProgram(
-          (images as Tensor4D).shape , newHeight, newWidth, alignCorners);
+  const program = new CropAndResizeProgram(
+      image.shape as [number, number, number, number],
+      boxes.shape as [number, number], cropSize, method, extrapolationValue);
+  return backend.runWebGPUProgram(program, [image, boxes, boxInd], 'float32');
+};
 
-  return backend.runWebGPUProgram(program, [images], 'float32');
-}
-
-export const resizeBilinearConfig: KernelConfig = {
-  kernelName: ResizeBilinear,
+export const cropAndResizeConfig: KernelConfig = {
+  kernelName: CropAndResize,
   backendName: 'webgpu',
-  kernelFunc: resizeBilinear as {} as KernelFunc
+  kernelFunc: cropAndResize as {} as KernelFunc
 };

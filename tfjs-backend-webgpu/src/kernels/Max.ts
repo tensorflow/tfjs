@@ -30,11 +30,11 @@ export function max(
   const {x} = inputs;
   const {reductionIndices} = attrs;
   const webgpuBackend = backend;
-  let xShape = x.shape;
+  const xShape = x.shape;
   const xRank = xShape.length;
 
   const origAxes = util.parseAxisParam(reductionIndices, xShape);
-  let axes = origAxes;
+  const axes = origAxes;
   backend_util.assertAxesAreInnerMostDims('max', axes, xRank);
   const [outShape, reduceShape] =
       backend_util.computeOutAndReduceShapes(xShape, axes);

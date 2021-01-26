@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, env, TensorInfo, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
+import {backend_util, env, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {Im2ColProgram} from './im2col_webgpu';
@@ -65,8 +65,7 @@ export function conv2dByMatMul({
 
   return reshape({
       inputs: {x: batchMatMul({
-                inputs: {a: xReshaped as TensorInfo,
-                    b: filterReshaped as TensorInfo},
+                inputs: {a: xReshaped, b: filterReshaped},
                 backend,
                 attrs: {transposeA, transposeB}
               })
@@ -111,15 +110,23 @@ export function conv2dWithIm2Col({
   const transposeA = false;
   const transposeB = false;
 
-  const xSqueezed = (x as Tensor4D).squeeze([0]);
-  const w2Row = (filter as Tensor4D).reshape([1, sharedDim, -1]);
+  const xSqueezed =
+      reshape({inputs: {x}, backend, attrs: {shape: x.shape.slice(1)}});
+  const w2Row = reshape({
+    inputs: {x: filter},
+    backend,
+    attrs: {shape: [1, sharedDim, -1]}
+  });
 
   const im2ColProgram =
       new Im2ColProgram(x2ColShape, xSqueezed.shape, convInfo);
   const im2Col = backend.runWebGPUProgram(
       im2ColProgram, [xSqueezed], xSqueezed.dtype);
-  const im2Col3D =
-      (im2Col as Tensor3D).reshape([1, x2ColShape[0], x2ColShape[1]]);
+  const im2Col3D = reshape({
+    inputs: {x: im2Col},
+    backend,
+    attrs: {shape: [1, x2ColShape[0], x2ColShape[1]]}
+  });
 
   const matMulProgram = new MatMulPackedProgram(
       [1, x2ColShape[0], x2ColShape[1]], [1, numCols, convInfo.outChannels],
@@ -139,68 +146,4 @@ export function conv2dWithIm2Col({
     backend,
     attrs: {shape: [1, convInfo.outChannels, outHeight, outWidth]}
   });
-
-  //const intermediates: TensorInfo[] = [];
-
-  //const xSqueezed =
-  //    reshape({inputs: {x}, backend, attrs: {shape: x.shape.slice(1)}});
-  //const w2Row = reshape({
-  //  inputs: {x: filter},
-  //  backend,
-  //  attrs: {shape: [1, sharedDim, util.sizeFromShape(filter.shape) / sharedDim]}
-  //});
-
-  //intermediates.push(xSqueezed);
-  //intermediates.push(w2Row);
-
-  //const im2ColProgram =
-  //    new Im2ColPackedProgram(x2ColShape, xSqueezed.shape, convInfo);
-  //const im2Col = backend.runWebGLProgram(im2ColProgram, [xSqueezed], 'float32');
-  //const im2ColReshaped = reshape({
-  //  inputs: {x: im2Col},
-  //  backend,
-  //  attrs: {shape: [1, x2ColShape[0], x2ColShape[1]]}
-  //});
-
-  //intermediates.push(im2Col);
-  //intermediates.push(im2ColReshaped);
-
-  //const hasBias = bias != null;
-  //const hasPreluActivationWeights = preluActivationWeights != null;
-  //const hasLeakyreluAlpha = activation === 'leakyrelu';
-  //const fusedActivation =
-  //    activation ? mapActivationToShaderProgram(activation, true) : null;
-  //const matmulProgram = new MatMulPackedProgram(
-  //    im2ColReshaped.shape as [number, number, number],
-  //    w2Row.shape as [number, number, number],
-  //    [1, numCols, convInfo.outChannels], transposeA, transposeB, hasBias,
-  //    fusedActivation, hasPreluActivationWeights, hasLeakyreluAlpha);
-  //const inputs: TensorInfo[] = [im2ColReshaped, w2Row];
-  //if (bias) {
-  //  inputs.push(bias);
-  //}
-  //if (hasPreluActivationWeights) {
-  //  inputs.push(preluActivationWeights);
-  //}
-  //if (hasLeakyreluAlpha) {
-  //  const $leakyreluAlpha = backend.makeTensorInfo(
-  //      [], 'float32',
-  //      util.createScalarValue(leakyreluAlpha as {} as 'float32', 'float32'));
-  //  inputs.push($leakyreluAlpha);
-  //  intermediates.push($leakyreluAlpha);
-  //}
-  //const product = backend.runWebGLProgram(matmulProgram, inputs, 'float32');
-
-  //const outShape = isChannelsLast ?
-  //    [1, outHeight, outWidth, convInfo.outChannels] :
-  //    [1, convInfo.outChannels, outHeight, outWidth];
-  //const out =
-  //    reshape({inputs: {x: product}, backend, attrs: {shape: outShape}});
-
-  //intermediates.push(product);
-  //for (const i of intermediates) {
-  //  backend.disposeIntermediateTensorInfo(i);
-  //}
-
-  //return out;
 }

@@ -30,11 +30,11 @@ export function min(
   const {x} = inputs;
   const {axis} = attrs;
   const webgpuBackend = backend;
-  let xShape = x.shape;
+  const xShape = x.shape;
   const xRank = xShape.length;
 
   const origAxes = util.parseAxisParam(axis, xShape);
-  let axes = origAxes;
+  const axes = origAxes;
   backend_util.assertAxesAreInnerMostDims('min', axes, xRank);
   const [outShape, reduceShape] =
       backend_util.computeOutAndReduceShapes(xShape, axes);

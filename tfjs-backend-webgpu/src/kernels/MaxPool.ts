@@ -14,11 +14,12 @@
  * limitations under the License.
  * =============================================================================
  */
-import {backend_util, KernelConfig, KernelFunc, MaxPool, MaxPoolAttrs, MaxPoolInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, MaxPool, MaxPoolAttrs, MaxPoolInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {Pool2DProgram} from './pool2d_webgpu';
 import {MaxPoolWithFilterSizeEqualsOneProgram} from './maxpool_filtersizeone_webgpu';
+import {identity} from './Identity';
 
 export function maxPool(args: {
   inputs: MaxPoolInputs,
@@ -34,6 +35,9 @@ export function maxPool(args: {
       dilations, pad, dimRoundingMode);
   let program: Pool2DProgram|MaxPoolWithFilterSizeEqualsOneProgram;
     if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1) {
+      if (util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
+        return identity({inputs: {x}, backend});
+      }
       program = new MaxPoolWithFilterSizeEqualsOneProgram(convInfo);
     } else {
       program = new Pool2DProgram(convInfo, 'max');
