@@ -39,19 +39,19 @@ registerBackend('webgpu', async () => {
   };
 
   const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
-  const extensions: GPUExtensionName[] = [];
+  const gpuExtensions: GPUExtensionName[] = [];
 
   const supportTimeQuery =
       adapter.extensions.includes('timestamp-query' as GPUExtensionName);
   if (supportTimeQuery) {
-    extensions.push('timestamp-query' as GPUExtensionName);
+    gpuExtensions.push('timestamp-query' as GPUExtensionName);
   }
 
   if (adapter.extensions.includes('shader-float16' as GPUExtensionName)) {
-    extensions.push('shader-float16' as GPUExtensionName);
+    gpuExtensions.push('shader-float16' as GPUExtensionName);
   }
 
-  const deviceDescriptor: GPUDeviceDescriptor = {extensions: extensions};
+  const deviceDescriptor: GPUDeviceDescriptor = {extensions: gpuExtensions};
   const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
   return new WebGPUBackend(device, glslang, supportTimeQuery);
 }, 3 /*priority*/);
