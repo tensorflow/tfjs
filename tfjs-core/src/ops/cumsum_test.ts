@@ -94,7 +94,6 @@ describeWithFlags('cumsum', ALL_ENVS, () => {
   });
 
   it('4d axis=2', async () => {
-    console.log('4d axis test')
     const input = tf.ones([1, 32, 46, 4])
     const res = tf.cumsum(input, 2, false, false);
 
