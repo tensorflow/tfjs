@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,16 +15,14 @@
  * =============================================================================
  */
 
-import {SquaredDifference, KernelConfig} from '@tensorflow/tfjs-core';
-import {BinaryOpType} from './binary_ops';
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {KernelConfig, Relu6} from '@tensorflow/tfjs-core';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {RELU6} from './unary_op_webgpu';
 
-export const squaredDifference = binaryKernelFunc({
-  opSnippet: BinaryOpType.SQUARED_DIFFERENCE,
-});
+export const relu6 = unaryKernelFunc({opSnippet: RELU6});
 
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
+export const relu6Config: KernelConfig = {
+  kernelName: Relu6,
   backendName: 'webgpu',
-  kernelFunc: squaredDifference
+  kernelFunc: relu6
 };

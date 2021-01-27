@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,16 +15,15 @@
  * =============================================================================
  */
 
-import {SquaredDifference, KernelConfig} from '@tensorflow/tfjs-core';
-import {BinaryOpType} from './binary_ops';
+import {FloorDiv, KernelConfig} from '@tensorflow/tfjs-core';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {BinaryOpType} from './binary_ops';
 
-export const squaredDifference = binaryKernelFunc({
-  opSnippet: BinaryOpType.SQUARED_DIFFERENCE,
-});
+export const floorDiv =
+    binaryKernelFunc({opSnippet: BinaryOpType.INT_DIV, dtype: 'int32'});
 
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
+export const floorDivConfig: KernelConfig = {
+  kernelName: FloorDiv,
   backendName: 'webgpu',
-  kernelFunc: squaredDifference
+  kernelFunc: floorDiv
 };

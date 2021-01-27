@@ -24,7 +24,6 @@ import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
 import {ArgMinMaxProgram} from './kernels/argminmax_webgpu';
-import {BinaryOpProgram} from './kernels/binary_op_webgpu';
 import {BinaryOpType, getBinaryOpString, getBinaryProgram} from './kernels/binary_ops';
 import {ClipVec4Program} from './kernels/clip_vec4_webgpu';
 import {ClipProgram} from './kernels/clip_webgpu';
@@ -367,6 +366,13 @@ export class WebGPUBackend extends KernelBackend {
     return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
   }
 
+  makeTensorInfo(
+      shape: number[], dtype: DataType,
+      values?: backend_util.BackendValues): TensorInfo {
+    const dataId = this.write(values, shape, dtype);
+    return {dataId, shape, dtype};
+  }
+
   private tensorToBinding(tensor?: TensorInfo): GPUBindingResource {
     if (!tensor) {
       return null;
@@ -406,12 +412,10 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
-  public compileAndRun<K extends TensorInfo>(
+  public runWebGPUProgram(
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
-      output?: TensorInfo, programUniforms?: number[]): K {
-    if (output == null) {
-      output = this.makeOutputArray(program.outputShape, inputs[0].dtype);
-    }
+      outputDtype: DataType, programUniforms?: number[]): TensorInfo {
+    const output = this.makeTensorInfo(program.outputShape, outputDtype);
 
     let uniformDataLength;
     let uniforms: GPUBindingResource;
@@ -496,8 +500,22 @@ export class WebGPUBackend extends KernelBackend {
         });
       }
     }
-    return output as {} as K;
+    return output;
   }
+
+  // TODO remove this once webgpu backend has been all modularized
+  public compileAndRun<K extends TensorInfo>(
+      program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
+      output?: TensorInfo, programUniforms?: number[]): K {
+    if (output == null) {
+      output = this.makeOutputArray(program.outputShape, inputs[0].dtype);
+    }
+    const outInfo =
+        this.runWebGPUProgram(program, inputs, output.dtype, programUniforms);
+    return engine().makeTensorFromDataId(
+               outInfo.dataId, outInfo.shape, outInfo.dtype) as {} as K;
+  }
+
   async getTimeFromQuerySet(querySet: GPUQuerySet) {
     const queryBuffer = this.acquireBuffer(
         16, GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);
@@ -543,13 +561,14 @@ export class WebGPUBackend extends KernelBackend {
     return this.cpuBackend;
   }
 
-  private shouldExecuteOnCPU(
-      inputs: Tensor[], sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
+  shouldExecuteOnCPU(
+      inputs: TensorInfo[],
+      sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
     return this.getCPUBackend() != null &&
         inputs.every(
             input =>
                 this.tensorMap.get(input.dataId).bufferInfo.buffer == null &&
-                input.size < sizeThreshold);
+                util.sizeFromShape(input.shape) < sizeThreshold);
   }
 
   pad<T extends Tensor>(
@@ -620,13 +639,6 @@ export class WebGPUBackend extends KernelBackend {
     return this.compileAndRun(program, [a, b], output);
   }
 
-  add(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.add(a, b);
-    }
-    return this.binaryOp(a, b, BinaryOpType.ADD);
-  }
-
   subtract(a: Tensor, b: Tensor): Tensor {
     if (this.shouldExecuteOnCPU([a, b])) {
       return this.cpuBackend.subtract(a, b);
@@ -634,26 +646,11 @@ export class WebGPUBackend extends KernelBackend {
     return this.binaryOp(a, b, BinaryOpType.SUB);
   }
 
-  less(a: Tensor, b: Tensor): Tensor {
-    return this.binaryOp(a, b, BinaryOpType.LESS, true);
-  }
-
-  lessEqual(a: Tensor, b: Tensor): Tensor {
-    return this.binaryOp(a, b, BinaryOpType.LESS_EQUAL, true);
-  }
-
   greater(a: Tensor, b: Tensor): Tensor {
     if (this.shouldExecuteOnCPU([a, b])) {
       return this.cpuBackend.greater(a, b);
     }
     return this.binaryOp(a, b, BinaryOpType.GREATER, true);
-  }
-
-  greaterEqual(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.greaterEqual(a, b);
-    }
-    return this.binaryOp(a, b, BinaryOpType.GREATER_EQUAL, true);
   }
 
   private conv2dWithIm2Col(
@@ -975,19 +972,8 @@ export class WebGPUBackend extends KernelBackend {
     return res.reshape(outShape);
   }
 
-  multiply(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.multiply(a, b);
-    }
-    return this.binaryOp(a, b, BinaryOpType.MUL);
-  }
-
   realDivide(a: Tensor, b: Tensor): Tensor {
     return this.binaryOp(a, b, BinaryOpType.DIV);
-  }
-
-  floorDiv(a: Tensor, b: Tensor): Tensor {
-    return this.binaryOp(a, b, BinaryOpType.INT_DIV);
   }
 
   maximum(a: Tensor, b: Tensor): Tensor {
@@ -1002,11 +988,6 @@ export class WebGPUBackend extends KernelBackend {
       return this.cpuBackend.neg(x);
     }
     const program = new UnaryOpProgram(x.shape, unary_op.NEG);
-    return this.compileAndRun(program, [x]);
-  }
-
-  tanh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.TANH);
     return this.compileAndRun(program, [x]);
   }
 
@@ -1028,43 +1009,6 @@ export class WebGPUBackend extends KernelBackend {
     const sumExp = this.sum(b, axes).reshape(expandedShape);
 
     return div(b, sumExp);
-  }
-
-  log<T extends Tensor>(x: T): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.log(x);
-    }
-    const program = new UnaryOpProgram(x.shape, unary_op.LOG);
-    return this.compileAndRun(program, [x]);
-  }
-
-  sigmoid<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SIGMOID);
-    return this.compileAndRun(program, [x]);
-  }
-
-  relu<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.RELU);
-    return this.compileAndRun(program, [x]);
-  }
-
-  relu6<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.RELU6);
-    return this.compileAndRun(program, [x]);
-  }
-
-  abs<T extends Tensor>(x: T): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.abs(x);
-    }
-    const program = new UnaryOpProgram(x.shape, unary_op.ABS);
-    return this.compileAndRun(program, [x]);
-  }
-
-  prelu<T extends Tensor>(x: T, alpha: T): T {
-    const program = new BinaryOpProgram(
-        getBinaryOpString(BinaryOpType.PRELU), x.shape, alpha.shape);
-    return this.compileAndRun(program, [x, alpha]);
   }
 
   select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
