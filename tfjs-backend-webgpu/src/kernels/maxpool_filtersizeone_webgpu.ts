@@ -25,7 +25,6 @@ import {WebGPUProgram} from './webgpu_program';
 export class MaxPoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
@@ -39,7 +38,11 @@ export class MaxPoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    this.userCode = `
+    this.shaderKey = 'maxpoolv2';
+  }
+
+  getUserCode(): string {
+    const userCode = `
       void main() {
         ivec4 coords = getOutputCoords();
         int batch = coords[0];
@@ -55,6 +58,6 @@ export class MaxPoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
         }
       }
     `;
-    this.shaderKey = 'maxpoolv2';
+    return userCode;
   }
 }

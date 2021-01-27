@@ -25,12 +25,15 @@ import {WebGPUProgram} from './webgpu_program';
 export class Conv2DNaiveProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   workGroupSize: [number, number, number] = [4, 8, 4];
+  convInfo: backend_util.Conv2DInfo;
+  addBias: boolean;
+  activation: string;
+  hasPreluActivationWeights: boolean;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
@@ -43,25 +46,6 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
     util.assert(
         convInfo.dataFormat === 'channelsLast',
         () => 'TODO: NCHW is unimplemented');
-    let activationSnippet = '', applyActivationSnippet = '';
-    if (activation) {
-      if (hasPreluActivationWeights) {
-        activationSnippet = `float activation(float a) {
-                  float b = getPreluActivationWeightsAtOutCoords();
-                  ${activation}
-                }`;
-      } else {
-        activationSnippet = `
-                  float activation(float a) {
-                    ${activation}
-                  }
-                `;
-      }
-
-      applyActivationSnippet = `value = activation(value);`;
-    }
-
-    const addBiasSnippet = addBias ? 'value += getBiasAtOutCoords();' : '';
     if (addBias) {
       this.variableNames.push('bias');
     }
@@ -70,23 +54,53 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
       this.variableNames.push('preluActivationWeights');
     }
 
-    this.userCode = `
+    this.convInfo = convInfo;
+    this.addBias = addBias;
+    this.activation = activation;
+    this.hasPreluActivationWeights = hasPreluActivationWeights;
+
+    this.shaderKey = `conv2dnaive${activation}`;
+  }
+
+  getUserCode(): string {
+    let activationSnippet = '', applyActivationSnippet = '';
+    if (this.activation) {
+      if (this.hasPreluActivationWeights) {
+        activationSnippet = `float activation(float a) {
+                  float b = getPreluActivationWeightsAtOutCoords();
+                  ${this.activation}
+                }`;
+      } else {
+        activationSnippet = `
+                  float activation(float a) {
+                    ${this.activation}
+                  }
+                `;
+      }
+
+      applyActivationSnippet = `value = activation(value);`;
+    }
+
+    const addBiasSnippet = this.addBias ? 'value += getBiasAtOutCoords();' : '';
+
+    const userCode = `
       ${activationSnippet}
       float readInp(int batch, int row, int col, int chan) {
         ivec4 coord = ivec4(batch, row, col, chan);
-        return coordsInBounds(coord, ${getShapeCoords(convInfo.inShape)}) ?
+        return coordsInBounds(coord, ${getShapeCoords(this.convInfo.inShape)}) ?
           getX(batch, row, col, chan) : 0;
       }
 
       float readFilt(int row, int col, int xChannel, int outChannel) {
         ivec4 coord = ivec4(row, col, xChannel, outChannel);
-        return coordsInBounds(coord, ${getShapeCoords(convInfo.filterShape)}) ?
+        return coordsInBounds(coord, ${
+        getShapeCoords(this.convInfo.filterShape)}) ?
           getW(row, col, xChannel, outChannel) : 0;
       }
 
       void writeResult(int batch, int row, int col, int chan, float value) {
         ivec4 coord = ivec4(batch, row, col, chan);
-        if (coordsInBounds(coord, ${getShapeCoords(convInfo.outShape)})) {
+        if (coordsInBounds(coord, ${getShapeCoords(this.convInfo.outShape)})) {
           ${addBiasSnippet}
           ${applyActivationSnippet}
           setOutput(batch, row, col, chan, value);
@@ -103,7 +117,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
         for (int row = 0; row < filterDims[0]; ++row) {
           for (int col = 0; col < filterDims[1]; ++col) {
             for (int xChannel = 0; xChannel < ${
-        convInfo.inChannels}; ++xChannel) {
+        this.convInfo.inChannels}; ++xChannel) {
               float v = readInp(batch,
                   coords[1] * stride[0] + dilation[0] * row - pad[0],
                   coords[2] * stride[1] + dilation[1] * col - pad[1],
@@ -117,6 +131,6 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
         writeResult(batch, coords[1], coords[2], outChannel, acc);
       }
     `;
-    this.shaderKey = `conv2dnaive${activation}`;
+    return userCode;
   }
 }
