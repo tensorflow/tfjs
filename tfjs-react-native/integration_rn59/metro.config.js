@@ -25,6 +25,7 @@ const blacklist = require('metro-config/src/defaults/blacklist');
 
 module.exports = {
   transformer: {
+    allowOptionalDependencies: true,
     getTransformOptions: async () => ({
       transform: {
         experimentalImportSupport: false,
@@ -35,6 +36,7 @@ module.exports = {
   resolver: {
     assetExts: ['bin', 'txt', 'jpg'],
     sourceExts: ['js', 'json', 'ts', 'tsx', 'jsx'],
+    resolverMainFields: ['module', 'main'],
     blacklistRE: blacklist([/platform_node/])
   },
 };

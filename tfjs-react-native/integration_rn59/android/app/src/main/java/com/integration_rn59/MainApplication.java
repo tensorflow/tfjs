@@ -19,6 +19,7 @@ package com.integration_rn59;
 
 import android.app.Application;
 import com.facebook.react.ReactApplication;
+import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;
 import com.horcrux.svg.SvgPackage;
 import com.rnfs.RNFSPackage;
 import com.facebook.react.ReactNativeHost;
@@ -46,7 +47,8 @@ public class MainApplication extends Application implements ReactApplication {
 
     @Override
     protected List<ReactPackage> getPackages() {
-      return Arrays.<ReactPackage>asList(new MainReactPackage(), new SvgPackage(),
+      return Arrays.<ReactPackage>asList(new MainReactPackage(),
+            new AsyncStoragePackage(), new SvgPackage(),
           new RNFSPackage(), new ModuleRegistryAdapter(mModuleRegistryProvider),
           new AsyncStoragePackage());
     }
