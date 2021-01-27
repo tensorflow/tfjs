@@ -26,14 +26,11 @@ export function zerosLike(
   const {inputs, backend} = args;
   const {x} = inputs;
 
-    return fill({
-      attrs: {
-        shape: x.shape,
-        dtype: x.dtype,
-        value: x.dtype === 'string' ? '' : 0
-      },
-      backend
-    });
+  return fill({
+    attrs:
+        {shape: x.shape, dtype: x.dtype, value: x.dtype === 'string' ? '' : 0},
+    backend
+  });
 }
 
 export const zerosLikeConfig: KernelConfig = {

@@ -15,9 +15,11 @@
  * =============================================================================
  */
 
-import {RealDiv, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
-import {BinaryOpType} from './binary_ops';
+import {KernelConfig, KernelFunc, RealDiv} from '@tensorflow/tfjs-core';
+
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+
+import {BinaryOpType} from './binary_ops';
 
 export const realDiv = binaryKernelFunc({opSnippet: BinaryOpType.DIV});
 

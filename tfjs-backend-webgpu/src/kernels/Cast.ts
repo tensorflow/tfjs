@@ -48,7 +48,6 @@ export function cast(
     const binaryInputs: BinaryInputs = {a: x, b: zerosTensorInfo};
 
     const result = notEqual({inputs: binaryInputs, backend}) as TensorInfo;
-    //backend.disposeIntermediateTensorInfo(zerosTensorInfo);
     return result;
   }
 

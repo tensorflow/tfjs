@@ -23,7 +23,7 @@ import {DepthwiseConv2DProgram} from './depthwise_conv2d_webgpu';
 export function depthwiseConv2dNative(args: {
   inputs: DepthwiseConv2dNativeInputs,
   attrs: DepthwiseConv2dNativeAttrs,
-  backend: WebGPUBackend 
+  backend: WebGPUBackend
 }) {
   const {inputs, backend, attrs} = args;
   const {x, filter} = inputs;

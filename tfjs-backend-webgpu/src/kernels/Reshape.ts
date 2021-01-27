@@ -20,8 +20,7 @@ import {KernelConfig, KernelFunc, Reshape, ReshapeAttrs, ReshapeInputs, TensorIn
 import {WebGPUBackend} from '../backend_webgpu';
 
 export function reshape(
-    args:
-        {inputs: ReshapeInputs, backend: WebGPUBackend, attrs: ReshapeAttrs}):
+    args: {inputs: ReshapeInputs, backend: WebGPUBackend, attrs: ReshapeAttrs}):
     TensorInfo {
   const {inputs, attrs} = args;
   const {x} = inputs;

@@ -23,7 +23,7 @@ import {batchMatMulImpl} from './BatchMatMul_impl';
 export function _fusedMatMul(args: {
   inputs: _FusedMatMulInputs,
   attrs: _FusedMatMulAttrs,
-  backend: WebGPUBackend 
+  backend: WebGPUBackend
 }) {
   const {inputs, backend, attrs} = args;
   const {a, b, bias, preluActivationWeights} = inputs;

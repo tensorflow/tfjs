@@ -23,7 +23,7 @@ import {batchMatMulImpl} from './BatchMatMul_impl';
 export function batchMatMul(args: {
   inputs: BatchMatMulInputs,
   attrs: BatchMatMulAttrs,
-  backend: WebGPUBackend 
+  backend: WebGPUBackend
 }) {
   const {inputs, backend, attrs} = args;
   const {a, b} = inputs;

@@ -18,8 +18,9 @@
 import {ClipByValue, ClipByValueAttrs, ClipByValueInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {ClipProgram} from './clip_webgpu';
+
 import {ClipVec4Program} from './clip_vec4_webgpu';
+import {ClipProgram} from './clip_webgpu';
 
 export function clipByValue(args: {
   inputs: ClipByValueInputs,

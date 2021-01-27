@@ -15,14 +15,14 @@
  * =============================================================================
  */
 
-import {NotEqual, KernelConfig} from '@tensorflow/tfjs-core';
-import {BinaryOpType} from './binary_ops';
+import {KernelConfig, NotEqual} from '@tensorflow/tfjs-core';
+
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-export const notEqual = binaryKernelFunc({
-  opSnippet: BinaryOpType.NOT_EQUAL,
-  dtype: 'bool'
-});
+import {BinaryOpType} from './binary_ops';
+
+export const notEqual =
+    binaryKernelFunc({opSnippet: BinaryOpType.NOT_EQUAL, dtype: 'bool'});
 
 export const notEqualConfig: KernelConfig = {
   kernelName: NotEqual,

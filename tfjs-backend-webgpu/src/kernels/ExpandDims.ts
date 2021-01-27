@@ -23,7 +23,7 @@ import {reshape} from './Reshape';
 export function expandDims(args: {
   inputs: ExpandDimsInputs,
   attrs: ExpandDimsAttrs,
-  backend: WebGPUBackend 
+  backend: WebGPUBackend
 }): TensorInfo {
   const {inputs, attrs, backend} = args;
   const {dim} = attrs;

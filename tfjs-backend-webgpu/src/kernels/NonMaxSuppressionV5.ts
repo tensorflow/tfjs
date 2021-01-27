@@ -41,9 +41,9 @@ export function nonMaxSuppressionV5(args: {
   const softNmsSigmaVal = softNmsSigma;
 
   const {selectedIndices, selectedScores} =
-      kernel_impls.nonMaxSuppressionV5Impl( boxesVals, scoresVals,
-        maxOutputSizeVal, iouThresholdVal,
-        scoreThresholdVal, softNmsSigmaVal);
+      kernel_impls.nonMaxSuppressionV5Impl(
+          boxesVals, scoresVals, maxOutputSizeVal, iouThresholdVal,
+          scoreThresholdVal, softNmsSigmaVal);
 
   return [
     backend.makeTensorInfo(

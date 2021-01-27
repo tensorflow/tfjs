@@ -18,9 +18,10 @@
 import {backend_util, env, FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+
+import {Conv2DMMVec4Program} from './conv2d_mm_vec4_webgpu';
 import {Conv2DMMProgram} from './conv2d_mm_webgpu';
 import {Conv2DNaiveProgram} from './conv2d_naive_webgpu';
-import {Conv2DMMVec4Program} from './conv2d_mm_vec4_webgpu';
 
 export function fusedConv2d(args: {
   inputs: FusedConv2DInputs,
@@ -29,14 +30,8 @@ export function fusedConv2d(args: {
 }) {
   const {inputs, backend, attrs} = args;
   const {x, filter, bias, preluActivationWeights} = inputs;
-  const {
-    strides,
-    pad,
-    dataFormat,
-    dilations,
-    dimRoundingMode,
-    activation
-  } = attrs;
+  const {strides, pad, dataFormat, dilations, dimRoundingMode, activation} =
+      attrs;
 
   const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
   const convInfo = backend_util.computeConv2DInfo(

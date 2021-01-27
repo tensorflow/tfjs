@@ -26,11 +26,9 @@ import {reshape} from './Reshape';
 import {sub} from './Sub';
 import {sum} from './Sum';
 
-export function softmax(args: {
-  inputs: SoftmaxInputs,
-  backend: WebGPUBackend,
-  attrs: SoftmaxAttrs
-}): TensorInfo {
+export function softmax(
+    args: {inputs: SoftmaxInputs, backend: WebGPUBackend, attrs: SoftmaxAttrs}):
+    TensorInfo {
   const {inputs, backend, attrs} = args;
   const {logits} = inputs;
   const {dim} = attrs;

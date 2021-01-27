@@ -22,8 +22,7 @@ import {ArgMinMaxProgram} from './argminmax_webgpu';
 import {transpose} from './Transpose';
 
 export function argMax(
-    args:
-        {inputs: ArgMaxInputs, backend: WebGPUBackend, attrs: ArgMaxAttrs}):
+    args: {inputs: ArgMaxInputs, backend: WebGPUBackend, attrs: ArgMaxAttrs}):
     TensorInfo {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
@@ -42,8 +41,7 @@ export function argMax(
   backend_util.assertAxesAreInnerMostDims('argMax', [axes[0]], $x.shape.length);
   const program = new ArgMinMaxProgram($x.shape, axes[0], 'max');
   const out = backend.runWebGPUProgram(program, [$x], 'int32', [axes[0]]);
-  intermediateTensorInfos.forEach(
-      t => backend.disposeData(t.dataId));
+  intermediateTensorInfos.forEach(t => backend.disposeData(t.dataId));
   return out;
 }
 

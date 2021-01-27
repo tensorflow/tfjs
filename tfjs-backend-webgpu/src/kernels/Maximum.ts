@@ -15,10 +15,12 @@
  * =============================================================================
  */
 
-import {Maximum, KernelConfig} from '@tensorflow/tfjs-core';
+import {KernelConfig, Maximum} from '@tensorflow/tfjs-core';
+
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {BinaryOpType} from './binary_ops';
 import {maximumImplCPU as cpuMaximum} from '../kernel_utils/shared';
+
+import {BinaryOpType} from './binary_ops';
 
 export const maximum = binaryKernelFunc({
   opSnippet: BinaryOpType.MAX,
@@ -28,5 +30,5 @@ export const maximum = binaryKernelFunc({
 export const maximumConfig: KernelConfig = {
   kernelName: Maximum,
   backendName: 'webgpu',
-  kernelFunc: maximum 
+  kernelFunc: maximum
 };

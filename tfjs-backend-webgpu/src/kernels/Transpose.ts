@@ -16,15 +16,17 @@
  */
 
 import {KernelConfig, KernelFunc, Transpose, TransposeAttrs, TransposeInputs, TypedArray, util} from '@tensorflow/tfjs-core';
+
 import {WebGPUBackend} from '../backend_webgpu';
 import {transposeImplCPU as cpuTranspose} from '../kernel_utils/shared';
-import {TransposeProgram} from './transpose_webgpu';
+
 import {TransposeSharedProgram} from './transpose_shared_webgpu';
+import {TransposeProgram} from './transpose_webgpu';
 
 export function transpose(args: {
   inputs: TransposeInputs,
   attrs: TransposeAttrs,
-  backend: WebGPUBackend 
+  backend: WebGPUBackend
 }) {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;

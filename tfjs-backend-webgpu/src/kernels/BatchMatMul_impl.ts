@@ -18,8 +18,9 @@
 import {backend_util, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {MatMulPackedProgram} from './matmul_packed_webgpu';
+
 import {MatMulPackedVec4Program} from './matmul_packed_vec4_webgpu';
+import {MatMulPackedProgram} from './matmul_packed_webgpu';
 import {reshape} from './Reshape';
 
 type BatchMatMulConfig = {
@@ -95,8 +96,8 @@ export function batchMatMulImpl({
 
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
-  const useVec4 = a.shape[2] % 4 === 0 && b.shape[2] % 4 === 0 &&
-      !transposeA && !transposeB;
+  const useVec4 = a.shape[2] % 4 === 0 && b.shape[2] % 4 === 0 && !transposeA &&
+      !transposeB;
   const fusedActivation = activation ?
       backend.mapActivationToShaderProgram(activation, useVec4) :
       null;

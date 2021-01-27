@@ -17,15 +17,14 @@
 import {backend_util, KernelConfig, KernelFunc, MaxPool, MaxPoolAttrs, MaxPoolInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {Pool2DProgram} from './pool2d_webgpu';
-import {MaxPoolWithFilterSizeEqualsOneProgram} from './maxpool_filtersizeone_webgpu';
-import {identity} from './Identity';
 
-export function maxPool(args: {
-  inputs: MaxPoolInputs,
-  backend: WebGPUBackend,
-  attrs: MaxPoolAttrs
-}): TensorInfo {
+import {identity} from './Identity';
+import {MaxPoolWithFilterSizeEqualsOneProgram} from './maxpool_filtersizeone_webgpu';
+import {Pool2DProgram} from './pool2d_webgpu';
+
+export function maxPool(
+    args: {inputs: MaxPoolInputs, backend: WebGPUBackend, attrs: MaxPoolAttrs}):
+    TensorInfo {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
   const {filterSize, strides, pad, dimRoundingMode} = attrs;
@@ -34,25 +33,25 @@ export function maxPool(args: {
       x.shape as [number, number, number, number], filterSize, strides,
       dilations, pad, dimRoundingMode);
   let program: Pool2DProgram|MaxPoolWithFilterSizeEqualsOneProgram;
-    if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1) {
-      if (util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
-        return identity({inputs: {x}, backend});
-      }
-      program = new MaxPoolWithFilterSizeEqualsOneProgram(convInfo);
-    } else {
-      program = new Pool2DProgram(convInfo, 'max');
+  if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1) {
+    if (util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
+      return identity({inputs: {x}, backend});
     }
+    program = new MaxPoolWithFilterSizeEqualsOneProgram(convInfo);
+  } else {
+    program = new Pool2DProgram(convInfo, 'max');
+  }
 
-    const dimensions = [
-      convInfo.padInfo.left, convInfo.padInfo.top,      // Padding.
-      convInfo.strideWidth, convInfo.strideHeight,      // Stride.
-      convInfo.dilationWidth, convInfo.dilationHeight,  // Dilation.
-      convInfo.inWidth, convInfo.inHeight,              // Conv dims.
-      convInfo.effectiveFilterWidth,
-      convInfo.effectiveFilterHeight  // Filter dims.
-    ];
+  const dimensions = [
+    convInfo.padInfo.left, convInfo.padInfo.top,      // Padding.
+    convInfo.strideWidth, convInfo.strideHeight,      // Stride.
+    convInfo.dilationWidth, convInfo.dilationHeight,  // Dilation.
+    convInfo.inWidth, convInfo.inHeight,              // Conv dims.
+    convInfo.effectiveFilterWidth,
+    convInfo.effectiveFilterHeight  // Filter dims.
+  ];
 
-    return backend.runWebGPUProgram(program, [x], x.dtype, dimensions);
+  return backend.runWebGPUProgram(program, [x], x.dtype, dimensions);
 }
 
 export const maxPoolConfig: KernelConfig = {

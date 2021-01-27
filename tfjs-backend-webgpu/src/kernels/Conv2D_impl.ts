@@ -18,10 +18,10 @@
 import {backend_util, env, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {Im2ColProgram} from './im2col_webgpu';
-import {MatMulPackedProgram} from './matmul_packed_webgpu';
 
 import {batchMatMul} from './BatchMatMul';
+import {Im2ColProgram} from './im2col_webgpu';
+import {MatMulPackedProgram} from './matmul_packed_webgpu';
 import {reshape} from './Reshape';
 
 type Conv2DConfig = {
@@ -38,12 +38,7 @@ type Conv2DConfig = {
 // For 1x1 kernels that iterate through every point in the input, convolution
 // can be expressed as matrix multiplication (without need for memory
 // remapping).
-export function conv2dByMatMul({
-  x,
-  filter,
-  convInfo,
-  backend
-}: Conv2DConfig) {
+export function conv2dByMatMul({x, filter, convInfo, backend}: Conv2DConfig) {
   const xShape = x.shape;
   const isChannelsLast = convInfo.dataFormat === 'channelsLast';
   const transposeA = false;
@@ -56,22 +51,22 @@ export function conv2dByMatMul({
     backend,
     attrs: {shape: [1, targetShape, convInfo.inChannels]}
   });
-  const filterReshaped =
-      reshape({
-        inputs: {x: filter},
-        backend,
-        attrs: {shape: [1, convInfo.inChannels, convInfo.outChannels]}
+  const filterReshaped = reshape({
+    inputs: {x: filter},
+    backend,
+    attrs: {shape: [1, convInfo.inChannels, convInfo.outChannels]}
   });
 
   return reshape({
-      inputs: {x: batchMatMul({
-                inputs: {a: xReshaped, b: filterReshaped},
-                backend,
-                attrs: {transposeA, transposeB}
-              })
-      },
-      backend,
-      attrs: {shape: convInfo.outShape}
+    inputs: {
+      x: batchMatMul({
+        inputs: {a: xReshaped, b: filterReshaped},
+        backend,
+        attrs: {transposeA, transposeB}
+      })
+    },
+    backend,
+    attrs: {shape: convInfo.outShape}
   });
 }
 
@@ -112,16 +107,13 @@ export function conv2dWithIm2Col({
 
   const xSqueezed =
       reshape({inputs: {x}, backend, attrs: {shape: x.shape.slice(1)}});
-  const w2Row = reshape({
-    inputs: {x: filter},
-    backend,
-    attrs: {shape: [1, sharedDim, -1]}
-  });
+  const w2Row = reshape(
+      {inputs: {x: filter}, backend, attrs: {shape: [1, sharedDim, -1]}});
 
   const im2ColProgram =
       new Im2ColProgram(x2ColShape, xSqueezed.shape, convInfo);
-  const im2Col = backend.runWebGPUProgram(
-      im2ColProgram, [xSqueezed], xSqueezed.dtype);
+  const im2Col =
+      backend.runWebGPUProgram(im2ColProgram, [xSqueezed], xSqueezed.dtype);
   const im2Col3D = reshape({
     inputs: {x: im2Col},
     backend,

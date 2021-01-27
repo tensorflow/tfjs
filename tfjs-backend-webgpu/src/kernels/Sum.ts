@@ -39,12 +39,15 @@ export function sum(
   const [outShape, reduceShape] =
       backend_util.computeOutAndReduceShapes(xShape, axes);
   const reduceSize = util.sizeFromShape(reduceShape);
-  const a2D = reshape({inputs: {x}, attrs: {shape: [-1, reduceSize]},
-      backend: webgpuBackend});
+  const a2D = reshape(
+      {inputs: {x}, attrs: {shape: [-1, reduceSize]}, backend: webgpuBackend});
   const outputDType = sumOutType(x.dtype);
   const a2DReduce = reduce(a2D, outputDType, 'sum', webgpuBackend);
-  return reshape({inputs: {x: a2DReduce}, attrs: {shape: outShape},
-      backend: webgpuBackend});
+  return reshape({
+    inputs: {x: a2DReduce},
+    attrs: {shape: outShape},
+    backend: webgpuBackend
+  });
 }
 
 export const sumConfig: KernelConfig = {
