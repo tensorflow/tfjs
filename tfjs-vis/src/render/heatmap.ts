@@ -170,13 +170,13 @@ export async function heatmap(
         'field': 'x',
         'type': options.xType,
         'title': options.xLabel,
-        'sort': 'x',
+        'sort': false,
       },
       'y': {
         'field': 'y',
         'type': options.yType,
         'title': options.yLabel,
-        'sort': 'y',
+        'sort': false,
       },
       'fill': {
         'field': 'value',
