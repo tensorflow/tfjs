@@ -411,7 +411,7 @@ export class WebGPUBackend extends KernelBackend {
       uniforms = this.makeUniforms(uniformData);
     }
 
-    const inputsData = inputs.map((input: Tensor, i: number) => {
+    const inputsData = inputs.map((input: TensorInfo, i: number) => {
       this.uploadToGPU(input.dataId);
 
       return {

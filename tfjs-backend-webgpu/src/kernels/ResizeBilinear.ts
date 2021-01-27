@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, ResizeBilinear, ResizeBilinearAttrs, ResizeBilinearInputs, Tensor4D, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, ResizeBilinear, ResizeBilinearAttrs, ResizeBilinearInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {ResizeBilinearProgram} from './resize_bilinear_webgpu';
@@ -32,7 +32,7 @@ export function resizeBilinear(args: {
   const [newHeight, newWidth] = size;
   const program =
       new ResizeBilinearProgram(
-          (images as Tensor4D).shape , newHeight, newWidth, alignCorners);
+          images.shape , newHeight, newWidth, alignCorners);
 
   return backend.runWebGPUProgram(program, [images], 'float32');
 }
