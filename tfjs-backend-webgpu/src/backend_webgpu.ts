@@ -488,19 +488,6 @@ export class WebGPUBackend extends KernelBackend {
     return output;
   }
 
-  // TODO remove this once webgpu backend has been all modularized
-  public compileAndRun<K extends TensorInfo>(
-      program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
-      output?: TensorInfo, programUniforms?: number[]): K {
-    if (output == null) {
-      output = this.makeOutputArray(program.outputShape, inputs[0].dtype);
-    }
-    const outInfo =
-        this.runWebGPUProgram(program, inputs, output.dtype, programUniforms);
-    return engine().makeTensorFromDataId(
-               outInfo.dataId, outInfo.shape, outInfo.dtype) as {} as K;
-  }
-
   async getTimeFromQuerySet(querySet: GPUQuerySet) {
     const queryBuffer = this.acquireBuffer(
         16, GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);

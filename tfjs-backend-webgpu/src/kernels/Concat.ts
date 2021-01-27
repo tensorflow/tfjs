@@ -22,35 +22,42 @@ import {ConcatProgram} from './concat_webgpu';
 import {reshape} from './Reshape';
 
 export function concat(
-    args:
-        {inputs: ConcatInputs, attrs: ConcatAttrs, backend: WebGPUBackend}):
+    args: {inputs: ConcatInputs, attrs: ConcatAttrs, backend: WebGPUBackend}):
     TensorInfo {
   const {inputs, backend, attrs} = args;
   const {axis} = attrs;
+
+  const $axis = util.parseAxisParam(axis, inputs[0].shape)[0];
+  const outShape =
+      backend_util.computeOutShape(inputs.map(t => t.shape), $axis);
+  if (util.sizeFromShape(outShape) === 0) {
+    return backend.makeTensorInfo(outShape, inputs[0].dtype, []);
+  }
 
   if (inputs.length === 1) {
     return inputs[0];
   }
 
-  const outShape =
-      backend_util.computeOutShape(inputs.map(t => t.shape), axis);
-  const tensors2D: TensorInfo[] = inputs.map(t => 
-    reshape({
-      inputs: {x: t},
-      backend,
-      attrs: {shape: [
-          util.sizeFromShape(t.shape.slice(0, axis)),
-          util.sizeFromShape(t.shape.slice(axis))]}
-    })
-  );
-  const program = new ConcatProgram((tensors2D).map(t =>
-      t.shape as [number, number]));
+  // Keep only non-empty tensors (ignore tensors with 0 in their shape).
+  const $inputs = inputs.filter(t => util.sizeFromShape(t.shape) > 0);
+  const shapes = $inputs.map(t => t.shape);
+  backend_util.assertParamsConsistent(shapes, $axis);
+
+  const tensors2D: TensorInfo[] =
+      $inputs.map(t => reshape({
+                    inputs: {x: t},
+                    backend,
+                    attrs: {
+                      shape: [
+                        util.sizeFromShape(t.shape.slice(0, $axis)),
+                        util.sizeFromShape(t.shape.slice($axis))
+                      ]
+                    }
+                  }));
+  const program =
+      new ConcatProgram((tensors2D).map(t => t.shape as [number, number]));
   const res = backend.runWebGPUProgram(program, tensors2D, tensors2D[0].dtype);
-  return reshape({
-    inputs: {x: res},
-    backend,
-    attrs: {shape: outShape}
-  });
+  return reshape({inputs: {x: res}, backend, attrs: {shape: outShape}});
 }
 
 export const concatConfig: KernelConfig = {

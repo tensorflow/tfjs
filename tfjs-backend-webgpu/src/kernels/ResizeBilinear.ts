@@ -32,7 +32,8 @@ export function resizeBilinear(args: {
   const [newHeight, newWidth] = size;
   const program =
       new ResizeBilinearProgram(
-          images.shape , newHeight, newWidth, alignCorners);
+          images.shape as [number, number, number, number] ,
+          newHeight, newWidth, alignCorners);
 
   return backend.runWebGPUProgram(program, [images], 'float32');
 }

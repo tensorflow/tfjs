@@ -45,25 +45,28 @@ export class ConcatProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const offsets: number[] = new Array(this.shapes.length - 1);
-    offsets[0] = this.shapes[0][1];
-    for (let i = 1; i < offsets.length; i++) {
-      offsets[i] = offsets[i - 1] + this.shapes[i][1];
-    }
+    const snippets: string[] = [];
+    if (offsets.length > 0) {
+      offsets[0] = this.shapes[0][1];
+      for (let i = 1; i < offsets.length; i++) {
+        offsets[i] = offsets[i - 1] + this.shapes[i][1];
+      }
 
-    const snippets = [
-      `if (yC < ${offsets[0]}) setOutput(coords.x, coords.y, getT0(yR, yC));`
-    ];
-
-    for (let i = 1; i < offsets.length; i++) {
-      const shift = offsets[i - 1];
-      snippets.push(
-          `else if (yC < ${offsets[i]}) ` +
-          `setOutput(coords.x, coords.y, getT${i}(yR, yC-${shift}));`);
+      snippets.push(`if (yC < ${
+          offsets[0]}) setOutput(coords.x, coords.y, getT0(yR, yC));`);
+      for (let i = 1; i < offsets.length; i++) {
+        const shift = offsets[i - 1];
+        snippets.push(
+            `else if (yC < ${offsets[i]}) ` +
+            `setOutput(coords.x, coords.y, getT${i}(yR, yC-${shift}));`);
+      }
+      const lastIndex = offsets.length;
+      const lastShift = offsets[offsets.length - 1];
+      snippets.push(`else setOutput(coords.x, coords.y, getT${
+          lastIndex}(yR, yC-${lastShift}));`);
+    } else {
+      snippets.push(`setOutput(coords.x, coords.y, getT0(yR, yC));`);
     }
-    const lastIndex = offsets.length;
-    const lastShift = offsets[offsets.length - 1];
-    snippets.push(`else setOutput(coords.x, coords.y, getT${lastIndex}(yR, yC-${
-        lastShift}));`);
     const size = util.sizeFromShape(this.outputShape);
     const userCode = `
       void main() {

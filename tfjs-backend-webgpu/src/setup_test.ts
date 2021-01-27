@@ -172,6 +172,7 @@ const TEST_FILTERS: TestFilter[] = [
       'complex',                           // No complex support yet.
       'concat a large number of tensors',  // Actual != Expected.
       'gradient',                          // split not yet implemented.
+      'string'                             // Not ye implemented.
     ]
   },
   {
@@ -186,12 +187,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    include: 'leakyrelu',
-    excludes: [
-      'leakyrelu',
-    ]
-  },
-  {
     include: 'relu',
     excludes: [
       'valueAndGradients',     // sum not yet implemented.
@@ -202,6 +197,7 @@ const TEST_FILTERS: TestFilter[] = [
       'derivative',            // sum not yet implemented.
       'gradient with clones',  // sum not yet implemented.
       'derivative where alpha got broadcasted',  // sum not yet implemented.
+      'leakyrelu'              // Not yet implemented.
     ]
   },
   {

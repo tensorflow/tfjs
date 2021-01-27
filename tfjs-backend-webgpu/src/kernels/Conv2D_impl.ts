@@ -134,6 +134,9 @@ export function conv2dWithIm2Col({
       transposeB);
   const result: TensorInfo = backend.runWebGPUProgram(
       matMulProgram, [im2Col3D, w2Row], im2Col3D.dtype);
+
+  backend.disposeData(im2Col3D.dataId);
+
   if (isChannelsLast) {
     return reshape({
       inputs: {x: result},
