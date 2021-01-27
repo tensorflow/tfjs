@@ -34,7 +34,6 @@ export class BatchNormProgram implements WebGPUProgram {
   scaleShape: number[]|null;
   varianceEpsilon: number;
 
-
   constructor(
       xShape: number[], meanShape: number[], varianceShape: number[],
       offsetShape: number[]|null, scaleShape: number[]|null,

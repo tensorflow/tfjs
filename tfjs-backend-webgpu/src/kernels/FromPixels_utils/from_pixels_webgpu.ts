@@ -23,7 +23,6 @@ import {WebGPUProgram} from '../webgpu_program';
 export class FromPixelsProgram implements WebGPUProgram {
   outputShape: number[] = [0];
   shaderKey: string;
-  userCode: string;
   workPerThread: number;
   dispatchLayout: {x: number[]};
   variableNames: string[] = [];

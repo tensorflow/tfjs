@@ -44,7 +44,6 @@ export class ClipVec4Program implements WebGPUProgram {
     this.shaderKey = `clipvec4${minVal}${maxVal}`;
   }
 
-
   getUserCode(): string {
     const type = getCoordsDataType(this.outputShape.length);
     const size = util.sizeFromShape(this.outputShape);

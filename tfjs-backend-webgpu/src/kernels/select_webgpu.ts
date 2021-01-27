@@ -25,7 +25,6 @@ export class SelectProgram implements WebGPUProgram {
   variableNames = ['c', 'a', 'b'];
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workPerThread = 4;
