@@ -45,7 +45,7 @@ export function cumsum(
             x.shape.length - 1} ` +
         `but got axis=${axis}`);
   }
-  const size = x.shape[permutedAxis];
+  const size = permutedX.shape[permutedAxis];
   let result = identity({inputs: {x: permutedX}, backend});
   // Use cumsum parallel algorithm, ref:
   // https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
