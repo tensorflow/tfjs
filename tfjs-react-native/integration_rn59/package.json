@@ -17,12 +17,12 @@
     "copywebgl": "\\cp -rf ../../tfjs-backend-webgl/dist node_modules/@tensorflow/tfjs-backend-webgl"
   },
   "dependencies": {
-    "@react-native-community/async-storage": "^1.6.1",
+    "@react-native-async-storage/async-storage": "^1.13.3",
     "@tensorflow-models/blazeface": "^0.0.2",
     "@tensorflow-models/mobilenet": "^2.0.4",
     "@tensorflow-models/posenet": "^2.2.1",
-    "@tensorflow/tfjs": "2.6.0",
-    "@tensorflow/tfjs-react-native": "0.4.0",
+    "@tensorflow/tfjs": "3.0.0",
+    "@tensorflow/tfjs-react-native": "0.5.0",
     "expo-camera": "^7.0.0",
     "expo-gl": "^7.0.0",
     "expo-gl-cpp": "^7.0.0",
