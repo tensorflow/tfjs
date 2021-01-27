@@ -64,30 +64,38 @@ export const LOG = `if (a < 0.0) return 1.0/0.0;
 
 export class UnaryOpProgram implements WebGPUProgram {
   outputShape: number[];
-  userCode: string;
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A'];
   workPerThread: number;
   workGroupSize: [number, number, number];
+  op: string;
 
   constructor(outputShape: number[], op: string) {
     // TODO(jiajia.qin@intel.com): Heuristically select a good work group size.
     const workGroupSizeX = 128;
     this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = outputShape;
-    const size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    const fit = size % workGroupSizeX === 0;
+    const size = util.sizeFromShape(this.outputShape);
+    const fit = size % this.workGroupSize[0] === 0;
     this.workPerThread = fit ? 1 : 2;
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
+    this.op = op;
+    this.shaderKey = `unary${op}`;
+  }
+
+  getUserCode(): string {
+    const size = util.sizeFromShape(this.outputShape);
+    const fit = size % this.workGroupSize[0] === 0;
+    let userCode: string;
     if (fit) {
-      this.userCode = `
+      userCode = `
       float unaryOperation(float a) {
-        ${op}
+        ${this.op}
       }
 
       void main() {
@@ -96,12 +104,11 @@ export class UnaryOpProgram implements WebGPUProgram {
         setOutput(index, unaryOperation(a));;
       }
       `;
-      this.shaderKey = `unary2${op}`;
     } else {
       const type = getCoordsDataType(this.outputShape.length);
-      this.userCode = `
+      userCode = `
       float unaryOperation(float a) {
-        ${op}
+        ${this.op}
       }
 
       void main() {
@@ -119,7 +126,7 @@ export class UnaryOpProgram implements WebGPUProgram {
         }
       }
       `;
-      this.shaderKey = `unary${op}${type}${size}`;
     }
+    return userCode;
   }
 }
