@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Identity, IdentityInputs, KernelConfig} from '@tensorflow/tfjs-core';
+import {Identity, IdentityInputs, KernelConfig} from '@tensorflow/tfjs';
 
 export const identityConfig: KernelConfig = {
   kernelName: Identity,
