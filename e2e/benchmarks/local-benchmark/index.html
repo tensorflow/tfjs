@@ -357,7 +357,7 @@ limitations under the License.
 
       await showMsg('Loading the model');
       let start = performance.now();
-      const inputSize = parseInt(state.inputSize);
+      const inputSize = parseFloat(state.inputSize);
       model = await benchmark.load(inputSize);
       state.inputs = [];
       if (model.inputs) {
