@@ -91,7 +91,8 @@
   "browser": {
     "node-fetch": false,
     "util": false,
-    "crypto": false
+    "crypto": false,
+    "worker_threads": false
   },
   "sideEffects": [
     "./dist/index.js",
