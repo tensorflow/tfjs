@@ -66,8 +66,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.shaderKey =
-        `conv2dmm'${this.elementsPerThread.join('')}${this.activation}`;
+    this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}`;
   }
 
   getUserCode(): string {

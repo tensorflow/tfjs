@@ -172,8 +172,8 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.shaderKey = `matmulpacked${this.workPerThread}${transposeA}${
-        transposeB}${activation}`;
+    this.shaderKey = `matMulPacked_${this.workPerThread}_${transposeA}_${
+        transposeB}_${activation}`;
   }
 
   getUserCode(): string {
