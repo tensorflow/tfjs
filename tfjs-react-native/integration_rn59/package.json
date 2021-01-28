@@ -10,11 +10,12 @@
     "test-integration": "wdio wdio.conf.js",
     "test-ci": "./scripts/test-ci.sh",
     "postinstall": "npm run prep-tests",
-    "copydeps": "yarn copyrn && yarn copycore && yarn copycpu && yarn copywebgl",
+    "copydeps": "yarn copyrn && yarn copycore && yarn copycpu && yarn copywebgl && yarn copyunion",
     "copyrn": "\\cp -rf ../dist node_modules/@tensorflow/tfjs-react-native",
     "copycore": "\\cp -rf ../../tfjs-core/dist node_modules/@tensorflow/tfjs-core",
     "copycpu": "\\cp -rf ../../tfjs-backend-cpu/dist node_modules/@tensorflow/tfjs-backend-cpu",
-    "copywebgl": "\\cp -rf ../../tfjs-backend-webgl/dist node_modules/@tensorflow/tfjs-backend-webgl"
+    "copywebgl": "\\cp -rf ../../tfjs-backend-webgl/dist node_modules/@tensorflow/tfjs-backend-webgl",
+    "copyunion": "\\cp -rf ../../tfjs/dist node_modules/@tensorflow/tfjs"
   },
   "dependencies": {
     "@react-native-community/async-storage": "^1.6.1",
