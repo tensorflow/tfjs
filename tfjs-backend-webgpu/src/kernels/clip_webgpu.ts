@@ -24,23 +24,30 @@ import {WebGPUProgram} from './webgpu_program';
 export class ClipProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   variableNames = ['A'];
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workPerThread = 1;
   workGroupSize: [number, number, number] = [64, 1, 1];
+  minVal: number;
+  maxVal: number;
 
   constructor(outputShape: number[], minVal: number, maxVal: number) {
     this.outputShape = outputShape;
-    const size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-    const type = getCoordsDataType(this.outputShape.length);
 
-    this.userCode = `
+    this.minVal = minVal;
+    this.maxVal = maxVal;
+    this.shaderKey = `clip_${minVal}_${maxVal}`;
+  }
+
+  getUserCode(): string {
+    const type = getCoordsDataType(this.outputShape.length);
+    const size = util.sizeFromShape(this.outputShape);
+    const userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
         for(int i = 0; i < ${this.workPerThread}; i++) {
@@ -54,12 +61,11 @@ export class ClipProgram implements WebGPUProgram {
               return;
             }
 
-            setOutput(flatIndex, clamp(value, ${minVal}, ${maxVal}));
+            setOutput(flatIndex, clamp(value, ${this.minVal}, ${this.maxVal}));
           }
         }
       }
     `;
-
-    this.shaderKey = `clip${size}${type}`;
+    return userCode;
   }
 }

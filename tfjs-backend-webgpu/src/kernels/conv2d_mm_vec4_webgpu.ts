@@ -58,7 +58,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
     this.hasLeakyreluAlpha = hasLeakyreluAlpha;
-    this.shaderKey = `conv2dmmvec4${this.activation}`;
+    this.shaderKey = `conv2DMMVec4_${this.activation}`;
     if (this.addBias) {
       this.variableNames.push('bias');
     }
