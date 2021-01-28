@@ -46,10 +46,10 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
   source ../scripts/cleanup-py-env.sh
 
   cd ..
-fi
 
-# Generate custom bundle files for tests
-./scripts/run-custom-builds.sh
+  # Generate custom bundle files for tests
+  ./scripts/run-custom-builds.sh
+fi
 
 if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
   yarn run-browserstack --browsers=bs_safari_mac --tags $TAGS --testEnv webgl --flags '{"WEBGL_VERSION": 1, "WEBGL_CPU_FORWARD": false, "WEBGL_SIZE_UPLOAD_UNIFORM": 0}'
@@ -63,9 +63,4 @@ if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
   karma start ./script_tag_tests/karma.conf.js --browserstack --browsers=bs_chrome_mac --testBundle tf.min.js
 else
   yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS
-
-  # TODO(yassogba) revisit whether we want to keep this after this
-  # has merged into master.
-  # Test script tag bundles
-  karma start ./script_tag_tests/karma.conf.js --browserstack --browsers=bs_chrome_mac --testBundle tf.min.js
 fi

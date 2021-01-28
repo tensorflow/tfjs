@@ -17,7 +17,7 @@
 // tslint:disable-next-line: no-imports-from-dist
 import {CHROME_ENVS, Constraints, describeWithFlags, HAS_WORKER} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-import {SMOKE} from './constants';
+import {REGRESSION} from './constants';
 
 const CHROME_ENVS_WITH_WORKER: Constraints =
     Object.assign({}, CHROME_ENVS, HAS_WORKER);
@@ -32,7 +32,7 @@ function getBundleUrl(folder: string, custom: boolean, bundler: string) {
 
 const DEBUG_WORKER_SCRIPT = true;
 
-describe(`${SMOKE} blazeface`, () => {
+describe(`${REGRESSION} blazeface`, () => {
   describeWithFlags('webpack', CHROME_ENVS_WITH_WORKER, () => {
     let webpackBundle: {full: string, custom: string};
     let originalTimeout: number;
@@ -106,7 +106,7 @@ describe(`${SMOKE} blazeface`, () => {
   });
 });
 
-describe(`${SMOKE} dense model`, () => {
+describe(`${REGRESSION} dense model`, () => {
   describeWithFlags('webpack', CHROME_ENVS_WITH_WORKER, () => {
     let webpackBundle: {full: string, custom: string};
     let originalTimeout: number;
@@ -198,7 +198,7 @@ describe(`${SMOKE} dense model`, () => {
   });
 });
 
-describe(`${SMOKE} universal sentence encoder model`, () => {
+describe(`${REGRESSION} universal sentence encoder model`, () => {
   const expectedKernels = [
     'StridedSlice', 'Less',       'Cast',      'Reshape',       'GatherV2',
     'Max',          'Add',        'Maximum',   'SparseToDense', 'Greater',
