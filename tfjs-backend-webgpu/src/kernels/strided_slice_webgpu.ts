@@ -41,7 +41,7 @@ export class StridedSliceProgram implements WebGPUProgram {
 
     this.begin = begin;
     this.strides = strides;
-    this.shaderKey = `stridedslice${begin}${strides}`;
+    this.shaderKey = `stridedSlice_${begin}_${strides}`;
   }
 
   getUserCode(): string {

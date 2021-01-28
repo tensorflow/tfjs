@@ -49,7 +49,7 @@ export class ReduceProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.reduceType = reduceType;
-    this.shaderKey = `reduce${reduceType}`;
+    this.shaderKey = `reduce_${reduceType}`;
   }
 
   getUserCode(): string {

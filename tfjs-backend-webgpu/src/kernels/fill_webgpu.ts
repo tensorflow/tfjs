@@ -36,7 +36,7 @@ export class FillProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
 
     this.value = value;
-    this.shaderKey = `fill${value}`;
+    this.shaderKey = `fill_${value}`;
   }
 
   getUserCode(): string {

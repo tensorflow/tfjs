@@ -57,7 +57,7 @@ export class BatchNormProgram implements WebGPUProgram {
     this.offsetShape = offsetShape;
     this.scaleShape = scaleShape;
     this.varianceEpsilon = varianceEpsilon;
-    this.shaderKey = `batchnorm${varianceEpsilon}`;
+    this.shaderKey = `batchNorm_${varianceEpsilon}`;
   }
 
   getUserCode(): string {

@@ -45,7 +45,7 @@ export class TransposeProgram implements WebGPUProgram {
 
     this.aShape = aShape;
     this.newDim = newDim;
-    this.shaderKey = `tranpose${newDim.join(',')}`;
+    this.shaderKey = `transpose_${newDim}`;
   }
 
   getUserCode(): string {

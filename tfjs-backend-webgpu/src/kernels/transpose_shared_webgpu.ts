@@ -36,7 +36,7 @@ export class TransposeSharedProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize, [1, 1, 1]);
 
-    this.shaderKey = 'transposeshared';
+    this.shaderKey = 'transposeShared';
   }
 
   getUserCode(): string {

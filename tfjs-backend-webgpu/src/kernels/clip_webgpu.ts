@@ -41,7 +41,7 @@ export class ClipProgram implements WebGPUProgram {
 
     this.minVal = minVal;
     this.maxVal = maxVal;
-    this.shaderKey = `clip${minVal}${maxVal}`;
+    this.shaderKey = `clip_${minVal}_${maxVal}`;
   }
 
   getUserCode(): string {

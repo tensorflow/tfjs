@@ -42,7 +42,8 @@ export class CropAndResizeProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    this.shaderKey = `cropandresize${method}${cropSize}${extrapolationValue}`;
+    this.shaderKey =
+        `cropAndResize_${method}_${cropSize}_${extrapolationValue}`;
     this.imageShape = imageShape;
     this.cropSize = cropSize;
     this.methodId = method === 'bilinear' ? 1 : 0;

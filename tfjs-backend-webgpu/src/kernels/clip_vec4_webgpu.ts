@@ -41,7 +41,7 @@ export class ClipVec4Program implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
     this.minVal = minVal;
     this.maxVal = maxVal;
-    this.shaderKey = `clipvec4${minVal}${maxVal}`;
+    this.shaderKey = `clipVec4_${minVal}_${maxVal}`;
   }
 
   getUserCode(): string {

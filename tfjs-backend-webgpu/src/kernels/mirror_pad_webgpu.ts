@@ -47,7 +47,7 @@ export class MirrorPadProgram implements WebGPUProgram {
     this.xShape = xShape;
     this.paddings = paddings;
     this.offset = mode === 'reflect' ? 0 : 1;
-    this.shaderKey = `mirrorPad${mode}${paddings}`;
+    this.shaderKey = `mirrorPad_${mode}_${paddings}`;
   }
 
   getUserCode(): string {

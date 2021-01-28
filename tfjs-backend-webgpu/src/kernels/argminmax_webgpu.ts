@@ -65,7 +65,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.inputShape = inputShape;
-    this.shaderKey = `ArgMinMax${this.op}${reduceSize}`;
+    this.shaderKey = `argMinMax_${this.op}_${reduceSize}`;
   }
 
   getUserCode(): string {
