@@ -96,5 +96,10 @@
     "core-js": "3",
     "regenerator-runtime": "^0.13.5",
     "yargs": "^16.0.3"
+  },
+  "browser": {
+    "node-fetch": false,
+    "util": false,
+    "crypto": false
   }
 }
