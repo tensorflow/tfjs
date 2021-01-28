@@ -146,7 +146,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.shaderKey = `matmulpackedVec4`;
+    this.shaderKey = `matMulPackedVec4_${workPerThread}_${activation}`;
   }
 
   getUserCode(): string {

@@ -15,20 +15,20 @@
  * =============================================================================
  */
 
-import {computeDispatch, flatDispatchLayout} from '../../webgpu_util';
-
 import {util} from '@tensorflow/tfjs-core';
+
+import {computeDispatch, flatDispatchLayout} from '../../webgpu_util';
 import {WebGPUProgram} from '../webgpu_program';
 
 export class FromPixelsProgram implements WebGPUProgram {
   outputShape: number[] = [0];
   shaderKey: string;
-  userCode: string;
-  workPerThread:number;
+  workPerThread: number;
   dispatchLayout: {x: number[]};
   variableNames: string[] = [];
   dispatch: [number, number, number];
-  workGroupSize: [number, number, number] = [256, 1, 1]; // The empirical value.
+  workGroupSize: [number, number, number] =
+      [256, 1, 1];  // The empirical value.
 
   pipeline: GPUComputePipeline;
   bindGroupLayout: GPUBindGroupLayout;
@@ -50,14 +50,17 @@ export class FromPixelsProgram implements WebGPUProgram {
     this.workPerThread = outputShape[2];  // numChannels in outputShape.
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-      this.dispatchLayout, this.outputShape, this.workGroupSize,
-      [this.workPerThread, 1, 1]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [this.workPerThread, 1, 1]);
   }
 
   constructor(outputShape: number[]) {
     this.updateOutputShape(outputShape);
+    this.shaderKey = 'fromPixels';
+  }
 
-    this.userCode = `
+  getUserCode(): string {
+    const userCode = `
     layout (local_size_x = ${this.workGroupSize[0]},
       local_size_y = 1,
       local_size_z = 1) in;
@@ -83,12 +86,13 @@ export class FromPixelsProgram implements WebGPUProgram {
       }
     }
     `;
+    return userCode;
   }
 
   setWebGPUBinary(
-    bindGroupLayout: GPUBindGroupLayout, pipeline: GPUComputePipeline) {
-      this.bindGroupLayout = bindGroupLayout;
-      this.pipeline = pipeline;
+      bindGroupLayout: GPUBindGroupLayout, pipeline: GPUComputePipeline) {
+    this.bindGroupLayout = bindGroupLayout;
+    this.pipeline = pipeline;
   }
 
   setUniform(device: GPUDevice, uniformData: number[]) {
@@ -97,7 +101,7 @@ export class FromPixelsProgram implements WebGPUProgram {
     // and reuse it always.
     if (!this.uniform) {
       const uniformBuffer = device.createBuffer({
-        size: 8, // The uniform buffer contains two 4 bytes element always.
+        size: 8,  // The uniform buffer contains two 4 bytes element always.
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
       });
 
@@ -108,21 +112,20 @@ export class FromPixelsProgram implements WebGPUProgram {
     // The initial lastUniformData will have value [0, 0],
     // which is not a valid numChannels or valid size.
     if (!uniformData ||
-       (uniformData[0] === this.lastUniformData[0] &&
-        uniformData[1] === this.lastUniformData[1])) {
+        (uniformData[0] === this.lastUniformData[0] &&
+         uniformData[1] === this.lastUniformData[1])) {
       return;
     }
 
-    device.defaultQueue.writeBuffer(this.uniform, 0,
-                                      new Uint32Array(uniformData));
+    device.defaultQueue.writeBuffer(
+        this.uniform, 0, new Uint32Array(uniformData));
 
     this.lastUniformData[0] = uniformData[0];
     this.lastUniformData[1] = uniformData[1];
   }
 
-  makeInputTexture(device: GPUDevice,
-                   pixelWidth: number,
-                   pixelHeight: number): GPUTexture {
+  makeInputTexture(device: GPUDevice, pixelWidth: number, pixelHeight: number):
+      GPUTexture {
     if (!this.inputTexture || this.lastPixelSize.width !== pixelWidth ||
         this.lastPixelSize.height !== pixelHeight) {
       if (this.inputTexture) {
@@ -171,9 +174,7 @@ export class FromPixelsProgram implements WebGPUProgram {
     const passEncoder = commandEncoder.beginComputePass();
     passEncoder.setPipeline(this.pipeline);
     passEncoder.setBindGroup(0, bindGroup);
-    passEncoder.dispatch(this.dispatch[0],
-                         this.dispatch[1],
-                         this.dispatch[2]);
+    passEncoder.dispatch(this.dispatch[0], this.dispatch[1], this.dispatch[2]);
     passEncoder.endPass();
     return commandEncoder;
   }

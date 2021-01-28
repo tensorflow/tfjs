@@ -23,26 +23,36 @@ import {WebGPUProgram} from './webgpu_program';
 export class CropAndResizeProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['Image', 'Boxes', 'BoxInd'];
   workGroupSize: [number, number, number] = [4, 4, 4];
+  imageShape: [number, number, number, number];
+  cropSize: [number, number];
+  methodId: number;
+  extrapolationValue: number;
 
   constructor(
       imageShape: [number, number, number, number], boxShape: [number, number],
       cropSize: [number, number], method: 'bilinear'|'nearest',
       extrapolationValue: number) {
-    const [batch, imageHeight, imageWidth, depth] = imageShape;
     const [numBoxes, ] = boxShape;
-    const [cropHeight, cropWidth] = cropSize;
-    this.outputShape = [numBoxes, cropHeight, cropWidth, depth];
-    const methodId = method === 'bilinear' ? 1 : 0;
-
+    this.outputShape = [numBoxes, cropSize[0], cropSize[1], imageShape[3]];
     this.dispatchLayout = {x: [1, 2], y: [0], z: [3]};
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
+    this.shaderKey =
+        `cropAndResize_${method}_${cropSize}_${extrapolationValue}`;
+    this.imageShape = imageShape;
+    this.cropSize = cropSize;
+    this.methodId = method === 'bilinear' ? 1 : 0;
+    this.extrapolationValue = extrapolationValue;
+  }
+
+  getUserCode(): string {
+    const [batch, imageHeight, imageWidth, ] = this.imageShape;
+    const [cropHeight, cropWidth] = this.cropSize;
     const [inputHeightFloat, inputWidthFloat] =
         [`${imageHeight - 1}.0`, `${imageWidth - 1}.0`];
 
@@ -72,7 +82,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
     // Reference implementation
     // tslint:disable-next-line:max-line-length
     // https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/kernels/crop_and_resize_op_gpu.cu.cc
-    this.userCode = `
+    const userCode = `
       const float height_ratio = float(${heightRatio});
       const float width_ratio = float(${widthRatio});
       void writeResult(ivec4 coords,float value) {
@@ -100,16 +110,16 @@ export class CropAndResizeProgram implements WebGPUProgram {
         float width_scale = ${widthScale};
         float in_y = ${inY};
         if( in_y < 0.0 || in_y > ${inputHeightFloat} ) {
-          writeResult(coords,float(${extrapolationValue}));
+          writeResult(coords,float(${this.extrapolationValue}));
           return;
         }
         float in_x = ${inX};
         if( in_x < 0.0 || in_x > ${inputWidthFloat} ) {
-          writeResult(coords,float(${extrapolationValue}));
+          writeResult(coords,float(${this.extrapolationValue}));
           return;
         }
         vec2 sourceFracIndexCR = vec2(in_x,in_y);
-        if(${methodId} == 1) {
+        if(${this.methodId} == 1) {
           // Compute the four integer indices.
           ivec2 sourceFloorCR = ivec2(sourceFracIndexCR);
           ivec2 sourceCeilCR = ivec2(ceil(sourceFracIndexCR));
@@ -132,5 +142,6 @@ export class CropAndResizeProgram implements WebGPUProgram {
         }
       }
     `;
+    return userCode;
   }
 }

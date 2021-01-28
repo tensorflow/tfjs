@@ -23,37 +23,57 @@ import {WebGPUProgram} from './webgpu_program';
 export class DepthwiseConv2DProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation, inDims;';
   // This is an experimental value.
   workGroupSize: [number, number, number] = [256, 1, 1];
+  convInfo: backend_util.Conv2DInfo;
+  addBias: boolean;
+  activation: string;
+  hasPreluActivation: boolean;
 
-  constructor(convInfo: backend_util.Conv2DInfo, addBias = false,
+  constructor(
+      convInfo: backend_util.Conv2DInfo, addBias = false,
       activation: string = null, hasPreluActivation = false) {
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    const channelMul = convInfo.outChannels / convInfo.inChannels;
 
     util.assert(
         convInfo.dataFormat === 'channelsLast',
         () => 'TODO: NCHW is unimplemented');
 
+    if (addBias) {
+      this.variableNames.push('bias');
+    }
+    if (hasPreluActivation) {
+      this.variableNames.push('preluActivationWeights');
+    }
+
+    this.convInfo = convInfo;
+    this.addBias = addBias;
+    this.activation = activation;
+    this.hasPreluActivation = hasPreluActivation;
+
+    this.shaderKey = `depthwise_${activation}`;
+  }
+
+  getUserCode(): string {
+    const channelMul = this.convInfo.outChannels / this.convInfo.inChannels;
     let activationSnippet = '', applyActivationSnippet = '';
-    if (activation) {
-      if (hasPreluActivation) {
+    if (this.activation) {
+      if (this.hasPreluActivation) {
         activationSnippet = `float activation(float a) {
           float b = getPreluActivationWeightsAtOutCoords();
-          ${activation}
+          ${this.activation}
         }`;
       } else {
         activationSnippet = `
           float activation(float a) {
-            ${activation}
+            ${this.activation}
           }
         `;
       }
@@ -61,16 +81,10 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
       applyActivationSnippet = `dotProd = activation(dotProd);`;
     }
 
-    const addBiasSnippet = addBias ? 'dotProd += getBiasAtOutCoords();' : '';
-    if (addBias) {
-      this.variableNames.push('bias');
-    }
+    const addBiasSnippet =
+        this.addBias ? 'dotProd += getBiasAtOutCoords();' : '';
 
-    if (hasPreluActivation) {
-      this.variableNames.push('preluActivationWeights');
-    }
-
-    this.userCode = `
+    const userCode = `
       ${activationSnippet}
 
       void writeResult(int batch, int row, int col, int chan, float value) {
@@ -120,8 +134,6 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
         writeResult(batch, coords[1], coords[2], d2, dotProd);
       }
     `;
-
-    this.shaderKey = `depthwise${channelMul}${activation}
-        ${hasPreluActivation}${addBias}`;
+    return userCode;
   }
 }

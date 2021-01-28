@@ -59,7 +59,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
 
-    this.shaderKey = `conv2dnaive${activation}`;
+    this.shaderKey = `conv2DNaive_${activation}`;
   }
 
   getUserCode(): string {
