@@ -27,7 +27,7 @@ import {Kwargs} from '../types';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
-import {GRU, GRUCellLayerArgs, GRULayerArgs, LSTM, LSTMCellLayerArgs, LSTMLayerArgs, rnn, RNN, RNNCell, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs} from './recurrent';
+import {GRUCellLayerArgs, GRULayerArgs, LSTMCellLayerArgs, LSTMLayerArgs, rnn, RNN, RNNCell, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs} from './recurrent';
 
 /**
  * A simplistic RNN step function for testing.

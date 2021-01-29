@@ -21,7 +21,7 @@ import {DataFormat} from '../keras_format/common';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
-import {spatial2dPadding, temporalPadding, ZeroPadding2D, ZeroPadding2DLayerArgs} from './padding';
+import {spatial2dPadding, temporalPadding, ZeroPadding2DLayerArgs} from './padding';
 
 describeMathCPUAndGPU('temporalPadding', () => {
   it('default padding 1-1', () => {
