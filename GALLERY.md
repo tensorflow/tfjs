@@ -63,7 +63,7 @@ Please reach out to us if you'd like to put your project on the list.
 - [Membrane](https://membrane.today) - An interactive audiovisual tone mirror that responds to nose movement, by Ashlin Aronin.
 - [MedSeg](https://www.medseg.ai) - Online interactive segmentation tool for radiological images.
 - [NSFW Filter](https://github.com/nsfw-filter/nsfw-filter) - A browser extension to block NSFW images.
-- [MIRNet-TFJS](https://github.com/Rishit-dagli/MIRNet-TFJS) - Converts and runs the MIRNet Model on the web which is capable of enhancing low-light images upto a really great extent - By Rishit Dagli.
+- [MIRNet-TFJS](https://github.com/Rishit-dagli/MIRNet-TFJS) - Converts and runs the MIRNet Model on the web which is capable of enhancing low-light images upto a really great extent - By Rishit Dagli. [[demo](https://mirnet-tfjs.rishit.tech/)][[repo](https://github.com/Rishit-dagli/MIRNet-TFJS)]
 
 ## Tutorials / Codelabs
 
