@@ -34,7 +34,7 @@ export const spaceToBatchND = (args: {
 
   util.assert(
       x.shape.length <= 4,
-      () => 'spaceToBatchND for rank > 4 with a WebGL backend not ' +
+      () => 'spaceToBatchND for rank > 4 with a WebGPU backend not ' +
           'implemented yet');
 
   const prod = blockShape.reduce((a, b) => a * b);

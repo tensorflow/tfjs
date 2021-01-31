@@ -24,7 +24,7 @@ export function nonMaxSuppressionV3(args: {
   attrs: NonMaxSuppressionV3Attrs
 }) {
   console.warn(
-      'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
+      'tf.nonMaxSuppression() in webgpu locks the UI thread. ' +
       'Call tf.nonMaxSuppressionAsync() instead');
 
   const {inputs, backend, attrs} = args;

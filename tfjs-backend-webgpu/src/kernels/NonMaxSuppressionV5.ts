@@ -25,7 +25,7 @@ export function nonMaxSuppressionV5(args: {
   attrs: NonMaxSuppressionV5Attrs
 }): [TensorInfo, TensorInfo] {
   console.warn(
-      'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
+      'tf.nonMaxSuppression() in webgpu locks the UI thread. ' +
       'Call tf.nonMaxSuppressionAsync() instead');
 
   const {inputs, backend, attrs} = args;
