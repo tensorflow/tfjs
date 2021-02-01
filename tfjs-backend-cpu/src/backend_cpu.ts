@@ -93,6 +93,12 @@ export class MathBackendCPU extends KernelBackend {
     return {dataId: outId, shape, dtype};
   }
 
+  /** Return refCount of a `TensorData`. */
+  refCount(dataId: DataId): number {
+    const tensorData = this.data.get(dataId);
+    return tensorData.refCount;
+  }
+
   /** Increase refCount of a `TensorData`. */
   incRef(dataId: DataId): void {
     const tensorData = this.data.get(dataId);
@@ -109,8 +115,8 @@ export class MathBackendCPU extends KernelBackend {
 
   move(
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
-      dtype: DataType): void {
-    this.data.set(dataId, {values, dtype, refCount: 1});
+      dtype: DataType, refCount: number): void {
+    this.data.set(dataId, {values, dtype, refCount});
   }
 
   numDataIds(): number {
@@ -159,11 +165,12 @@ export class MathBackendCPU extends KernelBackend {
    * Dispose the memory if the dataId has 0 refCount. Return true if the memory
    * is released, false otherwise.
    * @param dataId
+   * @oaram force Optional, remove the data regardless of refCount
    */
-  disposeData(dataId: DataId): boolean {
+  disposeData(dataId: DataId, force?: boolean): boolean {
     if (this.data.has(dataId)) {
       this.data.get(dataId).refCount--;
-      if (this.data.get(dataId).refCount > 0) {
+      if (!force && this.data.get(dataId).refCount > 0) {
         return false;
       }
 

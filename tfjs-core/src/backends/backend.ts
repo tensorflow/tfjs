@@ -31,13 +31,15 @@ export interface BackendTimingInfo {
 export interface TensorStorage {
   read(dataId: DataId): Promise<BackendValues>;
   readSync(dataId: DataId): BackendValues;
-  disposeData(dataId: DataId): boolean;
+  disposeData(dataId: DataId, force?: boolean): boolean;
   write(values: BackendValues, shape: number[], dtype: DataType): DataId;
-  move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
-      void;
+  move(
+      dataId: DataId, values: BackendValues, shape: number[], dtype: DataType,
+      refCount: number): void;
   memory(): {unreliable: boolean;};  // Backend-specific information.
   /** Returns number of data ids currently in the storage. */
   numDataIds(): number;
+  refCount(dataId: DataId): number;
 }
 
 /** Convenient class for storing tensor-related data. */
@@ -93,6 +95,9 @@ export interface BackendTimer {
  * methods).
  */
 export class KernelBackend implements TensorStorage, Backend, BackendTimer {
+  refCount(dataId: DataId): number {
+    return notYetImplemented('refCount');
+  }
   incRef(dataId: DataId): void {
     return notYetImplemented('incRef');
   }
@@ -108,14 +113,15 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   numDataIds(): number {
     return notYetImplemented('numDataIds');
   }
-  disposeData(dataId: object): boolean {
+  disposeData(dataId: object, force?: boolean): boolean {
     return notYetImplemented('disposeData');
   }
   write(values: BackendValues, shape: number[], dtype: DataType): DataId {
     return notYetImplemented('write');
   }
-  move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
-      void {
+  move(
+      dataId: DataId, values: BackendValues, shape: number[], dtype: DataType,
+      refCount: number): void {
     return notYetImplemented('move');
   }
   memory(): {unreliable: boolean; reasons?: string[]} {

@@ -230,13 +230,14 @@ export class NodeJSKernelBackend extends KernelBackend {
    * Dispose the memory if the dataId has 0 refCount. Return true if the memory
    * is released, false otherwise.
    * @param dataId
+   * @oaram force Optional, remove the data regardless of refCount
    */
-  disposeData(dataId: DataId): boolean {
+  disposeData(dataId: DataId, force: boolean): boolean {
     // No-op if already disposed.
     if (this.tensorMap.has(dataId)) {
       const id = this.tensorMap.get(dataId).id;
       this.tensorMap.get(dataId).refCount--;
-      if (this.tensorMap.get(dataId).refCount > 0) {
+      if (!force && this.tensorMap.get(dataId).refCount > 0) {
         return false;
       }
 
@@ -246,6 +247,11 @@ export class NodeJSKernelBackend extends KernelBackend {
       this.tensorMap.delete(dataId);
     }
     return true;
+  }
+  /** Return refCount of a `TensorData`. */
+  refCount(dataId: DataId): number {
+    const tensorData = this.tensorMap.get(dataId);
+    return tensorData.refCount;
   }
 
   incRef(dataId: DataId) {
@@ -257,15 +263,15 @@ export class NodeJSKernelBackend extends KernelBackend {
 
   move(
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
-      dtype: DataType): void {
+      dtype: DataType, refCount: number): void {
     this.tensorMap.set(
-        dataId, {shape, dtype: getTFDType(dtype), values, id: -1, refCount: 1});
+        dataId, {shape, dtype: getTFDType(dtype), values, id: -1, refCount});
   }
 
   write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
       DataId {
     const dataId = {};
-    this.move(dataId, values, shape, dtype);
+    this.move(dataId, values, shape, dtype, 1);
     return dataId;
   }
 

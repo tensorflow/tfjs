@@ -187,6 +187,12 @@ export class MathBackendWebGL extends KernelBackend {
     return dataId;
   }
 
+  /** Return refCount of a `TensorData`. */
+  refCount(dataId: DataId): number {
+    const tensorData = this.texData.get(dataId);
+    return tensorData.refCount;
+  }
+
   /** Increase refCount of a `TextureData`. */
   incRef(dataId: DataId): void {
     const texData = this.texData.get(dataId);
@@ -201,8 +207,9 @@ export class MathBackendWebGL extends KernelBackend {
     }
   }
 
-  move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
-      void {
+  move(
+      dataId: DataId, values: BackendValues, shape: number[], dtype: DataType,
+      refCount: number): void {
     if (env().getBool('DEBUG')) {
       this.checkNumericalProblems(values);
     }
@@ -212,8 +219,7 @@ export class MathBackendWebGL extends KernelBackend {
           `Please use tf.complex(real, imag).`);
     }
     this.texData.set(
-        dataId,
-        {shape, dtype, values, usage: TextureUsage.UPLOAD, refCount: 1});
+        dataId, {shape, dtype, values, usage: TextureUsage.UPLOAD, refCount});
   }
 
   disposeIntermediateTensorInfo(tensorInfo: TensorInfo): void {
@@ -526,8 +532,9 @@ export class MathBackendWebGL extends KernelBackend {
    * Dispose the memory if the dataId has 0 refCount. Return true if the memory
    * is released, false otherwise.
    * @param dataId
+   * @oaram force Optional, remove the data regardless of refCount
    */
-  disposeData(dataId: DataId): boolean {
+  disposeData(dataId: DataId, force?: boolean): boolean {
     if (this.pendingDisposal.has(dataId)) {
       return false;
     }
@@ -539,7 +546,7 @@ export class MathBackendWebGL extends KernelBackend {
 
     this.texData.get(dataId).refCount--;
 
-    if (this.texData.get(dataId).refCount > 0) {
+    if (!force && this.texData.get(dataId).refCount > 0) {
       return false;
     }
 

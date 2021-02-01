@@ -47,10 +47,11 @@ export class BackendWasm extends KernelBackend {
     this.dataIdMap = new DataStorage(this, engine());
   }
 
-  write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
-      DataId {
+  write(
+      values: backend_util.BackendValues, shape: number[], dtype: DataType,
+      refCount: number): DataId {
     const dataId = {id: this.dataIdNextNumber++};
-    this.move(dataId, values, shape, dtype);
+    this.move(dataId, values, shape, dtype, refCount);
     return dataId;
   }
 
@@ -67,13 +68,13 @@ export class BackendWasm extends KernelBackend {
 
   move(
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
-      dtype: DataType): void {
+      dtype: DataType, refCount: number): void {
     const id = this.dataIdNextNumber++;
     if (dtype === 'string') {
       const stringBytes = values as Uint8Array[];
       this.dataIdMap.set(
           dataId,
-          {id, stringBytes, shape, dtype, memoryOffset: null, refCount: 1});
+          {id, stringBytes, shape, dtype, memoryOffset: null, refCount});
       return;
     }
 
@@ -81,7 +82,7 @@ export class BackendWasm extends KernelBackend {
     const numBytes = size * util.bytesPerElement(dtype);
     const memoryOffset = this.wasm._malloc(numBytes);
 
-    this.dataIdMap.set(dataId, {id, memoryOffset, shape, dtype, refCount: 1});
+    this.dataIdMap.set(dataId, {id, memoryOffset, shape, dtype, refCount});
 
     this.wasm.tfjs.registerTensor(id, size, memoryOffset);
 
@@ -114,12 +115,13 @@ export class BackendWasm extends KernelBackend {
    * Dispose the memory if the dataId has 0 refCount. Return true if the memory
    * is released, false otherwise.
    * @param dataId
+   * @oaram force Optional, remove the data regardless of refCount
    */
-  disposeData(dataId: DataId): boolean {
+  disposeData(dataId: DataId, force?: boolean): boolean {
     if (this.dataIdMap.has(dataId)) {
       const data = this.dataIdMap.get(dataId);
       data.refCount--;
-      if (data.refCount > 0) {
+      if (!force && data.refCount > 0) {
         return false;
       }
 
@@ -128,6 +130,12 @@ export class BackendWasm extends KernelBackend {
       this.dataIdMap.delete(dataId);
     }
     return true;
+  }
+
+  /** Return refCount of a `TensorData`. */
+  refCount(dataId: DataId): number {
+    const tensorData = this.dataIdMap.get(dataId);
+    return tensorData.refCount;
   }
 
   incRef(dataId: DataId) {
