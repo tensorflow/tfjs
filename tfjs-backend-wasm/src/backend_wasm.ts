@@ -130,7 +130,6 @@ export class BackendWasm extends KernelBackend {
     return true;
   }
 
-
   incRef(dataId: DataId) {
     const data = this.dataIdMap.get(dataId);
     if (data != null) {
