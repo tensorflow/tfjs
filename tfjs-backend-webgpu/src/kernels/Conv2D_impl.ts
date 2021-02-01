@@ -19,7 +19,7 @@ import {backend_util, env, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 
-import {batchMatMul} from './BatchMatMul';
+import {batchMatMulImpl} from './BatchMatMul_impl';
 import {Im2ColProgram} from './im2col_webgpu';
 import {MatMulPackedProgram} from './matmul_packed_webgpu';
 import {reshape} from './Reshape';
@@ -38,7 +38,16 @@ type Conv2DConfig = {
 // For 1x1 kernels that iterate through every point in the input, convolution
 // can be expressed as matrix multiplication (without need for memory
 // remapping).
-export function conv2dByMatMul({x, filter, convInfo, backend}: Conv2DConfig) {
+export function conv2dByMatMul({
+  x,
+  filter,
+  convInfo,
+  backend,
+  bias = null,
+  preluActivationWeights = null,
+  leakyreluAlpha = 0,
+  activation = null
+}: Conv2DConfig) {
   const xShape = x.shape;
   const isChannelsLast = convInfo.dataFormat === 'channelsLast';
   const transposeA = false;
@@ -59,10 +68,16 @@ export function conv2dByMatMul({x, filter, convInfo, backend}: Conv2DConfig) {
 
   return reshape({
     inputs: {
-      x: batchMatMul({
-        inputs: {a: xReshaped, b: filterReshaped},
+      x: batchMatMulImpl({
+        a: xReshaped,
+        b: filterReshaped,
+        transposeA,
+        transposeB,
         backend,
-        attrs: {transposeA, transposeB}
+        bias,
+        activation,
+        preluActivationWeights,
+        leakyreluAlpha
       })
     },
     backend,

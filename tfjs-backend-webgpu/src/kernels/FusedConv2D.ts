@@ -19,6 +19,7 @@ import {backend_util, env, FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs, Ker
 
 import {WebGPUBackend} from '../backend_webgpu';
 
+import {conv2dByMatMul} from './Conv2D_impl';
 import {Conv2DMMVec4Program} from './conv2d_mm_vec4_webgpu';
 import {Conv2DMMProgram} from './conv2d_mm_webgpu';
 import {Conv2DNaiveProgram} from './conv2d_naive_webgpu';
@@ -30,8 +31,15 @@ export function fusedConv2d(args: {
 }) {
   const {inputs, backend, attrs} = args;
   const {x, filter, bias, preluActivationWeights} = inputs;
-  const {strides, pad, dataFormat, dilations, dimRoundingMode, activation} =
-      attrs;
+  const {
+    strides,
+    pad,
+    dataFormat,
+    dilations,
+    dimRoundingMode,
+    activation,
+    leakyreluAlpha
+  } = attrs;
 
   const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
   const convInfo = backend_util.computeConv2DInfo(
@@ -43,6 +51,22 @@ export function fusedConv2d(args: {
   const hasPreluActivationWeights = preluActivationWeights != null;
 
   let program: Conv2DMMProgram|Conv2DNaiveProgram|Conv2DMMVec4Program;
+
+  if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
+      convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
+      convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
+      (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID')) {
+    return conv2dByMatMul({
+      x,
+      filter,
+      convInfo,
+      backend,
+      bias,
+      activation,
+      preluActivationWeights,
+      leakyreluAlpha
+    });
+  }
 
   const useNaive = env().getBool('WEBGPU_USE_NAIVE_CONV2D');
 

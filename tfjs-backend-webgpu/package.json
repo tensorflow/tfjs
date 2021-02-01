@@ -21,10 +21,10 @@
     "link-local": "yalc link",
     "unlink-local": "yalc remove",
     "lint": "tslint -p . -t verbose",
-    "test": "yarn && yarn build-deps && karma start --browsers=chrome_webgpu --excludeTest='src/benchmark_ops_test.ts'",
-    "test-dev": "karma start --browsers=chrome_webgpu --excludeTest='src/benchmark_ops_test.ts'",
+    "test": "yarn && yarn build-deps && karma start --browsers=chrome_webgpu --excludeTest='src/benchmark_*_test.ts'",
+    "test-dev": "karma start --browsers=chrome_webgpu --excludeTest='src/benchmark_*_test.ts'",
     "test-ci": "./scripts/test-ci.sh",
-    "benchmark": "yarn build && karma start --grep=benchmark --browsers=chrome_webgpu"
+    "benchmark": "yarn && yarn build-deps && karma start --grep=benchmark --browsers=chrome_webgpu"
   },
   "license": "Apache-2.0",
   "devDependencies": {
