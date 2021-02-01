@@ -174,8 +174,8 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     const sampleB = fitB ?
         `B[batch * ${batchBSize} + row * dimBOuter / 4 + col]` :
         `coordsInBounds(ivec2(row, col * 4), ivec2(dimInner, dimBOuter)) ?
-            B[batch * ${
-            batchBSize} + row * dimBOuter / 4 + col] : vec4(0.0, 0.0, 0.0, 0.0)`;
+            B[batch * ${batchBSize} + row * dimBOuter / 4 + col] :
+            vec4(0.0, 0.0, 0.0, 0.0)`;
 
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
