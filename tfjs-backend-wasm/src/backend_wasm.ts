@@ -47,11 +47,10 @@ export class BackendWasm extends KernelBackend {
     this.dataIdMap = new DataStorage(this, engine());
   }
 
-  write(
-      values: backend_util.BackendValues, shape: number[], dtype: DataType,
-      refCount: number): DataId {
+  write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
+      DataId {
     const dataId = {id: this.dataIdNextNumber++};
-    this.move(dataId, values, shape, dtype, refCount);
+    this.move(dataId, values, shape, dtype, 1);
     return dataId;
   }
 
