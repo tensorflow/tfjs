@@ -881,6 +881,13 @@ export class Engine implements TensorTracker, DataMover {
     this.backend.incRef(a.dataId);
   }
 
+  removeDataId(dataId: DataId, backend: KernelBackend) {
+    if (this.state.tensorInfo.has(dataId) &&
+        this.state.tensorInfo.get(dataId).backend === backend) {
+      this.state.tensorInfo.delete(dataId);
+      this.state.numDataBuffers--;
+    }
+  }
   disposeTensor(a: Tensor): void {
     if (!this.state.tensorInfo.has(a.dataId)) {
       return;

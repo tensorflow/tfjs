@@ -360,11 +360,15 @@ export class MathBackendWebGL extends KernelBackend {
     const subscribers = this.pendingRead.get(dataId);
     this.pendingRead.delete(dataId);
 
+    // local copy of the backend
+    const that = this;
     // Notify all pending reads.
     subscribers.forEach(resolve => resolve(dTypeVals));
     if (this.pendingDisposal.has(dataId)) {
       this.pendingDisposal.delete(dataId);
-      this.disposeData(dataId);
+      if (this.disposeData(dataId)) {
+        engine().removeDataId(dataId, that);
+      }
       this.pendingDeletes--;
     }
     return dTypeVals;
@@ -529,8 +533,8 @@ export class MathBackendWebGL extends KernelBackend {
   private pendingDeletes = 0;
 
   /**
-   * Dispose the memory if the dataId has 0 refCount. Return true if the memory
-   * is released, false otherwise.
+   * Decrease the RefCount on the dataId and dispose the memory if the dataId
+   * has 0 refCount. Return true if the memory is released, false otherwise.
    * @param dataId
    * @oaram force Optional, remove the data regardless of refCount
    */
@@ -544,7 +548,13 @@ export class MathBackendWebGL extends KernelBackend {
       return true;
     }
 
-    this.texData.get(dataId).refCount--;
+    // if force flag is set, change refCount to 0, this would ensure disposal
+    // when added to the pendingDisposal queue.
+    if (force) {
+      this.texData.get(dataId).refCount = 0;
+    } else {
+      this.texData.get(dataId).refCount--;
+    }
 
     if (!force && this.texData.get(dataId).refCount > 0) {
       return false;
