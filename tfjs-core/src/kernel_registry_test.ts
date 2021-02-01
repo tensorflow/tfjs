@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {backend} from './globals';
 import * as tf from './index';
 import {KernelBackend} from './index';
 import {ALL_ENVS, describeWithFlags} from './jasmine_util';
@@ -241,7 +240,6 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
          backendName: tf.getBackend(),
          kernelFunc: () => {
            kernelWasCalled = true;
-           backend
            return {
              dtype: tensor.dtype,
              shape: tensor.shape,

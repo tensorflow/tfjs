@@ -500,7 +500,7 @@ export class Engine implements TensorTracker, DataMover {
    * execution.
    */
   private clone(x: Tensor): Tensor {
-    const y = ENGINE.runKernel(Identity, {x} as {} as NamedTensorMap) as Tensor;
+    const y: Tensor = ENGINE.runKernel(Identity, {x} as {} as NamedTensorMap);
     const inputs = {x};
     const grad = (dy: Tensor) => ({
       x: () => {
@@ -841,7 +841,6 @@ export class Engine implements TensorTracker, DataMover {
       throw new Error(`Variable with name ${v.name} was already registered`);
     }
     this.state.registeredVariables[v.name] = v;
-    // Inc
     this.incRef(v, this.backend);
     return v;
   }
