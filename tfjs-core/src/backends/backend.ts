@@ -31,7 +31,7 @@ export interface BackendTimingInfo {
 export interface TensorStorage {
   read(dataId: DataId): Promise<BackendValues>;
   readSync(dataId: DataId): BackendValues;
-  disposeData(dataId: DataId): void;
+  disposeData(dataId: DataId): boolean;
   write(values: BackendValues, shape: number[], dtype: DataType): DataId;
   move(dataId: DataId, values: BackendValues, shape: number[], dtype: DataType):
       void;

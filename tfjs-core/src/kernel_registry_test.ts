@@ -100,7 +100,7 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
       return {
         id: 1,
         dispose: () => null,
-        disposeData: (dataId: {}) => null,
+        disposeData: (dataId: {}) => true,
         numDataIds: () => 0
       } as TestBackend;
     });
@@ -148,7 +148,7 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
     interface TestBackend extends KernelBackend {}
     const customBackend = {
       dispose: () => null,
-      disposeData: (dataId: {}) => null,
+      disposeData: (dataId: {}) => true,
       numDataIds: () => 0
     } as TestBackend;
     tf.registerBackend(backendName, () => customBackend);

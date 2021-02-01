@@ -24,7 +24,7 @@ import {identity} from './Identity';
  * In WebGL data is stored in GPU textures which can't be efficiently copied, so
  * complex tensors share data with their real and imaginary components. Complex
  * tensors' reference to the components is tracked by refCount on the individual
- * compoent. The refCounts are increased by the identity call.
+ * component. The refCounts are increased by the identity call.
  *
  * When a complex tensor is disposed, it will reduce the refCount on the
  * components by calling disposeData on each.

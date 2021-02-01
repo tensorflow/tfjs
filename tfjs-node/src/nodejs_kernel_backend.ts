@@ -226,21 +226,25 @@ export class NodeJSKernelBackend extends KernelBackend {
     }
   }
 
+  /**
+   * Dispose the memory if the dataId has 0 refCount. Return true if the memory
+   * is released, false otherwise.
+   * @param dataId
+   */
   disposeData(dataId: DataId): boolean {
     // No-op if already disposed.
-    if (!this.tensorMap.has(dataId)) {
-      return false;
-    }
-    const id = this.tensorMap.get(dataId).id;
-    this.tensorMap.get(dataId).refCount--;
-    if (this.tensorMap.get(dataId).refCount > 0) {
-      return false;
-    }
+    if (this.tensorMap.has(dataId)) {
+      const id = this.tensorMap.get(dataId).id;
+      this.tensorMap.get(dataId).refCount--;
+      if (this.tensorMap.get(dataId).refCount > 0) {
+        return false;
+      }
 
-    if (id != null && id >= 0) {
-      this.binding.deleteTensor(id);
+      if (id != null && id >= 0) {
+        this.binding.deleteTensor(id);
+      }
+      this.tensorMap.delete(dataId);
     }
-    this.tensorMap.delete(dataId);
     return true;
   }
 

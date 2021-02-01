@@ -110,10 +110,14 @@ export class BackendWasm extends KernelBackend {
     return typedArrayFromBuffer(bytes.buffer, dtype);
   }
 
+  /**
+   * Dispose the memory if the dataId has 0 refCount. Return true if the memory
+   * is released, false otherwise.
+   * @param dataId
+   */
   disposeData(dataId: DataId): boolean {
-    const data = this.dataIdMap.get(dataId);
-    if (data != null) {
-      // console.log('disposeData:', data);
+    if (this.dataIdMap.has(dataId)) {
+      const data = this.dataIdMap.get(dataId);
       data.refCount--;
       if (data.refCount > 0) {
         return false;
@@ -122,9 +126,8 @@ export class BackendWasm extends KernelBackend {
       this.wasm._free(data.memoryOffset);
       this.wasm.tfjs.disposeData(data.id);
       this.dataIdMap.delete(dataId);
-      return true;
     }
-    return false;
+    return true;
   }
 
 

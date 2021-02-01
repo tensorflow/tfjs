@@ -191,7 +191,6 @@ export class MathBackendWebGL extends KernelBackend {
   incRef(dataId: DataId): void {
     const texData = this.texData.get(dataId);
     texData.refCount++;
-    // console.log('incRef:', dataId, texData.refCount);
   }
 
   /** Decrease refCount of a `TextureData`. */
@@ -523,6 +522,11 @@ export class MathBackendWebGL extends KernelBackend {
 
   private pendingDeletes = 0;
 
+  /**
+   * Dispose the memory if the dataId has 0 refCount. Return true if the memory
+   * is released, false otherwise.
+   * @param dataId
+   */
   disposeData(dataId: DataId): boolean {
     if (this.pendingDisposal.has(dataId)) {
       return false;

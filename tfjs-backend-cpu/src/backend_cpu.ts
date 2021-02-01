@@ -155,6 +155,11 @@ export class MathBackendCPU extends KernelBackend {
     return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
   }
 
+  /**
+   * Dispose the memory if the dataId has 0 refCount. Return true if the memory
+   * is released, false otherwise.
+   * @param dataId
+   */
   disposeData(dataId: DataId): boolean {
     if (this.data.has(dataId)) {
       this.data.get(dataId).refCount--;
@@ -170,9 +175,8 @@ export class MathBackendCPU extends KernelBackend {
       }
 
       this.data.delete(dataId);
-      return true;
     }
-    return false;
+    return true;
   }
 
   disposeIntermediateTensorInfo(tensorInfo: TensorInfo): void {
