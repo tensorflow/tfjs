@@ -105,6 +105,10 @@ export class MathBackendWebGL extends KernelBackend {
   texData: DataStorage<TextureData>;
   gpgpu: GPGPUContext;
 
+  private static nextDataId = 0;
+  private nextDataId(): number {
+    return MathBackendWebGL.nextDataId++;
+  }
   // Maps data ids that have a pending read operation, to list of subscribers.
   private pendingRead = new WeakMap<DataId, Array<(arr: TypedArray) => void>>();
   // List of data ids that are scheduled for disposal, but are waiting on a
@@ -176,15 +180,10 @@ export class MathBackendWebGL extends KernelBackend {
           `Cannot write to a complex64 dtype. ` +
           `Please use tf.complex(real, imag).`);
     }
-    const dataId = {};
-    this.texData.set(dataId, {
-      shape,
-      dtype,
-      values,
-      usage: TextureUsage.UPLOAD,
-      refCount: 1,
-      complexParentRefCount: 0
-    });
+    const dataId = {id: this.nextDataId()};
+    this.texData.set(
+        dataId,
+        {shape, dtype, values, usage: TextureUsage.UPLOAD, refCount: 1});
     return dataId;
   }
 
@@ -192,6 +191,7 @@ export class MathBackendWebGL extends KernelBackend {
   incRef(dataId: DataId): void {
     const texData = this.texData.get(dataId);
     texData.refCount++;
+    // console.log('incRef:', dataId, texData.refCount);
   }
 
   /** Decrease refCount of a `TextureData`. */
@@ -199,19 +199,6 @@ export class MathBackendWebGL extends KernelBackend {
     if (this.texData.has(dataId)) {
       const texData = this.texData.get(dataId);
       texData.refCount--;
-    }
-  }
-
-  /**
-   * Decrease refCount of a `TextureData` if it is a component of complex
-   * tensor.
-   */
-  decComplexRef(dataId: DataId): void {
-    if (this.texData.has(dataId)) {
-      const texData = this.texData.get(dataId);
-      if (texData.complexParentRefCount > 0) {
-        texData.refCount--;
-      }
     }
   }
 
@@ -225,27 +212,16 @@ export class MathBackendWebGL extends KernelBackend {
           `Cannot write to a complex64 dtype. ` +
           `Please use tf.complex(real, imag).`);
     }
-    this.texData.set(dataId, {
-      shape,
-      dtype,
-      values,
-      usage: TextureUsage.UPLOAD,
-      refCount: 1,
-      complexParentRefCount: 0
-    });
+    this.texData.set(
+        dataId,
+        {shape, dtype, values, usage: TextureUsage.UPLOAD, refCount: 1});
   }
 
   disposeIntermediateTensorInfo(tensorInfo: TensorInfo): void {
     const dataId = tensorInfo.dataId;
 
     if (this.texData.has(dataId)) {
-      const textureData = this.texData.get(dataId);
-
-      textureData.refCount--;
-
-      if (textureData.refCount < 1) {
-        this.disposeData(dataId);
-      }
+      this.disposeData(dataId);
     }
   }
 
@@ -547,38 +523,38 @@ export class MathBackendWebGL extends KernelBackend {
 
   private pendingDeletes = 0;
 
-  disposeData(dataId: DataId): void {
+  disposeData(dataId: DataId): boolean {
     if (this.pendingDisposal.has(dataId)) {
-      return;
+      return false;
     }
+
+    // No-op if already disposed.
+    if (!this.texData.has(dataId)) {
+      return true;
+    }
+
+    this.texData.get(dataId).refCount--;
+
+    if (this.texData.get(dataId).refCount > 0) {
+      return false;
+    }
+
     if (this.pendingRead.has(dataId)) {
       this.pendingDisposal.add(dataId);
       this.pendingDeletes++;
-      return;
-    }
-    // No-op if already disposed.
-    if (!this.texData.has(dataId)) {
-      return;
-    }
-    // Trying to dispose a textureData that has a 'kept' refCount, e.g. trying
-    // to dispose a tensor whose data bucket is shared with a complex tensor. In
-    // this case we are removing a reference to the textureData, but we
-    // shouldn't actually dispose the texture.
-    if (this.texData.get(dataId).complexParentRefCount > 0) {
-      this.texData.get(dataId).refCount--;
-      return;
+      return false;
     }
 
     this.releaseGPUData(dataId);
     const {complexTensorInfos} = this.texData.get(dataId);
     if (complexTensorInfos != null) {
-      this.texData.get(complexTensorInfos.real.dataId).complexParentRefCount--;
       this.disposeIntermediateTensorInfo(complexTensorInfos.real);
-
-      this.texData.get(complexTensorInfos.imag.dataId).complexParentRefCount--;
       this.disposeIntermediateTensorInfo(complexTensorInfos.imag);
     }
+
     this.texData.delete(dataId);
+
+    return true;
   }
 
   private releaseGPUData(dataId: DataId): void {
@@ -671,7 +647,9 @@ export class MathBackendWebGL extends KernelBackend {
 
   private packedUnaryOp(x: TensorInfo, op: string, dtype: DataType) {
     const program = new UnaryOpPackedProgram(x.shape, op);
-    return this.compileAndRun<Tensor>(program, [x], dtype);
+    const outInfo = this.compileAndRun(program, [x], dtype);
+    return engine().makeTensorFromDataId(
+        outInfo.dataId, outInfo.shape, outInfo.dtype);
   }
 
   // TODO(msoulanille) remove this once the backend has been modularized
@@ -690,7 +668,9 @@ export class MathBackendWebGL extends KernelBackend {
     }
 
     const program = new UnaryOpProgram(x.shape, unary_op.ABS);
-    return this.compileAndRun(program, [x]);
+    const outInfo = this.compileAndRun(program, [x]);
+    return engine().makeTensorFromDataId(
+               outInfo.dataId, outInfo.shape, outInfo.dtype) as T;
   }
 
   makeTensorInfo(
@@ -896,16 +876,15 @@ export class MathBackendWebGL extends KernelBackend {
     return output;
   }
 
-  compileAndRun<K extends TensorInfo>(
+  compileAndRun(
       program: GPGPUProgram, inputs: TensorInfo[], outputDtype?: DataType,
       customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void,
-      preventEagerUnpackingOfOutput = false): K {
+      preventEagerUnpackingOfOutput = false): TensorInfo {
     outputDtype = outputDtype || inputs[0].dtype;
     const outInfo = this.runWebGLProgram(
         program, inputs, outputDtype, customSetup,
         preventEagerUnpackingOfOutput);
-    return engine().makeTensorFromDataId(
-               outInfo.dataId, outInfo.shape, outInfo.dtype) as {} as K;
+    return outInfo;
   }
 
   private getAndSaveBinary(key: string, getBinary: () => GPGPUBinary):

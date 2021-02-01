@@ -26,7 +26,8 @@ type TensorData = {
   shape: number[],
   dtype: number,
   values: backend_util.BackendValues,
-  id: number
+  id: number,
+  refCount: number;
 };
 
 export class NodeJSKernelBackend extends KernelBackend {
@@ -72,7 +73,8 @@ export class NodeJSKernelBackend extends KernelBackend {
       shape: metadata.shape,
       dtype: metadata.dtype,
       id: metadata.id,
-      values: null
+      values: null,
+      refCount: 1
     });
 
     let dtype: DataType;
@@ -224,23 +226,36 @@ export class NodeJSKernelBackend extends KernelBackend {
     }
   }
 
-  disposeData(dataId: DataId): void {
+  disposeData(dataId: DataId): boolean {
     // No-op if already disposed.
     if (!this.tensorMap.has(dataId)) {
-      return;
+      return false;
     }
     const id = this.tensorMap.get(dataId).id;
+    this.tensorMap.get(dataId).refCount--;
+    if (this.tensorMap.get(dataId).refCount > 0) {
+      return false;
+    }
+
     if (id != null && id >= 0) {
       this.binding.deleteTensor(id);
     }
     this.tensorMap.delete(dataId);
+    return true;
+  }
+
+  incRef(dataId: DataId) {
+    if (!this.tensorMap.has(dataId)) {
+      return;
+    }
+    this.tensorMap.get(dataId).refCount++;
   }
 
   move(
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
       dtype: DataType): void {
     this.tensorMap.set(
-        dataId, {shape, dtype: getTFDType(dtype), values, id: -1});
+        dataId, {shape, dtype: getTFDType(dtype), values, id: -1, refCount: 1});
   }
 
   write(values: backend_util.BackendValues, shape: number[], dtype: DataType):

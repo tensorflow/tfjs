@@ -29,6 +29,7 @@ interface TensorData {
   memoryOffset: number;
   shape: number[];
   dtype: DataType;
+  refCount: number;
   /** Only used for string tensors, storing encoded bytes. */
   stringBytes?: Uint8Array[];
 }
@@ -48,7 +49,7 @@ export class BackendWasm extends KernelBackend {
 
   write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
       DataId {
-    const dataId = {};
+    const dataId = {id: this.dataIdNextNumber++};
     this.move(dataId, values, shape, dtype);
     return dataId;
   }
@@ -71,7 +72,8 @@ export class BackendWasm extends KernelBackend {
     if (dtype === 'string') {
       const stringBytes = values as Uint8Array[];
       this.dataIdMap.set(
-          dataId, {id, stringBytes, shape, dtype, memoryOffset: null});
+          dataId,
+          {id, stringBytes, shape, dtype, memoryOffset: null, refCount: 1});
       return;
     }
 
@@ -79,7 +81,7 @@ export class BackendWasm extends KernelBackend {
     const numBytes = size * util.bytesPerElement(dtype);
     const memoryOffset = this.wasm._malloc(numBytes);
 
-    this.dataIdMap.set(dataId, {id, memoryOffset, shape, dtype});
+    this.dataIdMap.set(dataId, {id, memoryOffset, shape, dtype, refCount: 1});
 
     this.wasm.tfjs.registerTensor(id, size, memoryOffset);
 
@@ -108,11 +110,29 @@ export class BackendWasm extends KernelBackend {
     return typedArrayFromBuffer(bytes.buffer, dtype);
   }
 
-  disposeData(dataId: DataId) {
+  disposeData(dataId: DataId): boolean {
     const data = this.dataIdMap.get(dataId);
-    this.wasm._free(data.memoryOffset);
-    this.wasm.tfjs.disposeData(data.id);
-    this.dataIdMap.delete(dataId);
+    if (data != null) {
+      // console.log('disposeData:', data);
+      data.refCount--;
+      if (data.refCount > 0) {
+        return false;
+      }
+
+      this.wasm._free(data.memoryOffset);
+      this.wasm.tfjs.disposeData(data.id);
+      this.dataIdMap.delete(dataId);
+      return true;
+    }
+    return false;
+  }
+
+
+  incRef(dataId: DataId) {
+    const data = this.dataIdMap.get(dataId);
+    if (data != null) {
+      data.refCount++;
+    }
   }
 
   floatPrecision(): 32 {
@@ -146,9 +166,9 @@ export class BackendWasm extends KernelBackend {
     if (memoryOffset == null) {
       dataId = this.write(null /* values */, shape, dtype);
     } else {
-      dataId = {};
       const id = this.dataIdNextNumber++;
-      this.dataIdMap.set(dataId, {id, memoryOffset, shape, dtype});
+      dataId = {id};
+      this.dataIdMap.set(dataId, {id, memoryOffset, shape, dtype, refCount: 1});
       const size = util.sizeFromShape(shape);
       this.wasm.tfjs.registerTensor(id, size, memoryOffset);
     }

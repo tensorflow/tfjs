@@ -155,8 +155,13 @@ export class MathBackendCPU extends KernelBackend {
     return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
   }
 
-  disposeData(dataId: DataId): void {
+  disposeData(dataId: DataId): boolean {
     if (this.data.has(dataId)) {
+      this.data.get(dataId).refCount--;
+      if (this.data.get(dataId).refCount > 0) {
+        return false;
+      }
+
       const {complexTensorInfos} = this.data.get(dataId);
 
       if (complexTensorInfos != null) {
@@ -165,7 +170,9 @@ export class MathBackendCPU extends KernelBackend {
       }
 
       this.data.delete(dataId);
+      return true;
     }
+    return false;
   }
 
   disposeIntermediateTensorInfo(tensorInfo: TensorInfo): void {

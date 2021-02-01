@@ -36,6 +36,7 @@ export function reshape(args: {
       () => `new shape: ${$shape}, old shape: ${x.shape}. New shape and old ` +
           `shape must have the same number of elements.`);
 
+  args.backend.incRef(x.dataId);
   return {dataId: x.dataId, shape: $shape, dtype: x.dtype};
 }
 

@@ -16,6 +16,7 @@
  */
 
 import {Identity, IdentityInputs, KernelConfig} from '@tensorflow/tfjs';
+import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
 export const identityConfig: KernelConfig = {
   kernelName: Identity,
@@ -25,6 +26,7 @@ export const identityConfig: KernelConfig = {
     // No need to incRef on the backend because node backend does not use
     // other kernels as itermediates. We re-use the dataId here to allow
     // core to do the appropriate book-keeping on the tensor and its clones.
+    (args.backend as NodeJSKernelBackend).incRef(x.dataId);
     return {dataId: x.dataId, shape: x.shape, dtype: x.dtype};
   }
 };

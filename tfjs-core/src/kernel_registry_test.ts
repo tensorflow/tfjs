@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {backend} from './globals';
 import * as tf from './index';
 import {KernelBackend} from './index';
 import {ALL_ENVS, describeWithFlags} from './jasmine_util';
@@ -233,15 +234,17 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
        let gradientWasCalled = false;
        const kernelName = 'MyKernel';
 
-       const forwardReturnDataId = {};
+       const tensor = tf.zeros([3, 3], 'float32');
+       const forwardReturnDataId = tensor.dataId;
        tf.registerKernel({
          kernelName,
          backendName: tf.getBackend(),
          kernelFunc: () => {
            kernelWasCalled = true;
+           backend
            return {
-             dtype: 'float32',
-             shape: [3, 3],
+             dtype: tensor.dtype,
+             shape: tensor.shape,
              dataId: forwardReturnDataId
            };
          }
