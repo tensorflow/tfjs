@@ -16,27 +16,59 @@
  */
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
+import {absConfig} from './kernels/Abs';
+import {addConfig} from './kernels/Add';
 import {divConfig} from './kernels/Div';
-import {fromPixelsConfig} from './kernels/FromPixels';
+import {expConfig} from './kernels/Exp';
+import {floorDivConfig} from './kernels/FloorDiv';
 import {fromPixelsAsyncConfig} from './kernels/FromPixelsAsync';
+import {fromPixelsConfig} from './kernels/FromPixels';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
+import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
+import {greaterEqualConfig} from './kernels/GreaterEqual';
+import {lessConfig} from './kernels/Less';
+import {lessEqualConfig} from './kernels/LessEqual';
+import {logConfig} from './kernels/Log';
 import {mirrorPadConfig} from './kernels/MirrorPad';
+import {multiplyConfig} from './kernels/Multiply';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
+import {preluConfig} from './kernels/Prelu';
+import {reluConfig} from './kernels/Relu';
+import {relu6Config} from './kernels/Relu6';
+import {sigmoidConfig} from './kernels/Sigmoid';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {subConfig} from './kernels/Sub';
+import {tanhConfig} from './kernels/Tanh';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  absConfig,
+  addConfig,
   divConfig,
-  mirrorPadConfig,
-  squareConfig,
-  squaredDifferenceConfig,
+  expConfig,
+  fromPixelsAsyncConfig,
+  fromPixelsConfig,
+  floorDivConfig,
   fusedBatchNormConfig,
+  fusedDepthwiseConv2DConfig,
+  greaterEqualConfig,
+  lessConfig,
+  lessEqualConfig,
+  logConfig,
+  mirrorPadConfig,
+  multiplyConfig,
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV5Config,
-  fromPixelsConfig,
-  fromPixelsAsyncConfig,
+  preluConfig,
+  reluConfig,
+  relu6Config,
+  sigmoidConfig,
+  squareConfig,
+  squaredDifferenceConfig,
+  subConfig,
+  tanhConfig
 ];
 
 for (const kernelConfig of kernelConfigs) {

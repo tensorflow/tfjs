@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {depthwiseConv2d} from '../../ops/depthwise_conv2d';
-import {Tensor, Tensor3D, Tensor4D} from '../../tensor';
+import {getGlobalTensorClass, Tensor3D, Tensor4D} from '../../tensor';
 import {Rank, TensorLike4D} from '../../types';
 
 declare module '../../tensor' {
@@ -28,11 +28,12 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.depthwiseConv2d = function<T extends Tensor3D|Tensor4D>(
-    filter: Tensor4D|TensorLike4D, strides: [number, number]|number,
-    pad: 'valid'|'same'|number, dataFormat?: 'NHWC'|'NCHW',
-    dilations?: [number, number]|number,
-    dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+getGlobalTensorClass().prototype.depthwiseConv2d =
+    function<T extends Tensor3D|Tensor4D>(
+        filter: Tensor4D|TensorLike4D, strides: [number, number]|number,
+        pad: 'valid'|'same'|number, dataFormat?: 'NHWC'|'NCHW',
+        dilations?: [number, number]|number,
+        dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   this.throwIfDisposed();
   return depthwiseConv2d(
              this, filter, strides, pad, dataFormat, dilations,

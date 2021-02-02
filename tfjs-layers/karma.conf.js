@@ -60,11 +60,16 @@ module.exports = function(config) {
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
+      timeout: 1800,
       tunnelIdentifier:
           `tfjs_layers_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     },
+    captureTimeout: 3e5,
     reportSlowerThan: 500,
-    browserNoActivityTimeout: 30000,
+    browserNoActivityTimeout: 3e5,
+    browserDisconnectTimeout: 3e5,
+    browserDisconnectTolerance: 3,
+    browserSocketTimeout: 1.2e5,
     customLaunchers: {
       bs_chrome_mac: {
         base: 'BrowserStack',

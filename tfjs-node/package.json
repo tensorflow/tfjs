@@ -8,6 +8,7 @@
     "type": "git",
     "url": "https://github.com/tensorflow/tfjs.git"
   },
+  "license": "Apache-2.0",
   "engines": {
     "node": ">=8.11.0"
   },
@@ -51,6 +52,7 @@
     "upload-windows-addon": "./scripts/build-and-upload-windows-addon.bat"
   },
   "devDependencies": {
+    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@types/jasmine": "~2.8.6",
     "@types/node": "^10.5.1",
     "@types/progress": "^2.0.1",
@@ -61,7 +63,6 @@
     "node-fetch": "~2.6.1",
     "nyc": "^13.3.0",
     "tmp": "^0.0.33",
-    "ts-morph": "^8.1.2",
     "ts-node": "^5.0.1",
     "tslint": "~5.9.1",
     "tslint-no-circular-imports": "^0.7.0",
@@ -71,7 +72,6 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "link:../tfjs",
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "adm-zip": "^0.4.11",
     "google-protobuf": "^3.9.2",
     "https-proxy-agent": "^2.2.1",

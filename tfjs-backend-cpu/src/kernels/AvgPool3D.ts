@@ -28,19 +28,13 @@ export function avgPool3D(args: {
 }): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
-  const {filterSize, strides, pad, dimRoundingMode, dataFormat, dilations} =
-      attrs;
+  const {filterSize, strides, pad, dimRoundingMode, dataFormat} = attrs;
 
   assertNotComplex(x, 'avgPool3d');
 
-  let $dilations = dilations;
-  if ($dilations == null) {
-    $dilations = [1, 1, 1];
-  }
-
   const convInfo = backend_util.computePool3DInfo(
       x.shape as [number, number, number, number, number], filterSize, strides,
-      $dilations, pad, dimRoundingMode, dataFormat);
+      1 /* dilations */, pad, dimRoundingMode, dataFormat);
 
   const xValues = backend.data.get(x.dataId).values as TypedArray;
   const outBuf = pool3d(

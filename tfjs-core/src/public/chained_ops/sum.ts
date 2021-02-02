@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {sum} from '../../ops/sum';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.sum = function<T extends Tensor>(
+getGlobalTensorClass().prototype.sum = function<T extends Tensor>(
     axis?: number|number[], keepDims?: boolean): T {
   this.throwIfDisposed();
   return sum(this, axis, keepDims);

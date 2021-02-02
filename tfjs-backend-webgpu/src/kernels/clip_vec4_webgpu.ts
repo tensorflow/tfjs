@@ -24,24 +24,30 @@ import {WebGPUProgram} from './webgpu_program';
 export class ClipVec4Program implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   variableNames = ['A'];
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
   isVec4 = true;
+  minVal: number;
+  maxVal: number;
 
   constructor(outputShape: number[], minVal: number, maxVal: number) {
     this.outputShape = outputShape;
-    const size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-    const type = getCoordsDataType(this.outputShape.length);
+    this.minVal = minVal;
+    this.maxVal = maxVal;
+    this.shaderKey = `clipVec4_${minVal}_${maxVal}`;
+  }
 
-    this.userCode = `
+  getUserCode(): string {
+    const type = getCoordsDataType(this.outputShape.length);
+    const size = util.sizeFromShape(this.outputShape);
+    const userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
           if(index < ${size / 4}) {
@@ -53,9 +59,10 @@ export class ClipVec4Program implements WebGPUProgram {
               return;
             }
 
-            setOutput(index, clamp(value, ${minVal}, ${maxVal}));
+            setOutput(index, clamp(value, ${this.minVal}, ${this.maxVal}));
           }
       }
     `;
+    return userCode;
   }
 }

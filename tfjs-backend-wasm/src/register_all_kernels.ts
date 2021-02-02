@@ -83,6 +83,7 @@ import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {reverseConfig} from './kernels/Reverse';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
+import {roundConfig} from './kernels/Round';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {scatterNdConfig} from './kernels/ScatterNd';
 import {selectConfig} from './kernels/Select';
@@ -94,6 +95,7 @@ import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
+import {stepConfig} from './kernels/Step';
 import {stridedSliceConfig} from './kernels/StridedSlice';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
@@ -171,6 +173,7 @@ const kernelConfigs: KernelConfig[] = [
   reverseConfig,
   rotateWithOffsetConfig,
   rsqrtConfig,
+  roundConfig,
   scatterNdConfig,
   selectConfig,
   sigmoidConfig,
@@ -181,6 +184,7 @@ const kernelConfigs: KernelConfig[] = [
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
+  stepConfig,
   stridedSliceConfig,
   subConfig,
   sumConfig,

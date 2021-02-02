@@ -25,7 +25,6 @@ import {WebGPUProgram} from './webgpu_program';
 export class Pool2DProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[], y: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
@@ -34,6 +33,7 @@ export class Pool2DProgram implements WebGPUProgram {
   // workPerThead for different output shapes.
   workGroupSize: [number, number, number] = [16, 16, 1];
   workPerThread = 4;
+  poolType: 'max'|'avg';
 
   constructor(convInfo: backend_util.Conv2DInfo, poolType: 'max'|'avg') {
     this.outputShape = convInfo.outShape;
@@ -44,17 +44,22 @@ export class Pool2DProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [1, this.workPerThread, 1]);
 
+    this.shaderKey = `pool2D_${poolType}`;
+    this.poolType = poolType;
+  }
+
+  getUserCode(): string {
     let updateSnippet = `resultValue[i] = max(value, resultValue[i]);`;
-    if (poolType === 'avg') {
+    if (this.poolType === 'avg') {
       updateSnippet = `resultValue[i] += value; count[i] += 1.0;`;
     }
 
     let returnValue = `resultValue[i]`;
-    if (poolType === 'avg') {
+    if (this.poolType === 'avg') {
       returnValue = `resultValue[i] / count[i]`;
     }
 
-    this.userCode = `
+    const userCode = `
       float getValue(int batch, int xR, int xC, int d) {
         if (xC < 0 || xC >= convDims.x) {
           return 0.0;
@@ -117,6 +122,6 @@ export class Pool2DProgram implements WebGPUProgram {
         }
       }
     `;
-    this.shaderKey = `pool2d${poolType}${this.workPerThread}`;
+    return userCode;
   }
 }

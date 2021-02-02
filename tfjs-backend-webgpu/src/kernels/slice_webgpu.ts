@@ -24,12 +24,13 @@ export class SliceProgram implements WebGPUProgram {
   variableNames = ['source'];
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   rank: number;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workPerThread = 1;
   workGroupSize: [number, number, number] = [16, 1, 1];
+  start: number[];
+  destSize: number[];
 
   constructor(start: number[], destSize: number[]) {
     this.outputShape = destSize;
@@ -39,14 +40,20 @@ export class SliceProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
 
+    this.start = start;
+    this.destSize = destSize;
+    this.shaderKey = `slice_${start}_${destSize}`;
+  }
+
+  getUserCode(): string {
     const dtype = getCoordsDataType(this.rank);
     const sourceCoords = getCoords(this.rank);
 
-    const coordSum = destSize.map((_, i) => {
-      return `sourceLoc.${coords[i]} = ${start[i]} + coords.${coords[i]};`;
+    const coordSum = this.destSize.map((_, i) => {
+      return `sourceLoc.${coords[i]} = ${this.start[i]} + coords.${coords[i]};`;
     });
 
-    this.userCode = `
+    const userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
         ${dtype} sourceLoc;
@@ -55,7 +62,7 @@ export class SliceProgram implements WebGPUProgram {
         setOutput(index, getSource(${sourceCoords}));
       }
     `;
-    this.shaderKey = `slice${this.rank}${start.join(',')}`;
+    return userCode;
   }
 }
 

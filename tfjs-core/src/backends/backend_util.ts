@@ -14,16 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE} from '../engine';
-import {cast} from '../ops/cast';
-import {scalar} from '../ops/scalar';
-import {zeros} from '../ops/zeros';
-import {Tensor} from '../tensor';
-import {Rank} from '../types';
-import {DataType, ShapeMap} from '../types';
-import {decodeString, encodeString, hasEncodingLoss} from '../util';
 
-import {KernelBackend} from './backend';
+import {decodeString, encodeString} from '../util';
 
 // Utilities needed by backend consumers of tf-core.
 export * from '../ops/axis_util';
@@ -52,48 +44,6 @@ export * from '../ops/split_util';
 
 import * as segment_util from '../ops/segment_util';
 export {segment_util};
-
-export function castTensor<T extends Tensor>(
-    x: T, dtype: DataType, backend: KernelBackend): T {
-  if (dtype === 'complex64') {
-    if (x.dtype === 'complex64') {
-      return x.clone();
-    }
-    const zerosTensor = zeros(x.shape);
-    const floatX = cast(x, 'float32');
-    const result = backend.complex(floatX, zerosTensor);
-    zerosTensor.dispose();
-    floatX.dispose();
-    return result as T;
-  }
-
-  if (!hasEncodingLoss(x.dtype, dtype)) {
-    // We don't change the underlying data, since we cast to higher
-    // precision.
-    return ENGINE.makeTensorFromDataId(x.dataId, x.shape, dtype) as T;
-  }
-  if (x.dtype === 'complex64') {
-    const real = backend.real(x);
-    const result = cast(real, dtype);
-    real.dispose();
-    return result;
-  }
-  if (dtype === 'int32') {
-    return backend.int(x);
-  } else if (dtype === 'bool') {
-    const zero = scalar(0, x.dtype);
-    const result = backend.notEqual(x, zero) as T;
-    zero.dispose();
-    return result;
-  } else {
-    throw new Error(`Error in Cast: failed to cast ${x.dtype} to ${dtype}`);
-  }
-}
-
-export function reshapeTensor<T extends Tensor, R extends Rank>(
-    x: T, shape: ShapeMap[R]): Tensor<R> {
-  return ENGINE.makeTensorFromDataId(x.dataId, shape, x.dtype) as Tensor<R>;
-}
 
 export function fromUint8ToStringArray(vals: Uint8Array[]) {
   try {

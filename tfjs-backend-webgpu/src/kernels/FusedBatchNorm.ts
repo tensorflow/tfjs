@@ -42,6 +42,6 @@ export const fusedBatchNormConfig: KernelConfig = {
     const program = new BatchNormProgram(
         x.shape, mean.shape, variance.shape, offsetShape, scaleShape,
         varianceEpsilon);
-    return webGPUBackend.compileAndRun(program, batchNormInputs);
+    return webGPUBackend.runWebGPUProgram(program, batchNormInputs, x.dtype);
   }
 };

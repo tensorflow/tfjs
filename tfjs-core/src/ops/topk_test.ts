@@ -164,4 +164,17 @@ describeWithFlags('topk', ALL_ENVS, () => {
     expectArraysClose(await values.data(), [40, 30]);
     expectArraysClose(await indices.data(), [2, 3]);
   });
+
+  it('handles output tensors from other ops', async () => {
+    const a = tensor1d([20, 10, 40, 30]);
+    const b = scalar(2);
+    const {values, indices} = tf.topk(tf.add(a, b));
+
+    expect(values.shape).toEqual([1]);
+    expect(indices.shape).toEqual([1]);
+    expect(values.dtype).toBe('float32');
+    expect(indices.dtype).toBe('int32');
+    expectArraysClose(await values.data(), [42]);
+    expectArraysClose(await indices.data(), [2]);
+  });
 });

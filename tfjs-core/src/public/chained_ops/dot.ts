@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {dot} from '../../ops/dot';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.dot = function<T extends Tensor>(b: T|TensorLike): Tensor {
+getGlobalTensorClass().prototype.dot = function<T extends Tensor>(
+    b: T|TensorLike): Tensor {
   this.throwIfDisposed();
   return dot(this, b);
 };

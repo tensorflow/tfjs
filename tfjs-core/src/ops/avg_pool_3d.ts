@@ -16,7 +16,6 @@
  */
 
 import {ENGINE} from '../engine';
-import {deprecationWarn} from '../globals';
 import {AvgPool3D, AvgPool3DAttrs, AvgPool3DInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor4D, Tensor5D} from '../tensor';
@@ -26,7 +25,6 @@ import {TensorLike} from '../types';
 import * as util from '../util';
 
 import {cast} from './cast';
-import * as conv_util from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -63,14 +61,6 @@ import {reshape} from './reshape';
  *     "NDHWC". Specify the data format of the input and output data. With the
  *     default format "NDHWC", the data is stored in the order of: [batch,
  *     depth, height, width, channels]. Only "NDHWC" is currently supported.
- * @param dilations Deprecated, this field will be gone in v3.0.0.
- *     The dilation rates:
- *     `[dilationDepth, dilationHeight, dilationWidth]`
- *     in which we sample input values across the depth, height and width
- *     dimensions in dilated pooling.
- *     Defaults to `[1, 1, 1]`. If `dilations` is a single number,
- *     then `dilationDepth == dilationHeight == dilationWidth`.
- *     If it is greater than 1, then all values of `strides` must be 1.
  *
  * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
@@ -78,16 +68,7 @@ function avgPool3d_<T extends Tensor4D|Tensor5D>(
     x: T|TensorLike, filterSize: [number, number, number]|number,
     strides: [number, number, number]|number, pad: 'valid'|'same'|number,
     dimRoundingMode?: 'floor'|'round'|'ceil',
-    dataFormat: 'NDHWC'|'NCDHW' = 'NDHWC',
-    dilations?: [number, number, number]|number): T {
-  if (dilations == null) {
-    dilations = [1, 1, 1];
-  } else {
-    deprecationWarn(
-        'dilations is deprecated, this field will be gone in ' +
-        'v3.0.0.');
-  }
-
+    dataFormat: 'NDHWC'|'NCDHW' = 'NDHWC'): T {
   const $x = convertToTensor(x, 'x', 'avgPool3d', 'float32');
 
   let x5D = $x as Tensor5D;
@@ -104,10 +85,6 @@ function avgPool3d_<T extends Tensor4D|Tensor5D>(
       dataFormat === 'NDHWC',
       () => `Error in avgPool3d: Only NDHWC is currently supported, ` +
           `but got dataFormat of ${dataFormat}`);
-  util.assert(
-      conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
-      () => 'Error in avgPool3d: Either strides or dilations must be 1. ' +
-          `Got strides ${strides} and dilations '${dilations}'`);
 
   if (dimRoundingMode != null) {
     util.assert(
@@ -118,8 +95,8 @@ function avgPool3d_<T extends Tensor4D|Tensor5D>(
 
   const inputs: AvgPool3DInputs = {x: x5D};
 
-  const attrs: AvgPool3DAttrs =
-      {filterSize, strides, pad, dimRoundingMode, dataFormat, dilations};
+  const attrs:
+      AvgPool3DAttrs = {filterSize, strides, pad, dimRoundingMode, dataFormat};
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   let res = ENGINE.runKernel(
