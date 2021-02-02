@@ -109,7 +109,9 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
 
     const remainder = this.convInfo.inChannels % 4;
     const remainderSnippet = remainder === 0 ?
-        `resData = coordsInBounds(coord, ${
+        `// The bounds checking is always needed since we use it to pad zero for
+        // the 'same' padding type.
+        resData = coordsInBounds(coord, ${
             getShapeCoords(this.convInfo.inShape)}) ? x[getFlatIndex(coord, ${
             getShapeCoords(
                 this.convInfo.inShape)}) / 4] : vec4(0.0, 0.0, 0.0, 0.0);` :
