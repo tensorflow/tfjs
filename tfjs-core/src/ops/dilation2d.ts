@@ -56,7 +56,7 @@ import {reshape} from './reshape';
  *     is a single number, then `dilationHeight == dilationWidth`. If it is
  *     greater than 1, then all values of `strides` must be 1.
  *
- * @doc {heading: 'Operations', subheading: 'Basic math'}
+ * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
 function dilation2d_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filter: Tensor3D|TensorLike,
@@ -90,6 +90,7 @@ function dilation2d_<T extends Tensor3D|Tensor4D>(
   const inputs: Dilation2DInputs = {x: x4D, filter: $filter};
   const attrs: Dilation2DAttrs = {strides, pad, dilations};
 
+  // tslint:disable-next-line: no-unnecessary-type-assertion
   const res = ENGINE.runKernel(
                   Dilation2D, inputs as {} as NamedTensorMap,
                   attrs as {} as NamedAttrMap) as T;

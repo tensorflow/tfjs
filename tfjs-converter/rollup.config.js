@@ -21,6 +21,7 @@ import replace from '@rollup/plugin-replace';
 import typescript from '@rollup/plugin-typescript';
 import {terser} from 'rollup-plugin-terser';
 import visualizer from 'rollup-plugin-visualizer';
+import {getBrowserBundleConfigOptions} from '../rollup.config.helpers';
 
 const PREAMBLE = `/**
  * @license
@@ -126,57 +127,16 @@ module.exports = cmdOptions => {
     tsCompilerOptions: {target: 'es5'}
   }));
 
-  if (cmdOptions.ci || cmdOptions.npm) {
-    // Browser default minified (ES5)
-    bundles.push(config({
-      plugins: [terserPlugin],
-      output: {
-        format: browserFormat,
-        name,
-        extend,
-        file: `dist/${fileName}.min.js`,
-        freeze: false
-      },
-      tsCompilerOptions: {target: 'es5'},
-      visualize: cmdOptions.visualize
-    }));
+  if (cmdOptions.ci) {
+    const browserBundles = getBrowserBundleConfigOptions(
+        config, name, fileName, PREAMBLE, cmdOptions.visualize, true /* CI */);
+    bundles.push(...browserBundles);
   }
 
   if (cmdOptions.npm) {
-    // Browser default unminified (ES5)
-    bundles.push(config({
-      output: {
-        format: browserFormat,
-        name,
-        extend,
-        file: `dist/${fileName}.js`,
-        freeze: false
-      },
-      tsCompilerOptions: {target: 'es5'}
-    }));
-
-    // Browser ES2017
-    bundles.push(config({
-      output: {
-        format: browserFormat,
-        name,
-        extend,
-        file: `dist/${fileName}.es2017.js`
-      },
-      tsCompilerOptions: {target: 'es2017'}
-    }));
-
-    // Browser ES2017 minified
-    bundles.push(config({
-      plugins: [terserPlugin],
-      output: {
-        format: browserFormat,
-        name,
-        extend,
-        file: `dist/${fileName}.es2017.min.js`
-      },
-      tsCompilerOptions: {target: 'es2017'}
-    }));
+    const browserBundles = getBrowserBundleConfigOptions(
+        config, name, fileName, PREAMBLE, cmdOptions.visualize, false /* CI */);
+    bundles.push(...browserBundles);
 
     // Miniprogram entry (minified es5)
     bundles.push(config({

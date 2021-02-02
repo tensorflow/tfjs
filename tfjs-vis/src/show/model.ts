@@ -15,9 +15,14 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs-core';
+// TODO use type only imports for these types once we are on a version of
+// ts that supports this.
+// https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-8.html#type-only-imports-and-export
 // tslint:disable-next-line: no-imports-from-dist
 import {Layer} from '@tensorflow/tfjs-layers/dist/engine/topology';
+// tslint:disable-next-line: no-imports-from-dist
+import {LayersModel} from '@tensorflow/tfjs-layers/dist/engine/training';
 
 import {histogram} from '../render/histogram';
 import {getDrawArea} from '../render/render_utils';
@@ -47,7 +52,7 @@ import {tensorStats} from '../util/math';
  *  namespace: 'show'
  * }
  */
-export async function modelSummary(container: Drawable, model: tf.LayersModel) {
+export async function modelSummary(container: Drawable, model: LayersModel) {
   const drawArea = getDrawArea(container);
   const summary = getModelSummary(model);
 
@@ -134,7 +139,7 @@ export async function layer(container: Drawable, layer: Layer) {
 // Helper functions
 //
 
-function getModelSummary(model: tf.LayersModel) {
+function getModelSummary(model: LayersModel) {
   return {
     layers: model.layers.map(getLayerSummary),
   };

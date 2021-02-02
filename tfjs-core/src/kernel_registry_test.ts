@@ -215,10 +215,8 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
       },
     });
 
-    const gradFunc = tf.grad(
-        x => tf.engine().runKernel(
-                 kernelName, {x}, {} /* attrs */, [x] /* inputsToSave */) as
-            tf.Tensor);
+    const gradFunc =
+        tf.grad(x => tf.engine().runKernel(kernelName, {x}, {} /* attrs */));
     const dx = gradFunc(x);
     expect(kernelWasCalled).toBe(true);
     expect(gradientWasCalled).toBe(true);
@@ -264,8 +262,8 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
 
        const gradFunc = tf.grad(
            x => tf.engine().runKernel(
-                    kernelName, {x}, {} /* attrs */
-                    ) as tf.Tensor);
+               kernelName, {x}, {} /* attrs */
+               ));
        const x = tf.zeros([2, 2]);
        const dx = gradFunc(x);
        expect(kernelWasCalled).toBe(true);
@@ -308,6 +306,7 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
 
     // Inputs as array.
     const z = (...x: tf.Tensor[]) =>
+        // tslint:disable-next-line: no-unnecessary-type-assertion
         tf.engine().runKernel(
             kernelName, x as {} as tf.NamedTensorMap, {} /* attrs */) as
         tf.Tensor;
@@ -360,6 +359,7 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
 
        // Inputs as map.
        const z = (x0: tf.Tensor, x1: tf.Tensor) =>
+           // tslint:disable-next-line: no-unnecessary-type-assertion
            tf.engine().runKernel(kernelName, {x0, x1}, {} /* attrs */) as
            tf.Tensor;
        const gradFunc = tf.grads(z);
@@ -380,10 +380,8 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
       kernelFunc: () => ({dtype: 'float32', shape: [3, 3], dataId: {}})
     });
 
-    const gradFunc = tf.grad(
-        x => tf.engine().runKernel(
-                 kernelName, {x}, {} /* attrs */, [x] /* inputsToSave */) as
-            tf.Tensor);
+    const gradFunc =
+        tf.grad(x => tf.engine().runKernel(kernelName, {x}, {} /* attrs */));
     expect(() => gradFunc(x))
         .toThrowError(/gradient function not found for MyKernel/);
 

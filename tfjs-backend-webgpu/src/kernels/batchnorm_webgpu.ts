@@ -18,18 +18,21 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType, getShapeCoords} from '../shader_preprocessor';
-import {computeDispatch} from '../webgpu_util';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
 export class BatchNormProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
-  dispatchLayout: {x: number[], y: number[], z: number[]};
+  dispatchLayout: {x: number[], y?: number[], z?: number[]};
   dispatch: [number, number, number];
   variableNames: string[];
-  workGroupSize: [4, 4, 4];
+  // This is an experimental value.
+  workGroupSize: [number, number, number] = [128, 1, 1];
+  offsetShape: number[]|null;
+  scaleShape: number[]|null;
+  varianceEpsilon: number;
 
   constructor(
       xShape: number[], meanShape: number[], varianceShape: number[],
@@ -39,37 +42,46 @@ export class BatchNormProgram implements WebGPUProgram {
     backend_util.assertAndGetBroadcastShape(xShape, meanShape);
     backend_util.assertAndGetBroadcastShape(xShape, varianceShape);
     this.outputShape = xShape;
-    this.dispatchLayout = {x: [1, 2], y: [0], z: [3]};
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
+
+    if (offsetShape != null) {
+      backend_util.assertAndGetBroadcastShape(xShape, offsetShape);
+      this.variableNames.push('offset');
+    }
+    if (scaleShape != null) {
+      backend_util.assertAndGetBroadcastShape(xShape, scaleShape);
+      this.variableNames.push('scale');
+    }
+    this.offsetShape = offsetShape;
+    this.scaleShape = scaleShape;
+    this.varianceEpsilon = varianceEpsilon;
+    this.shaderKey = `batchNorm_${varianceEpsilon}`;
+  }
+
+  getUserCode(): string {
+    let offsetSnippet = '0.0';
+    if (this.offsetShape != null) {
+      offsetSnippet = 'getOffsetAtOutCoords()';
+    }
+
+    let scaleSnippet = '1.0';
+    if (this.scaleShape != null) {
+      scaleSnippet = 'getScaleAtOutCoords()';
+    }
+
     const dim = this.outputShape.length;
     const coordsDataType = getCoordsDataType(dim);
     let setOutput =
         'setOutput(coords[0], coords[1], coords[2], coords[3], value);';
     if (dim === 2) {
-      this.dispatchLayout = {x: [1], y: [0], z: []};
       setOutput = 'setOutput(coords[0], coords[1], value);';
     }
     if (dim === 3) {
-      this.dispatchLayout = {x: [1, 2], y: [0], z: []};
       setOutput = 'setOutput(coords[0], coords[1], coords[2], value);';
     }
-    this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
-
-    let offsetSnippet = '0.0';
-    if (offsetShape != null) {
-      backend_util.assertAndGetBroadcastShape(xShape, offsetShape);
-      this.variableNames.push('offset');
-      offsetSnippet = 'getOffsetAtOutCoords()';
-    }
-
-    let scaleSnippet = '1.0';
-    if (scaleShape != null) {
-      backend_util.assertAndGetBroadcastShape(xShape, scaleShape);
-      this.variableNames.push('scale');
-      scaleSnippet = 'getScaleAtOutCoords()';
-    }
-
-    this.userCode = `
+    const userCode = `
       void writeResult(${coordsDataType} coords,float value) {
         if (coordsInBounds(coords, ${getShapeCoords(this.outputShape)})) {
           ${setOutput}
@@ -82,9 +94,11 @@ export class BatchNormProgram implements WebGPUProgram {
         float variance = getVarianceAtOutCoords();
         float offset = ${offsetSnippet};
         float scale = ${scaleSnippet};
-        float inv = scale * inversesqrt(variance + float(${varianceEpsilon}));
+        float inv = scale * inversesqrt(variance + float(${
+        this.varianceEpsilon}));
         writeResult(coords,dot(vec3(x, -mean, offset), vec3(inv, inv, 1)));
       }
   `;
+    return userCode;
   }
 }

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {ScatterNd, ScatterNdAttrs, ScatterNdInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
@@ -52,16 +52,13 @@ function scatterND_<R extends Rank>(
   const $updates = convertToTensor(updates, 'updates', 'scatterND');
   scatter_nd_util.validateInput($updates, $indices, shape);
 
-  const forward: ForwardFunc<Tensor> = (backend) => {
-    return backend.scatterND($indices, $updates, shape);
-  };
-
   const inputs: ScatterNdInputs = {indices: $indices, updates: $updates};
   const attrs: ScatterNdAttrs = {shape};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */,
-             ScatterNd, attrs as {} as NamedAttrMap) as Tensor<R>;
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  return ENGINE.runKernel(
+             ScatterNd, inputs as {} as NamedTensorMap,
+             attrs as {} as NamedAttrMap) as Tensor<R>;
 }
 
 export const scatterND = op({scatterND_});

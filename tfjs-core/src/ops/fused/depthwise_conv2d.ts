@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../../engine';
+import {ENGINE} from '../../engine';
 import {customGrad} from '../../gradients';
 import {FusedDepthwiseConv2D, FusedDepthwiseConv2DAttrs, FusedDepthwiseConv2DInputs} from '../../kernel_names';
 import {NamedAttrMap} from '../../kernel_registry';
@@ -85,6 +85,8 @@ import {reshape} from '../reshape';
  * @param activation Name of activation kernel (defaults to `linear`).
  * @param preluActivationWeights Tensor of prelu weights to be applied as part
  *     of a `prelu` activation, typically the same shape as `x`.
+ * @param leakyreluAlpha Optional. Alpha to be applied as part of a `leakyrelu`
+ *     activation.
  */
 function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   x,
@@ -96,7 +98,8 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   dimRoundingMode,
   bias,
   activation = 'linear',
-  preluActivationWeights
+  preluActivationWeights,
+  leakyreluAlpha
 }: {
   x: T|TensorLike,
   filter: Tensor4D|TensorLike,
@@ -107,7 +110,8 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   dimRoundingMode?: 'floor'|'round'|'ceil',
   bias?: Tensor|TensorLike,
   activation?: Activation,
-  preluActivationWeights?: Tensor
+  preluActivationWeights?: Tensor,
+  leakyreluAlpha?: number
 }): T {
   if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
     let result = unfusedDepthwiseConv2d(
@@ -116,7 +120,8 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
       result = add(result, bias);
     }
 
-    return applyActivation(result, activation, preluActivationWeights) as T;
+    return applyActivation(
+               result, activation, preluActivationWeights, leakyreluAlpha) as T;
   }
 
   const $x = convertToTensor(x, 'x', 'depthwiseConv2d');
@@ -199,40 +204,38 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
     return [xDer, filterDer];
   };
 
-  const forward: ForwardFunc<Tensor> = (backend) => {
-    const res = backend.fusedDepthwiseConv2D({
-      input: x4D,
-      filter: $filter,
-      convInfo,
-      bias: $bias,
-      activation,
-      preluActivationWeights: $preluActivationWeights
-    });
-    return res;
-  };
-
   const inputs: FusedDepthwiseConv2DInputs = {
     x: x4D,
     filter: $filter,
     bias: $bias,
     preluActivationWeights: $preluActivationWeights
   };
-  const attrs: FusedDepthwiseConv2DAttrs =
-      {strides, pad, dataFormat, dilations, dimRoundingMode, activation};
+  const attrs: FusedDepthwiseConv2DAttrs = {
+    strides,
+    pad,
+    dataFormat,
+    dilations,
+    dimRoundingMode,
+    activation,
+    leakyreluAlpha
+  };
 
   // Depending on the the params passed in we will have different number of
   // inputs and thus a a different number of elements in the gradient.
   if (bias == null) {
     const customOp =
         customGrad((x4D: Tensor4D, filter: Tensor4D, save: GradSaveFunc) => {
-          let res = ENGINE.runKernelFunc(
-              forward, inputs as {} as NamedTensorMap, null /* grad */,
-              FusedDepthwiseConv2D, attrs as {} as NamedAttrMap);
+          // tslint:disable-next-line: no-unnecessary-type-assertion
+          let res: Tensor4D|Tensor3D = ENGINE.runKernel(
+              FusedDepthwiseConv2D, inputs as {} as NamedTensorMap,
+              attrs as {} as NamedAttrMap);
 
           save([filter, x4D, res]);
 
           if (reshapedTo4D) {
-            res = reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
+            // tslint:disable-next-line: no-unnecessary-type-assertion
+            res = reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as
+                Tensor3D;
           }
 
           return {value: res, gradFunc: grad};
@@ -241,14 +244,17 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
   } else {
     const customOpWithBias = customGrad(
         (x4D: Tensor4D, filter: Tensor4D, bias: Tensor, save: GradSaveFunc) => {
-          let res = ENGINE.runKernelFunc(
-              forward, inputs as {} as NamedTensorMap, null /* grad */,
-              FusedDepthwiseConv2D, attrs as {} as NamedAttrMap);
+          // tslint:disable-next-line: no-unnecessary-type-assertion
+          let res: Tensor4D|Tensor3D = ENGINE.runKernel(
+              FusedDepthwiseConv2D, inputs as {} as NamedTensorMap,
+              attrs as {} as NamedAttrMap);
 
           save([filter, x4D, res, bias]);
 
           if (reshapedTo4D) {
-            res = reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
+            // tslint:disable-next-line: no-unnecessary-type-assertion
+            res = reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as
+                Tensor3D;
           }
 
           return {value: res, gradFunc: grad};

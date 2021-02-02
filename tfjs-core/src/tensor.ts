@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {getGlobal} from './global_util';
 import {tensorToString} from './tensor_format';
 import {ArrayMap, BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TypedArray} from './types';
 import * as util from './util';
@@ -452,6 +453,18 @@ Object.defineProperty(Tensor, Symbol.hasInstance, {
         instance.throwIfDisposed != null;
   }
 });
+
+export function getGlobalTensorClass() {
+  // Use getGlobal so that we can augment the Tensor class across package
+  // boundaries becase the node resolution alg may result in different modules
+  // being returned for this file depending on the path they are loaded from.
+  return getGlobal('Tensor', () => {
+    return Tensor;
+  });
+}
+
+// Global side effect. Cache global reference to Tensor class
+getGlobalTensorClass();
 
 export interface NumericTensor<R extends Rank = Rank> extends Tensor<R> {
   dtype: NumericDataType;

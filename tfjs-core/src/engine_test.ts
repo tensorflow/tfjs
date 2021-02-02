@@ -724,7 +724,8 @@ describeWithFlags('Detects memory leaks in kernels', ALL_ENVS, () => {
         id: 1,
         dispose: () => null,
         disposeData: (dataId: {}) => null,
-        numDataIds: () => dataIdsCount
+        numDataIds: () => dataIdsCount,
+        decComplexRef: (dataId: {}) => null
       } as TestStorage;
     });
     tf.setBackend(backendName);

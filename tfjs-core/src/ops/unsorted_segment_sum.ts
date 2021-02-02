@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {UnsortedSegmentSum, UnsortedSegmentSumAttrs, UnsortedSegmentSumInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor1D} from '../tensor';
@@ -54,15 +54,9 @@ function unsortedSegmentSum_<T extends Tensor>(
   const inputs: UnsortedSegmentSumInputs = {x: $x, segmentIds: $segmentIds};
   const attrs: UnsortedSegmentSumAttrs = {numSegments};
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.unsortedSegmentSum($x, $segmentIds, numSegments);
-    save([$segmentIds]);
-    return res;
-  };
-
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */,
-             UnsortedSegmentSum, attrs as {} as NamedAttrMap) as T;
+  return ENGINE.runKernel(
+      UnsortedSegmentSum, inputs as {} as NamedTensorMap,
+      attrs as {} as NamedAttrMap);
 }
 
 export const unsortedSegmentSum = op({unsortedSegmentSum_});

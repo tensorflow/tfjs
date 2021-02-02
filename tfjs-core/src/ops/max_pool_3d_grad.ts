@@ -15,16 +15,15 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {MaxPool3DGrad, MaxPool3DGradAttrs, MaxPool3DGradInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor4D, Tensor5D} from '../tensor';
+import {Tensor4D, Tensor5D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import * as conv_util from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -45,13 +44,6 @@ import {reshape} from './reshape';
  * @param strides The strides of the pooling:
  *     `[strideDepth, strideHeight, strideWidth]`. If
  *     `strides` is a single number, then `strideHeight == strideWidth`.
- * @param dilations Deprecated, this field will be gone in v3.0.0.
- *     The dilation rates: `[dilationDepth, dilationHeight, dilationWidth]`
- *     in which we sample input values across the depth, height and width
- *     dimensions in dilated pooling.
- *     Defaults to `[1, 1, 1]`. If `dilations` is a single number,
- *     then `dilationDepth == dilationHeight == dilationWidth`.
- *     If it is greater than 1, then all values of `strides` must be 1.
  * @param pad A string from: 'same', 'valid'. The type of padding algorithm
  *     used in the forward prop of the op.
  * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
@@ -60,9 +52,8 @@ import {reshape} from './reshape';
 function maxPool3dGrad_<T extends Tensor4D|Tensor5D>(
     dy: T|TensorLike, input: T|TensorLike, output: T|TensorLike,
     filterSize: [number, number, number]|number,
-    strides: [number, number, number]|number,
-    dilations: [number, number, number]|number = [1, 1, 1],
-    pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+    strides: [number, number, number]|number, pad: 'valid'|'same'|number,
+    dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   const $dy = convertToTensor(dy, 'dy', 'maxPool3dGrad');
   const $input = convertToTensor(input, 'input', 'maxPool3dGrad');
   const $output = convertToTensor(output, 'output', 'maxPool3dGrad');
@@ -96,11 +87,6 @@ function maxPool3dGrad_<T extends Tensor4D|Tensor5D>(
       output5D.rank === 5,
       () => `Error in maxPool3dGrad: output must be rank 5 but got rank ` +
           `${output5D.rank}.`);
-
-  util.assert(
-      conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
-      () => 'Error in maxPool3dGrad: Either strides or dilations ' +
-          `must be 1. Got strides ${strides} and dilations '${dilations}'`);
   if (dimRoundingMode != null) {
     util.assert(
         util.isInt(pad as number),
@@ -108,22 +94,15 @@ function maxPool3dGrad_<T extends Tensor4D|Tensor5D>(
             `using, dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
   }
 
-  const forward: ForwardFunc<Tensor> = backend => {
-    const convInfo = conv_util.computePool3DInfo(
-        input5D.shape, filterSize, strides, dilations, pad, dimRoundingMode);
-
-    return backend.maxPool3dBackprop(dy5D, input5D, output5D, convInfo);
-  };
-
   const inputs:
       MaxPool3DGradInputs = {dy: dy5D, input: input5D, output: output5D};
 
-  const attrs: MaxPool3DGradAttrs =
-      {filterSize, strides, dilations, pad, dimRoundingMode};
+  const attrs: MaxPool3DGradAttrs = {filterSize, strides, pad, dimRoundingMode};
 
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, MaxPool3DGrad,
-      attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  MaxPool3DGrad, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap) as T;
 
   if (reshapedTo5D) {
     return reshape(
@@ -131,7 +110,7 @@ function maxPool3dGrad_<T extends Tensor4D|Tensor5D>(
         T;
   }
 
-  return res as T;
+  return res;
 }
 
 export const maxPool3dGrad = op({maxPool3dGrad_});

@@ -14,10 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Conv2DBackpropFilter, Conv2DBackpropFilterAttrs, Conv2DBackpropFilterInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import * as util from '../util';
 
@@ -88,23 +88,14 @@ function conv2DBackpropFilter_<T extends Tensor3D|Tensor4D>(
             `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
   }
 
-  const forward: ForwardFunc<Tensor> = backend => {
-    const dilations = 1;
-    const $dataFormat = conv_util.convertConv2DDataFormat(dataFormat);
-    const convInfo = conv_util.computeConv2DInfo(
-        x4D.shape, filterShape, strides, dilations, pad, dimRoundingMode, false,
-        $dataFormat);
-
-    return backend.conv2dDerFilter(x4D, dy4D, convInfo);
-  };
-
   const inputs: Conv2DBackpropFilterInputs = {x: x4D, dy: dy4D};
   const attrs: Conv2DBackpropFilterAttrs =
       {strides, pad, dataFormat, dimRoundingMode, filterShape};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null,
-             Conv2DBackpropFilter, attrs as {} as NamedAttrMap) as Tensor4D;
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  return ENGINE.runKernel(
+             Conv2DBackpropFilter, inputs as {} as NamedTensorMap,
+             attrs as {} as NamedAttrMap) as Tensor4D;
 }
 
 export const conv2DBackpropFilter = op({conv2DBackpropFilter_});

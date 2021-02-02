@@ -196,8 +196,12 @@ const benchmarks = {
   },
   'posenet': {
     type: 'GraphModel',
-    load: async () => {
-      const model = await posenet.load();
+    supportedInput: [257, 512, 1024],
+    load: async (inputResolution = 257) => {
+      const mobileNetConfig = {
+        inputResolution: inputResolution,
+      };
+      const model = await posenet.load(mobileNetConfig);
       model.image = await loadImage('tennis_standing.jpg');
       return model;
     },
@@ -209,16 +213,36 @@ const benchmarks = {
   },
   'bodypix': {
     type: 'GraphModel',
+    // The ratio to the default camera size [640, 480].
+    supportedInput: [0.5, 0.75, 1.0, 2.0],
     load: async () => {
       const model = await bodyPix.load();
       model.image = await loadImage('tennis_standing.jpg');
       return model;
     },
-    predictFunc: () => {
+    predictFunc: (internalResolution = 0.5) => {
       return async model => {
-        return model.segmentPerson(model.image);
+        const PERSON_INFERENCE_CONFIG = {
+          internalResolution: internalResolution,
+        };
+        return model.segmentPerson(model.image, PERSON_INFERENCE_CONFIG);
       };
     }
+  },
+  'blazeface': {
+    type: 'GraphModel',
+    supportedInput: [128],
+    load: async () => {
+      const url =
+          'https://tfhub.dev/tensorflow/tfjs-model/blazeface/1/default/1';
+      return tf.loadGraphModel(url, {fromTFHub: true});
+    },
+    predictFunc: (inputResolution = 128) => {
+      const input = tf.randomNormal([1, inputResolution, inputResolution, 3]);
+      return model => {
+        return model.predict(input);
+      };
+    },
   },
   'speech-commands': {
     load: async () => {

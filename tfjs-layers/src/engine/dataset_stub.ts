@@ -16,10 +16,10 @@
  */
 
 export abstract class LazyIterator<T> {
-  abstract async next(): Promise<IteratorResult<T>>;
+  abstract next(): Promise<IteratorResult<T>>;
 }
 
 export abstract class Dataset<T> {
-  abstract async iterator(): Promise<LazyIterator<T>>;
+  abstract iterator(): Promise<LazyIterator<T>>;
   size: number;
 }

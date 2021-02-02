@@ -64,7 +64,7 @@ export function fftImpl(
   const complexOutputReshaped =
       reshape({inputs: {x: complexOutput}, backend, attrs: {shape: x.shape}});
 
-  backend.disposeIntermediateTensorInfo(complexOutputReshaped);
-
+  backend.disposeIntermediateTensorInfo(input2D);
+  backend.disposeIntermediateTensorInfo(complexOutput);
   return complexOutputReshaped;
 }

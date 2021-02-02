@@ -54,7 +54,7 @@ let fromPixels2DContext: CanvasRenderingContext2D;
  */
 function fromPixels_(
     pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-    HTMLVideoElement,
+    HTMLVideoElement|ImageBitmap,
     numChannels = 3): Tensor3D {
   // Sanity checks.
   if (numChannels > 4) {
@@ -69,6 +69,7 @@ function fromPixels_(
   let isVideo = false;
   let isImage = false;
   let isCanvasLike = false;
+  let isImageBitmap = false;
   if ((pixels as PixelData).data instanceof Uint8Array) {
     isPixelData = true;
   } else if (
@@ -85,6 +86,10 @@ function fromPixels_(
     // tslint:disable-next-line: no-any
   } else if ((pixels as any).getContext != null) {
     isCanvasLike = true;
+  } else if (
+      typeof (ImageBitmap) !== 'undefined' &&
+      pixels instanceof ImageBitmap) {
+    isImageBitmap = true;
   } else {
     throw new Error(
         'pixels passed to tf.browser.fromPixels() must be either an ' +
@@ -110,8 +115,8 @@ function fromPixels_(
     const inputs: FromPixelsInputs = {pixels};
     const attrs: FromPixelsAttrs = {numChannels};
     return ENGINE.runKernel(
-               FromPixels, inputs as {} as NamedTensorMap,
-               attrs as {} as NamedAttrMap) as Tensor3D;
+        FromPixels, inputs as {} as NamedTensorMap,
+        attrs as {} as NamedAttrMap);
   }
 
   const [width, height] = isVideo ?
@@ -128,7 +133,7 @@ function fromPixels_(
         (pixels as any).getContext('2d').getImageData(0, 0, width, height).data;
   } else if (isImageData || isPixelData) {
     vals = (pixels as PixelData | ImageData).data;
-  } else if (isImage || isVideo) {
+  } else if (isImage || isVideo || isImageBitmap) {
     if (fromPixels2DContext == null) {
       fromPixels2DContext = document.createElement('canvas').getContext('2d');
     }

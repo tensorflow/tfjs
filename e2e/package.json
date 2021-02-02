@@ -29,6 +29,7 @@
     "karma-browserstack-launcher": "~1.6.0",
     "karma-chrome-launcher": "~2.2.0",
     "karma-jasmine": "~1.1.0",
+    "karma-spec-reporter": "~0.0.32",
     "karma-typescript": "~4.1.1",
     "karma-typescript-es6-transform": "^5.1.0",
     "mathjs": "^5.7.0",

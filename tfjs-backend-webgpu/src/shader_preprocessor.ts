@@ -68,8 +68,8 @@ interface ProgramParams {
   workGroupSize?: [number, number, number];
   variableNames: string[];
   uniforms?: string;
-  userCode: string;
   isVec4?: boolean;
+  getUserCode: () => string;
 }
 
 export interface InputInfo {
@@ -139,7 +139,7 @@ export function makeShader(
     sources.push(inputSamplingSnippet);
   }
 
-  sources.push(program.userCode);
+  sources.push(program.getUserCode());
   const source = sources.join('\n');
   return source;
 }
@@ -231,12 +231,12 @@ function getSetOutputSnippet(
       void setOutput(${dims.map(d => `int ${d}`).join(', ')}, vec4 value) {
         int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), ${
           getShapeCoords(outShape)});
-        setOutput(flatIndex, value);
+        setOutput(flatIndex / 4, value);
       }
       void setOutput(${dims.map(d => `int ${d}`).join(', ')}, ivec4 value) {
         int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), ${
           getShapeCoords(outShape)});
-        setOutput(flatIndex, value);
+        setOutput(flatIndex / 4, value);
       }
     `;
     } else {

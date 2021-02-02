@@ -54,7 +54,7 @@ const devConfig = {
     },
     // Serve program bundles as files
     {
-      pattern: 'custom_bundle/*/dist/**/*',
+      pattern: 'custom_module/*/dist/**/*',
       watched: true,
       included: false,
       served: true,
@@ -62,19 +62,20 @@ const devConfig = {
     },
     // Serve model assets as files
     {
-      pattern: 'custom_bundle/*/model/**/*',
+      pattern: 'custom_module/*/model/**/*',
       watched: true,
       included: false,
       served: true,
       nocache: true
     },
   ],
+  exclude: ['integration_tests/custom_bundle_test.ts'],
   include: ['integration_tests/**/*.ts'],
   preprocessors: {
     '**/*.ts': ['karma-typescript'],  // *.tsx for React Jsx
   },
   karmaTypescriptConfig,
-  reporters: ['progress', 'karma-typescript']
+  reporters: ['spec', 'karma-typescript']
 };
 
 const browserstackConfig = {
@@ -114,8 +115,8 @@ module.exports = function(config) {
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
-      tunnelIdentifier:
-          `e2e_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+      timeout: 1800,
+      tunnelIdentifier: `e2e_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     },
     captureTimeout: 3e5,
     reportSlowerThan: 500,

@@ -27,7 +27,7 @@ import {Kwargs} from '../types';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
-import {GRU, GRUCellLayerArgs, GRULayerArgs, LSTM, LSTMCellLayerArgs, LSTMLayerArgs, rnn, RNN, RNNCell, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs} from './recurrent';
+import {GRUCellLayerArgs, GRULayerArgs, LSTMCellLayerArgs, LSTMLayerArgs, rnn, RNN, RNNCell, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs} from './recurrent';
 
 /**
  * A simplistic RNN step function for testing.
@@ -198,6 +198,7 @@ describeMathCPUAndGPU('rnn', () => {
 class RNNCellForTest extends RNNCell {
   /** @nocollapse */
   static className = 'RNNCellForTest';
+  stateSize: number|number[];
   constructor(stateSizes: number|number[]) {
     super({});
     this.stateSize = stateSizes;
@@ -222,7 +223,7 @@ describeMathCPU('RNN-Layer', () => {
 
   it('constructor: only cell', () => {
     const cell = new RNNCellForTest(5);
-    const rnn = tfl.layers.rnn({cell}) as RNN;
+    const rnn = tfl.layers.rnn({cell});
     expect(rnn.returnSequences).toEqual(false);
     expect(rnn.returnState).toEqual(false);
     expect(rnn.goBackwards).toEqual(false);
@@ -235,7 +236,7 @@ describeMathCPU('RNN-Layer', () => {
       returnSequences: true,
       returnState: true,
       goBackwards: true
-    }) as RNN;
+    });
     expect(rnn.returnSequences).toEqual(true);
     expect(rnn.returnState).toEqual(true);
     expect(rnn.goBackwards).toEqual(true);
@@ -341,7 +342,7 @@ describeMathCPUAndGPU('RNN-Layer-Math', () => {
   it('getInitialState: 1 state', () => {
     const cell = new RNNCellForTest(5);
     const inputs = tfc.zeros([4, 3, 2]);
-    const rnn = tfl.layers.rnn({cell}) as RNN;
+    const rnn = tfl.layers.rnn({cell});
     const initialStates = rnn.getInitialState(inputs);
     expect(initialStates.length).toEqual(1);
     expectTensorsClose(initialStates[0], tfc.zeros([4, 5]));
@@ -350,7 +351,7 @@ describeMathCPUAndGPU('RNN-Layer-Math', () => {
   it('getInitialState: 2 states', () => {
     const cell = new RNNCellForTest([5, 6]);
     const inputs = tfc.zeros([4, 3, 2]);
-    const rnn = tfl.layers.rnn({cell}) as RNN;
+    const rnn = tfl.layers.rnn({cell});
     const initialStates = rnn.getInitialState(inputs);
     expect(initialStates.length).toEqual(2);
     expectTensorsClose(initialStates[0], tfc.zeros([4, 5]));
@@ -1634,12 +1635,12 @@ describeMathCPUAndGPU('GRU Tensor', () => {
 describeMathCPU('GRU-deserialization', () => {
   it('Default recurrentActivation round trip', () => {
     const x = randomNormal([1, 2, 3]);
-    const layer = tfl.layers.gru({units: 4}) as GRU;
+    const layer = tfl.layers.gru({units: 4});
     const y = layer.apply(x) as Tensor;
     const pythonicConfig = convertTsToPythonic(layer.getConfig());
     // tslint:disable-next-line:no-any
     const tsConfig = convertPythonicToTs(pythonicConfig) as any;
-    const layerPrime = tfl.layers.gru(tsConfig) as GRU;
+    const layerPrime = tfl.layers.gru(tsConfig);
     const yPrime = layer.apply(x) as Tensor;
     expectTensorsClose(yPrime, y);
     expect(layerPrime.getConfig()['recurrentActivation'])
@@ -1649,12 +1650,12 @@ describeMathCPU('GRU-deserialization', () => {
   it('Non-default recurrentActivation round trip', () => {
     const x = randomNormal([1, 2, 3]);
     const layer =
-        tfl.layers.gru({units: 4, recurrentActivation: 'tanh'}) as GRU;
+        tfl.layers.gru({units: 4, recurrentActivation: 'tanh'});
     const y = layer.apply(x) as Tensor;
     const pythonicConfig = convertTsToPythonic(layer.getConfig());
     // tslint:disable-next-line:no-any
     const tsConfig = convertPythonicToTs(pythonicConfig) as any;
-    const layerPrime = tfl.layers.gru(tsConfig) as GRU;
+    const layerPrime = tfl.layers.gru(tsConfig);
     const yPrime = layer.apply(x) as Tensor;
     expectTensorsClose(yPrime, y);
     expect(layerPrime.getConfig()['recurrentActivation'])
@@ -2698,12 +2699,12 @@ describeMathCPU('LSTM-deserialization', () => {
 
   it('Default recurrentActivation round trip', () => {
     const x = randomNormal([1, 2, 3]);
-    const layer = tfl.layers.lstm({units: 4}) as LSTM;
+    const layer = tfl.layers.lstm({units: 4});
     const y = layer.apply(x) as Tensor;
     const pythonicConfig = convertTsToPythonic(layer.getConfig());
     // tslint:disable-next-line:no-any
     const tsConfig = convertPythonicToTs(pythonicConfig) as any;
-    const layerPrime = tfl.layers.lstm(tsConfig) as LSTM;
+    const layerPrime = tfl.layers.lstm(tsConfig);
     const yPrime = layer.apply(x) as Tensor;
     expectTensorsClose(yPrime, y);
     expect(layerPrime.getConfig()['recurrentActivation'])
@@ -2713,12 +2714,12 @@ describeMathCPU('LSTM-deserialization', () => {
   it('Non-default recurrentActivation round trip', () => {
     const x = randomNormal([1, 2, 3]);
     const layer =
-        tfl.layers.lstm({units: 4, recurrentActivation: 'tanh'}) as LSTM;
+        tfl.layers.lstm({units: 4, recurrentActivation: 'tanh'});
     const y = layer.apply(x) as Tensor;
     const pythonicConfig = convertTsToPythonic(layer.getConfig());
     // tslint:disable-next-line:no-any
     const tsConfig = convertPythonicToTs(pythonicConfig) as any;
-    const layerPrime = tfl.layers.lstm(tsConfig) as LSTM;
+    const layerPrime = tfl.layers.lstm(tsConfig);
     const yPrime = layer.apply(x) as Tensor;
     expectTensorsClose(yPrime, y);
     expect(layerPrime.getConfig()['recurrentActivation'])

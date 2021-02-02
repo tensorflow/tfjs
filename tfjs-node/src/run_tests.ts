@@ -17,6 +17,10 @@
 
 // We import index.ts so that the Node backend gets registered.
 import './index';
+// tslint:disable-next-line: no-imports-from-dist
+import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
+// tslint:disable-next-line: no-imports-from-dist
+import '@tensorflow/tfjs-core/dist/register_all_gradients';
 
 import * as tf from '@tensorflow/tfjs';
 // tslint:disable-next-line:no-imports-from-dist
@@ -85,7 +89,9 @@ const IGNORE_LIST: string[] = [
   // tslint:disable-next-line:max-line-length
   'pool test-tensorflow {} max x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding',
   // tslint:disable-next-line:max-line-length
-  'pool test-tensorflow {} avg x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding'
+  'pool test-tensorflow {} avg x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding',
+  // not available in tf yet.
+  'denseBincount'
 ];
 
 if (process.platform === 'win32') {

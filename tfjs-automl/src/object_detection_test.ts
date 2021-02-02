@@ -31,9 +31,15 @@ const SALAD_IMAGE =
 
 describeWithFlags('object detection', {}, () => {
   let model: automl.ObjectDetectionModel = null;
+  const originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+  jasmine.DEFAULT_TIMEOUT_INTERVAL = 40000;
 
   beforeAll(async () => {
     model = await automl.loadObjectDetection(MODEL_URL);
+  });
+
+  afterAll(() => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
   });
 
   it('prediction from a zero tensor', async () => {

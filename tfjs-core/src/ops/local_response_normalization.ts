@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {LRN, LRNAttrs, LRNInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -61,27 +61,19 @@ function localResponseNormalization_<T extends Tensor3D|Tensor4D>(
     x4D = reshape($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
   }
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const y = backend.localResponseNormalization4D(
-        x4D, depthRadius, bias, alpha, beta);
-
-    save([x4D, y]);
-
-    return y;
-  };
-
   const inputs: LRNInputs = {x: x4D};
 
   const attrs: LRNAttrs = {depthRadius, bias, alpha, beta};
 
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, LRN,
-      attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  LRN, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   } else {
-    return res as T;
+    return res;
   }
 }
 

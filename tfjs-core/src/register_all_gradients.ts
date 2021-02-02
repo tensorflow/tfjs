@@ -58,6 +58,7 @@ import {identityGradConfig} from './gradients/Identity_grad';
 import {isFiniteGradConfig} from './gradients/IsFinite_grad';
 import {isInfGradConfig} from './gradients/IsInf_grad';
 import {isNanGradConfig} from './gradients/IsNan_grad';
+import {leakyReluGradConfig} from './gradients/LeakyRelu_grad';
 import {log1pGradConfig} from './gradients/Log1p_grad';
 import {logGradConfig} from './gradients/Log_grad';
 import {logSoftmaxGradConfig} from './gradients/LogSoftmax_grad';
@@ -66,6 +67,7 @@ import {maxGradConfig} from './gradients/Max_grad';
 import {maximumGradConfig} from './gradients/Maximum_grad';
 import {maxPool3DGradConfig} from './gradients/MaxPool3D_grad';
 import {maxPoolGradConfig} from './gradients/MaxPool_grad';
+import {meanGradConfig} from './gradients/Mean_grad';
 import {minGradConfig} from './gradients/Min_grad';
 import {minimumGradConfig} from './gradients/Minimum_grad';
 import {mirrorPadGradConfig} from './gradients/MirrorPad_grad';
@@ -162,6 +164,7 @@ const gradConfigs: GradConfig[] = [
   isFiniteGradConfig,
   isInfGradConfig,
   isNanGradConfig,
+  leakyReluGradConfig,
   log1pGradConfig,
   logGradConfig,
   logSoftmaxGradConfig,
@@ -171,6 +174,7 @@ const gradConfigs: GradConfig[] = [
   maximumGradConfig,
   maxPool3DGradConfig,
   maxPoolGradConfig,
+  meanGradConfig,
   minGradConfig,
   minimumGradConfig,
   mirrorPadGradConfig,
