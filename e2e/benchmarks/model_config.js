@@ -198,7 +198,7 @@ const benchmarks = {
     type: 'GraphModel',
     inputSizes: [128, 257, 512, 1024],
     architectures: ['MobileNetV1', 'ResNet50'],
-    load: async (inputResolution = 257, modelArchitecture = 'MobileNetV1') => {
+    load: async (inputResolution = 128, modelArchitecture = 'MobileNetV1') => {
       let config = null;
       if (modelArchitecture === 'MobileNetV1') {
         config = {
