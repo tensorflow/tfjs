@@ -105,34 +105,23 @@ limitations under the License.
   <script>
     'use strict';
 
-    let uriState = null;
+    let urlState = null;
     let runTimes = 50;
     let warmupTimes = 1;
 
-    function getURIState(url) {
-      const params = {};
-      const parser = document.createElement('a');
-      parser.href = url;
-      const query = parser.search.substring(1);
-      const vars = query.split('&');
-
-      for (let i = 0; i < vars.length; i++) {
-        const pair = vars[i].split('=');
-        if (pair[0] == null || pair[1] == null)
-          return null;
-        params[pair[0]] = decodeURIComponent(pair[1]);
+    function getURLState(url) {
+      let params = new URLSearchParams(url);
+      const keys = [...params.keys()];
+      if (keys.length === 0)
+        return null;
+      if (params.has('run')) {
+        runTimes = Number(params.get('run'));
       }
-
-      if (Object.keys(params).includes('run')) {
-        runTimes = Number(params['run']);
-      }
-
-      if (Object.keys(params).includes('warmup')) {
-        warmupTimes = Number(params['warmup']);
+      if (params.has('warmup')) {
+        warmupTimes = Number(params.get('warmup'));
       }
       return params;
-    };
-
+    }
     // Controllers can be updated by URI or clicked by user.
     let modelController = null;
     let numRunsController = null;
@@ -142,16 +131,18 @@ limitations under the License.
     let inputSizeController = null;
     let modelArchitectureController = null;
 
-    function updateGUIFromURIState() {
+    function updateGUIFromURLState() {
+      if (urlState == null)
+        return;
       // The model parameter will be update automically by onChange.
-      if (modelController != null && isURIStateParameterSupported('benchmark'))
-        modelController.setValue(uriState['benchmark']);
-      if (numRunsController != null && isURIStateParameterSupported('run'))
-        numRunsController.setValue(uriState['run']);
-      if (backendsController != null && isURIStateParameterSupported('backend'))
-        backendsController.setValue(uriState['backend']);
+      if (modelController != null && urlState.has('benchmark'))
+        modelController.setValue(urlState.get('benchmark'));
+      if (numRunsController != null && urlState.has('run'))
+        numRunsController.setValue(urlState.get('run'));
+      if (backendsController != null && urlState.has('backend'))
+        backendsController.setValue(urlState.get('backend'));
       // Only auto run when URI component exists.
-      if (uriState != null && runButton != null)
+      if (runButton != null)
         runButton.domElement.click();
     }
 
@@ -222,7 +213,7 @@ limitations under the License.
       inputs: {}
     };
 
-    uriState = getURIState(window.location.href);
+    urlState = getURLState(window.location.search);
 
     const modalDiv = document.getElementById('modal-msg');
     const timeTable = document.querySelector('#timings tbody');
@@ -405,21 +396,23 @@ limitations under the License.
       return input;
     }
 
-    function updateStateFromURIState() {
-      if (isURIStateParameterSupported('run'))
-        state.numRuns = uriState['run'];
-      if (isURIStateParameterSupported('benchmark'))
-        state.benchmark = uriState['benchmark'];
-      if (isURIStateParameterSupported('backend'))
-        state.backend = uriState['backend'];
-      if (isURIStateParameterSupported('inputSize'))
-        state.inputSize = uriState['inputSize'];
-      if (isURIStateParameterSupported('architecture'))
-        state.architecture = uriState['architecture'];
+    function updateStateFromURLState() {
+      if (urlState == null)
+        return;
+      if (urlState.has('run'))
+        state.numRuns = Number(urlState.get('run'));
+      if (urlState.has('benchmark'))
+        state.benchmark = urlState.get('benchmark');
+      if (urlState.has('backend'))
+        state.backend = urlState.get('backend');
+      if (urlState.has('inputSize'))
+        state.inputSize = Number(urlState.get('inputSize'));
+      if (urlState.has('architecture'))
+        state.architecture = urlState.get('architecture');
     }
 
     async function loadModelAndRecordTime() {
-      updateStateFromURIState();
+      updateStateFromURLState();
       const benchmark = benchmarks[state.benchmark];
       state.modelType = benchmark['type'];
       state.isModelChanged = false; // used to clean the performance history
@@ -615,7 +608,7 @@ limitations under the License.
       await profileMemoryAndKernelTime();
       await sleep(200);
       await measureAveragePredictTime();
-      uriState = null;
+      urlState = null;
     }
 
     function isParameterDefined(parameter) {
@@ -627,11 +620,11 @@ limitations under the License.
       return false;
     }
 
-    function isURIStateParameterSupported(parameter) {
-      if (uriState != null && uriState[parameter] != undefined) {
+    function isURLParameterDefined(parameter) {
+      if (urlState != null && urlState.has(parameter)) {
         return true;
       }
-      // URI state doesn't support this parameter.
+      // URL doesn't support this parameter.
       return false;
     }
 
@@ -646,7 +639,6 @@ limitations under the License.
       modelController = modelFolder.add(state, 'benchmark', Object.keys(benchmarks));
       modelController.name('models').onChange(async model => {
         await showMsg(null);
-
         const benchmark = benchmarks[state.benchmark];
         state.isModelChanged = true;
         state.isModelLoaded = false;
@@ -666,8 +658,8 @@ limitations under the License.
           });
           // Current use first value as default.
           let defaultInputSize = 0;
-          if (isURIStateParameterSupported('inputSize'))
-            defaultInputSize = uriState['inputSize'];
+          if (isURLParameterDefined('inputSize'))
+            defaultInputSize = urlState.get('inputSize');
           else
             defaultInputSize = benchmark['inputSizes'][0];
           inputSizeController.setValue(defaultInputSize);
@@ -684,8 +676,8 @@ limitations under the License.
           });
           // Current use first value as default.
           let defaultModelArchitecture = null;
-          if (isURIStateParameterSupported('architecture'))
-            defaultModelArchitecture = uriState['architecture'];
+          if (isURLParameterDefined('architecture'))
+            defaultModelArchitecture = urlState.get('architecture');
           else
             defaultModelArchitecture = benchmark['architectures'][0];
 
@@ -747,7 +739,7 @@ limitations under the License.
       await showFlagSettings(envFolder, state.backend);
       showVersions();
       await showEnvironment();
-      updateGUIFromURIState();
+      updateGUIFromURLState();
     }
 
     onPageLoad();
