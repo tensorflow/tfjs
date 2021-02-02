@@ -10,7 +10,7 @@
   "tfjs-backend-wasm": ["tfjs-core", "tfjs-backend-cpu"],
   "tfjs-backend-cpu": ["tfjs-core"],
   "tfjs-backend-webgl": ["tfjs-core", "tfjs-backend-cpu"],
-  "tfjs-backend-webgpu": ["tfjs-core", "tfjs-backend-cpu", "tfjs-converter"],
+  "tfjs-backend-webgpu": [],
   "tfjs-inference": [],
   "tfjs-react-native": [],
   "tfjs-vis": [],
