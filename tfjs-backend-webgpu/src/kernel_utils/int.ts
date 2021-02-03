@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,18 +15,12 @@
  * =============================================================================
  */
 
-import {KernelConfig, SquaredDifference} from '@tensorflow/tfjs-core';
+import {TensorInfo} from '@tensorflow/tfjs-core';
+import {WebGPUBackend} from '../backend_webgpu';
+import {TO_INT, UnaryOpProgram} from '../kernels/unary_op_webgpu';
 
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-
-import {BinaryOpType} from './binary_ops';
-
-export const squaredDifference = binaryKernelFunc({
-  opSnippet: BinaryOpType.SQUARED_DIFFERENCE,
-});
-
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
-  backendName: 'webgpu',
-  kernelFunc: squaredDifference
-};
+export function int(input: TensorInfo, backend: WebGPUBackend): TensorInfo {
+  const program = new UnaryOpProgram(input.shape, TO_INT);
+  const output = backend.runWebGPUProgram(program, [input], 'int32');
+  return {dataId: output.dataId, shape: output.shape, dtype: output.dtype};
+}

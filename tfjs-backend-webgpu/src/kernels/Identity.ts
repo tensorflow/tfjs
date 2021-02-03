@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,18 +15,19 @@
  * =============================================================================
  */
 
-import {KernelConfig, SquaredDifference} from '@tensorflow/tfjs-core';
+import {Identity, IdentityInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {WebGPUBackend} from '../backend_webgpu';
 
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+export function identity(
+    args: {inputs: IdentityInputs, backend: WebGPUBackend}): TensorInfo {
+  const {inputs} = args;
+  const {x} = inputs;
 
-import {BinaryOpType} from './binary_ops';
+  return {dataId: x.dataId, shape: x.shape, dtype: x.dtype};
+}
 
-export const squaredDifference = binaryKernelFunc({
-  opSnippet: BinaryOpType.SQUARED_DIFFERENCE,
-});
-
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
+export const identityConfig: KernelConfig = {
+  kernelName: Identity,
   backendName: 'webgpu',
-  kernelFunc: squaredDifference
+  kernelFunc: identity as {} as KernelFunc
 };

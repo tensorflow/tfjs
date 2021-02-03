@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,18 +15,21 @@
  * =============================================================================
  */
 
-import {KernelConfig, SquaredDifference} from '@tensorflow/tfjs-core';
+import {Greater, KernelConfig} from '@tensorflow/tfjs-core';
 
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {greaterImplCPU as cpuGreater} from '../kernel_utils/shared';
 
 import {BinaryOpType} from './binary_ops';
 
-export const squaredDifference = binaryKernelFunc({
-  opSnippet: BinaryOpType.SQUARED_DIFFERENCE,
+export const greater = binaryKernelFunc({
+  opSnippet: BinaryOpType.GREATER,
+  cpuKernelImpl: cpuGreater,
+  dtype: 'bool',
 });
 
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
+export const greaterConfig: KernelConfig = {
+  kernelName: Greater,
   backendName: 'webgpu',
-  kernelFunc: squaredDifference
+  kernelFunc: greater
 };
