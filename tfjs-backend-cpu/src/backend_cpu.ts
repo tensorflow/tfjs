@@ -177,7 +177,7 @@ export class MathBackendCPU extends KernelBackend {
    * @param dataId
    * @oaram force Optional, remove the data regardless of refCount
    */
-  disposeData(dataId: DataId, force: boolean = false): boolean {
+  disposeData(dataId: DataId, force = false): boolean {
     if (this.data.has(dataId)) {
       this.data.get(dataId).refCount--;
       if (!force && this.data.get(dataId).refCount > 0) {

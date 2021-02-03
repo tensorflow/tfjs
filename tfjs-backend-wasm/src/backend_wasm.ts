@@ -116,7 +116,7 @@ export class BackendWasm extends KernelBackend {
    * @param dataId
    * @oaram force Optional, remove the data regardless of refCount
    */
-  disposeData(dataId: DataId, force: boolean = false): boolean {
+  disposeData(dataId: DataId, force = false): boolean {
     if (this.dataIdMap.has(dataId)) {
       const data = this.dataIdMap.get(dataId);
       data.refCount--;
