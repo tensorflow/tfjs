@@ -64,7 +64,7 @@ import {Bidirectional, BidirectionalLayerArgs, TimeDistributed, WrapperLayerArgs
  *
  * @doc {heading: 'Layers', subheading: 'Inputs', namespace: 'layers'}
  */
-export function inputLayer(args: InputLayerArgs): Layer {
+export function inputLayer(args: InputLayerArgs) {
   return new InputLayer(args);
 }
 
@@ -94,7 +94,7 @@ export function inputLayer(args: InputLayerArgs): Layer {
  *   namespace: 'layers'
  * }
  */
-export function elu(args?: ELULayerArgs): Layer {
+export function elu(args?: ELULayerArgs) {
   return new ELU(args);
 }
 
@@ -115,7 +115,7 @@ export function elu(args?: ELULayerArgs): Layer {
  *   namespace: 'layers'
  * }
  */
-export function reLU(args?: ReLULayerArgs): Layer {
+export function reLU(args?: ReLULayerArgs) {
   return new ReLU(args);
 }
 
@@ -139,7 +139,7 @@ export function reLU(args?: ReLULayerArgs): Layer {
  *   namespace: 'layers'
  * }
  */
-export function leakyReLU(args?: LeakyReLULayerArgs): Layer {
+export function leakyReLU(args?: LeakyReLULayerArgs) {
   return new LeakyReLU(args);
 }
 
@@ -164,7 +164,7 @@ export function leakyReLU(args?: LeakyReLULayerArgs): Layer {
  *   namespace: 'layers'
  * }
  */
-export function prelu(args?: PReLULayerArgs): Layer {
+export function prelu(args?: PReLULayerArgs) {
   return new PReLU(args);
 }
 
@@ -184,7 +184,7 @@ export function prelu(args?: PReLULayerArgs): Layer {
  *   namespace: 'layers'
  * }
  */
-export function softmax(args?: SoftmaxLayerArgs): Layer {
+export function softmax(args?: SoftmaxLayerArgs) {
   return new Softmax(args);
 }
 
@@ -212,7 +212,7 @@ export function softmax(args?: SoftmaxLayerArgs): Layer {
  *   namespace: 'layers'
  * }
  */
-export function thresholdedReLU(args?: ThresholdedReLULayerArgs): Layer {
+export function thresholdedReLU(args?: ThresholdedReLULayerArgs) {
   return new ThresholdedReLU(args);
 }
 
@@ -238,7 +238,7 @@ export function thresholdedReLU(args?: ThresholdedReLULayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Convolutional',  namespace: 'layers'}
  */
-export function conv1d(args: ConvLayerArgs): Layer {
+export function conv1d(args: ConvLayerArgs) {
   return new Conv1D(args);
 }
 
@@ -260,7 +260,7 @@ export function conv1d(args: ConvLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Convolutional', namespace: 'layers'}
  */
-export function conv2d(args: ConvLayerArgs): Layer {
+export function conv2d(args: ConvLayerArgs) {
   return new Conv2D(args);
 }
 
@@ -299,7 +299,7 @@ export function conv2d(args: ConvLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Convolutional', namespace: 'layers'}
  */
-export function conv2dTranspose(args: ConvLayerArgs): Layer {
+export function conv2dTranspose(args: ConvLayerArgs) {
   return new Conv2DTranspose(args);
 }
 
@@ -321,7 +321,7 @@ export function conv2dTranspose(args: ConvLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Convolutional', namespace: 'layers'}
  */
-export function conv3d(args: ConvLayerArgs): Layer {
+export function conv3d(args: ConvLayerArgs) {
   return new Conv3D(args);
 }
 
@@ -354,7 +354,7 @@ export function conv3d(args: ConvLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Convolutional', namespace: 'layers'}
  */
-export function separableConv2d(args: SeparableConvLayerArgs): Layer {
+export function separableConv2d(args: SeparableConvLayerArgs) {
   return new SeparableConv2D(args);
 }
 
@@ -389,7 +389,7 @@ export function separableConv2d(args: SeparableConvLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Convolutional', namespace: 'layers'}
  */
-export function cropping2D(args: Cropping2DLayerArgs): Layer {
+export function cropping2D(args: Cropping2DLayerArgs) {
   return new Cropping2D(args);
 }
 
@@ -417,7 +417,7 @@ export function cropping2D(args: Cropping2DLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Convolutional', namespace: 'layers'}
  */
-export function upSampling2d(args: UpSampling2DLayerArgs): Layer {
+export function upSampling2d(args: UpSampling2DLayerArgs) {
   return new UpSampling2D(args);
 }
 
@@ -433,7 +433,7 @@ export function upSampling2d(args: UpSampling2DLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Convolutional', namespace: 'layers'}
  */
-export function depthwiseConv2d(args: DepthwiseConv2DLayerArgs): Layer {
+export function depthwiseConv2d(args: DepthwiseConv2DLayerArgs) {
   return new DepthwiseConv2D(args);
 }
 
@@ -470,7 +470,7 @@ export function depthwiseConv2d(args: DepthwiseConv2DLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'}
  */
-export function activation(args: ActivationLayerArgs): Layer {
+export function activation(args: ActivationLayerArgs) {
   return new Activation(args);
 }
 
@@ -507,7 +507,7 @@ export function activation(args: ActivationLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'}
  */
-export function dense(args: DenseLayerArgs): Layer {
+export function dense(args: DenseLayerArgs) {
   return new Dense(args);
 }
 
@@ -521,7 +521,7 @@ export function dense(args: DenseLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'}
  */
-export function dropout(args: DropoutLayerArgs): Layer {
+export function dropout(args: DropoutLayerArgs) {
   return new Dropout(args);
 }
 
@@ -557,7 +557,7 @@ export function dropout(args: DropoutLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'}
  */
-export function spatialDropout1d(args: SpatialDropout1DLayerConfig): Layer {
+export function spatialDropout1d(args: SpatialDropout1DLayerConfig) {
   return new SpatialDropout1D(args);
 }
 
@@ -580,7 +580,7 @@ export function spatialDropout1d(args: SpatialDropout1DLayerConfig): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'}
  */
-export function flatten(args?: FlattenLayerArgs): Layer {
+export function flatten(args?: FlattenLayerArgs) {
   return new Flatten(args);
 }
 
@@ -598,7 +598,7 @@ export function flatten(args?: FlattenLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'}
  */
-export function repeatVector(args: RepeatVectorLayerArgs): Layer {
+export function repeatVector(args: RepeatVectorLayerArgs) {
   return new RepeatVector(args);
 }
 
@@ -625,7 +625,7 @@ export function repeatVector(args: RepeatVectorLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'}
  */
-export function reshape(args: ReshapeLayerArgs): Layer {
+export function reshape(args: ReshapeLayerArgs) {
   return new Reshape(args);
 }
 
@@ -657,7 +657,7 @@ export function reshape(args: ReshapeLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'}
  */
-export function permute(args: PermuteLayerArgs): Layer {
+export function permute(args: PermuteLayerArgs) {
   return new Permute(args);
 }
 
@@ -672,7 +672,7 @@ export function permute(args: PermuteLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Basic', namespace: 'layers'}
  */
-export function embedding(args: EmbeddingLayerArgs): Layer {
+export function embedding(args: EmbeddingLayerArgs) {
   return new Embedding(args);
 }
 
@@ -698,7 +698,7 @@ export function embedding(args: EmbeddingLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'}
  */
-export function add(args?: LayerArgs): Layer {
+export function add(args?: LayerArgs) {
   return new Add(args);
 }
 
@@ -720,7 +720,7 @@ export function add(args?: LayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'}
  */
-export function average(args?: LayerArgs): Layer {
+export function average(args?: LayerArgs) {
   return new Average(args);
 }
 
@@ -744,7 +744,7 @@ export function average(args?: LayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'}
  */
-export function concatenate(args?: ConcatenateLayerArgs): Layer {
+export function concatenate(args?: ConcatenateLayerArgs) {
   return new Concatenate(args);
 }
 
@@ -766,7 +766,7 @@ export function concatenate(args?: ConcatenateLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'}
  */
-export function maximum(args?: LayerArgs): Layer {
+export function maximum(args?: LayerArgs) {
   return new Maximum(args);
 }
 
@@ -788,7 +788,7 @@ export function maximum(args?: LayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'}
  */
-export function minimum(args?: LayerArgs): Layer {
+export function minimum(args?: LayerArgs) {
   return new Minimum(args);
 }
 
@@ -811,7 +811,7 @@ export function minimum(args?: LayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'}
  */
-export function multiply(args?: LayerArgs): Layer {
+export function multiply(args?: LayerArgs) {
   return new Multiply(args);
 }
 
@@ -837,7 +837,7 @@ export function multiply(args?: LayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Merge', namespace: 'layers'}
  */
-export function dot(args: DotLayerArgs): Layer {
+export function dot(args: DotLayerArgs) {
   return new Dot(args);
 }
 
@@ -864,7 +864,7 @@ export function dot(args: DotLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Normalization', namespace: 'layers'}
  */
-export function batchNormalization(args?: BatchNormalizationLayerArgs): Layer {
+export function batchNormalization(args?: BatchNormalizationLayerArgs) {
   return new BatchNormalization(args);
 }
 
@@ -888,7 +888,7 @@ export function batchNormalization(args?: BatchNormalizationLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Normalization', namespace: 'layers'}
  */
-export function layerNormalization(args?: LayerNormalizationLayerArgs): Layer {
+export function layerNormalization(args?: LayerNormalizationLayerArgs) {
   return new LayerNormalization(args);
 }
 
@@ -916,7 +916,7 @@ export function layerNormalization(args?: LayerNormalizationLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Padding', namespace: 'layers'}
  */
-export function zeroPadding2d(args?: ZeroPadding2DLayerArgs): Layer {
+export function zeroPadding2d(args?: ZeroPadding2DLayerArgs) {
   return new ZeroPadding2D(args);
 }
 
@@ -933,15 +933,15 @@ export function zeroPadding2d(args?: ZeroPadding2DLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-export function averagePooling1d(args: Pooling1DLayerArgs): Layer {
+export function averagePooling1d(args: Pooling1DLayerArgs) {
   return new AveragePooling1D(args);
 }
-export function avgPool1d(args: Pooling1DLayerArgs): Layer {
+export function avgPool1d(args: Pooling1DLayerArgs) {
   return averagePooling1d(args);
 }
 // For backwards compatibility.
 // See https://github.com/tensorflow/tfjs/issues/152
-export function avgPooling1d(args: Pooling1DLayerArgs): Layer {
+export function avgPooling1d(args: Pooling1DLayerArgs) {
   return averagePooling1d(args);
 }
 
@@ -968,15 +968,15 @@ export function avgPooling1d(args: Pooling1DLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-export function averagePooling2d(args: Pooling2DLayerArgs): Layer {
+export function averagePooling2d(args: Pooling2DLayerArgs) {
   return new AveragePooling2D(args);
 }
-export function avgPool2d(args: Pooling2DLayerArgs): Layer {
+export function avgPool2d(args: Pooling2DLayerArgs) {
   return averagePooling2d(args);
 }
 // For backwards compatibility.
 // See https://github.com/tensorflow/tfjs/issues/152
-export function avgPooling2d(args: Pooling2DLayerArgs): Layer {
+export function avgPooling2d(args: Pooling2DLayerArgs) {
   return averagePooling2d(args);
 }
 
@@ -1001,15 +1001,15 @@ export function avgPooling2d(args: Pooling2DLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-export function averagePooling3d(args: Pooling3DLayerArgs): Layer {
+export function averagePooling3d(args: Pooling3DLayerArgs) {
   return new AveragePooling3D(args);
 }
-export function avgPool3d(args: Pooling3DLayerArgs): Layer {
+export function avgPool3d(args: Pooling3DLayerArgs) {
   return averagePooling3d(args);
 }
 // For backwards compatibility.
 // See https://github.com/tensorflow/tfjs/issues/152
-export function avgPooling3d(args: Pooling3DLayerArgs): Layer {
+export function avgPooling3d(args: Pooling3DLayerArgs) {
   return averagePooling3d(args);
 }
 
@@ -1022,7 +1022,7 @@ export function avgPooling3d(args: Pooling3DLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-export function globalAveragePooling1d(args?: LayerArgs): Layer {
+export function globalAveragePooling1d(args?: LayerArgs) {
   return new GlobalAveragePooling1D(args);
 }
 
@@ -1040,7 +1040,7 @@ export function globalAveragePooling1d(args?: LayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-export function globalAveragePooling2d(args: GlobalPooling2DLayerArgs): Layer {
+export function globalAveragePooling2d(args: GlobalPooling2DLayerArgs) {
   return new GlobalAveragePooling2D(args);
 }
 
@@ -1053,7 +1053,7 @@ export function globalAveragePooling2d(args: GlobalPooling2DLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-export function globalMaxPooling1d(args?: LayerArgs): Layer {
+export function globalMaxPooling1d(args?: LayerArgs) {
   return new GlobalMaxPooling1D(args);
 }
 
@@ -1071,7 +1071,7 @@ export function globalMaxPooling1d(args?: LayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-export function globalMaxPooling2d(args: GlobalPooling2DLayerArgs): Layer {
+export function globalMaxPooling2d(args: GlobalPooling2DLayerArgs) {
   return new GlobalMaxPooling2D(args);
 }
 
@@ -1084,7 +1084,7 @@ export function globalMaxPooling2d(args: GlobalPooling2DLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-export function maxPooling1d(args: Pooling1DLayerArgs): Layer {
+export function maxPooling1d(args: Pooling1DLayerArgs) {
   return new MaxPooling1D(args);
 }
 
@@ -1109,7 +1109,7 @@ export function maxPooling1d(args: Pooling1DLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-export function maxPooling2d(args: Pooling2DLayerArgs): Layer {
+export function maxPooling2d(args: Pooling2DLayerArgs) {
   return new MaxPooling2D(args);
 }
 
@@ -1134,7 +1134,7 @@ export function maxPooling2d(args: Pooling2DLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Pooling', namespace: 'layers'}
  */
-export function maxPooling3d(args: Pooling3DLayerArgs): Layer {
+export function maxPooling3d(args: Pooling3DLayerArgs) {
   return new MaxPooling3D(args);
 }
 
@@ -1163,7 +1163,7 @@ export function maxPooling3d(args: Pooling3DLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
-export function gru(args: GRULayerArgs): Layer {
+export function gru(args: GRULayerArgs) {
   return new GRU(args);
 }
 
@@ -1212,7 +1212,7 @@ export function gru(args: GRULayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
-export function gruCell(args: GRUCellLayerArgs): RNNCell {
+export function gruCell(args: GRUCellLayerArgs) {
   return new GRUCell(args);
 }
 
@@ -1239,7 +1239,7 @@ export function gruCell(args: GRUCellLayerArgs): RNNCell {
  *
  * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
-export function lstm(args: LSTMLayerArgs): Layer {
+export function lstm(args: LSTMLayerArgs) {
   return new LSTM(args);
 }
 
@@ -1288,7 +1288,7 @@ export function lstm(args: LSTMLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
-export function lstmCell(args: LSTMCellLayerArgs): RNNCell {
+export function lstmCell(args: LSTMCellLayerArgs) {
   return new LSTMCell(args);
 }
 
@@ -1316,7 +1316,7 @@ export function lstmCell(args: LSTMCellLayerArgs): RNNCell {
  *
  * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
-export function simpleRNN(args: SimpleRNNLayerArgs): Layer {
+export function simpleRNN(args: SimpleRNNLayerArgs) {
   return new SimpleRNN(args);
 }
 
@@ -1365,7 +1365,7 @@ export function simpleRNN(args: SimpleRNNLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
-export function simpleRNNCell(args: SimpleRNNCellLayerArgs): RNNCell {
+export function simpleRNNCell(args: SimpleRNNCellLayerArgs) {
   return new SimpleRNNCell(args);
 }
 
@@ -1396,7 +1396,7 @@ export function simpleRNNCell(args: SimpleRNNCellLayerArgs): RNNCell {
  * ```
  */
 /** @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'} */
-export function convLstm2d(args: ConvLSTM2DArgs): ConvLSTM2D {
+export function convLstm2d(args: ConvLSTM2DArgs) {
   return new ConvLSTM2D(args);
 }
 
@@ -1433,7 +1433,7 @@ export function convLstm2d(args: ConvLSTM2DArgs): ConvLSTM2D {
  * ```
  */
 /** @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'} */
-export function convLstm2dCell(args: ConvLSTM2DCellArgs): ConvLSTM2DCell {
+export function convLstm2dCell(args: ConvLSTM2DCellArgs) {
   return new ConvLSTM2DCell(args);
 }
 
@@ -1497,7 +1497,7 @@ export function convLstm2dCell(args: ConvLSTM2DCellArgs): ConvLSTM2DCell {
  *
  * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
-export function rnn(args: RNNLayerArgs): Layer {
+export function rnn(args: RNNLayerArgs) {
   return new RNN(args);
 }
 
@@ -1508,14 +1508,14 @@ export function rnn(args: RNNLayerArgs): Layer {
  *
  * @doc {heading: 'Layers', subheading: 'Recurrent', namespace: 'layers'}
  */
-export function stackedRNNCells(args: StackedRNNCellsArgs): RNNCell {
+export function stackedRNNCells(args: StackedRNNCellsArgs){
   return new StackedRNNCells(args);
 }
 
 // Wrapper Layers.
 
 /** @doc {heading: 'Layers', subheading: 'Wrapper', namespace: 'layers'} */
-export function bidirectional(args: BidirectionalLayerArgs): Bidirectional {
+export function bidirectional(args: BidirectionalLayerArgs) {
   return new Bidirectional(args);
 }
 
@@ -1565,7 +1565,7 @@ export function bidirectional(args: BidirectionalLayerArgs): Bidirectional {
  *
  * @doc {heading: 'Layers', subheading: 'Wrapper', namespace: 'layers'}
  */
-export function timeDistributed(args: WrapperLayerArgs): Layer {
+export function timeDistributed(args: WrapperLayerArgs) {
   return new TimeDistributed(args);
 }
 
@@ -1600,7 +1600,7 @@ export {Layer, RNN, RNNCell, input /* alias for tf.input */};
  *
  * @doc {heading: 'Layers', subheading: 'Noise', namespace: 'layers'}
  */
-export function gaussianNoise(args: GaussianNoiseArgs): GaussianNoise {
+export function gaussianNoise(args: GaussianNoiseArgs) {
   return new GaussianNoise(args);
 }
 
@@ -1628,7 +1628,7 @@ export function gaussianNoise(args: GaussianNoiseArgs): GaussianNoise {
  *
  * @doc {heading: 'Layers', subheading: 'Noise', namespace: 'layers'}
  */
-export function gaussianDropout(args: GaussianDropoutArgs): GaussianDropout {
+export function gaussianDropout(args: GaussianDropoutArgs) {
   return new GaussianDropout(args);
 }
 
@@ -1663,7 +1663,7 @@ export function gaussianDropout(args: GaussianDropoutArgs): GaussianDropout {
  *
  * @doc {heading: 'Layers', subheading: 'Noise', namespace: 'layers'}
  */
-export function alphaDropout(args: AlphaDropoutArgs): AlphaDropout {
+export function alphaDropout(args: AlphaDropoutArgs) {
   return new AlphaDropout(args);
 }
 
@@ -1690,6 +1690,6 @@ export function alphaDropout(args: AlphaDropoutArgs): AlphaDropout {
  *
  * @doc {heading: 'Layers', subheading: 'Mask', namespace: 'layers'}
  */
-export function masking(args?: MaskingArgs): Layer {
+export function masking(args?: MaskingArgs) {
   return new Masking(args);
 }
