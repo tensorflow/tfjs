@@ -86,18 +86,83 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     const dimBOuter = this.outputShape[3];
     const dimInner = this.convInfo.filterHeight * this.convInfo.filterWidth *
         this.convInfo.inChannels;
-    const fitA = tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]);
-    const sampleA = fitA ?
-        `x[getFlatIndex(coord, ${getShapeCoords(this.convInfo.inShape)}) / 4]` :
-        `coordsInBounds(coord, ${
+
+    // Below code only applys to valid padding type.
+    const sampleAWithRemainder = `int flatIndex = getFlatIndex(coord, ${
+        getShapeCoords(this.convInfo.inShape)});
+        int divBy4Remainder = flatIndex % 4;
+        int divBy4Index = flatIndex / 4;
+        vec4 curData = x[divBy4Index];
+        if (divBy4Remainder == 0) {
+          temp = curData;
+        } else {
+          // TODO: This could end up being a redundant load with another one in
+          // the same shader invocation. Perhaps there's an opportunity for
+          // optimization
+          vec4 nextData = x[divBy4Index + 1];
+          if (divBy4Remainder == 1) {
+            temp = vec4(curData.yzw, nextData.x);
+          } else if (divBy4Remainder == 2) {
+            temp = vec4(curData.zw, nextData.xy);
+          } else if (divBy4Remainder == 3) {
+            temp = vec4(curData.w, nextData.xyz);
+          }
+        }
+        `;
+
+    const remainder = this.convInfo.inChannels % 4;
+    const remainderSnippet = remainder === 0 ?
+        `// The bounds checking is always needed since we use it to pad zero for
+        // the 'same' padding type.
+        resData = coordsInBounds(coord, ${
             getShapeCoords(this.convInfo.inShape)}) ? x[getFlatIndex(coord, ${
             getShapeCoords(
-                this.convInfo.inShape)}) / 4] : vec4(0.0, 0.0, 0.0, 0.0)`;
+                this.convInfo.inShape)}) / 4] : vec4(0.0, 0.0, 0.0, 0.0);` :
+        `vec4 temp = vec4(0, 0, 0, 0);
+        ${sampleAWithRemainder}
+        resData = temp;
+        if (WCol == (filterDims[1] - 1)) {
+          coord = ivec4(
+            coord.x, coord.y + 1, coord.z + 1 - filterDims[1], 0);
+          ${sampleAWithRemainder}
+          if (inChCoord == 0) {
+            resData = vec4(resData.xyz, temp.x);
+          } else if (inChCoord == 1) {
+            resData = vec4(resData.xy, temp.xy);
+          } else {
+            resData = vec4(resData.x, temp.xyz);
+          }
+        }
+        `;
+
+    const readASnippet = `int outRow = r / ${this.outputShape[2]};
+        int outCol = r % ${this.outputShape[2]};
+        int WRow = c / (filterDims[1] * ${this.convInfo.inShape[3]});
+        int WCol = (c / ${this.convInfo.inShape[3]}) % filterDims[1];
+        int inChCoord = c % ${this.convInfo.inShape[3]};
+        ivec4 coord = ivec4(
+            batch,
+            outRow * stride[0] + dilation[0] * WRow - pad[0],
+            outCol * stride[1] + dilation[1] * WCol - pad[1],
+            inChCoord);
+        vec4 resData = vec4(0, 0, 0, 0);
+        ${remainderSnippet}
+        return resData;`;
+
+    const fitA = tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]);
+    const sampleA =
+        fitA ? `${readASnippet}` : `if (r < dimAOuter && c < dimInner) {
+          ${readASnippet}
+        } else {
+          return vec4(0.0, 0.0, 0.0, 0.0);
+        }`;
+
     const fitB = tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter]);
     const sampleB = fitB ?
-        `W[row * dimBOuter + col]` :
-        `coordsInBounds(ivec2(row, col), ivec2(dimInner * 4, dimBOuter)) ?
-        W[row * dimBOuter + col] : vec4(0.0, 0.0, 0.0, 0.0)`;
+        `W[row * dimBOuter / 4 + col]` :
+        `coordsInBounds(ivec2(row, col * 4), ivec2(dimInner, dimBOuter)) ?
+            W[row * dimBOuter / 4 + col] : vec4(0.0, 0.0, 0.0, 0.0)`;
+
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
       if (this.hasPreluActivationWeights) {
@@ -131,23 +196,12 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
 
         int batch;
         int dimAOuter = ${this.outputShape[1]} * ${this.outputShape[2]};
-        int dimBOuter = ${this.outputShape[3] / 4};
+        int dimBOuter = ${this.outputShape[3]};
         int dimInner = filterDims[0] * filterDims[1] * ${
-        this.convInfo.inShape[3] / 4};
+        this.convInfo.inShape[3]};
         vec4 mm_readA(int row, int col) {
           int r = int(row), c = int(col * 4);
-          int outRow = r / ${this.outputShape[2]};
-          int outCol = r % ${this.outputShape[2]};
-
-          int WRow = c / (filterDims[1] * ${this.convInfo.inShape[3]});
-          int WCol = (c / ${this.convInfo.inShape[3]}) % filterDims[1];
-
-          ivec4 coord = ivec4(
-              batch,
-              outRow * stride[0] + dilation[0] * WRow - pad[0],
-              outCol * stride[1] + dilation[1] * WCol - pad[1],
-              c % ${this.convInfo.inShape[3]});
-          return ${sampleA};
+          ${sampleA};
         }
 
         vec4 mm_readB(int row, int col) {
@@ -155,7 +209,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         }
 
         void mm_write(int row, int col, vec4 value) {
-          if (row < dimAOuter && col < dimBOuter)
+          if (row < dimAOuter && col * 4 < dimBOuter)
           {
             ivec4 outCoord = ivec4(
               batch,

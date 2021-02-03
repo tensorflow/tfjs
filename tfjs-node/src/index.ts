@@ -40,7 +40,9 @@ if (!fs.existsSync(bindingPath)) {
   throw new Error(
       `The Node.js native addon module (tfjs_binding.node) can not ` +
       `be found at path: ` + String(bindingPath) + `. \nPlease run command ` +
-      `'npm rebuild @tensorflow/tfjs-node build-addon-from-source' to ` +
+      `'npm rebuild @tensorflow/tfjs-node`+
+      (String(bindingPath).indexOf('tfjs-node-gpu') > 0 ? `-gpu` : ``) +
+      ` --build-addon-from-source' to ` +
       `rebuild the native addon module. \nIf you have problem with building ` +
       `the addon module, please check ` +
       `https://github.com/tensorflow/tfjs/blob/master/tfjs-node/` +

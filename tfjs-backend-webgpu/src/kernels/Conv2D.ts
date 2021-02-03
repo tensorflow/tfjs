@@ -55,8 +55,9 @@ export function conv2d(
       // good if convInfo.outChannels is too small. For example, input = [1,
       // 128, 128, 4], filter = [25, 25, 4, 4]. In this case, lots of theads
       // will run idle. So temporarily, use 64 as the threshold.
-      convInfo.inChannels % 4 === 0 && convInfo.outChannels % 4 === 0 &&
-      convInfo.outChannels >= 64) {
+      (convInfo.inChannels % 4 === 0 ||
+       (convInfo.inChannels === 3 && convInfo.padInfo.type === 'VALID')) &&
+      convInfo.outChannels % 4 === 0 && convInfo.outChannels >= 64) {
     program = new Conv2DMMVec4Program(convInfo);
   } else {
     program = new Conv2DMMProgram(convInfo);
