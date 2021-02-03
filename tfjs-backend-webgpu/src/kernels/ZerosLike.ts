@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,18 +15,26 @@
  * =============================================================================
  */
 
-import {KernelConfig, SquaredDifference} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, TensorInfo, ZerosLike, ZerosLikeInputs} from '@tensorflow/tfjs-core';
 
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {WebGPUBackend} from '../backend_webgpu';
 
-import {BinaryOpType} from './binary_ops';
+import {fill} from './Fill';
 
-export const squaredDifference = binaryKernelFunc({
-  opSnippet: BinaryOpType.SQUARED_DIFFERENCE,
-});
+export function zerosLike(
+    args: {inputs: ZerosLikeInputs, backend: WebGPUBackend}): TensorInfo {
+  const {inputs, backend} = args;
+  const {x} = inputs;
 
-export const squaredDifferenceConfig: KernelConfig = {
-  kernelName: SquaredDifference,
+  return fill({
+    attrs:
+        {shape: x.shape, dtype: x.dtype, value: x.dtype === 'string' ? '' : 0},
+    backend
+  });
+}
+
+export const zerosLikeConfig: KernelConfig = {
+  kernelName: ZerosLike,
   backendName: 'webgpu',
-  kernelFunc: squaredDifference
+  kernelFunc: zerosLike as {} as KernelFunc
 };

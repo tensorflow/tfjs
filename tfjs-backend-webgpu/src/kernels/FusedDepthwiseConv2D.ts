@@ -44,8 +44,8 @@ export function fusedDepthwiseConv2D(args: {
       filter.shape as [number, number, number, number], strides, $dilations,
       pad, dimRoundingMode, true /* depthwise */);
 
-  const fusedActivation = activation ?
-      backend.mapActivationToShaderProgram(activation) : null;
+  const fusedActivation =
+      activation ? backend.mapActivationToShaderProgram(activation) : null;
   const programInputs: TensorInfo[] = [x, filter];
 
   const hasBias = bias != null;
@@ -59,15 +59,15 @@ export function fusedDepthwiseConv2D(args: {
   }
 
   const program = new DepthwiseConv2DProgram(
-        convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
+      convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
   const dimensions = [
     convInfo.filterHeight, convInfo.filterWidth, convInfo.padInfo.top,
     convInfo.padInfo.left, convInfo.strideHeight, convInfo.strideWidth,
     convInfo.dilationHeight, convInfo.dilationWidth, convInfo.inHeight,
     convInfo.inWidth
   ];
-  const result = backend.runWebGPUProgram(
-      program, programInputs, 'float32', dimensions);
+  const result =
+      backend.runWebGPUProgram(program, programInputs, 'float32', dimensions);
 
   return result;
 }
