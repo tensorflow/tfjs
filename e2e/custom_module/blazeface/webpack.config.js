@@ -63,7 +63,7 @@ module.exports = function(env) {
             path.resolve(__dirname, './custom_tfjs_blazeface/custom_tfjs.js'),
         '@tensorflow/tfjs-core$': path.resolve(
             __dirname, './custom_tfjs_blazeface/custom_tfjs_core.js'),
-        'tensorflow/tfjs-core/dist/ops/ops_for_converter': path.resolve(
+        '@tensorflow/tfjs-core/dist/ops/ops_for_converter': path.resolve(
             __dirname, './custom_tfjs_blazeface/custom_ops_for_converter.js'),
       }
     }
