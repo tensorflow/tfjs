@@ -93,10 +93,10 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         int divBy4Remainder = flatIndex % 4;
         int divBy4Index = flatIndex / 4;
         vec4 curData = x[divBy4Index];
-        vec4 nextData = x[divBy4Index + 1];
         if (divBy4Remainder == 0) {
           temp = curData;
         } else {
+          vec4 nextData = x[divBy4Index + 1];
           if (divBy4Remainder == 1) {
             temp = vec4(curData.yzw, nextData.x);
           } else if (divBy4Remainder == 2) {
