@@ -43,7 +43,7 @@ function getPlugins(options) {
               replacement: path.resolve(__dirname, options.customTfjsCorePath),
             },
             {
-              find: 'tensorflow/tfjs-core/dist/ops/ops_for_converter',
+              find: '@tensorflow/tfjs-core/dist/ops/ops_for_converter',
               replacement: path.resolve(__dirname, options.customOpsPath),
             },
           ],
