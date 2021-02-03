@@ -232,7 +232,7 @@ export class NodeJSKernelBackend extends KernelBackend {
    * @param dataId
    * @oaram force Optional, remove the data regardless of refCount
    */
-  disposeData(dataId: DataId, force: boolean): boolean {
+  disposeData(dataId: DataId, force: boolean = false): boolean {
     // No-op if already disposed.
     if (this.tensorMap.has(dataId)) {
       const id = this.tensorMap.get(dataId).id;

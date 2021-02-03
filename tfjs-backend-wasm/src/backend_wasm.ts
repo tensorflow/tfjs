@@ -116,7 +116,7 @@ export class BackendWasm extends KernelBackend {
    * @param dataId
    * @oaram force Optional, remove the data regardless of refCount
    */
-  disposeData(dataId: DataId, force?: boolean): boolean {
+  disposeData(dataId: DataId, force: boolean = false): boolean {
     if (this.dataIdMap.has(dataId)) {
       const data = this.dataIdMap.get(dataId);
       data.refCount--;
@@ -133,14 +133,19 @@ export class BackendWasm extends KernelBackend {
 
   /** Return refCount of a `TensorData`. */
   refCount(dataId: DataId): number {
-    const tensorData = this.dataIdMap.get(dataId);
-    return tensorData.refCount;
+    if (this.dataIdMap.has(dataId)) {
+      const tensorData = this.dataIdMap.get(dataId);
+      return tensorData.refCount;
+    }
+    return 0;
   }
 
   incRef(dataId: DataId) {
-    const data = this.dataIdMap.get(dataId);
-    if (data != null) {
-      data.refCount++;
+    if (this.dataIdMap.has(dataId)) {
+      const data = this.dataIdMap.get(dataId);
+      if (data != null) {
+        data.refCount++;
+      }
     }
   }
 

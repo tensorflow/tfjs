@@ -908,8 +908,7 @@ export class Engine implements TensorTracker, DataMover {
 
     // Remove the reference to dataId if backend dispose the data successfully
     if (info.backend.disposeData(a.dataId)) {
-      this.state.tensorInfo.delete(a.dataId);
-      this.state.numDataBuffers--;
+      this.removeDataId(a.dataId, info.backend);
     }
 
     // TODO(nsthorat): Construct an error and save the stack trace for

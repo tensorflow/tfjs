@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,6 +39,10 @@ export class MathBackendCPU extends KernelBackend {
 
   data: DataStorage<TensorData<DataType>>;
   private firstUse = true;
+  private static nextDataId = 0;
+  private nextDataId(): number {
+    return MathBackendCPU.nextDataId++;
+  }
 
   constructor() {
     super();
@@ -63,7 +67,7 @@ export class MathBackendCPU extends KernelBackend {
             '\n============================');
       }
     }
-    const dataId = {};
+    const dataId = {id: this.nextDataId()};
 
     this.data.set(dataId, {values, dtype, refCount: 1});
 
@@ -95,14 +99,19 @@ export class MathBackendCPU extends KernelBackend {
 
   /** Return refCount of a `TensorData`. */
   refCount(dataId: DataId): number {
-    const tensorData = this.data.get(dataId);
-    return tensorData.refCount;
+    if (this.data.has(dataId)) {
+      const tensorData = this.data.get(dataId);
+      return tensorData.refCount;
+    }
+    return 0;
   }
 
   /** Increase refCount of a `TensorData`. */
   incRef(dataId: DataId): void {
-    const tensorData = this.data.get(dataId);
-    tensorData.refCount++;
+    if (this.data.has(dataId)) {
+      const tensorData = this.data.get(dataId);
+      tensorData.refCount++;
+    }
   }
 
   /** Decrease refCount of a `TensorData`. */
@@ -163,11 +172,12 @@ export class MathBackendCPU extends KernelBackend {
 
   /**
    * Dispose the memory if the dataId has 0 refCount. Return true if the memory
-   * is released, false otherwise.
+   * is released or memory is not managed in this backend, false if memory is
+   * not cleared.
    * @param dataId
    * @oaram force Optional, remove the data regardless of refCount
    */
-  disposeData(dataId: DataId, force?: boolean): boolean {
+  disposeData(dataId: DataId, force: boolean = false): boolean {
     if (this.data.has(dataId)) {
       this.data.get(dataId).refCount--;
       if (!force && this.data.get(dataId).refCount > 0) {
@@ -177,8 +187,8 @@ export class MathBackendCPU extends KernelBackend {
       const {complexTensorInfos} = this.data.get(dataId);
 
       if (complexTensorInfos != null) {
-        this.disposeData(complexTensorInfos.real.dataId);
-        this.disposeData(complexTensorInfos.imag.dataId);
+        this.disposeData(complexTensorInfos.real.dataId, force);
+        this.disposeData(complexTensorInfos.imag.dataId, force);
       }
 
       this.data.delete(dataId);
@@ -187,17 +197,7 @@ export class MathBackendCPU extends KernelBackend {
   }
 
   disposeIntermediateTensorInfo(tensorInfo: TensorInfo): void {
-    const dataId = tensorInfo.dataId;
-
-    if (this.data.has(dataId)) {
-      const tensorData = this.data.get(dataId);
-
-      tensorData.refCount--;
-
-      if (tensorData.refCount < 1) {
-        this.disposeData(dataId);
-      }
-    }
+    this.disposeData(tensorInfo.dataId);
   }
 
   async time(f: () => void): Promise<BackendTimingInfo> {

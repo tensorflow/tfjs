@@ -115,6 +115,12 @@ function batchMatMul(args: {
       a3dId, aShapeBytes, a3d.shape.length, b3dId, bShapeBytes,
       b3d.shape.length, transposeA, transposeB, outId);
 
+  if (a3d != null) {
+    backend.disposeData(a3d.dataId);
+  }
+  if (b3d != null) {
+    backend.disposeData(b3d.dataId);
+  }
   out.shape = outShape;
   return out;
 }

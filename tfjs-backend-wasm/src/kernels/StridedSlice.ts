@@ -112,7 +112,15 @@ export function stridedSlice(args: {
   const nonStrided = strides.every(v => v === 1);
   if (nonStrided) {
     const xSliced = slice({inputs: {x}, attrs: {begin, size}, backend});
-    return reshape({inputs: {x: xSliced}, attrs: {shape: outShape}, backend});
+    if (xReshaped != null) {
+      backend.disposeData(xReshaped.dataId);
+    }
+    const reshaped =
+        reshape({inputs: {x: xSliced}, attrs: {shape: outShape}, backend});
+    if (xSliced != null) {
+      backend.disposeData(xSliced.dataId);
+    }
+    return reshaped;
   }
 
   const out = backend.makeOutput(outShape, 'float32');
@@ -134,8 +142,15 @@ export function stridedSlice(args: {
         stridesBytes, outputShapeBytes, outStridesBytes, outShape.length,
         outId);
   }
-
-  return reshape({inputs: {x: out}, attrs: {shape: outShape}, backend});
+  if (xReshaped != null) {
+    backend.disposeData(xReshaped.dataId);
+  }
+  const reshaped =
+      reshape({inputs: {x: out}, attrs: {shape: outShape}, backend});
+  if (out != null) {
+    backend.disposeData(out.dataId);
+  }
+  return reshaped;
 }
 
 export const stridedSliceConfig: KernelConfig = {

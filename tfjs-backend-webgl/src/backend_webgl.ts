@@ -189,14 +189,19 @@ export class MathBackendWebGL extends KernelBackend {
 
   /** Return refCount of a `TensorData`. */
   refCount(dataId: DataId): number {
-    const tensorData = this.texData.get(dataId);
-    return tensorData.refCount;
+    if (this.texData.has(dataId)) {
+      const tensorData = this.texData.get(dataId);
+      return tensorData.refCount;
+    }
+    return 0;
   }
 
   /** Increase refCount of a `TextureData`. */
   incRef(dataId: DataId): void {
-    const texData = this.texData.get(dataId);
-    texData.refCount++;
+    if (this.texData.has(dataId)) {
+      const texData = this.texData.get(dataId);
+      texData.refCount++;
+    }
   }
 
   /** Decrease refCount of a `TextureData`. */
@@ -223,11 +228,7 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   disposeIntermediateTensorInfo(tensorInfo: TensorInfo): void {
-    const dataId = tensorInfo.dataId;
-
-    if (this.texData.has(dataId)) {
-      this.disposeData(dataId);
-    }
+    this.disposeData(tensorInfo.dataId);
   }
 
   readSync(dataId: DataId): BackendValues {
@@ -360,14 +361,12 @@ export class MathBackendWebGL extends KernelBackend {
     const subscribers = this.pendingRead.get(dataId);
     this.pendingRead.delete(dataId);
 
-    // local copy of the backend
-    const that = this;
     // Notify all pending reads.
     subscribers.forEach(resolve => resolve(dTypeVals));
     if (this.pendingDisposal.has(dataId)) {
       this.pendingDisposal.delete(dataId);
       if (this.disposeData(dataId)) {
-        engine().removeDataId(dataId, that);
+        engine().removeDataId(dataId, this);
       }
       this.pendingDeletes--;
     }
@@ -534,11 +533,15 @@ export class MathBackendWebGL extends KernelBackend {
 
   /**
    * Decrease the RefCount on the dataId and dispose the memory if the dataId
-   * has 0 refCount. Return true if the memory is released, false otherwise.
+   * has 0 refCount. If there are pending read on the data, the disposal would
+   * added to the pending delete queue. Return true if the dataId is removed
+   * from backend or the backend does not contain the dataId, false if the
+   * dataId is not removed. Memory may or may not be released even when dataId
+   * is removed, which also depends on dataRefCount, see `releaseGPU`.
    * @param dataId
    * @oaram force Optional, remove the data regardless of refCount
    */
-  disposeData(dataId: DataId, force?: boolean): boolean {
+  disposeData(dataId: DataId, force: boolean = false): boolean {
     if (this.pendingDisposal.has(dataId)) {
       return false;
     }
@@ -549,7 +552,8 @@ export class MathBackendWebGL extends KernelBackend {
     }
 
     // if force flag is set, change refCount to 0, this would ensure disposal
-    // when added to the pendingDisposal queue.
+    // when added to the pendingDisposal queue. Memory may or may not be
+    // released, which also depends on dataRefCount, see `releaseGPU`.
     if (force) {
       this.texData.get(dataId).refCount = 0;
     } else {
