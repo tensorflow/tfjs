@@ -96,6 +96,9 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         if (divBy4Remainder == 0) {
           temp = curData;
         } else {
+          // TODO: This could end up being a redundant load with another one in
+          // the same shader invocation. Perhaps there's an opportunity for
+          // optimization
           vec4 nextData = x[divBy4Index + 1];
           if (divBy4Remainder == 1) {
             temp = vec4(curData.yzw, nextData.x);
