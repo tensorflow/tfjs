@@ -141,11 +141,9 @@ export class BackendWasm extends KernelBackend {
   }
 
   incRef(dataId: DataId) {
-    if (this.dataIdMap.has(dataId)) {
-      const data = this.dataIdMap.get(dataId);
-      if (data != null) {
-        data.refCount++;
-      }
+    const data = this.dataIdMap.get(dataId);
+    if (data != null) {
+      data.refCount++;
     }
   }
 

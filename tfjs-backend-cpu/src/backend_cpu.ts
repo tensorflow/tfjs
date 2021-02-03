@@ -108,10 +108,8 @@ export class MathBackendCPU extends KernelBackend {
 
   /** Increase refCount of a `TensorData`. */
   incRef(dataId: DataId): void {
-    if (this.data.has(dataId)) {
-      const tensorData = this.data.get(dataId);
-      tensorData.refCount++;
-    }
+    const tensorData = this.data.get(dataId);
+    tensorData.refCount++;
   }
 
   /** Decrease refCount of a `TensorData`. */

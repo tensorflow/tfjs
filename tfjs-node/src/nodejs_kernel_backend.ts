@@ -250,14 +250,14 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
   /** Return refCount of a `TensorData`. */
   refCount(dataId: DataId): number {
-    const tensorData = this.tensorMap.get(dataId);
-    return tensorData.refCount;
+    if (this.tensorMap.has(dataId)) {
+      const tensorData = this.tensorMap.get(dataId);
+      return tensorData.refCount;
+    }
+    return 0;
   }
 
   incRef(dataId: DataId) {
-    if (!this.tensorMap.has(dataId)) {
-      return;
-    }
     this.tensorMap.get(dataId).refCount++;
   }
 

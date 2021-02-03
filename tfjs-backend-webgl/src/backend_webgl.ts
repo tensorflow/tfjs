@@ -198,10 +198,8 @@ export class MathBackendWebGL extends KernelBackend {
 
   /** Increase refCount of a `TextureData`. */
   incRef(dataId: DataId): void {
-    if (this.texData.has(dataId)) {
-      const texData = this.texData.get(dataId);
-      texData.refCount++;
-    }
+    const texData = this.texData.get(dataId);
+    texData.refCount++;
   }
 
   /** Decrease refCount of a `TextureData`. */
