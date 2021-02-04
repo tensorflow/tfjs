@@ -180,5 +180,17 @@ describe('transformation', () => {
         expect(tfOps.broadcastTo).toHaveBeenCalledWith(input1[0], [1, 1]);
       });
     });
+    describe('BroadcastArgs', () => {
+      it('should call tfOps.broadcastArgs', () => {
+        spyOn(tfOps, 'broadcastArgs');
+        node.op = 'BroadcastArgs';
+        node.inputParams.shape = createNumericArrayAttrFromIndex(1);
+        node.inputNames = ['input1', 'input2'];
+
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfOps.broadcastArgs).toHaveBeenCalledWith(input1[0], [1, 1]);
+      });
+    });
   });
 });

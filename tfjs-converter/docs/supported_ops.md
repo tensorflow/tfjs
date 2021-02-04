@@ -353,6 +353,7 @@
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
 |BatchToSpaceND|batchToSpaceND|
+|BroadcastArgs|broadcastArgs|
 |BroadcastTo|broadcastTo|
 |Cast|cast|
 |DepthToSpace|depthToSpace|
