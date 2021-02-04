@@ -333,7 +333,7 @@ limitations under the License.
 
       await showMsg(null);
       appendRow(timeTable, 'backend', state.backend);
-      appendRow(timeTable, '1st inference', printTime(timeInfo.times[0]));
+      appendRow(timeTable, 'Warmup time', printTime(timeInfo.times[0]));
     }
 
     async function showInputs() {
