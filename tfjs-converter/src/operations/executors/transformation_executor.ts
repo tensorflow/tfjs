@@ -104,6 +104,11 @@ export const executeOp: InternalOpExecutor =
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('shape', node, tensorMap, context) as number[])];
         }
+        case 'BroadcastArgs': {
+          return [tfOps.broadcastArgs(
+              getParamValue('shape1', node, tensorMap, context) as Tensor,
+              getParamValue('shape2', node, tensorMap, context) as Tensor)];
+        }
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);
       }

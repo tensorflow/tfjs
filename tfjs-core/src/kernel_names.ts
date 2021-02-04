@@ -144,6 +144,9 @@ export interface BroadCastToAttrs {
   inputShape: number[];  // for gradient
 }
 
+export const BroadcastArgs = 'BroadcastArgs';
+export type BroadcastArgsInputs = Pick<NamedTensorInfoMap, 'shape1'|'shape2'>;
+
 export const Cast = 'Cast';
 export type CastInputs = UnaryInputs;
 export interface CastAttrs {
