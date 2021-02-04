@@ -62,9 +62,8 @@ export function reverse(
 
   const reshaped =
       reshape({inputs: {x: out}, attrs: {shape: x.shape}, backend});
-  if (out != null) {
-    backend.disposeData(out.dataId);
-  }
+
+  backend.disposeData(out.dataId);
   return reshaped;
 }
 

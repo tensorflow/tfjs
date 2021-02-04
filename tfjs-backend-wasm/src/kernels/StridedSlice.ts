@@ -112,14 +112,10 @@ export function stridedSlice(args: {
   const nonStrided = strides.every(v => v === 1);
   if (nonStrided) {
     const xSliced = slice({inputs: {x}, attrs: {begin, size}, backend});
-    if (xReshaped != null) {
-      backend.disposeData(xReshaped.dataId);
-    }
+    backend.disposeData(xReshaped.dataId);
     const reshaped =
         reshape({inputs: {x: xSliced}, attrs: {shape: outShape}, backend});
-    if (xSliced != null) {
-      backend.disposeData(xSliced.dataId);
-    }
+    backend.disposeData(xSliced.dataId);
     return reshaped;
   }
 
@@ -142,14 +138,12 @@ export function stridedSlice(args: {
         stridesBytes, outputShapeBytes, outStridesBytes, outShape.length,
         outId);
   }
-  if (xReshaped != null) {
-    backend.disposeData(xReshaped.dataId);
-  }
+  backend.disposeData(xReshaped.dataId);
+
   const reshaped =
       reshape({inputs: {x: out}, attrs: {shape: outShape}, backend});
-  if (out != null) {
-    backend.disposeData(out.dataId);
-  }
+
+  backend.disposeData(out.dataId);
   return reshaped;
 }
 

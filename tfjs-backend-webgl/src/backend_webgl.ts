@@ -571,8 +571,8 @@ export class MathBackendWebGL extends KernelBackend {
     this.releaseGPUData(dataId);
     const {complexTensorInfos} = this.texData.get(dataId);
     if (complexTensorInfos != null) {
-      this.disposeIntermediateTensorInfo(complexTensorInfos.real);
-      this.disposeIntermediateTensorInfo(complexTensorInfos.imag);
+      this.disposeData(complexTensorInfos.real, force);
+      this.disposeData(complexTensorInfos.imag, force);
     }
 
     this.texData.delete(dataId);

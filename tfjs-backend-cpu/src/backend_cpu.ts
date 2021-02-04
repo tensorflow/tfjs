@@ -185,8 +185,8 @@ export class MathBackendCPU extends KernelBackend {
       const {complexTensorInfos} = this.data.get(dataId);
 
       if (complexTensorInfos != null) {
-        this.disposeData(complexTensorInfos.real.dataId, force);
-        this.disposeData(complexTensorInfos.imag.dataId, force);
+        this.disposeData(complexTensorInfos.real.dataId, true);
+        this.disposeData(complexTensorInfos.imag.dataId, true);
       }
 
       this.data.delete(dataId);

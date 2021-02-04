@@ -876,6 +876,9 @@ export class Engine implements TensorTracker, DataMover {
 
   // Track the tensor by dataId and increase the refCount for the dataId in the
   // backend.
+  // TODO(pyu10055): This is currently used by makeVariable method, to increase
+  // refCount on the backend for the dataId. It can potentially be replaced with
+  // Identity op indead of calling backend directly.
   incRef(a: Tensor, backend: KernelBackend): void {
     this.trackTensor(a, backend);
     this.backend.incRef(a.dataId);
