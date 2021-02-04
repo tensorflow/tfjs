@@ -61,6 +61,7 @@ import './ops/batchnorm_test';
 import './ops/binary_ops_test';
 import './ops/bincount_test';
 import './ops/boolean_mask_test';
+import './ops/broadcast_args_test';
 import './ops/broadcast_to_test';
 import './ops/broadcast_util_test';
 import './ops/ceil_test';
