@@ -312,6 +312,8 @@ limitations under the License.
     async function warmUpAndRecordTime() {
       if (warmupTimes == 0) {
         await showMsg('Skip warming up');
+        appendRow(timeTable, 'backend', state.backend);
+        appendRow(timeTable, '1st inference', 0);
         await sleep(1000);
         return;
       }
