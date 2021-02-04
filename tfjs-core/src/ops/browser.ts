@@ -197,7 +197,7 @@ export async function fromPixelsAsync(
 
   // Check whether browser support ImageBitmap or the input is PixelData.
   if (typeof ImageBitmap === 'undefined' ||
-      kernel === null ||
+      kernel == null ||
       (pixels as PixelData).data instanceof Uint8Array) {
     inputs = pixels;
   } else {
