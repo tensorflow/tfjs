@@ -196,8 +196,8 @@ export async function fromPixelsAsync(
   const kernel = getKernel(FromPixels, ENGINE.backendName);
 
   // Check whether browser support ImageBitmap or the input is PixelData.
-  if (ImageBitmap == null ||
-      createImageBitmap == null ||
+  if (typeof ImageBitmap === 'undefined' ||
+      typeof createImageBitmap === 'undefined' ||
       kernel == null ||
       (pixels as PixelData).data instanceof Uint8Array) {
     inputs = pixels;
