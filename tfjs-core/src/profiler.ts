@@ -49,11 +49,14 @@ export class Profiler {
 
     if (env().getBool('CHECK_COMPUTATION_FOR_ERRORS')) {
       for (let i = 0; i < outputs.length; i++) {
-        kernelTime = util.now() - start;
         const output = outputs[i];
         // Dangling promise here because we don't want to propagate up
         // asynchronicity.
         output.data().then(tensorVals => {
+          // Update the kernel time only after the first output is downloaded.
+          if (kernelTime === 0) {
+            kernelTime = util.now() - start;
+          }
           checkComputationForErrors(tensorVals, output.dtype, kernelName);
         });
       }

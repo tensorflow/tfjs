@@ -86,8 +86,7 @@ limitations under the License.
       <tbody></tbody>
     </table>
   </div>
-  <script src="../tf-core.js"></script>
-  <!-- <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script> -->
+  <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-backend-cpu@latest/dist/tf-backend-cpu.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgl@latest/dist/tf-backend-webgl.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js"></script>
@@ -518,13 +517,14 @@ limitations under the License.
       appendRow(timeTable, 'Leaked tensors', profileInfo.newTensors);
       appendRow(timeTable, 'Profile time', printTime(elapsed));
 
-      if (state.backend == 'webgl' && queryTimerIsEnabled()) {
-        await showMsg('browser does not support the EXT_disjoint_timer_query,' +
-            ' the kernel time contains GPU texture download time.');
-      }
-      await showMsg('Profiling kernels');
-      appendRow(timeTable, 'Number of kernels', profileInfo.kernels.length);
-      showKernelTime(profileInfo);
+      if (state.backend != 'webgl' || queryTimerIsEnabled()) {
+        await showMsg('Profiling kernels');
+        appendRow(timeTable, 'Number of kernels', profileInfo.kernels.length);
+        showKernelTime(profileInfo);
+      } else {
+        await showMsg('Skipping kernel times since query timer extension is not ' +
+          'available. <br/> Please use a browser supporting the EXT_disjoint_timer_query WebGL API.');
+      };
     }
 
     function showKernelTime(profileInfo) {
