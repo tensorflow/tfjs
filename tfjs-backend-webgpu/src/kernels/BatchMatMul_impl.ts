@@ -91,6 +91,7 @@ export function batchMatMulImpl({
   // The rest of the implementation is designed to operate on rank-3 tensors
   const a3d = reshape({inputs: {x: a}, backend, attrs: {shape: a3dShape}});
   const b3d = reshape({inputs: {x: b}, backend, attrs: {shape: b3dShape}});
+  const intermediates: TensorInfo[] = [a3d, b3d];
 
   const batchDim = Math.max(batchDimA, batchDimB);
 
@@ -126,5 +127,9 @@ export function batchMatMulImpl({
   const out = backend.runWebGPUProgram(program, inputs, a.dtype);
   const outReshaped =
       reshape({inputs: {x: out}, backend, attrs: {shape: outShape}});
+  intermediates.push(out);
+  for (const i of intermediates) {
+    backend.disposeData(i.dataId);
+  }
   return outReshaped;
 }

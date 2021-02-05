@@ -23,6 +23,7 @@ export function identity(
   const {inputs} = args;
   const {x} = inputs;
 
+  args.backend.incRef(x.dataId);
   return {dataId: x.dataId, shape: x.shape, dtype: x.dtype};
 }
 

@@ -64,7 +64,9 @@ export const batchToSpaceND = (args: {
     attrs: {begin: sliceBeginCoords, size: sliceSize}
   });
 
+  toDispose.push(reshapedIntermediate);
   toDispose.push(transposedIntermediate);
+  toDispose.push(reshapedIntermediate2);
 
   toDispose.forEach(t => backend.disposeData(t.dataId));
 

@@ -18,7 +18,9 @@
 import {backend_util, Concat, ConcatAttrs, ConcatInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+
 import {ConcatProgram} from './concat_webgpu';
+import {identity} from './Identity';
 import {reshape} from './Reshape';
 
 export function concat(
@@ -34,12 +36,12 @@ export function concat(
     return backend.makeTensorInfo(outShape, inputs[0].dtype, []);
   }
 
-  if (inputs.length === 1) {
-    return inputs[0];
-  }
-
   // Keep only non-empty tensors (ignore tensors with 0 in their shape).
   const $inputs = inputs.filter(t => util.sizeFromShape(t.shape) > 0);
+  if ($inputs.length === 1) {
+    return identity({inputs: {x: $inputs[0]}, backend});
+  }
+
   const shapes = $inputs.map(t => t.shape);
   backend_util.assertParamsConsistent(shapes, $axis);
 
@@ -57,7 +59,12 @@ export function concat(
   const program =
       new ConcatProgram((tensors2D).map(t => t.shape as [number, number]));
   const res = backend.runWebGPUProgram(program, tensors2D, tensors2D[0].dtype);
-  return reshape({inputs: {x: res}, backend, attrs: {shape: outShape}});
+  tensors2D.forEach(r => backend.disposeData(r.dataId));
+
+  const reshapedResult =
+      reshape({inputs: {x: res}, backend, attrs: {shape: outShape}});
+  backend.disposeData(res.dataId);
+  return reshapedResult;
 }
 
 export const concatConfig: KernelConfig = {
