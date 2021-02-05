@@ -196,7 +196,8 @@ export async function fromPixelsAsync(
   const kernel = getKernel(FromPixels, ENGINE.backendName);
 
   // Check whether browser support ImageBitmap or the input is PixelData.
-  if (typeof ImageBitmap === 'undefined' ||
+  if (ImageBitmap == null ||
+      createImageBitmap == null ||
       kernel == null ||
       (pixels as PixelData).data instanceof Uint8Array) {
     inputs = pixels;
@@ -212,11 +213,12 @@ export async function fromPixelsAsync(
     // In some cases, the input will have larger size than the content
     // e.g. new Image(10, 10) but with 1 x 1 content. Avoid using
     // imageBitmap as input in these cases. 
-    if (imageBitmap.width !== pixels.width ||
-        imageBitmap.height !== pixels.height) {
-      inputs = pixels;
-    } else {
+    if (imageBitmap != null &&
+        imageBitmap.width === pixels.width &&
+        imageBitmap.height === pixels.height) {
       inputs = imageBitmap;
+    } else {
+      inputs = pixels;
     }
  }
  return fromPixels_(inputs, numChannels);

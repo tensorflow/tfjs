@@ -203,7 +203,7 @@ describeWithFlags('fromPixelsAsync', BROWSER_ENVS, () => {
     const img = new Image(10, 10);
     img.src = 'data:image/gif;base64' +
         ',R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
-    
+
     await new Promise(resolve => {
         img.onload = () => resolve(img);
     });
