@@ -26,7 +26,8 @@ type TensorData = {
   shape: number[],
   dtype: number,
   values: backend_util.BackendValues,
-  id: number
+  id: number,
+  refCount: number;
 };
 
 export class NodeJSKernelBackend extends KernelBackend {
@@ -72,7 +73,8 @@ export class NodeJSKernelBackend extends KernelBackend {
       shape: metadata.shape,
       dtype: metadata.dtype,
       id: metadata.id,
-      values: null
+      values: null,
+      refCount: 1
     });
 
     let dtype: DataType;
@@ -224,29 +226,52 @@ export class NodeJSKernelBackend extends KernelBackend {
     }
   }
 
-  disposeData(dataId: DataId): void {
+  /**
+   * Dispose the memory if the dataId has 0 refCount. Return true if the memory
+   * is released, false otherwise.
+   * @param dataId
+   * @oaram force Optional, remove the data regardless of refCount
+   */
+  disposeData(dataId: DataId, force = false): boolean {
     // No-op if already disposed.
-    if (!this.tensorMap.has(dataId)) {
-      return;
+    if (this.tensorMap.has(dataId)) {
+      const id = this.tensorMap.get(dataId).id;
+      this.tensorMap.get(dataId).refCount--;
+      if (!force && this.tensorMap.get(dataId).refCount > 0) {
+        return false;
+      }
+
+      if (id != null && id >= 0) {
+        this.binding.deleteTensor(id);
+      }
+      this.tensorMap.delete(dataId);
     }
-    const id = this.tensorMap.get(dataId).id;
-    if (id != null && id >= 0) {
-      this.binding.deleteTensor(id);
+    return true;
+  }
+  /** Return refCount of a `TensorData`. */
+  refCount(dataId: DataId): number {
+    if (this.tensorMap.has(dataId)) {
+      const tensorData = this.tensorMap.get(dataId);
+      return tensorData.refCount;
     }
-    this.tensorMap.delete(dataId);
+    return 0;
+  }
+
+  incRef(dataId: DataId) {
+    this.tensorMap.get(dataId).refCount++;
   }
 
   move(
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
-      dtype: DataType): void {
+      dtype: DataType, refCount: number): void {
     this.tensorMap.set(
-        dataId, {shape, dtype: getTFDType(dtype), values, id: -1});
+        dataId, {shape, dtype: getTFDType(dtype), values, id: -1, refCount});
   }
 
   write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
       DataId {
     const dataId = {};
-    this.move(dataId, values, shape, dtype);
+    this.move(dataId, values, shape, dtype, 1);
     return dataId;
   }
 

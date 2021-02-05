@@ -95,6 +95,9 @@ function gatherV2(
       xId, CppDType[x.dtype], xStridesBytes, stridesSize, indicesId,
       shapeInfo.batchSize, outStridesBytes, outId);
 
+  backend.disposeData(flattenX.dataId);
+  backend.disposeData(flattenIndex.dataId);
+
   // reshape
   out.shape = shapeInfo.outputShape;
   return out;

@@ -155,7 +155,6 @@ describeWithFlags('unsortedSegmentSum', ALL_ENVS, () => {
     const segmentIds = [0, 2, 0, 1];
     const numSegments = 3;
     const res = tf.unsortedSegmentSum(x, segmentIds, numSegments);
-
     expect(res.shape).toEqual([3]);
     expectArraysClose(await res.data(), [4, 4, 2]);
   });

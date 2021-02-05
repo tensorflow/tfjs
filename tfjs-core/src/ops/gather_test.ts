@@ -551,4 +551,24 @@ describeWithFlags('gather', ALL_ENVS, () => {
         await gradients.data(),
         [0, 6, 0, -3, 0, 15.7, 0, 6, 0, 1.01, 0, 18, 0, 15, 0, 4]);
   });
+
+  it('ensure no memory leak', async () => {
+    const numTensorsBefore = tf.memory().numTensors;
+    const numDataIdBefore = tf.engine().backend.numDataIds();
+    const t = tf.tensor1d([1, 2, 3]);
+    const t1 = tf.scalar(1, 'int32');
+    const t2 = tf.gather(t, t1, 0);
+
+    expect(t2.shape).toEqual([]);
+    expectArraysClose(await t2.data(), [2]);
+
+    t.dispose();
+    t1.dispose();
+    t2.dispose();
+
+    const numTensorsAfter = tf.memory().numTensors;
+    const numDataIdAfter = tf.engine().backend.numDataIds();
+    expect(numTensorsAfter).toBe(numTensorsBefore);
+    expect(numDataIdAfter).toBe(numDataIdBefore);
+  });
 });
