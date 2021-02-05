@@ -312,6 +312,8 @@ limitations under the License.
     async function warmUpAndRecordTime() {
       if (warmupTimes == 0) {
         await showMsg('Skip warming up');
+        appendRow(timeTable, 'backend', state.backend);
+        appendRow(timeTable, 'Warmup time', '0 ms');
         await sleep(1000);
         return;
       }
@@ -331,7 +333,7 @@ limitations under the License.
 
       await showMsg(null);
       appendRow(timeTable, 'backend', state.backend);
-      appendRow(timeTable, '1st inference', printTime(timeInfo.times[0]));
+      appendRow(timeTable, 'Warmup time', printTime(timeInfo.times[0]));
     }
 
     async function showInputs() {
@@ -513,7 +515,7 @@ limitations under the License.
       await showMsg(null);
       appendRow(timeTable, 'Peak memory', printMemory(profileInfo.peakBytes));
       appendRow(timeTable, 'Leaked tensors', profileInfo.newTensors);
-      appendRow(timeTable, '2nd inference', printTime(elapsed));
+      appendRow(timeTable, 'Profile time', printTime(elapsed));
 
       if (state.backend != 'webgl' || queryTimerIsEnabled()) {
         await showMsg('Profiling kernels');
