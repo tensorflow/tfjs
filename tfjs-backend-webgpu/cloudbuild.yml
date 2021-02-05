@@ -14,11 +14,9 @@ steps:
   waitFor: ['yarn-common']
 
 # Build deps.
-# TODO(Yunfei): Change id to 'build-deps' after webgpu dependencies write into
-# packange_dependencies.json
 - name: 'node:10'
   dir: 'tfjs-backend-webgpu'
-  id: 'build-deps-for-webgpu'
+  id: 'build-deps'
   entrypoint: 'yarn'
   args: ['build-deps-ci']
   waitFor: ['yarn-common']
@@ -29,7 +27,7 @@ steps:
   id: 'lint'
   entrypoint: 'yarn'
   args: ['lint']
-  waitFor: ['yarn', 'build-deps-for-webgpu']
+  waitFor: ['yarn', 'build-deps']
 
 # Run tests.
 - name: 'node:10'
@@ -37,7 +35,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-webgpu'
   args: ['test-ci']
-  waitFor: ['yarn', 'build-deps-for-webgpu', 'lint']
+  waitFor: ['yarn', 'build-deps', 'lint']
 
 # General configuration
 timeout: 1800s
