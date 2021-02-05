@@ -196,13 +196,11 @@ export async function fromPixelsAsync(
   const kernel = getKernel(FromPixels, ENGINE.backendName);
 
   // Check whether browser support ImageBitmap or the input is PixelData.
-  if (typeof window == null ||
-      !window.hasOwnProperty('ImageBitmap') ||
-      !window.hasOwnProperty('createImageBitmap') ||
-      kernel == null ||
-      (pixels as PixelData).data instanceof Uint8Array) {
-    inputs = pixels;
-  } else {
+  if (typeof window != null &&
+      window.hasOwnProperty('ImageBitmap') &&
+      window.hasOwnProperty('createImageBitmap') &&
+      kernel != null &&
+      !((pixels as PixelData).data instanceof Uint8Array)) {
     // Force the imageBitmap creation to not do any premultiply alpha
     // ops.
     const imageBitmap = 
@@ -221,6 +219,8 @@ export async function fromPixelsAsync(
     } else {
       inputs = pixels;
     }
+  } else {
+    inputs = pixels;
  }
  return fromPixels_(inputs, numChannels);
 }
