@@ -43,10 +43,13 @@ export class Profiler {
     const holdResultWrapperFn = () => {
       outputs = f();
     };
+    const start = performance.now();
+    let kernelTime = 0;
     const timer = this.backendTimer.time(holdResultWrapperFn);
 
     if (env().getBool('CHECK_COMPUTATION_FOR_ERRORS')) {
       for (let i = 0; i < outputs.length; i++) {
+        kernelTime = performance.now() - start;
         const output = outputs[i];
         // Dangling promise here because we don't want to propagate up
         // asynchronicity.
@@ -60,7 +63,13 @@ export class Profiler {
       kernelName,
       outputs,
       inputs,
-      timeMs: timer.then(timing => timing.kernelMs),
+      timeMs: timer.then(timing => {
+        // fallback to cpu performance if timer query not supported
+        if (typeof timing.kernelMs === 'object') {
+          return kernelTime;
+        }
+        return timing.kernelMs;
+      }),
       extraInfo: timer.then(
           timing => timing.getExtraProfileInfo != null ?
               timing.getExtraProfileInfo() :
