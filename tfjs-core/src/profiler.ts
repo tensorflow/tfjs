@@ -43,13 +43,13 @@ export class Profiler {
     const holdResultWrapperFn = () => {
       outputs = f();
     };
-    const start = performance.now();
+    const start = util.now();
     let kernelTime = 0;
     const timer = this.backendTimer.time(holdResultWrapperFn);
 
     if (env().getBool('CHECK_COMPUTATION_FOR_ERRORS')) {
       for (let i = 0; i < outputs.length; i++) {
-        kernelTime = performance.now() - start;
+        kernelTime = util.now() - start;
         const output = outputs[i];
         // Dangling promise here because we don't want to propagate up
         // asynchronicity.
