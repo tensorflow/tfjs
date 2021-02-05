@@ -87,12 +87,33 @@ export class Conv2DMMProgram implements WebGPUProgram {
     const dimBOuter = this.outputShape[3];
     const dimInner = this.convInfo.filterHeight * this.convInfo.filterWidth *
         this.convInfo.inChannels;
+
+    const readASnippet = `
+    int outRow = row / ${this.outputShape[2]};
+    int outCol = row % ${this.outputShape[2]};
+
+    int WRow = col / (filterDims[1] * ${this.convInfo.inShape[3]});
+    int WCol = (col / ${this.convInfo.inShape[3]}) % filterDims[1];
+
+    ivec4 coord = ivec4(
+        batch,
+        outRow * stride[0] + dilation[0] * WRow - pad[0],
+        outCol * stride[1] + dilation[1] * WCol - pad[1],
+        col % ${this.convInfo.inShape[3]});
+    // The bounds checking is always needed since we use it to pad zero for the
+    // 'same' padding type.
+    return coordsInBounds(coord, ${
+        getShapeCoords(this.convInfo.inShape)}) ? x[getFlatIndex(coord, ${
+        getShapeCoords(this.convInfo.inShape)})] : 0;`;
+
     const fitA = tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]);
-    const sampleA = fitA ?
-        `x[getFlatIndex(coord, ${getShapeCoords(this.convInfo.inShape)})]` :
-        `coordsInBounds(coord, ${
-            getShapeCoords(this.convInfo.inShape)}) ? x[getFlatIndex(coord, ${
-            getShapeCoords(this.convInfo.inShape)})] : 0`;
+    const sampleA =
+        fitA ? `${readASnippet}` : `if (row < dimAOuter && col < dimInner) {
+      ${readASnippet}
+    } else {
+      return 0;
+    }`;
+
     const fitB = tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter]);
     const sampleB = fitB ?
         `W[row * dimBOuter + col]` :
@@ -129,19 +150,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
     int dimBOuter = ${this.outputShape[3]};
     int dimInner = filterDims[0] * filterDims[1] * ${this.convInfo.inShape[3]};
     float mm_readA(int row, int col) {
-      int r = int(row), c = int(col);
-      int outRow = r / ${this.outputShape[2]};
-      int outCol = r % ${this.outputShape[2]};
-
-      int WRow = c / (filterDims[1] * ${this.convInfo.inShape[3]});
-      int WCol = (c / ${this.convInfo.inShape[3]}) % filterDims[1];
-
-      ivec4 coord = ivec4(
-          batch,
-          outRow * stride[0] + dilation[0] * WRow - pad[0],
-          outCol * stride[1] + dilation[1] * WCol - pad[1],
-          c % ${this.convInfo.inShape[3]});
-      return ${sampleA};
+      ${sampleA}
     }
 
     float mm_readB(int row, int col) {

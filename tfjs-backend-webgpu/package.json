@@ -8,18 +8,30 @@
   "unpkg": "dist/tf-webgpu.min.js",
   "jsdelivr": "dist/tf-webgpu.min.js",
   "scripts": {
-    "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
-    "publish-npm": "./scripts/publish-npm.sh",
+    "benchmark": "yarn && yarn build-deps && karma start --grep=benchmark --browsers=chrome_webgpu",
+    "build-ci": "tsc && yarn bundle-ci",
     "build": "rimraf dist/ && tsc && yarn bundle",
     "bundle": "rollup -c",
+    "bundle-ci": "rollup -c --ci",
+    "build-deps": "yarn build-core && yarn build-converter && yarn build-cpu-backend && yarn build-webgl-backend",
+    "build-deps-ci": "yarn build-core-ci && yarn build-cpu-backend-ci && yarn build-converter-ci && yarn build-webgl-backend-ci",
+    "build-converter": "cd ../tfjs-converter && yarn && yarn build",
+    "build-converter-ci": "cd ../tfjs-converter && yarn && yarn build-ci",
+    "build-core": "cd ../tfjs-core && yarn && yarn build",
+    "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
+    "build-cpu-backend": "cd ../tfjs-backend-cpu && yarn && yarn build",
+    "build-cpu-backend-ci": "cd ../tfjs-backend-cpu && yarn && yarn build-ci",
     "build-npm": "yarn build && rollup -c",
+    "build-webgl-backend": "cd ../tfjs-backend-webgl && yarn && yarn build",
+    "build-webgl-backend-ci": "cd ../tfjs-backend-webgl && yarn && yarn build-ci",
     "link-local": "yalc link",
-    "unlink-local": "yalc remove",
+    "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
+    "publish-npm": "./scripts/publish-npm.sh",
     "lint": "tslint -p . -t verbose",
-    "test": "yarn && karma start --browsers=chrome_webgpu --excludeTest='src/benchmark_ops_test.ts'",
-    "test-dev": "karma start --browsers=chrome_webgpu --excludeTest='src/benchmark_ops_test.ts'",
+    "test": "yarn && yarn build-deps && karma start --browsers=chrome_webgpu --excludeTest=src/benchmark_*_test.ts",
+    "test-dev": "karma start --browsers=chrome_webgpu --excludeTest=src/benchmark_*_test.ts",
     "test-ci": "./scripts/test-ci.sh",
-    "benchmark": "yarn build && karma start --grep=benchmark --browsers=chrome_webgpu"
+    "unlink-local": "yalc remove"
   },
   "license": "Apache-2.0",
   "devDependencies": {
@@ -27,10 +39,9 @@
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
-    "@tensorflow/tfjs-backend-cpu": "2.7.0",
-    "@tensorflow/tfjs-backend-webgl": "2.7.0",
-    "@tensorflow/tfjs-converter": "2.7.0",
-    "@tensorflow/tfjs-core": "2.7.0",
+    "@tensorflow/tfjs-backend-webgl": "link:../tfjs-backend-webgl",
+    "@tensorflow/tfjs-converter": "link:../tfjs-converter",
+    "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@types/jasmine": "~3.0.0",
     "clang-format": "~1.2.4",
     "jasmine": "~3.1.0",
@@ -54,10 +65,11 @@
     "yalc": "~1.0.0-pre.21"
   },
   "dependencies": {
+    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
     "@webgpu/glslang": "0.0.12",
     "@webgpu/types": "0.0.32"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "2.7.0"
+    "@tensorflow/tfjs-core": "link:../tfjs-core"
   }
 }
