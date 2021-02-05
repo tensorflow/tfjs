@@ -128,19 +128,20 @@ export class WebGPUBackend extends KernelBackend {
     this.uniformDisposalQueue = [];
   }
 
-  disposeData(dataId: DataId): void {
+  disposeData(dataId: DataId, force = false): boolean {
     if (!this.tensorMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
 
     if (this.commandQueueOwnedIds.has(dataId)) {
       this.tensorDisposalQueue.push(dataId);
-      return;
+      return false;
     } else {
       this.maybeReleaseBuffer(dataId);
     }
 
     this.tensorMap.delete(dataId);
+    return true;
   }
 
   memory(): WebGPUMemoryInfo {
