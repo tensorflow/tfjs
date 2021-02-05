@@ -54,6 +54,7 @@ export function stridedSlice(args: {
     const sliced =
         slice({inputs: {x: $x}, backend, attrs: {begin: $begin, size}});
     result = reshape({inputs: {x: sliced}, backend, attrs: {shape: outShape}});
+    backend.disposeData(sliced.dataId);
 
   } else if (outShape.some(axis => axis === 0)) {
     result = backend.makeTensorInfo(outShape, x.dtype, []);
@@ -74,6 +75,9 @@ export function stridedSlice(args: {
 
   const resultReshaped =
       reshape({inputs: {x: result}, backend, attrs: {shape: outShape}});
+
+  backend.disposeData($x.dataId);
+  backend.disposeData(result.dataId);
 
   return resultReshaped;
 }

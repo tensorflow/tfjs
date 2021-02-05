@@ -19,7 +19,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, DataStorage, DataType, engine, env, KernelBackend, RecursiveArray, Tensor, TensorInfo, TimingInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataStorage, DataType, engine, env, KernelBackend, RecursiveArray, TensorInfo, TimingInfo, util} from '@tensorflow/tfjs-core';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
@@ -45,7 +45,8 @@ type BufferInfo = {
 type TensorBufferInfo = {
   values: backend_util.BackendValues,
   dtype: DataType,
-  bufferInfo: BufferInfo
+  bufferInfo: BufferInfo,
+  refCount: number;
 };
 
 interface DataId {}
@@ -77,6 +78,10 @@ export class WebGPUBackend extends KernelBackend {
   fromPixelProgram: FromPixelsProgram;
   supportTimeQuery: boolean;
 
+  private static nextDataId = 0;
+  private nextDataId(): number {
+    return WebGPUBackend.nextDataId++;
+  }
   private commandQueueOwnedIds = new WeakSet<DataId>();
   private binaryCache: {[key: string]: WebGPUBinary};
   private bufferManager: BufferManager;
@@ -128,19 +133,31 @@ export class WebGPUBackend extends KernelBackend {
     this.uniformDisposalQueue = [];
   }
 
-  disposeData(dataId: DataId): void {
-    if (!this.tensorMap.has(dataId)) {
-      throw new Error(`Tensor ${dataId} was not registered!`);
-    }
+  /**
+   * Dispose the memory if the dataId has 0 refCount. Return true if the memory
+   * is released or memory is not managed in this backend, false if memory is
+   * not cleared.
+   * @param dataId
+   * @oaram force Optional, remove the data regardless of refCount
+   */
+  disposeData(dataId: DataId, force = false): boolean {
+    if (this.tensorMap.has(dataId)) {
+      const data = this.tensorMap.get(dataId);
+      data.refCount--;
+      if (!force && data.refCount > 0) {
+        return false;
+      }
 
-    if (this.commandQueueOwnedIds.has(dataId)) {
-      this.tensorDisposalQueue.push(dataId);
-      return;
-    } else {
-      this.maybeReleaseBuffer(dataId);
-    }
+      if (this.commandQueueOwnedIds.has(dataId)) {
+        this.tensorDisposalQueue.push(dataId);
+        return false;
+      } else {
+        this.maybeReleaseBuffer(dataId);
+      }
 
-    this.tensorMap.delete(dataId);
+      this.tensorMap.delete(dataId);
+    }
+    return true;
   }
 
   memory(): WebGPUMemoryInfo {
@@ -170,30 +187,55 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
+  /** Return refCount of a `TensorData`. */
+  refCount(dataId: DataId): number {
+    if (this.tensorMap.has(dataId)) {
+      const tensorData = this.tensorMap.get(dataId);
+      return tensorData.refCount;
+    }
+    return 0;
+  }
+
+  /** Increase refCount of a `TensorData`. */
+  incRef(dataId: DataId): void {
+    const tensorData = this.tensorMap.get(dataId);
+    tensorData.refCount++;
+  }
+
+  /** Decrease refCount of a `TensorData`. */
+  decRef(dataId: DataId): void {
+    if (this.tensorMap.has(dataId)) {
+      const tensorData = this.tensorMap.get(dataId);
+      tensorData.refCount--;
+    }
+  }
+
   write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
       DataId {
-    const dataId = {};
+    const dataId = {id: this.nextDataId()};
     const byteSize =
         util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
 
     this.tensorMap.set(dataId, {
       dtype,
       values,
-      bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE}
+      bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE},
+      refCount: 1
     });
     return dataId;
   }
 
   move(
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
-      dtype: DataType): void {
+      dtype: DataType, refCount: number): void {
     const byteSize =
         util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
 
     this.tensorMap.set(dataId, {
       dtype,
       values,
-      bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE}
+      bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE},
+      refCount
     });
   }
 
@@ -334,12 +376,6 @@ export class WebGPUBackend extends KernelBackend {
       this.binaryCache[key] = getBinary();
     }
     return this.binaryCache[key];
-  }
-
-  makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType): T {
-    const dataId = this.write(null /* values */, shape, dtype);
-
-    return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
   }
 
   makeTensorInfo(

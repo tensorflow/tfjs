@@ -66,23 +66,25 @@ export function conv2dByMatMul({
     attrs: {shape: [1, convInfo.inChannels, convInfo.outChannels]}
   });
 
-  return reshape({
-    inputs: {
-      x: batchMatMulImpl({
-        a: xReshaped,
-        b: filterReshaped,
-        transposeA,
-        transposeB,
-        backend,
-        bias,
-        activation,
-        preluActivationWeights,
-        leakyreluAlpha
-      })
-    },
+  const result = batchMatMulImpl({
+    a: xReshaped,
+    b: filterReshaped,
+    transposeA,
+    transposeB,
     backend,
-    attrs: {shape: convInfo.outShape}
+    bias,
+    activation,
+    preluActivationWeights,
+    leakyreluAlpha
   });
+  const out = reshape(
+      {inputs: {x: result}, backend, attrs: {shape: convInfo.outShape}});
+
+  backend.disposeData(xReshaped.dataId);
+  backend.disposeData(filterReshaped.dataId);
+  backend.disposeData(result.dataId);
+
+  return out;
 }
 
 // Implements the im2row algorithm as outlined in "High Performance
@@ -120,10 +122,15 @@ export function conv2dWithIm2Col({
   const transposeA = false;
   const transposeB = false;
 
+  const intermediates: TensorInfo[] = [];
+
   const xSqueezed =
       reshape({inputs: {x}, backend, attrs: {shape: x.shape.slice(1)}});
   const w2Row = reshape(
       {inputs: {x: filter}, backend, attrs: {shape: [1, sharedDim, -1]}});
+
+  intermediates.push(xSqueezed);
+  intermediates.push(w2Row);
 
   const im2ColProgram =
       new Im2ColProgram(x2ColShape, xSqueezed.shape, convInfo);
@@ -134,6 +141,8 @@ export function conv2dWithIm2Col({
     backend,
     attrs: {shape: [1, x2ColShape[0], x2ColShape[1]]}
   });
+  intermediates.push(im2Col);
+  intermediates.push(im2Col3D);
 
   const matMulProgram = new MatMulPackedProgram(
       [1, x2ColShape[0], x2ColShape[1]], [1, numCols, convInfo.outChannels],
@@ -142,18 +151,15 @@ export function conv2dWithIm2Col({
   const result: TensorInfo = backend.runWebGPUProgram(
       matMulProgram, [im2Col3D, w2Row], im2Col3D.dtype);
 
-  backend.disposeData(im2Col3D.dataId);
+  const outShape = isChannelsLast ?
+      [1, outHeight, outWidth, convInfo.outChannels] :
+      [1, convInfo.outChannels, outHeight, outWidth];
+  const out = reshape({inputs: {x: result}, backend, attrs: {shape: outShape}});
 
-  if (isChannelsLast) {
-    return reshape({
-      inputs: {x: result},
-      backend,
-      attrs: {shape: [1, outHeight, outWidth, convInfo.outChannels]}
-    });
+  intermediates.push(result);
+  for (const i of intermediates) {
+    backend.disposeData(i.dataId);
   }
-  return reshape({
-    inputs: {x: result},
-    backend,
-    attrs: {shape: [1, convInfo.outChannels, outHeight, outWidth]}
-  });
+
+  return out;
 }
