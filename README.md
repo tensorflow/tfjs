@@ -3,7 +3,7 @@
 TensorFlow.js is an open-source hardware-accelerated JavaScript library for
 training and deploying machine learning models.
 
-> :warning: We recently released **TensorFlow.js 2.0**. If you have been using TensorFlow.js
+> :warning: We recently released **TensorFlow.js 3.0**. If you have been using TensorFlow.js
 > via a script tag without specifying a version and see an error saying no backends
 > are found, then you should read our [release notes](https://github.com/tensorflow/tfjs/releases/tag/tfjs-v2.0.0)
 > for instructions on how to upgrade.
