@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {BackendTimer} from './backends/backend';
+import {BackendTimer, BackendTimingInfo} from './backends/backend';
 import {env} from './environment';
 import {Tensor} from './tensor';
 import {NamedTensorMap} from './tensor_types';
@@ -43,20 +43,21 @@ export class Profiler {
     const holdResultWrapperFn = () => {
       outputs = f();
     };
+    let timer: Promise<BackendTimingInfo>;
     const start = util.now();
-    let kernelTime = 0;
-    const timer = this.backendTimer.time(holdResultWrapperFn);
-
+    if (this.backendTimer.timerAvailable()) {
+      timer = this.backendTimer.time(holdResultWrapperFn);
+    } else {
+      holdResultWrapperFn();
+      outputs.map(output => output.dataSync());
+      timer = Promise.resolve({kernelMs: util.now() - start});
+    }
     if (env().getBool('CHECK_COMPUTATION_FOR_ERRORS')) {
       for (let i = 0; i < outputs.length; i++) {
         const output = outputs[i];
         // Dangling promise here because we don't want to propagate up
         // asynchronicity.
         output.data().then(tensorVals => {
-          // Update the kernel time only after the first output is downloaded.
-          if (kernelTime === 0) {
-            kernelTime = util.now() - start;
-          }
           checkComputationForErrors(tensorVals, output.dtype, kernelName);
         });
       }
@@ -66,13 +67,7 @@ export class Profiler {
       kernelName,
       outputs,
       inputs,
-      timeMs: timer.then(timing => {
-        // fallback to cpu performance if timer query not supported
-        if (typeof timing.kernelMs === 'object') {
-          return kernelTime;
-        }
-        return timing.kernelMs;
-      }),
+      timeMs: timer.then(timing => timing.kernelMs),
       extraInfo: timer.then(
           timing => timing.getExtraProfileInfo != null ?
               timing.getExtraProfileInfo() :
