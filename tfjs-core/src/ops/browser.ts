@@ -159,11 +159,6 @@ function fromPixels_(
   return tensor3d(values, outShape, 'int32');
 }
 
-function isPixelData(image: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-  HTMLVideoElement | ImageBitmap): image is PixelData {
-    return (image != null) && (image.data instanceof Uint8Array);
-}
-
 /**
  * Creates a `tf.Tensor` from an image in async way.
  *
