@@ -159,6 +159,11 @@ function fromPixels_(
   return tensor3d(values, outShape, 'int32');
 }
 
+function isPixelData(image: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
+  HTMLVideoElement | ImageBitmap): image is PixelData {
+    return (image != null) && (image.data instanceof Uint8Array);
+}
+
 /**
  * Creates a `tf.Tensor` from an image in async way.
  *
@@ -171,6 +176,11 @@ function fromPixels_(
  *
  * (await tf.browser.fromPixelsAsync(image)).print();
  * ```
+ * This API is recommended in cases like:
+ * - Users want to update the content to tensor in async way
+ * - Or users want to use WebGPU backend and gets the better performance
+ * - Or users don't want to use ImageBitmap as input but
+ * - the prefer backend is WebGPU
  *
  * @param pixels The input image to construct the tensor from. The
  * supported image types are all 4-channel. You can also pass in an image
