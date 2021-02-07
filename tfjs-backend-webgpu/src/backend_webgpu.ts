@@ -198,9 +198,6 @@ export class WebGPUBackend extends KernelBackend {
 
   /** Increase refCount of a `TensorData`. */
   incRef(dataId: DataId): void {
-    if (!this.tensorMap.has(dataId)) {
-      throw new Error(`Tensor ${dataId} was not registered!`);
-    }
     const tensorData = this.tensorMap.get(dataId);
     tensorData.refCount++;
   }
