@@ -177,7 +177,8 @@ function isPixelData(image: PixelData|ImageData|HTMLImageElement|HTMLCanvasEleme
  * (await tf.browser.fromPixelsAsync(image)).print();
  * ```
  * This API is recommended in cases like:
- * - Users want to update the content to tensor in async way
+ * - Users want to update the content to tensor in async way but not
+ *   created ImageBitmap themselves.
  * - Or users want to use WebGPU backend and gets the better performance
  * - Or users don't want to use ImageBitmap as input but
  * - the prefer backend is WebGPU
