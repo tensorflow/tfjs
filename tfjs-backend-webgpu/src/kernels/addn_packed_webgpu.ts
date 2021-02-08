@@ -38,7 +38,7 @@ export class AddNPackedProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-    this.shaderKey = `addN`;
+    this.shaderKey = 'addN';
   }
 
   getUserCode(): string {
@@ -64,7 +64,7 @@ export class AddNPackedProgram implements WebGPUProgram {
           if (flatIndex < ${size}) {
             ${type} coords = getCoordsFromFlatIndex(flatIndex);
             ${snippets.join('\n        ')}
-            setOutput(flatIndex,${operation});
+            setOutput(flatIndex, ${operation});
           }
         }
       }
