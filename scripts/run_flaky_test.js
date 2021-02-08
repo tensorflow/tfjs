@@ -26,11 +26,13 @@ describe('run_flaky', () => {
 
   it('exits with zero if the command eventually succeeds', () => {
     // Try a command that exits with a random number in [0...4] 100 times.
-    // P(this test failing | run_flaky is correct) = (4/5) ** 100 = very small.
-    expect(
-        exec(
-            'node ./scripts/run_flaky.js --times 100 \'exit $(($RANDOM % 5))\'')
-            .code)
+    // Bash's "$RANDOM" does not work in CI tests, so use "node -e" instead.
+    // P(this test failing | run_flaky and this test are correct) = (4/5)**100
+    expect(exec(
+               'node ./scripts/run_flaky.js --times 100 \'node -e "' +
+               'process.exit(Math.floor(Math.random() * 5))' +
+               '"\'')
+               .code)
         .toEqual(0);
   });
 });
