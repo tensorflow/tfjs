@@ -57,7 +57,7 @@ if (args[0] === '--times') {
 
 const command = args.join(' ');
 
-console.log(`Running flaky test ${times} times`);
+console.log(`Running flaky test at most ${times} times`);
 console.log(`Command: '${command}'`);
 main(command, times)
     .then(errors => {

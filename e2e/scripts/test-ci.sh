@@ -52,15 +52,15 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
 fi
 
 if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
-  yarn run-browserstack --browsers=bs_safari_mac --tags $TAGS --testEnv webgl --flags '{"WEBGL_VERSION": 1, "WEBGL_CPU_FORWARD": false, "WEBGL_SIZE_UPLOAD_UNIFORM": 0}'
-  yarn run-browserstack --browsers=bs_ios_11 --tags $TAGS --testEnv webgl --flags '{"WEBGL_VERSION": 1, "WEBGL_CPU_FORWARD": false, "WEBGL_SIZE_UPLOAD_UNIFORM": 0}'
+  node ../scripts/run_flaky.js yarn run-browserstack --browsers=bs_safari_mac --tags $TAGS --testEnv webgl --flags '{"WEBGL_VERSION": 1, "WEBGL_CPU_FORWARD": false, "WEBGL_SIZE_UPLOAD_UNIFORM": 0}'
+  node ../scripts/run_flaky.js yarn run-browserstack --browsers=bs_ios_11 --tags $TAGS --testEnv webgl --flags '{"WEBGL_VERSION": 1, "WEBGL_CPU_FORWARD": false, "WEBGL_SIZE_UPLOAD_UNIFORM": 0}'
 
-  yarn run-browserstack --browsers=bs_firefox_mac --tags $TAGS
-  yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS
-  yarn run-browserstack --browsers=win_10_chrome --tags $TAGS
+  node ../scripts/run_flaky.js yarn run-browserstack --browsers=bs_firefox_mac --tags $TAGS
+  node ../scripts/run_flaky.js yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS
+  node ../scripts/run_flaky.js yarn run-browserstack --browsers=win_10_chrome --tags $TAGS
 
   # Test script tag bundles
-  karma start ./script_tag_tests/karma.conf.js --browserstack --browsers=bs_chrome_mac --testBundle tf.min.js
+  node ../scripts/run_flaky.js karma start ./script_tag_tests/karma.conf.js --browserstack --browsers=bs_chrome_mac --testBundle tf.min.js
 else
-  yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS
+  node ../scripts/run_flaky.js yarn run-browserstack --browsers=bs_chrome_mac --tags $TAGS
 fi
