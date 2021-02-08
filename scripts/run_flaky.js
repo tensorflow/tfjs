@@ -1,73 +1,64 @@
+const {ArgumentParser} = require('argparse');
 const shell = require('shelljs');
 
 
 function exec(command) {
-  return new Promise((resolve, reject) => {
-    shell.exec(command, (error, stdout, stderr) => {
-      if (error) {
-        reject(error);
-      }
-      if (stderr) {
-        reject(stderr);
-      }
-      resolve(stdout);
+  return new Promise((resolve) => {
+    shell.exec(command, (exitCode) => {
+      resolve(exitCode);
     });
   });
 }
 
 async function main(command, times) {
-  const errors = [];
+  const exitCodes = [];
   for (let i = 0; i < times; i++) {
-    try {
-      await exec(command);
-      return errors;
-    } catch (e) {
-      errors.push(e);
+    console.log(`Flaky run ${i + 1} of a potential ${times} for '${command}'`);
+    const exitCode = await exec(command);
+    exitCodes.push(exitCode)
+    if (exitCode === 0) {
+      break;
     }
   }
-  throw new Error();
+  return exitCodes;
 }
 
-// Not using argparse because the script needs to concatenate the rest of the
-// arguments after the command into arguments used for the command (instead of
-// for this script), including --dashed arguments. Argparse would treat dashed
-// args as part of the 'run_flaky.js' command instead of as part of the command
-// to be run.
-const args = [...process.argv];
-args.shift();  // remove node binary arg
-args.shift();  // remove this command
+const parser = new ArgumentParser(
+    {description: 'Run a flaky test a number of times or until it passes'});
 
-if (args.length === 0 || args[0] === '-h') {
-  console.log('usage: run_flaky.js [-h] [--times [TIMES]] command [args ...]');
-  process.exit(0);
+parser.addArgument('command', {help: 'Flaky command to run'})
+parser.addArgument('--times', {
+  help: 'Maximum number of times to run the command',
+  defaultValue: 3,
+  nargs: '?',
+  type: 'int',
+});
+
+const args = parser.parseArgs();
+const command = args['command'];
+const times = parseInt(args['times']);
+
+if (times === 0) {
+  throw new Error(`Flaky test asked to run zero times: '${command}'`);
 }
-
-let times = 3;
-if (args[0] === '--times') {
-  args.shift();
-  times = parseInt(args[0]);
-  if (isNaN(times)) {
-    throw new Error(`'--times' must be a number but got '${args[0]}'`);
-  }
-  if (times === 0) {
-    throw new Error(`Flaky test asked to run zero times: '${command}'`);
-  }
-  args.shift();
-}
-
-const command = args.join(' ');
 
 console.log(`Running flaky test at most ${times} times`);
 console.log(`Command: '${command}'`);
-main(command, times)
-    .then(errors => {
-      if (errors.length > 0) {
-        console.warn(`Flaky test failed ${errors.length} times before passing.`)
-        console.warn(`Command: '${command}'`);
-      }
-    })
-    .catch(() => {
-      console.error(`Flaky test failed ${times} times`);
-      console.warn(`Command: '${command}'`);
-      process.exit(1);
-    });
+main(command, times).then(exitCodes => {
+  const success = exitCodes[exitCodes.length - 1] === 0;
+  if (!success) {
+    console.error(`Flaky test failed ${times} times`);
+  } else if (exitCodes.length > 1) {
+    console.warn(
+        `Flaky test failed ${exitCodes.length - 1} times before passing.`);
+  } else {
+    // Test passed with no fails
+    console.log('Flaky test passed on the first run');
+  }
+  console.error(`Command: '${command}'`);
+  console.error(`Exit codes: ${exitCodes}`);
+
+  if (!success) {
+    process.exit(1);
+  }
+});
