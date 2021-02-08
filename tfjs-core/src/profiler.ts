@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {BackendTimer} from './backends/backend';
+import {BackendTimer, BackendTimingInfo} from './backends/backend';
 import {env} from './environment';
 import {Tensor} from './tensor';
 import {NamedTensorMap} from './tensor_types';
@@ -43,8 +43,15 @@ export class Profiler {
     const holdResultWrapperFn = () => {
       outputs = f();
     };
-    const timer = this.backendTimer.time(holdResultWrapperFn);
-
+    let timer: Promise<BackendTimingInfo>;
+    const start = util.now();
+    if (this.backendTimer.timerAvailable()) {
+      timer = this.backendTimer.time(holdResultWrapperFn);
+    } else {
+      holdResultWrapperFn();
+      outputs.map(output => output.dataSync());
+      timer = Promise.resolve({kernelMs: util.now() - start});
+    }
     if (env().getBool('CHECK_COMPUTATION_FOR_ERRORS')) {
       for (let i = 0; i < outputs.length; i++) {
         const output = outputs[i];
