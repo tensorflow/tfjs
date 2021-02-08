@@ -40,6 +40,14 @@ describe('TensorList', () => {
     expect(tensorList.elementShape).toEqual(SHAPE);
   });
 
+  it('should allow scalar shape', () => {
+    tensorList = new TensorList([], -1, DTYPE, SIZE);
+    expect(tensorList.size()).toEqual(0);
+    expect(tensorList.elementDtype).toEqual(DTYPE);
+    expect(tensorList.maxNumElements).toEqual(SIZE);
+    expect(tensorList.elementShape).toEqual(-1);
+  });
+
   it('should not dispose keep tensors when close', () => {
     const numOfTensors = memory().numTensors;
     tensorList.pushBack(tensor);
@@ -76,6 +84,12 @@ describe('TensorList', () => {
       tensorList.pushBack(tensor);
       expect(() => tensorList.pushBack(tensor)).toThrow();
     });
+    it('should not fail for wildcard shape', () => {
+      tensorList = new TensorList([], [-1, 1], DTYPE, SIZE);
+      const tensor = tensor2d([1], [1, 1], 'int32');
+      tensorList.pushBack(tensor);
+      expect(tensorList.size()).toBe(1);
+    });
     it('should create no new tensors', () => {
       const numTensors = memory().numTensors;
       tensorList.pushBack(tensor);
@@ -109,7 +123,14 @@ describe('TensorList', () => {
       tensorList.pushBack(tensor);
       const numTensors = memory().numTensors;
       tensorList.popBack(SHAPE, DTYPE);
-      expect(memory().numTensors).toEqual(numTensors + 1);
+      expect(memory().numTensors).toEqual(numTensors);
+    });
+    it('should not fail for wildcard shape', () => {
+      tensorList = new TensorList([], [-1, 1], DTYPE, SIZE);
+      const tensor = tensor2d([1], [1, 1], DTYPE);
+      tensorList.pushBack(tensor);
+      tensorList.popBack([-1, 1], DTYPE);
+      expect(tensorList.size()).toBe(0);
     });
   });
   describe('setItem', () => {
@@ -131,6 +152,11 @@ describe('TensorList', () => {
     });
     it('should fail if the index greater than array size', () => {
       expect(() => tensorList.setItem(11, tensor)).toThrow();
+    });
+    it('should not fail for wildcard shape', () => {
+      tensorList = new TensorList([], [-1, 1], DTYPE, SIZE);
+      tensorList.setItem(0, tensor);
+      expect(tensorList.size()).toBe(1);
     });
     it('should create no new tensors', () => {
       const numTensors = memory().numTensors;
@@ -160,6 +186,10 @@ describe('TensorList', () => {
       tensorList.getItem(1, SHAPE, DTYPE);
       expect(memory().numTensors).toEqual(numTensors);
     });
+    it('should not fail for wildcard shape', () => {
+      const tensor3 = tensorList.getItem(0, [-1, 1], DTYPE);
+      expect(tensor3).toBe(tensor);
+    });
   });
 
   describe('reserve', () => {
@@ -168,6 +198,12 @@ describe('TensorList', () => {
       expect(tensorList.maxNumElements).toEqual(10);
       expect(tensorList.elementDtype).toEqual('float32');
       expect(tensorList.elementShape).toEqual([1, 1]);
+    });
+    it('should not fail for wildcard shape', async () => {
+      const tensorList = reserve([-1, 1], 'float32', 10);
+      expect(tensorList.maxNumElements).toEqual(10);
+      expect(tensorList.elementDtype).toEqual('float32');
+      expect(tensorList.elementShape).toEqual([-1, 1]);
     });
   });
 
@@ -182,7 +218,11 @@ describe('TensorList', () => {
       expect(concat.shape).toEqual([2, 1]);
       test_util.expectArraysClose(await concat.data(), [1, 2]);
     });
-
+    it('should fail for wildcard shape', async () => {
+      const concat = tensorList.concat(DTYPE, [-1, 1]);
+      expect(concat.shape).toEqual([2, 1]);
+      test_util.expectArraysClose(await concat.data(), [1, 2]);
+    });
     it('should fail if dtype is not matched', () => {
       expect(() => tensorList.concat('float32', SHAPE)).toThrow();
     });
@@ -218,6 +258,11 @@ describe('TensorList', () => {
       tensorList.gather([0, 1], DTYPE, SHAPE);
       expect(memory().numTensors).toEqual(numTensors + 1);
     });
+    it('should fail for wildcard shape', async () => {
+      const numTensors: number = memory().numTensors;
+      tensorList.gather([0, 1], DTYPE, [-1, 1]);
+      expect(memory().numTensors).toEqual(numTensors + 1);
+    });
   });
 
   describe('scatter', () => {
@@ -244,6 +289,11 @@ describe('TensorList', () => {
       // Three tensors in the list and the idTensor
       expect(memory().numTensors).toEqual(numTensors + 3 + 1);
     });
+    it('should not fail for wildcard shape', async () => {
+      const input = tensor3d([1, 2, 3], [3, 1, 1], 'int32');
+      const list = scatter(input, [0, 1, 2], [-1, 1], 3);
+      expect(list.size()).toEqual(3);
+    });
   });
 
   describe('split', () => {
@@ -266,6 +316,12 @@ describe('TensorList', () => {
       split(input, [1, 1, 1], [2, 2]);
       // Three tensors in the list and the idTensor
       expect(memory().numTensors).toEqual(numTensors + 3 + 1);
+    });
+    it('should not fail for wildcard shape', async () => {
+      const input =
+          tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [3, 2, 2], 'int32');
+      const list = split(input, [1, 1, 1], [-1, 2]);
+      expect(list.size()).toEqual(3);
     });
   });
 });

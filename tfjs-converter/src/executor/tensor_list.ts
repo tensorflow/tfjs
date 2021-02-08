@@ -50,7 +50,7 @@ export class TensorList {
    *   meaning that the size of `tensors` is unbounded.
    */
   constructor(
-      readonly tensors: Tensor[], readonly elementShape: number[],
+      readonly tensors: Tensor[], readonly elementShape: number|number[],
       readonly elementDtype: DataType, maxNumElements = -1) {
     if (tensors != null) {
       tensors.forEach(tensor => {
@@ -141,7 +141,7 @@ export class TensorList {
     const tensor = this.tensors.pop();
     assertShapesMatchAllowUndefinedSize(
         tensor.shape, elementShape, 'TensorList shape mismatch: ');
-    return reshape(tensor, elementShape);
+    return tensor;
   }
 
   /**
@@ -258,7 +258,7 @@ export class TensorList {
     }
 
     return tidy(() => {
-      const tensors = indices.map(i => reshape(this.tensors[i], elementShape));
+      const tensors = indices.map(i => this.tensors[i]);
       return stack(tensors, 0);
     });
   }
@@ -281,10 +281,7 @@ export class TensorList {
       return tensor([], [0].concat(this.elementShape));
     }
 
-    return tidy(() => {
-      const tensors = this.tensors.map(t => reshape(t, elementShape));
-      return concat(tensors, 0);
-    });
+    return concat(this.tensors, 0);
   }
 }
 

@@ -24,20 +24,21 @@
 import {util} from '@tensorflow/tfjs-core';
 
 export function assertShapesMatchAllowUndefinedSize(
-    shapeA: number[], shapeB: number[], errorMessagePrefix = ''): void {
+    shapeA: number|number[], shapeB: number|number[],
+    errorMessagePrefix = ''): void {
+  // constant shape means unknown rank
+  if (typeof shapeA === 'number' || typeof shapeB === 'number') {
+    return;
+  }
   util.assert(
-      shapesEqualAllowUndefinedSize(shapeA, shapeB),
+      shapeA.length === shapeB.length,
       () => errorMessagePrefix + ` Shapes ${shapeA} and ${shapeB} must match`);
-}
-
-export function shapesEqualAllowUndefinedSize(n1: number[], n2: number[]) {
-  if (n1.length !== n2.length) {
-    return false;
+  for (let i = 0; i < shapeA.length; i++) {
+    const dim0 = shapeA[i];
+    const dim1 = shapeB[i];
+    util.assert(
+        dim0 < 0 || dim1 < 0 || dim0 === dim1,
+        () =>
+            errorMessagePrefix + ` Shapes ${shapeA} and ${shapeB} must match`);
   }
-  for (let i = 0; i < n1.length; i++) {
-    if (n1[i] !== -1 && n2[i] !== -1 && n1[i] !== n2[i]) {
-      return false;
-    }
-  }
-  return true;
 }
