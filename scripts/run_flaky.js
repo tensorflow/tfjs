@@ -34,8 +34,8 @@ async function main(command, times) {
 // args as part of the 'run_flaky.js' command instead of as part of the command
 // to be run.
 const args = [...process.argv];
-args.shift(); // remove node binary arg
-args.shift(); // remove this command
+args.shift();  // remove node binary arg
+args.shift();  // remove this command
 
 if (args.length === 0 || args[0] === '-h') {
   console.log('usage: run_flaky.js [-h] [--times [TIMES]] command [args ...]');
