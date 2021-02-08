@@ -17,7 +17,7 @@
 
 import {concat, DataType, keep, reshape, scalar, slice, stack, Tensor, tensor, tidy, unstack} from '@tensorflow/tfjs-core';
 
-import {assertShapesMatchAllowUndefinedSize} from './tensor_utils';
+import {assertShapesMatchAllowUndefinedSize, findElementShape, mergeElementShape} from './tensor_utils';
 
 /**
  * TensorList stores a container of `tf.Tensor` objects, which are accessible
@@ -116,9 +116,10 @@ export class TensorList {
     }
     assertShapesMatchAllowUndefinedSize(
         elementShape, this.elementShape, 'TensorList shape mismatch: ');
+    const outputElementShape = findElementShape(this, elementShape);
     return tidy(() => {
       const reshapedTensors =
-          this.tensors.map(tensor => reshape(tensor, elementShape));
+          this.tensors.map(tensor => reshape(tensor, outputElementShape));
       return stack(reshapedTensors, 0);
     });
   }
@@ -137,11 +138,13 @@ export class TensorList {
     if (this.size() === 0) {
       throw new Error('Trying to pop from an empty list.');
     }
-
+    const outputElementShape = findElementShape(this, elementShape);
     const tensor = this.tensors.pop();
+
     assertShapesMatchAllowUndefinedSize(
         tensor.shape, elementShape, 'TensorList shape mismatch: ');
-    return tensor;
+
+    return reshape(tensor, outputElementShape);
   }
 
   /**
@@ -205,8 +208,8 @@ export class TensorList {
     assertShapesMatchAllowUndefinedSize(
         this.tensors[elementIndex].shape, elementShape,
         'TensorList shape mismatch: ');
-
-    return this.tensors[elementIndex];
+    const outputElementShape = findElementShape(this, elementShape);
+    return reshape(this.tensors[elementIndex], outputElementShape);
   }
 
   /**
@@ -252,13 +255,14 @@ export class TensorList {
     // When indices is greater than the size of the list, indices beyond the
     // size of the list are ignored.
     indices = indices.slice(0, this.size());
-
+    const outputElementShape = findElementShape(this, elementShape);
     if (indices.length === 0) {
-      return tensor([], [0].concat(this.elementShape));
+      return tensor([], [0].concat(outputElementShape));
     }
 
     return tidy(() => {
-      const tensors = indices.map(i => this.tensors[i]);
+      const tensors =
+          indices.map(i => reshape(this.tensors[i], outputElementShape));
       return stack(tensors, 0);
     });
   }
@@ -276,12 +280,15 @@ export class TensorList {
 
     assertShapesMatchAllowUndefinedSize(
         this.elementShape, elementShape, 'TensorList shape mismatch: ');
+    const outputElementShape = findElementShape(this, elementShape);
 
     if (this.size() === 0) {
-      return tensor([], [0].concat(this.elementShape));
+      return tensor([], [0].concat(outputElementShape));
     }
-
-    return concat(this.tensors, 0);
+    return tidy(() => {
+      const tensors = this.tensors.map(t => reshape(t, outputElementShape));
+      return concat(tensors, 0);
+    });
   }
 }
 
@@ -301,10 +308,9 @@ export function fromTensor(
     throw new Error(`Invalid data types; op elements ${
         tensor.dtype}, but list elements ${elementDtype}`);
   }
-  const outputShape = tensor.shape.slice(1);
+  const tensorElementShape = tensor.shape.slice(1);
   assertShapesMatchAllowUndefinedSize(
-      outputShape, elementShape, 'TensorList shape mismatch: ');
-
+      tensorElementShape, elementShape, 'TensorList shape mismatch: ');
   const tensorList: Tensor[] = unstack(tensor);
   return new TensorList(tensorList, elementShape, dtype);
 }
@@ -371,6 +377,9 @@ export function split(
         ${totalLength}, and tensor's shape is: ${tensor.shape}`);
   }
 
+  const shapeWithoutFirstDim = tensor.shape.slice(1);
+  const outputElementShape =
+      mergeElementShape(shapeWithoutFirstDim, elementShape);
   const elementPerRow = totalLength === 0 ? 0 : tensor.size / totalLength;
   const tensors: Tensor[] = tidy(() => {
     const tensors = [];
@@ -379,7 +388,8 @@ export function split(
       const previousLength = (i === 0) ? 0 : cumulativeLengths[i - 1];
       const indices = [0, previousLength, 0];
       const sizes = [1, length[i], elementPerRow];
-      tensors[i] = reshape(slice(tensor, indices, sizes), elementShape);
+      tensors[i] = reshape(
+          slice(tensor, indices, sizes), outputElementShape as number[]);
     }
     tensor.dispose();
     return tensors;

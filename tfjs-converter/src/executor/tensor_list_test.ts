@@ -123,7 +123,8 @@ describe('TensorList', () => {
       tensorList.pushBack(tensor);
       const numTensors = memory().numTensors;
       tensorList.popBack(SHAPE, DTYPE);
-      expect(memory().numTensors).toEqual(numTensors);
+      // a new reshaped tensor
+      expect(memory().numTensors).toEqual(numTensors + 1);
     });
     it('should not fail for wildcard shape', () => {
       tensorList = new TensorList([], [-1, 1], DTYPE, SIZE);
@@ -171,9 +172,13 @@ describe('TensorList', () => {
       tensorList.setItem(1, tensor2);
     });
 
-    it('should read the correct index', () => {
-      expect(tensorList.getItem(0, SHAPE, DTYPE)).toBe(tensor);
-      expect(tensorList.getItem(1, SHAPE, DTYPE)).toBe(tensor2);
+    it('should read the correct index', async () => {
+      test_util.expectArraysEqual(
+          await tensorList.getItem(0, SHAPE, DTYPE).data(),
+          await tensor.data());
+      test_util.expectArraysEqual(
+          await tensorList.getItem(1, SHAPE, DTYPE).data(),
+          await tensor2.data());
     });
 
     it('should failed if index is out of bound', () => {
@@ -184,11 +189,12 @@ describe('TensorList', () => {
       const numTensors = memory().numTensors;
       tensorList.getItem(0, SHAPE, DTYPE);
       tensorList.getItem(1, SHAPE, DTYPE);
-      expect(memory().numTensors).toEqual(numTensors);
+      // 2 reshape tensors
+      expect(memory().numTensors).toEqual(numTensors + 2);
     });
-    it('should not fail for wildcard shape', () => {
+    it('should not fail for wildcard shape', async () => {
       const tensor3 = tensorList.getItem(0, [-1, 1], DTYPE);
-      expect(tensor3).toBe(tensor);
+      test_util.expectArraysEqual(await tensor3.data(), await tensor.data());
     });
   });
 

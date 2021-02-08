@@ -22,7 +22,15 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
+import {TensorList} from './tensor_list';
 
+/**
+ * Used by TensorList and TensorArray to verify if elementShape matches, support
+ * negative value as the dim shape.
+ * @param shapeA
+ * @param shapeB
+ * @param errorMessagePrefix
+ */
 export function assertShapesMatchAllowUndefinedSize(
     shapeA: number|number[], shapeB: number|number[],
     errorMessagePrefix = ''): void {
@@ -41,4 +49,63 @@ export function assertShapesMatchAllowUndefinedSize(
         () =>
             errorMessagePrefix + ` Shapes ${shapeA} and ${shapeB} must match`);
   }
+}
+
+export function fullDefinedShape(elementShape: number|number[]): boolean {
+  if (typeof elementShape === 'number' || elementShape.some(dim => dim < 0)) {
+    return false;
+  }
+  return true;
+}
+/**
+ * Generate the output element shape from the list and input param.
+ * @param list
+ * @param elementShape
+ */
+export function findElementShape(
+    list: TensorList, elementShape: number|number[]): number[] {
+  let partialShape = mergeElementShape(list.elementShape, elementShape);
+  const notfullDefinedShape = !fullDefinedShape(partialShape);
+  if (notfullDefinedShape && list.size() === 0) {
+    throw new Error(
+        `Tried to calculate elements of an empty list` +
+        ` with non-fully-defined elementShape: ${partialShape}`);
+  }
+  if (notfullDefinedShape) {
+    list.tensors.forEach(tensor => {
+      partialShape = mergeElementShape(tensor.shape, partialShape);
+    });
+  }
+  if (!fullDefinedShape(partialShape)) {
+    throw new Error(`Non-fully-defined elementShape: ${partialShape}`);
+  }
+  return partialShape as number[];
+}
+
+export function mergeElementShape(
+    elementShapeA: number|number[], elementShapeB: number|number[]): number|
+    number[] {
+  if (typeof elementShapeA === 'number') {
+    return elementShapeB;
+  }
+  if (typeof elementShapeB === 'number') {
+    return elementShapeA;
+  }
+
+  if (elementShapeA.length !== elementShapeB.length) {
+    throw new Error(`Incompatible ranks during merge: ${elementShapeA} vs. ${
+        elementShapeB}`);
+  }
+
+  const result: number[] = [];
+  for (let i = 0; i < elementShapeA.length; ++i) {
+    const dim0 = elementShapeA[i];
+    const dim1 = elementShapeB[i];
+    if (dim0 >= 0 && dim1 >= 0 && dim0 != dim1) {
+      throw new Error(`Incompatible shape during merge: ${elementShapeA} vs. ${
+          elementShapeB}`);
+    }
+    result[i] = dim0 >= 0 ? dim0 : dim1;
+  }
+  return result;
 }
