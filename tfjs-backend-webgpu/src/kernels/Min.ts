@@ -42,11 +42,16 @@ export function min(
   const a2D = reshape(
       {inputs: {x}, attrs: {shape: [-1, reduceSize]}, backend: webgpuBackend});
   const a2DReduce = reduce(a2D, a2D.dtype, 'min', webgpuBackend);
-  return reshape({
+  const reshapedOutput = reshape({
     inputs: {x: a2DReduce},
     attrs: {shape: outShape},
     backend: webgpuBackend
   });
+
+  backend.disposeData(a2D.dataId);
+  backend.disposeData(a2DReduce.dataId);
+
+  return reshapedOutput;
 }
 
 export const minConfig: KernelConfig = {

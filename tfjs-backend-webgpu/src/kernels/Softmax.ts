@@ -54,10 +54,14 @@ export function softmax(
       reshape({inputs: {x: sumExp}, backend, attrs: {shape: expandedShape}});
   const res =
       realDiv({inputs: {a: b, b: sumExpReshaped}, backend}) as TensorInfo;
+
   backend.disposeData(maxLogit.dataId);
+  backend.disposeData(maxLogitsReshaped.dataId);
   backend.disposeData(a.dataId);
   backend.disposeData(b.dataId);
   backend.disposeData(sumExp.dataId);
+  backend.disposeData(sumExpReshaped.dataId);
+
   return res;
 }
 
