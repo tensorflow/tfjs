@@ -189,7 +189,7 @@ export async function fromPixelsAsync(
   HTMLVideoElement|ImageBitmap,
   numChannels = 3) {
   let inputs: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-  HTMLVideoElement | ImageBitmap = null;
+  HTMLVideoElement|ImageBitmap = null;
 
   // General fromPixel path handles imageBitmap on rendering it to canvas
   // and extract the imageData. It will have some tiny errors when handling
@@ -199,12 +199,11 @@ export async function fromPixelsAsync(
 
   // Check whether browser support ImageBitmap or the input is PixelData.
   if (typeof window !== 'undefined' &&
-      window.hasOwnProperty('ImageBitmap') &&
       window.hasOwnProperty('createImageBitmap') &&
       kernel != null &&
       !((pixels as PixelData).data instanceof Uint8Array) &&
       typeof (ImageBitmap) !== 'undefined' &&
-      pixels instanceof ImageBitmap &&
+      !(pixels instanceof ImageBitmap) &&
       pixels.width !== 0 &&
       pixels.height !== 0) {
     // Force the imageBitmap creation to not do any premultiply alpha
