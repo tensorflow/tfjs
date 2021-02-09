@@ -440,6 +440,10 @@ export class MathBackendWebGL extends KernelBackend {
     return vals;
   }
 
+  timerAvailable(): boolean {
+    return env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') > 0;
+  }
+
   async time(f: () => void): Promise<WebGLTimingInfo> {
     const oldActiveTimers = this.activeTimers;
     const newActiveTimers: TimerNode[] = [];
