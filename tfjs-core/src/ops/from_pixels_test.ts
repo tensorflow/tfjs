@@ -222,7 +222,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     // On mobile safari the ready state is ready immediately so we
     if (video.readyState < 2) {
       await new Promise(resolve => {
-        video.addEventListener('loadeddata', () => resolve());
+        video.addEventListener('loadeddata', () => resolve(video));
       });
     }
 

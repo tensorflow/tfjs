@@ -171,13 +171,9 @@ function fromPixels_(
  *
  * (await tf.browser.fromPixelsAsync(image)).print();
  * ```
- * This API is recommended in cases like:
- * - Users want to update the content to tensor in async way but not
- *   created ImageBitmap themselves.
- * - Or users want to use WebGPU backend and gets the better performance
- * - Or users don't want to use ImageBitmap as input but
- * - the prefer backend is WebGPU
- *
+ * This API is the async version of fromPixels. The API will try
+ * to convert users input to ImageBitmap and do following ops.
+ * 
  * @param pixels The input image to construct the tensor from. The
  * supported image types are all 4-channel. You can also pass in an image
  * object with following attributes:
@@ -190,7 +186,7 @@ function fromPixels_(
  */
 export async function fromPixelsAsync(
   pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-  HTMLVideoElement,
+  HTMLVideoElement|ImageBitmap,
   numChannels = 3) {
   let inputs: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
   HTMLVideoElement | ImageBitmap = null;
@@ -206,7 +202,11 @@ export async function fromPixelsAsync(
       window.hasOwnProperty('ImageBitmap') &&
       window.hasOwnProperty('createImageBitmap') &&
       kernel != null &&
-      !((pixels as PixelData).data instanceof Uint8Array)) {
+      !((pixels as PixelData).data instanceof Uint8Array) &&
+      typeof (ImageBitmap) !== 'undefined' &&
+      pixels instanceof ImageBitmap &&
+      pixels.width !== 0 &&
+      pixels.height !== 0) {
     // Force the imageBitmap creation to not do any premultiply alpha
     // ops.
     const imageBitmap = 
@@ -223,11 +223,12 @@ export async function fromPixelsAsync(
         imageBitmap.height === pixels.height) {
       inputs = imageBitmap;
     } else {
-      inputs = pixels;
+      inputs = pixels; 
     }
   } else {
     inputs = pixels;
  }
+
  return fromPixels_(inputs, numChannels);
 }
 
