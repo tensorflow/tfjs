@@ -31,7 +31,7 @@ function main(args) {
   for (let i = 0; i < times; i++) {
     console.log(`Flaky run ${i + 1} of a potential ${times} for '${command}'`);
     const exitCode = exec(command).code;
-    exitCodes.push(exitCode)
+    exitCodes.push(exitCode);
     if (exitCode === 0) {
       break;
     }
