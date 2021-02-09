@@ -75,6 +75,8 @@ export const spaceToBatchND = (args: {
       reshape({inputs: {x: paddedXT}, backend, attrs: {shape: flattenShape}});
 
   toDispose.push(paddedX);
+  toDispose.push(reshapedPaddedX);
+  toDispose.push(paddedXT);
 
   toDispose.forEach(t => backend.disposeData(t.dataId));
 

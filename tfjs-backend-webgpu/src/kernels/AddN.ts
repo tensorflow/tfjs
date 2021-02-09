@@ -15,20 +15,31 @@
  * =============================================================================
  */
 
-import {Identity, IdentityInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {AddN, AddNInputs, KernelConfig, KernelFunc, TensorInfo, upcastType} from '@tensorflow/tfjs-core';
+
 import {WebGPUBackend} from '../backend_webgpu';
 
-export function identity(
-    args: {inputs: IdentityInputs, backend: WebGPUBackend}): TensorInfo {
-  const {inputs} = args;
-  const {x} = inputs;
+import {AddNPackedProgram} from './addn_packed_webgpu';
+import {identity} from './Identity';
 
-  args.backend.incRef(x.dataId);
-  return {dataId: x.dataId, shape: x.shape, dtype: x.dtype};
+export function addN(args: {inputs: AddNInputs, backend: WebGPUBackend}):
+    TensorInfo {
+  const {inputs, backend} = args;
+
+  const tensors = inputs;
+  if (tensors.length === 1) {
+    return identity({inputs: {x: tensors[0]}, backend});
+  }
+
+  const dtype =
+      tensors.map(t => t.dtype).reduce((d1, d2) => upcastType(d1, d2));
+  const shapes = tensors.map(t => t.shape);
+  const program = new AddNPackedProgram(shapes);
+  return backend.runWebGPUProgram(program, tensors, dtype);
 }
 
-export const identityConfig: KernelConfig = {
-  kernelName: Identity,
+export const addNConfig: KernelConfig = {
+  kernelName: AddN,
   backendName: 'webgpu',
-  kernelFunc: identity as {} as KernelFunc
+  kernelFunc: addN as {} as KernelFunc
 };

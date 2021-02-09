@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-import {FromPixelsAttrs} from '@tensorflow/tfjs-core';
-import {Tensor3D} from '@tensorflow/tfjs-core';
-import {util} from '@tensorflow/tfjs-core';
+import {FromPixelsAttrs, TensorInfo, util} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
 import {FromPixelsProgram} from './FromPixels_utils/from_pixels_webgpu';
 import * as webgpu_program from './webgpu_program';
@@ -26,7 +24,7 @@ export function fromPixelsImageBitmap(args: {
   imageBitmap: ImageBitmap,
   backend: WebGPUBackend,
   attrs: FromPixelsAttrs
-}) {
+}): TensorInfo {
   const {imageBitmap, backend, attrs} = args;
   const {numChannels} = attrs;
 
@@ -34,7 +32,7 @@ export function fromPixelsImageBitmap(args: {
   const size = util.sizeFromShape(outShape);
   const uniformData: [number, number] = [size, numChannels];
 
-  const output = backend.makeOutputArray(outShape, 'int32');
+  const output = backend.makeTensorInfo(outShape, 'int32');
   if (!backend.fromPixelProgram) {
     backend.fromPixelProgram = new FromPixelsProgram(outShape);
   }
@@ -46,13 +44,12 @@ export function fromPixelsImageBitmap(args: {
   // cache system to avoid useless recompile.
   const outputShapes = [output.shape];
   const outputTypes = [output.dtype];
-  const key =
-      webgpu_program.makeShaderKey(
-          backend.fromPixelProgram, outputShapes, outputTypes);
+  const key = webgpu_program.makeShaderKey(
+      backend.fromPixelProgram, outputShapes, outputTypes);
 
   const {bindGroupLayout, pipeline} = backend.getAndSavePipeline(key, () => {
-      return webgpu_program.compileProgram(
-         backend.glslang, backend.device, backend.fromPixelProgram, [], output);
+    return webgpu_program.compileProgram(
+        backend.glslang, backend.device, backend.fromPixelProgram, [], output);
   });
   backend.fromPixelProgram.setWebGPUBinary(bindGroupLayout, pipeline);
 
@@ -74,5 +71,5 @@ export function fromPixelsImageBitmap(args: {
   backend.commandQueue.push(backend.fromPixelProgram.generateEncoder(
       backend.device, info.bufferInfo.buffer));
   backend.submitQueue();
-  return output as Tensor3D;
+  return output;
 }

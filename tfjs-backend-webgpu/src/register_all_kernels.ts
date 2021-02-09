@@ -19,6 +19,7 @@ import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {absConfig} from './kernels/Abs';
 import {addConfig} from './kernels/Add';
+import {addNConfig} from './kernels/AddN';
 import {argMaxConfig} from './kernels/ArgMax';
 import {argMinConfig} from './kernels/ArgMin';
 import {avgPoolConfig} from './kernels/AvgPool';
@@ -80,6 +81,7 @@ const kernelConfigs: KernelConfig[] = [
   _fusedMatMulConfig,
   absConfig,
   addConfig,
+  addNConfig,
   argMaxConfig,
   argMinConfig,
   avgPoolConfig,

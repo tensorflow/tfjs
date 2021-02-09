@@ -149,6 +149,8 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'HTMLVideolement',  // Failed to execute 'getImageData' on
                           // 'CanvasRenderingContext2D': The source width is 0
+      'fromPixelsAsync',  // Remove it once it's supported in tfjs-core. Now all
+      // cases fail due to the return type is tensorInfo not a tensor.
     ]
   },
   {
@@ -259,6 +261,20 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'dot',
+  },
+  {
+    include: 'expandDims',
+    excludes: ['string']  // String is not yet implemented.
+  },
+  {
+    include: 'memory test',
+    excludes: [
+      'string',    // String is not yet implemented.
+      'Sum(bool)'  // Compile error.
+    ]
+  },
+  {
     include: 'add ',
     excludes: [
       'complex',                         // No complex support yet.
@@ -270,6 +286,7 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient',                        // sum not yet implemented.
     ]
   },
+  {include: 'addN', excludes: []},
   {include: 'subtract ', excludes: []},
   {
     include: 'square',
