@@ -29,7 +29,9 @@ export function tile(
   const {reps} = attrs;
 
   if (x.dtype === 'string') {
-    const data = backend.texData.get(x.dataId).values as Uint8Array[];
+    // Even thought string tensor is always on CPU, just to be consistent on how
+    // to access tensor data.
+    const data = backend.readSync(x.dataId) as Uint8Array[];
     const decodedData = data.map(d => util.decodeString(d));
     const buf = buffer(x.shape, x.dtype, decodedData);
     const outBuf = tileImplCPU(buf, reps);

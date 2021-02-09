@@ -25,12 +25,12 @@ export const maxPool3DConfig: KernelConfig = {
   kernelFunc: (args) => {
     const {x} = args.inputs as MaxPool3DInputs;
     const backend = args.backend as NodeJSKernelBackend;
-    const {filterSize, strides, pad, dataFormat, dilations, dimRoundingMode} =
+    const {filterSize, strides, pad, dataFormat, dimRoundingMode} =
         args.attrs as {} as MaxPool3DAttrs;
 
     const convInfo = backend_util.computePool3DInfo(
         x.shape as [number, number, number, number, number], filterSize,
-        strides, dilations, pad, dimRoundingMode, dataFormat);
+        strides, 1 /* dilations */, pad, dimRoundingMode, dataFormat);
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
           `TF Backend supports only 'valid' and 'same' padding ` +

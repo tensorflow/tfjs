@@ -67,7 +67,6 @@ cc_binary(
         "-s SIMD=1",
         "-s USE_PTHREADS=1",
         "-s PROXY_TO_PTHREAD=1",
-        "--pre-js './toolchain/emscripten_threaded_module_prejs.js'",
     ],
     deps = [
         ":all_kernels",
@@ -987,5 +986,13 @@ tfjs_cc_library(
         ":backend",
         ":transpose_impl",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Step",
+    srcs = ["kernels/Step.cc"],
+    deps = [
+        ":backend",
     ],
 )

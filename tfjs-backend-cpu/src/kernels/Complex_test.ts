@@ -253,4 +253,31 @@ describeWithFlags('Complex.', ALL_ENVS, () => {
     expect(tf.memory().numTensors).toBe(memoryBefore.numTensors);
     expect(tf.engine().backend.numDataIds()).toBe(numDataIdsBefore);
   });
+
+  it('tidy should not have mem leak', async () => {
+    const numTensors = tf.memory().numTensors;
+    const numDataIds = tf.engine().backend.numDataIds();
+    const complex = tf.tidy(() => {
+      const real = tf.tensor1d([3, 30]);
+      const realReshape = tf.reshape(real, [2]);
+      const imag = tf.tensor1d([4, 40]);
+      const imagReshape = tf.reshape(imag, [2]);
+      expect(tf.memory().numTensors).toEqual(numTensors + 4);
+      expect(tf.engine().backend.numDataIds()).toEqual(numDataIds + 2);
+
+      const complex = tf.complex(realReshape, imagReshape);
+
+      // 1 new tensor is created for complex. real and imag data buckets
+      // created.
+      expect(tf.memory().numTensors).toEqual(numTensors + 5);
+      expect(tf.engine().backend.numDataIds()).toEqual(numDataIds + 5);
+
+      return complex;
+    });
+
+    complex.dispose();
+
+    expect(tf.memory().numTensors).toEqual(numTensors);
+    expect(tf.engine().backend.numDataIds()).toEqual(numDataIds);
+  });
 });

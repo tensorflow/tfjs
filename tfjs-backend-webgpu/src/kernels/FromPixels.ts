@@ -17,9 +17,10 @@
 
 import {env, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '@tensorflow/tfjs-core';
-import {backend_util, Tensor3D} from '@tensorflow/tfjs-core';
+import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {fromPixelsImageBitmap} from './FromPixelsImageBitmap';
 
 export const fromPixelsConfig: KernelConfig = {
   kernelName: FromPixels,
@@ -33,7 +34,7 @@ export function fromPixels(args: {
   inputs: FromPixelsInputs,
   backend: WebGPUBackend,
   attrs: FromPixelsAttrs
-}): Tensor3D {
+}): TensorInfo {
   const {inputs, backend, attrs} = args;
   let {pixels} = inputs;
   const {numChannels} = attrs;
@@ -49,14 +50,20 @@ export function fromPixels(args: {
     if (!(pixels instanceof HTMLVideoElement) &&
         !(pixels instanceof HTMLImageElement) &&
         !(pixels instanceof HTMLCanvasElement) &&
-        !(pixels instanceof ImageData) &&
+        !(pixels instanceof ImageData) && !(pixels instanceof ImageBitmap) &&
         !(pixels.data instanceof Uint8Array)) {
       throw new Error(
           'pixels passed to tf.browser.fromPixels() must be either an ' +
-          `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData` +
-          ` or {data: Uint32Array, width: number, height: number}, ` +
+          `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData, ` +
+          `ImageBitmap ` +
+          `or {data: Uint32Array, width: number, height: number}, ` +
           `but was ${(pixels as {}).constructor.name}`);
     }
+
+    if (pixels instanceof ImageBitmap) {
+      return fromPixelsImageBitmap({imageBitmap: pixels, backend, attrs});
+    }
+
     if (pixels instanceof HTMLVideoElement ||
         pixels instanceof HTMLImageElement ||
         pixels instanceof HTMLCanvasElement) {
@@ -96,12 +103,12 @@ export function fromPixels(args: {
     }
   }
 
-  const output = backend.makeOutputArray(outShape, 'int32');
+  const output = backend.makeTensorInfo(outShape, 'int32');
 
   const info = backend.tensorMap.get(output.dataId);
   info.values = new Int32Array(pixelArray);
   backend.maybeReleaseBuffer(output.dataId);
 
   backend.uploadToGPU(output.dataId);
-  return output as Tensor3D;
+  return output;
 }

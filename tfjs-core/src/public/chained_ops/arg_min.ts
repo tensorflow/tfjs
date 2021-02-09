@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {argMin} from '../../ops/arg_min';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.argMin = function<T extends Tensor>(axis: number): T {
+getGlobalTensorClass().prototype.argMin = function<T extends Tensor>(
+    axis: number): T {
   this.throwIfDisposed();
   return argMin(this, axis);
 };

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {logSumExp} from '../../ops/log_sum_exp';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -25,7 +25,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.logSumExp = function<T extends Tensor>(
+getGlobalTensorClass().prototype.logSumExp = function<T extends Tensor>(
     this: T, axis?: number|number[], keepDims?: boolean): T {
   this.throwIfDisposed();
   return logSumExp(this, axis, keepDims);
