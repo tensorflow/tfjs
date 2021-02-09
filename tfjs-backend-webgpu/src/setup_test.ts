@@ -286,6 +286,7 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient',                        // sum not yet implemented.
     ]
   },
+  {include: 'addN', excludes: []},
   {include: 'subtract ', excludes: []},
   {
     include: 'square',
