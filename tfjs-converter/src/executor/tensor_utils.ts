@@ -21,8 +21,7 @@
  * anything.
  */
 
-import {util} from '@tensorflow/tfjs-core';
-import {TensorList} from './tensor_list';
+import {Tensor, util} from '@tensorflow/tfjs-core';
 
 /**
  * Used by TensorList and TensorArray to verify if elementShape matches, support
@@ -63,16 +62,17 @@ export function fullDefinedShape(elementShape: number|number[]): boolean {
  * @param elementShape
  */
 export function findElementShape(
-    list: TensorList, elementShape: number|number[]): number[] {
-  let partialShape = mergeElementShape(list.elementShape, elementShape);
+    listElementShape: number|number[], tensors: Tensor[],
+    elementShape: number|number[]): number[] {
+  let partialShape = mergeElementShape(listElementShape, elementShape);
   const notfullDefinedShape = !fullDefinedShape(partialShape);
-  if (notfullDefinedShape && list.size() === 0) {
+  if (notfullDefinedShape && tensors.length === 0) {
     throw new Error(
         `Tried to calculate elements of an empty list` +
         ` with non-fully-defined elementShape: ${partialShape}`);
   }
   if (notfullDefinedShape) {
-    list.tensors.forEach(tensor => {
+    tensors.forEach(tensor => {
       partialShape = mergeElementShape(tensor.shape, partialShape);
     });
   }
@@ -101,7 +101,7 @@ export function mergeElementShape(
   for (let i = 0; i < elementShapeA.length; ++i) {
     const dim0 = elementShapeA[i];
     const dim1 = elementShapeB[i];
-    if (dim0 >= 0 && dim1 >= 0 && dim0 != dim1) {
+    if (dim0 >= 0 && dim1 >= 0 && dim0 !== dim1) {
       throw new Error(`Incompatible shape during merge: ${elementShapeA} vs. ${
           elementShapeB}`);
     }

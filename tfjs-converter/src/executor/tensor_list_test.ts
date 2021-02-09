@@ -224,7 +224,7 @@ describe('TensorList', () => {
       expect(concat.shape).toEqual([2, 1]);
       test_util.expectArraysClose(await concat.data(), [1, 2]);
     });
-    it('should fail for wildcard shape', async () => {
+    it('should not fail for wildcard shape', async () => {
       const concat = tensorList.concat(DTYPE, [-1, 1]);
       expect(concat.shape).toEqual([2, 1]);
       test_util.expectArraysClose(await concat.data(), [1, 2]);
@@ -264,7 +264,7 @@ describe('TensorList', () => {
       tensorList.gather([0, 1], DTYPE, SHAPE);
       expect(memory().numTensors).toEqual(numTensors + 1);
     });
-    it('should fail for wildcard shape', async () => {
+    it('should not fail for wildcard shape', async () => {
       const numTensors: number = memory().numTensors;
       tensorList.gather([0, 1], DTYPE, [-1, 1]);
       expect(memory().numTensors).toEqual(numTensors + 1);

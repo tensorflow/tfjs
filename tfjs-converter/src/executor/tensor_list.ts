@@ -116,7 +116,8 @@ export class TensorList {
     }
     assertShapesMatchAllowUndefinedSize(
         elementShape, this.elementShape, 'TensorList shape mismatch: ');
-    const outputElementShape = findElementShape(this, elementShape);
+    const outputElementShape =
+        findElementShape(this.elementShape, this.tensors, elementShape);
     return tidy(() => {
       const reshapedTensors =
           this.tensors.map(tensor => reshape(tensor, outputElementShape));
@@ -138,7 +139,8 @@ export class TensorList {
     if (this.size() === 0) {
       throw new Error('Trying to pop from an empty list.');
     }
-    const outputElementShape = findElementShape(this, elementShape);
+    const outputElementShape =
+        findElementShape(this.elementShape, this.tensors, elementShape);
     const tensor = this.tensors.pop();
 
     assertShapesMatchAllowUndefinedSize(
@@ -208,7 +210,8 @@ export class TensorList {
     assertShapesMatchAllowUndefinedSize(
         this.tensors[elementIndex].shape, elementShape,
         'TensorList shape mismatch: ');
-    const outputElementShape = findElementShape(this, elementShape);
+    const outputElementShape =
+        findElementShape(this.elementShape, this.tensors, elementShape);
     return reshape(this.tensors[elementIndex], outputElementShape);
   }
 
@@ -255,7 +258,8 @@ export class TensorList {
     // When indices is greater than the size of the list, indices beyond the
     // size of the list are ignored.
     indices = indices.slice(0, this.size());
-    const outputElementShape = findElementShape(this, elementShape);
+    const outputElementShape =
+        findElementShape(this.elementShape, this.tensors, elementShape);
     if (indices.length === 0) {
       return tensor([], [0].concat(outputElementShape));
     }
@@ -280,7 +284,8 @@ export class TensorList {
 
     assertShapesMatchAllowUndefinedSize(
         this.elementShape, elementShape, 'TensorList shape mismatch: ');
-    const outputElementShape = findElementShape(this, elementShape);
+    const outputElementShape =
+        findElementShape(this.elementShape, this.tensors, elementShape);
 
     if (this.size() === 0) {
       return tensor([], [0].concat(outputElementShape));
