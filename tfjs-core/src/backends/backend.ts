@@ -85,6 +85,8 @@ export interface DataMover {
 }
 
 export interface BackendTimer {
+  // check if backend timer is available
+  timerAvailable(): boolean;
   time(f: () => void): Promise<BackendTimingInfo>;
 }
 
@@ -100,6 +102,9 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   }
   incRef(dataId: DataId): void {
     return notYetImplemented('incRef');
+  }
+  timerAvailable(): boolean {
+    return true;
   }
   time(f: () => void): Promise<BackendTimingInfo> {
     return notYetImplemented('time');
