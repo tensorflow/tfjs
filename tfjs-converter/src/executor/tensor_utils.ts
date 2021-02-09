@@ -57,11 +57,13 @@ export function fullDefinedShape(elementShape: number|number[]): boolean {
   return true;
 }
 /**
- * Generate the output element shape from the list and input param.
- * @param list
+ * Generate the output element shape from the list elementShape, list tensors
+ * and input param.
+ * @param listElementShape
+ * @param tensors
  * @param elementShape
  */
-export function findElementShape(
+export function inferElementShape(
     listElementShape: number|number[], tensors: Tensor[],
     elementShape: number|number[]): number[] {
   let partialShape = mergeElementShape(listElementShape, elementShape);

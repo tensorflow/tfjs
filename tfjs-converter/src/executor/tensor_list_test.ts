@@ -187,10 +187,13 @@ describe('TensorList', () => {
     });
     it('should create no new tensors', () => {
       const numTensors = memory().numTensors;
-      tensorList.getItem(0, SHAPE, DTYPE);
-      tensorList.getItem(1, SHAPE, DTYPE);
+      const tensor1 = tensorList.getItem(0, SHAPE, DTYPE);
+      const tensor2 = tensorList.getItem(1, SHAPE, DTYPE);
+
+      tensor1.dispose();
+      tensor2.dispose();
       // 2 reshape tensors
-      expect(memory().numTensors).toEqual(numTensors + 2);
+      expect(memory().numTensors).toEqual(numTensors);
     });
     it('should not fail for wildcard shape', async () => {
       const tensor3 = tensorList.getItem(0, [-1, 1], DTYPE);

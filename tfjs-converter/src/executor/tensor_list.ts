@@ -17,7 +17,7 @@
 
 import {concat, DataType, keep, reshape, scalar, slice, stack, Tensor, tensor, tidy, unstack} from '@tensorflow/tfjs-core';
 
-import {assertShapesMatchAllowUndefinedSize, findElementShape, mergeElementShape} from './tensor_utils';
+import {assertShapesMatchAllowUndefinedSize, inferElementShape, mergeElementShape} from './tensor_utils';
 
 /**
  * TensorList stores a container of `tf.Tensor` objects, which are accessible
@@ -44,7 +44,8 @@ export class TensorList {
   /**
    *
    * @param tensors list of tensors
-   * @param elementShape shape of each tensor
+   * @param elementShape shape of each tensor, this can be a single number (any
+   * shape is allowed) or partial shape (dim = -1).
    * @param elementDtype data type of each tensor
    * @param maxNumElements The maximum allowed size of `tensors`. Defaults to -1
    *   meaning that the size of `tensors` is unbounded.
@@ -117,7 +118,7 @@ export class TensorList {
     assertShapesMatchAllowUndefinedSize(
         elementShape, this.elementShape, 'TensorList shape mismatch: ');
     const outputElementShape =
-        findElementShape(this.elementShape, this.tensors, elementShape);
+        inferElementShape(this.elementShape, this.tensors, elementShape);
     return tidy(() => {
       const reshapedTensors =
           this.tensors.map(tensor => reshape(tensor, outputElementShape));
@@ -140,7 +141,7 @@ export class TensorList {
       throw new Error('Trying to pop from an empty list.');
     }
     const outputElementShape =
-        findElementShape(this.elementShape, this.tensors, elementShape);
+        inferElementShape(this.elementShape, this.tensors, elementShape);
     const tensor = this.tensors.pop();
 
     assertShapesMatchAllowUndefinedSize(
@@ -211,7 +212,7 @@ export class TensorList {
         this.tensors[elementIndex].shape, elementShape,
         'TensorList shape mismatch: ');
     const outputElementShape =
-        findElementShape(this.elementShape, this.tensors, elementShape);
+        inferElementShape(this.elementShape, this.tensors, elementShape);
     return reshape(this.tensors[elementIndex], outputElementShape);
   }
 
@@ -259,7 +260,7 @@ export class TensorList {
     // size of the list are ignored.
     indices = indices.slice(0, this.size());
     const outputElementShape =
-        findElementShape(this.elementShape, this.tensors, elementShape);
+        inferElementShape(this.elementShape, this.tensors, elementShape);
     if (indices.length === 0) {
       return tensor([], [0].concat(outputElementShape));
     }
@@ -285,7 +286,7 @@ export class TensorList {
     assertShapesMatchAllowUndefinedSize(
         this.elementShape, elementShape, 'TensorList shape mismatch: ');
     const outputElementShape =
-        findElementShape(this.elementShape, this.tensors, elementShape);
+        inferElementShape(this.elementShape, this.tensors, elementShape);
 
     if (this.size() === 0) {
       return tensor([], [0].concat(outputElementShape));
