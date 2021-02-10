@@ -61,6 +61,7 @@ export const TANH = `
 export const EXP = `return exp(a);`;
 export const LOG = `if (a < 0.0) return 1.0/0.0;
   return log(a);`;
+export const TO_INT = `return float(int(x));`;
 
 export class UnaryOpProgram implements WebGPUProgram {
   outputShape: number[];

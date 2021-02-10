@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,19 +15,16 @@
  * =============================================================================
  */
 
-import {Div, DivInputs} from '@tensorflow/tfjs-core';
-import {KernelConfig} from '@tensorflow/tfjs-core';
-import {WebGPUBackend} from '../backend_webgpu';
-import {divImpl} from './Div_impl';
+import {KernelConfig, KernelFunc, RealDiv} from '@tensorflow/tfjs-core';
 
-export const divConfig: KernelConfig = {
-  kernelName: Div,
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+
+import {BinaryOpType} from './binary_ops';
+
+export const realDiv = binaryKernelFunc({opSnippet: BinaryOpType.DIV});
+
+export const realDivConfig: KernelConfig = {
+  kernelName: RealDiv,
   backendName: 'webgpu',
-  kernelFunc: ({inputs, backend}) => {
-    const {a, b} = inputs as DivInputs;
-
-    const webgpuBackend = backend as WebGPUBackend;
-
-    return divImpl(a, b, webgpuBackend);
-  }
+  kernelFunc: realDiv as {} as KernelFunc
 };

@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {Tensor, test_util} from '@tensorflow/tfjs-core';
+import {engine, Tensor, TensorInfo, test_util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
@@ -65,11 +65,16 @@ describeWithFlags('custom-op webgl', WEBGL_ENVS, () => {
       const program = new SquareAndAddKernel(x.shape);
       const backpropProgram = new SquareAndAddBackpropKernel(x.shape);
 
-      const value: T = webglBackend.compileAndRun(program, [x]);
+      const outInfo: TensorInfo = webglBackend.compileAndRun(program, [x]);
+      const value = engine().makeTensorFromDataId(
+                        outInfo.dataId, outInfo.shape, outInfo.dtype) as T;
 
       const gradFunc = (dy: T, saved: Tensor[]) => {
         const [x] = saved;
-        const back: T = webglBackend.compileAndRun(backpropProgram, [x]);
+        const backInfo = webglBackend.compileAndRun(backpropProgram, [x]);
+        const back: T =
+            engine().makeTensorFromDataId(
+                backInfo.dataId, backInfo.shape, backInfo.dtype) as T;
         return back.mul(dy);
       };
       return {value, gradFunc};

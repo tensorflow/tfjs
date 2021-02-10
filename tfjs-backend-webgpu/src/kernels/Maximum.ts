@@ -15,14 +15,20 @@
  * =============================================================================
  */
 
-import {TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, Maximum} from '@tensorflow/tfjs-core';
 
-import {WebGPUBackend} from '../backend_webgpu';
+import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {maximumImplCPU as cpuMaximum} from '../kernel_utils/shared';
 
-import {BinaryOpType, getBinaryProgram} from './binary_ops';
+import {BinaryOpType} from './binary_ops';
 
-export function divImpl(
-    a: TensorInfo, b: TensorInfo, backend: WebGPUBackend): TensorInfo {
-  const program = getBinaryProgram(BinaryOpType.DIV, a.shape, b.shape);
-  return backend.runWebGPUProgram(program, [a, b], a.dtype);
-}
+export const maximum = binaryKernelFunc({
+  opSnippet: BinaryOpType.MAX,
+  cpuKernelImpl: cpuMaximum,
+});
+
+export const maximumConfig: KernelConfig = {
+  kernelName: Maximum,
+  backendName: 'webgpu',
+  kernelFunc: maximum
+};

@@ -18,7 +18,7 @@
 import {BackendTimingInfo, DataMover, KernelBackend} from './backends/backend';
 import {Environment, setEnvironmentGlobal} from './environment';
 import {getGlobalNamespace} from './global_util';
-import {Add, Cast} from './kernel_names';
+import {Add, Cast, Identity} from './kernel_names';
 import {getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap, TensorInfo} from './kernel_registry';
 import {KernelProfile, Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
@@ -139,8 +139,7 @@ class EngineState {
     backend: KernelBackend,
     bytes: number,
     dtype: DataType,
-    shape: number[],
-    refCount: number
+    shape: number[]
   }>();
 
   profiling = false;
@@ -150,9 +149,10 @@ class EngineState {
     peakBytes: 0,
     kernels: [],
     result: null,
-    get kernelNames(): string[] {
-      return Array.from(new Set(this.kernels.map(k => k.name)));
-    }
+    get kernelNames():
+        string[] {
+          return Array.from(new Set(this.kernels.map(k => k.name)));
+        }
   };
 
   dispose() {
@@ -423,11 +423,12 @@ export class Engine implements TensorTracker, DataMover {
     const info = this.state.tensorInfo.get(dataId);
     const srcBackend = info.backend;
     const values = this.readSync(dataId);
+    const refCount = srcBackend.refCount(dataId);
     // Delete the tensor from the old backend and move it to the new
     // backend.
-    srcBackend.disposeData(dataId);
+    srcBackend.disposeData(dataId, true);
     info.backend = backend;
-    backend.move(dataId, values, info.shape, info.dtype);
+    backend.move(dataId, values, info.shape, info.dtype, refCount);
     if (this.shouldCheckForMemLeaks()) {
       // Track the number of moves during a kernel execution to correctly
       // detect memory leaks.
@@ -500,7 +501,7 @@ export class Engine implements TensorTracker, DataMover {
    * execution.
    */
   private clone(x: Tensor): Tensor {
-    const y = this.makeTensorFromDataId(x.dataId, x.shape, x.dtype);
+    const y: Tensor = ENGINE.runKernel(Identity, {x} as {} as NamedTensorMap);
     const inputs = {x};
     const grad = (dy: Tensor) => ({
       x: () => {
@@ -803,7 +804,7 @@ export class Engine implements TensorTracker, DataMover {
     }
     const dataId = backend.write(backendVals, shape, dtype);
     const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
-    this.incRef(t, backend);
+    this.trackTensor(t, backend);
 
     // Count bytes for string tensors.
     if (dtype === 'string') {
@@ -825,7 +826,7 @@ export class Engine implements TensorTracker, DataMover {
       backend?: KernelBackend): Tensor {
     dtype = dtype || 'float32';
     const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
-    this.incRef(t, backend);
+    this.trackTensor(t, backend);
     return t;
   }
 
@@ -845,70 +846,74 @@ export class Engine implements TensorTracker, DataMover {
     return v;
   }
 
-  incRef(a: Tensor, backend: KernelBackend): void {
-    const refCount = this.state.tensorInfo.has(a.dataId) ?
-        this.state.tensorInfo.get(a.dataId).refCount :
-        0;
+  trackTensor(a: Tensor, backend: KernelBackend): void {
     this.state.numTensors++;
     if (a.dtype === 'string') {
       this.state.numStringTensors++;
     }
-    if (refCount === 0) {
-      this.state.numDataBuffers++;
+    // Bytes for complex numbers are counted by their components. Bytes for
+    // string tensors are counted when writing values.
+    let bytes = 0;
+    if (a.dtype !== 'complex64' && a.dtype !== 'string') {
+      bytes = a.size * util.bytesPerElement(a.dtype);
+    }
+    this.state.numBytes += bytes;
 
-      // Bytes for complex numbers are counted by their components. Bytes for
-      // string tensors are counted when writing values.
-      let bytes = 0;
-      if (a.dtype !== 'complex64' && a.dtype !== 'string') {
-        bytes = a.size * util.bytesPerElement(a.dtype);
-      }
+    if (!this.state.tensorInfo.has(a.dataId)) {
+      this.state.numDataBuffers++;
       this.state.tensorInfo.set(a.dataId, {
         backend: backend || this.backend,
         dtype: a.dtype,
         shape: a.shape,
-        bytes,
-        refCount: 0
+        bytes
       });
-      this.state.numBytes += bytes;
     }
-
-    this.state.tensorInfo.get(a.dataId).refCount++;
 
     if (!(a instanceof Variable)) {
       this.track(a);
     }
   }
 
+  // Track the tensor by dataId and increase the refCount for the dataId in the
+  // backend.
+  // TODO(pyu10055): This is currently used by makeVariable method, to increase
+  // refCount on the backend for the dataId. It can potentially be replaced with
+  // Identity op indead of calling backend directly.
+  incRef(a: Tensor, backend: KernelBackend): void {
+    this.trackTensor(a, backend);
+    this.backend.incRef(a.dataId);
+  }
+
+  removeDataId(dataId: DataId, backend: KernelBackend) {
+    if (this.state.tensorInfo.has(dataId) &&
+        this.state.tensorInfo.get(dataId).backend === backend) {
+      this.state.tensorInfo.delete(dataId);
+      this.state.numDataBuffers--;
+    }
+  }
   disposeTensor(a: Tensor): void {
     if (!this.state.tensorInfo.has(a.dataId)) {
       return;
     }
+    const info = this.state.tensorInfo.get(a.dataId);
 
     this.state.numTensors--;
     if (a.dtype === 'string') {
       this.state.numStringTensors--;
+      this.state.numBytes -= info.bytes;
     }
-    const info = this.state.tensorInfo.get(a.dataId);
-    const refCount = info.refCount;
-
-    if (refCount <= 1) {
-      // Don't count bytes for complex numbers as they are counted by their
-      // components.
-      if (a.dtype !== 'complex64') {
-        this.state.numBytes -= info.bytes;
-      }
-      this.state.numDataBuffers--;
-
-      info.backend.disposeData(a.dataId);
-      this.state.tensorInfo.delete(a.dataId);
-    } else {
-      // Notify the backend to descrease the ref count for complex tensor
-      // components. This method is only implemented in WebGL right now. When
-      // there are multiple references, complex tensor cannot dispose the
-      // components if ref count is not in sync with engine.
-      info.backend.decComplexRef(a.dataId);
-      this.state.tensorInfo.get(a.dataId).refCount--;
+    // Don't count bytes for complex numbers as they are counted by their
+    // components.
+    if (a.dtype !== 'complex64' && a.dtype !== 'string') {
+      const bytes = a.size * util.bytesPerElement(a.dtype);
+      this.state.numBytes -= bytes;
     }
+
+    // Remove the reference to dataId if backend dispose the data successfully
+    if (info.backend.disposeData(a.dataId)) {
+      this.removeDataId(a.dataId, info.backend);
+    }
+
     // TODO(nsthorat): Construct an error and save the stack trace for
     // debugging when in debug mode. Creating a stack trace is too expensive
     // to do unconditionally.

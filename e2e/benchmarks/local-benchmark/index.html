@@ -105,8 +105,49 @@ limitations under the License.
   <script>
     'use strict';
 
+    let urlState = null;
+    let runTimes = 50;
+    let warmupTimes = 1;
+
+    function getURLState(url) {
+      let params = new URLSearchParams(url);
+      const keys = [...params.keys()];
+      if (keys.length === 0)
+        return null;
+      if (params.has('run')) {
+        runTimes = Number(params.get('run'));
+      }
+      if (params.has('warmup')) {
+        warmupTimes = Number(params.get('warmup'));
+      }
+      return params;
+    }
+    // Controllers can be updated by URI or clicked by user.
+    let modelController = null;
+    let numRunsController = null;
+    let modelParameterFolder = null;
+    let backendsController = null;
+    let runButton = null;
+    let inputSizeController = null;
+    let modelArchitectureController = null;
+
+    function updateGUIFromURLState() {
+      if (urlState == null)
+        return;
+      // The model parameter will be update automically by onChange.
+      if (modelController != null && urlState.has('benchmark'))
+        modelController.setValue(urlState.get('benchmark'));
+      if (numRunsController != null && urlState.has('run'))
+        numRunsController.setValue(urlState.get('run'));
+      if (backendsController != null && urlState.has('backend'))
+        backendsController.setValue(urlState.get('backend'));
+      // Only auto run when URI component exists.
+      if (runButton != null)
+        runButton.domElement.click();
+    }
+
     const state = {
-      numRuns: 50,
+      numRuns: runTimes,
       benchmark: 'mobilenet_v2',
       run: (v) => {
         runBenchmark().catch(e => {
@@ -162,15 +203,17 @@ limitations under the License.
       backend: 'wasm',
       kernelTiming: 'aggregate',
       inputSize: 0,
+      architecture: '',
       modelType: '',
       modelUrl: '',
       isModelChanged: false,
-      isInputSizeChanged: false,
       flags: {},
       isFlagChanged: false,
       isModelLoaded: false,
       inputs: {}
     };
+
+    urlState = getURLState(window.location.search);
 
     const modalDiv = document.getElementById('modal-msg');
     const timeTable = document.querySelector('#timings tbody');
@@ -218,8 +261,10 @@ limitations under the License.
       appendRow(parameterTable, 'numRuns', state.numRuns);
       appendRow(parameterTable, 'backend', state.backend);
       appendRow(parameterTable, 'kernelTiming', state.kernelTiming);
-      if (isInputSizeSupported())
+      if (isParameterDefined('inputSizes'))
         appendRow(parameterTable, 'inputSize', state.inputSize);
+      if (isParameterDefined('architectures'))
+        appendRow(parameterTable, 'architecture', state.architecture);
     }
 
     async function setupKernelTable() {
@@ -265,23 +310,30 @@ limitations under the License.
     }
 
     async function warmUpAndRecordTime() {
-      await showMsg('Warming up');
+      if (warmupTimes == 0) {
+        await showMsg('Skip warming up');
+        appendRow(timeTable, 'backend', state.backend);
+        appendRow(timeTable, 'Warmup time', '0 ms');
+        await sleep(1000);
+        return;
+      }
+      await showMsg(`Warming up for ${warmupTimes} time(s)`);
 
       let timeInfo;
       if (state.benchmark === 'custom') {
         const input = generateInputFromDef(state.inputs, model instanceof tf.GraphModel);
         try {
-          timeInfo = await timeModelInference(model, input, 1);
+          timeInfo = await timeModelInference(model, input, warmupTimes);
         } finally {
           tf.dispose(input);
         }
       } else {
-        timeInfo = await timeInference(() => predict(model), 1);
+        timeInfo = await timeInference(() => predict(model), warmupTimes);
       }
 
       await showMsg(null);
       appendRow(timeTable, 'backend', state.backend);
-      appendRow(timeTable, '1st inference', printTime(timeInfo.times[0]));
+      appendRow(timeTable, 'Warmup time', printTime(timeInfo.times[0]));
     }
 
     async function showInputs() {
@@ -345,11 +397,27 @@ limitations under the License.
       });
       return input;
     }
+
+    function updateStateFromURLState() {
+      if (urlState == null)
+        return;
+      if (urlState.has('run'))
+        state.numRuns = Number(urlState.get('run'));
+      if (urlState.has('benchmark'))
+        state.benchmark = urlState.get('benchmark');
+      if (urlState.has('backend'))
+        state.backend = urlState.get('backend');
+      if (urlState.has('inputSize'))
+        state.inputSize = Number(urlState.get('inputSize'));
+      if (urlState.has('architecture'))
+        state.architecture = urlState.get('architecture');
+    }
+
     async function loadModelAndRecordTime() {
+      updateStateFromURLState();
       const benchmark = benchmarks[state.benchmark];
       state.modelType = benchmark['type'];
       state.isModelChanged = false; // used to clean the performance history
-      state.isInputSizeChanged = false;
 
       if (benchmark['load'] == null) {
         throw new Error(`Please provide a load method for '${state.benchmark}' model.`);
@@ -358,7 +426,7 @@ limitations under the License.
       await showMsg('Loading the model');
       let start = performance.now();
       const inputSize = parseFloat(state.inputSize);
-      model = await benchmark.load(inputSize);
+      model = await benchmark.load(inputSize, state.architecture);
       state.inputs = [];
       if (model.inputs) {
         // construct the input state for the model
@@ -447,7 +515,7 @@ limitations under the License.
       await showMsg(null);
       appendRow(timeTable, 'Peak memory', printMemory(profileInfo.peakBytes));
       appendRow(timeTable, 'Leaked tensors', profileInfo.newTensors);
-      appendRow(timeTable, '2nd inference', printTime(elapsed));
+      appendRow(timeTable, 'Profile time', printTime(elapsed));
 
       if (state.backend != 'webgl' || queryTimerIsEnabled()) {
         await showMsg('Profiling kernels');
@@ -504,7 +572,7 @@ limitations under the License.
     }
 
     async function loadModel() {
-      if (state.isModelChanged || !state.isModelLoaded || state.isFlagChanged || state.isInputSizeChanged) {
+      if (state.isModelChanged || !state.isModelLoaded || state.isFlagChanged) {
         await loadModelAndRecordTime();
         state.isModelLoaded = true;
         const needInputShape = await showInputs();
@@ -542,14 +610,23 @@ limitations under the License.
       await profileMemoryAndKernelTime();
       await sleep(200);
       await measureAveragePredictTime();
+      urlState = null;
     }
 
-    function isInputSizeSupported() {
+    function isParameterDefined(parameter) {
       const benchmark = benchmarks[state.benchmark];
-      if (benchmark['supportedInput'] != null) {
+      if (benchmark[parameter] != null) {
         return true;
       }
-      // Model doesn't support input size.
+      // Model doesn't support this parameter.
+      return false;
+    }
+
+    function isURLParameterDefined(parameter) {
+      if (urlState != null && urlState.has(parameter)) {
+        return true;
+      }
+      // URL doesn't support this parameter.
       return false;
     }
 
@@ -561,30 +638,59 @@ limitations under the License.
 
       const modelFolder = gui.addFolder('Benchmark');
       let modelUrlController = null;
-      let modelParameterFolder = null;
-      let inputSizeController = null;
-      modelFolder.add(state, 'benchmark', Object.keys(benchmarks)).name('models').onChange(async model => {
+      modelController = modelFolder.add(state, 'benchmark', Object.keys(benchmarks));
+      modelController.name('models').onChange(async model => {
         await showMsg(null);
+        const benchmark = benchmarks[state.benchmark];
         state.isModelChanged = true;
         state.isModelLoaded = false;
         if (inputSizeController !== null) {
           modelParameterFolder.remove(inputSizeController);
           inputSizeController = null;
         }
-        const benchmark = benchmarks[state.benchmark];
-        if (isInputSizeSupported()) {
-          inputSizeController = modelParameterFolder.add(state, 'inputSize', benchmark['supportedInput']).name('inputSizes').onChange(async inputSize => {
+        if (modelArchitectureController !== null) {
+          modelParameterFolder.remove(modelArchitectureController);
+          modelArchitectureController = null;
+        }
+
+        if (isParameterDefined('inputSizes')) {
+          inputSizeController = modelParameterFolder.add(state, 'inputSize', benchmark['inputSizes']).name('inputSizes').onChange(async inputSize => {
             state.inputSize = inputSize;
-            state.isInputSizeChanged = true;
+            state.isModelChanged = true;
           });
           // Current use first value as default.
-          const defaultInputSize = benchmark['supportedInput'][0];
+          let defaultInputSize = 0;
+          if (isURLParameterDefined('inputSize'))
+            defaultInputSize = urlState.get('inputSize');
+          else
+            defaultInputSize = benchmark['inputSizes'][0];
           inputSizeController.setValue(defaultInputSize);
           state.inputSize = defaultInputSize;
-          modelParameterFolder.open();
         } else {
           // Model doesn't support input size.
           state.inputSize = 0;
+        }
+
+        if (isParameterDefined('architectures')) {
+          modelArchitectureController = modelParameterFolder.add(state, 'architecture', benchmark['architectures']).name('architectures').onChange(async architecture => {
+            state.architecture = architecture;
+            state.isModelChanged = true;
+          });
+          // Current use first value as default.
+          let defaultModelArchitecture = null;
+          if (isURLParameterDefined('architecture'))
+            defaultModelArchitecture = urlState.get('architecture');
+          else
+            defaultModelArchitecture = benchmark['architectures'][0];
+
+          modelArchitectureController.setValue(defaultModelArchitecture);
+          state.architecture = defaultModelArchitecture;
+        } else {
+          // Model doesn't support input size.
+          state.architecture = '';
+        }
+        if (isParameterDefined('inputSizes') || isParameterDefined('architectures')) {
+          modelParameterFolder.open();
         }
 
         if (model === 'custom') {
@@ -605,30 +711,36 @@ limitations under the License.
       modelFolder.open();
 
       const parameterFolder = gui.addFolder('Parameters');
-      parameterFolder.add(state, 'numRuns');
+      numRunsController = parameterFolder.add(state, 'numRuns');
       parameterFolder.add(state, 'kernelTiming', ['aggregate', 'individual']);
       parameterFolder.open();
 
       modelParameterFolder = gui.addFolder('Model Parameters');
-      if (isInputSizeSupported()) {
+      if (isParameterDefined('inputSizes')) {
         inputSizeController = modelParameterFolder.add(state, 'inputSize', []);
+      }
+      if (isParameterDefined('architectures')) {
+        modelArchitectureController = modelParameterFolder.add(state, 'architecture', []);
       }
       modelParameterFolder.open();
 
       const envFolder = gui.addFolder('Environment');
-      envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu']).onChange(async backend => {
+      backendsController = envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu']);
+      backendsController.onChange(async backend => {
         // TODO: Failed to set backend
         await tf.setBackend(backend);
         await showFlagSettings(envFolder, state.backend);
       });
       envFolder.open();
 
-      gui.add(state, 'run').name('Run benchmark');
+      runButton = gui.add(state, 'run');
+      runButton.name('Run benchmark');
       gui.add(state, 'testCorrectness').name('Test correctness');
 
       await showFlagSettings(envFolder, state.backend);
       showVersions();
       await showEnvironment();
+      updateGUIFromURLState();
     }
 
     onPageLoad();
