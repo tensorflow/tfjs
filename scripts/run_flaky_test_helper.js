@@ -14,11 +14,19 @@
 // =============================================================================
 
 const fs = require('fs');
+const FILE_NAME = './flaky_test_has_run';
+module.exports.FILE_NAME = FILE_NAME;
 
-if (!fs.existsSync('./flaky_test_has_run')) {
-  fs.writeFileSync(
-      './flaky_test_has_run',
-      'This temp file is used for testing' +
-          ' scripts/flaky_test.js and can be safely removed.');
-  process.exit(1);
+function main() {
+  if (!fs.existsSync(FILE_NAME)) {
+    fs.writeFileSync(
+        FILE_NAME,
+        'This temp file is used for testing' +
+            ' scripts/flaky_test.js and can be safely removed.');
+    process.exit(1);
+  }
+}
+
+if (require.main === module) {
+  main();
 }

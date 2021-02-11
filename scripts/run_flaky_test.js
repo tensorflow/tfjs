@@ -16,6 +16,8 @@
 const {exec} = require('shelljs');
 const fs = require('fs');
 
+const {FILE_NAME} = require('./run_flaky_test_helper.js');
+
 describe('run_flaky', () => {
   it('exits with zero if the command succeeds', () => {
     expect(exec('node ./scripts/run_flaky.js "echo success"').code).toEqual(0);
@@ -27,8 +29,8 @@ describe('run_flaky', () => {
 
   it('exits with zero if the command eventually succeeds', () => {
     // Remove test file that was not cleaned up from a prior run.
-    if (fs.existsSync('./flaky_test_has_run')) {
-      fs.unlinkSync('./flaky_test_has_run');
+    if (fs.existsSync(FILE_NAME)) {
+      fs.unlinkSync(FILE_NAME);
     }
 
     // This command should fail once and then succeed the next run.
@@ -39,6 +41,6 @@ describe('run_flaky', () => {
         .toEqual(0);
 
     // Clean up test file
-    fs.unlinkSync('./flaky_test_has_run');
+    fs.unlinkSync(FILE_NAME);
   });
 });
