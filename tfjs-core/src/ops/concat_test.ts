@@ -605,4 +605,23 @@ describeWithFlags('memory test', ALL_ENVS, () => {
 
     expectArraysClose(await result.data(), [3]);
   });
+
+  it('ensure no memory leak', async () => {
+    const numTensorsBefore = tf.memory().numTensors;
+    const numDataIdBefore = tf.engine().backend.numDataIds();
+
+    const a = tf.tensor1d([]);
+    const b = tf.tensor1d([3]);
+
+    const result = tf.concat([a, b]);
+
+    a.dispose();
+    b.dispose();
+    result.dispose();
+
+    const numTensorsAfter = tf.memory().numTensors;
+    const numDataIdAfter = tf.engine().backend.numDataIds();
+    expect(numTensorsAfter).toBe(numTensorsBefore);
+    expect(numDataIdAfter).toBe(numDataIdBefore);
+  });
 });

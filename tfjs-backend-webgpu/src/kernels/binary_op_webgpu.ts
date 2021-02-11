@@ -25,12 +25,14 @@ import {WebGPUProgram} from './webgpu_program';
 export class BinaryOpProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   workPerThread: number;
   workGroupSize: [number, number, number];
+  op: string;
+  sizeFit: boolean;
+  shapesFit: boolean;
 
   constructor(op: string, aShape: number[], bShape: number[]) {
     // TODO(jiajia.qin@intel.com): Heuristically select a good work group size.
@@ -39,18 +41,23 @@ export class BinaryOpProgram implements WebGPUProgram {
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     const size = util.sizeFromShape(this.outputShape);
-    const sizeFit = size % workGroupSizeX === 0;
-    const shapesFit = util.arraysEqual(aShape, bShape) && sizeFit;
-    this.workPerThread = shapesFit || sizeFit ? 1 : 2;
+    this.sizeFit = size % workGroupSizeX === 0;
+    this.shapesFit = util.arraysEqual(aShape, bShape) && this.sizeFit;
+    this.workPerThread = this.sizeFit || this.shapesFit ? 1 : 2;
 
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
+    this.shaderKey = `binary_${op}`;
+    this.op = op;
+  }
 
-    if (shapesFit) {
-      this.userCode = `
+  getUserCode(): string {
+    let userCode: string;
+    if (this.shapesFit) {
+      userCode = `
           float binaryOperation(float a, float b) {
-            ${op}
+            ${this.op}
           }
 
           void main() {
@@ -61,12 +68,11 @@ export class BinaryOpProgram implements WebGPUProgram {
             setOutput(index, binaryOperation(a, b));
           }
         `;
-      this.shaderKey = `binary2${op}`;
-    } else if (sizeFit) {
+    } else if (this.sizeFit) {
       const type = getCoordsDataType(this.outputShape.length);
-      this.userCode = `
+      userCode = `
       float binaryOperation(float a, float b) {
-        ${op}
+        ${this.op}
       }
 
       void main() {
@@ -81,10 +87,10 @@ export class BinaryOpProgram implements WebGPUProgram {
       `;
     } else {
       const type = getCoordsDataType(this.outputShape.length);
-
-      this.userCode = `
+      const size = util.sizeFromShape(this.outputShape);
+      userCode = `
       float binaryOperation(float a, float b) {
-        ${op}
+        ${this.op}
       }
 
       void main() {
@@ -103,7 +109,7 @@ export class BinaryOpProgram implements WebGPUProgram {
         }
       }
       `;
-      this.shaderKey = `binary${op}${type}${size}`;
     }
+    return userCode;
   }
 }

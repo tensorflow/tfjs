@@ -19,7 +19,7 @@ import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
-describeWithFlags('step', ALL_ENVS, () => {
+describeWithFlags('step kernel', ALL_ENVS, () => {
   it('with 1d tensor', async () => {
     const a = tf.tensor1d([1, -2, -.01, 3, -0.1]);
     const result = tf.step(a);

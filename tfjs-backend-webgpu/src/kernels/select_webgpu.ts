@@ -25,36 +25,42 @@ export class SelectProgram implements WebGPUProgram {
   variableNames = ['c', 'a', 'b'];
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workPerThread = 4;
   workGroupSize: [number, number, number] = [16, 1, 1];
+  cRank: number;
+  rank: number;
 
   constructor(cRank: number, shape: number[], rank: number) {
     this.outputShape = shape;
-    const size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
 
+    this.cRank = cRank;
+    this.rank = rank;
+    this.shaderKey = 'select';
+  }
+
+  getUserCode(): string {
     let cCoords;
     let abCoords;
-    if (rank > 4) {
-      throw Error(`Where for rank ${rank} is not yet supported`);
+    if (this.rank > 4) {
+      throw Error(`Where for rank ${this.rank} is not yet supported`);
     }
 
-    if (rank === 1) {
+    if (this.rank === 1) {
       abCoords = `resRC`;
       cCoords = `resRC`;
     } else {
       const currentCoords = ['resRC.x', 'resRC.y', 'resRC.z', 'resRC.w'];
       const cCoordVars = [];
       const abCoordVars = [];
-      for (let i = 0; i < shape.length; i++) {
+      for (let i = 0; i < this.outputShape.length; i++) {
         abCoordVars.push(`${currentCoords[i]}`);
-        if (i < cRank) {
+        if (i < this.cRank) {
           cCoordVars.push(`${currentCoords[i]}`);
         }
       }
@@ -62,9 +68,9 @@ export class SelectProgram implements WebGPUProgram {
       abCoords = abCoordVars.join();
     }
 
-    const dtype = getCoordsDataType(rank);
-
-    this.userCode = `
+    const dtype = getCoordsDataType(this.rank);
+    const size = util.sizeFromShape(this.outputShape);
+    const userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
 
@@ -83,6 +89,6 @@ export class SelectProgram implements WebGPUProgram {
         }
       }
     `;
-    this.shaderKey = `select${size}${rank}`;
+    return userCode;
   }
 }

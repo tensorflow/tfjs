@@ -196,8 +196,26 @@ const benchmarks = {
   },
   'posenet': {
     type: 'GraphModel',
-    load: async () => {
-      const model = await posenet.load();
+    inputSizes: [128, 257, 512, 1024],
+    architectures: ['MobileNetV1', 'ResNet50'],
+    load: async (inputResolution = 128, modelArchitecture = 'MobileNetV1') => {
+      let config = null;
+      if (modelArchitecture === 'MobileNetV1') {
+        config = {
+          architecture: modelArchitecture,
+          outputStride: 16,
+          multiplier: 0.75,
+          inputResolution: inputResolution,
+        };
+      } else if (modelArchitecture === 'ResNet50') {
+        config = {
+          architecture: modelArchitecture,
+          outputStride: 32,
+          quantBytes: 2,
+          inputResolution: inputResolution,
+        };
+      }
+      const model = await posenet.load(config);
       model.image = await loadImage('tennis_standing.jpg');
       return model;
     },
@@ -209,16 +227,53 @@ const benchmarks = {
   },
   'bodypix': {
     type: 'GraphModel',
-    load: async () => {
-      const model = await bodyPix.load();
+    // The ratio to the default camera size [640, 480].
+    inputSizes: [0.25, 0.5, 0.75, 1.0],
+    architectures: ['MobileNetV1', 'ResNet50'],
+    // bodypix doesn't support inputResolution when loading.
+    load: async (inputResolution, modelArchitecture = 'MobileNetV1') => {
+      let config = null;
+      if (modelArchitecture === 'MobileNetV1') {
+        config = {
+          architecture: 'MobileNetV1',
+          outputStride: 16,
+          quantBytes: 4,
+          multiplier: 0.75,
+        };
+      } else if (modelArchitecture === 'ResNet50') {
+        config = {
+          architecture: 'ResNet50',
+          outputStride: 32,
+          quantBytes: 4,
+        };
+      }
+      const model = await bodyPix.load(config);
       model.image = await loadImage('tennis_standing.jpg');
       return model;
     },
-    predictFunc: () => {
+    predictFunc: (internalResolution = 0.5) => {
       return async model => {
-        return model.segmentPerson(model.image);
+        const PERSON_INFERENCE_CONFIG = {
+          internalResolution: internalResolution,
+        };
+        return model.segmentPerson(model.image, PERSON_INFERENCE_CONFIG);
       };
     }
+  },
+  'blazeface': {
+    type: 'GraphModel',
+    inputSizes: [128],
+    load: async () => {
+      const url =
+          'https://tfhub.dev/tensorflow/tfjs-model/blazeface/1/default/1';
+      return tf.loadGraphModel(url, {fromTFHub: true});
+    },
+    predictFunc: (inputResolution = 128) => {
+      const input = tf.randomNormal([1, inputResolution, inputResolution, 3]);
+      return model => {
+        return model.predict(input);
+      };
+    },
   },
   'speech-commands': {
     load: async () => {

@@ -153,6 +153,13 @@ describeWebGPU('Ops benchmarks', () => {
     await time(() => tf.conv2d(a, b, 1, 'same'));
   });
 
+  it('conv2dWithInChannel3', async () => {
+    const a = tf.randomNormal<tf.Rank.R4>([1, 231, 231, 3]);
+    const b = tf.randomNormal<tf.Rank.R4>([7, 7, 3, 64]);
+
+    await time(() => tf.conv2d(a, b, 2, 'valid'));
+  });
+
   it('depthwiseconv2d', async () => {
     const x = tf.randomNormal<tf.Rank.R4>([1, 128, 128, 1]);
     const w = tf.tensor4d(

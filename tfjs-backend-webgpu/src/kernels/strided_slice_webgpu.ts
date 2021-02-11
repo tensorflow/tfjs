@@ -23,42 +23,50 @@ import {WebGPUProgram} from './webgpu_program';
 export class StridedSliceProgram implements WebGPUProgram {
   variableNames = ['x'];
   outputShape: number[];
-  userCode: string;
+  shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   // TODO(xing.xu): Increase the workPerThread.
   workPerThread = 1;
   workGroupSize: [number, number, number] = [16, 1, 1];
+  begin: number[];
+  strides: number[];
 
   constructor(begin: number[], strides: number[], destSize: number[]) {
     this.outputShape = destSize;
-    const rank = destSize.length;
-    const inputDtype = getCoordsDataType(destSize.length);
-    const dtype = getCoordsDataType(destSize.length);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
 
+    this.begin = begin;
+    this.strides = strides;
+    this.shaderKey = `stridedSlice_${begin}_${strides}`;
+  }
+
+  getUserCode(): string {
+    const rank = this.outputShape.length;
+    const inputDtype = getCoordsDataType(this.outputShape.length);
+    const dtype = getCoordsDataType(this.outputShape.length);
     let newCoords = '';
     if (rank === 1) {
       newCoords = 'coords * strides + begin';
     } else {
       let outputAxis = 0;
       newCoords =
-          destSize
+          this.outputShape
               .map((_, i) => {
                 outputAxis++;
-                return destSize.length === 1 ?
+                return this.outputShape.length === 1 ?
                     `coords * strides[${i}] + begin[${i}]` :
                     `coords[${outputAxis - 1}] * strides[${i}] + begin[${i}]`;
               })
               .join(',');
     }
 
-    this.userCode = `
-      ${inputDtype} begin = ${inputDtype}(${begin});
-      ${inputDtype} strides = ${inputDtype}(${strides});
+    const userCode = `
+      ${inputDtype} begin = ${inputDtype}(${this.begin});
+      ${inputDtype} strides = ${inputDtype}(${this.strides});
 
       void main() {
         ${dtype} coords = getOutputCoords();
@@ -66,5 +74,6 @@ export class StridedSliceProgram implements WebGPUProgram {
         setOutput(index, getX(${newCoords}));
       }
     `;
+    return userCode;
   }
 }

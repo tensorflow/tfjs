@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {stack} from '../../ops/stack';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.stack = function<T extends Tensor>(
+getGlobalTensorClass().prototype.stack = function<T extends Tensor>(
     x: Tensor|Tensor[], axis?: number): T {
   this.throwIfDisposed();
   const tensorsToBeStacked = x instanceof Tensor ? [this, x] : [this, ...x];

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, Pack, PackAttrs, PackInputs, Tensor, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Pack, PackAttrs, PackInputs, Tensor, TensorInfo} from '@tensorflow/tfjs';
 import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
 export function pack(

@@ -17,7 +17,7 @@
 
 // TODO update import path once op is modularized.
 import {cast} from '../../ops/ops';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -26,11 +26,13 @@ declare module '../../tensor' {
   }
 }
 
-/** Casts the array to type `int32`
+/**
+ * Casts the array to type `int32`
  *
  * @doc {heading: 'Tensors', subheading: 'Classes'}
  */
-Tensor.prototype.toInt = function<T extends Tensor>(this: T): T {
+getGlobalTensorClass().prototype.toInt = function<T extends Tensor>(this: T):
+    T {
   this.throwIfDisposed();
   return cast<T>(this, 'int32');
 };

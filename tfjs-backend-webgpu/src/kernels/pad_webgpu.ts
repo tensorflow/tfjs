@@ -25,28 +25,37 @@ import {WebGPUProgram} from './webgpu_program';
 export class PadProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
   workPerThread = 8;
   workGroupSize: [number, number, number] = [16, 1, 1];
+  xShape: number[];
+  paddings: Array<[number, number]>;
+  constantValue: number;
 
   constructor(
       xShape: number[], paddings: Array<[number, number]>,
       constantValue: number) {
     this.outputShape = paddings.map(
         (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
-    const rank = xShape.length;
-    const size = util.sizeFromShape(this.outputShape);
-    const type = getCoordsDataType(rank);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
 
-    const start = paddings.map(p => p[0]).join(',');
-    const end = paddings.map((p, i) => p[0] + xShape[i]).join(',');
+    this.xShape = xShape;
+    this.paddings = paddings;
+    this.constantValue = constantValue;
+    this.shaderKey = `pad_${paddings}_${constantValue}`;
+  }
+
+  getUserCode(): string {
+    const rank = this.xShape.length;
+    const size = util.sizeFromShape(this.outputShape);
+    const type = getCoordsDataType(rank);
+    const start = this.paddings.map(p => p[0]).join(',');
+    const end = this.paddings.map((p, i) => p[0] + this.xShape[i]).join(',');
     const startValue = rank > 1 ? `${type}(${start})` : `${start}`;
     const endValue = rank > 1 ? `${type}(${end})` : `${end}`;
 
@@ -59,7 +68,7 @@ export class PadProgram implements WebGPUProgram {
         ['coords[0]', 'coords[1]', 'coords[2]', 'coords[3]'].slice(0, rank) :
         'coords';
 
-    this.userCode = `
+    const userCode = `
       ${type} start = ${startValue};
       ${type} end = ${endValue};
 
@@ -73,7 +82,7 @@ export class PadProgram implements WebGPUProgram {
             ${type} outC = getCoordsFromFlatIndex(flatIndex);
 
             if (${leftPadCondition} || ${rightPadCondition}) {
-              setOutput(flatIndex, ${constantValue});
+              setOutput(flatIndex, ${this.constantValue});
             } else {
               ${type} coords = outC - start;
               setOutput(flatIndex, getX(${unpackedCoords}));
@@ -82,7 +91,6 @@ export class PadProgram implements WebGPUProgram {
         }
       }
     `;
-    this.shaderKey =
-        `pad${startValue}${endValue}${rank}${size}${type}${constantValue}`;
+    return userCode;
   }
 }

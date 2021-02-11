@@ -458,4 +458,22 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expect(output.shape).toEqual([2]);
     expectArraysClose(await output.data(), [0, 2]);
   });
+
+  it('ensure no memory leak', async () => {
+    const numTensorsBefore = tf.memory().numTensors;
+    const numDataIdBefore = tf.engine().backend.numDataIds();
+
+    const tensor = tf.tensor1d([0, 1, 2, 3]);
+    const output = tf.stridedSlice(tensor, [0], [3], [2]);
+    expect(output.shape).toEqual([2]);
+    expectArraysClose(await output.data(), [0, 2]);
+
+    tensor.dispose();
+    output.dispose();
+
+    const numTensorsAfter = tf.memory().numTensors;
+    const numDataIdAfter = tf.engine().backend.numDataIds();
+    expect(numTensorsAfter).toBe(numTensorsBefore);
+    expect(numDataIdAfter).toBe(numDataIdBefore);
+  });
 });
