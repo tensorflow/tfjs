@@ -394,6 +394,7 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: ['pool'],
   },
   {include: 'step kernel'},
+  {include: 'ceil'},
 ];
 
 const customInclude = (testName: string) => {

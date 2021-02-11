@@ -13,6 +13,13 @@ steps:
     waitFor:
       - yarn-common
   - name: 'node:10'
+    id: test-run-flaky
+    entrypoint: yarn
+    args:
+      - test-run-flaky
+    waitFor:
+      - yarn-common
+  - name: 'node:10'
     dir: tfjs-core
     id: yarn-tfjs-core
     entrypoint: yarn

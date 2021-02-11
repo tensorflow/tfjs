@@ -27,6 +27,7 @@ import {argMaxConfig} from './kernels/ArgMax';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {castConfig} from './kernels/Cast';
+import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
@@ -115,6 +116,7 @@ const kernelConfigs: KernelConfig[] = [
   avgPoolConfig,
   batchMatMulConfig,
   castConfig,
+  ceilConfig,
   clipByValueConfig,
   concatConfig,
   conv2DConfig,
