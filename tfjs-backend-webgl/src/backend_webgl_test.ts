@@ -21,6 +21,7 @@ import {engine, test_util, util} from '@tensorflow/tfjs-core';
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 const {expectArraysClose, expectArraysEqual} = test_util;
 const {decodeString} = util;
+import {createTensorFromTexture} from './base';
 
 import {getBinaryCache, MathBackendWebGL, WebGLMemoryInfo, WebGLTimingInfo} from './backend_webgl';
 import {computeBytes} from './texture_manager';
@@ -32,10 +33,308 @@ function decodeStrings(bytes: Uint8Array[]): string[] {
   return bytes.map(b => decodeString(b));
 }
 
+const WEBGL1_ENVS = {
+  flags: {'WEBGL_VERSION': 1},
+  predicate: WEBGL_ENVS.predicate
+};
+
+const WEBGL2_ENVS = {
+  flags: {'WEBGL_VERSION': 2},
+  predicate: WEBGL_ENVS.predicate
+};
+
 const RENDER_FLOAT32_ENVS = {
   flags: {'WEBGL_RENDER_FLOAT32_ENABLED': true},
   predicate: WEBGL_ENVS.predicate
 };
+
+describeWithFlags('create tensor from texture', WEBGL2_ENVS, () => {
+  it('basic usage', async () => {
+    // In this test we create a WebGL texture using the GL context from the
+    // WebGL backend. Then we create a tensor from that texture, and ensure that
+    // we can perform a TF operation on that tensor and get the expected result.
+
+    const gpgpu = new GPGPUContext();
+    const width = 3;
+    const height = 4;
+
+    const gl = gpgpu.gl;
+    const texture = gl.createTexture();
+    const tex2d = gl.TEXTURE_2D;
+    // tslint:disable-next-line:no-any
+    const glany = gl as any;
+    const internalFormat = glany.R32F;
+    const textureFormat = glany.RED;
+    const textureType = glany.FLOAT;
+    const dataForUpload =
+        new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+
+    gl.bindTexture(tex2d, texture);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texImage2D(
+        tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType,
+        dataForUpload);
+
+    const logicalShape = [height, width];
+    const physicalShape: [number, number] = [height, width];
+    const a = createTensorFromTexture({
+      texture,
+      shape: logicalShape,
+      dtype: 'float32',
+      texShapeRC: physicalShape,
+      internalFormat,
+      textureFormat,
+      textureType
+    });
+    const b = tf.mul(a, 2);
+
+    expect(b.shape).toEqual(logicalShape);
+    expectArraysClose(
+        await b.data(), [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]);
+
+    gpgpu.dispose();
+  });
+
+  it('logical and physical shapes do not match', async () => {
+    // In this test we create a WebGL texture using the GL context from the
+    // WebGL backend. Then we create a tensor from that texture, and ensure that
+    // we can perform a TF operation on that tensor and get the expected result.
+
+    const gpgpu = new GPGPUContext();
+    const width = 3;
+    const height = 4;
+
+    const gl = gpgpu.gl;
+    const texture = gl.createTexture();
+    const tex2d = gl.TEXTURE_2D;
+    // tslint:disable-next-line:no-any
+    const glany = gl as any;
+    const internalFormat = glany.R32F;
+    const textureFormat = glany.RED;
+    const textureType = glany.FLOAT;
+    const dataForUpload =
+        new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+
+    gl.bindTexture(tex2d, texture);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texImage2D(
+        tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType,
+        dataForUpload);
+
+    const logicalShape = [2, 6];
+    const physicalShape: [number, number] = [height, width];
+    const a = createTensorFromTexture({
+      texture,
+      shape: logicalShape,
+      dtype: 'float32',
+      texShapeRC: physicalShape,
+      internalFormat,
+      textureFormat,
+      textureType
+    });
+    const b = tf.mul(a, 2);
+
+    expect(b.shape).toEqual(logicalShape);
+    expectArraysClose(
+        await b.data(), [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]);
+
+    gpgpu.dispose();
+  });
+
+  it('physical texture has empty entries', async () => {
+    // In this test we create a WebGL texture using the GL context from the
+    // WebGL backend. Then we create a tensor from that texture, and ensure that
+    // we can perform a TF operation on that tensor and get the expected result.
+
+    const gpgpu = new GPGPUContext();
+    const width = 3;
+    const height = 5;
+
+    const gl = gpgpu.gl;
+    const texture = gl.createTexture();
+    const tex2d = gl.TEXTURE_2D;
+    // tslint:disable-next-line:no-any
+    const glany = gl as any;
+    const internalFormat = glany.R32F;
+    const textureFormat = glany.RED;
+    const textureType = glany.FLOAT;
+
+    const dataForUpload = new Float32Array(width * height);
+    const data = new Float32Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    dataForUpload.set(data);
+
+    gl.bindTexture(tex2d, texture);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texImage2D(
+        tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType,
+        dataForUpload);
+
+    const logicalShape = [1, 13];
+    const physicalShape: [number, number] = [height, width];
+    const a = createTensorFromTexture({
+      texture,
+      shape: logicalShape,
+      dtype: 'float32',
+      texShapeRC: physicalShape,
+      internalFormat,
+      textureFormat,
+      textureType
+    });
+    const b = tf.mul(a, 2);
+
+    expect(b.shape).toEqual(logicalShape);
+    expectArraysClose(
+        await b.data(), [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24]);
+
+    gpgpu.dispose();
+  });
+
+  it('force f16', async () => {
+    // Unlike in the basic usage test, rather than creating a texture from
+    // scratch, we must extract the output texture from an operation because we
+    // cannot upload Float16 data directly to the GPU.
+
+    // We clean up explicitly so that we have full control over the environment
+    // flags during texture initialization / disposal.
+    tf.engine().startScope();
+
+    const webglRenderF32EnabledFlagSaved =
+        tf.env().getBool('WEBGL_RENDER_FLOAT32_ENABLED');
+    const webglPackedFlagSaved = tf.env().getBool('WEBGL_PACK');
+    tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
+
+    // We must set `WEBGL_PACK` to false because createTensorFromTexture only
+    // accepts unpacked textures so this ensures the output texture (`bTexture`
+    // below) is unpacked.
+    tf.env().set('WEBGL_PACK', false);
+
+    const gpgpu = new GPGPUContext();
+    const gl = gpgpu.gl;
+    // tslint:disable-next-line:no-any
+    const glany = gl as any;
+
+    const width = 3;
+    const height = 4;
+
+    const logicalShape: [number, number] = [height, width];
+    const physicalShape: [number, number] = [height, width];
+    const a = tf.tensor2d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], logicalShape);
+    const b = tf.relu(a);
+    const bTexture = (tf.backend() as MathBackendWebGL).getTexture(b.dataId);
+    const c = createTensorFromTexture({
+      texture: bTexture,
+      shape: logicalShape,
+      dtype: 'float32',
+      texShapeRC: physicalShape,
+      internalFormat: glany.R16F,
+      textureFormat: glany.RED,
+      textureType: glany.HALF_FLOAT
+    });
+    const d = tf.mul(c, 2);
+
+    expect(d.shape).toEqual(logicalShape);
+    expectArraysClose(
+        await d.data(), [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]);
+
+    gpgpu.dispose();
+
+    tf.engine().endScope();
+    tf.env().set(
+        'WEBGL_RENDER_FLOAT32_ENABLED', webglRenderF32EnabledFlagSaved);
+    tf.env().set('WEBGL_PACK', webglPackedFlagSaved);
+  });
+});
+
+describeWithFlags('create tensor from texture', WEBGL1_ENVS, () => {
+  it('basic usage', async () => {
+    const gpgpu = new GPGPUContext();
+    const width = 3;
+    const height = 4;
+
+    const logicalShape: [number, number] = [height, width];
+    const physicalShape: [number, number] = [height, width];
+
+    const gl = gpgpu.gl;
+    const texture = gl.createTexture();
+    const tex2d = gl.TEXTURE_2D;
+    const internalFormat = gl.RGBA;
+    const textureFormat = gl.RGBA;
+    const textureType = gl.FLOAT;
+    // WebGL 1 does not accept gl.RED as an internalFormat, so we have to
+    // upload values for the unused channels as well.
+    const dataForUpload = new Float32Array([
+      0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4,  0, 0, 0, 5,  0, 0, 0,
+      6, 0, 0, 0, 7, 0, 0, 0, 8, 0, 0, 0, 9, 0, 0, 0, 10, 0, 0, 0, 11, 0, 0, 0,
+    ]);
+
+    gl.bindTexture(tex2d, texture);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texImage2D(
+        tex2d, 0, internalFormat, width, height, 0, textureFormat, textureType,
+        dataForUpload);
+
+    const a = createTensorFromTexture({
+      texture,
+      shape: logicalShape,
+      texShapeRC: physicalShape,
+      dtype: 'float32',
+      internalFormat,
+      textureFormat,
+      textureType
+    });
+    const b = tf.mul(a, 2);
+
+    expect(b.shape).toEqual(logicalShape);
+    expectArraysClose(
+        await b.data(), [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]);
+    gpgpu.dispose();
+  });
+
+  it('chained', async () => {
+    const gpgpu = new GPGPUContext();
+    const gl = gpgpu.gl;
+
+    const webglPackedFlagSaved = tf.env().getBool('WEBGL_PACK');
+    tf.env().set('WEBGL_PACK', false);
+
+    const width = 3;
+    const height = 4;
+
+    const logicalShape: [number, number] = [height, width];
+    const physicalShape: [number, number] = [height, width];
+    const a = tf.tensor2d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], logicalShape);
+    const b = tf.relu(a);
+    const bTexture = (tf.backend() as MathBackendWebGL).getTexture(b.dataId);
+    const c = createTensorFromTexture({
+      texture: bTexture,
+      shape: logicalShape,
+      texShapeRC: physicalShape,
+      dtype: 'float32',
+      internalFormat: gl.RGBA,
+      textureFormat: gl.RGBA,
+      textureType: gl.FLOAT
+    });
+    const d = tf.mul(c, 2);
+
+    expect(d.shape).toEqual(logicalShape);
+    expectArraysClose(
+        await d.data(), [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]);
+
+    tf.env().set('WEBGL_PACK', webglPackedFlagSaved);
+  });
+});
 
 describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
   beforeAll(() => {
@@ -441,16 +740,6 @@ describeWithFlags('debug on webgl', WEBGL_ENVS, () => {
     tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', savedRenderFloat32Flag);
   });
 });
-
-const WEBGL1_ENVS = {
-  flags: {'WEBGL_VERSION': 1},
-  predicate: WEBGL_ENVS.predicate
-};
-
-const WEBGL2_ENVS = {
-  flags: {'WEBGL_VERSION': 2},
-  predicate: WEBGL_ENVS.predicate
-};
 
 describeWithFlags('computeBytes counts bytes correctly', WEBGL1_ENVS, () => {
   it('for all physical texture types', () => {
