@@ -176,33 +176,24 @@ export interface TextureConfig {
   textureTypeFloat: number;
 }
 
-export type WebGLTextureInternalFormat = WebGL2RenderingContext['R32F']|
-    WebGL2RenderingContext['R16F']|WebGL2RenderingContext['RGBA16F']|
-    WebGL2RenderingContext['RGBA32F']|WebGLRenderingContext['RGBA'];
-export type WebGLTextureFormat =
-    WebGL2RenderingContext['RED']|WebGLRenderingContext['RGBA'];
-export type WebGLTextureType =
-    WebGL2RenderingContext['HALF_FLOAT']|WebGL2RenderingContext['FLOAT']|
-    WebGLRenderingContext['FLOAT']|OES_texture_half_float['HALF_FLOAT_OES'];
-
 export function getTextureConfig(
     // tslint:disable-next-line:no-any
     gl: WebGLRenderingContext, textureHalfFloatExtension?: any): TextureConfig {
   // tslint:disable-next-line:no-any
   const glany = gl as any;
 
-  let internalFormatFloat: WebGLTextureInternalFormat;
-  let internalFormatHalfFloat: WebGLTextureInternalFormat;
-  let internalFormatPackedHalfFloat: WebGLTextureInternalFormat;
-  let internalFormatPackedFloat: WebGLTextureInternalFormat;
-  let textureFormatFloat: WebGLTextureFormat;
+  let internalFormatFloat: number;
+  let internalFormatHalfFloat: number;
+  let internalFormatPackedHalfFloat: number;
+  let internalFormatPackedFloat: number;
+  let textureFormatFloat: number;
 
-  let downloadTextureFormat: WebGLTextureFormat;
+  let downloadTextureFormat: number;
   let downloadUnpackNumChannels: number;
 
   let defaultNumChannels: number;
-  let textureTypeHalfFloat: WebGLTextureType;
-  let textureTypeFloat: WebGLTextureType;
+  let textureTypeHalfFloat: number;
+  let textureTypeFloat: number;
 
   if (env().getNumber('WEBGL_VERSION') === 2) {
     internalFormatFloat = glany.R32F;
