@@ -159,6 +159,37 @@ function fromPixels_(
   return tensor3d(values, outShape, 'int32');
 }
 
+// Helper functions for fromPixelsAsync to filter the cases which should use
+// ImageBitmap as input.
+function isPixelData(pixels: PixelData|ImageData|HTMLImageElement|
+  HTMLCanvasElement|HTMLVideoElement|ImageBitmap): pixels is PixelData {
+  return (pixels != null) && ((pixels as PixelData).data instanceof Uint8Array);
+}
+
+function isImageBitmapFullySupported() {
+  return typeof window !== 'undefined' &&
+         typeof (ImageBitmap) !== 'undefined' &&
+         window.hasOwnProperty('createImageBitmap');
+}
+
+function isNonEmptyPixels(pixels: PixelData|ImageData|HTMLImageElement|
+  HTMLCanvasElement|HTMLVideoElement|ImageBitmap) {
+  return pixels != null && pixels.width !== 0 && pixels.height !== 0;
+}
+
+function canWrapPixelsToImageBitmap(pixels: PixelData|ImageData|
+  HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|ImageBitmap) {
+  // General fromPixel path handles imageBitmap on rendering it to canvas
+  // and extract the imageData. It will have some tiny errors when handling
+  // transparent content (alpha channel value is not e.g. 255). Use origin
+  // input source instead of ImageBitmap when there is no registed kernels. 
+  const kernel = getKernel(FromPixels, ENGINE.backendName);
+
+  return kernel != null && isImageBitmapFullySupported() &&
+         !(pixels instanceof ImageBitmap) &&
+         isNonEmptyPixels(pixels) && !isPixelData(pixels);
+}
+
 /**
  * Creates a `tf.Tensor` from an image in async way.
  *
@@ -191,21 +222,8 @@ export async function fromPixelsAsync(
   let inputs: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
   HTMLVideoElement|ImageBitmap = null;
 
-  // General fromPixel path handles imageBitmap on rendering it to canvas
-  // and extract the imageData. It will have some tiny errors when handling
-  // transparent content (alpha channel value is not e.g. 255). Use origin
-  // input source instead of ImageBitmap when there is no registed kernels. 
-  const kernel = getKernel(FromPixels, ENGINE.backendName);
-
   // Check whether browser support ImageBitmap or the input is PixelData.
-  if (typeof window !== 'undefined' &&
-      window.hasOwnProperty('createImageBitmap') &&
-      kernel != null &&
-      !((pixels as PixelData).data instanceof Uint8Array) &&
-      typeof (ImageBitmap) !== 'undefined' &&
-      !(pixels instanceof ImageBitmap) &&
-      pixels.width !== 0 &&
-      pixels.height !== 0) {
+  if (canWrapPixelsToImageBitmap(pixels)) {
     // Force the imageBitmap creation to not do any premultiply alpha
     // ops.
     const imageBitmap = 
