@@ -14,8 +14,11 @@
  * limitations under the License.
  * =============================================================================
  */
+import {webgpu} from '@tensorflow/tfjs-backend-webgpu';
 import * as tfc from '@tensorflow/tfjs-core';
 import * as tfl from '@tensorflow/tfjs-layers';
+
+console.log(webgpu.webgpu_util.tilesFitEvenlyIntoShape);
 
 import {BenchmarkModelTest} from './types';
 import * as util from './util';
@@ -32,7 +35,10 @@ export class MobileNetV1GPUBenchmark implements BenchmarkModelTest {
   }
 
   async run(size: number): Promise<number> {
-    tfc.setBackend('webgl');
+    // tfc.setBackend('webgl');
+    // console.log(webgpu);
+    await tfc.ready();
+    // tfc.setBackend('webgpu');
 
     const zeros = tfc.zeros([1, 224, 224, 3]);
 
