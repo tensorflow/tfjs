@@ -145,7 +145,7 @@ export interface BroadCastToAttrs {
 }
 
 export const BroadcastArgs = 'BroadcastArgs';
-export type BroadcastArgsInputs = Pick<NamedTensorInfoMap, 's1'|'s2'>;
+export type BroadcastArgsInputs = Pick<NamedTensorInfoMap, 's0'|'s1'>;
 
 export const Cast = 'Cast';
 export type CastInputs = UnaryInputs;

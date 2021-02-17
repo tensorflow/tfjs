@@ -24,23 +24,23 @@ import {op} from './operation';
 import {tensor} from './tensor';
 
 /**
- * Return the shape of shape0 op shape1 with broadcast.
+ * Return the shape of s0 op s1 with broadcast.
  *
  * compute r0, the broadcasted shape as a tensor.
- * shape0, shape1 and r0 are all integer vectors.
+ * s0, s1 and r0 are all integer vectors.
  *
  * This function returns the shape of the result of an operation between
- * two tensors of size shape0 and shape1 performed with broadcast.
+ * two tensors of size s0 and s1 performed with broadcast.
  *
+ * @param s0 A tensor representing a shape
  * @param s1 A tensor representing a shape
- * @param s2 A tensor representing a shape
  *
  * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
 function broadcastArgs_<R extends Rank>(
-    s1: Tensor|TensorLike, s2: Tensor|TensorLike): Tensor<R> {
-  const shape1Input = convertToTensor(s1, 'broadcastArgs', 's1', 'int32');
-  const shape2Input = convertToTensor(s2, 'broadcastArgs', 's2', 'int32');
+    s0: Tensor|TensorLike, s1: Tensor|TensorLike): Tensor<R> {
+  const shape1Input = convertToTensor(s0, 'broadcastArgs', 's0', 'int32');
+  const shape2Input = convertToTensor(s1, 'broadcastArgs', 's1', 'int32');
 
   if (shape1Input.rank !== 1) {
     throw new Error(
