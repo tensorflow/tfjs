@@ -141,8 +141,8 @@ export const json: OpMapper[] = [
     'tfOpName': 'BroadcastArgs',
     'category': 'transformation',
     'inputs': [
-      {'start': 0, 'name': 'shape1', 'type': 'tensor'},
-      {'start': 1, 'name': 'shape2', 'type': 'tensor'},
+      {'start': 0, 'name': 's1', 'type': 'tensor'},
+      {'start': 1, 'name': 's2', 'type': 'tensor'},
     ],
     'attrs': []
   }
