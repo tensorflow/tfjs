@@ -99,7 +99,7 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
       return {
         id: 1,
         dispose: () => null,
-        disposeData: (dataId: {}) => null,
+        disposeData: (dataId: {}) => true,
         numDataIds: () => 0
       } as TestBackend;
     });
@@ -147,7 +147,7 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
     interface TestBackend extends KernelBackend {}
     const customBackend = {
       dispose: () => null,
-      disposeData: (dataId: {}) => null,
+      disposeData: (dataId: {}) => true,
       numDataIds: () => 0
     } as TestBackend;
     tf.registerBackend(backendName, () => customBackend);
@@ -233,15 +233,16 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
        let gradientWasCalled = false;
        const kernelName = 'MyKernel';
 
-       const forwardReturnDataId = {};
+       const tensor = tf.zeros([3, 3], 'float32');
+       const forwardReturnDataId = tensor.dataId;
        tf.registerKernel({
          kernelName,
          backendName: tf.getBackend(),
          kernelFunc: () => {
            kernelWasCalled = true;
            return {
-             dtype: 'float32',
-             shape: [3, 3],
+             dtype: tensor.dtype,
+             shape: tensor.shape,
              dataId: forwardReturnDataId
            };
          }

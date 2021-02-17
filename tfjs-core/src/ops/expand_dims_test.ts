@@ -148,4 +148,21 @@ describeWithFlags('expandDims', ALL_ENVS, () => {
     expect(res3.shape).toEqual([0, 3, 1]);
     expectArraysClose(await res3.data(), []);
   });
+  it('ensure no memory leak', async () => {
+    const numTensorsBefore = tf.memory().numTensors;
+    const numDataIdBefore = tf.engine().backend.numDataIds();
+
+    const t = tf.scalar(1);
+    const res = t.expandDims();
+    expect(res.shape).toEqual([1]);
+    expectArraysClose(await res.data(), [1]);
+
+    res.dispose();
+    t.dispose();
+
+    const numTensorsAfter = tf.memory().numTensors;
+    const numDataIdAfter = tf.engine().backend.numDataIds();
+    expect(numTensorsAfter).toBe(numTensorsBefore);
+    expect(numDataIdAfter).toBe(numDataIdBefore);
+  });
 });

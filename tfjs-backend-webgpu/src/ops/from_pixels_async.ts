@@ -80,8 +80,8 @@ function fromPixels_(
     const inputs: FromPixelsInputs = {pixels};
     const attrs: FromPixelsAttrs = {numChannels};
     return engine().runKernel(
-               FromPixels, inputs as {} as NamedTensorMap,
-               attrs as {} as NamedAttrMap) as Tensor3D;
+        FromPixels, inputs as {} as NamedTensorMap,
+        attrs as {} as NamedAttrMap);
   }
 
   const [width, height] = isVideo ?

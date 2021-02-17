@@ -31,4 +31,22 @@ describeWithFlags('reverse', ALL_ENVS, () => {
     expect(result.shape).toEqual([3]);
     expectArraysClose(await result.data(), [3, 2, 1]);
   });
+
+  it('ensure no memory leak', async () => {
+    const numTensorsBefore = tf.memory().numTensors;
+    const numDataIdBefore = tf.engine().backend.numDataIds();
+
+    const input = tf.tensor1d([1, 2, 3]);
+    const result = tf.reverse(input);
+    expect(result.shape).toEqual([3]);
+    expectArraysClose(await result.data(), [3, 2, 1]);
+
+    input.dispose();
+    result.dispose();
+
+    const numTensorsAfter = tf.memory().numTensors;
+    const numDataIdAfter = tf.engine().backend.numDataIds();
+    expect(numTensorsAfter).toBe(numTensorsBefore);
+    expect(numDataIdAfter).toBe(numDataIdBefore);
+  });
 });

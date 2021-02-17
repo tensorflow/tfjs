@@ -28,9 +28,7 @@ import * as webgpu from './webgpu';
 registerBackend('webgpu', async () => {
   // Remove it once we figure out how to correctly read the tensor data before
   // the tensor is disposed in profiling mode.
-  // Comment it out temporarily since this flag is added in tfjs-core 2.8.0.
-  // Otherwise, it will report 'it has not been registered' error.
-  // env().set('CHECK_COMPUTATION_FOR_ERRORS', false);
+  env().set('CHECK_COMPUTATION_FOR_ERRORS', false);
 
   const glslang = await glslangInit();
   const gpuDescriptor: GPURequestAdapterOptions = {
