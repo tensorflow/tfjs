@@ -65,7 +65,9 @@ describeWithFlags('broadcastArgs', ALL_ENVS, () => {
     const s2 = tf.tensor1d([1, 3], 'int32');
 
     expect(() => tf.broadcastArgs(s1, s2).arraySync())
-        .toThrowError('broadcastArgs(): inputs are incompatible.');
+        .toThrowError(
+            'Operands could not be broadcast ' +
+            'together with shapes 1,2 and 1,3.');
   });
 
   it('([[1,1],[1,1]], [[1,1],[1,1]]) -> error', async () => {

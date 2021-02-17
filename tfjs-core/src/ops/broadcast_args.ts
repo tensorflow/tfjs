@@ -18,11 +18,10 @@
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, TensorLike} from '../types';
+import {assertAndGetBroadcastShape} from './broadcast_util';
 
 import {op} from './operation';
-import {pad} from './pad';
 import {tensor} from './tensor';
-import {zeros} from './zeros';
 
 /**
  * Return the shape of shape0 op shape1 with broadcast.
@@ -33,15 +32,15 @@ import {zeros} from './zeros';
  * This function returns the shape of the result of an operation between
  * two tensors of size shape0 and shape1 performed with broadcast.
  *
- * @param shape1 A tensor representing a shape
- * @param shape2 A tensor representing a shape
+ * @param s1 A tensor representing a shape
+ * @param s2 A tensor representing a shape
  *
  * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
 function broadcastArgs_<R extends Rank>(
-    shape1: Tensor|TensorLike, shape2: Tensor|TensorLike): Tensor<R> {
-  const shape1Input = convertToTensor(shape1, 'broadcastArgs', 's1', 'int32');
-  const shape2Input = convertToTensor(shape2, 'broadcastArgs', 's2', 'int32');
+    s1: Tensor|TensorLike, s2: Tensor|TensorLike): Tensor<R> {
+  const shape1Input = convertToTensor(s1, 'broadcastArgs', 's1', 'int32');
+  const shape2Input = convertToTensor(s2, 'broadcastArgs', 's2', 'int32');
 
   if (shape1Input.rank !== 1) {
     throw new Error(
@@ -54,33 +53,9 @@ function broadcastArgs_<R extends Rank>(
         `broadcastArgs(): second input must be a vector (rank=1). Has rank ${
             shape2Input.rank}`);
   }
-
-  // Pad with 1s.
-  const maxRank = Math.max(shape1Input.shape[0], shape2Input.shape[0]);
-  const shape1Padded =
-      pad(shape1Input, [[maxRank - shape1Input.shape[0], 0]], 1).arraySync() as
-      number[];
-  const shape2Padded =
-      pad(shape2Input, [[maxRank - shape2Input.shape[0], 0]], 1).arraySync() as
-      number[];
-
-  const output = zeros([maxRank]).arraySync() as number[];
-  // Going through each dimension starting from the outer-most
-  // dimension, compares dimension of the padded
-  // shape1 and shape2. They are compatible if they are equal or either is 1.
-  for (let i = 0; i < maxRank; ++i) {
-    if (shape1Padded[i] === 1) {
-      output[i] = shape2Padded[i];
-    } else if (shape2Padded[i] === 1) {
-      output[i] = shape1Padded[i];
-    } else if (shape1Padded[i] === shape2Padded[i]) {
-      output[i] = shape1Padded[i];
-    } else {
-      throw new Error(`broadcastArgs(): inputs are incompatible.`);
-    }
-  }
-
-  return tensor(output);
+  return tensor(assertAndGetBroadcastShape(
+      shape1Input.arraySync() as number[],
+      shape2Input.arraySync() as number[]));
 }
 
 export const broadcastArgs = op({broadcastArgs_});
