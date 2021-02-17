@@ -17,13 +17,14 @@
 set -e
 
 if [ "$NIGHTLY" = true ]; then
-  yarn run-browserstack --browsers=bs_safari_mac --testEnv webgl1
-  yarn run-browserstack --browsers=bs_ios_11 --testEnv webgl1
-  yarn run-browserstack --browsers=bs_firefox_mac
-  yarn run-browserstack --browsers=bs_chrome_mac
-  yarn run-browserstack --browsers=win_10_chrome --testEnv webgl2
-  yarn run-browserstack --browsers=bs_chrome_mac --testEnv webgl2 --flags '{"WEBGL_PACK": false}'
-  yarn run-browserstack --browsers=bs_chrome_mac --testEnv webgl2 --flags '{"WEBGL_CPU_FORWARD": true}'
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_safari_mac --testEnv webgl1"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_ios_11 --testEnv webgl1"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_firefox_mac"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=win_10_chrome --testEnv webgl2"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_android_9 --testEnv webgl2"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac --testEnv webgl2 --flags '{"\""WEBGL_PACK"\"": false}'"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac --testEnv webgl2 --flags '{"\""WEBGL_CPU_FORWARD"\"": true}'"
 else
-  yarn run-browserstack --browsers=bs_chrome_mac
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac"
 fi
