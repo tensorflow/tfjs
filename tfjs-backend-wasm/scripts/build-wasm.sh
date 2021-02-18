@@ -17,24 +17,24 @@
 set -e
 
 # Default build.
-yarn bazel build -c opt //src/cc:tfjs-backend-wasm.js --config=wasm
+yarn bazel build -c opt //tfjs-backend-wasm/src/cc:tfjs-backend-wasm.js --config=wasm
 # The typescript code and karma config expect the output of emscripten to be in
 # wasm-out/ so we copy the bazel output there.
-cp -f bazel-bin/src/cc/tfjs-backend-wasm.js \
-      bazel-bin/src/cc/tfjs-backend-wasm.wasm \
+cp -f ../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm.js \
+      ../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm.wasm \
       wasm-out/
 
 if [[ "$1" != "--dev" ]]; then
   # SIMD build.
-  yarn bazel build -c opt //src/cc:tfjs-backend-wasm-simd.wasm --config=wasm --copt="-msimd128"
-  cp -f bazel-bin/src/cc/tfjs-backend-wasm-simd.wasm \
+  yarn bazel build -c opt //tfjs-backend-wasm/src/cc:tfjs-backend-wasm-simd.wasm --config=wasm --copt="-msimd128"
+  cp -f ../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-simd.wasm \
         wasm-out/
 
   # Threaded + SIMD build.
-  yarn bazel build -c opt //src/cc:tfjs-backend-wasm-threaded-simd.js --config=wasm --copt="-pthread" --copt="-msimd128"
-  cp -f bazel-bin/src/cc/tfjs-backend-wasm-threaded-simd.js \
-        bazel-bin/src/cc/tfjs-backend-wasm-threaded-simd.worker.js \
-        bazel-bin/src/cc/tfjs-backend-wasm-threaded-simd.wasm \
+  yarn bazel build -c opt //tfjs-backend-wasm/src/cc:tfjs-backend-wasm-threaded-simd.js --config=wasm --copt="-pthread" --copt="-msimd128"
+  cp -f ../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd.js \
+        ../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd.worker.js \
+        ../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd.wasm \
         wasm-out/
 
   node ./scripts/create-worker-module.js

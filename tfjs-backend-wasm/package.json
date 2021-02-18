@@ -9,10 +9,6 @@
   "jsdelivr": "dist/tf-backend-wasm.min.js",
   "miniprogram": "dist/miniprogram",
   "scripts": {
-    "bazel:format": "find . -type f \\( -name \"*.bzl\" -or -name WORKSPACE -or -name BUILD -or -name BUILD.bazel \\) ! -path \"*/node_modules/*\" | xargs buildifier -v --warnings=attr-cfg,attr-license,attr-non-empty,attr-output-default,attr-single-file,constant-glob,ctx-actions,ctx-args,depset-iteration,depset-union,dict-concatenation,duplicated-name,filetype,git-repository,http-archive,integer-division,load,load-on-top,native-build,native-package,out-of-order-load,output-group,package-name,package-on-top,positional-args,redefined-variable,repository-name,same-origin-load,string-iteration,unsorted-dict-items,unused-variable",
-    "bazel:format-check": "yarn bazel:format --mode=check",
-    "bazel:lint": "yarn bazel:format --lint=warn",
-    "bazel:lint-check": "yarn bazel:format --lint=warn --mode=check",
     "build-deps": "yarn build-core && yarn build-cpu-backend",
     "build-deps-ci": "yarn build-core-ci && yarn build-cpu-backend-ci",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
@@ -35,7 +31,7 @@
     "test-ci": "./scripts/test-ci.sh",
     "test-node": "tsc && ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/test_node.ts",
     "test-bundle-size": "./scripts/test-bundle-size.js",
-    "test-cc": "bazel test //src/cc:cc_tests --test_output=all",
+    "test-cc": "bazel test //tfjs-backend-wasm/src/cc:cc_tests --test_output=all",
     "run-browserstack": "karma start --browserstack"
   },
   "browser": {
@@ -53,8 +49,7 @@
   },
   "devDependencies": {
     "@babel/polyfill": "^7.8.7",
-    "@bazel/bazel": "^0.28.0",
-    "@bazel/buildifier": "0.29.0",
+    "@bazel/bazelisk": "^1.7.5",
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",

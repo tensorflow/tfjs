@@ -24,9 +24,9 @@
 #include <map>
 #include <unordered_map>
 
-#include "src/cc/backend.h"
-#include "src/cc/kernels/AvgPool.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/kernels/AvgPool.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 typedef std::array<size_t, 14> OperatorCacheKey;

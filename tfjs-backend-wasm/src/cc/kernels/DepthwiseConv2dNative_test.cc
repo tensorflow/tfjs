@@ -17,9 +17,9 @@
 
 #include <cstddef>
 
-#include "src/cc/backend.h"
-#include "src/cc/kernels/DepthwiseConv2dNative.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/kernels/DepthwiseConv2dNative.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 TEST(CONV2D, xnn_operator_lifetime) {
   tfjs::wasm::init();
