@@ -76,5 +76,5 @@ ENV.registerFlag('CHECK_COMPUTATION_FOR_ERRORS', () => true);
 
 /** Whether backend can wrap input pixels to imageBitmap
  *  and get correct result.
-*/
+ */
 ENV.registerFlag('WRAP_TO_IMAGEBITMAP', () => false);
