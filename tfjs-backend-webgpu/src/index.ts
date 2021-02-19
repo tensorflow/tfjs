@@ -29,6 +29,12 @@ registerBackend('webgpu', async () => {
   // the tensor is disposed in profiling mode.
   env().set('CHECK_COMPUTATION_FOR_ERRORS', false);
 
+  // WebGPU backend can handle pixels with transparent content transfer to
+  // ImageBitmap correctly. Remove it once we figure out how to get correct
+  // content through pixels with transparent content transfer to imageBitmap
+  // and draw to canvas.
+  env().set('WRAP_TO_IMAGEBITMAP', true);
+
   const glslang = await glslangInit();
   const gpuDescriptor: GPURequestAdapterOptions = {
     powerPreference: env().get('WEBGPU_USE_LOW_POWER_GPU') ? 'low-power' :

@@ -16,10 +16,11 @@
  */
 
 import {ENGINE} from '../engine';
+import {env} from '../environment';
 import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '../kernel_names';
 import {getKernel, NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
+import {NamedTensor.Map} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {PixelData, TensorLike} from '../types';
 
@@ -181,13 +182,7 @@ function isNonEmptyPixels(pixels: PixelData|ImageData|HTMLImageElement|
 
 function canWrapPixelsToImageBitmap(pixels: PixelData|ImageData|
   HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|ImageBitmap) {
-  // General fromPixel path handles imageBitmap on rendering it to canvas
-  // and extract the imageData. It will have some tiny errors when handling
-  // transparent content (alpha channel value is not e.g. 255). Use origin
-  // input source instead of ImageBitmap when there is no registed kernels. 
-  const kernel = getKernel(FromPixels, ENGINE.backendName);
-
-  return kernel != null && isImageBitmapFullySupported() &&
+  return isImageBitmapFullySupported() &&
          !(pixels instanceof ImageBitmap) &&
          isNonEmptyPixels(pixels) && !isPixelData(pixels);
 }
@@ -224,8 +219,10 @@ export async function fromPixelsAsync(
   let inputs: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
   HTMLVideoElement|ImageBitmap = null;
 
-  // Check whether browser support ImageBitmap or the input is PixelData.
-  if (canWrapPixelsToImageBitmap(pixels)) {
+  // Check whether backend need to wrap pixels to imageBitmap and
+  // whether the input pixels can be wrapped to imageBitmap.
+  if (env().getBool('WRAP_TO_IMAGEBITMAP') &&
+      canWrapPixelsToImageBitmap(pixels)) {
     // Force the imageBitmap creation to not do any premultiply alpha
     // ops.
     const imageBitmap = 
