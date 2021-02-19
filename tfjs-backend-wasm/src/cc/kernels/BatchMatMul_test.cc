@@ -17,8 +17,8 @@
 #include <cstddef>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/kernels/BatchMatMul.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/kernels/BatchMatMul.h"
 
 TEST(BATCH_MATMUL, xnn_operator_lifetime) {
   tfjs::wasm::init();

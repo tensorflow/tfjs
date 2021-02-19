@@ -24,12 +24,12 @@
 #include <utility>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/leakyrelu_impl.h"
-#include "src/cc/prelu_impl.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/leakyrelu_impl.h"
+#include "tfjs-backend-wasm/src/cc/prelu_impl.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
-#include "src/cc/batch_mat_mul_impl.h"
+#include "tfjs-backend-wasm/src/cc/batch_mat_mul_impl.h"
 
 const size_t kBlockSize = 48;
 

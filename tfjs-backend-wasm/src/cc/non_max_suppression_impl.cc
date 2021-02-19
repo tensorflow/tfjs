@@ -25,8 +25,8 @@
 #include <queue>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/non_max_suppression_impl.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/non_max_suppression_impl.h"
 
 namespace {
 

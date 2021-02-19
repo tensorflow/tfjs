@@ -16,11 +16,11 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/kernels/Conv2D.h"
+#include "tfjs-backend-wasm/src/cc/kernels/Conv2D.h"
 
 #include <cstddef>
 
-#include "src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
 
 namespace tfjs {
 namespace wasm {
