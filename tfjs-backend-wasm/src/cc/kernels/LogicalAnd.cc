@@ -16,8 +16,8 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/binary.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/binary.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 inline bool logical_and(bool a, bool b) { return a && b; }

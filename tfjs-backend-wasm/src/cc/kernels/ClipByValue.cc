@@ -16,7 +16,7 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/kernels/ClipByValue.h"
+#include "tfjs-backend-wasm/src/cc/kernels/ClipByValue.h"
 
 #include <xnnpack.h>
 #include <array>
@@ -25,8 +25,8 @@
 #include <map>
 #include <unordered_map>
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 // These float values are keys to creating the clip operator. We use

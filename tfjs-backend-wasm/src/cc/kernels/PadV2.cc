@@ -24,9 +24,9 @@
 #include <tuple>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/kernels/PadV2.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/kernels/PadV2.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 // We use std::tuple as the cache key as it implements the compare operator

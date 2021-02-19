@@ -18,9 +18,9 @@
 
 #include <cstddef>
 
-#include "src/cc/kernels/FusedConv2D.h"
+#include "tfjs-backend-wasm/src/cc/kernels/FusedConv2D.h"
 
-#include "src/cc/conv2d_impl.h"
+#include "tfjs-backend-wasm/src/cc/conv2d_impl.h"
 
 namespace tfjs {
 namespace wasm {

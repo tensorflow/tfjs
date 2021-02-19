@@ -19,7 +19,7 @@
 #include <cmath>
 #include <cstddef>
 #include <vector>
-#include "src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
 
 namespace tfjs {
 namespace wasm {
