@@ -18,7 +18,7 @@
 
 #include <math.h>
 
-#include "src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
 
 namespace tfjs {
 namespace wasm {

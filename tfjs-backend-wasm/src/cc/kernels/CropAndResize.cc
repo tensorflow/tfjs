@@ -20,10 +20,10 @@
 #include <cstddef>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/interpolate_bilinear_impl.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/interpolate_bilinear_impl.h"
 
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 // Must match enum in CropAndResize.ts
 enum InterpolationMethod {
