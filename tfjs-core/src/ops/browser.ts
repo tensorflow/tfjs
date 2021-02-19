@@ -20,7 +20,7 @@ import {env} from '../environment';
 import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '../kernel_names';
 import {getKernel, NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
-import {NamedTensor.Map} from '../tensor_types';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {PixelData, TensorLike} from '../types';
 
