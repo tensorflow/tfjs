@@ -162,8 +162,8 @@ function fromPixels_(
   return tensor3d(values, outShape, 'int32');
 }
 
-// Helper functions for fromPixelsAsync to filter the cases which should use
-// ImageBitmap as input.
+// Helper functions for |fromPixelsAsync| to check whether the input can
+// be wrapped into imageBitmap.
 function isPixelData(pixels: PixelData|ImageData|HTMLImageElement|
   HTMLCanvasElement|HTMLVideoElement|ImageBitmap): pixels is PixelData {
   return (pixels != null) && ((pixels as PixelData).data instanceof Uint8Array);
@@ -199,8 +199,9 @@ function canWrapPixelsToImageBitmap(pixels: PixelData|ImageData|
  *
  * (await tf.browser.fromPixelsAsync(image)).print();
  * ```
- * This API is the async version of fromPixels. The API will try
- * to convert users input to ImageBitmap and do following ops.
+ * This API is the async version of fromPixels. The API will first
+ * check |WRAP_TO_IMAGEBITMAP| flag, and try to wrap the input to
+ * imageBitmap if the flag is set to true.
  * 
  * @param pixels The input image to construct the tensor from. The
  * supported image types are all 4-channel. You can also pass in an image
@@ -219,8 +220,8 @@ export async function fromPixelsAsync(
   let inputs: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
   HTMLVideoElement|ImageBitmap = null;
 
-  // Check whether backend need to wrap pixels to imageBitmap and
-  // whether the input pixels can be wrapped to imageBitmap.
+  // Check whether the backend needs to wrap |pixels| to imageBitmap and
+  // whether |pixels| can be wrapped to imageBitmap.
   if (env().getBool('WRAP_TO_IMAGEBITMAP') &&
       canWrapPixelsToImageBitmap(pixels)) {
     // Force the imageBitmap creation to not do any premultiply alpha
@@ -230,10 +231,12 @@ export async function fromPixelsAsync(
         await (createImageBitmap as any)(pixels as ImageBitmapSource,
                                          {premultiplyAlpha: 'none'});
 
-    // ImageBitmap will clip the source size to the content size.
-    // In some cases, the input will have larger size than the content
-    // e.g. new Image(10, 10) but with 1 x 1 content. Avoid using
-    // imageBitmap as input in these cases. 
+    // createImageBitmap will clip the source size.
+    // In some cases, the input will have larger size than its content.
+    // E.g. new Image(10, 10) but with 1 x 1 content. Using
+    // createImageBitmap will clip the size from 10 x 10 to 1 x 1, which
+    // is not correct. We should avoid wrapping such resouce to
+    // imageBitmap.
     if (imageBitmap != null &&
         imageBitmap.width === pixels.width &&
         imageBitmap.height === pixels.height) {
