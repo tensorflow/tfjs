@@ -50,6 +50,8 @@ let fromPixels2DContext: CanvasRenderingContext2D;
  * numChannels value less than 4 allows you to ignore channels. Defaults to
  * 3 (ignores alpha channel of input image).
  *
+ * @returns A Tensor3D with the shape `[height, width, numChannels]`.
+ *
  * @doc {heading: 'Browser', namespace: 'browser', ignoreCI: true}
  */
 function fromPixels_(
@@ -259,8 +261,9 @@ export async function fromPixelsAsync(
  *
  * Returns a promise that resolves when the canvas has been drawn to.
  *
- * @param img A rank-2 or rank-3 tensor. If rank-2, draws grayscale. If
- *     rank-3, must have depth of 1, 3 or 4. When depth of 1, draws
+ * @param img A rank-2 tensor with shape `[height, width]`, or a rank-3 tensor
+ * of shape `[height, width, numChannels]`. If rank-2, draws grayscale. If
+ * rank-3, must have depth of 1, 3 or 4. When depth of 1, draws
  * grayscale. When depth of 3, we draw with the first three components of
  * the depth dimension corresponding to r, g, b and alpha = 1. When depth of
  * 4, all four components of the depth dimension correspond to r, g, b, a.
