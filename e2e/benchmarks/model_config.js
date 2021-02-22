@@ -220,15 +220,15 @@ const benchmarks = {
       }
       const model = await posenet.load(config);
       if (inputType === 'tensor') {
-        model.image = tf.zeros([inputResolution, inputResolution, 3]);
+        model.input = tf.zeros([inputResolution, inputResolution, 3]);
       } else {
-        model.image = await loadImage('tennis_standing.jpg');
+        model.input = await loadImage('tennis_standing.jpg');
       }
       return model;
     },
     predictFunc: () => {
       return async model => {
-        return model.estimateSinglePose(model.image);
+        return model.estimateSinglePose(model.input);
       };
     }
   },
@@ -258,10 +258,10 @@ const benchmarks = {
       }
       const model = await bodyPix.load(config);
       if (inputType === 'tensor') {
-        model.image =
+        model.input =
             tf.zeros([480 * internalResolution, 640 * internalResolution, 3]);
       } else {
-        model.image = await loadImage('tennis_standing.jpg');
+        model.input = await loadImage('tennis_standing.jpg');
       }
       return model;
     },
@@ -270,7 +270,7 @@ const benchmarks = {
         const PERSON_INFERENCE_CONFIG = {
           internalResolution: internalResolution,
         };
-        return model.segmentPerson(model.image, PERSON_INFERENCE_CONFIG);
+        return model.segmentPerson(model.input, PERSON_INFERENCE_CONFIG);
       };
     }
   },
