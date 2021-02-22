@@ -265,7 +265,7 @@ const benchmarks = {
       }
       return model;
     },
-    predictFunc: (internalResolution = 0.5, inputType = 'image') => {
+    predictFunc: (internalResolution = 0.5) => {
       return async model => {
         const PERSON_INFERENCE_CONFIG = {
           internalResolution: internalResolution,
