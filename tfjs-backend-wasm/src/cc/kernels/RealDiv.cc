@@ -25,6 +25,7 @@
 namespace {
 template <class T>
 inline T div(T a, T b) {
+  tfjs::util::log("USING NATIVE DIV!!!");
   return a / b;
 }
 }  // namespace

@@ -40,6 +40,8 @@ void binary_xnn_f32(const size_t a_id, const size_t* a_shape_ptr,
   auto& out_info = backend::get_tensor_info_out(out_id);
   const float* a_buf = a_info.f32();
   const float* b_buf = b_info.f32();
+  util::log("binary.cc: a = %f", *a_buf);
+  util::log("binary.cc: b = %f", *b_buf);
   float* out_buf = out_info.f32_write();
 
   xnn_operator_t binary_op = nullptr;
@@ -74,6 +76,7 @@ void binary_xnn_f32(const size_t a_id, const size_t* a_shape_ptr,
   }
 
   xnn_run_operator(binary_op, tfjs::backend::threadpool);
+  util::log("binary cc: outbuf = %f ", *out_buf);
 }
 
 }  // namespace wasm
