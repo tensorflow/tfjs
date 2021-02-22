@@ -60,7 +60,11 @@ export function fromPixelsImageBitmap(args: {
         texture: backend.fromPixelProgram.makeInputTexture(
             backend.device, imageBitmap.width, imageBitmap.height)
       },
-      {width: imageBitmap.width, height: imageBitmap.height, depth: 1});
+      {
+        width: imageBitmap.width,
+        height: imageBitmap.height,
+        depthOrArrayLayers: 1
+      });
 
   const info = backend.tensorMap.get(output.dataId);
 
