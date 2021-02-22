@@ -1,4 +1,5 @@
 load(":build_defs.bzl", "tfjs_cc_library", "tfjs_unit_test")
+# load("//toolchain:wasm_rules.bzl", "wasm_cc_binary")
 
 # Emcripten produces a much larger wasm bundle unless the cc_binary has srcs
 # explicitly pointing to files with exported methods (EMSCRIPTEN_KEEPALIVE).
@@ -28,6 +29,12 @@ cc_binary(
         ":backend",
     ],
 )
+
+# wasm_cc_binary(
+#   name = "tfjs-backend-wasm-wasm",
+#   cc_target = ":tfjs-backend-wasm.js",
+#   backend = "llvm",
+# )
 
 cc_binary(
     name = "tfjs-backend-wasm-simd.wasm",
