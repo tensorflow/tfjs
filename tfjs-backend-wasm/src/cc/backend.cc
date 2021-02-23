@@ -25,9 +25,9 @@
 #include <utility>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/check_macros.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/check_macros.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 // Maps a unique tensor id to info about that tensor. The map owns all of its

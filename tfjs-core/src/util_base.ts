@@ -71,7 +71,7 @@ export function shuffleCombo(array: any[]|Uint32Array|Int32Array|Float32Array,
                       array2: any[]|Uint32Array|Int32Array|Float32Array): void {
 
   if (array.length !== array2.length) {
-    throw Error(
+    throw new Error(
       `Array sizes must match to be shuffled together ` +
       `First array length was ${array.length}` +
       `Second array length was ${array2.length}`);

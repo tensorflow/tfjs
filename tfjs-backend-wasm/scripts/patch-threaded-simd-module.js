@@ -45,7 +45,7 @@
  */
 const fs = require('fs');
 
-const BASE_PATH = './wasm-out/';
+const BASE_PATH = '../wasm-out/';
 const JS_PATH = `${BASE_PATH}tfjs-backend-wasm-threaded-simd.js`;
 
 let content = fs.readFileSync(JS_PATH, 'utf8');
