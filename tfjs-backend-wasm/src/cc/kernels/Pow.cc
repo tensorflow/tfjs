@@ -19,8 +19,8 @@
 #include <cmath>
 #include <cstddef>
 
-#include "src/cc/binary.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/binary.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 template <class T>

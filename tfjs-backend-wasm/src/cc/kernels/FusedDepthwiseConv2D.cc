@@ -18,10 +18,10 @@
 
 #include <cstddef>
 
-#include "src/cc/kernels/FusedDepthwiseConv2D.h"
+#include "tfjs-backend-wasm/src/cc/kernels/FusedDepthwiseConv2D.h"
 
-#include "src/cc/backend.h"
-#include "src/cc/conv2d_impl.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/conv2d_impl.h"
 
 namespace tfjs {
 namespace wasm {

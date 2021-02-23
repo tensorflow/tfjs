@@ -1,4 +1,4 @@
-load("@npm_bazel_typescript//:defs.bzl", "ts_library")
+load("@npm//@bazel/typescript//:index.bzl", "ts_library")
 
 TEST_SRCS = [
   "jasmine_*",

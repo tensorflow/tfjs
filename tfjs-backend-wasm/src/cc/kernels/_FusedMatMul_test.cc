@@ -17,8 +17,8 @@
 #include <cstddef>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/kernels/_FusedMatMul.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/kernels/_FusedMatMul.h"
 
 TEST(_FUSED_MATMUL, xnn_operator_lfietime) {
   tfjs::wasm::init();

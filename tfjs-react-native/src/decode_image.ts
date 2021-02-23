@@ -38,8 +38,7 @@ export function decodeJpeg(
       () => 'The passed contents are not a valid JPEG image');
   util.assert(
       channels === 3, () => 'Only 3 channels is supported at this time');
-  const TO_UINT8ARRAY = true;
-  const {width, height, data} = jpeg.decode(contents, TO_UINT8ARRAY);
+  const {width, height, data} = jpeg.decode(contents, {useTArray: true});
   // Drop the alpha channel info because jpeg.decode always returns a typedArray
   // with 255
   const buffer = new Uint8Array(width * height * 3);

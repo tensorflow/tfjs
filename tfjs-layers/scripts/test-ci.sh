@@ -10,4 +10,4 @@
 set -e
 
 # Regular testing.
-yarn run-browserstack
+node ../scripts/run_flaky.js "yarn run-browserstack"

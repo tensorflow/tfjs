@@ -35,7 +35,7 @@
     "test-ci": "./scripts/test-ci.sh",
     "test-node": "tsc && ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/test_node.ts",
     "test-bundle-size": "./scripts/test-bundle-size.js",
-    "test-cc": "bazel test //src/cc:cc_tests --test_output=all",
+    "test-cc": "bazel test //tfjs-backend-wasm/src/cc:cc_tests --test_output=all",
     "run-browserstack": "karma start --browserstack"
   },
   "browser": {
@@ -53,8 +53,8 @@
   },
   "devDependencies": {
     "@babel/polyfill": "^7.8.7",
-    "@bazel/bazel": "^0.28.0",
-    "@bazel/buildifier": "0.29.0",
+    "@bazel/bazelisk": "^1.7.5",
+    "@bazel/buildifier": "^4.0.0",
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",

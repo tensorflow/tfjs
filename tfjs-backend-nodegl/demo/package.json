@@ -9,7 +9,7 @@
   "dependencies": {
     "@tensorflow-models/mobilenet": "^1.0.1",
     "@tensorflow/tfjs": "^1.2.2",
-    "jpeg-js": "^0.3.5"
+    "jpeg-js": "^0.4.0"
   },
   "author": "",
   "license": "ISC",

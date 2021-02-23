@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,27 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
+import {KernelConfig, Ceil} from '@tensorflow/tfjs-core';
 
-export interface ApplicationConfig {
-  apiKey?: string;
-  authDomain?: string;
-  databaseURL?: string;
-  projectId?: string;
-  storageBucket?: string;
-  messagingSenderId?: string;
-}
+import {createUnaryKernelConfig} from './unary_kernel';
 
-export interface BenchmarkHashes {
-  [repo: string]: string;
-}
-
-export interface BenchmarkEntry {
-  userAgent: string;
-  timestamp: number;
-  runs: {[params: string]: BenchmarkRunEntry};
-  hashes: BenchmarkHashes;
-  hardwareConcurrency?: number;
-}
-export interface BenchmarkRunEntry {
-  averageTimeMs: number;
-}
+export const ceilConfig: KernelConfig = createUnaryKernelConfig(Ceil);
