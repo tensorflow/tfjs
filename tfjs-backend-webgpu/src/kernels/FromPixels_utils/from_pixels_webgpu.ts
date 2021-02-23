@@ -132,11 +132,7 @@ export class FromPixelsProgram implements WebGPUProgram {
       }
 
       this.inputTexture = device.createTexture({
-        size: {
-          width: pixelWidth,
-          height: pixelHeight,
-          depthOrArrayLayers: 1,
-        },
+        size: [pixelWidth, pixelHeight],
         format: 'rgba8unorm',
         usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.STORAGE,
       });
