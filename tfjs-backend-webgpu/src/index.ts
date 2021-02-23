@@ -29,9 +29,6 @@ registerBackend('webgpu', async () => {
   // the tensor is disposed in profiling mode.
   env().set('CHECK_COMPUTATION_FOR_ERRORS', false);
 
-  // WebGPU backend prefers ImageBitmap as input to use fast uploading path.
-  env().set('WRAP_TO_IMAGEBITMAP', true);
-
   const glslang = await glslangInit();
   const gpuDescriptor: GPURequestAdapterOptions = {
     powerPreference: env().get('WEBGPU_USE_LOW_POWER_GPU') ? 'low-power' :
