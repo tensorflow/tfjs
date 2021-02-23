@@ -59,8 +59,6 @@ function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     return floorDiv($a, $b);
   }
 
-  console.log('!! a = ' + $a.toString());
-  console.log('!! b = ' + $b.toString());
   const inputs: RealDivInputs = {a: $a, b: $b};
   const attrs = {};
 

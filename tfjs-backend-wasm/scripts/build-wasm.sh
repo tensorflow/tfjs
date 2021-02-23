@@ -33,7 +33,7 @@ cp -f ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm.js \
 
 if [[ "$1" != "--dev" ]]; then
   # SIMD build.
-  yarn bazel build -c opt //tfjs-backend-wasm/src/cc:tfjs-backend-wasm-simd.wasm --config=wasm --copt="-msimd128"
+  yarn bazel build -c opt //tfjs-backend-wasm/src/cc:tfjs-backend-wasm-simd.js --config=wasm --copt="-msimd128"
   cp -f ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-simd.wasm \
         ../wasm-out/
 

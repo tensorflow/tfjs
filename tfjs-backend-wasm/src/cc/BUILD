@@ -1,5 +1,4 @@
 load(":build_defs.bzl", "tfjs_cc_library", "tfjs_unit_test")
-# load("//toolchain:wasm_rules.bzl", "wasm_cc_binary")
 
 # Emcripten produces a much larger wasm bundle unless the cc_binary has srcs
 # explicitly pointing to files with exported methods (EMSCRIPTEN_KEEPALIVE).
@@ -8,6 +7,14 @@ KERNELS_WITH_KEEPALIVE = glob(
     exclude = ["**/*_test.cc"],
 )
 
+# This build rule generates tfjs-backend-wasm.{js,wasm}.
+#
+# The ".js" at the end of the build name is significant because it determines
+# the output file types. See the "-o <target>" flag in
+# https://emscripten.org/docs/tools_reference/emcc.html
+#
+# Note that tfjs-backend-wasm.js will be used to load tfjs-backend-wasm.wasm
+# as well as tfjs-backend-wasm-simd.wasm (the output of the next build rule).
 cc_binary(
     name = "tfjs-backend-wasm.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
@@ -22,7 +29,6 @@ cc_binary(
         "-s MODULARIZE=1",
         "-s EXPORT_NAME=WasmBackendModule",
         "-s MALLOC=emmalloc",
-        "-s STANDALONE_WASM=1",
     ],
     deps = [
         ":all_kernels",
@@ -30,14 +36,14 @@ cc_binary(
     ],
 )
 
-# wasm_cc_binary(
-#   name = "tfjs-backend-wasm-wasm",
-#   cc_target = ":tfjs-backend-wasm.js",
-#   backend = "llvm",
-# )
-
+# This build rule generates tfjs-backend-wasm-simd.{js,wasm}.
+#
+# We only need the .wasm file, not the .js file, because it will be loadsed by
+# the tfjs-backend-wasm.js file (generated from the previous build rule).
+#
+# See scripts/build-wasm.sh where we only copy the .wasm file to wasm-out.
 cc_binary(
-    name = "tfjs-backend-wasm-simd.wasm",
+    name = "tfjs-backend-wasm-simd.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
     linkopts = [
         "-s ALLOW_MEMORY_GROWTH=1",
@@ -48,8 +54,6 @@ cc_binary(
         "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
         "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
         "-s MALLOC=emmalloc",
-        "-s SIMD=1",
-        "-s STANDALONE_WASM=1",
     ],
     deps = [
         ":all_kernels",
@@ -57,6 +61,8 @@ cc_binary(
     ],
 )
 
+# This build rule generates tfjs-backend-wasm-threaded-simd.{js,wasm} and
+# tfjs-backend-wasm-threaded-simd.worker.js.
 cc_binary(
     name = "tfjs-backend-wasm-threaded-simd.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
@@ -71,7 +77,6 @@ cc_binary(
         "-s MODULARIZE=1",
         "-s EXPORT_NAME=WasmBackendModuleThreadedSimd",
         "-s MALLOC=emmalloc",
-        "-s SIMD=1",
         "-s USE_PTHREADS=1",
         "-s PROXY_TO_PTHREAD=1",
     ],

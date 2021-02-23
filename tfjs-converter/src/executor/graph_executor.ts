@@ -233,7 +233,6 @@ export class GraphExecutor implements FunctionExecutor {
       const intermediateTensorConsumerCount: {[key: number]: number} = {};
       for (let i = 0; i < orderedNodes.length; i++) {
         const node = orderedNodes[i];
-        console.log('=== node ' + i + ': ' + node.name);
         if (!tensorsMap[node.name]) {
           const tensors =
               executeOp(node, tensorsMap, context, this._resourceManager) as
