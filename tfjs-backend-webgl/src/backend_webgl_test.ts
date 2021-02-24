@@ -562,7 +562,7 @@ describeWithFlags('memory webgl', WEBGL_ENVS, () => {
 describeWithFlags('manual gl flush', WEBGL_ENVS, () => {
   it('works when manual gl flush is enabled', async () => {
     const savedGlThreshold = tf.env().get('WEBGL_FLUSH_THRESHOLD') as number;
-    tf.env().set('WEBGL_FLUSH_THRESHOLD', 0);
+    tf.env().set('WEBGL_FLUSH_THRESHOLD', 1);
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([1, 1, -3, 2, 2, 1], [2, 3]);
 

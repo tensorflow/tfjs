@@ -189,13 +189,13 @@ ENV.registerFlag(
     });
 
 /**
- * Trigger a manul GL command flush if the threshold of time has passed since
+ * Trigger a manual GL command flush if the threshold of time has passed since
  * previous Kernel execution. This can be useful for Andorid device where GL
- * command flush are delayed til the end of javascript task. This value is
+ * command flush are delayed un til the end of javascript task. This value is
  * measured in millisecond. Typically you want to set this value to close to 1.
  *
- * Default value -1 indicates that we will enforce manual flush and depends on
- * system default flush schedule.
+ * Default value -1 indicates that we will not enforce manual flush and depend
+ * on system default flush schedule.
  */
 ENV.registerFlag(
     'WEBGL_FLUSH_THRESHOLD',
