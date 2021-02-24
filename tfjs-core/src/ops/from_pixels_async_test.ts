@@ -365,4 +365,8 @@ describeWithFlags('fromPixelsAsync, |WRAP_TO_IMAGEBITMAP| true',
 
     expectArraysClose(pixelsData, actualInt32, 10);
   });
+
+  afterAll(() => {
+    tf.env().set('WRAP_TO_IMAGEBITMAP', false);
+  });
 });
