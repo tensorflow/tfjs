@@ -21,9 +21,9 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 # xnnpack used for fast vectorized wasm operations
 git_repository(
     name = "xnnpack",
-    commit = "8772714a417ed71ff87ccf5014f6bee9d911db21",
+    commit = "55d53a4e7079d38e90acd75dd9e4f9e781d2da35",
     remote = "https://github.com/google/XNNPACK.git",
-    shallow_since = "1593037483 -0700",
+    shallow_since = "1614036677 -0800",
 )
 
 # The libraries below are transitive dependencies of XNNPACK that we need to
@@ -53,10 +53,10 @@ http_archive(
 # pthreadpool library, used for parallelization
 http_archive(
     name = "pthreadpool",
-    sha256 = "03312bd7d8d9e379d685258963ee8820767158b5946cdd00336ff17dae851001",
-    strip_prefix = "pthreadpool-029c88620802e1361ccf41d1970bd5b07fd6b7bb",
+    sha256 = "8461f6540ae9f777ce20d1c0d1d249e5e61c438744fb390c0c6f91940aa69ea3",
+    strip_prefix = "pthreadpool-545ebe9f225aec6dca49109516fac02e973a3de2",
     urls = [
-        "https://github.com/Maratyszcza/pthreadpool/archive/029c88620802e1361ccf41d1970bd5b07fd6b7bb.zip",
+        "https://github.com/Maratyszcza/pthreadpool/archive/545ebe9f225aec6dca49109516fac02e973a3de2.zip",
     ],
 )
 
@@ -76,10 +76,10 @@ http_archive(
     name = "cpuinfo",
     build_file = "@xnnpack//third_party:cpuinfo.BUILD",
     patches = ["@xnnpack//third_party:cpuinfo.patch"],
-    sha256 = "b1f2ee97e46d8917a66bcb47452fc510d511829556c93b83e06841b9b35261a5",
-    strip_prefix = "cpuinfo-6cecd15784fcb6c5c0aa7311c6248879ce2cb8b2",
+    sha256 = "a7f9a188148a1660149878f737f42783e72f33a4f842f3e362fee2c981613e53",
+    strip_prefix = "cpuinfo-ed8b86a253800bafdb7b25c5c399f91bff9cb1f3",
     urls = [
-        "https://github.com/pytorch/cpuinfo/archive/6cecd15784fcb6c5c0aa7311c6248879ce2cb8b2.zip",
+        "https://github.com/pytorch/cpuinfo/archive/ed8b86a253800bafdb7b25c5c399f91bff9cb1f3.zip",
     ],
 )
 

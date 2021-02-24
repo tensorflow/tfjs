@@ -130,6 +130,9 @@ export class MathBackendWebGL extends KernelBackend {
   private downloadWaitMs = 0;
   private cpuBackend: KernelBackend;
 
+  // record the last manual GL Flush time.
+  private lastGlFlushTime = 0;
+
   // Number of bits of precision of this backend.
   private floatPrecisionValue: 32|16;
 
@@ -892,6 +895,16 @@ export class MathBackendWebGL extends KernelBackend {
       query = this.endTimer(query);
       this.activeTimers.push(
           {name: program.constructor.name, query: this.getQueryTime(query)});
+    }
+
+    const glFlushThreshold = env().get('WEBGL_FLUSH_THRESHOLD');
+    // Manually GL flush requested
+    if (glFlushThreshold > 0) {
+      const time = util.now();
+      if ((time - this.lastGlFlushTime) > glFlushThreshold) {
+        this.gpgpu.gl.flush();
+        this.lastGlFlushTime = time;
+      }
     }
 
     if (!env().getBool('WEBGL_LAZILY_UNPACK') && outData.isPacked &&

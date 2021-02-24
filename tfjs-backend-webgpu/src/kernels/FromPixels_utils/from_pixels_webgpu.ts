@@ -117,8 +117,7 @@ export class FromPixelsProgram implements WebGPUProgram {
       return;
     }
 
-    device.defaultQueue.writeBuffer(
-        this.uniform, 0, new Uint32Array(uniformData));
+    device.queue.writeBuffer(this.uniform, 0, new Uint32Array(uniformData));
 
     this.lastUniformData[0] = uniformData[0];
     this.lastUniformData[1] = uniformData[1];
@@ -133,11 +132,7 @@ export class FromPixelsProgram implements WebGPUProgram {
       }
 
       this.inputTexture = device.createTexture({
-        size: {
-          width: pixelWidth,
-          height: pixelHeight,
-          depth: 1,
-        },
+        size: [pixelWidth, pixelHeight],
         format: 'rgba8unorm',
         usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.STORAGE,
       });

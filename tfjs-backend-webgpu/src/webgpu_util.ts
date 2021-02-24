@@ -82,13 +82,18 @@ export function computeWorkGroupSizeForConv2d(
 }
 
 export function computeWorkGroupSizeForMatMul(
-    dimInner: number, dimBOuter: number): [number, number, number] {
+    dimAOuter: number, dimInner: number,
+    dimBOuter: number): [number, number, number] {
   // These are experimental values. Usually, we need to adjust the work group
   // size based on the input shapes to improve the EU occupancy.
   // 64 (16 x 4) is the default tile size. If one dimension can't be divisible
   // by 64, it means some threads will be idle. To improve the thread
   // utilization, reducing the work group size may be a good way.
-  if (dimInner % 64 === 0 && dimBOuter % 64 === 0) {
+  if (dimAOuter === 1) {
+    return [64, 1, 1];
+  } else if (dimBOuter === 1) {
+    return [1, 64, 1];
+  } else if (dimInner % 64 === 0 && dimBOuter % 64 === 0) {
     return [16, 16, 1];
   } else if (dimInner < 192 && dimBOuter < 192) {
     return [8, 8, 1];
@@ -110,13 +115,6 @@ export function computeWorkPerThreadForConv2d(
   }
   if (dim1 <= 4) {
     return [2, 1, 1];
-  }
-
-  if ((dim1 > dim0) && (dim1 / dim0 >= 2)) {
-    return [2, 4, 1];
-  }
-  if ((dim0 > dim1) && (dim0 / dim1 >= 2)) {
-    return [4, 2, 1];
   }
 
   return [2, 2, 1];
