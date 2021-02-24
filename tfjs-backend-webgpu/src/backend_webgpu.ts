@@ -102,7 +102,7 @@ export class WebGPUBackend extends KernelBackend {
     super();
     this.binaryCache = {};
     this.device = device;
-    this.queue = device.defaultQueue;
+    this.queue = device.queue;
     this.commandQueue = [];
     this.glslang = glslang;
     this.supportTimeQuery = supportTimeQuery;

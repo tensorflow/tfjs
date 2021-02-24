@@ -16,7 +16,8 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-import {computeDispatch, tilesFitEvenlyIntoShape} from '../webgpu_util';
+
+import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -142,6 +143,14 @@ export class MatMulPackedProgram implements WebGPUProgram {
       hasPreluActivationWeights = false) {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
+    const dimInner = transposeA ? aShape[1] : aShape[2];
+    this.workGroupSize =
+        computeWorkGroupSizeForMatMul(outputShape[1], dimInner, outputShape[2]);
+    // TODO: Consider to use a seperate algorithm to optimize it when the output
+    // is a vector.
+    if (outputShape[1] === 1 || outputShape[2] === 1) {
+      workPerThread = 1;
+    }
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [workPerThread, workPerThread, 1]);
