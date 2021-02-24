@@ -1,4 +1,4 @@
-/* Copyright 2019 Google LLC. All Rights Reserved.
+/* Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -11,29 +11,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * ===========================================================================*/
-
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
-
 #include <math.h>
 
-#include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/sin_cos_workaround.h"
-#include "tfjs-backend-wasm/src/cc/unary.h"
 
 namespace tfjs {
-namespace wasm {
-// We use C-style API to interface with Javascript.
-extern "C" {
+namespace sin_cos_workaround {
 
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif
-void Sin(const int x_id, const int out_id) {
-  unary(x_id, out_id, tfjs::sin_cos_workaround::sin_fixed);
+float sin_fixed(float x) {
+  if (isnan(x)) return nan("");
+  auto zero_to_2pi = fmod(fmod(x, 2 * M_PI) + 2 * M_PI, 2 * M_PI);
+
+  if (zero_to_2pi < M_PI_4) {
+    return sin_broken(zero_to_2pi);
+  } else if (zero_to_2pi < M_PI_2) {
+    auto past_pi_4 = zero_to_2pi - M_PI_4;
+    return cos_broken(M_PI_4 - past_pi_4);
+  } else if (zero_to_2pi < M_PI) {
+    auto past_pi_2 = zero_to_2pi - M_PI_2;
+    return sin_fixed(M_PI_2 - past_pi_2);
+  } else {
+    return -sin_fixed(2 * M_PI - zero_to_2pi);
+  }
 }
 
-}  // extern "C"
-}  // namespace wasm
+float cos_fixed(float x) { return sin_fixed(x + M_PI_2); }
+
+}  // namespace sin_cos_workaround
 }  // namespace tfjs

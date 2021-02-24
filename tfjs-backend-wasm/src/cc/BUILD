@@ -131,6 +131,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "sin_cos_workaround",
+    srcs = ["sin_cos_workaround.cc"],
+    hdrs = ["sin_cos_workaround.h"],
+    deps = [
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "clamp_impl",
     srcs = ["clamp_impl.cc"],
     hdrs = ["clamp_impl.h"],
@@ -241,6 +250,7 @@ tfjs_cc_library(
         ":ClipByValue",
         ":Conv2D",
         ":Conv2DBackpropInput",
+        ":Cos",
         ":CropAndResize",
         ":Cumsum",
         ":DepthToSpace",
@@ -283,6 +293,7 @@ tfjs_cc_library(
         ":ScatterNd",
         ":SelectV2",
         ":Sigmoid",
+        ":Sin",
         ":Softmax",
         ":Square",
         ":SquaredDifference",
@@ -427,6 +438,16 @@ tfjs_cc_library(
     srcs = ["kernels/Conv2DBackpropInput.cc"],
     deps = [
         ":backend",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Cos",
+    srcs = ["kernels/Cos.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":sin_cos_workaround",
     ],
 )
 
@@ -905,6 +926,16 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Sin",
+    srcs = ["kernels/Sin.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":sin_cos_workaround",
     ],
 )
 
