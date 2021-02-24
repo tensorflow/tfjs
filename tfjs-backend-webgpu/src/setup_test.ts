@@ -523,9 +523,9 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'stack',
     excludes: [
       'accepts string',
-      'grad of unstack axis=0', // Remove this when grad is fixed in unstack.
-      'gradient with clones',   // Remove this when grad is fixed in unstack.
-      'grad of unstack axis=1', // Remove this when grad is fixed in unstack.
+      'grad of unstack axis=0',  // Remove this when grad is fixed in unstack.
+      'gradient with clones',    // Remove this when grad is fixed in unstack.
+      'grad of unstack axis=1',  // Remove this when grad is fixed in unstack.
     ]
   },
   {
@@ -559,6 +559,16 @@ const TEST_FILTERS: TestFilter[] = [
       '5D',       // rank 5 is not yet supported.
       '6D',       // rank 6 is not yet supported.
       'gradient'  // gradient function not found.
+    ]
+  },
+  {
+    include: 'gather',
+    excludes: [
+      'gatherND',                        // Not yet supported.
+      'bool',                            // Not yet supported.
+      'chaining, axis=1',                // Range not yet supported.
+      'indices not int32 throws error',  // Range not yet supported.
+      'gradient'                         // gradient function not found.
     ]
   }
 ];
