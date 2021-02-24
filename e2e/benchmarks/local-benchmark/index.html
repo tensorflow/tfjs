@@ -129,6 +129,7 @@ limitations under the License.
     let backendsController = null;
     let runButton = null;
     let inputSizeController = null;
+    let inputTypeController = null;
     let modelArchitectureController = null;
 
     function updateGUIFromURLState() {
@@ -203,6 +204,7 @@ limitations under the License.
       backend: 'wasm',
       kernelTiming: 'aggregate',
       inputSize: 0,
+      inputType: '',
       architecture: '',
       modelType: '',
       modelUrl: '',
@@ -261,10 +263,15 @@ limitations under the License.
       appendRow(parameterTable, 'numRuns', state.numRuns);
       appendRow(parameterTable, 'backend', state.backend);
       appendRow(parameterTable, 'kernelTiming', state.kernelTiming);
-      if (isParameterDefined('inputSizes'))
+      if (isParameterDefined('inputSizes')) {
         appendRow(parameterTable, 'inputSize', state.inputSize);
-      if (isParameterDefined('architectures'))
+      }
+      if (isParameterDefined('inputTypes')) {
+        appendRow(parameterTable, 'inputType', state.inputType);
+      }
+      if (isParameterDefined('architectures')) {
         appendRow(parameterTable, 'architecture', state.architecture);
+      }
     }
 
     async function setupKernelTable() {
@@ -409,6 +416,8 @@ limitations under the License.
         state.backend = urlState.get('backend');
       if (urlState.has('inputSize'))
         state.inputSize = Number(urlState.get('inputSize'));
+      if (urlState.has('inputType'))
+        state.inputType = urlState.get('inputType');
       if (urlState.has('architecture'))
         state.architecture = urlState.get('architecture');
     }
@@ -426,7 +435,7 @@ limitations under the License.
       await showMsg('Loading the model');
       let start = performance.now();
       const inputSize = parseFloat(state.inputSize);
-      model = await benchmark.load(inputSize, state.architecture);
+      model = await benchmark.load(inputSize, state.architecture, state.inputType);
       state.inputs = [];
       if (model.inputs) {
         // construct the input state for the model
@@ -644,13 +653,17 @@ limitations under the License.
         const benchmark = benchmarks[state.benchmark];
         state.isModelChanged = true;
         state.isModelLoaded = false;
+        if (modelArchitectureController !== null) {
+          modelParameterFolder.remove(modelArchitectureController);
+          modelArchitectureController = null;
+        }
         if (inputSizeController !== null) {
           modelParameterFolder.remove(inputSizeController);
           inputSizeController = null;
         }
-        if (modelArchitectureController !== null) {
-          modelParameterFolder.remove(modelArchitectureController);
-          modelArchitectureController = null;
+        if (inputTypeController !== null) {
+          modelParameterFolder.remove(inputTypeController);
+          inputTypeController = null;
         }
 
         if (isParameterDefined('inputSizes')) {
@@ -660,10 +673,11 @@ limitations under the License.
           });
           // Current use first value as default.
           let defaultInputSize = 0;
-          if (isURLParameterDefined('inputSize'))
+          if (isURLParameterDefined('inputSize')) {
             defaultInputSize = urlState.get('inputSize');
-          else
+          } else {
             defaultInputSize = benchmark['inputSizes'][0];
+          }
           inputSizeController.setValue(defaultInputSize);
           state.inputSize = defaultInputSize;
         } else {
@@ -689,7 +703,26 @@ limitations under the License.
           // Model doesn't support input size.
           state.architecture = '';
         }
-        if (isParameterDefined('inputSizes') || isParameterDefined('architectures')) {
+
+        if (isParameterDefined('inputTypes')) {
+          inputTypeController = modelParameterFolder.add(state, 'inputType', benchmark['inputTypes']).name('inputTypes').onChange(async inputType => {
+            state.inputType = inputType;
+            state.isModelChanged = true;
+          });
+          // Current use first value as default.
+          let defaultInputType = null;
+          if (isURLParameterDefined('inputType')) {
+            defaultInputType = urlState.get('inputType');
+          } else {
+            defaultInputType = benchmark['inputTypes'][0];
+          }
+          inputTypeController.setValue(defaultInputType);
+          state.inputType = defaultInputType;
+        } else {
+          // Model doesn't support input type.
+          state.inputType = '';
+        }
+        if (isParameterDefined('inputSizes') || isParameterDefined('inputTypes') || isParameterDefined('architectures')) {
           modelParameterFolder.open();
         }
 
@@ -716,12 +749,16 @@ limitations under the License.
       parameterFolder.open();
 
       modelParameterFolder = gui.addFolder('Model Parameters');
-      if (isParameterDefined('inputSizes')) {
-        inputSizeController = modelParameterFolder.add(state, 'inputSize', []);
-      }
       if (isParameterDefined('architectures')) {
         modelArchitectureController = modelParameterFolder.add(state, 'architecture', []);
       }
+      if (isParameterDefined('inputSizes')) {
+        inputSizeController = modelParameterFolder.add(state, 'inputSize', []);
+      }
+      if (isParameterDefined('inputTypes')) {
+        inputTypeController = modelParameterFolder.add(state, 'inputType', []);
+      }
+
       modelParameterFolder.open();
 
       const envFolder = gui.addFolder('Environment');
