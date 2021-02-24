@@ -15,30 +15,10 @@
 #ifndef SIN_COS_WORKAROUND_H_
 #define SIN_COS_WORKAROUND_H_
 
-#include <math.h>
-
-#include "tfjs-backend-wasm/src/cc/util.h"
-
 // Workaround a bug related to sin/cos with emscripten/webkit on iOS 11/12:
 // https://github.com/emscripten-core/emscripten/issues/13130
 namespace tfjs {
 namespace sin_cos_workaround {
-
-inline float sin_broken(float x) {
-  if (x < 0 || x >= M_PI_4) {
-    tfjs::util::warn("broken sin given %f", x);
-    exit(1);
-  }
-  return sin(x);
-}
-
-inline float cos_broken(float x) {
-  if (x < 0 || x >= M_PI_4) {
-    tfjs::util::warn("broken cos given %f", x);
-    exit(1);
-  }
-  return cos(x);
-}
 
 float sin_fixed(float x);
 

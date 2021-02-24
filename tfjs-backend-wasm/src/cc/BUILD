@@ -134,9 +134,6 @@ tfjs_cc_library(
     name = "sin_cos_workaround",
     srcs = ["sin_cos_workaround.cc"],
     hdrs = ["sin_cos_workaround.h"],
-    deps = [
-        ":util",
-    ],
 )
 
 tfjs_cc_library(

@@ -23,10 +23,10 @@ float sin_fixed(float x) {
   auto zero_to_2pi = fmod(fmod(x, 2 * M_PI) + 2 * M_PI, 2 * M_PI);
 
   if (zero_to_2pi < M_PI_4) {
-    return sin_broken(zero_to_2pi);
+    return sin(zero_to_2pi);
   } else if (zero_to_2pi < M_PI_2) {
     auto past_pi_4 = zero_to_2pi - M_PI_4;
-    return cos_broken(M_PI_4 - past_pi_4);
+    return cos(M_PI_4 - past_pi_4);
   } else if (zero_to_2pi < M_PI) {
     auto past_pi_2 = zero_to_2pi - M_PI_2;
     return sin_fixed(M_PI_2 - past_pi_2);

@@ -47,7 +47,7 @@ describeWithFlags('rotateWithOffset', BROWSER_ENVS, () => {
       255
     ];
 
-    expectArraysClose(expected, rotatedPixelsData, 10);
+    expectArraysClose(expected, rotatedPixelsData);
   });
 
   it('should rotate clockwise 90 degrees', async () => {
@@ -77,7 +77,7 @@ describeWithFlags('rotateWithOffset', BROWSER_ENVS, () => {
       255
     ];
 
-    expectArraysClose(expected, rotatedPixelsData, 10);
+    expectArraysClose(expected, rotatedPixelsData);
   });
 
   it('offset center of rotation', async () => {
@@ -109,7 +109,7 @@ describeWithFlags('rotateWithOffset', BROWSER_ENVS, () => {
       0
     ];
 
-    expectArraysClose(expected, rotatedPixelsData, 10);
+    expectArraysClose(expected, rotatedPixelsData);
   });
 
   it('offset center of rotation with white fill', async () => {
@@ -141,6 +141,6 @@ describeWithFlags('rotateWithOffset', BROWSER_ENVS, () => {
       255
     ];
 
-    expectArraysClose(expected, rotatedPixelsData, 10);
+    expectArraysClose(expected, rotatedPixelsData);
   });
 });

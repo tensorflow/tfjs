@@ -46,6 +46,6 @@ describeWithFlags('flipLeftRight', BROWSER_ENVS, () => {
       255
     ];
 
-    expectArraysClose(expected, flippedPixelsData, 10);
+    expectArraysClose(expected, flippedPixelsData);
   });
 });
