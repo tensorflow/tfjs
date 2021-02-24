@@ -564,9 +564,9 @@ describeWithFlags('manual gl flush', WEBGL_ENVS, () => {
     const savedGlThreshold = tf.env().get('WEBGL_FLUSH_THRESHOLD') as number;
     tf.env().set('WEBGL_FLUSH_THRESHOLD', 0);
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-    const b = tf.tensor2d([1, 1, -3, 2, 2, 1], [3, 2]);
+    const b = tf.tensor2d([1, 1, -3, 2, 2, 1], [2, 3]);
 
-    const result = tf.div(tf.div(tf.matMul(a, b), a), b);
+    const result = tf.div(tf.div(tf.mul(a, b), a), b);
     expectArraysClose(await result.data(), [1, 1, 1, 1, 1, 1]);
     tf.env().set('WEBGL_FLUSH_THRESHOLD', savedGlThreshold);
   });
