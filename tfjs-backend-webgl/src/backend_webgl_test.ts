@@ -559,6 +559,18 @@ describeWithFlags('memory webgl', WEBGL_ENVS, () => {
   });
 });
 
+describeWithFlags('manual gl flush', WEBGL_ENVS, () => {
+  it('works when manual gl flush is enabled', async () => {
+    const savedGlThreshold = tf.env().get('WEBGL_FLUSH_THRESHOLD') as number;
+    tf.env().set('WEBGL_FLUSH_THRESHOLD', 0);
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([1, 1, -3, 2, 2, 1], [3, 2]);
+
+    const result = tf.div(tf.div(tf.matMul(a, b), a), b);
+    expectArraysClose(await result.data(), [1, 1, 1, 1, 1, 1]);
+    tf.env().set('WEBGL_FLUSH_THRESHOLD', savedGlThreshold);
+  });
+});
 // We do not yet fully support half float backends. These tests are a starting
 // point.
 describeWithFlags('backend without render float32 support', WEBGL_ENVS, () => {
