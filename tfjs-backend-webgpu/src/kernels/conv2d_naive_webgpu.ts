@@ -18,18 +18,18 @@
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {getShapeCoords} from '../shader_preprocessor';
-import {computeDispatch} from '../webgpu_util';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
 export class Conv2DNaiveProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  dispatchLayout: {x: number[], y: number[], z: number[]};
+  dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
-  workGroupSize: [number, number, number] = [4, 8, 4];
+  workGroupSize: [number, number, number] = [128, 1, 1];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
   activation: string;
@@ -39,7 +39,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
       convInfo: backend_util.Conv2DInfo, addBias = false,
       activation: string = null, hasPreluActivationWeights = false) {
     this.outputShape = convInfo.outShape;
-    this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
