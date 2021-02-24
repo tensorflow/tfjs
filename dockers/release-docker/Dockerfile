@@ -1,5 +1,5 @@
 # Official emsdk docker: https://hub.docker.com/r/emscripten/emsdk
-FROM emscripten/emsdk:1.39.15 AS emscripten_base
+FROM emscripten/emsdk:2.0.14 AS emscripten_base
 
 # Install cloud-sdk
 ARG CLOUD_SDK_VERSION=305.0.0
