@@ -897,13 +897,6 @@ export class MathBackendWebGL extends KernelBackend {
           {name: program.constructor.name, query: this.getQueryTime(query)});
     }
 
-    if (!env().getBool('WEBGL_LAZILY_UNPACK') && outData.isPacked &&
-        preventEagerUnpackingOfOutput === false) {
-      const unpacked = this.unpackTensor(output);
-      this.disposeIntermediateTensorInfo(output);
-      return unpacked;
-    }
-
     const glFlushThreshold = env().get('WEBGL_FLUSH_THRESHOLD');
     // Manually GL flush requested
     if (glFlushThreshold > 0) {
@@ -912,6 +905,13 @@ export class MathBackendWebGL extends KernelBackend {
         this.gpgpu.gl.flush();
         this.lastGlFlushTime = time;
       }
+    }
+
+    if (!env().getBool('WEBGL_LAZILY_UNPACK') && outData.isPacked &&
+        preventEagerUnpackingOfOutput === false) {
+      const unpacked = this.unpackTensor(output);
+      this.disposeIntermediateTensorInfo(output);
+      return unpacked;
     }
     return output;
   }
