@@ -108,6 +108,8 @@ limitations under the License.
     let urlState = null;
     let runTimes = 50;
     let warmupTimes = 1;
+    // Default do not run any task.
+    let task = '';
 
     function getURLState(url) {
       let params = new URLSearchParams(url);
@@ -120,6 +122,9 @@ limitations under the License.
       if (params.has('warmup')) {
         warmupTimes = Number(params.get('warmup'));
       }
+      if (params.has('task')) {
+        task = params.get('task');
+      }
       return params;
     }
     // Controllers can be updated by URI or clicked by user.
@@ -128,6 +133,7 @@ limitations under the License.
     let modelParameterFolder = null;
     let backendsController = null;
     let runButton = null;
+    let correctnessButton = null;
     let inputSizeController = null;
     let inputTypeController = null;
     let modelArchitectureController = null;
@@ -143,8 +149,12 @@ limitations under the License.
       if (backendsController != null && urlState.has('backend'))
         backendsController.setValue(urlState.get('backend'));
       // Only auto run when URI component exists.
-      if (runButton != null)
+      if (correctnessButton != null && task == 'correctness') {
+        correctnessButton.domElement.click();
+      }
+      if (runButton != null && task == 'performance') {
         runButton.domElement.click();
+      }
     }
 
     const state = {
@@ -772,7 +782,8 @@ limitations under the License.
 
       runButton = gui.add(state, 'run');
       runButton.name('Run benchmark');
-      gui.add(state, 'testCorrectness').name('Test correctness');
+      correctnessButton = gui.add(state, 'testCorrectness');
+      correctnessButton.name('Test correctness');
 
       await showFlagSettings(envFolder, state.backend);
       showVersions();
