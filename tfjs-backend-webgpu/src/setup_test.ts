@@ -469,6 +469,13 @@ const TEST_FILTERS: TestFilter[] = [
       'gradients: Tensor1D',
       'gradients: Tensor2D',
     ]
+  },
+  {
+    include: 'stack',
+    excludes: [
+      'accepts string',
+      'unstack',
+    ]
   }
 ];
 
