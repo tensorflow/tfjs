@@ -443,8 +443,8 @@ tfjs_cc_library(
     srcs = ["kernels/Cos.cc"],
     deps = [
         ":backend",
-        ":unary",
         ":sin_cos_workaround",
+        ":unary",
     ],
 )
 
@@ -931,8 +931,8 @@ tfjs_cc_library(
     srcs = ["kernels/Sin.cc"],
     deps = [
         ":backend",
-        ":unary",
         ":sin_cos_workaround",
+        ":unary",
     ],
 )
 
