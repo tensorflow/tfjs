@@ -440,6 +440,30 @@ const TEST_FILTERS: TestFilter[] = [
       'MEAN',
       'Weighted - Reduction.SUM_BY_NONZERO_WEIGHTS',
     ]
+  },
+  {
+    include: 'minimum',
+    excludes: [
+      'bool and bool',
+      'propagates NaN',  // NaN is not supported in WebGPU:
+                         // https://github.com/tensorflow/tfjs/issues/4734.
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
+  {
+    include: 'maximum',
+    excludes: [
+      'bool and bool',
+      'propagates NaN',  // NaN is not supported in WebGPU:
+                         // https://github.com/tensorflow/tfjs/issues/4734.
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
   }
 ];
 
