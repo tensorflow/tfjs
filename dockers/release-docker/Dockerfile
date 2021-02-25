@@ -9,6 +9,8 @@ ENV PATH "$PATH:/opt/google-cloud-sdk/bin/"
 RUN apt-get update -qqy && apt-get install -qqy \
         curl \
         gcc \
+        python \
+        python3 \
         python3-setuptools \
         python3-dev \
         python3-pip \
