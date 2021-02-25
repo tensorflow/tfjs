@@ -82,7 +82,6 @@ TFJS_NODE_CDN_STORAGE="https://yourmirrorofchoice.com/" yarn install <package>
 
 ```
 TFJS_NODE_CDN_STORAGE=https://yourmirrorofchoice.com/
-
 ```
 
 3. Set the environment variable `CDN_STORAGE`. This option is deprecated in favor of the `TFJS_NODE_` prefix version above and will be removed in a future release.
