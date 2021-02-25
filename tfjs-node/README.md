@@ -70,27 +70,27 @@ $ npm rebuild @tensorflow/tfjs-node --build-from-source
 
 If you happen to be using a mirror for the libtensorflow binaries (default is [https://storage.googleapis.com/]), you have 3 options (in order of priority):
 
-1. Set the environment variable `CDN_STORAGE`
+1. Set the environment variable `TFJS_NODE_CDN_STORAGE`. This has the same behavior as `CDN_STORAGE`, but introduced to prevent collisions with other npm packages that might use `CDN_STORAGE`.
 
 ```sh
-CDN_STORAGE="https://yourmirrorofchoice.com" npm install <package>
+TFJS_NODE_CDN_STORAGE="https://yourmirrorofchoice.com/" npm install <package>
 (or)
-CDN_STORAGE="https://yourmirrorofchoice.com" yarn install <package>
+TFJS_NODE_CDN_STORAGE="https://yourmirrorofchoice.com/" yarn install <package>
 ```
 
-2. Set the environment variable `TFJS_NODE_CDN_STORAGE`. This has the same behavior as `CDN_STORAGE`, but introduced to prevent collisions with other npm packages that might use `CDN_STORAGE`.
+2. Add the variable `TFJS_NODE_CDN_STORAGE` to your `.npmrc` file.
+
+```
+TFJS_NODE_CDN_STORAGE=https://yourmirrorofchoice.com/
+
+```
+
+3. Set the environment variable `CDN_STORAGE`. This option is deprecated in favor of the `TFJS_NODE_` prefix version above and will be removed in a future release.
 
 ```sh
-TFJS_NODE_CDN_STORAGE="https://yourmirrorofchoice.com" npm install <package>
+CDN_STORAGE="https://yourmirrorofchoice.com/" npm install <package>
 (or)
-TFJS_NODE_CDN_STORAGE="https://yourmirrorofchoice.com" yarn install <package>
-```
-
-3. Add the variable `TFJS_NODE_CDN_STORAGE` to your `.npmrc` file
-
-```
-TFJS_NODE_CDN_STORAGE=https://yourmirrorofchoice.com
-
+CDN_STORAGE="https://yourmirrorofchoice.com/" yarn install <package>
 ```
 
 If your "mirror" uses a custom URI path that doesn't match the default, you have 2 options (in order of priority):

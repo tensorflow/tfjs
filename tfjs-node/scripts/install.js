@@ -42,8 +42,8 @@ const mkdir = util.promisify(fs.mkdir);
 const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
 
-const CDN_STORAGE = process.env.CDN_STORAGE
-    || process.env.TFJS_NODE_CDN_STORAGE || process.env.npm_config_TFJS_NODE_CDN_STORAGE;
+const CDN_STORAGE = process.env.TFJS_NODE_CDN_STORAGE || process.env.npm_config_TFJS_NODE_CDN_STORAGE
+    || process.env.CDN_STORAGE;
 const BASE_HOST = CDN_STORAGE || 'https://storage.googleapis.com/';
 const BASE_URI = process.env.TFJS_NODE_BASE_URI || process.env.npm_config_TFJS_NODE_BASE_URI
     || `${BASE_HOST}tensorflow/libtensorflow/libtensorflow-`;
