@@ -50,7 +50,7 @@
     "build-converter-ci": "cd ../tfjs-converter && yarn && yarn build-ci",
     "build-backend-cpu": "cd ../tfjs-backend-cpu && yarn && yarn build",
     "build-backend-cpu-ci": "cd ../tfjs-backend-cpu && yarn && yarn build-ci",
-    "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build",
+    "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build-npm",
     "build-backend-webgl-ci": "cd ../tfjs-backend-webgl && yarn && yarn build-ci",
     "build-backend-wasm": "cd ../tfjs-backend-wasm && yarn && yarn build",
     "build-backend-wasm-ci": "cd ../tfjs-backend-wasm && yarn && yarn build-ci",
