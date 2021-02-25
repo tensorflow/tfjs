@@ -66,6 +66,48 @@ To use this package on Raspberry Pi, you need to rebuild the node native addon w
 $ npm rebuild @tensorflow/tfjs-node --build-from-source
 ```
 
+#### Custom binaries URI
+
+If you happen to be using a mirror for the libtensorflow binaries (default is [https://storage.googleapis.com/]), you have 3 options (in order of priority):
+
+1. Set the environment variable `TFJS_NODE_CDN_STORAGE`. This has the same behavior as `CDN_STORAGE`, but introduced to prevent collisions with other npm packages that might use `CDN_STORAGE`.
+
+```sh
+TFJS_NODE_CDN_STORAGE="https://yourmirrorofchoice.com/" npm install <package>
+(or)
+TFJS_NODE_CDN_STORAGE="https://yourmirrorofchoice.com/" yarn install <package>
+```
+
+2. Add the variable `TFJS_NODE_CDN_STORAGE` to your `.npmrc` file.
+
+```
+TFJS_NODE_CDN_STORAGE=https://yourmirrorofchoice.com/
+```
+
+3. Set the environment variable `CDN_STORAGE`. This option is deprecated in favor of the `TFJS_NODE_` prefix version above and will be removed in a future release.
+
+```sh
+CDN_STORAGE="https://yourmirrorofchoice.com/" npm install <package>
+(or)
+CDN_STORAGE="https://yourmirrorofchoice.com/" yarn install <package>
+```
+
+If your "mirror" uses a custom URI path that doesn't match the default, you have 2 options (in order of priority):
+
+1. Set the environment variable `TFJS_NODE_BASE_URI`
+
+```sh
+TFJS_NODE_BASE_URI="https://yourhost.com/your/path/libtensorflow-" npm install <package>
+(or)
+TFJS_NODE_BASE_URI="https://yourhost.com/your/path/libtensorflow-" yarn install <package>
+```
+
+2. Add the variable `TFJS_NODE_BASE_URI` to your `.npmrc` file
+
+```
+TFJS_NODE_BASE_URI=https://yourhost.com/your/path/libtensorflow-
+```
+
 ## Using the binding
 
 Before executing any TensorFlow.js code, import the node package:
