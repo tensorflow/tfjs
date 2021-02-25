@@ -282,6 +282,10 @@ describeWithFlags('fromPixelsAsync, |WRAP_TO_IMAGEBITMAP| true',
       tf.env().set('WRAP_TO_IMAGEBITMAP', true);
   });
 
+  afterAll(() => {
+    tf.env().set('WRAP_TO_IMAGEBITMAP', false);
+  });
+
   it('fromPixelsAsync for HTMLCanvasElement ', async () => {
     const canvas = document.createElement('canvas');
     canvas.width = 1;
@@ -364,9 +368,5 @@ describeWithFlags('fromPixelsAsync, |WRAP_TO_IMAGEBITMAP| true',
     const pixelsData = await pixels.data();
 
     expectArraysClose(pixelsData, actualInt32, 10);
-  });
-
-  afterAll(() => {
-    tf.env().set('WRAP_TO_IMAGEBITMAP', false);
   });
 });
