@@ -18,6 +18,7 @@
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
+import {terser} from 'rollup-plugin-terser';
 import visualizer from 'rollup-plugin-visualizer';
 import {getBrowserBundleConfigOptions} from '../rollup.config.helpers';
 
@@ -98,6 +99,7 @@ module.exports = cmdOptions => {
 
   const name = 'tf';
   const extend = true;
+  const browserFormat = 'umd';
   const fileName = 'tf-backend-webgl';
 
   // Node
@@ -111,6 +113,28 @@ module.exports = cmdOptions => {
     },
     tsCompilerOptions: {target: 'es5'},
     external: ['@tensorflow/tfjs-backend-cpu']
+  }));
+
+  // Browser default unminified
+  bundles.push(config({
+    output: {
+      format: browserFormat,
+      name,
+      extend,
+      file: `dist/${fileName}.js`,
+    }
+  }));
+
+  // Browser default minified
+  bundles.push(config({
+    plugins: [terser({output: {preamble: PREAMBLE}})],
+    output: {
+      format: browserFormat,
+      name,
+      extend,
+      file: `dist/${fileName}.min.js`,
+    },
+    visualize: cmdOptions.visualize
   }));
 
   if (cmdOptions.ci) {
