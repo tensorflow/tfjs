@@ -36,7 +36,6 @@ import {expandDimsConfig} from './kernels/ExpandDims';
 import {fillConfig} from './kernels/Fill';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {fromPixelsConfig} from './kernels/FromPixels';
-import {fromPixelsAsyncConfig} from './kernels/FromPixelsAsync';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
@@ -98,7 +97,6 @@ const kernelConfigs: KernelConfig[] = [
   expandDimsConfig,
   expConfig,
   fillConfig,
-  fromPixelsAsyncConfig,
   fromPixelsConfig,
   floorDivConfig,
   fusedBatchNormConfig,
