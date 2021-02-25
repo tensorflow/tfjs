@@ -102,18 +102,12 @@ export function getBinaryOpString(
       // TODO (xing.xu@intel.com): Currently, NaN is not supported in WebGPU
       // backend.
       // https://github.com/tensorflow/tfjs/issues/4734
-      return useVec4 ? `
-      return vec4(max(a, b));
-    ` :
-                       `return max(a, b);`;
+      return `return max(a, b);`;
     case BinaryOpType.MIN:
       // TODO (xing.xu@intel.com): Currently, NaN is not supported in WebGPU
       // backend.
       // https://github.com/tensorflow/tfjs/issues/4734
-      return useVec4 ? `
-      return vec4(min(a, b));
-    ` :
-                       ` return min(a, b); `;
+      return `return min(a, b);`;
     default:
       throw new Error(`BinaryType ${type} is not implemented!`);
   }
