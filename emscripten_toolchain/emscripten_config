@@ -1,0 +1,12 @@
+import os
+import platform
+
+ROOT_DIR = os.environ["ROOT_DIR"]
+EMSCRIPTEN_ROOT = os.environ["EMSCRIPTEN"]
+LLVM_ROOT = ROOT_DIR + "/external/emscripten/bin"
+BINARYEN_ROOT = ROOT_DIR + "/external/emscripten"
+FROZEN_CACHE = True
+
+system = platform.system()
+nodejs_binary = "node.exe" if(system =="Windows") else "bin/node"
+NODE_JS = ROOT_DIR + "/external/nodejs_{}_amd64/{}".format(system.lower(), nodejs_binary)

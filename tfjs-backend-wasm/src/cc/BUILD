@@ -1,4 +1,5 @@
 load(":build_defs.bzl", "tfjs_cc_library", "tfjs_unit_test")
+load("//emscripten_toolchain:wasm_rules.bzl", "wasm_cc_binary")
 
 # Emcripten produces a much larger wasm bundle unless the cc_binary has srcs
 # explicitly pointing to files with exported methods (EMSCRIPTEN_KEEPALIVE).
@@ -34,6 +35,23 @@ cc_binary(
         ":all_kernels",
         ":backend",
     ],
+)
+
+wasm_cc_binary(
+    name = "tfjs-backend-wasm-new",
+    cc_target = ":tfjs-backend-wasm.js",
+)
+
+
+# REMOVE THIS
+cc_binary(
+    name = "hello_world",
+    srcs = ["hello_world.cc"],
+)
+
+wasm_cc_binary(
+    name = "hello_world_wasm",
+    cc_target = ":hello_world",
 )
 
 # This build rule generates tfjs-backend-wasm-simd.{js,wasm}.

@@ -17,6 +17,26 @@ yarn_install(
 load("//toolchain:cc_toolchain_config.bzl", "emsdk_configure")
 emsdk_configure(name = "emsdk")
 
+# npm_install used for emscripten dependencies
+load("@build_bazel_rules_nodejs//:index.bzl", "npm_install")
+
+# emscripten 2.0.14
+http_archive(
+    name = "emscripten",
+    sha256 = "e466cd47ddd4bf0acd645412fdf08eda6d232484e48e5a2643e08062a7a4cf56",
+    strip_prefix = "install",
+    url = "https://storage.googleapis.com/webassembly/emscripten-releases-builds/linux/fc5562126762ab26c4757147a3b4c24e85a7289e/wasm-binaries.tbz2",
+    build_file = "//emscripten_toolchain:emscripten.BUILD",
+    type = "tar.bz2",
+)
+
+# Install emscripten dependencies
+npm_install(
+    name = "emsdk_npm",
+    package_json = "@emscripten//:emscripten/package.json",
+    package_lock_json = "@emscripten//:emscripten/package-lock.json",
+)
+
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 # xnnpack used for fast vectorized wasm operations
 git_repository(

@@ -25,3 +25,8 @@ build:wasm --cxxopt="-fomit-frame-pointer"
 # Disable sandbox environment because emsdk caches files by writing to
 # home directory.
 build:wasm --spawn_strategy=local
+
+
+build:wasm_new --crosstool_top=//emscripten_toolchain:everything
+build:wasm_new --cpu=wasm
+build:wasm_new --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
