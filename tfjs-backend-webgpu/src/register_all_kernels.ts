@@ -47,6 +47,7 @@ import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
+import {minimumConfig} from './kernels/Minimum';
 import {maxPoolConfig} from './kernels/MaxPool';
 import {minConfig} from './kernels/Min';
 import {mirrorPadConfig} from './kernels/MirrorPad';
@@ -109,6 +110,7 @@ const kernelConfigs: KernelConfig[] = [
   logConfig,
   maxConfig,
   maximumConfig,
+  minimumConfig,
   maxPoolConfig,
   minConfig,
   mirrorPadConfig,

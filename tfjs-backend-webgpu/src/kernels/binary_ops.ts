@@ -33,7 +33,8 @@ export enum BinaryOpType {
   SQUARED_DIFFERENCE,
   INT_DIV,
   PRELU,
-  MAX
+  MAX,
+  MIN
 }
 
 export function getBinaryOpString(
@@ -98,26 +99,15 @@ export function getBinaryOpString(
     ` :
                        'return (a < 0.) ? b * a : a;';
     case BinaryOpType.MAX:
-      const CHECK_NAN_SNIPPET = useVec4 ? `
-        result.r = isNaN.r > 0. ? NAN : result.r;
-        result.g = isNaN.g > 0. ? NAN : result.g;
-        result.b = isNaN.b > 0. ? NAN : result.b;
-        result.a = isNaN.a > 0. ? NAN : result.a;
-      ` :
-                                          `
-        if (isnan(a)) return a;
-        if (isnan(b)) return b;
-      `;
-      return useVec4 ? `
-      vec4 result = vec4(max(a, b));
-      vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
-      ` + CHECK_NAN_SNIPPET +
-              `
-      return result;
-    ` :
-                       CHECK_NAN_SNIPPET + `
-      return max(a, b);
-    `;
+      // TODO (xing.xu@intel.com): Currently, NaN is not supported in WebGPU
+      // backend.
+      // https://github.com/tensorflow/tfjs/issues/4734
+      return `return max(a, b);`;
+    case BinaryOpType.MIN:
+      // TODO (xing.xu@intel.com): Currently, NaN is not supported in WebGPU
+      // backend.
+      // https://github.com/tensorflow/tfjs/issues/4734
+      return `return min(a, b);`;
     default:
       throw new Error(`BinaryType ${type} is not implemented!`);
   }
