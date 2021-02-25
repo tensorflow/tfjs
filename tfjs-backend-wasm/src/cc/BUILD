@@ -54,6 +54,18 @@ wasm_cc_binary(
     cc_target = ":hello_world",
 )
 
+cc_binary(
+    name = "hello_world_xnnpack",
+    srcs = ["hello_world_xnnpack.cc"],
+    deps = [":backend"]
+)
+
+wasm_cc_binary(
+    name = "hello_world_xnnpack_wasm",
+    cc_target = ":hello_world_xnnpack",
+)
+
+
 # This build rule generates tfjs-backend-wasm-simd.{js,wasm}.
 #
 # We only need the .wasm file, not the .js file, because it will be loadsed by
