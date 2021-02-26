@@ -148,14 +148,14 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'fromPixels',
     excludes: [
       'HTMLVideoElement',  // Failed to execute 'getImageData' on
-                          // 'CanvasRenderingContext2D': The source width is 0
+                           // 'CanvasRenderingContext2D': The source width is 0
     ]
   },
   {
     include: 'fromPixelsAsync',
     excludes: [
       'HTMLVideoElement',  // Failed to execute 'getImageData' on
-                          // 'CanvasRenderingContext2D': The source width is 0
+                           // 'CanvasRenderingContext2D': The source width is 0
     ]
   },
   {
@@ -215,7 +215,43 @@ const TEST_FILTERS: TestFilter[] = [
       'halfPixelCenters',  // Not yet implemented.
     ]
   },
+  {
+    include: 'ceil',
+    excludes: [
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
+  {
+    include: 'floor ',
+    excludes: [
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
   {include: 'floor divide ', excludes: []},
+  {
+    include: 'rsqrt',
+    excludes: [
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
+  {
+    include: 'expm1',
+    excludes: [
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
   {
     include: 'fused',
     excludes: [
