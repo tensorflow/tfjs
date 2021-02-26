@@ -298,40 +298,9 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
               simdSupported as boolean, threadsSupported as boolean,
               wasmPathPrefix != null ? wasmPathPrefix : ''));
     }
-    let wasm: BackendWasmModule;
-    // If `wasmPath` has been defined we must initialize the vanilla module.
-    if (threadsSupported && simdSupported && wasmPath == null) {
-      wasm = wasmFactoryThreadedSimd(factoryConfig);
-      wasm.mainScriptUrlOrBlob = new Blob(
-          [`var WasmBackendModuleThreadedSimd = ` +
-           wasmFactoryThreadedSimd.toString()],
-          {type: 'text/javascript'});
-    } else {
-      // The wasmFactory works for both vanilla and SIMD binaries.
-      wasm = wasmFactory(factoryConfig);
-    }
 
-    const voidReturnType: string = null;
-    // Using the tfjs namespace to avoid conflict with emscripten's API.
-    wasm.tfjs = {
-      init: wasm.cwrap('init', null, []),
-      registerTensor: wasm.cwrap(
-          'register_tensor', null,
-          [
-            'number',  // id
-            'number',  // size
-            'number',  // memoryOffset
-          ]),
-      disposeData: wasm.cwrap('dispose_data', voidReturnType, ['number']),
-      dispose: wasm.cwrap('dispose', voidReturnType, []),
-    };
     let initialized = false;
-    wasm.onRuntimeInitialized = () => {
-      initialized = true;
-      initAborted = false;
-      resolve({wasm});
-    };
-    wasm.onAbort = () => {
+    factoryConfig.onAbort = () => {
       if (initialized) {
         // Emscripten already called console.warn so no need to double log.
         return;
@@ -347,6 +316,43 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
           'bundled js file. For more details see https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-wasm/README.md#using-bundlers';
       reject({message: rejectMsg});
     };
+
+    let wasm: Promise<BackendWasmModule>;
+    // If `wasmPath` has been defined we must initialize the vanilla module.
+    if (threadsSupported && simdSupported && wasmPath == null) {
+      factoryConfig.mainScriptUrlOrBlob = new Blob(
+          [`var WasmBackendModuleThreadedSimd = ` +
+           wasmFactoryThreadedSimd.toString()],
+          {type: 'text/javascript'});
+      wasm = wasmFactoryThreadedSimd(factoryConfig);
+    } else {
+      // The wasmFactory works for both vanilla and SIMD binaries.
+      wasm = wasmFactory(factoryConfig);
+    }
+
+    // The WASM module has been successfully created by the factory.
+    // Any error will be caught by the onAbort callback defined above.
+    wasm.then((module) => {
+      initialized = true;
+      initAborted = false;
+
+      const voidReturnType: string = null;
+      // Using the tfjs namespace to avoid conflict with emscripten's API.
+      module.tfjs = {
+        init: module.cwrap('init', null, []),
+        registerTensor: module.cwrap(
+            'register_tensor', null,
+            [
+              'number',  // id
+              'number',  // size
+              'number',  // memoryOffset
+            ]),
+        disposeData: module.cwrap('dispose_data', voidReturnType, ['number']),
+        dispose: module.cwrap('dispose', voidReturnType, []),
+      };
+
+      resolve({wasm: module});
+    });
   });
 }
 

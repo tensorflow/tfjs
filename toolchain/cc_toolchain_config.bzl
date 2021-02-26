@@ -80,22 +80,25 @@ def _impl(ctx):
                 flag_groups = [
                     flag_group(
                         flags = [
+                            # The clang compiler comes with a definition of
+                            # max_align_t struct in $emsdk/upstream/lib/clang/13.0.0/include/__stddef_max_align_t.h.
+                            # It conflicts with the one defined in
+                            # $emsdk/upstream/emscripten/cache/sysroot/include/bits/alltypes.h.
+                            # We need both include paths to make things work.
+                            #
+                            # To workaround this, we are defining the following
+                            # symbol through compiler flag so that the max_align_t
+                            # defined in clang's header file will be skipped.
+                            "-D",
+                            "__CLANG_MAX_ALIGN_T_DEFINED",
+                            # We are using emscripten 2.0.14 for this build. It
+                            # comes with clang 13.0.0. Future emscripten release
+                            # might change the clang version number below.
+                            #
+                            # Also need to change the version number in
+                            # cxx_cxx_builtin_include_directories below.
                             "-isystem",
-                            "external/emsdk/emsdk/upstream/emscripten/system/include/libcxx",
-                            "-isystem",
-                            "external/emsdk/emsdk/upstream/emscripten/system/lib/libcxxabi/include",
-                            "-isystem",
-                            "external/emsdk/emsdk/upstream/emscripten/system/include/compat",
-                            "-isystem",
-                            "external/emsdk/emsdk/upstream/emscripten/system/include",
-                            "-isystem",
-                            "external/emsdk/emsdk/upstream/emscripten/system/include/libc",
-                            "-isystem",
-                            "external/emsdk/emsdk/upstream/emscripten/system/lib/libc/musl/arch/emscripten",
-                            "-isystem",
-                            "external/emsdk/emsdk/upstream/emscripten/system/local/include",
-                            "-isystem",
-                            "external/emsdk/emsdk/upstream/lib/clang/11.0.0/include",
+                            "external/emsdk/emsdk/upstream/lib/clang/13.0.0/include",
                         ],
                     ),
                 ],
@@ -152,18 +155,35 @@ def _impl(ctx):
         ),
     ]
 
+    cxx_builtin_include_directories = [
+        "external/emsdk/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1",
+        "external/emsdk/emsdk/upstream/emscripten/cache/sysroot/include/compat",
+        "external/emsdk/emsdk/upstream/emscripten/cache/sysroot/include",
+        # We are using emscripten 2.0.14 for this build. It comes with clang
+        # 13.0.0. Future emscripten release might change the clang version
+        # number below.
+        #
+        # Also need to change the version number in
+        # toolchain_include_directories_feature above.
+        "external/emsdk/emsdk/upstream/lib/clang/13.0.0/include",
+    ]
+
+    builtin_sysroot = "external/emsdk/emsdk/upstream/emscripten/cache/sysroot"
+
     return cc_common.create_cc_toolchain_config_info(
         ctx = ctx,
         toolchain_identifier = "wasm-toolchain",
         host_system_name = "i686-unknown-linux-gnu",
         target_system_name = "wasm-unknown-emscripten",
         target_cpu = "wasm",
-        target_libc = "unknown",
+        target_libc = "musl/js",
         compiler = "emscripten",
-        abi_version = "unknown",
-        abi_libc_version = "unknown",
+        abi_version = "emscripten_syscalls",
+        abi_libc_version = "default",
         tool_paths = tool_paths,
         features = features,
+        builtin_sysroot = builtin_sysroot,
+        cxx_builtin_include_directories = cxx_builtin_include_directories,
     )
 
 cc_toolchain_config = rule(

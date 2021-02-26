@@ -147,10 +147,15 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'fromPixels',
     excludes: [
-      'HTMLVideolement',  // Failed to execute 'getImageData' on
+      'HTMLVideoElement',  // Failed to execute 'getImageData' on
                           // 'CanvasRenderingContext2D': The source width is 0
-      'fromPixelsAsync',  // Remove it once it's supported in tfjs-core. Now all
-      // cases fail due to the return type is tensorInfo not a tensor.
+    ]
+  },
+  {
+    include: 'fromPixelsAsync',
+    excludes: [
+      'HTMLVideoElement',  // Failed to execute 'getImageData' on
+                          // 'CanvasRenderingContext2D': The source width is 0
     ]
   },
   {
@@ -439,6 +444,37 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient',
       'MEAN',
       'Weighted - Reduction.SUM_BY_NONZERO_WEIGHTS',
+    ]
+  },
+  {
+    include: 'minimum',
+    excludes: [
+      'bool and bool',
+      'propagates NaN',  // NaN is not supported in WebGPU:
+                         // https://github.com/tensorflow/tfjs/issues/4734.
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
+  {
+    include: 'maximum',
+    excludes: [
+      'bool and bool',
+      'propagates NaN',  // NaN is not supported in WebGPU:
+                         // https://github.com/tensorflow/tfjs/issues/4734.
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
+  {
+    include: 'stack',
+    excludes: [
+      'accepts string',
+      'unstack',
     ]
   }
 ];

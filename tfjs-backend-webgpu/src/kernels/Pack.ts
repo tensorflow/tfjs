@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,13 +16,13 @@
  */
 
 import {KernelConfig, KernelFunc, Pack, PackAttrs, PackInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
-import {BackendWasm} from '../backend_wasm';
 
+import {WebGPUBackend} from '../backend_webgpu';
 import {concat} from './Concat';
 import {expandDims} from './ExpandDims';
 
 export function pack(
-    args: {inputs: PackInputs, backend: BackendWasm, attrs: PackAttrs}):
+    args: {inputs: PackInputs, backend: WebGPUBackend, attrs: PackAttrs}):
     TensorInfo {
   const {inputs, backend, attrs} = args;
   const {axis} = attrs;
@@ -54,13 +54,13 @@ export function pack(
 
   const result = concat({inputs: expandedTensors, backend, attrs: {axis}});
 
-  intermediateTensorInfos.forEach(t => backend.disposeData(t.dataId));
+  intermediateTensorInfos.forEach(t => backend.disposeData(t));
 
   return result;
 }
 
 export const packConfig: KernelConfig = {
   kernelName: Pack,
-  backendName: 'wasm',
+  backendName: 'webgpu',
   kernelFunc: pack as {} as KernelFunc
 };
