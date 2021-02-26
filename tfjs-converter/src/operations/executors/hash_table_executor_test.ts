@@ -456,5 +456,141 @@ describe('hash_table', () => {
         expect(validateParam(node, hashTable.json)).toBeTruthy();
       });
     });
+    describe('LookupTableSize', () => {
+      it('should return 0 if the hashtable is empty.', async () => {
+        const hashTable = new HashTable('string', 'float32');
+        resourceManager.addHashTable('hashtablesize', hashTable);
+        const importNode: Node = {
+          name: 'importv2',
+          op: 'LookupTableImportV2',
+          category: 'hash_table',
+          inputNames: ['hashtablesize', 'keys', 'values'],
+          inputs: [],
+          inputParams: {
+            tableHandle: createTensorAttr(0),
+            keys: createTensorAttr(1),
+            values: createTensorAttr(2)
+          },
+          attrParams: {},
+          children: []
+        };
+        // Import empty tensors
+        const keys = [tfOps.tensor1d([], 'string')];
+        const values = [tfOps.tensor1d([])];
+        (await executeOp(importNode, {keys, values}, context, resourceManager));
+
+        node.op = 'LookupTableSize';
+        node.inputParams['tableHandle'] = createTensorAttr(0);
+        node.inputNames = ['hashtablesize'];
+        const before = memory().numTensors;
+        const result = await executeOp(node, {}, context, resourceManager);
+        const after = memory().numTensors;
+        const size = await result[0].data();
+
+        expect(size[0]).toEqual(0);
+        expect(after).toBe(before + 1);
+      });
+      it('should return the number of elements in the hashtable.', async () => {
+        const hashTable = new HashTable('string', 'float32');
+        resourceManager.addHashTable('hashtablesize', hashTable);
+        const importNode: Node = {
+          name: 'importv2',
+          op: 'LookupTableImportV2',
+          category: 'hash_table',
+          inputNames: ['hashtablesize', 'keys', 'values'],
+          inputs: [],
+          inputParams: {
+            tableHandle: createTensorAttr(0),
+            keys: createTensorAttr(1),
+            values: createTensorAttr(2)
+          },
+          attrParams: {},
+          children: []
+        };
+        // Import tensors with 2 elements
+        const keys = [tfOps.tensor1d(['a', 'b'], 'string')];
+        const values = [tfOps.tensor1d([5.5, 10])];
+        (await executeOp(importNode, {keys, values}, context, resourceManager));
+
+        node.op = 'LookupTableSize';
+        node.inputParams['tableHandle'] = createTensorAttr(0);
+        node.inputNames = ['hashtablesize'];
+        const before = memory().numTensors;
+        const result = await executeOp(node, {}, context, resourceManager);
+        const after = memory().numTensors;
+        const size = await result[0].data();
+
+        expect(size[0]).toEqual(2);
+        expect(after).toBe(before + 1);
+      });
+    });
+    describe('LookupTableSizeV2', () => {
+      it('should return 0 if the hashtable is empty.', async () => {
+        const hashTable = new HashTable('string', 'float32');
+        resourceManager.addHashTable('hashtablesize', hashTable);
+        const importNode: Node = {
+          name: 'importv2',
+          op: 'LookupTableImportV2',
+          category: 'hash_table',
+          inputNames: ['hashtablesize', 'keys', 'values'],
+          inputs: [],
+          inputParams: {
+            tableHandle: createTensorAttr(0),
+            keys: createTensorAttr(1),
+            values: createTensorAttr(2)
+          },
+          attrParams: {},
+          children: []
+        };
+        // Import empty tensors
+        const keys = [tfOps.tensor1d([], 'string')];
+        const values = [tfOps.tensor1d([])];
+        (await executeOp(importNode, {keys, values}, context, resourceManager));
+
+        node.op = 'LookupTableSizeV2';
+        node.inputParams['tableHandle'] = createTensorAttr(0);
+        node.inputNames = ['hashtablesize'];
+        const before = memory().numTensors;
+        const result = await executeOp(node, {}, context, resourceManager);
+        const after = memory().numTensors;
+        const size = await result[0].data();
+
+        expect(size[0]).toEqual(0);
+        expect(after).toBe(before + 1);
+      });
+      it('should return the number of elements in the hashtable.', async () => {
+        const hashTable = new HashTable('string', 'float32');
+        resourceManager.addHashTable('hashtablesize', hashTable);
+        const importNode: Node = {
+          name: 'importv2',
+          op: 'LookupTableImportV2',
+          category: 'hash_table',
+          inputNames: ['hashtablesize', 'keys', 'values'],
+          inputs: [],
+          inputParams: {
+            tableHandle: createTensorAttr(0),
+            keys: createTensorAttr(1),
+            values: createTensorAttr(2)
+          },
+          attrParams: {},
+          children: []
+        };
+        // Import tensors with 2 elements
+        const keys = [tfOps.tensor1d(['a', 'b'], 'string')];
+        const values = [tfOps.tensor1d([5.5, 10])];
+        (await executeOp(importNode, {keys, values}, context, resourceManager));
+
+        node.op = 'LookupTableSizeV2';
+        node.inputParams['tableHandle'] = createTensorAttr(0);
+        node.inputNames = ['hashtablesize'];
+        const before = memory().numTensors;
+        const result = await executeOp(node, {}, context, resourceManager);
+        const after = memory().numTensors;
+        const size = await result[0].data();
+
+        expect(size[0]).toEqual(2);
+        expect(after).toBe(before + 1);
+      });
+    });
   });
 });

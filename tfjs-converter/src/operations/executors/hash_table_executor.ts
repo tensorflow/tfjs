@@ -16,6 +16,8 @@
  */
 
 import {DataType, Tensor} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
@@ -64,6 +66,15 @@ export const executeOp: InternalOpAsyncExecutor = async(
 
       const hashTable = resourceManager.getHashTableById(handle.id);
       return [await hashTable.find(keys, defaultValue)];
+    }
+    case 'LookupTableSize':
+    case 'LookupTableSizeV2': {
+      const handle = getParamValue(
+                         'tableHandle', node, tensorMap, context,
+                         resourceManager) as Tensor;
+
+      const hashTable = resourceManager.getHashTableById(handle.id);
+      return [await tfOps.scalar(hashTable.size())];
     }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
