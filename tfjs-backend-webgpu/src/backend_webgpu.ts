@@ -429,7 +429,12 @@ export class WebGPUBackend extends KernelBackend {
     if (info.values) {
       this.queue.writeBuffer(
           info.bufferInfo.buffer, 0, info.values as ArrayBuffer);
-      info.values = null;
+      // TODO: WebGPU doesn't support read data synchronously from GPU to CPU.
+      // So it will report error when switching backend from WebGPU to others.
+      // There are two situations: 1) swithcing the backend after running a
+      // model; 2) swithcing the backend within the model. Temporarilly keep the
+      // values on CPU to solve the first issue.
+      // info.values = null;
     }
   }
 
