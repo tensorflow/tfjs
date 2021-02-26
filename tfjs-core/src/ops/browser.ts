@@ -16,6 +16,7 @@
  */
 
 import {ENGINE} from '../engine';
+import {env} from '../environment';
 import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '../kernel_names';
 import {getKernel, NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor2D, Tensor3D} from '../tensor';
@@ -159,6 +160,95 @@ function fromPixels_(
   }
   const outShape: [number, number, number] = [height, width, numChannels];
   return tensor3d(values, outShape, 'int32');
+}
+
+// Helper functions for |fromPixelsAsync| to check whether the input can
+// be wrapped into imageBitmap.
+function isPixelData(pixels: PixelData|ImageData|HTMLImageElement|
+  HTMLCanvasElement|HTMLVideoElement|ImageBitmap): pixels is PixelData {
+  return (pixels != null) && ((pixels as PixelData).data instanceof Uint8Array);
+}
+
+function isImageBitmapFullySupported() {
+  return typeof window !== 'undefined' &&
+         typeof (ImageBitmap) !== 'undefined' &&
+         window.hasOwnProperty('createImageBitmap');
+}
+
+function isNonEmptyPixels(pixels: PixelData|ImageData|HTMLImageElement|
+  HTMLCanvasElement|HTMLVideoElement|ImageBitmap) {
+  return pixels != null && pixels.width !== 0 && pixels.height !== 0;
+}
+
+function canWrapPixelsToImageBitmap(pixels: PixelData|ImageData|
+  HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|ImageBitmap) {
+  return isImageBitmapFullySupported() &&
+         !(pixels instanceof ImageBitmap) &&
+         isNonEmptyPixels(pixels) && !isPixelData(pixels);
+}
+
+/**
+ * Creates a `tf.Tensor` from an image in async way.
+ *
+ * ```js
+ * const image = new ImageData(1, 1);
+ * image.data[0] = 100;
+ * image.data[1] = 150;
+ * image.data[2] = 200;
+ * image.data[3] = 255;
+ *
+ * (await tf.browser.fromPixelsAsync(image)).print();
+ * ```
+ * This API is the async version of fromPixels. The API will first
+ * check |WRAP_TO_IMAGEBITMAP| flag, and try to wrap the input to
+ * imageBitmap if the flag is set to true.
+ * 
+ * @param pixels The input image to construct the tensor from. The
+ * supported image types are all 4-channel. You can also pass in an image
+ * object with following attributes:
+ * `{data: Uint8Array; width: number; height: number}`
+ * @param numChannels The number of channels of the output tensor. A
+ * numChannels value less than 4 allows you to ignore channels. Defaults to
+ * 3 (ignores alpha channel of input image).
+ *
+ * @doc {heading: 'Browser', namespace: 'browser', ignoreCI: true}
+ */
+export async function fromPixelsAsync(
+  pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
+  HTMLVideoElement|ImageBitmap,
+  numChannels = 3) {
+  let inputs: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
+  HTMLVideoElement|ImageBitmap = null;
+
+  // Check whether the backend needs to wrap |pixels| to imageBitmap and
+  // whether |pixels| can be wrapped to imageBitmap.
+  if (env().getBool('WRAP_TO_IMAGEBITMAP') &&
+      canWrapPixelsToImageBitmap(pixels)) {
+    // Force the imageBitmap creation to not do any premultiply alpha
+    // ops.
+    const imageBitmap = 
+        // tslint:disable-next-line: no-any
+        await (createImageBitmap as any)(pixels as ImageBitmapSource,
+                                         {premultiplyAlpha: 'none'});
+
+    // createImageBitmap will clip the source size.
+    // In some cases, the input will have larger size than its content.
+    // E.g. new Image(10, 10) but with 1 x 1 content. Using
+    // createImageBitmap will clip the size from 10 x 10 to 1 x 1, which
+    // is not correct. We should avoid wrapping such resouce to
+    // imageBitmap.
+    if (imageBitmap != null &&
+        imageBitmap.width === pixels.width &&
+        imageBitmap.height === pixels.height) {
+      inputs = imageBitmap;
+    } else {
+      inputs = pixels; 
+    }
+  } else {
+    inputs = pixels;
+ }
+
+ return fromPixels_(inputs, numChannels);
 }
 
 /**

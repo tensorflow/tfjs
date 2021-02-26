@@ -22,7 +22,6 @@ import {env, registerBackend} from '@tensorflow/tfjs-core';
 import glslangInit from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {WebGPUBackend} from './backend_webgpu';
-import {fromPixelsAsync} from './ops/from_pixels_async';
 import * as webgpu from './webgpu';
 
 registerBackend('webgpu', async () => {
@@ -49,4 +48,3 @@ registerBackend('webgpu', async () => {
 }, 3 /*priority*/);
 
 export {webgpu};
-export {fromPixelsAsync};

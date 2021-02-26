@@ -78,6 +78,8 @@ export function concat(
     const outData = backend.dataIdMap.get(out.dataId);
     outData.stringBytes = backend_util.fromStringArrayToUint8(outVals);
 
+    inputs2D.forEach(t => backend.disposeData(t.dataId));
+
     return out;
   }
 
