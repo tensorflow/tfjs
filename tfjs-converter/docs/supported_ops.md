@@ -218,6 +218,8 @@
 |LookupTableFindV2|LookupTableFindV2|
 |LookupTableImport|LookupTableImport|
 |LookupTableImportV2|LookupTableImportV2|
+|LookupTableSize|LookupTableSize|
+|LookupTableSizeV2|LookupTableSizeV2|
 
 ## Operations - Images
 
