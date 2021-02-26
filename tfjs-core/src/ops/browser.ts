@@ -90,8 +90,7 @@ function fromPixels_(
   } else if ((pixels as any).getContext != null) {
     isCanvasLike = true;
   } else if (
-      typeof (ImageBitmap) !== 'undefined' &&
-      pixels instanceof ImageBitmap) {
+      typeof (ImageBitmap) !== 'undefined' && pixels instanceof ImageBitmap) {
     isImageBitmap = true;
   } else {
     throw new Error(
@@ -165,26 +164,27 @@ function fromPixels_(
 // Helper functions for |fromPixelsAsync| to check whether the input can
 // be wrapped into imageBitmap.
 function isPixelData(pixels: PixelData|ImageData|HTMLImageElement|
-  HTMLCanvasElement|HTMLVideoElement|ImageBitmap): pixels is PixelData {
+                     HTMLCanvasElement|HTMLVideoElement|
+                     ImageBitmap): pixels is PixelData {
   return (pixels != null) && ((pixels as PixelData).data instanceof Uint8Array);
 }
 
 function isImageBitmapFullySupported() {
   return typeof window !== 'undefined' &&
-         typeof (ImageBitmap) !== 'undefined' &&
-         window.hasOwnProperty('createImageBitmap');
+      typeof (ImageBitmap) !== 'undefined' &&
+      window.hasOwnProperty('createImageBitmap');
 }
 
 function isNonEmptyPixels(pixels: PixelData|ImageData|HTMLImageElement|
-  HTMLCanvasElement|HTMLVideoElement|ImageBitmap) {
+                          HTMLCanvasElement|HTMLVideoElement|ImageBitmap) {
   return pixels != null && pixels.width !== 0 && pixels.height !== 0;
 }
 
 function canWrapPixelsToImageBitmap(pixels: PixelData|ImageData|
-  HTMLImageElement|HTMLCanvasElement|HTMLVideoElement|ImageBitmap) {
-  return isImageBitmapFullySupported() &&
-         !(pixels instanceof ImageBitmap) &&
-         isNonEmptyPixels(pixels) && !isPixelData(pixels);
+                                    HTMLImageElement|HTMLCanvasElement|
+                                    HTMLVideoElement|ImageBitmap) {
+  return isImageBitmapFullySupported() && !(pixels instanceof ImageBitmap) &&
+      isNonEmptyPixels(pixels) && !isPixelData(pixels);
 }
 
 /**
@@ -202,7 +202,7 @@ function canWrapPixelsToImageBitmap(pixels: PixelData|ImageData|
  * This API is the async version of fromPixels. The API will first
  * check |WRAP_TO_IMAGEBITMAP| flag, and try to wrap the input to
  * imageBitmap if the flag is set to true.
- * 
+ *
  * @param pixels The input image to construct the tensor from. The
  * supported image types are all 4-channel. You can also pass in an image
  * object with following attributes:
@@ -214,11 +214,11 @@ function canWrapPixelsToImageBitmap(pixels: PixelData|ImageData|
  * @doc {heading: 'Browser', namespace: 'browser', ignoreCI: true}
  */
 export async function fromPixelsAsync(
-  pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-  HTMLVideoElement|ImageBitmap,
-  numChannels = 3) {
+    pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
+    HTMLVideoElement|ImageBitmap,
+    numChannels = 3) {
   let inputs: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-  HTMLVideoElement|ImageBitmap = null;
+      HTMLVideoElement|ImageBitmap = null;
 
   // Check whether the backend needs to wrap |pixels| to imageBitmap and
   // whether |pixels| can be wrapped to imageBitmap.
@@ -226,10 +226,18 @@ export async function fromPixelsAsync(
       canWrapPixelsToImageBitmap(pixels)) {
     // Force the imageBitmap creation to not do any premultiply alpha
     // ops.
-    const imageBitmap = 
-        // tslint:disable-next-line: no-any
-        await (createImageBitmap as any)(pixels as ImageBitmapSource,
-                                         {premultiplyAlpha: 'none'});
+    let imageBitmap;
+
+    try {
+      // wrap in try-catch block, because createImageBitmap may not work
+      // properly in some browsers, e.g.
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=1335594
+      // tslint:disable-next-line: no-any
+      imageBitmap = await (createImageBitmap as any)(
+          pixels as ImageBitmapSource, {premultiplyAlpha: 'none'});
+    } catch (e) {
+      imageBitmap = null;
+    }
 
     // createImageBitmap will clip the source size.
     // In some cases, the input will have larger size than its content.
@@ -237,18 +245,17 @@ export async function fromPixelsAsync(
     // createImageBitmap will clip the size from 10 x 10 to 1 x 1, which
     // is not correct. We should avoid wrapping such resouce to
     // imageBitmap.
-    if (imageBitmap != null &&
-        imageBitmap.width === pixels.width &&
+    if (imageBitmap != null && imageBitmap.width === pixels.width &&
         imageBitmap.height === pixels.height) {
       inputs = imageBitmap;
     } else {
-      inputs = pixels; 
+      inputs = pixels;
     }
   } else {
     inputs = pixels;
- }
+  }
 
- return fromPixels_(inputs, numChannels);
+  return fromPixels_(inputs, numChannels);
 }
 
 /**
