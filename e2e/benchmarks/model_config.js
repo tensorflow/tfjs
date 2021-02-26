@@ -196,7 +196,7 @@ const benchmarks = {
   },
   'posenet': {
     type: 'GraphModel',
-    inputSizes: [128, 257, 512, 1024],
+    inputSizes: [128, 256, 512, 1024],
     architectures: ['MobileNetV1', 'ResNet50'],
     inputTypes: ['image', 'tensor'],
     load: async (
