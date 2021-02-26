@@ -364,7 +364,7 @@ describeWithFlags('WEBGL_DELETE_TEXTURE_THRESHOLD', WEBGL_ENVS, () => {
 });
 
 describeWithFlags('WEBGL_FLUSH_THRESHOLD', WEBGL_ENVS, () => {
-  it('should return the correct default for mobile', () => {
+  it('should return the correct default value', () => {
     if (device_util.isMobile() && tf.env().getBool('IS_CHROME')) {
       expect(tf.env().getNumber('WEBGL_FLUSH_THRESHOLD')).toEqual(1);
     } else {
