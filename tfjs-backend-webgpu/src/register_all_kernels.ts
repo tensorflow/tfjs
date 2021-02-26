@@ -26,6 +26,7 @@ import {avgPoolConfig} from './kernels/AvgPool';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {castConfig} from './kernels/Cast';
+import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
@@ -33,7 +34,9 @@ import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
+import {expm1Config} from './kernels/Expm1';
 import {fillConfig} from './kernels/Fill';
+import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {fromPixelsConfig} from './kernels/FromPixels';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
@@ -47,9 +50,9 @@ import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
-import {minimumConfig} from './kernels/Minimum';
 import {maxPoolConfig} from './kernels/MaxPool';
 import {minConfig} from './kernels/Min';
+import {minimumConfig} from './kernels/Minimum';
 import {mirrorPadConfig} from './kernels/MirrorPad';
 import {multiplyConfig} from './kernels/Multiply';
 import {negConfig} from './kernels/Neg';
@@ -64,6 +67,7 @@ import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
+import {rsqrtConfig} from './kernels/Rsqrt';
 import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {sliceConfig} from './kernels/Slice';
@@ -90,6 +94,7 @@ const kernelConfigs: KernelConfig[] = [
   batchMatMulConfig,
   batchToSpaceNDConfig,
   castConfig,
+  ceilConfig,
   clipByValueConfig,
   concatConfig,
   conv2DConfig,
@@ -97,8 +102,10 @@ const kernelConfigs: KernelConfig[] = [
   depthwiseConv2dNativeConfig,
   expandDimsConfig,
   expConfig,
+  expm1Config,
   fillConfig,
   fromPixelsConfig,
+  floorConfig,
   floorDivConfig,
   fusedBatchNormConfig,
   fusedConv2DConfig,
@@ -128,6 +135,7 @@ const kernelConfigs: KernelConfig[] = [
   relu6Config,
   reshapeConfig,
   resizeBilinearConfig,
+  rsqrtConfig,
   selectConfig,
   sigmoidConfig,
   sliceConfig,
