@@ -36,7 +36,6 @@ import {expandDimsConfig} from './kernels/ExpandDims';
 import {fillConfig} from './kernels/Fill';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {fromPixelsConfig} from './kernels/FromPixels';
-import {fromPixelsAsyncConfig} from './kernels/FromPixelsAsync';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
@@ -48,6 +47,7 @@ import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
+import {minimumConfig} from './kernels/Minimum';
 import {maxPoolConfig} from './kernels/MaxPool';
 import {minConfig} from './kernels/Min';
 import {mirrorPadConfig} from './kernels/MirrorPad';
@@ -56,6 +56,7 @@ import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
+import {packConfig} from './kernels/Pack';
 import {padV2Config} from './kernels/PadV2';
 import {preluConfig} from './kernels/Prelu';
 import {realDivConfig} from './kernels/RealDiv';
@@ -97,7 +98,6 @@ const kernelConfigs: KernelConfig[] = [
   expandDimsConfig,
   expConfig,
   fillConfig,
-  fromPixelsAsyncConfig,
   fromPixelsConfig,
   floorDivConfig,
   fusedBatchNormConfig,
@@ -111,6 +111,7 @@ const kernelConfigs: KernelConfig[] = [
   logConfig,
   maxConfig,
   maximumConfig,
+  minimumConfig,
   maxPoolConfig,
   minConfig,
   mirrorPadConfig,
@@ -119,6 +120,7 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
+  packConfig,
   padV2Config,
   preluConfig,
   realDivConfig,

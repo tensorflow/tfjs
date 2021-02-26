@@ -200,7 +200,7 @@ export function uploadDenseMatrixToTexture(
 export function uploadPixelDataToTexture(
     gl: WebGLRenderingContext, texture: WebGLTexture,
     pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-    HTMLVideoElement) {
+    HTMLVideoElement|ImageBitmap) {
   webgl_util.callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, texture));
   if ((pixels as PixelData).data instanceof Uint8Array) {
     webgl_util.callAndCheck(
@@ -214,7 +214,7 @@ export function uploadPixelDataToTexture(
         () => gl.texImage2D(
             gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
             pixels as ImageData | HTMLImageElement | HTMLCanvasElement |
-                HTMLVideoElement));
+                HTMLVideoElement|ImageBitmap));
   }
 
   webgl_util.callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, null));
