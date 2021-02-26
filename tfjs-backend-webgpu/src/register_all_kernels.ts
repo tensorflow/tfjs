@@ -59,6 +59,7 @@ import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
+import {packConfig} from './kernels/Pack';
 import {padV2Config} from './kernels/PadV2';
 import {preluConfig} from './kernels/Prelu';
 import {realDivConfig} from './kernels/RealDiv';
@@ -126,6 +127,7 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
+  packConfig,
   padV2Config,
   preluConfig,
   realDivConfig,
