@@ -110,7 +110,6 @@ limitations under the License.
     let warmupTimes = 1;
     // Default do not run any task.
     let task = '';
-
     function getURLState(url) {
       let params = new URLSearchParams(url);
       const keys = [...params.keys()];
@@ -536,14 +535,15 @@ limitations under the License.
       appendRow(timeTable, 'Leaked tensors', profileInfo.newTensors);
       appendRow(timeTable, 'Profile time', printTime(elapsed));
 
-      if (state.backend != 'webgl' || queryTimerIsEnabled()) {
-        await showMsg('Profiling kernels');
-        appendRow(timeTable, 'Number of kernels', profileInfo.kernels.length);
-        showKernelTime(profileInfo);
-      } else {
-        await showMsg('Skipping kernel times since query timer extension is not ' +
-          'available. <br/> Please use a browser supporting the EXT_disjoint_timer_query WebGL API.');
-      };
+      if (state.backend === 'webgl' && !queryTimerIsEnabled()) {
+        await showMsg('Query timer extension is not available. <br/> ' +
+          'The kernel result is not accurate since it is ' +
+          'not a direct measure of GPU execution time.');
+      }
+
+      await showMsg('Profiling kernels');
+      appendRow(timeTable, 'Number of kernels', profileInfo.kernels.length);
+      showKernelTime(profileInfo);
     }
 
     function showKernelTime(profileInfo) {
