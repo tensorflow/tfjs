@@ -480,8 +480,11 @@ limitations under the License.
 
       node.querySelector('.yMin').textContent = yFormatter(yMin);
       node.querySelector('.yMax').textContent = yFormatter(yMax);
+      let xIncrement = 0;
+      if (data.length != 1) {
+        xIncrement = chartWidth / (data.length - 1);
+      }
 
-      const xIncrement = chartWidth / (data.length - 1);
       node.querySelector('path')
         .setAttribute('d', `M${data.map((d, i) => `${i * xIncrement},${chartHeight - ((d - yMin) / (yMax - yMin)) * chartHeight}`).join('L')} `);
     }
