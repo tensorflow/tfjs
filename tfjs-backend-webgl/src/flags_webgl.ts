@@ -194,13 +194,13 @@ ENV.registerFlag(
  * command flush are delayed un til the end of javascript task. This value is
  * measured in millisecond. Typically you want to set this value to close to 1.
  *
- * Default value -1 indicates that we will not enforce manual flush and depend
- * on system default flush schedule.
+ * Default value 1 for mobile chrome, and -1 for rest cases. -1 indicates that
+ * we will not enforce manual flush and depend on system default flush schedule.
  */
 ENV.registerFlag(
     'WEBGL_FLUSH_THRESHOLD',
     () => {
-      return -1;
+      return device_util.isMobile() && ENV.getBool('IS_CHROME') ? 1 : -1;
     },
     threshold => {
       if (threshold < 0 && threshold !== -1) {
