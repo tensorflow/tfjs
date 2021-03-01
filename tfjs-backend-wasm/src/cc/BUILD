@@ -27,8 +27,8 @@ cc_binary(
         "-s EXIT_RUNTIME=0",
         "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
         "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
-        #"-s MODULARIZE=1",
-        #"-s EXPORT_NAME=WasmBackendModule",
+        "-s MODULARIZE=1",
+        "-s EXPORT_NAME=WasmBackendModule",
         "-s MALLOC=emmalloc",
     ],
     deps = [
@@ -38,18 +38,18 @@ cc_binary(
 )
 
 wasm_cc_binary(
-    name = "tfjs-backend-wasm-new",
+    name = "tfjs-backend-wasm",
     cc_target = ":tfjs-backend-wasm.js",
 )
 
 wasm_cc_binary(
-    name = "tfjs-backend-wasm-simd-new",
+    name = "tfjs-backend-wasm-simd",
     cc_target = ":tfjs-backend-wasm.js",
     simd = True,
 )
 
 wasm_cc_binary(
-    name = "tfjs-backend-wasm-threaded-simd-new",
+    name = "tfjs-backend-wasm-threaded-simd",
     cc_target = ":tfjs-backend-wasm.js",
     simd = True,
     threads = "emscripten",
@@ -85,49 +85,52 @@ wasm_cc_binary(
 # the tfjs-backend-wasm.js file (generated from the previous build rule).
 #
 # See scripts/build-wasm.sh where we only copy the .wasm file to wasm-out.
-cc_binary(
-    name = "tfjs-backend-wasm-simd.js",
-    srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
-    linkopts = [
-        "-s ALLOW_MEMORY_GROWTH=1",
-        "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
-        "-s DISABLE_EXCEPTION_CATCHING=1",
-        "-s FILESYSTEM=0",
-        "-s EXIT_RUNTIME=0",
-        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
-        "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
-        "-s MALLOC=emmalloc",
-    ],
-    deps = [
-        ":all_kernels",
-        ":backend",
-    ],
-)
+# cc_binary(
+#     name = "tfjs-backend-wasm-simd.js",
+#     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+#     copts = [
+#         "-msimd128",
+#     ],
+#     linkopts = [
+#         "-s ALLOW_MEMORY_GROWTH=1",
+#         "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
+#         "-s DISABLE_EXCEPTION_CATCHING=1",
+#         "-s FILESYSTEM=0",
+#         "-s EXIT_RUNTIME=0",
+#         "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
+#         "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
+#         "-s MALLOC=emmalloc",
+#     ],
+#     deps = [
+#         ":all_kernels",
+#         ":backend",
+#     ],
+# )
 
 # This build rule generates tfjs-backend-wasm-threaded-simd.{js,wasm} and
 # tfjs-backend-wasm-threaded-simd.worker.js.
-cc_binary(
-    name = "tfjs-backend-wasm-threaded-simd.js",
-    srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
-    linkopts = [
-        "-s ALLOW_MEMORY_GROWTH=1",
-        "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
-        "-s DISABLE_EXCEPTION_CATCHING=1",
-        "-s FILESYSTEM=0",
-        "-s EXIT_RUNTIME=0",
-        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
-        "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
-        "-s MODULARIZE=1",
-        "-s EXPORT_NAME=WasmBackendModuleThreadedSimd",
-        "-s MALLOC=emmalloc",
-        "-s USE_PTHREADS=1",
-        "-s PROXY_TO_PTHREAD=1",
-    ],
-    deps = [
-        ":all_kernels",
-        ":backend",
-    ],
-)
+# cc_binary(
+#     name = "tfjs-backend-wasm-threaded-simd.js",
+#     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+#     linkopts = [
+#         "-s ALLOW_MEMORY_GROWTH=1",
+#         "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
+#         "-s DISABLE_EXCEPTION_CATCHING=1",
+#         "-s FILESYSTEM=0",
+#         "-s EXIT_RUNTIME=0",
+#         "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
+#         "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
+#         "-s MODULARIZE=1",
+#         "-s EXPORT_NAME=WasmBackendModuleThreadedSimd",
+#         "-s MALLOC=emmalloc",
+#         "-s USE_PTHREADS=1",
+#         "-s PROXY_TO_PTHREAD=1",
+#     ],
+#     deps = [
+#         ":all_kernels",
+#         ":backend",
+#     ],
+# )
 
 test_suite(
     name = "cc_tests",

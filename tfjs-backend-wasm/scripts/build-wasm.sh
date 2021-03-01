@@ -24,25 +24,36 @@ set -e
 set -x
 
 # Default build.
-yarn bazel build -c opt //tfjs-backend-wasm/src/cc:tfjs-backend-wasm.js --config=wasm
+yarn bazel build -c opt //tfjs-backend-wasm/src/cc:tfjs-backend-wasm
 # The typescript code and karma config expect the output of emscripten to be in
 # wasm-out/ so we copy the bazel output there.
-cp -f ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm.js \
-      ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm.wasm \
+cp -f ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm/tfjs-backend-wasm.js \
+      ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm/tfjs-backend-wasm.wasm \
       ../wasm-out/
 
 if [[ "$1" != "--dev" ]]; then
-  # SIMD build.
-  yarn bazel build -c opt //tfjs-backend-wasm/src/cc:tfjs-backend-wasm-simd.js --config=wasm --copt="-msimd128"
-  cp -f ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-simd.wasm \
-        ../wasm-out/
+  # SIMD and threaded + SIMD builds.
+  yarn bazel build -c opt //tfjs-backend-wasm/src/cc:tfjs-backend-wasm-simd \
+    //tfjs-backend-wasm/src/cc:tfjs-backend-wasm-threaded-simd
+  # Copy SIMD
+  cp -f ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-simd/tfjs-backend-wasm.wasm \
+    ../wasm-out/tfjs-backend-wasm-simd.wasm
 
-  # Threaded + SIMD build.
-  yarn bazel build -c opt //tfjs-backend-wasm/src/cc:tfjs-backend-wasm-threaded-simd.js --config=wasm --copt="-pthread" --copt="-msimd128"
-  cp -f ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd.js \
-        ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd.worker.js \
-        ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd.wasm \
-        ../wasm-out/
+  # cp -f ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-simd.wasm \
+  #       ../wasm-out/
+
+  # Copy threaded
+  cp -f ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfjs-backend-wasm.js \
+    ../wasm-out/tfjs-backend-wasm-threaded-simd.js
+  cp -f ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfjs-backend-wasm.worker.js \
+    ../wasm-out/tfjs-backend-wasm-threaded-simd.worker.js
+  cp -f ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd/tfjs-backend-wasm.wasm \
+    ../wasm-out/tfjs-backend-wasm-threaded-simd.wasm
+
+  # cp -f ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd.js \
+  #       ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd.worker.js \
+  #       ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-threaded-simd.wasm \
+  #       ../wasm-out/
 
   node ./create-worker-module.js
   node ./patch-threaded-simd-module.js
