@@ -39,15 +39,10 @@ npm_install(
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 # xnnpack used for fast vectorized wasm operations
-# git_repository(
-#     name = "xnnpack",
-#     commit = "55d53a4e7079d38e90acd75dd9e4f9e781d2da35",
-#     remote = "https://github.com/google/XNNPACK.git",
-#     shallow_since = "1614036677 -0800",
-# )
-local_repository(
+git_repository(
     name = "xnnpack",
-    path = "/home/msoulanille/XNNPACK",
+    branch = "emsdk_fix",
+    remote = "https://github.com/mattsoulanille/XNNPACK.git",
 )
 
 # The libraries below are transitive dependencies of XNNPACK that we need to
