@@ -258,12 +258,8 @@
   "LookupTableFindV2": [],
   "LookupTableImport": [],
   "LookupTableImportV2": [],
-  "LookupTableSize": [
-    "scalar"
-  ],
-  "LookupTableSizeV2": [
-    "scalar"
-  ],
+  "LookupTableSize": [],
+  "LookupTableSizeV2": [],
   "LoopCond": [],
   "MatMul": [
     "matMul"

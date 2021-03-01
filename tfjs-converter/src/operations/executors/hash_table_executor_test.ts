@@ -487,7 +487,7 @@ describe('hash_table', () => {
         const after = memory().numTensors;
         const size = await result[0].data();
 
-        expect(size[0]).toEqual(0);
+        test_util.expectArraysClose(size, [0]);
         expect(after).toBe(before + 1);
       });
       it('should return the number of elements in the hashtable.', async () => {
@@ -520,7 +520,7 @@ describe('hash_table', () => {
         const after = memory().numTensors;
         const size = await result[0].data();
 
-        expect(size[0]).toEqual(2);
+        test_util.expectArraysClose(size, [2]);
         expect(after).toBe(before + 1);
       });
     });
@@ -555,7 +555,7 @@ describe('hash_table', () => {
         const after = memory().numTensors;
         const size = await result[0].data();
 
-        expect(size[0]).toEqual(0);
+        test_util.expectArraysClose(size, [0]);
         expect(after).toBe(before + 1);
       });
       it('should return the number of elements in the hashtable.', async () => {
@@ -588,7 +588,7 @@ describe('hash_table', () => {
         const after = memory().numTensors;
         const size = await result[0].data();
 
-        expect(size[0]).toEqual(2);
+        test_util.expectArraysClose(size, [2]);
         expect(after).toBe(before + 1);
       });
     });

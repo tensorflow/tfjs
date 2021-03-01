@@ -120,14 +120,6 @@ export const json: OpMapper[] = [
     'category': 'hash_table',
     'inputs': [
       {'start': 0, 'name': 'tableHandle', 'type': 'tensor'}
-    ],
-    'attrs': [
-      {'tfName': 'Tin', 'name': 'tIn', 'type': 'dtype', 'notSupported': true}, {
-        'tfName': 'Tout',
-        'name': 'tOut',
-        'type': 'dtype',
-        'notSupported': true
-      }
     ]
   },
   {
@@ -135,14 +127,6 @@ export const json: OpMapper[] = [
     'category': 'hash_table',
     'inputs': [
       {'start': 0, 'name': 'tableHandle', 'type': 'tensor'}
-    ],
-    'attrs': [
-      {'tfName': 'Tin', 'name': 'tIn', 'type': 'dtype', 'notSupported': true}, {
-        'tfName': 'Tout',
-        'name': 'tOut',
-        'type': 'dtype',
-        'notSupported': true
-      }
     ]
   }
 ];
