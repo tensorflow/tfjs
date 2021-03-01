@@ -27,8 +27,8 @@ cc_binary(
         "-s EXIT_RUNTIME=0",
         "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
         "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
-        "-s MODULARIZE=1",
-        "-s EXPORT_NAME=WasmBackendModule",
+        #"-s MODULARIZE=1",
+        #"-s EXPORT_NAME=WasmBackendModule",
         "-s MALLOC=emmalloc",
     ],
     deps = [
@@ -40,6 +40,19 @@ cc_binary(
 wasm_cc_binary(
     name = "tfjs-backend-wasm-new",
     cc_target = ":tfjs-backend-wasm.js",
+)
+
+wasm_cc_binary(
+    name = "tfjs-backend-wasm-simd-new",
+    cc_target = ":tfjs-backend-wasm.js",
+    simd = True,
+)
+
+wasm_cc_binary(
+    name = "tfjs-backend-wasm-threaded-simd-new",
+    cc_target = ":tfjs-backend-wasm.js",
+    simd = True,
+    threads = "emscripten",
 )
 
 
