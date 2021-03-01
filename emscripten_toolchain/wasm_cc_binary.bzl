@@ -6,6 +6,7 @@ def _wasm_transition_impl(settings, attr):
 
     features = list(settings["//command_line_option:features"])
     linkopts = list(settings["//command_line_option:linkopt"])
+    copts = list(settings["//command_line_option:copt"])
 
     if attr.threads == "emscripten":
         # threads enabled
@@ -24,6 +25,7 @@ def _wasm_transition_impl(settings, attr):
 
     if attr.simd:
         features.append("wasm_simd")
+        copts.append("-msimd128")
 
     return {
         "//command_line_option:compiler": "emscripten",
@@ -32,6 +34,7 @@ def _wasm_transition_impl(settings, attr):
         "//command_line_option:features": features,
         "//command_line_option:dynamic_mode": "off",
         "//command_line_option:linkopt": linkopts,
+        "//command_line_option:copt": copts,
         "//command_line_option:platforms": [],
         "//command_line_option:custom_malloc": "//emscripten_toolchain:malloc",
     }
@@ -41,6 +44,7 @@ _wasm_transition = transition(
     inputs = [
         "//command_line_option:features",
         "//command_line_option:linkopt",
+        "//command_line_option:copt",
     ],
     outputs = [
         "//command_line_option:compiler",
@@ -49,6 +53,7 @@ _wasm_transition = transition(
         "//command_line_option:features",
         "//command_line_option:dynamic_mode",
         "//command_line_option:linkopt",
+        "//command_line_option:copt",
         "//command_line_option:platforms",
         "//command_line_option:custom_malloc",
     ],
