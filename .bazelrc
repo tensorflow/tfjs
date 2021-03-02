@@ -13,10 +13,6 @@ build --cxxopt="-fno-rtti"
 build --cxxopt="-fno-exceptions"
 build --cxxopt="-fomit-frame-pointer"
 
-#build:wasm_new --crosstool_top=//emscripten_toolchain:everything
-#build:wasm_new --cpu=wasm
-#build:wasm_new --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
-
 # Remote cache config. Users should override this in .bazelrc.user
 build:remote --remote_http_cache=https://storage.googleapis.com/bazel-remote-cache-tfjs
 build:remote --google_default_credentials
