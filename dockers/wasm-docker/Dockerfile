@@ -8,6 +8,8 @@ RUN apt-get update -qqy && apt-get install -qqy \
         gcc \
         python3 \
         python3-pip \
+        python \
+        python-pip \
         file
 
 # Install absl
