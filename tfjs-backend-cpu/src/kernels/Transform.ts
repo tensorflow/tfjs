@@ -16,7 +16,6 @@
  */
 
 import {KernelConfig, KernelFunc, NumericDataType, TensorInfo, Transform, TransformAttrs, TransformInputs, TypedArray, util} from '@tensorflow/tfjs-core';
-import {clamp} from '@tensorflow/tfjs-core/dist/util';
 
 import {MathBackendCPU} from '../backend_cpu';
 
@@ -87,6 +86,10 @@ export function transform(args: {
                   imageVals, imageHeight, imageWidth, batchStride, rowStride,
                   colStride, b, y, x, channel, fillValue);
               break;
+            default:
+              throw new Error(
+                  `Error in Transform: Expect 'nearest' or ` +
+                  `'bilinear', but got ${interpolation}`);
           }
 
           const ind =
@@ -183,7 +186,7 @@ function mapCoordConstant(outCoord: number, len: number): number {
 }
 
 function mapCoordNearest(outCoord: number, len: number): number {
-  return clamp(0, outCoord, len - 1);
+  return util.clamp(0, outCoord, len - 1);
 }
 
 function readWithFillValue(

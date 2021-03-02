@@ -26,18 +26,32 @@ import * as util from '../../util';
 import {op} from '../operation';
 
 /**
- * Rotates the input image tensor counter-clockwise with an optional offset
- * center of rotation. Currently available in the CPU, WebGL, and WASM backends.
+ * Applies the given transform(s) to the image(s).
  *
  * @param image 4d tensor of shape `[batch, imageHeight, imageWidth, depth]`.
- * @param radians The amount of rotation.
- * @param fillValue The value to fill in the empty space leftover
- *     after rotation. Can be either a single grayscale value (0-255), or an
- *     array of three numbers `[red, green, blue]` specifying the red, green,
- *     and blue channels. Defaults to `0` (black).
- * @param center The center of rotation. Can be either a single value (0-1), or
- *     an array of two numbers `[centerX, centerY]`. Defaults to `0.5` (rotates
- *     the image around its center).
+ * @param transforms Projective transform matrix/matrices. A vector of length
+ *     8 or tensor of size N x 8. If one row of transforms is [a0, a1, a2, b0
+ *     b1, b2, c0, c1], then it maps the output point (x, y) to a transformed
+ *     input point (x', y') = ((a0 x + a1 y + a2) / k, (b0 x + b1 y + b2) / k),
+ *     where k = c0 x + c1 y + 1. The transforms are inverted compared to the
+ *     transform mapping input points to output points.
+ * @param interpolation Interpolation mode.
+ *     Supported values: 'nearest', 'bilinear'. Default to 'nearest'.
+ * @param fillMode Points outside the boundaries of the input are filled
+ *     according to the given mode, one of 'constant', 'reflect', 'wrap',
+ *     'nearest'. Default to 'constant'.
+ *     'reflect': (d c b a | a b c d | d c b a ) The input is extended by
+ *     reflecting about the edge of the last pixel.
+ *     'constant': (k k k k | a b c d | k k k k) The input is extended by
+ *     filling all values beyond the edge with the same constant value k.
+ *     'wrap': (a b c d | a b c d | a b c d) The input is extended by
+ *     wrapping around to the opposite edge.
+ *     'nearest': (a a a a | a b c d | d d d d) The input is extended by
+ *     the nearest pixel.
+ * @param fillValue A float represents the value to be filled outside the
+ *     boundaries when fillMode is 'constant'.
+ * @param Output dimension after the transform, [height, width]. If undefined,
+ *     output is the same size as input image.
  *
  * @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'}
  */
@@ -73,8 +87,7 @@ function transform_(
       TransformAttrs = {interpolation, fillMode, fillValue, outputShape};
 
   return ENGINE.runKernel(
-             Transform, inputs as {} as NamedTensorMap,
-             attrs as {} as NamedAttrMap) as Tensor4D;
+      Transform, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const transform = op({transform_});

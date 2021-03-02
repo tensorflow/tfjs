@@ -43,6 +43,9 @@ export class TransformProgram implements GPGPUProgram {
       case 'nearest':
         fillModeId = 4;
         break;
+      default:
+        fillModeId = 1;
+        break;
     }
     this.userCode = `
             float mapCoord(float outCoord, float len) {
@@ -54,7 +57,8 @@ export class TransformProgram implements GPGPUProgram {
                   } else {
                     float sz2 = 2.0 * len;
                     if (inCoord < sz2) {
-                      inCoord = sz2 * float(int(float(-inCoord / sz2))) + inCoord;
+                      inCoord = sz2 * float(int(float(-inCoord / sz2))) +
+                      inCoord;
                     }
                     inCoord = inCoord < -len ? inCoord + sz2 : -inCoord - 1.0;
                   }
