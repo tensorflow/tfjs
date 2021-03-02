@@ -114,5 +114,19 @@ export const json: OpMapper[] = [
         'notSupported': true
       }
     ]
+  },
+  {
+    'tfOpName': 'LookupTableSize',
+    'category': 'hash_table',
+    'inputs': [
+      {'start': 0, 'name': 'tableHandle', 'type': 'tensor'}
+    ]
+  },
+  {
+    'tfOpName': 'LookupTableSizeV2',
+    'category': 'hash_table',
+    'inputs': [
+      {'start': 0, 'name': 'tableHandle', 'type': 'tensor'}
+    ]
   }
 ];
