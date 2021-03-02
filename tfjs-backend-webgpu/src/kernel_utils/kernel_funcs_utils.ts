@@ -18,7 +18,9 @@
 import {BinaryInputs, DataType, KernelFunc, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
 import {getBinaryProgram} from '../kernels/binary_ops';
+import {complex} from '../kernels/Complex';
 import {UnaryOpProgram} from '../kernels/unary_op_webgpu';
+
 import {SimpleBinaryKernelImplCPU, SimpleUnaryKernelImplCPU} from './shared';
 
 type UnaryKernelFuncConfig = {
@@ -57,6 +59,7 @@ export function unaryKernelFunc(
 type BinaryKernelFuncConfig = {
   opSnippet: number,
   cpuKernelImpl?: SimpleBinaryKernelImplCPU,
+  supportsComplex?: boolean,
   dtype?: DataType
 };
 
@@ -70,10 +73,49 @@ type BinaryKernelFuncConfig = {
  *     comparison kernels, such as Equal, Less, Greater, etc.
  */
 export function binaryKernelFunc(
-    {opSnippet, cpuKernelImpl, dtype}: BinaryKernelFuncConfig): KernelFunc {
+    {opSnippet, cpuKernelImpl, supportsComplex = false, dtype}:
+        BinaryKernelFuncConfig): KernelFunc {
   return ({inputs, backend}) => {
     const {a, b} = inputs as BinaryInputs;
     const webgpuBackend = backend as WebGPUBackend;
+
+    if (supportsComplex && a.dtype === 'complex64') {
+      const aData = webgpuBackend.tensorMap.get(a.dataId);
+      const bData = webgpuBackend.tensorMap.get(b.dataId);
+
+      const [real, imag] = [
+        [aData.complexTensorInfos.real, bData.complexTensorInfos.real],
+        [aData.complexTensorInfos.imag, bData.complexTensorInfos.imag]
+      ].map(complexParts => {
+        const [aPart, bPart] = complexParts;
+
+        const aHandle = {
+          dataId: aPart.dataId,
+          dtype: aPart.dtype,
+          shape: a.shape
+        };
+        const bHandle = {
+          dataId: bPart.dataId,
+          dtype: bPart.dtype,
+          shape: b.shape
+        };
+
+        const program = getBinaryProgram(opSnippet, a.shape, b.shape);
+        return webgpuBackend.runWebGPUProgram(
+            program, [aHandle, bHandle], upcastType(aPart.dtype, bPart.dtype));
+      });
+
+      const complexOutput =
+          complex({inputs: {real, imag}, backend: webgpuBackend});
+
+      webgpuBackend.disposeData(real.dataId);
+      webgpuBackend.disposeData(imag.dataId);
+
+      // TODO: Implement CPU forwarding for complex inputs.
+
+      return complexOutput;
+    }
+
     const $dtype = dtype || upcastType(a.dtype, b.dtype);
     if (webgpuBackend.shouldExecuteOnCPU([a, b]) && cpuKernelImpl != null) {
       const aData = webgpuBackend.tensorMap.get(a.dataId);

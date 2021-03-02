@@ -27,6 +27,7 @@ import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {castConfig} from './kernels/Cast';
 import {clipByValueConfig} from './kernels/ClipByValue';
+import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
@@ -42,14 +43,15 @@ import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
+import {imagConfig} from './kernels/Imag';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
-import {minimumConfig} from './kernels/Minimum';
 import {maxPoolConfig} from './kernels/MaxPool';
 import {minConfig} from './kernels/Min';
+import {minimumConfig} from './kernels/Minimum';
 import {mirrorPadConfig} from './kernels/MirrorPad';
 import {multiplyConfig} from './kernels/Multiply';
 import {negConfig} from './kernels/Neg';
@@ -59,6 +61,7 @@ import {notEqualConfig} from './kernels/NotEqual';
 import {packConfig} from './kernels/Pack';
 import {padV2Config} from './kernels/PadV2';
 import {preluConfig} from './kernels/Prelu';
+import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
@@ -91,6 +94,7 @@ const kernelConfigs: KernelConfig[] = [
   batchToSpaceNDConfig,
   castConfig,
   clipByValueConfig,
+  complexConfig,
   concatConfig,
   conv2DConfig,
   cropAndResizeConfig,
@@ -106,6 +110,7 @@ const kernelConfigs: KernelConfig[] = [
   greaterConfig,
   greaterEqualConfig,
   identityConfig,
+  imagConfig,
   lessConfig,
   lessEqualConfig,
   logConfig,
@@ -123,6 +128,7 @@ const kernelConfigs: KernelConfig[] = [
   packConfig,
   padV2Config,
   preluConfig,
+  realConfig,
   realDivConfig,
   reluConfig,
   relu6Config,
