@@ -12,11 +12,6 @@ yarn_install(
     yarn_lock = "//:yarn.lock",
 )
 
-# Make all files under $HOME/emsdk/* visible to the toolchain. The files are
-# available as external/emsdk/emsdk/*
-load("//toolchain:cc_toolchain_config.bzl", "emsdk_configure")
-emsdk_configure(name = "emsdk")
-
 # npm_install used for emscripten dependencies
 load("@build_bazel_rules_nodejs//:index.bzl", "npm_install")
 
