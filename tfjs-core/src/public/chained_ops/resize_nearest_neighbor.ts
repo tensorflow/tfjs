@@ -15,18 +15,22 @@
  * =============================================================================
  */
 import {resizeNearestNeighbor} from '../../ops/image/resize_nearest_neighbor';
-import {Tensor, Tensor3D, Tensor4D} from '../../tensor';
+import {getGlobalTensorClass, Tensor3D, Tensor4D} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
     resizeNearestNeighbor<T extends Tensor3D|Tensor4D>(
-        newShape2D: [number, number], alignCorners?: boolean): T;
+        newShape2D: [number, number], alignCorners?: boolean,
+        halfFloatCenters?: boolean): T;
   }
 }
 
-Tensor.prototype.resizeNearestNeighbor = function<T extends Tensor3D|Tensor4D>(
-    this: T, newShape2D: [number, number], alignCorners?: boolean): T {
+getGlobalTensorClass().prototype.resizeNearestNeighbor =
+    function<T extends Tensor3D|Tensor4D>(
+        this: T, newShape2D: [number, number], alignCorners?: boolean,
+        halfFloatCenters?: boolean): T {
   this.throwIfDisposed();
-  return resizeNearestNeighbor(this, newShape2D, alignCorners);
+  return resizeNearestNeighbor(
+      this, newShape2D, alignCorners, halfFloatCenters);
 };

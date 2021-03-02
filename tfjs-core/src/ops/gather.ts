@@ -15,18 +15,15 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {GatherV2, GatherV2Attrs, GatherV2Inputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import {parseAxisParam} from '../util';
 
 import {op} from './operation';
-import {reshape} from './reshape';
-import {collectGatherOpShapeInfo} from './segment_util';
 
 /**
  * Gather slices from tensor `x`'s axis `axis` according to `indices`.
@@ -47,31 +44,23 @@ import {collectGatherOpShapeInfo} from './segment_util';
  * @param x The input tensor whose slices to be gathered.
  * @param indices The indices of the values to extract.
  * @param axis The axis over which to select values. Defaults to 0.
+ * @param batchDims Optional. The number of batch dimensions. It must be less
+ *     than or equal to rank(indices). Defaults to 0.
+ *     The output tensor will have shape of
+ *     `x.shape[:axis] + indices.shape[batchDims:] + x.shape[axis + 1:]`
  *
  * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
 function gather_<T extends Tensor>(
-    x: T|TensorLike, indices: Tensor|TensorLike, axis = 0): T {
+    x: T|TensorLike, indices: Tensor|TensorLike, axis = 0, batchDims = 0): T {
   const $x = convertToTensor(x, 'x', 'gather');
   const $indices = convertToTensor(indices, 'indices', 'gather', 'int32');
 
   const inputs: GatherV2Inputs = {x: $x, indices: $indices};
-  const attrs: GatherV2Attrs = {axis};
+  const attrs: GatherV2Attrs = {axis, batchDims};
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const parsedAxis = parseAxisParam(axis, $x.shape)[0];
-    const shapeInfo = collectGatherOpShapeInfo($x, $indices, parsedAxis);
-
-    const res =
-        backend.gather($x, reshape($indices, [$indices.size]), parsedAxis);
-    save([$x, $indices]);
-
-    return reshape(res, shapeInfo.outputShape);
-  };
-
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */, GatherV2,
-             attrs as {} as NamedAttrMap) as T;
+  return ENGINE.runKernel(
+      GatherV2, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const gather = op({gather_});

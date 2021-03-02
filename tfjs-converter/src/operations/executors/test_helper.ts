@@ -54,6 +54,11 @@ export function createNumericArrayAttrFromIndex(inputIndex: number):
   return {inputIndexStart: inputIndex, type: 'number[]'};
 }
 
+export function createBooleanArrayAttrFromIndex(inputIndex: number):
+    InputParamValue {
+  return {inputIndexStart: inputIndex, type: 'bool[]'};
+}
+
 export function createTensorAttr(index: number): InputParamValue {
   return {inputIndexStart: index, type: 'tensor'};
 }

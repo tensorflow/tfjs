@@ -93,8 +93,8 @@ async function main() {
       shell.cd('..');
       $('git clone https://github.com/emscripten-core/emsdk.git');
       shell.cd('./emsdk');
-      $('./emsdk install 1.39.15');
-      $('./emsdk activate 1.39.15');
+      $('./emsdk install 2.0.14');
+      $('./emsdk activate 2.0.14');
       shell.cd('..');
       shell.cd(pkg);
     }

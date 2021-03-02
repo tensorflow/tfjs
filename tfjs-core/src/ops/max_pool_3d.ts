@@ -15,17 +15,15 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
-import {deprecationWarn} from '../globals';
+import {ENGINE} from '../engine';
 import {MaxPool3D, MaxPool3DAttrs, MaxPool3DInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor4D, Tensor5D} from '../tensor';
+import {Tensor4D, Tensor5D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import * as conv_util from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -56,37 +54,19 @@ import {reshape} from './reshape';
  *    - For more info, see this guide:
  *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
  *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
- * @param dimRoundingMode The rounding mode used when computing output
- *     dimensions if pad is a number. If none is provided, it will not round
- *     and error if the output is of fractional size.
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
  * @param dataFormat An optional string from: "NDHWC", "NCDHW". Defaults to
  *     "NDHWC". Specify the data format of the input and output data. With the
  *     default format "NDHWC", the data is stored in the order of: [batch,
  *     depth, height, width, channels]. Only "NDHWC" is currently supported.
- * @param dilations Deprecated, this field will be gone in v3.0.0.
- *     The dilation rates: `[dilationDepth, dilationHeight, dilationWidth]`
- *     in which we sample input values across the depth, height and width
- *     dimensions in dilated pooling.
- *     Defaults to `[1, 1, 1]`. If `dilations` is a single number,
- *     then `dilationDepth == dilationHeight == dilationWidth`.
- *     If it is greater than 1, then all values of `strides` must be 1.
- *
  * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
 function maxPool3d_<T extends Tensor4D|Tensor5D>(
     x: T|TensorLike, filterSize: [number, number, number]|number = [1, 1, 1],
     strides: [number, number, number]|number, pad: 'valid'|'same'|number,
     dimRoundingMode?: 'floor'|'round'|'ceil',
-    dataFormat: 'NDHWC'|'NCDHW' = 'NDHWC',
-    dilations?: [number, number, number]|number): T {
-  if (dilations == null) {
-    dilations = [1, 1, 1];
-  } else {
-    deprecationWarn(
-        'dilations is deprecated, this field will be gone in ' +
-        'v3.0.0.');
-  }
-
+    dataFormat: 'NDHWC'|'NCDHW' = 'NDHWC'): T {
   const $x = convertToTensor(x, 'x', 'maxPool3d');
 
   let x5D = $x as Tensor5D;
@@ -103,10 +83,6 @@ function maxPool3d_<T extends Tensor4D|Tensor5D>(
       dataFormat === 'NDHWC',
       () => `Error in maxPool3d: Only NDHWC is currently supported, ` +
           `but got dataFormat of ${dataFormat}`);
-  util.assert(
-      conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
-      () => 'Error in maxPool3d: Either strides or dilations must be 1. ' +
-          `Got strides ${strides} and dilations '${dilations}'`);
   if (dimRoundingMode != null) {
     util.assert(
         util.isInt(pad as number),
@@ -114,26 +90,15 @@ function maxPool3d_<T extends Tensor4D|Tensor5D>(
             `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
   }
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    if (dilations == null) {
-      dilations = [1, 1, 1];
-    }
-    const convInfo = conv_util.computePool3DInfo(
-        x5D.shape, filterSize, strides, dilations, pad, dimRoundingMode,
-        dataFormat);
-    const y = backend.maxPool3d(x5D, convInfo);
-    save([x5D, y]);
-    return y;
-  };
-
   const inputs: MaxPool3DInputs = {x: x5D};
 
-  const attrs: MaxPool3DAttrs =
-      {filterSize, strides, pad, dimRoundingMode, dataFormat, dilations};
+  const attrs:
+      MaxPool3DAttrs = {filterSize, strides, pad, dimRoundingMode, dataFormat};
 
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, MaxPool3D,
-      attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  MaxPool3D, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap) as T;
 
   if (reshapedTo5D) {
     return reshape(
@@ -141,7 +106,7 @@ function maxPool3d_<T extends Tensor4D|Tensor5D>(
         T;
   }
 
-  return res as T;
+  return res;
 }
 
 export const maxPool3d = op({maxPool3d_});

@@ -18,14 +18,23 @@
 import {backend_util, Concat, ConcatAttrs, ConcatInputs, KernelConfig, KernelFunc, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+import {concatImplCPU} from '../kernel_utils/shared';
+import {identity} from './Identity';
+import {reshape} from './Reshape';
 
-function concat(
+export function concat(
     args: {inputs: ConcatInputs, backend: BackendWasm, attrs: ConcatAttrs}) {
   const {inputs, backend} = args;
 
   const axis = util.parseAxisParam(args.attrs.axis, inputs[0].shape)[0];
 
-  const outShape = backend_util.computeOutShape(inputs.map(t => t.shape), axis);
+  let outShape = backend_util.computeOutShape(inputs.map(t => t.shape), axis);
+
+  // Keep only non-empty tensors (ignore tensors with 0 in their shape).
+  const $inputs = inputs.filter(t => util.sizeFromShape(t.shape) > 0);
+  if ($inputs.length === 1) {
+    return identity({inputs: {x: $inputs[0]}, backend});
+  }
 
   const out = backend.makeOutput(outShape, inputs[0].dtype);
 
@@ -33,14 +42,46 @@ function concat(
     return out;
   }
 
-  // Keep only non-empty tensors (ignore tensors with 0 in their shape).
-  const $inputs = inputs.filter(t => util.sizeFromShape(t.shape) > 0);
-  if ($inputs.length === 1) {
-    return $inputs[0];
-  }
-
   const shapes = $inputs.map(t => t.shape);
   backend_util.assertParamsConsistent(shapes, axis);
+
+  if ($inputs[0].dtype === 'string') {
+    // Any concat of n-dimensional tensors across any axis can be reduced to
+    // a concatenation of two-dimensional tensors across the axis 1 by first
+    // partitioning the axes of the original tensors into those less than the
+    // axis to be concatenated and the rest. Then reshape the tensors
+    // into a two-dimensional tensor by collapsing these two sets of axes and
+    // concatenate the resulting matrices across the axis 1, finally reshaping
+    // the result to have the proper shape.
+    const inputs2D = $inputs.map(t => {
+      const innerSize = util.sizeFromShape(t.shape.slice(axis));
+      const shape = [-1, innerSize];
+      return reshape({inputs: {x: t}, backend, attrs: {shape}});
+    });
+
+    const inputsValShapes = inputs2D.map(t => {
+      return {vals: backend.readSync(t.dataId), shape: t.shape};
+    });
+
+    // Concats 2d tensors along axis=1.
+    outShape =
+        backend_util.computeOutShape(inputs2D.map(t => t.shape), 1 /* axis */);
+    const simplyConcat = inputs2D[0].shape[0] === 1;
+    const outVals = concatImplCPU(
+                        inputsValShapes, outShape, inputs[0].dtype,
+                        simplyConcat) as string[];
+
+    const finalOutShape =
+        backend_util.computeOutShape($inputs.map(t => t.shape), axis);
+
+    out.shape = finalOutShape;
+    const outData = backend.dataIdMap.get(out.dataId);
+    outData.stringBytes = backend_util.fromStringArrayToUint8(outVals);
+
+    inputs2D.forEach(t => backend.disposeData(t.dataId));
+
+    return out;
+  }
 
   const batchDim = util.sizeFromShape($inputs[0].shape.slice(0, axis));
   let sumInnerDims = 0;

@@ -16,23 +16,42 @@
  */
 
 const karmaTypescriptConfig = {
-  tsconfig: 'tsconfig.json',
+  tsconfig: 'tsconfig.test.json',
   // Disable coverage reports and instrumentation by default for tests
   coverageOptions: {instrumentation: false},
   reports: {},
-  bundlerOptions: {sourceMap: true}
+  bundlerOptions: {
+    sourceMap: true,  // Process any non es5 code through
+                      // karma-typescript-es6-transform (babel)
+    acornOptions: {ecmaVersion: 8},
+    transforms: [
+      require('karma-typescript-es6-transform')({
+        presets: [
+          // ensure we get es5 by adding IE 11 as a target
+          ['@babel/env', {'targets': {'ie': '11'}, 'loose': true}]
+        ]
+      }),
+    ]
+  }
 };
 
 module.exports = function(config) {
   const args = [];
+  if (config.testEnv) {
+    args.push('--testEnv', config.testEnv);
+  }
   if (config.grep) {
     args.push('--grep', config.grep);
+  }
+  if (config.flags) {
+    args.push('--flags', config.flags);
   }
 
   config.set({
     basePath: '',
     frameworks: ['jasmine', 'karma-typescript'],
     files: [
+      {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
       'src/test_browser.ts',
       {pattern: 'src/**/*.ts'},
     ],
@@ -40,10 +59,48 @@ module.exports = function(config) {
     preprocessors: {'**/*.ts': ['karma-typescript']},
     karmaTypescriptConfig,
     reporters: ['progress', 'karma-typescript'],
-    port: 9876,
+    port: 9866,
     colors: true,
     browsers: ['Chrome'],
-    reportSlowerThan: 5000,
-    client: {jasmine: {random: false}, args: args}
+    client: {jasmine: {random: false}, args: args},
+    browserStack: {
+      username: process.env.BROWSERSTACK_USERNAME,
+      accessKey: process.env.BROWSERSTACK_KEY,
+      tunnelIdentifier:
+          `tfjs_automl_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+    },
+    captureTimeout: 120000,
+    reportSlowerThan: 500,
+    browserNoActivityTimeout: 180000,
+    customLaunchers: {
+      bs_chrome_mac: {
+        base: 'BrowserStack',
+        browser: 'chrome',
+        browser_version: 'latest',
+        os: 'OS X',
+        os_version: 'High Sierra'
+      },
+      bs_firefox_mac: {
+        base: 'BrowserStack',
+        browser: 'firefox',
+        browser_version: 'latest',
+        os: 'OS X',
+        os_version: 'High Sierra'
+      },
+      bs_safari_mac: {
+        base: 'BrowserStack',
+        browser: 'safari',
+        browser_version: 'latest',
+        os: 'OS X',
+        os_version: 'High Sierra'
+      },
+      bs_ios_11: {
+        base: 'BrowserStack',
+        device: 'iPhone X',
+        os: 'iOS',
+        os_version: '11.0',
+        real_mobile: true
+      },
+    }
   })
 }

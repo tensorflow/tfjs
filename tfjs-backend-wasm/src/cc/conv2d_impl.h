@@ -17,7 +17,7 @@
 
 #include <cstddef>
 
-#include "src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
 
 namespace tfjs {
 namespace wasm {
@@ -32,7 +32,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
             const size_t stride_width, const size_t input_channels,
             const size_t output_channels, const bool is_depthwise,
             const FusableActivation activation, const size_t prelu_weighs_id,
-            const size_t out_id);
+            const float leakyrelu_alpha, const size_t out_id);
 }  // namespace wasm
 }  // namespace tfjs
 

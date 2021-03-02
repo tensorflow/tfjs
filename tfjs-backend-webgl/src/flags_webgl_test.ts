@@ -362,3 +362,16 @@ describeWithFlags('WEBGL_DELETE_TEXTURE_THRESHOLD', WEBGL_ENVS, () => {
     expect(() => tf.env().set('WEBGL_DELETE_TEXTURE_THRESHOLD', -2)).toThrow();
   });
 });
+
+describeWithFlags('WEBGL_FLUSH_THRESHOLD', WEBGL_ENVS, () => {
+  it('should return the correct default value', () => {
+    if (device_util.isMobile() && tf.env().getBool('IS_CHROME')) {
+      expect(tf.env().getNumber('WEBGL_FLUSH_THRESHOLD')).toEqual(1);
+    } else {
+      expect(tf.env().getNumber('WEBGL_FLUSH_THRESHOLD')).toEqual(-1);
+    }
+  });
+  it('should throw an error if given a negative value', () => {
+    expect(() => tf.env().set('WEBGL_FLUSH_THRESHOLD', -2)).toThrow();
+  });
+});

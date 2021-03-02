@@ -26,6 +26,8 @@
 // tslint:disable-next-line: no-require-imports
 require('@tensorflow/tfjs-backend-cpu');
 import './index';
+import './public/chained_ops/register_all_chained_ops';
+import './register_all_gradients';
 import {setTestEnvs} from './jasmine_util';
 import {registerBackend, engine} from './globals';
 import {KernelBackend} from './backends/backend';

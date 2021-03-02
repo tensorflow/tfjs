@@ -21,11 +21,16 @@ yarn test-node-ci
 
 if [ "$NIGHTLY" = true ]
 then
+  # TODO(mattsoulanille): Is the following comment still relevant now that we're
+  # runing each browser separately?
   # Run the first karma separately so it can download the BrowserStack binary
   # without conflicting with others.
-  yarn run-browserstack --browsers=bs_chrome_mac
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac"
 
-  yarn run-browserstack --browsers=bs_firefox_mac,bs_safari_mac,bs_ios_11,bs_android_9 --flags '{"HAS_WEBGL": false}' --testEnv cpu
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_firefox_mac --flags '{"\""HAS_WEBGL"\"": false}' --testEnv cpu"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_safari_mac --flags '{"\""HAS_WEBGL"\"": false}' --testEnv cpu"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_ios_11 --flags '{"\""HAS_WEBGL"\"": false}' --testEnv cpu"
+
 
   ### The next section tests TF.js in a webworker using the CPU backend.
   echo "Start webworker test."
@@ -33,7 +38,8 @@ then
   yarn rollup -c --ci
   # copy the cpu backend bundle somewhere the test can access it
   cp -v ../tfjs-backend-cpu/dist/tf-backend-cpu.min.js dist/
-  yarn test-webworker --browsers=bs_safari_mac,bs_chrome_mac
+  node ../scripts/run_flaky.js "yarn test-webworker --browsers=bs_safari_mac"
+  node ../scripts/run_flaky.js "yarn test-webworker --browsers=bs_chrome_mac"
 else
-  yarn run-browserstack --browsers=bs_chrome_mac
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac"
 fi

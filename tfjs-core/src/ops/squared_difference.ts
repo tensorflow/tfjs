@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {SquaredDifference, SquaredDifferenceInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -58,18 +58,11 @@ function squaredDifference_<T extends Tensor>(
 
   assertAndGetBroadcastShape($a.shape, $b.shape);
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.squaredDifference($a, $b);
-    save([$a, $b]);
-    return res;
-  };
-
   const inputs: SquaredDifferenceInputs = {a: $a, b: $b};
   const attrs = {};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as unknown as NamedTensorMap, null /* grad */,
-             SquaredDifference, attrs) as T;
+  return ENGINE.runKernel(
+      SquaredDifference, inputs as unknown as NamedTensorMap, attrs);
 }
 
 export const squaredDifference = op({squaredDifference_});

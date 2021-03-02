@@ -49,6 +49,52 @@ export function shuffle(array: any[]|Uint32Array|Int32Array|
   }
 }
 
+/**
+ * Shuffles two arrays in-place the same way using Fisher-Yates algorithm.
+ *
+ * ```js
+ * const a = [1,2,3,4,5];
+ * const b = [11,22,33,44,55];
+ * tf.util.shuffleCombo(a, b);
+ * console.log(a, b);
+ * ```
+ *
+ * @param array The first array to shuffle in-place.
+ * @param array2 The second array to shuffle in-place with the same permutation
+ *     as the first array.
+ *
+ * @doc {heading: 'Util', namespace: 'util'}
+ */
+// tslint:disable-next-line:no-any
+export function shuffleCombo(array: any[]|Uint32Array|Int32Array|Float32Array,
+// tslint:disable-next-line:no-any
+                      array2: any[]|Uint32Array|Int32Array|Float32Array): void {
+
+  if (array.length !== array2.length) {
+    throw new Error(
+      `Array sizes must match to be shuffled together ` +
+      `First array length was ${array.length}` +
+      `Second array length was ${array2.length}`);
+  }
+  let counter = array.length;
+  let temp, temp2;
+  let index = 0;
+  // While there are elements in the array
+  while (counter > 0) {
+    // Pick a random index
+    index = (Math.random() * counter) | 0;
+    // Decrease counter by 1
+    counter--;
+    // And swap the last element of each array with it
+    temp = array[counter];
+    temp2 = array2[counter];
+    array[counter] = array[index];
+    array2[counter] = array2[index];
+    array[index] = temp;
+    array2[index] = temp2;
+  }
+}
+
 /** Clamps a value to a specified range. */
 export function clamp(min: number, x: number, max: number): number {
   return Math.max(min, Math.min(x, max));

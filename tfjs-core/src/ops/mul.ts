@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Multiply, MultiplyInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -55,15 +55,8 @@ function mul_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   let $b = convertToTensor(b, 'b', 'mul');
   [$a, $b] = makeTypesMatch($a, $b);
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.multiply($a, $b);
-    save([$a, $b]);
-    return res;
-  };
   const inputs: MultiplyInputs = {a: $a, b: $b};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */,
-             Multiply) as T;
+  return ENGINE.runKernel(Multiply, inputs as {} as NamedTensorMap);
 }
 export const mul = op({mul_});

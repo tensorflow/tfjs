@@ -63,7 +63,8 @@ function fromPixels(args: {
     fromPixels2DContext.canvas.width = width;
     fromPixels2DContext.canvas.height = height;
     fromPixels2DContext.drawImage(
-        pixels as HTMLVideoElement | HTMLImageElement, 0, 0, width, height);
+        pixels as HTMLVideoElement | HTMLImageElement | ImageBitmap,
+        0, 0, width, height);
     pixels = fromPixels2DContext.canvas;
   }
 

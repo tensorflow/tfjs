@@ -68,6 +68,7 @@ function maxPoolWithArgmax_<T extends Tensor4D>(
   const attrs:
       MaxPoolWithArgmaxAttrs = {filterSize, strides, pad, includeBatchInIndex};
 
+  // tslint:disable-next-line: no-unnecessary-type-assertion
   const result = ENGINE.runKernel(
                      MaxPoolWithArgmax, inputs as {} as NamedTensorMap,
                      attrs as {} as NamedAttrMap) as Tensor[];

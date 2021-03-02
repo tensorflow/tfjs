@@ -19,37 +19,13 @@
 
 import './flags_webgpu';
 
-import {backend_util, DataStorage, DataType, div, engine, env, KernelBackend, Rank, RecursiveArray, ShapeMap, slice_util, sumOutType, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorInfo, TimingInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataStorage, DataType, engine, env, KernelBackend, RecursiveArray, TensorInfo, TimingInfo, util} from '@tensorflow/tfjs-core';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
-import {ArgMinMaxProgram} from './kernels/argminmax_webgpu';
-import {BinaryOpProgram} from './kernels/binary_op_webgpu';
-import {BinaryOpType, getBinaryOpString, getBinaryProgram} from './kernels/binary_ops';
-import {ClipProgram} from './kernels/clip_webgpu';
-import {ConcatProgram} from './kernels/concat_webgpu';
-import {Conv2DMMProgram} from './kernels/conv2d_mm_webgpu';
-import {Conv2DNaiveProgram} from './kernels/conv2d_naive_webgpu';
-import {CropAndResizeProgram} from './kernels/crop_and_resize_webgpu';
-import {DepthwiseConv2DProgram} from './kernels/depthwise_conv2d_webgpu';
-import {FillProgram} from './kernels/fill_webgpu';
+import {BinaryOpType, getBinaryOpString} from './kernels/binary_ops';
 import {FromPixelsProgram} from './kernels/FromPixels_utils/from_pixels_webgpu';
-import {Im2ColProgram} from './kernels/im2col_webgpu';
-import {MatMulPackedVec4Program} from './kernels/matmul_packed_vec4_webgpu';
-import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
-import {MatMulProgram} from './kernels/matmul_webgpu';
-import {MaxPoolWithFilterSizeEqualsOneProgram} from './kernels/maxpool_filtersizeone_webgpu';
-import {PadProgram} from './kernels/pad_webgpu';
-import {Pool2DProgram} from './kernels/pool2d_webgpu';
-import {ReduceProgram} from './kernels/reduce_webgpu';
-import {ResizeBilinearProgram} from './kernels/resize_bilinear_webgpu';
-import {SelectProgram} from './kernels/select_webgpu';
-import {SliceProgram} from './kernels/slice_webgpu';
-import {StridedSliceProgram} from './kernels/strided_slice_webgpu';
-import {TransposeSharedProgram} from './kernels/transpose_shared_webgpu';
-import {TransposeProgram} from './kernels/transpose_webgpu';
 import * as unary_op from './kernels/unary_op_webgpu';
-import {UnaryOpProgram} from './kernels/unary_op_webgpu';
 import * as webgpu_program from './kernels/webgpu_program';
 import {WebGPUBinary} from './kernels/webgpu_program';
 import * as webgpu_util from './webgpu_util';
@@ -69,15 +45,11 @@ type BufferInfo = {
 type TensorBufferInfo = {
   values: backend_util.BackendValues,
   dtype: DataType,
-  bufferInfo: BufferInfo
+  bufferInfo: BufferInfo,
+  refCount: number;
 };
 
 interface DataId {}
-
-export interface CPUTimerQuery {
-  startMs: number;
-  endMs: number;
-}
 
 export type WebGPUKernelInfo = {
   name: string; query: Promise<number>;
@@ -104,7 +76,12 @@ export class WebGPUBackend extends KernelBackend {
   commandQueue: GPUCommandEncoder[];
   tensorMap: DataStorage<TensorBufferInfo>;
   fromPixelProgram: FromPixelsProgram;
+  supportTimeQuery: boolean;
 
+  private static nextDataId = 0;
+  private nextDataId(): number {
+    return WebGPUBackend.nextDataId++;
+  }
   private commandQueueOwnedIds = new WeakSet<DataId>();
   private binaryCache: {[key: string]: WebGPUBinary};
   private bufferManager: BufferManager;
@@ -119,17 +96,25 @@ export class WebGPUBackend extends KernelBackend {
   private uploadWaitMs = 0;
   private downloadWaitMs = 0;
   private cpuBackend: KernelBackend;
+  private querySet: GPUQuerySet;
 
-  constructor(device: GPUDevice, glslang: Glslang) {
+  constructor(device: GPUDevice, glslang: Glslang, supportTimeQuery = false) {
     super();
     this.binaryCache = {};
     this.device = device;
-    this.queue = device.defaultQueue;
+    this.queue = device.queue;
     this.commandQueue = [];
     this.glslang = glslang;
+    this.supportTimeQuery = supportTimeQuery;
 
     this.bufferManager = new BufferManager(this.device);
     this.tensorMap = new DataStorage(this, engine());
+    if (this.supportTimeQuery) {
+      this.querySet = this.device.createQuerySet({
+        type: 'timestamp',
+        count: 2,
+      });
+    }
   }
 
   floatPrecision(): 32 {
@@ -148,19 +133,31 @@ export class WebGPUBackend extends KernelBackend {
     this.uniformDisposalQueue = [];
   }
 
-  disposeData(dataId: DataId): void {
-    if (!this.tensorMap.has(dataId)) {
-      throw new Error(`Tensor ${dataId} was not registered!`);
-    }
+  /**
+   * Dispose the memory if the dataId has 0 refCount. Return true if the memory
+   * is released or memory is not managed in this backend, false if memory is
+   * not cleared.
+   * @param dataId
+   * @oaram force Optional, remove the data regardless of refCount
+   */
+  disposeData(dataId: DataId, force = false): boolean {
+    if (this.tensorMap.has(dataId)) {
+      const data = this.tensorMap.get(dataId);
+      data.refCount--;
+      if (!force && data.refCount > 0) {
+        return false;
+      }
 
-    if (this.commandQueueOwnedIds.has(dataId)) {
-      this.tensorDisposalQueue.push(dataId);
-      return;
-    } else {
-      this.maybeReleaseBuffer(dataId);
-    }
+      if (this.commandQueueOwnedIds.has(dataId)) {
+        this.tensorDisposalQueue.push(dataId);
+        return false;
+      } else {
+        this.maybeReleaseBuffer(dataId);
+      }
 
-    this.tensorMap.delete(dataId);
+      this.tensorMap.delete(dataId);
+    }
+    return true;
   }
 
   memory(): WebGPUMemoryInfo {
@@ -190,30 +187,55 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
+  /** Return refCount of a `TensorData`. */
+  refCount(dataId: DataId): number {
+    if (this.tensorMap.has(dataId)) {
+      const tensorData = this.tensorMap.get(dataId);
+      return tensorData.refCount;
+    }
+    return 0;
+  }
+
+  /** Increase refCount of a `TensorData`. */
+  incRef(dataId: DataId): void {
+    const tensorData = this.tensorMap.get(dataId);
+    tensorData.refCount++;
+  }
+
+  /** Decrease refCount of a `TensorData`. */
+  decRef(dataId: DataId): void {
+    if (this.tensorMap.has(dataId)) {
+      const tensorData = this.tensorMap.get(dataId);
+      tensorData.refCount--;
+    }
+  }
+
   write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
       DataId {
-    const dataId = {};
+    const dataId = {id: this.nextDataId()};
     const byteSize =
         util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
 
     this.tensorMap.set(dataId, {
       dtype,
       values,
-      bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE}
+      bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE},
+      refCount: 1
     });
     return dataId;
   }
 
   move(
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
-      dtype: DataType): void {
+      dtype: DataType, refCount: number): void {
     const byteSize =
         util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
 
     this.tensorMap.set(dataId, {
       dtype,
       values,
-      bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE}
+      bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE},
+      refCount
     });
   }
 
@@ -324,25 +346,31 @@ export class WebGPUBackend extends KernelBackend {
     if (outerMostTime) {
       this.programTimersStack = null;
     }
-
-    const kernelMs = await Promise.all(flattenedActiveTimerQueries);
-
     const res: WebGPUTimingInfo = {
       uploadWaitMs: this.uploadWaitMs,
       downloadWaitMs: this.downloadWaitMs,
-      kernelMs: util.sum(kernelMs),
-      getExtraProfileInfo: () =>
-          kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
-              .map(d => `${d.name}: ${d.ms}`)
-              .join(', '),
+      kernelMs: null,
       wallMs: null
     };
+
+    if (this.supportTimeQuery) {
+      const kernelMs = await Promise.all(flattenedActiveTimerQueries);
+      res['kernelMs'] = util.sum(kernelMs);
+      res['getExtraProfileInfo'] = () =>
+          kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
+              .map(d => `${d.name}: ${d.ms}`)
+              .join(', ');
+    } else {
+      res['kernelMs'] = {
+        error: 'WebGPU timestamp query was not supported in this environment.'
+      };
+    }
     this.uploadWaitMs = 0;
     this.downloadWaitMs = 0;
     return res;
   }
 
-  private getAndSavePipeline(
+  getAndSavePipeline(
       key: string, getBinary: () => webgpu_program.WebGPUBinary) {
     if (!(key in this.binaryCache)) {
       this.binaryCache[key] = getBinary();
@@ -350,10 +378,20 @@ export class WebGPUBackend extends KernelBackend {
     return this.binaryCache[key];
   }
 
-  makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType): T {
-    const dataId = this.write(null /* values */, shape, dtype);
+  makeTensorInfo(
+      shape: number[], dtype: DataType,
+      values?: backend_util.BackendValues|string[]): TensorInfo {
+    let dataId;
+    if (dtype === 'string' && values != null && values.length > 0 &&
+        util.isString(values[0])) {
+      const encodedValues =
+          (values as {} as string[]).map(d => util.encodeString(d));
 
-    return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
+      dataId = this.write(encodedValues, shape, dtype);
+    } else {
+      dataId = this.write(values as backend_util.BackendValues, shape, dtype);
+    }
+    return {dataId, shape, dtype};
   }
 
   private tensorToBinding(tensor?: TensorInfo): GPUBindingResource {
@@ -370,18 +408,12 @@ export class WebGPUBackend extends KernelBackend {
     };
   }
 
-  startTimer() {
-    return {startMs: util.now(), endMs: 0};
-  }
-
-  endTimer(query: CPUTimerQuery) {
-    query.endMs = util.now();
-    return query;
-  }
-
-  async getQueryTime(query: CPUTimerQuery): Promise<number> {
-    const timerQuery = query;
-    return timerQuery.endMs - timerQuery.startMs;
+  async getQueryTime(query: GPUQuerySet): Promise<number> {
+    if (this.supportTimeQuery) {
+      return this.getTimeFromQuerySet(query);
+    } else {
+      return 0;
+    }
   }
 
   uploadToGPU(dataId: DataId): void {
@@ -401,12 +433,10 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
-  public compileAndRun<K extends TensorInfo>(
+  public runWebGPUProgram(
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
-      output?: TensorInfo, programUniforms?: number[]): K {
-    if (output == null) {
-      output = this.makeOutputArray(program.outputShape, inputs[0].dtype);
-    }
+      outputDtype: DataType, programUniforms?: number[]): TensorInfo {
+    const output = this.makeTensorInfo(program.outputShape, outputDtype);
 
     let uniformDataLength;
     let uniforms: GPUBindingResource;
@@ -417,7 +447,7 @@ export class WebGPUBackend extends KernelBackend {
       uniforms = this.makeUniforms(uniformData);
     }
 
-    const inputsData = inputs.map((input: Tensor, i: number) => {
+    const inputsData = inputs.map((input: TensorInfo, i: number) => {
       this.uploadToGPU(input.dataId);
 
       return {
@@ -439,10 +469,6 @@ export class WebGPUBackend extends KernelBackend {
     });
 
     const shouldTimeProgram = this.activeTimers != null;
-    let query: CPUTimerQuery;
-    if (shouldTimeProgram) {
-      query = this.startTimer();
-    }
 
     // Creating bind groups on the fly should never be a bottleneck.
     const bg = webgpu_program.makeBindGroup(
@@ -451,11 +477,22 @@ export class WebGPUBackend extends KernelBackend {
 
     const encoder = this.device.createCommandEncoder();
     const pass = encoder.beginComputePass();
+    if (shouldTimeProgram) {
+      if (this.supportTimeQuery) {
+        pass.writeTimestamp(this.querySet, 0);
+      }
+    }
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bg);
     pass.dispatch(
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+    if (shouldTimeProgram) {
+      if (this.supportTimeQuery) {
+        pass.writeTimestamp(this.querySet, 1);
+      }
+    }
     pass.endPass();
+
     this.commandQueue.push(encoder);
 
     inputs.forEach(input => {
@@ -477,11 +514,39 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     if (shouldTimeProgram) {
-      query = this.endTimer(query);
-      this.activeTimers.push(
-          {name: program.constructor.name, query: this.getQueryTime(query)});
+      if (this.supportTimeQuery) {
+        this.activeTimers.push({
+          name: program.constructor.name,
+          query: this.getQueryTime(this.querySet)
+        });
+      }
     }
-    return output as {} as K;
+    return output;
+  }
+
+  async getTimeFromQuerySet(querySet: GPUQuerySet) {
+    const queryBuffer = this.acquireBuffer(
+        16, GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);
+    const dst = this.acquireBuffer(
+        16, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
+
+    const encoder = this.device.createCommandEncoder();
+    // tslint:disable-next-line:no-any
+    (encoder as any).resolveQuerySet(querySet, 0, 2, queryBuffer, 0);
+    encoder.copyBufferToBuffer(queryBuffer, 0, dst, 0, 16);
+    this.commandQueue.push(encoder);
+    this.submitQueue();
+    await dst.mapAsync(GPUMapMode.READ);
+    const arrayBuf = new BigUint64Array(dst.getMappedRange());
+    const timeElapsedNanos = Number((arrayBuf[1] - arrayBuf[0]));
+    dst.unmap();
+    this.bufferManager.releaseBuffer(
+        dst, 16, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
+    this.bufferManager.releaseBuffer(
+        queryBuffer, 16,
+        GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);
+    // Return milliseconds.
+    return timeElapsedNanos / 1000000;
   }
 
   private makeUniforms(data: Uint32Array|Int32Array): GPUBindingResource {
@@ -504,230 +569,14 @@ export class WebGPUBackend extends KernelBackend {
     return this.cpuBackend;
   }
 
-  private shouldExecuteOnCPU(
-      inputs: Tensor[], sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
+  shouldExecuteOnCPU(
+      inputs: TensorInfo[],
+      sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
     return this.getCPUBackend() != null &&
         inputs.every(
             input =>
                 this.tensorMap.get(input.dataId).bufferInfo.buffer == null &&
-                input.size < sizeThreshold);
-  }
-
-  pad<T extends Tensor>(
-      x: T, paddings: Array<[number, number]>, constantValue: number): T {
-    const program = new PadProgram(x.shape, paddings, constantValue);
-    const output = this.makeOutputArray(program.outputShape, x.dtype);
-    return this.compileAndRun(program, [x], output);
-  }
-
-  avgPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
-    let program: Pool2DProgram|MaxPoolWithFilterSizeEqualsOneProgram;
-    if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1) {
-      program = new MaxPoolWithFilterSizeEqualsOneProgram(convInfo);
-    } else {
-      program = new Pool2DProgram(convInfo, 'avg');
-    }
-
-    const output = this.makeOutputArray(program.outputShape, x.dtype);
-
-    const dimensions = [
-      convInfo.padInfo.left, convInfo.padInfo.top,      // Padding.
-      convInfo.strideWidth, convInfo.strideHeight,      // Stride.
-      convInfo.dilationWidth, convInfo.dilationHeight,  // Dilation.
-      convInfo.inWidth, convInfo.inHeight,              // Conv dims.
-      convInfo.effectiveFilterWidth,
-      convInfo.effectiveFilterHeight  // Filter dims.
-    ];
-    return this.compileAndRun(program, [x], output, dimensions);
-  }
-
-  maxPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
-    let program: Pool2DProgram|MaxPoolWithFilterSizeEqualsOneProgram;
-    if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1) {
-      program = new MaxPoolWithFilterSizeEqualsOneProgram(convInfo);
-    } else {
-      program = new Pool2DProgram(convInfo, 'max');
-    }
-
-    const output = this.makeOutputArray(program.outputShape, x.dtype);
-
-    const dimensions = [
-      convInfo.padInfo.left, convInfo.padInfo.top,      // Padding.
-      convInfo.strideWidth, convInfo.strideHeight,      // Stride.
-      convInfo.dilationWidth, convInfo.dilationHeight,  // Dilation.
-      convInfo.inWidth, convInfo.inHeight,              // Conv dims.
-      convInfo.effectiveFilterWidth,
-      convInfo.effectiveFilterHeight  // Filter dims.
-    ];
-
-    return this.compileAndRun(program, [x], output, dimensions);
-  }
-
-  private binaryOp(a: Tensor, b: Tensor, op: BinaryOpType, boolType?: boolean):
-      Tensor {
-    const program = getBinaryProgram(op, a.shape, b.shape);
-    if (boolType) {
-      const dataId = this.write(null /*values*/, program.outputShape, 'bool');
-      const output = engine().makeTensorFromDataId(
-          dataId, program.outputShape, 'bool', this);
-
-      return this.compileAndRun(program, [a, b], output);
-    }
-    const dtype = backend_util.upcastType(a.dtype, b.dtype);
-    const dataId = this.write(null /*values*/, program.outputShape, dtype);
-    const output =
-        engine().makeTensorFromDataId(dataId, program.outputShape, dtype, this);
-
-    return this.compileAndRun(program, [a, b], output);
-  }
-
-  add(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.add(a, b);
-    }
-    return this.binaryOp(a, b, BinaryOpType.ADD);
-  }
-
-  subtract(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.subtract(a, b);
-    }
-    return this.binaryOp(a, b, BinaryOpType.SUB);
-  }
-
-  less(a: Tensor, b: Tensor): Tensor {
-    return this.binaryOp(a, b, BinaryOpType.LESS, true);
-  }
-
-  lessEqual(a: Tensor, b: Tensor): Tensor {
-    return this.binaryOp(a, b, BinaryOpType.LESS_EQUAL, true);
-  }
-
-  greater(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.greater(a, b);
-    }
-    return this.binaryOp(a, b, BinaryOpType.GREATER, true);
-  }
-
-  greaterEqual(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.greaterEqual(a, b);
-    }
-    return this.binaryOp(a, b, BinaryOpType.GREATER_EQUAL, true);
-  }
-
-  private conv2dWithIm2Col(
-      x: Tensor4D, filter: Tensor4D,
-      convInfo: backend_util.Conv2DInfo): Tensor4D {
-    const {
-      filterWidth,
-      filterHeight,
-      inChannels,
-      outWidth,
-      outHeight,
-      dataFormat
-    } = convInfo;
-
-    const sharedDim = filterWidth * filterHeight * inChannels;
-    const numCols = outHeight * outWidth;
-    const x2ColShape = [numCols, sharedDim];
-
-    const xSqueezed = x.squeeze([0]);
-    const w2Row = filter.reshape([1, sharedDim, -1]);
-
-    const im2ColProgram =
-        new Im2ColProgram(x2ColShape, xSqueezed.shape, convInfo);
-    const im2Col = this.compileAndRun(im2ColProgram, [xSqueezed]);
-    const im2Col3D =
-        (im2Col as Tensor3D).reshape([1, x2ColShape[0], x2ColShape[1]]);
-
-    const transposeA = false;
-    const transposeB = false;
-
-    const matMulProgram = new MatMulPackedProgram(
-        [1, x2ColShape[0], x2ColShape[1]], [1, numCols, convInfo.outChannels],
-        env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, transposeA,
-        transposeB);
-    const result: Tensor = this.compileAndRun(matMulProgram, [im2Col3D, w2Row]);
-    const isChannelsLast = dataFormat === 'channelsLast';
-    if (isChannelsLast) {
-      return result.reshape([1, outHeight, outWidth, convInfo.outChannels]);
-    }
-    return result.reshape([1, convInfo.outChannels, outHeight, outWidth]);
-  }
-
-  private conv2dByMatMul(
-      x: Tensor4D, filter: Tensor4D,
-      convInfo: backend_util.Conv2DInfo): Tensor4D {
-    const xShape = x.shape;
-    const isChannelsLast = convInfo.dataFormat === 'channelsLast';
-    const transposeA = false;
-    const transposeB = false;
-
-    const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] :
-                                         xShape[0] * xShape[2] * xShape[3];
-    const xReshaped = this.reshape(x, [1, targetShape, convInfo.inChannels]);
-    const filterReshaped =
-        this.reshape(filter, [1, convInfo.inChannels, convInfo.outChannels]);
-
-    return this.reshape(
-        this.batchMatMul(
-            xReshaped as Tensor3D, filterReshaped as Tensor3D, transposeA,
-            transposeB),
-        convInfo.outShape);
-  }
-
-  conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
-      Tensor4D {
-    if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
-        convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
-        convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
-        (convInfo.padInfo.type === 'SAME' ||
-         convInfo.padInfo.type === 'VALID')) {
-      return this.conv2dByMatMul(x, filter, convInfo);
-    }
-
-    if (env().getBool('WEBGPU_CONV_SEPARATE_IM2COL_SHADER') &&
-        x.shape[0] === 1) {
-      return this.conv2dWithIm2Col(x, filter, convInfo);
-    }
-
-    const dataId = this.write(null /*values*/, convInfo.outShape, x.dtype);
-    const output =
-        engine().makeTensorFromDataId(dataId, convInfo.outShape, x.dtype, this);
-    let program: Conv2DMMProgram|Conv2DNaiveProgram;
-
-    const workPerThread = env().get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
-    if (workPerThread === -1) {
-      // TODO(kainino0x): This may be obsolete, but is kept for reference.
-      program = new Conv2DNaiveProgram(convInfo);
-    } else {
-      program = new Conv2DMMProgram(convInfo, workPerThread);
-    }
-
-    const pad = [convInfo.padInfo.top, convInfo.padInfo.left];
-
-    const dimensions = [
-      convInfo.filterHeight, convInfo.filterWidth, ...pad,
-      convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationHeight,
-      convInfo.dilationWidth
-    ];
-
-    return this.compileAndRun(program, [x, filter], output, dimensions);
-  }
-
-  depthwiseConv2D(
-      x: Tensor4D, filter: Tensor4D,
-      convInfo: backend_util.Conv2DInfo): Tensor4D {
-    const program = new DepthwiseConv2DProgram(convInfo);
-    const dimensions = [
-      convInfo.filterHeight, convInfo.filterWidth, convInfo.padInfo.top,
-      convInfo.padInfo.left, convInfo.strideHeight, convInfo.strideWidth,
-      convInfo.dilationHeight, convInfo.dilationWidth, convInfo.inHeight,
-      convInfo.inWidth
-    ];
-    return this.compileAndRun(program, [x, filter], null, dimensions);
+                util.sizeFromShape(input.shape) < sizeThreshold);
   }
 
   mapActivationToShaderProgram(
@@ -735,437 +584,16 @@ export class WebGPUBackend extends KernelBackend {
     if (activation === 'linear') {
       return unary_op.LINEAR;
     } else if (activation === 'relu') {
-      return unary_op.RELU;
+      return packed ? unary_op.RELU_VEC4 : unary_op.RELU;
     } else if (activation === 'elu') {
-      return unary_op.ELU;
+      return packed ? unary_op.ELU_VEC4 : unary_op.ELU;
     } else if (activation === 'relu6') {
       return unary_op.RELU6;
     } else if (activation === 'prelu') {
-      return getBinaryOpString(BinaryOpType.PRELU);
+      return getBinaryOpString(BinaryOpType.PRELU, packed);
     }
     throw new Error(`Activation ${
-        activation} has not been implemented for the WebGL backend.`);
-  }
-
-  fusedConv2d(
-      {input, filter, convInfo, bias, activation, preluActivationWeights}:
-          backend_util.FusedConv2DConfig): Tensor4D {
-    const dataId = this.write(null /*values*/, convInfo.outShape, input.dtype);
-    const output = engine().makeTensorFromDataId(
-        dataId, convInfo.outShape, input.dtype, this);
-
-    const hasBias = bias != null;
-    const hasPreluActivationWeights = preluActivationWeights != null;
-    const fusedActivation = activation ?
-        this.mapActivationToShaderProgram(activation, false) :
-        null;
-    let program: Conv2DMMProgram|Conv2DNaiveProgram;
-
-    const workPerThread = env().get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
-    if (workPerThread === -1) {
-      // TODO(kainino0x): This may be obsolete, but is kept for reference.
-      program = new Conv2DNaiveProgram(
-          convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
-    } else {
-      program = new Conv2DMMProgram(
-          convInfo, workPerThread, hasBias, fusedActivation,
-          hasPreluActivationWeights);
-    }
-
-    const pad = [convInfo.padInfo.top, convInfo.padInfo.left];
-
-    const dimensions = [
-      convInfo.filterHeight, convInfo.filterWidth, ...pad,
-      convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationHeight,
-      convInfo.dilationWidth
-    ];
-
-    const inputs: Tensor[] = [input, filter];
-    if (hasBias) {
-      inputs.push(bias);
-    }
-    if (hasPreluActivationWeights) {
-      inputs.push(preluActivationWeights);
-    }
-    return this.compileAndRun(program, inputs, output, dimensions);
-  }
-
-  private argMinMaxReduce(x: Tensor, axis: number, reduceType: 'min'|'max'):
-      Tensor {
-    const program = new ArgMinMaxProgram(x.shape, axis, reduceType);
-    const output = this.makeOutputArray(program.outputShape, 'int32');
-    return this.compileAndRun(program, [x], output, [axis]);
-  }
-
-  argMin(x: Tensor, axis: number): Tensor {
-    return this.argMinMaxReduce(x, axis, 'min');
-  }
-
-  argMax(x: Tensor, axis: number): Tensor {
-    return this.argMinMaxReduce(x, axis, 'max');
-  }
-
-  private reduce(x: Tensor2D, reduceType: 'max'|'min'|'sum', dtype: DataType):
-      Tensor2D {
-    const batchSize = x.shape[0];
-    const inSize = x.shape[1];
-    const windowSize = backend_util.computeOptimalWindowSize(inSize);
-    const outSize = Math.ceil(inSize / windowSize);
-    const reduceInfo = {windowSize, inSize, batchSize, outSize};
-    const program = new ReduceProgram(reduceInfo, reduceType);
-    const output = this.makeOutputArray(program.outputShape, dtype);
-    return this.compileAndRun(program, [x], output);
-  }
-
-  max(x: Tensor, axes: number[]): Tensor {
-    backend_util.assertAxesAreInnerMostDims('max', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const reduceSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, reduceSize);
-    return this.reduce(a2D, 'max', a2D.dtype).reshape(outShape);
-  }
-
-  min(x: Tensor, axes: number[]): Tensor {
-    backend_util.assertAxesAreInnerMostDims('min', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const reduceSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, reduceSize);
-    return this.reduce(a2D, 'min', a2D.dtype).reshape(outShape);
-  }
-
-  sum(x: Tensor, axes: number[]): Tensor {
-    backend_util.assertAxesAreInnerMostDims('sum', axes, x.rank);
-    const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
-    const reduceSize = util.sizeFromShape(reduceShape);
-    const a2D = x.as2D(-1, reduceSize);
-    const outputDType = sumOutType(x.dtype);
-    return this.reduce(a2D, 'sum', outputDType).reshape(outShape);
-  }
-
-  clip<T extends Tensor>(x: T, min: number, max: number): T {
-    const program = new ClipProgram(x.shape, min, max);
-    return this.compileAndRun(program, [x]);
-  }
-
-  slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.slice(x, begin, size);
-    }
-    // Short-circuit computation if the slice is zero-sized.
-    if (util.sizeFromShape(size) === 0) {
-      return engine().makeTensor([], size, x.dtype, this) as T;
-    }
-    // TODO(xing.xu): Add shadow slice support.
-    const program = new SliceProgram(begin, size);
-    return this.compileAndRun(program, [x], null);
-  }
-
-  stridedSlice<T extends Tensor>(
-      x: T, begin: number[], end: number[], strides: number[]): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.stridedSlice(x, begin, end, strides);
-    }
-
-    const outShape = slice_util.computeOutShape(begin, end, strides);
-
-    if (outShape.some(axis => axis === 0)) {
-      return engine().makeTensor([], outShape, x.dtype, this) as T;
-    }
-
-    const program = new StridedSliceProgram(begin, strides, outShape);
-    return this.compileAndRun(program, [x]);
-  }
-
-  concat(tensors: Tensor[], axis: number): Tensor {
-    if (this.shouldExecuteOnCPU(tensors)) {
-      return this.cpuBackend.concat(tensors, axis);
-    }
-
-    if (tensors.length === 1) {
-      return tensors[0];
-    }
-    // Is there a maximum number of buffers that can be uploaded to a WebGPU
-    // program?
-    // if (tensors.length > MAX_SSBOS_FOR_WEBGPU_PROGRAM) {
-    //   const midIndex = Math.floor(tensors.length / 2);
-    //   const leftSide = this.concat(tensors.slice(0, midIndex), axis);
-    //   const rightSide = this.concat(tensors.slice(midIndex), axis);
-    //   return this.concat([leftSide, rightSide], axis);
-    // }
-    const outShape =
-        backend_util.computeOutShape(tensors.map(t => t.shape), axis);
-    const tensors2D: Tensor2D[] = tensors.map(t => t.reshape([
-      util.sizeFromShape(t.shape.slice(0, axis)),
-      util.sizeFromShape(t.shape.slice(axis))
-    ]));
-    const program = new ConcatProgram(tensors2D.map(t => t.shape));
-    const res: Tensor = this.compileAndRun(program, tensors2D);
-    return res.reshape(outShape);
-  }
-
-  multiply(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.multiply(a, b);
-    }
-    return this.binaryOp(a, b, BinaryOpType.MUL);
-  }
-
-  realDivide(a: Tensor, b: Tensor): Tensor {
-    return this.binaryOp(a, b, BinaryOpType.DIV);
-  }
-
-  floorDiv(a: Tensor, b: Tensor): Tensor {
-    return this.binaryOp(a, b, BinaryOpType.INT_DIV);
-  }
-
-  maximum(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.maximum(a, b);
-    }
-    return this.binaryOp(a, b, BinaryOpType.MAX);
-  }
-
-  neg<T extends Tensor>(x: T): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.neg(x);
-    }
-    const program = new UnaryOpProgram(x.shape, unary_op.NEG);
-    return this.compileAndRun(program, [x]);
-  }
-
-  tanh<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.TANH);
-    return this.compileAndRun(program, [x]);
-  }
-
-  exp<T extends Tensor>(x: T): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.exp(x);
-    }
-    const program = new UnaryOpProgram(x.shape, unary_op.EXP);
-    return this.compileAndRun(program, [x]);
-  }
-
-  softmax<T extends Tensor>(logits: T, dim: number): T {
-    const axes = util.parseAxisParam([dim], logits.shape);
-    const maxLogit = this.max(logits, axes);
-    const expandedShape =
-        backend_util.expandShapeToKeepDim(maxLogit.shape, axes);
-    const a = this.subtract(logits, maxLogit.reshape(expandedShape));
-    const b = this.exp(a);
-    const sumExp = this.sum(b, axes).reshape(expandedShape);
-
-    return div(b, sumExp);
-  }
-
-  log<T extends Tensor>(x: T): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.log(x);
-    }
-    const program = new UnaryOpProgram(x.shape, unary_op.LOG);
-    return this.compileAndRun(program, [x]);
-  }
-
-  sigmoid<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SIGMOID);
-    return this.compileAndRun(program, [x]);
-  }
-
-  relu<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.RELU);
-    return this.compileAndRun(program, [x]);
-  }
-
-  relu6<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.RELU6);
-    return this.compileAndRun(program, [x]);
-  }
-
-  abs<T extends Tensor>(x: T): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.abs(x);
-    }
-    const program = new UnaryOpProgram(x.shape, unary_op.ABS);
-    return this.compileAndRun(program, [x]);
-  }
-
-  prelu<T extends Tensor>(x: T, alpha: T): T {
-    const program = new BinaryOpProgram(
-        getBinaryOpString(BinaryOpType.PRELU), x.shape, alpha.shape);
-    return this.compileAndRun(program, [x, alpha]);
-  }
-
-  select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
-    const program = new SelectProgram(condition.rank, a.shape, a.rank);
-    const dtype = backend_util.upcastType(a.dtype, b.dtype);
-    const dataId = this.write(null /*values*/, program.outputShape, dtype);
-    const output =
-        engine().makeTensorFromDataId(dataId, program.outputShape, dtype, this);
-    return this.compileAndRun(program, [condition, a, b], output);
-  }
-
-  cropAndResize(
-      image: Tensor4D, boxes: Tensor2D, boxIndex: Tensor1D,
-      cropSize: [number, number], method: 'bilinear'|'nearest',
-      extrapolationValue: number): Tensor4D {
-    const program = new CropAndResizeProgram(
-        image.shape, boxes.shape, cropSize, method, extrapolationValue);
-    const dataId = this.write(null /*values*/, program.outputShape, 'float32');
-    const output = engine().makeTensorFromDataId(
-        dataId, program.outputShape, 'float32', this);
-    return this.compileAndRun(program, [image, boxes, boxIndex], output);
-  }
-
-  fill<R extends Rank>(
-      shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
-    dtype = dtype || util.inferDtype(value);
-
-    if (dtype === 'string') {
-      // String type should be handled in CPU memory.
-      const values = util.getArrayFromDType(dtype, util.sizeFromShape(shape));
-      values.fill(value as string);
-      return engine().makeTensor(values, shape, dtype, this) as Tensor<R>;
-    } else {
-      const program = new FillProgram(shape, value as number);
-      const dataId = this.write(null /*values*/, program.outputShape, dtype);
-      const output = engine().makeTensorFromDataId(
-          dataId, program.outputShape, dtype, this);
-      return this.compileAndRun(program, [], output);
-    }
-  }
-
-  zerosLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
-    return this.fill(x.shape, x.dtype === 'string' ? '' : 0, x.dtype);
-  }
-
-  resizeBilinear(
-      x: Tensor4D, newHeight: number, newWidth: number,
-      alignCorners: boolean): Tensor4D {
-    const program =
-        new ResizeBilinearProgram(x.shape, newHeight, newWidth, alignCorners);
-
-    const output: Tensor4D =
-        this.makeOutputArray(program.outputShape, 'float32');
-
-    return this.compileAndRun(program, [x], output);
-  }
-
-  reshape<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor<R> {
-    return engine().makeTensorFromDataId(x.dataId, shape, x.dtype, this) as
-        Tensor<R>;
-  }
-
-  cast<T extends Tensor>(x: T, dtype: DataType): T {
-    return backend_util.castTensor(x, dtype, this);
-  }
-
-  transpose<T extends Tensor>(x: T, perm: number[]): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.transpose(x, perm);
-    }
-    if (x.shape.length === 2 && util.arraysEqual(perm, [1, 0])) {
-      const program = new TransposeSharedProgram(x.shape, perm);
-      return this.compileAndRun(program, [x]);
-    }
-    const program = new TransposeProgram(x.shape, perm);
-    return this.compileAndRun(program, [x]);
-  }
-
-  batchToSpaceND<T extends Tensor>(
-      x: T, blockShape: number[], crops: number[][]): T {
-    util.assert(
-        x.rank <= 4,
-        () => 'batchToSpaceND for rank > 4 with a WebGPU backend not ' +
-            'implemented yet');
-    const prod = blockShape.reduce((a, b) => a * b);
-
-    const reshaped = backend_util.getReshaped(x.shape, blockShape, prod);
-    const permuted =
-        backend_util.getPermuted(reshaped.length, blockShape.length);
-    const reshapedPermuted =
-        backend_util.getReshapedPermuted(x.shape, blockShape, prod);
-    const sliceBeginCoords =
-        backend_util.getSliceBeginCoords(crops, blockShape.length);
-    const sliceSize =
-        backend_util.getSliceSize(reshapedPermuted, crops, blockShape.length);
-
-    return x.reshape(reshaped)
-               .transpose(permuted)
-               .reshape(reshapedPermuted)
-               .slice(sliceBeginCoords, sliceSize) as T;
-  }
-
-  spaceToBatchND<T extends Tensor>(
-      x: T, blockShape: number[], paddings: Array<[number, number]>): T {
-    util.assert(
-        x.rank <= 4,
-        () => 'spaceToBatchND for rank > 4 with a WebGPU backend not ' +
-            'implemented yet');
-
-    const prod = blockShape.reduce((a, b) => a * b);
-
-    const completePaddings: Array<[number, number]> = [[0, 0]];
-    completePaddings.push(...paddings);
-    for (let i = 1 + blockShape.length; i < x.shape.length; ++i) {
-      completePaddings.push([0, 0]);
-    }
-
-    const paddedX = x.pad(completePaddings);
-
-    const reshapedPaddedShape =
-        backend_util.getReshaped(paddedX.shape, blockShape, prod, false);
-
-    const permutedReshapedPaddedPermutation = backend_util.getPermuted(
-        reshapedPaddedShape.length, blockShape.length, false);
-
-    const flattenShape = backend_util.getReshapedPermuted(
-        paddedX.shape, blockShape, prod, false);
-
-    return paddedX.reshape(reshapedPaddedShape)
-        .transpose(permutedReshapedPaddedPermutation)
-        .reshape(flattenShape);
-  }
-
-  batchMatMul(
-      a: Tensor3D, b: Tensor3D, transposeA: boolean,
-      transposeB: boolean): Tensor3D {
-    const outerShapeA = transposeA ? a.shape[2] : a.shape[1];
-    const outerShapeB = transposeB ? b.shape[1] : b.shape[2];
-    const [batch, , ] = a.shape;
-
-    const dataId =
-        this.write(null /*values*/, [batch, outerShapeA, outerShapeB], a.dtype);
-    const output = engine().makeTensorFromDataId(
-        dataId, [batch, outerShapeA, outerShapeB], a.dtype, this);
-
-    let program: MatMulProgram|MatMulPackedProgram|MatMulPackedVec4Program;
-    // TODO: We should eventually use the blocked version, but keeping around
-    // the old version while we try to understand conditions under which blocked
-    // is faster.
-    if (env().get('WEBGPU_MATMUL_WORK_PER_THREAD') === 0) {
-      program = new MatMulProgram(
-          a.shape, output.shape as [number, number, number], transposeA,
-          transposeB);
-    } else if (
-        a.shape[2] % 4 === 0 && b.shape[2] % 4 === 0 && !transposeA &&
-        !transposeB) {
-      // TODO: Currently we need to make sure that a.shape[2] and b.shape[2] are
-      // divisible by 4 since we use vec4 to get data. In future, we can remove
-      // this limitation by insert 0 to pack data.
-      program = new MatMulPackedVec4Program(
-          a.shape, output.shape as [number, number, number],
-          env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number);
-    } else {
-      program = new MatMulPackedProgram(
-          a.shape, output.shape as [number, number, number],
-          env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, transposeA,
-          transposeB);
-    }
-
-    return this.compileAndRun(program, [a, b], output);
+        activation} has not been implemented for the WebGPU backend.`);
   }
 
   numDataIds() {

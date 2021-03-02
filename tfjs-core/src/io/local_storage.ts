@@ -176,6 +176,9 @@ export class BrowserLocalStorage implements IOHandler {
         if (modelArtifacts.userDefinedMetadata != null) {
           result.userDefinedMetadata = modelArtifacts.userDefinedMetadata;
         }
+        if (modelArtifacts.modelInitializer != null) {
+          result.modelInitializer = modelArtifacts.modelInitializer;
+        }
         this.LS.setItem(this.keys.modelMetadata, JSON.stringify(result));
 
         return {modelArtifactsInfo};
@@ -251,6 +254,9 @@ export class BrowserLocalStorage implements IOHandler {
       }
       if (metadata['userDefinedMetadata'] != null) {
         out.userDefinedMetadata = metadata['userDefinedMetadata'];
+      }
+      if (metadata['modelInitializer'] != null) {
+        out.modelInitializer = metadata['modelInitializer'];
       }
     }
 

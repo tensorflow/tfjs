@@ -19,8 +19,8 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs {
 

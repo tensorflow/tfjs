@@ -15,14 +15,10 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Range, RangeAttrs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor1D} from '../tensor';
-import {makeZerosTypedArray} from '../util';
-
-import {tensor1d} from './tensor1d';
-import {zeros} from './zeros';
+import {Tensor1D} from '../tensor';
 
 /**
  * Creates a new `tf.Tensor1D` filled with the numbers in the range provided.
@@ -50,36 +46,7 @@ export function range(
     throw new Error('Cannot have a step of zero');
   }
 
-  const forward: ForwardFunc<Tensor> = () => {
-    const sameStartStop = start === stop;
-    const increasingRangeNegativeStep = start < stop && step < 0;
-    const decreasingRangePositiveStep = stop < start && step > 1;
-
-    if (sameStartStop || increasingRangeNegativeStep ||
-        decreasingRangePositiveStep) {
-      return zeros([0], dtype);
-    }
-
-    const numElements = Math.abs(Math.ceil((stop - start) / step));
-    const values = makeZerosTypedArray(numElements, dtype);
-
-    if (stop < start && step === 1) {
-      // Auto adjust the step's sign if it hasn't been set
-      // (or was set to 1)
-      step = -1;
-    }
-
-    values[0] = start;
-    for (let i = 1; i < values.length; i++) {
-      values[i] = values[i - 1] + step;
-    }
-
-    return tensor1d(values, dtype);
-  };
-
   const attrs: RangeAttrs = {start, stop, step, dtype};
 
-  return ENGINE.runKernelFunc(
-             forward, {} /* inputs */, null /* grad */, Range,
-             attrs as {} as NamedAttrMap) as Tensor1D;
+  return ENGINE.runKernel(Range, {} /* inputs */, attrs as {} as NamedAttrMap);
 }

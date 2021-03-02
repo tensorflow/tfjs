@@ -27,7 +27,7 @@ export function _fusedMatMul(args: {
 }) {
   const {inputs, backend, attrs} = args;
   const {a, b, bias, preluActivationWeights} = inputs;
-  const {transposeA, transposeB, activation} = attrs;
+  const {transposeA, transposeB, activation, leakyreluAlpha} = attrs;
 
   return batchMatMulImpl({
     a,
@@ -37,6 +37,7 @@ export function _fusedMatMul(args: {
     backend,
     bias,
     preluActivationWeights,
+    leakyreluAlpha,
     activation
   });
 }

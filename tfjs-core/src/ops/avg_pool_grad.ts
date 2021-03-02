@@ -15,16 +15,15 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {AvgPoolGrad, AvgPoolGradAttrs, AvgPoolGradInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import * as conv_util from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -75,25 +74,19 @@ function avgPoolGrad_<T extends Tensor3D|Tensor4D>(
       () => `Error in avgPoolGrad: input must be rank 4 but got rank ` +
           `${input4D.rank}.`);
 
-  const forward: ForwardFunc<Tensor> = backend => {
-    const convInfo = conv_util.computePool2DInfo(
-        input4D.shape, filterSize, strides, 1 /* dilations */, pad);
-
-    return backend.avgPoolBackprop(dy4D, input4D, convInfo);
-  };
-
   const inputs: AvgPoolGradInputs = {dy: dy4D, input: input4D};
 
   const attrs: AvgPoolGradAttrs = {filterSize, strides, pad};
 
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null, AvgPoolGrad,
-      attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  AvgPoolGrad, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   }
-  return res as T;
+  return res;
 }
 
 export const avgPoolGrad = op({avgPoolGrad_});

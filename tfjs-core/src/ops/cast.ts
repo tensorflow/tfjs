@@ -52,9 +52,8 @@ function cast_<T extends Tensor>(x: T|TensorLike, dtype: DataType): T {
   const inputs: CastInputs = {x: $x};
   const attrs: CastAttrs = {dtype};
 
-  return ENGINE.runKernelFunc(
-      backend => backend.cast($x, dtype), inputs as {} as NamedTensorMap,
-      null /* grad */, Cast, attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(
+      Cast, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const cast = op({cast_});

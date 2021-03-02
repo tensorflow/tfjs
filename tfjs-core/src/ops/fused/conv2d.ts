@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../../engine';
+import {ENGINE} from '../../engine';
 import {customGrad} from '../../gradients';
 import {FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs} from '../../kernel_names';
 import {NamedAttrMap} from '../../kernel_registry';
@@ -82,15 +82,16 @@ import {reshape} from '../reshape';
  *     in atrous convolution. Defaults to `[1, 1]`. If `dilations` is a single
  *     number, then `dilationHeight == dilationWidth`. If it is greater than
  *     1, then all values of `strides` must be 1.
- * @param dimRoundingMode The rounding mode used when computing output
- *     dimensions if pad is a number. If none is provided, it will not round
- *     and error if the output is of fractional size.
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
  * @param bias Tensor to be added to the result.
  * @param activation Name of activation kernel (defaults to `linear`) to be
  *     applied
  *      after biasAdd.
  * @param preluActivationWeights Tensor of prelu weights to be applied as part
  *     of a `prelu` activation, typically the same shape as `x`.
+ * @param leakyreluAlpha Optional. Alpha to be applied as part of a `leakyrelu`
+ *     activation.
  */
 function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   x,
@@ -102,7 +103,8 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   dimRoundingMode,
   bias,
   activation = 'linear',
-  preluActivationWeights
+  preluActivationWeights,
+  leakyreluAlpha
 }: {
   x: T|TensorLike,
   filter: Tensor4D|TensorLike,
@@ -113,7 +115,8 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   dimRoundingMode?: 'floor'|'round'|'ceil',
   bias?: Tensor|TensorLike,
   activation?: Activation,
-  preluActivationWeights?: Tensor
+  preluActivationWeights?: Tensor,
+  leakyreluAlpha?: number
 }): T {
   activation = activation || 'linear';
 
@@ -124,7 +127,8 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
       result = add(result, bias);
     }
 
-    return applyActivation(result, activation, preluActivationWeights) as T;
+    return applyActivation(
+               result, activation, preluActivationWeights, leakyreluAlpha) as T;
   }
 
   const $x = convertToTensor(x, 'x', 'conv2d');
@@ -207,18 +211,6 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
     return der;
   };
 
-  const forward: ForwardFunc<Tensor> = (backend) => {
-    const res = backend.fusedConv2d({
-      input: x4D,
-      filter: $filter,
-      convInfo,
-      bias: $bias,
-      activation,
-      preluActivationWeights: $preluActivationWeights
-    });
-    return res;
-  };
-
   const inputs: FusedConv2DInputs = {
     x: x4D,
     filter: $filter,
@@ -226,22 +218,33 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
     preluActivationWeights: $preluActivationWeights
   };
 
-  const attrs: FusedConv2DAttrs =
-      {strides, pad, dataFormat, dilations, dimRoundingMode, activation};
+  const attrs: FusedConv2DAttrs = {
+    strides,
+    pad,
+    dataFormat,
+    dilations,
+    dimRoundingMode,
+    activation,
+    leakyreluAlpha
+  };
 
   // Depending on the the params passed in we will have different number of
   // inputs and thus a a different number of elements in the gradient.
   if (bias == null) {
     const customOp =
         customGrad((x4D: Tensor4D, filter: Tensor4D, save: GradSaveFunc) => {
-          let res = ENGINE.runKernelFunc(
-              forward, inputs as {} as NamedTensorMap, null /* grad */,
-              FusedConv2D, attrs as {} as NamedAttrMap);
+          let res: Tensor4D|Tensor3D =
+              // tslint:disable-next-line: no-unnecessary-type-assertion
+              ENGINE.runKernel(
+                  FusedConv2D, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap);
 
           save([filter, x4D, res]);
 
           if (reshapedTo4D) {
-            res = reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
+            // tslint:disable-next-line: no-unnecessary-type-assertion
+            res = reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as
+                Tensor3D;
           }
 
           return {value: res, gradFunc: grad};
@@ -250,14 +253,16 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   } else {
     const customOpWithBias = customGrad(
         (x4D: Tensor4D, filter: Tensor4D, bias: Tensor, save: GradSaveFunc) => {
-          let res = ENGINE.runKernelFunc(
-              forward, inputs as {} as NamedTensorMap, null /* grad */,
-              FusedConv2D, attrs as {} as NamedAttrMap);
+          let res: Tensor4D|Tensor3D = ENGINE.runKernel(
+              FusedConv2D, inputs as {} as NamedTensorMap,
+              attrs as {} as NamedAttrMap);
 
           save([filter, x4D, res, bias]);
 
           if (reshapedTo4D) {
-            res = reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
+            // tslint:disable-next-line: no-unnecessary-type-assertion
+            res = reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as
+                Tensor3D;
           }
 
           return {value: res, gradFunc: grad};

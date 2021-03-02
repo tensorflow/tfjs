@@ -30,7 +30,7 @@ import {makeTensor} from './tensor_ops_util';
  *
  *  ```js
  * // Pass a nested array.
- * tf.tensor5d([[[[[1], [2]], [[3], [4]]]]]).print();
+ * tf.tensor5d([[[[[1],[2]],[[3],[4]]],[[[5],[6]],[[7],[8]]]]]).print();
  * ```
  * ```js
  * // Pass a flat array and specify a shape.

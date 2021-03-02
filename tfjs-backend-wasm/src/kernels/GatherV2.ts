@@ -19,12 +19,13 @@ import {backend_util, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelConfig, Ker
 
 import {BackendWasm} from '../backend_wasm';
 
+import {reshape} from './Reshape';
 import {CppDType} from './types';
 
-let wasmGather:
-    (xId: number, dtype: CppDType, xStrides: Uint8Array, stridesSize: number,
-     indicesId: number, axis: number, outStrides: Uint8Array, outId: number) =>
-        void;
+let wasmGather: (
+    xId: number, dtype: CppDType, xStrides: Uint8Array, stridesSize: number,
+    indicesId: number, batchSize: number, outStrides: Uint8Array,
+    outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmGather = backend.wasm.cwrap('Gather', null /*void*/, [
@@ -33,7 +34,7 @@ function setup(backend: BackendWasm): void {
     'array',   // xStrides
     'number',  // stridesSize
     'number',  // indicesId
-    'number',  // axis
+    'number',  // batchSize
     'array',   // outStrides
     'number'   // outId
   ]);
@@ -44,39 +45,60 @@ function gatherV2(
     TensorInfo {
   const {backend, inputs, attrs} = args;
   const {x, indices} = inputs;
-  const {axis} = attrs;
+  const {axis, batchDims} = attrs;
 
-  const newShape = x.shape.slice();
-  newShape[axis] = util.sizeFromShape(indices.shape);
-  const stridesSize = x.shape.length - 1;
+  const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
+  const shapeInfo = backend_util.segment_util.collectGatherOpShapeInfo(
+      x as Tensor, indices as Tensor, parsedAxis, batchDims);
 
-  const out = backend.makeOutput(newShape, x.dtype);
+  const flattenX = reshape({
+    inputs: {x},
+    attrs: {
+      shape: [
+        shapeInfo.batchSize, shapeInfo.outerSize, shapeInfo.dimSize,
+        shapeInfo.sliceSize
+      ]
+    },
+    backend
+  });
+  const indicesSize = util.sizeFromShape(indices.shape);
+  const flattenIndex = reshape({
+    inputs: {x: indices},
+    attrs: {shape: [shapeInfo.batchSize, indicesSize / shapeInfo.batchSize]},
+    backend
+  });
+  const flattenOutputShape = [
+    shapeInfo.batchSize, shapeInfo.outerSize, indicesSize / shapeInfo.batchSize,
+    shapeInfo.sliceSize
+  ];
+
+  const out = backend.makeOutput(flattenOutputShape, x.dtype);
   if (util.sizeFromShape(x.shape) === 0) {
     return out;
   }
+  const stridesSize = flattenX.shape.length - 1;
 
-  const xData = backend.dataIdMap.get(x.dataId);
+  const xData = backend.dataIdMap.get(flattenX.dataId);
   const xId = xData.id;
 
-  const indicesData = backend.dataIdMap.get(indices.dataId);
+  const indicesData = backend.dataIdMap.get(flattenIndex.dataId);
   const indicesId = indicesData.id;
 
   const outId = backend.dataIdMap.get(out.dataId).id;
 
-  const xStridesBytes =
-      new Uint8Array(new Int32Array(util.computeStrides(x.shape)).buffer);
-  const outStridesBytes =
-      new Uint8Array(new Int32Array(util.computeStrides(newShape)).buffer);
+  const xStridesBytes = new Uint8Array(
+      new Int32Array(util.computeStrides(flattenX.shape)).buffer);
+  const outStridesBytes = new Uint8Array(
+      new Int32Array(util.computeStrides(flattenOutputShape)).buffer);
 
   wasmGather(
-      xId, CppDType[x.dtype], xStridesBytes, stridesSize, indicesId, axis,
-      outStridesBytes, outId);
+      xId, CppDType[x.dtype], xStridesBytes, stridesSize, indicesId,
+      shapeInfo.batchSize, outStridesBytes, outId);
+
+  backend.disposeData(flattenX.dataId);
+  backend.disposeData(flattenIndex.dataId);
 
   // reshape
-  const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
-  const shapeInfo = backend_util.segment_util.collectGatherOpShapeInfo(
-      x as Tensor, indices as Tensor, parsedAxis);
-
   out.shape = shapeInfo.outputShape;
   return out;
 }

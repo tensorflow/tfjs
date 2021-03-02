@@ -42,9 +42,11 @@ const mkdir = util.promisify(fs.mkdir);
 const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
 
-const CDN_STORAGE = process.env.CDN_STORAGE;
+const CDN_STORAGE = process.env.TFJS_NODE_CDN_STORAGE || process.env.npm_config_TFJS_NODE_CDN_STORAGE
+    || process.env.CDN_STORAGE;
 const BASE_HOST = CDN_STORAGE || 'https://storage.googleapis.com/';
-const BASE_URI = `${BASE_HOST}tensorflow/libtensorflow/libtensorflow-`;
+const BASE_URI = process.env.TFJS_NODE_BASE_URI || process.env.npm_config_TFJS_NODE_BASE_URI
+    || `${BASE_HOST}tensorflow/libtensorflow/libtensorflow-`;
 
 const platform = os.platform();
 // Use windows path
@@ -172,10 +174,16 @@ async function build() {
   cp.exec(`node-pre-gyp install ${buildOption}`, (err) => {
     if (err) {
       console.log('node-pre-gyp install failed with error: ' + err);
+      process.exit(1);
     }
     if (platform === 'win32') {
       // Move libtensorflow to module path, where tfjs_binding.node locates.
-      cp.exec('node scripts/deps-stage.js symlink ' + modulePath);
+      cp.exec('node scripts/deps-stage.js symlink ' + modulePath, (error) => {
+        if (error) {
+          console.error('symlink ' + modulePath + ' failed: ', error);
+          process.exit(1);
+        }
+      });
     }
     revertAddonName(origBinary);
   });

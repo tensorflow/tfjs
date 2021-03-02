@@ -23,11 +23,12 @@ import {WebGPUProgram} from './webgpu_program';
 export class ResizeBilinearProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
   workGroupSize: [number, number, number] = [4, 4, 4];
+  inputShape: [number, number, number, number];
+  alignCorners: boolean;
 
   constructor(
       inputShape: [number, number, number, number], newHeight: number,
@@ -39,10 +40,16 @@ export class ResizeBilinearProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    const adjustHeight = alignCorners && newHeight > 1;
-    const adjustWidth = alignCorners && newWidth > 1;
+    this.inputShape = inputShape;
+    this.alignCorners = alignCorners;
+    this.shaderKey = `resizeBilinear_${alignCorners}`;
+  }
 
-    this.userCode = `
+  getUserCode(): string {
+    const adjustHeight = this.alignCorners && this.outputShape[1] > 1;
+    const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
+
+    const userCode = `
       void main() {
         ivec4 coords = getOutputCoords();
         if (all(lessThan(coords, ${getShapeCoords(this.outputShape)}))) {
@@ -51,8 +58,10 @@ export class ResizeBilinearProgram implements WebGPUProgram {
           ivec2 rc = coords.yz;
 
           vec2 effectiveInSize = vec2(
-            ${adjustHeight ? `${inputShape[1]} - 1.0` : `${inputShape[1]}`},
-            ${adjustWidth ? `${inputShape[2]} - 1.0` : `${inputShape[2]}`});
+            ${
+        adjustHeight ? `${this.inputShape[1]} - 1.0` : `${this.inputShape[1]}`},
+            ${
+        adjustWidth ? `${this.inputShape[2]} - 1.0` : `${this.inputShape[2]}`});
 
           vec2 effectiveOutSize = vec2(
             ${
@@ -71,8 +80,8 @@ export class ResizeBilinearProgram implements WebGPUProgram {
           // Compute the four integer indices.
           ivec2 sourceFloorRC = ivec2(sourceFracIndexRC);
           ivec2 sourceCeilRC = ivec2(
-            min(vec2(${inputShape[1]}, ${
-        inputShape[2]}) - 1.0, ceil(sourceFracIndexRC)));
+            min(vec2(${this.inputShape[1]}, ${
+        this.inputShape[2]}) - 1.0, ceil(sourceFracIndexRC)));
 
           float topLeft = getX(b, sourceFloorRC.x, sourceFloorRC.y, d);
           float bottomLeft = getX(b, sourceCeilRC.x, sourceFloorRC.y, d);
@@ -89,6 +98,6 @@ export class ResizeBilinearProgram implements WebGPUProgram {
         }
       }
     `;
-    this.shaderKey = `resizeblilinear${adjustHeight}${adjustWidth}`;
+    return userCode;
   }
 }

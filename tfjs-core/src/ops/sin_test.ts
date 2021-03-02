@@ -21,7 +21,8 @@ import {expectArraysClose} from '../test_util';
 
 describeWithFlags('sin', ALL_ENVS, () => {
   it('basic', async () => {
-    const values = [1, -3, 2, 7, -4];
+    // Covers every 1/4pi range from -4pi to 4pi.
+    const values = [1, 3, 4, 6, 7, 9, 10, 12, -1, -3, -4, -6, -7, -9, -10, -12];
     const a = tf.tensor1d(values);
     const result = tf.sin(a);
 

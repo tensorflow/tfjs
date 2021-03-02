@@ -16,7 +16,7 @@
  */
 
 import {pad} from '../../ops/pad';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -26,7 +26,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.pad = function<T extends Tensor>(
+getGlobalTensorClass().prototype.pad = function<T extends Tensor>(
     this: T, paddings: Array<[number, number]>, constantValue: number): T {
   this.throwIfDisposed();
   return pad(this, paddings, constantValue);
