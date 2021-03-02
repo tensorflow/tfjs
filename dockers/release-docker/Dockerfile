@@ -16,7 +16,8 @@ RUN apt-get update -qqy && apt-get install -qqy \
         lsb-release \
         openssh-client \
         git \
-        gnupg && \
+        gnupg
+        file && \
     pip3 install -U crcmod && \
     export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
@@ -36,3 +37,6 @@ RUN npm install -g yarn
 
 # Install virtualenv
 RUN pip3 install virtualenv
+
+# Install absl
+RUN pip3 install absl-py
