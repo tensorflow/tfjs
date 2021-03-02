@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,7 +18,7 @@ import * as tf from '../../index';
 import {BROWSER_ENVS, describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose} from '../../test_util';
 
-describeWithFlags('transform', BROWSER_ENVS, () => {
+describeWithFlags('image.transform', BROWSER_ENVS, () => {
   it('extreme projective transform.', async () => {
     const images = tf.tensor4d(
         [1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1], [1, 4, 4, 1]);
@@ -33,9 +33,9 @@ describeWithFlags('transform', BROWSER_ENVS, () => {
 
   it('static output shape.', async () => {
     const images = tf.tensor4d([1, 2, 3, 4], [1, 2, 2, 1]);
-    const transform = tf.randomUniform([1, 8], -1, 1) as tf.Tensor2D;
-    const transformedImages =
-        tf.image.transform(images, transform, 'nearest', 'constant', 0, [3, 5]);
+    const transform = tf.randomUniform([1, 8], -1, 1);
+    const transformedImages = tf.image.transform(
+        images, transform as tf.Tensor2D, 'nearest', 'constant', 0, [3, 5]);
 
     expectArraysClose(transformedImages.shape, [1, 3, 5, 1]);
   });
