@@ -19,7 +19,7 @@ import {BROWSER_ENVS, describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose} from '../../test_util';
 
 describeWithFlags('transform', BROWSER_ENVS, () => {
-  fit('extreme projective transform.', async () => {
+  it('extreme projective transform.', async () => {
     const images = tf.tensor4d(
         [1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1], [1, 4, 4, 1]);
     const transform = tf.tensor2d([1, 0, 0, 0, 1, 0, -1, 0], [1, 8]);
