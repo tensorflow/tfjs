@@ -6,15 +6,6 @@
 # editor's search path.
 build --symlink_prefix=dist/
 
-# Use our custom-configured c++ toolchain.
-#build:wasm --crosstool_top=//toolchain:emscripten
-
-# Use --cpu as a differentiator.
-#build:wasm --cpu=wasm
-
-# Use the default C++ toolchain to build the tools used during the build.
-#build:wasm --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
-
 # These compile flags are active no matter which build mode we are in
 # (dbg vs opt). For flags specific to build mode, see cc_toolchain_config.bzl.
 build --cxxopt="-std=c++11"
@@ -22,17 +13,25 @@ build --cxxopt="-fno-rtti"
 build --cxxopt="-fno-exceptions"
 build --cxxopt="-fomit-frame-pointer"
 
-# Disable sandbox environment because emsdk caches files by writing to
-# home directory.
-#build:wasm --spawn_strategy=local
-
-
 #build:wasm_new --crosstool_top=//emscripten_toolchain:everything
 #build:wasm_new --cpu=wasm
 #build:wasm_new --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+
+# Remote cache config. Users should override this in .bazelrc.user
+build:remote --remote_http_cache=https://storage.googleapis.com/bazel-remote-cache-tfjs
+build:remote --google_default_credentials
 
 # This flag is needed to so that the bazel cache is not invalidated
 # when running bazel via `yarn bazel`.
 # See https://github.com/angular/angular/issues/27514.
 build --incompatible_strict_action_env
 run --incompatible_strict_action_env
+
+# Load any settings specific to the current user.
+# .bazelrc.user should appear in .gitignore so that settings are not shared with team members
+# This needs to be last statement in this
+# config, as the user configuration should be able to overwrite flags from this file.
+# See https://docs.bazel.build/versions/master/best-practices.html#bazelrc
+# (Note that we use .bazelrc.user so the file appears next to .bazelrc in directory listing,
+# rather than user.bazelrc as suggested in the Bazel docs)
+try-import %workspace%/.bazelrc.user
