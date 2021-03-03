@@ -15,9 +15,11 @@
  * =============================================================================
  */
 
-import {BinaryInputs, DataType, KernelFunc, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
+import {BinaryInputs, DataType, KernelFunc, TensorInfo, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
+
 import {WebGPUBackend} from '../backend_webgpu';
-import {getBinaryProgram} from '../kernels/binary_ops';
+import {BinaryOpComplexProgram, COMPLEX_MULTIPLY} from '../kernels/binary_op_complex_webgpu';
+import {BinaryOpType, getBinaryProgram} from '../kernels/binary_ops';
 import {complex} from '../kernels/Complex';
 import {UnaryOpProgram} from '../kernels/unary_op_webgpu';
 
@@ -82,28 +84,62 @@ export function binaryKernelFunc(
     if (supportsComplex && a.dtype === 'complex64') {
       const aData = webgpuBackend.tensorMap.get(a.dataId);
       const bData = webgpuBackend.tensorMap.get(b.dataId);
+      let real: TensorInfo, imag: TensorInfo;
+      if (opSnippet !== BinaryOpType.MUL) {
+        [real, imag] = [
+          [aData.complexTensorInfos.real, bData.complexTensorInfos.real],
+          [aData.complexTensorInfos.imag, bData.complexTensorInfos.imag]
+        ].map(complexParts => {
+          const [aPart, bPart] = complexParts;
 
-      const [real, imag] = [
-        [aData.complexTensorInfos.real, bData.complexTensorInfos.real],
-        [aData.complexTensorInfos.imag, bData.complexTensorInfos.imag]
-      ].map(complexParts => {
-        const [aPart, bPart] = complexParts;
+          const aHandle = {
+            dataId: aPart.dataId,
+            dtype: aPart.dtype,
+            shape: a.shape
+          };
+          const bHandle = {
+            dataId: bPart.dataId,
+            dtype: bPart.dtype,
+            shape: b.shape
+          };
 
-        const aHandle = {
-          dataId: aPart.dataId,
-          dtype: aPart.dtype,
-          shape: a.shape
-        };
-        const bHandle = {
-          dataId: bPart.dataId,
-          dtype: bPart.dtype,
-          shape: b.shape
-        };
+          const program = getBinaryProgram(opSnippet, a.shape, b.shape);
+          return webgpuBackend.runWebGPUProgram(
+              program, [aHandle, bHandle],
+              upcastType(aPart.dtype, bPart.dtype));
+        });
+      } else {
+        const realProgram =
+            new BinaryOpComplexProgram(COMPLEX_MULTIPLY.REAL, a.shape, b.shape);
+        const imagProgram =
+            new BinaryOpComplexProgram(COMPLEX_MULTIPLY.IMAG, a.shape, b.shape);
 
-        const program = getBinaryProgram(opSnippet, a.shape, b.shape);
-        return webgpuBackend.runWebGPUProgram(
-            program, [aHandle, bHandle], upcastType(aPart.dtype, bPart.dtype));
-      });
+        const inputs = [
+          {
+            dataId: aData.complexTensorInfos.real.dataId,
+            dtype: aData.complexTensorInfos.real.dtype,
+            shape: a.shape
+          },
+          {
+            dataId: aData.complexTensorInfos.imag.dataId,
+            dtype: aData.complexTensorInfos.imag.dtype,
+            shape: a.shape
+          },
+          {
+            dataId: bData.complexTensorInfos.real.dataId,
+            dtype: bData.complexTensorInfos.real.dtype,
+            shape: b.shape
+          },
+          {
+            dataId: bData.complexTensorInfos.imag.dataId,
+            dtype: bData.complexTensorInfos.imag.dtype,
+            shape: b.shape
+          }
+        ];
+
+        real = webgpuBackend.runWebGPUProgram(realProgram, inputs, 'float32');
+        imag = webgpuBackend.runWebGPUProgram(imagProgram, inputs, 'float32');
+      }
 
       const complexOutput =
           complex({inputs: {real, imag}, backend: webgpuBackend});

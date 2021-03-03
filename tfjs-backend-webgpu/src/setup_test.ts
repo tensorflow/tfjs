@@ -332,7 +332,6 @@ const TEST_FILTERS: TestFilter[] = [
       'int32 * int32',  // Actual != Expected.
       'broadcast',      // Various: Actual != Expected, compile fails, etc.
       'gradient',       // Various: sum not yet implemented.
-      'complex',        // No complex support yet.
       'upcasts when dtypes dont match',  // Actual != expected.
     ]
   },
