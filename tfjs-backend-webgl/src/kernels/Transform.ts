@@ -38,9 +38,7 @@ export function transform(args: {
 
   const program = new TransformProgram(
       imageHeight, imageWidth, interpolation, fillMode, fillValue, outShape);
-  const out = backend.runWebGLProgram(program, [image, transforms], 'float32');
-
-  return out;
+  return backend.runWebGLProgram(program, [image, transforms], 'float32');
 }
 
 export const transformConfig: KernelConfig = {
