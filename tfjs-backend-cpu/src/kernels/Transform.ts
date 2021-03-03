@@ -47,6 +47,8 @@ export function transform(args: {
   const transformVals =
       backend.data.get(transforms.dataId).values as TypedArray;
 
+  // Ref TF implementation:
+  // https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/kernels/image/image_ops.h
   for (let b = 0; b < batch; ++b) {
     const transform = transforms.shape[0] === 1 ?
         transformVals :
