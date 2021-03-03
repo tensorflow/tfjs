@@ -49,18 +49,20 @@ describe('image', () => {
         node.inputParams['images'] = createTensorAttr(0);
         node.inputParams['size'] = createNumericArrayAttrFromIndex(1);
         node.attrParams['alignCorners'] = createBoolAttr(true);
+        node.attrParams['halfPixelCenters'] = createBoolAttr(true);
         node.inputNames = ['input1', 'input2'];
         const input2 = [tfOps.tensor1d([1, 2])];
         spyOn(tfOps.image, 'resizeBilinear');
         executeOp(node, {input1, input2}, context);
         expect(tfOps.image.resizeBilinear)
-            .toHaveBeenCalledWith(input1[0], [1, 2], true);
+            .toHaveBeenCalledWith(input1[0], [1, 2], true, true);
       });
       it('should match json def', () => {
         node.op = 'ResizeBilinear';
         node.inputParams['images'] = createTensorAttr(0);
         node.inputParams['size'] = createNumericArrayAttrFromIndex(1);
         node.attrParams['alignCorners'] = createBoolAttr(true);
+        node.attrParams['halfPixelCenters'] = createBoolAttr(true);
 
         expect(validateParam(node, image.json)).toBeTruthy();
       });
@@ -71,18 +73,20 @@ describe('image', () => {
         node.inputParams['images'] = createTensorAttr(0);
         node.inputParams['size'] = createNumericArrayAttrFromIndex(1);
         node.attrParams['alignCorners'] = createBoolAttr(true);
+        node.attrParams['halfPixelCenters'] = createBoolAttr(true);
         node.inputNames = ['input1', 'input2'];
         const input2 = [tfOps.tensor1d([1, 2])];
         spyOn(tfOps.image, 'resizeNearestNeighbor');
         executeOp(node, {input1, input2}, context);
         expect(tfOps.image.resizeNearestNeighbor)
-            .toHaveBeenCalledWith(input1[0], [1, 2], true);
+            .toHaveBeenCalledWith(input1[0], [1, 2], true, true);
       });
       it('should match json def', () => {
         node.op = 'ResizeNearestNeighbor';
         node.inputParams['images'] = createTensorAttr(0);
         node.inputParams['size'] = createNumericArrayAttrFromIndex(1);
         node.attrParams['alignCorners'] = createBoolAttr(true);
+        node.attrParams['halfPixelCenters'] = createBoolAttr(true);
 
         expect(validateParam(node, image.json)).toBeTruthy();
       });

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {pool} from '../../ops/pool';
-import {Tensor, Tensor3D, Tensor4D} from '../../tensor';
+import {getGlobalTensorClass, Tensor3D, Tensor4D} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -27,7 +27,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.pool = function<T extends Tensor3D|Tensor4D>(
+getGlobalTensorClass().prototype.pool = function<T extends Tensor3D|Tensor4D>(
     this: T, windowShape: [number, number]|number, poolingType: 'max'|'avg',
     padding: 'valid'|'same'|number, dilationRate?: [number, number]|number,
     strides?: [number, number]|number): T {

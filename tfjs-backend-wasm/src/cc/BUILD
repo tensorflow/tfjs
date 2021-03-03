@@ -7,6 +7,14 @@ KERNELS_WITH_KEEPALIVE = glob(
     exclude = ["**/*_test.cc"],
 )
 
+# This build rule generates tfjs-backend-wasm.{js,wasm}.
+#
+# The ".js" at the end of the build name is significant because it determines
+# the output file types. See the "-o <target>" flag in
+# https://emscripten.org/docs/tools_reference/emcc.html
+#
+# Note that tfjs-backend-wasm.js will be used to load tfjs-backend-wasm.wasm
+# as well as tfjs-backend-wasm-simd.wasm (the output of the next build rule).
 cc_binary(
     name = "tfjs-backend-wasm.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
@@ -21,7 +29,6 @@ cc_binary(
         "-s MODULARIZE=1",
         "-s EXPORT_NAME=WasmBackendModule",
         "-s MALLOC=emmalloc",
-        "-s STANDALONE_WASM=1",
     ],
     deps = [
         ":all_kernels",
@@ -29,8 +36,14 @@ cc_binary(
     ],
 )
 
+# This build rule generates tfjs-backend-wasm-simd.{js,wasm}.
+#
+# We only need the .wasm file, not the .js file, because it will be loadsed by
+# the tfjs-backend-wasm.js file (generated from the previous build rule).
+#
+# See scripts/build-wasm.sh where we only copy the .wasm file to wasm-out.
 cc_binary(
-    name = "tfjs-backend-wasm-simd.wasm",
+    name = "tfjs-backend-wasm-simd.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
     linkopts = [
         "-s ALLOW_MEMORY_GROWTH=1",
@@ -41,8 +54,6 @@ cc_binary(
         "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
         "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
         "-s MALLOC=emmalloc",
-        "-s SIMD=1",
-        "-s STANDALONE_WASM=1",
     ],
     deps = [
         ":all_kernels",
@@ -50,6 +61,8 @@ cc_binary(
     ],
 )
 
+# This build rule generates tfjs-backend-wasm-threaded-simd.{js,wasm} and
+# tfjs-backend-wasm-threaded-simd.worker.js.
 cc_binary(
     name = "tfjs-backend-wasm-threaded-simd.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
@@ -64,7 +77,6 @@ cc_binary(
         "-s MODULARIZE=1",
         "-s EXPORT_NAME=WasmBackendModuleThreadedSimd",
         "-s MALLOC=emmalloc",
-        "-s SIMD=1",
         "-s USE_PTHREADS=1",
         "-s PROXY_TO_PTHREAD=1",
     ],
@@ -119,6 +131,12 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "sin_cos_workaround",
+    srcs = ["sin_cos_workaround.cc"],
+    hdrs = ["sin_cos_workaround.h"],
+)
+
+tfjs_cc_library(
     name = "clamp_impl",
     srcs = ["clamp_impl.cc"],
     hdrs = ["clamp_impl.h"],
@@ -134,6 +152,7 @@ tfjs_cc_library(
     hdrs = ["conv2d_impl.h"],
     deps = [
         ":backend",
+        ":leakyrelu_impl",
         ":prelu_impl",
         ":transpose_impl",
         ":util",
@@ -146,6 +165,7 @@ tfjs_cc_library(
     hdrs = ["batch_mat_mul_impl.h"],
     deps = [
         ":backend",
+        ":leakyrelu_impl",
         ":prelu_impl",
         ":transpose_impl",
         ":util",
@@ -156,6 +176,16 @@ tfjs_cc_library(
     name = "interpolate_bilinear_impl",
     srcs = ["interpolate_bilinear_impl.cc"],
     hdrs = ["interpolate_bilinear_impl.h"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "leakyrelu_impl",
+    srcs = ["leakyrelu_impl.cc"],
+    hdrs = ["leakyrelu_impl.h"],
     deps = [
         ":backend",
         ":util",
@@ -217,11 +247,11 @@ tfjs_cc_library(
         ":ClipByValue",
         ":Conv2D",
         ":Conv2DBackpropInput",
+        ":Cos",
         ":CropAndResize",
         ":Cumsum",
         ":DepthToSpace",
         ":DepthwiseConv2dNative",
-        ":Div",
         ":Equal",
         ":Erf",
         ":Exp",
@@ -234,6 +264,7 @@ tfjs_cc_library(
         ":GatherNd",
         ":Greater",
         ":GreaterEqual",
+        ":LeakyRelu",
         ":Less",
         ":LessEqual",
         ":Max",
@@ -251,6 +282,7 @@ tfjs_cc_library(
         ":PadV2",
         ":Pow",
         ":Prelu",
+        ":RealDiv",
         ":Relu",
         ":Relu6",
         ":ResizeBilinear",
@@ -259,6 +291,7 @@ tfjs_cc_library(
         ":ScatterNd",
         ":SelectV2",
         ":Sigmoid",
+        ":Sin",
         ":Softmax",
         ":Square",
         ":SquaredDifference",
@@ -407,6 +440,16 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "Cos",
+    srcs = ["kernels/Cos.cc"],
+    deps = [
+        ":backend",
+        ":sin_cos_workaround",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
     name = "CropAndResize",
     srcs = ["kernels/CropAndResize.cc"],
     deps = [
@@ -453,8 +496,8 @@ tfjs_unit_test(
 )
 
 tfjs_cc_library(
-    name = "Div",
-    srcs = ["kernels/Div.cc"],
+    name = "RealDiv",
+    srcs = ["kernels/RealDiv.cc"],
     deps = [
         ":binary",
         ":util",
@@ -585,6 +628,17 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LeakyRelu",
+    srcs = ["kernels/LeakyRelu.cc"],
+    hdrs = ["kernels/LeakyRelu.h"],
+    deps = [
+        ":backend",
+        ":leakyrelu_impl",
         ":util",
     ],
 )
@@ -883,6 +937,16 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "Sin",
+    srcs = ["kernels/Sin.cc"],
+    deps = [
+        ":backend",
+        ":sin_cos_workaround",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
     name = "Softmax",
     srcs = ["kernels/Softmax.cc"],
     hdrs = ["kernels/Softmax.h"],
@@ -957,11 +1021,28 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "TopK",
+    srcs = ["kernels/TopK.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "Transpose",
     srcs = ["kernels/Transpose.cc"],
     deps = [
         ":backend",
         ":transpose_impl",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Step",
+    srcs = ["kernels/Step.cc"],
+    deps = [
+        ":backend",
     ],
 )

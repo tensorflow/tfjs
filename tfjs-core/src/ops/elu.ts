@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Elu, EluInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -39,17 +39,9 @@ import {op} from './operation';
 function elu_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'elu');
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const y = backend.elu($x);
-    save([y]);
-    return y;
-  };
-
   const inputs: EluInputs = {x: $x};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */, Elu) as
-      T;
+  return ENGINE.runKernel(Elu, inputs as {} as NamedTensorMap);
 }
 
 export const elu = op({elu_});

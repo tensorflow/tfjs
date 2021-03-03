@@ -14,32 +14,16 @@
  * limitations under the License.
  * =============================================================================
  */
+import {getTestImageAsTensor4d} from '../../image_test_util';
 import * as tf from '../../index';
 import {BROWSER_ENVS, describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose} from '../../test_util';
 
 describeWithFlags('rotateWithOffset', BROWSER_ENVS, () => {
-  // tslint:disable:max-line-length
-  const imageBase64String =
-      'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QCMRXhpZgAATU0AKgAAAAgABQESAAMAAAABAAEAAAEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAIdpAAQAAAABAAAAWgAAAAAAAABIAAAAAQAAAEgAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAAAigAwAEAAAAAQAAAAgAAAAA/+0AOFBob3Rvc2hvcCAzLjAAOEJJTQQEAAAAAAAAOEJJTQQlAAAAAAAQ1B2M2Y8AsgTpgAmY7PhCfv/AABEIAAgACAMBIgACEQEDEQH/xAAfAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgv/xAC1EAACAQMDAgQDBQUEBAAAAX0BAgMABBEFEiExQQYTUWEHInEUMoGRoQgjQrHBFVLR8CQzYnKCCQoWFxgZGiUmJygpKjQ1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4eLj5OXm5+jp6vHy8/T19vf4+fr/xAAfAQADAQEBAQEBAQEBAAAAAAAAAQIDBAUGBwgJCgv/xAC1EQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2wBDAAkGBw0HCA0HBw0HBwcHBw0HBwcHDQ8IDQcNFREWFhURExMYHSggGBolGxUTITEhMSk3Ojo6Fx8zODMtNygtLiv/2wBDAQoKCg0NDRUNDRUrGRUZKysrKy0rKy0rKysrKy0rKysrKystKzctKysrKy0rKysrLSsrKysrKzcrLSsrKy0rKyv/3QAEAAH/2gAMAwEAAhEDEQA/AOin1Kxs7JgEVSsZAPU5xWF/wkdp6L+QqlrX/Hm/0P8AKuSqsRk+FlUcmnd+Z4WBzzGulrO+vY//2Q==';
-  const size = 8;
-
   it('should rotate counterclockwise 90 degrees', async () => {
-    const img = new Image();
-    img.src = imageBase64String;
-
-    await new Promise(resolve => {
-      img.onload = () => resolve(img);
-    });
-
-    img.width = size;
-    img.height = size;
-
-    const pixels = await tf.browser.fromPixels(img, 4);
-    const pixels4D: tf.Tensor4D = pixels.toFloat().expandDims(0);
-
     const rotatedPixels =
-        tf.image.rotateWithOffset(pixels4D, 90 * Math.PI / 180).toInt();
+        tf.image.rotateWithOffset(getTestImageAsTensor4d(), 90 * Math.PI / 180)
+            .toInt();
     const rotatedPixelsData = await rotatedPixels.data();
 
     const expected = [
@@ -63,25 +47,13 @@ describeWithFlags('rotateWithOffset', BROWSER_ENVS, () => {
       255
     ];
 
-    expectArraysClose(expected, rotatedPixelsData, 10);
+    expectArraysClose(expected, rotatedPixelsData);
   });
 
   it('should rotate clockwise 90 degrees', async () => {
-    const img = new Image();
-    img.src = imageBase64String;
-
-    await new Promise(resolve => {
-      img.onload = () => resolve(img);
-    });
-
-    img.width = size;
-    img.height = size;
-
-    const pixels = await tf.browser.fromPixels(img, 4);
-    const pixels4D: tf.Tensor4D = pixels.toFloat().expandDims(0);
-
     const rotatedPixels =
-        tf.image.rotateWithOffset(pixels4D, -90 * Math.PI / 180).toInt();
+        tf.image.rotateWithOffset(getTestImageAsTensor4d(), -90 * Math.PI / 180)
+            .toInt();
     const rotatedPixelsData = await rotatedPixels.data();
 
     const expected = [
@@ -105,25 +77,14 @@ describeWithFlags('rotateWithOffset', BROWSER_ENVS, () => {
       255
     ];
 
-    expectArraysClose(expected, rotatedPixelsData, 10);
+    expectArraysClose(expected, rotatedPixelsData);
   });
 
   it('offset center of rotation', async () => {
-    const img = new Image();
-    img.src = imageBase64String;
-
-    await new Promise(resolve => {
-      img.onload = () => resolve(img);
-    });
-
-    img.width = size;
-    img.height = size;
-
-    const pixels = await tf.browser.fromPixels(img, 4);
-    const pixels4D: tf.Tensor4D = pixels.toFloat().expandDims(0);
-
     const rotatedPixels =
-        tf.image.rotateWithOffset(pixels4D, 45 * Math.PI / 180, 0, [0.25, 0.75])
+        tf.image
+            .rotateWithOffset(
+                getTestImageAsTensor4d(), 45 * Math.PI / 180, 0, [0.25, 0.75])
             .toInt();
     const rotatedPixelsData = await rotatedPixels.data();
 
@@ -148,26 +109,14 @@ describeWithFlags('rotateWithOffset', BROWSER_ENVS, () => {
       0
     ];
 
-    expectArraysClose(expected, rotatedPixelsData, 10);
+    expectArraysClose(expected, rotatedPixelsData);
   });
 
   it('offset center of rotation with white fill', async () => {
-    const img = new Image();
-    img.src = imageBase64String;
-
-    await new Promise(resolve => {
-      img.onload = () => resolve(img);
-    });
-
-    img.width = size;
-    img.height = size;
-
-    const pixels = await tf.browser.fromPixels(img, 4);
-    const pixels4D: tf.Tensor4D = pixels.toFloat().expandDims(0);
-
     const rotatedPixels =
         tf.image
-            .rotateWithOffset(pixels4D, 45 * Math.PI / 180, 255, [0.25, 0.75])
+            .rotateWithOffset(
+                getTestImageAsTensor4d(), 45 * Math.PI / 180, 255, [0.25, 0.75])
             .toInt();
     const rotatedPixelsData = await rotatedPixels.data();
 
@@ -192,6 +141,6 @@ describeWithFlags('rotateWithOffset', BROWSER_ENVS, () => {
       255
     ];
 
-    expectArraysClose(expected, rotatedPixelsData, 10);
+    expectArraysClose(expected, rotatedPixelsData);
   });
 });

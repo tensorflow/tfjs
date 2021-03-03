@@ -155,7 +155,7 @@ const DYNAMIC_SHAPE_OPS = [
 ];
 const HASH_TABLE_OPS = [
   'HashTable', 'HashTableV2', 'LookupTableImport', 'LookupTableImportV2',
-  'LookupTableFind', 'LookupTableFindV2'
+  'LookupTableFind', 'LookupTableFindV2', 'LookupTableSize', 'LookupTableSizeV2'
 ];
 
 export function isControlFlow(node: Node) {

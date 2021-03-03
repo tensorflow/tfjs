@@ -29,8 +29,15 @@ export function fusedConv2D(args: {
 }): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {x, filter, bias, preluActivationWeights} = inputs;
-  const {strides, pad, dataFormat, dilations, dimRoundingMode, activation} =
-      attrs;
+  const {
+    strides,
+    pad,
+    dataFormat,
+    dilations,
+    dimRoundingMode,
+    activation,
+    leakyreluAlpha
+  } = attrs;
 
   let result = conv2D({
     inputs: {x, filter},
@@ -46,8 +53,8 @@ export function fusedConv2D(args: {
 
   if (activation) {
     const resultOld = result;
-    result =
-        applyActivation(backend, result, activation, preluActivationWeights);
+    result = applyActivation(
+        backend, result, activation, preluActivationWeights, leakyreluAlpha);
     backend.disposeIntermediateTensorInfo(resultOld);
   }
 

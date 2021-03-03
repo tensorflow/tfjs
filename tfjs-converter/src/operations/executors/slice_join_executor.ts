@@ -39,17 +39,36 @@ export const executeOp: InternalOpExecutor =
           inputs = inputs.slice(0, n);
           return [tfOps.concat(inputs, axis)];
         }
-        case 'GatherV2':
         case 'Gather': {
-          const axis =
-              getParamValue('axis', node, tensorMap, context) as number;
           const input = getParamValue('x', node, tensorMap, context) as Tensor;
           const indices =
               getParamValue('indices', node, tensorMap, context) as Tensor1D;
-          return [tfOps.gather(input, tfOps.cast(indices, 'int32'), axis)];
+          return [tfOps.gather(input, tfOps.cast(indices, 'int32'), 0)];
         }
-        case 'ReverseV2':
+        case 'GatherV2': {
+          const axis =
+              getParamValue('axis', node, tensorMap, context) as number;
+          const batchDims =
+              getParamValue('batchDims', node, tensorMap, context) as number;
+          const input = getParamValue('x', node, tensorMap, context) as Tensor;
+          const indices =
+              getParamValue('indices', node, tensorMap, context) as Tensor1D;
+          return [tfOps.gather(
+              input, tfOps.cast(indices, 'int32'), axis, batchDims)];
+        }
         case 'Reverse': {
+          const dims =
+              getParamValue('dims', node, tensorMap, context) as boolean[];
+          const axis = [];
+          for (let i = 0; i < dims.length; i++) {
+            if (dims[i]) {
+              axis.push(i);
+            }
+          }
+          const input = getParamValue('x', node, tensorMap, context) as Tensor;
+          return [tfOps.reverse(input, axis)];
+        }
+        case 'ReverseV2': {
           const axis =
               getParamValue('axis', node, tensorMap, context) as number[];
           const input = getParamValue('x', node, tensorMap, context) as Tensor;

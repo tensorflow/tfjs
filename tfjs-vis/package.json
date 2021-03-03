@@ -12,7 +12,9 @@
   "scripts": {
     "build": "tsc && NODE_ENV=production webpack",
     "lint": "tslint -p . -t verbose",
-    "test": "karma start",
+    "test": "yarn && yarn build && karma start",
+    "test-dev": "karma start",
+    "run-flaky": "node ../scripts/run_flaky.js",
     "run-browserstack": "karma start --singleRun --reporters='dots,karma-typescript,BrowserStack' --hostname='bs-local.com'",
     "test-ci": "./scripts/test-ci.sh",
     "build-npm": "./scripts/build-npm.sh",
@@ -24,12 +26,14 @@
     "d3-selection": "~1.3.0",
     "glamor": "~2.20.40",
     "preact": "~8.2.9",
-    "vega": "5.13.0",
+    "vega": "5.17.3",
     "vega-embed": "6.8.0",
     "vega-lite": "4.13.1"
   },
   "devDependencies": {
-    "@tensorflow/tfjs": "~1.7.4",
+    "@tensorflow/tfjs-core": "3.0.0",
+    "@tensorflow/tfjs-layers": "3.0.0",
+    "@tensorflow/tfjs-backend-webgl": "3.0.0",
     "@types/d3-format": "~1.3.0",
     "@types/d3-selection": "~1.3.2",
     "@types/jasmine": "~2.8.8",
@@ -38,7 +42,7 @@
     "jasmine": "~3.2.0",
     "jasmine-core": "~3.2.0",
     "karma": "~4.0.1",
-    "karma-browserstack-launcher": "~1.3.0",
+    "karma-browserstack-launcher": "~1.6.0",
     "karma-chrome-launcher": "~2.2.0",
     "karma-firefox-launcher": "~1.1.0",
     "karma-jasmine": "~2.0.0",
@@ -56,7 +60,7 @@
     "yalc": "~1.0.0-pre.21"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs": ">= 1.0.0"
+    "@tensorflow/tfjs-core": ">= 1.0.0"
   },
   "alias": {
     "react": "preact",

@@ -158,6 +158,48 @@ describeWithFlags('fused depthwiseConv2D', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
+  it('leakyrelu', async () => {
+    const fSize = 3;
+    const pad = 'valid';
+    const strides = 1;
+    const chMul = 1;
+    const inDepth = 1;
+
+    const x = tf.tensor4d(
+        [
+          0.149194, 0.089009, 0.654891, 0.083324, 0.537043, 0.644331, 0.563037,
+          0.211859, 0.633501, 0.186427, 0.777034, 0.50001,  0.607341, 0.95303,
+          0.696479, 0.050387, 0.62045,  0.728049, 0.028043, 0.437009, 0.712881,
+          0.741935, 0.974474, 0.621102, 0.171411
+        ],
+        [1, 5, 5, inDepth]);
+    const alpha = 0.3;
+    const w = tf.tensor4d(
+        [
+          -0.125386, -0.975199, -0.640437, -0.281895, -0.990968, -0.347208,
+          -0.889702, -0.180695, -0.691992
+        ],
+        [fSize, fSize, inDepth, chMul],
+    );
+
+    const result = tf.fused.depthwiseConv2d({
+      x,
+      filter: w,
+      strides,
+      pad,
+      activation: 'leakyrelu',
+      leakyreluAlpha: alpha
+    });
+
+    expect(result.shape).toEqual([1, 3, 3, 1]);
+    const expected = [
+      -0.7620067596435547, -0.7517655491828918, -0.7362186312675476,
+      -0.7055101990699768, -0.7378802299499512, -0.9229262471199036,
+      -0.9895440340042114, -1.031226396560669, -0.8802568912506104
+    ];
+    expectArraysClose(await result.data(), expected);
+  });
+
   it('gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0', async () => {
     const inputDepth = 1;
     const outputDepth = 1;

@@ -32,7 +32,7 @@
     "jasmine": "~3.1.0",
     "jasmine-core": "~3.1.0",
     "karma": "~4.2.0",
-    "karma-browserstack-launcher": "~1.4.0",
+    "karma-browserstack-launcher": "~1.6.0",
     "karma-chrome-launcher": "~2.2.0",
     "karma-jasmine": "~1.1.0",
     "karma-typescript": "~4.1.1",
@@ -42,7 +42,6 @@
     "rollup-plugin-terser": "~5.3.0",
     "rollup-plugin-visualizer": "~3.3.2",
     "shelljs": "~0.8.3",
-    "ts-morph": "^7.1.2",
     "ts-node": "~8.8.2",
     "tslint": "~5.11.0",
     "tslint-no-circular-imports": "~0.5.0",
@@ -57,7 +56,6 @@
     "bundle-ci": "rollup -c --ci",
     "build-npm": "./scripts/build-npm.sh",
     "build-deps": "yarn build && yarn build-cpu-backend",
-    "build-deps-ci": "yarn build-ci && yarn build-cpu-backend-ci",
     "build-cpu-backend": "cd ../tfjs-backend-cpu && yarn && yarn build",
     "build-cpu-backend-ci": "cd ../tfjs-backend-cpu && yarn && yarn build-ci",
     "build:bazel": "bazelisk build //...",
@@ -69,15 +67,18 @@
     "lint": "tslint -p . -t verbose",
     "coverage": "KARMA_COVERAGE=1 karma start --browsers='Chrome' --singleRun",
     "test": "yarn && yarn build-deps && karma start",
+    "test-dev": "karma start",
     "test-ci": "./scripts/test-ci.sh",
     "test-webworker": "karma start --worker",
     "run-browserstack": "karma start --browserstack",
     "test-bundle-size": "./scripts/test-bundle-size.js",
-    "test-node": "rimraf dist/ && yarn build && ts-node --skip-ignore -P tsconfig.test.json dist/test_node.js",
-    "test-node-ci": "ts-node -P tsconfig.test.json  dist/test_node.js",
-    "test-async-backends": "rimraf dist/ && yarn build && ts-node -P tsconfig.test.json dist/test_async_backends.js",
-    "test-async-backends-ci": "ts-node -P tsconfig.test.json dist/test_async_backends.js",
-    "test-snippets": "yarn build && yarn build-cpu-backend && ts-node -P tsconfig.test.json ./scripts/test_snippets/test_snippets.ts"
+    "test-node": "rimraf dist/ && yarn build-deps && yarn build && ts-node --transpile-only --skip-ignore -P tsconfig.test.json dist/test_node.js",
+    "test-node-dev": "tsc && ts-node --transpile-only --skip-ignore -P tsconfig.test.json dist/test_node.js",
+    "test-node-ci": "ts-node --transpile-only -P tsconfig.test.json  dist/test_node.js",
+    "test-async-backends": "rimraf dist/ && yarn build && ts-node --transpile-only -P tsconfig.test.json dist/test_async_backends.js",
+    "test-async-backends-ci": "ts-node --transpile-only -P tsconfig.test.json dist/test_async_backends.js",
+    "test-snippets": "yarn build && yarn build-cpu-backend && ts-node -P tsconfig.test.json ./scripts/test_snippets/test_snippets.ts",
+    "test-snippets-ci": "ts-node -P tsconfig.test.json ./scripts/test_snippets/test_snippets.ts"
   },
   "dependencies": {
     "@types/offscreencanvas": "~2019.3.0",
@@ -89,10 +90,13 @@
   "browser": {
     "node-fetch": false,
     "util": false,
-    "crypto": false
+    "crypto": false,
+    "worker_threads": false
   },
   "sideEffects": [
     "./dist/index.js",
+    "./dist/engine.js",
+    "./dist/tensor.js",
     "./dist/base_side_effects.js",
     "./dist/flags.js",
     "./dist/platforms/*.js",

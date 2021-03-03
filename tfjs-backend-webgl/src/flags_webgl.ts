@@ -187,3 +187,25 @@ ENV.registerFlag(
             `delete) or at least 0, but got ${threshold}.`);
       }
     });
+
+/**
+ * Trigger a manual GL command flush if the threshold of time has passed since
+ * previous Kernel execution. This can be useful for Andorid device where GL
+ * command flush are delayed un til the end of javascript task. This value is
+ * measured in millisecond. Typically you want to set this value to close to 1.
+ *
+ * Default value 1 for mobile chrome, and -1 for rest cases. -1 indicates that
+ * we will not enforce manual flush and depend on system default flush schedule.
+ */
+ENV.registerFlag(
+    'WEBGL_FLUSH_THRESHOLD',
+    () => {
+      return device_util.isMobile() && ENV.getBool('IS_CHROME') ? 1 : -1;
+    },
+    threshold => {
+      if (threshold < 0 && threshold !== -1) {
+        throw new Error(
+            `WEBGL_FLUSH_THRESHOLD must be -1 (indicating never ` +
+            `manual flush) or at least 0, but got ${threshold}.`);
+      }
+    });

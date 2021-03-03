@@ -40,8 +40,6 @@ import {op} from './operation';
 function zerosLike_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'zerosLike');
   const inputs: ZerosLikeInputs = {x: $x};
-  return ENGINE.runKernelFunc(
-             backend => backend.zerosLike($x), inputs as {} as NamedTensorMap,
-             null /* grad */, ZerosLike) as T;
+  return ENGINE.runKernel(ZerosLike, inputs as {} as NamedTensorMap);
 }
 export const zerosLike = op({zerosLike_});

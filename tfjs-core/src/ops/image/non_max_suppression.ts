@@ -24,6 +24,24 @@ import {TensorLike} from '../../types';
 import {nonMaxSuppSanityCheck} from '../nonmax_util';
 import {op} from '../operation';
 
+/**
+ * Performs non maximum suppression of bounding boxes based on
+ * iou (intersection over union).
+ *
+ * @param boxes a 2d tensor of shape `[numBoxes, 4]`. Each entry is
+ *     `[y1, x1, y2, x2]`, where `(y1, x1)` and `(y2, x2)` are the corners of
+ *     the bounding box.
+ * @param scores a 1d tensor providing the box scores of shape `[numBoxes]`.
+ * @param maxOutputSize The maximum number of boxes to be selected.
+ * @param iouThreshold A float representing the threshold for deciding whether
+ *     boxes overlap too much with respect to IOU. Must be between [0, 1].
+ *     Defaults to 0.5 (50% box overlap).
+ * @param scoreThreshold A threshold for deciding when to remove boxes based
+ *     on score. Defaults to -inf, which means any score is accepted.
+ * @return A 1D tensor with the selected box indices.
+ *
+ * @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'}
+ */
 function nonMaxSuppression_(
     boxes: Tensor2D|TensorLike, scores: Tensor1D|TensorLike,
     maxOutputSize: number, iouThreshold = 0.5,
@@ -38,11 +56,8 @@ function nonMaxSuppression_(
   scoreThreshold = inputs.scoreThreshold;
 
   const attrs = {maxOutputSize, iouThreshold, scoreThreshold};
-  return ENGINE.runKernelFunc(
-      b => b.nonMaxSuppression(
-          $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold),
-      {boxes: $boxes, scores: $scores}, null /* grad */, NonMaxSuppressionV3,
-      attrs);
+  return ENGINE.runKernel(
+      NonMaxSuppressionV3, {boxes: $boxes, scores: $scores}, attrs);
 }
 
 export const nonMaxSuppression = op({nonMaxSuppression_});

@@ -40,10 +40,6 @@ function softplus_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'softplus');
 
   const inputs: SoftplusInputs = {x: $x};
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.softplus($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Softplus);
+  return ENGINE.runKernel(Softplus, inputs as {} as NamedTensorMap);
 }
 export const softplus = op({softplus_});

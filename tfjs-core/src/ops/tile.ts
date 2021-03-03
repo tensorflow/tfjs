@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Tile, TileAttrs, TileInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
-import {DataType, TensorLike} from '../types';
+import {TensorLike} from '../types';
 import * as util from '../util';
 
 import {op} from './operation';
@@ -52,26 +52,18 @@ import {op} from './operation';
  * @doc {heading: 'Tensors', subheading: 'Slicing and Joining'}
  */
 function tile_<T extends Tensor>(x: T|TensorLike, reps: number[]): T {
-  const parseAs: DataType = null;
-  const $x = convertToTensor(x, 'x', 'tile', parseAs);
+  const $x = convertToTensor(x, 'x', 'tile', 'string_or_numeric');
   util.assert(
       $x.rank === reps.length,
       () => `Error in transpose: rank of input ${$x.rank} ` +
           `must match length of reps ${reps}.`);
 
-  const forward: ForwardFunc<T> = (backend, save) => {
-    const res = backend.tile($x, reps);
-    save([$x]);
-    return res;
-  };
-
-  const inputsToSave = [$x];
   const inputs: TileInputs = {x: $x};
   const attrs: TileAttrs = {reps};
 
-  return ENGINE.runKernelFunc(
-      forward, inputs as unknown as NamedTensorMap, null /* grad */, Tile,
-      attrs as unknown as NamedAttrMap, inputsToSave);
+  return ENGINE.runKernel(
+      Tile, inputs as unknown as NamedTensorMap,
+      attrs as unknown as NamedAttrMap);
 }
 
 export const tile = op({tile_});

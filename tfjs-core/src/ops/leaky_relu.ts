@@ -15,14 +15,15 @@
  * =============================================================================
  */
 
+import {ENGINE} from '../engine';
+import {LeakyRelu, LeakyReluAttrs, LeakyReluInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
-import {maximum} from './maximum';
-import {mul} from './mul';
 import {op} from './operation';
-import {scalar} from './scalar';
 
 /**
  * Computes leaky rectified linear element-wise.
@@ -43,7 +44,12 @@ import {scalar} from './scalar';
  */
 function leakyRelu_<T extends Tensor>(x: T|TensorLike, alpha = 0.2): T {
   const $x = convertToTensor(x, 'x', 'leakyRelu');
-  return maximum(mul(scalar(alpha), $x), $x);
+
+  const inputs: LeakyReluInputs = {x: $x};
+  const attrs: LeakyReluAttrs = {alpha};
+
+  return ENGINE.runKernel(
+      LeakyRelu, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const leakyRelu = op({leakyRelu_});

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../../engine';
+import {ENGINE} from '../../engine';
 import {CropAndResize, CropAndResizeAttrs, CropAndResizeInputs} from '../../kernel_names';
 import {NamedAttrMap} from '../../kernel_registry';
 import {Tensor1D, Tensor2D, Tensor4D} from '../../tensor';
@@ -54,14 +54,12 @@ function cropAndResize_(
     boxes: Tensor2D|TensorLike,
     boxInd: Tensor1D|TensorLike,
     cropSize: [number, number],
-    method?: 'bilinear'|'nearest',
-    extrapolationValue?: number,
+    method: 'bilinear'|'nearest' = 'bilinear',
+    extrapolationValue = 0,
     ): Tensor4D {
   const $image = convertToTensor(image, 'image', 'cropAndResize');
   const $boxes = convertToTensor(boxes, 'boxes', 'cropAndResize', 'float32');
   const $boxInd = convertToTensor(boxInd, 'boxInd', 'cropAndResize', 'int32');
-  method = method || 'bilinear';
-  extrapolationValue = extrapolationValue || 0;
 
   const numBoxes = $boxes.shape[0];
 
@@ -88,16 +86,13 @@ function cropAndResize_(
       method === 'bilinear' || method === 'nearest',
       () => `method must be bilinear or nearest, but was ${method}`);
 
-  const forward: ForwardFunc<Tensor4D> = (backend) => backend.cropAndResize(
-      $image, $boxes, $boxInd, cropSize, method, extrapolationValue);
-
   const inputs:
       CropAndResizeInputs = {image: $image, boxes: $boxes, boxInd: $boxInd};
   const attrs: CropAndResizeAttrs = {method, extrapolationValue, cropSize};
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, CropAndResize,
+  const res = ENGINE.runKernel(
+      CropAndResize, inputs as {} as NamedTensorMap,
       attrs as {} as NamedAttrMap);
-  return res;
+  return res as Tensor4D;
 }
 
 export const cropAndResize = op({cropAndResize_});

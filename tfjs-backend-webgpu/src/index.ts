@@ -18,23 +18,33 @@
 import './flags_webgpu';
 import './register_all_kernels';
 
-import * as tf from '@tensorflow/tfjs-core';
+import {env, registerBackend} from '@tensorflow/tfjs-core';
 import glslangInit from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {WebGPUBackend} from './backend_webgpu';
 import * as webgpu from './webgpu';
 
-tf.registerBackend('webgpu', async () => {
+registerBackend('webgpu', async () => {
+  // Remove it once we figure out how to correctly read the tensor data before
+  // the tensor is disposed in profiling mode.
+  env().set('CHECK_COMPUTATION_FOR_ERRORS', false);
+
   const glslang = await glslangInit();
   const gpuDescriptor: GPURequestAdapterOptions = {
-    powerPreference: tf.env().get('WEBGPU_USE_LOW_POWER_GPU') ?
-        'low-power' :
-        'high-performance'
+    powerPreference: env().get('WEBGPU_USE_LOW_POWER_GPU') ? 'low-power' :
+                                                             'high-performance'
   };
 
   const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
-  const device = await adapter.requestDevice({});
-  return new WebGPUBackend(device, glslang);
+  let deviceDescriptor: GPUDeviceDescriptor = {};
+  const supportTimeQuery =
+      adapter.extensions.includes('timestamp-query' as GPUExtensionName);
+
+  if (supportTimeQuery) {
+    deviceDescriptor = {extensions: ['timestamp-query' as const ]};
+  }
+  const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
+  return new WebGPUBackend(device, glslang, supportTimeQuery);
 }, 3 /*priority*/);
 
 export {webgpu};

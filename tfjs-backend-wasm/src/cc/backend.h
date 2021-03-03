@@ -29,7 +29,13 @@ enum DType {
 };
 
 // Must match enum in kernels/types.ts.
-enum FusableActivation { LINEAR = 0, RELU = 1, RELU6 = 2, PRELU = 3 };
+enum FusableActivation {
+  LINEAR = 0,
+  RELU = 1,
+  RELU6 = 2,
+  PRELU = 3,
+  LEAKYRELU = 4
+};
 
 // Holds the memory offset and the size of a tensor.
 struct TensorInfo {

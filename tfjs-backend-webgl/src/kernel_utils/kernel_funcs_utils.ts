@@ -18,16 +18,17 @@
 import {backend_util, BinaryInputs, DataType, env, KernelFunc, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import * as binaryop_gpu from '../binaryop_gpu';
 import {BinaryOpProgram} from '../binaryop_gpu';
-import * as binaryop_packed_gpu from '../binaryop_packed_gpu';
 import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 import {complex} from '../kernels/Complex';
+import {LEAKYRELU, LEAKYRELU_PACKED} from '../kernels/LeakyRelu';
+import {PRELU, PRELU_PACKED} from '../kernels/Prelu';
 import * as unary_op from '../unaryop_gpu';
 import {UnaryOpProgram} from '../unaryop_gpu';
 import * as unary_packed_op from '../unaryop_packed_gpu';
+import {UnaryOpPackedProgram} from '../unaryop_packed_gpu';
 
-import {SimpleBinaryKernelImplCPU} from './shared';
+import {SimpleBinaryKernelImplCPU, SimpleUnaryKernelImplCPU} from './shared';
 
 export const CHECK_NAN_SNIPPET_UNARY = `if (isnan(x)) return x;`;
 
@@ -43,16 +44,45 @@ export const CHECK_NAN_SNIPPET_BINARY_PACKED = `
   result.a = isNaN.a > 0. ? NAN : result.a;
 `;
 
+type UnaryKernelFuncConfig = {
+  opSnippet: string,
+  packedOpSnippet?: string,
+  cpuKernelImpl?: SimpleUnaryKernelImplCPU,
+  dtype?: DataType
+};
+
 /**
  * Template that creates a `KernelFunc` for unary ops.
- * @param opSnippets Op snippet to create `UnaryOpProgram`.
+ * @param opSnippet Op snippet to create `UnaryOpProgram`.
+ * @param packedOpSnippet Op snippet to create `UnaryOpPackedProgram`.
+ * @param dtype Optional. If set, the result has this dtype. Otherwise, the
+ *     result has the same dtype as the first input. This is mainly used in
+ *     comparison kernels, such as Equal, Less, Greater, etc.
  */
-export function unaryKernelFunc(opSnippet: string): KernelFunc {
+export function unaryKernelFunc(
+    {opSnippet, packedOpSnippet, cpuKernelImpl, dtype}: UnaryKernelFuncConfig):
+    KernelFunc {
   return ({inputs, backend}) => {
     const {x} = inputs as UnaryInputs;
     const webglBackend = backend as MathBackendWebGL;
-    const program = new UnaryOpProgram(x.shape, opSnippet);
-    return webglBackend.runWebGLProgram(program, [x], x.dtype);
+
+    const $dtype = dtype || x.dtype;
+    if (webglBackend.shouldExecuteOnCPU([x]) && cpuKernelImpl != null) {
+      const xData = webglBackend.texData.get(x.dataId);
+      const outValues = cpuKernelImpl(xData.values as TypedArray, $dtype);
+      return webglBackend.makeTensorInfo(x.shape, $dtype, outValues);
+    }
+
+    const shouldUsePackedProgram =
+        env().getBool('WEBGL_PACK_UNARY_OPERATIONS') && packedOpSnippet != null;
+    let program: UnaryOpProgram|UnaryOpPackedProgram;
+    if (shouldUsePackedProgram) {
+      program = new UnaryOpPackedProgram(x.shape, packedOpSnippet);
+    } else {
+      program = new UnaryOpProgram(x.shape, opSnippet);
+    }
+
+    return webglBackend.runWebGLProgram(program, [x], $dtype);
   };
 }
 
@@ -177,9 +207,14 @@ export function mapActivationToShaderProgram(
     return unary_op.RELU6;
   } else if (activation === 'prelu') {
     if (packed) {
-      return binaryop_packed_gpu.PRELU;
+      return PRELU_PACKED;
     }
-    return binaryop_gpu.PRELU;
+    return PRELU;
+  } else if (activation === 'leakyrelu') {
+    if (packed) {
+      return LEAKYRELU_PACKED;
+    }
+    return LEAKYRELU;
   }
   throw new Error(`Activation ${
       activation} has not been implemented for the WebGL backend.`);

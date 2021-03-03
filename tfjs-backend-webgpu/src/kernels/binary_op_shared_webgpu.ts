@@ -25,12 +25,14 @@ import {WebGPUProgram} from './webgpu_program';
 export class BinaryOpSharedProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   workPerThread: number;
   workGroupSize: [number, number, number];
+  useSharedMemoryWithB: boolean;
+  lastDimensionSize: number;
+  op: string;
 
   constructor(
       op: string, aShape: number[], bShape: number[],
@@ -40,30 +42,34 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
     this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    const size = util.sizeFromShape(this.outputShape);
-    const lastDimensionSize = useSharedMemoryWithB ? bShape[0] : aShape[0];
-    if (lastDimensionSize < 512) {
+    this.lastDimensionSize = useSharedMemoryWithB ? bShape[0] : aShape[0];
+    if (this.lastDimensionSize < 512) {
       this.workPerThread = 1;
-    } else if (lastDimensionSize < 1024) {
+    } else if (this.lastDimensionSize < 1024) {
       this.workPerThread = 2;
     } else {
       this.workPerThread = 4;
     }
-
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
+    this.shaderKey = `binaryShared_${op}`;
+    this.useSharedMemoryWithB = useSharedMemoryWithB;
+    this.op = op;
+  }
 
+  getUserCode(): string {
     const type = getCoordsDataType(this.outputShape.length);
-
-    const sharedIndexSnippet =
-        lastDimensionSize > 1 ? `coords[${this.outputShape.length - 1}]` : '0';
-    const accessDataSnippet = useSharedMemoryWithB ?
+    const size = util.sizeFromShape(this.outputShape);
+    const sharedIndexSnippet = this.lastDimensionSize > 1 ?
+        `coords[${this.outputShape.length - 1}]` :
+        '0';
+    const accessDataSnippet = this.useSharedMemoryWithB ?
         `float a = getAAtOutCoords(coords);
          float b = sharedBuf[${sharedIndexSnippet}];` :
         `float a = sharedBuf[${sharedIndexSnippet}];
          float b = getBAtOutCoords(coords);`;
-    const sizeFit = size % (workGroupSizeX * this.workPerThread) === 0;
+    const sizeFit = size % (this.workGroupSize[0] * this.workPerThread) === 0;
     const writeDataSnippet = sizeFit ?
         `${type} coords = getCoordsFromFlatIndex(flatIndex);
 
@@ -75,12 +81,12 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
             ${accessDataSnippet}
             setOutput(flatIndex, binaryOperation(a, b));
           }`;
-    this.userCode = `
+    const userCode = `
         float binaryOperation(float a, float b) {
-          ${op}
+          ${this.op}
         }
 
-        shared float sharedBuf[${lastDimensionSize}];
+        shared float sharedBuf[${this.lastDimensionSize}];
         void main() {
           int index = int(gl_GlobalInvocationID.x);
           int localIndex = int(gl_LocalInvocationIndex);
@@ -88,10 +94,10 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
           // Fill in the shared memory buffer. Here we need a loop to make sure
           // that all data in A|B are uploaded when |sharedMemorySize| is larger
           // than work group size.
-          while(localIndex < ${lastDimensionSize})
+          while(localIndex < ${this.lastDimensionSize})
           {
             sharedBuf[localIndex] = ${
-        useSharedMemoryWithB ? 'B' : 'A'}[localIndex];
+        this.useSharedMemoryWithB ? 'B' : 'A'}[localIndex];
             localIndex += int(gl_WorkGroupSize.x);
           }
           barrier();
@@ -103,5 +109,6 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
           }
         }
         `;
+    return userCode;
   }
 }

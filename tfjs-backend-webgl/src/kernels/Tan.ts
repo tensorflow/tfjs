@@ -21,7 +21,7 @@ import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
 const TAN = `return tan(x);`;
 
-export const tan = unaryKernelFunc(TAN);
+export const tan = unaryKernelFunc({opSnippet: TAN});
 
 export const tanConfig: KernelConfig = {
   kernelName: Tan,

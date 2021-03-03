@@ -14,10 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Conv2DBackpropInput, Conv2DBackpropInputAttrs, Conv2DBackpropInputInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import * as util from '../util';
 
@@ -46,9 +46,8 @@ import {reshape} from './reshape';
  *     "NHWC". Specify the data format of the input and output data. With the
  *     default format "NHWC", the data is stored in the order of: [batch,
  *     height, width, channels].
- * @param dimRoundingMode The rounding mode used when computing output
- *     dimensions if pad is a number. If none is provided, it will not round
- *     and error if the output is of fractional size.
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
  */
 function conv2DBackpropInput_<T extends Tensor3D|Tensor4D>(
     xShape: [number, number, number, number]|[number, number, number], dy: T,
@@ -100,34 +99,20 @@ function conv2DBackpropInput_<T extends Tensor3D|Tensor4D>(
             `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
   }
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const dilations = 1;
-
-    const $dataFormat = conv_util.convertConv2DDataFormat(dataFormat);
-    const convInfo = conv_util.computeConv2DInfo(
-        xShape4D, filter.shape, strides, dilations, pad, dimRoundingMode, false,
-        $dataFormat);
-
-    const res = backend.conv2dDerInput(dy4D, filter, convInfo);
-
-    save([dy4D, filter]);
-
-    return res;
-  };
-
   const inputs: Conv2DBackpropInputInputs = {dy: dy4D, filter};
 
   const attrs: Conv2DBackpropInputAttrs =
       {strides, pad, dataFormat, dimRoundingMode, inputShape: xShape4D};
 
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */,
-      Conv2DBackpropInput, attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  Conv2DBackpropInput, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   }
-  return res as T;
+  return res;
 }
 
 export const conv2DBackpropInput = op({conv2DBackpropInput_});

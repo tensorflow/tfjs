@@ -14,19 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Concat, ConcatAttrs, ConcatInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensorArray} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import {assert, parseAxisParam, sizeFromShape} from '../util';
+import {assert} from '../util';
 
 import {clone} from './clone';
-import {assertParamsConsistent, computeOutShape} from './concat_util';
 import {op} from './operation';
-import {tensor} from './tensor';
 
 /**
  * Concatenates a list of `tf.Tensor`s along a given axis.
@@ -71,7 +69,8 @@ import {tensor} from './tensor';
 function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
   assert(tensors.length >= 1, () => 'Pass at least one tensor to concat');
 
-  let $tensors = convertToTensorArray(tensors, 'tensors', 'concat');
+  const $tensors =
+      convertToTensorArray(tensors, 'tensors', 'concat', 'string_or_numeric');
 
   if ($tensors[0].dtype === 'complex64') {
     $tensors.forEach(tensor => {
@@ -86,32 +85,11 @@ function concat_<T extends Tensor>(tensors: Array<T|TensorLike>, axis = 0): T {
     return clone($tensors[0]);
   }
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const $axis = parseAxisParam(axis, $tensors[0].shape)[0];
-    const outShape = computeOutShape($tensors.map(t => t.shape), $axis);
-    if (sizeFromShape(outShape) === 0) {
-      return tensor([], outShape) as T;
-    }
-    // Keep only non-empty tensors (ignore tensors with 0 in their shape).
-    $tensors = $tensors.filter(t => t.size > 0);
-    if ($tensors.length === 1) {
-      return clone($tensors[0]);
-    }
-
-    const shapes = $tensors.map(t => t.shape);
-    assertParamsConsistent(shapes, $axis);
-
-    const res = backend.concat($tensors, $axis);
-    save($tensors);
-    return res;
-  };
-
   const inputs: ConcatInputs = $tensors;
   const attr: ConcatAttrs = {axis};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* grad */, Concat,
-             attr as {} as NamedAttrMap) as T;
+  return ENGINE.runKernel(
+      Concat, inputs as {} as NamedTensorMap, attr as {} as NamedAttrMap);
 }
 
 export const concat = op({concat_});

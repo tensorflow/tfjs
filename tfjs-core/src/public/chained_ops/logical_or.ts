@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {logicalOr} from '../../ops/logical_or';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -24,8 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.logicalOr = function<T extends Tensor>(b: Tensor|
-                                                        TensorLike): T {
+getGlobalTensorClass().prototype.logicalOr = function<T extends Tensor>(
+    b: Tensor|TensorLike): T {
   this.throwIfDisposed();
   return logicalOr(this, b);
 };

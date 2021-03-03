@@ -17,18 +17,10 @@
 
 import {env, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '@tensorflow/tfjs-core';
-// import {FromPixelsAsync} from '@tensorflow/tfjs-core';
-import {backend_util, Tensor3D} from '@tensorflow/tfjs-core';
-import {util} from '@tensorflow/tfjs-core';
+import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-
-import {FromPixelsProgram} from './FromPixels_utils/from_pixels_webgpu';
-import * as webgpu_program from './webgpu_program';
-
-// TODO: Import from tfjs-core once dependency is updated to >2.7.0.
-// tslint:disable-next-line: variable-name
-export const FromPixelsAsync = 'FromPixelsAsync';
+import {fromPixelsImageBitmap} from './FromPixelsImageBitmap';
 
 export const fromPixelsConfig: KernelConfig = {
   kernelName: FromPixels,
@@ -36,92 +28,13 @@ export const fromPixelsConfig: KernelConfig = {
   kernelFunc: fromPixels as {} as KernelFunc,
 };
 
-// Not many diffs with fromPixel, keep it here
-export const fromPixelsAsyncConfig: KernelConfig = {
-  kernelName: FromPixelsAsync,
-  backendName: 'webgpu',
-  kernelFunc: fromPixelsAsync as {} as KernelFunc,
-};
-
 let fromPixels2DContext: CanvasRenderingContext2D;
 
-async function fromPixelsAsync(args: {
+export function fromPixels(args: {
   inputs: FromPixelsInputs,
   backend: WebGPUBackend,
   attrs: FromPixelsAttrs
-}) {
-  const {inputs, backend, attrs} = args;
-  const {pixels} = inputs;
-  const {numChannels} = attrs;
-
-  if (pixels == null) {
-    throw new Error('pixels passed to tf.browser.fromPixels() can not be null');
-  }
-
-  const outShape = [pixels.height, pixels.width, numChannels];
-  const size = util.sizeFromShape(outShape);
-  const uniformData: [number, number] = [size, numChannels];
-
-  if (env().getBool('IS_BROWSER')) {
-    // TODO: pixels.data instance of Uint8Array is not ImageBitmapSource,
-    // This type should be handled in another shader.
-    if (!(pixels instanceof HTMLVideoElement) &&
-        !(pixels instanceof HTMLImageElement) &&
-        !(pixels instanceof HTMLCanvasElement) &&
-        !(pixels instanceof ImageData)) {
-      throw new Error(
-          'pixels passed to tf.browser.fromPixels() must be either an ' +
-          `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData` +
-          `but was ${(pixels as {}).constructor.name}`);
-    }
-  }
-
-  const imageBitmap =
-      // tslint:disable-next-line:no-any
-      await (createImageBitmap as any)
-      // tslint:disable-next-line:no-any
-      (pixels as any, {premultiplyAlpha: 'none'});
-
-  if (imageBitmap.width !== pixels.width ||
-      imageBitmap.height !== pixels.height) {
-    return fromPixels({inputs, backend, attrs});
-  }
-
-  const output = backend.makeOutputArray(outShape, 'int32');
-  if (!backend.fromPixelProgram ||
-      backend.fromPixelProgram.outputShape !== outShape) {
-    backend.fromPixelProgram = new FromPixelsProgram(outShape);
-
-    const {bindGroupLayout, pipeline} = webgpu_program.compileProgram(
-        backend.glslang, backend.device, backend.fromPixelProgram, [], output);
-
-    backend.fromPixelProgram.setWebGPUBinary(bindGroupLayout, pipeline);
-  }
-
-  backend.queue.copyImageBitmapToTexture(
-      {imageBitmap, origin: {x: 0, y: 0}}, {
-        texture: backend.fromPixelProgram.makeInputTexture(
-            backend.device, pixels.width, pixels.height)
-      },
-      {width: pixels.width, height: pixels.height, depth: 1});
-
-  const info = backend.tensorMap.get(output.dataId);
-
-  info.bufferInfo.buffer = backend.acquireBuffer(info.bufferInfo.byteSize);
-
-  backend.fromPixelProgram.setUniform(backend.device, uniformData);
-
-  backend.commandQueue.push(backend.fromPixelProgram.generateEncoder(
-      backend.device, info.bufferInfo.buffer));
-  backend.submitQueue();
-  return output as Tensor3D;
-}
-
-function fromPixels(args: {
-  inputs: FromPixelsInputs,
-  backend: WebGPUBackend,
-  attrs: FromPixelsAttrs
-}): Tensor3D {
+}): TensorInfo {
   const {inputs, backend, attrs} = args;
   let {pixels} = inputs;
   const {numChannels} = attrs;
@@ -137,14 +50,20 @@ function fromPixels(args: {
     if (!(pixels instanceof HTMLVideoElement) &&
         !(pixels instanceof HTMLImageElement) &&
         !(pixels instanceof HTMLCanvasElement) &&
-        !(pixels instanceof ImageData) &&
+        !(pixels instanceof ImageData) && !(pixels instanceof ImageBitmap) &&
         !(pixels.data instanceof Uint8Array)) {
       throw new Error(
           'pixels passed to tf.browser.fromPixels() must be either an ' +
-          `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData` +
-          ` or {data: Uint32Array, width: number, height: number}, ` +
+          `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData, ` +
+          `ImageBitmap ` +
+          `or {data: Uint32Array, width: number, height: number}, ` +
           `but was ${(pixels as {}).constructor.name}`);
     }
+
+    if (pixels instanceof ImageBitmap) {
+      return fromPixelsImageBitmap({imageBitmap: pixels, backend, attrs});
+    }
+
     if (pixels instanceof HTMLVideoElement ||
         pixels instanceof HTMLImageElement ||
         pixels instanceof HTMLCanvasElement) {
@@ -184,12 +103,12 @@ function fromPixels(args: {
     }
   }
 
-  const output = backend.makeOutputArray(outShape, 'int32');
+  const output = backend.makeTensorInfo(outShape, 'int32');
 
   const info = backend.tensorMap.get(output.dataId);
   info.values = new Int32Array(pixelArray);
   backend.maybeReleaseBuffer(output.dataId);
 
   backend.uploadToGPU(output.dataId);
-  return output as Tensor3D;
+  return output;
 }

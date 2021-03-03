@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {matMul} from '../../ops/mat_mul';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -26,7 +26,7 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.matMul = function<T extends Tensor>(
+getGlobalTensorClass().prototype.matMul = function<T extends Tensor>(
     this: T, b: Tensor|TensorLike, transposeA?: boolean,
     transposeB?: boolean): Tensor {
   this.throwIfDisposed();

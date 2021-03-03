@@ -148,13 +148,15 @@ export const executeOp: InternalOpExecutor =
         case 'Tan':
           return [tfOps.tan(
               getParamValue('x', node, tensorMap, context) as Tensor)];
-        case 'Relu6':
         case 'ClipByValue':
           return [tfOps.clipByValue(
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('clipValueMin', node, tensorMap, context) as number,
               getParamValue('clipValueMax', node, tensorMap, context) as
                   number)];
+        case 'Relu6':
+          return [tfOps.relu6(
+              getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Rsqrt':
           return [tfOps.rsqrt(
               getTensor(node.inputNames[0], tensorMap, context))];

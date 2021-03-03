@@ -39,9 +39,7 @@ function fill<R extends Rank>(
     shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
   const attrs: FillAttrs = {shape, value, dtype};
 
-  return ENGINE.runKernelFunc(
-      backend => backend.fill(shape, value, dtype), {}, null, Fill,
-      attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(Fill, {}, attrs as {} as NamedAttrMap);
 }
 
 export {fill};

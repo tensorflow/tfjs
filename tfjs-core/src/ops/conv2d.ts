@@ -14,10 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Conv2D, Conv2DAttrs, Conv2DInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -54,9 +54,8 @@ import {reshape} from './reshape';
  *     in atrous convolution. Defaults to `[1, 1]`. If `dilations` is a single
  *     number, then `dilationHeight == dilationWidth`. If it is greater than
  *     1, then all values of `strides` must be 1.
- * @param dimRoundingMode The rounding mode used when computing output
- *     dimensions if pad is a number. If none is provided, it will not round
- *     and error if the output is of fractional size.
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
  *
  * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
@@ -102,30 +101,19 @@ function conv2d_<T extends Tensor3D|Tensor4D>(
       () => 'Error in conv2D: Either strides or dilations must be 1. ' +
           `Got strides ${strides} and dilations '${dilations}'`);
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const $dataFormat = conv_util.convertConv2DDataFormat(dataFormat);
-    const convInfo = conv_util.computeConv2DInfo(
-        x4D.shape, $filter.shape, strides, dilations, pad, dimRoundingMode,
-        false, $dataFormat);
-    const res = backend.conv2d(x4D, $filter, convInfo);
-
-    save([x4D, $filter]);
-
-    return res;
-  };
-
   const inputs: Conv2DInputs = {x: x4D, filter: $filter};
   const attrs:
       Conv2DAttrs = {strides, pad, dataFormat, dilations, dimRoundingMode};
 
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, Conv2D,
-      attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  Conv2D, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   }
-  return res as T;
+  return res;
 }
 
 export const conv2d = op({conv2d_});

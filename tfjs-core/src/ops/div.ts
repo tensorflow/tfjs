@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {RealDiv, RealDivInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -59,18 +59,11 @@ function div_<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     return floorDiv($a, $b);
   }
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.realDivide($a, $b);
-    save([$a, $b]);
-    return res;
-  };
-
   const inputs: RealDivInputs = {a: $a, b: $b};
   const attrs = {};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null /* gradient */,
-             RealDiv, attrs) as T;
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  return ENGINE.runKernel(RealDiv, inputs as {} as NamedTensorMap, attrs) as T;
 }
 
 export const div = op({div_});

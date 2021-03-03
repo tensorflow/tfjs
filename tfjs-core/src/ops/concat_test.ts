@@ -262,6 +262,10 @@ describeWithFlags('concat2d', ALL_ENVS, () => {
 });
 
 describeWithFlags('concat3d', ALL_ENVS, () => {
+  beforeAll(() => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
+  });
+
   it('shapes correct concat axis=-1', async () => {
     const tensor1 = tf.tensor3d([1, 2, 3], [1, 1, 3]);
     const tensor2 = tf.tensor3d([4, 5, 6], [1, 1, 3]);
@@ -299,6 +303,16 @@ describeWithFlags('concat3d', ALL_ENVS, () => {
       1, 11, 111, 2, 22, 222, 5, 55, 555, 6, 66, 666, 7, 77, 777, 8, 88, 888
     ]);
   });
+
+  it('Accepts string tensor.', async () => {
+    const tensor1 = tf.tensor3d(['one', 'two', 'three'], [1, 1, 3], 'string');
+    const tensor2 = tf.tensor3d(['four', 'five', 'six'], [1, 1, 3], 'string');
+    const values = tf.concat3d([tensor1, tensor2], 0);
+    expect(values.shape).toEqual([2, 1, 3]);
+    expectArraysClose(
+        await values.data(), ['one', 'two', 'three', 'four', 'five', 'six']);
+  });
+
   it('TensorLike Chained concat axis=0', async () => {
     const tensor1 = tf.tensor3d([1, 11, 111, 2, 22, 222], [1, 2, 3]);
     const tensor2 =
@@ -576,5 +590,38 @@ describeWithFlags('concat throws for non-tensors', ALL_ENVS, () => {
     const values = tf.concat([tensor1, tensor2], 0);
     expect(values.shape).toEqual([2, 1, 4]);
     expectArraysClose(await values.data(), [1, 2, 3, 4, 4, 5, 6, 7]);
+  });
+});
+
+describeWithFlags('memory test', ALL_ENVS, () => {
+  it('returns a new tensor when op is effectively a no-op.', async () => {
+    const a = tf.tensor1d([]);
+    const b = tf.tensor1d([3]);
+
+    const result = tf.concat([a, b]);
+
+    a.dispose();
+    b.dispose();
+
+    expectArraysClose(await result.data(), [3]);
+  });
+
+  it('ensure no memory leak', async () => {
+    const numTensorsBefore = tf.memory().numTensors;
+    const numDataIdBefore = tf.engine().backend.numDataIds();
+
+    const a = tf.tensor1d([]);
+    const b = tf.tensor1d([3]);
+
+    const result = tf.concat([a, b]);
+
+    a.dispose();
+    b.dispose();
+    result.dispose();
+
+    const numTensorsAfter = tf.memory().numTensors;
+    const numDataIdAfter = tf.engine().backend.numDataIds();
+    expect(numTensorsAfter).toBe(numTensorsBefore);
+    expect(numDataIdAfter).toBe(numDataIdBefore);
   });
 });

@@ -27,9 +27,12 @@ module.exports = function(config) {
         {tsconfig: 'tsconfig.json', compilerOptions: {module: 'commonjs'}},
     reporters: ['progress', 'karma-typescript'],
     browsers: ['Chrome'],
+    port: 9876,
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
-      accessKey: process.env.BROWSERSTACK_KEY
+      accessKey: process.env.BROWSERSTACK_KEY,
+      tunnelIdentifier:
+          `tfjs_data_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     },
     reportSlowerThan: 500,
     browserNoActivityTimeout: 30000,

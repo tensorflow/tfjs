@@ -17,7 +17,7 @@
 
 // TODO update import path once op is modularized.
 import {irfft} from '../../ops/ops';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
@@ -26,7 +26,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.irfft = function<T extends Tensor>(this: Tensor): T {
+getGlobalTensorClass().prototype.irfft = function<T extends Tensor>(
+    this: Tensor): T {
   this.throwIfDisposed();
   return irfft(this) as T;
 };

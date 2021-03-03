@@ -18,20 +18,23 @@
 const BACKEND_FLAGS_MAP = {
   general: [],
   cpu: [],
-  wasm: ['WASM_HAS_SIMD_SUPPORT'],
+  wasm: ['WASM_HAS_SIMD_SUPPORT', 'WASM_HAS_MULTITHREAD_SUPPORT'],
   webgl: [
     'WEBGL_VERSION', 'WEBGL_CPU_FORWARD', 'WEBGL_PACK',
-    'WEBGL_FORCE_F16_TEXTURES', 'WEBGL_RENDER_FLOAT32_CAPABLE'
+    'WEBGL_FORCE_F16_TEXTURES', 'WEBGL_RENDER_FLOAT32_CAPABLE',
+    'WEBGL_FLUSH_THRESHOLD'
   ]
 };
 const TUNABLE_FLAG_NAME_MAP = {
   PROD: 'production mode',
   WEBGL_VERSION: 'webgl version',
   WASM_HAS_SIMD_SUPPORT: 'wasm SIMD',
+  WASM_HAS_MULTITHREAD_SUPPORT: 'wasm multithread',
   WEBGL_CPU_FORWARD: 'cpu forward',
   WEBGL_PACK: 'webgl pack',
   WEBGL_FORCE_F16_TEXTURES: 'enforce float16',
-  WEBGL_RENDER_FLOAT32_CAPABLE: 'enable float32'
+  WEBGL_RENDER_FLOAT32_CAPABLE: 'enable float32',
+  WEBGL_FLUSH_THRESHOLD: 'GL flush wait time(ms)'
 };
 
 /**
@@ -163,6 +166,12 @@ function getTunableRange(flag) {
   } else if (flag === 'WEBGL_VERSION') {
     const tunableRange = [];
     for (let value = 1; value <= defaultValue; value++) {
+      tunableRange.push(value);
+    }
+    return tunableRange;
+  } else if (flag === 'WEBGL_FLUSH_THRESHOLD') {
+    const tunableRange = [-1];
+    for (let value = 0; value <= 2; value += 0.25) {
       tunableRange.push(value);
     }
     return tunableRange;

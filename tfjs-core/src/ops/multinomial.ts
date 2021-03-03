@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Multinomial, MultinomialAttrs, MultinomialInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor1D, Tensor2D} from '../tensor';
+import {Tensor1D, Tensor2D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
@@ -60,22 +60,21 @@ function multinomial_(
   if (origRank > 2) {
     throw new Error(`Rank of probabilities must be 1 or 2, but is ${origRank}`);
   }
+  // TODO(lina128): Investigate correct seed behavior. The code seems not allow
+  // setting see to 0.
   seed = seed || Math.random();
 
   // The kernel only accepts (and returns) rank 2 tensors.
   const logits2D: Tensor2D =
       origRank === 1 ? reshape($logits, [1, -1]) : $logits as Tensor2D;
 
-  const forward: ForwardFunc<Tensor> = (backend) => {
-    return backend.multinomial(logits2D, normalized, numSamples, seed);
-  };
-
   const inputs: MultinomialInputs = {logits: logits2D};
   const attrs: MultinomialAttrs = {numSamples, seed, normalized};
 
-  const res = ENGINE.runKernelFunc(
-                  forward, inputs as {} as NamedTensorMap, null /* gradient */,
-                  Multinomial, attrs as {} as NamedAttrMap) as Tensor2D;
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  Multinomial, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap) as Tensor2D;
 
   // tslint:disable-next-line:no-unnecessary-type-assertion
   return origRank === 1 ? reshape(res, [res.size]) as Tensor1D : res;

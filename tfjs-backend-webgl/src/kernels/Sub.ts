@@ -22,7 +22,7 @@ import {subImplCPU as cpuSub} from '../kernel_utils/shared';
 
 const SUB = 'return a - b;';
 
-export const subKernelFunc = binaryKernelFunc({
+export const sub = binaryKernelFunc({
   opSnippet: SUB,
   packedOpSnippet: SUB,
   supportsComplex: true,
@@ -32,5 +32,5 @@ export const subKernelFunc = binaryKernelFunc({
 export const subConfig: KernelConfig = {
   kernelName: Sub,
   backendName: 'webgl',
-  kernelFunc: subKernelFunc
+  kernelFunc: sub
 };

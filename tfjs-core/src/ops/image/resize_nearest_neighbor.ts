@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../../engine';
+import {ENGINE} from '../../engine';
 import {ResizeNearestNeighbor, ResizeNearestNeighborAttrs, ResizeNearestNeighborInputs} from '../../kernel_names';
 import {NamedAttrMap} from '../../kernel_registry';
 import {Tensor3D, Tensor4D} from '../../tensor';
@@ -38,11 +38,16 @@ import {reshape} from '../reshape';
  *     input by `(new_height - 1) / (height - 1)`, which exactly aligns the 4
  *     corners of images and resized images. If false, rescale by
  *     `new_height / height`. Treat similarly the width dimension.
+ * @param halfPixelCenters Defaults to `false`. Whether to assumes pixels are of
+ *      half the actual dimensions, and yields more accurate resizes. This flag
+ *      would also make the floating point coordinates of the top left pixel
+ *      0.5, 0.5.
  *
  * @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'}
  */
 function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
-    images: T|TensorLike, size: [number, number], alignCorners = false): T {
+    images: T|TensorLike, size: [number, number], alignCorners = false,
+    halfPixelCenters = false): T {
   const $images = convertToTensor(images, 'images', 'resizeNearestNeighbor');
 
   util.assert(
@@ -57,7 +62,10 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
   util.assert(
       $images.dtype === 'float32' || $images.dtype === 'int32',
       () => '`images` must have `int32` or `float32` as dtype');
-
+  util.assert(
+      halfPixelCenters === false || alignCorners === false,
+      () => `Error in resizeNearestNeighbor: If halfPixelCenters is true, ` +
+          `alignCorners must be false.`);
   let batchImages = $images as Tensor4D;
   let reshapedTo4D = false;
   if ($images.rank === 3) {
@@ -65,25 +73,21 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
     batchImages = reshape(
         $images, [1, $images.shape[0], $images.shape[1], $images.shape[2]]);
   }
-  const [newHeight, newWidth] = size;
+  const [] = size;
 
   const inputs: ResizeNearestNeighborInputs = {images: batchImages};
-  const attrs: ResizeNearestNeighborAttrs = {alignCorners, size};
+  const attrs:
+      ResizeNearestNeighborAttrs = {alignCorners, halfPixelCenters, size};
 
-  const forward: ForwardFunc<Tensor4D> = (backend, save) => {
-    save([batchImages]);
-    return backend.resizeNearestNeighbor(
-        batchImages, newHeight, newWidth, alignCorners);
-  };
-
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* gradient */,
-      ResizeNearestNeighbor, attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  ResizeNearestNeighbor, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap) as T;
 
   if (reshapedTo4D) {
     return reshape(res, [res.shape[1], res.shape[2], res.shape[3]]) as T;
   }
-  return res as T;
+  return res;
 }
 
 export const resizeNearestNeighbor = op({resizeNearestNeighbor_});

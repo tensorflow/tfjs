@@ -80,6 +80,20 @@ describeWithFlags('gather', ALL_ENVS, () => {
     expectArraysClose(await t2.data(), [11, 1, 1, 11, 22, 2, 2, 22]);
   });
 
+  it('2D (gather), 2D indices, non-zero batchDims', async () => {
+    const t = tf.tensor2d([1, 11, 2, 22], [2, 2]);
+    const t2 = tf.gather(t, tf.tensor2d([1, 0, 0, 1], [2, 2], 'int32'), 1, 1);
+    expect(t2.shape).toEqual([2, 2]);
+    expectArraysClose(await t2.data(), [11, 1, 2, 22]);
+  });
+
+  it('2D (gather), 2D indices, negative batchDims', async () => {
+    const t = tf.tensor2d([1, 11, 2, 22], [2, 2]);
+    const t2 = tf.gather(t, tf.tensor2d([1, 0, 0, 1], [2, 2], 'int32'), 1, -1);
+    expect(t2.shape).toEqual([2, 2]);
+    expectArraysClose(await t2.data(), [11, 1, 2, 22]);
+  });
+
   it('3D (gather), 1D indices', async () => {
     const t = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
 
@@ -98,6 +112,36 @@ describeWithFlags('gather', ALL_ENVS, () => {
     expect(t2.shape).toEqual([2, 2, 2, 2]);
     expectArraysClose(
         await t2.data(), [2, 1, 1, 2, 4, 3, 3, 4, 6, 5, 5, 6, 8, 7, 7, 8]);
+  });
+
+  it('3D (gather), 2D indices, non-zero batchDims', async () => {
+    const t = tf.tensor3d([1, 2, 3, 4], [1, 2, 2]);
+
+    const t2 = tf.gather(t, tf.tensor2d([1, 0, 1], [1, 3], 'int32'), 2, 1);
+
+    expect(t2.shape).toEqual([1, 2, 3]);
+    expectArraysClose(await t2.data(), [2, 1, 2, 4, 3, 4]);
+  });
+
+  it('throws when batch dims greater than axis', () => {
+    const t = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
+
+    expect(() => tf.gather(t, tf.tensor3d([1, 0, 1], [1, 1, 3], 'int32'), 2, 3))
+        .toThrowError(/must be less than or equal to axis/);
+  });
+
+  it('throws when batch dims greater than indices rank', () => {
+    const t = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8], [1, 2, 2, 2]);
+
+    expect(() => tf.gather(t, tf.tensor2d([1, 0, 1], [1, 3], 'int32'), 2, 3))
+        .toThrowError(/Expect batchDims in the range of /);
+  });
+
+  it('throws when batch dims do not match', () => {
+    const t = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
+
+    expect(() => tf.gather(t, tf.tensor2d([1, 0, 1], [1, 3], 'int32'), 2, 1))
+        .toThrowError(/should be equal to indices.shape/);
   });
 
   it('bool (gather), 1D indices', async () => {
@@ -506,5 +550,25 @@ describeWithFlags('gather', ALL_ENVS, () => {
     expectArraysClose(
         await gradients.data(),
         [0, 6, 0, -3, 0, 15.7, 0, 6, 0, 1.01, 0, 18, 0, 15, 0, 4]);
+  });
+
+  it('ensure no memory leak', async () => {
+    const numTensorsBefore = tf.memory().numTensors;
+    const numDataIdBefore = tf.engine().backend.numDataIds();
+    const t = tf.tensor1d([1, 2, 3]);
+    const t1 = tf.scalar(1, 'int32');
+    const t2 = tf.gather(t, t1, 0);
+
+    expect(t2.shape).toEqual([]);
+    expectArraysClose(await t2.data(), [2]);
+
+    t.dispose();
+    t1.dispose();
+    t2.dispose();
+
+    const numTensorsAfter = tf.memory().numTensors;
+    const numDataIdAfter = tf.engine().backend.numDataIds();
+    expect(numTensorsAfter).toBe(numTensorsBefore);
+    expect(numDataIdAfter).toBe(numDataIdBefore);
   });
 });

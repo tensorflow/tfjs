@@ -15,16 +15,15 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {MaxPoolGrad, MaxPoolGradAttrs, MaxPoolGradInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
-import {Tensor, Tensor4D} from '../tensor';
+import {Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import * as conv_util from './conv_util';
 import {op} from './operation';
 
 /**
@@ -43,10 +42,8 @@ import {op} from './operation';
  *     `strides` is a single number, then `strideHeight == strideWidth`.
  * @param pad A string from: 'same', 'valid'. The type of padding algorithm
  *     used in the forward prop of the op.
- * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
- *     rounding mode used when computing output dimensions if pad is a
- *     number. If none is provided, it will not round and error if the output
- *     is of fractional size.
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
  */
 function maxPoolGrad_(
     dy: Tensor4D|TensorLike, input: Tensor4D|TensorLike,
@@ -77,20 +74,13 @@ function maxPoolGrad_(
             `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
   }
 
-  const forward: ForwardFunc<Tensor> = backend => {
-    const convInfo = conv_util.computePool2DInfo(
-        $input.shape, filterSize, strides, 1 /* dilations */, pad,
-        dimRoundingMode);
-
-    return backend.maxPoolBackprop($dy, $input, $output, convInfo);
-  };
-
   const inputs: MaxPoolGradInputs = {dy: $dy, input: $input, output: $output};
 
   const attrs: MaxPoolGradAttrs = {filterSize, strides, pad, dimRoundingMode};
 
-  return ENGINE.runKernelFunc(
-             forward, inputs as {} as NamedTensorMap, null, MaxPoolGrad,
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  return ENGINE.runKernel(
+             MaxPoolGrad, inputs as {} as NamedTensorMap,
              attrs as {} as NamedAttrMap) as Tensor4D;
 }
 

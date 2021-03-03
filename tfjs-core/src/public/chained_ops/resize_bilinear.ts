@@ -15,18 +15,21 @@
  * =============================================================================
  */
 import {resizeBilinear} from '../../ops/image/resize_bilinear';
-import {Tensor, Tensor3D, Tensor4D} from '../../tensor';
+import {getGlobalTensorClass, Tensor3D, Tensor4D} from '../../tensor';
 import {Rank} from '../../types';
 
 declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
     resizeBilinear<T extends Tensor3D|Tensor4D>(
-        newShape2D: [number, number], alignCorners?: boolean): T;
+        newShape2D: [number, number], alignCorners?: boolean,
+        halfPixelCenters?: boolean): T;
   }
 }
 
-Tensor.prototype.resizeBilinear = function<T extends Tensor3D|Tensor4D>(
-    this: T, newShape2D: [number, number], alignCorners?: boolean): T {
+getGlobalTensorClass().prototype.resizeBilinear =
+    function<T extends Tensor3D|Tensor4D>(
+        this: T, newShape2D: [number, number], alignCorners?: boolean,
+        halfPixelCenters?: boolean): T {
   this.throwIfDisposed();
-  return resizeBilinear(this, newShape2D, alignCorners);
+  return resizeBilinear(this, newShape2D, alignCorners, halfPixelCenters);
 };
