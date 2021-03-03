@@ -28,5 +28,5 @@ export const floor =
 export const floorConfig: KernelConfig = {
   kernelName: Floor,
   backendName: 'webgpu',
-  kernelFunc: floor,
+  kernelFunc: floor
 };

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Expm1, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
+import {Expm1, KernelConfig} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {expm1ImplCPU} from '../kernel_utils/shared';
 
@@ -27,5 +27,5 @@ export const expm1 =
 export const expm1Config: KernelConfig = {
   kernelName: Expm1,
   backendName: 'webgpu',
-  kernelFunc: expm1 as {} as KernelFunc
+  kernelFunc: expm1
 };

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, Rsqrt} from '@tensorflow/tfjs-core';
+import {KernelConfig, Rsqrt} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {rsqrtImplCPU} from '../kernel_utils/shared';
 
@@ -27,5 +27,5 @@ export const rsqrt =
 export const rsqrtConfig: KernelConfig = {
   kernelName: Rsqrt,
   backendName: 'webgpu',
-  kernelFunc: rsqrt as {} as KernelFunc
+  kernelFunc: rsqrt
 };

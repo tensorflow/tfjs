@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Ceil, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
+import {Ceil, KernelConfig} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {ceilImplCPU} from '../kernel_utils/shared';
 
@@ -27,5 +27,5 @@ export const ceil =
 export const ceilConfig: KernelConfig = {
   kernelName: Ceil,
   backendName: 'webgpu',
-  kernelFunc: ceil as {} as KernelFunc
+  kernelFunc: ceil
 };
