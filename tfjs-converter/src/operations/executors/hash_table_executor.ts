@@ -65,6 +65,15 @@ export const executeOp: InternalOpAsyncExecutor = async(
       const hashTable = resourceManager.getHashTableById(handle.id);
       return [await hashTable.find(keys, defaultValue)];
     }
+    case 'LookupTableSize':
+    case 'LookupTableSizeV2': {
+      const handle = getParamValue(
+                         'tableHandle', node, tensorMap, context,
+                         resourceManager) as Tensor;
+
+      const hashTable = resourceManager.getHashTableById(handle.id);
+      return [hashTable.tensorSize()];
+    }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
