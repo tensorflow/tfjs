@@ -434,6 +434,7 @@ const TUNABLE_FLAG_VALUE_RANGE_MAP = {
   WEBGL_PACK: [true, false],
   WEBGL_FORCE_F16_TEXTURES: [true, false],
   WEBGL_RENDER_FLOAT32_CAPABLE: [true, false],
+  WEBGL_FLUSH_THRESHOLD: [-1, 0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
 };
 
 /**
