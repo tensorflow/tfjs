@@ -17,4 +17,5 @@
 set -e
 
 yarn tsc
-BAZEL_REMOTE="--config=remote" ./scripts/build-wasm.sh
+BAZEL_REMOTE="--config=ci" ./scripts/build-wasm.sh
+./scripts/build-wasm.sh

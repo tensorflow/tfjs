@@ -13,9 +13,12 @@ build --cxxopt="-fno-rtti"
 build --cxxopt="-fno-exceptions"
 build --cxxopt="-fomit-frame-pointer"
 
-# Remote cache config. Users should override this in .bazelrc.user
+# Remote cache config. Users can add credentials in their .bazelrc.user files.
 build:remote --remote_http_cache=https://storage.googleapis.com/bazel-remote-cache-tfjs
-build:remote --google_default_credentials
+
+# Config for Google Cloud continuous integration that uses default credentials.
+build:ci --config=remote
+build:ci --google_default_credentials
 
 # This flag is needed to so that the bazel cache is not invalidated
 # when running bazel via `yarn bazel`.
@@ -23,11 +26,15 @@ build:remote --google_default_credentials
 build --incompatible_strict_action_env
 run --incompatible_strict_action_env
 
+# Don't use a sandboxed build since it hurts performance.
+# When sandboxed, the wasm backend takes hours to build on a 32 core machine.
+build --spawn_strategy=worker,local
+
 # Load any settings specific to the current user.
-# .bazelrc.user should appear in .gitignore so that settings are not shared with team members
-# This needs to be last statement in this
-# config, as the user configuration should be able to overwrite flags from this file.
+# .bazelrc.user should appear in .gitignore so that settings are not shared with
+# team members. This needs to be last statement in this config, as the user
+# configuration should be able to overwrite flags from this file.
 # See https://docs.bazel.build/versions/master/best-practices.html#bazelrc
-# (Note that we use .bazelrc.user so the file appears next to .bazelrc in directory listing,
-# rather than user.bazelrc as suggested in the Bazel docs)
+# (Note that we use .bazelrc.user so the file appears next to .bazelrc in
+# directory listing, rather than user.bazelrc as suggested in the Bazel docs).
 try-import %workspace%/.bazelrc.user
