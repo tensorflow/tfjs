@@ -161,9 +161,16 @@ module.exports = function(config) {
         os: 'Windows',
         os_version: '10'
       },
+      chrome_simd: {
+        base: 'Chrome',
+        flags: [
+	  '--enable-features=WebAssemblySimd',
+	  '--disable-features=WebAssemblyThreads',
+	]
+      },
       chrome_threaded_simd: {
         base: 'Chrome',
-        flags: ['--enable-experimental-webassembly-features']
+        flags: ['--enable-features=WebAssemblySimd,WebAssemblyThreads']
       },
     },
     client: {jasmine: {random: false}, args: args},
