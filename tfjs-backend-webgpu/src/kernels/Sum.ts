@@ -34,7 +34,13 @@ export function sum(
   const xRank = xShape.length;
 
   const origAxes = util.parseAxisParam(axis, xShape);
-  const axes = origAxes;
+  let axes = origAxes;
+  const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
+  const sumInputIsTransposed = permutedAxes != null;
+
+  if (sumInputIsTransposed) {
+    axes = backend_util.getInnerMostAxes(axes.length, xRank);
+  }
   backend_util.assertAxesAreInnerMostDims('sum', axes, xRank);
   const [outShape, reduceShape] =
       backend_util.computeOutAndReduceShapes(xShape, axes);
