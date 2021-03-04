@@ -32,6 +32,7 @@
     "lint": "tslint -p . -t verbose && yarn cpplint",
     "test": "yarn && yarn build-deps && yarn build && karma start",
     "test-dev": "yarn && yarn build-deps && yarn build-dev && karma start",
+    "test-simd-threaded": "yarn karma start --browsers=chrome_simd_threaded",
     "test-ci": "./scripts/test-ci.sh",
     "test-node": "tsc && ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/test_node.ts",
     "test-bundle-size": "./scripts/test-bundle-size.js",
