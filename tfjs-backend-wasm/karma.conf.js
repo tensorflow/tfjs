@@ -161,7 +161,7 @@ module.exports = function(config) {
         os: 'Windows',
         os_version: '10'
       },
-      chrome_simd_threaded: {
+      chrome_threaded_simd: {
         base: 'Chrome',
         flags: ['--enable-experimental-webassembly-features']
       },
