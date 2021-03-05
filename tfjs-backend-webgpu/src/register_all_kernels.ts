@@ -28,6 +28,7 @@ import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
+import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
@@ -45,6 +46,7 @@ import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
+import {imagConfig} from './kernels/Imag';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
@@ -62,6 +64,7 @@ import {notEqualConfig} from './kernels/NotEqual';
 import {packConfig} from './kernels/Pack';
 import {padV2Config} from './kernels/PadV2';
 import {preluConfig} from './kernels/Prelu';
+import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
@@ -96,6 +99,7 @@ const kernelConfigs: KernelConfig[] = [
   castConfig,
   ceilConfig,
   clipByValueConfig,
+  complexConfig,
   concatConfig,
   conv2DConfig,
   cropAndResizeConfig,
@@ -113,6 +117,7 @@ const kernelConfigs: KernelConfig[] = [
   greaterConfig,
   greaterEqualConfig,
   identityConfig,
+  imagConfig,
   lessConfig,
   lessEqualConfig,
   logConfig,
@@ -130,6 +135,7 @@ const kernelConfigs: KernelConfig[] = [
   packConfig,
   padV2Config,
   preluConfig,
+  realConfig,
   realDivConfig,
   reluConfig,
   relu6Config,
