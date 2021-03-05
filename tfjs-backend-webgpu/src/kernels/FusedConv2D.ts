@@ -96,7 +96,7 @@ export function fusedConv2d(args: {
     convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationHeight,
     convInfo.dilationWidth
   ];
-
+  const uniformData = new Int32Array(dimensions);
   const inputVar: TensorInfo[] = [x, filter];
   if (hasBias) {
     inputVar.push(bias);
@@ -104,7 +104,7 @@ export function fusedConv2d(args: {
   if (hasPreluActivationWeights) {
     inputVar.push(preluActivationWeights);
   }
-  return backend.runWebGPUProgram(program, inputVar, x.dtype, dimensions);
+  return backend.runWebGPUProgram(program, inputVar, x.dtype, uniformData);
 }
 
 export const fusedConv2DConfig: KernelConfig = {

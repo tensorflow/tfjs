@@ -34,8 +34,9 @@ export function fill(args: {backend: WebGPUBackend, attrs: FillAttrs}):
     values.fill(value as string);
     return backend.makeTensorInfo(shape, dtype, values);
   } else {
-    const program = new FillProgram(shape, value as number);
-    return backend.runWebGPUProgram(program, [], dtype);
+    const program = new FillProgram(shape);
+    const uniformData = new Float32Array([value as number]);
+    return backend.runWebGPUProgram(program, [], dtype, uniformData);
   }
 }
 
