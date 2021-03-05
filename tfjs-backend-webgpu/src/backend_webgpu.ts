@@ -518,7 +518,6 @@ export class WebGPUBackend extends KernelBackend {
       this.dispatchNumberInEncoder++;
     }
 
-
     inputs.forEach(input => {
       this.commandQueueOwnedIds.add(input.dataId);
     });
