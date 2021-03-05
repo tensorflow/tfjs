@@ -574,6 +574,20 @@ const TEST_FILTERS: TestFilter[] = [
       'indices not int32 throws error',  // Range not yet supported.
       'gradient'                         // gradient function not found.
     ]
+  },
+  {
+    include: 'mean',
+    excludes: [
+      'bool',
+      'gradient',
+      'meanSquaredError',
+    ]
+  },
+  {
+    include: 'prod',
+    excludes: [
+      'bool',
+    ]
   }
 ];
 
