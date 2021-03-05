@@ -129,6 +129,9 @@ export function GPUBytesPerElement(dtype: DataType): number {
     return 4;
   } else if (dtype === 'complex64') {
     return 8;
+  } else if (dtype === 'string') {
+    // TODO(xing.xu@intel.com): add unicode support.
+    return 1;
   } else {
     throw new Error(`Unknown dtype ${dtype}`);
   }
@@ -139,7 +142,7 @@ export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
     return new Float32Array(data);
   } else if (dtype === 'int32') {
     return new Int32Array(data);
-  } else if (dtype === 'bool') {
+  } else if (dtype === 'bool' || dtype === 'string') {
     const dataAsInt32Array = new Int32Array(data);
     const boolData = new ArrayBuffer(dataAsInt32Array.length);
     const dataAsTypedArray = new Uint8Array(boolData);

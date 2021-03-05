@@ -29,6 +29,7 @@ export type SimpleUnaryKernelImplCPU = SimpleUnaryImpl;
 const {
   addImpl: addImplCPU,
   ceilImpl: ceilImplCPU,
+  concatImpl: concatImplCPU,
   expImpl: expImplCPU,
   expm1Impl: expm1ImplCPU,
   floorImpl: floorImplCPU,
@@ -51,6 +52,7 @@ const {
 export {
   addImplCPU,
   ceilImplCPU,
+  concatImplCPU,
   expImplCPU,
   expm1ImplCPU,
   floorImplCPU,

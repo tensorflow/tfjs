@@ -178,7 +178,6 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'concat a large number of tensors',  // Actual != Expected.
       'gradient',                          // split not yet implemented.
-      'string'                             // Not ye implemented.
     ]
   },
   {
@@ -305,12 +304,10 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {
     include: 'expandDims',
-    excludes: ['string']  // String is not yet implemented.
   },
   {
     include: 'memory test',
     excludes: [
-      'string',    // String is not yet implemented.
       'Sum(bool)'  // Compile error.
     ]
   },
@@ -352,7 +349,6 @@ const TEST_FILTERS: TestFilter[] = [
       '6D',                  // Rank 6 is not yet implemented.
       'slice6d',             // Rank 6 is not yet implemented.
       'strided slice with',  // Rank 6 is not yet implemented.
-      'string',              // String is not yet implemented.
     ]
   },
   {
@@ -506,7 +502,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'stack',
     excludes: [
-      'accepts string',
       'unstack',
     ]
   },

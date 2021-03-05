@@ -18,6 +18,7 @@
 import {backend_util, ConcatInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {concatImplCPU} from '../kernel_utils/shared';
 
 import {complex} from './Complex';
 import {ConcatProgram} from './concat_webgpu';
@@ -44,6 +45,31 @@ export function concatImpl(
     backend.disposeData(imagConcated.dataId);
 
     return result;
+  }
+
+  // Run on cpu if dtype is string. For string, the backend represents it
+  // as Uint8Array[], where each Uint8Array is a character. Given that the
+  // computation is only on the outer array, uploading the whole data onto
+  // gpu is wasteful. Also, currently webgpu doesn't have a design to
+  // upload and retrieve Uint8Array[] between cpu and gpu. Therefore, we
+  // just run the kernel on cpu if dtype is string.
+  if (dtype === 'string') {
+    const {tensors2D, outShape} = computeTensors2D(inputs, axis, backend);
+    const inputsValShapes = tensors2D.map(t => {
+      return {vals: backend.readSync(t.dataId), shape: t.shape};
+    });
+    const simplyConcat = tensors2D[0].shape[0] === 1;
+    const outVals =
+        concatImplCPU(inputsValShapes, outShape, dtype, simplyConcat);
+
+    const finalOutShape =
+        backend_util.computeOutShape(inputs.map(t => t.shape), axis);
+
+    const outInfo = backend.makeTensorInfo(finalOutShape, dtype, outVals);
+
+    tensors2D.forEach(t => backend.disposeData(t));
+
+    return outInfo;
   }
 
   const {tensors2D, outShape} = computeTensors2D(inputs, axis, backend);
