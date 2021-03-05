@@ -147,10 +147,15 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'fromPixels',
     excludes: [
-      'HTMLVideolement',  // Failed to execute 'getImageData' on
-                          // 'CanvasRenderingContext2D': The source width is 0
-      'fromPixelsAsync',  // Remove it once it's supported in tfjs-core. Now all
-      // cases fail due to the return type is tensorInfo not a tensor.
+      'HTMLVideoElement',  // Failed to execute 'getImageData' on
+                           // 'CanvasRenderingContext2D': The source width is 0
+    ]
+  },
+  {
+    include: 'fromPixelsAsync',
+    excludes: [
+      'HTMLVideoElement',  // Failed to execute 'getImageData' on
+                           // 'CanvasRenderingContext2D': The source width is 0
     ]
   },
   {
@@ -171,7 +176,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'concat',
     excludes: [
-      'complex',                           // No complex support yet.
       'concat a large number of tensors',  // Actual != Expected.
       'gradient',                          // split not yet implemented.
       'string'                             // Not ye implemented.
@@ -210,7 +214,43 @@ const TEST_FILTERS: TestFilter[] = [
       'halfPixelCenters',  // Not yet implemented.
     ]
   },
+  {
+    include: 'ceil',
+    excludes: [
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
+  {
+    include: 'floor ',
+    excludes: [
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
   {include: 'floor divide ', excludes: []},
+  {
+    include: 'rsqrt',
+    excludes: [
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
+  {
+    include: 'expm1',
+    excludes: [
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
   {
     include: 'fused',
     excludes: [
@@ -277,7 +317,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'add ',
     excludes: [
-      'complex',                         // No complex support yet.
       'upcasts when dtypes dont match',  // Missing cast().
       'accepts a tensor-like object',    // Timeout.
       'broadcast inner dim of b',        // Arrays differ.
@@ -329,7 +368,6 @@ const TEST_FILTERS: TestFilter[] = [
       'int32 * int32',  // Actual != Expected.
       'broadcast',      // Various: Actual != Expected, compile fails, etc.
       'gradient',       // Various: sum not yet implemented.
-      'complex',        // No complex support yet.
       'upcasts when dtypes dont match',  // Actual != expected.
     ]
   },
@@ -463,6 +501,29 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient with clones',
       'gradients: Tensor1D',
       'gradients: Tensor2D',
+    ]
+  },
+  {
+    include: 'stack',
+    excludes: [
+      'accepts string',
+      'unstack',
+    ]
+  },
+  {
+    include: 'complex64',
+    excludes: [
+      'cast complex64 -> bool'  // Error: Failed to execute 'writeBuffer' on
+                                // 'GPUQueue': Number of bytes to write must be
+                                // a multiple of 4
+    ]
+  },
+  {
+    include: 'zerosLike',
+    excludes: [
+      '5D',       // rank 5 is not yet supported.
+      '6D',       // rank 6 is not yet supported.
+      'gradient'  // gradient function not found.
     ]
   }
 ];

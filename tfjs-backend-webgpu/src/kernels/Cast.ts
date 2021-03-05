@@ -14,12 +14,15 @@
  * limitations under the License.
  * =============================================================================
  */
+import * as tf from '@tensorflow/tfjs-core';
 import {BinaryInputs, Cast, CastAttrs, CastInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 
+import {complex} from './Complex';
 import {identity} from './Identity';
 import {notEqual} from './NotEqual';
+import {real} from './Real';
 
 import {int} from '../kernel_utils/int';
 
@@ -29,6 +32,33 @@ export function cast(
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
   const {dtype} = attrs;
+
+  // Casting to complex64.
+  if (dtype === 'complex64') {
+    if (x.dtype === 'complex64') {
+      return identity({inputs: {x}, backend});
+    }
+
+    // TODO: Import kernel function once zeros is modularized.
+    const zerosTensor = tf.zeros(x.shape);
+    const floatX = cast({inputs: {x}, backend, attrs: {dtype: 'float32'}});
+
+    const result =
+        complex({inputs: {real: floatX, imag: zerosTensor}, backend});
+
+    zerosTensor.dispose();
+    backend.disposeData(floatX.dataId);
+
+    return result;
+  }
+
+  // Casting from complex64
+  if (x.dtype === 'complex64') {
+    const realPart = real({inputs: {input: x}, backend});
+    const result = cast({inputs: {x: realPart}, backend, attrs: {dtype}});
+    backend.disposeData(realPart.dataId);
+    return result;
+  }
 
   if (!util.hasEncodingLoss(x.dtype, dtype)) {
     // We don't change the underlying data, since we cast to higher

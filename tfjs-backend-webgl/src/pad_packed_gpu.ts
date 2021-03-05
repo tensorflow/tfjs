@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
 import {getChannels} from './packing_util';
 import {getCoordsDataType} from './shader_compiler';
@@ -25,6 +26,7 @@ export class PadPackedProgram implements GPGPUProgram {
   packedOutput = true;
   outputShape: number[];
   userCode: string;
+  valueLoc: WebGLUniformLocation;
 
   constructor(
       xShape: number[], paddings: Array<[number, number]>,
@@ -62,7 +64,7 @@ export class PadPackedProgram implements GPGPUProgram {
       mainLoop += `
         ${componentSetup[i]}
         if (${paddingArea}) {
-          result[${i}] = float(${constantValue});
+          result[${i}] = float(value);
         } else {
           ${dtype} source = rc - start;
           result[${i}] = getChannel(getX(${source.join()}), ${innerDims});
@@ -74,6 +76,7 @@ export class PadPackedProgram implements GPGPUProgram {
     this.userCode = `
       const ${dtype} start = ${dtype}(${start});
       const ${dtype} end = ${dtype}(${end});
+      uniform float value;
 
       void main() {
         ${dtype} outputLoc = getOutputCoords();
@@ -82,5 +85,14 @@ export class PadPackedProgram implements GPGPUProgram {
         setOutput(result);
       }
     `;
+  }
+
+  getCustomSetupFunc(value: number) {
+    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
+      if (this.valueLoc == null) {
+        this.valueLoc = gpgpu.getUniformLocationNoThrow(webGLProgram, 'value');
+      }
+      gpgpu.gl.uniform1f(this.valueLoc, value);
+    };
   }
 }

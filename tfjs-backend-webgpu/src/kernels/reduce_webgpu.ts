@@ -81,6 +81,7 @@ export class ReduceProgram implements WebGPUProgram {
             ${op}
           }
         }
+        barrier();
         xBestValues[gl_LocalInvocationID.x] = bestValue;
         currentSize = DIV_CEIL(currentSize, ${reductionFactor});
         ${this.reduceType === 'sum' ? 'if(currentSize > 1) bestValue=0;' : ''}

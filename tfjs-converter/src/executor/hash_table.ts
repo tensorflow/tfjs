@@ -15,6 +15,8 @@
  * =============================================================================
  */
 import {DataType, keep, scalar, stack, Tensor, tidy, unstack, util} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 /**
  * Hashtable contains a set of tensors, which can be accessed by key.
@@ -57,6 +59,13 @@ export class HashTable {
    */
   size(): number {
     return this.tensorMap.size;
+  }
+
+  /**
+   * The number of items in the hash table as a rank-0 tensor.
+   */
+  tensorSize(): Tensor {
+    return tfOps.scalar(this.size(), 'int32');
   }
 
   /**
