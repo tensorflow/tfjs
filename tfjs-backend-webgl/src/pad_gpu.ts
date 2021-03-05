@@ -42,6 +42,7 @@ export class PadProgram implements GPGPUProgram {
       this.userCode = `
         int start = ${start};
         int end = ${end};
+        uniform float value;
 
         void main() {
           int outC = getOutputCoords();
