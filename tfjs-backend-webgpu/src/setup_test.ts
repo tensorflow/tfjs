@@ -525,6 +525,20 @@ const TEST_FILTERS: TestFilter[] = [
       '6D',       // rank 6 is not yet supported.
       'gradient'  // gradient function not found.
     ]
+  },
+  {
+    include: 'mean',
+    excludes: [
+      'bool',
+      'gradient',
+      'meanSquaredError',
+    ]
+  },
+  {
+    include: 'prod',
+    excludes: [
+      'bool',
+    ]
   }
 ];
 

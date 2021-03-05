@@ -20,7 +20,7 @@ import {backend_util, DataType, TensorInfo} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
 import {ReduceProgram} from '../kernels/reduce_webgpu';
 
-type ReduceTypes = 'max'|'min'|'sum';
+type ReduceTypes = 'max'|'mean'|'min'|'prod'|'sum';
 
 export function reduce(
     x: TensorInfo, dtype: DataType, reduceType: ReduceTypes,
