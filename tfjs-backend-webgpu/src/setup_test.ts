@@ -376,7 +376,6 @@ const TEST_FILTERS: TestFilter[] = [
       'string',            // String is not yet implemented.
       '5D',                // Rank 5 is not yet supported.
       'rotateWithOffset',  // 'RotateWithOffset' not registered.
-
     ]
   },
   {
