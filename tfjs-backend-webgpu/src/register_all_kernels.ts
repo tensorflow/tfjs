@@ -26,6 +26,7 @@ import {avgPoolConfig} from './kernels/AvgPool';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {castConfig} from './kernels/Cast';
+import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
 import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
@@ -34,7 +35,9 @@ import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
+import {expm1Config} from './kernels/Expm1';
 import {fillConfig} from './kernels/Fill';
+import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {fromPixelsConfig} from './kernels/FromPixels';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
@@ -67,6 +70,7 @@ import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
+import {rsqrtConfig} from './kernels/Rsqrt';
 import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {sliceConfig} from './kernels/Slice';
@@ -93,6 +97,7 @@ const kernelConfigs: KernelConfig[] = [
   batchMatMulConfig,
   batchToSpaceNDConfig,
   castConfig,
+  ceilConfig,
   clipByValueConfig,
   complexConfig,
   concatConfig,
@@ -101,8 +106,10 @@ const kernelConfigs: KernelConfig[] = [
   depthwiseConv2dNativeConfig,
   expandDimsConfig,
   expConfig,
+  expm1Config,
   fillConfig,
   fromPixelsConfig,
+  floorConfig,
   floorDivConfig,
   fusedBatchNormConfig,
   fusedConv2DConfig,
@@ -116,9 +123,9 @@ const kernelConfigs: KernelConfig[] = [
   logConfig,
   maxConfig,
   maximumConfig,
-  minimumConfig,
   maxPoolConfig,
   minConfig,
+  minimumConfig,
   mirrorPadConfig,
   multiplyConfig,
   negConfig,
@@ -134,6 +141,7 @@ const kernelConfigs: KernelConfig[] = [
   relu6Config,
   reshapeConfig,
   resizeBilinearConfig,
+  rsqrtConfig,
   selectConfig,
   sigmoidConfig,
   sliceConfig,

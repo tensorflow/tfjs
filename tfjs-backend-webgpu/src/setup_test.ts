@@ -214,7 +214,43 @@ const TEST_FILTERS: TestFilter[] = [
       'halfPixelCenters',  // Not yet implemented.
     ]
   },
+  {
+    include: 'ceil',
+    excludes: [
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
+  {
+    include: 'floor ',
+    excludes: [
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
   {include: 'floor divide ', excludes: []},
+  {
+    include: 'rsqrt',
+    excludes: [
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
+  {
+    include: 'expm1',
+    excludes: [
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
   {
     include: 'fused',
     excludes: [
