@@ -20,8 +20,11 @@ import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {addImplCPU as cpuAdd} from '../kernel_utils/shared';
 import {BinaryOpType} from './binary_ops';
 
-export const addKernelFunc =
-    binaryKernelFunc({opSnippet: BinaryOpType.ADD, cpuKernelImpl: cpuAdd});
+export const addKernelFunc = binaryKernelFunc({
+  opSnippet: BinaryOpType.ADD,
+  cpuKernelImpl: cpuAdd,
+  supportsComplex: true
+});
 
 export const addConfig: KernelConfig = {
   kernelName: Add,

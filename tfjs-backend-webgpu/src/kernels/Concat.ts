@@ -19,9 +19,8 @@ import {backend_util, Concat, ConcatAttrs, ConcatInputs, KernelConfig, KernelFun
 
 import {WebGPUBackend} from '../backend_webgpu';
 
-import {ConcatProgram} from './concat_webgpu';
+import {concatImpl} from './Concat_impl';
 import {identity} from './Identity';
-import {reshape} from './Reshape';
 
 export function concat(
     args: {inputs: ConcatInputs, attrs: ConcatAttrs, backend: WebGPUBackend}):
@@ -45,26 +44,7 @@ export function concat(
   const shapes = $inputs.map(t => t.shape);
   backend_util.assertParamsConsistent(shapes, $axis);
 
-  const tensors2D: TensorInfo[] =
-      $inputs.map(t => reshape({
-                    inputs: {x: t},
-                    backend,
-                    attrs: {
-                      shape: [
-                        util.sizeFromShape(t.shape.slice(0, $axis)),
-                        util.sizeFromShape(t.shape.slice($axis))
-                      ]
-                    }
-                  }));
-  const program =
-      new ConcatProgram((tensors2D).map(t => t.shape as [number, number]));
-  const res = backend.runWebGPUProgram(program, tensors2D, tensors2D[0].dtype);
-  tensors2D.forEach(r => backend.disposeData(r.dataId));
-
-  const reshapedResult =
-      reshape({inputs: {x: res}, backend, attrs: {shape: outShape}});
-  backend.disposeData(res.dataId);
-  return reshapedResult;
+  return concatImpl($inputs, $axis, backend);
 }
 
 export const concatConfig: KernelConfig = {
