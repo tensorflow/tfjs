@@ -16,11 +16,9 @@
  */
 
 import {Tensor, Tensor1D} from '../../tensor';
-import {concat} from '../concat';
 import {mul} from '../mul';
 import {op} from '../operation';
 import {enclosingPowerOfTwo} from '../signal_ops_util';
-import {slice} from '../slice';
 import {rfft} from '../spectral/rfft';
 
 import {frame} from './frame';
