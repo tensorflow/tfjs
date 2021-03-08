@@ -142,21 +142,20 @@ export class TransformProgram implements GPGPUProgram {
                   outputValue = readWithFillValue(batch, coordY, coordX,
                     channel);
                 } else {
-                  int yFloor = int(floor(mapY));
-                  int xFloor = int(floor(mapX));
-                  int yCeil = yFloor + 1;
-                  int xCeil = xFloor + 1;
-                  float valueYFloor = float((xCeil - x)) /
-                  float((xCeil - xFloor)) *
-                  readWithFillValue(batch, yFloor, xFloor, channel) +
-                  float((x - xFloor)) *
-                  readWithFillValue(batch, yFloor, xCeil, channel);
-                  float valueYCeil = float((xCeil - x)) *
-                  readWithFillValue(batch, yCeil, xFloor, channel) +
-                  float((x - xFloor)) *
-                  readWithFillValue(batch, yCeil, xCeil, channel);
-                  outputValue = float((yCeil - y)) * valueYFloor +
-                  float((y - yFloor)) * valueYCeil;
+                  float yFloor = floor(mapY);
+                  float xFloor = floor(mapX);
+                  float yCeil = yFloor + 1.0;
+                  float xCeil = xFloor + 1.0;
+                  float valueYFloor = (xCeil - mapX) *
+                  readWithFillValue(batch, int(yFloor), int(xFloor), channel) +
+                  (mapX - xFloor) *
+                  readWithFillValue(batch, int(yFloor), int(xCeil), channel);
+                  float valueYCeil = (xCeil - mapX) *
+                  readWithFillValue(batch, int(yCeil), int(xFloor), channel) +
+                  (mapX - xFloor) *
+                  readWithFillValue(batch, int(yCeil), int(xCeil), channel);
+                  outputValue = (yCeil - mapY) * valueYFloor +
+                  (mapY - yFloor) * valueYCeil;
                 }
               }
               setOutput(outputValue);

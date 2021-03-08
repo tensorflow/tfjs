@@ -15,10 +15,10 @@
  * =============================================================================
  */
 import * as tf from '../../index';
-import {BROWSER_ENVS, describeWithFlags} from '../../jasmine_util';
+import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose} from '../../test_util';
 
-describeWithFlags('image.transform', BROWSER_ENVS, () => {
+describeWithFlags('image.transform', ALL_ENVS, () => {
   it('extreme projective transform.', async () => {
     const images = tf.tensor4d(
         [1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1], [1, 4, 4, 1]);
@@ -40,14 +40,67 @@ describeWithFlags('image.transform', BROWSER_ENVS, () => {
     expectArraysClose(transformedImages.shape, [1, 3, 5, 1]);
   });
 
-  it('rotate=90, scale=2, cx=1, cy=1.', async () => {
+  it('fill=constant, interpolation=nearest.', async () => {
     const images = tf.tensor4d(
-        [1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1], [1, 4, 4, 1]);
-    const transform = tf.tensor2d([0, 1, 1, -1, 0, 3, 0, 0], [1, 8]);
-    const transformedImages = tf.image.transform(images, transform).toInt();
+        [1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0], [1, 4, 4, 1]);
+    const transform = tf.tensor2d([0, 0.5, 1, -1, 2, 3, 0, 0], [1, 8]);
+    const transformedImages = tf.image.transform(images, transform);
     const transformedImagesData = await transformedImages.data();
 
-    const expected = [1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0];
+    const expected = [1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    expectArraysClose(expected, transformedImagesData);
+  });
+
+  it('fill=constant, interpolation=bilinear.', async () => {
+    const images = tf.tensor4d(
+        [1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0], [1, 4, 4, 1]);
+    const transform = tf.tensor2d([0, 0.5, 1, -1, 2, 3, 0, 0], [1, 8]);
+    const transformedImages = tf.image.transform(images, transform, 'bilinear');
+    const transformedImagesData = await transformedImages.data();
+
+    const expected = [1, 0, 1, 1, 0, 0, 0.5, 0.5, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    expectArraysClose(expected, transformedImagesData);
+  });
+
+  it('fill=reflect, interpolation=bilinear.', async () => {
+    const images = tf.tensor4d(
+        [1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0], [1, 4, 4, 1]);
+    const transform = tf.tensor2d([0, 0.5, 1, -1, 2, 3, 0, 0], [1, 8]);
+    const transformedImages =
+        tf.image.transform(images, transform, 'bilinear', 'reflect');
+    const transformedImagesData = await transformedImages.data();
+
+    const expected =
+        [1, 0, 1, 1, 0.5, 0.5, 0.5, 0.5, 1, 0, 1, 0, 0, 0.5, 0.5, 0];
+
+    expectArraysClose(expected, transformedImagesData);
+  });
+
+  it('fill=wrap, interpolation=bilinear.', async () => {
+    const images = tf.tensor4d(
+        [1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0], [1, 4, 4, 1]);
+    const transform = tf.tensor2d([0, 0.5, 1, -1, 2, 3, 0, 0], [1, 8]);
+    const transformedImages =
+        tf.image.transform(images, transform, 'bilinear', 'wrap');
+    const transformedImagesData = await transformedImages.data();
+
+    const expected =
+        [1, 0, 1, 1, 0.5, 1, 0.5, 0.5, 1, 1, 0, 1, 0.5, 0.5, 0.5, 0.5];
+
+    expectArraysClose(expected, transformedImagesData);
+  });
+
+  it('fill=nearest, interpolation=bilinear.', async () => {
+    const images = tf.tensor4d(
+        [1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0], [1, 4, 4, 1]);
+    const transform = tf.tensor2d([0, 0.5, 1, -1, 2, 3, 0, 0], [1, 8]);
+    const transformedImages =
+        tf.image.transform(images, transform, 'bilinear', 'nearest');
+    const transformedImagesData = await transformedImages.data();
+
+    const expected = [1, 0, 1, 1, 0.5, 0.5, 0.5, 0.5, 0, 0, 0, 0, 0, 0, 0, 0];
 
     expectArraysClose(expected, transformedImagesData);
   });

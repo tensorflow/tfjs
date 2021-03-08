@@ -226,7 +226,7 @@ function bilinearInterpolation(
   // f(x, yFloor) = (xCeil - x) / (xCeil - xFloor) * f(xFloor, yFloor)
   //               + (x - xFloor) / (xCeil - xFloor) * f(xCeil, yFloor)
   const valueYFloor =
-      (xCeil - x) / (xCeil - xFloor) *
+      (xCeil - x) *
           readWithFillValue(
               imageVals, imageHeight, imageWidth, batchStride, rowStride,
               colStride, batch, yFloor, xFloor, channel, fillValue) +
