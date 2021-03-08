@@ -207,6 +207,14 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'elu',
+    excludes: [
+      'selu',        // Not yet implemented.
+      'derivative',  // gradient function not found.
+      'gradient'     // gradient function not found.
+    ]
+  },
+  {
     include: 'resizeBilinear',
     excludes: [
       'gradient',          // Not yet implemented.
