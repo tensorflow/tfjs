@@ -507,7 +507,15 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'stack',
     excludes: [
       'accepts string',
-      'unstack',
+    ]
+  },
+  {
+    include: 'unstack',
+    excludes: [
+      'accepts string',
+      'grad of unstack axis=0',
+      'gradient with clones',
+      'grad of unstack axis=1',
     ]
   },
   {

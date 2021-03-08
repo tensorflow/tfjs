@@ -83,6 +83,7 @@ import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanhConfig} from './kernels/Tanh';
 import {transposeConfig} from './kernels/Transpose';
+import {unpackConfig} from './kernels/Unpack';
 import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
@@ -154,6 +155,7 @@ const kernelConfigs: KernelConfig[] = [
   sumConfig,
   tanhConfig,
   transposeConfig,
+  unpackConfig,
   zerosLikeConfig
 ];
 
