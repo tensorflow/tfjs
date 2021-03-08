@@ -51,11 +51,6 @@ function stft_(
   }
   const framedSignal = frame(signal, frameLength, frameStep);
   const windowedSignal = mul(framedSignal, windowFn(frameLength));
-  const output: Tensor[] = [];
-  for (let i = 0; i < framedSignal.shape[0]; i++) {
-    output.push(
-        rfft(slice(windowedSignal, [i, 0], [1, frameLength]), fftLength));
-  }
-  return concat(output);
+  return rfft(windowedSignal, frameLength);
 }
 export const stft = op({stft_});
