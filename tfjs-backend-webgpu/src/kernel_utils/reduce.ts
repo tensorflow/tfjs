@@ -15,21 +15,84 @@
  * =============================================================================
  */
 
-import {backend_util, DataType, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, TensorInfo, util, sumOutType, TypedArray} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {ReduceProgram} from '../kernels/reduce_webgpu';
 
+import {maxImplCPU} from '../kernel_utils/shared';
+import {prodImplCPU} from '../kernel_utils/shared';
+import {reshape} from '../kernels/Reshape';
+import {transpose} from '../kernels/Transpose';
+
 type ReduceTypes = 'max'|'mean'|'min'|'prod'|'sum';
 
 export function reduce(
-    x: TensorInfo, dtype: DataType, reduceType: ReduceTypes,
-    backend: WebGPUBackend): TensorInfo {
-  const batchSize = x.shape[0];
-  const inSize = x.shape[1];
-  const windowSize = backend_util.computeOptimalWindowSize(inSize);
-  const outSize = Math.ceil(inSize / windowSize);
-  const reduceInfo = {windowSize, inSize, batchSize, outSize};
-  const program = new ReduceProgram(reduceInfo, reduceType);
-  return backend.runWebGPUProgram(program, [x], dtype);
+    x: TensorInfo, axis: number|number[], keepDims: boolean,
+    reduceType: ReduceTypes, backend: WebGPUBackend): TensorInfo {
+  const xRank = x.shape.length;
+  const toDispose = [];
+
+  const origAxes = util.parseAxisParam(axis, x.shape);
+  let axes = origAxes;
+  const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
+
+  let input = x;
+  if (permutedAxes != null) {
+    input = transpose({inputs: {x}, attrs: {perm: permutedAxes}, backend});
+    axes = backend_util.getInnerMostAxes(axes.length, xRank);
+    toDispose.push(input);
+  }
+
+  backend_util.assertAxesAreInnerMostDims(reduceType, axes, xRank);
+
+  const [reduceOutShape, reduceShape] =
+      backend_util.computeOutAndReduceShapes(input.shape, axes);
+  let resOutShape = reduceOutShape;
+  if (keepDims) {
+    // rather than reshape at the end, set the target shape here.
+    resOutShape = backend_util.expandShapeToKeepDim(reduceOutShape, origAxes);
+  }
+
+  let res;
+  if ((reduceType === 'max' || reduceType === 'prod') &&
+      backend.shouldExecuteOnCPU([input])) {
+    const xVals = backend.tensorMap.get(input.dataId).values as TypedArray;
+    switch (reduceType) {
+      case 'max':
+        const outValues = maxImplCPU(xVals, util.sizeFromShape(reduceShape),
+            resOutShape, x.dtype);
+        res = backend.makeTensorInfo(resOutShape, x.dtype, outValues);
+        break;
+      case 'prod':
+        const {outVals, outShape, outDtype} =
+            prodImplCPU(input.shape, input.dtype, xVals, axes);
+        res = backend.makeTensorInfo(outShape, outDtype, outVals);
+        break;
+      default:
+        throw new Error(
+            `${reduceType} CPU implementation is not yet supported.`);
+    }
+  } else {
+    const inSize = util.sizeFromShape(reduceShape);
+    const xSize = util.sizeFromShape(input.shape);
+    const batchSize = xSize / inSize;
+
+    const reshapedInput = reshape(
+        {inputs: {x: input}, attrs: {shape: [batchSize, inSize]}, backend});
+    toDispose.push(reshapedInput);
+
+    const reduceInfo = {windowSize: inSize, inSize, batchSize, outSize: 1};
+    const program = new ReduceProgram(reduceInfo, reduceType);
+    const dtype = reduceType === 'mean' ? 'float32' : sumOutType(x.dtype);
+    const reduced = backend.runWebGPUProgram(program, [input], dtype);
+    toDispose.push(reduced);
+
+    res = reshape({inputs: {x: reduced}, attrs: {shape: resOutShape},
+        backend});
+    }
+
+  toDispose.forEach(t => backend.disposeData(t.dataId));
+
+  return res;
 }
