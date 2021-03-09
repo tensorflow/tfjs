@@ -54,7 +54,7 @@ export function pack(
 
   const result = concat({inputs: expandedTensors, backend, attrs: {axis}});
 
-  intermediateTensorInfos.forEach(t => backend.disposeData(t));
+  intermediateTensorInfos.forEach(t => backend.disposeData(t.dataId));
 
   return result;
 }

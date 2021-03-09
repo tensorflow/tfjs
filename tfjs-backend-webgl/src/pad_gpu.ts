@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
 import {getCoordsDataType} from './shader_compiler';
 
@@ -22,6 +23,7 @@ export class PadProgram implements GPGPUProgram {
   variableNames = ['x'];
   outputShape: number[];
   userCode: string;
+  valueLoc: WebGLUniformLocation;
 
   constructor(
       xShape: number[], paddings: Array<[number, number]>,
@@ -40,11 +42,12 @@ export class PadProgram implements GPGPUProgram {
       this.userCode = `
         int start = ${start};
         int end = ${end};
+        uniform float value;
 
         void main() {
           int outC = getOutputCoords();
           if (outC < start || outC >= end) {
-            setOutput(float(${constantValue}));
+            setOutput(value);
           } else {
             setOutput(getX(outC - start));
           }
@@ -55,16 +58,26 @@ export class PadProgram implements GPGPUProgram {
     this.userCode = `
       ${type} start = ${type}(${start});
       ${type} end = ${type}(${end});
+      uniform float value;
 
       void main() {
         ${type} outC = getOutputCoords();
         if (any(lessThan(outC, start)) || any(greaterThanEqual(outC, end))) {
-          setOutput(float(${constantValue}));
+          setOutput(value);
         } else {
           ${type} coords = outC - start;
           setOutput(getX(${unpackedCoords}));
         }
       }
     `;
+  }
+
+  getCustomSetupFunc(value: number) {
+    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
+      if (this.valueLoc == null) {
+        this.valueLoc = gpgpu.getUniformLocationNoThrow(webGLProgram, 'value');
+      }
+      gpgpu.gl.uniform1f(this.valueLoc, value);
+    };
   }
 }

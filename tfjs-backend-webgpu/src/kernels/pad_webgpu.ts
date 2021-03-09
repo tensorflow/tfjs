@@ -28,15 +28,13 @@ export class PadProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
+  uniforms = 'float constantValue;';
   workPerThread = 8;
   workGroupSize: [number, number, number] = [16, 1, 1];
   xShape: number[];
   paddings: Array<[number, number]>;
-  constantValue: number;
 
-  constructor(
-      xShape: number[], paddings: Array<[number, number]>,
-      constantValue: number) {
+  constructor(xShape: number[], paddings: Array<[number, number]>) {
     this.outputShape = paddings.map(
         (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
@@ -46,8 +44,7 @@ export class PadProgram implements WebGPUProgram {
 
     this.xShape = xShape;
     this.paddings = paddings;
-    this.constantValue = constantValue;
-    this.shaderKey = `pad_${paddings}_${constantValue}`;
+    this.shaderKey = `pad_${paddings}`;
   }
 
   getUserCode(): string {
@@ -82,7 +79,7 @@ export class PadProgram implements WebGPUProgram {
             ${type} outC = getCoordsFromFlatIndex(flatIndex);
 
             if (${leftPadCondition} || ${rightPadCondition}) {
-              setOutput(flatIndex, ${this.constantValue});
+              setOutput(flatIndex, constantValue);
             } else {
               ${type} coords = outC - start;
               setOutput(flatIndex, getX(${unpackedCoords}));

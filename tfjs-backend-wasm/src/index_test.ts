@@ -148,7 +148,12 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
          return realFetch(path);
        });
        expect(await tf.setBackend('wasm-test')).toBe(true);
-       expect(wasmPath).toBe(validPrefix + 'tfjs-backend-wasm.wasm');
+       const validPaths = new Set([
+         validPrefix + 'tfjs-backend-wasm.wasm',
+         validPrefix + 'tfjs-backend-wasm-simd.wasm',
+         validPrefix + 'tfjs-backend-wasm-threaded-simd.wasm',
+       ]);
+       expect(validPaths).toContain(wasmPath);
      });
 
   it('backend init works when the wasm paths overrides map is valid and ' +
@@ -172,7 +177,12 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
          return realFetch(path);
        });
        expect(await tf.setBackend('wasm-test')).toBe(true);
-       expect(wasmPath).toBe(validPrefix + 'tfjs-backend-wasm.wasm');
+       const validPaths = new Set([
+         validPrefix + 'tfjs-backend-wasm.wasm',
+         validPrefix + 'tfjs-backend-wasm-simd.wasm',
+         validPrefix + 'tfjs-backend-wasm-threaded-simd.wasm',
+       ]);
+       expect(validPaths).toContain(wasmPath);
      });
 
   it('backend init works when the path is valid and use platform fetch',
