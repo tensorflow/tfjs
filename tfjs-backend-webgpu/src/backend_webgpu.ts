@@ -46,7 +46,11 @@ type TensorBufferInfo = {
   values: backend_util.BackendValues,
   dtype: DataType,
   bufferInfo: BufferInfo,
-  refCount: number;
+  refCount: number,
+  // For complex numbers, the real and imaginary parts are stored as their own
+  // individual tensors, with a parent joining the two with the
+  // complexTensorInfos field.
+  complexTensorInfos?: {real: TensorInfo, imag: TensorInfo}
 };
 
 interface DataId {}
@@ -155,6 +159,12 @@ export class WebGPUBackend extends KernelBackend {
         this.maybeReleaseBuffer(dataId);
       }
 
+      const {complexTensorInfos} = this.tensorMap.get(dataId);
+      if (complexTensorInfos != null) {
+        this.disposeData(complexTensorInfos.real.dataId, true);
+        this.disposeData(complexTensorInfos.imag.dataId, true);
+      }
+
       this.tensorMap.delete(dataId);
     }
     return true;
@@ -212,6 +222,12 @@ export class WebGPUBackend extends KernelBackend {
 
   write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
       DataId {
+    if (dtype === 'complex64' && values != null) {
+      throw new Error(
+          `Cannot write to a complex64 dtype. ` +
+          `Please use tf.complex(real, imag).`);
+    }
+
     const dataId = {id: this.nextDataId()};
     const byteSize =
         util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
@@ -228,6 +244,11 @@ export class WebGPUBackend extends KernelBackend {
   move(
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
       dtype: DataType, refCount: number): void {
+    if (dtype === 'complex64') {
+      throw new Error(
+          `Cannot write to a complex64 dtype. ` +
+          `Please use tf.complex(real, imag).`);
+    }
     const byteSize =
         util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
 
@@ -310,13 +331,26 @@ export class WebGPUBackend extends KernelBackend {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
     const info = this.tensorMap.get(dataId);
-    const data = await this.getBufferData(info);
 
-    const dataAsTypedArray =
-        webgpu_util.ArrayBufferToTypedArray(data as ArrayBuffer, info.dtype);
-    this.convertAndCacheOnCPU(dataId, dataAsTypedArray);
+    // Download the values from the GPU.
+    let vals: backend_util.BackendValues;
+    if (info.dtype === 'complex64') {
+      const ps = await Promise.all([
+        this.read(info.complexTensorInfos.real.dataId),
+        this.read(info.complexTensorInfos.imag.dataId)
+      ]);
 
-    return dataAsTypedArray;
+      const realValues = ps[0];
+      const imagValues = ps[1];
+      vals = backend_util.mergeRealAndImagArrays(
+          realValues as Float32Array, imagValues as Float32Array);
+    } else {
+      const data = await this.getBufferData(info);
+      vals =
+          webgpu_util.ArrayBufferToTypedArray(data as ArrayBuffer, info.dtype);
+    }
+    this.convertAndCacheOnCPU(dataId, vals);
+    return vals;
   }
 
   async time(f: () => void): Promise<WebGPUTimingInfo> {
@@ -429,7 +463,12 @@ export class WebGPUBackend extends KernelBackend {
     if (info.values) {
       this.queue.writeBuffer(
           info.bufferInfo.buffer, 0, info.values as ArrayBuffer);
-      info.values = null;
+      // TODO: WebGPU doesn't support read data synchronously from GPU to CPU.
+      // So it will report error when switching backend from WebGPU to others.
+      // There are two situations: 1) swithcing the backend after running a
+      // model; 2) swithcing the backend within the model. Temporarilly keep the
+      // values on CPU to solve the first issue.
+      // info.values = null;
     }
   }
 
@@ -448,6 +487,12 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     const inputsData = inputs.map((input: TensorInfo, i: number) => {
+      if (input.dtype === 'complex64') {
+        throw new Error(
+            `GPGPUProgram does not support complex64 input. For complex64 ` +
+            `dtypes, please separate the program into real and imaginary ` +
+            `parts.`);
+      }
       this.uploadToGPU(input.dataId);
 
       return {

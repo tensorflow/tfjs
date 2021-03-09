@@ -19,18 +19,39 @@ import {KernelConfig, KernelFunc, TensorInfo, ZerosLike, ZerosLikeInputs} from '
 
 import {WebGPUBackend} from '../backend_webgpu';
 
+import {complex} from './Complex';
 import {fill} from './Fill';
+import {imag} from './Imag';
+import {real} from './Real';
 
 export function zerosLike(
     args: {inputs: ZerosLikeInputs, backend: WebGPUBackend}): TensorInfo {
   const {inputs, backend} = args;
   const {x} = inputs;
+  if (x.dtype === 'complex64') {
+    const realPart = real({inputs: {input: x}, backend});
+    const r = zerosLike({inputs: {x: realPart}, backend});
+    const imagPart = imag({inputs: {input: x}, backend});
+    const i = zerosLike({inputs: {x: imagPart}, backend});
 
-  return fill({
-    attrs:
-        {shape: x.shape, dtype: x.dtype, value: x.dtype === 'string' ? '' : 0},
-    backend
-  });
+    const result = complex({inputs: {real: r, imag: i}, backend});
+
+    backend.disposeData(realPart.dataId);
+    backend.disposeData(r.dataId);
+    backend.disposeData(imagPart.dataId);
+    backend.disposeData(i.dataId);
+
+    return result;
+  } else {
+    return fill({
+      attrs: {
+        shape: x.shape,
+        dtype: x.dtype,
+        value: x.dtype === 'string' ? '' : 0
+      },
+      backend
+    });
+  }
 }
 
 export const zerosLikeConfig: KernelConfig = {
