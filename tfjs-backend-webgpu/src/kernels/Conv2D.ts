@@ -70,8 +70,9 @@ export function conv2d(
     convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationHeight,
     convInfo.dilationWidth
   ];
+  const uniformData = new Int32Array(dimensions);
 
-  return backend.runWebGPUProgram(program, [x, filter], x.dtype, dimensions);
+  return backend.runWebGPUProgram(program, [x, filter], x.dtype, uniformData);
 }
 
 export const conv2DConfig: KernelConfig = {
