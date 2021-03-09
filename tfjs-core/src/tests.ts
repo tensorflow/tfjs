@@ -113,6 +113,7 @@ import './ops/image/non_max_suppression_test';
 import './ops/image/resize_bilinear_test';
 import './ops/image/resize_nearest_neighbor_test';
 import './ops/image/rotate_with_offset_test';
+import './ops/image/transform_test';
 import './ops/in_top_k_test';
 import './ops/is_finite_test';
 import './ops/is_inf_test';
