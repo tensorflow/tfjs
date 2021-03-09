@@ -14,7 +14,7 @@ build --cxxopt="-fno-exceptions"
 build --cxxopt="-fomit-frame-pointer"
 
 # Remote cache config. Users can add credentials in their .bazelrc.user files.
-build:remote --remote_http_cache=https://storage.googleapis.com/bazel-remote-cache-tfjs
+build:remote --remote_cache=https://storage.googleapis.com/bazel-remote-cache-tfjs
 
 # Config for Google Cloud continuous integration that uses default credentials.
 build:ci --config=remote
