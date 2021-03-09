@@ -527,6 +527,15 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'max',
+    excludes: [
+      '6D',
+      'gradient',
+      'AdamaxOptimizer',  // gradient function not found.
+      'axis permutation does not change input',  // 'Range' not registered.
+    ]
+  },
+  {
     include: 'mean',
     excludes: [
       'bool',
@@ -535,11 +544,28 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'min',
+    excludes: [
+      'bool',
+      'gradient',
+      'stft',  // FFT' not registered.
+    ]
+  },
+  {
     include: 'prod',
     excludes: [
       'bool',
     ]
-  }
+  },
+  {
+    include: 'sum',
+    excludes: [
+      'bool',
+      'gradient',
+      'cumsum',  // 'Cumsum' not registered.
+      'scatterND',  // 'scatterND' not registered.
+    ]
+  },
 ];
 
 const customInclude = (testName: string) => {
