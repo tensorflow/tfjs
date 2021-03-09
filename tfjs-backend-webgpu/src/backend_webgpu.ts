@@ -474,16 +474,16 @@ export class WebGPUBackend extends KernelBackend {
 
   public runWebGPUProgram(
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
-      outputDtype: DataType, programUniforms?: number[]): TensorInfo {
+      outputDtype: DataType,
+      programUniforms?: Uint32Array|Int32Array|Float32Array): TensorInfo {
     const output = this.makeTensorInfo(program.outputShape, outputDtype);
 
     let uniformDataLength;
     let uniforms: GPUBindingResource;
     if (program.uniforms) {
       // TODO: handle padding of program-specific uniforms
-      const uniformData = new Int32Array(programUniforms);
-      uniformDataLength = uniformData.byteLength;
-      uniforms = this.makeUniforms(uniformData);
+      uniformDataLength = programUniforms.byteLength;
+      uniforms = this.makeUniforms(programUniforms);
     }
 
     const inputsData = inputs.map((input: TensorInfo, i: number) => {
@@ -594,7 +594,8 @@ export class WebGPUBackend extends KernelBackend {
     return timeElapsedNanos / 1000000;
   }
 
-  private makeUniforms(data: Uint32Array|Int32Array): GPUBindingResource {
+  private makeUniforms(data: Uint32Array|Int32Array|
+                       Float32Array): GPUBindingResource {
     const dimensionsBuffer = this.acquireBuffer(
         data.byteLength, GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
     this.queue.writeBuffer(dimensionsBuffer, 0, data);

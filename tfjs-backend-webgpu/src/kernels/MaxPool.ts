@@ -50,8 +50,8 @@ export function maxPool(
     convInfo.effectiveFilterWidth,
     convInfo.effectiveFilterHeight  // Filter dims.
   ];
-
-  return backend.runWebGPUProgram(program, [x], x.dtype, dimensions);
+  const uniformData = new Int32Array(dimensions);
+  return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
 }
 
 export const maxPoolConfig: KernelConfig = {

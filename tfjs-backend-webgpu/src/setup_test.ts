@@ -412,6 +412,14 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'fill',
+    excludes: [
+      'string',            // String is not yet implemented.
+      '5D',                // Rank 5 is not yet supported.
+      'rotateWithOffset',  // 'RotateWithOffset' not registered.
+    ]
+  },
+  {
     include: 'Reduction: max',
     excludes: [
       '5D',                        // Rank 5 is not yet implemented.
