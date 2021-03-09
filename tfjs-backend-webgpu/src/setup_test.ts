@@ -541,6 +541,14 @@ const TEST_FILTERS: TestFilter[] = [
       '6D',       // rank 6 is not yet supported.
       'gradient'  // gradient function not found.
     ]
+  },
+  {
+    include: 'onesLike',
+    excludes: [
+      '5D',       // rank 5 is not yet supported.
+      '6D',       // rank 6 is not yet supported.
+      'gradient'  // gradient function not found.
+    ]
   }
 ];
 
