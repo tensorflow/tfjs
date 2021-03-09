@@ -207,6 +207,14 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'elu',
+    excludes: [
+      'selu',        // Not yet implemented.
+      'derivative',  // gradient function not found.
+      'gradient'     // gradient function not found.
+    ]
+  },
+  {
     include: 'resizeBilinear',
     excludes: [
       'gradient',          // Not yet implemented.
@@ -401,6 +409,14 @@ const TEST_FILTERS: TestFilter[] = [
       'grad',   // 'depthwiseConv2DDerFilter' not yet implemented, slice not yet
                 // implemented
       'dilation2d'  // 'dilation2d' not yet implemented.
+    ]
+  },
+  {
+    include: 'fill',
+    excludes: [
+      'string',            // String is not yet implemented.
+      '5D',                // Rank 5 is not yet supported.
+      'rotateWithOffset',  // 'RotateWithOffset' not registered.
     ]
   },
   {

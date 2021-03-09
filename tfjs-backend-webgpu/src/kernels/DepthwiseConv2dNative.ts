@@ -46,7 +46,8 @@ export function depthwiseConv2dNative(args: {
     convInfo.dilationHeight, convInfo.dilationWidth, convInfo.inHeight,
     convInfo.inWidth
   ];
-  return backend.runWebGPUProgram(program, [x, filter], x.dtype, dimensions);
+  const uniformData = new Int32Array(dimensions);
+  return backend.runWebGPUProgram(program, [x, filter], x.dtype, uniformData);
 }
 
 export const depthwiseConv2dNativeConfig: KernelConfig = {

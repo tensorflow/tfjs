@@ -33,6 +33,7 @@ import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {eluConfig} from './kernels/Elu';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
 import {expm1Config} from './kernels/Expm1';
@@ -105,6 +106,7 @@ const kernelConfigs: KernelConfig[] = [
   conv2DConfig,
   cropAndResizeConfig,
   depthwiseConv2dNativeConfig,
+  eluConfig,
   expandDimsConfig,
   expConfig,
   expm1Config,
