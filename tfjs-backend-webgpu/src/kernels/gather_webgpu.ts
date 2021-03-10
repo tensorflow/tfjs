@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getCoordsDataType} from '../shader_preprocessor';
+import {getCoordsDataType, getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -26,7 +26,7 @@ export class GatherProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames: string[] = ['A', 'indices'];
-  workPerThread = 4;
+  workPerThread = 1;
   workGroupSize: [number, number, number] = [64, 1, 1];
   rank: number;
   aShape: number[];
@@ -49,7 +49,9 @@ export class GatherProgram implements WebGPUProgram {
       void main() {
         int index = int(gl_GlobalInvocationID.x);
         ${dtype} resRC = getOutputCoords();
-        setOutput(index, getA(${sourceCoords}));
+        if (coordsInBounds(resRC, ${getShapeCoords(this.outputShape)})) {
+          setOutput(index, getA(${sourceCoords}));
+        }
       }
     `;
     return userCode;
@@ -68,4 +70,3 @@ function getSourceCoords(aShape: number[]): string {
   }
   return sourceCoords.join();
 }
-

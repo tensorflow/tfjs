@@ -98,4 +98,3 @@ export const gatherV2Config: KernelConfig = {
   backendName: 'webgpu',
   kernelFunc: gatherV2 as {} as KernelFunc
 };
-
