@@ -124,6 +124,29 @@ Without this feature turned off, the minified code will throw "_scriptDir is not
 defined" error from web workers when running in browsers with
 SIMD+multi-threading support.
 
+## Use with Angular
+
+If you see the `Cannot find name 'EmscriptenModule'` error when building your
+Angular app, make sure to add `"@types/emscripten"` to the
+`compilerOptions.types` field in your `tsconfig.app.json` (or `tsconfig.json`):
+
+```
+{
+  ...
+  "compilerOptions": {
+    "types": [
+      "@types/emscripten"
+    ]
+  },
+  ...
+}
+```
+
+By default, the generated Angular app sets this field to an empty array
+which will prevent the Angular compiler from automatically adding
+"global types" (such as `EmscriptenModule`) defined in `d.ts` files to your app.
+
+
 ## Benchmarks
 
 The benchmarks below show inference times (ms) for two different edge-friendly

@@ -15,19 +15,22 @@
  * =============================================================================
  */
 
-import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {subImplCPU as cpuSub} from '../kernel_utils/shared';
-import {BinaryOpType} from './binary_ops';
+import {Imag, ImagInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
-export const sub = binaryKernelFunc({
-  opSnippet: BinaryOpType.SUB,
-  cpuKernelImpl: cpuSub,
-  supportsComplex: true
-});
+import {WebGPUBackend} from '../backend_webgpu';
+import {identity} from './Identity';
 
-export const subConfig: KernelConfig = {
-  kernelName: Sub,
+export function imag(args: {inputs: ImagInputs, backend: WebGPUBackend}):
+    TensorInfo {
+  const {inputs, backend} = args;
+  const {input} = inputs;
+  const inputData = backend.tensorMap.get(input.dataId);
+
+  return identity({inputs: {x: inputData.complexTensorInfos.imag}, backend});
+}
+
+export const imagConfig: KernelConfig = {
+  kernelName: Imag,
   backendName: 'webgpu',
-  kernelFunc: sub
+  kernelFunc: imag as {} as KernelFunc
 };

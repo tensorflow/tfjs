@@ -44,6 +44,20 @@ describeWithFlags('pad 1d', ALL_ENVS, () => {
     a = tf.tensor1d([1, 2, 3, 4]);
     b = tf.pad1d(a, [2, 1], 1);
     expectArraysClose(await b.data(), [1, 1, 1, 2, 3, 4, 1]);
+
+    a = tf.tensor1d([1, 2, 3, 4]);
+    b = tf.pad1d(a, [2, 1], Number.NEGATIVE_INFINITY);
+    expectArraysClose(await b.data(), [
+      Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, 1, 2, 3, 4,
+      Number.NEGATIVE_INFINITY
+    ]);
+
+    a = tf.tensor1d([1, 2, 3, 4]);
+    b = tf.pad1d(a, [2, 1], Number.POSITIVE_INFINITY);
+    expectArraysClose(await b.data(), [
+      Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, 1, 2, 3, 4,
+      Number.POSITIVE_INFINITY
+    ]);
   });
 
   it('Should handle NaNs with 1D arrays', async () => {

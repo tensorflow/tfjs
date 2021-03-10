@@ -15,19 +15,14 @@
  * =============================================================================
  */
 
-import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {subImplCPU as cpuSub} from '../kernel_utils/shared';
-import {BinaryOpType} from './binary_ops';
+import {Elu, KernelConfig} from '@tensorflow/tfjs-core';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {ELU} from './unary_op_webgpu';
 
-export const sub = binaryKernelFunc({
-  opSnippet: BinaryOpType.SUB,
-  cpuKernelImpl: cpuSub,
-  supportsComplex: true
-});
+export const elu = unaryKernelFunc({opSnippet: ELU});
 
-export const subConfig: KernelConfig = {
-  kernelName: Sub,
+export const eluConfig: KernelConfig = {
+  kernelName: Elu,
   backendName: 'webgpu',
-  kernelFunc: sub
+  kernelFunc: elu
 };
