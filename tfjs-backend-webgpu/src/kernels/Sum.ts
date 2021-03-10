@@ -23,12 +23,13 @@ import {WebGPUBackend} from '../backend_webgpu';
 import {reduce} from '../kernel_utils/reduce';
 import {reshape} from './Reshape';
 
+import {transpose} from './Transpose';
 export function sum(
     args: {inputs: SumInputs, backend: WebGPUBackend, attrs: SumAttrs}):
     TensorInfo {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
-  const {axis} = attrs;
+  const {axis, keepDims} = attrs;
   const webgpuBackend = backend;
   const xShape = x.shape;
   const xRank = xShape.length;
@@ -38,15 +39,28 @@ export function sum(
   const permutedAxes = backend_util.getAxesPermutation(axes, xRank);
   const sumInputIsTransposed = permutedAxes != null;
 
+  let sumInput = x;
   if (sumInputIsTransposed) {
+    sumInput = transpose({inputs: {x}, backend, attrs: {perm: permutedAxes}});
+
     axes = backend_util.getInnerMostAxes(axes.length, xRank);
   }
   backend_util.assertAxesAreInnerMostDims('sum', axes, xRank);
-  const [outShape, reduceShape] =
-      backend_util.computeOutAndReduceShapes(xShape, axes);
+  const [sumOutShape, reduceShape] =
+      backend_util.computeOutAndReduceShapes(sumInput.shape, axes);
+
+  let outShape = sumOutShape;
+  if (keepDims) {
+    outShape = backend_util.expandShapeToKeepDim(sumOutShape, origAxes);
+  }
   const reduceSize = util.sizeFromShape(reduceShape);
-  const a2D = reshape(
-      {inputs: {x}, attrs: {shape: [-1, reduceSize]}, backend: webgpuBackend});
+  const xSize = util.sizeFromShape(xShape);
+  const batchSize = xSize / reduceSize;
+  const a2D = reshape({
+    inputs: {x: sumInput},
+    attrs: {shape: [batchSize, reduceSize]},
+    backend: webgpuBackend
+  });
   const outputDType = sumOutType(x.dtype);
   const a2DReduce = reduce(a2D, outputDType, 'sum', webgpuBackend);
   const out = reshape({
@@ -57,6 +71,9 @@ export function sum(
 
   backend.disposeData(a2D.dataId);
   backend.disposeData(a2DReduce.dataId);
+  if (sumInputIsTransposed) {
+    backend.disposeData(sumInput.dataId);
+  }
 
   return out;
 }
