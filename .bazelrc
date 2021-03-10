@@ -20,8 +20,8 @@ build:remote --remote_cache=https://storage.googleapis.com/bazel-remote-cache-tf
 build:ci --config=remote
 build:ci --google_default_credentials
 
-# This flag is needed to so that the bazel cache is not invalidated
-# when running bazel via `yarn bazel`.
+# This flag is needed to prevent the bazel cache from being invalidated when
+# running bazel via `yarn bazel`.
 # See https://github.com/angular/angular/issues/27514.
 build --incompatible_strict_action_env
 run --incompatible_strict_action_env
