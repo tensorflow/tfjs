@@ -26,9 +26,9 @@ export const padV2 =
           const {inputs, backend, attrs} = args;
           const {x} = inputs;
           const {paddings, constantValue} = attrs;
-
-          const program = new PadProgram(x.shape, paddings, constantValue);
-          return backend.runWebGPUProgram(program, [x], x.dtype);
+          const uniformData = new Float32Array([constantValue]);
+          const program = new PadProgram(x.shape, paddings);
+          return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
         };
 
 export const padV2Config: KernelConfig = {

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, TensorInfo, ZerosLike, ZerosLikeInputs} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, OnesLike, OnesLikeInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 
@@ -23,14 +23,18 @@ import {complex} from './Complex';
 import {fill} from './Fill';
 import {imag} from './Imag';
 import {real} from './Real';
+import {zerosLike} from './ZerosLike';
 
-export function zerosLike(
-    args: {inputs: ZerosLikeInputs, backend: WebGPUBackend}): TensorInfo {
+export function onesLike(
+    args: {inputs: OnesLikeInputs, backend: WebGPUBackend}): TensorInfo {
   const {inputs, backend} = args;
   const {x} = inputs;
-  if (x.dtype === 'complex64') {
+
+  if (x.dtype === 'string') {
+    throw new Error('onesLike is not supported under string dtype');
+  } else if (x.dtype === 'complex64') {
     const realPart = real({inputs: {input: x}, backend});
-    const r = zerosLike({inputs: {x: realPart}, backend});
+    const r = onesLike({inputs: {x: realPart}, backend});
     const imagPart = imag({inputs: {input: x}, backend});
     const i = zerosLike({inputs: {x: imagPart}, backend});
 
@@ -43,19 +47,12 @@ export function zerosLike(
 
     return result;
   } else {
-    return fill({
-      attrs: {
-        shape: x.shape,
-        dtype: x.dtype,
-        value: x.dtype === 'string' ? '' : 0
-      },
-      backend
-    });
+    return fill({attrs: {shape: x.shape, dtype: x.dtype, value: 1}, backend});
   }
 }
 
-export const zerosLikeConfig: KernelConfig = {
-  kernelName: ZerosLike,
+export const onesLikeConfig: KernelConfig = {
+  kernelName: OnesLike,
   backendName: 'webgpu',
-  kernelFunc: zerosLike as {} as KernelFunc
+  kernelFunc: onesLike as {} as KernelFunc
 };

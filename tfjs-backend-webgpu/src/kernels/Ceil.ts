@@ -15,19 +15,17 @@
  * =============================================================================
  */
 
-import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {subImplCPU as cpuSub} from '../kernel_utils/shared';
-import {BinaryOpType} from './binary_ops';
+import {Ceil, KernelConfig} from '@tensorflow/tfjs-core';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {ceilImplCPU} from '../kernel_utils/shared';
 
-export const sub = binaryKernelFunc({
-  opSnippet: BinaryOpType.SUB,
-  cpuKernelImpl: cpuSub,
-  supportsComplex: true
-});
+const CEIL = `return ceil(a);`;
 
-export const subConfig: KernelConfig = {
-  kernelName: Sub,
+export const ceil =
+    unaryKernelFunc({opSnippet: CEIL, cpuKernelImpl: ceilImplCPU});
+
+export const ceilConfig: KernelConfig = {
+  kernelName: Ceil,
   backendName: 'webgpu',
-  kernelFunc: sub
+  kernelFunc: ceil
 };

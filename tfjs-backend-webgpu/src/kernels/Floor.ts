@@ -1,3 +1,4 @@
+
 /**
  * @license
  * Copyright 2021 Google LLC. All Rights Reserved.
@@ -15,19 +16,17 @@
  * =============================================================================
  */
 
-import {KernelConfig, Sub} from '@tensorflow/tfjs-core';
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {subImplCPU as cpuSub} from '../kernel_utils/shared';
-import {BinaryOpType} from './binary_ops';
+import {Floor, KernelConfig} from '@tensorflow/tfjs-core';
+import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {floorImplCPU} from '../kernel_utils/shared';
 
-export const sub = binaryKernelFunc({
-  opSnippet: BinaryOpType.SUB,
-  cpuKernelImpl: cpuSub,
-  supportsComplex: true
-});
+const FLOOR = `return floor(a);`;
 
-export const subConfig: KernelConfig = {
-  kernelName: Sub,
+export const floor =
+    unaryKernelFunc({opSnippet: FLOOR, cpuKernelImpl: floorImplCPU});
+
+export const floorConfig: KernelConfig = {
+  kernelName: Floor,
   backendName: 'webgpu',
-  kernelFunc: sub
+  kernelFunc: floor
 };
