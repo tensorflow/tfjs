@@ -71,7 +71,7 @@ export class Pool2DProgram implements WebGPUProgram {
         ivec4 coords = getOutputCoords();
         if (all(lessThan(coords, ${getShapeCoords(this.outputShape)}))) {
           int batch = coords[0];
-          ivec2 xRCCorner = coords.yz * stride.yx - pad;
+          ivec2 xRCCorner = coords.yz * stride - pad;
           int xRCorner = xRCCorner.x;
           int xCCorner = xRCCorner.y;
 
