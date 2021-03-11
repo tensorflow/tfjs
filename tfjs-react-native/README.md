@@ -102,9 +102,9 @@ If you use expo and encounter a build failure when running `npm run web` due to
 the steps below to make expo correctly transpile tfjs packages:
 
 - Run: `expo customize:web`
-  - Use the space key to select the `webpack.config.js` entry, then press "enter"
+  - Use the space key to select the `webpack.config.js` entry, then press "enter".
   - This will create a bare-minimum `webpack.config.js` file.
-- Edit the `webpack.config.js` file as follows
+- Edit the `webpack.config.js` file as follows:
 
 ```
 const createExpoWebpackConfigAsync = require('@expo/webpack-config');
