@@ -137,7 +137,7 @@ void MirrorPad(const size_t x_id, const size_t* x_shape_ptr,
                        out_info.b_write());
       break;
     default:
-      util::warn("Pad for tensor id %d failed. Unknown dtype % d ", x_id,
+      util::warn("MirrorPad for tensor id %d failed. Unknown dtype % d ", x_id,
                  dtype);
   }
 }
