@@ -64,7 +64,7 @@ export function gatherV2(
     shapeInfo.sliceSize
   ];
 
-  if (backend.shouldExecuteOnCPU([x, indices]) || x.dtype === 'string') {
+  if (backend.shouldExecuteOnCPU([x, indices])) {
     const indicesBufferInfo = backend.tensorMap.get(flattenIndex.dataId);
     const indicesValues = indicesBufferInfo.values as TypedArray;
     const indicesBuf =
