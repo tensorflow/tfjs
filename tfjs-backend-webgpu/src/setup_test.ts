@@ -99,8 +99,9 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'clip',
     excludes: [
-      'derivat',   // logicalAnd not yet implemented.
-      'gradient',  // logicalAnd not yet implemented.
+      'derivat',         // logicalAnd not yet implemented.
+      'gradient',        // logicalAnd not yet implemented.
+      'propagates NaNs'  // NaN is not supported.
     ]
   },
   {
@@ -178,7 +179,6 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'concat a large number of tensors',  // Actual != Expected.
       'gradient',                          // split not yet implemented.
-      'string'                             // Not ye implemented.
     ]
   },
   {
@@ -313,12 +313,10 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {
     include: 'expandDims',
-    excludes: ['string']  // String is not yet implemented.
   },
   {
     include: 'memory test',
     excludes: [
-      'string',    // String is not yet implemented.
       'Sum(bool)'  // Compile error.
     ]
   },
@@ -360,7 +358,6 @@ const TEST_FILTERS: TestFilter[] = [
       '6D',                  // Rank 6 is not yet implemented.
       'slice6d',             // Rank 6 is not yet implemented.
       'strided slice with',  // Rank 6 is not yet implemented.
-      'string',              // String is not yet implemented.
     ]
   },
   {
@@ -414,9 +411,18 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'fill',
     excludes: [
-      'string',            // String is not yet implemented.
       '5D',                // Rank 5 is not yet supported.
       'rotateWithOffset',  // 'RotateWithOffset' not registered.
+      'fill=constant, interpolation=nearest.',   // Transform is not yet
+                                                 // implemented.
+      'fill=constant, interpolation=bilinear.',  // Transform is not yet
+                                                 // implemented.
+      'fill=reflect, interpolation=bilinear.',   // Transform is not yet
+                                                 // implemented.
+      'fill=wrap, interpolation=bilinear.',      // Transform is not yet
+                                                 // implemented.
+      'fill=nearest, interpolation=bilinear.',   // Transform is not yet
+                                                 // implemented.
     ]
   },
   {
@@ -522,16 +528,14 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'stack',
     excludes: [
-      'accepts string',
-      'grad of unstack axis=0', // Remove this when grad is fixed in unstack.
-      'gradient with clones',   // Remove this when grad is fixed in unstack.
-      'grad of unstack axis=1', // Remove this when grad is fixed in unstack.
+      'grad of unstack axis=0',  // Remove this when grad is fixed in unstack.
+      'gradient with clones',    // Remove this when grad is fixed in unstack.
+      'grad of unstack axis=1',  // Remove this when grad is fixed in unstack.
     ]
   },
   {
     include: 'unstack',
     excludes: [
-      'accepts string',
       'grad of unstack axis=0',
       'gradient with clones',
       'grad of unstack axis=1',
