@@ -271,6 +271,7 @@ tfjs_cc_library(
         ":Maximum",
         ":Min",
         ":Minimum",
+        ":MirrorPad",
         ":Multiply",
         ":Neg",
         ":NonMaxSuppressionV3",
@@ -734,6 +735,15 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "MirrorPad",
+    srcs = ["kernels/MirrorPad.cc"],
+    deps = [
+        ":backend",
         ":util",
     ],
 )

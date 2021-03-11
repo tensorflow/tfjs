@@ -395,6 +395,7 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {include: 'step kernel'},
   {include: 'ceil'},
+  {include: 'mirrorPad'},
 ];
 
 const customInclude = (testName: string) => {
