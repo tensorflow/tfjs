@@ -33,6 +33,7 @@ import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {eluConfig} from './kernels/Elu';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
 import {expm1Config} from './kernels/Expm1';
@@ -61,6 +62,7 @@ import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
 import {nonMaxSuppressionV5Config} from './kernels/NonMaxSuppressionV5';
 import {notEqualConfig} from './kernels/NotEqual';
+import {onesLikeConfig} from './kernels/OnesLike';
 import {packConfig} from './kernels/Pack';
 import {padV2Config} from './kernels/PadV2';
 import {preluConfig} from './kernels/Prelu';
@@ -83,6 +85,7 @@ import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanhConfig} from './kernels/Tanh';
 import {transposeConfig} from './kernels/Transpose';
+import {unpackConfig} from './kernels/Unpack';
 import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
@@ -104,6 +107,7 @@ const kernelConfigs: KernelConfig[] = [
   conv2DConfig,
   cropAndResizeConfig,
   depthwiseConv2dNativeConfig,
+  eluConfig,
   expandDimsConfig,
   expConfig,
   expm1Config,
@@ -132,6 +136,7 @@ const kernelConfigs: KernelConfig[] = [
   nonMaxSuppressionV3Config,
   nonMaxSuppressionV5Config,
   notEqualConfig,
+  onesLikeConfig,
   packConfig,
   padV2Config,
   preluConfig,
@@ -154,6 +159,7 @@ const kernelConfigs: KernelConfig[] = [
   sumConfig,
   tanhConfig,
   transposeConfig,
+  unpackConfig,
   zerosLikeConfig
 ];
 
