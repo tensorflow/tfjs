@@ -50,7 +50,7 @@ void mirror_pad_recursion(const T* x_data, const std::vector<size_t>& x_shape,
 
   out_offset += pre_paddings[dim] * out_stride;
 
-  if (dim == x_shape.size() - 1) {
+  if (dim == rank - 1) {
     memcpy(out_data + out_offset, x_data + in_offset, sizeof(T) * depth);
   } else {
     for (size_t i = 0; i < depth; ++i) {
@@ -92,7 +92,6 @@ void mirror_pad(const T* x_data, const std::vector<size_t>& x_shape,
     const size_t pad_right = post_paddings[i];
     out_shape[i] = x_shape[i] + pad_left + pad_right;
   }
-  const size_t out_size = size_from_shape(out_shape);
   const int32_t offset = mode == MirrorPaddingMode::REFLECT ? 1 : 0;
   std::vector<size_t> in_strides = compute_strides(x_shape);
   std::vector<size_t> out_strides = compute_strides(out_shape);
