@@ -129,6 +129,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
   workPerThread: number;
   variableNames = ['A', 'B'];
   workGroupSize: [number, number, number] = [16, 16, 1];
+  needsShapesUniforms = true;
   aShape: [number, number, number];
   transposeA: boolean;
   transposeB: boolean;
@@ -257,12 +258,9 @@ export class MatMulPackedProgram implements WebGPUProgram {
     const userCode = `
       ${activationSnippet}
 
-      int dimAOuter = ${
-        this.transposeA === true ? `${this.aShape[2]}` : `${this.aShape[1]}`};
-      int dimInner = ${
-        this.transposeA === true ? `${this.aShape[1]}` : `${this.aShape[2]}`};
-      int dimBOuter = ${
-        this.transposeB === true ? `${bShape[1]}` : `${bShape[2]}`};
+      int dimAOuter = ${this.transposeA === true ? `aShape[2]` : `aShape[1]`};
+      int dimInner = ${this.transposeA === true ? `aShape[1]` : `aShape[2]`};
+      int dimBOuter = ${this.transposeB === true ? `bShape[1]` : `bShape[2]`};
 
       int batch;
 

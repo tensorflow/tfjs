@@ -16,7 +16,7 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-import {getCoordsDataType, getShapeCoords} from '../shader_preprocessor';
+import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 import {WebGPUProgram} from './webgpu_program';
 
@@ -26,6 +26,7 @@ export class ReduceProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number];
+  needsShapesUniforms = true;
   variableNames = ['x'];
   reduceType: 'max'|'mean'|'min'|'prod'|'sum';
   inputShape: number[];
@@ -81,8 +82,11 @@ export class ReduceProgram implements WebGPUProgram {
       `;
     const sharedMemoryReduceSnippet = `
       xBestValues[gl_LocalInvocationID.x] = bestValue;
-      ${this.reduceType === 'sum' || this.reduceType === 'mean' ||
-          this.reduceType === 'prod' ? `bestValue=${initValue};` : ' '}
+      ${
+        this.reduceType === 'sum' || this.reduceType === 'mean' ||
+                this.reduceType === 'prod' ?
+            `bestValue=${initValue};` :
+            ' '}
       int currentSize = WorkGroupSize;
       while (currentSize > 1) {
         barrier();
@@ -96,9 +100,11 @@ export class ReduceProgram implements WebGPUProgram {
         barrier();
         xBestValues[gl_LocalInvocationID.x] = bestValue;
         currentSize = DIV_CEIL(currentSize, ${this.reductionFactor});
-        ${this.reduceType === 'sum' || this.reduceType === 'mean' ||
-            this.reduceType === 'prod' ?
-            `if(currentSize > 1) bestValue=${initValue};` : ''}
+        ${
+        this.reduceType === 'sum' || this.reduceType === 'mean' ||
+                this.reduceType === 'prod' ?
+            `if(currentSize > 1) bestValue=${initValue};` :
+            ''}
       }
       if (gl_LocalInvocationID.x == 0) {
         ${outputSnippet}
@@ -114,17 +120,15 @@ export class ReduceProgram implements WebGPUProgram {
       int getOffset() {
         const ${outputCoordsType} outputCoords = getOutputCoords();
         int offset = ${
-        this.outputShape.length === 1 ?
-            'outputCoords' :
-            'outputCoords[0]'} * ${getShapeCoords(this.inputShape)}[1];
+        this.outputShape.length === 1 ? 'outputCoords' :
+                                        'outputCoords[0]'} * xShape[1];
         return offset;
       }
       void main() {
         const int offset= getOffset();
         float bestValue = ${initValue};
         const int Length = ${
-        this.inputShape.length === 1 ? `${getShapeCoords(this.inputShape)}` :
-                                       `${getShapeCoords(this.inputShape)}[1]`};
+        this.inputShape.length === 1 ? `xShape` : `xShape[1]`};
         const int WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
         for (int w = 0; w < WorkPerThread; ++w) {
           int i = int(gl_GlobalInvocationID.x) * WorkPerThread + w;
@@ -134,7 +138,7 @@ export class ReduceProgram implements WebGPUProgram {
           }
         }
         const int flatOutputIndex = int(gl_GlobalInvocationID.y);
-        ${reduceInSharedMemory ? sharedMemoryReduceSnippet :outputSnippet}
+        ${reduceInSharedMemory ? sharedMemoryReduceSnippet : outputSnippet}
       }
     `;
     return userCode;

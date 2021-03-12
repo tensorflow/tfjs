@@ -25,6 +25,7 @@ export class TransposeSharedProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [32, 32, 1];
+  needsShapesUniforms = true;
 
   constructor(aShape: number[], newDim: number[]) {
     const outputShape: number[] = new Array(aShape.length);

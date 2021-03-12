@@ -37,6 +37,7 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [128, 1, 1];
+  needsShapesUniforms = true;
   op: string;
 
   constructor(op: string, aShape: number[], bShape: number[]) {

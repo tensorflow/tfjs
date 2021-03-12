@@ -31,6 +31,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   workGroupSize: [number, number, number];
+  needsShapesUniforms = true;
   isVec4 = true;
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;

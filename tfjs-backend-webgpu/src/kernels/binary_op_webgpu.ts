@@ -30,6 +30,7 @@ export class BinaryOpProgram implements WebGPUProgram {
   variableNames = ['A', 'B'];
   workPerThread: number;
   workGroupSize: [number, number, number];
+  needsShapesUniforms = true;
   op: string;
   sizeFit: boolean;
   shapesFit: boolean;

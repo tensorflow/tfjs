@@ -29,6 +29,7 @@ export class FromPixelsProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] =
       [256, 1, 1];  // The empirical value.
+  needsShapesUniforms = false;
 
   pipeline: GPUComputePipeline;
   bindGroupLayout: GPUBindGroupLayout;

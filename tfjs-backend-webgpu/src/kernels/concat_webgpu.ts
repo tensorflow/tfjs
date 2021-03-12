@@ -28,6 +28,7 @@ export class ConcatProgram implements WebGPUProgram {
   variableNames: string[];
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
+  needsShapesUniforms = true;
   shapes: Array<[number, number]>;
 
   constructor(shapes: Array<[number, number]>) {

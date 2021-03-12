@@ -116,6 +116,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   workPerThread: number;
   variableNames = ['A', 'B'];
   workGroupSize: [number, number, number] = [16, 16, 1];
+  needsShapesUniforms = true;
   isVec4 = true;
   aShape: [number, number, number];
   addBias: boolean;

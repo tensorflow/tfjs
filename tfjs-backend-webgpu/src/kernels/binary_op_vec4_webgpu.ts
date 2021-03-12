@@ -29,6 +29,7 @@ export class BinaryOpVec4Program implements WebGPUProgram {
   variableNames = ['A', 'B'];
   workPerThread = 4;
   workGroupSize: [number, number, number];
+  needsShapesUniforms = true;
   isVec4 = true;
   op: string;
 

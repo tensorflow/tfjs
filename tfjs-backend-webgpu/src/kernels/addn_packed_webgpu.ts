@@ -30,6 +30,7 @@ export class AddNPackedProgram implements WebGPUProgram {
   variableNames: string[];
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
+  needsShapesUniforms = true;
 
   constructor(shapes: number[][]) {
     this.outputShape = shapes[0];

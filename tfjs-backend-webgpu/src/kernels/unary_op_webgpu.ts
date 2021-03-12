@@ -71,6 +71,7 @@ export class UnaryOpProgram implements WebGPUProgram {
   variableNames = ['A'];
   workPerThread: number;
   workGroupSize: [number, number, number];
+  needsShapesUniforms = true;
   op: string;
 
   constructor(outputShape: number[], op: string) {
