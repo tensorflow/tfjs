@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -60,13 +60,6 @@ export class Pool2DProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      float getValue(int batch, int xR, int xC, int d) {
-        if (xC < 0 || xC >= convDims.x) {
-          return 0.0;
-        }
-        return getX(batch, xR, xC, d);
-      }
-
       void main() {
         ivec4 coords = getOutputCoords();
         if (all(lessThan(coords, ${getShapeCoords(this.outputShape)}))) {
@@ -83,21 +76,24 @@ export class Pool2DProgram implements WebGPUProgram {
             count[i] = 0.0;
           }
 
-          for (int wR = 0; wR < filterDims.y; wR += dilation.y) {
+          for (int wR = 0; wR < filterDims.x; wR += dilation.x) {
             int xR = xRCorner + wR;
 
-            if (xR < 0 || xR >= convDims.y) {
+            if (xR < 0 || xR >= convDims.x) {
               continue;
             }
 
-            for (int wC = 0; wC < filterDims.x; wC += dilation.x) {
-              int xC = xCCorner + wC * dilation.x;
+            for (int wC = 0; wC < filterDims.y; wC += dilation.y) {
+              int xC = xCCorner + wC;
+              if (xC < 0 || xC >= convDims.y) {
+                continue;
+              }
               for (int i = 0; i < ${this.workPerThread}; i++)
               {
                 int d = coords[3] * ${this.workPerThread} + i;
                 if (d < ${this.outputShape[3]})
                 {
-                  float value = getValue(batch, xR, xC, d);
+                  float value = getX(batch, xR, xC, d);
                   ${updateSnippet}
                 }
                 else
