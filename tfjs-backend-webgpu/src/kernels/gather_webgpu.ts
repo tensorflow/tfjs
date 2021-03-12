@@ -16,7 +16,6 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -28,27 +27,24 @@ export class GatherProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[] = ['A', 'indices'];
   workGroupSize: [number, number, number] = [64, 1, 1];
-  rank: number;
   aShape: number[];
 
   constructor(aShape: number[], outputShape: number[]) {
     this.outputShape = aShape.slice();
     this.aShape = aShape;
     this.outputShape = outputShape;
-    this.rank = outputShape.length;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = `gather`;
   }
   getUserCode(): string {
-    const dtype = getCoordsDataType(this.rank);
     const sourceCoords = getSourceCoords(this.aShape);
     const size = util.sizeFromShape(this.outputShape);
     const userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
-        ${dtype} resRC = getOutputCoords();
+        ivec4 resRC = getOutputCoords();
         if (index < ${size}) {
           setOutput(index, getA(${sourceCoords}));
         }
@@ -58,6 +54,7 @@ export class GatherProgram implements WebGPUProgram {
   }
 }
 
+// The input and output are always flattened into rank 4 tensors.
 function getSourceCoords(aShape: number[]): string {
   const currentCoords = ['resRC.x', 'resRC.y', 'resRC.z', 'resRC.w'];
   const sourceCoords = [];
