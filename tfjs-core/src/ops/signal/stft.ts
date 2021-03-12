@@ -49,6 +49,6 @@ function stft_(
   }
   const framedSignal = frame(signal, frameLength, frameStep);
   const windowedSignal = mul(framedSignal, windowFn(frameLength));
-  return rfft(windowedSignal, frameLength);
+  return rfft(windowedSignal, fftLength);
 }
 export const stft = op({stft_});
