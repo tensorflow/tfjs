@@ -105,6 +105,9 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [A look at how we built the Emoji Scavenger Hunt using TensorFlow.js](https://medium.com/tensorflow/a-look-at-how-we-built-the-emoji-scavenger-hunt-using-tensorflow-js-3d760a7ebfe6) by Jacques Bruwer, JK Kafalas, and Shuhei Iitsuka from Google Brand Studio
 - [Read a tensorflow demo to get started with machine learning](https://mp.weixin.qq.com/s/sffUvod_KlmvtVI-W3PLEQ) by [EuryChen](https://github.com/netpi) (Chinese: 读懂一个Tensorflow Demo 入门机器学习)
 
+## Books
+- [Learning Tensorflow.js: Powerful Machine Learning in JavaScript](https://amzn.to/3dR3vpY) - In this guide, author [Gant Laborde](https://github.com/gantman) provides a hands-on, end-to-end approach to TensorFlow.js fundamentals for a broad technical audience that includes data scientists, engineers, web developers, students, and researchers.
+
 ## Notebooks
 - [Introduction to TensorFlow.js](https://beta.observablehq.com/@nsthorat/introduction-to-deeplearn-js) by Nikhil Thorat
 - [How to build a Teachable Machine](https://beta.observablehq.com/@nsthorat/how-to-build-a-teachable-machine-with-tensorflow-js) by Nikhil Thorat
@@ -123,3 +126,4 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [TensorFlow.js GPU-accelerated t-SNE](https://github.com/tensorflow/tfjs-tsne) - A linear t-SNE for the web.
 - [Pipcook](https://github.com/alibaba/pipcook) - A front-end algorithm framework to create a ML pipeline based on tfjs-node, which is similar to TFX but in JS.
 - [danfo.js](https://github.com/opensource9ja/danfojs) - A powerful JavaScript data analysis toolkit inspired by the Python PANDAS library.
+- [NSFW JS](https://github.com/infinitered/nsfwjs) - Client-side indecent content checker.
