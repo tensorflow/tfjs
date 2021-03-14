@@ -16,6 +16,7 @@
  */
 
 import {NamedTensorMap} from '..';
+import {ENGINE} from '../engine';
 import {BroadcastArgs, BroadcastArgsInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
