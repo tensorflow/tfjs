@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
+import {NamedTensorMap} from '..';
+import {BroadcastArgs, BroadcastArgsInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, TensorLike} from '../types';
-import {assertAndGetBroadcastShape} from './broadcast_util';
 
 import {op} from './operation';
-import {tensor} from './tensor';
 
 /**
  * Return the shape of s0 op s1 with broadcast.
@@ -53,9 +53,9 @@ function broadcastArgs_<R extends Rank>(
         `broadcastArgs(): second input must be a vector (rank=1). Has rank ${
             shape2Input.rank}`);
   }
-  return tensor(assertAndGetBroadcastShape(
-      shape1Input.arraySync() as number[],
-      shape2Input.arraySync() as number[]));
+
+  const inputs: BroadcastArgsInputs = {s0: shape1Input, s1: shape2Input};
+  return ENGINE.runKernel(BroadcastArgs, inputs as {} as NamedTensorMap);
 }
 
 export const broadcastArgs = op({broadcastArgs_});
