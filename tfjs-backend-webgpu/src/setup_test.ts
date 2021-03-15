@@ -564,6 +564,16 @@ const TEST_FILTERS: TestFilter[] = [
       '6D',       // rank 6 is not yet supported.
       'gradient'  // gradient function not found.
     ]
+  },
+  {
+    include: 'gather',
+    excludes: [
+      'gatherND',                        // Not yet supported.
+      'bool',                            // Not yet supported.
+      'chaining, axis=1',                // Range not yet supported.
+      'indices not int32 throws error',  // Range not yet supported.
+      'gradient'                         // gradient function not found.
+    ]
   }
 ];
 
