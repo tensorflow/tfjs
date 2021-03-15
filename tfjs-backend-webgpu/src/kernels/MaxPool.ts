@@ -19,8 +19,8 @@ import {backend_util, KernelConfig, KernelFunc, MaxPool, MaxPoolAttrs, MaxPoolIn
 import {WebGPUBackend} from '../backend_webgpu';
 
 import {identity} from './Identity';
-import {MaxPoolWithFilterSizeEqualsOneProgram} from './maxpool_filtersizeone_webgpu';
 import {Pool2DProgram} from './pool2d_webgpu';
+import {PoolWithFilterSizeEqualsOneProgram} from './pool_filtersizeone_webgpu';
 
 export function maxPool(
     args: {inputs: MaxPoolInputs, backend: WebGPUBackend, attrs: MaxPoolAttrs}):
@@ -32,23 +32,23 @@ export function maxPool(
   const convInfo = backend_util.computePool2DInfo(
       x.shape as [number, number, number, number], filterSize, strides,
       dilations, pad, dimRoundingMode);
-  let program: Pool2DProgram|MaxPoolWithFilterSizeEqualsOneProgram;
+  let program: Pool2DProgram|PoolWithFilterSizeEqualsOneProgram;
   if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1) {
     if (util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
       return identity({inputs: {x}, backend});
     }
-    program = new MaxPoolWithFilterSizeEqualsOneProgram(convInfo);
+    program = new PoolWithFilterSizeEqualsOneProgram(convInfo);
   } else {
     program = new Pool2DProgram(convInfo, 'max');
   }
 
   const dimensions = [
-    convInfo.padInfo.left, convInfo.padInfo.top,      // Padding.
-    convInfo.strideWidth, convInfo.strideHeight,      // Stride.
-    convInfo.dilationWidth, convInfo.dilationHeight,  // Dilation.
-    convInfo.inWidth, convInfo.inHeight,              // Conv dims.
-    convInfo.effectiveFilterWidth,
-    convInfo.effectiveFilterHeight  // Filter dims.
+    convInfo.padInfo.top, convInfo.padInfo.left,      // Padding.
+    convInfo.strideHeight, convInfo.strideWidth,      // Stride.
+    convInfo.dilationHeight, convInfo.dilationWidth,  // Dilation.
+    convInfo.inHeight, convInfo.inWidth,              // Conv dims.
+    convInfo.effectiveFilterHeight,
+    convInfo.effectiveFilterWidth  // Filter dims.
   ];
   const uniformData = new Int32Array(dimensions);
   return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
