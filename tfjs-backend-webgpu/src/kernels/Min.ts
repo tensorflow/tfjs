@@ -15,43 +15,19 @@
  * =============================================================================
  */
 
-import {KernelFunc, Min, MinAttrs, MinInputs, TensorInfo} from '@tensorflow/tfjs-core';
-import {backend_util, KernelConfig} from '@tensorflow/tfjs-core';
-import {util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Min, MinAttrs, MinInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {reduce} from '../kernel_utils/reduce';
-import {reshape} from './Reshape';
 
 export function min(
     args: {inputs: MinInputs, backend: WebGPUBackend, attrs: MinAttrs}):
     TensorInfo {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
-  const {axis} = attrs;
-  const webgpuBackend = backend;
-  const xShape = x.shape;
-  const xRank = xShape.length;
+  const {axis, keepDims} = attrs;
 
-  const origAxes = util.parseAxisParam(axis, xShape);
-  const axes = origAxes;
-  backend_util.assertAxesAreInnerMostDims('min', axes, xRank);
-  const [outShape, reduceShape] =
-      backend_util.computeOutAndReduceShapes(xShape, axes);
-  const reduceSize = util.sizeFromShape(reduceShape);
-  const a2D = reshape(
-      {inputs: {x}, attrs: {shape: [-1, reduceSize]}, backend: webgpuBackend});
-  const a2DReduce = reduce(a2D, a2D.dtype, 'min', webgpuBackend);
-  const reshapedOutput = reshape({
-    inputs: {x: a2DReduce},
-    attrs: {shape: outShape},
-    backend: webgpuBackend
-  });
-
-  backend.disposeData(a2D.dataId);
-  backend.disposeData(a2DReduce.dataId);
-
-  return reshapedOutput;
+  return reduce(x, axis, keepDims, 'min', backend);
 }
 
 export const minConfig: KernelConfig = {
