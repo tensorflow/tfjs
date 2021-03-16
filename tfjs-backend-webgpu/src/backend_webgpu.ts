@@ -363,6 +363,10 @@ export class WebGPUBackend extends KernelBackend {
     return vals;
   }
 
+  timerAvailable(): boolean {
+    return this.supportTimeQuery;
+  }
+
   async time(f: () => void): Promise<WebGPUTimingInfo> {
     const oldActiveTimers = this.activeTimers;
     const newActiveTimers: TimerNode[] = [];
