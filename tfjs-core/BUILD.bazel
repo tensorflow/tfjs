@@ -8,7 +8,7 @@ ts_project(
     name = "tfjs-core",
     srcs = glob(["src/**/*.ts"]),
     declaration = True,
-    extends = ["//:tsconfig.json"],
+    extends = "//:tsconfig.json",
     incremental = True,
     source_map = True,
     tsconfig = "tsconfig.json",
