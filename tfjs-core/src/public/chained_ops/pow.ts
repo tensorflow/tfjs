@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {pow} from '../../ops/pow';
-import {Tensor} from '../../tensor';
+import {getGlobalTensorClass, Tensor} from '../../tensor';
 import {Rank, TensorLike} from '../../types';
 
 declare module '../../tensor' {
@@ -24,7 +24,8 @@ declare module '../../tensor' {
   }
 }
 
-Tensor.prototype.pow = function<T extends Tensor>(exp: Tensor|TensorLike): T {
+getGlobalTensorClass().prototype.pow = function<T extends Tensor>(
+    exp: Tensor|TensorLike): T {
   this.throwIfDisposed();
   return pow(this, exp);
 };

@@ -15,15 +15,13 @@
  * =============================================================================
  */
 
-import {KernelBackend} from '../backends/backend';
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {Reshape, ReshapeAttrs, ReshapeInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
-import {GradSaveFunc, NamedTensorMap} from '../tensor_types';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, ShapeMap, TensorLike} from '../types';
-import * as util from '../util';
 
 import {op} from './operation';
 
@@ -55,21 +53,11 @@ import {op} from './operation';
  */
 function reshape_<R extends Rank>(
     x: Tensor|TensorLike, shape: ShapeMap[R]): Tensor<R> {
-  const $x = convertToTensor(x, 'x', 'reshape', null);
+  const $x = convertToTensor(x, 'x', 'reshape', 'string_or_numeric');
 
   const inputs: ReshapeInputs = {x: $x};
   const attrs: ReshapeAttrs = {shape};
-  const forward: ForwardFunc<
-      Tensor<R>> = (backend: KernelBackend, save: GradSaveFunc) => {
-    shape = util.inferFromImplicitShape(shape, $x.size) as ShapeMap[R];
-    util.assert(
-        $x.size === util.sizeFromShape(shape),
-        () => 'new shape and old shape must have the same number of elements.');
-    save([$x]);
-    return backend.reshape($x, shape);
-  };
-  return ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, Reshape,
-      attrs as {} as NamedAttrMap);
+  return ENGINE.runKernel(
+      Reshape, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 export const reshape = op({reshape_});

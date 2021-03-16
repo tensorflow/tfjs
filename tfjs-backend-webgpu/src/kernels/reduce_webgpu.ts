@@ -23,67 +23,91 @@ import {WebGPUProgram} from './webgpu_program';
 export class ReduceProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[], y: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number];
   variableNames = ['x'];
+  reduceType: 'max'|'mean'|'min'|'prod'|'sum';
+  inputShape: number[];
+  reduceSize: number;
+  reductionFactor: number;
 
   constructor(
-      reduceInfo: backend_util.ReduceInfo, reduceType: 'max'|'min'|'sum') {
-    const inputShape = [reduceInfo.batchSize, reduceInfo.inSize];
+      reduceInfo: backend_util.ReduceInfo,
+      reduceType: 'max'|'mean'|'min'|'prod'|'sum') {
+    this.inputShape = [reduceInfo.batchSize, reduceInfo.inSize];
     const [outputShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(inputShape, [1]);
+        backend_util.computeOutAndReduceShapes(this.inputShape, [1]);
     this.outputShape = outputShape.length === 0 ? [1] : outputShape;
-    const reduceSize = util.sizeFromShape(reduceShape);
+    this.reduceSize = util.sizeFromShape(reduceShape);
 
-    const reductionFactor = 2;
+    this.reductionFactor = 2;
     const xMaxThreads = 1024;
-    const xThreads =
-        Math.min(Math.ceil(reduceSize / reductionFactor), xMaxThreads);
+    const xThreads = Math.min(
+        Math.ceil(this.reduceSize / this.reductionFactor), xMaxThreads);
 
     this.workGroupSize = [xThreads, 1, 1];
     this.dispatchLayout = {x: [], y: this.outputShape.map((d, i) => i)};
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
-    const reduceInSharedMemory = xThreads > 1;
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    const minmaxOp = `
-          if (candidate ${reduceType === 'min' ? '<' : '>'} bestValue
-          && !isnan(candidate))
-          {  bestValue = candidate; }
-      `;
-    const sumOp = ' bestValue += candidate; ';
-    const op =
-        (reduceType === 'min' || reduceType === 'max') ? minmaxOp : sumOp;
+    this.reduceType = reduceType;
+    this.shaderKey = `reduce_${reduceType}`;
+  }
+
+  getUserCode(): string {
+    const reduceInSharedMemory = this.workGroupSize[0] > 1;
+
+    let reduceOp = ``;
+    let initValue = '0.0';
+    if (this.reduceType === 'min' || this.reduceType === 'max') {
+      reduceOp = ` if (candidate ${this.reduceType === 'min' ? '<' : '>'}
+          bestValue && !isnan(candidate))
+          {  bestValue = candidate; }`;
+      initValue = 'x[offset]';
+    } else if (this.reduceType === 'sum' || this.reduceType === 'mean') {
+      reduceOp = ' bestValue += candidate; ';
+    } else if (this.reduceType === 'prod') {
+      reduceOp = ' bestValue *= candidate; ';
+      initValue = '1.0';
+    }
+
+    const outputSnippet = this.reduceType === 'mean' ?
+        `setOutput(flatOutputIndex, bestValue / ${this.reduceSize});` :
+        `setOutput(flatOutputIndex, bestValue);`;
 
     const sharedMemorySnippet = `
         shared float xBestValues[WorkGroupSize];
       `;
     const sharedMemoryReduceSnippet = `
       xBestValues[gl_LocalInvocationID.x] = bestValue;
-      ${reduceType === 'sum' ? 'bestValue=0;' : ' '}
+      ${this.reduceType === 'sum' || this.reduceType === 'mean' ||
+          this.reduceType === 'prod' ? `bestValue=${initValue};` : ' '}
       int currentSize = WorkGroupSize;
       while (currentSize > 1) {
         barrier();
-        for (int w = 0; w < ${reductionFactor}; ++w) {
-          int i = int(gl_LocalInvocationID.x) * ${reductionFactor} + w;
+        for (int w = 0; w < ${this.reductionFactor}; ++w) {
+          int i = int(gl_LocalInvocationID.x) * ${this.reductionFactor} + w;
           if (i < currentSize) {
             float candidate = xBestValues[i];
-            ${op}
+            ${reduceOp}
           }
         }
+        barrier();
         xBestValues[gl_LocalInvocationID.x] = bestValue;
-        currentSize = DIV_CEIL(currentSize, ${reductionFactor});
-        ${reduceType === 'sum' ? 'if(currentSize > 1) bestValue=0;' : ''}
+        currentSize = DIV_CEIL(currentSize, ${this.reductionFactor});
+        ${this.reduceType === 'sum' || this.reduceType === 'mean' ||
+            this.reduceType === 'prod' ?
+            `if(currentSize > 1) bestValue=${initValue};` : ''}
       }
       if (gl_LocalInvocationID.x == 0) {
-        setOutput(flatOutputIndex, bestValue);
+        ${outputSnippet}
       }
     `;
 
     const outputCoordsType = getCoordsDataType(this.outputShape.length);
 
-    this.userCode = `
+    const userCode = `
       #define DIV_CEIL(x, y) (((x) - 1) / (y) + 1)
       const int WorkGroupSize = int(gl_WorkGroupSize.x);
       ${reduceInSharedMemory ? sharedMemorySnippet : ''}
@@ -92,30 +116,27 @@ export class ReduceProgram implements WebGPUProgram {
         int offset = ${
         this.outputShape.length === 1 ?
             'outputCoords' :
-            'outputCoords[0]'} * ${getShapeCoords(inputShape)}[1];
+            'outputCoords[0]'} * ${getShapeCoords(this.inputShape)}[1];
         return offset;
       }
       void main() {
         const int offset= getOffset();
-        ${
-        reduceType === 'sum' ? 'float bestValue = 0;' :
-                               'float bestValue = x[offset];'}
+        float bestValue = ${initValue};
         const int Length = ${
-        inputShape.length === 1 ? `${getShapeCoords(inputShape)}` :
-                                  `${getShapeCoords(inputShape)}[1]`};
+        this.inputShape.length === 1 ? `${getShapeCoords(this.inputShape)}` :
+                                       `${getShapeCoords(this.inputShape)}[1]`};
         const int WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
         for (int w = 0; w < WorkPerThread; ++w) {
           int i = int(gl_GlobalInvocationID.x) * WorkPerThread + w;
           if (i < Length) {
             float candidate = x[offset + i];
-            ${(reduceType === 'max' || reduceType === 'min') ? minmaxOp : sumOp}
+            ${reduceOp}
           }
         }
         const int flatOutputIndex = int(gl_GlobalInvocationID.y);
-        ${
-        reduceInSharedMemory ? sharedMemoryReduceSnippet :
-                               'setOutput(flatOutputIndex, bestValue);'}
+        ${reduceInSharedMemory ? sharedMemoryReduceSnippet :outputSnippet}
       }
     `;
+    return userCode;
   }
 }

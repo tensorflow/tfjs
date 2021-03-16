@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {BackendTimer} from './backends/backend';
+import {BackendTimer, BackendTimingInfo} from './backends/backend';
+import {env} from './environment';
 import {Tensor} from './tensor';
 import {NamedTensorMap} from './tensor_types';
 import {DataType, DataTypeMap, TypedArray} from './types';
@@ -42,15 +43,26 @@ export class Profiler {
     const holdResultWrapperFn = () => {
       outputs = f();
     };
-    const timer = this.backendTimer.time(holdResultWrapperFn);
-
-    for (let i = 0; i < outputs.length; i++) {
-      const output = outputs[i];
-      // Dangling promise here because we don't want to propagate up
-      // asynchronicity.
-      output.data().then(tensorVals => {
-        checkComputationForErrors(tensorVals, output.dtype, kernelName);
-      });
+    let timer: Promise<BackendTimingInfo>;
+    const start = util.now();
+    if (this.backendTimer.timerAvailable()) {
+      timer = this.backendTimer.time(holdResultWrapperFn);
+    } else {
+      holdResultWrapperFn();
+      for (const output of outputs) {
+        output.dataSync();
+      }
+      timer = Promise.resolve({kernelMs: util.now() - start});
+    }
+    if (env().getBool('CHECK_COMPUTATION_FOR_ERRORS')) {
+      for (let i = 0; i < outputs.length; i++) {
+        const output = outputs[i];
+        // Dangling promise here because we don't want to propagate up
+        // asynchronicity.
+        output.data().then(tensorVals => {
+          checkComputationForErrors(tensorVals, output.dtype, kernelName);
+        });
+      }
     }
 
     const kernelProfile = {

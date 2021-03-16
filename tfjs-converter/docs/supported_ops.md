@@ -77,6 +77,7 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|EmptyTensorList|EmptyTensorList|
 |Enter|Enter|
 |Exit|Exit|
 |If|If|
@@ -217,6 +218,8 @@
 |LookupTableFindV2|LookupTableFindV2|
 |LookupTableImport|LookupTableImport|
 |LookupTableImportV2|LookupTableImportV2|
+|LookupTableSize|LookupTableSize|
+|LookupTableSizeV2|LookupTableSizeV2|
 
 ## Operations - Images
 
@@ -269,6 +272,8 @@
 |Any|any|
 |ArgMax|argMax|
 |ArgMin|argMin|
+|Bincount|bincount|
+|DenseBincount|denseBincount|
 |Max|max|
 |Mean|mean|
 |Min|min|

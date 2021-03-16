@@ -25,12 +25,14 @@ import {WebGPUProgram} from './webgpu_program';
 export class ArgMinMaxProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[], y: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number];
   variableNames = ['x'];
   uniforms = 'int axis;';
+  inputShape: number[];
+  reductionFactor: number;
+  op: string;
 
   constructor(inputShape: number[], axis: number, reduceType: 'min'|'max') {
     const axes = [axis];
@@ -38,7 +40,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         'arg' + reduceType.charAt(0).toUpperCase() + reduceType.slice(1), axes,
         inputShape.length);
 
-    const op = reduceType === 'min' ? '<' : '>';
+    this.op = reduceType === 'min' ? '<' : '>';
 
     // |outShape| is the shape with the removed axis
     // |reduceShape| is the shape we are reducing. i.e. [ inputShape[axis] ]
@@ -51,19 +53,26 @@ export class ArgMinMaxProgram implements WebGPUProgram {
     const reduceSize = util.sizeFromShape(reduceShape);
 
     // The number of comparisons each thread will do
-    const reductionFactor = 2;
+    this.reductionFactor = 2;
     const xMaxThreads = 1024;  // gl_MaxComputeWorkGroupSize
     const xThreads =
-        Math.min(Math.ceil(reduceSize / reductionFactor), xMaxThreads);
+        Math.min(Math.ceil(reduceSize / this.reductionFactor), xMaxThreads);
 
     this.workGroupSize = [xThreads, 1, 1];
 
     this.dispatchLayout = {x: [], y: this.outputShape.map((d, i) => i)};
-    this.dispatch = computeDispatch(this.dispatchLayout, this.outputShape);
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    // When xThreads > 1, each thread reduces Length / xThreads values.
-    // Thes results are stored in shared memory and iteratively reduced.
-    const reduceInSharedMemory = xThreads > 1;
+    this.inputShape = inputShape;
+    this.shaderKey = `argMinMax_${this.op}_${reduceSize}`;
+  }
+
+  getUserCode(): string {
+    // When this.workGroupSize[0] > 1, each thread reduces Length /
+    // this.workGroupSize[0] values. Thes results are stored in shared memory
+    // and iteratively reduced.
+    const reduceInSharedMemory = this.workGroupSize[0] > 1;
     const sharedMemorySnippet = `
       shared int xBestIndices[WorkGroupSize];
       shared float xBestValues[WorkGroupSize];
@@ -77,12 +86,12 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       while (currentSize > 1) {
         barrier();
 
-        for (int w = 0; w < ${reductionFactor}; ++w) {
-          int i = int(gl_LocalInvocationID.x) * ${reductionFactor} + w;
+        for (int w = 0; w < ${this.reductionFactor}; ++w) {
+          int i = int(gl_LocalInvocationID.x) * ${this.reductionFactor} + w;
           if (i < currentSize) {
             int candidateIndex = xBestIndices[i];
             float candidate = xBestValues[i];
-            if (candidate ${op} bestValue && !isnan(candidate)) {
+            if (candidate ${this.op} bestValue && !isnan(candidate)) {
               bestValue = candidate;
               bestIndex = candidateIndex;
             }
@@ -92,7 +101,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         xBestIndices[gl_LocalInvocationID.x] = bestIndex;
         xBestValues[gl_LocalInvocationID.x] = bestValue;
 
-        currentSize = DIV_CEIL(currentSize, ${reductionFactor});
+        currentSize = DIV_CEIL(currentSize, ${this.reductionFactor});
       }
 
       if (gl_LocalInvocationID.x == 0) {
@@ -111,14 +120,14 @@ export class ArgMinMaxProgram implements WebGPUProgram {
     };
 
     const indexInputShape = (index: string) => {
-      if (inputShape.length === 1) {
-        return `${getShapeCoords(inputShape)}`;
+      if (this.inputShape.length === 1) {
+        return `${getShapeCoords(this.inputShape)}`;
       } else {
-        return `${getShapeCoords(inputShape)}[${index}]`;
+        return `${getShapeCoords(this.inputShape)}[${index}]`;
       }
     };
 
-    this.userCode = `
+    const userCode = `
       #define DIV_CEIL(x, y) (((x) - 1) / (y) + 1)
 
       const int WorkGroupSize = int(gl_WorkGroupSize.x);
@@ -137,9 +146,9 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         int inputStride = 1;
         int offset = 0;
 
-        for (int r = 1; r <= ${inputShape.length}; ++r) {
-          int length = ${indexInputShape(`${inputShape.length} - r`)};
-          if (${inputShape.length} - r == axis) {
+        for (int r = 1; r <= ${this.inputShape.length}; ++r) {
+          int length = ${indexInputShape(`${this.inputShape.length} - r`)};
+          if (${this.inputShape.length} - r == axis) {
             inputStride = stride;
           } else {
             offset += ${indexOutputCoords('outputCoords', 'i--')} * stride;
@@ -167,7 +176,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
           int i = int(gl_GlobalInvocationID.x) * WorkPerThread + w;
           if (i < Length) {
             float candidate = x[getInputIndex(coordInfo, i)];
-            if (candidate ${op} bestValue && !isnan(candidate)) {
+            if (candidate ${this.op} bestValue && !isnan(candidate)) {
               bestValue = candidate;
               bestIndex = i;
             }
@@ -180,6 +189,6 @@ export class ArgMinMaxProgram implements WebGPUProgram {
                                'setOutput(flatOutputIndex, int(bestIndex));'}
       }
     `;
-    this.shaderKey = `ArgMinMax${op}${reduceInSharedMemory}`;
+    return userCode;
   }
 }

@@ -104,7 +104,6 @@ export interface AvgPool3DAttrs {
   pad: 'valid'|'same'|number;
   dimRoundingMode?: 'floor'|'round'|'ceil';
   dataFormat: 'NDHWC'|'NCDHW';
-  dilations?: [number, number, number]|number;
 }
 
 export const AvgPool3DGrad = 'AvgPool3DGrad';
@@ -113,7 +112,6 @@ export interface AvgPool3DGradAttrs {
   filterSize: [number, number, number]|number;
   strides: [number, number, number]|number;
   pad: 'valid'|'same'|number;
-  dilations: [number, number, number]|number;
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 
@@ -132,6 +130,12 @@ export interface BatchToSpaceNDAttrs {
 }
 
 export type BinaryInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
+
+export const Bincount = 'Bincount';
+export type BincountInputs = Pick<NamedTensorInfoMap, 'x'|'weights'>;
+export interface BincountAttrs {
+  size: number;
+}
 
 export const BroadcastTo = 'BroadcastTo';
 export type BroadcastToInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -248,6 +252,13 @@ export interface CropAndResizeAttrs {
   extrapolationValue: number;
 }
 
+export const DenseBincount = 'DenseBincount';
+export type DenseBincountInputs = Pick<NamedTensorInfoMap, 'x'|'weights'>;
+export interface DenseBincountAttrs {
+  size: number;
+  binaryOutput?: boolean;
+}
+
 export const DepthToSpace = 'DepthToSpace';
 export type DepthToSpaceInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface DepthToSpaceAttrs {
@@ -309,7 +320,7 @@ export const Dilation2DBackpropFilter = 'Dilation2DBackpropFilter';
 export type Dilation2DBackpropFilterInputs =
     Pick<NamedTensorInfoMap, 'x'|'filter'|'dy'>;
 
-export const RealDiv = 'Div';
+export const RealDiv = 'RealDiv';
 export type RealDivInputs = BinaryInputs;
 
 export const Elu = 'Elu';
@@ -395,6 +406,12 @@ export type IsInfInputs = UnaryInputs;
 
 export const IsNan = 'IsNan';
 export type IsNanInputs = UnaryInputs;
+
+export const LeakyRelu = 'LeakyRelu';
+export type LeakyReluInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface LeakyReluAttrs {
+  alpha: number;
+}
 
 export const Less = 'Less';
 export type LessInputs = BinaryInputs;
@@ -482,7 +499,6 @@ export interface MaxPool3DAttrs {
   strides: [number, number, number]|number;
   pad: 'valid'|'same'|number;
   dataFormat: 'NDHWC'|'NCDHW';
-  dilations?: [number, number, number]|number;
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 
@@ -493,7 +509,6 @@ export interface MaxPool3DGradAttrs {
   filterSize: [number, number, number]|number;
   strides: [number, number, number]|number;
   pad: 'valid'|'same'|number;
-  dilations?: [number, number, number]|number;
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 
@@ -793,6 +808,15 @@ export interface TopKAttrs {
   sorted: boolean;
 }
 
+export const Transform = 'Transform';
+export type TransformInputs = Pick<NamedTensorInfoMap, 'image'|'transforms'>;
+export interface TransformAttrs {
+  interpolation: 'nearest'|'bilinear';
+  fillMode: 'constant'|'reflect'|'wrap'|'nearest';
+  fillValue: number;
+  outputShape?: [number, number];
+}
+
 export const Transpose = 'Transpose';
 export type TransposeInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface TransposeAttrs {
@@ -835,7 +859,7 @@ export interface StepAttrs {
 export const FromPixels = 'FromPixels';
 export interface FromPixelsInputs {
   pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-      HTMLVideoElement;
+      HTMLVideoElement|ImageBitmap;
 }
 export interface FromPixelsAttrs {
   numChannels: number;
@@ -862,6 +886,7 @@ export interface _FusedMatMulAttrs {
   transposeA: boolean;
   transposeB: boolean;
   activation: Activation;
+  leakyreluAlpha?: number;
 }
 
 export const FusedConv2D = 'FusedConv2D';
@@ -878,6 +903,7 @@ export interface FusedConv2DAttrs {
   dilations: [number, number]|number;
   dimRoundingMode: 'floor'|'round'|'ceil';
   activation: Activation;
+  leakyreluAlpha?: number;
 }
 
 export const FusedDepthwiseConv2D = 'FusedDepthwiseConv2D';
@@ -894,4 +920,5 @@ export interface FusedDepthwiseConv2DAttrs {
   dilations: [number, number]|number;
   dimRoundingMode: 'floor'|'round'|'ceil';
   activation: Activation;
+  leakyreluAlpha?: number;
 }

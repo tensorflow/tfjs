@@ -113,6 +113,40 @@ setWasmPaths(yourCustomPathPrefix, usePlatformFetch);
 tf.setBackend('wasm').then(() => {...});
 ```
 
+## JS Minification
+
+If your bundler is capable of minifying JS code, please turn off the option
+that transforms ```typeof foo == "undefined"``` into ```foo === void 0```. For
+example, in [terser](https://github.com/terser/terser), the option is called
+"typeofs" (located under the
+[Compress options](https://github.com/terser/terser#compress-options) section).
+Without this feature turned off, the minified code will throw "_scriptDir is not
+defined" error from web workers when running in browsers with
+SIMD+multi-threading support.
+
+## Use with Angular
+
+If you see the `Cannot find name 'EmscriptenModule'` error when building your
+Angular app, make sure to add `"@types/emscripten"` to the
+`compilerOptions.types` field in your `tsconfig.app.json` (or `tsconfig.json`):
+
+```
+{
+  ...
+  "compilerOptions": {
+    "types": [
+      "@types/emscripten"
+    ]
+  },
+  ...
+}
+```
+
+By default, the generated Angular app sets this field to an empty array
+which will prevent the Angular compiler from automatically adding
+"global types" (such as `EmscriptenModule`) defined in `d.ts` files to your app.
+
+
 ## Benchmarks
 
 The benchmarks below show inference times (ms) for two different edge-friendly
@@ -201,13 +235,13 @@ We'd love your feedback as we develop this backend! Please file an issue
 
 ## Emscripten installation
 
-Install the Emscripten SDK (version 1.39.15):
+Install the Emscripten SDK (version 2.0.14):
 
 ```sh
 git clone https://github.com/emscripten-core/emsdk.git
 cd emsdk
-./emsdk install 1.39.15
-./emsdk activate 1.39.15
+./emsdk install 2.0.14
+./emsdk activate 2.0.14
 ```
 
 ## Prepare the environment

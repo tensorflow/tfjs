@@ -25,7 +25,6 @@ import {WebGPUProgram} from './webgpu_program';
 export class Pool2DProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[], y: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
@@ -34,6 +33,7 @@ export class Pool2DProgram implements WebGPUProgram {
   // workPerThead for different output shapes.
   workGroupSize: [number, number, number] = [16, 16, 1];
   workPerThread = 4;
+  poolType: 'max'|'avg';
 
   constructor(convInfo: backend_util.Conv2DInfo, poolType: 'max'|'avg') {
     this.outputShape = convInfo.outShape;
@@ -44,24 +44,22 @@ export class Pool2DProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [1, this.workPerThread, 1]);
 
+    this.shaderKey = `pool2D_${poolType}`;
+    this.poolType = poolType;
+  }
+
+  getUserCode(): string {
     let updateSnippet = `resultValue[i] = max(value, resultValue[i]);`;
-    if (poolType === 'avg') {
+    if (this.poolType === 'avg') {
       updateSnippet = `resultValue[i] += value; count[i] += 1.0;`;
     }
 
     let returnValue = `resultValue[i]`;
-    if (poolType === 'avg') {
+    if (this.poolType === 'avg') {
       returnValue = `resultValue[i] / count[i]`;
     }
 
-    this.userCode = `
-      float getValue(int batch, int xR, int xC, int d) {
-        if (xC < 0 || xC >= convDims.x) {
-          return 0.0;
-        }
-        return getX(batch, xR, xC, d);
-      }
-
+    const userCode = `
       void main() {
         ivec4 coords = getOutputCoords();
         if (all(lessThan(coords, ${getShapeCoords(this.outputShape)}))) {
@@ -78,21 +76,24 @@ export class Pool2DProgram implements WebGPUProgram {
             count[i] = 0.0;
           }
 
-          for (int wR = 0; wR < filterDims.y; wR += dilation.y) {
+          for (int wR = 0; wR < filterDims.x; wR += dilation.x) {
             int xR = xRCorner + wR;
 
-            if (xR < 0 || xR >= convDims.y) {
+            if (xR < 0 || xR >= convDims.x) {
               continue;
             }
 
-            for (int wC = 0; wC < filterDims.x; wC += dilation.x) {
-              int xC = xCCorner + wC * dilation.x;
+            for (int wC = 0; wC < filterDims.y; wC += dilation.y) {
+              int xC = xCCorner + wC;
+              if (xC < 0 || xC >= convDims.y) {
+                continue;
+              }
               for (int i = 0; i < ${this.workPerThread}; i++)
               {
                 int d = coords[3] * ${this.workPerThread} + i;
                 if (d < ${this.outputShape[3]})
                 {
-                  float value = getValue(batch, xR, xC, d);
+                  float value = getX(batch, xR, xC, d);
                   ${updateSnippet}
                 }
                 else
@@ -117,6 +118,6 @@ export class Pool2DProgram implements WebGPUProgram {
         }
       }
     `;
-    this.shaderKey = `pool2d${poolType}${this.workPerThread}`;
+    return userCode;
   }
 }

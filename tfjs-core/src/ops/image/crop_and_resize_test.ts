@@ -45,6 +45,19 @@ describeWithFlags('cropAndResize', ALL_ENVS, () => {
     expectArraysClose(await output.data(), await image.data());
   });
 
+  it('5x5-bilinear, no arguments passed in for method or extrapolation',
+     async () => {
+       const image: tf.Tensor4D = tf.ones([1, 5, 5, 3]);
+       const boxes: tf.Tensor2D = tf.tensor2d([0, 0, 1, 1], [1, 4]);
+       const boxInd: tf.Tensor1D = tf.tensor1d([0], 'int32');
+
+       const output = tf.image.cropAndResize(image, boxes, boxInd, [5, 5]);
+
+       expect(output.shape).toEqual([1, 5, 5, 3]);
+       expect(output.dtype).toBe('float32');
+       expectArraysClose(await output.data(), await image.data());
+     });
+
   it('5x5-bilinear, just a crop, no resize', async () => {
     const image: tf.Tensor4D = tf.ones([1, 6, 6, 3]);
     const boxes: tf.Tensor2D = tf.tensor2d([0.5, 0.5, 1, 1], [1, 4]);

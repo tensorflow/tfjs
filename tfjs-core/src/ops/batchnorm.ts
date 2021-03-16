@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {FusedBatchNorm, FusedBatchNormAttrs, FusedBatchNormInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor, Tensor1D, Tensor4D} from '../tensor';
@@ -90,14 +90,6 @@ function batchNorm_<R extends Rank>(
 
   const x4D: Tensor4D = xAs4D($x);
 
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    save([x4D, $mean, $variance, $scale]);
-
-    return backend.batchNorm(
-        x4D, as1DOr4D($mean), as1DOr4D($variance), as1DOr4D($offset),
-        as1DOr4D($scale), varianceEpsilon);
-  };
-
   const inputs: FusedBatchNormInputs = {
     x: x4D,
     scale: $scale,
@@ -108,30 +100,12 @@ function batchNorm_<R extends Rank>(
 
   const attrs: FusedBatchNormAttrs = {varianceEpsilon};
 
-  const res = ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* gradient */,
-      FusedBatchNorm, attrs as {} as NamedAttrMap);
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  const res = ENGINE.runKernel(
+                  FusedBatchNorm, inputs as {} as NamedTensorMap,
+                  attrs as {} as NamedAttrMap) as Tensor<R>;
 
   return reshape(res, $x.shape);
-}
-
-function as1DOr4D(x: Tensor): Tensor4D|Tensor1D {
-  if (x == null) {
-    return null;
-  }
-  if (x.rank === 0) {
-    // tslint:disable-next-line:no-unnecessary-type-assertion
-    return reshape(x, [x.size]) as Tensor1D;
-  } else if (x.rank === 1) {
-    return x as Tensor1D;
-  } else if (x.rank === 2) {
-    // tslint:disable-next-line:no-unnecessary-type-assertion
-    return reshape(x, [1, 1, x.shape[0], x.shape[1]]) as Tensor4D;
-  } else if (x.rank === 3) {
-    // tslint:disable-next-line:no-unnecessary-type-assertion
-    return reshape(x, [1, x.shape[0], x.shape[1], x.shape[2]]) as Tensor4D;
-  }
-  return x as Tensor4D;
 }
 
 export const batchNorm = op({batchNorm_});

@@ -208,7 +208,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     const data = await res.data();
     expect(data.length).toEqual(10 * 10 * 3);
   });
-  it('fromPixels for HTMLVideolement', async () => {
+  it('fromPixels for HTMLVideoElement', async () => {
     const video = document.createElement('video');
     video.autoplay = true;
     const source = document.createElement('source');
@@ -222,7 +222,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     // On mobile safari the ready state is ready immediately so we
     if (video.readyState < 2) {
       await new Promise(resolve => {
-        video.addEventListener('loadeddata', () => resolve());
+        video.addEventListener('loadeddata', () => resolve(video));
       });
     }
 
@@ -233,7 +233,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     document.body.removeChild(video);
   });
 
-  it('fromPixels for HTMLVideolement throws without loadeddata', async () => {
+  it('fromPixels for HTMLVideoElement throws without loadeddata', async () => {
     const video = document.createElement('video');
     video.width = 1;
     video.height = 1;
@@ -282,4 +282,63 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
 
     expectArraysClose(pixelsData, actualInt32, 10);
   });
+
+  if (tf.env().getBool('IS_CHROME')) {
+    it('fromPixels for ImageBitmap', async () => {
+      const imageDataWidth = 1;
+      const imageDataHeight = 2;
+      const numChannel = 3;
+      const pixels = new ImageData(imageDataWidth, imageDataHeight);
+      for (let i = 0; i < imageDataWidth * imageDataHeight * 4; ++i) {
+        if (i % 4 === 3) {
+          pixels.data[i] = 255;
+        } else {
+          pixels.data[i] = i;
+        }
+      }
+
+      const imageBitmap = await createImageBitmap(pixels);
+      const res = tf.browser.fromPixels(imageBitmap, numChannel);
+      imageBitmap.close();
+      expect(res.shape).toEqual([imageDataHeight, imageDataWidth, numChannel]);
+      const data = await res.data();
+      expect(data.length)
+          .toEqual(imageDataHeight * imageDataWidth * numChannel);
+      expectArraysEqual(await res.data(), [0, 1, 2, 4, 5, 6]);
+    });
+
+    it('fromPixels for ImageBitmap outShape changes', async() => {
+      const imageDataWidth = 2;
+      const imageDataHeight = 2;
+      let numChannel = 3;
+      const pixels = new ImageData(imageDataWidth, imageDataHeight);
+      for (let i = 0; i < imageDataWidth * imageDataHeight * 4; ++i) {
+        if (i % 4 === 3) {
+          pixels.data[i] = 255;
+        } else {
+          pixels.data[i] = i;
+        }
+      }
+
+      const imageBitmap = await createImageBitmap(pixels);
+      const res = tf.browser.fromPixels(imageBitmap, numChannel);
+      expect(res.shape).toEqual([imageDataHeight, imageDataWidth, numChannel]);
+      const data = await res.data();
+      expect(data.length)
+          .toEqual(imageDataHeight * imageDataWidth * numChannel);
+      expectArraysEqual(await res.data(),
+          [0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14]);
+
+      // Change output shapes
+      numChannel = 4;
+      const resShapeChange = tf.browser.fromPixels(imageBitmap, numChannel);
+      expect(resShapeChange.shape)
+          .toEqual([imageDataHeight, imageDataWidth, numChannel]);
+      const data2 = await resShapeChange.data();
+      expect(data2.length)
+          .toEqual(imageDataHeight * imageDataWidth * numChannel);
+      expectArraysEqual(await resShapeChange.data(),
+          [0, 1, 2, 255, 4, 5, 6, 255, 8, 9, 10, 255, 12, 13, 14, 255]);
+    });
+  }
 });

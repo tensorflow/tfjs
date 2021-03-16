@@ -5,6 +5,24 @@ steps:
   id: 'yarn-common'
   args: ['install']
 
+# Test generate_cloudbuild.js
+# See #4523 for why this is special-cased into every cloudbuild.
+- name: 'node:10'
+  dir: 'scripts'
+  id: 'test-generate-cloudbuild'
+  entrypoint: 'yarn'
+  args: ['test-generate-cloudbuild']
+  waitFor: ['yarn-common']
+
+# Test run_flaky.js
+# The flaky test runner is important enough to test every time and takes less
+# than 5 seconds.
+- name: 'node:10'
+  id: 'test-run-flaky'
+  entrypoint: 'yarn'
+  args: ['test-run-flaky']
+  waitFor: ['yarn-common']
+
 # General configuration
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc

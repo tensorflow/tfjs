@@ -21,7 +21,7 @@ import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
-import {DataType, TensorLike} from '../types';
+import {TensorLike} from '../types';
 import * as util from '../util';
 
 import {op} from './operation';
@@ -43,8 +43,7 @@ import {op} from './operation';
  * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
 function expandDims_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
-  const parseAs: DataType = null;
-  const $x = convertToTensor(x, 'x', 'expandDims', parseAs);
+  const $x = convertToTensor(x, 'x', 'expandDims', 'string_or_numeric');
 
   util.assert(axis <= $x.rank, () => 'Axis must be <= rank of the tensor');
 
@@ -52,8 +51,7 @@ function expandDims_<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
   const attrs: ExpandDimsAttrs = {dim: axis};
 
   return ENGINE.runKernel(
-             ExpandDims, inputs as {} as NamedTensorMap,
-             attrs as {} as NamedAttrMap) as T;
+      ExpandDims, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const expandDims = op({expandDims_});

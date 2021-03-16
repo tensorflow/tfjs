@@ -17,8 +17,12 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-yarn karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun
+node ../scripts/run_flaky.js "yarn karma start --browsers='bs_firefox_mac' --singleRun"
+node ../scripts/run_flaky.js "yarn karma start --browsers='bs_chrome_mac' --singleRun"
 yarn test-tools
+
+# If these are re-enabled, note that they may run multiple browsers per karma
+# instance.
 # cd integration_tests
 # yarn benchmark-cloud
 # Reinstall the following line once https://github.com/tensorflow/tfjs/pull/1663

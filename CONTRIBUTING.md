@@ -40,7 +40,7 @@ or [announcement](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs-
 ## Filing GitHub issues
 
 Please follow the guidelines specified in the
-[ISSUE_TEMPLATE](https://github.com/tensorflow/tfjs/blob/master/ISSUE_TEMPLATE.md)
+[ISSUE_TEMPLATE](https://github.com/tensorflow/tfjs/tree/master/.github/ISSUE_TEMPLATE)
 file.
 
 ## Good places to start

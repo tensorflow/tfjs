@@ -27,6 +27,16 @@ describeWithFlags('fill', ALL_ENVS, () => {
     expectArraysClose(await a.data(), [2, 2, 2]);
   });
 
+  it('1D fill with inf', async () => {
+    const a = tf.fill([3], Number.POSITIVE_INFINITY);
+    expect(a.dtype).toBe('float32');
+    expect(a.shape).toEqual([3]);
+    expectArraysClose(await a.data(), [
+      Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY,
+      Number.POSITIVE_INFINITY
+    ]);
+  });
+
   it('1D fill string', async () => {
     const a = tf.fill([3], 'aa');
     expect(a.dtype).toBe('string');

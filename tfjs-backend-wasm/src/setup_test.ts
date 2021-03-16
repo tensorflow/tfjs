@@ -15,7 +15,13 @@
  * =============================================================================
  */
 
+// Import core for side effects (e.g. flag registration)
+import '@tensorflow/tfjs-core';
 // tslint:disable-next-line:no-imports-from-dist
+import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
+// tslint:disable-next-line: no-imports-from-dist
+import '@tensorflow/tfjs-core/dist/register_all_gradients';
+// tslint:disable-next-line: no-imports-from-dist
 import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 setTestEnvs([{name: 'test-wasm', backendName: 'wasm', isDataSync: true}]);
@@ -86,8 +92,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'resizeBilinear',
     excludes: [
-      'gradients',        // Not yet implemented.
-      'halfPixelCenters'  // Not yet implemented.
+      'gradients',  // Not yet implemented.
     ]
   },
   {
@@ -380,8 +385,16 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {include: 'prod'},
   {include: 'floor'},
+  {include: 'topk'},
   {include: 'expandDims'},
-  {include: 'stack'}
+  {include: 'stack'},
+  {
+    include: 'round',
+    // Pool is not supported yet.
+    excludes: ['pool'],
+  },
+  {include: 'step kernel'},
+  {include: 'ceil'},
 ];
 
 const customInclude = (testName: string) => {

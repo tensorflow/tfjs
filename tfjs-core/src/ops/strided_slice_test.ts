@@ -134,7 +134,7 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expectArraysClose(await output.data(), [0, 2]);
   });
 
-  it('strided slice with several new axes', () => {
+  it('strided slice with several new axes', async () => {
     // Python slice code: t[1:2,tf.newaxis,0:3,tf.newaxis,2:5]
     const t = tf.zeros([2, 3, 4, 5]);
     const begin = [1, 0, 0, 0, 2];
@@ -147,6 +147,7 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     const output = tf.stridedSlice(
         t, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask);
     expect(output.shape).toEqual([1, 1, 3, 1, 2, 5]);
+    expectArraysClose(await output.data(), new Array(30).fill(0));
   });
 
   it('strided slice with new axes and shrink axes', () => {
@@ -457,5 +458,23 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     const output = tf.stridedSlice(tensor, [0], [3], [2]);
     expect(output.shape).toEqual([2]);
     expectArraysClose(await output.data(), [0, 2]);
+  });
+
+  it('ensure no memory leak', async () => {
+    const numTensorsBefore = tf.memory().numTensors;
+    const numDataIdBefore = tf.engine().backend.numDataIds();
+
+    const tensor = tf.tensor1d([0, 1, 2, 3]);
+    const output = tf.stridedSlice(tensor, [0], [3], [2]);
+    expect(output.shape).toEqual([2]);
+    expectArraysClose(await output.data(), [0, 2]);
+
+    tensor.dispose();
+    output.dispose();
+
+    const numTensorsAfter = tf.memory().numTensors;
+    const numDataIdAfter = tf.engine().backend.numDataIds();
+    expect(numTensorsAfter).toBe(numTensorsBefore);
+    expect(numDataIdAfter).toBe(numDataIdBefore);
   });
 });

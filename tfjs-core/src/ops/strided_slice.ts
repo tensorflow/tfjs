@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {StridedSlice, StridedSliceAttrs, StridedSliceInputs} from '../kernel_names';
 import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
@@ -24,9 +24,6 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
 import {op} from './operation';
-import {reshape} from './reshape';
-import {slice} from './slice';
-import {computeOutShape, getNormalizedAxes, maskToAxes} from './slice_util';
 
 /**
  * Extracts a strided slice of a tensor.
@@ -65,76 +62,7 @@ function stridedSlice_(
     x: Tensor|TensorLike, begin: number[], end: number[], strides?: number[],
     beginMask = 0, endMask = 0, ellipsisMask = 0, newAxisMask = 0,
     shrinkAxisMask = 0): Tensor {
-  let $x = convertToTensor(x, 'x', 'stridedSlice');
-
-  const forward: ForwardFunc<Tensor> = (backend) => {
-    // make a copy because it may be modified further down.
-    begin = begin.slice();
-    end = end.slice();
-
-    if (strides == null) {
-      strides = new Array(begin.length);
-    }
-
-    const ellipsisAxes = maskToAxes(ellipsisMask);
-    if (ellipsisAxes.length > 1) {
-      throw new Error('Multiple ellipses in slice is not allowed.');
-    }
-
-    if (ellipsisMask !== 0 && newAxisMask !== 0) {
-      throw new Error(
-          'Using both ellipsisMask and newAxisMask is not yet supported.');
-    }
-
-    if (ellipsisMask !== 0 && shrinkAxisMask !== 0) {
-      throw new Error(
-          'Using both ellipsisMask and shrinkAxisMask is not yet supported.');
-    }
-
-    const numInterpolatedAxes = $x.rank - begin.length;
-
-    // Expand the dims of x based on the newAxisMask.
-    const expandAxes = maskToAxes(newAxisMask);
-    const newShape = $x.shape.slice();
-    expandAxes.forEach(axis => {
-      begin[axis] = 0;
-      end[axis] = 1;
-      newShape.splice(axis, 0, 1);
-    });
-    $x = reshape($x, newShape);
-
-    const {
-      begin: normalizedBegin,
-      end: normalizedEnd,
-      strides: normalizedStrides
-    } =
-        getNormalizedAxes(
-            $x.shape, ellipsisAxes, numInterpolatedAxes, begin, end, strides,
-            beginMask, endMask, ellipsisMask);
-    begin = normalizedBegin;
-    end = normalizedEnd;
-    strides = normalizedStrides;
-
-    const shrinkAxes = maskToAxes(shrinkAxisMask);
-    // Adjust the ends based on the shrink mask.
-    shrinkAxes.forEach(axis => {
-      end[axis] = begin[axis] + 1;
-      strides[axis] = 1;
-    });
-
-    // Figure out the output shape.
-    const size = computeOutShape(begin, end, strides);
-    // Remove the axes based on shrinkMask.
-    const outShape = size.filter((_, axis) => shrinkAxes.indexOf(axis) === -1);
-
-    const nonStrided = strides.every(v => v === 1);
-    if (nonStrided) {
-      return reshape(slice($x, begin, size), outShape);
-    }
-
-    const res = backend.stridedSlice($x, begin, end, strides);
-    return reshape(res, outShape);
-  };
+  const $x = convertToTensor(x, 'x', 'stridedSlice');
 
   const inputs: StridedSliceInputs = {x: $x};
   const attrs: StridedSliceAttrs = {
@@ -148,8 +76,8 @@ function stridedSlice_(
     shrinkAxisMask
   };
 
-  return ENGINE.runKernelFunc(
-      forward, inputs as {} as NamedTensorMap, null /* grad */, StridedSlice,
+  return ENGINE.runKernel(
+      StridedSlice, inputs as {} as NamedTensorMap,
       attrs as {} as NamedAttrMap);
 }
 

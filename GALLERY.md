@@ -6,6 +6,8 @@ Please reach out to us if you'd like to put your project on the list.
 
 ## Demos & Applications
 
+- [Time Series Forecasting](https://jinglescode.github.io/time-series-forecasting-tensorflowjs/) - Pull stock prices from online API, train and perform predictions using Long Short Term Memory, and predict the next value. [[demo](https://jinglescode.github.io/time-series-forecasting-tensorflowjs/)][[repo](https://github.com/jinglescode/time-series-forecasting-tensorflowjs)]
+- [Textual Similarity Analysis](https://jinglescode.github.io/textual-similarity-universal-sentence-encoder/) - Group similar sentences with universal sentence encoder word embeddings [[demo](https://jinglescode.github.io/textual-similarity-universal-sentence-encoder/)][[repo](https://github.com/jinglescode/textual-similarity-universal-sentence-encoder)]
 - [PoseAnimator](https://github.com/yemount/pose-animator/) - Animate any SVG character using your own body live via your webcam. Uses posenet and facemesh to create some really unique animations.
 - [3D Face Doodles](https://github.com/cyrildiagne/ar-facedoodle) - What if your face was a canvas and you could paint on it in real time? Check out this experiment that does just that in real time in the browser.
 - [Shaderbooth](https://shaderbooth.com/?85daa) - Experiment with WebGL Shaders + TensorFlow.js to create stunning visual effects such as shooting lasers from your eyes and more!
@@ -61,6 +63,8 @@ Please reach out to us if you'd like to put your project on the list.
 - [Membrane](https://membrane.today) - An interactive audiovisual tone mirror that responds to nose movement, by Ashlin Aronin.
 - [MedSeg](https://www.medseg.ai) - Online interactive segmentation tool for radiological images.
 - [NSFW Filter](https://github.com/nsfw-filter/nsfw-filter) - A browser extension to block NSFW images.
+- [MIRNet-TFJS](https://github.com/Rishit-dagli/MIRNet-TFJS) - Converts and runs the MIRNet Model on the web which is capable of enhancing low-light images upto a really great extent - By Rishit Dagli. [[demo](https://mirnet-tfjs.rishit.tech/)][[repo](https://github.com/Rishit-dagli/MIRNet-TFJS)]
+- [Custom Object Detection on browser using TensorFlow.js](https://github.com/NSTiwari/TensorFlow.js-Custom-Object-Detection) - An E2E app for custom object detection on the browser using TensorFlow.js; by Nitin Tiwari & Rony Benny.
 
 ## Tutorials / Codelabs
 
@@ -73,6 +77,8 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [Python Programming - Deep learning in the browser with TensorFlow.js](https://pythonprogramming.net/deep-learning-browser-introduction-tensorflowjs/) by Harrison Kinsley
 - [Basic Tutorial with TensorFlow.js: Linear Regression](https://medium.com/@tristansokol/basic-tutorial-with-tensorflow-js-linear-regression-aa68b16e5b8e) by Tristan Sokol
 - [Make a smart webcam in JavaScript with a pre-trained Machine Learning model](https://codelabs.developers.google.com/codelabs/tensorflowjs-object-detection/index.html?index=..%2F..index#8) by Jason Mayes
+- [Time Series Forecasting with TensorFlow.js](https://jinglescode.github.io/2019/05/17/time-series-forecasting-with-tensorflow-js/) by [Jingles](https://github.com/jinglescode/)
+- [Build Textual Similarity Analysis Web App](https://jinglescode.github.io/2020/02/10/build-textual-similarity-analysis-web-app/) by [Jingles](https://github.com/jinglescode/)
 
 ## Video tutorials
 - [Beginning Machine Learning with TensorFlow.js](https://academy.infinite.red/p/beginning-machine-learning-with-tensorflow-js)
@@ -99,6 +105,9 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [A look at how we built the Emoji Scavenger Hunt using TensorFlow.js](https://medium.com/tensorflow/a-look-at-how-we-built-the-emoji-scavenger-hunt-using-tensorflow-js-3d760a7ebfe6) by Jacques Bruwer, JK Kafalas, and Shuhei Iitsuka from Google Brand Studio
 - [Read a tensorflow demo to get started with machine learning](https://mp.weixin.qq.com/s/sffUvod_KlmvtVI-W3PLEQ) by [EuryChen](https://github.com/netpi) (Chinese: 读懂一个Tensorflow Demo 入门机器学习)
 
+## Books
+- [Learning Tensorflow.js: Powerful Machine Learning in JavaScript](https://amzn.to/3dR3vpY) - In this guide, author [Gant Laborde](https://github.com/gantman) provides a hands-on, end-to-end approach to TensorFlow.js fundamentals for a broad technical audience that includes data scientists, engineers, web developers, students, and researchers.
+
 ## Notebooks
 - [Introduction to TensorFlow.js](https://beta.observablehq.com/@nsthorat/introduction-to-deeplearn-js) by Nikhil Thorat
 - [How to build a Teachable Machine](https://beta.observablehq.com/@nsthorat/how-to-build-a-teachable-machine-with-tensorflow-js) by Nikhil Thorat
@@ -116,4 +125,5 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [machinelearn.js](https://github.com/machinelearnjs/machinelearnjs) - A general machine learning library like ScikitLearn directly in the Browser and Node.
 - [TensorFlow.js GPU-accelerated t-SNE](https://github.com/tensorflow/tfjs-tsne) - A linear t-SNE for the web.
 - [Pipcook](https://github.com/alibaba/pipcook) - A front-end algorithm framework to create a ML pipeline based on tfjs-node, which is similar to TFX but in JS.
-- [danfo.js](https://github.com/opensource9ja/danfojs) - A powerful JavaScript data analysis toolkit inspired by the Python PANDAS library. 
+- [danfo.js](https://github.com/opensource9ja/danfojs) - A powerful JavaScript data analysis toolkit inspired by the Python PANDAS library.
+- [NSFW JS](https://github.com/infinitered/nsfwjs) - Client-side indecent content checker.

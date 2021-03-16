@@ -40,7 +40,7 @@ echo "Started metro. PID=$metro_pid"
 sleep 2s
 
 # Start the test suite.
-yarn test-integration
+node ../../scripts/run_flaky.js "yarn test-integration"
 test_result=$?
 
 # Kill the child process explicitly so that the exit code of the script

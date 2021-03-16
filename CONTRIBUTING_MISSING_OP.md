@@ -73,3 +73,5 @@ the [TF C++ op api](https://www.tensorflow.org/api_docs/cc/) as reference for tf
 4. Add a test to the corresponding executor test file.
 
 5. Update the supported op doc in `tfjs-converter/docs/supported_ops.md`.
+
+6. Add a mapping in kernel2op.json.

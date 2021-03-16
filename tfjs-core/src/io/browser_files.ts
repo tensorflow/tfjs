@@ -96,6 +96,10 @@ export class BrowserDownloads implements IOHandler {
         modelTopologyAndWeightManifest.userDefinedMetadata =
             modelArtifacts.userDefinedMetadata;
       }
+      if (modelArtifacts.modelInitializer != null) {
+        modelTopologyAndWeightManifest.modelInitializer =
+            modelArtifacts.modelInitializer;
+      }
       const modelTopologyAndWeightManifestURL =
           window.URL.createObjectURL(new Blob(
               [JSON.stringify(modelTopologyAndWeightManifest)],
@@ -208,6 +212,9 @@ class BrowserFiles implements IOHandler {
                 }
                 if (modelJSON.userDefinedMetadata != null) {
                   result.userDefinedMetadata = modelJSON.userDefinedMetadata;
+                }
+                if (modelJSON.modelInitializer != null) {
+                  result.modelInitializer = modelJSON.modelInitializer;
                 }
                 resolve(result);
               }

@@ -41,10 +41,6 @@ function tan_<T extends Tensor>(x: T|TensorLike): T {
 
   const inputs: TanInputs = {x: $x};
 
-  return ENGINE.runKernelFunc((backend, save) => {
-    const res = backend.tan($x);
-    save([$x]);
-    return res;
-  }, inputs as {} as NamedTensorMap, null /* grad */, Tan);
+  return ENGINE.runKernel(Tan, inputs as {} as NamedTensorMap);
 }
 export const tan = op({tan_});

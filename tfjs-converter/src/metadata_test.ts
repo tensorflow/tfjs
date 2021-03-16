@@ -29,6 +29,7 @@ describe('kernel2op metadata file', () => {
   it('only known unmapped kernel are unmmapped', () => {
     const knownUnmappedKernels = [
       'Const',
+      'EmptyTensorList',
       'Enter',
       'Exit',
       'FakeQuantWithMinMaxVars',
@@ -73,7 +74,9 @@ describe('kernel2op metadata file', () => {
       'LookupTableImport',
       'LookupTableImportV2',
       'LookupTableFind',
-      'LookupTableFindV2'
+      'LookupTableFindV2',
+      'LookupTableSize',
+      'LookupTableSizeV2'
     ];
     // tslint:disable-next-line:no-require-imports
     const kernel2op = require('../metadata/kernel2op.json');

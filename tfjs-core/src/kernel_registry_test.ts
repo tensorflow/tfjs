@@ -99,7 +99,7 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
       return {
         id: 1,
         dispose: () => null,
-        disposeData: (dataId: {}) => null,
+        disposeData: (dataId: {}) => true,
         numDataIds: () => 0
       } as TestBackend;
     });
@@ -147,7 +147,7 @@ describeWithFlags('kernel_registry', ALL_ENVS, () => {
     interface TestBackend extends KernelBackend {}
     const customBackend = {
       dispose: () => null,
-      disposeData: (dataId: {}) => null,
+      disposeData: (dataId: {}) => true,
       numDataIds: () => 0
     } as TestBackend;
     tf.registerBackend(backendName, () => customBackend);
@@ -215,10 +215,8 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
       },
     });
 
-    const gradFunc = tf.grad(
-        x => tf.engine().runKernel(
-                 kernelName, {x}, {} /* attrs */, [x] /* inputsToSave */) as
-            tf.Tensor);
+    const gradFunc =
+        tf.grad(x => tf.engine().runKernel(kernelName, {x}, {} /* attrs */));
     const dx = gradFunc(x);
     expect(kernelWasCalled).toBe(true);
     expect(gradientWasCalled).toBe(true);
@@ -235,15 +233,16 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
        let gradientWasCalled = false;
        const kernelName = 'MyKernel';
 
-       const forwardReturnDataId = {};
+       const tensor = tf.zeros([3, 3], 'float32');
+       const forwardReturnDataId = tensor.dataId;
        tf.registerKernel({
          kernelName,
          backendName: tf.getBackend(),
          kernelFunc: () => {
            kernelWasCalled = true;
            return {
-             dtype: 'float32',
-             shape: [3, 3],
+             dtype: tensor.dtype,
+             shape: tensor.shape,
              dataId: forwardReturnDataId
            };
          }
@@ -264,8 +263,8 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
 
        const gradFunc = tf.grad(
            x => tf.engine().runKernel(
-                    kernelName, {x}, {} /* attrs */
-                    ) as tf.Tensor);
+               kernelName, {x}, {} /* attrs */
+               ));
        const x = tf.zeros([2, 2]);
        const dx = gradFunc(x);
        expect(kernelWasCalled).toBe(true);
@@ -308,6 +307,7 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
 
     // Inputs as array.
     const z = (...x: tf.Tensor[]) =>
+        // tslint:disable-next-line: no-unnecessary-type-assertion
         tf.engine().runKernel(
             kernelName, x as {} as tf.NamedTensorMap, {} /* attrs */) as
         tf.Tensor;
@@ -360,6 +360,7 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
 
        // Inputs as map.
        const z = (x0: tf.Tensor, x1: tf.Tensor) =>
+           // tslint:disable-next-line: no-unnecessary-type-assertion
            tf.engine().runKernel(kernelName, {x0, x1}, {} /* attrs */) as
            tf.Tensor;
        const gradFunc = tf.grads(z);
@@ -380,10 +381,8 @@ describeWithFlags('gradient registry', ALL_ENVS, () => {
       kernelFunc: () => ({dtype: 'float32', shape: [3, 3], dataId: {}})
     });
 
-    const gradFunc = tf.grad(
-        x => tf.engine().runKernel(
-                 kernelName, {x}, {} /* attrs */, [x] /* inputsToSave */) as
-            tf.Tensor);
+    const gradFunc =
+        tf.grad(x => tf.engine().runKernel(kernelName, {x}, {} /* attrs */));
     expect(() => gradFunc(x))
         .toThrowError(/gradient function not found for MyKernel/);
 

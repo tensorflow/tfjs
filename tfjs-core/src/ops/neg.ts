@@ -41,8 +41,6 @@ function neg_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'neg');
 
   const inputs: NegInputs = {x: $x};
-  return ENGINE.runKernelFunc(
-      backend => backend.neg($x), inputs as {} as NamedTensorMap,
-      null /* grad */, Neg);
+  return ENGINE.runKernel(Neg, inputs as {} as NamedTensorMap);
 }
 export const neg = op({neg_});

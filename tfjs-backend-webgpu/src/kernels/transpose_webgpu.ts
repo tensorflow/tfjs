@@ -25,12 +25,12 @@ export class TransposeProgram implements WebGPUProgram {
   variableNames = ['A'];
   shaderKey: string;
   outputShape: number[];
-  userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  rank: number;
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
+  aShape: number[];
+  newDim: number[];
 
   constructor(aShape: number[], newDim: number[]) {
     const outputShape: number[] = new Array(aShape.length);
@@ -38,17 +38,22 @@ export class TransposeProgram implements WebGPUProgram {
       outputShape[i] = aShape[newDim[i]];
     }
     this.outputShape = outputShape;
-    this.rank = outputShape.length;
-    const dtype = getCoordsDataType(this.rank);
-    const size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
 
-    const switched = getSwitchedCoords(newDim);
+    this.aShape = aShape;
+    this.newDim = newDim;
+    this.shaderKey = `transpose_${newDim}`;
+  }
 
-    this.userCode = `
+  getUserCode(): string {
+    const dtype = getCoordsDataType(this.outputShape.length);
+    const size = util.sizeFromShape(this.outputShape);
+    const switched = getSwitchedCoords(this.newDim);
+
+    const userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
 
@@ -57,12 +62,12 @@ export class TransposeProgram implements WebGPUProgram {
           if(flatIndex < ${size}) {
             ${dtype} resRC = getCoordsFromFlatIndex(flatIndex);
             setOutput(flatIndex, A[getFlatIndex(
-              ${dtype}(${switched}), ${getShapeCoords(aShape)})]);
+              ${dtype}(${switched}), ${getShapeCoords(this.aShape)})]);
           }
         }
       }
     `;
-    this.shaderKey = `tranpose${size}${dtype}${newDim.join(',')}`;
+    return userCode;
   }
 }
 

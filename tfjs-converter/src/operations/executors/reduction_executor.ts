@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor} from '@tensorflow/tfjs-core';
+import {Tensor, Tensor1D, Tensor2D} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
@@ -114,6 +114,29 @@ export const executeOp: InternalOpExecutor =
           return [tfOps.cumsum(
               getParamValue('x', node, tensorMap, context) as Tensor, axis,
               exclusive, reverse)];
+        }
+        case 'Bincount':
+          const x = getParamValue('x', node, tensorMap, context) as Tensor1D;
+          const weights =
+              getParamValue('weights', node, tensorMap, context) as Tensor1D;
+          const size =
+              getParamValue('size', node, tensorMap, context) as number;
+
+          return [tfOps.bincount(x, weights, size)];
+        case 'DenseBincount': {
+          const x = getParamValue('x', node, tensorMap, context) as Tensor1D |
+              Tensor2D;
+          const weights =
+              getParamValue('weights', node, tensorMap, context) as Tensor1D |
+              Tensor2D;
+          const size =
+              getParamValue('size', node, tensorMap, context) as number;
+
+          const binaryOutput =
+              getParamValue('binaryOutput', node, tensorMap, context) as
+              boolean;
+
+          return [tfOps.denseBincount(x, weights, size, binaryOutput)];
         }
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);

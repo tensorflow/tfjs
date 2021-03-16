@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor} from '@tensorflow/tfjs';
+import {Tensor} from '@tensorflow/tfjs-core';
 
 import {histogram} from '../render/histogram';
 import {getDrawArea} from '../render/render_utils';

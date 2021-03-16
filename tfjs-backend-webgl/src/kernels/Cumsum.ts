@@ -39,13 +39,13 @@ export function cumsum(
   }
   const permutedAxis = backend_util.getInnerMostAxes(1, xRank)[0];
 
-  if (permutedAxis !== permutedX.shape.length - 1) {
+  if (permutedAxis !== xRank - 1) {
     throw new Error(
         `WebGL cumsum shader expects an inner-most axis=${
             x.shape.length - 1} ` +
         `but got axis=${axis}`);
   }
-  const size = x.shape[permutedAxis];
+  const size = permutedX.shape[permutedAxis];
   let result = identity({inputs: {x: permutedX}, backend});
   // Use cumsum parallel algorithm, ref:
   // https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda

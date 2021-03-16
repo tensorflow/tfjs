@@ -38,6 +38,7 @@ export {batchNorm} from './batchnorm';
 export {batchNorm2d} from './batchnorm2d';
 export {batchNorm3d} from './batchnorm3d';
 export {batchNorm4d} from './batchnorm4d';
+export {bincount} from './bincount';
 export {broadcastTo} from './broadcast_to';
 export {buffer} from './buffer';
 export {cast} from './cast';
@@ -58,6 +59,7 @@ export {conv3dTranspose} from './conv3d_transpose';
 export {cos} from './cos';
 export {cosh} from './cosh';
 export {cumsum} from './cumsum';
+export {denseBincount} from './dense_bincount';
 export {depthToSpace} from './depth_to_space';
 export {depthwiseConv2d} from './depthwise_conv2d';
 export {diag} from './diag';
@@ -196,8 +198,6 @@ export {zeros} from './zeros';
 export {zerosLike} from './zeros_like';
 
 export * from './boolean_mask';
-export * from './compare';
-export * from './binary_ops';
 export * from './transpose';
 export * from './norm';
 export * from './moving_average';
@@ -246,6 +246,7 @@ import {nonMaxSuppressionPadded} from './image/non_max_suppression_padded';
 import {nonMaxSuppressionPaddedAsync} from './image/non_max_suppression_padded_async';
 import {resizeBilinear} from './image/resize_bilinear';
 import {resizeNearestNeighbor} from './image/resize_nearest_neighbor';
+import {transform} from './image/transform';
 const image = {
   flipLeftRight,
   resizeNearestNeighbor,
@@ -257,7 +258,8 @@ const image = {
   nonMaxSuppressionWithScore,
   nonMaxSuppressionWithScoreAsync,
   nonMaxSuppressionPadded,
-  nonMaxSuppressionPaddedAsync
+  nonMaxSuppressionPaddedAsync,
+  transform
 };
 
 // linalg namespace

@@ -12,13 +12,13 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#include "src/cc/transpose_impl.h"
+#include "tfjs-backend-wasm/src/cc/transpose_impl.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <vector>
 
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 

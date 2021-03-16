@@ -22,7 +22,7 @@
 #include <memory>
 #include <vector>
 
-#include "src/cc/non_max_suppression_impl.h"
+#include "tfjs-backend-wasm/src/cc/non_max_suppression_impl.h"
 
 namespace tfjs {
 namespace wasm {

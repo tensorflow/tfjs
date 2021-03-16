@@ -16,10 +16,11 @@
  */
 
 // Shared functionality among backends.
-
 export {simpleAbsImpl} from './kernels/Abs';
 export {addImpl} from './kernels/Add';
+export {bincountImpl, bincountReduceImpl} from './kernels/Bincount_impl';
 export {ceilImpl} from './kernels/Ceil';
+export {concatImpl} from './kernels/Concat_impl';
 export {expImpl} from './kernels/Exp';
 export {expm1Impl} from './kernels/Expm1';
 export {floorImpl} from './kernels/Floor';
@@ -35,6 +36,7 @@ export {multiplyImpl} from './kernels/Multiply';
 export {negImpl} from './kernels/Neg';
 export {notEqualImpl} from './kernels/NotEqual';
 export {prodImpl} from './kernels/Prod';
+export {rangeImpl} from './kernels/Range_impl';
 export {rsqrtImpl} from './kernels/Rsqrt';
 export {sliceImpl} from './kernels/Slice';
 export {squaredDifferenceImpl} from './kernels/SquaredDifference';

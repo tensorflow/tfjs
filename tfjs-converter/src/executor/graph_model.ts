@@ -43,6 +43,7 @@ export class GraphModel implements InferenceModel {
   private artifacts: io.ModelArtifacts;
   private initializer: GraphExecutor;
   private resourceManager: ResourceManager;
+  private signature: tensorflow.ISignatureDef;
 
   // Returns the version information for the tensorflow model GraphDef.
   get modelVersion(): string {
@@ -71,6 +72,10 @@ export class GraphModel implements InferenceModel {
 
   get metadata(): {} {
     return this.artifacts.userDefinedMetadata;
+  }
+
+  get modelSignature(): {} {
+    return this.signature;
   }
 
   /**
@@ -139,23 +144,22 @@ export class GraphModel implements InferenceModel {
     this.artifacts = artifacts;
     const graph = this.artifacts.modelTopology as tensorflow.IGraphDef;
 
-    const oldVersion = this.isOldVersion(artifacts.convertedBy);
     let signature;
-    if (oldVersion) {
-      if (this.artifacts.userDefinedMetadata != null) {
-        signature =  // tslint:disable-next-line:no-any
-            (this.artifacts.userDefinedMetadata as any).signature as
-            tensorflow.ISignatureDef;
-      }
+    if (this.artifacts.userDefinedMetadata != null &&
+        this.artifacts.userDefinedMetadata.signature != null) {
+      signature =  // tslint:disable-next-line:no-any
+          (this.artifacts.userDefinedMetadata as any).signature as
+          tensorflow.ISignatureDef;
     } else {
       signature = this.artifacts.signature;
     }
+    this.signature = signature;
 
     this.version = `${graph.versions.producer}.${graph.versions.minConsumer}`;
     const weightMap =
         io.decodeWeights(this.artifacts.weightData, this.artifacts.weightSpecs);
     this.executor = new GraphExecutor(
-        OperationMapper.Instance.transformGraph(graph, signature));
+        OperationMapper.Instance.transformGraph(graph, this.signature));
     this.executor.weightMap = this.convertTensorMapToTensorsMap(weightMap);
     // Attach a model-level resourceManager to each executor to share resources,
     // such as `HashTable`.
@@ -172,28 +176,6 @@ export class GraphModel implements InferenceModel {
       // in the resourceManager.
       this.initializer.resourceManager = this.resourceManager;
       this.initializer.executeAsync({}, []);
-    }
-
-    return true;
-  }
-
-  private isOldVersion(version: string) {
-    if (version) {
-      let semVer = version.split('TensorFlow.js Converter v');
-      semVer = semVer[0].split('.');
-      const majorVer = parseInt(semVer[0], 10);
-      const minorVer = parseInt(semVer[1], 10);
-
-      // 1.x and 2.x <= 2.7 are old versions.
-      if (majorVer <= 1) {
-        return true;
-      }
-
-      if (majorVer === 2 && minorVer <= 7) {
-        return true;
-      }
-
-      return false;
     }
 
     return true;
