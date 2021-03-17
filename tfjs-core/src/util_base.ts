@@ -629,8 +629,8 @@ export function toNestedArray(
     return [];
   }
   if (size !== a.length) {
-    throw new Error(`[${shape}] does not match the input size ${a.length} ${
-        isComplex ? 'for a complex tensor' : ''}.`);
+    throw new Error(`[${shape}] does not match the input size ${a.length}${
+        isComplex ? ' for a complex tensor' : ''}.`);
   }
 
   return createNestedArray(0, shape, a, isComplex);
