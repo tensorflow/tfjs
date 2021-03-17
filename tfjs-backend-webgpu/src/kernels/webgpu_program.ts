@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, Rank, ShapeMap, TensorInfo} from '@tensorflow/tfjs-core';
+import {DataType, Rank, TensorInfo} from '@tensorflow/tfjs-core';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import * as shader_preprocessor from '../shader_preprocessor';
@@ -31,6 +31,8 @@ export interface WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[];
   uniforms?: string;
+  // Indicate whether shapes data are needed.
+  needsShapesUniforms?: boolean;
   // Size of register cache in one dimension (assumes square cache).
   // Each thread writes to workPerThread * workPerThread locations in the output
   // buffer.
@@ -55,10 +57,12 @@ export interface TensorData {
 export const makeBindGroup =
     (device: GPUDevice, bindGroupLayout: GPUBindGroupLayout,
      inputs: GPUBindingResource[], output: GPUBindingResource,
-     uniforms?: GPUBindingResource) => {
+     uniforms?: GPUBindingResource[]) => {
       const bindings = [output, ...inputs];
       if (uniforms) {
-        bindings.push(uniforms);
+        uniforms.forEach(uniform => {
+          bindings.push(uniform);
+        });
       }
       return device.createBindGroup({
         layout: bindGroupLayout,
@@ -69,11 +73,11 @@ export const makeBindGroup =
 export const compileProgram =
     (glslang: Glslang, device: GPUDevice, program: WebGPUProgram,
      inputsData: shader_preprocessor.InputInfo[], output: TensorInfo,
-     uniforms?: GPUBindingResource): WebGPUBinary => {
+     hasFloatProgramUniforms?: boolean): WebGPUBinary => {
       const outputData = {dtype: output.dtype, shape: output.shape};
 
-      const source =
-          shader_preprocessor.makeShader(inputsData, outputData, program);
+      const source = shader_preprocessor.makeShader(
+          inputsData, outputData, program, hasFloatProgramUniforms);
       const result = glslang.compileGLSLZeroCopy(source, 'compute', false);
       if (result.data.length === 0) {
         throw new Error('Shader compilation failed');
@@ -89,10 +93,8 @@ export const compileProgram =
     };
 
 export function makeShaderKey<R extends Rank>(
-    program: WebGPUProgram, shapes: Array<ShapeMap[R]>,
-    types: string[]): string {
+    program: WebGPUProgram, types: string[]): string {
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
-      shapes.join(',') + types.join(',') + program.variableNames.join(',') +
-      program.shaderKey;
+      types.join(',') + program.variableNames.join(',') + program.shaderKey;
   return key;
 }

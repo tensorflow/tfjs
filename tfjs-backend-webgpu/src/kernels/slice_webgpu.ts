@@ -29,6 +29,7 @@ export class SliceProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workPerThread = 1;
   workGroupSize: [number, number, number] = [16, 1, 1];
+  needsShapesUniforms = true;
   start: number[];
   destSize: number[];
 

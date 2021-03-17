@@ -71,6 +71,7 @@ export class UnaryOpProgram implements WebGPUProgram {
   variableNames = ['A'];
   workPerThread: number;
   workGroupSize: [number, number, number];
+  needsShapesUniforms = true;
   op: string;
 
   constructor(outputShape: number[], op: string) {
@@ -86,7 +87,7 @@ export class UnaryOpProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
     this.op = op;
-    this.shaderKey = `unary_${op}`;
+    this.shaderKey = `unary_${op}_${outputShape}`;
   }
 
   getUserCode(): string {

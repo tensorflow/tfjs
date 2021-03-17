@@ -17,7 +17,6 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -30,6 +29,7 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   variableNames = ['x'];
   uniforms = 'ivec2 pad, stride, dilation, convDims, filterDims;';
   workGroupSize: [number, number, number] = [256, 1, 1];
+  needsShapesUniforms = true;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.outShape;
@@ -38,7 +38,8 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    this.shaderKey = 'poolWithFilterSizeEqualsOne';
+    this.shaderKey = `poolWithFilterSizeEqualsOne_${convInfo.inShape.length}_${
+        convInfo.outShape}`;
   }
 
   getUserCode(): string {
@@ -48,7 +49,7 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
         int batch = coords[0];
         int d = coords[3];
 
-        if (all(lessThan(coords, ${getShapeCoords(this.outputShape)}))) {
+        if (all(lessThan(coords, outShape))) {
           ivec2 xRCCorner = coords.yz * stride;
           int xRCorner = xRCCorner.x;
           int xCCorner = xRCCorner.y;

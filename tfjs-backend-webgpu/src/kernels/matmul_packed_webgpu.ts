@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
+import {TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
@@ -129,6 +129,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
   workPerThread: number;
   variableNames = ['A', 'B'];
   workGroupSize: [number, number, number] = [16, 16, 1];
+  needsShapesUniforms = true;
   aShape: [number, number, number];
   transposeA: boolean;
   transposeB: boolean;
@@ -139,8 +140,8 @@ export class MatMulPackedProgram implements WebGPUProgram {
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
       workPerThread: number, transposeA = false, transposeB = false,
-      addBias = false, activation: string = null,
-      hasPreluActivationWeights = false) {
+      bias: TensorInfo = null, activation: string = null,
+      preluActivationWeights: TensorInfo = null) {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
     const dimInner = transposeA ? aShape[1] : aShape[2];
@@ -165,13 +166,17 @@ export class MatMulPackedProgram implements WebGPUProgram {
           this.dispatchLayout, this.outputShape, this.workGroupSize,
           [workPerThread, workPerThread, 1]);
     }
-
+    const addBias = bias != null;
+    const hasPreluActivationWeights = preluActivationWeights != null;
+    let shapeKey = '';
     if (addBias) {
       this.variableNames.push('bias');
+      shapeKey += `${bias.shape.length}`;
     }
 
     if (hasPreluActivationWeights) {
       this.variableNames.push('preluActivationWeights');
+      shapeKey += `${preluActivationWeights.shape.length}`;
     }
 
     this.workPerThread = workPerThread;
@@ -182,7 +187,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
     this.shaderKey = `matMulPacked_${this.workPerThread}_${transposeA}_${
-        transposeB}_${activation}`;
+        transposeB}_${activation}_${shapeKey}`;
   }
 
   getUserCode(): string {
@@ -203,34 +208,32 @@ export class MatMulPackedProgram implements WebGPUProgram {
     const tileSizeA = [tileAOuter, tileInner];
     const tileSizeB = [tileInner, tileBOuter];
     const fitA = tilesFitEvenlyIntoShape(tileSizeA, this.aShape.slice(1));
-    const batchASize = this.aShape[1] * this.aShape[2];
-    const batchBSize = bShape[1] * bShape[2];
     let sampleA;
 
     if (this.transposeA === false) {
       sampleA = fitA ?
-          `A[batch * ${batchASize} + row * dimInner + col]` :
+          `A[batch * batchASize + row * dimInner + col]` :
           `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
-            A[batch * ${batchASize} + row * dimInner + col] : 0`;
+            A[batch * batchASize + row * dimInner + col] : 0`;
     } else {
       sampleA = fitA ?
-          `A[batch * ${batchASize} + col * dimAOuter + row]` :
+          `A[batch * batchASize + col * dimAOuter + row]` :
           `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
-            A[batch* ${batchASize} + col * dimAOuter + row] : 0`;
+            A[batch* batchASize + col * dimAOuter + row] : 0`;
     }
 
     const fitB = tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1));
     let sampleB;
     if (this.transposeB === false) {
       sampleB = fitB ?
-          `B[batch * ${batchBSize} + row * dimBOuter + col]` :
+          `B[batch * batchBSize + row * dimBOuter + col]` :
           `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
-            B[batch * ${batchBSize} + row * dimBOuter + col] : 0`;
+            B[batch * batchBSize + row * dimBOuter + col] : 0`;
     } else {
       sampleB = fitB ?
-          `B[batch * ${batchBSize} + col * dimInner + row]` :
+          `B[batch * batchBSize + col * dimInner + row]` :
           `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
-            B[batch * ${batchBSize} + col * dimInner + row] : 0`;
+            B[batch * batchBSize + col * dimInner + row] : 0`;
     }
 
     let activationSnippet = '', applyActivationSnippet = '';
@@ -257,12 +260,9 @@ export class MatMulPackedProgram implements WebGPUProgram {
     const userCode = `
       ${activationSnippet}
 
-      int dimAOuter = ${
-        this.transposeA === true ? `${this.aShape[2]}` : `${this.aShape[1]}`};
-      int dimInner = ${
-        this.transposeA === true ? `${this.aShape[1]}` : `${this.aShape[2]}`};
-      int dimBOuter = ${
-        this.transposeB === true ? `${bShape[1]}` : `${bShape[2]}`};
+      int dimAOuter = ${this.transposeA === true ? `aShape[2]` : `aShape[1]`};
+      int dimInner = ${this.transposeA === true ? `aShape[1]` : `aShape[2]`};
+      int dimBOuter = ${this.transposeB === true ? `bShape[1]` : `bShape[2]`};
 
       int batch;
 
@@ -270,9 +270,11 @@ export class MatMulPackedProgram implements WebGPUProgram {
       this.workPerThread, this.workPerThread, 1
     ])}
       float mm_readA(int row, int col) {
+        int batchASize = aShape[1] * aShape[2];
         return ${sampleA};
       }
       float mm_readB(int row, int col) {
+        int batchBSize = bShape[1] * bShape[2];
         return ${sampleB};
       }
       void mm_write(int row, int col, float value) {

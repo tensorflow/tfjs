@@ -29,6 +29,7 @@ export class SelectProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workPerThread = 4;
   workGroupSize: [number, number, number] = [16, 1, 1];
+  needsShapesUniforms = true;
   cRank: number;
   rank: number;
 

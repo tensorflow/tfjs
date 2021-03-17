@@ -68,6 +68,7 @@ interface ProgramParams {
   workGroupSize?: [number, number, number];
   variableNames: string[];
   uniforms?: string;
+  needsShapesUniforms?: boolean;
   isVec4?: boolean;
   getUserCode: () => string;
 }
@@ -80,7 +81,7 @@ export interface InputInfo {
 
 export function makeShader(
     inputInfo: InputInfo[], outputData: {dtype: DataType, shape: number[]},
-    program: ProgramParams): string {
+    program: ProgramParams, hasFloatProgramUniforms?: boolean): string {
   const prefixSnippets: string[] = [];
 
   if (program.workGroupSize != null) {
@@ -107,24 +108,50 @@ export function makeShader(
   });
 
   let uniformDeclaration = '';
-
-  if (program.uniforms) {
-    uniformDeclaration += program.uniforms;
-
-    prefixSnippets.push(`
-    layout(std140, set = 0, binding = ${
-        1 + program.variableNames.length}) uniform Uniforms {
-      ${uniformDeclaration}
-    };
-  `);
+  if (program.needsShapesUniforms) {
+    program.variableNames.forEach((x, i) => {
+      uniformDeclaration += `${getCoordsDataType(inputInfo[i].shape.length)} ${
+          x.charAt(0).toLowerCase() + x.slice(1)}Shape; `;
+    });
+    uniformDeclaration +=
+        `${getCoordsDataType(outputData.shape.length)} outShape; `;
   }
+
+  if (hasFloatProgramUniforms === true) {
+    prefixSnippets.push(`
+      layout(std140, set = 0, binding = ${
+        1 + program.variableNames.length}) uniform Uniforms1 {
+          ${uniformDeclaration}
+      };
+
+      layout(std140, set = 0, binding = ${
+        2 + program.variableNames.length}) uniform Uniforms2 {
+          ${program.uniforms}
+      };
+    `);
+  } else {
+    if (program.uniforms) {
+      uniformDeclaration += program.uniforms;
+    }
+    if (program.uniforms || program.needsShapesUniforms) {
+      prefixSnippets.push(`
+        layout(std140, set = 0, binding = ${
+          1 + program.variableNames.length}) uniform Uniforms {
+            ${uniformDeclaration}
+        };
+    `);
+    }
+  }
+
   const [getOutputCoords, dispatchLayoutRank] =
       generateGetOutputCoords(outputData.shape, program.dispatchLayout);
   const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
   const sources = [
     SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS,
     getOutputCoords, getCoords,
-    getSetOutputSnippet(outputData.shape, outputData.dtype, program.isVec4)
+    getSetOutputSnippet(
+        outputData.shape, outputData.dtype, program.needsShapesUniforms,
+        program.isVec4)
   ];
 
   if (dispatchLayoutRank === outputData.shape.length) {
@@ -134,7 +161,8 @@ export function makeShader(
         inputInfo
             .map(
                 x => getInputSamplingSnippet(
-                    x, outputData.shape, program.isVec4))
+                    x, outputData.shape, program.isVec4,
+                    program.needsShapesUniforms))
             .join('\n');
     sources.push(inputSamplingSnippet);
   }
@@ -192,7 +220,8 @@ const SAMPLING_SNIPPETS = `
 `;
 
 function getSetOutputSnippet(
-    outShape: number[], outBufferType: DataType, isVec4: boolean): string {
+    outShape: number[], outBufferType: DataType, needsShapesUniforms: boolean,
+    isVec4: boolean): string {
   const outRank = outShape.length;
   const glslType = mapToGlslTypes(outBufferType, isVec4);
   let snippet;
@@ -222,6 +251,10 @@ function getSetOutputSnippet(
     }`;
   }
 
+  if (!needsShapesUniforms) {
+    return snippet;
+  }
+
   if (outRank >= 2) {
     const dims = ['d0', 'd1', 'd2', 'd3'].slice(0, outRank);
     const type = getCoordsDataType(outRank);
@@ -229,26 +262,22 @@ function getSetOutputSnippet(
     if (isVec4) {
       snippet += `
       void setOutput(${dims.map(d => `int ${d}`).join(', ')}, vec4 value) {
-        int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), ${
-          getShapeCoords(outShape)});
+        int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
         setOutput(flatIndex / 4, value);
       }
       void setOutput(${dims.map(d => `int ${d}`).join(', ')}, ivec4 value) {
-        int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), ${
-          getShapeCoords(outShape)});
+        int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
         setOutput(flatIndex / 4, value);
       }
     `;
     } else {
       snippet += `
       void setOutput(${dims.map(d => `int ${d}`).join(', ')}, float value) {
-        int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), ${
-          getShapeCoords(outShape)});
+        int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
         setOutput(flatIndex, value);
       }
       void setOutput(${dims.map(d => `int ${d}`).join(', ')}, int value) {
-        int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), ${
-          getShapeCoords(outShape)});
+        int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
         setOutput(flatIndex, value);
       }
     `;
@@ -259,18 +288,21 @@ function getSetOutputSnippet(
 }
 
 function getInputSamplingSnippet(
-    inInfo: InputInfo, outShape: number[], isVec4: boolean): string {
-  let res = getSamplerFromInInfo(inInfo, isVec4);
+    inInfo: InputInfo, outShape: number[], isVec4: boolean,
+    needsShapesUniforms?: boolean): string {
+  let res = getSamplerFromInInfo(inInfo, isVec4, needsShapesUniforms);
 
   const inShape = inInfo.shape;
   if (inShape.length <= outShape.length) {
-    res += getSamplerAtOutputCoords(inInfo, outShape, isVec4);
+    res +=
+        getSamplerAtOutputCoords(inInfo, outShape, isVec4, needsShapesUniforms);
   }
 
   return res;
 }
 
-function getSamplerFromInInfo(inInfo: InputInfo, isVec4: boolean): string {
+function getSamplerFromInInfo(
+    inInfo: InputInfo, isVec4: boolean, needsShapesUniforms?: boolean): string {
   const texName = inInfo.name;
   const rank = inInfo.shape.length;
   const type = getCoordsDataType(rank);
@@ -294,25 +326,44 @@ function getSamplerFromInInfo(inInfo: InputInfo, isVec4: boolean): string {
     `;
   }
 
-  if (isVec4) {
-    return `
-    vec4 ${funcName}(${inputs}) {
-      return ${texName}[getFlatIndex(${type}(${dims.join(',')}),
-        ${getShapeCoords(inInfo.shape)}) / 4];
+  if (needsShapesUniforms) {
+    if (isVec4) {
+      return `
+      vec4 ${funcName}(${inputs}) {
+        return ${texName}[getFlatIndex(${type}(${dims.join(',')}),
+          ${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape) / 4];
+      }
+      `;
     }
-  `;
-  }
 
-  return `
+    return `
+    float ${funcName}(${inputs}) {
+      return float(${texName}[getFlatIndex(${type}(${dims.join(',')}),
+        ${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)]);
+    }
+   `;
+  } else {
+    if (isVec4) {
+      return `
+      vec4 ${funcName}(${inputs}) {
+        return ${texName}[getFlatIndex(${type}(${dims.join(',')}),
+          ${getShapeCoords(inInfo.shape)}) / 4];
+      }
+      `;
+    }
+
+    return `
     float ${funcName}(${inputs}) {
       return float(${texName}[getFlatIndex(${type}(${dims.join(',')}),
         ${getShapeCoords(inInfo.shape)})]);
     }
   `;
+  }
 }
 
 function getSamplerAtOutputCoords(
-    inInfo: InputInfo, outShape: number[], isVec4: boolean): string {
+    inInfo: InputInfo, outShape: number[], isVec4: boolean,
+    needsShapesUniforms?: boolean): string {
   const texName = inInfo.name;
   const texFuncSnippet = texName.charAt(0).toUpperCase() + texName.slice(1);
 
@@ -370,38 +421,71 @@ function getSamplerAtOutputCoords(
       unpackedCoordsSnippet = 'coords';
     }
   }
-
-  if (isVec4) {
-    return `
+  if (needsShapesUniforms) {
+    if (isVec4) {
+      return `
       vec4 ${funcName}() {
         ${type} coords = getOutputCoords();
         ${coordsSnippet}
-        return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
-        getShapeCoords(inInfo.shape)}) / 4];
+        return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, 
+        ${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape) / 4];
       }
 
       vec4 ${funcName}(${type} coords) {
         ${coordsSnippet}
         return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
-        getShapeCoords(inInfo.shape)}) / 4];
+          texName.charAt(0).toLowerCase() + texName.slice(1)}Shape) / 4];
       }
     `;
-  }
+    }
 
-  return `
+    return `
     float ${funcName}() {
       ${type} coords = getOutputCoords();
       ${coordsSnippet}
       return float(${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
-      getShapeCoords(inInfo.shape)})]);
+        texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)]);
     }
 
     float ${funcName}(${type} coords) {
       ${coordsSnippet}
       return float(${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
-      getShapeCoords(inInfo.shape)})]);
+        texName.charAt(0).toLowerCase() + texName.slice(1)}Shape)]);
     }
   `;
+  } else {
+    if (isVec4) {
+      return `
+      vec4 ${funcName}() {
+        ${type} coords = getOutputCoords();
+        ${coordsSnippet}
+        return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
+          getShapeCoords(inInfo.shape)}) / 4];
+      }
+
+      vec4 ${funcName}(${type} coords) {
+        ${coordsSnippet}
+        return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
+          getShapeCoords(inInfo.shape)}) / 4];
+      }
+    `;
+    }
+
+    return `
+    float ${funcName}() {
+      ${type} coords = getOutputCoords();
+      ${coordsSnippet}
+      return float(${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
+        getShapeCoords(inInfo.shape)})]);
+    }
+
+    float ${funcName}(${type} coords) {
+      ${coordsSnippet}
+      return float(${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
+        getShapeCoords(inInfo.shape)})]);
+    }
+  `;
+  }
 }
 
 /**
@@ -467,8 +551,8 @@ function generateGetOutputCoords(
 }
 
 /**
- * Derives logical coordinates from a flat index. Performs integer division with
- * each stride and decrements the index until the index equals the final
+ * Derives logical coordinates from a flat index. Performs integer division
+ * with each stride and decrements the index until the index equals the final
  * dimension coordinate.
  */
 function generateGetCoordsFromFlatIndex(shape: number[]): string {

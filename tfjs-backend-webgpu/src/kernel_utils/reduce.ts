@@ -15,13 +15,12 @@
  * =============================================================================
  */
 
-import {backend_util, TensorInfo, util, sumOutType, TypedArray} from '@tensorflow/tfjs-core';
+import {backend_util, sumOutType, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {ReduceProgram} from '../kernels/reduce_webgpu';
-
 import {maxImplCPU} from '../kernel_utils/shared';
 import {prodImplCPU} from '../kernel_utils/shared';
+import {ReduceProgram} from '../kernels/reduce_webgpu';
 import {reshape} from '../kernels/Reshape';
 import {transpose} from '../kernels/Transpose';
 
@@ -60,8 +59,8 @@ export function reduce(
     const xVals = backend.tensorMap.get(input.dataId).values as TypedArray;
     switch (reduceType) {
       case 'max':
-        const outValues = maxImplCPU(xVals, util.sizeFromShape(reduceShape),
-            resOutShape, x.dtype);
+        const outValues = maxImplCPU(
+            xVals, util.sizeFromShape(reduceShape), resOutShape, x.dtype);
         res = backend.makeTensorInfo(resOutShape, x.dtype, outValues);
         break;
       case 'prod':
@@ -83,14 +82,13 @@ export function reduce(
     toDispose.push(reshapedInput);
 
     const reduceInfo = {windowSize: inSize, inSize, batchSize, outSize: 1};
-    const program = new ReduceProgram(reduceInfo, reduceType);
     const dtype = reduceType === 'mean' ? 'float32' : sumOutType(x.dtype);
+    const program = new ReduceProgram(reduceInfo, reduceType, dtype);
     const reduced = backend.runWebGPUProgram(program, [input], dtype);
     toDispose.push(reduced);
 
-    res = reshape({inputs: {x: reduced}, attrs: {shape: resOutShape},
-        backend});
-    }
+    res = reshape({inputs: {x: reduced}, attrs: {shape: resOutShape}, backend});
+  }
 
   toDispose.forEach(t => backend.disposeData(t.dataId));
 

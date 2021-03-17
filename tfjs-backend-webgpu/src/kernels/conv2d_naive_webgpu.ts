@@ -17,7 +17,6 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -30,6 +29,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   workGroupSize: [number, number, number] = [128, 1, 1];
+  needsShapesUniforms = true;
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
   activation: string;
@@ -87,20 +87,19 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
       ${activationSnippet}
       float readInp(int batch, int row, int col, int chan) {
         ivec4 coord = ivec4(batch, row, col, chan);
-        return coordsInBounds(coord, ${getShapeCoords(this.convInfo.inShape)}) ?
+        return coordsInBounds(coord, xShape) ?
           getX(batch, row, col, chan) : 0;
       }
 
       float readFilt(int row, int col, int xChannel, int outChannel) {
         ivec4 coord = ivec4(row, col, xChannel, outChannel);
-        return coordsInBounds(coord, ${
-        getShapeCoords(this.convInfo.filterShape)}) ?
+        return coordsInBounds(coord, wShape) ?
           getW(row, col, xChannel, outChannel) : 0;
       }
 
       void writeResult(int batch, int row, int col, int chan, float value) {
         ivec4 coord = ivec4(batch, row, col, chan);
-        if (coordsInBounds(coord, ${getShapeCoords(this.convInfo.outShape)})) {
+        if (coordsInBounds(coord, outShape)) {
           ${addBiasSnippet}
           ${applyActivationSnippet}
           setOutput(batch, row, col, chan, value);

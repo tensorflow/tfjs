@@ -482,18 +482,86 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
+  private updateUniforms(
+      uniforms: GPUBindingResource[], uniformDataLengths: number[],
+      uniformData: Uint32Array|Int32Array|Float32Array) {
+    uniformDataLengths.push(uniformData.byteLength);
+    uniforms.push(this.makeUniforms(uniformData));
+  }
+
   public runWebGPUProgram(
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
       outputDtype: DataType,
-      programUniforms?: Uint32Array|Int32Array|Float32Array): TensorInfo {
+      programUniformsData?: Uint32Array|Int32Array|Float32Array): TensorInfo {
     const output = this.makeTensorInfo(program.outputShape, outputDtype);
 
-    let uniformDataLength;
-    let uniforms: GPUBindingResource;
-    if (program.uniforms) {
-      // TODO: handle padding of program-specific uniforms
-      uniformDataLength = programUniforms.byteLength;
-      uniforms = this.makeUniforms(programUniforms);
+    let dimUniformsData: number[] = [];
+    const bufferShapes = inputs.concat(output).map(d => d.shape);
+    if (program.needsShapesUniforms) {
+      let currentOffset = 0;
+      bufferShapes.forEach((d, i) => {
+        // Uniforms.
+        if (d.length === 0) {
+          d = [1];
+        }
+        // Complete std140 layout rules are documented here:
+        // tslint:disable-next-line:max-line-length
+        // https://www.khronos.org/registry/OpenGL/specs/gl/glspec45.core.pdf#page=159
+        let baseAlignment: number;
+        switch (d.length) {
+          case 0:
+            baseAlignment = 1;
+            break;
+          case 1:
+            baseAlignment = 1;
+            break;
+          case 2:
+            baseAlignment = 2;
+            break;
+          case 3:
+            baseAlignment = 4;
+            break;
+          case 4:
+            baseAlignment = 4;
+            break;
+          default:
+            util.assert(false, () => `Unsupported ${d.length}D shape`);
+        }
+
+        const padding =
+            Math.ceil(currentOffset / baseAlignment) * baseAlignment -
+            currentOffset;
+        for (let p = 0; p < padding; ++p) {
+          dimUniformsData.push(0);
+        }
+        dimUniformsData.push(...d);
+        currentOffset += d.length + padding;
+      });
+    }
+
+    const uniformDataLengths: number[] = [];
+    const uniforms: GPUBindingResource[] = [];
+
+    let hasIntProgramUniforms = false;
+    let hasFloatProgramUniforms = false;
+    if (programUniformsData instanceof Int32Array) {
+      hasIntProgramUniforms = true;
+      // Merge shape uniform and integer program uniform.
+      dimUniformsData = dimUniformsData.concat(Array.from(programUniformsData));
+    } else if (programUniformsData instanceof Float32Array) {
+      hasFloatProgramUniforms = true;
+    } else if (programUniformsData instanceof Uint32Array) {
+      // TODO(xing.xu@intel.com): handle Uint32Array.
+      throw new Error('Uint32Array is not supported for program uniform.');
+    }
+
+    if (program.needsShapesUniforms || hasIntProgramUniforms) {
+      const uniformData = new Int32Array(dimUniformsData);
+      this.updateUniforms(uniforms, uniformDataLengths, uniformData);
+    }
+    if (hasFloatProgramUniforms) {
+      const uniformData = new Float32Array(programUniformsData);
+      this.updateUniforms(uniforms, uniformDataLengths, uniformData);
     }
 
     const inputsData = inputs.map((input: TensorInfo, i: number) => {
@@ -514,13 +582,12 @@ export class WebGPUBackend extends KernelBackend {
       };
     });
     this.uploadToGPU(output.dataId);
-    const bufferShapes = inputs.concat(output).map(d => d.shape);
     const bufferTypes = inputsData.map(d => d.dtype).concat(output.dtype);
-    const key =
-        webgpu_program.makeShaderKey(program, bufferShapes, bufferTypes);
+    const key = webgpu_program.makeShaderKey(program, bufferTypes);
     const {bindGroupLayout, pipeline} = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(
-          this.glslang, this.device, program, inputsData, output, uniforms);
+          this.glslang, this.device, program, inputsData, output,
+          hasFloatProgramUniforms);
     });
 
     const shouldTimeProgram = this.activeTimers != null;
@@ -554,12 +621,11 @@ export class WebGPUBackend extends KernelBackend {
       this.commandQueueOwnedIds.add(input.dataId);
     });
     this.commandQueueOwnedIds.add(output.dataId);
-
-    if (program.uniforms) {
+    for (let i = 0; i < uniforms.length; i++) {
       const uniformInfo = {
-        byteSize: uniformDataLength,
+        byteSize: uniformDataLengths[i],
         usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
-        buffer: (uniforms as GPUBufferBinding).buffer
+        buffer: (uniforms[i] as GPUBufferBinding).buffer
       };
       this.uniformDisposalQueue.push(uniformInfo);
     }

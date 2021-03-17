@@ -17,7 +17,6 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {makeMatMulPackedSource} from './matmul_packed_webgpu';
@@ -31,6 +30,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   workGroupSize: [number, number, number];
+  needsShapesUniforms = true;
   elementsPerThread: [number, number, number];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
@@ -89,22 +89,20 @@ export class Conv2DMMProgram implements WebGPUProgram {
         this.convInfo.inChannels;
 
     const readASnippet = `
-    int outRow = row / ${this.outputShape[2]};
-    int outCol = row % ${this.outputShape[2]};
+    int outRow = row / outShape[2];
+    int outCol = row % outShape[2];
 
-    int WRow = col / (filterDims[1] * ${this.convInfo.inShape[3]});
-    int WCol = (col / ${this.convInfo.inShape[3]}) % filterDims[1];
+    int WRow = col / (filterDims[1] * xShape[3]);
+    int WCol = (col / xShape[3]) % filterDims[1];
 
     ivec4 coord = ivec4(
         batch,
         outRow * stride[0] + dilation[0] * WRow - pad[0],
         outCol * stride[1] + dilation[1] * WCol - pad[1],
-        col % ${this.convInfo.inShape[3]});
+        col % xShape[3]);
     // The bounds checking is always needed since we use it to pad zero for the
     // 'same' padding type.
-    return coordsInBounds(coord, ${
-        getShapeCoords(this.convInfo.inShape)}) ? x[getFlatIndex(coord, ${
-        getShapeCoords(this.convInfo.inShape)})] : 0;`;
+    return coordsInBounds(coord, xShape) ? x[getFlatIndex(coord, xShape)] : 0;`;
 
     const fitA = tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]);
     const sampleA =
@@ -146,9 +144,9 @@ export class Conv2DMMProgram implements WebGPUProgram {
     ${matMulSource}
 
     int batch;
-    int dimAOuter = ${this.outputShape[1]} * ${this.outputShape[2]};
-    int dimBOuter = ${this.outputShape[3]};
-    int dimInner = filterDims[0] * filterDims[1] * ${this.convInfo.inShape[3]};
+    int dimAOuter = outShape[1] * outShape[2];
+    int dimBOuter = outShape[3];
+    int dimInner = filterDims[0] * filterDims[1] * xShape[3];
     float mm_readA(int row, int col) {
       ${sampleA}
     }
@@ -160,13 +158,12 @@ export class Conv2DMMProgram implements WebGPUProgram {
     void mm_write(int row, int col, float value) {
       ivec4 outCoord = ivec4(
           batch,
-          row / ${this.outputShape[2]},
-          row % ${this.outputShape[2]},
+          row / outShape[2],
+          row % outShape[2],
           col);
       ${addBiasSnippet}
       ${applyActivationSnippet}
-      result[getFlatIndex(outCoord, ${
-        getShapeCoords(this.outputShape)})] = value;
+      result[getFlatIndex(outCoord, outShape)] = value;
     }
 
     void main() {

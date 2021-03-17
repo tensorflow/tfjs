@@ -25,6 +25,7 @@ export class TransposeSharedProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [32, 32, 1];
+  needsShapesUniforms = true;
 
   constructor(aShape: number[], newDim: number[]) {
     const outputShape: number[] = new Array(aShape.length);
@@ -47,8 +48,8 @@ export class TransposeSharedProgram implements WebGPUProgram {
         int index = int(gl_GlobalInvocationID.x);
         int x = int(gl_WorkGroupID.x) * TILE_DIM + int(gl_LocalInvocationID.x);
         int y = int(gl_WorkGroupID.y) * TILE_DIM + int(gl_LocalInvocationID.y);
-        int width = ${this.outputShape[0]};
-        int height = ${this.outputShape[1]};
+        int width = outShape[0];
+        int height = outShape[1];
         if (x < width && y < height) {
           tile[gl_LocalInvocationID.y][gl_LocalInvocationID.x] =
               A[y * width + x];

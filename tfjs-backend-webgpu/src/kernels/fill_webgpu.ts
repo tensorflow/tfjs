@@ -27,6 +27,7 @@ export class FillProgram implements WebGPUProgram {
   uniforms = 'float value;';
   workPerThread = 4;
   workGroupSize: [number, number, number] = [16, 1, 1];
+  needsShapesUniforms = true;
 
   constructor(shape: number[]) {
     this.outputShape = shape;
@@ -35,7 +36,7 @@ export class FillProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
 
-    this.shaderKey = 'fill';
+    this.shaderKey = `fill_${this.outputShape}`;
   }
 
   getUserCode(): string {
@@ -46,7 +47,7 @@ export class FillProgram implements WebGPUProgram {
       for (int i = 0; i < ${this.workPerThread}; i++) {
         int flatIndex = index * ${this.workPerThread} + i;
         if (flatIndex < ${size}) {
-          setOutput(flatIndex, value);
+          setOutput(flatIndex, float(value));
         }
       }
     }

@@ -31,6 +31,7 @@ export class PadProgram implements WebGPUProgram {
   uniforms = 'float constantValue;';
   workPerThread = 8;
   workGroupSize: [number, number, number] = [16, 1, 1];
+  needsShapesUniforms = true;
   xShape: number[];
   paddings: Array<[number, number]>;
 
@@ -44,7 +45,7 @@ export class PadProgram implements WebGPUProgram {
 
     this.xShape = xShape;
     this.paddings = paddings;
-    this.shaderKey = `pad_${paddings}`;
+    this.shaderKey = `pad_${paddings}_${xShape}`;
   }
 
   getUserCode(): string {
