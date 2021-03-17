@@ -320,7 +320,6 @@ export class Tensor<R extends Rank = Rank> {
    * @doc {heading: 'Tensors', subheading: 'Classes'}
    */
   arraySync(): ArrayMap[R] {
-    console.log(this.dataSync());
     return toNestedArray(
                this.shape, this.dataSync(), this.dtype === 'complex64') as
         ArrayMap[R];
