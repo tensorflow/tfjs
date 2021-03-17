@@ -298,6 +298,7 @@ tfjs_cc_library(
         ":Sub",
         ":Tile",
         ":Transpose",
+        ":Tan",
         ":_FusedMatMul",
     ],
 )
