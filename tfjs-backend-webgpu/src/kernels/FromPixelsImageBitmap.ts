@@ -35,6 +35,8 @@ export function fromPixelsImageBitmap(args: {
   const output = backend.makeTensorInfo(outShape, 'int32');
   if (!backend.fromPixelProgram) {
     backend.fromPixelProgram = new FromPixelsProgram(outShape);
+  } else {
+    backend.fromPixelProgram.updateOutputShape(outShape);
   }
 
   // Different outShape will affect preprocessor result,
@@ -42,18 +44,15 @@ export function fromPixelsImageBitmap(args: {
   // to recompile the pipeline to get the correct result.
   // FromPixelsImageBitmap leverages webgpu backend pipeline
   // cache system to avoid useless recompile.
-  const outputShapes = [output.shape];
   const outputTypes = [output.dtype];
-  const key = webgpu_program.makeShaderKey(
-      backend.fromPixelProgram, outputShapes, outputTypes);
+  const key =
+      webgpu_program.makeShaderKey(backend.fromPixelProgram, outputTypes);
 
   const {bindGroupLayout, pipeline} = backend.getAndSavePipeline(key, () => {
     return webgpu_program.compileProgram(
         backend.glslang, backend.device, backend.fromPixelProgram, [], output);
   });
   backend.fromPixelProgram.setWebGPUBinary(bindGroupLayout, pipeline);
-
-  backend.fromPixelProgram.updateOutputShape(outShape);
 
   backend.queue.copyImageBitmapToTexture(
       {imageBitmap, origin: {x: 0, y: 0}}, {

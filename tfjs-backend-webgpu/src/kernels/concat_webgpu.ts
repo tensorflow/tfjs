@@ -29,6 +29,7 @@ export class ConcatProgram implements WebGPUProgram {
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
   shapes: Array<[number, number]>;
+  size: number;
 
   constructor(shapes: Array<[number, number]>) {
     this.outputShape =
@@ -40,7 +41,8 @@ export class ConcatProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
 
     this.shapes = shapes;
-    this.shaderKey = 'concat';
+    this.shaderKey = `concat${shapes}`;
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
@@ -67,14 +69,14 @@ export class ConcatProgram implements WebGPUProgram {
     } else {
       snippets.push(`setOutput(coords.x, coords.y, getT0(yR, yC));`);
     }
-    const size = util.sizeFromShape(this.outputShape);
+
     const userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
 
         for(int i = 0; i < ${this.workPerThread}; i++) {
           int flatIndex = index * ${this.workPerThread} + i;
-          if(flatIndex < ${size}) {
+          if(flatIndex < size) {
             ivec2 coords = getCoordsFromFlatIndex(flatIndex);
             int yR = coords.x;
             int yC = coords.y;

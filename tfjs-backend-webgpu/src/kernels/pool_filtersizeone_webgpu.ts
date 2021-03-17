@@ -17,7 +17,6 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -38,7 +37,8 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    this.shaderKey = 'poolWithFilterSizeEqualsOne';
+    this.shaderKey = `poolWithFilterSizeEqualsOne_${convInfo.inShape.length}_${
+        convInfo.outShape.length}`;
   }
 
   getUserCode(): string {
@@ -48,7 +48,7 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
         int batch = coords[0];
         int d = coords[3];
 
-        if (all(lessThan(coords, ${getShapeCoords(this.outputShape)}))) {
+        if (all(lessThan(coords, outShape))) {
           ivec2 xRCCorner = coords.yz * stride;
           int xRCorner = xRCCorner.x;
           int xCCorner = xRCCorner.y;

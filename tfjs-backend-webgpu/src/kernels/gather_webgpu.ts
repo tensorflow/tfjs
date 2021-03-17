@@ -28,6 +28,7 @@ export class GatherProgram implements WebGPUProgram {
   variableNames: string[] = ['A', 'indices'];
   workGroupSize: [number, number, number] = [64, 1, 1];
   aShape: number[];
+  size: number;
 
   constructor(aShape: number[], outputShape: number[]) {
     this.outputShape = aShape.slice();
@@ -36,16 +37,16 @@ export class GatherProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.shaderKey = `gather`;
+    this.shaderKey = `gather_${this.aShape.length}_${outputShape.length}`;
+    this.size = util.sizeFromShape(this.outputShape);
   }
   getUserCode(): string {
     const sourceCoords = getSourceCoords(this.aShape);
-    const size = util.sizeFromShape(this.outputShape);
     const userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
         ivec4 resRC = getOutputCoords();
-        if (index < ${size}) {
+        if (index < size) {
           setOutput(index, getA(${sourceCoords}));
         }
       }

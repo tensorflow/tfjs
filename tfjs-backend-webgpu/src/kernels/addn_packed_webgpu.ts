@@ -30,6 +30,7 @@ export class AddNPackedProgram implements WebGPUProgram {
   variableNames: string[];
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
+  size: number;
 
   constructor(shapes: number[][]) {
     this.outputShape = shapes[0];
@@ -38,11 +39,11 @@ export class AddNPackedProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-    this.shaderKey = 'addN';
+    this.shaderKey = `addN${this.outputShape.length}`;
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
-    const size = util.sizeFromShape(this.outputShape);
     const snippets: string[] = [];
     // Get target elements from every input tensor.
     this.variableNames.forEach(variable => {
@@ -61,7 +62,7 @@ export class AddNPackedProgram implements WebGPUProgram {
         int index = int(gl_GlobalInvocationID.x);
         for (int i = 0; i < ${this.workPerThread}; i++) {
           int flatIndex = index * ${this.workPerThread} + i;
-          if (flatIndex < ${size}) {
+          if (flatIndex < size) {
             ${type} coords = getCoordsFromFlatIndex(flatIndex);
             ${snippets.join('\n        ')}
             setOutput(flatIndex, ${operation});

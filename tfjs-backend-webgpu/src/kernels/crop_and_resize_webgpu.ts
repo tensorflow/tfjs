@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -42,8 +41,8 @@ export class CropAndResizeProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    this.shaderKey =
-        `cropAndResize_${method}_${cropSize}_${extrapolationValue}`;
+    this.shaderKey = `cropAndResize_${method}_${cropSize}_${
+        extrapolationValue}_${imageShape}_${boxShape}_${this.outputShape}`;
     this.imageShape = imageShape;
     this.cropSize = cropSize;
     this.methodId = method === 'bilinear' ? 1 : 0;
@@ -86,7 +85,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
       const float height_ratio = float(${heightRatio});
       const float width_ratio = float(${widthRatio});
       void writeResult(ivec4 coords,float value) {
-        if (coordsInBounds(coords, ${getShapeCoords(this.outputShape)})) {
+        if (coordsInBounds(coords, outShape)) {
           setOutput(coords[0], coords[1], coords[2], coords[3], value);
         }
       }

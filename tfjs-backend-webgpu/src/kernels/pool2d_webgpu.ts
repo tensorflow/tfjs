@@ -17,7 +17,6 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -42,7 +41,8 @@ export class Pool2DProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    this.shaderKey = `pool2D_${poolType}`;
+    this.shaderKey = `pool2D_${poolType}_${convInfo.inShape.length}_${
+        convInfo.outShape.length}`;
     this.poolType = poolType;
   }
 
@@ -60,7 +60,7 @@ export class Pool2DProgram implements WebGPUProgram {
     const userCode = `
       void main() {
         ivec4 coords = getOutputCoords();
-        if (coordsInBounds(coords, ${getShapeCoords(this.outputShape)})) {
+        if (coordsInBounds(coords, outShape)) {
           int batch = coords[0];
           ivec2 xRCCorner = coords.yz * stride - pad;
           int xRCorner = xRCCorner.x;

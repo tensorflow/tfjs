@@ -16,8 +16,8 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-import {getCoordsDataType} from '../shader_preprocessor';
 
+import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -33,6 +33,7 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
   useSharedMemoryWithB: boolean;
   lastDimensionSize: number;
   op: string;
+  size: number;
 
   constructor(
       op: string, aShape: number[], bShape: number[],
@@ -53,14 +54,15 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-    this.shaderKey = `binaryShared_${op}`;
+    this.shaderKey = `binaryShared_${op}_${aShape.length}_${bShape.length}_${
+        this.outputShape.length}`;
     this.useSharedMemoryWithB = useSharedMemoryWithB;
     this.op = op;
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
     const type = getCoordsDataType(this.outputShape.length);
-    const size = util.sizeFromShape(this.outputShape);
     const sharedIndexSnippet = this.lastDimensionSize > 1 ?
         `coords[${this.outputShape.length - 1}]` :
         '0';
@@ -69,13 +71,14 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
          float b = sharedBuf[${sharedIndexSnippet}];` :
         `float a = sharedBuf[${sharedIndexSnippet}];
          float b = getBAtOutCoords(coords);`;
-    const sizeFit = size % (this.workGroupSize[0] * this.workPerThread) === 0;
+    const sizeFit =
+        this.size % (this.workGroupSize[0] * this.workPerThread) === 0;
     const writeDataSnippet = sizeFit ?
         `${type} coords = getCoordsFromFlatIndex(flatIndex);
 
          ${accessDataSnippet}
          setOutput(flatIndex, binaryOperation(a, b));` :
-        `if(flatIndex < ${size}) {
+        `if(flatIndex < size) {
             ${type} coords = getCoordsFromFlatIndex(flatIndex);
 
             ${accessDataSnippet}

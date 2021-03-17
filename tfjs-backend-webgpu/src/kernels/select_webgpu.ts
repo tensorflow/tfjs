@@ -31,6 +31,7 @@ export class SelectProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [16, 1, 1];
   cRank: number;
   rank: number;
+  size: number;
 
   constructor(cRank: number, shape: number[], rank: number) {
     this.outputShape = shape;
@@ -41,7 +42,8 @@ export class SelectProgram implements WebGPUProgram {
 
     this.cRank = cRank;
     this.rank = rank;
-    this.shaderKey = 'select';
+    this.shaderKey = `select_${this.outputShape.length}`;
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
@@ -69,7 +71,6 @@ export class SelectProgram implements WebGPUProgram {
     }
 
     const dtype = getCoordsDataType(this.rank);
-    const size = util.sizeFromShape(this.outputShape);
     const userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
@@ -77,7 +78,7 @@ export class SelectProgram implements WebGPUProgram {
         for (int i = 0; i < ${this.workPerThread}; i++) {
           int flatIndex = index * ${this.workPerThread} + i;
 
-          if (flatIndex < ${size}) {
+          if (flatIndex < size) {
             ${dtype} resRC = getOutputCoords();
             float cVal = getC(${cCoords});
             if (cVal >= 1.0) {

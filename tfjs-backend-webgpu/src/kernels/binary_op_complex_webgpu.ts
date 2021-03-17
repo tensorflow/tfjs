@@ -38,6 +38,7 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [128, 1, 1];
   op: string;
+  size: number;
 
   constructor(op: string, aShape: number[], bShape: number[]) {
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
@@ -45,12 +46,13 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    this.shaderKey = `binaryOpComplex${op}`;
+    this.shaderKey = `binaryOpComplex_${op}_${aShape.length}_${bShape.length}_${
+        this.outputShape.length}`;
     this.op = op;
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
-    const size = util.sizeFromShape(this.outputShape);
     const userCode = `
       float binaryOpComplex(
           float areal, float aimag, float breal, float bimag) {
@@ -59,7 +61,7 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
 
       void main() {
         int index = int(gl_GlobalInvocationID.x);
-        if(index < ${size}) {
+        if(index < size) {
           float areal = getARealAtOutCoords();
           float aimag = getAImagAtOutCoords();
           float breal = getBRealAtOutCoords();

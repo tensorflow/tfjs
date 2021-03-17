@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, Rank, ShapeMap, TensorInfo} from '@tensorflow/tfjs-core';
+import {DataType, Rank, TensorInfo} from '@tensorflow/tfjs-core';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import * as shader_preprocessor from '../shader_preprocessor';
@@ -31,6 +31,9 @@ export interface WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[];
   uniforms?: string;
+  // When true, shapes are used as const, otherwise are stored in uniform
+  // buffer.
+  disableShapesUniforms?: boolean;
   // Size of register cache in one dimension (assumes square cache).
   // Each thread writes to workPerThread * workPerThread locations in the output
   // buffer.
@@ -40,6 +43,7 @@ export interface WebGPUProgram {
   // the group.
   workGroupSize?: [number, number, number];
   isVec4?: boolean;
+  size?: number;
   getUserCode: () => string;
 }
 
@@ -68,8 +72,8 @@ export const makeBindGroup =
 
 export const compileProgram =
     (glslang: Glslang, device: GPUDevice, program: WebGPUProgram,
-     inputsData: shader_preprocessor.InputInfo[], output: TensorInfo,
-     uniforms?: GPUBindingResource): WebGPUBinary => {
+     inputsData: shader_preprocessor.InputInfo[],
+     output: TensorInfo): WebGPUBinary => {
       const outputData = {dtype: output.dtype, shape: output.shape};
 
       const source =
@@ -89,10 +93,8 @@ export const compileProgram =
     };
 
 export function makeShaderKey<R extends Rank>(
-    program: WebGPUProgram, shapes: Array<ShapeMap[R]>,
-    types: string[]): string {
+    program: WebGPUProgram, types: string[]): string {
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
-      shapes.join(',') + types.join(',') + program.variableNames.join(',') +
-      program.shaderKey;
+      types.join(',') + program.variableNames.join(',') + program.shaderKey;
   return key;
 }
