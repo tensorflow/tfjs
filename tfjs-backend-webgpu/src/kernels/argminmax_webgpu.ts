@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType, getShapeCoords} from '../shader_preprocessor';
+import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -65,7 +65,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.inputShape = inputShape;
-    this.shaderKey = `argMinMax_${this.op}_${reduceSize}`;
+    this.shaderKey = `argMinMax${this.op}${reduceSize}`;
   }
 
   getUserCode(): string {
@@ -121,9 +121,9 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
     const indexInputShape = (index: string) => {
       if (this.inputShape.length === 1) {
-        return `${getShapeCoords(this.inputShape)}`;
+        return 'xShape';
       } else {
-        return `${getShapeCoords(this.inputShape)}[${index}]`;
+        return `xShape[${index}]`;
       }
     };
 

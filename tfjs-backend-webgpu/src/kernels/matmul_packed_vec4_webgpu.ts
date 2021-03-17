@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {TensorInfo} from '@tensorflow/tfjs-core';
 import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -124,8 +125,8 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
-      rowPerThread: number, addBias = false, activation: string = null,
-      hasPreluActivationWeights = false) {
+      rowPerThread: number, bias: TensorInfo = null, activation: string = null,
+      preluActivationWeights: TensorInfo = null) {
     this.outputShape = outputShape;
     this.workGroupSize = computeWorkGroupSizeForMatMul(
         outputShape[1], aShape[2], outputShape[2]);
@@ -139,6 +140,8 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [vecSize, rowPerThread, 1]);
 
+    const addBias = bias != null;
+    const hasPreluActivationWeights = preluActivationWeights != null;
     if (addBias) {
       this.variableNames.push('bias');
     }
@@ -167,20 +170,18 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     const tileSizeA = [tileAOuter, tileInner];
     const tileSizeB = [tileInner, tileBOuter];
     const fitA = tilesFitEvenlyIntoShape(tileSizeA, this.aShape.slice(1));
-    const batchASize = this.aShape[1] * this.aShape[2] / vecSize;
-    const batchBSize = bShape[1] * bShape[2] / vecSize;
 
     const sampleA = fitA ?
-        `A[batch * ${batchASize} + row * dimInner / 4 + col]` :
+        `A[batch * batchASize + row * dimInner / 4 + col]` :
         `coordsInBounds(ivec2(row, col * 4), ivec2(dimAOuter, dimInner)) ?
-            A[batch * ${
-            batchASize} + row * dimInner / 4 + col] : vec4(0.0, 0.0, 0.0, 0.0)`;
+            A[batch * batchASize + row * dimInner / 4 + col] :
+            vec4(0.0, 0.0, 0.0, 0.0)`;
 
     const fitB = tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1));
     const sampleB = fitB ?
-        `B[batch * ${batchBSize} + row * dimBOuter / 4 + col]` :
+        `B[batch * batchBSize + row * dimBOuter / 4 + col]` :
         `coordsInBounds(ivec2(row, col * 4), ivec2(dimInner, dimBOuter)) ?
-            B[batch * ${batchBSize} + row * dimBOuter / 4 + col] :
+            B[batch * batchBSize + row * dimBOuter / 4 + col] :
             vec4(0.0, 0.0, 0.0, 0.0)`;
 
     let activationSnippet = '', applyActivationSnippet = '';
@@ -205,9 +206,9 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
 
     const userCode = `
       ${activationSnippet}
-      int dimAOuter = ${this.aShape[1]};
-      int dimInner = ${this.aShape[2]};
-      int dimBOuter = ${bShape[2]};
+      int dimAOuter = aShape[1];
+      int dimInner = aShape[2];
+      int dimBOuter = bShape[2];
       int batch;
 
       ${makeMatMulPackedVec4Source([
@@ -215,10 +216,13 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     ])}
 
       vec4 mm_readA(int row, int col) {
+        int batchASize = aShape[1] * aShape[2] / ${vecSize};
         return ${sampleA};
       }
 
       vec4 mm_readB(int row, int col) {
+        // TODO: This is not covered in unit tests.
+        int batchBSize = bShape[1] * bShape[2] / ${vecSize};
         return ${sampleB};
       }
 

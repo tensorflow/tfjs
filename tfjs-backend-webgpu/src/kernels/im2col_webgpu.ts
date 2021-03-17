@@ -31,6 +31,7 @@ export class Im2ColProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   inputShape: number[];
   convInfo: backend_util.Conv2DInfo;
+  size: number;
 
   constructor(
       outputShape: number[], inputShape: number[],
@@ -44,11 +45,11 @@ export class Im2ColProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
     this.inputShape = inputShape;
     this.convInfo = convInfo;
-    this.shaderKey = `im2col_${convInfo}`;
+    this.shaderKey = `im2col${convInfo.inShape}`;
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
-    const size = util.sizeFromShape(this.outputShape);
     const {
       filterWidth,
       inChannels,
@@ -76,7 +77,7 @@ export class Im2ColProgram implements WebGPUProgram {
 
           ivec2 rc = getCoordsFromFlatIndex(flatIndex);
 
-          if(flatIndex < ${size}) {
+          if(flatIndex < size) {
             int blockIndex = rc[0];
             int pos = rc[1];
 
