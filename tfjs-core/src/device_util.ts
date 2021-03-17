@@ -16,12 +16,15 @@
  */
 
 // tslint:disable-next-line:no-any
-function _isNavigatorDefined(nav = navigator): boolean {
-  return typeof nav !== 'undefined' && nav != null;
+function _isNavigatorDefined(): boolean {
+  return typeof navigator !== 'undefined' && navigator != null;
 }
 
-export function isMobile(nav = navigator): boolean {
-  if (_isNavigatorDefined(nav)) {
+export function isMobile(nav?: Navigator): boolean {
+  if (nav || _isNavigatorDefined()) {
+    if (!nav) {
+      nav = navigator;
+    }
     if (nav.product === 'ReactNative') {
       return true;
     }
