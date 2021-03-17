@@ -17,4 +17,4 @@
 import {KernelConfig, Tan} from '@tensorflow/tfjs-core';
 
 import {createUnaryKernelConfig} from './unary_kernel';
-export const tanhConfig: KernelConfig = createUnaryKernelConfig(Tan);
+export const tanConfig: KernelConfig = createUnaryKernelConfig(Tan);

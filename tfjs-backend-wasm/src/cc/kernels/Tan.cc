@@ -29,7 +29,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Tanh(const int x_id, const int out_id) { unary(x_id, out_id, tan); }
+void Tan(const int x_id, const int out_id) { unary(x_id, out_id, tan); }
 
 }  // extern "C"
 }  // namespace wasm
