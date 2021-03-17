@@ -65,8 +65,8 @@ export function shuffle(array: any[]|Uint32Array|Int32Array|
  *
  * @doc {heading: 'Util', namespace: 'util'}
  */
-// tslint:disable-next-line:no-any
 export function shuffleCombo(
+    // tslint:disable-next-line:no-any
     array: any[]|Uint32Array|Int32Array|Float32Array,
     // tslint:disable-next-line:no-any
     array2: any[]|Uint32Array|Int32Array|Float32Array): void {
