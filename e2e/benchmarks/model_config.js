@@ -74,6 +74,8 @@ const sentences = [
   'what is the forecast for here at tea time',
 ];
 
+let correctnestInputForCustomModel;
+
 const benchmarks = {
   'mobilenet_v2': {
     type: 'GraphModel',
@@ -316,22 +318,25 @@ const benchmarks = {
       return loadModelByUrlWithState(state.modelUrl, {}, state);
     },
     predictFunc: () => {
-      return async model => {
+      return async (model, customInput) => {
         let inferenceInput;
         try {
-          inferenceInput = generateInputFromDef(
+          inferenceInput = customInput || generateInputFromDef(
               state.inputs, model instanceof tf.GraphModel);
           const predict = getPredictFnForModel(model, inferenceInput);
           const inferenceOutput = await predict();
           return inferenceOutput;
         } finally {
           // dispose input tensors
-          tf.dispose(inferenceInput);
+          if (!customInput) {
+            tf.dispose(inferenceInput);
+          }
         }
       };
     }
   },
 };
+
 
 const imageBucket =
     'https://storage.googleapis.com/tfjs-models/assets/posenet/';
