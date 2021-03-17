@@ -31,6 +31,8 @@ export interface WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[];
   uniforms?: string;
+  // When true, shapes are used as const, otherwise are stored in uniform
+  // buffer.
   // Size of register cache in one dimension (assumes square cache).
   // Each thread writes to workPerThread * workPerThread locations in the output
   // buffer.
@@ -40,6 +42,7 @@ export interface WebGPUProgram {
   // the group.
   workGroupSize?: [number, number, number];
   isVec4?: boolean;
+  size?: number;
   getUserCode: () => string;
 }
 
@@ -69,11 +72,11 @@ export const makeBindGroup =
 export const compileProgram =
     (glslang: Glslang, device: GPUDevice, program: WebGPUProgram,
      inputsData: shader_preprocessor.InputInfo[], output: TensorInfo,
-     uniforms?: GPUBindingResource): WebGPUBinary => {
+     isFromPixel = false): WebGPUBinary => {
       const outputData = {dtype: output.dtype, shape: output.shape};
 
-      const source =
-          shader_preprocessor.makeShader(inputsData, outputData, program);
+      const source = shader_preprocessor.makeShader(
+          inputsData, outputData, program, isFromPixel);
       const result = glslang.compileGLSLZeroCopy(source, 'compute', false);
       if (result.data.length === 0) {
         throw new Error('Shader compilation failed');
@@ -92,7 +95,7 @@ export function makeShaderKey<R extends Rank>(
     program: WebGPUProgram, shapes: Array<ShapeMap[R]>,
     types: string[]): string {
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
-      shapes.join(',') + types.join(',') + program.variableNames.join(',') +
-      program.shaderKey;
+      shapes.map(shape => shape.length).join(',') + types.join(',') +
+      program.variableNames.join(',') + program.shaderKey;
   return key;
 }

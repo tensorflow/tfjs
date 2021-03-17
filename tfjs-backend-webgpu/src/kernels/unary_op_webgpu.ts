@@ -72,6 +72,7 @@ export class UnaryOpProgram implements WebGPUProgram {
   workPerThread: number;
   workGroupSize: [number, number, number];
   op: string;
+  size: number;
 
   constructor(outputShape: number[], op: string) {
     // TODO(jiajia.qin@intel.com): Heuristically select a good work group size.
@@ -87,11 +88,11 @@ export class UnaryOpProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
     this.op = op;
     this.shaderKey = `unary_${op}`;
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
-    const size = util.sizeFromShape(this.outputShape);
-    const fit = size % this.workGroupSize[0] === 0;
+    const fit = this.size % this.workGroupSize[0] === 0;
     let userCode: string;
     if (fit) {
       userCode = `
@@ -118,7 +119,7 @@ export class UnaryOpProgram implements WebGPUProgram {
         for(int i = 0; i < ${this.workPerThread}; i++) {
           int flatIndex = index * ${this.workPerThread} + i;
 
-          if(flatIndex < ${size}) {
+          if(flatIndex < size) {
             ${type} coords = getCoordsFromFlatIndex(flatIndex);
 
             float a = getAAtOutCoords(coords);

@@ -33,6 +33,7 @@ export class PadProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [16, 1, 1];
   xShape: number[];
   paddings: Array<[number, number]>;
+  size: number;
 
   constructor(xShape: number[], paddings: Array<[number, number]>) {
     this.outputShape = paddings.map(
@@ -44,12 +45,12 @@ export class PadProgram implements WebGPUProgram {
 
     this.xShape = xShape;
     this.paddings = paddings;
-    this.shaderKey = `pad_${paddings}`;
+    this.shaderKey = `pad_${paddings}_${xShape}`;
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
     const rank = this.xShape.length;
-    const size = util.sizeFromShape(this.outputShape);
     const type = getCoordsDataType(rank);
     const start = this.paddings.map(p => p[0]).join(',');
     const end = this.paddings.map((p, i) => p[0] + this.xShape[i]).join(',');
@@ -75,7 +76,7 @@ export class PadProgram implements WebGPUProgram {
         for (int i = 0; i < ${this.workPerThread}; i++) {
           int flatIndex = index * ${this.workPerThread} + i;
 
-          if (flatIndex < ${size}) {
+          if (flatIndex < size) {
             ${type} outC = getCoordsFromFlatIndex(flatIndex);
 
             if (${leftPadCondition} || ${rightPadCondition}) {
