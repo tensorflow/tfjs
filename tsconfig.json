@@ -13,7 +13,6 @@
       "es2017",
       "dom"
     ],
-    "outDir": "./dist",
     "noUnusedLocals": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
@@ -22,7 +21,37 @@
     "pretty": true,
     "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
-    "incremental": true
+    "incremental": true,
+    "rootDirs": [
+      "../../bazel-out/darwin-fastbuild/bin",
+      "../../bazel-out/k8-fastbuild/bin",
+      "../../bazel-out/x64_windows-fastbuild/bin",
+      "../../bazel-out/darwin-dbg/bin",
+      "../../bazel-out/k8-dbg/bin",
+      "../../bazel-out/x64_windows-dbg/bin",
+    ],
+    "baseUrl": "../../",
+    "paths": {
+      "@tensorflow/*": [
+        "*",
+        "./bazel-out/darwin-fastbuild/bin/*",
+        "./bazel-out/k8-fastbuild/bin/*",
+        "./bazel-out/x64_windows-fastbuild/bin/*",
+        "./bazel-out/darwin-dbg/bin/*",
+        "./bazel-out/k8-dbg/bin/*",
+        "./bazel-out/x64_windows-dbg/bin/*",
+      ]
+    },
+    "plugins": [
+      {
+        "name": "@bazel/tsetse",
+        "disabledRules": [
+          "must-use-promises",
+          "must-type-assert-json-parse",
+          "ban-promise-as-condition"
+        ]
+      }
+    ]
   },
   "include": [
     "src/"

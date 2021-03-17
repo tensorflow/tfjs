@@ -1,0 +1,19 @@
+load("@npm//@bazel/typescript:index.bzl", "ts_project")
+
+ts_project(
+    name = "tfjs-backend-cpu",
+    srcs = glob(["src/**/*.ts"]),
+    declaration = True,
+    extends = "//:tsconfig.json",
+    root_dir = "src",
+    out_dir = "dist",
+    incremental = True,
+    source_map = True,
+    tsconfig = "tsconfig.json",
+    deps = [
+        "@npm//jasmine",
+        "@npm//@types/jasmine",
+        "//tfjs-core",
+        "//tfjs-core:tf-core_lib",
+    ],
+)

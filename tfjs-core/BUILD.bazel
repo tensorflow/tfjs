@@ -1,7 +1,11 @@
 # Allow typescript rules in any package to reference this file
 exports_files(["tsconfig.json"])
+package(default_visibility = ["//visibility:public"])
 
-load("@npm//@bazel/typescript:index.bzl", "ts_project")
+load("@npm//@bazel/typescript:index.bzl", "ts_project", "ts_library")
+load("@npm//@bazel/concatjs:index.bzl", "karma_web_test")
+load("//:esbuild.bzl", "esbuild");
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 
 
 ts_project(
@@ -9,6 +13,8 @@ ts_project(
     srcs = glob(["src/**/*.ts"]),
     declaration = True,
     extends = "//:tsconfig.json",
+    root_dir = "src",
+    out_dir = "dist",
     incremental = True,
     source_map = True,
     tsconfig = "tsconfig.json",
@@ -16,4 +22,71 @@ ts_project(
         "@npm//@types",
         "@npm//seedrandom",
     ],
+)
+
+# ts_library(
+#     name = "tfjs-core",
+#     module_name = "tensorflow/tfjs-core",
+#     srcs = glob(["src/**/*.ts"]),
+#     deps = [
+#         "@npm//@types",
+#         "@npm//seedrandom",
+#     ],
+# )
+
+esbuild(
+    name = "tfjs-core_test_bundle",
+    entry_point = "dist/setup_test.ts",
+    sources_content = True,
+    deps = [
+        ":tfjs-core",
+    ],
+)
+
+esbuild(
+    name = "tf-core.min",
+    entry_point = "dist/index.ts",
+    sources_content = True,
+    minify = True,
+    deps = [
+        ":tfjs-core",
+    ],
+    external = [
+        "node-fetch",
+        "util",
+    ]
+)
+
+esbuild(
+    name = "tf-core.node",
+    entry_point = "dist/index.ts",
+    sources_content = True,
+    deps = [
+        ":tfjs-core",
+    ],
+    external = [
+        "node-fetch",
+        "util",
+    ]
+)
+
+js_library(
+    name = "tf-core_lib",
+    package_name = "@tensorflow/tfjs-core",
+    srcs = [
+        "package.json",
+    ],
+    deps = [
+        ":tf-core.min",
+        ":tf-core.node",
+        ":tfjs-core",
+    ]
+)
+
+karma_web_test(
+    name = "tfjs-core_test",
+    deps = [
+        ":tfjs-core_test_bundle",
+    ],
+    config_file = "karma.conf.js",
 )

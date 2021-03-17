@@ -19,6 +19,56 @@ yarn_install(
     yarn_lock = "//:yarn.lock",
 )
 
+# Fetch transitive Bazel dependencies of karma_web_test
+http_archive(
+    name = "io_bazel_rules_webtesting",
+    sha256 = "9bb461d5ef08e850025480bab185fd269242d4e533bca75bfb748001ceb343c3",
+    urls = ["https://github.com/bazelbuild/rules_webtesting/releases/download/0.3.3/rules_webtesting.tar.gz"],
+)
+
+# Set up web testing, choose browsers we can test on
+load("@io_bazel_rules_webtesting//web:repositories.bzl", "web_test_repositories")
+
+web_test_repositories()
+
+load("@io_bazel_rules_webtesting//web/versioned:browsers-0.3.2.bzl", "browser_repositories")
+
+browser_repositories(
+    chromium = True,
+)
+
+# Install esbuild
+_ESBUILD_VERSION = "0.8.48"  # reminder: update SHAs below when changing this value
+http_archive(
+    name = "esbuild_darwin",
+    urls = [
+        "https://registry.npmjs.org/esbuild-darwin-64/-/esbuild-darwin-64-%s.tgz" % _ESBUILD_VERSION,
+    ],
+    strip_prefix = "package",
+    build_file_content = """exports_files(["bin/esbuild"])""",
+    sha256 = "d21a722873ed24586f071973b77223553fca466946f3d7e3976eeaccb14424e6",
+)
+
+http_archive(
+    name = "esbuild_windows",
+    urls = [
+        "https://registry.npmjs.org/esbuild-windows-64/-/esbuild-windows-64-%s.tgz" % _ESBUILD_VERSION,
+    ],
+    strip_prefix = "package",
+    build_file_content = """exports_files(["esbuild.exe"])""",
+    sha256 = "fe5dcb97b4c47f9567012f0a45c19c655f3d2e0d76932f6dd12715dbebbd6eb0",
+)
+
+http_archive(
+    name = "esbuild_linux",
+    urls = [
+        "https://registry.npmjs.org/esbuild-linux-64/-/esbuild-linux-64-%s.tgz" % _ESBUILD_VERSION,
+    ],
+    strip_prefix = "package",
+    build_file_content = """exports_files(["bin/esbuild"])""",
+    sha256 = "60dabe141e5dfcf99e7113bded6012868132068a582a102b258fb7b1cfdac14b",
+)
+
 # Make all files under $HOME/emsdk/* visible to the toolchain. The files are
 # available as external/emsdk/emsdk/*
 load("//toolchain:cc_toolchain_config.bzl", "emsdk_configure")
