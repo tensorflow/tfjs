@@ -31,6 +31,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   workGroupSize: [number, number, number];
+  needsShapesUniforms = true;
   isVec4 = true;
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
@@ -58,7 +59,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
     this.hasLeakyreluAlpha = hasLeakyreluAlpha;
-    this.shaderKey = `conv2DMMVec4_${this.activation}`;
+    this.shaderKey = `conv2DMMVec4${this.activation}${convInfo.inShape}${
+        convInfo.filterShape}${convInfo.outShape}`;
     if (this.addBias) {
       this.variableNames.push('bias');
     }

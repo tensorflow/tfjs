@@ -28,6 +28,7 @@ export class ConcatProgram implements WebGPUProgram {
   variableNames: string[];
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
+  needsShapesUniforms = true;
   shapes: Array<[number, number]>;
 
   constructor(shapes: Array<[number, number]>) {
@@ -40,7 +41,7 @@ export class ConcatProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
 
     this.shapes = shapes;
-    this.shaderKey = 'concat';
+    this.shaderKey = `concat${shapes}`;
   }
 
   getUserCode(): string {

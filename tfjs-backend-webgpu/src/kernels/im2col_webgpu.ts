@@ -29,6 +29,7 @@ export class Im2ColProgram implements WebGPUProgram {
   rank: number;
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
+  needsShapesUniforms = true;
   inputShape: number[];
   convInfo: backend_util.Conv2DInfo;
 
@@ -44,7 +45,8 @@ export class Im2ColProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
     this.inputShape = inputShape;
     this.convInfo = convInfo;
-    this.shaderKey = `im2col_${convInfo}`;
+    this.shaderKey =
+        `im2col${convInfo.inShape}${convInfo.filterShape}${convInfo.outShape}`;
   }
 
   getUserCode(): string {

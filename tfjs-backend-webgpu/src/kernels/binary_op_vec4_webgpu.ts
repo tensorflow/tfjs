@@ -29,6 +29,7 @@ export class BinaryOpVec4Program implements WebGPUProgram {
   variableNames = ['A', 'B'];
   workPerThread = 4;
   workGroupSize: [number, number, number];
+  needsShapesUniforms = true;
   isVec4 = true;
   op: string;
 
@@ -42,7 +43,12 @@ export class BinaryOpVec4Program implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
     this.op = op;
-    this.shaderKey = `binaryVec4_${op}`;
+    this.shaderKey = `binaryVec4_${op}` +
+        `${aShape}` +
+        `${bShape}` +
+        `${aShape.length}` +
+        `${bShape.length}` +
+        `${this.outputShape}`;
   }
 
   getUserCode(): string {

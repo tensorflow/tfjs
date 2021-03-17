@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {TensorInfo} from '@tensorflow/tfjs-core';
 import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -116,6 +117,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   workPerThread: number;
   variableNames = ['A', 'B'];
   workGroupSize: [number, number, number] = [16, 16, 1];
+  needsShapesUniforms = true;
   isVec4 = true;
   aShape: [number, number, number];
   addBias: boolean;
@@ -124,8 +126,8 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
-      rowPerThread: number, addBias = false, activation: string = null,
-      hasPreluActivationWeights = false) {
+      rowPerThread: number, bias: TensorInfo = null, activation: string = null,
+      preluActivationWeights: TensorInfo = null) {
     this.outputShape = outputShape;
     this.workGroupSize = computeWorkGroupSizeForMatMul(
         outputShape[1], aShape[2], outputShape[2]);
@@ -139,12 +141,17 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [vecSize, rowPerThread, 1]);
 
+    const addBias = bias != null;
+    const hasPreluActivationWeights = preluActivationWeights != null;
+    let shapeKey = '';
     if (addBias) {
       this.variableNames.push('bias');
+      shapeKey += bias.shape;
     }
 
     if (hasPreluActivationWeights) {
       this.variableNames.push('preluActivationWeights');
+      shapeKey += preluActivationWeights.shape;
     }
 
     this.workPerThread = rowPerThread;
@@ -152,7 +159,8 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.shaderKey = `matMulPackedVec4_${rowPerThread}_${activation}`;
+    this.shaderKey = `matMulPackedVec4${rowPerThread}${activation}${aShape}${
+        outputShape}${shapeKey}`;
   }
 
   getUserCode(): string {

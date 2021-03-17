@@ -44,8 +44,11 @@ export function fromPixelsImageBitmap(args: {
   // cache system to avoid useless recompile.
   const outputShapes = [output.shape];
   const outputTypes = [output.dtype];
-  const key = webgpu_program.makeShaderKey(
-      backend.fromPixelProgram, outputShapes, outputTypes);
+  // Add outputShapes in key to fix case "fromPixels for ImageBitmap outShape
+  // changes'.
+  const key =
+      `${webgpu_program.makeShaderKey(backend.fromPixelProgram, outputTypes)}` +
+      `${outputShapes}`;
 
   const {bindGroupLayout, pipeline} = backend.getAndSavePipeline(key, () => {
     return webgpu_program.compileProgram(

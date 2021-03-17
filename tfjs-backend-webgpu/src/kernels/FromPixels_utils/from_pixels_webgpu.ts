@@ -29,6 +29,7 @@ export class FromPixelsProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] =
       [256, 1, 1];  // The empirical value.
+  needsShapesUniforms = false;
 
   pipeline: GPUComputePipeline;
   bindGroupLayout: GPUBindGroupLayout;
@@ -56,7 +57,7 @@ export class FromPixelsProgram implements WebGPUProgram {
 
   constructor(outputShape: number[]) {
     this.updateOutputShape(outputShape);
-    this.shaderKey = 'fromPixels';
+    this.shaderKey = `fromPixels${outputShape}`;
   }
 
   getUserCode(): string {

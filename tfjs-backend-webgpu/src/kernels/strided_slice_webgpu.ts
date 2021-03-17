@@ -29,6 +29,7 @@ export class StridedSliceProgram implements WebGPUProgram {
   // TODO(xing.xu): Increase the workPerThread.
   workPerThread = 1;
   workGroupSize: [number, number, number] = [16, 1, 1];
+  needsShapesUniforms = true;
   begin: number[];
   strides: number[];
 
@@ -41,7 +42,7 @@ export class StridedSliceProgram implements WebGPUProgram {
 
     this.begin = begin;
     this.strides = strides;
-    this.shaderKey = `stridedSlice_${begin}_${strides}`;
+    this.shaderKey = `stridedSlice${begin}${strides}`;
   }
 
   getUserCode(): string {

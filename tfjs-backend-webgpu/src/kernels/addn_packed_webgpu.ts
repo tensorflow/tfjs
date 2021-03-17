@@ -30,6 +30,7 @@ export class AddNPackedProgram implements WebGPUProgram {
   variableNames: string[];
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
+  needsShapesUniforms = true;
 
   constructor(shapes: number[][]) {
     this.outputShape = shapes[0];
@@ -38,7 +39,7 @@ export class AddNPackedProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-    this.shaderKey = 'addN';
+    this.shaderKey = `addN${shapes}`;
   }
 
   getUserCode(): string {
