@@ -309,7 +309,8 @@ export class Tensor<R extends Rank = Rank> {
    */
   async array(): Promise<ArrayMap[R]> {
     const vals = await this.data();
-    return toNestedArray(this.shape, vals) as ArrayMap[R];
+    return toNestedArray(this.shape, vals, this.dtype === 'complex64') as
+        ArrayMap[R];
   }
 
   /**
@@ -319,7 +320,10 @@ export class Tensor<R extends Rank = Rank> {
    * @doc {heading: 'Tensors', subheading: 'Classes'}
    */
   arraySync(): ArrayMap[R] {
-    return toNestedArray(this.shape, this.dataSync()) as ArrayMap[R];
+    console.log(this.dataSync());
+    return toNestedArray(
+               this.shape, this.dataSync(), this.dtype === 'complex64') as
+        ArrayMap[R];
   }
 
   /**
