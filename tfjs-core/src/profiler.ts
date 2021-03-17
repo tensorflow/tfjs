@@ -49,10 +49,13 @@ export class Profiler {
       timer = this.backendTimer.time(holdResultWrapperFn);
     } else {
       holdResultWrapperFn();
-      for (const output of outputs) {
-        output.dataSync();
-      }
-      timer = Promise.resolve({kernelMs: util.now() - start});
+      timer = Promise
+                  .all(outputs.map((output) => {
+                    output.data();
+                  }))
+                  .then(() => {
+                    return {kernelMs: util.now() - start};
+                  });
     }
     if (env().getBool('CHECK_COMPUTATION_FOR_ERRORS')) {
       for (let i = 0; i < outputs.length; i++) {
