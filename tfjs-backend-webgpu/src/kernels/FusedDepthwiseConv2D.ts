@@ -60,15 +60,17 @@ export function fusedDepthwiseConv2D(args: {
 
   const program = new DepthwiseConv2DProgram(
       convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
+
   const dimensions = [
-    convInfo.filterHeight, convInfo.filterWidth, convInfo.padInfo.top,
-    convInfo.padInfo.left, convInfo.strideHeight, convInfo.strideWidth,
-    convInfo.dilationHeight, convInfo.dilationWidth, convInfo.inHeight,
-    convInfo.inWidth
+    {type: 'int32', data: [convInfo.filterHeight, convInfo.filterWidth]},
+    {type: 'int32', data: [convInfo.padInfo.top, convInfo.padInfo.left]},
+    {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
+    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]},
+    {type: 'int32', data: [convInfo.inHeight, convInfo.inWidth]}
   ];
-  const uniformData = new Int32Array(dimensions);
+
   const result =
-      backend.runWebGPUProgram(program, programInputs, 'float32', uniformData);
+      backend.runWebGPUProgram(program, programInputs, 'float32', dimensions);
 
   return result;
 }
