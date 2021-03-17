@@ -74,8 +74,6 @@ const sentences = [
   'what is the forecast for here at tea time',
 ];
 
-let correctnestInputForCustomModel;
-
 const benchmarks = {
   'mobilenet_v2': {
     type: 'GraphModel',
