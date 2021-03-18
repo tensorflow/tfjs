@@ -1,9 +1,10 @@
+package(default_visibility = ["//visibility:public"])
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
-load("@npm//@bazel/typescript:index.bzl", "ts_project")
+load("@npm//@bazel/typescript:index.bzl", "ts_project", "ts_library")
 load("//:esbuild.bzl", "esbuild");
 
 ts_project(
-    name = "tfjs-backend-cpu",
+    name = "tfjs-backend-cpu_lib",
     srcs = glob(["src/**/*.ts"]),
     declaration = True,
     extends = "//:tsconfig.json",
@@ -16,9 +17,19 @@ ts_project(
         "@npm//jasmine",
         "@npm//@types/jasmine",
         "//tfjs-core",
-        "//tfjs-core:tf-core_lib",
     ],
 )
+
+# ts_library(
+#      name = "tfjs-backend-cpu_lib",
+#      srcs = glob(["src/**/*.ts"]),
+#      deps = [
+#         "@npm//jasmine",
+#         "@npm//@types/jasmine",
+#         "//tfjs-core",
+#      ],
+# )
+    
 
 esbuild(
     name = "tf-backend-cpu.min",
@@ -26,7 +37,7 @@ esbuild(
     sources_content = True,
     minify = True,
     deps = [
-        ":tfjs-backend-cpu",
+        ":tfjs-backend-cpu_lib",
     ],
     external = [
         "node-fetch",
@@ -39,7 +50,7 @@ esbuild(
     entry_point = "dist/index.ts",
     sources_content = True,
     deps = [
-        ":tfjs-backend-cpu",
+        ":tfjs-backend-cpu_lib",
     ],
     external = [
         "node-fetch",
@@ -48,13 +59,13 @@ esbuild(
 )
 
 js_library(
-    name = "tfjs-backend-cpu_lib",
+    name = "tfjs-backend-cpu",
     package_name = "@tensorflow/tfjs-backend-cpu",
     srcs = [
         "package.json",
     ],
     deps = [
-        ":tfjs-backend-cpu",
+        ":tfjs-backend-cpu_lib",
         ":tf-backend-cpu.min",
         ":tf-backend-cpu.node",
     ]

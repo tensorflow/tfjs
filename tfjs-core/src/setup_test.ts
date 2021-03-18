@@ -25,6 +25,8 @@ require('@tensorflow/tfjs-backend-cpu');
  * executing tests.
  */
 import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from './jasmine_util';
+
+import './base_side_effects';
 // Register all chained ops for tests.
 import './public/chained_ops/register_all_chained_ops';
 // Register all gradients for tests
@@ -41,3 +43,8 @@ if (typeof __karma__ !== 'undefined') {
     setTestEnvs([testEnv]);
   }
 }
+// This import, which registers all tests, must be a require because it must run
+// after the test environment is set up.
+// tslint:disable-next-line:no-require-imports
+//require('@tensorflow/tfjs-core/dist/tests');
+require('./tests');

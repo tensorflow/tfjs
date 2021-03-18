@@ -8,11 +8,5 @@
   ],
   "compilerOptions": {
     "outDir": "./dist",
-    "baseUrl": ".",
-    "paths": {
-      "@tensorflow/*": [
-        "../dist/bin/*"
-      ]
-    },
   }
 }

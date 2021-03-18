@@ -8,9 +8,32 @@ load("//:esbuild.bzl", "esbuild");
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 
 
+TEST_SRCS = ["src/setup_test.ts"]
+# ts_library(
+#     name = "tfjs-core_lib",
+#     #module_name = "tensorflow/tfjs-core",
+#     srcs = glob(["src/**/*.ts"], exclude = TEST_SRCS),
+#     deps = [
+#         "@npm//@types",
+#         "@npm//seedrandom",
+#     ],
+# )
+
+# ts_library(
+#     name = "tfjs-core_test_lib",
+#     testonly = True,
+#     srcs = TEST_SRCS,
+#     deps = [
+#         "@npm//@types",
+#         "@npm//seedrandom",
+#         ":tfjs-core_lib",
+#     ],
+# )
+
 
 ts_project(
-    name = "tfjs-core",
+    name = "tfjs-core_lib",
+    #srcs = glob(["src/**/*.ts"], exclude=TEST_SRCS),
     srcs = glob(["src/**/*.ts"]),
     declaration = True,
     extends = "//:tsconfig.json",
@@ -22,36 +45,61 @@ ts_project(
     deps = [
         "@npm//@types",
         "@npm//seedrandom",
+        "@npm//jasmine-core",
     ],
 )
 
-# ts_library(
-#     name = "tfjs-core",
-#     module_name = "tensorflow/tfjs-core",
+# # Due to a circular dependency with tfjs-core, we have to compile
+# # 'setup_test.ts' separately. However, since we set 'out_dir' to 'dist',
+# # the outputs of 'tfjs-core_lib' are not available at the same paths as their
+# # input '.ts' files. To maintain compatability with the current yarn build, we
+# # have to recompile all the sources to make sure they're available at their
+# # expected paths when compiling 'setup_test.ts'.
+# ts_project(
+#     name = "tfjs-core_test_lib",
+#     testonly = True,
 #     srcs = glob(["src/**/*.ts"]),
+#     declaration = True,
+#     extends = "//:tsconfig.json",
+#     root_dir = "src",
+#     out_dir = "test",
+#     incremental = True,
+#     source_map = True,
+#     tsconfig = "tsconfig.json",
 #     deps = [
+#         #":tfjs-core_lib",
+#         "//tfjs-backend-cpu",
 #         "@npm//@types",
 #         "@npm//seedrandom",
 #     ],
 # )
 
-# esbuild(
-#     name = "tfjs-core_test_bundle",
-#     entry_point = "dist/setup_test.ts",
-#     sources_content = True,
-#     deps = [
-#         ":tfjs-core",
-#     ],
-# )
+esbuild(
+    name = "tfjs-core_test_bundle",
+    testonly = True,
+    args = [
+        "--tree-shaking=ignore-annotations",
+    ],
+    entry_point = "dist/setup_test.ts",
+    sources_content = True,
+    
+    deps = [
+        ":tfjs-core_lib",
+        "//tfjs-backend-cpu",
+    ],
+    external = [
+        # webworker tests
+        "@tensorflow/tfjs",
+    ]
+)
 
 esbuild(
     name = "tf-core.min",
     entry_point = "dist/index.ts",
-    args = ["--keep-names"],
     sources_content = True,
     minify = True,
     deps = [
-        ":tfjs-core",
+        ":tfjs-core_lib",
     ],
     external = [
         "node-fetch",
@@ -64,7 +112,7 @@ esbuild(
     entry_point = "dist/index.ts",
     sources_content = True,
     deps = [
-        ":tfjs-core",
+        ":tfjs-core_lib",
     ],
     external = [
         "node-fetch",
@@ -73,7 +121,7 @@ esbuild(
 )
 
 js_library(
-    name = "tf-core_lib",
+    name = "tfjs-core",
     package_name = "@tensorflow/tfjs-core",
     srcs = [
         "package.json",
@@ -81,14 +129,35 @@ js_library(
     deps = [
         ":tf-core.min",
         ":tf-core.node",
-        ":tfjs-core",
+        ":tfjs-core_lib",
     ]
 )
 
-# karma_web_test(
-#     name = "tfjs-core_test",
-#     deps = [
-#         ":tfjs-core_test_bundle",
+# ts_library(
+#     name = "simple_test",
+#     srcs = [
+#         "simple_test.ts"
 #     ],
-#     config_file = "karma.conf.js",
+#     deps = [
+#         "@npm//jasmine",
+#         "@npm//@types/jasmine",
+#         "@npm//seedrandom",
+#         "@npm//@types/seedrandom",
+#     ]
 # )
+
+
+
+karma_web_test(
+    name = "tfjs-core_test",
+
+    srcs = [
+        ":tfjs-core_test_bundle",
+        #":simple_test"
+    ],
+    static_files = [
+        # Listed here so sourcemaps are served
+        ":tfjs-core_test_bundle",
+    ]
+    #config_file = "karma.conf.js",
+)
