@@ -396,6 +396,18 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'step kernel'},
   {include: 'ceil'},
   {include: 'mirrorPad'},
+  {
+    startsWith: 'all',
+    excludes: [
+      'ignores NaNs'  // Doesn't yet ignore NaN
+    ]
+  },
+  {
+    startsWith: 'any',
+    excludes: [
+      'ignores NaNs'  // Doesn't yet ignore NaN
+    ]
+  },
 ];
 
 const customInclude = (testName: string) => {
