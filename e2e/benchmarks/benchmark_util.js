@@ -475,9 +475,8 @@ async function setEnvFlags(flagConfig) {
               TUNABLE_FLAG_VALUE_RANGE_MAP[flag]}], while ${flagConfig[flag]}` +
           ' is found.');
     }
+    tf.env().set(flag, flagConfig[flag]);
   }
-
-  tf.env().setFlags(flagConfig);
 
   // `WASM_HAS_SIMD_SUPPORT` and `WEBGL_VERSION` are also evaluated when
   // initializing backends, not only inferring.
