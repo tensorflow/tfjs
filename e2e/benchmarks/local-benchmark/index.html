@@ -166,10 +166,11 @@ limitations under the License.
         });
       },
       testCorrectness: async () => {
-        if (state.benchmark === 'custom') {
-          // TODO: seperate input generation from the predict function
-          await showMsg('Testing correctness for custom models is not supported.');
-          throw new Error();
+        if (state.isFlagChanged) {
+          await setEnvFlags(state.flags);
+          envDiv.innerHTML = '';
+          showVersions();
+          await showEnvironment();
         }
 
         let match, predictionData, referenceData;
@@ -183,13 +184,18 @@ limitations under the License.
           await showCorrectnessTestParameters();
 
           tf.setBackend('cpu');
+          let inferenceInput;
           await showMsg('Runing on cpu');
-          const referencePrediction = predict(model);
+          if (state.benchmark === 'custom') {
+            inferenceInput = generateInputFromDef(
+              state.inputs, model instanceof tf.GraphModel);
+          }
+          const referencePrediction = predict(model, inferenceInput);
           referenceData = await getPredictionData(referencePrediction);
 
           await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
-          const prediction = predict(model);
+          const prediction = predict(model, inferenceInput);
           predictionData = await getPredictionData(prediction);
         } catch (e) {
           showMsg('Error: ' + e.message);
