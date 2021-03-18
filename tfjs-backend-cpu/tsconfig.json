@@ -7,6 +7,12 @@
     "node_modules/"
   ],
   "compilerOptions": {
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+      "@tensorflow/*": [
+        "../dist/bin/*"
+      ]
+    },
   }
 }

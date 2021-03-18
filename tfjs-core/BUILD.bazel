@@ -8,6 +8,7 @@ load("//:esbuild.bzl", "esbuild");
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 
 
+
 ts_project(
     name = "tfjs-core",
     srcs = glob(["src/**/*.ts"]),
@@ -34,18 +35,19 @@ ts_project(
 #     ],
 # )
 
-esbuild(
-    name = "tfjs-core_test_bundle",
-    entry_point = "dist/setup_test.ts",
-    sources_content = True,
-    deps = [
-        ":tfjs-core",
-    ],
-)
+# esbuild(
+#     name = "tfjs-core_test_bundle",
+#     entry_point = "dist/setup_test.ts",
+#     sources_content = True,
+#     deps = [
+#         ":tfjs-core",
+#     ],
+# )
 
 esbuild(
     name = "tf-core.min",
     entry_point = "dist/index.ts",
+    args = ["--keep-names"],
     sources_content = True,
     minify = True,
     deps = [
@@ -83,10 +85,10 @@ js_library(
     ]
 )
 
-karma_web_test(
-    name = "tfjs-core_test",
-    deps = [
-        ":tfjs-core_test_bundle",
-    ],
-    config_file = "karma.conf.js",
-)
+# karma_web_test(
+#     name = "tfjs-core_test",
+#     deps = [
+#         ":tfjs-core_test_bundle",
+#     ],
+#     config_file = "karma.conf.js",
+# )

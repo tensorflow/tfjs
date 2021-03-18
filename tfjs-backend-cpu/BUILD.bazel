@@ -1,4 +1,6 @@
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
+load("//:esbuild.bzl", "esbuild");
 
 ts_project(
     name = "tfjs-backend-cpu",
@@ -16,4 +18,44 @@ ts_project(
         "//tfjs-core",
         "//tfjs-core:tf-core_lib",
     ],
+)
+
+esbuild(
+    name = "tf-backend-cpu.min",
+    entry_point = "dist/index.ts",
+    sources_content = True,
+    minify = True,
+    deps = [
+        ":tfjs-backend-cpu",
+    ],
+    external = [
+        "node-fetch",
+        "util",
+    ]
+)
+
+esbuild(
+    name = "tf-backend-cpu.node",
+    entry_point = "dist/index.ts",
+    sources_content = True,
+    deps = [
+        ":tfjs-backend-cpu",
+    ],
+    external = [
+        "node-fetch",
+        "util",
+    ]
+)
+
+js_library(
+    name = "tfjs-backend-cpu_lib",
+    package_name = "@tensorflow/tfjs-backend-cpu",
+    srcs = [
+        "package.json",
+    ],
+    deps = [
+        ":tfjs-backend-cpu",
+        ":tf-backend-cpu.min",
+        ":tf-backend-cpu.node",
+    ]
 )
