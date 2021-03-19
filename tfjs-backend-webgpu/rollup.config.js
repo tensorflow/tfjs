@@ -18,10 +18,25 @@
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
-import {terser} from 'rollup-plugin-terser';
 import visualizer from 'rollup-plugin-visualizer';
+import {getBrowserBundleConfigOptions} from '../rollup.config.helpers';
 
-const PREAMBLE = ``;
+const PREAMBLE = `/**
+ * @license
+ * Copyright ${(new Date).getFullYear()} Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */`;
 
 function config({
   plugins = [],
@@ -76,53 +91,31 @@ module.exports = cmdOptions => {
   const bundles = [];
   const name = 'tf';
   const extend = true;
-  const browserFormat = 'umd';
-  const fileName = 'tf-webgpu';
+  const fileName = 'tf-backend-webgpu';
 
-  // Browser default unminified
+  // Node
   bundles.push(config({
     output: {
-      format: browserFormat,
+      format: 'cjs',
       name,
       extend,
-      file: `dist/${fileName}.js`,
-    }
-  }));
-
-  // Browser default minified
-  bundles.push(config({
-    plugins: [terser({output: {preamble: PREAMBLE}})],
-    output: {
-      format: browserFormat,
-      name,
-      extend,
-      file: `dist/${fileName}.min.js`,
+      file: `dist/${fileName}.node.js`,
+      freeze: false
     },
-    visualize: cmdOptions.visualize
+    tsCompilerOptions: {target: 'es5'}
   }));
 
-  // Browser ES2017
-  bundles.push(config({
-    output: {
-      format: browserFormat,
-      name,
-      extend,
-      file: `dist/${fileName}.es2017.js`,
-    },
-    tsCompilerOptions: {target: 'es2017'}
-  }));
+  if (cmdOptions.ci) {
+    const browserBundles = getBrowserBundleConfigOptions(
+        config, name, fileName, PREAMBLE, cmdOptions.visualize, true /* CI */);
+    bundles.push(...browserBundles);
+  }
 
-  // Browser ES2017 minified
-  bundles.push(config({
-    plugins: [terser({output: {preamble: PREAMBLE}})],
-    output: {
-      format: browserFormat,
-      name,
-      extend,
-      file: `dist/${fileName}.es2017.min.js`,
-    },
-    tsCompilerOptions: {target: 'es2017'}
-  }));
+  if (cmdOptions.npm) {
+    const browserBundles = getBrowserBundleConfigOptions(
+        config, name, fileName, PREAMBLE, cmdOptions.visualize, false /* CI */);
+    bundles.push(...browserBundles);
+  }
 
   return bundles;
 };
