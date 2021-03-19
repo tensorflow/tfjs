@@ -653,7 +653,9 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   numDataIds() {
-    return this.tensorMap.numDataIds();
+    return this.tensorMap.numDataIds() +
+        (this.cpuBackend ? this.cpuBackend.numDataIds() : 0) -
+        this.tensorDisposalQueue.length;
   }
 
   dispose() {
