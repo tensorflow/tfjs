@@ -179,7 +179,7 @@ const kernelConfigs: KernelConfig[] = [
   roundConfig,
   scatterNdConfig,
   selectConfig,
-  sigmoidConfig,
+  sigmoidConfig,git remote set-url
   sinConfig,
   sinhConfig,
   sliceConfig,
