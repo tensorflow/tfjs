@@ -23,6 +23,8 @@ import {fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {absConfig} from './kernels/Abs';
 import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
+import {allConfig} from './kernels/All';
+import {anyConfig} from './kernels/Any';
 import {argMaxConfig} from './kernels/ArgMax';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
@@ -63,6 +65,7 @@ import {maxPoolConfig} from './kernels/MaxPool';
 import {meanConfig} from './kernels/Mean';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
+import {mirrorPadConfig} from './kernels/MirrorPad';
 import {multiplyConfig} from './kernels/Multiply';
 import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
@@ -113,6 +116,8 @@ const kernelConfigs: KernelConfig[] = [
   absConfig,
   addConfig,
   addNConfig,
+  allConfig,
+  anyConfig,
   argMaxConfig,
   avgPoolConfig,
   batchMatMulConfig,
@@ -154,6 +159,7 @@ const kernelConfigs: KernelConfig[] = [
   meanConfig,
   minConfig,
   minimumConfig,
+  mirrorPadConfig,
   multiplyConfig,
   negConfig,
   nonMaxSuppressionV3Config,
