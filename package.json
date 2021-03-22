@@ -31,5 +31,9 @@
     "update-tfjs-lockfiles": "ts-node -s ./scripts/update-tfjs-lockfiles",
     "tag-tfjs-release": "ts-node -s ./scripts/tag-tfjs-release",
     "update-cloudbuild-tests": "yarn generate-cloudbuild-for-packages tfjs-node -o scripts/cloudbuild_tfjs_node_expected.yml && yarn generate-cloudbuild-for-packages tfjs-core -o scripts/cloudbuild_tfjs_core_expected.yml"
+  },
+  "dependencies": {
+    "@bazel/bazelisk": "^1.7.5",
+    "@bazel/typescript": "^3.2.2"
   }
 }
