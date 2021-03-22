@@ -24,7 +24,7 @@ export const REGRESSION = '#REGRESSION';
 export const TAGS = [SMOKE, REGRESSION];
 
 /** Testing backends. */
-export const BACKENDS = ['cpu', 'webgl'];
+export const BACKENDS = ['cpu', 'webgl', 'webgpu'];
 
 /** Testing models for CUJ: create -> save -> predict. */
 export const LAYERS_MODELS = [

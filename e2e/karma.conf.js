@@ -111,7 +111,7 @@ module.exports = function(config) {
 
   config.set({
     ...extraConfig,
-    browsers: ['Chrome'],
+    browsers: ['chrome_webgpu'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
@@ -168,6 +168,12 @@ module.exports = function(config) {
         browser_version: '77.0',
         os: 'Windows',
         os_version: '10'
+      },
+      chrome_webgpu: {
+        base: 'Chrome',
+        flags: [
+          '--enable-unsafe-webgpu', '--enable-dawn-features=disable_robustness'
+        ],
       }
     },
     client: {jasmine: {random: false}, args: args, captureConsole: true},

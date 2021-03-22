@@ -37,6 +37,13 @@ registerTestEnv({
 
 registerTestEnv({name: 'cpu', backendName: 'cpu', isDataSync: true});
 
+registerTestEnv({
+  name: 'webgpu',
+  backendName: 'webgpu',
+  flags: {'WEBGPU_CPU_FORWARD': false},
+  isDataSync: true
+});
+
 // tslint:disable-next-line:no-any
 declare let __karma__: any;
 if (typeof __karma__ !== 'undefined') {
