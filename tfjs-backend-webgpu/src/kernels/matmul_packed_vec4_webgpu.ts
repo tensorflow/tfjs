@@ -20,11 +20,10 @@ import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape}
 import {WebGPUProgram} from './webgpu_program';
 
 export function makeMatMulPackedVec4Source(workPerThread: number[],
-    workGroupSize?: number[], dimInner?: number): string {
+    dimInner?: number, tileInner?: number): string {
   let numTiles = -1;
-  if (workGroupSize != null && dimInner != null) {
+  if (dimInner != null && tileInner != null) {
     // numTiles should be the same as the computation in shader.
-    const tileInner = workGroupSize[0] * workPerThread[0];
     numTiles = Math.floor((dimInner - 1) / tileInner + 1);
   }
 
@@ -160,7 +159,8 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.shaderKey = `matMulPackedVec4_${rowPerThread}_${activation}`;
+    this.shaderKey = `matMulPackedVec4_${vecSize}_${rowPerThread}_${
+        activation}`;
   }
 
   getUserCode(): string {
@@ -219,7 +219,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
       int batch;
 
       ${makeMatMulPackedVec4Source([vecSize, this.workPerThread, 1],
-        this.workGroupSize, this.aShape[2])}
+          dimInner, tileInner)}
 
       vec4 mm_readA(int row, int col) {
         return ${sampleA};
