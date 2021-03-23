@@ -299,9 +299,9 @@ tfjs_cc_library(
         ":SquaredDifference",
         ":StridedSlice",
         ":Sub",
+        ":Tan",
         ":Tile",
         ":Transpose",
-        ":Tan",
         ":_FusedMatMul",
     ],
 )
