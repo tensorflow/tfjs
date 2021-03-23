@@ -1,0 +1,48 @@
+{
+  "compilerOptions": {
+    "module": "ES2015",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "sourceMap": true,
+    "inlineSources": true,
+    "removeComments": false,
+    "preserveConstEnums": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "target": "es2017",
+    "lib": [
+      "es2017",
+      "dom"
+    ],
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedParameters": false,
+    "pretty": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowUnreachableCode": false,
+    "baseUrl": ".",
+    "paths": {
+      "@tensorflow/*": [
+        "./dist/bin/*"
+      ]
+    },
+    "plugins": [
+      {
+        "name": "@bazel/tsetse",
+        "disabledRules": [
+          "must-use-promises",
+          "must-type-assert-json-parse",
+          "ban-promise-as-condition"
+        ]
+      }
+    ]
+  },
+  "include": [
+    "src/"
+  ],
+  "exclude": [
+    "node_modules/"
+  ]
+}
