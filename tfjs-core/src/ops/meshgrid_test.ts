@@ -9,7 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF {} KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * =============================================================================
@@ -75,7 +75,7 @@ describeWithFlags('higher dimensional input', ALL_ENVS, () => {
 
 describeWithFlags('dtypes', ALL_ENVS, () => {
   it('Should use float32 for arrays of numbers', async () => {
-    const x = [1, 2]
+    const x = [1, 2];
     const y = [3, 4];
     const [X, Y] = tf.meshgrid(x, y);
 
@@ -95,12 +95,12 @@ describeWithFlags('dtypes', ALL_ENVS, () => {
 
 describeWithFlags('invalid arguments', ALL_ENVS, () => {
   it('Should throw an Error', () => {
-    expect(() => tf.meshgrid(3 as any as Tensor)).toThrow();
-    expect(() => tf.meshgrid([1], 3 as any as Tensor)).toThrow();
+    expect(() => tf.meshgrid(3 as {} as Tensor)).toThrow();
+    expect(() => tf.meshgrid([1], 3 as {} as Tensor)).toThrow();
 
-    expect(() => tf.meshgrid((() => {}) as any as Tensor)).toThrow();
+    expect(() => tf.meshgrid((() => {}) as {} as Tensor)).toThrow();
 
-    expect(() => tf.meshgrid([1], (() => {}) as any as Tensor)).toThrow();
+    expect(() => tf.meshgrid([1], (() => {}) as {} as Tensor)).toThrow();
     expect(() => tf.meshgrid([1], [2], 'foobar')).toThrow();
   });
 });
