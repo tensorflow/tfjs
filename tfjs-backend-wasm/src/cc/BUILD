@@ -966,6 +966,7 @@ tfjs_cc_library(
         ":unary",
     ],
 )
+
 tfjs_cc_library(
     name = "Sinh",
     srcs = ["kernels/Sinh.cc"],
@@ -975,6 +976,7 @@ tfjs_cc_library(
         ":unary",
     ],
 )
+
 tfjs_cc_library(
     name = "Softmax",
     srcs = ["kernels/Softmax.cc"],
