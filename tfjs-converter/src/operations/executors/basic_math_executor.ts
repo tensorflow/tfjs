@@ -172,6 +172,9 @@ export const executeOp: InternalOpExecutor =
           return [tfOps.prelu(
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('alpha', node, tensorMap, context) as Tensor)];
+        case 'IsNan':
+          return [tfOps.isNaN(
+              getTensor(node.inputNames[0], tensorMap, context))];
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);
       }

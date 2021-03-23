@@ -38,8 +38,15 @@ fi
 
 VENV_DIR="$(mktemp -d)_venv"
 echo "Creating virtualenv at ${VENV_DIR} ..."
-virtualenv -p python3 "${VENV_DIR}"
-source "${VENV_DIR}/bin/activate"
+PLATFORM="$(python -m platform)"
+if [[ $PLATFORM =~ "Windows" ]]
+then
+  python -m virtualenv -p python3 "${VENV_DIR}"
+  source "${VENV_DIR}/Scripts/activate"
+else
+  virtualenv -p python3 "${VENV_DIR}"
+  source "${VENV_DIR}/bin/activate"
+fi
 
 # Install python packages.
 if [[ "${DEV_VERSION}" == "stable" ]]; then
