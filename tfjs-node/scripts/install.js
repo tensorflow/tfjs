@@ -171,7 +171,7 @@ async function build() {
     // Has custom tensorflow shared libs but no addon. Then build it from source
     buildOption = '--build-from-source';
   }
-  cp.exec(`yarn node-pre-gyp install ${buildOption}`, (err) => {
+  cp.exec(`node-pre-gyp install ${buildOption}`, (err) => {
     if (err) {
       console.log('node-pre-gyp install failed with error: ' + err);
       process.exit(1);
