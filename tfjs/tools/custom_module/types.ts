@@ -49,6 +49,7 @@ export interface ImportProvider {
   importGradientConfigStr: (kernelName: string) => {
     importStatement: string, gradConfigId: string
   };
+  validateImportPath: (importPath: string) => boolean;
 }
 
 // An object that can output a custom model given a config

@@ -36,6 +36,9 @@ const mockImportProvider: ImportProvider = {
   importNamespacedOpsForConverterStr: (
       namespace: string, opSymbols: string[]) => {
     return `export ${opSymbols.join(',')} as ${namespace} from ${namespace}/`;
+  },
+  validateImportPath: (importPath: string) => {
+    return !importPath.includes('NotValid');
   }
 };
 
@@ -43,7 +46,7 @@ describe('getCustomModuleString forwardModeOnly=true', () => {
   const forwardModeOnly = true;
   it('one kernel, one backend', () => {
     const config = {
-      kernels: ['MathKrnl'],
+      kernels: ['MathKrnl', 'NotValid'],
       backends: ['FastBcknd'],
       models: [] as string[],
       forwardModeOnly
@@ -58,6 +61,8 @@ describe('getCustomModuleString forwardModeOnly=true', () => {
     expect(tfjs).toContain('import BACKEND FastBcknd');
     expect(tfjs).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
     expect(tfjs).toContain('registerKernel(MathKrnl_FastBcknd)');
+    expect(tfjs).not.toContain('import KERNEL NotValid from BACKEND FastBcknd');
+    expect(tfjs).not.toContain('registerKernel(NotValid_FastBcknd)');
 
     expect(tfjs).not.toContain('GRADIENT');
   });

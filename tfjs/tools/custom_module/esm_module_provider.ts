@@ -104,28 +104,33 @@ export const esmImportProvider: ImportProvider = {
   },
 
   importKernelStr(kernelName: string, backend: SupportedBackend) {
-    // TODO(yassogba) validate whether the target file referenced by
-    // importStatement exists and warn the user if it doesn't. That could happen
-    // here or in an earlier validation phase that uses this function
-
     const backendPkg = getBackendPath(backend);
     const kernelConfigId = `${kernelName}_${backend}`;
-    const importStatement =
+    const importPath = `${backendPkg}/dist/kernels/${kernelName}`;
+    let importStatement =
         `import {${kernelNameToVariableName(kernelName)}Config as ${
-            kernelConfigId}} from '${backendPkg}/dist/kernels/${kernelName}';`;
+            kernelConfigId}} from '${importPath}';`;
+    if (!this.validateImportPath(importPath)) {
+      importStatement = '';
+      console.warn(
+          'WARNING:',
+          `Import path '${importPath}' cannot be resolved. Skipping...`);
+    }
 
     return {importStatement, kernelConfigId};
   },
 
   importGradientConfigStr(kernelName: string) {
-    // TODO(yassogba) validate whether the target file referenced by
-    // importStatement exists and warn the user if it doesn't. That could happen
-    // here or in an earlier validation phase that uses this function
-
     const gradConfigId = `${kernelNameToVariableName(kernelName)}GradConfig`;
-    const importStatement =
-        `import {${gradConfigId}} from '@tensorflow/tfjs-core/dist/gradients/${
-            kernelName}_grad';`;
+    const importPath =
+        `@tensorflow/tfjs-core/dist/gradients/${kernelName}_grad`;
+    let importStatement = `import {${gradConfigId}} from '${importPath}';`;
+    if (!this.validateImportPath(importPath)) {
+      importStatement = '';
+      console.warn(
+          'WARNING:',
+          `Import path '${importPath}' cannot be resolved. Skipping...`);
+    }
 
     return {importStatement, gradConfigId};
   },
@@ -155,6 +160,15 @@ export const esmImportProvider: ImportProvider = {
     result.push(`};`);
 
     return result.join('\n');
+  },
+
+  validateImportPath(importPath: string): boolean {
+    try {
+      require.resolve(importPath);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 };
 
