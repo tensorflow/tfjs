@@ -107,32 +107,18 @@ export const esmImportProvider: ImportProvider = {
     const backendPkg = getBackendPath(backend);
     const kernelConfigId = `${kernelName}_${backend}`;
     const importPath = `${backendPkg}/dist/kernels/${kernelName}`;
-    let importStatement =
+    const importStatement =
         `import {${kernelNameToVariableName(kernelName)}Config as ${
             kernelConfigId}} from '${importPath}';`;
-    if (!this.validateImportPath(importPath)) {
-      importStatement = '';
-      console.warn(
-          'WARNING:',
-          `Import path '${importPath}' cannot be resolved. Skipping...`);
-    }
-
-    return {importStatement, kernelConfigId};
+    return {importPath, importStatement, kernelConfigId};
   },
 
   importGradientConfigStr(kernelName: string) {
     const gradConfigId = `${kernelNameToVariableName(kernelName)}GradConfig`;
     const importPath =
         `@tensorflow/tfjs-core/dist/gradients/${kernelName}_grad`;
-    let importStatement = `import {${gradConfigId}} from '${importPath}';`;
-    if (!this.validateImportPath(importPath)) {
-      importStatement = '';
-      console.warn(
-          'WARNING:',
-          `Import path '${importPath}' cannot be resolved. Skipping...`);
-    }
-
-    return {importStatement, gradConfigId};
+    const importStatement = `import {${gradConfigId}} from '${importPath}';`;
+    return {importPath, importStatement, gradConfigId};
   },
 
   importOpForConverterStr(opSymbol) {

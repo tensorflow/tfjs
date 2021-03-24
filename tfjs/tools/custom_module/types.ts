@@ -44,10 +44,10 @@ export interface ImportProvider {
   importConverterStr: () => string;
   importBackendStr: (backendPkg: string) => string;
   importKernelStr: (kernelName: string, backend: string) => {
-    importStatement: string, kernelConfigId: string
+    importPath: string, importStatement: string, kernelConfigId: string
   };
   importGradientConfigStr: (kernelName: string) => {
-    importStatement: string, gradConfigId: string
+    importPath: string, importStatement: string, gradConfigId: string
   };
   validateImportPath: (importPath: string) => boolean;
 }

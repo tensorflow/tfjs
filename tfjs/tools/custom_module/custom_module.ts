@@ -37,10 +37,15 @@ export function getCustomModuleString(
     addLine(tfjs, moduleProvider.importBackendStr(backend));
     for (const kernelName of kernels) {
       const kernelImport = moduleProvider.importKernelStr(kernelName, backend);
-      if (kernelImport.importStatement) {
-        addLine(tfjs, kernelImport.importStatement);
-        addLine(tfjs, registerKernelStr(kernelImport.kernelConfigId));
+      if (!moduleProvider.validateImportPath(kernelImport.importPath)) {
+        console.warn(
+            'WARNING:',
+            `Import path '${
+                kernelImport.importPath}' cannot be resolved. Skipping...`);
+        continue;
       }
+      addLine(tfjs, kernelImport.importStatement);
+      addLine(tfjs, registerKernelStr(kernelImport.kernelConfigId));
     }
   }
 
@@ -48,10 +53,15 @@ export function getCustomModuleString(
     addLine(tfjs, `\n//Gradients`);
     for (const kernelName of kernels) {
       const gradImport = moduleProvider.importGradientConfigStr(kernelName);
-      if (gradImport.importStatement) {
-        addLine(tfjs, gradImport.importStatement);
-        addLine(tfjs, registerGradientConfigStr(gradImport.gradConfigId));
+      if (!moduleProvider.validateImportPath(gradImport.importPath)) {
+        console.warn(
+            'WARNING:',
+            `Import path '${
+                gradImport.importPath}' cannot be resolved. Skipping...`);
+        continue;
       }
+      addLine(tfjs, gradImport.importStatement);
+      addLine(tfjs, registerGradientConfigStr(gradImport.gradConfigId));
     }
   }
 
