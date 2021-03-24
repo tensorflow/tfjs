@@ -1067,3 +1067,11 @@ tfjs_cc_library(
         ":backend",
     ],
 )
+
+tfjs_cc_library(
+    name = "Tan",
+    srcs = ["kernels/Tan.cc"],
+    deps = [
+        ":backend",
+    ],
+)
