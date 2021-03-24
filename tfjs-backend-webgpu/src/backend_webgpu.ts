@@ -55,6 +55,11 @@ type TensorBufferInfo = {
 
 interface DataId {}
 
+export interface CPUTimerQuery {
+  startMs: number;
+  endMs: number;
+}
+
 export type WebGPUKernelInfo = {
   name: string; query: Promise<number>;
 };
@@ -397,18 +402,12 @@ export class WebGPUBackend extends KernelBackend {
       wallMs: null
     };
 
-    if (this.supportTimeQuery) {
-      const kernelMs = await Promise.all(flattenedActiveTimerQueries);
-      res['kernelMs'] = util.sum(kernelMs);
-      res['getExtraProfileInfo'] = () =>
-          kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
-              .map(d => `${d.name}: ${d.ms}`)
-              .join(', ');
-    } else {
-      res['kernelMs'] = {
-        error: 'WebGPU timestamp query was not supported in this environment.'
-      };
-    }
+    const kernelMs = await Promise.all(flattenedActiveTimerQueries);
+    res['kernelMs'] = util.sum(kernelMs);
+    res['getExtraProfileInfo'] = () =>
+        kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
+            .map(d => `${d.name}: ${d.ms}`)
+            .join(', ');
     this.uploadWaitMs = 0;
     this.downloadWaitMs = 0;
     return res;
@@ -452,12 +451,22 @@ export class WebGPUBackend extends KernelBackend {
     };
   }
 
+  startTimer() {
+    return {startMs: util.now(), endMs: 0};
+  }
+
+  endTimer(query: CPUTimerQuery) {
+    query.endMs = util.now();
+    return query;
+  }
+
+  async getCPUQueryTime(query: CPUTimerQuery): Promise<number> {
+    const timerQuery = query;
+    return timerQuery.endMs - timerQuery.startMs;
+  }
+
   async getQueryTime(query: GPUQuerySet): Promise<number> {
-    if (this.supportTimeQuery) {
-      return this.getTimeFromQuerySet(query);
-    } else {
-      return 0;
-    }
+    return this.getTimeFromQuerySet(query);
   }
 
   uploadToGPU(dataId: DataId): void {
@@ -532,9 +541,13 @@ export class WebGPUBackend extends KernelBackend {
 
     const encoder = this.device.createCommandEncoder();
     const pass = encoder.beginComputePass();
+
+    let query: CPUTimerQuery;
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
         pass.writeTimestamp(this.querySet, 0);
+      } else {
+        query = this.startTimer();
       }
     }
     pass.setPipeline(pipeline);
@@ -573,6 +586,12 @@ export class WebGPUBackend extends KernelBackend {
         this.activeTimers.push({
           name: program.constructor.name,
           query: this.getQueryTime(this.querySet)
+        });
+      } else {
+        query = this.endTimer(query);
+        this.activeTimers.push({
+          name: program.constructor.name,
+          query: this.getCPUQueryTime(query)
         });
       }
     }
