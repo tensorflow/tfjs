@@ -24,7 +24,7 @@ const mockImportProvider: ImportProvider = {
   importBackendStr: (name: string) => `import BACKEND ${name}`,
   importKernelStr: (kernelName: string, backend: string) => ({
     importStatement: `import KERNEL ${kernelName} from ${
-        kernelName === 'Invalid' ? 'BACKEND' : 'BACKEND_Invalid'} ${backend}`,
+        kernelName === 'Invalid' ? 'BACKEND_Invalid' : 'BACKEND'} ${backend}`,
     kernelConfigId: `${kernelName}_${backend}`
   }),
   importGradientConfigStr: (kernel: string) => ({
