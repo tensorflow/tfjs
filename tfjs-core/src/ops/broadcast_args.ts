@@ -15,14 +15,14 @@
  * =============================================================================
  */
 
-import {NamedTensorMap} from '..';
-import {ENGINE} from '../engine';
-import {BroadcastArgs, BroadcastArgsInputs} from '../kernel_names';
-import {Tensor} from '../tensor';
-import {convertToTensor} from '../tensor_util_env';
-import {Rank, TensorLike} from '../types';
+import { NamedTensorMap } from '../tensor_types';
+import { ENGINE } from '../engine';
+import { BroadcastArgs, BroadcastArgsInputs } from '../kernel_names';
+import { Tensor } from '../tensor';
+import { convertToTensor } from '../tensor_util_env';
+import { Rank, TensorLike } from '../types';
 
-import {op} from './operation';
+import { op } from './operation';
 
 /**
  * Return the shape of s0 op s1 with broadcast.
@@ -39,24 +39,24 @@ import {op} from './operation';
  * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
 function broadcastArgs_<R extends Rank>(
-    s0: Tensor|TensorLike, s1: Tensor|TensorLike): Tensor<R> {
-  const shape1Input = convertToTensor(s0, 'broadcastArgs', 's0', 'int32');
-  const shape2Input = convertToTensor(s1, 'broadcastArgs', 's1', 'int32');
+  s0: Tensor | TensorLike, s1: Tensor | TensorLike): Tensor<R> {
+  const shape1Input = convertToTensor(s0, 's0', 'broadcastArgs', 'int32');
+  const shape2Input = convertToTensor(s1, 's1', 'broadcastArgs', 'int32');
 
   if (shape1Input.rank !== 1) {
     throw new Error(
-        `broadcastArgs(): first input must be a vector (rank=1). Has rank ${
-            shape1Input.rank}`);
+      'broadcastArgs(): first input must be a vector (rank=1). ' +
+      `Has rank ${shape1Input.rank}`);
   }
 
   if (shape2Input.rank !== 1) {
     throw new Error(
-        `broadcastArgs(): second input must be a vector (rank=1). Has rank ${
-            shape2Input.rank}`);
+      'broadcastArgs(): second input must be a vector (rank=1). ' +
+      `Has rank ${shape2Input.rank}`);
   }
 
-  const inputs: BroadcastArgsInputs = {s0: shape1Input, s1: shape2Input};
+  const inputs: BroadcastArgsInputs = { s0: shape1Input, s1: shape2Input };
   return ENGINE.runKernel(BroadcastArgs, inputs as {} as NamedTensorMap);
 }
 
-export const broadcastArgs = op({broadcastArgs_});
+export const broadcastArgs = op({ broadcastArgs_ });
