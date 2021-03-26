@@ -98,6 +98,7 @@ limitations under the License.
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2"></script>
 
+  <script src="../../../tfjs-backend-webgpu/dist/tf-backend-webgpu.js"></script>
   <script src="../model_config.js"></script>
   <script src="../benchmark_util.js"></script>
   <script src="./util.js"></script>
@@ -613,6 +614,7 @@ limitations under the License.
     }
 
     async function runBenchmark() {
+      await tf.ready();
       if (state.isFlagChanged) {
         await setEnvFlags(state.flags);
         envDiv.innerHTML = '';
@@ -633,11 +635,8 @@ limitations under the License.
       await showBenchmarkingParameters();
 
       await warmUpAndRecordTime();
-      await showMsg('Waiting for GC');
-      await sleep(1000);
-      await profileMemoryAndKernelTime();
-      await sleep(200);
       await measureAveragePredictTime();
+      await profileMemoryAndKernelTime();
       urlState = null;
     }
 
@@ -781,7 +780,7 @@ limitations under the License.
       modelParameterFolder.open();
 
       const envFolder = gui.addFolder('Environment');
-      backendsController = envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu']);
+      backendsController = envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu', 'webgpu']);
       backendsController.onChange(async backend => {
         // TODO: Failed to set backend
         await tf.setBackend(backend);

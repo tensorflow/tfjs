@@ -23,7 +23,8 @@ const BACKEND_FLAGS_MAP = {
     'WEBGL_VERSION', 'WEBGL_CPU_FORWARD', 'WEBGL_PACK',
     'WEBGL_FORCE_F16_TEXTURES', 'WEBGL_RENDER_FLOAT32_CAPABLE',
     'WEBGL_FLUSH_THRESHOLD'
-  ]
+  ],
+  webgpu: ['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE']
 };
 const TUNABLE_FLAG_NAME_MAP = {
   PROD: 'production mode',
@@ -34,7 +35,8 @@ const TUNABLE_FLAG_NAME_MAP = {
   WEBGL_PACK: 'webgl pack',
   WEBGL_FORCE_F16_TEXTURES: 'enforce float16',
   WEBGL_RENDER_FLOAT32_CAPABLE: 'enable float32',
-  WEBGL_FLUSH_THRESHOLD: 'GL flush wait time(ms)'
+  WEBGL_FLUSH_THRESHOLD: 'GL flush wait time(ms)',
+  WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE: 'deferred submit batch size'
 };
 
 /**
