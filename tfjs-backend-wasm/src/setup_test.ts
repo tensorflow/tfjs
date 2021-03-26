@@ -355,8 +355,8 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith:'tan',
-    excludes:['gradient'] // Gradient not yet implemented
+    startsWith: 'tan',
+    excludes: ['gradient']  // Gradient not yet implemented
   },
   {
     startsWith: 'tanh ',
@@ -390,6 +390,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'prod'},
   {include: 'floor'},
   {include: 'topk'},
+  {include: 'tan'},
   {include: 'expandDims'},
   {include: 'stack'},
   {
