@@ -43,7 +43,7 @@
     "@types/yargs": "~15.0.5",
     "seedrandom": "2.4.3",
     "yargs": "~15.3.1",
-    "pkg": "~4.4.8"
+    "pkg": "~4.5.1"
   },
   "pkg": {
     "assets": "node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm"
