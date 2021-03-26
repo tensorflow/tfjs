@@ -43,9 +43,10 @@ registerBackend('webgpu', async () => {
   if (supportTimeQuery) {
     deviceDescriptor = {extensions: ['timestamp-query' as const ]};
   } else {
-    console.warn(`The webgpu backend only supports to asynchronously read ` +
-        `data from GPU side, but the device doesn't support timestamp-query ` +
-        `extension, you will get incorrect time if you profile operators.`);
+    console.warn(`This device doesn't support timestamp-query extension. ` +
+        `Zero will shown for the kernel time when profiling mode is enabled. ` +
+        `Using performance.now is not workable for webgpu since it doesn't ` +
+        `support synchronously to read data from GPU.`);
   }
   const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
   return new WebGPUBackend(device, glslang, supportTimeQuery);
