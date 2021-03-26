@@ -922,3 +922,10 @@ export interface FusedDepthwiseConv2DAttrs {
   activation: Activation;
   leakyreluAlpha?: number;
 }
+
+export const SparseReshape = 'SparseReshape';
+export interface SparseReshapeInputs extends NamedTensorInfoMap {
+  inputIndices: TensorInfo;
+  inputShape: TensorInfo;
+  newShape: TensorInfo;
+}

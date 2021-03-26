@@ -93,7 +93,7 @@ const IGNORE_LIST: string[] = [
   // not available in tf yet.
   'denseBincount',
   // only available in tf addon.
-  'image.transform'
+  'image.transform', 'SparseReshape'
 ];
 
 if (process.platform === 'win32') {

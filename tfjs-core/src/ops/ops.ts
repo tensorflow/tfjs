@@ -162,6 +162,7 @@ export {slice4d} from './slice4d';
 export {softmax} from './softmax';
 export {softplus} from './softplus';
 export {spaceToBatchND} from './space_to_batch_nd';
+export {sparseReshape} from './sparse/sparse_reshape';
 export {fft} from './spectral/fft';
 export {ifft} from './spectral/ifft';
 export {irfft} from './spectral/irfft';
