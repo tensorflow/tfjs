@@ -55,11 +55,6 @@ type TensorBufferInfo = {
 
 interface DataId {}
 
-export interface CPUTimerQuery {
-  startMs: number;
-  endMs: number;
-}
-
 export type WebGPUKernelInfo = {
   name: string; query: Promise<number>;
 };
@@ -451,22 +446,12 @@ export class WebGPUBackend extends KernelBackend {
     };
   }
 
-  startTimer() {
-    return {startMs: util.now(), endMs: 0};
-  }
-
-  endTimer(query: CPUTimerQuery) {
-    query.endMs = util.now();
-    return query;
-  }
-
-  async getCPUQueryTime(query: CPUTimerQuery): Promise<number> {
-    const timerQuery = query;
-    return timerQuery.endMs - timerQuery.startMs;
-  }
-
   async getQueryTime(query: GPUQuerySet): Promise<number> {
-    return this.getTimeFromQuerySet(query);
+    if (this.supportTimeQuery) {
+      return this.getTimeFromQuerySet(query);
+    } else {
+      return 0;
+    }
   }
 
   uploadToGPU(dataId: DataId): void {
@@ -541,13 +526,9 @@ export class WebGPUBackend extends KernelBackend {
 
     const encoder = this.device.createCommandEncoder();
     const pass = encoder.beginComputePass();
-
-    let query: CPUTimerQuery;
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
         pass.writeTimestamp(this.querySet, 0);
-      } else {
-        query = this.startTimer();
       }
     }
     pass.setPipeline(pipeline);
@@ -582,18 +563,10 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     if (shouldTimeProgram) {
-      if (this.supportTimeQuery) {
-        this.activeTimers.push({
-          name: program.constructor.name,
-          query: this.getQueryTime(this.querySet)
-        });
-      } else {
-        query = this.endTimer(query);
-        this.activeTimers.push({
-          name: program.constructor.name,
-          query: this.getCPUQueryTime(query)
-        });
-      }
+      this.activeTimers.push({
+        name: program.constructor.name,
+        query: this.getQueryTime(this.querySet)
+      });
     }
     return output;
   }
