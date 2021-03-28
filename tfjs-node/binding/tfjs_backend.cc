@@ -17,7 +17,6 @@
 
 #include "tfjs_backend.h"
 
-#include <iostream>
 #include <algorithm>
 #include <cstring>
 #include <memory>
@@ -192,9 +191,11 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromStringArray(
   nstatus = napi_get_array_length(env, array_value, &array_length);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-  TF_AutoTensor tensor(
-    TF_AllocateTensor(TF_DataType::TF_STRING, shape, shape_length, array_length*sizeof(TF_TString))
-  );
+  TF_AutoTensor tensor(TF_AllocateTensor(TF_DataType::TF_STRING, shape,
+                                         shape_length,
+                                         array_length * sizeof(TF_TString)));
+
+  TF_TString *t = reinterpret_cast<TF_TString *>(TF_TensorData(tensor.tensor));
 
   for (uint32_t i = 0; i < array_length; ++i) {
     napi_value cur_value;
@@ -210,7 +211,6 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromStringArray(
         napi_get_typedarray_info(env, cur_value, &array_type, &cur_array_length,
                                  &buffer, nullptr, nullptr);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
-    TF_TString* t = reinterpret_cast<TF_TString*>(TF_TensorData(tensor.tensor));
     // Only Uint8 typed arrays are supported.
     if (array_type != napi_uint8_array) {
       NAPI_THROW_ERROR(env, "Unsupported array type - expecting Uint8Array");
@@ -218,8 +218,8 @@ TFE_TensorHandle *CreateTFE_TensorHandleFromStringArray(
     }
 
     TF_TString_Init(t);
-    TF_TString_Copy(t, reinterpret_cast<char*>(buffer), cur_array_length);
-    t += sizeof(TF_TString);
+    TF_TString_Copy(t, reinterpret_cast<char *>(buffer), cur_array_length);
+    t += 1;
   }
 
   TF_AutoStatus tf_status;
@@ -315,8 +315,7 @@ void CopyTFE_TensorHandleDataToStringArray(napi_env env,
 
   size_t num_elements = TF_TensorElementCount(tensor.tensor);
 
-  TF_TString* ts = static_cast<TF_TString*>(TF_TensorData(tensor.tensor));
-
+  TF_TString *ts = static_cast<TF_TString *>(TF_TensorData(tensor.tensor));
   TF_AutoStatus status;
 
   // Create a JS string to stash strings into
@@ -326,7 +325,7 @@ void CopyTFE_TensorHandleDataToStringArray(napi_env env,
   for (uint64_t i = 0; i < num_elements; i++) {
     napi_value array_buffer_value;
 
-    const char* raw_string = TF_TString_GetDataPointer(ts);
+    const char *raw_string = TF_TString_GetDataPointer(ts);
     size_t raw_string_size = TF_TString_GetSize(ts);
     void *array_buffer_data;
     nstatus = napi_create_arraybuffer(env, raw_string_size, &array_buffer_data,

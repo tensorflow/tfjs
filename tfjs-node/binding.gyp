@@ -45,8 +45,8 @@
       [
         'OS=="mac"', {
           'libraries' : [
-            '<(module_root_dir)/deps/lib/libtensorflow.dylib',
-            '<(module_root_dir)/deps/lib/libtensorflow_framework.dylib',
+            '<(module_root_dir)/deps/lib/libtensorflow.2.dylib',
+            '<(module_root_dir)/deps/lib/libtensorflow_framework.2.dylib',
           ],
           'postbuilds': [
             {
@@ -65,7 +65,7 @@
                 'install_name_tool',
                 "-change",
                 "@rpath/libtensorflow_framework.2.dylib",
-                "@loader_path/../../deps/lib/libtensorflow_framework.dylib",
+                "@loader_path/../../deps/lib/libtensorflow_framework.2.dylib",
                 "<(PRODUCT_DIR)/tfjs_binding.node"
               ]
             }
