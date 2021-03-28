@@ -564,7 +564,57 @@ const TEST_FILTERS: TestFilter[] = [
       '6D',       // rank 6 is not yet supported.
       'gradient'  // gradient function not found.
     ]
-  }
+  },
+  {
+    include: 'gather',
+    excludes: [
+      'gatherND',                        // Not yet supported.
+      'bool',                            // Not yet supported.
+      'chaining, axis=1',                // Range not yet supported.
+      'indices not int32 throws error',  // Range not yet supported.
+      'gradient'                         // gradient function not found.
+    ]
+  },
+  {
+    include: 'max',
+    excludes: [
+      '6D',
+      'gradient',
+      'AdamaxOptimizer',  // gradient function not found.
+      'axis permutation does not change input',  // 'Range' not registered.
+    ]
+  },
+  {
+    include: 'mean',
+    excludes: [
+      'bool',
+      'gradient',
+      'meanSquaredError',
+    ]
+  },
+  {
+    include: 'min',
+    excludes: [
+      'bool',
+      'gradient',
+      'stft',  // FFT' not registered.
+    ]
+  },
+  {
+    include: 'prod',
+    excludes: [
+      'bool',
+    ]
+  },
+  {
+    include: 'sum',
+    excludes: [
+      'bool',
+      'gradient',
+      'cumsum',  // 'Cumsum' not registered.
+      'scatterND',  // 'scatterND' not registered.
+    ]
+  },
 ];
 
 const customInclude = (testName: string) => {

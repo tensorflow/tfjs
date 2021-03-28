@@ -132,6 +132,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
     const vecSize = 4;
     if (outputShape[1] === 1) {
+      this.workGroupSize = [16, 1, 1];  // in case shared memory exceeds limit.
       rowPerThread = 1;
     }
     this.dispatch = computeDispatch(

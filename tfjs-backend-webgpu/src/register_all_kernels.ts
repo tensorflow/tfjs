@@ -44,6 +44,7 @@ import {fromPixelsConfig} from './kernels/FromPixels';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
+import {gatherV2Config} from './kernels/GatherV2';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
@@ -54,6 +55,7 @@ import {logConfig} from './kernels/Log';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
+import {meanConfig} from './kernels/Mean';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
 import {mirrorPadConfig} from './kernels/MirrorPad';
@@ -66,6 +68,7 @@ import {onesLikeConfig} from './kernels/OnesLike';
 import {packConfig} from './kernels/Pack';
 import {padV2Config} from './kernels/PadV2';
 import {preluConfig} from './kernels/Prelu';
+import {prodConfig} from './kernels/Prod';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reluConfig} from './kernels/Relu';
@@ -118,6 +121,7 @@ const kernelConfigs: KernelConfig[] = [
   fusedBatchNormConfig,
   fusedConv2DConfig,
   fusedDepthwiseConv2DConfig,
+  gatherV2Config,
   greaterConfig,
   greaterEqualConfig,
   identityConfig,
@@ -128,6 +132,7 @@ const kernelConfigs: KernelConfig[] = [
   maxConfig,
   maximumConfig,
   maxPoolConfig,
+  meanConfig,
   minConfig,
   minimumConfig,
   mirrorPadConfig,
@@ -140,6 +145,7 @@ const kernelConfigs: KernelConfig[] = [
   packConfig,
   padV2Config,
   preluConfig,
+  prodConfig,
   realConfig,
   realDivConfig,
   reluConfig,

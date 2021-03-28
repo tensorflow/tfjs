@@ -16,11 +16,9 @@
  */
 
 import {Tensor, Tensor1D} from '../../tensor';
-import {concat} from '../concat';
 import {mul} from '../mul';
 import {op} from '../operation';
 import {enclosingPowerOfTwo} from '../signal_ops_util';
-import {slice} from '../slice';
 import {rfft} from '../spectral/rfft';
 
 import {frame} from './frame';
@@ -51,11 +49,6 @@ function stft_(
   }
   const framedSignal = frame(signal, frameLength, frameStep);
   const windowedSignal = mul(framedSignal, windowFn(frameLength));
-  const output: Tensor[] = [];
-  for (let i = 0; i < framedSignal.shape[0]; i++) {
-    output.push(
-        rfft(slice(windowedSignal, [i, 0], [1, frameLength]), fftLength));
-  }
-  return concat(output);
+  return rfft(windowedSignal, fftLength);
 }
 export const stft = op({stft_});
