@@ -33,7 +33,7 @@ cp -f ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm/tfjs-backend-was
 
 if [[ "$1" != "--dev" ]]; then
   # SIMD and threaded + SIMD builds.
-  yarn bazel build $BAZEL_REMOTE -c opt //tfjs-backend-wasm/src/cc:tfjs-backend-wasm-simd \
+  yarn bazel build $BAZEL_REMOTE -c opt --copt="-msimd128" //tfjs-backend-wasm/src/cc:tfjs-backend-wasm-simd \
     //tfjs-backend-wasm/src/cc:tfjs-backend-wasm-threaded-simd
   # Copy SIMD
   cp -f ../../dist/bin/tfjs-backend-wasm/src/cc/tfjs-backend-wasm-simd/tfjs-backend-wasm.wasm \
