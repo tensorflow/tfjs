@@ -195,16 +195,9 @@ describeWithFlags('where', ALL_ENVS, () => {
 
   it('Tensor4D different a/b shapes', () => {
     const c = tf.tensor4d([1, 0, 1, 1], [2, 2, 1, 1], 'bool');
-    let a = tf.tensor4d([7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7], [2, 3, 2, 1]);
-    let b = tf.tensor4d([3, 3, 3, 3], [2, 2, 1, 1]);
-    let f = () => {
-      tf.where(c, a, b);
-    };
-    expect(f).toThrowError();
-
-    a = tf.tensor4d([7, 7, 7, 7], [2, 2, 1, 1]);
-    b = tf.tensor4d([3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3], [2, 3, 2, 1]);
-    f = () => {
+    const a = tf.tensor4d([7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7], [2, 3, 2, 1]);
+    const b = tf.tensor4d([3, 3, 3, 3], [2, 2, 1, 1]);
+    const f = () => {
       tf.where(c, a, b);
     };
     expect(f).toThrowError();
