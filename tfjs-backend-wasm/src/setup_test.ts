@@ -390,7 +390,6 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'prod'},
   {include: 'floor'},
   {include: 'topk'},
-  {include: 'tan'},
   {include: 'expandDims'},
   {include: 'stack'},
   {
