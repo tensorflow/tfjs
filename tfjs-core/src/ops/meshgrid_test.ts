@@ -50,7 +50,7 @@ describeWithFlags('simple inputs', ALL_ENVS, () => {
   it('Should support \'ij\' indexing', async () => {
     const x = [1, 2, 3];
     const y = [4, 5, 6, 7];
-    const [X, Y] = tf.meshgrid(x, y, 'ij');
+    const [X, Y] = tf.meshgrid(x, y, {indexing: 'ij'});
 
     expectArraysEqual(
         await X.data(), [[1, 1, 1, 1], [2, 2, 2, 2], [3, 3, 3, 3]]);
@@ -85,11 +85,11 @@ describeWithFlags('dtypes', ALL_ENVS, () => {
 
   it('Should use the input tensor dtype', async () => {
     const x = tf.tensor1d([1, 2], 'int32');
-    const y = tf.tensor1d([3, 4], 'int32');
+    const y = tf.tensor1d([3, 4], 'float32');
     const [X, Y] = tf.meshgrid(x, y);
 
     expect(X.dtype).toBe('int32');
-    expect(Y.dtype).toBe('int32');
+    expect(Y.dtype).toBe('float32');
   });
 });
 
@@ -101,6 +101,6 @@ describeWithFlags('invalid arguments', ALL_ENVS, () => {
     expect(() => tf.meshgrid((() => {}) as {} as Tensor)).toThrow();
 
     expect(() => tf.meshgrid([1], (() => {}) as {} as Tensor)).toThrow();
-    expect(() => tf.meshgrid([1], [2], 'foobar')).toThrow();
+    expect(() => tf.meshgrid([1], [2], {indexing: 'foobar'})).toThrow();
   });
 });
