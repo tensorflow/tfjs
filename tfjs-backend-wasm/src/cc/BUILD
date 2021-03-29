@@ -210,6 +210,8 @@ tfjs_cc_library(
         ":Abs",
         ":Add",
         ":AddN",
+        ":All",
+        ":Any",
         ":ArgMax",
         ":AvgPool",
         ":BatchMatMul",
@@ -240,6 +242,7 @@ tfjs_cc_library(
         ":Maximum",
         ":Min",
         ":Minimum",
+        ":MirrorPad",
         ":Multiply",
         ":Neg",
         ":NonMaxSuppressionV3",
@@ -293,6 +296,24 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "AddN",
     srcs = ["kernels/AddN.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "All",
+    srcs = ["kernels/All.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Any",
+    srcs = ["kernels/Any.cc"],
     deps = [
         ":backend",
         ":util",
@@ -703,6 +724,15 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "MirrorPad",
+    srcs = ["kernels/MirrorPad.cc"],
+    deps = [
+        ":backend",
         ":util",
     ],
 )

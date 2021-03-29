@@ -463,12 +463,20 @@ export const json: OpMapper[] = [
         'type': 'number',
         'defaultValue': 0.2
       },
-      {
-        'tfName': 'T',
-        'name': 'dtype',
-        'type': 'dtype',
-        'notSupported': true
-      }
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
+  },
+  {
+    'tfOpName': 'IsNan',
+    'category': 'basic_math',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+    ],
+    'attrs': [{
+      'tfName': 'T',
+      'name': 'dtype',
+      'type': 'dtype',
+      'notSupported': true
+    }]
   }
 ];

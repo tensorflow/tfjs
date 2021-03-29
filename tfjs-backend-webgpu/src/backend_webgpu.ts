@@ -332,6 +332,16 @@ export class WebGPUBackend extends KernelBackend {
     }
     const info = this.tensorMap.get(dataId);
 
+    const {values} = info;
+
+    if (values != null) {
+      // TODO(xing.xu@intel.com): Merge backend_util.BackendValues and
+      // backend_util.TypedArray.
+      return this.convertAndCacheOnCPU(
+                 dataId, values as backend_util.TypedArray) as
+          backend_util.BackendValues;
+    }
+
     // Download the values from the GPU.
     let vals: backend_util.BackendValues;
     if (info.dtype === 'complex64') {
@@ -643,7 +653,9 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   numDataIds() {
-    return this.tensorMap.numDataIds();
+    return this.tensorMap.numDataIds() +
+        (this.cpuBackend ? this.cpuBackend.numDataIds() : 0) -
+        this.tensorDisposalQueue.length;
   }
 
   dispose() {

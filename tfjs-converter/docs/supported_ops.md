@@ -69,7 +69,7 @@
 |Tanh|tanh|
 |Not mapped|isFinite|
 |Not mapped|isInf|
-|Not mapped|isNaN|
+|IsNan|isNaN|
 |Not mapped|logSigmoid|
 |Not mapped|step|
 

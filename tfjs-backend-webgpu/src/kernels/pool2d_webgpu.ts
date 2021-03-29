@@ -18,107 +18,77 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {getShapeCoords} from '../shader_preprocessor';
-import {computeDispatch} from '../webgpu_util';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
 export class Pool2DProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  dispatchLayout: {x: number[], y: number[]};
+  dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
   uniforms = 'ivec2 pad, stride, dilation, convDims, filterDims;';
-  // TODO(jiajia.qin@intel.com): Dynamically choose different workGroupSize and
-  // workPerThead for different output shapes.
-  workGroupSize: [number, number, number] = [16, 16, 1];
-  workPerThread = 4;
+  // TODO(jiajia.qin@intel.com): Dynamically choose different workGroupSize for
+  // different output shapes.
+  workGroupSize: [number, number, number] = [128, 1, 1];
   poolType: 'max'|'avg';
 
   constructor(convInfo: backend_util.Conv2DInfo, poolType: 'max'|'avg') {
     this.outputShape = convInfo.outShape;
 
-    this.dispatchLayout = {x: [0, 1, 2], y: [3]};
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
 
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [1, this.workPerThread, 1]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.shaderKey = `pool2D_${poolType}`;
     this.poolType = poolType;
   }
 
   getUserCode(): string {
-    let updateSnippet = `resultValue[i] = max(value, resultValue[i]);`;
+    let updateSnippet = `resultValue = max(value, resultValue);`;
     if (this.poolType === 'avg') {
-      updateSnippet = `resultValue[i] += value; count[i] += 1.0;`;
+      updateSnippet = `resultValue += value; count += 1.0;`;
     }
 
-    let returnValue = `resultValue[i]`;
+    let returnValue = `resultValue`;
     if (this.poolType === 'avg') {
-      returnValue = `resultValue[i] / count[i]`;
+      returnValue = `resultValue / count`;
     }
 
     const userCode = `
-      float getValue(int batch, int xR, int xC, int d) {
-        if (xC < 0 || xC >= convDims.x) {
-          return 0.0;
-        }
-        return getX(batch, xR, xC, d);
-      }
-
       void main() {
         ivec4 coords = getOutputCoords();
-        if (all(lessThan(coords, ${getShapeCoords(this.outputShape)}))) {
+        if (coordsInBounds(coords, ${getShapeCoords(this.outputShape)})) {
           int batch = coords[0];
           ivec2 xRCCorner = coords.yz * stride - pad;
           int xRCorner = xRCCorner.x;
           int xCCorner = xRCCorner.y;
 
-          float resultValue[${this.workPerThread}];
-          float count[${this.workPerThread}];
-          for (int i = 0; i < ${this.workPerThread}; i++)
-          {
-            resultValue[i] = 0.0;
-            count[i] = 0.0;
-          }
+          float resultValue = ${
+        this.poolType === 'avg' ? '0.0' : '-1.0 / 1e-20'};
+          float count = 0.0;
 
-          for (int wR = 0; wR < filterDims.y; wR += dilation.y) {
+          for (int wR = 0; wR < filterDims.x; wR += dilation.x) {
             int xR = xRCorner + wR;
 
-            if (xR < 0 || xR >= convDims.y) {
+            if (xR < 0 || xR >= convDims.x) {
               continue;
             }
 
-            for (int wC = 0; wC < filterDims.x; wC += dilation.x) {
-              int xC = xCCorner + wC * dilation.x;
-              for (int i = 0; i < ${this.workPerThread}; i++)
-              {
-                int d = coords[3] * ${this.workPerThread} + i;
-                if (d < ${this.outputShape[3]})
-                {
-                  float value = getValue(batch, xR, xC, d);
-                  ${updateSnippet}
-                }
-                else
-                {
-                  break;
-                }
+            for (int wC = 0; wC < filterDims.y; wC += dilation.y) {
+              int xC = xCCorner + wC;
+              if (xC < 0 || xC >= convDims.y) {
+                continue;
               }
+
+              float value = getX(batch, xR, xC, coords[3]);
+              ${updateSnippet}
             }
           }
-          for (int i = 0; i < ${this.workPerThread}; i++)
-          {
-            int d = coords[3] * ${this.workPerThread} + i;
-            if (d < ${this.outputShape[3]})
-            {
-              setOutput(batch, coords[1], coords[2], d, ${returnValue});
-            }
-            else
-            {
-              break;
-            }
-          }
+
+          setOutput(batch, coords[1], coords[2], coords[3], ${returnValue});
         }
       }
     `;
