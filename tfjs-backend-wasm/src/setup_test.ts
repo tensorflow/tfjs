@@ -355,7 +355,8 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'tan'
+    startsWith: 'tan',
+    excludes: ['gradient']  // Gradient not yet implemented.
 
   },
   {
