@@ -224,6 +224,7 @@ tfjs_cc_library(
         ":DepthToSpace",
         ":DepthwiseConv2dNative",
         ":Equal",
+        ":Erf",
         ":Exp",
         ":FlipLeftRight",
         ":FloorDiv",
@@ -499,6 +500,15 @@ tfjs_cc_library(
     deps = [
         ":binary",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Erf",
+    srcs = ["kernels/Erf.cc"],
+    deps = [
+        ":backend",
+        ":unary",
     ],
 )
 

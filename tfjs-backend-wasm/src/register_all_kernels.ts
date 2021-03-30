@@ -40,6 +40,7 @@ import {cumsumConfig} from './kernels/Cumsum';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {equalConfig} from './kernels/Equal';
+import {erfConfig} from './kernels/Erf';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
 import {fillConfig} from './kernels/Fill';
@@ -132,6 +133,7 @@ const kernelConfigs: KernelConfig[] = [
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
   equalConfig,
+  erfConfig,
   expConfig,
   expandDimsConfig,
   fillConfig,
