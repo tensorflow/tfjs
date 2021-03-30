@@ -4,6 +4,6 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "googleapis": "^39.2.0"
+    "googleapis": "^68.0.0"
   }
 }
