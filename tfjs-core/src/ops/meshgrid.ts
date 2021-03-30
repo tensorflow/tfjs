@@ -65,18 +65,12 @@ export function meshgrid<T extends Tensor>(
   }
   let $x = convertToTensor(
       x, 'x', 'meshgrid', x instanceof Tensor ? x.dtype : 'float32');
-  if ($x.rank === 0) {
-    throw new TypeError('meshgrid expects a tensor with rank >= 1');
-  }
 
   if (y === undefined) {
     return [$x];
   }
   let $y = convertToTensor(
       y, 'y', 'meshgrid', y instanceof Tensor ? y.dtype : 'float32');
-  if ($y.rank === 0) {
-    throw new TypeError('meshgrid expects a tensor with rank >= 1');
-  }
 
   const w = sizeFromShape($x.shape);
   const h = sizeFromShape($y.shape);

@@ -93,13 +93,20 @@ describeWithFlags('dtypes', ALL_ENVS, () => {
   });
 });
 
+describeWithFlags('scalars', ALL_ENVS, () => {
+  it('Should treat them as 1D tensors', async () => {
+    const [X] = tf.meshgrid(0);
+    expectArraysEqual(await X.data(), [0]);
+
+    const [Y, Z] = tf.meshgrid([0], 1);
+    expectArraysEqual(await Y.data(), [[0]]);
+    expectArraysEqual(await Z.data(), [[1]]);
+  });
+});
+
 describeWithFlags('invalid arguments', ALL_ENVS, () => {
   it('Should throw an Error', () => {
-    expect(() => tf.meshgrid(3 as {} as Tensor)).toThrow();
-    expect(() => tf.meshgrid([1], 3 as {} as Tensor)).toThrow();
-
     expect(() => tf.meshgrid((() => {}) as {} as Tensor)).toThrow();
-
     expect(() => tf.meshgrid([1], (() => {}) as {} as Tensor)).toThrow();
     expect(() => tf.meshgrid([1], [2], {indexing: 'foobar'})).toThrow();
   });
