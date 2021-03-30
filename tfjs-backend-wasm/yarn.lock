@@ -984,18 +984,11 @@
 
 "@tensorflow/tfjs-backend-cpu@link:../tfjs-backend-cpu":
   version "0.0.0"
-  dependencies:
-    "@types/seedrandom" "2.4.27"
-    seedrandom "2.4.3"
+  uid ""
 
 "@tensorflow/tfjs-core@link:../tfjs-core":
   version "0.0.0"
-  dependencies:
-    "@types/offscreencanvas" "~2019.3.0"
-    "@types/seedrandom" "2.4.27"
-    "@types/webgl-ext" "0.0.30"
-    node-fetch "~2.6.1"
-    seedrandom "2.4.3"
+  uid ""
 
 "@types/emscripten@~0.0.34":
   version "0.0.34"
