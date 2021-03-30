@@ -50,7 +50,7 @@ function fusedConvAndDepthWiseParams(
   }
   if (isBatchNorm) {
     throw new Error(
-        'FusedConv2d and DepthwiseConv2d with FusedBatchNorm is not supported.');
+        'FusedConv2d and DepthwiseConv2d with FusedBatchNorm is not supported');
   }
   const stride = getParamValue('strides', node, tensorMap, context) as number[];
   const pad = getPadding(node, tensorMap, context);
