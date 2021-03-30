@@ -21,9 +21,9 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 # xnnpack used for fast vectorized wasm operations
 git_repository(
     name = "xnnpack",
-    commit = "55d53a4e7079d38e90acd75dd9e4f9e781d2da35",
+    commit = "3bfbdaf00211b313b143af39279bb6bf1f7effc0",
     remote = "https://github.com/google/XNNPACK.git",
-    shallow_since = "1614036677 -0800",
+    shallow_since = "1617056836 -0700",
 )
 
 # The libraries below are transitive dependencies of XNNPACK that we need to
