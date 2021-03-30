@@ -12,18 +12,28 @@ yarn_install(
     yarn_lock = "//:yarn.lock",
 )
 
-# Make all files under $HOME/emsdk/* visible to the toolchain. The files are
-# available as external/emsdk/emsdk/*
-load("//toolchain:cc_toolchain_config.bzl", "emsdk_configure")
-emsdk_configure(name = "emsdk")
+# Emscripten toolchain
+http_archive(
+    name = "emsdk",
+    strip_prefix = "emsdk-c1589b55641787d55d53e883852035beea9aec3f/bazel",
+    url = "https://github.com/emscripten-core/emsdk/archive/c1589b55641787d55d53e883852035beea9aec3f.tar.gz",
+    sha256 = "7a58a9996b113d3e0675df30b5f17e28aa47de2e684a844f05394fe2f6f12e8e",
+)
+
+load("@emsdk//:deps.bzl", emsdk_deps = "deps")
+emsdk_deps()
+
+load("@emsdk//:emscripten_deps.bzl", emsdk_emscripten_deps = "emscripten_deps")
+emsdk_emscripten_deps()
+
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 # xnnpack used for fast vectorized wasm operations
 git_repository(
     name = "xnnpack",
-    commit = "55d53a4e7079d38e90acd75dd9e4f9e781d2da35",
+    commit = "3bfbdaf00211b313b143af39279bb6bf1f7effc0",
     remote = "https://github.com/google/XNNPACK.git",
-    shallow_since = "1614036677 -0800",
+    shallow_since = "1617056836 -0700",
 )
 
 # The libraries below are transitive dependencies of XNNPACK that we need to

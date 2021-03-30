@@ -91,16 +91,12 @@ void CropAndResize(size_t images_id, size_t boxes_id, size_t box_ind_id,
   auto& out_info = backend::get_tensor_info_out(out_id);
 
   const float* images_buf = images_info.f32();
-  const size_t images_size = images_info.size;
 
   const float* boxes_buf = boxes_info.f32();
-  const size_t boxes_size = boxes_info.size;
 
   const int* box_ind_buf = box_ind_info.i32();
-  const size_t box_ind_size = box_ind_info.size;
 
   float* out_buf = out_info.f32_write();
-  const size_t out_size = out_info.size;
 
   const size_t batch = images_shape[0];
   const size_t image_height = images_shape[1];
