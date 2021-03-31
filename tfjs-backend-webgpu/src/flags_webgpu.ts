@@ -19,8 +19,8 @@ import {env} from '@tensorflow/tfjs-core';
 
 const ENV = env();
 
-/** Whether we submit commands to the device queue immediately. */
-ENV.registerFlag('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', () => true);
+/** The command encoder count submitted to the device queue. */
+ENV.registerFlag('WEBGPU_COMMAND_ENCODER_COUNT_IN_QUEUE', () => 15);
 
 /**
  * Whether we forward execution to the CPU backend if tensors are small and
