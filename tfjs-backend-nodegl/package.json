@@ -28,6 +28,7 @@
     "typescript": "3.5.3"
   },
   "resolutions": {
-    "minimist": "0.2.1"
+    "minimist": "0.2.1",
+    "node-fetch": "2.6.1"
   }
 }
