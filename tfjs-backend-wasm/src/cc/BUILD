@@ -1073,5 +1073,6 @@ tfjs_cc_library(
     srcs = ["kernels/Tan.cc"],
     deps = [
         ":backend",
+        ":unary",
     ],
 )
