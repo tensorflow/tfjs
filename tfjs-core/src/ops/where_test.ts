@@ -59,6 +59,7 @@ describeWithFlags('where', ALL_ENVS, () => {
     f = () => {
       tf.where(c, a, b);
     };
+    expect(f).toThrowError();
   });
 
   it('Tensor1D different condition/a shapes', () => {
@@ -106,23 +107,19 @@ describeWithFlags('where', ALL_ENVS, () => {
     expect(f).toThrowError();
   });
 
-  it('Tensor2D different `a` dimension w/ condition rank=1', async () => {
-    const c = tf.tensor1d([1, 0, 1, 0], 'bool');
-    let a = tf.tensor2d([[10, 10], [10, 10]], [2, 2]);
-    let b = tf.tensor2d([[5, 5], [5, 5]], [2, 2]);
-    const f = () => {
-      tf.where(c, a, b);
-    };
-    expect(f).toThrowError();
+  it('broadcasting Tensor2D shapes', async () => {
+    const c = tf.tensor1d([1, 0], 'bool');
+    let a = tf.tensor2d([[10], [10]], [2, 1]);
+    let b = tf.tensor2d([[5], [5]], [2, 1]);
+    let res = tf.where(c, a, b);
+    expect(res.shape).toEqual([2, 2]);
+    expectArraysClose(await res.data(), [10, 5, 10, 5]);
 
-    a = tf.tensor2d([[10], [10], [10], [10]], [4, 1]);
-    b = tf.tensor2d([[5], [5], [5], [5]], [4, 1]);
-    expectArraysClose(await tf.where(c, a, b).data(), [10, 5, 10, 5]);
-
-    a = tf.tensor2d([[10, 10], [10, 10], [10, 10], [10, 10]], [4, 2]);
-    b = tf.tensor2d([[5, 5], [5, 5], [5, 5], [5, 5]], [4, 2]);
-    expectArraysClose(
-        await tf.where(c, a, b).data(), [10, 10, 5, 5, 10, 10, 5, 5]);
+    a = tf.tensor2d([[10, 10], [10, 10], [10, 10]], [3, 2]);
+    b = tf.tensor2d([[5], [5], [5]], [3, 1]);
+    res = tf.where(c, a, b);
+    expect(res.shape).toEqual([3, 2]);
+    expectArraysClose(await res.data(), [10, 5, 10, 5, 10, 5]);
   });
 
   it('Tensor3D', async () => {
@@ -143,16 +140,6 @@ describeWithFlags('where', ALL_ENVS, () => {
     expectArraysClose(
         await tf.where(tf.zeros([1], 'bool'), a, b).data(),
         [0, 0, 0, 0, 0, 0, 0, 0, 0]);
-  });
-
-  it('1D condition with higher rank a and b', async () => {
-    const condition = tf.tensor1d([1, 0, 0, 1, 1], 'bool');
-    const a = tf.ones([5, 2, 2]);
-    const b = tf.fill([5, 2, 2], 3);
-
-    expectArraysClose(
-        await tf.where(condition, a, b).data(),
-        [1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1]);
   });
 
   it('Tensor3D different a/b shapes', () => {
@@ -183,24 +170,20 @@ describeWithFlags('where', ALL_ENVS, () => {
     expect(f).toThrowError();
   });
 
-  it('Tensor3D different `a` dimension w/ condition rank=1', async () => {
-    const c = tf.tensor1d([1, 0, 1, 0], 'bool');
-    let a = tf.tensor3d([[[9, 9], [9, 9]], [[9, 9], [9, 9]]], [2, 2, 2]);
-    let b = tf.tensor3d([[[8, 8], [8, 8]], [[8, 8], [8, 8]]], [2, 2, 2]);
-    const f = () => {
-      tf.where(c, a, b);
-    };
-    expect(f).toThrowError();
+  it('broadcasting Tensor3D shapes', async () => {
+    const c = tf.tensor1d([1, 0], 'bool');
+    let a: tf.Tensor = tf.tensor3d([[[9]], [[9]], [[9]], [[9]]], [4, 1, 1]);
+    let b = tf.tensor3d([[[8]], [[8]], [[8]], [[8]]], [4, 1, 1]);
+    let res = tf.where(c, a, b);
+    expect(res.shape).toEqual([4, 1, 2]);
+    expectArraysClose(await res.data(), [9, 8, 9, 8, 9, 8, 9, 8]);
 
-    a = tf.tensor3d([[[9]], [[9]], [[9]], [[9]]], [4, 1, 1]);
+    a = tf.tensor2d([[9], [9]], [2, 1]);
     b = tf.tensor3d([[[8]], [[8]], [[8]], [[8]]], [4, 1, 1]);
-    expectArraysClose(await tf.where(c, a, b).data(), [9, 8, 9, 8]);
-
-    a = tf.tensor3d(
-        [[[9], [9]], [[9], [9]], [[9], [9]], [[9], [9]]], [4, 2, 1]);
-    b = tf.tensor3d(
-        [[[8], [8]], [[8], [8]], [[8], [8]], [[8], [8]]], [4, 2, 1]);
-    expectArraysClose(await tf.where(c, a, b).data(), [9, 9, 8, 8, 9, 9, 8, 8]);
+    res = tf.where(c, a, b);
+    expect(res.shape).toEqual([4, 2, 2]);
+    expectArraysClose(
+        await res.data(), [9, 8, 9, 8, 9, 8, 9, 8, 9, 8, 9, 8, 9, 8, 9, 8]);
   });
 
   it('Tensor4D', async () => {
@@ -212,41 +195,7 @@ describeWithFlags('where', ALL_ENVS, () => {
 
   it('Tensor4D different a/b shapes', () => {
     const c = tf.tensor4d([1, 0, 1, 1], [2, 2, 1, 1], 'bool');
-    let a = tf.tensor4d([7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7], [2, 3, 2, 1]);
-    let b = tf.tensor4d([3, 3, 3, 3], [2, 2, 1, 1]);
-    let f = () => {
-      tf.where(c, a, b);
-    };
-    expect(f).toThrowError();
-
-    a = tf.tensor4d([7, 7, 7, 7], [2, 2, 1, 1]);
-    b = tf.tensor4d([3, 3, 3, 3, 3, 3, 3, 3], [2, 2, 2, 1]);
-    f = () => {
-      tf.where(c, a, b);
-    };
-    expect(f).toThrowError();
-  });
-
-  it('Tensor4D broadcastable a/b shapes', () => {
-    const c = tf.tensor4d([1, 0, 1, 1], [2, 2, 1, 1], 'bool');
-    const a = tf.tensor4d([7, 7, 7, 7, 7, 7, 7, 7], [2, 2, 2, 1]);
-    const b = [3];
-    let f = () => {
-      tf.where(c, a, b);
-    };
-    expect(f).toThrowError();
-
-    const a1 = [7];
-    const b1 = tf.tensor4d([3, 3, 3, 3, 3, 3, 3, 3], [2, 2, 2, 1]);
-    f = () => {
-      tf.where(c, a1, b1);
-    };
-    expect(f).toThrowError();
-  });
-
-  it('Tensor4D different condition/a shapes', () => {
-    const c = tf.tensor4d([1, 0, 1, 1, 1, 0, 1, 1], [2, 2, 2, 1], 'bool');
-    const a = tf.tensor4d([7, 7, 7, 7], [2, 2, 1, 1]);
+    const a = tf.tensor4d([7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7], [2, 3, 2, 1]);
     const b = tf.tensor4d([3, 3, 3, 3], [2, 2, 1, 1]);
     const f = () => {
       tf.where(c, a, b);
@@ -254,22 +203,15 @@ describeWithFlags('where', ALL_ENVS, () => {
     expect(f).toThrowError();
   });
 
-  it('Tensor4D different `a` dimension w/ condition rank=1', async () => {
-    const c = tf.tensor1d([1, 0, 1, 0], 'bool');
-    let a = tf.tensor4d([7, 7, 7, 7, 7, 7, 7, 7], [2, 2, 2, 1]);
-    let b = tf.tensor4d([3, 3, 3, 3, 3, 3, 3, 3], [2, 2, 2, 1]);
+  it('Tensor4D different condition/a shapes', () => {
+    const c =
+        tf.tensor4d([0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1], [2, 3, 2, 1], 'bool');
+    const a = tf.tensor4d([7, 7, 7, 7], [2, 2, 1, 1]);
+    const b = tf.tensor4d([3, 3, 3, 3], [2, 2, 1, 1]);
     const f = () => {
       tf.where(c, a, b);
     };
     expect(f).toThrowError();
-
-    a = tf.tensor4d([7, 7, 7, 7], [4, 1, 1, 1]);
-    b = tf.tensor4d([3, 3, 3, 3], [4, 1, 1, 1]);
-    expectArraysClose(await tf.where(c, a, b).data(), [7, 3, 7, 3]);
-
-    a = tf.tensor4d([7, 7, 7, 7, 7, 7, 7, 7], [4, 2, 1, 1]);
-    b = tf.tensor4d([3, 3, 3, 3, 3, 3, 3, 3], [4, 2, 1, 1]);
-    expectArraysClose(await tf.where(c, a, b).data(), [7, 7, 3, 3, 7, 7, 3, 3]);
   });
 
   it('TensorLike', async () => {
