@@ -61,7 +61,6 @@ void binary_xnn_f32(const size_t a_id, const size_t* a_shape_ptr,
   } else {
     binary_op = cache_result->second;
   }
-  const size_t batch_size = out_info.size;
   xnn_status status =
       setup_op(binary_op, a_shape_len, a_shape_ptr, b_shape_len, b_shape_ptr,
                a_buf, b_buf, out_buf, tfjs::backend::threadpool);
