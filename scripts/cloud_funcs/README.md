@@ -7,7 +7,7 @@ You can also trigger the function manually via the Cloud UI.
 Command to re-deploy:
 ```sh
 gcloud functions deploy nightly_tfjs \
-  --runtime nodejs8 \
+  --runtime nodejs14 \
   --trigger-topic nightly_tfjs
 ```
 
@@ -21,7 +21,7 @@ Command to re-deploy:
 
 ```sh
 gcloud functions deploy send_email \
-  --runtime nodejs8 \
+  --runtime nodejs14 \
   --stage-bucket learnjs-174218_cloudbuild \
   --trigger-topic cloud-builds \
   --set-env-vars MAILGUN_API_KEY="[API_KEY_HERE]",HANGOUTS_URL="[URL_HERE]"
@@ -35,7 +35,7 @@ Command to re-deploy:
 
 ```sh
 gcloud functions deploy sync_reactnative \
-  --runtime nodejs8 \
+  --runtime nodejs14 \
   --trigger-topic sync_reactnative \
   --set-env-vars HANGOUTS_URL="[URL_HERE]",BOTS_HANGOUTS_URL="[URL_HERE]"
 ```
