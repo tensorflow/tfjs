@@ -20,9 +20,9 @@ import {test_util} from '@tensorflow/tfjs-core';
 import {describeWebGPU} from './test_util';
 
 describeWebGPU('matmul', () => {
-  it('it works when command encoder count is larger than one.', async () => {
-    const savedFlag = tf.env().get('WEBGPU_COMMAND_ENCODER_COUNT_IN_QUEUE');
-    tf.env().set('WEBGPU_COMMAND_ENCODER_COUNT_IN_QUEUE', 15);
+  it('it works in delayed mode.', async () => {
+    const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
+    tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 15);
     const a = tf.tensor2d([1, 2, 3, 4], [2, 2]);
     const b = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
 
@@ -34,12 +34,12 @@ describeWebGPU('matmul', () => {
     const dData = await d.data();
     test_util.expectArraysClose(
         dData, new Float32Array([0, 12, 7.5, 0, 6.5, 66]));
-    tf.env().set('WEBGPU_COMMAND_ENCODER_COUNT_IN_QUEUE', savedFlag);
+    tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', savedFlag);
   });
 
-  it('it works when command encoder count is one.', async () => {
-    const savedFlag = tf.env().get('WEBGPU_COMMAND_ENCODER_COUNT_IN_QUEUE');
-    tf.env().set('WEBGPU_COMMAND_ENCODER_COUNT_IN_QUEUE', 1);
+  it('it works in immediate mode.', async () => {
+    const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
+    tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 1);
     const a = tf.tensor2d([1, 2, 3, 4], [2, 2]);
     const b = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
 
@@ -51,7 +51,7 @@ describeWebGPU('matmul', () => {
     const dData = await d.data();
     test_util.expectArraysClose(
         dData, new Float32Array([0, 12, 7.5, 0, 6.5, 66]));
-    tf.env().set('WEBGPU_COMMAND_ENCODER_COUNT_IN_QUEUE', savedFlag);
+    tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', savedFlag);
   });
 
   // tslint:disable-next-line:max-line-length

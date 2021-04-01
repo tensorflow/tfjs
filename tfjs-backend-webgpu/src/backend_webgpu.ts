@@ -564,8 +564,8 @@ export class WebGPUBackend extends KernelBackend {
       this.uniformDisposalQueue.push(uniformInfo);
     }
 
-    if (env().get('WEBGPU_COMMAND_ENCODER_COUNT_IN_QUEUE') as number ===
-        this.commandQueue.length) {
+    if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
+        number <= this.commandQueue.length) {
       this.submitQueue();
     }
 
