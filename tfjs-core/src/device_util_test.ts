@@ -22,4 +22,8 @@ describeWithFlags('isMobile', ALL_ENVS, () => {
   it('should not fail when navigator is set', () => {
     expect(() => device_util.isMobile()).not.toThrow();
   });
+  it('identifies react native as a mobile device', () => {
+    expect(device_util.isMobile(
+      {product: 'ReactNative'} as Navigator)).toEqual(true);
+  });
 });

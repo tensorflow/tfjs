@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2019 Google LLC. All Rights Reserved.
+# Copyright 2021 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +14,17 @@
 # limitations under the License.
 # =============================================================================
 
-set -euo pipefail
+set -e
 
-external/emsdk/emsdk/upstream/emscripten/emar "$@"
+yarn rimraf dist/
+yarn
+
+yarn build
+yarn rollup -c --visualize --npm
+
+# Use minified files for miniprogram
+mkdir dist/miniprogram
+cp dist/tf-backend-webgpu.min.js dist/miniprogram/index.js
+cp dist/tf-backend-webgpu.min.js.map dist/miniprogram/index.js.map
+
+echo "Stored standalone library at dist/tf-backend-webgpu(.min).js"

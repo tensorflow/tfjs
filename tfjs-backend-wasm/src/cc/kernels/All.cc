@@ -1,4 +1,4 @@
-/* Copyright 2019 Google LLC. All Rights Reserved.
+/* Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,12 +16,9 @@
 #include <emscripten.h>
 #endif
 
-#include <cmath>
 #include <cstddef>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
-#include "tfjs-backend-wasm/src/cc/binary.h"
-#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
@@ -31,24 +28,31 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void FloorDiv(const size_t a_id, const size_t* a_shape_ptr,
-              const size_t a_shape_len, const size_t b_id,
-              const size_t* b_shape_ptr, const size_t b_shape_len,
-              const DType dtype, const size_t out_id) {
-  switch (dtype) {
-    case DType::float32:
-      binary_f32(a_id, b_id, out_id,
-                 [](float a, float b) { return floor(a / b); });
-      break;
-    case DType::int32:
-      binary_i32(a_id, b_id, out_id, [](int a, int b) {
-        return static_cast<int32_t>(floor(static_cast<float>(a) / b));
-      });
-      break;
-    default:
-      util::warn(
-          "FloorDiv for tensor ids %d and %d failed. Unsupported dtype %d",
-          a_id, b_id, dtype);
+void All(const size_t x_id, const size_t reduce_size, const size_t out_id) {
+  auto& x_info = backend::get_tensor_info(x_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+
+  const bool* x_buf = x_info.b();
+
+  bool* out_buf = out_info.b_write();
+  const size_t out_size = out_info.size;
+
+  const bool* x_offset = x_buf;
+
+  for (size_t i = 0; i < out_size; ++i) {
+    const size_t offset = i * reduce_size;
+    bool all = x_buf[offset];
+
+    const bool* x_iter_end = x_offset + reduce_size;
+
+    for (const bool* x = x_offset; x < x_iter_end; ++x) {
+      bool value = *x;
+      all = all && value;
+    }
+
+    x_offset += reduce_size;
+
+    out_buf[i] = all;
   }
 }
 

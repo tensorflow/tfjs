@@ -60,3 +60,6 @@ tfjs-backend-wasm/wasm-out/*.wasm
 yalc.lock
 yarn-error.log
 cloudbuild_generated.yml
+
+# User-specific .bazelrc
+.bazelrc.user
