@@ -931,10 +931,6 @@
   resolved "https://registry.yarnpkg.com/@bazel/bazelisk/-/bazelisk-1.7.5.tgz#dd1a52e3d23464f72de55aa3dc4777847fa85373"
   integrity sha512-JHwP9JhfZUSoj4sku471Bjw4uE773U2Agujnx0CdPkeRk25khy1l3VyjaPaHB+z1fmMnM6ED3M7tetQUsovUQg==
 
-"@bazel/buildifier@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@bazel/buildifier/-/buildifier-4.0.0.tgz#c99fb21295c7e2858fa176c2b950c589217ae8ac"
-  integrity sha512-e242AK+shp+5bpAc9l93pmG5YRYRfM0INV3gfbdxNeBxccx1MJUagaiwxqAV+Mw55zk92gsb99f2TAc9tt6C7w==
 
 "@istanbuljs/schema@^0.1.2":
   version "0.1.2"
