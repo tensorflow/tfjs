@@ -16,10 +16,12 @@
     "@tensorflow/tfjs-core": "link:../tfjs-core"
   },
   "devDependencies": {
+    "@babel/polyfill": "^7.8.7",
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
     "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
     "@types/jasmine": "~2.8.6",
     "babel-core": "^6.26.3",
     "babel-plugin-transform-runtime": "~6.23.0",
@@ -27,6 +29,13 @@
     "babel-preset-env": "~1.6.1",
     "clang-format": "~1.2.2",
     "jasmine": "~3.1.0",
+    "karma": "^6.3.2",
+    "karma-browserstack-launcher": "~1.6.0",
+    "karma-chrome-launcher": "~2.2.0",
+    "karma-firefox-launcher": "~1.1.0",
+    "karma-jasmine": "~1.1.1",
+    "karma-typescript": "~5.5.1",
+    "karma-typescript-es6-transform": "^5.0.2",
     "parcel-bundler": "^1.12.3",
     "rimraf": "~2.6.2",
     "rollup": "~2.3.2",
@@ -41,15 +50,11 @@
   },
   "scripts": {
     "build": "tsc",
-    "build-ci": "tsc && mkdir -p dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
-    "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
-    "build-deps": "yarn build-core",
-    "build-deps-ci": "yarn build-core-ci",
+    "build-backend-cpu": "cd ../tfjs-backend-cpu && yarn && yarn build",
+    "build-deps": "yarn build-core & yarn build-backend-cpu",
     "build-npm": "./scripts/build-npm.sh",
     "lint": "tslint -p . -t verbose",
-    "publish-npm": "npm publish",
-    "test": "yarn && yarn build-deps && yarn build && ts-node --transpile-only -P tsconfig.test.json src/run_tests.ts",
-    "test-ci": "ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/run_tests.ts"
+    "test": "yarn && yarn build-deps && yarn build && karma start"
   }
 }

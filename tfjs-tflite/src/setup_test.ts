@@ -15,7 +15,4 @@
  * =============================================================================
  */
 
-import * as TFWebClient from './tfweb_client';
-
-export * from './tflite_model';
-export const tfweb = TFWebClient.tfweb;
+import '@tensorflow/tfjs-backend-cpu';

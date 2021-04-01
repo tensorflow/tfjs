@@ -17,7 +17,8 @@
 
 import {DataType, InferenceModel, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, Rank, tensor, Tensor} from '@tensorflow/tfjs-core';
 
-import TFWebClient, {TFWebModelRunner, TFWebModelRunnerOptions, TFWebModelRunnerTensorInfo} from './tfweb_client';
+import * as TFWebClient from './tfweb_client';
+import {TFWebModelRunner, TFWebModelRunnerOptions, TFWebModelRunnerTensorInfo} from './tfweb_client';
 
 const DEFAULT_TFLITE_MODEL_RUNNER_OPTIONS: TFWebModelRunnerOptions = {
   numThreads: -1,
@@ -50,17 +51,12 @@ export class TFLiteModel implements InferenceModel {
    * params should be in either Tensor[] if the input order is fixed, or
    * otherwise NamedTensorMap format.
    *
-   * For batch inference execution, the tensors for each input need to be
-   * concatenated together. For example with mobilenet, the required input shape
-   * is [1, 244, 244, 3], which represents the [batch, height, width, channel].
-   * If we are provide a batched data of 100 images, the input tensor should be
-   * in the shape of [100, 244, 244, 3].
-   *
    * @param config Prediction configuration for specifying the batch size.
+   *     Currently this field is not used.
    *
    * @returns Inference result tensors. The output would be single Tensor if
-   * model has single output node, otherwise Tensor[] or NamedTensorMap[] will
-   * be returned for model with multiple outputs.
+   * model has single output node, otherwise Tensor[] will be returned for model
+   * with multiple outputs. NamedTensorMap is not used.
    *
    * @doc {heading: 'Models', subheading: 'TFLiteModel'}
    */
@@ -69,7 +65,6 @@ export class TFLiteModel implements InferenceModel {
       config: ModelPredictConfig): Tensor<Rank>|Tensor<Rank>[]|NamedTensorMap {
     const modelInputs = this.modelRunner.getInputs();
     const modelOutputs = this.modelRunner.getOutputs();
-    const outputTensors: Tensor[] = [];
 
     // Set model inputs from the given tensors.
 
@@ -119,12 +114,13 @@ export class TFLiteModel implements InferenceModel {
     }
 
     // Convert model outputs to tensors.
+    const outputTensors: Tensor[] = [];
     for (let i = 0; i < modelOutputs.length; i++) {
       const modelOutput = modelOutputs[i];
       outputTensors.push(tensor(
           modelOutput.data(), this.getShapeFromTFLiteTensorInfo(modelOutput)));
     }
-    return outputTensors;
+    return outputTensors.length === 1 ? outputTensors[0] : outputTensors;
   }
 
   /**
@@ -154,6 +150,46 @@ export class TFLiteModel implements InferenceModel {
 
   private setModelInputFromTensor(
       modelInput: TFWebModelRunnerTensorInfo, tensor: Tensor) {
+    if (tensor.dtype === 'string' || tensor.dtype === 'complex64') {
+      throw new Error(`Data type '${tensor.dtype}' not supported.`);
+    }
+
+    // Check shape.
+    if (tensor.shape.join(',') !== modelInput.shape) {
+      throw new Error(`Input tensor shape mismatch: expect '${
+          modelInput.shape}', got '${tensor.shape.join(',')}'.`);
+    }
+
+    // Check types.
+    switch (modelInput.dataType) {
+      // All 'bool' and 'int' tflite types accpet 'bool' or 'int32' tfjs types.
+      // Will throw error for 'float32' tfjs type.
+      case 'bool':
+      case 'int8':
+      case 'uint8':
+      case 'int16':
+      case 'uint32':
+      case 'int32':
+        if (tensor.dtype === 'float32') {
+          throw this.getDataTypeMismatchError(
+              modelInput.dataType, tensor.dtype);
+        } else if (modelInput.dataType !== tensor.dtype) {
+          console.warn(`WARNING: converting '${tensor.dtype}' to '${
+              modelInput.dataType}'`);
+        }
+        break;
+      // All 'float' tflite types accept all tfjs types.
+      case 'float32':
+      case 'float64':
+        if (modelInput.dataType !== tensor.dtype) {
+          console.warn(`WARNING: converting '${tensor.dtype}' to '${
+              modelInput.dataType}'`);
+        }
+        break;
+      default:
+        break;
+    }
+
     const modelInputBuffer = modelInput.data();
     switch (modelInput.dataType) {
       case 'int8':
@@ -224,6 +260,11 @@ export class TFLiteModel implements InferenceModel {
 
   private getShapeFromTFLiteTensorInfo(info: TFWebModelRunnerTensorInfo) {
     return info.shape.split(',').map(s => Number(s));
+  }
+
+  private getDataTypeMismatchError(expected: string, got: string) {
+    return new Error(
+        `Data type mismatch: input tensor expects '${expected}', got '${got}'`);
   }
 }
 
