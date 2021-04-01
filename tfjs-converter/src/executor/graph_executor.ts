@@ -290,7 +290,7 @@ export class GraphExecutor implements FunctionExecutor {
             getTensorsForCurrentContenxt(input.name, tensorMap, context);
         if (tensors != null) {
           tensors.forEach(tensor => {
-            if (tensor && !tensorsToKeep.has(tensor.id)) {
+            if (tensor && !tensor.kept && !tensorsToKeep.has(tensor.id)) {
               const count = intermediateTensorConsumerCount[tensor.id];
               if (count === 1) {
                 tensor.dispose();
@@ -366,7 +366,8 @@ export class GraphExecutor implements FunctionExecutor {
     Object.keys(tensorMap).forEach(key => {
       const tensorArray = tensorMap[key];
       tensorArray.forEach(tensor => {
-        if (tensor && !tensor.isDisposed && !keepIds.has(tensor.id)) {
+        if (tensor && !tensor.kept && !tensor.isDisposed &&
+            !keepIds.has(tensor.id)) {
           tensor.dispose();
         }
       });
