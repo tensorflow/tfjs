@@ -19,8 +19,12 @@ import {env} from '@tensorflow/tfjs-core';
 
 const ENV = env();
 
-/** Whether we submit commands to the device queue immediately. */
-ENV.registerFlag('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', () => true);
+/**
+ * Batch several dispaching calls into one encoder. The negative value means
+ * batching all dispatching calls into one command encoder. Other value means
+ * the dispatching number in one command encoder.
+ */
+ENV.registerFlag('WEBGPU_BATCH_DISPATCHING_CALLS', () => 1);
 
 /**
  * Whether we forward execution to the CPU backend if tensors are small and
