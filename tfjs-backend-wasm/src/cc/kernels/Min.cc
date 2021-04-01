@@ -33,7 +33,6 @@ void Min(const size_t x_id, const size_t reduce_size, const size_t out_id) {
   auto& out_info = backend::get_tensor_info_out(out_id);
 
   const float* x_buf = x_info.f32();
-  const size_t x_size = x_info.size;
 
   float* out_buf = out_info.f32_write();
   const size_t out_size = out_info.size;
