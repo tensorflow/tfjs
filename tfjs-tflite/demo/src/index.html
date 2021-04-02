@@ -18,24 +18,24 @@
     }
 
     .loading-msg {
-      margin-top: 10px;
-      font-size: 12px;
       color: #999;
+      font-size: 12px;
+      margin-top: 10px;
     }
 
 
     img {
-      width: 224px;
       height: 224px;
+      width: 224px;
     }
 
     canvas {
-      width: 224px;
-      height: 224px;
       border-radius: 8px;
+      height: 224px;
       opacity: 0;
-      transition: all 200ms;
       pointer-events: none;
+      transition: all 200ms;
+      width: 224px;
     }
 
     canvas.show {
@@ -49,14 +49,14 @@
     }
 
     .img-container {
-      margin-right: 4px;
       display: flex;
       flex-direction: column;
+      margin-right: 4px;
     }
 
     .img-container img {
-      margin-bottom: 4px;
       border-radius: 8px;
+      margin-bottom: 4px;
     }
 
     .loading {
@@ -64,23 +64,23 @@
     }
 
     .trigger {
-      cursor: pointer;
-      width: 224px;
-      height: 224px;
-      display: flex;
       align-items: center;
-      justify-content: center;
       border-radius: 8px;
-      border: 1px dashed #d8d8d8;
       background-image: url('magic.svg');
       background-size: 32px 32px;
       background-repeat: no-repeat;
       background-position: 50% 50%;
+      border: 1px dashed #d8d8d8;
       box-sizing: border-box;
       color: #999;
+      cursor: pointer;
+      display: flex;
       font-size: 13px;
+      height: 224px;
+      justify-content: center;
       opacity: 0;
       transition: opacity 200ms;
+      width: 224px;
     }
 
     .trigger.show {
@@ -92,15 +92,15 @@
     }
 
     span.magic {
-      display: inline-block;
       background-image: url('magic.svg');
       background-size: 24px 24px;
       background-repeat: no-repeat;
       background-position: 50% 50%;
-      width: 24px;
+      display: inline-block;
       height: 24px;
       margin: 0 8px;
       margin-top: -6px;
+      width: 24px;
     }
 
     .trigger:hover {
@@ -112,8 +112,8 @@
       font-size: 12px;
       height: 30px;
       line-height: 30px;
-      text-align: center;
       opacity: 0;
+      text-align: center;
       transition: all 200ms;
     }
 
@@ -127,8 +127,8 @@
 
     video {
       border-radius: 8px;
-      margin-bottom: 4px;
       height: 224px;
+      margin-bottom: 4px;
     }
 
     #cam-canvas.show {
@@ -140,17 +140,18 @@
     }
 
     .take-pic {
+      align-items: center;
+      background-color: rgba(255, 255, 255, .9);
+      color: #425066;
+      display: flex;
+      font-size: 13px;
+      height: 24px;
+      justify-content: center;
+      padding-bottom: 3px;
+      pointer-events: none;
       position: absolute;
       top: 558px;
       width: 224px;
-      display: flex;
-      justify-content: center;
-      background-color: rgba(255, 255, 255, .9);
-      font-size: 13px;
-      height: 24px;
-      align-items: center;
-      padding-bottom: 3px;
-      color: #425066;
     }
   </style>
 </head>
