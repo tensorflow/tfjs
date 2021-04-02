@@ -13,6 +13,66 @@ or not).
 Check out this [demo][demo] where we use this package to run a
 [CartoonGAN][model] TFLite model on the web.
 
+# Usage
+
+## Import the packages
+
+To use this package, you will need a TFJS backend installed. We recommend the
+CPU backend. You will also need to import `@tensorflow/tfjs-core` for
+manipulating tensors.
+
+### Via NPM
+
+```js
+// Adds the CPU backend.
+import '@tensorflow/tfjs-backend-cpu';
+// Import @tensorflow/tfjs-core
+import * as tf from '@tensorflow/tfjs-core';
+// Import @tensorflow/tfjs-tflite.
+import {loadTFLiteModel, TFLiteModel} from '@tensorflow/tfjs-tflite';
+```
+
+### Via a script tag
+
+```html
+<!-- Adds the CPU backend -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-cpu"></script>
+<!-- Import @tensorflow/tfjs-core -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+<!-- Import @tensorflow/tfjs-tflite -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite"></script>
+```
+
+## Set WASM modules location (optional)
+
+By default, it will try to load the WASM modules from the same location where
+the package or your own script is served. Use `setWasmPath` to set your own
+location. See `src/tfweb_client.d.ts` for more details.
+
+
+```js
+import {..., setWasmPath} from '@tensorflow/tfjs-tflite';
+
+setWasmPath('https://your-server/path');
+```
+
+## Load a TFLite model
+```js
+const tfliteModel = await loadTFLiteModel('path/to/your/my_model.tflite');
+```
+
+## Run inference
+```js
+// Prepare input tensors.
+const img = document.querySelector('img');
+const input = tf.sub(tf.div(tf.expandDims(img), 127.5), 1);
+
+// Run inference and get output tensors.
+let outputTensor = tfliteModel.predict(input, {}) as tf.Tensor;
+console.log(outputTensor.dataSync());
+```
+
+
 
 # Development
 
