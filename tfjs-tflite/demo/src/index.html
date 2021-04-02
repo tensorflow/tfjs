@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Cartoonizer</title>
+
+<head>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Google+Sans:400,500,700">
+  <style>
+    body {
+      font-family: 'Google Sans';
+      padding: 20px;
+    }
+
+    h1 {
+      color: #425066;
+      font-size: 31px;
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+
+    .loading-msg {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #999;
+    }
+
+
+    img {
+      width: 224px;
+      height: 224px;
+    }
+
+    canvas {
+      width: 224px;
+      height: 224px;
+      border-radius: 8px;
+      opacity: 0;
+      transition: all 200ms;
+      pointer-events: none;
+    }
+
+    canvas.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .imgs-container {
+      display: flex;
+      margin-top: 40px;
+    }
+
+    .img-container {
+      margin-right: 4px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .img-container img {
+      margin-bottom: 4px;
+      border-radius: 8px;
+    }
+
+    .loading {
+      color: #999;
+    }
+
+    .trigger {
+      cursor: pointer;
+      width: 224px;
+      height: 224px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      border: 1px dashed #d8d8d8;
+      background-image: url('magic.svg');
+      background-size: 32px 32px;
+      background-repeat: no-repeat;
+      background-position: 50% 50%;
+      box-sizing: border-box;
+      color: #999;
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity 200ms;
+    }
+
+    .trigger.show {
+      opacity: 1;
+    }
+
+    .trigger.processing {
+      background-image: none !important;
+    }
+
+    span.magic {
+      display: inline-block;
+      background-image: url('magic.svg');
+      background-size: 24px 24px;
+      background-repeat: no-repeat;
+      background-position: 50% 50%;
+      width: 24px;
+      height: 24px;
+      margin: 0 8px;
+      margin-top: -6px;
+    }
+
+    .trigger:hover {
+      background-color: #f1f1f1;
+    }
+
+    .stats {
+      color: #999;
+      font-size: 12px;
+      height: 30px;
+      line-height: 30px;
+      text-align: center;
+      opacity: 0;
+      transition: all 200ms;
+    }
+
+    .stats.show {
+      opacity: 1;
+    }
+
+    .hide {
+      display: none !important;
+    }
+
+    video {
+      border-radius: 8px;
+      margin-bottom: 4px;
+      height: 224px;
+    }
+
+    #cam-canvas.show {
+      cursor: pointer;
+    }
+
+    #cam-canvas:hover {
+      opacity: .9;
+    }
+
+    .take-pic {
+      position: absolute;
+      top: 558px;
+      width: 224px;
+      display: flex;
+      justify-content: center;
+      background-color: rgba(255, 255, 255, .9);
+      font-size: 13px;
+      height: 24px;
+      align-items: center;
+      padding-bottom: 3px;
+      color: #425066;
+    }
+  </style>
+</head>
+
+<body class="disabled">
+  <h1>Cartoonizer Demo</h1>
+
+  <div class="loading-msg">Loading...</div>
+
+  <div class="imgs-container hide">
+    <div class="img-container">
+      <img id="img5" src="cat.jpeg"></img>
+      <div class="trigger"></div>
+      <canvas width="224px" height="224px"></canvas>
+      <div class="stats"></div>
+    </div>
+    <div class="img-container">
+      <img id="img1" src="mountain.jpeg"></img>
+      <div class="trigger"></div>
+      <canvas width="224px" height="224px"></canvas>
+      <div class="stats"></div>
+    </div>
+    <div class="img-container">
+      <img id="img2" src="room.jpeg"></img>
+      <div class="trigger"></div>
+      <canvas width="224px" height="224px"></canvas>
+      <div class="stats"></div>
+    </div>
+    <div class="img-container">
+      <img id="img3" src="food.jpeg"></img>
+      <div class="trigger"></div>
+      <canvas width="224px" height="224px"></canvas>
+      <div class="stats"></div>
+    </div>
+    <div class="img-container">
+      <img id="img4" src="people.jpeg"></img>
+      <div class="trigger"></div>
+      <canvas width="224px" height="224px"></canvas>
+      <div class="stats"></div>
+    </div>
+    <div class="img-container">
+      <video autoplay></video>
+      <div class="trigger"></div>
+      <canvas width="224px" height="224px" id="cam-canvas"></canvas>
+      <div class="take-pic hide">Click to take another picture</div>
+      <div class="stats"></div>
+    </div>
+  </div>
+</body>
+
+<script src="./script.ts"></script>
+</html>
