@@ -62,7 +62,7 @@ export class TFLiteModel implements InferenceModel {
    */
   predict(
       inputs: Tensor<Rank>|Tensor<Rank>[]|NamedTensorMap,
-      config: ModelPredictConfig): Tensor<Rank>|Tensor<Rank>[]|NamedTensorMap {
+      config?: ModelPredictConfig): Tensor<Rank>|Tensor<Rank>[]|NamedTensorMap {
     const modelInputs = this.modelRunner.getInputs();
     const modelOutputs = this.modelRunner.getOutputs();
 

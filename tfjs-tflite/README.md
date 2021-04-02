@@ -68,7 +68,7 @@ const img = document.querySelector('img');
 const input = tf.sub(tf.div(tf.expandDims(img), 127.5), 1);
 
 // Run inference and get output tensors.
-let outputTensor = tfliteModel.predict(input, {}) as tf.Tensor;
+let outputTensor = tfliteModel.predict(input) as tf.Tensor;
 console.log(outputTensor.dataSync());
 ```
 
