@@ -22,4 +22,4 @@
 // correctly by typescript code.
 var tfwebClient = require('../deps/tfweb_client.js');
 
-module.exports = tfwebClient
+export default tfwebClient;

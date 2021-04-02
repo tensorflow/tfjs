@@ -18,7 +18,7 @@
 import * as tf from '@tensorflow/tfjs-core';
 
 import {TFLiteModel} from './tflite_model';
-import {TFWebModelRunner, TFWebModelRunnerOptions, TFWebModelRunnerTensorInfo} from './tfweb_client';
+import {TFWebModelRunner, TFWebModelRunnerOptions, TFWebModelRunnerTensorInfo} from './types/tfweb_model_runner';
 
 // A mock TFWebModelRunner that doubles the data from input tensors to output
 // tensors during inference.

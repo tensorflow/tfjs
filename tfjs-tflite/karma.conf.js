@@ -17,24 +17,9 @@
 
 const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.test.json',
-  compilerOptions: {allowJs: true, declaration: false},
   bundlerOptions: {
     sourceMap: true,
-    // Ignore the import of the `worker_threads`/`perf_hooks` packages meant to
-    // run in node.
-    exclude: ['worker_threads', 'perf_hooks'],
-    // worker_node_test in tfjs-core contains a conditional require statement
-    // that confuses the bundler of karma-typescript.
-    ignore: ['./worker_node_test'],
     acornOptions: {ecmaVersion: 8},
-    transforms: [
-      require('karma-typescript-es6-transform')({
-        presets: [
-          // ensure we get es5 by adding IE 11 as a target
-          ['@babel/env', {'targets': {'ie': '11'}, 'loose': true}]
-        ]
-      }),
-    ]
   },
   // Disable coverage reports and instrumentation by default for tests
   coverageOptions: {instrumentation: false},
@@ -48,6 +33,9 @@ const devConfig = {
     'src/setup_test.ts',
     {pattern: 'src/**/*.ts'},
     'src/tfweb_client.js',
+  ],
+  exclude: [
+    'src/index.ts',
   ],
   preprocessors: {
     'src/tfweb_client.js': ['karma-typescript'],

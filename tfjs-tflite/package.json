@@ -2,7 +2,10 @@
   "name": "@tensorflow/tfjs-tflite",
   "version": "0.0.1",
   "description": "TFLite support for TensorFlow.js",
-  "main": "dist/index.js",
+  "main": "dist/tf-tflite.node.js",
+  "jsnext:main": "dist/index.js",
+  "jsdelivr": "dist/tf-tflite.min.js",
+  "unpkg": "dist/tf-tflite.min.js",
   "types": "dist/index.d.ts",
   "repository": {
     "type": "git",

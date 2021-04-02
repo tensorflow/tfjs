@@ -17,8 +17,8 @@
 
 import {DataType, InferenceModel, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, Rank, tensor, Tensor} from '@tensorflow/tfjs-core';
 
-import * as TFWebClient from './tfweb_client';
-import {TFWebModelRunner, TFWebModelRunnerOptions, TFWebModelRunnerTensorInfo} from './tfweb_client';
+import * as tfwebClient from './tfweb_client';
+import {TFLiteDataType, TFWebModelRunner, TFWebModelRunnerOptions, TFWebModelRunnerTensorInfo} from './types/tfweb_model_runner';
 
 const DEFAULT_TFLITE_MODEL_RUNNER_OPTIONS: TFWebModelRunnerOptions = {
   numThreads: -1,
@@ -52,7 +52,7 @@ export class TFLiteModel implements InferenceModel {
    * otherwise NamedTensorMap format.
    *
    * @param config Prediction configuration for specifying the batch size.
-   *     Currently this field is not used.
+   *     Currently this field is not used, and batch inference is not supported.
    *
    * @returns Inference result tensors. The output would be single Tensor if
    * model has single output node, otherwise Tensor[] will be returned for model
@@ -150,6 +150,7 @@ export class TFLiteModel implements InferenceModel {
 
   private setModelInputFromTensor(
       modelInput: TFWebModelRunnerTensorInfo, tensor: Tensor) {
+    // String and complex tensors are not supported.
     if (tensor.dtype === 'string' || tensor.dtype === 'complex64') {
       throw new Error(`Data type '${tensor.dtype}' not supported.`);
     }
@@ -222,25 +223,7 @@ export class TFLiteModel implements InferenceModel {
   private convertTFLiteTensorInfos(infos: TFWebModelRunnerTensorInfo[]):
       ModelTensorInfo[] {
     return infos.map(info => {
-      let dtype: DataType|undefined = undefined;
-      switch (info.dataType) {
-        case 'float32':
-        case 'float64':
-          dtype = 'float32';
-          break;
-        case 'int8':
-        case 'uint8':
-        case 'int16':
-        case 'int32':
-        case 'uint32':
-          dtype = 'int32';
-          break;
-        case 'bool':
-          dtype = 'bool';
-          break;
-        default:
-          break;
-      }
+      let dtype = getDTypeFromTFLiteType(info.dataType);
       return {
         name: info.name,
         shape: this.getShapeFromTFLiteTensorInfo(info),
@@ -269,7 +252,7 @@ export class TFLiteModel implements InferenceModel {
 }
 
 /**
- * Load a TFLiteModel from the given model url.
+ * Loads a TFLiteModel from the given model url.
  *
  * @param modelUrl The path to the model.
  * @param options Options related to model inference.
@@ -281,6 +264,30 @@ export async function loadTFLiteModel(
     options: TFWebModelRunnerOptions =
         DEFAULT_TFLITE_MODEL_RUNNER_OPTIONS): Promise<TFLiteModel> {
   const tfliteModelRunner =
-      await TFWebClient.tfweb.TFWebModelRunner.create(modelUrl, options);
+      await tfwebClient.tfweb.TFWebModelRunner.create(modelUrl, options);
   return new TFLiteModel(tfliteModelRunner);
+}
+
+/** Returns the compatible tfjs DataType from the given TFLite data type. */
+export function getDTypeFromTFLiteType(tfliteType: TFLiteDataType): DataType {
+  let dtype: DataType;
+  switch (tfliteType) {
+    case 'float32':
+    case 'float64':
+      dtype = 'float32';
+      break;
+    case 'int8':
+    case 'uint8':
+    case 'int16':
+    case 'int32':
+    case 'uint32':
+      dtype = 'int32';
+      break;
+    case 'bool':
+      dtype = 'bool';
+      break;
+    default:
+      break;
+  }
+  return dtype;
 }

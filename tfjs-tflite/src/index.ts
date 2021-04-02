@@ -15,7 +15,10 @@
  * =============================================================================
  */
 
-import * as TFWebClient from './tfweb_client';
+import * as tfwebClient from './tfweb_client';
+
+const setWasmPath = tfwebClient.tfweb.tfweb.setWasmPath;
 
 export * from './tflite_model';
-export const tfweb = TFWebClient.tfweb;
+export * from './types/tfweb_model_runner';
+export {setWasmPath};
