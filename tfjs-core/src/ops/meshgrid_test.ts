@@ -18,7 +18,7 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {Tensor} from '../tensor';
-import {expectArraysEqual} from '../test_util';
+import {expectArraysEqual, expectArraysClose} from '../test_util';
 
 describeWithFlags('no input', ALL_ENVS, () => {
   it('Should return an empty tensor ', async () => {
@@ -41,9 +41,11 @@ describeWithFlags('simple inputs', ALL_ENVS, () => {
     const y = [4, 5, 6, 7];
     const [X, Y] = tf.meshgrid(x, y);
 
-    expectArraysEqual(
+    // 'close' instead of 'equal' because of matmul precision
+    // in certain backends (WebGL).
+    expectArraysClose(
         await X.data(), [[1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3]]);
-    expectArraysEqual(
+    expectArraysClose(
         await Y.data(), [[4, 4, 4], [5, 5, 5], [6, 6, 6], [7, 7, 7]]);
   });
 
@@ -52,9 +54,11 @@ describeWithFlags('simple inputs', ALL_ENVS, () => {
     const y = [4, 5, 6, 7];
     const [X, Y] = tf.meshgrid(x, y, {indexing: 'ij'});
 
-    expectArraysEqual(
+    // 'close' instead of 'equal' because of matmul precision
+    // in certain backends (WebGL).
+    expectArraysClose(
         await X.data(), [[1, 1, 1, 1], [2, 2, 2, 2], [3, 3, 3, 3]]);
-    expectArraysEqual(
+    expectArraysClose(
         await Y.data(), [[4, 5, 6, 7], [4, 5, 6, 7], [4, 5, 6, 7]]);
   });
 });
@@ -66,9 +70,11 @@ describeWithFlags('higher dimensional input', ALL_ENVS, () => {
 
     const [X, A] = tf.meshgrid(x, a);
 
-    expectArraysEqual(
+    // 'close' instead of 'equal' because of matmul precision
+    // in certain backends (WebGL).
+    expectArraysClose(
         await X.data(), [[1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3]]);
-    expectArraysEqual(
+    expectArraysClose(
         await A.data(), [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]]);
   });
 });
@@ -96,11 +102,13 @@ describeWithFlags('dtypes', ALL_ENVS, () => {
 describeWithFlags('scalars', ALL_ENVS, () => {
   it('Should treat them as 1D tensors', async () => {
     const [X] = tf.meshgrid(0);
-    expectArraysEqual(await X.data(), [0]);
+    // 'close' instead of 'equal' because of matmul precision
+    // in certain backends (WebGL).
+    expectArraysClose(await X.data(), [0]);
 
     const [Y, Z] = tf.meshgrid([0], 1);
-    expectArraysEqual(await Y.data(), [[0]]);
-    expectArraysEqual(await Z.data(), [[1]]);
+    expectArraysClose(await Y.data(), [[0]]);
+    expectArraysClose(await Z.data(), [[1]]);
   });
 });
 
