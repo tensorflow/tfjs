@@ -56,7 +56,7 @@ declare interface TFWebClient {
 /**
  * The main export.
  *
- * The variable name has to "tfweb" so it can match the root namespace of the
- * exported components from the JS client.
+ * The variable name needs to be "tfweb" so it can match the root namespace of
+ * the exported components from the JS client.
  */
 export declare let tfweb: TFWebClient;
