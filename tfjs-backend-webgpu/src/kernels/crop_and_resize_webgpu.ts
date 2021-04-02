@@ -16,17 +16,17 @@
  */
 
 import {getShapeCoords} from '../shader_preprocessor';
-import {computeDispatch} from '../webgpu_util';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
 export class CropAndResizeProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  dispatchLayout: {x: number[], y: number[], z: number[]};
+  dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['Image', 'Boxes', 'BoxInd'];
-  workGroupSize: [number, number, number] = [4, 4, 4];
+  workGroupSize: [number, number, number] = [64, 1, 1];
   imageShape: [number, number, number, number];
   cropSize: [number, number];
   methodId: number;
@@ -38,7 +38,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
       extrapolationValue: number) {
     const [numBoxes, ] = boxShape;
     this.outputShape = [numBoxes, cropSize[0], cropSize[1], imageShape[3]];
-    this.dispatchLayout = {x: [1, 2], y: [0], z: [3]};
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
