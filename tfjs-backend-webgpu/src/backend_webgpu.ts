@@ -99,6 +99,7 @@ export class WebGPUBackend extends KernelBackend {
   private activeTimers: TimerNode[];
   private uploadWaitMs = 0;
   private downloadWaitMs = 0;
+  private computePassNumberInEncoder = 0;
   private cpuBackend: KernelBackend;
   private querySet: GPUQuerySet;
 
@@ -263,6 +264,7 @@ export class WebGPUBackend extends KernelBackend {
   submitQueue() {
     this.queue.submit(this.commandQueue.map(enc => enc.finish()));
     this.commandQueue = [];
+    this.computePassNumberInEncoder = 0;
 
     this.commandQueueOwnedIds = new WeakSet<DataId>();
 
@@ -524,7 +526,14 @@ export class WebGPUBackend extends KernelBackend {
         this.device, bindGroupLayout, inputs.map(t => this.tensorToBinding(t)),
         this.tensorToBinding(output), uniforms);
 
-    const encoder = this.device.createCommandEncoder();
+    let encoder: GPUCommandEncoder;
+    if (this.commandQueue.length > 0) {
+      encoder = this.commandQueue[0];
+    } else {
+      encoder = this.device.createCommandEncoder();
+      this.commandQueue.push(encoder);
+    }
+
     const pass = encoder.beginComputePass();
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
@@ -541,8 +550,7 @@ export class WebGPUBackend extends KernelBackend {
       }
     }
     pass.endPass();
-
-    this.commandQueue.push(encoder);
+    this.computePassNumberInEncoder++;
 
     inputs.forEach(input => {
       this.commandQueueOwnedIds.add(input.dataId);
@@ -559,7 +567,7 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
-        number <= this.commandQueue.length) {
+        number <= this.computePassNumberInEncoder) {
       this.submitQueue();
     }
 
