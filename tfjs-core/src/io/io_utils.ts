@@ -24,6 +24,8 @@ import {sizeFromShape} from '../util';
 
 import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, WeightGroup, WeightsManifestEntry} from './types';
 
+import {env} from '../environment';
+
 /** Number of bytes reserved for the length of the string. (32bit integer). */
 const NUM_BYTES_STRING_LENGTH = 4;
 
@@ -199,6 +201,8 @@ export function decodeWeights(
 
       if (dtype === 'float32') {
         values = new Float32Array(byteBuffer);
+      } else if (dtype === 'float16' && env().get('WEBGPU_ENABLE_FLOAT16')) {
+        values = new Uint16Array(byteBuffer);
       } else if (dtype === 'int32') {
         values = new Int32Array(byteBuffer);
       } else if (dtype === 'bool') {
