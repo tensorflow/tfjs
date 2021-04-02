@@ -72,7 +72,24 @@ let outputTensor = tfliteModel.predict(input, {}) as tf.Tensor;
 console.log(outputTensor.dataSync());
 ```
 
+# Performance
 
+Similar to TFJS WASM backend, this package uses [XNNPACK][xnnpack] to accelerate
+model inference. To achieve the best performance, use a browser that supports
+"WebAssembly SIMD" and "WebAssembly threads". In Chrome, these can be enabled
+in `chrome://flags/`. As of March 2021, XNNPACK can only be enabled for
+non-quantized TFLite models. Support for quantized models is in the works.
+
+Setting the number of threads when calling `loadTFLiteModel` can also help with
+the performance. In most cases, the threads count should be the same as the
+number of physical cores, which is half of `navigator.hardwareConcurrency` on
+many x86-64 processors.
+
+```js
+const tfliteModel = await loadTFLiteModel(
+    'path/to/your/my_model.tflite',
+    {numThreads: navigator.hardwareConcurrency / 2});
+```
 
 # Development
 
@@ -99,3 +116,4 @@ $ yarn build-npm
 
 [demo]: https://storage.googleapis.com/tfweb/demos/cartoonizer/index.html
 [model]: https://blog.tensorflow.org/2020/09/how-to-create-cartoonizer-with-tf-lite.html
+[xnnpack]: https://github.com/google/XNNPACK
