@@ -67,6 +67,7 @@ export {dilation2d} from './dilation2d';
 export {div} from './div';
 export {divNoNan} from './div_no_nan';
 export {dot} from './dot';
+export {einsum} from './einsum';
 export {elu} from './elu';
 export {equal} from './equal';
 export {erf} from './erf';
