@@ -106,6 +106,7 @@ export {maxPool3d} from './max_pool_3d';
 export {maxPoolWithArgmax} from './max_pool_with_argmax';
 export {maximum} from './maximum';
 export {mean} from './mean';
+export {meshgrid} from './meshgrid';
 export {min} from './min';
 export {minimum} from './minimum';
 export {mirrorPad} from './mirror_pad';
