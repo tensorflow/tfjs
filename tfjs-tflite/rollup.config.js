@@ -60,18 +60,7 @@ function config({
 
   return {
     input: 'src/index.ts',
-    plugins: [
-      typescript(tsoptions), resolve(),
-      // Polyfill require() from dependencies.
-      commonjs({
-        ignore: ['crypto'],
-        include: ['node_modules/**', 'src/tfweb_client.js'],
-        namedExports: {
-          './node_modules/seedrandom/index.js': ['alea'],
-        },
-      }),
-      ...plugins
-    ],
+    plugins: [typescript(tsoptions), resolve(), commonjs(), ...plugins],
     output: {
       banner: PREAMBLE,
       sourcemap: true,

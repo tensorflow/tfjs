@@ -24,6 +24,8 @@ const DEFAULT_TFLITE_MODEL_RUNNER_OPTIONS: TFWebModelRunnerOptions = {
   numThreads: -1,
 };
 
+const TFHUB_SEARCH_PARAM = '?lite-format=tflite';
+
 /**
  * A `tf.TFLiteModel` is built from a TFLite model flatbuffer and its
  * corresponding Interpreter.
@@ -55,8 +57,8 @@ export class TFLiteModel implements InferenceModel {
    *     Currently this field is not used, and batch inference is not supported.
    *
    * @returns Inference result tensors. The output would be single Tensor if
-   * model has single output node, otherwise Tensor[] will be returned for model
-   * with multiple outputs. NamedTensorMap is not used.
+   * model has single output node, otherwise NamedTensorMap will be returned for
+   * model with multiple outputs. Tensor[] is not used.
    *
    * @doc {heading: 'Models', subheading: 'TFLiteModel'}
    */
@@ -68,24 +70,22 @@ export class TFLiteModel implements InferenceModel {
 
     // Set model inputs from the given tensors.
 
-    // A single tensor.
-    if (inputs instanceof Tensor) {
-      if (modelInputs.length === 0) {
-        throw new Error('The TFLite model has no inputs');
+    // A single tensor or a tensor array.
+    if (inputs instanceof Tensor || Array.isArray(inputs)) {
+      let inputTensors: Tensor[];
+      if (inputs instanceof Tensor) {
+        inputTensors = [inputs];
+      } else {
+        inputTensors = inputs
       }
-      const modelInput = modelInputs[0];
-      this.setModelInputFromTensor(modelInput, inputs);
-    }
-    // An array of tensors.
-    else if (Array.isArray(inputs)) {
-      if (modelInputs.length !== inputs.length) {
+      if (modelInputs.length !== inputTensors.length) {
         throw new Error(`The size of TFLite model inputs (${
             modelInputs
                 .length}) does not match the size of the input tensors (${
-            inputs.length})`);
+            inputTensors.length})`);
       }
       for (let i = 0; i < modelInputs.length; i++) {
-        this.setModelInputFromTensor(modelInputs[i], inputs[i]);
+        this.setModelInputFromTensor(modelInputs[i], inputTensors[i]);
       }
     }
     // Named tensors.
@@ -96,12 +96,7 @@ export class TFLiteModel implements InferenceModel {
         modelInputMap[modelInput.name] = modelInput;
       });
       const modelInputNames = Object.keys(modelInputMap);
-      if (!this.stringArraysHaveSameElements(
-              inputTensorNames, modelInputNames)) {
-        throw new Error(`The model input names are ${
-            modelInputNames.join()}, however the provided input names are ${
-            inputTensorNames.join()}.`);
-      }
+      this.checkMapInputs(inputTensorNames, modelInputNames);
       for (const name of inputTensorNames) {
         this.setModelInputFromTensor(modelInputMap[name], inputs[name]);
       }
@@ -114,13 +109,15 @@ export class TFLiteModel implements InferenceModel {
     }
 
     // Convert model outputs to tensors.
-    const outputTensors: Tensor[] = [];
+    const outputTensors: NamedTensorMap = {};
     for (let i = 0; i < modelOutputs.length; i++) {
       const modelOutput = modelOutputs[i];
-      outputTensors.push(tensor(
-          modelOutput.data(), this.getShapeFromTFLiteTensorInfo(modelOutput)));
+      const outputTensor = tensor(
+          modelOutput.data(), this.getShapeFromTFLiteTensorInfo(modelOutput));
+      outputTensors[modelOutput.name] = outputTensor;
     }
-    return outputTensors.length === 1 ? outputTensors[0] : outputTensors;
+    const names = Object.keys(outputTensors);
+    return names.length === 1 ? outputTensors[names[0]] : outputTensors;
   }
 
   /**
@@ -156,7 +153,13 @@ export class TFLiteModel implements InferenceModel {
     }
 
     // Check shape.
-    if (tensor.shape.join(',') !== modelInput.shape) {
+    //
+    // At this point, we've already checked that input tensors and model inputs
+    // have the same size.
+    const modelInputShape = modelInput.shape.split(',').map(dim => Number(dim));
+    if (!tensor.shape.every(
+            (dim, index) => modelInputShape[index] === -1 ||
+                modelInputShape[index] === dim)) {
       throw new Error(`Input tensor shape mismatch: expect '${
           modelInput.shape}', got '${tensor.shape.join(',')}'.`);
     }
@@ -232,13 +235,23 @@ export class TFLiteModel implements InferenceModel {
     });
   }
 
-  private stringArraysHaveSameElements(arrayA: string[], arrayB: string[]):
-      boolean {
-    if (arrayA.length === arrayB.length &&
-        arrayA.sort().join() === arrayB.sort().join()) {
-      return true;
+  private checkMapInputs(
+      inputTensorNames: string[], modelInputNames: string[]) {
+    const notInModel =
+        inputTensorNames.filter(name => !modelInputNames.includes(name));
+    const notInInput =
+        modelInputNames.filter(name => !inputTensorNames.includes(name));
+    if (notInModel.length === 0 && notInInput.length === 0) return;
+
+    let msgParts =
+        ['The model input names don\'t match the model input names.'];
+    if (notInModel.length > 0) {
+      msgParts.push(`Names in input but missing in model: [${notInModel}].`);
     }
-    return false;
+    if (notInInput.length > 0) {
+      msgParts.push(`Names in model but missing in inputs: [${notInInput}].`);
+    }
+    throw new Error(msgParts.join(' '));
   }
 
   private getShapeFromTFLiteTensorInfo(info: TFWebModelRunnerTensorInfo) {
@@ -263,6 +276,12 @@ export async function loadTFLiteModel(
     modelUrl: string,
     options: TFWebModelRunnerOptions =
         DEFAULT_TFLITE_MODEL_RUNNER_OPTIONS): Promise<TFLiteModel> {
+  // Handle tfhub links.
+  if (modelUrl.includes('tfhub.dev')) {
+    if (!modelUrl.endsWith(TFHUB_SEARCH_PARAM)) {
+      modelUrl = `${modelUrl}${TFHUB_SEARCH_PARAM}`;
+    }
+  }
   const tfliteModelRunner =
       await tfwebClient.tfweb.TFWebModelRunner.create(modelUrl, options);
   return new TFLiteModel(tfliteModelRunner);

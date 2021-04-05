@@ -8,7 +8,7 @@ Here is the [live demo][live demo] you can try out. For best performance, enable
 the "WebAssembly SIMD support" and "WebAssembly threads support" in
 `chrome://flags/`.
 
-<img src="screenshot.png" alt="demo" style="max-width: 925px; width: 100%;"/>
+<img src="screenshot.png" alt="demo" style="max-width: 930px; width: 100%;"/>
 
 ## Run the demo locally
 
@@ -22,7 +22,7 @@ Build the `tfjs-tflite` package locally.
 ```sh
 $ yarn
 # This script will download the tfweb WASM module files and JS client to deps/.
-$ ./script/download-tfweb.sh 0.0.1
+$ ./script/download-tfweb.sh
 # This will bundle and copy everything needed to tfjs-tflite/dist/ which will
 # be used by the local demo.
 $ yarn build-npm

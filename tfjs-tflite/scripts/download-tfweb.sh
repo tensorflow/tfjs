@@ -21,7 +21,8 @@ set -e
 cd "$(dirname "$0")"
 
 # Get the version from the first parameter.
-VERSION="$1"
+# Default to the package's current version from package.json file.
+VERSION="${1:-$(node get-current-version.js)}"
 
 # Make sure the version is provided.
 if [[ -z ${VERSION} ]]; then

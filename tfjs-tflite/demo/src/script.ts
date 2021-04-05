@@ -29,8 +29,9 @@ const PHYSICAL_CORES = navigator.hardwareConcurrency / 2;
 async function start() {
   // Load model runner with the cartoonizer tflite model.
   const start = Date.now();
-  const tfliteModel = await loadTFLiteModel(
-      'cartoongan_fp16.tflite', {numThreads: PHYSICAL_CORES});
+  const tfliteModel = await loadTFLiteModel('cartoongan_fp16.tflite', {
+    numThreads: PHYSICAL_CORES,
+  });
   ele('.loading-msg').innerHTML = `Loaded WASM module and <a href='${
       CARTOONIZER_LINK}' target='blank'>TFLite model</a> in ${
       Date.now() - start}ms`;
@@ -113,17 +114,20 @@ function handleClickTrigger(trigger: HTMLElement, tfliteModel: TFLiteModel) {
 function cartoonize(
     tfliteModel: TFLiteModel,
     ele: HTMLImageElement|HTMLVideoElement): ImageData {
-  // Get pixels data.
-  const img = tf.browser.fromPixels(ele);
-  // Normalize.
-  //
-  // Since the images are already 224*224 that matches the model's input size,
-  // we don't resize them here.
-  const input = tf.sub(tf.div(tf.expandDims(img), 127.5), 1);
-  // Run the inference.
-  let outputTensor = tfliteModel.predict(input) as tf.Tensor;
-  // De-normalize the result.
-  outputTensor = tf.mul(tf.add(outputTensor, 1), 127.5)
+  const outputTensor = tf.tidy(() => {
+    // Get pixels data.
+    const img = tf.browser.fromPixels(ele);
+    // Normalize.
+    //
+    // Since the images are already 224*224 that matches the model's input size,
+    // we don't resize them here.
+    const input = tf.sub(tf.div(tf.expandDims(img), 127.5), 1);
+    // Run the inference.
+    let outputTensor = tfliteModel.predict(input) as tf.Tensor;
+    // De-normalize the result.
+    return tf.mul(tf.add(outputTensor, 1), 127.5)
+  });
+
   // Convert from RGB to RGBA, and create and return ImageData.
   const rgb = Array.from(outputTensor.dataSync());
   const rgba: number[] = [];

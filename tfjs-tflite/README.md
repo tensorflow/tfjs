@@ -51,20 +51,20 @@ location. See `src/tfweb_client.d.ts` for more details.
 
 
 ```js
-import {..., setWasmPath} from '@tensorflow/tfjs-tflite';
+import {setWasmPath} from '@tensorflow/tfjs-tflite';
 
 setWasmPath('https://your-server/path');
 ```
 
 ## Load a TFLite model
 ```js
-const tfliteModel = await loadTFLiteModel('path/to/your/my_model.tflite');
+const tfliteModel = await loadTFLiteModel('url/to/your/model.tflite');
 ```
 
 ## Run inference
 ```js
 // Prepare input tensors.
-const img = document.querySelector('img');
+const img = tf.browser.fromPixels(document.querySelector('img'));
 const input = tf.sub(tf.div(tf.expandDims(img), 127.5), 1);
 
 // Run inference and get output tensors.
@@ -78,7 +78,8 @@ Similar to TFJS WASM backend, this package uses [XNNPACK][xnnpack] to accelerate
 model inference. To achieve the best performance, use a browser that supports
 "WebAssembly SIMD" and "WebAssembly threads". In Chrome, these can be enabled
 in `chrome://flags/`. As of March 2021, XNNPACK can only be enabled for
-non-quantized TFLite models. Support for quantized models is in the works.
+non-quantized TFLite models. Quantized models can still be used, but not
+accelerated. Support for quantized model acceleration is in the works.
 
 Setting the number of threads when calling `loadTFLiteModel` can also help with
 the performance. In most cases, the threads count should be the same as the
@@ -98,7 +99,10 @@ const tfliteModel = await loadTFLiteModel(
 ```sh
 $ yarn
 # This script will download the tfweb WASM module files and JS client to deps/.
-$ ./script/download-tfweb.sh <version number>
+#
+# The version number is optional. By default, the script will use the current
+# version from the package.json file.
+$ ./script/download-tfweb.sh [version number]
 $ yarn build
 ```
 

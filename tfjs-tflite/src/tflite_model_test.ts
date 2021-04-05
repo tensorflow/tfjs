@@ -16,6 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
+import {NamedTensorMap} from '@tensorflow/tfjs-core';
 
 import {TFLiteModel} from './tflite_model';
 import {TFWebModelRunner, TFWebModelRunnerOptions, TFWebModelRunnerTensorInfo} from './types/tfweb_model_runner';
@@ -28,6 +29,7 @@ class MockModelRunner implements TFWebModelRunner {
   private inputTensors = this.getTensorInfos();
   private outputTensors = this.getTensorInfos();
 
+  singleInput = false;
   singleOutput = false;
 
   constructor(modelPath: string, options: TFWebModelRunnerOptions) {
@@ -36,7 +38,7 @@ class MockModelRunner implements TFWebModelRunner {
   }
 
   getInputs(): TFWebModelRunnerTensorInfo[] {
-    return this.inputTensors;
+    return this.singleInput ? [this.inputTensors[0]] : this.inputTensors;
   }
 
   getOutputs(): TFWebModelRunnerTensorInfo[] {
@@ -88,43 +90,49 @@ describe('TFLiteModel', () => {
   });
 
   it('should generate the output for single tensor', () => {
+    modelRunner.singleInput = true;
+
     const input = tf.tensor3d([1, 2, 3, 4, 5, 6], [1, 2, 3], 'int32');
-    const outputs = tfliteModel.predict(input, {}) as tf.Tensor[];
-    tf.test_util.expectArraysClose(outputs[0].dataSync(), [2, 4, 6, 8, 10, 12]);
+    const outputs = tfliteModel.predict(input, {}) as NamedTensorMap;
+    tf.test_util.expectArraysClose(
+        outputs['t0'].dataSync(), [2, 4, 6, 8, 10, 12]);
   });
 
   it('should generate the output for tensor array', () => {
     const input0 = tf.tensor3d([1, 2, 3, 4, 5, 6], [1, 2, 3], 'int32');
     const input1 = tf.tensor2d([11, 12], [1, 2], 'float32');
-    const outputs = tfliteModel.predict([input0, input1], {}) as tf.Tensor[];
-    tf.test_util.expectArraysClose(outputs[0].dataSync(), [2, 4, 6, 8, 10, 12]);
-    tf.test_util.expectArraysClose(outputs[1].dataSync(), [22, 24]);
+    const outputs = tfliteModel.predict([input0, input1], {}) as NamedTensorMap
+    tf.test_util.expectArraysClose(
+        outputs['t0'].dataSync(), [2, 4, 6, 8, 10, 12]);
+    tf.test_util.expectArraysClose(outputs['t1'].dataSync(), [22, 24]);
   });
 
   it('should generate the output for tensor map', () => {
     const input0 = tf.tensor3d([1, 2, 3, 4, 5, 6], [1, 2, 3], 'int32');
     const input1 = tf.tensor2d([11, 12], [1, 2], 'float32');
     const outputs =
-        tfliteModel.predict({'t0': input0, 't1': input1}, {}) as tf.Tensor[];
-    tf.test_util.expectArraysClose(outputs[0].dataSync(), [2, 4, 6, 8, 10, 12]);
-    tf.test_util.expectArraysClose(outputs[1].dataSync(), [22, 24]);
+        tfliteModel.predict({'t0': input0, 't1': input1}, {}) as NamedTensorMap;
+    tf.test_util.expectArraysClose(
+        outputs['t0'].dataSync(), [2, 4, 6, 8, 10, 12]);
+    tf.test_util.expectArraysClose(outputs['t1'].dataSync(), [22, 24]);
   });
 
   it('should generate a single output when model has a single output', () => {
+    modelRunner.singleInput = true;
     modelRunner.singleOutput = true;
 
     const input = tf.tensor3d([1, 2, 3, 4, 5, 6], [1, 2, 3], 'int32');
-    const outputs = tfliteModel.predict(input, {}) as tf.Tensor[];
+    const outputs = tfliteModel.predict(input, {});
     expect(outputs instanceof tf.Tensor).toBe(true);
   });
 
-  it('should throw error if input size mismatcht', () => {
+  it('should throw error if input size mismatch', () => {
     // Mismatch: 1 vs 2.
     const input0 = tf.tensor3d([1, 2, 3, 4, 5, 6], [1, 2, 3], 'int32');
     expect(() => tfliteModel.predict([input0], {})).toThrow();
   });
 
-  it('should throw error if input shape mismatcht', () => {
+  it('should throw error if input shape mismatch', () => {
     // Mismatch: [2,2] vs [1,2,3].
     const input0 = tf.tensor2d([1, 2, 3, 4], [2, 2], 'int32');
     const input1 = tf.tensor2d([11, 12], [1, 2], 'float32');

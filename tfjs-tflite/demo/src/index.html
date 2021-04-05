@@ -52,11 +52,20 @@
       display: flex;
       flex-direction: column;
       margin-right: 4px;
+      position: relative;
     }
 
     .img-container img {
       border-radius: 8px;
       margin-bottom: 4px;
+    }
+
+    .credit {
+      position: absolute;
+      font-size: 11px;
+      color: #eee;
+      top: 202px;
+      left: 10px;
     }
 
     .loading {
@@ -163,34 +172,49 @@
 
   <div class="imgs-container hide">
     <div class="img-container">
-      <img id="img5" src="cat.jpeg"></img>
+      <img id="img5" src="cat.jpg"></img>
       <div class="trigger"></div>
       <canvas width="224px" height="224px"></canvas>
       <div class="stats"></div>
+      <a class="credit" href="https://unsplash.com/photos/FilM6ng7VGQ" target="_blank">
+        source
+      </a>
     </div>
     <div class="img-container">
-      <img id="img1" src="mountain.jpeg"></img>
+      <img id="img1" src="mountain.jpg"></img>
       <div class="trigger"></div>
       <canvas width="224px" height="224px"></canvas>
       <div class="stats"></div>
+      <a class="credit" href="https://unsplash.com/photos/uCrRPJBZzk4" target="_blank">
+        source
+      </a>
     </div>
     <div class="img-container">
-      <img id="img2" src="room.jpeg"></img>
+      <img id="img2" src="room.jpg"></img>
       <div class="trigger"></div>
       <canvas width="224px" height="224px"></canvas>
       <div class="stats"></div>
+      <a class="credit" href="https://unsplash.com/photos/1RT4txDDAbM" target="_blank">
+        source
+      </a>
     </div>
     <div class="img-container">
-      <img id="img3" src="food.jpeg"></img>
+      <img id="img3" src="pizza.jpg"></img>
       <div class="trigger"></div>
       <canvas width="224px" height="224px"></canvas>
       <div class="stats"></div>
+      <a class="credit" href="https://unsplash.com/photos/BMVAYjPf6mU" target="_blank">
+        source
+      </a>
     </div>
     <div class="img-container">
-      <img id="img4" src="people.jpeg"></img>
+      <img id="img4" src="people.jpg"></img>
       <div class="trigger"></div>
       <canvas width="224px" height="224px"></canvas>
       <div class="stats"></div>
+      <a class="credit" href="https://unsplash.com/photos/Do1GQljlNk8" target="_blank">
+        source
+      </a>
     </div>
     <div class="img-container">
       <video autoplay></video>
