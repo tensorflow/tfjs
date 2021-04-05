@@ -153,12 +153,12 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
   checkDimSizes(allDims.length, idDims, tensors);
   const nSteps = summedDims.length + 1;
 
-  const {path, steps: ops} = getComputePath(summedDims, idDims);
+  const {path, steps} = getComputePath(summedDims, idDims);
 
   let out: Tensor|null = null;
   let numDimsRemaining = allDims.length;
   for (let i = 0; i < nSteps; ++i) {
-    for (const idTerm of ops[i]) {
+    for (const idTerm of steps[i]) {
       const {permutationIndices, expandDims: dimsToExpand} =
           getPermutation(numDimsRemaining, idDims[idTerm]);
       let x = ENGINE.runKernel(
@@ -170,11 +170,7 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
       }
 
       x = ENGINE.runKernel(Reshape, {x}, {shape: targetShape});
-      if (out === null) {
-        out = x;
-      } else {
-        out = ENGINE.runKernel(Multiply, {a: out, b: x});
-      }
+      out = out === null ? x : ENGINE.runKernel(Multiply, {a: out, b: x});
     }
     if (i < nSteps - 1) {
       if (path[i] >= 0) {
