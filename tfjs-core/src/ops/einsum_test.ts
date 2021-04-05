@@ -54,54 +54,54 @@ describeWithFlags('einsum', ALL_ENVS, () => {
   });
 
   it('2d and 1d matrix & vector multiply', async () => {
-    const x = tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);
+    const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
     const y = tensor1d([2, 4, 6]);
     const out = tf.einsum('ij,j->i', x, y);
     expectArraysClose(await out.data(), [28, 64]);
   });
 
   it('2d matrix sum over rows', async () => {
-    const x = tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);
+    const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
     const out = tf.einsum('ij->j', x);
     expectArraysClose(await out.data(), [5, 7, 9]);
   });
 
   it('2d matrix sum over rows', async () => {
-    const x = tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);
+    const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
     const out = tf.einsum('ij->i', x);
     expectArraysClose(await out.data(), [6, 15]);
   });
 
   it('2d matrix transpose', async () => {
-    const x = tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);
+    const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
     const out = tf.einsum('ij->ji', x);
     expectArraysClose(await out.data(), [[1, 4], [2, 5], [3, 6]]);
   });
 
   it('2d matrix multiply', async () => {
-    const x = tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);
-    const y = tensor2d([[0, 1], [2, 3], [4, 5]], [3, 2]);
+    const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
+    const y = tensor2d([[0, 1], [2, 3], [4, 5]]);
     const out = tf.einsum('ij,jk->ik', x, y);
     expectArraysClose(await out.data(), [[16, 22], [34, 49]]);
   });
 
   it('2d matrix multiply and transpose', async () => {
-    const x = tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);
-    const y = tensor2d([[0, 1], [2, 3], [4, 5]], [3, 2]);
+    const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
+    const y = tensor2d([[0, 1], [2, 3], [4, 5]]);
     const out = tf.einsum('ij,jk->ki', x, y);
     expectArraysClose(await out.data(), [[16, 34], [22, 49]]);
   });
 
   it('two 2d matrices batch dot product', async () => {
-    const x = tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);
-    const y = tensor2d([[0, 1, 2], [3, 4, 5]], [2, 3]);
+    const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
+    const y = tensor2d([[0, 1, 2], [3, 4, 5]]);
     const out = tf.einsum('bi,bi->b', x, y);
     expectArraysClose(await out.data(), [8, 62]);
   });
 
   it('two 2d matrices batch output product product', async () => {
-    const x = tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);
-    const y = tensor2d([[0, 1, 2], [3, 4, 5]], [2, 3]);
+    const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
+    const y = tensor2d([[0, 1, 2], [3, 4, 5]]);
     const out = tf.einsum('bi,bj->bij', x, y);
     expectArraysClose(await out.data(), [
       [[0, 1, 2], [0, 2, 4], [0, 3, 6]],
@@ -161,8 +161,8 @@ describeWithFlags('einsum', ALL_ENVS, () => {
   });
 
   it('mismatched dimensions throws error', () => {
-    const x = tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);
-    const y = tensor2d([[0, 1], [2, 3]], [2, 2]);
+    const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
+    const y = tensor2d([[0, 1], [2, 3]]);
     expect(() => tf.einsum('ij,jk->ik', x, y))
         .toThrowError(
             'Expected dimension 3 at axis 0 of input shaped [2,2], ' +
@@ -170,8 +170,8 @@ describeWithFlags('einsum', ALL_ENVS, () => {
   });
 
   it('incorrect equation throws error', () => {
-    const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
-    const y = tensor2d([[0, 1], [2, 3]], [2, 2]);
+    const x = tensor2d([[1, 2], [3, 4]]);
+    const y = tensor2d([[0, 1], [2, 3]]);
     expect(() => tf.einsum('', x, y))
         .toThrowError('Equations without an arrow is not supported');
     expect(() => tf.einsum('ij,jk>ik', x, y))
@@ -179,23 +179,23 @@ describeWithFlags('einsum', ALL_ENVS, () => {
   });
 
   it('incorrect number of tensors throws error', () => {
-    const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
-    const y = tensor2d([[0, 1], [2, 3]], [2, 2]);
+    const x = tensor2d([[1, 2], [3, 4]]);
+    const y = tensor2d([[0, 1], [2, 3]]);
     expect(() => tf.einsum('ij->ji', x, y))
         .toThrowError('Expected 1 input tensors, received 2');
   });
 
   it('more than two input tensors throws error', async () => {
-    const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
-    const y = tensor2d([[0, 1], [2, 3]], [2, 2]);
-    const z = tensor2d([[1, 2], [3, 4]], [2, 2]);
+    const x = tensor2d([[1, 2], [3, 4]]);
+    const y = tensor2d([[0, 1], [2, 3]]);
+    const z = tensor2d([[-1, 0], [1, 2]]);
     expect(() => tf.einsum('ij,jk,kl->il', x, y, z))
         .toThrowError(/more than 2 input tensors/);
   });
 
   it('nonexistent dimension throws error', async () => {
-    const x = tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);
-    const y = tensor2d([[0, 1], [2, 3], [4, 5]], [3, 2]);
+    const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
+    const y = tensor2d([[0, 1], [2, 3], [4, 5]]);
     expect(() => tf.einsum('ij,jk->in', x, y))
         .toThrowError(
             'Output subscripts contain the label n not present in ' +

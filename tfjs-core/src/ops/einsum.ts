@@ -32,8 +32,8 @@ import {op} from './operation';
  *
  * Matrix multiplication:
  * ```js
- * const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
- * const y = tensor2d([[0, 1], [2, 3], [4, 5]]);
+ * const x = tf.tensor2d([[1, 2, 3], [4, 5, 6]]);
+ * const y = tf.tensor2d([[0, 1], [2, 3], [4, 5]]);
  * x.print();
  * y.print();
  * tf.einsum('ij,jk->ik', x, y).print();
@@ -41,17 +41,17 @@ import {op} from './operation';
  *
  * Dot product:
  * ```js
- * const x = tensor1d([1, 2, 3]);
- * const y = tensor1d([0, 1, 2]);
- * x.print():
+ * const x = tf.tensor1d([1, 2, 3]);
+ * const y = tf.tensor1d([0, 1, 2]);
+ * x.print();
  * y.print();
  * tf.einsum('i,i->', x, y).print();
  * ```
  *
  * Batch dot product:
  * ```js
- * const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
- * const y = tensor2d([[0, 1, 2], [3, 4, 5]]);
+ * const x = tf.tensor2d([[1, 2, 3], [4, 5, 6]]);
+ * const y = tf.tensor2d([[0, 1, 2], [3, 4, 5]]);
  * x.print();
  * y.print();
  * tf.einsum('bi,bi->b', x, y).print();
@@ -59,8 +59,8 @@ import {op} from './operation';
  *
  * Outer prouduct:
  * ```js
- * const x = tensor1d([1, 3, 5]);
- * const y = tensor1d([2, 4, 6]);
+ * const x = tf.tensor1d([1, 3, 5]);
+ * const y = tf.tensor1d([2, 4, 6]);
  * x.print();
  * y.print();
  * tf.einsum('i,j->ij', x, y).print();
