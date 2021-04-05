@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -57,7 +57,7 @@ import {op} from './operation';
  * ```js
  * const x = tensor1d([1, 3, 5]);
  * const y = tensor1d([2, 4, 6]);
- * tf.einsum('i,j->ij', x, y);
+ * tf.einsum('i,j->ij', x, y).print();
  * ```
  *
  * Limitations:
@@ -100,6 +100,11 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
   const allDims: string[] = [];
   for (let i = 0; i < outputString.length; ++i) {
     const dimName = outputString[i];
+    if (!inputTerms.some(inputTerm => inputTerm.indexOf(dimName) !== -1)) {
+      throw new Error(
+          `Output subscripts contain the label ${dimName} ` +
+          `not present in the input subscripts.`);
+    }
     if (allDims.indexOf(dimName) === -1) {
       allDims.push(dimName);
     }
@@ -129,7 +134,7 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
 
   const numDims = allDims.length;          // Number of unique dimensions.
   const numOutDims = outputString.length;  // Number of output dimensions.
-  const summedDims: number[] = [];         // Summed dimensions.
+  const summedDims: number[] = [];         // Dimensions being summed over.
   for (let i = numOutDims; i < numDims; ++i) {
     summedDims.push(i);
   }
@@ -140,8 +145,7 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
         '>1 input tensors yet.');
   }
 
-  // TODO(cais): Make use of the dim sizes for memory optimization, perhaps.
-  computeDimSizes(allDims.length, idDims, tensors);
+  checkDimSizes(allDims.length, idDims, tensors);
   const nSteps = summedDims.length + 1;
 
   const {path, ops} = getComputePath(summedDims, idDims);
@@ -196,9 +200,11 @@ function getPermutation(nDims: number, idDims: number[]):
   return {permutationIndices, expandDims};
 }
 
-/** Computes the size of all dimensions. */
-function computeDimSizes(
-    nDims: number, idDims: number[][], tensors: Tensor[]): number[] {
+/**
+ * Checks that the dimension sizes from different input tensors match the
+ * equation.
+ */
+function checkDimSizes(nDims: number, idDims: number[][], tensors: Tensor[]) {
   const dimSizes: number[] = new Array<number>(nDims);
   for (let i = 0; i < tensors.length; ++i) {
     const shape: number[] = tensors[i].shape;
@@ -214,7 +220,6 @@ function computeDimSizes(
       }
     }
   }
-  return dimSizes;
 }
 
 /**
