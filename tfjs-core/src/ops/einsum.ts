@@ -35,7 +35,7 @@ import {op} from './operation';
  * const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
  * const y = tensor2d([[0, 1], [2, 3], [4, 5]]);
  * x.print();
- * y.print():
+ * y.print();
  * tf.einsum('ij,jk->ik', x, y).print();
  * ```
  *
