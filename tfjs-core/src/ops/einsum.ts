@@ -148,7 +148,7 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
   checkDimSizes(allDims.length, idDims, tensors);
   const nSteps = summedDims.length + 1;
 
-  const {path, ops} = getComputePath(summedDims, idDims);
+  const {path, steps: ops} = getComputePath(summedDims, idDims);
 
   let out: Tensor|null = null;
   let numDimsRemaining = allDims.length;
@@ -233,24 +233,24 @@ function checkDimSizes(nDims: number, idDims: number[][], tensors: Tensor[]) {
  * @return A map with two fields:
  *   - path: The path of computation, with each element indicating the dimension
  *     being summed over after the element-wise multiplication in that step.
- *   - ops: With the same length as `path`. Each element contains the indices
+ *   - steps: With the same length as `path`. Each element contains the indices
  *     to the input tensors being used for element-wise multiplication in the
  *     corresponding step.
  */
 function getComputePath(summedDims: number[], idDims: number[][]):
-    {path: number[], ops: number[][]} {
+    {path: number[], steps: number[][]} {
   const path: number[] = summedDims;
-  const ops: number[][] = [];
-  let nOps: number = 0;
+  const steps: number[][] = [];
+  let nSteps: number = 0;
   if (summedDims.length === 0) {
     // Einsum that involes no summing: e.g., transpose and outer product.
     path.push(-1);
-    nOps = 1;
+    nSteps = 1;
   } else {
-    nOps = summedDims.length + 1;
+    nSteps = summedDims.length + 1;
   }
-  for (let i = 0; i < nOps; ++i) {
-    ops.push([]);
+  for (let i = 0; i < nSteps; ++i) {
+    steps.push([]);
   }
   const computedTermIndices: number[] = [];
   for (let i = 0; i < path.length; ++i) {
@@ -258,12 +258,12 @@ function getComputePath(summedDims: number[], idDims: number[][]):
     const termIndices = findTermsWithDim(idDims, summedDim);
     for (const termIndex of termIndices) {
       if (computedTermIndices.indexOf(termIndex) === -1) {
-        ops[i].push(termIndex);
+        steps[i].push(termIndex);
         computedTermIndices.push(termIndex);
       }
     }
   }
-  return {path, ops};
+  return {path, steps: steps};
 }
 
 function findTermsWithDim(idDims: number[][], dim: number): number[] {
