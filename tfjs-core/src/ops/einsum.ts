@@ -17,9 +17,7 @@
 
 import {ENGINE} from '../engine';
 import {Multiply, Reshape, Sum, Transpose} from '../kernel_names';
-import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
 import {assert} from '../util_base';
 import {op} from './operation';
 
@@ -36,6 +34,8 @@ import {op} from './operation';
  * ```js
  * const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
  * const y = tensor2d([[0, 1], [2, 3], [4, 5]]);
+ * x.print();
+ * y.print():
  * tf.einsum('ij,jk->ik', x, y).print();
  * ```
  *
@@ -43,6 +43,8 @@ import {op} from './operation';
  * ```js
  * const x = tensor1d([1, 2, 3]);
  * const y = tensor1d([0, 1, 2]);
+ * x.print():
+ * y.print();
  * tf.einsum('i,i->', x, y).print();
  * ```
  *
@@ -50,6 +52,8 @@ import {op} from './operation';
  * ```js
  * const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
  * const y = tensor2d([[0, 1, 2], [3, 4, 5]]);
+ * x.print();
+ * y.print();
  * tf.einsum('bi,bi->b', x, y).print();
  * ```
  *
@@ -57,6 +61,8 @@ import {op} from './operation';
  * ```js
  * const x = tensor1d([1, 3, 5]);
  * const y = tensor1d([2, 4, 6]);
+ * x.print();
+ * y.print();
  * tf.einsum('i,j->ij', x, y).print();
  * ```
  *
@@ -71,8 +77,7 @@ import {op} from './operation';
  * - The `...` notation is not supported.
  *
  * @param equation a string describing the contraction, in the same format as
- *
- [numpy.einsum](https://numpy.org/doc/stable/reference/generated/numpy.einsum.html).
+ * [numpy.einsum](https://numpy.org/doc/stable/reference/generated/numpy.einsum.html).
  * @param tensors the input(s) to contract (each one a Tensor), whose shapes
  *     should be consistent with equation.
  * @returns The output tensor.
@@ -88,13 +93,13 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
   const [inputString, outputString] = equation.split('->');
   const inputTerms = inputString.split(',');
   const numInputs = inputTerms.length;
-  if (tensors.length != numInputs) {
+  if (tensors.length !== numInputs) {
     throw new Error(
         `Expected ${numInputs} input tensors, received ${tensors.length}`);
   }
   if (numInputs > 2) {
     throw new Error(
-        'Support for more than 2 input tensors is not implemented yet.')
+        'Support for more than 2 input tensors is not implemented yet.');
   }
 
   const allDims: string[] = [];
@@ -118,7 +123,7 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
 
   const idDims: number[][] = new Array<number[]>(inputTerms.length);
   for (let i = 0; i < numInputs; ++i) {
-    if (new Set(inputTerms[i].split('')).size != inputTerms[i].length) {
+    if (new Set(inputTerms[i].split('')).size !== inputTerms[i].length) {
       throw new Error(
           `Found duplicate axes in input component ${inputTerms[i]}. ` +
           `Support for duplicate axes in input is not implemented yet.`);
@@ -157,8 +162,8 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
       const {permutationIndices, expandDims: dimsToExpand} =
           getPermutation(numDimsRemaining, idDims[idTerm]);
       let x = ENGINE.runKernel(
-                  Transpose, {x: tensors[idTerm]} as {} as NamedTensorMap,
-                  {perm: permutationIndices} as {} as NamedAttrMap) as Tensor;
+                  Transpose, {x: tensors[idTerm]},
+                  {perm: permutationIndices}) as Tensor;
       const targetShape: number[] = x.shape;
       for (let k = 0; k < dimsToExpand.length; ++k) {
         targetShape.splice(dimsToExpand[k], 0, 1);
@@ -241,7 +246,7 @@ function getComputePath(summedDims: number[], idDims: number[][]):
     {path: number[], steps: number[][]} {
   const path: number[] = summedDims;
   const steps: number[][] = [];
-  let nSteps: number = 0;
+  let nSteps = 0;
   if (summedDims.length === 0) {
     // Einsum that involes no summing: e.g., transpose and outer product.
     path.push(-1);
@@ -263,7 +268,7 @@ function getComputePath(summedDims: number[], idDims: number[][]):
       }
     }
   }
-  return {path, steps: steps};
+  return {path, steps};
 }
 
 function findTermsWithDim(idDims: number[][], dim: number): number[] {
