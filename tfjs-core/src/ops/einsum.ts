@@ -161,6 +161,7 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
     for (const idTerm of steps[i]) {
       const {permutationIndices, expandDims: dimsToExpand} =
           getPermutation(numDimsRemaining, idDims[idTerm]);
+      // tslint:disable-next-line:no-unnecessary-type-assertion
       let x = ENGINE.runKernel(
                   Transpose, {x: tensors[idTerm]},
                   {perm: permutationIndices}) as Tensor;
