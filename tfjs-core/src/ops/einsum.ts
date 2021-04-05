@@ -34,22 +34,22 @@ import {op} from './operation';
  *
  * Matrix multiplication:
  * ```js
- * const x = tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);
- * const y = tensor2d([[0, 1], [2, 3], [4, 5]], [3, 2]);
+ * const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
+ * const y = tensor2d([[0, 1], [2, 3], [4, 5]]);
  * tf.einsum('ij,jk->ik', x, y).print();
  * ```
  *
  * Dot product:
  * ```js
- * const x = tensor2d([1, 2, 3], [3]);
- * const y = tensor2d([0, 1, 2], [3]);
+ * const x = tensor1d([1, 2, 3]);
+ * const y = tensor1d([0, 1, 2]);
  * tf.einsum('i,i->', x, y).print();
  * ```
  *
  * Batch dot product:
  * ```js
- * const x = tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);
- * const y = tensor2d([[0, 1, 2], [3, 4, 5]], [2, 3]);
+ * const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
+ * const y = tensor2d([[0, 1, 2], [3, 4, 5]]);
  * tf.einsum('bi,bi->b', x, y).print();
  * ```
  *
@@ -67,7 +67,7 @@ import {op} from './operation';
  * - Does not support >2 input tensors.
  * - Does not support duplicate axes for any given input tensor. E.g., equation
  *   'ii->' is not suppoted.
- * - For two or more input tensors, up to only one summation axes is supported.
+ * - For two or more input tensors, up to only one summation axis is supported.
  * - The `...` notation is not supported.
  *
  * @param equation a string describing the contraction, in the same format as
