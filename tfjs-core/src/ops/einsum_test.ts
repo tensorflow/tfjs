@@ -48,7 +48,7 @@ describeWithFlags('einsum', ALL_ENVS, () => {
     expectArraysClose(await out.data(), [[2, 4, 6], [6, 12, 18], [10, 20, 30]]);
   });
 
-  fit('2d matrix calculate trace: not implemented yet', () => {
+  fit('2d matrix calculate trace: duplicate axes not implemented yet', () => {
     const x = tensor2d([[1, 2], [3, 4]]);
     expect(() => tf.einsum('ii->', x)).toThrowError(/not implemented yet/);
   });

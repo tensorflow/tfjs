@@ -30,15 +30,49 @@ import {op} from './operation';
  * This computation is based on
  * [Einstein summation](https://en.wikipedia.org/wiki/Einstein_notation).
  *
+ * Some special cases include:
+ *
+ * Matrix multiplication:
+ * ```js
+ * const x = tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);
+ * const y = tensor2d([[0, 1], [2, 3], [4, 5]], [3, 2]);
+ * tf.einsum('ij,jk->ik', x, y).print();
+ * ```
+ *
+ * Dot product:
+ * ```js
+ * const x = tensor2d([1, 2, 3], [3]);
+ * const y = tensor2d([0, 1, 2], [3]);
+ * tf.einsum('i,i->', x, y).print();
+ * ```
+ *
+ * Batch dot product:
+ * ```js
+ * const x = tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);
+ * const y = tensor2d([[0, 1, 2], [3, 4, 5]], [2, 3]);
+ * tf.einsum('bi,bi->b', x, y).print();
+ * ```
+ *
+ * Outer prouduct:
+ * ```js
+ * const x = tensor1d([1, 3, 5]);
+ * const y = tensor1d([2, 4, 6]);
+ * tf.einsum('i,j->ij', x, y);
+ * ```
+ *
  * Limitations:
+ *
  * This implementation of einsum has the following limitations:
  *
+ * - Does not support >2 input tensors.
+ * - Does not support duplicate axes for any given input tensor. E.g., equation
+ *   'ii->' is not suppoted.
  * - For two or more input tensors, up to only one summation axes is supported.
- * - Does not support >2 input tensors
  * - The `...` notation is not supported.
  *
  * @param equation a string describing the contraction, in the same format as
- *     [numpy.einsum](https://numpy.org/doc/stable/reference/generated/numpy.einsum.html).
+ *
+ [numpy.einsum](https://numpy.org/doc/stable/reference/generated/numpy.einsum.html).
  * @param tensors the input(s) to contract (each one a Tensor), whose shapes
  *     should be consistent with equation.
  * @returns The output tensor.
@@ -46,14 +80,12 @@ import {op} from './operation';
  * @doc {heading: 'Tensors', subheading: 'Matrices'}
  */
 export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
-  equation = equation.replace(/\s/g, '');
+  equation = equation.replace(/\s/g, '');  // Remove witespace in equation.
   const indexArrow = equation.indexOf('->');
   if (indexArrow === -1) {
     throw new Error('Equations without an arrow is not supported');
   }
   const [inputString, outputString] = equation.split('->');
-  console.log(
-      `inputString = ${inputString}; outputString = ${outputString}`);  // DEBUG
   const inputTerms = inputString.split(',');
   const numInputs = inputTerms.length;
   if (tensors.length != numInputs) {
@@ -78,7 +110,6 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
       allDims.push(dimName);
     }
   }
-  console.log(`allDims = ${JSON.stringify(allDims)}`);  // DEBUG
 
   const idDims: number[][] = new Array<number[]>(inputTerms.length);
   for (let i = 0; i < numInputs; ++i) {
@@ -95,9 +126,6 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
       idDims[i].push(allDims.indexOf(inputTerms[i][j]));
     }
   }
-  console.log(`idDims = ${JSON.stringify(idDims)}`);  // DEBUG
-
-  // TOOD(cais): Throw error for duplicate dimensions in the same term.
 
   const numDims = allDims.length;          // Number of unique dimensions.
   const numOutDims = outputString.length;  // Number of output dimensions.
@@ -112,14 +140,11 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
         '>1 input tensors yet.');
   }
 
-  console.log(`summedDims = ${JSON.stringify(summedDims)}`);  // DEBUG
-  const dimSizes = computeDimSizes(allDims.length, idDims, tensors);
-  console.log(`dimSizes = ${JSON.stringify(dimSizes)}`);  // DEBUG
+  // TODO(cais): Make use of the dim sizes for memory optimization, perhaps.
+  computeDimSizes(allDims.length, idDims, tensors);
   const nSteps = summedDims.length + 1;
 
   const {path, ops} = getComputePath(summedDims, idDims);
-  console.log(`path = ${JSON.stringify(path)}`);  // DEBUG
-  console.log(`ops = ${JSON.stringify(ops)}`);    // DEBUG
 
   let out: Tensor|null = null;
   let numDimsRemaining = allDims.length;
@@ -127,20 +152,13 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
     for (const idTerm of ops[i]) {
       const {permutationIndices, expandDims: dimsToExpand} =
           getPermutation(numDimsRemaining, idDims[idTerm]);
-      console.log(
-          `permIndices = ${JSON.stringify(permutationIndices)}`);  // DEBUG
       let x = ENGINE.runKernel(
                   Transpose, {x: tensors[idTerm]} as {} as NamedTensorMap,
                   {perm: permutationIndices} as {} as NamedAttrMap) as Tensor;
-      console.log(`expandDims = ${JSON.stringify(dimsToExpand)}`);  // DEBUG
       const targetShape: number[] = x.shape;
-      console.log(`A targetShape = ${JSON.stringify(targetShape)}`);  // DEBUG
       for (let k = 0; k < dimsToExpand.length; ++k) {
-        // if (dimsToExpand[k] < targetShape.length) {
         targetShape.splice(dimsToExpand[k], 0, 1);
-        // }
       }
-      console.log(`B targetShape = ${JSON.stringify(targetShape)}`);  // DEBUG
 
       x = ENGINE.runKernel(Reshape, {x}, {shape: targetShape});
       if (out === null) {
@@ -150,18 +168,15 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
       }
     }
     if (i < nSteps - 1) {
-      console.log(`Before sum(): path = ${path[i]}`);     // DEBUG
-      console.log(`Before sum(): shape = ${out.shape}`);  // DEBUG
       if (path[i] >= 0) {
         out = ENGINE.runKernel(
             Sum, {x: out},
             {axis: path[i] < out.shape.length ? path[i] : undefined});
       }
-      console.log(`After sum(): shape = ${out.shape}`);  // DEBUG
       numDimsRemaining--;
     }
   }
-  return out;  // TOOD(cais): Fill in.
+  return out;
 }
 
 function getPermutation(nDims: number, idDims: number[]):
