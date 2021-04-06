@@ -88,7 +88,7 @@ function threshold_(
   } else if (method == 'otsu') {
     let histogram = Array(256).fill(0);
 
-    for (i = 0; i < arrayed_image.length; i++) {
+    for (let i = 0; i < arrayed_image.length; i++) {
       let gray = arrayed_image[i];
       histogram[Math.round(gray)] += 1;
     }
