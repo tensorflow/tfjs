@@ -22,7 +22,9 @@ import {assert} from '../util_base';
 import {op} from './operation';
 
 const ARROW = '->';
+const ARROW_REGEX = /->/g;
 const COMMA = ',';
+const ELLIPSIS = '...';
 
 /**
  * Tensor contraction over specified indices and outer product.
@@ -89,16 +91,18 @@ const COMMA = ',';
  */
 export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
   equation = equation.replace(/\s/g, '');  // Remove witespace in equation.
-  const numArrows = (equation.length - equation.replace(/->/g, '').length) / 2;
+  const numArrows =
+      (equation.length - equation.replace(ARROW_REGEX, '').length) /
+      ARROW.length;
   if (numArrows < 1) {
     throw new Error('Equations without an arrow are not supported.');
   } else if (numArrows > 1) {
     throw new Error(`Equation must contain exactly one arrow ("${ARROW}").`);
   }
   const [inputString, outputString] = equation.split(ARROW);
-  if (inputString.indexOf('...') !== -1) {
-    throw new Error('The ellipsis notation ("...") is not supported yet.');
-  }
+  assert(
+      inputString.indexOf(ELLIPSIS) === -1,
+      () => `The ellipsis notation ("${ELLIPSIS}") is not supported yet.`);
   const inputTerms = inputString.split(COMMA);
   const numInputs = inputTerms.length;
   if (tensors.length !== numInputs) {
@@ -148,7 +152,6 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
   for (let i = numOutDims; i < numDims; ++i) {
     summedDims.push(i);
   }
-
   if (numInputs > 1 && summedDims.length > 1) {
     throw new Error(
         'Summation over >1 axes is not implemented for ' +
