@@ -3,6 +3,8 @@ import { TensorLike } from '../../types';
 import { op } from '../operation';
 import { tensor3d } from '../tensor3d';
 import * as util from '../../util';
+import {convertToTensor} from '../../tensor_util_env';
+
 
 /**
  * Performs threshold algorithms on Tensors
@@ -13,9 +15,9 @@ import * as util from '../../util';
  * @param inverted Optional boolian which specifies if colours should be inverted
  */
 
-function otsu_alg(histData: Number[], total: Number) {
+function otsu_alg(histData: number[], total: number) {
 
-  let sum = 0; 
+  let sum = 0;
   for (let t = 0; t < 256; t++) {
     sum += t * histData[t];
   }
@@ -56,8 +58,8 @@ function otsu_alg(histData: Number[], total: Number) {
 function threshold_(
   image: Tensor3D | TensorLike,
   method: 'binary' | 'otsu' = 'binary',
-  coeff?: Number,
-  inverted?: Boolean
+  coeff?: number,
+  inverted?: boolean
 ): Tensor3D {
   //const $image = image;
 
