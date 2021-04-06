@@ -35,9 +35,6 @@ describeWebGPU('backend webgpu cpu forwarding turned on', () => {
   });
 
   it('should not allocate GPU memory when CPU forwarding', async () => {
-    const savedFlag = tf.env().get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
-    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', true);
-
     const a = tf.tensor2d([2, 4, 6, 8], [2, 2]);
     const b = tf.tensor2d([0.5, 0.5, 0.5, 0.5], [2, 2]);
 
@@ -65,14 +62,13 @@ describeWebGPU('backend webgpu cpu forwarding turned on', () => {
 
     tf.test_util.expectArraysClose(
         dData, new Float32Array([9, 12, 15, 19, 26, 33]));
-    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
   });
 });
 
 describeWebGPU('backend webgpu', () => {
   it('should not leak memory in delayed mode', async () => {
-    const savedFlag = tf.env().get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
-    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', false);
+    const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
+    tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 15);
     const a = tf.tensor2d([2, 4, 6, 8], [2, 2]);
     const b = tf.tensor2d([0.5, 0.5, 0.5, 0.5], [2, 2]);
 
@@ -96,12 +92,12 @@ describeWebGPU('backend webgpu', () => {
 
     tf.test_util.expectArraysClose(
         dData, new Float32Array([9, 12, 15, 19, 26, 33]));
-    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
+    tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', savedFlag);
   });
 
   it('should not leak memory in immediate mode', async () => {
-    const savedFlag = tf.env().get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
-    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', true);
+    const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
+    tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 1);
     const a = tf.tensor2d([2, 4, 6, 8], [2, 2]);
     const b = tf.tensor2d([0.5, 0.5, 0.5, 0.5], [2, 2]);
 
@@ -125,12 +121,12 @@ describeWebGPU('backend webgpu', () => {
 
     tf.test_util.expectArraysClose(
         dData, new Float32Array([9, 12, 15, 19, 26, 33]));
-    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
+    tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', savedFlag);
   });
 
   it('should recycle buffers in immediate mode', () => {
-    const savedFlag = tf.env().get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
-    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', true);
+    const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
+    tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 1);
     const backend = tf.backend() as WebGPUBackend;
     const bufferManager = backend.getBufferManager();
     bufferManager.reset();
@@ -164,12 +160,12 @@ describeWebGPU('backend webgpu', () => {
     const usedBuffersAfterSecondMatMul = bufferManager.getNumUsedBuffers();
     expect(freeBuffersAfterSecondMatMul - freeBuffersAfterSecondMul).toEqual(0);
     expect(usedBuffersAfterSecondMatMul - usedBuffersAfterSecondMul).toEqual(2);
-    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
+    tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', savedFlag);
   });
 
   it('should not recycle buffers in delayed mode', async () => {
-    const savedFlag = tf.env().get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED');
-    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', false);
+    const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
+    tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 15);
     const backend = tf.backend() as WebGPUBackend;
     const bufferManager = backend.getBufferManager();
     bufferManager.reset();
@@ -207,7 +203,7 @@ describeWebGPU('backend webgpu', () => {
     // Tests happen within a tidy so we need to read a tensor at the end of a
     // test in delayed mode in order to force flush the disposal queue.
     await c3.data();
-    tf.env().set('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', savedFlag);
+    tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', savedFlag);
   });
 
   it('readSync should throw if tensors are on the GPU', async () => {
