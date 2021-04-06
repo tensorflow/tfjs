@@ -397,18 +397,12 @@ export class WebGPUBackend extends KernelBackend {
       wallMs: null
     };
 
-    if (this.supportTimeQuery) {
-      const kernelMs = await Promise.all(flattenedActiveTimerQueries);
-      res['kernelMs'] = util.sum(kernelMs);
-      res['getExtraProfileInfo'] = () =>
-          kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
-              .map(d => `${d.name}: ${d.ms}`)
-              .join(', ');
-    } else {
-      res['kernelMs'] = {
-        error: 'WebGPU timestamp query was not supported in this environment.'
-      };
-    }
+    const kernelMs = await Promise.all(flattenedActiveTimerQueries);
+    res['kernelMs'] = util.sum(kernelMs);
+    res['getExtraProfileInfo'] = () =>
+        kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
+            .map(d => `${d.name}: ${d.ms}`)
+            .join(', ');
     this.uploadWaitMs = 0;
     this.downloadWaitMs = 0;
     return res;
@@ -564,17 +558,16 @@ export class WebGPUBackend extends KernelBackend {
       this.uniformDisposalQueue.push(uniformInfo);
     }
 
-    if (env().get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED')) {
+    if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
+        number <= this.commandQueue.length) {
       this.submitQueue();
     }
 
     if (shouldTimeProgram) {
-      if (this.supportTimeQuery) {
-        this.activeTimers.push({
-          name: program.constructor.name,
-          query: this.getQueryTime(this.querySet)
-        });
-      }
+      this.activeTimers.push({
+        name: program.constructor.name,
+        query: this.getQueryTime(this.querySet)
+      });
     }
     return output;
   }
