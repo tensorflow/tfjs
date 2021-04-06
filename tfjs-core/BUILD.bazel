@@ -3,7 +3,7 @@ exports_files(["tsconfig.json"])
 package(default_visibility = ["//visibility:public"])
 
 load("@npm//@bazel/typescript:index.bzl", "ts_project", "ts_library")
-load("@npm//@bazel/concatjs:index.bzl", "karma_web_test")
+load("@npm//@bazel/concatjs:index.bzl", "karma_web_test_suite")
 load("//:esbuild.bzl", "esbuild");
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 
@@ -102,7 +102,7 @@ js_library(
     ]
 )
 
-karma_web_test(
+karma_web_test_suite(
     name = "tfjs-core_test",
     srcs = [
         ":tfjs-core_test_bundle",
