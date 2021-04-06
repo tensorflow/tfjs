@@ -2,6 +2,8 @@ import { Tensor3D } from '../../tensor';
 import { TensorLike } from '../../types';
 import { op } from '../operation';
 import { tensor3d } from '../tensor3d';
+import * as util from '../../util';
+
 /**
  * Performs threshold algorithms on Tensors
  * @param image a 2d image tensor of shape `[x , y, 3]`. 
