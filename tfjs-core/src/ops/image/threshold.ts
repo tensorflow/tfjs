@@ -6,7 +6,7 @@ import * as util from '../../util';
 
 /**
  * Performs threshold algorithms on Tensors
- * @param image a 2d image tensor of shape `[x , y, 3]`. 
+ * @param image a 2d image tensor of shape `[x , y, 3]`.
  * @param method Optional string from `'binary' | 'otsu'`,
  *     defaults to binary, which specifies type of the threshold operation
  * @param coeff Optional number which defines Threshold coefficient from 0 to 1.
@@ -15,7 +15,7 @@ import * as util from '../../util';
 
 function otsu_alg(histData: Number[], total: Number) {
 
-  let sum = 0;
+  let sum = 0; 
   for (let t = 0; t < 256; t++) {
     sum += t * histData[t];
   }
