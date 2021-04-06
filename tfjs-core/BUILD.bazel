@@ -6,7 +6,6 @@ load("@npm//@bazel/typescript:index.bzl", "ts_project", "ts_library")
 load("@npm//@bazel/concatjs:index.bzl", "karma_web_test")
 load("//:esbuild.bzl", "esbuild");
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
-load("//rollup:tfjs_bundles.bzl", "tfjs_bundles")
 
 TEST_SRCS = ["src/setup_test.ts"]
 
