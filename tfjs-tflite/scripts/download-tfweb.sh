@@ -20,9 +20,12 @@ set -e
 # Start in scripts/ even if run from root directory
 cd "$(dirname "$0")"
 
+# The default version.
+CURRENT_VERSION=0.0.1
+
 # Get the version from the first parameter.
-# Default to the package's current version from package.json file.
-VERSION="${1:-$(node get-current-version.js)}"
+# Default to the value in CURRENT_VERSION.
+VERSION="${1:-${CURRENT_VERSION}}"
 
 # Make sure the version is provided.
 if [[ -z ${VERSION} ]]; then

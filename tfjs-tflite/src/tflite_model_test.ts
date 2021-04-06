@@ -101,7 +101,7 @@ describe('TFLiteModel', () => {
   it('should generate the output for tensor array', () => {
     const input0 = tf.tensor3d([1, 2, 3, 4, 5, 6], [1, 2, 3], 'int32');
     const input1 = tf.tensor2d([11, 12], [1, 2], 'float32');
-    const outputs = tfliteModel.predict([input0, input1], {}) as NamedTensorMap
+    const outputs = tfliteModel.predict([input0, input1], {}) as NamedTensorMap;
     tf.test_util.expectArraysClose(
         outputs['t0'].dataSync(), [2, 4, 6, 8, 10, 12]);
     tf.test_util.expectArraysClose(outputs['t1'].dataSync(), [22, 24]);

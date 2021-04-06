@@ -76,7 +76,7 @@ export class TFLiteModel implements InferenceModel {
       if (inputs instanceof Tensor) {
         inputTensors = [inputs];
       } else {
-        inputTensors = inputs
+        inputTensors = inputs;
       }
       if (modelInputs.length !== inputTensors.length) {
         throw new Error(`The size of TFLite model inputs (${
@@ -226,7 +226,7 @@ export class TFLiteModel implements InferenceModel {
   private convertTFLiteTensorInfos(infos: TFWebModelRunnerTensorInfo[]):
       ModelTensorInfo[] {
     return infos.map(info => {
-      let dtype = getDTypeFromTFLiteType(info.dataType);
+      const dtype = getDTypeFromTFLiteType(info.dataType);
       return {
         name: info.name,
         shape: this.getShapeFromTFLiteTensorInfo(info),
@@ -241,9 +241,11 @@ export class TFLiteModel implements InferenceModel {
         inputTensorNames.filter(name => !modelInputNames.includes(name));
     const notInInput =
         modelInputNames.filter(name => !inputTensorNames.includes(name));
-    if (notInModel.length === 0 && notInInput.length === 0) return;
+    if (notInModel.length === 0 && notInInput.length === 0) {
+      return;
+    }
 
-    let msgParts =
+    const msgParts =
         ['The model input names don\'t match the model input names.'];
     if (notInModel.length > 0) {
       msgParts.push(`Names in input but missing in model: [${notInModel}].`);

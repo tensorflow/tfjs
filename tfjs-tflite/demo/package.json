@@ -1,9 +1,8 @@
 {
-  "name": "tflite-model-runner-demo",
+  "name": "tfjs-tflite-demo",
   "version": "0.0.1",
   "main": "script.js",
-  "author": "Jing Jin",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "dependencies": {
     "@tensorflow/tfjs-backend-cpu": "link:../../tfjs-backend-cpu",
     "@tensorflow/tfjs-core": "link:../../tfjs-core",
