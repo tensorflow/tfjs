@@ -59,7 +59,10 @@ function threshold_(
   coeff?: Number,
   inverted?: Boolean
 ): Tensor3D {
-  const $image = image;
+  //const $image = image;
+
+  const $image = convertToTensor(image, 'image', 'threshold');
+
   const threshold = coeff * 255;
   let arrayed_image = Array.from($image.dataSync());
 
