@@ -28,21 +28,21 @@ function otsu_alg(histData: number[], total: number) {
 
   for (let t = 0; t < 256; t++) {
     wB += histData[t];               // Weight Background
-    if (wB == 0) {
+    if (wB === 0) {
       continue;
     }
 
     wF = total - wB;                 // Weight Foreground
-    if (wF == 0) {
+    if (wF === 0) {
       break;
     }
 
     sumB += t * histData[t];
-    let mB = sumB / wB;            // Mean Background
-    let mF = (sum - sumB) / wF;    // Mean Foreground
+    const mB = sumB / wB;            // Mean Background
+    const mF = (sum - sumB) / wF;    // Mean Foreground
 
     // Calculate Between Class Variance
-    let varBetween = wB * wF * (mB - mF) * (mB - mF);
+    const varBetween = wB * wF * (mB - mF) * (mB - mF);
     // Check if new maximum found
     if (varBetween > varMax) {
       varMax = varBetween;
@@ -62,7 +62,7 @@ function threshold_(
   //const $image = image;
   const $image = convertToTensor(image, 'image', 'threshold');
   const threshold = coeff * 255;
-  let arrayed_image = Array.from($image.dataSync());
+  const arrayedImage = Array.from($image.dataSync());
 
   util.assert(
     $image.rank === 3,
@@ -73,30 +73,32 @@ function threshold_(
     method === 'otsu' || method === 'binary',
     () => `method must be binary or otsu, but was ${method}`);
 
-  if (method == 'binary') {
-    arrayed_image.forEach(function (item, i) {
+  if (method === 'binary') {
+    arrayedImage.forEach((item, i) => {
       if (!inverted) {
-        arrayed_image[i] = (item < threshold) ? 0 : 255;
-      } else arrayed_image[i] = (item > threshold) ? 0 : 255;
+        arrayedImage[i] = (item < threshold) ? 0 : 255;
+      } else {
+        arrayedImage[i] = (item > threshold) ? 0 : 255;
+      }
     });
 
-  } else if (method == 'otsu') {
-    let histogram = Array(256).fill(0);
+  } else if (method === 'otsu') {
+    const histogram = Array(256).fill(0);
 
-    for (let i = 0; i < arrayed_image.length; i++) {
-      let gray = arrayed_image[i];
+    for (let i = 0; i < arrayedImage.length; i++) {
+      const gray = arrayedImage[i];
       histogram[Math.round(gray)] += 1;
     }
 
-    let threshold = otsu_alg(histogram, arrayed_image.length);
+    const threshold = otsu_alg(histogram, arrayedImage.length);
 
-    arrayed_image.forEach(function (item, i) {
-      arrayed_image[i] = (item < threshold) ? 0 : 255;
+    arrayedImage.forEach((item, i) => {
+      arrayedImage[i] = (item < threshold) ? 0 : 255;
     });
 
   }
 
-  return tensor3d(arrayed_image, $image.shape, 'float32');
+  return tensor3d(arrayedImage, $image.shape, 'float32');
 }
 
 export const threshold = op({ threshold_ });
