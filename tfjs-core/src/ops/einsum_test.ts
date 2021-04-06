@@ -22,6 +22,27 @@ import {expectArraysClose} from '../test_util';
 import {tensor1d, tensor2d} from './ops';
 
 describeWithFlags('einsum', ALL_ENVS, () => {
+  it('two scalars', async () => {
+    const x = tf.scalar(2);
+    const y = tf.scalar(3);
+    const out = tf.einsum(',->', x, y);
+    expectArraysClose(await out.data(), 6);
+  });
+
+  it('1D tensor and scalars', async () => {
+    const x = tensor1d([2, 3]);
+    const y = tf.scalar(4);
+    const out = tf.einsum('i,->', x, y);
+    expectArraysClose(await out.data(), 20);
+  });
+
+  it('1D tensor and scalars', async () => {
+    const x = tensor1d([2, 3]);
+    const y = tf.scalar(4);
+    const out = tf.einsum('i,->i', x, y);
+    expectArraysClose(await out.data(), [8, 12]);
+  });
+
   it('1d reduce sum', async () => {
     const x = tensor1d([2, 4, 6]);
     const out = tf.einsum('i->', x);
@@ -60,13 +81,13 @@ describeWithFlags('einsum', ALL_ENVS, () => {
     expectArraysClose(await out.data(), [28, 64]);
   });
 
-  it('2d matrix sum over rows', async () => {
+  it('2d matrix sum along columns', async () => {
     const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
     const out = tf.einsum('ij->j', x);
     expectArraysClose(await out.data(), [5, 7, 9]);
   });
 
-  it('2d matrix sum over rows', async () => {
+  it('2d matrix sum along rows', async () => {
     const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
     const out = tf.einsum('ij->i', x);
     expectArraysClose(await out.data(), [6, 15]);
@@ -173,9 +194,9 @@ describeWithFlags('einsum', ALL_ENVS, () => {
     const x = tensor2d([[1, 2], [3, 4]]);
     const y = tensor2d([[0, 1], [2, 3]]);
     expect(() => tf.einsum('', x, y))
-        .toThrowError('Equations without an arrow is not supported');
+        .toThrowError('Equations without an arrow are not supported.');
     expect(() => tf.einsum('ij,jk>ik', x, y))
-        .toThrowError('Equations without an arrow is not supported');
+        .toThrowError('Equations without an arrow are not supported.');
   });
 
   it('incorrect number of tensors throws error', () => {
@@ -200,5 +221,12 @@ describeWithFlags('einsum', ALL_ENVS, () => {
         .toThrowError(
             'Output subscripts contain the label n not present in ' +
             'the input subscripts.');
+  });
+
+  it('two arrows in equation throws error', async () => {
+    const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
+    const y = tensor2d([[0, 1], [2, 3], [4, 5]]);
+    expect(() => tf.einsum('ij,jk->ik->i', x, y))
+        .toThrowError(/exactly one arrow/);
   });
 });

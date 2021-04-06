@@ -21,6 +21,9 @@ import {Tensor} from '../tensor';
 import {assert} from '../util_base';
 import {op} from './operation';
 
+const ARROW = '->';
+const COMMA = ',';
+
 /**
  * Tensor contraction over specified indices and outer product.
  *
@@ -86,12 +89,17 @@ import {op} from './operation';
  */
 export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
   equation = equation.replace(/\s/g, '');  // Remove witespace in equation.
-  const indexArrow = equation.indexOf('->');
-  if (indexArrow === -1) {
-    throw new Error('Equations without an arrow is not supported');
+  const numArrows = (equation.length - equation.replace(/->/g, '').length) / 2;
+  if (numArrows < 1) {
+    throw new Error('Equations without an arrow are not supported.');
+  } else if (numArrows > 1) {
+    throw new Error(`Equation must contain exactly one arrow ("${ARROW}").`);
   }
-  const [inputString, outputString] = equation.split('->');
-  const inputTerms = inputString.split(',');
+  const [inputString, outputString] = equation.split(ARROW);
+  if (inputString.indexOf('...') !== -1) {
+    throw new Error('The ellipsis notation ("...") is not supported yet.');
+  }
+  const inputTerms = inputString.split(COMMA);
   const numInputs = inputTerms.length;
   if (tensors.length !== numInputs) {
     throw new Error(
@@ -116,7 +124,7 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
   }
   for (let i = 0; i < inputString.length; ++i) {
     const dimName = inputString[i];
-    if (allDims.indexOf(dimName) === -1 && dimName !== ',') {
+    if (allDims.indexOf(dimName) === -1 && dimName !== COMMA) {
       allDims.push(dimName);
     }
   }
@@ -127,9 +135,6 @@ export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
       throw new Error(
           `Found duplicate axes in input component ${inputTerms[i]}. ` +
           `Support for duplicate axes in input is not implemented yet.`);
-    }
-    if (inputTerms.indexOf('...') !== -1) {
-      throw new Error('The notation "..." is not supported yet.');
     }
     idDims[i] = [];
     for (let j = 0; j < inputTerms[i].length; ++j) {
@@ -247,10 +252,8 @@ function getComputePath(summedDims: number[], idDims: number[][]):
   if (summedDims.length === 0) {
     // Einsum that involes no summing: e.g., transpose and outer product.
     path.push(-1);
-    nSteps = 1;
-  } else {
-    nSteps = summedDims.length + 1;
   }
+  nSteps = summedDims.length + 1;
   for (let i = 0; i < nSteps; ++i) {
     steps.push([]);
   }
@@ -271,7 +274,7 @@ function getComputePath(summedDims: number[], idDims: number[][]):
 function findTermsWithDim(idDims: number[][], dim: number): number[] {
   const termIndices: number[] = [];
   for (let i = 0; i < idDims.length; ++i) {
-    if (idDims[i].indexOf(dim) !== -1 || dim === -1) {
+    if (idDims[i].length === 0 || idDims[i].indexOf(dim) !== -1 || dim === -1) {
       termIndices.push(i);
     }
   }
