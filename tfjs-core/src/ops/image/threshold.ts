@@ -14,8 +14,9 @@ import { tensor3d } from '../tensor3d';
 function otsu_alg(histData: Number[], total: Number) {
 
   let sum = 0;
-  for (let t = 0; t < 256; t++) sum += t * histData[t];
-
+  for (let t = 0; t < 256; t++) {
+    sum += t * histData[t];
+  }
   let sumB = 0;
   let wB = 0;
   let wF = 0;
@@ -45,7 +46,7 @@ function otsu_alg(histData: Number[], total: Number) {
     }
   }
 
-  return threshold;
+  return thresh;
 }
 
 
@@ -97,4 +98,4 @@ function threshold_(
 
 }
 
-export const threshold = op({ threshold_ }); 
+export const threshold = op({ threshold_ });
