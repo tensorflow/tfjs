@@ -6,7 +6,7 @@ load("@npm//@bazel/typescript:index.bzl", "ts_project", "ts_library")
 load("@npm//@bazel/concatjs:index.bzl", "karma_web_test")
 load("//:esbuild.bzl", "esbuild");
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
-
+load("//rollup:tfjs_bundles.bzl", "tfjs_bundles")
 
 TEST_SRCS = ["src/setup_test.ts"]
 
@@ -56,7 +56,9 @@ esbuild(
         "//tfjs-backend-cpu",
     ],
     external = [
-        # webworker tests
+        # webworker tests call 'require('@tensorflow/tfjs')', which
+        # is external to the test bundle.
+        # Note: This is not a bazel target. It's just a string.
         "@tensorflow/tfjs",
     ]
 )
@@ -72,7 +74,7 @@ esbuild(
     external = [
         "node-fetch",
         "util",
-    ]
+    ],
 )
 
 esbuild(
@@ -103,7 +105,6 @@ js_library(
 
 karma_web_test(
     name = "tfjs-core_test",
-
     srcs = [
         ":tfjs-core_test_bundle",
     ],
@@ -111,5 +112,4 @@ karma_web_test(
         # Listed here so sourcemaps are served
         ":tfjs-core_test_bundle",
     ]
-    #config_file = "karma.conf.js",
 )

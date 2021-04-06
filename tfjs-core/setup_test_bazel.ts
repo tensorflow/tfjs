@@ -19,8 +19,6 @@
  * This file is necessary so we register all test environments before we start
  * executing tests.
  */
-//import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
-
 import '@tensorflow/tfjs-core';
 // Register the CPU backend as a default backend for tests.
 import '@tensorflow/tfjs-backend-cpu';
@@ -29,7 +27,16 @@ import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
 // tslint:disable-next-line:no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/register_all_gradients';
 // tslint:disable-next-line:no-imports-from-dist
-import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
+const TEST_FILTERS: TestFilter[] = [];
+const customInclude = (testName: string) => {
+  if (testName.indexOf('tensor in worker') !== -1) {
+    return false;
+  }
+  return true;
+};
+setupTestFilters(TEST_FILTERS, customInclude);
 
 // Set up a CPU test env as the default test env
 setTestEnvs([{name: 'cpu', backendName: 'cpu', isDataSync: true}]);
