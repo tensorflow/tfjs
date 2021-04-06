@@ -23,6 +23,16 @@ steps:
   args: ['test-run-flaky']
   waitFor: ['yarn-common']
 
+# Bazel tests
+# These use a remote cache and only re-run if changes occurred, so we run them
+# in every build.
+- name: 'gcr.io/cloud-builders/bazel'
+  id: 'bazel-tests'
+  args:
+    - 'test'
+    - '--test_output=all'
+    - '//tfjs-core/...'
+
 # General configuration
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
