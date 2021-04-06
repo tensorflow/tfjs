@@ -53,7 +53,7 @@ function otsu_alg(histData: Number[], total: Number) {
 
 function threshold_(
   image: Tensor3D | TensorLike,
-  method?: 'binary' | 'otsu' = 'binary',
+  method: 'binary' | 'otsu' = 'binary',
   coeff?: Number,
   inverted?: Boolean
 ): Tensor3D {
