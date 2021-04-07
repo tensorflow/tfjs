@@ -23,20 +23,21 @@ describe('initializes flags from the url', () => {
   beforeAll(() => spyOn(console, 'warn').and.returnValue(null));
 
   it('no overrides one registered flag', () => {
+    spyOn(environment, 'getQueryParams').and.returnValue({});
+
     const global = {location: {search: ''}};
     const env = new Environment(global);
-    spyOn(env, 'getQueryParams').and.returnValue({});
-
     env.registerFlag('FLAG1', () => false);
     expect(env.get('FLAG1')).toBe(false);
   });
 
   it('one unregistered flag', () => {
-    const global = {location: {search: ''}};
-    const env = new Environment(global);
-    spyOn(env, 'getQueryParams').and.returnValue({
+    spyOn(environment, 'getQueryParams').and.returnValue({
       'tfjsflags': 'FLAG1:true'
     });
+
+    const global = {location: {search: ''}};
+    const env = new Environment(global);
     expect(env.features).toEqual({});
   });
 

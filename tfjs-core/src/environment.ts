@@ -47,9 +47,6 @@ export class Environment {
   platformName: string;
   platform: Platform;
 
-  // Jasmine spies on this in 'environment_test.ts'
-  getQueryParams = getQueryParams;
-
   // tslint:disable-next-line: no-any
   constructor(public global: any) {
     this.populateURLFlags();
@@ -158,7 +155,7 @@ export class Environment {
       return;
     }
 
-    const urlParams = this.getQueryParams(this.global.location.search);
+    const urlParams = getQueryParams(this.global.location.search);
     if (TENSORFLOWJS_FLAGS_PREFIX in urlParams) {
       const keyValues = urlParams[TENSORFLOWJS_FLAGS_PREFIX].split(',');
       keyValues.forEach(keyValue => {
