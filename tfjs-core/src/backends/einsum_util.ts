@@ -209,6 +209,17 @@ export function getEinsumComputePath(summedDims: number[], idDims: number[][]):
   return {path, steps};
 }
 
+/** Determines if an axes permutation is the identity permutation. */
+export function isIdentityPermutation(perm: number[]): boolean {
+  return perm.every((dim: number, index: number) => dim === index);
+  // for (let i = 0; i < perm.length; ++i) {
+  //   if (perm[i] !== i) {
+  //     return false;
+  //   }
+  // }
+  // return true;
+}
+
 function findTermsWithDim(idDims: number[][], dim: number): number[] {
   const termIndices: number[] = [];
   for (let i = 0; i < idDims.length; ++i) {

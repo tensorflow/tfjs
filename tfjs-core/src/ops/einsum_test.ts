@@ -29,14 +29,14 @@ describeWithFlags('einsum', ALL_ENVS, () => {
     expectArraysClose(await out.data(), 6);
   });
 
-  it('1D tensor and scalars', async () => {
+  it('1D tensor and scalars: reduce', async () => {
     const x = tensor1d([2, 3]);
     const y = tf.scalar(4);
     const out = tf.einsum('i,->', x, y);
     expectArraysClose(await out.data(), 20);
   });
 
-  it('1D tensor and scalars', async () => {
+  it('1D tensor and scalars: multiply', async () => {
     const x = tensor1d([2, 3]);
     const y = tf.scalar(4);
     const out = tf.einsum('i,->i', x, y);
@@ -171,7 +171,6 @@ describeWithFlags('einsum', ALL_ENVS, () => {
     expectArraysClose(await out.data(), [
       [
         [[5, 17, 29, 41], [17, 61, 105, 149], [29, 105, 181, 257]],
-
         [[25, 53, 81, 109], [53, 113, 173, 233], [81, 173, 265, 357]]
       ],
       [

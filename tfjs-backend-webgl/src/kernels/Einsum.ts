@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, Einsum, EinsumAttrs, EinsumInputs, KernelConfig, KernelFunc, Tensor, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, Einsum, EinsumAttrs, EinsumInputs, KernelConfig, KernelFunc, Tensor, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 
@@ -45,21 +45,30 @@ export function einsum(
     for (const idTerm of steps[i]) {
       const {permutationIndices: perm, expandDims: dimsToExpand} =
           backend_util.getEinsumPermutation(numDimsRemaining, idDims[idTerm]);
-      let x = transpose({inputs: {x: tensors[idTerm]}, backend, attrs: {perm}});
-      tensorsToDispose.push(x);
-      const targetShape: number[] = x.shape;
+      let x: TensorInfo;
+      if (tensors[idTerm].rank > 1 &&
+          !backend_util.isIdentityPermutation(perm)) {
+        x = transpose({inputs: {x: tensors[idTerm]}, backend, attrs: {perm}});
+        tensorsToDispose.push(x);
+      } else {
+        // No need to transpose (permute) a scalar or 1D tensor.
+        x = tensors[idTerm];
+      }
+      const targetShape: number[] = x.shape.slice();
       for (let k = 0; k < dimsToExpand.length; ++k) {
         targetShape.splice(dimsToExpand[k], 0, 1);
       }
 
-      x = reshape({inputs: {x}, backend, attrs: {shape: targetShape}});
-      tensorsToDispose.push(x);
+      if (!util.arraysEqual(x.shape, targetShape)) {
+        x = reshape({inputs: {x}, backend, attrs: {shape: targetShape}});
+        tensorsToDispose.push(x);
+      }
       if (out === null) {
         out = x;
       } else {
         tensorsToDispose.push(out);
         // tslint:disable-next-line: no-unnecessary-type-assertion
-        out = multiply({inputs: {a: out, b: x}, backend}) as TensorInfo;
+        out = multiply({inputs: {a: x, b: out}, backend}) as TensorInfo;
         tensorsToDispose.push(out);
       }
     }
