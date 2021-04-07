@@ -15,10 +15,13 @@
  * =============================================================================
  */
 
-import {checkDimSizes, decodeEquation, getComputePath, getPermutation} from '../backends/einsum_util';
 import {ENGINE} from '../engine';
-import {Multiply, Reshape, Sum, Transpose} from '../kernel_names';
+import {Einsum, EinsumAttrs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
+import {convertToTensor} from '../tensor_util_env';
+
 import {op} from './operation';
 
 /**
@@ -85,40 +88,12 @@ import {op} from './operation';
  * @doc {heading: 'Tensors', subheading: 'Matrices'}
  */
 export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
-  const {allDims, summedDims, idDims} =
-      decodeEquation(equation, tensors.length);
-  checkDimSizes(allDims.length, idDims, tensors);
-  const {path, steps} = getComputePath(summedDims, idDims);
-
-  const nSteps = steps.length;
-  let out: Tensor|null = null;
-  let numDimsRemaining = allDims.length;
-  for (let i = 0; i < nSteps; ++i) {
-    for (const idTerm of steps[i]) {
-      const {permutationIndices, expandDims: dimsToExpand} =
-          getPermutation(numDimsRemaining, idDims[idTerm]);
-      // tslint:disable-next-line:no-unnecessary-type-assertion
-      let x = ENGINE.runKernel(
-                  Transpose, {x: tensors[idTerm]},
-                  {perm: permutationIndices}) as Tensor;
-      const targetShape: number[] = x.shape;
-      for (let k = 0; k < dimsToExpand.length; ++k) {
-        targetShape.splice(dimsToExpand[k], 0, 1);
-      }
-
-      x = ENGINE.runKernel(Reshape, {x}, {shape: targetShape});
-      out = out === null ? x : ENGINE.runKernel(Multiply, {a: out, b: x});
-    }
-    if (i < nSteps - 1) {
-      if (path[i] >= 0) {
-        out = ENGINE.runKernel(
-            Sum, {x: out},
-            {axis: path[i] < out.shape.length ? path[i] : undefined});
-      }
-      numDimsRemaining--;
-    }
-  }
-  return out;
+  const $tensors =
+      tensors.map((t, i) => convertToTensor(t, `tensors${i}`, 'einsum'));
+  const attrs:
+      EinsumAttrs = {equation, N: tensors.length, dtype: tensors[0].dtype};
+  return ENGINE.runKernel(
+      Einsum, $tensors as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }
 
 export const einsum = op({einsum_});

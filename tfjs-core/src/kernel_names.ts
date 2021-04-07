@@ -323,6 +323,14 @@ export type Dilation2DBackpropFilterInputs =
 export const RealDiv = 'RealDiv';
 export type RealDivInputs = BinaryInputs;
 
+export const Einsum = 'Einsum';
+export type EinsumInputs = TensorInfo[];
+export interface EinsumAttrs {
+  equation: string;
+  N: number;
+  dtype: DataType;
+}
+
 export const Elu = 'Elu';
 export type EluInputs = Pick<NamedTensorInfoMap, 'x'>;
 

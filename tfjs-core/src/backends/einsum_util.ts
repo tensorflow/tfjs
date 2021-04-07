@@ -41,7 +41,7 @@ const ELLIPSIS = '...';
  *   - idDims: indices of the dimensions in each input tensor, as indices to
  *     the elements of `allDims.
  */
-export function decodeEquation(equation: string, numTensors: number): {
+export function decodeEinsumEquation(equation: string, numTensors: number): {
   allDims: string[],
   summedDims: number[],
   idDims: number[][],
@@ -127,7 +127,7 @@ export function decodeEquation(equation: string, numTensors: number): {
  *   - expandDims: Indices to the dimension that need to be expanded from the
  *     tensor after permutation.
  */
-export function getPermutation(nDims: number, idDims: number[]):
+export function getEinsumPermutation(nDims: number, idDims: number[]):
     {permutationIndices: number[], expandDims: number[]} {
   let permutationIndices: number[] = new Array<number>(nDims);
   permutationIndices.fill(-1);
@@ -148,7 +148,7 @@ export function getPermutation(nDims: number, idDims: number[]):
  * Checks that the dimension sizes from different input tensors match the
  * equation.
  */
-export function checkDimSizes(
+export function checkEinsumDimSizes(
     nDims: number, idDims: number[][], tensors: Tensor[]) {
   const dimSizes: number[] = new Array<number>(nDims);
   for (let i = 0; i < tensors.length; ++i) {
@@ -168,7 +168,7 @@ export function checkDimSizes(
 }
 
 /**
- * Gets path of computation.
+ * Gets path of computation for einsum.
  *
  * @param summedDims indices to the dimensions being summed over.
  * @param idDims A look up table for the dimensions present in each input
@@ -182,7 +182,7 @@ export function checkDimSizes(
  *     to the input tensors being used for element-wise multiplication in the
  *     corresponding step.
  */
-export function getComputePath(summedDims: number[], idDims: number[][]):
+export function getEinsumComputePath(summedDims: number[], idDims: number[][]):
     {path: number[], steps: number[][]} {
   const path: number[] = summedDims;
   const steps: number[][] = [];
