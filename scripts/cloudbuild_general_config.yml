@@ -33,7 +33,7 @@ steps:
     - 'bazel'
     - 'test'
     - '--test_output=all'
-    - '$(bazel query --output label ''attr("tags", "ci", ...))'''
+    - '`bazel query --output label ''attr("tags", "ci", ...)''`'
 
 # General configuration
 secrets:
