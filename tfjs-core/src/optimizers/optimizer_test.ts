@@ -25,7 +25,6 @@ import {SGDOptimizer} from './sgd_optimizer';
 
 describeWithFlags('optimizer', ALL_ENVS, () => {
   it('basic', async () => {
-    const initialTensors = tf.memory().numTensors;
     const learningRate = .1;
     const optimizer = tf.train.sgd(learningRate);
 
@@ -72,8 +71,8 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     x.dispose();
     bias.dispose();
     strayVariable.dispose();
-    // The only additional tensors remaining are the arguments to variable().
-    expect(tf.memory().numTensors).toBe(initialTensors + 3);
+    // The only tensors remaining are the arguments to variable().
+    expect(tf.memory().numTensors).toBe(3);
   });
 
   it('varList array of all variables', async () => {
