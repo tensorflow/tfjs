@@ -234,30 +234,7 @@ We'd love your feedback as we develop this backend! Please file an issue
 # Development
 
 ## Emscripten installation
-
-Install the Emscripten SDK (version 2.0.14):
-
-```sh
-git clone https://github.com/emscripten-core/emsdk.git
-cd emsdk
-./emsdk install 2.0.14
-./emsdk activate 2.0.14
-```
-
-## Prepare the environment
-
-Before developing, make sure the environment variable `EMSDK` points to the
-emscripten directory (e.g. `~/emsdk`). Emscripten provides a script that does
-the setup for you:
-
-Cd into the emsdk directory and run:
-
-```sh
-source ./emsdk_env.sh
-```
-
-For details, see instructions
-[here](https://emscripten.org/docs/getting_started/downloads.html#installation-instructions).
+The Emscripten installation necessary to build the WASM backend is managed automatically by the [Bazel Emscripten Toolchain](https://github.com/emscripten-core/emsdk/tree/master/bazel).
 
 ## Building
 
