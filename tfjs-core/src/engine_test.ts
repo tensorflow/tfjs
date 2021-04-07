@@ -32,17 +32,17 @@ describe('Backend registration', () => {
   });
 
   let registeredBackends: string[] = [];
-  let registerBackend: typeof tf.registerBackend;
 
   beforeEach(() => {
     // Registering a backend changes global state (engine), so we wrap
     // registration to automatically remove registered backend at the end
     // of each test.
-    registerBackend = (name, factory, priority) => {
-      registeredBackends.push(name);
-      return tf.registerBackend(name, factory, priority);
-    };
-
+    spyOn(tf, 'registerBackend')
+        .and.callFake(
+            (name: string, factory: () => KernelBackend, priority: number) => {
+              registeredBackends.push(name);
+              return ENGINE.registerBackend(name, factory, priority);
+            });
     ENGINE.reset();
   });
 
@@ -67,7 +67,7 @@ describe('Backend registration', () => {
       return newBackend;
     };
 
-    registerBackend('test-backend', factory);
+    tf.registerBackend('test-backend', factory);
 
     expect(tf.findBackend('test-backend') != null).toBe(true);
     expect(tf.findBackend('test-backend')).toBe(backend);
@@ -90,7 +90,7 @@ describe('Backend registration', () => {
       }
       return newBackend;
     };
-    registerBackend('custom-cpu', factory);
+    tf.registerBackend('custom-cpu', factory);
 
     expect(tf.findBackend('custom-cpu') != null).toBe(true);
     expect(tf.findBackend('custom-cpu')).toBe(backend);
@@ -100,7 +100,7 @@ describe('Backend registration', () => {
   it('custom backend registration', () => {
     let backend: KernelBackend;
     const priority = 103;
-    registerBackend('custom-cpu', () => {
+    tf.registerBackend('custom-cpu', () => {
       const newBackend = new TestKernelBackend();
       if (backend == null) {
         backend = newBackend;
@@ -116,11 +116,11 @@ describe('Backend registration', () => {
     let lowPriorityBackend: KernelBackend;
     const lowPriority = 103;
     const highPriority = 104;
-    registerBackend('custom-low-priority', () => {
+    tf.registerBackend('custom-low-priority', () => {
       lowPriorityBackend = new TestKernelBackend();
       return lowPriorityBackend;
     }, lowPriority);
-    registerBackend('custom-high-priority', () => {
+    tf.registerBackend('custom-high-priority', () => {
       throw new Error(`High priority backend fails`);
     }, highPriority);
 
@@ -134,11 +134,11 @@ describe('Backend registration', () => {
     let highPriorityBackend: KernelBackend;
     const lowPriority = 103;
     const highPriority = 104;
-    registerBackend('custom-low-priority', () => {
+    tf.registerBackend('custom-low-priority', () => {
       lowPriorityBackend = new TestKernelBackend();
       return lowPriorityBackend;
     }, lowPriority);
-    registerBackend('custom-high-priority', () => {
+    tf.registerBackend('custom-high-priority', () => {
       highPriorityBackend = new TestKernelBackend();
       return highPriorityBackend;
     }, highPriority);
@@ -160,14 +160,14 @@ describe('Backend registration', () => {
 
   it('allow custom backend', () => {
     const backend = new TestKernelBackend();
-    const success = registerBackend('custom', () => backend);
+    const success = tf.registerBackend('custom', () => backend);
     expect(success).toBeTruthy();
     expect(tf.findBackend('custom')).toEqual(backend);
   });
 
   it('sync backend with await ready works', async () => {
     const testBackend = new TestKernelBackend();
-    registerBackend('sync', () => testBackend);
+    tf.registerBackend('sync', () => testBackend);
     tf.setBackend('sync');
 
     expect(tf.getBackend()).toEqual('sync');
@@ -177,7 +177,7 @@ describe('Backend registration', () => {
 
   it('sync backend without await ready works', async () => {
     const testBackend = new TestKernelBackend();
-    registerBackend('sync', () => testBackend);
+    tf.registerBackend('sync', () => testBackend);
     tf.setBackend('sync');
 
     expect(tf.getBackend()).toEqual('sync');
@@ -186,7 +186,7 @@ describe('Backend registration', () => {
 
   it('async backend with await ready works', async () => {
     const testBackend = new TestKernelBackend();
-    registerBackend('async', async () => {
+    tf.registerBackend('async', async () => {
       await tf.nextFrame();
       return testBackend;
     });
@@ -199,7 +199,7 @@ describe('Backend registration', () => {
 
   it('async backend without await ready does not work', async () => {
     const testBackend = new TestKernelBackend();
-    registerBackend('async', async () => {
+    tf.registerBackend('async', async () => {
       await tf.nextFrame();
       return testBackend;
     });
@@ -212,7 +212,7 @@ describe('Backend registration', () => {
 
   it('tf.square() fails if user does not await ready on async backend',
      async () => {
-       registerBackend('async', async () => {
+       tf.registerBackend('async', async () => {
          await tf.nextFrame();
          return new TestKernelBackend();
        });
@@ -222,7 +222,7 @@ describe('Backend registration', () => {
      });
 
   it('tf.square() works when user awaits ready on async backend', async () => {
-    registerBackend('async', async () => {
+    tf.registerBackend('async', async () => {
       await tf.nextFrame();
       return new TestKernelBackend();
     });
@@ -234,11 +234,11 @@ describe('Backend registration', () => {
   it('Registering async2 (higher priority) fails, async1 becomes active',
      async () => {
        const testBackend = new TestKernelBackend();
-       registerBackend('async1', async () => {
+       tf.registerBackend('async1', async () => {
          await tf.nextFrame();
          return testBackend;
        }, 100 /* priority */);
-       registerBackend('async2', async () => {
+       tf.registerBackend('async2', async () => {
          await tf.nextFrame();
          throw new Error('failed to create async2');
        }, 101 /* priority */);
@@ -253,8 +253,8 @@ describe('Backend registration', () => {
   it('Registering sync as higher priority and async as lower priority',
      async () => {
        const testBackend = new TestKernelBackend();
-       registerBackend('sync', () => testBackend, 101 /* priority */);
-       registerBackend('async', async () => {
+       tf.registerBackend('sync', () => testBackend, 101 /* priority */);
+       tf.registerBackend('async', async () => {
          await tf.nextFrame();
          return new TestKernelBackend();
        }, 100 /* priority */);
@@ -267,11 +267,11 @@ describe('Backend registration', () => {
   it('async as higher priority and sync as lower priority with await ready',
      async () => {
        const testBackend = new TestKernelBackend();
-       registerBackend('async', async () => {
+       tf.registerBackend('async', async () => {
          await tf.nextFrame();
          return testBackend;
        }, 101 /* priority */);
-       registerBackend(
+       tf.registerBackend(
            'sync', () => new TestKernelBackend(), 100 /* priority */);
 
        await tf.ready();
@@ -282,11 +282,11 @@ describe('Backend registration', () => {
   it('async as higher priority and sync as lower priority w/o await ready',
      async () => {
        const testBackend = new TestKernelBackend();
-       registerBackend('async', async () => {
+       tf.registerBackend('async', async () => {
          await tf.nextFrame();
          return testBackend;
        }, 101 /* priority */);
-       registerBackend(
+       tf.registerBackend(
            'sync', () => new TestKernelBackend(), 100 /* priority */);
 
        expect(() => tf.backend())
@@ -295,7 +295,7 @@ describe('Backend registration', () => {
      });
 
   it('Registering and setting a backend that fails to register', async () => {
-    registerBackend('async', async () => {
+    tf.registerBackend('async', async () => {
       await tf.nextFrame();
       throw new Error('failed to create async');
     });
