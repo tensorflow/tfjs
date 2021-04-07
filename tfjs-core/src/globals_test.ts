@@ -26,8 +26,10 @@ describe('deprecation warnings', () => {
 
   it('deprecationWarn warns', () => {
     // flags_test.ts verifies deprecation warnings are on by default.
+    const deprecationVal = tf.env().get('DEPRECATION_WARNINGS_ENABLED');
     tf.env().set('DEPRECATION_WARNINGS_ENABLED', true);
     tf.deprecationWarn('xyz is deprecated.');
+    tf.env().set('DEPRECATION_WARNINGS_ENABLED', deprecationVal);
     expect(console.warn).toHaveBeenCalledTimes(1);
     expect(console.warn)
         .toHaveBeenCalledWith(
