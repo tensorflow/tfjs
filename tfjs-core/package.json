@@ -71,6 +71,7 @@
     "test-ci": "./scripts/test-ci.sh",
     "test-webworker": "karma start --worker",
     "run-browserstack": "karma start --browserstack",
+    "run-browserstack:bazel": "bazel test --action_env=BROWSERSTACK_USERNAME=$BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY=$BROWSERSTACK_KEY //tfjs-core:browserstack_tfjs-core_test",
     "test-bundle-size": "./scripts/test-bundle-size.js",
     "test-node": "rimraf dist/ && yarn build-deps && yarn build && ts-node --transpile-only --skip-ignore -P tsconfig.test.json dist/test_node.js",
     "test-node-dev": "tsc && ts-node --transpile-only --skip-ignore -P tsconfig.test.json dist/test_node.js",
