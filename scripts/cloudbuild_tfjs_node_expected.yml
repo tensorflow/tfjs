@@ -24,7 +24,7 @@ steps:
     args:
       - test
       - '--test_output=all'
-      - '$(bazel query --output label attr\("tags", "ci", ...\))'
+      - '$(bazel query --output label ''attr("tags", "ci", ...))'''
   - name: 'node:10'
     dir: tfjs-core
     id: yarn-tfjs-core
