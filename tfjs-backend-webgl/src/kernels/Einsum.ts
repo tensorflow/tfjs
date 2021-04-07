@@ -58,6 +58,7 @@ export function einsum(
         out = x;
       } else {
         tensorsToDispose.push(out);
+        // tslint:disable-next-line: no-unnecessary-type-assertion
         out = multiply({inputs: {a: out, b: x}, backend}) as TensorInfo;
         tensorsToDispose.push(out);
       }
