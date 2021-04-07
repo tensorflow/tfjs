@@ -31,7 +31,7 @@ steps:
   args:
     - 'test'
     - '--test_output=all'
-    - '//tfjs-core/...'
+    - '$(bazel query --output label attr\("tags", "ci", ...\))'
 
 # General configuration
 secrets:

@@ -129,6 +129,7 @@ karma_web_test(
 
 karma_web_test(
     name = "browserstack_tfjs-core_test",
+    tags = ["ci"],
     srcs = [
         ":tfjs-core_test_bundle",
     ],
