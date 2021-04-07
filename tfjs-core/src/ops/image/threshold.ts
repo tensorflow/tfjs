@@ -98,7 +98,7 @@ function threshold_(
 
   }
 
-  return tensor3d(arrayedImage, $image.shape, 'float32');
+  return tensor3d(arrayedImage, $image.shape, 'int32');
 }
 
 export const threshold = op({ threshold_ });
