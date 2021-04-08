@@ -37,7 +37,6 @@
     "karma-jasmine": "~4.0.1",
     "karma-typescript": "~5.5.1",
     "karma-typescript-es6-transform": "^5.5.1",
-    "parcel": "^2.0.0-beta.2",
     "postcss": "^8.2.1",
     "rimraf": "~3.0.2",
     "rollup": "~2.44.0",
