@@ -90,8 +90,7 @@ import {op} from './operation';
 export function einsum_(equation: string, ...tensors: Tensor[]): Tensor {
   const $tensors =
       tensors.map((t, i) => convertToTensor(t, `tensors${i}`, 'einsum'));
-  const attrs:
-      EinsumAttrs = {equation, N: tensors.length, dtype: tensors[0].dtype};
+  const attrs: EinsumAttrs = {equation};
   return ENGINE.runKernel(
       Einsum, $tensors as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
 }

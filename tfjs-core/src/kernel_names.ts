@@ -327,8 +327,6 @@ export const Einsum = 'Einsum';
 export type EinsumInputs = TensorInfo[];
 export interface EinsumAttrs {
   equation: string;
-  N: number;
-  dtype: DataType;
 }
 
 export const Elu = 'Elu';
