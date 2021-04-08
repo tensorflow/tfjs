@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2018 Google LLC. All Rights Reserved.
+# Copyright 2021 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,9 +14,16 @@
 # limitations under the License.
 # =============================================================================
 
+# Exit immediately if a command exits with a non-zero status.
 set -e
 
-# Regular testing.
-yarn build
-yarn lint
-yarn test
+if [ "$NIGHTLY" = true ]; then
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_safari_mac"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_ios_11"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_firefox_mac"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=win_10_chrome"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_android_9"
+else
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac"
+fi

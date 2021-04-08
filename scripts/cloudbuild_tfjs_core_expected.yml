@@ -488,12 +488,12 @@ steps:
       - yarn-tfjs-backend-cpu
       - build-tfjs-backend-cpu
       - lint-tfjs-backend-cpu
-  - name: 'node:10'
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     dir: tfjs-tflite
     id: download-tfweb-tfjs-tflite
-    entrypoint: yarn
+    entrypoint: bash
     args:
-      - download-tfweb
+      - scripts/download-tfweb.sh
     waitFor:
       - yarn-tfjs-tflite
       - yarn-common

@@ -22,11 +22,11 @@ steps:
   waitFor: ['yarn-common']
 
 # Download tfweb.
-- name: 'node:10'
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   dir: 'tfjs-tflite'
   id: 'download-tfweb'
-  entrypoint: 'yarn'
-  args: ['download-tfweb']
+  entrypoint: 'bash'
+  args: ['scripts/download-tfweb.sh']
   waitFor: ['yarn', 'build-deps']
 
 # Build.

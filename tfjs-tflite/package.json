@@ -57,8 +57,8 @@
     "build-backend-cpu": "cd ../tfjs-backend-cpu && yarn && yarn build",
     "build-deps": "yarn build-core & yarn build-backend-cpu",
     "build-npm": "./scripts/build-npm.sh",
-    "download-tfweb": "./scripts/download-tfweb.sh",
     "lint": "tslint -p . -t verbose",
+    "run-browserstack": "karma start --browserstack",
     "test": "yarn && yarn build-deps && yarn build && karma start",
     "test-ci": "./scripts/test-ci.sh"
   }
