@@ -87,6 +87,7 @@ import './ops/diag_test';
 import './ops/dilation2d_test';
 import './ops/dropout_test';
 import './ops/dropout_util_test';
+import './ops/einsum_test';
 import './ops/elu_test';
 import './ops/equal_test';
 import './ops/erf_test';
