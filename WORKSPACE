@@ -170,6 +170,7 @@ git_repository(
     name = "com_google_googletest",
     commit = "cd17fa2abda2a2e4111cdabd62a87aea16835014",
     remote = "https://github.com/google/googletest.git",
+    shallow_since = "1570558426 -0400",
 )
 
 http_archive(
