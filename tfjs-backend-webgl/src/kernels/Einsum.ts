@@ -71,11 +71,12 @@ export function einsum(
     }
     if (i < nSteps - 1) {
       if (path[i] >= 0) {
+        const sumAxis = path[i] - (allDims.length - numDimsRemaining);
         out = sum({
           inputs: {x: out},
           backend,
           attrs: {
-            axis: path[i] < out.shape.length ? path[i] : undefined,
+            axis: sumAxis,
             keepDims: false
           }
         });

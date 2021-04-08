@@ -55,6 +55,20 @@ describeWithFlags('einsum', ALL_ENVS, () => {
     expectArraysClose(await out.data(), 10);
   });
 
+  it('2d matrices multiply and reduce summing', async () => {
+    const x = tensor2d([[1, 2], [3, 4]]);
+    const y = tensor2d([[4, 3], [2, 1]]);
+    const out = tf.einsum('ij,ji->', x, y);
+    expectArraysClose(await out.data(), 21);
+  });
+
+  it('2d matrix times scalar and reduce summing', async () => {
+    const x = tensor2d([[1, 2], [3, 4]]);
+    const y = tf.scalar(5);
+    const out = tf.einsum('ij,->', x, y);
+    expectArraysClose(await out.data(), 50);
+  });
+
   it('two 1d tensors dot', async () => {
     const x = tensor1d([1, 3, 5]);
     const y = tensor1d([2, 4, 6]);
@@ -130,13 +144,6 @@ describeWithFlags('einsum', ALL_ENVS, () => {
     ]);
   });
 
-  it('two 3d tensors', async () => {
-    const x = tf.reshape(tf.range(1, 9), [2, 2, 2]);
-    const y = tf.reshape(tf.range(1, 13), [2, 3, 2]);
-    expect(() => tf.einsum('adc,abc->ac', x, y))
-        .toThrowError(/not implemented for >1 input tensors/);
-  });
-
   it('two 3d tensors batch matmul', async () => {
     const x = tf.reshape(tf.range(1, 13), [2, 2, 3]);
     const y = tf.reshape(tf.range(1, 19), [2, 3, 3]);
@@ -171,7 +178,17 @@ describeWithFlags('einsum', ALL_ENVS, () => {
         await out.data(), [[[1, 3], [2, 4]], [[-1, -3], [-2, -4]]]);
   });
 
-  it('two 4d tensors', async () => {
+  it('4d tensor and 3d tensor, contracting two dimensions', async () => {
+    const x = tf.reshape(tf.range(1, 33), [2, 4, 2, 2]);
+    const y = tf.reshape(tf.range(1, 9), [2, 2, 2]);
+    const out = tf.einsum('abcd,cde->abe', x, y);
+    expectArraysClose(await out.data(), [
+      [[50, 60], [114, 140], [178, 220], [242, 300]],
+      [[306, 380], [370, 460], [434, 540], [498, 620]]
+    ]);
+  });
+
+  it('two 4d tensors, contracting one dimension', async () => {
     const x = tf.reshape(tf.range(1, 33), [2, 4, 2, 2]);
     const y = tf.reshape(tf.range(1, 25), [2, 3, 2, 2]);
     const out = tf.einsum('aecd,abcd->acbe', x, y);
@@ -183,6 +200,19 @@ describeWithFlags('einsum', ALL_ENVS, () => {
       [
         [[473, 581, 689, 797], [613, 753, 893, 1033], [753, 925, 1097, 1269]],
         [[605, 729, 853, 977], [761, 917, 1073, 1229], [917, 1105, 1293, 1481]]
+      ]
+    ]);
+  });
+
+  it('two 4d tensors, contracting two dimensions', async () => {
+    const x = tf.reshape(tf.range(1, 33), [2, 4, 2, 2]);
+    const y = tf.reshape(tf.range(1, 25), [2, 3, 2, 2]);
+    const out = tf.einsum('aecd,abcd->abe', x, y);
+    expectArraysClose(await out.data(), [
+      [[30, 70, 110, 150], [70, 174, 278, 382], [110, 278, 446, 614]],
+      [
+        [1078, 1310, 1542, 1774], [1374, 1670, 1966, 2262],
+        [1670, 2030, 2390, 2750]
       ]
     ]);
   });
