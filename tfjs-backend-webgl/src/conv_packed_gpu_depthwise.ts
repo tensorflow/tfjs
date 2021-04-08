@@ -178,6 +178,9 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                     xTexelR${r}C${c}.zw, xTexelR${r}C${c + 2}.xy);
                 `;
               } else {
+                // If dialtion is 1 and padding is odd, we have already read the
+                // texel when constructing the previous x value. Here we can
+                // simply skip the texture read.
                 if (nextTexelOffset === 1) {
                   mainLoop += `
                   xR${r}C${c + 1} = xTexelR${r}C${c};
@@ -269,6 +272,10 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
           }
         }
 
+        // localize the dotProd accumulation within the loop, the theory is for
+        // GPU with limited cache, accumulate sum across large amount of
+        // veriables will cause lots of cache misses. (i.e. 5x5 filter will have
+        // 50 variables)
         if (c < filterWidth) {
           mainLoop += `
             vec4 wTexelR${r}C${c} = getW(${r}, ${c}, d1, q);
