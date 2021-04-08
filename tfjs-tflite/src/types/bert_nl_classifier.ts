@@ -15,8 +15,23 @@
  * =============================================================================
  */
 
-export * from './tflite_model';
-export * from './types/tfweb_model_runner';
-export * from './types/nl_classifier';
-export * from './types/image_classifier';
-export * from './types/tfweb';
+import {Category} from './common';
+
+/** BertNLClassifier class type. */
+export declare interface BertNLClassifierClass {
+  /**
+   * The factory function to create a NLClassifier instance.
+   *
+   * @param modelPath The path to load the TFLite model from.
+   */
+  create(modelPath: string): Promise<BertNLClassifier>;
+}
+
+/** The main BertNLClassifier class instance. */
+export declare class BertNLClassifier {
+  /** Performs classification on a string input, returns classified results. */
+  classify(input: string): Category[]|undefined;
+
+  /** Cleans up resources when the instance is no longer needed. */
+  cleanUp(): void;
+}
