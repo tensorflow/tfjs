@@ -31,6 +31,12 @@ export const executeOp: InternalOpExecutor =
       switch (node.op) {
         case 'BatchMatMul':
         case 'BatchMatMulV2':
+        case 'Einsum':
+          return [tfOps.einsum(
+              getParamValue('equation', node, tensorMap, context) as string,
+              ...getParamValue('tensors', node, tensorMap, context) as
+                  Tensor[])];
+
         case 'MatMul':
           return [tfOps.matMul(
               getParamValue('a', node, tensorMap, context) as Tensor2D,
