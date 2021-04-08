@@ -46,13 +46,11 @@ export function einsum(
       const {permutationIndices: perm, expandDims: dimsToExpand} =
           backend_util.getEinsumPermutation(numDimsRemaining, idDims[idTerm]);
       let x: TensorInfo;
-      if (tensors[idTerm].rank > 1 &&
-          !backend_util.isIdentityPermutation(perm)) {
+      if (backend_util.isIdentityPermutation(perm)) {
+        x = tensors[idTerm];
+      } else {
         x = transpose({inputs: {x: tensors[idTerm]}, backend, attrs: {perm}});
         tensorsToDispose.push(x);
-      } else {
-        // No need to transpose (permute) a scalar or 1D tensor.
-        x = tensors[idTerm];
       }
       const targetShape: number[] = x.shape.slice();
       for (let k = 0; k < dimsToExpand.length; ++k) {
@@ -66,7 +64,6 @@ export function einsum(
       if (out === null) {
         out = x;
       } else {
-        tensorsToDispose.push(out);
         // tslint:disable-next-line: no-unnecessary-type-assertion
         out = multiply({inputs: {a: x, b: out}, backend}) as TensorInfo;
         tensorsToDispose.push(out);
