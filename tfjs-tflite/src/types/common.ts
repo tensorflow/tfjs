@@ -15,8 +15,23 @@
  * =============================================================================
  */
 
-export * from './tflite_model';
-export * from './types/tfweb_model_runner';
-export * from './types/nl_classifier';
-export * from './types/image_classifier';
-export * from './types/tfweb';
+/** Category proto instance used in NLP tasks. */
+export declare interface Category {
+  score: number;
+  className: string;
+}
+
+/** Class proto instance used in vision tasks. */
+export declare interface Class {
+  getClassName(): string;
+  hasClassName(): boolean;
+
+  getDisplayName(): string;
+  hasDisplayName(): boolean;
+
+  getIndex(): number;
+  hasIndex(): boolean;
+
+  getScore(): number;
+  hasScore(): boolean;
+}
