@@ -238,7 +238,7 @@ export declare namespace Tensor {}
  *
  * For performance reasons, functions that create tensors do not necessarily
  * perform a copy of the data passed to them (e.g. if the data is passed as a
- * `Float32Array`), and changes to that data will change the tensor. This is not
+ * `Float32Array`), and changes to the data will change the tensor. This is not
  * a feature and is not supported. To avoid this behavior, use the tensor before
  * changing the input data or create a copy with `copy = tf.add(yourTensor, 0)`.
  *
