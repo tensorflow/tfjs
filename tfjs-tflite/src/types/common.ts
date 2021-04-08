@@ -21,7 +21,6 @@ export declare interface Category {
   className: string;
 }
 
-
 /** Class proto instance used in vision tasks. */
 export declare interface Class {
   getClassName(): string;

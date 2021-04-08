@@ -42,7 +42,7 @@ export declare interface DetectionResult {
 /** Detection proto instance. */
 export declare interface Detection {
   getBoundingBox(): BoundingBox|null;
-  getClassesList(): Class[]
+  getClassesList(): Class[];
 }
 
 /** BoundingBox proto instance. */

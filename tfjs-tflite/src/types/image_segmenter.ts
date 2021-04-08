@@ -24,7 +24,7 @@ export declare enum OutputType {
 
 /** ImageSegmenterOptions proto instance. */
 export declare interface ImageSegmenterOptions {
-  getOutputType(): OutputType
+  getOutputType(): OutputType;
   setOutputType(value: OutputType): ImageSegmenterOptions;
   hasOutputType(): boolean;
 
@@ -34,7 +34,6 @@ export declare interface ImageSegmenterOptions {
 
   // TODO: add more fields as needed.
 }
-
 
 /** SegmentationResult proto instance.  */
 export declare interface SegmentationResult {

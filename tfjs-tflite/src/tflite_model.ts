@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, InferenceModel, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, Rank, tensor, Tensor} from '@tensorflow/tfjs-core';
+import {DataType, InferenceModel, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, tensor, Tensor} from '@tensorflow/tfjs-core';
 
 import * as tfwebClient from './tfweb_client';
 
@@ -63,9 +63,8 @@ export class TFLiteModel implements InferenceModel {
    *
    * @doc {heading: 'Models', subheading: 'TFLiteModel'}
    */
-  predict(
-      inputs: Tensor<Rank>|Tensor<Rank>[]|NamedTensorMap,
-      config?: ModelPredictConfig): Tensor<Rank>|Tensor<Rank>[]|NamedTensorMap {
+  predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
+      Tensor|Tensor[]|NamedTensorMap {
     const modelInputs = this.modelRunner.getInputs();
     const modelOutputs = this.modelRunner.getOutputs();
 
@@ -140,9 +139,8 @@ export class TFLiteModel implements InferenceModel {
    *
    * @doc {heading: 'Models', subheading: 'TFLiteModel'}
    */
-  execute(
-      inputs: Tensor<Rank>|Tensor<Rank>[]|NamedTensorMap,
-      outputs: string|string[]): Tensor<Rank>|Tensor<Rank>[] {
+  execute(inputs: Tensor|Tensor[]|NamedTensorMap, outputs: string|string[]):
+      Tensor|Tensor[] {
     throw new Error('execute() of TFLiteModel is not supported yet.');
   }
 

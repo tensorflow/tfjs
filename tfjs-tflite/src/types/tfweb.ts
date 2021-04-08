@@ -15,11 +15,13 @@
  * =============================================================================
  */
 
-import {ClassificationResult, ImageClassifierClass, ImageClassifierOptions, NLClassifierClass, TFWebModelRunnerClass} from '..';
 import {BertNLClassifierClass} from './bert_nl_classifier';
 import {BertQuestionAnswererClass} from './bert_qa';
+import {ClassificationResult, ImageClassifierClass, ImageClassifierOptions} from './image_classifier';
 import {ImageSegmenterClass, ImageSegmenterOptions, SegmentationResult} from './image_segmenter';
+import {NLClassifierClass} from './nl_classifier';
 import {DetectionResult, ObjectDetectorClass, ObjectDetectorOptions} from './object_detector';
+import {TFWebModelRunnerClass} from './tfweb_model_runner';
 
 export declare interface TFWebClient {
   tfweb: {

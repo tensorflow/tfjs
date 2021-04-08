@@ -28,6 +28,7 @@ describe('TFWebClient', () => {
     //
     // TODO: figure out how to remove this workaround by updating the karma
     // configs.
+    // tslint:disable-next-line: no-any
     const tfweb = (tfwebClient as any).default.tfweb;
     for (const field of Object.keys(tfweb)) {
       expect(tfweb[field]).toBeDefined();

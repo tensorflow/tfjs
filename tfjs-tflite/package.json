@@ -53,11 +53,14 @@
   },
   "scripts": {
     "build": "tsc",
+    "build-ci": "tsc",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-backend-cpu": "cd ../tfjs-backend-cpu && yarn && yarn build",
     "build-deps": "yarn build-core & yarn build-backend-cpu",
     "build-npm": "./scripts/build-npm.sh",
+    "download-tfweb": "./scripts/download-tfweb.sh",
     "lint": "tslint -p . -t verbose",
-    "test": "yarn && yarn build-deps && yarn build && karma start"
+    "test": "yarn && yarn build-deps && yarn build && karma start",
+    "test-ci": "./scripts/test-ci.sh"
   }
 }
