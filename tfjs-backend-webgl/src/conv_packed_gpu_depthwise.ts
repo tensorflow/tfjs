@@ -97,6 +97,8 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                   }
                 }
                `;
+              // This texel has been read in previous iteration if the dilation
+              // is 1.
               if (dilationWidth === 1 && c > 0) {
                 mainLoop += `
                   xR${r}C${c} = vec4(xTexelR${r}C${c - 2}.zw, xTexelR${r}C${
