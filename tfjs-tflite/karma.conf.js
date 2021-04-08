@@ -17,6 +17,7 @@
 
 const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.test.json',
+  compilerOptions: {allowJs: true, declaration: false},
   bundlerOptions: {
     sourceMap: true,
     acornOptions: {ecmaVersion: 8},
@@ -73,6 +74,15 @@ module.exports = function(config) {
   config.set({
     ...extraConfig,
     basePath: '',
+    // Redirect the request for the wasm file so karma can find it.
+    proxies: {
+      '/base/node_modules/karma-typescript/dist/client/tfweb_cc.js':
+          '/base/deps/tfweb_cc.js',
+      '/base/node_modules/karma-typescript/dist/client/tfweb_cc_threaded.js':
+          '/base/deps/tfweb_cc_threaded.js',
+      '/base/node_modules/karma-typescript/dist/client/tfweb_cc_simd_threaded.js':
+          '/base/deps/tfweb_cc_simd_threaded.js',
+    },
     browsers: ['Chrome'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
