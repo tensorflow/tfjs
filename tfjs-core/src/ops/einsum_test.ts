@@ -19,7 +19,7 @@ import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
-import {tensor1d, tensor2d} from './ops';
+import {tensor1d, tensor2d, tensor3d} from './ops';
 
 describeWithFlags('einsum', ALL_ENVS, () => {
   it('two scalars', async () => {
@@ -162,6 +162,13 @@ describeWithFlags('einsum', ALL_ENVS, () => {
     expectArraysClose(
         await out.data(),
         [[[5, 11, 17], [11, 25, 39]], [[83, 105, 127], [113, 143, 173]]]);
+  });
+
+  it('one 3d tensor: batch matrix transposing', async () => {
+    const x = tensor3d([[[1, 2], [3, 4]], [[-1, -2], [-3, -4]]]);
+    const out = tf.einsum('bij->bji', x);
+    expectArraysClose(
+        await out.data(), [[[1, 3], [2, 4]], [[-1, -3], [-2, -4]]]);
   });
 
   it('two 4d tensors', async () => {

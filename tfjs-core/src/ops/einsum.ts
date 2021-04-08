@@ -69,6 +69,20 @@ import {op} from './operation';
  * tf.einsum('i,j->ij', x, y).print();
  * ```
  *
+ * Matrix transpose:
+ * ```js
+ * const x = tf.tensor2d([[1, 2], [3, 4]]);
+ * x.print();
+ * tf.einsum('ij->ji', x).print();
+ * ```
+ *
+ * Batch matrix transpose:
+ * ```js
+ * const x = tf.tensor3d([[[1, 2], [3, 4]], [[-1, -2], [-3, -4]]]);
+ * x.print();
+ * tf.einsum('bij->bji', x).print();
+ * ```
+ *
  * Limitations:
  *
  * This implementation of einsum has the following limitations:
