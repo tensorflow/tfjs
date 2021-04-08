@@ -142,38 +142,6 @@ export class FromPixelsProgram implements WebGPUProgram {
     return this.inputTexture;
   }
 
-  generateEncoder(device: GPUDevice, output: GPUBuffer): GPUCommandEncoder {
-    const bindGroup = device.createBindGroup({
-      layout: this.bindGroupLayout,
-      entries: [
-        {
-          binding: 0,
-          resource: {
-            buffer: output,
-          }
-        },
-        {
-          binding: 1,
-          resource: this.inputTexture.createView(),
-        },
-        {
-          binding: 2,
-          resource: {
-            buffer: this.uniform,
-          }
-        }
-      ],
-    });
-
-    const commandEncoder = device.createCommandEncoder({});
-    const passEncoder = commandEncoder.beginComputePass();
-    passEncoder.setPipeline(this.pipeline);
-    passEncoder.setBindGroup(0, bindGroup);
-    passEncoder.dispatch(this.dispatch[0], this.dispatch[1], this.dispatch[2]);
-    passEncoder.endPass();
-    return commandEncoder;
-  }
-
   dispose() {
     if (this.disposed) {
       return;

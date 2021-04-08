@@ -77,7 +77,7 @@ export class WebGPUBackend extends KernelBackend {
   device: GPUDevice;
   queue: GPUQueue;
   glslang: Glslang;
-  commandQueue: GPUCommandEncoder[];
+  currentCommandEncoder: GPUCommandEncoder;
   tensorMap: DataStorage<TensorBufferInfo>;
   fromPixelProgram: FromPixelsProgram;
   supportTimeQuery: boolean;
@@ -108,7 +108,7 @@ export class WebGPUBackend extends KernelBackend {
     this.binaryCache = {};
     this.device = device;
     this.queue = device.queue;
-    this.commandQueue = [];
+    this.currentCommandEncoder = null;
     this.glslang = glslang;
     this.supportTimeQuery = supportTimeQuery;
 
@@ -262,8 +262,8 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   submitQueue() {
-    this.queue.submit(this.commandQueue.map(enc => enc.finish()));
-    this.commandQueue = [];
+    this.queue.submit([this.currentCommandEncoder.finish()]);
+    this.currentCommandEncoder = null;
     this.computePassNumberInEncoder = 0;
 
     this.commandQueueOwnedIds = new WeakSet<DataId>();
@@ -285,10 +285,11 @@ export class WebGPUBackend extends KernelBackend {
     const staging = this.acquireBuffer(
         info.bufferInfo.byteSize,
         GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
-    const encoder = this.device.createCommandEncoder();
-    encoder.copyBufferToBuffer(
+    if (!this.currentCommandEncoder) {
+      this.currentCommandEncoder = this.device.createCommandEncoder();
+    }
+    this.currentCommandEncoder.copyBufferToBuffer(
         info.bufferInfo.buffer, 0, staging, 0, info.bufferInfo.byteSize);
-    this.commandQueue.push(encoder);
     this.submitQueue();
 
     await staging.mapAsync(GPUMapMode.READ);
@@ -526,15 +527,11 @@ export class WebGPUBackend extends KernelBackend {
         this.device, bindGroupLayout, inputs.map(t => this.tensorToBinding(t)),
         this.tensorToBinding(output), uniforms);
 
-    let encoder: GPUCommandEncoder;
-    if (this.commandQueue.length > 0) {
-      encoder = this.commandQueue[0];
-    } else {
-      encoder = this.device.createCommandEncoder();
-      this.commandQueue.push(encoder);
+    if (!this.currentCommandEncoder) {
+      this.currentCommandEncoder = this.device.createCommandEncoder();
     }
 
-    const pass = encoder.beginComputePass();
+    const pass = this.currentCommandEncoder.beginComputePass();
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
         pass.writeTimestamp(this.querySet, 0);
@@ -580,17 +577,53 @@ export class WebGPUBackend extends KernelBackend {
     return output;
   }
 
+  recordFromPixelsCommands(output: GPUBuffer) {
+    const bindGroup = this.device.createBindGroup({
+      layout: this.fromPixelProgram.bindGroupLayout,
+      entries: [
+        {
+          binding: 0,
+          resource: {
+            buffer: output,
+          }
+        },
+        {
+          binding: 1,
+          resource: this.fromPixelProgram.inputTexture.createView(),
+        },
+        {
+          binding: 2,
+          resource: {
+            buffer: this.fromPixelProgram.uniform,
+          }
+        }
+      ],
+    });
+
+    if (!this.currentCommandEncoder) {
+      this.currentCommandEncoder = this.device.createCommandEncoder({});
+    }
+
+    const passEncoder = this.currentCommandEncoder.beginComputePass();
+    passEncoder.setPipeline(this.fromPixelProgram.pipeline);
+    passEncoder.setBindGroup(0, bindGroup);
+    passEncoder.dispatch(
+        this.fromPixelProgram.dispatch[0], this.fromPixelProgram.dispatch[1],
+        this.fromPixelProgram.dispatch[2]);
+    passEncoder.endPass();
+  }
+
   async getTimeFromQuerySet(querySet: GPUQuerySet) {
     const queryBuffer = this.acquireBuffer(
         16, GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);
     const dst = this.acquireBuffer(
         16, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
 
-    const encoder = this.device.createCommandEncoder();
-    // tslint:disable-next-line:no-any
-    (encoder as any).resolveQuerySet(querySet, 0, 2, queryBuffer, 0);
-    encoder.copyBufferToBuffer(queryBuffer, 0, dst, 0, 16);
-    this.commandQueue.push(encoder);
+    if (!this.currentCommandEncoder) {
+      this.currentCommandEncoder = this.device.createCommandEncoder();
+    }
+    this.currentCommandEncoder.resolveQuerySet(querySet, 0, 2, queryBuffer, 0);
+    this.currentCommandEncoder.copyBufferToBuffer(queryBuffer, 0, dst, 0, 16);
     this.submitQueue();
     await dst.mapAsync(GPUMapMode.READ);
     const arrayBuf = new BigUint64Array(dst.getMappedRange());
