@@ -11,46 +11,50 @@
 # limitations under the License.
 # =============================================================================
 
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
+load("@npm//@bazel/concatjs:index.bzl", "karma_web_test")
+load("@npm//@bazel/typescript:index.bzl", "ts_library", "ts_project")
+load("//:esbuild.bzl", "esbuild")
+
 # Allow typescript rules in any package to reference this file
 exports_files(["tsconfig.json"])
-package(default_visibility = ["//visibility:public"])
 
-load("@npm//@bazel/typescript:index.bzl", "ts_project", "ts_library")
-load("@npm//@bazel/concatjs:index.bzl", "karma_web_test")
-load("//:esbuild.bzl", "esbuild");
-load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
+package(default_visibility = ["//visibility:public"])
 
 TEST_SRCS = ["src/setup_test.ts"]
 
 ts_project(
     name = "tfjs-core_lib",
-    srcs = glob(["src/**/*.ts"], exclude=TEST_SRCS),
+    srcs = glob(
+        ["src/**/*.ts"],
+        exclude = TEST_SRCS,
+    ),
     declaration = True,
     extends = "//:tsconfig.json",
-    root_dir = "src",
-    out_dir = "dist",
     incremental = True,
+    out_dir = "dist",
+    root_dir = "src",
     source_map = True,
     tsconfig = "tsconfig.json",
     deps = [
         "@npm//@types",
-        "@npm//seedrandom",
         "@npm//jasmine-core",
+        "@npm//seedrandom",
     ],
 )
 
 ts_library(
     name = "tfjs-core_test_lib",
+    testonly = True,
     srcs = [
         "setup_test_bazel.ts",
     ],
-    testonly = True,
     tsconfig = "//:tsconfig_ts_library.json",
     deps = [
-        "@npm//@types",
-        "@npm//seedrandom",
-        "@npm//jasmine-core",
         ":tfjs-core",
+        "@npm//@types",
+        "@npm//jasmine-core",
+        "@npm//seedrandom",
     ],
 )
 
@@ -61,45 +65,45 @@ esbuild(
         "--tree-shaking=ignore-annotations",
     ],
     entry_point = "setup_test_bazel.ts",
+    external = [
+        # webworker tests call 'require('@tensorflow/tfjs')', which
+        # is external to the test bundle.
+        # Note: This is not a bazel target. It's just a string.
+        "@tensorflow/tfjs",
+    ],
     sources_content = True,
     deps = [
         ":tfjs-core_lib",
         ":tfjs-core_test_lib",
         "//tfjs-backend-cpu",
     ],
-    external = [
-        # webworker tests call 'require('@tensorflow/tfjs')', which
-        # is external to the test bundle.
-        # Note: This is not a bazel target. It's just a string.
-        "@tensorflow/tfjs",
-    ]
 )
 
 esbuild(
     name = "tf-core.min",
     entry_point = "dist/index.ts",
-    sources_content = True,
-    minify = True,
-    deps = [
-        ":tfjs-core_lib",
-    ],
     external = [
         "node-fetch",
         "util",
+    ],
+    minify = True,
+    sources_content = True,
+    deps = [
+        ":tfjs-core_lib",
     ],
 )
 
 esbuild(
     name = "tf-core.node",
     entry_point = "dist/index.ts",
+    external = [
+        "node-fetch",
+        "util",
+    ],
     sources_content = True,
     deps = [
         ":tfjs-core_lib",
     ],
-    external = [
-        "node-fetch",
-        "util",
-    ]
 )
 
 js_library(
@@ -112,7 +116,7 @@ js_library(
         ":tf-core.min",
         ":tf-core.node",
         ":tfjs-core_lib",
-    ]
+    ],
 )
 
 karma_web_test(
@@ -120,24 +124,19 @@ karma_web_test(
     srcs = [
         ":tfjs-core_test_bundle",
     ],
-    tags = ["native"],
     static_files = [
         # Listed here so sourcemaps are served
         ":tfjs-core_test_bundle",
-    ]
+    ],
+    tags = ["native"],
 )
 
 karma_web_test(
     name = "browserstack_tfjs-core_test",
-    tags = ["ci"],
     srcs = [
         ":tfjs-core_test_bundle",
     ],
     config_file = "//:karma.conf.js",
-    static_files = [
-        # Listed here so sourcemaps are served
-        ":tfjs-core_test_bundle",
-    ],
     peer_deps = [
         "@npm//karma",
         "@npm//karma-chrome-launcher",
@@ -147,6 +146,10 @@ karma_web_test(
         "@npm//karma-sourcemap-loader",
         "@npm//requirejs",
         "@npm//karma-browserstack-launcher",
-    ]
+    ],
+    static_files = [
+        # Listed here so sourcemaps are served
+        ":tfjs-core_test_bundle",
+    ],
+    tags = ["ci"],
 )
-

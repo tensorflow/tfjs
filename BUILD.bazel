@@ -1,1 +1,6 @@
-exports_files(["tsconfig.json", "tsconfig.test.json", "tsconfig_ts_library.json", "karma.conf.js"])
+exports_files([
+    "tsconfig.json",
+    "tsconfig.test.json",
+    "tsconfig_ts_library.json",
+    "karma.conf.js",
+])

@@ -1,11 +1,12 @@
 workspace(
     name = "tfjs",
     managed_directories = {
-        "@npm": ["node_modules"]
-    }
+        "@npm": ["node_modules"],
+    },
 )
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 http_archive(
     name = "build_bazel_rules_nodejs",
     sha256 = "55a25a762fcf9c9b88ab54436581e671bc9f4f523cb5a1bd32459ebec7be68a8",
@@ -13,6 +14,7 @@ http_archive(
 )
 
 load("@build_bazel_rules_nodejs//:index.bzl", "yarn_install")
+
 yarn_install(
     name = "npm",
     package_json = "//:package.json",
@@ -39,52 +41,55 @@ browser_repositories(
 
 # Install esbuild
 _ESBUILD_VERSION = "0.8.48"  # reminder: update SHAs below when changing this value
+
 http_archive(
     name = "esbuild_darwin",
+    build_file_content = """exports_files(["bin/esbuild"])""",
+    sha256 = "d21a722873ed24586f071973b77223553fca466946f3d7e3976eeaccb14424e6",
+    strip_prefix = "package",
     urls = [
         "https://registry.npmjs.org/esbuild-darwin-64/-/esbuild-darwin-64-%s.tgz" % _ESBUILD_VERSION,
     ],
-    strip_prefix = "package",
-    build_file_content = """exports_files(["bin/esbuild"])""",
-    sha256 = "d21a722873ed24586f071973b77223553fca466946f3d7e3976eeaccb14424e6",
 )
 
 http_archive(
     name = "esbuild_windows",
+    build_file_content = """exports_files(["esbuild.exe"])""",
+    sha256 = "fe5dcb97b4c47f9567012f0a45c19c655f3d2e0d76932f6dd12715dbebbd6eb0",
+    strip_prefix = "package",
     urls = [
         "https://registry.npmjs.org/esbuild-windows-64/-/esbuild-windows-64-%s.tgz" % _ESBUILD_VERSION,
     ],
-    strip_prefix = "package",
-    build_file_content = """exports_files(["esbuild.exe"])""",
-    sha256 = "fe5dcb97b4c47f9567012f0a45c19c655f3d2e0d76932f6dd12715dbebbd6eb0",
 )
 
 http_archive(
     name = "esbuild_linux",
+    build_file_content = """exports_files(["bin/esbuild"])""",
+    sha256 = "60dabe141e5dfcf99e7113bded6012868132068a582a102b258fb7b1cfdac14b",
+    strip_prefix = "package",
     urls = [
         "https://registry.npmjs.org/esbuild-linux-64/-/esbuild-linux-64-%s.tgz" % _ESBUILD_VERSION,
     ],
-    strip_prefix = "package",
-    build_file_content = """exports_files(["bin/esbuild"])""",
-    sha256 = "60dabe141e5dfcf99e7113bded6012868132068a582a102b258fb7b1cfdac14b",
 )
 
 # Emscripten toolchain
 http_archive(
     name = "emsdk",
+    sha256 = "7a58a9996b113d3e0675df30b5f17e28aa47de2e684a844f05394fe2f6f12e8e",
     strip_prefix = "emsdk-c1589b55641787d55d53e883852035beea9aec3f/bazel",
     url = "https://github.com/emscripten-core/emsdk/archive/c1589b55641787d55d53e883852035beea9aec3f.tar.gz",
-    sha256 = "7a58a9996b113d3e0675df30b5f17e28aa47de2e684a844f05394fe2f6f12e8e",
 )
 
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
+
 emsdk_deps()
 
 load("@emsdk//:emscripten_deps.bzl", emsdk_emscripten_deps = "emscripten_deps")
+
 emsdk_emscripten_deps()
 
-
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
 # xnnpack used for fast vectorized wasm operations
 git_repository(
     name = "xnnpack",
