@@ -55,14 +55,14 @@ describeWithFlags('einsum', ALL_ENVS, () => {
     expectArraysClose(await out.data(), 10);
   });
 
-  it('two 1d tensors dot product', async () => {
+  it('two 1d tensors dot', async () => {
     const x = tensor1d([1, 3, 5]);
     const y = tensor1d([2, 4, 6]);
     const out = tf.einsum('i,i->', x, y);
     expectArraysClose(await out.data(), 44);
   });
 
-  it('two 1d tensors outer product', async () => {
+  it('two 1d tensors outer', async () => {
     const x = tensor1d([1, 3, 5]);
     const y = tensor1d([2, 4, 6]);
     const out = tf.einsum('i,j->ij', x, y);
@@ -93,7 +93,7 @@ describeWithFlags('einsum', ALL_ENVS, () => {
     expectArraysClose(await out.data(), [6, 15]);
   });
 
-  it('2d matrix transpose', async () => {
+  it('2d matrix transposing', async () => {
     const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
     const out = tf.einsum('ij->ji', x);
     expectArraysClose(await out.data(), [[1, 4], [2, 5], [3, 6]]);
@@ -106,21 +106,21 @@ describeWithFlags('einsum', ALL_ENVS, () => {
     expectArraysClose(await out.data(), [[16, 22], [34, 49]]);
   });
 
-  it('2d matrix multiply and transpose', async () => {
+  it('2d matrix multiply and transposing', async () => {
     const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
     const y = tensor2d([[0, 1], [2, 3], [4, 5]]);
     const out = tf.einsum('ij,jk->ki', x, y);
     expectArraysClose(await out.data(), [[16, 34], [22, 49]]);
   });
 
-  it('two 2d matrices batch dot product', async () => {
+  it('two 2d matrices batch dot', async () => {
     const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
     const y = tensor2d([[0, 1, 2], [3, 4, 5]]);
     const out = tf.einsum('bi,bi->b', x, y);
     expectArraysClose(await out.data(), [8, 62]);
   });
 
-  it('two 2d matrices batch output product product', async () => {
+  it('two 2d matrices batch outer', async () => {
     const x = tensor2d([[1, 2, 3], [4, 5, 6]]);
     const y = tensor2d([[0, 1, 2], [3, 4, 5]]);
     const out = tf.einsum('bi,bj->bij', x, y);
