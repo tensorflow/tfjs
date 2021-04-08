@@ -30,10 +30,9 @@ steps:
   id: 'bazel-tests'
   entrypoint: 'bash'
   args:
-    - 'bazel'
-    - 'test'
-    - '--test_output=all'
-    - '`bazel query --output label ''attr("tags", "ci", ...)''`'
+    - './scripts/run_bazel_ci_tests.sh'
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  secretEnv: ['BROWSERSTACK_KEY']
 
 # General configuration
 secrets:
