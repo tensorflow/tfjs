@@ -50,7 +50,6 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
       for (let c = 0; c < filterWidth; c++) {
         mainLoop += `
           vec4 xTexelR${r}C${c * 2} = vec4(0.);
-          vec4 wR${r}C${c} = vec4(0.);
           vec4 xR${r}C${c} = vec4(0.);`;
       }
     }
@@ -64,7 +63,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
      * values from a texture2D call at once.
      */
     for (let r = 0; r < filterHeight; r++) {
-      for (let texelC = 0; texelC < texelsAcross; texelC++) {
+      for (let texelC = 0; texelC < (texelsAcross / 2 + 1); texelC++) {
         const c = texelC * 2;
 
         mainLoop += `
@@ -96,26 +95,33 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                   if(xCOffset + 1 >= ${xNumCols}) {
                     xTexelR${r}C${c}.zw = vec2(0.);
                   }
-                } else {
-                  xTexelR${r}C${c} = vec4(0.);
                 }
+               `;
+              if (dilationWidth === 1 && c > 0) {
+                mainLoop += `
+                  xR${r}C${c} = vec4(xTexelR${r}C${c - 2}.zw, xTexelR${r}C${
+                    c}.xy);
+                 `;
+              } else {
+                mainLoop += `
+                 xCOffset = xC + 1 - 2;
 
-                xCOffset = xC + 1 - 2;
-                if(xR >= 0 && xR < ${xNumRows} && xCOffset >= 0 && xCOffset < ${
-                  xNumCols}) {
-                  vec4 previous = getX(batch, xR, xCOffset, d1);
+                 if(xR >= 0 && xR < ${
+                    xNumRows} && xCOffset >= 0 && xCOffset < ${xNumCols}) {
+                   vec4 previous = getX(batch, xR, xCOffset, d1);
 
-                  // Need to manually clear unused channels in case
-                  // we're reading from recycled texture.
-                  if(xCOffset + 1 >= ${xNumCols}) {
-                    previous.zw = vec2(0.);
-                  }
+                   // Need to manually clear unused channels in case
+                   // we're reading from recycled texture.
+                   if(xCOffset + 1 >= ${xNumCols}) {
+                     previous.zw = vec2(0.);
+                   }
 
-                  xR${r}C${c} = vec4(previous.zw, xTexelR${r}C${c}.xy);
-                } else {
-                  xR${r}C${c} = vec4(0, 0, xTexelR${r}C${c}.xy);
-                }
-              `;
+                   xR${r}C${c} = vec4(previous.zw, xTexelR${r}C${c}.xy);
+                 } else {
+                   xR${r}C${c} = vec4(0, 0, xTexelR${r}C${c}.xy);
+                 }
+               `;
+              }
             } else {
               // Padding is even, so xRC corresponds to a single texel.
               mainLoop += `
@@ -170,7 +176,12 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                     xTexelR${r}C${c}.zw, xTexelR${r}C${c + 2}.xy);
                 `;
               } else {
-                mainLoop += `
+                if (nextTexelOffset === 1) {
+                  mainLoop += `
+                  xR${r}C${c + 1} = xTexelR${r}C${c};
+                  `;
+                } else {
+                  mainLoop += `
                   xCOffset = xC + ${nextTexelOffset};
 
                   if(xR >= 0 && xR < ${xNumRows} &&
@@ -180,6 +191,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
 
                   xR${r}C${c + 1} = xTexelR${r}C${c + 2};
                 `;
+                }
               }
             }
           }
@@ -258,22 +270,17 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
         if (c < filterWidth) {
           mainLoop += `
             vec4 wTexelR${r}C${c} = getW(${r}, ${c}, d1, q);
-            wR${r}C${c} = vec4(wTexelR${r}C${c}.xz, wTexelR${r}C${c}.xz);
+            dotProd += vec4(xR${r}C${c}.xy * wTexelR${r}C${c}.xz, xR${r}C${
+              c}.zw * wTexelR${r}C${c}.xz);
           `;
 
           if (c + 1 < filterWidth) {
             mainLoop += `
               vec4 wTexelR${r}C${c + 1} = getW(${r}, ${c + 1}, d1, q);
-              wR${r}C${c + 1} =
-                vec4(wTexelR${r}C${c + 1}.xz, wTexelR${r}C${c + 1}.xz);`;
+              dotProd += vec4(xR${r}C${c + 1}.xy * wTexelR${r}C${c + 1}.xz, xR${
+                r}C${c + 1}.zw * wTexelR${r}C${c + 1}.xz);`;
           }
         }
-      }
-    }
-
-    for (let r = 0; r < filterHeight; r++) {
-      for (let c = 0; c < filterWidth; c++) {
-        mainLoop += `dotProd += xR${r}C${c} * wR${r}C${c};`;
       }
     }
 
