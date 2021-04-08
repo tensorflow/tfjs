@@ -276,6 +276,12 @@ export class WebGPUBackend extends KernelBackend {
     return this.tensorMap.get(dataId).bufferInfo.buffer;
   }
 
+  ensureCommandEncoderReady() {
+    if (!this.currentCommandEncoder) {
+      this.currentCommandEncoder = this.device.createCommandEncoder();
+    }
+  }
+
   private async getBufferData(info: TensorBufferInfo):
       Promise<backend_util.BackendValues> {
     if (info.values != null) {
@@ -285,9 +291,7 @@ export class WebGPUBackend extends KernelBackend {
     const staging = this.acquireBuffer(
         info.bufferInfo.byteSize,
         GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
-    if (!this.currentCommandEncoder) {
-      this.currentCommandEncoder = this.device.createCommandEncoder();
-    }
+    this.ensureCommandEncoderReady();
     this.currentCommandEncoder.copyBufferToBuffer(
         info.bufferInfo.buffer, 0, staging, 0, info.bufferInfo.byteSize);
     this.submitQueue();
@@ -527,10 +531,7 @@ export class WebGPUBackend extends KernelBackend {
         this.device, bindGroupLayout, inputs.map(t => this.tensorToBinding(t)),
         this.tensorToBinding(output), uniforms);
 
-    if (!this.currentCommandEncoder) {
-      this.currentCommandEncoder = this.device.createCommandEncoder();
-    }
-
+    this.ensureCommandEncoderReady();
     const pass = this.currentCommandEncoder.beginComputePass();
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
@@ -600,10 +601,7 @@ export class WebGPUBackend extends KernelBackend {
       ],
     });
 
-    if (!this.currentCommandEncoder) {
-      this.currentCommandEncoder = this.device.createCommandEncoder({});
-    }
-
+    this.ensureCommandEncoderReady();
     const passEncoder = this.currentCommandEncoder.beginComputePass();
     passEncoder.setPipeline(this.fromPixelProgram.pipeline);
     passEncoder.setBindGroup(0, bindGroup);
@@ -619,9 +617,7 @@ export class WebGPUBackend extends KernelBackend {
     const dst = this.acquireBuffer(
         16, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
 
-    if (!this.currentCommandEncoder) {
-      this.currentCommandEncoder = this.device.createCommandEncoder();
-    }
+    this.ensureCommandEncoderReady();
     this.currentCommandEncoder.resolveQuerySet(querySet, 0, 2, queryBuffer, 0);
     this.currentCommandEncoder.copyBufferToBuffer(queryBuffer, 0, dst, 0, 16);
     this.submitQueue();
