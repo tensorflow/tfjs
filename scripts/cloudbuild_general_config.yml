@@ -28,7 +28,7 @@ steps:
   id: 'buildifier'
   entrypoint: 'yarn'
   args: ['buildifier-ci']
-  waitFor: ['yarn']
+  waitFor: ['yarn-common']
 
 # Bazel tests
 # These use a remote cache and only re-run if changes occurred, so we run them
