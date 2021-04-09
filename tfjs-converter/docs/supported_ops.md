@@ -238,6 +238,7 @@
 |_FusedMatMul|_FusedMatMul|
 |BatchMatMul|BatchMatMul|
 |BatchMatMulV2|BatchMatMulV2|
+|Einsum|Einsum|
 |MatMul|matMul|
 |Transpose|transpose|
 |Not mapped|dot|

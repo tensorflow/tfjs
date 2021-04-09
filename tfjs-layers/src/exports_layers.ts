@@ -12,7 +12,7 @@ import {InputLayer, InputLayerArgs} from './engine/input_layer';
 import {Layer, LayerArgs} from './engine/topology';
 import {input} from './exports';
 import {ELU, ELULayerArgs, LeakyReLU, LeakyReLULayerArgs, PReLU, PReLULayerArgs, ReLU, ReLULayerArgs, Softmax, SoftmaxLayerArgs, ThresholdedReLU, ThresholdedReLULayerArgs} from './layers/advanced_activations';
-import {Conv1D, Conv2D, Conv2DTranspose, Conv3D, ConvLayerArgs, Cropping2D, Cropping2DLayerArgs, SeparableConv2D, SeparableConvLayerArgs, UpSampling2D, UpSampling2DLayerArgs} from './layers/convolutional';
+import {Conv1D, Conv2D, Conv2DTranspose, Conv3D, ConvLayerArgs, Cropping2D, Cropping2DLayerArgs, SeparableConv2D, SeparableConvLayerArgs, UpSampling2D, UpSampling2DLayerArgs, Conv3DTranspose} from './layers/convolutional';
 import {DepthwiseConv2D, DepthwiseConv2DLayerArgs} from './layers/convolutional_depthwise';
 import {ConvLSTM2D, ConvLSTM2DArgs, ConvLSTM2DCell, ConvLSTM2DCellArgs} from './layers/convolutional_recurrent';
 import {Activation, ActivationLayerArgs, Dense, DenseLayerArgs, Dropout, DropoutLayerArgs, Flatten, FlattenLayerArgs, Masking, MaskingArgs, Permute, PermuteLayerArgs, RepeatVector, RepeatVectorLayerArgs, Reshape, ReshapeLayerArgs, SpatialDropout1D, SpatialDropout1DLayerConfig} from './layers/core';
@@ -323,6 +323,10 @@ export function conv2dTranspose(args: ConvLayerArgs) {
  */
 export function conv3d(args: ConvLayerArgs) {
   return new Conv3D(args);
+}
+
+export function conv3dTranspose(args: ConvLayerArgs): Layer {
+  return new Conv3DTranspose(args);
 }
 
 /**

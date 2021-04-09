@@ -16,17 +16,17 @@
  */
 
 import {getShapeCoords} from '../shader_preprocessor';
-import {computeDispatch} from '../webgpu_util';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
 export class ResizeBilinearProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  dispatchLayout: {x: number[], y: number[], z: number[]};
+  dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  workGroupSize: [number, number, number] = [4, 4, 4];
+  workGroupSize: [number, number, number] = [64, 1, 1];
   inputShape: [number, number, number, number];
   alignCorners: boolean;
 
@@ -35,7 +35,7 @@ export class ResizeBilinearProgram implements WebGPUProgram {
       newWidth: number, alignCorners: boolean) {
     this.outputShape = [inputShape[0], newHeight, newWidth, inputShape[3]];
 
-    this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
 
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);

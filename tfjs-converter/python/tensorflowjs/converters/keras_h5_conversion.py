@@ -120,7 +120,7 @@ def _initialize_output_dictionary(h5file):
 
 def _ensure_h5file(h5file):
   if not isinstance(h5file, h5py.File):
-    return h5py.File(h5file)
+    return h5py.File(h5file, "r")
   else:
     return h5file
 

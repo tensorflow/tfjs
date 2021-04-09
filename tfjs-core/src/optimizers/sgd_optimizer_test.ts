@@ -21,6 +21,7 @@ import {expectArraysClose} from '../test_util';
 
 describeWithFlags('SGDOptimizer', ALL_ENVS, () => {
   it('basic', async () => {
+    const initialTensors = tf.memory().numTensors;
     const learningRate = .1;
     const optimizer = tf.train.sgd(learningRate);
 
@@ -51,8 +52,8 @@ describeWithFlags('SGDOptimizer', ALL_ENVS, () => {
 
     optimizer.dispose();
     x.dispose();
-    // The only tensor remaining is the argument to variable().
-    expect(tf.memory().numTensors).toBe(1);
+    // The only additional tensor remaining is the argument to variable().
+    expect(tf.memory().numTensors).toBe(initialTensors + 1);
   });
 
   it('Set and get weights: empty', async () => {
