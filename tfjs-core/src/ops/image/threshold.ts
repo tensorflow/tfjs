@@ -34,8 +34,9 @@ import { convertToTensor } from '../../tensor_util_env';
 
 /**
  * Performs image binarization with corresponding threshold
- * (depends on the method)value, which creates a binary image from a grayscale image.
- * @param image 3D tensor of shape [batch, imageHeight, imageWidth, depth]. The image color range should be [0, 255].
+ * (depends on the method)value, which creates a binary image from a grayscale.
+ * @param image 3D tensor of shape [batch, imageHeight, imageWidth, depth].
+ * The image color range should be [0, 255].
  * @param method Optional string from `'binary' | 'otsu'`,
  *     defaults to binary, which specifies the method for thresholding.
  * @param inverted Optional boolean which
@@ -46,8 +47,8 @@ import { convertToTensor } from '../../tensor_util_env';
 
 function threshold_(
     image: Tensor3D | TensorLike,
-    method: 'binary' | 'otsu' = 'binary',
-    inverted: boolean = false,
+    method = 'binary',
+    inverted = false,
     threshValue: number = 0.5
 ): Tensor3D {
     const $image = convertToTensor(image, 'image', 'threshold');
@@ -73,30 +74,39 @@ function threshold_(
 
     if ($image.shape[2] === 3) {
         [r, g, b] = split($image, [1, 1, 1], -1);
-        grayscale = r.mul(redIntencityCoef).add(g.mul(greenIntencityCoef)).add(b.mul(blueIntencityCoef));//if image RGB
+        grayscale = r.mul(redIntencityCoef)
+                    .add(g.mul(greenIntencityCoef))
+                    .add(b.mul(blueIntencityCoef));
     } else {
         grayscale = image;
     }
 
     if (method === 'otsu') {
-        const $histogram = bincount(cast(grayscale.round(), 'int32'), tensor([]), 256);
+        const $histogram = bincount(
+            cast(grayscale.round(), 'int32'),
+            tensor([]),
+            256
+        );
         $threshold = otsu($histogram, totalPixelsInImage);
     }
 
-    const invCondition = inverted ? lessEqual(grayscale, $threshold) : greater(grayscale, $threshold);
+    const invCondition = inverted ?
+        lessEqual(grayscale, $threshold) : greater(grayscale, $threshold);
+
     const result = cast(invCondition.mul(255), 'int32');
     return result as Tensor3D;
 }
 
 function otsu(histogram: Tensor1D, total: number) {
 
-    let bestThreshold = tensor1d([-1]) //bestThreshold
+    let bestThreshold = tensor([-1]) //bestThreshold
     let bestInBetweenVariance = tensor([0]); // bestVariance
-    let curInBetweenVariance = tensor1d([0])
-    let classFirst, classSecond, meanFirst, meanSecond, weightForeground, weightBackground;
+    let curInBetweenVariance = tensor([0])
+    let classFirst, classSecond, meanFirst,
+        meanSecond, weightForeground, weightBackground;
 
     for (let index = 0; index < histogram.shape[0]; index++) {
-        if (index != histogram.shape[0] - 1) {
+        if (index !== histogram.shape[0] - 1) {
 
             classFirst = histogram.slice(0, index + 1);
 
@@ -106,15 +116,22 @@ function otsu(histogram: Tensor1D, total: number) {
 
             weightBackground = sum(classSecond).div(total);
 
-            meanFirst = sum(classFirst.mul(range(0, classFirst.shape[0]))).div(classFirst.sum());
+            meanFirst = sum(classFirst.mul(range(0, classFirst.shape[0])))
+                .div(classFirst.sum());
 
-            meanSecond = sum(classSecond.mul(add(range(0, classSecond.shape[0]), fill(classSecond.shape, classFirst.shape[0])))).div(classSecond.sum())
+            meanSecond = sum(classSecond.mul(
+                add(range(0, classSecond.shape[0]),
+                    fill(classSecond.shape, classFirst.shape[0]))))
+                .div(classSecond.sum())
 
-            curInBetweenVariance = (weightForeground.mul(weightBackground).mul(meanFirst.sub(meanSecond)).mul(meanFirst.sub(meanSecond))).reshape([1])  // currentVariance
+            curInBetweenVariance = (weightForeground.mul(weightBackground)
+                .mul(meanFirst.sub(meanSecond)).mul(meanFirst.sub(meanSecond)))
+                .reshape([1])  // currentVariance
 
-            let condition = curInBetweenVariance.greater(bestInBetweenVariance);
+            const condition = curInBetweenVariance.greater(bestInBetweenVariance);
 
-            bestInBetweenVariance = curInBetweenVariance.where(condition, bestInBetweenVariance);
+            bestInBetweenVariance = curInBetweenVariance
+                .where(condition, bestInBetweenVariance);
 
             bestThreshold = tensor1d([index]).where(condition, bestThreshold);
 
