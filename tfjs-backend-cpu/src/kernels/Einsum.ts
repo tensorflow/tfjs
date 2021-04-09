@@ -74,7 +74,7 @@ export function einsum(
           inputs: {x: out},
           backend,
           attrs: {
-            axis: path[i] < out.shape.length ? path[i] : undefined,
+            axis: path[i] - (allDims.length - numDimsRemaining),
             keepDims: false
           }
         });

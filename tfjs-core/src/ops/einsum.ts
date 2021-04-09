@@ -90,7 +90,6 @@ import {op} from './operation';
  * - Does not support >2 input tensors.
  * - Does not support duplicate axes for any given input tensor. E.g., equation
  *   'ii->' is not suppoted.
- * - For two or more input tensors, up to only one summation axis is supported.
  * - The `...` notation is not supported.
  *
  * @param equation a string describing the contraction, in the same format as
