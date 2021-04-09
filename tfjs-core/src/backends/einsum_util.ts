@@ -108,11 +108,6 @@ export function decodeEinsumEquation(equation: string, numTensors: number): {
   for (let i = numOutDims; i < numDims; ++i) {
     summedDims.push(i);
   }
-  if (numInputs > 1 && summedDims.length > 1) {
-    throw new Error(
-        'Summation over >1 axes is not implemented for ' +
-        '>1 input tensors yet.');
-  }
   return {allDims, summedDims, idDims};
 }
 
