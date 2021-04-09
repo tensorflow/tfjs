@@ -25,6 +25,7 @@
     "@rollup/plugin-typescript": "^3.0.0",
     "@tensorflow/tfjs-core": "link:../tfjs-core",
     "@types/jasmine": "~3.0.0",
+    "@types/webgl2": "0.0.5",
     "clang-format": "~1.2.4",
     "jasmine": "~3.1.0",
     "jasmine-core": "~3.1.0",
@@ -72,7 +73,6 @@
     "@types/offscreencanvas": "~2019.3.0",
     "@types/seedrandom": "2.4.27",
     "@types/webgl-ext": "0.0.30",
-    "@types/webgl2": "0.0.5",
     "seedrandom": "2.4.3"
   },
   "peerDependencies": {
