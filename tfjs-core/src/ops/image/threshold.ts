@@ -58,10 +58,7 @@ function threshold_(
     const totalPixelsInImage = $image.shape[0] * $image.shape[1];
 
     let $threshold = tensor1d([threshValue]).mul(255);
-    let r,
-        g,
-        b,
-        grayscale;
+    let r, g, b, grayscale;
 
     util.assert(
         $image.rank === 3,
@@ -117,12 +114,12 @@ function otsu(histogram: Tensor1D, total: number) {
             weightBackground = sum(classSecond).div(total);
 
             meanFirst = sum(classFirst.mul(range(0, classFirst.shape[0])))
-                .div(classFirst.sum());
+                        .div(classFirst.sum());
 
             meanSecond = sum(classSecond.mul(
-                add(range(0, classSecond.shape[0]),
+                    add(range(0, classSecond.shape[0]),
                     fill(classSecond.shape, classFirst.shape[0]))))
-                .div(classSecond.sum());
+                    .div(classSecond.sum());
 
             curInBetweenVariance = (weightForeground.mul(weightBackground)
                 .mul(meanFirst.sub(meanSecond)).mul(meanFirst.sub(meanSecond)))
