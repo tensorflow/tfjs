@@ -138,6 +138,9 @@
   "DivNoNan": [
     "divNoNan"
   ],
+  "Einsum": [
+    "einsum"
+  ],
   "Elu": [
     "elu"
   ],

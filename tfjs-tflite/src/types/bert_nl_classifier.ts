@@ -15,9 +15,23 @@
  * =============================================================================
  */
 
-const fs = require('fs');
+import {Category} from './common';
 
-// Get the version number from the "version" field of the package.json file.
-const packageJsonFile =
-    JSON.parse(fs.readFileSync(`${__dirname}/../package.json`).toString());
-console.log(packageJsonFile.version);
+/** BertNLClassifier class type. */
+export declare interface BertNLClassifierClass {
+  /**
+   * The factory function to create a NLClassifier instance.
+   *
+   * @param modelPath The path to load the TFLite model from.
+   */
+  create(modelPath: string): Promise<BertNLClassifier>;
+}
+
+/** The main BertNLClassifier class instance. */
+export declare class BertNLClassifier {
+  /** Performs classification on a string input, returns classified results. */
+  classify(input: string): Category[]|undefined;
+
+  /** Cleans up resources when the instance is no longer needed. */
+  cleanUp(): void;
+}
