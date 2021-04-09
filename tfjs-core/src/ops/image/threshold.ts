@@ -49,7 +49,7 @@ function threshold_(
     image: Tensor3D | TensorLike,
     method = 'binary',
     inverted = false,
-    threshValue: number = 0.5
+    threshValue =  0.5
 ): Tensor3D {
     const $image = convertToTensor(image, 'image', 'threshold');
     const redIntencityCoef = 0.2126;
@@ -99,9 +99,9 @@ function threshold_(
 
 function otsu(histogram: Tensor1D, total: number) {
 
-    let bestThreshold = tensor([-1]) //bestThreshold
-    let bestInBetweenVariance = tensor([0]); // bestVariance
-    let curInBetweenVariance = tensor([0])
+    let bestThreshold = tensor([-1]);
+    let bestInBetweenVariance = tensor([0]);
+    let curInBetweenVariance = tensor([0]);
     let classFirst, classSecond, meanFirst,
         meanSecond, weightForeground, weightBackground;
 
@@ -122,13 +122,14 @@ function otsu(histogram: Tensor1D, total: number) {
             meanSecond = sum(classSecond.mul(
                 add(range(0, classSecond.shape[0]),
                     fill(classSecond.shape, classFirst.shape[0]))))
-                .div(classSecond.sum())
+                .div(classSecond.sum());
 
             curInBetweenVariance = (weightForeground.mul(weightBackground)
                 .mul(meanFirst.sub(meanSecond)).mul(meanFirst.sub(meanSecond)))
-                .reshape([1])  // currentVariance
+                .reshape([1]);
 
-            const condition = curInBetweenVariance.greater(bestInBetweenVariance);
+            const condition = curInBetweenVariance
+                .greater(bestInBetweenVariance);
 
             bestInBetweenVariance = curInBetweenVariance
                 .where(condition, bestInBetweenVariance);
