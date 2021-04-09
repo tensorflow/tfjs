@@ -33,13 +33,13 @@ const devConfig = {
     {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
     'src/setup_test.ts',
     {pattern: 'src/**/*.ts'},
-    'src/tflite_web_client.js',
+    'src/tflite_web_api_client.js',
   ],
   exclude: [
     'src/index.ts',
   ],
   preprocessors: {
-    'src/tflite_web_client.js': ['karma-typescript'],
+    'src/tflite_web_api_client.js': ['karma-typescript'],
     '**/*.ts': ['karma-typescript'],
     '**/*.d.ts': ['karma-typescript'],
   },

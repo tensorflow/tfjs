@@ -24,7 +24,7 @@ import {DetectionResult, ObjectDetectorClass, ObjectDetectorOptions} from './obj
 import {TFLiteWebModelRunnerClass} from './tflite_web_model_runner';
 
 export declare interface TFLiteWebAPIClient {
-  tfweb: {
+  tflite_web_api: {
     /**
      * Sets the path to load all the WASM module files from.
      *
