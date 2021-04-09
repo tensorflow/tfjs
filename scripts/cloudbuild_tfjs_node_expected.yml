@@ -19,13 +19,15 @@ steps:
       - test-run-flaky
     waitFor:
       - yarn-common
-  - name: gcr.io/cloud-builders/bazel
+  - name: 'node:10'
     id: bazel-tests
     entrypoint: bash
     args:
       - ./scripts/run_bazel_ci_tests.sh
     env:
       - BROWSERSTACK_USERNAME=deeplearnjs1
+    waitFor:
+      - yarn-common
     secretEnv:
       - BROWSERSTACK_KEY
   - name: 'node:10'

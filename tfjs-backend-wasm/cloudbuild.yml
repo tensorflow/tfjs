@@ -47,14 +47,6 @@ steps:
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 
-# Run C++ tests.
-- name: 'gcr.io/learnjs-174218/wasm'
-  dir: 'tfjs-backend-wasm'
-  entrypoint: 'yarn'
-  id: 'test-cc'
-  args: ['test-cc']
-  waitFor: ['build']
-
 # Check bundle size.
 - name: 'gcr.io/learnjs-174218/wasm'
   dir: 'tfjs-backend-wasm'

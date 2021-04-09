@@ -75,6 +75,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "backend_tests",
     srcs = glob(["*_test.cc"]),
+    tags = ["ci"],
     deps = [
         ":Prelu",
         ":backend",
@@ -342,6 +343,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "AvgPool_test",
     srcs = ["kernels/AvgPool_test.cc"],
+    tags = ["ci"],
     deps = [
         ":AvgPool",
     ],
@@ -371,6 +373,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "BatchMatMul_test",
     srcs = ["kernels/BatchMatMul_test.cc"],
+    tags = ["ci"],
     deps = [
         ":BatchMatMul",
     ],
@@ -379,6 +382,7 @@ tfjs_unit_test(
 tfjs_unit_test(
     name = "_FusedMatMul_test",
     srcs = ["kernels/_FusedMatMul_test.cc"],
+    tags = ["ci"],
     deps = [
         ":_FusedMatMul",
     ],
@@ -397,6 +401,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "ClipByValue_test",
     srcs = ["kernels/ClipByValue_test.cc"],
+    tags = ["ci"],
     deps = [
         ":ClipByValue",
     ],
@@ -415,6 +420,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "Conv2D_test",
     srcs = ["kernels/Conv2D_test.cc"],
+    tags = ["ci"],
     deps = [
         ":Conv2D",
     ],
@@ -479,6 +485,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "DepthwiseConv2dNative_test",
     srcs = ["kernels/DepthwiseConv2dNative_test.cc"],
+    tags = ["ci"],
     deps = [
         ":DepthwiseConv2dNative",
     ],
@@ -551,6 +558,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "FusedConv2D_test",
     srcs = ["kernels/FusedConv2D_test.cc"],
+    tags = ["ci"],
     deps = [
         ":FusedConv2D",
     ],
@@ -569,6 +577,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "FusedDepthwiseConv2D_test",
     srcs = ["kernels/FusedDepthwiseConv2D_test.cc"],
+    tags = ["ci"],
     deps = [
         ":FusedDepthwiseConv2D",
     ],
@@ -704,6 +713,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "MaxPool_test",
     srcs = ["kernels/MaxPool_test.cc"],
+    tags = ["ci"],
     deps = [
         ":MaxPool",
     ],
@@ -807,6 +817,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "PadV2_test",
     srcs = ["kernels/PadV2_test.cc"],
+    tags = ["ci"],
     deps = [
         ":PadV2",
     ],
@@ -836,6 +847,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "Prelu_test",
     srcs = ["kernels/Prelu_test.cc"],
+    tags = ["ci"],
     deps = [
         ":Prelu",
     ],
@@ -874,6 +886,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "ResizeBilinear_test",
     srcs = ["kernels/ResizeBilinear_test.cc"],
+    tags = ["ci"],
     deps = [
         ":ResizeBilinear",
     ],
@@ -948,6 +961,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "Sigmoid_test",
     srcs = ["kernels/Sigmoid_test.cc"],
+    tags = ["ci"],
     deps = [
         ":Sigmoid",
     ],
@@ -956,6 +970,7 @@ tfjs_unit_test(
 tfjs_unit_test(
     name = "Softmax_test",
     srcs = ["kernels/Softmax_test.cc"],
+    tags = ["ci"],
     deps = [
         ":Softmax",
     ],
