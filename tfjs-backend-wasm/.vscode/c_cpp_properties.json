@@ -15,5 +15,6 @@
             "cppStandard": "c++11",
             "intelliSenseMode": "clang-x64"
         }
-    ]
+    ],
+    "version": 4
 }
