@@ -20,6 +20,13 @@ steps:
     waitFor:
       - yarn-common
   - name: 'node:10'
+    id: buildifier
+    entrypoint: yarn
+    args:
+      - buildifier-ci
+    waitFor:
+      - yarn
+  - name: 'node:10'
     id: bazel-tests
     entrypoint: bash
     args:
