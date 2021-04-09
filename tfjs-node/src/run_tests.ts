@@ -93,7 +93,10 @@ const IGNORE_LIST: string[] = [
   // not available in tf yet.
   'denseBincount',
   // only available in tf addon.
-  'image.transform'
+  'image.transform',
+  // Node kernel for einsum is yet to be implemented.
+  // See: ttps://github.com/tensorflow/tfjs/issues/2349
+  'einsum',
 ];
 
 if (process.platform === 'win32') {
