@@ -36,12 +36,13 @@ import { convertToTensor } from '../../tensor_util_env';
  * Performs image binarization with corresponding threshold
  * (depends on the method)value, which creates a binary image from a grayscale.
  * @param image 3D tensor of shape [batch, imageHeight, imageWidth, depth].
- * The image color range should be [0, 255].
- * @param method Optional string from `'binary' | 'otsu'`,
- *     defaults to binary, which specifies the method for thresholding.
- * @param inverted Optional boolean which
- *                specifies if colours should be inverted
+ *  The image color range should be [0, 255].
+ * @param method Optional string from `'binary' | 'otsu'`
+ *  which specifies the method for thresholding. Defaults to 'binary'.
+ * @param inverted Optional boolean whichspecifies
+ *  if colours should be inverted. Defaults to false.
  * @param threshValue Optional number which defines threshold value from 0 to 1.
+ *  Defaults to 0.5.
  * @return A 3D tensor which contains binarized image.
  */
 
@@ -66,14 +67,19 @@ function threshold_(
             `but got rank ${$image.rank}.`);
 
     util.assert(
+        $image.dtype === 'int32' || $image.dtype === 'float32',
+        () => 'Error in dtype: image dtype must be int32 or float32,' +
+            `but got dtype ${$image.dtype}.`);
+
+    util.assert(
         method === 'otsu' || method === 'binary',
         () => `Method must be binary or otsu, but was ${method}`);
 
     if ($image.shape[2] === 3) {
         [r, g, b] = split($image, [1, 1, 1], -1);
         grayscale = r.mul(redIntencityCoef)
-                    .add(g.mul(greenIntencityCoef))
-                    .add(b.mul(blueIntencityCoef));
+            .add(g.mul(greenIntencityCoef))
+            .add(b.mul(blueIntencityCoef));
     } else {
         grayscale = image;
     }
@@ -114,12 +120,12 @@ function otsu(histogram: Tensor1D, total: number) {
             weightBackground = sum(classSecond).div(total);
 
             meanFirst = sum(classFirst.mul(range(0, classFirst.shape[0])))
-                        .div(classFirst.sum());
+                .div(classFirst.sum());
 
             meanSecond = sum(classSecond.mul(
-                    add(range(0, classSecond.shape[0]),
+                add(range(0, classSecond.shape[0]),
                     fill(classSecond.shape, classFirst.shape[0]))))
-                    .div(classSecond.sum());
+                .div(classSecond.sum());
 
             curInBetweenVariance = (weightForeground.mul(weightBackground)
                 .mul(meanFirst.sub(meanSecond)).mul(meanFirst.sub(meanSecond)))
