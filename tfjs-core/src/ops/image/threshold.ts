@@ -85,7 +85,7 @@ function threshold_(
 
     const invCondition = inverted ? lessEqual(grayscale, $threshold) : greater(grayscale, $threshold);
     const result = cast(invCondition.mul(255), 'int32');
-    return result;
+    return result as Tensor3D;
 }
 
 function otsu(histogram: Tensor1D, total: number) {
