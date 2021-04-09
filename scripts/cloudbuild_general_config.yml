@@ -26,12 +26,13 @@ steps:
 # Bazel tests
 # These use a remote cache and only re-run if changes occurred, so we run them
 # in every build.
-- name: 'gcr.io/cloud-builders/bazel'
+- name: 'node:10'
   id: 'bazel-tests'
   entrypoint: 'bash'
   args:
     - './scripts/run_bazel_ci_tests.sh'
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  waitFor: ['yarn-common']
   secretEnv: ['BROWSERSTACK_KEY']
 
 # General configuration
