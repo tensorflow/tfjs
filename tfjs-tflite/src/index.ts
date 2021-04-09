@@ -16,7 +16,7 @@
  */
 
 export * from './tflite_model';
-export * from './types/tfweb_model_runner';
+export * from './types/tflite_web_model_runner';
 export * from './types/nl_classifier';
 export * from './types/image_classifier';
-export * from './types/tfweb';
+export * from './types/tflite_web_api';

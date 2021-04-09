@@ -21,12 +21,12 @@ steps:
   args: ['build-deps-ci']
   waitFor: ['yarn-common']
 
-# Download tfweb.
+# Download tflite web API.
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   dir: 'tfjs-tflite'
-  id: 'download-tfweb'
+  id: 'download-tflite-web-api'
   entrypoint: 'bash'
-  args: ['scripts/download-tfweb.sh']
+  args: ['scripts/download-tflite-web-api.sh']
   waitFor: ['yarn', 'build-deps']
 
 # Build.
@@ -35,7 +35,7 @@ steps:
   id: 'build'
   entrypoint: 'yarn'
   args: ['build-ci']
-  waitFor: ['yarn', 'build-deps', 'download-tfweb']
+  waitFor: ['yarn', 'build-deps', 'download-tflite-web-api']
 
 # Lint.
 - name: 'node:10'
@@ -43,7 +43,7 @@ steps:
   entrypoint: 'yarn'
   id: 'lint'
   args: ['lint']
-  waitFor: ['yarn', 'build-deps', 'download-tfweb']
+  waitFor: ['yarn', 'build-deps', 'download-tflite-web-api']
 
 # Run tests.
 - name: 'node:10'
@@ -51,7 +51,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-tfjs-tflite'
   args: ['test-ci']
-  waitFor: ['yarn', 'build-deps', 'lint', 'download-tfweb']
+  waitFor: ['yarn', 'build-deps', 'lint', 'download-tflite-web-api']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tfwebClient from './tfweb_client';
+import * as tfwebClient from './tflite_web_api_client';
 
 describe('TFWebClient', () => {
   beforeEach(() => {});

@@ -17,11 +17,11 @@
 
 import {DataType, InferenceModel, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, tensor, Tensor} from '@tensorflow/tfjs-core';
 
-import * as tfwebClient from './tfweb_client';
+import * as tfwebClient from './tflite_web_api_client';
 
-import {TFLiteDataType, TFWebModelRunner, TFWebModelRunnerOptions, TFWebModelRunnerTensorInfo} from './types/tfweb_model_runner';
+import {TFLiteDataType, TFLiteWebModelRunner, TFLiteWebModelRunnerOptions, TFLiteWebModelRunnerTensorInfo} from './types/tflite_web_model_runner';
 
-const DEFAULT_TFLITE_MODEL_RUNNER_OPTIONS: TFWebModelRunnerOptions = {
+const DEFAULT_TFLITE_MODEL_RUNNER_OPTIONS: TFLiteWebModelRunnerOptions = {
   numThreads: -1,
 };
 
@@ -34,7 +34,7 @@ const TFHUB_SEARCH_PARAM = '?lite-format=tflite';
  * @doc {heading: 'Models', subheading: 'Classes'}
  */
 export class TFLiteModel implements InferenceModel {
-  constructor(private readonly modelRunner: TFWebModelRunner) {}
+  constructor(private readonly modelRunner: TFLiteWebModelRunner) {}
 
   get inputs(): ModelTensorInfo[] {
     const modelInputs = this.modelRunner.getInputs();
@@ -91,7 +91,8 @@ export class TFLiteModel implements InferenceModel {
     // Named tensors.
     else {
       const inputTensorNames = Object.keys(inputs);
-      const modelInputMap: {[name: string]: TFWebModelRunnerTensorInfo} = {};
+      const modelInputMap:
+          {[name: string]: TFLiteWebModelRunnerTensorInfo} = {};
       modelInputs.forEach(modelInput => {
         modelInputMap[modelInput.name] = modelInput;
       });
@@ -145,7 +146,7 @@ export class TFLiteModel implements InferenceModel {
   }
 
   private setModelInputFromTensor(
-      modelInput: TFWebModelRunnerTensorInfo, tensor: Tensor) {
+      modelInput: TFLiteWebModelRunnerTensorInfo, tensor: Tensor) {
     // String and complex tensors are not supported.
     if (tensor.dtype === 'string' || tensor.dtype === 'complex64') {
       throw new Error(`Data type '${tensor.dtype}' not supported.`);
@@ -222,7 +223,7 @@ export class TFLiteModel implements InferenceModel {
     }
   }
 
-  private convertTFLiteTensorInfos(infos: TFWebModelRunnerTensorInfo[]):
+  private convertTFLiteTensorInfos(infos: TFLiteWebModelRunnerTensorInfo[]):
       ModelTensorInfo[] {
     return infos.map(info => {
       const dtype = getDTypeFromTFLiteType(info.dataType);
@@ -255,7 +256,7 @@ export class TFLiteModel implements InferenceModel {
     throw new Error(msgParts.join(' '));
   }
 
-  private getShapeFromTFLiteTensorInfo(info: TFWebModelRunnerTensorInfo) {
+  private getShapeFromTFLiteTensorInfo(info: TFLiteWebModelRunnerTensorInfo) {
     return info.shape.split(',').map(s => Number(s));
   }
 
@@ -275,7 +276,7 @@ export class TFLiteModel implements InferenceModel {
  */
 export async function loadTFLiteModel(
     modelUrl: string,
-    options: TFWebModelRunnerOptions =
+    options: TFLiteWebModelRunnerOptions =
         DEFAULT_TFLITE_MODEL_RUNNER_OPTIONS): Promise<TFLiteModel> {
   // Handle tfhub links.
   if (modelUrl.includes('tfhub.dev')) {
@@ -284,7 +285,7 @@ export async function loadTFLiteModel(
     }
   }
   const tfliteModelRunner =
-      await tfwebClient.tfweb.TFWebModelRunner.create(modelUrl, options);
+      await tfwebClient.tfweb.TFLiteWebModelRunner.create(modelUrl, options);
   return new TFLiteModel(tfliteModelRunner);
 }
 

@@ -19,11 +19,11 @@ import * as tf from '@tensorflow/tfjs-core';
 import {NamedTensorMap} from '@tensorflow/tfjs-core';
 
 import {TFLiteModel} from './tflite_model';
-import {TFWebModelRunner, TFWebModelRunnerOptions, TFWebModelRunnerTensorInfo} from './types/tfweb_model_runner';
+import {TFLiteWebModelRunner, TFLiteWebModelRunnerOptions, TFLiteWebModelRunnerTensorInfo} from './types/tflite_web_model_runner';
 
-// A mock TFWebModelRunner that doubles the data from input tensors to output
-// tensors during inference.
-class MockModelRunner implements TFWebModelRunner {
+// A mock TFLiteWebModelRunner that doubles the data from input tensors to
+// output tensors during inference.
+class MockModelRunner implements TFLiteWebModelRunner {
   private mockInferResults: string[] = [];
 
   private inputTensors = this.getTensorInfos();
@@ -32,16 +32,16 @@ class MockModelRunner implements TFWebModelRunner {
   singleInput = false;
   singleOutput = false;
 
-  constructor(modelPath: string, options: TFWebModelRunnerOptions) {
+  constructor(modelPath: string, options: TFLiteWebModelRunnerOptions) {
     this.mockInferResults.push(`ModelPath=${modelPath}`);
     this.mockInferResults.push(`numThreads=${options.numThreads}`);
   }
 
-  getInputs(): TFWebModelRunnerTensorInfo[] {
+  getInputs(): TFLiteWebModelRunnerTensorInfo[] {
     return this.singleInput ? [this.inputTensors[0]] : this.inputTensors;
   }
 
-  getOutputs(): TFWebModelRunnerTensorInfo[] {
+  getOutputs(): TFLiteWebModelRunnerTensorInfo[] {
     return this.singleOutput ? [this.outputTensors[0]] : this.outputTensors;
   }
 
@@ -56,7 +56,7 @@ class MockModelRunner implements TFWebModelRunner {
 
   cleanUp() {}
 
-  private getTensorInfos(): TFWebModelRunnerTensorInfo[] {
+  private getTensorInfos(): TFLiteWebModelRunnerTensorInfo[] {
     const shape0 = [1, 2, 3];
     const buffer0 = new Int32Array(shape0.reduce((a, c) => a * c, 1));
     const shape1 = [1, 2];

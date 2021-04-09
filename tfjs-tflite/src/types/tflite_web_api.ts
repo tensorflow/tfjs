@@ -21,9 +21,9 @@ import {ClassificationResult, ImageClassifierClass, ImageClassifierOptions} from
 import {ImageSegmenterClass, ImageSegmenterOptions, SegmentationResult} from './image_segmenter';
 import {NLClassifierClass} from './nl_classifier';
 import {DetectionResult, ObjectDetectorClass, ObjectDetectorOptions} from './object_detector';
-import {TFWebModelRunnerClass} from './tfweb_model_runner';
+import {TFLiteWebModelRunnerClass} from './tflite_web_model_runner';
 
-export declare interface TFWebClient {
+export declare interface TFLiteWebAPIClient {
   tfweb: {
     /**
      * Sets the path to load all the WASM module files from.
@@ -42,7 +42,7 @@ export declare interface TFWebClient {
   };
 
   // Generic TFLite model runner.
-  TFWebModelRunner: TFWebModelRunnerClass;
+  TFLiteWebModelRunner: TFLiteWebModelRunnerClass;
 
   // NLClassifier.
   NLClassifier: NLClassifierClass;
