@@ -30,10 +30,10 @@ describe('TFLiteWebAPIClient', () => {
     // TODO: figure out how to remove this workaround by updating the karma
     // configs.
     // tslint:disable-next-line: no-any
-    const tfweb = (tfliteWebApiClient as any).default.tfweb;
-    for (const field of Object.keys(tfweb)) {
-      expect(tfweb[field]).toBeDefined();
+    const tfliteWeb = (tfliteWebApiClient as any).default.tfweb;
+    for (const field of Object.keys(tfliteWeb)) {
+      expect(tfliteWeb[field]).toBeDefined();
     }
-    expect(tfweb['tflite_web_api']['setWasmPath']).toBeDefined();
+    expect(tfliteWeb['tflite_web_api']['setWasmPath']).toBeDefined();
   });
 });

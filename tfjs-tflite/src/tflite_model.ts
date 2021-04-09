@@ -17,7 +17,7 @@
 
 import {DataType, InferenceModel, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, tensor, Tensor} from '@tensorflow/tfjs-core';
 
-import * as tfwebClient from './tflite_web_api_client';
+import * as tfliteWebAPIClient from './tflite_web_api_client';
 
 import {TFLiteDataType, TFLiteWebModelRunner, TFLiteWebModelRunnerOptions, TFLiteWebModelRunnerTensorInfo} from './types/tflite_web_model_runner';
 
@@ -285,7 +285,8 @@ export async function loadTFLiteModel(
     }
   }
   const tfliteModelRunner =
-      await tfwebClient.tfweb.TFLiteWebModelRunner.create(modelUrl, options);
+      await tfliteWebAPIClient.tfweb.TFLiteWebModelRunner.create(
+          modelUrl, options);
   return new TFLiteModel(tfliteModelRunner);
 }
 

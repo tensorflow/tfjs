@@ -18,7 +18,7 @@ set -e
 
 DEPS_DIR="./deps"
 if [ ! -d ${DEPS_DIR} ] || [ ! "$(ls -A ${DEPS_DIR})" ]; then
-    echo "ERROR: tfweb not downloaded yet. Run './scripts/download-tfweb.sh {version}' first."
+    echo "ERROR: TFLite web API not downloaded yet. Run './scripts/download-tflite-web-api.sh {version}' first."
     exit 1
 fi
 

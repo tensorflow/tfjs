@@ -28,9 +28,9 @@ export declare interface TFLiteWebAPIClient {
     /**
      * Sets the path to load all the WASM module files from.
      *
-     * TFWeb will automatically load WASM module with the best performance
-     * based on whether the current browser supports WebAssembly SIMD and
-     * multi-threading.
+     * TFLite web API will automatically load WASM module with the best
+     * performance based on whether the current browser supports WebAssembly
+     * SIMD and multi-threading.
      *
      * @param path The path to load WASM module files from.
      *     For relative path, use :
