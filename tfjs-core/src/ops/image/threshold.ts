@@ -44,7 +44,7 @@ import { convertToTensor } from '../../tensor_util_env';
  *  if colours should be inverted. Defaults to false.
  * @param threshValue Optional number which defines threshold value from 0 to 1.
  *  Defaults to 0.5.
- * @return A 3d tensor of shape [imageHeight,imageWidth, depth], which 
+ * @return A 3d tensor of shape [imageHeight,imageWidth, depth], which
  * contains binarized image.
  */
 
@@ -88,10 +88,7 @@ function threshold_(
 
     if (method === 'otsu') {
         const $histogram = bincount(
-            cast(grayscale.round(), 'int32'),
-            tensor([]),
-            256
-        );
+            cast(grayscale.round(), 'int32'),tensor([]),256);
         $threshold = otsu($histogram, totalPixelsInImage);
     }
 
@@ -110,8 +107,8 @@ function otsu(histogram: Tensor1D, total: number) {
     let classFirst, classSecond, meanFirst,
         meanSecond, weightForeground, weightBackground;
 
-    for (let index = 0; index < histogram.shape[0]; index++) {
-        if (index !== histogram.shape[0] - 1) {
+    for (let index = 0; index < histogram.size; index++) {
+        if (index !== histogram.size - 1) {
 
             classFirst = histogram.slice(0, index + 1);
 
@@ -121,12 +118,12 @@ function otsu(histogram: Tensor1D, total: number) {
 
             weightBackground = sum(classSecond).div(total);
 
-            meanFirst = sum(classFirst.mul(range(0, classFirst.shape[0])))
+            meanFirst = sum(classFirst.mul(range(0, classFirst.size)))
                 .div(classFirst.sum());
 
             meanSecond = sum(classSecond.mul(
-                add(range(0, classSecond.shape[0]),
-                    fill(classSecond.shape, classFirst.shape[0]))))
+                    add(range(0, classSecond.size),
+                    fill(classSecond.shape, classFirst.size))))
                 .div(classSecond.sum());
 
             curInBetweenVariance = (weightForeground.mul(weightBackground)
