@@ -44,7 +44,8 @@ import { convertToTensor } from '../../tensor_util_env';
  *  if colours should be inverted. Defaults to false.
  * @param threshValue Optional number which defines threshold value from 0 to 1.
  *  Defaults to 0.5.
- * @return A 3d tensor of shape [imageHeight,imageWidth, depth], which contains binarized image.
+ * @return A 3d tensor of shape [imageHeight,imageWidth, depth], which 
+ * contains binarized image.
  */
 
 function threshold_(
