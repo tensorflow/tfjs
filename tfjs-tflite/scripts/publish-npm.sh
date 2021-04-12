@@ -14,20 +14,23 @@
 # limitations under the License.
 # =============================================================================
 
+# Before you run this script, do this:
+# 1) Update the version in package.json
+# 2) Run ./scripts/build-npm from the base dir of the project.
+
+# Then:
+# 3) Checkout the master branch of this repo.
+# 4) Run this script as `./scripts/publish-npm.sh` from the project base dir.
+
 set -e
 
-DEPS_DIR="./deps"
-if [ ! -d ${DEPS_DIR} ] || [ ! "$(ls -A ${DEPS_DIR})" ]; then
-    echo "ERROR: TFLite web API not downloaded yet. Run './scripts/download-tflite-web-api.sh {version}' first."
-    exit 1
+BRANCH=`git rev-parse --abbrev-ref HEAD`
+
+if [ "$BRANCH" != "master" ]; then
+  echo "Error: Switch to the master branch before publishing."
+  exit
 fi
 
-yarn rimraf dist/
-mkdir -p dist
-yarn
-
-cp ${DEPS_DIR}/* dist/
-yarn build
-yarn rollup -c --visualize --npm
-
-echo "Stored standalone library at dist/tf-tflite(.min).js"
+yarn build-npm
+npm publish
+echo 'Yay! Published a new package to npm.'
