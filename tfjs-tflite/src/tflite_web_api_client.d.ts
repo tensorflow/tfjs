@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-import {TFWebClient} from './types/tfweb';
+import {TFLiteWebAPIClient} from './types/tflite_web_api';
 
 /**
- * The main export for tfweb_client.js types.
+ * The main export for tflite_web_api.js types.
  *
  * The variable name needs to be "tfweb" so it can match the root namespace of
  * the exported components from the JS client.
  */
-export declare let tfweb: TFWebClient;
+export declare let tfweb: TFLiteWebAPIClient;

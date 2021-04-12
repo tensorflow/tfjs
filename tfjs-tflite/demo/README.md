@@ -21,8 +21,9 @@ $ cd tfjs/tfjs-tflite
 Build the `tfjs-tflite` package locally.
 ```sh
 $ yarn
-# This script will download the tfweb WASM module files and JS client to deps/.
-$ ./script/download-tfweb.sh
+# This script will download the TFLite web API WASM module files and JS client
+# to deps/.
+$ ./script/download-tflite-web-api.sh
 # This will bundle and copy everything needed to tfjs-tflite/dist/ which will
 # be used by the local demo.
 $ yarn build-npm
