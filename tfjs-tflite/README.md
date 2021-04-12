@@ -47,7 +47,7 @@ import {loadTFLiteModel, TFLiteModel} from '@tensorflow/tfjs-tflite';
 
 By default, it will try to load the WASM modules from the same location where
 the package or your own script is served. Use `setWasmPath` to set your own
-location. See `src/tfweb_client.d.ts` for more details.
+location. See `src/tflite_web_api_client.d.ts` for more details.
 
 
 ```js
@@ -98,11 +98,12 @@ const tfliteModel = await loadTFLiteModel(
 
 ```sh
 $ yarn
-# This script will download the tfweb WASM module files and JS client to deps/.
+# This script will download the TFLite Web API WASM module files and JS client
+# to deps/.
 #
 # The version number is optional. By default, the script will use the current
 # version from the package.json file.
-$ ./script/download-tfweb.sh [version number]
+$ ./script/download-tflite-web-api.sh [version number]
 $ yarn build
 ```
 

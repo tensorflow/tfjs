@@ -12,20 +12,28 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifndef SIN_COS_WORKAROUND_H_
-#define SIN_COS_WORKAROUND_H_
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
-// Workaround a bug related to sin/cos with emscripten/webkit on iOS 11/12:
-// https://github.com/emscripten-core/emscripten/issues/13130
+#include <math.h>
+
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/sin_cos_workaround.h"
+#include "tfjs-backend-wasm/src/cc/unary.h"
+
 namespace tfjs {
-namespace sin_cos_workaround {
+namespace wasm {
+// We use C-style API to interface with Javascript.
+extern "C" {
 
-float sin_fixed(float x);
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif
+void Tan(const int x_id, const int out_id) {
+  unary(x_id, out_id, tfjs::sin_cos_workaround::tan_fixed);
+}
 
-float cos_fixed(float x);
-
-float tan_fixed(float x);
-
-}  // namespace sin_cos_workaround
+}  // extern "C"
+}  // namespace wasm
 }  // namespace tfjs
-#endif  // SIN_COS_WORKAROUND_H_
