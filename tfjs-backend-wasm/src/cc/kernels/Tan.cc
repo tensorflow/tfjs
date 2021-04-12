@@ -19,6 +19,7 @@
 #include <math.h>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/sin_cos_workaround.h"
 #include "tfjs-backend-wasm/src/cc/unary.h"
 
 namespace tfjs {
@@ -29,7 +30,9 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Tan(const int x_id, const int out_id) { unary(x_id, out_id, tan); }
+void Tan(const int x_id, const int out_id) {
+  unary(x_id, out_id, tfjs::sin_cos_workaround::tan_fixed);
+}
 
 }  // extern "C"
 }  // namespace wasm

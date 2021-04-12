@@ -1042,6 +1042,7 @@ tfjs_cc_library(
     srcs = ["kernels/Tan.cc"],
     deps = [
         ":backend",
+        ":sin_cos_workaround",
         ":unary",
     ],
 )
