@@ -15,24 +15,25 @@
  * =============================================================================
  */
 
-import * as tfwebClient from './tfweb_client';
+import * as tfliteWebApiClient from './tflite_web_api_client';
 
-describe('TFWebClient', () => {
+describe('TFLiteWebAPIClient', () => {
   beforeEach(() => {});
 
-  // The tbweb client is loaded through deps/tfweb_client.js, and we define its
-  // type in src/tfweb_client.d.ts. This test makes sure that all the types
-  // defined in tfweb_client.d.ts actually exist in the loaded JS client.
+  // The tflite web API client is loaded through deps/tflite_web_api_client.js,
+  // and we define its type in src/tflite_web_api_client.d.ts. This test makes
+  // sure that all the types defined in tflite_web_api_client.d.ts actually
+  // exist in the loaded JS client.
   it('should all its exported types defined', () => {
-    // In test environment, tfweb namespace is in tfwebClient.default.
+    // In test environment, tfweb namespace is in tfliteWebApiClient.default.
     //
     // TODO: figure out how to remove this workaround by updating the karma
     // configs.
     // tslint:disable-next-line: no-any
-    const tfweb = (tfwebClient as any).default.tfweb;
-    for (const field of Object.keys(tfweb)) {
-      expect(tfweb[field]).toBeDefined();
+    const tfliteWeb = (tfliteWebApiClient as any).default.tfweb;
+    for (const field of Object.keys(tfliteWeb)) {
+      expect(tfliteWeb[field]).toBeDefined();
     }
-    expect(tfweb['tfweb']['setWasmPath']).toBeDefined();
+    expect(tfliteWeb['tflite_web_api']['setWasmPath']).toBeDefined();
   });
 });
