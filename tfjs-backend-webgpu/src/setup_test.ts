@@ -578,9 +578,8 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'max',
     excludes: [
-      '6D',
-      'gradient',
-      'AdamaxOptimizer',  // gradient function not found.
+      '6D', 'gradient',
+      'AdamaxOptimizer',                         // gradient function not found.
       'axis permutation does not change input',  // 'Range' not registered.
     ]
   },
@@ -595,8 +594,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'min',
     excludes: [
-      'bool',
-      'gradient',
+      'bool', 'gradient',
       'stft',  // FFT' not registered.
     ]
   },
@@ -609,10 +607,17 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'sum',
     excludes: [
-      'bool',
-      'gradient',
-      'cumsum',  // 'Cumsum' not registered.
+      'bool', 'gradient',
+      'cumsum',     // 'Cumsum' not registered.
       'scatterND',  // 'scatterND' not registered.
+    ]
+  },
+  {
+    include: 'range',
+    excludes: [
+      'bincount',       // Not yet implemented.
+      'denseBincount',  // Not yet implemented.
+      'oneHot',         // Not yet implemented.
     ]
   },
 ];
