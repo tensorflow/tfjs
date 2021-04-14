@@ -69,6 +69,7 @@ import {packConfig} from './kernels/Pack';
 import {padV2Config} from './kernels/PadV2';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
+import {rangeConfig} from './kernels/Range';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reluConfig} from './kernels/Relu';
@@ -146,6 +147,7 @@ const kernelConfigs: KernelConfig[] = [
   padV2Config,
   preluConfig,
   prodConfig,
+  rangeConfig,
   realConfig,
   realDivConfig,
   reluConfig,
