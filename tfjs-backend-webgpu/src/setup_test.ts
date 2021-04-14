@@ -619,6 +619,14 @@ const TEST_FILTERS: TestFilter[] = [
       'scatterND',  // 'scatterND' not registered.
     ]
   },
+  {
+    include: 'range',
+    excludes: [
+      'bincount',       // Not yet implemented.
+      'denseBincount',  // Not yet implemented.
+      'oneHot',         // Not yet implemented.
+    ]
+  },
 ];
 
 const customInclude = (testName: string) => {
