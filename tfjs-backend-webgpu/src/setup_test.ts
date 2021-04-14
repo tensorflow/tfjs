@@ -605,6 +605,13 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'einsum',
+    excludes: [
+      '4d tensors',               // rank 5 is not yet supported.
+      '4d tensor and 3d tensor',  // rank 5 is not yet supported.
+    ]
+  },
+  {
     include: 'sum',
     excludes: [
       'bool', 'gradient',
