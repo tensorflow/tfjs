@@ -93,6 +93,7 @@ import {scatterNdConfig} from './kernels/ScatterNd';
 import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {sinConfig} from './kernels/Sin';
+import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {splitVConfig} from './kernels/SplitV';
@@ -187,6 +188,7 @@ const kernelConfigs: KernelConfig[] = [
   selectConfig,
   sigmoidConfig,
   sinConfig,
+  sinhConfig,
   sliceConfig,
   softmaxConfig,
   splitVConfig,

@@ -263,6 +263,7 @@ tfjs_cc_library(
         ":SelectV2",
         ":Sigmoid",
         ":Sin",
+        ":Sinh",
         ":Softmax",
         ":Square",
         ":SquaredDifference",
@@ -929,6 +930,16 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "Sin",
     srcs = ["kernels/Sin.cc"],
+    deps = [
+        ":backend",
+        ":sin_cos_workaround",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Sinh",
+    srcs = ["kernels/Sinh.cc"],
     deps = [
         ":backend",
         ":sin_cos_workaround",
