@@ -79,6 +79,7 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [Make a smart webcam in JavaScript with a pre-trained Machine Learning model](https://codelabs.developers.google.com/codelabs/tensorflowjs-object-detection/index.html?index=..%2F..index#8) by Jason Mayes
 - [Time Series Forecasting with TensorFlow.js](https://jinglescode.github.io/2019/05/17/time-series-forecasting-with-tensorflow-js/) by [Jingles](https://github.com/jinglescode/)
 - [Build Textual Similarity Analysis Web App](https://jinglescode.github.io/2020/02/10/build-textual-similarity-analysis-web-app/) by [Jingles](https://github.com/jinglescode/)
+- [Train a Text Classifier on top of BERT within the Browser](https://alexfi.dev/blog/tensorflowjs-bert-train) by [Alexander Fischer](https://github.com/alexander-fischer/)
 
 ## Video tutorials
 - [Beginning Machine Learning with TensorFlow.js](https://academy.infinite.red/p/beginning-machine-learning-with-tensorflow-js)
