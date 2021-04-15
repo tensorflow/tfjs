@@ -23,6 +23,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {ExplicitPadding} from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -74,7 +75,7 @@ import {reshape} from './reshape';
 function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filter: Tensor4D|TensorLike,
     strides: [number, number]|number,
-    pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
+    pad: 'valid'|'same'|number|ExplicitPadding,
     dataFormat: 'NHWC'|'NCHW' = 'NHWC',
     dilations: [number, number]|number = [1, 1],
     dimRoundingMode?: 'floor'|'round'|'ceil'): T {
