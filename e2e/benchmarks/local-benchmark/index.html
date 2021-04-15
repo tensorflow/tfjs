@@ -336,7 +336,6 @@ limitations under the License.
         await showMsg('Skip warming up');
         appendRow(timeTable, 'backend', state.backend);
         appendRow(timeTable, 'Warmup time', '0 ms');
-        await sleep(1000);
         return;
       }
       await showMsg(`Warming up for ${warmupTimes} time(s)`);
@@ -553,6 +552,7 @@ limitations under the License.
       await showMsg('Profiling kernels');
       appendRow(timeTable, 'Number of kernels', profileInfo.kernels.length);
       showKernelTime(profileInfo);
+      await showMsg(null);
     }
 
     function showKernelTime(profileInfo) {
@@ -633,11 +633,8 @@ limitations under the License.
       await showBenchmarkingParameters();
 
       await warmUpAndRecordTime();
-      await showMsg('Waiting for GC');
-      await sleep(1000);
-      await profileMemoryAndKernelTime();
-      await sleep(200);
       await measureAveragePredictTime();
+      await profileMemoryAndKernelTime();
       urlState = null;
     }
 

@@ -128,7 +128,6 @@ export class MathBackendWebGL extends KernelBackend {
   private uploadWaitMs = 0;
   // Accumulated time spent (including blocking in downloading data from webgl.
   private downloadWaitMs = 0;
-  private cpuBackend: KernelBackend;
 
   // record the last manual GL Flush time.
   private lastGlFlushTime = 0;
@@ -167,9 +166,7 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   numDataIds() {
-    return this.texData.numDataIds() +
-        (this.cpuBackend ? this.cpuBackend.numDataIds() : 0) -
-        this.pendingDeletes;
+    return this.texData.numDataIds() - this.pendingDeletes;
   }
 
   write(values: BackendValues, shape: number[], dtype: DataType): DataId {
