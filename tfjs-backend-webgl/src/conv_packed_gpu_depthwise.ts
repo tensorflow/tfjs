@@ -203,6 +203,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                         xTexelC${c + 2}.zw = vec2(0.0);
                       }
                     }
+
                     xC${c + 1} = xTexelC${c + 2};
                     `;
                 }
