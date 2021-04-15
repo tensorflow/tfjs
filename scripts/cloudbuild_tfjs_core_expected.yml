@@ -474,6 +474,94 @@ steps:
     secretEnv:
       - BROWSERSTACK_KEY
   - name: 'node:10'
+    dir: tfjs-tflite
+    entrypoint: yarn
+    id: yarn-tfjs-tflite
+    args:
+      - install
+    waitFor:
+      - yarn-common
+      - yarn-tfjs-core
+      - build-tfjs-core
+      - build-cpu-backend-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    dir: tfjs-tflite
+    id: download-tflite-web-api-tfjs-tflite
+    entrypoint: bash
+    args:
+      - scripts/download-tflite-web-api.sh
+    waitFor:
+      - yarn-tfjs-tflite
+      - yarn-common
+      - yarn-tfjs-core
+      - build-tfjs-core
+      - build-cpu-backend-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'node:10'
+    dir: tfjs-tflite
+    id: build-tfjs-tflite
+    entrypoint: yarn
+    args:
+      - build-ci
+    waitFor:
+      - yarn-tfjs-tflite
+      - download-tflite-web-api-tfjs-tflite
+      - yarn-common
+      - yarn-tfjs-core
+      - build-tfjs-core
+      - build-cpu-backend-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'node:10'
+    dir: tfjs-tflite
+    entrypoint: yarn
+    id: lint-tfjs-tflite
+    args:
+      - lint
+    waitFor:
+      - yarn-tfjs-tflite
+      - download-tflite-web-api-tfjs-tflite
+      - yarn-common
+      - yarn-tfjs-core
+      - build-tfjs-core
+      - build-cpu-backend-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'node:10'
+    dir: tfjs-tflite
+    entrypoint: yarn
+    id: test-tfjs-tflite-tfjs-tflite
+    args:
+      - test-ci
+    waitFor:
+      - yarn-tfjs-tflite
+      - lint-tfjs-tflite
+      - download-tflite-web-api-tfjs-tflite
+      - yarn-common
+      - yarn-tfjs-core
+      - build-tfjs-core
+      - build-cpu-backend-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+  - name: 'node:10'
     dir: tfjs-layers
     entrypoint: yarn
     id: yarn-tfjs-layers

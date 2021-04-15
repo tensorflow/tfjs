@@ -17,6 +17,7 @@
 
 const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.test.json',
+  compilerOptions: {allowJs: true, declaration: false},
   bundlerOptions: {
     sourceMap: true,
     acornOptions: {ecmaVersion: 8},
@@ -32,13 +33,13 @@ const devConfig = {
     {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
     'src/setup_test.ts',
     {pattern: 'src/**/*.ts'},
-    'src/tfweb_client.js',
+    'src/tflite_web_api_client.js',
   ],
   exclude: [
     'src/index.ts',
   ],
   preprocessors: {
-    'src/tfweb_client.js': ['karma-typescript'],
+    'src/tflite_web_api_client.js': ['karma-typescript'],
     '**/*.ts': ['karma-typescript'],
     '**/*.d.ts': ['karma-typescript'],
   },
@@ -73,6 +74,15 @@ module.exports = function(config) {
   config.set({
     ...extraConfig,
     basePath: '',
+    // Redirect the request for the wasm file so karma can find it.
+    proxies: {
+      '/base/node_modules/karma-typescript/dist/client/tflite_web_api_cc.js':
+          '/base/deps/tflite_web_api_cc.js',
+      '/base/node_modules/karma-typescript/dist/client/tflite_web_api_cc_threaded.js':
+          '/base/deps/tflite_web_api_cc_threaded.js',
+      '/base/node_modules/karma-typescript/dist/client/tflite_web_api_cc_simd_threaded.js':
+          '/base/deps/tflite_web_api_cc_simd_threaded.js',
+    },
     browsers: ['Chrome'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,

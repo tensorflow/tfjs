@@ -68,8 +68,7 @@ export function fromPixelsImageBitmap(args: {
 
   backend.fromPixelProgram.setUniform(backend.device, uniformData);
 
-  backend.commandQueue.push(backend.fromPixelProgram.generateEncoder(
-      backend.device, info.bufferInfo.buffer));
+  backend.recordFromPixelsCommands(info.bufferInfo.buffer);
   backend.submitQueue();
   return output;
 }

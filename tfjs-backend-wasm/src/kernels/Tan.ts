@@ -14,10 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+import {KernelConfig, Tan} from '@tensorflow/tfjs-core';
 
-const fs = require('fs');
-
-// Get the version number from the "version" field of the package.json file.
-const packageJsonFile =
-    JSON.parse(fs.readFileSync(`${__dirname}/../package.json`).toString());
-console.log(packageJsonFile.version);
+import {createUnaryKernelConfig} from './unary_kernel';
+export const tanConfig: KernelConfig = createUnaryKernelConfig(Tan);

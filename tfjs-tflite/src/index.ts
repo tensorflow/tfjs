@@ -15,10 +15,8 @@
  * =============================================================================
  */
 
-import * as tfwebClient from './tfweb_client';
-
-const setWasmPath = tfwebClient.tfweb.tfweb.setWasmPath;
-
 export * from './tflite_model';
-export * from './types/tfweb_model_runner';
-export {setWasmPath};
+export * from './types/tflite_web_model_runner';
+export * from './types/nl_classifier';
+export * from './types/image_classifier';
+export * from './types/tflite_web_api';

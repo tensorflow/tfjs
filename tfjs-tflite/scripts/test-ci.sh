@@ -14,26 +14,16 @@
 # limitations under the License.
 # =============================================================================
 
-# Halt if a single command errors
+# Exit immediately if a command exits with a non-zero status.
 set -e
 
-# Start in scripts/ even if run from root directory
-cd "$(dirname "$0")"
-
-# The default version.
-CURRENT_VERSION=0.0.1
-
-# Get the version from the first parameter.
-# Default to the value in CURRENT_VERSION.
-VERSION="${1:-${CURRENT_VERSION}}"
-
-# Make sure the version is provided.
-if [[ -z ${VERSION} ]]; then
-  echo "version (the only parameter) is required"
-  exit 1
+if [ "$NIGHTLY" = true ]; then
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_safari_mac"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_ios_11"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_firefox_mac"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=win_10_chrome"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_android_9"
+else
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac"
 fi
-
-# Copy the artifacts from GCP to the deps/ dir.
-mkdir -p ../deps
-GCP_DIR="gs://tfweb/${VERSION}/dist"
-gsutil -m cp "${GCP_DIR}/*" ../deps/
