@@ -35,6 +35,8 @@ export class Conv2DMMProgram implements WebGPUProgram {
   addBias: boolean;
   activation: string;
   hasPreluActivationWeights: boolean;
+  fitA: boolean;
+  fitB: boolean;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
@@ -65,12 +67,13 @@ export class Conv2DMMProgram implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}`;
+
+    [this.fitA, this.fitB] = this.getShapeFit();
+    this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}_${
+        this.fitA}_${this.fitB}`;
   }
 
-  getUserCode(): string {
-    const matMulSource = makeMatMulPackedSource(this.elementsPerThread);
-
+  getShapeFit(): boolean[] {
     const tileAOuter = this.workGroupSize[1] * this.elementsPerThread[1];
     const tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
     const tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
@@ -86,6 +89,15 @@ export class Conv2DMMProgram implements WebGPUProgram {
     const dimBOuter = this.outputShape[3];
     const dimInner = this.convInfo.filterHeight * this.convInfo.filterWidth *
         this.convInfo.inChannels;
+
+    return [
+      tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]),
+      tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter])
+    ];
+  }
+
+  getUserCode(): string {
+    const matMulSource = makeMatMulPackedSource(this.elementsPerThread);
 
     const readASnippet = `
     int outRow = row / outShape[2];
@@ -103,16 +115,14 @@ export class Conv2DMMProgram implements WebGPUProgram {
     // 'same' padding type.
     return coordsInBounds(coord, xShape) ? x[getFlatIndex(coord, xShape)] : 0;`;
 
-    const fitA = tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]);
-    const sampleA =
-        fitA ? `${readASnippet}` : `if (row < dimAOuter && col < dimInner) {
+    const sampleA = this.fitA ? `${readASnippet}` :
+                                `if (row < dimAOuter && col < dimInner) {
       ${readASnippet}
     } else {
       return 0;
     }`;
 
-    const fitB = tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter]);
-    const sampleB = fitB ?
+    const sampleB = this.fitB ?
         `W[row * dimBOuter + col]` :
         `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
         W[row * dimBOuter + col] : 0`;

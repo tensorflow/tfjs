@@ -34,6 +34,7 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
   lastDimensionSize: number;
   op: string;
   size: number;
+  sizeFit: boolean;
 
   constructor(
       op: string, aShape: number[], bShape: number[],
@@ -54,10 +55,13 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-    this.shaderKey = `binaryShared_${op}_${this.lastDimensionSize}`;
     this.useSharedMemoryWithB = useSharedMemoryWithB;
     this.op = op;
     this.size = util.sizeFromShape(this.outputShape);
+    this.sizeFit =
+        this.size % (this.workGroupSize[0] * this.workPerThread) === 0;
+    this.shaderKey =
+        `binaryShared_${op}_${this.lastDimensionSize}_${this.sizeFit}`;
   }
 
   getUserCode(): string {
@@ -70,9 +74,8 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
          float b = sharedBuf[${sharedIndexSnippet}];` :
         `float a = sharedBuf[${sharedIndexSnippet}];
          float b = getBAtOutCoords(coords);`;
-    const sizeFit =
-        this.size % (this.workGroupSize[0] * this.workPerThread) === 0;
-    const writeDataSnippet = sizeFit ?
+
+    const writeDataSnippet = this.sizeFit ?
         `${type} coords = getCoordsFromFlatIndex(flatIndex);
 
          ${accessDataSnippet}

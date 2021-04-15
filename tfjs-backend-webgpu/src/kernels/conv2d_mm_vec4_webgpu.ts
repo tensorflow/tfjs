@@ -36,6 +36,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   activation: string;
   hasPreluActivationWeights: boolean;
   hasLeakyreluAlpha: boolean;
+  fitA: boolean;
+  fitB: boolean;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
@@ -57,7 +59,6 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
     this.hasLeakyreluAlpha = hasLeakyreluAlpha;
-    this.shaderKey = `conv2DMMVec4_${this.activation}`;
     if (this.addBias) {
       this.variableNames.push('bias');
     }
@@ -69,12 +70,13 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     if (this.hasLeakyreluAlpha) {
       this.variableNames.push('leakyreluAlpha');
     }
+
+    [this.fitA, this.fitB] = this.getShapeFit(elementsPerThread);
+    this.shaderKey =
+        `conv2DMMVec4_${this.activation}_${this.fitA}_${this.fitB}`;
   }
 
-  getUserCode(): string {
-    const elementsPerThread: [number, number, number] = [4, 4, 1];
-    const matMulSource = makeMatMulPackedVec4Source(elementsPerThread);
-
+  getShapeFit(elementsPerThread: [number, number, number]): boolean[] {
     const tileAOuter = this.workGroupSize[1] * elementsPerThread[1];
     const tileBOuter = this.workGroupSize[0] * elementsPerThread[0];
     const tileInner = tileBOuter;
@@ -85,6 +87,15 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     const dimBOuter = this.outputShape[3];
     const dimInner = this.convInfo.filterHeight * this.convInfo.filterWidth *
         this.convInfo.inChannels;
+    return [
+      tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]),
+      tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter])
+    ];
+  }
+
+  getUserCode(): string {
+    const elementsPerThread: [number, number, number] = [4, 4, 1];
+    const matMulSource = makeMatMulPackedVec4Source(elementsPerThread);
 
     // Below code only applys to valid padding type.
     const sampleAWithRemainder = `int flatIndex = getFlatIndex(coord, xShape);
@@ -145,16 +156,14 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         ${remainderSnippet}
         return resData;`;
 
-    const fitA = tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]);
     const sampleA =
-        fitA ? `${readASnippet}` : `if (r < dimAOuter && c < dimInner) {
+        this.fitA ? `${readASnippet}` : `if (r < dimAOuter && c < dimInner) {
           ${readASnippet}
         } else {
           return vec4(0.0, 0.0, 0.0, 0.0);
         }`;
 
-    const fitB = tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter]);
-    const sampleB = fitB ?
+    const sampleB = this.fitB ?
         `W[row * dimBOuter / 4 + col]` :
         `coordsInBounds(ivec2(row, col * 4), ivec2(dimInner, dimBOuter)) ?
             W[row * dimBOuter / 4 + col] : vec4(0.0, 0.0, 0.0, 0.0)`;

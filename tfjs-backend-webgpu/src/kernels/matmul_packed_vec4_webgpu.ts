@@ -122,6 +122,9 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   addBias: boolean;
   activation: string;
   hasPreluActivationWeights: boolean;
+  vecSize = 4;
+  fitA: boolean;
+  fitB: boolean;
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
@@ -131,14 +134,13 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     this.workGroupSize = computeWorkGroupSizeForMatMul(
         outputShape[1], aShape[2], outputShape[2]);
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
-    const vecSize = 4;
     if (outputShape[1] === 1) {
       this.workGroupSize = [16, 1, 1];  // in case shared memory exceeds limit.
       rowPerThread = 1;
     }
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [vecSize, rowPerThread, 1]);
+        [this.vecSize, rowPerThread, 1]);
 
     const addBias = bias != null;
     const hasPreluActivationWeights = preluActivationWeights != null;
@@ -155,30 +157,37 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.shaderKey = `matMulPackedVec4_${rowPerThread}_${activation}`;
+
+    [this.fitA, this.fitB] = this.getShapeFit();
+
+    this.shaderKey = `matMulPackedVec4_${rowPerThread}_${activation}_${
+        this.fitA}_${this.fitB}`;
   }
 
-  getUserCode(): string {
+  getShapeFit(): boolean[] {
     const dimInner = this.aShape[2];
     const dimBOuter = this.outputShape[2];
     const bShape = [this.outputShape[0], dimInner, dimBOuter];
-    const vecSize = 4;
     const tileAOuter = this.workGroupSize[1] * this.workPerThread;
-    const tileBOuter = this.workGroupSize[0] * vecSize;
+    const tileBOuter = this.workGroupSize[0] * this.vecSize;
     const tileInner = tileBOuter;  // Make sure tileInner is divisible by 4.
 
     const tileSizeA = [tileAOuter, tileInner];
     const tileSizeB = [tileInner, tileBOuter];
-    const fitA = tilesFitEvenlyIntoShape(tileSizeA, this.aShape.slice(1));
+    return [
+      tilesFitEvenlyIntoShape(tileSizeA, this.aShape.slice(1)),
+      tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1))
+    ];
+  }
 
-    const sampleA = fitA ?
+  getUserCode(): string {
+    const sampleA = this.fitA ?
         `A[batch * batchASize + row * dimInner / 4 + col]` :
         `coordsInBounds(ivec2(row, col * 4), ivec2(dimAOuter, dimInner)) ?
             A[batch * batchASize + row * dimInner / 4 + col] :
             vec4(0.0, 0.0, 0.0, 0.0)`;
 
-    const fitB = tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1));
-    const sampleB = fitB ?
+    const sampleB = this.fitB ?
         `B[batch * batchBSize + row * dimBOuter / 4 + col]` :
         `coordsInBounds(ivec2(row, col * 4), ivec2(dimInner, dimBOuter)) ?
             B[batch * batchBSize + row * dimBOuter / 4 + col] :
@@ -212,17 +221,17 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
       int batch;
 
       ${makeMatMulPackedVec4Source([
-      vecSize, this.workPerThread, 1
+      this.vecSize, this.workPerThread, 1
     ])}
 
       vec4 mm_readA(int row, int col) {
-        int batchASize = aShape[1] * aShape[2] / ${vecSize};
+        int batchASize = aShape[1] * aShape[2] / ${this.vecSize};
         return ${sampleA};
       }
 
       vec4 mm_readB(int row, int col) {
         // TODO: This is not covered in unit tests.
-        int batchBSize = bShape[1] * bShape[2] / ${vecSize};
+        int batchBSize = bShape[1] * bShape[2] / ${this.vecSize};
         return ${sampleB};
       }
 

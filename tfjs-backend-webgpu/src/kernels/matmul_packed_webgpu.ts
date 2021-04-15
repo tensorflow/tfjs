@@ -135,6 +135,8 @@ export class MatMulPackedProgram implements WebGPUProgram {
   addBias: boolean;
   activation: string;
   hasPreluActivationWeights: boolean;
+  fitA: boolean;
+  fitB: boolean;
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
@@ -182,17 +184,18 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.shaderKey = `matMulPacked_${this.workPerThread}_${transposeA}_${
-        transposeB}_${activation}`;
-  }
 
-  getUserCode(): string {
-    const dimInner = this.transposeA ? this.aShape[1] : this.aShape[2];
     const dimBOuter = this.outputShape[2];
     const bShape = this.transposeB ?
         [this.outputShape[0], dimBOuter, dimInner] :
         [this.outputShape[0], dimInner, dimBOuter];
 
+    [this.fitA, this.fitB] = this.getShapeFit(bShape);
+    this.shaderKey = `matMulPacked_${this.workPerThread}_${transposeA}_${
+        transposeB}_${activation}_${this.fitA}_${this.fitB}}`;
+  }
+
+  getShapeFit(bShape: number[]): boolean[] {
     const tileAOuter = this.workGroupSize[1] * this.workPerThread;
     const tileBOuter = this.workGroupSize[0] * this.workPerThread;
     const tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
@@ -203,30 +206,36 @@ export class MatMulPackedProgram implements WebGPUProgram {
             `and workgroupsize.y`);
     const tileSizeA = [tileAOuter, tileInner];
     const tileSizeB = [tileInner, tileBOuter];
-    const fitA = tilesFitEvenlyIntoShape(tileSizeA, this.aShape.slice(1));
+
+    return [
+      tilesFitEvenlyIntoShape(tileSizeA, this.aShape.slice(1)),
+      tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1))
+    ];
+  }
+
+  getUserCode(): string {
     let sampleA;
 
     if (this.transposeA === false) {
-      sampleA = fitA ?
+      sampleA = this.fitA ?
           `A[batch * batchASize + row * dimInner + col]` :
           `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
             A[batch * batchASize + row * dimInner + col] : 0`;
     } else {
-      sampleA = fitA ?
+      sampleA = this.fitA ?
           `A[batch * batchASize + col * dimAOuter + row]` :
           `coordsInBounds(ivec2(row, col), ivec2(dimAOuter, dimInner)) ?
             A[batch* batchASize + col * dimAOuter + row] : 0`;
     }
 
-    const fitB = tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1));
     let sampleB;
     if (this.transposeB === false) {
-      sampleB = fitB ?
+      sampleB = this.fitB ?
           `B[batch * batchBSize + row * dimBOuter + col]` :
           `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
             B[batch * batchBSize + row * dimBOuter + col] : 0`;
     } else {
-      sampleB = fitB ?
+      sampleB = this.fitB ?
           `B[batch * batchBSize + col * dimInner + row]` :
           `coordsInBounds(ivec2(row, col), ivec2(dimInner, dimBOuter)) ?
             B[batch * batchBSize + col * dimInner + row] : 0`;
