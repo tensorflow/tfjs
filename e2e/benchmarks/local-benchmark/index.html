@@ -552,6 +552,7 @@ limitations under the License.
       await showMsg('Profiling kernels');
       appendRow(timeTable, 'Number of kernels', profileInfo.kernels.length);
       showKernelTime(profileInfo);
+      await showMsg(null);
     }
 
     function showKernelTime(profileInfo) {
