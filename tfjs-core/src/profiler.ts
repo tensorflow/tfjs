@@ -49,7 +49,9 @@ export class Profiler {
       timer = this.backendTimer.time(holdResultWrapperFn);
     } else {
       holdResultWrapperFn();
-      outputs.map(output => output.dataSync());
+      for (const output of outputs) {
+        output.dataSync();
+      }
       timer = Promise.resolve({kernelMs: util.now() - start});
     }
     if (env().getBool('CHECK_COMPUTATION_FOR_ERRORS')) {

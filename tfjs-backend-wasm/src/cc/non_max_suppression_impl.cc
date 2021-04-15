@@ -25,8 +25,8 @@
 #include <queue>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/non_max_suppression_impl.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/non_max_suppression_impl.h"
 
 namespace {
 
@@ -116,7 +116,7 @@ const NonMaxSuppressionResult* non_max_suppression_impl(
   std::vector<int32_t> selected_indices;
   std::vector<float> selected_scores;
   Candidate candidate;
-  float iou, original_score;
+  float original_score;
 
   while (selected_indices.size() < max_out_size &&
          !candidate_priority_queue.empty()) {

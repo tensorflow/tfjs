@@ -62,6 +62,7 @@ import {depthwiseConv2dNativeBackpropFilterConfig} from './kernels/DepthwiseConv
 import {depthwiseConv2dNativeBackpropInputConfig} from './kernels/DepthwiseConv2dNativeBackpropInput';
 import {diagConfig} from './kernels/Diag';
 import {dilation2DConfig} from './kernels/Dilation2D';
+import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
 import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
@@ -163,6 +164,7 @@ import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
 import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
+import {transformConfig} from './kernels/Transform';
 import {transposeConfig} from './kernels/Transpose';
 import {uniqueConfig} from './kernels/Unique';
 import {unpackConfig} from './kernels/Unpack';
@@ -219,6 +221,7 @@ const kernelConfigs: KernelConfig[] = [
   depthwiseConv2dNativeConfig,
   diagConfig,
   dilation2DConfig,
+  einsumConfig,
   eluConfig,
   eluGradConfig,
   equalConfig,
@@ -318,6 +321,7 @@ const kernelConfigs: KernelConfig[] = [
   tanhConfig,
   tileConfig,
   topKConfig,
+  transformConfig,
   transposeConfig,
   uniqueConfig,
   unpackConfig,

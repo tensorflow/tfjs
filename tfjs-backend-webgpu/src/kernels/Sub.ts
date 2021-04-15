@@ -20,8 +20,11 @@ import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {subImplCPU as cpuSub} from '../kernel_utils/shared';
 import {BinaryOpType} from './binary_ops';
 
-export const sub =
-    binaryKernelFunc({opSnippet: BinaryOpType.SUB, cpuKernelImpl: cpuSub});
+export const sub = binaryKernelFunc({
+  opSnippet: BinaryOpType.SUB,
+  cpuKernelImpl: cpuSub,
+  supportsComplex: true
+});
 
 export const subConfig: KernelConfig = {
   kernelName: Sub,

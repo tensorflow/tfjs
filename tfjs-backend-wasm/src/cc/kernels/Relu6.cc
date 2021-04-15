@@ -18,7 +18,7 @@
 
 #include <cstddef>
 
-#include "src/cc/clamp_impl.h"
+#include "tfjs-backend-wasm/src/cc/clamp_impl.h"
 
 namespace tfjs {
 namespace wasm {

@@ -23,10 +23,13 @@ import {fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {absConfig} from './kernels/Abs';
 import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
+import {allConfig} from './kernels/All';
+import {anyConfig} from './kernels/Any';
 import {argMaxConfig} from './kernels/ArgMax';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {castConfig} from './kernels/Cast';
+import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
@@ -62,6 +65,7 @@ import {maxPoolConfig} from './kernels/MaxPool';
 import {meanConfig} from './kernels/Mean';
 import {minConfig} from './kernels/Min';
 import {minimumConfig} from './kernels/Minimum';
+import {mirrorPadConfig} from './kernels/MirrorPad';
 import {multiplyConfig} from './kernels/Multiply';
 import {negConfig} from './kernels/Neg';
 import {nonMaxSuppressionV3Config} from './kernels/NonMaxSuppressionV3';
@@ -99,6 +103,7 @@ import {stepConfig} from './kernels/Step';
 import {stridedSliceConfig} from './kernels/StridedSlice';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
+import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
 import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
@@ -111,10 +116,13 @@ const kernelConfigs: KernelConfig[] = [
   absConfig,
   addConfig,
   addNConfig,
+  allConfig,
+  anyConfig,
   argMaxConfig,
   avgPoolConfig,
   batchMatMulConfig,
   castConfig,
+  ceilConfig,
   clipByValueConfig,
   concatConfig,
   conv2DConfig,
@@ -151,6 +159,7 @@ const kernelConfigs: KernelConfig[] = [
   meanConfig,
   minConfig,
   minimumConfig,
+  mirrorPadConfig,
   multiplyConfig,
   negConfig,
   nonMaxSuppressionV3Config,
@@ -188,6 +197,7 @@ const kernelConfigs: KernelConfig[] = [
   stridedSliceConfig,
   subConfig,
   sumConfig,
+  tanConfig,
   tanhConfig,
   tileConfig,
   topKConfig,

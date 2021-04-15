@@ -60,7 +60,7 @@ export function fromPixelsImageBitmap(args: {
         texture: backend.fromPixelProgram.makeInputTexture(
             backend.device, imageBitmap.width, imageBitmap.height)
       },
-      {width: imageBitmap.width, height: imageBitmap.height, depth: 1});
+      [imageBitmap.width, imageBitmap.height]);
 
   const info = backend.tensorMap.get(output.dataId);
 
@@ -68,8 +68,7 @@ export function fromPixelsImageBitmap(args: {
 
   backend.fromPixelProgram.setUniform(backend.device, uniformData);
 
-  backend.commandQueue.push(backend.fromPixelProgram.generateEncoder(
-      backend.device, info.bufferInfo.buffer));
+  backend.recordFromPixelsCommands(info.bufferInfo.buffer);
   backend.submitQueue();
   return output;
 }

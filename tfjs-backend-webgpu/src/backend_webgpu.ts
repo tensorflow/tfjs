@@ -46,7 +46,11 @@ type TensorBufferInfo = {
   values: backend_util.BackendValues,
   dtype: DataType,
   bufferInfo: BufferInfo,
-  refCount: number;
+  refCount: number,
+  // For complex numbers, the real and imaginary parts are stored as their own
+  // individual tensors, with a parent joining the two with the
+  // complexTensorInfos field.
+  complexTensorInfos?: {real: TensorInfo, imag: TensorInfo}
 };
 
 interface DataId {}
@@ -73,7 +77,7 @@ export class WebGPUBackend extends KernelBackend {
   device: GPUDevice;
   queue: GPUQueue;
   glslang: Glslang;
-  commandQueue: GPUCommandEncoder[];
+  currentCommandEncoder: GPUCommandEncoder;
   tensorMap: DataStorage<TensorBufferInfo>;
   fromPixelProgram: FromPixelsProgram;
   supportTimeQuery: boolean;
@@ -95,6 +99,7 @@ export class WebGPUBackend extends KernelBackend {
   private activeTimers: TimerNode[];
   private uploadWaitMs = 0;
   private downloadWaitMs = 0;
+  private computePassNumberInEncoder = 0;
   private cpuBackend: KernelBackend;
   private querySet: GPUQuerySet;
 
@@ -102,8 +107,8 @@ export class WebGPUBackend extends KernelBackend {
     super();
     this.binaryCache = {};
     this.device = device;
-    this.queue = device.defaultQueue;
-    this.commandQueue = [];
+    this.queue = device.queue;
+    this.currentCommandEncoder = null;
     this.glslang = glslang;
     this.supportTimeQuery = supportTimeQuery;
 
@@ -153,6 +158,12 @@ export class WebGPUBackend extends KernelBackend {
         return false;
       } else {
         this.maybeReleaseBuffer(dataId);
+      }
+
+      const {complexTensorInfos} = this.tensorMap.get(dataId);
+      if (complexTensorInfos != null) {
+        this.disposeData(complexTensorInfos.real.dataId, true);
+        this.disposeData(complexTensorInfos.imag.dataId, true);
       }
 
       this.tensorMap.delete(dataId);
@@ -212,6 +223,12 @@ export class WebGPUBackend extends KernelBackend {
 
   write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
       DataId {
+    if (dtype === 'complex64' && values != null) {
+      throw new Error(
+          `Cannot write to a complex64 dtype. ` +
+          `Please use tf.complex(real, imag).`);
+    }
+
     const dataId = {id: this.nextDataId()};
     const byteSize =
         util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
@@ -228,6 +245,11 @@ export class WebGPUBackend extends KernelBackend {
   move(
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
       dtype: DataType, refCount: number): void {
+    if (dtype === 'complex64') {
+      throw new Error(
+          `Cannot write to a complex64 dtype. ` +
+          `Please use tf.complex(real, imag).`);
+    }
     const byteSize =
         util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
 
@@ -240,8 +262,9 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   submitQueue() {
-    this.queue.submit(this.commandQueue.map(enc => enc.finish()));
-    this.commandQueue = [];
+    this.queue.submit([this.currentCommandEncoder.finish()]);
+    this.currentCommandEncoder = null;
+    this.computePassNumberInEncoder = 0;
 
     this.commandQueueOwnedIds = new WeakSet<DataId>();
 
@@ -253,6 +276,12 @@ export class WebGPUBackend extends KernelBackend {
     return this.tensorMap.get(dataId).bufferInfo.buffer;
   }
 
+  ensureCommandEncoderReady() {
+    if (!this.currentCommandEncoder) {
+      this.currentCommandEncoder = this.device.createCommandEncoder();
+    }
+  }
+
   private async getBufferData(info: TensorBufferInfo):
       Promise<backend_util.BackendValues> {
     if (info.values != null) {
@@ -262,10 +291,9 @@ export class WebGPUBackend extends KernelBackend {
     const staging = this.acquireBuffer(
         info.bufferInfo.byteSize,
         GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
-    const encoder = this.device.createCommandEncoder();
-    encoder.copyBufferToBuffer(
+    this.ensureCommandEncoderReady();
+    this.currentCommandEncoder.copyBufferToBuffer(
         info.bufferInfo.buffer, 0, staging, 0, info.bufferInfo.byteSize);
-    this.commandQueue.push(encoder);
     this.submitQueue();
 
     await staging.mapAsync(GPUMapMode.READ);
@@ -310,13 +338,36 @@ export class WebGPUBackend extends KernelBackend {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
     const info = this.tensorMap.get(dataId);
-    const data = await this.getBufferData(info);
 
-    const dataAsTypedArray =
-        webgpu_util.ArrayBufferToTypedArray(data as ArrayBuffer, info.dtype);
-    this.convertAndCacheOnCPU(dataId, dataAsTypedArray);
+    const {values} = info;
 
-    return dataAsTypedArray;
+    if (values != null) {
+      // TODO(xing.xu@intel.com): Merge backend_util.BackendValues and
+      // backend_util.TypedArray.
+      return this.convertAndCacheOnCPU(
+                 dataId, values as backend_util.TypedArray) as
+          backend_util.BackendValues;
+    }
+
+    // Download the values from the GPU.
+    let vals: backend_util.BackendValues;
+    if (info.dtype === 'complex64') {
+      const ps = await Promise.all([
+        this.read(info.complexTensorInfos.real.dataId),
+        this.read(info.complexTensorInfos.imag.dataId)
+      ]);
+
+      const realValues = ps[0];
+      const imagValues = ps[1];
+      vals = backend_util.mergeRealAndImagArrays(
+          realValues as Float32Array, imagValues as Float32Array);
+    } else {
+      const data = await this.getBufferData(info);
+      vals =
+          webgpu_util.ArrayBufferToTypedArray(data as ArrayBuffer, info.dtype);
+    }
+    this.convertAndCacheOnCPU(dataId, vals);
+    return vals;
   }
 
   async time(f: () => void): Promise<WebGPUTimingInfo> {
@@ -353,18 +404,12 @@ export class WebGPUBackend extends KernelBackend {
       wallMs: null
     };
 
-    if (this.supportTimeQuery) {
-      const kernelMs = await Promise.all(flattenedActiveTimerQueries);
-      res['kernelMs'] = util.sum(kernelMs);
-      res['getExtraProfileInfo'] = () =>
-          kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
-              .map(d => `${d.name}: ${d.ms}`)
-              .join(', ');
-    } else {
-      res['kernelMs'] = {
-        error: 'WebGPU timestamp query was not supported in this environment.'
-      };
-    }
+    const kernelMs = await Promise.all(flattenedActiveTimerQueries);
+    res['kernelMs'] = util.sum(kernelMs);
+    res['getExtraProfileInfo'] = () =>
+        kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
+            .map(d => `${d.name}: ${d.ms}`)
+            .join(', ');
     this.uploadWaitMs = 0;
     this.downloadWaitMs = 0;
     return res;
@@ -429,25 +474,36 @@ export class WebGPUBackend extends KernelBackend {
     if (info.values) {
       this.queue.writeBuffer(
           info.bufferInfo.buffer, 0, info.values as ArrayBuffer);
-      info.values = null;
+      // TODO: WebGPU doesn't support read data synchronously from GPU to CPU.
+      // So it will report error when switching backend from WebGPU to others.
+      // There are two situations: 1) swithcing the backend after running a
+      // model; 2) swithcing the backend within the model. Temporarilly keep the
+      // values on CPU to solve the first issue.
+      // info.values = null;
     }
   }
 
   public runWebGPUProgram(
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
-      outputDtype: DataType, programUniforms?: number[]): TensorInfo {
+      outputDtype: DataType,
+      programUniforms?: Uint32Array|Int32Array|Float32Array): TensorInfo {
     const output = this.makeTensorInfo(program.outputShape, outputDtype);
 
     let uniformDataLength;
     let uniforms: GPUBindingResource;
     if (program.uniforms) {
       // TODO: handle padding of program-specific uniforms
-      const uniformData = new Int32Array(programUniforms);
-      uniformDataLength = uniformData.byteLength;
-      uniforms = this.makeUniforms(uniformData);
+      uniformDataLength = programUniforms.byteLength;
+      uniforms = this.makeUniforms(programUniforms);
     }
 
     const inputsData = inputs.map((input: TensorInfo, i: number) => {
+      if (input.dtype === 'complex64') {
+        throw new Error(
+            `GPGPUProgram does not support complex64 input. For complex64 ` +
+            `dtypes, please separate the program into real and imaginary ` +
+            `parts.`);
+      }
       this.uploadToGPU(input.dataId);
 
       return {
@@ -475,8 +531,8 @@ export class WebGPUBackend extends KernelBackend {
         this.device, bindGroupLayout, inputs.map(t => this.tensorToBinding(t)),
         this.tensorToBinding(output), uniforms);
 
-    const encoder = this.device.createCommandEncoder();
-    const pass = encoder.beginComputePass();
+    this.ensureCommandEncoderReady();
+    const pass = this.currentCommandEncoder.beginComputePass();
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
         pass.writeTimestamp(this.querySet, 0);
@@ -492,8 +548,7 @@ export class WebGPUBackend extends KernelBackend {
       }
     }
     pass.endPass();
-
-    this.commandQueue.push(encoder);
+    this.computePassNumberInEncoder++;
 
     inputs.forEach(input => {
       this.commandQueueOwnedIds.add(input.dataId);
@@ -509,19 +564,51 @@ export class WebGPUBackend extends KernelBackend {
       this.uniformDisposalQueue.push(uniformInfo);
     }
 
-    if (env().get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED')) {
+    if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
+        number <= this.computePassNumberInEncoder) {
       this.submitQueue();
     }
 
     if (shouldTimeProgram) {
-      if (this.supportTimeQuery) {
-        this.activeTimers.push({
-          name: program.constructor.name,
-          query: this.getQueryTime(this.querySet)
-        });
-      }
+      this.activeTimers.push({
+        name: program.constructor.name,
+        query: this.getQueryTime(this.querySet)
+      });
     }
     return output;
+  }
+
+  recordFromPixelsCommands(output: GPUBuffer) {
+    const bindGroup = this.device.createBindGroup({
+      layout: this.fromPixelProgram.bindGroupLayout,
+      entries: [
+        {
+          binding: 0,
+          resource: {
+            buffer: output,
+          }
+        },
+        {
+          binding: 1,
+          resource: this.fromPixelProgram.inputTexture.createView(),
+        },
+        {
+          binding: 2,
+          resource: {
+            buffer: this.fromPixelProgram.uniform,
+          }
+        }
+      ],
+    });
+
+    this.ensureCommandEncoderReady();
+    const passEncoder = this.currentCommandEncoder.beginComputePass();
+    passEncoder.setPipeline(this.fromPixelProgram.pipeline);
+    passEncoder.setBindGroup(0, bindGroup);
+    passEncoder.dispatch(
+        this.fromPixelProgram.dispatch[0], this.fromPixelProgram.dispatch[1],
+        this.fromPixelProgram.dispatch[2]);
+    passEncoder.endPass();
   }
 
   async getTimeFromQuerySet(querySet: GPUQuerySet) {
@@ -530,11 +617,9 @@ export class WebGPUBackend extends KernelBackend {
     const dst = this.acquireBuffer(
         16, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
 
-    const encoder = this.device.createCommandEncoder();
-    // tslint:disable-next-line:no-any
-    (encoder as any).resolveQuerySet(querySet, 0, 2, queryBuffer, 0);
-    encoder.copyBufferToBuffer(queryBuffer, 0, dst, 0, 16);
-    this.commandQueue.push(encoder);
+    this.ensureCommandEncoderReady();
+    this.currentCommandEncoder.resolveQuerySet(querySet, 0, 2, queryBuffer, 0);
+    this.currentCommandEncoder.copyBufferToBuffer(queryBuffer, 0, dst, 0, 16);
     this.submitQueue();
     await dst.mapAsync(GPUMapMode.READ);
     const arrayBuf = new BigUint64Array(dst.getMappedRange());
@@ -549,7 +634,8 @@ export class WebGPUBackend extends KernelBackend {
     return timeElapsedNanos / 1000000;
   }
 
-  private makeUniforms(data: Uint32Array|Int32Array): GPUBindingResource {
+  private makeUniforms(data: Uint32Array|Int32Array|
+                       Float32Array): GPUBindingResource {
     const dimensionsBuffer = this.acquireBuffer(
         data.byteLength, GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
     this.queue.writeBuffer(dimensionsBuffer, 0, data);
@@ -597,7 +683,9 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   numDataIds() {
-    return this.tensorMap.numDataIds();
+    return this.tensorMap.numDataIds() +
+        (this.cpuBackend ? this.cpuBackend.numDataIds() : 0) -
+        this.tensorDisposalQueue.length;
   }
 
   dispose() {

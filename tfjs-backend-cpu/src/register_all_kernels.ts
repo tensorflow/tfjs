@@ -67,6 +67,7 @@ import {diagConfig} from './kernels/Diag';
 import {dilation2dConfig} from './kernels/Dilation2D';
 import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
 import {dilation2dBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
+import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
 import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
@@ -167,6 +168,7 @@ import {tanConfig} from './kernels/Tan';
 import {tanhConfig} from './kernels/Tanh';
 import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
+import {transformConfig} from './kernels/Transform';
 import {transposeConfig} from './kernels/Transpose';
 import {uniqueConfig} from './kernels/Unique';
 import {unpackConfig} from './kernels/Unpack';
@@ -224,6 +226,7 @@ const kernelConfigs: KernelConfig[] = [
   dilation2dBackpropInputConfig,
   dilation2dBackpropFilterConfig,
   realDivConfig,
+  einsumConfig,
   eluConfig,
   eluGradConfig,
   equalConfig,
@@ -324,6 +327,7 @@ const kernelConfigs: KernelConfig[] = [
   tileConfig,
   topKConfig,
   transposeConfig,
+  transformConfig,
   uniqueConfig,
   unpackConfig,
   unsortedSegmentSumConfig,

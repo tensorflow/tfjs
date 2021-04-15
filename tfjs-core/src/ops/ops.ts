@@ -67,6 +67,7 @@ export {dilation2d} from './dilation2d';
 export {div} from './div';
 export {divNoNan} from './div_no_nan';
 export {dot} from './dot';
+export {einsum} from './einsum';
 export {elu} from './elu';
 export {equal} from './equal';
 export {erf} from './erf';
@@ -105,6 +106,7 @@ export {maxPool3d} from './max_pool_3d';
 export {maxPoolWithArgmax} from './max_pool_with_argmax';
 export {maximum} from './maximum';
 export {mean} from './mean';
+export {meshgrid} from './meshgrid';
 export {min} from './min';
 export {minimum} from './minimum';
 export {mirrorPad} from './mirror_pad';
@@ -246,6 +248,7 @@ import {nonMaxSuppressionPadded} from './image/non_max_suppression_padded';
 import {nonMaxSuppressionPaddedAsync} from './image/non_max_suppression_padded_async';
 import {resizeBilinear} from './image/resize_bilinear';
 import {resizeNearestNeighbor} from './image/resize_nearest_neighbor';
+import {transform} from './image/transform';
 const image = {
   flipLeftRight,
   resizeNearestNeighbor,
@@ -257,7 +260,8 @@ const image = {
   nonMaxSuppressionWithScore,
   nonMaxSuppressionWithScoreAsync,
   nonMaxSuppressionPadded,
-  nonMaxSuppressionPaddedAsync
+  nonMaxSuppressionPaddedAsync,
+  transform
 };
 
 // linalg namespace

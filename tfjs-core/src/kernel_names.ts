@@ -323,6 +323,12 @@ export type Dilation2DBackpropFilterInputs =
 export const RealDiv = 'RealDiv';
 export type RealDivInputs = BinaryInputs;
 
+export const Einsum = 'Einsum';
+export type EinsumInputs = TensorInfo[];
+export interface EinsumAttrs {
+  equation: string;
+}
+
 export const Elu = 'Elu';
 export type EluInputs = Pick<NamedTensorInfoMap, 'x'>;
 
@@ -806,6 +812,15 @@ export type TopKInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface TopKAttrs {
   k: number;
   sorted: boolean;
+}
+
+export const Transform = 'Transform';
+export type TransformInputs = Pick<NamedTensorInfoMap, 'image'|'transforms'>;
+export interface TransformAttrs {
+  interpolation: 'nearest'|'bilinear';
+  fillMode: 'constant'|'reflect'|'wrap'|'nearest';
+  fillValue: number;
+  outputShape?: [number, number];
 }
 
 export const Transpose = 'Transpose';

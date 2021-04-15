@@ -108,7 +108,8 @@ limitations under the License.
     let urlState = null;
     let runTimes = 50;
     let warmupTimes = 1;
-
+    // Default do not run any task.
+    let task = '';
     function getURLState(url) {
       let params = new URLSearchParams(url);
       const keys = [...params.keys()];
@@ -120,6 +121,9 @@ limitations under the License.
       if (params.has('warmup')) {
         warmupTimes = Number(params.get('warmup'));
       }
+      if (params.has('task')) {
+        task = params.get('task');
+      }
       return params;
     }
     // Controllers can be updated by URI or clicked by user.
@@ -128,7 +132,9 @@ limitations under the License.
     let modelParameterFolder = null;
     let backendsController = null;
     let runButton = null;
+    let correctnessButton = null;
     let inputSizeController = null;
+    let inputTypeController = null;
     let modelArchitectureController = null;
 
     function updateGUIFromURLState() {
@@ -142,8 +148,12 @@ limitations under the License.
       if (backendsController != null && urlState.has('backend'))
         backendsController.setValue(urlState.get('backend'));
       // Only auto run when URI component exists.
-      if (runButton != null)
+      if (correctnessButton != null && task == 'correctness') {
+        correctnessButton.domElement.click();
+      }
+      if (runButton != null && task == 'performance') {
         runButton.domElement.click();
+      }
     }
 
     const state = {
@@ -156,10 +166,11 @@ limitations under the License.
         });
       },
       testCorrectness: async () => {
-        if (state.benchmark === 'custom') {
-          // TODO: seperate input generation from the predict function
-          await showMsg('Testing correctness for custom models is not supported.');
-          throw new Error();
+        if (state.isFlagChanged) {
+          await setEnvFlags(state.flags);
+          envDiv.innerHTML = '';
+          showVersions();
+          await showEnvironment();
         }
 
         let match, predictionData, referenceData;
@@ -173,13 +184,18 @@ limitations under the License.
           await showCorrectnessTestParameters();
 
           tf.setBackend('cpu');
+          let inferenceInput;
           await showMsg('Runing on cpu');
-          const referencePrediction = predict(model);
+          if (state.benchmark === 'custom') {
+            inferenceInput = generateInputFromDef(
+              state.inputs, model instanceof tf.GraphModel);
+          }
+          const referencePrediction = predict(model, inferenceInput);
           referenceData = await getPredictionData(referencePrediction);
 
           await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
-          const prediction = predict(model);
+          const prediction = predict(model, inferenceInput);
           predictionData = await getPredictionData(prediction);
         } catch (e) {
           showMsg('Error: ' + e.message);
@@ -203,6 +219,7 @@ limitations under the License.
       backend: 'wasm',
       kernelTiming: 'aggregate',
       inputSize: 0,
+      inputType: '',
       architecture: '',
       modelType: '',
       modelUrl: '',
@@ -261,10 +278,15 @@ limitations under the License.
       appendRow(parameterTable, 'numRuns', state.numRuns);
       appendRow(parameterTable, 'backend', state.backend);
       appendRow(parameterTable, 'kernelTiming', state.kernelTiming);
-      if (isParameterDefined('inputSizes'))
+      if (isParameterDefined('inputSizes')) {
         appendRow(parameterTable, 'inputSize', state.inputSize);
-      if (isParameterDefined('architectures'))
+      }
+      if (isParameterDefined('inputTypes')) {
+        appendRow(parameterTable, 'inputType', state.inputType);
+      }
+      if (isParameterDefined('architectures')) {
         appendRow(parameterTable, 'architecture', state.architecture);
+      }
     }
 
     async function setupKernelTable() {
@@ -314,7 +336,6 @@ limitations under the License.
         await showMsg('Skip warming up');
         appendRow(timeTable, 'backend', state.backend);
         appendRow(timeTable, 'Warmup time', '0 ms');
-        await sleep(1000);
         return;
       }
       await showMsg(`Warming up for ${warmupTimes} time(s)`);
@@ -409,6 +430,8 @@ limitations under the License.
         state.backend = urlState.get('backend');
       if (urlState.has('inputSize'))
         state.inputSize = Number(urlState.get('inputSize'));
+      if (urlState.has('inputType'))
+        state.inputType = urlState.get('inputType');
       if (urlState.has('architecture'))
         state.architecture = urlState.get('architecture');
     }
@@ -426,7 +449,7 @@ limitations under the License.
       await showMsg('Loading the model');
       let start = performance.now();
       const inputSize = parseFloat(state.inputSize);
-      model = await benchmark.load(inputSize, state.architecture);
+      model = await benchmark.load(inputSize, state.architecture, state.inputType);
       state.inputs = [];
       if (model.inputs) {
         // construct the input state for the model
@@ -462,8 +485,11 @@ limitations under the License.
 
       node.querySelector('.yMin').textContent = yFormatter(yMin);
       node.querySelector('.yMax').textContent = yFormatter(yMax);
+      let xIncrement = 0;
+      if (data.length != 1) {
+        xIncrement = chartWidth / (data.length - 1);
+      }
 
-      const xIncrement = chartWidth / (data.length - 1);
       node.querySelector('path')
         .setAttribute('d', `M${data.map((d, i) => `${i * xIncrement},${chartHeight - ((d - yMin) / (yMax - yMin)) * chartHeight}`).join('L')} `);
     }
@@ -517,14 +543,16 @@ limitations under the License.
       appendRow(timeTable, 'Leaked tensors', profileInfo.newTensors);
       appendRow(timeTable, 'Profile time', printTime(elapsed));
 
-      if (state.backend != 'webgl' || queryTimerIsEnabled()) {
-        await showMsg('Profiling kernels');
-        appendRow(timeTable, 'Number of kernels', profileInfo.kernels.length);
-        showKernelTime(profileInfo);
-      } else {
-        await showMsg('Skipping kernel times since query timer extension is not ' +
-          'available. <br/> Please use a browser supporting the EXT_disjoint_timer_query WebGL API.');
-      };
+      if (state.backend === 'webgl' && !queryTimerIsEnabled()) {
+        await showMsg('Query timer extension is not available. <br/> ' +
+          'The kernel result is not accurate since it is ' +
+          'not a direct measure of GPU execution time.');
+      }
+
+      await showMsg('Profiling kernels');
+      appendRow(timeTable, 'Number of kernels', profileInfo.kernels.length);
+      showKernelTime(profileInfo);
+      await showMsg(null);
     }
 
     function showKernelTime(profileInfo) {
@@ -605,11 +633,8 @@ limitations under the License.
       await showBenchmarkingParameters();
 
       await warmUpAndRecordTime();
-      await showMsg('Waiting for GC');
-      await sleep(1000);
-      await profileMemoryAndKernelTime();
-      await sleep(200);
       await measureAveragePredictTime();
+      await profileMemoryAndKernelTime();
       urlState = null;
     }
 
@@ -644,13 +669,17 @@ limitations under the License.
         const benchmark = benchmarks[state.benchmark];
         state.isModelChanged = true;
         state.isModelLoaded = false;
+        if (modelArchitectureController !== null) {
+          modelParameterFolder.remove(modelArchitectureController);
+          modelArchitectureController = null;
+        }
         if (inputSizeController !== null) {
           modelParameterFolder.remove(inputSizeController);
           inputSizeController = null;
         }
-        if (modelArchitectureController !== null) {
-          modelParameterFolder.remove(modelArchitectureController);
-          modelArchitectureController = null;
+        if (inputTypeController !== null) {
+          modelParameterFolder.remove(inputTypeController);
+          inputTypeController = null;
         }
 
         if (isParameterDefined('inputSizes')) {
@@ -660,10 +689,11 @@ limitations under the License.
           });
           // Current use first value as default.
           let defaultInputSize = 0;
-          if (isURLParameterDefined('inputSize'))
+          if (isURLParameterDefined('inputSize')) {
             defaultInputSize = urlState.get('inputSize');
-          else
+          } else {
             defaultInputSize = benchmark['inputSizes'][0];
+          }
           inputSizeController.setValue(defaultInputSize);
           state.inputSize = defaultInputSize;
         } else {
@@ -689,7 +719,26 @@ limitations under the License.
           // Model doesn't support input size.
           state.architecture = '';
         }
-        if (isParameterDefined('inputSizes') || isParameterDefined('architectures')) {
+
+        if (isParameterDefined('inputTypes')) {
+          inputTypeController = modelParameterFolder.add(state, 'inputType', benchmark['inputTypes']).name('inputTypes').onChange(async inputType => {
+            state.inputType = inputType;
+            state.isModelChanged = true;
+          });
+          // Current use first value as default.
+          let defaultInputType = null;
+          if (isURLParameterDefined('inputType')) {
+            defaultInputType = urlState.get('inputType');
+          } else {
+            defaultInputType = benchmark['inputTypes'][0];
+          }
+          inputTypeController.setValue(defaultInputType);
+          state.inputType = defaultInputType;
+        } else {
+          // Model doesn't support input type.
+          state.inputType = '';
+        }
+        if (isParameterDefined('inputSizes') || isParameterDefined('inputTypes') || isParameterDefined('architectures')) {
           modelParameterFolder.open();
         }
 
@@ -716,12 +765,16 @@ limitations under the License.
       parameterFolder.open();
 
       modelParameterFolder = gui.addFolder('Model Parameters');
-      if (isParameterDefined('inputSizes')) {
-        inputSizeController = modelParameterFolder.add(state, 'inputSize', []);
-      }
       if (isParameterDefined('architectures')) {
         modelArchitectureController = modelParameterFolder.add(state, 'architecture', []);
       }
+      if (isParameterDefined('inputSizes')) {
+        inputSizeController = modelParameterFolder.add(state, 'inputSize', []);
+      }
+      if (isParameterDefined('inputTypes')) {
+        inputTypeController = modelParameterFolder.add(state, 'inputType', []);
+      }
+
       modelParameterFolder.open();
 
       const envFolder = gui.addFolder('Environment');
@@ -735,7 +788,8 @@ limitations under the License.
 
       runButton = gui.add(state, 'run');
       runButton.name('Run benchmark');
-      gui.add(state, 'testCorrectness').name('Test correctness');
+      correctnessButton = gui.add(state, 'testCorrectness');
+      correctnessButton.name('Test correctness');
 
       await showFlagSettings(envFolder, state.backend);
       showVersions();

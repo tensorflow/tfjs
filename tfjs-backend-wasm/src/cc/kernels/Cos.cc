@@ -18,8 +18,9 @@
 
 #include <math.h>
 
-#include "src/cc/backend.h"
-#include "src/cc/unary.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/sin_cos_workaround.h"
+#include "tfjs-backend-wasm/src/cc/unary.h"
 
 namespace tfjs {
 namespace wasm {
@@ -29,7 +30,9 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Cos(const int x_id, const int out_id) { unary(x_id, out_id, cos); }
+void Cos(const int x_id, const int out_id) {
+  unary(x_id, out_id, tfjs::sin_cos_workaround::cos_fixed);
+}
 
 }  // extern "C"
 }  // namespace wasm

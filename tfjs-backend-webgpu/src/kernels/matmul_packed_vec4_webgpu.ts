@@ -26,7 +26,8 @@ export function makeMatMulPackedVec4Source(workPerThread: number[]): string {
     void mm_write(int row, int col, vec4 value);
 
     const int RowPerThread = ${workPerThread[1]};
-    const int ColPerThread = ${workPerThread[0]};
+    const int ColPerThread = ${
+      workPerThread[0]}; // only support ColPerThread = 4
     const int TileAOuter = int(gl_WorkGroupSize.y) * RowPerThread;
     const int TileBOuter = int(gl_WorkGroupSize.x) * ColPerThread;
     const int TileInner = TileBOuter;
@@ -54,7 +55,8 @@ export function makeMatMulPackedVec4Source(workPerThread: number[]): string {
 
       // Loop over shared dimension.
       int globalColA = tileCol;
-      int tileRowB = int(gl_LocalInvocationID.y) * ColPerThread;
+      const int RowPerThreadB = TileInner / int(gl_WorkGroupSize.y);
+      int tileRowB = int(gl_LocalInvocationID.y) * RowPerThreadB;
       for (int t = 0; t < numTiles; t++) {
         // Load one tile of A into local memory.
         for (int innerRow = 0; innerRow < RowPerThread; innerRow++) {
@@ -68,7 +70,7 @@ export function makeMatMulPackedVec4Source(workPerThread: number[]): string {
         globalColA += TileInner / ColPerThread;
 
         // Load one tile of B into local memory.
-        for (int innerRow = 0; innerRow < ColPerThread; innerRow++) {
+        for (int innerRow = 0; innerRow < RowPerThreadB; innerRow++) {
             int inputRow = tileRowB + innerRow;
             int inputCol = tileCol;
 
@@ -113,7 +115,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   dispatch: [number, number, number];
   workPerThread: number;
   variableNames = ['A', 'B'];
-  workGroupSize: [number, number, number] = [16, 16, 1];  // x, y must be equal.
+  workGroupSize: [number, number, number] = [16, 16, 1];
   isVec4 = true;
   aShape: [number, number, number];
   addBias: boolean;
@@ -122,16 +124,20 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
-      workPerThread: number, addBias = false, activation: string = null,
+      rowPerThread: number, addBias = false, activation: string = null,
       hasPreluActivationWeights = false) {
     this.outputShape = outputShape;
-    this.workGroupSize =
-        computeWorkGroupSizeForMatMul(aShape[2], outputShape[2]);
+    this.workGroupSize = computeWorkGroupSizeForMatMul(
+        outputShape[1], aShape[2], outputShape[2]);
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
     const vecSize = 4;
+    if (outputShape[1] === 1) {
+      this.workGroupSize = [16, 1, 1];  // in case shared memory exceeds limit.
+      rowPerThread = 1;
+    }
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [vecSize, workPerThread, 1]);
+        [vecSize, rowPerThread, 1]);
 
     if (addBias) {
       this.variableNames.push('bias');
@@ -141,12 +147,12 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
       this.variableNames.push('preluActivationWeights');
     }
 
-    this.workPerThread = workPerThread;
+    this.workPerThread = rowPerThread;
     this.aShape = aShape;
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.shaderKey = `matMulPackedVec4_${workPerThread}_${activation}`;
+    this.shaderKey = `matMulPackedVec4_${rowPerThread}_${activation}`;
   }
 
   getUserCode(): string {

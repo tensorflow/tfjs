@@ -1,3 +1,4 @@
+load("@emsdk//emscripten_toolchain:wasm_rules.bzl", "wasm_cc_binary")
 load(":build_defs.bzl", "tfjs_cc_library", "tfjs_unit_test")
 
 # Emcripten produces a much larger wasm bundle unless the cc_binary has srcs
@@ -7,6 +8,14 @@ KERNELS_WITH_KEEPALIVE = glob(
     exclude = ["**/*_test.cc"],
 )
 
+# This build rule generates tfjs-backend-wasm.{js,wasm}.
+#
+# The ".js" at the end of the build name is significant because it determines
+# the output file types. See the "-o <target>" flag in
+# https://emscripten.org/docs/tools_reference/emcc.html
+#
+# Note that tfjs-backend-wasm.js will be used to load tfjs-backend-wasm.wasm
+# as well as tfjs-backend-wasm-simd.wasm (the output of the next build rule).
 cc_binary(
     name = "tfjs-backend-wasm.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
@@ -21,7 +30,6 @@ cc_binary(
         "-s MODULARIZE=1",
         "-s EXPORT_NAME=WasmBackendModule",
         "-s MALLOC=emmalloc",
-        "-s STANDALONE_WASM=1",
     ],
     deps = [
         ":all_kernels",
@@ -29,49 +37,22 @@ cc_binary(
     ],
 )
 
-cc_binary(
-    name = "tfjs-backend-wasm-simd.wasm",
-    srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
-    linkopts = [
-        "-s ALLOW_MEMORY_GROWTH=1",
-        "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
-        "-s DISABLE_EXCEPTION_CATCHING=1",
-        "-s FILESYSTEM=0",
-        "-s EXIT_RUNTIME=0",
-        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
-        "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
-        "-s MALLOC=emmalloc",
-        "-s SIMD=1",
-        "-s STANDALONE_WASM=1",
-    ],
-    deps = [
-        ":all_kernels",
-        ":backend",
-    ],
+wasm_cc_binary(
+    name = "tfjs-backend-wasm",
+    cc_target = ":tfjs-backend-wasm.js",
 )
 
-cc_binary(
-    name = "tfjs-backend-wasm-threaded-simd.js",
-    srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
-    linkopts = [
-        "-s ALLOW_MEMORY_GROWTH=1",
-        "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
-        "-s DISABLE_EXCEPTION_CATCHING=1",
-        "-s FILESYSTEM=0",
-        "-s EXIT_RUNTIME=0",
-        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
-        "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
-        "-s MODULARIZE=1",
-        "-s EXPORT_NAME=WasmBackendModuleThreadedSimd",
-        "-s MALLOC=emmalloc",
-        "-s SIMD=1",
-        "-s USE_PTHREADS=1",
-        "-s PROXY_TO_PTHREAD=1",
-    ],
-    deps = [
-        ":all_kernels",
-        ":backend",
-    ],
+wasm_cc_binary(
+    name = "tfjs-backend-wasm-simd",
+    cc_target = ":tfjs-backend-wasm.js",
+    simd = True,
+)
+
+wasm_cc_binary(
+    name = "tfjs-backend-wasm-threaded-simd",
+    cc_target = ":tfjs-backend-wasm.js",
+    simd = True,
+    threads = "emscripten",
 )
 
 test_suite(
@@ -116,6 +97,12 @@ tfjs_cc_library(
     deps = [
         ":util",
     ],
+)
+
+tfjs_cc_library(
+    name = "sin_cos_workaround",
+    srcs = ["sin_cos_workaround.cc"],
+    hdrs = ["sin_cos_workaround.h"],
 )
 
 tfjs_cc_library(
@@ -223,12 +210,15 @@ tfjs_cc_library(
         ":Abs",
         ":Add",
         ":AddN",
+        ":All",
+        ":Any",
         ":ArgMax",
         ":AvgPool",
         ":BatchMatMul",
         ":ClipByValue",
         ":Conv2D",
         ":Conv2DBackpropInput",
+        ":Cos",
         ":CropAndResize",
         ":Cumsum",
         ":DepthToSpace",
@@ -252,6 +242,7 @@ tfjs_cc_library(
         ":Maximum",
         ":Min",
         ":Minimum",
+        ":MirrorPad",
         ":Multiply",
         ":Neg",
         ":NonMaxSuppressionV3",
@@ -271,11 +262,13 @@ tfjs_cc_library(
         ":ScatterNd",
         ":SelectV2",
         ":Sigmoid",
+        ":Sin",
         ":Softmax",
         ":Square",
         ":SquaredDifference",
         ":StridedSlice",
         ":Sub",
+        ":Tan",
         ":Tile",
         ":Transpose",
         ":_FusedMatMul",
@@ -304,6 +297,24 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "AddN",
     srcs = ["kernels/AddN.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "All",
+    srcs = ["kernels/All.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Any",
+    srcs = ["kernels/Any.cc"],
     deps = [
         ":backend",
         ":util",
@@ -415,6 +426,16 @@ tfjs_cc_library(
     srcs = ["kernels/Conv2DBackpropInput.cc"],
     deps = [
         ":backend",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Cos",
+    srcs = ["kernels/Cos.cc"],
+    deps = [
+        ":backend",
+        ":sin_cos_workaround",
+        ":unary",
     ],
 )
 
@@ -709,6 +730,15 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "MirrorPad",
+    srcs = ["kernels/MirrorPad.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "Multiply",
     srcs = ["kernels/Multiply.cc"],
     deps = [
@@ -897,6 +927,16 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "Sin",
+    srcs = ["kernels/Sin.cc"],
+    deps = [
+        ":backend",
+        ":sin_cos_workaround",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
     name = "Softmax",
     srcs = ["kernels/Softmax.cc"],
     hdrs = ["kernels/Softmax.h"],
@@ -994,5 +1034,15 @@ tfjs_cc_library(
     srcs = ["kernels/Step.cc"],
     deps = [
         ":backend",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Tan",
+    srcs = ["kernels/Tan.cc"],
+    deps = [
+        ":backend",
+        ":sin_cos_workaround",
+        ":unary",
     ],
 )

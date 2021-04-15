@@ -16,13 +16,13 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/leakyrelu_impl.h"
+#include "tfjs-backend-wasm/src/cc/leakyrelu_impl.h"
 
 #include <cmath>
 #include <cstddef>
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 template <class T>

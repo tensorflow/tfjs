@@ -18,8 +18,8 @@
 
 #include <math.h>
 
-#include "src/cc/backend.h"
-#include "src/cc/unary.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/unary.h"
 
 namespace {
 float rsqrt(const float a) { return 1 / sqrt(a); }

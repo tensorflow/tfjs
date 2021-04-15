@@ -17,8 +17,8 @@
 
 #include <cstddef>
 
-#include "src/cc/backend.h"
-#include "src/cc/kernels/MaxPool.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/kernels/MaxPool.h"
 
 TEST(MAXPOOL, xnn_operator_lifetime) {
   tfjs::wasm::init();

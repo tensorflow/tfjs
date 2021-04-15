@@ -22,7 +22,6 @@ import {env, registerBackend} from '@tensorflow/tfjs-core';
 import glslangInit from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {WebGPUBackend} from './backend_webgpu';
-import {fromPixelsAsync} from './ops/from_pixels_async';
 import * as webgpu from './webgpu';
 
 registerBackend('webgpu', async () => {
@@ -43,10 +42,14 @@ registerBackend('webgpu', async () => {
 
   if (supportTimeQuery) {
     deviceDescriptor = {extensions: ['timestamp-query' as const ]};
+  } else {
+    console.warn(`This device doesn't support timestamp-query extension. ` +
+        `Zero will shown for the kernel time when profiling mode is enabled. ` +
+        `Using performance.now is not workable for webgpu since it doesn't ` +
+        `support synchronously to read data from GPU.`);
   }
   const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
   return new WebGPUBackend(device, glslang, supportTimeQuery);
 }, 3 /*priority*/);
 
 export {webgpu};
-export {fromPixelsAsync};

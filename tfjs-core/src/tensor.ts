@@ -236,6 +236,12 @@ export declare namespace Tensor {}
  * A `tf.Tensor` object represents an immutable, multidimensional array of
  * numbers that has a shape and a data type.
  *
+ * For performance reasons, functions that create tensors do not necessarily
+ * perform a copy of the data passed to them (e.g. if the data is passed as a
+ * `Float32Array`), and changes to the data will change the tensor. This is not
+ * a feature and is not supported. To avoid this behavior, use the tensor before
+ * changing the input data or create a copy with `copy = tf.add(yourTensor, 0)`.
+ *
  * See `tf.tensor` for details on how to create a `tf.Tensor`.
  *
  * @doc {heading: 'Tensors', subheading: 'Classes'}
@@ -309,7 +315,8 @@ export class Tensor<R extends Rank = Rank> {
    */
   async array(): Promise<ArrayMap[R]> {
     const vals = await this.data();
-    return toNestedArray(this.shape, vals) as ArrayMap[R];
+    return toNestedArray(this.shape, vals, this.dtype === 'complex64') as
+        ArrayMap[R];
   }
 
   /**
@@ -319,7 +326,9 @@ export class Tensor<R extends Rank = Rank> {
    * @doc {heading: 'Tensors', subheading: 'Classes'}
    */
   arraySync(): ArrayMap[R] {
-    return toNestedArray(this.shape, this.dataSync()) as ArrayMap[R];
+    return toNestedArray(
+               this.shape, this.dataSync(), this.dtype === 'complex64') as
+        ArrayMap[R];
   }
 
   /**

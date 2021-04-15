@@ -355,6 +355,11 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    startsWith: 'tan',
+    excludes: ['gradient']  // Gradient not yet implemented.
+
+  },
+  {
     startsWith: 'tanh ',
     excludes: ['gradient']  // Gradient not yet implemented.
   },
@@ -394,6 +399,20 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: ['pool'],
   },
   {include: 'step kernel'},
+  {include: 'ceil'},
+  {include: 'mirrorPad'},
+  {
+    startsWith: 'all',
+    excludes: [
+      'ignores NaNs'  // Doesn't yet ignore NaN
+    ]
+  },
+  {
+    startsWith: 'any',
+    excludes: [
+      'ignores NaNs'  // Doesn't yet ignore NaN
+    ]
+  },
 ];
 
 const customInclude = (testName: string) => {

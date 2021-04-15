@@ -18,9 +18,9 @@
 
 #include <cstddef>
 
-#include "src/cc/backend.h"
-#include "src/cc/batch_mat_mul_impl.h"
-#include "src/cc/kernels/_FusedMatMul.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/batch_mat_mul_impl.h"
+#include "tfjs-backend-wasm/src/cc/kernels/_FusedMatMul.h"
 
 namespace tfjs {
 namespace wasm {

@@ -224,5 +224,20 @@ describe('basic math', () => {
         expect(validateParam(node, basic_math.json)).toBeTruthy();
       });
     });
+    describe('IsNan', () => {
+      it('should call tfOps.isNaN', () => {
+        spyOn(tfOps, 'isNaN');
+        node.op = 'IsNan';
+
+        executeOp(node, {input1}, context);
+
+        expect(tfOps.isNaN).toHaveBeenCalledWith(input1[0]);
+      });
+      it('should match op def', () => {
+        node.op = 'IsNan';
+
+        expect(validateParam(node, basic_math.json)).toBeTruthy();
+      });
+    });
   });
 });

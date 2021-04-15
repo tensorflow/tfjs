@@ -18,8 +18,8 @@
 
 #include <cstddef>
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 
@@ -29,7 +29,6 @@ void prod(const size_t x_id, const size_t reduce_size, const size_t out_id) {
   auto& out_info = tfjs::backend::get_tensor_info_out(out_id);
 
   const T* x_buf = reinterpret_cast<const T *>(x_info.memory_offset);
-  const size_t x_size = x_info.size;
 
   T* out_buf = reinterpret_cast<T *>(out_info.memory_offset);
   const size_t out_size = out_info.size;
@@ -37,7 +36,6 @@ void prod(const size_t x_id, const size_t reduce_size, const size_t out_id) {
   const T* x_offset = x_buf;
 
   for (size_t i = 0; i < out_size; ++i) {
-    const size_t offset = i * reduce_size;
     T product = 1;
 
     const T* x_iter_end = x_offset + reduce_size;

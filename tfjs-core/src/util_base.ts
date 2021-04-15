@@ -65,16 +65,16 @@ export function shuffle(array: any[]|Uint32Array|Int32Array|
  *
  * @doc {heading: 'Util', namespace: 'util'}
  */
-// tslint:disable-next-line:no-any
-export function shuffleCombo(array: any[]|Uint32Array|Int32Array|Float32Array,
-// tslint:disable-next-line:no-any
-                      array2: any[]|Uint32Array|Int32Array|Float32Array): void {
-
+export function shuffleCombo(
+    // tslint:disable-next-line:no-any
+    array: any[]|Uint32Array|Int32Array|Float32Array,
+    // tslint:disable-next-line:no-any
+    array2: any[]|Uint32Array|Int32Array|Float32Array): void {
   if (array.length !== array2.length) {
-    throw Error(
-      `Array sizes must match to be shuffled together ` +
-      `First array length was ${array.length}` +
-      `Second array length was ${array2.length}`);
+    throw new Error(
+        `Array sizes must match to be shuffled together ` +
+        `First array length was ${array.length}` +
+        `Second array length was ${array2.length}`);
   }
   let counter = array.length;
   let temp, temp2;
@@ -597,40 +597,43 @@ export function computeStrides(shape: number[]): number[] {
   return strides;
 }
 
-function createNestedArray(offset: number, shape: number[], a: TypedArray) {
+function createNestedArray(
+    offset: number, shape: number[], a: TypedArray, isComplex = false) {
   const ret = new Array();
   if (shape.length === 1) {
-    const d = shape[0];
+    const d = shape[0] * (isComplex ? 2 : 1);
     for (let i = 0; i < d; i++) {
       ret[i] = a[offset + i];
     }
   } else {
     const d = shape[0];
     const rest = shape.slice(1);
-    const len = rest.reduce((acc, c) => acc * c);
+    const len = rest.reduce((acc, c) => acc * c) * (isComplex ? 2 : 1);
     for (let i = 0; i < d; i++) {
-      ret[i] = createNestedArray(offset + i * len, rest, a);
+      ret[i] = createNestedArray(offset + i * len, rest, a, isComplex);
     }
   }
   return ret;
 }
 
 // Provide a nested array of TypedArray in given shape.
-export function toNestedArray(shape: number[], a: TypedArray) {
+export function toNestedArray(
+    shape: number[], a: TypedArray, isComplex = false) {
   if (shape.length === 0) {
     // Scalar type should return a single number.
     return a[0];
   }
-  const size = shape.reduce((acc, c) => acc * c);
+  const size = shape.reduce((acc, c) => acc * c) * (isComplex ? 2 : 1);
   if (size === 0) {
     // A tensor with shape zero should be turned into empty list.
     return [];
   }
   if (size !== a.length) {
-    throw new Error(`[${shape}] does not match the input size ${a.length}.`);
+    throw new Error(`[${shape}] does not match the input size ${a.length}${
+        isComplex ? ' for a complex tensor' : ''}.`);
   }
 
-  return createNestedArray(0, shape, a);
+  return createNestedArray(0, shape, a, isComplex);
 }
 
 export function makeOnesTypedArray<D extends DataType>(

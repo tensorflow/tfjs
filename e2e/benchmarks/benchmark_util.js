@@ -90,8 +90,23 @@ function generateInputFromDef(inputDefs, isForGraphModel = false) {
       // Construct the input tensor.
       let inputTensor;
       if (inputDef.dtype === 'float32' || inputDef.dtype === 'int32') {
-        inputTensor = tf.randomNormal(
-            inputShape, inputDef.range[0], inputDef.range[1], inputDef.dtype);
+        // We assume a bell curve normal distribution. In this case,
+        // we use below approximation:
+        // mean ~= (min + max) / 2
+        // std ~= (max - min) / 4
+        // Note: for std, our approximation is based on the fact that
+        // 95% of the data is within the range of 2 stds above and
+        // below the mean. So 95% of the data falls in the range of
+        // 4 stds.
+        const min = inputDef.range[0];
+        const max = inputDef.range[1];
+        const mean = (min + max) / 2;
+        const std = (max - min) / 4;
+        generatedRaw = tf.randomNormal(inputShape, mean, std, inputDef.dtype);
+        // We clip the value to be within [min, max], because 5% of
+        // the data generated maybe outside of [min, max].
+        inputTensor = tf.clipByValue(generatedRaw, min, max);
+        generatedRaw.dispose();
       } else {
         throw new Error(
             `The ${inputDef.dtype} dtype of '${inputDef.name}' input ` +
@@ -419,6 +434,9 @@ const TUNABLE_FLAG_VALUE_RANGE_MAP = {
   WEBGL_PACK: [true, false],
   WEBGL_FORCE_F16_TEXTURES: [true, false],
   WEBGL_RENDER_FLOAT32_CAPABLE: [true, false],
+  WEBGL_FLUSH_THRESHOLD: [-1, 0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
+  WEBGL_PACK_DEPTHWISECONV: [true, false],
+  CHECK_COMPUTATION_FOR_ERRORS: [true, false],
 };
 
 /**

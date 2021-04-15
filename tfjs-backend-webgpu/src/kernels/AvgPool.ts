@@ -19,8 +19,8 @@ import {AvgPool, AvgPoolAttrs, AvgPoolInputs, backend_util, KernelConfig, Kernel
 import {WebGPUBackend} from '../backend_webgpu';
 
 import {identity} from './Identity';
-import {MaxPoolWithFilterSizeEqualsOneProgram} from './maxpool_filtersizeone_webgpu';
 import {Pool2DProgram} from './pool2d_webgpu';
+import {PoolWithFilterSizeEqualsOneProgram} from './pool_filtersizeone_webgpu';
 
 export function avgPool(
     args: {inputs: AvgPoolInputs, backend: WebGPUBackend, attrs: AvgPoolAttrs}):
@@ -37,23 +37,23 @@ export function avgPool(
     return identity({inputs: {x}, backend});
   }
 
-  let program: Pool2DProgram|MaxPoolWithFilterSizeEqualsOneProgram;
+  let program: Pool2DProgram|PoolWithFilterSizeEqualsOneProgram;
   if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1) {
-    program = new MaxPoolWithFilterSizeEqualsOneProgram(convInfo);
+    program = new PoolWithFilterSizeEqualsOneProgram(convInfo);
   } else {
     program = new Pool2DProgram(convInfo, 'avg');
   }
 
   const dimensions = [
-    convInfo.padInfo.left, convInfo.padInfo.top,      // Padding.
-    convInfo.strideWidth, convInfo.strideHeight,      // Stride.
-    convInfo.dilationWidth, convInfo.dilationHeight,  // Dilation.
-    convInfo.inWidth, convInfo.inHeight,              // Conv dims.
-    convInfo.effectiveFilterWidth,
-    convInfo.effectiveFilterHeight  // Filter dims.
+    convInfo.padInfo.top, convInfo.padInfo.left,      // Padding.
+    convInfo.strideHeight, convInfo.strideWidth,      // Stride.
+    convInfo.dilationHeight, convInfo.dilationWidth,  // Dilation.
+    convInfo.inHeight, convInfo.inWidth,              // Conv dims.
+    convInfo.effectiveFilterHeight,
+    convInfo.effectiveFilterWidth  // Filter dims.
   ];
-
-  return backend.runWebGPUProgram(program, [x], x.dtype, dimensions);
+  const uniformData = new Int32Array(dimensions);
+  return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
 }
 
 export const avgPoolConfig: KernelConfig = {

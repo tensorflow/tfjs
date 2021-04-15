@@ -12,15 +12,15 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#include "src/cc/binary.h"
+#include "tfjs-backend-wasm/src/cc/binary.h"
 
 #include <xnnpack.h>
 #include <cstddef>
 #include <limits>
 #include <unordered_map>
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 // Maps an `xnn_create_*_nd_f32` function pointer to an instantiated operator.
@@ -61,7 +61,6 @@ void binary_xnn_f32(const size_t a_id, const size_t* a_shape_ptr,
   } else {
     binary_op = cache_result->second;
   }
-  const size_t batch_size = out_info.size;
   xnn_status status =
       setup_op(binary_op, a_shape_len, a_shape_ptr, b_shape_len, b_shape_ptr,
                a_buf, b_buf, out_buf, tfjs::backend::threadpool);

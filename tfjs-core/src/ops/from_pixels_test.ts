@@ -208,7 +208,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     const data = await res.data();
     expect(data.length).toEqual(10 * 10 * 3);
   });
-  it('fromPixels for HTMLVideolement', async () => {
+  it('fromPixels for HTMLVideoElement', async () => {
     const video = document.createElement('video');
     video.autoplay = true;
     const source = document.createElement('source');
@@ -222,7 +222,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     // On mobile safari the ready state is ready immediately so we
     if (video.readyState < 2) {
       await new Promise(resolve => {
-        video.addEventListener('loadeddata', () => resolve());
+        video.addEventListener('loadeddata', () => resolve(video));
       });
     }
 
@@ -233,7 +233,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     document.body.removeChild(video);
   });
 
-  it('fromPixels for HTMLVideolement throws without loadeddata', async () => {
+  it('fromPixels for HTMLVideoElement throws without loadeddata', async () => {
     const video = document.createElement('video');
     video.width = 1;
     video.height = 1;

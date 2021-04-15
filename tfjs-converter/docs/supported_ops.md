@@ -69,7 +69,7 @@
 |Tanh|tanh|
 |Not mapped|isFinite|
 |Not mapped|isInf|
-|Not mapped|isNaN|
+|IsNan|isNaN|
 |Not mapped|logSigmoid|
 |Not mapped|step|
 
@@ -218,6 +218,8 @@
 |LookupTableFindV2|LookupTableFindV2|
 |LookupTableImport|LookupTableImport|
 |LookupTableImportV2|LookupTableImportV2|
+|LookupTableSize|LookupTableSize|
+|LookupTableSizeV2|LookupTableSizeV2|
 
 ## Operations - Images
 
@@ -236,6 +238,7 @@
 |_FusedMatMul|_FusedMatMul|
 |BatchMatMul|BatchMatMul|
 |BatchMatMulV2|BatchMatMulV2|
+|Einsum|Einsum|
 |MatMul|matMul|
 |Transpose|transpose|
 |Not mapped|dot|

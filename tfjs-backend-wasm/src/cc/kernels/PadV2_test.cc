@@ -17,8 +17,8 @@
 #include <cstddef>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/kernels/PadV2.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/kernels/PadV2.h"
 
 TEST(PADV2, xnn_operator_lifetime) {
   tfjs::wasm::init();

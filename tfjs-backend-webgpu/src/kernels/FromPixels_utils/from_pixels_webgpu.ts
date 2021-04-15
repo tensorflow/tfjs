@@ -117,8 +117,7 @@ export class FromPixelsProgram implements WebGPUProgram {
       return;
     }
 
-    device.defaultQueue.writeBuffer(
-        this.uniform, 0, new Uint32Array(uniformData));
+    device.queue.writeBuffer(this.uniform, 0, new Uint32Array(uniformData));
 
     this.lastUniformData[0] = uniformData[0];
     this.lastUniformData[1] = uniformData[1];
@@ -133,11 +132,7 @@ export class FromPixelsProgram implements WebGPUProgram {
       }
 
       this.inputTexture = device.createTexture({
-        size: {
-          width: pixelWidth,
-          height: pixelHeight,
-          depth: 1,
-        },
+        size: [pixelWidth, pixelHeight],
         format: 'rgba8unorm',
         usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.STORAGE,
       });
@@ -145,38 +140,6 @@ export class FromPixelsProgram implements WebGPUProgram {
       this.lastPixelSize.height = pixelHeight;
     }
     return this.inputTexture;
-  }
-
-  generateEncoder(device: GPUDevice, output: GPUBuffer): GPUCommandEncoder {
-    const bindGroup = device.createBindGroup({
-      layout: this.bindGroupLayout,
-      entries: [
-        {
-          binding: 0,
-          resource: {
-            buffer: output,
-          }
-        },
-        {
-          binding: 1,
-          resource: this.inputTexture.createView(),
-        },
-        {
-          binding: 2,
-          resource: {
-            buffer: this.uniform,
-          }
-        }
-      ],
-    });
-
-    const commandEncoder = device.createCommandEncoder({});
-    const passEncoder = commandEncoder.beginComputePass();
-    passEncoder.setPipeline(this.pipeline);
-    passEncoder.setBindGroup(0, bindGroup);
-    passEncoder.dispatch(this.dispatch[0], this.dispatch[1], this.dispatch[2]);
-    passEncoder.endPass();
-    return commandEncoder;
   }
 
   dispose() {

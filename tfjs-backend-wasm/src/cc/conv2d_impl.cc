@@ -16,7 +16,7 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/conv2d_impl.h"
+#include "tfjs-backend-wasm/src/cc/conv2d_impl.h"
 
 #include <xnnpack.h>
 #include <cmath>
@@ -29,11 +29,11 @@
 #include <utility>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/leakyrelu_impl.h"
-#include "src/cc/prelu_impl.h"
-#include "src/cc/transpose_impl.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/leakyrelu_impl.h"
+#include "tfjs-backend-wasm/src/cc/prelu_impl.h"
+#include "tfjs-backend-wasm/src/cc/transpose_impl.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 // We use std::tuple as the cache key as it implements the compare operator

@@ -99,8 +99,9 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'clip',
     excludes: [
-      'derivat',   // logicalAnd not yet implemented.
-      'gradient',  // logicalAnd not yet implemented.
+      'derivat',         // logicalAnd not yet implemented.
+      'gradient',        // logicalAnd not yet implemented.
+      'propagates NaNs'  // NaN is not supported.
     ]
   },
   {
@@ -147,10 +148,15 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'fromPixels',
     excludes: [
-      'HTMLVideolement',  // Failed to execute 'getImageData' on
-                          // 'CanvasRenderingContext2D': The source width is 0
-      'fromPixelsAsync',  // Remove it once it's supported in tfjs-core. Now all
-      // cases fail due to the return type is tensorInfo not a tensor.
+      'HTMLVideoElement',  // Failed to execute 'getImageData' on
+                           // 'CanvasRenderingContext2D': The source width is 0
+    ]
+  },
+  {
+    include: 'fromPixelsAsync',
+    excludes: [
+      'HTMLVideoElement',  // Failed to execute 'getImageData' on
+                           // 'CanvasRenderingContext2D': The source width is 0
     ]
   },
   {
@@ -171,10 +177,8 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'concat',
     excludes: [
-      'complex',                           // No complex support yet.
       'concat a large number of tensors',  // Actual != Expected.
       'gradient',                          // split not yet implemented.
-      'string'                             // Not ye implemented.
     ]
   },
   {
@@ -203,6 +207,14 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'elu',
+    excludes: [
+      'selu',        // Not yet implemented.
+      'derivative',  // gradient function not found.
+      'gradient'     // gradient function not found.
+    ]
+  },
+  {
     include: 'resizeBilinear',
     excludes: [
       'gradient',          // Not yet implemented.
@@ -210,7 +222,43 @@ const TEST_FILTERS: TestFilter[] = [
       'halfPixelCenters',  // Not yet implemented.
     ]
   },
+  {
+    include: 'ceil',
+    excludes: [
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
+  {
+    include: 'floor ',
+    excludes: [
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
   {include: 'floor divide ', excludes: []},
+  {
+    include: 'rsqrt',
+    excludes: [
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
+  {
+    include: 'expm1',
+    excludes: [
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
   {
     include: 'fused',
     excludes: [
@@ -265,19 +313,16 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {
     include: 'expandDims',
-    excludes: ['string']  // String is not yet implemented.
   },
   {
     include: 'memory test',
     excludes: [
-      'string',    // String is not yet implemented.
       'Sum(bool)'  // Compile error.
     ]
   },
   {
     include: 'add ',
     excludes: [
-      'complex',                         // No complex support yet.
       'upcasts when dtypes dont match',  // Missing cast().
       'accepts a tensor-like object',    // Timeout.
       'broadcast inner dim of b',        // Arrays differ.
@@ -313,7 +358,6 @@ const TEST_FILTERS: TestFilter[] = [
       '6D',                  // Rank 6 is not yet implemented.
       'slice6d',             // Rank 6 is not yet implemented.
       'strided slice with',  // Rank 6 is not yet implemented.
-      'string',              // String is not yet implemented.
     ]
   },
   {
@@ -329,7 +373,6 @@ const TEST_FILTERS: TestFilter[] = [
       'int32 * int32',  // Actual != Expected.
       'broadcast',      // Various: Actual != Expected, compile fails, etc.
       'gradient',       // Various: sum not yet implemented.
-      'complex',        // No complex support yet.
       'upcasts when dtypes dont match',  // Actual != expected.
     ]
   },
@@ -363,6 +406,23 @@ const TEST_FILTERS: TestFilter[] = [
       'grad',   // 'depthwiseConv2DDerFilter' not yet implemented, slice not yet
                 // implemented
       'dilation2d'  // 'dilation2d' not yet implemented.
+    ]
+  },
+  {
+    include: 'fill',
+    excludes: [
+      '5D',                // Rank 5 is not yet supported.
+      'rotateWithOffset',  // 'RotateWithOffset' not registered.
+      'fill=constant, interpolation=nearest.',   // Transform is not yet
+                                                 // implemented.
+      'fill=constant, interpolation=bilinear.',  // Transform is not yet
+                                                 // implemented.
+      'fill=reflect, interpolation=bilinear.',   // Transform is not yet
+                                                 // implemented.
+      'fill=wrap, interpolation=bilinear.',      // Transform is not yet
+                                                 // implemented.
+      'fill=nearest, interpolation=bilinear.',   // Transform is not yet
+                                                 // implemented.
     ]
   },
   {
@@ -440,7 +500,133 @@ const TEST_FILTERS: TestFilter[] = [
       'MEAN',
       'Weighted - Reduction.SUM_BY_NONZERO_WEIGHTS',
     ]
-  }
+  },
+  {
+    include: 'minimum',
+    excludes: [
+      'bool and bool',
+      'propagates NaN',  // NaN is not supported in WebGPU:
+                         // https://github.com/tensorflow/tfjs/issues/4734.
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
+  {
+    include: 'maximum',
+    excludes: [
+      'bool and bool',
+      'propagates NaN',  // NaN is not supported in WebGPU:
+                         // https://github.com/tensorflow/tfjs/issues/4734.
+      'gradients: Scalar',
+      'gradient with clones',
+      'gradients: Tensor1D',
+      'gradients: Tensor2D',
+    ]
+  },
+  {
+    include: 'stack',
+    excludes: [
+      'grad of unstack axis=0',  // Remove this when grad is fixed in unstack.
+      'gradient with clones',    // Remove this when grad is fixed in unstack.
+      'grad of unstack axis=1',  // Remove this when grad is fixed in unstack.
+    ]
+  },
+  {
+    include: 'unstack',
+    excludes: [
+      'grad of unstack axis=0',
+      'gradient with clones',
+      'grad of unstack axis=1',
+    ]
+  },
+  {
+    include: 'complex64',
+    excludes: [
+      'cast complex64 -> bool'  // Error: Failed to execute 'writeBuffer' on
+                                // 'GPUQueue': Number of bytes to write must be
+                                // a multiple of 4
+    ]
+  },
+  {
+    include: 'zerosLike',
+    excludes: [
+      '5D',       // rank 5 is not yet supported.
+      '6D',       // rank 6 is not yet supported.
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
+    include: 'onesLike',
+    excludes: [
+      '5D',       // rank 5 is not yet supported.
+      '6D',       // rank 6 is not yet supported.
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
+    include: 'gather',
+    excludes: [
+      'gatherND',                        // Not yet supported.
+      'bool',                            // Not yet supported.
+      'chaining, axis=1',                // Range not yet supported.
+      'indices not int32 throws error',  // Range not yet supported.
+      'gradient'                         // gradient function not found.
+    ]
+  },
+  {
+    include: 'max',
+    excludes: [
+      '6D', 'gradient',
+      'AdamaxOptimizer',                         // gradient function not found.
+      'axis permutation does not change input',  // 'Range' not registered.
+    ]
+  },
+  {
+    include: 'mean',
+    excludes: [
+      'bool',
+      'gradient',
+      'meanSquaredError',
+    ]
+  },
+  {
+    include: 'min',
+    excludes: [
+      'bool', 'gradient',
+      'stft',  // FFT' not registered.
+    ]
+  },
+  {
+    include: 'prod',
+    excludes: [
+      'bool',
+    ]
+  },
+  {
+    include: 'einsum',
+    excludes: [
+      '4d tensors',               // rank 5 is not yet supported.
+      '4d tensor and 3d tensor',  // rank 5 is not yet supported.
+    ]
+  },
+  {
+    include: 'sum',
+    excludes: [
+      'bool', 'gradient',
+      'cumsum',     // 'Cumsum' not registered.
+      'scatterND',  // 'scatterND' not registered.
+    ]
+  },
+  {
+    include: 'range',
+    excludes: [
+      'bincount',       // Not yet implemented.
+      'denseBincount',  // Not yet implemented.
+      'oneHot',         // Not yet implemented.
+    ]
+  },
 ];
 
 const customInclude = (testName: string) => {

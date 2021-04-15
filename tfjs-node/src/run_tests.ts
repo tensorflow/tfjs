@@ -91,7 +91,19 @@ const IGNORE_LIST: string[] = [
   // tslint:disable-next-line:max-line-length
   'pool test-tensorflow {} avg x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding',
   // not available in tf yet.
-  'denseBincount'
+  'denseBincount',
+  // only available in tf addon.
+  'image.transform',
+  // Breaking change in NaN processing
+  // See https://github.com/tensorflow/tfjs/issues/4883
+  'max test-tensorflow {} ignores NaNs',
+  'min test-tensorflow {} ignores NaNs',
+  'sign test-tensorflow {} basic',
+  'sign test-tensorflow {} does not propagate NaNs',
+  'sign test-tensorflow {} accepts a tensor-like object',
+  // Node kernel for einsum is yet to be implemented.
+  // See: ttps://github.com/tensorflow/tfjs/issues/2349
+  'einsum'
 ];
 
 if (process.platform === 'win32') {

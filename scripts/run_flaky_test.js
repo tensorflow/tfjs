@@ -14,6 +14,9 @@
 // =============================================================================
 
 const {exec} = require('shelljs');
+const fs = require('fs');
+
+const {FILE_NAME} = require('./run_flaky_test_helper.js');
 
 describe('run_flaky', () => {
   it('exits with zero if the command succeeds', () => {
@@ -25,14 +28,19 @@ describe('run_flaky', () => {
   });
 
   it('exits with zero if the command eventually succeeds', () => {
-    // Try a command that exits with a random number in [0...4] 100 times.
-    // Bash's "$RANDOM" does not work in CI tests, so use "node -e" instead.
-    // P(this test failing | run_flaky and this test are correct) = (4/5)**100
+    // Remove test file that was not cleaned up from a prior run.
+    if (fs.existsSync(FILE_NAME)) {
+      fs.unlinkSync(FILE_NAME);
+    }
+
+    // This command should fail once and then succeed the next run.
     expect(exec(
-               'node ./scripts/run_flaky.js --times 100 \'node -e "' +
-               'process.exit(Math.floor(Math.random() * 5))' +
-               '"\'')
+               'node ./scripts/run_flaky.js --times 2' +
+               ' \'node ./scripts/run_flaky_test_helper.js\'')
                .code)
         .toEqual(0);
+
+    // Clean up test file
+    fs.unlinkSync(FILE_NAME);
   });
 });

@@ -138,6 +138,9 @@
   "DivNoNan": [
     "divNoNan"
   ],
+  "Einsum": [
+    "einsum"
+  ],
   "Elu": [
     "elu"
   ],
@@ -218,6 +221,9 @@
   "Imag": [
     "imag"
   ],
+  "IsNan": [
+    "isNaN"
+  ],
   "LRN": [
     "localResponseNormalization"
   ],
@@ -258,6 +264,8 @@
   "LookupTableFindV2": [],
   "LookupTableImport": [],
   "LookupTableImportV2": [],
+  "LookupTableSize": [],
+  "LookupTableSizeV2": [],
   "LoopCond": [],
   "MatMul": [
     "matMul"
