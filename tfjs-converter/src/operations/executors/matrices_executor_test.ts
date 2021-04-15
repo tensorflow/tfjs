@@ -14,6 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
+
+import {Tensor} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
@@ -21,7 +23,7 @@ import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
 
 import {executeOp} from './matrices_executor';
-import {createBoolAttr, createNumberAttr, createNumericArrayAttr, createStrArrayAttr, createTensorAttr, createTensorsAttr} from './test_helper';
+import {createBoolAttr, createNumberAttr, createNumericArrayAttr, createStrArrayAttr, createStrAttr, createTensorAttr, createTensorsAttr} from './test_helper';
 
 describe('matrices', () => {
   let node: Node;
@@ -151,6 +153,20 @@ describe('matrices', () => {
 
         expect(tfOps.matMul)
             .toHaveBeenCalledWith(input1[0], input2[0], true, false);
+      });
+    });
+    describe('Einsum', () => {
+      it('should call tfOps.einsum', () => {
+        const spy = spyOn(tfOps, 'einsum').and.callThrough();
+        node.op = 'Einsum';
+        node.inputParams = {tensors: createTensorsAttr(0, 0)};
+        node.inputNames = ['input1', 'input2'];
+        node.attrParams.equation = createStrAttr(',->');
+        executeOp(node, {input1, input2}, context);
+        const res = executeOp(node, {input1, input2}, context) as Tensor[];
+        expect(spy).toHaveBeenCalledWith(',->', input1[0], input2[0]);
+        expect(res[0].dtype).toBe('float32');
+        expect(res[0].shape).toEqual([]);
       });
     });
     describe('Transpose', () => {

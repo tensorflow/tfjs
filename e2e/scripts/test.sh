@@ -62,5 +62,5 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
 fi
 
 echo "Karma tests."
-karma start --tags $TAGS
+yarn karma start --tags $TAGS
 

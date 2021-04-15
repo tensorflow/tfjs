@@ -1,3 +1,4 @@
+load("@emsdk//emscripten_toolchain:wasm_rules.bzl", "wasm_cc_binary")
 load(":build_defs.bzl", "tfjs_cc_library", "tfjs_unit_test")
 
 # Emcripten produces a much larger wasm bundle unless the cc_binary has srcs
@@ -36,54 +37,22 @@ cc_binary(
     ],
 )
 
-# This build rule generates tfjs-backend-wasm-simd.{js,wasm}.
-#
-# We only need the .wasm file, not the .js file, because it will be loadsed by
-# the tfjs-backend-wasm.js file (generated from the previous build rule).
-#
-# See scripts/build-wasm.sh where we only copy the .wasm file to wasm-out.
-cc_binary(
-    name = "tfjs-backend-wasm-simd.js",
-    srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
-    linkopts = [
-        "-s ALLOW_MEMORY_GROWTH=1",
-        "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
-        "-s DISABLE_EXCEPTION_CATCHING=1",
-        "-s FILESYSTEM=0",
-        "-s EXIT_RUNTIME=0",
-        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
-        "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
-        "-s MALLOC=emmalloc",
-    ],
-    deps = [
-        ":all_kernels",
-        ":backend",
-    ],
+wasm_cc_binary(
+    name = "tfjs-backend-wasm",
+    cc_target = ":tfjs-backend-wasm.js",
 )
 
-# This build rule generates tfjs-backend-wasm-threaded-simd.{js,wasm} and
-# tfjs-backend-wasm-threaded-simd.worker.js.
-cc_binary(
-    name = "tfjs-backend-wasm-threaded-simd.js",
-    srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
-    linkopts = [
-        "-s ALLOW_MEMORY_GROWTH=1",
-        "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
-        "-s DISABLE_EXCEPTION_CATCHING=1",
-        "-s FILESYSTEM=0",
-        "-s EXIT_RUNTIME=0",
-        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
-        "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
-        "-s MODULARIZE=1",
-        "-s EXPORT_NAME=WasmBackendModuleThreadedSimd",
-        "-s MALLOC=emmalloc",
-        "-s USE_PTHREADS=1",
-        "-s PROXY_TO_PTHREAD=1",
-    ],
-    deps = [
-        ":all_kernels",
-        ":backend",
-    ],
+wasm_cc_binary(
+    name = "tfjs-backend-wasm-simd",
+    cc_target = ":tfjs-backend-wasm.js",
+    simd = True,
+)
+
+wasm_cc_binary(
+    name = "tfjs-backend-wasm-threaded-simd",
+    cc_target = ":tfjs-backend-wasm.js",
+    simd = True,
+    threads = "emscripten",
 )
 
 test_suite(
@@ -300,6 +269,7 @@ tfjs_cc_library(
         ":SquaredDifference",
         ":StridedSlice",
         ":Sub",
+        ":Tan",
         ":Tile",
         ":Transpose",
         ":_FusedMatMul",
@@ -1075,5 +1045,15 @@ tfjs_cc_library(
     srcs = ["kernels/Step.cc"],
     deps = [
         ":backend",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Tan",
+    srcs = ["kernels/Tan.cc"],
+    deps = [
+        ":backend",
+        ":sin_cos_workaround",
+        ":unary",
     ],
 )

@@ -28,7 +28,8 @@ export function tile(
   const {x} = inputs;
   const {reps} = attrs;
 
-  if (x.dtype === 'string') {
+  // tile gpu program cannot handle rank > 5 case.
+  if (x.dtype === 'string' || x.shape.length > 5) {
     // Even thought string tensor is always on CPU, just to be consistent on how
     // to access tensor data.
     const data = backend.readSync(x.dataId) as Uint8Array[];

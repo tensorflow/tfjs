@@ -69,7 +69,7 @@
 |Tanh|tanh|
 |Not mapped|isFinite|
 |Not mapped|isInf|
-|Not mapped|isNaN|
+|IsNan|isNaN|
 |Not mapped|logSigmoid|
 |Not mapped|step|
 
@@ -238,6 +238,7 @@
 |_FusedMatMul|_FusedMatMul|
 |BatchMatMul|BatchMatMul|
 |BatchMatMulV2|BatchMatMulV2|
+|Einsum|Einsum|
 |MatMul|matMul|
 |Transpose|transpose|
 |Not mapped|dot|

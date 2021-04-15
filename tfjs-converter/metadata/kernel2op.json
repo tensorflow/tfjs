@@ -138,6 +138,9 @@
   "DivNoNan": [
     "divNoNan"
   ],
+  "Einsum": [
+    "einsum"
+  ],
   "Elu": [
     "elu"
   ],
@@ -217,6 +220,9 @@
   "If": [],
   "Imag": [
     "imag"
+  ],
+  "IsNan": [
+    "isNaN"
   ],
   "LRN": [
     "localResponseNormalization"
