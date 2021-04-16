@@ -1,4 +1,3 @@
-# This doc is WIP
 # Bazel Migration
 
 This document details the steps to migrate a package to build with Bazel. These steps are easiest to understand with a working example, so this doc references `tfjs-core`'s setup as much as possible. Since this migration is still in the early phases, the steps and processes listed here may change as we improve on the process, add features to each package's build, and create tfjs-specific build functions.
@@ -153,5 +152,29 @@ karma_web_test(
         ":tfjs-core_test_bundle",
     ],
     tags = ["native"],
+)
+```
+To run tests in browserstack, we use another `karma_web_test` target:
+
+```starlark
+karma_web_test(
+    name = "browserstack_tfjs-core_test",
+    srcs = [
+        ":tfjs-core_test_bundle",
+    ],
+    config_file = "//:karma.conf.js",      # This config file launches tests in BrowserStack
+    peer_deps = [                          # These deps were automatically added in the prior
+        "@npm//karma",                     # rule, but since we're adding `karma-browserstack-launcher`,
+        "@npm//karma-jasmine",             # we have to specify all of them manually.
+        "@npm//karma-requirejs",
+        "@npm//karma-sourcemap-loader",
+        "@npm//requirejs",
+        "@npm//karma-browserstack-launcher",
+    ],
+    static_files = [
+        # Listed here so sourcemaps are served
+        ":tfjs-core_test_bundle",
+    ],
+    tags = ["ci"],
 )
 ```
