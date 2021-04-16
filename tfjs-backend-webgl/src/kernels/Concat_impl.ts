@@ -48,6 +48,8 @@ export function concatImpl(
     return result;
   }
 
+  let runOnCpu = backend.shouldExecuteOnCPU(inputs);
+
   // Run on cpu if dtype is string. For string, the backend represents it
   // as Uint8Array[], where each Uint8Array is a character. Given that the
   // computation is only on the outer array, uploading the whole data onto
@@ -55,6 +57,10 @@ export function concatImpl(
   // upload and retrieve Uint8Array[] between cpu and gpu. Therefore, we
   // just run the kernel on cpu if dtype is string.
   if (dtype === 'string') {
+    runOnCpu = true;
+  }
+
+  if (runOnCpu) {
     const {tensors2D, outShape} = computeTensors2D(inputs, axis, backend);
     const inputsValShapes = tensors2D.map(t => {
       return {vals: backend.readSync(t.dataId), shape: t.shape};

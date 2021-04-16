@@ -21,16 +21,16 @@ import {ClassificationResult, ImageClassifierClass, ImageClassifierOptions} from
 import {ImageSegmenterClass, ImageSegmenterOptions, SegmentationResult} from './image_segmenter';
 import {NLClassifierClass} from './nl_classifier';
 import {DetectionResult, ObjectDetectorClass, ObjectDetectorOptions} from './object_detector';
-import {TFWebModelRunnerClass} from './tfweb_model_runner';
+import {TFLiteWebModelRunnerClass} from './tflite_web_model_runner';
 
-export declare interface TFWebClient {
-  tfweb: {
+export declare interface TFLiteWebAPIClient {
+  tflite_web_api: {
     /**
      * Sets the path to load all the WASM module files from.
      *
-     * TFWeb will automatically load WASM module with the best performance
-     * based on whether the current browser supports WebAssembly SIMD and
-     * multi-threading.
+     * TFLite web API will automatically load WASM module with the best
+     * performance based on whether the current browser supports WebAssembly
+     * SIMD and multi-threading.
      *
      * @param path The path to load WASM module files from.
      *     For relative path, use :
@@ -42,7 +42,7 @@ export declare interface TFWebClient {
   };
 
   // Generic TFLite model runner.
-  TFWebModelRunner: TFWebModelRunnerClass;
+  TFLiteWebModelRunner: TFLiteWebModelRunnerClass;
 
   // NLClassifier.
   NLClassifier: NLClassifierClass;
