@@ -31,7 +31,7 @@ function fusedConvAndDepthWiseParams(
       (getParamValue('fusedOps', node, tensorMap, context) as string[]);
 
   const isBiasAdd = extraOp === 'biasadd';
-  const noBiasAdd = extraOp === 'noop';
+  const noBiasAdd = !isBiasAdd;
   const isPrelu = activationFunc === 'prelu';
   const isBatchNorm = extraOp === 'fusedbatchnorm';
 
