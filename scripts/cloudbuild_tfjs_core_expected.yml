@@ -476,10 +476,10 @@ steps:
       - lint-tfjs-backend-cpu
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     dir: tfjs-tflite
-    id: download-tfweb-tfjs-tflite
+    id: download-tflite-web-api-tfjs-tflite
     entrypoint: bash
     args:
-      - scripts/download-tfweb.sh
+      - scripts/download-tflite-web-api.sh
     waitFor:
       - yarn-tfjs-tflite
       - yarn-common
@@ -498,7 +498,7 @@ steps:
       - build-ci
     waitFor:
       - yarn-tfjs-tflite
-      - download-tfweb-tfjs-tflite
+      - download-tflite-web-api-tfjs-tflite
       - yarn-common
       - yarn-tfjs-core
       - build-tfjs-core
@@ -515,7 +515,7 @@ steps:
       - lint
     waitFor:
       - yarn-tfjs-tflite
-      - download-tfweb-tfjs-tflite
+      - download-tflite-web-api-tfjs-tflite
       - yarn-common
       - yarn-tfjs-core
       - build-tfjs-core
@@ -533,7 +533,7 @@ steps:
     waitFor:
       - yarn-tfjs-tflite
       - lint-tfjs-tflite
-      - download-tfweb-tfjs-tflite
+      - download-tflite-web-api-tfjs-tflite
       - yarn-common
       - yarn-tfjs-core
       - build-tfjs-core

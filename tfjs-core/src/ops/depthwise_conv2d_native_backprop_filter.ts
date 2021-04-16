@@ -20,12 +20,14 @@ import {NamedAttrMap} from '../kernel_registry';
 import {Tensor3D, Tensor4D} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 
+import {ExplicitPadding} from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
 function depthwiseConv2dNativeBackpropFilter_<T extends Tensor3D|Tensor4D>(
     x: T, dy: T, filterShape: [number, number, number, number],
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
+    strides: [number, number]|number,
+    pad: 'valid'|'same'|number|ExplicitPadding,
     dilations: [number, number]|number = [1, 1],
     dimRoundingMode?: 'floor'|'round'|'ceil'): Tensor4D {
   let x4D = x as Tensor4D;

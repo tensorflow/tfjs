@@ -269,6 +269,7 @@ tfjs_cc_library(
         ":SquaredDifference",
         ":StridedSlice",
         ":Sub",
+        ":Tan",
         ":Tile",
         ":Transpose",
         ":_FusedMatMul",
@@ -1048,5 +1049,15 @@ tfjs_cc_library(
     srcs = ["kernels/Step.cc"],
     deps = [
         ":backend",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Tan",
+    srcs = ["kernels/Tan.cc"],
+    deps = [
+        ":backend",
+        ":sin_cos_workaround",
+        ":unary",
     ],
 )
