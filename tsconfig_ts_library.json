@@ -14,7 +14,6 @@
       "es2017",
       "dom"
     ],
-    "outDir": "./dist",
     "noUnusedLocals": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
@@ -23,7 +22,12 @@
     "pretty": true,
     "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
-    "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@tensorflow/*": [
+        "./dist/bin/*"
+      ]
+    },
     "plugins": [
       {
         "name": "@bazel/tsetse",

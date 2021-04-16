@@ -30,6 +30,10 @@ run --incompatible_strict_action_env
 # When sandboxed, the wasm backend takes hours to build on a 32 core machine.
 build --spawn_strategy=worker,local
 
+# Pass BrowserStack credentials
+run --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
+test --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
+
 # Load any settings specific to the current user.
 # .bazelrc.user should appear in .gitignore so that settings are not shared with
 # team members. This needs to be last statement in this config, as the user
