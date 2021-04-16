@@ -887,21 +887,41 @@
     estree-walker "^1.0.1"
     picomatch "^2.2.2"
 
-"@tensorflow/tfjs-backend-cpu@link:../tfjs-backend-cpu":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-backend-cpu@3.4.0":
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-cpu/-/tfjs-backend-cpu-3.4.0.tgz#13b7cfb782cecddad986997597f1235d01eeeddd"
+  integrity sha512-qbSLxo0CU1XEy7/KdfEg3RN6C+GKLzQ23ISp8bROqgtq2Gq1+NLY2cgi7RJLJLpb7VQmgLNj4yqRyaOY9gH6Ng==
+  dependencies:
+    "@types/seedrandom" "2.4.27"
+    seedrandom "2.4.3"
 
-"@tensorflow/tfjs-backend-webgl@link:../tfjs-backend-webgl":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-backend-webgl@3.4.0":
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-webgl/-/tfjs-backend-webgl-3.4.0.tgz#07495d20a4ddeab3255e24ee3c38342659207cc0"
+  integrity sha512-1SfKbq78VImViUhOyGJMvg2wfxptXnFcJ6XkF7a+u4vmq4sroPdyaxtkSJvDzXSqOefwRYS4WpskIvEOfyRajw==
+  dependencies:
+    "@tensorflow/tfjs-backend-cpu" "3.4.0"
+    "@types/offscreencanvas" "~2019.3.0"
+    "@types/seedrandom" "2.4.27"
+    "@types/webgl-ext" "0.0.30"
+    "@types/webgl2" "0.0.5"
+    seedrandom "2.4.3"
 
-"@tensorflow/tfjs-converter@link:../tfjs-converter":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-converter@3.4.0":
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-3.4.0.tgz#95e30333f707da2086717fbe6e15a430a498f475"
+  integrity sha512-igZ/S4Pa2DXL1p2J4ifomuH5kWJeRJoyIn8S1/1ufiXgv1hFeAq+ZmqYHce+XT+XWDRO39xZeG6+dwAi6j7iMA==
 
-"@tensorflow/tfjs-core@link:../tfjs-core":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-core@3.4.0":
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-3.4.0.tgz#7a0ecee14d91caab93aa733c3859ebc693963ad3"
+  integrity sha512-cLiqC+eKFGZj0qfI+Lc7XE9moFaTSN0xs6CH/yGFgR1/1E8HuRkoUmWE3hV6uQ9Er0WZM3RCOgYc3baM2F4OAw==
+  dependencies:
+    "@types/offscreencanvas" "~2019.3.0"
+    "@types/seedrandom" "2.4.27"
+    "@types/webgl-ext" "0.0.30"
+    node-fetch "~2.6.1"
+    seedrandom "2.4.3"
 
 "@types/component-emitter@^1.2.10":
   version "1.2.10"
