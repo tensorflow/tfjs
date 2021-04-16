@@ -102,6 +102,9 @@ void init();
 void register_tensor(const size_t tensor_id, const size_t size,
                      void *memory_offset);
 
+// Return the used thread pool size.
+const size_t get_thread_pool_size();
+
 // Disposes the internal bookeeping for a given tensor ID.
 void dispose_data(const size_t tensor_id);
 
