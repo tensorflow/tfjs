@@ -115,6 +115,7 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasted bias',  // Broadcasted bias not yet supported.
       'gradient',          // Gradients not defined yet.
       'NCHW',              // xnn pack does not support channels first.
+      'sigmoid'
     ]
   },
   {
@@ -131,6 +132,7 @@ const TEST_FILTERS: TestFilter[] = [
       // Actual != expected.
       'relu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
       'prelu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
+      'sigmoid'
     ]
   },
   {

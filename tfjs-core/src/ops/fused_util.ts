@@ -26,6 +26,7 @@ import {prelu} from './prelu';
 import {relu} from './relu';
 import {relu6} from './relu6';
 import {reshape} from './reshape';
+import {sigmoid} from './sigmoid';
 import {step} from './step';
 import {sum} from './sum';
 
@@ -69,6 +70,8 @@ export function applyActivation(
     return prelu(x, preluActivationWeights);
   } else if (activation === 'leakyrelu') {
     return leakyRelu(x, leakyreluAlpha);
+  } else if (activation === 'sigmoid') {
+    return sigmoid(x);
   }
   throw new Error(`Unknown fused activation ${activation}.`);
 }

@@ -677,6 +677,8 @@ export class WebGPUBackend extends KernelBackend {
       return unary_op.RELU6;
     } else if (activation === 'prelu') {
       return getBinaryOpString(BinaryOpType.PRELU, packed);
+    } else if (activation === 'sigmoid') {
+      return unary_op.SIGMOID;
     }
     throw new Error(`Activation ${
         activation} has not been implemented for the WebGPU backend.`);

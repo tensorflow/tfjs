@@ -23,6 +23,7 @@ import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 import {complex} from '../kernels/Complex';
 import {LEAKYRELU, LEAKYRELU_PACKED} from '../kernels/LeakyRelu';
 import {PRELU, PRELU_PACKED} from '../kernels/Prelu';
+// import {SIGMOID} from '../kernels/Sigmoid';
 import * as unary_op from '../unaryop_gpu';
 import {UnaryOpProgram} from '../unaryop_gpu';
 import * as unary_packed_op from '../unaryop_packed_gpu';
@@ -215,6 +216,11 @@ export function mapActivationToShaderProgram(
       return LEAKYRELU_PACKED;
     }
     return LEAKYRELU;
+  } else if (activation === 'sigmoid') {
+    if (packed) {
+      return unary_packed_op.SIGMOID;
+    }
+    return unary_op.SIGMOID;
   }
   throw new Error(`Activation ${
       activation} has not been implemented for the WebGL backend.`);
