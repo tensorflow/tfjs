@@ -63,9 +63,6 @@ ts_library(
 esbuild(
     name = "tfjs-core_test_bundle",
     testonly = True,
-    args = [
-        "--tree-shaking=ignore-annotations",
-    ],
     entry_point = "setup_test_bazel.ts",
     external = [
         # webworker tests call 'require('@tensorflow/tfjs')', which
@@ -141,8 +138,6 @@ karma_web_test(
     config_file = "//:karma.conf.js",
     peer_deps = [
         "@npm//karma",
-        "@npm//karma-chrome-launcher",
-        "@npm//karma-firefox-launcher",
         "@npm//karma-jasmine",
         "@npm//karma-requirejs",
         "@npm//karma-sourcemap-loader",
