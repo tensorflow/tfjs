@@ -28,6 +28,13 @@ import {BackendWasm, setWasmPath, setWasmPaths} from './index';
  * 'wasm' so that they are always included in the test runner. See
  * `env.specFilter` in `setup_test.ts` for details.
  */
+describeWithFlags('wasm threads', ALL_ENVS, () => {
+  it('threads count', async () => {
+    const threadsCount = tf.env().getNumber('WASM_THREADS_COUNT');
+    expect(threadsCount).toBeGreaterThanOrEqual(1);
+  });
+});
+
 describeWithFlags('wasm read/write', ALL_ENVS, () => {
   it('write and read values', async () => {
     const x = tf.tensor1d([1, 2, 3]);

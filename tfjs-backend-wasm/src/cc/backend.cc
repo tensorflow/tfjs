@@ -93,6 +93,13 @@ void init() { xnn_initialize(nullptr); }
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
+const size_t get_threads_count() {
+  return pthreadpool_get_threads_count(backend::threadpool);
+}
+
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif
 void register_tensor(const size_t tensor_id, const size_t size,
                      void *memory_offset) {
   DCHECK(tensor_id > 0,
