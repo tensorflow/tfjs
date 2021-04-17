@@ -47,14 +47,6 @@ steps:
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 
-# Run C++ tests.
-- name: 'gcr.io/learnjs-174218/wasm'
-  dir: 'tfjs-backend-wasm'
-  entrypoint: 'yarn'
-  id: 'test-cc'
-  args: ['test-cc']
-  waitFor: ['build']
-
 # Check bundle size.
 - name: 'gcr.io/learnjs-174218/wasm'
   dir: 'tfjs-backend-wasm'
@@ -62,14 +54,6 @@ steps:
   entrypoint: 'yarn'
   args: ['test-bundle-size']
   waitFor: ['yarn', 'build-deps', 'build']
-
-# Lint bazel files.
-- name: 'node:10'
-  dir: 'tfjs-backend-wasm'
-  id: 'buildifier'
-  entrypoint: 'yarn'
-  args: ['buildifier-ci']
-  waitFor: ['yarn']
 
 # General configuration
 secrets:
