@@ -1,2 +1,152 @@
+# Copyright 2021 Google LLC. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
+load("@npm//@bazel/concatjs:index.bzl", "karma_web_test")
+load("@npm//@bazel/typescript:index.bzl", "ts_library", "ts_project")
+load("//:esbuild.bzl", "esbuild")
+
+package(default_visibility = ["//visibility:public"])
+
 # Allow typescript rules in any package to reference this file
 exports_files(["tsconfig.json"])
+
+TEST_SRCS = ["src/setup_test.ts"]
+
+ts_project(
+    name = "tfjs-core_lib",
+    srcs = glob(
+        ["src/**/*.ts"],
+        exclude = TEST_SRCS,
+    ),
+    declaration = True,
+    extends = "//:tsconfig.json",
+    incremental = True,
+    out_dir = "dist",
+    root_dir = "src",
+    source_map = True,
+    tsconfig = "tsconfig.json",
+    deps = [
+        "@npm//@types",
+        "@npm//jasmine-core",
+        "@npm//seedrandom",
+    ],
+)
+
+ts_library(
+    name = "tfjs-core_test_lib",
+    testonly = True,
+    srcs = [
+        "setup_test_bazel.ts",
+    ],
+    tsconfig = "//:tsconfig_ts_library.json",
+    deps = [
+        ":tfjs-core",
+        "@npm//@types",
+        "@npm//jasmine-core",
+        "@npm//seedrandom",
+    ],
+)
+
+esbuild(
+    name = "tfjs-core_test_bundle",
+    testonly = True,
+    entry_point = "setup_test_bazel.ts",
+    external = [
+        # webworker tests call 'require('@tensorflow/tfjs')', which
+        # is external to the test bundle.
+        # Note: This is not a bazel target. It's just a string.
+        "@tensorflow/tfjs",
+    ],
+    sources_content = True,
+    deps = [
+        ":tfjs-core_lib",
+        ":tfjs-core_test_lib",
+        "//tfjs-backend-cpu",
+    ],
+)
+
+esbuild(
+    name = "tf-core.min",
+    entry_point = "dist/index.ts",
+    external = [
+        "node-fetch",
+        "util",
+    ],
+    minify = True,
+    sources_content = True,
+    deps = [
+        ":tfjs-core_lib",
+    ],
+)
+
+esbuild(
+    name = "tf-core.node",
+    entry_point = "dist/index.ts",
+    external = [
+        "node-fetch",
+        "util",
+    ],
+    sources_content = True,
+    deps = [
+        ":tfjs-core_lib",
+    ],
+)
+
+js_library(
+    name = "tfjs-core",
+    package_name = "@tensorflow/tfjs-core",
+    srcs = [
+        "package.json",
+    ],
+    deps = [
+        ":tf-core.min",
+        ":tf-core.node",
+        ":tfjs-core_lib",
+    ],
+)
+
+karma_web_test(
+    name = "tfjs-core_test",
+    srcs = [
+        ":tfjs-core_test_bundle",
+    ],
+    static_files = [
+        # Listed here so sourcemaps are served
+        ":tfjs-core_test_bundle",
+    ],
+    tags = ["native"],
+)
+
+karma_web_test(
+    name = "browserstack_tfjs-core_test",
+    srcs = [
+        ":tfjs-core_test_bundle",
+    ],
+    config_file = "//:karma.conf.js",
+    peer_deps = [
+        "@npm//karma",
+        "@npm//karma-jasmine",
+        "@npm//karma-requirejs",
+        "@npm//karma-sourcemap-loader",
+        "@npm//requirejs",
+        "@npm//karma-browserstack-launcher",
+    ],
+    static_files = [
+        # Listed here so sourcemaps are served
+        ":tfjs-core_test_bundle",
+    ],
+    tags = ["ci"],
+)
