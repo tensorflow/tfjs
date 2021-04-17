@@ -12,36 +12,17 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#endif
+#ifndef SIGMOID_IMPL_H_
+#define SIGMOID_IMPL_H_
 
-#include <xnnpack.h>
-#include <cmath>
 #include <cstddef>
-#include <map>
-#include <tuple>
-
-#include "tfjs-backend-wasm/src/cc/backend.h"
-#include "tfjs-backend-wasm/src/cc/kernels/Sigmoid.h"
-#include "tfjs-backend-wasm/src/cc/sigmoid_impl.h"
-#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
-// We use C-style API to interface with Javascript.
-extern "C" {
 
-#ifdef __EMSCRIPTEN__
-EMSCRIPTEN_KEEPALIVE
-#endif
-void Sigmoid(const size_t x_id, const size_t out_id) {
-  auto& x_info = backend::get_tensor_info(x_id);
-  const float* x_buf = x_info.f32();
+void sigmoid(const float* x_buf, const size_t x_size, const size_t out_id);
 
-  tfjs::wasm::sigmoid(x_buf, x_info.size, out_id);
-}
-
-}  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs
+
+#endif  // SIGMOID_IMPL_H_
