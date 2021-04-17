@@ -933,8 +933,8 @@ tfjs_cc_library(
     srcs = ["kernels/Sigmoid.cc"],
     hdrs = ["kernels/Sigmoid.h"],
     deps = [
-        ":sigmoid_impl",
         ":backend",
+        ":sigmoid_impl",
         ":unary",
     ],
 )
