@@ -10,7 +10,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-
 """Helper definitions to glob .aar and .jar targets"""
 
 def create_aar_targets(aarfiles):
