@@ -339,30 +339,30 @@ describeMathCPUAndGPU('mish activation', () => {
   // Setup: Array with initial values.
   // Execute: Swish on the last dimension.
   // Expect: Output array matches size and approximate expected values.
-  // it('1D', () => {
-  //   const initX = tensor1d([0, 1, 3, 9]);
-  //   const expectedVals = tensor1d([0, .731, 2.857, 8.998]);
-  //   expectTensorsClose(mish(initX), expectedVals);
-  // });
+  it('1D', () => {
+    const initX = tensor1d([0, 1, 3, 9]);
+    const expectedVals = tensor1d([0., .865, 2.987, 9.]);
+    expectTensorsClose(mish(initX), expectedVals);
+  });
   it('1D all equal', () => {
     const initX = tensor1d([-1, -1, -1, -1]);
     const expectedVals = tensor1d([-0.303, -0.303, -0.303, -0.303]);
     expectTensorsClose(mish(initX), expectedVals);
   });
-  // it('2D', () => {
-  //   const initX = tensor2d([[0, 1, 3, 9], [0, 1, 3, 9]]);
-  //   const expectedVals = tensor2d(
-  //       [[0, .731, 2.857, 8.998], [0, .731, 2.857, 8.998]]);
-  //   expectTensorsClose(mish(initX), expectedVals);
-  // });
-  // it('3D', () => {
-  //   const initX = tensor3d([[[0, 1, 3, 9], [0, 1, 3, 9]]]);
-  //   const expectedVals = tensor3d(
-  //       [[[0, .731, 2.857, 8.998], [0, .731, 2.857, 8.998]]]);
-  //   expectTensorsClose(mish(initX), expectedVals);
-  // });
-  // it('Does not leak', () => {
-  //   const initX = tensor1d([0, 1, 3, 9]);
-  //   expectNoLeakedTensors(() => mish(initX), 1);
-  // });
+  it('2D', () => {
+    const initX = tensor2d([[0, 1, 3, 9], [0, 1, 3, 9]]);
+    const expectedVals = tensor2d(
+        [[0., .865, 2.987, 9.], [0., .865, 2.987, 9.]]);
+    expectTensorsClose(mish(initX), expectedVals);
+  });
+  it('3D', () => {
+    const initX = tensor3d([[[0, 1, 3, 9], [0, 1, 3, 9]]]);
+    const expectedVals = tensor3d(
+        [[[0., .865, 2.987, 9.], [0., .865, 2.987, 9.]]]);
+    expectTensorsClose(mish(initX), expectedVals);
+  });
+  it('Does not leak', () => {
+    const initX = tensor1d([0, 1, 3, 9]);
+    expectNoLeakedTensors(() => mish(initX), 1);
+  });
 });
