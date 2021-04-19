@@ -61,10 +61,26 @@ export function concatImpl(
   }
 
   if (runOnCpu) {
-    const {tensors2D, outShape} = computeTensors2D(inputs, axis, backend);
+    // Any concat of n-dimensional tensors across any axis can be reduced to
+    // a concatenation of two-dimensional tensors across the axis 1 by first
+    // partitioning the axes of the original tensors into those less than the
+    // axis to be concatenated and the rest. Then reshape the tensors
+    // into a two-dimensional tensor by collapsing these two sets of axes and
+    // concatenate the resulting matrices across the axis 1, finally reshaping
+    // the result to have the proper shape.
+    const tensors2D = inputs.map(t => {
+      const innerSize = util.sizeFromShape(t.shape.slice(axis));
+      const shape = [-1, innerSize];
+      return reshape({inputs: {x: t}, backend, attrs: {shape}});
+    });
+
     const inputsValShapes = tensors2D.map(t => {
       return {vals: backend.readSync(t.dataId), shape: t.shape};
     });
+
+    // Concats 2d tensors along axis=1.
+    const outShape =
+        backend_util.computeOutShape(tensors2D.map(t => t.shape), 1 /* axis */);
     const simplyConcat = tensors2D[0].shape[0] === 1;
     const outVals =
         concatImplCPU(inputsValShapes, outShape, dtype, simplyConcat);

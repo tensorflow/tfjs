@@ -31,6 +31,7 @@ export class Im2ColProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   inputShape: number[];
   convInfo: backend_util.Conv2DInfo;
+  size: number;
 
   constructor(
       outputShape: number[], inputShape: number[],
@@ -44,11 +45,16 @@ export class Im2ColProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
     this.inputShape = inputShape;
     this.convInfo = convInfo;
-    this.shaderKey = `im2col_${convInfo}`;
+    // TODO: This can be simplified by uniform.
+    this.shaderKey = `im2col_${convInfo.filterWidth}_${convInfo.inChannels}_${
+        convInfo.strideWidth}_${convInfo.strideHeight}_${
+        convInfo.padInfo.left}_${convInfo.padInfo.top}_${convInfo.outWidth}_${
+        convInfo.dilationWidth}_${convInfo.dilationHeight}_${
+        convInfo.dataFormat}`;
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
-    const size = util.sizeFromShape(this.outputShape);
     const {
       filterWidth,
       inChannels,
@@ -76,7 +82,7 @@ export class Im2ColProgram implements WebGPUProgram {
 
           ivec2 rc = getCoordsFromFlatIndex(flatIndex);
 
-          if(flatIndex < ${size}) {
+          if(flatIndex < size) {
             int blockIndex = rc[0];
             int pos = rc[1];
 
@@ -84,13 +90,13 @@ export class Im2ColProgram implements WebGPUProgram {
               ${top};
             int d0 = offsetY + ${dilationHeight} * (pos / ${itemsPerBlockRow});
             float value = 0.0;
-            if(d0 < ${this.inputShape[rowDim]} && d0 >= 0) {
+            if(d0 < aShape[${rowDim}] && d0 >= 0) {
               int offsetX = int(mod(float(blockIndex), ${outWidth}.) *
                 ${strideWidth}. - ${left}.);
               int d1 = offsetX + ${dilationWidth} * (int(mod(float(pos),
                 ${itemsPerBlockRow}.) / ${inChannels}.));
               int ch = int(mod(float(pos), ${inChannels}.));
-              if(d1 < ${this.inputShape[colDim]} && d1 >= 0) {
+              if(d1 < aShape[${colDim}] && d1 >= 0) {
                 value = getA(d0, d1, ch);
               }
             }
