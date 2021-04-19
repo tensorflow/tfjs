@@ -34,7 +34,8 @@ enum FusableActivation {
   RELU = 1,
   RELU6 = 2,
   PRELU = 3,
-  LEAKYRELU = 4
+  LEAKYRELU = 4,
+  SIGMOID = 5
 };
 
 // Holds the memory offset and the size of a tensor.
