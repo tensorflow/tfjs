@@ -19,6 +19,7 @@ import './flags_wasm';
 import {backend_util, BackendTimingInfo, DataStorage, DataType, deprecationWarn, engine, env, KernelBackend, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
+import {BackendWasmThreadedSimdModule} from '../wasm-out/tfjs-backend-wasm-threaded-simd';
 import wasmFactoryThreadedSimd from '../wasm-out/tfjs-backend-wasm-threaded-simd.js';
 // @ts-ignore
 import {wasmWorkerContents} from '../wasm-out/tfjs-backend-wasm-threaded-simd.worker.js';
@@ -41,7 +42,7 @@ export class BackendWasm extends KernelBackend {
   private dataIdNextNumber = 1;
   dataIdMap: DataStorage<TensorData>;
 
-  constructor(public wasm: BackendWasmModule) {
+  constructor(public wasm: BackendWasmModule | BackendWasmThreadedSimdModule) {
     super();
     this.wasm.tfjs.init();
     this.dataIdMap = new DataStorage(this, engine());
@@ -159,6 +160,9 @@ export class BackendWasm extends KernelBackend {
 
   dispose() {
     this.wasm.tfjs.dispose();
+    if ('PThread' in this.wasm) {
+      this.wasm.PThread.terminateAllThreads();
+    }
     this.wasm = null;
   }
 
