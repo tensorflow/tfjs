@@ -19,7 +19,7 @@ import {KernelConfig, SparseReshape, SparseReshapeInputs, TensorInfo, TypedArray
 
 import {MathBackendCPU} from '../backend_cpu';
 
-import {sparseReshapeImpl} from './SparseReshape_Impl';
+import {sparseReshapeImpl} from './SparseReshape_impl';
 
 export function sparseReshape(
     args: {inputs: SparseReshapeInputs, backend: MathBackendCPU}):
