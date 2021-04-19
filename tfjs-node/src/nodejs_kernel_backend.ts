@@ -292,6 +292,8 @@ export class NodeJSKernelBackend extends KernelBackend {
         result = tf.elu(result);
       } else if (activation === 'relu6') {
         result = tf.relu6(result);
+      } else if (activation === 'sigmoid') {
+        result = tf.sigmoid(result);
       } else {
         throw new Error(`Activation: ${
             activation} has not been implemented for the Node.js backend`);

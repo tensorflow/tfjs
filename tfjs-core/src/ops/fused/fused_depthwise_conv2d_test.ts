@@ -200,6 +200,40 @@ describeWithFlags('fused depthwiseConv2D', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
+  it('sigmoid', async () => {
+    const fSize = 3;
+    const pad = 'valid';
+    const strides = 1;
+    const chMul = 1;
+    const inDepth = 1;
+
+    const x = tf.tensor4d(
+        [
+          0.149194, 0.089009, 0.654891, 0.083324, 0.537043, 0.644331, 0.563037,
+          0.211859, 0.633501, 0.186427, 0.777034, 0.50001,  0.607341, 0.95303,
+          0.696479, 0.050387, 0.62045,  0.728049, 0.028043, 0.437009, 0.712881,
+          0.741935, 0.974474, 0.621102, 0.171411
+        ],
+        [1, 5, 5, inDepth]);
+    const w = tf.tensor4d(
+        [
+          -0.125386, -0.975199, -0.640437, -0.281895, -0.990968, -0.347208,
+          -0.889702, -0.180695, -0.691992
+        ],
+        [fSize, fSize, inDepth, chMul],
+    );
+
+    const result = tf.fused.depthwiseConv2d(
+        {x, filter: w, strides, pad, activation: 'sigmoid'});
+
+    expect(result.shape).toEqual([1, 3, 3, 1]);
+    const expected = [
+      0.07309964, 0.07544667, 0.07914197, 0.08693069, 0.07873929, 0.04409045,
+      0.03562334, 0.0311462, 0.05048907
+    ];
+    expectArraysClose(await result.data(), expected);
+  });
+
   it('gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0', async () => {
     const inputDepth = 1;
     const outputDepth = 1;

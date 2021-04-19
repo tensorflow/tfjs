@@ -54,6 +54,8 @@ export const RELU6 = `
   return result;
 `;
 
+export const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * x));`;
+
 export class UnaryOpPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
   userCode: string;

@@ -124,6 +124,7 @@ tfjs_cc_library(
         ":backend",
         ":leakyrelu_impl",
         ":prelu_impl",
+        ":sigmoid_impl",
         ":transpose_impl",
         ":util",
     ],
@@ -137,6 +138,7 @@ tfjs_cc_library(
         ":backend",
         ":leakyrelu_impl",
         ":prelu_impl",
+        ":sigmoid_impl",
         ":transpose_impl",
         ":util",
     ],
@@ -175,6 +177,16 @@ tfjs_cc_library(
     name = "prelu_impl",
     srcs = ["prelu_impl.cc"],
     hdrs = ["prelu_impl.h"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "sigmoid_impl",
+    srcs = ["sigmoid_impl.cc"],
+    hdrs = ["sigmoid_impl.h"],
     deps = [
         ":backend",
         ":util",
@@ -935,6 +947,7 @@ tfjs_cc_library(
     hdrs = ["kernels/Sigmoid.h"],
     deps = [
         ":backend",
+        ":sigmoid_impl",
         ":unary",
     ],
 )

@@ -215,6 +215,11 @@ export function mapActivationToShaderProgram(
       return LEAKYRELU_PACKED;
     }
     return LEAKYRELU;
+  } else if (activation === 'sigmoid') {
+    if (packed) {
+      return unary_packed_op.SIGMOID;
+    }
+    return unary_op.SIGMOID;
   }
   throw new Error(`Activation ${
       activation} has not been implemented for the WebGL backend.`);
