@@ -19,7 +19,14 @@ import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape}
 
 import {WebGPUProgram} from './webgpu_program';
 
-export function makeMatMulPackedVec4Source(workPerThread: number[]): string {
+export function makeMatMulPackedVec4Source(workPerThread: number[],
+    dimInner?: number, tileInner?: number): string {
+  let numTiles = -1;
+  if (dimInner != null && tileInner != null) {
+    // numTiles should be the same as the computation in shader.
+    numTiles = Math.floor((dimInner - 1) / tileInner + 1);
+  }
+
   return `
     vec4 mm_readA(int row, int col);
     vec4 mm_readB(int row, int col);
@@ -96,7 +103,7 @@ export function makeMatMulPackedVec4Source(workPerThread: number[]): string {
             acc[i] = BCached[3] * ACached.w + acc[i];
           }
         }
-        barrier();
+        ${numTiles === 1 ? '' : 'barrier();'}
       }
 
       for (int innerRow = 0; innerRow < RowPerThread; innerRow++) {
@@ -152,7 +159,8 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.shaderKey = `matMulPackedVec4_${rowPerThread}_${activation}`;
+    this.shaderKey = `matMulPackedVec4_${vecSize}_${rowPerThread}_${
+        activation}`;
   }
 
   getUserCode(): string {
@@ -210,9 +218,8 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
       int dimBOuter = ${bShape[2]};
       int batch;
 
-      ${makeMatMulPackedVec4Source([
-      vecSize, this.workPerThread, 1
-    ])}
+      ${makeMatMulPackedVec4Source([vecSize, this.workPerThread, 1],
+          dimInner, tileInner)}
 
       vec4 mm_readA(int row, int col) {
         return ${sampleA};

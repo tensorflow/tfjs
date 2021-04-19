@@ -21,7 +21,14 @@ import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape}
 
 import {WebGPUProgram} from './webgpu_program';
 
-export function makeMatMulPackedSource(workPerThread: number[]): string {
+export function makeMatMulPackedSource(workPerThread: number[],
+    dimInner?: number, tileInner?: number): string {
+  let numTiles = -1;
+  if (dimInner != null && tileInner != null) {
+    // numTiles should be the same as the computation in shader.
+    numTiles = Math.floor((dimInner - 1) / tileInner + 1);
+  }
+
   return `
     float mm_readA(int row, int col);
     float mm_readB(int row, int col);
@@ -103,7 +110,7 @@ export function makeMatMulPackedSource(workPerThread: number[]): string {
           }
         }
 
-        barrier();
+        ${numTiles === 1 ? '' : 'barrier();'}
       }
 
       for (int innerRow = 0; innerRow < RowPerThread; innerRow++) {
@@ -181,8 +188,8 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.shaderKey = `matMulPacked_${this.workPerThread}_${transposeA}_${
-        transposeB}_${activation}`;
+    this.shaderKey = `matMulPacked_${this.workPerThread}_${
+        this.workPerThread}_${transposeA}_${transposeB}_${activation}`;
   }
 
   getUserCode(): string {
@@ -266,9 +273,8 @@ export class MatMulPackedProgram implements WebGPUProgram {
 
       int batch;
 
-      ${makeMatMulPackedSource([
-      this.workPerThread, this.workPerThread, 1
-    ])}
+      ${makeMatMulPackedSource([this.workPerThread, this.workPerThread, 1],
+          dimInner, tileInner)}
       float mm_readA(int row, int col) {
         return ${sampleA};
       }
