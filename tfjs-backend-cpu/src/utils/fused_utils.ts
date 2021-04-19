@@ -24,6 +24,7 @@ import {leakyRelu} from '../kernels/LeakyRelu';
 import {prelu} from '../kernels/Prelu';
 import {relu} from '../kernels/Relu';
 import {relu6} from '../kernels/Relu6';
+import {sigmoid} from '../kernels/Sigmoid';
 
 export function applyActivation(
     backend: MathBackendCPU, x: TensorInfo, activation: backend_util.Activation,
@@ -40,6 +41,8 @@ export function applyActivation(
     return prelu({inputs: {x, alpha: preluActivationWeights}, backend});
   } else if (activation === 'leakyrelu') {
     return leakyRelu({inputs: {x}, backend, attrs: {alpha: leakyreluAlpha}});
+  } else if (activation === 'sigmoid') {
+    return sigmoid({inputs: {x}, backend}) as TensorInfo;
   }
   throw new Error(
       `Activation ${activation} has not been implemented for the CPU backend.`);
