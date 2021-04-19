@@ -67,18 +67,16 @@ function sparseReshape_(
   const $newShape = convertToTensor(newShape, 'newShape', 'sparseReshape');
 
   if ($inputIndices.rank !== 2) {
-    throw new Error(
-        'Input indices should be Tensor2D but received shape ' +
-        $inputIndices.shape);
+    throw new Error(`Input indices should be Tensor2D but received shape
+        ${$inputIndices.shape}`);
   }
   if ($inputShape.rank !== 1) {
-    throw new Error(
-        'Input shape should be Tensor1D but received shape ' +
-        $inputShape.shape);
+    throw new Error(`Input shape should be Tensor1D but received shape ${
+        $inputShape.shape}`);
   }
   if ($newShape.rank !== 1) {
     throw new Error(
-        'New shape should be Tensor1D but received shape ' + $newShape.shape);
+        `New shape should be Tensor1D but received shape ${$newShape.shape}`);
   }
 
   const inputs: SparseReshapeInputs = {
@@ -86,8 +84,7 @@ function sparseReshape_(
     inputShape: $inputShape,
     newShape: $newShape
   };
-  const result = ENGINE.runKernel(
-                     SparseReshape, inputs as {} as NamedTensorMap) as Tensor[];
+  const result: Tensor[] = ENGINE.runKernel(SparseReshape, inputs as {});
   return {outputIndices: result[0], outputShape: result[1]};
 }
 

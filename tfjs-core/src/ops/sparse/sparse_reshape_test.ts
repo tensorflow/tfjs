@@ -84,7 +84,6 @@ describeWithFlags('sparseReshape', ALL_ENVS, () => {
     expectArraysClose(await result.outputShape.data(), sparseTensor.shape);
   });
 
-
   it('new shape with same rank', async () => {
     const sparseTensor = sparseTensorValue5x6();
     const result =

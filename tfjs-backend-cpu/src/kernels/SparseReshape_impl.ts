@@ -31,17 +31,16 @@ export function sparseReshapeImpl(
   let unknownIndex = -1;
   for (let d = 0; d < outputRank; ++d) {
     const size = targetShape[d];
-    if (size == -1) {
+    if (size === -1) {
       if (unknownIndex !== -1) {
-        throw new Error(
-            'only one output dimension may be -1, not both ' + unknownIndex +
-            ' and ' + d);
+        throw new Error(`only one output dimension may be -1, not both ${
+            unknownIndex} and ${d}`);
       }
       unknownIndex = d;
       outputShape.push(1);
     } else {
       if (size < 0) {
-        throw new Error('size ' + d + ' must be non-negative, not ' + size);
+        throw new Error(`size ${d} must be non-negative, not ${size}`);
       }
       product *= size;
       outputShape.push(size);
@@ -56,21 +55,18 @@ export function sparseReshapeImpl(
     }
     const missing = Math.round(denseSize / product);
     if (product * missing !== denseSize) {
-      throw new Error(
-          'Input to reshape is a SparseTensor with ' + denseSize +
-          ' dense values, but the requested shape requires a multiple of ' +
-          product + '. inputShape=' + inputShape +
-          ' outputShape=' + outputShape);
+      throw new Error(`Input to reshape is a SparseTensor with ${denseSize}
+          dense values, but the requested shape requires a multiple of
+          ${product}. inputShape=${inputShape} outputShape= ${outputShape}`);
     }
 
     outputShape[unknownIndex] = missing;
   }
   const outputSize = util.sizeFromShape(outputShape);
   if (outputSize !== denseSize) {
-    throw new Error(
-        'Input to reshape is a tensor with ' + denseSize +
-        ' dense values, but the requested shape has ' + outputSize +
-        '. inputShape=' + inputShape + ' outputShape=' + outputShape)
+    throw new Error(`Input to reshape is a tensor with ${
+        denseSize} dense values, but the requested shape has ${
+        outputSize}. inputShape=${inputShape} outputShape=${outputShape}`);
   }
 
   const inputRank = inputShape.length;
@@ -104,4 +100,4 @@ export function sparseReshapeImpl(
     }
   }
   return [newValues, outputShape];
-};
+}
