@@ -53,7 +53,9 @@ cc_binary(
         "-s MALLOC=emmalloc",
         "-s USE_PTHREADS=1",
         "-s PROXY_TO_PTHREAD=1",
-        "-s PTHREAD_POOL_SIZE=4",
+        # Many x86-64 processors have 2 threads per core, so we divide by 2.
+        "-s PTHREAD_POOL_SIZE=" +
+        "'Math.min(4, Math.max(1, (navigator.hardwareConcurrency || 1) / 2))'",
     ],
     deps = [
         ":all_kernels",
