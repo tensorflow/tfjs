@@ -23,7 +23,6 @@ import {BinaryOpPackedProgram} from '../binaryop_packed_gpu';
 import {complex} from '../kernels/Complex';
 import {LEAKYRELU, LEAKYRELU_PACKED} from '../kernels/LeakyRelu';
 import {PRELU, PRELU_PACKED} from '../kernels/Prelu';
-// import {SIGMOID} from '../kernels/Sigmoid';
 import * as unary_op from '../unaryop_gpu';
 import {UnaryOpProgram} from '../unaryop_gpu';
 import * as unary_packed_op from '../unaryop_packed_gpu';
