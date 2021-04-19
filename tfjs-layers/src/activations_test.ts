@@ -337,7 +337,7 @@ describeMathCPUAndGPU('swish activation', () => {
 describeMathCPUAndGPU('mish activation', () => {
   const mish = new Mish().apply;
   // Setup: Array with initial values.
-  // Execute: Swish on the last dimension.
+  // Execute: Mish on the last dimension.
   // Expect: Output array matches size and approximate expected values.
   it('1D', () => {
     const initX = tensor1d([0, 1, 3, 9]);
