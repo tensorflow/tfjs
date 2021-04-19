@@ -26,7 +26,7 @@ export const padV2 =
           const {inputs, backend, attrs} = args;
           const {x} = inputs;
           const {paddings, constantValue} = attrs;
-          const uniformData = new Float32Array([constantValue]);
+          const uniformData = [{type: 'float32', data: [constantValue]}];
           const program = new PadProgram(x.shape, paddings);
           return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
         };

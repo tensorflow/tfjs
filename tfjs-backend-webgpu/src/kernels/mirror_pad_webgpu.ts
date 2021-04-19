@@ -33,6 +33,7 @@ export class MirrorPadProgram implements WebGPUProgram {
   xShape: number[];
   paddings: Array<[number, number]>;
   offset: number;
+  size: number;
 
   constructor(
       xShape: number[], paddings: Array<[number, number]>,
@@ -48,11 +49,11 @@ export class MirrorPadProgram implements WebGPUProgram {
     this.paddings = paddings;
     this.offset = mode === 'reflect' ? 0 : 1;
     this.shaderKey = `mirrorPad_${mode}_${paddings}`;
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
     const rank = this.xShape.length;
-    const size = util.sizeFromShape(this.outputShape);
     const type = getCoordsDataType(rank);
     const start = this.paddings.map(p => p[0]).join(',');
     const end = this.paddings.map((p, i) => p[0] + this.xShape[i]).join(',');
@@ -78,7 +79,7 @@ export class MirrorPadProgram implements WebGPUProgram {
         for (int i = 0; i < ${this.workPerThread}; i++) {
           int flatIndex = index * ${this.workPerThread} + i;
 
-          if (flatIndex < ${size}) {
+          if (flatIndex < size) {
             ${type} outC = getCoordsFromFlatIndex(flatIndex);
             ${rank === 1 ? '' : coordsLoop}
             if (${shaderOutC} < ${shaderStart}) {

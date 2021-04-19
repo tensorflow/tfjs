@@ -40,6 +40,8 @@ export interface WebGPUProgram {
   // the group.
   workGroupSize?: [number, number, number];
   isVec4?: boolean;
+  // size is used for bounds checking.
+  size?: number;
   getUserCode: () => string;
 }
 
@@ -69,11 +71,11 @@ export const makeBindGroup =
 export const compileProgram =
     (glslang: Glslang, device: GPUDevice, program: WebGPUProgram,
      inputsData: shader_preprocessor.InputInfo[], output: TensorInfo,
-     uniforms?: GPUBindingResource): WebGPUBinary => {
+     isFromPixel = false): WebGPUBinary => {
       const outputData = {dtype: output.dtype, shape: output.shape};
 
-      const source =
-          shader_preprocessor.makeShader(inputsData, outputData, program);
+      const source = shader_preprocessor.makeShader(
+          inputsData, outputData, program, isFromPixel);
       const result = glslang.compileGLSLZeroCopy(source, 'compute', false);
       if (result.data.length === 0) {
         throw new Error('Shader compilation failed');
@@ -89,10 +91,10 @@ export const compileProgram =
     };
 
 export function makeShaderKey<R extends Rank>(
-    program: WebGPUProgram, shapes: Array<ShapeMap[R]>,
-    types: string[]): string {
+    program: WebGPUProgram, shapes: Array<ShapeMap[R]>, types: string[],
+    broadcastDimsKey = ''): string {
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
-      shapes.join(',') + types.join(',') + program.variableNames.join(',') +
-      program.shaderKey;
+      shapes.map(shape => shape.length).join(',') + types.join(',') +
+      program.variableNames.join(',') + broadcastDimsKey + program.shaderKey;
   return key;
 }

@@ -31,6 +31,7 @@ export class ClipProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   minVal: number;
   maxVal: number;
+  size: number;
 
   constructor(outputShape: number[], minVal: number, maxVal: number) {
     this.outputShape = outputShape;
@@ -41,18 +42,19 @@ export class ClipProgram implements WebGPUProgram {
 
     this.minVal = minVal;
     this.maxVal = maxVal;
+    // TODO(xing.xu): move min max to uniform.
     this.shaderKey = `clip_${minVal}_${maxVal}`;
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
     const type = getCoordsDataType(this.outputShape.length);
-    const size = util.sizeFromShape(this.outputShape);
     const userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
         for(int i = 0; i < ${this.workPerThread}; i++) {
           int flatIndex = index * ${this.workPerThread} + i;
-          if(flatIndex < ${size}) {
+          if(flatIndex < size) {
             ${type} coords = getCoordsFromFlatIndex(flatIndex);
 
             float value = getAAtOutCoords(coords);
