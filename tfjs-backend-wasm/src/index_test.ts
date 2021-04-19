@@ -28,10 +28,10 @@ import {BackendWasm, setWasmPath, setWasmPaths} from './index';
  * 'wasm' so that they are always included in the test runner. See
  * `env.specFilter` in `setup_test.ts` for details.
  */
-describeWithFlags('wasm thread pool', ALL_ENVS, () => {
-  it('thread pool size', async () => {
-    const threadPoolSize = tf.env().getNumber('WASM_THREAD_POOL_SIZE');
-    expect(threadPoolSize).toBeGreaterThanOrEqual(1);
+describeWithFlags('wasm threads', ALL_ENVS, () => {
+  it('threads count', async () => {
+    const threadsCount = tf.env().getNumber('WASM_THREADS_COUNT');
+    expect(threadsCount).toBeGreaterThanOrEqual(1);
   });
 });
 

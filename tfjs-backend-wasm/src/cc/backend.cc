@@ -62,9 +62,9 @@ int num_cores = 1;
 
 int min_num_threads = 1;
 int max_num_threads = 4;
-int thread_pool_size =
+int threads_count =
     std::min(std::max(num_cores, min_num_threads), max_num_threads);
-pthreadpool *threadpool = pthreadpool_create(thread_pool_size);
+pthreadpool *threadpool = pthreadpool_create(threads_count);
 
 // Registers a disposal callback for a tensor id with a given callback function.
 void register_disposal_callback(const size_t tensor_id,
@@ -94,7 +94,7 @@ void init() { xnn_initialize(nullptr); }
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-const size_t get_thread_pool_size() { return backend::thread_pool_size; }
+const size_t get_threads_count() { return backend::threads_count; }
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE

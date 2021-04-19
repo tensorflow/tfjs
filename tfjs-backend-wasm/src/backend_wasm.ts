@@ -44,10 +44,10 @@ export class BackendWasm extends KernelBackend {
   constructor(public wasm: BackendWasmModule) {
     super();
     this.wasm.tfjs.init();
-    // Register the used thread pool size flag. Done it here to avoid circular
+    // Register the used threads count flag. Done it here to avoid circular
     // import.
-    env().registerFlag('WASM_THREAD_POOL_SIZE', () => {
-      return this.getThreadPoolSize();
+    env().registerFlag('WASM_THREADS_COUNT', () => {
+      return this.getThreadsCount();
     });
 
     this.dataIdMap = new DataStorage(this, engine());
@@ -163,9 +163,9 @@ export class BackendWasm extends KernelBackend {
     return this.dataIdMap.get(dataId).memoryOffset;
   }
 
-  // Return the used thread pool size.
-  getThreadPoolSize(): number {
-    return this.wasm.tfjs.getThreadPoolSize();
+  // Return the used threads count.
+  getThreadsCount(): number {
+    return this.wasm.tfjs.getThreadsCount();
   }
 
   dispose() {
@@ -351,7 +351,7 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       // Using the tfjs namespace to avoid conflict with emscripten's API.
       module.tfjs = {
         init: module.cwrap('init', null, []),
-        getThreadPoolSize: module.cwrap('get_thread_pool_size', 'number', []),
+        getThreadsCount: module.cwrap('get_threads_count', 'number', []),
         registerTensor: module.cwrap(
             'register_tensor', null,
             [
