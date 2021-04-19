@@ -23,6 +23,25 @@ steps:
   args: ['test-run-flaky']
   waitFor: ['yarn-common']
 
+# Lint bazel files.
+- name: 'node:10'
+  id: 'buildifier'
+  entrypoint: 'yarn'
+  args: ['buildifier-ci']
+  waitFor: ['yarn-common']
+
+# Bazel tests
+# These use a remote cache and only re-run if changes occurred, so we run them
+# in every build.
+- name: 'node:10'
+  id: 'bazel-tests'
+  entrypoint: 'bash'
+  args:
+    - './scripts/run_bazel_ci_tests.sh'
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  waitFor: ['yarn-common']
+  secretEnv: ['BROWSERSTACK_KEY']
+
 # General configuration
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc

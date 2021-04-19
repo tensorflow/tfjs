@@ -748,7 +748,7 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
     });
 
     it('Missing modelTopology and weightsManifest leads to error',
-       async (done) => {
+       async () => {
          setupFakeWeightFiles(
              {
                'path1/model.json':
@@ -758,18 +758,17 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
          const handler = tf.io.http('path1/model.json');
          handler.load()
              .then(modelTopology1 => {
-               done.fail(
+               fail(
                    'Loading from missing modelTopology and weightsManifest ' +
                    'succeeded unexpectedly.');
              })
              .catch(err => {
                expect(err.message)
                    .toMatch(/contains neither model topology or manifest/);
-               done();
              });
        });
 
-    it('with fetch rejection leads to error', async (done) => {
+    it('with fetch rejection leads to error', async () => {
       setupFakeWeightFiles(
           {
             'path1/model.json':
@@ -780,9 +779,10 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
       try {
         const data = await handler.load();
         expect(data).toBeDefined();
-        done.fail('Loading with fetch rejection succeeded unexpectedly.');
+        fail('Loading with fetch rejection succeeded unexpectedly.');
       } catch (err) {
-        done();
+        // This error is mocked in beforeEach
+        expect(err).toEqual('path not found');
       }
     });
     it('Provide WeightFileTranslateFunc', async () => {
