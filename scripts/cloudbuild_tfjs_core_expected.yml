@@ -20,6 +20,24 @@ steps:
     waitFor:
       - yarn-common
   - name: 'node:10'
+    id: buildifier
+    entrypoint: yarn
+    args:
+      - buildifier-ci
+    waitFor:
+      - yarn-common
+  - name: 'node:10'
+    id: bazel-tests
+    entrypoint: bash
+    args:
+      - ./scripts/run_bazel_ci_tests.sh
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+    waitFor:
+      - yarn-common
+    secretEnv:
+      - BROWSERSTACK_KEY
+  - name: 'node:10'
     dir: tfjs-core
     id: yarn-tfjs-core
     entrypoint: yarn
@@ -357,22 +375,6 @@ steps:
       - BROWSERSTACK_KEY
   - name: gcr.io/learnjs-174218/wasm
     dir: tfjs-backend-wasm
-    entrypoint: yarn
-    id: test-cc-tfjs-backend-wasm
-    args:
-      - test-cc
-    waitFor:
-      - build-tfjs-backend-wasm
-      - yarn-common
-      - yarn-tfjs-core
-      - build-tfjs-core
-      - build-cpu-backend-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-  - name: gcr.io/learnjs-174218/wasm
-    dir: tfjs-backend-wasm
     id: test-bundle-size-tfjs-backend-wasm
     entrypoint: yarn
     args:
@@ -380,22 +382,6 @@ steps:
     waitFor:
       - yarn-tfjs-backend-wasm
       - build-tfjs-backend-wasm
-      - yarn-common
-      - yarn-tfjs-core
-      - build-tfjs-core
-      - build-cpu-backend-tfjs-core
-      - lint-tfjs-core
-      - yarn-tfjs-backend-cpu
-      - build-tfjs-backend-cpu
-      - lint-tfjs-backend-cpu
-  - name: 'node:10'
-    dir: tfjs-backend-wasm
-    id: buildifier-tfjs-backend-wasm
-    entrypoint: yarn
-    args:
-      - buildifier-ci
-    waitFor:
-      - yarn-tfjs-backend-wasm
       - yarn-common
       - yarn-tfjs-core
       - build-tfjs-core
@@ -460,6 +446,94 @@ steps:
     waitFor:
       - yarn-tfjs-backend-webgl
       - lint-tfjs-backend-webgl
+      - yarn-common
+      - yarn-tfjs-core
+      - build-tfjs-core
+      - build-cpu-backend-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+  - name: 'node:10'
+    dir: tfjs-tflite
+    entrypoint: yarn
+    id: yarn-tfjs-tflite
+    args:
+      - install
+    waitFor:
+      - yarn-common
+      - yarn-tfjs-core
+      - build-tfjs-core
+      - build-cpu-backend-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    dir: tfjs-tflite
+    id: download-tflite-web-api-tfjs-tflite
+    entrypoint: bash
+    args:
+      - scripts/download-tflite-web-api.sh
+    waitFor:
+      - yarn-tfjs-tflite
+      - yarn-common
+      - yarn-tfjs-core
+      - build-tfjs-core
+      - build-cpu-backend-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'node:10'
+    dir: tfjs-tflite
+    id: build-tfjs-tflite
+    entrypoint: yarn
+    args:
+      - build-ci
+    waitFor:
+      - yarn-tfjs-tflite
+      - download-tflite-web-api-tfjs-tflite
+      - yarn-common
+      - yarn-tfjs-core
+      - build-tfjs-core
+      - build-cpu-backend-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'node:10'
+    dir: tfjs-tflite
+    entrypoint: yarn
+    id: lint-tfjs-tflite
+    args:
+      - lint
+    waitFor:
+      - yarn-tfjs-tflite
+      - download-tflite-web-api-tfjs-tflite
+      - yarn-common
+      - yarn-tfjs-core
+      - build-tfjs-core
+      - build-cpu-backend-tfjs-core
+      - lint-tfjs-core
+      - yarn-tfjs-backend-cpu
+      - build-tfjs-backend-cpu
+      - lint-tfjs-backend-cpu
+  - name: 'node:10'
+    dir: tfjs-tflite
+    entrypoint: yarn
+    id: test-tfjs-tflite-tfjs-tflite
+    args:
+      - test-ci
+    waitFor:
+      - yarn-tfjs-tflite
+      - lint-tfjs-tflite
+      - download-tflite-web-api-tfjs-tflite
       - yarn-common
       - yarn-tfjs-core
       - build-tfjs-core
@@ -1045,7 +1119,6 @@ steps:
       - yarn-tfjs-backend-wasm
       - build-tfjs-backend-wasm
       - lint-tfjs-backend-wasm
-      - buildifier-tfjs-backend-wasm
   - name: gcr.io/learnjs-174218/release
     dir: e2e
     entrypoint: yarn
@@ -1086,7 +1159,6 @@ steps:
       - yarn-tfjs-backend-wasm
       - build-tfjs-backend-wasm
       - lint-tfjs-backend-wasm
-      - buildifier-tfjs-backend-wasm
   - name: gcr.io/learnjs-174218/release
     dir: e2e
     entrypoint: yarn
@@ -1131,7 +1203,6 @@ steps:
       - yarn-tfjs-backend-wasm
       - build-tfjs-backend-wasm
       - lint-tfjs-backend-wasm
-      - buildifier-tfjs-backend-wasm
 secrets:
   - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
     secretEnv:

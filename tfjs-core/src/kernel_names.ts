@@ -271,7 +271,7 @@ export type DepthwiseConv2dNativeInputs =
     Pick<NamedTensorInfoMap, 'x'|'filter'>;
 export interface DepthwiseConv2dNativeAttrs {
   strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dataFormat: 'NHWC'|'NCHW';
   dilations: [number, number]|number;
   dimRoundingMode?: 'floor'|'round'|'ceil';
@@ -284,7 +284,7 @@ export type DepthwiseConv2dNativeBackpropFilterInputs =
 export interface DepthwiseConv2dNativeBackpropFilterAttrs {
   strides: [number, number]|number;
   dilations: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dimRoundingMode?: 'floor'|'round'|'ceil';
   filterShape: [number, number, number, number];
 }
@@ -296,7 +296,7 @@ export type DepthwiseConv2dNativeBackpropInputInputs =
 export interface DepthwiseConv2dNativeBackpropInputAttrs {
   strides: [number, number]|number;
   dilations: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dimRoundingMode?: 'floor'|'round'|'ceil';
   inputShape: [number, number, number, number];
 }
@@ -322,6 +322,12 @@ export type Dilation2DBackpropFilterInputs =
 
 export const RealDiv = 'RealDiv';
 export type RealDivInputs = BinaryInputs;
+
+export const Einsum = 'Einsum';
+export type EinsumInputs = TensorInfo[];
+export interface EinsumAttrs {
+  equation: string;
+}
 
 export const Elu = 'Elu';
 export type EluInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -915,7 +921,7 @@ export interface FusedDepthwiseConv2DInputs extends NamedTensorInfoMap {
 }
 export interface FusedDepthwiseConv2DAttrs {
   strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dataFormat: 'NHWC'|'NCHW';
   dilations: [number, number]|number;
   dimRoundingMode: 'floor'|'round'|'ceil';

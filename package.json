@@ -1,21 +1,39 @@
 {
   "devDependencies": {
+    "@bazel/bazelisk": "^1.7.5",
+    "@bazel/buildifier": "^4.0.1",
+    "@bazel/concatjs": "^3.2.2",
+    "@bazel/esbuild": "^3.2.2",
+    "@bazel/jasmine": "^3.2.2",
+    "@bazel/typescript": "^3.2.2",
     "@octokit/rest": "15.17.0",
     "@types/argparse": "^1.0.38",
-    "@types/jasmine": "2.8.7",
+    "@types/jasmine": "~3.0.0",
     "@types/mkdirp": "^0.5.2",
     "@types/node": "^12.7.5",
+    "@types/node-fetch": "~2.1.2",
+    "@types/seedrandom": "^2.4.28",
     "@types/shelljs": "^0.8.7",
     "argparse": "^1.0.10",
     "chalk": "~2.4.2",
     "clang-format": "~1.2.4",
     "console-table-printer": "^2.4.32",
-    "jasmine": "3.1.0",
+    "jasmine": "~3.1.0",
+    "jasmine-core": "~3.1.0",
     "js-yaml": "^3.14.0",
+    "karma": "5.0.0",
+    "karma-browserstack-launcher": "^1.6.0",
+    "karma-chrome-launcher": "^3.1.0",
+    "karma-firefox-launcher": "^2.1.0",
+    "karma-jasmine": "~1.0.1",
+    "karma-requirejs": "^1.1.0",
+    "karma-sourcemap-loader": "^0.3.8",
     "mkdirp": "~0.5.1",
+    "requirejs": "^2.3.6",
+    "seedrandom": "^3.0.5",
     "shelljs": "~0.8.3",
     "ts-node": "~8.8.2",
-    "tslint": "~5.20.0",
+    "tslint": "~6.1.3",
     "typescript": "3.5.3"
   },
   "scripts": {
@@ -30,6 +48,15 @@
     "test-release-notes": "ts-node -s ./scripts/release_notes/run_tests.ts",
     "update-tfjs-lockfiles": "ts-node -s ./scripts/update-tfjs-lockfiles",
     "tag-tfjs-release": "ts-node -s ./scripts/tag-tfjs-release",
-    "update-cloudbuild-tests": "yarn generate-cloudbuild-for-packages tfjs-node -o scripts/cloudbuild_tfjs_node_expected.yml && yarn generate-cloudbuild-for-packages tfjs-core -o scripts/cloudbuild_tfjs_core_expected.yml"
+    "update-cloudbuild-tests": "yarn generate-cloudbuild-for-packages tfjs-node -o scripts/cloudbuild_tfjs_node_expected.yml && yarn generate-cloudbuild-for-packages tfjs-core -o scripts/cloudbuild_tfjs_core_expected.yml",
+    "bazel:format": "find . -type f \\( -name \"*.bzl\" -or -name WORKSPACE -or -name BUILD -or -name BUILD.bazel \\) ! -path \"*/node_modules/*\" | xargs buildifier -v --warnings=attr-cfg,attr-license,attr-non-empty,attr-output-default,attr-single-file,constant-glob,ctx-actions,ctx-args,depset-iteration,depset-union,dict-concatenation,duplicated-name,filetype,git-repository,http-archive,integer-division,load,load-on-top,native-build,native-package,out-of-order-load,output-group,package-name,package-on-top,positional-args,redefined-variable,repository-name,same-origin-load,string-iteration,unsorted-dict-items,unused-variable",
+    "bazel:format-check": "yarn bazel:format --mode=check",
+    "bazel:lint": "yarn bazel:format --lint=warn",
+    "bazel:lint-fix": "yarn bazel:format --lint=fix",
+    "bazel:lint-check": "yarn bazel:format --lint=warn --mode=check",
+    "buildifier-ci": "./scripts/buildifier-ci.sh"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.1"
   }
 }

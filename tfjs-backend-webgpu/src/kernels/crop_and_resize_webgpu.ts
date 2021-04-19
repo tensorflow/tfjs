@@ -15,18 +15,17 @@
  * =============================================================================
  */
 
-import {getShapeCoords} from '../shader_preprocessor';
-import {computeDispatch} from '../webgpu_util';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
 export class CropAndResizeProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  dispatchLayout: {x: number[], y: number[], z: number[]};
+  dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['Image', 'Boxes', 'BoxInd'];
-  workGroupSize: [number, number, number] = [4, 4, 4];
+  workGroupSize: [number, number, number] = [64, 1, 1];
   imageShape: [number, number, number, number];
   cropSize: [number, number];
   methodId: number;
@@ -38,12 +37,13 @@ export class CropAndResizeProgram implements WebGPUProgram {
       extrapolationValue: number) {
     const [numBoxes, ] = boxShape;
     this.outputShape = [numBoxes, cropSize[0], cropSize[1], imageShape[3]];
-    this.dispatchLayout = {x: [1, 2], y: [0], z: [3]};
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    this.shaderKey =
-        `cropAndResize_${method}_${cropSize}_${extrapolationValue}`;
+    // imageShape is used by const imageHeight and imageWidth.
+    this.shaderKey = `cropAndResize_${method}_${cropSize}_${
+        extrapolationValue}_${imageShape}`;
     this.imageShape = imageShape;
     this.cropSize = cropSize;
     this.methodId = method === 'bilinear' ? 1 : 0;
@@ -86,7 +86,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
       const float height_ratio = float(${heightRatio});
       const float width_ratio = float(${widthRatio});
       void writeResult(ivec4 coords,float value) {
-        if (coordsInBounds(coords, ${getShapeCoords(this.outputShape)})) {
+        if (coordsInBounds(coords, outShape)) {
           setOutput(coords[0], coords[1], coords[2], coords[3], value);
         }
       }

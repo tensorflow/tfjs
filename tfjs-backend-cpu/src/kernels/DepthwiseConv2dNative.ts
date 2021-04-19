@@ -64,7 +64,7 @@ export function depthwiseConv2dNative(args: {
     const yOffset1 = b * y.strides[0];
     for (let yR = 0; yR < convInfo.outHeight; ++yR) {
       const yOffset2 = yOffset1 + yR * y.strides[1];
-      const xRCorner = yR * convInfo.strideHeight - padLeft;
+      const xRCorner = yR * convInfo.strideHeight - padTop;
       for (let wR = 0; wR < filterHeight; ++wR) {
         const xR = xRCorner + wR * dilationHeight;
         if (xR < 0 || xR >= convInfo.inHeight) {
@@ -74,7 +74,7 @@ export function depthwiseConv2dNative(args: {
         const xOffset2 = xOffset1 + xR * xStrides[1];
         for (let yC = 0; yC < convInfo.outWidth; ++yC) {
           const yOffset3 = yOffset2 + yC * y.strides[2];
-          const xCCorner = yC * convInfo.strideWidth - padTop;
+          const xCCorner = yC * convInfo.strideWidth - padLeft;
           for (let wC = 0; wC < filterWidth; ++wC) {
             const xC = xCCorner + wC * dilationWidth;
             if (xC < 0 || xC >= convInfo.inWidth) {

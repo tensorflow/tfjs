@@ -16,7 +16,6 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-import {getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {WebGPUProgram} from './webgpu_program';
 
@@ -58,7 +57,8 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
     this.activation = activation;
     this.hasPreluActivation = hasPreluActivation;
 
-    this.shaderKey = `depthwise_${activation}`;
+    this.shaderKey = `depthwise_${activation}_${
+        this.convInfo.outChannels / this.convInfo.inChannels}`;
   }
 
   getUserCode(): string {
@@ -89,7 +89,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
 
       void writeResult(int batch, int row, int col, int chan, float value) {
         ivec4 coord = ivec4(batch, row, col, chan);
-        if (coordsInBounds(coord, ${getShapeCoords(this.outputShape)})) {
+        if (coordsInBounds(coord, outShape)) {
           setOutput(batch, row, col, chan, value);
         }
       }

@@ -18,11 +18,16 @@
 const BACKEND_FLAGS_MAP = {
   general: [],
   cpu: [],
-  wasm: ['WASM_HAS_SIMD_SUPPORT', 'WASM_HAS_MULTITHREAD_SUPPORT'],
+  wasm: [
+    'WASM_HAS_SIMD_SUPPORT',
+    'WASM_HAS_MULTITHREAD_SUPPORT',
+    'CHECK_COMPUTATION_FOR_ERRORS',
+  ],
   webgl: [
     'WEBGL_VERSION', 'WEBGL_CPU_FORWARD', 'WEBGL_PACK',
     'WEBGL_FORCE_F16_TEXTURES', 'WEBGL_RENDER_FLOAT32_CAPABLE',
-    'WEBGL_FLUSH_THRESHOLD'
+    'WEBGL_FLUSH_THRESHOLD', 'WEBGL_PACK_DEPTHWISECONV',
+    'CHECK_COMPUTATION_FOR_ERRORS'
   ]
 };
 const TUNABLE_FLAG_NAME_MAP = {
@@ -34,7 +39,9 @@ const TUNABLE_FLAG_NAME_MAP = {
   WEBGL_PACK: 'webgl pack',
   WEBGL_FORCE_F16_TEXTURES: 'enforce float16',
   WEBGL_RENDER_FLOAT32_CAPABLE: 'enable float32',
-  WEBGL_FLUSH_THRESHOLD: 'GL flush wait time(ms)'
+  WEBGL_FLUSH_THRESHOLD: 'GL flush wait time(ms)',
+  WEBGL_PACK_DEPTHWISECONV: 'Packed depthwise Conv2d',
+  CHECK_COMPUTATION_FOR_ERRORS: 'Check each op result',
 };
 
 /**
@@ -161,7 +168,8 @@ async function initDefaultValueMap() {
  */
 function getTunableRange(flag) {
   const defaultValue = TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag];
-  if (flag === 'WEBGL_FORCE_F16_TEXTURES') {
+  if (flag === 'WEBGL_FORCE_F16_TEXTURES' ||
+      flag === 'WEBGL_PACK_DEPTHWISECONV') {
     return [false, true];
   } else if (flag === 'WEBGL_VERSION') {
     const tunableRange = [];

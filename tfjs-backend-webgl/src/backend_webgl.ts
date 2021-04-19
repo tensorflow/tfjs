@@ -128,7 +128,6 @@ export class MathBackendWebGL extends KernelBackend {
   private uploadWaitMs = 0;
   // Accumulated time spent (including blocking in downloading data from webgl.
   private downloadWaitMs = 0;
-  private cpuBackend: KernelBackend;
 
   // record the last manual GL Flush time.
   private lastGlFlushTime = 0;
@@ -141,7 +140,6 @@ export class MathBackendWebGL extends KernelBackend {
   private gpgpuCreatedLocally: boolean;
   private numMBBeforeWarning: number;
   private warnedAboutMemory = false;
-  private warnedAboutCPUBackend = false;
 
   constructor(gpgpu?: GPGPUContext) {
     super();
@@ -168,9 +166,7 @@ export class MathBackendWebGL extends KernelBackend {
   }
 
   numDataIds() {
-    return this.texData.numDataIds() +
-        (this.cpuBackend ? this.cpuBackend.numDataIds() : 0) -
-        this.pendingDeletes;
+    return this.texData.numDataIds() - this.pendingDeletes;
   }
 
   write(values: BackendValues, shape: number[], dtype: DataType): DataId {
@@ -623,18 +619,6 @@ export class MathBackendWebGL extends KernelBackend {
     return this.texData.get(dataId);
   }
 
-  private getCPUBackend(): KernelBackend|null {
-    if (!env().getBool('WEBGL_CPU_FORWARD')) {
-      return null;
-    }
-
-    if (this.cpuBackend == null) {
-      this.cpuBackend = engine().findBackend('cpu');
-    }
-
-    return this.cpuBackend;
-  }
-
   /*
   Tests whether all the inputs to an op are small and on the CPU. This heuristic
   determines when it would be faster to execute a kernel on the CPU. WebGL
@@ -645,19 +629,7 @@ export class MathBackendWebGL extends KernelBackend {
   shouldExecuteOnCPU(
       inputs: TensorInfo[],
       sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
-    const cpuBackend = this.getCPUBackend();
-    if (!env().getBool('IS_TEST') && !this.warnedAboutCPUBackend &&
-        cpuBackend == null) {
-      console.warn(
-          'Your application contains ops that are small enough to be ' +
-          'executed on the CPU backend, however the CPU backend cannot ' +
-          'be found. Consider importing the CPU backend ' +
-          '(@tensorflow/tfjs-backend-cpu) for better performance.');
-
-      this.warnedAboutCPUBackend = true;
-    }
-
-    return cpuBackend != null &&
+    return env().getBool('WEBGL_CPU_FORWARD') &&
         inputs.every(
             input => this.texData.get(input.dataId).texture == null &&
                 util.sizeFromShape(input.shape) < sizeThreshold);

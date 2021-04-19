@@ -34,7 +34,7 @@ export class FromPixelsProgram implements WebGPUProgram {
   bindGroupLayout: GPUBindGroupLayout;
 
   uniform: GPUBuffer;
-  lastUniformData = [0, 0];
+  lastUniformData: number[] = [];
 
   inputTexture: GPUTexture = null;
   lastPixelSize = {width: 0, height: 0};
@@ -68,19 +68,22 @@ export class FromPixelsProgram implements WebGPUProgram {
     layout(set = 0, binding = 2) uniform Meta {
       int size;
       int numChannels;
-    } outShape;
+      ivec2 shapeStride;
+    };
+
+    ivec3 getCoordsFromFlatIndex(int flatIndexBase);
 
     void main() {
-      int flatIndexBase = int(gl_GlobalInvocationID.x) * outShape.numChannels;
+      int flatIndexBase = int(gl_GlobalInvocationID.x) * numChannels;
       ivec3 coords = getCoordsFromFlatIndex(flatIndexBase);
       int texR = coords[0];
       int texC = coords[1];
       int depth = coords[2];
       vec4 values = imageLoad(srcImage, ivec2(texC, texR));
-      for(int i = 0; i < outShape.numChannels; i++) {
+      for(int i = 0; i < numChannels; i++) {
         float value = values[i];
         int flatIndex = flatIndexBase + i;
-        if (flatIndex < outShape.size) {
+        if (flatIndex < size) {
           result[flatIndex] = int(floor(255.0 * value));
         }
       }
@@ -101,7 +104,8 @@ export class FromPixelsProgram implements WebGPUProgram {
     // and reuse it always.
     if (!this.uniform) {
       const uniformBuffer = device.createBuffer({
-        size: 8,  // The uniform buffer contains two 4 bytes element always.
+        size: uniformData.length *
+            4,  // The uniform buffer contains two 4 bytes element always.
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST
       });
 
@@ -109,18 +113,15 @@ export class FromPixelsProgram implements WebGPUProgram {
     }
 
     // No need to update uniform buffer if no changes.
-    // The initial lastUniformData will have value [0, 0],
-    // which is not a valid numChannels or valid size.
     if (!uniformData ||
-        (uniformData[0] === this.lastUniformData[0] &&
-         uniformData[1] === this.lastUniformData[1])) {
+        ((uniformData.length === this.lastUniformData.length) &&
+         uniformData.every((v, i) => v === this.lastUniformData[i]))) {
       return;
     }
 
     device.queue.writeBuffer(this.uniform, 0, new Uint32Array(uniformData));
 
-    this.lastUniformData[0] = uniformData[0];
-    this.lastUniformData[1] = uniformData[1];
+    this.lastUniformData = uniformData;
   }
 
   makeInputTexture(device: GPUDevice, pixelWidth: number, pixelHeight: number):
@@ -140,38 +141,6 @@ export class FromPixelsProgram implements WebGPUProgram {
       this.lastPixelSize.height = pixelHeight;
     }
     return this.inputTexture;
-  }
-
-  generateEncoder(device: GPUDevice, output: GPUBuffer): GPUCommandEncoder {
-    const bindGroup = device.createBindGroup({
-      layout: this.bindGroupLayout,
-      entries: [
-        {
-          binding: 0,
-          resource: {
-            buffer: output,
-          }
-        },
-        {
-          binding: 1,
-          resource: this.inputTexture.createView(),
-        },
-        {
-          binding: 2,
-          resource: {
-            buffer: this.uniform,
-          }
-        }
-      ],
-    });
-
-    const commandEncoder = device.createCommandEncoder({});
-    const passEncoder = commandEncoder.beginComputePass();
-    passEncoder.setPipeline(this.pipeline);
-    passEncoder.setBindGroup(0, bindGroup);
-    passEncoder.dispatch(this.dispatch[0], this.dispatch[1], this.dispatch[2]);
-    passEncoder.endPass();
-    return commandEncoder;
   }
 
   dispose() {

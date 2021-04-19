@@ -1,3 +1,4 @@
+load("@emsdk//emscripten_toolchain:wasm_rules.bzl", "wasm_cc_binary")
 load(":build_defs.bzl", "tfjs_cc_library", "tfjs_unit_test")
 
 # Emcripten produces a much larger wasm bundle unless the cc_binary has srcs
@@ -36,54 +37,22 @@ cc_binary(
     ],
 )
 
-# This build rule generates tfjs-backend-wasm-simd.{js,wasm}.
-#
-# We only need the .wasm file, not the .js file, because it will be loadsed by
-# the tfjs-backend-wasm.js file (generated from the previous build rule).
-#
-# See scripts/build-wasm.sh where we only copy the .wasm file to wasm-out.
-cc_binary(
-    name = "tfjs-backend-wasm-simd.js",
-    srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
-    linkopts = [
-        "-s ALLOW_MEMORY_GROWTH=1",
-        "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
-        "-s DISABLE_EXCEPTION_CATCHING=1",
-        "-s FILESYSTEM=0",
-        "-s EXIT_RUNTIME=0",
-        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
-        "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
-        "-s MALLOC=emmalloc",
-    ],
-    deps = [
-        ":all_kernels",
-        ":backend",
-    ],
+wasm_cc_binary(
+    name = "tfjs-backend-wasm",
+    cc_target = ":tfjs-backend-wasm.js",
 )
 
-# This build rule generates tfjs-backend-wasm-threaded-simd.{js,wasm} and
-# tfjs-backend-wasm-threaded-simd.worker.js.
-cc_binary(
-    name = "tfjs-backend-wasm-threaded-simd.js",
-    srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
-    linkopts = [
-        "-s ALLOW_MEMORY_GROWTH=1",
-        "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
-        "-s DISABLE_EXCEPTION_CATCHING=1",
-        "-s FILESYSTEM=0",
-        "-s EXIT_RUNTIME=0",
-        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
-        "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
-        "-s MODULARIZE=1",
-        "-s EXPORT_NAME=WasmBackendModuleThreadedSimd",
-        "-s MALLOC=emmalloc",
-        "-s USE_PTHREADS=1",
-        "-s PROXY_TO_PTHREAD=1",
-    ],
-    deps = [
-        ":all_kernels",
-        ":backend",
-    ],
+wasm_cc_binary(
+    name = "tfjs-backend-wasm-simd",
+    cc_target = ":tfjs-backend-wasm.js",
+    simd = True,
+)
+
+wasm_cc_binary(
+    name = "tfjs-backend-wasm-threaded-simd",
+    cc_target = ":tfjs-backend-wasm.js",
+    simd = True,
+    threads = "emscripten",
 )
 
 test_suite(
@@ -106,6 +75,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "backend_tests",
     srcs = glob(["*_test.cc"]),
+    tags = ["ci"],
     deps = [
         ":Prelu",
         ":backend",
@@ -299,6 +269,7 @@ tfjs_cc_library(
         ":SquaredDifference",
         ":StridedSlice",
         ":Sub",
+        ":Tan",
         ":Tile",
         ":Transpose",
         ":_FusedMatMul",
@@ -373,6 +344,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "AvgPool_test",
     srcs = ["kernels/AvgPool_test.cc"],
+    tags = ["ci"],
     deps = [
         ":AvgPool",
     ],
@@ -402,6 +374,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "BatchMatMul_test",
     srcs = ["kernels/BatchMatMul_test.cc"],
+    tags = ["ci"],
     deps = [
         ":BatchMatMul",
     ],
@@ -410,6 +383,7 @@ tfjs_unit_test(
 tfjs_unit_test(
     name = "_FusedMatMul_test",
     srcs = ["kernels/_FusedMatMul_test.cc"],
+    tags = ["ci"],
     deps = [
         ":_FusedMatMul",
     ],
@@ -428,6 +402,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "ClipByValue_test",
     srcs = ["kernels/ClipByValue_test.cc"],
+    tags = ["ci"],
     deps = [
         ":ClipByValue",
     ],
@@ -446,6 +421,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "Conv2D_test",
     srcs = ["kernels/Conv2D_test.cc"],
+    tags = ["ci"],
     deps = [
         ":Conv2D",
     ],
@@ -510,6 +486,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "DepthwiseConv2dNative_test",
     srcs = ["kernels/DepthwiseConv2dNative_test.cc"],
+    tags = ["ci"],
     deps = [
         ":DepthwiseConv2dNative",
     ],
@@ -582,6 +559,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "FusedConv2D_test",
     srcs = ["kernels/FusedConv2D_test.cc"],
+    tags = ["ci"],
     deps = [
         ":FusedConv2D",
     ],
@@ -600,6 +578,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "FusedDepthwiseConv2D_test",
     srcs = ["kernels/FusedDepthwiseConv2D_test.cc"],
+    tags = ["ci"],
     deps = [
         ":FusedDepthwiseConv2D",
     ],
@@ -735,6 +714,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "MaxPool_test",
     srcs = ["kernels/MaxPool_test.cc"],
+    tags = ["ci"],
     deps = [
         ":MaxPool",
     ],
@@ -838,6 +818,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "PadV2_test",
     srcs = ["kernels/PadV2_test.cc"],
+    tags = ["ci"],
     deps = [
         ":PadV2",
     ],
@@ -867,6 +848,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "Prelu_test",
     srcs = ["kernels/Prelu_test.cc"],
+    tags = ["ci"],
     deps = [
         ":Prelu",
     ],
@@ -905,6 +887,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "ResizeBilinear_test",
     srcs = ["kernels/ResizeBilinear_test.cc"],
+    tags = ["ci"],
     deps = [
         ":ResizeBilinear",
     ],
@@ -979,6 +962,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "Sigmoid_test",
     srcs = ["kernels/Sigmoid_test.cc"],
+    tags = ["ci"],
     deps = [
         ":Sigmoid",
     ],
@@ -987,6 +971,7 @@ tfjs_unit_test(
 tfjs_unit_test(
     name = "Softmax_test",
     srcs = ["kernels/Softmax_test.cc"],
+    tags = ["ci"],
     deps = [
         ":Softmax",
     ],
@@ -1064,5 +1049,15 @@ tfjs_cc_library(
     srcs = ["kernels/Step.cc"],
     deps = [
         ":backend",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Tan",
+    srcs = ["kernels/Tan.cc"],
+    deps = [
+        ":backend",
+        ":sin_cos_workaround",
+        ":unary",
     ],
 )

@@ -24,6 +24,8 @@ float sin_fixed(float x);
 
 float cos_fixed(float x);
 
+float tan_fixed(float x);
+
 }  // namespace sin_cos_workaround
 }  // namespace tfjs
 #endif  // SIN_COS_WORKAROUND_H_

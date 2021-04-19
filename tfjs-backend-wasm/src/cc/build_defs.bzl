@@ -1,4 +1,4 @@
-def tfjs_unit_test(name, srcs, deps = []):
+def tfjs_unit_test(name, srcs, deps = [], **kwargs):
     """Unit test binary based on Google Test.
     Args:
       name: The name of the test target to define.
@@ -15,6 +15,7 @@ def tfjs_unit_test(name, srcs, deps = []):
         deps = [
             "@com_google_googletest//:gtest_main",
         ] + deps,
+        **kwargs
     )
 
 def tfjs_cc_library(name, srcs = [], hdrs = [], deps = []):
