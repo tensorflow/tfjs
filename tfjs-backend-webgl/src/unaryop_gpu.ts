@@ -52,7 +52,6 @@ export function STEP(alpha = 0.0) {
 }
 
 export const ELU = `return (x >= 0.0) ? x : (exp(x) - 1.0);`;
-
 export const RELU = CHECK_NAN_SNIPPET + `
   return (x < 0.0) ? 0.0 : x;
 `;
@@ -62,3 +61,5 @@ export const RELU6 = CHECK_NAN_SNIPPET + `
 `;
 
 export const CLONE = 'return x;';
+
+export const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * x));`;
