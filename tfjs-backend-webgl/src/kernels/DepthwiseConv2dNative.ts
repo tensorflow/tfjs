@@ -49,6 +49,7 @@ export function depthwiseConv2dNative(args: {
   if (env().getBool('WEBGL_PACK_DEPTHWISECONV') && convInfo.strideWidth <= 2 &&
       convInfo.outChannels / convInfo.inChannels === 1) {
     program = new DepthwiseConvPacked2DProgram(convInfo);
+    console.log(program.userCode);
   } else {
     program = new DepthwiseConv2DProgram(convInfo);
   }
