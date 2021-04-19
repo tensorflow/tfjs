@@ -15,21 +15,25 @@
  * =============================================================================
  */
 
-import * as tf from '../index';
-import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
-import {expectArraysClose} from '../test_util';
+import * as tf from '../../index';
+import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
+import {expectArraysClose} from '../../test_util';
 
 function sparseTensorValue5x6() {
-  const ind = [[0, 0], [1, 0], [1, 3], [1, 4], [3, 2], [3, 3]];
+  const ind = tf.tensor2d(
+      [[0, 0], [1, 0], [1, 3], [1, 4], [3, 2], [3, 3]], [6, 2], 'int32');
   const val = [0, 10, 13, 14, 32, 33];
   const shape = [5, 6];
   return {ind, val, shape};
 }
 
 function sparseTensorValue2x3x4() {
-  const ind = [
-    [0, 0, 1], [0, 1, 0], [0, 1, 2], [1, 0, 3], [1, 1, 1], [1, 1, 3], [1, 2, 2]
-  ];
+  const ind = tf.tensor2d(
+      [
+        [0, 0, 1], [0, 1, 0], [0, 1, 2], [1, 0, 3], [1, 1, 1], [1, 1, 3],
+        [1, 2, 2]
+      ],
+      [7, 3], 'int32');
   const val = [1, 10, 12, 103, 111, 113, 122];
   const shape = [2, 3, 4];
   return {ind, val, shape};
@@ -53,20 +57,21 @@ describeWithFlags('sparseReshape', ALL_ENVS, () => {
     const sparseTensor = sparseTensorValue2x3x4();
     expect(() => tf.sparseReshape(sparseTensor.ind, sparseTensor.shape, [
       -1, 2, -1
-    ])).toThrowError(/At most one dimension can/);
+    ])).toThrowError(/only one output dimension may be -1/);
   });
 
   it('throw error if impossible new shape', async () => {
     const sparseTensor = sparseTensorValue2x3x4();
     expect(() => tf.sparseReshape(sparseTensor.ind, sparseTensor.shape, [
       -1, 7
-    ])).toThrowError(/cannot reshape/);
+    ])).toThrowError(/multiple of 7/);
   });
   it('same shape', async () => {
     const sparseTensor = sparseTensorValue5x6();
     const result =
         tf.sparseReshape(sparseTensor.ind, sparseTensor.shape, [5, 6]);
-    expectArraysClose(await result.outputIndices.data(), sparseTensor.ind);
+    expectArraysClose(
+        await result.outputIndices.data(), await sparseTensor.ind.data());
     expectArraysClose(await result.outputShape.data(), sparseTensor.shape);
   });
 
@@ -74,7 +79,8 @@ describeWithFlags('sparseReshape', ALL_ENVS, () => {
     const sparseTensor = sparseTensorValue5x6();
     const result =
         tf.sparseReshape(sparseTensor.ind, sparseTensor.shape, [-1, 6]);
-    expectArraysClose(await result.outputIndices.data(), sparseTensor.ind);
+    expectArraysClose(
+        await result.outputIndices.data(), await sparseTensor.ind.data());
     expectArraysClose(await result.outputShape.data(), sparseTensor.shape);
   });
 

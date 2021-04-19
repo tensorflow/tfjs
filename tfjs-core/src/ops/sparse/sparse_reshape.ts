@@ -15,14 +15,13 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../engine';
-import {SparseReshape, SparseReshapeInputs} from '../kernel_names';
-import {Tensor} from '../tensor';
-import {NamedTensorMap} from '../tensor_types';
-import {convertToTensor} from '../tensor_util_env';
-import {TensorLike} from '../types';
-
-import {op} from './operation';
+import {ENGINE} from '../../engine';
+import {SparseReshape, SparseReshapeInputs} from '../../kernel_names';
+import {Tensor, Tensor1D, Tensor2D} from '../../tensor';
+import {NamedTensorMap} from '../../tensor_types';
+import {convertToTensor} from '../../tensor_util_env';
+import {TensorLike} from '../../types';
+import {op} from '../operation';
 
 /**
  * This operation has the same semantics as reshape on the represented dense
@@ -60,7 +59,7 @@ import {op} from './operation';
  */
 function sparseReshape_(
     inputIndices: Tensor2D|TensorLike, inputShape: Tensor1D|TensorLike,
-    newSahpe: Tensor1D|TensorLike): NamedTensorMap {
+    newShape: Tensor1D|TensorLike): NamedTensorMap {
   const $inputIndices =
       convertToTensor(inputIndices, 'inputIndices', 'sparseReshape');
   const $inputShape =
@@ -70,16 +69,16 @@ function sparseReshape_(
   if ($inputIndices.rank !== 2) {
     throw new Error(
         'Input indices should be Tensor2D but received shape ' +
-        inputIndices.shape);
+        $inputIndices.shape);
   }
   if ($inputShape.rank !== 1) {
     throw new Error(
         'Input shape should be Tensor1D but received shape ' +
-        inputShape.shape);
+        $inputShape.shape);
   }
   if ($newShape.rank !== 1) {
     throw new Error(
-        'New shape should be Tensor1D but received shape ' + newShape.shape);
+        'New shape should be Tensor1D but received shape ' + $newShape.shape);
   }
 
   const inputs: SparseReshapeInputs = {
