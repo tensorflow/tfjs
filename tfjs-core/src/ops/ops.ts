@@ -297,7 +297,7 @@ const losses = {
 };
 
 import {sparseReshape} from './sparse/sparse_reshape';
-const sparse = {sparseReshape}
+const sparse = {sparseReshape};
 
 // Second level exports.
 export {image, linalg, losses, spectral, fused, signal, sparse};
