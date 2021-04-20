@@ -19,7 +19,8 @@ import {DataType, TypedArray, util} from '@tensorflow/tfjs-core';
 
 export function sparseReshapeImpl(
     inputIndices: TypedArray, inputIndicesShape: number[], inputDType: DataType,
-    inputShape: number[], targetShape: number[]): [TypedArray, number[]] {
+    inputShape: number[],
+    targetShape: number[]): [TypedArray, number[], number[]] {
   const denseSize = util.sizeFromShape(inputShape);
   const nnz = inputIndicesShape[0];
   const outputRank = targetShape.length;
@@ -56,8 +57,8 @@ export function sparseReshapeImpl(
     const missing = Math.round(denseSize / product);
     if (product * missing !== denseSize) {
       throw new Error(`Input to reshape is a SparseTensor with ${denseSize}
-          dense values, but the requested shape requires a multiple of
-          ${product}. inputShape=${inputShape} outputShape= ${outputShape}`);
+          dense values, but the requested shape requires a multiple of ${
+          product}. inputShape=${inputShape} outputShape= ${outputShape}`);
     }
 
     outputShape[unknownIndex] = missing;
@@ -99,5 +100,5 @@ export function sparseReshapeImpl(
       id %= outputStrides[j];
     }
   }
-  return [newValues, outputShape];
+  return [newValues, [nnz, outputRank], outputShape];
 }

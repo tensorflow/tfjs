@@ -48,11 +48,11 @@ export function sparseReshape(
   const targetShape =
       Array.from(backend.readSync(newShape.dataId) as TypedArray);
 
-  const [newValues, outputShape] = sparseReshapeImplCPU(
+  const [newValues, indicesShape, outputShape] = sparseReshapeImplCPU(
       $inputIndices, inputIndices.shape, inputIndices.dtype, $inputShape,
       targetShape);
   return [
-    backend.makeTensorInfo(outputShape, inputIndices.dtype, newValues),
+    backend.makeTensorInfo(indicesShape, inputIndices.dtype, newValues),
     backend.makeTensorInfo(
         [outputShape.length], newShape.dtype, new Int32Array(outputShape)),
   ]

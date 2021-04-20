@@ -37,12 +37,12 @@ import {op} from '../operation';
  * `outputShape` has length R_out.
  *
  * ```js
- * const result = tf.sparse.reshape(
+ * const result = tf.sparse.sparseReshape(
  *   [[0, 0, 0], [0, 0, 1], [0, 1, 0], [1, 0, 0], [1, 2, 3]],
  *   [2, 3, 6], [9, -1]);
- *
- * x.outputIndices.print(); //[[0, 0], [0, 1], [1, 2], [4, 2], [8, 1]]
- * x.outputShape.print(); // [9, 4]
+ * console.log(result);
+ * result['outputIndices'].print(); //[[0, 0], [0, 1], [1, 2], [4, 2], [8, 1]]
+ * result['outputShape'].print(); // [9, 4]
  * ```
  * @param inputIndices: 2-D. N x R_in matrix with the indices of non-empty
  * values in a SparseTensor.

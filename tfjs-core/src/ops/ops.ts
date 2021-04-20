@@ -225,6 +225,7 @@ const spectral = {
 };
 
 import * as fused from './fused_ops';
+import * as sparse from './sparse_ops';
 
 import {hammingWindow} from './signal/hamming_window';
 import {hannWindow} from './signal/hann_window';
@@ -298,4 +299,4 @@ const losses = {
 };
 
 // Second level exports.
-export {image, linalg, losses, spectral, fused, signal};
+export {image, linalg, losses, spectral, fused, signal, sparse};
