@@ -26,21 +26,18 @@ export function sparseReshape(
   const {inputs, backend} = args;
   const {inputIndices, inputShape, newShape} = inputs;
   if (inputIndices.shape.length <= 1) {
-    throw new Error(
-        'Input indices should be a matrix but received shape ' +
-        inputIndices.shape);
+    throw new Error(`Input indices should be a matrix but received shape ${
+        inputIndices.shape}`);
   }
   if (inputShape.shape.length !== 1) {
-    throw new Error(
-        'Input shape should be a vector but received shape ' +
-        inputShape.shape);
+    throw new Error(`Input shape should be a vector but received shape ${
+        inputShape.shape}`);
   }
 
   if (newShape.shape.length !== 1) {
     throw new Error(
-        'Target shape should be a vector but received shape ' + newShape.shape);
+        `Target shape should be a vector but received shape ${newShape.shape}`);
   }
-
 
   const $inputShape =
       Array.from(backend.readSync(inputShape.dataId) as TypedArray);
@@ -55,9 +52,8 @@ export function sparseReshape(
     backend.makeTensorInfo(indicesShape, inputIndices.dtype, newValues),
     backend.makeTensorInfo(
         [outputShape.length], newShape.dtype, new Int32Array(outputShape)),
-  ]
+  ];
 }
-
 
 export const sparseReshapeConfig: KernelConfig = {
   kernelName: SparseReshape,
