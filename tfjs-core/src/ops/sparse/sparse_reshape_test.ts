@@ -41,35 +41,35 @@ function sparseTensorValue2x3x4() {
 describeWithFlags('sparseReshape', ALL_ENVS, () => {
   it('preserve static shape info', async () => {
     const sparseTensor = sparseTensorValue5x6();
-    const result =
-        tf.sparseReshape(sparseTensor.ind, sparseTensor.shape, [1, 5, 2, 3]);
+    const result = tf.sparse.sparseReshape(
+        sparseTensor.ind, sparseTensor.shape, [1, 5, 2, 3]);
     expectArraysClose(await result.outputShape.data(), [1, 5, 2, 3]);
   });
 
   it('preserve shape info with inferred dim', async () => {
     const sparseTensor = sparseTensorValue2x3x4();
     const result =
-        tf.sparseReshape(sparseTensor.ind, sparseTensor.shape, [2, -1]);
+        tf.sparse.sparseReshape(sparseTensor.ind, sparseTensor.shape, [2, -1]);
     expectArraysClose(await result.outputShape.data(), [2, 3 * 4]);
   });
 
   it('throw error if more than one inferred dim', async () => {
     const sparseTensor = sparseTensorValue2x3x4();
-    expect(() => tf.sparseReshape(sparseTensor.ind, sparseTensor.shape, [
+    expect(() => tf.sparse.sparseReshape(sparseTensor.ind, sparseTensor.shape, [
       -1, 2, -1
     ])).toThrowError(/only one output dimension may be -1/);
   });
 
   it('throw error if impossible new shape', async () => {
     const sparseTensor = sparseTensorValue2x3x4();
-    expect(() => tf.sparseReshape(sparseTensor.ind, sparseTensor.shape, [
+    expect(() => tf.sparse.sparseReshape(sparseTensor.ind, sparseTensor.shape, [
       -1, 7
     ])).toThrowError(/multiple of 7/);
   });
   it('same shape', async () => {
     const sparseTensor = sparseTensorValue5x6();
     const result =
-        tf.sparseReshape(sparseTensor.ind, sparseTensor.shape, [5, 6]);
+        tf.sparse.sparseReshape(sparseTensor.ind, sparseTensor.shape, [5, 6]);
     expectArraysClose(
         await result.outputIndices.data(), await sparseTensor.ind.data());
     expectArraysClose(await result.outputShape.data(), sparseTensor.shape);
@@ -78,7 +78,7 @@ describeWithFlags('sparseReshape', ALL_ENVS, () => {
   it('same shape with inferred dim', async () => {
     const sparseTensor = sparseTensorValue5x6();
     const result =
-        tf.sparseReshape(sparseTensor.ind, sparseTensor.shape, [-1, 6]);
+        tf.sparse.sparseReshape(sparseTensor.ind, sparseTensor.shape, [-1, 6]);
     expectArraysClose(
         await result.outputIndices.data(), await sparseTensor.ind.data());
     expectArraysClose(await result.outputShape.data(), sparseTensor.shape);
@@ -87,7 +87,7 @@ describeWithFlags('sparseReshape', ALL_ENVS, () => {
   it('new shape with same rank', async () => {
     const sparseTensor = sparseTensorValue5x6();
     const result =
-        tf.sparseReshape(sparseTensor.ind, sparseTensor.shape, [3, 10]);
+        tf.sparse.sparseReshape(sparseTensor.ind, sparseTensor.shape, [3, 10]);
     expectArraysClose(
         await result.outputIndices.data(),
         [[0, 0], [0, 6], [0, 9], [1, 0], [2, 0], [2, 1]]);
@@ -97,7 +97,7 @@ describeWithFlags('sparseReshape', ALL_ENVS, () => {
   it('new shape with same rank with inferred dim', async () => {
     const sparseTensor = sparseTensorValue5x6();
     const result =
-        tf.sparseReshape(sparseTensor.ind, sparseTensor.shape, [3, -1]);
+        tf.sparse.sparseReshape(sparseTensor.ind, sparseTensor.shape, [3, -1]);
     expectArraysClose(
         await result.outputIndices.data(),
         [[0, 0], [0, 6], [0, 9], [1, 0], [2, 0], [2, 1]]);
@@ -105,8 +105,8 @@ describeWithFlags('sparseReshape', ALL_ENVS, () => {
   });
   it('up rank', async () => {
     const sparseTensor = sparseTensorValue5x6();
-    const result =
-        tf.sparseReshape(sparseTensor.ind, sparseTensor.shape, [2, 3, 5]);
+    const result = tf.sparse.sparseReshape(
+        sparseTensor.ind, sparseTensor.shape, [2, 3, 5]);
     expectArraysClose(
         await result.outputIndices.data(),
         [[0, 0, 0], [0, 1, 1], [0, 1, 4], [0, 2, 0], [1, 1, 0], [1, 1, 1]]);
@@ -114,8 +114,8 @@ describeWithFlags('sparseReshape', ALL_ENVS, () => {
   });
   it('up rank with inferred dim', async () => {
     const sparseTensor = sparseTensorValue5x6();
-    const result =
-        tf.sparseReshape(sparseTensor.ind, sparseTensor.shape, [2, -1, 5]);
+    const result = tf.sparse.sparseReshape(
+        sparseTensor.ind, sparseTensor.shape, [2, -1, 5]);
     expectArraysClose(
         await result.outputIndices.data(),
         [[0, 0, 0], [0, 1, 1], [0, 1, 4], [0, 2, 0], [1, 1, 0], [1, 1, 1]]);
@@ -125,7 +125,7 @@ describeWithFlags('sparseReshape', ALL_ENVS, () => {
   it('down rank', async () => {
     const sparseTensor = sparseTensorValue2x3x4();
     const result =
-        tf.sparseReshape(sparseTensor.ind, sparseTensor.shape, [6, 4]);
+        tf.sparse.sparseReshape(sparseTensor.ind, sparseTensor.shape, [6, 4]);
     expectArraysClose(
         await result.outputIndices.data(),
         [[0, 1], [1, 0], [1, 2], [3, 3], [4, 1], [4, 3], [5, 2]]);
@@ -135,7 +135,7 @@ describeWithFlags('sparseReshape', ALL_ENVS, () => {
   it('down rank with inferred dim', async () => {
     const sparseTensor = sparseTensorValue2x3x4();
     const result =
-        tf.sparseReshape(sparseTensor.ind, sparseTensor.shape, [6, -1]);
+        tf.sparse.sparseReshape(sparseTensor.ind, sparseTensor.shape, [6, -1]);
     expectArraysClose(
         await result.outputIndices.data(),
         [[0, 1], [1, 0], [1, 2], [3, 3], [4, 1], [4, 3], [5, 2]]);
@@ -144,7 +144,7 @@ describeWithFlags('sparseReshape', ALL_ENVS, () => {
 
   it('throw error if mismatch size', async () => {
     const sparseTensor = sparseTensorValue5x6();
-    expect(() => tf.sparseReshape(sparseTensor.ind, sparseTensor.shape, [
+    expect(() => tf.sparse.sparseReshape(sparseTensor.ind, sparseTensor.shape, [
       4, 7
     ])).toThrowError(/Input to reshape is a tensor with 30 dense values/);
   });

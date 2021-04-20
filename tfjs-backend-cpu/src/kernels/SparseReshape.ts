@@ -26,7 +26,7 @@ export function sparseReshape(
     [TensorInfo, TensorInfo] {
   const {inputs, backend} = args;
   const {inputIndices, inputShape, newShape} = inputs;
-  if (inputIndices.shape.length === 2) {
+  if (inputIndices.shape.length !== 2) {
     throw new Error(`Input indices should be a matrix but received shape
         ${inputIndices.shape}`);
   }
