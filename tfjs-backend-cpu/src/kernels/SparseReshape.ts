@@ -26,7 +26,7 @@ export function sparseReshape(
     [TensorInfo, TensorInfo] {
   const {inputs, backend} = args;
   const {inputIndices, inputShape, newShape} = inputs;
-  if (inputIndices.shape.length <= 1) {
+  if (inputIndices.shape.length === 2) {
     throw new Error(`Input indices should be a matrix but received shape
         ${inputIndices.shape}`);
   }
@@ -47,11 +47,11 @@ export function sparseReshape(
   const targetShape =
       Array.from(backend.data.get(newShape.dataId).values as TypedArray);
 
-  const [newValues, indicesShape, outputShape] = sparseReshapeImpl(
+  const [newIndices, indicesShape, outputShape] = sparseReshapeImpl(
       $inputIndices, inputIndices.shape, inputIndices.dtype, $inputShape,
       targetShape);
   return [
-    backend.makeTensorInfo(indicesShape, inputIndices.dtype, newValues),
+    backend.makeTensorInfo(indicesShape, inputIndices.dtype, newIndices),
     backend.makeTensorInfo(
         [outputShape.length], newShape.dtype, new Int32Array(outputShape)),
   ];

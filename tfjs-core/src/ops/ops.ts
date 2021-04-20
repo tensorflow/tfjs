@@ -164,7 +164,6 @@ export {slice4d} from './slice4d';
 export {softmax} from './softmax';
 export {softplus} from './softplus';
 export {spaceToBatchND} from './space_to_batch_nd';
-export {sparseReshape} from './sparse/sparse_reshape';
 export {fft} from './spectral/fft';
 export {ifft} from './spectral/ifft';
 export {irfft} from './spectral/irfft';
@@ -225,7 +224,6 @@ const spectral = {
 };
 
 import * as fused from './fused_ops';
-import * as sparse from './sparse_ops';
 
 import {hammingWindow} from './signal/hamming_window';
 import {hannWindow} from './signal/hann_window';
@@ -297,6 +295,9 @@ const losses = {
   sigmoidCrossEntropy,
   softmaxCrossEntropy
 };
+
+import {sparseReshape} from './sparse/sparse_reshape';
+const sparse = {sparseReshape}
 
 // Second level exports.
 export {image, linalg, losses, spectral, fused, signal, sparse};

@@ -54,7 +54,7 @@ export function sparseReshapeImpl(
           'input size for an empty tensor unless all ' +
           'specified input sizes are non-zero');
     }
-    const missing = Math.round(denseSize / product);
+    const missing = Math.trunc(denseSize / product);
     if (product * missing !== denseSize) {
       throw new Error(`Input to reshape is a SparseTensor with ${denseSize}
           dense values, but the requested shape requires a multiple of ${
@@ -87,18 +87,19 @@ export function sparseReshapeImpl(
     }
   }
 
-  const newValues =
+  const newIndices =
       util.getArrayFromDType(inputDType, nnz * outputRank) as TypedArray;
-  util.getArrayFromDType(inputDType, nnz * outputRank);
   for (let i = 0; i < nnz; ++i) {
     let id = 0;
     for (let j = 0; j < inputRank; ++j) {
+      // inputIndices is a 2d tensor with shape of [nnz, inputRank]
       id += inputIndices[i * inputRank + j] * inputStrides[j];
     }
     for (let j = 0; j < outputRank; ++j) {
-      newValues[i * outputRank + j] = Math.floor(id / outputStrides[j]);
+      // newIndices is a 2d tensor with shape of [nnz, outputRank]
+      newIndices[i * outputRank + j] = Math.trunc(id / outputStrides[j]);
       id %= outputStrides[j];
     }
   }
-  return [newValues, [nnz, outputRank], outputShape];
+  return [newIndices, [nnz, outputRank], outputShape];
 }
