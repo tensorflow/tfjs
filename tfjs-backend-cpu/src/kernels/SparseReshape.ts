@@ -41,13 +41,11 @@ export function sparseReshape(
   }
 
   const $inputShape =
-      Array.from(backend.data.get(inputShape.dataId).values as TypedArray) as
-      number[];
+      Array.from(backend.data.get(inputShape.dataId).values as TypedArray);
   const $inputIndices =
       backend.data.get(inputIndices.dataId).values as TypedArray;
   const targetShape =
-      Array.from(backend.data.get(newShape.dataId).values as TypedArray) as
-      number[];
+      Array.from(backend.data.get(newShape.dataId).values as TypedArray);
 
   const [newValues, indicesShape, outputShape] = sparseReshapeImpl(
       $inputIndices, inputIndices.shape, inputIndices.dtype, $inputShape,
