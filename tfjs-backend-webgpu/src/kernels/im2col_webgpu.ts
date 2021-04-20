@@ -15,13 +15,15 @@
  * =============================================================================
  */
 
-import {backend_util, util} from '@tensorflow/tfjs-core';
+import {util} from '@tensorflow/tfjs-core';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
 export class Im2ColProgram implements WebGPUProgram {
   variableNames = ['A'];
+  uniforms = `ivec2 pad, stride, dilation; int outWidth, itemsPerBlockRow,
+      inChannels;`;
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[]};
@@ -30,12 +32,11 @@ export class Im2ColProgram implements WebGPUProgram {
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
   inputShape: number[];
-  convInfo: backend_util.Conv2DInfo;
+  isChannelsLast: boolean;
   size: number;
 
   constructor(
-      outputShape: number[], inputShape: number[],
-      convInfo: backend_util.Conv2DInfo) {
+      outputShape: number[], inputShape: number[], isChannelsLast: boolean) {
     this.outputShape = outputShape;
     this.rank = outputShape.length;
 
@@ -44,34 +45,14 @@ export class Im2ColProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
     this.inputShape = inputShape;
-    this.convInfo = convInfo;
-    // TODO: This can be simplified by uniform.
-    this.shaderKey = `im2col_${convInfo.filterWidth}_${convInfo.inChannels}_${
-        convInfo.strideWidth}_${convInfo.strideHeight}_${
-        convInfo.padInfo.left}_${convInfo.padInfo.top}_${convInfo.outWidth}_${
-        convInfo.dilationWidth}_${convInfo.dilationHeight}_${
-        convInfo.dataFormat}`;
+    this.isChannelsLast = isChannelsLast;
+    this.shaderKey = `im2col_${this.isChannelsLast}`;
     this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
-    const {
-      filterWidth,
-      inChannels,
-      strideWidth,
-      strideHeight,
-      padInfo,
-      outWidth,
-      dilationWidth,
-      dilationHeight,
-      dataFormat
-    } = this.convInfo;
-    const {left, top} = padInfo;
-    const itemsPerBlockRow = inChannels * filterWidth;
-
-    const isChannelsLast = dataFormat === 'channelsLast';
-    const rowDim = isChannelsLast ? 0 : 1;
-    const colDim = isChannelsLast ? 1 : 2;
+    const rowDim = this.isChannelsLast ? 0 : 1;
+    const colDim = this.isChannelsLast ? 1 : 2;
 
     const userCode = `
       void main() {
@@ -86,16 +67,15 @@ export class Im2ColProgram implements WebGPUProgram {
             int blockIndex = rc[0];
             int pos = rc[1];
 
-            int offsetY = int(blockIndex / ${outWidth}) * ${strideHeight} -
-              ${top};
-            int d0 = offsetY + ${dilationHeight} * (pos / ${itemsPerBlockRow});
+            int offsetY = int(blockIndex / outWidth) * stride[1] - pad[1];
+            int d0 = offsetY + dilation[1] * (pos / itemsPerBlockRow);
             float value = 0.0;
             if(d0 < aShape[${rowDim}] && d0 >= 0) {
-              int offsetX = int(mod(float(blockIndex), ${outWidth}.) *
-                ${strideWidth}. - ${left}.);
-              int d1 = offsetX + ${dilationWidth} * (int(mod(float(pos),
-                ${itemsPerBlockRow}.) / ${inChannels}.));
-              int ch = int(mod(float(pos), ${inChannels}.));
+              int offsetX = int(mod(float(blockIndex), float(outWidth)) *
+              float(stride[0]) - float(pad[0]));
+              int d1 = offsetX + dilation[0] * (int(mod(float(pos),
+                float(itemsPerBlockRow)) / float(inChannels)));
+              int ch = int(mod(float(pos), float(inChannels)));
               if(d1 < aShape[${colDim}] && d1 >= 0) {
                 value = getA(d0, d1, ch);
               }
