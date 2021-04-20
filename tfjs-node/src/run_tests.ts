@@ -96,14 +96,13 @@ const IGNORE_LIST: string[] = [
   'image.transform',
   // Breaking change in NaN processing
   // See https://github.com/tensorflow/tfjs/issues/4883
-  'max test-tensorflow {} ignores NaNs',
-  'min test-tensorflow {} ignores NaNs',
+  'max test-tensorflow {} ignores NaNs', 'min test-tensorflow {} ignores NaNs',
   'sign test-tensorflow {} basic',
   'sign test-tensorflow {} does not propagate NaNs',
   'sign test-tensorflow {} accepts a tensor-like object',
   // Node kernel for einsum is yet to be implemented.
   // See: ttps://github.com/tensorflow/tfjs/issues/2349
-  'einsum'
+  'einsum', 'sparseReshape'
 ];
 
 if (process.platform === 'win32') {
