@@ -8,6 +8,18 @@ KERNELS_WITH_KEEPALIVE = glob(
     exclude = ["**/*_test.cc"],
 )
 
+BASE_LINKOPTS = [
+    "-s ALLOW_MEMORY_GROWTH=1",
+    "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
+    "-s DISABLE_EXCEPTION_CATCHING=1",
+    "-s FILESYSTEM=0",
+    "-s EXIT_RUNTIME=0",
+    "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
+    "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
+    "-s MODULARIZE=1",
+    "-s MALLOC=emmalloc",
+]
+
 # This build rule generates tfjs-backend-wasm.{js,wasm}.
 #
 # The ".js" at the end of the build name is significant because it determines
@@ -19,18 +31,19 @@ KERNELS_WITH_KEEPALIVE = glob(
 cc_binary(
     name = "tfjs-backend-wasm.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
-    linkopts = [
-        "-s ALLOW_MEMORY_GROWTH=1",
-        "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
-        "-s DISABLE_EXCEPTION_CATCHING=1",
-        "-s FILESYSTEM=0",
-        "-s EXIT_RUNTIME=0",
-        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
-        "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
-        "-s MODULARIZE=1",
+    linkopts = BASE_LINKOPTS + [
         "-s EXPORT_NAME=WasmBackendModule",
-        "-s MALLOC=emmalloc",
     ],
+    deps = [
+        ":all_kernels",
+        ":backend",
+    ],
+)
+
+cc_binary(
+    name = "tfjs-backend-wasm-simd.js",
+    srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    linkopts = BASE_LINKOPTS,
     deps = [
         ":all_kernels",
         ":backend",
@@ -40,15 +53,7 @@ cc_binary(
 cc_binary(
     name = "tfjs-backend-wasm-threaded-simd.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
-    linkopts = [
-        "-s ALLOW_MEMORY_GROWTH=1",
-        "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
-        "-s DISABLE_EXCEPTION_CATCHING=1",
-        "-s FILESYSTEM=0",
-        "-s EXIT_RUNTIME=0",
-        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
-        "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
-        "-s MODULARIZE=1",
+    linkopts = BASE_LINKOPTS + [
         "-s EXPORT_NAME=WasmBackendModuleThreadedSimd",
         "-s MALLOC=emmalloc",
         "-s USE_PTHREADS=1",
@@ -70,7 +75,7 @@ wasm_cc_binary(
 
 wasm_cc_binary(
     name = "tfjs-backend-wasm-simd",
-    cc_target = ":tfjs-backend-wasm.js",
+    cc_target = ":tfjs-backend-wasm-simd.js",
     simd = True,
 )
 
