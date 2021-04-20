@@ -1,0 +1,31 @@
+[
+  {
+    "tfOpName": "SparseReshape",
+    "category": "sparse",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "inputIndices",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "inputShape",
+        "type": "tensor"
+      },
+      {
+        "start": 2,
+        "name": "newShape",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "T",
+        "name": "dtype",
+        "type": "dtype",
+        "notSupported": true
+      }
+    ]
+  }
+]
