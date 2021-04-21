@@ -48,7 +48,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
       int xR; int xC; int xCOffset;
       vec4 wTexel; vec4 previous; vec4 final;`;
 
-    for (let c = 0; c < (filterWidth + 1) / 2; c++) {
+    for (let c = 0; c < (filterWidth * dilationWidth + 1) / 2; c++) {
       mainLoop += `
           vec4 xTexelC${c * 2};
           int xTexelC${c * 2}Ready;`;
@@ -67,7 +67,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
      * values from a texture2D call at once.
      */
     for (let r = 0; r < filterHeight; r++) {
-      for (let c = 0; c < (filterWidth + 1) / 2; c++) {
+      for (let c = 0; c < (filterWidth * dilationWidth + 1) / 2; c++) {
         mainLoop += `
           xTexelC${c * 2} = vec4(0.0);
           xTexelC${c * 2}Ready = 0;`;
@@ -82,14 +82,15 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
       `;
 
       for (let texelC = 0; texelC < (texelsAcross + 1) / 2; texelC++) {
-        const c = texelC * 2;
+        const colIndex = texelC * 2;
+        const c = colIndex * dilationWidth;
 
         mainLoop += `
-          xC = xCCorner + ${c * dilationWidth};
+          xC = xCCorner + ${c};
           `;
 
         if (strideWidth === 1) {
-          if (c < filterWidth) {
+          if (colIndex < filterWidth) {
             // If padding is odd, the outer texels have to be composed.
             if (padLeft % 2 === 1) {
               // TODO: Ensure vec4 previous does not result in redundant sample,
@@ -119,7 +120,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
               // is 1.
               if (dilationWidth === 1 && c > 0) {
                 mainLoop += `
-                xC${c} = vec4(xTexelC${c - 2}.zw, xTexelC${c}.xy);
+                xC${colIndex} = vec4(xTexelC${c - 2}.zw, xTexelC${c}.xy);
                 `;
               } else {
                 mainLoop += `
@@ -134,9 +135,9 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                       previous.zw = vec2(0.0);
                     }
 
-                    xC${c} = vec4(previous.zw, xTexelC${c}.xy);
+                    xC${colIndex} = vec4(previous.zw, xTexelC${c}.xy);
                   } else {
-                    xC${c} = vec4(0.0, 0.0, xTexelC${c}.xy);
+                    xC${colIndex} = vec4(0.0, 0.0, xTexelC${c}.xy);
                   }
                   `;
               }
@@ -151,7 +152,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                   xTexelC${c}Ready = 1;
                 }
 
-                xC${c} = xTexelC${c};
+                xC${colIndex} = xTexelC${c};
                 `;
             }
 
@@ -230,7 +231,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
         } else {  // stride === 2
           if (c < filterWidth) {
             // Depending on whether padLeft is even or odd, we want either the
-            // xy or zw channels from X texels for xC${c}. If padLeft is
+            // xy or zw channels from X texels for xC${colIndex}. If padLeft is
             // even, xC${c + 1} is simply the zw channels of texels we've
             // already sampled. But if padLeft is odd, xC{$c + 1}.zw will
             // need to come from the xy channels of a new texel, hence the `
@@ -261,7 +262,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                   xTexelC${c + 2}Ready = 1;
                 }
 
-                xC${c} = vec4(xTexelC${c}.zw, xTexelC${c + 2}.zw);
+                xC${colIndex} = vec4(xTexelC${c}.zw, xTexelC${c + 2}.zw);
               `;
 
               if (c + 1 < filterWidth) {
@@ -294,7 +295,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                   xTexelC${c + 2}Ready = 1;
                 }
 
-                xC${c} = vec4(
+                xC${colIndex} = vec4(
                   xTexelC${c}.xy, xTexelC${c + 2}.xy);
               `;
 
@@ -311,10 +312,10 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
         // GPU with limited cache, accumulate sum across large amount of
         // veriables will cause lots of cache misses. (i.e. 5x5 filter will have
         // 50 variables)
-        if (c < filterWidth) {
+        if (colIndex < filterWidth) {
           mainLoop += `
             wTexel = getW(${r}, ${c}, d1, q);
-            dotProd += xC${c} * vec4(wTexel.xz, wTexel.xz);
+            dotProd += xC${colIndex} * vec4(wTexel.xz, wTexel.xz);
           `;
 
           if (c + 1 < filterWidth) {
