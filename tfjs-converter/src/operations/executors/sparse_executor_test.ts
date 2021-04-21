@@ -14,10 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
+import {Tensor, test_util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
-import {Tensor} from '@tensorflow/tfjs-core';
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
-import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import * as sparse from '../op_list/sparse';
@@ -62,9 +61,9 @@ describe('sparse', () => {
 
         expect(tfOps.sparse.sparseReshape)
             .toHaveBeenCalledWith(inputIndices[0], inputShape[0], newShape[0]);
-        expectArraysClose(
+        test_util.expectArraysClose(
             await result[0].data(), [0, 0, 0, 1, 1, 2, 4, 2, 8, 1]);
-        expectArraysClose(await result[1].data(), [9, 4]);
+        test_util.expectArraysClose(await result[1].data(), [9, 4]);
       });
 
       it('should match json def', () => {
