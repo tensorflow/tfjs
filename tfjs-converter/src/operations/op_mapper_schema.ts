@@ -42,7 +42,7 @@ export const json = {
         'arithmetic', 'basic_math', 'control', 'convolution', 'custom',
         'dynamic', 'evaluation', 'image', 'creation', 'graph', 'logical',
         'matrices', 'normalization', 'reduction', 'slice_join', 'spectral',
-        'transformation'
+        'transformation', 'sparse'
       ]
     },
     'InputParamMapper': {
@@ -54,8 +54,7 @@ export const json = {
           'anyOf': [
             {'type': 'string'}, {'type': 'array', 'items': {'type': 'string'}},
             {'type': 'number'}, {'type': 'array', 'items': {'type': 'number'}},
-            {'type': 'boolean'},
-            {'type': 'array', 'items': {'type': 'boolean'}}
+            {'type': 'boolean'}, {'type': 'array', 'items': {'type': 'boolean'}}
           ]
         },
         'notSupported': {'type': 'boolean'},
@@ -81,8 +80,7 @@ export const json = {
           'anyOf': [
             {'type': 'string'}, {'type': 'array', 'items': {'type': 'string'}},
             {'type': 'number'}, {'type': 'array', 'items': {'type': 'number'}},
-            {'type': 'boolean'},
-            {'type': 'array', 'items': {'type': 'boolean'}}
+            {'type': 'boolean'}, {'type': 'array', 'items': {'type': 'boolean'}}
           ]
         },
         'notSupported': {'type': 'boolean'},

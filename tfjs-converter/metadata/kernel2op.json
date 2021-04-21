@@ -455,6 +455,9 @@
   "SpaceToBatchND": [
     "spaceToBatchND"
   ],
+  "SparseReshape": [
+    "sparse.sparseReshape"
+  ],
   "SparseToDense": [
     "sparseToDense",
     "cast"
