@@ -25,23 +25,20 @@ export class ClipVec4Program implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   variableNames = ['A'];
+  uniforms = 'float minVal; float maxVal;';
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
   isVec4 = true;
-  minVal: number;
-  maxVal: number;
 
-  constructor(outputShape: number[], minVal: number, maxVal: number) {
+  constructor(outputShape: number[]) {
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-    this.minVal = minVal;
-    this.maxVal = maxVal;
-    this.shaderKey = `clipVec4_${minVal}_${maxVal}`;
+    this.shaderKey = 'clipVec4';
   }
 
   getUserCode(): string {
@@ -59,7 +56,7 @@ export class ClipVec4Program implements WebGPUProgram {
               return;
             }
 
-            setOutput(index, clamp(value, ${this.minVal}, ${this.maxVal}));
+            setOutput(index, clamp(value, minVal, maxVal));
           }
       }
     `;

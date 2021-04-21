@@ -68,7 +68,7 @@ export class FromPixelsProgram implements WebGPUProgram {
     layout(set = 0, binding = 2) uniform Meta {
       int size;
       int numChannels;
-      ivec2 shapeStride;
+      ivec2 outShapeStrides;
     };
 
     ivec3 getCoordsFromFlatIndex(int flatIndexBase);
