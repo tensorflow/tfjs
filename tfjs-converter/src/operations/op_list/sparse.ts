@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,21 +15,16 @@
  * =============================================================================
  */
 
-// This enum must align with the enum defined in cc/backend.h.
-export enum CppDType {
-  float32 = 0,
-  int32 = 1,
-  bool = 2,
-  string = 3,
-  complex64 = 4
-}
+import {OpMapper} from '../types';
 
-// Must match enum in cc/fusable_activations.h.
-export enum FusableActivation {
-  linear = 0,
-  relu = 1,
-  relu6 = 2,
-  prelu = 3,
-  leakyrelu = 4,
-  sigmoid = 5
-}
+export const json: OpMapper[] = [{
+  'tfOpName': 'SparseReshape',
+  'category': 'sparse',
+  'inputs': [
+    {'start': 0, 'name': 'inputIndices', 'type': 'tensor'},
+    {'start': 1, 'name': 'inputShape', 'type': 'tensor'},
+    {'start': 2, 'name': 'newShape', 'type': 'tensor'},
+  ],
+  'attrs':
+      [{'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}]
+}];
