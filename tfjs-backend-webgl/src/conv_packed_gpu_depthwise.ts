@@ -199,7 +199,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                 }
 
                 mainLoop += `
-                  xC${c + 1} = vec4(xTexelC${c}.zw, xTexelC${c + 2}.xy);
+                  xC${colIndex + 1} = vec4(xTexelC${c}.zw, xTexelC${c + 2}.xy);
                   `;
               } else {
                 // If dilation is 1 and padding is odd, we have already read the
@@ -207,7 +207,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                 // simply skip the texture read.
                 if (nextTexelOffset === 1) {
                   mainLoop += `
-                    xC${c + 1} = xTexelC${c};
+                    xC${colIndex + 1} = xTexelC${c};
                     `;
                 } else {
                   mainLoop += `
@@ -222,7 +222,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                       xTexelC${c + 2}Ready = 1;
                     }
 
-                    xC${c + 1} = xTexelC${c + 2};
+                    xC${colIndex + 1} = xTexelC${c + 2};
                     `;
                 }
               }
@@ -232,7 +232,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
           if (c < filterWidth) {
             // Depending on whether padLeft is even or odd, we want either the
             // xy or zw channels from X texels for xC${colIndex}. If padLeft is
-            // even, xC${c + 1} is simply the zw channels of texels we've
+            // even, xC${colIndex +1} is simply the zw channels of texels we've
             // already sampled. But if padLeft is odd, xC{$c + 1}.zw will
             // need to come from the xy channels of a new texel, hence the `
             // vec4
@@ -272,7 +272,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                   if(xCOffset >= 0 && xCOffset < ${xNumCols}) {
                     final = getX(batch, xR, xCOffset, d1);
                   }
-                  xC${c + 1} = vec4(xTexelC${c + 2}.xy, final.xy);
+                  xC${colIndex + 1} = vec4(xTexelC${c + 2}.xy, final.xy);
                 `;
               }
             } else {
@@ -301,7 +301,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
 
               if (c + 1 < filterWidth) {
                 mainLoop += `
-                  xC${c + 1} = vec4(xTexelC${c}.zw, xTexelC${c + 2}.zw);
+                  xC${colIndex + 1} = vec4(xTexelC${c}.zw, xTexelC${c + 2}.zw);
                 `;
               }
             }
@@ -321,7 +321,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
           if (c + 1 < filterWidth) {
             mainLoop += `
               wTexel = getW(${r}, ${c + 1}, d1, q);
-              dotProd += xC${c + 1} * vec4(wTexel.xz, wTexel.xz);
+              dotProd += xC${colIndex + 1} * vec4(wTexel.xz, wTexel.xz);
             `;
           }
         }
