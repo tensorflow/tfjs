@@ -132,8 +132,8 @@ export function makeShader(
       generateGetOutputCoords(outputData.shape, program.dispatchLayout);
   const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
   const sources = [
-    SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS,
-    getOutputCoords, getCoords,
+    SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS, getCoords,
+    getOutputCoords,
     getSetOutputSnippet(outputData.shape, outputData.dtype, program.isVec4)
   ];
 
@@ -233,28 +233,55 @@ function getSetOutputSnippet(
   }
 
   if (outRank >= 2) {
+    switch (outRank) {
+      case 2:
+        snippet += `
+        int getOutputFlatIndex(ivec2 coords) {
+          return int(dot(coords, ivec2(outShapeStrides, 1.)));
+        }
+        `;
+        break;
+      case 3:
+        snippet += `
+        int getOutputFlatIndex(ivec3 coords) {
+          return int(dot(coords, ivec3(outShapeStrides.x, outShapeStrides.y, 1.)));
+        }
+        `;
+        break;
+      case 4:
+        snippet += `
+        int getOutputFlatIndex(ivec4 coords) {
+          return int(dot(coords, ivec4(
+            outShapeStrides.x, outShapeStrides.y, outShapeStrides.z, 1.)));
+        }
+        `;
+        break;
+      default:
+        util.assert(false, () => `Unsupported ${outRank}D shape`);
+        break;
+    }
     const dims = ['d0', 'd1', 'd2', 'd3'].slice(0, outRank);
     const type = getCoordsDataType(outRank);
 
     if (isVec4) {
       snippet += `
       void setOutput(${dims.map(d => `int ${d}`).join(', ')}, vec4 value) {
-        int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
+        int flatIndex = getOutputFlatIndex(${type}(${dims.join(', ')}));
         setOutput(flatIndex / 4, value);
       }
       void setOutput(${dims.map(d => `int ${d}`).join(', ')}, ivec4 value) {
-        int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
+        int flatIndex = getOutputFlatIndex(${type}(${dims.join(', ')}));
         setOutput(flatIndex / 4, value);
       }
     `;
     } else {
       snippet += `
       void setOutput(${dims.map(d => `int ${d}`).join(', ')}, float value) {
-        int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
+        int flatIndex = getOutputFlatIndex(${type}(${dims.join(', ')}));
         setOutput(flatIndex, value);
       }
       void setOutput(${dims.map(d => `int ${d}`).join(', ')}, int value) {
-        int flatIndex = getFlatIndex(${type}(${dims.join(', ')}), outShape);
+        int flatIndex = getOutputFlatIndex(${type}(${dims.join(', ')}));
         setOutput(flatIndex, value);
       }
     `;
@@ -423,6 +450,17 @@ function generateGetOutputCoords(
     dispatchLayout: {x: number[], y?: number[], z?: number[]}):
     [string, number] {
   const {x, y = [], z = []} = dispatchLayout;
+
+  const outRank = outShape.length;
+  if (x.length === outRank) {
+    const dtype = getCoordsDataType(outRank);
+    const snippet = `${dtype} getOutputCoords() {
+      return getCoordsFromFlatIndex(int(gl_GlobalInvocationID.x));
+    }
+    `;
+    return [snippet, outRank];
+  }
+
   let gatherDimensionsStr = '';
   const dims = [x, y, z];
 
