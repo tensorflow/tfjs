@@ -88,27 +88,13 @@ async function main() {
       $('yarn prep-gpu');
     }
 
-    // tfjs-backend-wasm needs emsdk to build.
-    if (pkg === 'tfjs-backend-wasm') {
-      shell.cd('..');
-      $('git clone https://github.com/emscripten-core/emsdk.git');
-      shell.cd('./emsdk');
-      $('./emsdk install 2.0.14');
-      $('./emsdk activate 2.0.14');
-      shell.cd('..');
-      shell.cd(pkg);
-    }
-
     // Yarn above the other checks to make sure yarn doesn't change the lock
     // file.
     $('yarn');
 
     console.log(chalk.magenta('~~~ Build npm ~~~'));
 
-    if (pkg === 'tfjs-backend-wasm') {
-      // tfjs-backend-wasm needs emsdk env variables to build.
-      $('source ../emsdk/emsdk_env.sh && yarn build-npm for-publish');
-    } else if (pkg === 'tfjs-react-native') {
+    if (pkg === 'tfjs-react-native') {
       $('yarn build-npm');
     } else {
       $('yarn build-npm for-publish');
