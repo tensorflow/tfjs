@@ -15,16 +15,13 @@
  * =============================================================================
  */
 
-export interface BackendWasmModule extends EmscriptenModule {
-  // Using the tfjs namespace to avoid conflict with emscripten's API.
-  tfjs: {
-    init(): void,
-    registerTensor(id: number, size: number, memoryOffset: number): void,
-    // Disposes the data behind the data bucket.
-    disposeData(id: number): void,
-    // Disposes the backend and all of its associated data.
-    dispose(): void,
-  }
+import {BackendWasmModule} from './tfjs-backend-wasm';
+
+export interface BackendWasmThreadedSimdModule extends BackendWasmModule {
+  PThread: {
+    // Terminates all webworkers
+    terminateAllThreads(): void,
+  };
 }
 
 export interface WasmFactoryConfig {
