@@ -42,19 +42,21 @@ export class PadProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-
+    paddings.map((_, i) => this.uniforms += ` ivec2 pad${i};`);
     this.xShape = xShape;
     this.paddings = paddings;
-    // xShape is used by const start and end.
-    this.shaderKey = `pad_${paddings}_${xShape}`;
+    this.shaderKey = 'pad';
     this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
     const rank = this.xShape.length;
     const type = getCoordsDataType(rank);
-    const start = this.paddings.map(p => p[0]).join(',');
-    const end = this.paddings.map((p, i) => p[0] + this.xShape[i]).join(',');
+    const start = this.paddings.map((_, i) => `pad${i}[0]`).join(',');
+    const end =
+        this.paddings
+            .map((_, i) => `pad${i}[0] + xShape${rank > 1 ? `[${i}]` : ''}`)
+            .join(',');
     const startValue = rank > 1 ? `${type}(${start})` : `${start}`;
     const endValue = rank > 1 ? `${type}(${end})` : `${end}`;
 
