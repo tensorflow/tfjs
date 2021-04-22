@@ -21,7 +21,7 @@ set -e
 cd "$(dirname "$0")"
 
 # The default version.
-CURRENT_VERSION=0.0.2
+CURRENT_VERSION=0.0.3
 
 # Get the version from the first parameter.
 # Default to the value in CURRENT_VERSION.
