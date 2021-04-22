@@ -48,7 +48,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
       int xR; int xC; int xCOffset;
       vec4 wTexel; vec4 previous; vec4 final;`;
 
-    for (let c = 0; c < (filterWidth * dilationWidth + 1) / 2; c++) {
+    for (let c = 0; c < filterWidth; c++) {
       mainLoop += `
           vec4 xTexelC${c * 2};
           int xTexelC${c * 2}Ready;`;
@@ -67,13 +67,10 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
      * values from a texture2D call at once.
      */
     for (let r = 0; r < filterHeight; r++) {
-      for (let c = 0; c < (filterWidth * dilationWidth + 1) / 2; c++) {
-        mainLoop += `
-          xTexelC${c * 2} = vec4(0.0);
-          xTexelC${c * 2}Ready = 0;`;
-      }
       for (let c = 0; c < filterWidth; c++) {
         mainLoop += `
+          xTexelC${c * 2} = vec4(0.0);
+          xTexelC${c * 2}Ready = 0;
           xC${c} = vec4(0.0);`;
       }
       mainLoop += `
