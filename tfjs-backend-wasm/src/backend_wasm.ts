@@ -218,7 +218,7 @@ function createInstantiateWasmFunc(path: string) {
       }
       response.arrayBuffer().then(binary => {
         WebAssembly.instantiate(binary, imports).then(output => {
-          callback(output.instance);
+          callback(output.instance, output.module);
         });
       });
     });
