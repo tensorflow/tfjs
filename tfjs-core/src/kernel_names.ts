@@ -766,14 +766,9 @@ export interface SoftmaxAttrs {
   dim: number;
 }
 
-export const SquaredDifference = 'SquaredDifference';
-export type SquaredDifferenceInputs = BinaryInputs;
-
-export const Square = 'Square';
-export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
-
-export const Sub = 'Sub';
-export type SubInputs = BinaryInputs;
+export const SparseReshape = 'SparseReshape';
+export type SparseReshapeInputs =
+    Pick<NamedTensorInfoMap, 'inputIndices'|'inputShape'|'newShape'>;
 
 export const SparseToDense = 'SparseToDense';
 export type SparseToDenseInputs =
@@ -781,6 +776,12 @@ export type SparseToDenseInputs =
 export interface SparseToDenseAttrs {
   outputShape: number[];
 }
+
+export const SquaredDifference = 'SquaredDifference';
+export type SquaredDifferenceInputs = BinaryInputs;
+
+export const Square = 'Square';
+export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const StridedSlice = 'StridedSlice';
 export type StridedSliceInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -794,6 +795,9 @@ export interface StridedSliceAttrs {
   newAxisMask: number;
   shrinkAxisMask: number;
 }
+
+export const Sub = 'Sub';
+export type SubInputs = BinaryInputs;
 
 export const Tan = 'Tan';
 export type TanInputs = UnaryInputs;

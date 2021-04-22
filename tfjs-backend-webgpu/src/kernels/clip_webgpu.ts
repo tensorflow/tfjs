@@ -25,25 +25,21 @@ export class ClipProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   variableNames = ['A'];
+  uniforms = 'float minVal; float maxVal;';
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workPerThread = 1;
   workGroupSize: [number, number, number] = [64, 1, 1];
   minVal: number;
   maxVal: number;
   size: number;
 
-  constructor(outputShape: number[], minVal: number, maxVal: number) {
+  constructor(outputShape: number[]) {
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    this.minVal = minVal;
-    this.maxVal = maxVal;
-    // TODO(xing.xu): move min max to uniform.
-    this.shaderKey = `clip_${minVal}_${maxVal}`;
+    this.shaderKey = 'clip';
     this.size = util.sizeFromShape(this.outputShape);
   }
 
@@ -52,19 +48,14 @@ export class ClipProgram implements WebGPUProgram {
     const userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
-        for(int i = 0; i < ${this.workPerThread}; i++) {
-          int flatIndex = index * ${this.workPerThread} + i;
-          if(flatIndex < size) {
-            ${type} coords = getCoordsFromFlatIndex(flatIndex);
-
-            float value = getAAtOutCoords(coords);
-            if (isnan(value)) {
-              setOutput(flatIndex, value);
-              return;
-            }
-
-            setOutput(flatIndex, clamp(value, ${this.minVal}, ${this.maxVal}));
+        if(index < size) {
+          ${type} coords = getCoordsFromFlatIndex(index);
+          float value = getAAtOutCoords(coords);
+          if (isnan(value)) {
+            setOutput(index, value);
+            return;
           }
+          setOutput(index, clamp(value, minVal, maxVal));
         }
       }
     `;
