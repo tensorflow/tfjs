@@ -32,10 +32,11 @@ export declare interface NLClassifierClass {
   /**
    * The factory function to create a NLClassifier instance.
    *
-   * @param modelPath The path to load the TFLite model from.
+   * @param model The path to load the TFLite model from, or the model content
+   *     in memory.
    * @param options Available options.
    */
-  create(modelPath: string, options: NLClassifierOptions):
+  create(model: string|ArrayBuffer, options: NLClassifierOptions):
       Promise<NLClassifier>;
 }
 

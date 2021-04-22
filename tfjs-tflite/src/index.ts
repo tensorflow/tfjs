@@ -17,6 +17,8 @@
 
 export * from './tflite_model';
 export * from './types/tflite_web_model_runner';
-export * from './types/nl_classifier';
-export * from './types/image_classifier';
-export * from './types/tflite_web_api';
+// export * from './types/nl_classifier';
+// export * from './types/image_classifier';
+// export * from './types/tflite_web_api';
+export * from './tflite_task_library_client/image_classifier';
+export * from './tflite_task_library_client/nl_classifier';
