@@ -85,7 +85,7 @@ function config({
 module.exports = cmdOptions => {
   const bundles = [];
 
-  const name = 'tf';
+  const name = 'tflite';
   const extend = true;
   const fileName = 'tf-tflite';
 
