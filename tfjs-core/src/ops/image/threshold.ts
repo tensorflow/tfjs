@@ -78,13 +78,19 @@ function threshold_(
             `but got rank ${$image.rank}.`);
 
     util.assert(
-        $image.dtype === 'int32' || $image.dtype === 'float32',
-        () => 'Error in dtype: image dtype must be int32 or float32,' +
-            `but got dtype ${$image.dtype}.`);
+        $image.shape[2] === 3 || $image.shape[2]=== 1,
+        () => 'Error in threshold: ' +
+            'image color channel must be equal to 3 or 1' +
+            `but got ${$image.shape[2]}.`);
 
     util.assert(
-        method === 'otsu' || method === 'binary',
-        () => `Method must be binary or otsu, but was ${method}`);
+      $image.dtype === 'int32' || $image.dtype === 'float32',
+      () => 'Error in dtype: image dtype must be int32 or float32,' +
+          `but got dtype ${$image.dtype}.`);
+
+    util.assert(
+      method === 'otsu' || method === 'binary',
+      () => `Method must be binary or otsu, but was ${method}`);
 
     if ($image.shape[2] === 3) {
         [r, g, b] = split($image, [1, 1, 1], -1);
