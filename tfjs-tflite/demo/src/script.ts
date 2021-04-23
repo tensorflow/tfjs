@@ -29,9 +29,10 @@ const PHYSICAL_CORES = navigator.hardwareConcurrency / 2;
 async function start() {
   // Load model runner with the cartoonizer tflite model.
   const start = Date.now();
-  const tfliteModel = await loadTFLiteModel('cartoongan_fp16.tflite', {
-    numThreads: PHYSICAL_CORES,
-  });
+  const tfliteModel = await loadTFLiteModel(
+      'https://tfhub.dev/sayakpaul/lite-model/cartoongan/fp16/1', {
+        numThreads: PHYSICAL_CORES,
+      });
   ele('.loading-msg').innerHTML = `Loaded WASM module and <a href='${
       CARTOONIZER_LINK}' target='blank'>TFLite model</a> in ${
       Date.now() - start}ms`;
