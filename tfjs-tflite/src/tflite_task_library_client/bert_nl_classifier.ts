@@ -16,58 +16,43 @@
  */
 
 import * as tfliteWebAPIClient from '../tflite_web_api_client';
-import {NLClassifier as TaskLibraryNLClassifier} from '../types/nl_classifier';
+import {BertNLClassifier as TaskLibraryBertNLClassifier} from '../types/bert_nl_classifier';
 import {Class} from './common';
 
-/**
- * NLClassifier options.
- */
-export declare interface NLClassifierOptions {
-  /** Index of the input tensor. */
-  inputTensorIndex: number;
-  /** Index of the output score tensor. */
-  outputScoreTensorIndex: number;
-  /** Index of the output label tensor. */
-  outputLabelTensorIndex: number;
-  /** Name of the input tensor. */
-  inputTensorName: string;
-  /** Name of the output score tensor. */
-  outputScoreTensorName: string;
-  /** Name of the output label tensor. */
-  outputLabelTensorName: string;
+export interface BertNLClassifierOptions {
+  /**
+   * Max number of tokens to pass to the model.
+   *
+   * Default to 128.
+   */
+  maxSeqLen?: number;
 }
 
 /**
- * Default NLClassifier options.
- */
-const DEFAULT_NLCLASSIFIER_OPTIONS: NLClassifierOptions = {
-  inputTensorIndex: 0,
-  outputScoreTensorIndex: 0,
-  outputLabelTensorIndex: -1,
-  inputTensorName: 'INPUT',
-  outputScoreTensorName: 'OUTPUT_SCORE',
-  outputLabelTensorName: 'OUTPUT_LABEL',
-};
-
-/**
- * Client for NLClassifier TFLite Task Library.
+ * Client for BertNLClassifier TFLite Task Library.
  *
  * It is a wrapper around the underlying javascript API to make it more
  * convenient to use. See comments in the corresponding type declaration file in
  * src/types for more info.
  */
-export class NLClassifier {
-  constructor(private instance: TaskLibraryNLClassifier) {}
+export class BertNLClassifier {
+  constructor(private instance: TaskLibraryBertNLClassifier) {}
 
   static async create(
       model: string|ArrayBuffer,
-      options = DEFAULT_NLCLASSIFIER_OPTIONS): Promise<NLClassifier> {
-    const instance =
-        await tfliteWebAPIClient.tfweb.NLClassifier.create(model, options);
-    return new NLClassifier(instance);
+      options?: BertNLClassifierOptions): Promise<BertNLClassifier> {
+    const protoOptions = new tfliteWebAPIClient.tfweb.BertNLClassifierOptions();
+    if (options) {
+      if (options.maxSeqLen) {
+        protoOptions.setMaxSeqLen(options.maxSeqLen);
+      }
+    }
+    const instance = await tfliteWebAPIClient.tfweb.BertNLClassifier.create(
+        model, protoOptions);
+    return new BertNLClassifier(instance);
   }
 
-  classify(input: string): Class[]|undefined {
+  classify(input: string): Class[] {
     return this.instance.classify(input).map(category => {
       return {
         probability: category.score,

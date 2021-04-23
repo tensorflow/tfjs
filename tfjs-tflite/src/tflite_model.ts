@@ -269,25 +269,51 @@ export class TFLiteModel implements InferenceModel {
 /**
  * Loads a TFLiteModel from the given model url.
  *
- * @param modelUrl The path to the model.
+ * @param model The path to the model (string), or the model content in memory
+ *     (ArrayBuffer).
  * @param options Options related to model inference.
  *
  * @doc {heading: 'Models', subheading: 'TFLiteModel'}
  */
 export async function loadTFLiteModel(
-    modelUrl: string,
+    model: string|ArrayBuffer,
     options: TFLiteWebModelRunnerOptions =
         DEFAULT_TFLITE_MODEL_RUNNER_OPTIONS): Promise<TFLiteModel> {
   // Handle tfhub links.
-  if (modelUrl.includes('tfhub.dev')) {
-    if (!modelUrl.endsWith(TFHUB_SEARCH_PARAM)) {
-      modelUrl = `${modelUrl}${TFHUB_SEARCH_PARAM}`;
+  if (typeof model === 'string') {
+    if (model.includes('tfhub.dev') && model.includes('lite-model')) {
+      model = getTFLiteModelUrlFromTFHubUrl(model);
     }
   }
   const tfliteModelRunner =
       await tfliteWebAPIClient.tfweb.TFLiteWebModelRunner.create(
-          modelUrl, options);
+          model, options);
   return new TFLiteModel(tfliteModelRunner);
+}
+
+/**
+ * Generates the underlying TFLite model url from the given tfhub url.
+ *
+ * For example:
+ *
+ * TFHub url:
+ * https://tfhub.dev/tensorflow/lite-model/modelname/1/metadata/1[?lite-format=tflite]
+ *
+ * TFLite model url:
+ * https://storage.googleapis.com/tfhub-lite-models/tensorflow/lite-model/modelname/1/metadata/1.tflite
+ *
+ * TODO: CORS is not set on the original url (but set correctly on the google
+ * storage url). Talk to the tfhub team for a fix.
+ */
+export function getTFLiteModelUrlFromTFHubUrl(url: string) {
+  // Remove the search param if found.
+  if (url.endsWith(TFHUB_SEARCH_PARAM)) {
+    url = url.replace(TFHUB_SEARCH_PARAM, '');
+  }
+  return url.replace(
+             'https://tfhub.dev/',
+             'https://storage.googleapis.com/tfhub-lite-models/') +
+      '.tflite';
 }
 
 /** Returns the compatible tfjs DataType from the given TFLite data type. */
