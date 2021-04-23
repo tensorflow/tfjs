@@ -30,6 +30,7 @@ export declare interface BertNLClassifierClass {
    *
    * @param model The path to load the TFLite model from, or the model content
    *     in memory.
+   * @param options Available options.
    */
   create(model: string|ArrayBuffer, options: BertNLClassifierOptions):
       Promise<BertNLClassifier>;
