@@ -296,5 +296,8 @@ const losses = {
   softmaxCrossEntropy
 };
 
+import {sparseReshape} from './sparse/sparse_reshape';
+const sparse = {sparseReshape};
+
 // Second level exports.
-export {image, linalg, losses, spectral, fused, signal};
+export {image, linalg, losses, spectral, fused, signal, sparse};

@@ -8,6 +8,18 @@ KERNELS_WITH_KEEPALIVE = glob(
     exclude = ["**/*_test.cc"],
 )
 
+BASE_LINKOPTS = [
+    "-s ALLOW_MEMORY_GROWTH=1",
+    "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
+    "-s DISABLE_EXCEPTION_CATCHING=1",
+    "-s FILESYSTEM=0",
+    "-s EXIT_RUNTIME=0",
+    "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
+    "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
+    "-s MODULARIZE=1",
+    "-s MALLOC=emmalloc",
+]
+
 # This build rule generates tfjs-backend-wasm.{js,wasm}.
 #
 # The ".js" at the end of the build name is significant because it determines
@@ -19,17 +31,36 @@ KERNELS_WITH_KEEPALIVE = glob(
 cc_binary(
     name = "tfjs-backend-wasm.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
-    linkopts = [
-        "-s ALLOW_MEMORY_GROWTH=1",
-        "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
-        "-s DISABLE_EXCEPTION_CATCHING=1",
-        "-s FILESYSTEM=0",
-        "-s EXIT_RUNTIME=0",
-        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
-        "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
-        "-s MODULARIZE=1",
+    linkopts = BASE_LINKOPTS + [
         "-s EXPORT_NAME=WasmBackendModule",
+    ],
+    deps = [
+        ":all_kernels",
+        ":backend",
+    ],
+)
+
+cc_binary(
+    name = "tfjs-backend-wasm-simd.js",
+    srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    linkopts = BASE_LINKOPTS,
+    deps = [
+        ":all_kernels",
+        ":backend",
+    ],
+)
+
+cc_binary(
+    name = "tfjs-backend-wasm-threaded-simd.js",
+    srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    linkopts = BASE_LINKOPTS + [
+        "-s EXPORT_NAME=WasmBackendModuleThreadedSimd",
         "-s MALLOC=emmalloc",
+        "-s USE_PTHREADS=1",
+        "-s PROXY_TO_PTHREAD=1",
+        # Many x86-64 processors have 2 threads per core, so we divide by 2.
+        "-s PTHREAD_POOL_SIZE=" +
+        "'Math.min(4, Math.max(1, (navigator.hardwareConcurrency || 1) / 2))'",
     ],
     deps = [
         ":all_kernels",
@@ -44,13 +75,13 @@ wasm_cc_binary(
 
 wasm_cc_binary(
     name = "tfjs-backend-wasm-simd",
-    cc_target = ":tfjs-backend-wasm.js",
+    cc_target = ":tfjs-backend-wasm-simd.js",
     simd = True,
 )
 
 wasm_cc_binary(
     name = "tfjs-backend-wasm-threaded-simd",
-    cc_target = ":tfjs-backend-wasm.js",
+    cc_target = ":tfjs-backend-wasm-threaded-simd.js",
     simd = True,
     threads = "emscripten",
 )
@@ -124,6 +155,7 @@ tfjs_cc_library(
         ":backend",
         ":leakyrelu_impl",
         ":prelu_impl",
+        ":sigmoid_impl",
         ":transpose_impl",
         ":util",
     ],
@@ -137,6 +169,7 @@ tfjs_cc_library(
         ":backend",
         ":leakyrelu_impl",
         ":prelu_impl",
+        ":sigmoid_impl",
         ":transpose_impl",
         ":util",
     ],
@@ -175,6 +208,16 @@ tfjs_cc_library(
     name = "prelu_impl",
     srcs = ["prelu_impl.cc"],
     hdrs = ["prelu_impl.h"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "sigmoid_impl",
+    srcs = ["sigmoid_impl.cc"],
+    hdrs = ["sigmoid_impl.h"],
     deps = [
         ":backend",
         ":util",
@@ -935,6 +978,7 @@ tfjs_cc_library(
     hdrs = ["kernels/Sigmoid.h"],
     deps = [
         ":backend",
+        ":sigmoid_impl",
         ":unary",
     ],
 )

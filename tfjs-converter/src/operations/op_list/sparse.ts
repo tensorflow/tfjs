@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,23 +15,16 @@
  * =============================================================================
  */
 
-import {BackendWasmModule} from './tfjs-backend-wasm';
+import {OpMapper} from '../types';
 
-export interface BackendWasmThreadedSimdModule extends BackendWasmModule {
-  PThread: {
-    // Terminates all webworkers
-    terminateAllThreads(): void,
-  };
-}
-
-export interface WasmFactoryConfig {
-  mainScriptUrlOrBlob?: string|Blob;
-  locateFile?(path: string, prefix: string): string;
-  instantiateWasm?: Function;
-  onRuntimeInitialized?: () => void;
-  onAbort?: (msg: string) => void;
-}
-
-declare var moduleFactory: (settings: WasmFactoryConfig) =>
-    Promise<BackendWasmModule>;
-export default moduleFactory;
+export const json: OpMapper[] = [{
+  'tfOpName': 'SparseReshape',
+  'category': 'sparse',
+  'inputs': [
+    {'start': 0, 'name': 'inputIndices', 'type': 'tensor'},
+    {'start': 1, 'name': 'inputShape', 'type': 'tensor'},
+    {'start': 2, 'name': 'newShape', 'type': 'tensor'},
+  ],
+  'attrs':
+      [{'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}]
+}];

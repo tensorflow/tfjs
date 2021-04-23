@@ -109,7 +109,7 @@ export function makeShader(
   uniformDeclaration +=
       `${getCoordsDataType(outputData.shape.length)} outShape; `;
   const stridesLength = outputData.shape.length - 1;
-  uniformDeclaration += `${getCoordsDataType(stridesLength)} shapeStride; `;
+  uniformDeclaration += `${getCoordsDataType(stridesLength)} outShapeStrides; `;
 
   if (program.size != null) {
     uniformDeclaration += 'int size; ';
@@ -496,18 +496,18 @@ function generateGetCoordsFromFlatIndex(shape: number[]): string {
 
   if (strides.length === 1) {
     return `    ivec2 getCoordsFromFlatIndex(int index) {
-      int d0 = index / shapeStride; int d1 = index - d0 * shapeStride;
+      int d0 = index / outShapeStrides; int d1 = index - d0 * outShapeStrides;
       return ivec2(d0,d1);
     }`;
   }
   const snippet = strides
                       .map((_, i) => {
                         const line1 =
-                            `int ${coords[i]} = index / shapeStride[${i}]`;
+                            `int ${coords[i]} = index / outShapeStrides[${i}]`;
                         const line2 = i === strides.length - 1 ?
                             `int ${coords[i + 1]} = index - ${
-                                coords[i]} * shapeStride[${i}]` :
-                            `index -= ${coords[i]} * shapeStride[${i}]`;
+                                coords[i]} * outShapeStrides[${i}]` :
+                            `index -= ${coords[i]} * outShapeStrides[${i}]`;
                         return `${line1}; ${line2};`;
                       })
                       .join('');

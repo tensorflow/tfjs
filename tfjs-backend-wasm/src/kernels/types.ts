@@ -30,5 +30,6 @@ export enum FusableActivation {
   relu = 1,
   relu6 = 2,
   prelu = 3,
-  leakyrelu = 4
+  leakyrelu = 4,
+  sigmoid = 5
 }
