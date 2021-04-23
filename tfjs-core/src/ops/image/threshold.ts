@@ -57,7 +57,7 @@ function threshold_(
     image: Tensor3D | TensorLike,
     method = 'binary',
     inverted = false,
-    threshValue =  0.5
+    threshValue = 0.5
 ): Tensor3D {
     const $image = convertToTensor(image, 'image', 'threshold');
 
@@ -137,7 +137,6 @@ function otsu(histogram: Tensor1D, total: number):Tensor1D {
         const meanSecAdd = add(range(0,classSecond.size),meanSecFill);
         const meanSecMul = mul(classSecond, (meanSecAdd));
         meanSec = div(sum(meanSecMul), sum(classSecond));
-
 
         const cInBetVarSubA = sub(meanFirst, meanSec);
         const cInBetVarSubB = sub(meanFirst, meanSec);
