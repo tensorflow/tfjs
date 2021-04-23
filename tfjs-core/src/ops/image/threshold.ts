@@ -127,9 +127,9 @@ function otsu(histogram: Tensor1D, total: number):Tensor1D {
 
     for (let index = 0; index < histogram.size-1; index++) {
 
-        classFirst = histogram.slice(0, index + 1);
+        classFirst = tf.slice(histogram, 0, index + 1);
 
-        classSecond = histogram.slice(index + 1);
+        classSecond = tf.slice(histogram,index + 1);
 
         weightForeground = div(sum(classFirst),total);
 
