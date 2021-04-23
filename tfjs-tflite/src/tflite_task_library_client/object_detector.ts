@@ -16,12 +16,11 @@
  */
 
 import * as tfliteWebAPIClient from '../tflite_web_api_client';
-import {ImageClassifier as TaskLibraryImageClassifier} from '../types/image_classifier';
-
+import {ObjectDetector as TaskLibraryObjectDetector} from '../types/object_detector';
 import {Class, CommonTaskLibraryOptions, convertProtoClassesToClasses} from './common';
 
-/** ImageClassifier options. */
-export interface ImageClassifierOptions extends CommonTaskLibraryOptions {
+/** ObjectDetector options. */
+export interface ObjectDetectorOptions extends CommonTaskLibraryOptions {
   /**
    * Maximum number of top scored results to return. If < 0, all results will
    * be returned. If 0, an invalid argument error is returned.
@@ -35,20 +34,34 @@ export interface ImageClassifierOptions extends CommonTaskLibraryOptions {
   scoreThreshold?: number;
 }
 
+/** A single detected object in the result. */
+export interface Detection {
+  boundingBox: BoundingBox;
+  classes: Class[];
+}
+
+/** A bounding box for the detected object. */
+export interface BoundingBox {
+  originX: number;
+  originY: number;
+  width: number;
+  height: number;
+}
+
 /**
- * Client for ImageClassifier TFLite Task Library.
+ * Client for ObjectDetector TFLite Task Library.
  *
  * It is a wrapper around the underlying javascript API to make it more
  * convenient to use. See comments in the corresponding type declaration file in
  * src/types for more info.
  */
-export class ImageClassifier {
-  constructor(private instance: TaskLibraryImageClassifier) {}
+export class ObjectDetector {
+  constructor(private instance: TaskLibraryObjectDetector) {}
 
   static async create(
       model: string|ArrayBuffer,
-      options?: ImageClassifierOptions): Promise<ImageClassifier> {
-    const optionsProto = new tfliteWebAPIClient.tfweb.ImageClassifierOptions();
+      options?: ObjectDetectorOptions): Promise<ObjectDetector> {
+    const optionsProto = new tfliteWebAPIClient.tfweb.ObjectDetectorOptions();
     if (options) {
       if (options.maxResults !== undefined) {
         optionsProto.setMaxResults(options.maxResults);
@@ -60,24 +73,34 @@ export class ImageClassifier {
         optionsProto.setNumThreads(options.numThreads);
       }
     }
-    const instance = await tfliteWebAPIClient.tfweb.ImageClassifier.create(
+    const instance = await tfliteWebAPIClient.tfweb.ObjectDetector.create(
         model, optionsProto);
-    return new ImageClassifier(instance);
+    return new ObjectDetector(instance);
   }
 
-  classify(input: ImageData|HTMLImageElement|HTMLCanvasElement|
-           HTMLVideoElement): Class[] {
-    const result = this.instance.classify(input);
+  detect(input: ImageData|HTMLImageElement|HTMLCanvasElement|
+         HTMLVideoElement): Detection[] {
+    const result = this.instance.detect(input);
     if (!result) {
       return [];
     }
 
-    let classes: Class[] = [];
-    if (result.getClassificationsList().length > 0) {
-      classes = convertProtoClassesToClasses(
-          result.getClassificationsList()[0].getClassesList());
+    const detections: Detection[] = [];
+    if (result.getDetectionsList().length > 0) {
+      result.getDetectionsList().forEach(detection => {
+        const boundingBoxProto = detection.getBoundingBox();
+        const boundingBox: BoundingBox = {
+          originX: boundingBoxProto.getOriginX(),
+          originY: boundingBoxProto.getOriginY(),
+          width: boundingBoxProto.getWidth(),
+          height: boundingBoxProto.getHeight(),
+        };
+        const classes =
+            convertProtoClassesToClasses(detection.getClassesList());
+        detections.push({boundingBox, classes});
+      });
     }
-    return classes;
+    return detections;
   }
 
   cleanUp() {
