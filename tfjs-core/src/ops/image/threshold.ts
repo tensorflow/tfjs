@@ -129,7 +129,7 @@ function otsu(histogram: Tensor1D, total: number):Tensor1D {
 
         weightBack = div(sum(classSecond),total);
 
-        let meanFirstDivA = sum(mul(classFirst, range(0, classFirst.size)));
+        const meanFirstDivA = sum(mul(classFirst, range(0, classFirst.size)));
 
         meanFirst = div(meanFirstDivA, sum(classFirst) );
 
