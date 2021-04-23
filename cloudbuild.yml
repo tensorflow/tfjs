@@ -28,7 +28,7 @@ steps:
 
 # General settings.
 timeout: 3600s
-logsBucket: 'gs://tfjs-build-logs'
+logsBucket: 'gs://tfjs-bucket'
 options:
   logStreamingOption: 'STREAM_ON'
   substitution_option: 'ALLOW_LOOSE'
