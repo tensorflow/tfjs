@@ -44,6 +44,7 @@ export class GPGPUContext {
   program: WebGLProgram|null = null;
   private disposed = false;
   private disjoint: boolean;
+  private vertexShader: WebGLShader;
   textureConfig: TextureConfig;
 
   constructor(gl?: WebGLRenderingContext) {
@@ -158,7 +159,7 @@ export class GPGPUContext {
   public uploadPixelDataToTexture(
       texture: WebGLTexture,
       pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
-              ImageBitmap) {
+      ImageBitmap) {
     this.throwIfDisposed();
     gpgpu_util.uploadPixelDataToTexture(this.gl, texture, pixels);
   }
@@ -279,9 +280,12 @@ export class GPGPUContext {
     const gl = this.gl;
     const fragmentShader: WebGLShader =
         webgl_util.createFragmentShader(gl, fragmentShaderSource);
-    const vertexShader: WebGLShader = gpgpu_util.createVertexShader(gl);
+    if (this.vertexShader == null) {
+      this.vertexShader = gpgpu_util.createVertexShader(gl);
+    }
     const program: WebGLProgram = webgl_util.createProgram(gl);
-    webgl_util.callAndCheck(gl, () => gl.attachShader(program, vertexShader));
+    webgl_util.callAndCheck(
+        gl, () => gl.attachShader(program, this.vertexShader));
     webgl_util.callAndCheck(gl, () => gl.attachShader(program, fragmentShader));
     webgl_util.linkProgram(gl, program);
     if (this.debug) {
