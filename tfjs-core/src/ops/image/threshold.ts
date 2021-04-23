@@ -32,6 +32,7 @@ import { sub } from '../sub';
 import { round } from '../round';
 import { where } from '../where';
 import { fill } from '../fill';
+import {slice} from '../slice';
 import { range } from '../range';
 import { tensor } from '../tensor';
 import * as util from '../../util';
@@ -127,9 +128,9 @@ function otsu(histogram: Tensor1D, total: number):Tensor1D {
 
     for (let index = 0; index < histogram.size-1; index++) {
 
-        classFirst = tf.slice(histogram, 0, index + 1);
+        classFirst = slice(histogram, 0, index + 1);
 
-        classSecond = tf.slice(histogram,index + 1);
+        classSecond = slice(histogram,index + 1);
 
         weightForeground = div(sum(classFirst),total);
 
