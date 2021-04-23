@@ -299,4 +299,4 @@ const losses = {
 };
 
 // Second level exports.
-export {image, linalg, losses, spectral, fused, signal};
+export {image, linalg, losses, spectral, fused, signal, sparse};
