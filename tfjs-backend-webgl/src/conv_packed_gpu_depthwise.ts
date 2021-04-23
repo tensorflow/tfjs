@@ -51,6 +51,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
     for (let c = 0; c < filterWidth; c++) {
       mainLoop += `
           vec4 xTexelC${c * 2};
+          int xTexelC${c * 2}Ready;
           vec4 xC${c};`;
     }
 
@@ -66,6 +67,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
       for (let c = 0; c < filterWidth; c++) {
         mainLoop += `
           xTexelC${c * 2} = vec4(0.0);
+          xTexelC${c * 2}Ready = 0;
           xC${c} = vec4(0.0);`;
       }
       mainLoop += `
@@ -73,15 +75,16 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
         if (xR >=0 && xR < ${xNumRows}) {
       `;
 
-      for (let texelC = 0; texelC < (texelsAcross / 2 + 1); texelC++) {
-        const c = texelC * 2;
+      for (let texelC = 0; texelC < (texelsAcross + 1) / 2; texelC++) {
+        const colIndex = texelC * 2;
+        const c = colIndex * dilationWidth;
 
         mainLoop += `
-          xC = xCCorner + ${c * dilationWidth};
+          xC = xCCorner + ${c};
           `;
 
         if (strideWidth === 1) {
-          if (c < filterWidth) {
+          if (colIndex < filterWidth) {
             // If padding is odd, the outer texels have to be composed.
             if (padLeft % 2 === 1) {
               // TODO: Ensure vec4 previous does not result in redundant sample,
@@ -95,7 +98,8 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
 
               mainLoop += `
                 xCOffset = xC + 1;
-                if (xCOffset >= 0 && xCOffset < ${xNumCols}) {
+                if (xCOffset >= 0 && xCOffset < ${xNumCols} && xTexelC${
+                  c}Ready == 0) {
                   xTexelC${c} = getX(batch, xR, xCOffset, d1);
 
                   // Need to manually clear unused channels in case
@@ -103,13 +107,14 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                   if (xCOffset + 1 >= ${xNumCols}) {
                     xTexelC${c}.zw = vec2(0.0);
                   }
+                  xTexelC${c}Ready = 1;
                 }
               `;
               // This texel has been read in previous iteration if the dilation
               // is 1.
               if (dilationWidth === 1 && c > 0) {
                 mainLoop += `
-                xC${c} = vec4(xTexelC${c - 2}.zw, xTexelC${c}.xy);
+                xC${colIndex} = vec4(xTexelC${c - 2}.zw, xTexelC${c}.xy);
                 `;
               } else {
                 mainLoop += `
@@ -124,23 +129,24 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                       previous.zw = vec2(0.0);
                     }
 
-                    xC${c} = vec4(previous.zw, xTexelC${c}.xy);
+                    xC${colIndex} = vec4(previous.zw, xTexelC${c}.xy);
                   } else {
-                    xC${c} = vec4(0.0, 0.0, xTexelC${c}.xy);
+                    xC${colIndex} = vec4(0.0, 0.0, xTexelC${c}.xy);
                   }
                   `;
               }
             } else {
               // Padding is even, so xRC corresponds to a single texel.
               mainLoop += `
-                if (xC >= 0 && xC < ${xNumCols}) {
+                if (xC >= 0 && xC < ${xNumCols} && xTexelC${c}Ready == 0) {
                   xTexelC${c} = getX(batch, xR, xC, d1);
                   if (xC + 1 >= ${xNumCols}) {
                     xTexelC${c}.zw = vec2(0.0);
                   }
+                  xTexelC${c}Ready = 1;
                 }
 
-                xC${c} = xTexelC${c};
+                xC${colIndex} = xTexelC${c};
                 `;
             }
 
@@ -160,7 +166,8 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                 mainLoop += `
                   xCOffset = xC + ${padLeft % 2} + ${nextTexelOffset};
 
-                  if (xCOffset >= 0 && xCOffset < ${xNumCols}) {
+                  if (xCOffset >= 0 && xCOffset < ${xNumCols} && xTexelC${
+                    c + 2}Ready == 0) {
                     xTexelC${c + 2} = getX(batch, xR, xCOffset, d1);
 
                     // Need to manually clear unused channels in case
@@ -168,6 +175,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                     if (xCOffset + 1 >= ${xNumCols}) {
                       xTexelC${c + 2}.zw = vec2(0.0);
                     }
+                    xTexelC${c + 2}Ready = 1;
                   }
                   `;
 
@@ -176,35 +184,39 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                 if (dilationWidth > 1) {
                   mainLoop += `
                     xCOffset -= 2;
-                    if (xCOffset >= 0 && xCOffset < ${xNumCols}) {
+                    if (xCOffset >= 0 && xCOffset < ${xNumCols} && xTexelC${
+                      c}Ready == 0) {
                       xTexelC${c} = getX(batch, xR, xCOffset, d1);
+                      xTexelC${c}Ready = 1;
                     }
                     `;
                 }
 
                 mainLoop += `
-                  xC${c + 1} = vec4(xTexelC${c}.zw, xTexelC${c + 2}.xy);
+                  xC${colIndex + 1} = vec4(xTexelC${c}.zw, xTexelC${c + 2}.xy);
                   `;
               } else {
-                // If dialtion is 1 and padding is odd, we have already read the
+                // If dilation is 1 and padding is odd, we have already read the
                 // texel when constructing the previous x value. Here we can
                 // simply skip the texture read.
                 if (nextTexelOffset === 1) {
                   mainLoop += `
-                    xC${c + 1} = xTexelC${c};
+                    xC${colIndex + 1} = xTexelC${c};
                     `;
                 } else {
                   mainLoop += `
                     xCOffset = xC + ${nextTexelOffset};
 
-                    if (xCOffset >= 0 && xCOffset < ${xNumCols}) {
+                    if (xCOffset >= 0 && xCOffset < ${xNumCols} && xTexelC${
+                      c + 2}Ready == 0) {
                       xTexelC${c + 2} = getX(batch, xR, xCOffset, d1);
                       if (xCOffset + 1 >= ${xNumCols}) {
                         xTexelC${c + 2}.zw = vec2(0.0);
                       }
+                      xTexelC${c + 2}Ready = 1;
                     }
 
-                    xC${c + 1} = xTexelC${c + 2};
+                    xC${colIndex + 1} = xTexelC${c + 2};
                     `;
                 }
               }
@@ -213,8 +225,8 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
         } else {  // stride === 2
           if (c < filterWidth) {
             // Depending on whether padLeft is even or odd, we want either the
-            // xy or zw channels from X texels for xC${c}. If padLeft is
-            // even, xC${c + 1} is simply the zw channels of texels we've
+            // xy or zw channels from X texels for xC${colIndex}. If padLeft is
+            // even, xC${colIndex +1} is simply the zw channels of texels we've
             // already sampled. But if padLeft is odd, xC{$c + 1}.zw will
             // need to come from the xy channels of a new texel, hence the `
             // vec4
@@ -222,25 +234,29 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
             if (padLeft % 2 === 1) {
               mainLoop += `
                 xCOffset = xC + 1 - ${strideWidth};
-                if(xCOffset >= 0 && xCOffset < ${xNumCols}) {
+                if(xCOffset >= 0 && xCOffset < ${xNumCols} && xTexelC${
+                  c}Ready == 0) {
                   xTexelC${c} = getX(batch, xR, xCOffset, d1);
                   // Need to manually clear unused channels in case
                   // we're reading from recycled texture.
                   if (xCOffset + 1 >= ${xNumCols}) {
                     xTexelC${c}.zw = vec2(0.0);
                   }
+                  xTexelC${c}Ready = 1;
                 }
 
-                if(xC + 1 >= 0 && xC + 1 < ${xNumCols}) {
+                if(xC + 1 >= 0 && xC + 1 < ${xNumCols} && xTexelC${
+                  c + 2}Ready == 0) {
                   xTexelC${c + 2} = getX(batch, xR, xC + 1, d1);
                   // Need to manually clear unused channels in case
                   // we're reading from recycled texture.
                   if (xC + 2 >= ${xNumCols}) {
                     xTexelC${c + 2}.zw = vec2(0.0);
                   }
+                  xTexelC${c + 2}Ready = 1;
                 }
 
-                xC${c} = vec4(xTexelC${c}.zw, xTexelC${c + 2}.zw);
+                xC${colIndex} = vec4(xTexelC${c}.zw, xTexelC${c + 2}.zw);
               `;
 
               if (c + 1 < filterWidth) {
@@ -250,33 +266,36 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                   if(xCOffset >= 0 && xCOffset < ${xNumCols}) {
                     final = getX(batch, xR, xCOffset, d1);
                   }
-                  xC${c + 1} = vec4(xTexelC${c + 2}.xy, final.xy);
+                  xC${colIndex + 1} = vec4(xTexelC${c + 2}.xy, final.xy);
                 `;
               }
             } else {
               mainLoop += `
-                if(xC >= 0 && xC < ${xNumCols}) {
+                if(xC >= 0 && xC < ${xNumCols} && xTexelC${c}Ready == 0) {
                   xTexelC${c} = getX(batch, xR, xC, d1);
                   if (xC + 1 >= ${xNumCols}) {
                     xTexelC${c}.zw = vec2(0.0);
                   }
+                  xTexelC${c}Ready = 1;
                 }
 
                 xCOffset = xC + ${strideWidth};
-                if(xCOffset >= 0 && xCOffset < ${xNumCols}) {
+                if(xCOffset >= 0 && xCOffset < ${xNumCols} && xTexelC${
+                  c + 2}Ready == 0) {
                   xTexelC${c + 2} = getX(batch, xR, xCOffset, d1);
                   if (xCOffset + 1 >= ${xNumCols}) {
                     xTexelC${c + 2}.zw = vec2(0.);
                   }
+                  xTexelC${c + 2}Ready = 1;
                 }
 
-                xC${c} = vec4(
+                xC${colIndex} = vec4(
                   xTexelC${c}.xy, xTexelC${c + 2}.xy);
               `;
 
               if (c + 1 < filterWidth) {
                 mainLoop += `
-                  xC${c + 1} = vec4(xTexelC${c}.zw, xTexelC${c + 2}.zw);
+                  xC${colIndex + 1} = vec4(xTexelC${c}.zw, xTexelC${c + 2}.zw);
                 `;
               }
             }
@@ -287,16 +306,16 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
         // GPU with limited cache, accumulate sum across large amount of
         // veriables will cause lots of cache misses. (i.e. 5x5 filter will have
         // 50 variables)
-        if (c < filterWidth) {
+        if (colIndex < filterWidth) {
           mainLoop += `
             wTexel = getW(${r}, ${c}, d1, q);
-            dotProd += xC${c} * vec4(wTexel.xz, wTexel.xz);
+            dotProd += xC${colIndex} * vec4(wTexel.xz, wTexel.xz);
           `;
 
           if (c + 1 < filterWidth) {
             mainLoop += `
               wTexel = getW(${r}, ${c + 1}, d1, q);
-              dotProd += xC${c + 1} * vec4(wTexel.xz, wTexel.xz);
+              dotProd += xC${colIndex + 1} * vec4(wTexel.xz, wTexel.xz);
             `;
           }
         }
