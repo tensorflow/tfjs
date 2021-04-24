@@ -70,10 +70,10 @@ void Conv2DBackpropInput(
 
           float dot_prod = 0.0;
           for (size_t yr = xr_min; yr < yr_max; ++yr) {
-            int wr = yr * stride_height - xr_corner;
+            int32_t wr = yr * stride_height - xr_corner;
 
             for (size_t yc = xc_min; yc < yc_max; ++yc) {
-              int wc = yc * stride_width - xc_corner;
+              int32_t wc = yc * stride_width - xc_corner;
               size_t dy_offset =
                   y_batch_stride * b + y_row_stride * yr + y_col_stride * yc;
               size_t flt_offset = flt_s0 * (filter_height - 1 - wr) +
