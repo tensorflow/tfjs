@@ -74,7 +74,7 @@ describeWithFlags('image.transform', ALL_ENVS, () => {
     const expected =
         [1, 0, 1, 1, 0.5, 0.5, 0.5, 0.5, 1, 0, 1, 0, 0, 0.5, 0.5, 0];
 
-    expectArraysClose(expected, transformedImagesData);
+    expectArraysClose(transformedImagesData, expected);
   });
 
   it('fill=wrap, interpolation=bilinear.', async () => {
@@ -88,7 +88,7 @@ describeWithFlags('image.transform', ALL_ENVS, () => {
     const expected =
         [1, 0, 1, 1, 0.5, 1, 0.5, 0.5, 1, 1, 0, 1, 0.5, 0.5, 0.5, 0.5];
 
-    expectArraysClose(expected, transformedImagesData);
+    expectArraysClose(transformedImagesData, expected);
   });
 
   it('fill=nearest, interpolation=bilinear.', async () => {
@@ -101,6 +101,6 @@ describeWithFlags('image.transform', ALL_ENVS, () => {
 
     const expected = [1, 0, 1, 1, 0.5, 0.5, 0.5, 0.5, 0, 0, 0, 0, 0, 0, 0, 0];
 
-    expectArraysClose(expected, transformedImagesData);
+    expectArraysClose(transformedImagesData, expected);
   });
 });
