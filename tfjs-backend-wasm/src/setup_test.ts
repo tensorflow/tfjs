@@ -413,6 +413,7 @@ const TEST_FILTERS: TestFilter[] = [
       'ignores NaNs'  // Doesn't yet ignore NaN
     ]
   },
+  {include: 'image.transform'}
 ];
 
 const customInclude = (testName: string) => {
