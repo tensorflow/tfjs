@@ -52,15 +52,15 @@ void Conv2DBackpropInput(
   for (size_t b = 0; b < batch_size; ++b) {
     for (size_t d1 = 0; d1 < in_channels; ++d1) {
       for (size_t xr = 0; xr < in_height; ++xr) {
-        int xr_corner = xr - top_pad;
-        float stride_height_multiples =
-            ceil(xr_corner / static_cast<int>(stride_height));
+        int32_t xr_corner = xr - top_pad;
+        float stride_height_multiples = ceil(static_cast<float>(xr_corner) /
+                                             static_cast<float>(stride_height));
         float xr_min = std::max(0.0f, stride_height_multiples);
         float yr_max = std::min(static_cast<float>(out_height),
                                 static_cast<float>(filter_height + xr_corner) /
                                     static_cast<float>(stride_height));
         for (size_t xc = 0; xc < in_width; ++xc) {
-          int xc_corner = xc - left_pad;
+          int32_t xc_corner = xc - left_pad;
           float stride_width_multiples = ceil(static_cast<float>(xc_corner) /
                                               static_cast<float>(stride_width));
           float xc_min = std::max(0.0f, stride_width_multiples);
