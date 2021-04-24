@@ -314,6 +314,7 @@ tfjs_cc_library(
         ":Sub",
         ":Tan",
         ":Tile",
+        ":Transform",
         ":Transpose",
         ":_FusedMatMul",
     ],
@@ -1072,6 +1073,15 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "TopK",
     srcs = ["kernels/TopK.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Transform",
+    srcs = ["kernels/Transform.cc"],
     deps = [
         ":backend",
         ":util",
