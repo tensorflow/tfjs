@@ -21,10 +21,10 @@ import {BackendWasm} from '../backend_wasm';
 
 let wasmTransform: (
     imageId: number, transformsId: number, isBatchTransform: boolean,
-    batch: number, out_height: number, num_channels: number, imageWidth: number,
-    imageHeight: number, strides: Uint8Array, stridesLength: number,
-    interpolationModeId: number, fillModeId: number, fillValue: number,
-    outId: number) => void;
+    batch: number, out_height: number, out_width: number, num_channels: number,
+    imageWidth: number, imageHeight: number, strides: Uint8Array,
+    stridesLength: number, interpolationModeId: number, fillModeId: number,
+    fillValue: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
   wasmTransform = backend.wasm.cwrap(Transform, null /*void*/, [
@@ -33,6 +33,7 @@ function setup(backend: BackendWasm): void {
     'bool',    // isBatchTransform
     'number',  // batch
     'number',  // outHeight
+    'number',  // outWidth
     'number',  // numChannels
     'number',  // imageWidth
     'number',  // imageHeight
@@ -93,8 +94,9 @@ function transform(
 
   wasmTransform(
       imageId, transformsId, (transforms.shape[0] > 1), batch, outHeight,
-      numChannels, imageWidth, imageHeight, strides, image.shape.length - 1,
-      interpolationModeId, fillModeId, fillValue, outId);
+      outWidth, numChannels, imageWidth, imageHeight, strides,
+      image.shape.length - 1, interpolationModeId, fillModeId, fillValue,
+      outId);
 
   return out;
 }
