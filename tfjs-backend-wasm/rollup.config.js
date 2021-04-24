@@ -43,6 +43,7 @@ function config({
   plugins = [],
   output = {},
   external = [],
+  ignore = [],
   visualize = false,
   tsCompilerOptions = {}
 }) {
@@ -62,10 +63,10 @@ function config({
   return {
     input: 'src/index.ts',
     plugins: [
-      typescript(tsoptions), resolve(), node({preferBuiltins: true}),
+      typescript(tsoptions), resolve(), node({preferBuiltins: false}),
       // Polyfill require() from dependencies.
       commonjs({
-        ignore: ['crypto', 'node-fetch', 'util'],
+        ignore: ['crypto', 'node-fetch', 'util', ...ignore],
         include: ['node_modules/**', 'wasm-out/**']
       }),
       ...plugins
@@ -132,6 +133,18 @@ module.exports = cmdOptions => {
         config, name, fileName, PREAMBLE, cmdOptions.visualize, false /* CI */,
         terserExtraOptions);
     bundles.push(...browserBundles);
+    // Wechat miniprogram
+    bundles.push(config({
+      output: {
+        format: 'cjs',
+        name,
+        extend,
+        file: `dist/miniprogram/index.js`,
+        freeze: false
+      },
+      ignore: ['fs', 'path', 'worker_threads', 'perf_hooks', 'os'],
+      tsCompilerOptions: {target: 'es5'}
+    }));
   } else {
     const browserBundles = getBrowserBundleConfigOptions(
         config, name, fileName, PREAMBLE, cmdOptions.visualize, true /* CI */,
