@@ -40,6 +40,32 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
+  it('input=3x3x1,d2=1,f=3,s=2,p=0', async () => {
+    const origInputDepth = 1;
+    const origOutputDepth = 4;
+    const inputShape: [number, number, number, number] =
+        [1, 2, 2, origOutputDepth];
+    const fSize = 2;
+    const origPad = 'same';
+    const origStride = 2;
+
+    const x = tf.tensor4d(
+        [
+          124., 166., 90., 139., 16., 27., 42., 61., 4., 17., 34., 28., 0., 6.,
+          14., 24.
+        ],
+        inputShape);
+    const w = tf.tensor4d(
+        [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15.],
+        [fSize, fSize, origInputDepth, origOutputDepth]);
+
+    const result = tf.conv2dTranspose(x, w, [1, 3, 3, 1], origStride, origPad);
+    const expected = [763., 2839., 294., 4915., 6991., 1462., 169., 501., 106.];
+
+    expect(result.shape).toEqual([1, 3, 3, 1]);
+    expectArraysClose(await result.data(), expected);
+  });
+
   it('input=2x2x1,d2=1,f=2,s=1,p=0, batch=2', async () => {
     const origInputDepth = 1;
     const origOutputDepth = 1;
