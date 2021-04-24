@@ -21,7 +21,7 @@ import {BackendWasm} from '../backend_wasm';
 
 let wasmTransform: (
     imageId: number, transformsId: number, isBatchTransform: boolean,
-    batch: number, out_height: number, out_width: number, num_channels: number,
+    batch: number, outHeight: number, outWidth: number, numChannels: number,
     imageWidth: number, imageHeight: number, strides: Uint8Array,
     stridesLength: number, interpolationModeId: number, fillModeId: number,
     fillValue: number, outId: number) => void;
@@ -61,7 +61,7 @@ function transform(
       [batch, outHeight, outWidth,
        numChannels] as [number, number, number, number];
   const strides =
-      new Uint8Array(new Int32Array(util.computeStrides(image.shape)).buffer)
+      new Uint8Array(new Int32Array(util.computeStrides(image.shape)).buffer);
 
   const out = backend.makeOutput(outShape, image.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
