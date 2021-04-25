@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, ResizeNearestNeighbor, ResizeNearestNeighborAttrs, ResizeNearestNeighborInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {env, KernelConfig, KernelFunc, ResizeNearestNeighbor, ResizeNearestNeighborAttrs, ResizeNearestNeighborInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {ResizeNearestNeighborProgram} from '../resize_nearest_neighbor_gpu';
+import {ResizeNearestNeighborPackedProgram} from '../resize_nearest_neighbor_packed_gpu';
 
 export function resizeNearestNeighbor(args: {
   inputs: ResizeNearestNeighborInputs,
@@ -31,9 +32,13 @@ export function resizeNearestNeighbor(args: {
 
   const [newHeight, newWidth] = size;
 
-  const program = new ResizeNearestNeighborProgram(
-      images.shape as [number, number, number, number], newHeight, newWidth,
-      alignCorners, halfPixelCenters);
+  const program = env().getBool('WEBGL_PACK_IMAGE_OPERATIONS') ?
+      new ResizeNearestNeighborPackedProgram(
+          images.shape as [number, number, number, number], newHeight, newWidth,
+          alignCorners, halfPixelCenters) :
+      new ResizeNearestNeighborProgram(
+          images.shape as [number, number, number, number], newHeight, newWidth,
+          alignCorners, halfPixelCenters);
   return backend.runWebGLProgram(program, [images], images.dtype);
 }
 
