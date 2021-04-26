@@ -33,9 +33,10 @@ export declare interface BertQuestionAnswererClass {
   /**
    * The factory function to create an ImageClassifier instance.
    *
-   * @param modelPath The path to load the TFLite model from.
+   * @param model The path to load the TFLite model from, or the model content
+   *     in memory.
    */
-  create(modelPath: string): Promise<BertQuestionAnswerer>;
+  create(model: string|ArrayBuffer): Promise<BertQuestionAnswerer>;
 }
 
 /** The main BertQuestionAnswerer class instance. */

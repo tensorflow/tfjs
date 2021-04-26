@@ -269,24 +269,24 @@ export class TFLiteModel implements InferenceModel {
 /**
  * Loads a TFLiteModel from the given model url.
  *
- * @param modelUrl The path to the model.
+ * @param model The path to the model (string), or the model content in memory
+ *     (ArrayBuffer).
  * @param options Options related to model inference.
  *
  * @doc {heading: 'Models', subheading: 'TFLiteModel'}
  */
 export async function loadTFLiteModel(
-    modelUrl: string,
+    model: string|ArrayBuffer,
     options: TFLiteWebModelRunnerOptions =
         DEFAULT_TFLITE_MODEL_RUNNER_OPTIONS): Promise<TFLiteModel> {
   // Handle tfhub links.
-  if (modelUrl.includes('tfhub.dev')) {
-    if (!modelUrl.endsWith(TFHUB_SEARCH_PARAM)) {
-      modelUrl = `${modelUrl}${TFHUB_SEARCH_PARAM}`;
-    }
+  if (typeof model === 'string' && model.includes('tfhub.dev') &&
+      model.includes('lite-model') && !model.endsWith(TFHUB_SEARCH_PARAM)) {
+    model = `${model}${TFHUB_SEARCH_PARAM}`;
   }
   const tfliteModelRunner =
       await tfliteWebAPIClient.tfweb.TFLiteWebModelRunner.create(
-          modelUrl, options);
+          model, options);
   return new TFLiteModel(tfliteModelRunner);
 }
 

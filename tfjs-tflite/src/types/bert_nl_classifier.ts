@@ -17,14 +17,23 @@
 
 import {Category} from './common';
 
+export declare interface BertNLClassifierOptions {
+  getMaxSeqLen(): number;
+  setMaxSeqLen(value: number): BertNLClassifierOptions;
+  hasMaxSeqLen(): boolean;
+}
+
 /** BertNLClassifier class type. */
 export declare interface BertNLClassifierClass {
   /**
    * The factory function to create a NLClassifier instance.
    *
-   * @param modelPath The path to load the TFLite model from.
+   * @param model The path to load the TFLite model from, or the model content
+   *     in memory.
+   * @param options Available options.
    */
-  create(modelPath: string): Promise<BertNLClassifier>;
+  create(model: string|ArrayBuffer, options: BertNLClassifierOptions):
+      Promise<BertNLClassifier>;
 }
 
 /** The main BertNLClassifier class instance. */
