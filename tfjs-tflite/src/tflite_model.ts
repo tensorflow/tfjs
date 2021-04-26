@@ -280,40 +280,14 @@ export async function loadTFLiteModel(
     options: TFLiteWebModelRunnerOptions =
         DEFAULT_TFLITE_MODEL_RUNNER_OPTIONS): Promise<TFLiteModel> {
   // Handle tfhub links.
-  if (typeof model === 'string') {
-    if (model.includes('tfhub.dev') && model.includes('lite-model')) {
-      model = getTFLiteModelUrlFromTFHubUrl(model);
-    }
+  if (typeof model === 'string' && model.includes('tfhub.dev') &&
+      model.includes('lite-model') && !model.endsWith(TFHUB_SEARCH_PARAM)) {
+    model = `${model}${TFHUB_SEARCH_PARAM}`;
   }
   const tfliteModelRunner =
       await tfliteWebAPIClient.tfweb.TFLiteWebModelRunner.create(
           model, options);
   return new TFLiteModel(tfliteModelRunner);
-}
-
-/**
- * Generates the underlying TFLite model url from the given tfhub url.
- *
- * For example:
- *
- * TFHub url:
- * https://tfhub.dev/tensorflow/lite-model/modelname/1/metadata/1[?lite-format=tflite]
- *
- * TFLite model url:
- * https://storage.googleapis.com/tfhub-lite-models/tensorflow/lite-model/modelname/1/metadata/1.tflite
- *
- * TODO: CORS is not set on the original url (but set correctly on the google
- * storage url). Talk to the tfhub team for a fix.
- */
-export function getTFLiteModelUrlFromTFHubUrl(url: string) {
-  // Remove the search param if found.
-  if (url.endsWith(TFHUB_SEARCH_PARAM)) {
-    url = url.replace(TFHUB_SEARCH_PARAM, '');
-  }
-  return url.replace(
-             'https://tfhub.dev/',
-             'https://storage.googleapis.com/tfhub-lite-models/') +
-      '.tflite';
 }
 
 /** Returns the compatible tfjs DataType from the given TFLite data type. */
