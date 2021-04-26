@@ -51,8 +51,8 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
 
     const x = tf.tensor4d(
         [
-          124., 166., 90., 139., 16., 27., 42., 61., 4., 17., 34., 28., 0., 6.,
-          14., 24.
+          1.24, 1.66, 0.9, 1.39, 0.16, 0.27, 0.42, 0.61, 0.04, 0.17, 0.34, 0.28,
+          0., 0.06, 0.14, 0.24
         ],
         inputShape);
     const w = tf.tensor4d(
@@ -60,7 +60,7 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
         [fSize, fSize, origInputDepth, origOutputDepth]);
 
     const result = tf.conv2dTranspose(x, w, [1, 3, 3, 1], origStride, origPad);
-    const expected = [763., 2839., 294., 4915., 6991., 1462., 169., 501., 106.];
+    const expected = [7.63, 28.39, 2.94, 49.15, 69.91, 14.62, 1.69, 5.01, 1.06];
 
     expect(result.shape).toEqual([1, 3, 3, 1]);
     expectArraysClose(await result.data(), expected);
