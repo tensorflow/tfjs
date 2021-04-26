@@ -18,7 +18,7 @@
 import * as tf from '@tensorflow/tfjs-core';
 import {NamedTensorMap} from '@tensorflow/tfjs-core';
 
-import {getTFLiteModelUrlFromTFHubUrl, TFLiteModel} from './tflite_model';
+import {TFLiteModel} from './tflite_model';
 import {TFLiteWebModelRunner, TFLiteWebModelRunnerOptions, TFLiteWebModelRunnerTensorInfo} from './types/tflite_web_model_runner';
 
 // A mock TFLiteWebModelRunner that doubles the data from input tensors to
