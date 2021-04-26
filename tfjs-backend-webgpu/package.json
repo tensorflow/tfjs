@@ -40,9 +40,9 @@
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
-    "@tensorflow/tfjs-backend-webgl": "link:../tfjs-backend-webgl",
-    "@tensorflow/tfjs-converter": "link:../tfjs-converter",
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@tensorflow/tfjs-backend-webgl": "3.4.0",
+    "@tensorflow/tfjs-converter": "3.4.0",
+    "@tensorflow/tfjs-core": "3.4.0",
     "@types/jasmine": "~3.0.0",
     "clang-format": "~1.2.4",
     "jasmine": "~3.1.0",
@@ -66,11 +66,11 @@
     "yalc": "~1.0.0-pre.50"
   },
   "dependencies": {
-    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
+    "@tensorflow/tfjs-backend-cpu": "3.4.0",
     "@webgpu/glslang": "0.0.12",
     "@webgpu/types": "0.0.38"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../tfjs-core"
+    "@tensorflow/tfjs-core": "3.4.0"
   }
 }
