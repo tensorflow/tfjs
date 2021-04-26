@@ -15,52 +15,59 @@
  * =============================================================================
  */
 
- import {KernelConfig, SparseFillEmptyRows, SparseFillEmptyRowsInputs, SparseFillEmptyRowsAttrs, TensorInfo, TypedArray, KernelFunc} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, SparseFillEmptyRows, SparseFillEmptyRowsAttrs, SparseFillEmptyRowsInputs, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
 
- import {MathBackendWebGL} from '../backend_webgl';
+import {MathBackendWebGL} from '../backend_webgl';
+import {sparseFillEmptyRowsImplCPU} from '../kernel_utils/shared';
 
- import {sparseFillEmptyRowsImplCPU} from '../kernel_utils/shared';
-
- export function sparseFillEmptyRows(
-     args: {inputs: SparseFillEmptyRowsInputs, backend: MathBackendWebGL, attrs: SparseFillEmptyRowsAttrs}):
-     [TensorInfo, TensorInfo, TensorInfo, TensorInfo] {
-   const {inputs, backend, attrs} = args;
-   const {indices, values, denseShape} = inputs;
-   const {defaultValue} = attrs;
-   if (denseShape.shape.length !== 1) {
-     throw new Error(`Dense shape must be a vector, saw:
+export function sparseFillEmptyRows(args: {
+  inputs: SparseFillEmptyRowsInputs,
+  backend: MathBackendWebGL,
+  attrs: SparseFillEmptyRowsAttrs
+}): [TensorInfo, TensorInfo, TensorInfo, TensorInfo] {
+  const {inputs, backend, attrs} = args;
+  const {indices, values, denseShape} = inputs;
+  const {defaultValue} = attrs;
+  if (denseShape.shape.length !== 1) {
+    throw new Error(`Dense shape must be a vector, saw:
          ${denseShape.shape}`);
-   }
-   if (indices.shape.length !== 2) {
-     throw new Error(`Indices must be a matrix, saw:
+  }
+  if (indices.shape.length !== 2) {
+    throw new Error(`Indices must be a matrix, saw:
          ${indices.shape}`);
-   }
-   if (values.shape.length !== 1) {
-     throw new Error(`Values must be a vector, saw:
+  }
+  if (values.shape.length !== 1) {
+    throw new Error(`Values must be a vector, saw:
          ${values.shape}`);
-   }
+  }
 
-   const $indices = backend.readSync(indices.dataId).values as TypedArray;
-   const $values =
-       Array.from(backend.readSync(values.dataId).values as TypedArray);
-   const $denseShape =
-       Array.from(backend.readSync(denseShape.dataId).values as TypedArray);
+  const $indices = backend.readSync(indices.dataId).values as TypedArray;
+  const $values =
+      Array.from(backend.readSync(values.dataId).values as TypedArray);
+  const $denseShape =
+      Array.from(backend.readSync(denseShape.dataId).values as TypedArray);
 
-   const [outputIndices, outputIndicesShape, outputValues, emptyRowIndicator, reverseIndexMap] = sparseFillEmptyRowsImplCPU(
-       $indices, indices.shape, indices.dtype, $values, $denseShape, defaultValue);
-   return [
-     backend.makeTensorInfo(outputIndicesShape, indices.dtype, outputIndices),
-     backend.makeTensorInfo(
-         [outputValues.length], values.dtype, new Int32Array(outputValues)),
-     backend.makeTensorInfo(
-       [emptyRowIndicator.length], 'bool', new Uint8Array(emptyRowIndicator.map((value : boolean) => Number(value)))),
-     backend.makeTensorInfo(
-       [reverseIndexMap.length], indices.dtype, new Int32Array(reverseIndexMap)),
-   ];
- }
+  const [outputIndices, outputIndicesShape, outputValues,
+         emptyRowIndicator, reverseIndexMap] =
+      sparseFillEmptyRowsImplCPU(
+          $indices, indices.shape, indices.dtype, $values, $denseShape,
+          defaultValue);
+  return [
+    backend.makeTensorInfo(outputIndicesShape, indices.dtype, outputIndices),
+    backend.makeTensorInfo(
+        [outputValues.length], values.dtype, new Int32Array(outputValues)),
+    backend.makeTensorInfo(
+        [emptyRowIndicator.length], 'bool',
+        new Uint8Array(
+            emptyRowIndicator.map((value: boolean) => Number(value)))),
+    backend.makeTensorInfo(
+        [reverseIndexMap.length], indices.dtype,
+        new Int32Array(reverseIndexMap)),
+  ];
+}
 
- export const sparseFillEmptyRowsConfig: KernelConfig = {
-   kernelName: SparseFillEmptyRows,
-   backendName: 'webgl',
-   kernelFunc: sparseFillEmptyRows as {} as KernelFunc,
- };
+export const sparseFillEmptyRowsConfig: KernelConfig = {
+  kernelName: SparseFillEmptyRows,
+  backendName: 'webgl',
+  kernelFunc: sparseFillEmptyRows as {} as KernelFunc,
+};

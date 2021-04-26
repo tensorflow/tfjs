@@ -773,7 +773,6 @@ export interface SparseFillEmptyRowsAttrs {
   defaultValue: number;
 }
 
-
 export const SparseReshape = 'SparseReshape';
 export type SparseReshapeInputs =
     Pick<NamedTensorInfoMap, 'inputIndices'|'inputShape'|'newShape'>;

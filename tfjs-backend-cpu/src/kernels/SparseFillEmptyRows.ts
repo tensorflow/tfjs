@@ -15,15 +15,17 @@
  * =============================================================================
  */
 
-import {KernelConfig, SparseFillEmptyRows, SparseFillEmptyRowsInputs, SparseFillEmptyRowsAttrs, TensorInfo, TypedArray, KernelFunc} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, SparseFillEmptyRows, SparseFillEmptyRowsAttrs, SparseFillEmptyRowsInputs, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 
 import {sparseFillEmptyRowsImpl} from './SparseFillEmptyRows_impl';
 
-export function sparseFillEmptyRows(
-    args: {inputs: SparseFillEmptyRowsInputs, backend: MathBackendCPU, attrs: SparseFillEmptyRowsAttrs}):
-    [TensorInfo, TensorInfo, TensorInfo, TensorInfo] {
+export function sparseFillEmptyRows(args: {
+  inputs: SparseFillEmptyRowsInputs,
+  backend: MathBackendCPU,
+  attrs: SparseFillEmptyRowsAttrs
+}): [TensorInfo, TensorInfo, TensorInfo, TensorInfo] {
   const {inputs, backend, attrs} = args;
   const {indices, values, denseShape} = inputs;
   const {defaultValue} = attrs;
@@ -46,16 +48,22 @@ export function sparseFillEmptyRows(
   const $denseShape =
       Array.from(backend.data.get(denseShape.dataId).values as TypedArray);
 
-  const [outputIndices, outputIndicesShape, outputValues, emptyRowIndicator, reverseIndexMap] = sparseFillEmptyRowsImpl(
-      $indices, indices.shape, indices.dtype, $values, $denseShape, defaultValue);
+  const [outputIndices, outputIndicesShape, outputValues,
+         emptyRowIndicator, reverseIndexMap] =
+      sparseFillEmptyRowsImpl(
+          $indices, indices.shape, indices.dtype, $values, $denseShape,
+          defaultValue);
   return [
     backend.makeTensorInfo(outputIndicesShape, indices.dtype, outputIndices),
     backend.makeTensorInfo(
         [outputValues.length], values.dtype, new Int32Array(outputValues)),
     backend.makeTensorInfo(
-      [emptyRowIndicator.length], 'bool', new Uint8Array(emptyRowIndicator.map((value : boolean) => Number(value)))),
+        [emptyRowIndicator.length], 'bool',
+        new Uint8Array(
+            emptyRowIndicator.map((value: boolean) => Number(value)))),
     backend.makeTensorInfo(
-      [reverseIndexMap.length], indices.dtype, new Int32Array(reverseIndexMap)),
+        [reverseIndexMap.length], indices.dtype,
+        new Int32Array(reverseIndexMap)),
   ];
 }
 
