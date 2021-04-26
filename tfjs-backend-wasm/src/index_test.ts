@@ -28,6 +28,13 @@ import {BackendWasm, setWasmPath, setWasmPaths} from './index';
  * 'wasm' so that they are always included in the test runner. See
  * `env.specFilter` in `setup_test.ts` for details.
  */
+describeWithFlags('wasm thread pool', ALL_ENVS, () => {
+  it('thread pool size', async () => {
+    const threadPoolSize = tf.env().getNumber('WASM_THREAD_POOL_SIZE');
+    expect(threadPoolSize).toBeGreaterThanOrEqual(1);
+  });
+});
+
 describeWithFlags('wasm read/write', ALL_ENVS, () => {
   it('write and read values', async () => {
     const x = tf.tensor1d([1, 2, 3]);
@@ -42,7 +49,8 @@ describeWithFlags('wasm read/write', ALL_ENVS, () => {
     const memOffset1 = backend.getMemoryOffset(t1.dataId);
     t1.dispose();
 
-    // Allocate again and make sure the offset is the same (memory was reused).
+    // Allocate again and make sure the offset is the same (memory was
+    // reused).
     const t2 = tf.zeros([size]);
     const memOffset2 = backend.getMemoryOffset(t2.dataId);
     // This should fail in case of a memory leak.
