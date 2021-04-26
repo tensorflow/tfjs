@@ -237,14 +237,14 @@ function getSetOutputSnippet(
       case 2:
         snippet += `
         int getOutputFlatIndex(ivec2 coords) {
-          return int(dot(coords, ivec2(outShapeStrides, 1.)));
+          return int(dot(coords, ivec2(outShapeStrides, 1)));
         }
         `;
         break;
       case 3:
         snippet += `
         int getOutputFlatIndex(ivec3 coords) {
-          return int(dot(coords, ivec3(outShapeStrides.x, outShapeStrides.y, 1.)));
+          return int(dot(coords, ivec3(outShapeStrides.x, outShapeStrides.y, 1)));
         }
         `;
         break;
@@ -252,7 +252,7 @@ function getSetOutputSnippet(
         snippet += `
         int getOutputFlatIndex(ivec4 coords) {
           return int(dot(coords, ivec4(
-            outShapeStrides.x, outShapeStrides.y, outShapeStrides.z, 1.)));
+            outShapeStrides.x, outShapeStrides.y, outShapeStrides.z, 1)));
         }
         `;
         break;
