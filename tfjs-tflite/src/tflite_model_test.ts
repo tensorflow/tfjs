@@ -146,21 +146,3 @@ describe('TFLiteModel', () => {
     expect(() => tfliteModel.predict([input0, input1], {})).toThrow();
   });
 });
-
-describe('TFLiteModel utils', () => {
-  it('should generate TFLite model url from TFHub url correctly', () => {
-    // With query parameter.
-    const tfhubUrlWithQueryParam = 'https://tfhub.dev/tensorflow/lite-model/' +
-        'modelname/1/metadata/1?lite-format=tflite';
-    const tfhubUrlWithoutQueryParam =
-        'https://tfhub.dev/tensorflow/lite-model/' +
-        'modelname/1/metadata/1';
-    const expectedTfliteUrl =
-        'https://storage.googleapis.com/tfhub-lite-models/' +
-        'tensorflow/lite-model/modelname/1/metadata/1.tflite';
-    expect(getTFLiteModelUrlFromTFHubUrl(tfhubUrlWithQueryParam))
-        .toBe(expectedTfliteUrl);
-    expect(getTFLiteModelUrlFromTFHubUrl(tfhubUrlWithoutQueryParam))
-        .toBe(expectedTfliteUrl);
-  });
-});
