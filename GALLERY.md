@@ -1,3 +1,4 @@
+
 # Gallery
 
 Welcome to the TensorFlow.js gallery! This is a collection of TensorFlow.js projects, tutorials, videos, and more.
@@ -97,6 +98,7 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [Deep Learning in JS - Ashi Krishnan - JSConf EU 2018](https://www.youtube.com/watch?v=SV-cgdobtTA)
 
 ## Blog posts
+- [Custom object detection in the browser using TensorFlow.js](https://blog.tensorflow.org/2021/01/custom-object-detection-in-browser.html) by Hugo Zanini
 - [Move Mirror](https://medium.com/tensorflow/move-mirror-an-ai-experiment-with-pose-estimation-in-the-browser-using-tensorflow-js-2f7b769f9b23?linkId=54484629) - An AI Experiment with Pose Estimation in the Browser using TensorFlow.js
 - [Abstract art with ML](https://janhuenermann.com/blog/abstract-art-with-ml) by Jan Huenermann
 - [Deep Overwatch with TensorFlow.js](https://medium.com/@farzatv/deepoverwatch-combining-tensorflow-js-overwatch-computer-vision-and-music-1a84d4598bc0) -  combining TensorFlow.js, Overwatch, Computer Vision, and Music by Farza
