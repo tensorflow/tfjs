@@ -165,9 +165,9 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
            {
              'tfjs-backend-wasm.wasm': '/base/wasm-out/tfjs-backend-wasm.wasm',
              'tfjs-backend-wasm-simd.wasm':
-                 '/base/wasm-out/tfjs-backend-wasm.wasm',
+                 '/base/wasm-out/tfjs-backend-wasm-simd.wasm',
              'tfjs-backend-wasm-threaded-simd.wasm':
-                 '/base/wasm-out/tfjs-backend-wasm.wasm'
+                 '/base/wasm-out/tfjs-backend-wasm-threaded-simd.wasm'
            },
            usePlatformFetch);
        let wasmPath: string;

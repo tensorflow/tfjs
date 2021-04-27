@@ -52,31 +52,33 @@ void Conv2DBackpropInput(
   for (size_t b = 0; b < batch_size; ++b) {
     for (size_t d1 = 0; d1 < in_channels; ++d1) {
       for (size_t xr = 0; xr < in_height; ++xr) {
-        size_t xr_corner = xr - top_pad;
-        int stride_height_multiples = ceil(xr_corner / stride_height);
-        size_t xr_min = std::max(0, stride_height_multiples);
-        size_t yr_max =
-            std::min(out_height, (filter_height + xr_corner) / stride_height);
-
+        int32_t xr_corner = xr - top_pad;
+        float stride_height_multiples = ceil(static_cast<float>(xr_corner) /
+                                             static_cast<float>(stride_height));
+        float xr_min = std::max(0.0f, stride_height_multiples);
+        float yr_max = std::min(static_cast<float>(out_height),
+                                static_cast<float>(filter_height + xr_corner) /
+                                    static_cast<float>(stride_height));
         for (size_t xc = 0; xc < in_width; ++xc) {
-          size_t xc_corner = xc - left_pad;
-          int stride_width_multiples = ceil(xc_corner / stride_width);
-          size_t xC_min = std::max(0, stride_width_multiples);
-          size_t yC_max =
-              std::min(out_width, (filter_width + xc_corner) / stride_width);
+          int32_t xc_corner = xc - left_pad;
+          float stride_width_multiples = ceil(static_cast<float>(xc_corner) /
+                                              static_cast<float>(stride_width));
+          float xc_min = std::max(0.0f, stride_width_multiples);
+          float yc_max = std::min(static_cast<float>(out_width),
+                                  static_cast<float>(filter_width + xc_corner) /
+                                      static_cast<float>(stride_width));
 
           float dot_prod = 0.0;
           for (size_t yr = xr_min; yr < yr_max; ++yr) {
-            size_t wr = yr * stride_height - xr_corner;
+            int32_t wr = yr * stride_height - xr_corner;
 
-            for (size_t yc = xC_min; yc < yC_max; ++yc) {
-              size_t wc = yc * stride_width - xc_corner;
+            for (size_t yc = xc_min; yc < yc_max; ++yc) {
+              int32_t wc = yc * stride_width - xc_corner;
               size_t dy_offset =
                   y_batch_stride * b + y_row_stride * yr + y_col_stride * yc;
               size_t flt_offset = flt_s0 * (filter_height - 1 - wr) +
                                   flt_s1 * (filter_width - 1 - wc) +
                                   flt_s2 * d1;
-
               for (size_t d2 = 0; d2 < out_channels; ++d2) {
                 float pixel = dy_buf[dy_offset + y_channel_stride * d2];
                 float weight = filter_buf[flt_offset + d2];

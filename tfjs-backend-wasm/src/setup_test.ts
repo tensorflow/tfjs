@@ -133,6 +133,7 @@ const TEST_FILTERS: TestFilter[] = [
       'prelu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
     ]
   },
+  {include: 'conv2dTranspose ', excludes: ['gradient']},
   {
     include: 'prelu ',
     excludes: [
@@ -413,6 +414,7 @@ const TEST_FILTERS: TestFilter[] = [
       'ignores NaNs'  // Doesn't yet ignore NaN
     ]
   },
+  {include: 'image.transform'}
 ];
 
 const customInclude = (testName: string) => {

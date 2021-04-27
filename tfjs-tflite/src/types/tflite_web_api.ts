@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {BertNLClassifierClass} from './bert_nl_classifier';
+import {BertNLClassifierClass, BertNLClassifierOptions} from './bert_nl_classifier';
 import {BertQuestionAnswererClass} from './bert_qa';
 import {ClassificationResult, ImageClassifierClass, ImageClassifierOptions} from './image_classifier';
 import {ImageSegmenterClass, ImageSegmenterOptions, SegmentationResult} from './image_segmenter';
@@ -52,6 +52,7 @@ export declare interface TFLiteWebAPIClient {
 
   // BertNLClassifier.
   BertNLClassifier: BertNLClassifierClass;
+  BertNLClassifierOptions: new() => BertNLClassifierOptions;
 
   // ImageClassifier
   ImageClassifier: ImageClassifierClass;
