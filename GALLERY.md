@@ -66,6 +66,7 @@ Please reach out to us if you'd like to put your project on the list.
 - [NSFW Filter](https://github.com/nsfw-filter/nsfw-filter) - A browser extension to block NSFW images.
 - [MIRNet-TFJS](https://github.com/Rishit-dagli/MIRNet-TFJS) - Converts and runs the MIRNet Model on the web which is capable of enhancing low-light images upto a really great extent - By Rishit Dagli. [[demo](https://mirnet-tfjs.rishit.tech/)][[repo](https://github.com/Rishit-dagli/MIRNet-TFJS)]
 - [Custom Object Detection on browser using TensorFlow.js](https://github.com/NSTiwari/TensorFlow.js-Custom-Object-Detection) - An E2E app for custom object detection on the browser using TensorFlow.js; by Nitin Tiwari & Rony Benny.
+- [audiate](https://cjbayron.github.io/audiate/) - Ear training game using Pitch Transcription model in the browser - By CJ Bayron [[demo](https://www.youtube.com/watch?v=VZ3i4V7i7Iw&t=2s)][[repo](https://github.com/cjbayron/audiate)]
 
 ## Tutorials / Codelabs
 
