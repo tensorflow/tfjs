@@ -568,7 +568,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'gather',
     excludes: [
-      'gatherND',                        // Not yet supported.
       'bool',                            // Not yet supported.
       'chaining, axis=1',                // Range not yet supported.
       'indices not int32 throws error',  // Range not yet supported.
