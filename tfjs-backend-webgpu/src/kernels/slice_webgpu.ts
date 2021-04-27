@@ -42,7 +42,7 @@ export class SliceProgram implements WebGPUProgram {
 
     this.start = start;
     this.destSize = destSize;
-    this.shaderKey = `slice_${start}_${destSize.length}`;
+    this.shaderKey = `slice_${start}`;
   }
 
   getUserCode(): string {

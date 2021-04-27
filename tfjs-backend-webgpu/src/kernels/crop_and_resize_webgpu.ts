@@ -25,29 +25,26 @@ export class CropAndResizeProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['Image', 'Boxes', 'BoxInd'];
+  uniforms = 'float extrapolationValue;';
   workGroupSize: [number, number, number] = [64, 1, 1];
   imageShape: [number, number, number, number];
   cropSize: [number, number];
   methodId: number;
-  extrapolationValue: number;
 
   constructor(
       imageShape: [number, number, number, number], boxShape: [number, number],
-      cropSize: [number, number], method: 'bilinear'|'nearest',
-      extrapolationValue: number) {
+      cropSize: [number, number], method: 'bilinear'|'nearest') {
     const [numBoxes, ] = boxShape;
     this.outputShape = [numBoxes, cropSize[0], cropSize[1], imageShape[3]];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    // imageShape is used by const imageHeight and imageWidth.
-    this.shaderKey = `cropAndResize_${method}_${cropSize}_${
-        extrapolationValue}_${imageShape}`;
     this.imageShape = imageShape;
     this.cropSize = cropSize;
     this.methodId = method === 'bilinear' ? 1 : 0;
-    this.extrapolationValue = extrapolationValue;
+    // imageShape is used by const imageHeight and imageWidth.
+    this.shaderKey = `cropAndResize_${this.methodId}_${cropSize}_${imageShape}`;
   }
 
   getUserCode(): string {
@@ -110,12 +107,12 @@ export class CropAndResizeProgram implements WebGPUProgram {
         float width_scale = ${widthScale};
         float in_y = ${inY};
         if( in_y < 0.0 || in_y > ${inputHeightFloat} ) {
-          writeResult(coords,float(${this.extrapolationValue}));
+          writeResult(coords,extrapolationValue);
           return;
         }
         float in_x = ${inX};
         if( in_x < 0.0 || in_x > ${inputWidthFloat} ) {
-          writeResult(coords,float(${this.extrapolationValue}));
+          writeResult(coords,extrapolationValue);
           return;
         }
         vec2 sourceFracIndexCR = vec2(in_x,in_y);

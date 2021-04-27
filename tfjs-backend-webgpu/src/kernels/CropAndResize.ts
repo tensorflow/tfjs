@@ -31,8 +31,10 @@ export const cropAndResize = (args: {
 
   const program = new CropAndResizeProgram(
       image.shape as [number, number, number, number],
-      boxes.shape as [number, number], cropSize, method, extrapolationValue);
-  return backend.runWebGPUProgram(program, [image, boxes, boxInd], 'float32');
+      boxes.shape as [number, number], cropSize, method);
+  const uniformData = [{type: 'float32', data: [extrapolationValue]}];
+  return backend.runWebGPUProgram(
+      program, [image, boxes, boxInd], 'float32', uniformData);
 };
 
 export const cropAndResizeConfig: KernelConfig = {
