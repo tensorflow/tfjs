@@ -22,4 +22,4 @@
 // imported correctly by typescript code.
 var tfliteWebApiClient = require('../deps/tflite_web_api_client.js');
 
-export default tfliteWebApiClient;
+exports.tfweb = tfliteWebApiClient.tfweb;
