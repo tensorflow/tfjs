@@ -43,15 +43,15 @@ export function sparseFillEmptyRows(args: {
         ${defaultValue.shape}`);
   }
 
-  const $indices = backend.readSync(indices.dataId).values as TypedArray;
-  const $values = backend.readSync(values.dataId).values as TypedArray;
-  const $denseShape = backend.readSync(denseShape.dataId).values as TypedArray;
+  const $indices = backend.readSync(indices.dataId) as TypedArray;
+  const $values = backend.readSync(values.dataId) as TypedArray;
+  const $denseShape = backend.readSync(denseShape.dataId) as TypedArray;
   const $defaultValue =
-      backend.readSync(defaultValue.dataId).values[0] as number;
+      backend.readSync(defaultValue.dataId)[0] as number;
 
   const [outputIndices, outputIndicesShape, outputValues,
          emptyRowIndicator, reverseIndexMap] =
-      sparseFillEmptyRowsImpl(
+      sparseFillEmptyRowsImplCPU(
           $indices, indices.shape, indices.dtype, $values, values.dtype,
           $denseShape, $defaultValue);
   return [

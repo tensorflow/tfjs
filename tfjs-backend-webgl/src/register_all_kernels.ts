@@ -151,7 +151,7 @@ import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
-import {sparseFillEmptyRows, sparseFillEmptyRowsConfig} from './kernels/SparseFillEmptyRows';
+import {sparseFillEmptyRowsConfig} from './kernels/SparseFillEmptyRows';
 import {sparseReshapeConfig} from './kernels/SparseReshape';
 import {sparseToDenseConfig} from './kernels/SparseToDense';
 import {splitVConfig} from './kernels/SplitV';
