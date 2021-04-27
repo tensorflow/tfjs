@@ -19,24 +19,24 @@ import {DataType, TypedArray, util} from '@tensorflow/tfjs-core';
 
 export function sparseFillEmptyRowsImpl(
     indices: TypedArray, indicesShape: number[], indicesDType: DataType,
-    values: number[], denseShape: number[], defaultValue: number):
-    [TypedArray, number[], number[], boolean[], number[]] {
-  const N = indicesShape[0];
+    values: TypedArray, valuesDType: DataType, denseShape: TypedArray,
+    defaultValue: number):
+    [TypedArray, number[], TypedArray, boolean[], number[]] {
+  const indicesCount = indicesShape[0];
   const denseRows = denseShape[0];
 
   const emptyRowIndicator: boolean[] = new Array(denseRows);
-  const reverseIndexMap: number[] = new Array(N);
+  const reverseIndexMap: number[] = new Array(indicesCount);
 
   const rank = indicesShape[1];
 
   if (denseRows === 0) {
-    if (N !== 0) {
+    if (indicesCount !== 0) {
       throw new Error(`Received SparseTensor with denseShape[0] = 0 but
-         indices.shape[0] = ${N}`);
+         indices.shape[0] = ${indicesCount}`);
     }
-    const outputIndices =
-        util.getArrayFromDType(indicesDType, 0 * rank) as TypedArray;
-    const outputValues: number[] = [];
+    const outputIndices = util.getArrayFromDType(indicesDType, 0) as TypedArray;
+    const outputValues = util.getArrayFromDType(valuesDType, 0) as TypedArray;
     return [
       outputIndices, [0, rank], outputValues, emptyRowIndicator, reverseIndexMap
     ];
@@ -46,9 +46,9 @@ export function sparseFillEmptyRowsImpl(
   let lastIndicesRow = 0;
   const csrOffset: number[] = new Array(denseRows).fill(0);
 
-  for (let i = 0; i < N; ++i) {
+  for (let i = 0; i < indicesCount; ++i) {
     // indices is a 2d tensor with shape of [N, rank]
-    const row = indices[i * rank + 0];
+    const row = indices[i * rank];
     if (row < 0) {
       throw new Error(`indices(${i}, 0) is invalid: ${row} < 0`);
     }
@@ -81,24 +81,27 @@ export function sparseFillEmptyRowsImpl(
 
   if (allRowsFull && rowsAreOrdered) {
     const outputIndices: TypedArray = indices;
-    const outputValues: number[] = values;
-    for (let i = 0; i < N; ++i) {
+    const outputValues: TypedArray = values;
+    for (let i = 0; i < indicesCount; ++i) {
       reverseIndexMap[i] = i;
     }
     return [
-      outputIndices, [N, rank], outputValues, emptyRowIndicator, reverseIndexMap
+      outputIndices, [indicesCount, rank], outputValues, emptyRowIndicator,
+      reverseIndexMap
     ];
   } else {
-    const nFull = csrOffset[denseRows - 1];
+    const fullIndicesCount = csrOffset[denseRows - 1];
     const outputIndices =
-        util.getArrayFromDType(indicesDType, nFull * rank) as TypedArray;
-    const outputValues: number[] = new Array(nFull);
+        util.getArrayFromDType(indicesDType, fullIndicesCount * rank) as
+        TypedArray;
+    const outputValues =
+        util.getArrayFromDType(valuesDType, fullIndicesCount) as TypedArray;
     const filledCount: number[] = new Array(denseRows).fill(0);
 
     // Fill in values for rows that are not missing
-    for (let i = 0; i < N; ++i) {
+    for (let i = 0; i < indicesCount; ++i) {
       // indices is a 2d tensor with shape of [N, rank]
-      const row = indices[i * rank + 0];
+      const row = indices[i * rank];
       const offset = filledCount[row];
       const outputI = ((row === 0) ? 0 : csrOffset[row - 1]) + offset;
       filledCount[row]++;  // Increment the filled count for this row.
@@ -119,7 +122,6 @@ export function sparseFillEmptyRowsImpl(
         // Remaining index values were set to zero already.
         // Just need to set the row index in the right location.
         // outputIndices is a 2d tensor with shape of [N, rank]
-
         outputIndices[startingIndex * rank + 0] = row;
         for (let col = 1; col < rank; ++col) {
           outputIndices[startingIndex * rank + col] = 0;
@@ -128,7 +130,8 @@ export function sparseFillEmptyRowsImpl(
       }
     }
     return [
-      outputIndices, [N, rank], outputValues, emptyRowIndicator, reverseIndexMap
+      outputIndices, [indicesCount, rank], outputValues, emptyRowIndicator,
+      reverseIndexMap
     ];
   }
 }

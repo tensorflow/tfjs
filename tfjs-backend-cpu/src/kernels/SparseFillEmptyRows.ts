@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, SparseFillEmptyRows, SparseFillEmptyRowsAttrs, SparseFillEmptyRowsInputs, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, SparseFillEmptyRows, SparseFillEmptyRowsInputs, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 
@@ -23,12 +23,10 @@ import {sparseFillEmptyRowsImpl} from './SparseFillEmptyRows_impl';
 
 export function sparseFillEmptyRows(args: {
   inputs: SparseFillEmptyRowsInputs,
-  backend: MathBackendCPU,
-  attrs: SparseFillEmptyRowsAttrs
+  backend: MathBackendCPU
 }): [TensorInfo, TensorInfo, TensorInfo, TensorInfo] {
-  const {inputs, backend, attrs} = args;
-  const {indices, values, denseShape} = inputs;
-  const {defaultValue} = attrs;
+  const {inputs, backend} = args;
+  const {indices, values, denseShape, defaultValue} = inputs;
   if (denseShape.shape.length !== 1) {
     throw new Error(`Dense shape must be a vector, saw:
         ${denseShape.shape}`);
@@ -41,22 +39,26 @@ export function sparseFillEmptyRows(args: {
     throw new Error(`Values must be a vector, saw:
         ${values.shape}`);
   }
+  if (defaultValue.shape.length !== 0) {
+    throw new Error(`Default value must be a scalar, saw:
+        ${defaultValue.shape}`);
+  }
 
   const $indices = backend.data.get(indices.dataId).values as TypedArray;
-  const $values =
-      Array.from(backend.data.get(values.dataId).values as TypedArray);
-  const $denseShape =
-      Array.from(backend.data.get(denseShape.dataId).values as TypedArray);
+  const $values = backend.data.get(values.dataId).values as TypedArray;
+  const $denseShape = backend.data.get(denseShape.dataId).values as TypedArray;
+  const $defaultValue =
+      backend.data.get(defaultValue.dataId).values[0] as number;
 
   const [outputIndices, outputIndicesShape, outputValues,
          emptyRowIndicator, reverseIndexMap] =
       sparseFillEmptyRowsImpl(
-          $indices, indices.shape, indices.dtype, $values, $denseShape,
-          defaultValue);
+          $indices, indices.shape, indices.dtype, $values, values.dtype,
+          $denseShape, $defaultValue);
   return [
     backend.makeTensorInfo(outputIndicesShape, indices.dtype, outputIndices),
     backend.makeTensorInfo(
-        [outputValues.length], values.dtype, new Int32Array(outputValues)),
+        [outputIndicesShape[0]], values.dtype, outputValues),
     backend.makeTensorInfo(
         [emptyRowIndicator.length], 'bool',
         new Uint8Array(

@@ -768,10 +768,7 @@ export interface SoftmaxAttrs {
 
 export const SparseFillEmptyRows = 'SparseFillEmptyRows';
 export type SparseFillEmptyRowsInputs =
-    Pick<NamedTensorInfoMap, 'indices'|'values'|'denseShape'>;
-export interface SparseFillEmptyRowsAttrs {
-  defaultValue: number;
-}
+    Pick<NamedTensorInfoMap, 'indices'|'values'|'denseShape'|'defaultValue'>;
 
 export const SparseReshape = 'SparseReshape';
 export type SparseReshapeInputs =

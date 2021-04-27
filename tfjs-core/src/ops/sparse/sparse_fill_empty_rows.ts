@@ -16,11 +16,11 @@
  */
 
 import {ENGINE} from '../../engine';
-import {SparseFillEmptyRows, SparseFillEmptyRowsAttrs, SparseFillEmptyRowsInputs} from '../../kernel_names';
-import {Tensor, Tensor1D, Tensor2D} from '../../tensor';
+import {SparseFillEmptyRows, SparseFillEmptyRowsInputs} from '../../kernel_names';
+import {Scalar, Tensor, Tensor1D, Tensor2D} from '../../tensor';
 import {NamedTensorMap} from '../../tensor_types';
 import {convertToTensor} from '../../tensor_util_env';
-import {TensorLike} from '../../types';
+import {ScalarLike, TensorLike} from '../../types';
 import {op} from '../operation';
 
 /**
@@ -59,7 +59,8 @@ import {op} from '../operation';
  *   [[0, 0], [1, 0], [1, 3], [1, 4], [3, 2], [3, 3]],
  *   [0, 10, 13, 14, 32, 33], [5, 6], -1);
  * console.log(result);
- * result['outputIndices'].print(); // [[0, 0], [1, 0], [1, 3], [1, 4], [2, 0], [3, 2], [3, 3], [4, 0]]
+ * result['outputIndices'].print(); // [[0, 0], [1, 0], [1, 3], [1, 4],
+ *                                  //  [2, 0], [3, 2], [3, 3], [4, 0]]
  * result['outputValues'].print(); // [0, 10, 13, 14,-1, 32, 33, -1]
  * result['emptyRowIndicator'].print(); // [0, 0, 1, 0, 1]
  * result['reverseIndexMap'].print(); // [0, 1, 2, 3, 5, 6]
@@ -68,8 +69,7 @@ import {op} from '../operation';
  * @param values: 1-D. the values of the sparse tensor.
  * @param denseShape: 1-D. the shape of the sparse tensor.
  * @param defaultValue: 0-D. default value to insert into location [row, 0, ...,
- *     0] for rows missing from the input sparse tensor. output indices: 2-D.
- *     the indices of the filled sparse tensor.
+ *     0] for rows missing from the input sparse tensor.
  * @return A map with the following properties:
  *     - outputIndices
  *     - outputValues: 1-D. the values of the filled sparse tensor.
@@ -81,11 +81,14 @@ import {op} from '../operation';
  */
 function sparseFillEmptyRows_(
     indices: Tensor2D|TensorLike, values: Tensor1D|TensorLike,
-    denseShape: Tensor1D|TensorLike, defaultValue: number): NamedTensorMap {
+    denseShape: Tensor1D|TensorLike,
+    defaultValue: Scalar|ScalarLike): NamedTensorMap {
   const $indices = convertToTensor(indices, 'indices', 'sparseFillEmptyRows');
   const $values = convertToTensor(values, 'values', 'sparseFillEmptyRows');
   const $denseShape =
       convertToTensor(denseShape, 'denseShape', 'sparseFillEmptyRows');
+  const $defaultValue = convertToTensor(
+      defaultValue, 'defaultValue', 'sparseFillEmptyRows', $values.dtype);
 
   if ($indices.rank !== 2) {
     throw new Error(`Indices should be Tensor2D but received shape
@@ -99,16 +102,19 @@ function sparseFillEmptyRows_(
     throw new Error(`Dense shape should be Tensor1D but received shape ${
         $denseShape.shape}`);
   }
+  if ($defaultValue.rank !== 0) {
+    throw new Error(`Default value should be a scalar but received shape ${
+        $defaultValue.shape}`);
+  }
 
   const inputs: SparseFillEmptyRowsInputs = {
     indices: $indices,
     values: $values,
-    denseShape: $denseShape
+    denseShape: $denseShape,
+    defaultValue: $defaultValue
   };
-  const attrs: SparseFillEmptyRowsAttrs = {defaultValue};
 
-  const result: Tensor[] =
-      ENGINE.runKernel(SparseFillEmptyRows, inputs as {}, attrs as {});
+  const result: Tensor[] = ENGINE.runKernel(SparseFillEmptyRows, inputs as {});
   return {
     outputIndices: result[0],
     outputValues: result[1],
