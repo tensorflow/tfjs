@@ -31,6 +31,7 @@
     "karma-jasmine": "~1.1.1",
     "karma-typescript": "~5.5.1",
     "karma-typescript-es6-transform": "^5.0.2",
+    "nyc": "^15.1.0",
     "rimraf": "~2.6.2",
     "rollup": "~2.3.2",
     "rollup-plugin-terser": "~7.0.2",
@@ -64,6 +65,7 @@
     "test-ci": "ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/test_node.ts",
     "test-snippets": "yarn && yarn build-deps && yarn build && ts-node --skip-ignore --project tsconfig.test.json ./scripts/test_snippets.ts",
     "test-snippets-ci": "ts-node --skip-ignore --project tsconfig.test.json ./scripts/test_snippets.ts",
+    "coverage": "yarn nyc yarn ts-node --transpile-only -P tsconfig.test.json src/test_node.ts",
     "lint": "tslint -p . -t verbose"
   },
   "peerDependencies": {
