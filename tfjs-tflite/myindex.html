@@ -1,0 +1,30 @@
+<html>
+  <script>
+    async function init() {
+      const resp = await fetch('dist/tf-tflite.min.js');
+      let scriptContent = await resp.text();
+      scriptContent +=
+    `
+      console.log(tflite);
+      tflite.setWasmPath('dist/');
+
+      let objectDetector;
+      async function initWorker() {
+        if (!objectDetector) {
+          objectDetector = await tflite.ObjectDetector.create(
+            "https://storage.googleapis.com/tfhub-lite-models/tensorflow/lite-model/ssd_mobilenet_v1/1/metadata/2.tflite",
+            { numThreads: navigator.hardwareConcurrency / 2, maxResults: 1 }
+          );
+        }
+      }
+
+      initWorker();
+    `;
+      const blob = new Blob([scriptContent]);
+      const blobUrl = window.URL.createObjectURL(blob);
+      worker = new Worker(blobUrl);
+      worker.postMessage({cmd: 'start'});
+    }
+    init();
+  </script>
+</html>

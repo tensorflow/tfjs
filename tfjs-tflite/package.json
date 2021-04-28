@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-tflite",
-  "version": "0.0.1-alpha.2",
+  "version": "0.0.1-alpha.3",
   "description": "TFLite support for TensorFlow.js",
   "main": "dist/tf-tflite.node.js",
   "jsnext:main": "dist/index.js",

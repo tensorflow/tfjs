@@ -17,7 +17,7 @@
 
 import * as tfliteWebAPIClient from '../tflite_web_api_client';
 import {ObjectDetector as TaskLibraryObjectDetector} from '../types/object_detector';
-import {Class, CommonTaskLibraryOptions, convertProtoClassesToClasses} from './common';
+import {BaseTaskLibraryClient, Class, CommonTaskLibraryOptions, convertProtoClassesToClasses, getDefaultNumThreads} from './common';
 
 /** ObjectDetector options. */
 export interface ObjectDetectorOptions extends CommonTaskLibraryOptions {
@@ -55,13 +55,16 @@ export interface BoundingBox {
  * convenient to use. See comments in the corresponding type declaration file in
  * src/types for more info.
  */
-export class ObjectDetector {
-  constructor(private instance: TaskLibraryObjectDetector) {}
+export class ObjectDetector extends BaseTaskLibraryClient {
+  constructor(protected instance: TaskLibraryObjectDetector) {
+    super(instance);
+  }
 
   static async create(
       model: string|ArrayBuffer,
       options?: ObjectDetectorOptions): Promise<ObjectDetector> {
     const optionsProto = new tfliteWebAPIClient.tfweb.ObjectDetectorOptions();
+    optionsProto.setNumThreads(await getDefaultNumThreads());
     if (options) {
       if (options.maxResults !== undefined) {
         optionsProto.setMaxResults(options.maxResults);
@@ -101,9 +104,5 @@ export class ObjectDetector {
       });
     }
     return detections;
-  }
-
-  cleanUp() {
-    this.instance.cleanUp();
   }
 }

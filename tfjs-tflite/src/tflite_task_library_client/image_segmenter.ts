@@ -17,7 +17,7 @@
 
 import * as tfliteWebAPIClient from '../tflite_web_api_client';
 import {ImageSegmenter as TaskLibraryImageSegmenter} from '../types/image_segmenter';
-import {CommonTaskLibraryOptions} from './common';
+import {BaseTaskLibraryClient, CommonTaskLibraryOptions, getDefaultNumThreads} from './common';
 
 /** Different output types. */
 export enum OutputType {
@@ -88,13 +88,16 @@ export interface ColoredLabel {
  * convenient to use. See comments in the corresponding type declaration file in
  * src/types for more info.
  */
-export class ImageSegmenter {
-  constructor(private instance: TaskLibraryImageSegmenter) {}
+export class ImageSegmenter extends BaseTaskLibraryClient {
+  constructor(protected instance: TaskLibraryImageSegmenter) {
+    super(instance);
+  }
 
   static async create(
       model: string|ArrayBuffer,
       options?: ImageSegmenterOptions): Promise<ImageSegmenter> {
     const optionsProto = new tfliteWebAPIClient.tfweb.ImageSegmenterOptions();
+    optionsProto.setNumThreads(await getDefaultNumThreads());
     if (options) {
       // Set defaults.
       if (options.outputType) {
@@ -138,9 +141,5 @@ export class ImageSegmenter {
       });
     }
     return segmentations;
-  }
-
-  cleanUp() {
-    this.instance.cleanUp();
   }
 }

@@ -18,7 +18,7 @@
 import * as tfliteWebAPIClient from '../tflite_web_api_client';
 import {ImageClassifier as TaskLibraryImageClassifier} from '../types/image_classifier';
 
-import {Class, CommonTaskLibraryOptions, convertProtoClassesToClasses} from './common';
+import {BaseTaskLibraryClient, Class, CommonTaskLibraryOptions, convertProtoClassesToClasses, getDefaultNumThreads} from './common';
 
 /** ImageClassifier options. */
 export interface ImageClassifierOptions extends CommonTaskLibraryOptions {
@@ -42,13 +42,16 @@ export interface ImageClassifierOptions extends CommonTaskLibraryOptions {
  * convenient to use. See comments in the corresponding type declaration file in
  * src/types for more info.
  */
-export class ImageClassifier {
-  constructor(private instance: TaskLibraryImageClassifier) {}
+export class ImageClassifier extends BaseTaskLibraryClient {
+  constructor(protected instance: TaskLibraryImageClassifier) {
+    super(instance);
+  }
 
   static async create(
       model: string|ArrayBuffer,
       options?: ImageClassifierOptions): Promise<ImageClassifier> {
     const optionsProto = new tfliteWebAPIClient.tfweb.ImageClassifierOptions();
+    optionsProto.setNumThreads(await getDefaultNumThreads());
     if (options) {
       if (options.maxResults !== undefined) {
         optionsProto.setMaxResults(options.maxResults);
@@ -78,9 +81,5 @@ export class ImageClassifier {
           result.getClassificationsList()[0].getClassesList());
     }
     return classes;
-  }
-
-  cleanUp() {
-    this.instance.cleanUp();
   }
 }
