@@ -764,11 +764,6 @@ export declare interface TransformerLayerArgs extends LayerArgs {
   pool?: boolean;
 
   /**
-   * The maximum number of tokens (default 512 as Bert)
-   */
-  maxTokens?: number;
-
-  /**
    * Key dimension to compute attention on. Usually 256.
    */
   keyDim?: number;
@@ -824,7 +819,6 @@ class MultiHeadAttentionLayer extends Layer {
   private numHeads: number;
   private depth: number;
   private pool: boolean;
-  private maxTokens: number;
   private keyDim: number;
   private valueDim: number;
   private dropout: number;
@@ -871,7 +865,6 @@ class MultiHeadAttentionLayer extends Layer {
 
     this.numHeads = args.numHeads;
     this.pool = args.pool;
-    this.maxTokens = args.maxTokens;
     this.keyDim = args.keyDim;
     this.valueDim = args.valueDim;
     this.dropout = args.dropout;
@@ -1091,12 +1084,13 @@ class MultiHeadAttentionLayer extends Layer {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       const batchSize = inputs[0].shape[0];
+      const tokenLen = inputs[0].shape[1]; // Number of Tokens. Batch should be padded to longest sentence.
 
       // Bring the input size to a lower size to have a smaller model
       // Also to have the [batch, token, depth] => [batch*token, depth] which can go in a dense layer
 
       // [B, toks, inputSize] => [B*toks, inputSize]
-      const flatInput = inputs[0].reshape([this.maxTokens * batchSize, -1]);
+      const flatInput = inputs[0].reshape([tokenLen * batchSize, -1]);
 
       // [B*toks, inputSize] => [B*toks, depth]
       const flatScaledInput = add(
@@ -1105,11 +1099,7 @@ class MultiHeadAttentionLayer extends Layer {
       );
 
       // [B*toks, depth] => [B, toks, depth]
-      const scaledInput = reshape(flatScaledInput, [
-        batchSize,
-        this.maxTokens,
-        -1,
-      ]);
+      const scaledInput = reshape(flatScaledInput, [batchSize, tokenLen, -1]);
 
       /////////////////////////
       // MultiHead Attention //
@@ -1134,13 +1124,13 @@ class MultiHeadAttentionLayer extends Layer {
       );
 
       // [B*toks, emb] => [B, toks, depth]
-      const query = reshape(flatQuery, [batchSize, this.maxTokens, -1]);
+      const query = reshape(flatQuery, [batchSize, tokenLen, -1]);
 
       // [B*toks, emb] => [B, toks, depth]
-      const key = reshape(flatKey, [batchSize, this.maxTokens, -1]);
+      const key = reshape(flatKey, [batchSize, tokenLen, -1]);
 
       // [B*toks, emb] => [B, toks, depth]
-      const value = reshape(flatValue, [batchSize, this.maxTokens, -1]);
+      const value = reshape(flatValue, [batchSize, tokenLen, -1]);
 
       // [B, toks, emb] => [B, nHeads, toks, depth//nHeads]
       const queryT = transpose(
@@ -1219,7 +1209,7 @@ class MultiHeadAttentionLayer extends Layer {
 
       // [B, nHead*toks, depth] => [B * toks, depth]
       const flattenConcatAttention = concatAttention.reshape([
-        batchSize * this.maxTokens,
+        batchSize * tokenLen,
         -1,
       ]);
 
@@ -1234,11 +1224,7 @@ class MultiHeadAttentionLayer extends Layer {
       );
 
       // [B * toks, depth] => [B, toks, depth]
-      const attention = reshape(flattenAttention, [
-        batchSize,
-        this.maxTokens,
-        -1,
-      ]);
+      const attention = reshape(flattenAttention, [batchSize, tokenLen, -1]);
 
       ////////////////////////////
       // Norm & Apply attention //
@@ -1253,7 +1239,7 @@ class MultiHeadAttentionLayer extends Layer {
       // FeedForward
       // [Batch, toks, depth] => [Batch * toks, depth]
       const flattenNormalizedLatent = normalizedLatent.reshape([
-        batchSize * this.maxTokens,
+        batchSize * tokenLen,
         -1,
       ]);
 
@@ -1280,7 +1266,7 @@ class MultiHeadAttentionLayer extends Layer {
       const flatDroppedFf2 = dropout(flatFf2, this.dropout);
 
       // [Batch * toks, depth] => [Batch, toks, depth]
-      const outFf2 = reshape(flatDroppedFf2, [batchSize, this.maxTokens, -1]);
+      const outFf2 = reshape(flatDroppedFf2, [batchSize, tokenLen, -1]);
 
       // Add&Norm
       const output = tf.layers
