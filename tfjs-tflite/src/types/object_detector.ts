@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Class} from './common';
+import {BaseTaskLibrary, Class} from './common';
 
 /** ObjectDetectorOptions proto instance. */
 export declare interface ObjectDetectorOptions {
@@ -67,11 +67,8 @@ export declare interface ObjectDetectorClass {
 }
 
 /** The main ObjectDetector class interface. */
-export declare class ObjectDetector {
+export declare class ObjectDetector extends BaseTaskLibrary {
   /** Performs detection on the given image-like element. */
   detect(input: ImageData|HTMLImageElement|HTMLCanvasElement|
          HTMLVideoElement): DetectionResult|undefined;
-
-  /** Cleans up resources when the instance is no longer needed. */
-  cleanUp(): void;
 }
