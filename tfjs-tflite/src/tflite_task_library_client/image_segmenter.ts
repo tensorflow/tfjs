@@ -97,7 +97,6 @@ export class ImageSegmenter extends BaseTaskLibraryClient {
       model: string|ArrayBuffer,
       options?: ImageSegmenterOptions): Promise<ImageSegmenter> {
     const optionsProto = new tfliteWebAPIClient.tfweb.ImageSegmenterOptions();
-    optionsProto.setNumThreads(await getDefaultNumThreads());
     if (options) {
       // Set defaults.
       if (options.outputType) {
@@ -106,6 +105,9 @@ export class ImageSegmenter extends BaseTaskLibraryClient {
       if (options.numThreads !== undefined) {
         optionsProto.setNumThreads(options.numThreads);
       }
+    }
+    if (!options || options.numThreads === undefined) {
+      optionsProto.setNumThreads(await getDefaultNumThreads());
     }
     const instance = await tfliteWebAPIClient.tfweb.ImageSegmenter.create(
         model, optionsProto);

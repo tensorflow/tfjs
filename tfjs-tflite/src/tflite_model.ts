@@ -282,11 +282,11 @@ export async function loadTFLiteModel(
   }
 
   // Process options.
-  const curOptions: TFLiteWebModelRunnerOptions = {
-    numThreads: await getDefaultNumThreads(),
-  };
+  const curOptions: TFLiteWebModelRunnerOptions = {};
   if (options && options.numThreads !== undefined) {
     curOptions.numThreads = options.numThreads;
+  } else {
+    curOptions.numThreads = await getDefaultNumThreads();
   }
 
   const tfliteModelRunner =

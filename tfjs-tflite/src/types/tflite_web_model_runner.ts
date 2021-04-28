@@ -60,7 +60,7 @@ export declare interface TFLiteWebModelRunnerOptions {
    * Default to number of physical CPU cores, or -1 if WASM multi-threading is
    * not supported by user's browser.
    */
-  numThreads: number;
+  numThreads?: number;
 }
 
 /** Types of TFLite tensor data. */

@@ -64,7 +64,6 @@ export class ObjectDetector extends BaseTaskLibraryClient {
       model: string|ArrayBuffer,
       options?: ObjectDetectorOptions): Promise<ObjectDetector> {
     const optionsProto = new tfliteWebAPIClient.tfweb.ObjectDetectorOptions();
-    optionsProto.setNumThreads(await getDefaultNumThreads());
     if (options) {
       if (options.maxResults !== undefined) {
         optionsProto.setMaxResults(options.maxResults);
@@ -75,6 +74,9 @@ export class ObjectDetector extends BaseTaskLibraryClient {
       if (options.numThreads !== undefined) {
         optionsProto.setNumThreads(options.numThreads);
       }
+    }
+    if (!options || options.numThreads === undefined) {
+      optionsProto.setNumThreads(await getDefaultNumThreads());
     }
     const instance = await tfliteWebAPIClient.tfweb.ObjectDetector.create(
         model, optionsProto);

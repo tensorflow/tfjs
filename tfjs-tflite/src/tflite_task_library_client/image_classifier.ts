@@ -51,7 +51,6 @@ export class ImageClassifier extends BaseTaskLibraryClient {
       model: string|ArrayBuffer,
       options?: ImageClassifierOptions): Promise<ImageClassifier> {
     const optionsProto = new tfliteWebAPIClient.tfweb.ImageClassifierOptions();
-    optionsProto.setNumThreads(await getDefaultNumThreads());
     if (options) {
       if (options.maxResults !== undefined) {
         optionsProto.setMaxResults(options.maxResults);
@@ -62,6 +61,9 @@ export class ImageClassifier extends BaseTaskLibraryClient {
       if (options.numThreads !== undefined) {
         optionsProto.setNumThreads(options.numThreads);
       }
+    }
+    if (!options || options.numThreads === undefined) {
+      optionsProto.setNumThreads(await getDefaultNumThreads());
     }
     const instance = await tfliteWebAPIClient.tfweb.ImageClassifier.create(
         model, optionsProto);
