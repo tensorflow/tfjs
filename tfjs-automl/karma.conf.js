@@ -39,7 +39,11 @@ const karmaTypescriptConfig = {
 const coverageEnabled = !!process.env.KARMA_COVERAGE;
 if (coverageEnabled) {
   karmaTypescriptConfig.coverageOptions.instrumentation = true;
-  karmaTypescriptConfig.coverageOptions.exclude = /_test\.ts$/;
+  karmaTypescriptConfig.coverageOptions.exclude = [
+    /test_browser\.ts/,
+    /test_util\.ts/,
+    /_test\.ts/
+  ];
   karmaTypescriptConfig.reports = {html: 'coverage', 'text-summary': ''};
 }
 
