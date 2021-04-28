@@ -17,6 +17,7 @@
 
 import {BertNLClassifierClass, BertNLClassifierOptions} from './bert_nl_classifier';
 import {BertQuestionAnswererClass} from './bert_qa';
+import {WasmFeatures} from './common';
 import {ClassificationResult, ImageClassifierClass, ImageClassifierOptions} from './image_classifier';
 import {ImageSegmenterClass, ImageSegmenterOptions, SegmentationResult} from './image_segmenter';
 import {NLClassifierClass} from './nl_classifier';
@@ -39,6 +40,11 @@ export declare interface TFLiteWebAPIClient {
      *     For absolute path, use https://some-server.com/absolute/path/.
      */
     setWasmPath(path: string): void;
+
+    /**
+     * Gets the WASM features supported by user's browser.
+     */
+    getWasmFeatures(): Promise<WasmFeatures>;
   };
 
   // Generic TFLite model runner.

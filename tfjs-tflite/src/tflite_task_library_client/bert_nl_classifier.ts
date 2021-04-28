@@ -17,7 +17,7 @@
 
 import * as tfliteWebAPIClient from '../tflite_web_api_client';
 import {BertNLClassifier as TaskLibraryBertNLClassifier} from '../types/bert_nl_classifier';
-import {Class} from './common';
+import {BaseTaskLibraryClient, Class} from './common';
 
 export interface BertNLClassifierOptions {
   /**
@@ -35,8 +35,10 @@ export interface BertNLClassifierOptions {
  * convenient to use. See comments in the corresponding type declaration file in
  * src/types for more info.
  */
-export class BertNLClassifier {
-  constructor(private instance: TaskLibraryBertNLClassifier) {}
+export class BertNLClassifier extends BaseTaskLibraryClient {
+  constructor(protected instance: TaskLibraryBertNLClassifier) {
+    super(instance);
+  }
 
   static async create(
       model: string|ArrayBuffer,
@@ -59,9 +61,5 @@ export class BertNLClassifier {
         className: category.className,
       };
     });
-  }
-
-  cleanUp() {
-    this.instance.cleanUp();
   }
 }

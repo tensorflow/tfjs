@@ -16,14 +16,11 @@
  */
 
 import {DataType, InferenceModel, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, tensor, Tensor} from '@tensorflow/tfjs-core';
+import {getDefaultNumThreads} from './tflite_task_library_client/common';
 
 import * as tfliteWebAPIClient from './tflite_web_api_client';
 
 import {TFLiteDataType, TFLiteWebModelRunner, TFLiteWebModelRunnerOptions, TFLiteWebModelRunnerTensorInfo} from './types/tflite_web_model_runner';
-
-const DEFAULT_TFLITE_MODEL_RUNNER_OPTIONS: TFLiteWebModelRunnerOptions = {
-  numThreads: -1,
-};
 
 const TFHUB_SEARCH_PARAM = '?lite-format=tflite';
 
@@ -277,16 +274,24 @@ export class TFLiteModel implements InferenceModel {
  */
 export async function loadTFLiteModel(
     model: string|ArrayBuffer,
-    options: TFLiteWebModelRunnerOptions =
-        DEFAULT_TFLITE_MODEL_RUNNER_OPTIONS): Promise<TFLiteModel> {
+    options?: TFLiteWebModelRunnerOptions): Promise<TFLiteModel> {
   // Handle tfhub links.
   if (typeof model === 'string' && model.includes('tfhub.dev') &&
       model.includes('lite-model') && !model.endsWith(TFHUB_SEARCH_PARAM)) {
     model = `${model}${TFHUB_SEARCH_PARAM}`;
   }
+
+  // Process options.
+  const curOptions: TFLiteWebModelRunnerOptions = {};
+  if (options && options.numThreads !== undefined) {
+    curOptions.numThreads = options.numThreads;
+  } else {
+    curOptions.numThreads = await getDefaultNumThreads();
+  }
+
   const tfliteModelRunner =
       await tfliteWebAPIClient.tfweb.TFLiteWebModelRunner.create(
-          model, options);
+          model, curOptions);
   return new TFLiteModel(tfliteModelRunner);
 }
 
