@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Category} from './common';
+import {BaseTaskLibrary, Category} from './common';
 
 export declare interface BertNLClassifierOptions {
   getMaxSeqLen(): number;
@@ -37,10 +37,7 @@ export declare interface BertNLClassifierClass {
 }
 
 /** The main BertNLClassifier class instance. */
-export declare class BertNLClassifier {
+export declare class BertNLClassifier extends BaseTaskLibrary {
   /** Performs classification on a string input, returns classified results. */
   classify(input: string): Category[]|undefined;
-
-  /** Cleans up resources when the instance is no longer needed. */
-  cleanUp(): void;
 }

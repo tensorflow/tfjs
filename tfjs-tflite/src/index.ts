@@ -23,3 +23,5 @@ export * from './tflite_task_library_client/object_detector';
 export * from './tflite_task_library_client/nl_classifier';
 export * from './tflite_task_library_client/bert_nl_classifier';
 export * from './tflite_task_library_client/bert_qa';
+export {setWasmPath} from './tflite_task_library_client/common';
+export {getWasmFeatures} from './tflite_task_library_client/common';

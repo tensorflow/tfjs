@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {BaseTaskLibrary} from './common';
+
 /** Different output types. */
 export declare enum OutputType {
   CATEGORY_MASK = 1.0,
@@ -74,11 +76,8 @@ export declare interface ImageSegmenterClass {
       Promise<ImageSegmenter>;
 }
 
-export declare class ImageSegmenter {
+export declare class ImageSegmenter extends BaseTaskLibrary {
   /** Performs segmentation on the given image-like element. */
   segment(input: ImageData|HTMLImageElement|HTMLCanvasElement|
           HTMLVideoElement): SegmentationResult|undefined;
-
-  /** Cleans up resources when the instance is no longer needed. */
-  cleanUp(): void;
 }

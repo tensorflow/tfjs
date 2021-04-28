@@ -17,7 +17,7 @@
 
 import * as tfliteWebAPIClient from '../tflite_web_api_client';
 import {NLClassifier as TaskLibraryNLClassifier} from '../types/nl_classifier';
-import {Class} from './common';
+import {BaseTaskLibraryClient, Class} from './common';
 
 /**
  * NLClassifier options.
@@ -56,8 +56,10 @@ const DEFAULT_NLCLASSIFIER_OPTIONS: NLClassifierOptions = {
  * convenient to use. See comments in the corresponding type declaration file in
  * src/types for more info.
  */
-export class NLClassifier {
-  constructor(private instance: TaskLibraryNLClassifier) {}
+export class NLClassifier extends BaseTaskLibraryClient {
+  constructor(protected instance: TaskLibraryNLClassifier) {
+    super(instance);
+  }
 
   static async create(
       model: string|ArrayBuffer,
@@ -74,9 +76,5 @@ export class NLClassifier {
         className: category.className,
       };
     });
-  }
-
-  cleanUp() {
-    this.instance.cleanUp();
   }
 }

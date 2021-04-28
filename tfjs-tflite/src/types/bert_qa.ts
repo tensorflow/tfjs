@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {BaseTaskLibrary} from './common';
+
 /** A single answer. */
 export declare interface QaAnswer {
   text: string;
@@ -40,10 +42,7 @@ export declare interface BertQuestionAnswererClass {
 }
 
 /** The main BertQuestionAnswerer class instance. */
-export declare class BertQuestionAnswerer {
+export declare class BertQuestionAnswerer extends BaseTaskLibrary {
   /** Answers question based on the context. */
   answer(context: string, question: string): QaAnswer[]|undefined;
-
-  /** Cleans up resources when the instance is no longer needed. */
-  cleanUp(): void;
 }

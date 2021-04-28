@@ -17,6 +17,7 @@
 
 import * as tfliteWebAPIClient from '../tflite_web_api_client';
 import {BertQuestionAnswerer as TaskLibraryBertQuestionAnswerer} from '../types/bert_qa';
+import {BaseTaskLibraryClient} from './common';
 
 /** A single answer. */
 export interface QaAnswer {
@@ -43,8 +44,10 @@ export interface Pos {
  * convenient to use. See comments in the corresponding type declaration file in
  * src/types for more info.
  */
-export class BertQuestionAnswerer {
-  constructor(private instance: TaskLibraryBertQuestionAnswerer) {}
+export class BertQuestionAnswerer extends BaseTaskLibraryClient {
+  constructor(protected instance: TaskLibraryBertQuestionAnswerer) {
+    super(instance);
+  }
 
   static async create(model: string|
                       ArrayBuffer): Promise<BertQuestionAnswerer> {
@@ -65,9 +68,5 @@ export class BertQuestionAnswerer {
         pos: answer.pos,
       };
     });
-  }
-
-  cleanUp() {
-    this.instance.cleanUp();
   }
 }

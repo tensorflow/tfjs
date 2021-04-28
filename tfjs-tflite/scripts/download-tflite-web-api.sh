@@ -40,4 +40,4 @@ gsutil -m cp "${GCP_DIR}/*" ../deps/
 
 # Append module exports to the JS client to make it a valid CommonJS module.
 # This is needed to help bundler correctly initialize the tfweb namespace.
-echo "var tfweb = (window && window['tfweb']) || this['tfweb']; exports.tfweb = tfweb;" >> ../deps/tflite_web_api_client.js
+echo "var tfweb = (typeof window !== 'undefined' && window['tfweb']) || this['tfweb']; exports.tfweb = tfweb;" >> ../deps/tflite_web_api_client.js

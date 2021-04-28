@@ -24,15 +24,12 @@ import {loadTFLiteModel, TFLiteModel} from '@tensorflow/tfjs-tflite';
 const CARTOONIZER_LINK =
     'https://github.com/margaretmz/Cartoonizer-with-TFLite';
 
-const PHYSICAL_CORES = navigator.hardwareConcurrency / 2;
-
 async function start() {
   // Load model runner with the cartoonizer tflite model.
   const start = Date.now();
   const tfliteModel = await loadTFLiteModel(
-      'https://tfhub.dev/sayakpaul/lite-model/cartoongan/fp16/1', {
-        numThreads: PHYSICAL_CORES,
-      });
+      'https://tfhub.dev/sayakpaul/lite-model/cartoongan/fp16/1',
+  );
   ele('.loading-msg').innerHTML = `Loaded WASM module and <a href='${
       CARTOONIZER_LINK}' target='blank'>TFLite model</a> in ${
       Date.now() - start}ms`;
