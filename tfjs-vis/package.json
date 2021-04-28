@@ -12,6 +12,7 @@
   "scripts": {
     "build": "tsc && NODE_ENV=production webpack",
     "lint": "tslint -p . -t verbose",
+    "coverage": "KARMA_COVERAGE=1 karma start --browsers='Chrome' --singleRun",
     "test": "yarn && yarn build && karma start",
     "test-dev": "karma start",
     "run-flaky": "node ../scripts/run_flaky.js",

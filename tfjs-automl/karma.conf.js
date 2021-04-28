@@ -35,6 +35,18 @@ const karmaTypescriptConfig = {
   }
 };
 
+// Enable coverage reports and instrumentation under KARMA_COVERAGE=1 env
+const coverageEnabled = !!process.env.KARMA_COVERAGE;
+if (coverageEnabled) {
+  karmaTypescriptConfig.coverageOptions.instrumentation = true;
+  karmaTypescriptConfig.coverageOptions.exclude = [
+    /test_browser\.ts/,
+    /test_util\.ts/,
+    /_test\.ts/
+  ];
+  karmaTypescriptConfig.reports = {html: 'coverage', 'text-summary': ''};
+}
+
 module.exports = function(config) {
   const args = [];
   if (config.testEnv) {

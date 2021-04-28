@@ -17,6 +17,7 @@
 
 const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.json',
+  coverageOptions: {instrumentation: false},
   reports: {},
   bundlerOptions: {
     acornOptions: {

@@ -64,6 +64,7 @@
     "lint": "tslint -p . -t verbose",
     "test": "yarn && yarn build-deps && karma start",
     "test-dev": "karma start --testEnv webgl2",
+    "coverage": "KARMA_COVERAGE=1 karma start --browsers='Chrome' --singleRun",
     "run-browserstack": "karma start --browserstack",
     "test-ci": "./scripts/test-ci.sh"
   },
