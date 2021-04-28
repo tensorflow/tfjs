@@ -56,13 +56,6 @@ class MockModelRunner implements TFLiteWebModelRunner {
 
   cleanUp() {}
 
-  getWasmFeatures() {
-    return {
-      multiThreading: false,
-      simd: false,
-    };
-  }
-
   private getTensorInfos(): TFLiteWebModelRunnerTensorInfo[] {
     const shape0 = [1, 2, 3];
     const buffer0 = new Int32Array(shape0.reduce((a, c) => a * c, 1));
