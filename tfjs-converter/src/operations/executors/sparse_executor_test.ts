@@ -38,23 +38,68 @@ describe('sparse', () => {
       name: 'test',
       op: '',
       category: 'sparse',
-      inputNames: ['inputIndices', 'inputShape', 'newShape'],
+      inputNames: [],
       inputs: [],
-      inputParams: {
-        inputIndices: createTensorAttr(0),
-        inputShape: createTensorAttr(1),
-        newShape: createTensorAttr(2)
-      },
+      inputParams: {},
       attrParams: {},
       children: []
     };
   });
 
   describe('executeOp', () => {
+    describe('SparseFillEmptyRows', () => {
+      it('should call tfOps.sparse.sparseFillEmptyRows', async () => {
+        spyOn(tfOps.sparse, 'sparseFillEmptyRows').and.callThrough();
+        node.op = 'SparseFillEmptyRows';
+        node.inputParams = {
+          indices: createTensorAttr(0),
+          values: createTensorAttr(1),
+          denseShape: createTensorAttr(2),
+          defaultValue: createTensorAttr(3)
+        };
+        node.inputNames = ['indices', 'values', 'denseShape', 'defaultValue'];
+        const indices = [tfOps.tensor2d(
+            [0, 0, 1, 0, 1, 3, 1, 4, 3, 2, 3, 3], [6, 2], 'int32')];
+        const values = [tfOps.tensor1d([0, 10, 13, 14, 32, 33], 'int32')];
+        const denseShape = [tfOps.tensor1d([5, 6], 'int32')];
+        const defaultValue = [tfOps.scalar(-1, 'int32')];
+        const result = executeOp(
+                           node, {indices, values, denseShape, defaultValue},
+                           context) as Tensor[];
+
+        expect(tfOps.sparse.sparseFillEmptyRows)
+            .toHaveBeenCalledWith(
+                indices[0], values[0], denseShape[0], defaultValue[0]);
+        test_util.expectArraysClose(
+            await result[0].data(),
+            [0, 0, 1, 0, 1, 3, 1, 4, 2, 0, 3, 2, 3, 3, 4, 0]);
+        test_util.expectArraysClose(
+            await result[1].data(), [0, 10, 13, 14, -1, 32, 33, -1]);
+        test_util.expectArraysClose(await result[2].data(), [0, 0, 1, 0, 1]);
+        test_util.expectArraysClose(await result[3].data(), [0, 1, 2, 3, 5, 6]);
+      });
+      it('should match json def', () => {
+        node.op = 'SparseFillEmptyRows';
+        node.inputParams = {
+          indices: createTensorAttr(0),
+          values: createTensorAttr(1),
+          denseShape: createTensorAttr(2),
+          defaultValue: createTensorAttr(3)
+        };
+
+        expect(validateParam(node, sparse.json)).toBeTruthy();
+      });
+    });
     describe('SparseReshape', () => {
       it('should call tfOps.sparse.sparseReshape', async () => {
         spyOn(tfOps.sparse, 'sparseReshape').and.callThrough();
         node.op = 'SparseReshape';
+        node.inputParams = {
+          inputIndices: createTensorAttr(0),
+          inputShape: createTensorAttr(1),
+          newShape: createTensorAttr(2)
+        };
+        node.inputNames = ['inputIndices', 'inputShape', 'newShape'];
         const result =
             executeOp(node, {inputIndices, inputShape, newShape}, context) as
             Tensor[];
@@ -68,6 +113,11 @@ describe('sparse', () => {
 
       it('should match json def', () => {
         node.op = 'SparseReshape';
+        node.inputParams = {
+          inputIndices: createTensorAttr(0),
+          inputShape: createTensorAttr(1),
+          newShape: createTensorAttr(2)
+        };
 
         expect(validateParam(node, sparse.json)).toBeTruthy();
       });
