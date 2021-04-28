@@ -28,7 +28,7 @@ async function start() {
   // Load model runner with the cartoonizer tflite model.
   const start = Date.now();
   const tfliteModel = await loadTFLiteModel(
-      'https://storage.googleapis.com/tfhub-lite-models/sayakpaul/lite-model/cartoongan/fp16/1.tflite',
+      'https://tfhub.dev/sayakpaul/lite-model/cartoongan/fp16/1',
   );
   ele('.loading-msg').innerHTML = `Loaded WASM module and <a href='${
       CARTOONIZER_LINK}' target='blank'>TFLite model</a> in ${
