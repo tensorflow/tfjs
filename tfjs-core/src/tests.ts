@@ -204,6 +204,7 @@ import './ops/slice_util_test';
 import './ops/softmax_test';
 import './ops/softplus_test';
 import './ops/space_to_batch_nd_test';
+import './ops/sparse/sparse_fill_empty_rows_test';
 import './ops/sparse/sparse_reshape_test';
 import './ops/sparse_to_dense_test';
 import './ops/spectral/fft_test';
