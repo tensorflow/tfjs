@@ -44,30 +44,32 @@ _ESBUILD_VERSION = "0.11.6"  # reminder: update SHAs below when changing this va
 
 http_archive(
     name = "esbuild_darwin",
+    build_file_content = """exports_files(["bin/esbuild"])""",
+    sha256 = "2b06365b075b854654fc9ed26fcd48a0c38947e1c8d5151ce400cd1e173bb138",
+    strip_prefix = "package",
     urls = [
         "https://registry.npmjs.org/esbuild-darwin-64/-/esbuild-darwin-64-%s.tgz" % _ESBUILD_VERSION,
     ],
-    strip_prefix = "package",
-    build_file_content = """exports_files(["bin/esbuild"])""",
-    sha256 = "2b06365b075b854654fc9ed26fcd48a0c38947e1c8d5151ce400cd1e173bb138",
 )
+
 http_archive(
     name = "esbuild_windows",
+    build_file_content = """exports_files(["esbuild.exe"])""",
+    sha256 = "ddab1121833f0a12ca4fb3e288231e058f5526310671e84c0a9aa575340bb20b",
+    strip_prefix = "package",
     urls = [
         "https://registry.npmjs.org/esbuild-windows-64/-/esbuild-windows-64-%s.tgz" % _ESBUILD_VERSION,
     ],
-    strip_prefix = "package",
-    build_file_content = """exports_files(["esbuild.exe"])""",
-    sha256 = "ddab1121833f0a12ca4fb3e288231e058f5526310671e84c0a9aa575340bb20b",
 )
+
 http_archive(
     name = "esbuild_linux",
+    build_file_content = """exports_files(["bin/esbuild"])""",
+    sha256 = "34612e3e15e6c31d9d742d3fd677bd5208b7e5c0ee9c93809999138c6c5c1039",
+    strip_prefix = "package",
     urls = [
         "https://registry.npmjs.org/esbuild-linux-64/-/esbuild-linux-64-%s.tgz" % _ESBUILD_VERSION,
     ],
-    strip_prefix = "package",
-    build_file_content = """exports_files(["bin/esbuild"])""",
-    sha256 = "34612e3e15e6c31d9d742d3fd677bd5208b7e5c0ee9c93809999138c6c5c1039",
 )
 
 # Emscripten toolchain

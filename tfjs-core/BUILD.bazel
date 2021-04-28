@@ -62,10 +62,10 @@ ts_library(
 
 esbuild(
     name = "tfjs-core_test_bundle",
+    testonly = True,
     args = [
         "--resolve-extensions=.mjs,.js",
     ],
-    testonly = True,
     entry_point = "setup_test_bazel.ts",
     external = [
         # webworker tests call 'require('@tensorflow/tfjs')', which
