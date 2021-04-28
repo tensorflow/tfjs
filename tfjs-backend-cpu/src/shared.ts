@@ -39,6 +39,8 @@ export {prodImpl} from './kernels/Prod';
 export {rangeImpl} from './kernels/Range_impl';
 export {rsqrtImpl} from './kernels/Rsqrt';
 export {sliceImpl} from './kernels/Slice';
+export {sparseFillEmptyRowsImpl} from './kernels/SparseFillEmptyRows_impl';
+export {sparseReshapeImpl} from './kernels/SparseReshape_impl';
 export {squaredDifferenceImpl} from './kernels/SquaredDifference';
 export {stridedSliceImpl} from './kernels/StridedSlice_impl';
 export {subImpl} from './kernels/Sub';

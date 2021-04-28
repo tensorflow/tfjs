@@ -40,14 +40,16 @@ export function depthwiseConv2dNative(args: {
       pad, dimRoundingMode, true /* depthwise */);
 
   const program = new DepthwiseConv2DProgram(convInfo);
+
   const dimensions = [
-    convInfo.filterHeight, convInfo.filterWidth, convInfo.padInfo.top,
-    convInfo.padInfo.left, convInfo.strideHeight, convInfo.strideWidth,
-    convInfo.dilationHeight, convInfo.dilationWidth, convInfo.inHeight,
-    convInfo.inWidth
+    {type: 'int32', data: [convInfo.filterHeight, convInfo.filterWidth]},
+    {type: 'int32', data: [convInfo.padInfo.top, convInfo.padInfo.left]},
+    {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
+    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]},
+    {type: 'int32', data: [convInfo.inHeight, convInfo.inWidth]}
   ];
-  const uniformData = new Int32Array(dimensions);
-  return backend.runWebGPUProgram(program, [x, filter], x.dtype, uniformData);
+
+  return backend.runWebGPUProgram(program, [x, filter], x.dtype, dimensions);
 }
 
 export const depthwiseConv2dNativeConfig: KernelConfig = {

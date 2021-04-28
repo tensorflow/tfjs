@@ -32,12 +32,16 @@ export function clipByValue(args: {
   const {clipValueMin, clipValueMax} = attrs;
 
   let program: ClipProgram|ClipVec4Program;
+  const uniformData = [
+    {type: 'float32', data: [clipValueMin]},
+    {type: 'float32', data: [clipValueMax]}
+  ];
   if (util.sizeFromShape(x.shape) % 4 === 0) {
-    program = new ClipVec4Program(x.shape, clipValueMin, clipValueMax);
+    program = new ClipVec4Program(x.shape);
   } else {
-    program = new ClipProgram(x.shape, clipValueMin, clipValueMax);
+    program = new ClipProgram(x.shape);
   }
-  return backend.runWebGPUProgram(program, [x], x.dtype);
+  return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
 }
 
 export const clipByValueConfig: KernelConfig = {

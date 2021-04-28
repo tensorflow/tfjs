@@ -109,8 +109,13 @@ export function conv2dWithIm2Col({
     filterWidth,
     filterHeight,
     inChannels,
+    strideWidth,
+    strideHeight,
+    padInfo,
     outWidth,
     outHeight,
+    dilationWidth,
+    dilationHeight,
     dataFormat
   } = convInfo;
 
@@ -132,10 +137,17 @@ export function conv2dWithIm2Col({
   intermediates.push(xSqueezed);
   intermediates.push(w2Row);
 
-  const im2ColProgram =
-      new Im2ColProgram(x2ColShape, xSqueezed.shape, convInfo);
-  const im2Col =
-      backend.runWebGPUProgram(im2ColProgram, [xSqueezed], xSqueezed.dtype);
+  const im2ColProgram = new Im2ColProgram(x2ColShape, isChannelsLast);
+  const dimensions = [
+    {type: 'int32', data: [padInfo.left, padInfo.top]},      // Padding.
+    {type: 'int32', data: [strideWidth, strideHeight]},      // Stride.
+    {type: 'int32', data: [dilationWidth, dilationHeight]},  // Dilation.
+    {type: 'int32', data: [outWidth]},
+    {type: 'int32', data: [inChannels * filterWidth]},  // itemsPerBlockRow.
+    {type: 'int32', data: [inChannels]}
+  ];
+  const im2Col = backend.runWebGPUProgram(
+      im2ColProgram, [xSqueezed], xSqueezed.dtype, dimensions);
   const im2Col3D = reshape({
     inputs: {x: im2Col},
     backend,

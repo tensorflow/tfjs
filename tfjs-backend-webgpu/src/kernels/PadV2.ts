@@ -15,21 +15,27 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, PadV2, PadV2Attrs, PadV2Inputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, PadV2, PadV2Attrs, PadV2Inputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {identity} from './Identity';
 import {PadProgram} from './pad_webgpu';
 
 export const padV2 =
-    (args: {inputs: PadV2Inputs, backend: WebGPUBackend, attrs: PadV2Attrs}):
-        TensorInfo => {
-          const {inputs, backend, attrs} = args;
-          const {x} = inputs;
-          const {paddings, constantValue} = attrs;
-          const uniformData = new Float32Array([constantValue]);
-          const program = new PadProgram(x.shape, paddings);
-          return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
-        };
+    (args: {inputs: PadV2Inputs,
+            backend: WebGPUBackend,
+            attrs: PadV2Attrs}): TensorInfo => {
+      const {inputs, backend, attrs} = args;
+      const {x} = inputs;
+      const {paddings, constantValue} = attrs;
+      if (paddings.every(p => util.arraysEqual(p, [0, 0]))) {
+        return identity({inputs: {x}, backend});
+      }
+      const uniformData = [{type: 'float32', data: [constantValue]}];
+      paddings.map(p => uniformData.push({type: 'int32', data: [p[0], p[1]]}));
+      const program = new PadProgram(x.shape, paddings);
+      return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
+    };
 
 export const padV2Config: KernelConfig = {
   kernelName: PadV2,

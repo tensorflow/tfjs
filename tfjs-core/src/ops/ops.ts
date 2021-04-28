@@ -248,6 +248,7 @@ import {nonMaxSuppressionPadded} from './image/non_max_suppression_padded';
 import {nonMaxSuppressionPaddedAsync} from './image/non_max_suppression_padded_async';
 import {resizeBilinear} from './image/resize_bilinear';
 import {resizeNearestNeighbor} from './image/resize_nearest_neighbor';
+import {threshold} from './image/threshold';
 import {transform} from './image/transform';
 const image = {
   flipLeftRight,
@@ -261,6 +262,7 @@ const image = {
   nonMaxSuppressionWithScoreAsync,
   nonMaxSuppressionPadded,
   nonMaxSuppressionPaddedAsync,
+  threshold,
   transform
 };
 
@@ -296,5 +298,12 @@ const losses = {
   softmaxCrossEntropy
 };
 
+import {sparseFillEmptyRows} from './sparse/sparse_fill_empty_rows';
+import {sparseReshape} from './sparse/sparse_reshape';
+const sparse = {
+  sparseFillEmptyRows,
+  sparseReshape
+};
+
 // Second level exports.
-export {image, linalg, losses, spectral, fused, signal};
+export {image, linalg, losses, spectral, fused, signal, sparse};

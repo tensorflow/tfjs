@@ -20,10 +20,11 @@ export declare interface TFLiteWebModelRunnerClass {
   /**
    * The factory function to create a TFLiteWebModelRunner instance.
    *
-   * @param modelPath The path to load the TFLite model from.
+   * @param model The path to load the TFLite model from, or the model content
+   *     in memory.
    * @param options Available options.
    */
-  create(modelPath: string, options: TFLiteWebModelRunnerOptions):
+  create(model: string|ArrayBuffer, options: TFLiteWebModelRunnerOptions):
       Promise<TFLiteWebModelRunner>;
 }
 
