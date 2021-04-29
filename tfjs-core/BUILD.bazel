@@ -63,6 +63,9 @@ ts_library(
 esbuild(
     name = "tfjs-core_test_bundle",
     testonly = True,
+    args = [
+        "--resolve-extensions=.mjs,.js",
+    ],
     entry_point = "setup_test_bazel.ts",
     external = [
         # webworker tests call 'require('@tensorflow/tfjs')', which
@@ -80,7 +83,10 @@ esbuild(
 
 esbuild(
     name = "tf-core.min",
-    entry_point = "dist/index.ts",
+    args = [
+        "--resolve-extensions=.mjs,.js",
+    ],
+    entry_point = "dist/index.js",
     external = [
         "node-fetch",
         "util",
@@ -94,7 +100,10 @@ esbuild(
 
 esbuild(
     name = "tf-core.node",
-    entry_point = "dist/index.ts",
+    args = [
+        "--resolve-extensions=.mjs,.js",
+    ],
+    entry_point = "dist/index.js",
     external = [
         "node-fetch",
         "util",
