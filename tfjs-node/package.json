@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-node",
-  "version": "3.6.0",
+  "version": "3.6.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "gypfile": true,
