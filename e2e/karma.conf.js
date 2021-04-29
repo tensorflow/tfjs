@@ -32,6 +32,14 @@ const karmaTypescriptConfig = {
   }
 };
 
+// Enable coverage reports and instrumentation under KARMA_COVERAGE=1 env
+const coverageEnabled = !!process.env.KARMA_COVERAGE;
+if (coverageEnabled) {
+  karmaTypescriptConfig.coverageOptions.instrumentation = true;
+  karmaTypescriptConfig.coverageOptions.exclude = /_test\.ts$/;
+  karmaTypescriptConfig.reports = {html: 'coverage', 'text-summary': ''};
+}
+
 const devConfig = {
   frameworks: ['jasmine', 'karma-typescript'],
   files: [
