@@ -10,9 +10,8 @@
       "src/**/*"
     ],
     "exclude": [
-      "src/run_tests.ts",
-      "src/**/*_test.ts",
-      "src/proto/*"
+      "src/test_node.ts",
+      "src/**/*_test.ts"
     ],
     "cache": false,
     "sourceMap": true,

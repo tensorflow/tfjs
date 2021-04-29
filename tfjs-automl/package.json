@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-automl",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "module": "dist/tf-automl.esm.js",
@@ -13,6 +13,7 @@
     "test": "yarn && yarn build && karma start",
     "test-dev": "karma start",
     "test-node": "tsc && ts-node --transpile-only --skip-ignore --project tsconfig.test.json src/test_node.ts",
+    "coverage": "KARMA_COVERAGE=1 karma start --singleRun",
     "run-flaky": "node ../scripts/run_flaky.js",
     "run-browserstack": "karma start --singleRun --reporters='dots,karma-typescript,BrowserStack' --hostname='bs-local.com'",
     "test-ci": "./scripts/test-ci.sh",

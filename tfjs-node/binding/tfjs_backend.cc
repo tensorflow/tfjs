@@ -973,6 +973,11 @@ napi_value TFJSBackend::LoadSavedModel(napi_env env,
   nstatus = napi_create_int32(env, InsertSavedModel(session, graph),
                               &output_session_id);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+
+  // clean up the tags strings.
+  for (uint32_t i = 0; i < tags_ptrs.size(); i++) {
+    delete tags_ptrs[i];
+  }
   return output_session_id;
 }
 
@@ -1161,11 +1166,15 @@ napi_value TFJSBackend::RunSavedModel(napi_env env,
     // Push into output array
     nstatus = napi_set_element(env, output_tensor_infos, i, tensor_info_value);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+    // delete output op name string
+    delete output_op_name_array[i];
   }
 
   for (uint32_t i = 0; i < num_input_ids; i++) {
     // Deallocate input TF_Tensor in C++.
     TF_DeleteTensor(input_values[i]);
+    // delete input op name string
+    delete input_op_name_array[i];
   }
 
   return output_tensor_infos;

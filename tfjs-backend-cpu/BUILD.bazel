@@ -38,7 +38,10 @@ ts_project(
 
 esbuild(
     name = "tf-backend-cpu.min",
-    entry_point = "dist/index.ts",
+    args = [
+        "--resolve-extensions=.mjs,.js",
+    ],
+    entry_point = "dist/index.js",
     external = [
         "node-fetch",
         "util",
@@ -52,7 +55,10 @@ esbuild(
 
 esbuild(
     name = "tf-backend-cpu.node",
-    entry_point = "dist/index.ts",
+    args = [
+        "--resolve-extensions=.mjs,.js",
+    ],
+    entry_point = "dist/index.js",
     external = [
         "node-fetch",
         "util",

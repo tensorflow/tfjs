@@ -79,6 +79,7 @@
     "publish-local": "yarn build-npm && yalc push",
     "publish-npm": "npm publish",
     "lint": "tslint -p . -t verbose",
+    "coverage": "KARMA_COVERAGE=1 karma start --browsers='Chrome' --singleRun",
     "test": "yarn && yarn build-deps && yarn build && karma start",
     "test-dev": "karma start",
     "test-tools": "ts-node --project ./tools/custom_module/tsconfig.json run_tools_tests.ts",
