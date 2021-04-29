@@ -27,10 +27,6 @@ import {createTensorAttr, validateParam} from './test_helper';
 
 describe('sparse', () => {
   let node: Node;
-  const inputIndices = [tfOps.tensor2d(
-      [0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 2, 3], [5, 3], 'int32')];
-  const inputShape = [tfOps.tensor1d([2, 3, 6], 'int32')];
-  const newShape = [tfOps.tensor1d([9, -1], 'int32')];
   const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
@@ -58,6 +54,7 @@ describe('sparse', () => {
           defaultValue: createTensorAttr(3)
         };
         node.inputNames = ['indices', 'values', 'denseShape', 'defaultValue'];
+
         const indices = [tfOps.tensor2d(
             [0, 0, 1, 0, 1, 3, 1, 4, 3, 2, 3, 3], [6, 2], 'int32')];
         const values = [tfOps.tensor1d([0, 10, 13, 14, 32, 33], 'int32')];
@@ -100,6 +97,11 @@ describe('sparse', () => {
           newShape: createTensorAttr(2)
         };
         node.inputNames = ['inputIndices', 'inputShape', 'newShape'];
+
+        const inputIndices = [tfOps.tensor2d(
+            [0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 2, 3], [5, 3], 'int32')];
+        const inputShape = [tfOps.tensor1d([2, 3, 6], 'int32')];
+        const newShape = [tfOps.tensor1d([9, -1], 'int32')];
         const result =
             executeOp(node, {inputIndices, inputShape, newShape}, context) as
             Tensor[];
