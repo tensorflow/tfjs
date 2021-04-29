@@ -455,6 +455,9 @@
   "SpaceToBatchND": [
     "spaceToBatchND"
   ],
+  "SparseFillEmptyRows": [
+    "sparse.sparseFillEmptyRows"
+  ],
   "SparseReshape": [
     "sparse.sparseReshape"
   ],
