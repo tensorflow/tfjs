@@ -33,6 +33,7 @@
     "karma-jasmine": "~1.1.0",
     "karma-typescript": "~5.5.1",
     "npm-run-all": "~4.1.3",
+    "nyc": "^15.1.0",
     "rimraf": "~2.6.2",
     "rollup": "~2.3.2",
     "rollup-plugin-terser": "~5.3.0",
@@ -57,6 +58,7 @@
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "npm publish",
     "lint": "tslint -p . -t verbose",
+    "coverage": "yarn nyc yarn ts-node --transpile-only -P tsconfig.test.json src/run_tests.ts",
     "test": "yarn && yarn build-deps && yarn build && ts-node --transpile-only --project tsconfig.test.json src/run_tests.ts",
     "test-dev": "tsc && ts-node --transpile-only --project tsconfig.test.json src/run_tests.ts",
     "test-ci": "ts-node --transpile-only --skip-ignore --project tsconfig.test.json src/run_tests.ts"

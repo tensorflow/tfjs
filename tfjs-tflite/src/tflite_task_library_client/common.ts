@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {Class as ProtoClass} from '../types/common';
+import * as tfliteWebAPIClient from '../tflite_web_api_client';
+import {BaseTaskLibrary, Class as ProtoClass} from '../types/common';
 
 /** Common options for all task library tasks. */
 export interface CommonTaskLibraryOptions {
@@ -25,7 +26,8 @@ export interface CommonTaskLibraryOptions {
    * greater than 0 or equal to -1. Setting num_threads to -1 has the effect to
    * let TFLite runtime set the value.
    *
-   * Default to -1.
+   * Default to number of physical CPU cores, or -1 if WASM multi-threading is
+   * not supported by user's browser.
    */
   numThreads?: number;
 }
@@ -50,4 +52,28 @@ export function convertProtoClassesToClasses(protoClasses: ProtoClass[]):
     });
   });
   return classes;
+}
+
+/** The global function to set WASM path. */
+export const setWasmPath = tfliteWebAPIClient.tfweb.tflite_web_api.setWasmPath;
+
+/** The global function to get supported WASM features */
+export const getWasmFeatures =
+    tfliteWebAPIClient.tfweb.tflite_web_api.getWasmFeatures;
+
+/** The base class for all task library clients. */
+export class BaseTaskLibraryClient {
+  constructor(protected instance: BaseTaskLibrary) {}
+
+  cleanUp() {
+    this.instance.cleanUp();
+  }
+}
+
+/** Gets the number of threads for best performance. */
+export async function getDefaultNumThreads(): Promise<number> {
+  const supportMultiThreading =
+      (await tfliteWebAPIClient.tfweb.tflite_web_api.getWasmFeatures())
+          .multiThreading;
+  return supportMultiThreading ? navigator.hardwareConcurrency / 2 : -1;
 }

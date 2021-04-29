@@ -31,5 +31,6 @@ describe('TFLiteWebAPIClient', () => {
       expect((tfliteWeb as any)[field]).toBeDefined();
     }
     expect(tfliteWeb['tflite_web_api']['setWasmPath']).toBeDefined();
+    expect(tfliteWeb['tflite_web_api']['getWasmFeatures']).toBeDefined();
   });
 });
