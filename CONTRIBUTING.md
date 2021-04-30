@@ -70,7 +70,8 @@ implementation in [backend.ts](/tfjs-core/src/backends/backend.ts),
 be sure to check out the TensorFlow ops list [here](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/ops/ops.pbtxt).
 This list shows the kernels available for the TensorFlow C API. To ensure that
 we can bind to this with node.js, we should ensure that our backend.ts
-interface matches ops in the TensorFlow C API.
+interface matches ops in the TensorFlow C API. For detailed instructions on
+how to add a new op, see [CONTRIBUTING_MISSING_OP.md](/CONTRIBUTING_MISSING_OP.md).
 
 ## Code reviews
 
