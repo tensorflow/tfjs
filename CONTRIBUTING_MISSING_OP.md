@@ -48,6 +48,9 @@ In `setup_test.ts`, `customInclude` method, add:
 
 In `run_tests.ts`, `IGNORE_LIST`, add test_name to the list.
 
+**Example PRs**
+* [CPU and WebGL backend SparseReshape](https://github.com/tensorflow/tfjs/pull/4956)
+
 ### Step 2. Add a new kernel in a backend.
 **Implementation Details**
 1. Create a new kernel in the `kernels` directory of a backend.
@@ -61,6 +64,10 @@ In `run_tests.ts`, `IGNORE_LIST`, add test_name to the list.
 
 3. Remove the op from test exclusion list in the corresponding backend. For wasm
    backend, add the test to the inclusion list.
+   
+**Example PRs**
+* [CPU and WebGL backend SparseReshape](https://github.com/tensorflow/tfjs/pull/4956)
+* [WASM backend Round](https://github.com/tensorflow/tfjs/pull/4486)
 
 ### Step 3. Add the op to Converter’s executor.
 1. Add op mapping in the op list ts file, use your best judgement to assign an op category: `tfjs-converter/src/operations/op_list/{corresponding_op_category}.ts`. Use
@@ -75,3 +82,6 @@ the [TF C++ op api](https://www.tensorflow.org/api_docs/cc/) as reference for tf
 5. Update the supported op doc in `tfjs-converter/docs/supported_ops.md`.
 
 6. Add a mapping in kernel2op.json.
+
+**Example PRs**
+* [SparseReshape Op](https://github.com/tensorflow/tfjs/pull/4963)
