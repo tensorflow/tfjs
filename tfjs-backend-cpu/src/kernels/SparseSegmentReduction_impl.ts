@@ -116,8 +116,10 @@ export function sparseSegmentReductionImpl(
       }
     }
 
-    for (let j = 0; j < numCol; j++) {
-      output[outIndex * numCol + j] /= end - start;
+    if (isMean) {
+      for (let j = 0; j < numCol; j++) {
+        output[outIndex * numCol + j] /= end - start;
+      }
     }
 
     start = end;
