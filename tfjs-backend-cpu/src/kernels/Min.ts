@@ -52,7 +52,8 @@ export function min(
     let min = aVals[offset];
     for (let j = 0; j < reduceSize; ++j) {
       const value = aVals[offset + j];
-      if (value < min) {
+      if (Number.isNaN(value) ||
+          value < min) {  // comparison with NaN always return false
         min = value;
       }
     }
