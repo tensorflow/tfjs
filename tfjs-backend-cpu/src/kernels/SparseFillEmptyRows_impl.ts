@@ -130,7 +130,7 @@ export function sparseFillEmptyRowsImpl(
       }
     }
     return [
-      outputIndices, [indicesCount, rank], outputValues, emptyRowIndicator,
+      outputIndices, [fullIndicesCount, rank], outputValues, emptyRowIndicator,
       reverseIndexMap
     ];
   }
