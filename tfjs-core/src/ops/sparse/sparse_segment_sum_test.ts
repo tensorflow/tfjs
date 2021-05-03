@@ -35,17 +35,6 @@ function TensorValue10x2x4() {
   return tf.tensor3d(Array.from(Array(80), (_, i) => i + 1), [10, 2, 4]);
 }
 
-// function sparseTensorValue2x3x4() {
-//   const ind = tf.tensor2d(
-//       [
-//         [0, 0, 1], [0, 1, 0], [0, 1, 2], [1, 0, 3], [1, 1, 1], [1, 1, 3],
-//         [1, 2, 2]
-//       ],
-//       [7, 3], 'int32');
-//   const val = [1, 10, 12, 103, 111, 113, 122];
-//   const shape = [2, 3, 4];
-//   return {ind, val, shape};
-// }
 describeWithFlags('sparseSegmentSum', ALL_ENVS, () => {
   it('two rows one segment', async () => {
     const result = tf.sparse.sparseSegmentSum(TensorValue3x4(), [0, 1], [0, 0]);
@@ -61,6 +50,11 @@ describeWithFlags('sparseSegmentSum', ALL_ENVS, () => {
     const result =
         tf.sparse.sparseSegmentSum(TensorValue3x4(), [0, 1, 2], [0, 0, 1]);
     expectArraysClose(await result.data(), [[0, 0, 0, 0], [5, 6, 7, 8]]);
+  });
+
+  it('0 dimensional input invalid', async () => {
+    expect(() => tf.sparse.sparseSegmentSum(tf.scalar(1), [], []))
+        .toThrowError(/should be at least 1 dimensional/);
   });
 
   it('1 dimensional input', async () => {
@@ -149,5 +143,17 @@ describeWithFlags('sparseSegmentSum', ALL_ENVS, () => {
     expect(() => tf.sparse.sparseSegmentSum(TensorValue10x4(), [8, 3, 0, 9], [
       0, 0, 0, -2
     ])).toThrowError('segment ids must be >= 0');
+  });
+
+  it('indices invalid rank', async () => {
+    expect(() => tf.sparse.sparseSegmentSum(TensorValue10x4(), [[8, 3, 0, 9]], [
+      0, 0, 0, -2
+    ])).toThrowError(/should be Tensor1D/);
+  });
+
+  it('segments invalid rank', async () => {
+    expect(() => tf.sparse.sparseSegmentSum(TensorValue10x4(), [8, 3, 0, 9], [
+      [0, 0, 0, -2]
+    ])).toThrowError(/should be Tensor1D/);
   });
 });

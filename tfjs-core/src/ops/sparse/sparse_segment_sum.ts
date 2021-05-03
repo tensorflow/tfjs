@@ -29,28 +29,28 @@ import {op} from '../operation';
  * const c = tf.tensor2d([[1,2,3,4], [-1,-2,-3,-4], [5,6,7,8]]);
  * // Select two rows, one segment.
  * const result1 = tf.sparse.sparseSegmentSum(c,
- *                                           tf.tensor1d([0, 1], 'int32),
- *                                           tf.tensor1d([0, 0], 'int32);
- * console.log(result1);
- * result1['output'].print(); // [[0 0 0 0]]
+ *                                           tf.tensor1d([0, 1], 'int32'),
+ *                                           tf.tensor1d([0, 0], 'int32'));
+ * result1.print(); // [[0, 0, 0, 0]]
  *
  * // Select two rows, two segment.
  * const result2 = tf.sparse.sparseSegmentSum(c,
- *                                           tf.tensor1d([0, 1], 'int32),
- *                                           tf.tensor1d([0, 1], 'int32);
- * console.log(result2);
- * result2['output'].print(); // [[ 1  2  3  4], [-1 -2 -3 -4]]
+ *                                           tf.tensor1d([0, 1], 'int32'),
+ *                                           tf.tensor1d([0, 1], 'int32'));
+ * result2.print(); // [[1, 2, 3, 4], [-1, -2, -3, -4]]
  *
  * // Select all rows, two segments.
  * const result3 = tf.sparse.sparseSegmentSum(c,
- *                                           tf.tensor1d([0, 1, 2], 'int32),
- *                                           tf.tensor1d([0, 0, 1], 'int32);
- * console.log(result3);
- * result3['output'].print(); // [[0 0 0 0] [5 6 7 8]]
+ *                                           tf.tensor1d([0, 1, 2], 'int32'),
+ *                                           tf.tensor1d([0, 0, 1], 'int32'));
+ * result3.print(); // [[0, 0, 0, 0], [5, 6, 7, 8]]
  * ```
- * @param data: 2-D. the values of a tensor.
- * @param indices: A 1-D tensor. Has same rank as segment_ids.
- * @param segmentIds: A 1-D tensor. Values should be sorted and can be repeated.
+ * @param data: A Tensor of at least one dimension with data that will be
+ *     assembled in the output.
+ * @param indices: A 1-D Tensor with indices into data. Has same rank as
+ *     segmentIds.
+ * @param segmentIds: A 1-D Tensor with indices into the output Tensor. Values
+ *     should be sorted and can be repeated.
  * @return Has same shape as data, except for dimension 0 which has equal to
  *         the number of segments.
  *
