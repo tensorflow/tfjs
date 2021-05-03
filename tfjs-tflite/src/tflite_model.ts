@@ -25,8 +25,30 @@ import {TFLiteDataType, TFLiteWebModelRunner, TFLiteWebModelRunnerOptions, TFLit
 const TFHUB_SEARCH_PARAM = '?lite-format=tflite';
 
 /**
- * A `tf.TFLiteModel` is built from a TFLite model flatbuffer and its
- * corresponding Interpreter.
+ * A `tflite.TFLiteModel` is built from a TFLite model flatbuffer and its
+ * corresponding Interpreter. To load it, use the `loadTFLiteModel` function
+ * below.
+ *
+ * Sample usage:
+ *
+ * ```js
+ * // Load the MobilenetV2 tflite model from tfhub.
+ * const tfliteModel = tflite.loadTFLiteModel(
+ *     'https://tfhub.dev/tensorflow/lite-model/mobilenet_v2_1.0_224/1/metadata/1');
+ *
+ * const outputTensor = tf.tidy(() => {
+ *    // Get pixels data from an image.
+ *    const img = tf.browser.fromPixels(document.querySelector('img'));
+ *    // Normalize (might also do resize here if necessary).
+ *    const input = tf.sub(tf.div(tf.expandDims(img), 127.5), 1);
+ *    // Run the inference.
+ *    let outputTensor = tfliteModel.predict(input) as tf.Tensor;
+ *    // De-normalize the result.
+ *    return tf.mul(tf.add(outputTensor, 1), 127.5)
+ *  });
+ * console.log(outputTensor);
+ *
+ * ```
  *
  * @doc {heading: 'Models', subheading: 'Classes'}
  */
@@ -46,19 +68,19 @@ export class TFLiteModel implements InferenceModel {
   /**
    * Execute the inference for the input tensors.
    *
-   * @param input The input tensors, when there is single input for the model,
-   * inputs param should be a Tensor. For models with multiple inputs, inputs
-   * params should be in either Tensor[] if the input order is fixed, or
-   * otherwise NamedTensorMap format.
+   * @param inputs The input tensors, when there is single input for the model,
+   *     inputs param should be a Tensor. For models with multiple inputs,
+   *     inputs params should be in either Tensor[] if the input order is fixed,
+   *     or otherwise NamedTensorMap format.
    *
    * @param config Prediction configuration for specifying the batch size.
    *     Currently this field is not used, and batch inference is not supported.
    *
    * @returns Inference result tensors. The output would be single Tensor if
-   * model has single output node, otherwise NamedTensorMap will be returned for
-   * model with multiple outputs. Tensor[] is not used.
+   *     model has single output node, otherwise NamedTensorMap will be returned
+   *     for model with multiple outputs. Tensor[] is not used.
    *
-   * @doc {heading: 'Models', subheading: 'TFLiteModel'}
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
   predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
       Tensor|Tensor[]|NamedTensorMap {
@@ -122,20 +144,18 @@ export class TFLiteModel implements InferenceModel {
    * Execute the inference for the input tensors and return activation
    * values for specified output node names without batching.
    *
-   * @param input The input tensors, when there is single input for the model,
-   * inputs param should be a Tensor. For models with multiple inputs, inputs
-   * params should be in either Tensor[] if the input order is fixed, or
-   * otherwise NamedTensorMap format.
+   * @param inputs The input tensors, when there is single input for the model,
+   *     inputs param should be a Tensor. For models with multiple inputs,
+   *     inputs params should be in either Tensor[] if the input order is fixed,
+   *     or otherwise NamedTensorMap format.
    *
    * @param outputs string|string[]. List of output node names to retrieve
-   * activation from.
+   *     activation from.
    *
    * @returns Activation values for the output nodes result tensors. The return
-   * type matches specified parameter outputs type. The output would be single
-   * Tensor if single output is specified, otherwise Tensor[] for multiple
-   * outputs.
-   *
-   * @doc {heading: 'Models', subheading: 'TFLiteModel'}
+   *     type matches specified parameter outputs type. The output would be
+   *     single Tensor if single output is specified, otherwise Tensor[] for
+   *     multiple outputs.
    */
   execute(inputs: Tensor|Tensor[]|NamedTensorMap, outputs: string|string[]):
       Tensor|Tensor[] {
@@ -270,7 +290,7 @@ export class TFLiteModel implements InferenceModel {
  *     (ArrayBuffer).
  * @param options Options related to model inference.
  *
- * @doc {heading: 'Models', subheading: 'TFLiteModel'}
+ * @doc {heading: 'Models', subheading: 'Loading'}
  */
 export async function loadTFLiteModel(
     model: string|ArrayBuffer,
@@ -295,7 +315,13 @@ export async function loadTFLiteModel(
   return new TFLiteModel(tfliteModelRunner);
 }
 
-/** Returns the compatible tfjs DataType from the given TFLite data type. */
+/**
+ * Returns the compatible tfjs DataType from the given TFLite data type.
+ *
+ * @param tfliteType The type in TFLite.
+ *
+ * @doc {heading: 'Models', subheading: 'Utilities'}
+ */
 export function getDTypeFromTFLiteType(tfliteType: TFLiteDataType): DataType {
   let dtype: DataType;
   switch (tfliteType) {
