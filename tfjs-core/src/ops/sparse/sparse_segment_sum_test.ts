@@ -80,7 +80,7 @@ describeWithFlags('sparseSegmentSum', ALL_ENVS, () => {
         [[33, 34, 35, 36], [0, 0, 0, 0], [0, 0, 0, 0], [51, 54, 57, 60]]);
   });
 
-  it('segment ids greater than zero', async () => {
+  it('segment ids > zero', async () => {
     const result = tf.sparse.sparseSegmentSum(
         TensorValue10x4(), [8, 3, 0, 9], [2, 3, 3, 3]);
     expectArraysClose(
