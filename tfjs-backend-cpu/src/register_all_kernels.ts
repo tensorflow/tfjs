@@ -157,6 +157,7 @@ import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {sparseFillEmptyRowsConfig} from './kernels/SparseFillEmptyRows';
 import {sparseReshapeConfig} from './kernels/SparseReshape';
+import {sparseSegmentSumConfig} from './kernels/SparseSegmentSum';
 import {sparseToDenseConfig} from './kernels/SparseToDense';
 import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
@@ -317,6 +318,7 @@ const kernelConfigs: KernelConfig[] = [
   spaceToBatchNDConfig,
   sparseFillEmptyRowsConfig,
   sparseReshapeConfig,
+  sparseSegmentSumConfig,
   sparseToDenseConfig,
   splitVConfig,
   sqrtConfig,
