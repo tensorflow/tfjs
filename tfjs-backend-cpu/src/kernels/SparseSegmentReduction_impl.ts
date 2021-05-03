@@ -19,8 +19,8 @@ import {DataType, TypedArray, util} from '@tensorflow/tfjs-core';
 
 export function sparseSegmentReductionImpl(
     input: TypedArray, inputShape: number[], inputDType: DataType,
-    indices: TypedArray, segmentIds: TypedArray, defaultValue = 0,
-    numSegments?: number): [TypedArray, number[]] {
+    indices: TypedArray, segmentIds: TypedArray, isMean = false,
+    defaultValue = 0, numSegments?: number): [TypedArray, number[]] {
   let outputRows = -1;
 
   if (numSegments !== undefined) {
@@ -114,6 +114,10 @@ export function sparseSegmentReductionImpl(
       for (let j = 0; j < numCol; j++) {
         output[outIndex * numCol + j] += input[index * numCol + j];
       }
+    }
+
+    for (let j = 0; j < numCol; j++) {
+      output[outIndex * numCol + j] /= end - start;
     }
 
     start = end;
