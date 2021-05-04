@@ -40,8 +40,8 @@ describeWithFlags('max', ALL_ENVS, () => {
     expectArraysClose(await r.data(), 1);
   });
 
-  it('ignores NaNs', async () => {
-    expectArraysClose(await tf.max([3, NaN, 2]).data(), 3);
+  it('return NaNs', async () => {
+    expectArraysClose(await tf.max([3, NaN, 2]).data(), NaN);
   });
 
   it('2D', async () => {
