@@ -111,25 +111,25 @@ describeWithFlags('sparseSegmentMean', ALL_ENVS, () => {
         [[33, 34, 35, 36], [13, 14, 15, 16], [19, 20, 21, 22]]);
   });
 
-  it('indices invalid 1', async () => {
+  it('throw error if indices < 0', async () => {
     expect(() => tf.sparse.sparseSegmentMean(TensorValue10x4(), [8, -1, 0, 9], [
       0, 1, 2, 2
     ])).toThrowError(/indices\[1\] == -1 out of range \[0, 10\)/);
   });
 
-  it('indices invalid 2', async () => {
+  it('throw error if indices >= max rows', async () => {
     expect(() => tf.sparse.sparseSegmentMean(TensorValue10x4(), [8, 3, 0, 10], [
       0, 1, 2, 2
     ])).toThrowError(/indices\[3\] == 10 out of range \[0, 10\)/);
   });
 
-  it('segments invalid 2', async () => {
+  it('throw error if segment ids are not increasing', async () => {
     expect(() => tf.sparse.sparseSegmentMean(TensorValue10x4(), [8, 3, 0, 9], [
       0, 1, 0, 1
     ])).toThrowError('segment ids are not increasing');
   });
 
-  it('segments invalid 3', async () => {
+  it('throw error if segment id is out of range', async () => {
     expect(
         () => tf.sparse.sparseSegmentMean(
             TensorValue10x4(), [8, 3, 0, 9], [0, 1, 2, 0]))
@@ -138,7 +138,7 @@ describeWithFlags('sparseSegmentMean', ALL_ENVS, () => {
             'input is not sorted.');
   });
 
-  it('segments invalid 4', async () => {
+  it('throw error if segment id is out of range and negative', async () => {
     expect(
         () => tf.sparse.sparseSegmentMean(
             TensorValue10x4(), [8, 3, 0, 9], [-1, 0, 1, 1]))
@@ -147,26 +147,26 @@ describeWithFlags('sparseSegmentMean', ALL_ENVS, () => {
             'input is not sorted.');
   });
 
-  it('segments invalid 6', async () => {
+  it('throw error if segment id is negative', async () => {
     expect(() => tf.sparse.sparseSegmentMean(TensorValue10x4(), [8, 3, 0, 9], [
       0, 0, 0, -1
     ])).toThrowError('segment ids must be >= 0');
   });
 
-  it('segments invalid 7', async () => {
+  it('throw error if segment id is negative and there is a hole', async () => {
     expect(() => tf.sparse.sparseSegmentMean(TensorValue10x4(), [8, 3, 0, 9], [
       0, 0, 0, -2
     ])).toThrowError('segment ids must be >= 0');
   });
 
-  it('indices invalid rank', async () => {
+  it('throw error if indices has invalid rank', async () => {
     expect(
         () => tf.sparse.sparseSegmentMean(
             TensorValue10x4(), [[8, 3, 0, 9]], [0, 0, 0, -2]))
         .toThrowError(/should be Tensor1D/);
   });
 
-  it('segments invalid rank', async () => {
+  it('throw error if segments has invalid rank', async () => {
     expect(() => tf.sparse.sparseSegmentMean(TensorValue10x4(), [8, 3, 0, 9], [
       [0, 0, 0, -2]
     ])).toThrowError(/should be Tensor1D/);

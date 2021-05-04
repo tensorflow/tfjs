@@ -20,16 +20,7 @@ import {DataType, TypedArray, util} from '@tensorflow/tfjs-core';
 export function sparseSegmentReductionImpl(
     input: TypedArray, inputShape: number[], inputDType: DataType,
     indices: TypedArray, segmentIds: TypedArray, isMean = false,
-    defaultValue = 0, numSegments?: number): [TypedArray, number[]] {
-  let outputRows = -1;
-
-  if (numSegments !== undefined) {
-    outputRows = numSegments;
-    if (outputRows < 0) {
-      throw new Error(`segment ids must be >= 0`);
-    }
-  }
-
+    defaultValue = 0): [TypedArray, number[]] {
   const numIndices = indices.length;
   if (numIndices !== segmentIds.length) {
     throw new Error(`segmentIds and indices should have same size.`);
@@ -42,13 +33,8 @@ export function sparseSegmentReductionImpl(
   // sorted.
   const lastSegmentIdPlusOne =
       numIndices > 0 ? segmentIds[numIndices - 1] + 1 : 0;
-  if (numSegments !== undefined) {
-    if (outputRows < lastSegmentIdPlusOne) {
-      throw new Error(`segment ids must be < numSegments`);
-    }
-  } else {
-    outputRows = lastSegmentIdPlusOne;
-  }
+  const outputRows = lastSegmentIdPlusOne;
+
   if (outputRows < 0) {
     throw new Error(`segment ids must be >= 0`);
   }
