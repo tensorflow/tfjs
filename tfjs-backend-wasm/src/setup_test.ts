@@ -211,15 +211,13 @@ const TEST_FILTERS: TestFilter[] = [
                      // implemented.
       'index corresponds to start of a non-initial window',  // argMin not yet
                                                              // implemented.,
-      'gradient',     // Gradients not yet implemented
-      'ignores NaNs'  // Doesn't yet ignore NaN
+      'gradient'  // Gradients not yet implemented
     ]
   },
   {
     startsWith: 'max ',
     excludes: [
-      'gradient',     // Gradients not yet implemented
-      'ignores NaNs'  // Doesn't yet ignore NaN
+      'gradient'  // Gradients not yet implemented
     ]
   },
   {

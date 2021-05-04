@@ -62,7 +62,7 @@ import {op} from '../operation';
  * result['outputIndices'].print(); // [[0, 0], [1, 0], [1, 3], [1, 4],
  *                                  //  [2, 0], [3, 2], [3, 3], [4, 0]]
  * result['outputValues'].print(); // [0, 10, 13, 14,-1, 32, 33, -1]
- * result['emptyRowIndicator'].print(); // [0, 0, 1, 0, 1]
+ * result['emptyRowIndicator'].print(); // [false, false, true, false, true]
  * result['reverseIndexMap'].print(); // [0, 1, 2, 3, 5, 6]
  * ```
  * @param indices: 2-D. the indices of the sparse tensor.
