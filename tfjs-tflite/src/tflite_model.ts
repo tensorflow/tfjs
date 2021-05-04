@@ -25,9 +25,8 @@ import {TFLiteDataType, TFLiteWebModelRunner, TFLiteWebModelRunnerOptions, TFLit
 const TFHUB_SEARCH_PARAM = '?lite-format=tflite';
 
 /**
- * A `tflite.TFLiteModel` is built from a TFLite model flatbuffer and its
- * corresponding Interpreter. To load it, use the `loadTFLiteModel` function
- * below.
+ * A `tflite.TFLiteModel` is built from a TFLite model flatbuffer and executable
+ * on TFLite interpreter. To load it, use the `loadTFLiteModel` function below.
  *
  * Sample usage:
  *
