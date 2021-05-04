@@ -15,7 +15,7 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
-
+#include <math.h>
 #include <cstddef>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
@@ -47,7 +47,7 @@ void Max(const size_t x_id, const size_t reduce_size, const size_t out_id) {
 
     for (const float* x = x_offset; x < x_iter_end; ++x) {
       float value = *x;
-      if (value > max) {
+      if (isnan(value) || value > max) {
         max = value;
       }
     }
