@@ -124,5 +124,38 @@ describe('sparse', () => {
         expect(validateParam(node, sparse.json)).toBeTruthy();
       });
     });
+    describe('SparseSegmentSum', () => {
+      it('should call tfOps.sparse.sparseSegmentSum', async () => {
+        spyOn(tfOps.sparse, 'sparseSegmentSum').and.callThrough();
+        node.op = 'SparseSegmentSum';
+        node.inputParams = {
+          data: createTensorAttr(0),
+          indices: createTensorAttr(1),
+          segmentIds: createTensorAttr(2)
+        };
+        node.inputNames = ['data', 'indices', 'segmentIds'];
+
+        const data = [tfOps.tensor2d(
+            [1, 2, 3, 4, -1, -2, -3, -4, 5, 6, 7, 8], [3, 4], 'int32')];
+        const indices = [tfOps.tensor1d([0, 1], 'int32')];
+        const segmentIds = [tfOps.tensor1d([0, 0], 'int32')];
+        const result =
+            executeOp(node, {data, indices, segmentIds}, context) as Tensor[];
+
+        expect(tfOps.sparse.sparseSegmentSum)
+            .toHaveBeenCalledWith(data[0], indices[0], segmentIds[0]);
+        test_util.expectArraysClose(await result[0].data(), [0, 0, 0, 0]);
+      });
+      it('should match json def', () => {
+        node.op = 'SparseSegmentSum';
+        node.inputParams = {
+          data: createTensorAttr(0),
+          indices: createTensorAttr(1),
+          segmentIds: createTensorAttr(2)
+        };
+
+        expect(validateParam(node, sparse.json)).toBeTruthy();
+      });
+    });
   });
 });

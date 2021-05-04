@@ -39,5 +39,14 @@ export const json: OpMapper[] = [
     'attrs': [
       {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
+  },
+  {
+    'tfOpName': 'SparseSegmentSum',
+    'category': 'sparse',
+    'inputs': [
+      {'start': 0, 'name': 'data', 'type': 'tensor'},
+      {'start': 1, 'name': 'indices', 'type': 'tensor'},
+      {'start': 2, 'name': 'segmentIds', 'type': 'tensor'},
+    ]
   }
 ];

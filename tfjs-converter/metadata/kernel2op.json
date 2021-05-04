@@ -461,6 +461,9 @@
   "SparseReshape": [
     "sparse.sparseReshape"
   ],
+  "SparseSegmentSum": [
+    "sparse.sparseSegmentSum"
+  ],
   "SparseToDense": [
     "sparseToDense",
     "cast"
