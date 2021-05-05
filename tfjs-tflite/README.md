@@ -39,8 +39,13 @@ import {loadTFLiteModel, TFLiteModel} from '@tensorflow/tfjs-tflite';
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-cpu"></script>
 <!-- Import @tensorflow/tfjs-core -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
-<!-- Import @tensorflow/tfjs-tflite -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite"></script>
+<!--
+  Import @tensorflow/tfjs-tflite
+
+  Note that we need to explicitly load dist/tf-tflite.min.js so that it can
+  locate WASM module files from their default location (dist/).
+-->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite/dist/tf-tflite.min.js"></script>
 ```
 
 ## Set WASM modules location (optional)
