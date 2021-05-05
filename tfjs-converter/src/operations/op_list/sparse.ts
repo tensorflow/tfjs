@@ -41,6 +41,15 @@ export const json: OpMapper[] = [
     ]
   },
   {
+    'tfOpName': 'SparseSegmentMean',
+    'category': 'sparse',
+    'inputs': [
+      {'start': 0, 'name': 'data', 'type': 'tensor'},
+      {'start': 1, 'name': 'indices', 'type': 'tensor'},
+      {'start': 2, 'name': 'segmentIds', 'type': 'tensor'},
+    ]
+  },
+  {
     'tfOpName': 'SparseSegmentSum',
     'category': 'sparse',
     'inputs': [
