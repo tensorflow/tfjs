@@ -98,7 +98,8 @@ const IGNORE_LIST: string[] = [
   'sign test-tensorflow {} accepts a tensor-like object',
   // Node kernel for einsum is yet to be implemented.
   // See: ttps://github.com/tensorflow/tfjs/issues/2349
-  'einsum', 'sparseFillEmptyRows', 'sparseReshape', 'sparseSegmentSum'
+  'einsum', 'sparseFillEmptyRows', 'sparseReshape', 'sparseSegmentMean',
+  'sparseSegmentSum'
 ];
 
 if (process.platform === 'win32') {
