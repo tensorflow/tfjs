@@ -1,5 +1,4 @@
 load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
-#load("@npm//@bazel/terser:index.bzl", "terser_minified")
 load("//:esbuild.bzl", "esbuild")
 load("@npm//typescript:index.bzl", "tsc")
 load("@npm//@babel/cli:index.bzl", "babel")
@@ -109,39 +108,7 @@ def tfjs_ts_project(name, srcs, **kwargs):
         **kwargs,
     )
 
-    # ts_project(
-    #     name = name + "_es5",
-    #     srcs = srcs,
-    #     declaration = True,
-    #     extends = "@//:tsconfig.json",
-    #     incremental = True,
-    #     out_dir = "dist_es5",
-    #     source_map = True,
-    #     tsconfig = {
-    #         "compilerOptions": {
-    #             "target": "es5",
-    #         },
-    #     },
-    #     **kwargs
-    # )
-
-
 def tfjs_bundle(name, deps, entry_point, umd_name, external = [], testonly = False, **kwargs):
-    # # es5 sources
-    # native.filegroup(
-    #     name = name + "_es5",
-    #     srcs = deps,
-    #     # Change to es6_sources to get the 'prodmode' JS
-    #     output_group = "es5_sources",
-    # )
-
-    # # es2017 sources
-    # native.filegroup(
-    #     name = name + "_es2017",
-    #     srcs = deps,
-    #     output_group = "es6_sources",
-    # )
-
     # UMD ES2017
     tfjs_rollup_bundle(
         name = name + ".es2017",
@@ -163,16 +130,9 @@ def tfjs_bundle(name, deps, entry_point, umd_name, external = [], testonly = Fal
         es5 = True,
     )
 
-    # # es5 transformation applied to UMD bundles
-    # es5_babel(
-    #     name = name,
-    #     testonly = testonly,
-    #     src = name + ".es2017.js",
-    # )
-
     # FESM ES2017
     # TODO(mattsoulanille): Check that this is actually
-    # generating flat esm modules and using es2017.
+    # generating flat esm modules.
     tfjs_rollup_bundle(
         name = name + ".fesm",
         testonly = testonly,
@@ -193,23 +153,6 @@ def tfjs_bundle(name, deps, entry_point, umd_name, external = [], testonly = Fal
         es5 = True,
     )
 
-    # cjs bundle
-    # tfjs_rollup_bundle(
-    #     name = name + ".node",
-    #     testonly = testonly,
-    #     deps = deps,
-    #     entry_point = entry_point,
-    #     format = "cjs",
-    #     es5 = True,
-    # )
-
-    # # es5 node bundle
-    # es5_babel(
-    #     name = name + ".node",
-    #     testonly = testonly,
-    #     src = name + ".cjs.js",
-    # )
-
     # Minified bundles
     for extension in ["", ".es2017", ".fesm", ".cjs", ".node"]:
         src = name + extension
@@ -217,4 +160,3 @@ def tfjs_bundle(name, deps, entry_point, umd_name, external = [], testonly = Fal
             name = src + ".min",
             src = src,
         )
-            

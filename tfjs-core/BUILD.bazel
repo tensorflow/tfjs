@@ -71,23 +71,6 @@ ts_library(
     ],
 )
 
-# tfjs_bundle(
-#     name = "tfjs-core_test_bundle",
-#     testonly = True,
-#     entry_point = "setup_test_bazel.ts",
-#     external = [
-#         # webworker tests call 'require('@tensorflow/tfjs')', which
-#         # is external to the test bundle.
-#         # Note: This is not a bazel target. It's just a string.
-#         "@tensorflow/tfjs",
-#     ],
-#     deps = [
-#         ":tfjs-core_lib",
-#         ":tfjs-core_test_lib",
-#         "//tfjs-backend-cpu",
-#     ],
-# )    
-
 esbuild(
     name = "tfjs-core_test_bundle",
     testonly = True,
@@ -157,6 +140,9 @@ karma_web_test(
         "@npm//karma-requirejs",
         "@npm//karma-sourcemap-loader",
         "@npm//requirejs",
+        # The above dependencies are the default when 'peer_deps' is not
+        # specified. They are manually spefied here so we can append
+        # karma-browserstack-launcher.
         "@npm//karma-browserstack-launcher",
     ],
     static_files = [
@@ -165,81 +151,3 @@ karma_web_test(
     ],
     tags = ["ci"],
 )
-
-
-
-# ts_project(
-#     name = "tfjs-core_lib",
-#     srcs = glob(
-#         ["src/**/*.ts"],
-#         exclude = TEST_SRCS,
-#     ),
-#     declaration = True,
-#     extends = "@//:tsconfig.json",
-#     incremental = True,
-#     out_dir = "dist",
-#     root_dir = "src",
-#     source_map = True,
-#     tsconfig = {
-#         "compilerOptions": {
-#             "target": "es5",
-#         },
-#     },
-#     deps = [
-#         "@npm//@types",
-#         "@npm//jasmine-core",
-#         "@npm//seedrandom",
-#     ],
-# )
-
-# ts_project(
-#     name = "tfjs-core_lib",
-#     srcs = glob(
-#         ["src/**/*.ts"],
-#         exclude = TEST_SRCS,
-#     ),
-#     declaration = True,
-#     extends = "//:tsconfig.json",
-#     incremental = True,
-#     out_dir = "dist",
-#     root_dir = "src",
-#     source_map = True,
-#     tsconfig = "tsconfig.json",
-#     deps = [
-#         "@npm//@types",
-#         "@npm//jasmine-core",
-#         "@npm//seedrandom",
-#     ],
-# )
-
-# tfjs_ts_project(
-#     name = "tfjs-core_lib",
-#     srcs = glob(
-#         ["src/**/*.ts"],
-#         exclude = TEST_SRCS,
-#     ),
-#     tsconfig = "tsconfig.json",
-#     deps = [
-#         "@npm//@types",
-#         "@npm//jasmine-core",
-#         "@npm//seedrandom",
-#     ],
-# )
-
-
-
-# ts_library(
-#     name = "tfjs-core_lib",
-#     module_name = "@tensorflow/tfjs-core",
-#     module_root = "src",
-#     srcs = glob(
-#         ["src/**/*.ts"],
-#         exclude = TEST_SRCS,
-#     ),
-#     deps = [
-#         "@npm//@types",
-#         "@npm//jasmine-core",
-#         "@npm//seedrandom",
-#     ],
-#     tsconfig = "//:tsconfig_ts_library.json",
-# )
