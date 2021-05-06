@@ -104,6 +104,11 @@ export const REACT_NATIVE_PHASE: Phase = {
   deps: ['tfjs-core', 'tfjs-backend-cpu', 'tfjs-backend-webgl']
 };
 
+export const TFLITE_PHASE: Phase = {
+  packages: ['tfjs-tflite'],
+  deps: ['tfjs-core', 'tfjs-backend-cpu']
+};
+
 export const WEBSITE_PHASE: Phase = {
   packages: ['tfjs-website'],
   deps: ['tfjs', 'tfjs-node', 'tfjs-vis', 'tfjs-react-native'],
@@ -130,6 +135,11 @@ export const REACT_NATIVE_RELEASE_UNIT: ReleaseUnit = {
   phases: [REACT_NATIVE_PHASE]
 };
 
+export const TFLITE_RELEASE_UNIT: ReleaseUnit = {
+  name: 'tflite',
+  phases: [TFLITE_PHASE]
+};
+
 export const WEBSITE_RELEASE_UNIT: ReleaseUnit = {
   name: 'website',
   phases: [WEBSITE_PHASE],
@@ -138,7 +148,7 @@ export const WEBSITE_RELEASE_UNIT: ReleaseUnit = {
 
 export const RELEASE_UNITS: ReleaseUnit[] = [
   TFJS_RELEASE_UNIT, VIS_RELEASE_UNIT, REACT_NATIVE_RELEASE_UNIT,
-  WEBSITE_RELEASE_UNIT
+  TFLITE_RELEASE_UNIT, WEBSITE_RELEASE_UNIT
 ];
 
 export const TMP_DIR = '/tmp/tfjs-release';
