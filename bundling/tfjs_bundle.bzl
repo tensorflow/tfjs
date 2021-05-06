@@ -1,7 +1,4 @@
 load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
-load("//:esbuild.bzl", "esbuild")
-load("@npm//typescript:index.bzl", "tsc")
-load("@npm//@babel/cli:index.bzl", "babel")
 load("@npm//@bazel/terser:index.bzl", "terser_minified")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
 
@@ -38,58 +35,6 @@ def tfjs_rollup_bundle(name, deps, entry_point, umd_name=None, es5=False, **kwar
         srcs = srcs,
         **kwargs,
     )
-
-def es5(name, testonly, src):
-    tsc(
-        name = name,
-        testonly = testonly,
-        outs = [
-            name + ".js",
-            name + ".js.map",
-        ],
-        args = [
-            "$(execpath :{})".format(src),
-            "--types",
-            "--skipLibCheck",
-            "--target",
-            "es5",
-            "--lib",
-            "es2015,dom",
-            "--allowJS",
-            "--sourcemap",
-            "--outFile",
-            "$(execpath :{}.js)".format(name),
-        ],
-        data = [
-            src,
-            src + ".map",
-        ],
-    )
-
-def es5_babel(name, testonly, src):
-    babel(
-        name = name,
-        outs = [
-            name + ".js",
-            name + ".js.map",
-        ],
-        args = [
-            "$(execpath :{})".format(src),
-            "--config-file",
-            "./$(execpath @//bundling:es5.babelrc)",
-            "--source-maps",
-            "true",
-            "--out-file",
-            "$(execpath :{}.js)".format(name),
-        ],
-        data = [
-            src,
-            src + ".map",
-            "@//bundling:es5.babelrc",
-            "@npm//@babel/preset-env",
-        ],
-    )
-
 
 def tfjs_ts_project(name, srcs, **kwargs):
     ts_project(
