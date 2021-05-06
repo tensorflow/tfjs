@@ -438,7 +438,7 @@ def _find_signature_def_name(tensor, signature_map):
         tensor_shape_str == signature_shape_str):
       names.append(key)
 
-  if not len(names) or len(names) > 1:
+  if not names or len(names) > 1:
     return tensor.name
   else:
     return names[0]
