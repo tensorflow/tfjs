@@ -3,13 +3,13 @@
   "version": "0.0.0",
   "description": "Hardware-accelerated JavaScript library for machine intelligence",
   "private": false,
-  "main": "dist/tf-core.node.js",
-  "jsdelivr": "dist/tf-core.min.js",
-  "unpkg": "dist/tf-core.min.js",
+  "main": "tf-core.node.js",
+  "jsdelivr": "tf-core.min.js",
+  "unpkg": "tf-core.min.js",
   "types": "dist/index.d.ts",
   "jsnext:main": "dist/index.js",
   "module": "dist/index.js",
-  "miniprogram": "dist/miniprogram",
+  "miniprogram": "miniprogram",
   "engines": {
     "yarn": ">= 1.3.2"
   },

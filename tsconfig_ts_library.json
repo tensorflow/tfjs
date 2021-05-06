@@ -39,6 +39,9 @@
       }
     ]
   },
+  "bazelOptions": {
+    "devmodeTargetOverride": "es2017"
+  },
   "include": [
     "src/"
   ],

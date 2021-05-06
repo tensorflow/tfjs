@@ -13,22 +13,18 @@
 # limitations under the License.
 # =============================================================================
 
-load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
-load("@npm//@bazel/typescript:index.bzl", "ts_project")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "pkg_npm")
+load("@npm//@bazel/typescript:index.bzl", "ts_library", "ts_project")
 load("//:esbuild.bzl", "esbuild")
+load("//bundling:tfjs_bundle.bzl", "tfjs_bundle", "tfjs_ts_project")
+
 
 package(default_visibility = ["//visibility:public"])
 
-ts_project(
+tfjs_ts_project(
     name = "tfjs-backend-cpu_lib",
     srcs = glob(["src/**/*.ts"]),
-    declaration = True,
-    extends = "//:tsconfig.json",
-    incremental = True,
-    out_dir = "dist",
     root_dir = "src",
-    source_map = True,
-    tsconfig = "tsconfig.json",
     deps = [
         "//tfjs-core",
         "@npm//@types/jasmine",
@@ -36,48 +32,107 @@ ts_project(
     ],
 )
 
-esbuild(
-    name = "tf-backend-cpu.min",
-    args = [
-        "--resolve-extensions=.mjs,.js",
-    ],
+# ts_project(
+#     name = "tfjs-backend-cpu_lib",
+#     srcs = glob(["src/**/*.ts"]),
+#     declaration = True,
+#     extends = "//:tsconfig.json",
+#     incremental = True,
+#     out_dir = "dist",
+#     root_dir = "src",
+#     source_map = True,
+#     tsconfig = "tsconfig.json",
+#     deps = [
+#         "//tfjs-core",
+#         "@npm//@types/jasmine",
+#         "@npm//jasmine",
+#     ],
+# )
+
+# ts_library(
+#     name = "tfjs-backend-cpu_lib",
+#     module_name = "@tensorflow/tfjs-backend-cpu",
+#     module_root = "src",
+#     srcs = glob(["src/**/*.ts"]),
+#     deps = [
+#         "//tfjs-core:tfjs-core_lib",
+#         "@npm//@types/jasmine",
+#         "@npm//jasmine",
+#         "@npm//seedrandom",
+#         "@npm//@types/seedrandom",
+#     ],
+#     tsconfig = "//:tsconfig_ts_library.json",
+# )
+
+
+# esbuild(
+#     name = "tf-backend-cpu.min",
+#     args = [
+#         "--resolve-extensions=.mjs,.js",
+#     ],
+#     entry_point = "dist/index.js",
+#     external = [
+#         "node-fetch",
+#         "util",
+#     ],
+#     minify = True,
+#     sources_content = True,
+#     deps = [
+#         ":tfjs-backend-cpu_lib",
+#     ],
+# )
+
+# esbuild(
+#     name = "tf-backend-cpu.node",
+#     args = [
+#         "--resolve-extensions=.mjs,.js",
+#     ],
+#     entry_point = "dist/index.js",
+#     external = [
+#         "node-fetch",
+#         "util",
+#     ],
+#     sources_content = True,
+#     deps = [
+#         ":tfjs-backend-cpu_lib",
+#     ],
+# )
+
+tfjs_bundle(
+    name = "tf-backend-cpu",
+    umd_name = "tf",
     entry_point = "dist/index.js",
+    es5_entry_point = "dist_es5/index.js",
     external = [
         "node-fetch",
         "util",
     ],
-    minify = True,
-    sources_content = True,
     deps = [
         ":tfjs-backend-cpu_lib",
     ],
 )
 
-esbuild(
-    name = "tf-backend-cpu.node",
-    args = [
-        "--resolve-extensions=.mjs,.js",
-    ],
-    entry_point = "dist/index.js",
-    external = [
-        "node-fetch",
-        "util",
-    ],
-    sources_content = True,
-    deps = [
-        ":tfjs-backend-cpu_lib",
-    ],
-)
+
+PKG_DEPS = [
+    ":tf-backend-cpu",
+    ":tf-backend-cpu.min",
+    ":tf-backend-cpu.es2017",
+    ":tf-backend-cpu.es2017.min",
+    ":tf-backend-cpu.fesm",
+    ":tf-backend-cpu.fesm.min",
+    ":tf-backend-cpu.node",
+    ":tfjs-backend-cpu_lib",
+]
 
 js_library(
     name = "tfjs-backend-cpu",
     package_name = "@tensorflow/tfjs-backend-cpu",
-    srcs = [
-        "package.json",
-    ],
-    deps = [
-        ":tf-backend-cpu.min",
-        ":tf-backend-cpu.node",
-        ":tfjs-backend-cpu_lib",
-    ],
+    srcs = ["package.json"],
+    deps = PKG_DEPS,
+)
+
+pkg_npm(
+    name = "tfjs-backend-cpu_pkg",
+    srcs = ["package.json"],
+    deps = PKG_DEPS,
 )
