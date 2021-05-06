@@ -434,7 +434,8 @@ def _find_signature_def_name(tensor, signature_map):
   for key in signature_map:
     tensor_info = signature_map[key]
     signature_shape_str = tensor_info.tensor_shape.SerializeToString()
-    if tensor_info.dtype == tensor.dtype and tensor_shape_str == signature_shape_str:
+    if (tensor_info.dtype == tensor.dtype and
+        tensor_shape_str == signature_shape_str):
       names.append(key)
 
   if len(names) == 0 or len(names) > 1:
@@ -443,7 +444,7 @@ def _find_signature_def_name(tensor, signature_map):
     return names[0]
 
 def _build_signature_def(frozen_graph, input_nodes, output_nodes,
-                         signature_def):
+                         signature_def=None):
   signature = meta_graph_pb2.SignatureDef()
   for input_tensor in input_nodes:
     op_name = input_tensor.name.split(':')[0]
@@ -452,7 +453,9 @@ def _build_signature_def(frozen_graph, input_nodes, output_nodes,
     try:
       op = frozen_graph.get_operation_by_name(op_name)
       if op.type != 'Const':
-        name = _find_signature_def_name(input_tensor, signature_def.inputs)
+        name = input_tensor.name
+        if hasattr(signature_def, 'inputs'):
+          name = _find_signature_def_name(input_tensor, signature_def.inputs)
         signature.inputs[name].name = input_tensor.name
         signature.inputs[name].dtype = input_tensor.dtype.as_datatype_enum
         signature.inputs[name].tensor_shape.CopyFrom(
@@ -462,7 +465,9 @@ def _build_signature_def(frozen_graph, input_nodes, output_nodes,
       continue
   for output_tensor in output_nodes:
     if hasattr(output_tensor, 'name'):
-      name = _find_signature_def_name(output_tensor, signature_def.outputs)
+      name = output_tensor.name
+      if hasattr(signature_def, 'inputs'):
+        name = _find_signature_def_name(output_tensor, signature_def.outputs)
       signature.outputs[name].name = output_tensor.name
       signature.outputs[name].dtype = output_tensor.dtype.as_datatype_enum
       signature.outputs[name].tensor_shape.CopyFrom(
@@ -528,6 +533,14 @@ def _load_model(saved_model_dir, saved_model_tags):
       model = load(saved_model_dir)
   return model
 
+def _find_signature(saved_model_dir, saved_model_tags, signature_def):
+  signature_def_map = get_signature_def_map(saved_model_dir, saved_model_tags)
+  if signature_def not in signature_def_map.keys():
+    raise ValueError('Signature "%s" does on exist in the saved model'
+                     % (signature_def))
+
+  return signature_def_map[signature_def]
+
 def convert_tf_saved_model(saved_model_dir,
                            output_dir, signature_def='serving_default',
                            saved_model_tags='serve',
@@ -572,13 +585,8 @@ def convert_tf_saved_model(saved_model_dir,
   output_graph = os.path.join(
       output_dir, common.ARTIFACT_MODEL_JSON_FILE_NAME)
 
-  signature_def_map = get_signature_def_map(saved_model_dir, saved_model_tags)
-  if signature_def not in signature_def_map.keys():
-      raise ValueError(
-          'Signature "%s" does on existing in the saved model, available '
-          'signatures are: %s' % (signature_def, signature_def_map.keys()))
-
-  saved_model_sigature = signature_def_map[signature_def]
+  saved_model_sigature = _find_signature(saved_model_dir, saved_model_tags,
+                                         signature_def)
 
   if saved_model_tags:
     saved_model_tags = saved_model_tags.split(',')
