@@ -300,9 +300,13 @@ const losses = {
 
 import {sparseFillEmptyRows} from './sparse/sparse_fill_empty_rows';
 import {sparseReshape} from './sparse/sparse_reshape';
+import {sparseSegmentMean} from './sparse/sparse_segment_mean';
+import {sparseSegmentSum} from './sparse/sparse_segment_sum';
 const sparse = {
   sparseFillEmptyRows,
-  sparseReshape
+  sparseReshape,
+  sparseSegmentMean,
+  sparseSegmentSum
 };
 
 // Second level exports.
