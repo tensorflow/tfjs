@@ -34,6 +34,9 @@ build --spawn_strategy=worker,local
 run --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 test --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 
+# Enable debugging tests with --config=debug
+run:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=9999 --nocache_test_results
+
 # Load any settings specific to the current user.
 # .bazelrc.user should appear in .gitignore so that settings are not shared with
 # team members. This needs to be last statement in this config, as the user
