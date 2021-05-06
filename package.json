@@ -42,7 +42,6 @@
     "requirejs": "^2.3.6",
     "rollup": "^2.46.0",
     "rollup-plugin-sourcemaps": "^0.6.3",
-    "rollup-plugin-terser": "^7.0.2",
     "seedrandom": "^3.0.5",
     "shelljs": "~0.8.3",
     "terser": "^5.7.0",
