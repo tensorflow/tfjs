@@ -100,6 +100,35 @@ describeWithFlags('sparseFillEmptyRows', ALL_ENVS, () => {
     expectArraysClose(await result.reverseIndexMap.data(), []);
   });
 
+  it('check output metadata', async () => {
+    const sparseTensor = {
+      ind: tf.tensor2d(
+          [[0, 0], [1, 0], [1, 3], [1, 4], [3, 2], [3, 3]], [6, 2], 'int32'),
+      val: tf.tensor1d([0, 10, 13, 14, 32, 33], 'float32'),
+      shape: [5, 6],
+    };
+    const result = tf.sparse.sparseFillEmptyRows(
+        sparseTensor.ind, sparseTensor.val, sparseTensor.shape, -1);
+
+    expectArraysClose(
+        await result.outputIndices.data(),
+        [[0, 0], [1, 0], [1, 3], [1, 4], [2, 0], [3, 2], [3, 3], [4, 0]]);
+    expectArraysClose(
+        await result.outputValues.data(), [0, 10, 13, 14, -1, 32, 33, -1]);
+    expectArraysClose(await result.emptyRowIndicator.data(), [0, 0, 1, 0, 1]);
+    expectArraysClose(await result.reverseIndexMap.data(), [0, 1, 2, 3, 5, 6]);
+
+    expect(result.outputIndices.shape).toEqual([8, 2]);
+    expect(result.outputValues.shape).toEqual([8]);
+    expect(result.emptyRowIndicator.shape).toEqual([5]);
+    expect(result.reverseIndexMap.shape).toEqual([6]);
+
+    expect(result.outputIndices.dtype).toEqual(sparseTensor.ind.dtype);
+    expect(result.outputValues.dtype).toEqual(sparseTensor.val.dtype);
+    expect(result.emptyRowIndicator.dtype).toEqual('bool');
+    expect(result.reverseIndexMap.dtype).toEqual(sparseTensor.ind.dtype);
+  });
+
   it('throw error if dense rows is empty and indices is not', async () => {
     const sparseTensor = {
       ind: tf.tensor2d([[0, 0]], [1, 2], 'int32'),

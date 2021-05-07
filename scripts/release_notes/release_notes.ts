@@ -67,6 +67,12 @@ const RN_REPO: Repo = {
   path: 'tfjs-react-native',
 };
 
+const TFLITE_REPO: Repo = {
+  name: 'tfjs-tflite',
+  identifier: 'tfjs-tflite',
+  path: 'tfjs-tflite',
+};
+
 async function askUserForVersions(validVersions: string[], packageName: string):
     Promise<{startVersion: string, endVersion: string}> {
   const YELLOW_TERMINAL_COLOR = '\x1b[33m%s\x1b[0m';
@@ -148,13 +154,28 @@ async function generateReactNativeNotes() {
   const {startVersion, endVersion} =
       await askUserForVersions(versions, 'tfjs-react-native');
 
-  // Get tfjs-vis start version and end version.
+  // Get tfjs-react-native start version and end version.
   RN_REPO.startVersion = startVersion;
   RN_REPO.endVersion = endVersion;
   RN_REPO.startCommit = $(`git rev-list -n 1 ${
       getTagName(RN_REPO.identifier, RN_REPO.startVersion)}`);
 
   await generateNotes([RN_REPO]);
+}
+
+async function generateTfliteNotes() {
+  // Get start version and end version.
+  const versions = getTaggedVersions('tfjs-tflite');
+  const {startVersion, endVersion} =
+      await askUserForVersions(versions, 'tfjs-tflite');
+
+  // Get tfjs-tflite start version and end version.
+  TFLITE_REPO.startVersion = startVersion;
+  TFLITE_REPO.endVersion = endVersion;
+  TFLITE_REPO.startCommit = $(`git rev-list -n 1 ${
+      getTagName(TFLITE_REPO.identifier, TFLITE_REPO.startVersion)}`);
+
+  await generateNotes([TFLITE_REPO]);
 }
 
 
@@ -251,4 +272,6 @@ if (args.project === 'union') {
   generateVisNotes();
 } else if (args.project === 'rn') {
   generateReactNativeNotes();
+} else if (args.project === 'tflite') {
+  generateTfliteNotes();
 }

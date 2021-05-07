@@ -56,6 +56,22 @@ export const executeOp: InternalOpExecutor =
               getParamValue('newShape', node, tensorMap, context) as Tensor1D);
           return [outputIndices, outputShape];
         }
+        case 'SparseSegmentMean': {
+          const outputData = tfOps.sparse.sparseSegmentMean(
+              getParamValue('data', node, tensorMap, context) as Tensor,
+              getParamValue('indices', node, tensorMap, context) as Tensor1D,
+              getParamValue('segmentIds', node, tensorMap, context) as
+                  Tensor1D);
+          return [outputData];
+        }
+        case 'SparseSegmentSum': {
+          const outputData = tfOps.sparse.sparseSegmentSum(
+              getParamValue('data', node, tensorMap, context) as Tensor,
+              getParamValue('indices', node, tensorMap, context) as Tensor1D,
+              getParamValue('segmentIds', node, tensorMap, context) as
+                  Tensor1D);
+          return [outputData];
+        }
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);
       }

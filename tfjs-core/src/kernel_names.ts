@@ -774,6 +774,14 @@ export const SparseReshape = 'SparseReshape';
 export type SparseReshapeInputs =
     Pick<NamedTensorInfoMap, 'inputIndices'|'inputShape'|'newShape'>;
 
+export const SparseSegmentMean = 'SparseSegmentMean';
+export type SparseSegmentMeanInputs =
+    Pick<NamedTensorInfoMap, 'data'|'indices'|'segmentIds'>;
+
+export const SparseSegmentSum = 'SparseSegmentSum';
+export type SparseSegmentSumInputs =
+    Pick<NamedTensorInfoMap, 'data'|'indices'|'segmentIds'>;
+
 export const SparseToDense = 'SparseToDense';
 export type SparseToDenseInputs =
     Pick<NamedTensorInfoMap, 'sparseIndices'|'sparseValues'|'defaultValue'>;

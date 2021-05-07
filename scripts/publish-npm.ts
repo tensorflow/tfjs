@@ -87,6 +87,10 @@ async function main() {
     if (pkg === 'tfjs-node-gpu') {
       $('yarn prep-gpu');
     }
+    // tfjs-tflite needs to download the tflite web api from google storage.
+    if (pkg === 'tfjs-tflite') {
+      $('yarn prep');
+    }
 
     // Yarn above the other checks to make sure yarn doesn't change the lock
     // file.
