@@ -29,7 +29,7 @@ import {TFJSBinding} from './tfjs_binding';
 import * as nodeVersion from './version';
 
 // tslint:disable-next-line:no-require-imports
-const binary = require('node-pre-gyp');
+const binary = require('@mapbox/node-pre-gyp');
 const bindingPath =
     binary.find(path.resolve(path.join(__dirname, '/../package.json')));
 
@@ -40,7 +40,7 @@ if (!fs.existsSync(bindingPath)) {
   throw new Error(
       `The Node.js native addon module (tfjs_binding.node) can not ` +
       `be found at path: ` + String(bindingPath) + `. \nPlease run command ` +
-      `'npm rebuild @tensorflow/tfjs-node`+
+      `'npm rebuild @tensorflow/tfjs-node` +
       (String(bindingPath).indexOf('tfjs-node-gpu') > 0 ? `-gpu` : ``) +
       ` --build-addon-from-source' to ` +
       `rebuild the native addon module. \nIf you have problem with building ` +
