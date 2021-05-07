@@ -57,3 +57,22 @@ ENV.registerFlag('WASM_HAS_MULTITHREAD_SUPPORT', async () => {
     return false;
   }
 });
+
+// Register the used thread pool size flag.
+ENV.registerFlag(
+    'WASM_THREAD_POOL_SIZE',
+    async () => {
+      // TODO: Enable node support once this is resolved:
+      // https://github.com/tensorflow/tfjs/issues/3830
+      if (ENV.get('IS_NODE')) {
+        return 1;
+      }
+      // This should be the same as PTHREAD_POOL_SIZE in src/cc/BUILD.
+      return Math.min(4, Math.max(1, (navigator.hardwareConcurrency || 1) / 2));
+    },
+    threadPoolSize => {
+      if (threadPoolSize < 0 || threadPoolSize > 4) {
+        throw new Error(`WASM_THREAD_POOL_SIZE must be from 1 to 4, but got ${
+            threadPoolSize}.`);
+      }
+    });

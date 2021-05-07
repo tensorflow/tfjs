@@ -230,3 +230,23 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
         .toThrowError(/The WASM backend was already initialized. Make sure/);
   });
 });
+
+describeWithFlags('wasm thread test', ALL_ENVS, () => {
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
+
+  it('default thread pool size', async () => {
+    expect(await tf.env().getAsync('WASM_THREAD_POOL_SIZE'))
+        .toBeGreaterThanOrEqual(1);
+  });
+
+  it('set thread pool size', async () => {
+    tf.env().set('WASM_THREAD_POOL_SIZE', 3);
+    expect(await tf.env().getAsync('WASM_THREAD_POOL_SIZE')).toBe(3);
+  });
+
+  it('set invalid thread pool size', () => {
+    // Currently WASM_THREAD_POOL_SIZE should be from 1 to 4.
+    expect(() => tf.env().set('WASM_THREAD_POOL_SIZE', 5)).toThrow();
+  });
+});

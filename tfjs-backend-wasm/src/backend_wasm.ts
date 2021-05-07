@@ -42,9 +42,10 @@ export class BackendWasm extends KernelBackend {
   private dataIdNextNumber = 1;
   dataIdMap: DataStorage<TensorData>;
 
-  constructor(public wasm: BackendWasmModule | BackendWasmThreadedSimdModule) {
+  constructor(public wasm: BackendWasmModule|BackendWasmThreadedSimdModule) {
     super();
-    this.wasm.tfjs.init();
+
+    this.wasm.tfjs.init(threadPoolSize);
     this.dataIdMap = new DataStorage(this, engine());
   }
 
@@ -264,11 +265,15 @@ function getPathToWasmBinary(
  * returning Promise<BackendWasmModule> to avoid freezing Chrome (last tested
  * in Chrome 76).
  */
+let threadPoolSize: number;
 export async function init(): Promise<{wasm: BackendWasmModule}> {
   const [simdSupported, threadsSupported] = await Promise.all([
     env().getAsync('WASM_HAS_SIMD_SUPPORT'),
-    env().getAsync('WASM_HAS_MULTITHREAD_SUPPORT')
+    env().getAsync('WASM_HAS_MULTITHREAD_SUPPORT'),
+
   ]);
+  threadPoolSize = await env().getAsync('WASM_THREAD_POOL_SIZE') as number;
+
 
   return new Promise((resolve, reject) => {
     const factoryConfig: WasmFactoryConfig = {};
@@ -343,7 +348,7 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       const voidReturnType: string = null;
       // Using the tfjs namespace to avoid conflict with emscripten's API.
       module.tfjs = {
-        init: module.cwrap('init', null, []),
+        init: module.cwrap('init', null, ['number']),
         registerTensor: module.cwrap(
             'register_tensor', null,
             [

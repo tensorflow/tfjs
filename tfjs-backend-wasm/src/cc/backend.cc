@@ -55,15 +55,16 @@ size_t xnn_operator_count = 0;
 // emscripten_num_logical_cores corresponds to navigator.hardwareConcurrency.
 // Many x86-64 processors have 2 threads per core, so we are dividing by 2.
 #ifdef __EMSCRIPTEN_PTHREADS__
-int num_cores = emscripten_num_logical_cores() / 2;
+const int num_cores = emscripten_num_logical_cores() / 2;
 #else
-int num_cores = 1;
+const int num_cores = 1;
 #endif
 
-int min_num_threads = 1;
-int max_num_threads = 4;
-pthreadpool *threadpool = pthreadpool_create(
-    std::min(std::max(num_cores, min_num_threads), max_num_threads));
+const int min_num_threads = 1;
+const int max_num_threads = 4;
+const int thread_pool_size =
+    std::min(std::max(num_cores, min_num_threads), max_num_threads);
+pthreadpool *threadpool = nullptr;
 
 // Registers a disposal callback for a tensor id with a given callback function.
 void register_disposal_callback(const size_t tensor_id,
@@ -88,7 +89,11 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void init() { xnn_initialize(nullptr); }
+void init(const size_t thread_pool_size = tfjs::backend::thread_pool_size) {
+  // TODO(xing.xu): call pthreadpool_destroy.
+  tfjs::backend::threadpool = pthreadpool_create(thread_pool_size);
+  xnn_initialize(nullptr);
+}
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE

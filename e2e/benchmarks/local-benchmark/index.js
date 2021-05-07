@@ -21,6 +21,7 @@ const BACKEND_FLAGS_MAP = {
   wasm: [
     'WASM_HAS_SIMD_SUPPORT',
     'WASM_HAS_MULTITHREAD_SUPPORT',
+    'WASM_THREAD_POOL_SIZE',
     'CHECK_COMPUTATION_FOR_ERRORS',
   ],
   webgl: [
@@ -35,6 +36,7 @@ const TUNABLE_FLAG_NAME_MAP = {
   WEBGL_VERSION: 'webgl version',
   WASM_HAS_SIMD_SUPPORT: 'wasm SIMD',
   WASM_HAS_MULTITHREAD_SUPPORT: 'wasm multithread',
+  WASM_THREAD_POOL_SIZE: 'wasm thread pool size',
   WEBGL_CPU_FORWARD: 'cpu forward',
   WEBGL_PACK: 'webgl pack',
   WEBGL_FORCE_F16_TEXTURES: 'enforce float16',
