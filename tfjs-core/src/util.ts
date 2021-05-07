@@ -19,6 +19,7 @@ import {env} from './environment';
 import {BackendValues, DataType, TensorLike, TypedArray} from './types';
 import * as base from './util_base';
 export * from './util_base';
+export * from './hash_util';
 
 /**
  * Create typed array for scalar value. Used for storing in `DataStorage`.
