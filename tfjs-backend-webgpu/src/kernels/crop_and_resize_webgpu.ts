@@ -27,7 +27,6 @@ export class CropAndResizeProgram implements WebGPUProgram {
   variableNames = ['Image', 'Boxes', 'BoxInd'];
   uniforms = 'float extrapolationValue;';
   workGroupSize: [number, number, number] = [64, 1, 1];
-  batch: number;
   methodId: number;
   cropHeightBiggerThan1: boolean;
   cropWidthBiggerThan1: boolean;
@@ -41,7 +40,6 @@ export class CropAndResizeProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    this.batch = numBoxes;
     this.methodId = method === 'bilinear' ? 1 : 0;
     this.cropHeightBiggerThan1 = this.outputShape[1] > 1;
     this.cropWidthBiggerThan1 = this.outputShape[2] > 1;
@@ -100,7 +98,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
         float x2 = getBoxes(b,3);
         // get image in batch index
         int bInd = int(round(getBoxInd(b)));
-        if(bInd < 0 || bInd >= ${this.batch}) {
+        if(bInd < 0 || bInd >= outShape[0]) {
           return;
         }
         float height_scale = ${heightScale};
