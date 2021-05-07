@@ -96,7 +96,7 @@ extern pthreadpool *threadpool;
 namespace wasm {
 extern "C" {
 // Initializes the WASM backend.
-void init();
+void init(const size_t thread_pool_size);
 
 // Registers a tensor with a tensor ID, size, and the pointer to where the
 // tensor data lives.

@@ -430,6 +430,7 @@ const TUNABLE_FLAG_VALUE_RANGE_MAP = {
   WEBGL_VERSION: [1, 2],
   WASM_HAS_SIMD_SUPPORT: [true, false],
   WASM_HAS_MULTITHREAD_SUPPORT: [true, false],
+  WASM_THREAD_POOL_SIZE: [1, 2, 3, 4],
   WEBGL_CPU_FORWARD: [true, false],
   WEBGL_PACK: [true, false],
   WEBGL_FORCE_F16_TEXTURES: [true, false],

@@ -42,9 +42,11 @@ export class BackendWasm extends KernelBackend {
   private dataIdNextNumber = 1;
   dataIdMap: DataStorage<TensorData>;
 
-  constructor(public wasm: BackendWasmModule | BackendWasmThreadedSimdModule) {
+  constructor(public wasm: BackendWasmModule|BackendWasmThreadedSimdModule) {
     super();
-    this.wasm.tfjs.init();
+
+    const threadPoolSize = env().getNumber('WASM_THREAD_POOL_SIZE');
+    this.wasm.tfjs.init(threadPoolSize);
     this.dataIdMap = new DataStorage(this, engine());
   }
 
@@ -343,7 +345,7 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       const voidReturnType: string = null;
       // Using the tfjs namespace to avoid conflict with emscripten's API.
       module.tfjs = {
-        init: module.cwrap('init', null, []),
+        init: module.cwrap('init', null, ['number']),
         registerTensor: module.cwrap(
             'register_tensor', null,
             [

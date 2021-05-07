@@ -123,3 +123,23 @@ describe('async flags test', () => {
     expect(() => tf.env().get(asyncFlagName)).toThrow();
   });
 });
+
+describe('wasm thread test', () => {
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
+
+  it('default thread pool size', () => {
+    expect(tf.env().getNumber('WASM_THREAD_POOL_SIZE'))
+        .toBeGreaterThanOrEqual(1);
+  });
+
+  it('set thread pool size', () => {
+    tf.env().set('WASM_THREAD_POOL_SIZE', 3);
+    expect(tf.env().getNumber('WASM_THREAD_POOL_SIZE')).toBe(3);
+  });
+
+  it('set invalid thread pool size', () => {
+    // Currently WASM_THREAD_POOL_SIZE should be from 1 to 4.
+    expect(() => tf.env().set('WASM_THREAD_POOL_SIZE', 5)).toThrow();
+  });
+});
