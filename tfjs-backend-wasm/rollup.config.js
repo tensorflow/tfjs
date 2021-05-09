@@ -21,6 +21,7 @@ import node from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
 import visualizer from 'rollup-plugin-visualizer';
 import {getBrowserBundleConfigOptions} from '../rollup.config.helpers';
+import {patchWechatWebAssembly} from './scripts/patch-wechat-webassembly'
 
 const PREAMBLE = `/**
  * @license
@@ -143,7 +144,8 @@ module.exports = cmdOptions => {
         freeze: false
       },
       ignore: ['fs', 'path', 'worker_threads', 'perf_hooks', 'os'],
-      tsCompilerOptions: {target: 'es5'}
+      tsCompilerOptions: {target: 'es6'},
+      plugins: [ patchWechatWebAssembly() ]
     }));
   } else {
     const browserBundles = getBrowserBundleConfigOptions(
