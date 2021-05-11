@@ -28,14 +28,10 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   alignCorners: boolean;
   halfPixelCenters: boolean;
-  oldHeight: number;
-  oldWidth: number;
 
   constructor(
       inputShape: [number, number, number, number], newHeight: number,
       newWidth: number, alignCorners: boolean, halfPixelCenters: boolean) {
-    this.oldHeight = inputShape[1];
-    this.oldWidth = inputShape[2];
     this.outputShape = [inputShape[0], newHeight, newWidth, inputShape[3]];
 
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
