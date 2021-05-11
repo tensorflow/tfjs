@@ -21,7 +21,7 @@ import node from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
 import visualizer from 'rollup-plugin-visualizer';
 import {getBrowserBundleConfigOptions} from '../rollup.config.helpers';
-import {patchWechatWebAssembly} from './scripts/patch-wechat-webassembly'
+import {patchWechatWebAssembly} from './scripts/patch-wechat-webassembly';
 
 const PREAMBLE = `/**
  * @license
