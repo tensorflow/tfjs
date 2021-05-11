@@ -144,7 +144,7 @@ module.exports = cmdOptions => {
         freeze: false
       },
       ignore: ['fs', 'path', 'worker_threads', 'perf_hooks', 'os'],
-      tsCompilerOptions: {target: 'es6'},
+      tsCompilerOptions: {target: 'es5'},
       plugins: [ patchWechatWebAssembly() ]
     }));
   } else {
