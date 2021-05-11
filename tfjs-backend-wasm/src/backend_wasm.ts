@@ -210,6 +210,8 @@ export class BackendWasm extends KernelBackend {
 }
 
 function createInstantiateWasmFunc(path: string) {
+  // this will be replace by rollup plugin patchWechatWebAssembly in 
+  // minprogram's output.
   // tslint:disable-next-line:no-any
   return (imports: any, callback: any) => {
     util.fetch(path, {credentials: 'same-origin'}).then((response) => {
