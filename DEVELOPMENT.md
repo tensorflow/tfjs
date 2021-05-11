@@ -1,15 +1,32 @@
 ## Development
 
-This repository contains only the logic and scripts that combine the following NPM packages:
-- TensorFlow.js Core (@tensorflow/tfjs-core),
-  a flexible low-level linear algebra and gradients API.
-- TensorFlow.js Layers (@tensorflow/tfjs-layers),
-  a high-level model-centric API which implements functionality similar to
+This repository is a monorepo that contains the following NPM packages:
+
+APIs:
+- [TensorFlow.js Core](/tfjs-core),
+  a flexible low-level API for neural networks and numerical computation.
+- [TensorFlow.js Layers](/tfjs-layers),
+  a high-level API which implements functionality similar to
   [Keras](https://keras.io/).
-- TensorFlow.js Converter (@tensorflow/tfjs-converter),
-  a library to load converted TensorFlow SavedModels and execute them in JavaScript.
-- TensorFlow.js Data (@tensorflow/tfjs-data),
-  a library to load and prepare data for use in machine learning models.
+- [TensorFlow.js Data](/tfjs-data),
+  a simple API to load and prepare data analogous to
+  [tf.data](https://www.tensorflow.org/guide/datasets).
+- [TensorFlow.js Converter](/tfjs-converter),
+  tools to import a TensorFlow SavedModel to TensorFlow.js
+- [TensorFlow.js Vis](/tfjs-vis),
+  in-browser visualization for TensorFlow.js models
+- [TensorFlow.js AutoML](/tfjs-automl),
+  Set of APIs to load and run models produced by
+  [AutoML Edge](https://cloud.google.com/vision/automl/docs/edge-quickstart).
+
+
+Backends/Platforms:
+- [TensorFlow.js CPU Backend](/tfjs-backend-cpu), pure-JS backend for Node.js and the browser.
+- [TensorFlow.js WebGL Backend](/tfjs-backend-webgl), WebGL backend for the browser.
+- [TensorFlow.js WASM Backend](/tfjs-backend-wasm), WebAssembly backend for the browser.
+- [TensorFlow.js WebGPU](/tfjs-backend-webgpu), WebGPU backend for the browser.
+- [TensorFlow.js Node](/tfjs-node), Node.js platform via TensorFlow C++ adapter.
+- [TensorFlow.js React Native](/tfjs-react-native), React Native platform via expo-gl adapter.
 
 #### Yarn
 We use yarn, and if you are adding or removing dependencies you should use yarn
@@ -32,8 +49,13 @@ Before submitting a pull request, make sure the code passes all the tests and is
 $ yarn test
 $ yarn lint
 ```
+This will install yarn dependencies, build the other TensorFlow.js packages that the package being tested depeds on,
+and run the tests for the package. During development, you may want to run `yarn test-dev` instead to avoid
+unnecessarily rebuilding dependencies.
 
-To run a subset of tests and/or on a specific browser:
+Many TensorFlow.js packages use Karma to run tests in a browser. These tests can be configured by command-line options.
+
+To run a subset of tests on a specific browser:
 
 ```bash
 $ yarn test --browsers=Chrome --grep='multinomial'

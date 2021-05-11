@@ -65,6 +65,7 @@
     "lint": "tslint -p . -t verbose",
     "run-browserstack": "karma start --browserstack",
     "test": "./scripts/test.sh",
+    "coverage": "KARMA_COVERAGE=1 ./scripts/test.sh",
     "test-ci": "./scripts/test-ci.sh",
     "update-dependency": "ts-node ./scripts/update-dependency.ts"
   },

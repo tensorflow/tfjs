@@ -93,16 +93,13 @@ const IGNORE_LIST: string[] = [
   // not available in tf yet.
   'denseBincount',
   // only available in tf addon.
-  'image.transform',
-  // Breaking change in NaN processing
-  // See https://github.com/tensorflow/tfjs/issues/4883
-  'max test-tensorflow {} ignores NaNs', 'min test-tensorflow {} ignores NaNs',
-  'sign test-tensorflow {} basic',
+  'image.transform', 'sign test-tensorflow {} basic',
   'sign test-tensorflow {} does not propagate NaNs',
   'sign test-tensorflow {} accepts a tensor-like object',
   // Node kernel for einsum is yet to be implemented.
   // See: ttps://github.com/tensorflow/tfjs/issues/2349
-  'einsum', 'sparseReshape'
+  'einsum', 'sparseFillEmptyRows', 'sparseReshape', 'sparseSegmentMean',
+  'sparseSegmentSum'
 ];
 
 if (process.platform === 'win32') {

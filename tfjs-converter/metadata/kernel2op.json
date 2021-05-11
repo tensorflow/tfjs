@@ -455,8 +455,17 @@
   "SpaceToBatchND": [
     "spaceToBatchND"
   ],
+  "SparseFillEmptyRows": [
+    "sparse.sparseFillEmptyRows"
+  ],
   "SparseReshape": [
     "sparse.sparseReshape"
+  ],
+  "SparseSegmentMean": [
+    "sparse.sparseSegmentMean"
+  ],
+  "SparseSegmentSum": [
+    "sparse.sparseSegmentSum"
   ],
   "SparseToDense": [
     "sparseToDense",

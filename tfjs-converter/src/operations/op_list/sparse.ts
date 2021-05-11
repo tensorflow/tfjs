@@ -17,14 +17,45 @@
 
 import {OpMapper} from '../types';
 
-export const json: OpMapper[] = [{
-  'tfOpName': 'SparseReshape',
-  'category': 'sparse',
-  'inputs': [
-    {'start': 0, 'name': 'inputIndices', 'type': 'tensor'},
-    {'start': 1, 'name': 'inputShape', 'type': 'tensor'},
-    {'start': 2, 'name': 'newShape', 'type': 'tensor'},
-  ],
-  'attrs':
-      [{'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}]
-}];
+export const json: OpMapper[] = [
+  {
+    'tfOpName': 'SparseFillEmptyRows',
+    'category': 'sparse',
+    'inputs': [
+      {'start': 0, 'name': 'indices', 'type': 'tensor'},
+      {'start': 1, 'name': 'values', 'type': 'tensor'},
+      {'start': 2, 'name': 'denseShape', 'type': 'tensor'},
+      {'start': 3, 'name': 'defaultValue', 'type': 'tensor'},
+    ]
+  },
+  {
+    'tfOpName': 'SparseReshape',
+    'category': 'sparse',
+    'inputs': [
+      {'start': 0, 'name': 'inputIndices', 'type': 'tensor'},
+      {'start': 1, 'name': 'inputShape', 'type': 'tensor'},
+      {'start': 2, 'name': 'newShape', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
+    ]
+  },
+  {
+    'tfOpName': 'SparseSegmentMean',
+    'category': 'sparse',
+    'inputs': [
+      {'start': 0, 'name': 'data', 'type': 'tensor'},
+      {'start': 1, 'name': 'indices', 'type': 'tensor'},
+      {'start': 2, 'name': 'segmentIds', 'type': 'tensor'},
+    ]
+  },
+  {
+    'tfOpName': 'SparseSegmentSum',
+    'category': 'sparse',
+    'inputs': [
+      {'start': 0, 'name': 'data', 'type': 'tensor'},
+      {'start': 1, 'name': 'indices', 'type': 'tensor'},
+      {'start': 2, 'name': 'segmentIds', 'type': 'tensor'},
+    ]
+  }
+];

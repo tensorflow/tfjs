@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor, Tensor1D, Tensor2D} from '@tensorflow/tfjs-core';
+import {Scalar, Tensor, Tensor1D, Tensor2D} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
@@ -29,6 +29,25 @@ export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
      context: ExecutionContext): Tensor[] => {
       switch (node.op) {
+        case 'SparseFillEmptyRows': {
+          const {
+            outputIndices,
+            outputValues,
+            emptyRowIndicator,
+            reverseIndexMap
+          } =
+              tfOps.sparse.sparseFillEmptyRows(
+                  getParamValue('indices', node, tensorMap, context) as
+                      Tensor2D,
+                  getParamValue('values', node, tensorMap, context) as Tensor1D,
+                  getParamValue('denseShape', node, tensorMap, context) as
+                      Tensor1D,
+                  getParamValue('defaultValue', node, tensorMap, context) as
+                      Scalar);
+          return [
+            outputIndices, outputValues, emptyRowIndicator, reverseIndexMap
+          ];
+        }
         case 'SparseReshape': {
           const {outputIndices, outputShape} = tfOps.sparse.sparseReshape(
               getParamValue('inputIndices', node, tensorMap, context) as
@@ -37,9 +56,25 @@ export const executeOp: InternalOpExecutor =
               getParamValue('newShape', node, tensorMap, context) as Tensor1D);
           return [outputIndices, outputShape];
         }
+        case 'SparseSegmentMean': {
+          const outputData = tfOps.sparse.sparseSegmentMean(
+              getParamValue('data', node, tensorMap, context) as Tensor,
+              getParamValue('indices', node, tensorMap, context) as Tensor1D,
+              getParamValue('segmentIds', node, tensorMap, context) as
+                  Tensor1D);
+          return [outputData];
+        }
+        case 'SparseSegmentSum': {
+          const outputData = tfOps.sparse.sparseSegmentSum(
+              getParamValue('data', node, tensorMap, context) as Tensor,
+              getParamValue('indices', node, tensorMap, context) as Tensor1D,
+              getParamValue('segmentIds', node, tensorMap, context) as
+                  Tensor1D);
+          return [outputData];
+        }
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);
       }
     };
 
-export const CATEGORY = 'convolution';
+export const CATEGORY = 'sparse';

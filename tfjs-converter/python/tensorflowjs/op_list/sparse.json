@@ -1,5 +1,31 @@
 [
   {
+    "tfOpName": "SparseFillEmptyRows",
+    "category": "sparse",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "indices",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "values",
+        "type": "tensor"
+      },
+      {
+        "start": 2,
+        "name": "denseShape",
+        "type": "tensor"
+      },
+      {
+        "start": 3,
+        "name": "defaultValue",
+        "type": "tensor"
+      }
+    ]
+  },
+  {
     "tfOpName": "SparseReshape",
     "category": "sparse",
     "inputs": [
@@ -25,6 +51,48 @@
         "name": "dtype",
         "type": "dtype",
         "notSupported": true
+      }
+    ]
+  },
+  {
+    "tfOpName": "SparseSegmentMean",
+    "category": "sparse",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "data",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "indices",
+        "type": "tensor"
+      },
+      {
+        "start": 2,
+        "name": "segmentIds",
+        "type": "tensor"
+      }
+    ]
+  },
+  {
+    "tfOpName": "SparseSegmentSum",
+    "category": "sparse",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "data",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "indices",
+        "type": "tensor"
+      },
+      {
+        "start": 2,
+        "name": "segmentIds",
+        "type": "tensor"
       }
     ]
   }

@@ -68,6 +68,13 @@ export class ReduceProgram implements GPGPUProgram {
         prodValue *= tmp[0] * tmp[1];
       } else {
         minMaxValue = ${compareOp}(values, minMaxValue);
+        if (${reduceType === 'min'} || ${reduceType === 'max'}) {
+          minMaxValue = ${compareOp}(values, minMaxValue);
+          bvec4 isNaN = isnan(values);
+          if (isNaN.r || isNaN.g || isNaN.b || isNaN.a) {
+            minMaxValue = vec4(NAN);
+          }
+        }
       }
     `;
 

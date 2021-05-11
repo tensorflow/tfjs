@@ -298,8 +298,16 @@ const losses = {
   softmaxCrossEntropy
 };
 
+import {sparseFillEmptyRows} from './sparse/sparse_fill_empty_rows';
 import {sparseReshape} from './sparse/sparse_reshape';
-const sparse = {sparseReshape};
+import {sparseSegmentMean} from './sparse/sparse_segment_mean';
+import {sparseSegmentSum} from './sparse/sparse_segment_sum';
+const sparse = {
+  sparseFillEmptyRows,
+  sparseReshape,
+  sparseSegmentMean,
+  sparseSegmentSum
+};
 
 // Second level exports.
 export {image, linalg, losses, spectral, fused, signal, sparse};

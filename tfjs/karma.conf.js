@@ -15,6 +15,32 @@
  * =============================================================================
  */
 
+const karmaTypescriptConfig = {
+  tsconfig: 'tsconfig.test.json',
+  // Disable coverage reports and instrumentation by default for tests
+  coverageOptions: {instrumentation: false},
+  reports: {},
+  bundlerOptions: {
+    acornOptions: {ecmaVersion: 8},
+    transforms: [
+      require('karma-typescript-es6-transform')({
+        presets: [
+          // ensure we get es5 by adding IE 11 as a target
+          ['@babel/env', {'targets': {'ie': '11'}, 'loose': true}]
+        ]
+      }),
+    ]
+  }
+};
+
+// Enable coverage reports and instrumentation under KARMA_COVERAGE=1 env
+const coverageEnabled = !!process.env.KARMA_COVERAGE;
+if (coverageEnabled) {
+  karmaTypescriptConfig.coverageOptions.instrumentation = true;
+  karmaTypescriptConfig.coverageOptions.exclude = /_test\.ts$/;
+  karmaTypescriptConfig.reports = {html: 'coverage', 'text-summary': ''};
+}
+
 module.exports = function(config) {
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],
@@ -25,21 +51,7 @@ module.exports = function(config) {
     preprocessors: {
       '**/*.ts': ['karma-typescript'],  // *.tsx for React Jsx
     },
-    karmaTypescriptConfig: {
-      tsconfig: 'tsconfig.test.json',
-      reports: {},  // Do not produce coverage html.
-      bundlerOptions: {
-        acornOptions: {ecmaVersion: 8},
-        transforms: [
-          require('karma-typescript-es6-transform')({
-            presets: [
-              // ensure we get es5 by adding IE 11 as a target
-              ['@babel/env', {'targets': {'ie': '11'}, 'loose': true}]
-            ]
-          }),
-        ]
-      }
-    },
+    karmaTypescriptConfig,
     reporters: ['progress', 'karma-typescript'],
     browsers: ['Chrome'],
     port: 9806,

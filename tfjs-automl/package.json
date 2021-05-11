@@ -1,7 +1,7 @@
 {
   "name": "@tensorflow/tfjs-automl",
-  "version": "1.0.0",
-  "main": "dist/index.js",
+  "version": "1.2.0",
+  "main": "dist/tf-automl.node.js",
   "types": "dist/index.d.ts",
   "module": "dist/tf-automl.esm.js",
   "unpkg": "dist/tf-automl.min.js",
@@ -13,6 +13,7 @@
     "test": "yarn && yarn build && karma start",
     "test-dev": "karma start",
     "test-node": "tsc && ts-node --transpile-only --skip-ignore --project tsconfig.test.json src/test_node.ts",
+    "coverage": "KARMA_COVERAGE=1 karma start --singleRun",
     "run-flaky": "node ../scripts/run_flaky.js",
     "run-browserstack": "karma start --singleRun --reporters='dots,karma-typescript,BrowserStack' --hostname='bs-local.com'",
     "test-ci": "./scripts/test-ci.sh",
@@ -21,9 +22,9 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@babel/polyfill": "^7.8.7",
-    "@tensorflow/tfjs-converter": "~3.3.0",
-    "@tensorflow/tfjs-core": "~3.3.0",
-    "@tensorflow/tfjs-backend-webgl": "~3.3.0",
+    "@tensorflow/tfjs-converter": "^3.6.0",
+    "@tensorflow/tfjs-core": "^3.6.0",
+    "@tensorflow/tfjs-backend-webgl": "^3.6.0",
     "@types/jasmine": "~2.8.6",
     "clang-format": "~1.2.4",
     "jasmine-core": "~3.6.0",
@@ -51,8 +52,8 @@
     "yalc": "~1.0.0-pre.21"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-converter": "~3.3.0",
-    "@tensorflow/tfjs-core": "~3.3.0",
-    "@tensorflow/tfjs-backend-webgl": "3.3.0"
+    "@tensorflow/tfjs-converter": "^3.6.0",
+    "@tensorflow/tfjs-core": "^3.6.0",
+    "@tensorflow/tfjs-backend-webgl": "^3.6.0"
   }
 }
