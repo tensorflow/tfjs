@@ -77,6 +77,7 @@ import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
+import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
@@ -156,6 +157,7 @@ const kernelConfigs: KernelConfig[] = [
   relu6Config,
   reshapeConfig,
   resizeBilinearConfig,
+  resizeNearestNeighborConfig,
   rsqrtConfig,
   selectConfig,
   sigmoidConfig,
