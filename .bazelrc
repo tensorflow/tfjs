@@ -31,6 +31,7 @@ run --incompatible_strict_action_env
 build --spawn_strategy=worker,local
 
 # Pass BrowserStack credentials
+build --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 run --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 test --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 
