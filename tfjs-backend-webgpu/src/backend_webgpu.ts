@@ -576,11 +576,13 @@ export class WebGPUBackend extends KernelBackend {
       programUniforms?: Array<{type: string; data: number[]}>): TensorInfo {
     const output = this.makeTensorInfo(program.outputShape, outputDtype);
 
-    // There are four kinds of uniforms: shapes, shape strides, program
+    // There are five kinds of uniforms: NAN, shapes, shape strides, program
     // size, program defined uniforms.
+    let uniformsWithType: Array<{type: string; data: number[];}> =
+        [{type: 'float32', data: [NaN]}];
     const bufferShapes = inputs.concat(output).map(d => d.shape);
-    let uniformsWithType = bufferShapes.map(d => {
-      return {type: 'int32', data: d};
+    bufferShapes.map(d => {
+      uniformsWithType.push({type: 'int32', data: d});
     });
     const strides = util.computeStrides(output.shape);
     uniformsWithType.push({type: 'int32', data: strides});
@@ -591,13 +593,10 @@ export class WebGPUBackend extends KernelBackend {
       uniformsWithType = [...uniformsWithType, ...programUniforms];
     }
 
-    let uniformsByteLength = 0;
     let uniforms: GPUBindingResource = null;
-    if (uniformsWithType != null) {
-      const uniformsDataView = this.computePadding(uniformsWithType);
-      uniformsByteLength = uniformsDataView.byteLength;
-      uniforms = this.makeUniformsDataView(uniformsDataView);
-    }
+    const uniformsDataView = this.computePadding(uniformsWithType);
+    const uniformsByteLength = uniformsDataView.byteLength;
+    uniforms = this.makeUniformsDataView(uniformsDataView);
 
     const inputsData = inputs.map((input: TensorInfo, i: number) => {
       if (input.dtype === 'complex64') {
