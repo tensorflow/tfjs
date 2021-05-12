@@ -1,0 +1,69 @@
+load("@npm//@bazel/typescript:index.bzl", "ts_library")
+load("//:esbuild.bzl", "esbuild")
+
+
+package(default_visibility = ["//visibility:public"])
+
+TEST_SRCS = ["**/*_test.ts", "image_test_util.ts"]
+
+ts_library(
+    name = "tfjs-core_src_lib",
+    srcs = glob(
+        ["**/*.ts"],
+        exclude = TEST_SRCS + ["index.ts"],
+    ),
+    devmode_target = "es2017",
+    prodmode_target = "es2017",
+    module_name = "@tensorflow/tfjs-core/src",
+    deps = [
+        "@npm//@types",
+        "@npm//jasmine-core",
+        "@npm//seedrandom",
+    ],
+)
+
+ts_library(
+    name = "tfjs-core_lib",
+    srcs = ["index.ts"],
+    module_name = "@tensorflow/tfjs-core",
+    deps = [
+        ":tfjs-core_src_lib",
+    ],
+)
+
+ts_library(
+    name = "tfjs-core_test_lib",
+    srcs = glob(TEST_SRCS),
+    testonly = True,
+    module_name = "@tensorflow/tfjs-core/src",
+    deps = [
+        ":tfjs-core_src_lib",
+        ":tfjs-core_lib",
+    ],
+)
+
+esbuild(
+    name = "tfjs-core_test_bundle",
+    testonly = True,
+    args = [
+        "--resolve-extensions=.mjs,.js",
+    ],
+    entry_point = "setup_test.ts",
+    external = [
+        # webworker tests call 'require('@tensorflow/tfjs')', which
+        # is external to the test bundle.
+        # Note: This is not a bazel target. It's just a string.
+        "@tensorflow/tfjs",
+        "worker_threads",
+        "util",
+        #"*/package.json",
+    ],
+    sources_content = True,
+    deps = [
+        ":tfjs-core_lib",
+        ":tfjs-core_test_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-core:package_json",
+    ],
+)
+

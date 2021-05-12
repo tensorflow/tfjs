@@ -6,9 +6,9 @@
   "main": "tf-core.node.js",
   "jsdelivr": "tf-core.min.js",
   "unpkg": "tf-core.min.js",
-  "types": "dist/index.d.ts",
-  "jsnext:main": "dist/index.js",
-  "module": "dist/index.js",
+  "types": "src/index.d.ts",
+  "jsnext:main": "src/index.js",
+  "module": "src/index.js",
   "miniprogram": "miniprogram",
   "engines": {
     "yarn": ">= 1.3.2"
@@ -94,14 +94,14 @@
     "worker_threads": false
   },
   "sideEffects": [
-    "./dist/index.js",
-    "./dist/engine.js",
-    "./dist/tensor.js",
-    "./dist/base_side_effects.js",
-    "./dist/flags.js",
-    "./dist/platforms/*.js",
-    "./dist/register_all_gradients.js",
-    "./dist/public/chained_ops/*.js",
-    "./dist/io/*.js"
+    "./src/index.js",
+    "./src/engine.js",
+    "./src/tensor.js",
+    "./src/base_side_effects.js",
+    "./src/flags.js",
+    "./src/platforms/*.js",
+    "./src/register_all_gradients.js",
+    "./src/public/chained_ops/*.js",
+    "./src/io/*.js"
   ]
 }

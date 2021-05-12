@@ -15,80 +15,28 @@
 
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 load("@npm//@bazel/concatjs:index.bzl", "karma_web_test")
-load("@npm//@bazel/typescript:index.bzl", "ts_library", "ts_project")
+load("@npm//@bazel/typescript:index.bzl", "ts_library")
 load("//:esbuild.bzl", "esbuild")
-load("//bundling:tfjs_bundle.bzl", "tfjs_bundle", "tfjs_ts_project")
-load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm")
+load("//bundling:tfjs_bundle.bzl", "tfjs_bundle")
+load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm", "js_library")
 
 
 package(default_visibility = ["//visibility:public"])
 
 # Allow typescript rules in any package to reference this file
-exports_files(["tsconfig.json"])
-
-TEST_SRCS = ["src/setup_test.ts"]
-
-tfjs_ts_project(
-    name = "tfjs-core_lib",
-    srcs = glob(
-        ["src/**/*.ts"],
-        exclude = TEST_SRCS,
-    ),
-    root_dir = "src",
-    deps = [
-        "@npm//@types",
-        "@npm//jasmine-core",
-        "@npm//seedrandom",
-    ],
-)
+exports_files(["tsconfig.json", "package.json"])
 
 tfjs_bundle(
     name = "tf-core",
     umd_name = "tf",
-    entry_point = "dist/index.js",
-    es5_entry_point = "dist_es5/index.js",
+    entry_point = "//tfjs-core/src:index.ts",
     external = [
         "node-fetch",
         "util",
     ],
     deps = [
-        ":tfjs-core_lib",
-    ],
-)
-
-ts_library(
-    name = "tfjs-core_test_lib",
-    testonly = True,
-    srcs = [
-        "setup_test_bazel.ts",
-    ],
-    tsconfig = "//:tsconfig_ts_library.json",
-    deps = [
-        ":tfjs-core",
-        "@npm//@types",
-        "@npm//jasmine-core",
-        "@npm//seedrandom",
-    ],
-)
-
-esbuild(
-    name = "tfjs-core_test_bundle",
-    testonly = True,
-    args = [
-        "--resolve-extensions=.mjs,.js",
-    ],
-    entry_point = "setup_test_bazel.ts",
-    external = [
-        # webworker tests call 'require('@tensorflow/tfjs')', which
-        # is external to the test bundle.
-        # Note: This is not a bazel target. It's just a string.
-        "@tensorflow/tfjs",
-    ],
-    sources_content = True,
-    deps = [
-        ":tfjs-core_lib",
-        ":tfjs-core_test_lib",
-        "//tfjs-backend-cpu",
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_src_lib",
     ],
 )
 
@@ -100,15 +48,9 @@ PKG_DEPS = [
     ":tf-core.fesm",
     ":tf-core.fesm.min",
     ":tf-core.node",
-    ":tfjs-core_lib",
+    "//tfjs-core/src:tfjs-core_lib",
+    "//tfjs-core/src:tfjs-core_src_lib",
 ]
-
-js_library(
-    name = "tfjs-core",
-    package_name = "@tensorflow/tfjs-core",
-    srcs = ["package.json"],
-    deps = PKG_DEPS,
-)
 
 pkg_npm(
     name = "tfjs-core_pkg",
@@ -119,11 +61,11 @@ pkg_npm(
 karma_web_test(
     name = "tfjs-core_test",
     srcs = [
-        ":tfjs-core_test_bundle",
+        "//tfjs-core/src:tfjs-core_test_bundle"
     ],
     static_files = [
         # Listed here so sourcemaps are served
-        ":tfjs-core_test_bundle",
+        "//tfjs-core/src:tfjs-core_test_bundle"
     ],
     tags = ["native"],
 )
@@ -131,7 +73,7 @@ karma_web_test(
 karma_web_test(
     name = "browserstack_tfjs-core_test",
     srcs = [
-        ":tfjs-core_test_bundle",
+        "//tfjs-core/src:tfjs-core_test_bundle"
     ],
     config_file = "//:karma.conf.js",
     peer_deps = [
@@ -147,7 +89,16 @@ karma_web_test(
     ],
     static_files = [
         # Listed here so sourcemaps are served
-        ":tfjs-core_test_bundle",
+        "//tfjs-core/src:tfjs-core_test_bundle"
     ],
     tags = ["ci"],
+)
+
+# This is necessary for //tfjs-core/src:tfjs-core_test_bundle to have acess to
+# the package.json so src/version_test.ts can 'require()' it.
+js_library(
+    name = "package_json",
+    srcs = [
+        ":package.json",
+    ],
 )
