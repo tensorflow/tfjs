@@ -49,8 +49,8 @@ function stringToHashBucketFast_(
       convertToTensor(input, 'input', 'stringToHashBucketFast', 'string');
   const attrs: StringToHashBucketFastAttrs = {numBuckets};
 
-  if (numBuckets <= 0 || numBuckets > 2147483648) {
-    throw new Error(`Number of buckets must be in the range [1, 2147483648]`);
+  if (numBuckets <= 0) {
+    throw new Error(`Number of buckets must be at least 1`);
   }
 
   const inputs: StringToHashBucketFastInputs = {input: $input};

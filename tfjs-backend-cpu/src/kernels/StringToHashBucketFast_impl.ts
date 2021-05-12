@@ -17,8 +17,6 @@
 
 import {TypedArray, util} from '@tensorflow/tfjs-core';
 
-// import {fingerPrint64} from '@tensorflow/tfjs-core/dist/hash_util';
-
 export function stringToHashBucketFastImpl(
     input: Uint8Array[], numBuckets: number): TypedArray {
   const output = util.getArrayFromDType('int32', input.length) as TypedArray;

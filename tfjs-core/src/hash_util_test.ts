@@ -18,13 +18,19 @@
 import {fingerPrint64, hexToLong} from './hash_util';
 import {ALL_ENVS, describeWithFlags} from './jasmine_util';
 
+/**
+ * The ACMRandom generator is for situations where extreme statistical quality
+ * is not important. ACMRandom is useful for testing since it is seeded allowing
+ * for reproducible results as well as low overhead so using it will
+ * not affect test speed.
+ */
 class ACMRandom {
-  static readonly M = 2147483647;
+  static readonly MAX_INT32 = 2147483647;
   private seed: number;
 
   constructor(seed: number) {
     seed = seed & 0x7fffffff;
-    if (seed === 0 || seed === ACMRandom.M) {
+    if (seed === 0 || seed === ACMRandom.MAX_INT32) {
       seed = 1;
     }
     this.seed = seed;
@@ -32,21 +38,23 @@ class ACMRandom {
 
   private next() {
     const A = hexToLong('41A7');  // bits 14, 8, 7, 5, 2, 1, 0
-    const M = ACMRandom.M;
+    const MAX_INT32 = ACMRandom.MAX_INT32;
     // We are computing
-    //       seed = (seed * A) % M,    where M = 2^31-1
+    //       seed = (seed * A) % MAX_INT32,    where MAX_INT32 = 2^31-1
     //
-    // seed must not be zero or M, or else all subsequent computed values
-    // will be zero or M respectively.  For all other values, seed will end
-    // up cycling through every number in [1,M-1]
+    // seed must not be zero or MAX_INT32, or else all subsequent computed
+    // values will be zero or MAX_INT32 respectively.  For all other values,
+    // seed will end up cycling through every number in [1,MAX_INT32-1]
     const product = A.mul(this.seed);
 
-    // Compute (product % M) using the fact that ((x << 31) % M) == x.
-    this.seed = product.shru(31).add(product.and(M)).getLowBits();
+    // Compute (product % MAX_INT32) using the fact that
+    // ((x << 31) % MAX_INT32) == x.
+    this.seed = product.shru(31).add(product.and(MAX_INT32)).getLowBits();
     // The first reduction may overflow by 1 bit, so we may need to repeat.
-    // mod == M is not possible; using > allows the faster sign-bit-based test.
-    if (this.seed > M) {
-      this.seed -= M;
+    // mod == MAX_INT32 is not possible; using > allows for the faster
+    // sign-bit-based test.
+    if (this.seed > MAX_INT32) {
+      this.seed -= MAX_INT32;
     }
     return this.seed;
   }
@@ -108,7 +116,6 @@ describeWithFlags('hash_util', ALL_ENVS, () => {
     // Helper that replaces h with a hash of itself and return a
     // char that is also a hash of h.  Neither hash needs to be particularly
     // good.
-
     const remix = (): number => {
       h = h.xor(h.shru(41));
       h = h.mul(949921979);

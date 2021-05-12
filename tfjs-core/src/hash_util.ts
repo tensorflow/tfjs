@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:no-require-imports variable-name
-const Long = require('long');
+import * as Long from 'long';
 
 export function hexToLong(hex: string): Long {
   return Long.fromString(hex, true, 16);

@@ -22,17 +22,12 @@ import {expectArraysClose} from '../../test_util';
 describeWithFlags('stringToHashBucketFast', ALL_ENVS, () => {
   it('throw error if negative buckets', async () => {
     expect(() => tf.string.stringToHashBucketFast(['a', 'b', 'c'], -1))
-        .toThrowError(/range \[1, 2147483648\]/);
+        .toThrowError(/must be at least 1/);
   });
 
   it('throw error if zero buckets', async () => {
     expect(() => tf.string.stringToHashBucketFast(['a', 'b', 'c'], 0))
-        .toThrowError(/range \[1, 2147483648\]/);
-  });
-
-  it('throw error if buckets > 2^31', async () => {
-    expect(() => tf.string.stringToHashBucketFast(['a', 'b', 'c'], 2147483649))
-        .toThrowError(/range \[1, 2147483648\]/);
+        .toThrowError(/must be at least 1/);
   });
 
   it('one bucket maps values to zero', async () => {

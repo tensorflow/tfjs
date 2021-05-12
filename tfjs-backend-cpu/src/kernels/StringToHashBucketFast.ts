@@ -33,8 +33,8 @@ export function stringToHashBucketFast(args: {
   if (input.dtype !== 'string') {
     throw new Error('Input must be of datatype string');
   }
-  if (numBuckets <= 0 || numBuckets > 2147483648) {
-    throw new Error(`Number of buckets must be in the range [1, 2147483648]`);
+  if (numBuckets <= 0) {
+    throw new Error(`Number of buckets must be at least 1`);
   }
 
   const $input = backend.data.get(input.dataId).values as Uint8Array[];
