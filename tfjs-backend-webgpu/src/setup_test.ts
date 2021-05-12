@@ -633,6 +633,12 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient'  // gradient function not found.
     ]
   },
+  {
+    include: 'sqrt',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
 ];
 
 const customInclude = (testName: string) => {

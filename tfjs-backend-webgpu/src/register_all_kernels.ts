@@ -84,6 +84,7 @@ import {sigmoidConfig} from './kernels/Sigmoid';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
+import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {stridedSliceConfig} from './kernels/StridedSlice';
@@ -165,6 +166,7 @@ const kernelConfigs: KernelConfig[] = [
   stridedSliceConfig,
   softmaxConfig,
   spaceToBatchNDConfig,
+  sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
   subConfig,
