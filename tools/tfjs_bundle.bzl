@@ -10,13 +10,13 @@ def tfjs_rollup_bundle(name, deps, entry_point, umd_name=None, es5=False, **kwar
        "@npm//rollup-plugin-sourcemaps",
     ]
 
-    config_file = "@//bundling:rollup.config.js"
+    config_file = "@//tools:rollup.config.js"
     srcs = kwargs.pop('srcs', [])
     if es5:
         rollup_deps += [
             "@npm//@rollup/plugin-babel",
         ]
-        config_file = "@//bundling:rollup.es5.config.js"
+        config_file = "@//tools:rollup.es5.config.js"
         srcs += [
             "@//:babel.config.json",
         ]

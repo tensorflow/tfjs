@@ -13,10 +13,7 @@
 # limitations under the License.
 # =============================================================================
 
-load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
 load("@npm//@bazel/concatjs:index.bzl", "karma_web_test")
-load("@npm//@bazel/typescript:index.bzl", "ts_library")
-load("//:esbuild.bzl", "esbuild")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm", "js_library")
 
