@@ -76,7 +76,7 @@ function config({
       sourcemap: true,
       ...output,
     },
-    external: ['crypto', ...external],
+    external: ['crypto', 'long', ...external],
     onwarn: warning => {
       let {code} = warning;
       if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR' ||
