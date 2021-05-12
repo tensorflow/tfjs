@@ -77,12 +77,14 @@ import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
+import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
+import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {stridedSliceConfig} from './kernels/StridedSlice';
@@ -156,6 +158,7 @@ const kernelConfigs: KernelConfig[] = [
   relu6Config,
   reshapeConfig,
   resizeBilinearConfig,
+  resizeNearestNeighborConfig,
   rsqrtConfig,
   selectConfig,
   sigmoidConfig,
@@ -163,6 +166,7 @@ const kernelConfigs: KernelConfig[] = [
   stridedSliceConfig,
   softmaxConfig,
   spaceToBatchNDConfig,
+  sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
   subConfig,
