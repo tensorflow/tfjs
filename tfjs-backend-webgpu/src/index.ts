@@ -41,7 +41,7 @@ registerBackend('webgpu', async () => {
 
   if (supportTimeQuery) {
     deviceDescriptor = {
-      nonGuaranteedFeatures: ['timestamp-query' as GPUFeatureName]
+      nonGuaranteedFeatures: ['timestamp-query' as const]
     };
   } else {
     console.warn(
