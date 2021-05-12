@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as Long from 'long';
+import Long from 'long';
 
 export function hexToLong(hex: string): Long {
   return Long.fromString(hex, true, 16);
