@@ -37,13 +37,15 @@ registerBackend('webgpu', async () => {
 
   const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
   let deviceDescriptor: GPUDeviceDescriptor = {};
-  const supportTimeQuery =
-      adapter.extensions.includes('timestamp-query' as GPUExtensionName);
+  const supportTimeQuery = adapter.features.has('timestamp-query');
 
   if (supportTimeQuery) {
-    deviceDescriptor = {extensions: ['timestamp-query' as const ]};
+    deviceDescriptor = {
+      nonGuaranteedFeatures: ['timestamp-query' as GPUFeatureName]
+    };
   } else {
-    console.warn(`This device doesn't support timestamp-query extension. ` +
+    console.warn(
+        `This device doesn't support timestamp-query extension. ` +
         `Zero will shown for the kernel time when profiling mode is enabled. ` +
         `Using performance.now is not workable for webgpu since it doesn't ` +
         `support synchronously to read data from GPU.`);
