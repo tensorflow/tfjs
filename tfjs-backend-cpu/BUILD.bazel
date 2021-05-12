@@ -13,36 +13,33 @@
 # limitations under the License.
 # =============================================================================
 
-load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "pkg_npm")
-load("@npm//@bazel/typescript:index.bzl", "ts_library", "ts_project")
-load("//:esbuild.bzl", "esbuild")
-load("//bundling:tfjs_bundle.bzl", "tfjs_bundle", "tfjs_ts_project")
+load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm", "nodejs_test")
+load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 
 
 package(default_visibility = ["//visibility:public"])
 
-tfjs_ts_project(
-    name = "tfjs-backend-cpu_lib",
-    srcs = glob(["src/**/*.ts"]),
-    root_dir = "src",
-    deps = [
-        "//tfjs-core",
-        "@npm//@types/jasmine",
-        "@npm//jasmine",
-    ],
+nodejs_test(
+    name = "tfjs-backend-cpu_test",
+    entry_point = "//tfjs-backend-cpu/src:run_tests.ts",
+    link_workspace_root = True,
+    data = [
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_test_lib",
+        "//tfjs-core:package_json",
+    ]
 )
 
 tfjs_bundle(
     name = "tf-backend-cpu",
     umd_name = "tf",
-    entry_point = "dist/index.js",
-    es5_entry_point = "dist_es5/index.js",
+    entry_point = "//tfjs-backend-cpu/src:index.ts",
     external = [
         "node-fetch",
         "util",
     ],
     deps = [
-        ":tfjs-backend-cpu_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
     ],
 )
 
@@ -54,15 +51,9 @@ PKG_DEPS = [
     ":tf-backend-cpu.fesm",
     ":tf-backend-cpu.fesm.min",
     ":tf-backend-cpu.node",
-    ":tfjs-backend-cpu_lib",
+    "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+    "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
 ]
-
-js_library(
-    name = "tfjs-backend-cpu",
-    package_name = "@tensorflow/tfjs-backend-cpu",
-    srcs = ["package.json"],
-    deps = PKG_DEPS,
-)
 
 pkg_npm(
     name = "tfjs-backend-cpu_pkg",

@@ -18,11 +18,11 @@
 // Register the backend.
 import './index';
 // tslint:disable-next-line: no-imports-from-dist
-import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
+import '@tensorflow/tfjs-core/src/public/chained_ops/register_all_chained_ops';
 // tslint:disable-next-line: no-imports-from-dist
-import '@tensorflow/tfjs-core/dist/register_all_gradients';
+import '@tensorflow/tfjs-core/src/register_all_gradients';
 // tslint:disable-next-line: no-imports-from-dist
-import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/src/jasmine_util';
 
 // tslint:disable-next-line:no-require-imports
 const jasmineCtor = require('jasmine');
@@ -36,8 +36,10 @@ process.on('unhandledRejection', e => {
 
 setTestEnvs([{name: 'cpu', backendName: 'cpu', isDataSync: true}]);
 
-const coreTests = 'node_modules/@tensorflow/tfjs-core/dist/tests.js';
-const cpuTests = 'src/**/*_test.ts';
+//const coreTests = 'node_modules/@tensorflow/tfjs-core/src/tests.js';
+const coreTests = 'tfjs-core/src/tests.js';
+//const cpuTests = 'src/**/*_test.ts';
+const cpuTests = 'tfjs-backend-cpu/src/**/*_test.js';
 
 const runner = new jasmineCtor();
 runner.loadConfig({spec_files: [cpuTests, coreTests], random: false});

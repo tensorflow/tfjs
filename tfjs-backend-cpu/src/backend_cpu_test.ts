@@ -20,7 +20,7 @@ import {engine, test_util, util} from '@tensorflow/tfjs-core';
 
 const {expectArraysEqual} = test_util;
 // tslint:disable-next-line: no-imports-from-dist
-import {describeWithFlags, ALL_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {describeWithFlags, ALL_ENVS} from '@tensorflow/tfjs-core/src/jasmine_util';
 
 import {MathBackendCPU} from './backend_cpu';
 

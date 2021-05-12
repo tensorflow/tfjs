@@ -20,7 +20,7 @@ import {Tensor, test_util} from '@tensorflow/tfjs-core';
 
 const {expectArraysClose, expectArraysEqual} = test_util;
 // tslint:disable-next-line: no-imports-from-dist
-import {describeWithFlags, ALL_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {describeWithFlags, ALL_ENVS} from '@tensorflow/tfjs-core/src/jasmine_util';
 
 describeWithFlags('Reshape.', ALL_ENVS, () => {
   it('does not have memory leak.', async () => {
