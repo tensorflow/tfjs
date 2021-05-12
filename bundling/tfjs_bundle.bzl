@@ -36,23 +36,6 @@ def tfjs_rollup_bundle(name, deps, entry_point, umd_name=None, es5=False, **kwar
         **kwargs,
     )
 
-def tfjs_ts_project(name, srcs, **kwargs):
-    ts_project(
-        name = name,
-        srcs = srcs,
-        declaration = True,
-        extends = "@//:tsconfig.json",
-        incremental = True,
-        out_dir = "dist",
-        source_map = True,
-        tsconfig = {
-            "compilerOptions": {
-                "target": "es2017",
-            },
-        },
-        **kwargs,
-    )
-
 def tfjs_bundle(name, deps, entry_point, umd_name, external = [], testonly = False, **kwargs):
     # UMD ES2017
     tfjs_rollup_bundle(
@@ -90,16 +73,14 @@ def tfjs_bundle(name, deps, entry_point, umd_name, external = [], testonly = Fal
     tfjs_rollup_bundle(
         name = name + ".node",
         testonly = testonly,
-        #deps = [name + "_es5"],
         deps = deps,
-        #entry_point = es5_entry_point,
         entry_point = entry_point,
         format = "cjs",
         es5 = True,
     )
 
     # Minified bundles
-    for extension in ["", ".es2017", ".fesm", ".cjs", ".node"]:
+    for extension in ["", ".es2017", ".fesm", ".node"]:
         src = name + extension
         terser_minified(
             name = src + ".min",
