@@ -9,6 +9,7 @@
     "@octokit/rest": "15.17.0",
     "@types/argparse": "^1.0.38",
     "@types/jasmine": "~3.0.0",
+    "@types/long": "4.0.1",
     "@types/mkdirp": "^0.5.2",
     "@types/node": "^12.7.5",
     "@types/node-fetch": "~2.1.2",
