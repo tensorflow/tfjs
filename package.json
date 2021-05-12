@@ -29,6 +29,7 @@
     "karma-requirejs": "^1.1.0",
     "karma-sourcemap-loader": "^0.3.8",
     "mkdirp": "~0.5.1",
+    "long": "4.0.0",
     "requirejs": "^2.3.6",
     "seedrandom": "^3.0.5",
     "shelljs": "~0.8.3",
