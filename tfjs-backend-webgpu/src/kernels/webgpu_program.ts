@@ -83,7 +83,7 @@ export const compileProgram =
 
       const module = device.createShaderModule({code: result.data});
       const pipeline = device.createComputePipeline(
-          {computeStage: {module, entryPoint: 'main'}});
+          {compute: {module, entryPoint: 'main'}});
       const bindGroupLayout = pipeline.getBindGroupLayout(0);
 
       result.free();
