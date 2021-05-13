@@ -23,10 +23,10 @@
  * This script requires hub to be installed: https://hub.github.com/
  */
 
-import * as argparse from 'argparse';
+import argparse from 'argparse';
 import chalk from 'chalk';
-import * as fs from 'fs';
-import * as shell from 'shelljs';
+import fs from 'fs';
+import shell from 'shelljs';
 import {TMP_DIR, $, question, makeReleaseDir, createPR, TFJS_RELEASE_UNIT, updateTFJSDependencyVersions} from './release-util';
 
 const parser = new argparse.ArgumentParser();

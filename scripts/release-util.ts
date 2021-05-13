@@ -17,9 +17,9 @@
  */
 
 import chalk from 'chalk';
-import * as mkdirp from 'mkdirp';
-import * as readline from 'readline';
-import * as shell from 'shelljs';
+import mkdirp from 'mkdirp';
+import readline from 'readline';
+import shell from 'shelljs';
 
 export interface Phase {
   // The list of packages that will be updated with this change.
