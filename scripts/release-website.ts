@@ -23,8 +23,8 @@
  * This script requires hub to be installed: https://hub.github.com/
  */
 import chalk from 'chalk';
-import * as fs from 'fs';
-import * as shell from 'shelljs';
+import fs from 'fs';
+import shell from 'shelljs';
 
 import {$, makeReleaseDir, TMP_DIR, WEBSITE_RELEASE_UNIT, updateDependency, prepareReleaseBuild, createPR} from './release-util';
 
