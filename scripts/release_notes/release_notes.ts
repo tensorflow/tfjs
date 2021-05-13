@@ -259,7 +259,7 @@ const parser = new argparse.ArgumentParser();
 
 parser.addArgument('--project', {
   help:
-      'Which project to generate release notes for. One of union|vis. Defaults to union.',
+      'Which project to generate release notes for. One of union|vis|rn|tflite. Defaults to union.',
   defaultValue: 'union',
   choices: ['union', 'vis', 'rn', 'tflite']
 });
