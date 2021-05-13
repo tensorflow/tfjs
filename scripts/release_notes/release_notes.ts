@@ -261,7 +261,7 @@ parser.addArgument('--project', {
   help:
       'Which project to generate release notes for. One of union|vis. Defaults to union.',
   defaultValue: 'union',
-  choices: ['union', 'vis', 'rn']
+  choices: ['union', 'vis', 'rn', 'tflite']
 });
 
 const args = parser.parseArgs();
