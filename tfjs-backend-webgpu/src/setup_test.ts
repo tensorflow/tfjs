@@ -627,6 +627,19 @@ const TEST_FILTERS: TestFilter[] = [
       'oneHot',         // Not yet implemented.
     ]
   },
+  {
+    include: 'resizeNearest',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
+    include: 'sqrt',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {include: 'image.transform'}
 ];
 
 const customInclude = (testName: string) => {

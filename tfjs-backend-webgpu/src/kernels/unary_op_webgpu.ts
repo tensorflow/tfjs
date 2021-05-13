@@ -62,6 +62,7 @@ export const EXP = `return exp(a);`;
 export const LOG = `if (a < 0.0) return 1.0/0.0;
   return log(a);`;
 export const TO_INT = `return float(int(a));`;
+export const SQRT = `return sqrt(a);`;
 
 export class UnaryOpProgram implements WebGPUProgram {
   outputShape: number[];
