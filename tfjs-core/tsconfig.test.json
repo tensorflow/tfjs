@@ -7,7 +7,6 @@
     "node_modules/"
   ],
   "compilerOptions": {
-    "esModuleInterop": true,
     "outDir": "./dist"
   }
 }
