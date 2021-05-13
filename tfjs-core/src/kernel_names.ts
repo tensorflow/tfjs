@@ -808,6 +808,12 @@ export interface StridedSliceAttrs {
   shrinkAxisMask: number;
 }
 
+export const StringToHashBucketFast = 'StringToHashBucketFast';
+export type StringToHashBucketFastInputs = Pick<NamedTensorInfoMap, 'input'>;
+export interface StringToHashBucketFastAttrs {
+  numBuckets: number;
+}
+
 export const Sub = 'Sub';
 export type SubInputs = BinaryInputs;
 

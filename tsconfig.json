@@ -24,6 +24,7 @@
     "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
     "incremental": true,
+    "esModuleInterop": true,
     "plugins": [
       {
         "name": "@bazel/tsetse",

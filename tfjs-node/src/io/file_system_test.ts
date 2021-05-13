@@ -18,7 +18,7 @@
 import * as tf from '@tensorflow/tfjs';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as rimraf from 'rimraf';
+import rimraf from 'rimraf';
 import {promisify} from 'util';
 
 import * as tfn from '../index';

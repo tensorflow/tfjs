@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as ajv from 'ajv';
+import ajv from 'ajv';
 import * as schema from '../op_mapper_schema';
 
 import * as arithmetic from './arithmetic';
