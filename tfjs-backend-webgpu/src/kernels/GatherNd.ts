@@ -40,8 +40,7 @@ export function gatherNd(
     attrs: {shape: [(util.sizeFromShape(params.shape) / sliceSize), sliceSize]}
   });
 
-  const program =
-      new GatherNDProgram(sliceRank, strides, [numSlices, sliceSize]);
+  const program = new GatherNDProgram(sliceRank, [numSlices, sliceSize]);
   const uniformData =
       [{type: 'int32', data: [sliceRank]}, {type: 'int32', data: strides}];
   const res = backend.runWebGPUProgram(

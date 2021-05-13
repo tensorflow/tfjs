@@ -32,7 +32,7 @@ export class GatherNDProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   size: number;
   sliceDim: number;
-  constructor(sliceDim: number, strides: number[], shape: number[]) {
+  constructor(sliceDim: number, shape: number[]) {
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -40,8 +40,7 @@ export class GatherNDProgram implements WebGPUProgram {
     this.shaderKey = `gathernd_${sliceDim}`;
     this.size = util.sizeFromShape(this.outputShape);
     this.sliceDim = sliceDim;
-    this.uniforms =
-        `int sliceDim; ${getCoordsDataType(strides.length)} strides;`;
+    this.uniforms = `int sliceDim; ${getCoordsDataType(sliceDim)} strides;`;
   }
   getUserCode(): string {
     const dtype = getCoordsDataType(this.outputShape.length);
