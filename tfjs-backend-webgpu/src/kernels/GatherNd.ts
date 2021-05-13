@@ -42,8 +42,10 @@ export function gatherNd(
 
   const program =
       new GatherNDProgram(sliceRank, strides, [numSlices, sliceSize]);
+  const uniformData =
+      [{type: 'int32', data: [sliceRank]}, {type: 'int32', data: strides}];
   const res = backend.runWebGPUProgram(
-      program, [flattenX, flattenIndices], flattenX.dtype);
+      program, [flattenX, flattenIndices], flattenX.dtype, uniformData);
 
   const reshaped =
       reshape({inputs: {x: res}, backend, attrs: {shape: resultShape}});

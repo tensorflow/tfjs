@@ -28,38 +28,40 @@ export class GatherNDProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames: string[] = ['A', 'indices'];
+  uniforms: string;
   workGroupSize: [number, number, number] = [64, 1, 1];
-  sliceDim: number;
-  strides: number[];
-  shape: number[];
-  userCode: string;
   size: number;
+  sliceDim: number;
   constructor(sliceDim: number, strides: number[], shape: number[]) {
-    this.sliceDim = sliceDim;
-    this.strides = strides;
-    this.shape = shape;
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.shaderKey = `gathernd_${sliceDim}_${strides}_${shape}`;
+    this.shaderKey = `gathernd_${sliceDim}`;
     this.size = util.sizeFromShape(this.outputShape);
+    this.sliceDim = sliceDim;
+    this.uniforms =
+        `int sliceDim; ${getCoordsDataType(strides.length)} strides;`;
   }
   getUserCode(): string {
-    const stridesType = getCoordsDataType(this.strides.length);
-    const dtype = getCoordsDataType(this.shape.length);
-    const strideString = this.sliceDim > 1 ? 'strides[j]' : 'strides';
+    const dtype = getCoordsDataType(this.outputShape.length);
+    let strideString;
+    if (this.sliceDim > 1) {
+      strideString = 'strides[j]';
+    } else {
+      strideString = 'strides';
+    }
     const userCode = `
-        ${stridesType} strides = ${stridesType}(${this.strides});
          void main() {
           int currentIndex = int(gl_GlobalInvocationID.x);
           ${dtype} coords = getOutputCoords();
           int flattenIndex = 0;
-          for (int j = 0; j < ${this.sliceDim}; j++) {
+          for (int j = 0; j < sliceDim; j++) {
             int index = int(round(getIndices(coords[0], j)));
-            flattenIndex += index * ${strideString};
+            int strideNum = ${strideString};
+            flattenIndex += index * strideNum;
           }
-          if (currentIndex < ${this.size}) {
+          if (currentIndex < size) {
             setOutput(currentIndex, getA(flattenIndex, coords[1]));
           }
         }
