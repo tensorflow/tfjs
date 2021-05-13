@@ -639,6 +639,7 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient'  // gradient function not found.
     ]
   },
+  {include: 'image.transform'}
 ];
 
 const customInclude = (testName: string) => {

@@ -91,6 +91,7 @@ import {stridedSliceConfig} from './kernels/StridedSlice';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanhConfig} from './kernels/Tanh';
+import {transformConfig} from './kernels/Transform';
 import {transposeConfig} from './kernels/Transpose';
 import {unpackConfig} from './kernels/Unpack';
 import {zerosLikeConfig} from './kernels/ZerosLike';
@@ -172,6 +173,7 @@ const kernelConfigs: KernelConfig[] = [
   subConfig,
   sumConfig,
   tanhConfig,
+  transformConfig,
   transposeConfig,
   unpackConfig,
   zerosLikeConfig
