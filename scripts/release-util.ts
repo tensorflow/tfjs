@@ -111,7 +111,10 @@ export const TFLITE_PHASE: Phase = {
 
 export const WEBSITE_PHASE: Phase = {
   packages: ['tfjs-website'],
-  deps: ['tfjs', 'tfjs-node', 'tfjs-vis', 'tfjs-react-native'],
+  deps: [
+    'tfjs', 'tfjs-node', 'tfjs-vis', 'tfjs-react-native', 'tfjs-tflite',
+    '@tensorflow-models/tasks'
+  ],
   scripts: {'tfjs-website': {'after-yarn': ['yarn prep && yarn build-prod']}},
   leaveVersion: true,
   title: 'Update website to latest dependencies.'
@@ -211,14 +214,15 @@ export async function updateDependency(
   console.log(chalk.magenta.bold(`~~~ Update dependency versions ~~~`));
 
   if (deps != null) {
-    const depsLatestVersion: string[] =
-        deps.map(dep => $(`npm view @tensorflow/${dep} dist-tags.latest`));
+    const depsLatestVersion: string[] = deps.map(
+        dep => $(`npm view ${
+            dep.includes('@') ? dep : '@tensorflow/' + dep} dist-tags.latest`));
 
     for (let j = 0; j < deps.length; j++) {
       const dep = deps[j];
 
       let version = '';
-      const depNpmName = `@tensorflow/${dep}`;
+      const depNpmName = dep.includes('@') ? dep : `@tensorflow/${dep}`;
       if (parsedPkg['dependencies'] != null &&
           parsedPkg['dependencies'][depNpmName] != null) {
         version = parsedPkg['dependencies'][depNpmName];
