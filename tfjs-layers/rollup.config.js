@@ -78,7 +78,7 @@ function config({
       globals: {'@tensorflow/tfjs-core': 'tf'},
       ...output,
     },
-    external: ['crypto', '@tensorflow/tfjs-core'],
+    external: ['crypto', '@tensorflow/tfjs-core', 'long'],
     onwarn: warning => {
       let {code} = warning;
       if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR') {

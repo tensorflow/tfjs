@@ -83,7 +83,7 @@ function config({
     },
     external: [
       // node-fetch is only used in node. Browsers have native "fetch".
-      'node-fetch', 'crypto', ...external
+      'node-fetch', 'crypto', 'long', ...external
     ],
     onwarn: warning => {
       let {code} = warning;

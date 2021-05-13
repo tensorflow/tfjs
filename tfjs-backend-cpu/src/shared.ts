@@ -44,6 +44,7 @@ export {sparseReshapeImpl} from './kernels/SparseReshape_impl';
 export {sparseSegmentReductionImpl} from './kernels/SparseSegmentReduction_impl';
 export {squaredDifferenceImpl} from './kernels/SquaredDifference';
 export {stridedSliceImpl} from './kernels/StridedSlice_impl';
+export {stringToHashBucketFastImpl} from './kernels/StringToHashBucketFast_impl';
 export {subImpl} from './kernels/Sub';
 export {tileImpl} from './kernels/Tile_impl';
 export {topKImpl} from './kernels/TopK_impl';
