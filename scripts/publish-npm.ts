@@ -22,9 +22,9 @@
  * Then run this script as `yarn publish-npm`.
  */
 
-import * as argparse from 'argparse';
+import argparse from 'argparse';
 import chalk from 'chalk';
-import * as shell from 'shelljs';
+import shell from 'shelljs';
 import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase, getReleaseBranch, checkoutReleaseBranch} from './release-util';
 
 const TMP_DIR = '/tmp/tfjs-publish';
