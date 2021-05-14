@@ -16,8 +16,8 @@
  */
 
 import {CustomCallback, Logs, nextFrame, util} from '@tensorflow/tfjs';
-import path from 'path';
-import ProgressBar from 'progress';
+import * as path from 'path';
+import * as ProgressBar from 'progress';
 
 import {summaryFileWriter, SummaryFileWriter} from './tensorboard';
 

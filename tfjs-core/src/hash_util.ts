@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import Long from 'long';
+const Long = require('long');
 
 export function hexToLong(hex: string): Long {
   return Long.fromString(hex, true, 16);
