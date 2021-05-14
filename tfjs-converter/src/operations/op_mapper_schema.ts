@@ -42,7 +42,7 @@ export const json = {
         'arithmetic', 'basic_math', 'control', 'convolution', 'custom',
         'dynamic', 'evaluation', 'image', 'creation', 'graph', 'logical',
         'matrices', 'normalization', 'reduction', 'slice_join', 'spectral',
-        'transformation', 'sparse'
+        'transformation', 'sparse', 'string'
       ]
     },
     'InputParamMapper': {

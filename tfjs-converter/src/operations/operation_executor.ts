@@ -40,6 +40,7 @@ import * as reduction from './executors/reduction_executor';
 import * as sliceJoin from './executors/slice_join_executor';
 import * as sparse from './executors/sparse_executor';
 import * as spectral from './executors/spectral_executor';
+import * as string from './executors/string_executor';
 import * as transformation from './executors/transformation_executor';
 import {Node} from './types';
 
@@ -95,6 +96,8 @@ export function executeOp(
             return tfc.tidy(() => sparse.executeOp(node, tensorMap, context));
           case 'spectral':
             return tfc.tidy(() => spectral.executeOp(node, tensorMap, context));
+          case 'string':
+            return tfc.tidy(() => string.executeOp(node, tensorMap, context));
           case 'transformation':
             return tfc.tidy(
                 () => transformation.executeOp(node, tensorMap, context));
