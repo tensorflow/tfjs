@@ -19,7 +19,7 @@ import {BinaryInputs, DataType, KernelFunc, TensorInfo, TypedArray, UnaryInputs,
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {BinaryOpComplexProgram, COMPLEX_MULTIPLY} from '../kernels/binary_op_complex_webgpu';
-import {BinaryOpType, getBinaryProgram} from '../kernels/binary_ops';
+import {BinaryOpType, runBinaryProgram} from '../kernels/binary_ops';
 import {complex} from '../kernels/Complex';
 import {UnaryOpProgram} from '../kernels/unary_op_webgpu';
 
@@ -103,9 +103,8 @@ export function binaryKernelFunc(
             shape: b.shape
           };
 
-          const program = getBinaryProgram(opSnippet, a.shape, b.shape);
-          return webgpuBackend.runWebGPUProgram(
-              program, [aHandle, bHandle],
+          return runBinaryProgram(
+              webgpuBackend, opSnippet, aHandle, bHandle,
               upcastType(aPart.dtype, bPart.dtype));
         });
       } else {
@@ -162,7 +161,7 @@ export function binaryKernelFunc(
 
       return webgpuBackend.makeTensorInfo(outShape, $dtype, outValues);
     }
-    const program = getBinaryProgram(opSnippet, a.shape, b.shape);
-    return webgpuBackend.runWebGPUProgram(program, [a, b], $dtype);
+
+    return runBinaryProgram(webgpuBackend, opSnippet, a, b, $dtype);
   };
 }

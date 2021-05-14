@@ -15,7 +15,10 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
+import {DataType, TensorInfo, util} from '@tensorflow/tfjs-core';
+
+import {WebGPUBackend} from '../backend_webgpu';
+
 import {BinaryOpSharedProgram} from './binary_op_shared_webgpu';
 import {BinaryOpVec4Program} from './binary_op_vec4_webgpu';
 import {BinaryOpProgram} from './binary_op_webgpu';
@@ -113,22 +116,28 @@ export function getBinaryOpString(
   }
 }
 
-export function getBinaryProgram(
-    op: BinaryOpType, aShape: number[], bShape: number[]) {
+export function runBinaryProgram(
+    webgpuBackend: WebGPUBackend, op: BinaryOpType, a: TensorInfo,
+    b: TensorInfo, dtype: DataType): TensorInfo {
+  const aShape = a.shape;
+  const bShape = b.shape;
   const useVec4 =
       util.arraysEqual(aShape, bShape) && util.sizeFromShape(aShape) % 4 === 0;
   const opStr = getBinaryOpString(op, useVec4);
   if (useVec4) {
-    return new BinaryOpVec4Program(opStr, aShape, bShape);
+    return webgpuBackend.runWebGPUProgram(
+        new BinaryOpVec4Program(opStr, aShape, bShape), [a, b], dtype);
   }
   const useSharedMemoryWithA =
       aShape.length === 1 && bShape.length > 1 && aShape[0] < 2048;
   const useSharedMemoryWithB =
       bShape.length === 1 && aShape.length > 1 && bShape[0] < 2048;
   if (useSharedMemoryWithA || useSharedMemoryWithB) {
-    return new BinaryOpSharedProgram(
-        opStr, aShape, bShape, useSharedMemoryWithB);
+    return webgpuBackend.runWebGPUProgram(
+        new BinaryOpSharedProgram(opStr, aShape, bShape, useSharedMemoryWithB),
+        [a, b], dtype);
   } else {
-    return new BinaryOpProgram(opStr, aShape, bShape);
+    return webgpuBackend.runWebGPUProgram(
+        new BinaryOpProgram(opStr, aShape, bShape), [a, b], dtype);
   }
 }
