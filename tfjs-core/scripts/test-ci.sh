@@ -38,8 +38,8 @@ then
   yarn rollup -c --ci
   # copy the cpu backend bundle somewhere the test can access it
   cp -v ../tfjs-backend-cpu/dist/tf-backend-cpu.min.js dist/
-  node ../scripts/run_flaky.js "yarn test-webworker --browsers=bs_safari_mac"
   node ../scripts/run_flaky.js "yarn test-webworker --browsers=bs_chrome_mac"
+  node ../scripts/run_flaky.js "yarn test-webworker --browsers=bs_safari_mac"
 else
   node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac"
 fi
