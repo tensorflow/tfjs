@@ -17,7 +17,6 @@
     "pretty": true,
     "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
-    "esModuleInterop": true,
     "experimentalDecorators": true
   },
   "include": [

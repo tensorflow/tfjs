@@ -20,7 +20,6 @@
     "noUnusedParameters": false,
     "pretty": true,
     "noFallthroughCasesInSwitch": true,
-    "esModuleInterop": true,
     "allowUnreachableCode": false
   },
   "include": [
