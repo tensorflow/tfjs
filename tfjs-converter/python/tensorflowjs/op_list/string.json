@@ -1,0 +1,20 @@
+[
+  {
+    "tfOpName": "StringToHashBucketFast",
+    "category": "string",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "input",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "num_buckets",
+        "name": "numBuckets",
+        "type": "number"
+      }
+    ]
+  }
+]

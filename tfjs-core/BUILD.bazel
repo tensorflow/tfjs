@@ -41,6 +41,7 @@ ts_project(
     deps = [
         "@npm//@types",
         "@npm//jasmine-core",
+        "@npm//long",
         "@npm//seedrandom",
     ],
 )
@@ -56,6 +57,7 @@ ts_library(
         ":tfjs-core",
         "@npm//@types",
         "@npm//jasmine-core",
+        "@npm//long",
         "@npm//seedrandom",
     ],
 )
