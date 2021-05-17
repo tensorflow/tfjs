@@ -35,8 +35,8 @@ export class SummaryFileWriter {
    *   this name.
    * @param value A real numeric scalar value, as `tf.Scalar` or a JavaScript
    *   `number`.
-   * @param step Required `int64`-castable, monotically-increasing step value.
-   * @param description Optinal long-form description for this summary, as a
+   * @param step Required `int64`-castable, monotonically-increasing step value.
+   * @param description Optional long-form description for this summary, as a
    *   `string`. *Not implemented yet*.
    */
   scalar(
