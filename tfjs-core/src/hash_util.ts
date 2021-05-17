@@ -14,9 +14,11 @@
  * limitations under the License.
  * =============================================================================
  */
+// Workaround for allowing cjs module to be included in bundle created by
+// rollup.
 import * as LongExports from 'long';
 // tslint:disable-next-line
-const Long = (LongExports as any).default;
+let Long = (LongExports as any).default || LongExports;
 
 export function hexToLong(hex: string): Long {
   return Long.fromString(hex, true, 16);
