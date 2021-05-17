@@ -134,6 +134,8 @@ module.exports = cmdOptions => {
     tsCompilerOptions: {target: 'es5'},
     external: [
       '@tensorflow/tfjs-core',
+      '@tensorflow/tfjs-core/dist/register_all_gradients',
+      '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops',
       '@tensorflow/tfjs-layers',
       '@tensorflow/tfjs-converter',
       '@tensorflow/tfjs-data',
