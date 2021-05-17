@@ -50,12 +50,13 @@ export function fromPixelsImageBitmap(args: {
   const key = webgpu_program.makeShaderKey(
       backend.fromPixelProgram, outputShapes, outputTypes);
 
-  const {bindGroupLayout, pipeline} = backend.getAndSavePipeline(key, () => {
+  const pipeline = backend.getAndSavePipeline(key, () => {
     return webgpu_program.compileProgram(
-        backend.glslang, backend.device, backend.fromPixelProgram, [], output,
-        true);
+        backend.glslang, backend.device, backend.fromPixelProgram,
+        backend.fromPixelLayout.pipelineLayout, [], output, true);
   });
-  backend.fromPixelProgram.setWebGPUBinary(bindGroupLayout, pipeline);
+
+  backend.fromPixelProgram.setPipeline(pipeline);
 
   backend.queue.copyImageBitmapToTexture(
       {imageBitmap, origin: {x: 0, y: 0}}, {
