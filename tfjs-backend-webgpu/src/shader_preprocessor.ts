@@ -101,7 +101,7 @@ export function makeShader(
     `);
   });
 
-  let uniformDeclaration = '';
+  let uniformDeclaration = 'float NAN; ';
   program.variableNames.forEach((x, i) => {
     uniformDeclaration += `${getCoordsDataType(inputInfo[i].shape.length)} ${
         x.charAt(0).toLowerCase() + x.slice(1)}Shape; `;
