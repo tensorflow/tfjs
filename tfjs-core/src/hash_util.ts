@@ -18,7 +18,7 @@
 // rollup.
 import * as LongExports from 'long';
 // tslint:disable-next-line
-let Long = (LongExports as any).default || LongExports;
+const Long = (LongExports as any).default || LongExports;
 
 export function hexToLong(hex: string): Long {
   return Long.fromString(hex, true, 16);

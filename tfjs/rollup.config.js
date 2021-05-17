@@ -133,6 +133,7 @@ module.exports = cmdOptions => {
     },
     tsCompilerOptions: {target: 'es5'},
     external: [
+      'long',
       '@tensorflow/tfjs-core',
       '@tensorflow/tfjs-layers',
       '@tensorflow/tfjs-converter',
