@@ -31,8 +31,6 @@ export class FromPixelsProgram implements WebGPUProgram {
       [256, 1, 1];  // The empirical value.
 
   pipeline: GPUComputePipeline;
-  bindGroupLayout: GPUBindGroupLayout;
-
   uniform: GPUBuffer;
   lastUniformData: number[] = [];
 
@@ -92,9 +90,7 @@ export class FromPixelsProgram implements WebGPUProgram {
     return userCode;
   }
 
-  setWebGPUBinary(
-      bindGroupLayout: GPUBindGroupLayout, pipeline: GPUComputePipeline) {
-    this.bindGroupLayout = bindGroupLayout;
+  setPipeline(pipeline: GPUComputePipeline) {
     this.pipeline = pipeline;
   }
 
@@ -135,7 +131,8 @@ export class FromPixelsProgram implements WebGPUProgram {
       this.inputTexture = device.createTexture({
         size: [pixelWidth, pixelHeight],
         format: 'rgba8unorm',
-        usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.STORAGE,
+        usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.STORAGE |
+               GPUTextureUsage.RENDER_ATTACHMENT,
       });
       this.lastPixelSize.width = pixelWidth;
       this.lastPixelSize.height = pixelHeight;

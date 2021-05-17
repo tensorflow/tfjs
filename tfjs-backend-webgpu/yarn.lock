@@ -970,10 +970,10 @@
   resolved "https://registry.yarnpkg.com/@webgpu/glslang/-/glslang-0.0.12.tgz#ee40e8d38c31436508147feaf0f646fde9bb4da6"
   integrity sha512-GfEVo1GUxNfXjO4Z7I06XXYJA45N6sHoKqI5Ptf3vafnPowq2C1woCqVe7frsClMfBB2yLn1vJss2oWl5EdTig==
 
-"@webgpu/types@0.0.38":
-  version "0.0.38"
-  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.0.38.tgz#22386f28e39293c3f580254402f94196bcacf425"
-  integrity sha512-CKVImHIx+Ojhuc0dyDad9F++Wvs5RGzGWYv0rIq0H19TQO0Bl+WOxKY6GuPoGrAa7zMsvV0AeQ690uWx/Tshfg==
+"@webgpu/types@0.1.3":
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.1.3.tgz#0c223b06e81713ae011fc8986921725a1685d967"
+  integrity sha512-rvqmSxoSMqwIjtvMHOvdvgCtJaz8PS4okXTL47Jyf/X5rDTiRoKEW1U3+XPsWcfY9Hp5gir3A0ksi+Eh81bbyg==
 
 accepts@~1.3.4:
   version "1.3.7"

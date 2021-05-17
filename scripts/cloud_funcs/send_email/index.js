@@ -29,7 +29,7 @@ const TRIGGER_ID = '43c56710-ccb3-4db9-b746-603cffbf0c02';
 // The main function called by Cloud Functions.
 module.exports.send_email = async event => {
   // Parse the build information.
-  const build = JSON.parse(new Buffer(event.data, 'base64').toString());
+  const build = JSON.parse(Buffer.from(event.data, 'base64').toString());
   // Also added 'SUCCESS' to monitor successful builds.
   const status = [
     'SUCCESS', 'FAILURE', 'INTERNAL_ERROR', 'TIMEOUT', 'CANCELLED', 'FAILED'

@@ -91,7 +91,6 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'less',
     excludes: [
       'upcasts when dtypes dont match',  // Actual != expected.
-      'NaNs in',                         // Actual != expected.
       'broadcasting Tensor2D shapes',    // Actual != expected.
       'derivat',                         // logicalAnd not yet implemented.
     ]
@@ -99,16 +98,14 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'clip',
     excludes: [
-      'derivat',         // logicalAnd not yet implemented.
-      'gradient',        // logicalAnd not yet implemented.
-      'propagates NaNs'  // NaN is not supported.
+      'derivat',   // logicalAnd not yet implemented.
+      'gradient',  // logicalAnd not yet implemented.
     ]
   },
   {
     include: 'greater',
     excludes: [
       'upcasts when dtypes dont match',  // Actual != expected.
-      'NaNs in',                         // Actual != expected.
       'broadcasting Tensor2D shapes',    // Actual != expected.
       'works with 0 sized tensors',      // Timeout.
       'gradient',                        // zerosLike not yet implemented.
@@ -423,6 +420,7 @@ const TEST_FILTERS: TestFilter[] = [
                                                  // implemented.
       'fill=nearest, interpolation=bilinear.',   // Transform is not yet
                                                  // implemented.
+      'sparseFillEmptyRows',  // 'SparseFillEmptyRows' not registered.
     ]
   },
   {
@@ -568,19 +566,16 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'gather',
     excludes: [
-      'gatherND',                        // Not yet supported.
-      'bool',                            // Not yet supported.
-      'chaining, axis=1',                // Range not yet supported.
-      'indices not int32 throws error',  // Range not yet supported.
-      'gradient'                         // gradient function not found.
+      'bool',     // Not yet supported.
+      'gradient'  // gradient function not found.
     ]
   },
   {
     include: 'max',
     excludes: [
       '6D', 'gradient',
-      'AdamaxOptimizer',                         // gradient function not found.
-      'axis permutation does not change input',  // 'Range' not registered.
+      'AdamaxOptimizer',    // gradient function not found.
+      'sparseSegmentMean',  // 'SparseSegmentMean' not registered.
     ]
   },
   {
@@ -622,11 +617,25 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'range',
     excludes: [
-      'bincount',       // Not yet implemented.
-      'denseBincount',  // Not yet implemented.
-      'oneHot',         // Not yet implemented.
+      'bincount',           // Not yet implemented.
+      'denseBincount',      // Not yet implemented.
+      'oneHot',             // Not yet implemented.
+      'sparseSegmentMean',  // 'SparseSegmentMean' not registered.
     ]
   },
+  {
+    include: 'resizeNearest',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
+    include: 'sqrt',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {include: 'image.transform'}
 ];
 
 const customInclude = (testName: string) => {

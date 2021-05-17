@@ -45,6 +45,7 @@ import {fromPixelsConfig} from './kernels/FromPixels';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
+import {gatherNdConfig} from './kernels/GatherNd';
 import {gatherV2Config} from './kernels/GatherV2';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
@@ -77,18 +78,21 @@ import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
+import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
+import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {stridedSliceConfig} from './kernels/StridedSlice';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanhConfig} from './kernels/Tanh';
+import {transformConfig} from './kernels/Transform';
 import {transposeConfig} from './kernels/Transpose';
 import {unpackConfig} from './kernels/Unpack';
 import {zerosLikeConfig} from './kernels/ZerosLike';
@@ -124,6 +128,7 @@ const kernelConfigs: KernelConfig[] = [
   fusedBatchNormConfig,
   fusedConv2DConfig,
   fusedDepthwiseConv2DConfig,
+  gatherNdConfig,
   gatherV2Config,
   greaterConfig,
   greaterEqualConfig,
@@ -156,6 +161,7 @@ const kernelConfigs: KernelConfig[] = [
   relu6Config,
   reshapeConfig,
   resizeBilinearConfig,
+  resizeNearestNeighborConfig,
   rsqrtConfig,
   selectConfig,
   sigmoidConfig,
@@ -163,11 +169,13 @@ const kernelConfigs: KernelConfig[] = [
   stridedSliceConfig,
   softmaxConfig,
   spaceToBatchNDConfig,
+  sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
   subConfig,
   sumConfig,
   tanhConfig,
+  transformConfig,
   transposeConfig,
   unpackConfig,
   zerosLikeConfig

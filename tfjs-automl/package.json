@@ -22,9 +22,9 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@babel/polyfill": "^7.8.7",
-    "@tensorflow/tfjs-converter": "~3.3.0",
-    "@tensorflow/tfjs-core": "~3.3.0",
-    "@tensorflow/tfjs-backend-webgl": "~3.3.0",
+    "@tensorflow/tfjs-converter": "^3.6.0",
+    "@tensorflow/tfjs-core": "^3.6.0",
+    "@tensorflow/tfjs-backend-webgl": "^3.6.0",
     "@types/jasmine": "~2.8.6",
     "clang-format": "~1.2.4",
     "jasmine-core": "~3.6.0",
@@ -52,8 +52,8 @@
     "yalc": "~1.0.0-pre.21"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-converter": "~3.3.0",
-    "@tensorflow/tfjs-core": "~3.3.0",
-    "@tensorflow/tfjs-backend-webgl": "3.3.0"
+    "@tensorflow/tfjs-converter": "^3.6.0",
+    "@tensorflow/tfjs-core": "^3.6.0",
+    "@tensorflow/tfjs-backend-webgl": "^3.6.0"
   }
 }
