@@ -14,8 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
-// tslint:disable-next-line:no-require-imports variable-name
-const Long = require('long');
+import * as LongExports from 'long';
+// tslint:disable-next-line
+const Long = (LongExports as any).default;
 
 export function hexToLong(hex: string): Long {
   return Long.fromString(hex, true, 16);
