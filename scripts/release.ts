@@ -26,10 +26,10 @@
  * This script requires hub to be installed: https://hub.github.com/
  */
 
-import argparse from 'argparse';
+import * as argparse from 'argparse';
 import chalk from 'chalk';
-import fs from 'fs';
-import shell from 'shelljs';
+import * as fs from 'fs';
+import * as shell from 'shelljs';
 import {RELEASE_UNITS, WEBSITE_RELEASE_UNIT, TMP_DIR, $, question, printReleaseUnit, printPhase, makeReleaseDir, updateDependency, prepareReleaseBuild, createPR} from './release-util';
 import {releaseWebsite} from './release-website';
 

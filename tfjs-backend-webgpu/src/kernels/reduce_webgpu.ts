@@ -63,8 +63,11 @@ export class ReduceProgram implements WebGPUProgram {
     let reduceOp = ``;
     let initValue = '0.0';
     if (this.reduceType === 'min' || this.reduceType === 'max') {
-      reduceOp = ` if (candidate ${this.reduceType === 'min' ? '<' : '>'}
-           bestValue && !isnan(candidate))
+      reduceOp = `
+         if (isnan(candidate)) {
+          bestValue = float(NAN);
+         } else if (candidate ${this.reduceType === 'min' ? '<' : '>'}
+           bestValue)
            {  bestValue = candidate; }`;
       initValue = 'x[offset]';
     } else if (this.reduceType === 'sum' || this.reduceType === 'mean') {
