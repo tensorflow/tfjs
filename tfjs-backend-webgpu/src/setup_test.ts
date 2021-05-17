@@ -566,9 +566,8 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'gather',
     excludes: [
-      'gatherND',  // Not yet supported.
-      'bool',      // Not yet supported.
-      'gradient'   // gradient function not found.
+      'bool',     // Not yet supported.
+      'gradient'  // gradient function not found.
     ]
   },
   {
