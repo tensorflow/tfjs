@@ -179,6 +179,8 @@ limitations under the License.
 
         // load model and run inference
         try {
+          // TODO: Remove tf.ready() when resolve issue on WebGPU backend.
+          await tf.ready();
           await loadModelAndRecordTime();
           await showMsg('Testing correctness');
           await showInputs();
@@ -194,6 +196,7 @@ limitations under the License.
           const referencePrediction = predict(model, inferenceInput);
           referenceData = await getPredictionData(referencePrediction);
 
+          isBackendSupported();
           await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
           const prediction = predict(model, inferenceInput);
@@ -614,6 +617,7 @@ limitations under the License.
     }
 
     async function runBenchmark() {
+      // TODO: Remove tf.ready() when resolve issue on WebGPU backend.
       await tf.ready();
       if (state.isFlagChanged) {
         await setEnvFlags(state.flags);
@@ -657,10 +661,19 @@ limitations under the License.
       return false;
     }
 
+    function isBackendSupported() {
+      if (state.backend === 'webgpu' && typeof navigator !== 'undefined' && !navigator.gpu){
+        showMsg(`These samples should run in Chrome Canary behind the flag "--enable-unsafe-webgpu".`);
+        throw new Error(`WebGPU is not supported.`);
+      }
+      showMsg(null);
+    }
+
     async function onPageLoad() {
       const gui = new dat.gui.GUI({ width: 550 });
       gui.domElement.id = 'gui';
 
+      isBackendSupported();
       await tf.setBackend(state.backend);
 
       const modelFolder = gui.addFolder('Benchmark');
@@ -783,6 +796,7 @@ limitations under the License.
       backendsController = envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu', 'webgpu']);
       backendsController.onChange(async backend => {
         // TODO: Failed to set backend
+        isBackendSupported();
         await tf.setBackend(backend);
         await showFlagSettings(envFolder, state.backend);
       });
