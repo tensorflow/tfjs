@@ -27,13 +27,17 @@ import {BinaryOpType, getBinaryOpString} from './kernels/binary_ops';
 import {FromPixelsProgram} from './kernels/FromPixels_utils/from_pixels_webgpu';
 import * as unary_op from './kernels/unary_op_webgpu';
 import * as webgpu_program from './kernels/webgpu_program';
-import {WebGPUBinary} from './kernels/webgpu_program';
 import * as webgpu_util from './webgpu_util';
 
 export interface WebGPUMemoryInfo extends backend_util.MemoryInfo {
   numBytesInGPU: number;
   numBytesAllocatedInGPU: number;
   unreliable: boolean;
+}
+
+interface WebGPULayout {
+  bindGroupLayout: GPUBindGroupLayout;
+  pipelineLayout: GPUPipelineLayout;
 }
 
 type BufferInfo = {
@@ -80,6 +84,7 @@ export class WebGPUBackend extends KernelBackend {
   currentCommandEncoder: GPUCommandEncoder;
   tensorMap: DataStorage<TensorBufferInfo>;
   fromPixelProgram: FromPixelsProgram;
+  fromPixelLayout: WebGPULayout;
   supportTimeQuery: boolean;
 
   private static nextDataId = 0;
@@ -87,7 +92,8 @@ export class WebGPUBackend extends KernelBackend {
     return WebGPUBackend.nextDataId++;
   }
   private commandQueueOwnedIds = new WeakSet<DataId>();
-  private binaryCache: {[key: string]: WebGPUBinary};
+  private layoutCache: {[key: number]: WebGPULayout};
+  private pipelineCache: {[key: string]: GPUComputePipeline};
   private bufferManager: BufferManager;
 
   private tensorDisposalQueue: DataId[] = [];
@@ -105,7 +111,8 @@ export class WebGPUBackend extends KernelBackend {
 
   constructor(device: GPUDevice, glslang: Glslang, supportTimeQuery = false) {
     super();
-    this.binaryCache = {};
+    this.layoutCache = {};
+    this.pipelineCache = {};
     this.device = device;
     this.queue = device.queue;
     this.currentCommandEncoder = null;
@@ -120,6 +127,8 @@ export class WebGPUBackend extends KernelBackend {
         count: 2,
       });
     }
+    // FromPixel has only one input texture.
+    this.fromPixelLayout = this.createTextureLayout();
   }
 
   floatPrecision(): 32 {
@@ -415,12 +424,11 @@ export class WebGPUBackend extends KernelBackend {
     return res;
   }
 
-  getAndSavePipeline(
-      key: string, getBinary: () => webgpu_program.WebGPUBinary) {
-    if (!(key in this.binaryCache)) {
-      this.binaryCache[key] = getBinary();
+  getAndSavePipeline(key: string, getPipeline: () => GPUComputePipeline) {
+    if (!(key in this.pipelineCache)) {
+      this.pipelineCache[key] = getPipeline();
     }
-    return this.binaryCache[key];
+    return this.pipelineCache[key];
   }
 
   makeTensorInfo(
@@ -570,6 +578,74 @@ export class WebGPUBackend extends KernelBackend {
     return this.arrayToDataView(dimUniformsData, dataViewIndex);
   }
 
+  // This layout is used by all programs except fromPixel.
+  private createLayout(inputEntrySize: number): WebGPULayout {
+    const bindGroupLayoutEntries: GPUBindGroupLayoutEntry[] = [];
+    // Output buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 0,
+      visibility: GPUShaderStage.COMPUTE,
+      type: 'storage-buffer'
+    });
+    // Input buffer binding layout. Depends on variableNames length.
+    for (let i = 0; i < inputEntrySize; i++) {
+      bindGroupLayoutEntries.push({
+        binding: i + 1,
+        visibility: GPUShaderStage.COMPUTE,
+        type: 'readonly-storage-buffer'
+      });
+    }
+    bindGroupLayoutEntries.push({
+      binding: inputEntrySize + 1,
+      visibility: GPUShaderStage.COMPUTE,
+      type: 'uniform-buffer'
+    });
+    const bindGroupLayout =
+        this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
+    const pipelineLayout =
+        this.device.createPipelineLayout({bindGroupLayouts: [bindGroupLayout]});
+    return {bindGroupLayout, pipelineLayout};
+  }
+
+  // This layout is only used by fromPixel.
+  private createTextureLayout(): WebGPULayout {
+    const bindGroupLayoutEntries: GPUBindGroupLayoutEntry[] = [];
+    // Output buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 0,
+      visibility: GPUShaderStage.COMPUTE,
+      type: 'storage-buffer'
+    });
+    // Input buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 1,
+      visibility: GPUShaderStage.COMPUTE,
+      type: 'readonly-storage-texture',
+      storageTextureFormat: 'rgba8unorm'
+    });
+    // Uniform buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 2,
+      visibility: GPUShaderStage.COMPUTE,
+      type: 'uniform-buffer'
+    });
+    const fromPixelBindGroupLayout =
+        this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
+    const fromPixelPipelineLayout = this.device.createPipelineLayout(
+        {bindGroupLayouts: [fromPixelBindGroupLayout]});
+    return {
+      bindGroupLayout: fromPixelBindGroupLayout,
+      pipelineLayout: fromPixelPipelineLayout
+    };
+  }
+
+  private getCachedOrCreateLayout(inputEntrySize: number): WebGPULayout {
+    if (!(inputEntrySize in this.layoutCache)) {
+      this.layoutCache[inputEntrySize] = this.createLayout(inputEntrySize);
+    }
+    return this.layoutCache[inputEntrySize];
+  }
+
   public runWebGPUProgram(
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
       outputDtype: DataType,
@@ -622,9 +698,14 @@ export class WebGPUBackend extends KernelBackend {
     const broadcastDimsKey = broadcastDims.map(d => d.join('_')).join(';');
     const key = webgpu_program.makeShaderKey(
         program, bufferShapes, bufferTypes, broadcastDimsKey);
-    const {bindGroupLayout, pipeline} = this.getAndSavePipeline(key, () => {
+
+    const {bindGroupLayout, pipelineLayout} =
+        this.getCachedOrCreateLayout(program.variableNames.length);
+
+    const pipeline = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(
-          this.glslang, this.device, program, inputsData, output);
+          this.glslang, this.device, program, pipelineLayout, inputsData,
+          output);
     });
 
     const shouldTimeProgram = this.activeTimers != null;
@@ -682,7 +763,7 @@ export class WebGPUBackend extends KernelBackend {
 
   recordFromPixelsCommands(output: GPUBuffer) {
     const bindGroup = this.device.createBindGroup({
-      layout: this.fromPixelProgram.bindGroupLayout,
+      layout: this.fromPixelLayout.bindGroupLayout,
       entries: [
         {
           binding: 0,
