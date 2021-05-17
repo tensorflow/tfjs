@@ -13,8 +13,8 @@
 # limitations under the License.
 # =============================================================================
 
-load("@npm//@bazel/concatjs:index.bzl", "karma_web_test")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
+load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
 load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm", "js_library")
 
 
@@ -55,7 +55,7 @@ pkg_npm(
     deps = PKG_DEPS,
 )
 
-karma_web_test(
+tfjs_web_test(
     name = "tfjs-core_test",
     srcs = [
         "//tfjs-core/src:tfjs-core_test_bundle"
@@ -64,31 +64,6 @@ karma_web_test(
         # Listed here so sourcemaps are served
         "//tfjs-core/src:tfjs-core_test_bundle"
     ],
-    tags = ["native"],
-)
-
-karma_web_test(
-    name = "browserstack_tfjs-core_test",
-    srcs = [
-        "//tfjs-core/src:tfjs-core_test_bundle"
-    ],
-    config_file = "//:karma.conf.js",
-    peer_deps = [
-        "@npm//karma",
-        "@npm//karma-jasmine",
-        "@npm//karma-requirejs",
-        "@npm//karma-sourcemap-loader",
-        "@npm//requirejs",
-        # The above dependencies are the default when 'peer_deps' is not
-        # specified. They are manually spefied here so we can append
-        # karma-browserstack-launcher.
-        "@npm//karma-browserstack-launcher",
-    ],
-    static_files = [
-        # Listed here so sourcemaps are served
-        "//tfjs-core/src:tfjs-core_test_bundle"
-    ],
-    tags = ["ci"],
 )
 
 # This is necessary for //tfjs-core/src:tfjs-core_test_bundle to have acess to
