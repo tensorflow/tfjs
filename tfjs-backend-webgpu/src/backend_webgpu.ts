@@ -585,20 +585,20 @@ export class WebGPUBackend extends KernelBackend {
     bindGroupLayoutEntries.push({
       binding: 0,
       visibility: GPUShaderStage.COMPUTE,
-      type: 'storage-buffer'
+      buffer: {type: 'storage' as const}
     });
     // Input buffer binding layout. Depends on variableNames length.
     for (let i = 0; i < inputEntrySize; i++) {
       bindGroupLayoutEntries.push({
         binding: i + 1,
         visibility: GPUShaderStage.COMPUTE,
-        type: 'readonly-storage-buffer'
+        buffer: {type: 'read-only-storage' as const}
       });
     }
     bindGroupLayoutEntries.push({
       binding: inputEntrySize + 1,
       visibility: GPUShaderStage.COMPUTE,
-      type: 'uniform-buffer'
+      buffer: {type: 'uniform' as const}
     });
     const bindGroupLayout =
         this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
@@ -614,20 +614,19 @@ export class WebGPUBackend extends KernelBackend {
     bindGroupLayoutEntries.push({
       binding: 0,
       visibility: GPUShaderStage.COMPUTE,
-      type: 'storage-buffer'
+      buffer: {type: 'storage' as const}
     });
     // Input buffer binding layout.
     bindGroupLayoutEntries.push({
       binding: 1,
       visibility: GPUShaderStage.COMPUTE,
-      type: 'readonly-storage-texture',
-      storageTextureFormat: 'rgba8unorm'
+      storageTexture: {access: 'read-only', format: 'rgba8unorm'}
     });
     // Uniform buffer binding layout.
     bindGroupLayoutEntries.push({
       binding: 2,
       visibility: GPUShaderStage.COMPUTE,
-      type: 'uniform-buffer'
+      buffer: {type: 'uniform' as const}
     });
     const fromPixelBindGroupLayout =
         this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
