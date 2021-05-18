@@ -65,7 +65,7 @@ function config({
     treeshake: false,
     plugins: [
       typescript(tsoptions),
-      resolve({dedupe: ['seedrandom']}),
+      resolve({dedupe: ['seedrandom', 'long']}),
       commonjs({
         ignore: ['crypto', 'fs', 'node-fetch', 'string_decoder', 'util'],
         include: 'node_modules/**',
