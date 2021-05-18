@@ -543,21 +543,22 @@ export class NodeJSKernelBackend extends KernelBackend {
   }
 
   writeHistogramSummary(
-      resourceHandle: Tensor, step: number, name: string,
-      data: Tensor, numberBuckets: number | undefined): void {
+      resourceHandle: Tensor, step: number, name: string, data: Tensor,
+      numberBuckets: number|undefined): void {
     tidy(() => {
       util.assert(
-        Number.isInteger(step),
-        () => `step is expected to be an integer, but is instead ${step}`);
+          Number.isInteger(step),
+          () => `step is expected to be an integer, but is instead ${step}`);
       const buckets = this.buckets(data, numberBuckets);
-      const inputArgs: Array<Tensor|Int64Scalar> =
-        [resourceHandle, new Int64Scalar(step), scalar(name, 'string'), buckets];
+      const inputArgs: Array<Tensor|Int64Scalar> = [
+        resourceHandle, new Int64Scalar(step), scalar(name, 'string'), buckets
+      ];
       const typeAttr = this.typeAttributeFromTensor(buckets);
       const opAttrs: TFEOpAttr[] =
-        [{name: 'T', type: this.binding.TF_ATTR_TYPE, value: typeAttr}];
+          [{name: 'T', type: this.binding.TF_ATTR_TYPE, value: typeAttr}];
       this.binding.executeOp(
-          'WriteHistogramSummary', opAttrs, this.getInputTensorIds(inputArgs), 0
-      )
+          'WriteHistogramSummary', opAttrs, this.getInputTensorIds(inputArgs),
+          0)
     })
   }
 
@@ -572,17 +573,18 @@ export class NodeJSKernelBackend extends KernelBackend {
    */
   private buckets(data: Tensor, bucketCount?: number): Tensor<tf.Rank> {
     if (data.size === 0) {
-      return tf.tensor([], [0, 3], "float32");
+      return tf.tensor([], [0, 3], 'float32');
     }
 
     // TODO(mkjaer): We probably need to cast to float64 instead of float32
     // However, float64 is not supported right now by TFJS...
 
     // 30 is the default number of buckets in the TensorFlow Python
-    // implementation. See https://github.com/tensorflow/tensorboard/blob/master/tensorboard/plugins/histogram/summary_v2.py
+    // implementation. See
+    // https://github.com/tensorflow/tensorboard/blob/master/tensorboard/plugins/histogram/summary_v2.py
     bucketCount = bucketCount !== undefined ? bucketCount : 30;
     data = data.flatten();
-    data = data.cast("float32");
+    data = data.cast('float32');
     const min: Scalar = data.min();
     const max: Scalar = data.max();
     const range: Scalar = max.sub(min);
@@ -598,17 +600,19 @@ export class NodeJSKernelBackend extends KernelBackend {
 
     const bucketWidth = range.div(bucketCount);
     const offsets = data.sub(min);
-    const bucketIndices = offsets.floorDiv(bucketWidth).cast("int32");
-    const clampedIndices = tf.minimum(bucketIndices, bucketCount - 1).cast("int32");
+    const bucketIndices = offsets.floorDiv(bucketWidth).cast('int32');
+    const clampedIndices =
+        tf.minimum(bucketIndices, bucketCount - 1).cast('int32');
     const oneHots = tf.oneHot(clampedIndices, bucketCount);
-    const bucketCounts = oneHots.sum(0).cast("int32");
+    const bucketCounts = oneHots.sum(0).cast('int32');
     let edges = tf.linspace(min.arraySync(), max.arraySync(), bucketCount + 1);
     // Ensure last value in edges is max (TF's linspace op doesn't do this)
-    edges = tf.concat([edges.slice(0, bucketCount), max.reshape([1])], 0) as tf.Tensor1D;
+    edges = tf.concat([edges.slice(0, bucketCount), max.reshape([1])], 0) as
+        tf.Tensor1D;
     const leftEdges = edges.slice(0, bucketCount);
     const rightEdges = edges.slice(1, bucketCount);
-    return tf.stack([leftEdges, rightEdges, bucketCounts.cast("float32")]).transpose();
-
+    return tf.stack([leftEdges, rightEdges, bucketCounts.cast('float32')])
+        .transpose();
   }
 
   flushSummaryWriter(resourceHandle: Tensor): void {

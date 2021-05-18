@@ -65,13 +65,15 @@ export class SummaryFileWriter {
    * @param description Optional long-form description for this summary, as a
    *   `string`. *Not implemented yet*.
    */
-  histogram(name: string, data: Tensor, step: number, buckets?: number,
-            description?: string) {
+  histogram(
+      name: string, data: Tensor, step: number, buckets?: number,
+      description?: string) {
     if (description != null) {
       throw new Error('histogram() does not support description yet');
     }
 
-    this.backend.writeHistogramSummary(this.resourceHandle, step, name, data, buckets);
+    this.backend.writeHistogramSummary(
+        this.resourceHandle, step, name, data, buckets);
   }
 
   /**

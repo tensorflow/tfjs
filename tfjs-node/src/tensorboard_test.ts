@@ -168,7 +168,7 @@ describe('tensorboard', () => {
       const eventFilePath = path.join(tmpLogDir, fileNames[0]);
       const fileSize0 = fs.statSync(eventFilePath).size;
 
-      writer.histogram('foo', tensor1d([1, 1, 1, 1 ,1], 'int32'), 1, 5);
+      writer.histogram('foo', tensor1d([1, 1, 1, 1, 1], 'int32'), 1, 5);
       writer.flush();
       const fileSize1 = fs.statSync(eventFilePath).size;
       const incrementPerScalar = fileSize1 - fileSize0;
@@ -181,9 +181,9 @@ describe('tensorboard', () => {
       expect(fileSize2 - fileSize1).toEqual(2 * incrementPerScalar);
     });
 
-    it("Can create multiple normal distribution", () => {
+    it('Can create multiple normal distribution', () => {
       const writer = tfn.node.summaryFileWriter(tmpLogDir);
-      console.log("Writing to tmp dir", tmpLogDir)
+      console.log('Writing to tmp dir', tmpLogDir)
       for (let i = 0; i < 10; ++i) {
         const normal = tf.tidy(() => tf.randomNormal([1000]).add(i / 10))
         writer.histogram('random normal', normal, i);
