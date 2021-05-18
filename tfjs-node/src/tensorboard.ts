@@ -55,25 +55,28 @@ export class SummaryFileWriter {
    * @param name  A name for this summary. The summary tag used for TensorBoard
    *     will be this name prefixed by any active name scopes.
    * @param data  A Tensor of any shape. The histogram is computed over its
-   *     elements, which must be castable to float64.
+   *     elements, which must be castable to float32.
    * @param step  Required `int64`-castable, monotonically-increasing step
    *     value.
    * @param buckets  Optional positive `number`. The output will have this many
    *     buckets, except in two edge cases. If there is no data, then there are
    *     no buckets. If there is data but all points have the same value, then
-   *     there is one bucket whose left and right endpoints are the same.
+   *     there is one bucket whose left and right endpoints are the same. *Not
+   *     implemented yet*.
    * @param description Optional long-form description for this summary, as a
-   *   `string`. *Not implemented yet*.
+   *    `string`. *Not implemented yet*.
    */
   histogram(
       name: string, data: Tensor, step: number, buckets?: number,
       description?: string) {
+    if (buckets != null) {
+      throw new Error('histogram() does not support buckets yet');
+    }
     if (description != null) {
       throw new Error('histogram() does not support description yet');
     }
 
-    this.backend.writeHistogramSummary(
-        this.resourceHandle, step, name, data, buckets);
+    this.backend.writeHistogramSummary(this.resourceHandle, step, name, data);
   }
 
   /**

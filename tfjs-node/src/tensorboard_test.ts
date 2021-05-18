@@ -39,7 +39,6 @@ describe('tensorboard', () => {
 
   afterEach(async () => {
     if (tmpLogDir != null) {
-      // TODO(mkjaer): comment this out to keep log dirs
       await rimrafPromise(tmpLogDir);
     }
   });
@@ -156,7 +155,7 @@ describe('tensorboard', () => {
   describe('SummaryFileWriter.histogram', () => {
     it('Create summaryFileWriter and write tensor', () => {
       const writer = tfn.node.summaryFileWriter(tmpLogDir);
-      writer.histogram('foo', tensor1d([1, 2, 3, 4, 5], 'int32'), 0, 5);
+      writer.histogram('foo', tensor1d([1, 2, 3, 4, 5], 'int32'), 0);
       writer.flush();
 
       // Currently, we only verify that the file exists and the size
@@ -168,14 +167,14 @@ describe('tensorboard', () => {
       const eventFilePath = path.join(tmpLogDir, fileNames[0]);
       const fileSize0 = fs.statSync(eventFilePath).size;
 
-      writer.histogram('foo', tensor1d([1, 1, 1, 1, 1], 'int32'), 1, 5);
+      writer.histogram('foo', tensor1d([1, 1, 1, 1, 1], 'int32'), 1);
       writer.flush();
       const fileSize1 = fs.statSync(eventFilePath).size;
       const incrementPerScalar = fileSize1 - fileSize0;
       expect(incrementPerScalar).toBeGreaterThan(0);
 
-      writer.histogram('foo', tensor1d([2, 2, 2, 2, 2], 'int32'), 2, 5);
-      writer.histogram('foo', tensor1d([3, 3, 3, 3, 3], 'int32'), 3, 5);
+      writer.histogram('foo', tensor1d([2, 2, 2, 2, 2], 'int32'), 2);
+      writer.histogram('foo', tensor1d([3, 3, 3, 3, 3], 'int32'), 3);
       writer.flush();
       const fileSize2 = fs.statSync(eventFilePath).size;
       expect(fileSize2 - fileSize1).toEqual(2 * incrementPerScalar);
@@ -183,7 +182,6 @@ describe('tensorboard', () => {
 
     it('Can create multiple normal distribution', () => {
       const writer = tfn.node.summaryFileWriter(tmpLogDir);
-      console.log('Writing to tmp dir', tmpLogDir)
       for (let i = 0; i < 10; ++i) {
         const normal = tf.tidy(() => tf.randomNormal([1000]).add(i / 10))
         writer.histogram('random normal', normal, i);
