@@ -69,14 +69,8 @@ export class SummaryFileWriter {
   histogram(
       name: string, data: Tensor, step: number, buckets?: number,
       description?: string) {
-    if (buckets != null) {
-      throw new Error('histogram() does not support buckets yet');
-    }
-    if (description != null) {
-      throw new Error('histogram() does not support description yet');
-    }
-
-    this.backend.writeHistogramSummary(this.resourceHandle, step, name, data);
+    this.backend.writeHistogramSummary(
+        this.resourceHandle, step, name, data, buckets, description);
   }
 
   /**
