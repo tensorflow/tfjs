@@ -18,10 +18,11 @@
 // rollup.
 import * as LongExports from 'long';
 // tslint:disable-next-line
-const Long = (LongExports as any).default || LongExports;
+const LongNS: LongExports.LongConstructor =
+    (LongExports as any).default || LongExports;
 
 export function hexToLong(hex: string): Long {
-  return Long.fromString(hex, true, 16);
+  return LongNS.fromString(hex, true, 16);
 }
 
 // Some primes between 2^63 and 2^64 for various uses.
@@ -38,7 +39,7 @@ function shiftMix(val: Long): Long {
 
 function fetch(s: Uint8Array, offset: number, numBytes: number): Long {
   const bytes = s.slice(offset, offset + numBytes);
-  return Long.fromBytes(Array.from(bytes), true, true);
+  return LongNS.fromBytes(Array.from(bytes), true, true);
 }
 
 function fetch64(s: Uint8Array, offset: number): Long {
@@ -138,7 +139,7 @@ function hashLen33to64(s: Uint8Array, len = s.length): Long {
 }
 
 export function fingerPrint64(s: Uint8Array, len = s.length): Long {
-  const seed: Long = Long.fromNumber(81, true);
+  const seed: Long = LongNS.fromNumber(81, true);
   if (len <= 32) {
     if (len <= 16) {
       return hashLen0to16(s, len);
@@ -155,8 +156,8 @@ export function fingerPrint64(s: Uint8Array, len = s.length): Long {
   let y = seed.mul(k1).add(113);
 
   let z = shiftMix(y.mul(k2).add(113)).mul(k2);
-  let v = [Long.UZERO, Long.UZERO];
-  let w = [Long.UZERO, Long.UZERO];
+  let v = [LongNS.UZERO, LongNS.UZERO];
+  let w = [LongNS.UZERO, LongNS.UZERO];
   x = x.mul(k2).add(fetch64(s, 0));
 
   let offset = 0;
