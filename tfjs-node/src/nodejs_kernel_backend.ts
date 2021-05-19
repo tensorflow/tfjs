@@ -592,9 +592,6 @@ export class NodeJSKernelBackend extends KernelBackend {
       return tf.tensor([], [0, 3], 'float32');
     }
 
-    // TODO(mkjaer): We probably need to cast to float64 instead of float32
-    // However, float64 is not supported right now by TFJS...
-
     // 30 is the default number of buckets in the TensorFlow Python
     // implementation. See
     // https://github.com/tensorflow/tensorboard/blob/master/tensorboard/plugins/histogram/summary_v2.py
