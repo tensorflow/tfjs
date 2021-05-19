@@ -560,11 +560,20 @@ export class NodeJSKernelBackend extends KernelBackend {
                           .setPluginData(pluginData)
                           .setDisplayName(null)
                           .setSummaryDescription(description);
+      const summaryTensor = scalar(summary.serializeBinary(), 'string');
+      const nameTensor = scalar(name, 'string');
+      const stepScalar = new Int64Scalar(step);
       const buckets = this.buckets(data, bucketCount);
-      const inputArgs: Array<Tensor|Int64Scalar> = [
-        resourceHandle, new Int64Scalar(step), buckets, scalar(name, 'string'),
-        scalar(summary.serializeBinary(), 'string')
-      ];
+      util.assert(
+          buckets.rank === 2 && buckets.shape[1] === 3,
+          () => `Expected buckets to have shape [k, 3], but they had shape ${
+              buckets.shape}`);
+      util.assert(
+          buckets.dtype === 'float32',
+          () => `Expected buckets to have dtype float32, but they had dtype ${
+              buckets.dtype}`);
+      const inputArgs: Array<Tensor|Int64Scalar> =
+          [resourceHandle, stepScalar, buckets, nameTensor, summaryTensor];
       const typeAttr = this.typeAttributeFromTensor(buckets);
       const opAttrs: TFEOpAttr[] =
           [{name: 'T', type: this.binding.TF_ATTR_TYPE, value: typeAttr}];
@@ -607,8 +616,8 @@ export class NodeJSKernelBackend extends KernelBackend {
       const center = min;
       const bucketStart: Scalar = center.sub(0.5);
       const bucketEnd: Scalar = center.add(0.5);
-      const bucketCounts = tf.scalar(data.size);
-      return tf.stack([bucketStart, bucketEnd, bucketCounts]).transpose();
+      const bucketCounts = tf.scalar(data.size, 'float32');
+      return tf.concat([bucketStart, bucketEnd, bucketCounts]).reshape([1, 3]);
     }
 
     const bucketWidth = range.div(bucketCount);
