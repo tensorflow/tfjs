@@ -45,11 +45,6 @@ export interface WebGPUProgram {
   getUserCode: () => string;
 }
 
-export interface WebGPUBinary {
-  bindGroupLayout: GPUBindGroupLayout;
-  pipeline: GPUComputePipeline;
-}
-
 export interface TensorData {
   dtype: DataType;
 }
@@ -70,8 +65,9 @@ export const makeBindGroup =
 
 export const compileProgram =
     (glslang: Glslang, device: GPUDevice, program: WebGPUProgram,
+     pipelineLayout: GPUPipelineLayout,
      inputsData: shader_preprocessor.InputInfo[], output: TensorInfo,
-     isFromPixel = false): WebGPUBinary => {
+     isFromPixel = false): GPUComputePipeline => {
       const outputData = {dtype: output.dtype, shape: output.shape};
 
       const source = shader_preprocessor.makeShader(
@@ -83,11 +79,10 @@ export const compileProgram =
 
       const module = device.createShaderModule({code: result.data});
       const pipeline = device.createComputePipeline(
-          {compute: {module, entryPoint: 'main'}});
-      const bindGroupLayout = pipeline.getBindGroupLayout(0);
+          {layout: pipelineLayout, compute: {module, entryPoint: 'main'}});
 
       result.free();
-      return {bindGroupLayout, pipeline};
+      return pipeline;
     };
 
 export function makeShaderKey<R extends Rank>(
