@@ -1,12 +1,19 @@
 # Usage
 
-This package adds a WebAssembly backend to TensorFlow.js. This is currently in
-**alpha** and has enough op support to run the following models
-from our [models](https://github.com/tensorflow/tfjs-models) repo:
-- MobileNet
+This package adds a WebAssembly backend to TensorFlow.js. It currently supports
+the following models from our
+[models](https://github.com/tensorflow/tfjs-models) repo:
+- BlazeFace
 - BodyPix
-- PoseNet
 - CocoSSD
+- Face landmarks detection
+- FaceMesh
+- HandPose
+- KNN classifier
+- MobileNet
+- PoseNet
+- PoseDetection
+- Q&A
 - AutoML Image classification
 - AutoML Object detection
 
