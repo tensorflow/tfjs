@@ -51,20 +51,26 @@ export class SummaryFileWriter {
   }
 
   /**
+   * Write a histogram summary, for later analysis in TensorBoard's 'Histograms'
+   * and 'Distributions' dashboards (data written using this API will appear in
+   * both places). Like `SummaryFileWriter.scalar` points, each histogram is
+   * associated with a `step` and a `name`. All the histograms with the same
+   * `name` constitute a time series of histograms.
+   *
+   * The histogram is calculated over all the elements of the given `Tensor`
+   * without regard to its shape or rank.
    *
    * @param name  A name for this summary. The summary tag used for TensorBoard
-   *     will be this name prefixed by any active name scopes.
+   *     will be this name.
    * @param data  A Tensor of any shape. The histogram is computed over its
-   *     elements, which must be castable to float32.
-   * @param step  Required `int64`-castable, monotonically-increasing step
-   *     value.
+   *     elements, which must be castable to `float32`.
+   * @param step  Monotonically-increasing step value.
    * @param buckets  Optional positive `number`. The output will have this many
    *     buckets, except in two edge cases. If there is no data, then there are
    *     no buckets. If there is data but all points have the same value, then
-   *     there is one bucket whose left and right endpoints are the same. *Not
-   *     implemented yet*.
+   *     there is one bucket whose left and right endpoints are the same.
    * @param description Optional long-form description for this summary, as a
-   *    `string`. *Not implemented yet*.
+   *    `string`. Markdown is supported. Defaults to empty.
    */
   histogram(
       name: string, data: Tensor, step: number, buckets?: number,
