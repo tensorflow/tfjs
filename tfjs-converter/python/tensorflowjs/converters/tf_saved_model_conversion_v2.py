@@ -78,14 +78,19 @@ def get_cluster():
   cluster = gcluster.Cluster(devices=[named_device])
   return cluster
 
-def validate(nodes, skip_op_check, strip_debug_ops):
+def validate(graph_def, skip_op_check, strip_debug_ops):
   """Validate if the node's op is compatible with TensorFlow.js.
 
   Args:
-    nodes: tf.NodeDef TensorFlow NodeDef objects from GraphDef.
+    graph_def: tf.GraphDef TensorFlow GraphDef proto object, which represents
+      the model topology.
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to allow unsupported debug ops.
   """
+  nodes = [] + list(graph_def.node)
+  for func in graph_def.library.function:
+    nodes.extend(list(func.node_def))
+
   if skip_op_check:
     return set()
   ops = []
@@ -142,7 +147,7 @@ def optimize_graph(graph, signature_def, output_graph,
 
   graph_def = graph.as_graph_def()
 
-  unsupported = validate(graph_def.node, skip_op_check,
+  unsupported = validate(graph_def, skip_op_check,
                          strip_debug_ops)
   if unsupported:
     raise ValueError('Unsupported Ops in the model before optimization\n' +
@@ -195,7 +200,7 @@ def optimize_graph(graph, signature_def, output_graph,
   optimized_graph = fuse_prelu.fuse_prelu_with_fused_conv2d_or_matmul(
       optimized_graph)
 
-  unsupported = validate(optimized_graph.node, skip_op_check,
+  unsupported = validate(optimized_graph, skip_op_check,
                          strip_debug_ops)
   if unsupported:
     raise ValueError('Unsupported Ops in the model after optimization\n' +
