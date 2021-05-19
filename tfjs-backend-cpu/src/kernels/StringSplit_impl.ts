@@ -22,6 +22,7 @@ function split(
   if (!str.length) {
     return [];
   }
+  // When the delimiter is empty, the input is split into individual characters.
   if (delimiters.length === 0) {
     const result: Uint8Array[] = new Array(str.length);
     for (let i = 0; i < str.length; ++i) {
@@ -29,6 +30,7 @@ function split(
     }
     return result;
   }
+  // When there is one delimiter, the input is split only at that delimiter.
   if (delimiters.length === 1) {
     const delimiter = delimiters[0];
     const result: Uint8Array[] = [];
@@ -46,6 +48,8 @@ function split(
     }
     return result;
   }
+  // When there are multiple delimiters, the input is split at every instance
+  // one of the delimiters appears.
   const result: Uint8Array[] = [];
   let tokenStart = 0;
   for (let i = 0; i < str.length + 1; i++) {

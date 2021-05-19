@@ -37,14 +37,14 @@ import {op} from '../operation';
  *
  * ```js
  * const result = tf.string.stringSplit(['hello world',  'a b c'], ' ');
- * console.log(result);
  * result['indices'].print(); // [[0, 0], [0, 1], [1, 0], [1, 1], [1, 2]]
  * result['values'].print(); // ['hello', 'world', 'a', 'b', 'c']
  * result['shape'].print(); // [2, 3]
  * ```
  * @param input: 1-D. Strings to split.
  * @param delimiter: 0-D. Delimiter characters, or empty string.
- * @param skipEmpty: If True , skip the empty strings from the result.
+ * @param skipEmpty: Optional. If true, skip the empty strings from the result.
+ *     Defaults to true.
  * @return A map with the following properties:
  *     - indices: A dense matrix of int32 representing the indices of the sparse
  *       tensor.
