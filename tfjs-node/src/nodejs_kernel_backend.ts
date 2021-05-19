@@ -552,6 +552,20 @@ export class NodeJSKernelBackend extends KernelBackend {
       util.assert(
           Number.isInteger(step),
           () => `step is expected to be an integer, but is instead ${step}`);
+
+      // We use the WriteSummary op, and not WriteHistogramSummary. The
+      // difference is that WriteHistogramSummary takes a tensor of any shape,
+      // and places the values in 30 buckets, while WriteSummary expects a
+      // tensor which already describes the bucket widths and counts.
+      //
+      // If we were to use WriteHistogramSummary, we wouldn't have to implement
+      // the "bucketization" of the input tensor, but we also wouldn't have
+      // control over the number of buckets, or the description of the graph.
+      //
+      // Therefore, we instead use WriteSummary, which makes it possible to
+      // support these features. However, the trade-off is that we have to
+      // implement our own "bucketization", and have to write the summary as a
+      // protobuf message.
       const content = new messages.HistogramPluginData().setVersion(0);
       const pluginData = new messages.SummaryMetadata.PluginData()
                              .setPluginName('histograms')
