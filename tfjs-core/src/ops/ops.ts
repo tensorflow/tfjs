@@ -309,9 +309,13 @@ const sparse = {
   sparseSegmentSum
 };
 
+import {stringSplit} from './string/string_split';
 import {stringToHashBucketFast} from './string/string_to_hash_bucket_fast';
 // tslint:disable-next-line:variable-name
-const string = {stringToHashBucketFast};
+const string = {
+  stringSplit,
+  stringToHashBucketFast
+};
 
 // Second level exports.
 export {image, linalg, losses, spectral, fused, signal, sparse, string};

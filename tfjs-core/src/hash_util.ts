@@ -14,8 +14,13 @@
  * limitations under the License.
  * =============================================================================
  */
-// tslint:disable-next-line:no-require-imports variable-name
-const Long = require('long');
+// Workaround for allowing cjs module to be included in bundle created by
+// rollup.
+import * as LongExports from 'long';
+// tslint:disable-next-line
+const Long: LongExports.LongConstructor =
+    // tslint:disable-next-line
+    (LongExports as any).default || LongExports;
 
 export function hexToLong(hex: string): Long {
   return Long.fromString(hex, true, 16);
