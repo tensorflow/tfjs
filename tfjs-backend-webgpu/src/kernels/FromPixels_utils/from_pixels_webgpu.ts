@@ -31,8 +31,6 @@ export class FromPixelsProgram implements WebGPUProgram {
       [256, 1, 1];  // The empirical value.
 
   pipeline: GPUComputePipeline;
-  bindGroupLayout: GPUBindGroupLayout;
-
   uniform: GPUBuffer;
   lastUniformData: number[] = [];
 
@@ -92,9 +90,7 @@ export class FromPixelsProgram implements WebGPUProgram {
     return userCode;
   }
 
-  setWebGPUBinary(
-      bindGroupLayout: GPUBindGroupLayout, pipeline: GPUComputePipeline) {
-    this.bindGroupLayout = bindGroupLayout;
+  setPipeline(pipeline: GPUComputePipeline) {
     this.pipeline = pipeline;
   }
 
