@@ -106,7 +106,6 @@ export class WebGPUBackend extends KernelBackend {
   private uploadWaitMs = 0;
   private downloadWaitMs = 0;
   private computePassNumberInEncoder = 0;
-  private cpuBackend: KernelBackend;
   private querySet: GPUQuerySet;
 
   constructor(device: GPUDevice, glslang: Glslang, supportTimeQuery = false) {
@@ -816,22 +815,10 @@ export class WebGPUBackend extends KernelBackend {
     return timeElapsedNanos / 1000000;
   }
 
-  private getCPUBackend(): KernelBackend|null {
-    if (!env().getBool('WEBGPU_CPU_FORWARD')) {
-      return null;
-    }
-
-    if (this.cpuBackend == null) {
-      this.cpuBackend = engine().findBackend('cpu');
-    }
-
-    return this.cpuBackend;
-  }
-
   shouldExecuteOnCPU(
       inputs: TensorInfo[],
       sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
-    return this.getCPUBackend() != null &&
+    return env().getBool('WEBGPU_CPU_FORWARD') &&
         inputs.every(
             input =>
                 this.tensorMap.get(input.dataId).bufferInfo.buffer == null &&
@@ -858,9 +845,7 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   numDataIds() {
-    return this.tensorMap.numDataIds() +
-        (this.cpuBackend ? this.cpuBackend.numDataIds() : 0) -
-        this.tensorDisposalQueue.length;
+    return this.tensorMap.numDataIds() - this.tensorDisposalQueue.length;
   }
 
   dispose() {
