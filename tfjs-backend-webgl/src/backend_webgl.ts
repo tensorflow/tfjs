@@ -86,7 +86,8 @@ export function getBinaryCache(webGLVersion: number) {
 
 // Empirically determined constant used to determine size threshold for handing
 // off execution to the CPU.
-const CPU_HANDOFF_SIZE_THRESHOLD = 128;
+const CPU_HANDOFF_SIZE_THRESHOLD =
+    env().getNumber('CPU_HANDOFF_SIZE_THRESHOLD');
 
 // Empirically determined constant used to decide the number of MB on GPU
 // before we warn about high memory use. The MB are this constant * screen area
