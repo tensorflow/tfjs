@@ -104,57 +104,35 @@ limitations under the License.
     // Default do not run any task.
     let task = '';
 
-    function loadScript(url, callback) {
+    let localDistNames = ['core', 'backend-cpu', 'backend-webgl', 'layers',
+                          'converter', 'backend-wasm', 'automl'];
+    let useLocalDistArray = [['core', false], ['backend-cpu', false],
+                             ['backend-webgl', false], ['layers', false],
+                             ['converter', false], ['backend-wasm', false],
+                             ['automl', false]];
+    var distIndex = 0;
+    let useLocalDistMap = new Map(useLocalDistArray);
+    function loadScript(name, useLocalDist, callback) {
       var script = document.createElement("script")
       script.type = "text/javascript";
-
-      if (script.readyState) { //IE
-        script.onreadystatechange = function() {
-          if (script.readyState == "loaded" ||
-          script.readyState == "complete") {
-            script.onreadystatechange = null;
-            callback();
-          }
-        };
-      } else { //Others
-        script.onload = function() {
-          callback();
-        };
+      script.onload = function() {
+        callback();
+      };
+      let url = "";
+      if (useLocalDist) {
+        url = "../../../tfjs-" + name + "/dist/tf-" + name + ".js";
+      } else {
+        url = "https://unpkg.com/@tensorflow/tfjs-" + name + "@latest/dist/tf-"
+          + name + ".js";
       }
-
       script.src = url;
       document.getElementsByTagName("head")[0].appendChild(script);
     }
 
-    var unpkgUrlsIndex = 0;
-    var unpkgUrls = ["https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js",
-      "https://unpkg.com/@tensorflow/tfjs-backend-cpu@latest/dist/tf-backend-cpu.js",
-      "https://unpkg.com/@tensorflow/tfjs-backend-webgl@latest/dist/tf-backend-webgl.js",
-      "https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js",
-      "https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js",
-      "https://unpkg.com/@tensorflow/tfjs-backend-wasm@latest/dist/tf-backend-wasm.js",
-      "https://unpkg.com/@tensorflow/tfjs-automl@latest/dist/tf-automl.js"
-    ];
-    var unpkgRecursiveCallback = function() {
-      if (++unpkgUrlsIndex < unpkgUrls.length) {
-        loadScript(unpkgUrls[unpkgUrlsIndex], unpkgRecursiveCallback)
-      } else {
-        onPageLoad();
-      }
-    }
-
-    var customUrlsIndex = 0;
-    var customUrls = ["../../../tfjs-core/dist/tf-core.js",
-      "../../../tfjs-backend-cpu/dist/tf-backend-cpu.js",
-      "../../../tfjs-backend-webgl/dist/tf-backend-webgl.js",
-      "../../../tfjs-layers/dist/tf-layers.js",
-      "../../../tfjs-converter/dist/tf-converter.js",
-      "../../../tfjs-backend-wasm/dist/tf-backend-wasm.js",
-      "../../../tfjs-automl/dist/tf-automl.js"
-    ];
-    var customRecursiveCallback = function() {
-      if (++customUrlsIndex < customUrls.length) {
-        loadScript(customUrls[customUrlsIndex], customRecursiveCallback)
+    var recursiveCallback = function() {
+      if (++distIndex < localDistNames.length) {
+        const name = localDistNames[distIndex];
+        loadScript(name, useLocalDistMap.get(name), recursiveCallback);
       } else {
         onPageLoad();
       }
@@ -163,10 +141,8 @@ limitations under the License.
     function getURLState(url) {
       let params = new URLSearchParams(url);
       const keys = [...params.keys()];
-      if (keys.length === 0) {
-        loadScript(unpkgUrls[0], unpkgRecursiveCallback);
+      if (keys.length === 0)
         return null;
-      }
       if (params.has('run')) {
         runTimes = Number(params.get('run'));
       }
@@ -176,11 +152,26 @@ limitations under the License.
       if (params.has('task')) {
         task = params.get('task');
       }
-
-      if (params.has('customtfjs')) {
-        loadScript(customUrls[0], customRecursiveCallback);
-      } else {
-        loadScript(unpkgUrls[0], unpkgRecursiveCallback);
+      if (params.has('core')) {
+        useLocalDistMap.set('core', true);
+      }
+      if (params.has('backend-cpu')) {
+        useLocalDistMap.set('backend-cpu', true);
+      }
+      if (params.has('backend-webgl')) {
+        useLocalDistMap.set('backend-webgl', true);
+      }
+      if (params.has('layers')) {
+        useLocalDistMap.set('layers', true);
+      }
+      if (params.has('converter')) {
+        useLocalDistMap.set('converter', true);
+      }
+      if (params.has('backend-wasm')) {
+        useLocalDistMap.set('backend-wasm', true);
+      }
+      if (params.has('automl')) {
+        useLocalDistMap.set('automl', true);
       }
 
       return params;
@@ -290,6 +281,7 @@ limitations under the License.
     };
 
     urlState = getURLState(window.location.search);
+    loadScript(localDistNames[0], useLocalDistMap.get(localDistNames[0]),recursiveCallback);
 
     const modalDiv = document.getElementById('modal-msg');
     const timeTable = document.querySelector('#timings tbody');
