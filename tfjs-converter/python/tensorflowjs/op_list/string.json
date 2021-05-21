@@ -1,5 +1,28 @@
 [
   {
+    "tfOpName": "StringSplit",
+    "category": "string",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "input",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "delimiter",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "skip_empty",
+        "name": "skipEmpty",
+        "type": "bool"
+      }
+    ]
+  },
+  {
     "tfOpName": "StringToHashBucketFast",
     "category": "string",
     "inputs": [

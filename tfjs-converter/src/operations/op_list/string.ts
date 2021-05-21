@@ -17,11 +17,22 @@
 
 import {OpMapper} from '../types';
 
-export const json: OpMapper[] = [{
-  'tfOpName': 'StringToHashBucketFast',
-  'category': 'string',
-  'inputs': [
-    {'start': 0, 'name': 'input', 'type': 'tensor'},
-  ],
-  'attrs': [{'tfName': 'num_buckets', 'name': 'numBuckets', 'type': 'number'}]
-}];
+export const json: OpMapper[] = [
+  {
+    'tfOpName': 'StringSplit',
+    'category': 'string',
+    'inputs': [
+      {'start': 0, 'name': 'input', 'type': 'tensor'},
+      {'start': 1, 'name': 'delimiter', 'type': 'tensor'},
+    ],
+    'attrs': [{'tfName': 'skip_empty', 'name': 'skipEmpty', 'type': 'bool'}]
+  },
+  {
+    'tfOpName': 'StringToHashBucketFast',
+    'category': 'string',
+    'inputs': [
+      {'start': 0, 'name': 'input', 'type': 'tensor'},
+    ],
+    'attrs': [{'tfName': 'num_buckets', 'name': 'numBuckets', 'type': 'number'}]
+  }
+];
