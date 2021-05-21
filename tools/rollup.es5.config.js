@@ -25,9 +25,6 @@ export default {
     resolve({browser: true}),
     commonjs(),
     sourcemaps(),
-    // getBabelOutputPlugin({
-    //   presets: ['@babel/preset-env']
-    // })
     babel({ babelHelpers: 'bundled' }),
   ],
 }

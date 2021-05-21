@@ -22,10 +22,6 @@ const browserstackConfig = {
 };
 
 module.exports = function(config) {
-  if (process.env.BROWSER) {
-    console.log(process.env.BROWSER)
-  }
-
   config.set({
     ...browserstackConfig,
     browserStack: {

@@ -15,9 +15,8 @@ def _copy_to_dist_impl(ctx):
             output = out,
             target_file = f,
         )
-    return [DefaultInfo(
-        files = depset(outputs)
-    )]
+
+    return [DefaultInfo(files = depset(outputs))]
 
 copy_to_dist = rule(
     implementation = _copy_to_dist_impl,
