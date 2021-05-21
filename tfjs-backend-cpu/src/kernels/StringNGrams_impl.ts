@@ -17,6 +17,12 @@
 
 import {TypedArray, util} from '@tensorflow/tfjs-core';
 
+/**
+ * The StringNGramsOp class creates ngrams from ragged string data.
+ * The constructor contains all attributes related to the operation such as
+ * padding widths and strings, and the compute function can be used to
+ * compute the ngrams for different ragged tensor inputs.
+ */
 class StringNGramsOp {
   private separator: Uint8Array;
   private nGramWidths: number[];
@@ -118,7 +124,7 @@ class StringNGramsOp {
     }
   }
 
-  public compute(data: Uint8Array[], splits: TypedArray):
+  public compute(data: Uint8Array[], splits: Int32Array):
       [Uint8Array[], TypedArray] {
     // Validate that the splits are valid indices into data, only if there are
     // splits specified.
@@ -207,7 +213,7 @@ class StringNGramsOp {
 }
 
 export function stringNGramsImpl(
-    data: Uint8Array[], dataSplits: TypedArray, separator: string,
+    data: Uint8Array[], dataSplits: Int32Array, separator: string,
     nGramWidths: number[], leftPad: string, rightPad: string, padWidth: number,
     preserveShortSequences: boolean): [Uint8Array[], TypedArray] {
   return new StringNGramsOp(

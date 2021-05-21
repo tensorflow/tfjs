@@ -435,28 +435,28 @@ describeWithFlags('stringNGrams', ALL_ENVS, () => {
     await expectResult(result, nGrams, nGramsSplits);
   });
 
-  it('throw error if first split value is not 0', async () => {
+  it('throw error if first partition index is not 0', async () => {
     expect(
         () => tf.string.stringNGrams(
             ['a'], tf.tensor1d([1, 1, 1], 'int32'), '|', [3], '', '', 0, false))
         .toThrowError(/First split value must be 0/);
   });
 
-  it('throw error if split value is decreasing', async () => {
+  it('throw error if partition indices are decreasing', async () => {
     expect(
         () => tf.string.stringNGrams(
             ['a'], tf.tensor1d([0, 1, 0], 'int32'), '|', [3], '', '', 0, false))
         .toThrowError(/must be in \[1, 1\]/);
   });
 
-  it('throw error if split value is >= input size', async () => {
+  it('throw error if partition index is >= input size', async () => {
     expect(
         () => tf.string.stringNGrams(
             ['a'], tf.tensor1d([0, 2, 1], 'int32'), '|', [3], '', '', 0, false))
         .toThrowError(/must be in \[0, 1\]/);
   });
 
-  it('throw error if last split value is !== input size', async () => {
+  it('throw error if last partition index is !== input size', async () => {
     expect(
         () => tf.string.stringNGrams(
             ['a'], tf.tensor1d([0, 0], 'int32'), '|', [3], '', '', 0, false))

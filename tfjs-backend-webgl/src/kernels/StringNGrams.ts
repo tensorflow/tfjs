@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, StringNGrams, StringNGramsAttrs, StringNGramsInputs, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, StringNGrams, StringNGramsAttrs, StringNGramsInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {stringNGramsImplCPU} from '../kernel_utils/shared';
@@ -47,7 +47,7 @@ export function stringNGrams(args: {
   }
 
   const $data = backend.readSync(data.dataId) as Uint8Array[];
-  const $dataSplits = backend.readSync(dataSplits.dataId) as TypedArray;
+  const $dataSplits = backend.readSync(dataSplits.dataId) as Int32Array;
 
   const [nGrams, nGramsSplits] = stringNGramsImplCPU(
       $data, $dataSplits, separator, nGramWidths, leftPad, rightPad, padWidth,
