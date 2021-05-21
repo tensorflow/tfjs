@@ -8,7 +8,7 @@ TEST_SRCS = ["**/*_test.ts", "run_tests.ts"]
 ts_library(
     name = "tfjs-backend-cpu_src_lib",
     srcs = glob(["**/*.ts"], exclude=TEST_SRCS + ["index.ts"]),
-    module_name = "@tensorflow/tfjs-backend-cpu/src",
+    module_name = "@tensorflow/tfjs-backend-cpu/dist",
     deps = [
         "//tfjs-core/src:tfjs-core_lib",
         "@npm//seedrandom",
@@ -28,7 +28,7 @@ ts_library(
 ts_library(
     name = "tfjs-backend-cpu_test_lib",
     srcs = glob(TEST_SRCS),
-    module_name = "@tensorflow/tfjs-backend-cpu/src",
+    module_name = "@tensorflow/tfjs-backend-cpu/dist",
     testonly = True,
     deps = [
         "//tfjs-core/src:tfjs-core_src_lib",

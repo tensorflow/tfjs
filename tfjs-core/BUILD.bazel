@@ -16,6 +16,7 @@
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
 load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm", "js_library")
+load("//tools:copy_to_dist.bzl", "copy_to_dist")
 
 
 package(default_visibility = ["//visibility:public"])
@@ -37,22 +38,45 @@ tfjs_bundle(
     ],
 )
 
-PKG_DEPS = [
-    ":tf-core",
-    ":tf-core.min",
-    ":tf-core.es2017",
-    ":tf-core.es2017.min",
-    ":tf-core.fesm",
-    ":tf-core.fesm.min",
-    ":tf-core.node",
-    "//tfjs-core/src:tfjs-core_lib",
-    "//tfjs-core/src:tfjs-core_src_lib",
-]
+filegroup(
+    name = "es6_sources",
+    srcs = [
+      "//tfjs-core/src:tfjs-core_lib",
+      "//tfjs-core/src:tfjs-core_src_lib",
+    ],
+    output_group = "es6_sources",
+)
+
+copy_to_dist(
+    name = "copy_src_to_dist",
+    srcs = [
+        ":es6_sources",
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_src_lib",
+    ],
+    root = "src",
+)
+
+copy_to_dist(
+    name = "copy_bundles",
+    srcs = [
+        ":tf-core",
+        ":tf-core.min",
+        ":tf-core.es2017",
+        ":tf-core.es2017.min",
+        ":tf-core.fesm",
+        ":tf-core.fesm.min",
+        ":tf-core.node",
+    ],
+)
 
 pkg_npm(
     name = "tfjs-core_pkg",
     srcs = ["package.json"],
-    deps = PKG_DEPS,
+    deps = [
+        ":copy_src_to_dist",
+        ":copy_bundles",
+    ]
 )
 
 tfjs_web_test(
@@ -65,6 +89,13 @@ tfjs_web_test(
         "//tfjs-core/src:tfjs-core_test_bundle"
     ],
 )
+
+# tfjs_web_test(
+#     name = "tfjs-core-worker_test",
+#     srcs = [
+        
+#     ],
+    
 
 # This is necessary for //tfjs-core/src:tfjs-core_test_bundle to have acess to
 # the package.json so src/version_test.ts can 'require()' it.

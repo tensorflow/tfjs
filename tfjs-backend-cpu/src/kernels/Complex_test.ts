@@ -20,7 +20,7 @@ import {test_util} from '@tensorflow/tfjs-core';
 
 const {expectArraysClose} = test_util;
 // tslint:disable-next-line: no-imports-from-dist
-import {describeWithFlags, ALL_ENVS} from '@tensorflow/tfjs-core/src/jasmine_util';
+import {describeWithFlags, ALL_ENVS} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 describeWithFlags('Complex.', ALL_ENVS, () => {
   it('memory usage.', async () => {

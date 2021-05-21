@@ -26,7 +26,8 @@ nodejs_test(
     data = [
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_test_lib",
         "//tfjs-core:package_json",
-    ]
+    ],
+    tags = ["ci"],
 )
 
 tfjs_bundle(

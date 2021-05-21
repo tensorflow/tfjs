@@ -11,7 +11,7 @@ ts_library(
         ["**/*.ts"],
         exclude = TEST_SRCS + ["index.ts"],
     ),
-    module_name = "@tensorflow/tfjs-core/src",
+    module_name = "@tensorflow/tfjs-core/dist",
     deps = [
         "@npm//@types",
         "@npm//jasmine-core",
@@ -32,7 +32,7 @@ ts_library(
     name = "tfjs-core_test_lib",
     srcs = glob(TEST_SRCS),
     testonly = True,
-    module_name = "@tensorflow/tfjs-core/src",
+    module_name = "@tensorflow/tfjs-core/dist",
     deps = [
         ":tfjs-core_src_lib",
         ":tfjs-core_lib",

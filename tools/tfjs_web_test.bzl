@@ -11,6 +11,7 @@ def _make_karma_config_impl(ctx):
             "TEMPLATE_browser": ctx.attr.browser,
         },
     )
+    return [DefaultInfo(files = depset([output_file]))]
 
 _make_karma_config = rule(
     implementation = _make_karma_config_impl,
