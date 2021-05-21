@@ -19,12 +19,17 @@
 #include "tfjs_backend.h"
 #include "utils.h"
 
+#include <mutex>
+#include <unordered_map>
+
 namespace tfnodejs {
 
-TFJSBackend *gBackend = nullptr;
+std::mutex gBackendsMut;
+std::unordered_map<napi_env, TFJSBackend *> gBackends;
 
 static void AssignIntProperty(napi_env env, napi_value exports,
                               const char *name, int32_t value) {
+
   napi_value js_value;
   napi_status nstatus = napi_create_int32(env, value, &js_value);
   ENSURE_NAPI_OK(env, nstatus);
@@ -65,7 +70,15 @@ static napi_value CreateTensor(napi_env env, napi_callback_info info) {
     ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[2], nullptr);
   }
 
-  return gBackend->CreateTensor(env, args[0], args[1], args[2]);
+  TFJSBackend *backend = nullptr;
+  {
+    std::lock_guard<std::mutex> lock(gBackendsMut);
+    const auto it = gBackends.find(env);
+    if (it == gBackends.cend()) NAPI_THROW_ERROR(env, "Backend not found for environment");
+    backend = it->second;
+  }
+
+  return backend->CreateTensor(env, args[0], args[1], args[2]);
 }
 
 static napi_value DeleteTensor(napi_env env, napi_callback_info info) {
@@ -88,7 +101,15 @@ static napi_value DeleteTensor(napi_env env, napi_callback_info info) {
 
   ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[0], js_this);
 
-  gBackend->DeleteTensor(env, args[0]);
+  TFJSBackend *backend = nullptr;
+  {
+    std::lock_guard<std::mutex> lock(gBackendsMut);
+    const auto it = gBackends.find(env);
+    if (it == gBackends.cend()) NAPI_THROW_ERROR(env, "Backend not found for environment");
+    backend = it->second;
+  }
+
+  backend->DeleteTensor(env, args[0]);
   return js_this;
 }
 
@@ -112,7 +133,15 @@ static napi_value TensorDataSync(napi_env env, napi_callback_info info) {
 
   ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[0], js_this);
 
-  return gBackend->GetTensorData(env, args[0]);
+  TFJSBackend *backend = nullptr;
+  {
+    std::lock_guard<std::mutex> lock(gBackendsMut);
+    const auto it = gBackends.find(env);
+    if (it == gBackends.cend()) NAPI_THROW_ERROR(env, "Backend not found for environment");
+    backend = it->second;
+  }
+
+  return backend->GetTensorData(env, args[0]);
 }
 
 static napi_value ExecuteOp(napi_env env, napi_callback_info info) {
@@ -139,14 +168,30 @@ static napi_value ExecuteOp(napi_env env, napi_callback_info info) {
   ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[2], nullptr);
   ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[3], nullptr);
 
-  return gBackend->ExecuteOp(env, args[0], args[1], args[2], args[3]);
+  TFJSBackend *backend = nullptr;
+  {
+    std::lock_guard<std::mutex> lock(gBackendsMut);
+    const auto it = gBackends.find(env);
+    if (it == gBackends.cend()) NAPI_THROW_ERROR(env, "Backend not found for environment");
+    backend = it->second;
+  }
+
+  return backend->ExecuteOp(env, args[0], args[1], args[2], args[3]);
 }
 
 static napi_value IsUsingGPUDevice(napi_env env, napi_callback_info info) {
   napi_value result;
 
+  TFJSBackend *backend = nullptr;
+  {
+    std::lock_guard<std::mutex> lock(gBackendsMut);
+    const auto it = gBackends.find(env);
+    if (it == gBackends.cend()) NAPI_THROW_ERROR(env, "Backend not found for environment");
+    backend = it->second;
+  }
+
   napi_status nstatus;
-  nstatus = napi_get_boolean(env, gBackend->is_gpu_device, &result);
+  nstatus = napi_get_boolean(env, backend->is_gpu_device, &result);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   return result;
@@ -173,7 +218,15 @@ static napi_value LoadSavedModel(napi_env env, napi_callback_info info) {
   ENSURE_VALUE_IS_STRING_RETVAL(env, args[0], nullptr);
   ENSURE_VALUE_IS_STRING_RETVAL(env, args[1], nullptr);
 
-  return gBackend->LoadSavedModel(env, args[0], args[1]);
+  TFJSBackend *backend = nullptr;
+  {
+    std::lock_guard<std::mutex> lock(gBackendsMut);
+    const auto it = gBackends.find(env);
+    if (it == gBackends.cend()) NAPI_THROW_ERROR(env, "Backend not found for environment");
+    backend = it->second;
+  }
+
+  return backend->LoadSavedModel(env, args[0], args[1]);
 }
 
 static napi_value DeleteSavedModel(napi_env env, napi_callback_info info) {
@@ -196,7 +249,15 @@ static napi_value DeleteSavedModel(napi_env env, napi_callback_info info) {
 
   ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[0], js_this);
 
-  gBackend->DeleteSavedModel(env, args[0]);
+  TFJSBackend *backend = nullptr;
+  {
+    std::lock_guard<std::mutex> lock(gBackendsMut);
+    const auto it = gBackends.find(env);
+    if (it == gBackends.cend()) NAPI_THROW_ERROR(env, "Backend not found for environment");
+    backend = it->second;
+  }
+
+  backend->DeleteSavedModel(env, args[0]);
   return js_this;
 }
 
@@ -221,19 +282,42 @@ static napi_value RunSavedModel(napi_env env, napi_callback_info info) {
   ENSURE_VALUE_IS_STRING_RETVAL(env, args[2], nullptr);
   ENSURE_VALUE_IS_STRING_RETVAL(env, args[3], nullptr);
 
-  return gBackend->RunSavedModel(env, args[0], args[1], args[2], args[3]);
+  TFJSBackend *backend = nullptr;
+  {
+    std::lock_guard<std::mutex> lock(gBackendsMut);
+    const auto it = gBackends.find(env);
+    if (it == gBackends.cend()) NAPI_THROW_ERROR(env, "Backend not found for environment");
+    backend = it->second;
+  }
+
+  return backend->RunSavedModel(env, args[0], args[1], args[2], args[3]);
 }
 
 static napi_value GetNumOfSavedModels(napi_env env, napi_callback_info info) {
+  TFJSBackend *backend = nullptr;
+  {
+    std::lock_guard<std::mutex> lock(gBackendsMut);
+    const auto it = gBackends.find(env);
+    if (it == gBackends.cend()) NAPI_THROW_ERROR(env, "Backend not found for environment");
+    backend = it->second;
+  }
   // Delete SavedModel takes 0 param;
-  return gBackend->GetNumOfSavedModels(env);
+  return backend->GetNumOfSavedModels(env);
 }
 
+
+
 static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
+
   napi_status nstatus;
 
-  gBackend = TFJSBackend::Create(env);
-  ENSURE_VALUE_IS_NOT_NULL_RETVAL(env, gBackend, nullptr);
+  TFJSBackend *const backend = TFJSBackend::Create(env);
+  ENSURE_VALUE_IS_NOT_NULL_RETVAL(env, backend, nullptr);
+
+  {
+    std::lock_guard<std::mutex> lock(gBackendsMut);
+    gBackends.emplace(env, backend);
+  }
 
   // TF version
   napi_value tf_version;
