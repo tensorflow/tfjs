@@ -35,7 +35,7 @@ import {op} from '../operation';
  *   ['a', 'b', 'c', 'd'], tf.tensor1d([0, 2, 4], 'int32'),
  *   '|', [1, 2], 'LP', 'RP', -1, false);
  * result['nGrams'].print(); // ['a', 'b', 'LP|a', 'a|b', 'b|RP',
- *                               'c', 'd', 'LP|c', 'c|d', 'd|RP']
+ *                           //  'c', 'd', 'LP|c', 'c|d', 'd|RP']
  * result['nGramsSplits'].print(); // [0, 5, 10]
  * ```
  * @param data: The values tensor of the ragged string tensor to make ngrams out
