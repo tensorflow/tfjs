@@ -7,8 +7,8 @@
   "jsdelivr": "dist/tf-backend-cpu.min.js",
   "unpkg": "dist/tf-backend-cpu.min.js",
   "types": "dist/index.d.ts",
-  "jsnext:main": "dist/index.js",
-  "module": "dist/index.js",
+  "jsnext:main": "dist/index.mjs",
+  "module": "dist/index.mjs",
   "miniprogram": "dist/miniprogram",
   "engines": {
     "yarn": ">= 1.3.2"
