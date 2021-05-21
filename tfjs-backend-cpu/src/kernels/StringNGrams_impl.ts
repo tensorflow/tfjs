@@ -124,6 +124,9 @@ class StringNGramsOp {
     }
   }
 
+  // Data and splits together form the definition of the ragged tensor,
+  // where data is 1 dimensional and contains the values of the tensor
+  // and splits denotes the indices at which each row starts.
   public compute(data: Uint8Array[], splits: Int32Array):
       [Uint8Array[], TypedArray] {
     // Validate that the splits are valid indices into data, only if there are
