@@ -19,6 +19,25 @@ import {OpMapper} from '../types';
 
 export const json: OpMapper[] = [
   {
+    'tfOpName': 'StringNGrams',
+    'category': 'string',
+    'inputs': [
+      {'start': 0, 'name': 'data', 'type': 'tensor'},
+      {'start': 1, 'name': 'dataSplits', 'type': 'tensor'},
+    ],
+    'attrs': [
+      {'tfName': 'separator', 'name': 'separator', 'type': 'string'},
+      {'tfName': 'ngram_widths', 'name': 'nGramWidths', 'type': 'number[]'},
+      {'tfName': 'left_pad', 'name': 'leftPad', 'type': 'string'},
+      {'tfName': 'right_pad', 'name': 'rightPad', 'type': 'string'},
+      {'tfName': 'pad_width', 'name': 'padWidth', 'type': 'number'}, {
+        'tfName': 'preserve_short_sequences',
+        'name': 'preserveShortSequences',
+        'type': 'bool'
+      }
+    ]
+  },
+  {
     'tfOpName': 'StringSplit',
     'category': 'string',
     'inputs': [

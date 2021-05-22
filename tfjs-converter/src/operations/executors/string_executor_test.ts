@@ -23,7 +23,7 @@ import * as string from '../op_list/string';
 import {Node} from '../types';
 
 import {executeOp} from './string_executor';
-import {createBoolAttr, createNumberAttr, createTensorAttr, validateParam} from './test_helper';
+import {createBoolAttr, createNumberAttr, createNumericArrayAttr, createStrAttr, createTensorAttr, validateParam} from './test_helper';
 
 describe('string', () => {
   let node: Node;
@@ -43,6 +43,47 @@ describe('string', () => {
   });
 
   describe('executeOp', () => {
+    describe('StringNGrams', () => {
+      it('should call tfOps.string.stringNGrams', async () => {
+        spyOn(tfOps.string, 'stringNGrams').and.callThrough();
+        node.op = 'StringNGrams';
+        node.inputParams = {
+          data: createTensorAttr(0),
+          dataSplits: createTensorAttr(1)
+        };
+        node.attrParams = {
+          separator: createStrAttr('|'),
+          nGramWidths: createNumericArrayAttr([3]),
+          leftPad: createStrAttr('LP'),
+          rightPad: createStrAttr('RP'),
+          padWidth: createNumberAttr(-1),
+          preserveShortSequences: createBoolAttr(false)
+        };
+        node.inputNames = ['data', 'dataSplits'];
+
+        const data = [tfOps.tensor1d(['a', 'b', 'c', 'd', 'e', 'f'], 'string')];
+        const dataSplits = [tfOps.tensor1d([0, 4, 6], 'int32')];
+        const result = executeOp(node, {data, dataSplits}, context) as Tensor[];
+
+        expect(tfOps.string.stringNGrams)
+            .toHaveBeenCalledWith(
+                data[0], dataSplits[0], '|', [3], 'LP', 'RP', -1, false);
+        test_util.expectArraysEqual(await result[0].data(), [
+          'LP|LP|a', 'LP|a|b', 'a|b|c', 'b|c|d', 'c|d|RP', 'd|RP|RP',  // 0
+          'LP|LP|e', 'LP|e|f', 'e|f|RP', 'f|RP|RP'                     // 1
+        ]);
+        test_util.expectArraysEqual(await result[1].data(), [0, 6, 10]);
+      });
+      it('should match json def', () => {
+        node.op = 'StringNGrams';
+        node.inputParams = {
+          data: createTensorAttr(0),
+          dataSplits: createTensorAttr(1)
+        };
+
+        expect(validateParam(node, string.json)).toBeTruthy();
+      });
+    });
     describe('StringSplit', () => {
       it('should call tfOps.string.stringSplit', async () => {
         spyOn(tfOps.string, 'stringSplit').and.callThrough();
