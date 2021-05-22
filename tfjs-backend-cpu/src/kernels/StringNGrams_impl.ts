@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {TypedArray, util} from '@tensorflow/tfjs-core';
+import {util} from '@tensorflow/tfjs-core';
 
 /**
  * The StringNGramsOp class creates ngrams from ragged string data.
@@ -128,7 +128,7 @@ class StringNGramsOp {
   // where data is 1 dimensional and contains the values of the tensor
   // and splits denotes the indices at which each row starts.
   public compute(data: Uint8Array[], splits: Int32Array):
-      [Uint8Array[], TypedArray] {
+      [Uint8Array[], Int32Array] {
     // Validate that the splits are valid indices into data, only if there are
     // splits specified.
     const inputDataSize = data.length;
@@ -155,7 +155,7 @@ class StringNGramsOp {
 
     const numBatchItems = splitsSize - 1;
     const nGramsSplits =
-        util.getArrayFromDType('int32', splitsSize) as TypedArray;
+        util.getArrayFromDType('int32', splitsSize) as Int32Array;
     // If there is no data or size, return an empty ragged tensor.
     if (inputDataSize === 0 || splitsSize === 0) {
       const empty: Uint8Array[] = new Array(inputDataSize);
@@ -218,7 +218,7 @@ class StringNGramsOp {
 export function stringNGramsImpl(
     data: Uint8Array[], dataSplits: Int32Array, separator: string,
     nGramWidths: number[], leftPad: string, rightPad: string, padWidth: number,
-    preserveShortSequences: boolean): [Uint8Array[], TypedArray] {
+    preserveShortSequences: boolean): [Uint8Array[], Int32Array] {
   return new StringNGramsOp(
              separator, nGramWidths, leftPad, rightPad, padWidth,
              preserveShortSequences)
