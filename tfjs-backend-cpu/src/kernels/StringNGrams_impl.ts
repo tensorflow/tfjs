@@ -154,8 +154,7 @@ class StringNGramsOp {
     }
 
     const numBatchItems = splitsSize - 1;
-    const nGramsSplits =
-        util.getArrayFromDType('int32', splitsSize) as Int32Array;
+    const nGramsSplits = util.getArrayFromDType('int32', splitsSize);
     // If there is no data or size, return an empty ragged tensor.
     if (inputDataSize === 0 || splitsSize === 0) {
       const empty: Uint8Array[] = new Array(inputDataSize);
