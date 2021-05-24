@@ -31,6 +31,7 @@ import {clipByValueConfig} from './kernels/ClipByValue';
 import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
+import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {einsumConfig} from './kernels/Einsum';
@@ -114,6 +115,7 @@ const kernelConfigs: KernelConfig[] = [
   complexConfig,
   concatConfig,
   conv2DConfig,
+  conv2DBackpropInputConfig,
   cropAndResizeConfig,
   depthwiseConv2dNativeConfig,
   einsumConfig,
