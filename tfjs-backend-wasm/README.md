@@ -1,14 +1,7 @@
 # Usage
 
-This package adds a WebAssembly backend to TensorFlow.js. This is currently in
-**alpha** and has enough op support to run the following models
-from our [models](https://github.com/tensorflow/tfjs-models) repo:
-- MobileNet
-- BodyPix
-- PoseNet
-- CocoSSD
-- AutoML Image classification
-- AutoML Object detection
+This package adds a WebAssembly (WASM) backend to TensorFlow.js. It has enough op support to run all of the models
+in our [models](https://github.com/tensorflow/tfjs-models) repo.
 
 ## Importing the backend
 
