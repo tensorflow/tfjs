@@ -17,6 +17,7 @@ load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
 load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm", "js_library")
 load("//tools:copy_to_dist.bzl", "copy_to_dist")
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 
 
 package(default_visibility = ["//visibility:public"])
@@ -43,6 +44,7 @@ filegroup(
     srcs = [
       "//tfjs-core/src:tfjs-core_lib",
       "//tfjs-core/src:tfjs-core_src_lib",
+      "//tfjs-core/src:tfjs-core_test_lib",
     ],
     output_group = "es6_sources",
 )
@@ -53,6 +55,7 @@ copy_to_dist(
         ":es6_sources",
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
+        "//tfjs-core/src:tfjs-core_test_lib",
     ],
     root = "src",
 )
@@ -70,12 +73,26 @@ copy_to_dist(
     ],
 )
 
+copy_file(
+    name = "copy_miniprogram",
+    src = ":tf-core.min.js",
+    out = "dist/miniprogram/index.js",
+)
+
+copy_file(
+    name = "copy_miniprogram_map",
+    src = ":tf-core.min.js.map",
+    out = "dist/miniprogram/index.js.map",
+)
+
 pkg_npm(
     name = "tfjs-core_pkg",
     srcs = ["package.json"],
     deps = [
         ":copy_src_to_dist",
         ":copy_bundles",
+        ":copy_miniprogram",
+        ":copy_miniprogram_map",
     ]
 )
 

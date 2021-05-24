@@ -8,7 +8,7 @@ def _copy_to_dist_impl(ctx):
 
     outputs = []
     for f in files:
-        dest_path = paths.join("dist", paths.relativize(f.short_path, root_dir))
+        dest_path = paths.join(ctx.attr.dest_dir, paths.relativize(f.short_path, root_dir))
         out = ctx.actions.declare_file(dest_path)
         outputs.append(out)
         ctx.actions.symlink(
@@ -27,7 +27,11 @@ copy_to_dist = rule(
         "root": attr.string(
             default = "",
             doc = "Common root path to remove when copying. Relative to the build file's directory",
-        ),            
+        ),
+        "dest_dir": attr.string(
+            default = "dist",
+            doc = "Destination directory to copy the source file tree to",
+        ),
     }
 )
 

@@ -31,7 +31,8 @@ ts_library(
 ts_library(
     name = "tfjs-core_test_lib",
     srcs = glob(TEST_SRCS),
-    testonly = True,
+    # TODO(msoulanille): Mark this as testonly once it's no longer needed in the
+    # npm package (for other downstream packages' tests).
     module_name = "@tensorflow/tfjs-core/dist",
     deps = [
         ":tfjs-core_src_lib",
@@ -63,4 +64,3 @@ esbuild(
         "//tfjs-core:package_json",
     ],
 )
-

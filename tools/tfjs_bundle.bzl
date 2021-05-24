@@ -1,6 +1,7 @@
 load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
 load("@npm//@bazel/terser:index.bzl", "terser_minified")
 load("@npm//@bazel/typescript:index.bzl", "ts_project")
+load("//tools:get_extension.bzl", "get_extension")
 
 
 def tfjs_rollup_bundle(name, deps, entry_point, umd_name=None, es5=False, **kwargs):
@@ -82,7 +83,28 @@ def tfjs_bundle(name, deps, entry_point, umd_name, external = [], testonly = Fal
     # Minified bundles
     for extension in ["", ".es2017", ".fesm", ".node"]:
         src = name + extension
+        minified_name = src + ".min"
+
         terser_minified(
-            name = src + ".min",
+            name = minified_name,
             src = src,
+        )
+
+        # rollup_bundle provides access to bundle.js and bundle.js.map via
+        # 'outputs', but terser_minified does not. get_extension makes them
+        # available.
+        get_extension(
+            name = minified_name + ".js",
+            srcs = [
+                ":tf-core.min",
+            ],
+            extension = "js",
+        )
+
+        get_extension(
+            name = minified_name + ".js.map",
+            srcs = [
+                ":tf-core.min",
+            ],
+            extension = "map",
         )
