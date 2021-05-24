@@ -93,7 +93,6 @@ limitations under the License.
   <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@latest/dist/tf-backend-wasm.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-automl@latest/dist/tf-automl.js"></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgpu@latest/dist/tf-backend-webgpu.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands"> </script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2"></script>
@@ -105,6 +104,11 @@ limitations under the License.
   <script src="./index.js"></script>
   <script>
     'use strict';
+    if (isBackendSupported('webgpu')) {
+      var script = document.createElement("script");
+      script.setAttribute("src", "https://unpkg.com/@tensorflow/tfjs-backend-webgpu@latest/dist/tf-backend-webgpu.min.js");
+      document.getElementsByTagName("body")[0].appendChild(script);
+    }
 
     let urlState = null;
     let runTimes = 50;
@@ -167,6 +171,9 @@ limitations under the License.
         });
       },
       testCorrectness: async () => {
+        if (!isBackendSupported(state.backend)) {
+          return;
+        }
         if (state.isFlagChanged) {
           await setEnvFlags(state.flags);
           envDiv.innerHTML = '';
@@ -180,7 +187,6 @@ limitations under the License.
         // load model and run inference
         try {
           // TODO: Remove tf.ready() when resolve issue on WebGPU backend.
-          await tf.ready();
           await loadModelAndRecordTime();
           await showMsg('Testing correctness');
           await showInputs();
@@ -196,7 +202,7 @@ limitations under the License.
           const referencePrediction = predict(model, inferenceInput);
           referenceData = await getPredictionData(referencePrediction);
 
-          isBackendSupported();
+          await tf.ready();
           await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
           const prediction = predict(model, inferenceInput);
@@ -617,6 +623,9 @@ limitations under the License.
     }
 
     async function runBenchmark() {
+      if (!isBackendSupported(state.backend)) {
+        return;
+      }
       // TODO: Remove tf.ready() when resolve issue on WebGPU backend.
       await tf.ready();
       if (state.isFlagChanged) {
@@ -661,19 +670,10 @@ limitations under the License.
       return false;
     }
 
-    function isBackendSupported() {
-      if (state.backend === 'webgpu' && typeof navigator !== 'undefined' && !navigator.gpu){
-        showMsg(`These samples should run in Chrome Canary behind the flag "--enable-unsafe-webgpu".`);
-        throw new Error(`WebGPU is not supported.`);
-      }
-      showMsg(null);
-    }
-
     async function onPageLoad() {
       const gui = new dat.gui.GUI({ width: 550 });
       gui.domElement.id = 'gui';
 
-      isBackendSupported();
       await tf.setBackend(state.backend);
 
       const modelFolder = gui.addFolder('Benchmark');
@@ -796,7 +796,13 @@ limitations under the License.
       backendsController = envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu', 'webgpu']);
       backendsController.onChange(async backend => {
         // TODO: Failed to set backend
-        isBackendSupported();
+        if (state.backend === 'webgpu' && !isBackendSupported(state.backend)) {
+          showMsg(
+              `WebGPU is not supported. Please use Chrome Canary browser with flag "--enable-unsafe-webgpu" enabled.`);
+          return;
+        } else {
+           showMsg(null);
+        }
         await tf.setBackend(backend);
         await showFlagSettings(envFolder, state.backend);
       });

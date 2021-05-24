@@ -29,8 +29,11 @@ const BACKEND_FLAGS_MAP = {
     'WEBGL_FLUSH_THRESHOLD', 'WEBGL_PACK_DEPTHWISECONV',
     'CHECK_COMPUTATION_FOR_ERRORS'
   ],
-  webgpu: ['CHECK_COMPUTATION_FOR_ERRORS', 'WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'],
 };
+if (isBackendSupported('webgpu')) {
+  BACKEND_FLAGS_MAP['webgpu'] = ['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'];
+}
+
 const TUNABLE_FLAG_NAME_MAP = {
   PROD: 'production mode',
   WEBGL_VERSION: 'webgl version',
@@ -43,8 +46,11 @@ const TUNABLE_FLAG_NAME_MAP = {
   WEBGL_FLUSH_THRESHOLD: 'GL flush wait time(ms)',
   WEBGL_PACK_DEPTHWISECONV: 'Packed depthwise Conv2d',
   CHECK_COMPUTATION_FOR_ERRORS: 'Check each op result',
-  WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE: 'deferred submit batch size',
 };
+if (isBackendSupported('webgpu')) {
+  TUNABLE_FLAG_NAME_MAP['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'] =
+      'deferred submit batch size';
+}
 
 /**
  * Records each flag's default value under the runtime environment and is a
@@ -191,5 +197,17 @@ function getTunableRange(flag) {
     return TUNABLE_FLAG_VALUE_RANGE_MAP[flag];
   } else {
     return [defaultValue];
+  }
+}
+/**
+ * Check if specific backend is supported in current browser.
+ * @param {string} backendName
+ */
+function isBackendSupported(backendName) {
+  if (backendName === 'webgpu' && typeof navigator !== 'undefined' &&
+      !navigator.gpu) {
+    return false;
+  } else {
+    return true;
   }
 }
