@@ -32,6 +32,9 @@ import * as matrices from './matrices';
 import * as normalization from './normalization';
 import * as reduction from './reduction';
 import * as sliceJoin from './slice_join';
+import * as sparse from './sparse';
+import * as spectral from './spectral';
+import * as string from './string';
 import * as transformation from './transformation';
 
 describe('OpListTest', () => {
@@ -45,16 +48,19 @@ describe('OpListTest', () => {
     basicMath,
     control,
     convolution,
+    creation,
     dynamic,
     evaluation,
-    creation,
-    logical,
-    image,
     graph,
+    image,
+    logical,
     matrices,
     normalization,
     reduction,
     sliceJoin,
+    sparse,
+    spectral,
+    string,
     transformation
   };
   Object.keys(mappersJson).forEach(key => {

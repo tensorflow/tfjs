@@ -37,7 +37,9 @@ import * as matrices from './executors/matrices_executor';
 import * as normalization from './executors/normalization_executor';
 import * as reduction from './executors/reduction_executor';
 import * as slice_join from './executors/slice_join_executor';
+import * as sparse from './executors/sparse_executor';
 import * as spectral from './executors/spectral_executor';
+import * as string from './executors/string_executor';
 import * as transformation from './executors/transformation_executor';
 import {executeOp} from './operation_executor';
 import {Node} from './types';
@@ -60,9 +62,9 @@ describe('OperationExecutor', () => {
   });
 
   describe('executeOp', () => {
-    [arithmetic, basic_math, convolution, control, creation, dynamic,
-     evaluation, image, graph, logical, matrices, normalization, reduction,
-     slice_join, spectral, transformation]
+    [arithmetic, basic_math, control, convolution, creation, dynamic,
+     evaluation, graph, image, logical, matrices, normalization, reduction,
+     slice_join, sparse, spectral, string, transformation]
         .forEach(category => {
           it('should call ' + category.CATEGORY + ' executor', () => {
             spyOn(category, 'executeOp');
@@ -71,9 +73,9 @@ describe('OperationExecutor', () => {
             expect(category.executeOp).toHaveBeenCalledWith(node, {}, context);
           });
         });
-    [arithmetic, basic_math, convolution, creation, evaluation, image, graph,
-     logical, matrices, normalization, reduction, slice_join, spectral,
-     transformation]
+    [arithmetic, basic_math, convolution, creation, evaluation, graph, image,
+     logical, matrices, normalization, reduction, slice_join, sparse, spectral,
+     string, transformation]
         .forEach(category => {
           it('should call tidy around executor', () => {
             spyOn(tfc, 'tidy');
