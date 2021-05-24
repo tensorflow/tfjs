@@ -31,6 +31,8 @@ or [announcement](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs-
 
 #### Failing tests (click details for information):
 
+Click "Details", and then "View more details on Google Cloud Build" for information about the failure.
+
 <img src="https://user-images.githubusercontent.com/1100749/59696200-8fdb4500-91b9-11e9-9351-949a23fd7c75.png" data-canonical-src="https://user-images.githubusercontent.com/1100749/59696200-8fdb4500-91b9-11e9-9351-949a23fd7c75.png" width=500/>
 
 #### Passing tests:
