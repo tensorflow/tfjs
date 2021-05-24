@@ -25,21 +25,24 @@ import * as creation from './op_list/creation';
 import * as dynamic from './op_list/dynamic';
 import * as evaluation from './op_list/evaluation';
 import * as graph from './op_list/graph';
+import * as hashTable from './op_list/hash_table';
 import * as image from './op_list/image';
 import * as logical from './op_list/logical';
 import * as matrices from './op_list/matrices';
 import * as normalization from './op_list/normalization';
 import * as reduction from './op_list/reduction';
 import * as sliceJoin from './op_list/slice_join';
+import * as sparse from './op_list/sparse';
 import * as spectral from './op_list/spectral';
+import * as string from './op_list/string';
 import * as transformation from './op_list/transformation';
 import {OperationMapper} from './operation_mapper';
 import {Graph} from './types';
 
 const ops = [
   arithmetic, basicMath, control, convolution, creation, dynamic, evaluation,
-  logical, image, graph, matrices, normalization, reduction, sliceJoin,
-  spectral, transformation
+  graph, hashTable, image, logical, matrices, normalization, reduction,
+  sliceJoin, sparse, spectral, string, transformation
 ];
 const mapper: OperationMapper = OperationMapper.Instance;
 let convertedGraph: Graph;
@@ -53,8 +56,7 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
         dtype: {
           type: tensorflow.DataType.DT_FLOAT,
         },
-        shape:
-            {shape: {dim: [{size: '3'}, {size: 3}, {size: '3'}, {size: 1}]}}
+        shape: {shape: {dim: [{size: '3'}, {size: 3}, {size: '3'}, {size: 1}]}}
       }
     },
     {
@@ -107,10 +109,8 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
       name: 'BiasAdd',
       op: 'BiasAdd',
       input: ['Conv2D', 'Shape'],
-      attr: {
-        T: {type: tensorflow.DataType.DT_FLOAT},
-        dataFormat: {s: 'TkhXQw=='}
-      }
+      attr:
+          {T: {type: tensorflow.DataType.DT_FLOAT}, dataFormat: {s: 'TkhXQw=='}}
     },
     {
       name: 'Cast',
@@ -254,11 +254,8 @@ const SIGNATURE: tensorflow.ISignatureDef = {
     }
   },
   outputs: {
-    squeeze: {
-      name: 'Squeeze',
-      dtype: tensorflow.DataType.DT_FLOAT,
-      tensorShape: {}
-    }
+    squeeze:
+        {name: 'Squeeze', dtype: tensorflow.DataType.DT_FLOAT, tensorShape: {}}
   }
 };
 
@@ -372,8 +369,7 @@ describe('operationMapper without signature', () => {
                 }
               },
               outputs: {
-                identity:
-                    {name: 'Less:z:0', dtype: tensorflow.DataType.DT_BOOL}
+                identity: {name: 'Less:z:0', dtype: tensorflow.DataType.DT_BOOL}
               }
             });
       });
