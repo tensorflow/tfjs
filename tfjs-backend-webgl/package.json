@@ -23,7 +23,7 @@
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@tensorflow/tfjs-core": "file:../dist/bin/tfjs-core/tfjs-core_pkg",
     "@types/jasmine": "~3.0.0",
     "clang-format": "~1.2.4",
     "jasmine": "~3.1.0",
@@ -47,12 +47,13 @@
     "yalc": "~1.0.0-pre.50"
   },
   "scripts": {
+    "preinstall": "yarn build-core && yarn build-cpu-backend",
     "build-ci": "tsc && yarn bundle-ci",
     "build": "tsc && yarn bundle",
     "bundle": "rollup -c",
     "bundle-ci": "rollup -c --ci",
-    "build-deps": "yarn build-core && yarn build-cpu-backend",
-    "build-deps-ci": "yarn build-core-ci && yarn build-cpu-backend-ci",
+    "build-deps": "yarn build-core && yarn build-cpu-backend && yarn",
+    "build-deps-ci": "yarn build-core-ci && yarn build-cpu-backend-ci && yarn",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
     "build-cpu-backend": "cd ../tfjs-backend-cpu && yarn && yarn build",
@@ -69,7 +70,7 @@
     "test-ci": "./scripts/test-ci.sh"
   },
   "dependencies": {
-    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
+    "@tensorflow/tfjs-backend-cpu": "file:../dist/bin/tfjs-backend-cpu/tfjs-backend-cpu_pkg",
     "@types/offscreencanvas": "~2019.3.0",
     "@types/seedrandom": "2.4.27",
     "@types/webgl-ext": "0.0.30",
@@ -77,7 +78,7 @@
     "seedrandom": "2.4.3"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../tfjs-core"
+    "@tensorflow/tfjs-core": "file:../dist/bin/tfjs-core/tfjs-core_pkg"
   },
   "browser": {
     "util": false,
