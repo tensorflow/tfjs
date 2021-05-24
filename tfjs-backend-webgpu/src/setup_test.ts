@@ -389,7 +389,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    include: 'pad',
+    include: 'pad ',
     excludes: [
       'RFFT',   // 'zerosLike' not yet implemented.
       'frame',  // Slice not yet implemented.
@@ -623,6 +623,9 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'gradient'  // gradient function not found.
     ]
+  },
+  {
+    startsWith: 'stringNGrams ',
   },
   {include: 'image.transform'}
 ];
