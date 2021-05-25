@@ -199,15 +199,3 @@ function getTunableRange(flag) {
     return [defaultValue];
   }
 }
-/**
- * Check if specific backend is supported in current browser.
- * @param {string} backendName
- */
-function isBackendSupported(backendName) {
-  if (backendName === 'webgpu' && typeof navigator !== 'undefined' &&
-      !navigator.gpu) {
-    return false;
-  } else {
-    return true;
-  }
-}
