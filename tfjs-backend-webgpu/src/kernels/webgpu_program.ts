@@ -87,9 +87,10 @@ export const compileProgram =
 
 export function makeShaderKey<R extends Rank>(
     program: WebGPUProgram, shapes: Array<ShapeMap[R]>, types: string[],
-    broadcastDimsKey = ''): string {
+    broadcastDimsKey = '', inputShapesEqualsOutShape = ''): string {
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
       shapes.map(shape => shape.length).join(',') + types.join(',') +
-      program.variableNames.join(',') + broadcastDimsKey + program.shaderKey;
+      program.variableNames.join(',') + broadcastDimsKey +
+      inputShapesEqualsOutShape + program.shaderKey;
   return key;
 }
