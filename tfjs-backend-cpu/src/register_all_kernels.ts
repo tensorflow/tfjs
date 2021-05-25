@@ -166,6 +166,7 @@ import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {stepConfig} from './kernels/Step';
 import {stridedSliceConfig} from './kernels/StridedSlice';
+import {stringNGramsConfig} from './kernels/StringNGrams';
 import {stringSplitConfig} from './kernels/StringSplit';
 import {stringToHashBucketFastConfig} from './kernels/StringToHashBucketFast';
 import {subConfig} from './kernels/Sub';
@@ -330,8 +331,9 @@ const kernelConfigs: KernelConfig[] = [
   squaredDifferenceConfig,
   stepConfig,
   stridedSliceConfig,
-  stringToHashBucketFastConfig,
+  stringNGramsConfig,
   stringSplitConfig,
+  stringToHashBucketFastConfig,
   subConfig,
   sumConfig,
   tanConfig,
