@@ -16,7 +16,7 @@
  */
 
 import {backend_util, DataType, util} from '@tensorflow/tfjs-core';
-
+import {getGlslDifferences} from './glsl_version';
 import {symbolicallyComputeStrides} from './shader_util';
 
 export function getCoordsDataType(rank: number): string {
@@ -127,6 +127,8 @@ export function makeShader(
         };
     `);
   }
+
+  prefixSnippets.push(getGlslDifferences().defineSpecialNaN);
 
   const [getOutputCoords, dispatchLayoutRank] =
       generateGetOutputCoords(outputData.shape, program.dispatchLayout);
