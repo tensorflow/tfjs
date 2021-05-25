@@ -37,6 +37,9 @@ const PREAMBLE = `/**
  */`;
 
 export default {
+  output: {
+    freeze: false, // For tests that spyOn imports
+  },
   plugins: [
     resolve({browser: true}),
     commonjs(),

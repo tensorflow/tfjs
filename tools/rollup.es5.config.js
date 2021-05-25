@@ -21,6 +21,9 @@ import sourcemaps from 'rollup-plugin-sourcemaps';
 import { babel } from '@rollup/plugin-babel';
 
 export default {
+  output: {
+    freeze: false, // For tests that spyOn imports
+  },
   plugins: [
     resolve({browser: true}),
     commonjs(),
