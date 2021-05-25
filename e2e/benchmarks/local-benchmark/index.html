@@ -86,6 +86,7 @@ limitations under the License.
       <tbody></tbody>
     </table>
   </div>
+  <!--
   <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-backend-cpu@latest/dist/tf-backend-cpu.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgl@latest/dist/tf-backend-webgl.js"></script>
@@ -103,12 +104,71 @@ limitations under the License.
   <script src="../benchmark_util.js"></script>
   <script src="./util.js"></script>
   <script src="./index.js"></script>
+  -->
   <script>
     'use strict';
-    if (isBackendSupported('webgpu')) {
-      var script = document.createElement("script");
-      script.setAttribute("src", "https://unpkg.com/@tensorflow/tfjs-backend-webgpu@latest/dist/tf-backend-webgpu.min.js");
-      document.getElementsByTagName("body")[0].appendChild(script);
+    function loadScript(url) {
+      return new Promise(function(resolve, reject) {
+        let script = document.createElement('script');
+        script.src = url;
+        script.async = false;
+        script.onload = function() {
+          resolve(url);
+        };
+        script.onerror = function() {
+          reject(url);
+        };
+        document.body.appendChild(script);
+      });
+    }
+
+    function main() {
+      const scripts = [];
+      scripts.push(
+        'https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js',
+        //'../../../tfjs-core/dist/tf-core.js',
+        'https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js',
+        'https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js',
+        'https://unpkg.com/@tensorflow/tfjs-automl@latest/dist/tf-automl.js',
+        'https://unpkg.com/@tensorflow/tfjs-backend-cpu@latest/dist/tf-backend-cpu.js',
+        'https://unpkg.com/@tensorflow/tfjs-backend-wasm@latest/dist/tf-backend-wasm.js',
+        'https://unpkg.com/@tensorflow/tfjs-backend-webgl@latest/dist/tf-backend-webgl.js',
+        //'../../../tfjs-backend-webgl/dist/tf-backend-webgl.js',
+      );
+      if (isBackendSupported('webgpu')) {
+        scripts.push('../../../tfjs-backend-webgpu/dist/tf-backend-webgpu.js');
+        //scripts.push('https://unpkg.com/@tensorflow/tfjs-backend-webgpu@latest/dist/tf-backend-webgpu.min.js');
+      }
+      scripts.push(
+        'https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder',
+        'https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands',
+        'https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2',
+        'https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2',
+        'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection',
+        '../model_config.js',
+        '../benchmark_util.js',
+        './util.js',
+        './index.js',
+      );
+
+      // save all Promises as array
+      let promises = [];
+      scripts.forEach( url => {
+        promises.push(loadScript(url));
+      });
+
+      Promise.all(promises)
+      .then(function() {
+        tf.setBackend(state.backend);
+      })
+      .then(function() {
+        tf.ready();
+      })
+      .then(function() {
+        onPageLoad();
+      }).catch(function(url) {
+        showMsg(url + ' failed to load');
+      });
     }
 
     let urlState = null;
@@ -187,7 +247,6 @@ limitations under the License.
 
         // load model and run inference
         try {
-          // TODO: Remove tf.ready() when resolve issue on WebGPU backend.
           await loadModelAndRecordTime();
           await showMsg('Testing correctness');
           await showInputs();
@@ -203,6 +262,7 @@ limitations under the License.
           const referencePrediction = predict(model, inferenceInput);
           referenceData = await getPredictionData(referencePrediction);
 
+          // tf.ready() is needed for WebGPU backend
           await tf.ready();
           await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
@@ -627,7 +687,7 @@ limitations under the License.
       if (!isBackendSupported(state.backend)) {
         return;
       }
-      // TODO: Remove tf.ready() when resolve issue on WebGPU backend.
+      // tf.ready() is needed for WebGPU backend
       await tf.ready();
       if (state.isFlagChanged) {
         await setEnvFlags(state.flags);
@@ -675,6 +735,8 @@ limitations under the License.
       const gui = new dat.gui.GUI({ width: 550 });
       gui.domElement.id = 'gui';
 
+      // tf.ready() is needed for WebGPU backend
+      await tf.ready();
       await tf.setBackend(state.backend);
 
       const modelFolder = gui.addFolder('Benchmark');
@@ -804,6 +866,8 @@ limitations under the License.
         } else {
            showMsg(null);
         }
+        // tf.ready() is needed for WebGPU backend
+        await tf.ready();
         await tf.setBackend(backend);
         await showFlagSettings(envFolder, state.backend);
       });
@@ -820,7 +884,20 @@ limitations under the License.
       updateGUIFromURLState();
     }
 
-    onPageLoad();
+    /**
+     * Check if specific backend is supported in current browser.
+     * @param {string} backendName
+     */
+    function isBackendSupported(backendName) {
+      if (backendName === 'webgpu' && typeof navigator !== 'undefined' &&
+          !navigator.gpu) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+
+    main();
   </script>
 </body>
 
