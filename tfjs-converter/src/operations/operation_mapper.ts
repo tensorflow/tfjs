@@ -187,7 +187,8 @@ export class OperationMapper {
       children: [],
       inputParams: {},
       attrParams: {},
-      rawAttrs: node.attr
+      rawAttrs: node.attr,
+      outputs: mapper.outputs
     };
 
     if (mapper.inputs != null) {
@@ -363,8 +364,15 @@ export class OperationMapper {
     const allNodes = Object.keys(nodes);
     allNodes.forEach(key => {
       const node = nodes[key];
-      node.inputNames.forEach(name => {
-        const [nodeName, ] = getNodeNameAndIndex(name);
+      node.inputNames.forEach((name, index) => {
+        const [nodeName, , outputName] = getNodeNameAndIndex(name);
+        const inputNode = nodes[nodeName];
+        if (inputNode.outputs != null &&
+            inputNode.outputs.indexOf(outputName) !== -1) {
+          const inputName =
+              `${nodeName}:${inputNode.outputs.indexOf(outputName)}`;
+          node.inputNames[index] = inputName;
+        }
         node.inputs.push(nodes[nodeName]);
         nodes[nodeName].children.push(node);
       });
