@@ -137,9 +137,9 @@ const TEST_FILTERS: TestFilter[] = [
       'pointwise with prelu',                      // Actual != expected.
       'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // conv2dDerInput not yet
                                                    // implemented
-      'backProp',                                  // conv2dDerInput not yet
-                                                   // implemented
-      'leakyrelu',                                 // Not yet implemented
+      'backProp',   // Conv2DBackpropFilter not yet
+                    // implemented
+      'leakyrelu',  // Not yet implemented
     ]
   },
   {
@@ -376,10 +376,9 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'conv2d',
     excludes: [
-      'NCHW',             // Not yet implemented.
-      'gradient',         // 'conv2dDerInput' not yet implemented
-      'conv2dTranspose',  // DerInput is not Implemented.
-      'leakyrelu',        // Not yet implemented.
+      'NCHW',       // Not yet implemented.
+      'gradient',   // gradient function not found.
+      'leakyrelu',  // Not yet implemented.
     ]
   },
   {

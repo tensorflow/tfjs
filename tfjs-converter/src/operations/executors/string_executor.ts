@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor} from '@tensorflow/tfjs-core';
+import {Scalar, Tensor, Tensor1D} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
@@ -29,6 +29,28 @@ export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
      context: ExecutionContext): Tensor[] => {
       switch (node.op) {
+        case 'StringNGrams': {
+          const {nGrams, nGramsSplits} = tfOps.string.stringNGrams(
+              getParamValue('data', node, tensorMap, context) as Tensor1D,
+              getParamValue('dataSplits', node, tensorMap, context) as Tensor,
+              getParamValue('separator', node, tensorMap, context) as string,
+              getParamValue('nGramWidths', node, tensorMap, context) as
+                  number[],
+              getParamValue('leftPad', node, tensorMap, context) as string,
+              getParamValue('rightPad', node, tensorMap, context) as string,
+              getParamValue('padWidth', node, tensorMap, context) as number,
+              getParamValue(
+                  'preserveShortSequences', node, tensorMap, context) as
+                  boolean);
+          return [nGrams, nGramsSplits];
+        }
+        case 'StringSplit': {
+          const {indices, values, shape} = tfOps.string.stringSplit(
+              getParamValue('input', node, tensorMap, context) as Tensor1D,
+              getParamValue('delimiter', node, tensorMap, context) as Scalar,
+              getParamValue('skipEmpty', node, tensorMap, context) as boolean);
+          return [indices, values, shape];
+        }
         case 'StringToHashBucketFast': {
           const output = tfOps.string.stringToHashBucketFast(
               getParamValue('input', node, tensorMap, context) as Tensor,

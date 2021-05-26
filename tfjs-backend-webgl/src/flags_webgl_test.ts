@@ -374,3 +374,17 @@ describeWithFlags('WEBGL_FLUSH_THRESHOLD', WEBGL_ENVS, () => {
     expect(() => tf.env().set('WEBGL_FLUSH_THRESHOLD', -2)).toThrow();
   });
 });
+
+describe('CPU_HANDOFF_SIZE_THRESHOLD', () => {
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
+
+  it('returns correct value when CPU_HANDOFF_SIZE_THRESHOLD is set', () => {
+    tf.env().set('CPU_HANDOFF_SIZE_THRESHOLD', 256);
+    expect(tf.env().getNumber('CPU_HANDOFF_SIZE_THRESHOLD')).toBe(256);
+  });
+
+  it('returns default when WEBGL_PACK is not set', () => {
+    expect(tf.env().getNumber('CPU_HANDOFF_SIZE_THRESHOLD')).toBe(128);
+  });
+});
