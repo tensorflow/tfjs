@@ -45,6 +45,10 @@
         "name": "preserveShortSequences",
         "type": "bool"
       }
+    ],
+    "outputs": [
+      "ngrams",
+      "ngrams_splits"
     ]
   },
   {
@@ -68,6 +72,11 @@
         "name": "skipEmpty",
         "type": "bool"
       }
+    ],
+    "outputs": [
+      "indices",
+      "values",
+      "shape"
     ]
   },
   {

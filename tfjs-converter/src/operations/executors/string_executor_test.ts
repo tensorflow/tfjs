@@ -38,7 +38,8 @@ describe('string', () => {
       inputs: [],
       inputParams: {},
       attrParams: {},
-      children: []
+      children: [],
+      outputs: []
     };
   });
 
@@ -60,6 +61,7 @@ describe('string', () => {
           preserveShortSequences: createBoolAttr(false)
         };
         node.inputNames = ['data', 'dataSplits'];
+        node.outputs = ['ngrams', 'ngrams_splits'];
 
         const data = [tfOps.tensor1d(['a', 'b', 'c', 'd', 'e', 'f'], 'string')];
         const dataSplits = [tfOps.tensor1d([0, 4, 6], 'int32')];
@@ -80,7 +82,7 @@ describe('string', () => {
           data: createTensorAttr(0),
           dataSplits: createTensorAttr(1)
         };
-
+        node.outputs = ['ngrams', 'ngrams_splits'];
         expect(validateParam(node, string.json)).toBeTruthy();
       });
     });
@@ -94,6 +96,7 @@ describe('string', () => {
         };
         node.attrParams = {skipEmpty: createBoolAttr(false)};
         node.inputNames = ['input', 'delimiter'];
+        node.outputs = ['indices', 'values', 'shape'];
 
         const input = [tfOps.tensor1d(['#a', 'b#', '#c#'], 'string')];
         const delimiter = [tfOps.scalar('#', 'string')];
@@ -113,6 +116,7 @@ describe('string', () => {
           input: createTensorAttr(0),
           delimiter: createTensorAttr(1)
         };
+        node.outputs = ['indices', 'values', 'shape'];
 
         expect(validateParam(node, string.json)).toBeTruthy();
       });

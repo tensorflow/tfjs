@@ -94,18 +94,20 @@ export function getTensorsForCurrentContenxt(
 }
 
 /**
- * Returns the node name and index from the Node input name.
+ * Returns the node name, outputName and index from the Node input name.
  * @param inputName The input name of the node, in format of
  * node_name:output_index, i.e. MatMul:0, if the output_index is not set, it is
  * default to 0.
+ * If the input name contains output name i.e. StringSplit:indices:0, it will
+ * return ['StringSplit', 0, 'indices'].
  */
 export function getNodeNameAndIndex(
-    inputName: string, context?: ExecutionContext): [string, number] {
-  const [nodeName, index] = parseNodeName(inputName);
+    inputName: string, context?: ExecutionContext): [string, number, string] {
+  const [nodeName, index, outputName] = parseNodeName(inputName);
 
   return [
     getNodeNameWithContextId(nodeName, context && context.currentContextId),
-    index
+    index, outputName
   ];
 }
 
@@ -113,14 +115,16 @@ function getNodeNameWithContextId(name: string, contextId?: string): string {
   return !!contextId ? `${name}-${contextId}` : name;
 }
 
-export function parseNodeName(name: string): [string, number] {
+export function parseNodeName(name: string): [string, number, string] {
   const parts = name.split(':');
   if (parts.length === 1) {
-    return [name, 0];
+    return [name, 0, undefined];
   }
 
   const nodeName = parts[0];
-  return [nodeName, Number(parts[parts.length - 1])];
+  const outputName = parts.length === 3 ? parts[1] : undefined;
+  const index = Number(parts[parts.length - 1]);
+  return [nodeName, index, outputName];
 }
 
 export function split(arr: number[], size: number) {

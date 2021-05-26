@@ -272,6 +272,17 @@ describe('completeness check', () => {
       });
     });
   });
+  it('should convert op with outputs field', () => {
+    const name = 'string split';
+    const op = 'StringSplit';
+    const graph = {node: [{name, op: 'StringSplit', attr: {}}]};
+    convertedGraph = mapper.transformGraph(graph);
+    expect(Object.keys(convertedGraph.nodes)).toEqual([name]);
+    expect(convertedGraph.nodes[name].op).toEqual(op);
+    expect(convertedGraph.nodes[name].outputs).toEqual([
+      'indices', 'values', 'shape'
+    ]);
+  });
 });
 describe('operationMapper without signature', () => {
   beforeEach(() => {

@@ -31,7 +31,8 @@ export const json = {
           'type': 'array',
           'items': {'$ref': '#/definitions/AttrParamMapper'}
         },
-        'customExecutor': {'$ref': '#/definitions/OpExecutor'}
+        'customExecutor': {'$ref': '#/definitions/OpExecutor'},
+        'outputs': {'type': 'array'}
       },
       'required': ['tfOpName'],
       'additionalProperties': false

@@ -89,6 +89,7 @@ export declare interface OpMapper {
   category?: Category;
   inputs?: InputParamMapper[];
   attrs?: AttrParamMapper[];
+  outputs?: string[];
   customExecutor?: OpExecutor;
 }
 
@@ -104,6 +105,7 @@ export declare interface Node {
   children: Node[];
   rawAttrs?: {[k: string]: tensorflow.IAttrValue};
   defaultOutput?: number;
+  outputs?: string[];
 }
 
 export declare interface Graph {
