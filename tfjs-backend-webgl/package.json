@@ -48,8 +48,8 @@
   },
   "scripts": {
     "preinstall": "yarn build-core && yarn build-cpu-backend",
-    "build-ci": "tsc && yarn bundle-ci",
-    "build": "tsc && yarn bundle",
+    "build-ci": "yarn build-deps-ci && tsc && yarn bundle-ci",
+    "build": "yarn build-deps && tsc && yarn bundle",
     "bundle": "rollup -c",
     "bundle-ci": "rollup -c --ci",
     "build-deps": "yarn build-core && yarn build-cpu-backend && yarn",
