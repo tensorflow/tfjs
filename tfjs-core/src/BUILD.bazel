@@ -5,6 +5,12 @@ package(default_visibility = ["//visibility:public"])
 
 TEST_SRCS = ["**/*_test.ts", "image_test_util.ts"]
 
+# Used for test-snippets
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**/*.ts"]),
+)
+
 ts_library(
     name = "tfjs-core_src_lib",
     srcs = glob(
