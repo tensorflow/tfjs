@@ -123,7 +123,7 @@ export function parseNodeName(name: string): [string, number, string] {
 
   const nodeName = parts[0];
   const outputName = parts.length === 3 ? parts[1] : undefined;
-  let index = Number(parts[parts.length - 1]);
+  const index = Number(parts[parts.length - 1]);
   return [nodeName, index, outputName];
 }
 

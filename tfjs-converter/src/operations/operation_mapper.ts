@@ -101,10 +101,19 @@ export class OperationMapper {
     const allNodes = Object.keys(nodes);
     allNodes.forEach(key => {
       const node = nodes[key];
-      node.inputNames.forEach(name => {
-        const [nodeName, ] = getNodeNameAndIndex(name);
-        node.inputs.push(nodes[nodeName]);
-        nodes[nodeName].children.push(node);
+      node.inputNames.forEach((name, index) => {
+        const [nodeName, , outputName] = getNodeNameAndIndex(name);
+        const inputNode = nodes[nodeName];
+        if (inputNode.outputs != null) {
+          const outputIndex = inputNode.outputs.indexOf(outputName);
+          if (outputIndex !== -1) {
+            const inputName = `${nodeName}:${outputIndex}`;
+            // update the input name to use the mapped output index directly.
+            node.inputNames[index] = inputName;
+          }
+        }
+        node.inputs.push(inputNode);
+        inputNode.children.push(node);
       });
     });
 
@@ -367,14 +376,16 @@ export class OperationMapper {
       node.inputNames.forEach((name, index) => {
         const [nodeName, , outputName] = getNodeNameAndIndex(name);
         const inputNode = nodes[nodeName];
-        if (inputNode.outputs != null &&
-            inputNode.outputs.indexOf(outputName) !== -1) {
-          const inputName =
-              `${nodeName}:${inputNode.outputs.indexOf(outputName)}`;
-          node.inputNames[index] = inputName;
+        if (inputNode.outputs != null) {
+          const outputIndex = inputNode.outputs.indexOf(outputName);
+          if (outputIndex !== -1) {
+            const inputName = `${nodeName}:${outputIndex}`;
+            // update the input name to use the mapped output index directly.
+            node.inputNames[index] = inputName;
+          }
         }
-        node.inputs.push(nodes[nodeName]);
-        nodes[nodeName].children.push(node);
+        node.inputs.push(inputNode);
+        inputNode.children.push(node);
       });
     });
 
