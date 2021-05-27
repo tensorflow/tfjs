@@ -72,7 +72,8 @@ export interface WebGPUTimingInfo extends TimingInfo {
 
 // Empirically determined constant used to determine size threshold for handing
 // off execution to the CPU.
-const CPU_HANDOFF_SIZE_THRESHOLD = 128;
+const CPU_HANDOFF_SIZE_THRESHOLD =
+    env().getNumber('CPU_HANDOFF_SIZE_THRESHOLD');
 
 const DEFAULT_GPUBUFFER_USAGE =
     GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
@@ -106,7 +107,6 @@ export class WebGPUBackend extends KernelBackend {
   private uploadWaitMs = 0;
   private downloadWaitMs = 0;
   private computePassNumberInEncoder = 0;
-  private cpuBackend: KernelBackend;
   private querySet: GPUQuerySet;
 
   constructor(device: GPUDevice, glslang: Glslang, supportTimeQuery = false) {
@@ -585,20 +585,20 @@ export class WebGPUBackend extends KernelBackend {
     bindGroupLayoutEntries.push({
       binding: 0,
       visibility: GPUShaderStage.COMPUTE,
-      type: 'storage-buffer'
+      buffer: {type: 'storage' as const }
     });
     // Input buffer binding layout. Depends on variableNames length.
     for (let i = 0; i < inputEntrySize; i++) {
       bindGroupLayoutEntries.push({
         binding: i + 1,
         visibility: GPUShaderStage.COMPUTE,
-        type: 'readonly-storage-buffer'
+        buffer: {type: 'read-only-storage' as const }
       });
     }
     bindGroupLayoutEntries.push({
       binding: inputEntrySize + 1,
       visibility: GPUShaderStage.COMPUTE,
-      type: 'uniform-buffer'
+      buffer: {type: 'uniform' as const }
     });
     const bindGroupLayout =
         this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
@@ -614,20 +614,19 @@ export class WebGPUBackend extends KernelBackend {
     bindGroupLayoutEntries.push({
       binding: 0,
       visibility: GPUShaderStage.COMPUTE,
-      type: 'storage-buffer'
+      buffer: {type: 'storage' as const }
     });
     // Input buffer binding layout.
     bindGroupLayoutEntries.push({
       binding: 1,
       visibility: GPUShaderStage.COMPUTE,
-      type: 'readonly-storage-texture',
-      storageTextureFormat: 'rgba8unorm'
+      storageTexture: {access: 'read-only', format: 'rgba8unorm'}
     });
     // Uniform buffer binding layout.
     bindGroupLayoutEntries.push({
       binding: 2,
       visibility: GPUShaderStage.COMPUTE,
-      type: 'uniform-buffer'
+      buffer: {type: 'uniform' as const }
     });
     const fromPixelBindGroupLayout =
         this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
@@ -695,9 +694,12 @@ export class WebGPUBackend extends KernelBackend {
     const bufferTypes = inputsData.map(d => d.dtype).concat(output.dtype);
     const broadcastDims = inputsData.map(
         d => backend_util.getBroadcastDims(d.shape, output.shape));
+    const inputShapesEqualsOutShape =
+        inputsData.map(d => util.arraysEqual(d.shape, output.shape)).join('_');
     const broadcastDimsKey = broadcastDims.map(d => d.join('_')).join(';');
     const key = webgpu_program.makeShaderKey(
-        program, bufferShapes, bufferTypes, broadcastDimsKey);
+        program, bufferShapes, bufferTypes, broadcastDimsKey,
+        inputShapesEqualsOutShape);
 
     const {bindGroupLayout, pipelineLayout} =
         this.getCachedOrCreateLayout(program.variableNames.length);
@@ -817,22 +819,10 @@ export class WebGPUBackend extends KernelBackend {
     return timeElapsedNanos / 1000000;
   }
 
-  private getCPUBackend(): KernelBackend|null {
-    if (!env().getBool('WEBGPU_CPU_FORWARD')) {
-      return null;
-    }
-
-    if (this.cpuBackend == null) {
-      this.cpuBackend = engine().findBackend('cpu');
-    }
-
-    return this.cpuBackend;
-  }
-
   shouldExecuteOnCPU(
       inputs: TensorInfo[],
       sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
-    return this.getCPUBackend() != null &&
+    return env().getBool('WEBGPU_CPU_FORWARD') &&
         inputs.every(
             input =>
                 this.tensorMap.get(input.dataId).bufferInfo.buffer == null &&
@@ -859,9 +849,7 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   numDataIds() {
-    return this.tensorMap.numDataIds() +
-        (this.cpuBackend ? this.cpuBackend.numDataIds() : 0) -
-        this.tensorDisposalQueue.length;
+    return this.tensorMap.numDataIds() - this.tensorDisposalQueue.length;
   }
 
   dispose() {

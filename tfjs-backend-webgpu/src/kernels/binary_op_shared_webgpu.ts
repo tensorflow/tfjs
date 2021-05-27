@@ -60,8 +60,10 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
     this.size = util.sizeFromShape(this.outputShape);
     this.sizeFit =
         this.size % (this.workGroupSize[0] * this.workPerThread) === 0;
-    this.shaderKey =
-        `binaryShared_${op}_${this.lastDimensionSize}_${this.sizeFit}`;
+    // this.lastDimensionSize is used as sharedBuf array size, so can not be
+    // used as uniform.
+    this.shaderKey = `binaryShared_${op}_${this.lastDimensionSize}_${
+        this.useSharedMemoryWithB}_${this.sizeFit}`;
   }
 
   getUserCode(): string {

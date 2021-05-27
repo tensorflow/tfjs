@@ -219,6 +219,8 @@ import './ops/square_test';
 import './ops/stack_test';
 import './ops/step_test';
 import './ops/strided_slice_test';
+import './ops/string/string_n_grams_test';
+import './ops/string/string_split_test';
 import './ops/string/string_to_hash_bucket_fast_test';
 import './ops/sub_test';
 import './ops/sum_test';
