@@ -19,6 +19,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@bazel/bazelisk": "^1.9.0",
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
@@ -45,10 +46,10 @@
     "yalc": "~1.0.0-pre.50"
   },
   "scripts": {
-    "build-ci": "tsc && yarn bundle-ci",
-    "build": "tsc && yarn bundle",
-    "bundle": "rollup -c",
-    "bundle-ci": "rollup -c --ci",
+    "build-ci": "yarn build",
+    "build": "bazel build :tfjs-backend-cpu_pkg",
+    "bundle": "bazel build :tfjs-core_pkg",
+    "bundle-ci": "yarn bundle",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
     "build-deps": "yarn build-core && yarn build",
@@ -56,19 +57,19 @@
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
-    "publish-npm": "npm publish",
+    "publish-npm": "bazel run :tfjs-backend-cpu_pkg.publish",
     "lint": "tslint -p . -t verbose",
     "coverage": "yarn nyc yarn ts-node --transpile-only -P tsconfig.test.json src/run_tests.ts",
-    "test": "yarn && yarn build-deps && yarn build && ts-node --transpile-only --project tsconfig.test.json src/run_tests.ts",
-    "test-dev": "tsc && ts-node --transpile-only --project tsconfig.test.json src/run_tests.ts",
-    "test-ci": "ts-node --transpile-only --skip-ignore --project tsconfig.test.json src/run_tests.ts"
+    "test": "bazel test :tfjs-backend-cpu_test",
+    "test-dev": "ibazel run :tfjs-backend-cpu_test",
+    "test-ci": "yarn test"
   },
   "dependencies": {
     "@types/seedrandom": "2.4.27",
     "seedrandom": "2.4.3"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../tfjs-core"
+    "@tensorflow/tfjs-core": "file:../dist/bin/tfjs-core/tfjs-core_pkg"
   },
   "browser": {
     "util": false,
