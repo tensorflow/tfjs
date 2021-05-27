@@ -5,13 +5,21 @@ steps:
   entrypoint: 'yarn'
   args: ['install']
 
-# Install packages, build deps, and build.
+# Build deps and install.
+- name: 'node:10'
+  dir: 'tfjs-backend-webgl'
+  id: 'build-deps'
+  entrypoint: 'yarn'
+  args: ['build-deps']
+  waitFor: ['yarn-common']
+
+# Build the package
 - name: 'node:10'
   dir: 'tfjs-backend-webgl'
   id: 'build'
   entrypoint: 'yarn'
   args: ['build-ci']
-  waitFor: ['yarn-common']
+  waitFor: ['build-deps']
 
 # Lint.
 - name: 'node:10'

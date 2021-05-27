@@ -6,13 +6,20 @@ steps:
   id: 'yarn-common'
   args: ['install']
 
+- name: 'node:10'
+  dir: 'tfjs-converter'
+  entrypoint: 'yarn'
+  id: 'build-deps'
+  args: ['build-deps-ci']
+  waitFor: ['yarn-common']
+
 # Install deps and build.
 - name: 'node:10'
   dir: 'tfjs-converter'
   entrypoint: 'yarn'
   id: 'build'
   args: ['build-ci']
-  waitFor: ['yarn-common']
+  waitFor: ['build-deps']
 
 # Lint.
 - name: 'node:10'

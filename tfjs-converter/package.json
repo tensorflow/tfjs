@@ -53,7 +53,7 @@
     "yalc": "~1.0.0-pre.50"
   },
   "scripts": {
-    "build": "yarn build-deps && yarn gen-json --test && yarn gen-kernel2ops && tsc && yarn bundle",
+    "build": "yarn gen-json --test && yarn gen-kernel2ops && tsc && yarn bundle",
     "build-ci": "yarn build-deps-ci && yarn gen-json --test && yarn gen-kernel2ops && tsc && yarn bundle-ci",
     "bundle": "rollup -c",
     "bundle-ci": "rollup -c --ci",
@@ -61,8 +61,9 @@
     "build-backend-cpu": "cd ../tfjs-backend-cpu && yarn && yarn build",
     "build-backend-cpu-ci": "cd ../tfjs-backend-cpu && yarn && yarn build-ci",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
-    "build-deps": "yarn build-core && yarn build-backend-cpu && yarn",
-    "build-deps-ci": "yarn build-core-ci && yarn build-backend-cpu-ci && yarn",
+    "build-deps": "yarn build-core && yarn build-backend-cpu && yarn reinstall",
+    "build-deps-ci": "yarn build-core-ci && yarn build-backend-cpu-ci && yarn reinstall",
+    "reinstall": "yarn && yarn cache clean @tensorflow/tfjs-core && yarn cache clean @tensorflow/tfjs-backend-cpu && rimraf node_modules && yarn",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
