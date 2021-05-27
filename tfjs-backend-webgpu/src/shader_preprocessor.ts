@@ -144,7 +144,9 @@ export function makeShader(
         inputInfo
             .map(
                 x => getInputSamplingSnippet(
-                    x, outputData.shape, program.isVec4))
+                    x, outputData.shape, program.isVec4,
+                    program.dispatchLayout.x.length ===
+                        outputData.shape.length))
             .join('\n');
     sources.push(inputSamplingSnippet);
   }
@@ -292,12 +294,14 @@ function getSetOutputSnippet(
 }
 
 function getInputSamplingSnippet(
-    inInfo: InputInfo, outShape: number[], isVec4: boolean): string {
+    inInfo: InputInfo, outShape: number[], isVec4: boolean,
+    isFlatDispatchLayout: boolean): string {
   let res = getSamplerFromInInfo(inInfo, isVec4);
 
   const inShape = inInfo.shape;
   if (inShape.length <= outShape.length) {
-    res += getSamplerAtOutputCoords(inInfo, outShape, isVec4);
+    res += getSamplerAtOutputCoords(
+        inInfo, outShape, isVec4, isFlatDispatchLayout);
   }
 
   return res;
@@ -347,7 +351,8 @@ function getSamplerFromInInfo(inInfo: InputInfo, isVec4: boolean): string {
 }
 
 function getSamplerAtOutputCoords(
-    inInfo: InputInfo, outShape: number[], isVec4: boolean): string {
+    inInfo: InputInfo, outShape: number[], isVec4: boolean,
+    isFlatDispatchLayout: boolean): string {
   const texName = inInfo.name;
   const texFuncSnippet = texName.charAt(0).toUpperCase() + texName.slice(1);
 
@@ -356,6 +361,35 @@ function getSamplerAtOutputCoords(
   const inRank = inInfo.shape.length;
   const outRank = outShape.length;
   const type = getCoordsDataType(outRank);
+
+  // If the inShape equals the outShape and the dispatch layout is flat, we can
+  // directly use |gl_GlobalInvocationID.x| as the index and don't need coords
+  // conversion between these two shapes.
+  if (util.arraysEqual(inInfo.shape, outShape) && isFlatDispatchLayout) {
+    if (isVec4) {
+      return `
+        vec4 ${funcName}() {
+          return ${texName}[gl_GlobalInvocationID.x];
+        }
+
+        vec4 ${funcName}(${type} coords) {
+          return ${texName}[${
+          outRank > 1 ? 'getOutputFlatIndex(coords)' : 'coords'} / 4];
+        }
+        `;
+    } else {
+      return `
+      float ${funcName}() {
+        return float(${texName}[gl_GlobalInvocationID.x]);
+      }
+
+      float ${funcName}(${type} coords) {
+        return float(${texName}[${
+          outRank > 1 ? 'getOutputFlatIndex(coords)' : 'coords'}]);
+      }
+      `;
+    }
+  }
 
   const broadcastDims = backend_util.getBroadcastDims(inInfo.shape, outShape);
   const rankDiff = outRank - inRank;

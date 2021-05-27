@@ -16,7 +16,6 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -44,13 +43,11 @@ export class ClipProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
-    const type = getCoordsDataType(this.outputShape.length);
     const userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
         if(index < size) {
-          ${type} coords = getCoordsFromFlatIndex(index);
-          float value = getAAtOutCoords(coords);
+          float value = getAAtOutCoords();
           if (isnan(value)) {
             setOutput(index, value);
             return;
