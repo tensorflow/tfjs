@@ -64,6 +64,8 @@ function findTestFiles(dir, files) {
 };
 
 let files = findTestFiles('./src');
+//console.log('files:');
+//console.log(files);
 files = files.map(f => `import '${f}';`);
 const newContent = `${LICENSE}
 ${AUTOGEN_CLAUSE}

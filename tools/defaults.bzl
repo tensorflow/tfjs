@@ -1,8 +1,7 @@
 """Re-export of some bazel rules with repository-wide defaults."""
 
-load("@npm//@bazel/typescript:index.bzl", _ts_library = "ts_library")
 load("@npm//@bazel/esbuild:index.bzl", _esbuild = "esbuild")
-
+load("@npm//@bazel/typescript:index.bzl", _ts_library = "ts_library")
 
 def ts_library(**kwargs):
     # Use the ts_library tsconfig by default. The ts_library tsconfig does not

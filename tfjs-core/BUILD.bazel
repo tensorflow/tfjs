@@ -13,26 +13,28 @@
 # limitations under the License.
 # =============================================================================
 
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "nodejs_test", "pkg_npm")
+load("//tools:copy_to_dist.bzl", "copy_to_dist")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
-load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm", "js_library", "nodejs_test")
-load("//tools:copy_to_dist.bzl", "copy_to_dist")
-load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
-
 
 package(default_visibility = ["//visibility:public"])
 
 # Allow typescript rules in any package to reference this file
-exports_files(["tsconfig.json", "package.json"])
+exports_files([
+    "tsconfig.json",
+    "package.json",
+])
 
 tfjs_bundle(
     name = "tf-core",
-    umd_name = "tf",
     entry_point = "//tfjs-core/src:index.ts",
     external = [
         "node-fetch",
         "util",
     ],
+    umd_name = "tf",
     deps = [
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
@@ -42,9 +44,9 @@ tfjs_bundle(
 filegroup(
     name = "es6_sources",
     srcs = [
-      "//tfjs-core/src:tfjs-core_lib",
-      "//tfjs-core/src:tfjs-core_src_lib",
-      "//tfjs-core/src:tfjs-core_test_lib",
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_src_lib",
+        "//tfjs-core/src:tfjs-core_test_lib",
     ],
     output_group = "es6_sources",
 )
@@ -52,9 +54,9 @@ filegroup(
 filegroup(
     name = "es5_sources",
     srcs = [
-      "//tfjs-core/src:tfjs-core_lib",
-      "//tfjs-core/src:tfjs-core_src_lib",
-      "//tfjs-core/src:tfjs-core_test_lib",
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_src_lib",
+        "//tfjs-core/src:tfjs-core_test_lib",
     ],
     output_group = "es5_sources",
 )
@@ -62,8 +64,8 @@ filegroup(
 copy_to_dist(
     name = "copy_src_to_dist",
     srcs = [
-        ":es6_sources",
         ":es5_sources",
+        ":es6_sources",
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
         "//tfjs-core/src:tfjs-core_test_lib",
@@ -75,11 +77,11 @@ copy_to_dist(
     name = "copy_bundles",
     srcs = [
         ":tf-core",
-        ":tf-core.min",
         ":tf-core.es2017",
         ":tf-core.es2017.min",
         ":tf-core.fesm",
         ":tf-core.fesm.min",
+        ":tf-core.min",
         ":tf-core.node",
     ],
 )
@@ -103,8 +105,8 @@ filegroup(
 copy_to_dist(
     name = "copy_test_snippets",
     srcs = [
-        ":test_snippets_es6_sources",
         ":test_snippets_es5_sources",
+        ":test_snippets_es6_sources",
         "//tfjs-core/scripts/test_snippets:test_snippets_util_lib",
     ],
 )
@@ -125,22 +127,22 @@ pkg_npm(
     name = "tfjs-core_pkg",
     srcs = ["package.json"],
     deps = [
-        ":copy_src_to_dist",
         ":copy_bundles",
         ":copy_miniprogram",
         ":copy_miniprogram_map",
+        ":copy_src_to_dist",
         ":copy_test_snippets",
-    ]
+    ],
 )
 
 tfjs_web_test(
     name = "tfjs-core_test",
     srcs = [
-        "//tfjs-core/src:tfjs-core_test_bundle"
+        "//tfjs-core/src:tfjs-core_test_bundle",
     ],
     static_files = [
         # Listed here so sourcemaps are served
-        "//tfjs-core/src:tfjs-core_test_bundle"
+        "//tfjs-core/src:tfjs-core_test_bundle",
     ],
 )
 
@@ -148,25 +150,23 @@ tfjs_web_test(
 # defined in.
 nodejs_test(
     name = "test_snippets_test",
-    entry_point = "//tfjs-core/scripts/test_snippets:test_snippets.ts",
-    link_workspace_root = True,
     chdir = "tfjs-core",
     data = [
-        "//tfjs-core/scripts/test_snippets:test_snippets_lib",
-        "//:tsconfig.json",
         ":tsconfig.json",
+        "//:tsconfig.json",
+        "//tfjs-core/scripts/test_snippets:test_snippets_lib",
         "//tfjs-core/src:all_srcs",
     ],
+    entry_point = "//tfjs-core/scripts/test_snippets:test_snippets.ts",
+    link_workspace_root = True,
     tags = ["ci"],
 )
-
 
 # tfjs_web_test(
 #     name = "tfjs-core-worker_test",
 #     srcs = [
-        
+
 #     ],
-    
 
 # This is necessary for //tfjs-core/src:tfjs-core_test_bundle to have acess to
 # the package.json so src/version_test.ts can 'require()' it.

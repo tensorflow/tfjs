@@ -6,11 +6,11 @@ def _get_extension_impl(ctx):
 get_extension = rule(
     implementation = _get_extension_impl,
     attrs = {
+        "extension": attr.string(
+            doc = "File extension to get",
+        ),
         "srcs": attr.label_list(
             doc = "Sources to get extensions from",
         ),
-        "extension": attr.string(
-            doc = "File extension to get"
-        ),
-    }
+    },
 )

@@ -1,18 +1,16 @@
 load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
 load("@npm//@bazel/terser:index.bzl", "terser_minified")
-load("@npm//@bazel/typescript:index.bzl", "ts_project")
 load("//tools:get_extension.bzl", "get_extension")
 
-
-def tfjs_rollup_bundle(name, deps, entry_point, umd_name=None, es5=False, **kwargs):
+def tfjs_rollup_bundle(name, deps, entry_point, umd_name = None, es5 = False, **kwargs):
     rollup_deps = deps + [
-       "@npm//@rollup/plugin-commonjs",
-       "@npm//@rollup/plugin-node-resolve",
-       "@npm//rollup-plugin-sourcemaps",
+        "@npm//@rollup/plugin-commonjs",
+        "@npm//@rollup/plugin-node-resolve",
+        "@npm//rollup-plugin-sourcemaps",
     ]
 
     config_file = "@//tools:rollup.config.js"
-    srcs = kwargs.pop('srcs', [])
+    srcs = kwargs.pop("srcs", [])
     if es5:
         rollup_deps += [
             "@npm//@rollup/plugin-babel",
@@ -34,7 +32,7 @@ def tfjs_rollup_bundle(name, deps, entry_point, umd_name=None, es5=False, **kwar
         config_file = config_file,
         deps = rollup_deps,
         srcs = srcs,
-        **kwargs,
+        **kwargs
     )
 
 def tfjs_bundle(name, deps, entry_point, umd_name, external = [], testonly = False, **kwargs):

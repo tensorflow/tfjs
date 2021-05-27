@@ -1,1 +1,8 @@
-exports_files(["rollup.config.js", "rollup.es5.config.js", "karma_template.conf.js"], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "rollup.config.js",
+        "rollup.es5.config.js",
+        "karma_template.conf.js",
+    ],
+    visibility = ["//visibility:public"],
+)

@@ -1,9 +1,11 @@
 load("//tools:defaults.bzl", "esbuild", "ts_library")
 
-
 package(default_visibility = ["//visibility:public"])
 
-TEST_SRCS = ["**/*_test.ts", "image_test_util.ts"]
+TEST_SRCS = [
+    "**/*_test.ts",
+    "image_test_util.ts",
+]
 
 # Used for test-snippets
 filegroup(
@@ -41,8 +43,8 @@ ts_library(
     # npm package (for other downstream packages' tests).
     module_name = "@tensorflow/tfjs-core/dist",
     deps = [
-        ":tfjs-core_src_lib",
         ":tfjs-core_lib",
+        ":tfjs-core_src_lib",
     ],
 )
 

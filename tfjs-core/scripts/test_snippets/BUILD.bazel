@@ -9,8 +9,8 @@ ts_library(
     ],
     module_name = "@tensorflow/tfjs-core/dist/scripts/test_snippets",
     deps = [
-        "@npm//typescript",
         "@npm//@types/node",
+        "@npm//typescript",
     ],
 )
 

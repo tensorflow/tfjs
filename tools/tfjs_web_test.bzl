@@ -1,6 +1,5 @@
 load("@npm//@bazel/concatjs:index.bzl", "karma_web_test")
 
-
 def _make_karma_config_impl(ctx):
     output_file_path = ctx.label.name + ".js"
     output_file = ctx.actions.declare_file(output_file_path)
@@ -16,20 +15,20 @@ def _make_karma_config_impl(ctx):
 _make_karma_config = rule(
     implementation = _make_karma_config_impl,
     attrs = {
+        "browser": attr.string(
+            mandatory = True,
+            doc = "The browser to run",
+        ),
         "template": attr.label(
             default = Label("@//tools:karma_template.conf.js"),
             allow_single_file = True,
             doc = "The karma config template to expand",
         ),
-        "browser": attr.string(
-            mandatory = True,
-            doc = "The browser to run",
-        )
     },
-    outputs = {"config_file": "%{name}.js"}
+    outputs = {"config_file": "%{name}.js"},
 )
 
-def tfjs_web_test(name, ci=True, **kwargs):
+def tfjs_web_test(name, ci = True, **kwargs):
     tags = kwargs.pop("tags", [])
     browsers = kwargs.pop("browsers", [
         "bs_chrome_mac",
@@ -47,7 +46,7 @@ def tfjs_web_test(name, ci=True, **kwargs):
     karma_web_test(
         name = name,
         tags = ["native"] + tags,
-        **kwargs,
+        **kwargs
     )
 
     # If the target is marked as not for CI, don't create CI targets
@@ -60,7 +59,7 @@ def tfjs_web_test(name, ci=True, **kwargs):
         _make_karma_config(
             name = config_file,
             browser = browser,
-        )        
+        )
 
         karma_web_test(
             name = "browserstack_{}_{}".format(browser, name),
@@ -76,6 +75,6 @@ def tfjs_web_test(name, ci=True, **kwargs):
                 # karma-browserstack-launcher.
                 "@npm//karma-browserstack-launcher",
             ],
-            tags = ["ci"] + tags, # Tag to be run in ci
-            **kwargs,
+            tags = ["ci"] + tags,  # Tag to be run in ci
+            **kwargs
         )
