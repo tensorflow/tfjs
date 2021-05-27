@@ -328,7 +328,7 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient',                        // sum not yet implemented.
     ]
   },
-  {include: 'addN', excludes: []},
+  {include: 'addN ', excludes: []},
   {include: 'subtract ', excludes: []},
   {
     include: 'square',
@@ -382,14 +382,14 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    include: 'mirrorPad',
+    include: 'mirrorPad ',
     excludes: [
       'gradient',  // Not yet implemented.
       'grad',      // Not yet implemented.
     ]
   },
   {
-    include: 'pad',
+    include: 'pad ',
     excludes: [
       'RFFT',   // 'zerosLike' not yet implemented.
       'frame',  // Slice not yet implemented.
@@ -399,7 +399,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    include: 'fill',
+    include: 'fill ',
     excludes: [
       '5D',                // Rank 5 is not yet supported.
       'rotateWithOffset',  // 'RotateWithOffset' not registered.
@@ -624,7 +624,13 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient'  // gradient function not found.
     ]
   },
-  {include: 'image.transform'}
+  {include: 'image.transform'},
+  {
+    include: 'pow ',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  }
 ];
 
 const customInclude = (testName: string) => {
