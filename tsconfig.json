@@ -24,11 +24,6 @@
     "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
     "incremental": true,
-    "paths": {
-      "@tensorflow/*": [
-        "./dist/bin/*"
-      ]
-    },
     "plugins": [
       {
         "name": "@bazel/tsetse",
