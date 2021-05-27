@@ -16,7 +16,6 @@
  */
 import {util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -70,7 +69,6 @@ export class UnaryOpProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A'];
-  workPerThread: number;
   workGroupSize: [number, number, number];
   op: string;
   size: number;
@@ -81,55 +79,27 @@ export class UnaryOpProgram implements WebGPUProgram {
     this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    const size = util.sizeFromShape(this.outputShape);
-    const fit = size % this.workGroupSize[0] === 0;
-    this.workPerThread = fit ? 1 : 2;
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.op = op;
-    this.shaderKey = `unary_${op}_${fit}`;
+    this.shaderKey = `unary_${op}`;
     this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
-    const fit = this.size % this.workGroupSize[0] === 0;
-    let userCode: string;
-    if (fit) {
-      userCode = `
+    return `
       float unaryOperation(float a) {
         ${this.op}
       }
 
       void main() {
         int index = int(gl_GlobalInvocationID.x);
-        float a = A[index];
-        setOutput(index, unaryOperation(a));;
-      }
-      `;
-    } else {
-      const type = getCoordsDataType(this.outputShape.length);
-      userCode = `
-      float unaryOperation(float a) {
-        ${this.op}
-      }
-
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
-
-        for(int i = 0; i < ${this.workPerThread}; i++) {
-          int flatIndex = index * ${this.workPerThread} + i;
-
-          if(flatIndex < size) {
-            ${type} coords = getCoordsFromFlatIndex(flatIndex);
-
-            float a = getAAtOutCoords(coords);
-            setOutput(flatIndex, unaryOperation(a));
-          }
+        if (index < size)
+        {
+          float a = getAAtOutCoords();
+          setOutput(index, unaryOperation(a));
         }
       }
       `;
-    }
-    return userCode;
   }
 }

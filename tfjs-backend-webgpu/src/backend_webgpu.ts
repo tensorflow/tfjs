@@ -694,9 +694,12 @@ export class WebGPUBackend extends KernelBackend {
     const bufferTypes = inputsData.map(d => d.dtype).concat(output.dtype);
     const broadcastDims = inputsData.map(
         d => backend_util.getBroadcastDims(d.shape, output.shape));
+    const inputShapesEqualsOutShape =
+        inputsData.map(d => util.arraysEqual(d.shape, output.shape)).join('_');
     const broadcastDimsKey = broadcastDims.map(d => d.join('_')).join(';');
     const key = webgpu_program.makeShaderKey(
-        program, bufferShapes, bufferTypes, broadcastDimsKey);
+        program, bufferShapes, bufferTypes, broadcastDimsKey,
+        inputShapesEqualsOutShape);
 
     const {bindGroupLayout, pipelineLayout} =
         this.getCachedOrCreateLayout(program.variableNames.length);
