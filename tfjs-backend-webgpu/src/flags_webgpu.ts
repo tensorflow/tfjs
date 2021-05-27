@@ -49,3 +49,11 @@ ENV.registerFlag('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', () => false);
  * requested.
  */
 ENV.registerFlag('WEBGPU_USE_LOW_POWER_GPU', () => false);
+
+/**
+ * Threshold for input tensor size that determines whether WebGPU backend will
+ * delegate computation to CPU.
+ *
+ * Default value is 128.
+ */
+ENV.registerFlag('CPU_HANDOFF_SIZE_THRESHOLD', () => 128);
