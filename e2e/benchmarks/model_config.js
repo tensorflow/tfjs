@@ -118,7 +118,7 @@ const benchmarks = {
   'hand_detector': {
     load: async () => {
       const url =
-          'https://tfhub.dev/mediapipe/tfjs-model/handdetector/1/default/1';
+          'https://storage.googleapis.com/tfhub-tfjs-modules/mediapipe/tfjs-model/handdetector/1/default/1';
       return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
@@ -131,7 +131,7 @@ const benchmarks = {
   'hand_skeleton': {
     load: async () => {
       const url =
-          'https://tfhub.dev/mediapipe/tfjs-model/handskeleton/1/default/1';
+          'https://storage.googleapis.com/tfhub-tfjs-modules/mediapipe/tfjs-model/handskeleton/1/default/1';
       return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
@@ -279,7 +279,7 @@ const benchmarks = {
     inputSizes: [128],
     load: async () => {
       const url =
-          'https://tfhub.dev/tensorflow/tfjs-model/blazeface/1/default/1';
+          'https://storage.googleapis.com/tfhub-tfjs-modules/tensorflow/tfjs-model/blazeface/1/default/1';
       return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: (inputResolution = 128) => {
@@ -319,8 +319,9 @@ const benchmarks = {
       return async (model, customInput) => {
         let inferenceInput;
         try {
-          inferenceInput = customInput || generateInputFromDef(
-              state.inputs, model instanceof tf.GraphModel);
+          inferenceInput = customInput ||
+              generateInputFromDef(
+                               state.inputs, model instanceof tf.GraphModel);
           const predict = getPredictFnForModel(model, inferenceInput);
           const inferenceOutput = await predict();
           return inferenceOutput;
