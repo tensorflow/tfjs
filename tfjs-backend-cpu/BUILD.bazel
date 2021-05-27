@@ -54,10 +54,20 @@ filegroup(
     output_group = "es6_sources",
 )
 
+filegroup(
+    name = "es5_sources",
+    srcs = [
+      "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+      "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
+    ],
+    output_group = "es5_sources",
+)
+
 copy_to_dist(
     name = "copy_src_to_dist",
     srcs = [
         ":es6_sources",
+        ":es5_sources",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
     ],
