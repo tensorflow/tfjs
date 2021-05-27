@@ -9,8 +9,9 @@
   "jsdelivr": "dist/tf-backend-wasm.min.js",
   "miniprogram": "dist/miniprogram",
   "scripts": {
-    "build-deps": "yarn build-core && yarn build-cpu-backend",
-    "build-deps-ci": "yarn build-core-ci && yarn build-cpu-backend-ci",
+    "build-deps": "yarn build-core && yarn build-cpu-backend && yarn reinstall",
+    "build-deps-ci": "yarn build-core-ci && yarn build-cpu-backend-ci && yarn reinstall",
+    "reinstall": "yarn && yarn cache clean @tensorflow/tfjs-core && yarn cache clean @tensorflow/tfjs-backend-cpu && rimraf node_modules && yarn",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
     "build-cpu-backend": "cd ../tfjs-backend-cpu && yarn && yarn build",
@@ -25,8 +26,8 @@
     "clean": "rimraf dist/ && bazel clean --expunge",
     "cpplint": "./scripts/cpplint.js",
     "lint": "tslint -p . -t verbose && yarn cpplint",
-    "test": "yarn && yarn build-deps && yarn build && karma start",
-    "test-dev": "yarn && yarn build-deps && yarn build-dev && karma start",
+    "test": "yarn build-deps && yarn build && karma start",
+    "test-dev": "yarn build-deps && yarn build-dev && karma start",
     "test-simd": "yarn karma start --browsers=chrome_simd",
     "test-threaded-simd": "yarn karma start --browsers=chrome_threaded_simd",
     "test-ci": "./scripts/test-ci.sh",
@@ -42,10 +43,10 @@
     "perf_hooks": false
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../tfjs-core"
+    "@tensorflow/tfjs-core": "file:../dist/bin/tfjs-core/tfjs-core_pkg"
   },
   "dependencies": {
-    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
+    "@tensorflow/tfjs-backend-cpu": "file:../dist/bin/tfjs-backend-cpu/tfjs-backend-cpu_pkg",
     "@types/emscripten": "~0.0.34"
   },
   "devDependencies": {
@@ -55,7 +56,7 @@
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@tensorflow/tfjs-core": "file:../dist/bin/tfjs-core/tfjs-core_pkg",
     "@types/jasmine": "~2.8.6",
     "clang-format": "~1.2.4",
     "jasmine": "~3.1.0",

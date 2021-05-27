@@ -432,4 +432,5 @@ setupTestFilters(TEST_FILTERS, customInclude);
 
 // Import and run all the tests from core.
 // tslint:disable-next-line:no-imports-from-dist
-import '@tensorflow/tfjs-core/dist/tests';
+// tslint:disable-next-line:no-require-imports
+require('@tensorflow/tfjs-core/dist/tests');
