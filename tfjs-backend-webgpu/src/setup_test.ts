@@ -384,14 +384,8 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'mirrorPad',
     excludes: [
-      'tensor1d',     // The result is not correct.
-      'tensor2d',     // The result is not correct.
-      'tensor3d',     // The result is not correct.
-      'tensor4d',     // The result is not correct.
-      'tensor-like',  // The result is not correct.
-      'NaNs',         // The result is not correct.
-      'gradient',     // Not yet implemented.
-      'grad',         // Not yet implemented.
+      'gradient',  // Not yet implemented.
+      'grad',      // Not yet implemented.
     ]
   },
   {
