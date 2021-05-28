@@ -38,9 +38,9 @@ export function gatherNd(
   }
 
   const indicesData = backend.data.get(indices.dataId).values as TypedArray;
-  const paramsData = backend.bufferSync(params);
+  const paramsBuf = backend.bufferSync(params);
   const outBuf = gatherNdImpl(
-      indicesData, paramsData, params.dtype, numSlices, sliceRank, sliceSize,
+      indicesData, paramsBuf, params.dtype, numSlices, sliceRank, sliceSize,
       strides, params.shape, paramsSize);
 
   return backend.makeTensorInfo(resultShape, params.dtype, outBuf.values);

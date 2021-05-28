@@ -18,7 +18,7 @@
 import {buffer, DataType, Rank, TensorBuffer, TypedArray} from '@tensorflow/tfjs-core';
 
 export function gatherNdImpl<R extends Rank>(
-    indicesData: TypedArray, paramsData: TensorBuffer<R>, dtype: DataType,
+    indicesData: TypedArray, paramsBuf: TensorBuffer<R>, dtype: DataType,
     numSlices: number, sliceRank: number, sliceSize: number, strides: number[],
     paramsShape: number[], paramsSize: number): TensorBuffer<R> {
   const outBuf = buffer([numSlices, sliceSize], dtype);
@@ -37,8 +37,8 @@ export function gatherNdImpl<R extends Rank>(
     }
 
     for (let k = 0; k < sliceSize; k++) {
-      outBuf.values[i * sliceSize + k] = paramsData.get(
-          ...paramsData.indexToLoc(flattenIndex * sliceSize + k));
+      outBuf.values[i * sliceSize + k] =
+          paramsBuf.get(...paramsBuf.indexToLoc(flattenIndex * sliceSize + k));
     }
   }
 
