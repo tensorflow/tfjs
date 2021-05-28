@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,13 +15,12 @@
  * =============================================================================
  */
 
-import {buffer, DataType, TypedArray} from '@tensorflow/tfjs-core';
+import {buffer, DataType, Rank, TensorBuffer, TypedArray} from '@tensorflow/tfjs-core';
 
-export function gatherNdImpl(
-    indicesData: TypedArray, paramsData: TypedArray|string[], dtype: DataType,
+export function gatherNdImpl<R extends Rank>(
+    indicesData: TypedArray, paramsData: TensorBuffer<R>, dtype: DataType,
     numSlices: number, sliceRank: number, sliceSize: number, strides: number[],
-    paramsShape: number[], paramsSize: number): string[]|Float32Array|
-    Int32Array|Uint8Array {
+    paramsShape: number[], paramsSize: number): TensorBuffer<R> {
   const outBuf = buffer([numSlices, sliceSize], dtype);
 
   for (let i = 0; i < numSlices; i++) {
@@ -38,10 +37,10 @@ export function gatherNdImpl(
     }
 
     for (let k = 0; k < sliceSize; k++) {
-      outBuf.values[i * sliceSize + k] =
-          paramsData[flattenIndex * sliceSize + k];
+      outBuf.values[i * sliceSize + k] = paramsData.get(
+          ...paramsData.indexToLoc(flattenIndex * sliceSize + k));
     }
   }
 
-  return outBuf.values;
+  return outBuf as TensorBuffer<R>;
 }

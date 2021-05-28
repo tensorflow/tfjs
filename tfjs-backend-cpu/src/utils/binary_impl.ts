@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, DataType, NumericDataType, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataType, DataValues, NumericDataType, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {SimpleBinaryKernelImpl, SimpleBinaryOperation} from './binary_types';
 
@@ -24,9 +24,8 @@ import {SimpleBinaryKernelImpl, SimpleBinaryOperation} from './binary_types';
  */
 export function createSimpleBinaryKernelImpl(op: SimpleBinaryOperation):
     SimpleBinaryKernelImpl {
-  return (aShape: number[], bShape: number[], aVals: TypedArray|string[],
-          bVals: TypedArray|string[],
-          dtype: DataType): [TypedArray, number[]] => {
+  return (aShape: number[], bShape: number[], aVals: DataValues,
+          bVals: DataValues, dtype: DataType): [TypedArray, number[]] => {
     const newShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
 
     const resultRank = newShape.length;

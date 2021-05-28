@@ -46,12 +46,12 @@ export function gatherNd(
   if (backend.shouldExecuteOnCPU([params, indices]) ||
       params.dtype === 'string') {
     const indicesData = backend.readSync(indices.dataId) as TypedArray;
-    const paramsData = backend.readSync(params.dataId) as TypedArray;
+    const paramsData = backend.bufferSync(params);
     const outValue = gatherNdImplCPU(
         indicesData, paramsData, params.dtype, numSlices, sliceRank, sliceSize,
         strides, params.shape, paramsSize);
 
-    return backend.makeTensorInfo(resultShape, params.dtype, outValue);
+    return backend.makeTensorInfo(resultShape, params.dtype, outValue.values);
   }
   const program =
       new GatherNDProgram(sliceRank, strides, [numSlices, sliceSize]);
