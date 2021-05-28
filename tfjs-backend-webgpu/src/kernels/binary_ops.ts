@@ -37,6 +37,31 @@ export enum BinaryOpType {
   MIN
 }
 
+function getMinMaxString(op: string, useVec4: boolean) {
+  const CHECK_NAN_SNIPPET = `
+  if (isnan(a)) return a;
+  if (isnan(b)) return b;
+`;
+  const CHECK_NAN_SNIPPET_VEC4 = `
+  result.r = isNaN.r > 0. ? NAN : result.r;
+  result.g = isNaN.g > 0. ? NAN : result.g;
+  result.b = isNaN.b > 0. ? NAN : result.b;
+  result.a = isNaN.a > 0. ? NAN : result.a;
+`;
+
+  const checkNanSnippet = useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET;
+  return useVec4 ? `
+  vec4 result = vec4(${op}(a, b));
+  vec4 isNaN = min(vec4(isnan(a)) + vec4(isnan(b)), vec4(1.0));
+  ` + checkNanSnippet +
+          `
+  return result;
+` :
+                   checkNanSnippet + `
+  return ${op}(a, b);
+`;
+}
+
 export function getBinaryOpString(
     type: BinaryOpType, useVec4?: boolean): string {
   switch (type) {
@@ -99,15 +124,9 @@ export function getBinaryOpString(
     ` :
                        'return (a < 0.) ? b * a : a;';
     case BinaryOpType.MAX:
-      // TODO (xing.xu@intel.com): Currently, NaN is not supported in WebGPU
-      // backend.
-      // https://github.com/tensorflow/tfjs/issues/4734
-      return `return max(a, b);`;
+      return getMinMaxString('max', useVec4);
     case BinaryOpType.MIN:
-      // TODO (xing.xu@intel.com): Currently, NaN is not supported in WebGPU
-      // backend.
-      // https://github.com/tensorflow/tfjs/issues/4734
-      return `return min(a, b);`;
+      return getMinMaxString('min', useVec4);
     default:
       throw new Error(`BinaryType ${type} is not implemented!`);
   }
