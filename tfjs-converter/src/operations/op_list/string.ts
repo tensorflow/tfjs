@@ -35,7 +35,8 @@ export const json: OpMapper[] = [
         'name': 'preserveShortSequences',
         'type': 'bool'
       }
-    ]
+    ],
+    'outputs': ['ngrams', 'ngrams_splits']
   },
   {
     'tfOpName': 'StringSplit',
@@ -44,7 +45,8 @@ export const json: OpMapper[] = [
       {'start': 0, 'name': 'input', 'type': 'tensor'},
       {'start': 1, 'name': 'delimiter', 'type': 'tensor'},
     ],
-    'attrs': [{'tfName': 'skip_empty', 'name': 'skipEmpty', 'type': 'bool'}]
+    'attrs': [{'tfName': 'skip_empty', 'name': 'skipEmpty', 'type': 'bool'}],
+    'outputs': ['indices', 'values', 'shape']
   },
   {
     'tfOpName': 'StringToHashBucketFast',
