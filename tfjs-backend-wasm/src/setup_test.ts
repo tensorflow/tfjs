@@ -269,7 +269,8 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
                                        // supported yet.
       'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes'   // Same as above.
+      'broadcasting Tensor4D shapes',  // Same as above.
+      'string'
     ]
   },
   {
@@ -278,7 +279,8 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
                                        // supported yet.
       'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes'   // Same as above.
+      'broadcasting Tensor4D shapes',  // Same as above.
+      'string'
     ]
   },
   {
@@ -288,7 +290,8 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
                                        // supported yet.
       'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes'   // Same as above.
+      'broadcasting Tensor4D shapes',  // Same as above.
+      'string'
     ]
   },
   {
@@ -298,7 +301,8 @@ const TEST_FILTERS: TestFilter[] = [
                                         // supported yet.
       'broadcasting Tensor3D shapes',   // Same as above.
       'broadcasting Tensor3D float32',  // Same as above.
-      'broadcasting Tensor4D shapes'    // Same as above.
+      'broadcasting Tensor4D shapes',   // Same as above.
+      'string'
     ]
   },
   {
@@ -309,7 +313,8 @@ const TEST_FILTERS: TestFilter[] = [
                                         // supported yet.
       'broadcasting Tensor3D shapes',   // Same as above.
       'broadcasting Tensor3D float32',  // Same as above.
-      'broadcasting Tensor4D shapes'    // Same as above.
+      'broadcasting Tensor4D shapes',   // Same as above.
+      'string'
     ]
   },
   {
@@ -318,7 +323,8 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
                                        // supported yet.
       'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes'   // Same as above.
+      'broadcasting Tensor4D shapes',  // Same as above.
+      'string'
     ]
   },
   {

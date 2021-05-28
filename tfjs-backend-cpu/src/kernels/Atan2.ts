@@ -20,7 +20,7 @@ import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
 import {binaryKernelFunc} from '../utils/binary_utils';
 
 export const atan2Impl = createSimpleBinaryKernelImpl(
-    (aValue, bValue) => Math.atan2(aValue, bValue));
+    (aValue, bValue) => Math.atan2(aValue as number, bValue as number));
 
 export const atan2 = binaryKernelFunc(Atan2, atan2Impl);
 

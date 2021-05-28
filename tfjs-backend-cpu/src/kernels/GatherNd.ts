@@ -15,9 +15,11 @@
  * =============================================================================
  */
 
-import {backend_util, buffer, GatherNd, GatherNdInputs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, GatherNd, GatherNdInputs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
+
+import {gatherNdImpl} from './GatherNd_Impl';
 
 export function gatherNd(
     args: {inputs: GatherNdInputs, backend: MathBackendCPU}): TensorInfo {
@@ -35,30 +37,13 @@ export function gatherNd(
     return backend.makeTensorInfo(resultShape, params.dtype, []);
   }
 
-  const outBuf = buffer([numSlices, sliceSize], params.dtype);
   const indicesData = backend.data.get(indices.dataId).values as TypedArray;
-  const paramsData = backend.data.get(params.dataId).values as TypedArray;
+  const paramsBuf = backend.bufferSync(params);
+  const outBuf = gatherNdImpl(
+      indicesData, paramsBuf, params.dtype, numSlices, sliceRank, sliceSize,
+      strides, params.shape, paramsSize);
 
-  for (let i = 0; i < numSlices; i++) {
-    const index = [];
-    let flattenIndex = 0;
-    for (let j = 0; j < sliceRank; j++) {
-      const dim = indicesData[i * sliceRank + j];
-      flattenIndex += dim * strides[j];
-      index.push(dim);
-    }
-    if (flattenIndex < 0 || flattenIndex >= paramsSize / sliceSize) {
-      throw new Error(
-          `Invalid indices: ${index} does not index into ${params.shape}`);
-    }
-
-    for (let k = 0; k < sliceSize; k++) {
-      outBuf.values[i * sliceSize + k] =
-          paramsData[flattenIndex * sliceSize + k];
-    }
-  }
-
-  return backend.makeTensorInfo(resultShape, outBuf.dtype, outBuf.values);
+  return backend.makeTensorInfo(resultShape, params.dtype, outBuf.values);
 }
 
 export const gatherNdConfig: KernelConfig = {

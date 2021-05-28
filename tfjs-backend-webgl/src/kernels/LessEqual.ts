@@ -18,14 +18,19 @@
 import {KernelConfig, KernelFunc, LessEqual} from '@tensorflow/tfjs-core';
 
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {lessEqualImplCPU} from '../kernel_utils/shared';
 
 export const LESS_EQUAL = `return float(a <= b);`;
 export const LESS_EQUAL_PACKED = `
   return vec4(lessThanEqual(a, b));
 `;
 
-export const lessEqual = binaryKernelFunc(
-    {opSnippet: LESS_EQUAL, packedOpSnippet: LESS_EQUAL_PACKED, dtype: 'bool'});
+export const lessEqual = binaryKernelFunc({
+  opSnippet: LESS_EQUAL,
+  packedOpSnippet: LESS_EQUAL_PACKED,
+  cpuKernelImpl: lessEqualImplCPU,
+  dtype: 'bool'
+});
 
 export const lessEqualConfig: KernelConfig = {
   kernelName: LessEqual,

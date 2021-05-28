@@ -42,8 +42,8 @@ import {op} from './operation';
  */
 function lessEqual_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'lessEqual');
-  let $b = convertToTensor(b, 'b', 'lessEqual');
+  let $a = convertToTensor(a, 'a', 'lessEqual', 'string_or_numeric');
+  let $b = convertToTensor(b, 'b', 'lessEqual', 'string_or_numeric');
   [$a, $b] = makeTypesMatch($a, $b);
 
   assertAndGetBroadcastShape($a.shape, $b.shape);

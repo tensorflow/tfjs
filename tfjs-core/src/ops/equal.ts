@@ -42,8 +42,8 @@ import {op} from './operation';
  */
 function equal_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'equal');
-  let $b = convertToTensor(b, 'b', 'equal');
+  let $a = convertToTensor(a, 'a', 'equal', 'string_or_numeric');
+  let $b = convertToTensor(b, 'b', 'equal', 'string_or_numeric');
   [$a, $b] = makeTypesMatch($a, $b);
 
   assertAndGetBroadcastShape($a.shape, $b.shape);

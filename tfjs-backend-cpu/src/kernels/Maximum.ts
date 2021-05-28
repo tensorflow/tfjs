@@ -21,7 +21,7 @@ import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
 import {binaryKernelFunc} from '../utils/binary_utils';
 
 export const maximumImpl = createSimpleBinaryKernelImpl(
-    ((aValue, bValue) => Math.max(aValue, bValue)));
+    ((aValue, bValue) => Math.max(aValue as number, bValue as number)));
 export const maximum = binaryKernelFunc(Maximum, maximumImpl);
 
 export const maximumConfig: KernelConfig = {

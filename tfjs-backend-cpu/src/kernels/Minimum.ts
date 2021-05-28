@@ -21,7 +21,7 @@ import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
 import {binaryKernelFunc} from '../utils/binary_utils';
 
 export const minimumImpl = createSimpleBinaryKernelImpl(
-    ((aValue, bValue) => Math.min(aValue, bValue)));
+    ((aValue, bValue) => Math.min(aValue as number, bValue as number)));
 export const minimum = binaryKernelFunc(Minimum, minimumImpl);
 
 export const minimumConfig: KernelConfig = {
