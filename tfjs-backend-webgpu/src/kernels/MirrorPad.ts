@@ -29,8 +29,12 @@ export const mirrorPadConfig: KernelConfig = {
     const {paddings, mode} = attrs as unknown as MirrorPadAttrs;
     const webGPUBackend = backend as WebGPUBackend;
 
+    const uniformData = paddings.map(p => {
+      return {type: 'int32', data: [p[0], p[1]]};
+    });
     const program = new MirrorPadProgram(x.shape, paddings, mode);
-    const output = webGPUBackend.runWebGPUProgram(program, [x], x.dtype);
+    const output =
+        webGPUBackend.runWebGPUProgram(program, [x], x.dtype, uniformData);
 
     return output;
   }
