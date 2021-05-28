@@ -252,7 +252,7 @@ export class MathBackendWebGL extends KernelBackend {
     if (values != null) {
       return this.convertAndCacheOnCPU(dataId);
     }
-    if (dtype === 'string') {
+    if (dtype === 'string' && values != null) {
       return values;
     }
     const shouldTimeProgram = this.activeTimers != null;

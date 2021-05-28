@@ -282,4 +282,13 @@ describeWithFlags('equal', ALL_ENVS, () => {
     const b = [2, 3, 5];
     expectArraysClose(await tf.equal(a, b).data(), [0, 0, 1]);
   });
+
+  it('should support string comparison', async () => {
+    const tensorA = tf.tensor('', [], 'string');
+    const tensorB = tf.tensor(['a', 'b', ''], [3], 'string');
+    const result = await tf.equal(tensorA, tensorB);
+
+    expectArraysEqual(result.shape, [3]);
+    expectArraysEqual(await result.data(), [0, 0, 1]);
+  });
 });

@@ -24,8 +24,9 @@ import {SimpleBinaryKernelImpl, SimpleBinaryOperation} from './binary_types';
  */
 export function createSimpleBinaryKernelImpl(op: SimpleBinaryOperation):
     SimpleBinaryKernelImpl {
-  return (aShape: number[], bShape: number[], aVals: TypedArray,
-          bVals: TypedArray, dtype: DataType): [TypedArray, number[]] => {
+  return (aShape: number[], bShape: number[], aVals: TypedArray|string[],
+          bVals: TypedArray|string[],
+          dtype: DataType): [TypedArray, number[]] => {
     const newShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
 
     const resultRank = newShape.length;
