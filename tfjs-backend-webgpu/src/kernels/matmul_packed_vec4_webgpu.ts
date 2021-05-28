@@ -109,6 +109,58 @@ export function makeMatMulPackedVec4Source(workPerThread: number[]): string {
   `;
 }
 
+export function makeMatMulVectorVec4Source(): string {
+  return `
+    vec4 mm_readA(int row, int col);
+    vec4 mm_readB(int row, int col);
+    void mm_write(int row, int col, vec4 value);
+
+    const int TileSize = int(gl_WorkGroupSize.x) * 4;
+
+    shared vec4 mm_Asub[TileSize / 4];
+
+    void mm_matMul(int dimAOuter, int dimInner, int dimBOuter) {
+      int tileCol = int(gl_LocalInvocationID.x);
+      int globalCol = int(gl_GlobalInvocationID.x);
+      int globalRow = int(gl_GlobalInvocationID.y);
+
+      int numTiles = (dimInner - 1) / TileSize + 1;
+
+      // Without this initialization strange values show up in acc.
+      vec4 acc = vec4(0.0);
+
+      // Loop over shared dimension.
+      for (int t = 0; t < numTiles; t++) {
+        // Load one tile of A into local memory.
+        int colA = t * TileSize / 4 + tileCol;
+        mm_Asub[tileCol] = mm_readA(globalRow, colA);
+        barrier();
+
+        // Compute acc values for a single thread.
+        for (int k = 0; k < TileSize / 4; k++) {
+          int rowB = t * TileSize + k * 4;
+          vec4 BCached0 = mm_readB(rowB, globalCol);
+          vec4 BCached1 = mm_readB(rowB + 1, globalCol);
+          vec4 BCached2 = mm_readB(rowB + 2, globalCol);
+          vec4 BCached3 = mm_readB(rowB + 3, globalCol);
+
+          vec4 ACached = mm_Asub[k];
+          acc += BCached0 * ACached.x;
+          acc += BCached1 * ACached.y;
+          acc += BCached2 * ACached.z;
+          acc += BCached3 * ACached.w;
+        }
+
+        barrier();
+      }
+
+      if (globalRow < dimAOuter && globalCol < dimBOuter) {
+        mm_write(globalRow, globalCol, acc);
+      }
+    }
+  `;
+}
+
 export class MatMulPackedVec4Program implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
@@ -135,7 +187,6 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
         outputShape[1], aShape[2], outputShape[2]);
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
     if (outputShape[1] === 1) {
-      this.workGroupSize = [16, 1, 1];  // in case shared memory exceeds limit.
       rowPerThread = 1;
     }
     this.dispatch = computeDispatch(
@@ -161,7 +212,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     [this.fitA, this.fitB] = this.getShapeFit();
 
     this.shaderKey = `matMulPackedVec4_${rowPerThread}_${activation}_${
-        this.fitA}_${this.fitB}`;
+        this.fitA}_${this.fitB}_${this.outputShape[1] > 1}`;
   }
 
   getShapeFit(): boolean[] {
@@ -220,9 +271,10 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
       int dimBOuter = bShape[2];
       int batch;
 
-      ${makeMatMulPackedVec4Source([
-      this.vecSize, this.workPerThread, 1
-    ])}
+      ${
+        this.outputShape[1] > 1 ?
+            makeMatMulPackedVec4Source([this.vecSize, this.workPerThread, 1]) :
+            makeMatMulVectorVec4Source()}
 
       vec4 mm_readA(int row, int col) {
         int batchASize = aShape[1] * aShape[2] / ${this.vecSize};
