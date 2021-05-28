@@ -496,8 +496,6 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'minimum',
     excludes: [
       'bool and bool',
-      'propagates NaN',  // NaN is not supported in WebGPU:
-                         // https://github.com/tensorflow/tfjs/issues/4734.
       'gradients: Scalar',
       'gradient with clones',
       'gradients: Tensor1D',
@@ -508,8 +506,6 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'maximum',
     excludes: [
       'bool and bool',
-      'propagates NaN',  // NaN is not supported in WebGPU:
-                         // https://github.com/tensorflow/tfjs/issues/4734.
       'gradients: Scalar',
       'gradient with clones',
       'gradients: Tensor1D',
