@@ -139,12 +139,8 @@ export function makeMatMulVectorSource(): string {
 
       int numTiles = (dimInner - 1) / TileSize + 1;
 
-      float acc;
-      vec4 ACached;
-      vec4 BCached;
-
       // Without this initialization strange values show up in acc.
-      acc = 0.0;
+      float acc = 0.0;
 
       // Loop over shared dimension.
       for (int t = 0; t < numTiles; t++) {
@@ -159,12 +155,12 @@ export function makeMatMulVectorSource(): string {
         // Compute acc values for a single thread.
         for (int k = 0; k < TileSize / 4; k++) {
           int rowB = t * TileSize + k * 4;
-          BCached = vec4(mm_readB(rowB, globalCol),
-                         mm_readB(rowB + 1, globalCol),
-                         mm_readB(rowB + 2, globalCol),
-                         mm_readB(rowB + 3, globalCol));
+          vec4 BCached = vec4(mm_readB(rowB, globalCol),
+                              mm_readB(rowB + 1, globalCol),
+                              mm_readB(rowB + 2, globalCol),
+                              mm_readB(rowB + 3, globalCol));
 
-          ACached = mm_Asub[k];
+          vec4 ACached = mm_Asub[k];
           acc += dot(ACached, BCached);
         }
 

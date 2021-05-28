@@ -126,8 +126,8 @@ export function makeMatMulVectorVec4Source(): string {
 
       int numTiles = (dimInner - 1) / TileSize + 1;
 
+      // Without this initialization strange values show up in acc.
       vec4 acc = vec4(0.0);
-      vec4 ACached;
 
       // Loop over shared dimension.
       for (int t = 0; t < numTiles; t++) {
@@ -144,7 +144,7 @@ export function makeMatMulVectorVec4Source(): string {
           vec4 BCached2 = mm_readB(rowB + 2, globalCol);
           vec4 BCached3 = mm_readB(rowB + 3, globalCol);
 
-          ACached = mm_Asub[k];
+          vec4 ACached = mm_Asub[k];
           acc += BCached0 * ACached.x;
           acc += BCached1 * ACached.y;
           acc += BCached2 * ACached.z;
