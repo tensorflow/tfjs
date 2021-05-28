@@ -96,7 +96,7 @@ export function batchMatMulImpl({
   const batchDim = Math.max(batchDimA, batchDimB);
 
   const useVec4 = a.shape[2] % 4 === 0 && b.shape[2] % 4 === 0 && !transposeA &&
-      !transposeB;
+      !transposeB && outerShapeB >= 32;
   const fusedActivation = activation ?
       backend.mapActivationToShaderProgram(activation, useVec4) :
       null;
