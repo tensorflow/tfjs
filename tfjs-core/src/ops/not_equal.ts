@@ -41,8 +41,8 @@ import {op} from './operation';
  */
 function notEqual_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'notEqual');
-  let $b = convertToTensor(b, 'b', 'notEqual');
+  let $a = convertToTensor(a, 'a', 'notEqual', 'string_or_numeric');
+  let $b = convertToTensor(b, 'b', 'notEqual', 'string_or_numeric');
   [$a, $b] = makeTypesMatch($a, $b);
 
   assertAndGetBroadcastShape($a.shape, $b.shape);
