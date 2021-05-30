@@ -208,3 +208,11 @@ ENV.registerFlag(
             `manual flush) or at least 0, but got ${threshold}.`);
       }
     });
+
+/**
+ * Threshold for input tensor size that determines whether WebGL backend will
+ * delegate computation to CPU.
+ *
+ * Default value is 128.
+ */
+ENV.registerFlag('CPU_HANDOFF_SIZE_THRESHOLD', () => 128);

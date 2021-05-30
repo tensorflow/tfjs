@@ -99,7 +99,11 @@ const IGNORE_LIST: string[] = [
   // Node kernel for einsum is yet to be implemented.
   // See: ttps://github.com/tensorflow/tfjs/issues/2349
   'einsum', 'sparseFillEmptyRows', 'sparseReshape', 'sparseSegmentMean',
-  'sparseSegmentSum', 'stringToHashBucketFast'
+  'sparseSegmentSum', 'stringNGrams', 'stringSplit', 'stringToHashBucketFast',
+  'greaterEqual test-tensorflow {} should support string comparison',
+  'greater test-tensorflow {} should support string comparison',
+  'lessEqual test-tensorflow {} should support string comparison',
+  'less test-tensorflow {} should support string comparison'
 ];
 
 if (process.platform === 'win32') {

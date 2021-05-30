@@ -808,6 +808,23 @@ export interface StridedSliceAttrs {
   shrinkAxisMask: number;
 }
 
+export const StringNGrams = 'StringNGrams';
+export type StringNGramsInputs = Pick<NamedTensorInfoMap, 'data'|'dataSplits'>;
+export interface StringNGramsAttrs {
+  separator: string;
+  nGramWidths: number[];
+  leftPad: string;
+  rightPad: string;
+  padWidth: number;
+  preserveShortSequences: boolean;
+}
+
+export const StringSplit = 'StringSplit';
+export type StringSplitInputs = Pick<NamedTensorInfoMap, 'input'|'delimiter'>;
+export interface StringSplitAttrs {
+  skipEmpty: boolean;
+}
+
 export const StringToHashBucketFast = 'StringToHashBucketFast';
 export type StringToHashBucketFastInputs = Pick<NamedTensorInfoMap, 'input'>;
 export interface StringToHashBucketFastAttrs {
