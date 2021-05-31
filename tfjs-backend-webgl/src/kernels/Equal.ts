@@ -17,15 +17,19 @@
 
 import {Equal, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-
+import {equalImplCPU} from '../kernel_utils/shared';
 const PACKED_EQUAL = `
   return vec4(equal(a, b));
 `;
 
 const EQUAL = `return float(a == b);`;
 
-export const equal = binaryKernelFunc(
-    {opSnippet: EQUAL, packedOpSnippet: PACKED_EQUAL, dtype: 'bool'});
+export const equal = binaryKernelFunc({
+  opSnippet: EQUAL,
+  packedOpSnippet: PACKED_EQUAL,
+  dtype: 'bool',
+  cpuKernelImpl: equalImplCPU,
+});
 
 export const equalConfig: KernelConfig = {
   kernelName: Equal,

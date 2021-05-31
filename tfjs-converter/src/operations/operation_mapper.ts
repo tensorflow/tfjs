@@ -36,7 +36,9 @@ import * as matrices from './op_list/matrices';
 import * as normalization from './op_list/normalization';
 import * as reduction from './op_list/reduction';
 import * as sliceJoin from './op_list/slice_join';
+import * as sparse from './op_list/sparse';
 import * as spectral from './op_list/spectral';
+import * as string from './op_list/string';
 import * as transformation from './op_list/transformation';
 import {Graph, InputParamValue, Node, OpMapper, ParamValue} from './types';
 
@@ -54,8 +56,8 @@ export class OperationMapper {
   private constructor() {
     const ops = [
       arithmetic, basicMath, control, convolution, creation, dynamic,
-      evaluation, logical, image, graph, matrices, normalization, reduction,
-      sliceJoin, spectral, transformation, hashTable
+      evaluation, graph, hashTable, image, logical, matrices, normalization,
+      reduction, sliceJoin, sparse, spectral, string, transformation
     ];
     const mappersJson: OpMapper[] = [].concat(...ops.map(op => op.json));
 
@@ -99,10 +101,19 @@ export class OperationMapper {
     const allNodes = Object.keys(nodes);
     allNodes.forEach(key => {
       const node = nodes[key];
-      node.inputNames.forEach(name => {
-        const [nodeName, ] = getNodeNameAndIndex(name);
-        node.inputs.push(nodes[nodeName]);
-        nodes[nodeName].children.push(node);
+      node.inputNames.forEach((name, index) => {
+        const [nodeName, , outputName] = getNodeNameAndIndex(name);
+        const inputNode = nodes[nodeName];
+        if (inputNode.outputs != null) {
+          const outputIndex = inputNode.outputs.indexOf(outputName);
+          if (outputIndex !== -1) {
+            const inputName = `${nodeName}:${outputIndex}`;
+            // update the input name to use the mapped output index directly.
+            node.inputNames[index] = inputName;
+          }
+        }
+        node.inputs.push(inputNode);
+        inputNode.children.push(node);
       });
     });
 
@@ -185,7 +196,8 @@ export class OperationMapper {
       children: [],
       inputParams: {},
       attrParams: {},
-      rawAttrs: node.attr
+      rawAttrs: node.attr,
+      outputs: mapper.outputs
     };
 
     if (mapper.inputs != null) {
@@ -361,10 +373,19 @@ export class OperationMapper {
     const allNodes = Object.keys(nodes);
     allNodes.forEach(key => {
       const node = nodes[key];
-      node.inputNames.forEach(name => {
-        const [nodeName, ] = getNodeNameAndIndex(name);
-        node.inputs.push(nodes[nodeName]);
-        nodes[nodeName].children.push(node);
+      node.inputNames.forEach((name, index) => {
+        const [nodeName, , outputName] = getNodeNameAndIndex(name);
+        const inputNode = nodes[nodeName];
+        if (inputNode.outputs != null) {
+          const outputIndex = inputNode.outputs.indexOf(outputName);
+          if (outputIndex !== -1) {
+            const inputName = `${nodeName}:${outputIndex}`;
+            // update the input name to use the mapped output index directly.
+            node.inputNames[index] = inputName;
+          }
+        }
+        node.inputs.push(inputNode);
+        inputNode.children.push(node);
       });
     });
 

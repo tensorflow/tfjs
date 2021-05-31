@@ -155,12 +155,22 @@ export function binaryKernelFunc({
     }
 
     const $dtype = dtype || upcastType(a.dtype, b.dtype);
-    if (webglBackend.shouldExecuteOnCPU([a, b]) && cpuKernelImpl != null) {
-      const aData = webglBackend.texData.get(a.dataId);
-      const bData = webglBackend.texData.get(b.dataId);
-      const [outValues, outShape] = cpuKernelImpl(
-          a.shape, b.shape, aData.values as TypedArray,
-          bData.values as TypedArray, $dtype);
+    if ((a.dtype === 'string' || b.dtype === 'string' ||
+         webglBackend.shouldExecuteOnCPU([a, b])) &&
+        cpuKernelImpl != null) {
+      const aVals = webglBackend.texData.get(a.dataId).values as TypedArray;
+      const bVals = webglBackend.texData.get(b.dataId).values as TypedArray;
+
+      const decodedAVals = a.dtype === 'string' ?
+          // tslint:disable-next-line: no-any
+          backend_util.fromUint8ToStringArray(aVals as any as Uint8Array[]) :
+          aVals;
+      const decodedBVals = a.dtype === 'string' ?
+          // tslint:disable-next-line: no-any
+          backend_util.fromUint8ToStringArray(bVals as any as Uint8Array[]) :
+          bVals;
+      const [outValues, outShape] =
+          cpuKernelImpl(a.shape, b.shape, decodedAVals, decodedBVals, $dtype);
 
       const out = webglBackend.makeTensorInfo(outShape, $dtype);
       const outData = webglBackend.texData.get(out.dataId);
