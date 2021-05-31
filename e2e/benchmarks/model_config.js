@@ -310,6 +310,76 @@ const benchmarks = {
       }
     }
   },
+  'pose-detection': {
+    type: 'GraphModel',
+    inputSizes: [128, 256, 512, 1024],
+    architectures: [
+      'BlazePose-lite',
+      'BlazePose-full',
+      'BlazePose-heavy',
+      'MoveNet-lightning',
+      'MoveNet-thunder',
+      'PoseNet-MobileNetV1',
+      'PoseNet-ResNet50',
+    ],
+    inputTypes: ['image', 'tensor', 'imageBitmap'],
+    modelTypes: ['lite', 'full', 'heavy', 'lightning'],
+    load: async (
+        inputResolution = 128, modelArchitecture = 'BlazePose-lite',
+        inputType = 'image') => {
+      let config = null;
+      const modelConfig = {};
+      modelConfig.name = modelArchitecture.split('-')[0];
+      modelConfig.type = modelArchitecture.split('-')[1];
+      if (modelConfig.name === 'PoseNet') {
+        if (modelConfig.type === 'MobileNetV1') {
+          config = {
+            quantBytes: 4,
+            architecture: 'MobileNetV1',
+            outputStride: 16,
+            multiplier: 0.75,
+            inputResolution: {width: inputResolution, height: inputResolution},
+          }
+        } else {
+          config = {
+            architecture: 'ResNet50',
+            outputStride: 16,
+            inputResolution: {width: inputResolution, height: inputResolution},
+            quantBytes: 2
+          };
+        }
+      } else if (modelConfig.name === 'MoveNet') {
+        const modelType = modelConfig.type == 'lightning' ?
+            poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING :
+            poseDetection.movenet.modelType.SINGLEPOSE_THUNDER;
+        config = {
+          modelType,
+        };
+      } else if (modelConfig.name === 'BlazePose') {
+        const runtime = 'tfjs';
+        const enableSmoothing = true;
+        const modelType = modelConfig.type;
+        config = {runtime, enableSmoothing, modelType};
+      }
+      const model =
+          await poseDetection.createDetector(modelConfig.name, config);
+      if (inputType === 'tensor') {
+        model.input = tf.zeros([inputResolution, inputResolution, 3]);
+      } else if (inputType === 'imageBitmap') {
+        const image = await loadImage('tennis_standing.jpg');
+        model.input =
+            await createImageBitmap(image, {premultiplyAlpha: 'none'});
+      } else {
+        model.input = await loadImage('tennis_standing.jpg');
+      }
+      return model;
+    },
+    predictFunc: () => {
+      return async model => {
+        return model.estimatePoses(model.input);
+      };
+    }
+  },
   'custom': {
     type: '',
     load: async () => {
@@ -319,8 +389,9 @@ const benchmarks = {
       return async (model, customInput) => {
         let inferenceInput;
         try {
-          inferenceInput = customInput || generateInputFromDef(
-              state.inputs, model instanceof tf.GraphModel);
+          inferenceInput = customInput ||
+              generateInputFromDef(
+                               state.inputs, model instanceof tf.GraphModel);
           const predict = getPredictFnForModel(model, inferenceInput);
           const inferenceOutput = await predict();
           return inferenceOutput;
