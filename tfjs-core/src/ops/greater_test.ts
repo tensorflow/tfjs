@@ -17,7 +17,7 @@
 
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
-import {expectArraysClose} from '../test_util';
+import {expectArraysClose, expectArraysEqual} from '../test_util';
 
 describeWithFlags('greater', ALL_ENVS, () => {
   it('Tensor1D - int32', async () => {
@@ -351,5 +351,14 @@ describeWithFlags('greater', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expect(res.shape).toEqual([0, 5]);
     expectArraysClose(await res.data(), []);
+  });
+
+  it('should support string comparison', async () => {
+    const tensorA = tf.tensor('a', [], 'string');
+    const tensorB = tf.tensor(['a', 'b', ''], [3], 'string');
+    const result = await tf.greater(tensorA, tensorB);
+
+    expectArraysEqual(result.shape, [3]);
+    expectArraysEqual(await result.data(), [0, 0, 1]);
   });
 });

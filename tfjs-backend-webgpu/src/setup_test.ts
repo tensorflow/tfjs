@@ -384,14 +384,8 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'mirrorPad',
     excludes: [
-      'tensor1d',     // The result is not correct.
-      'tensor2d',     // The result is not correct.
-      'tensor3d',     // The result is not correct.
-      'tensor4d',     // The result is not correct.
-      'tensor-like',  // The result is not correct.
-      'NaNs',         // The result is not correct.
-      'gradient',     // Not yet implemented.
-      'grad',         // Not yet implemented.
+      'gradient',  // Not yet implemented.
+      'grad',      // Not yet implemented.
     ]
   },
   {
@@ -502,8 +496,6 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'minimum',
     excludes: [
       'bool and bool',
-      'propagates NaN',  // NaN is not supported in WebGPU:
-                         // https://github.com/tensorflow/tfjs/issues/4734.
       'gradients: Scalar',
       'gradient with clones',
       'gradients: Tensor1D',
@@ -514,8 +506,6 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'maximum',
     excludes: [
       'bool and bool',
-      'propagates NaN',  // NaN is not supported in WebGPU:
-                         // https://github.com/tensorflow/tfjs/issues/4734.
       'gradients: Scalar',
       'gradient with clones',
       'gradients: Tensor1D',
