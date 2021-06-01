@@ -78,6 +78,9 @@
   "sideEffects": [
     "./dist/register_all_kernels.js",
     "./dist/base.js",
-    "./dist/index.js"
+    "./dist/index.js",
+    "./src/register_all_kernels.mjs",
+    "./src/base.mjs",
+    "./src/index.mjs"
   ]
 }

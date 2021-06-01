@@ -38,6 +38,7 @@ tfjs_bundle(
     deps = [
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
+        ":package_json",
     ],
 )
 

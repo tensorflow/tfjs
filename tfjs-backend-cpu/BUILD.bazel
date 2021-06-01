@@ -13,7 +13,7 @@
 # limitations under the License.
 # =============================================================================
 
-load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_test", "pkg_npm")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "nodejs_test", "pkg_npm")
 load("//tools:copy_to_dist.bzl", "copy_to_dist")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 
@@ -41,6 +41,7 @@ tfjs_bundle(
     deps = [
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
+        ":package_json",
     ],
 )
 
@@ -92,5 +93,12 @@ pkg_npm(
     deps = [
         ":copy_bundles",
         ":copy_src_to_dist",
+    ],
+)
+
+js_library(
+    name = "package_json",
+    srcs = [
+        ":package.json",
     ],
 )
