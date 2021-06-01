@@ -94,7 +94,7 @@ def tfjs_bundle(name, deps, entry_point, umd_name, external = [], testonly = Fal
         get_extension(
             name = minified_name + ".js",
             srcs = [
-                ":tf-core.min",
+                ":" + minified_name,
             ],
             extension = "js",
         )
@@ -102,7 +102,7 @@ def tfjs_bundle(name, deps, entry_point, umd_name, external = [], testonly = Fal
         get_extension(
             name = minified_name + ".js.map",
             srcs = [
-                ":tf-core.min",
+                ":" + minified_name,
             ],
             extension = "map",
         )
