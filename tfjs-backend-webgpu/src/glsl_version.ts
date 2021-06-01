@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,18 +15,25 @@
  * =============================================================================
  */
 
-import {NotEqual} from '@tensorflow/tfjs-core';
-import {KernelConfig} from '@tensorflow/tfjs-core';
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {notEqualImplCPU} from '../kernel_utils/shared';
-
-const NOT_EQUAL = `return float(a != b);`;
-
-export const notEqual = binaryKernelFunc(
-    {opSnippet: NOT_EQUAL, cpuKernelImpl: notEqualImplCPU, dtype: 'bool'});
-
-export const notEqualConfig: KernelConfig = {
-  kernelName: NotEqual,
-  backendName: 'webgl',
-  kernelFunc: notEqual,
+type GLSL = {
+  defineSpecialNaN: string
 };
+
+export function getGlslDifferences(): GLSL {
+  const defineSpecialNaN = `
+      bool isnan_custom(float val) {
+        return (val > 0.0 || val < 0.0) ? false : val != 0.0;
+      }
+
+      bvec4 isnan_custom(vec4 val) {
+        return bvec4(isnan_custom(val.x),
+          isnan_custom(val.y), isnan_custom(val.z), isnan_custom(val.w));
+      }
+
+      #define isnan(value) isnan_custom(value)
+    `;
+
+  return {
+    defineSpecialNaN
+  };
+}
