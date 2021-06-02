@@ -16,7 +16,6 @@
  */
 
 import {CustomCallback, LayersModel, Logs, nextFrame, util} from '@tensorflow/tfjs';
-import {Container} from '@tensorflow/tfjs-layers/dist/engine/container';
 import * as path from 'path';
 import * as ProgressBar from 'progress';
 
@@ -265,10 +264,7 @@ export class TensorBoardCallback extends CustomCallback {
     this.batchesSeen = 0;
   }
 
-  setModel(model: Container): void {
-    if (!(model instanceof LayersModel)) {
-      throw new Error('model must be a LayersModel, not some other Container');
-    }
+  setModel(model: LayersModel): void {
     this.model = model;
   }
 
