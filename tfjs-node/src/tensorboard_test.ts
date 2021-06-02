@@ -337,7 +337,7 @@ describe('tensorBoard callback', () => {
     expect(trainFileSize1).toBeGreaterThan(valFileSize1);
   });
 
-  it('fit(): with initialEpoch', async () => {
+  it('fit(): batch updateFreq, with initialEpoch', async () => {
     const model = createModelForTest();
     const xs = tfn.randomUniform([100, 10]);
     const ys = tfn.randomUniform([100, 1]);
@@ -393,10 +393,64 @@ describe('tensorBoard callback', () => {
     expect(valCallArgs[3][2]).toEqual(4);
   });
 
+  it('fit(): histogramFreq 2, with validation', async () => {
+    const model = createModelForTest();
+    const xs = tfn.randomUniform([100, 10]);
+    const ys = tfn.randomUniform([100, 1]);
+    const valXs = tfn.randomUniform([10, 10]);
+    const valYs = tfn.randomUniform([10, 1]);
+
+    console.log(tmpLogDir);
+
+    // Warm-up training.
+    await model.fit(xs, ys, {
+      epochs: 1,
+      verbose: 0,
+      validationData: [valXs, valYs],
+      callbacks: tfn.node.tensorBoard(tmpLogDir, {histogramFreq: 2})
+    });
+
+    // Get the initial size of the file.
+    // Verify the content of the train sub-logdir, where .
+    const subDirs = fs.readdirSync(tmpLogDir);
+    expect(subDirs).toContain('train');
+
+    const trainLogDir = path.join(tmpLogDir, 'train');
+    const trainFiles = fs.readdirSync(trainLogDir);
+    const trainFileSize0 =
+        fs.statSync(path.join(trainLogDir, trainFiles[0])).size;
+    expect(trainFileSize0).toBeGreaterThan(0);
+
+    // Actual training run.
+    await model.fit(xs, ys, {
+      epochs: 4,
+      verbose: 0,
+      validationData: [valXs, valYs],
+      callbacks: tfn.node.tensorBoard(tmpLogDir, {histogramFreq: 2})
+    });
+
+    const trainFileSize1 =
+        fs.statSync(path.join(trainLogDir, trainFiles[0])).size;
+
+    // We currently only assert that new content has been written to the log
+    // file.
+    expect(trainFileSize1).toBeGreaterThan(trainFileSize0);
+  });
+
   it('Invalid updateFreq value causes error', async () => {
     expect(() => tfn.node.tensorBoard(tmpLogDir, {
       // tslint:disable-next-line:no-any
       updateFreq: 'foo' as any
     })).toThrowError(/Expected updateFreq/);
+  });
+
+  it('Invalid histogramFreq value causes error ', async () => {
+    expect(() => tfn.node.tensorBoard(tmpLogDir, {
+      histogramFreq: -1
+    })).toThrowError(/Expected histogramFreq/);
+
+    expect(() => tfn.node.tensorBoard(tmpLogDir, {
+      histogramFreq: 1.3
+    })).toThrowError(/Expected histogramFreq/);
   });
 });

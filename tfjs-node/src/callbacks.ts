@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {CustomCallback, Logs, nextFrame, util} from '@tensorflow/tfjs';
+import {CustomCallback, LayersModel, Logs, nextFrame, util} from '@tensorflow/tfjs';
+import {Container} from '@tensorflow/tfjs-layers/dist/engine/container';
 import * as path from 'path';
 import * as ProgressBar from 'progress';
 
@@ -193,6 +194,18 @@ export interface TensorBoardCallbackArgs {
    * Default: 'epoch'.
    */
   updateFreq?: 'batch'|'epoch';
+
+  /**
+   * The frequency (in epochs) at which to compute activation and weight
+   * histograms for the layers of the model.
+   *
+   * If set to 0, histograms won't be computed.
+   *
+   * Validation data (or split) must be specified for histogram visualizations.
+   *
+   * Default: 0.
+   */
+  histogramFreq?: number;
 }
 
 /**
@@ -202,6 +215,7 @@ export interface TensorBoardCallbackArgs {
  * factory method instead.
  */
 export class TensorBoardCallback extends CustomCallback {
+  private model: LayersModel = null;
   private trainWriter: SummaryFileWriter;
   private valWriter: SummaryFileWriter;
   private batchesSeen: number;
@@ -217,6 +231,10 @@ export class TensorBoardCallback extends CustomCallback {
       },
       onEpochEnd: async (epoch: number, logs?: Logs) => {
         this.logMetrics(logs, 'epoch_', epoch + 1);
+        if (this.args.histogramFreq > 0 &&
+            epoch % this.args.histogramFreq === 0) {
+          this.logWeights(epoch);
+        }
       },
       onTrainEnd: async (logs?: Logs) => {
         if (this.trainWriter != null) {
@@ -236,7 +254,22 @@ export class TensorBoardCallback extends CustomCallback {
         ['batch', 'epoch'].indexOf(this.args.updateFreq) !== -1,
         () => `Expected updateFreq to be 'batch' or 'epoch', but got ` +
             `${this.args.updateFreq}`);
+    if (this.args.histogramFreq == null) {
+      this.args.histogramFreq = 0;
+    }
+    util.assert(
+        this.args.histogramFreq >= 0 &&
+            Number.isInteger(this.args.histogramFreq),
+        () => `Expected histogramFreq to be a positive integer, but got ` +
+            `${this.args.histogramFreq}`);
     this.batchesSeen = 0;
+  }
+
+  setModel(model: Container): void {
+    if (!(model instanceof LayersModel)) {
+      throw new Error('model must be a LayersModel, not some other Container');
+    }
+    this.model = model;
   }
 
   private logMetrics(logs: Logs, prefix: string, step: number) {
@@ -254,6 +287,12 @@ export class TensorBoardCallback extends CustomCallback {
         this.ensureTrainWriterCreated();
         this.trainWriter.scalar(`${prefix}${key}`, logs[key], step);
       }
+    }
+  }
+
+  private logWeights(step: number) {
+    for (const weights of this.model.weights) {
+      this.trainWriter.histogram(weights.name, weights.read(), step);
     }
   }
 
