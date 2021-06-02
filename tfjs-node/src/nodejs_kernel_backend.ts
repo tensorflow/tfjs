@@ -619,6 +619,11 @@ export class NodeJSKernelBackend extends KernelBackend {
     // implementation. See
     // https://github.com/tensorflow/tensorboard/blob/master/tensorboard/plugins/histogram/summary_v2.py
     bucketCount = bucketCount !== undefined ? bucketCount : 30;
+    util.assert(
+        bucketCount > 0 && Number.isInteger(bucketCount),
+        () =>
+            `Expected bucket count to be a strictly positive integer, but it was ` +
+            `${bucketCount}`);
     data = data.flatten();
     data = data.cast('float32');
     const min: Scalar = data.min();
