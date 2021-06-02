@@ -265,6 +265,11 @@ export class TensorBoardCallback extends CustomCallback {
   }
 
   setModel(model: LayersModel): void {
+    // This method is inherited from BaseCallback. To avoid cyclical imports,
+    // that class uses Container instead of LayersModel, and uses a run-time
+    // check to make sure the model is a LayersModel.
+    // Since this subclass isn't imported by tfjs-layers, we can safely use type
+    // the parameter as a LayersModel.
     this.model = model;
   }
 
