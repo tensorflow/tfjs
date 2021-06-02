@@ -389,31 +389,15 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    include: 'pad ',
+    startsWith: 'pad ',
     excludes: [
-      'RFFT',   // 'zerosLike' not yet implemented.
-      'frame',  // Slice not yet implemented.
-      'grad',   // 'depthwiseConv2DDerFilter' not yet implemented, slice not yet
-                // implemented
-      'dilation2d'  // 'dilation2d' not yet implemented.
+      'grad'  // gradient function not found.
     ]
   },
   {
-    include: 'fill',
+    startsWith: 'fill ',
     excludes: [
-      '5D',                // Rank 5 is not yet supported.
-      'rotateWithOffset',  // 'RotateWithOffset' not registered.
-      'fill=constant, interpolation=nearest.',   // Transform is not yet
-                                                 // implemented.
-      'fill=constant, interpolation=bilinear.',  // Transform is not yet
-                                                 // implemented.
-      'fill=reflect, interpolation=bilinear.',   // Transform is not yet
-                                                 // implemented.
-      'fill=wrap, interpolation=bilinear.',      // Transform is not yet
-                                                 // implemented.
-      'fill=nearest, interpolation=bilinear.',   // Transform is not yet
-                                                 // implemented.
-      'sparseFillEmptyRows',  // 'SparseFillEmptyRows' not registered.
+      '5D',  // Rank 5 is not yet supported.
     ]
   },
   {
@@ -626,6 +610,12 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {
     startsWith: 'stringNGrams ',
+  },
+  {
+    startsWith: 'pow ',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
   },
   {include: 'image.transform'}
 ];
