@@ -32,23 +32,24 @@ export enum BinaryOpType {
   NOT_EQUAL,
   SQUARED_DIFFERENCE,
   INT_DIV,
+  POW,
   PRELU,
   MAX,
   MIN
 }
 
-function getMinMaxString(op: string, useVec4: boolean) {
-  const CHECK_NAN_SNIPPET = `
-  if (isnan(a)) return a;
-  if (isnan(b)) return b;
+const CHECK_NAN_SNIPPET = `
+if (isnan(a)) return a;
+if (isnan(b)) return b;
 `;
-  const CHECK_NAN_SNIPPET_VEC4 = `
-  result.r = isNaN.r > 0. ? NAN : result.r;
-  result.g = isNaN.g > 0. ? NAN : result.g;
-  result.b = isNaN.b > 0. ? NAN : result.b;
-  result.a = isNaN.a > 0. ? NAN : result.a;
+const CHECK_NAN_SNIPPET_VEC4 = `
+result.r = isNaN.r > 0. ? NAN : result.r;
+result.g = isNaN.g > 0. ? NAN : result.g;
+result.b = isNaN.b > 0. ? NAN : result.b;
+result.a = isNaN.a > 0. ? NAN : result.a;
 `;
 
+function getMinMaxString(op: string, useVec4: boolean) {
   const checkNanSnippet = useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET;
   return useVec4 ? `
   vec4 result = vec4(${op}(a, b));
@@ -127,6 +128,34 @@ export function getBinaryOpString(
       return getMinMaxString('max', useVec4);
     case BinaryOpType.MIN:
       return getMinMaxString('min', useVec4);
+    case BinaryOpType.POW:
+      return useVec4 ? `
+      // isModRound1 has 1 for components with round(mod(b, 2.0)) == 1, 0 otherwise.
+      vec4 isModRound1 = vec4(equal(round(mod(b, 2.0)), ivec4(1)));
+      vec4 multiplier = sign(a) * isModRound1 + (vec4(1.0) - isModRound1);
+      vec4 result = multiplier * pow(abs(a), b);
+
+      // Ensure that a^0 = 1, including 0^0 = 1 as this correspond to TF and JS
+      bvec4 isExpZero = equal(b, vec4(0.0));
+      result.r = isExpZero.r ? 1.0 : result.r;
+      result.g = isExpZero.g ? 1.0 : result.g;
+      result.b = isExpZero.b ? 1.0 : result.b;
+      result.a = isExpZero.a ? 1.0 : result.a;
+
+      vec4 isNaN = vec4(lessThan(a, vec4(0.0))) * vec4(lessThan(floor(b), b));
+      ${CHECK_NAN_SNIPPET_VEC4}
+      return result;
+    ` :
+                       `
+    if(a < 0.0 && floor(b) < b){
+      return NAN;
+    }
+    if (b == 0.0) {
+      return 1.0;
+    }
+    return (round(mod(b, 2.0)) != 1) ?
+        pow(abs(a), b) : sign(a) * pow(abs(a), b);
+  `;
     default:
       throw new Error(`BinaryType ${type} is not implemented!`);
   }
