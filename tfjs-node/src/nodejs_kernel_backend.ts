@@ -620,7 +620,7 @@ export class NodeJSKernelBackend extends KernelBackend {
     // https://github.com/tensorflow/tensorboard/blob/master/tensorboard/plugins/histogram/summary_v2.py
     bucketCount = bucketCount !== undefined ? bucketCount : 30;
     util.assert(
-        bucketCount > 0 && Number.isInteger(bucketCount),
+        Number.isInteger(bucketCount) && bucketCount > 0,
         () =>
             `Expected bucket count to be a strictly positive integer, but it was ` +
             `${bucketCount}`);

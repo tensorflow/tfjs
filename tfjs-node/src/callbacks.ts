@@ -257,8 +257,8 @@ export class TensorBoardCallback extends CustomCallback {
       this.args.histogramFreq = 0;
     }
     util.assert(
-        this.args.histogramFreq >= 0 &&
-            Number.isInteger(this.args.histogramFreq),
+        Number.isInteger(this.args.histogramFreq) &&
+            this.args.histogramFreq >= 0,
         () => `Expected histogramFreq to be a positive integer, but got ` +
             `${this.args.histogramFreq}`);
     this.batchesSeen = 0;
