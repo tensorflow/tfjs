@@ -35,7 +35,7 @@
     "build-addon": "./scripts/build-and-upload-addon.sh",
     "build-addon-from-source": "node-pre-gyp install --build-from-source",
     "clean-deps": "rm -rf deps && rm -rf lib",
-    "coverage": "nyc ts-node src/run_tests.ts",
+    "coverage": "nyc yarn ts-node -P tsconfig.test.json src/run_tests.ts",
     "enable-gpu": "node scripts/install.js gpu download && yarn && yarn build-addon-from-source",
     "ensure-cpu-gpu-packages-align": "node scripts/ensure-cpu-gpu-packages-align.js",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
@@ -74,11 +74,11 @@
     "yargs": "^16.2.0"
   },
   "dependencies": {
+    "@mapbox/node-pre-gyp": "1.0.4",
     "@tensorflow/tfjs": "link:../tfjs",
     "adm-zip": "^0.4.11",
     "google-protobuf": "^3.9.2",
     "https-proxy-agent": "^2.2.1",
-    "node-pre-gyp": "0.14.0",
     "progress": "^2.0.0",
     "rimraf": "^2.6.2",
     "tar": "^4.4.6"
@@ -93,7 +93,8 @@
       4,
       5,
       6,
-      7
+      7,
+      8
     ]
   }
 }

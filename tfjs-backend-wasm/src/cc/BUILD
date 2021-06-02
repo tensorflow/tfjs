@@ -8,6 +8,18 @@ KERNELS_WITH_KEEPALIVE = glob(
     exclude = ["**/*_test.cc"],
 )
 
+BASE_LINKOPTS = [
+    "-s ALLOW_MEMORY_GROWTH=1",
+    "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
+    "-s DISABLE_EXCEPTION_CATCHING=1",
+    "-s FILESYSTEM=0",
+    "-s EXIT_RUNTIME=0",
+    "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
+    "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
+    "-s MODULARIZE=1",
+    "-s MALLOC=emmalloc",
+]
+
 # This build rule generates tfjs-backend-wasm.{js,wasm}.
 #
 # The ".js" at the end of the build name is significant because it determines
@@ -19,17 +31,36 @@ KERNELS_WITH_KEEPALIVE = glob(
 cc_binary(
     name = "tfjs-backend-wasm.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
-    linkopts = [
-        "-s ALLOW_MEMORY_GROWTH=1",
-        "-s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[]",
-        "-s DISABLE_EXCEPTION_CATCHING=1",
-        "-s FILESYSTEM=0",
-        "-s EXIT_RUNTIME=0",
-        "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
-        "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
-        "-s MODULARIZE=1",
+    linkopts = BASE_LINKOPTS + [
         "-s EXPORT_NAME=WasmBackendModule",
+    ],
+    deps = [
+        ":all_kernels",
+        ":backend",
+    ],
+)
+
+cc_binary(
+    name = "tfjs-backend-wasm-simd.js",
+    srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    linkopts = BASE_LINKOPTS,
+    deps = [
+        ":all_kernels",
+        ":backend",
+    ],
+)
+
+cc_binary(
+    name = "tfjs-backend-wasm-threaded-simd.js",
+    srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    linkopts = BASE_LINKOPTS + [
+        "-s EXPORT_NAME=WasmBackendModuleThreadedSimd",
         "-s MALLOC=emmalloc",
+        "-s USE_PTHREADS=1",
+        "-s PROXY_TO_PTHREAD=1",
+        # Many x86-64 processors have 2 threads per core, so we divide by 2.
+        "-s PTHREAD_POOL_SIZE=" +
+        "'Math.min(4, Math.max(1, (navigator.hardwareConcurrency || 1) / 2))'",
     ],
     deps = [
         ":all_kernels",
@@ -44,13 +75,13 @@ wasm_cc_binary(
 
 wasm_cc_binary(
     name = "tfjs-backend-wasm-simd",
-    cc_target = ":tfjs-backend-wasm.js",
+    cc_target = ":tfjs-backend-wasm-simd.js",
     simd = True,
 )
 
 wasm_cc_binary(
     name = "tfjs-backend-wasm-threaded-simd",
-    cc_target = ":tfjs-backend-wasm.js",
+    cc_target = ":tfjs-backend-wasm-threaded-simd.js",
     simd = True,
     threads = "emscripten",
 )
@@ -75,6 +106,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "backend_tests",
     srcs = glob(["*_test.cc"]),
+    tags = ["ci"],
     deps = [
         ":Prelu",
         ":backend",
@@ -123,6 +155,7 @@ tfjs_cc_library(
         ":backend",
         ":leakyrelu_impl",
         ":prelu_impl",
+        ":sigmoid_impl",
         ":transpose_impl",
         ":util",
     ],
@@ -136,6 +169,7 @@ tfjs_cc_library(
         ":backend",
         ":leakyrelu_impl",
         ":prelu_impl",
+        ":sigmoid_impl",
         ":transpose_impl",
         ":util",
     ],
@@ -174,6 +208,16 @@ tfjs_cc_library(
     name = "prelu_impl",
     srcs = ["prelu_impl.cc"],
     hdrs = ["prelu_impl.h"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "sigmoid_impl",
+    srcs = ["sigmoid_impl.cc"],
+    hdrs = ["sigmoid_impl.h"],
     deps = [
         ":backend",
         ":util",
@@ -270,6 +314,7 @@ tfjs_cc_library(
         ":Sub",
         ":Tan",
         ":Tile",
+        ":Transform",
         ":Transpose",
         ":_FusedMatMul",
     ],
@@ -343,6 +388,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "AvgPool_test",
     srcs = ["kernels/AvgPool_test.cc"],
+    tags = ["ci"],
     deps = [
         ":AvgPool",
     ],
@@ -372,6 +418,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "BatchMatMul_test",
     srcs = ["kernels/BatchMatMul_test.cc"],
+    tags = ["ci"],
     deps = [
         ":BatchMatMul",
     ],
@@ -380,6 +427,7 @@ tfjs_unit_test(
 tfjs_unit_test(
     name = "_FusedMatMul_test",
     srcs = ["kernels/_FusedMatMul_test.cc"],
+    tags = ["ci"],
     deps = [
         ":_FusedMatMul",
     ],
@@ -398,6 +446,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "ClipByValue_test",
     srcs = ["kernels/ClipByValue_test.cc"],
+    tags = ["ci"],
     deps = [
         ":ClipByValue",
     ],
@@ -416,6 +465,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "Conv2D_test",
     srcs = ["kernels/Conv2D_test.cc"],
+    tags = ["ci"],
     deps = [
         ":Conv2D",
     ],
@@ -480,6 +530,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "DepthwiseConv2dNative_test",
     srcs = ["kernels/DepthwiseConv2dNative_test.cc"],
+    tags = ["ci"],
     deps = [
         ":DepthwiseConv2dNative",
     ],
@@ -552,6 +603,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "FusedConv2D_test",
     srcs = ["kernels/FusedConv2D_test.cc"],
+    tags = ["ci"],
     deps = [
         ":FusedConv2D",
     ],
@@ -570,6 +622,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "FusedDepthwiseConv2D_test",
     srcs = ["kernels/FusedDepthwiseConv2D_test.cc"],
+    tags = ["ci"],
     deps = [
         ":FusedDepthwiseConv2D",
     ],
@@ -705,6 +758,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "MaxPool_test",
     srcs = ["kernels/MaxPool_test.cc"],
+    tags = ["ci"],
     deps = [
         ":MaxPool",
     ],
@@ -808,6 +862,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "PadV2_test",
     srcs = ["kernels/PadV2_test.cc"],
+    tags = ["ci"],
     deps = [
         ":PadV2",
     ],
@@ -837,6 +892,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "Prelu_test",
     srcs = ["kernels/Prelu_test.cc"],
+    tags = ["ci"],
     deps = [
         ":Prelu",
     ],
@@ -875,6 +931,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "ResizeBilinear_test",
     srcs = ["kernels/ResizeBilinear_test.cc"],
+    tags = ["ci"],
     deps = [
         ":ResizeBilinear",
     ],
@@ -922,6 +979,7 @@ tfjs_cc_library(
     hdrs = ["kernels/Sigmoid.h"],
     deps = [
         ":backend",
+        ":sigmoid_impl",
         ":unary",
     ],
 )
@@ -949,6 +1007,7 @@ tfjs_cc_library(
 tfjs_unit_test(
     name = "Sigmoid_test",
     srcs = ["kernels/Sigmoid_test.cc"],
+    tags = ["ci"],
     deps = [
         ":Sigmoid",
     ],
@@ -957,6 +1016,7 @@ tfjs_unit_test(
 tfjs_unit_test(
     name = "Softmax_test",
     srcs = ["kernels/Softmax_test.cc"],
+    tags = ["ci"],
     deps = [
         ":Softmax",
     ],
@@ -1013,6 +1073,15 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "TopK",
     srcs = ["kernels/TopK.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Transform",
+    srcs = ["kernels/Transform.cc"],
     deps = [
         ":backend",
         ":util",

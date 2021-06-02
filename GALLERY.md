@@ -1,3 +1,4 @@
+
 # Gallery
 
 Welcome to the TensorFlow.js gallery! This is a collection of TensorFlow.js projects, tutorials, videos, and more.
@@ -65,6 +66,8 @@ Please reach out to us if you'd like to put your project on the list.
 - [NSFW Filter](https://github.com/nsfw-filter/nsfw-filter) - A browser extension to block NSFW images.
 - [MIRNet-TFJS](https://github.com/Rishit-dagli/MIRNet-TFJS) - Converts and runs the MIRNet Model on the web which is capable of enhancing low-light images upto a really great extent - By Rishit Dagli. [[demo](https://mirnet-tfjs.rishit.tech/)][[repo](https://github.com/Rishit-dagli/MIRNet-TFJS)]
 - [Custom Object Detection on browser using TensorFlow.js](https://github.com/NSTiwari/TensorFlow.js-Custom-Object-Detection) - An E2E app for custom object detection on the browser using TensorFlow.js; by Nitin Tiwari & Rony Benny.
+- [audiate](https://cjbayron.github.io/audiate/) - Ear training game using Pitch Transcription model in the browser - By CJ Bayron [[demo](https://www.youtube.com/watch?v=VZ3i4V7i7Iw&t=2s)][[repo](https://github.com/cjbayron/audiate)]
+- [Plant AI](https://github.com/Rishit-dagli/Greenathon-Plant-AI) - This web app identifies diseases in plants across 38 healthy and unhealthy plant categories by species and diseases all in the browser - By Rishit Dagli, Rishabh Singh and Rucha Yagnik. [[demo](https://www.plant-ai.tech/)][[repo](https://github.com/Rishit-dagli/Greenathon-Plant-AI)]
 
 ## Tutorials / Codelabs
 
@@ -96,6 +99,7 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [Deep Learning in JS - Ashi Krishnan - JSConf EU 2018](https://www.youtube.com/watch?v=SV-cgdobtTA)
 
 ## Blog posts
+- [Custom object detection in the browser using TensorFlow.js](https://blog.tensorflow.org/2021/01/custom-object-detection-in-browser.html) by Hugo Zanini
 - [Move Mirror](https://medium.com/tensorflow/move-mirror-an-ai-experiment-with-pose-estimation-in-the-browser-using-tensorflow-js-2f7b769f9b23?linkId=54484629) - An AI Experiment with Pose Estimation in the Browser using TensorFlow.js
 - [Abstract art with ML](https://janhuenermann.com/blog/abstract-art-with-ml) by Jan Huenermann
 - [Deep Overwatch with TensorFlow.js](https://medium.com/@farzatv/deepoverwatch-combining-tensorflow-js-overwatch-computer-vision-and-music-1a84d4598bc0) -  combining TensorFlow.js, Overwatch, Computer Vision, and Music by Farza

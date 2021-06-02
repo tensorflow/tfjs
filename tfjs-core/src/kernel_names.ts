@@ -766,14 +766,21 @@ export interface SoftmaxAttrs {
   dim: number;
 }
 
-export const SquaredDifference = 'SquaredDifference';
-export type SquaredDifferenceInputs = BinaryInputs;
+export const SparseFillEmptyRows = 'SparseFillEmptyRows';
+export type SparseFillEmptyRowsInputs =
+    Pick<NamedTensorInfoMap, 'indices'|'values'|'denseShape'|'defaultValue'>;
 
-export const Square = 'Square';
-export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
+export const SparseReshape = 'SparseReshape';
+export type SparseReshapeInputs =
+    Pick<NamedTensorInfoMap, 'inputIndices'|'inputShape'|'newShape'>;
 
-export const Sub = 'Sub';
-export type SubInputs = BinaryInputs;
+export const SparseSegmentMean = 'SparseSegmentMean';
+export type SparseSegmentMeanInputs =
+    Pick<NamedTensorInfoMap, 'data'|'indices'|'segmentIds'>;
+
+export const SparseSegmentSum = 'SparseSegmentSum';
+export type SparseSegmentSumInputs =
+    Pick<NamedTensorInfoMap, 'data'|'indices'|'segmentIds'>;
 
 export const SparseToDense = 'SparseToDense';
 export type SparseToDenseInputs =
@@ -781,6 +788,12 @@ export type SparseToDenseInputs =
 export interface SparseToDenseAttrs {
   outputShape: number[];
 }
+
+export const SquaredDifference = 'SquaredDifference';
+export type SquaredDifferenceInputs = BinaryInputs;
+
+export const Square = 'Square';
+export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const StridedSlice = 'StridedSlice';
 export type StridedSliceInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -794,6 +807,32 @@ export interface StridedSliceAttrs {
   newAxisMask: number;
   shrinkAxisMask: number;
 }
+
+export const StringNGrams = 'StringNGrams';
+export type StringNGramsInputs = Pick<NamedTensorInfoMap, 'data'|'dataSplits'>;
+export interface StringNGramsAttrs {
+  separator: string;
+  nGramWidths: number[];
+  leftPad: string;
+  rightPad: string;
+  padWidth: number;
+  preserveShortSequences: boolean;
+}
+
+export const StringSplit = 'StringSplit';
+export type StringSplitInputs = Pick<NamedTensorInfoMap, 'input'|'delimiter'>;
+export interface StringSplitAttrs {
+  skipEmpty: boolean;
+}
+
+export const StringToHashBucketFast = 'StringToHashBucketFast';
+export type StringToHashBucketFastInputs = Pick<NamedTensorInfoMap, 'input'>;
+export interface StringToHashBucketFastAttrs {
+  numBuckets: number;
+}
+
+export const Sub = 'Sub';
+export type SubInputs = BinaryInputs;
 
 export const Tan = 'Tan';
 export type TanInputs = UnaryInputs;

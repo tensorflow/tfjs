@@ -62,8 +62,7 @@ ENV.registerFlag('WEBGL_PACK_NORMALIZATION', () => ENV.getBool('WEBGL_PACK'));
 ENV.registerFlag('WEBGL_PACK_CLIP', () => ENV.getBool('WEBGL_PACK'));
 
 /** Whether we will pack the depthwise conv op. */
-// TODO: https://github.com/tensorflow/tfjs/issues/1679
-ENV.registerFlag('WEBGL_PACK_DEPTHWISECONV', () => true);
+ENV.registerFlag('WEBGL_PACK_DEPTHWISECONV', () => ENV.getBool('WEBGL_PACK'));
 
 /** Whether we will pack binary ops. */
 ENV.registerFlag(
@@ -209,3 +208,11 @@ ENV.registerFlag(
             `manual flush) or at least 0, but got ${threshold}.`);
       }
     });
+
+/**
+ * Threshold for input tensor size that determines whether WebGL backend will
+ * delegate computation to CPU.
+ *
+ * Default value is 128.
+ */
+ENV.registerFlag('CPU_HANDOFF_SIZE_THRESHOLD', () => 128);

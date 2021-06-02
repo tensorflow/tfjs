@@ -25,9 +25,9 @@ describeWithFlags('min', ALL_ENVS, () => {
     expectArraysClose(await tf.min(a).data(), -7);
   });
 
-  it('ignores NaNs', async () => {
+  it('return NaNs', async () => {
     const a = tf.tensor1d([3, NaN, 2]);
-    expectArraysClose(await tf.min(a).data(), 2);
+    expectArraysClose(await tf.min(a).data(), NaN);
   });
 
   it('2D', async () => {

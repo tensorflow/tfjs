@@ -15,15 +15,18 @@
  * =============================================================================
  */
 
+import {BaseTaskLibrary} from './common';
+
 /** TFLiteWebModelRunner class type. */
 export declare interface TFLiteWebModelRunnerClass {
   /**
    * The factory function to create a TFLiteWebModelRunner instance.
    *
-   * @param modelPath The path to load the TFLite model from.
+   * @param model The path to load the TFLite model from, or the model content
+   *     in memory.
    * @param options Available options.
    */
-  create(modelPath: string, options: TFLiteWebModelRunnerOptions):
+  create(model: string|ArrayBuffer, options: TFLiteWebModelRunnerOptions):
       Promise<TFLiteWebModelRunner>;
 }
 
@@ -34,7 +37,7 @@ export declare interface TFLiteWebModelRunnerClass {
  * https://www.tensorflow.org/lite/guide/inference for more info about related
  * concepts.
  */
-export declare interface TFLiteWebModelRunner {
+export declare interface TFLiteWebModelRunner extends BaseTaskLibrary {
   /** Gets model inputs. */
   getInputs(): TFLiteWebModelRunnerTensorInfo[];
 
@@ -47,9 +50,6 @@ export declare interface TFLiteWebModelRunner {
    * @return Whether the inference is successful or not.
    */
   infer(): boolean;
-
-  /** Cleans up. */
-  cleanUp(): void;
 }
 
 /** Options for TFLiteWebModelRunner. */
@@ -57,10 +57,10 @@ export declare interface TFLiteWebModelRunnerOptions {
   /**
    * Number of threads to use when running inference.
    *
-   * Set this to -1 to allow TFLite runtime to automatically pick threads count
-   * based on current environment.
+   * Default to number of physical CPU cores, or -1 if WASM multi-threading is
+   * not supported by user's browser.
    */
-  numThreads: number;
+  numThreads?: number;
 }
 
 /** Types of TFLite tensor data. */

@@ -44,7 +44,8 @@ export function slice(
 
   // TODO(xing.xu): Add shadow slice support.
   const program = new SliceProgram($begin, $size);
-  return backend.runWebGPUProgram(program, [x], x.dtype);
+  const uniformData = [{type: 'int32', data: $begin}];
+  return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
 }
 
 export const sliceConfig: KernelConfig = {

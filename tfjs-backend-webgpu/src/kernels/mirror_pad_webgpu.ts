@@ -25,14 +25,14 @@ import {WebGPUProgram} from './webgpu_program';
 export class MirrorPadProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
+  uniforms = '';
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  workPerThread = 8;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workGroupSize: [number, number, number] = [64, 1, 1];
   xShape: number[];
-  paddings: Array<[number, number]>;
   offset: number;
+  size: number;
 
   constructor(
       xShape: number[], paddings: Array<[number, number]>,
@@ -41,60 +41,54 @@ export class MirrorPadProgram implements WebGPUProgram {
         (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.xShape = xShape;
-    this.paddings = paddings;
+    paddings.map((_, i) => this.uniforms += ` ivec2 pad${i};`);
     this.offset = mode === 'reflect' ? 0 : 1;
-    this.shaderKey = `mirrorPad_${mode}_${paddings}`;
+    this.shaderKey = `mirrorPad_${mode}`;
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
     const rank = this.xShape.length;
-    const size = util.sizeFromShape(this.outputShape);
-    const type = getCoordsDataType(rank);
-    const start = this.paddings.map(p => p[0]).join(',');
-    const end = this.paddings.map((p, i) => p[0] + this.xShape[i]).join(',');
-    const startValue = rank > 1 ? `${type}(${start})` : `${start}`;
-    const endValue = rank > 1 ? `${type}(${end})` : `${end}`;
+    // The length of paddings are same with the rank of the input tensor.
+    const start = this.xShape.map((_, i) => `pad${i}[0]`).join(',');
+    const end =
+        this.xShape
+            .map((_, i) => `pad${i}[0] + xShape${rank > 1 ? `[${i}]` : ''}`)
+            .join(',');
 
     const shaderStart = rank === 1 ? 'start' : 'start[i]';
     const shaderEnd = rank === 1 ? 'end' : 'end[i]';
     const shaderOutC = rank === 1 ? 'outC' : 'outC[i]';
-    const coordsLoop = `for (int i = 0; i < ${rank}; i++) {`;
-
+    const dtype = getCoordsDataType(rank);
     const unpackedCoords = rank > 1 ?
         ['coords[0]', 'coords[1]', 'coords[2]', 'coords[3]'].slice(0, rank) :
         'coords';
 
-    const userCode = `
-      ${type} start = ${startValue};
-      ${type} end = ${endValue};
+    return `
+      ${dtype} start = ${dtype}(${start});
+      ${dtype} end = ${dtype}(${end});
 
       void main() {
+        ${dtype} outC = getOutputCoords();
         int index = int(gl_GlobalInvocationID.x);
-
-        for (int i = 0; i < ${this.workPerThread}; i++) {
-          int flatIndex = index * ${this.workPerThread} + i;
-
-          if (flatIndex < ${size}) {
-            ${type} outC = getCoordsFromFlatIndex(flatIndex);
-            ${rank === 1 ? '' : coordsLoop}
+        if (index < size)
+        {
+          for (int i = 0; i < ${rank}; i++) {
             if (${shaderOutC} < ${shaderStart}) {
               ${shaderOutC} = ${shaderStart} * 2 - ${shaderOutC} - ${
         this.offset};
-            } else if (${shaderOutC} >= ${shaderStart}) {
+            } else if(${shaderOutC} >= ${shaderEnd}) {
               ${shaderOutC} = (${shaderEnd} - 1) * 2 - ${shaderOutC} + ${
         this.offset};
             }
-            ${rank === 1 ? '' : '}'}
-            ${type} coords = outC - start;
-            setOutput(flatIndex, getX(${unpackedCoords}));
           }
+          ${dtype} coords = outC - start;
+          setOutput(index, getX(${unpackedCoords}));
         }
       }
     `;
-    return userCode;
   }
 }

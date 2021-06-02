@@ -20,14 +20,15 @@ import {KernelConfig, Mod} from '@tensorflow/tfjs-core';
 import {createSimpleBinaryKernelImpl} from '../utils/binary_impl';
 import {binaryKernelFunc} from '../utils/binary_utils';
 
-export const modImpl = createSimpleBinaryKernelImpl(((aValue, bValue) => {
-  const rem = aValue % bValue;
-  if ((aValue < 0 && bValue < 0) || (aValue >= 0 && bValue >= 0)) {
-    return rem;
-  } else {
-    return (rem + bValue) % bValue;
-  }
-}));
+export const modImpl =
+    createSimpleBinaryKernelImpl(((aValue: number, bValue: number) => {
+      const rem = aValue % bValue;
+      if ((aValue < 0 && bValue < 0) || (aValue >= 0 && bValue >= 0)) {
+        return rem;
+      } else {
+        return (rem + bValue) % bValue;
+      }
+    }));
 
 export const mod = binaryKernelFunc(Mod, modImpl);
 

@@ -40,12 +40,9 @@ export interface WebGPUProgram {
   // the group.
   workGroupSize?: [number, number, number];
   isVec4?: boolean;
+  // size is used for bounds checking.
+  size?: number;
   getUserCode: () => string;
-}
-
-export interface WebGPUBinary {
-  bindGroupLayout: GPUBindGroupLayout;
-  pipeline: GPUComputePipeline;
 }
 
 export interface TensorData {
@@ -68,12 +65,13 @@ export const makeBindGroup =
 
 export const compileProgram =
     (glslang: Glslang, device: GPUDevice, program: WebGPUProgram,
+     pipelineLayout: GPUPipelineLayout,
      inputsData: shader_preprocessor.InputInfo[], output: TensorInfo,
-     uniforms?: GPUBindingResource): WebGPUBinary => {
+     isFromPixel = false): GPUComputePipeline => {
       const outputData = {dtype: output.dtype, shape: output.shape};
 
-      const source =
-          shader_preprocessor.makeShader(inputsData, outputData, program);
+      const source = shader_preprocessor.makeShader(
+          inputsData, outputData, program, isFromPixel);
       const result = glslang.compileGLSLZeroCopy(source, 'compute', false);
       if (result.data.length === 0) {
         throw new Error('Shader compilation failed');
@@ -81,18 +79,18 @@ export const compileProgram =
 
       const module = device.createShaderModule({code: result.data});
       const pipeline = device.createComputePipeline(
-          {computeStage: {module, entryPoint: 'main'}});
-      const bindGroupLayout = pipeline.getBindGroupLayout(0);
+          {layout: pipelineLayout, compute: {module, entryPoint: 'main'}});
 
       result.free();
-      return {bindGroupLayout, pipeline};
+      return pipeline;
     };
 
 export function makeShaderKey<R extends Rank>(
-    program: WebGPUProgram, shapes: Array<ShapeMap[R]>,
-    types: string[]): string {
+    program: WebGPUProgram, shapes: Array<ShapeMap[R]>, types: string[],
+    broadcastDimsKey = '', inputShapesEqualsOutShape = ''): string {
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
-      shapes.join(',') + types.join(',') + program.variableNames.join(',') +
-      program.shaderKey;
+      shapes.map(shape => shape.length).join(',') + types.join(',') +
+      program.variableNames.join(',') + broadcastDimsKey +
+      inputShapesEqualsOutShape + program.shaderKey;
   return key;
 }

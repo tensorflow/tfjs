@@ -15,23 +15,29 @@
  * =============================================================================
  */
 
-import {Category} from './common';
+import {BaseTaskLibrary, Category} from './common';
+
+export declare interface BertNLClassifierOptions {
+  getMaxSeqLen(): number;
+  setMaxSeqLen(value: number): BertNLClassifierOptions;
+  hasMaxSeqLen(): boolean;
+}
 
 /** BertNLClassifier class type. */
 export declare interface BertNLClassifierClass {
   /**
    * The factory function to create a NLClassifier instance.
    *
-   * @param modelPath The path to load the TFLite model from.
+   * @param model The path to load the TFLite model from, or the model content
+   *     in memory.
+   * @param options Available options.
    */
-  create(modelPath: string): Promise<BertNLClassifier>;
+  create(model: string|ArrayBuffer, options: BertNLClassifierOptions):
+      Promise<BertNLClassifier>;
 }
 
 /** The main BertNLClassifier class instance. */
-export declare class BertNLClassifier {
+export declare class BertNLClassifier extends BaseTaskLibrary {
   /** Performs classification on a string input, returns classified results. */
   classify(input: string): Category[]|undefined;
-
-  /** Cleans up resources when the instance is no longer needed. */
-  cleanUp(): void;
 }

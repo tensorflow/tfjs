@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-tflite",
-  "version": "0.0.1-alpha.0",
+  "version": "0.0.0",
   "description": "TFLite support for TensorFlow.js",
   "main": "dist/tf-tflite.node.js",
   "jsnext:main": "dist/index.js",
@@ -51,6 +51,7 @@
     "yalc": "~1.0.0-pre.50"
   },
   "scripts": {
+    "prep": "./scripts/download-tflite-web-api.sh",
     "build": "tsc",
     "build-ci": "tsc",
     "build-core": "cd ../tfjs-core && yarn && yarn build",

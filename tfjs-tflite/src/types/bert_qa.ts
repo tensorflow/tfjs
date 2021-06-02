@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {BaseTaskLibrary} from './common';
+
 /** A single answer. */
 export declare interface QaAnswer {
   text: string;
@@ -33,16 +35,14 @@ export declare interface BertQuestionAnswererClass {
   /**
    * The factory function to create an ImageClassifier instance.
    *
-   * @param modelPath The path to load the TFLite model from.
+   * @param model The path to load the TFLite model from, or the model content
+   *     in memory.
    */
-  create(modelPath: string): Promise<BertQuestionAnswerer>;
+  create(model: string|ArrayBuffer): Promise<BertQuestionAnswerer>;
 }
 
 /** The main BertQuestionAnswerer class instance. */
-export declare class BertQuestionAnswerer {
+export declare class BertQuestionAnswerer extends BaseTaskLibrary {
   /** Answers question based on the context. */
   answer(context: string, question: string): QaAnswer[]|undefined;
-
-  /** Cleans up resources when the instance is no longer needed. */
-  cleanUp(): void;
 }

@@ -18,7 +18,7 @@
 import * as path from 'path';
 import {TFEOpAttr, TFJSBinding} from './tfjs_binding';
 // tslint:disable-next-line:no-require-imports
-const binary = require('node-pre-gyp');
+const binary = require('@mapbox/node-pre-gyp');
 const bindingPath =
     binary.find(path.resolve(path.join(__dirname, '../package.json')));
 // tslint:disable-next-line:no-require-imports

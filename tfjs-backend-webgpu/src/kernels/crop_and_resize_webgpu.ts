@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -26,39 +25,35 @@ export class CropAndResizeProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['Image', 'Boxes', 'BoxInd'];
+  uniforms = 'float extrapolationValue;';
   workGroupSize: [number, number, number] = [64, 1, 1];
-  imageShape: [number, number, number, number];
-  cropSize: [number, number];
   methodId: number;
-  extrapolationValue: number;
+  cropHeightBiggerThan1: boolean;
+  cropWidthBiggerThan1: boolean;
 
   constructor(
-      imageShape: [number, number, number, number], boxShape: [number, number],
-      cropSize: [number, number], method: 'bilinear'|'nearest',
-      extrapolationValue: number) {
+      channnel: number, boxShape: [number, number], cropSize: [number, number],
+      method: 'bilinear'|'nearest') {
     const [numBoxes, ] = boxShape;
-    this.outputShape = [numBoxes, cropSize[0], cropSize[1], imageShape[3]];
+    this.outputShape = [numBoxes, cropSize[0], cropSize[1], channnel];
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    this.shaderKey =
-        `cropAndResize_${method}_${cropSize}_${extrapolationValue}`;
-    this.imageShape = imageShape;
-    this.cropSize = cropSize;
     this.methodId = method === 'bilinear' ? 1 : 0;
-    this.extrapolationValue = extrapolationValue;
+    this.cropHeightBiggerThan1 = this.outputShape[1] > 1;
+    this.cropWidthBiggerThan1 = this.outputShape[2] > 1;
+    this.shaderKey = `cropAndResize_${this.methodId}_${
+        this.cropHeightBiggerThan1}_${this.cropWidthBiggerThan1}`;
   }
 
   getUserCode(): string {
-    const [batch, imageHeight, imageWidth, ] = this.imageShape;
-    const [cropHeight, cropWidth] = this.cropSize;
     const [inputHeightFloat, inputWidthFloat] =
-        [`${imageHeight - 1}.0`, `${imageWidth - 1}.0`];
+        [`float(imageShape[1] - 1)`, `float(imageShape[2] - 1)`];
 
-    const [heightRatio, heightScale, inY] = cropHeight > 1 ?
+    const [heightRatio, heightScale, inY] = this.cropHeightBiggerThan1 ?
         [
-          `${(imageHeight - 1) / (cropHeight - 1)}`,
+          `(${inputHeightFloat} / float(outShape[1] - 1))`,
           '(y2-y1) * height_ratio',
           `y1*${inputHeightFloat} + float(y)*(height_scale)`,
         ] :
@@ -67,9 +62,9 @@ export class CropAndResizeProgram implements WebGPUProgram {
           '0.0',
           `0.5 * (y1+y2) * ${inputHeightFloat}`,
         ];
-    const [widthRatio, widthScale, inX] = cropWidth > 1 ?
+    const [widthRatio, widthScale, inX] = this.cropWidthBiggerThan1 ?
         [
-          `${(imageWidth - 1) / (cropWidth - 1)}`,
+          `(${inputWidthFloat} / float(outShape[2] - 1))`,
           '(x2-x1) * width_ratio',
           `x1*${inputWidthFloat} + float(x)*(width_scale)`,
         ] :
@@ -83,14 +78,14 @@ export class CropAndResizeProgram implements WebGPUProgram {
     // tslint:disable-next-line:max-line-length
     // https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/kernels/crop_and_resize_op_gpu.cu.cc
     const userCode = `
-      const float height_ratio = float(${heightRatio});
-      const float width_ratio = float(${widthRatio});
       void writeResult(ivec4 coords,float value) {
-        if (coordsInBounds(coords, ${getShapeCoords(this.outputShape)})) {
+        if (coordsInBounds(coords, outShape)) {
           setOutput(coords[0], coords[1], coords[2], coords[3], value);
         }
       }
       void main() {
+        const float height_ratio = float(${heightRatio});
+        const float width_ratio = float(${widthRatio});
         ivec4 coords = getOutputCoords();
         int b = coords[0];
         int y = coords[1];
@@ -103,19 +98,19 @@ export class CropAndResizeProgram implements WebGPUProgram {
         float x2 = getBoxes(b,3);
         // get image in batch index
         int bInd = int(round(getBoxInd(b)));
-        if(bInd < 0 || bInd >= ${batch}) {
+        if(bInd < 0 || bInd >= outShape[0]) {
           return;
         }
         float height_scale = ${heightScale};
         float width_scale = ${widthScale};
         float in_y = ${inY};
         if( in_y < 0.0 || in_y > ${inputHeightFloat} ) {
-          writeResult(coords,float(${this.extrapolationValue}));
+          writeResult(coords,extrapolationValue);
           return;
         }
         float in_x = ${inX};
         if( in_x < 0.0 || in_x > ${inputWidthFloat} ) {
-          writeResult(coords,float(${this.extrapolationValue}));
+          writeResult(coords,extrapolationValue);
           return;
         }
         vec2 sourceFracIndexCR = vec2(in_x,in_y);

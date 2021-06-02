@@ -148,21 +148,20 @@ describe('WEBGL_PACK_CLIP', () => {
   });
 });
 
-// TODO: https://github.com/tensorflow/tfjs/issues/1679
-// describe('WEBGL_PACK_DEPTHWISECONV', () => {
-//   beforeEach(() => tf.env().reset());
-//   afterAll(() => tf.env().reset());
+describe('WEBGL_PACK_DEPTHWISECONV', () => {
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
 
-//   it('true when WEBGL_PACK is true', () => {
-//     tf.env().set('WEBGL_PACK', true);
-//     expect(tf.env().getBool('WEBGL_PACK_DEPTHWISECONV')).toBe(true);
-//   });
+  it('true when WEBGL_PACK is true', () => {
+    tf.env().set('WEBGL_PACK', true);
+    expect(tf.env().getBool('WEBGL_PACK_DEPTHWISECONV')).toBe(true);
+  });
 
-//   it('false when WEBGL_PACK is false', () => {
-//     tf.env().set('WEBGL_PACK', false);
-//     expect(tf.env().getBool('WEBGL_PACK_DEPTHWISECONV')).toBe(false);
-//   });
-// });
+  it('false when WEBGL_PACK is false', () => {
+    tf.env().set('WEBGL_PACK', false);
+    expect(tf.env().getBool('WEBGL_PACK_DEPTHWISECONV')).toBe(false);
+  });
+});
 
 describe('WEBGL_PACK_BINARY_OPERATIONS', () => {
   beforeEach(() => tf.env().reset());
@@ -373,5 +372,19 @@ describeWithFlags('WEBGL_FLUSH_THRESHOLD', WEBGL_ENVS, () => {
   });
   it('should throw an error if given a negative value', () => {
     expect(() => tf.env().set('WEBGL_FLUSH_THRESHOLD', -2)).toThrow();
+  });
+});
+
+describe('CPU_HANDOFF_SIZE_THRESHOLD', () => {
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
+
+  it('returns correct value when CPU_HANDOFF_SIZE_THRESHOLD is set', () => {
+    tf.env().set('CPU_HANDOFF_SIZE_THRESHOLD', 256);
+    expect(tf.env().getNumber('CPU_HANDOFF_SIZE_THRESHOLD')).toBe(256);
+  });
+
+  it('returns default when WEBGL_PACK is not set', () => {
+    expect(tf.env().getNumber('CPU_HANDOFF_SIZE_THRESHOLD')).toBe(128);
   });
 });

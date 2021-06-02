@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Class} from './common';
+import {BaseTaskLibrary, Class} from './common';
 
 /** ImageClassifierOptions proto instance. */
 export declare interface ImageClassifierOptions {
@@ -49,19 +49,17 @@ export declare interface ImageClassifierClass {
   /**
    * The factory function to create an ImageClassifier instance.
    *
-   * @param modelPath The path to load the TFLite model from.
+   * @param model The path to load the TFLite model from, or the model content
+   *     in memory.
    * @param options Available options.
    */
-  create(modelPath: string, options?: ImageClassifierOptions):
+  create(model: string|ArrayBuffer, options?: ImageClassifierOptions):
       Promise<ImageClassifier>;
 }
 
 /** The main ImageClassifier class interface. */
-export declare class ImageClassifier {
+export declare class ImageClassifier extends BaseTaskLibrary {
   /** Performs classification on the given image-like element. */
   classify(input: ImageData|HTMLImageElement|HTMLCanvasElement|
            HTMLVideoElement): ClassificationResult|undefined;
-
-  /** Cleans up resources when the instance is no longer needed. */
-  cleanUp(): void;
 }

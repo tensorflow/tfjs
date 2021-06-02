@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {TensorInfo} from '@tensorflow/tfjs-core';
 import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -108,6 +109,58 @@ export function makeMatMulPackedVec4Source(workPerThread: number[]): string {
   `;
 }
 
+export function makeMatMulVectorVec4Source(): string {
+  return `
+    vec4 mm_readA(int row, int col);
+    vec4 mm_readB(int row, int col);
+    void mm_write(int row, int col, vec4 value);
+
+    const int TileSize = int(gl_WorkGroupSize.x) * 4;
+
+    shared vec4 mm_Asub[TileSize / 4];
+
+    void mm_matMul(int dimAOuter, int dimInner, int dimBOuter) {
+      int tileCol = int(gl_LocalInvocationID.x);
+      int globalCol = int(gl_GlobalInvocationID.x);
+      int globalRow = int(gl_GlobalInvocationID.y);
+
+      int numTiles = (dimInner - 1) / TileSize + 1;
+
+      // Without this initialization strange values show up in acc.
+      vec4 acc = vec4(0.0);
+
+      // Loop over shared dimension.
+      for (int t = 0; t < numTiles; t++) {
+        // Load one tile of A into local memory.
+        int colA = t * TileSize / 4 + tileCol;
+        mm_Asub[tileCol] = mm_readA(globalRow, colA);
+        barrier();
+
+        // Compute acc values for a single thread.
+        for (int k = 0; k < TileSize / 4; k++) {
+          int rowB = t * TileSize + k * 4;
+          vec4 BCached0 = mm_readB(rowB, globalCol);
+          vec4 BCached1 = mm_readB(rowB + 1, globalCol);
+          vec4 BCached2 = mm_readB(rowB + 2, globalCol);
+          vec4 BCached3 = mm_readB(rowB + 3, globalCol);
+
+          vec4 ACached = mm_Asub[k];
+          acc += BCached0 * ACached.x;
+          acc += BCached1 * ACached.y;
+          acc += BCached2 * ACached.z;
+          acc += BCached3 * ACached.w;
+        }
+
+        barrier();
+      }
+
+      if (globalRow < dimAOuter && globalCol < dimBOuter) {
+        mm_write(globalRow, globalCol, acc);
+      }
+    }
+  `;
+}
+
 export class MatMulPackedVec4Program implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
@@ -121,24 +174,27 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   addBias: boolean;
   activation: string;
   hasPreluActivationWeights: boolean;
+  vecSize = 4;
+  fitA: boolean;
+  fitB: boolean;
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
-      rowPerThread: number, addBias = false, activation: string = null,
-      hasPreluActivationWeights = false) {
+      rowPerThread: number, bias: TensorInfo = null, activation: string = null,
+      preluActivationWeights: TensorInfo = null) {
     this.outputShape = outputShape;
     this.workGroupSize = computeWorkGroupSizeForMatMul(
         outputShape[1], aShape[2], outputShape[2]);
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
-    const vecSize = 4;
     if (outputShape[1] === 1) {
-      this.workGroupSize = [16, 1, 1];  // in case shared memory exceeds limit.
       rowPerThread = 1;
     }
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [vecSize, rowPerThread, 1]);
+        [this.vecSize, rowPerThread, 1]);
 
+    const addBias = bias != null;
+    const hasPreluActivationWeights = preluActivationWeights != null;
     if (addBias) {
       this.variableNames.push('bias');
     }
@@ -152,35 +208,40 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.shaderKey = `matMulPackedVec4_${rowPerThread}_${activation}`;
+
+    [this.fitA, this.fitB] = this.getShapeFit();
+
+    this.shaderKey = `matMulPackedVec4_${rowPerThread}_${activation}_${
+        this.fitA}_${this.fitB}_${this.outputShape[1] > 1}`;
   }
 
-  getUserCode(): string {
+  getShapeFit(): boolean[] {
     const dimInner = this.aShape[2];
     const dimBOuter = this.outputShape[2];
     const bShape = [this.outputShape[0], dimInner, dimBOuter];
-    const vecSize = 4;
     const tileAOuter = this.workGroupSize[1] * this.workPerThread;
-    const tileBOuter = this.workGroupSize[0] * vecSize;
+    const tileBOuter = this.workGroupSize[0] * this.vecSize;
     const tileInner = tileBOuter;  // Make sure tileInner is divisible by 4.
 
     const tileSizeA = [tileAOuter, tileInner];
     const tileSizeB = [tileInner, tileBOuter];
-    const fitA = tilesFitEvenlyIntoShape(tileSizeA, this.aShape.slice(1));
-    const batchASize = this.aShape[1] * this.aShape[2] / vecSize;
-    const batchBSize = bShape[1] * bShape[2] / vecSize;
+    return [
+      tilesFitEvenlyIntoShape(tileSizeA, this.aShape.slice(1)),
+      tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1))
+    ];
+  }
 
-    const sampleA = fitA ?
-        `A[batch * ${batchASize} + row * dimInner / 4 + col]` :
+  getUserCode(): string {
+    const sampleA = this.fitA ?
+        `A[batch * batchASize + row * dimInner / 4 + col]` :
         `coordsInBounds(ivec2(row, col * 4), ivec2(dimAOuter, dimInner)) ?
-            A[batch * ${
-            batchASize} + row * dimInner / 4 + col] : vec4(0.0, 0.0, 0.0, 0.0)`;
+            A[batch * batchASize + row * dimInner / 4 + col] :
+            vec4(0.0, 0.0, 0.0, 0.0)`;
 
-    const fitB = tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1));
-    const sampleB = fitB ?
-        `B[batch * ${batchBSize} + row * dimBOuter / 4 + col]` :
+    const sampleB = this.fitB ?
+        `B[batch * batchBSize + row * dimBOuter / 4 + col]` :
         `coordsInBounds(ivec2(row, col * 4), ivec2(dimInner, dimBOuter)) ?
-            B[batch * ${batchBSize} + row * dimBOuter / 4 + col] :
+            B[batch * batchBSize + row * dimBOuter / 4 + col] :
             vec4(0.0, 0.0, 0.0, 0.0)`;
 
     let activationSnippet = '', applyActivationSnippet = '';
@@ -205,20 +266,24 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
 
     const userCode = `
       ${activationSnippet}
-      int dimAOuter = ${this.aShape[1]};
-      int dimInner = ${this.aShape[2]};
-      int dimBOuter = ${bShape[2]};
+      int dimAOuter = aShape[1];
+      int dimInner = aShape[2];
+      int dimBOuter = bShape[2];
       int batch;
 
-      ${makeMatMulPackedVec4Source([
-      vecSize, this.workPerThread, 1
-    ])}
+      ${
+        this.outputShape[1] > 1 ?
+            makeMatMulPackedVec4Source([this.vecSize, this.workPerThread, 1]) :
+            makeMatMulVectorVec4Source()}
 
       vec4 mm_readA(int row, int col) {
+        int batchASize = aShape[1] * aShape[2] / ${this.vecSize};
         return ${sampleA};
       }
 
       vec4 mm_readB(int row, int col) {
+        // TODO: This is not covered in unit tests.
+        int batchBSize = bShape[1] * bShape[2] / ${this.vecSize};
         return ${sampleB};
       }
 

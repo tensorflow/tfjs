@@ -40,6 +40,12 @@ ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
 ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D', () => false);
 
 /**
+ * Whether to use conv2dTranspose_naive which directly implement the
+ * conv2dTranspose logic rather than using a matmul to simulate.
+ */
+ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE', () => false);
+
+/**
  * Whether we will run im2col as a separate shader for convolution.
  */
 ENV.registerFlag('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', () => false);
@@ -49,3 +55,11 @@ ENV.registerFlag('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', () => false);
  * requested.
  */
 ENV.registerFlag('WEBGPU_USE_LOW_POWER_GPU', () => false);
+
+/**
+ * Threshold for input tensor size that determines whether WebGPU backend will
+ * delegate computation to CPU.
+ *
+ * Default value is 128.
+ */
+ENV.registerFlag('CPU_HANDOFF_SIZE_THRESHOLD', () => 128);

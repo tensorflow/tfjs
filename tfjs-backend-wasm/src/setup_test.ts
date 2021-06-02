@@ -133,6 +133,7 @@ const TEST_FILTERS: TestFilter[] = [
       'prelu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
     ]
   },
+  {include: 'conv2dTranspose ', excludes: ['gradient']},
   {
     include: 'prelu ',
     excludes: [
@@ -210,15 +211,13 @@ const TEST_FILTERS: TestFilter[] = [
                      // implemented.
       'index corresponds to start of a non-initial window',  // argMin not yet
                                                              // implemented.,
-      'gradient',     // Gradients not yet implemented
-      'ignores NaNs'  // Doesn't yet ignore NaN
+      'gradient'  // Gradients not yet implemented
     ]
   },
   {
     startsWith: 'max ',
     excludes: [
-      'gradient',     // Gradients not yet implemented
-      'ignores NaNs'  // Doesn't yet ignore NaN
+      'gradient'  // Gradients not yet implemented
     ]
   },
   {
@@ -270,7 +269,8 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
                                        // supported yet.
       'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes'   // Same as above.
+      'broadcasting Tensor4D shapes',  // Same as above.
+      'string'
     ]
   },
   {
@@ -279,7 +279,8 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
                                        // supported yet.
       'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes'   // Same as above.
+      'broadcasting Tensor4D shapes',  // Same as above.
+      'string'
     ]
   },
   {
@@ -289,7 +290,8 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
                                        // supported yet.
       'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes'   // Same as above.
+      'broadcasting Tensor4D shapes',  // Same as above.
+      'string'
     ]
   },
   {
@@ -299,7 +301,8 @@ const TEST_FILTERS: TestFilter[] = [
                                         // supported yet.
       'broadcasting Tensor3D shapes',   // Same as above.
       'broadcasting Tensor3D float32',  // Same as above.
-      'broadcasting Tensor4D shapes'    // Same as above.
+      'broadcasting Tensor4D shapes',   // Same as above.
+      'string'
     ]
   },
   {
@@ -310,7 +313,8 @@ const TEST_FILTERS: TestFilter[] = [
                                         // supported yet.
       'broadcasting Tensor3D shapes',   // Same as above.
       'broadcasting Tensor3D float32',  // Same as above.
-      'broadcasting Tensor4D shapes'    // Same as above.
+      'broadcasting Tensor4D shapes',   // Same as above.
+      'string'
     ]
   },
   {
@@ -319,7 +323,8 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
                                        // supported yet.
       'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes'   // Same as above.
+      'broadcasting Tensor4D shapes',  // Same as above.
+      'string'
     ]
   },
   {
@@ -413,6 +418,7 @@ const TEST_FILTERS: TestFilter[] = [
       'ignores NaNs'  // Doesn't yet ignore NaN
     ]
   },
+  {include: 'image.transform'}
 ];
 
 const customInclude = (testName: string) => {

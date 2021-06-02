@@ -16,7 +16,6 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -25,41 +24,36 @@ export class ClipVec4Program implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   variableNames = ['A'];
+  uniforms = 'float minVal; float maxVal;';
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
   isVec4 = true;
-  minVal: number;
-  maxVal: number;
+  size: number;
 
-  constructor(outputShape: number[], minVal: number, maxVal: number) {
+  constructor(outputShape: number[]) {
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-    this.minVal = minVal;
-    this.maxVal = maxVal;
-    this.shaderKey = `clipVec4_${minVal}_${maxVal}`;
+    this.shaderKey = 'clipVec4';
+    this.size = util.sizeFromShape(this.outputShape) / 4;
   }
 
   getUserCode(): string {
-    const type = getCoordsDataType(this.outputShape.length);
-    const size = util.sizeFromShape(this.outputShape);
     const userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
-          if(index < ${size / 4}) {
-            ${type} coords = getCoordsFromFlatIndex(index * 4);
-
-            vec4 value = getAAtOutCoords(coords);
+          if(index < size) {
+            vec4 value = getAAtOutCoords();
             if (any(isnan(value))) {
               setOutput(index, value);
               return;
             }
 
-            setOutput(index, clamp(value, ${this.minVal}, ${this.maxVal}));
+            setOutput(index, clamp(value, minVal, maxVal));
           }
       }
     `;
