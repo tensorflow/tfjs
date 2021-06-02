@@ -159,7 +159,7 @@ describe('tensorboard', () => {
       writer.flush();
 
       // Currently, we only verify that the file exists and the size
-      // increases in a sensible way as we write more scalars to it.
+      // increases in a sensible way as we write more histograms to it.
       // The difficulty is in reading the protobuf contents of the event
       // file in JavaScript/TypeScript.
       const fileNames = fs.readdirSync(tmpLogDir);
