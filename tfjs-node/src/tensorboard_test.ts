@@ -400,8 +400,6 @@ describe('tensorBoard callback', () => {
     const valXs = tfn.randomUniform([10, 10]);
     const valYs = tfn.randomUniform([10, 1]);
 
-    console.log(tmpLogDir);
-
     // Warm-up training.
     await model.fit(xs, ys, {
       epochs: 1,
