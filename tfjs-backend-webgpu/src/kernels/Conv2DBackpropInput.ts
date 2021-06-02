@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
-import {backend_util, Conv2DBackpropInput, Conv2DBackpropInputAttrs, Conv2DBackpropInputInputs, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
+import {backend_util, Conv2DBackpropInput, Conv2DBackpropInputAttrs, Conv2DBackpropInputInputs, env, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {Conv2DDerInputMMProgram} from './conv_backprop_mm_webgpu';
 import {Conv2DDerInputProgram} from './conv_backprop_webgpu';
 
 export function conv2DBackpropInput(args: {
@@ -34,7 +35,13 @@ export function conv2DBackpropInput(args: {
       inputShape, filter.shape as [number, number, number, number], strides,
       1 /* dilations */, pad, dimRoundingMode, false, $dataFormat);
 
-  const program = new Conv2DDerInputProgram(convInfo);
+  let program: Conv2DDerInputProgram|Conv2DDerInputMMProgram;
+  if (env().getBool('WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE')) {
+    // Keep Conv2DDerInputProgram for reference.
+    program = new Conv2DDerInputProgram(convInfo);
+  } else {
+    program = new Conv2DDerInputMMProgram(convInfo);
+  }
   const dimensions = [
     {type: 'int32', data: [convInfo.filterHeight, convInfo.filterWidth]},
     {

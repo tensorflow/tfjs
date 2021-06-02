@@ -114,8 +114,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
 
         for (int row = 0; row < filterDims[0]; ++row) {
           for (int col = 0; col < filterDims[1]; ++col) {
-            for (int xChannel = 0; xChannel < ${
-        this.convInfo.inChannels}; ++xChannel) {
+            for (int xChannel = 0; xChannel < xShape[3]; ++xChannel) {
               float v = readInp(batch,
                   coords[1] * stride[0] + dilation[0] * row - pad[0],
                   coords[2] * stride[1] + dilation[1] * col - pad[1],
