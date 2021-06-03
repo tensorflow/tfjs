@@ -41,6 +41,51 @@ tf.setBackend('wasm').then(() => main());
 </script>
 ```
 
+## Setting up cross-origin isolation
+
+Starting from Chrome 92 (to be released around July 2021), **cross-origin
+isolation** needs to be set up in your site in order to take advantage of
+the multi-threading support in WASM backend. Without this set up, the backend
+will fallback to the WASM binary with SIMD-only support (or the vanila version
+if SIMD is not enabled). Without multi-threading support, certain models might
+not achieve the best performance.
+
+Here are the high-level steps to set up the cross-origin isolation. You can
+learn more about this topic [here](https://web.dev/coop-coep/).
+
+1. Send the following two HTTP headers when your main document (e.g.index.html)
+   that uses the WASM backend is served. You may need to ask your web host
+   provider to enable these headers.
+
+   - `Cross-Origin-Opener-Policy: same-origin`
+   - `Cross-Origin-Embedder-Policy: require-corp`
+
+1. If you are loading the WASM backend from `jsdelivr` through the script tag,
+   you are good to go. No more steps are needed.
+
+1. If you are loading the WASM backend from your own servers (e.g. through
+   a bundled script), you need to make sure the following HTTP header is enabled
+   when serving the script:
+
+   - If the resource is loaded from the *same origin* as your main site,
+     set:
+
+     `Cross-Origin-Resource-Policy: same-origin`.
+   - If the resource is loaded from the *same site but cross origin*, set:
+
+
+     `Cross-Origin-Resource-Policy: same-site`.
+   - If the resource is loaded from the *cross origin(s)*, set:
+
+     `Cross-Origin-Resource-Policy: cross-origin`.
+
+   Note that the `CORS` header still needs to be set up correctly in your server
+   in additional to the `CORP` header described here.
+
+If the steps above are correctly done, you can check the Network tab from the
+console and make sure the
+<code>tfjs-backend-wasm-<i>threaded-simd</i>.wasm</code> WASM binary is loaded.
+
 ## Running MobileNet
 
 ```js
