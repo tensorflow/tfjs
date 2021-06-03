@@ -55,7 +55,8 @@ import {reshape} from './reshape';
  */
 function maxPool_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filterSize: [number, number]|number,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
+    strides: [number, number]|number,
+    pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
     dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   const $x = convertToTensor(x, 'x', 'maxPool');
   const dilations = 1;

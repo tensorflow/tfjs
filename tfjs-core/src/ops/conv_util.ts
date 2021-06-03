@@ -117,7 +117,8 @@ export function computeDilation2DInfo(
 export function computePool2DInfo(
     inShape: [number, number, number, number],
     filterSize: [number, number]|number, strides: number|[number, number],
-    dilations: number|[number, number], pad: 'same'|'valid'|number,
+    dilations: number|[number, number],
+    pad: 'same'|'valid'|number|ExplicitPadding,
     roundingMode?: 'floor'|'round'|'ceil',
     dataFormat: 'channelsFirst'|'channelsLast' = 'channelsLast'): Conv2DInfo {
   const [filterHeight, filterWidth] = parseTupleParam(filterSize);
