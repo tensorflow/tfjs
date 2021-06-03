@@ -54,8 +54,8 @@ Here are the high-level steps to set up the cross-origin isolation. You can
 learn more about this topic [here](https://web.dev/coop-coep/).
 
 1. Send the following two HTTP headers when your main document (e.g.index.html)
-   that uses the WASM backend is served. You may need to ask your web host
-   provider to enable these headers.
+   that uses the WASM backend is served. You may need to configure or ask your
+   web host provider to enable these headers.
 
    - `Cross-Origin-Opener-Policy: same-origin`
    - `Cross-Origin-Embedder-Policy: require-corp`
