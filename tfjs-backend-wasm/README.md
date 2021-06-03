@@ -84,7 +84,7 @@ learn more about this topic [here](https://web.dev/coop-coep/).
 
 If the steps above are correctly done, you can check the Network tab from the
 console and make sure the
-<code>tfjs-backend-wasm-<b>threaded-simd<b>.wasm</code> WASM binary is loaded.
+<code>tfjs-backend-wasm-<b>threaded-simd</b>.wasm</code> WASM binary is loaded.
 
 ## Running MobileNet
 
