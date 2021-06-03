@@ -45,7 +45,7 @@ tf.setBackend('wasm').then(() => main());
 
 Starting from Chrome 92 (to be released around July 2021), **cross-origin
 isolation** needs to be set up in your site in order to take advantage of
-the multi-threading support in WASM backend. Without this set up, the backend
+the multi-threading support in WASM backend. Without this, the backend
 will fallback to the WASM binary with SIMD-only support (or the vanila version
 if SIMD is not enabled). Without multi-threading support, certain models might
 not achieve the best performance.
@@ -63,8 +63,8 @@ learn more about this topic [here](https://web.dev/coop-coep/).
 1. If you are loading the WASM backend from `jsdelivr` through the script tag,
    you are good to go. No more steps are needed.
 
-1. If you are loading the WASM backend from your own servers (e.g. through
-   a bundled script), you need to make sure the following HTTP header is enabled
+1. If you are loading the WASM backend from your own or other third-party
+   servers, you need to make sure the following HTTP header is enabled
    when serving the script:
 
    - If the resource is loaded from the *same origin* as your main site,
