@@ -98,8 +98,9 @@ export class TransformProgram implements WebGPUProgram {
               return outputValue;
             }
 
-            void main() {
-              ivec4 coords = getOutputCoords();
+          void main() {
+            ivec4 coords = getOutputCoords();
+            if (coordsInBounds(coords, outShape)) {
               float outputValue;
               int batch = coords[0];
               int x = coords[2];
@@ -148,6 +149,7 @@ export class TransformProgram implements WebGPUProgram {
               }
               setOutput(coords[0], coords[1], coords[2], coords[3], outputValue);
             }
+          }
         `;
     return userCode;
   }
