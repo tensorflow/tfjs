@@ -512,6 +512,36 @@ describe('convolution', () => {
         leakyreluAlpha: undefined
       });
     });
+    it('with only activation func', () => {
+      spyOn(tfOps.fused, 'depthwiseConv2d');
+      node.op = 'FusedDepthwiseConv2dNative';
+      node.inputParams['filter'] = createTensorAttr(1);
+      node.inputParams['args'] = createTensorsAttr(2, 0);
+      node.attrParams['fusedOps'] = createStrArrayAttr(['noop', 'prelu']);
+      node.attrParams['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
+      node.attrParams['pad'] = createStrAttr('same');
+      node.attrParams['dataFormat'] = createStrAttr('NHWC');
+      node.attrParams['dilations'] = createNumericArrayAttr([1, 2, 2, 1]);
+      node.attrParams['numArgs'] = createNumberAttr(1);
+      const input1 = [tfOps.scalar(1.0)];
+      const input2 = [tfOps.scalar(2.0)];
+      const input3 = [tfOps.scalar(3.0)];
+      node.inputNames = ['input1', 'input2', 'input3'];
+      executeOp(node, {input1, input2, input3}, context);
+
+      expect(tfOps.fused.depthwiseConv2d).toHaveBeenCalledWith({
+        x: input1[0],
+        filter: input2[0],
+        strides: [2, 2],
+        pad: 'same',
+        dataFormat: 'NHWC',
+        dilations: [2, 2],
+        bias: undefined,
+        activation: 'prelu',
+        preluActivationWeights: input3[0],
+        leakyreluAlpha: undefined
+      });
+    });
     it('with bias and activation func', () => {
       spyOn(tfOps.fused, 'depthwiseConv2d');
       node.op = 'FusedDepthwiseConv2dNative';

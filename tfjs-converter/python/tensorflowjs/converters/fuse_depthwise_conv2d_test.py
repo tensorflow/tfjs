@@ -98,5 +98,37 @@ class FuseDepthwiseConv2dTest(tf.test.TestCase):
     self.assertEqual(
         depthwise_conv2d.attr['fused_ops'].list.s, [b'BiasAdd', b'Relu'])
     self.assertEqual(depthwise_conv2d.attr['num_args'].i, 1)
+
+  def testFuseDepthwiseConv2dNativeWithActivation(self):
+    layers = [
+        tf.keras.layers.DepthwiseConv2D(1, use_bias=False),
+        tf.keras.layers.ReLU()
+    ]
+    model = tf.keras.Sequential(layers)
+    tf.keras.backend.set_learning_phase(0)
+    input_tensor = tf.constant([1.0, 1.0], shape=[1, 1, 1, 2])
+
+    @tf.function
+    def execute_model(tensor):
+      return model(tensor)
+
+    graph = tf_saved_model_conversion_v2._freeze_saved_model_v2(
+        execute_model.get_concrete_function(input_tensor))
+    graph_def = graph.as_graph_def()
+
+    optimized_graph_def = fuse_depthwise_conv2d.fuse_depthwise_conv2d(graph_def)
+    depthwise_conv2d_count = 0
+    depthwise_conv2d = None
+    for node in optimized_graph_def.node:
+      self.assertNotEqual("BiasAdd", node.op)
+      self.assertNotEqual("DepthwiseConv2dNative", node.op)
+      self.assertNotEqual("Relu", node.op)
+      if node.op == graph_rewrite_util.FUSED_DEPTHWISE_CONV2D:
+        depthwise_conv2d_count += 1
+        depthwise_conv2d = node
+    self.assertEqual(depthwise_conv2d_count, 1)
+    self.assertEqual(
+        depthwise_conv2d.attr['fused_ops'].list.s, [b'NoOp', b'Relu'])
+    self.assertEqual(depthwise_conv2d.attr['num_args'].i, 0)
 if __name__ == '__main__':
   tf.test.main()
