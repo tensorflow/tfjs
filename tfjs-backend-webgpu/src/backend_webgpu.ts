@@ -320,12 +320,15 @@ export class WebGPUBackend extends KernelBackend {
 
   private convertAndCacheOnCPU(dataId: DataId, data: backend_util.TypedArray):
       backend_util.TypedArray {
-    const info = this.tensorMap.get(dataId);
+    if (this.tensorMap.has(dataId)) {
+      const info = this.tensorMap.get(dataId);
 
-    this.maybeReleaseBuffer(dataId);
+      this.maybeReleaseBuffer(dataId);
 
-    info.values = data;
-    return info.values;
+      info.values = data;
+      return info.values;
+    }
+    return data;
   }
 
   // TODO: Remove once this is fixed:
@@ -377,6 +380,10 @@ export class WebGPUBackend extends KernelBackend {
     }
     this.convertAndCacheOnCPU(dataId, vals);
     return vals;
+  }
+
+  timerAvailable(): boolean {
+    return this.supportTimeQuery;
   }
 
   async time(f: () => void): Promise<WebGPUTimingInfo> {
