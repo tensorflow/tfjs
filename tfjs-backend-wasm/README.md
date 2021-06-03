@@ -70,21 +70,21 @@ learn more about this topic [here](https://web.dev/coop-coep/).
    - If the resource is loaded from the *same origin* as your main site,
      set:
 
-     `Cross-Origin-Resource-Policy: same-origin`.
+     `Cross-Origin-Resource-Policy: same-origin`
    - If the resource is loaded from the *same site but cross origin*, set:
 
 
-     `Cross-Origin-Resource-Policy: same-site`.
+     `Cross-Origin-Resource-Policy: same-site`
    - If the resource is loaded from the *cross origin(s)*, set:
 
-     `Cross-Origin-Resource-Policy: cross-origin`.
+     `Cross-Origin-Resource-Policy: cross-origin`
 
    Note that the `CORS` header still needs to be set up correctly in your server
    in additional to the `CORP` header described here.
 
 If the steps above are correctly done, you can check the Network tab from the
 console and make sure the
-<code>tfjs-backend-wasm-<i>threaded-simd</i>.wasm</code> WASM binary is loaded.
+<code>tfjs-backend-wasm-<b>threaded-simd<b>.wasm</code> WASM binary is loaded.
 
 ## Running MobileNet
 
