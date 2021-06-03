@@ -43,8 +43,8 @@ import {op} from './operation';
  *     `strides` is a single number, then `strideHeight == strideWidth`.
  * @param pad The type of padding algorithm used in the forward prop of the op.
  *     'same', 'valid', for more info, see this guide:
- *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
- *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
  *     provided, it will default to truncate.
  */

@@ -43,8 +43,8 @@ import {reshape} from './reshape';
  *     `strides` is a single number, then `strideHeight == strideWidth`.
  * @param pad The type of padding algorithm used in the forward prop of the op.
  *     'same', 'valid', for more info, see this guide:
- *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
- *         https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *         https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  */
 function avgPoolGrad_<T extends Tensor3D|Tensor4D>(
     dy: T|TensorLike, input: T|TensorLike, filterSize: [number, number]|number,
