@@ -15,9 +15,11 @@
  * =============================================================================
  */
 
-import {backend_util, GatherNd, GatherNdInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, GatherNd, GatherNdInputs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {gatherNdImplCPU} from '../kernel_utils/shared';
+
 import {GatherNDProgram} from './gather_nd_webgpu';
 import {reshape} from './Reshape';
 
@@ -28,6 +30,7 @@ export function gatherNd(
 
   const indicesShape = indices.shape;
   const sliceRank = indicesShape[indicesShape.length - 1];
+  const paramsSize = util.sizeFromShape(params.shape);
 
   const [resultShape, numSlices, sliceSize, strides] =
       backend_util.prepareAndValidate(params, indices);
@@ -39,7 +42,16 @@ export function gatherNd(
     backend,
     attrs: {shape: [(util.sizeFromShape(params.shape) / sliceSize), sliceSize]}
   });
+  if (backend.shouldExecuteOnCPU([params, indices]) ||
+      params.dtype === 'string') {
+    const indicesData = backend.readSync(indices.dataId) as TypedArray;
+    const paramsBuf = backend.bufferSync(params);
+    const outValue = gatherNdImplCPU(
+        indicesData, paramsBuf, params.dtype, numSlices, sliceRank, sliceSize,
+        strides, params.shape, paramsSize);
 
+    return backend.makeTensorInfo(resultShape, params.dtype, outValue.values);
+  }
   const program = new GatherNDProgram(sliceRank, [numSlices, sliceSize]);
   const uniformData =
       [{type: 'int32', data: [sliceRank]}, {type: 'int32', data: strides}];
