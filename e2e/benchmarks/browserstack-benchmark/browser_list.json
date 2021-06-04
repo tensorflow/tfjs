@@ -65,6 +65,14 @@
   },
   {
     "os": "ios",
+    "os_version": "14",
+    "browser": "iphone",
+    "device": "iPhone 12",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
     "os_version": "13",
     "browser": "iphone",
     "device": "iPhone 11 Pro Max",
