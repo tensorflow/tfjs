@@ -73,6 +73,12 @@ const TFLITE_REPO: Repo = {
   path: 'tfjs-tflite',
 };
 
+const WEBGPU_REPO: Repo = {
+  name: 'tfjs-backend-webgpu',
+  identifier: 'tfjs-backend-webgpu',
+  path: 'tfjs-backend-webgpu',
+};
+
 async function askUserForVersions(validVersions: string[], packageName: string):
     Promise<{startVersion: string, endVersion: string}> {
   const YELLOW_TERMINAL_COLOR = '\x1b[33m%s\x1b[0m';
@@ -178,6 +184,21 @@ async function generateTfliteNotes() {
   await generateNotes([TFLITE_REPO]);
 }
 
+async function generateWebgpuNotes() {
+  // Get start version and end version.
+  const versions = getTaggedVersions('tfjs-backend-webgpu');
+  const {startVersion, endVersion} =
+      await askUserForVersions(versions, 'tfjs-backend-webgpu');
+
+  // Get tfjs-webgpu start version and end version.
+  WEBGPU_REPO.startVersion = startVersion;
+  WEBGPU_REPO.endVersion = endVersion;
+  WEBGPU_REPO.startCommit = $(`git rev-list -n 1 ${
+      getTagName(WEBGPU_REPO.identifier, WEBGPU_REPO.startVersion)}`);
+
+  await generateNotes([WEBGPU_REPO]);
+}
+
 
 async function generateNotes(repositories: util.Repo[]) {
   const repoCommits: RepoCommits[] = [];
@@ -259,9 +280,9 @@ const parser = new argparse.ArgumentParser();
 
 parser.addArgument('--project', {
   help:
-      'Which project to generate release notes for. One of union|vis|rn|tflite. Defaults to union.',
+      'Which project to generate release notes for. One of union|vis|rn|tflite|webgpu. Defaults to union.',
   defaultValue: 'union',
-  choices: ['union', 'vis', 'rn', 'tflite']
+  choices: ['union', 'vis', 'rn', 'tflite', 'webgpu']
 });
 
 const args = parser.parseArgs();
@@ -274,4 +295,6 @@ if (args.project === 'union') {
   generateReactNativeNotes();
 } else if (args.project === 'tflite') {
   generateTfliteNotes();
+} else if (args.project === 'webgpu') {
+  generateWebgpuNotes();
 }
