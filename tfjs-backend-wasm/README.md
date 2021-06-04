@@ -64,23 +64,25 @@ learn more about this topic [here](https://web.dev/coop-coep/).
    you are good to go. No more steps are needed.
 
 1. If you are loading the WASM backend from your own or other third-party
-   servers, you need to make sure the following HTTP header is enabled
-   when serving the script:
+   servers, you need to make sure the script is served with either CORS or CORP
+   header.
 
-   - If the resource is loaded from the *same origin* as your main site,
-     set:
+   - CORS header: `Access-Control-Allow-Origin: *`. In addition, you will also
+     need to add the "crossorigin" attribute to your script tags.
 
-     `Cross-Origin-Resource-Policy: same-origin`
-   - If the resource is loaded from the *same site but cross origin*, set:
+   - CORP header:
+
+     - If the resource is loaded from the *same origin* as your main site,
+       set:
+
+       `Cross-Origin-Resource-Policy: same-origin`
+     - If the resource is loaded from the *same site but cross origin*, set:
 
 
-     `Cross-Origin-Resource-Policy: same-site`
-   - If the resource is loaded from the *cross origin(s)*, set:
+       `Cross-Origin-Resource-Policy: same-site`
+     - If the resource is loaded from the *cross origin(s)*, set:
 
-     `Cross-Origin-Resource-Policy: cross-origin`
-
-   Note that the `CORS` header still needs to be set up correctly in your server
-   in additional to the `CORP` header described here.
+       `Cross-Origin-Resource-Policy: cross-origin`
 
 If the steps above are correctly done, you can check the Network tab from the
 console and make sure the
