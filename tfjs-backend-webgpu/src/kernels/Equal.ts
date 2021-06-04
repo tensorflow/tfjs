@@ -15,19 +15,18 @@
  * =============================================================================
  */
 
-import {GreaterEqual, KernelConfig} from '@tensorflow/tfjs-core';
+import {Equal, KernelConfig} from '@tensorflow/tfjs-core';
+
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {greaterEqualImplCPU as cpuGreaterEqual} from '../kernel_utils/shared';
+import {equalImplCPU as cpuEqual} from '../kernel_utils/shared';
+
 import {BinaryOpType} from './binary_ops';
 
-export const greaterEqual = binaryKernelFunc({
-  opSnippet: BinaryOpType.GREATER_EQUAL,
-  dtype: 'bool',
-  cpuKernelImpl: cpuGreaterEqual
-});
+export const equal = binaryKernelFunc(
+    {opSnippet: BinaryOpType.EQUAL, dtype: 'bool', cpuKernelImpl: cpuEqual});
 
-export const greaterEqualConfig: KernelConfig = {
-  kernelName: GreaterEqual,
+export const equalConfig: KernelConfig = {
+  kernelName: Equal,
   backendName: 'webgpu',
-  kernelFunc: greaterEqual
+  kernelFunc: equal
 };

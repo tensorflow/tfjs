@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {BinaryInputs, DataType, KernelFunc, TensorInfo, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
+import {backend_util, BinaryInputs, DataType, KernelFunc, TensorInfo, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {BinaryOpComplexProgram, COMPLEX_MULTIPLY} from '../kernels/binary_op_complex_webgpu';
@@ -153,12 +153,21 @@ export function binaryKernelFunc(
     }
 
     const $dtype = dtype || upcastType(a.dtype, b.dtype);
-    if (webgpuBackend.shouldExecuteOnCPU([a, b]) && cpuKernelImpl != null) {
-      const aData = webgpuBackend.tensorMap.get(a.dataId);
-      const bData = webgpuBackend.tensorMap.get(b.dataId);
-      const [outValues, outShape] = cpuKernelImpl(
-          a.shape, b.shape, aData.values as TypedArray,
-          bData.values as TypedArray, $dtype);
+    if ((a.dtype === 'string' || b.dtype === 'string' ||
+         webgpuBackend.shouldExecuteOnCPU([a, b])) &&
+        cpuKernelImpl != null) {
+      const aData = webgpuBackend.tensorMap.get(a.dataId).values as TypedArray;
+      const bData = webgpuBackend.tensorMap.get(b.dataId).values as TypedArray;
+      const decodedAVals = a.dtype === 'string' ?
+          // tslint:disable-next-line: no-any
+          backend_util.fromUint8ToStringArray(aData as any as Uint8Array[]) :
+          aData;
+      const decodedBVals = a.dtype === 'string' ?
+          // tslint:disable-next-line: no-any
+          backend_util.fromUint8ToStringArray(bData as any as Uint8Array[]) :
+          bData;
+      const [outValues, outShape] =
+          cpuKernelImpl(a.shape, b.shape, decodedAVals, decodedBVals, $dtype);
 
       return webgpuBackend.makeTensorInfo(outShape, $dtype, outValues);
     }

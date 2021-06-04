@@ -26,6 +26,19 @@ from tensorflowjs.converters import graph_rewrite_util
 def _is_supported_activation(node):
   return node.op == 'Relu' or node.op == 'Relu6' or node.op == 'Elu'
 
+def _find_contraction_with_activation(node, node_map):
+  if not _is_supported_activation(node):
+    return False
+
+  # And input to the activation node must match ContractionWithBiasAdd pattern.
+  if len(node.input) != 1:
+    return False
+
+  conv2d_node = graph_rewrite_util.node_from_map(node_map, node.input[0])
+  if conv2d_node.op != 'DepthwiseConv2dNative':
+    return False
+
+  return {'contraction': conv2d_node, 'bias': None, 'activation': node}
 
 def _find_contraction_with_bias(node, node_map):
   if node.op != 'BiasAdd':
@@ -61,12 +74,18 @@ def _find_contraction_with_bias_and_activation(node, node_map):
 def _add_fused_contraction_node(contraction, bias_add, activation,
                                 inputs_to_remove, nodes_to_skip):
   fused_op = contraction
-  fused_op.input.extend([bias_add.input[1]])
-
   fused_op.op = graph_rewrite_util.FUSED_DEPTHWISE_CONV2D
-  fused_op.attr['fused_ops'].list.s.extend([b'BiasAdd'])
-  fused_op.attr['num_args'].i = fused_op.attr['num_args'].i + 1
-  bias_add.input[:] = [contraction.name]
+  fused_op.attr['num_args'].i = 0
+  if bias_add:
+    fused_op.input.extend([bias_add.input[1]])
+
+    fused_op.attr['fused_ops'].list.s.extend([b'BiasAdd'])
+    fused_op.attr['num_args'].i = fused_op.attr['num_args'].i + 1
+    bias_add.input[:] = [contraction.name]
+    inputs_to_remove.append(bias_add)
+    nodes_to_skip[bias_add.name] = True
+  else:
+    fused_op.attr['fused_ops'].list.s.extend([b'NoOp'])
 
   if activation:
     fused_op.attr['fused_ops'].list.s.extend([activation.op.encode('ascii')])
@@ -74,8 +93,6 @@ def _add_fused_contraction_node(contraction, bias_add, activation,
     activation.input[:] = [contraction.name]
     inputs_to_remove.append(activation)
 
-  inputs_to_remove.append(bias_add)
-  nodes_to_skip[bias_add.name] = True
 
 def fuse_depthwise_conv2d(input_graph_def):
   """Modifies the provided graph by fusing a set of ops into a single
@@ -101,6 +118,8 @@ def fuse_depthwise_conv2d(input_graph_def):
       input_graph_def, _find_contraction_with_bias_and_activation)
   graph_def = _fuse_depthwise_conv2d_with_match_function(
       graph_def, _find_contraction_with_bias)
+  graph_def = _fuse_depthwise_conv2d_with_match_function(
+      graph_def, _find_contraction_with_activation)
   return graph_def
 
 def _fuse_depthwise_conv2d_with_match_function(input_graph_def, match_function):
