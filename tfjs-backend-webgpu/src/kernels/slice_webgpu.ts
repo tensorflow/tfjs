@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {util} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
@@ -29,8 +30,9 @@ export class SliceProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workPerThread = 1;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workGroupSize: [number, number, number] = [64, 1, 1];
   start: number[];
+  size: number;
 
   constructor(start: number[], destSize: number[]) {
     this.outputShape = destSize;
@@ -43,6 +45,7 @@ export class SliceProgram implements WebGPUProgram {
     this.start = start;
     this.uniforms = `${getCoordsDataType(start.length)} start; `;
     this.shaderKey = 'slice';
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
@@ -62,10 +65,13 @@ export class SliceProgram implements WebGPUProgram {
     const userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
-        ${dtype} sourceLoc;
-        ${dtype} coords = getOutputCoords();
-        ${coordSum.join('\n')}
-        setOutput(index, getSource(${sourceCoords}));
+        if (index < size)
+        {
+          ${dtype} sourceLoc;
+          ${dtype} coords = getOutputCoords();
+          ${coordSum.join('\n')}
+          setOutput(index, getSource(${sourceCoords}));
+        }
       }
     `;
     return userCode;
