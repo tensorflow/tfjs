@@ -617,6 +617,15 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient'  // gradient function not found.
     ]
   },
+  {
+    startsWith: 'equal ',
+    excludes: ['upcasts when dtypes dont match']  // Not yet supported.
+  },
+  {
+    startsWith: 'notEqual ',
+    excludes: ['upcasts when dtypes dont match']  // Not yet supported.
+  },
+  {startsWith: 'gatherND '},
   {include: 'image.transform'}
 ];
 
