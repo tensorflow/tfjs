@@ -13,7 +13,7 @@
  *
  * Original source: keras/constraints.py
  */
-import {notEqual, reshape, serialization, Tensor, Tensor1D, tidy, zerosLike} from '@tensorflow/tfjs-core';
+import {notEqual, reshape, serialization, Tensor, tidy, zerosLike} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
@@ -185,7 +185,8 @@ export class Embedding extends Layer {
       if (input.dtype !== 'int32') {
         input = K.cast(input, 'int32');
       }
-      const output = K.gather(this.embeddings.read(), input as Tensor1D);
+      const output =
+          K.gather(this.embeddings.read(), reshape(input, [input.size]));
       return reshape(
           output, getExactlyOneShape(this.computeOutputShape(input.shape)));
     });

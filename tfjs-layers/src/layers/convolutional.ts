@@ -1431,7 +1431,7 @@ export class UpSampling2D extends Layer {
         const width = this.size[1] * inputShape[2];
         return this.interpolation === 'nearest' ?
             tfc.image.resizeNearestNeighbor(input, [height, width]) :
-            tfc.image.resizeNearestNeighbor(input, [height, width]);
+            tfc.image.resizeBilinear(input, [height, width]);
       }
     });
   }

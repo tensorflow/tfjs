@@ -142,7 +142,7 @@ export function sparseCategoricalCrossentropy(
     const outputShape = output.shape;
     const oneHotTarget = tfc.reshape(
         tfc.oneHot(flatTarget, outputShape[outputShape.length - 1]),
-        outputShape)
+        outputShape);
     return categoricalCrossentropy(oneHotTarget, output, fromLogits);
   });
 }

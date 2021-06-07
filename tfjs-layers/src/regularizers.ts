@@ -80,7 +80,7 @@ export class L1L2 extends Regularizer {
         regularization =
             add(regularization, sum(tfc.mul(this.l2, K.square(x))));
       }
-      return regularization as tfc.Scalar;
+      return tfc.reshape(regularization, []);
     });
   }
 
