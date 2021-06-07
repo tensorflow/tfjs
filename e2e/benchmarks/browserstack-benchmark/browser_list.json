@@ -265,6 +265,14 @@
   },
   {
     "os": "android",
+    "os_version": "11.0",
+    "browser": "android",
+    "device": "Google Pixel 5",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
     "os_version": "10.0",
     "browser": "android",
     "device": "Google Pixel 4 XL",
