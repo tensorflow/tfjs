@@ -63,7 +63,7 @@ learn more about this topic [here](https://web.dev/coop-coep/).
 1. If you are loading the WASM backend from `jsdelivr` through the script tag,
    you are good to go. No more steps are needed.
 
-1. If you are loading the WASM backend from your own or other third-party
+   If you are loading the WASM backend from your own or other third-party
    servers, you need to make sure the script is served with either CORS or CORP
    header.
 
@@ -72,15 +72,18 @@ learn more about this topic [here](https://web.dev/coop-coep/).
 
    - CORP header:
 
-     - If the resource is loaded from the *same origin* as your main site,
-       set:
+     - If the resource is loaded from the *same origin* as your main site
+       (e.g. main site: mysite.com/, script: mysite.com/script.js), set:
 
        `Cross-Origin-Resource-Policy: same-origin`
-     - If the resource is loaded from the *same site but cross origin*, set:
+     - If the resource is loaded from the *same site but cross origin*
+       (e.g. main site: mysite.com/, script: static.mysite.com:8080/script.js),
+       set:
 
 
        `Cross-Origin-Resource-Policy: same-site`
-     - If the resource is loaded from the *cross origin(s)*, set:
+     - If the resource is loaded from the *cross origin(s)*
+       (e.g. main site: mysite.com/, script: mystatic.com/script.js), set:
 
        `Cross-Origin-Resource-Policy: cross-origin`
 
