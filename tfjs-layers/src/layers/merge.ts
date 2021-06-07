@@ -158,10 +158,10 @@ export abstract class Merge extends Layer {
               const xShape = x.shape;
               const batchSize = xShape[0];
               const newShape = xShape.slice(1).concat([batchSize]);
-              let xTransposed = x.reshape(
-                  [batchSize].concat(mathUtils.arrayProd(xShape.slice(1))));
+              let xTransposed = tfc.reshape(
+                  x, [batchSize].concat(mathUtils.arrayProd(xShape.slice(1))));
               xTransposed = tfc.transpose(xTransposed, [1, 0]);
-              xTransposed = xTransposed.reshape(newShape);
+              xTransposed = tfc.reshape(xTransposed, newShape);
               reshapedInputs.push(xTransposed);
               transposed = true;
             } else if (xNDim > 1) {
@@ -184,8 +184,9 @@ export abstract class Merge extends Layer {
               const batchSize = yShape[yNDim - 1];
               const newShape =
                   [batchSize].concat(yShape.slice(0, yShape.length - 1));
-              y = tfc.transpose(y.reshape([-1, batchSize]), [1, 0])
-                      .reshape(newShape);
+              y = tfc.reshape(
+                  tfc.transpose(tfc.reshape(y, [-1, batchSize]), [1, 0]),
+                  newShape);
             } else if (yNDim > 1) {
               const dims = [yNDim - 1].concat(mathUtils.range(0, yNDim - 1));
               y = tfc.transpose(y, dims);
@@ -756,7 +757,7 @@ export class Concatenate extends Merge {
       for (let i = 0; i < inputs.length; ++i) {
         if (mask[i] == null) {
           // Input is unmasked. Append all 1's to masks.
-          outputMasks.push(tfc.onesLike(inputs[i]).asType('bool'));
+          outputMasks.push(tfc.cast(tfc.onesLike(inputs[i]), 'bool'));
         } else if (mask[i].rank < inputs[i].rank) {
           // Mask is smaller than the input, expand it.
           outputMasks.push(tfc.expandDims(mask[i], -1));
@@ -911,14 +912,14 @@ function batchDot(x: Tensor, y: Tensor, axes: number|[number, number]): Tensor {
       for (let i = 0; i < diff; ++i) {
         diffShape.push(1);
       }
-      y = y.reshape(y.shape.concat(diffShape));
+      y = tfc.reshape(y, y.shape.concat(diffShape));
     } else if (yNDim > xNDim) {
       diff = yNDim - xNDim;
       const diffShape: Shape = [];
       for (let i = 0; i < diff; ++i) {
         diffShape.push(1);
       }
-      x = x.reshape(x.shape.concat(diffShape));
+      x = tfc.reshape(x, x.shape.concat(diffShape));
     } else {
       diff = 0;
     }
@@ -926,14 +927,14 @@ function batchDot(x: Tensor, y: Tensor, axes: number|[number, number]): Tensor {
     let out: Tensor;
     if (x.shape.length === 2 && y.shape.length === 2) {
       if (axesArray[0] === axesArray[1]) {
-        out = x.mul(y).sum(axesArray[0]);
+        out = tfc.sum(tfc.mul(x, y), axesArray[0]);
       } else {
-        out = x.transpose([1, 0]).mul(y).sum(axesArray[1]);
+        out = tfc.sum(tfc.mul(tfc.transpose(x, [1, 0]), y), axesArray[1]);
       }
     } else {
       const adjX = axesArray[0] !== x.shape.length - 1;
       const adjY = axesArray[1] === y.shape.length - 1;
-      out = x.matMul(y, adjX, adjY);
+      out = tfc.matMul(x, y, adjX, adjY);
     }
 
     if (diff > 0) {
@@ -947,10 +948,10 @@ function batchDot(x: Tensor, y: Tensor, axes: number|[number, number]): Tensor {
       for (let i = idx; i < idx + diff; ++i) {
         squeezeAxes.push(i);
       }
-      out = out.squeeze(squeezeAxes);
+      out = tfc.squeeze(out, squeezeAxes);
     }
     if (out.shape.length === 1) {
-      out = out.expandDims(1);
+      out = tfc.expandDims(out, 1);
     }
     return out;
   });

@@ -10,9 +10,10 @@
 
 import '@tensorflow/tfjs-core';
 // tslint:disable-next-line:no-imports-from-dist
-import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
+// import
+// '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
 // tslint:disable-next-line: no-imports-from-dist
-import '@tensorflow/tfjs-core/dist/register_all_gradients';
+// import '@tensorflow/tfjs-core/dist/register_all_gradients';
 
 // This file lists all exports of TensorFlow.js Layers
 
