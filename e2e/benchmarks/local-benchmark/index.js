@@ -205,8 +205,7 @@ function getTunableRange(flag) {
  * @param {string} backendName
  */
 function isBackendSupported(backendName) {
-  if (backendName === 'webgpu' && typeof navigator !== 'undefined' &&
-      !navigator.gpu) {
+  if (backendName === 'webgpu' && !navigator.gpu) {
     return false;
   } else {
     return true;
