@@ -80,6 +80,8 @@
     "pb2json": "ts-node -s ./tools/pb2json_converter.ts",
     "build-pip-package": "yarn gen-json --test && cd python && ./build-pip-package.sh --test /tmp/tfjs-pips",
     "run-python-tests": "yarn gen-json --test && cd python && ./run-python-tests.sh",
-    "gen-kernel2ops": "ts-node -s scripts/kernels_to_ops.ts --out metadata/kernel2op.json"
+    "gen-kernel2ops": "ts-node -s scripts/kernels_to_ops.ts --out metadata/kernel2op.json",
+    "compare-models": "yarn && yarn build-deps && yarn build && yarn gen-json --test && yarn gen-kernel2ops && cd python && ./compare-models.sh",
+    "compare-models-dev": "tsc && cd python && ./compare-models.sh"
   }
 }

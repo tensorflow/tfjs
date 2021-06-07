@@ -17,6 +17,8 @@ from tensorflowjs import version
 
 # File name for the indexing JSON file in an artifact directory.
 ARTIFACT_MODEL_JSON_FILE_NAME = 'model.json'
+# File name for the frozen python tensorflow model
+GRAPH_DEF_FILE_NAME = 'graph_def.pb'
 
 # JSON string keys for fields of the indexing JSON.
 ARTIFACT_MODEL_TOPOLOGY_KEY = 'modelTopology'
