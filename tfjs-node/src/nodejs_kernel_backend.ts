@@ -22,6 +22,9 @@ import {isArray, isNullOrUndefined} from 'util';
 import {encodeInt32ArrayAsInt64, Int64Scalar} from './int64_tensors';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
+// tslint:disable-next-line:no-require-imports
+const messages = require('./proto/api_pb');
+
 type TensorData = {
   shape: number[],
   dtype: number,
@@ -542,9 +545,115 @@ export class NodeJSKernelBackend extends KernelBackend {
     });
   }
 
+  writeHistogramSummary(
+      resourceHandle: Tensor, step: number, name: string, data: Tensor,
+      bucketCount: number|undefined, description: string|undefined): void {
+    tidy(() => {
+      util.assert(
+          Number.isInteger(step),
+          () => `step is expected to be an integer, but is instead ${step}`);
+
+      // We use the WriteSummary op, and not WriteHistogramSummary. The
+      // difference is that WriteHistogramSummary takes a tensor of any shape,
+      // and places the values in 30 buckets, while WriteSummary expects a
+      // tensor which already describes the bucket widths and counts.
+      //
+      // If we were to use WriteHistogramSummary, we wouldn't have to implement
+      // the "bucketization" of the input tensor, but we also wouldn't have
+      // control over the number of buckets, or the description of the graph.
+      //
+      // Therefore, we instead use WriteSummary, which makes it possible to
+      // support these features. However, the trade-off is that we have to
+      // implement our own "bucketization", and have to write the summary as a
+      // protobuf message.
+      const content = new messages.HistogramPluginData().setVersion(0);
+      const pluginData = new messages.SummaryMetadata.PluginData()
+                             .setPluginName('histograms')
+                             .setContent(content.serializeBinary());
+      const summary = new messages.SummaryMetadata()
+                          .setPluginData(pluginData)
+                          .setDisplayName(null)
+                          .setSummaryDescription(description);
+      const summaryTensor = scalar(summary.serializeBinary(), 'string');
+      const nameTensor = scalar(name, 'string');
+      const stepScalar = new Int64Scalar(step);
+      const buckets = this.buckets(data, bucketCount);
+      util.assert(
+          buckets.rank === 2 && buckets.shape[1] === 3,
+          () => `Expected buckets to have shape [k, 3], but they had shape ${
+              buckets.shape}`);
+      util.assert(
+          buckets.dtype === 'float32',
+          () => `Expected buckets to have dtype float32, but they had dtype ${
+              buckets.dtype}`);
+      const inputArgs: Array<Tensor|Int64Scalar> =
+          [resourceHandle, stepScalar, buckets, nameTensor, summaryTensor];
+      const typeAttr = this.typeAttributeFromTensor(buckets);
+      const opAttrs: TFEOpAttr[] =
+          [{name: 'T', type: this.binding.TF_ATTR_TYPE, value: typeAttr}];
+      this.binding.executeOp(
+          'WriteSummary', opAttrs, this.getInputTensorIds(inputArgs), 0);
+    });
+  }
+
   flushSummaryWriter(resourceHandle: Tensor): void {
     const inputArgs: Tensor[] = [resourceHandle];
     this.executeMultipleOutputs('FlushSummaryWriter', [], inputArgs, 0);
+  }
+
+  /**
+   * Group data into histogram buckets.
+   *
+   * @param data A `Tensor` of any shape. Must be castable to `float32`
+   * @param bucketCount Optional positive `number`
+   * @returns A `Tensor` of shape `[k, 3]` and type `float32`. The `i`th row is
+   *   a triple `[leftEdge, rightEdge, count]` for a single bucket. The value of
+   *   `k` is either `bucketCount`, `1` or `0`.
+   */
+  private buckets(data: Tensor, bucketCount?: number): Tensor<tf.Rank> {
+    if (data.size === 0) {
+      return tf.tensor([], [0, 3], 'float32');
+    }
+
+    // 30 is the default number of buckets in the TensorFlow Python
+    // implementation. See
+    // https://github.com/tensorflow/tensorboard/blob/master/tensorboard/plugins/histogram/summary_v2.py
+    bucketCount = bucketCount !== undefined ? bucketCount : 30;
+    util.assert(
+        Number.isInteger(bucketCount) && bucketCount > 0,
+        () =>
+            `Expected bucket count to be a strictly positive integer, but it was ` +
+            `${bucketCount}`);
+    data = data.flatten();
+    data = data.cast('float32');
+    const min: Scalar = data.min();
+    const max: Scalar = data.max();
+    const range: Scalar = max.sub(min);
+    const isSingular = range.equal(0).arraySync() !== 0;
+
+    if (isSingular) {
+      const center = min;
+      const bucketStart: Scalar = center.sub(0.5);
+      const bucketEnd: Scalar = center.add(0.5);
+      const bucketCounts = tf.scalar(data.size, 'float32');
+      return tf.concat([bucketStart, bucketEnd, bucketCounts]).reshape([1, 3]);
+    }
+
+    const bucketWidth = range.div(bucketCount);
+    const offsets = data.sub(min);
+    const bucketIndices = offsets.floorDiv(bucketWidth).cast('int32');
+    const clampedIndices =
+        tf.minimum(bucketIndices, bucketCount - 1).cast('int32');
+    const oneHots = tf.oneHot(clampedIndices, bucketCount);
+    const bucketCounts = oneHots.sum(0).cast('int32');
+    let edges = tf.linspace(min.arraySync(), max.arraySync(), bucketCount + 1);
+    // Ensure last value in edges is max (TF's linspace op doesn't do this)
+    edges = tf.concat([edges.slice(0, bucketCount), max.reshape([1])], 0) as
+        tf.Tensor1D;
+    const leftEdges = edges.slice(0, bucketCount);
+    const rightEdges = edges.slice(1, bucketCount);
+    return tf.stack([leftEdges, rightEdges, bucketCounts.cast('float32')])
+        .transpose();
   }
 
   // ~ TensorBoard-related (tfjs-node-specific) backend kernels.

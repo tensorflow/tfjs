@@ -36,6 +36,7 @@ import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
+import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
 import {expm1Config} from './kernels/Expm1';
@@ -70,6 +71,7 @@ import {notEqualConfig} from './kernels/NotEqual';
 import {onesLikeConfig} from './kernels/OnesLike';
 import {packConfig} from './kernels/Pack';
 import {padV2Config} from './kernels/PadV2';
+import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
 import {rangeConfig} from './kernels/Range';
@@ -121,6 +123,7 @@ const kernelConfigs: KernelConfig[] = [
   depthwiseConv2dNativeConfig,
   einsumConfig,
   eluConfig,
+  equalConfig,
   expandDimsConfig,
   expConfig,
   expm1Config,
@@ -157,6 +160,7 @@ const kernelConfigs: KernelConfig[] = [
   padV2Config,
   preluConfig,
   prodConfig,
+  powConfig,
   rangeConfig,
   realConfig,
   realDivConfig,
