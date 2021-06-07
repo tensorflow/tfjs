@@ -40,7 +40,7 @@ export function categoricalAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
 function truePositives(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
     return tfc.cast(
-        tfc.logicalAnd(tfc.equal(yTrue, 1), tfc.sum(tfc.equal(yPred, 1))),
+        tfc.sum(tfc.logicalAnd(tfc.equal(yTrue, 1), tfc.equal(yPred, 1))),
         'float32');
   });
 }
@@ -48,7 +48,7 @@ function truePositives(yTrue: Tensor, yPred: Tensor): Tensor {
 function falseNegatives(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
     return tfc.cast(
-        tfc.logicalAnd(tfc.equal(yTrue, 1), tfc.sum(tfc.equal(yPred, 0))),
+        tfc.sum(tfc.logicalAnd(tfc.equal(yTrue, 1), tfc.equal(yPred, 0))),
         'float32');
   });
 }
@@ -56,7 +56,7 @@ function falseNegatives(yTrue: Tensor, yPred: Tensor): Tensor {
 function falsePositives(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
     return tfc.cast(
-        tfc.logicalAnd(tfc.equal(yTrue, 0), tfc.sum(tfc.equal(yPred, 1))),
+        tfc.sum(tfc.logicalAnd(tfc.equal(yTrue, 0), tfc.equal(yPred, 1))),
         'float32');
   });
 }
