@@ -15,19 +15,25 @@
  * =============================================================================
  */
 
-import {GreaterEqual, KernelConfig} from '@tensorflow/tfjs-core';
-import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {greaterEqualImplCPU as cpuGreaterEqual} from '../kernel_utils/shared';
-import {BinaryOpType} from './binary_ops';
-
-export const greaterEqual = binaryKernelFunc({
-  opSnippet: BinaryOpType.GREATER_EQUAL,
-  dtype: 'bool',
-  cpuKernelImpl: cpuGreaterEqual
-});
-
-export const greaterEqualConfig: KernelConfig = {
-  kernelName: GreaterEqual,
-  backendName: 'webgpu',
-  kernelFunc: greaterEqual
+type GLSL = {
+  defineSpecialNaN: string
 };
+
+export function getGlslDifferences(): GLSL {
+  const defineSpecialNaN = `
+      bool isnan_custom(float val) {
+        return (val > 0.0 || val < 0.0) ? false : val != 0.0;
+      }
+
+      bvec4 isnan_custom(vec4 val) {
+        return bvec4(isnan_custom(val.x),
+          isnan_custom(val.y), isnan_custom(val.z), isnan_custom(val.w));
+      }
+
+      #define isnan(value) isnan_custom(value)
+    `;
+
+  return {
+    defineSpecialNaN
+  };
+}

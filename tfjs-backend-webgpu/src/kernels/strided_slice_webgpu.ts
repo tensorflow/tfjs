@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {util} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
@@ -29,8 +30,9 @@ export class StridedSliceProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   // TODO(xing.xu): Increase the workPerThread.
   workPerThread = 1;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workGroupSize: [number, number, number] = [64, 1, 1];
   dtype: string;
+  size: number;
 
   constructor(destSize: number[]) {
     this.outputShape = destSize;
@@ -42,6 +44,7 @@ export class StridedSliceProgram implements WebGPUProgram {
     this.dtype = getCoordsDataType(this.outputShape.length);
     this.uniforms = `${this.dtype} begin; ${this.dtype} strides; `;
     this.shaderKey = 'stridedSlice';
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
@@ -64,9 +67,12 @@ export class StridedSliceProgram implements WebGPUProgram {
 
     const userCode = `
        void main() {
-         ${this.dtype} coords = getOutputCoords();
          int index = int(gl_GlobalInvocationID.x);
-         setOutput(index, getX(${newCoords}));
+         if (index < size)
+         {
+           ${this.dtype} coords = getOutputCoords();
+           setOutput(index, getX(${newCoords}));
+         }
        }
      `;
     return userCode;

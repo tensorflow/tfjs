@@ -121,6 +121,59 @@ export function makeMatMulPackedSource(workPerThread: number[]): string {
   `;
 }
 
+export function makeMatMulVectorSource(): string {
+  return `
+    float mm_readA(int row, int col);
+    float mm_readB(int row, int col);
+    void mm_write(int row, int col, float value);
+    void mm_matMul(int dimAOuter, int dimInner, int dimBOuter);
+
+    const int TileSize = int(gl_WorkGroupSize.x) * 4;
+
+    shared vec4 mm_Asub[TileSize / 4];
+
+    void mm_matMul(int dimAOuter, int dimInner, int dimBOuter) {
+      int tileCol = int(gl_LocalInvocationID.x);
+      int globalCol = int(gl_GlobalInvocationID.x);
+      int globalRow = int(gl_GlobalInvocationID.y);
+
+      int numTiles = (dimInner - 1) / TileSize + 1;
+
+      // Without this initialization strange values show up in acc.
+      float acc = 0.0;
+
+      // Loop over shared dimension.
+      for (int t = 0; t < numTiles; t++) {
+        // Load one tile of A into local memory.
+        int colA = t * TileSize + tileCol * 4;
+        mm_Asub[tileCol] = vec4(mm_readA(globalRow, colA),
+                                mm_readA(globalRow, colA + 1),
+                                mm_readA(globalRow, colA + 2),
+                                mm_readA(globalRow, colA + 3));
+        barrier();
+
+        // Compute acc values for a single thread.
+        for (int k = 0; k < TileSize / 4; k++) {
+          int rowB = t * TileSize + k * 4;
+          vec4 BCached = vec4(mm_readB(rowB, globalCol),
+                              mm_readB(rowB + 1, globalCol),
+                              mm_readB(rowB + 2, globalCol),
+                              mm_readB(rowB + 3, globalCol));
+
+          vec4 ACached = mm_Asub[k];
+          acc += dot(ACached, BCached);
+        }
+
+        barrier();
+      }
+
+      if (globalRow < dimAOuter && globalCol < dimBOuter) {
+        mm_write(globalRow, globalCol, acc);
+      }
+    }
+  `;
+}
+
 export class MatMulPackedProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
@@ -148,8 +201,6 @@ export class MatMulPackedProgram implements WebGPUProgram {
     const dimInner = transposeA ? aShape[1] : aShape[2];
     this.workGroupSize =
         computeWorkGroupSizeForMatMul(outputShape[1], dimInner, outputShape[2]);
-    // TODO: Consider to use a seperate algorithm to optimize it when the output
-    // is a vector.
     if (outputShape[1] === 1 || outputShape[2] === 1) {
       workPerThread = 1;
     }
@@ -191,14 +242,19 @@ export class MatMulPackedProgram implements WebGPUProgram {
         [this.outputShape[0], dimInner, dimBOuter];
 
     [this.fitA, this.fitB] = this.getShapeFit(bShape);
-    this.shaderKey = `matMulPacked_${this.workPerThread}_${transposeA}_${
-        transposeB}_${activation}_${this.fitA}_${this.fitB}}`;
+    this.shaderKey =
+        `matMulPacked_${this.workPerThread}_${transposeA}_${transposeB}_${
+            activation}_${this.fitA}_${this.fitB}_${this.outputShape[1] > 1}`;
   }
 
   getShapeFit(bShape: number[]): boolean[] {
     const tileAOuter = this.workGroupSize[1] * this.workPerThread;
     const tileBOuter = this.workGroupSize[0] * this.workPerThread;
-    const tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
+    let tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
+    if (this.outputShape[1] === 1) {
+      tileInner *=
+          4;  // for makeMatMulVectorSource, tileSize = gl_WorkGroupSize.x * 4.
+    }
     util.assert(
         tileInner % this.workGroupSize[0] === 0 &&
             tileInner % this.workGroupSize[1] === 0,
@@ -271,9 +327,11 @@ export class MatMulPackedProgram implements WebGPUProgram {
 
       int batch;
 
-      ${makeMatMulPackedSource([
-      this.workPerThread, this.workPerThread, 1
-    ])}
+      ${
+        this.outputShape[1] > 1 ?
+            makeMatMulPackedSource(
+                [this.workPerThread, this.workPerThread, 1]) :
+            makeMatMulVectorSource()}
       float mm_readA(int row, int col) {
         int batchASize = aShape[1] * aShape[2];
         return ${sampleA};

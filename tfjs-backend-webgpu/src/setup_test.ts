@@ -384,42 +384,20 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'mirrorPad',
     excludes: [
-      'tensor1d',     // The result is not correct.
-      'tensor2d',     // The result is not correct.
-      'tensor3d',     // The result is not correct.
-      'tensor4d',     // The result is not correct.
-      'tensor-like',  // The result is not correct.
-      'NaNs',         // The result is not correct.
-      'gradient',     // Not yet implemented.
-      'grad',         // Not yet implemented.
+      'gradient',  // Not yet implemented.
+      'grad',      // Not yet implemented.
     ]
   },
   {
-    include: 'pad',
+    startsWith: 'pad ',
     excludes: [
-      'RFFT',   // 'zerosLike' not yet implemented.
-      'frame',  // Slice not yet implemented.
-      'grad',   // 'depthwiseConv2DDerFilter' not yet implemented, slice not yet
-                // implemented
-      'dilation2d'  // 'dilation2d' not yet implemented.
+      'grad'  // gradient function not found.
     ]
   },
   {
-    include: 'fill',
+    startsWith: 'fill ',
     excludes: [
-      '5D',                // Rank 5 is not yet supported.
-      'rotateWithOffset',  // 'RotateWithOffset' not registered.
-      'fill=constant, interpolation=nearest.',   // Transform is not yet
-                                                 // implemented.
-      'fill=constant, interpolation=bilinear.',  // Transform is not yet
-                                                 // implemented.
-      'fill=reflect, interpolation=bilinear.',   // Transform is not yet
-                                                 // implemented.
-      'fill=wrap, interpolation=bilinear.',      // Transform is not yet
-                                                 // implemented.
-      'fill=nearest, interpolation=bilinear.',   // Transform is not yet
-                                                 // implemented.
-      'sparseFillEmptyRows',  // 'SparseFillEmptyRows' not registered.
+      '5D',  // Rank 5 is not yet supported.
     ]
   },
   {
@@ -502,8 +480,6 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'minimum',
     excludes: [
       'bool and bool',
-      'propagates NaN',  // NaN is not supported in WebGPU:
-                         // https://github.com/tensorflow/tfjs/issues/4734.
       'gradients: Scalar',
       'gradient with clones',
       'gradients: Tensor1D',
@@ -514,8 +490,6 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'maximum',
     excludes: [
       'bool and bool',
-      'propagates NaN',  // NaN is not supported in WebGPU:
-                         // https://github.com/tensorflow/tfjs/issues/4734.
       'gradients: Scalar',
       'gradient with clones',
       'gradients: Tensor1D',
@@ -634,6 +608,24 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient'  // gradient function not found.
     ]
   },
+  {
+    startsWith: 'stringNGrams ',
+  },
+  {
+    startsWith: 'pow ',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
+    startsWith: 'equal ',
+    excludes: ['upcasts when dtypes dont match']  // Not yet supported.
+  },
+  {
+    startsWith: 'notEqual ',
+    excludes: ['upcasts when dtypes dont match']  // Not yet supported.
+  },
+  {startsWith: 'gatherND '},
   {include: 'image.transform'}
 ];
 
