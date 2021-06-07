@@ -17,12 +17,12 @@
 
 import {KernelConfig, KernelFunc, StringNGrams, StringNGramsAttrs, StringNGramsInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
-import {MathBackendWebGL} from '../backend_webgl';
+import {WebGPUBackend} from '../backend_webgpu';
 import {stringNGramsImplCPU} from '../kernel_utils/shared';
 
 export function stringNGrams(args: {
   inputs: StringNGramsInputs,
-  backend: MathBackendWebGL,
+  backend: WebGPUBackend,
   attrs: StringNGramsAttrs
 }): [TensorInfo, TensorInfo] {
   const {inputs, backend, attrs} = args;
@@ -49,6 +49,6 @@ export function stringNGrams(args: {
 
 export const stringNGramsConfig: KernelConfig = {
   kernelName: StringNGrams,
-  backendName: 'webgl',
+  backendName: 'webgpu',
   kernelFunc: stringNGrams as {} as KernelFunc,
 };

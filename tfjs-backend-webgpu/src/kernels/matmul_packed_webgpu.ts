@@ -250,7 +250,11 @@ export class MatMulPackedProgram implements WebGPUProgram {
   getShapeFit(bShape: number[]): boolean[] {
     const tileAOuter = this.workGroupSize[1] * this.workPerThread;
     const tileBOuter = this.workGroupSize[0] * this.workPerThread;
-    const tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
+    let tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
+    if (this.outputShape[1] === 1) {
+      tileInner *=
+          4;  // for makeMatMulVectorSource, tileSize = gl_WorkGroupSize.x * 4.
+    }
     util.assert(
         tileInner % this.workGroupSize[0] === 0 &&
             tileInner % this.workGroupSize[1] === 0,
