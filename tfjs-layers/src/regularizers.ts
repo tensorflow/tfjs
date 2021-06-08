@@ -15,7 +15,7 @@ import {abs, add, Scalar, serialization, sum, Tensor, tidy, zeros} from '@tensor
 import * as K from './backend/tfjs_backend';
 import {deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
 
-function assertObjectArgs(args: L1Args | L2Args | L1L2Args): void {
+function assertObjectArgs(args: L1Args|L2Args|L1L2Args): void {
   if (args != null && typeof args !== 'object') {
     throw new Error(
         `Argument to L1L2 regularizer's constructor is expected to be an ` +
@@ -80,7 +80,7 @@ export class L1L2 extends Regularizer {
         regularization =
             add(regularization, sum(tfc.mul(this.l2, K.square(x))));
       }
-      return regularization.asScalar();
+      return tfc.reshape(regularization, []);
     });
   }
 

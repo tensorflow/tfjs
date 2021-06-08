@@ -12,7 +12,7 @@
  * Unit tests for normalization layers.
  */
 
-import {dispose, memory, onesLike, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, test_util, train, zeros, zerosLike} from '@tensorflow/tfjs-core';
+import {dispose, div, memory, onesLike, scalar, sub, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, test_util, train, zeros, zerosLike} from '@tensorflow/tfjs-core';
 
 import {SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
@@ -607,7 +607,7 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
       xsData.push(i);
     }
     const xs =
-        (tensor4d(xsData, [2, 5, 5, 1]).sub(scalar(25))).div(scalar(100));
+        div(sub(tensor4d(xsData, [2, 5, 5, 1]), scalar(25)), scalar(100));
     const ys = tensor2d([0, 1], [2, 1]);
 
     const h = await model.fit(xs, ys, {epochs: 2});
