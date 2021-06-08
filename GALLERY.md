@@ -7,6 +7,7 @@ Please reach out to us if you'd like to put your project on the list.
 
 ## Demos & Applications
 
+- [HumanGPS: Dense Human Correspondences](https://feitongt.github.io/HumanGPS/demo) -  A deep learning framework that maps each pixel to a feature space, where the feature distances reflect the geodesic distances among pixels as if they were projected onto the surface of a 3D human scan.
 - [Time Series Forecasting](https://jinglescode.github.io/time-series-forecasting-tensorflowjs/) - Pull stock prices from online API, train and perform predictions using Long Short Term Memory, and predict the next value. [[demo](https://jinglescode.github.io/time-series-forecasting-tensorflowjs/)][[repo](https://github.com/jinglescode/time-series-forecasting-tensorflowjs)]
 - [Textual Similarity Analysis](https://jinglescode.github.io/textual-similarity-universal-sentence-encoder/) - Group similar sentences with universal sentence encoder word embeddings [[demo](https://jinglescode.github.io/textual-similarity-universal-sentence-encoder/)][[repo](https://github.com/jinglescode/textual-similarity-universal-sentence-encoder)]
 - [PoseAnimator](https://github.com/yemount/pose-animator/) - Animate any SVG character using your own body live via your webcam. Uses posenet and facemesh to create some really unique animations.
@@ -85,6 +86,7 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [Train a Text Classifier on top of BERT within the Browser](https://alexfi.dev/blog/tensorflowjs-bert-train) by [Alexander Fischer](https://github.com/alexander-fischer/)
 
 ## Video tutorials
+
 - [Beginning Machine Learning with TensorFlow.js](https://academy.infinite.red/p/beginning-machine-learning-with-tensorflow-js)
 - [The Coding Train - TensorFlow.js Introduction](https://www.youtube.com/playlist?list=PLRqwX-V7Uu6YIeVA3dNxbR9PYj4wV31oQ)
 - [The Coding Train - TensorFlow.js Color Classifier](https://www.youtube.com/playlist?list=PLRqwX-V7Uu6bmMRCIoTi72aNWHo7epX4L)
@@ -94,11 +96,13 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [Angular Firebase - TensorFlow.js Quickstart](https://www.youtube.com/watch?v=Y_XM3Bu-4yc)
 
 ## Talks
+
 - [TensorFlow dev summit](https://www.youtube.com/watch?v=YB-kfeNIPCE) - Official TensorFlow.js launch
 - [Google I/O, Node.js binding launch](https://www.youtube.com/watch?v=OmofOvMApTU) - Official TensorFlow.js + Node.js launch
 - [Deep Learning in JS - Ashi Krishnan - JSConf EU 2018](https://www.youtube.com/watch?v=SV-cgdobtTA)
 
 ## Blog posts
+
 - [Custom object detection in the browser using TensorFlow.js](https://blog.tensorflow.org/2021/01/custom-object-detection-in-browser.html) by Hugo Zanini
 - [Move Mirror](https://medium.com/tensorflow/move-mirror-an-ai-experiment-with-pose-estimation-in-the-browser-using-tensorflow-js-2f7b769f9b23?linkId=54484629) - An AI Experiment with Pose Estimation in the Browser using TensorFlow.js
 - [Abstract art with ML](https://janhuenermann.com/blog/abstract-art-with-ml) by Jan Huenermann
@@ -111,9 +115,11 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [Read a tensorflow demo to get started with machine learning](https://mp.weixin.qq.com/s/sffUvod_KlmvtVI-W3PLEQ) by [EuryChen](https://github.com/netpi) (Chinese: 读懂一个Tensorflow Demo 入门机器学习)
 
 ## Books
+
 - [Learning Tensorflow.js: Powerful Machine Learning in JavaScript](https://amzn.to/3dR3vpY) - In this guide, author [Gant Laborde](https://github.com/gantman) provides a hands-on, end-to-end approach to TensorFlow.js fundamentals for a broad technical audience that includes data scientists, engineers, web developers, students, and researchers.
 
 ## Notebooks
+
 - [Introduction to TensorFlow.js](https://beta.observablehq.com/@nsthorat/introduction-to-deeplearn-js) by Nikhil Thorat
 - [How to build a Teachable Machine](https://beta.observablehq.com/@nsthorat/how-to-build-a-teachable-machine-with-tensorflow-js) by Nikhil Thorat
 - [Smoothgrad in TensorFlow.js](https://beta.observablehq.com/@aman-tiwari/smoothgrad-in-tensorflow-js?linkId=53020429) by Aman Tiwari
