@@ -314,7 +314,7 @@ export class MathBackendWebGL extends KernelBackend {
           `WEBGL_VERSION=2 not yet supported.`);
     }
 
-    let buffer = null;
+    let buffer: WebGLBuffer = null;
     let tmpDownloadTarget: TensorInfo;
 
     if (dtype !== 'complex64' && env().get('WEBGL_BUFFER_SUPPORTED')) {
@@ -353,6 +353,10 @@ export class MathBackendWebGL extends KernelBackend {
     }
     if (tmpDownloadTarget != null) {
       this.disposeIntermediateTensorInfo(tmpDownloadTarget);
+    }
+    if (buffer != null) {
+      const gl = this.gpgpu.gl;
+      webgl_util.callAndCheck(gl, () => gl.deleteBuffer(buffer));
     }
     const dTypeVals = this.convertAndCacheOnCPU(dataId, vals);
 
