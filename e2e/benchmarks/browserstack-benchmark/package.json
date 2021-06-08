@@ -22,7 +22,6 @@
     "build-deps": "yarn build-tfjs && yarn build-tfjs-vis",
     "build-tfjs": "cd ../../../tfjs && yarn && yarn build-deps && yarn build-npm",
     "build-tfjs-vis": "cd ../../../tfjs-vis && yarn && yarn build"
-
   },
   "license": "Apache-2.0",
   "engines": {
