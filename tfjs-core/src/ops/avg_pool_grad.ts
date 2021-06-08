@@ -24,6 +24,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {ExplicitPadding} from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -40,12 +41,15 @@ import {reshape} from './reshape';
  *     `filterSize` is a single number, then `filterHeight == filterWidth`.
  * @param strides The strides of the pooling: `[strideHeight, strideWidth]`. If
  *     `strides` is a single number, then `strideHeight == strideWidth`.
- * @param pad A string from: 'same', 'valid'. The type of padding algorithm
- *     used in the forward prop of the op.
+ * @param pad The type of padding algorithm used in the forward prop of the op.
+ *     'same', 'valid', for more info, see this guide:
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *         https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  */
 function avgPoolGrad_<T extends Tensor3D|Tensor4D>(
     dy: T|TensorLike, input: T|TensorLike, filterSize: [number, number]|number,
-    strides: [number, number]|number, pad: 'valid'|'same'|number): T {
+    strides: [number, number]|number,
+    pad: 'valid'|'same'|number|ExplicitPadding): T {
   const $dy = convertToTensor(dy, 'dy', 'avgPoolGrad');
   const $input = convertToTensor(input, 'input', 'avgPoolGrad');
 
