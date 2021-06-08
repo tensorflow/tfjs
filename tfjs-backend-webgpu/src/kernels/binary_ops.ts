@@ -30,6 +30,7 @@ export enum BinaryOpType {
   GREATER_EQUAL,
   LESS,
   LESS_EQUAL,
+  LOGICAL_AND,
   NOT_EQUAL,
   SQUARED_DIFFERENCE,
   INT_DIV,
@@ -88,6 +89,11 @@ export function getBinaryOpString(
     case BinaryOpType.LESS_EQUAL:
       return useVec4 ? 'return vec4(lessThanEqual(a, b));' :
                        'return float(a <= b);';
+    case BinaryOpType.LOGICAL_AND:
+      return useVec4 ? `return vec4(
+      vec4(greaterThanEqual(a, vec4(1.0))) *
+      vec4(greaterThanEqual(b, vec4(1.0))));` :
+                       'return float(float(a) >= 1.0 && float(b) >= 1.0);';
     case BinaryOpType.NOT_EQUAL:
       return useVec4 ? 'return vec4(notEqual(a, b));' : 'return float(a != b);';
     case BinaryOpType.SQUARED_DIFFERENCE:
