@@ -20,6 +20,8 @@ const socketio = require('socket.io');
 const fs = require('fs');
 const path = require('path');
 const {execFile} = require('child_process');
+const { ArgumentParser } = require('argparse');
+const { version } = require('./package.json');
 
 const port = process.env.PORT || 8001;
 let io;
@@ -150,5 +152,15 @@ function benchmark(config) {
   }
 }
 
+/** Set up --help menu to show available optional commands */
+function setUpHelpMessage() {
+  const parser = new ArgumentParser({
+    description: 'The following commands are available:'
+  });
+  parser.add_argument('-v', '--version', { action: 'version', version });
+  console.dir(parser.parse_args());
+}
+
+setUpHelpMessage();
 checkBrowserStackAccount();
 runServer();
