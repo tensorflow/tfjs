@@ -8,14 +8,21 @@
     "url": "https://github.com/tensorflow/tfjs"
   },
   "devDependencies": {
+    "@tensorflow/tfjs": "link:../../../tfjs",
+    "@tensorflow/tfjs-vis": "link:../../../tfjs-vis",
+    "argparse": "^2.0.1",
     "karma": "^4.4.1",
     "karma-browserstack-launcher": "^1.6.0",
     "karma-jasmine": "^3.3.1",
     "karma-chrome-launcher": "^3.1.0",
-    "socket.io": "~2.2.0"
+    "socket.io": "~2.2.0"    
   },
   "scripts": {
-    "test": "karma start"
+    "test": "karma start",
+    "build-deps": "yarn build-tfjs && yarn build-tfjs-vis",
+    "build-tfjs": "cd ../../../tfjs && yarn && yarn build-deps && yarn build-npm",
+    "build-tfjs-vis": "cd ../../../tfjs-vis && yarn && yarn build"
+
   },
   "license": "Apache-2.0",
   "engines": {
