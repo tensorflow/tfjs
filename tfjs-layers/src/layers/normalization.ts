@@ -13,7 +13,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {moments, serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
+import {moments, reshape, serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerArgs} from '../engine/topology';
@@ -131,12 +131,12 @@ function broadcastNormalizeBatchInTraining(
                targetShape.push(x.shape[axis]);
              }
            }
-           const broadcastMean = mean.reshape(targetShape);
-           const broadcastVariance = variance.reshape(targetShape);
+           const broadcastMean = reshape(mean, targetShape);
+           const broadcastVariance = reshape(variance, targetShape);
            const broadcastGamma =
-               gamma == null ? null : gamma.reshape(targetShape);
+               gamma == null ? null : reshape(gamma, targetShape);
            const broadcastBeta =
-               beta == null ? null : beta.reshape(targetShape);
+               beta == null ? null : reshape(beta, targetShape);
            const normed = batchNormalization(
                x, broadcastMean, broadcastVariance, broadcastBeta,
                broadcastGamma, epsilon);
@@ -346,13 +346,13 @@ export class BatchNormalization extends Layer {
       const normalizeInference: () => Tensor = () => {
         if (needsBroadcasting) {
           const broadcastMovingMean =
-              this.movingMean.read().reshape(broadcastShape);
+              reshape(this.movingMean.read(), broadcastShape);
           const broadcastMovingVariance =
-              this.movingVariance.read().reshape(broadcastShape);
+              reshape(this.movingVariance.read(), broadcastShape);
           const broadcastBeta =
-              this.center ? this.beta.read().reshape(broadcastShape) : null;
+              this.center ? reshape(this.beta.read(), broadcastShape) : null;
           const broadcastGamma =
-              this.scale ? this.gamma.read().reshape(broadcastShape) : null;
+              this.scale ? reshape(this.gamma.read(), broadcastShape) : null;
           return batchNormalization(
               input, broadcastMovingMean, broadcastMovingVariance,
               broadcastBeta, broadcastGamma, this.epsilon);
@@ -377,8 +377,8 @@ export class BatchNormalization extends Layer {
             tfc.tidy(() => {
               const decay = 1 - momentum;
               const origValue = variable.read();
-              const updateDelta = origValue.sub(value).mul(decay);
-              variable.write(origValue.sub(updateDelta));
+              const updateDelta = tfc.mul(tfc.sub(origValue, value), decay);
+              variable.write(tfc.sub(origValue, updateDelta));
             });
           };
 
@@ -584,7 +584,7 @@ export class LayerNormalization extends Layer {
       const broadcast = (v: Tensor) => {
         if (v != null && v.shape.length !== nDims &&
             this.axis !== [nDims - 1]) {
-          return v.reshape(broadcastShape);
+          return tfc.reshape(v, broadcastShape);
         } else {
           return v;
         }
@@ -610,10 +610,10 @@ export class LayerNormalization extends Layer {
           scaleOffsetTiling.push(inputShape[i]);
         }
       }
-      mean = mean.tile(momentsTiling);
-      variance = variance.tile(momentsTiling);
-      scale = scale.tile(scaleOffsetTiling);
-      offset = offset.tile(scaleOffsetTiling);
+      mean = tfc.tile(mean, momentsTiling);
+      variance = tfc.tile(variance, momentsTiling);
+      scale = tfc.tile(scale, scaleOffsetTiling);
+      offset = tfc.tile(offset, scaleOffsetTiling);
 
       return batchNormalization(
           input, mean, variance, offset, scale, this.epsilon);

@@ -8,7 +8,7 @@
  * =============================================================================
  */
 
-import {DataType, eye, linalg, mul, ones, randomUniform, scalar, serialization, Tensor, Tensor2D, tidy, truncatedNormal, zeros} from '@tensorflow/tfjs-core';
+import {DataType, eye, linalg, mul, ones, randomUniform, scalar, serialization, Tensor, Tensor2D, tidy, transpose, truncatedNormal, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import {checkDataFormat} from './common';
@@ -561,7 +561,7 @@ export class Orthogonal extends Initializer {
       const a = K.randomNormal(normalizedShape, 0, 1, 'float32') as Tensor2D;
       let q = linalg.gramSchmidt(a) as Tensor2D;
       if (shape[0] > shape[1]) {
-        q = q.transpose();
+        q = transpose(q);
       }
       return mul(this.gain, q);
     });

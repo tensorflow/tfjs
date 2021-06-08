@@ -167,7 +167,7 @@ export function rnn(
     }
 
     if (mask != null) {
-      mask = mask.asType('bool').asType('float32');
+      mask = tfc.cast(tfc.cast(mask, 'bool'), 'float32');
       if (mask.rank === ndim - 1) {
         mask = tfc.expandDims(mask, -1);
       }
@@ -211,12 +211,15 @@ export function rnn(
       } else {
         const maskedOutputs = tfc.tidy(() => {
           const stepMask = perStepMasks[t];
-          const negStepMask = tfc.onesLike(stepMask).sub(stepMask);
+          const negStepMask = tfc.sub(tfc.onesLike(stepMask), stepMask);
           // TODO(cais): Would tfc.where() be better for performance?
-          const output =
-              stepOutputs[0].mul(stepMask).add(states[0].mul(negStepMask));
+          const output = tfc.add(
+              tfc.mul(stepOutputs[0], stepMask),
+              tfc.mul(states[0], negStepMask));
           const newStates = states.map((state, i) => {
-            return stepOutputs[1][i].mul(stepMask).add(state.mul(negStepMask));
+            return tfc.add(
+                tfc.mul(stepOutputs[1][i], stepMask),
+                tfc.mul(state, negStepMask));
           });
           return {output, newStates};
         });

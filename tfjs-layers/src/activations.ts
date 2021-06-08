@@ -222,7 +222,7 @@ export class Swish extends Activation {
    * @returns a Tensor of the same shape as x
    */
   apply(x: Tensor, alpha = 1): Tensor {
-    return tidy(() => tfc.sigmoid(x.mul(alpha)).mul(x));
+    return tidy(() => tfc.mul(tfc.sigmoid(tfc.mul(x, alpha)), x));
   }
 }
 serialization.registerClass(Swish);
@@ -250,8 +250,8 @@ export function serializeActivation(activation: Activation): string {
 }
 
 export function deserializeActivation(
-   config: serialization.ConfigDict,
-   customObjects: serialization.ConfigDict = {}): Activation {
+    config: serialization.ConfigDict,
+    customObjects: serialization.ConfigDict = {}): Activation {
   return deserializeKerasObject(
       config, serialization.SerializationMap.getMap().classNameMap,
       customObjects, 'activation');
