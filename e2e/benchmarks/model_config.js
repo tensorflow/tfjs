@@ -357,25 +357,26 @@ const benchmarks = {
         };
       } else if (modelConfig.name === 'BlazePose') {
         const runtime = 'tfjs';
-        const enableSmoothing = true;
+        const enableSmoothing = false;
         const modelType = modelConfig.type;
         config = {runtime, enableSmoothing, modelType};
       }
       const model =
           await poseDetection.createDetector(modelConfig.name, config);
+      const image = await loadImage('tennis_standing.jpg');
       if (inputType === 'tensor') {
-        model.input = tf.zeros([inputResolution, inputResolution, 3]);
+        model.input = tf.browser.fromPixels(image);
       } else if (inputType === 'imageBitmap') {
-        const image = await loadImage('tennis_standing.jpg');
         model.input =
             await createImageBitmap(image, {premultiplyAlpha: 'none'});
       } else {
-        model.input = await loadImage('tennis_standing.jpg');
+        model.input = image;
       }
       return model;
     },
     predictFunc: () => {
       return async model => {
+        model.reset();
         return model.estimatePoses(model.input);
       };
     }
