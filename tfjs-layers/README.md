@@ -26,6 +26,12 @@ Option 1 is the most convenient, but leads to a larger bundle size (we will be
 adding more packages to it in the future). Use option 2 if you care about bundle
 size.
 
+### Note
+For option 2 and 3, you need to also inculde the import of gradient registration:
+```ts
+// tslint:disable-next-line: no-imports-from-dist
+import '@tensorflow/tfjs-core/dist/register_all_gradients';
+```
 ## Getting started
 
 ### Building, training and executing a model
