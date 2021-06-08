@@ -84,7 +84,7 @@ export type AvgPoolInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface AvgPoolAttrs {
   filterSize: [number, number]|number;
   strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 
@@ -93,7 +93,7 @@ export type AvgPoolGradInputs = Pick<NamedTensorInfoMap, 'dy'|'input'>;
 export interface AvgPoolGradAttrs {
   filterSize: [number, number]|number;
   strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
 }
 
 export const AvgPool3D = 'AvgPool3D';
@@ -485,7 +485,7 @@ export type MaxPoolInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface MaxPoolAttrs {
   filterSize: [number, number]|number;
   strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 
@@ -494,7 +494,7 @@ export type MaxPoolGradInputs = Pick<NamedTensorInfoMap, 'dy'|'input'|'output'>;
 export interface MaxPoolGradAttrs {
   filterSize: [number, number]|number;
   strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 

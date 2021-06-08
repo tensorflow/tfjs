@@ -93,6 +93,18 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [2.5, 3, 3.5, 4]);
   });
 
+  it('x=[3,3,1] f=[3,3] s=1 p=explicit', async () => {
+    // Feed forward.
+    const x = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8], [3, 3, 1]);
+    const padding =
+        [[0, 0], [1, 2], [0, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
+    const result = tf.avgPool(x, 3, 1, padding);
+
+    expect(result.shape).toEqual([4, 2, 1]);
+    expectArraysClose(
+        await result.data(), [2.5, 3, 4, 4.5, 5.5, 6, 7, 7.5]);
+  });
+
   it('x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor', () => {
     // Feed forward.
     const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
@@ -134,6 +146,18 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
       4 * avgMultiplier, 10 * avgMultiplier, 6 * avgMultiplier,
       3 * avgMultiplier, 7 * avgMultiplier, 4 * avgMultiplier
     ]);
+  });
+
+  it('gradient x=[3,3,1] f=[3,3] s=1 p=explicit', async () => {
+    // Feed forward.
+    const x = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8], [3, 3, 1]);
+    const padding =
+        [[0, 0], [1, 2], [0, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
+    const dy = tf.tensor3d([0, 3, 0, 6, 0, 9, 0, 12], [4, 2, 1]);
+    const dx = tf.grad((x: tf.Tensor3D) => x.avgPool(3, 1, padding))(x, dy);
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(
+        await dx.data(), [0, 1, 1, 0, 2, 2, 0, 3, 3]);
   });
 
   it('gradient x=[2,3,3,1] f=[2,2], s=1', async () => {
