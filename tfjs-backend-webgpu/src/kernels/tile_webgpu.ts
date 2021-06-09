@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,63 +14,48 @@
  * limitations under the License.
  * =============================================================================
  */
-
 import {util} from '@tensorflow/tfjs-core';
+
 import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
-export class SliceProgram implements WebGPUProgram {
-  variableNames = ['source'];
-  uniforms: string;
+export class TileProgram implements WebGPUProgram {
+  variableNames = ['A'];
   outputShape: number[];
   shaderKey: string;
-  rank: number;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workPerThread = 1;
   workGroupSize: [number, number, number] = [64, 1, 1];
-  start: number[];
+  dtype: string;
   size: number;
+  rank: number;
 
-  constructor(start: number[], destSize: number[]) {
-    this.outputShape = destSize;
-    this.rank = destSize.length;
+  constructor(aShape: number[], reps: number[]) {
+    const outputShape: number[] = new Array(aShape.length);
+    for (let i = 0; i < outputShape.length; i++) {
+      outputShape[i] = aShape[i] * reps[i];
+    }
+    this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
-
-    this.start = start;
-    this.uniforms = `${getCoordsDataType(start.length)} start; `;
-    this.shaderKey = 'slice';
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
+    this.rank = this.outputShape.length;
     this.size = util.sizeFromShape(this.outputShape);
+    this.shaderKey = 'tile';
   }
 
   getUserCode(): string {
     const dtype = getCoordsDataType(this.rank);
-    const sourceCoords = getCoords(this.rank);
-    let coordSum;
-    if (this.start.length === 1) {
-      coordSum = this.outputShape.map((_, i) => {
-        return `sourceLoc.${coords[i]} = start + coords.${coords[i]};`;
-      });
-    } else {
-      coordSum = this.outputShape.map((_, i) => {
-        return `sourceLoc.${coords[i]} = start[${i}] + coords.${coords[i]};`;
-      });
-    }
+    const sourceCoords = getSourceCoords(this.rank);
 
     const userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
-        if (index < size)
-        {
-          ${dtype} sourceLoc;
-          ${dtype} coords = getOutputCoords();
-          ${coordSum.join('\n')}
-          setOutput(index, getSource(${sourceCoords}));
+        if (index < size) {
+          ${dtype} resRC = getOutputCoords();
+          setOutput(index, getA(${sourceCoords}));
         }
       }
     `;
@@ -78,14 +63,18 @@ export class SliceProgram implements WebGPUProgram {
   }
 }
 
-const coords = ['x', 'y', 'z', 'w', 'u', 'v'];
-
-function getCoords(rank: number): string {
-  if (rank === 1) {
-    return 'sourceLoc';
-  } else if (rank <= 6) {
-    return coords.slice(0, rank).map(coord => `sourceLoc.${coord}`).join(',');
-  } else {
-    throw Error(`Slicing for rank ${rank} is not yet supported`);
+function getSourceCoords(rank: number): string {
+  if (rank >= 5) {
+    throw Error(`Tile for rank ${rank} is not yet supported`);
   }
+  if (rank === 1) {
+    return `(resRC % aShape)`;
+  }
+
+  const currentCoords = ['resRC.x', 'resRC.y', 'resRC.z', 'resRC.w'];
+  const sourceCoords = [];
+  for (let i = 0; i < rank; i++) {
+    sourceCoords.push(`(${currentCoords[i]} % aShape[${i}])`);
+  }
+  return sourceCoords.join();
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+import {ExplicitPadding} from '../../ops/conv_util';
 import {pool} from '../../ops/pool';
 import {getGlobalTensorClass, Tensor3D, Tensor4D} from '../../tensor';
 import {Rank} from '../../types';
@@ -22,14 +23,16 @@ declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
     pool<T extends Tensor3D|Tensor4D>(
         windowShape: [number, number]|number, poolingType: 'avg'|'max',
-        padding: 'valid'|'same'|number, diationRate?: [number, number]|number,
+        padding: 'valid'|'same'|number|ExplicitPadding,
+        diationRate?: [number, number]|number,
         strides?: [number, number]|number): T;
   }
 }
 
 getGlobalTensorClass().prototype.pool = function<T extends Tensor3D|Tensor4D>(
     this: T, windowShape: [number, number]|number, poolingType: 'max'|'avg',
-    padding: 'valid'|'same'|number, dilationRate?: [number, number]|number,
+    padding: 'valid'|'same'|number|ExplicitPadding,
+    dilationRate?: [number, number]|number,
     strides?: [number, number]|number): T {
   this.throwIfDisposed();
   return pool(this, windowShape, poolingType, padding, dilationRate, strides);

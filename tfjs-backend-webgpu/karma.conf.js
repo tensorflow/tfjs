@@ -70,7 +70,7 @@ module.exports = function(config) {
       chrome_webgpu: {
         base: 'Chrome',
         flags: [
-          '--enable-unsafe-webgpu', '--enable-dawn-features=disable_robustness'
+          '--enable-unsafe-webgpu',
         ],
       }
     },
