@@ -9,8 +9,8 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "build_bazel_rules_nodejs",
-    sha256 = "a160d9ac88f2aebda2aa995de3fa3171300c076f06ad1d7c2e1385728b8442fa",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/3.4.1/rules_nodejs-3.4.1.tar.gz"],
+    sha256 = "0fa2d443571c9e02fcb7363a74ae591bdcce2dd76af8677a95965edf329d778a",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/3.6.0/rules_nodejs-3.6.0.tar.gz"],
 )
 
 load("@build_bazel_rules_nodejs//:index.bzl", "yarn_install")
@@ -40,12 +40,12 @@ browser_repositories(
 )
 
 # Install esbuild
-_ESBUILD_VERSION = "0.11.6"  # reminder: update SHAs below when changing this value
+_ESBUILD_VERSION = "0.12.1"  # reminder: update SHAs below when changing this value
 
 http_archive(
     name = "esbuild_darwin",
     build_file_content = """exports_files(["bin/esbuild"])""",
-    sha256 = "2b06365b075b854654fc9ed26fcd48a0c38947e1c8d5151ce400cd1e173bb138",
+    sha256 = "efb34692bfa34db61139eb8e46cd6cf767a42048f41c8108267279aaf58a948f",
     strip_prefix = "package",
     urls = [
         "https://registry.npmjs.org/esbuild-darwin-64/-/esbuild-darwin-64-%s.tgz" % _ESBUILD_VERSION,
@@ -55,7 +55,7 @@ http_archive(
 http_archive(
     name = "esbuild_windows",
     build_file_content = """exports_files(["esbuild.exe"])""",
-    sha256 = "ddab1121833f0a12ca4fb3e288231e058f5526310671e84c0a9aa575340bb20b",
+    sha256 = "10439647b11c7fd1d9647fd98d022fe2188b4877d2d0b4acbe857f4e764b17a9",
     strip_prefix = "package",
     urls = [
         "https://registry.npmjs.org/esbuild-windows-64/-/esbuild-windows-64-%s.tgz" % _ESBUILD_VERSION,
@@ -65,7 +65,7 @@ http_archive(
 http_archive(
     name = "esbuild_linux",
     build_file_content = """exports_files(["bin/esbuild"])""",
-    sha256 = "34612e3e15e6c31d9d742d3fd677bd5208b7e5c0ee9c93809999138c6c5c1039",
+    sha256 = "de8409b90ec3c018ffd899b49ed5fc462c61b8c702ea0f9da013e0e1cd71549a",
     strip_prefix = "package",
     urls = [
         "https://registry.npmjs.org/esbuild-linux-64/-/esbuild-linux-64-%s.tgz" % _ESBUILD_VERSION,
