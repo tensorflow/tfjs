@@ -69,7 +69,18 @@ function stringNGrams_(
     nGramWidths: number[], leftPad: string, rightPad: string, padWidth: number,
     preserveShortSequences: boolean): NamedTensorMap {
   const $data = convertToTensor(data, 'data', 'stringNGrams', 'string');
+  if ($data.dtype !== 'string') {
+    throw new Error('Data must be of datatype string');
+  }
+  if ($data.shape.length !== 1) {
+    throw new Error(`Data must be a vector, saw: ${$data.shape}`);
+  }
+
   const $dataSplits = convertToTensor(dataSplits, 'dataSplits', 'stringNGrams');
+  if ($dataSplits.dtype !== 'int32') {
+    throw new Error('Data splits must be of datatype int32');
+  }
+
   const attrs: StringNGramsAttrs = {
     separator,
     nGramWidths,

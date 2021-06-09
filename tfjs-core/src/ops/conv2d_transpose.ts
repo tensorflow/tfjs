@@ -19,6 +19,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
 import {conv2DBackpropInput} from './conv2d_backprop_input';
+import {ExplicitPadding} from './conv_util';
 import {op} from './operation';
 
 /**
@@ -44,7 +45,8 @@ import {op} from './operation';
 function conv2dTranspose_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filter: Tensor4D|TensorLike,
     outputShape: [number, number, number, number]|[number, number, number],
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
+    strides: [number, number]|number,
+    pad: 'valid'|'same'|number|ExplicitPadding,
     dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   const $x = convertToTensor(x, 'x', 'conv2dTranspose');
   const $filter = convertToTensor(filter, 'filter', 'conv2dTranspose');
