@@ -12,7 +12,7 @@
  * Unit tests for core.ts.
  */
 
-import {ones, serialization, Tensor, tensor1d, Tensor2D, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
+import {cast, ones, serialization, Tensor, tensor1d, Tensor2D, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
 import {SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
@@ -445,7 +445,7 @@ describeMathCPUAndGPU('Concatenate Layer: Tensor', () => {
     const x1 = tensor2d([[1], [0], [1]]);
     const x2 = tensor2d([[1], [0], [0]]);
     const mask =
-        layer.computeMask([x1, x2], [x1.asType('bool'), x2.asType('bool')]);
+        layer.computeMask([x1, x2], [cast(x1, 'bool'), cast(x2, 'bool')]);
     expectTensorsClose(mask, tensor1d([true, false, false], 'bool'));
   });
 
