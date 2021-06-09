@@ -96,6 +96,7 @@ import {stringNGramsConfig} from './kernels/StringNGrams';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanhConfig} from './kernels/Tanh';
+import {tileConfig} from './kernels/Tile';
 import {transformConfig} from './kernels/Transform';
 import {transposeConfig} from './kernels/Transpose';
 import {unpackConfig} from './kernels/Unpack';
@@ -183,6 +184,7 @@ const kernelConfigs: KernelConfig[] = [
   subConfig,
   sumConfig,
   tanhConfig,
+  tileConfig,
   transformConfig,
   transposeConfig,
   unpackConfig,

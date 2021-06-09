@@ -612,6 +612,13 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'stringNGrams ',
   },
   {
+    startsWith: 'tile ',
+    excludes: [
+      'bool (tile)',  // Unsupported bool.
+      'gradient'      // gradient function not found.
+    ]
+  },
+  {
     startsWith: 'pow ',
     excludes: [
       'gradient'  // gradient function not found.
