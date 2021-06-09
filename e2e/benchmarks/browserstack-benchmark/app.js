@@ -152,10 +152,12 @@ function benchmark(config) {
   }
 }
 
-/** Set up --help menu to show available optional commands */
+/** Set up --help menu for file description and available optional commands */
 function setUpHelpMessage() {
   const parser = new ArgumentParser({
-    description: 'The following commands are available:'
+    description: 'This file launches a server to connect to BrowserStack ' +
+        'so that the performance of a TensorFlow model on one or more ' +
+        'browsers can be benchmarked.'
   });
   parser.add_argument('-v', '--version', { action: 'version', version });
   console.dir(parser.parse_args());
