@@ -56,7 +56,8 @@ import {spaceToBatchND} from './space_to_batch_nd';
  */
 function pool_<T extends Tensor3D|Tensor4D>(
     input: T|TensorLike, windowShape: [number, number]|number,
-    poolingType: 'avg'|'max', pad: 'valid'|'same'|number,
+    poolingType: 'avg'|'max',
+    pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
     dilations?: [number, number]|number, strides?: [number, number]|number) {
   if (dilations == null) {
     dilations = [1, 1];
