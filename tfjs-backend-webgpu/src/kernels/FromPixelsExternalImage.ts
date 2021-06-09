@@ -15,20 +15,20 @@
  * =============================================================================
  */
 
-import {FromPixelsAttrs, TensorInfo, util} from '@tensorflow/tfjs-core';
-import {WebGPUBackend} from '../backend_webgpu';
-import {FromPixelsProgram} from './FromPixels_utils/from_pixels_webgpu';
+import { FromPixelsAttrs, TensorInfo, util } from '@tensorflow/tfjs-core';
+import { WebGPUBackend } from '../backend_webgpu';
+import { FromPixelsProgram } from './FromPixels_utils/from_pixels_webgpu';
 import * as webgpu_program from './webgpu_program';
 
-export function fromPixelsImageBitmap(args: {
-  imageBitmap: ImageBitmap,
+export function fromPixelsExternalImage(args: {
+  externalImage: HTMLCanvasElement | ImageBitmap | OffscreenCanvas,
   backend: WebGPUBackend,
   attrs: FromPixelsAttrs
 }): TensorInfo {
-  const {imageBitmap, backend, attrs} = args;
-  const {numChannels} = attrs;
+  const { externalImage, backend, attrs } = args;
+  const { numChannels } = attrs;
 
-  const outShape = [imageBitmap.height, imageBitmap.width, numChannels];
+  const outShape = [externalImage.height, externalImage.width, numChannels];
   const size = util.sizeFromShape(outShape);
   const strides = util.computeStrides(outShape);
   const uniformData = [size, numChannels, ...strides];
@@ -41,29 +41,29 @@ export function fromPixelsImageBitmap(args: {
   }
 
   // Different outShape will affect preprocessor result,
-  // e.g. getCoordsFromFlatIndex. FromPixelsImageBitmap need
+  // e.g. getCoordsFromFlatIndex. FromPixelsImageExternalImage needs
   // to recompile the pipeline to get the correct result.
-  // FromPixelsImageBitmap leverages webgpu backend pipeline
+  // FromPixelsExternalImage leverages webgpu backend pipeline
   // cache system to avoid useless recompile.
   const outputShapes = [output.shape];
   const outputTypes = [output.dtype];
   const key = webgpu_program.makeShaderKey(
-      backend.fromPixelProgram, outputShapes, outputTypes);
+    backend.fromPixelProgram, outputShapes, outputTypes);
 
   const pipeline = backend.getAndSavePipeline(key, () => {
     return webgpu_program.compileProgram(
-        backend.glslang, backend.device, backend.fromPixelProgram,
-        backend.fromPixelLayout.pipelineLayout, [], output, true);
+      backend.glslang, backend.device, backend.fromPixelProgram,
+      backend.fromPixelLayout.pipelineLayout, [], output, true);
   });
 
   backend.fromPixelProgram.setPipeline(pipeline);
 
-  backend.queue.copyImageBitmapToTexture(
-      {imageBitmap, origin: {x: 0, y: 0}}, {
-        texture: backend.fromPixelProgram.makeInputTexture(
-            backend.device, imageBitmap.width, imageBitmap.height)
-      },
-      [imageBitmap.width, imageBitmap.height]);
+  backend.queue.copyExternalImageToTexture(
+    { source: externalImage, origin: { x: 0, y: 0 } }, {
+      texture: backend.fromPixelProgram.makeInputTexture(
+        backend.device, externalImage.width, externalImage.height)
+    },
+    [externalImage.width, externalImage.height]);
 
   const info = backend.tensorMap.get(output.dataId);
 
