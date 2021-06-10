@@ -22,7 +22,7 @@ const modulePath =
     module_path_napi.replace('{napi_build_version}', process.versions.napi);
 
 /** Version of the libtensorflow shared library to depend on. */
-const LIBTENSORFLOW_VERSION = '2.4.1';
+const LIBTENSORFLOW_VERSION = '2.5.0';
 
 /** Map the os.arch() to arch string in a file name */
 const ARCH_MAPPING = {
