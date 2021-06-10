@@ -63,8 +63,8 @@ export class BinaryOpProgram implements WebGPUProgram {
           void main() {
             int index = int(gl_GlobalInvocationID.x);
 
-            float a = A[index];
-            float b = B[index];
+            float a = float(A[index]);
+            float b = float(B[index]);
             setOutput(index, binaryOperation(a, b));
           }
         `;
