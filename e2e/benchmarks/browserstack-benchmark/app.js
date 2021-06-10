@@ -20,7 +20,7 @@ const socketio = require('socket.io');
 const fs = require('fs');
 const path = require('path');
 const {execFile} = require('child_process');
-const { ArgumentParser } = require('argparse');
+const { argumentParser } = require('argparse');
 const { version } = require('./package.json');
 
 const port = process.env.PORT || 8001;
@@ -154,7 +154,7 @@ function benchmark(config) {
 
 /** Set up --help menu for file description and available optional commands */
 function setUpHelpMessage() {
-  const parser = new ArgumentParser({
+  const parser = new argumentParser({
     description: 'This file launches a server to connect to BrowserStack ' +
         'so that the performance of a TensorFlow model on one or more ' +
         'browsers can be benchmarked.'
