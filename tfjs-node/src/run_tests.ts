@@ -67,9 +67,16 @@ const IGNORE_LIST: string[] = [
   'scatterND test-tensorflow {} should work for tensorLike input',
   // https://github.com/tensorflow/tfjs/issues/1077
   'maxPool test-tensorflow {} x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor',
+  // Node backend which uses TF 2.4.0 doesn't support explicit padding
+  'avgPool test-tensorflow {} x=[3,3,1] f=[3,3] s=1 p=explicit',
   'avgPool test-tensorflow {} x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor',
+  // Node backend which uses TF 2.4.0 doesn't support explicit padding
+  'avgPool test-tensorflow {} gradient x=[3,3,1] f=[3,3] s=1 p=explicit',
   // tslint:disable-next-line:max-line-length
   'avgPool3d test-tensorflow {} x=[1,2,2,2,1] f=[2,2,2] s=1 p=1 roundingMode=floor',
+  // Node backend which uses TF 2.4.0 doesn't support explicit padding
+  'maxPool test-tensorflow {} x=[3,3,1] f=[3,3] s=1 p=explicit',
+  'maxPoolBackprop test-tensorflow {} gradient x=[3,3,1] f=3 s=1 p=explicit',
   // tslint:disable-next-line:max-line-length
   'maxPool3d test-tensorflow {} x=[1,2,2,2,1] f=[2,2,2] s=1 p=1 roundingMode=floor',
   // libtensorflow doesn't support 6D ArgMax yet.
@@ -83,11 +90,19 @@ const IGNORE_LIST: string[] = [
   'conv2d test-tensorflow {} x=[2,1,2,2] f=[2,2,1,1] s=1 d=1 p=same NCHW',
   'conv2d test-tensorflow {} gradient x=[1,1,3,3] f=[2,2,1,1] s=1 p=0 NCHW',
   'conv2d test-tensorflow {} gradient x=[2,1,3,3] f=[2,2,1,1] s=1 p=0 NCHW',
+  // Node backend which uses TF 2.4.0 doesn't support explicit padding
+  'conv2dTranspose test-tensorflow {} input=3x3x1,d2=1,f=2,s=2,p=explicit',
+  // tslint:disable-next-line:max-line-length
+  'conv2dTranspose test-tensorflow {} gradient input=[1,3,3,1] f=[2,2,2,1] s=[1,1] p=explicit',
   'maxPoolWithArgmax', 'rotate', 'flipLeftRight', 'unique',
   // libtensorflow does not yet support tf.matmul with broadcast
   'broadcast with unequal batch dims', 'broadcast with unequal ranks',
+  // Node backend which uses TF 2.4.0 doesn't support explicit padding
+  'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=1 d=1 p=explicit',
   // tslint:disable-next-line:max-line-length
   'pool test-tensorflow {} max x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding',
+  // Node backend which uses TF 2.4.0 doesn't support explicit padding
+  'pool test-tensorflow {} avg x=[3,3,1] f=[3,3] s=1 d=1 p=explicit',
   // tslint:disable-next-line:max-line-length
   'pool test-tensorflow {} avg x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding',
   // not available in tf yet.

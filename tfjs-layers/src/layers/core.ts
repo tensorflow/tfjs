@@ -12,7 +12,7 @@
  * TensorFlow.js Layers: Basic Layers.
  */
 
-import {any, notEqual, serialization, Tensor, tidy, transpose, util} from '@tensorflow/tfjs-core';
+import {any, cast, mul, notEqual, reshape, serialization, Tensor, tidy, transpose, util} from '@tensorflow/tfjs-core';
 
 import {Activation as ActivationFn, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/tfjs_backend';
@@ -351,7 +351,7 @@ export class Flatten extends Layer {
           permutation.push(i);
         }
         permutation.push(1);
-        input = input.transpose(permutation);
+        input = transpose(input, permutation);
       }
 
       return K.batchFlatten(input);
@@ -540,7 +540,7 @@ export class Reshape extends Layer {
       const inputShape = input.shape;
       const outputShape = inputShape.slice(0, 1).concat(
           this.fixUnknownDimension(inputShape.slice(1), this.targetShape));
-      return input.reshape(outputShape);
+      return reshape(input, outputShape);
     });
   }
 
@@ -667,7 +667,7 @@ export class Masking extends Layer {
       const axis = -1;
       const keepDims = true;
       const booleanMask = any(notEqual(input, this.maskValue), axis, keepDims);
-      const output = input.mul(booleanMask.asType(input.dtype));
+      const output = mul(input, cast(booleanMask, input.dtype));
       return output;
     });
   }
