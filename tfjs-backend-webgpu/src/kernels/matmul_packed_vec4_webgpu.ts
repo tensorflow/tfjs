@@ -15,8 +15,9 @@
  * =============================================================================
  */
 
-import {TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
+import {mapActivationToShaderProgram} from './activation_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -172,7 +173,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   isVec4 = true;
   aShape: [number, number, number];
   addBias: boolean;
-  activation: string;
+  activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
   vecSize = 4;
   fitA: boolean;
@@ -180,7 +181,8 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
-      rowPerThread: number, bias: TensorInfo = null, activation: string = null,
+      rowPerThread: number, bias: TensorInfo = null,
+      activation: backend_util.Activation = null,
       preluActivationWeights: TensorInfo = null) {
     this.outputShape = outputShape;
     this.workGroupSize = computeWorkGroupSizeForMatMul(
@@ -211,8 +213,8 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
 
     [this.fitA, this.fitB] = this.getShapeFit();
 
-    this.shaderKey = `matMulPackedVec4_${rowPerThread}_${activation}_${
-        this.fitA}_${this.fitB}_${this.outputShape[1] > 1}`;
+    this.shaderKey = `matMulPackedVec4_${rowPerThread}_${this.activation}_${
+        this.isVec4}_${this.fitA}_${this.fitB}_${this.outputShape[1] > 1}`;
   }
 
   getShapeFit(): boolean[] {
@@ -246,15 +248,17 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
 
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
+      const activationOp =
+          mapActivationToShaderProgram(this.activation, this.isVec4);
       if (this.hasPreluActivationWeights) {
         activationSnippet = `vec4 activation(vec4 a, ivec3 outCoord) {
                   vec4 b = getPreluActivationWeightsAtOutCoords(outCoord);
-                  ${this.activation}
+                  ${activationOp}
                 }`;
       } else {
         activationSnippet = `
                 vec4 activation(vec4 a, ivec3 outCoord) {
-                  ${this.activation}
+                  ${activationOp}
                 }`;
       }
 

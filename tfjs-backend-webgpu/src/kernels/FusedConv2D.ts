@@ -72,21 +72,17 @@ export function fusedConv2d(args: {
 
   const useVec4 =
       convInfo.inChannels % 4 === 0 && convInfo.outChannels % 4 === 0;
-  const packed = !useNaive && useVec4;
-  const fusedActivation = activation ?
-      backend.mapActivationToShaderProgram(activation, packed) :
-      null;
 
   if (useNaive) {
     // TODO(kainino0x): This may be obsolete, but is kept for reference.
     program = new Conv2DNaiveProgram(
-        convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
+        convInfo, hasBias, activation, hasPreluActivationWeights);
   } else if (useVec4) {
     program = new Conv2DMMVec4Program(
-        convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
+        convInfo, hasBias, activation, hasPreluActivationWeights);
   } else {
     program = new Conv2DMMProgram(
-        convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
+        convInfo, hasBias, activation, hasPreluActivationWeights);
   }
 
   const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
