@@ -18,8 +18,11 @@
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import sourcemaps from 'rollup-plugin-sourcemaps';
+import {babel} from '@rollup/plugin-babel';
+import {terser} from 'rollup-plugin-terser';
+import visualizer from 'rollup-plugin-visualizer';
 
-const PREAMBLE = `/**
+const preamble = `/**
  * @license
  * Copyright ${(new Date).getFullYear()} Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,6 +39,21 @@ const PREAMBLE = `/**
  * =============================================================================
  */`;
 
+const useBabel = TEMPLATE_es5 ? [babel({ babelHelpers: 'bundled' })] : [];
+
+// Without `compress: {typeofs: false}`, the terser plugin will turn
+// `typeof _scriptDir == "undefined"` into `_scriptDir === void 0` in minified
+// JS file which will cause "_scriptDir is undefined" error in web worker's
+// inline script.
+//
+// For more context, see tfjs-backend-wasm/scripts/patch-threaded-simd-module.js
+const useTerser = TEMPLATE_minify ? [
+  terser({
+    output: {preamble, comments: false},
+    compress: {typeofs: false},
+  })
+] : [];
+
 export default {
   output: {
     freeze: false, // For tests that spyOn imports
@@ -44,5 +62,12 @@ export default {
     resolve({browser: true}),
     commonjs(),
     sourcemaps(),
+    ...useBabel,
+    ...useTerser,
+    visualizer({
+      sourcemap: true,
+      filename: 'TEMPLATE_stats',
+      template: 'sunburst',
+    }),
   ],
 }

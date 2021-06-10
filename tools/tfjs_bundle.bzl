@@ -1,24 +1,74 @@
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
-load("@npm//@bazel/terser:index.bzl", "terser_minified")
-load("//tools:get_extension.bzl", "get_extension")
 
-def tfjs_rollup_bundle(name, deps, entry_point, umd_name = None, es5 = False, **kwargs):
+def _make_rollup_config_impl(ctx):
+    output_file = ctx.actions.declare_file(ctx.label.name + ".js")
+
+    # TODO(mattsoulanille): This stats file is not declared as an output
+    # of any rule. It should be declared as an output of the rollup_bundle
+    # rule, but there doesn't seem to be an easy way to do that.
+    stats_file_path = paths.join(
+        ctx.bin_dir.path,
+        paths.dirname(ctx.build_file_path),
+        ctx.attr.stats,
+    )
+
+    ctx.actions.expand_template(
+        template = ctx.file.template,
+        output = ctx.outputs.config_file,
+        substitutions = {
+            "TEMPLATE_es5": "true" if ctx.attr.es5 else "false",
+            "TEMPLATE_minify": "true" if ctx.attr.minify else "false",
+            "TEMPLATE_stats": stats_file_path,
+        },
+    )
+    return [DefaultInfo(files = depset([output_file]))]
+
+_make_rollup_config = rule(
+    implementation = _make_rollup_config_impl,
+    attrs = {
+        "es5": attr.bool(
+            default = False,
+            doc = "Whether to transpile to es5",
+            mandatory = False,
+        ),
+        "minify": attr.bool(
+            default = False,
+            doc = "Whether to minify with terser",
+            mandatory = False,
+        ),
+        "stats": attr.string(
+            mandatory = True,
+            doc = "The name of the stats file",
+        ),
+        "template": attr.label(
+            default = Label("@//tools:rollup_template.config.js"),
+            allow_single_file = True,
+            doc = "The karma config template to expand",
+        ),
+    },
+    outputs = {"config_file": "%{name}.js"},
+)
+
+def tfjs_rollup_bundle(name, deps, entry_point, minify = False, umd_name = None, es5 = False, **kwargs):
+    config_file = name + "_config"
+    _make_rollup_config(
+        name = config_file,
+        stats = name + "_stats.html",
+        es5 = es5,
+        minify = minify,
+    )
+
     rollup_deps = deps + [
         "@npm//@rollup/plugin-commonjs",
         "@npm//@rollup/plugin-node-resolve",
         "@npm//rollup-plugin-sourcemaps",
+        "@npm//@rollup/plugin-babel",
+        "@npm//rollup-plugin-terser",
+        "@npm//rollup-plugin-visualizer",
     ]
 
-    config_file = "@//tools:rollup.config.js"
-    srcs = kwargs.pop("srcs", [])
-    if es5:
-        rollup_deps += [
-            "@npm//@rollup/plugin-babel",
-        ]
-        config_file = "@//tools:rollup.es5.config.js"
-        srcs += [
-            "@//:babel.config.json",
-        ]
+    srcs = kwargs.pop("srcs", []) + ["@//:babel.config.json"]
 
     rollup_args = []
     if umd_name:
@@ -36,73 +86,57 @@ def tfjs_rollup_bundle(name, deps, entry_point, umd_name = None, es5 = False, **
     )
 
 def tfjs_bundle(name, deps, entry_point, umd_name, external = [], testonly = False, **kwargs):
-    # UMD ES2017
-    tfjs_rollup_bundle(
-        name = name + ".es2017",
-        testonly = testonly,
-        deps = deps,
-        entry_point = entry_point,
-        umd_name = umd_name,
-        format = "umd",
-    )
+    # A note on minification: While it would be more efficient to create
+    # unminified bundles and then run them through terser separately, that
+    # would prevent us from creating bundle visualizations for minified bundles
+    # with rollup-plugin-visualizer. If / when there is a standalone visualizer
+    # available, it may make sense to switch to it, since that would make this
+    # build more efficient and would simplify some of the rules used.
+    for minify in [True, False]:
+        dot_min = ".min" if minify else ""
 
-    # UMD es5
-    tfjs_rollup_bundle(
-        name = name,
-        testonly = testonly,
-        deps = deps,
-        entry_point = entry_point,
-        umd_name = umd_name,
-        format = "umd",
-        es5 = True,
-    )
-
-    # FESM ES2017
-    # TODO(mattsoulanille): Check that this is actually
-    # generating flat esm modules.
-    tfjs_rollup_bundle(
-        name = name + ".fesm",
-        testonly = testonly,
-        deps = deps,
-        entry_point = entry_point,
-        format = "esm",
-    )
-
-    # cjs es5 node bundle
-    tfjs_rollup_bundle(
-        name = name + ".node",
-        testonly = testonly,
-        deps = deps,
-        entry_point = entry_point,
-        format = "cjs",
-        es5 = True,
-    )
-
-    # Minified bundles
-    for extension in ["", ".es2017", ".fesm", ".node"]:
-        src = name + extension
-        minified_name = src + ".min"
-
-        terser_minified(
-            name = minified_name,
-            src = src,
+        # UMD ES2017
+        tfjs_rollup_bundle(
+            name = name + ".es2017" + dot_min,
+            testonly = testonly,
+            deps = deps,
+            entry_point = entry_point,
+            umd_name = umd_name,
+            format = "umd",
+            minify = minify,
         )
 
-        # rollup_bundle provides access to bundle.js and bundle.js.map via
-        # 'outputs', but terser_minified does not. get_extension makes them
-        # available.
-        get_extension(
-            name = minified_name + ".js",
-            srcs = [
-                ":" + minified_name,
-            ],
-            extension = "js",
+        # UMD es5
+        tfjs_rollup_bundle(
+            name = name + dot_min,
+            testonly = testonly,
+            deps = deps,
+            entry_point = entry_point,
+            umd_name = umd_name,
+            format = "umd",
+            minify = minify,
+            es5 = True,
         )
 
-        get_extension(
-            name = minified_name + ".js.map",
-            srcs = [
-                ":" + minified_name,
-            ],
-            extension = "map",
+        # FESM ES2017
+        # TODO(mattsoulanille): Check that this is actually
+        # generating flat esm modules.
+        tfjs_rollup_bundle(
+            name = name + ".fesm" + dot_min,
+            testonly = testonly,
+            deps = deps,
+            entry_point = entry_point,
+            format = "esm",
+            minify = minify,
+        )
+
+        # cjs es5 node bundle
+        tfjs_rollup_bundle(
+            name = name + ".node" + dot_min,
+            testonly = testonly,
+            deps = deps,
+            entry_point = entry_point,
+            format = "cjs",
+            minify = minify,
+            es5 = True,
         )
