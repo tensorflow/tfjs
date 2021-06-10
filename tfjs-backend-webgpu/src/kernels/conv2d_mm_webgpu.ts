@@ -18,6 +18,7 @@
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d, tilesFitEvenlyIntoShape} from '../webgpu_util';
+import {mapActivationToShaderProgram} from './activation_util';
 
 import {makeMatMulPackedSource} from './matmul_packed_webgpu';
 import {WebGPUProgram} from './webgpu_program';
@@ -40,7 +41,8 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
-      activation: string = null, hasPreluActivationWeights = false) {
+      activation: backend_util.Activation = null,
+      hasPreluActivationWeights = false) {
     this.outputShape = convInfo.outShape;
 
     util.assert(
@@ -65,7 +67,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
     }
     this.convInfo = convInfo;
     this.addBias = addBias;
-    this.activation = activation;
+    this.activation = mapActivationToShaderProgram(activation);
     this.hasPreluActivationWeights = hasPreluActivationWeights;
 
     [this.fitA, this.fitB] = this.getShapeFit();

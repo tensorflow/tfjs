@@ -18,6 +18,7 @@
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+import {mapActivationToShaderProgram} from './activation_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -36,7 +37,8 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
-      activation: string = null, hasPreluActivationWeights = false) {
+      activation: backend_util.Activation = null,
+      hasPreluActivationWeights = false) {
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -55,6 +57,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
 
     this.convInfo = convInfo;
     this.addBias = addBias;
+    this.activation = mapActivationToShaderProgram(activation);
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
 

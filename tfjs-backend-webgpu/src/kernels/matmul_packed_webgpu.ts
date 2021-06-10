@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
-import {TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
+import {mapActivationToShaderProgram} from './activation_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -194,7 +195,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
       workPerThread: number, transposeA = false, transposeB = false,
-      bias: TensorInfo = null, activation: string = null,
+      bias: TensorInfo = null, activation: backend_util.Activation = null,
       preluActivationWeights: TensorInfo = null) {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
@@ -233,7 +234,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.transposeA = transposeA;
     this.transposeB = transposeB;
     this.addBias = addBias;
-    this.activation = activation;
+    this.activation = mapActivationToShaderProgram(activation);
     this.hasPreluActivationWeights = hasPreluActivationWeights;
 
     const dimBOuter = this.outputShape[2];
