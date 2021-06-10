@@ -44,7 +44,7 @@ export function fromPixels(args: {
   }
 
   const outShape = [pixels.height, pixels.width, numChannels];
-  let imageData = (pixels as ImageData | backend_util.PixelData).data;
+  const imageData = (pixels as ImageData | backend_util.PixelData).data;
 
   if (env().getBool('IS_BROWSER')) {
     if (!(pixels instanceof HTMLVideoElement) &&
