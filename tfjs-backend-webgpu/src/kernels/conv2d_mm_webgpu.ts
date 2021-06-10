@@ -18,6 +18,7 @@
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d, tilesFitEvenlyIntoShape} from '../webgpu_util';
+import {mapActivationToShaderProgram} from './activation_util';
 
 import {makeMatMulPackedSource} from './matmul_packed_webgpu';
 import {WebGPUProgram} from './webgpu_program';
@@ -33,14 +34,15 @@ export class Conv2DMMProgram implements WebGPUProgram {
   elementsPerThread: [number, number, number];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
-  activation: string;
+  activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
   fitA: boolean;
   fitB: boolean;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
-      activation: string = null, hasPreluActivationWeights = false) {
+      activation: backend_util.Activation = null,
+      hasPreluActivationWeights = false) {
     this.outputShape = convInfo.outShape;
 
     util.assert(
@@ -129,15 +131,16 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
+      const activationOp = mapActivationToShaderProgram(this.activation);
       if (this.hasPreluActivationWeights) {
         activationSnippet = `float activation(float a, ivec4 outCoord) {
                   float b = getPreluActivationWeightsAtOutCoords(outCoord);
-                  ${this.activation}
+                  ${activationOp}
                 }`;
       } else {
         activationSnippet = `
                   float activation(float a, ivec4 outCoord) {
-                    ${this.activation}
+                    ${activationOp}
                   }
                 `;
       }
