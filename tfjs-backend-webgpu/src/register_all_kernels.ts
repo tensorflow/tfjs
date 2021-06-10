@@ -56,6 +56,7 @@ import {imagConfig} from './kernels/Imag';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
+import {logicalAndConfig} from './kernels/LogicalAnd';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
@@ -144,6 +145,7 @@ const kernelConfigs: KernelConfig[] = [
   lessConfig,
   lessEqualConfig,
   logConfig,
+  logicalAndConfig,
   maxConfig,
   maximumConfig,
   maxPoolConfig,

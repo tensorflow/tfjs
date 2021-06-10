@@ -59,8 +59,8 @@ export class BinaryOpVec4Program implements WebGPUProgram {
 
       void main() {
         int index = int(gl_GlobalInvocationID.x);
-        vec4 a = A[index];
-        vec4 b = B[index];
+        vec4 a = vec4(A[index]);
+        vec4 b = vec4(B[index]);
         setOutput(index, binaryOperation(a, b));
       }
     `;
@@ -74,8 +74,8 @@ export class BinaryOpVec4Program implements WebGPUProgram {
         int index = int(gl_GlobalInvocationID.x);
         if (index < size)
         {
-          vec4 a = A[index];
-          vec4 b = B[index];
+          vec4 a = vec4(A[index]);
+          vec4 b = vec4(B[index]);
           setOutput(index, binaryOperation(a, b));
         }
       }

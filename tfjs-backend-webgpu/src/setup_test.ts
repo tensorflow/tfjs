@@ -165,10 +165,9 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'argmax',
     excludes: [
-      '5D',                        // Rank 5 is not yet implemented.
-      '6D',                        // Rank 5 is not yet implemented.
-      'accepts tensor with bool',  // Actual != Expected.
-      'gradient',                  // zerosLike not yet implemented.
+      '5D',        // Rank 5 is not yet implemented.
+      '6D',        // Rank 5 is not yet implemented.
+      'gradient',  // zerosLike not yet implemented.
     ]
   },
   {
@@ -313,9 +312,6 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {
     include: 'memory test',
-    excludes: [
-      'Sum(bool)'  // Compile error.
-    ]
   },
   {
     include: 'add ',
@@ -403,40 +399,35 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'Reduction: max',
     excludes: [
-      '5D',                        // Rank 5 is not yet implemented.
-      '6D',                        // Rank 5 is not yet implemented.
-      'accepts tensor with bool',  // Actual != Expected.
-      'gradient',                  // zerosLike not yet implemented.
+      '5D',        // Rank 5 is not yet implemented.
+      '6D',        // Rank 5 is not yet implemented.
+      'gradient',  // zerosLike not yet implemented.
     ]
   },
   {
     include: 'Reduction: min',
     excludes: [
-      '5D',                        // Rank 5 is not yet implemented.
-      '6D',                        // Rank 5 is not yet implemented.
-      'accepts tensor with bool',  // Actual != Expected.
-      'gradient',                  // zerosLike not yet implemented.
+      '5D',        // Rank 5 is not yet implemented.
+      '6D',        // Rank 5 is not yet implemented.
+      'gradient',  // zerosLike not yet implemented.
     ]
   },
   {
     include: 'Reduction: sum',
     excludes: [
-      'dtype bool',                // not support dtype bool yet.
-      '5D',                        // Rank 5 is not yet implemented.
-      '6D',                        // Rank 5 is not yet implemented.
-      'accepts tensor with bool',  // Actual != Expected.
-      'gradient',                  // zerosLike not yet implemented.
+      '5D',        // Rank 5 is not yet implemented.
+      '6D',        // Rank 5 is not yet implemented.
+      'gradient',  // zerosLike not yet implemented.
     ]
   },
   {
-    include: 'abs',
+    startsWith: 'abs ',
     excludes: [
-      'complex',                   // No complex support yet.
-      '5D',                        // Rank 5 is not yet implemented.
-      '6D',                        // Rank 5 is not yet implemented.
-      'accepts tensor with bool',  // Actual != Expected.
-      'gradient',                  // zerosLike not yet implemented.
-      'absoluteDifference',        // absoluteDifference not yet implemented
+      'complex',             // No complex support yet.
+      '5D',                  // Rank 5 is not yet implemented.
+      '6D',                  // Rank 5 is not yet implemented.
+      'gradient',            // zerosLike not yet implemented.
+      'absoluteDifference',  // absoluteDifference not yet implemented
     ]
   },
   {
@@ -479,7 +470,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'minimum',
     excludes: [
-      'bool and bool',
       'gradients: Scalar',
       'gradient with clones',
       'gradients: Tensor1D',
@@ -489,7 +479,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'maximum',
     excludes: [
-      'bool and bool',
       'gradients: Scalar',
       'gradient with clones',
       'gradients: Tensor1D',
@@ -515,9 +504,8 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'complex64',
     excludes: [
-      'cast complex64 -> bool'  // Error: Failed to execute 'writeBuffer' on
-                                // 'GPUQueue': Number of bytes to write must be
-                                // a multiple of 4
+      'cast complex64 -> bool'  // Backend 'webgpu' has an internal memory leak
+                                // (1 data ids) after running 'Cast'.
     ]
   },
   {
@@ -539,7 +527,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'gather',
     excludes: [
-      'bool',     // Not yet supported.
       'gradient'  // gradient function not found.
     ]
   },
@@ -554,7 +541,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'mean',
     excludes: [
-      'bool',
       'gradient',
       'meanSquaredError',
     ]
@@ -562,15 +548,12 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'min',
     excludes: [
-      'bool', 'gradient',
+      'gradient',
       'stft',  // FFT' not registered.
     ]
   },
   {
     include: 'prod',
-    excludes: [
-      'bool',
-    ]
   },
   {
     include: 'einsum',
@@ -582,7 +565,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'sum',
     excludes: [
-      'bool', 'gradient',
+      'gradient',
       'cumsum',     // 'Cumsum' not registered.
       'scatterND',  // 'scatterND' not registered.
     ]
@@ -609,12 +592,14 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    startsWith: 'logicalAnd ',
+  },
+  {
     startsWith: 'stringNGrams ',
   },
   {
     startsWith: 'tile ',
     excludes: [
-      'bool (tile)',  // Unsupported bool.
       'gradient'      // gradient function not found.
     ]
   },

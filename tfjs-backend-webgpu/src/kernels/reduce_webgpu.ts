@@ -67,7 +67,7 @@ export class ReduceProgram implements WebGPUProgram {
          } else if (candidate ${this.reduceType === 'min' ? '<' : '>'}
            bestValue)
            {  bestValue = candidate; }`;
-      initValue = 'x[offset]';
+      initValue = 'float(x[offset])';
     } else if (this.reduceType === 'sum' || this.reduceType === 'mean') {
       reduceOp = ' bestValue += candidate; ';
     } else if (this.reduceType === 'prod') {
@@ -134,7 +134,7 @@ export class ReduceProgram implements WebGPUProgram {
          for (int w = 0; w < WorkPerThread; ++w) {
            int i = int(gl_GlobalInvocationID.x) * WorkPerThread + w;
            if (i < Length) {
-             float candidate = x[offset + i];
+             float candidate = float(x[offset + i]);
              ${reduceOp}
            }
          }

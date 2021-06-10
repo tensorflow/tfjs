@@ -231,8 +231,9 @@ function getSetOutputSnippet(
     }
     void setOutput(int flatIndex, int value) {
       result[flatIndex] = ${
-        glslType === 'float' ? 'float(value)' :
-                               (glslType === 'bool' ? 'bool(value)' : 'value')};
+        glslType === 'float' ?
+            'float(value)' :
+            (glslType === 'bool' ? 'bool(value)' : 'value')};
     }`;
   }
 
@@ -321,14 +322,14 @@ function getSamplerFromInInfo(inInfo: InputInfo, isVec4: boolean): string {
     if (isVec4) {
       return `
         vec4 ${funcName}() {
-          return ${texName}[0];
+          return vec4(${texName}[0]);
         }
       `;
     }
 
     return `
       float ${funcName}() {
-        return ${texName}[0];
+        return float(${texName}[0]);
       }
     `;
   }
@@ -338,8 +339,8 @@ function getSamplerFromInInfo(inInfo: InputInfo, isVec4: boolean): string {
   if (isVec4) {
     return `
       vec4 ${funcName}(${inputs}) {
-        return ${texName}[getFlatIndex(${type}(${dims.join(',')}),
-          ${shapeStr}) / 4];
+        return vec4(${texName}[getFlatIndex(${type}(${dims.join(',')}),
+          ${shapeStr}) / 4]);
       }
       `;
   }
@@ -371,12 +372,12 @@ function getSamplerAtOutputCoords(
     if (isVec4) {
       return `
         vec4 ${funcName}() {
-          return ${texName}[gl_GlobalInvocationID.x];
+          return vec4(${texName}[gl_GlobalInvocationID.x]);
         }
 
         vec4 ${funcName}(${type} coords) {
-          return ${texName}[${
-          outRank > 1 ? 'getOutputFlatIndex(coords)' : 'coords'} / 4];
+          return vec4(${texName}[${
+          outRank > 1 ? 'getOutputFlatIndex(coords)' : 'coords'} / 4]);
         }
         `;
     } else {
