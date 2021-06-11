@@ -21,6 +21,7 @@ import '@tensorflow/tfjs-backend-cpu';
  * This file is necessary so we register all test environments before we start
  * executing tests.
  */
+// tslint:disable-next-line max-line-length
 //import {parseTestEnvFromKarmaFlags, setTestEnvs, TEST_ENVS} from './jasmine_util';
 import {setTestEnvs, setupTestFilters, TestFilter} from './jasmine_util';
 // Register all chained ops for tests.
@@ -34,6 +35,7 @@ setTestEnvs([{name: 'cpu', backendName: 'cpu', isDataSync: true}]);
 // // tslint:disable-next-line:no-any
 // declare let __karma__: any;
 // if (typeof __karma__ !== 'undefined') {
+// tslint:disable-next-line max-line-length
 //   const testEnv = parseTestEnvFromKarmaFlags(__karma__.config.args, TEST_ENVS);
 //   if (testEnv != null) {
 //     setTestEnvs([testEnv]);

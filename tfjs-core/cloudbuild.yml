@@ -27,7 +27,7 @@ steps:
   id: 'lint'
   entrypoint: 'yarn'
   args: ['lint']
-  waitFor: ['yarn', 'build-cpu-backend']
+  waitFor: ['yarn']
 
 # Run unit tests.
 - name: 'node:10'
@@ -54,7 +54,7 @@ steps:
   id: 'test-snippets'
   entrypoint: 'yarn'
   args: ['test-snippets-ci']
-  waitFor: ['yarn', 'build-cpu-backend']
+  waitFor: ['yarn']
 
 # test Async backends
 - name: 'node:10'
@@ -62,7 +62,7 @@ steps:
   id: 'test-async-backends'
   entrypoint: 'yarn'
   args: ['test-async-backends']
-  waitFor: ['build-cpu-backend']
+  waitFor: ['yarn']
 
 # General configuration
 secrets:
