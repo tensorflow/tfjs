@@ -78,7 +78,6 @@ steps:
       - lint
     waitFor:
       - yarn-tfjs-core
-      - build-cpu-backend-tfjs-core
       - yarn-common
       - yarn-link-package
   - name: 'node:10'

@@ -78,7 +78,6 @@ steps:
       - lint
     waitFor:
       - yarn-tfjs-core
-      - build-cpu-backend-tfjs-core
       - yarn-common
       - yarn-link-package
   - name: 'node:10'
@@ -89,7 +88,6 @@ steps:
       - test-ci
     waitFor:
       - yarn-tfjs-core
-      - build-cpu-backend-tfjs-core
       - lint-tfjs-core
       - yarn-common
       - yarn-link-package
@@ -106,7 +104,6 @@ steps:
       - test-snippets-ci
     waitFor:
       - yarn-tfjs-core
-      - build-cpu-backend-tfjs-core
       - yarn-common
       - yarn-link-package
   - name: 'node:10'
@@ -116,7 +113,7 @@ steps:
     args:
       - test-async-backends
     waitFor:
-      - build-cpu-backend-tfjs-core
+      - yarn-tfjs-core
       - yarn-common
       - yarn-link-package
   - name: 'node:10'
