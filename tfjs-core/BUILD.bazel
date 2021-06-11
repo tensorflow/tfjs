@@ -163,11 +163,17 @@ nodejs_test(
     tags = ["ci"],
 )
 
-# tfjs_web_test(
-#     name = "tfjs-core-worker_test",
-#     srcs = [
-
-#     ],
+nodejs_test(
+    name = "tfjs-core-async-backends_test",
+    data = [
+        "//tfjs-core/src:tfjs-core_test_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        ":package_json",
+    ],
+    entry_point = "//tfjs-core/src:test_async_backends.ts",
+    link_workspace_root = True,
+    tags = ["ci"],
+)
 
 # This is necessary for //tfjs-core/src:tfjs-core_test_bundle to have acess to
 # the package.json so src/version_test.ts can 'require()' it.

@@ -21,19 +21,6 @@ steps:
   args: ['build-ci']
   waitFor: ['yarn']
 
-# Build cpu backend. The cpu backend is included into tfjs-core with 'require()'
-# syntax to avoid circular 'import' statements between packages and is only used
-# for running tests. It is built after tfjs-core because it imports from
-# tfjs-core. In CI runs of generated cloudbuild files, tfjs-backend-cpu may be
-# built twice (here and in its own cloudbuild rules), but the second build only
-# takes about 20 seconds due to incremental tsc.
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'build-cpu-backend'
-  entrypoint: 'yarn'
-  args: ['build-cpu-backend-ci']
-  waitFor: ['build']
-
 # Lint.
 - name: 'node:10'
   dir: 'tfjs-core'
@@ -53,12 +40,13 @@ steps:
   secretEnv: ['BROWSERSTACK_KEY']
 
 # bundle size check
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'test-bundle-size'
-  entrypoint: 'yarn'
-  args: ['test-bundle-size']
-  waitFor: ['yarn']
+# TODO(mattsoulanille): Re-enable this test
+# - name: 'node:10'
+#   dir: 'tfjs-core'
+#   id: 'test-bundle-size'
+#   entrypoint: 'yarn'
+#   args: ['test-bundle-size']
+#   waitFor: ['yarn']
 
 # test doc snippets
 - name: 'node:10'
@@ -73,7 +61,7 @@ steps:
   dir: 'tfjs-core'
   id: 'test-async-backends'
   entrypoint: 'yarn'
-  args: ['test-async-backends-ci']
+  args: ['test-async-backends']
   waitFor: ['build-cpu-backend']
 
 # General configuration
