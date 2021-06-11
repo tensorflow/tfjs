@@ -1,3 +1,4 @@
+
 steps:
 
 # Install common dependencies.
@@ -6,6 +7,15 @@ steps:
   id: 'yarn-common'
   args: ['install']
 
+# Install tfjs-converter dependencies.
+- name: 'node:10'
+  dir: 'tfjs-converter'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+  waitFor: ['yarn-common']
+
+# Build deps.
 - name: 'node:10'
   dir: 'tfjs-converter'
   entrypoint: 'yarn'
@@ -13,13 +23,13 @@ steps:
   args: ['build-deps-ci']
   waitFor: ['yarn-common']
 
-# Install deps and build.
+# Build.
 - name: 'node:10'
   dir: 'tfjs-converter'
   entrypoint: 'yarn'
   id: 'build'
   args: ['build-ci']
-  waitFor: ['build-deps']
+  waitFor: ['yarn', 'build-deps']
 
 # Lint.
 - name: 'node:10'
@@ -27,7 +37,7 @@ steps:
   entrypoint: 'yarn'
   id: 'lint'
   args: ['lint']
-  waitFor: ['build']
+  waitFor: ['yarn', 'build-deps']
 
 # Run javascript tests.
 - name: 'node:10'
@@ -35,7 +45,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-js'
   args: ['test-ci']
-  waitFor: ['build', 'lint']
+  waitFor: ['yarn', 'build-deps', 'lint']
   env: ['NIGHTLY=$_NIGHTLY']
 
 # Run python tests.
