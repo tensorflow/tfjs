@@ -164,6 +164,19 @@ nodejs_test(
 )
 
 nodejs_test(
+    name = "tfjs-core_node_test",
+    data = [
+        ":package_json",
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_src_lib",
+        "//tfjs-core/src:tfjs-core_test_lib",
+    ],
+    entry_point = "//tfjs-core/src:test_node.ts",
+    link_workspace_root = True,
+    tags = ["ci"],
+)
+
+nodejs_test(
     name = "tfjs-core-async-backends_test",
     data = [
         ":package_json",
