@@ -25,7 +25,7 @@ import {LossOrMetricFn} from './types';
 export function l2Normalize(x: Tensor, axis?: number): Tensor {
   return tidy(() => {
     if (x.dtype !== 'float32') {
-      x = x.asType('float32');
+      x = tfc.cast(x, 'float32');
     }
     const squareSum = tfc.sum(K.square(x), axis, true);
     const epsilonTensor = tfc.fill(squareSum.shape, epsilon());
@@ -119,7 +119,8 @@ export function categoricalCrossentropy(
     }
     output = tfc.clipByValue(output, epsilon(), 1 - epsilon());
     return tfc.neg(tfc.sum(
-        tfc.mul(target.toFloat(), tfc.log(output)), output.shape.length - 1));
+        tfc.mul(tfc.cast(target, 'float32'), tfc.log(output)),
+        output.shape.length - 1));
   });
 }
 
@@ -135,12 +136,13 @@ export function categoricalCrossentropy(
 export function sparseCategoricalCrossentropy(
     target: Tensor, output: Tensor, fromLogits = false): Tensor {
   return tidy(() => {
-    const flatTarget = tfc.floor(K.flatten(target)).toInt() as Tensor1D;
+    const flatTarget =
+        tfc.cast(tfc.floor(K.flatten(target)), 'int32') as Tensor1D;
     output = tfc.clipByValue(output, epsilon(), 1 - epsilon());
     const outputShape = output.shape;
-    const oneHotTarget =
-        tfc.oneHot(flatTarget, outputShape[outputShape.length - 1])
-            .reshape(outputShape);
+    const oneHotTarget = tfc.reshape(
+        tfc.oneHot(flatTarget, outputShape[outputShape.length - 1]),
+        outputShape);
     return categoricalCrossentropy(oneHotTarget, output, fromLogits);
   });
 }
@@ -180,9 +182,11 @@ export function sigmoidCrossEntropyWithLogits(
     //   -x * z + log(1 + exp(x))
     // Note that these two expressions can be combined into the following:
     //   max(x, 0) - x * z + log(1 + exp(-abs(x)))
-    const reluLogits = logits.relu();
-    const negAbsLogits = logits.abs().neg();
-    return reluLogits.sub(logits.mul(labels)).add(negAbsLogits.exp().log1p());
+    const reluLogits = tfc.relu(logits);
+    const negAbsLogits = tfc.neg(tfc.abs(logits));
+    return tfc.add(
+        tfc.sub(reluLogits, tfc.mul(logits, labels)),
+        tfc.log1p(tfc.exp(negAbsLogits)));
   });
 }
 
