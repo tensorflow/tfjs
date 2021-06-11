@@ -26,6 +26,7 @@ The Multi-device benchmark tool can benchmark the performance (time, memory) of 
   ``` shell
   git clone https://github.com/tensorflow/tfjs.git
   cd tfjs/e2e/benchmarks/browserstack-benchmark
+  yarn build-deps
   yarn install
 
   node app.js
