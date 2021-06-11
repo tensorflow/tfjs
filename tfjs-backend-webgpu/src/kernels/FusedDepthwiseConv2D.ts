@@ -18,6 +18,7 @@
 import {backend_util, FusedDepthwiseConv2D, FusedDepthwiseConv2DAttrs, FusedDepthwiseConv2DInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {DepthwiseConv2D3x3Program} from './depthwise_conv2d_3x3_webgpu';
 import {DepthwiseConv2DProgram} from './depthwise_conv2d_webgpu';
 
 export function fusedDepthwiseConv2D(args: {
@@ -56,8 +57,21 @@ export function fusedDepthwiseConv2D(args: {
     programInputs.push(preluActivationWeights);
   }
 
-  const program = new DepthwiseConv2DProgram(
-      convInfo, hasBias, activation, hasPreluActivationWeights);
+  let program: DepthwiseConv2DProgram|DepthwiseConv2D3x3Program;
+  // TODO: To see if we need to relax the limitation. Currently, it's only for
+  // filter size 3x3.
+  if (convInfo.batchSize === 1 && convInfo.inHeight === convInfo.outHeight &&
+      convInfo.inWidth === convInfo.outWidth && convInfo.strideHeight === 1 &&
+      convInfo.strideWidth === 1 &&
+      convInfo.filterHeight === convInfo.filterWidth &&
+      convInfo.inChannels === convInfo.outChannels &&
+      convInfo.filterHeight === 3 && convInfo.inChannels % 4 === 0) {
+    program = new DepthwiseConv2D3x3Program(
+        convInfo, hasBias, activation, hasPreluActivationWeights);
+  } else {
+    program = new DepthwiseConv2DProgram(
+        convInfo, hasBias, activation, hasPreluActivationWeights);
+  }
 
   const dimensions = [
     {type: 'int32', data: [convInfo.filterHeight, convInfo.filterWidth]},
