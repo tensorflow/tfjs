@@ -1,0 +1,14 @@
+{
+  "summaryTabId": "Summary_1",
+  "benchmark": { "model": "face_detector", "numRuns": 1, "backend": "wasm" },
+  "browsers": {
+    "iPhone_12_1": {
+      "base": "BrowserStack",
+      "browser": "chrome",
+      "browser_version": "84.0",
+      "os": "Windows",
+      "os_version": "10",
+      "device": null
+    }
+  }
+}

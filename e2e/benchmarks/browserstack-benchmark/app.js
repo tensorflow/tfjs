@@ -20,7 +20,7 @@ const socketio = require('socket.io');
 const fs = require('fs');
 const path = require('path');
 const {execFile} = require('child_process');
-const { argumentParser } = require('argparse');
+const { ArgumentParser } = require('argparse');
 const { version } = require('./package.json');
 
 const port = process.env.PORT || 8001;
@@ -109,6 +109,7 @@ function setupBenchmarkEnv(config) {
  * @param {{browsers, benchmark}} config Benchmark configuration.
  */
 function benchmark(config) {
+  console.log(config);
   console.log('Preparing configuration files for the test runner.');
   setupBenchmarkEnv(config);
 
@@ -139,6 +140,7 @@ function benchmark(config) {
       const matchedResult = stdout.match(resultReg);
       if (matchedResult != null) {
         const benchmarkResult = JSON.parse(matchedResult[1]);
+        console.log(benchmarkResult);
         benchmarkResult.tabId = tabId;
         io.emit('benchmarkComplete', benchmarkResult);
         return;
@@ -152,9 +154,40 @@ function benchmark(config) {
   }
 }
 
+function autoRunServer() {
+  const app = http.createServer((request, response) => {
+    const url = request.url === '/' ? '/index.html' : request.url;
+    let filePath = path.join(__dirname, url);
+    if (!fs.existsSync(filePath)) {
+      filePath = path.join(__dirname, '../', url);
+    }
+    fs.readFile(filePath, (err, data) => {
+      if (err) {
+        response.writeHead(404);
+        response.end(JSON.stringify(err));
+        return;
+      }
+      response.writeHead(200);
+      response.end(data);
+    });
+  });
+  app.listen(port, () => {
+    console.log(`  > Running socket on port: ${port}`);
+  });
+
+  io = socketio(app);
+  io.on('connection', socket => {
+    const availableBrowsers = require('./browser_list.json');
+    socket.emit('availableBrowsers', availableBrowsers);
+    socket.on('run', benchmark);
+  });
+}
+
+
+
 /** Set up --help menu for file description and available optional commands */
 function setUpHelpMessage() {
-  const parser = new argumentParser({
+  const parser = new ArgumentParser({
     description: 'This file launches a server to connect to BrowserStack ' +
         'so that the performance of a TensorFlow model on one or more ' +
         'browsers can be benchmarked.'
@@ -163,6 +196,16 @@ function setUpHelpMessage() {
   console.dir(parser.parse_args());
 }
 
-setUpHelpMessage();
-checkBrowserStackAccount();
-runServer();
+function preConfig() {
+  preConfig = require('./preconfigured_browser.json');
+  setUpHelpMessage();
+  checkBrowserStackAccount();
+  runServer();
+  benchmark(preConfig);
+}
+
+//setUpHelpMessage();
+//checkBrowserStackAccount();
+//runServer();
+
+preConfig();
