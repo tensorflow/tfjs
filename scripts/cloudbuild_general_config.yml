@@ -48,16 +48,15 @@ steps:
 - name: 'node:10'
   dir: 'link-package'
   entrypoint: 'yarn'
-  id: 'yarn-link-package'
-  args: ['install']
-  waitFor: ['yarn-common']
+  id: 'yarn-build-link-package'
+  args: ['build']
 
 - name: 'node:10'
   dir: 'link-package'
   entrypoint: 'yarn'
-  id: 'yarn-build-link-package'
-  args: ['build']
-  waitFor: ['yarn-link-package']
+  id: 'yarn-link-package'
+  args: ['install']
+  waitFor: ['yarn-build-link-package']
 
 # General configuration
 secrets:

@@ -234,9 +234,9 @@ function generateCloudbuild(packages, print = true) {
   // Set 'waitFor' fields based on dependencies.
   for (const [packageName, steps] of packageCloudbuildSteps.entries()) {
     // Construct the set of step ids that rules in this package must wait for.
-    // All packages depend on 'yarn-common' and 'yarn-build-link-package', so
+    // All packages depend on 'yarn-common' and 'yarn-link-package', so
     // we special-case them here.
-    const waitForSteps = new Set(['yarn-common', 'yarn-build-link-package']);
+    const waitForSteps = new Set(['yarn-common', 'yarn-link-package']);
     for (const dependencyName of (DEPENDENCY_GRAPH[packageName] || new Set())) {
       const cloudbuildSteps =
           packageCloudbuildSteps.get(dependencyName) || new Set();

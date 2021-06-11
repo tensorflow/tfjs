@@ -39,9 +39,9 @@ tfjs_bundle(
     ],
     umd_name = "tf",
     deps = [
+        ":package_json",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
-        ":package_json",
     ],
 )
 
