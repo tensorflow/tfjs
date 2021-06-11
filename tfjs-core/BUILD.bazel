@@ -166,9 +166,9 @@ nodejs_test(
 nodejs_test(
     name = "tfjs-core-async-backends_test",
     data = [
-        "//tfjs-core/src:tfjs-core_test_lib",
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         ":package_json",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-core/src:tfjs-core_test_lib",
     ],
     entry_point = "//tfjs-core/src:test_async_backends.ts",
     link_workspace_root = True,
