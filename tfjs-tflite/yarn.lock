@@ -898,11 +898,11 @@
     estree-walker "^1.0.1"
     picomatch "^2.2.2"
 
-"@tensorflow/tfjs-backend-cpu@link:../tfjs-backend-cpu":
+"@tensorflow/tfjs-backend-cpu@link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu":
   version "0.0.0"
   uid ""
 
-"@tensorflow/tfjs-core@link:../tfjs-core":
+"@tensorflow/tfjs-core@link:../link-package/node_modules/@tensorflow/tfjs-core":
   version "0.0.0"
   uid ""
 
@@ -935,6 +935,11 @@
   version "3.6.9"
   resolved "https://registry.yarnpkg.com/@types/jasmine/-/jasmine-3.6.9.tgz#8785870f87839b7d91b45d7b226380f28dee5d9f"
   integrity sha512-B53NIwMj/AO0O+xfSWLYmKB0Mo6TYxfv2Mk8/c1T2w/e38t55iaPR6p7pHXTTtqfTmevPK3i8T1YweYFTZlxDw==
+
+"@types/long@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@types/long/-/long-4.0.1.tgz#459c65fa1867dafe6a8f322c4c51695663cc55e9"
+  integrity sha512-5tXH6Bx/kNGd3MgffdmP4dy2Z+G4eaXw0SE81Tq3BNadtnMR5/ySMzX4SLEzHJzSmPNn4HIdpQsBvXMUykr58w==
 
 "@types/node@*", "@types/node@>=10.0.0":
   version "14.14.37"
@@ -2523,6 +2528,11 @@ log4js@^6.2.1, log4js@^6.3.0:
     flatted "^2.0.1"
     rfdc "^1.1.4"
     streamroller "^2.2.4"
+
+long@4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/long/-/long-4.0.0.tgz#9a7b71cfb7d361a194ea555241c92f7468d5bf28"
+  integrity sha512-XsP+KhQif4bjX1kbuSiySJFNAehNxgLb6hPRGJ9QsUr8ajHkuXGdrHmFUTUUXhDwVX2R5bY4JNZEwbUiMhV+MA==
 
 magic-string@^0.25.2, magic-string@^0.25.7:
   version "0.25.7"

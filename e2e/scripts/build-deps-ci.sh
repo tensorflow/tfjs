@@ -16,8 +16,7 @@
 
 set -e
 
-yarn build-core-ci
-yarn build-backend-cpu-ci
+yarn build-link-package
 yarn build-backend-webgl-ci
 yarn build-layers-ci
 yarn build-converter-ci

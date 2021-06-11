@@ -23,7 +23,7 @@
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
-    "@tensorflow/tfjs-core": "file:../dist/bin/tfjs-core/tfjs-core_pkg",
+    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core/",
     "@types/jasmine": "~3.0.0",
     "clang-format": "~1.2.4",
     "jasmine": "~3.1.0",
@@ -51,13 +51,9 @@
     "build": "tsc && yarn bundle",
     "bundle": "rollup -c",
     "bundle-ci": "rollup -c --ci",
-    "build-deps": "yarn build-core && yarn build-cpu-backend && yarn reinstall",
-    "build-deps-ci": "yarn build-core-ci && yarn build-cpu-backend-ci && yarn reinstall",
-    "reinstall": "yarn && yarn cache clean @tensorflow/tfjs-core && yarn cache clean @tensorflow/tfjs-backend-cpu && rimraf node_modules && yarn",
-    "build-core": "cd ../tfjs-core && yarn && yarn build",
-    "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
-    "build-cpu-backend": "cd ../tfjs-backend-cpu && yarn && yarn build",
-    "build-cpu-backend-ci": "cd ../tfjs-backend-cpu && yarn && yarn build-ci",
+    "build-link-package": "cd ../link-package && yarn build",
+    "build-deps": "yarn build-link-package",
+    "build-deps-ci": "yarn build-deps",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
@@ -70,7 +66,7 @@
     "test-ci": "./scripts/test-ci.sh"
   },
   "dependencies": {
-    "@tensorflow/tfjs-backend-cpu": "file:../dist/bin/tfjs-backend-cpu/tfjs-backend-cpu_pkg",
+    "@tensorflow/tfjs-backend-cpu": "link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
     "@types/offscreencanvas": "~2019.3.0",
     "@types/seedrandom": "2.4.27",
     "@types/webgl-ext": "0.0.30",
@@ -78,7 +74,7 @@
     "seedrandom": "2.4.3"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "file:../dist/bin/tfjs-core/tfjs-core_pkg"
+    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core/"
   },
   "browser": {
     "util": false,
