@@ -160,6 +160,7 @@ nodejs_test(
     data = [
         ":tsconfig.json",
         "//:tsconfig.json",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-core/scripts/test_snippets:test_snippets_lib",
         "//tfjs-core/src:all_srcs",
     ],
@@ -172,6 +173,7 @@ nodejs_test(
     name = "tfjs-core_node_test",
     data = [
         ":package_json",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
         "//tfjs-core/src:tfjs-core_test_lib",

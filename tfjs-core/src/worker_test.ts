@@ -39,12 +39,9 @@ self.postMessage({data: a.dataSync()});
 describeWithFlags('computation in worker', HAS_WORKER, () => {
   it('tensor in worker', (done) => {
     const worker = new Worker(str2workerURL(workerTest));
-    console.log('Hello from computation in worker start');
     worker.onmessage = (msg) => {
-      console.log('Hello from computation in worker result');
       const data = msg.data.data;
       expectArraysClose(data, [4, 4, 4]);
-      console.log(data);
       done();
     };
   });
