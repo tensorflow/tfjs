@@ -57,6 +57,7 @@ const useTerser = TEMPLATE_minify ? [
 export default {
   output: {
     freeze: false, // For tests that spyOn imports
+    extend: true, // For imports that extend the global 'tf' variable
   },
   plugins: [
     resolve({browser: true}),

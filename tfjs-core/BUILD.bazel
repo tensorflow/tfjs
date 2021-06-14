@@ -144,6 +144,11 @@ tfjs_web_test(
     static_files = [
         # Listed here so sourcemaps are served
         "//tfjs-core/src:tfjs-core_test_bundle",
+        # For the webworker
+        ":tf-core.min.js",
+        ":tf-core.min.js.map",
+        "//tfjs-backend-cpu:tf-backend-cpu.min.js",
+        "//tfjs-backend-cpu:tf-backend-cpu.min.js.map",
     ],
 )
 
