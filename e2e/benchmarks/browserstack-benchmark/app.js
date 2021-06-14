@@ -22,6 +22,7 @@ const path = require('path');
 const {execFile} = require('child_process');
 const { ArgumentParser } = require('argparse');
 const { version } = require('./package.json');
+const { log } = require('console');
 
 const port = process.env.PORT || 8001;
 let io;
@@ -154,37 +155,6 @@ function benchmark(config) {
   }
 }
 
-function autoRunServer() {
-  const app = http.createServer((request, response) => {
-    const url = request.url === '/' ? '/index.html' : request.url;
-    let filePath = path.join(__dirname, url);
-    if (!fs.existsSync(filePath)) {
-      filePath = path.join(__dirname, '../', url);
-    }
-    fs.readFile(filePath, (err, data) => {
-      if (err) {
-        response.writeHead(404);
-        response.end(JSON.stringify(err));
-        return;
-      }
-      response.writeHead(200);
-      response.end(data);
-    });
-  });
-  app.listen(port, () => {
-    console.log(`  > Running socket on port: ${port}`);
-  });
-
-  io = socketio(app);
-  io.on('connection', socket => {
-    const availableBrowsers = require('./browser_list.json');
-    socket.emit('availableBrowsers', availableBrowsers);
-    socket.on('run', benchmark);
-  });
-}
-
-
-
 /** Set up --help menu for file description and available optional commands */
 function setUpHelpMessage() {
   const parser = new ArgumentParser({
@@ -193,19 +163,21 @@ function setUpHelpMessage() {
         'browsers can be benchmarked.'
   });
   parser.add_argument('-v', '--version', { action: 'version', version });
+  parser.add_argument(
+    '--benchmarks', {help: 'Run a preconfigured benchmark', action: 'store_true'});
   console.dir(parser.parse_args());
 }
 
-function preConfig() {
-  preConfig = require('./preconfigured_browser.json');
+/** Runs app.js  */
+function run() {
   setUpHelpMessage();
   checkBrowserStackAccount();
   runServer();
-  benchmark(preConfig);
+
+  if(process.argv[2] !== undefined && process.argv[2] === '--benchmarks') {
+    autoConfig = require('./preconfigured_browser.json');
+    benchmark(autoConfig);
+  }
 }
 
-//setUpHelpMessage();
-//checkBrowserStackAccount();
-//runServer();
-
-preConfig();
+run();
