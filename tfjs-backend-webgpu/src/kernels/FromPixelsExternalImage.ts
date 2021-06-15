@@ -15,18 +15,18 @@
  * =============================================================================
  */
 
-import { FromPixelsAttrs, TensorInfo, util } from '@tensorflow/tfjs-core';
-import { WebGPUBackend } from '../backend_webgpu';
-import { FromPixelsProgram } from './FromPixels_utils/from_pixels_webgpu';
+import {FromPixelsAttrs, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {WebGPUBackend} from '../backend_webgpu';
+import {FromPixelsProgram} from './FromPixels_utils/from_pixels_webgpu';
 import * as webgpu_program from './webgpu_program';
 
 export function fromPixelsExternalImage(args: {
-  externalImage: HTMLCanvasElement | ImageBitmap | OffscreenCanvas,
+  externalImage: HTMLCanvasElement|ImageBitmap|OffscreenCanvas,
   backend: WebGPUBackend,
   attrs: FromPixelsAttrs
 }): TensorInfo {
-  const { externalImage, backend, attrs } = args;
-  const { numChannels } = attrs;
+  const {externalImage, backend, attrs} = args;
+  const {numChannels} = attrs;
 
   const outShape = [externalImage.height, externalImage.width, numChannels];
   const size = util.sizeFromShape(outShape);
@@ -48,22 +48,22 @@ export function fromPixelsExternalImage(args: {
   const outputShapes = [output.shape];
   const outputTypes = [output.dtype];
   const key = webgpu_program.makeShaderKey(
-    backend.fromPixelProgram, outputShapes, outputTypes);
+      backend.fromPixelProgram, outputShapes, outputTypes);
 
   const pipeline = backend.getAndSavePipeline(key, () => {
     return webgpu_program.compileProgram(
-      backend.glslang, backend.device, backend.fromPixelProgram,
-      backend.fromPixelLayout.pipelineLayout, [], output, true);
+        backend.glslang, backend.device, backend.fromPixelProgram,
+        backend.fromPixelLayout.pipelineLayout, [], output, true);
   });
 
   backend.fromPixelProgram.setPipeline(pipeline);
 
   backend.queue.copyExternalImageToTexture(
-    { source: externalImage, origin: { x: 0, y: 0 } }, {
-      texture: backend.fromPixelProgram.makeInputTexture(
-        backend.device, externalImage.width, externalImage.height)
-    },
-    [externalImage.width, externalImage.height]);
+      {source: externalImage, origin: {x: 0, y: 0}}, {
+        texture: backend.fromPixelProgram.makeInputTexture(
+            backend.device, externalImage.width, externalImage.height)
+      },
+      [externalImage.width, externalImage.height]);
 
   const info = backend.tensorMap.get(output.dataId);
 
