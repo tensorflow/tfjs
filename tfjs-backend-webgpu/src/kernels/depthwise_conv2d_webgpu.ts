@@ -17,6 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+import {mapActivationToShaderProgram} from './activation_util';
 import {WebGPUProgram} from './webgpu_program';
 
 export class DepthwiseConv2DProgram implements WebGPUProgram {
@@ -30,12 +31,12 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [256, 1, 1];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
-  activation: string;
+  activation: backend_util.Activation;
   hasPreluActivation: boolean;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
-      activation: string = null, hasPreluActivation = false) {
+      activation: backend_util.Activation = null, hasPreluActivation = false) {
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -57,7 +58,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
     this.activation = activation;
     this.hasPreluActivation = hasPreluActivation;
 
-    this.shaderKey = `depthwise_${activation}_${
+    this.shaderKey = `depthwise_${this.activation}_${
         this.convInfo.outChannels / this.convInfo.inChannels}`;
   }
 
@@ -65,15 +66,16 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
     const channelMul = this.convInfo.outChannels / this.convInfo.inChannels;
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
+      const activationOp = mapActivationToShaderProgram(this.activation);
       if (this.hasPreluActivation) {
         activationSnippet = `float activation(float a) {
           float b = getPreluActivationWeightsAtOutCoords();
-          ${this.activation}
+          ${activationOp}
         }`;
       } else {
         activationSnippet = `
           float activation(float a) {
-            ${this.activation}
+            ${activationOp}
           }
         `;
       }
