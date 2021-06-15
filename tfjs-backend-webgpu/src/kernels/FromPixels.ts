@@ -20,7 +20,7 @@ import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '@tensorflow/tfjs-co
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {fromPixelsImageBitmap} from './FromPixelsImageBitmap';
+import {fromPixelsExternalImage} from './FromPixelsExternalImage';
 
 export const fromPixelsConfig: KernelConfig = {
   kernelName: FromPixels,
@@ -44,7 +44,7 @@ export function fromPixels(args: {
   }
 
   const outShape = [pixels.height, pixels.width, numChannels];
-  let imageData = (pixels as ImageData | backend_util.PixelData).data;
+  const imageData = (pixels as ImageData | backend_util.PixelData).data;
 
   if (env().getBool('IS_BROWSER')) {
     if (!(pixels instanceof HTMLVideoElement) &&
@@ -60,13 +60,8 @@ export function fromPixels(args: {
           `but was ${(pixels as {}).constructor.name}`);
     }
 
-    if (pixels instanceof ImageBitmap) {
-      return fromPixelsImageBitmap({imageBitmap: pixels, backend, attrs});
-    }
-
     if (pixels instanceof HTMLVideoElement ||
-        pixels instanceof HTMLImageElement ||
-        pixels instanceof HTMLCanvasElement) {
+        pixels instanceof HTMLImageElement) {
       if (fromPixels2DContext == null) {
         fromPixels2DContext = document.createElement('canvas').getContext('2d');
       }
@@ -76,15 +71,8 @@ export function fromPixels(args: {
       pixels = fromPixels2DContext.canvas;
     }
 
-    // TODO: Remove this once we figure out how to upload textures directly to
-    // WebGPU.
-    const imageDataLivesOnGPU = pixels instanceof HTMLVideoElement ||
-        pixels instanceof HTMLImageElement ||
-        pixels instanceof HTMLCanvasElement;
-    if (imageDataLivesOnGPU) {
-      imageData =
-          fromPixels2DContext.getImageData(0, 0, pixels.width, pixels.height)
-              .data;
+    if (pixels instanceof ImageBitmap || pixels instanceof HTMLCanvasElement) {
+      return fromPixelsExternalImage({externalImage: pixels, backend, attrs});
     }
   }
 
