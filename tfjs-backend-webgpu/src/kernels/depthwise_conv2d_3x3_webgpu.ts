@@ -17,6 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 import {computeDispatch} from '../webgpu_util';
+import {mapActivationToShaderProgram} from './activation_util';
 import {WebGPUProgram} from './webgpu_program';
 
 export class DepthwiseConv2D3x3Program implements WebGPUProgram {
@@ -29,13 +30,13 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
   workGroupSize: [number, number, number] = [4, 4, 4];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
-  activation: string;
+  activation: backend_util.Activation;
   hasPreluActivation: boolean;
   isVec4 = true;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
-      activation: string = null, hasPreluActivation = false) {
+      activation: backend_util.Activation = null, hasPreluActivation = false) {
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = {x: [0, 1], y: [2], z: [3]};
     this.dispatch = computeDispatch(
@@ -63,15 +64,17 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
   getUserCode(): string {
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
+      const activationOp =
+          mapActivationToShaderProgram(this.activation, this.isVec4);
       if (this.hasPreluActivation) {
         activationSnippet = `vec4 activation(vec4 a) {
           vec4 b = getPreluActivationWeightsAtOutCoords(coords);
-          ${this.activation}
+          ${activationOp}
         }`;
       } else {
         activationSnippet = `
         vec4 activation(vec4 a) {
-            ${this.activation}
+            ${activationOp}
           }
         `;
       }
