@@ -110,7 +110,9 @@ function setupBenchmarkEnv(config) {
  * @param {{browsers, benchmark}} config Benchmark configuration.
  */
 function benchmark(config) {
-  console.log(config);
+  if (process.argv.includes('--benchmarks')) {
+    console.log(config);
+  }
   console.log('Preparing configuration files for the test runner.');
   setupBenchmarkEnv(config);
 
@@ -141,8 +143,10 @@ function benchmark(config) {
       const matchedResult = stdout.match(resultReg);
       if (matchedResult != null) {
         const benchmarkResult = JSON.parse(matchedResult[1]);
-        console.log(benchmarkResult);
         benchmarkResult.tabId = tabId;
+        if(process.argv.includes('--benchmarks')) {
+          console.log(benchmarkResult);
+        }
         io.emit('benchmarkComplete', benchmarkResult);
         return;
       }
@@ -173,8 +177,7 @@ function run() {
   setUpHelpMessage();
   checkBrowserStackAccount();
   runServer();
-
-  if(process.argv[2] !== undefined && process.argv[2] === '--benchmarks') {
+  if(process.argv.includes('--benchmarks')) {
     autoConfig = require('./preconfigured_browser.json');
     benchmark(autoConfig);
   }
