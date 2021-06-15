@@ -25,6 +25,9 @@ import {WebGPUBackend} from './backend_webgpu';
 import * as webgpu from './webgpu';
 
 registerBackend('webgpu', async () => {
+  if (!env().getBool('HAS_WEBGPU')) {
+    throw new Error('WebGPU is not supported on this device');
+  }
   // Remove it once we figure out how to correctly read the tensor data before
   // the tensor is disposed in profiling mode.
   env().set('CHECK_COMPUTATION_FOR_ERRORS', false);
@@ -40,9 +43,7 @@ registerBackend('webgpu', async () => {
   const supportTimeQuery = adapter.features.has('timestamp-query');
 
   if (supportTimeQuery) {
-    deviceDescriptor = {
-      nonGuaranteedFeatures: ['timestamp-query' as const]
-    };
+    deviceDescriptor = {nonGuaranteedFeatures: ['timestamp-query' as const ]};
   } else {
     console.warn(
         `This device doesn't support timestamp-query extension. ` +

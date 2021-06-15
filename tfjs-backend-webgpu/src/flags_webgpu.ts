@@ -16,8 +16,14 @@
  */
 
 import {env} from '@tensorflow/tfjs-core';
+import {isWebGPUSupported} from './webgpu_util';
 
 const ENV = env();
+
+/**
+ * True if WebGPU is supported.
+ */
+ENV.registerFlag('HAS_WEBGPU', () => isWebGPUSupported());
 
 /** The batched command encoders size in the device queue. */
 ENV.registerFlag('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', () => 15);
