@@ -18,6 +18,7 @@
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {computeDispatch, tilesFitEvenlyIntoShape} from '../webgpu_util';
+import {mapActivationToShaderProgram} from './activation_util';
 
 import {makeMatMulPackedVec4Source} from './matmul_packed_vec4_webgpu';
 import {WebGPUProgram} from './webgpu_program';
@@ -33,7 +34,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   isVec4 = true;
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
-  activation: string;
+  activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
   hasLeakyreluAlpha: boolean;
   fitA: boolean;
@@ -41,8 +42,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
-      activation: string = null, hasPreluActivationWeights = false,
-      hasLeakyreluAlpha = false) {
+      activation: backend_util.Activation = null,
+      hasPreluActivationWeights = false, hasLeakyreluAlpha = false) {
     this.outputShape = convInfo.outShape;
 
     util.assert(
@@ -170,21 +171,23 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
 
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
+      const activationOp =
+          mapActivationToShaderProgram(this.activation, this.isVec4);
       if (this.hasPreluActivationWeights) {
         activationSnippet = `vec4 activation(vec4 a, ivec4 outCoord) {
           vec4 b = getPreluActivationWeightsAtOutCoords(outCoord);
-          ${this.activation}
+          ${activationOp}
         }`;
       } else if (this.hasLeakyreluAlpha) {
         activationSnippet = `vec4 activation(vec4 a) {
           vec4 b = getLeakyreluAlphaAtOutCoords();
-          ${this.activation}
+          ${activationOp}
         }`;
         throw new Error('Leakyrelu is not supported.');
       } else {
         activationSnippet = `
         vec4 activation(vec4 a, ivec4 outCoord) {
-          ${this.activation}
+          ${activationOp}
         }`;
       }
 

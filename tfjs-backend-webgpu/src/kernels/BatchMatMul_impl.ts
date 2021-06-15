@@ -97,9 +97,6 @@ export function batchMatMulImpl({
 
   const useVec4 = a.shape[2] % 4 === 0 && b.shape[2] % 4 === 0 && !transposeA &&
       !transposeB && outerShapeB >= 32;
-  const fusedActivation = activation ?
-      backend.mapActivationToShaderProgram(activation, useVec4) :
-      null;
   let program: MatMulPackedProgram|MatMulPackedVec4Program;
   if (useVec4) {
     // TODO: Currently we need to make sure that a.shape[2] and b.shape[2]
@@ -107,13 +104,13 @@ export function batchMatMulImpl({
     // remove this limitation by insert 0 to pack data.
     program = new MatMulPackedVec4Program(
         a3dShape, [batchDim, outerShapeA, outerShapeB],
-        env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, bias,
-        fusedActivation, preluActivationWeights);
+        env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, bias, activation,
+        preluActivationWeights);
   } else {
     program = new MatMulPackedProgram(
         a3dShape, [batchDim, outerShapeA, outerShapeB],
         env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, transposeA,
-        transposeB, bias, fusedActivation, preluActivationWeights);
+        transposeB, bias, activation, preluActivationWeights);
   }
   const inputs: TensorInfo[] = [a3d, b3d];
   if (bias) {
