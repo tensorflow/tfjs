@@ -32,7 +32,7 @@
     "update-apk": "./scripts/update-apk.sh"
   },
   "devDependencies": {
-    "@react-native-community/async-storage": "^1.4.2",
+    "@react-native-async-storage/async-storage": "^1.13.0",
     "@tensorflow/tfjs-backend-cpu": "~3.1.0",
     "@tensorflow/tfjs-backend-webgl": "~3.1.0",
     "@tensorflow/tfjs-core": "3.1.0",
@@ -63,7 +63,7 @@
     "jpeg-js": "^0.4.3"
   },
   "peerDependencies": {
-    "@react-native-community/async-storage": "^1.4.2",
+    "@react-native-async-storage/async-storage": "^1.13.0",
     "@tensorflow/tfjs-backend-cpu": "~3.1.0",
     "@tensorflow/tfjs-backend-webgl": "~3.1.0",
     "@tensorflow/tfjs-core": "~3.1.0",
