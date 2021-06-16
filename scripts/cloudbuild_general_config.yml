@@ -42,21 +42,15 @@ steps:
   waitFor: ['yarn-common']
   secretEnv: ['BROWSERSTACK_KEY']
 
-# The following two steps build the link package, which is a temporary package
+# The following step builds the link package, which is a temporary package
 # that helps packages that don't build with Bazel load outputs from packages
 # that build with Bazel.
 - name: 'node:10'
   dir: 'link-package'
   entrypoint: 'yarn'
-  id: 'yarn-build-link-package'
-  args: ['build']
-
-- name: 'node:10'
-  dir: 'link-package'
-  entrypoint: 'yarn'
   id: 'yarn-link-package'
   args: ['install']
-  waitFor: ['yarn-build-link-package']
+  waitFor: ['bazel-tests']
 
 # General configuration
 secrets:
