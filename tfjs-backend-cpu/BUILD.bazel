@@ -90,6 +90,7 @@ copy_to_dist(
 pkg_npm(
     name = "tfjs-backend-cpu_pkg",
     srcs = ["package.json"],
+    tags = ["ci"],
     deps = [
         ":copy_bundles",
         ":copy_src_to_dist",

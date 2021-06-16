@@ -1,4 +1,3 @@
-
 steps:
 # Install common dependencies.
 - name: 'node:10'
@@ -6,47 +5,7 @@ steps:
   entrypoint: 'yarn'
   args: ['install']
 
-# Install packages.
-- name: 'node:10'
-  dir: 'tfjs-backend-cpu'
-  id: 'yarn'
-  entrypoint: 'yarn'
-  args: ['install']
-  waitFor: ['yarn-common']
-
-# Build dependencies.
-- name: 'node:10'
-  dir: 'tfjs-backend-cpu'
-  id: 'build-deps'
-  entrypoint: 'yarn'
-  args: ['build-deps-ci']
-  waitFor: ['yarn-common']
-
-# Build.
-- name: 'node:10'
-  dir: 'tfjs-backend-cpu'
-  id: 'build'
-  entrypoint: 'yarn'
-  args: ['build-ci']
-  waitFor: ['yarn', 'build-deps']
-
-# Lint.
-- name: 'node:10'
-  dir: 'tfjs-backend-cpu'
-  id: 'lint'
-  entrypoint: 'yarn'
-  args: ['lint']
-  waitFor: ['yarn', 'build-deps']
-
-# Run tests.
-- name: 'node:10'
-  dir: 'tfjs-backend-cpu'
-  entrypoint: 'yarn'
-  id: 'test-backend-cpu'
-  args: ['test-ci']
-  waitFor: ['yarn', 'build-deps', 'lint']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
-  secretEnv: ['BROWSERSTACK_KEY']
+# All steps are now handled by Bazel tests
 
 # General configuration
 secrets:
