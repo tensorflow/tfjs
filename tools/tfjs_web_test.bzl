@@ -39,11 +39,16 @@ def tfjs_web_test(name, ci = True, **kwargs):
         "win_10_chrome",
     ])
 
+    size = kwargs.pop("size", "large")
+    timeout = kwargs.pop("timeout", "long")
+
     # For local testing
     # NOTE: If karma_template.conf.js is changed such that it affects the tests
     # outside of choosing which browsers they run on, it may need to be added
     # here.
     karma_web_test(
+        size = size,
+        timeout = timeout,
         name = name,
         tags = ["native"] + tags,
         **kwargs
