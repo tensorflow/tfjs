@@ -17,9 +17,9 @@
 
 import {KernelConfig, Sigmoid} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {SIGMOID} from './unary_op_webgpu';
+import {UnaryOpType} from './unary_op_util';
 
-export const sigmoid = unaryKernelFunc({opSnippet: SIGMOID});
+export const sigmoid = unaryKernelFunc({opType: UnaryOpType.SIGMOID});
 
 export const sigmoidConfig: KernelConfig = {
   kernelName: Sigmoid,
