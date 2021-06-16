@@ -167,7 +167,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         const ivec2 coordInfo = getInputCoordInfo();
 
         int bestIndex = 0;
-        float bestValue = x[getInputIndex(coordInfo, bestIndex)];
+        float bestValue = float(x[getInputIndex(coordInfo, bestIndex)]);
 
         const int Length = ${indexInputShape('axis')};
         const int WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
@@ -175,7 +175,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         for (int w = 0; w < WorkPerThread; ++w) {
           int i = int(gl_GlobalInvocationID.x) * WorkPerThread + w;
           if (i < Length) {
-            float candidate = x[getInputIndex(coordInfo, i)];
+            float candidate = float(x[getInputIndex(coordInfo, i)]);
             if (candidate ${this.op} bestValue && !isnan(candidate)) {
               bestValue = candidate;
               bestIndex = i;
