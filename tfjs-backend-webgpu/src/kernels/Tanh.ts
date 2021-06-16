@@ -17,9 +17,9 @@
 
 import {KernelConfig, Tanh} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {TANH} from './unary_op_webgpu';
+import {UnaryOpType} from './unary_op_util';
 
-export const tanh = unaryKernelFunc({opSnippet: TANH});
+export const tanh = unaryKernelFunc({opType: UnaryOpType.TANH});
 
 export const tanhConfig: KernelConfig = {
   kernelName: Tanh,
