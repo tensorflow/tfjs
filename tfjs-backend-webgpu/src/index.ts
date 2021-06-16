@@ -23,8 +23,9 @@ import glslangInit from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {WebGPUBackend} from './backend_webgpu';
 import * as webgpu from './webgpu';
+import {isWebGPUSupported} from './webgpu_util';
 
-if (device_util.isBrowser() && env().getBool('HAS_WEBGPU')) {
+if (device_util.isBrowser() && isWebGPUSupported()) {
   registerBackend('webgpu', async () => {
     // Remove it once we figure out how to correctly read the tensor data
     // before the tensor is disposed in profiling mode.

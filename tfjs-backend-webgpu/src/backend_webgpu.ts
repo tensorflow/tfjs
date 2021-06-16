@@ -106,7 +106,7 @@ export class WebGPUBackend extends KernelBackend {
 
   constructor(device: GPUDevice, glslang: Glslang, supportTimeQuery = false) {
     super();
-    if (!env().getBool('HAS_WEBGPU')) {
+    if (!webgpu_util.isWebGPUSupported()) {
       throw new Error('WebGPU is not supported on this device');
     }
     this.layoutCache = {};
@@ -609,20 +609,20 @@ export class WebGPUBackend extends KernelBackend {
     bindGroupLayoutEntries.push({
       binding: 0,
       visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'storage' as const }
+      buffer: {type: 'storage' as const}
     });
     // Input buffer binding layout. Depends on variableNames length.
     for (let i = 0; i < inputEntrySize; i++) {
       bindGroupLayoutEntries.push({
         binding: i + 1,
         visibility: GPUShaderStage.COMPUTE,
-        buffer: {type: 'read-only-storage' as const }
+        buffer: {type: 'read-only-storage' as const}
       });
     }
     bindGroupLayoutEntries.push({
       binding: inputEntrySize + 1,
       visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'uniform' as const }
+      buffer: {type: 'uniform' as const}
     });
     const bindGroupLayout =
         this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
@@ -638,7 +638,7 @@ export class WebGPUBackend extends KernelBackend {
     bindGroupLayoutEntries.push({
       binding: 0,
       visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'storage' as const }
+      buffer: {type: 'storage' as const}
     });
     // Input buffer binding layout.
     bindGroupLayoutEntries.push({
@@ -650,7 +650,7 @@ export class WebGPUBackend extends KernelBackend {
     bindGroupLayoutEntries.push({
       binding: 2,
       visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'uniform' as const }
+      buffer: {type: 'uniform' as const}
     });
     const fromPixelBindGroupLayout =
         this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
