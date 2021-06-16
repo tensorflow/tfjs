@@ -18,9 +18,10 @@
 import {KernelConfig, Log} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {logImplCPU} from '../kernel_utils/shared';
-import {LOG} from './unary_op_webgpu';
+import {UnaryOpType} from './unary_op_util';
 
-export const log = unaryKernelFunc({opSnippet: LOG, cpuKernelImpl: logImplCPU});
+export const log =
+    unaryKernelFunc({opType: UnaryOpType.LOG, cpuKernelImpl: logImplCPU});
 
 export const logConfig: KernelConfig = {
   kernelName: Log,
