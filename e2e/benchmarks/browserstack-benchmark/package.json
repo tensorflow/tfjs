@@ -20,7 +20,7 @@
   },
   "scripts": {
     "test": "karma start",
-    "test-cli": "jasmine app_cli_test.js",
+    "test-node": "jasmine app_node_test.js",
     "build-deps": "yarn build-tfjs && yarn build-tfjs-vis",
     "build-tfjs": "cd ../../../tfjs && yarn && yarn build-deps && yarn build-npm",
     "build-tfjs-vis": "cd ../../../tfjs-vis && yarn && yarn build"
