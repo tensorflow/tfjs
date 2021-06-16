@@ -30,7 +30,7 @@ const BACKEND_FLAGS_MAP = {
     'CHECK_COMPUTATION_FOR_ERRORS'
   ],
 };
-if (isBackendSupported('webgpu')) {
+if (tf.engine().backendNames().includes('webgpu')) {
   BACKEND_FLAGS_MAP['webgpu'] = ['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'];
 }
 
@@ -47,7 +47,7 @@ const TUNABLE_FLAG_NAME_MAP = {
   WEBGL_PACK_DEPTHWISECONV: 'Packed depthwise Conv2d',
   CHECK_COMPUTATION_FOR_ERRORS: 'Check each op result',
 };
-if (isBackendSupported('webgpu')) {
+if (tf.engine().backendNames().includes('webgpu')) {
   TUNABLE_FLAG_NAME_MAP['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'] =
       'deferred submit batch size';
 }
@@ -197,17 +197,5 @@ function getTunableRange(flag) {
     return TUNABLE_FLAG_VALUE_RANGE_MAP[flag];
   } else {
     return [defaultValue];
-  }
-}
-
-/**
- * Check if specific backend is supported in current browser.
- * @param {string} backendName
- */
-function isBackendSupported(backendName) {
-  if (backendName === 'webgpu' && !navigator.gpu) {
-    return false;
-  } else {
-    return true;
   }
 }
