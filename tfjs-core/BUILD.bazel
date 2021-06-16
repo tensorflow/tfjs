@@ -127,6 +127,7 @@ copy_file(
 pkg_npm(
     name = "tfjs-core_pkg",
     srcs = ["package.json"],
+    tags = ["ci"],
     deps = [
         ":copy_bundles",
         ":copy_miniprogram",
@@ -140,6 +141,14 @@ tfjs_web_test(
     name = "tfjs-core_test",
     srcs = [
         "//tfjs-core/src:tfjs-core_test_bundle",
+    ],
+    browsers = [
+        "bs_chrome_mac",
+        "bs_firefox_mac",
+        "bs_safari_mac",
+        # "bs_ios_11", # TODO: Reenable ios 11
+        "bs_android_9",
+        "win_10_chrome",
     ],
     static_files = [
         # Listed here so sourcemaps are served
@@ -184,7 +193,7 @@ nodejs_test(
 )
 
 nodejs_test(
-    name = "tfjs-core-async-backends_test",
+    name = "tfjs-core_async_backends_test",
     data = [
         ":package_json",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",

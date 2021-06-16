@@ -5,64 +5,7 @@ steps:
   entrypoint: 'yarn'
   args: ['install']
 
-# Install tfjs-core dependencies.
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'yarn'
-  entrypoint: 'yarn'
-  args: ['install']
-  waitFor: ['yarn-common']
-
-# Build.
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'build'
-  entrypoint: 'yarn'
-  args: ['build-ci']
-  waitFor: ['yarn']
-
-# Lint.
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'lint'
-  entrypoint: 'yarn'
-  args: ['lint']
-  waitFor: ['yarn']
-
-# Run unit tests.
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'test'
-  entrypoint: 'yarn'
-  args: ['test-ci']
-  waitFor: ['yarn', 'lint']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
-  secretEnv: ['BROWSERSTACK_KEY']
-
-# bundle size check
-# TODO(mattsoulanille): Re-enable this test
-# - name: 'node:10'
-#   dir: 'tfjs-core'
-#   id: 'test-bundle-size'
-#   entrypoint: 'yarn'
-#   args: ['test-bundle-size']
-#   waitFor: ['yarn']
-
-# test doc snippets
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'test-snippets'
-  entrypoint: 'yarn'
-  args: ['test-snippets-ci']
-  waitFor: ['yarn']
-
-# test Async backends
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'test-async-backends'
-  entrypoint: 'yarn'
-  args: ['test-async-backends']
-  waitFor: ['yarn']
+# All steps are now handled by Bazel tests
 
 # General configuration
 secrets:

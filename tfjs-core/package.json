@@ -69,8 +69,7 @@
     "test-bundle-size": "./scripts/test-bundle-size.js",
     "test-node": "bazel test :tfjs-core_node_test",
     "test-async-backends": "bazel test :tfjs-core_async_backends_test",
-    "test-snippets": "bazel test :test_snippets_test",
-    "test-snippets-ci": "bazel test :test_snippets_test"
+    "test-snippets": "bazel test :test_snippets_test"
   },
   "dependencies": {
     "@types/long": "^4.0.1",
