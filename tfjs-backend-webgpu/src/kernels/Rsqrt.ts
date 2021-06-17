@@ -18,11 +18,10 @@
 import {KernelConfig, Rsqrt} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {rsqrtImplCPU} from '../kernel_utils/shared';
-
-const RSQRT = `return inversesqrt(a);`;
+import {UnaryOpType} from './unary_op_util';
 
 export const rsqrt =
-    unaryKernelFunc({opSnippet: RSQRT, cpuKernelImpl: rsqrtImplCPU});
+    unaryKernelFunc({opType: UnaryOpType.RSQRT, cpuKernelImpl: rsqrtImplCPU});
 
 export const rsqrtConfig: KernelConfig = {
   kernelName: Rsqrt,

@@ -17,10 +17,9 @@
 
 import {KernelConfig, Sqrt} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {UnaryOpType} from './unary_op_util';
 
-import {SQRT} from './unary_op_webgpu';
-
-export const sqrt = unaryKernelFunc({opSnippet: SQRT});
+export const sqrt = unaryKernelFunc({opType: UnaryOpType.SQRT});
 
 export const sqrtConfig: KernelConfig = {
   kernelName: Sqrt,
