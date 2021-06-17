@@ -11,14 +11,16 @@
     "@tensorflow/tfjs": "link:../../../tfjs",
     "@tensorflow/tfjs-vis": "link:../../../tfjs-vis",
     "argparse": "^2.0.1",
+    "jasmine": "^3.7.0",
     "karma": "^4.4.1",
     "karma-browserstack-launcher": "^1.6.0",
-    "karma-jasmine": "^3.3.1",
     "karma-chrome-launcher": "^3.1.0",
+    "karma-jasmine": "^3.3.1",
     "socket.io": "~2.2.0"
   },
   "scripts": {
     "test": "karma start",
+    "test-node": "jasmine app_node_test.js",
     "build-deps": "yarn build-tfjs && yarn build-tfjs-vis",
     "build-tfjs": "cd ../../../tfjs && yarn && yarn build-deps && yarn build-npm",
     "build-tfjs-vis": "cd ../../../tfjs-vis && yarn && yarn build"
