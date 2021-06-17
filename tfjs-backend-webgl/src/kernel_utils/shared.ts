@@ -65,7 +65,6 @@ const {
   stringToHashBucketFastImpl: stringToHashBucketFastImplCPU,
   subImpl: subImplCPU,
   tileImpl: tileImplCPU,
-  topKImpl: topKImplCPU,
   transposeImpl: transposeImplCPU,
   uniqueImpl: uniqueImplCPU,
 } = shared;
@@ -108,7 +107,6 @@ export {
   rangeImplCPU,
   rsqrtImplCPU,
   tileImplCPU,
-  topKImplCPU,
   transposeImplCPU,
   uniqueImplCPU,
 };

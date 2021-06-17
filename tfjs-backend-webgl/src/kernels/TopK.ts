@@ -19,8 +19,20 @@ import {KernelConfig, KernelFunc, TensorInfo, TopK, TopKAttrs, TopKInputs, util}
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {MergeProgram, SwapProgram} from '../top_k_gpu';
-import { slice } from './Slice';
+import {fill} from './Fill';
+import {gatherV2} from './GatherV2';
+import {slice} from './Slice';
 
+function roundUpToPow2(num: number) {
+  let pow2 = 1;
+  while (pow2 < num) {
+    pow2 *= 2;
+  }
+  return pow2;
+}
+
+// Based on Algorithm 2 of Bitonic Top K, ref:
+// https://anilshanbhag.in/static/papers/gputopk_sigmod18.pdf
 export function topK(
     args: {inputs: TopKInputs, backend: MathBackendWebGL, attrs: TopKAttrs}):
     TensorInfo[] {
@@ -29,59 +41,88 @@ export function topK(
   const k = attrs.k;
 
   const xShape = x.shape;
-  // Reshape into a 2d tensor [batch, lastDim] and compute topk along lastDim.
   const lastDim = xShape[xShape.length - 1];
+
+  if (k === 0) {
+    xShape[xShape.length - 1] = 0;
+    return [
+      backend.makeTensorInfo(xShape, x.dtype, []),
+      backend.makeTensorInfo(xShape, 'int32', [])
+    ];
+  }
+
+  if (lastDim === 1) {
+    return [
+      x, fill({attrs: {shape: xShape, dtype: 'int32', value: 0}, backend})
+    ];
+  }
+
+  // Reshape into a 2d tensor [batch, lastDim] and compute topk along lastDim.
   const xSize = util.sizeFromShape(xShape);
   const batch = xSize / lastDim;
   x.shape = [batch, lastDim];
-  let result = x;
+
+  const kPow2 = roundUpToPow2(k);
+  const lastDimPow2 = roundUpToPow2(lastDim);
+
+  let indices: TensorInfo = null;
+
+  const getInputs = () => indices === null ? [x] : [x, indices];
+
+  const disposeIntermediateTensorInfoOrNull = (tensorInfo: TensorInfo) => {
+    if (tensorInfo !== null) {
+      backend.disposeIntermediateTensorInfo(tensorInfo);
+    }
+  };
+
+  const runSwap = (dir: number, inc: number, shape: number[]) => {
+    const inputs = getInputs();
+    const program = new SwapProgram(lastDim, shape, inputs.length === 1);
+    const customSetup = program.getCustomSetupFunc(dir, inc);
+    const prevIndices = indices;
+    indices = backend.runWebGLProgram(program, inputs, 'int32', customSetup);
+    disposeIntermediateTensorInfoOrNull(prevIndices);
+  };
 
   // Step 1: local sort
-  for (let len = 1; len < k; len *= 2) {
+  for (let len = 1; len < kPow2; len *= 2) {
     const dir = len * 2;
-    for (let inc = len; inc > 0; inc /= 2) {
-      const program = new SwapProgram([2, batch, lastDim], result.shape.length === 2 ? 2 : 3);
-      const customSetup = program.getCustomSetupFunc(dir, inc);
-      const prevResult = result;
-      result =
-          backend.runWebGLProgram(program, [result], result.dtype, customSetup);
-      backend.disposeIntermediateTensorInfo(prevResult);
+    for (let inc = len; inc >= 1; inc /= 2) {
+      runSwap(dir, inc, [batch, lastDimPow2]);
     }
   }
 
-  for (let resultSize = lastDim; resultSize > k; resultSize /= 2) {
+  for (let indicesSize = lastDimPow2; indicesSize > kPow2; indicesSize /= 2) {
     // Step 2: merge
-    const mergeProgram = new MergeProgram([2, batch, resultSize / 2], result.shape.length === 2 ? 2 : 3);
-    let customSetup = mergeProgram.getCustomSetupFunc(k);
-    let prevResult = result;
-    result = backend.runWebGLProgram(
-        mergeProgram, [result], result.dtype, customSetup);
-    backend.disposeIntermediateTensorInfo(prevResult);
+    const inputs = getInputs();
+    const mergeProgram = new MergeProgram(
+        lastDim, kPow2, [batch, indicesSize / 2], inputs.length === 1);
+    const prevIndices = indices;
+    indices = backend.runWebGLProgram(mergeProgram, inputs, 'int32');
+    disposeIntermediateTensorInfoOrNull(prevIndices);
 
-    const len = Math.floor(k / 2);
+    const len = kPow2 / 2;
     const dir = len * 2;
-    for (let inc = len; inc > 0; inc /= 2) {
+    for (let inc = len; inc >= 1; inc /= 2) {
       // Step 3: rebuild
-      const swapProgram = new SwapProgram(result.shape, result.shape.length === 2 ? 2 : 3);
-      customSetup = swapProgram.getCustomSetupFunc(dir, inc);
-      prevResult = result;
-      result = backend.runWebGLProgram(
-          swapProgram, [result], result.dtype, customSetup);
-      backend.disposeIntermediateTensorInfo(prevResult);
+      runSwap(dir, inc, indices.shape);
     }
   }
 
-  const values = slice({inputs: {x: result}, backend, attrs: {begin: [0, 0, 0], size: [1, batch, k]}});
-  const indices = slice({inputs: {x: result}, backend, attrs: {begin: [1, 0, 0], size: [1, batch, k]}});
-  backend.disposeIntermediateTensorInfo(result);
+  // Keep only the requested top K results instead of kPow2
+  const prevIndices = indices;
+  indices = slice(
+      {inputs: {x: indices}, backend, attrs: {begin: 0, size: [batch, k]}});
+  disposeIntermediateTensorInfoOrNull(prevIndices);
+
+  const values =
+      gatherV2({inputs: {x, indices}, backend, attrs: {axis: 1, batchDims: 1}});
 
   // Reshape back to the original input shape, except that the last
   // dimension is k.
   xShape[xShape.length - 1] = k;
-  values.shape = xShape;
   indices.shape = xShape;
-
-  indices.dtype = 'int32';
+  values.shape = xShape;
 
   return [values, indices];
 }
