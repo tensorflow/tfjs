@@ -43,7 +43,7 @@ function config({plugins = [], output = {}, external = []}) {
     },
     external: [
       '@tensorflow/tfjs-core',
-      '@react-native-community/async-storage',
+      '@react-native-async-storage/async-storage',
       'react-native',
     ],
     onwarn: warning => {

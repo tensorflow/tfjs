@@ -18,6 +18,7 @@
 import {backend_util, util} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -29,12 +30,12 @@ export class BinaryOpProgram implements WebGPUProgram {
   variableNames = ['A', 'B'];
   workPerThread: number;
   workGroupSize: [number, number, number];
-  op: string;
+  op: BinaryOpType;
   sizeFit: boolean;
   shapesFit: boolean;
   size: number;
 
-  constructor(op: string, aShape: number[], bShape: number[]) {
+  constructor(op: BinaryOpType, aShape: number[], bShape: number[]) {
     // TODO(jiajia.qin@intel.com): Heuristically select a good work group size.
     const workGroupSizeX = 128;
     this.workGroupSize = [workGroupSizeX, 1, 1];
@@ -54,10 +55,11 @@ export class BinaryOpProgram implements WebGPUProgram {
 
   getUserCode(): string {
     let userCode: string;
+    const opStr = getBinaryOpString(this.op);
     if (this.shapesFit) {
       userCode = `
           float binaryOperation(float a, float b) {
-            ${this.op}
+            ${opStr}
           }
 
           void main() {
@@ -72,7 +74,7 @@ export class BinaryOpProgram implements WebGPUProgram {
       const type = getCoordsDataType(this.outputShape.length);
       userCode = `
       float binaryOperation(float a, float b) {
-        ${this.op}
+        ${opStr}
       }
 
       void main() {
@@ -89,7 +91,7 @@ export class BinaryOpProgram implements WebGPUProgram {
       const type = getCoordsDataType(this.outputShape.length);
       userCode = `
       float binaryOperation(float a, float b) {
-        ${this.op}
+        ${opStr}
       }
 
       void main() {
