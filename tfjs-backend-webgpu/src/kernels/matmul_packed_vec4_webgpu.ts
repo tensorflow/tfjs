@@ -17,9 +17,18 @@
 
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
+import {getWorkGroupSizeString} from '../webgpu_util_wgsl';
 import {mapActivationToShaderProgram} from './activation_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+
+interface TileInfo {
+  RowPerThread: number;
+  ColPerThread: number;
+  TileAOuter: number;
+  TileBOuter: number;
+  TileInner: number;
+}
 
 export function makeMatMulPackedVec4Source(workPerThread: number[]): string {
   return `
@@ -110,6 +119,135 @@ export function makeMatMulPackedVec4Source(workPerThread: number[]): string {
   `;
 }
 
+function getSharedArray2DCodeWgsl(tileInfo: TileInfo) {
+  return `
+  var<workgroup> mm_Asub : array<array<vec4<f32>, ${
+      tileInfo.TileInner / tileInfo.ColPerThread}>, ${tileInfo.TileAOuter}>;
+  var<workgroup> mm_Bsub : array<array<vec4<f32>, ${
+      tileInfo.TileBOuter / tileInfo.ColPerThread}>, ${tileInfo.TileInner}>;`;
+}
+
+function getA2DCodeWgsl() {
+  return `
+  mm_Asub[inputRow][inputCol] = mm_readA(globalRow + innerRow, globalColA, globalId);`;
+}
+
+function getB2DCodeWgsl() {
+  return `
+  mm_Bsub[inputRow][inputCol] = mm_readB(t * TileInner + inputRow, globalCol);`;
+}
+
+function getCompute2DCodeWgsl() {
+  return `
+  // Compute acc values for a single thread.
+  for (var k : u32 = 0u; k < TileInner / ColPerThread; k = k + 1u) {
+      BCached[0] = mm_Bsub[k * ColPerThread][tileCol];
+      BCached[1] = mm_Bsub[k * ColPerThread + 1u][tileCol];
+      BCached[2] = mm_Bsub[k * ColPerThread + 2u][tileCol];
+      BCached[3] = mm_Bsub[k * ColPerThread + 3u][tileCol];
+
+      for (var i : u32 = 0u; i < RowPerThread; i = i + 1u) {
+          ACached = mm_Asub[tileRow + i][k];
+          acc[i] = BCached[0] * ACached.x + acc[i];
+          acc[i] = BCached[1] * ACached.y + acc[i];
+          acc[i] = BCached[2] * ACached.z + acc[i];
+          acc[i] = BCached[3] * ACached.w + acc[i];
+      }
+  }`;
+}
+
+function getMainCodeWgsl(
+    getA: string, getB: string, computeAcc: string,
+    workGroupSizeSnippet: string, tileInfo: TileInfo) {
+  return `
+  let RowPerThread : u32 = ${tileInfo.RowPerThread}u;
+  let ColPerThread : u32 = ${
+      tileInfo.ColPerThread}u; // only support ColPerThread = 4
+  let TileAOuter : u32 = ${tileInfo.TileAOuter}u;
+  let TileBOuter : u32 = ${tileInfo.TileBOuter}u;
+  let TileInner : u32 = ${tileInfo.TileInner}u;
+
+  ${workGroupSizeSnippet}
+  fn main([[builtin(local_invocation_id)]] localId : vec3<u32>,
+        [[builtin(global_invocation_id)]] globalId  : vec3<u32>) {
+
+    let tileRow : u32 = localId.y * RowPerThread;
+    let tileCol : u32 = localId.x;
+
+    let globalRow : u32 = globalId.y * RowPerThread;
+    let globalCol : u32 = globalId.x;
+    var dimInner : u32 = uniforms.filterDims[0] * uniforms.filterDims[1] * uniforms.xShape[3];
+    let numTiles : u32 = (dimInner - 1u) / TileInner + 1u;
+
+    var acc: array<vec4<f32>, 4>;
+    var ACached : vec4<f32>;
+    var BCached : array<vec4<f32>, 4>;
+
+    // Without this initialization strange values show up in acc.
+    // TODO: Remove it once the following bug is fixed.
+    // https://bugs.chromium.org/p/tint/issues/detail?id=759
+    for (var index : u32 = 0u; index < RowPerThread; index = index + 1u) {
+        acc[index] = vec4<f32>(0.0, 0.0, 0.0, 0.0);
+    }
+
+    var globalColA : u32 = tileCol;
+    let RowPerThreadB : u32 = TileInner / 16u;
+    let tileRowB : u32 = localId.y * RowPerThreadB;
+
+    // Loop over shared dimension.
+    for (var t : u32 = 0u; t < numTiles; t = t + 1u) {
+        // Load one tile of A into local memory.
+        for (var innerRow : u32 = 0u; innerRow < RowPerThread; innerRow = innerRow + 1u) {
+            let inputRow : u32 = tileRow + innerRow;
+            let inputCol : u32 = tileCol;
+            ${getA}
+        }
+        globalColA = globalColA + TileInner / ColPerThread;
+
+        // Load one tile of B into local memory.
+        for (var innerRow : u32 = 0u; innerRow < RowPerThreadB; innerRow = innerRow + 1u) {
+            let inputRow : u32 = tileRowB + innerRow;
+            let inputCol : u32 = tileCol;
+            ${getB}
+        }
+
+        workgroupBarrier();
+
+        ${computeAcc}
+
+        workgroupBarrier();
+    }
+
+    for (var innerRow : u32 = 0u; innerRow < RowPerThread; innerRow = innerRow + 1u) {
+        mm_write(globalRow + innerRow,
+                 globalCol,
+                 acc[innerRow], globalId);
+    }
+}`;
+}
+
+export function makeMatMulPackedVec4SourceWgsl(
+    addBiasSnippet: string, applyActivationSnippet: string,
+    workPerThread: number[], workGroupSize: [number, number, number]): string {
+  const rowPerThread = workPerThread[1];
+  const colPerThread = workPerThread[0];  // only support colPerThread = 4
+  const tileBOuter = workGroupSize[0] * colPerThread;
+  const tileInfo = {
+    RowPerThread: workPerThread[1],
+    ColPerThread: workPerThread[0],
+    TileAOuter: workGroupSize[1] * rowPerThread,
+    TileBOuter: workGroupSize[0] * colPerThread,
+    TileInner: tileBOuter
+  };
+
+  const kMatMulVec4TwoDimensionalSharedArray =
+      getSharedArray2DCodeWgsl(tileInfo) +
+      getMainCodeWgsl(
+          getA2DCodeWgsl(), getB2DCodeWgsl(), getCompute2DCodeWgsl(),
+          getWorkGroupSizeString(workGroupSize), tileInfo);
+  return kMatMulVec4TwoDimensionalSharedArray;
+}
+
 export function makeMatMulVectorVec4Source(): string {
   return `
     vec4 mm_readA(int row, int col);
@@ -170,6 +308,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   workPerThread: number;
   variableNames = ['A', 'B'];
   workGroupSize: [number, number, number] = [16, 16, 1];
+  useWgsl: boolean;
   isVec4 = true;
   aShape: [number, number, number];
   addBias: boolean;
@@ -208,6 +347,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     this.workPerThread = rowPerThread;
     this.aShape = aShape;
     this.addBias = addBias;
+    this.useWgsl = getUseWgsl();
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
 
@@ -248,8 +388,8 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
 
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
-      const activationOp =
-          mapActivationToShaderProgram(this.activation, this.isVec4);
+      const activationOp = mapActivationToShaderProgram(
+          this.activation, this.isVec4, this.useWgsl);
       if (this.hasPreluActivationWeights) {
         activationSnippet = `vec4 activation(vec4 a, ivec3 outCoord) {
                   vec4 b = getPreluActivationWeightsAtOutCoords(outCoord);
@@ -305,6 +445,42 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
         batch = int(gl_GlobalInvocationID.z);
         mm_matMul(dimAOuter, dimInner, dimBOuter);
       }
+    `;
+    return userCode;
+  }
+
+  getUserCodeWgsl(): string {
+    let activationSnippet = '', applyActivationSnippet = '';
+    if (this.activation) {
+      if (this.hasPreluActivationWeights) {
+        activationSnippet =
+            `fn activation(a : vec4<f32>, outCoord :  vec3<i32>) -> vec4<f32>{
+                  vec4 b = getPreluActivationWeightsAtOutCoords2(outCoord);
+                  ${this.activation}
+                }`;
+      } else {
+        activationSnippet = `
+                fn activation(a : vec4<f32>, outCoord :  vec3<i32>) -> vec4<f32> {
+                  ${this.activation}
+                }`;
+      }
+
+      applyActivationSnippet = 'value = activation(value, outCoord);';
+    }
+
+    const addBiasSnippet =
+        this.addBias ? 'value += getBiasAtOutCoords(outCoord);' : '';
+    if (this.outputShape[1] <= 1) {
+      throw Error(`outputShape[1] <= 1 is not yet supported`);
+    }
+
+    const userCode = `
+      ${activationSnippet}
+
+      ${
+        makeMatMulPackedVec4SourceWgsl(
+            addBiasSnippet, applyActivationSnippet,
+            [this.vecSize, this.workPerThread, 1], this.workGroupSize)}
     `;
     return userCode;
   }
