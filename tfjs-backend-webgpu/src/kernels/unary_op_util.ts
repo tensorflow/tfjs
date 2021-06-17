@@ -36,6 +36,7 @@ export enum UnaryOpType {
   TO_INT
 }
 
+// GLSL shader.
 const ABS = `return abs(a);`;
 const CEIL = `return ceil(a);`;
 const EXPM1 = `return exp(a) - 1.0;`;
@@ -56,7 +57,7 @@ const LINEAR = `return a;`;
 const LOG = `if (a < 0.0) return 1.0/0.0;
   return log(a);`;
 const NEG = `return -a;`;
-const PRELU = `return (a < 0.) ? b * a : a;`;
+const PRELU = `return (a < 0.0) ? b * a : a;`;
 const RELU = 'return max(a, 0.0);';
 const RELU6 = 'return clamp(a, 0.0, 6.0);';
 const RELU_VEC4 = `
@@ -80,14 +81,52 @@ const TANH = `
 `;
 const TO_INT = `return float(int(a));`;
 
-export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
+// WGSL shader.
+const ELU_WGSL = `if (a >= 0.0) { return a; }  return (exp(a) - 1.0);`;
+const RELU_WGSL = 'return max(a, 0.0);';
+const RELU6_VEC4_WGSL =
+    'return clamp(a, vec4<f32>(0.0, 0.0, 0.0, 0.0), vec4<f32>(6.0, 6.0, 6.0, 6.0));';
+const RELU_VEC4_WGSL = `
+  var resBool : vec4<bool> = vec4<bool>(a >= vec4<f32>(0.0, 0.0, 0.0, 0.0));
+  let isNaN : vec4<bool> = isNan(a);
+  var resFloat : vec4<f32> = vec4<f32>(0.0, 0.0, 0.0, 0.0);
+
+  for (var i:u32 = 0u; i< 4u; i = i+1u ) {
+    if (resBool[i]) {
+      resFloat[i] = 1.0;
+    }
+  }
+  resFloat = a * resFloat;
+  if (isNaN.r) {
+    resFloat.r = a.r;
+  }
+  if (isNaN.g) {
+    resFloat.g = a.g;
+  }
+  if (isNaN.b) {
+    resFloat.b = a.b;
+  }
+  if (isNaN.a) {
+    resFloat.a = a.a;
+  }
+  return resFloat;
+`;
+
+const TO_INT_WGSL = `return f32(i32((a)));`;
+
+export function getUnaryOpString(
+    type: UnaryOpType, useVec4?: boolean, useWgsl?: boolean): string {
   switch (type) {
     case UnaryOpType.ABS:
       return ABS;
     case UnaryOpType.CEIL:
       return CEIL;
     case UnaryOpType.ELU:
-      return useVec4 ? ELU_VEC4 : ELU;
+      if (useWgsl) {
+        return ELU_WGSL;
+      } else {
+        return useVec4 ? ELU_VEC4 : ELU;
+      }
     case UnaryOpType.EXP:
       return EXP;
     case UnaryOpType.EXPM1:
@@ -103,9 +142,21 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
     case UnaryOpType.PRELU:
       return PRELU;
     case UnaryOpType.RELU:
-      return useVec4 ? RELU_VEC4 : RELU;
+      if (useWgsl) {
+        return useVec4 ? RELU_VEC4_WGSL : RELU_WGSL;
+      } else {
+        return useVec4 ? RELU_VEC4 : RELU;
+      }
     case UnaryOpType.RELU6:
-      return RELU6;
+      if (useWgsl) {
+        if (useVec4) {
+          return RELU6_VEC4_WGSL;
+        } else {
+          throw new Error(`BinaryType ${type} is not implemented!`);
+        }
+      } else {
+        return RELU6;
+      }
     case UnaryOpType.RSQRT:
       return RSQRT;
     case UnaryOpType.SIGMOID:
@@ -117,7 +168,7 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
     case UnaryOpType.TANH:
       return TANH;
     case UnaryOpType.TO_INT:
-      return TO_INT;
+      return useWgsl ? TO_INT_WGSL : TO_INT;
 
     default:
       throw new Error(`BinaryType ${type} is not implemented!`);

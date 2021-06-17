@@ -40,6 +40,11 @@ ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
 ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D', () => false);
 
 /**
+ * Whether to use GLSL shading language.
+ */
+ ENV.registerFlag('WEBGPU_USE_GLSL', () => false);
+
+/**
  * Whether to use conv2dTranspose_naive which directly implement the
  * conv2dTranspose logic rather than using a matmul to simulate.
  */

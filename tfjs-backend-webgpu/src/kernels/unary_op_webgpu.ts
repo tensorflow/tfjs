@@ -19,7 +19,7 @@ import {util} from '@tensorflow/tfjs-core';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {getUnaryOpString, UnaryOpType} from './unary_op_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class UnaryOpProgram implements WebGPUProgram {
   outputShape: number[];
@@ -28,6 +28,7 @@ export class UnaryOpProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A'];
   workGroupSize: [number, number, number];
+  useWgsl: boolean;
   op: UnaryOpType;
   size: number;
 
@@ -39,6 +40,18 @@ export class UnaryOpProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
+    if (op === UnaryOpType.TO_INT || op === UnaryOpType.ELU ||
+        op === UnaryOpType.ABS) {
+      this.useWgsl = getUseWgsl();
+    } else {
+      if (getUseWgsl()) {
+        console.warn(
+            'WGSL is used default, but unary op type ' +
+            `${op}` +
+            ' is not supported!');
+      }
+      this.useWgsl = false;
+    }
     this.op = op;
     this.shaderKey = `unary_${op}`;
     this.size = util.sizeFromShape(this.outputShape);
@@ -57,6 +70,25 @@ export class UnaryOpProgram implements WebGPUProgram {
         {
           float a = getAAtOutCoords();
           setOutput(index, unaryOperation(a));
+        }
+      }
+      `;
+  }
+
+  getUserCodeWgsl(): string {
+    const opStr = getUnaryOpString(this.op, false, true);
+    return `
+      fn unaryOperation(a : f32) -> f32{
+        ${opStr}
+      }
+      [[stage(compute), workgroup_size(128, 1, 1)]]
+      fn main([[builtin(local_invocation_id)]] local_id : vec3<u32>,
+              [[builtin(global_invocation_id)]] global_id  : vec3<u32>) {
+        let index : u32 = u32(global_id.x);
+        if (index < uniforms.size)
+        {
+          let a : f32 = getAAtOutCoords(global_id);
+          setOutputFlat(index, unaryOperation(a));
         }
       }
       `;
