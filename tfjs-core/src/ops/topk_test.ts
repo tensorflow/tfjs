@@ -210,16 +210,16 @@ describeWithFlags('topk', ALL_ENVS, () => {
   });
 
   it('negative infinity input', async () => {
-    const a = [-Infinity, -Infinity, -Infinity, -Infinity];
-    const k = 4;
+    const a = [-Infinity, -Infinity, -Infinity, -Infinity, -Infinity];
+    const k = a.length;
     const {values, indices} = tf.topk(a, k);
 
-    expect(values.shape).toEqual([4]);
-    expect(indices.shape).toEqual([4]);
+    expect(values.shape).toEqual([k]);
+    expect(indices.shape).toEqual([k]);
     expect(values.dtype).toBe('float32');
     expect(indices.dtype).toBe('int32');
     expectArraysClose(await values.data(), a);
-    expectArraysClose(await indices.data(), [0, 1, 2, 3]);
+    expectArraysClose(await indices.data(), [0, 1, 2, 3, 4]);
   });
 
   it('accepts a tensor-like object, k=2', async () => {
