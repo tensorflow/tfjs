@@ -19,6 +19,80 @@
 
 import {buffer, NumericDataType, Rank, ShapeMap, Tensor, TensorBuffer, TypedArray, util} from '@tensorflow/tfjs-core';
 
+type Pair = {
+  value: number,
+  index: number
+};
+
+const comparePair = (a: Pair, b: Pair) => {
+  const valueDiff = b.value - a.value;
+  return valueDiff === 0 ? a.index - b.index : valueDiff;
+};
+
+/**
+ * Partitions array where all elements smaller than the (k+1) smallest element
+ * are found to the left of it, and all larger to the right of it.
+ * Based on the Floyd-Rivest Algorithm, ref:
+ * https://en.wikipedia.org/wiki/Floyd%E2%80%93Rivest_algorithm
+ * @param array: Array to partition
+ * @param left: Left index for the interval
+ * @param right: Right index for the interval
+ * @param k: Desired index value, where array[k] is the (k+1)th smallest element
+ *           when left = 0
+ */
+function select(array: Pair[], k: number, left = 0, right = array.length - 1) {
+  while (right > left) {
+    // Use select recursively to sample a smaller set of size s
+    // the arbitrary constants 600 and 0.5 are used in the original
+    // version to minimize execution time.
+    if (right - left > 600) {
+      const n = right - left + 1;
+      const i = k - left + 1;
+      const z = Math.log(n);
+      const s = 0.5 * Math.exp(2 * z / 3);
+      const sd = 0.5 * Math.sqrt(z * s * (n - s) / n) * Math.sign(i - n / 2);
+      const newLeft = Math.max(left, Math.floor(k - i * s / n + sd));
+      const newRight = Math.min(right, Math.floor(k + (n - i) * s / n + sd));
+      select(array, k, newLeft, newRight);
+    }
+    // partition the elements between left and right around t
+    const t = array[k];
+    let i = left;
+    let j = right;
+
+    [array[left], array[k]] = [array[k], array[left]];
+
+    if (comparePair(array[right], t) > 0) {
+      [array[left], array[right]] = [array[right], array[left]];
+    }
+    while (i < j) {
+      [array[i], array[j]] = [array[j], array[i]];
+      i++;
+      j--;
+      while (comparePair(array[i], t) < 0) {
+        i = i + 1;
+      }
+      while (comparePair(array[j], t) > 0) {
+        j = j - 1;
+      }
+    }
+    if (comparePair(array[left], t) === 0) {
+      [array[left], array[j]] = [array[j], array[left]];
+    } else {
+      j = j + 1;
+      [array[j], array[right]] = [array[right], array[j]];
+    }
+    // Adjust left and right towards the boundaries of the subset
+    // containing the (k - left + 1)th smallest element.
+    if (j <= k) {
+      left = j + 1;
+    }
+    if (k <= j) {
+      right = j - 1;
+    }
+  }
+}
+
 export function topKImpl<T extends Tensor, R extends Rank>(
     x: TypedArray, xShape: number[], xDtype: NumericDataType, k: number,
     sorted: boolean):
@@ -32,11 +106,19 @@ export function topKImpl<T extends Tensor, R extends Rank>(
   for (let b = 0; b < batch; b++) {
     const offset = b * size;
     const vals = x.subarray(offset, offset + size);
-    const valAndInd: Array<{value: number, index: number}> = [];
-    for (let i = 0; i < vals.length; i++) {
-      valAndInd.push({value: vals[i], index: i});
+
+    let valAndInd: Pair[] = new Array(vals.length);
+    vals.forEach(
+        (value: number, index: number) => valAndInd[index] = {value, index});
+
+    if (k < valAndInd.length) {
+      select(valAndInd, k);
+      valAndInd = valAndInd.slice(0, k);
     }
-    valAndInd.sort((a, b) => b.value - a.value);
+
+    if (sorted) {
+      valAndInd.sort(comparePair);
+    }
 
     const outOffset = b * k;
     const topKVals = allTopKVals.subarray(outOffset, outOffset + k);
