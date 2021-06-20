@@ -19,6 +19,13 @@ import {GPGPUProgram} from './gpgpu_math';
 
 // Based on Algorithm 2 of Bitonic Top K, ref:
 // https://anilshanbhag.in/static/papers/gputopk_sigmod18.pdf
+// The original algorithm is based on computing the top K only, however
+// since for TFJS we require the indices of the top K values as well then the
+// algorithm found here is a bit modified. Rather than producing the values
+// at each step, the indices containing the top K are generated instead.
+// The output values are not generated to reduce the number of outputs in the
+// GPU, the values can easily be retrieved from the indices using a gather
+// op.
 export class SwapProgram implements GPGPUProgram {
   variableNames = ['x'];
   outputShape: number[];

@@ -74,9 +74,11 @@ export function topK(
   const lastDimPow2 = roundUpToPow2(lastDim);
 
   // Only the indices containing the top K are kept at every step to reduce
-  // number of outputs in the GPU algorithms,
-  // once the final set of indices is computed then gather is used
-  // to grab the corresponding values from the original input.
+  // number of outputs in the GPU algorithms, so once the final set of indices
+  // is computed then gather is used to grab the corresponding values
+  // from the original input.
+
+
   let indices: TensorInfo = null;
 
   const getInputs = () => indices === null ? [x2D] : [x2D, indices];
