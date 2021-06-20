@@ -21,7 +21,15 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {MergeProgram, SwapProgram} from '../top_k_gpu';
 import {fill} from './Fill';
 import {gatherV2} from './GatherV2';
+import {reshape} from './Reshape';
 import {slice} from './Slice';
+
+function disposeIntermediateTensorInfoOrNull(
+    backend: MathBackendWebGL, tensorInfo: TensorInfo) {
+  if (tensorInfo !== null) {
+    backend.disposeIntermediateTensorInfo(tensorInfo);
+  }
+}
 
 function roundUpToPow2(num: number) {
   let pow2 = 1;
@@ -51,7 +59,7 @@ export function topK(
     ];
   }
 
-  if (lastDim === 1) {
+  if (lastDim === 1 /* firstPass */) {
     return [
       x, fill({attrs: {shape: xShape, dtype: 'int32', value: 0}, backend})
     ];
@@ -60,28 +68,26 @@ export function topK(
   // Reshape into a 2d tensor [batch, lastDim] and compute topk along lastDim.
   const xSize = util.sizeFromShape(xShape);
   const batch = xSize / lastDim;
-  x.shape = [batch, lastDim];
+  const x2D = reshape({inputs: {x}, attrs: {shape: [batch, lastDim]}, backend});
 
   const kPow2 = roundUpToPow2(k);
   const lastDimPow2 = roundUpToPow2(lastDim);
 
+  // Only the indices containing the top K are kept at every step to reduce
+  // number of outputs in the GPU algorithms,
+  // once the final set of indices is computed then gather is used
+  // to grab the corresponding values from the original input.
   let indices: TensorInfo = null;
 
-  const getInputs = () => indices === null ? [x] : [x, indices];
-
-  const disposeIntermediateTensorInfoOrNull = (tensorInfo: TensorInfo) => {
-    if (tensorInfo !== null) {
-      backend.disposeIntermediateTensorInfo(tensorInfo);
-    }
-  };
+  const getInputs = () => indices === null ? [x2D] : [x2D, indices];
 
   const runSwap = (dir: number, inc: number, shape: number[]) => {
     const inputs = getInputs();
-    const program = new SwapProgram(lastDim, shape, inputs.length === 1);
-    const customSetup = program.getCustomSetupFunc(dir, inc);
+    const program = new SwapProgram(shape, inputs.length === 1 /* firstPass */);
+    const customSetup = program.getCustomSetupFunc(lastDim, dir, inc);
     const prevIndices = indices;
     indices = backend.runWebGLProgram(program, inputs, 'int32', customSetup);
-    disposeIntermediateTensorInfoOrNull(prevIndices);
+    disposeIntermediateTensorInfoOrNull(backend, prevIndices);
   };
 
   // Step 1: local sort
@@ -92,37 +98,47 @@ export function topK(
     }
   }
 
+  // Step 2: merge
   for (let indicesSize = lastDimPow2; indicesSize > kPow2; indicesSize /= 2) {
-    // Step 2: merge
     const inputs = getInputs();
     const mergeProgram = new MergeProgram(
-        lastDim, kPow2, [batch, indicesSize / 2], inputs.length === 1);
+        [batch, indicesSize / 2], inputs.length === 1 /* firstPass */);
+    const customSetup = mergeProgram.getCustomSetupFunc(lastDim, kPow2);
     const prevIndices = indices;
-    indices = backend.runWebGLProgram(mergeProgram, inputs, 'int32');
-    disposeIntermediateTensorInfoOrNull(prevIndices);
+    indices =
+        backend.runWebGLProgram(mergeProgram, inputs, 'int32', customSetup);
+    disposeIntermediateTensorInfoOrNull(backend, prevIndices);
 
+    // Step 3: rebuild
     const len = kPow2 / 2;
     const dir = len * 2;
     for (let inc = len; inc >= 1; inc /= 2) {
-      // Step 3: rebuild
       runSwap(dir, inc, indices.shape);
     }
   }
 
   // Keep only the requested top K results instead of kPow2
-  const prevIndices = indices;
+  let prevIndices = indices;
   indices = slice(
       {inputs: {x: indices}, backend, attrs: {begin: 0, size: [batch, k]}});
-  disposeIntermediateTensorInfoOrNull(prevIndices);
+  disposeIntermediateTensorInfoOrNull(backend, prevIndices);
 
-  const values =
-      gatherV2({inputs: {x, indices}, backend, attrs: {axis: 1, batchDims: 1}});
+  // Gather values on last dimension
+  let values = gatherV2(
+      {inputs: {x: x2D, indices}, backend, attrs: {axis: 1, batchDims: 1}});
+  disposeIntermediateTensorInfoOrNull(backend, x2D);
 
   // Reshape back to the original input shape, except that the last
   // dimension is k.
   xShape[xShape.length - 1] = k;
-  indices.shape = xShape;
-  values.shape = xShape;
+
+  prevIndices = indices;
+  indices = reshape({inputs: {x: indices}, attrs: {shape: xShape}, backend});
+  disposeIntermediateTensorInfoOrNull(backend, prevIndices);
+
+  const prevValues = values;
+  values = reshape({inputs: {x: values}, attrs: {shape: xShape}, backend});
+  disposeIntermediateTensorInfoOrNull(backend, prevValues);
 
   return [values, indices];
 }
