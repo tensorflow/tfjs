@@ -60,13 +60,13 @@ function select(array: Pair[], k: number, left = 0, right = array.length - 1) {
     let i = left;
     let j = right;
 
-    [array[left], array[k]] = [array[k], array[left]];
+    util.swap(array, left, k);
 
     if (comparePair(array[right], t) > 0) {
-      [array[left], array[right]] = [array[right], array[left]];
+      util.swap(array, left, right);
     }
     while (i < j) {
-      [array[i], array[j]] = [array[j], array[i]];
+      util.swap(array, i, j);
       i++;
       j--;
       while (comparePair(array[i], t) < 0) {
@@ -77,10 +77,10 @@ function select(array: Pair[], k: number, left = 0, right = array.length - 1) {
       }
     }
     if (comparePair(array[left], t) === 0) {
-      [array[left], array[j]] = [array[j], array[left]];
+      util.swap(array, left, j);
     } else {
       j = j + 1;
-      [array[j], array[right]] = [array[right], array[j]];
+      util.swap(array, j, right);
     }
     // Adjust left and right towards the boundaries of the subset
     // containing the (k - left + 1)th smallest element.
