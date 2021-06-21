@@ -89,6 +89,7 @@ limitations under the License.
   <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-backend-cpu@latest/dist/tf-backend-cpu.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgl@latest/dist/tf-backend-webgl.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgpu@latest/dist/tf-backend-webgpu.min.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@latest/dist/tf-backend-wasm.js"></script>
@@ -167,6 +168,9 @@ limitations under the License.
         });
       },
       testCorrectness: async () => {
+        if (!tf.engine().backendNames().includes(state.backend)) {
+          return;
+        }
         if (state.isFlagChanged) {
           await setEnvFlags(state.flags);
           envDiv.innerHTML = '';
@@ -614,6 +618,9 @@ limitations under the License.
     }
 
     async function runBenchmark() {
+      if (!tf.engine().backendNames().includes(state.backend)) {
+        return;
+      }
       if (state.isFlagChanged) {
         await setEnvFlags(state.flags);
         envDiv.innerHTML = '';
@@ -779,9 +786,16 @@ limitations under the License.
       modelParameterFolder.open();
 
       const envFolder = gui.addFolder('Environment');
-      backendsController = envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu']);
+      backendsController = envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu', 'webgpu']);
       backendsController.onChange(async backend => {
         // TODO: Failed to set backend
+        if (state.backend === 'webgpu' && !tf.engine().backendNames().includes(state.backend)) {
+          showMsg(
+              `WebGPU is not supported. Please use Chrome Canary browser with flag "--enable-unsafe-webgpu" enabled.`);
+          return;
+        } else {
+           showMsg(null);
+        }
         await tf.setBackend(backend);
         await showFlagSettings(envFolder, state.backend);
       });

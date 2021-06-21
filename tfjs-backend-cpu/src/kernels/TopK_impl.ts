@@ -119,7 +119,7 @@ export function topKImpl<T extends Tensor, R extends Rank>(
     if (sorted) {
       valAndInd.sort(comparePair);
     }
-
+    
     const outOffset = b * k;
     const topKVals = allTopKVals.subarray(outOffset, outOffset + k);
     const topKIndices = allTopKIndices.subarray(outOffset, outOffset + k);
