@@ -36,7 +36,10 @@ export function topKImpl<T extends Tensor, R extends Rank>(
     for (let i = 0; i < vals.length; i++) {
       valAndInd.push({value: vals[i], index: i});
     }
-    valAndInd.sort((a, b) => b.value - a.value);
+    valAndInd.sort((a, b) => {
+      const valueDiff = b.value - a.value;
+      return valueDiff === 0 ? a.index - b.index : valueDiff;
+    });
 
     const outOffset = b * k;
     const topKVals = allTopKVals.subarray(outOffset, outOffset + k);
