@@ -21,7 +21,7 @@ import {expectArraysClose} from '../../test_util';
 
 describeWithFlags('grayscaleToRGB', ALL_ENVS, () => {
   it('should convert (,1,3,1) images into (,1,3,3)', async () => {
-    const grayscale = [[[[1.0], [2.0], [3.0]]]];
+    const grayscale = tf.tensor4d([[[[1.0], [2.0], [3.0]]]]);
 
     const rgb = tf.image.grayscaleToRGB(grayscale);
     const rgbData = await rgb.data();
