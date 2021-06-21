@@ -93,12 +93,16 @@ export function topK(
   // from the original input.
   let indices: TensorInfo = null;
 
-  const getInputs = () => indices === null ? [x2D] : [x2D, indices];
+  // GPU algorithm always takes in an indices input but this input is not used
+  // on the first run of a GPU algorithm, therefore if indices is null we simply
+  // pass in x2D instead of it but the value will not actually be used
+  const getInputs = () => indices === null ? [x2D, x2D] : [x2D, indices];
 
   const runSwap = (dir: number, inc: number, shape: number[]) => {
     const inputs = getInputs();
-    const program = new SwapProgram(shape, inputs.length === 1 /* firstPass */);
-    const customSetup = program.getCustomSetupFunc(lastDim, dir, inc);
+    const program = new SwapProgram(shape);
+    const customSetup = program.getCustomSetupFunc(
+        lastDim, indices === null /* firstPass */, dir, inc);
     const prevIndices = indices;
     indices = backend.runWebGLProgram(program, inputs, 'int32', customSetup);
     disposeIntermediateTensorInfoOrNull(backend, prevIndices);
@@ -115,9 +119,9 @@ export function topK(
   // Step 2: merge
   for (let indicesSize = lastDimPow2; indicesSize > kPow2; indicesSize /= 2) {
     const inputs = getInputs();
-    const mergeProgram = new MergeProgram(
-        [batch, indicesSize / 2], inputs.length === 1 /* firstPass */);
-    const customSetup = mergeProgram.getCustomSetupFunc(lastDim, kPow2);
+    const mergeProgram = new MergeProgram([batch, indicesSize / 2]);
+    const customSetup = mergeProgram.getCustomSetupFunc(
+        lastDim, indices === null /* firstPass */, kPow2);
     const prevIndices = indices;
     indices =
         backend.runWebGLProgram(mergeProgram, inputs, 'int32', customSetup);

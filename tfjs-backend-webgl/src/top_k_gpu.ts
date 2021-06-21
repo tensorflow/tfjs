@@ -27,12 +27,13 @@ import {GPGPUProgram} from './gpgpu_math';
 // GPU, the values can easily be retrieved from the indices using a gather
 // op.
 export class SwapProgram implements GPGPUProgram {
-  variableNames = ['x'];
+  variableNames = ['x', 'indices'];
   outputShape: number[];
   userCode: string;
 
   // Caching uniform location for speed.
   n: WebGLUniformLocation;
+  firstPass: WebGLUniformLocation;
   negativeInf: WebGLUniformLocation;
   dir: WebGLUniformLocation;
   inc: WebGLUniformLocation;
@@ -40,20 +41,17 @@ export class SwapProgram implements GPGPUProgram {
   /**
    * @param shape desired output shape (can be larger than input shape, output
    *                                    will be padded with -Infinity)
-   * @param firstPass indicates if this is the first time swap is begin used
-   *                  which means no indices input containing the top K is
-   *                  present yet.
    */
-  constructor(shape: number[], firstPass: boolean) {
-    if (!firstPass) {
-      this.variableNames.push('indices');
-    }
-
+  constructor(shape: number[]) {
     this.outputShape = shape;
 
     this.userCode = `
        // Size of the original input of TopK
        uniform int n;
+       // indicates if this is the first time swap is being used
+       // which means no indices input containing the top K is
+       // present yet.
+       uniform int firstPass;
        uniform float negativeInf;
        uniform int dir;
        // Swaps pairs of indices (0, inc), (1, inc + 1), (2, inc + 2) ...
@@ -78,8 +76,8 @@ export class SwapProgram implements GPGPUProgram {
          bool isFirstInPair = imod(elemIdx, 2 * inc) < inc;
          int i = isFirstInPair ? elemIdx : elemIdx - inc;
 
-         int i0 = ${firstPass ? 'i' : 'int(getIndices(batch, i))'};
-         int i1 = ${firstPass ? 'i + inc' : 'int(getIndices(batch, i + inc))'};
+         int i0 = firstPass == 1 ? i : int(getIndices(batch, i));
+         int i1 = firstPass == 1 ? i + inc : int(getIndices(batch, i + inc));
          float x0 = i0 < n ? getX(batch, i0) : negativeInf;
          float x1 = i1 < n ? getX(batch, i1) : negativeInf;
 
@@ -100,54 +98,52 @@ export class SwapProgram implements GPGPUProgram {
      `;
   }
 
-  getCustomSetupFunc(n: number, dir: number, inc: number) {
+  getCustomSetupFunc(n: number, firstPass: boolean, dir: number, inc: number) {
     return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
-      if (this.n == null) {
-        this.n = gpgpu.getUniformLocation(webGLProgram, 'n');
-      }
+      const intUniforms: Array<['n' | 'firstPass' | 'dir' | 'inc', number]> = [
+        ['n', n], ['firstPass', firstPass ? 1 : 0], ['dir', dir], ['inc', inc]
+      ];
+
+      intUniforms.forEach(([uniformName, uniformValue]) => {
+        if (this[uniformName] == null) {
+          this[uniformName] =
+              gpgpu.getUniformLocation(webGLProgram, uniformName);
+        }
+        gpgpu.gl.uniform1i(this[uniformName], uniformValue);
+      });
+
       if (this.negativeInf == null) {
         this.negativeInf =
             gpgpu.getUniformLocation(webGLProgram, 'negativeInf');
       }
-      if (this.dir == null) {
-        this.dir = gpgpu.getUniformLocation(webGLProgram, 'dir');
-      }
-      if (this.inc == null) {
-        this.inc = gpgpu.getUniformLocation(webGLProgram, 'inc');
-      }
-      gpgpu.gl.uniform1i(this.n, n);
       gpgpu.gl.uniform1f(this.negativeInf, Number.NEGATIVE_INFINITY);
-      gpgpu.gl.uniform1i(this.dir, dir);
-      gpgpu.gl.uniform1i(this.inc, inc);
     };
   }
 }
 
 export class MergeProgram implements GPGPUProgram {
-  variableNames = ['x'];
+  variableNames = ['x', 'indices'];
   outputShape: number[];
   userCode: string;
 
   // Caching uniform location for speed.
   n: WebGLUniformLocation;
+  firstPass: WebGLUniformLocation;
   k: WebGLUniformLocation;
 
   /**
    * @param shape desired output shape (must be half of the input size)
-   * @param firstPass indicates if this is the first time merge is being used
-   *                  which means no indices input containing the top K is
-   *                  present yet.
    */
-  constructor(shape: number[], firstPass: boolean) {
-    if (!firstPass) {
-      this.variableNames.push('indices');
-    }
-
+  constructor(shape: number[]) {
     this.outputShape = shape;
 
     this.userCode = `
     // Size of the original input of TopK
     uniform int n;
+    // indicates if this is the first time swap is being used
+    // which means no indices input containing the top K is
+    // present yet.
+    uniform int firstPass;
     // Top k elements desired
     uniform int k;
     void main() {
@@ -175,8 +171,8 @@ export class MergeProgram implements GPGPUProgram {
          // 16,17,18,19, so on and so forth.
 
          int i = elemIdx < k ? elemIdx : (elemIdx * 2 - imod(elemIdx, k));
-         int i0 = ${firstPass ? 'i' : 'int(getIndices(batch, i))'};
-         int i1 = ${firstPass ? `i + k` : `int(getIndices(batch, i + k))`};
+         int i0 = firstPass == 1 ? i : int(getIndices(batch, i));
+         int i1 = firstPass == 1 ? i + k : int(getIndices(batch, i + k));
 
          float x0 = getX(batch, i0);
          float x1 = i1 < n ? getX(batch, i1) : x0;
@@ -186,16 +182,18 @@ export class MergeProgram implements GPGPUProgram {
      `;
   }
 
-  getCustomSetupFunc(n: number, k: number) {
+  getCustomSetupFunc(n: number, firstPass: boolean, k: number) {
     return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
-      if (this.k == null) {
-        this.k = gpgpu.getUniformLocation(webGLProgram, 'k');
-      }
-      if (this.n == null) {
-        this.n = gpgpu.getUniformLocation(webGLProgram, 'n');
-      }
-      gpgpu.gl.uniform1i(this.n, n);
-      gpgpu.gl.uniform1i(this.k, k);
+      const intUniforms: Array<['n' | 'firstPass' | 'k', number]> =
+          [['n', n], ['firstPass', firstPass ? 1 : 0], ['k', k]];
+
+      intUniforms.forEach(([uniformName, uniformValue]) => {
+        if (this[uniformName] == null) {
+          this[uniformName] =
+              gpgpu.getUniformLocation(webGLProgram, uniformName);
+        }
+        gpgpu.gl.uniform1i(this[uniformName], uniformValue);
+      });
     };
   }
 }
