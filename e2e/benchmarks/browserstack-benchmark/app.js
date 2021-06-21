@@ -109,7 +109,7 @@ function setupBenchmarkEnv(config) {
  *
  * @param {{browsers, benchmark}} config Benchmark configuration.
  */
-async function benchmark(config) {
+function benchmark(config) {
   console.log('Preparing configuration files for the test runner.');
   setupBenchmarkEnv(config);
 
@@ -145,6 +145,7 @@ async function benchmark(config) {
           console.log(benchmarkResult);
         }
         io.emit('benchmarkComplete', benchmarkResult);
+        return;
       }
 
       io.emit('benchmarkComplete', {
@@ -175,21 +176,6 @@ function runBenchmarkFromFile(file, runBenchmark = benchmark) {
   console.log(file);
   runBenchmark(file);
 }
-
-/*
-if(process.argv.includes('--benchmarks')) {
-  const config = require('./preconfigured_browser.json');
-  console.log("Running a preconfigured benchmark...");
-  console.log(config)
-  runBenchmarkFromFile(config);
-} else {
-  setUpHelpMessage();
-  checkBrowserStackAccount();
-  runServer();
-  console.log("this is the culprit");
-}
-*/
-
 setUpHelpMessage();
 if (require.main === module) {
   checkBrowserStackAccount();
