@@ -50,7 +50,8 @@ void topk(const T* x_data, const size_t x_len,
     }
     std::sort(val_and_ind.begin(), val_and_ind.end(),
               [](const ValAndInd<T>& a, const ValAndInd<T>& b) -> bool {
-                return a.value > b.value;
+                return a.value == b.value ? a.index < b.index
+                                          : a.value > b.value;
               });
     int out_offset = b * k;
     for (int i = 0; i < k; i++) {
