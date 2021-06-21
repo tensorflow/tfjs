@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, TensorInfo, TopK, TopKAttrs, TopKInputs, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, NumericDataType, TensorInfo, TopK, TopKAttrs, TopKInputs, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
+import {topKImplCPU} from '../kernel_utils/shared';
 import {MergeProgram, SwapProgram} from '../top_k_gpu';
 import {fill} from './Fill';
 import {gatherV2} from './GatherV2';
@@ -46,7 +47,20 @@ export function topK(
     TensorInfo[] {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
-  const k = attrs.k;
+  const {k, sorted} = attrs;
+
+  if (backend.shouldExecuteOnCPU([x])) {
+    const xVals = backend.readSync(x.dataId) as TypedArray;
+    const [allTopKVals, allTopKIndices] =
+        topKImplCPU(xVals, x.shape, x.dtype as NumericDataType, k, sorted);
+
+    return [
+      backend.makeTensorInfo(
+          allTopKVals.shape, allTopKVals.dtype, allTopKVals.values),
+      backend.makeTensorInfo(
+          allTopKIndices.shape, allTopKIndices.dtype, allTopKIndices.values)
+    ];
+  }
 
   const xShape = x.shape;
   const lastDim = xShape[xShape.length - 1];
@@ -77,8 +91,6 @@ export function topK(
   // number of outputs in the GPU algorithms, so once the final set of indices
   // is computed then gather is used to grab the corresponding values
   // from the original input.
-
-
   let indices: TensorInfo = null;
 
   const getInputs = () => indices === null ? [x2D] : [x2D, indices];
@@ -132,14 +144,15 @@ export function topK(
 
   // Reshape back to the original input shape, except that the last
   // dimension is k.
-  xShape[xShape.length - 1] = k;
+  const newShape = xShape.slice(0, -1);
+  newShape.push(k);
 
   prevIndices = indices;
-  indices = reshape({inputs: {x: indices}, attrs: {shape: xShape}, backend});
+  indices = reshape({inputs: {x: indices}, attrs: {shape: newShape}, backend});
   disposeIntermediateTensorInfoOrNull(backend, prevIndices);
 
   const prevValues = values;
-  values = reshape({inputs: {x: values}, attrs: {shape: xShape}, backend});
+  values = reshape({inputs: {x: values}, attrs: {shape: newShape}, backend});
   disposeIntermediateTensorInfoOrNull(backend, prevValues);
 
   return [values, indices];
