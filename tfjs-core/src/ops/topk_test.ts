@@ -163,7 +163,7 @@ describeWithFlags('topk', ALL_ENVS, () => {
     expectArraysClose(await values.data(), [2, 2, 1, 1]);
     expectArraysClose(await indices.data(), [1, 2, 0, 3]);
   });
-
+  
   it('lower-index element appears first, k=65', async () => {
     const a = [
       1, 1, 2, 1, 2, 1, 1, 1, 2, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2,
@@ -171,13 +171,8 @@ describeWithFlags('topk', ALL_ENVS, () => {
       1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 2, 1, 2, 1
     ];
     const k = a.length;
-
     const {values, indices} = tf.topk(a, k);
-
-    expect(values.shape).toEqual([k]);
-    expect(indices.shape).toEqual([k]);
-    expect(values.dtype).toBe('float32');
-    expect(indices.dtype).toBe('int32');
+    
     expectArraysClose(await values.data(), [
       2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
       2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -188,6 +183,42 @@ describeWithFlags('topk', ALL_ENVS, () => {
       45, 47, 48, 49, 51, 52, 54, 55, 57, 61, 63, 0,  1,  3,  5,  6,  7,
       10, 11, 13, 14, 16, 17, 19, 20, 22, 24, 25, 26, 28, 29, 31, 32, 34,
       35, 36, 37, 39, 44, 46, 50, 53, 56, 58, 59, 60, 62, 64
+    ]);
+  });
+
+  it('lower-index element appears first, sorted=false', async () => {
+    const a = [
+      1, 1, 2, 1, 2, 1, 1, 1, 2, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2,
+      1, 2, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 2, 2, 2, 2,
+      1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 2, 1, 2, 1
+    ];
+    const k = a.length;
+    const {values, indices} = tf.topk(a, k, false);
+
+    expect(values.shape).toEqual([k]);
+    expect(indices.shape).toEqual([k]);
+    expect(values.dtype).toBe('float32');
+    expect(indices.dtype).toBe('int32');
+
+    const valuesData = await values.data();
+    valuesData.sort();
+    expectArraysClose(valuesData, [
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2,
+      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+    ]);
+
+    const indicesData = await indices.data();
+    const onesIndices = indicesData.filter((index: number) => a[index] === 1);
+    const twosIndices = indicesData.filter((index: number) => a[index] === 2);
+    expectArraysClose(onesIndices, [
+      0,  1,  3,  5,  6,  7,  10, 11, 13, 14, 16, 17, 19,
+      20, 22, 24, 25, 26, 28, 29, 31, 32, 34, 35, 36, 37,
+      39, 44, 46, 50, 53, 56, 58, 59, 60, 62, 64
+    ]);
+    expectArraysClose(twosIndices, [
+      2,  4,  8,  9,  12, 15, 18, 21, 23, 27, 30, 33, 38, 40,
+      41, 42, 43, 45, 47, 48, 49, 51, 52, 54, 55, 57, 61, 63
     ]);
   });
 
