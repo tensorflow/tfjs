@@ -9,6 +9,12 @@
   },
   "devDependencies": {
     "@tensorflow/tfjs": "link:../../../tfjs",
+    "@tensorflow/tfjs-backend-cpu": "link:../../../tfjs-backend-cpu",
+    "@tensorflow/tfjs-backend-wasm": "link:../../../tfjs-backend-wasm",
+    "@tensorflow/tfjs-backend-webgl": "link:../../../tfjs-backend-webgl",
+    "@tensorflow/tfjs-converter": "link:../../../tfjs-converter",
+    "@tensorflow/tfjs-core": "link:../../../tfjs-core",
+    "@tensorflow/tfjs-layers": "link:../../../tfjs-layers",
     "@tensorflow/tfjs-vis": "link:../../../tfjs-vis",
     "argparse": "^2.0.1",
     "jasmine": "^3.7.0",
@@ -18,12 +24,22 @@
     "karma-jasmine": "^3.3.1",
     "socket.io": "~2.2.0"
   },
+  "staticFiles": {
+    "staticPath": "./node_modules/@tensorflow/tfjs-backend-wasm/dist",
+    "excludeGlob": ["**/!(*.wasm)"]
+  },
   "scripts": {
     "test": "karma start",
     "test-node": "jasmine app_node_test.js",
-    "build-deps": "yarn build-tfjs && yarn build-tfjs-vis",
+    "build-deps": "yarn build-tfjs && yarn build-backend-cpu && yarn build-backend-wasm && yarn build-backend-webgl && yarn build-converter && yarn build-core && yarn build-layers && yarn build-vis",
     "build-tfjs": "cd ../../../tfjs && yarn && yarn build-deps && yarn build-npm",
-    "build-tfjs-vis": "cd ../../../tfjs-vis && yarn && yarn build"
+    "build-backend-cpu": "cd ../../../tfjs-backend-cpu && yarn && yarn build-deps && yarn build-npm",
+    "build-backend-wasm": "cd ../../../tfjs-backend-wasm && yarn && yarn build-deps && yarn build-npm",
+    "build-backend-webgl": "cd ../../../tfjs-backend-webgl && yarn && yarn build-deps && yarn build-npm",
+    "build-converter": "cd ../../../tfjs-converter && yarn && yarn build-deps && yarn build-npm",
+    "build-core": "cd ../../../tfjs-core && yarn && yarn build-deps && yarn build-npm",
+    "build-layers": "cd ../../../tfjs-layers && yarn && yarn build-deps && yarn build-npm",
+    "build-vis": "cd ../../../tfjs-vis && yarn && yarn build"
   },
   "license": "Apache-2.0",
   "engines": {
