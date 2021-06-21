@@ -28,8 +28,12 @@ const BACKEND_FLAGS_MAP = {
     'WEBGL_FORCE_F16_TEXTURES', 'WEBGL_RENDER_FLOAT32_CAPABLE',
     'WEBGL_FLUSH_THRESHOLD', 'WEBGL_PACK_DEPTHWISECONV',
     'CHECK_COMPUTATION_FOR_ERRORS'
-  ]
+  ],
 };
+if (tf.engine().backendNames().includes('webgpu')) {
+  BACKEND_FLAGS_MAP['webgpu'] = ['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'];
+}
+
 const TUNABLE_FLAG_NAME_MAP = {
   PROD: 'production mode',
   WEBGL_VERSION: 'webgl version',
@@ -43,6 +47,10 @@ const TUNABLE_FLAG_NAME_MAP = {
   WEBGL_PACK_DEPTHWISECONV: 'Packed depthwise Conv2d',
   CHECK_COMPUTATION_FOR_ERRORS: 'Check each op result',
 };
+if (tf.engine().backendNames().includes('webgpu')) {
+  TUNABLE_FLAG_NAME_MAP['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'] =
+      'deferred submit batch size';
+}
 
 /**
  * Records each flag's default value under the runtime environment and is a
