@@ -25,6 +25,15 @@ import * as util from '../../util';
 
 import { op } from '../operation';
 
+/**
+ * Converts images from grayscale to RGB by expanding the input image last
+ * dimension size from 1 into 3.
+ *
+ * @param image a 4d tensor of shape `[batch, height, width, 1]`, where height
+ *     and width must be positive. The last dimension must be size 1.
+ *
+ * @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'}
+ */
 function grayscaleToRGB_<T extends Tensor4D>(image: T|TensorLike): T {
   const $image = convertToTensor(image, 'image', 'grayscaleToRGB', 'float32');
 
