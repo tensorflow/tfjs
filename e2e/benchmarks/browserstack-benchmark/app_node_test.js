@@ -143,7 +143,7 @@ describe('tests benchmark capabilities', () => {
         });
 
     // Receives and formats results from benchmark function call
-    let testResults = await benchmark(config, mockRunOneBenchmark);
+    const testResults = await benchmark(config, mockRunOneBenchmark);
     formattedResults = {};
     for (let i = 0; i < Object.keys(config.browsers).length; i++) {
       await new Promise(resolve => {
