@@ -17,19 +17,29 @@
 
 import * as tf from '../../index';
 import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
-import {expectArraysClose} from '../../test_util';
+import {expectArraysEqual} from '../../test_util';
 
 describeWithFlags('grayscaleToRGB', ALL_ENVS, () => {
   it('should convert (,1,3,1) images into (,1,3,3)', async () => {
-    const grayscale = tf.tensor4d([[[[1.0], [2.0], [3.0]]]]);
+    const grayscale = tf.tensor4d([1.0, 2.0, 3.0], [1, 1, 3, 1]);
 
     const rgb = tf.image.grayscaleToRGB(grayscale);
     const rgbData = await rgb.data();
 
-    const expected = [[[[1.0, 1.0, 1.0],
-                        [2.0, 2.0, 2.0],
-                        [3.0, 3.0, 3.0]]]];
+    const expected = [1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0];
 
-    expectArraysClose(rgbData, expected);
+    expectArraysEqual(rgbData, expected);
+  });
+
+  it('should throw error because of input last dim is not 1', async () => {
+    const lastDim = 2
+    const grayscale = tf.tensor4d(
+      [1.0, 1.0, 2.0, 2.0, 3.0, 3.0], [1, 1, 3, lastDim]
+    );
+
+    expect(() => tf.image.grayscaleToRGB(grayscale)).toThrowError(
+      'Error in grayscaleToRGB: last dimension of a grayscale image should ' +
+      `be size 1, but had size ${lastDim}.`
+    )
   });
 });
