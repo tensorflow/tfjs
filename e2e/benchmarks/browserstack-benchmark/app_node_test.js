@@ -83,7 +83,7 @@ describe('tests outfile writing capabilities', () => {
     write(filePath, mockResults);
   });
 
-  it('checks written file', () => {
+  it('waits for file to be written to, then checks for accuracy', () => {
     setTimeout(() => fs.readFile(filePath, 'utf8', (err, data) => {
       expect(data).toEqual(mockResults);
     }), 1000);
