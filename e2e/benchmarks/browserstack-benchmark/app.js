@@ -20,9 +20,8 @@ const socketio = require('socket.io');
 const fs = require('fs');
 const path = require('path');
 const {execFile} = require('child_process');
-const { ArgumentParser } = require('argparse');
-const { version } = require('./package.json');
-const { log } = require('console');
+const {ArgumentParser} = require('argparse');
+const {version} = require('./package.json');
 
 const port = process.env.PORT || 8001;
 let io;
@@ -158,17 +157,15 @@ function benchmark(config) {
 
 /** Set up --help menu for file description and available optional commands */
 function setUpHelpMessage() {
-  if (require.main === module) {
-    const parser = new ArgumentParser({
-      description: 'This file launches a server to connect to BrowserStack ' +
-          'so that the performance of a TensorFlow model on one or more ' +
-          'browsers can be benchmarked.'
-    });
-    parser.add_argument('-v', '--version', { action: 'version', version });
-    parser.add_argument(
-      '--benchmarks', {help: 'Run a preconfigured benchmark', action: 'store_true'});
-    console.dir(parser.parse_args());
-  }
+  const parser = new ArgumentParser({
+    description: 'This file launches a server to connect to BrowserStack ' +
+        'so that the performance of a TensorFlow model on one or more ' +
+        'browsers can be benchmarked.'
+  });
+  parser.add_argument('-v', '--version', {action: 'version', version});
+  parser.add_argument(
+    '--benchmarks', {help: 'Run a preconfigured benchmark', action: 'store_true'});
+  console.dir(parser.parse_args());
 }
 
 function runBenchmarkFromFile(file, runBenchmark = benchmark) {
@@ -176,15 +173,16 @@ function runBenchmarkFromFile(file, runBenchmark = benchmark) {
   console.log(file);
   runBenchmark(file);
 }
-setUpHelpMessage();
+
 if (require.main === module) {
+  setUpHelpMessage();
   checkBrowserStackAccount();
   runServer();
-}
 
-if(process.argv.includes('--benchmarks')) {
-  const config = require('./preconfigured_browser.json');
-  runBenchmarkFromFile(config);
+  if(process.argv.includes('--benchmarks')) {
+    const config = require('./preconfigured_browser.json');
+    runBenchmarkFromFile(config);
+  }
 }
 
 exports.runBenchmarkFromFile = runBenchmarkFromFile;
