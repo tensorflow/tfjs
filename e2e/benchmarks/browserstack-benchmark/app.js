@@ -22,6 +22,7 @@ const path = require('path');
 const {execFile} = require('child_process');
 const {ArgumentParser} = require('argparse');
 const {version} = require('./package.json');
+let parser;
 
 const port = process.env.PORT || 8001;
 let io;
@@ -111,24 +112,22 @@ function setupBenchmarkEnv(config) {
  *
  * @param {{browsers, benchmark}} config Benchmark configuration.
  */
-function benchmark(config) {
+async function benchmark(config, benchmarkResult = runOneBenchmark) {
   console.log('Preparing configuration files for the test runner.');
   setupBenchmarkEnv(config);
 
   console.log(`Start benchmarking.`);
-  let results = [];
+  const results = [];
   for (const tabId in config.browsers) {
-    results.push(runOneBenchmark(tabId));
+    results.push(benchmarkResult(tabId));
   }
 
   /** Optional outfile written once all benchmarks have returned results. */
-  Promise.allSettled(results).then(results => {
-    if (process.argv.includes('--outfile')) {
-      fs.writeFile(
-          './benchmark_results.json', JSON.stringify(results), 'utf8',
-          err => {console.log(err ? `Error: ${err}.` : 'Results written.')});
-    }
-  });
+  const fulfilled = await Promise.allSettled(results);
+  if (require.main === module && parser.parse_args().outfile) {
+    write('./benchmark_results.json', results);
+  }
+  return fulfilled;
 }
 
 /**
@@ -137,7 +136,7 @@ function benchmark(config) {
  * This function utilizes a promise that is fulfilled once the corresponding
  * result is returned from BrowserStack.
  *
- * @param {config.browsers[index]} tabId
+ * @param {config.browsers[index]} tabId.
  */
 function runOneBenchmark(tabId) {
   return new Promise((resolve, reject) => {
@@ -179,19 +178,35 @@ function runOneBenchmark(tabId) {
   });
 }
 
+/**
+ * Writes a passed message to a passed JSON file.
+ *
+ * @param filePath, msg.
+ */
+function write(filePath, msg) {
+  fs.writeFile(
+      filePath, JSON.stringify(msg), 'utf8',
+      err => {console.log(err ? `Error: ${err}.` : 'Output written.')});
+}
+
 /** Set up --help menu for file description and available optional commands */
-function setUpHelpMessage() {
-  const parser = new ArgumentParser({
+function setupHelpMessage() {
+  parser = new ArgumentParser({
     description: 'This file launches a server to connect to BrowserStack ' +
         'so that the performance of a TensorFlow model on one or more ' +
         'browsers can be benchmarked.'
   });
+  parser.add_argument(
+      '--outfile', {help: 'write results to outfile', action: 'store_true'});
   parser.add_argument('-v', '--version', {action: 'version', version});
   console.dir(parser.parse_args());
 }
 
 if (require.main === module) {
-  setUpHelpMessage();
+  setupHelpMessage();
   checkBrowserStackAccount();
   runServer();
 }
+
+exports.benchmark = benchmark;
+exports.write = write;
