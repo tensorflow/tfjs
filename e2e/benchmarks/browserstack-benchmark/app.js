@@ -22,6 +22,7 @@ const path = require('path');
 const {execFile} = require('child_process');
 const {ArgumentParser} = require('argparse');
 const {version} = require('./package.json');
+let parser;
 
 const port = process.env.PORT || 8001;
 let io;
@@ -112,24 +113,21 @@ function setupBenchmarkEnv(config) {
  * @param {{browsers, benchmark}} config Benchmark configuration.
  */
 async function benchmark(config, benchmarkResult = runOneBenchmark) {
-  return new Promise((resolve) => {
-    console.log('Preparing configuration files for the test runner.');
-    setupBenchmarkEnv(config);
+  console.log('Preparing configuration files for the test runner.');
+  setupBenchmarkEnv(config);
 
-    console.log(`Start benchmarking.`);
-    let results = [];
-    for (const tabId in config.browsers) {
-      results.push(benchmarkResult(tabId));
-    }
+  console.log(`Start benchmarking.`);
+  const results = [];
+  for (const tabId in config.browsers) {
+    results.push(benchmarkResult(tabId));
+  }
 
-    /** Optional outfile written once all benchmarks have returned results. */
-    Promise.allSettled(results).then(results => {
-      if (process.argv.includes('--outfile')) {
-        write('./benchmark_results.json', results);
-      }
-      return resolve(results);
-    });
-  });
+  /** Optional outfile written once all benchmarks have returned results. */
+  const fulfilled = await Promise.allSettled(results);
+  if (require.main === module && parser.parse_args().outfile) {
+    write('./benchmark_results.json', results);
+  }
+  return fulfilled;
 }
 
 /**
@@ -193,7 +191,7 @@ function write(filePath, msg) {
 
 /** Set up --help menu for file description and available optional commands */
 function setupHelpMessage() {
-  const parser = new ArgumentParser({
+  parser = new ArgumentParser({
     description: 'This file launches a server to connect to BrowserStack ' +
         'so that the performance of a TensorFlow model on one or more ' +
         'browsers can be benchmarked.'
@@ -204,9 +202,11 @@ function setupHelpMessage() {
   console.dir(parser.parse_args());
 }
 
-setupHelpMessage();
-checkBrowserStackAccount();
-runServer();
+if (require.main === module) {
+  setupHelpMessage();
+  checkBrowserStackAccount();
+  runServer();
+}
 
 exports.benchmark = benchmark;
 exports.write = write;
