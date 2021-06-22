@@ -38,7 +38,7 @@ export function grayscaleToRGB(args: {
 
   const imageValue = backend.data.get(image.dataId).values as TypedArray;
 
-  let pixelIdx = 0;
+  let imageIdx = 0;
   let outputIdx = 0;
 
   for (let batchIdx = 0; batchIdx < batch; batchIdx++) {
@@ -46,14 +46,14 @@ export function grayscaleToRGB(args: {
     for (let rowIdx = 0; rowIdx < height; rowIdx++) {
 
       for (let colIdx = 0; colIdx < width; colIdx++) {
-        const pixel = imageValue[pixelIdx];
+        const outputValue = imageValue[imageIdx];
 
         for (let depthIdx = 0; depthIdx < 3; depthIdx++) {
-          output[outputIdx] = pixel;
+          output[outputIdx] = outputValue;
           outputIdx++;
         }
 
-        pixelIdx++;
+        imageIdx++;
       }
     }
   }
