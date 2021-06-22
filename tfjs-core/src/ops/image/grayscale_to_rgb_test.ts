@@ -30,6 +30,6 @@ describeWithFlags('grayscaleToRGB', ALL_ENVS, () => {
                         [2.0, 2.0, 2.0],
                         [3.0, 3.0, 3.0]]]];
 
-    expectArraysClose(expected, rgbData);
+    expectArraysClose(rgbData, expected);
   });
 });
