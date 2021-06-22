@@ -63,12 +63,10 @@ def tfjs_rollup_bundle(name, deps, entry_point, minify = False, umd_name = None,
         "@npm//@rollup/plugin-commonjs",
         "@npm//@rollup/plugin-node-resolve",
         "@npm//rollup-plugin-sourcemaps",
-        "@npm//@rollup/plugin-babel",
         "@npm//rollup-plugin-terser",
         "@npm//rollup-plugin-visualizer",
+        "@npm//typescript",
     ]
-
-    srcs = kwargs.pop("srcs", []) + ["@//:babel.config.json"]
 
     rollup_args = []
     if umd_name:
@@ -81,7 +79,6 @@ def tfjs_rollup_bundle(name, deps, entry_point, minify = False, umd_name = None,
         entry_point = entry_point,
         config_file = config_file,
         deps = rollup_deps,
-        srcs = srcs,
         **kwargs
     )
 
