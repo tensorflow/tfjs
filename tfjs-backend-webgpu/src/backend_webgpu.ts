@@ -73,9 +73,6 @@ export interface WebGPUTimingInfo extends TimingInfo {
 const CPU_HANDOFF_SIZE_THRESHOLD =
     env().getNumber('CPU_HANDOFF_SIZE_THRESHOLD');
 
-const DEFAULT_GPUBUFFER_USAGE =
-    GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
-
 export class WebGPUBackend extends KernelBackend {
   device: GPUDevice;
   queue: GPUQueue;
@@ -109,6 +106,9 @@ export class WebGPUBackend extends KernelBackend {
 
   constructor(device: GPUDevice, glslang: Glslang, supportTimeQuery = false) {
     super();
+    if (!webgpu_util.isWebGPUSupported()) {
+      throw new Error('WebGPU is not supported on this device');
+    }
     this.layoutCache = {};
     this.pipelineCache = {};
     this.device = device;
@@ -131,6 +131,11 @@ export class WebGPUBackend extends KernelBackend {
 
   floatPrecision(): 32 {
     return 32;
+  }
+
+  defaultGpuBufferUsage(): number {
+    return GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC |
+        GPUBufferUsage.COPY_DST;
   }
 
   flushDisposalQueue() {
@@ -191,7 +196,8 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   acquireBuffer(
-      byteSize: number, usage: GPUBufferUsageFlags = DEFAULT_GPUBUFFER_USAGE) {
+      byteSize: number,
+      usage: GPUBufferUsageFlags = this.defaultGpuBufferUsage()) {
     return this.bufferManager.acquireBuffer(byteSize, usage);
   }
 
@@ -248,7 +254,7 @@ export class WebGPUBackend extends KernelBackend {
     this.tensorMap.set(dataId, {
       dtype,
       values,
-      bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE},
+      bufferInfo: {byteSize, usage: this.defaultGpuBufferUsage()},
       refCount: 1
     });
     return dataId;
@@ -268,7 +274,7 @@ export class WebGPUBackend extends KernelBackend {
     this.tensorMap.set(dataId, {
       dtype,
       values,
-      bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE},
+      bufferInfo: {byteSize, usage: this.defaultGpuBufferUsage()},
       refCount
     });
   }
