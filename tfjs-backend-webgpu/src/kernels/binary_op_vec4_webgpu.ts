@@ -18,6 +18,7 @@
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -30,11 +31,11 @@ export class BinaryOpVec4Program implements WebGPUProgram {
   workPerThread = 4;
   workGroupSize: [number, number, number];
   isVec4 = true;
-  op: string;
+  op: BinaryOpType;
   size: number;
   fitShape: boolean;
 
-  constructor(op: string, aShape: number[], bShape: number[]) {
+  constructor(op: BinaryOpType, aShape: number[], bShape: number[]) {
     // TODO(jiajia.qin@intel.com): Heuristically select a good work group size.
     const workGroupSizeX = 128;
     this.workGroupSize = [workGroupSizeX, 1, 1];
@@ -51,10 +52,11 @@ export class BinaryOpVec4Program implements WebGPUProgram {
 
   getUserCode(): string {
     let userCode: string;
+    const opStr = getBinaryOpString(this.op, this.isVec4);
     if (this.fitShape) {
       userCode = `
       vec4 binaryOperation(vec4 a, vec4 b) {
-        ${this.op}
+        ${opStr}
       }
 
       void main() {
@@ -67,7 +69,7 @@ export class BinaryOpVec4Program implements WebGPUProgram {
     } else {
       userCode = `
       vec4 binaryOperation(vec4 a, vec4 b) {
-        ${this.op}
+        ${opStr}
       }
 
       void main() {

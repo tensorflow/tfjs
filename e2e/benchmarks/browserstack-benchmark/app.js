@@ -180,18 +180,18 @@ function runOneBenchmark(tabId) {
 }
 
 /** Set up --help menu for file description and available optional commands */
-function setupHelpMessage() {
+function setUpHelpMessage() {
   const parser = new ArgumentParser({
     description: 'This file launches a server to connect to BrowserStack ' +
         'so that the performance of a TensorFlow model on one or more ' +
         'browsers can be benchmarked.'
   });
-  parser.add_argument(
-      '--outfile', {help: 'write results to outfile', action: 'store_true'});
   parser.add_argument('-v', '--version', {action: 'version', version});
   console.dir(parser.parse_args());
 }
 
-setupHelpMessage();
-checkBrowserStackAccount();
-runServer();
+if (require.main === module) {
+  setUpHelpMessage();
+  checkBrowserStackAccount();
+  runServer();
+}
