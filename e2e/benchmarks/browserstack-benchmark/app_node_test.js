@@ -5,7 +5,6 @@ describe('tests outfile capabilities', () => {
   const filePath = './benchmark_test_results.json';
   let config;
   let mockRunOneBenchmark;
-  let formattedResults;
   let mockResults;
 
   beforeAll(() => {
@@ -114,7 +113,7 @@ describe('tests outfile capabilities', () => {
     const testResults = await benchmark(config, mockRunOneBenchmark);
 
     // Extracts value results from promises, effectively formatting
-    formattedResults = {};
+    const formattedResults = {};
     for (let i = 0; i < Object.keys(config.browsers).length; i++) {
       await new Promise(resolve => {
         const result = testResults[i]['value'];

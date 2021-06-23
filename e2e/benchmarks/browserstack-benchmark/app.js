@@ -191,7 +191,7 @@ function write(filePath, msg) {
     fs.writeFile(filePath, JSON.stringify(msg, null, 2), 'utf8', err => {
       if (err) {
         console.log(`Error: ${err}.`);
-        return reject();
+        return reject(err);
       } else {
         console.log('Output written.');
         return resolve();
