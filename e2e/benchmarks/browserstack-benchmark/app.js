@@ -140,9 +140,6 @@ function benchmark(config) {
       if (matchedResult != null) {
         const benchmarkResult = JSON.parse(matchedResult[1]);
         benchmarkResult.tabId = tabId;
-        if(process.argv.includes('--benchmarks')) {
-          console.log(benchmarkResult);
-        }
         io.emit('benchmarkComplete', benchmarkResult);
         return;
       }
