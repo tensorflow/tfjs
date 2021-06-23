@@ -166,6 +166,7 @@ function setUpHelpMessage() {
   parser.add_argument(
     '--benchmarks', {help: 'Run a preconfigured benchmark', action: 'store_true'});
   console.dir(parser.parse_args());
+  return parser.parse_args();
 }
 
 /*Runs a benchmark with a preconfigured file */
@@ -177,10 +178,10 @@ function runBenchmarkFromFile(file, runBenchmark = benchmark) {
 
 /*Only run this code if app.js is called from the command line */
 if (require.main === module) {
-  setUpHelpMessage();
+  args = setUpHelpMessage();
   checkBrowserStackAccount();
   runServer();
-  if(process.argv.includes('--benchmarks')) {
+  if (args.benchmarks) {
     const config = require('./preconfigured_browser.json');
     runBenchmarkFromFile(config);
   }
