@@ -110,7 +110,8 @@ function setupBenchmarkEnv(config) {
  *  - `backend`: The backend to be benchmarked on.
  *
  *
- * @param {{browsers, benchmark}} config Benchmark configuration.
+ * @param {{browsers, benchmark}} config Benchmark configuration
+ * @param benchmarkResult Function that benchmarks one browser-device pair
  */
 async function benchmark(config, benchmarkResult = runOneBenchmark) {
   console.log('Preparing configuration files for the test runner.');
@@ -136,7 +137,7 @@ async function benchmark(config, benchmarkResult = runOneBenchmark) {
  * This function utilizes a promise that is fulfilled once the corresponding
  * result is returned from BrowserStack.
  *
- * @param {config.browsers[index]} tabId.
+ * @param tabId Indicates browser-device pairing for benchmark
  */
 function runOneBenchmark(tabId) {
   return new Promise((resolve, reject) => {
@@ -170,7 +171,7 @@ function runOneBenchmark(tabId) {
         return resolve(benchmarkResult);
       }
 
-      let errorMessage = 'Did not find benchmark results from the logs ' +
+      const errorMessage = 'Did not find benchmark results from the logs ' +
           'of the benchmark test (benchmark_models.js).';
       io.emit('benchmarkComplete', {error: errorMessage});
       return reject(errorMessage);
@@ -181,7 +182,8 @@ function runOneBenchmark(tabId) {
 /**
  * Writes a passed message to a passed JSON file.
  *
- * @param filePath, msg.
+ * @param filePath Relative filepath of target file
+ * @param msg Message to be written
  */
 function write(filePath, msg) {
   fs.writeFile(
