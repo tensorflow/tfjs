@@ -111,6 +111,10 @@ export class TestRunner extends Component<TestRunnerProps, TestRunnerState> {
           // Not implemented in webgl
           return false;
         }
+        if (name.match('method otsu')) {
+          // Image threshold is broken for Otsu's method. #5245
+          return false;
+        }
         return true;
       }
      });
