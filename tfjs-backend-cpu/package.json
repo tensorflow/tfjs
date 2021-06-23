@@ -79,6 +79,9 @@
     "./dist/register_all_kernels.js",
     "./dist/base.js",
     "./dist/index.js",
+    "./dist/register_all_kernels.mjs",
+    "./dist/base.mjs",
+    "./dist/index.mjs",
     "./src/register_all_kernels.mjs",
     "./src/base.mjs",
     "./src/index.mjs"
