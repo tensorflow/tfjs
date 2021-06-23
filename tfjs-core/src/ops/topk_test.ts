@@ -25,6 +25,30 @@ import {tensor2d} from './tensor2d';
 import {tensor3d} from './tensor3d';
 
 describeWithFlags('topk', ALL_ENVS, () => {
+  it('1d array with k = 0', async () => {
+    const a = tensor1d([20, 10, 40, 30]);
+    const {values, indices} = tf.topk(a, 0);
+
+    expect(values.shape).toEqual([0]);
+    expect(indices.shape).toEqual([0]);
+    expect(values.dtype).toBe('float32');
+    expect(indices.dtype).toBe('int32');
+    expectArraysClose(await values.data(), []);
+    expectArraysClose(await indices.data(), []);
+  });
+
+  it('1d array with length 1', async () => {
+    const a = tensor1d([20]);
+    const {values, indices} = tf.topk(a, 1);
+
+    expect(values.shape).toEqual([1]);
+    expect(indices.shape).toEqual([1]);
+    expect(values.dtype).toBe('float32');
+    expect(indices.dtype).toBe('int32');
+    expectArraysClose(await values.data(), [20]);
+    expectArraysClose(await indices.data(), [0]);
+  });
+
   it('1d array with default k', async () => {
     const a = tensor1d([20, 10, 40, 30]);
     const {values, indices} = tf.topk(a);
@@ -139,6 +163,70 @@ describeWithFlags('topk', ALL_ENVS, () => {
     expectArraysClose(await values.data(), [2, 2, 1, 1]);
     expectArraysClose(await indices.data(), [1, 2, 0, 3]);
   });
+  
+  it('lower-index element appears first, k=65', async () => {
+    const a = [
+      1, 1, 2, 1, 2, 1, 1, 1, 2, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2,
+      1, 2, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 2, 2, 2, 2,
+      1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 2, 1, 2, 1
+    ];
+    const k = a.length;
+    const {values, indices} = tf.topk(a, k);
+    
+    expectArraysClose(await values.data(), [
+      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+      2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+    ]);
+    expectArraysClose(await indices.data(), [
+      2,  4,  8,  9,  12, 15, 18, 21, 23, 27, 30, 33, 38, 40, 41, 42, 43,
+      45, 47, 48, 49, 51, 52, 54, 55, 57, 61, 63, 0,  1,  3,  5,  6,  7,
+      10, 11, 13, 14, 16, 17, 19, 20, 22, 24, 25, 26, 28, 29, 31, 32, 34,
+      35, 36, 37, 39, 44, 46, 50, 53, 56, 58, 59, 60, 62, 64
+    ]);
+  });
+
+  it('lower-index element appears first, sorted=false', async () => {
+    const a = [
+      1, 1, 2, 1, 2, 1, 1, 1, 2, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2,
+      1, 2, 1, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 2, 1, 2, 2, 2, 2,
+      1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 2, 1, 2, 1
+    ];
+    const k = a.length;
+    const {values, indices} = tf.topk(a, k, false);
+
+    expect(values.shape).toEqual([k]);
+    expect(indices.shape).toEqual([k]);
+    expect(values.dtype).toBe('float32');
+    expect(indices.dtype).toBe('int32');
+
+    const valuesData = await values.data();
+    valuesData.sort();
+    expectArraysClose(valuesData, [
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2,
+      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+    ]);
+
+    const indicesData = await indices.data();
+    const onesIndices = indicesData.filter((index: number) => a[index] === 1);
+    const twosIndices = indicesData.filter((index: number) => a[index] === 2);
+    expectArraysClose(onesIndices, [
+      0,  1,  3,  5,  6,  7,  10, 11, 13, 14, 16, 17, 19,
+      20, 22, 24, 25, 26, 28, 29, 31, 32, 34, 35, 36, 37,
+      39, 44, 46, 50, 53, 56, 58, 59, 60, 62, 64
+    ]);
+    expectArraysClose(twosIndices, [
+      2,  4,  8,  9,  12, 15, 18, 21, 23, 27, 30, 33, 38, 40,
+      41, 42, 43, 45, 47, 48, 49, 51, 52, 54, 55, 57, 61, 63
+    ]);
+  });
+
+  it('throws when k < 0', () => {
+    const a = tensor2d([[10, 50], [40, 30]]);
+    expect(() => tf.topk(a, -1))
+        .toThrowError(/'k' passed to topk\(\) must be >= 0/);
+  });
 
   it('throws when k > size of array', () => {
     const a = tensor2d([[10, 50], [40, 30]]);
@@ -150,6 +238,19 @@ describeWithFlags('topk', ALL_ENVS, () => {
     const a = scalar(2);
     expect(() => tf.topk(a))
         .toThrowError(/topk\(\) expects the input to be of rank 1 or higher/);
+  });
+
+  it('negative infinity input', async () => {
+    const a = [-Infinity, -Infinity, -Infinity, -Infinity, -Infinity];
+    const k = a.length;
+    const {values, indices} = tf.topk(a, k);
+
+    expect(values.shape).toEqual([k]);
+    expect(indices.shape).toEqual([k]);
+    expect(values.dtype).toBe('float32');
+    expect(indices.dtype).toBe('int32');
+    expectArraysClose(await values.data(), a);
+    expectArraysClose(await indices.data(), [0, 1, 2, 3, 4]);
   });
 
   it('accepts a tensor-like object, k=2', async () => {
