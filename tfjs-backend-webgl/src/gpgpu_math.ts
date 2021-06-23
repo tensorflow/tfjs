@@ -330,31 +330,32 @@ export function makeShaderKey(
     const hasOffset = x.texData != null && x.texData.slice != null &&
         x.texData.slice.flatOffset > 0;
     if (program.enableShapeUniforms && !x.isUniform) {
+      const xTexShape = x.texData.texShape;
       const {useSqueezeShape, uniformShape} =
           shader_compiler.getUniformInfoFromShape(
-              program.packedInputs, x.shape, x.texData.texShape);
+              program.packedInputs, x.shape, xTexShape);
       let rank1 = '', rank2 = '', rank34 = '';
       if (uniformShape.length === 1 && program.packedInputs) {
-        const packedTexShape = [
-          Math.ceil(x.texData.texShape[0] / 2),
-          Math.ceil(x.texData.texShape[1] / 2)
-        ];
+        const packedTexShape =
+            [Math.ceil(xTexShape[0] / 2), Math.ceil(xTexShape[1] / 2)];
         rank1 = `${packedTexShape[0] > 1}_${packedTexShape[1] > 1}`;
       } else if (uniformShape.length === 2) {
         rank2 = `${uniformShape[0] > 1}_${uniformShape[1] > 1}`;
       } else if (uniformShape.length > 2 && !program.packedInputs) {
         const strides = util.computeStrides(uniformShape);
-        rank34 = `${strides[0] === x.texData.texShape[1]}_${
-            strides[strides.length - 1] === x.texData.texShape[1]}`;
+        rank34 = `${strides[0] === xTexShape[1]}_${
+            strides[strides.length - 1] === xTexShape[1]}`;
       }
       const isScalar = util.sizeFromShape(x.shape) === 1;
       const broadcastDims =
           backend_util.getBroadcastDims(x.shape, output.shape);
-      keyInputs += `${x.shape.length}_${useSqueezeShape}_${
+      const isInOutEqual = !program.packedInputs &&
+          x.shape.length === output.shape.length &&
+          util.arraysEqual(xTexShape, output.texData.texShape);
+      keyInputs += `${x.shape.length}_${isInOutEqual}_${useSqueezeShape}_${
           uniformShape.length}_${isScalar}_${broadcastDims}_${
-          util.arraysEqual(
-              x.shape, x.texData.texShape)}_${rank1}_${rank2}_${rank34}_${
-          x.texData.texShape[0] > 1}_${x.texData.texShape[1] > 1}_${hasOffset}`;
+          util.arraysEqual(x.shape, xTexShape)}_${rank1}_${rank2}_${rank34}_${
+          xTexShape[0] > 1}_${xTexShape[1] > 1}_${hasOffset}`;
     } else {
       const texShape = x.isUniform ? 'uniform' : x.texData.texShape;
       keyInputs += `${x.shape}_${texShape}_${hasOffset}`;
