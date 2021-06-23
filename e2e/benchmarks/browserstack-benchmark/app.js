@@ -22,10 +22,11 @@ const path = require('path');
 const {execFile} = require('child_process');
 const {ArgumentParser} = require('argparse');
 const {version} = require('./package.json');
-let parser;
 
 const port = process.env.PORT || 8001;
 let io;
+let parser;
+let args;
 
 function checkBrowserStackAccount() {
   if (process.env.BROWSERSTACK_USERNAME == null ||
@@ -113,20 +114,20 @@ function setupBenchmarkEnv(config) {
  * @param {{browsers, benchmark}} config Benchmark configuration
  * @param benchmarkResult Function that benchmarks one browser-device pair
  */
-async function benchmark(config, benchmarkResult = runOneBenchmark) {
+async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
   console.log('Preparing configuration files for the test runner.');
   setupBenchmarkEnv(config);
 
   console.log(`Start benchmarking.`);
   const results = [];
   for (const tabId in config.browsers) {
-    results.push(benchmarkResult(tabId));
+    results.push(runOneBenchmark(tabId));
   }
 
   /** Optional outfile written once all benchmarks have returned results. */
   const fulfilled = await Promise.allSettled(results);
-  if (require.main === module && parser.parse_args().outfile) {
-    write('./benchmark_results.json', results);
+  if (require.main === module && args.outfile) {
+    await write('./benchmark_results.json', results);
   }
   return fulfilled;
 }
@@ -139,7 +140,7 @@ async function benchmark(config, benchmarkResult = runOneBenchmark) {
  *
  * @param tabId Indicates browser-device pairing for benchmark
  */
-function runOneBenchmark(tabId) {
+function runBrowserStackBenchmark(tabId) {
   return new Promise((resolve, reject) => {
     const args = ['test', '--browserstack', `--browsers=${tabId}`];
     const command = `yarn ${args.join(' ')}`;
@@ -186,9 +187,17 @@ function runOneBenchmark(tabId) {
  * @param msg Message to be written
  */
 function write(filePath, msg) {
-  fs.writeFile(
-      filePath, JSON.stringify(msg), 'utf8',
-      err => {console.log(err ? `Error: ${err}.` : 'Output written.')});
+  return new Promise((resolve, reject) => {
+    fs.writeFile(filePath, JSON.stringify(msg, null, 2), 'utf8', err => {
+      if (err) {
+        console.log(`Error: ${err}.`);
+        return reject();
+      } else {
+        console.log('Output written.');
+        return resolve();
+      }
+    });
+  })
 }
 
 /** Set up --help menu for file description and available optional commands */
@@ -201,7 +210,8 @@ function setupHelpMessage() {
   parser.add_argument(
       '--outfile', {help: 'write results to outfile', action: 'store_true'});
   parser.add_argument('-v', '--version', {action: 'version', version});
-  console.dir(parser.parse_args());
+  args = parser.parse_args();
+  console.dir(args);
 }
 
 if (require.main === module) {
