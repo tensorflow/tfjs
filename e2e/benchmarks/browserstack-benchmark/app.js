@@ -175,7 +175,7 @@ function runBenchmarkFromFile(file, runBenchmark = benchmark) {
 
 /*Only run this code if app.js is called from the command line */
 if (require.main === module) {
-  args = setUpHelpMessage();
+  const args = setUpHelpMessage();
   checkBrowserStackAccount();
   runServer();
   if (args.benchmarks) {

@@ -1,7 +1,6 @@
 const {execFile} = require('child_process');
-const { config } = require('process');
-const app = require('./app.js');
-const runBenchmarkFromFile = app.runBenchmarkFromFile;
+const {config} = require('process');
+const {runBenchmarkFromFile} = require('./app.js');
 
 function exec(command, args) {
   return new Promise((fulfill, reject) => {
