@@ -227,7 +227,6 @@ function getMainCodeWgsl(
 }
 
 export function makeMatMulPackedVec4SourceWgsl(
-    addBiasSnippet: string, applyActivationSnippet: string,
     workPerThread: number[], workGroupSize: [number, number, number]): string {
   const rowPerThread = workPerThread[1];
   const colPerThread = workPerThread[0];  // only support colPerThread = 4
@@ -450,7 +449,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   }
 
   getUserCodeWgsl(): string {
-    let activationSnippet = '', applyActivationSnippet = '';
+    let activationSnippet = '';
     if (this.activation) {
       if (this.hasPreluActivationWeights) {
         activationSnippet =
@@ -464,12 +463,8 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
                   ${this.activation}
                 }`;
       }
-
-      applyActivationSnippet = 'value = activation(value, outCoord);';
     }
 
-    const addBiasSnippet =
-        this.addBias ? 'value += getBiasAtOutCoords(outCoord);' : '';
     if (this.outputShape[1] <= 1) {
       throw Error(`outputShape[1] <= 1 is not yet supported`);
     }
@@ -479,7 +474,6 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
 
       ${
         makeMatMulPackedVec4SourceWgsl(
-            addBiasSnippet, applyActivationSnippet,
             [this.vecSize, this.workPerThread, 1], this.workGroupSize)}
     `;
     return userCode;

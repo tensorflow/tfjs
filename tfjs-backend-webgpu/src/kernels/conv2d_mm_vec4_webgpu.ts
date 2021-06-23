@@ -31,7 +31,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   uniformsWgsl =
-      'filterDims : vec2<u32>; pad : vec2<u32>; stride : vec2<u32>; dilation : vec2<u32>;';
+      `filterDims : vec2<u32>; pad : vec2<u32>; stride : vec2<u32>; dilation : vec2<u32>;
+      dimAOuter : u32; dimBOuter : u32; dimInner : u32;`;
   workGroupSize: [number, number, number];
   useWgsl: boolean;
   isVec4 = true;
@@ -244,8 +245,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
 
   getUserCodeWgsl(): string {
     const elementsPerThread: [number, number, number] = [4, 4, 1];
-    const matMulSource = makeMatMulPackedVec4SourceWgsl(
-        '', '', elementsPerThread, this.workGroupSize);
+    const matMulSource =
+        makeMatMulPackedVec4SourceWgsl(elementsPerThread, this.workGroupSize);
 
     const remainder = this.convInfo.inChannels % 4;
     if (remainder !== 0) {
@@ -273,17 +274,18 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         ${remainderSnippet}
         return resData;`;
 
-    const sampleA =
-        this.fitA ? `${readASnippet}` : `if (r < dimAOuter && c < dimInner) {
+    const sampleA = this.fitA ?
+        `${readASnippet}` :
+        `if (r < uniforms.dimAOuter && c < uniforms.dimInner) {
           ${readASnippet}
          }
          return vec4<f32>(0.0, 0.0, 0.0, 0.0);
         `;
 
     const sampleB = this.fitB ?
-        `return W.numbers[row * dimBOuter / 4u + col]` :
-        `if(coordsInBounds2D(vec2<u32>(row, col * 4u), vec2<u32>(dimInner, dimBOuter))) {
-           return W.numbers[row * dimBOuter / 4u + col];
+        `return W.numbers[row * uniforms.dimBOuter / 4u + col]` :
+        `if(coordsInBounds2D(vec2<u32>(row, col * 4u), vec2<u32>(uniforms.dimInner, uniforms.dimBOuter))) {
+           return W.numbers[row * uniforms.dimBOuter / 4u + col];
          }
          return vec4<f32>(0.0, 0.0, 0.0, 0.0);
         `;
@@ -322,27 +324,18 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         fn mm_readA(row : u32, col : u32,  globalId  : vec3<u32>) -> vec4<f32> {
           let r : u32 = u32(row);
           let c : u32 = u32(col * 4u);
-          var dimAOuter : u32 = uniforms.outShape[1] * uniforms.outShape[2];
-          var dimBOuter : u32 = uniforms.outShape[3];
-          var dimInner : u32 = uniforms.filterDims[0] * uniforms.filterDims[1] * uniforms.xShape[3];
           var batch : u32 = u32(globalId.z);
           ${sampleA}
         }
 
         fn mm_readB(row : u32, col : u32) -> vec4<f32> {
-          var dimAOuter : u32 = uniforms.outShape[1] * uniforms.outShape[2];
-          var dimBOuter : u32 = uniforms.outShape[3];
-          var dimInner : u32 = uniforms.filterDims[0] * uniforms.filterDims[1] * uniforms.xShape[3];
           ${sampleB}
         }
 
         fn mm_write(row : u32, col : u32, valueInput : vec4<f32>, globalId  : vec3<u32>) {
-          var dimAOuter : u32 = uniforms.outShape[1] * uniforms.outShape[2];
-          var dimBOuter : u32 = uniforms.outShape[3];
-          var dimInner : u32 = uniforms.filterDims[0] * uniforms.filterDims[1] * uniforms.xShape[3];
           var batch : u32 = u32(globalId.z);
           var value  : vec4<f32> = valueInput;
-          if (row < dimAOuter && col * 4u < dimBOuter)
+          if (row < uniforms.dimAOuter && col * 4u < uniforms.dimBOuter)
           {
             let outCoord : vec4<u32> = vec4<u32>(
               batch,
