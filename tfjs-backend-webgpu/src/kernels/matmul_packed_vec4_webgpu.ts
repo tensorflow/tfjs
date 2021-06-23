@@ -455,7 +455,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
       if (this.hasPreluActivationWeights) {
         activationSnippet =
             `fn activation(a : vec4<f32>, outCoord :  vec3<i32>) -> vec4<f32>{
-                  vec4 b = getPreluActivationWeightsAtOutCoords2(outCoord);
+                  vec4 b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
                   ${this.activation}
                 }`;
       } else {

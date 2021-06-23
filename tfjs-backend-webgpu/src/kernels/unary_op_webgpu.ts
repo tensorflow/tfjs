@@ -75,7 +75,7 @@ export class UnaryOpProgram implements WebGPUProgram {
         let index : u32 = u32(globalId.x);
         if (index < uniforms.size)
         {
-          let a : f32 = getAAtOutCoords(globalId);
+          let a : f32 = getAAtOutCoordsByGlobalId(globalId);
           setOutputFlat(index, unaryOperation(a));
         }
       }

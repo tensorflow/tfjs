@@ -254,8 +254,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     const remainderSnippet =
         `// The bounds checking is always needed since we use it to pad zero for
         // the 'same' padding type.
-        if (coordsInBounds4(coord, uniforms.xShape)) {
-          resData = x.numbers[getFlatIndex4(coord, uniforms.xShape) / 4u];
+        if (coordsInBounds4D(coord, uniforms.xShape)) {
+          resData = x.numbers[getFlatIndex4D(coord, uniforms.xShape) / 4u];
         } else {
           resData = vec4<f32>(0.0, 0.0, 0.0, 0.0); }`;
 
@@ -282,7 +282,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
 
     const sampleB = this.fitB ?
         `return W.numbers[row * dimBOuter / 4u + col]` :
-        `if(coordsInBounds2(vec2<u32>(row, col * 4u), vec2<u32>(dimInner, dimBOuter))) {
+        `if(coordsInBounds2D(vec2<u32>(row, col * 4u), vec2<u32>(dimInner, dimBOuter))) {
            return W.numbers[row * dimBOuter / 4u + col];
          }
          return vec4<f32>(0.0, 0.0, 0.0, 0.0);
@@ -294,7 +294,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
       if (this.hasPreluActivationWeights) {
         activationSnippet =
             `fn activation(a : vec4<f32>, outCoord : vec4<u32>) -> vec4<f32>{
-          let b: vec4<f32> = getPreluActivationWeightsAtOutCoords2(outCoord);
+          let b: vec4<f32> = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
           ${activationOp}
         }`;
       } else if (this.hasLeakyreluAlpha) {
@@ -314,8 +314,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     }
 
     const addBiasSnippet = this.addBias ?
-        'let coords : vec4<u32>= getOutputCoords(globalId); ' +
-            'value = value + getBiasAtOutCoords2(outCoord);' :
+        'value = value + getBiasAtOutCoordsByCoords(outCoord);' :
         '';
 
     const userCode = `
