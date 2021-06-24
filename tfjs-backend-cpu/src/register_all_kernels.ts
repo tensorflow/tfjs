@@ -84,7 +84,7 @@ import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
 import {gatherNdConfig} from './kernels/GatherNd';
 import {gatherV2Config} from './kernels/GatherV2';
-import {grayscaleToRGBConfig} from './kernels/GrayscaleToRGB'
+import {grayscaleToRGBConfig} from './kernels/GrayscaleToRGB';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
