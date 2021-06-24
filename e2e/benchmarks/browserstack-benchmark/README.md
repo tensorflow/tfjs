@@ -42,7 +42,7 @@ The Multi-device benchmark tool can benchmark the performance (time, memory) of 
 ### Comand Line Arguments
   * --outfile
     - Optional argument that writes results to an accessible external file, benchmark_results.json.
-    ```
+    ``` shell
     node app.js --outfile
     ```
 
