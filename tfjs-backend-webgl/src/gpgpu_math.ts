@@ -329,6 +329,7 @@ export function makeShaderKey(
   inputs.concat(output).forEach(x => {
     const hasOffset = x.texData != null && x.texData.slice != null &&
         x.texData.slice.flatOffset > 0;
+    // TODO: Remove the condition of !x.isUniform.
     if (program.enableShapeUniforms && !x.isUniform) {
       const xTexShape = x.texData.texShape;
       const {useSqueezeShape, uniformShape} =
@@ -352,6 +353,18 @@ export function makeShaderKey(
       const isInOutEqual = !program.packedInputs &&
           x.shape.length === output.shape.length &&
           util.arraysEqual(xTexShape, output.texData.texShape);
+      // |x.shape.length| is used to determin the coords length. See
+      // get[Packed]SamplerAtOutputCoords. |isInOutEqual| is used to determin
+      // whether going to an optimization path in getSamplerAtOutputCoords.
+      // |useSqueezeShape| is extracted from squeezeInputInfo of
+      // getSampler[2|3|4]D/getPackedSampler3D. |isScalar| is extracted from
+      // isInputScalar/isOutputScalar in getPackedSamplerAtOutputCoords.
+      // |broadcastDims| is extracted from get[Packed]SamplerAtOutputCoords.
+      // |util.arraysEqual(x.shape, xTexShape)| is used in
+      // getOutput[Packed]2DCoords/get[Packed]Sampler2D. |rank1| is used in
+      // getOutputPacked1DCoords. |rank2| is used in getOutput2DCoords. |rank34|
+      // is used in getSampler3D/getSampler4D. |xTexShape[0] > 1, xTexShape[1] >
+      // 1| is used in getSampler[Scalar|1D|2D].
       keyInputs += `${x.shape.length}_${isInOutEqual}_${useSqueezeShape}_${
           uniformShape.length}_${isScalar}_${broadcastDims}_${
           util.arraysEqual(x.shape, xTexShape)}_${rank1}_${rank2}_${rank34}_${
@@ -370,5 +383,6 @@ export function makeShaderKey(
 }
 
 export function useShapeUniforms(rank: number) {
+  // TODO: Remove the limitaion of rank <= 4.
   return env().getBool('WEBGL_USE_SHAPES_UNIFORMS') && rank <= 4;
 }
