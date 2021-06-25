@@ -15,6 +15,9 @@
  * =============================================================================
  */
 
+// Please make sure the shaker key in makeShaderKey in gpgpu_math.ts is well
+// mapped if any shader source code is changed in this file.
+
 import {backend_util, util} from '@tensorflow/tfjs-core';
 const {getBroadcastDims} = backend_util;
 import {getGlslDifferences, GLSL} from './glsl_version';

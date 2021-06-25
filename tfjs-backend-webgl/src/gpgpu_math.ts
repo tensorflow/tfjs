@@ -340,35 +340,47 @@ export function makeShaderKey(
         const packedTexShape =
             [Math.ceil(xTexShape[0] / 2), Math.ceil(xTexShape[1] / 2)];
         rank1 = `${packedTexShape[0] > 1}_${packedTexShape[1] > 1}`;
-      } else if (uniformShape.length === 2) {
+      } else if (uniformShape.length === 2 && !program.packedInputs) {
         rank2 = `${uniformShape[0] > 1}_${uniformShape[1] > 1}`;
       } else if (uniformShape.length > 2 && !program.packedInputs) {
         const strides = util.computeStrides(uniformShape);
         rank34 = `${strides[0] === xTexShape[1]}_${
             strides[strides.length - 1] === xTexShape[1]}`;
       }
+      const xRank = x.shape.length;
+      const isLogicalShapTexShapeEqual =
+          xRank === 2 && util.arraysEqual(x.shape, xTexShape);
       const isScalar = util.sizeFromShape(x.shape) === 1;
       const broadcastDims =
           backend_util.getBroadcastDims(x.shape, output.shape);
-      const isInOutEqual = !program.packedInputs &&
-          x.shape.length === output.shape.length &&
+      const isInOutTexShapeEqual = !program.packedInputs &&
+          xRank === output.shape.length &&
           util.arraysEqual(xTexShape, output.texData.texShape);
-      // |x.shape.length| is used to determin the coords length. See
-      // get[Packed]SamplerAtOutputCoords. |isInOutEqual| is used to determin
-      // whether going to an optimization path in getSamplerAtOutputCoords.
+      const isTexShapeGreaterThanOne = program.packedInputs || xRank > 2 ?
+          '' :
+          `${xTexShape[0] > 1}_${xTexShape[1] > 1}`;
+      // These key components are needed due to shader_compiler is embedding
+      // them in the shader.
+      // |xRank| is used to determine the coords length. See
+      // get[Packed]SamplerAtOutputCoords.
+      // |isInOutTexShapeEqual| is used to determine whether going to an
+      // optimization path in getSamplerAtOutputCoords.
       // |useSqueezeShape| is extracted from squeezeInputInfo of
-      // getSampler[2|3|4]D/getPackedSampler3D. |isScalar| is extracted from
-      // isInputScalar/isOutputScalar in getPackedSamplerAtOutputCoords.
+      // getSampler[2|3|4]D/getPackedSampler3D.
+      // |isScalar| is extracted from isInputScalar/isOutputScalar in
+      // getPackedSamplerAtOutputCoords.
       // |broadcastDims| is extracted from get[Packed]SamplerAtOutputCoords.
-      // |util.arraysEqual(x.shape, xTexShape)| is used in
-      // getOutput[Packed]2DCoords/get[Packed]Sampler2D. |rank1| is used in
-      // getOutputPacked1DCoords. |rank2| is used in getOutput2DCoords. |rank34|
-      // is used in getSampler3D/getSampler4D. |xTexShape[0] > 1, xTexShape[1] >
-      // 1| is used in getSampler[Scalar|1D|2D].
-      keyInputs += `${x.shape.length}_${isInOutEqual}_${useSqueezeShape}_${
+      // |isLogicalShapTexShapeEqual| is used in
+      // getOutput[Packed]2DCoords/get[Packed]Sampler2D.
+      // |rank1| is used in getOutputPacked1DCoords.
+      // |rank2| is used in getOutput2DCoords.
+      // |rank34| is used in getSampler3D/getSampler4D.
+      // |isTexShapeGreaterThanOne| are used in
+      // getSampler[Scalar|1D|2D]/getOutput1DCoords.
+      keyInputs += `${xRank}_${isInOutTexShapeEqual}_${useSqueezeShape}_${
           uniformShape.length}_${isScalar}_${broadcastDims}_${
-          util.arraysEqual(x.shape, xTexShape)}_${rank1}_${rank2}_${rank34}_${
-          xTexShape[0] > 1}_${xTexShape[1] > 1}_${hasOffset}`;
+          isLogicalShapTexShapeEqual}_${rank1}_${rank2}_${rank34}_${
+          isTexShapeGreaterThanOne}_${hasOffset}`;
     } else {
       const texShape = x.isUniform ? 'uniform' : x.texData.texShape;
       keyInputs += `${x.shape}_${texShape}_${hasOffset}`;
@@ -377,8 +389,8 @@ export function makeShaderKey(
   const keyUserCode = program.userCode;
   let key = program.constructor.name;
   // Fast string concat. See https://jsperf.com/string-concatenation/14.
-  key +=
-      '_' + keyInputs + '_' + keyUserCode + `env().getNumber('WEBGL_VERSION')`;
+  key += '_' + keyInputs + '_' + keyUserCode +
+      `${env().getNumber('WEBGL_VERSION')}`;
   return key;
 }
 
