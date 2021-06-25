@@ -29,8 +29,7 @@ export class PadProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   uniforms = 'float constantValue;';
-  workPerThread = 8;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workGroupSize: [number, number, number] = [64, 1, 1];
   xShape: number[];
   size: number;
 
@@ -39,8 +38,7 @@ export class PadProgram implements WebGPUProgram {
         (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
     paddings.map((_, i) => this.uniforms += ` ivec2 pad${i};`);
     this.xShape = xShape;
     this.shaderKey = 'pad';
@@ -73,13 +71,10 @@ export class PadProgram implements WebGPUProgram {
       ${type} end = ${endValue};
 
       void main() {
-        int index = int(gl_GlobalInvocationID.x);
-
-        for (int i = 0; i < ${this.workPerThread}; i++) {
-          int flatIndex = index * ${this.workPerThread} + i;
+        int flatIndex = int(gl_GlobalInvocationID.x);
 
           if (flatIndex < size) {
-            ${type} outC = getCoordsFromFlatIndex(flatIndex);
+            ${type} outC = getOutputCoords();
 
             if (${leftPadCondition} || ${rightPadCondition}) {
               setOutput(flatIndex, constantValue);
@@ -88,7 +83,6 @@ export class PadProgram implements WebGPUProgram {
               setOutput(flatIndex, getX(${unpackedCoords}));
             }
           }
-        }
       }
     `;
     return userCode;
