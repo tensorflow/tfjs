@@ -45,6 +45,11 @@ The Multi-device benchmark tool can benchmark the performance (time, memory) of 
   ```
   node app.js --benchmarks
   ```
+  * --outfile
+    - Optional argument that writes results to an accessible external file, benchmark_results.json.
+    ``` shell
+    node app.js --outfile
+    ```
 
 ## Custom model
 The custom model is supported, but is constrained by:
