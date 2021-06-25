@@ -42,7 +42,7 @@ The Multi-device benchmark tool can benchmark the performance (time, memory) of 
 ### Command Line Arguments
 * --benchmarks
   - Optional argument that runs a preconfigured benchmark from a JSON file instead of from the website.
-  ```
+  ``` shell
   node app.js --benchmarks
   ```
   * --outfile
