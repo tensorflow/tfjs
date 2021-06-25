@@ -39,6 +39,13 @@ The Multi-device benchmark tool can benchmark the performance (time, memory) of 
   <img src="https://user-images.githubusercontent.com/40653845/90341914-a432f180-dfb8-11ea-841e-0d9078c6d50d.png" alt="drawing" height="300px"/>
 </div>
 
+### Comand Line Arguments
+  * --outfile
+    - Optional argument that writes results to an accessible external file, benchmark_results.json.
+    ``` shell
+    node app.js --outfile
+    ```
+
 ## Custom model
 The custom model is supported, but is constrained by:
   * A URL path to the model is required, while the model in local file system is not supported. The following URLs are examples:
