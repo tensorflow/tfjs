@@ -127,8 +127,7 @@ describeWebGPU('im2col as separate shader', () => {
 
     const resultData = await result.data();
     expect(result.shape).toEqual([2, 2, 1]);
-    test_util.expectArraysClose(
-        resultData, new Float32Array([20, 26, 13, 12]));
+    test_util.expectArraysClose(resultData, new Float32Array([20, 26, 13, 12]));
   });
 
   it('x=[2,2,1] f=[2,2,1,1] s=1 d=1 p=0', async () => {
@@ -166,7 +165,9 @@ describeWebGPU('im2col as separate shader', () => {
     test_util.expectArraysClose(
         await result.data(), [58.0, 78.0, 98.0, 118.0, 138.0, 158.0]);
   });
+});
 
+describeWebGPU('conv2d vec4', () => {
   it('conv2d x=[1,8,8,3] f=[3,3,3,64] s=[2,2] d=1 p=valid Conv2DMMVec4Program remainder != 0',
      async () => {
        const inputDepth = 3;
