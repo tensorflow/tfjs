@@ -28,7 +28,7 @@
     "test-node": "jasmine app_node_test.js",
     "build-deps": "yarn build-core && yarn build-backend-cpu && yarn build-backend-wasm && yarn build-backend-webgl && yarn build-converter && yarn build-layers && yarn build-data && yarn build-tfjs && yarn build-vis",
     "build-tfjs": "cd ../../../tfjs && yarn && yarn build && yarn build-npm",
-    "build-backend-cpu": "cd ../../../tfjs-backend-cpu && yarn && yarn build && yarn build-npm",
+    "build-backend-cpu": "cd ../../../tfjs-backend-cpu && yarn && yarn build-npm",
     "build-backend-wasm": "cd ../../../tfjs-backend-wasm && yarn && yarn build && yarn build-npm",
     "build-backend-webgl": "cd ../../../tfjs-backend-webgl && yarn && yarn build && yarn build-npm",
     "build-converter": "cd ../../../tfjs-converter && yarn && yarn build && yarn build-npm",
