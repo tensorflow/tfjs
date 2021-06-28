@@ -208,7 +208,8 @@ function setupHelpMessage() {
         'browsers can be benchmarked.'
   });
   parser.add_argument(
-    '--benchmarks', {help: 'Run a preconfigured benchmark', action: 'store_true'});
+    '--benchmarks', {help: 'Run a preconfigured benchmark from a ' +
+    'user-specified JSON', action: 'store'});
   parser.add_argument(
       '--outfile', {help: 'write results to outfile', action: 'store_true'});
   parser.add_argument('-v', '--version', {action: 'version', version});
@@ -229,7 +230,8 @@ if (require.main === module) {
   checkBrowserStackAccount();
   runServer();
   if (cliArgs.benchmarks) {
-    const config = require('./preconfigured_browser.json');
+    const file = cliArgs.benchmarks;
+    const config = require(file);
     runBenchmarkFromFile(config);
   }
 }
