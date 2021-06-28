@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-automl",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "main": "dist/tf-automl.node.js",
   "types": "dist/index.d.ts",
   "module": "dist/tf-automl.esm.js",
