@@ -33,6 +33,8 @@ e2e/scripts/storage
 e2e/scripts/htpasswd
 e2e/benchmarks/browserstack-benchmark/browsers.json
 e2e/benchmarks/browserstack-benchmark/benchmark_parameters.json
+e2e/benchmarks/browserstack-benchmark/benchmark_results.json
+e2e/benchmarks/browserstack-benchmark/benchmark_test_results.json
 tfjs-converter/python/tensorflowjs.egg-info
 tfjs-inference/binaries
 
