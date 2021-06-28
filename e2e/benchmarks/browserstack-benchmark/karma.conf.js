@@ -57,11 +57,11 @@ module.exports = function(config) {
     ...extraConfig,
     frameworks: ['jasmine'],
     files: [
-      './node_modules/@tensorflow/tfjs-core/dist/tf-core.js',
-      './node_modules/@tensorflow/tfjs-backend-cpu/dist/tf-backend-cpu.js',
-      './node_modules/@tensorflow/tfjs-backend-webgl/dist/tf-backend-webgl.js',
-      './node_modules/@tensorflow/tfjs-layers/dist/tf-layers.js',
-      './node_modules/@tensorflow/tfjs-converter/dist/tf-converter.js',
+      './node_modules/@tensorflow/tfjs/node_modules/@tensorflow/tfjs-core/dist/tf-core.js',
+      './node_modules/@tensorflow/tfjs/node_modules/@tensorflow/tfjs-backend-cpu/dist/tf-backend-cpu.js',
+      './node_modules/@tensorflow/tfjs/node_modules/@tensorflow/tfjs-backend-webgl/dist/tf-backend-webgl.js',
+      './node_modules/@tensorflow/tfjs/node_modules/@tensorflow/tfjs-layers/dist/tf-layers.js',
+      './node_modules/@tensorflow/tfjs/node_modules/@tensorflow/tfjs-converter/dist/tf-converter.js',
       './node_modules/@tensorflow/tfjs-backend-wasm/dist/tf-backend-wasm.js', {
         pattern: './node_modules/@tensorflow/tfjs-backend-wasm/dist/*',
         included: false,
