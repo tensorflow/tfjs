@@ -14,7 +14,6 @@
  * limitations under the License.
  * =============================================================================
  */
-import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
 import {getCoordsDataType} from './shader_compiler';
 
@@ -22,9 +21,7 @@ export class CumSumProgram implements GPGPUProgram {
   variableNames = ['x'];
   outputShape: number[];
   userCode: string;
-
-  // Caching uniform location for speed.
-  index: WebGLUniformLocation;
+  customUniforms = [{name: 'index', type: 'float'}];
 
   constructor(shape: number[], exclusive: boolean, reverse: boolean) {
     this.outputShape = shape;
@@ -45,7 +42,6 @@ export class CumSumProgram implements GPGPUProgram {
     }
 
     this.userCode = `
-      uniform float index;
       void main() {
         ${getCoordsDataType(rank)} coords = getOutputCoords();
         int end = ${getFinalCoord(rank, 'coords')};
@@ -59,15 +55,6 @@ export class CumSumProgram implements GPGPUProgram {
         setOutput(val);
       }
     `;
-  }
-
-  getCustomSetupFunc(index: number) {
-    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
-      if (this.index == null) {
-        this.index = gpgpu.getUniformLocation(webGLProgram, 'index');
-      }
-      gpgpu.gl.uniform1f(this.index, index);
-    };
   }
 }
 

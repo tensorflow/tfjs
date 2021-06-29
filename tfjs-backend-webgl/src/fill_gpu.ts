@@ -15,35 +15,23 @@
  * =============================================================================
  */
 
-import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class FillProgram implements GPGPUProgram {
   variableNames: string[];
   outputShape: number[] = [];
   userCode: string;
-
-  valueLoc: WebGLUniformLocation;
+  customUniforms = [{name: 'value', type: 'float'}];
 
   constructor(shape: number[], value: number) {
     this.variableNames = ['x'];
     this.outputShape = shape;
 
     this.userCode = `
-      uniform float value;
       void main() {
         // Input can be obtained from uniform value.
         setOutput(value);
       }
     `;
-  }
-
-  getCustomSetupFunc(value: number) {
-    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
-      if (this.valueLoc == null) {
-        this.valueLoc = gpgpu.getUniformLocationNoThrow(webGLProgram, 'value');
-      }
-      gpgpu.gl.uniform1f(this.valueLoc, value);
-    };
   }
 }

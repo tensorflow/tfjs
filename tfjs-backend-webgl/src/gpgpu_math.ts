@@ -40,12 +40,14 @@ export interface GPGPUProgram {
    * See `PackingScheme` for details. Defaults to `PackingScheme.SHARED_BATCH`.
    */
   outPackingScheme?: PackingScheme;
+  customUniforms?: Array<{name: string; type: string;}>;
 }
 
 export interface GPGPUBinary {
   webGLProgram: WebGLProgram;
   program: GPGPUProgram;
   uniformLocations: {[name: string]: WebGLUniformLocation};
+  customUniformLocations?: WebGLUniformLocation[];
   source: string;
   inShapeInfos: ShapeInfo[];
   outShapeInfo: ShapeInfo;
@@ -64,7 +66,6 @@ export interface TensorData {
 export function compileProgram<T extends Tensor, K extends Tensor>(
     gpgpu: GPGPUContext, program: GPGPUProgram, inputs: TensorData[],
     output: TensorData): GPGPUBinary {
-  const userCode = program.userCode;
   const inputInfos: InputInfo[] = inputs.map((input, i) => {
     const shapeInfo: ShapeInfo = {
       logicalShape: input.shape,
@@ -87,8 +88,7 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
     isPacked: output.texData.isPacked,
     flatOffset: null
   };
-  const source = shader_compiler.makeShader(
-      inputInfos, outShapeInfo, userCode, program.packedInputs);
+  const source = shader_compiler.makeShader(inputInfos, outShapeInfo, program);
 
   const webGLProgram = gpgpu.createProgram(source);
 
@@ -100,14 +100,23 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
   }
 
   // Add user-defined uniforms
+  const shouldThrow = false;
   const uniformLocations: {[name: string]: WebGLUniformLocation} = {};
   for (let i = 0; i < program.variableNames.length; i++) {
     const varName = program.variableNames[i];
-    const shouldThrow = false;
     uniformLocations[varName] =
         gpgpu.getUniformLocation(webGLProgram, varName, shouldThrow);
     uniformLocations[`offset${varName}`] =
         gpgpu.getUniformLocation(webGLProgram, `offset${varName}`, shouldThrow);
+  }
+
+  const customUniformLocations: WebGLUniformLocation[] = [];
+  if (program.customUniforms) {
+    program.customUniforms.forEach((d, i) => {
+      const location = gpgpu.getUniformLocation(
+          webGLProgram, d.name.split('[')[0], shouldThrow);
+      customUniformLocations.push(location);
+    });
   }
 
   return {
@@ -115,6 +124,7 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
     source,
     webGLProgram,
     uniformLocations,
+    customUniformLocations,
     inShapeInfos,
     outShapeInfo,
     infLoc,
@@ -157,9 +167,7 @@ function validateBinaryAndProgram(
 
 export function runProgram<T extends Tensor, K extends Tensor>(
     gpgpu: GPGPUContext, binary: GPGPUBinary, inputs: TensorData[],
-    output: TensorData,
-    customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) =>
-        void): void {
+    output: TensorData, customUniformValues?: number[][]): void {
   validateBinaryAndProgram(binary.inShapeInfos, inputs);
   validateBinaryAndProgram([binary.outShapeInfo], [output]);
 
@@ -215,8 +223,24 @@ export function runProgram<T extends Tensor, K extends Tensor>(
     gpgpu.setInputMatrixTexture(input.texData.texture, varLoc, i);
   });
 
-  if (customSetup != null) {
-    customSetup(gpgpu, binary.webGLProgram);
+  if (binary.program.customUniforms && customUniformValues) {
+    binary.program.customUniforms.forEach((d, i) => {
+      if (d.type === 'float') {
+        gpgpu.gl.uniform1fv(
+            binary.customUniformLocations[i], customUniformValues[i]);
+      } else if (d.type === 'vec4') {
+        gpgpu.gl.uniform4fv(
+            binary.customUniformLocations[i], customUniformValues[i]);
+      } else if (d.type === 'int') {
+        gpgpu.gl.uniform1iv(
+            binary.customUniformLocations[i], customUniformValues[i]);
+      } else if (d.type === 'ivec2') {
+        gpgpu.gl.uniform2iv(
+            binary.customUniformLocations[i], customUniformValues[i]);
+      } else {
+        throw Error(`uniform type ${d.type} is not supported yet.`);
+      }
+    });
   }
   gpgpu.executeProgram();
 }

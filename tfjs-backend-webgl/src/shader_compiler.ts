@@ -33,9 +33,15 @@ export type InputInfo = {
   shapeInfo: ShapeInfo
 };
 
+interface ProgramParams {
+  userCode: string;
+  packedInputs?: boolean;
+  customUniforms?: Array<{name: string; type: string;}>;
+}
+
 export function makeShader(
-    inputsInfo: InputInfo[], outputShape: ShapeInfo, userCode: string,
-    usesPackedTextures: boolean): string {
+    inputsInfo: InputInfo[], outputShape: ShapeInfo,
+    program: ProgramParams): string {
   const prefixSnippets: string[] = [];
   inputsInfo.forEach(x => {
     const size = util.sizeFromShape(x.shapeInfo.logicalShape);
@@ -49,11 +55,20 @@ export function makeShader(
       prefixSnippets.push(`uniform int offset${x.name};`);
     }
   });
+
+  if (program.customUniforms) {
+    program.customUniforms.forEach((d) => {
+      prefixSnippets.push(`uniform ${d.type} ${d.name};`);
+    });
+  }
+
   const inputPrefixSnippet = prefixSnippets.join('\n');
 
   const inputSamplingSnippet =
       inputsInfo
-          .map(x => getInputSamplingSnippet(x, outputShape, usesPackedTextures))
+          .map(
+              x =>
+                  getInputSamplingSnippet(x, outputShape, program.packedInputs))
           .join('\n');
   const outTexShape = outputShape.texShape;
   const glsl = getGlslDifferences();
@@ -72,13 +87,14 @@ export function makeShader(
     floatTextureSetOutputSnippet = getFloatTextureSetRSnippet(glsl);
   }
 
-  if (usesPackedTextures) {
+  if (program.packedInputs) {
     shaderPrefix += SHADER_PACKED_PREFIX;
   }
 
   const source = [
     shaderPrefix, floatTextureSampleSnippet, floatTextureSetOutputSnippet,
-    inputPrefixSnippet, outputSamplingSnippet, inputSamplingSnippet, userCode
+    inputPrefixSnippet, outputSamplingSnippet, inputSamplingSnippet,
+    program.userCode
   ].join('\n');
   return source;
 }
