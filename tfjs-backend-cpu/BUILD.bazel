@@ -83,7 +83,6 @@ copy_to_dist(
         ":tf-backend-cpu.fesm",
         ":tf-backend-cpu.fesm.min",
         ":tf-backend-cpu.min",
-        ":tf-backend-cpu.node",
     ],
 )
 

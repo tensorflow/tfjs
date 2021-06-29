@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "Hardware-accelerated JavaScript library for machine intelligence",
   "private": false,
-  "main": "dist/tf-core.node.js",
+  "main": "dist/index.js",
   "jsdelivr": "dist/tf-core.min.js",
   "unpkg": "dist/tf-core.min.js",
   "types": "dist/index.d.ts",

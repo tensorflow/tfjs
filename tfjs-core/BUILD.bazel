@@ -83,7 +83,6 @@ copy_to_dist(
         ":tf-core.fesm",
         ":tf-core.fesm.min",
         ":tf-core.min",
-        ":tf-core.node",
     ],
 )
 
