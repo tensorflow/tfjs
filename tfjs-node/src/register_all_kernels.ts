@@ -74,7 +74,6 @@ import {expandDimsConfig} from './kernels/ExpandDims';
 import {expm1Config} from './kernels/Expm1';
 import {FFTConfig} from './kernels/FFT';
 import {fillConfig} from './kernels/Fill';
-import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
@@ -229,7 +228,6 @@ const kernelConfigs: KernelConfig[] = [
   expandDimsConfig,
   expm1Config,
   fillConfig,
-  flipLeftRightConfig,
   floorConfig,
   floorDivConfig,
   fusedBatchNormConfig,
