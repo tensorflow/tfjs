@@ -56,6 +56,11 @@ function topk_<T extends Tensor>(
     throw new Error('topk() expects the input to be of rank 1 or higher');
   }
   const lastDim = $x.shape[$x.shape.length - 1];
+
+  if (k < 0) {
+    throw new Error(`'k' passed to topk() must be >= 0 but got ${k}`);
+  }
+
   if (k > lastDim) {
     throw new Error(
         `'k' passed to topk() must be <= the last dimension (${lastDim}) ` +

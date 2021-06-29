@@ -18,11 +18,11 @@
     "copyunion": "\\cp -rf ../../tfjs/dist node_modules/@tensorflow/tfjs"
   },
   "dependencies": {
-    "@react-native-community/async-storage": "^1.6.1",
+    "@react-native-async-storage/async-storage": "^1.13.0",
     "@tensorflow-models/blazeface": "^0.0.2",
     "@tensorflow-models/mobilenet": "^2.0.4",
     "@tensorflow-models/posenet": "^2.2.1",
-    "@tensorflow/tfjs": "3.1.0",
+    "@tensorflow/tfjs": "3.7.0",
     "@tensorflow/tfjs-react-native": "0.5.0",
     "expo-camera": "^7.0.0",
     "expo-gl": "^7.0.0",
