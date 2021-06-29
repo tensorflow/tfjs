@@ -41,10 +41,21 @@ copy_to_dist = rule(
         ),
         "root": attr.string(
             default = "",
-            doc = "Common root path to remove when copying. Relative to the build file's directory",
+            doc = "Common root path to remove when symlinking. Relative to the build file's directory",
         ),
         "srcs": attr.label_list(
-            doc = "Files to copy",
+            doc = "Files to create symlinks of",
         ),
     },
+    doc = """Creates symlinks in 'dest_dir' for each file in 'srcs'
+
+    Preserves relative paths between linked files. A common root path of the
+    input files can be removed via the 'root' arg.
+
+    This rule is used to 'copy' the results of compiling a tfjs package's
+    sources located in 'src' to the output directory 'dist' while preserving
+    the filetree's relative paths. The benifit of using this rule is that Bazel
+    is aware of the copied files and can use them in other rules like 'pkg_npm'.
+    It is also used for copying tfjs bundles and miniprogram outputs.
+    """
 )
