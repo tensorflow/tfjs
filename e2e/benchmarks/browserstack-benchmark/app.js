@@ -22,6 +22,7 @@ const path = require('path');
 const {execFile} = require('child_process');
 const {ArgumentParser} = require('argparse');
 const {version} = require('./package.json');
+const {resolve} = require('path')
 
 const port = process.env.PORT || 8001;
 let io;
@@ -220,7 +221,6 @@ function setupHelpMessage() {
 /*Runs a benchmark with a preconfigured file */
 function runBenchmarkFromFile(file, runBenchmark = benchmark) {
   console.log("Running a preconfigured benchmark...");
-  console.log(file);
   runBenchmark(file);
 }
 
@@ -230,9 +230,16 @@ if (require.main === module) {
   checkBrowserStackAccount();
   runServer();
   if (cliArgs.benchmarks) {
-    const file = cliArgs.benchmarks;
-    const config = require(file);
-    runBenchmarkFromFile(config);
+    const filePath = resolve(cliArgs.benchmarks);
+    if (fs.existsSync(filePath)) {
+      console.log("Found file at " + filePath);
+      const config = require(filePath);
+      runBenchmarkFromFile(config);
+    }
+    else {
+      throw new Error('File could not be found at ' + filePath +
+      '. Please provide a valid path.');
+    }
   }
 }
 
