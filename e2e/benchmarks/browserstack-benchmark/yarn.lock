@@ -6,6 +6,10 @@
   version "0.0.0"
   uid ""
 
+"@tensorflow/tfjs-backend-wasm@link:../../../tfjs-backend-wasm":
+  version "0.0.0"
+  uid ""
+
 "@tensorflow/tfjs-backend-webgl@link:../../../tfjs-backend-webgl":
   version "0.0.0"
   uid ""
@@ -38,6 +42,11 @@
   version "0.1.30"
   resolved "https://registry.yarnpkg.com/@types/clone/-/clone-0.1.30.tgz#e7365648c1b42136a59c7d5040637b3b5c83b614"
   integrity sha1-5zZWSMG0ITalnH1QQGN7O1yDthQ=
+
+"@types/emscripten@~0.0.34":
+  version "0.0.34"
+  resolved "https://registry.yarnpkg.com/@types/emscripten/-/emscripten-0.0.34.tgz#12b4a344274fb102ff2f6c877b37587bc3e46008"
+  integrity sha512-QSb9ojDincskc+uKMI0KXp8e1NALFINCrMlp8VGKGcTSxeEyRTTKyjWw75NYrCZHUsVEEEpr1tYHpbtaC++/sQ==
 
 "@types/fast-json-stable-stringify@^2.0.0":
   version "2.1.0"
