@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-
+import {test_util} from '@tensorflow/tfjs-core';
 import {describeWebGPU} from '../test_util';
 
 function generateCaseInputs(totalSizeTensor: number, totalSizeFilter: number) {
@@ -54,7 +54,7 @@ describeWebGPU('im2col as separate shader', () => {
     const w = tf.tensor4d([1, 0.5, 1], [fSize, fSize, inputDepth, outputDepth]);
 
     const result = tf.conv2d(x, w, stride, pad);
-    tf.test_util.expectArraysClose(
+    test_util.expectArraysClose(
         await result.data(),
         [10, 5, 10, 50, 25, 50, -10, -5, -10, -50, -25, -50]);
   });
@@ -71,7 +71,7 @@ describeWebGPU('im2col as separate shader', () => {
     const w = tf.tensor4d([2], [fSize, fSize, inputDepth, outputDepth]);
 
     const result = tf.conv2d(x, w, stride, pad);
-    tf.test_util.expectArraysClose(await result.data(), [2, 4, 6, 8]);
+    test_util.expectArraysClose(await result.data(), [2, 4, 6, 8]);
   });
 
   it('x=[3,3,2] f=[2,2,2,1] s=1 d=1 p=valid', async () => {
@@ -86,7 +86,7 @@ describeWebGPU('im2col as separate shader', () => {
 
     const resultData = await result.data();
     expect(result.shape).toEqual([2, 2, 1]);
-    tf.test_util.expectArraysClose(
+    test_util.expectArraysClose(
         resultData, new Float32Array([25.6, 53.5, 157.0, 220.9]));
   });
 
@@ -105,7 +105,7 @@ describeWebGPU('im2col as separate shader', () => {
     const result = tf.conv2d(x, w, stride, pad, dataFormat, dilation);
     const resultData = await result.data();
     expect(result.shape).toEqual([4, 2, 1]);
-    tf.test_util.expectArraysClose(
+    test_util.expectArraysClose(
         resultData, [133, 66, 200, 102, 108, 58, 56, 58]);
   });
 
@@ -127,8 +127,7 @@ describeWebGPU('im2col as separate shader', () => {
 
     const resultData = await result.data();
     expect(result.shape).toEqual([2, 2, 1]);
-    tf.test_util.expectArraysClose(
-        resultData, new Float32Array([20, 26, 13, 12]));
+    test_util.expectArraysClose(resultData, new Float32Array([20, 26, 13, 12]));
   });
 
   it('x=[2,2,1] f=[2,2,1,1] s=1 d=1 p=0', async () => {
@@ -146,7 +145,7 @@ describeWebGPU('im2col as separate shader', () => {
         tf.tensor4d([3, 1, 5, 0], [fSize, fSize, inputDepth, outputDepth]);
 
     const result = tf.conv2d(x, w, stride, pad, dataFormat, dilation);
-    tf.test_util.expectArraysClose(await result.data(), [20]);
+    test_util.expectArraysClose(await result.data(), [20]);
   });
 
   it('x=[1,3,6,1] f=[2,2,1,1] s=[1,2] d=1 p=valid', async () => {
@@ -163,7 +162,85 @@ describeWebGPU('im2col as separate shader', () => {
         tf.tensor4d(inputs.filter, [fSize, fSize, inputDepth, outputDepth]);
 
     const result = tf.conv2d(x, w, stride, pad);
-    tf.test_util.expectArraysClose(
+    test_util.expectArraysClose(
         await result.data(), [58.0, 78.0, 98.0, 118.0, 138.0, 158.0]);
   });
+});
+
+describeWebGPU('conv2d vec4', () => {
+  it('conv2d x=[1,8,8,3] f=[3,3,3,64] s=[2,2] d=1 p=valid Conv2DMMVec4Program remainder != 0',
+     async () => {
+       const inputDepth = 3;
+       const xSize = 8;
+       const inputShape: [number, number, number, number] =
+           [1, xSize, xSize, inputDepth];
+       const outputDepth = 64;
+       const fSize = 3;
+       const pad = 'valid';
+       const stride: [number, number] = [2, 2];
+
+       const inputData = [];
+       for (let i = 0; i < xSize * xSize * inputDepth; i++) {
+         inputData.push(i % 5);
+       }
+
+       const wData = [];
+       for (let i = 0; i < fSize * fSize * inputDepth * outputDepth; i++) {
+         wData.push(i % 5);
+       }
+
+       const x = tf.tensor4d(inputData, inputShape);
+       const w = tf.tensor4d(wData, [fSize, fSize, inputDepth, outputDepth]);
+
+       const result = tf.conv2d(x, w, stride, pad);
+       expect(result.shape).toEqual([1, 3, 3, 64]);
+       test_util.expectArraysClose(
+           await result.data(), new Float32Array([
+             104, 125, 126, 102, 53,  104, 125, 126, 102, 53,  104, 125, 126,
+             102, 53,  104, 125, 126, 102, 53,  104, 125, 126, 102, 53,  104,
+             125, 126, 102, 53,  104, 125, 126, 102, 53,  104, 125, 126, 102,
+             53,  104, 125, 126, 102, 53,  104, 125, 126, 102, 53,  104, 125,
+             126, 102, 53,  104, 125, 126, 102, 53,  104, 125, 126, 102, 133,
+             126, 104, 57,  110, 133, 126, 104, 57,  110, 133, 126, 104, 57,
+             110, 133, 126, 104, 57,  110, 133, 126, 104, 57,  110, 133, 126,
+             104, 57,  110, 133, 126, 104, 57,  110, 133, 126, 104, 57,  110,
+             133, 126, 104, 57,  110, 133, 126, 104, 57,  110, 133, 126, 104,
+             57,  110, 133, 126, 104, 57,  110, 133, 126, 104, 57,  137, 102,
+             57,  112, 142, 137, 102, 57,  112, 142, 137, 102, 57,  112, 142,
+             137, 102, 57,  112, 142, 137, 102, 57,  112, 142, 137, 102, 57,
+             112, 142, 137, 102, 57,  112, 142, 137, 102, 57,  112, 142, 137,
+             102, 57,  112, 142, 137, 102, 57,  112, 142, 137, 102, 57,  112,
+             142, 137, 102, 57,  112, 142, 137, 102, 57,  112, 116, 53,  110,
+             142, 149, 116, 53,  110, 142, 149, 116, 53,  110, 142, 149, 116,
+             53,  110, 142, 149, 116, 53,  110, 142, 149, 116, 53,  110, 142,
+             149, 116, 53,  110, 142, 149, 116, 53,  110, 142, 149, 116, 53,
+             110, 142, 149, 116, 53,  110, 142, 149, 116, 53,  110, 142, 149,
+             116, 53,  110, 142, 149, 116, 53,  110, 142, 50,  104, 133, 137,
+             116, 50,  104, 133, 137, 116, 50,  104, 133, 137, 116, 50,  104,
+             133, 137, 116, 50,  104, 133, 137, 116, 50,  104, 133, 137, 116,
+             50,  104, 133, 137, 116, 50,  104, 133, 137, 116, 50,  104, 133,
+             137, 116, 50,  104, 133, 137, 116, 50,  104, 133, 137, 116, 50,
+             104, 133, 137, 116, 50,  104, 133, 137, 104, 125, 126, 102, 53,
+             104, 125, 126, 102, 53,  104, 125, 126, 102, 53,  104, 125, 126,
+             102, 53,  104, 125, 126, 102, 53,  104, 125, 126, 102, 53,  104,
+             125, 126, 102, 53,  104, 125, 126, 102, 53,  104, 125, 126, 102,
+             53,  104, 125, 126, 102, 53,  104, 125, 126, 102, 53,  104, 125,
+             126, 102, 53,  104, 125, 126, 102, 133, 126, 104, 57,  110, 133,
+             126, 104, 57,  110, 133, 126, 104, 57,  110, 133, 126, 104, 57,
+             110, 133, 126, 104, 57,  110, 133, 126, 104, 57,  110, 133, 126,
+             104, 57,  110, 133, 126, 104, 57,  110, 133, 126, 104, 57,  110,
+             133, 126, 104, 57,  110, 133, 126, 104, 57,  110, 133, 126, 104,
+             57,  110, 133, 126, 104, 57,  137, 102, 57,  112, 142, 137, 102,
+             57,  112, 142, 137, 102, 57,  112, 142, 137, 102, 57,  112, 142,
+             137, 102, 57,  112, 142, 137, 102, 57,  112, 142, 137, 102, 57,
+             112, 142, 137, 102, 57,  112, 142, 137, 102, 57,  112, 142, 137,
+             102, 57,  112, 142, 137, 102, 57,  112, 142, 137, 102, 57,  112,
+             142, 137, 102, 57,  112, 116, 53,  110, 142, 149, 116, 53,  110,
+             142, 149, 116, 53,  110, 142, 149, 116, 53,  110, 142, 149, 116,
+             53,  110, 142, 149, 116, 53,  110, 142, 149, 116, 53,  110, 142,
+             149, 116, 53,  110, 142, 149, 116, 53,  110, 142, 149, 116, 53,
+             110, 142, 149, 116, 53,  110, 142, 149, 116, 53,  110, 142, 149,
+             116, 53,  110, 142
+           ]));
+     });
 });
