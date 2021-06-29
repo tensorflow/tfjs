@@ -16,10 +16,10 @@
  */
 import {getTestImageAsTensor4d} from '../../image_test_util';
 import * as tf from '../../index';
-import {BROWSER_ENVS, describeWithFlags} from '../../jasmine_util';
+import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 import {expectArraysClose} from '../../test_util';
 
-describeWithFlags('flipLeftRight', BROWSER_ENVS, () => {
+describeWithFlags('flipLeftRight', ALL_ENVS, () => {
   it('should flip', async () => {
     const flippedPixels =
         tf.image.flipLeftRight(getTestImageAsTensor4d()).toInt();
