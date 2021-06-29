@@ -52,10 +52,10 @@ export function cumsum(
 
   for (let i = 0; i <= Math.ceil(Math.log2(size)) - 1; i++) {
     const program = new CumSumProgram(permutedX.shape, false, reverse);
-    const customSetup = program.getCustomSetupFunc(i);
+    const customValue = [[i]];
     const prevResult = result;
     result =
-        backend.runWebGLProgram(program, [result], result.dtype, customSetup);
+        backend.runWebGLProgram(program, [result], result.dtype, customValue);
     backend.disposeIntermediateTensorInfo(prevResult);
   }
   // For exclusive cumsum, shift the end result in the direction of sum
@@ -63,7 +63,7 @@ export function cumsum(
   if (exclusive) {
     const program = new CumSumProgram(permutedX.shape, exclusive, reverse);
     const prevResult = result;
-    result = backend.runWebGLProgram(program, [result], result.dtype);
+    result = backend.runWebGLProgram(program, [result], result.dtype, [[0]]);
     backend.disposeIntermediateTensorInfo(prevResult);
   }
 

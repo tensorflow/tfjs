@@ -40,6 +40,7 @@ interface ProgramParams {
   userCode: string;
   enableShapeUniforms?: boolean;
   packedInputs?: boolean;
+  customUniforms?: Array<{name: string; type: string;}>;
 }
 
 export function makeShader(
@@ -102,6 +103,12 @@ export function makeShader(
         break;
     }
     prefixSnippets.push(`uniform ivec2 outTexShape;`);
+  }
+
+  if (program.customUniforms) {
+    program.customUniforms.forEach((d) => {
+      prefixSnippets.push(`uniform ${d.type} ${d.name};`);
+    });
   }
   const inputPrefixSnippet = prefixSnippets.join('\n');
 

@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
 import {getChannels} from './packing_util';
 import {getCoordsDataType} from './shader_compiler';
@@ -27,14 +26,12 @@ export class SlicePackedProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
   rank: number;
-
-  // Caching uniform location for speed.
-  startLoc: WebGLUniformLocation;
+  customUniforms: Array<{name: string; type: string;}>;
 
   constructor(destSize: number[]) {
     this.outputShape = destSize;
     this.rank = destSize.length;
-
+    this.customUniforms = [{name: `start[${this.rank}]`, type: 'int'}];
     const dtype = getCoordsDataType(this.rank);
     const coords = getChannels('coords', this.rank);
     const sourceLoc = getChannels('sourceLoc', this.rank);
@@ -69,7 +66,6 @@ export class SlicePackedProgram implements GPGPUProgram {
         destSize.map((_, i) => `${sourceLoc[i]} = ${coords[i]} + start[${i}];`)
             .join('\n');
     this.userCode = `
-      uniform int start[${this.rank}];
       void main() {
         ${dtype} coords = getOutputCoords();
         ${dtype} sourceLoc;
@@ -80,24 +76,5 @@ export class SlicePackedProgram implements GPGPUProgram {
         setOutput(result);
       }
     `;
-  }
-
-  getCustomSetupFunc(start: number[]) {
-    if (start.length !== this.rank) {
-      throw Error(
-          `The rank (${this.rank}) of the program must match the ` +
-          `length of start (${start.length})`);
-    }
-    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
-      if (this.startLoc == null) {
-        this.startLoc = gpgpu.getUniformLocationNoThrow(webGLProgram, 'start');
-        if (this.startLoc == null) {
-          // This means the compiler has optimized and realized it doesn't need
-          // the uniform.
-          return;
-        }
-      }
-      gpgpu.gl.uniform1iv(this.startLoc, start);
-    };
   }
 }

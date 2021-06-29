@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class ClipPackedProgram implements GPGPUProgram {
@@ -24,17 +23,12 @@ export class ClipPackedProgram implements GPGPUProgram {
   packedOutput = true;
   userCode: string;
   outputShape: number[];
-
-  // Caching uniform locations for speed.
-  minLoc: WebGLUniformLocation;
-  maxLoc: WebGLUniformLocation;
+  customUniforms =
+      [{name: 'minVal', type: 'float'}, {name: 'maxVal', type: 'float'}];
 
   constructor(aShape: number[]) {
     this.outputShape = aShape;
     this.userCode = `
-      uniform float minVal;
-      uniform float maxVal;
-
       void main() {
         vec4 value = getAAtOutCoords();
 
@@ -46,16 +40,5 @@ export class ClipPackedProgram implements GPGPUProgram {
         setOutput(clamp(value, vec4(minVal), vec4(maxVal)));
       }
     `;
-  }
-
-  getCustomSetupFunc(min: number, max: number) {
-    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
-      if (this.minLoc == null) {
-        this.minLoc = gpgpu.getUniformLocationNoThrow(webGLProgram, 'minVal');
-        this.maxLoc = gpgpu.getUniformLocationNoThrow(webGLProgram, 'maxVal');
-      }
-      gpgpu.gl.uniform1f(this.minLoc, min);
-      gpgpu.gl.uniform1f(this.maxLoc, max);
-    };
   }
 }
