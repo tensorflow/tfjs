@@ -45,6 +45,7 @@
     "@tensorflow/tfjs-core": "link:../tfjs-core"
   },
   "dependencies": {
+    "@bazel/typescript": "^3.6.0",
     "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
     "@types/emscripten": "~0.0.34"
   },
