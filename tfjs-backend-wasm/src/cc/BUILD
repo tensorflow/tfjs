@@ -263,6 +263,7 @@ tfjs_cc_library(
         ":Conv2D",
         ":Conv2DBackpropInput",
         ":Cos",
+        ":Cosh",
         ":CropAndResize",
         ":Cumsum",
         ":DepthToSpace",
@@ -1112,6 +1113,15 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":sin_cos_workaround",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Cosh",
+    srcs = ["kernels/Cosh.cc"],
+    deps = [
+        ":backend",
         ":unary",
     ],
 )
