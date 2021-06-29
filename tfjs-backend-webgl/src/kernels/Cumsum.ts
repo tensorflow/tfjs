@@ -52,10 +52,10 @@ export function cumsum(
 
   for (let i = 0; i <= Math.ceil(Math.log2(size)) - 1; i++) {
     const program = new CumSumProgram(permutedX.shape, false, reverse);
-    const customSetup = program.getCustomSetupFunc(i);
+    const customValues = [[i]];
     const prevResult = result;
     result =
-        backend.runWebGLProgram(program, [result], result.dtype, customSetup);
+        backend.runWebGLProgram(program, [result], result.dtype, customValues);
     backend.disposeIntermediateTensorInfo(prevResult);
   }
   // For exclusive cumsum, shift the end result in the direction of sum

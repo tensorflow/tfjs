@@ -15,23 +15,18 @@
  * =============================================================================
  */
 
-import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class MultinomialProgram implements GPGPUProgram {
   variableNames = ['probs'];
   outputShape: number[];
   userCode: string;
-
-  // Caching uniform location for speed.
-  seedLoc: WebGLUniformLocation;
+  customUniforms = [{name: 'seed', type: 'float'}];
 
   constructor(batchSize: number, numOutcomes: number, numSamples: number) {
     this.outputShape = [batchSize, numSamples];
 
     this.userCode = `
-      uniform float seed;
-
       void main() {
         ivec2 coords = getOutputCoords();
         int batch = coords[0];
@@ -52,14 +47,5 @@ export class MultinomialProgram implements GPGPUProgram {
         setOutput(float(${numOutcomes - 1}));
       }
     `;
-  }
-
-  getCustomSetupFunc(seed: number) {
-    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
-      if (this.seedLoc == null) {
-        this.seedLoc = gpgpu.getUniformLocation(webGLProgram, 'seed');
-      }
-      gpgpu.gl.uniform1f(this.seedLoc, seed);
-    };
   }
 }

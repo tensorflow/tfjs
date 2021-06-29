@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
 import {getCoordsDataType} from './shader_compiler';
 
@@ -24,16 +23,14 @@ export class SliceProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
   rank: number;
-
-  // Caching uniform location for speed.
-  startLoc: WebGLUniformLocation;
+  customUniforms: Array<{name: string; type: string;}>;
 
   constructor(destSize: number[]) {
     this.outputShape = destSize;
     this.rank = destSize.length;
 
     const dtype = getCoordsDataType(this.rank);
-    const uniformPart = `uniform int start[${this.rank}];`;
+    this.customUniforms = [{name: `start[${this.rank}]`, type: 'int'}];
     const sourceCoords = getCoords(this.rank);
 
     let body: string;
@@ -46,31 +43,11 @@ export class SliceProgram implements GPGPUProgram {
         ${coordSum.join('\n')}
       `;
     this.userCode = `
-      ${uniformPart}
       void main() {
         ${body}
         setOutput(getSource(${sourceCoords}));
       }
     `;
-  }
-
-  getCustomSetupFunc(start: number[]) {
-    if (start.length !== this.rank) {
-      throw Error(
-          `The rank (${this.rank}) of the program must match the ` +
-          `length of start (${start.length})`);
-    }
-    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
-      if (this.startLoc == null) {
-        this.startLoc = gpgpu.getUniformLocationNoThrow(webGLProgram, 'start');
-        if (this.startLoc == null) {
-          // This means the compiler has optimized and realized it doesn't need
-          // the uniform.
-          return;
-        }
-      }
-      gpgpu.gl.uniform1iv(this.startLoc, start);
-    };
   }
 }
 
