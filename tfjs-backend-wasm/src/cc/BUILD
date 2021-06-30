@@ -794,6 +794,16 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "Mod",
+    srcs = ["kernels/Mod.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "Multiply",
     srcs = ["kernels/Multiply.cc"],
     deps = [
