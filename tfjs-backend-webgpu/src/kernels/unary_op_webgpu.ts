@@ -66,16 +66,15 @@ export class UnaryOpProgram implements WebGPUProgram {
 
   getUserCodeWgsl(): string {
     return `
-      fn unaryOperation(a : f32) -> f32{
+      fn unaryOperation(a : f32) -> f32 {
         ${getUnaryOpString(this.op, false, true)}
       }
       ${getWorkGroupSizeString(this.workGroupSize)}
-      fn main([[builtin(local_invocation_id)]] localId : vec3<u32>,
-              [[builtin(global_invocation_id)]] globalId  : vec3<u32>) {
-        let index : u32 = u32(globalId.x);
+      fn main([[builtin(global_invocation_id)]] globalId  : vec3<u32>) {
+        let index = globalId.x;
         if (index < uniforms.size)
         {
-          let a : f32 = getAAtOutCoordsByGlobalId(globalId);
+          let a = getAAtOutCoordsByGlobalId(globalId);
           setOutputFlat(index, unaryOperation(a));
         }
       }

@@ -533,13 +533,19 @@ export class WebGPUBackend extends KernelBackend {
     arrays.forEach(array => {
       const arrayData = array.data;
 
-      if (array.type !== 'int32' && array.type !== 'float32') {
+      if (array.type !== 'int32' && array.type !== 'float32' &&
+          array.type !== 'uint32') {
         throw new Error(`${array.type} not supported!`);
       }
 
       if (array.type === 'int32') {
         arrayData.forEach(d => {
           uniformDataView.setInt32(dataViewIndex * BYTES_PER_ELEMENT, d, true);
+          dataViewIndex++;
+        });
+      } else if (array.type === 'uint32') {
+        arrayData.forEach(d => {
+          uniformDataView.setUint32(dataViewIndex * BYTES_PER_ELEMENT, d, true);
           dataViewIndex++;
         });
       } else {
@@ -591,7 +597,7 @@ export class WebGPUBackend extends KernelBackend {
       padding = Math.ceil(currentOffset / baseAlignment) * baseAlignment -
           currentOffset;
       for (let p = 0; p < padding; ++p) {
-        dimUniformsData.push({type: 'int32', data: [0]});
+        dimUniformsData.push({type: 'uint32', data: [0]});
         dataViewIndex++;
       }
       dimUniformsData.push({type: d.type, data: d.data});
@@ -681,12 +687,12 @@ export class WebGPUBackend extends KernelBackend {
         [{type: 'float32', data: [NaN]}];
     const bufferShapes = inputs.concat(output).map(d => d.shape);
     bufferShapes.map(d => {
-      uniformsWithType.push({type: 'int32', data: d});
+      uniformsWithType.push({type: 'uint32', data: d});
     });
     const strides = util.computeStrides(output.shape);
-    uniformsWithType.push({type: 'int32', data: strides});
+    uniformsWithType.push({type: 'uint32', data: strides});
     if (program.size != null) {
-      uniformsWithType.push({type: 'int32', data: [program.size]});
+      uniformsWithType.push({type: 'uint32', data: [program.size]});
     }
     if (programUniforms) {
       uniformsWithType = [...uniformsWithType, ...programUniforms];
