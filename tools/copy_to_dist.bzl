@@ -57,5 +57,5 @@ copy_to_dist = rule(
     the filetree's relative paths. The benifit of using this rule is that Bazel
     is aware of the copied files and can use them in other rules like 'pkg_npm'.
     It is also used for copying tfjs bundles and miniprogram outputs.
-    """
+    """,
 )
