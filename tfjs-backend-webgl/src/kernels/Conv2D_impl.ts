@@ -71,10 +71,17 @@ export function conv2dByMatMul({
       (outerShapeX === 1 || outerShapeFilter === 1) &&
       sharedMatMulDim > MATMUL_SHARED_DIM_THRESHOLD;
   const reshapeWillBeExpensive = xShape[2] % 2 !== 0 && !!xTexData.isPacked;
+  // The algorithm in the else condition assume the width,
+  // height and inChannels are the same for xTexData.shape and xShape. It's
+  // possible the two shapes are different, e.g. xTexData.shape may be
+  // from a reshaped x, in which case, we need to use the algorithm in the
+  // if condition.
+  const texDataShapeIsDifferent =
+      !util.arraysEqual(xTexData.shape.slice(-3), xShape.slice(-3));
 
   if (batchMatMulWillBeUnpacked || !env().getBool('WEBGL_LAZILY_UNPACK') ||
       !env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ||
-      !reshapeWillBeExpensive) {
+      !reshapeWillBeExpensive || texDataShapeIsDifferent) {
     const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] :
                                          xShape[0] * xShape[2] * xShape[3];
     const xReshaped = reshape({
@@ -106,17 +113,20 @@ export function conv2dByMatMul({
     intermediates.push(filterReshaped);
     intermediates.push(result);
   } else {
-    // Following optimization is specific to packed |x| with odd row count
-    // (For example, in channelLast mode, 'row count' refers to x.shape[2]):
-    // we avoid expensive packed 2x2 reshape by padding row count to next,
+    const colIsOdd = xShape[2] % 2 !== 0;
+
+    // Following optimization is specific to packed |x| with odd col count
+    // (For example, in channelLast mode, 'col count' refers to x.shape[2]):
+    // we avoid expensive packed 2x2 reshape by padding col count to next,
     // even number. When x.shape[2] is odd, the result of packed batchMatMul is
     // the same (has the same texture layout and and values in the texture) as
-    // it is for even x.shape[2] + 1. We make the odd-rows tensor to look like
-    // even-rows tensor before the operation and, after the batchMatMul,
-    // fix the even-rows result to have odd number of rows.
+    // it is for even x.shape[2] + 1. We make the odd-cols tensor to look like
+    // even-cols tensor before the operation and, after the batchMatMul,
+    // fix the even-cols result to have odd number of cols.
+    const pad = colIsOdd ? 1 : 0;
     const targetShape = isChannelsLast ?
-        xShape[0] * xShape[1] * (xShape[2] + 1) :
-        xShape[0] * xShape[2] * (xShape[3] + 1);
+        xShape[0] * xShape[1] * (xShape[2] as number + pad) :
+        xShape[0] * xShape[2] * (xShape[3] as number + pad);
     const xReshaped: TensorInfo = {
       dataId: x.dataId,
       shape: [1, targetShape, convInfo.inChannels],
@@ -132,7 +142,9 @@ export function conv2dByMatMul({
     // xTexData.shape is restored.
     const originalXTexDataShape = xTexData.shape;
     xTexData.shape = xTexData.shape.slice();
-    xTexData.shape[xTexData.shape.length - 2]++;
+    if (pad === 1) {
+      xTexData.shape[xTexData.shape.length - 2]++;
+    }
     util.assert(
         webgl_util.isReshapeFree(xTexData.shape, xReshaped.shape),
         () => `packed reshape ${xTexData.shape} to ${
