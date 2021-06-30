@@ -125,8 +125,8 @@ export function conv2dByMatMul({
     // fix the even-cols result to have odd number of cols.
     const pad = colIsOdd ? 1 : 0;
     const targetShape = isChannelsLast ?
-        xShape[0] * xShape[1] * (xShape[2] as number + pad) :
-        xShape[0] * xShape[2] * (xShape[3] as number + pad);
+        xShape[0] * xShape[1] * (xShape[2] + pad) :
+        xShape[0] * xShape[2] * (xShape[3] + pad);
     const xReshaped: TensorInfo = {
       dataId: x.dataId,
       shape: [1, targetShape, convInfo.inChannels],
