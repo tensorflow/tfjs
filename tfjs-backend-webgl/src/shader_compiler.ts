@@ -36,11 +36,14 @@ export type InputInfo = {
   shapeInfo: ShapeInfo
 };
 
+export type UniformType =
+    'float'|'vec2'|'vec3'|'vec4'|'int'|'ivec2'|'ivec3'|'ivec4';
+
 interface ProgramParams {
   userCode: string;
   enableShapeUniforms?: boolean;
   packedInputs?: boolean;
-  customUniforms?: Array<{name: string; type: string;}>;
+  customUniforms?: Array<{name: string; type: UniformType;}>;
 }
 
 export function makeShader(

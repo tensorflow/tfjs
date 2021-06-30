@@ -16,12 +16,13 @@
  */
 
 import {GPGPUProgram} from './gpgpu_math';
+import {UniformType} from './shader_compiler';
 
 export class FillProgram implements GPGPUProgram {
   variableNames: string[];
   outputShape: number[] = [];
   userCode: string;
-  customUniforms = [{name: 'value', type: 'float'}];
+  customUniforms = [{name: 'value', type: 'float' as UniformType}];
 
   constructor(shape: number[], value: number) {
     this.variableNames = ['x'];

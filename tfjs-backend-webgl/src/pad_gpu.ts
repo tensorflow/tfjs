@@ -16,13 +16,13 @@
  */
 
 import {GPGPUProgram} from './gpgpu_math';
-import {getCoordsDataType} from './shader_compiler';
+import {getCoordsDataType, UniformType} from './shader_compiler';
 
 export class PadProgram implements GPGPUProgram {
   variableNames = ['x'];
   outputShape: number[];
   userCode: string;
-  customUniforms = [{name: 'value', type: 'float'}];
+  customUniforms = [{name: 'value', type: 'float' as UniformType}];
 
   constructor(
       xShape: number[], paddings: Array<[number, number]>,

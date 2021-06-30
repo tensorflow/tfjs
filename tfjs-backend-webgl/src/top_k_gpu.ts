@@ -15,6 +15,7 @@
  * =============================================================================
  */
 import {GPGPUProgram} from './gpgpu_math';
+import {UniformType} from './shader_compiler';
 
 // Based on Algorithm 2 of Bitonic Top K, ref:
 // https://anilshanbhag.in/static/papers/gputopk_sigmod18.pdf
@@ -34,9 +35,11 @@ export class SwapProgram implements GPGPUProgram {
   // means no indices input containing the top K is present yet.
   // |inc| Swaps pairs of indices (0, inc), (1, inc + 1), (2, inc + 2) ...
   customUniforms = [
-    {name: 'n', type: 'int'}, {name: 'firstPass', type: 'int'},
-    {name: 'negativeInf', type: 'float'}, {name: 'dir', type: 'int'},
-    {name: 'inc', type: 'int'}
+    {name: 'n', type: 'int' as UniformType},
+    {name: 'firstPass', type: 'int' as UniformType},
+    {name: 'negativeInf', type: 'float' as UniformType},
+    {name: 'dir', type: 'int' as UniformType},
+    {name: 'inc', type: 'int' as UniformType}
   ];
 
   /**
@@ -99,8 +102,9 @@ export class MergeProgram implements GPGPUProgram {
   // means no indices input containing the top K is present yet.
   // |k| Top k elements desired
   customUniforms = [
-    {name: 'n', type: 'int'}, {name: 'firstPass', type: 'int'},
-    {name: 'k', type: 'int'}
+    {name: 'n', type: 'int' as UniformType},
+    {name: 'firstPass', type: 'int' as UniformType},
+    {name: 'k', type: 'int' as UniformType}
   ];
 
   /**

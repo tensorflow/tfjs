@@ -16,14 +16,14 @@
  */
 
 import {GPGPUProgram} from './gpgpu_math';
-import {getCoordsDataType} from './shader_compiler';
+import {getCoordsDataType, UniformType} from './shader_compiler';
 
 export class SliceProgram implements GPGPUProgram {
   variableNames = ['source'];
   outputShape: number[];
   userCode: string;
   rank: number;
-  customUniforms: Array<{name: string; type: string;}>;
+  customUniforms: Array<{name: string; type: UniformType;}>;
 
   constructor(destSize: number[]) {
     this.outputShape = destSize;
