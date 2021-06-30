@@ -261,6 +261,14 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'mod ',
+    excludes: [
+      'gradient',                        // Gradient is missing.
+      'upcasts when dtypes dont match',  // Uses the 'complex' dtype.
+      'complex',                         // Complex numbers not supported yet
+    ]
+  },
+  {
     include: 'log ',
   },
   {
