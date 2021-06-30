@@ -38,7 +38,7 @@ def ts_library(**kwargs):
 
 def esbuild(**kwargs):
     # Make sure esbuild always resolve the module (.mjs) files before .js files.
-    args = kwargs.pop("args", []) + ["--resolve-extensions=.mjs,.js"];
+    args = kwargs.pop("args", []) + ["--resolve-extensions=.mjs,.js"]
 
     _esbuild(
         tool = select({
