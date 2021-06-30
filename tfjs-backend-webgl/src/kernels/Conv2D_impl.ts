@@ -133,11 +133,11 @@ export function conv2dByMatMul({
       dtype: x.dtype
     };
     // xTexData.shape gets referenced from GPGPUBinary.inShapeInfos.
-    // Decrementing row count, after batchMatMul->...->compileProgram leads to
-    // invalid row count within the reference in GPGPUBinary.inShapeInfos.
+    // Decrementing col count, after batchMatMul->...->compileProgram leads to
+    // invalid col count within the reference in GPGPUBinary.inShapeInfos.
     // Alternative fix would be to provide a copy to GPGPUBinary.inShapeInfos
     // in compileProgram method, but that would affect compilation of all
-    // programs - instead, provide a copy here, with even row count, before
+    // programs - instead, provide a copy here, with even col count, before
     // calling batchMatMul->...->compileProgram and after that, the original
     // xTexData.shape is restored.
     const originalXTexDataShape = xTexData.shape;
