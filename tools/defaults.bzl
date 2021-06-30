@@ -37,11 +37,15 @@ def ts_library(**kwargs):
     )
 
 def esbuild(**kwargs):
+    # Make sure esbuild always resolve the module (.mjs) files before .js files.
+    args = kwargs.pop("args", []) + ["--resolve-extensions=.mjs,.js"];
+
     _esbuild(
         tool = select({
             "@bazel_tools//src/conditions:darwin": "@esbuild_darwin//:bin/esbuild",
             "@bazel_tools//src/conditions:linux_x86_64": "@esbuild_linux//:bin/esbuild",
             "@bazel_tools//src/conditions:windows": "@esbuild_windows//:esbuild.exe",
         }),
+        args = args,
         **kwargs
     )

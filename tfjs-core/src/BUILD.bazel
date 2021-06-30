@@ -28,6 +28,8 @@ filegroup(
     srcs = glob(["**/*.ts"]),
 )
 
+# Compiles the majority of tfjs-core using the `@tensorflow/tfjs-core/dist`
+# module name.
 ts_library(
     name = "tfjs-core_src_lib",
     srcs = glob(
@@ -37,11 +39,13 @@ ts_library(
     module_name = "@tensorflow/tfjs-core/dist",
     deps = [
         "@npm//@types",
-        "@npm//jasmine-core",
         "@npm//seedrandom",
     ],
 )
 
+# Compiles the `index.ts` entrypoint of tfjs-core separately from the rest of
+# the sources in order to use the `@tensorflow/tfjs-core` module name instead
+# of `@tensorflow/tfjs-core/dist`,
 ts_library(
     name = "tfjs-core_lib",
     srcs = ["index.ts"],
@@ -66,9 +70,6 @@ ts_library(
 esbuild(
     name = "tfjs-core_test_bundle",
     testonly = True,
-    args = [
-        "--resolve-extensions=.mjs,.js",
-    ],
     entry_point = "setup_test.ts",
     external = [
         # webworker tests call 'require('@tensorflow/tfjs')', which
@@ -77,7 +78,6 @@ esbuild(
         "@tensorflow/tfjs",
         "worker_threads",
         "util",
-        #"*/package.json",
     ],
     sources_content = True,
     deps = [

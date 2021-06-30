@@ -36,7 +36,6 @@ tfjs_bundle(
     ],
     umd_name = "tf",
     deps = [
-        ":package_json",
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
     ],
@@ -203,7 +202,7 @@ nodejs_test(
     tags = ["ci"],
 )
 
-# This is necessary for //tfjs-core/src:tfjs-core_test_bundle to have acess to
+# This is necessary for tests to have acess to
 # the package.json so src/version_test.ts can 'require()' it.
 js_library(
     name = "package_json",
