@@ -16,13 +16,16 @@
  */
 
 import {GPGPUProgram} from './gpgpu_math';
+import {UniformType} from './shader_compiler';
 
 export class ClipProgram implements GPGPUProgram {
   variableNames = ['A'];
   userCode: string;
   outputShape: number[];
-  customUniforms =
-      [{name: 'minVal', type: 'float'}, {name: 'maxVal', type: 'float'}];
+  customUniforms = [
+    {name: 'minVal', type: 'float' as UniformType},
+    {name: 'maxVal', type: 'float' as UniformType}
+  ];
 
   constructor(aShape: number[]) {
     this.outputShape = aShape;

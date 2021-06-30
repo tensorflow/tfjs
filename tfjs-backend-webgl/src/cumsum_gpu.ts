@@ -15,13 +15,13 @@
  * =============================================================================
  */
 import {GPGPUProgram} from './gpgpu_math';
-import {getCoordsDataType} from './shader_compiler';
+import {getCoordsDataType, UniformType} from './shader_compiler';
 
 export class CumSumProgram implements GPGPUProgram {
   variableNames = ['x'];
   outputShape: number[];
   userCode: string;
-  customUniforms = [{name: 'index', type: 'float'}];
+  customUniforms = [{name: 'index', type: 'float' as UniformType}];
 
   constructor(shape: number[], exclusive: boolean, reverse: boolean) {
     this.outputShape = shape;

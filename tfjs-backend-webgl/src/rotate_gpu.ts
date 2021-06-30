@@ -16,12 +16,13 @@
  */
 
 import {GPGPUProgram} from './gpgpu_math';
+import {UniformType} from './shader_compiler';
 
 export class RotateProgram implements GPGPUProgram {
   variableNames = ['Image'];
   outputShape: number[] = [];
   userCode: string;
-  customUniforms = [{name: 'params', type: 'vec4'}];
+  customUniforms = [{name: 'params', type: 'vec4' as UniformType}];
   constructor(
       imageShape: [number, number, number, number],
       fillValue: number|[number, number, number]) {

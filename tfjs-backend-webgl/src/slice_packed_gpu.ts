@@ -17,7 +17,7 @@
 
 import {GPGPUProgram} from './gpgpu_math';
 import {getChannels} from './packing_util';
-import {getCoordsDataType} from './shader_compiler';
+import {getCoordsDataType, UniformType} from './shader_compiler';
 
 export class SlicePackedProgram implements GPGPUProgram {
   variableNames = ['source'];
@@ -26,7 +26,7 @@ export class SlicePackedProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
   rank: number;
-  customUniforms: Array<{name: string; type: string;}>;
+  customUniforms: Array<{name: string; type: UniformType;}>;
 
   constructor(destSize: number[]) {
     this.outputShape = destSize;

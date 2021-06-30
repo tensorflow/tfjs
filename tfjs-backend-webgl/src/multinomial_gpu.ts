@@ -16,12 +16,13 @@
  */
 
 import {GPGPUProgram} from './gpgpu_math';
+import {UniformType} from './shader_compiler';
 
 export class MultinomialProgram implements GPGPUProgram {
   variableNames = ['probs'];
   outputShape: number[];
   userCode: string;
-  customUniforms = [{name: 'seed', type: 'float'}];
+  customUniforms = [{name: 'seed', type: 'float' as UniformType}];
 
   constructor(batchSize: number, numOutcomes: number, numSamples: number) {
     this.outputShape = [batchSize, numSamples];
