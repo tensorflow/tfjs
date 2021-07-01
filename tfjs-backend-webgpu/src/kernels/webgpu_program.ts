@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
-import {DataType, Rank, ShapeMap, TensorInfo} from '@tensorflow/tfjs-core';
+import {DataType, env, Rank, ShapeMap, TensorInfo} from '@tensorflow/tfjs-core';
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import * as shader_preprocessor from '../shader_preprocessor';
+import * as shader_preprocessor_wgsl from '../shader_preprocessor_wgsl';
 
 export interface WebGPUProgram {
   // The unique key to distinguish different shader source code.
@@ -31,6 +32,7 @@ export interface WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[];
   uniforms?: string;
+  uniformsWgsl?: string;
   // Size of register cache in one dimension (assumes square cache).
   // Each thread writes to workPerThread * workPerThread locations in the output
   // buffer.
@@ -39,6 +41,7 @@ export interface WebGPUProgram {
   // in a thread group. Individual dimensions determines thread layout within
   // the group.
   workGroupSize?: [number, number, number];
+  useWgsl?: boolean;
   isVec4?: boolean;
   // size is used for bounds checking.
   size?: number;
@@ -70,27 +73,43 @@ export const compileProgram =
      isFromPixel = false): GPUComputePipeline => {
       const outputData = {dtype: output.dtype, shape: output.shape};
 
-      const source = shader_preprocessor.makeShader(
-          inputsData, outputData, program, isFromPixel);
-      const result = glslang.compileGLSLZeroCopy(source, 'compute', false);
-      if (result.data.length === 0) {
-        throw new Error('Shader compilation failed');
+      let source;
+      let module;
+      if (program.useWgsl) {
+        source = shader_preprocessor_wgsl.makeShader(
+            inputsData, outputData, program, isFromPixel);
+        module = device.createShaderModule({code: source});
+      } else {
+        source = shader_preprocessor.makeShader(
+            inputsData, outputData, program, isFromPixel);
+        const result = glslang.compileGLSLZeroCopy(source, 'compute', false);
+        if (result.data.length === 0) {
+          throw new Error('Shader compilation failed');
+        }
+        result.free();
+        module = device.createShaderModule({code: result.data});
       }
-
-      const module = device.createShaderModule({code: result.data});
       const pipeline = device.createComputePipeline(
           {layout: pipelineLayout, compute: {module, entryPoint: 'main'}});
 
-      result.free();
       return pipeline;
     };
 
 export function makeShaderKey<R extends Rank>(
     program: WebGPUProgram, shapes: Array<ShapeMap[R]>, types: string[],
     broadcastDimsKey = '', inputShapesEqualsOutShape = ''): string {
+  let useWgslKey = '';
+  if (program.useWgsl) {
+    useWgslKey = '_1';
+  }
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
       shapes.map(shape => shape.length).join(',') + types.join(',') +
       program.variableNames.join(',') + broadcastDimsKey +
-      inputShapesEqualsOutShape + program.shaderKey;
+      inputShapesEqualsOutShape + program.shaderKey + useWgslKey;
   return key;
+}
+
+// This is global flag, but program may ignore this flag.
+export function getUseWgsl () {
+  return !env().getBool('WEBGPU_USE_GLSL');
 }
