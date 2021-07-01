@@ -218,4 +218,4 @@ ENV.registerFlag(
 ENV.registerFlag('CPU_HANDOFF_SIZE_THRESHOLD', () => 128);
 
 /** Whether we will use shapes uniforms. */
-ENV.registerFlag('WEBGL_USE_SHAPES_UNIFORMS', () => true);
+ENV.registerFlag('WEBGL_USE_SHAPES_UNIFORMS', () => false);
