@@ -43,11 +43,7 @@ export const flipLeftRightConfig: KernelConfig = {
           const colOffset = col * numChannels;
 
           for (let channel = 0; channel < numChannels; channel++) {
-            const coords = [batch, row, col, channel];
-
-            const x = coords[2];
-
-            const coordX = Math.round(imageWidth - x);
+            const coordX = Math.round(imageWidth - col - 1);
             const outIdx = batchOffset + rowOffset + colOffset + channel;
 
             let outputValue = imageVals[outIdx];
