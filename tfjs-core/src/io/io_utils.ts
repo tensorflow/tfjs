@@ -412,7 +412,6 @@ export async function getModelArtifactsForJSON(
   return modelArtifacts;
 }
 
-
 /**
  * Populate ModelArtifactsInfo fields for a model with JSON topology.
  * @param modelArtifacts
