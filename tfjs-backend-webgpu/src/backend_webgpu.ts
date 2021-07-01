@@ -597,7 +597,7 @@ export class WebGPUBackend extends KernelBackend {
       padding = Math.ceil(currentOffset / baseAlignment) * baseAlignment -
           currentOffset;
       for (let p = 0; p < padding; ++p) {
-        dimUniformsData.push({type: 'uint32', data: [0]});
+        dimUniformsData.push({type: d.type, data: [0]});
         dataViewIndex++;
       }
       dimUniformsData.push({type: d.type, data: d.data});
@@ -686,13 +686,17 @@ export class WebGPUBackend extends KernelBackend {
     let uniformsWithType: Array<{type: string; data: number[];}> =
         [{type: 'float32', data: [NaN]}];
     const bufferShapes = inputs.concat(output).map(d => d.shape);
+    let uniformsType = 'int32';
+    if (program.useWgsl) {
+      uniformsType = 'uint32';
+    }
     bufferShapes.map(d => {
-      uniformsWithType.push({type: 'uint32', data: d});
+      uniformsWithType.push({type: uniformsType, data: d});
     });
     const strides = util.computeStrides(output.shape);
-    uniformsWithType.push({type: 'uint32', data: strides});
+    uniformsWithType.push({type: uniformsType, data: strides});
     if (program.size != null) {
-      uniformsWithType.push({type: 'uint32', data: [program.size]});
+      uniformsWithType.push({type: uniformsType, data: [program.size]});
     }
     if (programUniforms) {
       uniformsWithType = [...uniformsWithType, ...programUniforms];
