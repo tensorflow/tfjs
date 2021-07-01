@@ -36,9 +36,7 @@ process.on('unhandledRejection', e => {
 
 setTestEnvs([{name: 'cpu', backendName: 'cpu', isDataSync: true}]);
 
-//const coreTests = 'node_modules/@tensorflow/tfjs-core/dist/tests.js';
 const coreTests = 'tfjs-core/src/tests.js';
-//const cpuTests = 'src/**/*_test.ts';
 const cpuTests = 'tfjs-backend-cpu/src/**/*_test.js';
 
 const runner = new jasmineCtor();
