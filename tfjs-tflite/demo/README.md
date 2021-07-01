@@ -20,7 +20,7 @@ $ cd tfjs/tfjs-tflite
 
 Make sure `gsutil` is installed. It will be used by the script below.
 Follow the installation instructions [here][gsutil]. You can skip the
-"Setting Up Credentialsto Access Protected Data" section.
+"Setting Up Credentials to Access Protected Data" section.
 
 Build the `tfjs-tflite` package locally.
 ```sh
