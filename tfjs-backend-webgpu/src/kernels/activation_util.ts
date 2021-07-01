@@ -21,17 +21,18 @@ import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 import {getUnaryOpString, UnaryOpType} from './unary_op_util';
 
 export function mapActivationToShaderProgram(
-    activation: backend_util.Activation, packed = false): string {
+    activation: backend_util.Activation, packed = false,
+    useWgsl = false): string {
   if (activation === null) {
     return null;
   } else if (activation === 'linear') {
     return getUnaryOpString(UnaryOpType.LINEAR);
   } else if (activation === 'relu') {
-    return getUnaryOpString(UnaryOpType.RELU, packed);
+    return getUnaryOpString(UnaryOpType.RELU, packed, useWgsl);
   } else if (activation === 'elu') {
     return getUnaryOpString(UnaryOpType.ELU, packed);
   } else if (activation === 'relu6') {
-    return getUnaryOpString(UnaryOpType.RELU6);
+    return getUnaryOpString(UnaryOpType.RELU6, packed, useWgsl);
   } else if (activation === 'prelu') {
     return getBinaryOpString(BinaryOpType.PRELU, packed);
   } else if (activation === 'sigmoid') {

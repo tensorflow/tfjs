@@ -36,6 +36,21 @@ export function getLogicalCoordinatesFromFlatIndex(
       .join('');
 }
 
+export function getLogicalCoordinatesFromFlatIndexByUniform(
+    coords: string[], shape: number[], index = 'index'): string {
+  const strides = util.computeStrides(shape);
+  return strides
+      .map((_, i) => {
+        const line1 = `int ${coords[i]} = ${index} / outShapeStrides[${i}]`;
+        const line2 = i === strides.length - 1 ?
+            `int ${coords[i + 1]} = ${index} - ${coords[i]} * outShapeStrides[${
+                i}]` :
+            `index -= ${coords[i]} * outShapeStrides[${i}]`;
+        return `${line1}; ${line2};`;
+      })
+      .join('');
+}
+
 function buildVec(x: string[]): string {
   if (x.length === 1) {
     return `${x[0]}`;
