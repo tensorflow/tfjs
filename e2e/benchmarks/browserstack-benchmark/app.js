@@ -22,9 +22,12 @@ const path = require('path');
 const {execFile} = require('child_process');
 const {ArgumentParser} = require('argparse');
 const {version} = require('./package.json');
+const {resolve} = require('path')
 
 const port = process.env.PORT || 8001;
 let io;
+let parser;
+let cliArgs;
 
 function checkBrowserStackAccount() {
   if (process.env.BROWSERSTACK_USERNAME == null ||
@@ -92,6 +95,9 @@ function setupBenchmarkEnv(config) {
 /**
  * Run model benchmark on BrowserStack.
  *
+ * Each browser-device pairing is benchmarked in parallel. Results are sent to
+ * the webpage staggered as they are returned to the server.
+ *
  * The benchmark configuration object contains two objects:
  * - `browsers`: Each key-value pair represents a browser instance to be
  * benchmarked. The key is a unique string id/tabId (assigned by the webpage)
@@ -106,14 +112,37 @@ function setupBenchmarkEnv(config) {
  *  - `backend`: The backend to be benchmarked on.
  *
  *
- * @param {{browsers, benchmark}} config Benchmark configuration.
+ * @param {{browsers, benchmark}} config Benchmark configuration
+ * @param benchmarkResult Function that benchmarks one browser-device pair
  */
-function benchmark(config) {
+async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
   console.log('Preparing configuration files for the test runner.');
   setupBenchmarkEnv(config);
 
   console.log(`Start benchmarking.`);
+  const results = [];
   for (const tabId in config.browsers) {
+    results.push(runOneBenchmark(tabId));
+  }
+
+  /** Optional outfile written once all benchmarks have returned results. */
+  const fulfilled = await Promise.allSettled(results);
+  if (require.main === module && cliArgs.outfile) {
+    await write('./benchmark_results.json', fulfilled);
+  }
+  return fulfilled;
+}
+
+/**
+ * Run benchmark for singular browser-device combination.
+ *
+ * This function utilizes a promise that is fulfilled once the corresponding
+ * result is returned from BrowserStack.
+ *
+ * @param tabId Indicates browser-device pairing for benchmark
+ */
+function runBrowserStackBenchmark(tabId) {
+  return new Promise((resolve, reject) => {
     const args = ['test', '--browserstack', `--browsers=${tabId}`];
     const command = `yarn ${args.join(' ')}`;
     console.log(`Running: ${command}`);
@@ -125,14 +154,14 @@ function benchmark(config) {
         io.emit(
             'benchmarkComplete',
             {tabId, error: `Failed to run ${command}:\n${error}`});
-        return;
+        return reject(`Failed to run ${command}:\n${error}`);
       }
 
       const errorReg = /.*\<tfjs_error\>(.*)\<\/tfjs_error\>/;
       const matchedError = stdout.match(errorReg);
       if (matchedError != null) {
         io.emit('benchmarkComplete', {tabId, error: matchedError[1]});
-        return;
+        return reject(matchedError[1]);
       }
 
       const resultReg = /.*\<tfjs_benchmark\>(.*)\<\/tfjs_benchmark\>/;
@@ -141,30 +170,79 @@ function benchmark(config) {
         const benchmarkResult = JSON.parse(matchedResult[1]);
         benchmarkResult.tabId = tabId;
         io.emit('benchmarkComplete', benchmarkResult);
-        return;
+        return resolve(benchmarkResult);
       }
 
-      io.emit('benchmarkComplete', {
-        error: 'Did not find benchmark results from the logs ' +
-            'of the benchmark test (benchmark_models.js).'
-      });
+      const errorMessage = 'Did not find benchmark results from the logs ' +
+          'of the benchmark test (benchmark_models.js).';
+      io.emit('benchmarkComplete', {error: errorMessage});
+      return reject(errorMessage);
     });
-  }
+  });
+}
+
+/**
+ * Writes a passed message to a passed JSON file.
+ *
+ * @param filePath Relative filepath of target file
+ * @param msg Message to be written
+ */
+function write(filePath, msg) {
+  return new Promise((resolve, reject) => {
+    fs.writeFile(filePath, JSON.stringify(msg, null, 2), 'utf8', err => {
+      if (err) {
+        console.log(`Error: ${err}.`);
+        return reject(err);
+      } else {
+        console.log('Output written.');
+        return resolve();
+      }
+    });
+  })
 }
 
 /** Set up --help menu for file description and available optional commands */
-function setUpHelpMessage() {
-  const parser = new ArgumentParser({
+function setupHelpMessage() {
+  parser = new ArgumentParser({
     description: 'This file launches a server to connect to BrowserStack ' +
         'so that the performance of a TensorFlow model on one or more ' +
         'browsers can be benchmarked.'
   });
+  parser.add_argument(
+    '--benchmarks', {help: 'Run a preconfigured benchmark from a ' +
+    'user-specified JSON', action: 'store'});
+  parser.add_argument(
+      '--outfile', {help: 'write results to outfile', action: 'store_true'});
   parser.add_argument('-v', '--version', {action: 'version', version});
-  console.dir(parser.parse_args());
+  cliArgs = parser.parse_args();
+  console.dir(cliArgs);
 }
 
+/*Runs a benchmark with a preconfigured file */
+function runBenchmarkFromFile(file, runBenchmark = benchmark) {
+  console.log("Running a preconfigured benchmark...");
+  runBenchmark(file);
+}
+
+/*Only run this code if app.js is called from the command line */
 if (require.main === module) {
-  setUpHelpMessage();
+  setupHelpMessage();
   checkBrowserStackAccount();
   runServer();
+  if (cliArgs.benchmarks) {
+    const filePath = resolve(cliArgs.benchmarks);
+    if (fs.existsSync(filePath)) {
+      console.log("Found file at " + filePath);
+      const config = require(filePath);
+      runBenchmarkFromFile(config);
+    }
+    else {
+      throw new Error('File could not be found at ' + filePath +
+      '. Please provide a valid path.');
+    }
+  }
 }
+
+exports.runBenchmarkFromFile = runBenchmarkFromFile;
+exports.benchmark = benchmark;
+exports.write = write;

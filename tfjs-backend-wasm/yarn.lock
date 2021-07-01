@@ -844,7 +844,7 @@
   resolved "https://registry.yarnpkg.com/@bazel/bazelisk/-/bazelisk-1.7.5.tgz#dd1a52e3d23464f72de55aa3dc4777847fa85373"
   integrity sha512-JHwP9JhfZUSoj4sku471Bjw4uE773U2Agujnx0CdPkeRk25khy1l3VyjaPaHB+z1fmMnM6ED3M7tetQUsovUQg==
 
-"@bazel/buildifier@^4.0.0":
+"@bazel/buildifier@^4.0.1":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@bazel/buildifier/-/buildifier-4.0.1.tgz#52cfbad5cbb86e9183a29dde2370cd465730ea0d"
   integrity sha512-BTmtvJbeeEVrqRApI1gr5hvPgYcHLpdGJ5EXNXEWO692ztMPSj5fB/dH0xUlaW45jn6LimYx8ymqTMhj3538og==
@@ -897,20 +897,11 @@
 
 "@tensorflow/tfjs-backend-cpu@link:../tfjs-backend-cpu":
   version "0.0.0"
-  dependencies:
-    "@types/seedrandom" "2.4.27"
-    seedrandom "2.4.3"
+  uid ""
 
 "@tensorflow/tfjs-core@link:../tfjs-core":
   version "0.0.0"
-  dependencies:
-    "@types/long" "^4.0.1"
-    "@types/offscreencanvas" "~2019.3.0"
-    "@types/seedrandom" "2.4.27"
-    "@types/webgl-ext" "0.0.30"
-    long "4.0.0"
-    node-fetch "~2.6.1"
-    seedrandom "2.4.3"
+  uid ""
 
 "@types/component-emitter@^1.2.10":
   version "1.2.10"
