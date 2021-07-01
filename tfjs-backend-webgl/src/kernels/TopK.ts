@@ -82,7 +82,17 @@ export function topK(
   // Reshape into a 2d tensor [batch, lastDim] and compute topk along lastDim.
   const xSize = util.sizeFromShape(xShape);
   const batch = xSize / lastDim;
-  const x2D = reshape({inputs: {x}, attrs: {shape: [batch, lastDim]}, backend});
+  let x2D = reshape({inputs: {x}, attrs: {shape: [batch, lastDim]}, backend});
+
+  // Eagerly unpack x input since it is passed in to all the shaders which
+  // require unpacked inputs.
+  const xtexData = backend.texData.get(x2D.dataId);
+  const xIsPacked = xtexData !== null && xtexData.isPacked;
+  if (xIsPacked) {
+    const prevX2D = x2D;
+    x2D = backend.unpackTensor(prevX2D);
+    disposeIntermediateTensorInfoOrNull(backend, prevX2D);
+  }
 
   const kPow2 = roundUpToPow2(k);
   const lastDimPow2 = roundUpToPow2(lastDim);
