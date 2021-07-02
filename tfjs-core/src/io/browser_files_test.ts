@@ -141,7 +141,7 @@ describeWithFlags('browserDownloads', BROWSER_ENVS, () => {
     expect(modelJSON.modelInitializer).toEqual({});
     expect(modelJSON.trainingConfig).toEqual(trainingConfig1);
 
-    const weightsManifest = modelJSON.weightsManifest as WeightsManifestConfig;
+    const weightsManifest = modelJSON.weightsManifest;
     expect(weightsManifest.length).toEqual(1);
     expect(weightsManifest[0].paths).toEqual(['./test-model.weights.bin']);
     expect(weightsManifest[0].weights).toEqual(weightSpecs1);

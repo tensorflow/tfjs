@@ -244,8 +244,8 @@ describeWithFlags('http-save', CHROME_ENVS, () => {
           const jsonFile = body.get('model.json') as File;
           const jsonFileReader = new FileReader();
           jsonFileReader.onload = (event: Event) => {
-            // tslint:disable-next-line:no-any
             const modelJSON =
+                // tslint:disable-next-line:no-any
                 JSON.parse((event.target as any).result) as tf.io.ModelJSON;
             expect(modelJSON.modelTopology).toEqual(modelTopology1);
             expect(modelJSON.weightsManifest.length).toEqual(1);
@@ -351,8 +351,8 @@ describeWithFlags('http-save', CHROME_ENVS, () => {
           const jsonFile = body.get('model.json') as File;
           const jsonFileReader = new FileReader();
           jsonFileReader.onload = (event: Event) => {
-            // tslint:disable-next-line:no-any
             const modelJSON =
+                // tslint:disable-next-line:no-any
                 JSON.parse((event.target as any).result) as tf.io.ModelJSON;
             expect(modelJSON.format).toEqual('layers-model');
             expect(modelJSON.generatedBy).toEqual('TensorFlow.js v0.0.0');
