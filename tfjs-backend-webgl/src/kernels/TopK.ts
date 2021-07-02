@@ -88,7 +88,7 @@ export function topK(
   // Reshape into a 2d tensor [batch, lastDim] and compute topk along lastDim.
   const xSize = util.sizeFromShape(xShape);
   const batch = xSize / lastDim;
-  let x2D = reshape(
+  const x2D = reshape(
       {inputs: {x: xUnPacked}, attrs: {shape: [batch, lastDim]}, backend});
 
   if (xIsPacked) {
