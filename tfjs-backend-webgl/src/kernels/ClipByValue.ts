@@ -36,8 +36,8 @@ export function clipByValue(args: {
   } else {
     program = new ClipProgram(x.shape);
   }
-  const customSetup = program.getCustomSetupFunc(clipValueMin, clipValueMax);
-  return backend.runWebGLProgram(program, [x], x.dtype, customSetup);
+  const customValues = [[clipValueMin], [clipValueMax]];
+  return backend.runWebGLProgram(program, [x], x.dtype, customValues);
 }
 
 export const clipByValueConfig: KernelConfig = {

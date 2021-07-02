@@ -19,7 +19,7 @@ import {backend_util, env, Tensor, TypedArray, util} from '@tensorflow/tfjs-core
 
 import {GPGPUContext} from './gpgpu_context';
 import * as shader_compiler from './shader_compiler';
-import {InputInfo, ShapeInfo} from './shader_compiler';
+import {InputInfo, ShapeInfo, UniformType} from './shader_compiler';
 import {PackingScheme, TextureData, TextureUsage} from './tex_util';
 
 export interface GPGPUProgram {
@@ -41,12 +41,15 @@ export interface GPGPUProgram {
    * See `PackingScheme` for details. Defaults to `PackingScheme.SHARED_BATCH`.
    */
   outPackingScheme?: PackingScheme;
+  customUniforms?:
+      Array<{name: string; arrayIndex?: number; type: UniformType;}>;
 }
 
 export interface GPGPUBinary {
   webGLProgram: WebGLProgram;
   program: GPGPUProgram;
   uniformLocations: {[name: string]: WebGLUniformLocation};
+  customUniformLocations?: WebGLUniformLocation[];
   source: string;
   inShapeInfos: ShapeInfo[];
   outShapeInfo: ShapeInfo;
@@ -134,11 +137,20 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
         gpgpu.getUniformLocation(webGLProgram, 'outTexShape', shouldThrow);
   }
 
+  const customUniformLocations: WebGLUniformLocation[] = [];
+  if (program.customUniforms) {
+    program.customUniforms.forEach((d, i) => {
+      customUniformLocations[i] =
+          gpgpu.getUniformLocation(webGLProgram, d.name, shouldThrow);
+    });
+  }
+
   return {
     program,
     source,
     webGLProgram,
     uniformLocations,
+    customUniformLocations,
     inShapeInfos,
     outShapeInfo,
     infLoc,
@@ -186,9 +198,7 @@ function validateBinaryAndProgram(
 
 export function runProgram<T extends Tensor, K extends Tensor>(
     gpgpu: GPGPUContext, binary: GPGPUBinary, inputs: TensorData[],
-    output: TensorData,
-    customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) =>
-        void): void {
+    output: TensorData, customUniformValues?: number[][]): void {
   if (!binary.program.enableShapeUniforms) {
     validateBinaryAndProgram(binary.inShapeInfos, inputs);
     validateBinaryAndProgram([binary.outShapeInfo], [output]);
@@ -317,8 +327,30 @@ export function runProgram<T extends Tensor, K extends Tensor>(
         output.texData.texShape[1]);
   }
 
-  if (customSetup != null) {
-    customSetup(gpgpu, binary.webGLProgram);
+  if (binary.program.customUniforms && customUniformValues) {
+    binary.program.customUniforms.forEach((d, i) => {
+      const customLoc = binary.customUniformLocations[i];
+      const customValue = customUniformValues[i];
+      if (d.type === 'float') {
+        gpgpu.gl.uniform1fv(customLoc, customValue);
+      } else if (d.type === 'vec2') {
+        gpgpu.gl.uniform2fv(customLoc, customValue);
+      } else if (d.type === 'vec3') {
+        gpgpu.gl.uniform3fv(customLoc, customValue);
+      } else if (d.type === 'vec4') {
+        gpgpu.gl.uniform4fv(customLoc, customValue);
+      } else if (d.type === 'int') {
+        gpgpu.gl.uniform1iv(customLoc, customValue);
+      } else if (d.type === 'ivec2') {
+        gpgpu.gl.uniform2iv(customLoc, customValue);
+      } else if (d.type === 'ivec3') {
+        gpgpu.gl.uniform3iv(customLoc, customValue);
+      } else if (d.type === 'ivec4') {
+        gpgpu.gl.uniform4iv(customLoc, customValue);
+      } else {
+        throw Error(`uniform type ${d.type} is not supported yet.`);
+      }
+    });
   }
   gpgpu.executeProgram();
 }

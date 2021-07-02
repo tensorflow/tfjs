@@ -36,10 +36,15 @@ export type InputInfo = {
   shapeInfo: ShapeInfo
 };
 
+export type UniformType =
+    'float'|'vec2'|'vec3'|'vec4'|'int'|'ivec2'|'ivec3'|'ivec4';
+
 interface ProgramParams {
   userCode: string;
   enableShapeUniforms?: boolean;
   packedInputs?: boolean;
+  customUniforms?:
+      Array<{name: string; arrayIndex?: number; type: UniformType;}>;
 }
 
 export function makeShader(
@@ -102,6 +107,12 @@ export function makeShader(
         break;
     }
     prefixSnippets.push(`uniform ivec2 outTexShape;`);
+  }
+  if (program.customUniforms) {
+    program.customUniforms.forEach((d) => {
+      prefixSnippets.push(`uniform ${d.type} ${d.name}${
+          d.arrayIndex ? `[${d.arrayIndex}]` : ''};`);
+    });
   }
   const inputPrefixSnippet = prefixSnippets.join('\n');
 
