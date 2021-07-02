@@ -15,15 +15,17 @@
  * =============================================================================
  */
 
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 
 export class UnaryOpProgram implements GPGPUProgram {
   variableNames = ['A'];
   userCode: string;
   outputShape: number[];
+  enableShapeUniforms: boolean;
 
   constructor(aShape: number[], opSnippet: string) {
     this.outputShape = aShape;
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     this.userCode = `
       float unaryOperation(float x) {
         ${opSnippet}

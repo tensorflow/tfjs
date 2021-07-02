@@ -704,12 +704,12 @@ export class MathBackendWebGL extends KernelBackend {
     return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
   }
 
-  private unpackTensor(input: TensorInfo): TensorInfo {
+  unpackTensor(input: TensorInfo): TensorInfo {
     const program = new UnpackProgram(input.shape);
     return this.runWebGLProgram(program, [input], input.dtype);
   }
 
-  private packTensor(input: TensorInfo): TensorInfo {
+  packTensor(input: TensorInfo): TensorInfo {
     const program = new PackProgram(input.shape);
     const preventEagerUnpackingOutput = true;
     return this.runWebGLProgram(

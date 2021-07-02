@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 
 export const LINEAR = `return x;`;
 
@@ -59,12 +59,14 @@ export const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * x));`;
 export class UnaryOpPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
   userCode: string;
+  enableShapeUniforms: boolean;
   outputShape: number[];
   packedInputs = true;
   packedOutput = true;
 
   constructor(aShape: number[], opSnippet: string) {
     this.outputShape = aShape;
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     this.userCode = `
       vec4 unaryOperation(vec4 x) {
         ${opSnippet}
