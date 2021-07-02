@@ -79,10 +79,21 @@ export function topK(
     ];
   }
 
+  // Eagerly unpack x input since it is passed in to all the shaders which
+  // require unpacked inputs.
+  const xtexData = backend.texData.get(x.dataId);
+  const xIsPacked = xtexData !== null && xtexData.isPacked;
+  const xUnPacked = xIsPacked ? backend.unpackTensor(x) : x;
+
   // Reshape into a 2d tensor [batch, lastDim] and compute topk along lastDim.
   const xSize = util.sizeFromShape(xShape);
   const batch = xSize / lastDim;
-  const x2D = reshape({inputs: {x}, attrs: {shape: [batch, lastDim]}, backend});
+  const x2D = reshape(
+      {inputs: {x: xUnPacked}, attrs: {shape: [batch, lastDim]}, backend});
+
+  if (xIsPacked) {
+    disposeIntermediateTensorInfoOrNull(backend, xUnPacked);
+  }
 
   const kPow2 = roundUpToPow2(k);
   const lastDimPow2 = roundUpToPow2(lastDim);
