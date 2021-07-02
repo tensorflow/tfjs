@@ -14,6 +14,7 @@
 # =============================================================================
 
 load("//tools:defaults.bzl", "esbuild", "ts_library")
+load("//tools:enumerate_tests.bzl", "enumerate_tests")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -26,6 +27,18 @@ TEST_SRCS = [
 filegroup(
     name = "all_srcs",
     srcs = glob(["**/*.ts"]),
+)
+
+filegroup(
+    name = "all_test_entrypoints",
+    srcs = glob(["**/*_test.ts"], exclude=["backends/**/*", "setup_test.ts"]),
+)
+
+# Generates the 'tests.ts' file that imports all test entrypoints.
+enumerate_tests(
+    name = "tests",
+    srcs = [":all_test_entrypoints"],
+    root_path = "tfjs-core/src",
 )
 
 # Compiles the majority of tfjs-core using the `@tensorflow/tfjs-core/dist`
@@ -57,7 +70,7 @@ ts_library(
 
 ts_library(
     name = "tfjs-core_test_lib",
-    srcs = glob(TEST_SRCS),
+    srcs = glob(TEST_SRCS) + [":tests"],
     # TODO(msoulanille): Mark this as testonly once it's no longer needed in the
     # npm package (for other downstream packages' tests).
     module_name = "@tensorflow/tfjs-core/dist",

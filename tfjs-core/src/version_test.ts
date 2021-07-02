@@ -20,7 +20,8 @@ import {version_core} from './index';
 describe('version', () => {
   it('version is contained', () => {
     // tslint:disable-next-line:no-require-imports
-    const expected = require('../package.json').version;
+    const expected = require('@tensorflow/tfjs-core/package.json').version;
+    //const expected = require('../package.json').version;
     expect(version_core).toBe(expected);
   });
 });
