@@ -26,7 +26,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = 'ivec2 filterDims, pad, stride, dilation, inDims;';
+  uniforms = 'ivec2 pad, stride, dilation, inDims;';
   // This is an experimental value.
   workGroupSize: [number, number, number] = [256, 1, 1];
   convInfo: backend_util.Conv2DInfo;
@@ -58,7 +58,8 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
     this.activation = activation;
     this.hasPreluActivation = hasPreluActivation;
 
-    this.shaderKey = `depthwise_${this.activation}_${
+    this.shaderKey = `depthwise_${this.convInfo.filterHeight}_${
+        this.convInfo.filterWidth}_${this.activation}_${
         this.convInfo.outChannels / this.convInfo.inChannels}`;
   }
 
@@ -104,32 +105,55 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
         int d1 = d2 / ${channelMul};
         int q = d2 - d1 * ${channelMul};
 
-        int xRCorner = xRCCorner.x;
-        int xCCorner = xRCCorner.y;
+        int inputRowStart = xRCCorner.x;
+        int inputColStart = xRCCorner.y;
+        int inputRowEnd = inputRowStart + ${
+        this.convInfo.filterHeight} * dilation[0];
+        int inputColEnd = inputColStart + ${
+        this.convInfo.filterWidth} * dilation[1];
 
         // Convolve x(?, ?, d1) with w(:, :, d1, q) to get y(yR, yC, d2).
         // ? = to be determined. : = across all values in that axis.
         float dotProd = 0.0;
-        // TODO(xing.xu): Flatten the two for loops and vec4 the operations.
-        for (int wR = 0; wR < filterDims[0]; wR++) {
-          int xR = xRCorner + wR * dilation[0];
 
-          if (xR < 0 || xR >= inDims[0]) {
-            continue;
-          }
+        // Extract if checking out of for loop for performance.
+        if (inputRowStart >= 0 && inputColStart >= 0 &&
+          inputRowEnd < inDims[0] && inputColEnd < inDims[1])
+          {
+            // Here using a constant value |this.convInfo.filterHeight| instead
+            // of uniform value is in order to loop unrolling.
+            for (int wR = 0; wR < ${this.convInfo.filterHeight}; wR++) {
+              int xR = inputRowStart + wR * dilation[0];
 
-          for (int wC = 0; wC < filterDims[1]; wC++) {
-            int xC = xCCorner + wC * dilation[1];
+              for (int wC = 0; wC < ${this.convInfo.filterWidth}; wC++) {
+                int xC = inputColStart + wC * dilation[1];
 
-            if (xC < 0 || xC >= inDims[1]) {
-              continue;
+                float xVal = getX(batch, xR, xC, d1);
+                float wVal = getW(wR, wC, d1, q);
+                dotProd += xVal * wVal;
+              }
             }
+          } else {
+            for (int wR = 0; wR < ${this.convInfo.filterHeight}; wR++) {
+              int xR = inputRowStart + wR * dilation[0];
 
-            float xVal = getX(batch, xR, xC, d1);
-            float wVal = getW(wR, wC, d1, q);
-            dotProd += xVal * wVal;
+              if (xR < 0 || xR >= inDims[0]) {
+                continue;
+              }
+
+              for (int wC = 0; wC < ${this.convInfo.filterWidth}; wC++) {
+                int xC = inputColStart + wC * dilation[1];
+
+                if (xC < 0 || xC >= inDims[1]) {
+                  continue;
+                }
+
+                float xVal = getX(batch, xR, xC, d1);
+                float wVal = getW(wR, wC, d1, q);
+                dotProd += xVal * wVal;
+              }
+            }
           }
-        }
 
         ${addBiasSnippet}
         ${applyActivationSnippet}
