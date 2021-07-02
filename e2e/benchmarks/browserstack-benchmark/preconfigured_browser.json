@@ -1,0 +1,22 @@
+{
+  "summaryTabId": "Summary_1",
+  "benchmark": { "model": "face_detector", "numRuns": 10, "backend": "wasm" },
+  "browsers": {
+    "iPhone_12_1": {
+      "base": "BrowserStack",
+      "browser": "iphone",
+      "browser_version": "null",
+      "os": "ios",
+      "os_version": "14",
+      "device": "iPhone 12"
+    },
+    "Google_Pixel_5_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": "null",
+      "os": "android",
+      "os_version": "11.0",
+      "device": "Google Pixel 5"
+    }
+  }
+}

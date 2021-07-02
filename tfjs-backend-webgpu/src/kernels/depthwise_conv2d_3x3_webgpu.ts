@@ -26,7 +26,7 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = 'ivec2 filterDims, pad, stride, dilation, inDims;';
+  uniforms = 'ivec2 pad, stride, dilation, inDims;';
   workGroupSize: [number, number, number] = [4, 4, 4];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;

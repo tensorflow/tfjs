@@ -1,11 +1,12 @@
 const fs = require('fs');
-const {benchmark, write} = require('./app.js');
+const {benchmark, write, runBenchmarkFromFile} = require('./app.js');
 
-describe('tests outfile capabilities', () => {
+describe('test app.js cli', () => {
   const filePath = './benchmark_test_results.json';
   let config;
   let mockRunOneBenchmark;
   let mockResults;
+  let mockBenchmark;
 
   beforeAll(() => {
     // Set a longer jasmine timeout than 5 seconds
@@ -97,6 +98,13 @@ describe('tests outfile capabilities', () => {
         jasmine.createSpy('mockRunOneBenchmark').and.callFake((tabId) => {
           return Promise.resolve(mockResults[tabId]);
         });
+
+    /*
+    before each spec, create a mock benchmark and set testing browser configuration
+    this helps ensure that everything is set to the expected contents before the spec is run
+    */
+    mockBenchmark = jasmine.createSpy('mockBenchmark');
+    testingConfig = require('./test_config.json');
   })
 
   it('checks for outfile accuracy', async () => {
@@ -132,5 +140,15 @@ describe('tests outfile capabilities', () => {
 
     // Expected value from promise all
     expect(formattedResults).toEqual(mockResults);
+  });
+
+  it("checks that the benchmark function is called", () => {
+    runBenchmarkFromFile(testingConfig, mockBenchmark);
+    expect(mockBenchmark).toHaveBeenCalled();
+  });
+
+  it("checks that the benchmark is being run with the correct JSON", () => {
+    runBenchmarkFromFile(testingConfig, mockBenchmark);
+    expect(mockBenchmark).toHaveBeenCalledWith(testingConfig);
   });
 });
