@@ -23,14 +23,14 @@ export class SliceProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
   rank: number;
-  customUniforms: Array<{name: string; type: UniformType;}>;
+  customUniforms: Array<{name: string; arrayIndex: number; type: UniformType;}>;
 
   constructor(destSize: number[]) {
     this.outputShape = destSize;
     this.rank = destSize.length;
 
     const dtype = getCoordsDataType(this.rank);
-    this.customUniforms = [{name: `start[${this.rank}]`, type: 'int'}];
+    this.customUniforms = [{name: 'start', arrayIndex: this.rank, type: 'int'}];
     const sourceCoords = getCoords(this.rank);
 
     let body: string;

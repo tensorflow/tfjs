@@ -43,7 +43,8 @@ interface ProgramParams {
   userCode: string;
   enableShapeUniforms?: boolean;
   packedInputs?: boolean;
-  customUniforms?: Array<{name: string; type: UniformType;}>;
+  customUniforms?:
+      Array<{name: string; arrayIndex?: number; type: UniformType;}>;
 }
 
 export function makeShader(
@@ -109,7 +110,8 @@ export function makeShader(
   }
   if (program.customUniforms) {
     program.customUniforms.forEach((d) => {
-      prefixSnippets.push(`uniform ${d.type} ${d.name};`);
+      prefixSnippets.push(`uniform ${d.type} ${d.name}${
+          d.arrayIndex ? `[${d.arrayIndex}]` : ''};`);
     });
   }
   const inputPrefixSnippet = prefixSnippets.join('\n');

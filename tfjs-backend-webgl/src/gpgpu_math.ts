@@ -41,7 +41,8 @@ export interface GPGPUProgram {
    * See `PackingScheme` for details. Defaults to `PackingScheme.SHARED_BATCH`.
    */
   outPackingScheme?: PackingScheme;
-  customUniforms?: Array<{name: string; type: UniformType;}>;
+  customUniforms?:
+      Array<{name: string; arrayIndex?: number; type: UniformType;}>;
 }
 
 export interface GPGPUBinary {
@@ -139,12 +140,8 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
   const customUniformLocations: WebGLUniformLocation[] = [];
   if (program.customUniforms) {
     program.customUniforms.forEach((d, i) => {
-      // d.name may be a uniform array. For example, start[4] in slice_gpu.ts.
-      // In this case, we should use 'start' instead of 'start[4]' to get the
-      // uniform location.
-      const uniformName = d.name.split('[')[0];
       customUniformLocations[i] =
-          gpgpu.getUniformLocation(webGLProgram, uniformName, shouldThrow);
+          gpgpu.getUniformLocation(webGLProgram, d.name, shouldThrow);
     });
   }
 

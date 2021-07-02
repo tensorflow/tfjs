@@ -26,12 +26,12 @@ export class SlicePackedProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
   rank: number;
-  customUniforms: Array<{name: string; type: UniformType;}>;
+  customUniforms: Array<{name: string; arrayIndex: number; type: UniformType;}>;
 
   constructor(destSize: number[]) {
     this.outputShape = destSize;
     this.rank = destSize.length;
-    this.customUniforms = [{name: `start[${this.rank}]`, type: 'int'}];
+    this.customUniforms = [{name: 'start', arrayIndex: this.rank, type: 'int'}];
     const dtype = getCoordsDataType(this.rank);
     const coords = getChannels('coords', this.rank);
     const sourceLoc = getChannels('sourceLoc', this.rank);
