@@ -24,7 +24,7 @@
 import {env} from '../environment';
 
 import {assert} from '../util';
-import {concatenateArrayBuffers, getModelArtifactsForJSON, getModelArtifactsInfoForJSON} from './io_utils';
+import {concatenateArrayBuffers, getModelArtifactsForJSON, getModelArtifactsInfoForJSON, getModelJSONForModelArtifacts} from './io_utils';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, LoadOptions, ModelArtifacts, ModelJSON, OnProgressCallback, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
 import {loadWeightsAsArrayBuffer} from './weights_loader';
@@ -99,24 +99,8 @@ export class HTTPRequest implements IOHandler {
       paths: ['./model.weights.bin'],
       weights: modelArtifacts.weightSpecs,
     }];
-    const modelTopologyAndWeightManifest: ModelJSON = {
-      modelTopology: modelArtifacts.modelTopology,
-      format: modelArtifacts.format,
-      generatedBy: modelArtifacts.generatedBy,
-      convertedBy: modelArtifacts.convertedBy,
-      weightsManifest
-    };
-    if (modelArtifacts.signature != null) {
-      modelTopologyAndWeightManifest.signature = modelArtifacts.signature;
-    }
-    if (modelArtifacts.userDefinedMetadata != null) {
-      modelTopologyAndWeightManifest.userDefinedMetadata =
-          modelArtifacts.userDefinedMetadata;
-    }
-    if (modelArtifacts.modelInitializer != null) {
-      modelTopologyAndWeightManifest.modelInitializer =
-          modelArtifacts.modelInitializer;
-    }
+    const modelTopologyAndWeightManifest: ModelJSON =
+        getModelJSONForModelArtifacts(modelArtifacts, weightsManifest);
 
     init.body.append(
         'model.json',

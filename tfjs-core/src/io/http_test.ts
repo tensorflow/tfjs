@@ -52,6 +52,11 @@ const modelTopology1: {} = {
   }],
   'backend': 'tensorflow'
 };
+const trainingConfig1: tf.io.TrainingConfig = {
+  loss: 'categorical_crossentropy',
+  metrics: ['accuracy'],
+  optimizer_config: {class_name: 'SGD', config: {learningRate: 0.1}}
+};
 
 let fetchSpy: jasmine.Spy;
 
@@ -196,7 +201,8 @@ describeWithFlags('http-save', CHROME_ENVS, () => {
     convertedBy: null,
     signature: null,
     userDefinedMetadata: {},
-    modelInitializer: {}
+    modelInitializer: {},
+    trainingConfig: trainingConfig1
   };
 
   let requestInits: RequestInit[] = [];
@@ -239,10 +245,12 @@ describeWithFlags('http-save', CHROME_ENVS, () => {
           const jsonFileReader = new FileReader();
           jsonFileReader.onload = (event: Event) => {
             // tslint:disable-next-line:no-any
-            const modelJSON = JSON.parse((event.target as any).result);
+            const modelJSON =
+                JSON.parse((event.target as any).result) as tf.io.ModelJSON;
             expect(modelJSON.modelTopology).toEqual(modelTopology1);
             expect(modelJSON.weightsManifest.length).toEqual(1);
             expect(modelJSON.weightsManifest[0].weights).toEqual(weightSpecs1);
+            expect(modelJSON.trainingConfig).toEqual(trainingConfig1);
 
             const weightsFile = body.get('model.weights.bin') as File;
             const weightsFileReader = new FileReader();
@@ -344,7 +352,8 @@ describeWithFlags('http-save', CHROME_ENVS, () => {
           const jsonFileReader = new FileReader();
           jsonFileReader.onload = (event: Event) => {
             // tslint:disable-next-line:no-any
-            const modelJSON = JSON.parse((event.target as any).result);
+            const modelJSON =
+                JSON.parse((event.target as any).result) as tf.io.ModelJSON;
             expect(modelJSON.format).toEqual('layers-model');
             expect(modelJSON.generatedBy).toEqual('TensorFlow.js v0.0.0');
             expect(modelJSON.convertedBy).toEqual(null);
@@ -352,6 +361,7 @@ describeWithFlags('http-save', CHROME_ENVS, () => {
             expect(modelJSON.modelInitializer).toEqual({});
             expect(modelJSON.weightsManifest.length).toEqual(1);
             expect(modelJSON.weightsManifest[0].weights).toEqual(weightSpecs1);
+            expect(modelJSON.trainingConfig).toEqual(trainingConfig1);
 
             const weightsFile = body.get('model.weights.bin') as File;
             const weightsFileReader = new FileReader();
@@ -856,11 +866,6 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
         }
       ]
     }];
-    const trainingConfig1: tf.io.TrainingConfig = {
-      loss: 'categorical_crossentropy',
-      metrics: ['accuracy'],
-      optimizer_config: {class_name: 'SGD', config: {learningRate: 0.1}}
-    };
     const floatData = new Float32Array([1, 3, 3, 7, 4]);
 
     const fetchInputs: RequestInfo[] = [];

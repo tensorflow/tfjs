@@ -369,6 +369,30 @@ export function basename(path: string): string {
   return items[items.length - 1];
 }
 
+export function getModelJSONForModelArtifacts(
+    artifacts: ModelArtifacts, manifest: WeightsManifestConfig): ModelJSON {
+  const result: ModelJSON = {
+    modelTopology: artifacts.modelTopology,
+    format: artifacts.format,
+    generatedBy: artifacts.generatedBy,
+    convertedBy: artifacts.convertedBy,
+    weightsManifest: manifest
+  };
+  if (artifacts.signature != null) {
+    result.signature = artifacts.signature;
+  }
+  if (artifacts.userDefinedMetadata != null) {
+    result.userDefinedMetadata = artifacts.userDefinedMetadata;
+  }
+  if (artifacts.modelInitializer != null) {
+    result.modelInitializer = artifacts.modelInitializer;
+  }
+  if (artifacts.trainingConfig != null) {
+    result.trainingConfig = artifacts.trainingConfig;
+  }
+  return result;
+}
+
 /**
  * Create `ModelArtifacts` from a JSON file.
  *
