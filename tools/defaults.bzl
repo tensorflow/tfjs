@@ -26,6 +26,9 @@ def ts_library(**kwargs):
     tsconfig = kwargs.pop("tsconfig", "@//:tsconfig_ts_library.json")
 
     # Use es2017 by default. This is transpiled down to es5 in tfjs_bundle.bzl.
+    # The devmode_target corresponds to es5_sources and the prodmode_target
+    # corresponds to es6_sources.
+    # https://github.com/bazelbuild/rules_nodejs/issues/2094
     devmode_target = kwargs.pop("devmode_target", "es2017")
     prodmode_target = kwargs.pop("prodmode_target", "es2017")
 

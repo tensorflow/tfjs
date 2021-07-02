@@ -37,10 +37,10 @@ tfjs_bundle(
     umd_name = "tf",
     deps = [
         "//tfjs-core/src:tfjs-core_lib",
-        "//tfjs-core/src:tfjs-core_src_lib",
     ],
 )
 
+# ES Module es2017 compilation results. This is configured in tools/defaults.bzl
 filegroup(
     name = "es6_sources",
     srcs = [
@@ -51,6 +51,7 @@ filegroup(
     output_group = "es6_sources",
 )
 
+# Commonjs es2017 compilation results
 filegroup(
     name = "es5_sources",
     srcs = [
@@ -144,7 +145,7 @@ tfjs_web_test(
         "bs_chrome_mac",
         "bs_firefox_mac",
         "bs_safari_mac",
-        # "bs_ios_11", # TODO: Reenable ios 11
+        "bs_ios_11",
         "bs_android_9",
         "win_10_chrome",
     ],
