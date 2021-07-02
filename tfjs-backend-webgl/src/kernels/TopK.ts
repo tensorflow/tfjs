@@ -112,10 +112,11 @@ export function topK(
   const runSwap = (dir: number, inc: number, shape: number[]) => {
     const inputs = getInputs();
     const program = new SwapProgram(shape);
-    const customSetup = program.getCustomSetupFunc(
-        lastDim, indices === null /* firstPass */, dir, inc);
+    const fistPass = indices === null ? 1 : 0;
+    const customValues =
+        [[lastDim], [fistPass], [Number.NEGATIVE_INFINITY], [dir], [inc]];
     const prevIndices = indices;
-    indices = backend.runWebGLProgram(program, inputs, 'int32', customSetup);
+    indices = backend.runWebGLProgram(program, inputs, 'int32', customValues);
     disposeIntermediateTensorInfoOrNull(backend, prevIndices);
   };
 
@@ -131,11 +132,11 @@ export function topK(
   for (let indicesSize = lastDimPow2; indicesSize > kPow2; indicesSize /= 2) {
     const inputs = getInputs();
     const mergeProgram = new MergeProgram([batch, indicesSize / 2]);
-    const customSetup = mergeProgram.getCustomSetupFunc(
-        lastDim, indices === null /* firstPass */, kPow2);
+    const firstPass = indices === null ? 1 : 0;
+    const customValues = [[lastDim], [firstPass], [kPow2]];
     const prevIndices = indices;
     indices =
-        backend.runWebGLProgram(mergeProgram, inputs, 'int32', customSetup);
+        backend.runWebGLProgram(mergeProgram, inputs, 'int32', customValues);
     disposeIntermediateTensorInfoOrNull(backend, prevIndices);
 
     // Step 3: rebuild
