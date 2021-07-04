@@ -46,4 +46,38 @@ describeWithFlags('Conv2D WebGL Implementation ', ALL_ENVS, () => {
 
     expectArraysEqual(resultData, expected);
   });
+
+  fit('image is already packed.', async () => {
+    const filter = tf.tensor4d([1], [1, 1, 1, 1]);
+    const image = tf.tensor3d([11, 12, 13, 21, 22, 23, 31, 32, 33], [1, 3, 3]);
+
+    tf.mul(image, 1);
+    tf.conv2d(image, filter, 1, 'valid', 'NCHW');
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    const result = tf.conv2d(image, filter, 1, 'valid', 'NCHW');
+    const resultData = await result.data();
+
+    const expected = [11, 12, 13, 21, 22, 23, 31, 32, 33];
+
+    console.log(resultData);
+
+    expectArraysEqual(resultData, expected);
+  });
+
+  fit('channel first and image is already packed.', async () => {
+    const filter = tf.tensor4d([1], [1, 1, 1, 1]);
+    const image = tf.tensor3d([11, 12, 13, 21, 22, 23, 31, 32, 33], [3, 3, 1]);
+
+    tf.mul(image, 1);
+    tf.conv2d(image, filter, 1, 'valid');
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    const result = tf.conv2d(image, filter, 1, 'valid');
+    const resultData = await result.data();
+
+    const expected = [11, 12, 13, 21, 22, 23, 31, 32, 33];
+
+    console.log(resultData);
+
+    expectArraysEqual(resultData, expected);
+  });
 });
