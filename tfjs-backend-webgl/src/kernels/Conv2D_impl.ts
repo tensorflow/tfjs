@@ -23,7 +23,7 @@ import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
 import {MatMulPackedProgram} from '../mulmat_packed_gpu';
 import * as webgl_util from '../webgl_util';
 
-import {batchMatMulImpl} from './BatchMatMul_impl';
+import {batchMatMulImpl, MATMUL_SHARED_DIM_THRESHOLD} from './BatchMatMul_impl';
 import {identity} from './Identity';
 import {reshape} from './Reshape';
 
@@ -55,6 +55,9 @@ export function conv2dByMatMul({
   // result from 2D to 4D.
   const xShape = x.shape;
   const xTexData = backend.texData.get(x.dataId);
+  const sharedMatMulDim = convInfo.inChannels;
+  const outerShapeX = xShape[0] * xShape[1] * xShape[2];
+  const outerShapeFilter = convInfo.outChannels;
   const isChannelsLast = convInfo.dataFormat === 'channelsLast';
   const transposeA = false;
   const transposeB = false;
@@ -64,10 +67,18 @@ export function conv2dByMatMul({
 
   const col = isChannelsLast ? xShape[2] : xShape[3];
 
-  // The algorithm in the if condition assumes (1) x is packed, (2) col is
-  // odd, (3) the width, height and inChannels are the same for xTexData.shape
-  // and xShape, (4) x isChannelsLast.
-  const canOptimize = xTexData.isPacked && col % 2 !== 0 &&
+  // TODO: Once reduction ops are packed, batchMatMul will always be packed
+  // and we can remove this condition.
+  const batchMatMulWillBeUnpacked =
+      (outerShapeX === 1 || outerShapeFilter === 1) &&
+      sharedMatMulDim > MATMUL_SHARED_DIM_THRESHOLD;
+
+  // The algorithm in the if condition assumes (1) the output will be packed,
+  // (2) x is packed, (3) x's packed texture is already on GPU. (4) col is odd,
+  // (5) the width, height and inChannels are the same for xTexData.shape and
+  // xShape, (6) x isChannelsLast.
+  const canOptimize = !batchMatMulWillBeUnpacked && xTexData.isPacked &&
+      xTexData.texture != null && col % 2 !== 0 &&
       util.arraysEqual(xTexData.shape.slice(-3), xShape.slice(-3)) &&
       isChannelsLast;
 
