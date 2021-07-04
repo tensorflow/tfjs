@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, env, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {Im2ColPackedProgram} from '../im2col_packed_gpu';
@@ -23,7 +23,7 @@ import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
 import {MatMulPackedProgram} from '../mulmat_packed_gpu';
 import * as webgl_util from '../webgl_util';
 
-import {batchMatMulImpl, MATMUL_SHARED_DIM_THRESHOLD} from './BatchMatMul_impl';
+import {batchMatMulImpl} from './BatchMatMul_impl';
 import {identity} from './Identity';
 import {reshape} from './Reshape';
 
@@ -55,9 +55,6 @@ export function conv2dByMatMul({
   // result from 2D to 4D.
   const xShape = x.shape;
   const xTexData = backend.texData.get(x.dataId);
-  const sharedMatMulDim = convInfo.inChannels;
-  const outerShapeX = xShape[0] * xShape[1] * xShape[2];
-  const outerShapeFilter = convInfo.outChannels;
   const isChannelsLast = convInfo.dataFormat === 'channelsLast';
   const transposeA = false;
   const transposeB = false;
@@ -65,68 +62,23 @@ export function conv2dByMatMul({
   let out: TensorInfo;
   const intermediates: TensorInfo[] = [];
 
-  // TODO: Once reduction ops are packed, batchMatMul will always be packed
-  // and we can remove this condition.
-  const batchMatMulWillBeUnpacked =
-      (outerShapeX === 1 || outerShapeFilter === 1) &&
-      sharedMatMulDim > MATMUL_SHARED_DIM_THRESHOLD;
-  const reshapeWillBeExpensive = xShape[2] % 2 !== 0 && !!xTexData.isPacked;
-  // The algorithm in the else condition assume the width,
-  // height and inChannels are the same for xTexData.shape and xShape. It's
-  // possible the two shapes are different, e.g. xTexData.shape may be
-  // from a reshaped x, in which case, we need to use the algorithm in the
-  // if condition.
-  const texDataShapeIsDifferent =
-      !util.arraysEqual(xTexData.shape.slice(-3), xShape.slice(-3));
+  const col = isChannelsLast ? xShape[2] : xShape[3];
 
-  if (batchMatMulWillBeUnpacked || !env().getBool('WEBGL_LAZILY_UNPACK') ||
-      !env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ||
-      !reshapeWillBeExpensive || texDataShapeIsDifferent) {
-    const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] :
-                                         xShape[0] * xShape[2] * xShape[3];
-    const xReshaped = reshape({
-      inputs: {x},
-      backend,
-      attrs: {shape: [1, targetShape, convInfo.inChannels]}
-    });
-    const filterReshaped = reshape({
-      inputs: {x: filter},
-      backend,
-      attrs: {shape: [1, convInfo.inChannels, convInfo.outChannels]}
-    });
-    const result = batchMatMulImpl({
-      a: xReshaped,
-      b: filterReshaped,
-      transposeA,
-      transposeB,
-      backend,
-      bias,
-      activation,
-      preluActivationWeights,
-      leakyreluAlpha
-    });
+  // The algorithm in the if condition assumes (1) x is packed, (2) col is
+  // odd, (3) the width, height and inChannels are the same for xTexData.shape
+  // and xShape, (4) x isChannelsLast.
+  const canOptimize = xTexData.isPacked && col % 2 !== 0 &&
+      util.arraysEqual(xTexData.shape.slice(-3), xShape.slice(-3)) &&
+      isChannelsLast;
 
-    out = reshape(
-        {inputs: {x: result}, backend, attrs: {shape: convInfo.outShape}});
-
-    intermediates.push(xReshaped);
-    intermediates.push(filterReshaped);
-    intermediates.push(result);
-  } else {
-    const colIsOdd = xShape[2] % 2 !== 0;
-
-    // Following optimization is specific to packed |x| with odd col count
-    // (For example, in channelLast mode, 'col count' refers to x.shape[2]):
-    // we avoid expensive packed 2x2 reshape by padding col count to next,
-    // even number. When x.shape[2] is odd, the result of packed batchMatMul is
+  if (canOptimize) {
+    // We avoid expensive packed 2x2 reshape by padding col count to next,
+    // even number. When col is odd, the result of packed batchMatMul is
     // the same (has the same texture layout and and values in the texture) as
-    // it is for even x.shape[2] + 1. We make the odd-cols tensor to look like
+    // it is for next even col. We make the odd-cols tensor to look like
     // even-cols tensor before the operation and, after the batchMatMul,
     // fix the even-cols result to have odd number of cols.
-    const pad = colIsOdd ? 1 : 0;
-    const targetShape = isChannelsLast ?
-        xShape[0] * xShape[1] * (xShape[2] + pad) :
-        xShape[0] * xShape[2] * (xShape[3] + pad);
+    const targetShape = xShape[0] * xShape[1] * (xShape[2] + 1);
     const xReshaped: TensorInfo = {
       dataId: x.dataId,
       shape: [1, targetShape, convInfo.inChannels],
@@ -142,9 +94,7 @@ export function conv2dByMatMul({
     // xTexData.shape is restored.
     const originalXTexDataShape = xTexData.shape;
     xTexData.shape = xTexData.shape.slice();
-    if (pad === 1) {
-      xTexData.shape[xTexData.shape.length - 2]++;
-    }
+    xTexData.shape[xTexData.shape.length - 2]++;
     util.assert(
         webgl_util.isReshapeFree(xTexData.shape, xReshaped.shape),
         () => `packed reshape ${xTexData.shape} to ${
@@ -181,6 +131,37 @@ export function conv2dByMatMul({
     out.shape = convInfo.outShape;
 
     intermediates.push(pointwiseConv);
+  } else {
+    const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] :
+                                         xShape[0] * xShape[2] * xShape[3];
+    const xReshaped = reshape({
+      inputs: {x},
+      backend,
+      attrs: {shape: [1, targetShape, convInfo.inChannels]}
+    });
+    const filterReshaped = reshape({
+      inputs: {x: filter},
+      backend,
+      attrs: {shape: [1, convInfo.inChannels, convInfo.outChannels]}
+    });
+    const result = batchMatMulImpl({
+      a: xReshaped,
+      b: filterReshaped,
+      transposeA,
+      transposeB,
+      backend,
+      bias,
+      activation,
+      preluActivationWeights,
+      leakyreluAlpha
+    });
+
+    out = reshape(
+        {inputs: {x: result}, backend, attrs: {shape: convInfo.outShape}});
+
+    intermediates.push(xReshaped);
+    intermediates.push(filterReshaped);
+    intermediates.push(result);
   }
 
   for (const i of intermediates) {
