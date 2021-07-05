@@ -18,12 +18,16 @@ cd into the `tfjs-tflite` folder:
 $ cd tfjs/tfjs-tflite
 ```
 
+Make sure `gsutil` is installed. It will be used by the script below.
+Follow the installation instructions [here][gsutil]. You can skip the
+"Setting Up Credentials to Access Protected Data" section.
+
 Build the `tfjs-tflite` package locally.
 ```sh
 $ yarn
 # This script will download the TFLite web API WASM module files and JS client
-# to deps/.
-$ ./script/download-tflite-web-api.sh
+# to deps/. This script will use `gsutil`.
+$ ./scripts/download-tflite-web-api.sh
 # This will bundle and copy everything needed to tfjs-tflite/dist/ which will
 # be used by the local demo.
 $ yarn build-npm
@@ -43,3 +47,4 @@ $ yarn watch
 
 [blog]: https://blog.tensorflow.org/2020/09/how-to-create-cartoonizer-with-tf-lite.html
 [live demo]: https://storage.googleapis.com/tfweb/demos/cartoonizer/index.html
+[gsutil]: https://cloud.google.com/storage/docs/gsutil_install

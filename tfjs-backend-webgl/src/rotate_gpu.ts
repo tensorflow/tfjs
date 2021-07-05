@@ -15,14 +15,14 @@
  * =============================================================================
  */
 
-import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
+import {UniformType} from './shader_compiler';
 
 export class RotateProgram implements GPGPUProgram {
   variableNames = ['Image'];
   outputShape: number[] = [];
   userCode: string;
-  paramsLoc: WebGLUniformLocation;
+  customUniforms = [{name: 'params', type: 'vec4' as UniformType}];
   constructor(
       imageShape: [number, number, number, number],
       fillValue: number|[number, number, number]) {
@@ -40,7 +40,6 @@ export class RotateProgram implements GPGPUProgram {
     }
 
     this.userCode = `
-        uniform vec4 params;
         void main() {
           ivec4 coords = getOutputCoords();
           int x = coords[2];
@@ -59,17 +58,5 @@ export class RotateProgram implements GPGPUProgram {
           setOutput(outputValue);
         }
     `;
-  }
-
-  getCustomSetupFunc(
-      centerX: number, centerY: number, sinFactor: number, cosFactor: number) {
-    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
-      if (this.paramsLoc == null) {
-        this.paramsLoc =
-            gpgpu.getUniformLocationNoThrow(webGLProgram, 'params');
-      }
-      gpgpu.gl.uniform4f(
-          this.paramsLoc, centerX, centerY, sinFactor, cosFactor);
-    };
   }
 }
