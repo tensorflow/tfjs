@@ -446,7 +446,6 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
                 manager.removeModel('QuxModel')
                     .then(deletedInfo => {
                       manager.listModels().then(out => {
-                        console.log(JSON.stringify(out, null, '  '));
                         expect(Object.keys(out)).toEqual(['repeat/QuxModel']);
                       });
                       done();

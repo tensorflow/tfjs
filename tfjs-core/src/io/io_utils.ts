@@ -369,6 +369,15 @@ export function basename(path: string): string {
   return items[items.length - 1];
 }
 
+/**
+ * Create `ModelJSON` from `ModelArtifacts`.
+ *
+ * @param artifacts Model artifacts, describing the model and its weights.
+ * @param manifest Weight manifest, describing where the weights of the
+ *     `ModelArtifacts` are stored, and some metadata about them.
+ * @returns Object representing the `model.json` file describing the model
+ *     artifacts and weights
+ */
 export function getModelJSONForModelArtifacts(
     artifacts: ModelArtifacts, manifest: WeightsManifestConfig): ModelJSON {
   const result: ModelJSON = {
