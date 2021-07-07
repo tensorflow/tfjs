@@ -79,10 +79,21 @@ export function topK(
     ];
   }
 
+  // Eagerly unpack x input since it is passed in to all the shaders which
+  // require unpacked inputs.
+  const xtexData = backend.texData.get(x.dataId);
+  const xIsPacked = xtexData !== null && xtexData.isPacked;
+  const xUnPacked = xIsPacked ? backend.unpackTensor(x) : x;
+
   // Reshape into a 2d tensor [batch, lastDim] and compute topk along lastDim.
   const xSize = util.sizeFromShape(xShape);
   const batch = xSize / lastDim;
-  const x2D = reshape({inputs: {x}, attrs: {shape: [batch, lastDim]}, backend});
+  const x2D = reshape(
+      {inputs: {x: xUnPacked}, attrs: {shape: [batch, lastDim]}, backend});
+
+  if (xIsPacked) {
+    disposeIntermediateTensorInfoOrNull(backend, xUnPacked);
+  }
 
   const kPow2 = roundUpToPow2(k);
   const lastDimPow2 = roundUpToPow2(lastDim);
@@ -101,10 +112,11 @@ export function topK(
   const runSwap = (dir: number, inc: number, shape: number[]) => {
     const inputs = getInputs();
     const program = new SwapProgram(shape);
-    const customSetup = program.getCustomSetupFunc(
-        lastDim, indices === null /* firstPass */, dir, inc);
+    const fistPass = indices === null ? 1 : 0;
+    const customValues =
+        [[lastDim], [fistPass], [Number.NEGATIVE_INFINITY], [dir], [inc]];
     const prevIndices = indices;
-    indices = backend.runWebGLProgram(program, inputs, 'int32', customSetup);
+    indices = backend.runWebGLProgram(program, inputs, 'int32', customValues);
     disposeIntermediateTensorInfoOrNull(backend, prevIndices);
   };
 
@@ -120,11 +132,11 @@ export function topK(
   for (let indicesSize = lastDimPow2; indicesSize > kPow2; indicesSize /= 2) {
     const inputs = getInputs();
     const mergeProgram = new MergeProgram([batch, indicesSize / 2]);
-    const customSetup = mergeProgram.getCustomSetupFunc(
-        lastDim, indices === null /* firstPass */, kPow2);
+    const firstPass = indices === null ? 1 : 0;
+    const customValues = [[lastDim], [firstPass], [kPow2]];
     const prevIndices = indices;
     indices =
-        backend.runWebGLProgram(mergeProgram, inputs, 'int32', customSetup);
+        backend.runWebGLProgram(mergeProgram, inputs, 'int32', customValues);
     disposeIntermediateTensorInfoOrNull(backend, prevIndices);
 
     // Step 3: rebuild
