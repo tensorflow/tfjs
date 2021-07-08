@@ -114,10 +114,18 @@ describe('nodeHTTPRequest-load', () => {
         }
       ]
     }];
+    const trainingConfig1: tf.io.TrainingConfig = {
+      loss: 'categorical_crossentropy',
+      metrics: ['accuracy'],
+      optimizer_config: {class_name: 'SGD', config: {learningRate: 0.1}}
+    };
     const floatData = new Float32Array([1, 3, 3, 7]);
     setupFakeWeightFiles({
-      'http://localhost/model.json': JSON.stringify(
-          {modelTopology: modelTopology1, weightsManifest: weightManifest1}),
+      'http://localhost/model.json': JSON.stringify({
+        modelTopology: modelTopology1,
+        weightsManifest: weightManifest1,
+        trainingConfig: trainingConfig1
+      }),
       'http://localhost/weightfile0': floatData,
     });
 
@@ -127,6 +135,7 @@ describe('nodeHTTPRequest-load', () => {
     const modelArtifacts = await handler.load();
     expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
     expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
+    expect(modelArtifacts.trainingConfig).toEqual(trainingConfig1);
     expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
 
     expect(requestInits).toEqual([
