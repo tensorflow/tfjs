@@ -118,9 +118,11 @@ function setupBenchmarkEnv(config) {
 async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
   console.log('Preparing configuration files for the test runner.\n');
   setupBenchmarkEnv(config);
-  console.log(
-      `Starting benchmarks using ${cliArgs.webDeps ? 'cdn' : 'local'} ` +
-      `dependencies...`);
+  if (require.main === module) {
+    console.log(
+        `Starting benchmarks using ${cliArgs.webDeps ? 'cdn' : 'local'} ` +
+        `dependencies...`);
+  }
   const results = [];
   for (const tabId in config.browsers) {
     results.push(runOneBenchmark(tabId));
