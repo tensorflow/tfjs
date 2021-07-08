@@ -16,13 +16,12 @@
  */
 
 import {complex} from '../ops/complex';
-
 import {tensor} from '../ops/tensor';
 import {NamedTensor, NamedTensorMap} from '../tensor_types';
 import {TypedArray} from '../types';
 import {sizeFromShape} from '../util';
 
-import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, WeightGroup, WeightsManifestEntry} from './types';
+import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, ModelJSON, WeightGroup, WeightsManifestConfig, WeightsManifestEntry} from './types';
 
 /** Number of bytes reserved for the length of the string. (32bit integer). */
 const NUM_BYTES_STRING_LENGTH = 4;
@@ -368,6 +367,82 @@ export function basename(path: string): string {
   }
   const items = path.split(SEPARATOR);
   return items[items.length - 1];
+}
+
+/**
+ * Create `ModelJSON` from `ModelArtifacts`.
+ *
+ * @param artifacts Model artifacts, describing the model and its weights.
+ * @param manifest Weight manifest, describing where the weights of the
+ *     `ModelArtifacts` are stored, and some metadata about them.
+ * @returns Object representing the `model.json` file describing the model
+ *     artifacts and weights
+ */
+export function getModelJSONForModelArtifacts(
+    artifacts: ModelArtifacts, manifest: WeightsManifestConfig): ModelJSON {
+  const result: ModelJSON = {
+    modelTopology: artifacts.modelTopology,
+    format: artifacts.format,
+    generatedBy: artifacts.generatedBy,
+    convertedBy: artifacts.convertedBy,
+    weightsManifest: manifest
+  };
+  if (artifacts.signature != null) {
+    result.signature = artifacts.signature;
+  }
+  if (artifacts.userDefinedMetadata != null) {
+    result.userDefinedMetadata = artifacts.userDefinedMetadata;
+  }
+  if (artifacts.modelInitializer != null) {
+    result.modelInitializer = artifacts.modelInitializer;
+  }
+  if (artifacts.trainingConfig != null) {
+    result.trainingConfig = artifacts.trainingConfig;
+  }
+  return result;
+}
+
+/**
+ * Create `ModelArtifacts` from a JSON file.
+ *
+ * @param modelJSON Object containing the parsed JSON of `model.json`
+ * @param loadWeights Function that takes the JSON file's weights manifest,
+ *     reads weights from the listed path(s), and returns a Promise of the
+ *     weight manifest entries along with the weights data.
+ * @returns A Promise of the `ModelArtifacts`, as described by the JSON file.
+ */
+export async function getModelArtifactsForJSON(
+    modelJSON: ModelJSON,
+    loadWeights: (weightsManifest: WeightsManifestConfig) => Promise<[
+      /* weightSpecs */ WeightsManifestEntry[], /* weightData */ ArrayBuffer
+    ]>): Promise<ModelArtifacts> {
+  const modelArtifacts: ModelArtifacts = {
+    modelTopology: modelJSON.modelTopology,
+    format: modelJSON.format,
+    generatedBy: modelJSON.generatedBy,
+    convertedBy: modelJSON.convertedBy
+  };
+
+  if (modelJSON.trainingConfig != null) {
+    modelArtifacts.trainingConfig = modelJSON.trainingConfig;
+  }
+  if (modelJSON.weightsManifest != null) {
+    const [weightSpecs, weightData] =
+        await loadWeights(modelJSON.weightsManifest);
+    modelArtifacts.weightSpecs = weightSpecs;
+    modelArtifacts.weightData = weightData;
+  }
+  if (modelJSON.signature != null) {
+    modelArtifacts.signature = modelJSON.signature;
+  }
+  if (modelJSON.userDefinedMetadata != null) {
+    modelArtifacts.userDefinedMetadata = modelJSON.userDefinedMetadata;
+  }
+  if (modelJSON.modelInitializer != null) {
+    modelArtifacts.modelInitializer = modelJSON.modelInitializer;
+  }
+
+  return modelArtifacts;
 }
 
 /**
