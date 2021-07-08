@@ -118,7 +118,6 @@ function setupBenchmarkEnv(config) {
 async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
   console.log('Preparing configuration files for the test runner.\n');
   setupBenchmarkEnv(config);
-
   console.log(
       `Starting benchmarks using ${cliArgs.webDeps ? 'cdn' : 'local'} ` +
       `dependencies...`);
@@ -147,7 +146,6 @@ function runBrowserStackBenchmark(tabId) {
   return new Promise((resolve, reject) => {
     const args = ['test', '--browserstack', `--browsers=${tabId}`];
     if (cliArgs.webDeps) args.push('--cdn');
-
     const command = `yarn ${args.join(' ')}`;
     console.log(`Running: ${command}`);
 
@@ -213,8 +211,7 @@ function setupHelpMessage() {
         'browsers can be benchmarked.'
   });
   parser.add_argument('--benchmarks', {
-    help: 'Run a preconfigured benchmark from a ' +
-        'user-specified JSON',
+    help: 'Run a preconfigured benchmark from a user-specified JSON',
     action: 'store'
   });
   parser.add_argument(
@@ -242,13 +239,13 @@ if (require.main === module) {
   if (cliArgs.benchmarks) {
     const filePath = resolve(cliArgs.benchmarks);
     if (fs.existsSync(filePath)) {
-      console.log('Found file at ' + filePath);
+      console.log(`Found file at ${filePath}`);
       const config = require(filePath);
       runBenchmarkFromFile(config);
     } else {
       throw new Error(
-          'File could not be found at ' + filePath +
-          '. Please provide a valid path.');
+          `File could not be found at ${filePath}. ` +
+          `Please provide a valid path.`);
     }
   }
 }
