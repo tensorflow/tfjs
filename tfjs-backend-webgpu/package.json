@@ -68,7 +68,7 @@
   "dependencies": {
     "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
     "@webgpu/glslang": "0.0.12",
-    "@webgpu/types": "0.1.3"
+    "@webgpu/types": "0.1.4"
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../tfjs-core"
