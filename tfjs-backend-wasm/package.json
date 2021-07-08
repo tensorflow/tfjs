@@ -38,6 +38,7 @@
   "browser": {
     "fs": false,
     "path": false,
+    "os": false,
     "worker_threads": false,
     "perf_hooks": false
   },
