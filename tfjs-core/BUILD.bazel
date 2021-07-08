@@ -41,6 +41,7 @@ tfjs_bundle(
 )
 
 # ES Module es2017 compilation results. This is configured in tools/defaults.bzl
+# Outputs '.mjs' files
 filegroup(
     name = "es6_sources",
     srcs = [
@@ -51,7 +52,7 @@ filegroup(
     output_group = "es6_sources",
 )
 
-# Commonjs es2017 compilation results
+# Commonjs es2017 compilation results. Outputs '.js' files
 filegroup(
     name = "es5_sources",
     srcs = [

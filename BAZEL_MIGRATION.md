@@ -186,7 +186,7 @@ tfjs_web_test(
         "bs_chrome_mac",
         "bs_firefox_mac",
         "bs_safari_mac",
-        # "bs_ios_11", # TODO: Reenable ios 11
+        "bs_ios_11",
         "bs_android_9",
         "win_10_chrome",
     ],
@@ -202,3 +202,124 @@ tfjs_web_test(
 )
 ```
 
+### Package for npm
+We use the [pkg_npm](https://bazelbuild.github.io/rules_nodejs/Built-ins.html#pkg_npm) rule to create and publish the package to npm. However, there are a few steps needed before we can declare the package. For most packages, we distribute all our compiled outputs in the `dist` directory. However, due to how `ts_library` works, it creates outputs in the same directory as the source files were compiled from (except they show up in Bazel's `dist/bin` output dir). We need to copy these from `src` to `dist` while making sure Bazel is aware of this copy (so we can still use `pkg_npm`).
+
+We also need to copy several other files to `dist`, such as the bundles created by `tfjs_bundle`, and we need to create [miniprogram](https://walkthechat.com/wechat-mini-programs-simple-introduction/) files for WeChat.
+
+To copy files, we use the `copy_to_dist` rule. This rule creates symlinks to all the files in `srcs` and places them in a filetree with the same structure in `dest_dir` (which defaults to `dist`).
+
+However, we can't just copy the output of a `ts_library`, since its default output is the `.d.ts` declaration files. We need to extract the desired ES Module and CommonJS outputs of the rule by selecting the appropriate [output groups of ts_library](https://bazelbuild.github.io/rules_nodejs/TypeScript.html#accessing-javascript-outputs) with `filegroup` rules. The output groups are named `es6_sources` and `es5_sources`, but those names don't actually mean they're es6 and es5 javascript and are just an artifact of how `ts_library` was first written. Both outputs are actually es2017, as configured in `tools/defaults.bzl` and differ only in what module system they use.
+
+```starlark
+# ES Module es2017 compilation results. This is configured in tools/defaults.bzl
+# Outputs '.mjs' files
+filegroup(
+    name = "es6_sources",
+    srcs = [
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_src_lib",
+        "//tfjs-core/src:tfjs-core_test_lib",
+    ],
+    output_group = "es6_sources",
+)
+
+# Commonjs es2017 compilation results. Outputs '.js' files
+filegroup(
+    name = "es5_sources",
+    srcs = [
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_src_lib",
+        "//tfjs-core/src:tfjs-core_test_lib",
+    ],
+    output_group = "es5_sources",
+)
+```
+
+Once we have filegroups pointing to the output `.js` and `.mjs` files, we can use `copy_to_dist` to copy them.
+
+```starlark
+load("//tools:copy_to_dist.bzl", "copy_to_dist")
+
+copy_to_dist(
+    name = "copy_src_to_dist",
+    srcs = [
+        ":es5_sources",
+        ":es6_sources",
+        "//tfjs-core/src:tfjs-core_lib", # Copy .d.ts files as well
+        "//tfjs-core/src:tfjs-core_src_lib",
+        "//tfjs-core/src:tfjs-core_test_lib",
+    ],
+    root = "src",
+)
+```
+
+We can also copy the bundles output from `tfjs_bundle`
+
+```starlark
+copy_to_dist(
+    name = "copy_bundles",
+    srcs = [
+        ":tf-core",
+        ":tf-core.es2017",
+        ":tf-core.es2017.min",
+        ":tf-core.fesm",
+        ":tf-core.fesm.min",
+        ":tf-core.min",
+    ],
+)
+```
+
+We copy the miniprogram files as well, this time using the `copy_file` rule, which copies a single file to a destination.
+
+```starlark
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+
+copy_file(
+    name = "copy_miniprogram",
+    src = ":tf-core.min.js",
+    out = "dist/miniprogram/index.js",
+)
+
+copy_file(
+    name = "copy_miniprogram_map",
+    src = ":tf-core.min.js.map",
+    out = "dist/miniprogram/index.js.map",
+)
+```
+
+Now that all the files are copied, we can declare a `pkg_npm`
+
+```starlark
+load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm")
+
+pkg_npm(
+    name = "tfjs-core_pkg",
+    srcs = ["package.json"],
+    tags = ["ci"],
+    deps = [
+        ":copy_bundles",
+        ":copy_miniprogram",
+        ":copy_miniprogram_map",
+        ":copy_src_to_dist",
+        ":copy_test_snippets", # <- This is only in core
+    ],
+)
+```
+
+Now the package can be published to npm with `bazel run //tfjs-core:tfjs-core_pkg.publish`.
+
+
+### Publishing to npm
+With a `pkg_npm` rule defined, we add a script to `package.json` to run it. This script will be used by the main script that publishes the monorepo. 
+
+```json
+"scripts" {
+    "publish-npm": "bazel run :tfjs-core_pkg.publish"
+}
+```
+
+Since we now use the `publish-npm` script to publish this package instead of `npm publish`, we need to make sure the release tests and release script know how to publish it.
+
+1. In `scripts/publish-npm.ts`, add your package's name to the `BAZEL_PACKAGES` set.
+2. In `e2e/scripts/publish-tfjs-ci.sh`, add your package's name to the `BAZEL_PACKAGES` list.
