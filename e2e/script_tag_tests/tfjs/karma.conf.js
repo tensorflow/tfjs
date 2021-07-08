@@ -19,7 +19,7 @@ module.exports = function(config) {
   const args = [];
 
   const tfjsBundle = config.testBundle ? config.testBundle : 'tf.min.js';
-  const tfjsBundlePath = `../node_modules/@tensorflow/tfjs/dist/${tfjsBundle}`;
+  const tfjsBundlePath = `../../node_modules/@tensorflow/tfjs/dist/${tfjsBundle}`;
 
   const devConfig = {
     frameworks: ['jasmine'],
