@@ -19,7 +19,7 @@ import {KernelConfig, KernelFunc, NumericDataType, TensorInfo, TopK, TopKAttrs, 
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {topKImplCPU} from '../kernel_utils/shared';
-import {MergeProgram, SwapProgram} from '../top_k_gpu';
+import {FusedSwapProgram, MergeProgram, SwapProgram} from '../top_k_gpu';
 import {fill} from './Fill';
 import {gatherV2} from './GatherV2';
 import {reshape} from './Reshape';
@@ -108,12 +108,43 @@ export function topK(
     disposeIntermediateTensorInfoOrNull(backend, prevIndices);
   };
 
+  runSwap;
+
+
+  const runFusedSwap =
+      (len: number, incMin: number, incMax: number, shape: number[]) => {
+        const divideFactor = 4;
+        while (incMax >= incMin * divideFactor) {
+          const inputs = getInputs();
+          const program = new FusedSwapProgram(shape);
+          const customSetup = program.getCustomSetupFunc(
+              lastDim, indices === null /* firstPass */, len,
+              incMax / divideFactor, incMax);
+          const prevIndices = indices;
+          indices =
+              backend.runWebGLProgram(program, inputs, 'int32', customSetup);
+          disposeIntermediateTensorInfoOrNull(backend, prevIndices);
+
+          incMax /= divideFactor;
+        }
+        const inputs = getInputs();
+        const program = new FusedSwapProgram(shape);
+        const customSetup = program.getCustomSetupFunc(
+            lastDim, indices === null /* firstPass */, len, incMin, incMax);
+        const prevIndices = indices;
+        indices =
+            backend.runWebGLProgram(program, inputs, 'int32', customSetup);
+        disposeIntermediateTensorInfoOrNull(backend, prevIndices);
+      };
+
+  runFusedSwap;
   // Step 1: local sort
   for (let len = 1; len < kPow2; len *= 2) {
-    const dir = len * 2;
-    for (let inc = len; inc >= 1; inc /= 2) {
-      runSwap(dir, inc, [batch, lastDimPow2]);
-    }
+    // const dir = len * 2;
+    runFusedSwap(len, 1, len, [batch, lastDimPow2]);
+    // for (let inc = len; inc >= 1; inc /= 2) {
+    // runSwap(dir, inc, [batch, lastDimPow2]);
+    // }
   }
 
   // Step 2: merge
@@ -129,10 +160,12 @@ export function topK(
 
     // Step 3: rebuild
     const len = kPow2 / 2;
-    const dir = len * 2;
-    for (let inc = len; inc >= 1; inc /= 2) {
-      runSwap(dir, inc, indices.shape);
-    }
+    // const dir = len * 2;
+
+    runFusedSwap(len, 1, len, indices.shape);
+    // for (let inc = len; inc >= 1; inc /= 2) {
+    //   runSwap(dir, inc, indices.shape);
+    // }
   }
 
   // Keep only the requested top K results instead of kPow2

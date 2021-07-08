@@ -121,6 +121,154 @@ export class SwapProgram implements GPGPUProgram {
   }
 }
 
+// Based on Algorithm 2 of Bitonic Top K, ref:
+// https://anilshanbhag.in/static/papers/gputopk_sigmod18.pdf
+// The original algorithm is based on computing the top K only, however
+// since for TFJS we require the indices of the top K values as well then the
+// algorithm found here is a bit modified. Rather than producing the values
+// at each step, the indices containing the top K are generated instead.
+// The output values are not generated to reduce the number of outputs in the
+// GPU, the values can easily be retrieved from the indices using a gather
+// op.
+export class FusedSwapProgram implements GPGPUProgram {
+  variableNames = ['x', 'indices'];
+  outputShape: number[];
+  userCode: string;
+
+  // Caching uniform location for speed.
+  n: WebGLUniformLocation;
+  firstPass: WebGLUniformLocation;
+  negativeInf: WebGLUniformLocation;
+
+  // Denotes iteration of outer loop of the swap stage (see Algorithm 2 in
+  // paper).
+  len: WebGLUniformLocation;
+  // Denotes bounds of inner loop of the swap stage (see Algorithm 2 in paper).
+  // The paper loops from inc = len down to 1 but here we allow any bounds since
+  // there is a tradeoff between having less shaders and doing more redundant
+  // operations since each thread can only compute one output.
+  incMin: WebGLUniformLocation;
+  incMax: WebGLUniformLocation;
+
+  /**
+   * @param shape desired output shape (can be larger than input shape, output
+   *                                    will be padded with -Infinity)
+   */
+  constructor(shape: number[]) {
+    this.outputShape = shape;
+
+    this.userCode = `
+       // Size of the original input of TopK
+       uniform int n;
+       // indicates if this is the first time swap is being used
+       // which means no indices input containing the top K is
+       // present yet.
+       uniform int firstPass;
+       uniform float negativeInf;
+       // Denotes length of monotonic part of the bitonic sequences that will
+       // be formed (first length lenMin sequences will be created, then
+       // lenMin + 1 and so on until lenMax - 1)
+       uniform int incMin;
+       uniform int incMax;
+       // Swaps pairs of indices (0, len),(1, len + 1),(2, len + 2)...,
+       // followed by pairs (0, len/2), (1, len/2 + 1), (2, len/2 + 2)...,
+       // and so on down to (0, 1), (2, 3), (4, 5)...
+       uniform int len;
+       // max K = max value of the uniform len above
+       const int MAX_LEN = 256;
+       void main() {
+         int indices[MAX_LEN];
+         ivec2 coords = getOutputCoords();
+         int batch = coords[0];
+         int elemIdx = coords[1];
+
+         // Find sequence that elemIdx lies in
+         int len2 = len * 2;
+         int sequenceStart = idiv(elemIdx, len2, 1.0) * len2;
+         int sequenceOffset = imod(elemIdx, len2);
+
+         for (int i = 0; i < MAX_LEN; i++) {
+           if (i >= len2) break;
+           int sequenceIndex = sequenceStart + i;
+           indices[i] = firstPass == 1 ? sequenceIndex
+                                       : int(getIndices(batch, sequenceIndex));
+         }
+
+         int incPow2 = incMax;
+         for (int inc = MAX_LEN; inc >= 1; inc--) {
+           if (inc < incMin) break;
+           if (inc != incPow2) continue;
+           incPow2 /= 2;
+
+           for (int sequenceOffset = 0; sequenceOffset < MAX_LEN; sequenceOffset++) {
+             if (sequenceOffset >= len2) break;
+             int dir = len * 2;
+              // We compare elements pair-wise within a group of size 2 * inc.
+              // The comparing rule for each group alternates between ascending
+              // and descending. Within each group, we compare each pair at
+              // positions i and i+inc. To decide whether an element at position i
+              // is x0 or x1, we mod it by 2 * inc, if the result is smaller than
+              // inc, it is in the first half of the group, we denote it as x0,
+              // otherwise we denote it as x1.
+              // For example, as shown in the Bitonic top K paper referenced above,
+              // Figure5(a) shows that element[1] is in the
+              // second half of the group when group size is 2, but it is in the
+              // first half of the group when group size is 4.
+              bool isFirstInPair = imod(sequenceOffset + sequenceStart, 2 * inc) < inc;
+
+              if (!isFirstInPair) continue;
+
+              int i0 = indices[sequenceOffset];
+              int i1 = indices[sequenceOffset + inc];
+              float x0 = i0 < n ? getX(batch, i0) : negativeInf;
+              float x1 = i1 < n ? getX(batch, i1) : negativeInf;
+
+              // Denotes which direction indices are in (ascending or descending).
+              bool reverse = imod(sequenceOffset + sequenceStart, 2 * dir) >= dir;
+              bool isGreater = x0 > x1 || (x0 == x1 && i1 > i0);
+              if (reverse == isGreater) { // Elements in opposite order of direction
+                int iTemp = i0;
+                i0 = i1;
+                i1 = iTemp;
+              }
+              indices[sequenceOffset] = i0;
+              indices[sequenceOffset + inc] = i1;
+            }
+         }
+         for (int i = 0; i < MAX_LEN; i++) {
+           if (i == sequenceOffset) setOutput(float(indices[i]));
+         }
+       }
+    `;
+  }
+
+  getCustomSetupFunc(
+      n: number, firstPass: boolean, len: number, incMin: number,
+      incMax: number) {
+    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
+      const intUniforms:
+          Array<['n' | 'firstPass' | 'incMin' | 'incMax' | 'len', number]> = [
+            ['n', n], ['firstPass', firstPass ? 1 : 0], ['incMin', incMin],
+            ['incMax', incMax], ['len', len]
+          ];
+
+      intUniforms.forEach(([uniformName, uniformValue]) => {
+        if (this[uniformName] == null) {
+          this[uniformName] =
+              gpgpu.getUniformLocation(webGLProgram, uniformName, false);
+        }
+        gpgpu.gl.uniform1i(this[uniformName], uniformValue);
+      });
+
+      if (this.negativeInf == null) {
+        this.negativeInf =
+            gpgpu.getUniformLocation(webGLProgram, 'negativeInf', false);
+      }
+      gpgpu.gl.uniform1f(this.negativeInf, Number.NEGATIVE_INFINITY);
+    };
+  }
+}
+
 export class MergeProgram implements GPGPUProgram {
   variableNames = ['x', 'indices'];
   outputShape: number[];
