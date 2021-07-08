@@ -37,6 +37,7 @@ export enum BinaryOpType {
   COMPLEX_MULTIPLY_IMAG
 }
 
+// GLSL shader.
 const CHECK_NAN_SNIPPET = `
   if (isnan(a)) return a;
   if (isnan(b)) return b;
@@ -112,7 +113,7 @@ const LOGICAL_AND = 'return float(float(a) >= 1.0 && float(b) >= 1.0);';
 const LOGICAL_AND_VEC4 = `return vec4(
   vec4(greaterThanEqual(a, vec4(1.0))) *
   vec4(greaterThanEqual(b, vec4(1.0))));`;
-const MUL ='return a * b;';
+const MUL = 'return a * b;';
 const NOT_EQUAL = 'return float(a != b);';
 const NOT_EQUAL_VEC4 = 'return vec4(notEqual(a, b));';
 const POW = `

@@ -20,6 +20,10 @@ import {test_util} from '@tensorflow/tfjs-core';
 import {describeWebGPU} from './test_util';
 
 describeWebGPU('matmul', () => {
+  beforeAll(() => {
+    // For MatMulPackedVec4Program WGSL.
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
+  });
   it('it works in delayed mode.', async () => {
     const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
     tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 15);
