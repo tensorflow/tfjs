@@ -31,8 +31,8 @@ function getBrowserStackConfig() {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_ACCESS_KEY,
       apiClientEndpoint: 'https://api.browserstack.com',
-      tunnelIdentifier:
-          `e2e_browserstack_benchmark_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+      tunnelIdentifier: `e2e_browserstack_benchmark_${Date.now()}_${
+          Math.floor(Math.random() * 1000)}`
     },
     customLaunchers: {},
     browsers: []
@@ -57,12 +57,16 @@ module.exports = function(config) {
     ...extraConfig,
     frameworks: ['jasmine'],
     files: [
-      'https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js',
-      'https://unpkg.com/@tensorflow/tfjs-backend-cpu@latest/dist/tf-backend-cpu.js',
-      'https://unpkg.com/@tensorflow/tfjs-backend-webgl@latest/dist/tf-backend-webgl.js',
-      'https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js',
-      'https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js',
-      'https://unpkg.com/@tensorflow/tfjs-backend-wasm@latest/dist/tf-backend-wasm.js',
+      './node_modules/@tensorflow/tfjs-core/dist/tf-core.js',
+      './node_modules/@tensorflow/tfjs-backend-cpu/dist/tf-backend-cpu.js',
+      './node_modules/@tensorflow/tfjs-backend-webgl/dist/tf-backend-webgl.js',
+      './node_modules/@tensorflow/tfjs-layers/dist/tf-layers.js',
+      './node_modules/@tensorflow/tfjs-converter/dist/tf-converter.js',
+      './node_modules/@tensorflow/tfjs-backend-wasm/dist/tf-backend-wasm.js', {
+        pattern: './node_modules/@tensorflow/tfjs-backend-wasm/dist/*',
+        included: false,
+        served: true
+      },
       {pattern: './benchmark_parameters.json', included: false, served: true},
       '../util.js', '../benchmark_util.js', '../model_config.js',
       'benchmark_models.js'

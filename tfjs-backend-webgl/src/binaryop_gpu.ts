@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 
 export const CHECK_NAN_SNIPPET = `
   if (isnan(a)) return a;
@@ -29,9 +29,11 @@ export class BinaryOpProgram implements GPGPUProgram {
   variableNames = ['A', 'B'];
   outputShape: number[];
   userCode: string;
+  enableShapeUniforms: boolean;
 
   constructor(op: string, aShape: number[], bShape: number[]) {
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     this.userCode = `
       float binaryOperation(float a, float b) {
         ${op}

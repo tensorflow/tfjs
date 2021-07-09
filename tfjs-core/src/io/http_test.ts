@@ -52,6 +52,11 @@ const modelTopology1: {} = {
   }],
   'backend': 'tensorflow'
 };
+const trainingConfig1: tf.io.TrainingConfig = {
+  loss: 'categorical_crossentropy',
+  metrics: ['accuracy'],
+  optimizer_config: {class_name: 'SGD', config: {learningRate: 0.1}}
+};
 
 let fetchSpy: jasmine.Spy;
 
@@ -196,7 +201,8 @@ describeWithFlags('http-save', CHROME_ENVS, () => {
     convertedBy: null,
     signature: null,
     userDefinedMetadata: {},
-    modelInitializer: {}
+    modelInitializer: {},
+    trainingConfig: trainingConfig1
   };
 
   let requestInits: RequestInit[] = [];
@@ -238,11 +244,13 @@ describeWithFlags('http-save', CHROME_ENVS, () => {
           const jsonFile = body.get('model.json') as File;
           const jsonFileReader = new FileReader();
           jsonFileReader.onload = (event: Event) => {
-            // tslint:disable-next-line:no-any
-            const modelJSON = JSON.parse((event.target as any).result);
+            const modelJSON =
+                // tslint:disable-next-line:no-any
+                JSON.parse((event.target as any).result) as tf.io.ModelJSON;
             expect(modelJSON.modelTopology).toEqual(modelTopology1);
             expect(modelJSON.weightsManifest.length).toEqual(1);
             expect(modelJSON.weightsManifest[0].weights).toEqual(weightSpecs1);
+            expect(modelJSON.trainingConfig).toEqual(trainingConfig1);
 
             const weightsFile = body.get('model.weights.bin') as File;
             const weightsFileReader = new FileReader();
@@ -343,8 +351,9 @@ describeWithFlags('http-save', CHROME_ENVS, () => {
           const jsonFile = body.get('model.json') as File;
           const jsonFileReader = new FileReader();
           jsonFileReader.onload = (event: Event) => {
-            // tslint:disable-next-line:no-any
-            const modelJSON = JSON.parse((event.target as any).result);
+            const modelJSON =
+                // tslint:disable-next-line:no-any
+                JSON.parse((event.target as any).result) as tf.io.ModelJSON;
             expect(modelJSON.format).toEqual('layers-model');
             expect(modelJSON.generatedBy).toEqual('TensorFlow.js v0.0.0');
             expect(modelJSON.convertedBy).toEqual(null);
@@ -352,6 +361,7 @@ describeWithFlags('http-save', CHROME_ENVS, () => {
             expect(modelJSON.modelInitializer).toEqual({});
             expect(modelJSON.weightsManifest.length).toEqual(1);
             expect(modelJSON.weightsManifest[0].weights).toEqual(weightSpecs1);
+            expect(modelJSON.trainingConfig).toEqual(trainingConfig1);
 
             const weightsFile = body.get('model.weights.bin') as File;
             const weightsFileReader = new FileReader();
@@ -747,26 +757,25 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
           .toEqual(new Float32Array([-7, -4]));
     });
 
-    it('Missing modelTopology and weightsManifest leads to error',
-       async () => {
-         setupFakeWeightFiles(
-             {
-               'path1/model.json':
-                   {data: JSON.stringify({}), contentType: 'application/json'}
-             },
-             requestInits);
-         const handler = tf.io.http('path1/model.json');
-         handler.load()
-             .then(modelTopology1 => {
-               fail(
-                   'Loading from missing modelTopology and weightsManifest ' +
-                   'succeeded unexpectedly.');
-             })
-             .catch(err => {
-               expect(err.message)
-                   .toMatch(/contains neither model topology or manifest/);
-             });
-       });
+    it('Missing modelTopology and weightsManifest leads to error', async () => {
+      setupFakeWeightFiles(
+          {
+            'path1/model.json':
+                {data: JSON.stringify({}), contentType: 'application/json'}
+          },
+          requestInits);
+      const handler = tf.io.http('path1/model.json');
+      handler.load()
+          .then(modelTopology1 => {
+            fail(
+                'Loading from missing modelTopology and weightsManifest ' +
+                'succeeded unexpectedly.');
+          })
+          .catch(err => {
+            expect(err.message)
+                .toMatch(/contains neither model topology or manifest/);
+          });
+    });
 
     it('with fetch rejection leads to error', async () => {
       setupFakeWeightFiles(
@@ -870,7 +879,8 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
         return new Response(
             JSON.stringify({
               modelTopology: modelTopology1,
-              weightsManifest: weightManifest1
+              weightsManifest: weightManifest1,
+              trainingConfig: trainingConfig1
             }),
             {status: 200, headers: {'content-type': 'application/json'}});
       } else if (input === './weightfile0') {
@@ -888,6 +898,7 @@ describeWithFlags('http-load', BROWSER_ENVS, () => {
         {requestInit: {credentials: 'include'}, fetchFunc: customFetch});
     const modelArtifacts = await handler.load();
     expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
+    expect(modelArtifacts.trainingConfig).toEqual(trainingConfig1);
     expect(modelArtifacts.weightSpecs).toEqual(weightManifest1[0].weights);
     expect(new Float32Array(modelArtifacts.weightData)).toEqual(floatData);
 
