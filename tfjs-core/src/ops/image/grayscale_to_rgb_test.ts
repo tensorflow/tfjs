@@ -17,7 +17,7 @@
 
 import * as tf from '../../index';
 import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
-import {expectArraysEqual} from '../../test_util';
+import {expectArraysClose} from '../../test_util';
 
 describeWithFlags('grayscaleToRGB', ALL_ENVS, () => {
   it('should convert (,1,3,1) images into (,1,3,3)', async () => {
@@ -28,7 +28,7 @@ describeWithFlags('grayscaleToRGB', ALL_ENVS, () => {
 
     const expected = [1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0];
 
-    expectArraysEqual(rgbData, expected);
+    expectArraysClose(rgbData, expected);
   });
 
   it('should throw error because of input last dim is not 1', async () => {
