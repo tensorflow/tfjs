@@ -83,8 +83,8 @@ int ib = int(round(b));
 return float(idiv(ia, ib, s));
 `;
 const INT_DIV_VEC4 = `
-ivec4 ia = round(a);
-ivec4 ib = round(b);
+ivec4 ia = ivec4(round(a));
+ivec4 ib = ivec4(round(b));
 bvec4 cond = notEqual(ib, ivec4(0));
 ivec4 result = ivec4(0);
 vec4 s = sign(a) * sign(b);
@@ -112,7 +112,7 @@ const LOGICAL_AND = 'return float(float(a) >= 1.0 && float(b) >= 1.0);';
 const LOGICAL_AND_VEC4 = `return vec4(
   vec4(greaterThanEqual(a, vec4(1.0))) *
   vec4(greaterThanEqual(b, vec4(1.0))));`;
-const MUL ='return a * b;';
+const MUL = 'return a * b;';
 const NOT_EQUAL = 'return float(a != b);';
 const NOT_EQUAL_VEC4 = 'return vec4(notEqual(a, b));';
 const POW = `

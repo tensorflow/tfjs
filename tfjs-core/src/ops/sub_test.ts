@@ -157,6 +157,16 @@ describeWithFlags('sub', ALL_ENVS, () => {
     expectArraysClose(await res.data(), [2, 3, 4, 5, 6, 7]);
   });
 
+  it('vec4 same shape', async () => {
+    const a = tf.tensor2d([1, 2, -3, -4], [2, 2]);
+    const b = tf.tensor2d([5, 3, 4, -7], [2, 2]);
+    const expected = [-4, -1, -7, 3];
+    const result = tf.sub(a, b);
+
+    expect(result.shape).toEqual([2, 2]);
+    expectArraysClose(await result.data(), expected);
+  });
+
   it('gradients: basic 1D arrays', async () => {
     const a = tf.tensor1d([1, 2, 3]);
     const b = tf.tensor1d([3, 2, 1]);
