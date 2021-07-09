@@ -67,6 +67,11 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
     }
   ];
   const weightData1 = new ArrayBuffer(16);
+  const trainingConfig1: tf.io.TrainingConfig = {
+    loss: 'categorical_crossentropy',
+    metrics: ['accuracy'],
+    optimizer_config: {class_name: 'SGD', config: {learningRate: 0.1}}
+  };
 
   const artifacts1: tf.io.ModelArtifacts = {
     modelTopology: modelTopology1,
@@ -77,7 +82,8 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
     convertedBy: '1.13.1',
     signature: null,
     userDefinedMetadata: {},
-    modelInitializer: {}
+    modelInitializer: {},
+    trainingConfig: trainingConfig1,
   };
 
   const artifactsV0: tf.io.ModelArtifacts = {
@@ -179,6 +185,7 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
     expect(loaded.convertedBy).toEqual('1.13.1');
     expect(loaded.userDefinedMetadata).toEqual({});
     expect(loaded.modelInitializer).toEqual({});
+    expect(loaded.trainingConfig).toEqual(trainingConfig1);
   });
 
   it('Save-load round trip succeeds: v0 format', async () => {
@@ -194,6 +201,7 @@ describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
     expect(loaded.generatedBy).toBeUndefined();
     expect(loaded.convertedBy).toBeUndefined();
     expect(loaded.userDefinedMetadata).toBeUndefined();
+    expect(loaded.trainingConfig).toBeUndefined();
   });
 
   it('Loading nonexistent model fails.', done => {

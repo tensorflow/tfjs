@@ -76,6 +76,11 @@ describe('File system IOHandler', () => {
     }
   ];
   const weightData1 = new ArrayBuffer(16);
+  const trainingConfig1: tf.io.TrainingConfig = {
+    loss: 'categorical_crossentropy',
+    metrics: ['accuracy'],
+    optimizer_config: {class_name: 'SGD', config: {learningRate: 0.1}}
+  };
 
   let testDir: string;
   beforeEach(async done => {
@@ -149,6 +154,7 @@ describe('File system IOHandler', () => {
           modelTopology: modelTopology1,
           weightSpecs: weightSpecs1,
           weightData: weightData1,
+          trainingConfig: trainingConfig1,
         })
         .then(saveResult => {
           const modelJSONPath = path.join(testDir, 'model.json');
@@ -157,6 +163,8 @@ describe('File system IOHandler', () => {
               .then(modelArtifacts => {
                 expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
                 expect(modelArtifacts.weightSpecs).toEqual(weightSpecs1);
+                expect(modelArtifacts.trainingConfig).toEqual(trainingConfig1);
+
                 expect(new Float32Array(modelArtifacts.weightData))
                     .toEqual(new Float32Array([0, 0, 0, 0]));
                 done();
@@ -495,6 +503,22 @@ describe('File system IOHandler', () => {
       'outputLabels': ['Label1', 'Label2', 'Label3']
     });
   });
+
+  it('Compile, save with includeOptimizer: true, load and fit model',
+     async () => {
+       const model = tf.sequential();
+       model.add(tf.layers.dense({units: 3, inputShape: [4]}));
+       model.compile(
+           {optimizer: 'sgd', loss: 'meanSquaredError', metrics: ['accuracy']});
+
+       const saveURL = `file://${testDir}`;
+       const loadURL = `file://${testDir}/model.json`;
+
+       await model.save(saveURL, {includeOptimizer: true});
+       const model2 = await tf.loadLayersModel(loadURL);
+       expect(() => model2.fit(tf.zeros([1, 4]), tf.zeros([1, 3])))
+           .not.toThrow();
+     });
 
   describe('nodeFileSystemRouter', () => {
     it('should handle single path', () => {
