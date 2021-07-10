@@ -432,7 +432,9 @@ const TEST_FILTERS: TestFilter[] = [
       'ignores NaNs'  // Doesn't yet ignore NaN
     ]
   },
-  {include: 'image.transform'}
+  {include: 'image.transform'},
+  {include: 'batchToSpaceND'},
+  {include: 'spaceToBatchND'},
 ];
 
 const customInclude = (testName: string) => {

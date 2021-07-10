@@ -28,6 +28,7 @@ import {anyConfig} from './kernels/Any';
 import {argMaxConfig} from './kernels/ArgMax';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
+import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
@@ -97,6 +98,7 @@ import {sigmoidConfig} from './kernels/Sigmoid';
 import {sinConfig} from './kernels/Sin';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
+import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
@@ -124,6 +126,7 @@ const kernelConfigs: KernelConfig[] = [
   argMaxConfig,
   avgPoolConfig,
   batchMatMulConfig,
+  batchToSpaceNDConfig,
   castConfig,
   ceilConfig,
   clipByValueConfig,
@@ -194,6 +197,7 @@ const kernelConfigs: KernelConfig[] = [
   sinConfig,
   sliceConfig,
   softmaxConfig,
+  spaceToBatchNDConfig,
   splitVConfig,
   sqrtConfig,
   squareConfig,
