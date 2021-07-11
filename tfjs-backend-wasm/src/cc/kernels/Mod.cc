@@ -41,7 +41,8 @@ void Mod(const size_t a_id, const size_t* a_shape_ptr, const size_t a_shape_len,
       break;
     case DType::int32:
       binary_i32(a_id, b_id, out_id, [](int a, int b) {
-        return static_cast<int32_t>(static_cast<float>(a) - floor(static_cast<float>(a) / b) * b);
+        return static_cast<int32_t>(static_cast<float>(a) -
+                                    floor(static_cast<float>(a) / b) * b);
       });
       break;
     default:
