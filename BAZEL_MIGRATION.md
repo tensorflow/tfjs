@@ -209,34 +209,22 @@ We also need to copy several other files to `dist`, such as the bundles created 
 
 To copy files, we use the `copy_to_dist` rule. This rule creates symlinks to all the files in `srcs` and places them in a filetree with the same structure in `dest_dir` (which defaults to `dist`).
 
-However, we can't just copy the output of a `ts_library`, since its default output is the `.d.ts` declaration files. We need to extract the desired ES Module and CommonJS outputs of the rule by selecting the appropriate [output groups of ts_library](https://bazelbuild.github.io/rules_nodejs/TypeScript.html#accessing-javascript-outputs) with `filegroup` rules. The output groups are named `es6_sources` and `es5_sources`, but those names don't actually mean they're es6 and es5 javascript and are just an artifact of how `ts_library` was first written. Both outputs are actually es2017, as configured in `tools/defaults.bzl` and differ only in what module system they use.
+However, we can't just copy the output of a `ts_library`, since its default output is the `.d.ts` declaration files. We need to extract the desired ES Module `.mjs` and CommonJS `.js` outputs of the rule by selecting the appropriate [output groups of ts_library](https://bazelbuild.github.io/rules_nodejs/TypeScript.html#accessing-javascript-outputs) with the `filegroup` rule. We provide the `ts_library_outputs` macro to select these outputs and combine them all into a single filegroup target.
 
 ```starlark
-# ES Module es2017 compilation results. This is configured in tools/defaults.bzl
-# Outputs '.mjs' files
-filegroup(
-    name = "es6_sources",
-    srcs = [
-        "//tfjs-core/src:tfjs-core_lib",
-        "//tfjs-core/src:tfjs-core_src_lib",
-        "//tfjs-core/src:tfjs-core_test_lib",
-    ],
-    output_group = "es6_sources",
-)
+load("//tools:ts_library_outputs.bzl", "ts_library_outputs")
 
-# Commonjs es2017 compilation results. Outputs '.js' files
-filegroup(
-    name = "es5_sources",
+ts_library_outputs(
+    name = "tfjs-core_outputs",
     srcs = [
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
         "//tfjs-core/src:tfjs-core_test_lib",
-    ],
-    output_group = "es5_sources",
+    ]
 )
 ```
 
-Once we have filegroups pointing to the output `.js` and `.mjs` files, we can use `copy_to_dist` to copy them.
+Once we have a filegroup pointing to the output `.js`, `.mjs`, and `.d.ts` files, we can use `copy_to_dist` to copy them.
 
 ```starlark
 load("//tools:copy_to_dist.bzl", "copy_to_dist")
@@ -244,11 +232,7 @@ load("//tools:copy_to_dist.bzl", "copy_to_dist")
 copy_to_dist(
     name = "copy_src_to_dist",
     srcs = [
-        ":es5_sources",
-        ":es6_sources",
-        "//tfjs-core/src:tfjs-core_lib", # Copy .d.ts files as well
-        "//tfjs-core/src:tfjs-core_src_lib",
-        "//tfjs-core/src:tfjs-core_test_lib",
+        ":tfjs-core_outputs",
     ],
     root = "src",
 )
