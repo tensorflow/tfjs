@@ -16,13 +16,14 @@
  */
 
 import {getGlslDifferences} from './glsl_version';
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 import * as shader_util from './shader_compiler_util';
 
 export class EncodeMatrixProgram implements GPGPUProgram {
   variableNames = ['A'];
   userCode: string;
   outputShape: number[];
+  enableShapeUniforms: boolean;
 
   constructor(
       outputShape: [number, number, number], texShape: [number, number],
@@ -30,14 +31,28 @@ export class EncodeMatrixProgram implements GPGPUProgram {
     const glsl = getGlslDifferences();
     const [height, width] = texShape;
     this.outputShape = outputShape;
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
 
     let output = `result`;
     if (inputIsUnsignedByte) {
       output = `floor(result * 255. + 0.5)`;
     }
 
+    const texShapeSnippet = this.enableShapeUniforms ? `
+    int r = flatIndex / ATexShape[1];
+    int c = imod(flatIndex, ATexShape[1]);
+    vec2 uv = (vec2(c, r) + halfCR) / vec2(float(ATexShape[1]), float(ATexShape[0]));
+    ` :
+                                                       `
+    int r = flatIndex / ${width};
+    int c = imod(flatIndex, ${width});
+    vec2 uv = (vec2(c, r) + halfCR) / vec2(${width}.0, ${height}.0);
+                                                     `;
+
     this.userCode = `
-      ${shader_util.getFlatIndexFrom3D(outputShape)}
+      ${
+        this.enableShapeUniforms ? shader_util.getFlatIndexFrom3DOutput() :
+                                   shader_util.getFlatIndexFrom3D(outputShape)}
 
       void main() {
         ivec3 coords = getOutputCoords();
@@ -47,9 +62,7 @@ export class EncodeMatrixProgram implements GPGPUProgram {
 
         flatIndex = idiv(flatIndex, 4, 1.);
 
-        int r = flatIndex / ${width};
-        int c = imod(flatIndex, ${width});
-        vec2 uv = (vec2(c, r) + halfCR) / vec2(${width}.0, ${height}.0);
+        ${texShapeSnippet}
         vec4 values = ${glsl.texture2D}(A, uv);
 
         float result;

@@ -16,9 +16,9 @@
  */
 
 import {getGlslDifferences} from './glsl_version';
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 import * as shader_util from './shader_compiler_util';
-import {getDenseTexShape, PackingScheme} from './tex_util';
+import {PackingScheme} from './tex_util';
 
 export class DecodeMatrixPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
@@ -27,24 +27,36 @@ export class DecodeMatrixPackedProgram implements GPGPUProgram {
   packedOutput = true;
   outputShape: [number, number, number];
   outPackingScheme = PackingScheme.DENSE;
+  enableShapeUniforms: boolean;
+  customUniforms = [{name: 'denseTexShape', type: 'ivec2' as const }];
 
-  constructor(outputShape: [number, number, number]) {
-    const texShape = getDenseTexShape(outputShape);
+  constructor(outputShape: [number, number, number], texShape: number[]) {
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
 
+    const texShapeSnippet = this.enableShapeUniforms ? `
+        vec2(denseTexShape[0], denseTexShape[1]));
+    int index = 4 * (resTexRC.x * denseTexShape[1] + resTexRC.y);
+    ` :
+                                                       `
+        vec2(${texShape[0]}, ${texShape[1]}));
+    int index = 4 * (resTexRC.x * ${texShape[1]} + resTexRC.y);
+    `;
     this.userCode = `
       ivec3 outCoordsFromFlatIndex(int index) {
         ${
-        shader_util.getLogicalCoordinatesFromFlatIndex(
-            ['r', 'c', 'd'], outputShape)}
+        this.enableShapeUniforms ?
+            shader_util.getLogicalCoordinatesFromFlatIndexByUniform(
+                ['r', 'c', 'd'], outputShape) :
+            shader_util.getLogicalCoordinatesFromFlatIndex(
+                ['r', 'c', 'd'], outputShape)}
         return ivec3(r, c, d);
       }
 
       void main() {
         ivec2 resTexRC = ivec2(resultUV.yx *
-          vec2(${texShape[0]}, ${texShape[1]}));
-        int index = 4 * (resTexRC.x * ${texShape[1]} + resTexRC.y);
+        ${texShapeSnippet}
 
         vec4 result = vec4(0.);
 
