@@ -389,6 +389,9 @@ export interface GatherV2Attrs {
 export const GatherNd = 'GatherNd';
 export type GatherNdInputs = Pick<NamedTensorInfoMap, 'params'|'indices'>;
 
+export const GrayscaleToRGB = 'GrayscaleToRGB';
+export type GrayscaleToRGBInputs = Pick<NamedTensorInfoMap, 'image'>;
+
 export const Greater = 'Greater';
 export type GreaterInputs = BinaryInputs;
 

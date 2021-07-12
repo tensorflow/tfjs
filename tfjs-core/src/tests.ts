@@ -110,6 +110,7 @@ import './ops/greater_test';
 import './ops/ifft_test';
 import './ops/image/crop_and_resize_test';
 import './ops/image/flip_left_right_test';
+import './ops/image/grayscale_to_rgb_test';
 import './ops/image/non_max_suppression_async_test';
 import './ops/image/non_max_suppression_test';
 import './ops/image/resize_bilinear_test';
