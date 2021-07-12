@@ -33,8 +33,9 @@ const db = firebase.firestore().collection("Test");
 function addResultToFirestore(result) {
   let firestoreMap = {};
   firestoreMap.device = result.value.tabId;
-  firestoreMap.timeInfo = result.value.timeInfo;
-  firestoreMap.memoryInfo = JSON.stringify(result.value.memoryInfo);
+  //firestoreMap.timeInfo = result.value.timeInfo;
+  //firestoreMap.memoryInfo = JSON.stringify(result.value.memoryInfo);
+  firestoreMap.benchmarkInfo = serializeTensors(result).value;
 
   db.add({
     result: firestoreMap
@@ -42,6 +43,15 @@ function addResultToFirestore(result) {
   .then((ref) => {
     console.log("Added document to Firebase with ID: ", ref.id);
   });
+}
+
+function serializeTensors(result) {
+  let kernels = result.value.memoryInfo.kernels;
+  for (kernel of kernels) {
+    kernel.inputShapes = JSON.stringify(kernel.inputShapes);
+    kernel.outputShapes = JSON.stringify(kernel.outputShapes);
+  }
+  return result
 }
 
 exports.addResultToFirestore = addResultToFirestore;
