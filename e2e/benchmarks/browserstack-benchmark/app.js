@@ -23,7 +23,7 @@ const {execFile} = require('child_process');
 const {ArgumentParser} = require('argparse');
 const {version} = require('./package.json');
 const {resolve} = require('path')
-const {addResultToFirestore} = require('./firebase.js');
+const {addResultToFirestore} = require('./firestore.js');
 
 const port = process.env.PORT || 8001;
 let io;
@@ -135,7 +135,7 @@ async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
     await write('./benchmark_results.json', fulfilled);
   }
   /** Push results to Firestore if user wants */
-  if (require.main === module && cliArgs.firebase) {
+  if (require.main === module && cliArgs.firestore) {
     for (result of fulfilled) {
       addResultToFirestore(result);
     }
@@ -225,7 +225,7 @@ function setupHelpMessage() {
     action: 'store'
   });
   parser.add_argument(
-    '--firebase', {help: 'Store benchmark results in Firestore database',
+    '--firestore', {help: 'Store benchmark results in Firestore database',
      action: 'store_true'});
   parser.add_argument(
       '--outfile', {help: 'write results to outfile', action: 'store_true'});

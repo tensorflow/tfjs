@@ -46,10 +46,10 @@ The Multi-device benchmark tool can benchmark the performance (time, memory) of 
     ``` shell
     node app.js --benchmarks preconfigured_browser.json
     ```
-  * --firebase
-    - Optional argument that pushes benchmark results to a Firebase database.
+  * --firestore
+    - Optional argument that pushes benchmark results to a Firestore database.
     ```shell
-    node app.js --firebase
+    node app.js --firestore
     ```
   * --outfile
     - Optional argument that writes results to an accessible external file, benchmark_results.json.
