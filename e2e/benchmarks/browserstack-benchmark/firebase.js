@@ -27,14 +27,24 @@ const firebaseConfig = {
 };
 require("firebase/firestore");
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore().collection("Test");
 
+/**
+*Reference to the "posts" collection on firestore that contains benchmark
+*results.
+*/
+const db = firebase.firestore().collection("posts");
 
+/**
+ * After being returned from Browserstack, benchmark results are stored as
+ * a list of fulfilled promises.
+ *
+ * As results are being iterated through, this function handles taking a result,
+ * serializing it, and pushing it to Firestore.
+ *
+ * @param result Individual result in a list of fulfilled promises
+ */
 function addResultToFirestore(result) {
   let firestoreMap = {};
-  firestoreMap.device = result.value.tabId;
-  //firestoreMap.timeInfo = result.value.timeInfo;
-  //firestoreMap.memoryInfo = JSON.stringify(result.value.memoryInfo);
   firestoreMap.benchmarkInfo = serializeTensors(result).value;
 
   db.add({
@@ -45,6 +55,13 @@ function addResultToFirestore(result) {
   });
 }
 
+/**
+ *Benchmark results contain tensors that are represented as nested arrays.
+ *Nested arrays are not supported on Firestore, so they are serialized
+ *before they are stored.
+ *
+ * @param result Individual result in a list of fulfilled promises
+ */
 function serializeTensors(result) {
   let kernels = result.value.memoryInfo.kernels;
   for (kernel of kernels) {
