@@ -745,15 +745,17 @@ export class MathBackendWebGL extends KernelBackend {
     const shapeAs3D =
         webgl_util.getShapeAs3D(shape) as [number, number, number];
     let program;
+    const denseTexShape = tex_util.getDenseTexShape(shapeAs3D);
     if (isPacked) {
-      program = new DecodeMatrixPackedProgram(shapeAs3D);
+      program = new DecodeMatrixPackedProgram(shapeAs3D, denseTexShape);
     } else {
-      program = new DecodeMatrixProgram(shapeAs3D);
+      program = new DecodeMatrixProgram(shapeAs3D, denseTexShape);
     }
     const preventEagerUnpackingOfOutput = true;
+    const customValues = [denseTexShape];
     const out = this.runWebGLProgram(
-        program, [{shape: shapeAs3D, dtype, dataId}], dtype,
-        null /* customUniformValues */, preventEagerUnpackingOfOutput);
+        program, [{shape: shapeAs3D, dtype, dataId}], dtype, customValues,
+        preventEagerUnpackingOfOutput);
     return {dtype, shape, dataId: out.dataId};
   }
 
