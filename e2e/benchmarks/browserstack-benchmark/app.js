@@ -124,14 +124,22 @@ async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
         `dependencies...`);
   }
   const results = [];
+  let numActiveBenchmarks = 0;
   for (const tabId in config.browsers) {
     results.push(runOneBenchmark(tabId));
+    numActiveBenchmarks++;
+    if (cliArgs?.maxBenchmarks && numActiveBenchmarks >= cliArgs.maxBenchmarks) {
+      numActiveBenchmarks = 0;
+      await Promise.allSettled(results);
+    }
   }
 
   /** Optional outfile written once all benchmarks have returned results. */
   const fulfilled = await Promise.allSettled(results);
-  if (require.main === module && cliArgs.outfile) {
+  if (cliArgs?.outfile && cliArgs.outfile) {
     await write('./benchmark_results.json', fulfilled);
+  } else {
+    console.log('\nAll benchmarks complete.');
   }
   return fulfilled;
 }
@@ -155,16 +163,20 @@ function runBrowserStackBenchmark(tabId) {
       console.log(`benchmark ${tabId} completed.`);
       if (error) {
         console.log(error);
-        io.emit(
-            'benchmarkComplete',
-            {tabId, error: `Failed to run ${command}:\n${error}`});
+        if (!cliArgs.ci) {
+          io.emit(
+              'benchmarkComplete',
+              {tabId, error: `Failed to run ${command}:\n${error}`});
+        }
         return reject(`Failed to run ${command}:\n${error}`);
       }
 
       const errorReg = /.*\<tfjs_error\>(.*)\<\/tfjs_error\>/;
       const matchedError = stdout.match(errorReg);
       if (matchedError != null) {
-        io.emit('benchmarkComplete', {tabId, error: matchedError[1]});
+        if (!cliArgs.ci) {
+          io.emit('benchmarkComplete', {tabId, error: matchedError[1]});
+        }
         return reject(matchedError[1]);
       }
 
@@ -173,13 +185,13 @@ function runBrowserStackBenchmark(tabId) {
       if (matchedResult != null) {
         const benchmarkResult = JSON.parse(matchedResult[1]);
         benchmarkResult.tabId = tabId;
-        io.emit('benchmarkComplete', benchmarkResult);
+        if (!cliArgs.ci) io.emit('benchmarkComplete', benchmarkResult);
         return resolve(benchmarkResult);
       }
 
       const errorMessage = 'Did not find benchmark results from the logs ' +
           'of the benchmark test (benchmark_models.js).';
-      io.emit('benchmarkComplete', {error: errorMessage});
+      if (!cliArgs.ci) io.emit('benchmarkComplete', {error: errorMessage});
       return reject(errorMessage);
     });
   });
@@ -198,7 +210,7 @@ function write(filePath, msg) {
         console.log(`Error: ${err}.`);
         return reject(err);
       } else {
-        console.log('Output written.');
+        console.log('\nOutput written.');
         return resolve();
       }
     });
@@ -216,8 +228,18 @@ function setupHelpMessage() {
     help: 'Run a preconfigured benchmark from a user-specified JSON',
     action: 'store'
   });
+  parser.add_argument('--ci', {
+    help: 'runs cloud interface version of benchmarks',
+    action: 'store_true'
+  });
   parser.add_argument(
       '--outfile', {help: 'write results to outfile', action: 'store_true'});
+  parser.add_argument('--maxBenchmarks', {
+    help: 'the maximum number of benchmarks run in parallel',
+    type: 'int',
+    default: 5,
+    action: 'store'
+  });
   parser.add_argument('-v', '--version', {action: 'version', version});
   parser.add_argument('--webDeps', {
     help: 'utilizes public, web hosted dependencies instead of local versions',
@@ -237,11 +259,11 @@ function runBenchmarkFromFile(file, runBenchmark = benchmark) {
 if (require.main === module) {
   setupHelpMessage();
   checkBrowserStackAccount();
-  runServer();
+  if (!cliArgs.ci) runServer();
   if (cliArgs.benchmarks) {
     const filePath = resolve(cliArgs.benchmarks);
     if (fs.existsSync(filePath)) {
-      console.log(`Found file at ${filePath}`);
+      console.log(`\nFound file at ${filePath}`);
       const config = require(filePath);
       runBenchmarkFromFile(config);
     } else {
