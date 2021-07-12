@@ -288,6 +288,7 @@ tfjs_cc_library(
         ":Min",
         ":Minimum",
         ":MirrorPad",
+        ":Mod",
         ":Multiply",
         ":Neg",
         ":NonMaxSuppressionV3",
@@ -789,6 +790,16 @@ tfjs_cc_library(
     srcs = ["kernels/MirrorPad.cc"],
     deps = [
         ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Mod",
+    srcs = ["kernels/Mod.cc"],
+    deps = [
+        ":backend",
+        ":binary",
         ":util",
     ],
 )

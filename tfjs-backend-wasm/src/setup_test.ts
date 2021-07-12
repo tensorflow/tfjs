@@ -193,6 +193,14 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'mod ',
+    excludes: [
+      'gradient',  // Gradient not defined yet.
+      'upcasts',   // Cast not supported yet.
+      'divNoNan'   // divNoNan not yet implemented.
+    ]
+  },
+  {
     include: 'batchNorm',
     excludes: [
       'gradient'  // Gradient is missing.
