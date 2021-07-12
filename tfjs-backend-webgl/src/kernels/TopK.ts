@@ -47,7 +47,7 @@ export function topK(
     TensorInfo[] {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
-  const {k, sorted} = attrs;
+  const {k, sorted, divideFactor} = attrs;
 
   if (backend.shouldExecuteOnCPU([x])) {
     const xVals = backend.readSync(x.dataId) as TypedArray;
@@ -113,7 +113,6 @@ export function topK(
 
   const runFusedSwap =
       (len: number, incMin: number, incMax: number, shape: number[]) => {
-        const divideFactor = 4;
         while (incMax >= incMin * divideFactor) {
           const inputs = getInputs();
           const program = new FusedSwapProgram(shape);
@@ -137,7 +136,6 @@ export function topK(
         disposeIntermediateTensorInfoOrNull(backend, prevIndices);
       };
 
-  runFusedSwap;
   // Step 1: local sort
   for (let len = 1; len < kPow2; len *= 2) {
     // const dir = len * 2;
@@ -162,7 +160,7 @@ export function topK(
     const len = kPow2 / 2;
     // const dir = len * 2;
 
-    runFusedSwap(len, 1, len, indices.shape);
+    if (kPow2 > 1) runFusedSwap(len, 1, len, indices.shape);
     // for (let inc = len; inc >= 1; inc /= 2) {
     //   runSwap(dir, inc, indices.shape);
     // }

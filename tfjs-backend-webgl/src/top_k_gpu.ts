@@ -187,33 +187,26 @@ export class FusedSwapProgram implements GPGPUProgram {
          int sequenceStart = idiv(elemIdx, len2, 1.0) * len2;
          int sequenceOffset = imod(elemIdx, len2);
 
-         for (int i = 0; i < MAX_LEN; i++) {
-           if (i >= len2) break;
+         for (int i = 0; i < len2; i++) {
            int sequenceIndex = sequenceStart + i;
            indices[i] = firstPass == 1 ? sequenceIndex
                                        : int(getIndices(batch, sequenceIndex));
          }
 
-         int incPow2 = incMax;
-         for (int inc = MAX_LEN; inc >= 1; inc--) {
-           if (inc < incMin) break;
-           if (inc != incPow2) continue;
-           incPow2 /= 2;
-
-           for (int sequenceOffset = 0; sequenceOffset < MAX_LEN; sequenceOffset++) {
-             if (sequenceOffset >= len2) break;
+         for (int inc = incMax; inc >= incMin; inc /= 2) {
+           for (int sequenceOffset = 0; sequenceOffset < len2; sequenceOffset++) {
              int dir = len * 2;
-              // We compare elements pair-wise within a group of size 2 * inc.
-              // The comparing rule for each group alternates between ascending
-              // and descending. Within each group, we compare each pair at
-              // positions i and i+inc. To decide whether an element at position i
-              // is x0 or x1, we mod it by 2 * inc, if the result is smaller than
-              // inc, it is in the first half of the group, we denote it as x0,
-              // otherwise we denote it as x1.
-              // For example, as shown in the Bitonic top K paper referenced above,
-              // Figure5(a) shows that element[1] is in the
-              // second half of the group when group size is 2, but it is in the
-              // first half of the group when group size is 4.
+             // We compare elements pair-wise within a group of size 2 * inc.
+             // The comparing rule for each group alternates between ascending
+             // and descending. Within each group, we compare each pair at
+             // positions i and i+inc. To decide whether an element at position i
+             // is x0 or x1, we mod it by 2 * inc, if the result is smaller than
+             // inc, it is in the first half of the group, we denote it as x0,
+             // otherwise we denote it as x1.
+             // For example, as shown in the Bitonic top K paper referenced above,
+             // Figure5(a) shows that element[1] is in the
+             // second half of the group when group size is 2, but it is in the
+             // first half of the group when group size is 4.
               bool isFirstInPair = imod(sequenceOffset + sequenceStart, 2 * inc) < inc;
 
               if (!isFirstInPair) continue;
@@ -235,9 +228,7 @@ export class FusedSwapProgram implements GPGPUProgram {
               indices[sequenceOffset + inc] = i1;
             }
          }
-         for (int i = 0; i < MAX_LEN; i++) {
-           if (i == sequenceOffset) setOutput(float(indices[i]));
-         }
+         setOutput(float(indices[sequenceOffset]));
        }
     `;
   }
@@ -255,14 +246,14 @@ export class FusedSwapProgram implements GPGPUProgram {
       intUniforms.forEach(([uniformName, uniformValue]) => {
         if (this[uniformName] == null) {
           this[uniformName] =
-              gpgpu.getUniformLocation(webGLProgram, uniformName, false);
+              gpgpu.getUniformLocation(webGLProgram, uniformName);
         }
         gpgpu.gl.uniform1i(this[uniformName], uniformValue);
       });
 
       if (this.negativeInf == null) {
         this.negativeInf =
-            gpgpu.getUniformLocation(webGLProgram, 'negativeInf', false);
+            gpgpu.getUniformLocation(webGLProgram, 'negativeInf');
       }
       gpgpu.gl.uniform1f(this.negativeInf, Number.NEGATIVE_INFINITY);
     };

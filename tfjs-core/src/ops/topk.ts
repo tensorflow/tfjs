@@ -50,7 +50,8 @@ import {op} from './operation';
  * @doc {heading: 'Operations', subheading: 'Evaluation'}
  */
 function topk_<T extends Tensor>(
-    x: T|TensorLike, k = 1, sorted = true): {values: T, indices: T} {
+    x: T|TensorLike, k = 1, sorted = true,
+    divideFactor = 1): {values: T, indices: T} {
   const $x = convertToTensor(x, 'x', 'topk');
   if ($x.rank === 0) {
     throw new Error('topk() expects the input to be of rank 1 or higher');
@@ -68,7 +69,7 @@ function topk_<T extends Tensor>(
   }
 
   const inputs: TopKInputs = {x: $x};
-  const attrs: TopKAttrs = {k, sorted};
+  const attrs: TopKAttrs = {k, sorted, divideFactor};
 
   const [values, indices] = ENGINE.runKernel(
       TopK, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
