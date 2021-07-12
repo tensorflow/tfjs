@@ -37,12 +37,11 @@ void Mod(const size_t a_id, const size_t* a_shape_ptr, const size_t a_shape_len,
   switch (dtype) {
     case DType::float32:
       binary_f32(a_id, b_id, out_id,
-                 [](float a, float b) { return a%b; });
+                 [](float a, float b) { return fmod(a%b); });
       break;
     case DType::int32:
       binary_i32(a_id, b_id, out_id, [](int a, int b) {
-        return static_cast<int32_t>(
-                                    static_cast<fmod>(a) % b);
+        return static_cast<int32_t>(fmod(static_cast<fmod>(a) % b));
       });
       break;
     default:
