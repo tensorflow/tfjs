@@ -121,12 +121,12 @@ async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
 
   console.log(`Start benchmarking.`);
   const results = [];
-  let i = 0;
+  let numActiveBenchmarks = 0;
   for (const tabId in config.browsers) {
     results.push(runOneBenchmark(tabId));
-    i++;
-    if (require.main === module && i >= cliArgs.maxBenchmarks) {
-      i = 0;
+    numActiveBenchmarks++;
+    if (cliArgs?.maxBenchmarks && numActiveBenchmarks >= cliArgs.maxBenchmarks) {
+      numActiveBenchmarks = 0;
       await Promise.allSettled(results);
     }
   }
