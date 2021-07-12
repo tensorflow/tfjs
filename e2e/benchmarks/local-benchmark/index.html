@@ -183,12 +183,12 @@ limitations under the License.
 
         // load model and run inference
         try {
+          tf.setBackend('cpu');
           await loadModelAndRecordTime();
           await showMsg('Testing correctness');
           await showInputs();
           await showCorrectnessTestParameters();
 
-          tf.setBackend('cpu');
           let inferenceInput;
           await showMsg('Runing on cpu');
           if (state.benchmark === 'custom') {
