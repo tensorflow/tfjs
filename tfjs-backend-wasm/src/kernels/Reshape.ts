@@ -15,18 +15,15 @@
  * =============================================================================
  */
 
-import {KernelConfig, NamedAttrMap, NamedTensorInfoMap, Reshape, ReshapeAttrs, ReshapeInputs, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Reshape, ReshapeAttrs, ReshapeInputs, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
-export function reshape(args: {
-  inputs: NamedTensorInfoMap,
-  attrs: NamedAttrMap,
-  backend: BackendWasm
-}) {
+export function reshape(
+    args: {inputs: ReshapeInputs, attrs: ReshapeAttrs, backend: BackendWasm}) {
   const {inputs, attrs} = args;
-  const {x} = inputs as {} as ReshapeInputs;
-  const {shape} = attrs as {} as ReshapeAttrs;
+  const {x} = inputs;
+  const {shape} = attrs;
 
   const xSize = util.sizeFromShape(x.shape);
   const $shape = util.inferFromImplicitShape(shape, xSize);
@@ -44,5 +41,5 @@ export function reshape(args: {
 export const reshapeConfig: KernelConfig = {
   kernelName: Reshape,
   backendName: 'wasm',
-  kernelFunc: reshape,
+  kernelFunc: reshape as {} as KernelFunc
 };

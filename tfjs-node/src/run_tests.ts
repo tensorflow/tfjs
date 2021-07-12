@@ -94,7 +94,7 @@ const IGNORE_LIST: string[] = [
   'conv2dTranspose test-tensorflow {} input=3x3x1,d2=1,f=2,s=2,p=explicit',
   // tslint:disable-next-line:max-line-length
   'conv2dTranspose test-tensorflow {} gradient input=[1,3,3,1] f=[2,2,2,1] s=[1,1] p=explicit',
-  'maxPoolWithArgmax', 'rotate', 'flipLeftRight', 'unique',
+  'maxPoolWithArgmax', 'rotate', 'unique',
   // libtensorflow does not yet support tf.matmul with broadcast
   'broadcast with unequal batch dims', 'broadcast with unequal ranks',
   // Node backend which uses TF 2.4.0 doesn't support explicit padding
