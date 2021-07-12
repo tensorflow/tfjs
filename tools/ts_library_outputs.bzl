@@ -43,5 +43,5 @@ def ts_library_outputs(name, srcs):
     # Combination of the above
     native.filegroup(
         name = name,
-        srcs = [es6, es5, declaration]
+        srcs = [es6, es5, declaration],
     )
