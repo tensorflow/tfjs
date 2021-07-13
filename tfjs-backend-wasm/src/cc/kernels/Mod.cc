@@ -44,7 +44,7 @@ void Mod(const size_t a_id, const size_t* a_shape_ptr,
                      return rem;
                    }
                    else{
-                     return (rem+ b) %b;
+                     return fmod(rem+ b ,b);
                    }
                   });
       break;
