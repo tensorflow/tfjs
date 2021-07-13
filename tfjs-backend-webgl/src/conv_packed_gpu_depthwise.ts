@@ -52,6 +52,8 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
       mainLoop += `
           vec4 xTexelC${c * 2};
           int xTexelC${c * 2}Ready;
+          vec4 xTexelC${c * 2 + 1};
+          int xTexelC${c * 2 + 1}Ready;
           vec4 xC${c};`;
     }
 
@@ -68,6 +70,8 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
         mainLoop += `
           xTexelC${c * 2} = vec4(0.0);
           xTexelC${c * 2}Ready = 0;
+          xTexelC${c * 2 + 1} = vec4(0.0);
+          xTexelC${c * 2 + 1}Ready = 0;
           xC${c} = vec4(0.0);`;
       }
       mainLoop += `
@@ -99,22 +103,23 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
               mainLoop += `
                 xCOffset = xC + 1;
                 if (xCOffset >= 0 && xCOffset < ${xNumCols} && xTexelC${
-                  c}Ready == 0) {
-                  xTexelC${c} = getX(batch, xR, xCOffset, d1);
+                  colIndex}Ready == 0) {
+                  xTexelC${colIndex} = getX(batch, xR, xCOffset, d1);
 
                   // Need to manually clear unused channels in case
                   // we're reading from recycled texture.
                   if (xCOffset + 1 >= ${xNumCols}) {
-                    xTexelC${c}.zw = vec2(0.0);
+                    xTexelC${colIndex}.zw = vec2(0.0);
                   }
-                  xTexelC${c}Ready = 1;
+                  xTexelC${colIndex}Ready = 1;
                 }
               `;
               // This texel has been read in previous iteration if the dilation
               // is 1.
               if (dilationWidth === 1 && c > 0) {
                 mainLoop += `
-                xC${colIndex} = vec4(xTexelC${c - 2}.zw, xTexelC${c}.xy);
+                xC${colIndex} = vec4(xTexelC${colIndex - 2}.zw, xTexelC${
+                    colIndex}.xy);
                 `;
               } else {
                 mainLoop += `
@@ -129,24 +134,25 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                       previous.zw = vec2(0.0);
                     }
 
-                    xC${colIndex} = vec4(previous.zw, xTexelC${c}.xy);
+                    xC${colIndex} = vec4(previous.zw, xTexelC${colIndex}.xy);
                   } else {
-                    xC${colIndex} = vec4(0.0, 0.0, xTexelC${c}.xy);
+                    xC${colIndex} = vec4(0.0, 0.0, xTexelC${colIndex}.xy);
                   }
                   `;
               }
             } else {
               // Padding is even, so xRC corresponds to a single texel.
               mainLoop += `
-                if (xC >= 0 && xC < ${xNumCols} && xTexelC${c}Ready == 0) {
-                  xTexelC${c} = getX(batch, xR, xC, d1);
+                if (xC >= 0 && xC < ${xNumCols} && xTexelC${
+                  colIndex}Ready == 0) {
+                  xTexelC${colIndex} = getX(batch, xR, xC, d1);
                   if (xC + 1 >= ${xNumCols}) {
-                    xTexelC${c}.zw = vec2(0.0);
+                    xTexelC${colIndex}.zw = vec2(0.0);
                   }
-                  xTexelC${c}Ready = 1;
+                  xTexelC${colIndex}Ready = 1;
                 }
 
-                xC${colIndex} = xTexelC${c};
+                xC${colIndex} = xTexelC${colIndex};
                 `;
             }
 
@@ -167,15 +173,15 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                   xCOffset = xC + ${padLeft % 2} + ${nextTexelOffset};
 
                   if (xCOffset >= 0 && xCOffset < ${xNumCols} && xTexelC${
-                    c + 2}Ready == 0) {
-                    xTexelC${c + 2} = getX(batch, xR, xCOffset, d1);
+                    colIndex + 1}Ready == 0) {
+                    xTexelC${colIndex + 1} = getX(batch, xR, xCOffset, d1);
 
                     // Need to manually clear unused channels in case
                     // we're reading from recycled texture.
                     if (xCOffset + 1 >= ${xNumCols}) {
-                      xTexelC${c + 2}.zw = vec2(0.0);
+                      xTexelC${colIndex + 1}.zw = vec2(0.0);
                     }
-                    xTexelC${c + 2}Ready = 1;
+                    xTexelC${colIndex + 1}Ready = 1;
                   }
                   `;
 
@@ -185,15 +191,16 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                   mainLoop += `
                     xCOffset -= 2;
                     if (xCOffset >= 0 && xCOffset < ${xNumCols} && xTexelC${
-                      c}Ready == 0) {
-                      xTexelC${c} = getX(batch, xR, xCOffset, d1);
-                      xTexelC${c}Ready = 1;
+                      colIndex}Ready == 0) {
+                      xTexelC${colIndex} = getX(batch, xR, xCOffset, d1);
+                      xTexelC${colIndex}Ready = 1;
                     }
                     `;
                 }
 
                 mainLoop += `
-                  xC${colIndex + 1} = vec4(xTexelC${c}.zw, xTexelC${c + 2}.xy);
+                  xC${colIndex + 1} = vec4(xTexelC${colIndex}.zw, xTexelC${
+                    colIndex + 1}.xy);
                   `;
               } else {
                 // If dilation is 1 and padding is odd, we have already read the
@@ -201,22 +208,22 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                 // simply skip the texture read.
                 if (nextTexelOffset === 1) {
                   mainLoop += `
-                    xC${colIndex + 1} = xTexelC${c};
+                    xC${colIndex + 1} = xTexelC${colIndex};
                     `;
                 } else {
                   mainLoop += `
                     xCOffset = xC + ${nextTexelOffset};
 
                     if (xCOffset >= 0 && xCOffset < ${xNumCols} && xTexelC${
-                      c + 2}Ready == 0) {
-                      xTexelC${c + 2} = getX(batch, xR, xCOffset, d1);
+                      colIndex + 1}Ready == 0) {
+                      xTexelC${colIndex + 1} = getX(batch, xR, xCOffset, d1);
                       if (xCOffset + 1 >= ${xNumCols}) {
-                        xTexelC${c + 2}.zw = vec2(0.0);
+                        xTexelC${colIndex + 1}.zw = vec2(0.0);
                       }
-                      xTexelC${c + 2}Ready = 1;
+                      xTexelC${colIndex + 1}Ready = 1;
                     }
 
-                    xC${colIndex + 1} = xTexelC${c + 2};
+                    xC${colIndex + 1} = xTexelC${colIndex + 1};
                     `;
                 }
               }
@@ -235,28 +242,29 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
               mainLoop += `
                 xCOffset = xC + 1 - ${strideWidth};
                 if(xCOffset >= 0 && xCOffset < ${xNumCols} && xTexelC${
-                  c}Ready == 0) {
-                  xTexelC${c} = getX(batch, xR, xCOffset, d1);
+                  colIndex}Ready == 0) {
+                  xTexelC${colIndex} = getX(batch, xR, xCOffset, d1);
                   // Need to manually clear unused channels in case
                   // we're reading from recycled texture.
                   if (xCOffset + 1 >= ${xNumCols}) {
-                    xTexelC${c}.zw = vec2(0.0);
+                    xTexelC${colIndex}.zw = vec2(0.0);
                   }
-                  xTexelC${c}Ready = 1;
+                  xTexelC${colIndex}Ready = 1;
                 }
 
                 if(xC + 1 >= 0 && xC + 1 < ${xNumCols} && xTexelC${
-                  c + 2}Ready == 0) {
-                  xTexelC${c + 2} = getX(batch, xR, xC + 1, d1);
+                  colIndex + 1}Ready == 0) {
+                  xTexelC${colIndex + 1} = getX(batch, xR, xC + 1, d1);
                   // Need to manually clear unused channels in case
                   // we're reading from recycled texture.
                   if (xC + 2 >= ${xNumCols}) {
-                    xTexelC${c + 2}.zw = vec2(0.0);
+                    xTexelC${colIndex + 1}.zw = vec2(0.0);
                   }
-                  xTexelC${c + 2}Ready = 1;
+                  xTexelC${colIndex + 1}Ready = 1;
                 }
 
-                xC${colIndex} = vec4(xTexelC${c}.zw, xTexelC${c + 2}.zw);
+                xC${colIndex} = vec4(xTexelC${colIndex}.zw, xTexelC${
+                  colIndex + 1}.zw);
               `;
 
               if (c + 1 < filterWidth) {
@@ -266,36 +274,38 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                   if(xCOffset >= 0 && xCOffset < ${xNumCols}) {
                     final = getX(batch, xR, xCOffset, d1);
                   }
-                  xC${colIndex + 1} = vec4(xTexelC${c + 2}.xy, final.xy);
+                  xC${colIndex + 1} = vec4(xTexelC${colIndex + 1}.xy, final.xy);
                 `;
               }
             } else {
               mainLoop += `
-                if(xC >= 0 && xC < ${xNumCols} && xTexelC${c}Ready == 0) {
-                  xTexelC${c} = getX(batch, xR, xC, d1);
+                if(xC >= 0 && xC < ${xNumCols} && xTexelC${
+                  colIndex}Ready == 0) {
+                  xTexelC${colIndex} = getX(batch, xR, xC, d1);
                   if (xC + 1 >= ${xNumCols}) {
-                    xTexelC${c}.zw = vec2(0.0);
+                    xTexelC${colIndex}.zw = vec2(0.0);
                   }
-                  xTexelC${c}Ready = 1;
+                  xTexelC${colIndex}Ready = 1;
                 }
 
                 xCOffset = xC + ${strideWidth};
                 if(xCOffset >= 0 && xCOffset < ${xNumCols} && xTexelC${
-                  c + 2}Ready == 0) {
-                  xTexelC${c + 2} = getX(batch, xR, xCOffset, d1);
+                  colIndex + 1}Ready == 0) {
+                  xTexelC${colIndex + 1} = getX(batch, xR, xCOffset, d1);
                   if (xCOffset + 1 >= ${xNumCols}) {
-                    xTexelC${c + 2}.zw = vec2(0.);
+                    xTexelC${colIndex + 1}.zw = vec2(0.);
                   }
-                  xTexelC${c + 2}Ready = 1;
+                  xTexelC${colIndex + 1}Ready = 1;
                 }
 
                 xC${colIndex} = vec4(
-                  xTexelC${c}.xy, xTexelC${c + 2}.xy);
+                  xTexelC${colIndex}.xy, xTexelC${colIndex + 1}.xy);
               `;
 
               if (c + 1 < filterWidth) {
                 mainLoop += `
-                  xC${colIndex + 1} = vec4(xTexelC${c}.zw, xTexelC${c + 2}.zw);
+                  xC${colIndex + 1} = vec4(xTexelC${colIndex}.zw, xTexelC${
+                    colIndex + 1}.zw);
                 `;
               }
             }

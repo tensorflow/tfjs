@@ -182,6 +182,45 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     expectArraysClose(await result.data(), await expectedResult.data());
   });
 
+  it('input=1x5x5x1,f=2,s=1,d=4,p=valid,chMul=1', async () => {
+    const fSize = 2;
+    const pad = 'valid';
+    const stride = 1;
+    const dilation = 4;
+    const chMul = 1;
+    const inDepth = 1;
+
+    const x = tf.tensor4d(
+        [
+          0.149194, 0.089009, 0.654891, 0.083324, 0.537043, 0.644331, 0.563037,
+          0.211859, 0.633501, 0.186427, 0.777034, 0.50001,  0.607341, 0.95303,
+          0.696479, 0.050387, 0.62045,  0.728049, 0.028043, 0.437009, 0.712881,
+          0.741935, 0.974474, 0.621102, 0.171411
+        ],
+        [1, 5, 5, inDepth]);
+    const w = tf.tensor4d(
+        [0.125386, 0.975199, 0.640437, 0.281895],
+        [fSize, fSize, inDepth, chMul],
+    );
+    // adding a dilation rate is equivalent to using a filter
+    // with 0s for the dilation rate
+    const fSizeDilated = fSize + (fSize - 1) * (dilation - 1);
+    const wDilated = tf.tensor4d(
+        [
+          0.125386, 0, 0, 0, 0.975199, 0, 0, 0,        0, 0, 0, 0,       0,
+          0,        0, 0, 0, 0,        0, 0, 0.640437, 0, 0, 0, 0.281895
+        ],
+        [fSizeDilated, fSizeDilated, inDepth, chMul],
+    );
+
+    const result = tf.depthwiseConv2d(x, w, stride, pad, 'NHWC', dilation);
+
+    const expectedResult = tf.depthwiseConv2d(x, wDilated, stride, pad);
+
+    expect(result.shape).toEqual(expectedResult.shape);
+    expectArraysClose(await result.data(), await expectedResult.data());
+  });
+
   it('input=1x3x3x2,f=2,s=1,d=1,p=same,chMul=1', async () => {
     const fSize = 2;
     const pad = 'same';
