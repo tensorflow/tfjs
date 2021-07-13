@@ -46,6 +46,7 @@ const db = firebase.firestore().collection("posts");
 function addResultToFirestore(result) {
   let firestoreMap = {};
   firestoreMap.benchmarkInfo = serializeTensors(result).value;
+  firestoreMap.date = getReadableDate();
 
   db.add({
     result: firestoreMap
@@ -69,6 +70,23 @@ function serializeTensors(result) {
     kernel.outputShapes = JSON.stringify(kernel.outputShapes);
   }
   return result
+}
+
+/**
+ * Returns a human readable date so each benchmark has an associated date
+ */
+function getReadableDate() {
+  const date = new Date();
+  let month = (date.getMonth() + 1).toString();
+  if (month.length === 1) {
+    month = '0' + month;
+  }
+  let day = date.getDate().toString();
+  if (day.length === 1) {
+    day = '0' + day;
+  }
+  const humanReadableDate = `${date.getFullYear()}-${month}-${day}`;
+  return humanReadableDate;
 }
 
 exports.addResultToFirestore = addResultToFirestore;
