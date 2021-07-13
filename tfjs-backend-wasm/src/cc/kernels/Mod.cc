@@ -38,7 +38,15 @@ void Mod(const size_t a_id, const size_t* a_shape_ptr,
   switch (dtype) {
     case DType::float32:
       binary_f32(a_id, b_id, out_id,
-                 [](float a, float b) { return fmod(a , b); });
+                 [](float a, float b) {
+                   float rem = a % b;
+                   if((a<0 && b<0)||(a>=0 && b>=0)){
+                     return rem;
+                   }
+                   else{
+                     return (rem+ b) %b;
+                   }
+                  });
       break;
     case DType::int32:
       binary_i32(a_id, b_id, out_id, [](int a, int b) {
