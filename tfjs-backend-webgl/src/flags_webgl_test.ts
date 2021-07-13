@@ -388,3 +388,35 @@ describe('CPU_HANDOFF_SIZE_THRESHOLD', () => {
     expect(tf.env().getNumber('CPU_HANDOFF_SIZE_THRESHOLD')).toBe(128);
   });
 });
+
+describe('TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD', () => {
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
+
+  it('returns correct value when TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD is set',
+     () => {
+       tf.env().set('TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD', 256);
+       expect(tf.env().getNumber('TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD'))
+           .toBe(256);
+     });
+
+  it('returns default when TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD is not set',
+     () => {
+       expect(tf.env().getNumber('TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD'))
+           .toBe(100000);
+     });
+});
+
+describe('TOPK_K_CPU_HANDOFF_THRESHOLD', () => {
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
+
+  it('returns correct value when TOPK_K_CPU_HANDOFF_THRESHOLD is set', () => {
+    tf.env().set('TOPK_K_CPU_HANDOFF_THRESHOLD', 256);
+    expect(tf.env().getNumber('TOPK_K_CPU_HANDOFF_THRESHOLD')).toBe(256);
+  });
+
+  it('returns default when TOPK_K_CPU_HANDOFF_THRESHOLD is not set', () => {
+    expect(tf.env().getNumber('TOPK_K_CPU_HANDOFF_THRESHOLD')).toBe(128);
+  });
+});
