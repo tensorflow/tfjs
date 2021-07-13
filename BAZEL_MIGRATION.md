@@ -15,13 +15,16 @@ Migrating a package to Bazel involves adding Bazel targets that build the packag
 These steps are general guidelines for how to build a package with Bazel. They should work for most packages, but there may be some exceptions (e.g. wasm, react native).
 
 ### Make sure all dependencies build with Bazel
-A package's dependencies must be migrated before it can be migrated.
+A package's dependencies must be migrated before it can be migrated. Take a look at the package's issue, which can be found from #5287, to find its dependencies.
+
+### Add dependencies to the root `package.json`
+Bazel (through `rules_nodejs`) uses a single root `package.json` for its npm dependencies. When converting a package to build with Bazel, dependencies in the package's `package.json` will need to be added to the root `package.json` as well.
 
 ### Create a `BUILD.bazel` file in the package
 Bazel looks for targets to run in `BUILD` and `BUILD.bazel` files. Use the `.bazel` extension since blaze uses `BUILD`. You may want to install an extension for your editor to get syntax highlighting. [Here's the vscode extension](https://marketplace.visualstudio.com/items?itemName=BazelBuild.vscode-bazel).
 
 ### Compile the package with `ts_library`
-[ts_library](https://bazelbuild.github.io/rules_nodejs/TypeScript.html#ts_library) compiles the package. We use a custom version of `ts_library` that sets some project-specific settings.
+[ts_library](https://bazelbuild.github.io/rules_nodejs/TypeScript.html#ts_library) compiles the package. We wrap `ts_library` in a macro that sets some project-specific settings.
 
 Here's an example of how `tfjs-core` uses `ts_library` to build.
 
@@ -294,7 +297,7 @@ pkg_npm(
 Now the package can be published to npm with `bazel run //tfjs-core:tfjs-core_pkg.publish`.
 
 
-### Publishing to npm
+### Configuring Publishing to npm
 With a `pkg_npm` rule defined, we add a script to `package.json` to run it. This script will be used by the main script that publishes the monorepo. 
 
 ```json
