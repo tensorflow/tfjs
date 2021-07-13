@@ -116,10 +116,13 @@ function setupBenchmarkEnv(config) {
  * @param benchmarkResult Function that benchmarks one browser-device pair
  */
 async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
-  console.log('Preparing configuration files for the test runner.');
+  console.log('Preparing configuration files for the test runner.\n');
   setupBenchmarkEnv(config);
-
-  console.log(`Start benchmarking.`);
+  if (require.main === module) {
+    console.log(
+        `Starting benchmarks using ${cliArgs.webDeps ? 'cdn' : 'local'} ` +
+        `dependencies...`);
+  }
   const results = [];
   for (const tabId in config.browsers) {
     results.push(runOneBenchmark(tabId));
@@ -144,6 +147,7 @@ async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
 function runBrowserStackBenchmark(tabId) {
   return new Promise((resolve, reject) => {
     const args = ['test', '--browserstack', `--browsers=${tabId}`];
+    if (cliArgs.webDeps) args.push('--cdn');
     const command = `yarn ${args.join(' ')}`;
     console.log(`Running: ${command}`);
 
@@ -208,19 +212,24 @@ function setupHelpMessage() {
         'so that the performance of a TensorFlow model on one or more ' +
         'browsers can be benchmarked.'
   });
-  parser.add_argument(
-    '--benchmarks', {help: 'Run a preconfigured benchmark from a ' +
-    'user-specified JSON', action: 'store'});
+  parser.add_argument('--benchmarks', {
+    help: 'Run a preconfigured benchmark from a user-specified JSON',
+    action: 'store'
+  });
   parser.add_argument(
       '--outfile', {help: 'write results to outfile', action: 'store_true'});
   parser.add_argument('-v', '--version', {action: 'version', version});
+  parser.add_argument('--webDeps', {
+    help: 'utilizes public, web hosted dependencies instead of local versions',
+    action: 'store_true'
+  });
   cliArgs = parser.parse_args();
   console.dir(cliArgs);
 }
 
 /*Runs a benchmark with a preconfigured file */
 function runBenchmarkFromFile(file, runBenchmark = benchmark) {
-  console.log("Running a preconfigured benchmark...");
+  console.log('Running a preconfigured benchmark...');
   runBenchmark(file);
 }
 
@@ -232,13 +241,13 @@ if (require.main === module) {
   if (cliArgs.benchmarks) {
     const filePath = resolve(cliArgs.benchmarks);
     if (fs.existsSync(filePath)) {
-      console.log("Found file at " + filePath);
+      console.log(`Found file at ${filePath}`);
       const config = require(filePath);
       runBenchmarkFromFile(config);
-    }
-    else {
-      throw new Error('File could not be found at ' + filePath +
-      '. Please provide a valid path.');
+    } else {
+      throw new Error(
+          `File could not be found at ${filePath}. ` +
+          `Please provide a valid path.`);
     }
   }
 }

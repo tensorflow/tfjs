@@ -152,6 +152,7 @@ class BrowserFiles implements IOHandler {
 
         if (this.weightsFiles.length === 0) {
           resolve({modelTopology});
+          return;
         }
 
         const modelArtifactsPromise = getModelArtifactsForJSON(
