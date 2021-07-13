@@ -154,7 +154,7 @@ export class FusedSwapProgram implements GPGPUProgram {
    * @param shape desired output shape (can be larger than input shape, output
    *                                    will be padded with -Infinity)
    */
-  constructor(shape: number[]) {
+  constructor(shape: number[], len: number) {
     this.outputShape = shape;
 
     this.userCode = `
@@ -175,9 +175,8 @@ export class FusedSwapProgram implements GPGPUProgram {
        // and so on down to (0, 1), (2, 3), (4, 5)...
        uniform int len;
        // max K = max value of the uniform len above
-       const int MAX_LEN = 256;
        void main() {
-         int indices[MAX_LEN];
+         int indices[${len * 2}];
          ivec2 coords = getOutputCoords();
          int batch = coords[0];
          int elemIdx = coords[1];

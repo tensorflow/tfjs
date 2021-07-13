@@ -113,9 +113,9 @@ export function topK(
 
   const runFusedSwap =
       (len: number, incMin: number, incMax: number, shape: number[]) => {
-        while (incMax >= incMin * divideFactor) {
+        while (incMax >= incMin * divideFactor && divideFactor != 1) {
           const inputs = getInputs();
-          const program = new FusedSwapProgram(shape);
+          const program = new FusedSwapProgram(shape, len);
           const customSetup = program.getCustomSetupFunc(
               lastDim, indices === null /* firstPass */, len,
               incMax / divideFactor, incMax);
@@ -127,7 +127,7 @@ export function topK(
           incMax /= divideFactor;
         }
         const inputs = getInputs();
-        const program = new FusedSwapProgram(shape);
+        const program = new FusedSwapProgram(shape, len);
         const customSetup = program.getCustomSetupFunc(
             lastDim, indices === null /* firstPass */, len, incMin, incMax);
         const prevIndices = indices;
