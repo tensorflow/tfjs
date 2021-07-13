@@ -231,15 +231,14 @@ function setupHelpMessage() {
   parser.add_argument('--ci', {
     help: 'runs cloud interface version of benchmarks',
     action: 'store_true'
-  });
-  parser.add_argument(
-      '--outfile', {help: 'write results to outfile', action: 'store_true'});
   parser.add_argument('--maxBenchmarks', {
     help: 'the maximum number of benchmarks run in parallel',
     type: 'int',
     default: 5,
     action: 'store'
   });
+  parser.add_argument(
+      '--outfile', {help: 'write results to outfile', action: 'store_true'});
   parser.add_argument('-v', '--version', {action: 'version', version});
   parser.add_argument('--webDeps', {
     help: 'utilizes public, web hosted dependencies instead of local versions',
