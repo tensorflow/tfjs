@@ -297,7 +297,7 @@ pkg_npm(
 Now the package can be published to npm with `bazel run //tfjs-core:tfjs-core_pkg.publish`.
 
 
-### Configuring Publishing to npm
+### Configure Publishing to npm
 With a `pkg_npm` rule defined, we add a script to `package.json` to run it. This script will be used by the main script that publishes the monorepo. 
 
 ```json
@@ -310,3 +310,10 @@ Since we now use the `publish-npm` script to publish this package instead of `np
 
 1. In `scripts/publish-npm.ts`, add your package's name to the `BAZEL_PACKAGES` set.
 2. In `e2e/scripts/publish-tfjs-ci.sh`, add your package's name to the `BAZEL_PACKAGES` list.
+
+### Update or Remove `cloudbuild.yml`
+Update the `cloudbuild.yml` to remove any steps that are now built with Bazel. These will be run by the `bazel-tests` step, which runs before other packages' steps. Any Bazel rule tagged as `ci` will be tested / build in CI.
+
+Note that the output paths of Bazel-created outputs will be different, so any remaining steps that now rely on Bazel outputs may need to be updated. Bazel outputs are located in `tfjs/dist/bin/...`.
+
+If all steps of the `cloudbuild.yml` file are handled by Bazel, it can be deleted. Make sure to also remove references to the package from `tfjs/scripts/package_dependencies.json`.

@@ -5,7 +5,10 @@ steps:
   entrypoint: 'yarn'
   args: ['install']
 
-# All steps are now handled by Bazel tests
+# All steps are now handled by Bazel tests, but a future PR may add back the
+# 'test-bundle-size' step, which will be adapted to work on Bazel outputs but
+# will not be able to compare a Bazel output (in dist/bin) with a non-bazel
+# output.
 
 # General configuration
 secrets:
