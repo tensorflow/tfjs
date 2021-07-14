@@ -72,10 +72,20 @@ function config({
     output: {
       banner: PREAMBLE,
       sourcemap: true,
-      globals: {'@tensorflow/tfjs-core': 'tf'},
+      globals: {
+        '@tensorflow/tfjs-core': 'tf',
+        '@webgpu/glslang/dist/web-devel/glslang.onefile': 'glslang'
+      },
       ...output,
+      paths: {
+        '@webgpu/glslang/dist/web-devel/glslang.onefile':
+            'https://unpkg.com/@webgpu/glslang@0.0.12/dist/web-devel/glslang.onefile.js'
+      }
     },
-    external: ['@tensorflow/tfjs-core'],
+    external: [
+      '@tensorflow/tfjs-core',
+      '@webgpu/glslang/dist/web-devel/glslang.onefile',
+    ],
     onwarn: warning => {
       let {code} = warning;
       if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR' ||
@@ -102,7 +112,8 @@ module.exports = cmdOptions => {
       file: `dist/${fileName}.node.js`,
       freeze: false
     },
-    tsCompilerOptions: {target: 'es5'}
+    tsCompilerOptions: {target: 'es5'},
+    external: ['@tensorflow/tfjs-backend-cpu']
   }));
 
   if (cmdOptions.ci) {
