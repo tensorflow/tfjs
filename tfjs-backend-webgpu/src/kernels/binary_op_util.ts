@@ -37,6 +37,7 @@ export enum BinaryOpType {
   COMPLEX_MULTIPLY_IMAG
 }
 
+// GLSL shader.
 const CHECK_NAN_SNIPPET = `
   if (isnan(a)) return a;
   if (isnan(b)) return b;

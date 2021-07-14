@@ -93,7 +93,6 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
       tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter])
     ];
   }
-
   getUserCode(): string {
     const elementsPerThread: [number, number, number] = [4, 4, 1];
     const matMulSource = makeMatMulPackedVec4Source(elementsPerThread);
@@ -125,8 +124,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         `// The bounds checking is always needed since we use it to pad zero for
         // the 'same' padding type.
         resData = coordsInBounds(coord, xShape) ?
-        x[getFlatIndex(coord, xShape) / 4] : vec4(0.0, 0.0, 0.0, 0.0);` :
-        `vec4 temp = vec4(0, 0, 0, 0);
+        x[getFlatIndex(coord, xShape) / 4] : vec4(0.0);` :
+        `vec4 temp = vec4(0.0);
         ${sampleAWithRemainder}
         resData = temp;
         if (WCol == (filterDims[1] - 1)) {
@@ -153,7 +152,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
             outRow * stride[0] + dilation[0] * WRow - pad[0],
             outCol * stride[1] + dilation[1] * WCol - pad[1],
             inChCoord);
-        vec4 resData = vec4(0, 0, 0, 0);
+        vec4 resData = vec4(0.0);
         ${remainderSnippet}
         return resData;`;
 
@@ -161,18 +160,18 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         this.fitA ? `${readASnippet}` : `if (r < dimAOuter && c < dimInner) {
           ${readASnippet}
         } else {
-          return vec4(0.0, 0.0, 0.0, 0.0);
+          return vec4(0.0);
         }`;
 
     const sampleB = this.fitB ?
         `W[row * dimBOuter / 4 + col]` :
         `coordsInBounds(ivec2(row, col * 4), ivec2(dimInner, dimBOuter)) ?
-            W[row * dimBOuter / 4 + col] : vec4(0.0, 0.0, 0.0, 0.0)`;
+            W[row * dimBOuter / 4 + col] : vec4(0.0)`;
 
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
-      const activationOp =
-          mapActivationToShaderProgram(this.activation, this.isVec4);
+      const activationOp = mapActivationToShaderProgram(
+          this.activation, this.isVec4, false);
       if (this.hasPreluActivationWeights) {
         activationSnippet = `vec4 activation(vec4 a, ivec4 outCoord) {
           vec4 b = getPreluActivationWeightsAtOutCoords(outCoord);
