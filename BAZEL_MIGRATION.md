@@ -68,7 +68,7 @@ ts_library(
 `ts_library` is used twice in order to have the correct `module_name` for the output files. Most files are imported relative to `@tensorflow/tfjs-core/src/`, but `index.ts`, the entrypoint of `tfjs-core`, should be importable as `@tensorflow/tfjs-core`.
 
 ### Bundle the package
-This step involves bundling the compiled files from the compilation step into a single file. TFJS generates several bundles for each package in order to support different execution environments. We provide a `tfjs_bundle` macro to generate these bundles.
+This step involves bundling the compiled files from the compilation step into a single file. In order to support different execution environments, TFJS generates several bundles for each package. We provide a `tfjs_bundle` macro to generate these bundles.
 
 `tfjs-core/BUILD.bazel`
 ```starlark
@@ -92,7 +92,7 @@ The `tfjs_bundle` macro generates several different bundles which are published 
 
 
 ### Compile the tests with `ts_library`
-We compile the tests with `ts_library`. In the case of `tfjs-core`, we actually publish the test files, since other packages use them in their tests. Therefore, it's important that we set the `module_name` to `@tensorflow/tfjs-core/dist`. In a future major version of tfjs, we may stop publishing the tests to npm.
+We compile the tests with `ts_library`. In the case of `tfjs-core`, we actually publish the test files, since other packages use them in their tests. Therefore, it's important that we set the `module_name` to `@tensorflow/tfjs-core/dist`. If a package's tests are not published, the `module_name` can probably be omitted. In a future major version of tfjs, we may stop publishing the tests to npm.
 
 `tfjs-core/src/BUILD.bazel`
 ```starlark
@@ -288,7 +288,7 @@ pkg_npm(
         ":copy_miniprogram",
         ":copy_miniprogram_map",
         ":copy_src_to_dist",
-        ":copy_test_snippets", # <- This is only in core
+        ":copy_test_snippets", # <- This is only in core, so I've omitted its definition.
     ],
 )
 ```
@@ -356,3 +356,4 @@ Update all downstream dependencies that depend on the package to point to its lo
   "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
 },
 ```
+### Done!
