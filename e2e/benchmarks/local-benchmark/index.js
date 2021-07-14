@@ -160,6 +160,14 @@ async function initDefaultValueMap() {
   for (const flag in TUNABLE_FLAG_DEFAULT_VALUE_MAP) {
     state.flags[flag] = TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag];
   }
+
+  // Remove it once we figure out how to correctly read the tensor data
+  // before the tensor is disposed in profiling mode.
+  if (tf.engine().backendNames().includes('webgpu')) {
+    tf.env().set('CHECK_COMPUTATION_FOR_ERRORS', false);
+    state.flags['CHECK_COMPUTATION_FOR_ERRORS'] = false;
+  }
+
   state.isFlagChanged = false;
 }
 
