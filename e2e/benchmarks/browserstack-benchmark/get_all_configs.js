@@ -6,6 +6,7 @@ const backends = ['cpu', 'wasm', 'webgl'];
 const allBrowsers = new Set();
 const allBenchmarkConfigs = [];
 
+// Creates list of all testable backend and model combinations
 let tabCount = 1;
 for (const backend in backends) {
   for (const benchmark in benchmarks) {
@@ -21,6 +22,7 @@ for (const backend in backends) {
   }
 }
 
+// Creates list of all browser-device combinations in imported browser_list.json
 for (const pairing in browser_list) {
   const browser = browser_list[pairing];
   allBrowsers[getTabId(browser)] = {
@@ -33,6 +35,7 @@ for (const pairing in browser_list) {
   };
 }
 
+// Writes object including list of backend-model configs and all browsers
 write(
     './all_configs.json',
     {'benchmarkConfigs': allBenchmarkConfigs, 'browsers': allBrowsers});

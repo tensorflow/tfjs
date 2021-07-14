@@ -100,6 +100,7 @@ async function runAllBenchmarks() {
   const configs = require('./all_configs.json');
   const browsers = configs.browsers;
   for (const benchmarkConfig in configs.benchmarkConfigs) {
+    // Build config and run respective benchmark one at a time
     const config = configs.benchmarkConfigs[benchmarkConfig];
     config['benchmark']['numRuns'] = cliArgs.numRuns;
     config['browsers'] = browsers;
@@ -162,6 +163,7 @@ async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
   for (const tabId in config.browsers) {
     results.push(runOneBenchmark(tabId));
     numActiveBenchmarks++;
+    // Waits for specified number of benchmarks to complete before running more
     if (cliArgs?.maxBenchmarks && numActiveBenchmarks >= cliArgs.maxBenchmarks) {
       numActiveBenchmarks = 0;
       await Promise.allSettled(results);
@@ -219,7 +221,7 @@ function runBrowserStackBenchmark(tabId) {
 
       const errorMessage = 'Did not find benchmark results from the logs ' +
           'of the benchmark test (benchmark_models.js).';
-      // io.emit('benchmarkComplete', {error: errorMessage});
+      io.emit('benchmarkComplete', {error: errorMessage});
       return reject(errorMessage);
     });
   });
