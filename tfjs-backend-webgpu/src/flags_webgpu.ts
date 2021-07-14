@@ -73,4 +73,4 @@ ENV.registerFlag('CPU_HANDOFF_SIZE_THRESHOLD', () => 128);
  * Whether to use a dummy canvas to make profiling tools like PIX work with
  * TFJS webgpu backend.
  */
-ENV.registerFlag('WEBGPU_USE_PROFILE_TOOL', () => true);
+ENV.registerFlag('WEBGPU_USE_PROFILE_TOOL', () => false);
