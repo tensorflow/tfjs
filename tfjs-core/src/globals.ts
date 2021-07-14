@@ -314,6 +314,28 @@ export function getBackend(): string {
 }
 
 /**
+ * Returns all backends sorted by priority order.
+ *
+ * @doc {heading: 'Backends'}
+ */
+export function getSortedBackends(): Array<{name: string, priority: number}> {
+  return ENGINE.getSortedBackends();
+}
+
+/**
+ * Re-prioritize a backend.
+ * Should be called prior awaiting ready() or backend().
+ *
+ * @param name The backend to prioritize
+ * @param priority The new priority. Defaults to 1.
+ *
+ * @doc {heading: 'Backends'}
+ */
+export function prioritizeBackend(name: string, priority = 1): void {
+  ENGINE.prioritizeBackend(name, priority);
+}
+
+/**
  * Removes a backend and the registered factory.
  *
  * @doc {heading: 'Backends'}
