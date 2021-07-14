@@ -168,10 +168,10 @@ limitations under the License.
         });
       },
       testCorrectness: async () => {
-        await tf.ready();
         if (!tf.engine().backendNames().includes(state.backend)) {
           return;
         }
+        await tf.ready();
         if (state.isFlagChanged) {
           await setEnvFlags(state.flags);
           envDiv.innerHTML = '';
@@ -619,10 +619,10 @@ limitations under the License.
     }
 
     async function runBenchmark() {
-      await tf.ready();
       if (!tf.engine().backendNames().includes(state.backend)) {
         return;
       }
+      await tf.ready();
       if (state.isFlagChanged) {
         await setEnvFlags(state.flags);
         envDiv.innerHTML = '';
