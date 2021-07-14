@@ -7,12 +7,12 @@ steps:
   id: 'yarn'
   args: ['install']
 
-# Test.
+# Run benchmarks.
 - name: 'gcr.io/learnjs-174218/release'
   dir: 'e2e/benchmarks/browserstack-benchmark'
   entrypoint: 'yarn'
   id: 'test'
-  args: ['test-ci']
+  args: ['run-cloud-benchmarks']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_ACCESS_KEY', 'FIREBASE_KEY']
   waitFor: ['yarn']

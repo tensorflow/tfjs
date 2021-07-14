@@ -36,7 +36,8 @@
     "build-core": "cd ../../../tfjs-core && yarn && yarn build && yarn build-npm",
     "build-data": "cd ../../../tfjs-data && yarn && yarn build",
     "build-layers": "cd ../../../tfjs-layers && yarn && yarn build && yarn build-npm",
-    "build-vis": "cd ../../../tfjs-vis && yarn && yarn build"
+    "build-vis": "cd ../../../tfjs-vis && yarn && yarn build",
+    "run-cloud-benchmarks": "node app.js --benchmark='./preconfigured_browser.json' --webDeps --cloud --maxBenchmarks=3"
   },
   "license": "Apache-2.0",
   "engines": {
