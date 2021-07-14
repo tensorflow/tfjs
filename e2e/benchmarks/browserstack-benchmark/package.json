@@ -25,7 +25,6 @@
   },
   "scripts": {
     "test": "karma start",
-    "test-ci": "node app.js --benchmark='./preconfigured_browser.json' --webDeps --ci --maxBenchmarks=3",
     "test-node": "jasmine app_node_test.js",
     "build-deps": "yarn build-core && yarn build-backend-cpu && yarn build-backend-wasm && yarn build-backend-webgl && yarn build-converter && yarn build-layers && yarn build-data && yarn build-tfjs && yarn build-vis",
     "build-tfjs": "cd ../../../tfjs && yarn && yarn build && yarn build-npm",
