@@ -40,7 +40,7 @@ function mapToTypesWgsl(type: DataType, isVec4: boolean): DataTypeWGSL|
   } else if (type === 'int32') {
     return isVec4 ? 'vec4<i32>' : 'i32';
   } else if (type === 'bool') {
-    return isVec4 ? 'vec4<bool>' : 'bool';
+    return isVec4 ? 'vec4<i32>' : 'i32';
   }
 
   return type;
@@ -69,7 +69,7 @@ export function makeShader(
     program: ProgramParams, isFromPixel = false): string {
   const prefixSnippets: string[] = [];
 
-  let uniformDeclaration = '[[block]] struct Uniforms { NAN : u32; ';
+  let uniformDeclaration = '[[block]] struct Uniforms { NAN : f32; ';
   program.variableNames.forEach((x, i) => {
     uniformDeclaration += `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${
         getCoordsDataTypeWgsl(inputInfo[i].shape.length)}; `;
@@ -152,17 +152,116 @@ const SHADER_PREFIX = `
     }
     return res;
   }
+
+  fn isNanCustom(val : f32) -> bool {
+    if (val > 0.0 || val < 0.0) {
+      return false;
+    }
+    return val != 0.0;
+  }
+  
+  fn isNanCustomVec4F32(val : vec4<f32>) -> vec4<f32> {
+    var res = vec4<f32> (0.0);
+    for (var i = 0u; i < 4u; i = i + 1u) {
+      if (val[i] > 0.0 || val[i] < 0.0 || val[i] == 0.0) {
+        res[i] = 0.0;
+      } else {
+        res[i] = 1.0;
+      }
+    }
+    return res;
+  }
+
+  fn boolToF32(value : bool) -> f32 {
+    if (value) {
+      return 1.0;
+    }
+    return 0.0;
+  }
+
+  fn vec4BoolToVec4F32(value : vec4<bool>) -> vec4<f32> {
+    var res = vec4<f32>(0.0);
+    for (var i = 0u; i < 4u; i = i + 1u) {
+      if (value[i]) {
+        res[i] = 1.0;
+      }
+    }
+    return res;
+  }
+
+  fn notEqualF32(a : f32, b : f32) -> f32 {
+    if (a != b) {
+      return 1.0;
+    }
+    return 0.0;
+  }
+
+  fn notEqualVec4F32(a : vec4<f32>, b : vec4<f32>) -> vec4<f32> {
+    let resultBool = vec4<bool>(a != b);
+    return vec4BoolToVec4F32(resultBool);
+  }
+
+  fn greaterThanF32(a : f32, b : f32) -> f32 {
+    if (a > b) {
+      return 1.0;
+    }
+    return 0.0;
+  }
+
+  fn greaterThanVec4F32(a : vec4<f32>, b : vec4<f32>) -> vec4<f32> {
+    let resultBool = vec4<bool>(a > b);
+    return vec4BoolToVec4F32(resultBool);
+  }
+
+  fn greaterThanEqualF32(a : f32, b : f32) -> f32 {
+    if (a >= b) {
+      return 1.0;
+    }
+    return 0.0;
+  }
+
+  fn greaterThanEqualVec4F32(a : vec4<f32>, b : vec4<f32>) -> vec4<f32> {
+    let resultBool = vec4<bool>(a >= b);
+    return vec4BoolToVec4F32(resultBool);
+  }
+
+  fn lessF32(a : f32, b : f32) -> f32 {
+    if (a < b) {
+      return 1.0;
+    }
+    return 0.0;
+  }
+
+  fn lessVec4F32(a : vec4<f32>, b : vec4<f32>) -> vec4<f32> {
+    let resultBool = vec4<bool>(a < b);
+    return vec4BoolToVec4F32(resultBool);
+  }
+
+  fn lessEqualF32(a : f32, b : f32) -> f32 {
+    if (a <= b) {
+      return 1.0;
+    }
+    return 0.0;
+  }
+
+  fn lessEqualVec4F32(a : vec4<f32>, b : vec4<f32>) -> vec4<f32> {
+    let resultBool = vec4<bool>(a <= b);
+    return vec4BoolToVec4F32(resultBool);
+  }
+
   // Checks whether coordinates lie within the bounds of the shape.
-  fn coordsInBounds4D(coord: vec4<u32>, shape: vec4<u32>) -> bool {
-    return all(coord >= vec4<u32>(0u, 0u, 0u, 0u)) &&
+  fn coordsInBounds4D(coord : vec4<u32>, shape : vec4<u32>) -> bool {
+    return all(coord >= vec4<u32>(0u)) &&
         all(coord < shape);
   }
-  fn coordsInBounds3D(coord: vec3<u32>, shape: vec3<u32>) -> bool{
-    return all(coord >= vec3<u32>(0u, 0u, 0u)) &&
+
+  fn coordsInBounds3D(coord : vec3<u32>, shape : vec3<u32>) -> bool {
+    return all(coord >= vec3<u32>(0u)) &&
         all(coord < shape);
   }
-  fn coordsInBounds2D(coord: vec2<u32>, shape: vec2<u32>) -> bool {
-    return all(coord >= vec2<u32>(0u, 0u)) &&
+
+  fn coordsInBounds2D(coord : vec2<u32>, shape : vec2<u32>) -> bool {
+    return all(coord >= vec2<u32>(0u)) &&
         all(coord < shape);
   }
   `;
@@ -192,27 +291,17 @@ function getSetOutputSnippet(
   let snippet;
   if (isVec4) {
     snippet = `fn setOutputFlat(flatIndex : u32, value : vec4<f32>) {
-      result.numbers[flatIndex] = ${
-        wgslType === 'vec4<i32>' ?
-            'vec4<i32>(value)' :
-            (wgslType === 'vec4<bool>' ? 'vec4<bool>(value)' : 'value')};
+      result.numbers[flatIndex] = ${wgslType}(value);
     }
     fn setOutputFlatI32(flatIndex : u32, value : vec4<i32>) {
-      result.numbers[flatIndex] = ${
-        wgslType === 'vec4<f32>' ?
-            'vec4<f32>(value)' :
-            (wgslType === 'vec4<bool>' ? 'vec4<bool>(value)' : 'value')};
+      result.numbers[flatIndex] = ${wgslType}(value);
     }`;
   } else {
     snippet = `fn setOutputFlat(flatIndex : u32, value : f32) {
-      result.numbers[flatIndex] = ${
-        wgslType === 'i32' ? 'i32(value)' :
-                             (wgslType === 'bool' ? 'bool(value)' : 'value')};
+      result.numbers[flatIndex] = ${wgslType}(value);
     }
     fn setOutputFlatI32(flatIndex : u32, value : i32) {
-      result.numbers[flatIndex] = ${
-        wgslType === 'f32' ? 'f32(value)' :
-                             (wgslType === 'bool' ? 'bool(value)' : 'value')};
+      result.numbers[flatIndex] = ${wgslType}(value);
     }`;
   }
 
@@ -303,14 +392,14 @@ function getSamplerFromInInfo(inInfo: InputInfo, isVec4: boolean): string {
     if (isVec4) {
       return `
         fn ${funcName}() -> vec4<f32> {
-          return ${texName}.numbers[0];
+          return vec4<f32>(${texName}.numbers[0]);
         }
       `;
     }
 
     return `
-      fn ${funcName}() -> f32 {
-        return ${texName}.numbers[0];
+      fn ${funcName}() ->f32 {
+        return f32(${texName}.numbers[0]);
       }
     `;
   }
@@ -325,9 +414,9 @@ function getSamplerFromInInfo(inInfo: InputInfo, isVec4: boolean): string {
   if (isVec4) {
     return `
       fn ${funcName}(${inputs}) -> vec4<f32> {
-        return ${texName}.numbers[getFlatIndex${rankStr}(${type}(${
+        return vec4<f32>(${texName}.numbers[getFlatIndex${rankStr}(${type}(${
         dims.join(',')}),
-          ${shapeStr}) / 4u];
+          ${shapeStr}) / 4u]);
       }
       `;
   }
@@ -360,12 +449,12 @@ export function getSamplerAtOutputCoords(
     if (isVec4) {
       return `
         fn ${funcName}ByGlobalId(globalId : vec3<u32>) -> vec4<f32> {
-          return ${texName}.numbers[globalId.x];
+          return vec4<f32>(${texName}.numbers[globalId.x]);
         }
 
         fn ${funcName}ByCoords(coords : ${type}) -> vec4<f32> {
-          return ${texName}.numbers[${
-          outRank > 1 ? 'getOutputFlatIndex(coords)' : 'coords'} / 4u];
+          return vec4<f32>(${texName}.numbers[${
+          outRank > 1 ? 'getOutputFlatIndex(coords)' : 'coords'} / 4u]);
         }
         `;
     } else {
