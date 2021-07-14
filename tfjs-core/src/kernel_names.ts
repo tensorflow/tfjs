@@ -851,6 +851,7 @@ export type TopKInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface TopKAttrs {
   k: number;
   sorted: boolean;
+  divideFactor: number;
 }
 
 export const Transform = 'Transform';
