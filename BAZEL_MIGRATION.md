@@ -310,9 +310,49 @@ Since we now use the `publish-npm` script to publish this package instead of `np
 1. In `scripts/publish-npm.ts`, add your package's name to the `BAZEL_PACKAGES` set.
 2. In `e2e/scripts/publish-tfjs-ci.sh`, add your package's name to the `BAZEL_PACKAGES` list.
 
+You should also add a script to build the package itself without publishing (used for the `link-package`).
+
+```json
+"build": "bazel build :tfjs-core_pkg",
+```
+
 ### Update or Remove `cloudbuild.yml`
 Update the `cloudbuild.yml` to remove any steps that are now built with Bazel. These will be run by the `bazel-tests` step, which runs before other packages' steps. Any Bazel rule tagged as `ci` will be tested / build in CI.
 
 Note that the output paths of Bazel-created outputs will be different, so any remaining steps that now rely on Bazel outputs may need to be updated. Bazel outputs are located in `tfjs/dist/bin/...`.
 
 If all steps of the `cloudbuild.yml` file are handled by Bazel, it can be deleted. Make sure to also remove references to the package from `tfjs/scripts/package_dependencies.json`.
+
+### Update Downstream `package.json` Paths
+
+As a core featue of its design, Bazel places outputs in a different directory than sources. Outputs are symlinked to `dist/bin/[package-name]/.....` instead of appearing in `[package-name]/dist`. Due to the different location, all downstream packages' `package.json` files need to be updated to point to the new outputs. However, due to some details of how Bazel and the Node module resolution algorithm work, we can't directly `link:` to Bazel's output.
+
+Instead, we maintain a `link-package` pseudopackage where we copy the Bazel outputs. This package allows for correct Node module resolution between Bazel outputs because it has its own `node_modules` folder. This package will never be published and will be removed once the migration is complete.
+
+#### Add the Package to `link-package`
+Add your package to the `devDependencies` of the `link-package`'s `package.json`. The package path should be similar to the one below and is based off of the `pkg_npm` rule's name.
+
+```json
+"devDependencies": {
+  "@tensorflow/tfjs-core": "file:../dist/bin/tfjs-core/tfjs-core_pkg",
+}
+```
+
+#### Add a build script to the `link-package`
+Add a script to build your package to the link-package's `package.json`. Be sure to add it to the `build` script as well.
+
+```json
+"scripts": {
+  "build": "yarn build-backend-cpu && yarn build-core && yarn reinstall",
+  "build-core": "cd ../tfjs-core && yarn && yarn build",
+},
+```
+
+#### Change Downstream Dependency `package.json` Paths
+Update all downstream dependencies that depend on the package to point to its location in the `link-package`.
+
+```json
+"devDependencies": {
+  "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
+},
+```
