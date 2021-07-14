@@ -94,7 +94,9 @@ function setupBenchmarkEnv(config) {
 
 /* Runs benchmarks for all device-browser, backend, and model combinations. */
 async function runAllBenchmarks() {
-  await getAllBenchmarkConfigs();
+  if (!fs.existsSync('./all_configs.json')) {
+    await getAllBenchmarkConfigs();
+  }
 
   const results = [];
   const configs = require('./all_configs.json');
@@ -255,9 +257,13 @@ function setupHelpMessage() {
         'browsers can be benchmarked.'
   });
   parser.add_argument('--benchmarks', {
-    help: 'run a preconfigured benchmark from a user-specified JSON, using ' +
-        '\'all\' will run all browser-device, model, and backend combinations',
+    help: 'run a preconfigured benchmark from a user-specified JSON',
     action: 'store'
+  });
+  parser.add_argument('--getAllBenchmarks', {
+    help: 'creates benchmark config file with all browser-device, model, ' +
+        'and backend combinations',
+    action: 'store_true'
   });
   parser.add_argument('--maxBenchmarks', {
     help: 'the maximum number of benchmarks run in parallel',
