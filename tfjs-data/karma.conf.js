@@ -53,7 +53,7 @@ module.exports = function(config) {
       },
       chrome_with_swift_shader: {
         base: 'Chrome',
-        flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
+        flags: ['--disable-gpu']
       }
     },
     client: {jasmine: {random: false}, args: ['--grep', config.grep || '']}
