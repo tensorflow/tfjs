@@ -59,7 +59,6 @@ export function topK(
   const TOPK_K_CPU_HANDOFF_THRESHOLD =
       env().getNumber('TOPK_K_CPU_HANDOFF_THRESHOLD');
 
-
   const xShape = x.shape;
   const lastDim = xShape[xShape.length - 1];
 
