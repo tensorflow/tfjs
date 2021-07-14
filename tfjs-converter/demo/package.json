@@ -10,9 +10,9 @@
     "babel-polyfill": "^6.26.0"
   },
   "scripts": {
-    "mobilenet": "NODE_ENV=development parcel mobilenet/index.html --no-hmr --open",
-    "ssd": "NODE_ENV=development parcel ssd/index.html --no-hmr --open",
-    "control_flow": "NODE_ENV=development parcel control_flow/index.html --no-hmr --open"
+    "mobilenet": "cross-env NODE_ENV=development parcel mobilenet/index.html --no-hmr --open",
+    "ssd": "cross-env NODE_ENV=development parcel ssd/index.html --no-hmr --open",
+    "control_flow": "cross-env NODE_ENV=development parcel control_flow/index.html --no-hmr --open"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-0",
@@ -21,6 +21,7 @@
     "@babel/preset-env": "~7.3.4",
     "@babel/runtime": "~7.3.4",
     "clang-format": "~1.2.2",
+    "cross-env": "^5.2.0",
     "parcel-bundler": "~1.11.0"
   },
   "babel": {
