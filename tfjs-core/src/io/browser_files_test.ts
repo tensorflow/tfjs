@@ -69,6 +69,12 @@ const weightSpecs1: tf.io.WeightsManifestEntry[] = [
   }
 ];
 const weightData1 = new ArrayBuffer(16);
+const trainingConfig1: tf.io.TrainingConfig = {
+  loss: 'categorical_crossentropy',
+  metrics: ['accuracy'],
+  optimizer_config: {class_name: 'SGD', config: {learningRate: 0.1}}
+};
+
 const artifacts1: tf.io.ModelArtifacts = {
   modelTopology: modelTopology1,
   weightSpecs: weightSpecs1,
@@ -76,7 +82,8 @@ const artifacts1: tf.io.ModelArtifacts = {
   format: 'layers-model',
   generatedBy: 'TensorFlow.js v0.0.0',
   convertedBy: null,
-  modelInitializer: {}
+  modelInitializer: {},
+  trainingConfig: trainingConfig1,
 };
 
 describeWithFlags('browserDownloads', BROWSER_ENVS, () => {
@@ -126,17 +133,15 @@ describeWithFlags('browserDownloads', BROWSER_ENVS, () => {
 
     // Verify the content of the JSON file.
     const jsonContent = await fetch(jsonAnchor.href);
-    const modelTopologyAndWeightsManifest =
-        JSON.parse(await jsonContent.text());
-    expect(modelTopologyAndWeightsManifest.modelTopology)
-        .toEqual(modelTopology1);
-    expect(modelTopologyAndWeightsManifest.format).toEqual('layers-model');
-    expect(modelTopologyAndWeightsManifest.generatedBy)
-        .toEqual('TensorFlow.js v0.0.0');
-    expect(modelTopologyAndWeightsManifest.convertedBy).toEqual(null);
-    expect(modelTopologyAndWeightsManifest.modelInitializer).toEqual({});
-    const weightsManifest = modelTopologyAndWeightsManifest.weightsManifest as
-        WeightsManifestConfig;
+    const modelJSON = JSON.parse(await jsonContent.text()) as tf.io.ModelJSON;
+    expect(modelJSON.modelTopology).toEqual(modelTopology1);
+    expect(modelJSON.format).toEqual('layers-model');
+    expect(modelJSON.generatedBy).toEqual('TensorFlow.js v0.0.0');
+    expect(modelJSON.convertedBy).toEqual(null);
+    expect(modelJSON.modelInitializer).toEqual({});
+    expect(modelJSON.trainingConfig).toEqual(trainingConfig1);
+
+    const weightsManifest = modelJSON.weightsManifest;
     expect(weightsManifest.length).toEqual(1);
     expect(weightsManifest[0].paths).toEqual(['./test-model.weights.bin']);
     expect(weightsManifest[0].weights).toEqual(weightSpecs1);
@@ -283,17 +288,17 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
       paths: ['./model.weights.bin'],
       weights: weightSpecs1,
     }];
-    const weightsTopologyAndManifest = {
+    const modelJSON: tf.io.ModelJSON = {
       modelTopology: modelTopology1,
       weightsManifest,
       format: 'layers-model',
       generatedBy: 'TensorFlow.js v0.0.0',
       convertedBy: '1.13.1',
-      modelInitializer: {}
+      modelInitializer: {},
+      trainingConfig: trainingConfig1,
     };
     const jsonFile = new File(
-        [JSON.stringify(weightsTopologyAndManifest)], 'model.json',
-        {type: 'application/json'});
+        [JSON.stringify(modelJSON)], 'model.json', {type: 'application/json'});
 
     const filesHandler = tf.io.browserFiles([jsonFile, weightsFile]);
     const modelArtifacts = await filesHandler.load();
@@ -303,6 +308,7 @@ describeWithFlags('browserFiles', BROWSER_ENVS, () => {
     expect(modelArtifacts.generatedBy).toEqual('TensorFlow.js v0.0.0');
     expect(modelArtifacts.convertedBy).toEqual('1.13.1');
     expect(modelArtifacts.modelInitializer).toEqual({});
+    expect(modelArtifacts.trainingConfig).toEqual(trainingConfig1);
 
     expect(new Uint8Array(modelArtifacts.weightData))
         .toEqual(new Uint8Array(weightData1));
