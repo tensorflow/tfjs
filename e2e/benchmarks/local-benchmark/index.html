@@ -168,6 +168,7 @@ limitations under the License.
         });
       },
       testCorrectness: async () => {
+        await tf.ready();
         if (!tf.engine().backendNames().includes(state.backend)) {
           return;
         }
@@ -442,7 +443,6 @@ limitations under the License.
     }
 
     async function loadModelAndRecordTime() {
-      await tf.ready();
       updateStateFromURLState();
       const benchmark = benchmarks[state.benchmark];
       state.modelType = benchmark['type'];
@@ -619,6 +619,7 @@ limitations under the License.
     }
 
     async function runBenchmark() {
+      await tf.ready();
       if (!tf.engine().backendNames().includes(state.backend)) {
         return;
       }
