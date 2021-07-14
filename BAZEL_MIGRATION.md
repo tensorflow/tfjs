@@ -15,7 +15,7 @@ Migrating a package to Bazel involves adding Bazel targets that build the packag
 These steps are general guidelines for how to build a package with Bazel. They should work for most packages, but there may be some exceptions (e.g. wasm, react native).
 
 ### Make sure all dependencies build with Bazel
-A package's dependencies must be migrated before it can be migrated. Take a look at the package's issue, which can be found from #5287, to find its dependencies.
+A package's dependencies must be migrated before it can be migrated. Take a look at the package's issue, which can be found by checking [#5287](https://github.com/tensorflow/tfjs/issues/5287), to find its dependencies.
 
 ### Add dependencies to the root `package.json`
 Bazel (through `rules_nodejs`) uses a single root `package.json` for its npm dependencies. When converting a package to build with Bazel, dependencies in the package's `package.json` will need to be added to the root `package.json` as well.
