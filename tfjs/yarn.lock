@@ -885,44 +885,29 @@
     estree-walker "^1.0.1"
     picomatch "^2.2.2"
 
-"@tensorflow/tfjs-backend-cpu@link:../tfjs-backend-cpu":
+"@tensorflow/tfjs-backend-cpu@link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu":
   version "0.0.0"
-  dependencies:
-    "@types/seedrandom" "2.4.27"
-    seedrandom "2.4.3"
+  uid ""
 
 "@tensorflow/tfjs-backend-webgl@link:../tfjs-backend-webgl":
   version "0.0.0"
-  dependencies:
-    "@tensorflow/tfjs-backend-cpu" "link:../tfjs-backend-cpu"
-    "@types/offscreencanvas" "~2019.3.0"
-    "@types/seedrandom" "2.4.27"
-    "@types/webgl-ext" "0.0.30"
-    "@types/webgl2" "0.0.5"
-    seedrandom "2.4.3"
+  uid ""
 
 "@tensorflow/tfjs-converter@link:../tfjs-converter":
   version "0.0.0"
+  uid ""
 
-"@tensorflow/tfjs-core@link:../tfjs-core":
+"@tensorflow/tfjs-core@link:../link-package/node_modules/@tensorflow/tfjs-core":
   version "0.0.0"
-  dependencies:
-    "@types/long" "^4.0.1"
-    "@types/offscreencanvas" "~2019.3.0"
-    "@types/seedrandom" "2.4.27"
-    "@types/webgl-ext" "0.0.30"
-    long "4.0.0"
-    node-fetch "~2.6.1"
-    seedrandom "2.4.3"
+  uid ""
 
 "@tensorflow/tfjs-data@link:../tfjs-data":
   version "0.0.0"
-  dependencies:
-    "@types/node-fetch" "^2.1.2"
-    node-fetch "~2.6.1"
+  uid ""
 
 "@tensorflow/tfjs-layers@link:../tfjs-layers":
   version "0.0.0"
+  uid ""
 
 "@types/argparse@^1.0.38":
   version "1.0.38"

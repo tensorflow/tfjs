@@ -13,151 +13,174 @@
 # limitations under the License.
 # =============================================================================
 
-load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
-load("@npm//@bazel/concatjs:index.bzl", "karma_web_test")
-load("@npm//@bazel/typescript:index.bzl", "ts_library", "ts_project")
-load("//:esbuild.bzl", "esbuild")
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "nodejs_test", "pkg_npm")
+load("//tools:copy_to_dist.bzl", "copy_to_dist")
+load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
+load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
+load("//tools:ts_library_outputs.bzl", "ts_library_outputs")
 
 package(default_visibility = ["//visibility:public"])
 
 # Allow typescript rules in any package to reference this file
-exports_files(["tsconfig.json"])
+exports_files([
+    "tsconfig.json",
+    "package.json",
+])
 
-TEST_SRCS = ["src/setup_test.ts"]
-
-ts_project(
-    name = "tfjs-core_lib",
-    srcs = glob(
-        ["src/**/*.ts"],
-        exclude = TEST_SRCS,
-    ),
-    declaration = True,
-    extends = "//:tsconfig.json",
-    incremental = True,
-    out_dir = "dist",
-    root_dir = "src",
-    source_map = True,
-    tsconfig = "tsconfig.json",
-    deps = [
-        "@npm//@types",
-        "@npm//jasmine-core",
-        "@npm//long",
-        "@npm//seedrandom",
-    ],
-)
-
-ts_library(
-    name = "tfjs-core_test_lib",
-    testonly = True,
-    srcs = [
-        "setup_test_bazel.ts",
-    ],
-    tsconfig = "//:tsconfig_ts_library.json",
-    deps = [
-        ":tfjs-core",
-        "@npm//@types",
-        "@npm//jasmine-core",
-        "@npm//long",
-        "@npm//seedrandom",
-    ],
-)
-
-esbuild(
-    name = "tfjs-core_test_bundle",
-    testonly = True,
-    args = [
-        "--resolve-extensions=.mjs,.js",
-    ],
-    entry_point = "setup_test_bazel.ts",
-    external = [
-        # webworker tests call 'require('@tensorflow/tfjs')', which
-        # is external to the test bundle.
-        # Note: This is not a bazel target. It's just a string.
-        "@tensorflow/tfjs",
-    ],
-    sources_content = True,
-    deps = [
-        ":tfjs-core_lib",
-        ":tfjs-core_test_lib",
-        "//tfjs-backend-cpu",
-    ],
-)
-
-esbuild(
-    name = "tf-core.min",
-    args = [
-        "--resolve-extensions=.mjs,.js",
-    ],
-    entry_point = "dist/index.js",
+tfjs_bundle(
+    name = "tf-core",
+    entry_point = "//tfjs-core/src:index.ts",
     external = [
         "node-fetch",
         "util",
     ],
-    minify = True,
-    sources_content = True,
+    umd_name = "tf",
     deps = [
-        ":tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_lib",
     ],
 )
 
-esbuild(
-    name = "tf-core.node",
-    args = [
-        "--resolve-extensions=.mjs,.js",
-    ],
-    entry_point = "dist/index.js",
-    external = [
-        "node-fetch",
-        "util",
-    ],
-    sources_content = True,
-    deps = [
-        ":tfjs-core_lib",
-    ],
-)
-
-js_library(
-    name = "tfjs-core",
-    package_name = "@tensorflow/tfjs-core",
+ts_library_outputs(
+    name = "tfjs-core_outputs",
     srcs = [
-        "package.json",
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_src_lib",
+        "//tfjs-core/src:tfjs-core_test_lib",
     ],
-    deps = [
+)
+
+copy_to_dist(
+    name = "copy_src_to_dist",
+    srcs = [
+        ":tfjs-core_outputs",
+    ],
+    root = "src",
+)
+
+copy_to_dist(
+    name = "copy_bundles",
+    srcs = [
+        ":tf-core",
+        ":tf-core.es2017",
+        ":tf-core.es2017.min",
+        ":tf-core.fesm",
+        ":tf-core.fesm.min",
         ":tf-core.min",
-        ":tf-core.node",
-        ":tfjs-core_lib",
     ],
 )
 
-karma_web_test(
+ts_library_outputs(
+    name = "test_snippets_outputs",
+    srcs = [
+        "//tfjs-core/scripts/test_snippets:test_snippets_util_lib",
+    ],
+)
+
+copy_to_dist(
+    name = "copy_test_snippets",
+    srcs = [
+        ":test_snippets_outputs",
+    ],
+)
+
+copy_file(
+    name = "copy_miniprogram",
+    src = ":tf-core.min.js",
+    out = "dist/miniprogram/index.js",
+)
+
+copy_file(
+    name = "copy_miniprogram_map",
+    src = ":tf-core.min.js.map",
+    out = "dist/miniprogram/index.js.map",
+)
+
+pkg_npm(
+    name = "tfjs-core_pkg",
+    srcs = ["package.json"],
+    tags = ["ci"],
+    deps = [
+        ":copy_bundles",
+        ":copy_miniprogram",
+        ":copy_miniprogram_map",
+        ":copy_src_to_dist",
+        ":copy_test_snippets",
+    ],
+)
+
+tfjs_web_test(
     name = "tfjs-core_test",
     srcs = [
-        ":tfjs-core_test_bundle",
+        "//tfjs-core/src:tfjs-core_test_bundle",
+    ],
+    browsers = [
+        "bs_chrome_mac",
+        "bs_firefox_mac",
+        "bs_safari_mac",
+        "bs_ios_11",
+        "bs_android_9",
+        "win_10_chrome",
     ],
     static_files = [
         # Listed here so sourcemaps are served
-        ":tfjs-core_test_bundle",
+        "//tfjs-core/src:tfjs-core_test_bundle",
+        # For the webworker
+        ":tf-core.min.js",
+        ":tf-core.min.js.map",
+        "//tfjs-backend-cpu:tf-backend-cpu.min.js",
+        "//tfjs-backend-cpu:tf-backend-cpu.min.js.map",
     ],
-    tags = ["native"],
 )
 
-karma_web_test(
-    name = "browserstack_tfjs-core_test",
-    srcs = [
-        ":tfjs-core_test_bundle",
+# Defined here because chdir must be a subdirectory of the directory the rule is
+# defined in.
+nodejs_test(
+    name = "test_snippets_test",
+    chdir = "tfjs-core",
+    data = [
+        ":tsconfig.json",
+        "//:tsconfig.json",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-core/scripts/test_snippets:test_snippets_lib",
+        "//tfjs-core/src:all_srcs",
     ],
-    config_file = "//:karma.conf.js",
-    peer_deps = [
-        "@npm//karma",
-        "@npm//karma-jasmine",
-        "@npm//karma-requirejs",
-        "@npm//karma-sourcemap-loader",
-        "@npm//requirejs",
-        "@npm//karma-browserstack-launcher",
-    ],
-    static_files = [
-        # Listed here so sourcemaps are served
-        ":tfjs-core_test_bundle",
-    ],
+    entry_point = "//tfjs-core/scripts/test_snippets:test_snippets.ts",
+    link_workspace_root = True,
     tags = ["ci"],
+)
+
+nodejs_test(
+    name = "tfjs-core_node_test",
+    data = [
+        ":package_json",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_src_lib",
+        "//tfjs-core/src:tfjs-core_test_lib",
+    ],
+    entry_point = "//tfjs-core/src:test_node.ts",
+    link_workspace_root = True,
+    tags = ["ci"],
+)
+
+nodejs_test(
+    name = "tfjs-core_async_backends_test",
+    data = [
+        ":package_json",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-core/src:tfjs-core_test_lib",
+    ],
+    entry_point = "//tfjs-core/src:test_async_backends.ts",
+    link_workspace_root = True,
+    tags = ["ci"],
+)
+
+# This is necessary for tests to have acess to
+# the package.json so src/version_test.ts can 'require()' it.
+js_library(
+    name = "package_json",
+    srcs = [
+        ":package.json",
+    ],
 )

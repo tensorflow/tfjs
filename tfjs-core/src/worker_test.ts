@@ -15,32 +15,30 @@
  * =============================================================================
  */
 
-import * as tf from './index';
 import {describeWithFlags, HAS_WORKER} from './jasmine_util';
 import {expectArraysClose} from './test_util';
 
-const fn2workerURL = (fn: Function): string => {
+const str2workerURL = (str: string): string => {
   const blob =
-      new Blob(['(' + fn.toString() + ')()'], {type: 'application/javascript'});
+      new Blob([str], {type: 'application/javascript'});
   return URL.createObjectURL(blob);
 };
 
 // The source code of a web worker.
-const workerTest = () => {
-  //@ts-ignore
-  importScripts('http://bs-local.com:12345/base/dist/tf-core.min.js');
-  //@ts-ignore
-  importScripts('http://bs-local.com:12345/base/dist/tf-backend-cpu.min.js');
-  let a = tf.tensor1d([1, 2, 3]);
-  const b = tf.tensor1d([3, 2, 1]);
-  a = tf.add(a, b);
-  //@ts-ignore
-  self.postMessage({data: a.dataSync()});
-};
+const workerTest = `
+importScripts(location.origin + '/base/tfjs/tfjs-core/tf-core.min.js');
+importScripts(location.origin
+  + '/base/tfjs/tfjs-backend-cpu/tf-backend-cpu.min.js');
+
+let a = tf.tensor1d([1, 2, 3]);
+const b = tf.tensor1d([3, 2, 1]);
+a = tf.add(a, b);
+self.postMessage({data: a.dataSync()});
+`;
 
 describeWithFlags('computation in worker', HAS_WORKER, () => {
   it('tensor in worker', (done) => {
-    const worker = new Worker(fn2workerURL(workerTest));
+    const worker = new Worker(str2workerURL(workerTest));
     worker.onmessage = (msg) => {
       const data = msg.data.data;
       expectArraysClose(data, [4, 4, 4]);

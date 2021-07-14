@@ -1,12 +1,12 @@
 steps:
 # Install common dependencies.
-- name: 'node:12'
+- name: 'gcr.io/learnjs-174218/release'
   id: 'yarn-common'
   entrypoint: 'yarn'
   args: ['install']
 
 # Install packages.
-- name: 'node:12'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-node'
   entrypoint: 'yarn'
   id: 'yarn'
@@ -14,7 +14,7 @@ steps:
   waitFor: ['yarn-common']
 
 # Build add-on.
-- name: 'node:12'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-node'
   entrypoint: 'yarn'
   id: 'build-addon'
@@ -22,7 +22,7 @@ steps:
   waitFor: ['yarn']
 
 # Build deps.
-- name: 'node:12'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-node'
   entrypoint: 'yarn'
   id: 'build-deps'
@@ -30,7 +30,7 @@ steps:
   waitFor: ['yarn-common']
 
 # Build.
-- name: 'node:12'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-node'
   entrypoint: 'yarn'
   id: 'build'
@@ -38,7 +38,7 @@ steps:
   waitFor: ['yarn', 'build-deps']
 
 # Lint.
-- name: 'node:12'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-node'
   entrypoint: 'yarn'
   id: 'lint'
@@ -46,7 +46,7 @@ steps:
   waitFor: ['yarn', 'build-deps']
 
 # Unit tests.
-- name: 'node:12'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-node'
   entrypoint: 'yarn'
   id: 'test'
@@ -54,7 +54,7 @@ steps:
   waitFor: ['yarn', 'build-deps', 'lint']
 
 # CPU / GPU package alignment.
-- name: 'node:12'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-node'
   entrypoint: 'yarn'
   id: 'ensure-cpu-gpu-packages-align'

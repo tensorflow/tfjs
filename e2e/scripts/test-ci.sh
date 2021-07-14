@@ -62,7 +62,9 @@ if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
   node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_android_9 --tags '$TAGS'"
 
   # Test script tag bundles
-  node ../scripts/run_flaky.js "karma start ./script_tag_tests/karma.conf.js --browserstack --browsers=bs_chrome_mac --testBundle tf.min.js"
+  node ../scripts/run_flaky.js "karma start ./script_tag_tests/tfjs/karma.conf.js --browserstack --browsers=bs_chrome_mac --testBundle tf.min.js"
+
+  node ../scripts/run_flaky.js "karma start ./script_tag_tests/tfjs-core-cpu/karma.conf.js --browserstack --browsers=bs_chrome_mac"
 else
   node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac --tags '$TAGS'"
 fi

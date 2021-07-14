@@ -21,7 +21,6 @@ const browserstackConfig = {
   port: 9896,
 };
 
-
 module.exports = function(config) {
   config.set({
     ...browserstackConfig,
@@ -37,7 +36,7 @@ module.exports = function(config) {
     browserDisconnectTimeout: 3e5,
     browserDisconnectTolerance: 3,
     browserSocketTimeout: 1.2e5,
-    browsers: ['bs_chrome_mac'],
+    browsers: ['TEMPLATE_browser'],
     customLaunchers: {
       // For browserstack configs see:
       // https://www.browserstack.com/automate/node
