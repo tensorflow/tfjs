@@ -136,9 +136,17 @@ async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
   }
   /** Push results to Firestore if user wants */
   if (require.main === module && cliArgs.firestore) {
+    let numRejectedPromises = 0;
     for (result of fulfilled) {
-      addResultToFirestore(result);
+      if (result.status == "fulfilled") {
+        addResultToFirestore(result);
+      }
+      else if (result.status == "rejected") {
+        numRejectedPromises += 1;
+        console.log ("Promise rejected. Not adding to result to database.");
+      }
     }
+    console.log(`Encountered ${numRejectedPromises} rejected promises.`)
   }
 
   return fulfilled;

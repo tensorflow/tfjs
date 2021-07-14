@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-
+require("firebase/firestore");
 const firebase = require("firebase/app");
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_KEY,
@@ -25,7 +25,7 @@ const firebaseConfig = {
   messagingSenderId: "834911136599",
   appId: "1:834911136599:web:4b65685455bdf916a1ec12"
 };
-require("firebase/firestore");
+
 firebase.initializeApp(firebaseConfig);
 
 /**
