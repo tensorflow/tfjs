@@ -173,10 +173,9 @@ esbuild(
 )
 ```
 
-`tfjs-core/BUILD.bazel`
-
 The esbuild bundle is then used in the tfjs_web_test macro, which uses [karma_web_test](https://bazelbuild.github.io/rules_nodejs/Concatjs.html#karma_web_test) to serve them to a browser to be run. Different browserstack browsers can be enabled or disabled in the `browsers` argument, and the full list of browsers is located in `tools/karma_template.conf.js`. Browserstack browser tests are automatically tagged with `ci`.
 
+`tfjs-core/BUILD.bazel`
 ```starlark
 load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
 
