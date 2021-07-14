@@ -44,6 +44,7 @@ export class GraphModel implements InferenceModel {
   private initializer: GraphExecutor;
   private resourceManager: ResourceManager;
   private signature: tensorflow.ISignatureDef;
+  private graph: tensorflow.IGraphDef;
 
   // Returns the version information for the tensorflow model GraphDef.
   get modelVersion(): string {
@@ -64,6 +65,10 @@ export class GraphModel implements InferenceModel {
 
   get outputs(): TensorInfo[] {
     return this.executor.outputs;
+  }
+
+  get nodes() {
+    return this.graph.node;
   }
 
   get weights(): NamedTensorsMap {
@@ -143,6 +148,7 @@ export class GraphModel implements InferenceModel {
   loadSync(artifacts: io.ModelArtifacts) {
     this.artifacts = artifacts;
     const graph = this.artifacts.modelTopology as tensorflow.IGraphDef;
+    this.graph = graph;
 
     let signature;
     if (this.artifacts.userDefinedMetadata != null &&

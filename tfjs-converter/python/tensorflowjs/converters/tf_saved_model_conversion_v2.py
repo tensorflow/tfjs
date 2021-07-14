@@ -115,7 +115,7 @@ def _run_grappler(config, graph_def, graph, signature_def):
   return tf_optimizer.OptimizeGraph(
       config, meta_graph, cluster=get_cluster())
 
-def optimize_graph(graph, signature_def, output_graph,
+def optimize_graph(graph, signature_def, output_dir,
                    tf_version, quantization_dtype_map=None,
                    skip_op_check=False, strip_debug_ops=False,
                    weight_shard_size_bytes=1024 * 1024 * 4,
@@ -127,7 +127,11 @@ def optimize_graph(graph, signature_def, output_graph,
   Args:
     graph: The frozen graph to optimize.
     signature_def: the SignatureDef of the inference graph.
-    output_graph: The location of the output graph.
+    output_dir: string The name of the output directory. The directory
+      will consist of
+      - a file named 'model.json'
+      - possibly sharded binary weight files.
+      - a graph def of the python model 'graph_def.pb'
     tf_version: Tensorflow version of the input graph.
     quantization_dtype_map: A mapping from dtype
       (`uint8`, `uint16`, `float16`) to weights names. The weight mapping
@@ -209,6 +213,9 @@ def optimize_graph(graph, signature_def, output_graph,
   initializer_graph_def = None
   if initializer_graph:
     initializer_graph_def = initializer_graph.as_graph_def()
+
+  tf.io.write_graph(optimized_graph, output_dir, common.GRAPH_DEF_FILE_NAME, False)
+  output_graph = os.path.join(output_dir, common.ARTIFACT_MODEL_JSON_FILE_NAME)
 
   extract_weights(
       optimized_graph, output_graph, tf_version,
@@ -500,6 +507,7 @@ def convert_tf_frozen_model(frozen_model_path,
       will consist of
       - a file named 'model.json'
       - possibly sharded binary weight files.
+      - a graph def of the python model 'graph_def.pb'
     quantization_dtype_map: A mapping from dtype
       (`uint8`, `uint16`, `float16`) to weights names. The weight mapping
       supports wildcard substitution.
@@ -513,14 +521,13 @@ def convert_tf_frozen_model(frozen_model_path,
 
   if not os.path.exists(output_dir):
     os.makedirs(output_dir)
-  output_graph = os.path.join(output_dir, common.ARTIFACT_MODEL_JSON_FILE_NAME)
 
   graph = load_graph(frozen_model_path)
   signature = _build_signature_def(
       graph, [], output_node_names.split(','))
 
   optimize_graph(graph, signature,
-                 output_graph, tf.__version__,
+                 output_dir, tf.__version__,
                  quantization_dtype_map=quantization_dtype_map,
                  skip_op_check=skip_op_check,
                  strip_debug_ops=strip_debug_ops,
@@ -545,7 +552,6 @@ def _find_signature(saved_model_dir, saved_model_tags, signature_def):
                      % (signature_def))
 
   return signature_def_map[signature_def]
-
 def convert_tf_saved_model(saved_model_dir,
                            output_dir, signature_def='serving_default',
                            saved_model_tags='serve',
@@ -568,6 +574,7 @@ def convert_tf_saved_model(saved_model_dir,
       will consist of
       - a file named 'model.json'
       - possibly sharded binary weight files.
+      - a graph def of the python model 'graph_def.pb'
     signature_def: string Tagset of the SignatureDef to load. Defaults to
       'serving_default'.
     saved_model_tags: tags of the GraphDef to load. Defaults to 'serve'.
@@ -587,8 +594,6 @@ def convert_tf_saved_model(saved_model_dir,
 
   if not tf.io.gfile.exists(output_dir):
     tf.io.gfile.makedirs(output_dir)
-  output_graph = os.path.join(
-      output_dir, common.ARTIFACT_MODEL_JSON_FILE_NAME)
 
   saved_model_sigature = _find_signature(saved_model_dir, saved_model_tags,
                                          signature_def)
@@ -681,7 +686,7 @@ def convert_tf_saved_model(saved_model_dir,
         frozen_graph, concrete_func, output_node_names)
 
   optimize_graph(frozen_graph, signature,
-                 output_graph, model.tensorflow_version,
+                 output_dir, model.tensorflow_version,
                  quantization_dtype_map=quantization_dtype_map,
                  skip_op_check=skip_op_check,
                  strip_debug_ops=strip_debug_ops,
@@ -753,6 +758,7 @@ def convert_tf_hub_module_v1(module_path, output_dir,
       will consist of
       - a file named 'model.json'
       - possibly sharded binary weight files.
+      - a graph def of the python model 'graph_def.pb'
     signature: string Signature to load.
     quantization_dtype_map: A mapping from dtype
       (`uint8`, `uint16`, `float16`) to weights names. The weight mapping
@@ -799,7 +805,7 @@ def convert_tf_hub_module_v1(module_path, output_dir,
                                      inputs.values(), outputs.values())
 
     optimize_graph(frozen_graph, signature,
-                   output_graph, tf.__version__,
+                   output_dir, tf.__version__,
                    quantization_dtype_map=quantization_dtype_map,
                    skip_op_check=skip_op_check,
                    strip_debug_ops=strip_debug_ops,
@@ -830,6 +836,7 @@ def convert_tf_hub_module(module_handle, output_dir,
       will consist of
       - a file named 'model.json'
       - possibly sharded binary weight files.
+      - a graph def of the python model 'graph_def.pb'
     signature: string Signature to load.
     saved_model_tags: tags of the GraphDef to load. Defaults to ''.
     quantization_dtype_map: A mapping from dtype
