@@ -35,7 +35,8 @@
     "build-core": "cd ../../../tfjs-core && yarn && yarn build && yarn build-npm",
     "build-data": "cd ../../../tfjs-data && yarn && yarn build",
     "build-layers": "cd ../../../tfjs-layers && yarn && yarn build && yarn build-npm",
-    "build-vis": "cd ../../../tfjs-vis && yarn && yarn build"
+    "build-vis": "cd ../../../tfjs-vis && yarn && yarn build",
+    "get-all-benchmarks": "node get_all_configs.js"
   },
   "license": "Apache-2.0",
   "engines": {

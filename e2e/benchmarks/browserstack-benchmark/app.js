@@ -22,7 +22,7 @@ const path = require('path');
 const {execFile} = require('child_process');
 const {ArgumentParser} = require('argparse');
 const {version} = require('./package.json');
-const {resolve} = require('path')
+const {resolve} = require('path');
 
 const port = process.env.PORT || 8001;
 let io;
@@ -90,6 +90,40 @@ function setupBenchmarkEnv(config) {
   // Write benchmark parameters to './benchmark_parameters.json'.
   fs.writeFileSync(
       './benchmark_parameters.json', JSON.stringify(config.benchmark, null, 2));
+}
+
+/* Runs benchmarks for all device-browser, backend, and model combinations. */
+async function runAllBenchmarks() {
+  await getAllBenchmarkConfigs();
+
+  const results = [];
+  const configs = require('./all_configs.json');
+  const browsers = configs.browsers;
+  for (const benchmarkConfig in configs.benchmarkConfigs) {
+    const config = configs.benchmarkConfigs[benchmarkConfig];
+    config['benchmark']['numRuns'] = cliArgs.numRuns;
+    config['browsers'] = browsers;
+    results.push(await benchmark(config));
+  }
+
+  console.log('\nAll benchmarks complete.')
+  return results;
+}
+
+/* Creates file with all device-browser, backend, and model configuations. */
+function getAllBenchmarkConfigs() {
+  return new Promise((resolve, reject) => {
+    const args = ['get-all-benchmarks'];
+    execFile('yarn', args, (error, stdout, stderr) => {
+      if (error) {
+        console.log(error);
+        return reject();
+      } else {
+        console.log(`\n${stdout}`);
+        return resolve();
+      }
+    });
+  });
 }
 
 /**
@@ -185,7 +219,7 @@ function runBrowserStackBenchmark(tabId) {
 
       const errorMessage = 'Did not find benchmark results from the logs ' +
           'of the benchmark test (benchmark_models.js).';
-      io.emit('benchmarkComplete', {error: errorMessage});
+      // io.emit('benchmarkComplete', {error: errorMessage});
       return reject(errorMessage);
     });
   });
@@ -219,11 +253,18 @@ function setupHelpMessage() {
         'browsers can be benchmarked.'
   });
   parser.add_argument('--benchmarks', {
-    help: 'Run a preconfigured benchmark from a user-specified JSON',
+    help: 'run a preconfigured benchmark from a user-specified JSON, using ' +
+        '\'all\' will run all browser-device, model, and backend combinations',
     action: 'store'
   });
   parser.add_argument('--maxBenchmarks', {
     help: 'the maximum number of benchmarks run in parallel',
+    type: 'int',
+    default: 5,
+    action: 'store'
+  });
+  parser.add_argument('--numRuns', {
+    help: 'the number each performance benchmark is run via BrowserStack',
     type: 'int',
     default: 5,
     action: 'store'
@@ -251,15 +292,19 @@ if (require.main === module) {
   checkBrowserStackAccount();
   runServer();
   if (cliArgs.benchmarks) {
-    const filePath = resolve(cliArgs.benchmarks);
-    if (fs.existsSync(filePath)) {
-      console.log(`Found file at ${filePath}`);
-      const config = require(filePath);
-      runBenchmarkFromFile(config);
+    if (cliArgs.benchmarks == 'all') {
+      runAllBenchmarks();
     } else {
-      throw new Error(
-          `File could not be found at ${filePath}. ` +
-          `Please provide a valid path.`);
+      const filePath = resolve(cliArgs.benchmarks);
+      if (fs.existsSync(filePath)) {
+        console.log(`Found file at ${filePath}`);
+        const config = require(filePath);
+        runBenchmarkFromFile(config);
+      } else {
+        throw new Error(
+            `File could not be found at ${filePath}. ` +
+            `Please provide a valid path.`);
+      }
     }
   }
 }
