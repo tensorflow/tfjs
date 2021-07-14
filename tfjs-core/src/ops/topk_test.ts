@@ -27,8 +27,10 @@ import {tensor3d} from './tensor3d';
 describeWithFlags('topk', ALL_ENVS, () => {
   beforeAll(() => {
     // Ensure WebGL environment uses GPU
-    tf.env().set('TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD', 0);
-    tf.env().set('TOPK_K_CPU_HANDOFF_THRESHOLD', 1024);
+    if (tf.getBackend() === 'webgl') {
+      tf.env().set('TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD', 0);
+      tf.env().set('TOPK_K_CPU_HANDOFF_THRESHOLD', 1024);
+    }
   });
 
   it('1d array with k = 0', async () => {
