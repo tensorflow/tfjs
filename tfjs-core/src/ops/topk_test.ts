@@ -25,6 +25,14 @@ import {tensor2d} from './tensor2d';
 import {tensor3d} from './tensor3d';
 
 describeWithFlags('topk', ALL_ENVS, () => {
+  beforeAll(() => {
+    // Ensure WebGL environment uses GPU
+    if (tf.getBackend() === 'webgl') {
+      tf.env().set('TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD', 0);
+      tf.env().set('TOPK_K_CPU_HANDOFF_THRESHOLD', 1024);
+    }
+  });
+
   it('1d array with k = 0', async () => {
     const a = tensor1d([20, 10, 40, 30]);
     const {values, indices} = tf.topk(a, 0);
@@ -163,7 +171,7 @@ describeWithFlags('topk', ALL_ENVS, () => {
     expectArraysClose(await values.data(), [2, 2, 1, 1]);
     expectArraysClose(await indices.data(), [1, 2, 0, 3]);
   });
-  
+
   it('lower-index element appears first, k=65', async () => {
     const a = [
       1, 1, 2, 1, 2, 1, 1, 1, 2, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2,
@@ -172,7 +180,7 @@ describeWithFlags('topk', ALL_ENVS, () => {
     ];
     const k = a.length;
     const {values, indices} = tf.topk(a, k);
-    
+
     expectArraysClose(await values.data(), [
       2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
       2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,

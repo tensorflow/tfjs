@@ -82,6 +82,8 @@ export class WebGPUBackend extends KernelBackend {
   fromPixelProgram: FromPixelsProgram;
   fromPixelLayout: WebGPULayout;
   supportTimeQuery: boolean;
+  dummyCanvas: HTMLCanvasElement;
+  dummyContext: GPUPresentationContext; 
 
   private static nextDataId = 0;
   private nextDataId(): number {
@@ -127,6 +129,22 @@ export class WebGPUBackend extends KernelBackend {
     }
     // FromPixel has only one input texture.
     this.fromPixelLayout = this.createTextureLayout();
+
+    // Profiling tools like PIX needs this dummy canvas to
+    // trigger capturing a frame.
+    if (env().getBool('WEBGPU_USE_PROFILE_TOOL')) {
+      this.dummyCanvas = document.createElement('canvas');
+      this.dummyCanvas.width = 1;
+      this.dummyCanvas.height = 1;
+      
+      this.dummyContext = this.dummyCanvas.getContext('gpupresent');
+      this.dummyContext.configure({
+        device,
+        format: 'bgra8unorm',
+      });
+  
+      document.body.appendChild(this.dummyCanvas);
+    }
   }
 
   floatPrecision(): 32 {
@@ -322,6 +340,14 @@ export class WebGPUBackend extends KernelBackend {
       this.bufferManager.releaseBuffer(
           staging, info.bufferInfo.byteSize,
           GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
+    }
+
+    // Need to get texture from swapChain to enable profiling tool
+    // to capture a frame
+    if (env().getBool('WEBGPU_USE_PROFILE_TOOL')) {
+      util.assert(this.dummyContext !== undefined, 
+                  () => `Fail to get context for profiling tool`);
+      this.dummyContext.getCurrentTexture();
     }
 
     return values as backend_util.BackendValues;
