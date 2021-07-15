@@ -7,18 +7,11 @@ const allBrowsers = new Set();
 const allBenchmarkConfigs = [];
 
 // Creates list of all testable backend and model combinations
-let tabCount = 1;
 for (const backend in backends) {
   for (const benchmark in benchmarks) {
     if (benchmark === 'custom' || benchmark.includes('USE')) continue;
-
-    const config = {
-      'summaryTabId': `Summary_${tabCount}`,
-      'benchmark': {'model': benchmark, 'backend': backends[backend]}
-    };
-
-    allBenchmarkConfigs.push(config);
-    tabCount++;
+    allBenchmarkConfigs.push(
+        {'benchmark': {'model': benchmark, 'backend': backends[backend]}});
   }
 }
 

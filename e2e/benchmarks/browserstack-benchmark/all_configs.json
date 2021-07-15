@@ -1,252 +1,216 @@
 {
   "benchmarkConfigs": [
     {
-      "summaryTabId": "Summary_1",
       "benchmark": {
         "model": "mobilenet_v2",
         "backend": "cpu"
       }
     },
     {
-      "summaryTabId": "Summary_2",
       "benchmark": {
         "model": "mesh_128",
         "backend": "cpu"
       }
     },
     {
-      "summaryTabId": "Summary_3",
       "benchmark": {
         "model": "face_detector",
         "backend": "cpu"
       }
     },
     {
-      "summaryTabId": "Summary_4",
       "benchmark": {
         "model": "hand_detector",
         "backend": "cpu"
       }
     },
     {
-      "summaryTabId": "Summary_5",
       "benchmark": {
         "model": "hand_skeleton",
         "backend": "cpu"
       }
     },
     {
-      "summaryTabId": "Summary_6",
       "benchmark": {
         "model": "AutoML Image",
         "backend": "cpu"
       }
     },
     {
-      "summaryTabId": "Summary_7",
       "benchmark": {
         "model": "AutoML Object",
         "backend": "cpu"
       }
     },
     {
-      "summaryTabId": "Summary_8",
       "benchmark": {
         "model": "posenet",
         "backend": "cpu"
       }
     },
     {
-      "summaryTabId": "Summary_9",
       "benchmark": {
         "model": "bodypix",
         "backend": "cpu"
       }
     },
     {
-      "summaryTabId": "Summary_10",
       "benchmark": {
         "model": "blazeface",
         "backend": "cpu"
       }
     },
     {
-      "summaryTabId": "Summary_11",
       "benchmark": {
         "model": "speech-commands",
         "backend": "cpu"
       }
     },
     {
-      "summaryTabId": "Summary_12",
       "benchmark": {
         "model": "pose-detection",
         "backend": "cpu"
       }
     },
     {
-      "summaryTabId": "Summary_13",
       "benchmark": {
         "model": "mobilenet_v2",
         "backend": "wasm"
       }
     },
     {
-      "summaryTabId": "Summary_14",
       "benchmark": {
         "model": "mesh_128",
         "backend": "wasm"
       }
     },
     {
-      "summaryTabId": "Summary_15",
       "benchmark": {
         "model": "face_detector",
         "backend": "wasm"
       }
     },
     {
-      "summaryTabId": "Summary_16",
       "benchmark": {
         "model": "hand_detector",
         "backend": "wasm"
       }
     },
     {
-      "summaryTabId": "Summary_17",
       "benchmark": {
         "model": "hand_skeleton",
         "backend": "wasm"
       }
     },
     {
-      "summaryTabId": "Summary_18",
       "benchmark": {
         "model": "AutoML Image",
         "backend": "wasm"
       }
     },
     {
-      "summaryTabId": "Summary_19",
       "benchmark": {
         "model": "AutoML Object",
         "backend": "wasm"
       }
     },
     {
-      "summaryTabId": "Summary_20",
       "benchmark": {
         "model": "posenet",
         "backend": "wasm"
       }
     },
     {
-      "summaryTabId": "Summary_21",
       "benchmark": {
         "model": "bodypix",
         "backend": "wasm"
       }
     },
     {
-      "summaryTabId": "Summary_22",
       "benchmark": {
         "model": "blazeface",
         "backend": "wasm"
       }
     },
     {
-      "summaryTabId": "Summary_23",
       "benchmark": {
         "model": "speech-commands",
         "backend": "wasm"
       }
     },
     {
-      "summaryTabId": "Summary_24",
       "benchmark": {
         "model": "pose-detection",
         "backend": "wasm"
       }
     },
     {
-      "summaryTabId": "Summary_25",
       "benchmark": {
         "model": "mobilenet_v2",
         "backend": "webgl"
       }
     },
     {
-      "summaryTabId": "Summary_26",
       "benchmark": {
         "model": "mesh_128",
         "backend": "webgl"
       }
     },
     {
-      "summaryTabId": "Summary_27",
       "benchmark": {
         "model": "face_detector",
         "backend": "webgl"
       }
     },
     {
-      "summaryTabId": "Summary_28",
       "benchmark": {
         "model": "hand_detector",
         "backend": "webgl"
       }
     },
     {
-      "summaryTabId": "Summary_29",
       "benchmark": {
         "model": "hand_skeleton",
         "backend": "webgl"
       }
     },
     {
-      "summaryTabId": "Summary_30",
       "benchmark": {
         "model": "AutoML Image",
         "backend": "webgl"
       }
     },
     {
-      "summaryTabId": "Summary_31",
       "benchmark": {
         "model": "AutoML Object",
         "backend": "webgl"
       }
     },
     {
-      "summaryTabId": "Summary_32",
       "benchmark": {
         "model": "posenet",
         "backend": "webgl"
       }
     },
     {
-      "summaryTabId": "Summary_33",
       "benchmark": {
         "model": "bodypix",
         "backend": "webgl"
       }
     },
     {
-      "summaryTabId": "Summary_34",
       "benchmark": {
         "model": "blazeface",
         "backend": "webgl"
       }
     },
     {
-      "summaryTabId": "Summary_35",
       "benchmark": {
         "model": "speech-commands",
         "backend": "webgl"
       }
     },
     {
-      "summaryTabId": "Summary_36",
       "benchmark": {
         "model": "pose-detection",
         "backend": "webgl"

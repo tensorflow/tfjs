@@ -98,7 +98,7 @@ async function runAllBenchmarks() {
     await getAllBenchmarkConfigs();
   }
 
-  const results = [];
+  const results = {};
   const configs = require('./all_configs.json');
   const browsers = configs.browsers;
   for (const benchmarkConfig in configs.benchmarkConfigs) {
@@ -106,7 +106,8 @@ async function runAllBenchmarks() {
     const config = configs.benchmarkConfigs[benchmarkConfig];
     config['benchmark']['numRuns'] = cliArgs.numRuns;
     config['browsers'] = browsers;
-    results.push(await benchmark(config));
+    results[`${config.benchmark.backend}_${config.benchmark.model}`] =
+        await benchmark(config);
   }
 
   console.log('\nAll benchmarks complete.')
@@ -163,9 +164,16 @@ async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
   const results = [];
   let numActiveBenchmarks = 0;
   for (const tabId in config.browsers) {
-    results.push(runOneBenchmark(tabId));
+    const result = runOneBenchmark(tabId);
     numActiveBenchmarks++;
-    // Waits for specified number of benchmarks to complete before running more
+    results.push(result.then((value) => {
+      value.deviceInfo = config.browsers[tabId];
+      value.benchmarkInfo = config.benchmark;
+      return value;
+    }));
+
+    // Waits for specified number of benchmarks to complete before running
+    // more
     if (cliArgs?.maxBenchmarks && numActiveBenchmarks >= cliArgs.maxBenchmarks) {
       numActiveBenchmarks = 0;
       await Promise.allSettled(results);
@@ -257,13 +265,10 @@ function setupHelpMessage() {
         'browsers can be benchmarked.'
   });
   parser.add_argument('--benchmarks', {
-    help: 'run a preconfigured benchmark from a user-specified JSON',
+    help: 'run a preconfigured benchmark from a user-specified JSON, ' +
+        'if \'all\' is entered as the value, benchmarks for all brwoser-' +
+        'device-model-backend combinations will be run',
     action: 'store'
-  });
-  parser.add_argument('--getAllBenchmarks', {
-    help: 'creates benchmark config file with all browser-device, model, ' +
-        'and backend combinations',
-    action: 'store_true'
   });
   parser.add_argument('--maxBenchmarks', {
     help: 'the maximum number of benchmarks run in parallel',
