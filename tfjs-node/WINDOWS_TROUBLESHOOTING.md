@@ -2,9 +2,6 @@
 
 The tfjs-node package uses the [node-gyp](https://github.com/nodejs/node-gyp) package to handle cross-compiling the C++ code required to bind TensorFlow to Node.js. This cross platform solution can be somewhat tricky on Windows platforms. This guide helps reference solutions that have been triaged through Issues on the main [tfjs repo](https://github.com/tensorflow/tfjs).
 
-## Ensure Python 2.x is installed
-
-Currently, node-gyp requires Python 2.x to work properly. If Python 3.x is installed, you will see build failures. Also double check your python version `python --version` and update the Windows `$PATH` as needed.
 
 ## 'The system cannot find the patch specified' Exceptions
 
