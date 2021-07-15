@@ -124,8 +124,14 @@ async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
         `dependencies...`);
   }
   const results = [];
+  let numActiveBenchmarks = 0;
   for (const tabId in config.browsers) {
     results.push(runOneBenchmark(tabId));
+    numActiveBenchmarks++;
+    if (cliArgs?.maxBenchmarks && numActiveBenchmarks >= cliArgs.maxBenchmarks) {
+      numActiveBenchmarks = 0;
+      await Promise.allSettled(results);
+    }
   }
 
   /** Optional outfile written once all benchmarks have returned results. */
@@ -214,6 +220,12 @@ function setupHelpMessage() {
   });
   parser.add_argument('--benchmarks', {
     help: 'Run a preconfigured benchmark from a user-specified JSON',
+    action: 'store'
+  });
+  parser.add_argument('--maxBenchmarks', {
+    help: 'the maximum number of benchmarks run in parallel',
+    type: 'int',
+    default: 5,
     action: 'store'
   });
   parser.add_argument(
