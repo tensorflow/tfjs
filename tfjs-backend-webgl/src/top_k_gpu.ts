@@ -14,8 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
+import {UniformType} from './shader_compiler';
 
 // Based on Algorithm 2 of Bitonic Top K, ref:
 // https://anilshanbhag.in/static/papers/gputopk_sigmod18.pdf
@@ -30,13 +30,17 @@ export class SwapProgram implements GPGPUProgram {
   variableNames = ['x', 'indices'];
   outputShape: number[];
   userCode: string;
-
-  // Caching uniform location for speed.
-  n: WebGLUniformLocation;
-  firstPass: WebGLUniformLocation;
-  negativeInf: WebGLUniformLocation;
-  dir: WebGLUniformLocation;
-  inc: WebGLUniformLocation;
+  // |n| Size of the original input of TopK.
+  // |firstPass|indicates if this is the first time swap is being used which
+  // means no indices input containing the top K is present yet.
+  // |inc| Swaps pairs of indices (0, inc), (1, inc + 1), (2, inc + 2) ...
+  customUniforms = [
+    {name: 'n', type: 'int' as UniformType},
+    {name: 'firstPass', type: 'int' as UniformType},
+    {name: 'negativeInf', type: 'float' as UniformType},
+    {name: 'dir', type: 'int' as UniformType},
+    {name: 'inc', type: 'int' as UniformType}
+  ];
 
   /**
    * @param shape desired output shape (can be larger than input shape, output
@@ -46,16 +50,6 @@ export class SwapProgram implements GPGPUProgram {
     this.outputShape = shape;
 
     this.userCode = `
-       // Size of the original input of TopK
-       uniform int n;
-       // indicates if this is the first time swap is being used
-       // which means no indices input containing the top K is
-       // present yet.
-       uniform int firstPass;
-       uniform float negativeInf;
-       uniform int dir;
-       // Swaps pairs of indices (0, inc), (1, inc + 1), (2, inc + 2) ...
-       uniform int inc;
        void main() {
          ivec2 coords = getOutputCoords();
          int batch = coords[0];
@@ -97,39 +91,21 @@ export class SwapProgram implements GPGPUProgram {
        }
      `;
   }
-
-  getCustomSetupFunc(n: number, firstPass: boolean, dir: number, inc: number) {
-    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
-      const intUniforms: Array<['n' | 'firstPass' | 'dir' | 'inc', number]> = [
-        ['n', n], ['firstPass', firstPass ? 1 : 0], ['dir', dir], ['inc', inc]
-      ];
-
-      intUniforms.forEach(([uniformName, uniformValue]) => {
-        if (this[uniformName] == null) {
-          this[uniformName] =
-              gpgpu.getUniformLocation(webGLProgram, uniformName);
-        }
-        gpgpu.gl.uniform1i(this[uniformName], uniformValue);
-      });
-
-      if (this.negativeInf == null) {
-        this.negativeInf =
-            gpgpu.getUniformLocation(webGLProgram, 'negativeInf');
-      }
-      gpgpu.gl.uniform1f(this.negativeInf, Number.NEGATIVE_INFINITY);
-    };
-  }
 }
 
 export class MergeProgram implements GPGPUProgram {
   variableNames = ['x', 'indices'];
   outputShape: number[];
   userCode: string;
-
-  // Caching uniform location for speed.
-  n: WebGLUniformLocation;
-  firstPass: WebGLUniformLocation;
-  k: WebGLUniformLocation;
+  // |n| Size of the original input of TopK
+  // |firstPass| indicates if this is the first time swap is being used which
+  // means no indices input containing the top K is present yet.
+  // |k| Top k elements desired
+  customUniforms = [
+    {name: 'n', type: 'int' as UniformType},
+    {name: 'firstPass', type: 'int' as UniformType},
+    {name: 'k', type: 'int' as UniformType}
+  ];
 
   /**
    * @param shape desired output shape (must be half of the input size)
@@ -138,14 +114,6 @@ export class MergeProgram implements GPGPUProgram {
     this.outputShape = shape;
 
     this.userCode = `
-    // Size of the original input of TopK
-    uniform int n;
-    // indicates if this is the first time swap is being used
-    // which means no indices input containing the top K is
-    // present yet.
-    uniform int firstPass;
-    // Top k elements desired
-    uniform int k;
     void main() {
          // Takes max of indices (0, k), (1, k + 1), (2, k + 2) ...
          ivec2 coords = getOutputCoords();
@@ -180,20 +148,5 @@ export class MergeProgram implements GPGPUProgram {
          setOutput(x0 >= x1 ? float(i0) : float(i1));
        }
      `;
-  }
-
-  getCustomSetupFunc(n: number, firstPass: boolean, k: number) {
-    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
-      const intUniforms: Array<['n' | 'firstPass' | 'k', number]> =
-          [['n', n], ['firstPass', firstPass ? 1 : 0], ['k', k]];
-
-      intUniforms.forEach(([uniformName, uniformValue]) => {
-        if (this[uniformName] == null) {
-          this[uniformName] =
-              gpgpu.getUniformLocation(webGLProgram, uniformName);
-        }
-        gpgpu.gl.uniform1i(this[uniformName], uniformValue);
-      });
-    };
   }
 }

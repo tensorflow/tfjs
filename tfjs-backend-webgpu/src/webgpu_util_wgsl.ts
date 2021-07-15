@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,24 +15,13 @@
  * =============================================================================
  */
 
-import {GPGPUProgram} from './gpgpu_math';
-import {UniformType} from './shader_compiler';
-
-export class FillProgram implements GPGPUProgram {
-  variableNames: string[];
-  outputShape: number[] = [];
-  userCode: string;
-  customUniforms = [{name: 'value', type: 'float' as UniformType}];
-
-  constructor(shape: number[], value: number) {
-    this.variableNames = ['x'];
-    this.outputShape = shape;
-
-    this.userCode = `
-      void main() {
-        // Input can be obtained from uniform value.
-        setOutput(value);
-      }
-    `;
+export function getWorkGroupSizeString(workGroupSize: [number, number, number]):
+    string {
+  if (workGroupSize == null) {
+    return '';
   }
+  return `
+  [[stage(compute), workgroup_size(${workGroupSize[0]}, ${workGroupSize[1]}, ${
+      workGroupSize[2]})]]
+`;
 }

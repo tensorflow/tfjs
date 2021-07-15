@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, NumericDataType, TensorInfo, TopK, TopKAttrs, TopKInputs, TypedArray, util} from '@tensorflow/tfjs-core';
+import {env, KernelConfig, KernelFunc, NumericDataType, TensorInfo, TopK, TopKAttrs, TopKInputs, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {topKImplCPU} from '../kernel_utils/shared';
@@ -49,10 +49,25 @@ export function topK(
   const {x} = inputs;
   const {k, sorted} = attrs;
 
-  if (backend.shouldExecuteOnCPU([x])) {
+  // Empirically determined constant used to determine last dim threshold for
+  // handing off execution to the CPU.
+  const TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD =
+      env().getNumber('TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD');
+
+  // Empirically determined constant used to determine k threshold for handing
+  // off execution to the CPU.
+  const TOPK_K_CPU_HANDOFF_THRESHOLD =
+      env().getNumber('TOPK_K_CPU_HANDOFF_THRESHOLD');
+
+  const xShape = x.shape;
+  const lastDim = xShape[xShape.length - 1];
+
+  if (backend.shouldExecuteOnCPU([x]) ||
+      lastDim < TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD ||
+      k > TOPK_K_CPU_HANDOFF_THRESHOLD) {
     const xVals = backend.readSync(x.dataId) as TypedArray;
     const [allTopKVals, allTopKIndices] =
-        topKImplCPU(xVals, x.shape, x.dtype as NumericDataType, k, sorted);
+        topKImplCPU(xVals, xShape, x.dtype as NumericDataType, k, sorted);
 
     return [
       backend.makeTensorInfo(
@@ -61,9 +76,6 @@ export function topK(
           allTopKIndices.shape, allTopKIndices.dtype, allTopKIndices.values)
     ];
   }
-
-  const xShape = x.shape;
-  const lastDim = xShape[xShape.length - 1];
 
   if (k === 0) {
     xShape[xShape.length - 1] = 0;
@@ -79,10 +91,21 @@ export function topK(
     ];
   }
 
+  // Eagerly unpack x input since it is passed in to all the shaders which
+  // require unpacked inputs.
+  const xtexData = backend.texData.get(x.dataId);
+  const xIsPacked = xtexData !== null && xtexData.isPacked;
+  const xUnPacked = xIsPacked ? backend.unpackTensor(x) : x;
+
   // Reshape into a 2d tensor [batch, lastDim] and compute topk along lastDim.
   const xSize = util.sizeFromShape(xShape);
   const batch = xSize / lastDim;
-  const x2D = reshape({inputs: {x}, attrs: {shape: [batch, lastDim]}, backend});
+  const x2D = reshape(
+      {inputs: {x: xUnPacked}, attrs: {shape: [batch, lastDim]}, backend});
+
+  if (xIsPacked) {
+    disposeIntermediateTensorInfoOrNull(backend, xUnPacked);
+  }
 
   const kPow2 = roundUpToPow2(k);
   const lastDimPow2 = roundUpToPow2(lastDim);
@@ -101,10 +124,11 @@ export function topK(
   const runSwap = (dir: number, inc: number, shape: number[]) => {
     const inputs = getInputs();
     const program = new SwapProgram(shape);
-    const customSetup = program.getCustomSetupFunc(
-        lastDim, indices === null /* firstPass */, dir, inc);
+    const fistPass = indices === null ? 1 : 0;
+    const customValues =
+        [[lastDim], [fistPass], [Number.NEGATIVE_INFINITY], [dir], [inc]];
     const prevIndices = indices;
-    indices = backend.runWebGLProgram(program, inputs, 'int32', customSetup);
+    indices = backend.runWebGLProgram(program, inputs, 'int32', customValues);
     disposeIntermediateTensorInfoOrNull(backend, prevIndices);
   };
 
@@ -120,11 +144,11 @@ export function topK(
   for (let indicesSize = lastDimPow2; indicesSize > kPow2; indicesSize /= 2) {
     const inputs = getInputs();
     const mergeProgram = new MergeProgram([batch, indicesSize / 2]);
-    const customSetup = mergeProgram.getCustomSetupFunc(
-        lastDim, indices === null /* firstPass */, kPow2);
+    const firstPass = indices === null ? 1 : 0;
+    const customValues = [[lastDim], [firstPass], [kPow2]];
     const prevIndices = indices;
     indices =
-        backend.runWebGLProgram(mergeProgram, inputs, 'int32', customSetup);
+        backend.runWebGLProgram(mergeProgram, inputs, 'int32', customValues);
     disposeIntermediateTensorInfoOrNull(backend, prevIndices);
 
     // Step 3: rebuild

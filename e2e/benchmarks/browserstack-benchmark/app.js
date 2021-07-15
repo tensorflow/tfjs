@@ -22,11 +22,12 @@ const path = require('path');
 const {execFile} = require('child_process');
 const {ArgumentParser} = require('argparse');
 const {version} = require('./package.json');
+const {resolve} = require('path')
 
 const port = process.env.PORT || 8001;
 let io;
 let parser;
-let args;
+let cliArgs;
 
 function checkBrowserStackAccount() {
   if (process.env.BROWSERSTACK_USERNAME == null ||
@@ -115,19 +116,28 @@ function setupBenchmarkEnv(config) {
  * @param benchmarkResult Function that benchmarks one browser-device pair
  */
 async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
-  console.log('Preparing configuration files for the test runner.');
+  console.log('Preparing configuration files for the test runner.\n');
   setupBenchmarkEnv(config);
-
-  console.log(`Start benchmarking.`);
+  if (require.main === module) {
+    console.log(
+        `Starting benchmarks using ${cliArgs.webDeps ? 'cdn' : 'local'} ` +
+        `dependencies...`);
+  }
   const results = [];
+  let numActiveBenchmarks = 0;
   for (const tabId in config.browsers) {
     results.push(runOneBenchmark(tabId));
+    numActiveBenchmarks++;
+    if (cliArgs?.maxBenchmarks && numActiveBenchmarks >= cliArgs.maxBenchmarks) {
+      numActiveBenchmarks = 0;
+      await Promise.allSettled(results);
+    }
   }
 
   /** Optional outfile written once all benchmarks have returned results. */
   const fulfilled = await Promise.allSettled(results);
-  if (require.main === module && args.outfile) {
-    await write('./benchmark_results.json', results);
+  if (require.main === module && cliArgs.outfile) {
+    await write('./benchmark_results.json', fulfilled);
   }
   return fulfilled;
 }
@@ -143,6 +153,7 @@ async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
 function runBrowserStackBenchmark(tabId) {
   return new Promise((resolve, reject) => {
     const args = ['test', '--browserstack', `--browsers=${tabId}`];
+    if (cliArgs.webDeps) args.push('--cdn');
     const command = `yarn ${args.join(' ')}`;
     console.log(`Running: ${command}`);
 
@@ -207,18 +218,52 @@ function setupHelpMessage() {
         'so that the performance of a TensorFlow model on one or more ' +
         'browsers can be benchmarked.'
   });
+  parser.add_argument('--benchmarks', {
+    help: 'Run a preconfigured benchmark from a user-specified JSON',
+    action: 'store'
+  });
+  parser.add_argument('--maxBenchmarks', {
+    help: 'the maximum number of benchmarks run in parallel',
+    type: 'int',
+    default: 5,
+    action: 'store'
+  });
   parser.add_argument(
       '--outfile', {help: 'write results to outfile', action: 'store_true'});
   parser.add_argument('-v', '--version', {action: 'version', version});
-  args = parser.parse_args();
-  console.dir(args);
+  parser.add_argument('--webDeps', {
+    help: 'utilizes public, web hosted dependencies instead of local versions',
+    action: 'store_true'
+  });
+  cliArgs = parser.parse_args();
+  console.dir(cliArgs);
 }
 
+/*Runs a benchmark with a preconfigured file */
+function runBenchmarkFromFile(file, runBenchmark = benchmark) {
+  console.log('Running a preconfigured benchmark...');
+  runBenchmark(file);
+}
+
+/*Only run this code if app.js is called from the command line */
 if (require.main === module) {
   setupHelpMessage();
   checkBrowserStackAccount();
   runServer();
+  if (cliArgs.benchmarks) {
+    const filePath = resolve(cliArgs.benchmarks);
+    if (fs.existsSync(filePath)) {
+      console.log(`Found file at ${filePath}`);
+      const config = require(filePath);
+      runBenchmarkFromFile(config);
+    } else {
+      throw new Error(
+          `File could not be found at ${filePath}. ` +
+          `Please provide a valid path.`);
+    }
+  }
 }
 
+exports.runBenchmarkFromFile = runBenchmarkFromFile;
 exports.benchmark = benchmark;
 exports.write = write;

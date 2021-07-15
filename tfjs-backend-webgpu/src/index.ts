@@ -43,7 +43,7 @@ if (device_util.isBrowser() && isWebGPUSupported()) {
     const supportTimeQuery = adapter.features.has('timestamp-query');
 
     if (supportTimeQuery) {
-      deviceDescriptor = {nonGuaranteedFeatures: ['timestamp-query' as const ]};
+      deviceDescriptor = {requiredFeatures: ['timestamp-query' as const]};
     } else {
       console.warn(
           `This device doesn't support timestamp-query extension. ` +

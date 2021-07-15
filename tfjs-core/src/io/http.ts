@@ -24,7 +24,7 @@
 import {env} from '../environment';
 
 import {assert} from '../util';
-import {concatenateArrayBuffers, getModelArtifactsInfoForJSON} from './io_utils';
+import {concatenateArrayBuffers, getModelArtifactsForJSON, getModelArtifactsInfoForJSON, getModelJSONForModelArtifacts} from './io_utils';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, LoadOptions, ModelArtifacts, ModelJSON, OnProgressCallback, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
 import {loadWeightsAsArrayBuffer} from './weights_loader';
@@ -99,24 +99,8 @@ export class HTTPRequest implements IOHandler {
       paths: ['./model.weights.bin'],
       weights: modelArtifacts.weightSpecs,
     }];
-    const modelTopologyAndWeightManifest: ModelJSON = {
-      modelTopology: modelArtifacts.modelTopology,
-      format: modelArtifacts.format,
-      generatedBy: modelArtifacts.generatedBy,
-      convertedBy: modelArtifacts.convertedBy,
-      weightsManifest
-    };
-    if (modelArtifacts.signature != null) {
-      modelTopologyAndWeightManifest.signature = modelArtifacts.signature;
-    }
-    if (modelArtifacts.userDefinedMetadata != null) {
-      modelTopologyAndWeightManifest.userDefinedMetadata =
-          modelArtifacts.userDefinedMetadata;
-    }
-    if (modelArtifacts.modelInitializer != null) {
-      modelTopologyAndWeightManifest.modelInitializer =
-          modelArtifacts.modelInitializer;
-    }
+    const modelTopologyAndWeightManifest: ModelJSON =
+        getModelJSONForModelArtifacts(modelArtifacts, weightsManifest);
 
     init.body.append(
         'model.json',
@@ -163,9 +147,9 @@ export class HTTPRequest implements IOHandler {
           `${modelConfigRequest.status}. Please verify this URL points to ` +
           `the model JSON of the model to load.`);
     }
-    let modelConfig: ModelJSON;
+    let modelJSON: ModelJSON;
     try {
-      modelConfig = await modelConfigRequest.json();
+      modelJSON = await modelConfigRequest.json();
     } catch (e) {
       let message = `Failed to parse model JSON of response from ${this.path}.`;
       // TODO(nsthorat): Remove this after some time when we're comfortable that
@@ -183,50 +167,18 @@ export class HTTPRequest implements IOHandler {
       }
       throw new Error(message);
     }
-    const modelTopology = modelConfig.modelTopology;
-    const weightsManifest = modelConfig.weightsManifest;
-    const generatedBy = modelConfig.generatedBy;
-    const convertedBy = modelConfig.convertedBy;
-    const format = modelConfig.format;
-    const signature = modelConfig.signature;
-    const userDefinedMetadata = modelConfig.userDefinedMetadata;
 
     // We do not allow both modelTopology and weightsManifest to be missing.
+    const modelTopology = modelJSON.modelTopology;
+    const weightsManifest = modelJSON.weightsManifest;
     if (modelTopology == null && weightsManifest == null) {
       throw new Error(
           `The JSON from HTTP path ${this.path} contains neither model ` +
           `topology or manifest for weights.`);
     }
 
-    let weightSpecs: WeightsManifestEntry[];
-    let weightData: ArrayBuffer;
-    if (weightsManifest != null) {
-      const results = await this.loadWeights(weightsManifest);
-      [weightSpecs, weightData] = results;
-    }
-
-    const artifacts: ModelArtifacts = {
-      modelTopology,
-      weightSpecs,
-      weightData,
-      generatedBy,
-      convertedBy,
-      format
-    };
-
-    if (signature != null) {
-      artifacts.signature = signature;
-    }
-    if (userDefinedMetadata != null) {
-      artifacts.userDefinedMetadata = userDefinedMetadata;
-    }
-
-    const initializer = modelConfig.modelInitializer;
-    if (initializer) {
-      artifacts.modelInitializer = initializer;
-    }
-
-    return artifacts;
+    return getModelArtifactsForJSON(
+        modelJSON, (weightsManifest) => this.loadWeights(weightsManifest));
   }
 
   private async loadWeights(weightsManifest: WeightsManifestConfig):

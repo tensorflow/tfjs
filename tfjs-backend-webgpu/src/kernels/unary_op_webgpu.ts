@@ -17,9 +17,10 @@
 import {util} from '@tensorflow/tfjs-core';
 
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+import {getWorkGroupSizeString} from '../webgpu_util_wgsl';
 import {getUnaryOpString, UnaryOpType} from './unary_op_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class UnaryOpProgram implements WebGPUProgram {
   outputShape: number[];
@@ -28,6 +29,7 @@ export class UnaryOpProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A'];
   workGroupSize: [number, number, number];
+  useWgsl: boolean;
   op: UnaryOpType;
   size: number;
 
@@ -39,16 +41,16 @@ export class UnaryOpProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
+    this.useWgsl = getUseWgsl();
     this.op = op;
     this.shaderKey = `unary_${op}`;
     this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
-    const opStr = getUnaryOpString(this.op);
     return `
       float unaryOperation(float a) {
-        ${opStr}
+        ${getUnaryOpString(this.op)}
       }
 
       void main() {
@@ -57,6 +59,23 @@ export class UnaryOpProgram implements WebGPUProgram {
         {
           float a = getAAtOutCoords();
           setOutput(index, unaryOperation(a));
+        }
+      }
+      `;
+  }
+
+  getUserCodeWgsl(): string {
+    return `
+      fn unaryOperation(a : f32) -> f32 {
+        ${getUnaryOpString(this.op, false, true)}
+      }
+      ${getWorkGroupSizeString(this.workGroupSize)}
+      fn main([[builtin(global_invocation_id)]] globalId  : vec3<u32>) {
+        let index = globalId.x;
+        if (index < uniforms.size)
+        {
+          let a = getAAtOutCoordsByGlobalId(globalId);
+          setOutputFlat(index, unaryOperation(a));
         }
       }
       `;

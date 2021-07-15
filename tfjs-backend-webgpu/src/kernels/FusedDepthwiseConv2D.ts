@@ -74,7 +74,6 @@ export function fusedDepthwiseConv2D(args: {
   }
 
   const dimensions = [
-    {type: 'int32', data: [convInfo.filterHeight, convInfo.filterWidth]},
     {type: 'int32', data: [convInfo.padInfo.top, convInfo.padInfo.left]},
     {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
     {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]},
