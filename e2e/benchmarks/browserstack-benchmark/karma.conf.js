@@ -91,9 +91,9 @@ module.exports = function(config) {
     singleRun: true,
     captureTimeout: 3e5,
     reportSlowerThan: 500,
-    browserNoActivityTimeout: 1.8e5,
-    browserDisconnectTimeout: 1.8e5,
-    browserDisconnectTolerance: 2,
+    browserNoActivityTimeout: 2.4e5,
+    browserDisconnectTimeout: 2.4e5,
+    browserDisconnectTolerance: 0,
     browserSocketTimeout: 1.2e5,
     client: {jasmine: {random: false}},
 
