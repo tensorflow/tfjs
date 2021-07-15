@@ -74,7 +74,7 @@ const sentences = [
   'what is the forecast for here at tea time',
 ];
 
-const benchmarks = {
+benchmarks = {
   'mobilenet_v2': {
     type: 'GraphModel',
     load: async () => {

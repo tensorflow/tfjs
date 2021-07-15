@@ -22,7 +22,7 @@ const path = require('path');
 const {execFile} = require('child_process');
 const {ArgumentParser} = require('argparse');
 const {version} = require('./package.json');
-const {resolve} = require('path')
+const {resolve} = require('path');
 
 const port = process.env.PORT || 8001;
 let io;
@@ -92,6 +92,45 @@ function setupBenchmarkEnv(config) {
       './benchmark_parameters.json', JSON.stringify(config.benchmark, null, 2));
 }
 
+/* Runs benchmarks for all device-browser, backend, and model combinations. */
+async function runAllBenchmarks() {
+  if (!fs.existsSync('./all_configs.json')) {
+    await getAllBenchmarkConfigs();
+  }
+
+  const results = {};
+  const configs = require('./all_configs.json');
+  const browsers = configs.browsers;
+  for (const benchmark in configs.benchmarks) {
+    // Build config and run respective benchmark one at a time
+    const config = {};
+    config.benchmark = configs.benchmarks[benchmark];
+    config.benchmark.numRuns = cliArgs.numRuns;
+    config.browsers = browsers;
+    results[`${config.benchmark.backend}_${config.benchmark.model}`] =
+        await benchmark(config);
+  }
+
+  console.log('\nAll benchmarks complete.')
+  return results;
+}
+
+/* Creates file with all device-browser, backend, and model configuations. */
+function getAllBenchmarkConfigs() {
+  return new Promise((resolve, reject) => {
+    const args = ['get-all-benchmarks'];
+    execFile('yarn', args, (error, stdout, stderr) => {
+      if (error) {
+        console.log(error);
+        return reject();
+      } else {
+        console.log(`\n${stdout}`);
+        return resolve();
+      }
+    });
+  });
+}
+
 /**
  * Run model benchmark on BrowserStack.
  *
@@ -126,8 +165,16 @@ async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
   const results = [];
   let numActiveBenchmarks = 0;
   for (const tabId in config.browsers) {
-    results.push(runOneBenchmark(tabId));
+    const result = runOneBenchmark(tabId);
     numActiveBenchmarks++;
+    results.push(result.then((value) => {
+      value.deviceInfo = config.browsers[tabId];
+      value.benchmarkInfo = config.benchmark;
+      return value;
+    }));
+
+    // Waits for specified number of benchmarks to complete before running
+    // more
     if (cliArgs?.maxBenchmarks && numActiveBenchmarks >= cliArgs.maxBenchmarks) {
       numActiveBenchmarks = 0;
       await Promise.allSettled(results);
@@ -219,11 +266,19 @@ function setupHelpMessage() {
         'browsers can be benchmarked.'
   });
   parser.add_argument('--benchmarks', {
-    help: 'Run a preconfigured benchmark from a user-specified JSON',
+    help: 'run a preconfigured benchmark from a user-specified JSON, ' +
+        'if \'all\' is entered as the value, benchmarks for all brwoser-' +
+        'device-model-backend combinations will be run',
     action: 'store'
   });
   parser.add_argument('--maxBenchmarks', {
     help: 'the maximum number of benchmarks run in parallel',
+    type: 'int',
+    default: 5,
+    action: 'store'
+  });
+  parser.add_argument('--numRuns', {
+    help: 'the number each performance benchmark is run via BrowserStack',
     type: 'int',
     default: 5,
     action: 'store'
@@ -251,15 +306,19 @@ if (require.main === module) {
   checkBrowserStackAccount();
   runServer();
   if (cliArgs.benchmarks) {
-    const filePath = resolve(cliArgs.benchmarks);
-    if (fs.existsSync(filePath)) {
-      console.log(`Found file at ${filePath}`);
-      const config = require(filePath);
-      runBenchmarkFromFile(config);
+    if (cliArgs.benchmarks == 'all') {
+      runAllBenchmarks();
     } else {
-      throw new Error(
-          `File could not be found at ${filePath}. ` +
-          `Please provide a valid path.`);
+      const filePath = resolve(cliArgs.benchmarks);
+      if (fs.existsSync(filePath)) {
+        console.log(`Found file at ${filePath}`);
+        const config = require(filePath);
+        runBenchmarkFromFile(config);
+      } else {
+        throw new Error(
+            `File could not be found at ${filePath}. ` +
+            `Please provide a valid path.`);
+      }
     }
   }
 }

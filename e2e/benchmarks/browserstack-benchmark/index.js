@@ -718,3 +718,5 @@ function onPageLoad() {
     // TODO: We can add a summary for the benchmark results in this round.
   });
 }
+
+module.exports.getTabId = getTabId;
