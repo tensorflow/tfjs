@@ -154,13 +154,26 @@
     estree-walker "^1.0.1"
     picomatch "^2.2.2"
 
-"@tensorflow/tfjs-backend-cpu@link:../tfjs-backend-cpu":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-backend-cpu@3.8.0":
+  version "3.8.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-cpu/-/tfjs-backend-cpu-3.8.0.tgz#1b0655d5ca1b57370c1ea9586d571f3d63ca7393"
+  integrity sha512-iSwHrqX0Ixh1kelfmxIgChKft/KrcZk9EMHQcX+878XnX7mxB2HfWUqfiJVIcq+Fyr4I3oE4ncbbpmlKMxA85A==
+  dependencies:
+    "@types/seedrandom" "2.4.27"
+    seedrandom "2.4.3"
 
-"@tensorflow/tfjs-core@link:../tfjs-core":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-core@3.8.0":
+  version "3.8.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-3.8.0.tgz#b7390db21bbcbf4c3da0c540d9318164d987767c"
+  integrity sha512-0VKqNpnTiXIeOql3dnEyPOxKA9yDA366onv3sphm6k8KAzkr+is+GHOHzmo8mL7+AujiOb6o0J7BYhr7yvpNjA==
+  dependencies:
+    "@types/long" "^4.0.1"
+    "@types/offscreencanvas" "~2019.3.0"
+    "@types/seedrandom" "2.4.27"
+    "@types/webgl-ext" "0.0.30"
+    long "4.0.0"
+    node-fetch "~2.6.1"
+    seedrandom "2.4.3"
 
 "@ts-morph/common@~0.5.2":
   version "0.5.2"
