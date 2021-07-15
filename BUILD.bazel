@@ -14,8 +14,9 @@
 # =============================================================================
 
 exports_files([
+    "babel.config.json",
     "tsconfig.json",
+    "tsconfig_es5.json",
     "tsconfig.test.json",
     "tsconfig_ts_library.json",
-    "karma.conf.js",
 ])
