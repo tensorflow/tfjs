@@ -20,6 +20,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@bazel/bazelisk": "^1.9.0",
+    "@bazel/ibazel": "^0.15.10",
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
@@ -59,9 +60,10 @@
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "bazel run :tfjs-backend-cpu_pkg.publish",
     "lint": "tslint -p . -t verbose",
-    "coverage": "yarn nyc yarn ts-node --transpile-only -P tsconfig.test.json src/run_tests.ts",
-    "test": "bazel test :tfjs-backend-cpu_test",
-    "test-dev": "ibazel run :tfjs-backend-cpu_test",
+    "coverage": "bazel coverage :tfjs-backend-cpu_test",
+    "test": "bazel test :tfjs-backend-cpu_test --test_output=streamed",
+    "test-debug": "bazel run :tfjs-backend-cpu_test --config=debug",
+    "test-dev": "ibazel run :tfjs-backend-cpu_test --test-output=streamed",
     "test-ci": "yarn test"
   },
   "dependencies": {

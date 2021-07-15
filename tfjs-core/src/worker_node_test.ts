@@ -37,7 +37,6 @@ describeWithFlags('computation in worker (node env)', HAS_NODE_WORKER, () => {
   it('tensor in worker', (done) => {
     const {Worker} = require('worker_threads');
     const worker = new Worker(workerTestNode, {eval: true});
-    console.log('created worker');
     // tslint:disable-next-line:no-any
     worker.on('message', (msg: any) => {
       const data = msg.data;
