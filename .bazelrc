@@ -31,8 +31,12 @@ run --incompatible_strict_action_env
 build --spawn_strategy=worker,local
 
 # Pass BrowserStack credentials
+build --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 run --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 test --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
+
+# Enable debugging tests with --config=debug
+run:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=9999 --nocache_test_results
 
 # Load any settings specific to the current user.
 # .bazelrc.user should appear in .gitignore so that settings are not shared with
