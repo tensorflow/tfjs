@@ -16,6 +16,7 @@
  */
 import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
+import {PackingScheme} from './tex_util';
 
 // Based on Algorithm 2 of Bitonic Top K, ref:
 // https://anilshanbhag.in/static/papers/gputopk_sigmod18.pdf
@@ -134,6 +135,9 @@ export class FusedSwapProgram implements GPGPUProgram {
   variableNames = ['x', 'indices'];
   outputShape: number[];
   userCode: string;
+  packedInputs = true;
+  packedOutput = true;
+  outPackingScheme = PackingScheme.SHARED_BATCH;
 
   // Caching uniform location for speed.
   n: WebGLUniformLocation;
@@ -157,7 +161,7 @@ export class FusedSwapProgram implements GPGPUProgram {
   constructor(shape: number[], len: number) {
     this.outputShape = shape;
 
-    this.userCode = `
+    const unPacked = `
        // Size of the original input of TopK
        uniform int n;
        // indicates if this is the first time swap is being used
@@ -179,57 +183,66 @@ export class FusedSwapProgram implements GPGPUProgram {
          int indices[${len * 2}];
          ivec2 coords = getOutputCoords();
          int batch = coords[0];
-         int elemIdx = coords[1];
+         int baseElemIdx = coords[1];
+         vec4 outputVec;
 
-         // Find sequence that elemIdx lies in
-         int len2 = len * 2;
-         int sequenceStart = idiv(elemIdx, len2, 1.0) * len2;
-         int sequenceOffset = imod(elemIdx, len2);
+         for (int offset = 0; offset < 2; offset++) {
+           int elemIdx = baseElemIdx;
+           if (offset == 1) batch++;
 
-         for (int i = 0; i < len2; i++) {
-           int sequenceIndex = sequenceStart + i;
-           indices[i] = firstPass == 1 ? sequenceIndex
-                                       : int(getIndices(batch, sequenceIndex));
+           // Find sequence that elemIdx lies in
+           int len2 = len * 2;
+           int sequenceStart = idiv(elemIdx, len2, 1.0) * len2;
+           int sequenceOffset = imod(elemIdx, len2);
+
+           for (int i = 0; i < len2; i++) {
+             int sequenceIndex = sequenceStart + i;
+             indices[i] = firstPass == 1 ? sequenceIndex
+                                         : int(getChannel(getIndices(batch, sequenceIndex), vec2(batch, sequenceIndex)));
+           }
+
+           for (int inc = incMax; inc >= incMin; inc /= 2) {
+             for (int sequenceOffset = 0; sequenceOffset < len2; sequenceOffset++) {
+               int dir = len * 2;
+               // We compare elements pair-wise within a group of size 2 * inc.
+               // The comparing rule for each group alternates between ascending
+               // and descending. Within each group, we compare each pair at
+               // positions i and i+inc. To decide whether an element at position i
+               // is x0 or x1, we mod it by 2 * inc, if the result is smaller than
+               // inc, it is in the first half of the group, we denote it as x0,
+               // otherwise we denote it as x1.
+               // For example, as shown in the Bitonic top K paper referenced above,
+               // Figure5(a) shows that element[1] is in the
+               // second half of the group when group size is 2, but it is in the
+               // first half of the group when group size is 4.
+               bool isFirstInPair = imod(sequenceOffset + sequenceStart, 2 * inc) < inc;
+
+               if (!isFirstInPair) continue;
+
+               int i0 = indices[sequenceOffset];
+               int i1 = indices[sequenceOffset + inc];
+               float x0 = i0 < n ? getChannel(getX(batch, i0), vec2(batch, i0)) : negativeInf;
+               float x1 = i1 < n ? getChannel(getX(batch, i1), vec2(batch, i1)) : negativeInf;
+
+               // Denotes which direction indices are in (ascending or descending).
+               bool reverse = imod(sequenceOffset + sequenceStart, 2 * dir) >= dir;
+               bool isGreater = x0 > x1 || (x0 == x1 && i1 > i0);
+               if (reverse == isGreater) { // Elements in opposite order of direction
+                 int iTemp = i0;
+                 i0 = i1;
+                 i1 = iTemp;
+               }
+               indices[sequenceOffset] = i0;
+               indices[sequenceOffset + inc] = i1;
+             }
+           }
+           outputVec[offset * 2] = float(indices[sequenceOffset]);
+           outputVec[offset * 2 + 1] = float(indices[sequenceOffset + 1]);
          }
-
-         for (int inc = incMax; inc >= incMin; inc /= 2) {
-           for (int sequenceOffset = 0; sequenceOffset < len2; sequenceOffset++) {
-             int dir = len * 2;
-             // We compare elements pair-wise within a group of size 2 * inc.
-             // The comparing rule for each group alternates between ascending
-             // and descending. Within each group, we compare each pair at
-             // positions i and i+inc. To decide whether an element at position i
-             // is x0 or x1, we mod it by 2 * inc, if the result is smaller than
-             // inc, it is in the first half of the group, we denote it as x0,
-             // otherwise we denote it as x1.
-             // For example, as shown in the Bitonic top K paper referenced above,
-             // Figure5(a) shows that element[1] is in the
-             // second half of the group when group size is 2, but it is in the
-             // first half of the group when group size is 4.
-              bool isFirstInPair = imod(sequenceOffset + sequenceStart, 2 * inc) < inc;
-
-              if (!isFirstInPair) continue;
-
-              int i0 = indices[sequenceOffset];
-              int i1 = indices[sequenceOffset + inc];
-              float x0 = i0 < n ? getX(batch, i0) : negativeInf;
-              float x1 = i1 < n ? getX(batch, i1) : negativeInf;
-
-              // Denotes which direction indices are in (ascending or descending).
-              bool reverse = imod(sequenceOffset + sequenceStart, 2 * dir) >= dir;
-              bool isGreater = x0 > x1 || (x0 == x1 && i1 > i0);
-              if (reverse == isGreater) { // Elements in opposite order of direction
-                int iTemp = i0;
-                i0 = i1;
-                i1 = iTemp;
-              }
-              indices[sequenceOffset] = i0;
-              indices[sequenceOffset + inc] = i1;
-            }
-         }
-         setOutput(float(indices[sequenceOffset]));
+         setOutput(outputVec);
        }
     `;
+    this.userCode = unPacked;
   }
 
   getCustomSetupFunc(
@@ -263,6 +276,9 @@ export class MergeProgram implements GPGPUProgram {
   variableNames = ['x', 'indices'];
   outputShape: number[];
   userCode: string;
+  packedInputs = true;
+  packedOutput = true;
+  outPackingScheme = PackingScheme.SHARED_BATCH;
 
   // Caching uniform location for speed.
   n: WebGLUniformLocation;
@@ -287,8 +303,14 @@ export class MergeProgram implements GPGPUProgram {
     void main() {
          // Takes max of indices (0, k), (1, k + 1), (2, k + 2) ...
          ivec2 coords = getOutputCoords();
+         vec4 outputVec;
+
          int batch = coords[0];
-         int elemIdx = coords[1];
+         int baseElemIdx = coords[1];
+
+         for (int offset = 0; offset < 4; offset++) {
+          int elemIdx = baseElemIdx + imod(offset, 2);
+          if (offset == 2) batch++;
 
          // The output size is half of the previous size.
          // If the previous sequence is | | | | _ _ _ _  | | | |  _ _ _ _ (k=4),
@@ -309,13 +331,15 @@ export class MergeProgram implements GPGPUProgram {
          // 16,17,18,19, so on and so forth.
 
          int i = elemIdx < k ? elemIdx : (elemIdx * 2 - imod(elemIdx, k));
-         int i0 = firstPass == 1 ? i : int(getIndices(batch, i));
-         int i1 = firstPass == 1 ? i + k : int(getIndices(batch, i + k));
+         int i0 = firstPass == 1 ? i : int(getChannel(getIndices(batch, i), vec2(batch, i)));
+         int i1 = firstPass == 1 ? i + k : int(getChannel(getIndices(batch, i + k), vec2(batch, i + k)));
 
-         float x0 = getX(batch, i0);
-         float x1 = i1 < n ? getX(batch, i1) : x0;
+         float x0 = getChannel(getX(batch, i0), vec2(batch, i0));
+         float x1 = i1 < n ? getChannel(getX(batch, i1), vec2(batch, i1)) : x0;
 
-         setOutput(x0 >= x1 ? float(i0) : float(i1));
+         outputVec[offset] = x0 >= x1 ? float(i0) : float(i1);
+         }
+         setOutput(outputVec);
        }
      `;
   }
