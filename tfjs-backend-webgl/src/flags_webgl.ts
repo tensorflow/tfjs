@@ -219,3 +219,21 @@ ENV.registerFlag('CPU_HANDOFF_SIZE_THRESHOLD', () => 128);
 
 /** Whether we will use shapes uniforms. */
 ENV.registerFlag('WEBGL_USE_SHAPES_UNIFORMS', () => false);
+
+/**
+ * Threshold for last dimension of input tensor that determines whether
+ * WebGL backend for the Top K op will delegate computation to CPU. If input
+ * is smaller than threshold then CPU will be used
+ *
+ * Default value is 100000.
+ */
+ENV.registerFlag('TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD', () => 100000);
+
+/**
+ * Threshold for K that determines whether
+ * WebGL backend for the Top K op will delegate computation to CPU. If k
+ * is larger than threshold then CPU will be used
+ *
+ * Default value is 128.
+ */
+ENV.registerFlag('TOPK_K_CPU_HANDOFF_THRESHOLD', () => 128);
