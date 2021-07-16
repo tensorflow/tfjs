@@ -34,9 +34,16 @@ tfjs_bundle(
     name = "tf-backend-cpu",
     entry_point = "//tfjs-backend-cpu/src:index.ts",
     external = [
+        "@tensorflow/tfjs-core",
+        "crypto",
         "node-fetch",
+        "seedrandom",
         "util",
     ],
+    globals = {
+        "@tensorflow/tfjs-core": "tf",
+        "seedrandom": "seedrandom",
+    },
     umd_name = "tf",
     deps = [
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
