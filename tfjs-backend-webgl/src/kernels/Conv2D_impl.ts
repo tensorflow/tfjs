@@ -65,8 +65,6 @@ export function conv2dByMatMul({
   let out: TensorInfo;
   const intermediates: TensorInfo[] = [];
 
-  const col = isChannelsLast ? xShape[2] : xShape[3];
-
   // TODO: Once reduction ops are packed, batchMatMul will always be packed
   // and we can remove this condition.
   const batchMatMulWillBeUnpacked =
@@ -74,13 +72,12 @@ export function conv2dByMatMul({
       sharedMatMulDim > MATMUL_SHARED_DIM_THRESHOLD;
 
   // The algorithm in the if condition assumes (1) the output will be packed,
-  // (2) x is packed, (3) x's packed texture is already on GPU. (4) col is odd,
-  // (5) the width, height and inChannels are the same for xTexData.shape and
-  // xShape, (6) x isChannelsLast.
+  // (2) x is packed, (3) x isChannelsLast, (4)  x's packed texture is already
+  // on GPU, (5) col is odd, (6) the width, height and inChannels are the same
+  // for xTexData.shape and xShape.
   const canOptimize = !batchMatMulWillBeUnpacked && xTexData.isPacked &&
-      xTexData.texture != null && col % 2 !== 0 &&
-      util.arraysEqual(xTexData.shape.slice(-3), xShape.slice(-3)) &&
-      isChannelsLast;
+      isChannelsLast && xTexData.texture != null && xShape[2] % 2 !== 0 &&
+      util.arraysEqual(xTexData.shape.slice(-3), xShape.slice(-3));
 
   if (canOptimize) {
     // We avoid expensive packed 2x2 reshape by padding col count to next,
