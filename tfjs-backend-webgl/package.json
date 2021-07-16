@@ -47,8 +47,8 @@
     "yalc": "~1.0.0-pre.50"
   },
   "scripts": {
-    "build-ci": "tsc && yarn bundle-ci",
-    "build": "tsc && yarn bundle",
+    "build-ci": "yarn build",
+    "build": "bazel build :tfjs-backend-webgl_pkg",
     "bundle": "rollup -c",
     "bundle-ci": "rollup -c --ci",
     "build-link-package": "cd ../link-package && yarn build",
@@ -57,7 +57,7 @@
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
-    "publish-npm": "npm publish",
+    "publish-npm": "bazel run :tfjs-backend-webgl_pkg.publish",
     "lint": "tslint -p . -t verbose",
     "test": "yarn build-deps && karma start",
     "test-dev": "karma start --testEnv webgl2",
