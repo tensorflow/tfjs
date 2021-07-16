@@ -84,9 +84,12 @@ const useTerser = TEMPLATE_minify ? [
 
 export default {
   output: {
+    banner: preamble,
     freeze: false, // For tests that spyOn imports
     extend: true, // For imports that extend the global 'tf' variable
+    globals: TEMPLATE_globals,
   },
+  external: TEMPLATE_external,
   plugins: [
     resolve({browser: true}),
     commonjs(),
