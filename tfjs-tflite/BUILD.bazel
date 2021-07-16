@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # Copyright 2021 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,20 +13,31 @@
 # limitations under the License.
 # =============================================================================
 
-set -e
+load("//tools:tfjs_bundle.bzl", "tfjs_bundle", "make_rollup_config")
 
-WASM_DIR="./wasm"
-if [ ! -d ${WASM_DIR} ] || [ ! "$(ls -A ${WASM_DIR})" ]; then
-    echo "ERROR: TFLite web API not downloaded yet. Run './scripts/download-tflite-web-api.sh {version}' first."
-    exit 1
-fi
+package(default_visibility = ["//visibility:public"])
 
-yarn rimraf dist/
-mkdir -p dist
-yarn
+# Allow typescript rules in any package to reference this file
+exports_files([
+    "tsconfig.json",
+    "package.json",
+])
 
-cp ${WASM_DIR}/* dist/
-yarn build
-yarn rollup -c --visualize --npm
+tfjs_bundle(
+    name = "tf-tflite",
+    entry_point = "//tfjs-tflite/src:index.ts",
+    external = [
+        "node-fetch",
+        "util",
+    ],
+    umd_name = "tflite",
+    deps = [
+        "//tfjs-tflite/src:tfjs-tflite_lib",
+        "//tfjs-tflite/src:tfjs-tflite_src_lib",
+    ],
+)
 
-echo "Stored standalone library at dist/tf-tflite(.min).js"
+make_rollup_config(
+    name = "test",
+    stats = 'tttt',
+)
