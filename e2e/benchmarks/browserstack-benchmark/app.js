@@ -139,7 +139,7 @@ async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
     let numRejectedPromises = 0;
     for (result of fulfilled) {
       if (result.status == "fulfilled") {
-        addResultToFirestore(result);
+        addResultToFirestore(result.value);
       }
       else if (result.status == "rejected") {
         numRejectedPromises += 1;

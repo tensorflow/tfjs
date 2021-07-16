@@ -1,5 +1,7 @@
 const fs = require('fs');
+const { type } = require('os');
 const {benchmark, write, runBenchmarkFromFile} = require('./app.js');
+const {addResultToFirestore, serializeTensors} = require('./firestore.js');
 
 describe('test app.js cli', () => {
   const filePath = './benchmark_test_results.json';
@@ -150,5 +152,27 @@ describe('test app.js cli', () => {
   it("checks that the benchmark is being run with the correct JSON", () => {
     runBenchmarkFromFile(testingConfig, mockBenchmark);
     expect(mockBenchmark).toHaveBeenCalledWith(testingConfig);
+  });
+});
+
+describe("test adding to firestore", () => {
+  const resultValue = require('./firestore_test_value.json');
+
+  beforeAll(() => {
+    // Set a longer jasmine timeout than 5 seconds
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
+  });
+
+  beforeEach(() => {
+    spyOn(serializeTensors, "serializeTensors");
+  })
+
+  it("Expects serialization cover all nested arrays", () => {
+    firestoreTestMap = addResultToFirestore(resultValue);
+
+    for (kernel of firestoreTestMap.benchmarkInfo.memoryInfo.kernels) {
+      expect(typeof(kernel.inputShapes)).toEqual("string");
+      expect(typeof(kernel.outputShapes)).toEqual("string");
+    }
   });
 });

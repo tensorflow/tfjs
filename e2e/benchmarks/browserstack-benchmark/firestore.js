@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,10 +28,9 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
-/**
-*Reference to the "posts" collection on firestore that contains benchmark
-*results.
-*/
+
+// Reference to the "posts" collection on firestore that contains benchmark
+// results.
 const db = firebase.firestore().collection("posts");
 
 /**
@@ -43,9 +42,9 @@ const db = firebase.firestore().collection("posts");
  *
  * @param result Individual result in a list of fulfilled promises
  */
-function addResultToFirestore(result) {
+function addResultToFirestore(resultValue) {
   let firestoreMap = {};
-  firestoreMap.benchmarkInfo = serializeTensors(result).value;
+  firestoreMap.benchmarkInfo = serializeTensors(resultValue);
   firestoreMap.date = getReadableDate();
 
   db.add({
@@ -54,6 +53,7 @@ function addResultToFirestore(result) {
   .then((ref) => {
     console.log("Added document to Firebase with ID: ", ref.id);
   });
+  return firestoreMap;
 }
 
 /**
@@ -63,13 +63,13 @@ function addResultToFirestore(result) {
  *
  * @param result Individual result in a list of fulfilled promises
  */
-function serializeTensors(result) {
-  let kernels = result.value.memoryInfo.kernels;
+function serializeTensors(resultValue) {
+  let kernels = resultValue.memoryInfo.kernels;
   for (kernel of kernels) {
     kernel.inputShapes = JSON.stringify(kernel.inputShapes);
     kernel.outputShapes = JSON.stringify(kernel.outputShapes);
   }
-  return result
+  return resultValue;
 }
 
 /**
@@ -90,3 +90,4 @@ function getReadableDate() {
 }
 
 exports.addResultToFirestore = addResultToFirestore;
+exports.serializeTensors = serializeTensors;
