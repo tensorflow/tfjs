@@ -10,6 +10,7 @@
   "miniprogram": "dist/miniprogram",
   "scripts": {
     "build-deps": "yarn build-link-package",
+    "build-deps-ci": "yarn build-deps",
     "build-link-package": "cd ../link-package && yarn build",
     "build": "rimraf dist/ && tsc && ./scripts/build-wasm.sh",
     "build-dev": "rimraf dist/ && tsc && ./scripts/build-wasm.sh --dev",
