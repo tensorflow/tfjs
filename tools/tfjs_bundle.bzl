@@ -32,8 +32,8 @@ def _make_rollup_config_impl(ctx):
         template = ctx.file.template,
         output = ctx.outputs.config_file,
         substitutions = {
-            "TEMPLATE_external": str(ctx.attr.external),
             "TEMPLATE_es5": "true" if ctx.attr.es5 else "false",
+            "TEMPLATE_external": str(ctx.attr.external),
             "TEMPLATE_globals": str(ctx.attr.globals),
             "TEMPLATE_minify": "true" if ctx.attr.minify else "false",
             "TEMPLATE_stats": stats_file_path,
