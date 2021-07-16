@@ -357,5 +357,8 @@ Note that the output paths of Bazel-created outputs will be different, so any re
 
 If all steps of the `cloudbuild.yml` file are handled by Bazel, it can be deleted. Make sure to also remove references to the package from `tfjs/scripts/package_dependencies.json`.
 
+### Push to Git
+Before pushing to Git, run the Bazel linter by running `yarn bazel:format` in the root of the repo. We run the linter in CI, so if your build is failing in CI only, incorrectly formatted files may be the reason.
+
 ### Done!
 🎉🎉🎉
