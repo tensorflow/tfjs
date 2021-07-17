@@ -15,19 +15,16 @@
  * =============================================================================
  */
 
-import {ENGINE} from '../../engine';
-import {GrayscaleToRGB, GrayscaleToRGBInputs} from '../../kernel_names';
 import {Tensor4D} from '../../tensor';
-import {TensorLike} from '../../types';
-import {NamedTensorMap} from '../../tensor_types';
 import {convertToTensor} from '../../tensor_util_env';
+import {TensorLike} from '../../types';
 import * as util from '../../util';
 
-import { op } from '../operation';
+import {op} from '../operation';
+import {tile} from '../tile'
 
 /**
- * Converts images from grayscale to RGB by expanding the input image last
- * dimension size from 1 into 3.
+ * Converts images from grayscale to RGB format.
  *
  * @param image a 4d tensor of shape `[batch, height, width, 1]`, where height
  *     and width must be positive. The last dimension must be size 1.
@@ -35,10 +32,10 @@ import { op } from '../operation';
  * @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'}
  */
 function grayscaleToRGB_<T extends Tensor4D>(image: T|TensorLike): T {
-  const $image = convertToTensor(image, 'image', 'grayscaleToRGB', 'float32');
+  const $image = convertToTensor(image, 'image', 'grayscaleToRGB');
 
-  const channelIdx = $image.rank - 1;
-  const channel = $image.shape[channelIdx];
+  const lastDimsIdx = $image.rank - 1;
+  const lastDims = $image.shape[lastDimsIdx];
 
   util.assert(
     $image.rank === 4,
@@ -51,12 +48,9 @@ function grayscaleToRGB_<T extends Tensor4D>(image: T|TensorLike): T {
     `should be size 1, but had size ${channel}.`
   );
 
-  const inputs: GrayscaleToRGBInputs = {image: $image};
-  const res = ENGINE.runKernel(
-    GrayscaleToRGB, inputs as {} as NamedTensorMap, {}
-  );
+  const result = tile($image, [1, 1, 1, 3])
 
-  return res as T;
+  return result as T;
 }
 
 export const grayscaleToRGB = op({grayscaleToRGB_});
