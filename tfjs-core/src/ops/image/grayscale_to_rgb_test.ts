@@ -39,6 +39,6 @@ describeWithFlags('grayscaleToRGB', ALL_ENVS, () => {
     expect(() => tf.image.grayscaleToRGB(grayscale))
         .toThrowError(
             'Error in grayscaleToRGB: last dimension of a grayscale image should ' +
-            `be size 1, but had size ${lastDim}.`);
+            `be size 1, but got size ${lastDim}.`);
   });
 });
