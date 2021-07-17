@@ -55,7 +55,7 @@
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
     "build-deps": "yarn build-core && yarn build",
     "build-deps-ci": "yarn build-core-ci && yarn build-ci",
-    "build-npm": "./scripts/build-npm.sh",
+    "build-npm": "bazel build :tfjs-backend-cpu_pkg",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "bazel run :tfjs-backend-cpu_pkg.publish",
