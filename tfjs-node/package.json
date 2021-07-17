@@ -15,8 +15,7 @@
   "scripts": {
     "build": "tsc && npx mkdirp dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
     "build-ci": "tsc && npx mkdirp dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
-    "build-core": "cd ../tfjs-core && yarn && yarn build",
-    "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
+    "build-link-package": "cd ../link-package && yarn build",
     "build-layers": "cd ../tfjs-layers && yarn && yarn build",
     "build-layers-ci": "cd ../tfjs-layers && yarn && yarn build-ci",
     "build-converter": "cd ../tfjs-converter && yarn && yarn build",
@@ -25,12 +24,10 @@
     "build-data-ci": "cd ../tfjs-data && yarn && yarn build-ci",
     "build-union": "cd ../tfjs && yarn && yarn build",
     "build-union-ci": "cd ../tfjs && yarn && yarn build-ci",
-    "build-backend-cpu": "cd ../tfjs-backend-cpu && yarn && yarn build",
-    "build-backend-cpu-ci": "cd ../tfjs-backend-cpu && yarn && yarn build-ci",
     "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build",
     "build-backend-webgl-ci": "cd ../tfjs-backend-webgl && yarn && yarn build-ci",
-    "build-deps": "yarn build-core && yarn build-backend-cpu && yarn build-backend-webgl && yarn build-layers && yarn build-converter && yarn build-data && yarn build-union",
-    "build-deps-ci": "yarn build-core-ci && yarn build-backend-cpu-ci && yarn build-backend-webgl-ci && yarn build-layers-ci && yarn build-converter-ci && yarn build-data-ci && yarn build-union-ci",
+    "build-deps": "yarn build-link-package && yarn build-backend-webgl && yarn build-layers && yarn build-converter && yarn build-data && yarn build-union",
+    "build-deps-ci": "yarn build-link-package && yarn build-backend-webgl-ci && yarn build-layers-ci && yarn build-converter-ci && yarn build-data-ci && yarn build-union-ci",
     "build-npm": "./scripts/build-npm.sh",
     "build-addon": "./scripts/build-and-upload-addon.sh",
     "build-addon-from-source": "node-pre-gyp install --build-from-source",
@@ -52,7 +49,7 @@
     "upload-windows-addon": "./scripts/build-and-upload-windows-addon.bat"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
     "@types/jasmine": "~2.8.6",
     "@types/node": "^10.5.1",
     "@types/progress": "^2.0.1",
