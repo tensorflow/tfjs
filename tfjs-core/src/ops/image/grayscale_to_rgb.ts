@@ -38,15 +38,14 @@ function grayscaleToRGB_<T extends Tensor4D>(image: T|TensorLike): T {
   const lastDims = $image.shape[lastDimsIdx];
 
   util.assert(
-    $image.rank === 4,
-    () => 'Error in grayscaleToRGB: images must be rank 4, ' +
-    `but got rank ${$image.rank}.`
-  );
+      $image.rank === 4,
+      () => 'Error in grayscaleToRGB: images must be rank 4, ' +
+          `but got rank ${$image.rank}.`);
+
   util.assert(
-    channel === 1,
-    () => 'Error in grayscaleToRGB: last dimension of a grayscale image ' +
-    `should be size 1, but had size ${channel}.`
-  );
+      lastDims === 1,
+      () => 'Error in grayscaleToRGB: last dimension of a grayscale image ' +
+          `should be size 1, but got size ${lastDims}.`);
 
   const result = tile($image, [1, 1, 1, 3])
 

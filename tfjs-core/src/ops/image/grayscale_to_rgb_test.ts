@@ -33,13 +33,12 @@ describeWithFlags('grayscaleToRGB', ALL_ENVS, () => {
 
   it('should throw error because of input last dim is not 1', async () => {
     const lastDim = 2;
-    const grayscale = tf.tensor4d(
-      [1.0, 1.0, 2.0, 2.0, 3.0, 3.0], [1, 1, 3, lastDim]
-    );
+    const grayscale =
+        tf.tensor4d([1.0, 1.0, 2.0, 2.0, 3.0, 3.0], [1, 1, 3, lastDim]);
 
-    expect(() => tf.image.grayscaleToRGB(grayscale)).toThrowError(
-      'Error in grayscaleToRGB: last dimension of a grayscale image should ' +
-      `be size 1, but had size ${lastDim}.`
-    );
+    expect(() => tf.image.grayscaleToRGB(grayscale))
+        .toThrowError(
+            'Error in grayscaleToRGB: last dimension of a grayscale image should ' +
+            `be size 1, but had size ${lastDim}.`);
   });
 });
