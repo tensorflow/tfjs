@@ -18,7 +18,7 @@ load("//tools:defaults.bzl", "ts_library")
 package(default_visibility = ["//visibility:public"])
 
 TEST_SRCS = [
-    "**/*_test.ts"
+    "**/*_test.ts",
 ]
 
 ts_library(
