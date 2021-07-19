@@ -138,6 +138,7 @@ limitations under the License.
     let inputSizeController = null;
     let inputTypeController = null;
     let modelArchitectureController = null;
+    let tunableFlagsControllers = null;
 
     function updateGUIFromURLState() {
       if (urlState == null)
@@ -156,6 +157,21 @@ limitations under the License.
       if (runButton != null && task == 'performance') {
         runButton.domElement.click();
       }
+    }
+
+    function updateGUIFlagsValueFromURLState() {
+      if (urlState == null)
+        return;
+        if (tunableFlagsControllers != null && tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'] != null && urlState.has('WEBGL_USE_SHAPES_UNIFORMS'))
+        {
+          const value = urlState.get('WEBGL_USE_SHAPES_UNIFORMS');
+          if (value === 'true')
+          {
+            tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(true);
+          } else {
+            tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(false);
+          }
+        }
     }
 
     const state = {
@@ -799,7 +815,8 @@ limitations under the License.
            showMsg(null);
         }
         await tf.setBackend(backend);
-        await showFlagSettings(envFolder, state.backend);
+        tunableFlagsControllers = await showFlagSettingsAndReturnTunableFlagControllers(envFolder, state.backend);
+        updateGUIFlagsValueFromURLState();
       });
       envFolder.open();
 
@@ -808,10 +825,11 @@ limitations under the License.
       correctnessButton = gui.add(state, 'testCorrectness');
       correctnessButton.name('Test correctness');
 
-      await showFlagSettings(envFolder, state.backend);
+      tunableFlagsControllers = await showFlagSettingsAndReturnTunableFlagControllers(envFolder, state.backend);
       showVersions();
       await showEnvironment();
       updateGUIFromURLState();
+      updateGUIFlagsValueFromURLState();
     }
 
     onPageLoad();
