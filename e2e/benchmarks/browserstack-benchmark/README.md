@@ -40,15 +40,49 @@ The Multi-device benchmark tool can benchmark the performance (time, memory) of 
 </div>
 
 ### Command Line Arguments
-* --benchmarks
-  - Optional argument that runs a preconfigured benchmark from a user-specified JSON file instead of from the website.
-  ``` shell
-  node app.js --benchmarks preconfigured_browser.json
-  ```
+The following are supported options arguments which trigger options features:
+  * --benchmarks
+    - Runs a preconfigured benchmark from a user-specified JSON file instead of from the website.
+    ``` shell
+    node app.js --benchmarks preconfigured_browser.json
+    ```
+  * --cloud
+    - Runs GCP compatible version of benchmarking by blocking the local server.
+    ``` shell
+    node app.js --cloud
+    ```
+  * --h, --help
+    - Shows help menu and all optional arguments in the shell window.
+    ``` shell
+    node app.js --h
+    ```
+    or
+    ``` shell
+    node app.js --help
+    ```
+  * --maxBenchmarks
+    - Sets maximum for number of benchmarks run in parallel.
+    ``` shell
+    node app.js --maxBenchmarks
+    ```
   * --outfile
-    - Optional argument that writes results to an accessible external file, benchmark_results.json.
+    - Writes results to an accessible external file, benchmark_results.json.
     ``` shell
     node app.js --outfile
+    ```
+  * --v, --version
+    - Shows node version in use.
+    ``` shell
+    node app.js --v
+    ```
+    or
+    ``` shell
+    node app.js --version
+    ```
+  * --webDeps
+    - Uses public CDNs instead of local file dependencies.
+    ``` shell
+    node app.js --webDeps
     ```
 
 ## Custom model
