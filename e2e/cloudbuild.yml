@@ -15,20 +15,6 @@ steps:
   args: ['build-deps-ci']
   env: ['NIGHTLY=$_NIGHTLY']
 
-# Build tfjs-node.
-# This is a workaround for CI runs, which don't run
-# build-deps. For some reason, there's an N-API mismatch
-# between the tfjs-node node bindings and this image's
-# node version. Rebuilding the bindings with e2e's node
-# version fixes the problem and adds ~8 seconds to build time.
-# TODO(mattsoulanille): Fix the N-API issue and remove this step.
-- name: 'gcr.io/learnjs-174218/release'
-  dir: 'e2e'
-  entrypoint: 'yarn'
-  id: 'build-node'
-  args: ['build-node-ci']
-  env: ['NIGHTLY=$_NIGHTLY']
-
 # Test.
 - name: 'gcr.io/learnjs-174218/release'
   dir: 'e2e'

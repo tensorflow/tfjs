@@ -68,3 +68,9 @@ ENV.registerFlag('WEBGPU_USE_LOW_POWER_GPU', () => false);
  * Default value is 128.
  */
 ENV.registerFlag('CPU_HANDOFF_SIZE_THRESHOLD', () => 128);
+
+/**
+ * Whether to use a dummy canvas to make profiling tools like PIX work with
+ * TFJS webgpu backend.
+ */
+ENV.registerFlag('WEBGPU_USE_PROFILE_TOOL', () => false);
