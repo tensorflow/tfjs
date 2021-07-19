@@ -26,7 +26,7 @@ Bazel looks for targets to run in `BUILD` and `BUILD.bazel` files. Use the `.baz
 This BUILD file will handle package-wide rules like bundling for npm.
 
 ### Create another `BUILD.bazel` file in `src`
-This BUILD file will compile the source files of the package using `ts_library`.
+This BUILD file will compile the source files of the package using `ts_library` and may also define test bundles.
 
 ### Compile the package with `ts_library`
 In the `src` BUILD.bazel file, we use `ts_library` to compile the package's typescript files.  [ts_library](https://bazelbuild.github.io/rules_nodejs/TypeScript.html#ts_library) is a rule provided by rules_nodejs. We wrap `ts_library` in a macro that sets some project-specific settings.
