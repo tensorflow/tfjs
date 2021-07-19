@@ -18,7 +18,7 @@ steps:
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'build-deps'
-  args: ['build-deps-ci']
+  args: ['build-deps']
   waitFor: ['yarn-common']
 
 # Build.

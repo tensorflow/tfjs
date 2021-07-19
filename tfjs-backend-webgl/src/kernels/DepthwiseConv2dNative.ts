@@ -52,7 +52,6 @@ export function depthwiseConv2dNative(args: {
   } else {
     program = new DepthwiseConv2DProgram(convInfo);
   }
-
   return backend.runWebGLProgram(program, [x, filter], 'float32');
 }
 
