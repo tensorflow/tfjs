@@ -38,7 +38,7 @@ shell.cd(dirName);
 shell.cd(wasmDirName);
 
 exec(
-    `yarn && yarn build-deps-ci && yarn build-ci && yarn rollup -c`,
+    `yarn && yarn build-deps && yarn build-ci && yarn rollup -c`,
     {silent: false});
 
 const masterMinBundleSize = getFileSizeBytes(bundleFilename);

@@ -33,6 +33,8 @@ def _make_rollup_config_impl(ctx):
         output = ctx.outputs.config_file,
         substitutions = {
             "TEMPLATE_es5": "true" if ctx.attr.es5 else "false",
+            "TEMPLATE_external": str(ctx.attr.external),
+            "TEMPLATE_globals": str(ctx.attr.globals),
             "TEMPLATE_minify": "true" if ctx.attr.minify else "false",
             "TEMPLATE_stats": stats_file_path,
         },
@@ -45,6 +47,16 @@ _make_rollup_config = rule(
         "es5": attr.bool(
             default = False,
             doc = "Whether to transpile to es5",
+            mandatory = False,
+        ),
+        "external": attr.string_list(
+            default = [],
+            doc = "A list of module IDs to exclude",
+            mandatory = False,
+        ),
+        "globals": attr.string_dict(
+            default = {},
+            doc = "A dict from module IDs to global variables",
             mandatory = False,
         ),
         "minify": attr.bool(
@@ -65,13 +77,24 @@ _make_rollup_config = rule(
     outputs = {"config_file": "%{name}.js"},
 )
 
-def tfjs_rollup_bundle(name, deps, entry_point, minify = False, umd_name = None, es5 = False, **kwargs):
+def tfjs_rollup_bundle(
+        name,
+        deps,
+        entry_point,
+        minify = False,
+        umd_name = None,
+        es5 = False,
+        external = [],
+        globals = {},
+        **kwargs):
     config_file = name + "_config"
     _make_rollup_config(
         name = config_file,
         stats = name + "_stats.html",
         es5 = es5,
         minify = minify,
+        external = external,
+        globals = globals,
     )
 
     rollup_deps = deps + [
@@ -97,7 +120,14 @@ def tfjs_rollup_bundle(name, deps, entry_point, minify = False, umd_name = None,
         **kwargs
     )
 
-def tfjs_bundle(name, deps, entry_point, umd_name, external = [], testonly = False, **kwargs):
+def tfjs_bundle(
+        name,
+        deps,
+        entry_point,
+        umd_name,
+        external = [],
+        testonly = False,
+        globals = {}):
     # A note on minification: While it would be more efficient to create
     # unminified bundles and then run them through terser separately, that
     # would prevent us from creating bundle visualizations for minified bundles
@@ -116,6 +146,8 @@ def tfjs_bundle(name, deps, entry_point, umd_name, external = [], testonly = Fal
             umd_name = umd_name,
             format = "umd",
             minify = minify,
+            external = external,
+            globals = globals,
         )
 
         # UMD es5
@@ -128,6 +160,8 @@ def tfjs_bundle(name, deps, entry_point, umd_name, external = [], testonly = Fal
             format = "umd",
             minify = minify,
             es5 = True,
+            external = external,
+            globals = globals,
         )
 
         # FESM ES2017
@@ -140,6 +174,8 @@ def tfjs_bundle(name, deps, entry_point, umd_name, external = [], testonly = Fal
             entry_point = entry_point,
             format = "esm",
             minify = minify,
+            external = external,
+            globals = globals,
         )
 
         # cjs es5 node bundle
@@ -151,4 +187,6 @@ def tfjs_bundle(name, deps, entry_point, umd_name, external = [], testonly = Fal
             format = "cjs",
             minify = minify,
             es5 = True,
+            external = external,
+            globals = globals,
         )
