@@ -15,48 +15,53 @@
  * =============================================================================
  */
 
-import {computeDispatch} from '../webgpu_util';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
 export class ResizeBilinearProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
-  dispatchLayout: {x: number[], y: number[], z: number[]};
+  dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  workGroupSize: [number, number, number] = [4, 4, 4];
+  workGroupSize: [number, number, number] = [64, 1, 1];
+  alignCorners: boolean;
 
   constructor(
       inputShape: [number, number, number, number], newHeight: number,
       newWidth: number, alignCorners: boolean) {
     this.outputShape = [inputShape[0], newHeight, newWidth, inputShape[3]];
 
-    this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
 
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    const adjustHeight = alignCorners && newHeight > 1;
-    const adjustWidth = alignCorners && newWidth > 1;
+    this.alignCorners = alignCorners;
+    this.shaderKey = `resizeBilinear_${alignCorners}_${
+        this.outputShape[1] > 1}_${this.outputShape[2] > 1}`;
+  }
 
-    this.userCode = `
+  getUserCode(): string {
+    const adjustHeight = this.alignCorners && this.outputShape[1] > 1;
+    const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
+
+    const userCode = `
       void main() {
         ivec4 coords = getOutputCoords();
-
         if (all(lessThan(coords, outShape))) {
           int b = coords[0];
           int d = coords[3];
           ivec2 rc = coords.yz;
 
           vec2 effectiveInSize = vec2(
-            ${adjustHeight ? 'xShape.y - 1.0' : 'xShape.y'},
-            ${adjustWidth ? 'xShape.z - 1.0' : 'xShape.z'});
+            ${adjustHeight ? `xShape.y - 1.0` : `xShape.y`},
+            ${adjustWidth ? `xShape.z - 1.0` : `xShape.z`});
 
           vec2 effectiveOutSize = vec2(
-            ${adjustHeight ? 'outShape.y - 1.0' : 'outShape.y'},
-            ${adjustWidth ? 'outShape.z - 1.0' : 'outShape.z'});
+            ${adjustHeight ? `outShape.y - 1.0` : `outShape.y`},
+            ${adjustWidth ? `outShape.z - 1.0` : `outShape.z`});
 
           vec2 effectiveInputOverOutputRatioRC =
               effectiveInSize / effectiveOutSize;
@@ -84,6 +89,6 @@ export class ResizeBilinearProgram implements WebGPUProgram {
         }
       }
     `;
-    this.shaderKey = `resizeblilinear${adjustHeight}${adjustWidth}`;
+    return userCode;
   }
 }

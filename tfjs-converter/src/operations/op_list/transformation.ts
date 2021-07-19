@@ -43,6 +43,15 @@ export const json: OpMapper[] = [
     ]
   },
   {
+    'tfOpName': 'MirrorPad',
+    'category': 'transformation',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'padding', 'type': 'number[]'},
+    ],
+    'attrs': [{'tfName': 'mode', 'name': 'mode', 'type': 'string'}]
+  },
+  {
     'tfOpName': 'Pad',
     'category': 'transformation',
     'inputs': [
@@ -118,5 +127,14 @@ export const json: OpMapper[] = [
       {'tfName': 'block_size', 'name': 'blockSize', 'type': 'number'},
       {'tfName': 'data_format', 'name': 'dataFormat', 'type': 'string'}
     ]
+  },
+  {
+    'tfOpName': 'BroadcastTo',
+    'category': 'transformation',
+    'inputs': [
+      {'start': 0, 'name': 'x', 'type': 'tensor'},
+      {'start': 1, 'name': 'shape', 'type': 'number[]'},
+    ],
+    'attrs': []
   }
 ];

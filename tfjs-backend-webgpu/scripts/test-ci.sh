@@ -16,7 +16,5 @@
 
 set -e
 
-yarn
-yarn lint
 yarn build
 

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,21 +23,20 @@ describe('initializes flags from the url', () => {
   beforeAll(() => spyOn(console, 'warn').and.returnValue(null));
 
   it('no overrides one registered flag', () => {
-    spyOn(environment, 'getQueryParams').and.returnValue({});
-
     const global = {location: {search: ''}};
     const env = new Environment(global);
+    spyOn(env, 'getQueryParams').and.returnValue({});
+
     env.registerFlag('FLAG1', () => false);
     expect(env.get('FLAG1')).toBe(false);
   });
 
   it('one unregistered flag', () => {
-    spyOn(environment, 'getQueryParams').and.returnValue({
-      'tfjsflags': 'FLAG1:true'
-    });
-
     const global = {location: {search: ''}};
     const env = new Environment(global);
+    spyOn(env, 'getQueryParams').and.returnValue({
+      'tfjsflags': 'FLAG1:true'
+    });
     expect(env.features).toEqual({});
   });
 

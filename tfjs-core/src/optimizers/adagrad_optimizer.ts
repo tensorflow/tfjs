@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,12 @@
 
 import {ENGINE} from '../engine';
 import {dispose, tidy} from '../globals';
-import {fill} from '../ops/ops';
+import {add} from '../ops/add';
+import {div} from '../ops/div';
+import {fill} from '../ops/fill';
+import {mul} from '../ops/mul';
+import {sqrt} from '../ops/sqrt';
+import {square} from '../ops/square';
 import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
 import {NamedTensor, NamedVariableMap} from '../tensor_types';
 
@@ -62,14 +67,14 @@ export class AdagradOptimizer extends Optimizer {
       const accumulatedGrad = this.accumulatedGrads[i].variable;
 
       tidy(() => {
-        const newAccumulatedGrad = accumulatedGrad.add(gradient.square());
+        const newAccumulatedGrad = add(accumulatedGrad, square(gradient));
         accumulatedGrad.assign(newAccumulatedGrad);
 
-        const newValue =
-            gradient
-                .div(newAccumulatedGrad.add(ENGINE.backend.epsilon()).sqrt())
-                .mul(-this.learningRate)
-                .add(value);
+        const newValue = add(
+            mul(div(gradient,
+                    sqrt(add(newAccumulatedGrad, ENGINE.backend.epsilon()))),
+                -this.learningRate),
+            value);
         value.assign(newValue);
       });
     });

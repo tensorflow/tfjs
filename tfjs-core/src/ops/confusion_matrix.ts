@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,8 +20,11 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {oneHot} from './array_ops';
+import {cast} from './cast';
+import {matMul} from './mat_mul';
+import {oneHot} from './one_hot';
 import {op} from './operation';
+import {transpose} from './transpose';
 
 /**
  * Computes the confusion matrix from true labels and predicted labels.
@@ -49,8 +52,9 @@ import {op} from './operation';
  * @returns The confusion matrix as a int32-type 2D tensor. The value at
  *   row `r` and column `c` is the number of times examples of actual class
  *   `r` were predicted as class `c`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Evaluation'}
  */
-/** @doc {heading: 'Operations', subheading: 'Evaluation'} */
 export function confusionMatrix_(
     labels: Tensor1D|TensorLike, predictions: Tensor1D|TensorLike,
     numClasses: number): Tensor2D {
@@ -81,10 +85,12 @@ export function confusionMatrix_(
   // TODO(cais): In the future, if oneHot supports tensors inputs for
   //   `numClasses`, `confusionMatrix` can make `numClasses` optional.
 
-  const oneHotLabels = oneHot($labels.asType('int32'), numClasses) as Tensor2D;
+  const oneHotLabels = oneHot(cast($labels, 'int32'), numClasses) as Tensor2D;
   const oneHotPredictions =
-      oneHot($predictions.asType('int32'), numClasses) as Tensor2D;
-  return oneHotLabels.transpose().matMul(oneHotPredictions).asType('int32');
+      oneHot(cast($predictions, 'int32'), numClasses) as Tensor2D;
+  const oneHotLabelsT: Tensor2D = transpose(oneHotLabels);
+  const product: Tensor2D = matMul(oneHotLabelsT, oneHotPredictions);
+  return cast(product, 'int32');
 }
 
 export const confusionMatrix = op({confusionMatrix_});

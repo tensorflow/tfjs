@@ -1,0 +1,31 @@
+{
+  "name": "dense-model-treeshake",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "make-custom-tfjs-modules": "node ./node_modules/@tensorflow/tfjs/dist/tools/custom_module/cli.js --config app_tfjs_config.json",
+    "rollup:full": "rollup -c",
+    "rollup:custom": "rollup -c --useCustomTfjs",
+    "webpack:full": "webpack",
+    "webpack:custom": "webpack --useCustomTfjs"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs": "link:../../../tfjs"
+  },
+  "devDependencies": {
+    "@rollup/plugin-alias": "^3.1.1",
+    "@rollup/plugin-commonjs": "^14.0.0",
+    "@rollup/plugin-node-resolve": "^8.4.0",
+    "file-loader": "^6.1.0",
+    "rollup": "^2.23.0",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-terser": "^6.1.0",
+    "rollup-plugin-visualizer": "^4.0.4",
+    "terser-webpack-plugin": "^4.2.1",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  }
+}

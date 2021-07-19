@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -217,11 +217,6 @@ describeWithFlags('variable', ALL_ENVS, () => {
 describeWithFlags('x instanceof Variable', ALL_ENVS, () => {
   it('x: Variable', () => {
     const t = tf.variable(tf.scalar(1));
-    expect(t instanceof Variable).toBe(true);
-  });
-
-  it('x: Variable-like', () => {
-    const t = {assign: () => {}, shape: [2], dtype: 'float32', dataId: {}};
     expect(t instanceof Variable).toBe(true);
   });
 

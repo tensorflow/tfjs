@@ -147,7 +147,7 @@ describe('renderHistogram', () => {
       await histogram(container, data);
     }).not.toThrow();
 
-    expect(document.querySelectorAll('.vega-embed').length).toBe(1);
+    expect(document.querySelectorAll('.vega-embed').length).toBe(0);
     expect(document.querySelectorAll('table').length).toBe(1);
     expect(document.querySelectorAll('table thead tr').length).toBe(1);
     expect(document.querySelectorAll('table thead th').length).toBe(3);

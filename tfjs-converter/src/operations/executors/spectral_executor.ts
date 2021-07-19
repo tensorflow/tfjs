@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import {Tensor} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
@@ -24,28 +26,28 @@ import {InternalOpExecutor, Node} from '../types';
 import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
-    (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext): tfc.Tensor[] => {
-      switch (node.op) {
-        case 'FFT': {
-          return [tfc.fft(
-              getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-        }
-        case 'IFFT': {
-          return [tfc.ifft(
-              getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-        }
-        case 'RFFT': {
-          return [tfc.rfft(
-              getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-        }
-        case 'IRFFT': {
-          return [tfc.irfft(
-              getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-        }
-        default:
-          throw TypeError(`Node type ${node.op} is not implemented`);
-      }
-    };
+    (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext):
+        Tensor[] => {
+          switch (node.op) {
+            case 'FFT': {
+              return [tfOps.fft(
+                  getParamValue('x', node, tensorMap, context) as Tensor)];
+            }
+            case 'IFFT': {
+              return [tfOps.ifft(
+                  getParamValue('x', node, tensorMap, context) as Tensor)];
+            }
+            case 'RFFT': {
+              return [tfOps.rfft(
+                  getParamValue('x', node, tensorMap, context) as Tensor)];
+            }
+            case 'IRFFT': {
+              return [tfOps.irfft(
+                  getParamValue('x', node, tensorMap, context) as Tensor)];
+            }
+            default:
+              throw TypeError(`Node type ${node.op} is not implemented`);
+          }
+        };
 
 export const CATEGORY = 'spectral';

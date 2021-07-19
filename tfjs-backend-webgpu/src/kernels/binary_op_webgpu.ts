@@ -17,52 +17,81 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
-
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
 import {WebGPUProgram} from './webgpu_program';
-
-export const MUL = 'return a * b;';
-export const ADD = 'return a + b;';
-export const SUB = 'return a - b;';
-export const DIV = 'return a / b;';
-export const GREATER = 'return float(a > b);';
-export const GREATER_EQUAL = 'return float(a >= b);';
-export const LESS = `return float(a < b);`;
-export const LESS_EQUAL = `return float(a <= b);`;
-
-export const INT_DIV = `
-  float s = sign(a) * sign(b);
-  int ia = int(round(a));
-  int ib = int(round(b));
-  return float(idiv(ia, ib, s));
-`;
-
-export const PRELU = `return (a < 0.) ? b * a : a;`;
 
 export class BinaryOpProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
-  workPerThread = 4;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workPerThread: number;
+  workGroupSize: [number, number, number];
+  op: BinaryOpType;
+  sizeFit: boolean;
+  shapesFit: boolean;
+  size: number;
 
-  constructor(op: string, aShape: number[], bShape: number[]) {
+  constructor(op: BinaryOpType, aShape: number[], bShape: number[]) {
+    // TODO(jiajia.qin@intel.com): Heuristically select a good work group size.
+    const workGroupSizeX = 128;
+    this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
-    const size = util.sizeFromShape(this.outputShape);
-
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.size = util.sizeFromShape(this.outputShape);
+    this.sizeFit = this.size % workGroupSizeX === 0;
+    this.shapesFit = util.arraysEqual(aShape, bShape) && this.sizeFit;
+    this.workPerThread = this.sizeFit || this.shapesFit ? 1 : 2;
+
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-    const type = getCoordsDataType(this.outputShape.length);
+    this.shaderKey = `binary_${op}_${this.sizeFit}_${this.shapesFit}`;
+    this.op = op;
+  }
 
-    this.userCode = `
+  getUserCode(): string {
+    let userCode: string;
+    const opStr = getBinaryOpString(this.op);
+    if (this.shapesFit) {
+      userCode = `
+          float binaryOperation(float a, float b) {
+            ${opStr}
+          }
+
+          void main() {
+            int index = int(gl_GlobalInvocationID.x);
+
+            float a = float(A[index]);
+            float b = float(B[index]);
+            setOutput(index, binaryOperation(a, b));
+          }
+        `;
+    } else if (this.sizeFit) {
+      const type = getCoordsDataType(this.outputShape.length);
+      userCode = `
       float binaryOperation(float a, float b) {
-        ${op}
+        ${opStr}
+      }
+
+      void main() {
+        int index = int(gl_GlobalInvocationID.x);
+
+        ${type} coords = getCoordsFromFlatIndex(index);
+
+        float a = getAAtOutCoords(coords);
+        float b = getBAtOutCoords(coords);
+        setOutput(index, binaryOperation(a, b));
+      }
+      `;
+    } else {
+      const type = getCoordsDataType(this.outputShape.length);
+      userCode = `
+      float binaryOperation(float a, float b) {
+        ${opStr}
       }
 
       void main() {
@@ -71,7 +100,7 @@ export class BinaryOpProgram implements WebGPUProgram {
         for(int i = 0; i < ${this.workPerThread}; i++) {
           int flatIndex = index * ${this.workPerThread} + i;
 
-          if(flatIndex < ${size}) {
+          if(flatIndex < size) {
             ${type} coords = getCoordsFromFlatIndex(flatIndex);
 
             float a = getAAtOutCoords(coords);
@@ -80,7 +109,8 @@ export class BinaryOpProgram implements WebGPUProgram {
           }
         }
       }
-    `;
-    this.shaderKey = `binary${op}${type}${size}`;
+      `;
+    }
+    return userCode;
   }
 }

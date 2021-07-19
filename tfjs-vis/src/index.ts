@@ -14,6 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
+import '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
 
 import {barchart} from './render/barchart';
 import {confusionMatrix} from './render/confusion_matrix';
@@ -24,9 +27,9 @@ import {scatterplot} from './render/scatterplot';
 import {table} from './render/table';
 import {fitCallbacks, history} from './show/history';
 import {layer, modelSummary} from './show/model';
-import {showPerClassAccuracy} from './show/quality';
+import {perClassAccuracy as showPerClassAccuracy} from './show/quality';
 import {valuesDistribution} from './show/tensor';
-import {accuracy, confusionMatrix as metricsConfusionMatrix, perClassAccuracy} from './util/math';
+import {accuracy, confusionMatrix as metricsConfusionMatrix, perClassAccuracy as metricsPerClassAccuracy} from './util/math';
 import {version} from './version';
 
 const render = {
@@ -41,7 +44,7 @@ const render = {
 
 const metrics = {
   accuracy,
-  perClassAccuracy,
+  perClassAccuracy: metricsPerClassAccuracy,
   confusionMatrix: metricsConfusionMatrix,
 };
 

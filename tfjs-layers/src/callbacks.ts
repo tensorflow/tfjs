@@ -242,8 +242,7 @@ export class EarlyStopping extends Callback {
  * // Expect to see a length-2 array.
  * console.log(history.history.val_acc);
  * ```
- */
-/**
+ *
  * @doc {
  *   heading: 'Callbacks',
  *   namespace: 'callbacks'

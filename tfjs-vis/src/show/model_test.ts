@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs';
+import * as tfl from '@tensorflow/tfjs-layers';
 
 import {layer, modelSummary} from './model';
 
@@ -26,8 +26,8 @@ describe('modelSummary', () => {
 
   it('renders a model summary', async () => {
     const container = {name: 'Test'};
-    const model = tf.sequential();
-    model.add(tf.layers.dense({units: 1, inputShape: [1]}));
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({units: 1, inputShape: [1]}));
     await modelSummary(container, model);
     expect(document.querySelectorAll('table').length).toBe(1);
     expect(document.querySelectorAll('tr').length).toBe(2);
@@ -41,8 +41,8 @@ describe('layer', () => {
 
   it('renders a layer summary', async () => {
     const container = {name: 'Test'};
-    const model = tf.sequential();
-    const dense = tf.layers.dense({units: 1, inputShape: [1]});
+    const model = tfl.sequential();
+    const dense = tfl.layers.dense({units: 1, inputShape: [1]});
     model.add(dense);
     model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
     await layer(container, dense);

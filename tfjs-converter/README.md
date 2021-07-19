@@ -7,8 +7,7 @@ or [TensorFlow Hub module](https://www.tensorflow.org/hub/)
 into the browser and run inference through
 [TensorFlow.js](https://js.tensorflow.org).
 
-__Note__: _Session bundle and Frozen model formats have been deprecated in TensorFlow.js 1.0. Please use the TensorFlow.js 0.15.x backend to convert these formats, available in
-`tfjs-converter` [0.8.6](https://pypi.org/project/tensorflowjs/0.8.6/)._
+__Note__: _Session bundle format have been deprecated.
 
 A 2-step process to import your model:
 
@@ -48,11 +47,41 @@ virtualenv --no-site-packages venv
 
 __1. Install the TensorFlow.js pip package:__
 
+Install the library with interactive CLI:
 ```bash
- pip install tensorflowjs
+ pip install tensorflowjs[wizard]
 ```
 
 __2. Run the converter script provided by the pip package:__
+
+There are two way to trigger the model conversion:
+
+- The conversion wizard: `tensorflowjs_wizard`
+- Regular conversion script: `tensorflowjs_converter`
+
+To start the conversion wizard:
+```bash
+tensorflowjs_wizard
+```
+
+This tool will walk you through the conversion process and provide you with
+details explanations for each choice you need to make. Behind the scene it calls
+the converter script (`tensorflowjs_converter`) in pip package. This is the
+recommended way to convert a single model.
+
+There is also a dry run mode for the wizard, which will not perform the actual
+conversion but only generate the command for `tensorflowjs_converter` command.
+This generated command can be used in your own shell script.
+
+Here is an screen capture of the wizard in action. ![wizard](./tensorflowjs_wizard.gif)
+```bash
+tensorflowjs_wizard --dryrun
+```
+
+To convert a batch of models or integrate the conversion process into your own
+script, you should use the tensorflowjs_converter script.
+
+## Conversion flags
 
 The converter expects a __TensorFlow SavedModel__, __TensorFlow Hub module__,
 __TensorFlow.js JSON__ format, __Keras HDF5 model__, or __tf.keras SavedModel__
@@ -122,11 +151,17 @@ saved a tf.keras model in the SavedModel format.
 |---|---|
 |`--input_format`     | The format of input model, use `tf_saved_model` for SavedModel, `tf_hub` for TensorFlow Hub module, `tfjs_layers_model` for TensorFlow.js JSON format, and `keras` for Keras HDF5. |
 |`--output_format`| The desired output format.  Must be `tfjs_layers_model`, `tfjs_graph_model` or `keras`. Not all pairs of input-output formats are supported.  Please file a [github issue](https://github.com/tensorflow/tfjs/issues) if your desired input-output pair is not supported.|
-|<nobr>`--saved_model_tags`</nobr> | Only applicable to SavedModel conversion. Tags of the MetaGraphDef to load, in comma separated format. Defaults to `serve`.|
+|<nobr>`--saved_model_tags`</nobr> | Only applicable to SavedModel conversion. Tags of the MetaGraphDef to load, in comma separated format. If there are no tags defined in the saved model, set it to empty string `saved_model_tags=''`. Defaults to `serve`.|
 |`--signature_name`   | Only applicable to TensorFlow SavedModel and Hub module conversion, signature to load. Defaults to `serving_default` for SavedModel and `default` for Hub module. See https://www.tensorflow.org/hub/common_signatures/.|
 |`--strip_debug_ops`   | Strips out TensorFlow debug operations `Print`, `Assert`, `CheckNumerics`. Defaults to `True`.|
-|`--quantization_bytes`  | How many bytes to optionally quantize/compress the weights to. Valid values are 1 and 2. which will quantize int32 and float32 to 1 or 2 bytes respectively. The default (unquantized) size is 4 bytes.|
+|`--quantization_bytes`  | (Deprecated) How many bytes to optionally quantize/compress the weights to. Valid values are 1 and 2. which will quantize int32 and float32 to 1 or 2 bytes respectively. The default (unquantized) size is 4 bytes.|
+|`--quantize_float16`  | Comma separated list of node names to apply float16 quantization. You can also use wildcard symbol (\*) to apply quantization to multiple nodes (e.g., conv/\*/weights). When the flag is provided without any nodes the default behavior will match all nodes. |
+|`--quantize_uint8`  | Comma separated list of node names to apply 1-byte affine quantization. You can also use wildcard symbol (\*) to apply quantization to multiple nodes (e.g., conv/\*/weights). When the flag is provided without any nodes the default behavior will match all nodes. |
+|`--quantize_uint16`  | Comma separated list of node names to apply 2-byte affine quantization. You can also use wildcard symbol (\*) to apply quantization to multiple nodes (e.g., conv/\*/weights). When the flag is provided without any nodes the default behavior will match all nodes. |
+|`--weight_shard_size_bytes` | Shard size (in bytes) of the weight files. Only supported when `output_format` is `tfjs_layers_model` or `tfjs_graph_model`. Default size is 4 MB (4194304 bytes).|
 |<nobr>`--output_node_names`</nobr>| Only applicable to Frozen Model. The names of the output nodes, separated by commas.|
+|<nobr>`--control_flow_v2`</nobr>| Only applicable to TF 2.x Saved Model. This flag improve performance on models with control flow ops, default to False.|
+|<nobr>`--metadata`</nobr>| Comma separated list of metadata json file paths, indexed by name. Prefer absolute path. Example: 'metadata1:/metadata1.json,metadata2:/metadata2.json'.|
 
 __Note: If you want to convert TensorFlow session bundle, you can install older versions of the tensorflowjs pip package, i.e. `pip install tensorflowjs==0.8.6`.__
 
@@ -186,7 +221,7 @@ purposes:
    tensorflowjs_converter \
       --input_format tfjs_layers_model \
       --output_format tfjs_layers_model \
-      --quantization_bytes 2 \
+      --quantize_uint16 \
       original_model/model.json
       quantized_model/
    ```
@@ -350,17 +385,32 @@ browser to cache them automatically. If the model architecture is less than 4MB
 
 __4. Can I quantize the weights over the wire?__
 
-Yes, you can use the --quantization_bytes option to compress int32/float32 to 1
-or 2 bytes. Here is
-an example of 8-bit quantization:
+Yes, you can use the --quantize_{float16, uint8, uint16} flags to compress
+weights with 1 byte integer quantization (`uint8`) or 2 byte integer
+(`uint16`)/float (`float16`) quantization.
+Quantizing to float16 may provide better accuracy over
+2 byte affine integer scaling (`uint16`). 1-byte affine quantization,
+i.e., `uint8` provides a 4x size reduction at the cost of accuracy.
+For example, we can quantize our MobileNet model using float16 quantization:
 
 ```
-tensorflowjs_converter \
+tensorflowjs_converter
+    --quantize_float16 \
     --input_format=tf_hub \
-    --quantization_bytes=1
     'https://tfhub.dev/google/imagenet/mobilenet_v1_100_224/classification/1' \
     /mobilenet/web_model
 ```
+
+You can also quantize specific weights as well as weight groupings using
+a wildcard replacement. For example,
+```
+tensorflowjs_converter
+    --quantize_float16="conv/*/weights"
+```
+which will quantize all weights that match the pattern conv/*/weights.
+This will exclude biases and any weights that don't begin with conv/.
+This can be a powerful tool to reduce model size while trying to maximize
+performance.
 
 __5. Why is the predict() method for inference so much slower on the first call than the subsequent calls?__
 
@@ -386,31 +436,6 @@ yarn ts-node tools/pb2json_converter.ts pb_model_directory/ json_model_directory
 version is located.
 `json_model_directory` is the destination directory for the converted model.
 
-__7. I have a model formatted as a Session bundle. How do I convert it to TensorFlow.js?__
-
-You can install a previous version of TensorFlow.js in a virtual environment to
-convert the model to the JSON format. Here is how you can achieve this.
-
-* Set up the virtual environment:
-
-```bash
-virtualenv --no-site-packages venv
-. venv/bin/activate
-pip install tensorflowjs==0.8.6
-```
-
-`venv` is the name of the virtual environment.
-
-* Convert a session bundle model:
-
-```bash
-tensorflowjs_converter \
-    --input_format=tf_session_bundle \
-    --output_json=true \
-    --output_node_names='MobilenetV1/Predictions/Reshape_1' \
-    /mobilenet/session_bundle \
-    /mobilenet/web_model
-```
 
 ## Development
 

@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,16 +16,16 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/kernels/Prelu.h"
+#include "tfjs-backend-wasm/src/cc/kernels/Prelu.h"
 
 #include <xnnpack.h>
 #include <cmath>
-#include <limits>
+#include <cstddef>
 #include <unordered_map>
 
-#include "src/cc/backend.h"
-#include "src/cc/prelu_impl.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/prelu_impl.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
@@ -35,7 +35,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Prelu(const int x_id, const int weights_id, const int out_id) {
+void Prelu(const size_t x_id, const size_t weights_id, const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   const float* x_buf = x_info.f32();
 

@@ -22,10 +22,7 @@ import argparse
 import os
 import sys
 
-import tensorflow as tf
-
-tf.enable_eager_execution()
-
+import tensorflow.compat.v2 as tf
 
 def parse_args():
   parser = argparse.ArgumentParser(
@@ -51,7 +48,7 @@ def main(_):
     model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
     model.save(os.path.join(args.output_path))
   elif args.model_type == 'tf_saved_model':
-    class TimesThreePlusOne(tf.train.Checkpoint):
+    class TimesThreePlusOne(tf.Module):
 
       @tf.function(input_signature=[
           tf.TensorSpec(shape=None, dtype=tf.float32)])
@@ -65,4 +62,4 @@ def main(_):
 
 if __name__ == '__main__':
   args, unparsed = parse_args()
-  tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
+  tf.compat.v1.app.run(main=main, argv=[sys.argv[0]] + unparsed)

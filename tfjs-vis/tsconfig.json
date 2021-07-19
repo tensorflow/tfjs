@@ -7,6 +7,7 @@
     "node_modules/"
   ],
   "compilerOptions": {
+    "module": "commonjs",
     "inlineSources": true,
     "target": "es2015",
     "lib": [

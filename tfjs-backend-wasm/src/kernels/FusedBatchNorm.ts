@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,21 +15,9 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {FusedBatchNorm, FusedBatchNormAttrs, FusedBatchNormInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-
-interface BatchNormInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-  mean: TensorInfo;
-  variance: TensorInfo;
-  offset: TensorInfo;
-  scale: TensorInfo;
-}
-
-interface BatchNormAttrs extends NamedAttrMap {
-  varianceEpsilon: number;
-}
 
 let wasmBatchNorm: (
     xId: number, meanId: number, varianceId: number, offsetId: number,
@@ -37,23 +25,23 @@ let wasmBatchNorm: (
 
 function setup(backend: BackendWasm): void {
   wasmBatchNorm = backend.wasm.cwrap(
-      'FusedBatchNorm', null /* void */,
+      FusedBatchNorm, null /* void */,
       ['number', 'number', 'number', 'number', 'number', 'number', 'number']);
 }
 
-function fusedBatchNorm(
-    args:
-        {backend: BackendWasm, inputs: BatchNormInputs, attrs: BatchNormAttrs}):
-    TensorInfo {
+function fusedBatchNorm(args: {
+  backend: BackendWasm,
+  inputs: FusedBatchNormInputs,
+  attrs: FusedBatchNormAttrs
+}): TensorInfo {
   const {backend, inputs, attrs} = args;
   const {varianceEpsilon} = attrs;
   const {x, mean, variance, offset, scale} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
   const meanId = backend.dataIdMap.get(mean.dataId).id;
   const varianceId = backend.dataIdMap.get(variance.dataId).id;
-  const offsetId =
-      offset != null ? backend.dataIdMap.get(offset.dataId).id : -1;
-  const scaleId = scale != null ? backend.dataIdMap.get(scale.dataId).id : -1;
+  const offsetId = offset != null ? backend.dataIdMap.get(offset.dataId).id : 0;
+  const scaleId = scale != null ? backend.dataIdMap.get(scale.dataId).id : 0;
 
   const out = backend.makeOutput(x.shape, x.dtype);
   // Short-circuit zero-sized tensors.
@@ -68,9 +56,9 @@ function fusedBatchNorm(
   return out;
 }
 
-registerKernel({
-  kernelName: 'BatchNormalization',
+export const fusedBatchNormConfig: KernelConfig = {
+  kernelName: FusedBatchNorm,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: fusedBatchNorm
-});
+  kernelFunc: fusedBatchNorm as {} as KernelFunc
+};

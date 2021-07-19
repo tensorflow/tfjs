@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,15 +15,19 @@
 #ifndef KERNELS_AVGPOOL_H_
 #define KERNELS_AVGPOOL_H_
 
-namespace tfjs {
+#include <cstddef>
 
+namespace tfjs {
 namespace wasm {
 extern "C" {
-void AvgPool(const int x_id, const int batch_size, const int input_height,
-             const int input_width, const int filter_height,
-             const int filter_width, int pad_top, int pad_right, int pad_bottom,
-             int pad_left, const int stride_height, const int stride_width,
-             const int channels, const int out_id);
+
+void AvgPool(const size_t x_id, const size_t batch_size,
+             const size_t input_height, const size_t input_width,
+             const size_t filter_height, const size_t filter_width,
+             size_t pad_top, size_t pad_right, size_t pad_bottom,
+             size_t pad_left, const size_t stride_height,
+             const size_t stride_width, const size_t channels,
+             const size_t out_id);
 }
 
 }  // namespace wasm

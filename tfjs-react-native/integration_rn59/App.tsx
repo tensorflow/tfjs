@@ -25,10 +25,11 @@ import { Diagnostic } from './components/diagnostic';
 import { MobilenetDemo } from './components/mobilenet_demo';
 import { TestRunner } from './components/tfjs_unit_test_runner';
 import { WebcamDemo } from './components/webcam/webcam_demo';
+import { RealtimeDemo } from './components/webcam/realtime_demo';
 
 const BACKEND_TO_USE = 'rn-webgl';
 
-export type Screen = 'main' | 'diag' | 'demo' | 'test' | 'webcam';
+export type Screen = 'main' | 'diag' | 'demo' | 'test' | 'webcam' | 'realtime';
 
 interface AppState {
   isTfReady: boolean;
@@ -48,6 +49,7 @@ export class App extends React.Component<{}, AppState> {
     this.showMainScreen = this.showMainScreen.bind(this);
     this.showTestScreen = this.showTestScreen.bind(this);
     this.showWebcamDemo= this.showWebcamDemo.bind(this);
+    this.showRealtimeDemo= this.showRealtimeDemo.bind(this);
   }
 
   async componentDidMount() {
@@ -78,6 +80,10 @@ export class App extends React.Component<{}, AppState> {
     this.setState({ currentScreen: 'webcam' });
   }
 
+  showRealtimeDemo() {
+    this.setState({ currentScreen: 'realtime' });
+  }
+
   renderMainScreen() {
     return <Fragment>
       <View style={styles.sectionContainer}>
@@ -95,7 +101,7 @@ export class App extends React.Component<{}, AppState> {
         />
       </View>
       <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>tfjs-core unit tests</Text>
+        <Text style={styles.sectionTitle}>Unit tests</Text>
         <Button
           testID='unit-test-btn'
           accessibilityLabel='unit-test-btn'
@@ -108,6 +114,13 @@ export class App extends React.Component<{}, AppState> {
         <Button
           onPress={this.showWebcamDemo}
           title='Show Webcam Demo'
+        />
+      </View>
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>Realtime Webcam Demo</Text>
+        <Button
+          onPress={this.showRealtimeDemo}
+          title='Show Realtime Webcam Demo'
         />
       </View>
     </Fragment>;
@@ -140,6 +153,12 @@ export class App extends React.Component<{}, AppState> {
     </Fragment>;
   }
 
+  renderRealtimeDemo() {
+    return <Fragment>
+      <RealtimeDemo returnToMain={this.showMainScreen}/>
+    </Fragment>;
+  }
+
   renderLoadingTF() {
     return <Fragment>
       <View style={styles.sectionContainer}>
@@ -162,6 +181,8 @@ export class App extends React.Component<{}, AppState> {
           return this.renderTestScreen();
         case 'webcam':
           return this.renderWebcamDemo();
+        case 'realtime':
+          return this.renderRealtimeDemo();
         default:
           return this.renderMainScreen();
       }

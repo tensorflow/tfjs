@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -53,15 +53,16 @@ import * as util from './util';
  * ```
  *
  * @param f The function f(x), to compute gradient for.
+ *
+ * @doc {heading: 'Training', subheading: 'Gradients'}
  */
-/** @doc {heading: 'Training', subheading: 'Gradients'} */
 function grad(f: (x: Tensor) => Tensor): (
     x: TensorLike|Tensor, dy?: TensorLike|Tensor) => Tensor {
   util.assert(
       util.isFunction(f), () => 'The f passed in grad(f) must be a function');
   return (x: TensorLike|Tensor, dy?: TensorLike|Tensor): Tensor => {
     // x can be of any dtype, thus null as the last argument.
-    const $x = convertToTensor(x, 'x', 'tf.grad', null);
+    const $x = convertToTensor(x, 'x', 'tf.grad', 'string_or_numeric');
     const $dy: Tensor =
         (dy != null) ? convertToTensor(dy, 'dy', 'tf.grad') : null;
     return ENGINE.tidy(() => {
@@ -104,8 +105,9 @@ function grad(f: (x: Tensor) => Tensor): (
  * ```
  *
  * @param f The function `f(x1, x2,...)` to compute gradients for.
+ *
+ * @doc {heading: 'Training', subheading: 'Gradients'}
  */
-/** @doc {heading: 'Training', subheading: 'Gradients'} */
 function grads(f: (...args: Tensor[]) => Tensor): (
     args: Array<Tensor|TensorLike>, dy?: Tensor|TensorLike) => Tensor[] {
   util.assert(
@@ -116,7 +118,8 @@ function grads(f: (...args: Tensor[]) => Tensor): (
         () => 'The args passed in grads(f)(args) must be an array ' +
             'of `Tensor`s or `TensorLike`s');
     // args can be of any dtype, thus null as the last argument.
-    const $args = convertToTensorArray(args, 'args', 'tf.grads', null);
+    const $args =
+        convertToTensorArray(args, 'args', 'tf.grads', 'string_or_numeric');
     const $dy: Tensor =
         (dy != null) ? convertToTensor(dy, 'dy', 'tf.grads') : null;
     return ENGINE.tidy(() => {
@@ -155,8 +158,9 @@ function grads(f: (...args: Tensor[]) => Tensor): (
  * console.log('grad');
  * grad.print();
  * ```
+ *
+ * @doc {heading: 'Training', subheading: 'Gradients'}
  */
-/** @doc {heading: 'Training', subheading: 'Gradients'} */
 function valueAndGrad<I extends Tensor, O extends Tensor>(f: (x: I) => O): (
     x: I, dy?: O) => {
   value: O;
@@ -206,8 +210,9 @@ function valueAndGrad<I extends Tensor, O extends Tensor>(f: (x: I) => O): (
  * console.log('db');
  * db.print();
  * ```
+ *
+ * @doc {heading: 'Training', subheading: 'Gradients'}
  */
-/** @doc {heading: 'Training', subheading: 'Gradients'} */
 function valueAndGrads<O extends Tensor>(f: (...args: Tensor[]) => O): (
     args: Tensor[], dy?: O) => {
   grads: Tensor[];
@@ -263,8 +268,9 @@ function valueAndGrads<O extends Tensor>(f: (...args: Tensor[]) => O): (
  *     If the `varList` argument is provided explicitly and contains a subset of
  *     non-trainable variables, this map in the return value will contain keys
  *     that map the names of the non-trainable variables to `null`.
+ *
+ * @doc {heading: 'Training', subheading: 'Gradients'}
  */
-/** @doc {heading: 'Training', subheading: 'Gradients'} */
 function variableGrads(f: () => Scalar, varList?: Variable[]):
     {value: Scalar, grads: NamedTensorMap} {
   util.assert(
@@ -362,8 +368,9 @@ function variableGrads(f: () => Scalar, varList?: Variable[]):
  * @param f The function to evaluate in forward mode, which should return
  *     `{value: Tensor, gradFunc: (dy, saved) => Tensor[]}`, where `gradFunc`
  *     returns the custom gradients of `f` with respect to its inputs.
+ *
+ * @doc {heading: 'Training', subheading: 'Gradients'}
  */
-/** @doc {heading: 'Training', subheading: 'Gradients'} */
 function customGrad<T extends Tensor>(f: CustomGradientFunc<T>):
     (...args: Tensor[]) => T {
   return ENGINE.customGrad(f);

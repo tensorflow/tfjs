@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,10 +17,11 @@
 #endif
 
 #include <cmath>
+#include <cstddef>
 
-#include "src/cc/backend.h"
-#include "src/cc/binary.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/binary.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
@@ -30,10 +31,10 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void FloorDiv(const int a_id, const size_t* a_shape_ptr, const int a_shape_len,
-              const int b_id, const size_t* b_shape_ptr, const int b_shape_len,
-              const DType dtype, const int out_id) {
-  auto& a_info = backend::get_tensor_info(a_id);
+void FloorDiv(const size_t a_id, const size_t* a_shape_ptr,
+              const size_t a_shape_len, const size_t b_id,
+              const size_t* b_shape_ptr, const size_t b_shape_len,
+              const DType dtype, const size_t out_id) {
   switch (dtype) {
     case DType::float32:
       binary_f32(a_id, b_id, out_id,
@@ -41,7 +42,7 @@ void FloorDiv(const int a_id, const size_t* a_shape_ptr, const int a_shape_len,
       break;
     case DType::int32:
       binary_i32(a_id, b_id, out_id, [](int a, int b) {
-        return static_cast<int>(floor(static_cast<float>(a) / b));
+        return static_cast<int32_t>(floor(static_cast<float>(a) / b));
       });
       break;
     default:

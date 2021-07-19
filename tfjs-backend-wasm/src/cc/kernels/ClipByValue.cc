@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,16 +16,17 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/kernels/ClipByValue.h"
+#include "tfjs-backend-wasm/src/cc/kernels/ClipByValue.h"
 
 #include <xnnpack.h>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <map>
 #include <unordered_map>
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 // These float values are keys to creating the clip operator. We use
@@ -46,8 +47,8 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void ClipByValue(const int x_id, const float min, const float max,
-                 const int out_id) {
+void ClipByValue(const size_t x_id, const float min, const float max,
+                 const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
@@ -58,9 +59,9 @@ void ClipByValue(const int x_id, const float min, const float max,
   OperatorCacheKey cache_key = {min, max};
   auto operator_cache_idx = operator_cache.find(cache_key);
   if (operator_cache_idx == operator_cache.end()) {
-    const int channels = 1;
-    const int strides = channels;
-    const int flags = 0;
+    const size_t channels = 1;
+    const size_t strides = channels;
+    const uint32_t flags = 0;
     xnn_status status = xnn_create_clamp_nc_f32(channels, strides, strides, min,
                                                 max, flags, &clamp_op);
     if (status != xnn_status_success) {
@@ -76,9 +77,9 @@ void ClipByValue(const int x_id, const float min, const float max,
     clamp_op = operator_cache_idx->second;
   }
 
-  const int batch_size = x_info.size;
+  const size_t batch_size = x_info.size;
   xnn_status status = xnn_setup_clamp_nc_f32(
-      clamp_op, batch_size, x_buf, out_buf, nullptr /* thread pool */);
+      clamp_op, batch_size, x_buf, out_buf, tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     util::warn(
         "XNN status for xnn_setup_clamp_nc_f32 is not successful. Got "
@@ -86,7 +87,7 @@ void ClipByValue(const int x_id, const float min, const float max,
         status);
   }
 
-  xnn_run_operator(clamp_op, nullptr /* thread pool */);
+  xnn_run_operator(clamp_op, tfjs::backend::threadpool);
 }
 
 }  // extern "C"

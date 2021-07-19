@@ -17,10 +17,10 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-rimraf dist/
+yarn rimraf dist/
 yarn
-yarn build
-rollup -c --visualize
+yarn build-ci
+yarn rollup -c --visualize --npm
 
 # Use minified files for miniprogram
 mkdir dist/miniprogram

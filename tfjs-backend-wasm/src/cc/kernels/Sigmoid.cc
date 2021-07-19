@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,14 +16,16 @@
 #include <emscripten.h>
 #endif
 
+#include <xnnpack.h>
 #include <cmath>
+#include <cstddef>
+#include <map>
+#include <tuple>
 
-#include "src/cc/backend.h"
-#include "src/cc/unary.h"
-
-namespace {
-inline float oper(const float val) { return 1. / (1. + std::exp(-val)); }
-}  // namespace
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/kernels/Sigmoid.h"
+#include "tfjs-backend-wasm/src/cc/sigmoid_impl.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
@@ -33,7 +35,12 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Sigmoid(const int x_id, const int out_id) { unary(x_id, out_id, oper); }
+void Sigmoid(const size_t x_id, const size_t out_id) {
+  auto& x_info = backend::get_tensor_info(x_id);
+  const float* x_buf = x_info.f32();
+
+  tfjs::wasm::sigmoid(x_buf, x_info.size, out_id);
+}
 
 }  // extern "C"
 }  // namespace wasm

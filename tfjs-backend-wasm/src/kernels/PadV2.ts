@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,37 +15,32 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, PadV2, PadV2Attrs, PadV2Inputs} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+
 import {CppDType} from './types';
-
-interface PadInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-}
-
-interface PadAttrs extends NamedAttrMap {
-  paddings: Array<[number, number]>;
-  constantValue: number;
-}
 
 let wasmPadV2: (
     xId: number, xShapeBytes: Uint8Array, xShapeLength: number, xDtype: number,
-    paddingsBytes: Uint8Array, constantValue: number, outId: number) => void;
+    prePaddingsBytes: Uint8Array, postPaddingsBytes: Uint8Array,
+    constantValue: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmPadV2 = backend.wasm.cwrap('PadV2', null /* void */, [
+  wasmPadV2 = backend.wasm.cwrap(PadV2, null /* void */, [
     'number',  // xId
     'array',   // x.shape
     'number',  // x.shape.length
     'number',  // x.dtype
-    'array',   // paddings
+    'array',   // pre-paddings
+    'array',   // post-paddings
     'number',  // constantValue
     'number',  // outId
   ]);
 }
 
-function pad(args: {inputs: PadInputs, backend: BackendWasm, attrs: PadAttrs}) {
+function pad(
+    args: {inputs: PadV2Inputs, backend: BackendWasm, attrs: PadV2Attrs}) {
   const {inputs: {x}, backend, attrs: {paddings, constantValue}} = args;
 
   const outShape = paddings.map(
@@ -54,17 +49,23 @@ function pad(args: {inputs: PadInputs, backend: BackendWasm, attrs: PadAttrs}) {
   const out = backend.makeOutput(outShape, x.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
   const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
-  const paddingsFlat = [].concat(...paddings);
-  const paddingsBytes = new Uint8Array(new Int32Array(paddingsFlat).buffer);
+
+  const prePaddingsFlat = paddings.map(padTuple => padTuple[0]);
+  const postPaddingsFlat = paddings.map(padTuple => padTuple[1]);
+  const prePaddingsBytes =
+      new Uint8Array(new Int32Array(prePaddingsFlat).buffer);
+  const postPaddingsBytes =
+      new Uint8Array(new Int32Array(postPaddingsFlat).buffer);
+
   wasmPadV2(
-      xId, xShapeBytes, x.shape.length, CppDType[x.dtype], paddingsBytes,
-      constantValue, outId);
+      xId, xShapeBytes, x.shape.length, CppDType[x.dtype], prePaddingsBytes,
+      postPaddingsBytes, constantValue, outId);
   return out;
 }
 
-registerKernel({
-  kernelName: 'PadV2',
+export const padV2Config: KernelConfig = {
+  kernelName: PadV2,
   backendName: 'wasm',
-  kernelFunc: pad,
+  kernelFunc: pad as {} as KernelFunc,
   setupFunc: setup
-});
+};

@@ -1,3 +1,4 @@
+
 steps:
 # Install common dependencies.
 - name: 'node:10'
@@ -17,6 +18,7 @@ steps:
 - name: 'node:10'
   dir: 'tfjs-vis'
   entrypoint: 'yarn'
+  id: 'test-vis'
   args: ['test-ci']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
   secretEnv: ['BROWSERSTACK_KEY']

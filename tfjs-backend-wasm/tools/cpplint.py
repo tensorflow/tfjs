@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright (c) 2009 Google Inc. All rights reserved.
+# Copyright (c) 2009 Google LLC. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -12,7 +12,7 @@
 # copyright notice, this list of conditions and the following disclaimer
 # in the documentation and/or other materials provided with the
 # distribution.
-#    * Neither the name of Google Inc. nor the names of its
+#    * Neither the name of Google LLC nor the names of its
 # contributors may be used to endorse or promote products derived from
 # this software without specific prior written permission.
 #
@@ -3866,8 +3866,8 @@ def CheckTrailingSemicolon(filename, clean_lines, linenum, error):
 
   # Block bodies should not be followed by a semicolon.  Due to C++11
   # brace initialization, there are more places where semicolons are
-  # required than not, so we use a whitelist approach to check these
-  # rather than a blacklist.  These are the places where "};" should
+  # required than not, so we use an allowlist approach to check these
+  # rather than a denylist.  These are the places where "};" should
   # be replaced by just "}":
   # 1. Some flavor of block following closing parenthesis:
   #    for (;;) {};
@@ -3924,11 +3924,11 @@ def CheckTrailingSemicolon(filename, clean_lines, linenum, error):
     #  - INTERFACE_DEF
     #  - EXCLUSIVE_LOCKS_REQUIRED, SHARED_LOCKS_REQUIRED, LOCKS_EXCLUDED:
     #
-    # We implement a whitelist of safe macros instead of a blacklist of
+    # We implement an allowlist of safe macros instead of a denylist of
     # unsafe macros, even though the latter appears less frequently in
     # google code and would have been easier to implement.  This is because
-    # the downside for getting the whitelist wrong means some extra
-    # semicolons, while the downside for getting the blacklist wrong
+    # the downside for getting the allowlist wrong means some extra
+    # semicolons, while the downside for getting the denylist wrong
     # would result in compile errors.
     #
     # In addition to macros, we also don't want to warn on
@@ -5124,19 +5124,19 @@ def CheckForNonConstReference(filename, clean_lines, linenum,
   #
   # We also accept & in static_assert, which looks like a function but
   # it's actually a declaration expression.
-  whitelisted_functions = (r'(?:[sS]wap(?:<\w:+>)?|'
+  allowlisted_functions = (r'(?:[sS]wap(?:<\w:+>)?|'
                            r'operator\s*[<>][<>]|'
                            r'static_assert|COMPILE_ASSERT'
                            r')\s*\(')
-  if Search(whitelisted_functions, line):
+  if Search(allowlisted_functions, line):
     return
   elif not Search(r'\S+\([^)]*$', line):
-    # Don't see a whitelisted function on this line.  Actually we
+    # Don't see an allowlisted function on this line.  Actually we
     # didn't see any function name on this line, so this is likely a
     # multi-line parameter list.  Try a bit harder to catch this case.
     for i in xrange(2):
       if (linenum > i and
-          Search(whitelisted_functions, clean_lines.elided[linenum - i - 1])):
+          Search(allowlisted_functions, clean_lines.elided[linenum - i - 1])):
         return
 
   decls = ReplaceAll(r'{[^}]*}', ' ', line)  # exclude function body

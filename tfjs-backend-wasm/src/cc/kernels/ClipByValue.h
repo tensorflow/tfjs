@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,12 +15,14 @@
 #ifndef KERNELS_CLIPBYVALUE_H_
 #define KERNELS_CLIPBYVALUE_H_
 
+#include <cstddef>
+
 namespace tfjs {
 namespace wasm {
 extern "C" {
 
-void ClipByValue(const int x_id, const float min, const float max,
-                 const int out_id);
+void ClipByValue(const size_t x_id, const float min, const float max,
+                 const size_t out_id);
 }  // extern "C"
 }  // namespace wasm
 }  // namespace tfjs

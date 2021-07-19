@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +15,10 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
+#include <math.h>
+#include <cstddef>
 
-#include "src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
 
 namespace tfjs {
 namespace wasm {
@@ -26,27 +28,26 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Min(const int x_id, const int reduce_size, const int out_id) {
+void Min(const size_t x_id, const size_t reduce_size, const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
   const float* x_buf = x_info.f32();
-  const int x_size = x_info.size;
 
   float* out_buf = out_info.f32_write();
-  const int out_size = out_info.size;
+  const size_t out_size = out_info.size;
 
   const float* x_offset = x_buf;
 
-  for (int i = 0; i < out_size; ++i) {
-    const int offset = i * reduce_size;
+  for (size_t i = 0; i < out_size; ++i) {
+    const size_t offset = i * reduce_size;
     float min = x_buf[offset];
 
     const float* x_iter_end = x_offset + reduce_size;
 
     for (const float* x = x_offset; x < x_iter_end; ++x) {
       float value = *x;
-      if (value < min) {
+      if (isnan(value) || value < min) {
         min = value;
       }
     }

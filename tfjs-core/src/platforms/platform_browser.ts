@@ -15,7 +15,12 @@
  * =============================================================================
  */
 
+import '../flags';
+
 import {env} from '../environment';
+import {BrowserIndexedDB, BrowserIndexedDBManager} from '../io/indexed_db';
+import {BrowserLocalStorage, BrowserLocalStorageManager} from '../io/local_storage';
+import {ModelStoreManagerRegistry} from '../io/model_management';
 
 import {Platform} from './platform';
 
@@ -49,4 +54,18 @@ export class PlatformBrowser implements Platform {
 
 if (env().get('IS_BROWSER')) {
   env().setPlatform('browser', new PlatformBrowser());
+
+  // Register LocalStorage IOHandler
+  try {
+    ModelStoreManagerRegistry.registerManager(
+        BrowserLocalStorage.URL_SCHEME, new BrowserLocalStorageManager());
+  } catch (err) {
+  }
+
+  // Register IndexedDB IOHandler
+  try {
+    ModelStoreManagerRegistry.registerManager(
+        BrowserIndexedDB.URL_SCHEME, new BrowserIndexedDBManager());
+  } catch (err) {
+  }
 }

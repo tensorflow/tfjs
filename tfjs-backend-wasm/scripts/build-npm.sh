@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2019 Google Inc. All Rights Reserved.
+# Copyright 2019 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 set -e
 
-yarn rimraf dist/
 yarn
-yarn build
-yarn rollup -c
+yarn rimraf dist/
+yarn tsc
+./scripts/build-wasm.sh
+yarn rollup -c --npm
 
 echo "Stored standalone library at dist/tf-backend-wasm(.min).js"

@@ -1069,7 +1069,7 @@ describeMathCPUAndGPU('LayersModel.fit', () => {
             // be updated in every training epoch.
             // TODO(cais): Use `expectArraysNotClose()` when available.
             expect(tensor1d(layer2KernelValues[epoch])
-                       .subStrict(tensor1d(layer2KernelValues[epoch - 1]))
+                       .sub(tensor1d(layer2KernelValues[epoch - 1]))
                        .abs()
                        .max()
                        .dataSync()[0])
@@ -1081,14 +1081,14 @@ describeMathCPUAndGPU('LayersModel.fit', () => {
           // === 2.
           if (epoch === 2) {
             expect(tensor1d(layer1KernelValues[epoch])
-                       .subStrict(tensor1d(layer1KernelValues[epoch - 1]))
+                       .sub(tensor1d(layer1KernelValues[epoch - 1]))
                        .abs()
                        .max()
                        .dataSync()[0])
                 .toEqual(0);
           } else if (epoch > 0) {
             expect(tensor1d(layer1KernelValues[epoch])
-                       .subStrict(tensor1d(layer1KernelValues[epoch - 1]))
+                       .sub(tensor1d(layer1KernelValues[epoch - 1]))
                        .abs()
                        .max()
                        .dataSync()[0])

@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-node-gpu",
-  "version": "1.4.0",
+  "version": "0.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "gypfile": true,
@@ -8,16 +8,31 @@
     "type": "git",
     "url": "https://github.com/tensorflow/tfjs.git"
   },
+  "license": "Apache-2.0",
   "engines": {
     "node": ">=8.11.0"
   },
   "scripts": {
-    "build": "tsc && mkdir -p dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
+    "build": "tsc && npx mkdirp dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
+    "build-ci": "tsc && npx mkdirp dist/proto && cp src/proto/api_pb.js dist/proto/api_pb.js",
+    "build-link-package": "cd ../link-package && yarn build",
+    "build-layers": "cd ../tfjs-layers && yarn && yarn build",
+    "build-layers-ci": "cd ../tfjs-layers && yarn && yarn build-ci",
+    "build-converter": "cd ../tfjs-converter && yarn && yarn build",
+    "build-converter-ci": "cd ../tfjs-converter && yarn && yarn build-ci",
+    "build-data": "cd ../tfjs-data && yarn && yarn build",
+    "build-data-ci": "cd ../tfjs-data && yarn && yarn build-ci",
+    "build-union": "cd ../tfjs && yarn && yarn build",
+    "build-union-ci": "cd ../tfjs && yarn && yarn build-ci",
+    "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build",
+    "build-backend-webgl-ci": "cd ../tfjs-backend-webgl && yarn && yarn build-ci",
+    "build-deps": "yarn build-link-package && yarn build-backend-webgl && yarn build-layers && yarn build-converter && yarn build-data && yarn build-union",
+    "build-deps-ci": "yarn build-link-package && yarn build-backend-webgl-ci && yarn build-layers-ci && yarn build-converter-ci && yarn build-data-ci && yarn build-union-ci",
     "build-npm": "yarn prep-gpu && ./scripts/build-npm.sh",
     "build-addon": "./scripts/build-and-upload-addon.sh",
     "build-addon-from-source": "node-pre-gyp install --build-from-source",
     "clean-deps": "rm -rf deps && rm -rf lib",
-    "coverage": "nyc ts-node src/run_tests.ts",
+    "coverage": "nyc yarn ts-node -P tsconfig.test.json src/run_tests.ts",
     "enable-gpu": "node scripts/install.js gpu download && yarn && yarn build-addon-from-source",
     "ensure-cpu-gpu-packages-align": "node scripts/ensure-cpu-gpu-packages-align.js",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
@@ -29,12 +44,14 @@
     "prep-gpu": "./prep-gpu.sh",
     "prep-gpu-windows": "./prep-gpu-windows.bat",
     "publish-local": "yarn prep && yalc push",
-    "test": "ts-node src/run_tests.ts",
-    "test-ci": "./scripts/test-ci.sh",
-    "test-ts-integration": "./scripts/test-ts-integration.sh",
+    "publish-npm": "npm publish",
+    "test": "yarn && yarn build-deps && yarn build && ts-node --transpile-only -P tsconfig.test.json src/run_tests.ts",
+    "test-dev": "tsc && ts-node --transpile-only -P tsconfig.test.json src/run_tests.ts",
+    "test-ci": "ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/run_tests.ts",
     "upload-windows-addon": "prep-gpu-windows.bat && ./scripts/build-and-upload-windows-addon-gpu.bat"
   },
   "devDependencies": {
+    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
     "@types/jasmine": "~2.8.6",
     "@types/node": "^10.5.1",
     "@types/progress": "^2.0.1",
@@ -42,23 +59,23 @@
     "@types/yargs": "^13.0.3",
     "clang-format": "~1.2.2",
     "jasmine": "~3.1.0",
-    "node-fetch": "^2.3.0",
+    "node-fetch": "~2.6.1",
     "node-gyp": "~5.0.3",
-    "nyc": "^13.3.0",
+    "nyc": "^15.1.0",
     "tmp": "^0.0.33",
     "ts-node": "^5.0.1",
-    "tslint": "~5.9.1",
+    "tslint": "~6.1.3",
     "tslint-no-circular-imports": "^0.7.0",
     "typescript": "3.5.3",
-    "yalc": "~1.0.0-pre.21",
-    "yargs": "^14.2.0"
+    "yalc": "~1.0.0-pre.50",
+    "yargs": "^16.2.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs": "1.4.0",
+    "@mapbox/node-pre-gyp": "1.0.4",
+    "@tensorflow/tfjs": "link:../tfjs",
     "adm-zip": "^0.4.11",
     "google-protobuf": "^3.9.2",
     "https-proxy-agent": "^2.2.1",
-    "node-pre-gyp": "0.13.0",
     "progress": "^2.0.0",
     "rimraf": "^2.6.2",
     "tar": "^4.4.6"
@@ -71,7 +88,10 @@
     "napi_versions": [
       3,
       4,
-      5
+      5,
+      6,
+      7,
+      8
     ]
   }
 }

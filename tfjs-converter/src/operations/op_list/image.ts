@@ -26,7 +26,11 @@ export const json: OpMapper[] = [
       {'start': 1, 'name': 'size', 'type': 'number[]'},
     ],
     'attrs': [
-      {'tfName': 'align_corners', 'name': 'alignCorners', 'type': 'bool'},
+      {'tfName': 'align_corners', 'name': 'alignCorners', 'type': 'bool'}, {
+        'tfName': 'half_pixel_centers',
+        'name': 'halfPixelCenters',
+        'type': 'bool'
+      },
       {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
@@ -38,7 +42,11 @@ export const json: OpMapper[] = [
       {'start': 1, 'name': 'size', 'type': 'number[]'},
     ],
     'attrs': [
-      {'tfName': 'align_corners', 'name': 'alignCorners', 'type': 'bool'},
+      {'tfName': 'align_corners', 'name': 'alignCorners', 'type': 'bool'}, {
+        'tfName': 'half_pixel_centers',
+        'name': 'halfPixelCenters',
+        'type': 'bool'
+      },
       {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },

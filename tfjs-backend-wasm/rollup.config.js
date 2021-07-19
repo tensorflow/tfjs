@@ -15,10 +15,13 @@
  * =============================================================================
  */
 
-import commonjs from 'rollup-plugin-commonjs';
-import node from 'rollup-plugin-node-resolve';
-import {terser} from 'rollup-plugin-terser';
-import typescript from 'rollup-plugin-typescript2';
+import commonjs from '@rollup/plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
+import node from '@rollup/plugin-node-resolve';
+import typescript from '@rollup/plugin-typescript';
+import visualizer from 'rollup-plugin-visualizer';
+import {getBrowserBundleConfigOptions} from '../rollup.config.helpers';
+import {patchWechatWebAssembly} from './scripts/patch-wechat-webassembly';
 
 const PREAMBLE = `/**
  * @license
@@ -37,17 +40,34 @@ const PREAMBLE = `/**
  * =============================================================================
  */`;
 
-function config({plugins = [], output = {}}) {
+function config({
+  plugins = [],
+  output = {},
+  external = [],
+  ignore = [],
+  visualize = false,
+  tsCompilerOptions = {}
+}) {
+  if (visualize) {
+    const filename = output.file + '.html';
+    plugins.push(visualizer(
+        {sourcemap: true, filename, template: 'sunburst', gzipSize: true}));
+    console.log(`Will output a bundle visualization in ${filename}`);
+  }
+
+  const defaultTsOptions = {
+    include: ['src/**/*.ts'],
+    module: 'ES2015',
+  };
+  const tsoptions = Object.assign({}, defaultTsOptions, tsCompilerOptions);
+
   return {
     input: 'src/index.ts',
     plugins: [
-      typescript({
-        tsconfigOverride: {compilerOptions: {module: 'ES2015'}},
-      }),
-      node({preferBuiltins: true}),
+      typescript(tsoptions), resolve(), node({preferBuiltins: false}),
       // Polyfill require() from dependencies.
       commonjs({
-        ignore: ['crypto', 'node-fetch', 'util'],
+        ignore: ['crypto', 'node-fetch', 'util', ...ignore],
         include: ['node_modules/**', 'wasm-out/**']
       }),
       ...plugins
@@ -55,10 +75,24 @@ function config({plugins = [], output = {}}) {
     output: {
       banner: PREAMBLE,
       sourcemap: true,
-      globals: {'@tensorflow/tfjs-core': 'tf', 'fs': 'fs', 'path': 'path'},
+      globals: {
+        '@tensorflow/tfjs-core': 'tf',
+        'fs': 'fs',
+        'path': 'path',
+        'worker_threads': 'worker_threads',
+        'perf_hooks': 'perf_hooks'
+      },
       ...output,
     },
-    external: ['crypto', '@tensorflow/tfjs-core', 'fs', 'path'],
+    external: [
+      'crypto',
+      '@tensorflow/tfjs-core',
+      'fs',
+      'path',
+      'worker_threads',
+      'perf_hooks',
+      ...external,
+    ],
     onwarn: warning => {
       let {code} = warning;
       if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR' ||
@@ -73,38 +107,52 @@ function config({plugins = [], output = {}}) {
 module.exports = cmdOptions => {
   const bundles = [];
 
-  if (!cmdOptions.ci) {
-    // tf-backend-wasm.js
-    bundles.push(config({
-      output: {
-        format: 'umd',
-        name: 'tf.wasm',
-        extend: true,
-        file: 'dist/tf-backend-wasm.js',
-      }
-    }));
-  }
+  const name = 'tf.wasm';
+  const extend = true;
+  const fileName = 'tf-backend-wasm';
 
-  // tf-backend-wasm.min.js
+  // Node
   bundles.push(config({
-    plugins: [terser({output: {preamble: PREAMBLE}})],
     output: {
-      format: 'umd',
-      name: 'tf.wasm',
-      extend: true,
-      file: 'dist/tf-backend-wasm.min.js',
+      format: 'cjs',
+      name,
+      extend,
+      file: `dist/${fileName}.node.js`,
+      freeze: false
     },
+    tsCompilerOptions: {target: 'es5'}
   }));
 
-  if (!cmdOptions.ci) {
-    // tf-backend-wasm.esm.js
+  // Without this, the terser plugin will turn `typeof _scriptDir ==
+  // "undefined"` into `_scriptDir === void 0` in minified JS file which will
+  // cause "_scriptDir is undefined" error in web worker's inline script.
+  //
+  // For more context, see scripts/patch-threaded-simd-module.js.
+  const terserExtraOptions = {compress: {typeofs: false}};
+  if (cmdOptions.npm) {
+    const browserBundles = getBrowserBundleConfigOptions(
+        config, name, fileName, PREAMBLE, cmdOptions.visualize, false /* CI */,
+        terserExtraOptions);
+    bundles.push(...browserBundles);
+    // Wechat miniprogram
     bundles.push(config({
-      plugins: [terser({output: {preamble: PREAMBLE}})],
       output: {
-        format: 'es',
-        file: 'dist/tf-backend-wasm.esm.js',
-      }
+        format: 'cjs',
+        name,
+        extend,
+        file: `dist/miniprogram/index.js`,
+        freeze: false
+      },
+      ignore: ['fs', 'path', 'worker_threads', 'perf_hooks', 'os'],
+      tsCompilerOptions: {target: 'es5'},
+      plugins: [ patchWechatWebAssembly() ]
     }));
+  } else {
+    const browserBundles = getBrowserBundleConfigOptions(
+        config, name, fileName, PREAMBLE, cmdOptions.visualize, true /* CI */,
+        terserExtraOptions);
+    bundles.push(...browserBundles);
   }
+
   return bundles;
 };

@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import commonjs from 'rollup-plugin-commonjs';
-import node from 'rollup-plugin-node-resolve';
-import {terser} from 'rollup-plugin-terser';
-import typescript from 'rollup-plugin-typescript2';
+import commonjs from '@rollup/plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
+import typescript from '@rollup/plugin-typescript';
 import visualizer from 'rollup-plugin-visualizer';
+import {getBrowserBundleConfigOptions} from '../rollup.config.helpers';
 
 const PREAMBLE = `/**
  * @license
@@ -38,25 +38,29 @@ const PREAMBLE = `/**
  * =============================================================================
  */`;
 
-function config({plugins = [], output = {}, external = [], visualize = false}) {
+function config({
+  plugins = [],
+  output = {},
+  external = [],
+  visualize = false,
+  tsCompilerOptions = {}
+}) {
   if (visualize) {
     const filename = output.file + '.html';
-    plugins.push(visualizer({
-      sourcemap: true,
-      filename,
-    }));
+    plugins.push(visualizer({sourcemap: true, filename}));
     console.log(`Will output a bundle visualization in ${filename}`);
   }
+
+  const defaultTsOptions = {
+    include: ['src/**/*.ts'],
+    module: 'ES2015',
+  };
+  const tsoptions = Object.assign({}, defaultTsOptions, tsCompilerOptions);
+
   return {
     input: 'src/index.ts',
     plugins: [
-      typescript({
-        tsconfigOverride: {compilerOptions: {module: 'ES2015'}},
-        // See https://github.com/ezolenko/rollup-plugin-typescript2/issues/105
-        objectHashIgnoreUnknownHack: visualize ? true : false,
-        clean: visualize ? true : false,
-      }),
-      node(),
+      typescript(tsoptions), resolve(),
       // Polyfill require() from dependencies.
       commonjs({
         ignore: ['crypto', 'node-fetch', 'util'],
@@ -87,39 +91,33 @@ function config({plugins = [], output = {}, external = [], visualize = false}) {
 module.exports = cmdOptions => {
   const bundles = [];
 
-  if (!cmdOptions.ci) {
-    // tf-core.js
-    bundles.push(config({
-      output: {
-        format: 'umd',
-        name: 'tf',
-        extend: true,
-        file: 'dist/tf-core.js',
-      }
-    }));
-  }
+  const name = 'tf';
+  const extend = true;
+  const fileName = 'tf-core';
 
-  // tf-core.min.js
+  // Node
   bundles.push(config({
-    plugins: [terser({output: {preamble: PREAMBLE}})],
     output: {
-      format: 'umd',
-      name: 'tf',
-      extend: true,
-      file: 'dist/tf-core.min.js',
+      format: 'cjs',
+      name,
+      extend,
+      file: `dist/${fileName}.node.js`,
+      freeze: false
     },
-    visualize: cmdOptions.visualize
+    tsCompilerOptions: {target: 'es5'}
   }));
 
-  if (!cmdOptions.ci) {
-    // tf-core.esm.js
-    bundles.push(config({
-      plugins: [terser({output: {preamble: PREAMBLE}})],
-      output: {
-        format: 'es',
-        file: 'dist/tf-core.esm.js',
-      }
-    }));
+  if (cmdOptions.ci) {
+    const browserBundles = getBrowserBundleConfigOptions(
+        config, name, fileName, PREAMBLE, cmdOptions.visualize, true /* CI */);
+    bundles.push(...browserBundles);
   }
+
+  if (cmdOptions.npm) {
+    const browserBundles = getBrowserBundleConfigOptions(
+        config, name, fileName, PREAMBLE, cmdOptions.visualize, false /* CI */);
+    bundles.push(...browserBundles);
+  }
+
   return bundles;
 };

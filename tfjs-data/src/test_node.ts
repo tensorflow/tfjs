@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import '@tensorflow/tfjs-backend-cpu';
 // tslint:disable-next-line: no-imports-from-dist
 import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 

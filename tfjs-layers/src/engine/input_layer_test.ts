@@ -13,7 +13,7 @@ import {ones} from '@tensorflow/tfjs-core';
 import * as tfl from '../index';
 import {describeMathCPU} from '../utils/test_utils';
 
-import {Input, InputLayer} from './input_layer';
+import {Input} from './input_layer';
 import {LayerArgs} from './topology';
 
 describeMathCPU('InputLayer', () => {
@@ -23,7 +23,7 @@ describeMathCPU('InputLayer', () => {
   });
   describe('initialized with only an inputShape', () => {
     const inputShape = [1];
-    const inputLayer = tfl.layers.inputLayer({inputShape}) as InputLayer;
+    const inputLayer = tfl.layers.inputLayer({inputShape});
 
     it('is not trainable.', () => {
       expect(inputLayer.trainable).toBe(false);
@@ -154,7 +154,7 @@ describeMathCPU('InputLayer', () => {
   for (const sparse of [true, false]) {
     it('uses config.sparse during initialization.', () => {
       const inputLayer =
-          tfl.layers.inputLayer({inputShape: [1], sparse}) as InputLayer;
+          tfl.layers.inputLayer({inputShape: [1], sparse});
       expect(inputLayer.sparse).toEqual(sparse);
     });
   }

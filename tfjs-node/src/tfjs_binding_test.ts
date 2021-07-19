@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,7 +18,7 @@
 import * as path from 'path';
 import {TFEOpAttr, TFJSBinding} from './tfjs_binding';
 // tslint:disable-next-line:no-require-imports
-const binary = require('node-pre-gyp');
+const binary = require('@mapbox/node-pre-gyp');
 const bindingPath =
     binary.find(path.resolve(path.join(__dirname, '../package.json')));
 // tslint:disable-next-line:no-require-imports

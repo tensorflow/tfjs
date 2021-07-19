@@ -15,16 +15,15 @@
  * =============================================================================
  */
 
-import {DataType, Tensor} from '@tensorflow/tfjs-core';
-import * as shaderc from '@webgpu/shaderc';
+import {DataType, env, Rank, ShapeMap, TensorInfo} from '@tensorflow/tfjs-core';
+import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import * as shader_preprocessor from '../shader_preprocessor';
+import * as shader_preprocessor_wgsl from '../shader_preprocessor_wgsl';
 
 export interface WebGPUProgram {
-  // The unique key to distinguish different shader source code. If shaderKey is
-  // not specified, use userCode to replace.
-  shaderKey?: string;
-  userCode: string;
+  // The unique key to distinguish different shader source code.
+  shaderKey: string;
   outputShape: number[];
   // dispatchLayout enumerates how tensor dimensions are distributed among
   // dispatch x,y,z dimensions.
@@ -33,6 +32,7 @@ export interface WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[];
   uniforms?: string;
+  uniformsWgsl?: string;
   // Size of register cache in one dimension (assumes square cache).
   // Each thread writes to workPerThread * workPerThread locations in the output
   // buffer.
@@ -41,88 +41,75 @@ export interface WebGPUProgram {
   // in a thread group. Individual dimensions determines thread layout within
   // the group.
   workGroupSize?: [number, number, number];
-}
-
-export interface WebGPUBinary {
-  bindGroupLayout: GPUBindGroupLayout;
-  pipeline: GPUComputePipeline;
+  useWgsl?: boolean;
+  isVec4?: boolean;
+  // size is used for bounds checking.
+  size?: number;
+  getUserCode: () => string;
 }
 
 export interface TensorData {
   dtype: DataType;
 }
 
-export interface BindingInfo {
-  resource: {offset: number, size: number, buffer: GPUBuffer};
-}
-
 export const makeBindGroup =
     (device: GPUDevice, bindGroupLayout: GPUBindGroupLayout,
-     inputs: BindingInfo[], output: BindingInfo, uniforms?: BindingInfo) => {
+     inputs: GPUBindingResource[], output: GPUBindingResource,
+     uniforms?: GPUBindingResource) => {
       const bindings = [output, ...inputs];
       if (uniforms) {
         bindings.push(uniforms);
       }
       return device.createBindGroup({
         layout: bindGroupLayout,
-        bindings: bindings.map((b, i) => ({binding: i, resource: b.resource})),
-      });
-    };
-
-const makeBindGroupLayout =
-    (device: GPUDevice, inputs: shader_preprocessor.InputInfo[], output: Tensor,
-     uniforms?: BindingInfo): GPUBindGroupLayout => {
-      const bindings = Array(1 + inputs.length).fill({
-        visibility: GPUShaderStage.COMPUTE,
-        type: 'storage-buffer' as GPUBindingType
-      });
-      if (uniforms) {
-        bindings.push({
-          visibility: GPUShaderStage.COMPUTE,
-          type: 'uniform-buffer' as GPUBindingType
-        });
-      }
-      return device.createBindGroupLayout({
-        bindings: bindings.map((b, i) => ({binding: i, ...b})),
+        entries: bindings.map((b, i) => ({binding: i, resource: b})),
       });
     };
 
 export const compileProgram =
-    (shaderCompiler: shaderc.Compiler, shaderKind: shaderc.ShaderKind,
-     compileOptions: shaderc.CompileOptions, device: GPUDevice,
-     program: WebGPUProgram, inputsData: shader_preprocessor.InputInfo[],
-     output: Tensor, uniforms?: BindingInfo): WebGPUBinary => {
+    (glslang: Glslang, device: GPUDevice, program: WebGPUProgram,
+     pipelineLayout: GPUPipelineLayout,
+     inputsData: shader_preprocessor.InputInfo[], output: TensorInfo,
+     isFromPixel = false): GPUComputePipeline => {
       const outputData = {dtype: output.dtype, shape: output.shape};
 
-      const source =
-          shader_preprocessor.makeShader(inputsData, outputData, program);
-      const result = shaderCompiler.CompileGlslToSpv(
-          source, shaderKind, 'file', 'main', compileOptions);
-      const error = result.GetErrorMessage();
-      if (error.length) {
-        console.error(
-            source.split('\n')
-                .map((s, l) => (l + 1).toString().padStart(5, ' ') + ' ' + s)
-                .join('\n'));
-        throw new Error(`Shader compilation failed: ${error}`);
+      let source;
+      let module;
+      if (program.useWgsl) {
+        source = shader_preprocessor_wgsl.makeShader(
+            inputsData, outputData, program, isFromPixel);
+        module = device.createShaderModule({code: source});
+      } else {
+        source = shader_preprocessor.makeShader(
+            inputsData, outputData, program, isFromPixel);
+        const result = glslang.compileGLSLZeroCopy(source, 'compute', false);
+        if (result.data.length === 0) {
+          throw new Error('Shader compilation failed');
+        }
+        result.free();
+        module = device.createShaderModule({code: result.data});
       }
-      const bindGroupLayout =
-          makeBindGroupLayout(device, inputsData, output, uniforms);
-      const code = result.GetBinary();
-      const layout =
-          device.createPipelineLayout({bindGroupLayouts: [bindGroupLayout]});
-      const module = device.createShaderModule({code});
       const pipeline = device.createComputePipeline(
-          {layout, computeStage: {module, entryPoint: 'main'}});
+          {layout: pipelineLayout, compute: {module, entryPoint: 'main'}});
 
-      return {bindGroupLayout, pipeline};
+      return pipeline;
     };
 
-// TODO: Consider uploading shape info as vec4s regardless of rank to reduce
-// recompilation.
-export function makeShaderKey(program: WebGPUProgram, ranks: number[]): string {
+export function makeShaderKey<R extends Rank>(
+    program: WebGPUProgram, shapes: Array<ShapeMap[R]>, types: string[],
+    broadcastDimsKey = '', inputShapesEqualsOutShape = ''): string {
+  let useWgslKey = '';
+  if (program.useWgsl) {
+    useWgslKey = '_1';
+  }
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
-      ranks.join(',') +
-      (program.shaderKey ? program.shaderKey : program.userCode);
+      shapes.map(shape => shape.length).join(',') + types.join(',') +
+      program.variableNames.join(',') + broadcastDimsKey +
+      inputShapesEqualsOutShape + program.shaderKey + useWgslKey;
   return key;
+}
+
+// This is global flag, but program may ignore this flag.
+export function getUseWgsl () {
+  return !env().getBool('WEBGPU_USE_GLSL');
 }

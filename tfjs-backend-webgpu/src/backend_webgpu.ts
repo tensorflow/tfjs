@@ -19,56 +19,43 @@
 
 import './flags_webgpu';
 
-import {backend_util, DataStorage, DataType, engine, env, findBackend, KernelBackend, Rank, RecursiveArray, ShapeMap, Tensor, Tensor2D, Tensor3D, Tensor4D, TimingInfo, util} from '@tensorflow/tfjs-core';
-import * as shaderc from '@webgpu/shaderc';
+import {backend_util, buffer, DataStorage, DataType, DataValues, engine, env, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, util} from '@tensorflow/tfjs-core';
+import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
-import {ArgMinMaxProgram} from './kernels/argminmax_webgpu';
-import * as binary_op from './kernels/binary_op_webgpu';
-import {BinaryOpProgram} from './kernels/binary_op_webgpu';
-import {ClipProgram} from './kernels/clip_webgpu';
-import {ConcatProgram} from './kernels/concat_webgpu';
-import {Conv2DMMProgram} from './kernels/conv2d_mm_webgpu';
-import {Conv2DNaiveProgram} from './kernels/conv2d_naive_webgpu';
-import {DepthwiseConv2DProgram} from './kernels/depthwise_conv2d_webgpu';
-import {FillProgram} from './kernels/fill_webgpu';
-import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
-import {MatMulProgram} from './kernels/matmul_webgpu';
-import {MaxPoolProgram} from './kernels/maxpool_webgpu';
-import {PadProgram} from './kernels/pad_webgpu';
-import {ResizeBilinearProgram} from './kernels/resize_bilinear_webgpu';
-import {SelectProgram} from './kernels/select_webgpu';
-import {SliceProgram} from './kernels/slice_webgpu';
-import {TransposeProgram} from './kernels/transpose_webgpu';
-import * as unary_op from './kernels/unary_op_webgpu';
-import {UnaryOpProgram} from './kernels/unary_op_webgpu';
+import {FromPixelsProgram} from './kernels/FromPixels_utils/from_pixels_webgpu';
 import * as webgpu_program from './kernels/webgpu_program';
-import {WebGPUBinary} from './kernels/webgpu_program';
 import * as webgpu_util from './webgpu_util';
 
 export interface WebGPUMemoryInfo extends backend_util.MemoryInfo {
   numBytesInGPU: number;
+  numBytesAllocatedInGPU: number;
   unreliable: boolean;
+}
+
+interface WebGPULayout {
+  bindGroupLayout: GPUBindGroupLayout;
+  pipelineLayout: GPUPipelineLayout;
 }
 
 type BufferInfo = {
   byteSize: number,
-  usage: GPUBufferUsage,
+  usage: GPUBufferUsageFlags,
   buffer?: GPUBuffer
 };
 
-type TensorInfo = {
+type TensorBufferInfo = {
   values: backend_util.BackendValues,
   dtype: DataType,
-  bufferInfo: BufferInfo
+  bufferInfo: BufferInfo,
+  refCount: number,
+  // For complex numbers, the real and imaginary parts are stored as their own
+  // individual tensors, with a parent joining the two with the
+  // complexTensorInfos field.
+  complexTensorInfos?: {real: TensorInfo, imag: TensorInfo}
 };
 
 interface DataId {}
-
-export interface CPUTimerQuery {
-  startMs: number;
-  endMs: number;
-}
 
 export type WebGPUKernelInfo = {
   name: string; query: Promise<number>;
@@ -83,24 +70,29 @@ export interface WebGPUTimingInfo extends TimingInfo {
 
 // Empirically determined constant used to determine size threshold for handing
 // off execution to the CPU.
-const CPU_HANDOFF_SIZE_THRESHOLD = 128;
-
-const DEFAULT_GPUBUFFER_USAGE =
-    GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
+const CPU_HANDOFF_SIZE_THRESHOLD =
+    env().getNumber('CPU_HANDOFF_SIZE_THRESHOLD');
 
 export class WebGPUBackend extends KernelBackend {
   device: GPUDevice;
   queue: GPUQueue;
-  shaderc: shaderc.Shaderc;
-  compiler: shaderc.Compiler;
-  compileOpts: shaderc.CompileOptions;
-  commandQueue: GPUCommandEncoder[];
+  glslang: Glslang;
+  currentCommandEncoder: GPUCommandEncoder;
+  tensorMap: DataStorage<TensorBufferInfo>;
+  fromPixelProgram: FromPixelsProgram;
+  fromPixelLayout: WebGPULayout;
+  supportTimeQuery: boolean;
+  dummyCanvas: HTMLCanvasElement;
+  dummyContext: GPUPresentationContext; 
 
+  private static nextDataId = 0;
+  private nextDataId(): number {
+    return WebGPUBackend.nextDataId++;
+  }
   private commandQueueOwnedIds = new WeakSet<DataId>();
-  private binaryCache: {[key: string]: WebGPUBinary};
-  private fromPixels2DContext: CanvasRenderingContext2D;
+  private layoutCache: {[key: number]: WebGPULayout};
+  private pipelineCache: {[key: string]: GPUComputePipeline};
   private bufferManager: BufferManager;
-  private tensorMap: DataStorage<TensorInfo>;
 
   private tensorDisposalQueue: DataId[] = [];
   private uniformDisposalQueue: BufferInfo[] = [];
@@ -111,28 +103,57 @@ export class WebGPUBackend extends KernelBackend {
   private activeTimers: TimerNode[];
   private uploadWaitMs = 0;
   private downloadWaitMs = 0;
-  private cpuBackend: KernelBackend;
+  private computePassNumberInEncoder = 0;
+  private querySet: GPUQuerySet;
 
-  constructor(device: GPUDevice, shaderc: shaderc.Shaderc) {
+  constructor(device: GPUDevice, glslang: Glslang, supportTimeQuery = false) {
     super();
-    this.binaryCache = {};
+    if (!webgpu_util.isWebGPUSupported()) {
+      throw new Error('WebGPU is not supported on this device');
+    }
+    this.layoutCache = {};
+    this.pipelineCache = {};
     this.device = device;
-    // TODO: Remove any once @webgpu/types is updated to reflect spec change.
-    // tslint:disable-next-line:no-any
-    this.queue = (device as any).defaultQueue;
-    this.commandQueue = [];
-    this.shaderc = shaderc;
-    this.compiler = new shaderc.Compiler();
-    const opts = new shaderc.CompileOptions();
-    opts.SetOptimizationLevel(shaderc.optimization_level.performance);
-    this.compileOpts = opts;
+    this.queue = device.queue;
+    this.currentCommandEncoder = null;
+    this.glslang = glslang;
+    this.supportTimeQuery = supportTimeQuery;
 
     this.bufferManager = new BufferManager(this.device);
     this.tensorMap = new DataStorage(this, engine());
+    if (this.supportTimeQuery) {
+      this.querySet = this.device.createQuerySet({
+        type: 'timestamp',
+        count: 2,
+      });
+    }
+    // FromPixel has only one input texture.
+    this.fromPixelLayout = this.createTextureLayout();
+
+    // Profiling tools like PIX needs this dummy canvas to
+    // trigger capturing a frame.
+    if (env().getBool('WEBGPU_USE_PROFILE_TOOL')) {
+      this.dummyCanvas = document.createElement('canvas');
+      this.dummyCanvas.width = 1;
+      this.dummyCanvas.height = 1;
+      
+      this.dummyContext = this.dummyCanvas.getContext('gpupresent');
+      this.dummyContext.configure({
+        device,
+        format: 'bgra8unorm',
+      });
+  
+      document.body.appendChild(this.dummyCanvas);
+    }
   }
 
   floatPrecision(): 32 {
     return 32;
+  }
+
+  defaultGpuBufferUsage(): number {
+    return GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC |
+        GPUBufferUsage.COPY_DST;
   }
 
   flushDisposalQueue() {
@@ -147,24 +168,43 @@ export class WebGPUBackend extends KernelBackend {
     this.uniformDisposalQueue = [];
   }
 
-  disposeData(dataId: DataId): void {
-    if (!this.tensorMap.has(dataId)) {
-      throw new Error(`Tensor ${dataId} was not registered!`);
-    }
+  /**
+   * Dispose the memory if the dataId has 0 refCount. Return true if the memory
+   * is released or memory is not managed in this backend, false if memory is
+   * not cleared.
+   * @param dataId
+   * @oaram force Optional, remove the data regardless of refCount
+   */
+  disposeData(dataId: DataId, force = false): boolean {
+    if (this.tensorMap.has(dataId)) {
+      const data = this.tensorMap.get(dataId);
+      data.refCount--;
+      if (!force && data.refCount > 0) {
+        return false;
+      }
 
-    if (this.commandQueueOwnedIds.has(dataId)) {
-      this.tensorDisposalQueue.push(dataId);
-      return;
-    } else {
-      this.maybeReleaseBuffer(dataId);
-    }
+      if (this.commandQueueOwnedIds.has(dataId)) {
+        this.tensorDisposalQueue.push(dataId);
+        return false;
+      } else {
+        this.maybeReleaseBuffer(dataId);
+      }
 
-    this.tensorMap.delete(dataId);
+      const {complexTensorInfos} = this.tensorMap.get(dataId);
+      if (complexTensorInfos != null) {
+        this.disposeData(complexTensorInfos.real.dataId, true);
+        this.disposeData(complexTensorInfos.imag.dataId, true);
+      }
+
+      this.tensorMap.delete(dataId);
+    }
+    return true;
   }
 
   memory(): WebGPUMemoryInfo {
     return {
       numBytesInGPU: this.bufferManager.numBytesUsed,
+      numBytesAllocatedInGPU: this.bufferManager.numBytesAllocated,
       unreliable: false
     } as WebGPUMemoryInfo;
   }
@@ -173,12 +213,13 @@ export class WebGPUBackend extends KernelBackend {
     return this.bufferManager;
   }
 
-  private acquireBuffer(
-      byteSize: number, usage: GPUBufferUsage = DEFAULT_GPUBUFFER_USAGE) {
+  acquireBuffer(
+      byteSize: number,
+      usage: GPUBufferUsageFlags = this.defaultGpuBufferUsage()) {
     return this.bufferManager.acquireBuffer(byteSize, usage);
   }
 
-  private maybeReleaseBuffer(dataId: DataId) {
+  maybeReleaseBuffer(dataId: DataId) {
     const info = this.tensorMap.get(dataId);
     if (info != null && info.bufferInfo.buffer != null) {
       this.bufferManager.releaseBuffer(
@@ -188,36 +229,78 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
+  /** Return refCount of a `TensorData`. */
+  refCount(dataId: DataId): number {
+    if (this.tensorMap.has(dataId)) {
+      const tensorData = this.tensorMap.get(dataId);
+      return tensorData.refCount;
+    }
+    return 0;
+  }
+
+  /** Increase refCount of a `TensorData`. */
+  incRef(dataId: DataId): void {
+    const tensorData = this.tensorMap.get(dataId);
+    tensorData.refCount++;
+  }
+
+  /** Decrease refCount of a `TensorData`. */
+  decRef(dataId: DataId): void {
+    if (this.tensorMap.has(dataId)) {
+      const tensorData = this.tensorMap.get(dataId);
+      tensorData.refCount--;
+    }
+  }
+
   write(values: backend_util.BackendValues, shape: number[], dtype: DataType):
       DataId {
-    const dataId = {};
+    if (dtype === 'complex64' && values != null) {
+      throw new Error(
+          `Cannot write to a complex64 dtype. ` +
+          `Please use tf.complex(real, imag).`);
+    }
+
+    const dataId = {id: this.nextDataId()};
     const byteSize =
         util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
+
+    // bool is stored in Uint8Array, converted it to Int32Array.
+    if (dtype === 'bool' && values instanceof Uint8Array) {
+      values = Int32Array.from(values);
+    }
 
     this.tensorMap.set(dataId, {
       dtype,
       values,
-      bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE}
+      bufferInfo: {byteSize, usage: this.defaultGpuBufferUsage()},
+      refCount: 1
     });
     return dataId;
   }
 
   move(
       dataId: DataId, values: backend_util.BackendValues, shape: number[],
-      dtype: DataType): void {
+      dtype: DataType, refCount: number): void {
+    if (dtype === 'complex64') {
+      throw new Error(
+          `Cannot write to a complex64 dtype. ` +
+          `Please use tf.complex(real, imag).`);
+    }
     const byteSize =
         util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
 
     this.tensorMap.set(dataId, {
       dtype,
       values,
-      bufferInfo: {byteSize, usage: DEFAULT_GPUBUFFER_USAGE}
+      bufferInfo: {byteSize, usage: this.defaultGpuBufferUsage()},
+      refCount
     });
   }
 
-  private submitQueue() {
-    this.queue.submit(this.commandQueue.map(enc => enc.finish()));
-    this.commandQueue = [];
+  submitQueue() {
+    this.queue.submit([this.currentCommandEncoder.finish()]);
+    this.currentCommandEncoder = null;
+    this.computePassNumberInEncoder = 0;
 
     this.commandQueueOwnedIds = new WeakSet<DataId>();
 
@@ -229,7 +312,13 @@ export class WebGPUBackend extends KernelBackend {
     return this.tensorMap.get(dataId).bufferInfo.buffer;
   }
 
-  private async getBufferData(info: TensorInfo):
+  ensureCommandEncoderReady() {
+    if (!this.currentCommandEncoder) {
+      this.currentCommandEncoder = this.device.createCommandEncoder();
+    }
+  }
+
+  private async getBufferData(info: TensorBufferInfo):
       Promise<backend_util.BackendValues> {
     if (info.values != null) {
       // Data is on the CPU.
@@ -238,20 +327,27 @@ export class WebGPUBackend extends KernelBackend {
     const staging = this.acquireBuffer(
         info.bufferInfo.byteSize,
         GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
-    const encoder = this.device.createCommandEncoder({});
-    encoder.copyBufferToBuffer(
+    this.ensureCommandEncoderReady();
+    this.currentCommandEncoder.copyBufferToBuffer(
         info.bufferInfo.buffer, 0, staging, 0, info.bufferInfo.byteSize);
-    this.commandQueue.push(encoder);
     this.submitQueue();
 
-    const mapped: ArrayBuffer = await staging.mapReadAsync();
-    const values = mapped.slice(0);
+    await staging.mapAsync(GPUMapMode.READ);
+    const values = staging.getMappedRange().slice(0);
 
     staging.unmap();
     if (staging != null) {
       this.bufferManager.releaseBuffer(
           staging, info.bufferInfo.byteSize,
           GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
+    }
+
+    // Need to get texture from swapChain to enable profiling tool
+    // to capture a frame
+    if (env().getBool('WEBGPU_USE_PROFILE_TOOL')) {
+      util.assert(this.dummyContext !== undefined, 
+                  () => `Fail to get context for profiling tool`);
+      this.dummyContext.getCurrentTexture();
     }
 
     return values as backend_util.BackendValues;
@@ -286,13 +382,51 @@ export class WebGPUBackend extends KernelBackend {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
     const info = this.tensorMap.get(dataId);
-    const data = await this.getBufferData(info);
 
-    const dataAsTypedArray =
-        webgpu_util.ArrayBufferToTypedArray(data as ArrayBuffer, info.dtype);
-    this.convertAndCacheOnCPU(dataId, dataAsTypedArray);
+    const {values} = info;
 
-    return dataAsTypedArray;
+    if (values != null) {
+      // TODO(xing.xu@intel.com): Merge backend_util.BackendValues and
+      // backend_util.TypedArray.
+      return this.convertAndCacheOnCPU(
+                 dataId, values as backend_util.TypedArray) as
+          backend_util.BackendValues;
+    }
+
+    // Download the values from the GPU.
+    let vals: backend_util.BackendValues;
+    if (info.dtype === 'complex64') {
+      const ps = await Promise.all([
+        this.read(info.complexTensorInfos.real.dataId),
+        this.read(info.complexTensorInfos.imag.dataId)
+      ]);
+
+      const realValues = ps[0];
+      const imagValues = ps[1];
+      vals = backend_util.mergeRealAndImagArrays(
+          realValues as Float32Array, imagValues as Float32Array);
+    } else {
+      const data = await this.getBufferData(info);
+      vals =
+          webgpu_util.ArrayBufferToTypedArray(data as ArrayBuffer, info.dtype);
+    }
+    this.convertAndCacheOnCPU(dataId, vals);
+    return vals;
+  }
+
+  bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {
+    const data = this.readSync(t.dataId);
+    let decodedData = data as DataValues;
+    if (t.dtype === 'string') {
+      try {
+        // Decode the bytes into string.
+        decodedData = (data as Uint8Array[]).map(d => util.decodeString(d));
+      } catch {
+        throw new Error('Failed to decode encoded string bytes into utf-8');
+      }
+    }
+    return buffer(t.shape as ShapeMap[R], t.dtype, decodedData) as
+        TensorBuffer<R>;
   }
 
   async time(f: () => void): Promise<WebGPUTimingInfo> {
@@ -322,40 +456,48 @@ export class WebGPUBackend extends KernelBackend {
     if (outerMostTime) {
       this.programTimersStack = null;
     }
-
-    const kernelMs = await Promise.all(flattenedActiveTimerQueries);
-
     const res: WebGPUTimingInfo = {
       uploadWaitMs: this.uploadWaitMs,
       downloadWaitMs: this.downloadWaitMs,
-      kernelMs: util.sum(kernelMs),
-      getExtraProfileInfo: () =>
-          kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
-              .map(d => `${d.name}: ${d.ms}`)
-              .join(', '),
+      kernelMs: null,
       wallMs: null
     };
+
+    const kernelMs = await Promise.all(flattenedActiveTimerQueries);
+    res['kernelMs'] = util.sum(kernelMs);
+    res['getExtraProfileInfo'] = () =>
+        kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
+            .map(d => `${d.name}: ${d.ms}`)
+            .join(', ');
     this.uploadWaitMs = 0;
     this.downloadWaitMs = 0;
     return res;
   }
 
-  private getAndSavePipeline(
-      key: string, getBinary: () => webgpu_program.WebGPUBinary) {
-    if (!(key in this.binaryCache)) {
-      this.binaryCache[key] = getBinary();
+  getAndSavePipeline(key: string, getPipeline: () => GPUComputePipeline) {
+    if (!(key in this.pipelineCache)) {
+      this.pipelineCache[key] = getPipeline();
     }
-    return this.binaryCache[key];
+    return this.pipelineCache[key];
   }
 
-  private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
-      T {
-    const dataId = this.write(null /* values */, shape, dtype);
+  makeTensorInfo(
+      shape: number[], dtype: DataType,
+      values?: backend_util.BackendValues|string[]): TensorInfo {
+    let dataId;
+    if (dtype === 'string' && values != null && values.length > 0 &&
+        util.isString(values[0])) {
+      const encodedValues =
+          (values as {} as string[]).map(d => util.encodeString(d));
 
-    return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
+      dataId = this.write(encodedValues, shape, dtype);
+    } else {
+      dataId = this.write(values as backend_util.BackendValues, shape, dtype);
+    }
+    return {dataId, shape, dtype};
   }
 
-  private tensorToBinding(tensor?: Tensor): webgpu_program.BindingInfo {
+  private tensorToBinding(tensor?: TensorInfo): GPUBindingResource {
     if (!tensor) {
       return null;
     }
@@ -363,29 +505,21 @@ export class WebGPUBackend extends KernelBackend {
     const tensorData = this.tensorMap.get(tensor.dataId);
 
     return {
-      resource: {
-        offset: 0,
-        size: tensor.size * util.bytesPerElement(tensor.dtype),
-        buffer: tensorData.bufferInfo.buffer
-      }
+      offset: 0,
+      size: tensorData.bufferInfo.byteSize,
+      buffer: tensorData.bufferInfo.buffer
     };
   }
 
-  startTimer() {
-    return {startMs: util.now(), endMs: 0};
+  async getQueryTime(query: GPUQuerySet): Promise<number> {
+    if (this.supportTimeQuery) {
+      return this.getTimeFromQuerySet(query);
+    } else {
+      return 0;
+    }
   }
 
-  endTimer(query: CPUTimerQuery) {
-    query.endMs = util.now();
-    return query;
-  }
-
-  async getQueryTime(query: CPUTimerQuery): Promise<number> {
-    const timerQuery = query;
-    return timerQuery.endMs - timerQuery.startMs;
-  }
-
-  private uploadToGPU(dataId: DataId): void {
+  uploadToGPU(dataId: DataId): void {
     const info = this.tensorMap.get(dataId);
 
     if (info.bufferInfo.buffer != null) {
@@ -396,31 +530,77 @@ export class WebGPUBackend extends KernelBackend {
     info.bufferInfo.buffer = this.acquireBuffer(info.bufferInfo.byteSize);
 
     if (info.values) {
-      info.bufferInfo.buffer.setSubData(0, info.values as ArrayBufferView);
-      info.values = null;
+      this.queue.writeBuffer(
+          info.bufferInfo.buffer, 0, info.values as ArrayBuffer);
+      // TODO: WebGPU doesn't support read data synchronously from GPU to CPU.
+      // So it will report error when switching backend from WebGPU to others.
+      // There are two situations: 1) swithcing the backend after running a
+      // model; 2) swithcing the backend within the model. Temporarilly keep the
+      // values on CPU to solve the first issue.
+      // info.values = null;
     }
   }
 
-  private compileAndRun<
-      K extends {dtype: DataType, size: number, dataId: {}, shape: number[]}>(
-      program: webgpu_program.WebGPUProgram, inputs: Tensor[], output?: Tensor,
-      programUniforms?: number[]): K {
-    if (output == null) {
-      output = this.makeOutputArray(program.outputShape, inputs[0].dtype);
-    }
-    let dimUniforms: number[] = [];
-    const bufferShapes = inputs.concat(output).map(d => d.shape);
+  private makeUniformsDataView(data: DataView): GPUBindingResource {
+    const dimensionsBuffer = this.acquireBuffer(
+        data.byteLength, GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
+    this.queue.writeBuffer(dimensionsBuffer, 0, data);
+
+    return {offset: 0, size: data.byteLength, buffer: dimensionsBuffer};
+  }
+
+  private arrayToDataView(
+      arrays: Array<{type: string; data: number[]}>, length: number): DataView {
+    const BYTES_PER_ELEMENT = 4;
+    const uniformDataView =
+        new DataView(new ArrayBuffer(length * BYTES_PER_ELEMENT));
+
+    let dataViewIndex = 0;
+    arrays.forEach(array => {
+      const arrayData = array.data;
+
+      if (array.type !== 'int32' && array.type !== 'float32' &&
+          array.type !== 'uint32') {
+        throw new Error(`${array.type} not supported!`);
+      }
+
+      if (array.type === 'int32') {
+        arrayData.forEach(d => {
+          uniformDataView.setInt32(dataViewIndex * BYTES_PER_ELEMENT, d, true);
+          dataViewIndex++;
+        });
+      } else if (array.type === 'uint32') {
+        arrayData.forEach(d => {
+          uniformDataView.setUint32(dataViewIndex * BYTES_PER_ELEMENT, d, true);
+          dataViewIndex++;
+        });
+      } else {
+        arrayData.forEach(d => {
+          uniformDataView.setFloat32(
+              dataViewIndex * BYTES_PER_ELEMENT, d, true);
+          dataViewIndex++;
+        });
+      }
+    });
+
+    return uniformDataView;
+  }
+
+  private computePadding(uniformsWithType:
+                             Array<{type: string; data: number[];}>): DataView {
     let currentOffset = 0;
-    bufferShapes.forEach((d, i) => {
-      // Uniforms.
-      if (d.length === 0) {
-        d = [1];
+    let padding = 0;
+    let dataViewIndex = 0;
+    const dimUniformsData: Array<{type: string; data: number[];}> = [];
+    uniformsWithType.forEach((d, i) => {
+      if (d.data.length === 0) {
+        d.data = [1];
       }
       // Complete std140 layout rules are documented here:
       // tslint:disable-next-line:max-line-length
       // https://www.khronos.org/registry/OpenGL/specs/gl/glspec45.core.pdf#page=159
       let baseAlignment: number;
-      switch (d.length) {
+      switch (d.data.length) {
         case 0:
           baseAlignment = 1;
           break;
@@ -437,29 +617,129 @@ export class WebGPUBackend extends KernelBackend {
           baseAlignment = 4;
           break;
         default:
-          util.assert(false, () => `Unsupported ${d.length}D shape`);
+          util.assert(false, () => `Unsupported ${d.data.length}D shape`);
       }
 
-      const padding = Math.ceil(currentOffset / baseAlignment) * baseAlignment -
+      padding = Math.ceil(currentOffset / baseAlignment) * baseAlignment -
           currentOffset;
       for (let p = 0; p < padding; ++p) {
-        dimUniforms.push(0);
+        dimUniformsData.push({type: d.type, data: [0]});
+        dataViewIndex++;
       }
-      dimUniforms.push(...d);
-      currentOffset += d.length + padding;
+      dimUniformsData.push({type: d.type, data: d.data});
+      dataViewIndex = dataViewIndex + d.data.length;
+      currentOffset += d.data.length + padding;
     });
 
-    // TODO: handle padding of program-specific uniforms
+    return this.arrayToDataView(dimUniformsData, dataViewIndex);
+  }
+
+  // This layout is used by all programs except fromPixel.
+  private createLayout(inputEntrySize: number): WebGPULayout {
+    const bindGroupLayoutEntries: GPUBindGroupLayoutEntry[] = [];
+    // Output buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 0,
+      visibility: GPUShaderStage.COMPUTE,
+      buffer: {type: 'storage' as const}
+    });
+    // Input buffer binding layout. Depends on variableNames length.
+    for (let i = 0; i < inputEntrySize; i++) {
+      bindGroupLayoutEntries.push({
+        binding: i + 1,
+        visibility: GPUShaderStage.COMPUTE,
+        buffer: {type: 'read-only-storage' as const}
+      });
+    }
+    bindGroupLayoutEntries.push({
+      binding: inputEntrySize + 1,
+      visibility: GPUShaderStage.COMPUTE,
+      buffer: {type: 'uniform' as const}
+    });
+    const bindGroupLayout =
+        this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
+    const pipelineLayout =
+        this.device.createPipelineLayout({bindGroupLayouts: [bindGroupLayout]});
+    return {bindGroupLayout, pipelineLayout};
+  }
+
+  // This layout is only used by fromPixel.
+  private createTextureLayout(): WebGPULayout {
+    const bindGroupLayoutEntries: GPUBindGroupLayoutEntry[] = [];
+    // Output buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 0,
+      visibility: GPUShaderStage.COMPUTE,
+      buffer: {type: 'storage' as const}
+    });
+    // Input buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 1,
+      visibility: GPUShaderStage.COMPUTE,
+      storageTexture: {access: 'read-only', format: 'rgba8unorm'}
+    });
+    // Uniform buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 2,
+      visibility: GPUShaderStage.COMPUTE,
+      buffer: {type: 'uniform' as const}
+    });
+    const fromPixelBindGroupLayout =
+        this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
+    const fromPixelPipelineLayout = this.device.createPipelineLayout(
+        {bindGroupLayouts: [fromPixelBindGroupLayout]});
+    return {
+      bindGroupLayout: fromPixelBindGroupLayout,
+      pipelineLayout: fromPixelPipelineLayout
+    };
+  }
+
+  private getCachedOrCreateLayout(inputEntrySize: number): WebGPULayout {
+    if (!(inputEntrySize in this.layoutCache)) {
+      this.layoutCache[inputEntrySize] = this.createLayout(inputEntrySize);
+    }
+    return this.layoutCache[inputEntrySize];
+  }
+
+  public runWebGPUProgram(
+      program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
+      outputDtype: DataType,
+      programUniforms?: Array<{type: string; data: number[]}>): TensorInfo {
+    const output = this.makeTensorInfo(program.outputShape, outputDtype);
+
+    // There are five kinds of uniforms: NAN, shapes, shape strides, program
+    // size, program defined uniforms.
+    let uniformsWithType: Array<{type: string; data: number[];}> =
+        [{type: 'float32', data: [NaN]}];
+    const bufferShapes = inputs.concat(output).map(d => d.shape);
+    let uniformsType = 'int32';
+    if (program.useWgsl) {
+      uniformsType = 'uint32';
+    }
+    bufferShapes.map(d => {
+      uniformsWithType.push({type: uniformsType, data: d});
+    });
+    const strides = util.computeStrides(output.shape);
+    uniformsWithType.push({type: uniformsType, data: strides});
+    if (program.size != null) {
+      uniformsWithType.push({type: uniformsType, data: [program.size]});
+    }
     if (programUniforms) {
-      dimUniforms = dimUniforms.concat(programUniforms);
+      uniformsWithType = [...uniformsWithType, ...programUniforms];
     }
 
-    const uniformData = new Int32Array(dimUniforms);
-    const uniforms = this.makeUniforms(uniformData);
+    let uniforms: GPUBindingResource = null;
+    const uniformsDataView = this.computePadding(uniformsWithType);
+    const uniformsByteLength = uniformsDataView.byteLength;
+    uniforms = this.makeUniformsDataView(uniformsDataView);
 
-    const key =
-        webgpu_program.makeShaderKey(program, bufferShapes.map(d => d.length));
-    const inputsData = inputs.map((input: Tensor, i: number) => {
+    const inputsData = inputs.map((input: TensorInfo, i: number) => {
+      if (input.dtype === 'complex64') {
+        throw new Error(
+            `GPGPUProgram does not support complex64 input. For complex64 ` +
+            `dtypes, please separate the program into real and imaginary ` +
+            `parts.`);
+      }
       this.uploadToGPU(input.dataId);
 
       return {
@@ -471,505 +751,146 @@ export class WebGPUBackend extends KernelBackend {
       };
     });
     this.uploadToGPU(output.dataId);
-    const {bindGroupLayout, pipeline} = this.getAndSavePipeline(key, () => {
+    const bufferTypes = inputsData.map(d => d.dtype).concat(output.dtype);
+    const broadcastDims = inputsData.map(
+        d => backend_util.getBroadcastDims(d.shape, output.shape));
+    const inputShapesEqualsOutShape =
+        inputsData.map(d => util.arraysEqual(d.shape, output.shape)).join('_');
+    const broadcastDimsKey = broadcastDims.map(d => d.join('_')).join(';');
+    const key = webgpu_program.makeShaderKey(
+        program, bufferShapes, bufferTypes, broadcastDimsKey,
+        inputShapesEqualsOutShape);
+
+    const {bindGroupLayout, pipelineLayout} =
+        this.getCachedOrCreateLayout(program.variableNames.length);
+
+    const pipeline = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(
-          this.compiler, this.shaderc.shader_kind.compute, this.compileOpts,
-          this.device, program, inputsData, output, uniforms);
+          this.glslang, this.device, program, pipelineLayout, inputsData,
+          output);
     });
 
     const shouldTimeProgram = this.activeTimers != null;
-    let query: CPUTimerQuery;
-    if (shouldTimeProgram) {
-      query = this.startTimer();
-    }
 
     // Creating bind groups on the fly should never be a bottleneck.
     const bg = webgpu_program.makeBindGroup(
         this.device, bindGroupLayout, inputs.map(t => this.tensorToBinding(t)),
         this.tensorToBinding(output), uniforms);
 
-    const encoder = this.device.createCommandEncoder({});
-    const pass = encoder.beginComputePass();
+    this.ensureCommandEncoderReady();
+    const pass = this.currentCommandEncoder.beginComputePass();
+    if (shouldTimeProgram) {
+      if (this.supportTimeQuery) {
+        pass.writeTimestamp(this.querySet, 0);
+      }
+    }
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bg);
     pass.dispatch(
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+    if (shouldTimeProgram) {
+      if (this.supportTimeQuery) {
+        pass.writeTimestamp(this.querySet, 1);
+      }
+    }
     pass.endPass();
-    this.commandQueue.push(encoder);
+    this.computePassNumberInEncoder++;
 
     inputs.forEach(input => {
       this.commandQueueOwnedIds.add(input.dataId);
     });
     this.commandQueueOwnedIds.add(output.dataId);
+    if (uniforms) {
+      const uniformInfo = {
+        byteSize: uniformsByteLength,
+        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
+        buffer: (uniforms as GPUBufferBinding).buffer
+      };
+      this.uniformDisposalQueue.push(uniformInfo);
+    }
 
-    const uniformInfo = {
-      byteSize: uniformData.byteLength,
-      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
-      buffer: uniforms.resource.buffer
-    };
-    this.uniformDisposalQueue.push(uniformInfo);
-
-    if (env().get('WEBGPU_IMMEDIATE_EXECUTION_ENABLED')) {
+    if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
+        number <= this.computePassNumberInEncoder) {
       this.submitQueue();
     }
 
     if (shouldTimeProgram) {
-      query = this.endTimer(query);
-      this.activeTimers.push(
-          {name: program.constructor.name, query: this.getQueryTime(query)});
+      this.activeTimers.push({
+        name: program.constructor.name,
+        query: this.getQueryTime(this.querySet)
+      });
     }
-    return output as {} as K;
+    return output;
   }
 
-  private makeUniforms(data: Uint32Array|
-                       Int32Array): webgpu_program.BindingInfo {
-    const dimensionsBuffer = this.acquireBuffer(
-        data.byteLength, GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
-    dimensionsBuffer.setSubData(0, data);
+  recordFromPixelsCommands(output: GPUBuffer) {
+    const bindGroup = this.device.createBindGroup({
+      layout: this.fromPixelLayout.bindGroupLayout,
+      entries: [
+        {
+          binding: 0,
+          resource: {
+            buffer: output,
+          }
+        },
+        {
+          binding: 1,
+          resource: this.fromPixelProgram.inputTexture.createView(),
+        },
+        {
+          binding: 2,
+          resource: {
+            buffer: this.fromPixelProgram.uniform,
+          }
+        }
+      ],
+    });
 
-    return {
-      resource: {offset: 0, size: data.byteLength, buffer: dimensionsBuffer}
-    };
+    this.ensureCommandEncoderReady();
+    const passEncoder = this.currentCommandEncoder.beginComputePass();
+    passEncoder.setPipeline(this.fromPixelProgram.pipeline);
+    passEncoder.setBindGroup(0, bindGroup);
+    passEncoder.dispatch(
+        this.fromPixelProgram.dispatch[0], this.fromPixelProgram.dispatch[1],
+        this.fromPixelProgram.dispatch[2]);
+    passEncoder.endPass();
   }
 
-  private getCPUBackend(): KernelBackend|null {
-    if (!env().getBool('WEBGPU_CPU_FORWARD')) {
-      return null;
-    }
+  async getTimeFromQuerySet(querySet: GPUQuerySet) {
+    const queryBuffer = this.acquireBuffer(
+        16, GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);
+    const dst = this.acquireBuffer(
+        16, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
 
-    if (this.cpuBackend == null) {
-      this.cpuBackend = findBackend('cpu');
-    }
-
-    return this.cpuBackend;
+    this.ensureCommandEncoderReady();
+    this.currentCommandEncoder.resolveQuerySet(querySet, 0, 2, queryBuffer, 0);
+    this.currentCommandEncoder.copyBufferToBuffer(queryBuffer, 0, dst, 0, 16);
+    this.submitQueue();
+    await dst.mapAsync(GPUMapMode.READ);
+    const arrayBuf = new BigUint64Array(dst.getMappedRange());
+    const timeElapsedNanos = Number((arrayBuf[1] - arrayBuf[0]));
+    dst.unmap();
+    this.bufferManager.releaseBuffer(
+        dst, 16, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
+    this.bufferManager.releaseBuffer(
+        queryBuffer, 16,
+        GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);
+    // Return milliseconds.
+    return timeElapsedNanos / 1000000;
   }
 
-  private shouldExecuteOnCPU(
-      inputs: Tensor[], sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
-    return this.getCPUBackend() != null &&
+  shouldExecuteOnCPU(
+      inputs: TensorInfo[],
+      sizeThreshold = CPU_HANDOFF_SIZE_THRESHOLD): boolean {
+    return env().getBool('WEBGPU_CPU_FORWARD') &&
         inputs.every(
             input =>
                 this.tensorMap.get(input.dataId).bufferInfo.buffer == null &&
-                input.size < sizeThreshold);
-  }
-
-  pad<T extends Tensor>(
-      x: T, paddings: Array<[number, number]>, constantValue: number): T {
-    const program = new PadProgram(x.shape, paddings, constantValue);
-    const output = this.makeOutputArray(program.outputShape, x.dtype);
-    return this.compileAndRun(program, [x], output);
-  }
-
-  maxPool(x: Tensor4D, convInfo: backend_util.Conv2DInfo): Tensor4D {
-    const program = new MaxPoolProgram(convInfo);
-
-    const output = this.makeOutputArray(program.outputShape, x.dtype);
-
-    const dimensions = [
-      convInfo.padInfo.left, convInfo.padInfo.top,      // Padding.
-      convInfo.strideWidth, convInfo.strideHeight,      // Stride.
-      convInfo.dilationWidth, convInfo.dilationHeight,  // Dilation.
-      convInfo.inWidth, convInfo.inHeight,              // Conv dims.
-      convInfo.effectiveFilterWidth,
-      convInfo.effectiveFilterHeight  // Filter dims.
-    ];
-
-    return this.compileAndRun(program, [x], output, dimensions);
-  }
-
-  private binaryOp(a: Tensor, b: Tensor, op: string): Tensor {
-    const dtype = backend_util.upcastType(a.dtype, b.dtype);
-    const program = new BinaryOpProgram(op, a.shape, b.shape);
-
-    const dataId = this.write(null /*values*/, program.outputShape, dtype);
-    const output =
-        engine().makeTensorFromDataId(dataId, program.outputShape, dtype, this);
-
-    return this.compileAndRun(program, [a, b], output);
-  }
-
-  add(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.add(a, b);
-    }
-    return this.binaryOp(a, b, binary_op.ADD);
-  }
-
-  subtract(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.subtract(a, b);
-    }
-    return this.binaryOp(a, b, binary_op.SUB);
-  }
-
-  private binaryCompareOp(a: Tensor, b: Tensor, op: string): Tensor {
-    const program = new BinaryOpProgram(op, a.shape, b.shape);
-    const dataId = this.write(null /*values*/, program.outputShape, 'bool');
-    const output = engine().makeTensorFromDataId(
-        dataId, program.outputShape, 'bool', this);
-
-    return this.compileAndRun(program, [a, b], output);
-  }
-
-  less(a: Tensor, b: Tensor): Tensor {
-    return this.binaryCompareOp(a, b, binary_op.LESS);
-  }
-
-  lessEqual(a: Tensor, b: Tensor): Tensor {
-    return this.binaryCompareOp(a, b, binary_op.LESS_EQUAL);
-  }
-
-  greater(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.greater(a, b);
-    }
-    return this.binaryCompareOp(a, b, binary_op.GREATER);
-  }
-
-  greaterEqual(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.greaterEqual(a, b);
-    }
-    return this.binaryCompareOp(a, b, binary_op.GREATER_EQUAL);
-  }
-
-  private conv2dByMatMul(
-      x: Tensor4D, filter: Tensor4D,
-      convInfo: backend_util.Conv2DInfo): Tensor4D {
-    const xShape = x.shape;
-    const isChannelsLast = convInfo.dataFormat === 'channelsLast';
-    const transposeA = false;
-    const transposeB = false;
-
-    const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] :
-                                         xShape[0] * xShape[2] * xShape[3];
-    const xReshaped = this.reshape(x, [1, targetShape, convInfo.inChannels]);
-    const filterReshaped =
-        this.reshape(filter, [1, convInfo.inChannels, convInfo.outChannels]);
-
-    return this.reshape(
-        this.batchMatMul(
-            xReshaped as Tensor3D, filterReshaped as Tensor3D, transposeA,
-            transposeB),
-        convInfo.outShape);
-  }
-
-  conv2d(x: Tensor4D, filter: Tensor4D, convInfo: backend_util.Conv2DInfo):
-      Tensor4D {
-    if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
-        convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
-        convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
-        (convInfo.padInfo.type === 'SAME' ||
-         convInfo.padInfo.type === 'VALID')) {
-      return this.conv2dByMatMul(x, filter, convInfo);
-    }
-
-    const dataId = this.write(null /*values*/, convInfo.outShape, x.dtype);
-    const output =
-        engine().makeTensorFromDataId(dataId, convInfo.outShape, x.dtype, this);
-    let program: Conv2DMMProgram|Conv2DNaiveProgram;
-
-    const workPerThread = env().get('WEBGPU_CONV2D_WORK_PER_THREAD') as number;
-    if (workPerThread === -1) {
-      // TODO(kainino0x): This may be obsolete, but is kept for reference.
-      program = new Conv2DNaiveProgram(convInfo);
-    } else {
-      program = new Conv2DMMProgram(convInfo, workPerThread);
-    }
-
-    const pad = convInfo.padInfo.type === 'VALID' ?
-        [0, 0] :
-        convInfo.padInfo.type === 'SAME' ?
-        [
-          -Math.floor((convInfo.filterShape[0] - 1) / 2),
-          -Math.floor((convInfo.filterShape[1] - 1) / 2)
-        ] :
-        [convInfo.padInfo.top, convInfo.padInfo.left];
-
-    const dimensions = [
-      convInfo.filterHeight, convInfo.filterWidth, ...pad,
-      convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationHeight,
-      convInfo.dilationWidth
-    ];
-
-    return this.compileAndRun(program, [x, filter], output, dimensions);
-  }
-
-  depthwiseConv2D(
-      x: Tensor4D, filter: Tensor4D,
-      convInfo: backend_util.Conv2DInfo): Tensor4D {
-    const program = new DepthwiseConv2DProgram(convInfo);
-    const dimensions = [
-      convInfo.filterHeight, convInfo.filterWidth, convInfo.padInfo.top,
-      convInfo.padInfo.left, convInfo.strideHeight, convInfo.strideWidth,
-      convInfo.dilationHeight, convInfo.dilationWidth, convInfo.inHeight,
-      convInfo.inWidth
-    ];
-    return this.compileAndRun(program, [x, filter], null, dimensions);
-  }
-
-  private argMinMaxReduce(x: Tensor, axis: number, reduceType: 'min'|'max'):
-      Tensor {
-    const program = new ArgMinMaxProgram(x.shape, axis, reduceType);
-    const output = this.makeOutputArray(program.outputShape, 'int32');
-    return this.compileAndRun(program, [x], output, [axis]);
-  }
-
-  argMin(x: Tensor, axis: number): Tensor {
-    return this.argMinMaxReduce(x, axis, 'min');
-  }
-
-  argMax(x: Tensor, axis: number): Tensor {
-    return this.argMinMaxReduce(x, axis, 'max');
-  }
-
-  clip<T extends Tensor>(x: T, min: number, max: number): T {
-    const program = new ClipProgram(x.shape, min, max);
-    return this.compileAndRun(program, [x]);
-  }
-
-  slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.slice(x, begin, size);
-    }
-    // Short-circuit computation if the slice is zero-sized.
-    if (util.sizeFromShape(size) === 0) {
-      return engine().makeTensor([], size, x.dtype, this) as T;
-    }
-    // TODO(xing.xu): Add shadow slice support.
-    const program = new SliceProgram(begin, size);
-    return this.compileAndRun(program, [x], null);
-  }
-
-  concat(tensors: Tensor[], axis: number): Tensor {
-    if (this.shouldExecuteOnCPU(tensors)) {
-      return this.cpuBackend.concat(tensors, axis);
-    }
-
-    if (tensors.length === 1) {
-      return tensors[0];
-    }
-    // Is there a maximum number of buffers that can be uploaded to a WebGPU
-    // program?
-    // if (tensors.length > MAX_SSBOS_FOR_WEBGPU_PROGRAM) {
-    //   const midIndex = Math.floor(tensors.length / 2);
-    //   const leftSide = this.concat(tensors.slice(0, midIndex), axis);
-    //   const rightSide = this.concat(tensors.slice(midIndex), axis);
-    //   return this.concat([leftSide, rightSide], axis);
-    // }
-    const outShape =
-        backend_util.computeOutShape(tensors.map(t => t.shape), axis);
-    const tensors2D: Tensor2D[] = tensors.map(t => t.reshape([
-      util.sizeFromShape(t.shape.slice(0, axis)),
-      util.sizeFromShape(t.shape.slice(axis))
-    ]));
-    const program = new ConcatProgram(tensors2D.map(t => t.shape));
-    const res: Tensor = this.compileAndRun(program, tensors2D);
-    return res.reshape(outShape);
-  }
-
-  multiply(a: Tensor, b: Tensor): Tensor {
-    if (this.shouldExecuteOnCPU([a, b])) {
-      return this.cpuBackend.multiply(a, b);
-    }
-    return this.binaryOp(a, b, binary_op.MUL);
-  }
-
-  realDivide(a: Tensor, b: Tensor): Tensor {
-    return this.binaryOp(a, b, binary_op.DIV);
-  }
-
-  floorDiv(a: Tensor, b: Tensor): Tensor {
-    return this.binaryOp(a, b, binary_op.INT_DIV);
-  }
-
-  sigmoid<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.SIGMOID);
-    return this.compileAndRun(program, [x]);
-  }
-
-  relu<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.RELU);
-    return this.compileAndRun(program, [x]);
-  }
-
-  relu6<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.RELU6);
-    return this.compileAndRun(program, [x]);
-  }
-
-  prelu<T extends Tensor>(x: T, alpha: T): T {
-    const program = new BinaryOpProgram(binary_op.PRELU, x.shape, alpha.shape);
-    return this.compileAndRun(program, [x, alpha]);
-  }
-
-  select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
-    const program = new SelectProgram(condition.rank, a.shape, a.rank);
-    const dtype = backend_util.upcastType(a.dtype, b.dtype);
-    const dataId = this.write(null /*values*/, program.outputShape, dtype);
-    const output =
-        engine().makeTensorFromDataId(dataId, program.outputShape, dtype, this);
-    return this.compileAndRun(program, [condition, a, b], output);
-  }
-
-  fill<R extends Rank>(
-      shape: ShapeMap[R], value: number|string, dtype?: DataType): Tensor<R> {
-    dtype = dtype || util.inferDtype(value);
-
-    if (dtype === 'string') {
-      // String type should be handled in CPU memory.
-      const values = util.getArrayFromDType(dtype, util.sizeFromShape(shape));
-      values.fill(value as string);
-      return engine().makeTensor(values, shape, dtype, this) as Tensor<R>;
-    } else {
-      const program = new FillProgram(shape, value as number);
-      const dataId = this.write(null /*values*/, program.outputShape, dtype);
-      const output = engine().makeTensorFromDataId(
-          dataId, program.outputShape, dtype, this);
-      return this.compileAndRun(program, [], output);
-    }
-  }
-
-  zerosLike<R extends Rank>(x: Tensor<R>): Tensor<R> {
-    return this.fill(x.shape, x.dtype === 'string' ? '' : 0, x.dtype);
-  }
-
-  resizeBilinear(
-      x: Tensor4D, newHeight: number, newWidth: number,
-      alignCorners: boolean): Tensor4D {
-    const program =
-        new ResizeBilinearProgram(x.shape, newHeight, newWidth, alignCorners);
-
-    const output: Tensor4D = this.makeOutputArray(program.outputShape, x.dtype);
-
-    return this.compileAndRun(program, [x], output);
-  }
-
-  reshape<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor<R> {
-    return engine().makeTensorFromDataId(x.dataId, shape, x.dtype, this) as
-        Tensor<R>;
-  }
-
-  cast<T extends Tensor>(x: T, dtype: DataType): T {
-    return backend_util.castTensor(x, dtype, this);
-  }
-
-  transpose<T extends Tensor>(x: T, perm: number[]): T {
-    if (this.shouldExecuteOnCPU([x])) {
-      return this.cpuBackend.transpose(x, perm);
-    }
-    const program = new TransposeProgram(x.shape, perm);
-    return this.compileAndRun(program, [x]);
-  }
-
-  batchMatMul(
-      a: Tensor3D, b: Tensor3D, transposeA: boolean,
-      transposeB: boolean): Tensor3D {
-    // TODO: Support transposed inputs.
-    // const outerShapeA = transposeA ? a.shape[2] : a.shape[1];
-    // const outerShapeB = transposeB ? b.shape[1] : b.shape[2];
-    const outerShapeA = a.shape[1];
-    const outerShapeB = b.shape[2];
-    const [batch, , ] = a.shape;
-
-    const dataId =
-        this.write(null /*values*/, [batch, outerShapeA, outerShapeB], a.dtype);
-    const output = engine().makeTensorFromDataId(
-        dataId, [batch, outerShapeA, outerShapeB], a.dtype, this);
-
-    let program: MatMulProgram|MatMulPackedProgram;
-    // TODO: We should eventually use the blocked version, but keeping around
-    // the old version while we try to understand conditions under which blocked
-    // is faster.
-    if (env().get('WEBGPU_MATMUL_WORK_PER_THREAD') === 0) {
-      program =
-          new MatMulProgram(a.shape, output.shape as [number, number, number]);
-    } else {
-      program = new MatMulPackedProgram(
-          a.shape, output.shape as [number, number, number],
-          env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number);
-    }
-
-    return this.compileAndRun(program, [a, b], output);
-  }
-
-  fromPixels(
-      pixels: backend_util.PixelData|ImageData|HTMLImageElement|
-      HTMLCanvasElement|HTMLVideoElement,
-      numChannels: number): Tensor3D {
-    if (pixels == null) {
-      throw new Error(
-          'pixels passed to tf.browser.fromPixels() can not be null');
-    }
-
-    const outShape = [pixels.height, pixels.width, numChannels];
-    let imageData = (pixels as ImageData | backend_util.PixelData).data;
-
-    if (env().getBool('IS_BROWSER')) {
-      if (!(pixels instanceof HTMLVideoElement) &&
-          !(pixels instanceof HTMLImageElement) &&
-          !(pixels instanceof HTMLCanvasElement) &&
-          !(pixels instanceof ImageData) &&
-          !(pixels.data instanceof Uint8Array)) {
-        throw new Error(
-            'pixels passed to tf.browser.fromPixels() must be either an ' +
-            `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData` +
-            ` or {data: Uint32Array, width: number, height: number}, ` +
-            `but was ${(pixels as {}).constructor.name}`);
-      }
-      if (pixels instanceof HTMLVideoElement ||
-          pixels instanceof HTMLImageElement ||
-          pixels instanceof HTMLCanvasElement) {
-        if (this.fromPixels2DContext == null) {
-          this.fromPixels2DContext =
-              document.createElement('canvas').getContext('2d');
-        }
-        this.fromPixels2DContext.canvas.width = pixels.width;
-        this.fromPixels2DContext.canvas.height = pixels.height;
-        this.fromPixels2DContext.drawImage(
-            pixels, 0, 0, pixels.width, pixels.height);
-        pixels = this.fromPixels2DContext.canvas;
-      }
-
-      // TODO: Remove this once we figure out how to upload textures directly to
-      // WebGPU.
-      const imageDataLivesOnGPU = pixels instanceof HTMLVideoElement ||
-          pixels instanceof HTMLImageElement ||
-          pixels instanceof HTMLCanvasElement;
-      if (imageDataLivesOnGPU) {
-        imageData = this.fromPixels2DContext
-                        .getImageData(0, 0, pixels.width, pixels.height)
-                        .data;
-      }
-    }
-
-    // TODO: Encoding should happen on GPU once we no longer have to download
-    // image data to the CPU.
-    let pixelArray = imageData;
-    if (numChannels != null && numChannels !== 4) {
-      pixelArray = new Uint8Array(pixels.width * pixels.height * numChannels);
-
-      const dataLength = imageData.length;
-      for (let i = 0; i < dataLength; i++) {
-        if (i % 4 < numChannels) {
-          const pixelIndex = Math.floor(i / 4);
-          pixelArray[pixelIndex * numChannels + i % 4] = imageData[i];
-        }
-      }
-    }
-
-    const output = this.makeOutputArray(outShape, 'int32');
-
-    const info = this.tensorMap.get(output.dataId);
-    info.values = new Int32Array(pixelArray);
-    this.maybeReleaseBuffer(output.dataId);
-
-    this.uploadToGPU(output.dataId);
-    return output as Tensor3D;
+                util.sizeFromShape(input.shape) < sizeThreshold);
   }
 
   numDataIds() {
-    return this.tensorMap.numDataIds();
+    return this.tensorMap.numDataIds() - this.tensorDisposalQueue.length;
   }
 
   dispose() {
@@ -977,6 +898,9 @@ export class WebGPUBackend extends KernelBackend {
       return;
     }
     this.bufferManager.dispose();
+    if (this.fromPixelProgram) {
+      this.fromPixelProgram.dispose();
+    }
     this.disposed = true;
   }
 }

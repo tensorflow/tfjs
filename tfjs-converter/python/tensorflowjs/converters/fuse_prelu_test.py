@@ -18,7 +18,7 @@ import os
 import shutil
 import tempfile
 
-import tensorflow as tf
+import tensorflow.compat.v2 as tf
 from tensorflow.core.protobuf import config_pb2
 from tensorflow.core.protobuf import meta_graph_pb2
 

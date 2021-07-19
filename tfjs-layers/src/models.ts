@@ -239,7 +239,7 @@ export async function loadLayersModelInternal(
     options = {};
   }
   if (typeof pathOrIOHandler === 'string') {
-    const handlers = io.getLoadHandlers(pathOrIOHandler, options.onProgress);
+    const handlers = io.getLoadHandlers(pathOrIOHandler, options);
     if (handlers.length === 0) {
       // For backward compatibility: if no load handler can be found,
       // assume it is a relative http path.
@@ -378,8 +378,9 @@ export interface SequentialArgs {
  *  await model.fit(xs, ys);
  *  model.predict(tf.tensor2d([5], [1, 1])).print();
  * ```
+ *
+ * @doc {heading: 'Models', subheading: 'Classes'}
  */
-/** @doc {heading: 'Models', subheading: 'Classes'} */
 export class Sequential extends LayersModel {
   /** @nocollapse */
   static className = 'Sequential';
@@ -432,8 +433,9 @@ export class Sequential extends LayersModel {
    * @exception ValueError In case the `layer` argument has multiple output
    *   tensors, or is already connected somewhere else (forbidden in
    *   `Sequential` models).
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Models', subheading: 'Classes'} */
   add(layer: Layer): void {
     const isLayerModelInstance =
         layer instanceof Sequential || layer instanceof LayersModel;
@@ -641,8 +643,9 @@ export class Sequential extends LayersModel {
    * @param printFn Custom print function. Can be used to replace the default
    *   `console.log`. For example, you can use `x => {}` to mute the printed
    *   messages in the console.
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Models', subheading: 'Classes'} */
   summary(
       lineLength?: number, positions?: number[],
       printFn:
@@ -696,8 +699,7 @@ export class Sequential extends LayersModel {
    *   metrics) or `Array` of `Scalar`s (if the model has multiple outputs
    *   and/or metrics). The attribute `model.metricsNames`
    *   will give you the display labels for the scalar outputs.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   evaluate(
@@ -729,8 +731,7 @@ export class Sequential extends LayersModel {
    *   first is the input feature(s) and the second is the output target(s).
    * @param args A configuration object for the dataset-based evaluation.
    * @returns Loss and metric values as an Array of `Scalar` objects.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async evaluateDataset(dataset: Dataset<{}>, args: ModelEvaluateDatasetArgs):
@@ -757,7 +758,7 @@ export class Sequential extends LayersModel {
    * model.predict(tf.ones([2, 10])).print();
    * ```
    *
-   * @param x The input data, as an Tensor, or an `Array` of `tf.Tensor`s if
+   * @param x The input data, as a Tensor, or an `Array` of `tf.Tensor`s if
    *   the model has multiple inputs.
    * @param conifg A `ModelPredictConfig` object containing optional fields.
    *
@@ -766,8 +767,7 @@ export class Sequential extends LayersModel {
    * @exception ValueError In case of mismatch between the provided input data
    *   and the model's expectations, or in case a stateful model receives a
    *   number of samples that is not a multiple of the batch size.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   predict(x: Tensor|Tensor[], args: ModelPredictArgs = {}): Tensor|Tensor[] {
@@ -780,7 +780,7 @@ export class Sequential extends LayersModel {
   /**
    * Returns predictions for a single batch of samples.
    *
-   * @param x: Input samples, as an Tensor, or list of Tensors (if the model
+   * @param x: Input samples, as a Tensor, or list of Tensors (if the model
    *   has multiple inputs).
    * @return Tensor(s) of predictions
    */
@@ -847,8 +847,7 @@ export class Sequential extends LayersModel {
    *
    * @exception ValueError In case of mismatch between the provided input data
    *   and what the model expects.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async fit(
@@ -945,8 +944,7 @@ export class Sequential extends LayersModel {
    *
    * @return A `History` instance. Its `history` attribute contains all
    *   information collected during training.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes', ignoreCI: true}
    */
   async fitDataset<T>(dataset: Dataset<T>, args: ModelFitDatasetArgs<T>):
@@ -979,8 +977,7 @@ export class Sequential extends LayersModel {
    *   `tf.Tensor`s. It should be consistent with `x`.
    * @returns Training loss or losses (in case the model has
    *   multiple outputs), along with metrics (if any), as numbers.
-   */
-  /**
+   *
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async trainOnBatch(

@@ -53,7 +53,12 @@ export const json: OpMapper[] = [
       {'start': 1, 'name': 'b', 'type': 'tensor'},
     ],
     'attrs': [
-      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}, {
+        'tfName': 'data_format',
+        'name': 'dataFormat',
+        'type': 'string',
+        'notSupported': true
+      }
     ]
   },
   {
@@ -128,6 +133,9 @@ export const json: OpMapper[] = [
     'inputs': [
       {'start': 0, 'name': 'a', 'type': 'tensor'},
       {'start': 1, 'name': 'b', 'type': 'tensor'}
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
@@ -136,6 +144,9 @@ export const json: OpMapper[] = [
     'inputs': [
       {'start': 0, 'name': 'a', 'type': 'tensor'},
       {'start': 1, 'name': 'b', 'type': 'tensor'}
+    ],
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
     ]
   },
   {
@@ -178,8 +189,11 @@ export const json: OpMapper[] = [
       {'start': 0, 'name': 'a', 'type': 'tensor'},
       {'start': 1, 'name': 'b', 'type': 'tensor'},
     ],
-    'attrs': [
-      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
-    ]
+    'attrs': [{
+      'tfName': 'T',
+      'name': 'dtype',
+      'type': 'dtype',
+      'notSupported': true
+    }]
   }
 ];

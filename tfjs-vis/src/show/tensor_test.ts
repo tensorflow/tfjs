@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs-core';
 import {valuesDistribution} from './tensor';
 
 describe('perClassAccuracy', () => {

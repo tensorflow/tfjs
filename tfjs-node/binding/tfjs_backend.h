@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,6 +29,8 @@ namespace tfnodejs {
 
 class TFJSBackend {
  public:
+  ~TFJSBackend();
+
   // Creates, initializes, and returns a TFJSBackend instance. If initialization
   // fails, a nullptr is returned.
   static TFJSBackend *Create(napi_env env);
@@ -80,9 +82,11 @@ class TFJSBackend {
                            napi_value input_op_names,
                            napi_value output_op_names);
 
+  // Get number of loaded SavedModel in the backend:
+  napi_value GetNumOfSavedModels(napi_env env);
+
  private:
   TFJSBackend(napi_env env);
-  ~TFJSBackend();
 
   int32_t InsertHandle(TFE_TensorHandle *tfe_handle);
   int32_t InsertSavedModel(TF_Session *tf_session, TF_Graph *tf_graph);

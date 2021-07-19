@@ -18,7 +18,7 @@ import {scalar, Tensor, tensor1d, tensor3d, tensor4d, tensor5d, util} from '@ten
 import * as tfl from '../index';
 import {InitializerIdentifier} from '../initializers';
 import {ActivationIdentifier} from '../keras_format/activation_config';
-import {DataFormat, PaddingMode, Shape} from '../keras_format/common';
+import {DataFormat, InterpolationFormat, PaddingMode, Shape} from '../keras_format/common';
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {conv1d, conv1dWithBias, conv2d, conv2dWithBiasActivation, conv3d, conv3dWithBias} from './convolutional';
@@ -1446,76 +1446,82 @@ describeMathCPUAndGPU('Cropping2D Layer', () => {
 
 describeMathCPU('UpSampling2D Layer: Symbolic', () => {
   const dataFormats: DataFormat[] = ['channelsFirst', 'channelsLast'];
+  const interpolatinFormats: InterpolationFormat[] = ['nearest', 'bilinear'];
   const sizes = [undefined, [2, 2]];
   const undeterminedDimensionArray: string[] = [null, 'height', 'both'];
 
   for (const dataFormat of dataFormats) {
-    for (const size of sizes) {
-      for (const undeterminedDimension of undeterminedDimensionArray) {
-        const testTitle = `size = ${size}, ${dataFormat}` +
-            `undetermined dimension = ${JSON.stringify(undeterminedDimension)}`;
-        it(testTitle, () => {
-          let inputShape: Shape;
-          if (undeterminedDimension == null) {
-            inputShape = dataFormat === 'channelsFirst' ? [2, 16, 11, 9] :
-                                                          [2, 11, 9, 16];
-          } else if (undeterminedDimension === 'height') {
-            inputShape = dataFormat === 'channelsFirst' ? [2, 16, null, 9] :
-                                                          [2, null, 9, 16];
-          } else if (undeterminedDimension === 'both') {
-            inputShape = dataFormat === 'channelsFirst' ? [2, 16, null, null] :
-                                                          [2, null, null, 16];
-          }
-          const symbolicInput =
-              new tfl.SymbolicTensor('float32', inputShape, null, [], null);
+    for (const interpolation of interpolatinFormats) {
+      for (const size of sizes) {
+        for (const undeterminedDimension of undeterminedDimensionArray) {
+          const testTitle = `size = ${size}, ${dataFormat}, ${interpolation}` +
+              `undetermined dimension = ${
+                                JSON.stringify(undeterminedDimension)}`;
+          it(testTitle, () => {
+            let inputShape: Shape;
+            if (undeterminedDimension == null) {
+              inputShape = dataFormat === 'channelsFirst' ? [2, 16, 11, 9] :
+                                                            [2, 11, 9, 16];
+            } else if (undeterminedDimension === 'height') {
+              inputShape = dataFormat === 'channelsFirst' ? [2, 16, null, 9] :
+                                                            [2, null, 9, 16];
+            } else if (undeterminedDimension === 'both') {
+              inputShape = dataFormat === 'channelsFirst' ?
+                  [2, 16, null, null] :
+                  [2, null, null, 16];
+            }
+            const symbolicInput =
+                new tfl.SymbolicTensor('float32', inputShape, null, [], null);
 
-          const upSampling2dLayer = tfl.layers.upSampling2d({
-            size,
-            dataFormat,
+            const upSampling2dLayer = tfl.layers.upSampling2d({
+              size,
+              dataFormat,
+              interpolation,
+            });
+
+            const output =
+                upSampling2dLayer.apply(symbolicInput) as tfl.SymbolicTensor;
+
+            let outputRows: number;
+            let outputCols: number;
+            if (size === undefined) {
+              outputRows = 2;
+              outputCols = 2;
+            } else {
+              outputRows = size[0];
+              outputCols = size[1];
+            }
+            let expectedShape: [number, number, number, number];
+            if (undeterminedDimension == null) {
+              if (dataFormat === 'channelsFirst') {
+                outputRows *= inputShape[2];
+                outputCols *= inputShape[3];
+                expectedShape = [2, 16, outputRows, outputCols];
+              } else {
+                outputRows *= inputShape[1];
+                outputCols *= inputShape[2];
+                expectedShape = [2, outputRows, outputCols, 16];
+              }
+            } else if (undeterminedDimension === 'height') {
+              if (dataFormat === 'channelsFirst') {
+                outputCols *= inputShape[3];
+                expectedShape = [2, 16, null, outputCols];
+              } else {
+                outputCols *= inputShape[2];
+                expectedShape = [2, null, outputCols, 16];
+              }
+            } else if (undeterminedDimension === 'both') {
+              if (dataFormat === 'channelsFirst') {
+                expectedShape = [2, 16, null, null];
+              } else {
+                outputCols *= inputShape[2];
+                expectedShape = [2, null, null, 16];
+              }
+            }
+
+            expect(output.shape).toEqual(expectedShape);
           });
-
-          const output =
-              upSampling2dLayer.apply(symbolicInput) as tfl.SymbolicTensor;
-
-          let outputRows: number;
-          let outputCols: number;
-          if (size === undefined) {
-            outputRows = 2;
-            outputCols = 2;
-          } else {
-            outputRows = size[0];
-            outputCols = size[1];
-          }
-          let expectedShape: [number, number, number, number];
-          if (undeterminedDimension == null) {
-            if (dataFormat === 'channelsFirst') {
-              outputRows *= inputShape[2];
-              outputCols *= inputShape[3];
-              expectedShape = [2, 16, outputRows, outputCols];
-            } else {
-              outputRows *= inputShape[1];
-              outputCols *= inputShape[2];
-              expectedShape = [2, outputRows, outputCols, 16];
-            }
-          } else if (undeterminedDimension === 'height') {
-            if (dataFormat === 'channelsFirst') {
-              outputCols *= inputShape[3];
-              expectedShape = [2, 16, null, outputCols];
-            } else {
-              outputCols *= inputShape[2];
-              expectedShape = [2, null, outputCols, 16];
-            }
-          } else if (undeterminedDimension === 'both') {
-            if (dataFormat === 'channelsFirst') {
-              expectedShape = [2, 16, null, null];
-            } else {
-              outputCols *= inputShape[2];
-              expectedShape = [2, null, null, 16];
-            }
-          }
-
-          expect(output.shape).toEqual(expectedShape);
-        });
+        }
       }
     }
   }
@@ -1615,4 +1621,138 @@ describeMathCPUAndGPU('UpSampling2D Layer', () => {
         [1, 2, 4, 1]);
     expectTensorsClose(layer.apply(x2, null) as Tensor, y2);
   });
+  it('interpolation bilinear', () => {
+    const layer =
+        tfl.layers.upSampling2d({size: [2, 2], interpolation: 'bilinear'});
+    const x = tensor4d(
+        [
+          [[[1], [2]], [[3], [4]]],
+        ],
+        [1, 2, 2, 1]);
+    const y = tensor4d(
+        [
+          [
+            [[1], [1.5], [2], [2]], [[2], [2.5], [3], [3]],
+            [[3], [3.5], [4], [4]], [[3], [3.5], [4], [4]]
+          ],
+        ],
+        [1, 4, 4, 1]);
+    expectTensorsClose(layer.apply(x, null) as Tensor, y);
+  });
+
+  it('interpolation nearest', () => {
+    const layer = tfl.layers.upSampling2d(
+        {size: [2, 2], dataFormat: 'channelsFirst', interpolation: 'nearest'});
+    const x = tensor4d(
+        [
+          [[[1, 2], [3, 4]]],
+        ],
+        [1, 1, 2, 2]);
+
+    const y = tensor4d(
+        [
+          [[[1, 1, 2, 2], [1, 1, 2, 2], [3, 3, 4, 4], [3, 3, 4, 4]]],
+        ],
+        [1, 1, 4, 4]);
+
+    expectTensorsClose(layer.apply(x, null) as Tensor, y);
+  });
+});
+
+describeMathCPU('Conv3DTranspose: Symbolic', () => {
+  const filtersArray = [1, 64];
+  const paddingModes: PaddingMode[] = ['valid', 'same'];
+  const kernelSizes = [[2, 2, 2], [3, 4, 4]];
+  const stridesArray = [1, 3];
+
+  for (const filters of filtersArray) {
+    for (const padding of paddingModes) {
+      for (const kernelSize of kernelSizes) {
+        for (const strides of stridesArray) {
+          const testTitle = `filters=${filters}, paddingMode=${padding},` +
+              `kernelSize=${JSON.stringify(kernelSize)}, strides=${strides}`;
+          it(testTitle, () => {
+            const inputShape = [1, 2, 11, 9, 16];
+            const x =
+                new tfl.SymbolicTensor('float32', inputShape, null, [], null);
+
+            const layer = tfl.layers.conv3dTranspose(
+                {filters, kernelSize, padding, strides});
+            const y = layer.apply(x) as tfl.SymbolicTensor;
+
+            let expectedShape: [number, number, number, number, number];
+            if (strides === 1) {
+              if (padding === 'same') {
+                expectedShape = [1, 2, 11, 9, filters];
+              } else {
+                if (kernelSize[0] === 2) {
+                  expectedShape = [1, 3, 12, 10, filters];
+                } else {
+                  expectedShape = [1, 4, 14, 12, filters];
+                }
+              }
+            } else if (strides === 3) {
+              if (padding === 'same') {
+                expectedShape = [1, 6, 33, 27, filters];
+              } else {
+                if (kernelSize[0] === 2) {
+                  expectedShape = [1, 6, 33, 27, filters];
+                } else {
+                  expectedShape = [1, 6, 34, 28, filters];
+                }
+              }
+            }
+            expect(y.shape).toEqual(expectedShape);
+          });
+        }
+      }
+    }
+  }
+
+  it('Correct weight names', () => {
+    const x =
+        new tfl.SymbolicTensor('float32', [1, 2, 3, 4, 5], null, [], null);
+    const layer =
+        tfl.layers.conv3dTranspose({filters: 2, kernelSize: [3, 3, 3]});
+    layer.apply(x);  // Let the layer build first.
+
+    expect(layer.weights.length).toEqual(2);
+    expect(layer.weights[0].name.indexOf('/kernel')).toBeGreaterThan(0);
+    expect(layer.weights[1].name.indexOf('/bias')).toBeGreaterThan(0);
+  });
+});
+
+describeMathCPUAndGPU('Conv3DTranspose: Tensor', () => {
+  const dataFormats: DataFormat[] = ['channelsFirst', 'channelsLast'];
+  const stridesArray = [1, 2];
+  for (const dataFormat of dataFormats) {
+    for (const strides of stridesArray) {
+      const testTitle =
+          `filters=8, kernelSize=[2,2], padding=valid, strides=${strides}` +
+          `dataFormat=${dataFormat}`;
+      it(testTitle, () => {
+        const filters = 8;
+        const kernelSize = [2, 2, 2];
+        const padding = 'valid';
+        const strides = 2;
+        const layer = tfl.layers.conv3dTranspose({
+          filters,
+          kernelSize,
+          padding,
+          strides,
+          dataFormat,
+          kernelInitializer: 'ones',
+          biasInitializer: 'ones'
+        });
+
+        const x = tfc.ones([2, 3, 4, 5, 2]);
+        const y = layer.apply(x) as Tensor;
+        if (dataFormat === 'channelsLast') {
+          expectTensorsClose(y, tfc.ones([2, 6, 8, 10, 8]).mul(scalar(3)));
+        } else {
+          expectTensorsClose(y, tfc.ones([2, 8, 8, 10, 4]).mul(scalar(4)));
+        }
+      });
+    }
+  }
 });

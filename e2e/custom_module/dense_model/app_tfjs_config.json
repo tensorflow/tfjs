@@ -1,0 +1,11 @@
+{
+  "kernels": ["Reshape", "_FusedMatMul", "fusedMatMul__op", "Identity"],
+  "backends": [
+      "cpu"
+  ],
+  "models": [
+      "./model/model.json"
+  ],
+  "outputPath": "./custom_tfjs",
+  "forwardModeOnly": true
+}

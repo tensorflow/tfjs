@@ -15,12 +15,13 @@
  * =============================================================================
  */
 
-import {tensor} from '../ops/tensor_ops';
+import {complex} from '../ops/complex';
+import {tensor} from '../ops/tensor';
 import {NamedTensor, NamedTensorMap} from '../tensor_types';
 import {TypedArray} from '../types';
 import {sizeFromShape} from '../util';
 
-import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, WeightGroup, WeightsManifestEntry} from './types';
+import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, ModelJSON, WeightGroup, WeightsManifestConfig, WeightsManifestEntry} from './types';
 
 /** Number of bytes reserved for the length of the string. (32bit integer). */
 const NUM_BYTES_STRING_LENGTH = 4;
@@ -57,7 +58,7 @@ export async function encodeWeights(
     const name = names[i];
     const t = Array.isArray(tensors) ? tensors[i].tensor : tensors[name];
     if (t.dtype !== 'float32' && t.dtype !== 'int32' && t.dtype !== 'bool' &&
-        t.dtype !== 'string') {
+        t.dtype !== 'string' && t.dtype !== 'complex64') {
       throw new Error(`Unsupported dtype in weight '${name}': ${t.dtype}`);
     }
     const spec: WeightsManifestEntry = {name, shape: t.shape, dtype: t.dtype};
@@ -112,6 +113,7 @@ export function decodeWeights(
     buffer: ArrayBuffer, specs: WeightsManifestEntry[]): NamedTensorMap {
   // TODO(adarob, cais): Support quantization.
   const out: NamedTensorMap = {};
+  let float16Decode: (buffer: Uint16Array) => Float32Array | undefined;
   let offset = 0;
   for (const spec of specs) {
     const name = spec.name;
@@ -122,11 +124,24 @@ export function decodeWeights(
 
     if ('quantization' in spec) {
       const quantization = spec.quantization;
-      if (quantization.dtype !== 'uint8' && quantization.dtype !== 'uint16') {
+      if (quantization.dtype === 'uint8' || quantization.dtype === 'uint16') {
+        if (!('min' in quantization && 'scale' in quantization)) {
+          throw new Error(
+              `Weight ${spec.name} with quantization ${quantization.dtype} ` +
+              `doesn't have corresponding metadata min and scale.`);
+        }
+      } else if (quantization.dtype === 'float16') {
+        if (dtype !== 'float32') {
+          throw new Error(
+              `Weight ${spec.name} is quantized with ${quantization.dtype} ` +
+              `which only supports weights of type float32 not ${dtype}.`);
+        }
+      } else {
         throw new Error(
             `Weight ${spec.name} has unknown ` +
             `quantization dtype ${quantization.dtype}. ` +
-            `Supported quantization dtypes are: 'uint8' and 'uint16'.`);
+            `Supported quantization dtypes are: ` +
+            `'uint8', 'uint16', and 'float16'.`);
       }
       const quantizationSizeFactor = DTYPE_VALUE_SIZE_MAP[quantization.dtype];
       const byteBuffer =
@@ -135,12 +150,33 @@ export function decodeWeights(
           new Uint8Array(byteBuffer) :
           new Uint16Array(byteBuffer);
       if (dtype === 'float32') {
-        values = Float32Array.from(
-            quantizedArray, v => v * quantization.scale + quantization.min);
+        if (quantization.dtype === 'uint8' || quantization.dtype === 'uint16') {
+          values = new Float32Array(quantizedArray.length);
+          for (let i = 0; i < quantizedArray.length; i++) {
+            const v = quantizedArray[i];
+            values[i] = v * quantization.scale + quantization.min;
+          }
+        } else if (quantization.dtype === 'float16') {
+          if (float16Decode === undefined) {
+            float16Decode = getFloat16Decoder();
+          }
+          values = float16Decode(quantizedArray as Uint16Array);
+        } else {
+          throw new Error(
+              `Unsupported quantization type ${quantization.dtype} ` +
+              `for weight type float32.`);
+        }
       } else if (dtype === 'int32') {
-        values = Int32Array.from(
-            quantizedArray,
-            v => Math.round(v * quantization.scale + quantization.min));
+        if (quantization.dtype !== 'uint8' && quantization.dtype !== 'uint16') {
+          throw new Error(
+              `Unsupported quantization type ${quantization.dtype} ` +
+              `for weight type int32.`);
+        }
+        values = new Int32Array(quantizedArray.length);
+        for (let i = 0; i < quantizedArray.length; i++) {
+          const v = quantizedArray[i];
+          values[i] = Math.round(v * quantization.scale + quantization.min);
+        }
       } else {
         throw new Error(`Unsupported dtype in weight '${name}': ${dtype}`);
       }
@@ -166,13 +202,27 @@ export function decodeWeights(
         values = new Int32Array(byteBuffer);
       } else if (dtype === 'bool') {
         values = new Uint8Array(byteBuffer);
+      } else if (dtype === 'complex64') {
+        values = new Float32Array(byteBuffer);
+        const real = new Float32Array(values.length / 2);
+        const image = new Float32Array(values.length / 2);
+        for (let i = 0; i < real.length; i++) {
+          real[i] = values[i * 2];
+          image[i] = values[i * 2 + 1];
+        }
+        const realTensor = tensor(real, shape, 'float32');
+        const imageTensor = tensor(image, shape, 'float32');
+        out[name] = complex(realTensor, imageTensor);
+        realTensor.dispose();
+        imageTensor.dispose();
       } else {
         throw new Error(`Unsupported dtype in weight '${name}': ${dtype}`);
       }
       offset += size * dtypeFactor;
     }
-
-    out[name] = tensor(values, shape, dtype);
+    if (dtype !== 'complex64') {
+      out[name] = tensor(values, shape, dtype);
+    }
   }
   return out;
 }
@@ -250,7 +300,12 @@ export function arrayBufferToBase64String(buffer: ArrayBuffer): string {
   if (useNodeBuffer) {
     return Buffer.from(buffer).toString('base64');
   }
-  return btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)));
+  const buf = new Uint8Array(buffer);
+  let s = '';
+  for (let i = 0, l = buf.length; i < l; i++) {
+    s += String.fromCharCode(buf[i]);
+  }
+  return btoa(s);
 }
 
 /**
@@ -279,6 +334,10 @@ export function base64StringToArrayBuffer(str: string): ArrayBuffer {
  * @returns Result of concatenating `buffers` in order.
  */
 export function concatenateArrayBuffers(buffers: ArrayBuffer[]): ArrayBuffer {
+  if (buffers.length === 1) {
+    return buffers[0];
+  }
+
   let totalByteLength = 0;
   buffers.forEach((buffer: ArrayBuffer) => {
     totalByteLength += buffer.byteLength;
@@ -311,6 +370,82 @@ export function basename(path: string): string {
 }
 
 /**
+ * Create `ModelJSON` from `ModelArtifacts`.
+ *
+ * @param artifacts Model artifacts, describing the model and its weights.
+ * @param manifest Weight manifest, describing where the weights of the
+ *     `ModelArtifacts` are stored, and some metadata about them.
+ * @returns Object representing the `model.json` file describing the model
+ *     artifacts and weights
+ */
+export function getModelJSONForModelArtifacts(
+    artifacts: ModelArtifacts, manifest: WeightsManifestConfig): ModelJSON {
+  const result: ModelJSON = {
+    modelTopology: artifacts.modelTopology,
+    format: artifacts.format,
+    generatedBy: artifacts.generatedBy,
+    convertedBy: artifacts.convertedBy,
+    weightsManifest: manifest
+  };
+  if (artifacts.signature != null) {
+    result.signature = artifacts.signature;
+  }
+  if (artifacts.userDefinedMetadata != null) {
+    result.userDefinedMetadata = artifacts.userDefinedMetadata;
+  }
+  if (artifacts.modelInitializer != null) {
+    result.modelInitializer = artifacts.modelInitializer;
+  }
+  if (artifacts.trainingConfig != null) {
+    result.trainingConfig = artifacts.trainingConfig;
+  }
+  return result;
+}
+
+/**
+ * Create `ModelArtifacts` from a JSON file.
+ *
+ * @param modelJSON Object containing the parsed JSON of `model.json`
+ * @param loadWeights Function that takes the JSON file's weights manifest,
+ *     reads weights from the listed path(s), and returns a Promise of the
+ *     weight manifest entries along with the weights data.
+ * @returns A Promise of the `ModelArtifacts`, as described by the JSON file.
+ */
+export async function getModelArtifactsForJSON(
+    modelJSON: ModelJSON,
+    loadWeights: (weightsManifest: WeightsManifestConfig) => Promise<[
+      /* weightSpecs */ WeightsManifestEntry[], /* weightData */ ArrayBuffer
+    ]>): Promise<ModelArtifacts> {
+  const modelArtifacts: ModelArtifacts = {
+    modelTopology: modelJSON.modelTopology,
+    format: modelJSON.format,
+    generatedBy: modelJSON.generatedBy,
+    convertedBy: modelJSON.convertedBy
+  };
+
+  if (modelJSON.trainingConfig != null) {
+    modelArtifacts.trainingConfig = modelJSON.trainingConfig;
+  }
+  if (modelJSON.weightsManifest != null) {
+    const [weightSpecs, weightData] =
+        await loadWeights(modelJSON.weightsManifest);
+    modelArtifacts.weightSpecs = weightSpecs;
+    modelArtifacts.weightData = weightData;
+  }
+  if (modelJSON.signature != null) {
+    modelArtifacts.signature = modelJSON.signature;
+  }
+  if (modelJSON.userDefinedMetadata != null) {
+    modelArtifacts.userDefinedMetadata = modelJSON.userDefinedMetadata;
+  }
+  if (modelJSON.modelInitializer != null) {
+    modelArtifacts.modelInitializer = modelJSON.modelInitializer;
+  }
+
+  return modelArtifacts;
+}
+
+/**
  * Populate ModelArtifactsInfo fields for a model with JSON topology.
  * @param modelArtifacts
  * @returns A ModelArtifactsInfo object.
@@ -333,5 +468,109 @@ export function getModelArtifactsInfoForJSON(modelArtifacts: ModelArtifacts):
     weightDataBytes: modelArtifacts.weightData == null ?
         0 :
         modelArtifacts.weightData.byteLength,
+  };
+}
+
+/**
+ * Computes mantisa table for casting Float16 to Float32
+ * See http://www.fox-toolkit.org/ftp/fasthalffloatconversion.pdf
+ *
+ * @returns Uint32Array, 2048 mantissa lookup values.
+ */
+function computeFloat16MantisaTable(): Uint32Array {
+  const convertMantissa = (i: number): number => {
+    let m = i << 13;
+    let e = 0;
+
+    while ((m & 0x00800000) === 0) {
+      e -= 0x00800000;
+      m <<= 1;
+    }
+    m &= ~0x00800000;
+    e += 0x38800000;
+
+    return m | e;
+  };
+
+  const mantisaTable = new Uint32Array(2048);
+
+  mantisaTable[0] = 0;
+  for (let i = 1; i < 1024; i++) {
+    mantisaTable[i] = convertMantissa(i);
+  }
+  for (let i = 1024; i < 2048; i++) {
+    mantisaTable[i] = 0x38000000 + ((i - 1024) << 13);
+  }
+
+  return mantisaTable;
+}
+
+/**
+ * Computes exponent table for casting Float16 to Float32
+ * See http://www.fox-toolkit.org/ftp/fasthalffloatconversion.pdf
+ *
+ * @returns Uint32Array, 64 exponent lookup values.
+ */
+function computeFloat16ExponentTable(): Uint32Array {
+  const exponentTable = new Uint32Array(64);
+
+  exponentTable[0] = 0;
+  exponentTable[31] = 0x47800000;
+  exponentTable[32] = 0x80000000;
+  exponentTable[63] = 0xc7800000;
+  for (let i = 1; i < 31; i++) {
+    exponentTable[i] = i << 23;
+  }
+  for (let i = 33; i < 63; i++) {
+    exponentTable[i] = 0x80000000 + ((i - 32) << 23);
+  }
+
+  return exponentTable;
+}
+
+/**
+ * Computes offset table for casting Float16 to Float32
+ * See http://www.fox-toolkit.org/ftp/fasthalffloatconversion.pdf
+ *
+ * @returns Uint32Array, 6d offset values.
+ */
+function computeFloat16OffsetTable(): Uint32Array {
+  const offsetTable = new Uint32Array(64);
+
+  for (let i = 0; i < 64; i++) {
+    offsetTable[i] = 1024;
+  }
+  offsetTable[0] = offsetTable[32] = 0;
+
+  return offsetTable;
+}
+
+/**
+ * Retrieve a Float16 decoder which will decode a ByteArray of Float16 values
+ * to a Float32Array.
+ *
+ * @returns Function (buffer: Uint16Array) => Float32Array which decodes
+ *          the Uint16Array of Float16 bytes to a Float32Array.
+ */
+export function getFloat16Decoder(): (buffer: Uint16Array) => Float32Array {
+  // Algorithm is based off of
+  // http://www.fox-toolkit.org/ftp/fasthalffloatconversion.pdf
+
+  // Cache lookup tables
+  const mantisaTable = computeFloat16MantisaTable();
+  const exponentTable = computeFloat16ExponentTable();
+  const offsetTable = computeFloat16OffsetTable();
+
+  return (quantizedArray: Uint16Array) => {
+    const buffer = new ArrayBuffer(4 * quantizedArray.length);
+    const bufferUint32View = new Uint32Array(buffer);
+    for (let index = 0; index < quantizedArray.length; index++) {
+      const float16Bits = quantizedArray[index];
+      const float32Bits =
+          mantisaTable[offsetTable[float16Bits >> 10] + (float16Bits & 0x3ff)] +
+          exponentTable[float16Bits >> 10];
+      bufferUint32View[index] = float32Bits;
+    }
+    return new Float32Array(buffer);
   };
 }

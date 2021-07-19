@@ -30,7 +30,7 @@ registerTestEnv({
 });
 
 /**
- * Expect values are close between an Tensor or number array.
+ * Expect values are close between a Tensor or number array.
  * @param actual
  * @param expected
  */

@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,10 +15,12 @@
 #ifndef CLAMP_IMPL_H_
 #define CLAMP_IMPL_H_
 
+#include <cstddef>
+
 namespace tfjs {
 namespace wasm {
 
-void xnn_clamp(const int x_id, const int out_id, const float min,
+void xnn_clamp(const size_t x_id, const size_t out_id, const float min,
                const float max);
 
 }  // namespace wasm

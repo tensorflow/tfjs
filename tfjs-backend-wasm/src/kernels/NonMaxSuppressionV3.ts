@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,41 +15,11 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, NonMaxSuppressionV3, NonMaxSuppressionV3Attrs, NonMaxSuppressionV3Inputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
-interface NonMaxSuppressionInputs extends NamedTensorInfoMap {
-  boxes: TensorInfo;
-  scores: TensorInfo;
-}
-
-interface NonMaxSuppressionAttrs extends NamedAttrMap {
-  maxOutputSize: number;
-  iouThreshold: number;
-  scoreThreshold: number;
-}
-
-// Analogous to `struct Result` in `NonMaxSuppressionV3.cc`.
-interface Result {
-  memOffset: number;
-  size: number;
-}
-
-/**
- * Parse the result of the c++ method, which is a data structure with two ints
- * (memOffset and size).
- */
-function parseResultStruct(backend: BackendWasm, resOffset: number): Result {
-  // The result of c++ method is a data structure with two ints (memOffset, and
-  // size).
-  const result = new Int32Array(backend.wasm.HEAPU8.buffer, resOffset, 2);
-  const memOffset = result[0];
-  const size = result[1];
-  // Since the result was allocated on the heap, we have to delete it.
-  backend.wasm._free(resOffset);
-  return {memOffset, size};
-}
+import {parseResultStruct} from './NonMaxSuppression_util';
 
 let wasmFunc: (
     boxesId: number, scoresId: number, maxOutputSize: number,
@@ -57,7 +27,7 @@ let wasmFunc: (
 
 function setup(backend: BackendWasm): void {
   wasmFunc = backend.wasm.cwrap(
-      'NonMaxSuppressionV3',
+      NonMaxSuppressionV3,
       'number',  // Result*
       [
         'number',  // boxesId
@@ -70,8 +40,8 @@ function setup(backend: BackendWasm): void {
 
 function kernelFunc(args: {
   backend: BackendWasm,
-  inputs: NonMaxSuppressionInputs,
-  attrs: NonMaxSuppressionAttrs
+  inputs: NonMaxSuppressionV3Inputs,
+  attrs: NonMaxSuppressionV3Attrs
 }): TensorInfo {
   const {backend, inputs, attrs} = args;
   const {iouThreshold, maxOutputSize, scoreThreshold} = attrs;
@@ -83,15 +53,22 @@ function kernelFunc(args: {
   const resOffset =
       wasmFunc(boxesId, scoresId, maxOutputSize, iouThreshold, scoreThreshold);
 
-  const {memOffset, size} = parseResultStruct(backend, resOffset);
+  const {pSelectedIndices, selectedSize, pSelectedScores, pValidOutputs} =
+      parseResultStruct(backend, resOffset);
 
-  const outShape = [size];
-  return backend.makeOutput(outShape, 'int32', memOffset);
+  // Since we are not using scores for V3, we have to delete it from the heap.
+  backend.wasm._free(pSelectedScores);
+  backend.wasm._free(pValidOutputs);
+
+  const selectedIndicesTensor =
+      backend.makeOutput([selectedSize], 'int32', pSelectedIndices);
+
+  return selectedIndicesTensor;
 }
 
-registerKernel({
-  kernelName: 'NonMaxSuppressionV3',
+export const nonMaxSuppressionV3Config: KernelConfig = {
+  kernelName: NonMaxSuppressionV3,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc,
-});
+  kernelFunc: kernelFunc as {} as KernelFunc,
+};

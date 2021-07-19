@@ -24,7 +24,7 @@ There are three categories of tests that are run for this package.
 
 ### tfjs-react-native unit tests
 
-Unit tests are written to be runnable in a browser and are geared towards quicker, lower overhead sanity checks. These are included in `src` and test pure JavaScript functionality.
+Unit tests are written for the package functionality and are imported into a react native application to run on device. They are run together with the integration tests described below to simplify automation.
 
 ### tfjs-core unit tests running on device in react native
 

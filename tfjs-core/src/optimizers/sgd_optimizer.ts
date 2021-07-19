@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,9 @@
 
 import {ENGINE} from '../engine';
 import {keep, tidy} from '../globals';
-import {scalar} from '../ops/ops';
+import {add} from '../ops/add';
+import {mul} from '../ops/mul';
+import {scalar} from '../ops/scalar';
 import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
 import {Scalar} from '../tensor';
 import {NamedTensor, NamedTensorMap} from '../tensor_types';
@@ -48,7 +50,7 @@ export class SGDOptimizer extends Optimizer {
       }
       const value = ENGINE.registeredVariables[name];
       tidy(() => {
-        const newValue = this.c.mul(gradient).add(value);
+        const newValue = add(mul(this.c, gradient), value);
         value.assign(newValue);
       });
     });

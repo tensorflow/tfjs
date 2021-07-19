@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,16 +16,18 @@
  */
 
 import {Platform} from './platforms/platform';
+import {isPromise} from './util_base';
 
 // Expects flags from URL in the format ?tfjsflags=FLAG1:1,FLAG2:true.
 const TENSORFLOWJS_FLAGS_PREFIX = 'tfjsflags';
 
 type FlagValue = number|boolean;
+type FlagEvaluationFn = (() => FlagValue)|(() => Promise<FlagValue>);
 export type Flags = {
   [featureName: string]: FlagValue
 };
 export type FlagRegistryEntry = {
-  evaluationFn: () => FlagValue;
+  evaluationFn: FlagEvaluationFn;
   setHook?: (value: FlagValue) => void;
 };
 
@@ -33,8 +35,9 @@ export type FlagRegistryEntry = {
  * The environment contains evaluated flags as well as the registered platform.
  * This is always used as a global singleton and can be retrieved with
  * `tf.env()`.
+ *
+ * @doc {heading: 'Environment'}
  */
-/** @doc {heading: 'Environment'} */
 export class Environment {
   private flags: Flags = {};
   private flagRegistry: {[flagName: string]: FlagRegistryEntry} = {};
@@ -43,6 +46,9 @@ export class Environment {
 
   platformName: string;
   platform: Platform;
+
+  // Jasmine spies on this in 'environment_test.ts'
+  getQueryParams = getQueryParams;
 
   // tslint:disable-next-line: no-any
   constructor(public global: any) {
@@ -60,7 +66,7 @@ export class Environment {
   }
 
   registerFlag(
-      flagName: string, evaluationFn: () => FlagValue,
+      flagName: string, evaluationFn: FlagEvaluationFn,
       setHook?: (value: FlagValue) => void) {
     this.flagRegistry[flagName] = {evaluationFn, setHook};
 
@@ -74,12 +80,28 @@ export class Environment {
     }
   }
 
+  async getAsync(flagName: string): Promise<FlagValue> {
+    if (flagName in this.flags) {
+      return this.flags[flagName];
+    }
+
+    this.flags[flagName] = await this.evaluateFlag(flagName);
+    return this.flags[flagName];
+  }
+
   get(flagName: string): FlagValue {
     if (flagName in this.flags) {
       return this.flags[flagName];
     }
 
-    this.flags[flagName] = this.evaluateFlag(flagName);
+    const flagValue = this.evaluateFlag(flagName);
+    if (isPromise(flagValue)) {
+      throw new Error(
+          `Flag ${flagName} cannot be synchronously evaluated. ` +
+          `Please use getAsync() instead.`);
+    }
+
+    this.flags[flagName] = flagValue as number | boolean;
 
     return this.flags[flagName];
   }
@@ -111,7 +133,7 @@ export class Environment {
     }
   }
 
-  private evaluateFlag(flagName: string): FlagValue {
+  private evaluateFlag(flagName: string): FlagValue|Promise<FlagValue> {
     if (this.flagRegistry[flagName] == null) {
       throw new Error(
           `Cannot evaluate flag '${flagName}': no evaluation function found.`);
@@ -136,7 +158,7 @@ export class Environment {
       return;
     }
 
-    const urlParams = getQueryParams(this.global.location.search);
+    const urlParams = this.getQueryParams(this.global.location.search);
     if (TENSORFLOWJS_FLAGS_PREFIX in urlParams) {
       const keyValues = urlParams[TENSORFLOWJS_FLAGS_PREFIX].split(',');
       keyValues.forEach(keyValue => {
@@ -177,8 +199,9 @@ function parseValue(flagName: string, value: string): FlagValue {
  *
  * The environment object contains the evaluated feature values as well as the
  * active platform.
+ *
+ * @doc {heading: 'Environment'}
  */
-/** @doc {heading: 'Environment'} */
 export function env() {
   return ENV;
 }

@@ -52,6 +52,7 @@ If you do not have Xcode setup on your machine, please run the following command
 ```sh
 $ xcode-select --install
 ```
+For Mac OS Catalina please follow [this guide](https://github.com/nodejs/node-gyp/blob/master/macOS_Catalina.md#installing-node-gyp-using-the-xcode-command-line-tools-via-manual-download) to install node-gyp.
 
 After that operation completes, re-run `yarn add` or `npm install` for the `@tensorflow/tfjs-node` package.
 
@@ -65,16 +66,58 @@ To use this package on Raspberry Pi, you need to rebuild the node native addon w
 $ npm rebuild @tensorflow/tfjs-node --build-from-source
 ```
 
+#### Custom binaries URI
+
+If you happen to be using a mirror for the libtensorflow binaries (default is [https://storage.googleapis.com/]), you have 3 options (in order of priority):
+
+1. Set the environment variable `TFJS_NODE_CDN_STORAGE`. This has the same behavior as `CDN_STORAGE`, but introduced to prevent collisions with other npm packages that might use `CDN_STORAGE`.
+
+```sh
+TFJS_NODE_CDN_STORAGE="https://yourmirrorofchoice.com/" npm install <package>
+(or)
+TFJS_NODE_CDN_STORAGE="https://yourmirrorofchoice.com/" yarn install <package>
+```
+
+2. Add the variable `TFJS_NODE_CDN_STORAGE` to your `.npmrc` file.
+
+```
+TFJS_NODE_CDN_STORAGE=https://yourmirrorofchoice.com/
+```
+
+3. Set the environment variable `CDN_STORAGE`. This option is deprecated in favor of the `TFJS_NODE_` prefix version above and will be removed in a future release.
+
+```sh
+CDN_STORAGE="https://yourmirrorofchoice.com/" npm install <package>
+(or)
+CDN_STORAGE="https://yourmirrorofchoice.com/" yarn install <package>
+```
+
+If your "mirror" uses a custom URI path that doesn't match the default, you have 2 options (in order of priority):
+
+1. Set the environment variable `TFJS_NODE_BASE_URI`
+
+```sh
+TFJS_NODE_BASE_URI="https://yourhost.com/your/path/libtensorflow-" npm install <package>
+(or)
+TFJS_NODE_BASE_URI="https://yourhost.com/your/path/libtensorflow-" yarn install <package>
+```
+
+2. Add the variable `TFJS_NODE_BASE_URI` to your `.npmrc` file
+
+```
+TFJS_NODE_BASE_URI=https://yourhost.com/your/path/libtensorflow-
+```
+
 ## Using the binding
 
 Before executing any TensorFlow.js code, import the node package:
 
 ```js
 // Load the binding
-import * as tf from '@tensorflow/tfjs-node';
+const tf = require('@tensorflow/tfjs-node');
 
 // Or if running with GPU:
-import * as tf from '@tensorflow/tfjs-node-gpu';
+const tf = require('@tensorflow/tfjs-node-gpu');
 ```
 
 Note: you do not need to add the `@tensorflow/tfjs` package to your dependencies or import it directly.
@@ -116,3 +159,18 @@ cp bazel-bin/tensorflow/tools/lib_package/libtensorflow.tar.gz ~/myproject/node_
 cd path-to-my-project/node_modules/@tensorflow/tfjs-node/deps
 tar -xf libtensorflow.tar.gz
 ```
+
+If you want to publish an addon library with your own libtensorflow binary, you can host the custom libtensorflow binary and optional pre-compiled node addon module on the cloud service you choose, and add a `custom-binary.json` file in `scripts` folder with the following information:
+
+```js
+{
+  "tf-lib": "url-to-download-customized-binary",
+  "addon": {
+    "host": "host-of-pre-compiled-addon",
+    "remote_path": "remote-path-of-pre-compiled-addon",
+    "package_name": "file-name-of-pre-compile-addon"
+  }
+}
+```
+
+The installation scripts will automatically catch this file and use the custom libtensorflow binary and addon. If `addon` is not provided, the installation script will compile addon from source.

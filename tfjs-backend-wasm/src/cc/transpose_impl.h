@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,14 +15,15 @@
 #ifndef TRANSPOSE_IMPL_H_
 #define TRANSPOSE_IMPL_H_
 
+#include <cstddef>
 #include <vector>
 
 namespace tfjs {
 namespace wasm {
 
 template <typename T>
-void transpose(const T* x_data, const std::vector<int>& x_shape,
-               const std::vector<int>& perm, T* out_data);
+void transpose(const T* x_data, const std::vector<size_t>& x_shape,
+               const std::vector<size_t>& perm, T* out_data);
 
 }  // namespace wasm
 }  // namespace tfjs

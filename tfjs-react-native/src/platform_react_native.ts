@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import '@tensorflow/tfjs-backend-cpu';
+import {GPGPUContext, MathBackendWebGL, setWebGLContext} from '@tensorflow/tfjs-backend-webgl';
 import * as tf from '@tensorflow/tfjs-core';
 import {Platform} from '@tensorflow/tfjs-core';
 import {Buffer} from 'buffer';
@@ -58,9 +60,11 @@ function parseHeaders(rawHeaders: string) {
  * @param path The URL path to make a request to
  * @param init The request init. See init here:
  *     https://developer.mozilla.org/en-US/docs/Web/API/Request/Request
- * @param options A RequestDetails object
- * @param options.isBinary boolean indicating whether this request is for a
+ * @param options A RequestDetails object.
+ *    - __options.isBinary__ boolean indicating whether this request is for a
  *     binary file.
+ *
+ * @doc {heading: 'Platform helpers', subheading: 'http'}
  */
 export async function fetch(
     path: string, init?: RequestInit,
@@ -143,7 +147,7 @@ export class PlatformReactNative implements Platform {
     if (encoding === 'utf-16') {
       encoding = 'utf16le';
     }
-    return Buffer.from(bytes).toString(encoding);
+    return Buffer.from(bytes).toString(encoding as BufferEncoding);
   }
 
   now(): number {
@@ -220,14 +224,16 @@ function registerWebGLBackend() {
       glContext.clientWaitSync = shimClientWaitSync.bind(glContext);
 
       // Set the WebGLContext before flag evaluation
-      tf.webgl.setWebGLContext(2, glContext);
-      const context = new tf.webgl.GPGPUContext();
-      const backend = new tf.webgl.MathBackendWebGL(context);
+      setWebGLContext(2, glContext);
+      const context = new GPGPUContext();
+      const backend = new MathBackendWebGL(context);
 
       return backend;
     }, PRIORITY);
 
     // Register all the webgl kernels on the rn-webgl backend
+    // TODO: Use tf.copyRegisteredKernels once synced to tfjs-core 2.5.0.
+    // tf.copyRegisteredKernels('webgl', 'rn-webgl');
     const kernels = tf.getKernelsForBackend('webgl');
     kernels.forEach(kernelConfig => {
       const newKernelConfig =

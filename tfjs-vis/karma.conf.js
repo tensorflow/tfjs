@@ -17,6 +17,7 @@
 
 const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.json',
+  coverageOptions: {instrumentation: false},
   reports: {},
   bundlerOptions: {
     acornOptions: {
@@ -57,7 +58,7 @@ module.exports = function(config) {
 
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],
-    files: ['src/**/*.ts*'],
+    files: ['src/setup_test.ts', 'src/**/*.ts*'],
     exclude: ['src/types/**'],
     preprocessors: {
       '**/*.ts': ['karma-typescript'],
@@ -66,10 +67,13 @@ module.exports = function(config) {
     },
     karmaTypescriptConfig,
     reporters: ['progress', 'karma-typescript'],
-    browsers: ['Chrome', 'Firefox', 'Safari'],
+    browsers: ['Chrome'],
+    port: 9836,
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
-      accessKey: process.env.BROWSERSTACK_KEY
+      accessKey: process.env.BROWSERSTACK_KEY,
+      tunnelIdentifier:
+          `tfjs_vis_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     },
     captureTimeout: 120000,
     reportSlowerThan: 500,

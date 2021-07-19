@@ -67,7 +67,7 @@ let nodeValue: NodeValueImpl;
 describe('NodeValueImpl', () => {
   beforeEach(() => {
     nodeValue =
-        new NodeValueImpl(NODE, TENSOR_MAP, new ExecutionContext({}, {}));
+        new NodeValueImpl(NODE, TENSOR_MAP, new ExecutionContext({}, {}, {}));
   });
   describe('getInput', () => {
     it('should find tensor from tensormap', async () => {

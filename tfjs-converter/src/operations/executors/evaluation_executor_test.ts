@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
@@ -24,9 +25,9 @@ import {createBoolAttr, createNumberAttrFromIndex, createTensorAttr} from './tes
 
 describe('evaluation', () => {
   let node: Node;
-  const input1 = [tfc.tensor1d([1])];
-  const input2 = [tfc.scalar(1)];
-  const context = new ExecutionContext({}, {});
+  const input1 = [tfOps.tensor1d([1])];
+  const input2 = [tfOps.scalar(1)];
+  const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
     node = {
@@ -48,9 +49,32 @@ describe('evaluation', () => {
         node.inputParams['x'] = createTensorAttr(0);
         node.inputParams['k'] = createNumberAttrFromIndex(1);
         node.attrParams['sorted'] = createBoolAttr(true);
-        spyOn(tfc, 'topk').and.callThrough();
+        spyOn(tfOps, 'topk').and.callThrough();
         executeOp(node, {input1, input2}, context);
-        expect(tfc.topk).toHaveBeenCalledWith(input1[0], 1, true);
+        expect(tfOps.topk).toHaveBeenCalledWith(input1[0], 1, true);
+      });
+    });
+
+    describe('Unique', () => {
+      it('should get called correctly', () => {
+        node.op = 'Unique';
+        node.inputParams['x'] = createTensorAttr(0);
+        spyOn(tfOps, 'unique').and.callThrough();
+        executeOp(node, {input1}, context);
+        expect(tfOps.unique).toHaveBeenCalledWith(input1[0]);
+      });
+    });
+
+    describe('UniqueV2', () => {
+      it('should get called correctly', () => {
+        node.op = 'UniqueV2';
+        node.inputParams['x'] = createTensorAttr(0);
+        node.inputParams['axis'] = createNumberAttrFromIndex(1);
+        spyOn(tfOps, 'unique').and.callThrough();
+        const xInput = [tfOps.tensor2d([[1], [2]])];
+        const axisInput = [tfOps.scalar(1)];
+        executeOp(node, {'input1': xInput, 'input2': axisInput}, context);
+        expect(tfOps.unique).toHaveBeenCalledWith(xInput[0], 1);
       });
     });
   });

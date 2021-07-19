@@ -20,3 +20,4 @@ rollup.config.js
 tsconfig.json
 .yalc/
 yalc.lock
+*.png

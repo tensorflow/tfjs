@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -158,7 +158,7 @@ export type TensorLike6D =
     TypedArray|number[]|number[][][][][][]|boolean[]|boolean[][][][][][]|
     string[]|string[][][][][][]|Uint8Array[]|Uint8Array[][][][][];
 
-/** Type for representing image dat in Uint8Array type. */
+/** Type for representing image data in Uint8Array type. */
 export interface PixelData {
   width: number;
   height: number;

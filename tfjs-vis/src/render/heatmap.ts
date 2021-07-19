@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs-core';
 import embed, {Mode, VisualizationSpec} from 'vega-embed';
 
 import {Drawable, HeatmapData, HeatmapOptions} from '../types';
@@ -57,8 +57,9 @@ import {getDrawArea} from './render_utils';
  * tfvis.render.heatmap(surface, data);
  * ```
  *
+ *
+ * @doc {heading: 'Charts', namespace: 'render'}
  */
-/** @doc {heading: 'Charts', namespace: 'render'} */
 export async function heatmap(
     container: Drawable, data: HeatmapData,
     opts: HeatmapOptions = {}): Promise<void> {
@@ -161,6 +162,7 @@ export async function heatmap(
       },
       'scale': {'bandPaddingInner': 0, 'bandPaddingOuter': 0},
     },
+    //@ts-ignore
     'data': {'values': values},
     'mark': {'type': 'rect', 'tooltip': true},
     'encoding': {
@@ -168,13 +170,13 @@ export async function heatmap(
         'field': 'x',
         'type': options.xType,
         'title': options.xLabel,
-        'sort': 'x',
+        'sort': false,
       },
       'y': {
         'field': 'y',
         'type': options.yType,
         'title': options.yLabel,
-        'sort': 'y',
+        'sort': false,
       },
       'fill': {
         'field': 'value',
@@ -228,12 +230,14 @@ export async function heatmap(
   }
 
   if (colorRange !== 'viridis') {
+    //@ts-ignore
     const fill = spec.encoding.fill;
     // @ts-ignore
     fill.scale = {'range': colorRange};
   }
 
   if (options.domain) {
+    //@ts-ignore
     const fill = spec.encoding.fill;
     // @ts-ignore
     if (fill.scale != null) {

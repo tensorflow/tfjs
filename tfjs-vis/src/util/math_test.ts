@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs-core';
 
 import {accuracy, arrayStats, confusionMatrix, perClassAccuracy, tensorStats} from './math';
 import {DECIMAL_PLACES_TO_CHECK} from './utils';

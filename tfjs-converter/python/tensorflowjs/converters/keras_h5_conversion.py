@@ -66,7 +66,8 @@ def _convert_h5_group(group):
   group_out = []
   if 'weight_names' in group.attrs:
     # This is a leaf node in namespace (e.g., 'Dense' in 'foo/bar/Dense').
-    names = [name for name in group.attrs['weight_names']]
+    names = group.attrs['weight_names'].tolist()
+
     if not names:
       return group_out
 
@@ -119,7 +120,7 @@ def _initialize_output_dictionary(h5file):
 
 def _ensure_h5file(h5file):
   if not isinstance(h5file, h5py.File):
-    return h5py.File(h5file)
+    return h5py.File(h5file, "r")
   else:
     return h5file
 
@@ -259,8 +260,9 @@ def _get_generated_by(topology):
 def write_artifacts(topology,
                     weights,
                     output_dir,
-                    quantization_dtype=None,
-                    weight_shard_size_bytes=1024 * 1024 * 4):
+                    quantization_dtype_map=None,
+                    weight_shard_size_bytes=1024 * 1024 * 4,
+                    metadata=None):
   """Writes weights and topology to the output_dir.
 
   If `topology` is Falsy (e.g., `None`), only emit weights to output_dir.
@@ -269,10 +271,12 @@ def write_artifacts(topology,
     topology: a JSON dictionary, representing the Keras config.
     weights: an array of weight groups (as defined in tfjs write_weights).
     output_dir: the directory to hold all the contents.
-    quantization_dtype: An optional numpy dtype to quantize weights to for
-      compression. Only np.uint8 and np.uint16 are supported.
+    quantization_dtype_map: (Optional) A mapping from dtype
+      (`uint8`, `uint16`, `float16`) to weights names. The weight mapping
+      supports wildcard substitution.
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
+    metadata: User defined metadata map.
   """
   # TODO(cais, nielsene): This method should allow optional arguments of
   #   `write_weights.write_weights` (e.g., shard size) and forward them.
@@ -291,13 +295,16 @@ def write_artifacts(topology,
   model_json = {
       common.FORMAT_KEY: common.TFJS_LAYERS_MODEL_FORMAT,
       common.GENERATED_BY_KEY: _get_generated_by(topology),
-      common.CONVERTED_BY_KEY: common.get_converted_by(),
+      common.CONVERTED_BY_KEY: common.get_converted_by()
   }
+
+  if metadata:
+    model_json[common.USER_DEFINED_METADATA_KEY] = metadata
 
   model_json[common.ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None
   weights_manifest = write_weights.write_weights(
       weights, output_dir, write_manifest=False,
-      quantization_dtype=quantization_dtype,
+      quantization_dtype_map=quantization_dtype_map,
       shard_size_bytes=weight_shard_size_bytes)
   assert isinstance(weights_manifest, list)
   model_json[common.ARTIFACT_WEIGHTS_MANIFEST_KEY] = weights_manifest
@@ -308,7 +315,8 @@ def write_artifacts(topology,
     json.dump(model_json, f)
 
 
-def save_keras_model(model, artifacts_dir, quantization_dtype=None):
+def save_keras_model(model, artifacts_dir, quantization_dtype_map=None,
+                     weight_shard_size_bytes=1024 * 1024 * 4, metadata=None):
   r"""Save a Keras model and its weights in TensorFlow.js format.
 
   Args:
@@ -325,8 +333,12 @@ def save_keras_model(model, artifacts_dir, quantization_dtype=None):
         - files containing weight values in groups, with the file name pattern
           group(\d+)-shard(\d+)of(\d+).
       If the directory does not exist, this function will attempt to create it.
-    quantization_dtype: An optional numpy dtype to quantize weights to for
-        compression. Only np.uint8 and np.uint16 are supported.
+    quantization_dtype_map: (Optional) A mapping from dtype
+      (`uint8`, `uint16`, `float16`) to weights names. The weight mapping
+      supports wildcard substitution.
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
+    metadata: User defined metadata map.
 
   Raises:
     ValueError: If `artifacts_dir` already exists as a file (not a directory).
@@ -341,5 +353,7 @@ def save_keras_model(model, artifacts_dir, quantization_dtype=None):
     os.makedirs(artifacts_dir)
   write_artifacts(
       topology_json, weight_groups, artifacts_dir,
-      quantization_dtype=quantization_dtype)
+      quantization_dtype_map=quantization_dtype_map,
+      weight_shard_size_bytes=weight_shard_size_bytes,
+      metadata=metadata)
   os.remove(temp_h5_path)

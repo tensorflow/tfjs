@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
+import './engine';
+
 import * as device_util from './device_util';
 import {env} from './environment';
 
@@ -68,3 +70,9 @@ ENV.registerFlag('DEPRECATION_WARNINGS_ENABLED', () => true);
 
 /** True if running unit tests. */
 ENV.registerFlag('IS_TEST', () => false);
+
+/** Whether to check computation result for errors. */
+ENV.registerFlag('CHECK_COMPUTATION_FOR_ERRORS', () => true);
+
+/** Whether the backend needs to wrap input to imageBitmap. */
+ENV.registerFlag('WRAP_TO_IMAGEBITMAP', () => false);

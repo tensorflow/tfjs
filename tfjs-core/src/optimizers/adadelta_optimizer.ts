@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,9 +17,15 @@
 
 import {ENGINE} from '../engine';
 import {dispose, tidy} from '../globals';
-import {zerosLike} from '../ops/ops';
+import {add} from '../ops/add';
+import {div} from '../ops/div';
+import {mul} from '../ops/mul';
+import {sqrt} from '../ops/ops';
+import {square} from '../ops/square';
+import {zerosLike} from '../ops/zeros_like';
 import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
 import {NamedTensor, NamedVariableMap} from '../tensor_types';
+
 import {Optimizer, OptimizerVariable} from './optimizer';
 
 /** @doclink Optimizer */
@@ -71,21 +77,23 @@ export class AdadeltaOptimizer extends Optimizer {
       const accumulatedUpdate = this.accumulatedUpdates[i].variable;
 
       tidy(() => {
-        const newAccumulatedGrad = accumulatedGrad.mul(this.rho).add(
-            gradient.square().mul(1 - this.rho));
+        const newAccumulatedGrad =
+            add(mul(accumulatedGrad, this.rho),
+                mul(square(gradient), 1 - this.rho));
 
-        const updates = accumulatedUpdate.add(this.epsilon)
-                            .sqrt()
-                            .div(accumulatedGrad.add(this.epsilon).sqrt())
-                            .mul(gradient);
+        const updates =
+            mul(div(sqrt(add(accumulatedUpdate, this.epsilon)),
+                    sqrt(add(accumulatedGrad, this.epsilon))),
+                gradient);
 
-        const newAccumulatedUpdate = accumulatedUpdate.mul(this.rho).add(
-            updates.square().mul(1 - this.rho));
+        const newAccumulatedUpdate =
+            add(mul(accumulatedUpdate, this.rho),
+                mul(square(updates), 1 - this.rho));
 
         accumulatedGrad.assign(newAccumulatedGrad);
         accumulatedUpdate.assign(newAccumulatedUpdate);
 
-        const newValue = updates.mul(-this.learningRate).add(value);
+        const newValue = add(mul(updates, -this.learningRate), value);
         value.assign(newValue);
       });
     });

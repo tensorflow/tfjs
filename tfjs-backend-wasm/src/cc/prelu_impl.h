@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,11 +15,13 @@
 #ifndef PRELU_IMPL_H_
 #define PRELU_IMPL_H_
 
+#include <cstddef>
+
 namespace tfjs {
 namespace wasm {
 
-void prelu(const float* x_buf, const int x_size, const int weights_id,
-           const int out_id);
+void prelu(const float* x_buf, const size_t x_size, const size_t weights_id,
+           const size_t out_id);
 
 }  // namespace wasm
 }  // namespace tfjs

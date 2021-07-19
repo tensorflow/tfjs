@@ -16,7 +16,8 @@
  */
 
 import {GraphModel, loadGraphModel} from '@tensorflow/tfjs-converter';
-import {image, Tensor, Tensor3D, tidy} from '@tensorflow/tfjs-core';
+import {cast, div, expandDims, image, sub, Tensor, Tensor3D, Tensor4D, tidy} from '@tensorflow/tfjs-core';
+
 import {ImageInput} from './types';
 import {imageToTensor, loadDictionary} from './util';
 
@@ -58,8 +59,8 @@ export class ImageClassificationModel {
     const img = imageToTensor(input);
     const croppedImg = options.centerCrop ?
         centerCropAndResize(img) :
-        image.resizeBilinear(img, IMG_SIZE).expandDims();
-    return croppedImg.div(DIV_FACTOR).sub(SUB_FACTOR);
+        expandDims(image.resizeBilinear(img, IMG_SIZE));
+    return sub(div(croppedImg, DIV_FACTOR), SUB_FACTOR);
   }
 }
 
@@ -95,6 +96,8 @@ function centerCropAndResize(img: Tensor3D) {
     ];
     const boxIndices = [0];
     return image.cropAndResize(
-        img.toFloat().expandDims(), boxes, boxIndices, IMG_SIZE);
+        // tslint:disable-next-line
+        expandDims(cast(img, 'float32')) as Tensor4D, boxes, boxIndices,
+        IMG_SIZE);
   });
 }

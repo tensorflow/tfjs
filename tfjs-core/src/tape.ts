@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,7 +21,7 @@ import * as util from './util';
 
 export interface TapeNode {
   id: number;
-  name: string;
+  kernelName: string;
   outputs: Tensor[];
   inputs: NamedTensorMap;
   // Optional params, defined only for ops with gradient impl.
@@ -130,7 +130,8 @@ export function getFilteredNodesXToY(
  */
 export function backpropagateGradients(
     tensorAccumulatedGradientMap: {[tensorId: number]: Tensor},
-    filteredTape: TapeNode[], tidy: (f: Function) => Tensor) {
+    filteredTape: TapeNode[], tidy: (f: Function) => Tensor,
+    add: (a: Tensor, b: Tensor) => Tensor) {
   // Walk the tape backward and keep a map of Tensor to its gradient.
   for (let i = filteredTape.length - 1; i >= 0; i--) {
     const node = filteredTape[i];
@@ -150,11 +151,12 @@ export function backpropagateGradients(
     if (node.gradient == null) {
       throw new Error(
           `Cannot compute gradient: gradient function not found ` +
-          `for ${node.name}.`);
+          `for ${node.kernelName}.`);
     }
 
     // Backprop dy through this node and accumulate gradients over the inputs.
     const inputGradients = node.gradient(dys);
+
     for (const inputName in node.inputs) {
       if (!(inputName in inputGradients)) {
         throw new Error(
@@ -166,13 +168,15 @@ export function backpropagateGradients(
       const dx = tidy(() => inputGradients[inputName]());
       if (dx.dtype !== 'float32') {
         throw new Error(
-            `Error in gradient for op ${node.name}. The gradient of input ` +
+            `Error in gradient for op ${
+                node.kernelName}. The gradient of input ` +
             `${inputName} must have 'float32' dtype, but has '${dx.dtype}'`);
       }
       const x = node.inputs[inputName];
       if (!util.arraysEqual(dx.shape, x.shape)) {
         throw new Error(
-            `Error in gradient for op ${node.name}. The gradient of input ` +
+            `Error in gradient for op ${
+                node.kernelName}. The gradient of input ` +
             `'${inputName}' has shape '${dx.shape}', which does not match ` +
             `the shape of the input '${x.shape}'`);
       }
@@ -181,7 +185,7 @@ export function backpropagateGradients(
         tensorAccumulatedGradientMap[x.id] = dx;
       } else {
         const curGradient = tensorAccumulatedGradientMap[x.id];
-        tensorAccumulatedGradientMap[x.id] = curGradient.add(dx);
+        tensorAccumulatedGradientMap[x.id] = add(curGradient, dx);
         curGradient.dispose();
       }
     }

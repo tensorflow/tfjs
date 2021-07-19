@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor} from '@tensorflow/tfjs';
-import {Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
+import {Tensor, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs';
 import {ensureTensorflowBackend, nodeBackend} from './nodejs_kernel_backend';
 
 export enum ImageType {
@@ -31,7 +30,7 @@ export enum ImageType {
  *
  * @param contents The JPEG-encoded image in an Uint8Array.
  * @param channels An optional int. Defaults to 0. Accepted values are
- *     0: use the number of channels in the PNG-encoded image.
+ *     0: use the number of channels in the JPEG-encoded image.
  *     1: output a grayscale image.
  *     3: output an RGB image.
  * @param ratio An optional int. Defaults to 1. Downscaling ratio. It is used
@@ -52,8 +51,7 @@ export enum ImageType {
  *     library changes to a version that does not have that specific option.) It
  *     is used when image is type Jpeg.
  * @returns A 3D Tensor of dtype `int32` with shape [height, width, 1/3].
- */
-/**
+ *
  * @doc {heading: 'Operations', subheading: 'Images', namespace: 'node'}
  */
 export function decodeJpeg(
@@ -73,7 +71,7 @@ export function decodeJpeg(
 /**
  * Decode a PNG-encoded image to a 3D Tensor of dtype `int32`.
  *
- * @param contents The BMP-encoded image in an Uint8Array.
+ * @param contents The PNG-encoded image in an Uint8Array.
  * @param channels An optional int. Defaults to 0. Accepted values are
  *      0: use the number of channels in the PNG-encoded image.
  *      1: output a grayscale image.
@@ -82,8 +80,7 @@ export function decodeJpeg(
  * @param dtype The data type of the result. Only `int32` is supported at this
  *     time.
  * @returns A 3D Tensor of dtype `int32` with shape [height, width, 1/3/4].
- */
-/**
+ *
  * @doc {heading: 'Operations', subheading: 'Images', namespace: 'node'}
  */
 export function decodePng(
@@ -107,8 +104,7 @@ export function decodePng(
  *      3: output an RGB image.
  *      4: output an RGBA image.
  * @returns A 3D Tensor of dtype `int32` with shape [height, width, 3/4].
- */
-/**
+ *
  * @doc {heading: 'Operations', subheading: 'Images', namespace: 'node'}
  */
 export function decodeBmp(contents: Uint8Array, channels = 0): Tensor3D {
@@ -124,8 +120,7 @@ export function decodeBmp(contents: Uint8Array, channels = 0): Tensor3D {
  * @param contents The GIF-encoded image in an Uint8Array.
  * @returns A 4D Tensor of dtype `int32` with shape [num_frames, height, width,
  *     3]. RGB channel order.
- */
-/**
+ *
  * @doc {heading: 'Operations', subheading: 'Images', namespace: 'node'}
  */
 export function decodeGif(contents: Uint8Array): Tensor4D {
@@ -153,9 +148,8 @@ export function decodeGif(contents: Uint8Array): Tensor4D {
  * @returns A Tensor with dtype `int32` and a 3- or 4-dimensional shape,
  *     depending on the file type. For gif file the returned Tensor shape is
  *     [num_frames, height, width, 3], and for jpeg/png/bmp the returned Tensor
- *     shape is []height, width, channels]
- */
-/**
+ *     shape is [height, width, channels]
+ *
  * @doc {heading: 'Operations', subheading: 'Images', namespace: 'node'}
  */
 export function decodeImage(
@@ -220,8 +214,7 @@ export function decodeImage(
  * @param xmpMetadata An optional string. Defaults to "". If not empty, embed
  *     this XMP metadata in the image header.
  * @returns The JPEG encoded data as an Uint8Array.
- */
-/**
+ *
  * @doc {heading: 'Operations', subheading: 'Images', namespace: 'node'}
  */
 export async function encodeJpeg(
@@ -243,10 +236,9 @@ export async function encodeJpeg(
  * Encodes an image tensor to PNG.
  *
  * @param image A 3-D uint8 Tensor of shape [height, width, channels].
- * @param compression An optional int. Defaults to -1. Compression level.
+ * @param compression An optional int. Defaults to 1. Compression level.
  * @returns The PNG encoded data as an Uint8Array.
- */
-/**
+ *
  * @doc {heading: 'Operations', subheading: 'Images', namespace: 'node'}
  */
 export async function encodePng(
@@ -301,6 +293,7 @@ export function getImageType(content: Uint8Array): string {
     return ImageType.BMP;
   } else {
     throw new Error(
-        'Expected image (JPEG, PNG, or GIF), but got unsupported image type');
+        'Expected image (BMP, JPEG, PNG, or GIF), but got unsupported ' +
+        'image type');
   }
 }

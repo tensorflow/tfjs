@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,13 +15,15 @@
  * =============================================================================
  */
 
-import {backend_util, NamedTensorInfoMap, registerKernel, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, BinaryInputs, DataType, KernelConfig, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+
 import {CppDType} from './types';
 
-export function registerBinaryKernel(
-    kernelName: string, supportsBroadcast: boolean) {
+export function createBinaryKernelConfig(
+    kernelName: string, supportsFullBroadcast: boolean,
+    dtype?: DataType): KernelConfig {
   let wasmFunc:
       (aId: number, aShape: Uint8Array, aShapeLen: number, bId: number,
        bShape: Uint8Array, bShapeLen: number, dtype: number, outId: number) =>
@@ -47,8 +49,9 @@ export function registerBinaryKernel(
     const aId = backend.dataIdMap.get(a.dataId).id;
     const bId = backend.dataIdMap.get(b.dataId).id;
 
+    const outputType = dtype != null ? dtype : a.dtype;
     const newShape = backend_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    const out = backend.makeOutput(newShape, a.dtype);
+    const out = backend.makeOutput(newShape, outputType);
 
     // Short-circuit zero-sized tensors.
     if (util.sizeFromShape(newShape) === 0) {
@@ -62,7 +65,8 @@ export function registerBinaryKernel(
         aId, aShapeBytes, a.shape.length, bId, bShapeBytes, b.shape.length,
         CppDType[a.dtype], outId);
 
-    if (supportsBroadcast) {
+    // Currently only some float operations support full broadcast.
+    if (supportsFullBroadcast && a.dtype === 'float32') {
       kernelFunc();
       return out;
     }
@@ -75,14 +79,11 @@ export function registerBinaryKernel(
       kernelFunc();
       return out;
     } else {
-      throw new Error('Broadcasting along inner dims is not yet supported');
+      throw new Error(
+          `Broadcasting along outer dims is not yet ` +
+          `supported for ${a.dtype} ${kernelName}.`);
     }
   }
 
-  registerKernel({kernelName, backendName: 'wasm', setupFunc, kernelFunc});
-}
-
-interface BinaryInputs extends NamedTensorInfoMap {
-  a: TensorInfo;
-  b: TensorInfo;
+  return {kernelName, backendName: 'wasm', setupFunc, kernelFunc};
 }

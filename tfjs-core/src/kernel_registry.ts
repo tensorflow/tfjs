@@ -14,10 +14,17 @@
  * limitations under the License.
  * =============================================================================
  */
+import {env} from './environment';
 
+import {getGlobal} from './global_util';
+import {NamedGradientMap} from './tape';
+import {Tensor} from './tensor';
 import {DataType, RecursiveArray} from './types';
 
-const kernelRegistry: Map<string, KernelConfig> = new Map();
+const kernelRegistry =
+    getGlobal('kernelRegistry', () => new Map<string, KernelConfig>());
+const gradRegistry =
+    getGlobal('gradRegistry', () => new Map<string, GradConfig>());
 
 export type DataId = object;
 
@@ -34,6 +41,11 @@ export type KernelFunc = (params: {
   attrs?: NamedAttrMap,
 }) => TensorInfo|TensorInfo[];
 
+/** The function to run when computing a gradient during backprop. */
+export type GradFunc =
+    (dy: Tensor|Tensor[], saved: Tensor[], attrs: NamedAttrMap) =>
+        NamedGradientMap;
+
 /** Function that gets called after the backend initializes. */
 export type KernelSetupFunc = (backend: {}) => void;
 /** Function that gets called right before the backend is disposed. */
@@ -46,6 +58,17 @@ export interface KernelConfig {
   kernelFunc: KernelFunc;
   setupFunc?: KernelSetupFunc;
   disposeFunc?: KernelDisposeFunc;
+}
+
+/** Config object for registering a gradient in the global registry. */
+export interface GradConfig {
+  kernelName: string;
+  inputsToSave?: string[];
+  // When saveAllInputs is true, all inputs will be saved. Only use this flag
+  // if inputs is an array of Tensors.
+  saveAllInputs?: boolean;
+  outputsToSave?: boolean[];
+  gradFunc: GradFunc;
 }
 
 /** Holds metadata for a given tensor. */
@@ -73,6 +96,14 @@ export function getKernel(
     kernelName: string, backendName: string): KernelConfig {
   const key = makeKey(kernelName, backendName);
   return kernelRegistry.get(key);
+}
+
+/**
+ * Returns the registered gradient info associated with the provided kernel.
+ * @param kernelName The official TF kernel name.
+ */
+export function getGradient(kernelName: string): GradConfig {
+  return gradRegistry.get(kernelName);
 }
 
 export function getKernelsForBackend(backendName: string): KernelConfig[] {
@@ -108,11 +139,32 @@ export function registerKernel(config: KernelConfig) {
   const {kernelName, backendName} = config;
   const key = makeKey(kernelName, backendName);
   if (kernelRegistry.has(key)) {
-    throw new Error(
+    console.warn(
         `The kernel '${kernelName}' for backend ` +
         `'${backendName}' is already registered`);
   }
   kernelRegistry.set(key, config);
+}
+
+/**
+ * Registers a gradient function for a given kernel in the global registry,
+ * to be used during the back-propagation of that kernel.
+ *
+ * @param config An object with the following properties:
+ * - `kernelName` The name of the kernel that the gradient function is for.
+ * - `gradFunc` The function to run during back-propagation.
+ */
+export function registerGradient(config: GradConfig) {
+  const {kernelName} = config;
+
+  if (gradRegistry.has(kernelName)) {
+    // TODO (yassogba) after 3.0 assess whether we need to keep this gated
+    // to debug mode.
+    if (env().getBool('DEBUG')) {
+      console.warn(`Overriding the gradient for '${kernelName}'`);
+    }
+  }
+  gradRegistry.set(kernelName, config);
 }
 
 /**
@@ -131,6 +183,31 @@ export function unregisterKernel(
         `'${backendName}' is not registered`);
   }
   kernelRegistry.delete(key);
+}
+
+/** Removes the registered gradient from the global registry. */
+export function unregisterGradient(kernelName: string): void {
+  if (!gradRegistry.has(kernelName)) {
+    throw new Error(
+        `The gradient '${kernelName}' for backend is not registered`);
+  }
+  gradRegistry.delete(kernelName);
+}
+
+/**
+ * Finds kernels that have already been registered to a backend and re-registers
+ * them for a new backend. Useful for registering custom backends.
+ * @param registeredBackendName Already registered backend.
+ * @param newBackendName New backend.
+ */
+export function copyRegisteredKernels(
+    registeredBackendName: string, newBackendName: string): void {
+  const kernels = getKernelsForBackend(registeredBackendName);
+  kernels.forEach(kernelConfig => {
+    const newKernelConfig =
+        Object.assign({}, kernelConfig, {backendName: newBackendName});
+    registerKernel(newKernelConfig);
+  });
 }
 
 function makeKey(kernelName: string, backendName: string) {

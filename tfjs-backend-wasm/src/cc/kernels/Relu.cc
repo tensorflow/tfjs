@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,9 +16,10 @@
 #include <emscripten.h>
 #endif
 
+#include <cstddef>
 #include <limits>
 
-#include "src/cc/clamp_impl.h"
+#include "tfjs-backend-wasm/src/cc/clamp_impl.h"
 
 namespace tfjs {
 namespace wasm {
@@ -28,7 +29,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Relu(const int x_id, const int out_id) {
+void Relu(const size_t x_id, const size_t out_id) {
   const float min = 0;
   const float max = std::numeric_limits<float>::infinity();
   xnn_clamp(x_id, out_id, min, max);

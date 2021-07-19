@@ -22,7 +22,7 @@ let context: ExecutionContext;
 let tensorArray: TensorArray;
 describe('ExecutionContext', () => {
   beforeEach(() => {
-    context = new ExecutionContext({}, {});
+    context = new ExecutionContext({}, {}, {});
   });
 
   it('should initialize', () => {

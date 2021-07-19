@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,8 +27,9 @@ import {getTensorsInContainer} from './tensor_util';
 /**
  * Enables production mode which disables correctness checks in favor of
  * performance.
+ *
+ * @doc {heading: 'Environment'}
  */
-/** @doc {heading: 'Environment'} */
 export function enableProdMode(): void {
   env().set('PROD', true);
 }
@@ -44,8 +45,9 @@ export function enableProdMode(): void {
  * execution as we do not measure download time in the kernel execution time.
  *
  * See also: `tf.profile`, `tf.memory`.
+ *
+ * @doc {heading: 'Environment'}
  */
-/** @doc {heading: 'Environment'} */
 export function enableDebugMode(): void {
   env().set('DEBUG', true);
 }
@@ -68,16 +70,18 @@ setDeprecationWarningFn(deprecationWarn);
 
 /**
  * Dispose all variables kept in backend engine.
+ *
+ * @doc {heading: 'Environment'}
  */
-/** @doc {heading: 'Environment'} */
 export function disposeVariables(): void {
   ENGINE.disposeVariables();
 }
 
 /**
  * It returns the global engine that keeps track of all tensors and backends.
+ *
+ * @doc {heading: 'Environment'}
  */
-/** @doc {heading: 'Environment'} */
 export function engine(): Engine {
   return ENGINE;
 }
@@ -100,8 +104,9 @@ export function engine(): Engine {
  * WebGL Properties:
  * - `numBytesInGPU`: Number of bytes allocated (undisposed) in the GPU only at
  *     this time.
+ *
+ * @doc {heading: 'Performance', subheading: 'Memory'}
  */
-/** @doc {heading: 'Performance', subheading: 'Memory'} */
 export function memory(): MemoryInfo {
   return ENGINE.memory();
 }
@@ -109,12 +114,14 @@ export function memory(): MemoryInfo {
 /**
  * Executes the provided function `f()` and returns a promise that resolves
  * with information about the function's memory use:
- * - `newBytes`: tne number of new bytes allocated
+ * - `newBytes`: the number of new bytes allocated
  * - `newTensors`: the number of new tensors created
  * - `peakBytes`: the peak number of bytes allocated
  * - `kernels`: an array of objects for each kernel involved that reports
  * their input and output shapes, number of bytes used, and number of new
  * tensors created.
+ * - `kernelNames`: an array of unique strings with just the names of the
+ * kernels in the `kernels` array.
  *
  * ```js
  * const profile = await tf.profile(() => {
@@ -132,9 +139,11 @@ export function memory(): MemoryInfo {
  * k.totalBytesSnapshot)}`);
  * ```
  *
+ *
+ * @doc {heading: 'Performance', subheading: 'Profile'}
  */
-/** @doc {heading: 'Performance', subheading: 'Profile'} */
-export function profile(f: () => TensorContainer): Promise<ProfileInfo> {
+export function profile(f: () => (TensorContainer | Promise<TensorContainer>)):
+    Promise<ProfileInfo> {
   return ENGINE.profile(f);
 }
 
@@ -175,8 +184,9 @@ export function profile(f: () => TensorContainer): Promise<ProfileInfo> {
  *     If debug mode is on, the timing and the memory usage of the function
  *     will be tracked and displayed on the console using the provided name.
  * @param fn The function to execute.
+ *
+ * @doc {heading: 'Performance', subheading: 'Memory'}
  */
-/** @doc {heading: 'Performance', subheading: 'Memory'} */
 export function tidy<T extends TensorContainer>(
     nameOrFn: string|ScopeFn<T>, fn?: ScopeFn<T>): T {
   return ENGINE.tidy(nameOrFn, fn);
@@ -190,8 +200,9 @@ export function tidy<T extends TensorContainer>(
  *     the object is not a `tf.Tensor` or does not contain `Tensors`, nothing
  *     happens. In general it is safe to pass any object here, except that
  *     `Promise`s are not supported.
+ *
+ * @doc {heading: 'Performance', subheading: 'Memory'}
  */
-/** @doc {heading: 'Performance', subheading: 'Memory'} */
 export function dispose(container: TensorContainer) {
   const tensors = getTensorsInContainer(container);
   tensors.forEach(tensor => tensor.dispose());
@@ -226,8 +237,9 @@ export function dispose(container: TensorContainer) {
  * ```
  *
  * @param result The tensor to keep from being disposed.
+ *
+ * @doc {heading: 'Performance', subheading: 'Memory'}
  */
-/** @doc {heading: 'Performance', subheading: 'Memory'} */
 export function keep<T extends Tensor>(result: T): T {
   return ENGINE.keep(result);
 }
@@ -239,7 +251,9 @@ export function keep<T extends Tensor>(result: T): T {
  * The result is an object with the following properties:
  *
  * - `wallMs`: Wall execution time.
- * - `kernelMs`: Kernel execution time, ignoring data transfer.
+ * - `kernelMs`: Kernel execution time, ignoring data transfer. If using the
+ * WebGL backend and the query timer extension is not available, this will
+ * return an error object.
  * - On `WebGL` The following additional properties exist:
  *   - `uploadWaitMs`: CPU blocking time on texture uploads.
  *   - `downloadWaitMs`: CPU blocking time on texture downloads (readPixels).
@@ -252,14 +266,15 @@ export function keep<T extends Tensor>(result: T): T {
  * ```
  *
  * @param f The function to execute and time.
+ *
+ * @doc {heading: 'Performance', subheading: 'Timing'}
  */
-/** @doc {heading: 'Performance', subheading: 'Timing'} */
 export function time(f: () => void): Promise<TimingInfo> {
   return ENGINE.time(f);
 }
 
 /**
- * Sets the backend (cpu, webgl, etc) responsible for creating tensors and
+ * Sets the backend (cpu, webgl, wasm, etc) responsible for creating tensors and
  * executing operations on those tensors. Returns a promise that resolves
  * to a boolean if the backend initialization was successful.
  *
@@ -268,10 +283,11 @@ export function time(f: () => void): Promise<TimingInfo> {
  * same type as the previous one.
  *
  * @param backendName The name of the backend. Currently supports
- *     `'webgl'|'cpu'` in the browser, and `'tensorflow'` under node.js
- *     (requires tfjs-node).
+ *     `'webgl'|'cpu'` in the browser, `'tensorflow'` under node.js
+ *     (requires tfjs-node), and `'wasm'` (requires tfjs-backend-wasm).
+ *
+ * @doc {heading: 'Backends'}
  */
-/** @doc {heading: 'Backends'} */
 export function setBackend(backendName: string): Promise<boolean> {
   return ENGINE.setBackend(backendName);
 }
@@ -280,8 +296,9 @@ export function setBackend(backendName: string): Promise<boolean> {
  * Returns a promise that resolves when the currently selected backend (or the
  * highest priority one) has initialized. Await this promise when you are using
  * a backend that has async initialization.
+ *
+ * @doc {heading: 'Backends'}
  */
-/** @doc {heading: 'Backends'} */
 export function ready(): Promise<void> {
   return ENGINE.ready();
 }
@@ -289,16 +306,18 @@ export function ready(): Promise<void> {
 /**
  * Returns the current backend name (cpu, webgl, etc). The backend is
  * responsible for creating tensors and executing operations on those tensors.
+ *
+ * @doc {heading: 'Backends'}
  */
-/** @doc {heading: 'Backends'} */
 export function getBackend(): string {
   return ENGINE.backendName;
 }
 
 /**
  * Removes a backend and the registered factory.
+ *
+ * @doc {heading: 'Backends'}
  */
-/** @doc {heading: 'Backends'} */
 export function removeBackend(name: string): void {
   ENGINE.removeBackend(name);
 }
@@ -333,8 +352,9 @@ export function findBackendFactory(name: string): () =>
  *     the best backend. Defaults to 1.
  * @return False if there is already a registered backend under this name, true
  *     if not.
+ *
+ * @doc {heading: 'Backends'}
  */
-/** @doc {heading: 'Backends'} */
 export function registerBackend(
     name: string, factory: () => KernelBackend | Promise<KernelBackend>,
     priority = 1): boolean {
@@ -346,8 +366,9 @@ export function registerBackend(
  * attempt to initialize the best backend. Will throw an error if the highest
  * priority backend has async initialization, in which case, you should call
  * 'await tf.ready()' before running other code.
+ *
+ * @doc {heading: 'Backends'}
  */
-/** @doc {heading: 'Backends'} */
 export function backend(): KernelBackend {
   return ENGINE.backend;
 }

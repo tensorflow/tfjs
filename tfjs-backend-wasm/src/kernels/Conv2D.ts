@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,14 +15,9 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, Conv2D, Conv2DAttrs, Conv2DInputs, KernelConfig, KernelFunc, Tensor4D} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-
-interface Conv2DInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-  filter: TensorInfo;
-}
 
 let wasmConv2d: (
     xId: number, batchSize: number, inputHeight: number, inputWidth: number,
@@ -33,7 +28,7 @@ let wasmConv2d: (
     outId: number) => void;
 
 function setup(backend: BackendWasm) {
-  wasmConv2d = backend.wasm.cwrap('Conv2D', null /* void */, [
+  wasmConv2d = backend.wasm.cwrap(Conv2D, null /* void */, [
     'number',  // xId
     'number',  // batchSize
     'number',  // inputHeight
@@ -56,17 +51,19 @@ function setup(backend: BackendWasm) {
   ]);
 }
 
-function conv2d(args: {
-  inputs: Conv2DInputs,
-  backend: BackendWasm,
-  attrs: backend_util.Conv2DInfo
-}) {
+function conv2d(
+    args: {inputs: Conv2DInputs, backend: BackendWasm, attrs: Conv2DAttrs}) {
   const {inputs, attrs, backend} = args;
-  const convInfo = attrs;
 
   const {x, filter} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
   const filterId = backend.dataIdMap.get(filter.dataId).id;
+
+  const {strides, dilations, pad, dimRoundingMode, dataFormat} = attrs;
+  const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
+  const convInfo = backend_util.computeConv2DInfo(
+      (x as Tensor4D).shape, (filter as Tensor4D).shape, strides, dilations,
+      pad, dimRoundingMode, false, $dataFormat);
 
   const filterHeight = convInfo.filterHeight;
   const filterWidth = convInfo.filterWidth;
@@ -98,9 +95,9 @@ function conv2d(args: {
   return out;
 }
 
-registerKernel({
-  kernelName: 'Conv2D',
+export const conv2DConfig: KernelConfig = {
+  kernelName: Conv2D,
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: conv2d as {} as KernelFunc
-});
+};

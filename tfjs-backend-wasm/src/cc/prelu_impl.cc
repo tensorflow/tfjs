@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,22 +16,23 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/prelu_impl.h"
+#include "tfjs-backend-wasm/src/cc/prelu_impl.h"
 
 #include <xnnpack.h>
 #include <cmath>
+#include <cstddef>
 #include <limits>
 #include <unordered_map>
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 // The operator cache maps the weights id to the xnn_operator_t instantiated for
-// // this set of weights.
-std::unordered_map<int, xnn_operator_t> operator_cache;
+// this set of weights.
+std::unordered_map<size_t, xnn_operator_t> operator_cache;
 
-void delete_xnn_operator(const int weights_id) {
+void delete_xnn_operator(const size_t weights_id) {
   xnn_operator_t prelu_op = operator_cache.at(weights_id);
   xnn_delete_operator(prelu_op);
   tfjs::backend::xnn_operator_count--;
@@ -43,8 +44,8 @@ void delete_xnn_operator(const int weights_id) {
 namespace tfjs {
 namespace wasm {
 
-void prelu(const float* x_buf, const int x_size, const int weights_id,
-           const int out_id) {
+void prelu(const float* x_buf, const size_t x_size, const size_t weights_id,
+           const size_t out_id) {
   auto& weights_info = backend::get_tensor_info(weights_id);
   auto& out_info = backend::get_tensor_info_out(out_id);
 
@@ -55,15 +56,12 @@ void prelu(const float* x_buf, const int x_size, const int weights_id,
 
   auto operator_cache_idx = operator_cache.find(weights_id);
   if (operator_cache_idx == operator_cache.end()) {
-    const int channels = weights_info.size;
-    const int strides = channels;
-    const float output_min = -std::numeric_limits<float>::infinity();
-    const float output_max = std::numeric_limits<float>::infinity();
+    const size_t channels = weights_info.size;
+    const size_t strides = channels;
 
-    const int flags = 0;
-    xnn_status status =
-        xnn_create_prelu_nc_f32(channels, strides, strides, weights_buf,
-                                output_min, output_max, flags, &prelu_op);
+    const uint32_t flags = 0;
+    xnn_status status = xnn_create_prelu_nc_f32(channels, strides, strides,
+                                                weights_buf, flags, &prelu_op);
     if (status != xnn_status_success) {
       util::warn(
           "XNN status for xnn_create_prelu_nc_f32 is not successful. Got "
@@ -80,9 +78,9 @@ void prelu(const float* x_buf, const int x_size, const int weights_id,
     prelu_op = operator_cache_idx->second;
   }
 
-  const int batch_size = x_size / weights_info.size;
+  const size_t batch_size = x_size / weights_info.size;
   xnn_status status = xnn_setup_prelu_nc_f32(
-      prelu_op, batch_size, x_buf, out_buf, nullptr /* thread pool */);
+      prelu_op, batch_size, x_buf, out_buf, tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     util::warn(
         "XNN status for xnn_setup_prelu_nc_f32 is not successful. Got "
@@ -90,7 +88,7 @@ void prelu(const float* x_buf, const int x_size, const int weights_id,
         status);
   }
 
-  xnn_run_operator(prelu_op, nullptr /* thread pool */);
+  xnn_run_operator(prelu_op, tfjs::backend::threadpool);
 }
 
 }  // namespace wasm

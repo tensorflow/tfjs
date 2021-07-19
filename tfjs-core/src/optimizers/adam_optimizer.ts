@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,15 @@
 
 import {ENGINE} from '../engine';
 import {dispose, tidy} from '../globals';
-import {pow, scalar, sub, zerosLike} from '../ops/ops';
+import {add} from '../ops/add';
+import {div} from '../ops/div';
+import {mul} from '../ops/mul';
+import {pow} from '../ops/pow';
+import {scalar} from '../ops/scalar';
+import {sqrt} from '../ops/sqrt';
+import {square} from '../ops/square';
+import {sub} from '../ops/sub';
+import {zerosLike} from '../ops/zeros_like';
 import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
 import {Variable} from '../tensor';
 import {NamedTensor, NamedVariableMap} from '../tensor_types';
@@ -83,26 +91,28 @@ export class AdamOptimizer extends Optimizer {
         const secondMoment = this.accumulatedSecondMoment[i].variable;
 
         const newFirstMoment =
-            firstMoment.mul(this.beta1).add(gradient.mul(1 - this.beta1));
-        const newSecondMoment = secondMoment.mul(this.beta2)
-                                    .add(gradient.square().mul(1 - this.beta2));
+            add(mul(firstMoment, this.beta1), mul(gradient, 1 - this.beta1));
+        const newSecondMoment =
+            add(mul(secondMoment, this.beta2),
+                mul(square(gradient), 1 - this.beta2));
 
-        const biasCorrectedFirstMoment = newFirstMoment.div(oneMinusAccBeta1);
-        const biasCorrectedSecondMoment = newSecondMoment.div(oneMinusAccBeta2);
+        const biasCorrectedFirstMoment = div(newFirstMoment, oneMinusAccBeta1);
+        const biasCorrectedSecondMoment =
+            div(newSecondMoment, oneMinusAccBeta2);
 
         firstMoment.assign(newFirstMoment);
         secondMoment.assign(newSecondMoment);
 
         const newValue =
-            biasCorrectedFirstMoment
-                .div(biasCorrectedSecondMoment.sqrt().add(this.epsilon))
-                .mul(-this.learningRate)
-                .add(value);
+            add(mul(div(biasCorrectedFirstMoment,
+                        add(sqrt(biasCorrectedSecondMoment), this.epsilon)),
+                    -this.learningRate),
+                value);
         value.assign(newValue);
       });
 
-      this.accBeta1.assign(this.accBeta1.mul(this.beta1));
-      this.accBeta2.assign(this.accBeta2.mul(this.beta2));
+      this.accBeta1.assign(mul(this.accBeta1, this.beta1));
+      this.accBeta2.assign(mul(this.accBeta2, this.beta2));
     });
     this.incrementIterations();
   }
