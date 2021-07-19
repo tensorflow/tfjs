@@ -1,7 +1,7 @@
 const fs = require('fs');
-const { type } = require('os');
 const {benchmark, write, runBenchmarkFromFile} = require('./app.js');
-const {addResultToFirestore, serializeTensors, formatForFirestore, db} = require('./firestore.js');
+const {addResultToFirestore, serializeTensors, getReadableDate,
+      formatForFirestore, db} = require('./firestore.js');
 
 describe('test app.js cli', () => {
   const filePath = './benchmark_test_results.json';
@@ -166,9 +166,9 @@ describe("test adding to firestore", () => {
 
   beforeEach(() => {
     mockResultValue = require('./firestore_test_value.json');
-    mockDb = spyOn(db, "add")
+    mockDb = spyOn(db, "add");
     mockSerialization = jasmine.createSpy('mockSerialization');
-    mockDate = jasmine.createSpy('mockDate').and.returnValue("2021-07-16")
+    mockDate = jasmine.createSpy('mockDate').and.returnValue("2021-07-16");
   });
 
   it("Expects db.add to be called", () => {
@@ -177,12 +177,20 @@ describe("test adding to firestore", () => {
     expect(db.add).toHaveBeenCalled();
   });
 
+  it("Expects db.add to be called with formatted results", () => {
+    mockDb.and.returnValue(Promise.resolve({id: 123}));
+    let expectedAdd = { result :
+      formatForFirestore(mockResultValue, serializeTensors, getReadableDate) };
+    addResultToFirestore(mockResultValue);
+    expect(db.add).toHaveBeenCalledWith(expectedAdd);
+  });
+
   it("Expects a call to serialize results", () => {
     formatForFirestore(mockResultValue, mockSerialization, mockDate);
     expect(mockSerialization).toHaveBeenCalled();
   });
 
-  it("Expects serialization to be called on results", () => {
+  it("Expects serialization function to be called with result", () => {
     formatForFirestore(mockResultValue, mockSerialization, mockDate);
     expect(mockSerialization).toHaveBeenCalledWith(mockResultValue);
   });
@@ -199,21 +207,4 @@ describe("test adding to firestore", () => {
       expect(typeof(kernel.outputShapes)).toEqual("string");
     }
   });
-
-  it("Expects a proper handling of a rejected promise", () => {
-    mockDb.and.returnValue(Promise.reject());
-  })
 });
-
-
-/**
- *   it("Expects serialization cover all nested arrays", () => {
-    mockDb.and.returnValue(Promise.resolve({id: 123}));
-    firestoreTestMap = addResultToFirestore(resultValue);
-
-    for (kernel of firestoreTestMap.benchmarkInfo.memoryInfo.kernels) {
-      expect(typeof(kernel.inputShapes)).toEqual("string");
-      expect(typeof(kernel.outputShapes)).toEqual("string");
-    }
-  });
- */

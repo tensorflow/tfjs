@@ -54,14 +54,16 @@ function addResultToFirestore(resultValue) {
 }
 
 /**
- * Calls formatting functions on a benchmark result so that every Firestore
- * entry is compatable and has desired information
+ * This functions calls other formatting functions on a benchmark result so that
+ * every Firestore entry is compatable and contains desired information
  *
  * @param result Individual result in a list of fulfilled promises
  */
-function formatForFirestore(resultValue, formatArrays = serializeTensors, getDate = getReadableDate) {
+function formatForFirestore(
+  resultValue, makeCompatable = serializeTensors, getDate = getReadableDate) {
+
   let firestoreMap = {};
-  firestoreMap.benchmarkInfo = formatArrays(resultValue);
+  firestoreMap.benchmarkInfo = makeCompatable(resultValue);
   firestoreMap.date = getDate();
 
   return firestoreMap;
@@ -102,5 +104,6 @@ function getReadableDate() {
 
 exports.addResultToFirestore = addResultToFirestore;
 exports.serializeTensors = serializeTensors;
+exports.getReadableDate = getReadableDate;
 exports.formatForFirestore = formatForFirestore;
 exports.db = db;
