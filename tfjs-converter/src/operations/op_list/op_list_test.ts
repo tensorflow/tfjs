@@ -69,7 +69,7 @@ describe('OpListTest', () => {
       if (!valid) {
         console.log(validator.errors);
       }
-      expect(valid).toBeTruthy();
+      expect(valid).toBe(true);
     });
   });
 });

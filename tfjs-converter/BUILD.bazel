@@ -23,6 +23,7 @@ nodejs_test(
     name = "tfjs-converter_test",
     data = [
         "//tfjs-converter/src:tfjs-converter_test_lib",
+        "//tfjs-backend-cpu:package_json",
         "//tfjs-core:package_json",
     ],
     entry_point = "//tfjs-converter/src:run_tests.ts",
