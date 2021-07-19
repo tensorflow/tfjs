@@ -13,22 +13,11 @@
 # limitations under the License.
 # =============================================================================
 
-load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "nodejs_test", "pkg_npm")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "pkg_npm")
 load("//tools:copy_to_dist.bzl", "copy_to_dist")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 
 package(default_visibility = ["//visibility:public"])
-
-nodejs_test(
-    name = "tfjs-backend-webgl_test",
-    data = [
-        "//tfjs-backend-webgl/src:tfjs-backend-webgl_test_lib",
-        "//tfjs-core:package_json",
-    ],
-    entry_point = "//tfjs-backend-webgl/src:run_tests.ts",
-    link_workspace_root = True,
-    tags = ["ci"],
-)
 
 tfjs_bundle(
     name = "tf-backend-webgl",
