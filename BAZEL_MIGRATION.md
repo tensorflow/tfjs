@@ -118,6 +118,21 @@ ts_library(
 )
 ```
 
+### Update the tests entrypoint
+Many packages have a `src/run_tests.ts` file (or similar) that they use for selecting which tests to run. That file defines the paths to the test files that Jasmine uses. Since Bazel outputs appearin a different location, the paths to the test files must be updated. As an example, the following paths
+```ts
+const coreTests = 'node_modules/@tensorflow/tfjs-core/src/tests.ts';
+const unitTests = 'src/**/*_test.ts';
+```
+would need to be updated to
+```ts
+const coreTests = 'tfjs-core/src/tests.js';
+const unitTests = 'the-package-name/src/**/*_test.js';
+```
+Note that `.ts` has been changed to `.js`. This is because we're no longer running node tests with `ts-node`, so the input test files are now `.js` outputs created by the `ts_library` rule that compiled the tests.
+
+It's also important to make sure the `nodejs_test` rule that runs the test has [`link_workspace_root = True`](https://bazelbuild.github.io/rules_nodejs/Built-ins.html#nodejs_binary-link_workspace_root). Otherwise, the test files will not be accessable at runtime.
+
 ### Run node tests with nodejs_test
 Our test setup allows fine-tuning of exactly what tests are run via `setTestEnvs` and `setupTestFilters` in `jasmine_util.ts`, which are used in a custom Jasmine entrypoint file `setup_test.ts`. This setup does not work well with [jasmine_node_test](https://bazelbuild.github.io/rules_nodejs/Jasmine.html#jasmine_node_test), which provides its own entrypoint for starting Jasmine. Instead, we use the [nodejs_test](https://bazelbuild.github.io/rules_nodejs/Built-ins.html#nodejs_test) rule.
 
