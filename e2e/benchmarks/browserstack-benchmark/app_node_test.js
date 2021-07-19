@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { type } = require('os');
 const {benchmark, write, runBenchmarkFromFile} = require('./app.js');
-const {addResultToFirestore, serializeTensors} = require('./firestore.js');
+const {addResultToFirestore, serializeTensors, formatForFirestore, db} = require('./firestore.js');
 
 describe('test app.js cli', () => {
   const filePath = './benchmark_test_results.json';
@@ -156,7 +156,8 @@ describe('test app.js cli', () => {
 });
 
 describe("test adding to firestore", () => {
-  const resultValue = require('./firestore_test_value.json');
+  let mockDb;
+  let mockResultValue;
 
   beforeAll(() => {
     // Set a longer jasmine timeout than 5 seconds
@@ -164,10 +165,50 @@ describe("test adding to firestore", () => {
   });
 
   beforeEach(() => {
-    spyOn(serializeTensors, "serializeTensors");
-  })
+    mockResultValue = require('./firestore_test_value.json');
+    mockDb = spyOn(db, "add")
+    mockSerialization = jasmine.createSpy('mockSerialization');
+    mockDate = jasmine.createSpy('mockDate').and.returnValue("2021-07-16")
+  });
 
-  it("Expects serialization cover all nested arrays", () => {
+  it("Expects db.add to be called", () => {
+    mockDb.and.returnValue(Promise.resolve({id: 123}));
+    addResultToFirestore(mockResultValue);
+    expect(db.add).toHaveBeenCalled();
+  });
+
+  it("Expects a call to serialize results", () => {
+    formatForFirestore(mockResultValue, mockSerialization, mockDate);
+    expect(mockSerialization).toHaveBeenCalled();
+  });
+
+  it("Expects serialization to be called on results", () => {
+    formatForFirestore(mockResultValue, mockSerialization, mockDate);
+    expect(mockSerialization).toHaveBeenCalledWith(mockResultValue);
+  });
+
+  it("Expects a date function to be called", () => {
+    formatForFirestore(mockResultValue, mockSerialization, mockDate);
+    expect(mockDate).toHaveBeenCalled();
+  });
+
+  it("Expects serialization to cover all nested arrays", () => {
+    const mockSerializedResults = formatForFirestore(mockResultValue, serializeTensors, mockDate);
+    for (kernel of mockSerializedResults.benchmarkInfo.memoryInfo.kernels) {
+      expect(typeof(kernel.inputShapes)).toEqual("string");
+      expect(typeof(kernel.outputShapes)).toEqual("string");
+    }
+  });
+
+  it("Expects a proper handling of a rejected promise", () => {
+    mockDb.and.returnValue(Promise.reject());
+  })
+});
+
+
+/**
+ *   it("Expects serialization cover all nested arrays", () => {
+    mockDb.and.returnValue(Promise.resolve({id: 123}));
     firestoreTestMap = addResultToFirestore(resultValue);
 
     for (kernel of firestoreTestMap.benchmarkInfo.memoryInfo.kernels) {
@@ -175,4 +216,4 @@ describe("test adding to firestore", () => {
       expect(typeof(kernel.outputShapes)).toEqual("string");
     }
   });
-});
+ */

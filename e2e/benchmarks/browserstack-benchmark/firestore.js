@@ -43,9 +43,7 @@ const db = firebase.firestore().collection("posts");
  * @param result Individual result in a list of fulfilled promises
  */
 function addResultToFirestore(resultValue) {
-  let firestoreMap = {};
-  firestoreMap.benchmarkInfo = serializeTensors(resultValue);
-  firestoreMap.date = getReadableDate();
+  const firestoreMap = formatForFirestore(resultValue, serializeTensors, getReadableDate);
 
   db.add({
     result: firestoreMap
@@ -53,6 +51,19 @@ function addResultToFirestore(resultValue) {
   .then((ref) => {
     console.log("Added document to Firebase with ID: ", ref.id);
   });
+}
+
+/**
+ * Calls formatting functions on a benchmark result so that every Firestore
+ * entry is compatable and has desired information
+ *
+ * @param result Individual result in a list of fulfilled promises
+ */
+function formatForFirestore(resultValue, formatArrays = serializeTensors, getDate = getReadableDate) {
+  let firestoreMap = {};
+  firestoreMap.benchmarkInfo = formatArrays(resultValue);
+  firestoreMap.date = getDate();
+
   return firestoreMap;
 }
 
@@ -91,3 +102,5 @@ function getReadableDate() {
 
 exports.addResultToFirestore = addResultToFirestore;
 exports.serializeTensors = serializeTensors;
+exports.formatForFirestore = formatForFirestore;
+exports.db = db;
