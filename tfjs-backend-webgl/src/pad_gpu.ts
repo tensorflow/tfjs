@@ -24,9 +24,7 @@ export class PadProgram implements GPGPUProgram {
   userCode: string;
   customUniforms = [{name: 'value', type: 'float' as UniformType}];
 
-  constructor(
-      xShape: number[], paddings: Array<[number, number]>,
-      constantValue: number) {
+  constructor(xShape: number[], paddings: Array<[number, number]>) {
     this.outputShape = paddings.map(
         (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
     const rank = xShape.length;
