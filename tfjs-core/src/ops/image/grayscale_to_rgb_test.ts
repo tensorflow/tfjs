@@ -17,10 +17,11 @@
 
 import * as tf from '../../index';
 import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
+import {Tensor2D} from '../../tensor';
 import {expectArraysClose} from '../../test_util';
 
 describeWithFlags('grayscaleToRGB', ALL_ENVS, () => {
-  it('should convert (,1,3,1) images into (,1,3,3)', async () => {
+  it('should convert (1,1,3,1) images into (1,1,3,3)', async () => {
     const grayscale = tf.tensor4d([1.0, 2.0, 3.0], [1, 1, 3, 1]);
 
     const rgb = tf.image.grayscaleToRGB(grayscale);
@@ -31,14 +32,50 @@ describeWithFlags('grayscaleToRGB', ALL_ENVS, () => {
     expectArraysClose(rgbData, expected);
   });
 
-  it('should throw error because of input last dim is not 1', async () => {
-    const lastDim = 2;
-    const grayscale =
-        tf.tensor4d([1.0, 1.0, 2.0, 2.0, 3.0, 3.0], [1, 1, 3, lastDim]);
+  it('should convert (1,2,1) images into (1,2,3)', async () => {
+    const grayscale = tf.tensor3d([1.6, 2.4], [1, 2, 1]);
+
+    const rgb = tf.image.grayscaleToRGB(grayscale);
+    const rgbData = await rgb.data();
+
+    const expected = [1.6, 1.6, 1.6, 2.4, 2.4, 2.4];
+
+    expectArraysClose(rgbData, expected);
+  });
+
+  it('should convert (2,1) images into (2,3)', async () => {
+    const grayscale = tf.tensor2d([16, 24], [2, 1]);
+
+    const rgb = tf.image.grayscaleToRGB(grayscale);
+    const rgbData = await rgb.data();
+
+    const expected = [16, 16, 16, 24, 24, 24];
+
+    expectArraysClose(rgbData, expected);
+  });
+
+  it('should convert [[[191], [3]]] array into (1,2,3) images', async () => {
+    const grayscale = [[[191], [3]]];
+
+    const rgb = tf.image.grayscaleToRGB(grayscale);
+    const rgbData = await rgb.data();
+
+    const expected = [191, 191, 191, 3, 3, 3];
+
+    expectArraysClose(rgbData, expected);
+  });
+
+  it('should throw an error because of input last dim is not 1', () => {
+    const grayscale = tf.tensor4d([1.0, 1.0, 2.0, 2.0, 3.0, 3.0], [1, 1, 3, 2]);
 
     expect(() => tf.image.grayscaleToRGB(grayscale))
-        .toThrowError(
-            'Error in grayscaleToRGB: last dimension of a grayscale image should ' +
-            `be size 1, but got size ${lastDim}.`);
+        .toThrowError(/last dimension of a grayscale image should be size 1/);
+  });
+
+  it('should throw an error because of image\'s rank is less than 2', () => {
+    const grayscale = tf.tensor1d([1, 2, 3]) as {} as Tensor2D;
+
+    expect(() => tf.image.grayscaleToRGB(grayscale))
+        .toThrowError(/images must be at least rank 2/);
   });
 });
