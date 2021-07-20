@@ -357,7 +357,7 @@ Update all downstream dependencies that depend on the package to point to its lo
 },
 ```
 
-To find downstream packages, run `grep -r . "link:.*your-package-name"` in the root of the repository.
+To find downstream packages, run `grep -r --exclude=yarn.lock --exclude-dir=node_modules "link:.*the-package-name" .` in the root of the repository.
 
 ### Update or Remove `cloudbuild.yml`
 Update the `cloudbuild.yml` to remove any steps that are now built with Bazel. These will be run by the `bazel-tests` step, which runs before other packages' steps. Any Bazel rule tagged as `ci` will be tested / build in CI.
