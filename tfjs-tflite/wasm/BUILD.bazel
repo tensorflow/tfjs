@@ -13,13 +13,30 @@
 # limitations under the License.
 # =============================================================================
 
-load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin")
-
 package(default_visibility = ["//visibility:public"])
 
-copy_to_bin(
-  name = "tflite_web_api_client_js",
-  srcs = [
-    "tflite_web_api_client.js",
-  ],
+# Download the TFLite web API related WASM files from google storage, and make
+# them available for other targets.
+#
+# The downloaded files will be in `tfjs/dist/bin/tfjs-tflite/wasm`.
+genrule(
+    name = "wasm_files",
+    exec_tools = [
+        "//tfjs-tflite/scripts:download_tflite_web_api",
+    ],
+    # $(@D) stores the output directory.
+    cmd = "$(location //tfjs-tflite/scripts:download_tflite_web_api) \"$(@D)\"",
+    outs = [
+        "tflite_web_api_cc.js",
+        "tflite_web_api_cc.wasm",
+        "tflite_web_api_cc_simd.js",
+        "tflite_web_api_cc_simd.wasm",
+        "tflite_web_api_cc_simd_threaded.js",
+        "tflite_web_api_cc_simd_threaded.wasm",
+        "tflite_web_api_cc_simd_threaded.worker.js",
+        "tflite_web_api_cc_threaded.js",
+        "tflite_web_api_cc_threaded.wasm",
+        "tflite_web_api_cc_threaded.worker.js",
+        "tflite_web_api_client.js",
+    ],
 )

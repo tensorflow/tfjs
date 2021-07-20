@@ -16,3 +16,6 @@
  */
 
 import '@tensorflow/tfjs-backend-cpu';
+
+import './tflite_model_test';
+import './tflite_web_api_client_test';
