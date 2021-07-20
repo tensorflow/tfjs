@@ -35,7 +35,7 @@ if [[ -z ${VERSION} ]]; then
   exit 1
 fi
 
-# Copy the artifacts from GCP to the wasm/ dir.
+# Copy the artifacts from GCP to the output dir.
 GCP_DIR="gs://tfweb/${VERSION}/dist"
 gsutil -m cp "${GCP_DIR}/*" "${OUTPUT_DIR}"
 
