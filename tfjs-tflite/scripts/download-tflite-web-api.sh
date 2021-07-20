@@ -27,7 +27,6 @@ CURRENT_VERSION=0.0.3
 # Get the version from the second parameter.
 # Default to the value in CURRENT_VERSION.
 VERSION="${2:-${CURRENT_VERSION}}"
-echo $VERSION
 
 # Make sure the version is provided.
 if [[ -z ${VERSION} ]]; then
@@ -35,9 +34,12 @@ if [[ -z ${VERSION} ]]; then
   exit 1
 fi
 
-# Copy the artifacts from GCP to the output dir.
-GCP_DIR="gs://tfweb/${VERSION}/dist"
-gsutil -m cp "${GCP_DIR}/*" "${OUTPUT_DIR}"
+# Download the zipped lib to the output dir.
+wget https://storage.googleapis.com/tfweb/${VERSION}/dist/tflite_web_api.zip -P "${OUTPUT_DIR}"
+
+# Unzip and delete the zipped file.
+unzip "${OUTPUT_DIR}/tflite_web_api.zip" -d "${OUTPUT_DIR}"
+rm -f "${OUTPUT_DIR}/tflite_web_api.zip"
 
 # Append module exports to the JS client to make it a valid CommonJS module.
 # This is needed to help bundler correctly initialize the tfweb namespace.
