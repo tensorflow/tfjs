@@ -15,8 +15,8 @@
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
-    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@tensorflow/tfjs-backend-cpu": "link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
+    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
     "@tensorflow/tfjs-layers": "link:../tfjs-layers",
     "@types/jasmine": "~2.5.53",
     "@types/seedrandom": "^2.4.27",
@@ -47,14 +47,11 @@
     "build-ci": "tsc && yarn bundle-ci",
     "bundle": "rollup -c",
     "bundle-ci": "rollup -c --ci",
-    "build-core": "cd ../tfjs-core && yarn && yarn build",
-    "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
+    "build-link-package": "cd ../link-package && yarn build",
     "build-layers": "cd ../tfjs-layers && yarn && yarn build",
-    "build-backend-cpu": "cd ../tfjs-backend-cpu && yarn && yarn build",
-    "build-backend-cpu-ci": "cd ../tfjs-backend-cpu && yarn && yarn build-ci",
     "build-layers-ci": "cd ../tfjs-layers && yarn && yarn build-ci",
-    "build-deps": "yarn build-core && yarn build-layers && yarn build-backend-cpu",
-    "build-deps-ci": "yarn build-core-ci && yarn build-layers-ci && yarn build-backend-cpu-ci",
+    "build-deps": "yarn build-link-package && yarn build-layers",
+    "build-deps-ci": "yarn build-link-package && yarn build-layers-ci",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build-npm && yalc push",
@@ -69,7 +66,7 @@
     "lint": "tslint -p . -t verbose"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
     "seedrandom": "~2.4.3"
   },
   "dependencies": {

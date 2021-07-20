@@ -26,6 +26,7 @@ The Multi-device benchmark tool can benchmark the performance (time, memory) of 
   ``` shell
   git clone https://github.com/tensorflow/tfjs.git
   cd tfjs/e2e/benchmarks/browserstack-benchmark
+  yarn build-deps
   yarn install
 
   node app.js
@@ -37,6 +38,18 @@ The Multi-device benchmark tool can benchmark the performance (time, memory) of 
 <div style="text-align:center">
   <img src="https://user-images.githubusercontent.com/40653845/90341914-a432f180-dfb8-11ea-841e-0d9078c6d50d.png" alt="drawing" height="300px"/>
 </div>
+
+### Command Line Arguments
+* --benchmarks
+  - Optional argument that runs a preconfigured benchmark from a user-specified JSON file instead of from the website.
+  ``` shell
+  node app.js --benchmarks preconfigured_browser.json
+  ```
+  * --outfile
+    - Optional argument that writes results to an accessible external file, benchmark_results.json.
+    ``` shell
+    node app.js --outfile
+    ```
 
 ## Custom model
 The custom model is supported, but is constrained by:

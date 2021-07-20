@@ -535,6 +535,14 @@ export class Engine implements TensorTracker, DataMover {
    */
   runKernel<T extends Tensor|Tensor[]>(
       kernelName: string, inputs: NamedTensorMap, attrs?: NamedAttrMap): T {
+    if (this.backendName == null) {
+      // backend has not been initialized yet (backend initialization is lazy
+      // can be deferred until an op/ kernel is run).
+      // The below getter has side effects that will try to initialize the
+      // backend and set properties like this.backendName
+      // tslint:disable-next-line: no-unused-expression
+      this.backend;
+    }
     const hasKernel = getKernel(kernelName, this.backendName) != null;
     if (!hasKernel) {
       throw new Error(`Kernel '${kernelName}' not registered for backend '${

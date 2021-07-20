@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {AsyncStorageStatic} from '@react-native-community/async-storage';
+import {AsyncStorageStatic} from '@react-native-async-storage/async-storage';
 import {io} from '@tensorflow/tfjs-core';
 import {fromByteArray, toByteArray} from 'base64-js';
 
@@ -76,7 +76,7 @@ class AsyncStorageHandler implements io.IOHandler {
     // library.
     this.asyncStorage =
         // tslint:disable-next-line:no-require-imports
-        require('@react-native-community/async-storage').default;
+        require('@react-native-async-storage/async-storage').default;
   }
 
   /**

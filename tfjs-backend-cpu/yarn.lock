@@ -196,6 +196,16 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
+"@bazel/bazelisk@^1.9.0":
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/@bazel/bazelisk/-/bazelisk-1.9.0.tgz#e55cc5394b838d85651bceb06abdc95a28c44e2f"
+  integrity sha512-IHCKlMBHd7VMt3Za7rpTJA8O1WI8TUes5nDjdYv1MM/4OZQQFbM85Zb8ugQaKvy3CzxLpXgxYZUiq7b2TdhQnw==
+
+"@bazel/ibazel@^0.15.10":
+  version "0.15.10"
+  resolved "https://registry.yarnpkg.com/@bazel/ibazel/-/ibazel-0.15.10.tgz#cf0cff1aec6d8e7bb23e1fc618d09fbd39b7a13f"
+  integrity sha512-0v+OwCQ6fsGFa50r6MXWbUkSGuWOoZ22K4pMSdtWiL5LKFIE4kfmMmtQS+M7/ICNwk2EIYob+NRreyi/DGUz5A==
+
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@istanbuljs/load-nyc-config/-/load-nyc-config-1.1.0.tgz#fd3db1d59ecf7cf121e80650bb86712f9b55eced"

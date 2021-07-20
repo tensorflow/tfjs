@@ -360,6 +360,12 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    startsWith: 'cosh',
+    excludes: [
+      'gradient'  // Gradient not yet implemented.
+    ]
+  },
+  {
     startsWith: 'tan',
     excludes: ['gradient']  // Gradient not yet implemented.
 
@@ -418,7 +424,9 @@ const TEST_FILTERS: TestFilter[] = [
       'ignores NaNs'  // Doesn't yet ignore NaN
     ]
   },
-  {include: 'image.transform'}
+  {include: 'image.transform'},
+  {include: 'batchToSpaceND'},
+  {include: 'spaceToBatchND'},
 ];
 
 const customInclude = (testName: string) => {
@@ -438,4 +446,5 @@ setupTestFilters(TEST_FILTERS, customInclude);
 
 // Import and run all the tests from core.
 // tslint:disable-next-line:no-imports-from-dist
-import '@tensorflow/tfjs-core/dist/tests';
+// tslint:disable-next-line:no-require-imports
+require('@tensorflow/tfjs-core/dist/tests');

@@ -129,6 +129,7 @@ py_test(
     srcs_version = "PY2AND3",
     deps = [
         ":fuse_depthwise_conv2d",
+        ":graph_rewrite_util",
         ":tf_saved_model_conversion_v2",
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:expect_tensorflow_installed",
@@ -156,13 +157,15 @@ py_library(
         ":fold_batch_norms",
         ":fuse_depthwise_conv2d",
         ":fuse_prelu",
-        "//tensorflowjs:expect_graph_transforms_installed",
+        ":graph_rewrite_util",
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:expect_tensorflow_hub_installed",
         "//tensorflowjs:expect_tensorflow_installed",
         "//tensorflowjs:resource_loader",
         "//tensorflowjs:version",
         "//tensorflowjs:write_weights",
+        "//third_party/tensorflow/python/tools:saved_model_cli_lib",
+        "//third_party/tensorflow/tools/graph_transforms:transform_graph_py",
     ],
 )
 

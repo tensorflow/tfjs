@@ -19,7 +19,6 @@ import * as tf from '@tensorflow/tfjs';
 import * as fs from 'fs';
 import {dirname, join, resolve} from 'path';
 import {promisify} from 'util';
-
 import {getModelArtifactsInfoForJSON, toArrayBuffer} from './io_utils';
 
 const stat = promisify(fs.stat);
@@ -172,29 +171,9 @@ export class NodeFileSystem implements tf.io.IOHandler {
     // it is model.json file.
     if (info.isFile()) {
       const modelJSON = JSON.parse(await readFile(path, 'utf8'));
-
-      const modelArtifacts: tf.io.ModelArtifacts = {
-        modelTopology: modelJSON.modelTopology,
-        format: modelJSON.format,
-        generatedBy: modelJSON.generatedBy,
-        convertedBy: modelJSON.convertedBy
-      };
-      if (modelJSON.weightsManifest != null) {
-        const [weightSpecs, weightData] =
-            await this.loadWeights(modelJSON.weightsManifest, path);
-        modelArtifacts.weightSpecs = weightSpecs;
-        modelArtifacts.weightData = weightData;
-      }
-      if (modelJSON.trainingConfig != null) {
-        modelArtifacts.trainingConfig = modelJSON.trainingConfig;
-      }
-      if (modelJSON.signature != null) {
-        modelArtifacts.signature = modelJSON.signature;
-      }
-      if (modelJSON.userDefinedMetadata != null) {
-        modelArtifacts.userDefinedMetadata = modelJSON.userDefinedMetadata;
-      }
-      return modelArtifacts;
+      return tf.io.getModelArtifactsForJSON(
+          modelJSON,
+          (weightsManifest) => this.loadWeights(weightsManifest, path));
     } else {
       throw new Error(
           'The path to load from must be a file. Loading from a directory ' +

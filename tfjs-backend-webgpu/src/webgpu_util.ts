@@ -152,3 +152,10 @@ export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
     throw new Error(`Unknown dtype ${dtype}`);
   }
 }
+
+export function isWebGPUSupported(): boolean {
+  if (!navigator.gpu) {
+    return false;
+  }
+  return true;
+}

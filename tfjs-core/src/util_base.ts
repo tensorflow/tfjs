@@ -34,7 +34,6 @@ import {DataType, DataTypeMap, FlatVector, NumericDataType, RecursiveArray, Tens
 export function shuffle(array: any[]|Uint32Array|Int32Array|
                         Float32Array): void {
   let counter = array.length;
-  let temp = 0;
   let index = 0;
   // While there are elements in the array
   while (counter > 0) {
@@ -43,9 +42,7 @@ export function shuffle(array: any[]|Uint32Array|Int32Array|
     // Decrease counter by 1
     counter--;
     // And swap the last element with it
-    temp = array[counter];
-    array[counter] = array[index];
-    array[index] = temp;
+    swap(array, counter, index);
   }
 }
 
@@ -77,7 +74,6 @@ export function shuffleCombo(
         `Second array length was ${array2.length}`);
   }
   let counter = array.length;
-  let temp, temp2;
   let index = 0;
   // While there are elements in the array
   while (counter > 0) {
@@ -86,12 +82,8 @@ export function shuffleCombo(
     // Decrease counter by 1
     counter--;
     // And swap the last element of each array with it
-    temp = array[counter];
-    temp2 = array2[counter];
-    array[counter] = array[index];
-    array2[counter] = array2[index];
-    array[index] = temp;
-    array2[index] = temp2;
+    swap(array, counter, index);
+    swap(array2, counter, index);
   }
 }
 
@@ -102,6 +94,13 @@ export function clamp(min: number, x: number, max: number): number {
 
 export function nearestLargerEven(val: number): number {
   return val % 2 === 0 ? val : val + 1;
+}
+
+export function swap<T>(
+    object: {[index: number]: T}, left: number, right: number) {
+  const temp = object[left];
+  object[left] = object[right];
+  object[right] = temp;
 }
 
 export function sum(arr: number[]): number {

@@ -18,6 +18,7 @@
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+import {mapActivationToShaderProgram} from './activation_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -31,12 +32,13 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [128, 1, 1];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
-  activation: string;
+  activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
-      activation: string = null, hasPreluActivationWeights = false) {
+      activation: backend_util.Activation = null,
+      hasPreluActivationWeights = false) {
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -58,21 +60,22 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
 
-    this.shaderKey = `conv2DNaive_${activation}`;
+    this.shaderKey = `conv2DNaive_${this.activation}`;
   }
 
   getUserCode(): string {
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
+      const activationOp = mapActivationToShaderProgram(this.activation);
       if (this.hasPreluActivationWeights) {
         activationSnippet = `float activation(float a) {
                   float b = getPreluActivationWeightsAtOutCoords();
-                  ${this.activation}
+                  ${activationOp}
                 }`;
       } else {
         activationSnippet = `
                   float activation(float a) {
-                    ${this.activation}
+                    ${activationOp}
                   }
                 `;
       }

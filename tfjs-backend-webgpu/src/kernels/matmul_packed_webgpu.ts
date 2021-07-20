@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
-import {TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
+import {mapActivationToShaderProgram} from './activation_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -186,7 +187,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
   transposeA: boolean;
   transposeB: boolean;
   addBias: boolean;
-  activation: string;
+  activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
   fitA: boolean;
   fitB: boolean;
@@ -194,7 +195,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
       workPerThread: number, transposeA = false, transposeB = false,
-      bias: TensorInfo = null, activation: string = null,
+      bias: TensorInfo = null, activation: backend_util.Activation = null,
       preluActivationWeights: TensorInfo = null) {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
@@ -242,9 +243,9 @@ export class MatMulPackedProgram implements WebGPUProgram {
         [this.outputShape[0], dimInner, dimBOuter];
 
     [this.fitA, this.fitB] = this.getShapeFit(bShape);
-    this.shaderKey =
-        `matMulPacked_${this.workPerThread}_${transposeA}_${transposeB}_${
-            activation}_${this.fitA}_${this.fitB}_${this.outputShape[1] > 1}`;
+    this.shaderKey = `matMulPacked_${this.workPerThread}_${transposeA}_${
+        transposeB}_${this.activation}_${this.fitA}_${this.fitB}_${
+        this.outputShape[1] > 1}`;
   }
 
   getShapeFit(bShape: number[]): boolean[] {
@@ -299,15 +300,16 @@ export class MatMulPackedProgram implements WebGPUProgram {
 
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
+      const activationOp = mapActivationToShaderProgram(this.activation);
       if (this.hasPreluActivationWeights) {
         activationSnippet = `float activation(float a, ivec3 outCoord) {
               float b = getPreluActivationWeightsAtOutCoords(outCoord);
-              ${this.activation}
+              ${activationOp}
             }`;
       } else {
         activationSnippet = `
               float activation(float a, ivec3 outCoord) {
-                ${this.activation}
+                ${activationOp}
               }
             `;
       }

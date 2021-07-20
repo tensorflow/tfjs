@@ -56,6 +56,7 @@ import {imagConfig} from './kernels/Imag';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
+import {logicalAndConfig} from './kernels/LogicalAnd';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
@@ -96,6 +97,7 @@ import {stringNGramsConfig} from './kernels/StringNGrams';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanhConfig} from './kernels/Tanh';
+import {tileConfig} from './kernels/Tile';
 import {transformConfig} from './kernels/Transform';
 import {transposeConfig} from './kernels/Transpose';
 import {unpackConfig} from './kernels/Unpack';
@@ -143,6 +145,7 @@ const kernelConfigs: KernelConfig[] = [
   lessConfig,
   lessEqualConfig,
   logConfig,
+  logicalAndConfig,
   maxConfig,
   maximumConfig,
   maxPoolConfig,
@@ -183,6 +186,7 @@ const kernelConfigs: KernelConfig[] = [
   subConfig,
   sumConfig,
   tanhConfig,
+  tileConfig,
   transformConfig,
   transposeConfig,
   unpackConfig,

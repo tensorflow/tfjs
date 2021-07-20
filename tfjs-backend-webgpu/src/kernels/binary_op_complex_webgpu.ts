@@ -18,17 +18,9 @@
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
 import {WebGPUProgram} from './webgpu_program';
-
-// (Ar + Ai)(Br + Bi) =
-// ArBr + ArBi + AiBr + AiBi = ArBr - AB + ArBi + AiBr
-// Yr = ArBr - AB
-// Yi = ArBi + AiBr
-export const COMPLEX_MULTIPLY = {
-  REAL: 'return areal * breal - aimag * bimag;',
-  IMAG: 'return areal * bimag + aimag * breal;'
-};
 
 export class BinaryOpComplexProgram implements WebGPUProgram {
   variableNames = ['AReal', 'AImag', 'BReal', 'BImag'];
@@ -37,10 +29,10 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [128, 1, 1];
-  op: string;
+  op: BinaryOpType;
   size: number;
 
-  constructor(op: string, aShape: number[], bShape: number[]) {
+  constructor(op: BinaryOpType, aShape: number[], bShape: number[]) {
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
@@ -52,10 +44,11 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
+    const opStr = getBinaryOpString(this.op);
     const userCode = `
       float binaryOpComplex(
           float areal, float aimag, float breal, float bimag) {
-        ${this.op}
+        ${opStr}
       }
 
       void main() {

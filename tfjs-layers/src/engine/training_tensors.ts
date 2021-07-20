@@ -215,7 +215,8 @@ export function sliceArraysByIndices(
       // TODO(cais): indices should be a pre-constructed Tensor1D to avoid
       //   tensor1d() calls.
       return gather(
-          arrays, indices.dtype === 'int32' ? indices : indices.toInt());
+          arrays,
+          indices.dtype === 'int32' ? indices : tfc.cast(indices, 'int32'));
     }
   });
 }

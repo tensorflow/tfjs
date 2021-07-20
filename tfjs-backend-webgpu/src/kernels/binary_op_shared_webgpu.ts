@@ -19,6 +19,7 @@ import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -32,12 +33,12 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
   workGroupSize: [number, number, number];
   useSharedMemoryWithB: boolean;
   lastDimensionSize: number;
-  op: string;
+  op: BinaryOpType;
   size: number;
   sizeFit: boolean;
 
   constructor(
-      op: string, aShape: number[], bShape: number[],
+      op: BinaryOpType, aShape: number[], bShape: number[],
       useSharedMemoryWithB: boolean) {
     // This is an experimental value when using shared memory.
     const workGroupSizeX = 512;
@@ -88,9 +89,10 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
             ${accessDataSnippet}
             setOutput(flatIndex, binaryOperation(a, b));
           }`;
+    const opStr = getBinaryOpString(this.op);
     const userCode = `
         float binaryOperation(float a, float b) {
-          ${this.op}
+          ${opStr}
         }
 
         shared float sharedBuf[${this.lastDimensionSize}];

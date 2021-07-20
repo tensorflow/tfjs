@@ -17,9 +17,9 @@
 
 import {KernelConfig, Relu} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {RELU} from './unary_op_webgpu';
+import {UnaryOpType} from './unary_op_util';
 
-export const relu = unaryKernelFunc({opSnippet: RELU});
+export const relu = unaryKernelFunc({opType: UnaryOpType.RELU});
 
 export const reluConfig: KernelConfig = {
   kernelName: Relu,

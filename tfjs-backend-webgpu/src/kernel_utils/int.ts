@@ -17,10 +17,11 @@
 
 import {TensorInfo} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
-import {TO_INT, UnaryOpProgram} from '../kernels/unary_op_webgpu';
+import {UnaryOpProgram} from '../kernels/unary_op_webgpu';
+import {UnaryOpType} from '../kernels/unary_op_util';
 
 export function int(input: TensorInfo, backend: WebGPUBackend): TensorInfo {
-  const program = new UnaryOpProgram(input.shape, TO_INT);
+  const program = new UnaryOpProgram(input.shape, UnaryOpType.TO_INT);
   const output = backend.runWebGPUProgram(program, [input], 'int32');
   return {dataId: output.dataId, shape: output.shape, dtype: output.dtype};
 }

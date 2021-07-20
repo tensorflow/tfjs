@@ -873,8 +873,8 @@ export class Conv3DTranspose extends Conv3D {
 
     if (inputShape.length !== 5) {
       throw new ValueError(
-        'Input should have rank 5; Received input shape: ' +
-        JSON.stringify(inputShape));
+          'Input should have rank 5; Received input shape: ' +
+          JSON.stringify(inputShape));
     }
 
     const channelAxis =
@@ -888,8 +888,8 @@ export class Conv3DTranspose extends Conv3D {
     const kernelShape = this.kernelSize.concat([this.filters, inputDim]);
 
     this.kernel = this.addWeight(
-      'kernel', kernelShape, 'float32', this.kernelInitializer,
-      this.kernelRegularizer, true, this.kernelConstraint);
+        'kernel', kernelShape, 'float32', this.kernelInitializer,
+        this.kernelRegularizer, true, this.kernelConstraint);
     if (this.useBias) {
       this.bias = this.addWeight(
           'bias', [this.filters], 'float32', this.biasInitializer,
@@ -1423,15 +1423,15 @@ export class UpSampling2D extends Layer {
         const width = this.size[1] * inputShape[3];
 
         const resized = this.interpolation === 'nearest' ?
-            input.resizeNearestNeighbor([height, width]) :
-            input.resizeBilinear([height, width]);
+            tfc.image.resizeNearestNeighbor(input, [height, width]) :
+            tfc.image.resizeBilinear(input, [height, width]);
         return tfc.transpose(resized, [0, 3, 1, 2]);
       } else {
         const height = this.size[0] * inputShape[1];
         const width = this.size[1] * inputShape[2];
         return this.interpolation === 'nearest' ?
-            input.resizeNearestNeighbor([height, width]) :
-            input.resizeBilinear([height, width]);
+            tfc.image.resizeNearestNeighbor(input, [height, width]) :
+            tfc.image.resizeBilinear(input, [height, width]);
       }
     });
   }

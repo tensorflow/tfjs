@@ -55,7 +55,7 @@
                 'install_name_tool',
                 "-change",
                 "@rpath/libtensorflow.2.dylib",
-                "@loader_path/../../deps/lib/libtensorflow.dylib",
+                "@loader_path/../../deps/lib/libtensorflow.2.dylib",
                 "<(PRODUCT_DIR)/tfjs_binding.node"
               ]
             },

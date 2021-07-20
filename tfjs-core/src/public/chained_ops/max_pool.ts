@@ -14,6 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+import {ExplicitPadding} from '../../ops/conv_util';
 import {maxPool} from '../../ops/max_pool';
 import {getGlobalTensorClass, Tensor3D, Tensor4D} from '../../tensor';
 import {Rank} from '../../types';
@@ -22,7 +23,7 @@ declare module '../../tensor' {
   interface Tensor<R extends Rank = Rank> {
     maxPool<T extends Tensor3D|Tensor4D>(
         filterSize: [number, number]|number, strides: [number, number]|number,
-        pad: 'valid'|'same'|number,
+        pad: 'valid'|'same'|number|ExplicitPadding,
         dimRoundingMode?: 'floor'|'round'|'ceil'): T;
   }
 }
@@ -30,7 +31,8 @@ declare module '../../tensor' {
 getGlobalTensorClass().prototype.maxPool =
     function<T extends Tensor3D|Tensor4D>(
         this: T, filterSize: [number, number]|number,
-        strides: [number, number]|number, pad: 'valid'|'same'|number,
+        strides: [number, number]|number,
+        pad: 'valid'|'same'|number|ExplicitPadding,
         dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   this.throwIfDisposed();
   return maxPool(this, filterSize, strides, pad, dimRoundingMode);

@@ -18,15 +18,17 @@
 import {backend_util, BinaryInputs, DataType, KernelFunc, TensorInfo, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {BinaryOpComplexProgram, COMPLEX_MULTIPLY} from '../kernels/binary_op_complex_webgpu';
-import {BinaryOpType, getBinaryProgram} from '../kernels/binary_ops';
+import {BinaryOpComplexProgram} from '../kernels/binary_op_complex_webgpu';
+import {getBinaryProgram} from '../kernels/binary_ops';
 import {complex} from '../kernels/Complex';
+import {BinaryOpType} from '../kernels/binary_op_util';
+import {UnaryOpType} from '../kernels/unary_op_util';
 import {UnaryOpProgram} from '../kernels/unary_op_webgpu';
 
 import {SimpleBinaryKernelImplCPU, SimpleUnaryKernelImplCPU} from './shared';
 
 type UnaryKernelFuncConfig = {
-  opSnippet: string,
+  opType: UnaryOpType,
   cpuKernelImpl?: SimpleUnaryKernelImplCPU,
   dtype?: DataType
 };
@@ -41,7 +43,7 @@ type UnaryKernelFuncConfig = {
  *     comparison kernels, such as Equal, Less, Greater, etc.
  */
 export function unaryKernelFunc(
-    {opSnippet, cpuKernelImpl, dtype}: UnaryKernelFuncConfig): KernelFunc {
+    {opType, cpuKernelImpl, dtype}: UnaryKernelFuncConfig): KernelFunc {
   return ({inputs, backend}) => {
     const {x} = inputs as UnaryInputs;
     const webgpuBackend = backend as WebGPUBackend;
@@ -53,7 +55,7 @@ export function unaryKernelFunc(
       return webgpuBackend.makeTensorInfo(x.shape, $dtype, outValues);
     }
 
-    const program: UnaryOpProgram = new UnaryOpProgram(x.shape, opSnippet);
+    const program: UnaryOpProgram = new UnaryOpProgram(x.shape, opType);
     return webgpuBackend.runWebGPUProgram(program, [x], $dtype);
   };
 }
@@ -109,10 +111,10 @@ export function binaryKernelFunc(
               upcastType(aPart.dtype, bPart.dtype));
         });
       } else {
-        const realProgram =
-            new BinaryOpComplexProgram(COMPLEX_MULTIPLY.REAL, a.shape, b.shape);
-        const imagProgram =
-            new BinaryOpComplexProgram(COMPLEX_MULTIPLY.IMAG, a.shape, b.shape);
+        const realProgram = new BinaryOpComplexProgram(
+            BinaryOpType.COMPLEX_MULTIPLY_REAL, a.shape, b.shape);
+        const imagProgram = new BinaryOpComplexProgram(
+            BinaryOpType.COMPLEX_MULTIPLY_IMAG, a.shape, b.shape);
 
         const inputs = [
           {
