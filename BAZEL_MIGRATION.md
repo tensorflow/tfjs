@@ -125,7 +125,7 @@ Our test setup allows fine-tuning of exactly what tests are run via `setTestEnvs
 ```starlark
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "nodejs_test")
 
-# This is necessary for tests to have acess to
+# This is necessary for tests to have access to
 # the package.json so src/version_test.ts can 'require()' it.
 js_library(
     name = "package_json",
@@ -210,6 +210,76 @@ tfjs_web_test(
     ],
 )
 ```
+
+### Convert scripts to Bazel
+Some packages run scripts to download, generate, or check files before the build. Since the build depends on them, they should be converted to run with Bazel.
+
+#### Downloading Files
+Bazel provides the `http_archive` rule to download additional dependencies. If a package requires a well-known URL, then [`http_archive`](https://docs.bazel.build/versions/main/repo/http.html#http_archive) may be the right rule to download it. `http_archive` expects to download a directory compressed with one of the formats in its documentation. If you are not downloading a directory, this is likely the wrong rule (although it may be able to download single files. Haven't tested this. If you use it to download a single file, please update the docs). If your file does not match these requirements, you may need to use a `genrule` instead (see the next section on generating files).
+
+Since `http-archive` is a repository rule, it must be used in the `WORKSPACE` file.
+```starlark
+# WORKSPACE
+
+http_archive(
+    name = "your_dependency_name",
+    sha256 = "8f5f192ba02319254aaf2cdcca00ec12eaafeb979a80a1e946773c520ae0a2c9",
+    urls = ["https://..."],
+    build_file = "your_dependency_name.BUILD" # The BUILD file used for this dependency
+    build_file_content = "A string containing the contents of your_dependency_name.BUILD."
+    # Use either 'build_file' or 'build_file_content'. Not both.
+)
+```
+
+Since the file being fetched likely does not have its own `BUILD.bazel` file, we provide one for it. This build file declares the `filegroup` that makes the dependency available to rules in the repo, but other rules can be used as well, (such as `exports_files` as is used in `//BUILD.bazel`).
+
+```starlark
+# your_dependency_name.BUILD
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "some_name",
+    srcs = [
+        "a_file.txt",
+    ],
+)
+```
+
+Now, the contents declared above should be accessible to rules in the tfjs repository. Since its path is not obvious, it may be easier to have Bazel copy it to a known location before using it. Alternatively, use the [runfiles helper](https://bazelbuild.github.io/rules_nodejs/Built-ins.html#copy_to_bin) (there is some documentation on it at that link) provided by rules_nodejs to find its path.
+
+```starlark
+# A build file in the tfjs repo. e.g. tfjs-core/BUILD.bazel
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+
+copy_file(
+    name = "copy_the_file",
+    src = "@your_dependency_name//:some_name",
+    out = "a_file_copied.txt",
+)
+
+nodejs_test(
+    name = "some_rule_that_needs_the_file",
+    deps = [
+        "@your_dependency_name//:some_name", # <-- Use one of these, not both
+        ":copy_the_file",                    # <---'
+    ],
+)
+```
+
+For details on how to access the file from node, see [this example repository](https://github.com/mattsoulanille/example_http_archive/blob/main/test/print.ts).
+
+#### Generating Files from a Bash script
+The tfjs repository has several bash scripts that generate files. These often have no clear Bazel analog. For this case, Bazel provides the [`genrule`](https://docs.bazel.build/versions/main/be/general.html#genrule) rule. This rule runs a provided bash script. [`sh_test`](https://docs.bazel.build/versions/main/be/shell.html#sh_test) should be used instead of `genrule` if the script is a test.
+
+For examples of `genrule`, see the [example section](https://docs.bazel.build/versions/main/be/general.html#genrule_examples). Make sure to follow the [general advice](https://docs.bazel.build/versions/main/be/general.html#general-advice). Also, take a look at the [`cmd`](https://docs.bazel.build/versions/main/be/general.html#genrule.cmd) argument for details on what parts of the command are substituted.
+
+#### Generating files from a js / ts script
+TODO(msoulanille)
+
+
+#### Checking Files
+Sometimes, we check a file's contents before using it as input to `tsc`. In most of these cases, the file should instead be generated each time. Bazel's cache will prevent this from adding time to the build. If a file must be checked and can't be generated beforehand, an `sh_test` or `nodejs_test` may be appropriate, depending on the script that checks the file.
+
 
 ### Package for npm
 We use the [pkg_npm](https://bazelbuild.github.io/rules_nodejs/Built-ins.html#pkg_npm) rule to create and publish the package to npm. However, there are a few steps needed before we can declare the package. For most packages, we distribute all our compiled outputs in the `dist` directory. However, due to how `ts_library` works, it creates outputs in the same directory as the source files were compiled from (except they show up in Bazel's `dist/bin` output dir). We need to copy these from `src` to `dist` while making sure Bazel is aware of this copy (so we can still use `pkg_npm`).
