@@ -7,7 +7,7 @@ Please reach out to us if you'd like to put your project on the list.
 
 ## Demos & Applications
 
-- [HumanGPS: Dense Human Correspondences](https://feitongt.github.io/HumanGPS/demo) -  A deep learning framework that maps each pixel to a feature space, where the feature distances reflect the geodesic distances among pixels as if they were projected onto the surface of a 3D human scan.
+- [HumanGPS: Dense Human Correspondences](https://feitongt.github.io/HumanGPS/#Live_demo) -  A deep learning framework that maps each pixel to a feature space, where the feature distances reflect the geodesic distances among pixels as if they were projected onto the surface of a 3D human scan.
 - [Time Series Forecasting](https://jinglescode.github.io/time-series-forecasting-tensorflowjs/) - Pull stock prices from online API, train and perform predictions using Long Short Term Memory, and predict the next value. [[demo](https://jinglescode.github.io/time-series-forecasting-tensorflowjs/)][[repo](https://github.com/jinglescode/time-series-forecasting-tensorflowjs)]
 - [Textual Similarity Analysis](https://jinglescode.github.io/textual-similarity-universal-sentence-encoder/) - Group similar sentences with universal sentence encoder word embeddings [[demo](https://jinglescode.github.io/textual-similarity-universal-sentence-encoder/)][[repo](https://github.com/jinglescode/textual-similarity-universal-sentence-encoder)]
 - [PoseAnimator](https://github.com/yemount/pose-animator/) - Animate any SVG character using your own body live via your webcam. Uses posenet and facemesh to create some really unique animations.
