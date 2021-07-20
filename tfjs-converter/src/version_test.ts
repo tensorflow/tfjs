@@ -8,16 +8,16 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:no-require-imports
-const packageJSON = require('../package.json');
 import {version_converter} from './index';
 
 describe('tfjs-core version consistency', () => {
   it('dev-peer match', () => {
     const tfjsCoreDevDepVersion =
-        packageJSON.devDependencies['@tensorflow/tfjs-core'];
+        // tslint:disable-next-line:no-require-imports
+        require('../package.json').devDependencies['@tensorflow/tfjs-core'];
     const tfjsCorePeerDepVersion =
-        packageJSON.peerDependencies['@tensorflow/tfjs-core'];
+        // tslint:disable-next-line:no-require-imports
+        require('../package.json').peerDependencies['@tensorflow/tfjs-core'];
     expect(tfjsCoreDevDepVersion).toEqual(tfjsCorePeerDepVersion);
   });
 

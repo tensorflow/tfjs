@@ -22,9 +22,9 @@ package(default_visibility = ["//visibility:public"])
 nodejs_test(
     name = "tfjs-converter_test",
     data = [
+        "//tfjs-converter:metadata_json",
+        "//tfjs-converter:package_json",
         "//tfjs-converter/src:tfjs-converter_test_lib",
-        "//tfjs-backend-cpu:package_json",
-        "//tfjs-core:package_json",
     ],
     entry_point = "//tfjs-converter/src:run_tests.ts",
     link_workspace_root = True,
@@ -102,5 +102,12 @@ js_library(
     name = "package_json",
     srcs = [
         ":package.json",
+    ],
+)
+
+js_library(
+    name = "metadata_json",
+    srcs = [
+        "metadata/kernel2op.json",
     ],
 )
