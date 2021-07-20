@@ -88,10 +88,6 @@ async function main() {
     if (pkg === 'tfjs-node-gpu') {
       $('yarn prep-gpu');
     }
-    // tfjs-tflite needs to download the tflite web api from google storage.
-    if (pkg === 'tfjs-tflite') {
-      $('yarn prep');
-    }
 
     // Yarn above the other checks to make sure yarn doesn't change the lock
     // file.
@@ -110,7 +106,8 @@ async function main() {
         await question(`Enter one-time password from your authenticator: `);
 
     if (BAZEL_PACKAGES.has(pkg)) {
-      $(`YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm --otp=${otp}`);
+      $(`YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm --otp=${
+          otp}`);
     } else {
       $(`YARN_REGISTRY="https://registry.npmjs.org/" npm publish --otp=${otp}`);
     }
