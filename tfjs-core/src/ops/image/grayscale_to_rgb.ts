@@ -48,12 +48,12 @@ function grayscaleToRGB_<T extends Tensor2D|Tensor3D|Tensor4D|Tensor5D|
       () => 'Error in grayscaleToRGB: last dimension of a grayscale image ' +
           `should be size 1, but got size ${lastDims}.`);
 
-  const reps = new Uint8Array($image.rank);
+  const reps = new Array($image.rank);
 
   reps.fill(1, 0, lastDimsIdx);
   reps[lastDimsIdx] = 3;
 
-  return tile($image, Array.from(reps));
+  return tile($image, reps);
 }
 
 export const grayscaleToRGB = op({grayscaleToRGB_});
