@@ -22,6 +22,12 @@ TEST_SRCS = [
     "run_tests.ts",
 ]
 
+# Used for test-snippets
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**/*.ts"]),
+)
+
 ts_library(
     name = "tfjs-converter_src_lib",
     srcs = glob(

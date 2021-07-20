@@ -38,6 +38,23 @@ nodejs_test(
     tags = ["ci"],
 )
 
+# Defined here because chdir must be a subdirectory of the directory the rule is
+# defined in.
+nodejs_test(
+    name = "test_snippets_test",
+    chdir = "tfjs-converter",
+    data = [
+        ":tsconfig.json",
+        "//:tsconfig.json",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-converter/scripts:test_snippets_lib",
+        "//tfjs-converter/src:all_srcs",
+    ],
+    entry_point = "//tfjs-converter/scripts:test_snippets.ts",
+    link_workspace_root = True,
+    tags = ["ci"],
+)
+
 tfjs_bundle(
     name = "tf-converter",
     entry_point = "//tfjs-converter/src:index.ts",
