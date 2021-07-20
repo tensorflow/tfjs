@@ -19,11 +19,18 @@ load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 
 package(default_visibility = ["//visibility:public"])
 
+# Allow typescript rules in any package to reference this file
+exports_files([
+    "package.json",
+    "metadata/kernel2op.json",
+])
+
 nodejs_test(
     name = "tfjs-converter_test",
     data = [
-        "//tfjs-converter:metadata_json",
-        "//tfjs-converter:package_json",
+        ":metadata_json",
+        ":package_json",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-converter/src:tfjs-converter_test_lib",
     ],
     entry_point = "//tfjs-converter/src:run_tests.ts",
@@ -108,6 +115,6 @@ js_library(
 js_library(
     name = "metadata_json",
     srcs = [
-        "metadata/kernel2op.json",
+        ":metadata/kernel2op.json",
     ],
 )

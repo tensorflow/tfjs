@@ -15,6 +15,7 @@ describe('tfjs-core version consistency', () => {
     const tfjsCoreDevDepVersion =
         // tslint:disable-next-line:no-require-imports
         require('../package.json').devDependencies['@tensorflow/tfjs-core'];
+
     const tfjsCorePeerDepVersion =
         // tslint:disable-next-line:no-require-imports
         require('../package.json').peerDependencies['@tensorflow/tfjs-core'];

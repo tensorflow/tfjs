@@ -57,7 +57,6 @@ ts_library(
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
-        "//tfjs-core/src:tfjs-core_test_lib",
         "@npm//@types/jasmine",
         "@npm//ajv",
         "@npm//jasmine",
