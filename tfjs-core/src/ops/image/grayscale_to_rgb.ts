@@ -15,31 +15,35 @@
  * =============================================================================
  */
 
-import {Tensor4D} from '../../tensor';
+import {Tensor2D, Tensor3D, Tensor4D, Tensor5D, Tensor6D} from '../../tensor';
 import {convertToTensor} from '../../tensor_util_env';
 import {TensorLike} from '../../types';
 import * as util from '../../util';
 
 import {op} from '../operation';
-import {tile} from '../tile'
+import {concat} from '../concat';
+import {expandDims} from '../expand_dims';
+import {ones} from '../ones';
+import {tile} from '../tile';
 
 /**
  * Converts images from grayscale to RGB format.
  *
- * @param image a 4d tensor of shape `[batch, height, width, 1]`, where height
- *     and width must be positive. The last dimension must be size 1.
+ * @param image A grayscale tensor to convert. The `image`'s last dimension must
+ *     be size 1 with at least a two-dimensional shape.
  *
  * @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'}
  */
-function grayscaleToRGB_<T extends Tensor4D>(image: T|TensorLike): T {
+function grayscaleToRGB_<T extends Tensor2D|Tensor3D|Tensor4D|Tensor5D|
+                         Tensor6D>(image: T|TensorLike): T {
   const $image = convertToTensor(image, 'image', 'grayscaleToRGB');
 
   const lastDimsIdx = $image.rank - 1;
   const lastDims = $image.shape[lastDimsIdx];
 
   util.assert(
-      $image.rank === 4,
-      () => 'Error in grayscaleToRGB: images must be rank 4, ' +
+      $image.rank >= 2,
+      () => 'Error in grayscaleToRGB: images must be at least rank 2, ' +
           `but got rank ${$image.rank}.`);
 
   util.assert(
@@ -47,9 +51,11 @@ function grayscaleToRGB_<T extends Tensor4D>(image: T|TensorLike): T {
       () => 'Error in grayscaleToRGB: last dimension of a grayscale image ' +
           `should be size 1, but got size ${lastDims}.`);
 
-  const result = tile($image, [1, 1, 1, 3])
+  const repsList = [ones([lastDimsIdx])].concat([expandDims(3)]);
+  const concatenatedList = concat(repsList).dataSync();
+  const reps = Array.from(concatenatedList);
 
-  return result as T;
+  return tile($image, reps);
 }
 
 export const grayscaleToRGB = op({grayscaleToRGB_});
