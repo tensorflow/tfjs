@@ -21,9 +21,6 @@ import {TensorLike} from '../../types';
 import * as util from '../../util';
 
 import {op} from '../operation';
-import {concat} from '../concat';
-import {expandDims} from '../expand_dims';
-import {ones} from '../ones';
 import {tile} from '../tile';
 
 /**
@@ -51,9 +48,12 @@ function grayscaleToRGB_<T extends Tensor2D|Tensor3D|Tensor4D|Tensor5D|
       () => 'Error in grayscaleToRGB: last dimension of a grayscale image ' +
           `should be size 1, but got size ${lastDims}.`);
 
-  const repsList = [ones([lastDimsIdx])].concat([expandDims(3)]);
-  const concatenatedList = concat(repsList).dataSync();
-  const reps = Array.from(concatenatedList);
+  const reps = new Array($image.rank);
+
+  reps[lastDimsIdx] = 3;
+  for (let i = 0; i < lastDimsIdx; i++) {
+    reps[i] = 1;
+  }
 
   return tile($image, reps);
 }
