@@ -14,10 +14,6 @@ the "WebAssembly SIMD support" and "WebAssembly threads support" in
 
 Build the dependencies.
 
-Make sure `gsutil` is installed. It will be used by the build scripts.
-Follow the installation instructions [here][gsutil]. You can skip the
-"Setting Up Credentials to Access Protected Data" section.
-
 ```sh
 $ yarn build-deps
 $ yarn
