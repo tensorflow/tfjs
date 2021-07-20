@@ -12,7 +12,6 @@
   "tfjs-backend-webgpu": ["tfjs-core", "tfjs-converter", "tfjs-backend-webgl"],
   "tfjs-inference": [],
   "tfjs-react-native": [],
-  "tfjs-tflite": ["tfjs-core"],
   "tfjs-vis": [],
   "e2e": ["tfjs", "tfjs-backend-webgl", "tfjs-converter", "tfjs-core", "tfjs-data", "tfjs-layers", "tfjs-node", "tfjs-backend-wasm"]
 }
