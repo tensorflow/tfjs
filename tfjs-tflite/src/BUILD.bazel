@@ -14,7 +14,7 @@
 # =============================================================================
 
 load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin")
-load("//tools:defaults.bzl", "ts_library")
+load("//tools:defaults.bzl", "esbuild", "ts_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -23,10 +23,6 @@ TEST_SRCS = [
     "setup_test.ts",
 ]
 
-# exports_files([
-#     "tflite_web_api_client.js"
-# ])
-
 ts_library(
     name = "tfjs-tflite_src_lib",
     srcs = glob(
@@ -34,10 +30,6 @@ ts_library(
         exclude = TEST_SRCS + ["index.ts"],
     ),
     module_name = "@tensorflow/tfjs-tflite/dist",
-    data = [
-        ":tflite_web_api_client_js",
-        "//tfjs-tflite/wasm:tflite_web_api_client_js",
-    ],
     deps = [
         "//tfjs-core/src:tfjs-core_lib",
         "@npm//@types/seedrandom",
@@ -55,8 +47,37 @@ ts_library(
 )
 
 copy_to_bin(
-  name = "tflite_web_api_client_js",
-  srcs = [
-    "tflite_web_api_client.js",
-  ],
+    name = "tflite_web_api_client_js",
+    srcs = [
+        "tflite_web_api_client.js",
+    ],
+)
+
+ts_library(
+    name = "tfjs-tflite_test_lib",
+    srcs = glob(TEST_SRCS),
+    module_name = "@tensorflow/tfjs-tflite/dist",
+    deps = [
+        ":tfjs-tflite_lib",
+        ":tfjs-tflite_src_lib",
+        "//tfjs-core/src:tfjs-core_lib",
+    ],
+)
+
+esbuild(
+    name = "tfjs-tflite_test_bundle",
+    testonly = True,
+    entry_point = "setup_test.ts",
+    external = [
+        "@tensorflow/tfjs",
+        "worker_threads",
+        "util",
+    ],
+    sources_content = True,
+    deps = [
+        ":tfjs-tflite_lib",
+        ":tfjs-tflite_test_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-core/src:tfjs-core_lib",
+    ],
 )

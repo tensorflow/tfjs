@@ -18,7 +18,7 @@ steps:
   dir: 'tfjs-tflite'
   entrypoint: 'yarn'
   id: 'build-deps'
-  args: ['build-deps-ci']
+  args: ['build-link-package']
   waitFor: ['yarn-common']
 
 # Download tflite web API.
