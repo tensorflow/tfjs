@@ -163,7 +163,7 @@ describeWithFlags('topk', ALL_ENVS, () => {
     expectArraysClose(await values.data(), [2, 2, 1, 1]);
     expectArraysClose(await indices.data(), [1, 2, 0, 3]);
   });
-  
+
   it('lower-index element appears first, k=65', async () => {
     const a = [
       1, 1, 2, 1, 2, 1, 1, 1, 2, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2, 1, 1, 2,
@@ -172,7 +172,7 @@ describeWithFlags('topk', ALL_ENVS, () => {
     ];
     const k = a.length;
     const {values, indices} = tf.topk(a, k);
-    
+
     expectArraysClose(await values.data(), [
       2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
       2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,

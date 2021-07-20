@@ -137,7 +137,7 @@ export class FusedSwapProgram implements GPGPUProgram {
   userCode: string;
   packedInputs = true;
   packedOutput = true;
-  outPackingScheme = PackingScheme.SHARED_BATCH;
+  outPackingScheme = PackingScheme.DENSE;
 
   // Caching uniform location for speed.
   n: WebGLUniformLocation;
@@ -186,7 +186,7 @@ export class FusedSwapProgram implements GPGPUProgram {
          int baseElemIdx = coords[1];
          vec4 outputVec;
 
-         for (int offset = 0; offset < 2; offset++) {
+         for (int offset = 0; offset < 1; offset++) {
            int elemIdx = baseElemIdx;
            if (offset == 1) batch++;
 
@@ -236,8 +236,11 @@ export class FusedSwapProgram implements GPGPUProgram {
                indices[sequenceOffset + inc] = i1;
              }
            }
-           outputVec[offset * 2] = float(indices[sequenceOffset]);
-           outputVec[offset * 2 + 1] = float(indices[sequenceOffset + 1]);
+           outputVec[offset] = float(indices[sequenceOffset]);
+           outputVec[offset + 1] = float(indices[sequenceOffset + 1]);
+           outputVec[offset + 2] = float(indices[sequenceOffset + 2]);
+           outputVec[offset + 3] = float(indices[sequenceOffset + 3]);
+
          }
          setOutput(outputVec);
        }
@@ -278,7 +281,7 @@ export class MergeProgram implements GPGPUProgram {
   userCode: string;
   packedInputs = true;
   packedOutput = true;
-  outPackingScheme = PackingScheme.SHARED_BATCH;
+  outPackingScheme = PackingScheme.DENSE;
 
   // Caching uniform location for speed.
   n: WebGLUniformLocation;
