@@ -29,6 +29,7 @@ describeWithFlags('grayscaleToRGB', ALL_ENVS, () => {
 
     const expected = [1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 3.0, 3.0, 3.0];
 
+    expect(rgb.shape).toEqual([1, 1, 3, 3]);
     expectArraysClose(rgbData, expected);
   });
 
@@ -40,6 +41,7 @@ describeWithFlags('grayscaleToRGB', ALL_ENVS, () => {
 
     const expected = [1.6, 1.6, 1.6, 2.4, 2.4, 2.4];
 
+    expect(rgb.shape).toEqual([1, 2, 3]);
     expectArraysClose(rgbData, expected);
   });
 
@@ -51,6 +53,7 @@ describeWithFlags('grayscaleToRGB', ALL_ENVS, () => {
 
     const expected = [16, 16, 16, 24, 24, 24];
 
+    expect(rgb.shape).toEqual([2, 3]);
     expectArraysClose(rgbData, expected);
   });
 
@@ -62,6 +65,7 @@ describeWithFlags('grayscaleToRGB', ALL_ENVS, () => {
 
     const expected = [191, 191, 191, 3, 3, 3];
 
+    expect(rgb.shape).toEqual([1, 2, 3]);
     expectArraysClose(rgbData, expected);
   });
 
