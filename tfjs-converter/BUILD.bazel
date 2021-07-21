@@ -135,3 +135,19 @@ js_library(
         ":metadata/kernel2op.json",
     ],
 )
+
+filegroup(
+    name = "op_list",
+    srcs = glob([
+        "src/operations/op_list/*.ts",
+    ]),
+)
+
+genrule(
+    name = "gen_json",
+    srcs = [
+        ":op_list",
+    ],
+    outs = ["python/tensorflowjs/op_list/control.json"],
+    cmd = "cd tfjs-converter && yarn gen-json",
+)
