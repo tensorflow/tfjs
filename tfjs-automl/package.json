@@ -27,7 +27,7 @@
     "@tensorflow/tfjs-core": "^3.8.0",
     "@types/jasmine": "~2.8.6",
     "clang-format": "~1.5.0",
-    "jasmine-core": "~3.7.1",
+    "jasmine-core": "~3.8.0",
     "karma": "~6.3.1",
     "karma-browserstack-launcher": "~1.6.0",
     "karma-chrome-launcher": "~2.2.0",
