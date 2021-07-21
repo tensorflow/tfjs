@@ -132,7 +132,6 @@ limitations under the License.
     let modelController = null;
     let numRunsController = null;
     let modelParameterFolder = null;
-    let backendsController = null;
     let runButton = null;
     let correctnessButton = null;
     let inputSizeController = null;
@@ -148,8 +147,6 @@ limitations under the License.
         modelController.setValue(urlState.get('benchmark'));
       if (numRunsController != null && urlState.has('run'))
         numRunsController.setValue(urlState.get('run'));
-      if (backendsController != null && urlState.has('backend'))
-        backendsController.setValue(urlState.get('backend'));
       // Only auto run when URI component exists.
       if (correctnessButton != null && task == 'correctness') {
         correctnessButton.domElement.click();
@@ -251,8 +248,6 @@ limitations under the License.
       isModelLoaded: false,
       inputs: {}
     };
-
-    urlState = getURLState(window.location.search);
 
     const modalDiv = document.getElementById('modal-msg');
     const timeTable = document.querySelector('#timings tbody');
@@ -685,6 +680,9 @@ limitations under the License.
       const gui = new dat.gui.GUI({ width: 550 });
       gui.domElement.id = 'gui';
 
+      urlState = getURLState(location.search);
+      if (urlState && urlState.has('backend'))
+        state.backend = urlState.get('backend');
       await tf.setBackend(state.backend);
 
       const modelFolder = gui.addFolder('Benchmark');
@@ -804,7 +802,7 @@ limitations under the License.
       modelParameterFolder.open();
 
       const envFolder = gui.addFolder('Environment');
-      backendsController = envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu', 'webgpu']);
+      const backendsController = envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu', 'webgpu']);
       backendsController.onChange(async backend => {
         // TODO: Failed to set backend
         if (state.backend === 'webgpu' && !tf.engine().backendNames().includes(state.backend)) {
@@ -815,8 +813,7 @@ limitations under the License.
            showMsg(null);
         }
         await tf.setBackend(backend);
-        tunableFlagsControllers = await showFlagSettingsAndReturnTunableFlagControllers(envFolder, state.backend);
-        updateGUIFlagsValueFromURLState();
+        await showFlagSettingsAndReturnTunableFlagControllers(envFolder, state.backend);
       });
       envFolder.open();
 
