@@ -47,10 +47,6 @@ function pad(
 
   const outShape = paddings.map(
       (p, i) => p[0] /* beforePad */ + x.shape[i] + p[1] /* afterPad */);
-  const xId = backend.dataIdMap.get(x.dataId).id;
-  const out = backend.makeOutput(outShape, x.dtype);
-  const outTensorData = backend.dataIdMap.get(out.dataId);
-  const outId = outTensorData.id;
 
   if (util.sizeFromShape(x.shape) === 0) {
     // Short-circuit the computation, since x doesn't have value, only
@@ -60,6 +56,11 @@ function pad(
       attrs: {shape: outShape, value: constantValue, dtype: x.dtype}
     });
   }
+
+  const xId = backend.dataIdMap.get(x.dataId).id;
+  const out = backend.makeOutput(outShape, x.dtype);
+  const outTensorData = backend.dataIdMap.get(out.dataId);
+  const outId = outTensorData.id;
 
   const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
 
