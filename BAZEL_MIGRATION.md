@@ -20,11 +20,16 @@ A package's dependencies must be migrated before it can be migrated. Take a look
 ### Add dependencies to the root `package.json`
 Bazel (through `rules_nodejs`) uses a single root `package.json` for its npm dependencies. When converting a package to build with Bazel, dependencies in the package's `package.json` will need to be added to the root `package.json` as well.
 
-### Create a `BUILD.bazel` file in the package
+### Create a `BUILD.bazel` file in the package's root
 Bazel looks for targets to run in `BUILD` and `BUILD.bazel` files. Use the `.bazel` extension since blaze uses `BUILD`. You may want to install an extension for your editor to get syntax highlighting. [Here's the vscode extension](https://marketplace.visualstudio.com/items?itemName=BazelBuild.vscode-bazel).
 
+This BUILD file will handle package-wide rules like bundling for npm.
+
+### Create another `BUILD.bazel` file in `src`
+This BUILD file will compile the source files of the package using `ts_library` and may also define test bundles.
+
 ### Compile the package with `ts_library`
-[ts_library](https://bazelbuild.github.io/rules_nodejs/TypeScript.html#ts_library) compiles the package. We wrap `ts_library` in a macro that sets some project-specific settings.
+In the `src` BUILD.bazel file, we use `ts_library` to compile the package's typescript files.  [ts_library](https://bazelbuild.github.io/rules_nodejs/TypeScript.html#ts_library) is a rule provided by rules_nodejs. We wrap `ts_library` in a macro that sets some project-specific settings.
 
 Here's an example of how `tfjs-core` uses `ts_library` to build.
 
@@ -67,8 +72,10 @@ ts_library(
 ```
 `ts_library` is used twice in order to have the correct `module_name` for the output files. Most files are imported relative to `@tensorflow/tfjs-core/src/`, but `index.ts`, the entrypoint of `tfjs-core`, should be importable as `@tensorflow/tfjs-core`.
 
+If your package imports from `dist` (e.g. `import {} from @tensorflow/tfjs-core/dist/ops/ops_for_converter`), that import likely corresponds to a rule in that packages `src/BUILD.bazel` file. Look for a rule that includes the file you're importing and has `module_name` set correctly for that import.
+
 ### Bundle the package
-This step involves bundling the compiled files from the compilation step into a single file. In order to support different execution environments, TFJS generates several bundles for each package. We provide a `tfjs_bundle` macro to generate these bundles.
+This step involves bundling the compiled files from the compilation step into a single file, and the rules are added to the package's root BUILD file (instead of `src/BUILD.bazel`). In order to support different execution environments, TFJS generates several bundles for each package. We provide a `tfjs_bundle` macro to generate these bundles.
 
 `tfjs-core/BUILD.bazel`
 ```starlark
@@ -92,7 +99,7 @@ The `tfjs_bundle` macro generates several different bundles which are published 
 
 
 ### Compile the tests with `ts_library`
-We compile the tests with `ts_library`. In the case of `tfjs-core`, we actually publish the test files, since other packages use them in their tests. Therefore, it's important that we set the `module_name` to `@tensorflow/tfjs-core/dist`. If a package's tests are not published, the `module_name` can probably be omitted. In a future major version of tfjs, we may stop publishing the tests to npm.
+In the `src/BUILD.bazel` file, we compile the tests with `ts_library`. In the case of `tfjs-core`, we actually publish the test files, since other packages use them in their tests. Therefore, it's important that we set the `module_name` to `@tensorflow/tfjs-core/dist`. If a package's tests are not published, the `module_name` can probably be omitted. In a future major version of tfjs, we may stop publishing the tests to npm.
 
 `tfjs-core/src/BUILD.bazel`
 ```starlark
@@ -110,6 +117,21 @@ ts_library(
     ],
 )
 ```
+
+### Update the tests entrypoint
+Many packages have a `src/run_tests.ts` file (or similar) that they use for selecting which tests to run. That file defines the paths to the test files that Jasmine uses. Since Bazel outputs appearin a different location, the paths to the test files must be updated. As an example, the following paths
+```ts
+const coreTests = 'node_modules/@tensorflow/tfjs-core/src/tests.ts';
+const unitTests = 'src/**/*_test.ts';
+```
+would need to be updated to
+```ts
+const coreTests = 'tfjs-core/src/tests.js';
+const unitTests = 'the-package-name/src/**/*_test.js';
+```
+Note that `.ts` has been changed to `.js`. This is because we're no longer running node tests with `ts-node`, so the input test files are now `.js` outputs created by the `ts_library` rule that compiled the tests.
+
+It's also important to make sure the `nodejs_test` rule that runs the test has [`link_workspace_root = True`](https://bazelbuild.github.io/rules_nodejs/Built-ins.html#nodejs_binary-link_workspace_root). Otherwise, the test files will not be accessable at runtime.
 
 ### Run node tests with nodejs_test
 Our test setup allows fine-tuning of exactly what tests are run via `setTestEnvs` and `setupTestFilters` in `jasmine_util.ts`, which are used in a custom Jasmine entrypoint file `setup_test.ts`. This setup does not work well with [jasmine_node_test](https://bazelbuild.github.io/rules_nodejs/Jasmine.html#jasmine_node_test), which provides its own entrypoint for starting Jasmine. Instead, we use the [nodejs_test](https://bazelbuild.github.io/rules_nodejs/Built-ins.html#nodejs_test) rule.
@@ -349,6 +371,8 @@ Update all downstream dependencies that depend on the package to point to its lo
   "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
 },
 ```
+
+To find downstream packages, run `grep -r --exclude=yarn.lock --exclude-dir=node_modules "link:.*the-package-name" .` in the root of the repository.
 
 ### Update or Remove `cloudbuild.yml`
 Update the `cloudbuild.yml` to remove any steps that are now built with Bazel. These will be run by the `bazel-tests` step, which runs before other packages' steps. Any Bazel rule tagged as `ci` will be tested / build in CI.
