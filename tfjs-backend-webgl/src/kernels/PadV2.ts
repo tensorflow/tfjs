@@ -20,6 +20,7 @@ import {env, KernelConfig, KernelFunc, PadV2, PadV2Attrs, PadV2Inputs, TensorInf
 import {MathBackendWebGL} from '../backend_webgl';
 import {PadProgram} from '../pad_gpu';
 import {PadPackedProgram} from '../pad_packed_gpu';
+import {fill} from './Fill';
 
 export const padV2 =
     (args: {inputs: PadV2Inputs, backend: MathBackendWebGL, attrs: PadV2Attrs}):
@@ -34,11 +35,10 @@ export const padV2 =
             const outputShape = paddings.map(
                 (p, i) =>
                     p[0] /* beforePad */ + x.shape[i] + p[1] /* afterPad */);
-            const outputSize = util.sizeFromShape(outputShape);
-            const values =
-                util.getTypedArrayFromDType(x.dtype as 'float32', outputSize);
-            values.fill(constantValue);
-            return backend.makeTensorInfo(outputShape, x.dtype, values);
+            return fill({
+              backend,
+              attrs: {shape: outputShape, value: constantValue, dtype: x.dtype}
+            });
           }
 
           const program = env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') ?

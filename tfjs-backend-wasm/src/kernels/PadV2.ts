@@ -19,6 +19,8 @@ import {KernelConfig, KernelFunc, PadV2, PadV2Attrs, PadV2Inputs, util} from '@t
 
 import {BackendWasm} from '../backend_wasm';
 
+import {fill} from './Fill';
+
 import {CppDType} from './types';
 
 let wasmPadV2: (
@@ -53,9 +55,10 @@ function pad(
   if (util.sizeFromShape(x.shape) === 0) {
     // Short-circuit the computation, since x doesn't have value, only
     // the shape is used to compute output shape to pad.
-    const outData = backend.typedArrayFromHeap(out);
-    outData.fill(constantValue);
-    return out;
+    return fill({
+      backend,
+      attrs: {shape: outShape, value: constantValue, dtype: x.dtype}
+    });
   }
 
   const xShapeBytes = new Uint8Array(new Int32Array(x.shape).buffer);
