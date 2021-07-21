@@ -29,9 +29,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 
-// Reference to the "posts" collection on firestore that contains benchmark
-// results.
-const db = firebase.firestore().collection("posts");
+// Reference to the "BenchmarkResults" collection on firestore that contains the
+// benchmark results.
+const db = firebase.firestore().collection("BenchmarkResults");
 
 /**
  * After being returned from Browserstack, benchmark results are stored as
@@ -49,7 +49,7 @@ function addResultToFirestore(resultValue) {
     result: firestoreMap
   })
   .then((ref) => {
-    console.log("Added document to Firebase with ID: ", ref.id);
+    console.log(`Added document to Firestore with ID: ${ref.id}`);
   });
 }
 
@@ -89,17 +89,8 @@ function serializeTensors(resultValue) {
  * Returns a human readable date so each benchmark has an associated date
  */
 function getReadableDate() {
-  const date = new Date();
-  let month = (date.getMonth() + 1).toString();
-  if (month.length === 1) {
-    month = '0' + month;
-  }
-  let day = date.getDate().toString();
-  if (day.length === 1) {
-    day = '0' + day;
-  }
-  const humanReadableDate = `${date.getFullYear()}-${month}-${day}`;
-  return humanReadableDate;
+  const date = new Date().toLocaleDateString();
+  return date;
 }
 
 exports.addResultToFirestore = addResultToFirestore;

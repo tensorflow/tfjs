@@ -165,10 +165,11 @@ describe("test adding to firestore", () => {
   });
 
   beforeEach(() => {
+    //mockResultValue is the result of a successful benchmark
     mockResultValue = require('./firestore_test_value.json');
     mockDb = spyOn(db, "add");
     mockSerialization = jasmine.createSpy('mockSerialization');
-    mockDate = jasmine.createSpy('mockDate').and.returnValue("2021-07-16");
+    mockDate = jasmine.createSpy('mockDate').and.returnValue("7/21/2021");
   });
 
   it("Expects db.add to be called", () => {
