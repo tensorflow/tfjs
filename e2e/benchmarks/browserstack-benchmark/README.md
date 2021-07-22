@@ -65,6 +65,11 @@ The following are supported options arguments which trigger options features:
     ``` shell
     node app.js --maxBenchmarks
     ```
+  * --maxTries
+    - Sets maximum for number of tries a given benchmark has to succeed.
+    ``` shell
+    node app.js --maxTries
+    ```
   * --outfile
     - Writes results to an accessible external file, benchmark_results.json.
     ``` shell

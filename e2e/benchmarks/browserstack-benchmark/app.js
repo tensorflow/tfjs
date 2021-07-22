@@ -35,8 +35,8 @@ function checkBrowserStackAccount() {
     throw new Error(
         `Please export your BrowserStack username and access key by running` +
         `the following commands in the terminal:
-           export BROWSERSTACK_USERNAME=YOUR_USERNAME
-           export BROWSERSTACK_ACCESS_KEY=YOUR_ACCESS_KEY`);
+          export BROWSERSTACK_USERNAME=YOUR_USERNAME
+          export BROWSERSTACK_ACCESS_KEY=YOUR_ACCESS_KEY`);
   }
 }
 
@@ -309,7 +309,7 @@ function runBenchmarkFromFile(file, runBenchmark = benchmark) {
   runBenchmark(file);
 }
 
-/* Only run this code if app.js is called from the command line */
+// Only run this code if app.js is called from the command line
 if (require.main === module) {
   setupHelpMessage();
   checkBrowserStackAccount();
