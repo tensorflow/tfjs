@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-/// <reference types="@webgpu/types" />
-
+import "@webgpu/types";
 import './flags_webgpu';
 
 import {backend_util, buffer, DataStorage, DataType, DataValues, engine, env, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, util} from '@tensorflow/tfjs-core';
@@ -83,7 +82,7 @@ export class WebGPUBackend extends KernelBackend {
   fromPixelLayout: WebGPULayout;
   supportTimeQuery: boolean;
   dummyCanvas: HTMLCanvasElement;
-  dummyContext: GPUPresentationContext; 
+  dummyContext: GPUPresentationContext;
 
   private static nextDataId = 0;
   private nextDataId(): number {
@@ -136,13 +135,13 @@ export class WebGPUBackend extends KernelBackend {
       this.dummyCanvas = document.createElement('canvas');
       this.dummyCanvas.width = 1;
       this.dummyCanvas.height = 1;
-      
+
       this.dummyContext = this.dummyCanvas.getContext('gpupresent');
       this.dummyContext.configure({
         device,
         format: 'bgra8unorm',
       });
-  
+
       document.body.appendChild(this.dummyCanvas);
     }
   }
@@ -345,7 +344,7 @@ export class WebGPUBackend extends KernelBackend {
     // Need to get texture from swapChain to enable profiling tool
     // to capture a frame
     if (env().getBool('WEBGPU_USE_PROFILE_TOOL')) {
-      util.assert(this.dummyContext !== undefined, 
+      util.assert(this.dummyContext !== undefined,
                   () => `Fail to get context for profiling tool`);
       this.dummyContext.getCurrentTexture();
     }
