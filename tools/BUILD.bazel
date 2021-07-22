@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
+load("//tools:defaults.bzl", "ts_library")
+
+package(default_visibility = ["//visibility:public"])
 
 exports_files(
     [
@@ -19,4 +23,28 @@ exports_files(
         "rollup_template.config.js",
     ],
     visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "gen_json_lib",
+    srcs = [
+        "gen_json.ts",
+    ],
+    deps = [
+        "//tfjs-converter/src:tfjs-converter_src_lib",
+        "@npm//@types/argparse",
+        "@npm//@types/node",
+        "@npm//argparse",
+        "@npm//deep-equal",
+    ],
+)
+
+nodejs_binary(
+    name = "gen_json_bin",
+    data = [
+        ":gen_json_lib",
+        "//tfjs-converter/src:tfjs-converter_src_lib",
+    ],
+    entry_point = "gen_json.ts",
+    link_workspace_root = True,
 )

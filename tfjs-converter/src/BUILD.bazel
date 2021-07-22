@@ -68,3 +68,10 @@ ts_library(
         "@npm//jasmine",
     ],
 )
+
+filegroup(
+    name = "op_list",
+    srcs = glob([
+        "operations/op_list/*.ts",
+    ]),
+)
