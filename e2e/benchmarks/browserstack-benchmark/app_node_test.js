@@ -1,5 +1,6 @@
 const fs = require('fs');
-const {benchmark, write, runBenchmarkFromFile} = require('./app.js');
+const {benchmark, write, getOneBenchmarkResult, runBenchmarkFromFile} =
+    require('./app.js');
 
 describe('test app.js cli', () => {
   const filePath = './benchmark_test_results.json';
@@ -93,15 +94,22 @@ describe('test app.js cli', () => {
       }
     };
 
-    // Bypasses BrowserStack with preset mock results
+    // Bypasses BrowserStack with preset successful mock results
     mockRunOneBenchmark =
         jasmine.createSpy('mockRunOneBenchmark').and.callFake((tabId) => {
           return Promise.resolve(mockResults[tabId]);
         });
 
+    // Bypasses Browserstack with preset failed mock results
+    failMockRunOneBenchmark =
+        jasmine.createSpy('mockRunOneBenchmark').and.callFake((tabId) => {
+          return Promise.reject(`Error: ${tabId} failed.`);
+        });
+
     /*
-    before each spec, create a mock benchmark and set testing browser configuration
-    this helps ensure that everything is set to the expected contents before the spec is run
+    before each spec, create a mock benchmark and set testing browser
+    configuration this helps ensure that everything is set to the expected
+    contents before the spec is run
     */
     mockBenchmark = jasmine.createSpy('mockBenchmark');
     testingConfig = require('./test_config.json');
@@ -116,7 +124,7 @@ describe('test app.js cli', () => {
     });
   });
 
-  it('checks mocked function and consequent value of promise all', async () => {
+  it('checks runOneBenchmark mock and end value of promise all', async () => {
     // Receives list of promises from benchmark function call
     const testResults = await benchmark(config, mockRunOneBenchmark);
 
@@ -124,8 +132,8 @@ describe('test app.js cli', () => {
     const formattedResults = {};
     for (let i = 0; i < Object.keys(config.browsers).length; i++) {
       await new Promise(resolve => {
-        const result = testResults[i]['value'];
-        formattedResults[result['tabId']] = result;
+        const result = testResults[i].value;
+        formattedResults[result.tabId] = result;
         return resolve();
       });
     }
@@ -142,12 +150,36 @@ describe('test app.js cli', () => {
     expect(formattedResults).toEqual(mockResults);
   });
 
-  it("checks that the benchmark function is called", () => {
+  it('checks getOneBenchmarkResult mock and result of failed results',
+     async () => {
+       // Expected failed mock benchmark results
+       await expectAsync(
+           getOneBenchmarkResult('iPhone_XS_1', failMockRunOneBenchmark))
+           .toBeRejectedWith(`Error: iPhone_XS_1 failed.`);
+
+       // Expected failMockRunOneBenchmark stats
+       expect(failMockRunOneBenchmark.calls.count()).toEqual(3);
+     });
+
+  it('checks getOneBenchmarkResult mock and result of successful results',
+     async () => {
+       // Gets a successful benchmark result
+       const succeedBenchmarkResult =
+           await getOneBenchmarkResult('iPhone_XS_1', mockRunOneBenchmark);
+
+       // Expected mockRunOneBenchmark stats
+       expect(mockRunOneBenchmark.calls.count()).toEqual(1);
+
+       // Expected successful mock benchmark results
+       expect(succeedBenchmarkResult).toEqual(mockResults.iPhone_XS_1);
+     });
+
+  it('checks that the benchmark function is called', () => {
     runBenchmarkFromFile(testingConfig, mockBenchmark);
     expect(mockBenchmark).toHaveBeenCalled();
   });
 
-  it("checks that the benchmark is being run with the correct JSON", () => {
+  it('checks that the benchmark is being run with the correct JSON', () => {
     runBenchmarkFromFile(testingConfig, mockBenchmark);
     expect(mockBenchmark).toHaveBeenCalledWith(testingConfig);
   });

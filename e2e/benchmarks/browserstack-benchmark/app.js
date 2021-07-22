@@ -35,8 +35,8 @@ function checkBrowserStackAccount() {
     throw new Error(
         `Please export your BrowserStack username and access key by running` +
         `the following commands in the terminal:
-          export BROWSERSTACK_USERNAME=YOUR_USERNAME
-          export BROWSERSTACK_ACCESS_KEY=YOUR_ACCESS_KEY`);
+           export BROWSERSTACK_USERNAME=YOUR_USERNAME
+           export BROWSERSTACK_ACCESS_KEY=YOUR_ACCESS_KEY`);
   }
 }
 
@@ -113,9 +113,9 @@ function setupBenchmarkEnv(config) {
  *
  *
  * @param {{browsers, benchmark}} config Benchmark configuration
- * @param benchmarkResult Function that benchmarks one browser-device pair
+ * @param runOneBenchmark Function that benchmarks one browser-device pair
  */
-async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
+async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   console.log('Preparing configuration files for the test runner.\n');
   setupBenchmarkEnv(config);
   if (require.main === module) {
@@ -123,25 +123,73 @@ async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
         `Starting benchmarks using ${cliArgs.webDeps ? 'cdn' : 'local'} ` +
         `dependencies...`);
   }
-  const results = [];
+
+  let results = [];
   let numActiveBenchmarks = 0;
+  // Runs and gets result of each queued benchmark
   for (const tabId in config.browsers) {
-    results.push(runOneBenchmark(tabId));
     numActiveBenchmarks++;
-    if (cliArgs?.maxBenchmarks && numActiveBenchmarks >= cliArgs.maxBenchmarks) {
-      numActiveBenchmarks = 0;
-      await Promise.allSettled(results);
-    }
+    const result = runOneBenchmark(tabId);
+    results.push(result);
+
+    // Waits for specified # of benchmarks to complete before running more
+     if (cliArgs?.maxBenchmarks && numActiveBenchmarks >= cliArgs.maxBenchmarks) {
+       numActiveBenchmarks = 0;
+       await Promise.allSettled(results);
+     }
   }
 
-  /** Optional outfile written once all benchmarks have returned results. */
+  // Optional outfile written once all benchmarks have returned results.
   const fulfilled = await Promise.allSettled(results);
-  if (cliArgs?.outfile) {
-    await write('./benchmark_results.json', fulfilled);
-  } else {
-    console.log('\nAll benchmarks complete.');
-  }
-  return fulfilled;
+   if (cliArgs?.outfile) {
+     await write('./benchmark_results.json', fulfilled);
+   } else {
+     console.log('\nAll benchmarks complete.');
+   }
+   return fulfilled;
+}
+
+/**
+ * Gets the benchmark result of a singular browser-device pairing.
+ *
+ * If benchmarking produces an error, the given browser-device pairing is
+ * retried up to the specific max number of tries. Default is 3.
+ *
+ * @param tabId Indicates browser-device pairing for benchmark
+ * @param runOneBenchmark Function that runs a singular BrowserStack
+ *     performance test
+ */
+async function getOneBenchmarkResult(
+    tabId, runOneBenchmark = runBrowserStackBenchmark) {
+  return new Promise(async (resolve, reject) => {
+    let complete = false;
+    let triesLeft = cliArgs ?.maxTries ? cliArgs.maxTries - 1 : 2;
+
+    // Retries benchmark until resolved or until no retries left
+    while (!complete) {
+      result = await runOneBenchmark(tabId)
+                   // Runs steps after promise has been resolved
+                   .then((value) => {
+                     console.log(`Benchmark ${tabId} succeeded.`);
+                     complete = true;
+                     resolve(value);
+                     return value;
+                   })
+                   // Runs steps after promise has been rejected
+                   .catch((err) => {
+                     if (triesLeft > 0) {
+                       console.log(`${tabId} benchmark failed. Retrying. ${
+                           triesLeft} tries left...`);
+                       triesLeft--;
+                     } else {
+                       console.log(`${tabId} benchmark failed.`);
+                       complete = true;
+                       reject(err);
+                     }
+                     return err;
+                   });
+    }
+  });
 }
 
 /**
@@ -160,7 +208,6 @@ function runBrowserStackBenchmark(tabId) {
     console.log(`Running: ${command}`);
 
     execFile('yarn', args, (error, stdout, stderr) => {
-      console.log(`benchmark ${tabId} completed.`);
       if (error) {
         console.log(error);
         if (!cliArgs.cloud) {
@@ -217,7 +264,7 @@ function write(filePath, msg) {
   })
 }
 
-/** Set up --help menu for file description and available optional commands */
+/* Set up --help menu for file description and available optional commands */
 function setupHelpMessage() {
   parser = new ArgumentParser({
     description: 'This file launches a server to connect to BrowserStack ' +
@@ -238,6 +285,13 @@ function setupHelpMessage() {
     default: 5,
     action: 'store'
   });
+  parser.add_argument('--maxTries', {
+    help: 'the maximum number of times a given benchmark is tried befor it ' +
+        'officially fails',
+    type: 'int',
+    default: 3,
+    action: 'store'
+  });
   parser.add_argument(
       '--outfile', {help: 'write results to outfile', action: 'store_true'});
   parser.add_argument('-v', '--version', {action: 'version', version});
@@ -249,13 +303,13 @@ function setupHelpMessage() {
   console.dir(cliArgs);
 }
 
-/*Runs a benchmark with a preconfigured file */
+/* Runs a benchmark with a preconfigured file */
 function runBenchmarkFromFile(file, runBenchmark = benchmark) {
   console.log('Running a preconfigured benchmark...');
   runBenchmark(file);
 }
 
-/*Only run this code if app.js is called from the command line */
+/* Only run this code if app.js is called from the command line */
 if (require.main === module) {
   setupHelpMessage();
   checkBrowserStackAccount();
@@ -275,5 +329,6 @@ if (require.main === module) {
 }
 
 exports.runBenchmarkFromFile = runBenchmarkFromFile;
+exports.getOneBenchmarkResult = getOneBenchmarkResult;
 exports.benchmark = benchmark;
 exports.write = write;
