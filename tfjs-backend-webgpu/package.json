@@ -11,7 +11,7 @@
   "scripts": {
     "benchmark": "yarn && yarn build-deps && karma start --grep=benchmark --browsers=chrome_webgpu",
     "build-ci": "tsc && yarn bundle-ci",
-    "build": "rimraf dist/ && tsc && yarn bundle",
+    "build": "bazel build :tfjs-backend-webgpu_pkg",
     "bundle": "rollup -c",
     "bundle-ci": "rollup -c --ci",
     "build-link-package-core": "cd ../link-package-core && yarn build",
@@ -29,6 +29,8 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@bazel/bazelisk": "^1.9.0",
+    "@bazel/ibazel": "^0.15.10",
     "@babel/polyfill": "^7.8.7",
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",

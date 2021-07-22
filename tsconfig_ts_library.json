@@ -32,6 +32,7 @@
       {
         "name": "@bazel/tsetse",
         "disabledRules": [
+          "check-return-value",
           "must-use-promises",
           "must-type-assert-json-parse",
           "ban-promise-as-condition"
