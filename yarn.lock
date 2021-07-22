@@ -921,6 +921,11 @@
   resolved "https://registry.npmjs.org/@bazel/esbuild/-/esbuild-3.7.0.tgz#1d59bba055afb0ca43bb626b595e2b3e2e89fcad"
   integrity sha512-IWcK/7f17m5gMzbz+pzrgaalDDXQ/3xf2AVCllf8XUDay5HqbquL9dHy5xuZrM8Lap9hHmZGNAMmuV74x0HffQ==
 
+"@bazel/ibazel@^0.15.10":
+  version "0.15.10"
+  resolved "https://registry.nlark.com/@bazel/ibazel/download/@bazel/ibazel-0.15.10.tgz#cf0cff1aec6d8e7bb23e1fc618d09fbd39b7a13f"
+  integrity sha1-zwz/GuxtjnuyPh/GGNCfvTm3oT8=
+
 "@bazel/jasmine@^3.7.0":
   version "3.7.0"
   resolved "https://registry.npmjs.org/@bazel/jasmine/-/jasmine-3.7.0.tgz#9d8ed4c73abb4a927cdffecf5c4c877f969d886b"
@@ -1195,6 +1200,15 @@
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/@types/webgl2/-/webgl2-0.0.5.tgz#dd925e20ab8ace80eb4b1e46fda5b109c508fb0d"
   integrity sha512-oGaKsBbxQOY5+aJFV3KECDhGaXt+yZJt2y/OZsnQGLRkH6Fvr7rv4pCt3SRH1somIHfej/c4u7NSpCyd9x+1Ow==
+"@webgpu/glslang@0.0.12":
+  version "0.0.12"
+  resolved "https://registry.npm.taobao.org/@webgpu/glslang/download/@webgpu/glslang-0.0.12.tgz#ee40e8d38c31436508147feaf0f646fde9bb4da6"
+  integrity sha1-7kDo04wxQ2UIFH/q8PZG/em7TaY=
+
+"@webgpu/types@0.1.4":
+  version "0.1.4"
+  resolved "https://registry.nlark.com/@webgpu/types/download/@webgpu/types-0.1.4.tgz#191da2d8767e7d4bcf2a3d30b0f17424dc4b6b9a"
+  integrity sha1-GR2i2HZ+fUvPKj0wsPF0JNxLa5o=
 
 accepts@~1.3.4:
   version "1.3.7"
@@ -1790,6 +1804,11 @@ core-js@^2.6.5:
   version "2.6.12"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.6.12.tgz#d9333dfa7b065e347cc5682219d6f690859cc2ec"
   integrity sha512-Kb2wC0fvsWfQrgk8HU5lW6U/Lcs8+9aaYcy4ZFc6DDlo4nZ7n70dEgE5rtR0oG6ufKDUnrwfWL1mXR5ljDatrQ==
+
+core-js@^2.6.5:
+  version "2.6.12"
+  resolved "https://registry.nlark.com/core-js/download/core-js-2.6.12.tgz?cache=0&sync_timestamp=1624966012065&other_urls=https%3A%2F%2Fregistry.nlark.com%2Fcore-js%2Fdownload%2Fcore-js-2.6.12.tgz#d9333dfa7b065e347cc5682219d6f690859cc2ec"
+  integrity sha1-2TM9+nsGXjR8xWgiGdb2kIWcwuw=
 
 cors@~2.8.5:
   version "2.8.5"
