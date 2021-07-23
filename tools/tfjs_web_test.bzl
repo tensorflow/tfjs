@@ -90,9 +90,10 @@ def tfjs_web_test(name, ci = True, **kwargs):
 
         additional_tags = []
         if ci:
-            # Tag to be run in ci
+            # Tag to be run in nightly.
             additional_tags.append("nightly")
             if browser in presubmit_browsers:
+                # Tag to also be run in PR presubmit tests.
                 additional_tags.append("ci")
 
         karma_web_test(
