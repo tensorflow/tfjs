@@ -18,13 +18,13 @@
 import {env} from './environment';
 
 export function warn(...msg: Array<{}>): void {
-  if (!env().getBool('IS_TEST')) {
+  if (!(env().getBool('IS_TEST') || env().getBool('PROD'))) {
     console.warn(...msg);
   }
 }
 
 export function log(...msg: Array<{}>): void {
-  if (!env().getBool('IS_TEST')) {
+  if (!(env().getBool('IS_TEST') || env().getBool('PROD'))) {
     console.log(...msg);
   }
 }
