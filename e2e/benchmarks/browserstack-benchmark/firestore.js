@@ -86,11 +86,14 @@ function serializeTensors(resultValue) {
 }
 
 /**
- * Returns a human readable date so each benchmark has an associated date
+ * Returns a human readable date so each benchmark has an associated date.
+ * Gets date in ISO format so that it is compatible with internal visualisation
+ * tool.
  */
 function getReadableDate() {
-  const date = new Date().toLocaleDateString();
-  return date;
+  const fullISODateString = new Date().toISOString();
+  const dateOnly = fullISODateString.split("T")[0];
+  return dateOnly;
 }
 
 exports.addResultToFirestore = addResultToFirestore;
