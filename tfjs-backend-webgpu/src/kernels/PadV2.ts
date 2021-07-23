@@ -20,6 +20,7 @@ import {KernelConfig, KernelFunc, PadV2, PadV2Attrs, PadV2Inputs, TensorInfo, ut
 import {WebGPUBackend} from '../backend_webgpu';
 import {identity} from './Identity';
 import {PadProgram} from './pad_webgpu';
+import {fill} from './Fill';
 
 export const padV2 =
     (args: {inputs: PadV2Inputs,
@@ -30,6 +31,17 @@ export const padV2 =
       const {paddings, constantValue} = attrs;
       if (paddings.every(p => util.arraysEqual(p, [0, 0]))) {
         return identity({inputs: {x}, backend});
+      }
+      if (util.sizeFromShape(x.shape) === 0) {
+        // Short-circuit the computation, since x doesn't have value, only
+        // the shape is used to compute output shape to pad.
+        const outputShape = paddings.map(
+            (p, i) =>
+                p[0] /* beforePad */ + x.shape[i] + p[1] /* afterPad */);
+        return fill({
+          backend,
+          attrs: {shape: outputShape, value: constantValue, dtype: x.dtype}
+        });
       }
       const uniformData = [{type: 'float32', data: [constantValue]}];
       paddings.map(p => uniformData.push({type: 'int32', data: [p[0], p[1]]}));
