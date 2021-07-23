@@ -132,23 +132,35 @@ limitations under the License.
     let modelController = null;
     let numRunsController = null;
     let modelParameterFolder = null;
-    let backendsController = null;
     let runButton = null;
     let correctnessButton = null;
     let inputSizeController = null;
     let inputTypeController = null;
     let modelArchitectureController = null;
+    let tunableFlagsControllers = null;
 
     function updateGUIFromURLState() {
       if (urlState == null)
         return;
+      if (tunableFlagsControllers != null)
+      {
+        if (tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'] != null &&
+            urlState.has('WEBGL_USE_SHAPES_UNIFORMS'))
+        {
+          const value = urlState.get('WEBGL_USE_SHAPES_UNIFORMS');
+          if (value === 'true')
+          {
+            tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(true);
+          } else {
+            tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(false);
+          }
+        }
+      }
       // The model parameter will be update automically by onChange.
       if (modelController != null && urlState.has('benchmark'))
         modelController.setValue(urlState.get('benchmark'));
       if (numRunsController != null && urlState.has('run'))
         numRunsController.setValue(urlState.get('run'));
-      if (backendsController != null && urlState.has('backend'))
-        backendsController.setValue(urlState.get('backend'));
       // Only auto run when URI component exists.
       if (correctnessButton != null && task == 'correctness') {
         correctnessButton.domElement.click();
@@ -184,12 +196,12 @@ limitations under the License.
 
         // load model and run inference
         try {
+          tf.setBackend('cpu');
           await loadModelAndRecordTime();
           await showMsg('Testing correctness');
           await showInputs();
           await showCorrectnessTestParameters();
 
-          tf.setBackend('cpu');
           let inferenceInput;
           await showMsg('Runing on cpu');
           if (state.benchmark === 'custom') {
@@ -235,8 +247,6 @@ limitations under the License.
       isModelLoaded: false,
       inputs: {}
     };
-
-    urlState = getURLState(window.location.search);
 
     const modalDiv = document.getElementById('modal-msg');
     const timeTable = document.querySelector('#timings tbody');
@@ -669,6 +679,9 @@ limitations under the License.
       const gui = new dat.gui.GUI({ width: 550 });
       gui.domElement.id = 'gui';
 
+      urlState = getURLState(location.search);
+      if (urlState && urlState.has('backend'))
+        state.backend = urlState.get('backend');
       await tf.setBackend(state.backend);
 
       const modelFolder = gui.addFolder('Benchmark');
@@ -788,7 +801,7 @@ limitations under the License.
       modelParameterFolder.open();
 
       const envFolder = gui.addFolder('Environment');
-      backendsController = envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu', 'webgpu']);
+      const backendsController = envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu', 'webgpu']);
       backendsController.onChange(async backend => {
         // TODO: Failed to set backend
         if (state.backend === 'webgpu' && !tf.engine().backendNames().includes(state.backend)) {
@@ -799,7 +812,7 @@ limitations under the License.
            showMsg(null);
         }
         await tf.setBackend(backend);
-        await showFlagSettings(envFolder, state.backend);
+        await showFlagSettingsAndReturnTunableFlagControllers(envFolder, state.backend);
       });
       envFolder.open();
 
@@ -808,7 +821,7 @@ limitations under the License.
       correctnessButton = gui.add(state, 'testCorrectness');
       correctnessButton.name('Test correctness');
 
-      await showFlagSettings(envFolder, state.backend);
+      tunableFlagsControllers = await showFlagSettingsAndReturnTunableFlagControllers(envFolder, state.backend);
       showVersions();
       await showEnvironment();
       updateGUIFromURLState();

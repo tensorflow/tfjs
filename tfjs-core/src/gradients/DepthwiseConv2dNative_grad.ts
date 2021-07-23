@@ -28,8 +28,7 @@ export const depthwiseConv2dNativeGradConfig: GradConfig = {
   gradFunc: (dy: Tensor4D, saved: Tensor[], attrs: NamedAttrMap) => {
     const {dilations, strides, pad, dimRoundingMode} =
         attrs as {} as DepthwiseConv2dNativeAttrs;
-
-    const $dilations = dilations == null ? [1, 1] : dilations;
+    const $dilations = dilations == null ? [1, 1] as[number,number] : dilations;
 
     util.assert(
         conv_util.tupleValuesAreOne($dilations),
@@ -69,9 +68,9 @@ export const depthwiseConv2dNativeGradConfig: GradConfig = {
 
     return {
       x: () => depthwiseConv2dNativeBackpropInput(
-          x.shape, dy, filter, strides, pad, dilations, dimRoundingMode),
+          x.shape, dy, filter, strides, pad, $dilations, dimRoundingMode),
       filter: () => depthwiseConv2dNativeBackpropFilter(
-          x, dy, filter.shape, strides, pad, dilations, dimRoundingMode),
+          x, dy, filter.shape, strides, pad, $dilations, dimRoundingMode),
     };
   }
 };
