@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
+import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class ResizeBilinearProgram implements WebGPUProgram {
   outputShape: number[];
@@ -27,6 +28,7 @@ export class ResizeBilinearProgram implements WebGPUProgram {
   variableNames = ['x'];
   workGroupSize: [number, number, number] = [64, 1, 1];
   alignCorners: boolean;
+  useWgsl: boolean;
 
   constructor(
       inputShape: [number, number, number, number], newHeight: number,
@@ -41,6 +43,7 @@ export class ResizeBilinearProgram implements WebGPUProgram {
     this.alignCorners = alignCorners;
     this.shaderKey = `resizeBilinear_${alignCorners}_${
         this.outputShape[1] > 1}_${this.outputShape[2] > 1}`;
+    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
@@ -84,6 +87,63 @@ export class ResizeBilinearProgram implements WebGPUProgram {
           float top = topLeft + (topRight - topLeft) * fracRC.y;
           float bottom = bottomLeft + (bottomRight - bottomLeft) * fracRC.y;
           float newValue = top + (bottom - top) * fracRC.x;
+
+          setOutput(b, coords[1], coords[2], d, newValue);
+        }
+      }
+    `;
+    return userCode;
+  }
+  getUserCodeWgsl(): string {
+    const adjustHeight = this.alignCorners && this.outputShape[1] > 1;
+    const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
+
+    const userCode = `
+      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
+      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
+        let coords = getOutputCoords(globalId);
+        if (all(coords < uniforms.outShape)) {
+          let b = coords[0];
+          let d = coords[3];
+          let rc = coords.yz;
+
+          let effectiveInSize = vec2<f32>(
+            ${
+        adjustHeight ? `f32(uniforms.xShape.y) - 1.0` :
+                       `f32(uniforms.xShape.y)`},
+            ${
+        adjustWidth ? `f32(uniforms.xShape.z) - 1.0` :
+                      `f32(uniforms.xShape.z)`});
+
+          let effectiveOutSize = vec2<f32>(
+            ${
+        adjustHeight ? `f32(uniforms.outShape.y) - 1.0` :
+                       `f32(uniforms.outShape.y)`},
+            ${
+        adjustWidth ? `f32(uniforms.outShape.z) - 1.0` :
+                      `f32(uniforms.outShape.z)`});
+
+          let effectiveInputOverOutputRatioRC =
+              effectiveInSize / effectiveOutSize;
+
+          // Fractional source index
+          let sourceFracIndexRC = vec2<f32>(rc) * effectiveInputOverOutputRatioRC;
+
+          // Compute the four integer indices.
+          let sourceFloorRC = vec2<u32>(sourceFracIndexRC);
+          let sourceCeilRC = vec2<u32>(
+            min(vec2<f32>(uniforms.xShape.yz) - vec2<f32>(1.0), ceil(sourceFracIndexRC)));
+
+          let topLeft = getX(b, sourceFloorRC.x, sourceFloorRC.y, d);
+          let bottomLeft = getX(b, sourceCeilRC.x, sourceFloorRC.y, d);
+          let topRight = getX(b, sourceFloorRC.x, sourceCeilRC.y, d);
+          let bottomRight = getX(b, sourceCeilRC.x, sourceCeilRC.y, d);
+
+          let fracRC = sourceFracIndexRC - vec2<f32>(sourceFloorRC);
+
+          let top = topLeft + (topRight - topLeft) * fracRC.y;
+          let bottom = bottomLeft + (bottomRight - bottomLeft) * fracRC.y;
+          let newValue = top + (bottom - top) * fracRC.x;
 
           setOutput(b, coords[1], coords[2], d, newValue);
         }

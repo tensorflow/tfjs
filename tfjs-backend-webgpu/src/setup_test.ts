@@ -624,7 +624,13 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: ['upcasts when dtypes dont match']  // Not yet supported.
   },
   {startsWith: 'gatherND '},
-  {include: 'image.transform'}
+  {include: 'image.transform'},
+  {
+    startsWith: 'where ',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
 ];
 
 const customInclude = (testName: string) => {
