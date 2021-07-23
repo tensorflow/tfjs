@@ -17,9 +17,10 @@
 import {util} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType} from '../shader_preprocessor';
+import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class TileProgram implements WebGPUProgram {
   variableNames = ['A'];
@@ -31,6 +32,7 @@ export class TileProgram implements WebGPUProgram {
   dtype: string;
   size: number;
   rank: number;
+  useWgsl: boolean;
 
   constructor(aShape: number[], reps: number[]) {
     const outputShape: number[] = new Array(aShape.length);
@@ -44,6 +46,7 @@ export class TileProgram implements WebGPUProgram {
     this.rank = this.outputShape.length;
     this.size = util.sizeFromShape(this.outputShape);
     this.shaderKey = 'tile';
+    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
@@ -61,20 +64,36 @@ export class TileProgram implements WebGPUProgram {
     `;
     return userCode;
   }
+
+  getUserCodeWgsl(): string {
+    const sourceCoords = getSourceCoords(this.rank, 'uniforms.');
+
+    const userCode = `
+      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
+      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
+        let index = globalId.x;
+        if (index < uniforms.size) {
+          let resRC = getOutputCoords(globalId);
+          setOutputFlat(index, getA(${sourceCoords}));
+        }
+      }
+    `;
+    return userCode;
+  }
 }
 
-function getSourceCoords(rank: number): string {
+function getSourceCoords(rank: number, uniformPrefix = ''): string {
   if (rank >= 5) {
     throw Error(`Tile for rank ${rank} is not yet supported`);
   }
   if (rank === 1) {
-    return `(resRC % aShape)`;
+    return `(resRC % ${uniformPrefix}aShape)`;
   }
 
   const currentCoords = ['resRC.x', 'resRC.y', 'resRC.z', 'resRC.w'];
   const sourceCoords = [];
   for (let i = 0; i < rank; i++) {
-    sourceCoords.push(`(${currentCoords[i]} % aShape[${i}])`);
+    sourceCoords.push(`(${currentCoords[i]} % ${uniformPrefix}aShape[${i}])`);
   }
   return sourceCoords.join();
 }
