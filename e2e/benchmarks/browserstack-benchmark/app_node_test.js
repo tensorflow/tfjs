@@ -6,6 +6,7 @@ describe('test app.js cli', () => {
   const filePath = './benchmark_test_results.json';
   let config;
   let mockRunOneBenchmark;
+  let failMockRunOneBenchmark;
   let mockResults;
   let mockBenchmark;
 
@@ -124,7 +125,7 @@ describe('test app.js cli', () => {
     });
   });
 
-  it('checks runOneBenchmark mock and end value of promise all', async () => {
+  it('checks mockRunOneBenchmark stats and promise all end value', async () => {
     // Receives list of promises from benchmark function call
     const testResults = await benchmark(config, mockRunOneBenchmark);
 
@@ -150,7 +151,7 @@ describe('test app.js cli', () => {
     expect(formattedResults).toEqual(mockResults);
   });
 
-  it('checks getOneBenchmarkResult mock and result of failed results',
+  it('checks failMockRunOneBenchmark stats and failed benchmark results',
      async () => {
        // Expected failed mock benchmark results
        await expectAsync(
@@ -161,7 +162,7 @@ describe('test app.js cli', () => {
        expect(failMockRunOneBenchmark.calls.count()).toEqual(3);
      });
 
-  it('checks getOneBenchmarkResult mock and result of successful results',
+  it('checks mockRunOneBenchmark stats and successful benchmark results',
      async () => {
        // Gets a successful benchmark result
        const succeedBenchmarkResult =
