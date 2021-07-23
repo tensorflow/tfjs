@@ -54,6 +54,13 @@ def tfjs_web_test(name, ci = True, **kwargs):
         "win_10_chrome",
     ])
 
+    # Browsers that should always run in presubmit checks All browsers are run
+    # in nightly, but only the ones listed here run for each PR.
+    presubmit_browsers = kwargs.pop(
+        "presubmit_browsers",
+        [browsers[0]] if len(browsers) > 0 else [],
+    )
+
     size = kwargs.pop("size", "large")
     timeout = kwargs.pop("timeout", "long")
 
@@ -81,6 +88,13 @@ def tfjs_web_test(name, ci = True, **kwargs):
             browser = browser,
         )
 
+        additional_tags = []
+        if ci:
+            # Tag to be run in ci
+            additional_tags.append("nightly")
+            if browser in presubmit_browsers:
+                additional_tags.append("ci")
+
         karma_web_test(
             name = "browserstack_{}_{}".format(browser, name),
             config_file = config_file,
@@ -95,6 +109,6 @@ def tfjs_web_test(name, ci = True, **kwargs):
                 # karma-browserstack-launcher.
                 "@npm//karma-browserstack-launcher",
             ],
-            tags = ["ci"] + tags,  # Tag to be run in ci
+            tags = tags + additional_tags,
             **kwargs
         )
