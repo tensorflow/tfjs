@@ -20,6 +20,7 @@ import {getGlobal} from './global_util';
 import {NamedGradientMap} from './tape';
 import {Tensor} from './tensor';
 import {DataType, RecursiveArray} from './types';
+import * as log from './log';
 
 const kernelRegistry =
     getGlobal('kernelRegistry', () => new Map<string, KernelConfig>());
@@ -139,7 +140,7 @@ export function registerKernel(config: KernelConfig) {
   const {kernelName, backendName} = config;
   const key = makeKey(kernelName, backendName);
   if (kernelRegistry.has(key)) {
-    console.warn(
+    log.warn(
         `The kernel '${kernelName}' for backend ` +
         `'${backendName}' is already registered`);
   }
@@ -161,7 +162,7 @@ export function registerGradient(config: GradConfig) {
     // TODO (yassogba) after 3.0 assess whether we need to keep this gated
     // to debug mode.
     if (env().getBool('DEBUG')) {
-      console.warn(`Overriding the gradient for '${kernelName}'`);
+      log.warn(`Overriding the gradient for '${kernelName}'`);
     }
   }
   gradRegistry.set(kernelName, config);
