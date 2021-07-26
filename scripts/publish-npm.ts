@@ -28,7 +28,8 @@ import * as shell from 'shelljs';
 import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase, getReleaseBranch, checkoutReleaseBranch} from './release-util';
 
 const TMP_DIR = '/tmp/tfjs-publish';
-const BAZEL_PACKAGES = new Set(['tfjs-core', 'tfjs-backend-cpu']);
+const BAZEL_PACKAGES =
+    new Set(['tfjs-core', 'tfjs-backend-cpu', 'tfjs-backend-webgl']);
 
 const parser = new argparse.ArgumentParser();
 parser.addArgument('--git-protocol', {
@@ -110,7 +111,8 @@ async function main() {
         await question(`Enter one-time password from your authenticator: `);
 
     if (BAZEL_PACKAGES.has(pkg)) {
-      $(`YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm --otp=${otp}`);
+      $(`YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm --otp=${
+          otp}`);
     } else {
       $(`YARN_REGISTRY="https://registry.npmjs.org/" npm publish --otp=${otp}`);
     }
