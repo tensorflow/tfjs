@@ -76,10 +76,6 @@ def tfjs_web_test(name, ci = True, **kwargs):
         **kwargs
     )
 
-    # If the target is marked as not for CI, don't create CI targets
-    if not ci:
-        return
-
     # Create a 'karma_web_test' target for each browser
     for browser in browsers:
         config_file = "{}_config_{}".format(name, browser)
