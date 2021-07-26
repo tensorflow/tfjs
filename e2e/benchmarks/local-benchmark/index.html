@@ -89,7 +89,8 @@ limitations under the License.
   <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js" crossorigin></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-backend-cpu@latest/dist/tf-backend-cpu.js" crossorigin></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgl@latest/dist/tf-backend-webgl.js" crossorigin></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgpu@latest/dist/tf-backend-webgpu.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgpu@latest/dist/tf-backend-webgpu.min.js"
+    crossorigin></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js" crossorigin></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js" crossorigin></script>
   <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@latest/dist/tf-backend-wasm.js" crossorigin></script>
@@ -142,14 +143,11 @@ limitations under the License.
     function updateGUIFromURLState() {
       if (urlState == null)
         return;
-      if (tunableFlagsControllers != null)
-      {
+      if (tunableFlagsControllers != null) {
         if (tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'] != null &&
-            urlState.has('WEBGL_USE_SHAPES_UNIFORMS'))
-        {
+          urlState.has('WEBGL_USE_SHAPES_UNIFORMS')) {
           const value = urlState.get('WEBGL_USE_SHAPES_UNIFORMS');
-          if (value === 'true')
-          {
+          if (value === 'true') {
             tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(true);
           } else {
             tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(false);
@@ -223,7 +221,7 @@ limitations under the License.
         // compare results
         try {
           await showMsg(null);
-          tf.test_util.expectArraysClose(referenceData, predictionData);
+          expectObjectsClose(predictionData, referenceData);
           match = true;
         } catch (e) {
           match = false;
@@ -806,10 +804,10 @@ limitations under the License.
         // TODO: Failed to set backend
         if (state.backend === 'webgpu' && !tf.engine().backendNames().includes(state.backend)) {
           showMsg(
-              `WebGPU is not supported. Please use Chrome Canary browser with flag "--enable-unsafe-webgpu" enabled.`);
+            `WebGPU is not supported. Please use Chrome Canary browser with flag "--enable-unsafe-webgpu" enabled.`);
           return;
         } else {
-           showMsg(null);
+          showMsg(null);
         }
         await tf.setBackend(backend);
         await showFlagSettingsAndReturnTunableFlagControllers(envFolder, state.backend);
