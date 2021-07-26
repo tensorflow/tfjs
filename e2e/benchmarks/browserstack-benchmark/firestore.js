@@ -15,6 +15,7 @@
  * =============================================================================
  */
 require("firebase/firestore");
+require("firebase/auth");
 const firebase = require("firebase/app");
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_KEY,
@@ -27,6 +28,17 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+
+firebase.auth().signInAnonymously()
+  .then(() => {
+    console.log("Signed into Firebase with anonymous account.")
+  })
+  .catch((error) => {
+    let errorCode = error.code;
+    let errorMessage = error.message;
+    console.log(`Error code: ${errorCode}`);
+    console.log(`Error message: ${errorMessage}`);
+});
 
 
 // Reference to the "BenchmarkResults" collection on firestore that contains the

@@ -186,19 +186,10 @@ describe("test adding to firestore", () => {
     expect(db.add).toHaveBeenCalledWith(expectedAdd);
   });
 
-  it("Expects a call to serialize results", () => {
-    formatForFirestore(mockResultValue, mockSerialization, mockDate);
-    expect(mockSerialization).toHaveBeenCalled();
-  });
-
-  it("Expects serialization function to be called with result", () => {
-    formatForFirestore(mockResultValue, mockSerialization, mockDate);
-    expect(mockSerialization).toHaveBeenCalledWith(mockResultValue);
-  });
-
-  it("Expects a date function to be called", () => {
-    formatForFirestore(mockResultValue, mockSerialization, mockDate);
-    expect(mockDate).toHaveBeenCalled();
+  it("Expects a date key to exist and have the correct value", () => {
+    let testFormat = formatForFirestore(
+      mockResultValue, mockSerialization, mockDate);
+    expect(testFormat.date).toEqual("7/21/2021");
   });
 
   it("Expects serialization to cover all nested arrays", () => {
