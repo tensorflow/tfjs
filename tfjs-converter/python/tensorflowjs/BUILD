@@ -1,6 +1,9 @@
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
+load("@tensorflowjs_dev2_deps//:requirements.bzl", "requirement")
+
 package(
     default_visibility = [
-        "//tensorflowjs:__subpackages__",
+        "//tfjs-converter/python/tensorflowjs:__subpackages__",
     ],
 )
 
@@ -11,12 +14,16 @@ exports_files(["LICENSE"])
 py_library(
     name = "tensorflowjs",
     srcs = ["__init__.py"],
+    data = [
+        ":op_list_jsons",
+    ],
     srcs_version = "PY2AND3",
     visibility = ["//visibility:public"],
     deps = [
-        ":quantization",
+        ":resource_loader",
         ":version",
-        "//tensorflowjs/converters:converter",
+        ":write_weights",
+        "//tfjs-converter/python/tensorflowjs/converters",
     ],
 )
 
@@ -25,6 +32,7 @@ py_library(
     # This is a dummy rule used as a h5py dependency in open-source.
     # We expect h5py to already be installed on the system, e.g. via
     # `pip install h5py`.
+    deps = [requirement("h5py")],
 )
 
 py_library(
@@ -32,6 +40,7 @@ py_library(
     # This is a dummy rule used as a numpy dependency in open-source.
     # We expect numpy to already be installed on the system, e.g. via
     # `pip install numpy`.
+    deps = [requirement("numpy")],
 )
 
 py_library(
@@ -39,6 +48,7 @@ py_library(
     # This is a dummy rule used as a tensorflow dependency in open-source.
     # We expect tensorflow to already be installed on the system, e.g. via
     # `pip install tensorflow` or `pip install tensorflow-gpu`.
+    deps = [requirement("tensorflow")],
 )
 
 py_library(
@@ -46,6 +56,7 @@ py_library(
     # This is a dummy rule used as a tensorflow_hub dependency in open-source.
     # We expect tensorflow to already be installed on the system, e.g. via
     # `pip install tensorflow` or `pip install tensorflow-gpu`.
+    deps = [requirement("tensorflow-hub")],
 )
 
 py_library(
@@ -53,6 +64,7 @@ py_library(
     # This is a dummy rule used as a PyInquirer dependency in open-source.
     # We expect PyInquirer to already be installed on the system, e.g. via
     # `pip install PyInquirer`.
+    deps = [requirement("PyInquirer")],
 )
 
 py_library(
@@ -60,7 +72,7 @@ py_library(
     srcs = ["quantization.py"],
     srcs_version = "PY2AND3",
     deps = [
-        "//tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
     ],
 )
 
@@ -71,8 +83,8 @@ py_library(
     deps = [
         ":quantization",
         ":read_weights",
-        "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
@@ -82,7 +94,7 @@ py_library(
     srcs_version = "PY2AND3",
     deps = [
         ":quantization",
-        "//tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
     ],
 )
 
@@ -105,7 +117,7 @@ py_test(
     srcs_version = "PY2AND3",
     deps = [
         ":quantization",
-        "//tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
     ],
 )
 
@@ -115,8 +127,8 @@ py_test(
     srcs_version = "PY2AND3",
     deps = [
         ":write_weights",
-        "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
@@ -127,8 +139,8 @@ py_test(
     deps = [
         ":read_weights",
         ":write_weights",
-        "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
     ],
 )
 

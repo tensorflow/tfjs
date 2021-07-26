@@ -209,3 +209,24 @@ http_archive(
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
 bazel_skylib_workspace()
+
+http_archive(
+    name = "rules_python",
+    sha256 = "934c9ceb552e84577b0faf1e5a2f0450314985b4d8712b2b70717dc679fdc01b",
+    url = "https://github.com/bazelbuild/rules_python/releases/download/0.3.0/rules_python-0.3.0.tar.gz",
+)
+
+load("@rules_python//python:pip.bzl", "pip_install")
+
+# Create a central external repo, @tensorflowjs_dev_deps, that contains Bazel targets for all the
+# third-party packages specified in the requirements.txt file.
+
+pip_install(
+    name = "tensorflowjs_dev2_deps",
+    requirements = "//tfjs-converter/python:requirements-dev.txt",
+)
+
+pip_install(
+    name = "tensorflowjs_extra_deps",
+    requirements = "//tfjs-converter/python:extra-requirements.txt",
+)

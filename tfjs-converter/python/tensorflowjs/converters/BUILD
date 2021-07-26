@@ -1,15 +1,28 @@
 package(
     default_visibility = [
-        "//tensorflowjs:__subpackages__",
+        "//tfjs-converter/python/tensorflowjs:__subpackages__",
     ],
     licenses = ["notice"],  # Apache 2.0
+)
+
+py_library(
+    name = "converters",
+    srcs = ["__init__.py"],
+    srcs_version = "PY2AND3",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":converter",
+        ":keras_h5_conversion",
+        ":keras_tfjs_loader",
+        ":tf_saved_model_conversion_v2",
+    ],
 )
 
 py_library(
     name = "common",
     srcs = ["common.py"],
     srcs_version = "PY2AND3",
-    deps = ["//tensorflowjs:version"],
+    deps = ["//tfjs-converter/python/tensorflowjs:version"],
 )
 
 py_library(
@@ -18,9 +31,9 @@ py_library(
     srcs_version = "PY2AND3",
     deps = [
         ":common",
-        "//tensorflowjs:expect_h5py_installed",
-        "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:write_weights",
+        "//tfjs-converter/python/tensorflowjs:expect_h5py_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:write_weights",
     ],
 )
 
@@ -30,10 +43,10 @@ py_test(
     srcs_version = "PY2AND3",
     deps = [
         ":keras_h5_conversion",
-        "//tensorflowjs:expect_h5py_installed",
-        "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
-        "//tensorflowjs:version",
+        "//tfjs-converter/python/tensorflowjs:expect_h5py_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:version",
     ],
 )
 
@@ -43,8 +56,8 @@ py_library(
     srcs_version = "PY2AND3",
     deps = [
         ":keras_h5_conversion",
-        "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:read_weights",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:read_weights",
     ],
 )
 
@@ -55,8 +68,8 @@ py_test(
     deps = [
         ":keras_h5_conversion",
         ":keras_tfjs_loader",
-        "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
@@ -64,7 +77,7 @@ py_library(
     name = "graph_rewrite_util",
     srcs = ["graph_rewrite_util.py"],
     srcs_version = "PY2AND3",
-    deps = ["//tensorflowjs:version"],
+    deps = ["//tfjs-converter/python/tensorflowjs:version"],
 )
 
 py_library(
@@ -73,8 +86,8 @@ py_library(
     srcs_version = "PY2AND3",
     deps = [
         ":graph_rewrite_util",
-        "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
@@ -85,8 +98,8 @@ py_test(
     deps = [
         ":fuse_prelu",
         ":tf_saved_model_conversion_v2",
-        "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
@@ -96,8 +109,8 @@ py_library(
     srcs_version = "PY2AND3",
     deps = [
         ":graph_rewrite_util",
-        "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
@@ -107,8 +120,8 @@ py_test(
     srcs_version = "PY2AND3",
     deps = [
         ":fold_batch_norms",
-        "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
@@ -118,8 +131,8 @@ py_library(
     srcs_version = "PY2AND3",
     deps = [
         ":graph_rewrite_util",
-        "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
@@ -131,8 +144,8 @@ py_test(
         ":fuse_depthwise_conv2d",
         ":graph_rewrite_util",
         ":tf_saved_model_conversion_v2",
-        "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
@@ -142,15 +155,15 @@ py_test(
     srcs_version = "PY2AND3",
     deps = [
         ":tf_saved_model_conversion_v2",
-        "//tensorflowjs:expect_tensorflow_hub_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_hub_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
 py_library(
     name = "tf_saved_model_conversion_v2",
     srcs = ["tf_saved_model_conversion_v2.py"],
-    data = ["//tensorflowjs:op_list_jsons"],
+    data = ["//tfjs-converter/python/tensorflowjs:op_list_jsons"],
     srcs_version = "PY2AND3",
     deps = [
         ":common",
@@ -158,14 +171,14 @@ py_library(
         ":fuse_depthwise_conv2d",
         ":fuse_prelu",
         ":graph_rewrite_util",
-        "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:expect_tensorflow_hub_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
-        "//tensorflowjs:resource_loader",
-        "//tensorflowjs:version",
-        "//tensorflowjs:write_weights",
-        "//third_party/tensorflow/python/tools:saved_model_cli_lib",
-        "//third_party/tensorflow/tools/graph_transforms:transform_graph_py",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_hub_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:resource_loader",
+        "//tfjs-converter/python/tensorflowjs:version",
+        "//tfjs-converter/python/tensorflowjs:write_weights",
+        #"//third_party/tensorflow/python/tools:saved_model_cli_lib",
+        #"//third_party/tensorflow/tools/graph_transforms:transform_graph_py",
     ],
 )
 
@@ -175,7 +188,7 @@ py_test(
     srcs_version = "PY2AND3",
     deps = [
         ":wizard",
-        "//tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
     ],
 )
 
@@ -186,8 +199,9 @@ py_binary(
     deps = [
         ":common",
         ":converter",
-        "//tensorflowjs:expect_h5py_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_PyInquirer_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_h5py_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
@@ -201,9 +215,9 @@ py_library(
         ":keras_h5_conversion",
         ":keras_tfjs_loader",
         ":tf_saved_model_conversion_v2",
-        "//third_party/py/h5py",
-        "//third_party/py/tensorflow",
-        "//third_party/py/tensorflowjs:version",
+        #"//third_party/py/h5py",
+        #"//third_party/py/tensorflow",
+        "//tfjs-converter/python/tensorflowjs:version",
     ],
 )
 
@@ -217,9 +231,9 @@ py_binary(
         ":keras_h5_conversion",
         ":keras_tfjs_loader",
         ":tf_saved_model_conversion_v2",
-        "//tensorflowjs:expect_h5py_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
-        "//tensorflowjs:version",
+        "//tfjs-converter/python/tensorflowjs:expect_h5py_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:version",
     ],
 )
 
@@ -229,7 +243,7 @@ py_binary(
     srcs = ["generate_test_model.py"],
     srcs_version = "PY2AND3",
     deps = [
-        "//tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
@@ -240,9 +254,9 @@ py_test(
     deps = [
         ":converter",
         ":keras_tfjs_loader",
-        "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
-        "//tensorflowjs:version",
+        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+        "//tfjs-converter/python/tensorflowjs:version",
     ],
 )
 
