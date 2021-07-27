@@ -42,7 +42,8 @@ export class ReduceProgram implements WebGPUProgram {
     this.outputShape = outputShape.length === 0 ? [1] : outputShape;
 
     this.reductionFactor = 2;
-    const xMaxThreads = 1024;
+    // Note that the maximum of workgroup X dimension is 256.
+    const xMaxThreads = 256;
     const xThreads = Math.min(
         Math.ceil(reduceInfo.inSize / this.reductionFactor), xMaxThreads);
 
