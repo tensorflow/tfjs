@@ -14,36 +14,35 @@
  * limitations under the License.
  * =============================================================================
  */
-require("firebase/firestore");
-require("firebase/auth");
-const firebase = require("firebase/app");
+require('firebase/firestore');
+require('firebase/auth');
+const firebase = require('firebase/app');
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_KEY,
-  authDomain: "learnjs-174218.firebaseapp.com",
-  databaseURL: "https://learnjs-174218.firebaseio.com",
-  projectId: "learnjs-174218",
-  storageBucket: "learnjs-174218.appspot.com",
-  messagingSenderId: "834911136599",
-  appId: "1:834911136599:web:4b65685455bdf916a1ec12"
+  authDomain: 'learnjs-174218.firebaseapp.com',
+  databaseURL: 'https://learnjs-174218.firebaseio.com',
+  projectId: 'learnjs-174218',
+  storageBucket: 'learnjs-174218.appspot.com',
+  messagingSenderId: '834911136599',
+  appId: '1:834911136599:web:4b65685455bdf916a1ec12'
 };
 
 firebase.initializeApp(firebaseConfig);
 
-firebase.auth().signInAnonymously()
-  .then(() => {
-    console.log("Signed into Firebase with anonymous account.")
-  })
-  .catch((error) => {
-    let errorCode = error.code;
-    let errorMessage = error.message;
-    console.log(`Error code: ${errorCode}`);
-    console.log(`Error message: ${errorMessage}`);
-});
+firebase.auth()
+    .signInAnonymously()
+    .then(() => {console.log('Signed into Firebase with anonymous account.')})
+    .catch((error) => {
+      let errorCode = error.code;
+      let errorMessage = error.message;
+      console.log(`Error code: ${errorCode}`);
+      console.log(`Error message: ${errorMessage}`);
+    });
 
 
 // Reference to the "BenchmarkResults" collection on firestore that contains the
 // benchmark results.
-const db = firebase.firestore().collection("BenchmarkResults");
+const db = firebase.firestore().collection('BenchmarkResults');
 
 /**
  * After being returned from Browserstack, benchmark results are stored as
@@ -55,12 +54,10 @@ const db = firebase.firestore().collection("BenchmarkResults");
  * @param result Individual result in a list of fulfilled promises
  */
 function addResultToFirestore(resultValue) {
-  const firestoreMap = formatForFirestore(resultValue, serializeTensors, getReadableDate);
+  const firestoreMap =
+      formatForFirestore(resultValue, serializeTensors, getReadableDate);
 
-  db.add({
-    result: firestoreMap
-  })
-  .then((ref) => {
+  db.add({result: firestoreMap}).then((ref) => {
     console.log(`Added document to Firestore with ID: ${ref.id}`);
   });
 }
@@ -72,8 +69,7 @@ function addResultToFirestore(resultValue) {
  * @param result Individual result in a list of fulfilled promises
  */
 function formatForFirestore(
-  resultValue, makeCompatable = serializeTensors, getDate = getReadableDate) {
-
+    resultValue, makeCompatable = serializeTensors, getDate = getReadableDate) {
   let firestoreMap = {};
   firestoreMap.benchmarkInfo = makeCompatable(resultValue);
   firestoreMap.date = getDate();
@@ -104,7 +100,7 @@ function serializeTensors(resultValue) {
  */
 function getReadableDate() {
   const fullISODateString = new Date().toISOString();
-  const dateOnly = fullISODateString.split("T")[0];
+  const dateOnly = fullISODateString.split('T')[0];
   return dateOnly;
 }
 
