@@ -93,6 +93,30 @@ function setupBenchmarkEnv(config) {
       './benchmark_parameters.json', JSON.stringify(config.benchmark, null, 2));
 }
 
+async function benchmarkAll(config) {
+  const allResults = [];
+  const benchmarkInfo = config.benchmark;
+
+  for (backend of benchmarkInfo.backend) {
+    for (model of benchmarkInfo.model) {
+      console.log(
+          `\nRunning ${model} model benchmarks over ${backend} backend...`);
+      const result = await benchmark({
+        'benchmark': {
+          'model': model,
+          'numRuns': benchmarkInfo.numRuns,
+          'backend': backend
+        },
+        'browsers': config.browsers
+      });
+      allResults.push(result);
+
+      if (cliArgs?.firestore) pushToFirestore(result);
+    }
+  }
+  return allResults;
+}
+
 /**
  * Run model benchmark on BrowserStack.
  *
@@ -107,8 +131,8 @@ function setupBenchmarkEnv(config) {
  * - `benchmark`: An object with the following properties:
  *  - `model`: The name of model (registed at
  * 'tfjs/e2e/benchmarks/model_config.js') or `custom`.
- *  - modelUrl: The URL to the model description file. Only applicable when the
- * `model` is `custom`.
+ *  - modelUrl: The URL to the model description file. Only applicable when
+ * the `model` is `custom`.
  *  - `numRuns`: The number of rounds for model inference.
  *  - `backend`: The backend to be benchmarked on.
  *
@@ -148,20 +172,6 @@ async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
   } else {
     console.log('\nAll benchmarks complete.');
   }
-  /** Push results to Firestore if user wants */
-  if (require.main === module && cliArgs.firestore) {
-    let numRejectedPromises = 0;
-    for (result of fulfilled) {
-      if (result.status == 'fulfilled') {
-        addResultToFirestore(result.value);
-      } else if (result.status == 'rejected') {
-        numRejectedPromises += 1;
-        console.log('Promise rejected. Not adding to result to database.');
-      }
-    }
-    console.log(`Encountered ${numRejectedPromises} rejected promises.`)
-  }
-
   return fulfilled;
 }
 
@@ -238,6 +248,24 @@ function write(filePath, msg) {
   })
 }
 
+/**
+ * Pushes all benchmark results to Firestore.
+ *
+ * @param benchmarkResults List of all benchmark results
+ */
+function pushToFirestore(benchmarkResults) {
+  let numRejectedPromises = 0;
+  for (result of benchmarkResults) {
+    if (result.status == 'fulfilled') {
+      addResultToFirestore(result.value);
+    } else if (result.status == 'rejected') {
+      numRejectedPromises += 1;
+      console.log('Promise rejected. Not adding to result to database.');
+    }
+  }
+  console.log(`Encountered ${numRejectedPromises} rejected promises.`);
+}
+
 /** Set up --help menu for file description and available optional commands */
 function setupHelpMessage() {
   parser = new ArgumentParser({
@@ -274,8 +302,13 @@ function setupHelpMessage() {
   console.dir(cliArgs);
 }
 
-/*Runs a benchmark with a preconfigured file */
-function runBenchmarkFromFile(file, runBenchmark = benchmark) {
+/**
+ * Runs a benchmark with a preconfigured file
+ *
+ * @param file Relative filepath to preset benchmark configuration
+ * @param runBenchmark Function to run a benchmark configuration
+ */
+function runBenchmarkFromFile(file, runBenchmark = benchmarkAll) {
   console.log('Running a preconfigured benchmark...');
   runBenchmark(file);
 }

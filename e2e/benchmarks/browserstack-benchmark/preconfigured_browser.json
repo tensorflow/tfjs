@@ -1,6 +1,12 @@
 {
   "summaryTabId": "Summary_1",
-  "benchmark": { "model": "face_detector", "numRuns": 10, "backend": "wasm" },
+  "benchmark": {
+    "model": ["mobilenet_v2", "mesh_128", "face_detector", "hand_detector",
+      "hand_skeleton", "AutoML Image", "AutoML Object", "posenet", "bodypix",
+      "blazeface", "speech-commands", "pose-detection"],
+    "numRuns": 10,
+    "backend": ["wasm"]
+  },
   "browsers": {
     "Windows_10_1": {
       "base": "BrowserStack",
