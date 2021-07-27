@@ -130,7 +130,7 @@ async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
     numActiveBenchmarks++;
     results.push(runOneBenchmark(tabId).then((value) => {
       value.deviceInfo = config.browsers[tabId];
-      value.benchmarkInfo = config.benchmark;
+      value.modelInfo = config.benchmark;
       return value;
     }));
 
