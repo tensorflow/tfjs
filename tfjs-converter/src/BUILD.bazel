@@ -14,6 +14,9 @@
 # =============================================================================
 
 load("//tools:defaults.bzl", "ts_library")
+load("//tfjs-converter/scripts:gen_op.bzl", "gen_op")
+load("//tfjs-converter/scripts:ops.bzl", "OPS")
+
 
 package(default_visibility = ["//visibility:public"])
 
@@ -28,12 +31,23 @@ filegroup(
     srcs = glob(["**/*.ts"]),
 )
 
+[gen_op(
+    name = op,
+    src = "//tfjs-converter/python/tensorflowjs/op_list:" + op + ".json",
+    out = "operations/op_list/" + op + ".ts",
+) for op in OPS]
+
+filegroup(
+    name = "all_ops",
+    srcs = [":" + op for op in OPS]
+)
+
 ts_library(
     name = "tfjs-converter_src_lib",
     srcs = glob(
         ["**/*.ts"],
         exclude = TEST_SRCS + ["index.ts"],
-    ),
+    ) + [":all_ops"],
     module_name = "@tensorflow/tfjs-converter/dist",
     deps = [
         "//tfjs-core/src:tfjs-core_lib",
@@ -69,9 +83,9 @@ ts_library(
     ],
 )
 
-filegroup(
-    name = "op_list",
-    srcs = glob([
-        "operations/op_list/*.ts",
-    ]),
-)
+# filegroup(
+#     name = "op_list",
+#     srcs = glob([
+#         "operations/op_list/*.ts",
+#     ]),
+# )

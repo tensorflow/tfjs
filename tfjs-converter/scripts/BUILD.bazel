@@ -1,6 +1,9 @@
 load("//tools:defaults.bzl", "ts_library")
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
 
 package(default_visibility = ["//visibility:public"])
+
+exports_files(["op.template.ts"], visibility = ["//visibility:public"])
 
 ts_library(
     name = "test_snippets_lib",
@@ -15,3 +18,24 @@ ts_library(
         "//tfjs-core/src:tfjs-core_src_lib",
     ],
 )
+
+ts_library(
+    name = "gen_op_lib",
+    srcs = [
+        ":gen_op.ts",
+    ],
+    deps = [
+        "@npm//argparse",
+        "@npm//@types/argparse",
+        "@npm//@types/node",
+    ],
+)
+
+nodejs_binary(
+    name = "gen_op_bin",
+    entry_point = "gen_op.ts",
+    data = [
+        ":gen_op_lib",
+    ],
+)
+    
