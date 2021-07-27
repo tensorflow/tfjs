@@ -51,6 +51,11 @@ The following are supported options arguments which trigger options features:
     ``` shell
     node app.js --cloud
     ```
+  * --firestore
+    - Pushes successful benchmark results to a Firestore database.
+    ``` shell
+    node app.js --firestore
+    ```
   * --h, --help
     - Shows help menu and all optional arguments in the shell window.
     ``` shell

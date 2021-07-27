@@ -23,6 +23,7 @@ const {execFile} = require('child_process');
 const {ArgumentParser} = require('argparse');
 const {version} = require('./package.json');
 const {resolve} = require('path')
+const {addResultToFirestore} = require('./firestore.js');
 
 const port = process.env.PORT || 8001;
 let io;
@@ -141,12 +142,28 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
 
   // Optional outfile written once all benchmarks have returned results.
   const fulfilled = await Promise.allSettled(results);
-   if (cliArgs?.outfile) {
-     await write('./benchmark_results.json', fulfilled);
-   } else {
-     console.log('\nAll benchmarks complete.');
-   }
-   return fulfilled;
+  if (cliArgs?.outfile) {
+    await write('./benchmark_results.json', fulfilled);
+  } else {
+    console.log('\nAll benchmarks complete.');
+  }
+  
+  /** Push results to Firestore if user wants */
+  if (require.main === module && cliArgs.firestore) {
+    let numRejectedPromises = 0;
+    for (result of fulfilled) {
+      if (result.status == "fulfilled") {
+        addResultToFirestore(result.value);
+      }
+      else if (result.status == "rejected") {
+        numRejectedPromises += 1;
+        console.log ("Promise rejected. Not adding to result to database.");
+      }
+    }
+    console.log(`Encountered ${numRejectedPromises} rejected promises.`)
+  }
+
+  return fulfilled;
 }
 
 /**
@@ -292,6 +309,9 @@ function setupHelpMessage() {
     default: 3,
     action: 'store'
   });
+  parser.add_argument(
+    '--firestore', {help: 'Store benchmark results in Firestore database',
+     action: 'store_true'});
   parser.add_argument(
       '--outfile', {help: 'write results to outfile', action: 'store_true'});
   parser.add_argument('-v', '--version', {action: 'version', version});
