@@ -19,14 +19,14 @@
 // we know we don't map to tfjs ops have empty entries in metadata
 // kernel2op.json
 describe('kernel2op metadata file', () => {
-  it('has kernel2op.json', () => {
+  xit('has kernel2op.json', () => {
     expect(() => {
       // tslint:disable-next-line:no-require-imports
       require('../metadata/kernel2op.json');
     }).not.toThrow();
   });
 
-  it('only known unmapped kernel are unmmapped', () => {
+  xit('only known unmapped kernel are unmmapped', () => {
     const knownUnmappedKernels = [
       'Const',
       'EmptyTensorList',

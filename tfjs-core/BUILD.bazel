@@ -181,6 +181,7 @@ nodejs_test(
 # the package.json so src/version_test.ts can 'require()' it.
 js_library(
     name = "package_json",
+    package_name = "tfjs-core",
     srcs = [
         ":package.json",
     ],
