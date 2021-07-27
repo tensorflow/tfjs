@@ -75,7 +75,1561 @@ const sentences = [
 ];
 
 const benchmarks = {
-  'mobilenet_v2': {
+  
+  'topk_64_1': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 64]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 1, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_64_2': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 64]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 2, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_64_4': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 64]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 4, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_64_8': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 64]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 8, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_64_16': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 64]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 16, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_64_32': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 64]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 32, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_256_1': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 256]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 1, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_256_2': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 256]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 2, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_256_4': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 256]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 4, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_256_8': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 256]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 8, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_256_16': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 256]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 16, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_256_32': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 256]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 32, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_256_64': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 256]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 64, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_256_128': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 256]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 128, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_1024_1': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 1024]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 1, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_1024_2': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 1024]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 2, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_1024_4': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 1024]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 4, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_1024_8': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 1024]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 8, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_1024_16': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 1024]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 16, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_1024_32': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 1024]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 32, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_1024_64': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 1024]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 64, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_1024_128': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 1024]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 128, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_1024_256': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 1024]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 256, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_4096_1': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 4096]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 1, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_4096_2': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 4096]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 2, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_4096_4': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 4096]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 4, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_4096_8': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 4096]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 8, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_4096_16': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 4096]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 16, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_4096_32': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 4096]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 32, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_4096_64': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 4096]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 64, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_4096_128': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 4096]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 128, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_4096_256': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 4096]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 256, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_16384_1': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 16384]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 1, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_16384_2': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 16384]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 2, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_16384_4': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 16384]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 4, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_16384_8': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 16384]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 8, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_16384_16': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 16384]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 16, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_16384_32': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 16384]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 32, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_16384_64': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 16384]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 64, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_16384_128': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 16384]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 128, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_16384_256': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 16384]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 256, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_65536_1': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 65536]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 1, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_65536_2': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 65536]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 2, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_65536_4': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 65536]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 4, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_65536_8': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 65536]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 8, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_65536_16': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 65536]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 16, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_65536_32': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 65536]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 32, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_65536_64': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 65536]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 64, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_65536_128': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 65536]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 128, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_65536_256': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 65536]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 256, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_262144_1': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 262144]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 1, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_262144_2': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 262144]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 2, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_262144_4': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 262144]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 4, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_262144_8': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 262144]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 8, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_262144_16': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 262144]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 16, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_262144_32': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 262144]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 32, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_262144_64': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 262144]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 64, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_262144_128': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 262144]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 128, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_262144_256': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 262144]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 256, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_1048576_1': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 1048576]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 1, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_1048576_2': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 1048576]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 2, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_1048576_4': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 1048576]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 4, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_1048576_8': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 1048576]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 8, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_1048576_16': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 1048576]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 16, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_1048576_32': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 1048576]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 32, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_1048576_64': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 1048576]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 64, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_1048576_128': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 1048576]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 128, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_1048576_256': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 1048576]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 256, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_6400_100': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 6400]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 100, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_6400_50': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 6400]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 50, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_6400_25': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 6400]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 25, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_6400_10': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 6400]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 10, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_6400_5': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 6400]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 5, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },
+  'topk_6400_2': {
+    type: 'GraphModel',
+    load: async () => {
+      return {};
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([17, 6400]);
+      return () => {
+        //const profile = await tf.profile(() => {
+          return tf.topk(input, 2, true);
+        //});
+        //for (let i = 0; i < profile.kernels.length; i++) {
+        //  console.log(profile.kernelNames[i] + " " + profile.kernels[i].kernelTimeMs);
+        //  console.log(profile.kernels[i].inputShapes);
+        //  console.log(profile.kernels[i].outputShapes);
+        //  console.log("DONE");
+        //}
+        //return profile;
+      }
+    }
+  },'mobilenet_v2': {
     type: 'GraphModel',
     load: async () => {
       const url =
