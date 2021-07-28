@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, NumericDataType, TensorInfo, TopK, TopKAttrs, TopKInputs, TypedArray, util} from '@tensorflow/tfjs-core';
+import {env, KernelConfig, KernelFunc, NumericDataType, TensorInfo, TopK, TopKAttrs, TopKInputs, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {topKImplCPU} from '../kernel_utils/shared';
@@ -49,10 +49,25 @@ export function topK(
   const {x} = inputs;
   const {k, sorted} = attrs;
 
-  if (backend.shouldExecuteOnCPU([x])) {
+  // Empirically determined constant used to determine last dim threshold for
+  // handing off execution to the CPU.
+  const TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD =
+      env().getNumber('TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD');
+
+  // Empirically determined constant used to determine k threshold for handing
+  // off execution to the CPU.
+  const TOPK_K_CPU_HANDOFF_THRESHOLD =
+      env().getNumber('TOPK_K_CPU_HANDOFF_THRESHOLD');
+
+  const xShape = x.shape;
+  const lastDim = xShape[xShape.length - 1];
+
+  if (backend.shouldExecuteOnCPU([x]) ||
+      lastDim < TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD ||
+      k > TOPK_K_CPU_HANDOFF_THRESHOLD) {
     const xVals = backend.readSync(x.dataId) as TypedArray;
     const [allTopKVals, allTopKIndices] =
-        topKImplCPU(xVals, x.shape, x.dtype as NumericDataType, k, sorted);
+        topKImplCPU(xVals, xShape, x.dtype as NumericDataType, k, sorted);
 
     return [
       backend.makeTensorInfo(
@@ -61,9 +76,6 @@ export function topK(
           allTopKIndices.shape, allTopKIndices.dtype, allTopKIndices.values)
     ];
   }
-
-  const xShape = x.shape;
-  const lastDim = xShape[xShape.length - 1];
 
   if (k === 0) {
     xShape[xShape.length - 1] = 0;

@@ -28,7 +28,7 @@ import {getTensorsInContainer} from './tensor_util';
 import {BackendValues, DataType, DataValues} from './types';
 import * as util from './util';
 import {bytesFromStringArray, makeOnesTypedArray, now, sizeFromShape} from './util';
-
+import * as log from './log';
 /**
  * A function that computes an output. The save function is for saving tensors
  * computed in the forward pass, that we need in the backward pass.
@@ -259,7 +259,7 @@ export class Engine implements TensorTracker, DataMover {
       factory: () => KernelBackend | Promise<KernelBackend>,
       priority = 1): boolean {
     if (backendName in this.registryFactory) {
-      console.warn(
+      log.warn(
           `${backendName} backend was already registered. ` +
           `Reusing existing backend factory.`);
       return false;
@@ -348,9 +348,9 @@ export class Engine implements TensorTracker, DataMover {
                     return false;
                   }
                   this.pendingBackendInit = null;
-                  console.warn(
+                  log.warn(
                       `Initialization of backend ${backendName} failed`);
-                  console.warn(err.stack || err.message);
+                  log.warn(err.stack || err.message);
                   return false;
                 });
         this.pendingBackendInit = success;
@@ -360,8 +360,8 @@ export class Engine implements TensorTracker, DataMover {
         return {success: true, asyncInit: false};
       }
     } catch (err) {
-      console.warn(`Initialization of backend ${backendName} failed`);
-      console.warn(err.stack || err.message);
+      log.warn(`Initialization of backend ${backendName} failed`);
+      log.warn(err.stack || err.message);
       return {success: false, asyncInit: false};
     }
   }
