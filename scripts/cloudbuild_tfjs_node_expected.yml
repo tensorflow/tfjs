@@ -55,26 +55,6 @@ steps:
       - yarn-common
       - yarn-link-package
   - name: 'node:10'
-    dir: tfjs-converter
-    entrypoint: yarn
-    id: build-tfjs-converter
-    args:
-      - build-ci
-    waitFor:
-      - yarn-tfjs-converter
-      - yarn-common
-      - yarn-link-package
-  - name: 'node:10'
-    dir: tfjs-converter
-    entrypoint: yarn
-    id: lint-tfjs-converter
-    args:
-      - lint
-    waitFor:
-      - yarn-tfjs-converter
-      - yarn-common
-      - yarn-link-package
-  - name: 'node:10'
     dir: tfjs-layers
     entrypoint: yarn
     id: yarn-tfjs-layers
