@@ -70,18 +70,14 @@ In `run_tests.ts`, `IGNORE_LIST`, add test_name to the list.
 * [WASM backend Round](https://github.com/tensorflow/tfjs/pull/4486)
 
 ### Step 3. Add the op to Converter’s executor.
-1. Add op mapping in the op list ts file, use your best judgement to assign an op category: `tfjs-converter/src/operations/op_list/{corresponding_op_category}.ts`. Use
+1. Add op mapping in the op list ts file, use your best judgement to assign an op category: `tfjs-converter/python/tensorflowjs/op_list/{corresponding_op_category}.json`. The corresponding `.ts` file will be automatically generated when converter is built. Use
 the [TF C++ op api](https://www.tensorflow.org/api_docs/cc/) as reference for tfOpName, inputs, and attrs.
 
-2. Auto generates corresponding json file by running following command in directory tfjs-converter: `yarn gen-json`. Check that the json object is generated in `python/tensorflowjs/op_list/{corresponding_op_group}.json`
+2. Find the corresponding executor for the op and add the op to the switch, the [executors](https://github.com/tensorflow/tfjs/tree/master/tfjs-converter/src/operations/executors) are in `tfjs-converter/src/operations/executors`.
 
-3. Find the corresponding executor for the op and add the op to the switch, the [executors](https://github.com/tensorflow/tfjs/tree/master/tfjs-converter/src/operations/executors) are in `tfjs-converter/src/operations/executors`.
+3. Add a test to the corresponding executor test file.
 
-4. Add a test to the corresponding executor test file.
-
-5. Update the supported op doc in `tfjs-converter/docs/supported_ops.md`.
-
-6. Add a mapping in kernel2op.json.
+4. Update the supported op doc in `tfjs-converter/docs/supported_ops.md`.
 
 **Example PRs**
 * [SparseReshape Op](https://github.com/tensorflow/tfjs/pull/4963)

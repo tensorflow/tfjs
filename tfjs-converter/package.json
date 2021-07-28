@@ -74,7 +74,6 @@
     "model-summary": "ts-node -s ./tools/model_summary.ts",
     "pb2json": "ts-node -s ./tools/pb2json_converter.ts",
     "build-pip-package": "cd python && ./build-pip-package.sh --test /tmp/tfjs-pips",
-    "run-python-tests": "cd python && ./run-python-tests.sh",
-    "gen-kernel2ops": "ts-node -s scripts/kernels_to_ops.ts --out metadata/kernel2op.json"
+    "run-python-tests": "cd python && ./run-python-tests.sh"
   }
 }
