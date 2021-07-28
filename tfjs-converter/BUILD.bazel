@@ -15,8 +15,8 @@
 
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "nodejs_test", "pkg_npm")
 load("//tools:copy_to_dist.bzl", "copy_to_dist")
-load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 load("//tools:gen_json.bzl", "gen_json")
+load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 
 package(default_visibility = ["//visibility:public"])
 

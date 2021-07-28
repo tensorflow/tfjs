@@ -1,5 +1,5 @@
-load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
 load("@rules_python//python:defs.bzl", "py_runtime_pair")
+load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -69,9 +69,9 @@ py_wheel(
     description_file = ":README.md",
     distribution = "tensorflowjs",
     extra_requires = {
+        "PyInquirer": ["PyInquirer==1.0.3"],
         "all": ["PyInquirer==1.0.3"],
         "wizard": ["PyInquirer==1.0.3"],
-        "PyInquirer": ["PyInquirer==1.0.3"],
     },
     homepage = "https://js.tensorflow.org/",
     license = "Apache 2.0",
@@ -117,9 +117,9 @@ py_wheel(
     description_file = ":README.md",
     distribution = "tensorflowjs",
     extra_requires = {
+        "PyInquirer": ["PyInquirer==1.0.3"],
         "all": ["PyInquirer==1.0.3"],
         "wizard": ["PyInquirer==1.0.3"],
-        "PyInquirer": ["PyInquirer==1.0.3"],
     },
     homepage = "https://js.tensorflow.org/",
     license = "Apache 2.0",

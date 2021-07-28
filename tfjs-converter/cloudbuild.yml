@@ -15,22 +15,6 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Build.
-- name: 'node:10'
-  dir: 'tfjs-converter'
-  entrypoint: 'yarn'
-  id: 'build'
-  args: ['build-ci']
-  waitFor: ['yarn', 'build-deps']
-
-# Lint.
-- name: 'node:10'
-  dir: 'tfjs-converter'
-  entrypoint: 'yarn'
-  id: 'lint'
-  args: ['lint']
-  waitFor: ['yarn', 'build-deps']
-
 # Run python tests.
 - name: 'gcr.io/google-appengine/python'
   dir: 'tfjs-converter/python'
