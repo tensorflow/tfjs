@@ -1,8 +1,6 @@
 import * as argparse from 'argparse';
 import * as fs from 'fs';
-//import * as path from 'path';
 
-console.log('hello');
 const parser = new argparse.ArgumentParser();
 
 parser.addArgument(
@@ -40,5 +38,4 @@ import {OpMapper} from '../types';
 export const json: OpMapper[] = ${jsonContents};
 `;
 
-console.log(out);
 fs.writeFileSync(out, tsContents);
