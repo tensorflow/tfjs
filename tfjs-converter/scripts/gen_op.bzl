@@ -13,8 +13,8 @@
 # limitations under the License.
 # =============================================================================
 
-load("@build_bazel_rules_nodejs//:providers.bzl", "run_node")
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@build_bazel_rules_nodejs//:providers.bzl", "run_node")
 
 def _gen_op_impl(ctx):
     files = [f for s in ctx.attr.srcs for f in s.files.to_list()]
@@ -41,15 +41,15 @@ def _gen_op_impl(ctx):
 gen_op = rule(
     implementation = _gen_op_impl,
     attrs = {
+        "dest_dir": attr.string(
+            mandatory = True,
+            doc = "Output directory for the generated .ts files relative to the BUILD file",
+        ),
         "gen_op_bin": attr.label(
             executable = True,
             cfg = "host",
             default = Label("@//tfjs-converter/scripts:gen_op_bin"),
             doc = "The script that generates ts ops from json",
-        ),
-        "dest_dir": attr.string(
-            mandatory = True,
-            doc = "Output directory for the generated .ts files relative to the BUILD file",
         ),
         "srcs": attr.label_list(
             allow_files = [".json"],
