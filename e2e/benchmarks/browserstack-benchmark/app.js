@@ -23,12 +23,14 @@ const {execFile} = require('child_process');
 const {ArgumentParser} = require('argparse');
 const {version} = require('./package.json');
 const {resolve} = require('path')
-const {addResultToFirestore} = require('./firestore.js');
+const {addResultToFirestore, runFirestore, firebaseConfig} =
+    require('./firestore.js');
 
 const port = process.env.PORT || 8001;
 let io;
 let parser;
 let cliArgs;
+let db;
 
 function checkBrowserStackAccount() {
   if (process.env.BROWSERSTACK_USERNAME == null ||
@@ -93,6 +95,11 @@ function setupBenchmarkEnv(config) {
       './benchmark_parameters.json', JSON.stringify(config.benchmark, null, 2));
 }
 
+/**
+ * Creates and runs benchmark configurations for each model-backend pairing.
+ *
+ * @param {{browsers, benchmark}} config
+ */
 async function benchmarkAll(config) {
   const allResults = [];
   const benchmarkInfo = config.benchmark;
@@ -256,7 +263,7 @@ function pushToFirestore(benchmarkResults) {
   let numRejectedPromises = 0;
   for (result of benchmarkResults) {
     if (result.status == 'fulfilled') {
-      addResultToFirestore(result.value);
+      addResultToFirestore(db, result.value);
     } else if (result.status == 'rejected') {
       numRejectedPromises += 1;
       console.log('Promise rejected. Not adding to result to database.');
@@ -312,10 +319,10 @@ function runBenchmarkFromFile(file, runBenchmark = benchmarkAll) {
   runBenchmark(file);
 }
 
-/*Only run this code if app.js is called from the command line */
-if (require.main === module) {
-  setupHelpMessage();
+/** Sets up the local or remote envirnment for benchmarking. */
+async function prebenchmarkSetup() {
   checkBrowserStackAccount();
+  if (cliArgs.firestore) db = await runFirestore(firebaseConfig);
   if (!cliArgs.cloud) runServer();
   if (cliArgs.benchmarks) {
     const filePath = resolve(cliArgs.benchmarks);
@@ -329,6 +336,12 @@ if (require.main === module) {
           `Please provide a valid path.`);
     }
   }
+}
+
+/* Only run this code if app.js is called from the command line */
+if (require.main === module) {
+  setupHelpMessage();
+  prebenchmarkSetup();
 }
 
 exports.runBenchmarkFromFile = runBenchmarkFromFile;

@@ -1,5 +1,10 @@
 {
-  "benchmark": { "model": "face_detector", "numRuns": 10, "backend": "wasm" },
+  "benchmark": {
+    "model": ["AutoML Object", "posenet", "bodypix",
+      "blazeface", "speech-commands", "pose-detection"],
+    "numRuns": 10,
+    "backend": ["wasm"]
+  },
   "browsers": {
     "Windows_10_1": {
       "base": "BrowserStack",

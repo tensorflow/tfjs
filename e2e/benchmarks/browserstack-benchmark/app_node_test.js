@@ -1,7 +1,13 @@
 const fs = require('fs');
 const {benchmark, write, runBenchmarkFromFile} = require('./app.js');
-const {addResultToFirestore, serializeTensors, getReadableDate,
-      formatForFirestore, db} = require('./firestore.js');
+const {
+  addResultToFirestore,
+  serializeTensors,
+  getReadableDate,
+  formatForFirestore,
+  runFirestore,
+  firebaseConfig
+} = require('./firestore.js');
 
 describe('test app.js cli', () => {
   const filePath = './benchmark_test_results.json';
@@ -101,10 +107,9 @@ describe('test app.js cli', () => {
           return Promise.resolve(mockResults[tabId]);
         });
 
-    /*
-    before each spec, create a mock benchmark and set testing browser configuration
-    this helps ensure that everything is set to the expected contents before the spec is run
-    */
+    /* Before each spec, create a mock benchmark and set testing browser
+     * configuration this helps ensure that everything is set to the expected
+     * contents before the spec is run */
     mockBenchmark = jasmine.createSpy('mockBenchmark');
     testingConfig = require('./test_config.json');
   })
@@ -144,59 +149,55 @@ describe('test app.js cli', () => {
     expect(formattedResults).toEqual(mockResults);
   });
 
-  it("checks that the benchmark function is called", () => {
-    runBenchmarkFromFile(testingConfig, mockBenchmark);
-    expect(mockBenchmark).toHaveBeenCalled();
-  });
-
-  it("checks that the benchmark is being run with the correct JSON", () => {
+  it('checks that the benchmark is being run with the correct JSON', () => {
     runBenchmarkFromFile(testingConfig, mockBenchmark);
     expect(mockBenchmark).toHaveBeenCalledWith(testingConfig);
   });
 });
 
-describe("test adding to firestore", () => {
+describe('test adding to firestore', () => {
+  let db;
   let mockDb;
   let mockResultValue;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     // Set a longer jasmine timeout than 5 seconds
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
+
+    // References result collection and checks credentials
+    db = await runFirestore(firebaseConfig);
   });
 
   beforeEach(() => {
-    //mockResultValue is the result of a successful benchmark
+    // mockResultValue is the result of a successful benchmark
     mockResultValue = require('./firestore_test_value.json');
-    mockDb = spyOn(db, "add");
+    mockDb = spyOn(db, 'add');
     mockSerialization = jasmine.createSpy('mockSerialization');
-    mockDate = jasmine.createSpy('mockDate').and.returnValue("7/21/2021");
+    mockDate = jasmine.createSpy('mockDate').and.returnValue('7/21/2021');
   });
 
-  it("Expects db.add to be called", () => {
+  it('Expects db.add to be called with formatted results', () => {
     mockDb.and.returnValue(Promise.resolve({id: 123}));
-    addResultToFirestore(mockResultValue);
-    expect(db.add).toHaveBeenCalled();
-  });
-
-  it("Expects db.add to be called with formatted results", () => {
-    mockDb.and.returnValue(Promise.resolve({id: 123}));
-    let expectedAdd = { result :
-      formatForFirestore(mockResultValue, serializeTensors, getReadableDate) };
-    addResultToFirestore(mockResultValue);
+    let expectedAdd = {
+      result:
+          formatForFirestore(mockResultValue, serializeTensors, getReadableDate)
+    };
+    addResultToFirestore(db, mockResultValue);
     expect(db.add).toHaveBeenCalledWith(expectedAdd);
   });
 
-  it("Expects a date key to exist and have the correct value", () => {
-    let testFormat = formatForFirestore(
-      mockResultValue, mockSerialization, mockDate);
-    expect(testFormat.date).toEqual("7/21/2021");
+  it('Expects a date key to exist and have the correct value', () => {
+    let testFormat =
+        formatForFirestore(mockResultValue, mockSerialization, mockDate);
+    expect(testFormat.date).toEqual('7/21/2021');
   });
 
-  it("Expects serialization to cover all nested arrays", () => {
-    const mockSerializedResults = formatForFirestore(mockResultValue, serializeTensors, mockDate);
+  it('Expects serialization to cover all nested arrays', () => {
+    const mockSerializedResults =
+        formatForFirestore(mockResultValue, serializeTensors, mockDate);
     for (kernel of mockSerializedResults.benchmarkInfo.memoryInfo.kernels) {
-      expect(typeof(kernel.inputShapes)).toEqual("string");
-      expect(typeof(kernel.outputShapes)).toEqual("string");
+      expect(typeof (kernel.inputShapes)).toEqual('string');
+      expect(typeof (kernel.outputShapes)).toEqual('string');
     }
   });
 });
