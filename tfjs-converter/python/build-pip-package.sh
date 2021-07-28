@@ -125,7 +125,6 @@ fi
 mkdir -p "${DEST_DIR}"
 DEST_DIR="$(cd "${DEST_DIR}" 2>/dev/null && pwd -P)"
 
-
 pip install virtualenv
 
 # Check virtualenv is on path.
@@ -151,7 +150,7 @@ for VENV_PYTHON_BIN in ${VENV_PYTHON_BINS}; do
   echo "Building wheel for ${VENV_PYTHON_BIN}: $(python --version 2>&1) ..."
   echo
 
-  bazel build ${VENV_PYTHON_BIN}_wheel
+  #bazel build ${VENV_PYTHON_BIN}_wheel
 
   pushd "${TMP_DIR}" > /dev/null
   echo

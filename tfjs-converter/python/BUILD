@@ -85,6 +85,7 @@ py_wheel(
     strip_path_prefixes = [
         "tfjs-converter/python",
     ],
+    tags = ["ci"],
     version = "3.8.0",
     #keywords='tensorflow javascript machine deep learning converter',
     deps = [
@@ -133,6 +134,7 @@ py_wheel(
     strip_path_prefixes = [
         "tfjs-converter/python",
     ],
+    tags = ["ci"],
     version = "3.8.0",
     #keywords='tensorflow javascript machine deep learning converter',
     deps = [
