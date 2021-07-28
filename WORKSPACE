@@ -274,7 +274,6 @@ filegroup(
 
 register_toolchains("//tfjs-converter/python:tfjs_py_toolchain")
 
-
 http_archive(
     name = "rules_python",
     sha256 = "934c9ceb552e84577b0faf1e5a2f0450314985b4d8712b2b70717dc679fdc01b",
@@ -287,12 +286,12 @@ load("@rules_python//python:pip.bzl", "pip_install")
 # third-party packages specified in the requirements.txt file.
 pip_install(
     name = "tensorflowjs_dev_deps",
-    requirements = "//tfjs-converter/python:requirements-dev.txt",
     python_interpreter_target = "@python3_interpreter//:python3_bin",
+    requirements = "//tfjs-converter/python:requirements-dev.txt",
 )
 
 pip_install(
     name = "tensorflowjs_deps",
-    requirements = "//tfjs-converter/python:requirements.txt",
     python_interpreter_target = "@python3_interpreter//:python3_bin",
+    requirements = "//tfjs-converter/python:requirements.txt",
 )
