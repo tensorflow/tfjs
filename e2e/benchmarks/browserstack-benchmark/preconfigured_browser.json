@@ -1,12 +1,5 @@
 {
-  "summaryTabId": "Summary_1",
-  "benchmark": {
-    "model": ["mobilenet_v2", "mesh_128", "face_detector", "hand_detector",
-      "hand_skeleton", "AutoML Image", "AutoML Object", "posenet", "bodypix",
-      "blazeface", "speech-commands", "pose-detection"],
-    "numRuns": 10,
-    "backend": ["wasm"]
-  },
+  "benchmark": { "model": "face_detector", "numRuns": 10, "backend": "wasm" },
   "browsers": {
     "Windows_10_1": {
       "base": "BrowserStack",
@@ -43,7 +36,7 @@
     "iPhone_12_Pro_Max_1": {
       "base": "BrowserStack",
       "browser": "iphone",
-      "browser_version": "null",
+      "browser_version": null,
       "os": "ios",
       "os_version": "14",
       "device": "iPhone 12 Pro Max"
@@ -51,7 +44,7 @@
     "iPhone_12_1": {
       "base": "BrowserStack",
       "browser": "iphone",
-      "browser_version": "null",
+      "browser_version": null,
       "os": "ios",
       "os_version": "14",
       "device": "iPhone 12"
@@ -59,7 +52,7 @@
     "iPhone_XS_1": {
       "base": "BrowserStack",
       "browser": "iphone",
-      "browser_version": "null",
+      "browser_version": null,
       "os": "ios",
       "os_version": "14",
       "device": "iPhone XS"
@@ -67,7 +60,7 @@
     "iPhone_11_Pro_Max_1": {
       "base": "BrowserStack",
       "browser": "iphone",
-      "browser_version": "null",
+      "browser_version": null,
       "os": "ios",
       "os_version": "13",
       "device": "iPhone 11 Pro Max"
@@ -75,7 +68,7 @@
     "iPhone_11_1": {
       "base": "BrowserStack",
       "browser": "iphone",
-      "browser_version": "null",
+      "browser_version": null,
       "os": "ios",
       "os_version": "13",
       "device": "iPhone 11"
@@ -83,7 +76,7 @@
     "iPhone_7_1": {
       "base": "BrowserStack",
       "browser": "iphone",
-      "browser_version": "null",
+      "browser_version": null,
       "os": "ios",
       "os_version": "12",
       "device": "iPhone 7"
@@ -91,7 +84,7 @@
     "Google_Pixel_5_1": {
       "base": "BrowserStack",
       "browser": "android",
-      "browser_version": "null",
+      "browser_version": null,
       "os": "android",
       "os_version": "11.0",
       "device": "Google Pixel 5"
@@ -115,7 +108,7 @@
     "Google_Pixel_4_XL_1": {
       "base": "BrowserStack",
       "browser": "android",
-      "browser_version": "null",
+      "browser_version": null,
       "os": "android",
       "os_version": "10.0",
       "device": "Google Pixel 4 XL"
