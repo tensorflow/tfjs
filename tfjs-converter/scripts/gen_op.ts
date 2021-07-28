@@ -1,6 +1,24 @@
+import * as argparse from 'argparse';
+import * as fs from 'fs';
+
+const parser = new argparse.ArgumentParser();
+
+parser.addArgument(
+  'json', {help: 'Path to json input file'});
+
+parser.addArgument(
+  'out', {help: 'Path to write output'});
+
+const {json, out} = parser.parseArgs() as {
+  json: string,
+  out: string,
+};
+
+const jsonContents = fs.readFileSync(json, 'utf8');
+const tsContents = `
 /**
  * @license
- * Copyright 2017 Google LLC. All Rights Reserved.
+ * Copyright ${new Date().getFullYear()} Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,12 +33,9 @@
  * =============================================================================
  */
 
-import {version_core} from './index';
+import {OpMapper} from '../types';
 
-describe('version', () => {
-  it('version is contained', () => {
-    // tslint:disable-next-line:no-require-imports
-    const expected = require('tfjs-core/package.json').version;
-    expect(version_core).toBe(expected);
-  });
-});
+export const json: OpMapper[] = ${jsonContents};
+`;
+
+fs.writeFileSync(out, tsContents);

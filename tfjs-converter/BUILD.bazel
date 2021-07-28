@@ -15,7 +15,6 @@
 
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "nodejs_test", "pkg_npm")
 load("//tools:copy_to_dist.bzl", "copy_to_dist")
-load("//tools:gen_json.bzl", "gen_json")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 
 package(default_visibility = ["//visibility:public"])
@@ -23,15 +22,14 @@ package(default_visibility = ["//visibility:public"])
 # Allow typescript rules in any package to reference this file
 exports_files([
     "package.json",
-    "metadata/kernel2op.json",
 ])
 
 nodejs_test(
     name = "tfjs-converter_test",
     data = [
-        ":metadata_json",
         ":package_json",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-converter/metadata:kernels_to_ops",
         "//tfjs-converter/src:tfjs-converter_test_lib",
     ],
     entry_point = "//tfjs-converter/src:run_tests.ts",
@@ -125,21 +123,8 @@ pkg_npm(
 
 js_library(
     name = "package_json",
+    package_name = "tfjs-converter",
     srcs = [
         ":package.json",
     ],
-)
-
-js_library(
-    name = "metadata_json",
-    srcs = [
-        ":metadata/kernel2op.json",
-    ],
-)
-
-gen_json(
-    name = "ts_to_json",
-    srcs = ["//tfjs-converter/src:op_list"],
-    output_path = "tfjs-converter/python/tensorflowjs/op_list",
-    deps = ["//tfjs-converter/src:tfjs-converter_src_lib"],
 )
