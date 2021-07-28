@@ -40,7 +40,9 @@ py_library(
 py_test(
     name = "keras_h5_conversion_test",
     srcs = ["keras_h5_conversion_test.py"],
+    imports = ["../.."],
     srcs_version = "PY2AND3",
+    tags = ["ci"],
     deps = [
         ":keras_h5_conversion",
         "//tfjs-converter/python/tensorflowjs:expect_h5py_installed",
@@ -64,7 +66,9 @@ py_library(
 py_test(
     name = "keras_tfjs_loader_test",
     srcs = ["keras_tfjs_loader_test.py"],
+    imports = ["../.."],
     srcs_version = "PY2AND3",
+    tags = ["ci"],
     deps = [
         ":keras_h5_conversion",
         ":keras_tfjs_loader",
@@ -94,7 +98,9 @@ py_library(
 py_test(
     name = "fuse_prelu_test",
     srcs = ["fuse_prelu_test.py"],
+    imports = ["../.."],
     srcs_version = "PY2AND3",
+    tags = ["ci"],
     deps = [
         ":fuse_prelu",
         ":tf_saved_model_conversion_v2",
@@ -117,7 +123,9 @@ py_library(
 py_test(
     name = "fold_batch_norms_test",
     srcs = ["fold_batch_norms_test.py"],
+    imports = ["../.."],
     srcs_version = "PY2AND3",
+    tags = ["ci"],
     deps = [
         ":fold_batch_norms",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
@@ -139,7 +147,9 @@ py_library(
 py_test(
     name = "fuse_depthwise_conv2d_test",
     srcs = ["fuse_depthwise_conv2d_test.py"],
+    imports = ["../.."],
     srcs_version = "PY2AND3",
+    tags = ["ci"],
     deps = [
         ":fuse_depthwise_conv2d",
         ":graph_rewrite_util",
@@ -152,7 +162,9 @@ py_test(
 py_test(
     name = "tf_saved_model_conversion_v2_test",
     srcs = ["tf_saved_model_conversion_v2_test.py"],
+    imports = ["../.."],
     srcs_version = "PY2AND3",
+    tags = ["ci"],
     deps = [
         ":tf_saved_model_conversion_v2",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_hub_installed",
@@ -165,6 +177,7 @@ py_library(
     srcs = ["tf_saved_model_conversion_v2.py"],
     data = ["//tfjs-converter/python/tensorflowjs:op_list_jsons"],
     srcs_version = "PY2AND3",
+    tags = ["ci"],
     deps = [
         ":common",
         ":fold_batch_norms",
@@ -177,15 +190,15 @@ py_library(
         "//tfjs-converter/python/tensorflowjs:resource_loader",
         "//tfjs-converter/python/tensorflowjs:version",
         "//tfjs-converter/python/tensorflowjs:write_weights",
-        #"//third_party/tensorflow/python/tools:saved_model_cli_lib",
-        #"//third_party/tensorflow/tools/graph_transforms:transform_graph_py",
     ],
 )
 
 py_test(
     name = "wizard_test",
     srcs = ["wizard_test.py"],
+    imports = ["../.."],
     srcs_version = "PY2AND3",
+    tags = ["ci"],
     deps = [
         ":wizard",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
@@ -224,6 +237,7 @@ py_library(
 py_binary(
     name = "converter",
     srcs = ["converter.py"],
+    imports = ["../.."],
     srcs_version = "PY2AND3",
     visibility = ["//visibility:public"],
     deps = [
@@ -250,7 +264,9 @@ py_binary(
 py_test(
     name = "converter_test",
     srcs = ["converter_test.py"],
+    imports = ["../.."],
     srcs_version = "PY2AND3",
+    tags = ["ci"],
     deps = [
         ":converter",
         ":keras_tfjs_loader",
@@ -267,4 +283,5 @@ sh_test(
         ":converter",
         ":generate_test_model",
     ],
+    tags = ["ci"],
 )

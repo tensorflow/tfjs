@@ -1,5 +1,5 @@
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
-load("@tensorflowjs_dev2_deps//:requirements.bzl", "requirement")
+load("@tensorflowjs_dev_deps//:requirements.bzl", "requirement")
 
 package(
     default_visibility = [
@@ -114,7 +114,9 @@ py_library(
 py_test(
     name = "quantization_test",
     srcs = ["quantization_test.py"],
+    imports = [".."],
     srcs_version = "PY2AND3",
+    tags = ["ci"],
     deps = [
         ":quantization",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
@@ -124,7 +126,9 @@ py_test(
 py_test(
     name = "write_weights_test",
     srcs = ["write_weights_test.py"],
+    imports = [".."],
     srcs_version = "PY2AND3",
+    tags = ["ci"],
     deps = [
         ":write_weights",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
@@ -135,7 +139,9 @@ py_test(
 py_test(
     name = "read_weights_test",
     srcs = ["read_weights_test.py"],
+    imports = [".."],
     srcs_version = "PY2AND3",
+    tags = ["ci"],
     deps = [
         ":read_weights",
         ":write_weights",
@@ -148,7 +154,9 @@ py_test(
     name = "resource_loader_test",
     srcs = ["resource_loader_test.py"],
     data = [":op_list_jsons"],
+    imports = [".."],
     srcs_version = "PY2AND3",
+    tags = ["ci"],
     deps = [
         ":resource_loader",
     ],
