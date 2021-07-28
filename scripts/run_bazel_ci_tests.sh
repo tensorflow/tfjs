@@ -17,5 +17,12 @@
 # Exit the script on any command with non 0 return code
 set -e
 
-# Run `bazel test` on all targets that have the tag "ci"
-yarn bazel test --config=ci --flaky_test_attempts=3 --test_output=all `./node_modules/.bin/bazel query --output label 'attr("tags", "ci", ...)'`
+if [ "$NIGHTLY" = true ]; then
+  # Run `bazel test` on all targets that have the "ci" or "nightly" tag.
+  TARGETS=`./node_modules/.bin/bazel query --output label 'attr("tags", "ci", ...) union attr("tags", "nightly", ...)'`
+else
+  # Run `bazel test` on all targets that have the "ci" tag.
+  TARGETS=`./node_modules/.bin/bazel query --output label 'attr("tags", "ci", ...)'`
+fi
+
+yarn bazel test --config=ci --flaky_test_attempts=3 --test_output=all $TARGETS

@@ -86,19 +86,19 @@ limitations under the License.
       <tbody></tbody>
     </table>
   </div>
-  <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js"></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-backend-cpu@latest/dist/tf-backend-cpu.js"></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgl@latest/dist/tf-backend-webgl.js"></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgpu@latest/dist/tf-backend-webgpu.min.js"></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js"></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js"></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@latest/dist/tf-backend-wasm.js"></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-automl@latest/dist/tf-automl.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands"> </script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js" crossorigin></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-backend-cpu@latest/dist/tf-backend-cpu.js" crossorigin></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgl@latest/dist/tf-backend-webgl.js" crossorigin></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgpu@latest/dist/tf-backend-webgpu.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js" crossorigin></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js" crossorigin></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@latest/dist/tf-backend-wasm.js" crossorigin></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-automl@latest/dist/tf-automl.js" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands" crossorigin> </script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection" crossorigin></script>
 
   <script src="../model_config.js"></script>
   <script src="../benchmark_util.js"></script>
@@ -132,23 +132,35 @@ limitations under the License.
     let modelController = null;
     let numRunsController = null;
     let modelParameterFolder = null;
-    let backendsController = null;
     let runButton = null;
     let correctnessButton = null;
     let inputSizeController = null;
     let inputTypeController = null;
     let modelArchitectureController = null;
+    let tunableFlagsControllers = null;
 
     function updateGUIFromURLState() {
       if (urlState == null)
         return;
+      if (tunableFlagsControllers != null)
+      {
+        if (tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'] != null &&
+            urlState.has('WEBGL_USE_SHAPES_UNIFORMS'))
+        {
+          const value = urlState.get('WEBGL_USE_SHAPES_UNIFORMS');
+          if (value === 'true')
+          {
+            tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(true);
+          } else {
+            tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(false);
+          }
+        }
+      }
       // The model parameter will be update automically by onChange.
       if (modelController != null && urlState.has('benchmark'))
         modelController.setValue(urlState.get('benchmark'));
       if (numRunsController != null && urlState.has('run'))
         numRunsController.setValue(urlState.get('run'));
-      if (backendsController != null && urlState.has('backend'))
-        backendsController.setValue(urlState.get('backend'));
       // Only auto run when URI component exists.
       if (correctnessButton != null && task == 'correctness') {
         correctnessButton.domElement.click();
@@ -171,6 +183,7 @@ limitations under the License.
         if (!tf.engine().backendNames().includes(state.backend)) {
           return;
         }
+        await tf.ready();
         if (state.isFlagChanged) {
           await setEnvFlags(state.flags);
           envDiv.innerHTML = '';
@@ -183,12 +196,12 @@ limitations under the License.
 
         // load model and run inference
         try {
+          tf.setBackend('cpu');
           await loadModelAndRecordTime();
           await showMsg('Testing correctness');
           await showInputs();
           await showCorrectnessTestParameters();
 
-          tf.setBackend('cpu');
           let inferenceInput;
           await showMsg('Runing on cpu');
           if (state.benchmark === 'custom') {
@@ -234,8 +247,6 @@ limitations under the License.
       isModelLoaded: false,
       inputs: {}
     };
-
-    urlState = getURLState(window.location.search);
 
     const modalDiv = document.getElementById('modal-msg');
     const timeTable = document.querySelector('#timings tbody');
@@ -621,6 +632,7 @@ limitations under the License.
       if (!tf.engine().backendNames().includes(state.backend)) {
         return;
       }
+      await tf.ready();
       if (state.isFlagChanged) {
         await setEnvFlags(state.flags);
         envDiv.innerHTML = '';
@@ -667,6 +679,9 @@ limitations under the License.
       const gui = new dat.gui.GUI({ width: 550 });
       gui.domElement.id = 'gui';
 
+      urlState = getURLState(location.search);
+      if (urlState && urlState.has('backend'))
+        state.backend = urlState.get('backend');
       await tf.setBackend(state.backend);
 
       const modelFolder = gui.addFolder('Benchmark');
@@ -786,7 +801,7 @@ limitations under the License.
       modelParameterFolder.open();
 
       const envFolder = gui.addFolder('Environment');
-      backendsController = envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu', 'webgpu']);
+      const backendsController = envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu', 'webgpu']);
       backendsController.onChange(async backend => {
         // TODO: Failed to set backend
         if (state.backend === 'webgpu' && !tf.engine().backendNames().includes(state.backend)) {
@@ -797,7 +812,7 @@ limitations under the License.
            showMsg(null);
         }
         await tf.setBackend(backend);
-        await showFlagSettings(envFolder, state.backend);
+        await showFlagSettingsAndReturnTunableFlagControllers(envFolder, state.backend);
       });
       envFolder.open();
 
@@ -806,7 +821,7 @@ limitations under the License.
       correctnessButton = gui.add(state, 'testCorrectness');
       correctnessButton.name('Test correctness');
 
-      await showFlagSettings(envFolder, state.backend);
+      tunableFlagsControllers = await showFlagSettingsAndReturnTunableFlagControllers(envFolder, state.backend);
       showVersions();
       await showEnvironment();
       updateGUIFromURLState();
