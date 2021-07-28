@@ -1,9 +1,12 @@
-load("//tools:defaults.bzl", "ts_library")
 load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
+load("//tools:defaults.bzl", "ts_library")
 
 package(default_visibility = ["//visibility:public"])
 
-exports_files(["op.template.ts"], visibility = ["//visibility:public"])
+exports_files(
+    ["op.template.ts"],
+    visibility = ["//visibility:public"],
+)
 
 ts_library(
     name = "test_snippets_lib",
@@ -25,38 +28,37 @@ ts_library(
         ":gen_op.ts",
     ],
     deps = [
-        "@npm//argparse",
         "@npm//@types/argparse",
         "@npm//@types/node",
+        "@npm//argparse",
     ],
 )
 
 nodejs_binary(
     name = "gen_op_bin",
-    entry_point = "gen_op.ts",
     data = [
         ":gen_op_lib",
     ],
+    entry_point = "gen_op.ts",
 )
-    
+
 ts_library(
     name = "kernels_to_ops_lib",
     srcs = [
         ":kernels_to_ops.ts",
     ],
     deps = [
-        "@npm//argparse",
-        "@npm//ts-morph",
         "@npm//@types/argparse",
         "@npm//@types/node",
+        "@npm//argparse",
+        "@npm//ts-morph",
     ],
 )
 
 nodejs_binary(
     name = "kernels_to_ops_bin",
-    entry_point = "kernels_to_ops.ts",
     data = [
         ":kernels_to_ops_lib",
     ],
+    entry_point = "kernels_to_ops.ts",
 )
-    

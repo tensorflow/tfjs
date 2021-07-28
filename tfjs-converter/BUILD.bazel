@@ -29,8 +29,8 @@ nodejs_test(
     data = [
         ":package_json",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
-        "//tfjs-converter/src:tfjs-converter_test_lib",
         "//tfjs-converter/metadata:kernels_to_ops",
+        "//tfjs-converter/src:tfjs-converter_test_lib",
     ],
     entry_point = "//tfjs-converter/src:run_tests.ts",
     link_workspace_root = True,

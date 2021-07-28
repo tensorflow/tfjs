@@ -11,7 +11,7 @@ def _kernels_to_ops_impl(ctx):
         chdir = "tfjs-converter",
         arguments = [
             "--out",
-            "../" + output_file.path, # '../' due to chdir above
+            "../" + output_file.path,  # '../' due to chdir above
         ],
     )
 
@@ -26,12 +26,12 @@ kernels_to_ops = rule(
             default = Label("@//tfjs-converter/scripts:kernels_to_ops_bin"),
             doc = "The script that generates the kernel2op.json metadata file",
         ),
-        "srcs": attr.label_list(
-            doc = "The files in the ts project",
-        ),
         "out": attr.output(
             mandatory = True,
             doc = "Output label for the generated .json file",
+        ),
+        "srcs": attr.label_list(
+            doc = "The files in the ts project",
         ),
     },
 )

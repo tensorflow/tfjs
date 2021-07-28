@@ -13,10 +13,9 @@
 # limitations under the License.
 # =============================================================================
 
-load("//tools:defaults.bzl", "ts_library")
 load("//tfjs-converter/scripts:gen_op.bzl", "gen_op")
 load("//tfjs-converter/scripts:ops.bzl", "OPS")
-
+load("//tools:defaults.bzl", "ts_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -39,7 +38,7 @@ filegroup(
 
 filegroup(
     name = "all_ops",
-    srcs = [":" + op for op in OPS]
+    srcs = [":" + op for op in OPS],
 )
 
 ts_library(

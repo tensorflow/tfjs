@@ -1,5 +1,7 @@
 load("//tfjs-converter/scripts:ops.bzl", "OPS")
 
-
 # When adding a new op, be sure to add it to tfjs-converter/scripts/ops.bzl
-exports_files([op + ".json" for op in OPS], visibility = ["//visibility:public"])
+exports_files(
+    [op + ".json" for op in OPS],
+    visibility = ["//visibility:public"],
+)

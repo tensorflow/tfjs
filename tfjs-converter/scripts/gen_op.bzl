@@ -25,13 +25,13 @@ gen_op = rule(
             default = Label("@//tfjs-converter/scripts:gen_op_bin"),
             doc = "The script that generates ts ops from json",
         ),
-        "src": attr.label(
-            allow_single_file = [".json"],
-        ),
         "out": attr.output(
             mandatory = True,
             doc = "Output label for the generated .ts file",
         ),
+        "src": attr.label(
+            allow_single_file = [".json"],
+            doc = "The json to generate the op from",
+        ),
     },
 )
-
