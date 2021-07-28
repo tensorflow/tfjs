@@ -310,8 +310,6 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-converter
-      - build-tfjs-converter
-      - lint-tfjs-converter
   - name: 'node:10'
     dir: tfjs-backend-webgpu
     id: lint-tfjs-backend-webgpu
@@ -323,8 +321,6 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-converter
-      - build-tfjs-converter
-      - lint-tfjs-converter
   - name: 'node:10'
     dir: tfjs-backend-webgpu
     entrypoint: yarn
@@ -337,8 +333,6 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-converter
-      - build-tfjs-converter
-      - lint-tfjs-converter
   - name: 'node:10'
     dir: tfjs
     entrypoint: yarn
@@ -349,8 +343,6 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-converter
-      - build-tfjs-converter
-      - lint-tfjs-converter
       - yarn-tfjs-layers
       - build-tfjs-layers
       - lint-tfjs-layers
@@ -368,8 +360,6 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-converter
-      - build-tfjs-converter
-      - lint-tfjs-converter
       - yarn-tfjs-layers
       - build-tfjs-layers
       - lint-tfjs-layers
@@ -387,8 +377,6 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-converter
-      - build-tfjs-converter
-      - lint-tfjs-converter
       - yarn-tfjs-layers
       - build-tfjs-layers
       - lint-tfjs-layers
@@ -407,8 +395,6 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-converter
-      - build-tfjs-converter
-      - lint-tfjs-converter
       - yarn-tfjs-layers
       - build-tfjs-layers
       - lint-tfjs-layers
@@ -602,8 +588,6 @@ steps:
       - build-tfjs
       - lint-tfjs
       - yarn-tfjs-converter
-      - build-tfjs-converter
-      - lint-tfjs-converter
       - yarn-tfjs-data
       - build-tfjs-data
       - lint-tfjs-data
@@ -637,8 +621,6 @@ steps:
       - build-tfjs
       - lint-tfjs
       - yarn-tfjs-converter
-      - build-tfjs-converter
-      - lint-tfjs-converter
       - yarn-tfjs-data
       - build-tfjs-data
       - lint-tfjs-data
