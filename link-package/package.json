@@ -11,7 +11,7 @@
     "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build",
     "build-converter": "cd ../tfjs-converter && yarn && yarn build",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
-    "reinstall": "yarn && yarn cache clean @tensorflow/tfjs-core && yarn cache clean @tensorflow/tfjs-backend-cpu && rimraf node_modules && yarn"
+    "reinstall": "yarn && yarn cache clean @tensorflow/tfjs-core && yarn cache clean @tensorflow/tfjs-backend-cpu && yarn cache clean @tensorflow/tfjs-converter && rimraf node_modules && yarn"
   },
   "devDependencies": {
     "@tensorflow/tfjs-backend-cpu": "file:../dist/bin/tfjs-backend-cpu/tfjs-backend-cpu_pkg",
