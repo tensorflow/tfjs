@@ -50,7 +50,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         convInfo.dataFormat === 'channelsLast',
         () => 'TODO: NCHW is unimplemented');
     this.dispatchLayout = {x: [3], y: [1, 2], z: [0]};
-    this.workGroupSize = [16, 16, 1];
+    this.workGroupSize = [8, 8, 1];
     const elementsPerThread: [number, number, number] = [4, 4, 1];
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
