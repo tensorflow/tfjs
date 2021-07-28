@@ -14,8 +14,11 @@
  * limitations under the License.
  * =============================================================================
  */
+
 require('firebase/firestore');
 require('firebase/auth');
+
+let db;
 const firebase = require('firebase/app');
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_KEY,
@@ -27,22 +30,29 @@ const firebaseConfig = {
   appId: '1:834911136599:web:4b65685455bdf916a1ec12'
 };
 
-firebase.initializeApp(firebaseConfig);
+/**
+ * After being returned from Browserstack, benchmark results are stored as
+ * a list of fulfilled promises.
+ *
+ * As results are being iterated through, this function handles taking a result,
+ * serializing it, and pushing it to Firestore.
+ *
+ * @param firebaseConfig A configuration with Firebase credentials
+ */
+async function runFirestore(firebaseConfig) {
+  firebase.initializeApp(firebaseConfig);
+  await firebase.auth()
+      .signInAnonymously()
+      .then(() => {console.log('Signed into Firebase with anonymous account.')})
+      .catch((error) => {
+        console.log(`Error code: ${error.code}`);
+        throw `Error message: ${error.message}`;
+      });
 
-firebase.auth()
-    .signInAnonymously()
-    .then(() => {console.log('Signed into Firebase with anonymous account.')})
-    .catch((error) => {
-      let errorCode = error.code;
-      let errorMessage = error.message;
-      console.log(`Error code: ${errorCode}`);
-      console.log(`Error message: ${errorMessage}`);
-    });
-
-
-// Reference to the "BenchmarkResults" collection on firestore that contains the
-// benchmark results.
-const db = firebase.firestore().collection('BenchmarkResults');
+  // Reference to the "BenchmarkResults" collection on firestore that contains
+  // the benchmark results.
+  db = firebase.firestore().collection('BenchmarkResults');
+}
 
 /**
  * After being returned from Browserstack, benchmark results are stored as
@@ -103,6 +113,8 @@ function getReadableDate() {
   const dateOnly = fullISODateString.split('T')[0];
   return dateOnly;
 }
+
+runFirestore(firebaseConfig);
 
 exports.addResultToFirestore = addResultToFirestore;
 exports.serializeTensors = serializeTensors;
