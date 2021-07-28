@@ -1,7 +1,7 @@
 {
   "benchmark": {
-    "model": ["AutoML Object", "posenet", "bodypix",
-      "blazeface", "speech-commands", "pose-detection"],
+    "model": ["mobilenet_v2", "mesh_128", "face_detector", "hand_detector",
+      "hand_skeleton", "blazeface"],
     "numRuns": 10,
     "backend": ["wasm"]
   },
