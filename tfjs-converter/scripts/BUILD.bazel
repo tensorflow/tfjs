@@ -39,3 +39,24 @@ nodejs_binary(
     ],
 )
     
+ts_library(
+    name = "kernels_to_ops_lib",
+    srcs = [
+        ":kernels_to_ops.ts",
+    ],
+    deps = [
+        "@npm//argparse",
+        "@npm//ts-morph",
+        "@npm//@types/argparse",
+        "@npm//@types/node",
+    ],
+)
+
+nodejs_binary(
+    name = "kernels_to_ops_bin",
+    entry_point = "kernels_to_ops.ts",
+    data = [
+        ":kernels_to_ops_lib",
+    ],
+)
+    

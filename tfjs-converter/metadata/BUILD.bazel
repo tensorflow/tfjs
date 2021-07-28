@@ -1,0 +1,12 @@
+load("//tfjs-converter/scripts:kernels_to_ops.bzl", "kernels_to_ops")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
+
+package(default_visibility = ["//visibility:public"])
+
+kernels_to_ops(
+    name = "kernels_to_ops",
+    srcs = [
+        "//tfjs-converter/src:all_srcs",
+    ],
+    out = "kernel2op.json",
+)
