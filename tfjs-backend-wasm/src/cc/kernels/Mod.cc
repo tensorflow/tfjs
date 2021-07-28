@@ -39,18 +39,40 @@ void Mod(const size_t a_id, const size_t* a_shape_ptr,
     case DType::float32:
       binary_f32(a_id, b_id, out_id,
                  [](float a, float b) {
-                   float rem = fmod(a,b);
-                   if((a<0 && b<0)||(a>=0 && b>=0)){
-                     return rem;
-                   }
-                   else{
-                     return fmod(rem+ b ,b);
-                   }
+                   float mod = fmod(a, b);
+    // Handling negative values
+    if (a < 0) {
+      mod = -a;
+    } else {
+      mod =  a;
+    }
+
+    if (b < 0) {
+      b = -b;
+    }
+
+
+    // Finding mod by repeated subtraction
+
+    while (mod >= b) {
+      mod = mod - b;
+    }
+
+
+    // Sign of result typically depends
+    // on sign of a.
+    if (a < 0) {
+      return -mod;
+    }
+
+
+
+    return mod;
                   });
       break;
     case DType::int32:
       binary_i32(a_id, b_id, out_id, [](int a, int b) {
-        return a%b;
+        return a >= 0 ? a % b : ( b - abs ( a%b ) ) % b;
       });
       break;
     default:
