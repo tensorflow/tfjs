@@ -86,20 +86,18 @@ export function computeWorkGroupSizeForMatMul(
     dimBOuter: number): [number, number, number] {
   // These are experimental values. Usually, we need to adjust the work group
   // size based on the input shapes to improve the EU occupancy.
-  // 64 (16 x 4) is the default tile size. If one dimension can't be divisible
-  // by 64, it means some threads will be idle. To improve the thread
-  // utilization, reducing the work group size may be a good way.
+  // TODO: WebGPU limits the maximum allowed shared memory size as 16K. To make
+  // sure it doesn't exceed this limitations. Temporarily reduce the work group
+  // size to [8, 8, 1] and the work per thread size is [4, 4, 1]. But we should
+  // revisit it and find the balance between work group size and work per thread
+  // size.
   if (dimAOuter === 1) {
-    return [64, 1, 1];
+    return [32, 1, 1];
   } else if (dimBOuter === 1) {
-    return [1, 64, 1];
-  } else if (dimInner % 64 === 0 && dimBOuter % 64 === 0) {
-    return [16, 16, 1];
-  } else if (dimInner < 192 && dimBOuter < 192) {
-    return [8, 8, 1];
+    return [1, 32, 1];
   }
 
-  return [16, 16, 1];
+  return [8, 8, 1];
 }
 
 export function computeWorkPerThreadForConv2d(

@@ -12,6 +12,7 @@
     "@tensorflow/tfjs-backend-wasm": "link:../../../tfjs-backend-wasm",
     "@tensorflow/tfjs-vis": "link:../../../tfjs-vis",
     "argparse": "^2.0.1",
+    "firebase": "^8.7.1",
     "jasmine": "^3.7.0",
     "karma": "^4.4.1",
     "karma-browserstack-launcher": "^1.6.0",
@@ -41,8 +42,5 @@
   "license": "Apache-2.0",
   "engines": {
     "yarn": ">= 1.0.0"
-  },
-  "dependencies": {
-    "firebase": "^8.7.1"
   }
 }

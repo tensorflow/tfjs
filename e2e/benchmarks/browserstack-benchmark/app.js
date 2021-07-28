@@ -130,14 +130,18 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   // Runs and gets result of each queued benchmark
   for (const tabId in config.browsers) {
     numActiveBenchmarks++;
-    const result = runOneBenchmark(tabId);
-    results.push(result);
+
+    results.push(runOneBenchmark(tabId).then((value) => {
+      value.deviceInfo = config.browsers[tabId];
+      value.modelInfo = config.benchmark;
+      return value;
+    }));
 
     // Waits for specified # of benchmarks to complete before running more
-     if (cliArgs?.maxBenchmarks && numActiveBenchmarks >= cliArgs.maxBenchmarks) {
-       numActiveBenchmarks = 0;
-       await Promise.allSettled(results);
-     }
+    if (cliArgs?.maxBenchmarks && numActiveBenchmarks >= cliArgs.maxBenchmarks) {
+      numActiveBenchmarks = 0;
+      await Promise.allSettled(results);
+    }
   }
 
   // Optional outfile written once all benchmarks have returned results.
@@ -152,12 +156,11 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   if (require.main === module && cliArgs.firestore) {
     let numRejectedPromises = 0;
     for (result of fulfilled) {
-      if (result.status == "fulfilled") {
+      if (result.status == 'fulfilled') {
         addResultToFirestore(result.value);
-      }
-      else if (result.status == "rejected") {
+      } else if (result.status == 'rejected') {
         numRejectedPromises += 1;
-        console.log ("Promise rejected. Not adding to result to database.");
+        console.log('Promise rejected. Not adding to result to database.');
       }
     }
     console.log(`Encountered ${numRejectedPromises} rejected promises.`)
@@ -309,9 +312,10 @@ function setupHelpMessage() {
     default: 3,
     action: 'store'
   });
-  parser.add_argument(
-    '--firestore', {help: 'Store benchmark results in Firestore database',
-     action: 'store_true'});
+  parser.add_argument('--firestore', {
+    help: 'Store benchmark results in Firestore database',
+    action: 'store_true'
+  });
   parser.add_argument(
       '--outfile', {help: 'write results to outfile', action: 'store_true'});
   parser.add_argument('-v', '--version', {action: 'version', version});
