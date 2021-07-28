@@ -41,14 +41,15 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
       op: BinaryOpType, aShape: number[], bShape: number[],
       useSharedMemoryWithB: boolean) {
     // This is an experimental value when using shared memory.
-    const workGroupSizeX = 512;
+    // Note that the maximum of workgroup X dimension is 256.
+    const workGroupSizeX = 256;
     this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.lastDimensionSize = useSharedMemoryWithB ? bShape[0] : aShape[0];
-    if (this.lastDimensionSize < 512) {
+    if (this.lastDimensionSize < 256) {
       this.workPerThread = 1;
-    } else if (this.lastDimensionSize < 1024) {
+    } else if (this.lastDimensionSize < 512) {
       this.workPerThread = 2;
     } else {
       this.workPerThread = 4;

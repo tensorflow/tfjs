@@ -24,7 +24,8 @@ export class TransposeSharedProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[], y: number[]};
   dispatch: [number, number, number];
-  workGroupSize: [number, number, number] = [32, 32, 1];
+  // Note that the maximum number of workgroup invocations by webgpu is 256.
+  workGroupSize: [number, number, number] = [16, 16, 1];
 
   constructor(aShape: number[], newDim: number[]) {
     const outputShape: number[] = new Array(aShape.length);
