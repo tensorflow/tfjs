@@ -110,8 +110,6 @@ async function benchmarkAll(config) {
         'browsers': config.browsers
       });
       allResults.push(result);
-
-      if (cliArgs?.firestore) pushToFirestore(result);
     }
   }
   return allResults;
@@ -170,8 +168,9 @@ async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
   if (cliArgs?.outfile) {
     await write('./benchmark_results.json', fulfilled);
   } else {
-    console.log('\nAll benchmarks complete.');
+    console.log('\nAll benchmarks complete.\n');
   }
+  if (cliArgs?.firestore) pushToFirestore(fulfilled);
   return fulfilled;
 }
 
