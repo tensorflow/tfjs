@@ -162,6 +162,7 @@ py_test(
 py_test(
     name = "tf_saved_model_conversion_v2_test",
     srcs = ["tf_saved_model_conversion_v2_test.py"],
+    data = ["//tfjs-converter/python/tensorflowjs/op_list:ops"],
     imports = ["../.."],
     srcs_version = "PY2AND3",
     tags = ["ci"],
@@ -175,7 +176,7 @@ py_test(
 py_library(
     name = "tf_saved_model_conversion_v2",
     srcs = ["tf_saved_model_conversion_v2.py"],
-    data = ["//tfjs-converter/python/tensorflowjs:op_list_jsons"],
+    data = ["//tfjs-converter/python/tensorflowjs/op_list:ops"],
     srcs_version = "PY2AND3",
     tags = ["ci"],
     deps = [

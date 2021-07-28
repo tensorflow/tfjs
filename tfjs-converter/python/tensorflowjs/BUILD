@@ -9,13 +9,15 @@ package(
 
 licenses(["notice"])
 
-exports_files(["LICENSE"])
+exports_files([
+    "LICENSE",
+])
 
 py_library(
     name = "tensorflowjs",
     srcs = ["__init__.py"],
     data = [
-        ":op_list_jsons",
+        "//tfjs-converter/python/tensorflowjs/op_list:ops",
     ],
     srcs_version = "PY2AND3",
     visibility = ["//visibility:public"],
@@ -153,19 +155,11 @@ py_test(
 py_test(
     name = "resource_loader_test",
     srcs = ["resource_loader_test.py"],
-    data = [":op_list_jsons"],
+    data = ["//tfjs-converter/python/tensorflowjs/op_list:ops"],
     imports = [".."],
     srcs_version = "PY2AND3",
     tags = ["ci"],
     deps = [
         ":resource_loader",
     ],
-)
-
-# A filegroup BUILD target that includes all the op list json files in the
-# the op_list/ folder. The op_list folder itself is a symbolic link to the
-# actual op_list folder under src/.
-filegroup(
-    name = "op_list_jsons",
-    srcs = glob(["op_list/*.json"]),
 )
