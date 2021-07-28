@@ -1,8 +1,6 @@
 load("@build_bazel_rules_nodejs//:providers.bzl", "run_node")
 
 def _gen_op_impl(ctx):
-    #output_file_name = ctx.label.name + ".ts"
-    #output_file = ctx.actions.declare_file(output_file_name)
     output_file = ctx.outputs.out
 
     run_node(
@@ -35,6 +33,5 @@ gen_op = rule(
             doc = "Output label for the generated .ts file",
         ),
     },
-    #outputs = {"": "%{name}.js"},
 )
 

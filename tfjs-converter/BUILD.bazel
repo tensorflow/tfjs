@@ -22,16 +22,15 @@ package(default_visibility = ["//visibility:public"])
 # Allow typescript rules in any package to reference this file
 exports_files([
     "package.json",
-    "metadata/kernel2op.json",
 ])
 
 nodejs_test(
     name = "tfjs-converter_test",
     data = [
-        ":metadata_json",
         ":package_json",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-converter/src:tfjs-converter_test_lib",
+        "//tfjs-converter/metadata:kernels_to_ops",
     ],
     entry_point = "//tfjs-converter/src:run_tests.ts",
     link_workspace_root = True,
@@ -127,12 +126,5 @@ js_library(
     package_name = "tfjs-converter",
     srcs = [
         ":package.json",
-    ],
-)
-
-js_library(
-    name = "metadata_json",
-    srcs = [
-        ":metadata/kernel2op.json",
     ],
 )
