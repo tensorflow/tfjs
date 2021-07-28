@@ -9,12 +9,14 @@
     "build": "yarn build-backend-cpu && yarn build-backend-webgl && yarn build-core && yarn reinstall",
     "build-backend-cpu": "cd ../tfjs-backend-cpu && yarn && yarn build",
     "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build",
+    "build-converter": "cd ../tfjs-converter && yarn && yarn build",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "reinstall": "yarn && yarn cache clean @tensorflow/tfjs-core && yarn cache clean @tensorflow/tfjs-backend-cpu && rimraf node_modules && yarn"
   },
   "devDependencies": {
     "@tensorflow/tfjs-backend-cpu": "file:../dist/bin/tfjs-backend-cpu/tfjs-backend-cpu_pkg",
     "@tensorflow/tfjs-backend-webgl": "file:../dist/bin/tfjs-backend-webgl/tfjs-backend-webgl_pkg",
+    "@tensorflow/tfjs-converter": "file:../dist/bin/tfjs-converter/tfjs-converter_pkg",
     "@tensorflow/tfjs-core": "file:../dist/bin/tfjs-core/tfjs-core_pkg",
     "rimraf": "^3.0.2"
   }
