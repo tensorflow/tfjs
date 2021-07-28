@@ -178,7 +178,6 @@ py_library(
     srcs = ["tf_saved_model_conversion_v2.py"],
     data = ["//tfjs-converter/python/tensorflowjs/op_list:ops"],
     srcs_version = "PY2AND3",
-    tags = ["ci"],
     deps = [
         ":common",
         ":fold_batch_norms",

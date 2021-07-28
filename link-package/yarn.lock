@@ -15,12 +15,15 @@
 "@tensorflow/tfjs-backend-webgl@file:../dist/bin/tfjs-backend-webgl/tfjs-backend-webgl_pkg":
   version "0.0.0"
   dependencies:
-    "@tensorflow/tfjs-backend-cpu" "link:../../.cache/yarn/v6/npm-@tensorflow-tfjs-backend-webgl-0.0.0-c521ca65-9164-462b-b12e-cb1269833601-1626473030550/node_modules/@tensorflow/link-package/node_modules/@tensorflow/tfjs-backend-cpu"
+    "@tensorflow/tfjs-backend-cpu" "link:../../../Library/Caches/Yarn/v6/npm-@tensorflow-tfjs-backend-webgl-0.0.0-11c2195e-d2b9-4fc0-88c6-7ca981154613-1627511367479/node_modules/@tensorflow/link-package/node_modules/@tensorflow/tfjs-backend-cpu"
     "@types/offscreencanvas" "~2019.3.0"
     "@types/seedrandom" "2.4.27"
     "@types/webgl-ext" "0.0.30"
     "@types/webgl2" "0.0.5"
     seedrandom "2.4.3"
+
+"@tensorflow/tfjs-converter@file:../dist/bin/tfjs-converter/tfjs-converter_pkg":
+  version "0.0.0"
 
 "@tensorflow/tfjs-core@file:../dist/bin/tfjs-core/tfjs-core_pkg":
   version "0.0.0"
