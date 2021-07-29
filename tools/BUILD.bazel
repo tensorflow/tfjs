@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-load("@build_bazel_rules_nodejs//:index.bzl")
-load("//tools:defaults.bzl")
-
 package(default_visibility = ["//visibility:public"])
 
 exports_files(
