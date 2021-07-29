@@ -132,7 +132,7 @@ describe('test app.js cli', () => {
     });
   });
 
-  it('checks mockRunOneBenchmark stats and promise all end value', async () => {
+  it('benchmark function benchmarks each browser-device pairing ', async () => {
     // Receives list of promises from benchmark function call
     const testResults = await benchmark(config, mockRunOneBenchmark);
 
@@ -160,7 +160,7 @@ describe('test app.js cli', () => {
     expect(formattedResults).toEqual(mockResults);
   });
 
-  it('rejects promise when a benchmark consistently fails', async () => {
+  it('getOneBenchmark rejects if a benchmark consistently fails', async () => {
     // Expected failed mock benchmark results
     await expectAsync(
         getOneBenchmarkResult(
@@ -171,30 +171,32 @@ describe('test app.js cli', () => {
     expect(failMockRunOneBenchmark.calls.count()).toEqual(3);
   });
 
-  it('fulfills promise when a benchmark fails and then succeeds', async () => {
-    // Gets a successful benchmark result
-    const succeedBenchmarkResult = await getOneBenchmarkResult(
-        'iPhone_XS_1', 3, failMockRunOneBenchmark, mockRunOneBenchmark);
+  it('getOneBenchmark fulfills if a benchmark fails and then succeeds',
+     async () => {
+       // Gets a successful benchmark result
+       const succeedBenchmarkResult = await getOneBenchmarkResult(
+           'iPhone_XS_1', 3, failMockRunOneBenchmark, mockRunOneBenchmark);
 
-    // Expected mock function call stats
-    expect(failMockRunOneBenchmark.calls.count()).toEqual(1);
-    expect(mockRunOneBenchmark.calls.count()).toEqual(1);
+       // Expected mock function call stats
+       expect(failMockRunOneBenchmark.calls.count()).toEqual(1);
+       expect(mockRunOneBenchmark.calls.count()).toEqual(1);
 
-    // Expected successful mock benchmark results
-    expect(succeedBenchmarkResult).toEqual(mockResults.iPhone_XS_1);
-  });
+       // Expected successful mock benchmark results
+       expect(succeedBenchmarkResult).toEqual(mockResults.iPhone_XS_1);
+     });
 
-  it('fulfills promise when a benchmark succeeds', async () => {
-    // Gets a successful benchmark result
-    const succeedBenchmarkResult = await getOneBenchmarkResult(
-        'iPhone_XS_1', 3, mockRunOneBenchmark, mockRunOneBenchmark);
+  it('getOneBenchmark fulfills if a benchmark succeeds immediately',
+     async () => {
+       // Gets a successful benchmark result
+       const succeedBenchmarkResult = await getOneBenchmarkResult(
+           'iPhone_XS_1', 3, mockRunOneBenchmark, mockRunOneBenchmark);
 
-    // Expected mock funciton call stats
-    expect(mockRunOneBenchmark.calls.count()).toEqual(1);
+       // Expected mock funciton call stats
+       expect(mockRunOneBenchmark.calls.count()).toEqual(1);
 
-    // Expected successful mock benchmark results
-    expect(succeedBenchmarkResult).toEqual(mockResults.iPhone_XS_1);
-  });
+       // Expected successful mock benchmark results
+       expect(succeedBenchmarkResult).toEqual(mockResults.iPhone_XS_1);
+     });
 
   it('checks that the benchmark is being run with the correct JSON', () => {
     runBenchmarkFromFile(testingConfig, mockBenchmark);
