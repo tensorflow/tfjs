@@ -126,6 +126,7 @@ pkg_npm(
         ":copy_bundles",
         ":copy_metadata",
         ":copy_src_to_dist",
+        "//tfjs-converter/metadata:kernels_to_ops",
     ],
 )
 
