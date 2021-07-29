@@ -35,14 +35,17 @@ export class DecodeMatrixProgram implements GPGPUProgram {
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
 
-    const texShapeSnippet = this.enableShapeUniforms ? `
-        vec2(denseTexShape[0], denseTexShape[1]));
-    int index = 4 * (resTexRC.x * denseTexShape[1] + resTexRC.y);
-    ` :
-                                                       `
-        vec2(${texShape[0]}, ${texShape[1]}));
-    int index = 4 * (resTexRC.x * ${texShape[1]} + resTexRC.y);
-    `;
+    let texShapeSnippet = '';
+    if (this.enableShapeUniforms) {
+      texShapeSnippet = `
+          vec2(denseTexShape[0], denseTexShape[1]));
+      int index = 4 * (resTexRC.x * denseTexShape[1] + resTexRC.y);`;
+    } else {
+      texShapeSnippet = `
+          vec2(${texShape[0]}, ${texShape[1]}));
+      int index = 4 * (resTexRC.x * ${texShape[1]} + resTexRC.y);
+      `;
+    }
 
     this.userCode = `
       ivec3 outCoordsFromFlatIndex(int index) {

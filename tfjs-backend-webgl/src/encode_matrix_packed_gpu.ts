@@ -57,16 +57,19 @@ export class EncodeMatrixPackedProgram implements GPGPUProgram {
       output = 'floor(result * 255. + 0.5)';
     }
 
-    const texShapeSnippet = this.enableShapeUniforms ? `
-    int r = flatIndex / ATexShape[1];
-    int c = imod(flatIndex, ATexShape[1]);
-    vec2 uv = (vec2(c, r) + halfCR) / vec2(float(ATexShape[1]), float(ATexShape[0]));
-    ` :
-                                                       `
-    int r = flatIndex / ${width};
-    int c = imod(flatIndex, ${width});
-    vec2 uv = (vec2(c, r) + halfCR) / vec2(${width}.0, ${height}.0);
-                                                     `;
+    let texShapeSnippet = '';
+    if (this.enableShapeUniforms) {
+      texShapeSnippet = `
+      int r = flatIndex / ATexShape[1];
+      int c = imod(flatIndex, ATexShape[1]);
+      vec2 uv = (vec2(c, r) + halfCR) / vec2(float(ATexShape[1]), float(ATexShape[0]));`;
+    } else {
+      texShapeSnippet = `
+      int r = flatIndex / ${width};
+      int c = imod(flatIndex, ${width});
+      vec2 uv = (vec2(c, r) + halfCR) / vec2(${width}.0, ${height}.0);`;
+    }
+
     for (let row = 0; row <= 1; row++) {
       for (let col = 0; col <= 1; col++) {
         const channel = row * 2 + col;
