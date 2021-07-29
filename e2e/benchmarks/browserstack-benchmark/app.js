@@ -125,7 +125,7 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
         `dependencies...`);
   }
 
-  let results = [];
+  const results = [];
   let numActiveBenchmarks = 0;
   // Runs and gets result of each queued benchmark
   for (const tabId in config.browsers) {
@@ -182,8 +182,7 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
  *     performance test
  */
 async function getOneBenchmarkResult(
-    tabId, triesLeft, runOneBenchmark = runBrowserStackBenchmark,
-    retyOneBenchmark = runBrowserStackBenchmark) {
+    tabId, triesLeft, runOneBenchmark = runBrowserStackBenchmark) {
   triesLeft--;
   try {
     const result = await runOneBenchmark(tabId);
@@ -193,8 +192,7 @@ async function getOneBenchmarkResult(
     // Retries benchmark until resolved or until no retries left
     if (triesLeft > 0) {
       console.log(`Retrying ${tabId} benchmark. ${triesLeft} tries left...`);
-      return await getOneBenchmarkResult(
-          tabId, triesLeft, retyOneBenchmark, retyOneBenchmark);
+      return await getOneBenchmarkResult(tabId, triesLeft, runOneBenchmark);
     } else {
       console.log(`${tabId} benchmark failed.`);
       throw err;

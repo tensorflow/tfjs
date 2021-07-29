@@ -163,8 +163,7 @@ describe('test app.js cli', () => {
   it('getOneBenchmark rejects if a benchmark consistently fails', async () => {
     // Expected failed mock benchmark results
     await expectAsync(
-        getOneBenchmarkResult(
-            'iPhone_XS_1', 3, failMockRunOneBenchmark, failMockRunOneBenchmark))
+        getOneBenchmarkResult('iPhone_XS_1', 3, failMockRunOneBenchmark))
         .toBeRejectedWith(`Error: iPhone_XS_1 failed.`);
 
     // Expected mock function call stats
@@ -173,9 +172,21 @@ describe('test app.js cli', () => {
 
   it('getOneBenchmark fulfills if a benchmark fails and then succeeds',
      async () => {
+       /* Bypasses Browserstack with preset results. Benchmark will fail on the
+        * call, but succeed on the second call */
+       let called = false;
+       const failThenSucceedMockRunOneBenchmark =
+           jasmine.createSpy('mockRunOneBenchmark').and.callFake((tabId) => {
+             if (called) {
+               return mockRunOneBenchmark(tabId);
+             }
+             called = true;
+             return failMockRunOneBenchmark(tabId);
+           });
+
        // Gets a successful benchmark result
        const succeedBenchmarkResult = await getOneBenchmarkResult(
-           'iPhone_XS_1', 3, failMockRunOneBenchmark, mockRunOneBenchmark);
+           'iPhone_XS_1', 3, failThenSucceedMockRunOneBenchmark);
 
        // Expected mock function call stats
        expect(failMockRunOneBenchmark.calls.count()).toEqual(1);
@@ -188,8 +199,8 @@ describe('test app.js cli', () => {
   it('getOneBenchmark fulfills if a benchmark succeeds immediately',
      async () => {
        // Gets a successful benchmark result
-       const succeedBenchmarkResult = await getOneBenchmarkResult(
-           'iPhone_XS_1', 3, mockRunOneBenchmark, mockRunOneBenchmark);
+       const succeedBenchmarkResult =
+           await getOneBenchmarkResult('iPhone_XS_1', 3, mockRunOneBenchmark);
 
        // Expected mock funciton call stats
        expect(mockRunOneBenchmark.calls.count()).toEqual(1);
