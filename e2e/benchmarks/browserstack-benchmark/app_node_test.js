@@ -1,8 +1,13 @@
 const fs = require('fs');
 const {benchmark, write, getOneBenchmarkResult, runBenchmarkFromFile} =
     require('./app.js');
-const {addResultToFirestore, serializeTensors, getReadableDate,
-      formatForFirestore, db} = require('./firestore.js');
+const {
+  addResultToFirestore,
+  serializeTensors,
+  getReadableDate,
+  formatForFirestore,
+  db
+} = require('./firestore.js');
 
 describe('test app.js cli', () => {
   const filePath = './benchmark_test_results.json';
@@ -144,42 +149,51 @@ describe('test app.js cli', () => {
     // Expected mockRunOneBenchmark stats
     expect(mockRunOneBenchmark.calls.count())
         .toEqual(Object.keys(config.browsers).length);
-    expect(mockRunOneBenchmark).toHaveBeenCalledWith('iPhone_XS_1');
-    expect(mockRunOneBenchmark).toHaveBeenCalledWith('Samsung_Galaxy_S20_1');
-    expect(mockRunOneBenchmark).toHaveBeenCalledWith('Windows_10_1');
-    expect(mockRunOneBenchmark).toHaveBeenCalledWith('OS_X_Catalina_1');
+    expect(mockRunOneBenchmark).toHaveBeenCalledWith('iPhone_XS_1', undefined);
+    expect(mockRunOneBenchmark)
+        .toHaveBeenCalledWith('Samsung_Galaxy_S20_1', undefined);
+    expect(mockRunOneBenchmark).toHaveBeenCalledWith('Windows_10_1', undefined);
+    expect(mockRunOneBenchmark)
+        .toHaveBeenCalledWith('OS_X_Catalina_1', undefined);
 
     // Expected value from promise all
     expect(formattedResults).toEqual(mockResults);
   });
 
-  it('checks failMockRunOneBenchmark stats and failed benchmark results',
-     async () => {
-       // Expected failed mock benchmark results
-       await expectAsync(
-           getOneBenchmarkResult('iPhone_XS_1', failMockRunOneBenchmark))
-           .toBeRejectedWith(`Error: iPhone_XS_1 failed.`);
+  it('rejects promise when a benchmark consistently fails', async () => {
+    // Expected failed mock benchmark results
+    await expectAsync(
+        getOneBenchmarkResult(
+            'iPhone_XS_1', 3, failMockRunOneBenchmark, failMockRunOneBenchmark))
+        .toBeRejectedWith(`Error: iPhone_XS_1 failed.`);
 
-       // Expected failMockRunOneBenchmark stats
-       expect(failMockRunOneBenchmark.calls.count()).toEqual(3);
-     });
+    // Expected mock function call stats
+    expect(failMockRunOneBenchmark.calls.count()).toEqual(3);
+  });
 
-  it('checks mockRunOneBenchmark stats and successful benchmark results',
-     async () => {
-       // Gets a successful benchmark result
-       const succeedBenchmarkResult =
-           await getOneBenchmarkResult('iPhone_XS_1', mockRunOneBenchmark);
+  it('fulfills promise when a benchmark fails and then succeeds', async () => {
+    // Gets a successful benchmark result
+    const succeedBenchmarkResult = await getOneBenchmarkResult(
+        'iPhone_XS_1', 3, failMockRunOneBenchmark, mockRunOneBenchmark);
 
-       // Expected mockRunOneBenchmark stats
-       expect(mockRunOneBenchmark.calls.count()).toEqual(1);
+    // Expected mock function call stats
+    expect(failMockRunOneBenchmark.calls.count()).toEqual(1);
+    expect(mockRunOneBenchmark.calls.count()).toEqual(1);
 
-       // Expected successful mock benchmark results
-       expect(succeedBenchmarkResult).toEqual(mockResults.iPhone_XS_1);
-     });
+    // Expected successful mock benchmark results
+    expect(succeedBenchmarkResult).toEqual(mockResults.iPhone_XS_1);
+  });
 
-  it('checks that the benchmark function is called', () => {
-    runBenchmarkFromFile(testingConfig, mockBenchmark);
-    expect(mockBenchmark).toHaveBeenCalled();
+  it('fulfills promise when a benchmark succeeds', async () => {
+    // Gets a successful benchmark result
+    const succeedBenchmarkResult = await getOneBenchmarkResult(
+        'iPhone_XS_1', 3, mockRunOneBenchmark, mockRunOneBenchmark);
+
+    // Expected mock funciton call stats
+    expect(mockRunOneBenchmark.calls.count()).toEqual(1);
+
+    // Expected successful mock benchmark results
+    expect(succeedBenchmarkResult).toEqual(mockResults.iPhone_XS_1);
   });
 
   it('checks that the benchmark is being run with the correct JSON', () => {
@@ -188,7 +202,7 @@ describe('test app.js cli', () => {
   });
 });
 
-describe("test adding to firestore", () => {
+describe('test adding to firestore', () => {
   let mockDb;
   let mockResultValue;
 
@@ -198,38 +212,35 @@ describe("test adding to firestore", () => {
   });
 
   beforeEach(() => {
-    //mockResultValue is the result of a successful benchmark
+    // mockResultValue is the result of a successful benchmark
     mockResultValue = require('./firestore_test_value.json');
-    mockDb = spyOn(db, "add");
+    mockDb = spyOn(db, 'add');
     mockSerialization = jasmine.createSpy('mockSerialization');
-    mockDate = jasmine.createSpy('mockDate').and.returnValue("7/21/2021");
+    mockDate = jasmine.createSpy('mockDate').and.returnValue('7/21/2021');
   });
 
-  it("Expects db.add to be called", () => {
+  it('Expects db.add to be called with formatted results', () => {
     mockDb.and.returnValue(Promise.resolve({id: 123}));
-    addResultToFirestore(mockResultValue);
-    expect(db.add).toHaveBeenCalled();
-  });
-
-  it("Expects db.add to be called with formatted results", () => {
-    mockDb.and.returnValue(Promise.resolve({id: 123}));
-    let expectedAdd = { result :
-      formatForFirestore(mockResultValue, serializeTensors, getReadableDate) };
+    let expectedAdd = {
+      result:
+          formatForFirestore(mockResultValue, serializeTensors, getReadableDate)
+    };
     addResultToFirestore(mockResultValue);
     expect(db.add).toHaveBeenCalledWith(expectedAdd);
   });
 
-  it("Expects a date key to exist and have the correct value", () => {
-    let testFormat = formatForFirestore(
-      mockResultValue, mockSerialization, mockDate);
-    expect(testFormat.date).toEqual("7/21/2021");
+  it('Expects a date key to exist and have the correct value', () => {
+    let testFormat =
+        formatForFirestore(mockResultValue, mockSerialization, mockDate);
+    expect(testFormat.date).toEqual('7/21/2021');
   });
 
-  it("Expects serialization to cover all nested arrays", () => {
-    const mockSerializedResults = formatForFirestore(mockResultValue, serializeTensors, mockDate);
+  it('Expects serialization to cover all nested arrays', () => {
+    const mockSerializedResults =
+        formatForFirestore(mockResultValue, serializeTensors, mockDate);
     for (kernel of mockSerializedResults.benchmarkInfo.memoryInfo.kernels) {
-      expect(typeof(kernel.inputShapes)).toEqual("string");
-      expect(typeof(kernel.outputShapes)).toEqual("string");
+      expect(typeof (kernel.inputShapes)).toEqual('string');
+      expect(typeof (kernel.outputShapes)).toEqual('string');
     }
   });
 });

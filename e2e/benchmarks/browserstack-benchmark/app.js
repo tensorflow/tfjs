@@ -22,7 +22,7 @@ const path = require('path');
 const {execFile} = require('child_process');
 const {ArgumentParser} = require('argparse');
 const {version} = require('./package.json');
-const {resolve} = require('path')
+const {resolve} = require('path');
 const {addResultToFirestore} = require('./firestore.js');
 
 const port = process.env.PORT || 8001;
@@ -121,7 +121,7 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   setupBenchmarkEnv(config);
   if (require.main === module) {
     console.log(
-        `Starting benchmarks using ${cliArgs.webDeps ? 'cdn' : 'local'} ` +
+        `Starting benchmarks using ${cliArgs?.webDeps ? 'cdn' : 'local'} ` +
         `dependencies...`);
   }
 
@@ -130,8 +130,7 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   // Runs and gets result of each queued benchmark
   for (const tabId in config.browsers) {
     numActiveBenchmarks++;
-
-    results.push(runOneBenchmark(tabId).then((value) => {
+    results.push(runOneBenchmark(tabId, cliArgs?.maxTries).then((value) => {
       value.deviceInfo = config.browsers[tabId];
       value.modelInfo = config.benchmark;
       return value;
@@ -151,7 +150,7 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   } else {
     console.log('\nAll benchmarks complete.');
   }
-  
+
   /** Push results to Firestore if user wants */
   if (require.main === module && cliArgs.firestore) {
     let numRejectedPromises = 0;
@@ -176,40 +175,31 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
  * retried up to the specific max number of tries. Default is 3.
  *
  * @param tabId Indicates browser-device pairing for benchmark
+ * @param triesLeft Number of tries left for a benchmark to succeed
  * @param runOneBenchmark Function that runs a singular BrowserStack
+ *     performance test
+ * @param retyOneBenchmark Function that retries a singular BrowserStack
  *     performance test
  */
 async function getOneBenchmarkResult(
-    tabId, runOneBenchmark = runBrowserStackBenchmark) {
-  return new Promise(async (resolve, reject) => {
-    let complete = false;
-    let triesLeft = cliArgs ?.maxTries ? cliArgs.maxTries - 1 : 2;
-
+    tabId, triesLeft, runOneBenchmark = runBrowserStackBenchmark,
+    retyOneBenchmark = runBrowserStackBenchmark) {
+  triesLeft--;
+  try {
+    const result = await runOneBenchmark(tabId);
+    console.log(`${tabId} benchmark succeeded.`);
+    return result;
+  } catch (err) {
     // Retries benchmark until resolved or until no retries left
-    while (!complete) {
-      result = await runOneBenchmark(tabId)
-                   // Runs steps after promise has been resolved
-                   .then((value) => {
-                     console.log(`Benchmark ${tabId} succeeded.`);
-                     complete = true;
-                     resolve(value);
-                     return value;
-                   })
-                   // Runs steps after promise has been rejected
-                   .catch((err) => {
-                     if (triesLeft > 0) {
-                       console.log(`${tabId} benchmark failed. Retrying. ${
-                           triesLeft} tries left...`);
-                       triesLeft--;
-                     } else {
-                       console.log(`${tabId} benchmark failed.`);
-                       complete = true;
-                       reject(err);
-                     }
-                     return err;
-                   });
+    if (triesLeft > 0) {
+      console.log(`Retrying ${tabId} benchmark. ${triesLeft} tries left...`);
+      return await getOneBenchmarkResult(
+          tabId, triesLeft, retyOneBenchmark, retyOneBenchmark);
+    } else {
+      console.log(`${tabId} benchmark failed.`);
+      throw err;
     }
-  });
+  }
 }
 
 /**
@@ -229,7 +219,8 @@ function runBrowserStackBenchmark(tabId) {
 
     execFile('yarn', args, (error, stdout, stderr) => {
       if (error) {
-        console.log(error);
+        console.log(`\nerror: ${error}`);
+        console.log(`stdout: ${stdout}`);
         if (!cliArgs.cloud) {
           io.emit(
               'benchmarkComplete',
