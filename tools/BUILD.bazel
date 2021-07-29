@@ -24,27 +24,3 @@ exports_files(
     ],
     visibility = ["//visibility:public"],
 )
-
-ts_library(
-    name = "gen_json_lib",
-    srcs = [
-        "gen_json.ts",
-    ],
-    deps = [
-        "//tfjs-converter/src:tfjs-converter_src_lib",
-        "@npm//@types/argparse",
-        "@npm//@types/node",
-        "@npm//argparse",
-        "@npm//deep-equal",
-    ],
-)
-
-nodejs_binary(
-    name = "gen_json_bin",
-    data = [
-        ":gen_json_lib",
-        "//tfjs-converter/src:tfjs-converter_src_lib",
-    ],
-    entry_point = "gen_json.ts",
-    link_workspace_root = True,
-)
