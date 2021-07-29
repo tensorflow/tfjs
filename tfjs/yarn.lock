@@ -889,11 +889,11 @@
   version "0.0.0"
   uid ""
 
-"@tensorflow/tfjs-backend-webgl@link:../tfjs-backend-webgl":
+"@tensorflow/tfjs-backend-webgl@link:../link-package/node_modules/@tensorflow/tfjs-backend-webgl":
   version "0.0.0"
   uid ""
 
-"@tensorflow/tfjs-converter@link:../tfjs-converter":
+"@tensorflow/tfjs-converter@link:../link-package/node_modules/@tensorflow/tfjs-converter":
   version "0.0.0"
   uid ""
 
@@ -1009,11 +1009,6 @@
   version "0.0.30"
   resolved "https://registry.yarnpkg.com/@types/webgl-ext/-/webgl-ext-0.0.30.tgz#0ce498c16a41a23d15289e0b844d945b25f0fb9d"
   integrity sha512-LKVgNmBxN0BbljJrVUwkxwRYqzsAEPcZOe6S2T6ZaBDIrFp0qu4FNlpc5sM1tGbXUYFgdVQIoeLk1Y1UoblyEg==
-
-"@types/webgl2@0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@types/webgl2/-/webgl2-0.0.5.tgz#dd925e20ab8ace80eb4b1e46fda5b109c508fb0d"
-  integrity sha512-oGaKsBbxQOY5+aJFV3KECDhGaXt+yZJt2y/OZsnQGLRkH6Fvr7rv4pCt3SRH1somIHfej/c4u7NSpCyd9x+1Ow==
 
 "@types/yargs-parser@*":
   version "20.2.0"

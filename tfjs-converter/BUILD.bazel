@@ -111,12 +111,20 @@ copy_to_dist(
     ],
 )
 
+copy_to_dist(
+    name = "copy_metadata",
+    srcs = [
+        "//tfjs-converter/metadata:kernels_to_ops",
+    ],
+)
+
 pkg_npm(
     name = "tfjs-converter_pkg",
     srcs = ["package.json"],
     tags = ["ci"],
     deps = [
         ":copy_bundles",
+        ":copy_metadata",
         ":copy_src_to_dist",
     ],
 )
