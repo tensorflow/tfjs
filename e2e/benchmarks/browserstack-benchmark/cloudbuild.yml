@@ -20,9 +20,9 @@ steps:
 availableSecrets:
   secretManager:
     - versionName: projects/834911136599/secrets/BROWSERSTACK_ACCESS_KEY/versions/latest
-    env: 'BROWSERSTACK_ACCESS_KEY'
+      env: 'BROWSERSTACK_ACCESS_KEY'
     - versionName: projects/834911136599/secrets/FIREBASE_KEY/versions/latest
-    env: 'FIREBASE_KEY'
+      env: 'FIREBASE_KEY'
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
 substitutions:
