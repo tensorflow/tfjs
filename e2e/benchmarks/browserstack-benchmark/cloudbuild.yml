@@ -17,13 +17,11 @@ steps:
   secretEnv: ['BROWSERSTACK_ACCESS_KEY', 'FIREBASE_KEY']
   waitFor: ['yarn']
 
-secrets:
-- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
-  secretEnv:
-    BROWSERSTACK_ACCESS_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
 availableSecrets:
   secretManager:
-    versionName: projects/834911136599/secrets/FIREBASE_KEY/versions/latest
+    - versionName: projects/834911136599/secrets/BROWSERSTACK_ACCESS_KEY/versions/latest
+    env: 'BROWSERSTACK_ACCESS_KEY'
+    - versionName: projects/834911136599/secrets/FIREBASE_KEY/versions/latest
     env: 'FIREBASE_KEY'
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
