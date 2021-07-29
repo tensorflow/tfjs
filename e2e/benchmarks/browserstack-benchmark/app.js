@@ -177,7 +177,9 @@ async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
   } else {
     console.log('\nAll benchmarks complete.\n');
   }
-  if (cliArgs?.firestore) pushToFirestore(fulfilled);
+  if (cliArgs?.firestore) {
+    pushToFirestore(fulfilled)
+  };
   return fulfilled;
 }
 
@@ -192,7 +194,9 @@ async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
 function runBrowserStackBenchmark(tabId) {
   return new Promise((resolve, reject) => {
     const args = ['test', '--browserstack', `--browsers=${tabId}`];
-    if (cliArgs.webDeps) args.push('--cdn');
+    if (cliArgs.webDeps) {
+      args.push('--cdn')
+    };
     const command = `yarn ${args.join(' ')}`;
     console.log(`Running: ${command}`);
 
@@ -222,13 +226,17 @@ function runBrowserStackBenchmark(tabId) {
       if (matchedResult != null) {
         const benchmarkResult = JSON.parse(matchedResult[1]);
         benchmarkResult.tabId = tabId;
-        if (!cliArgs.cloud) io.emit('benchmarkComplete', benchmarkResult);
+        if (!cliArgs.cloud) {
+          io.emit('benchmarkComplete', benchmarkResult)
+        };
         return resolve(benchmarkResult);
       }
 
       const errorMessage = 'Did not find benchmark results from the logs ' +
           'of the benchmark test (benchmark_models.js).';
-      if (!cliArgs.cloud) io.emit('benchmarkComplete', {error: errorMessage});
+      if (!cliArgs.cloud) {
+        io.emit('benchmarkComplete', {error: errorMessage})
+      };
       return reject(errorMessage);
     });
   });
@@ -319,11 +327,15 @@ function runBenchmarkFromFile(file, runBenchmark = benchmarkAll) {
   runBenchmark(file);
 }
 
-/** Sets up the local or remote envirnment for benchmarking. */
+/** Sets up the local or remote environment for benchmarking. */
 async function prebenchmarkSetup() {
   checkBrowserStackAccount();
-  if (cliArgs.firestore) db = await runFirestore(firebaseConfig);
-  if (!cliArgs.cloud) runServer();
+  if (cliArgs.firestore) {
+    db = await runFirestore(firebaseConfig)
+  };
+  if (!cliArgs.cloud) {
+    runServer()
+  };
   if (cliArgs.benchmarks) {
     const filePath = resolve(cliArgs.benchmarks);
     if (fs.existsSync(filePath)) {
