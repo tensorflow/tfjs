@@ -28,23 +28,12 @@ export class DecodeMatrixPackedProgram implements GPGPUProgram {
   outputShape: [number, number, number];
   outPackingScheme = PackingScheme.DENSE;
   enableShapeUniforms: boolean;
-  customUniforms = [{name: 'denseTexShape', type: 'ivec2' as const }];
+  customUniforms = [{name: 'texShape', type: 'ivec2' as const }];
 
-  constructor(outputShape: [number, number, number], texShape: number[]) {
+  constructor(outputShape: [number, number, number]) {
     const glsl = getGlslDifferences();
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
-
-    let texShapeSnippet = '';
-    if (this.enableShapeUniforms) {
-      texShapeSnippet = `
-          vec2(denseTexShape[0], denseTexShape[1]));
-      int index = 4 * (resTexRC.x * denseTexShape[1] + resTexRC.y);`;
-    } else {
-      texShapeSnippet = `
-          vec2(${texShape[0]}, ${texShape[1]}));
-      int index = 4 * (resTexRC.x * ${texShape[1]} + resTexRC.y);`;
-    }
 
     this.userCode = `
       ivec3 outCoordsFromFlatIndex(int index) {
@@ -58,8 +47,8 @@ export class DecodeMatrixPackedProgram implements GPGPUProgram {
       }
 
       void main() {
-        ivec2 resTexRC = ivec2(resultUV.yx *
-        ${texShapeSnippet}
+        ivec2 resTexRC = ivec2(resultUV.yx * vec2(texShape[0], texShape[1]));
+        int index = 4 * (resTexRC.x * texShape[1] + resTexRC.y);
 
         vec4 result = vec4(0.);
 

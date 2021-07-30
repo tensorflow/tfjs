@@ -42,12 +42,11 @@ export class EncodeMatrixPackedProgram implements GPGPUProgram {
   packedInputs = false;
   packedOutput = true;
   enableShapeUniforms: boolean;
+  customUniforms = [{name: 'texShape', type: 'ivec2' as const }];
 
   constructor(
-      outputShape: [number, number, number], texShape: [number, number],
-      inputIsUnsignedByte = false) {
+      outputShape: [number, number, number], inputIsUnsignedByte = false) {
     const glsl = getGlslDifferences();
-    const [height, width] = texShape;
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
 
@@ -55,19 +54,6 @@ export class EncodeMatrixPackedProgram implements GPGPUProgram {
     let output = 'result';
     if (inputIsUnsignedByte) {
       output = 'floor(result * 255. + 0.5)';
-    }
-
-    let texShapeSnippet = '';
-    if (this.enableShapeUniforms) {
-      texShapeSnippet = `
-      int r = flatIndex / ATexShape[1];
-      int c = imod(flatIndex, ATexShape[1]);
-      vec2 uv = (vec2(c, r) + halfCR) / vec2(float(ATexShape[1]), float(ATexShape[0]));`;
-    } else {
-      texShapeSnippet = `
-      int r = flatIndex / ${width};
-      int c = imod(flatIndex, ${width});
-      vec2 uv = (vec2(c, r) + halfCR) / vec2(${width}.0, ${height}.0);`;
     }
 
     for (let row = 0; row <= 1; row++) {
@@ -88,7 +74,9 @@ export class EncodeMatrixPackedProgram implements GPGPUProgram {
 
             flatIndex = idiv(flatIndex, 4, 1.);
 
-            ${texShapeSnippet}
+            int r = flatIndex / texShape[1];
+            int c = imod(flatIndex, texShape[1]);
+            vec2 uv = (vec2(c, r) + halfCR) / vec2(texShape[1], texShape[0]);
             values = ${glsl.texture2D}(A, uv);
 
             if (offset == 0) {
