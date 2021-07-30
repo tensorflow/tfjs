@@ -92,17 +92,14 @@ function expectObjectsPredicate(actual, expected, epsilon, predicate) {
         tf.util.isTypedArray(expected[key]);
     if (isArray) {
       expectArraysClose(actual[key], expected[key], epsilon, key);
-    } else if (!isObject && (!predicate(actual[key], expected[key]))) {
-      throw new Error(`Objects differ: actual[${key}] = ${
-          JSON.stringify(actual[key])}, expected[${key}] = ${
-          JSON.stringify(expected[key])}!`);
-    } else if (
-        isObject &&
-        !expectObjectsPredicate(
-            actual[key], expected[key], epsilon, predicate)) {
-      throw new Error(`Objects differ: actual[${key}] = ${
-          JSON.stringify(actual[key])}, expected[${key}] = ${
-          JSON.stringify(expected[key])}!`);
+    } else if (isObject) {
+      expectObjectsPredicate(actual[key], expected[key], epsilon, predicate);
+    } else {
+      if (!predicate(actual[key], expected[key])) {
+        throw new Error(`Objects differ: actual[${key}] = ${
+            JSON.stringify(actual[key])}, expected[${key}] = ${
+            JSON.stringify(expected[key])}!`);
+      }
     }
   }
   return true;
