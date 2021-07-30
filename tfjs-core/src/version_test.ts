@@ -19,8 +19,14 @@ import {version_core} from './index';
 
 describe('version', () => {
   it('version is contained', () => {
-    // tslint:disable-next-line:no-require-imports
-    const expected = require('../package.json').version;
+    let expected: string;
+    try {
+      // tslint:disable-next-line:no-require-imports
+      expected = require('../package.json').version;
+    } catch (e) {
+      // tslint:disable-next-line:no-require-imports
+      expected = require('tfjs-core/package.json').version;
+    }
     expect(version_core).toBe(expected);
   });
 });
