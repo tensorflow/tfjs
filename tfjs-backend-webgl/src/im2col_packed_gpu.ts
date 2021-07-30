@@ -18,7 +18,6 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 import {getGlslDifferences} from './glsl_version';
 import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
-import {UniformType} from './shader_compiler';
 
 export class Im2ColPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
@@ -28,20 +27,20 @@ export class Im2ColPackedProgram implements GPGPUProgram {
   userCode: string;
   enableShapeUniforms: boolean;
   customUniforms = [
-    {name: 'inputShape', type: 'ivec3' as UniformType},
-    {name: 'pad', type: 'ivec2' as UniformType},
-    {name: 'stride', type: 'ivec2' as UniformType},
-    {name: 'dilation', type: 'ivec2' as UniformType},
-    {name: 'filterWidth', type: 'int' as UniformType},
-    {name: 'inChannels', type: 'int' as UniformType},
-    {name: 'itemsPerBlockRow', type: 'int' as UniformType},
-    {name: 'outWidth', type: 'int' as UniformType},
+    {name: 'inputShape', type: 'ivec3' as const },
+    {name: 'pad', type: 'ivec2' as const },
+    {name: 'stride', type: 'ivec2' as const },
+    {name: 'dilation', type: 'ivec2' as const },
+    {name: 'inChannels', type: 'int' as const },
+    {name: 'itemsPerBlockRow', type: 'int' as const },
   ];
 
   constructor(outputShape: number[], convInfo: backend_util.Conv2DInfo) {
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
-    const {dataFormat} = convInfo;
+    // TODO: Investigate why the result is not correct when using outWidth as a
+    // uniform.
+    const {outWidth, dataFormat} = convInfo;
     const glsl = getGlslDifferences();
     const isChannelsLast = dataFormat === 'channelsLast';
     const rowDim = isChannelsLast ? 0 : 1;
@@ -59,12 +58,12 @@ export class Im2ColPackedProgram implements GPGPUProgram {
           pos = rc.x + ${row};
 
           ${boundsCheckingSnippet}
-            offsetY = int(blockIndex / (outWidth)) * stride[0] - pad[1];
+            offsetY = int(blockIndex / ${outWidth}) * stride[0] - pad[1];
             d0 = offsetY + dilation[0] * (pos / itemsPerBlockRow);
 
             if(d0 < inputShape[${rowDim}] && d0 >= 0) {
 
-              offsetX = int(mod(float(blockIndex), float(outWidth)) *
+              offsetX = int(mod(float(blockIndex), ${outWidth}.) *
                   float(stride[1]) - float(pad[0]));
               d1 = offsetX + dilation[1] * (int(mod(float(pos),
                   float(itemsPerBlockRow)) / float(inChannels)));
