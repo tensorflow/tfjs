@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -47,9 +47,9 @@ interface StridedSliceDenseSpec {
   endMask?: number;
   beginValid: boolean;
   endValid: boolean;
-  begin: number[];
-  end: number[];
-  strides: number[];
+  begin?: number[];
+  end?: number[];
+  strides?: number[];
   // This array helps construct the final shape of the slice.
   // The final tensor is reduced in rank whenever a single index e.g. foo[3]
   // is called for. The final tensor increases in rank with newAxis entries.
@@ -69,29 +69,10 @@ interface StridedSliceDenseSpec {
   shrinkAxisMask?: number;
 }
 
-// export interface StridedSliceShapeSpec {
-//   beginDenseMask: number;       // Begin mask canonicalized in dense form.
-//   endDenseMask: number;         // End mask canonicalized in dense form.
-//   shrinkAxisDenseMask: number;  // Shrink axis mask canonicaled in dense
-//   form. outputToSparseMapping:
-//       number[];  // outputToSparseMapping[i] represents output[i]'s the
-//                  // corresponding dim index in the begin array. If
-//                  // outputToSparseMapping[i] is -1, it means the dimension
-//                  // doesn't show up in sparseMapping.
-//   outputToProcessingMapping:
-//       number[];  // outputToProcessingMapping is similar to
-//                  // outputToSparseMapping, but for processing shape.
-//   processingToSparseMapping:
-//       number[];  // processingToSparseMapping[i] represents inputShape[i]'s
-//                  // corresponding dim index in the begin array.
-// }
-
 export type SliceInfo = {
-  processingShape: number[],
   finalShape: number[],
   isIdentity: boolean,
   sliceDim0: boolean,
-  isSimpleSlice: boolean,
   begin: number[],
   end: number[],
   strides: number[]
@@ -489,18 +470,12 @@ export function sliceInfo(
   // produce the missing beginMask for the first two dimensions i.e. from
   // beginMaskSpec = 0, endMaskSpec = 2, we achieve beginMask = 6 (110),
   // endMask = 7 (111).
-  const $begin: number[] = [];
-  const $end: number[] = [];
-  const $strides: number[] = [];
   const denseSpec: StridedSliceDenseSpec = {
     dims: xShape.length,
     beginMask: 0,
     endMask: 0,
     beginValid: false,
-    endValid: false,
-    begin: $begin,
-    end: $end,
-    strides: $strides
+    endValid: false
   };
 
   buildDenseSpec(sparseSpec, denseSpec);
@@ -509,19 +484,15 @@ export function sliceInfo(
   // and bounds check.
   let isIdentity = true;
   let sliceDim0 = true;
-  let isSimpleSlice = true;
   const processingShape = [];
   const finalShape = [];
 
   for (let i = 0; i < xShape.length; ++i) {
-    let beginI = $begin[i];
-    let endI = $end[i];
-    const strideI = $strides[i];
     const dimI = xShape[i];
-    if (strideI === 0) {
+    if (denseSpec.strides[i] === 0) {
       throw Error(`strides[${i}] must be non-zero`);
     }
-    let shrinkI = !!(denseSpec.shrinkAxisMask & (1 << i));
+    const shrinkI = !!(denseSpec.shrinkAxisMask & (1 << i));
     if (dimI === -1) {
       processingShape.push(shrinkI ? 1 : -1);
       continue;
@@ -529,46 +500,56 @@ export function sliceInfo(
 
     const masks =
         [denseSpec.beginMask & (1 << i), denseSpec.endMask & (1 << i)];
-    const validRange = [strideI > 0 ? 0 : -1, strideI > 0 ? dimI : dimI - 1];
+    const validRange = [
+      denseSpec.strides[i] > 0 ? 0 : -1,
+      denseSpec.strides[i] > 0 ? dimI : dimI - 1
+    ];
 
-    if (shrinkI && strideI <= 0) {
+    if (shrinkI && denseSpec.strides[i] <= 0) {
       throw Error('only stride 1 allowed on non-range indexing.');
     }
-    isSimpleSlice = isSimpleSlice && (strideI === 1);
 
     const beginAndEndMasked =
         !!((denseSpec.beginMask & (1 << i)) && (denseSpec.endMask & (1 << i)));
+
     if (denseSpec.beginValid && denseSpec.endValid) {
       if (shrinkI) {
         // If we are shrinking, the end index is now possibly incorrect. In
         // particular foo[-1] produces sparseBegin = -1, sparseEnd = 0.
         // and canonical puts these to n-1 and 0, which implies a degenerate
         // interval. Fortunately, it is now safe to re-create end as begin + 1.
-        const xFwd = beginI < 0 ? dimI + beginI : beginI;
-        beginI = xFwd;
-        endI = beginI + 1;
+        const xFwd = denseSpec.begin[i] < 0 ? dimI + denseSpec.begin[i] :
+                                              denseSpec.begin[i];
+        denseSpec.begin[i] = xFwd;
+        denseSpec.end[i] = denseSpec.begin[i] + 1;
         if (xFwd < 0 || xFwd >= dimI) {
-          throw Error(`slice index ${beginI} of dimension ${i} out of bounds.`);
+          throw Error(`slice index ${denseSpec.begin[i]} of dimension ${
+              i} out of bounds.`);
         }
       } else {
-        beginI = canonical(beginI, 0, strideI, dimI, masks, validRange);
-        endI = canonical(endI, 1, strideI, dimI, masks, validRange);
+        denseSpec.begin[i] = canonical(
+            denseSpec.begin[i], 0, denseSpec.strides[i], dimI, masks,
+            validRange);
+        denseSpec.end[i] = canonical(
+            denseSpec.end[i], 1, denseSpec.strides[i], dimI, masks, validRange);
       }
       // Update optimization values
-      const takeAllInDimension = strideI === 1 && beginI === 0 && endI === dimI;
+      const takeAllInDimension = denseSpec.strides[i] === 1 &&
+          denseSpec.begin[i] === 0 && denseSpec.end[i] === dimI;
       isIdentity = isIdentity && takeAllInDimension;
-      sliceDim0 =
-          sliceDim0 && ((i === 0 && strideI === 1) || takeAllInDimension);
+      sliceDim0 = sliceDim0 &&
+          ((i === 0 && denseSpec.strides[i] === 1) || takeAllInDimension);
     } else {
-      isIdentity = isIdentity && ((strideI === 1) && beginAndEndMasked);
-      sliceDim0 =
-          sliceDim0 && ((i === 0 && strideI === 1) || beginAndEndMasked);
+      isIdentity =
+          isIdentity && ((denseSpec.strides[i] === 1) && beginAndEndMasked);
+      sliceDim0 = sliceDim0 &&
+          ((i === 0 && denseSpec.strides[i] === 1) || beginAndEndMasked);
     }
     // Compute the processing shape (the intermediate Eigen will produce)
     let intervalLength;
     let knownInterval = false;
     if (denseSpec.beginValid && denseSpec.endValid) {
-      intervalLength = endI - beginI;
+      intervalLength = denseSpec.end[i] - denseSpec.begin[i];
       knownInterval = true;
     } else if (shrinkI) {
       // The dimension is still known as 1 for the processingShape, but will be
@@ -580,7 +561,7 @@ export function sliceInfo(
       // dimension covers the whole interval. If we have shape information for
       // this dimension, that tells us the interval length.
       if (dimI >= 0) {
-        if (strideI < 0) {
+        if (denseSpec.strides[i] < 0) {
           intervalLength = -dimI;
         } else {
           intervalLength = dimI;
@@ -592,11 +573,12 @@ export function sliceInfo(
       let sizeI;
       // Hold zero if the interval is degenerate, otherwise account for
       // remainder
-      if (intervalLength === 0 || ((intervalLength < 0) !== (strideI < 0))) {
+      if (intervalLength === 0 ||
+          ((intervalLength < 0) !== (denseSpec.strides[i] < 0))) {
         sizeI = 0;
       } else {
-        sizeI = Math.trunc(intervalLength / strideI) +
-            (intervalLength % strideI !== 0 ? 1 : 0);
+        sizeI = Math.trunc(intervalLength / denseSpec.strides[i]) +
+            (intervalLength % denseSpec.strides[i] !== 0 ? 1 : 0);
       }
       processingShape.push(sizeI);
     } else {
@@ -609,7 +591,6 @@ export function sliceInfo(
   // newAxis will increase dimension by 1 (with a one-size dimension)
   // slices like foo[3, ...] will reduce dimension by 1.
   // This cannot be done earlier, because it depends on Step 3.
-
   for (let denseDim = 0; denseDim < denseSpec.finalShapeGatherIndices.length;
        ++denseDim) {
     const gatherIndex = denseSpec.finalShapeGatherIndices[denseDim];
@@ -621,14 +602,12 @@ export function sliceInfo(
   }
 
   return {
-    processingShape,
     finalShape,
     isIdentity,
     sliceDim0,
-    isSimpleSlice,
-    begin,
-    end,
-    strides
+    begin: denseSpec.begin,
+    end: denseSpec.end,
+    strides: denseSpec.strides
   };
 }
 
@@ -639,23 +618,22 @@ function buildDenseSpec(
   dense.shrinkAxisMask = 0;
 
   let fullIndex = 0;
-  const stridesFlat = sparse.strides.slice();
   dense.beginValid = sparse.begin != null;
   dense.endValid = sparse.end != null;
 
-  const beginFlat = sparse.begin != null ? sparse.begin.slice() : null;
-  const endFlat = sparse.end != null ? sparse.end.slice() : null;
-
+  dense.begin = new Array(dense.dims);
+  dense.end = new Array(dense.dims);
+  dense.strides = new Array(dense.dims);
   dense.finalShapeGatherIndices = [];
   dense.finalShapeGatherIndicesSparse = [];
-  dense.inputShapeGatherIndicesSparse = [];
+  dense.inputShapeGatherIndicesSparse = new Array(dense.dims);
 
   for (let i = 0; i < sparse.dims; i++) {
     if ((1 << i) & sparse.ellipsisMask) {
       // Only the bit that has ellipsis will fall in this condition.
       // Expand the ellipsis into the appropriate indices
       // Note: this only works because we guaranteed one ellipsis.
-      let nextIndex = Math.min(
+      const nextIndex = Math.min(
           dense.dims - (sparse.dims - i) + 1 + sparse.numAddAxisAfterEllipsis,
           dense.dims);
       for (; fullIndex < nextIndex; fullIndex++) {
@@ -677,17 +655,17 @@ function buildDenseSpec(
       if (fullIndex === dense.begin.length) {
         throw Error(
             `Index out of range using input dim ${fullIndex}; input ` +
-            `has only ${dense.dims} dims.`);
+            `has only ${dense.dims} dims, ${dense.begin.length}.`);
       }
 
       // Gather slicing spec into appropriate index.
-      if (beginFlat != null) {
-        dense.begin[fullIndex] = beginFlat[i];
+      if (sparse.begin != null) {
+        dense.begin[fullIndex] = sparse.begin[i];
       }
-      if (endFlat != null) {
-        dense.end[fullIndex] = endFlat[i];
+      if (sparse.end != null) {
+        dense.end[fullIndex] = sparse.end[i];
       }
-      dense.strides[fullIndex] = stridesFlat[i];
+      dense.strides[fullIndex] = sparse.strides[i];
       if (sparse.beginMask & (1 << i)) {
         dense.beginMask |= (1 << fullIndex);
       }
