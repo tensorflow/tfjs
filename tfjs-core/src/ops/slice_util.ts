@@ -70,9 +70,11 @@ interface StridedSliceDenseSpec {
 }
 
 export type SliceInfo = {
+  finalShapeSparse: number[],
   finalShape: number[],
   isIdentity: boolean,
   sliceDim0: boolean,
+  isSimpleSlice: boolean,
   begin: number[],
   end: number[],
   strides: number[]
@@ -420,6 +422,14 @@ export function sliceInfo(
     xShape: number[], begin: number[], end: number[], strides: number[],
     beginMask: number, endMask: number, ellipsisMask: number,
     newAxisMask: number, shrinkAxisMask: number): SliceInfo {
+  let stridesNonNull;
+  if (strides == null) {
+    stridesNonNull = new Array(begin.length);
+    stridesNonNull.fill(1);
+  } else {
+    stridesNonNull = strides;
+  }
+
   // Only one non-zero bit is allowed in ellipsisMask, which means ellipsisMask
   // is a power of 2. Use bit compares to ensure ellipsisMask is 0 or a power
   // of 2. When i is a power of 2, i & (i - 1) is always 0.
@@ -435,11 +445,11 @@ export function sliceInfo(
   let ellipsisSeen = false;
 
   const sparseSpec: StridedSliceSparseSpec = {
-    dims: strides.length,
+    dims: stridesNonNull.length,
     numAddAxisAfterEllipsis: 0,
     begin: begin.slice(),
     end: end.slice(),
-    strides: strides.slice(),
+    strides: stridesNonNull.slice(),
     beginMask,
     endMask,
     ellipsisMask,
@@ -484,6 +494,7 @@ export function sliceInfo(
   // and bounds check.
   let isIdentity = true;
   let sliceDim0 = true;
+  let isSimpleSlice = true;
   const processingShape = [];
   const finalShape = [];
 
@@ -508,6 +519,8 @@ export function sliceInfo(
     if (shrinkI && denseSpec.strides[i] <= 0) {
       throw Error('only stride 1 allowed on non-range indexing.');
     }
+
+    isSimpleSlice = isSimpleSlice && (denseSpec.strides[i] === 1);
 
     const beginAndEndMasked =
         !!((denseSpec.beginMask & (1 << i)) && (denseSpec.endMask & (1 << i)));
@@ -601,10 +614,15 @@ export function sliceInfo(
     }
   }
 
+  const finalShapeSparse = finalShape.filter(
+      (dim, i) => denseSpec.finalShapeGatherIndices[i] !== NEW_AXIS);
+
   return {
+    finalShapeSparse,
     finalShape,
     isIdentity,
     sliceDim0,
+    isSimpleSlice,
     begin: denseSpec.begin,
     end: denseSpec.end,
     strides: denseSpec.strides

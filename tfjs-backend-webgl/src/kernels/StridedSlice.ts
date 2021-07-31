@@ -43,9 +43,11 @@ export function stridedSlice(args: {
   } = attrs;
 
   const {
+    finalShapeSparse,
     finalShape,
     isIdentity,
     sliceDim0,
+    isSimpleSlice,
     begin: $begin,
     end: $end,
     strides: $strides
@@ -59,7 +61,7 @@ export function stridedSlice(args: {
   if (isIdentity) {
     // Optimization #1, slice is a no-op plus reshape
     result = reshape({inputs: {x}, backend, attrs: {shape: finalShape}});
-  } else if (sliceDim0) {
+  } else if (sliceDim0 || isSimpleSlice) {
     // Optimization #2, slice is memory contiguous (only occurs in dim 0)
     util.assert(
         x.shape.length >= 1,
@@ -68,19 +70,22 @@ export function stridedSlice(args: {
     const size = slice_util.computeOutShape($begin, $end, $strides);
     // To tolerate begin[0] > end[0] (a 0-output slice), we min(begin, end).
     const sliced = slice({inputs: {x}, backend, attrs: {begin: $begin, size}});
-    backend.disposeIntermediateTensorInfo(sliced);
     result =
         reshape({inputs: {x: sliced}, backend, attrs: {shape: finalShape}});
+    backend.disposeIntermediateTensorInfo(sliced);
   } else {
     const shouldExecuteOnCPU = backend.shouldExecuteOnCPU([x]);
     if (shouldExecuteOnCPU) {
+      // tslint:disable-next-line: no-unnecessary-type-assertion
       const values = backend.readSync(x.dataId) as TypedArray;
+      // tslint:disable-next-line: no-unnecessary-type-assertion
       const xBuf = buffer(x.shape, x.dtype, values) as TensorBuffer<Rank>;
       const resultValues =
-          stridedSliceImplCPU(finalShape, xBuf, $strides, $begin);
+          stridedSliceImplCPU(finalShapeSparse, xBuf, $strides, $begin);
       result = backend.makeTensorInfo(finalShape, x.dtype, resultValues.values);
     } else {
-      const program = new StridedSliceProgram($begin, $strides, finalShape);
+      const program =
+          new StridedSliceProgram($begin, $strides, finalShapeSparse);
       result = backend.runWebGLProgram(program, [x], x.dtype);
     }
   }
