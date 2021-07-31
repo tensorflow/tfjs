@@ -108,23 +108,19 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expectArraysClose(await output.data(), [3, 3, 3, 4, 4, 4]);
   });
 
-  fit('both ellipsis mask and newAxisMask are set', async () => {
+  it('both ellipsis mask and newAxisMask are set', async () => {
     const tensor = tf.tensor1d([0, 1, 2, 3]);
     const result = tf.stridedSlice(tensor, [0], [3], [2], 0, 0, 1, 1);
     expectArraysClose(await result.data(), [0, 1, 2, 3]);
   });
 
-  it('stridedSlice should fail if ellipsis mask is set and newAxisMask or ' +
-         'shrinkAxisMask are also set',
-     async () => {
-       const tensor = tf.tensor1d([0, 1, 2, 3]);
-       expect(() => tf.stridedSlice(tensor, [0], [3], [2], 0, 0, 1, 1))
-           .toThrow();
-       expect(() => tf.stridedSlice(tensor, [0], [3], [2], 0, 0, 1, 0, 1))
-           .toThrow();
-     });
+  it('both ellipsis mask and shrinkAxisMask are set', async () => {
+    const tensor = tf.tensor1d([0, 1, 2, 3]);
+    const result = tf.stridedSlice(tensor, [0], [3], [2], 0, 0, 1, 0, 1);
+    expectArraysClose(await result.data(), [0, 1, 2, 3]);
+  });
 
-  it('stridedSlice with first axis being new', async () => {
+  fit('stridedSlice with first axis being new', async () => {
     // Python slice code: t[tf.newaxis,0:3]
     const t = tf.tensor1d([0, 1, 2, 3]);
     const begin = [0, 0];
@@ -137,6 +133,7 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
 
     const output = tf.stridedSlice(
         t, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask);
+    console.log(output.shape);
     expect(output.shape).toEqual([1, 2]);
     expectArraysClose(await output.data(), [0, 2]);
   });

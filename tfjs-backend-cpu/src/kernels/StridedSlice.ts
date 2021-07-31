@@ -55,6 +55,12 @@ export function stridedSlice(args: {
           x.shape, begin, end, strides, beginMask, endMask, ellipsisMask,
           newAxisMask, shrinkAxisMask);
 
+  console.log(`isIdentity: ${isIdentity}`);
+  console.log(`sliceDim0: ${sliceDim0}`);
+  console.log($begin);
+  console.log($end);
+  console.log($strides);
+
   let result;
 
   if (isIdentity) {
@@ -69,11 +75,15 @@ export function stridedSlice(args: {
     const size = slice_util.computeOutShape($begin, $end, $strides);
     // To tolerate begin[0] > end[0] (a 0-output slice), we min(begin, end).
     const sliced = slice({inputs: {x}, backend, attrs: {begin: $begin, size}});
-    backend.disposeIntermediateTensorInfo(sliced);
     result =
         reshape({inputs: {x: sliced}, backend, attrs: {shape: finalShape}});
+    backend.disposeIntermediateTensorInfo(sliced);
   } else {
     const xBuf = backend.bufferSync(x);
+    console.log('normal path');
+    console.log($begin);
+    console.log($strides);
+    console.log(xBuf);
     const outBuf = stridedSliceImpl(finalShape, xBuf, $strides, $begin);
 
     result = backend.makeTensorInfo(outBuf.shape, outBuf.dtype, outBuf.values);
