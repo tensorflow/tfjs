@@ -44,9 +44,11 @@ export function stridedSlice(args: {
   assertNotComplex(x, 'stridedSlice');
 
   const {
+    finalShapeSparse,
     finalShape,
     isIdentity,
     sliceDim0,
+    isSimpleSlice,
     begin: $begin,
     end: $end,
     strides: $strides
@@ -55,18 +57,12 @@ export function stridedSlice(args: {
           x.shape, begin, end, strides, beginMask, endMask, ellipsisMask,
           newAxisMask, shrinkAxisMask);
 
-  console.log(`isIdentity: ${isIdentity}`);
-  console.log(`sliceDim0: ${sliceDim0}`);
-  console.log($begin);
-  console.log($end);
-  console.log($strides);
-
   let result;
 
   if (isIdentity) {
     // Optimization #1, slice is a no-op plus reshape
     result = reshape({inputs: {x}, backend, attrs: {shape: finalShape}});
-  } else if (sliceDim0) {
+  } else if (sliceDim0 || isSimpleSlice) {
     // Optimization #2, slice is memory contiguous (only occurs in dim 0)
     util.assert(
         x.shape.length >= 1,
@@ -80,21 +76,12 @@ export function stridedSlice(args: {
     backend.disposeIntermediateTensorInfo(sliced);
   } else {
     const xBuf = backend.bufferSync(x);
-    console.log('normal path');
-    console.log($begin);
-    console.log($strides);
-    console.log(xBuf);
-    const outBuf = stridedSliceImpl(finalShape, xBuf, $strides, $begin);
+    const outBuf = stridedSliceImpl(finalShapeSparse, xBuf, $strides, $begin);
 
-    result = backend.makeTensorInfo(outBuf.shape, outBuf.dtype, outBuf.values);
+    result = backend.makeTensorInfo(finalShape, outBuf.dtype, outBuf.values);
   }
 
-  const resultReshaped =
-      reshape({inputs: {x: result}, backend, attrs: {shape: finalShape}});
-
-  backend.disposeIntermediateTensorInfo(result);
-
-  return resultReshaped;
+  return result;
 }
 
 export const stridedSliceConfig: KernelConfig = {
