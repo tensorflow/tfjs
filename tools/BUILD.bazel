@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
+load("//tools:defaults.bzl", "ts_library")
+
+package(default_visibility = ["//visibility:public"])
 
 exports_files(
     [
@@ -19,4 +23,24 @@ exports_files(
         "rollup_template.config.js",
     ],
     visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "enumerate_tests_lib",
+    srcs = [
+        "enumerate-tests.ts",
+    ],
+    deps = [
+        "@npm//@types/argparse",
+        "@npm//@types/node",
+        "@npm//argparse",
+    ],
+)
+
+nodejs_binary(
+    name = "enumerate_tests_bin",
+    data = [
+        ":enumerate_tests_lib",
+    ],
+    entry_point = "enumerate-tests.ts",
 )
