@@ -10,8 +10,10 @@ def _enumerate_tests_impl(ctx):
         inputs = ctx.files.srcs,
         outputs = [output_file],
         arguments = [
-            '-r', ctx.attr.root_path,
-            '-o', output_file.path,
+            "-r",
+            ctx.attr.root_path,
+            "-o",
+            output_file.path,
         ] + input_paths,
     )
 
@@ -26,14 +28,14 @@ enumerate_tests = rule(
             default = Label("@//tools:enumerate_tests_bin"),
             doc = "The script that enumerates the tests",
         ),
+        "root_path": attr.string(
+            default = "",
+            doc = "A root path to remove from srcs when importing them",
+        ),
         "srcs": attr.label_list(
             mandatory = True,
             allow_files = [".ts"],
             doc = "Test files to enumerate (i.e. import) in the output file",
-        ),
-        "root_path": attr.string(
-            default = "",
-            doc = "A root path to remove from srcs when importing them",
         ),
     },
     doc = """Generates a ts file that imports the given test srcs
@@ -41,5 +43,5 @@ enumerate_tests = rule(
     This rule creates a test entrypoint that imports all of the individual tests
     specified in 'srcs'. In tfjs-core, it is used to create 'tests.ts', which
     other packages use to import the core tests all at once.
-    """
+    """,
 )

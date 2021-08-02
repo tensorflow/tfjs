@@ -31,7 +31,13 @@ filegroup(
 
 filegroup(
     name = "all_test_entrypoints",
-    srcs = glob(["**/*_test.ts"], exclude=["backends/**/*", "setup_test.ts"]),
+    srcs = glob(
+        ["**/*_test.ts"],
+        exclude = [
+            "backends/**/*",
+            "setup_test.ts",
+        ],
+    ),
 )
 
 # Generates the 'tests.ts' file that imports all test entrypoints.

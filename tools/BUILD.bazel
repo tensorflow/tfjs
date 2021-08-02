@@ -31,16 +31,16 @@ ts_library(
         "enumerate-tests.ts",
     ],
     deps = [
+        "@npm//@types/argparse",
         "@npm//@types/node",
         "@npm//argparse",
-        "@npm//@types/argparse",
     ],
 )
 
 nodejs_binary(
     name = "enumerate_tests_bin",
-    entry_point = "enumerate-tests.ts",
     data = [
         ":enumerate_tests_lib",
     ],
+    entry_point = "enumerate-tests.ts",
 )
