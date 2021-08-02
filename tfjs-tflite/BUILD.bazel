@@ -1,0 +1,104 @@
+# Copyright 2021 Google LLC. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
+load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm")
+load("//tools:copy_to_dist.bzl", "copy_to_dist")
+load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
+load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
+load("//tools:ts_library_outputs.bzl", "ts_library_outputs")
+
+package(default_visibility = ["//visibility:public"])
+
+# Run rollup to bundle the compiled files for different execution environments.
+tfjs_bundle(
+    name = "tf-tflite",
+    entry_point = "//tfjs-tflite/src:index.ts",
+    external = [
+        "crypto",
+        "@tensorflow/tfjs-core",
+        "seedrandom",
+    ],
+    globals = {
+        "@tensorflow/tfjs-core": "tf",
+        "seedrandom": "seedrandom",
+    },
+    umd_name = "tflite",
+    deps = [
+        "//tfjs-tflite/src:tfjs-tflite_lib",
+        "//tfjs-tflite/src:tfjs-tflite_src_lib",
+        "//tfjs-tflite/src:tflite_web_api_client_js",
+        "//tfjs-tflite/wasm:wasm_files",
+    ],
+)
+
+# Gather .js, .mjs, and .d.ts files as output files.
+ts_library_outputs(
+    name = "tfjs-tflite_outputs",
+    srcs = [
+        "//tfjs-tflite/src:tfjs-tflite_lib",
+        "//tfjs-tflite/src:tfjs-tflite_src_lib",
+    ],
+)
+
+# Copy ouput files to dist/.
+copy_to_dist(
+    name = "copy_src_to_dist",
+    srcs = [
+        ":tfjs-tflite_outputs",
+    ],
+    root = "src",
+)
+
+# Copy bundled files to dist/.
+copy_to_dist(
+    name = "copy_bundles",
+    srcs = [
+        ":tf-tflite",
+        ":tf-tflite.es2017",
+        ":tf-tflite.es2017.min",
+        ":tf-tflite.fesm",
+        ":tf-tflite.fesm.min",
+        ":tf-tflite.min",
+    ],
+)
+
+# Copy wasm related files to dist/.
+copy_to_dist(
+    name = "copy_wasm_files",
+    srcs = [
+        "//tfjs-tflite/wasm:wasm_files",
+    ],
+    root = "wasm",
+)
+
+# Package for npm.
+pkg_npm(
+    name = "tfjs-tflite_pkg",
+    srcs = ["package.json"],
+    tags = ["ci"],
+    deps = [
+        ":copy_bundles",
+        ":copy_src_to_dist",
+        ":copy_wasm_files",
+    ],
+)
+
+# Tests.
+tfjs_web_test(
+    name = "tfjs-tflite_test",
+    srcs = [
+        "//tfjs-tflite/src:tfjs-tflite_test_bundle",
+    ],
+)

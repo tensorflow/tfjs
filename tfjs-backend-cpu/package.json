@@ -49,7 +49,7 @@
   "scripts": {
     "build-ci": "yarn build",
     "build": "bazel build :tfjs-backend-cpu_pkg",
-    "bundle": "bazel build :tfjs-core_pkg",
+    "bundle": "bazel build :tfjs-backend-cpu_pkg",
     "bundle-ci": "yarn bundle",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
     "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
