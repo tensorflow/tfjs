@@ -17,10 +17,15 @@
 
 import {KernelConfig, Sigmoid} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {sigmoidImplCPU} from '../kernel_utils/shared';
 
 const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * x));`;
 
-export const sigmoid = unaryKernelFunc({opSnippet: SIGMOID});
+export const sigmoid = unaryKernelFunc({
+  opSnippet: SIGMOID,
+  packedOpSnippet: SIGMOID,
+  cpuKernelImpl: sigmoidImplCPU
+});
 
 export const sigmoidConfig: KernelConfig = {
   kernelName: Sigmoid,
