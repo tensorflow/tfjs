@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "TFLite support for TensorFlow.js",
   "main": "dist/index.js",
-  "jsnext:main": "dist/index.js",
+  "module": "dist/index.mjs",
   "jsdelivr": "dist/tf-tflite.min.js",
   "unpkg": "dist/tf-tflite.min.js",
   "types": "dist/index.d.ts",

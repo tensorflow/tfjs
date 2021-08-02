@@ -28,8 +28,8 @@ import * as shell from 'shelljs';
 import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase, getReleaseBranch, checkoutReleaseBranch} from './release-util';
 
 const TMP_DIR = '/tmp/tfjs-publish';
-const BAZEL_PACKAGES =
-    new Set(['tfjs-core', 'tfjs-backend-cpu', 'tfjs-backend-webgl']);
+const BAZEL_PACKAGES = new Set(
+    ['tfjs-core', 'tfjs-backend-cpu', 'tfjs-backend-webgl', 'tfjs-tflite']);
 
 const parser = new argparse.ArgumentParser();
 parser.addArgument('--git-protocol', {
