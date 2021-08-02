@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 import {getGlslDifferences} from './glsl_version';
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 
 export class Im2ColPackedProgram implements GPGPUProgram {
   variableNames = ['A'];
@@ -25,30 +25,30 @@ export class Im2ColPackedProgram implements GPGPUProgram {
   packedOutput = true;
   outputShape: number[];
   userCode: string;
+  enableShapeUniforms: boolean;
+  customUniforms = [
+    {name: 'inputShape', type: 'ivec3' as const },
+    {name: 'pad', type: 'ivec2' as const },
+    {name: 'stride', type: 'ivec2' as const },
+    {name: 'dilation', type: 'ivec2' as const },
+    {name: 'inChannels', type: 'int' as const },
+    {name: 'itemsPerBlockRow', type: 'int' as const },
+  ];
 
-  constructor(
-      outputShape: number[], inputShape: number[],
-      convInfo: backend_util.Conv2DInfo) {
+  constructor(outputShape: number[], convInfo: backend_util.Conv2DInfo) {
     this.outputShape = outputShape;
-
-    const {
-      filterWidth,
-      inChannels,
-      strideWidth,
-      strideHeight,
-      padInfo,
-      outWidth,
-      dilationWidth,
-      dilationHeight,
-      dataFormat
-    } = convInfo;
-    const {left, top} = padInfo;
-    const itemsPerBlockRow = inChannels * filterWidth;
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
+    // TODO: Investigate why the result is not correct when using outWidth as a
+    // uniform.
+    const {outWidth, dataFormat} = convInfo;
     const glsl = getGlslDifferences();
     const isChannelsLast = dataFormat === 'channelsLast';
     const rowDim = isChannelsLast ? 0 : 1;
     const colDim = isChannelsLast ? 1 : 2;
 
+    const boundsCheckingSnippet = this.enableShapeUniforms ?
+        'if(blockIndex < outShape[1] && pos < outShape[0]) {' :
+        `if(blockIndex < ${outputShape[1]} && pos < ${outputShape[0]}) {`;
     let unrolled = ``;
 
     for (let row = 0; row <= 1; row++) {
@@ -57,21 +57,20 @@ export class Im2ColPackedProgram implements GPGPUProgram {
           blockIndex = rc.y + ${col};
           pos = rc.x + ${row};
 
-          if(blockIndex < ${outputShape[1]} && pos < ${outputShape[0]}) {
-            offsetY = int(blockIndex / (${outWidth})) * ${strideHeight} - ${
-            top};
-            d0 = offsetY + ${dilationHeight} * (pos / ${itemsPerBlockRow});
+          ${boundsCheckingSnippet}
+            offsetY = int(blockIndex / ${outWidth}) * stride[0] - pad[1];
+            d0 = offsetY + dilation[0] * (pos / itemsPerBlockRow);
 
-            if(d0 < ${inputShape[rowDim]} && d0 >= 0) {
+            if(d0 < inputShape[${rowDim}] && d0 >= 0) {
 
-              offsetX = int(mod(float(blockIndex), ${outWidth}.) * ${
-            strideWidth}. - ${left}.);
-              d1 = offsetX + ${dilationWidth} * (int(mod(float(pos), ${
-            itemsPerBlockRow}.) / ${inChannels}.));
+              offsetX = int(mod(float(blockIndex), ${outWidth}.) *
+                  float(stride[1]) - float(pad[0]));
+              d1 = offsetX + dilation[1] * (int(mod(float(pos),
+                  float(itemsPerBlockRow)) / float(inChannels)));
 
-              if(d1 < ${inputShape[colDim]} && d1 >= 0) {
+              if(d1 < inputShape[${colDim}] && d1 >= 0) {
 
-                ch = int(mod(float(pos), ${inChannels}.));
+                ch = int(mod(float(pos), float(inChannels)));
 
                 if (${isChannelsLast}) {
                   innerDims = vec2(d1, ch);
