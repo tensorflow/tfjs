@@ -13,7 +13,7 @@
 # limitations under the License.
 # =============================================================================
 
-load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "nodejs_test", "pkg_npm")
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_test", "pkg_npm")
 load("//tools:copy_to_dist.bzl", "copy_to_dist")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 
