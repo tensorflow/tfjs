@@ -154,7 +154,7 @@ nodejs_test(
 nodejs_test(
     name = "tfjs-core_node_test",
     data = [
-        ":package_json",
+        "package.json",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
@@ -168,7 +168,7 @@ nodejs_test(
 nodejs_test(
     name = "tfjs-core_async_backends_test",
     data = [
-        ":package_json",
+        "package.json",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-core/src:tfjs-core_test_lib",
     ],
