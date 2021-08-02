@@ -749,7 +749,7 @@ export class Sequential extends LayersModel {
    * Computation is done in batches.
    *
    * Note: the "step" mode of predict() is currently not supported.
-   *   This is because the TensorFow.js core backend is imperative only.
+   *   This is because the TensorFlow.js core backend is imperative only.
    *
    * ```js
    * const model = tf.sequential({
