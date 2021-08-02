@@ -172,7 +172,7 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
     }
   }
 
-  // Optional outfile written once all benchmarks have returned results.
+  // Optional outfile written once all benchmarks have returned results
   const fulfilled = await Promise.allSettled(results);
   if (cliArgs?.outfile) {
     await write('./benchmark_results.json', fulfilled);

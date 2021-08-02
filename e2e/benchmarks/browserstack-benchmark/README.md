@@ -50,9 +50,9 @@ The following are supported options arguments which trigger options features:
     ```
     {
       "benchmark": {
-        "model": ["model_name"], //List of one or more custom or official models
+        "model": ["model_name"], //List of one or more custom or official models to be benchmarked
         "numRuns": positive_integer,
-        "backend": ["backend_name"] //List of one or more backends
+        "backend": ["backend_name"] //List of one or more backends to be benchmarked
       },
       "browsers": {
         "unique_identifier_laptop_or_desktop": {
@@ -74,6 +74,8 @@ The following are supported options arguments which trigger options features:
       }
     }
     ```
+    Each model in the model list will be run on each backend in the backend list. Each model-backend combination will run on every browser. If you would like to test specific backends on specific models, the recommended method is to create multiple configuration files.
+
     For more examples of documentation, refer to the links below:
     [List of officially supported TFJS browsers](https://github.com/tensorflow/tfjs/blob/master/e2e/benchmarks/browserstack-benchmark/browser_list.json)
     [Example benchmark pre-configuration](https://github.com/tensorflow/tfjs/blob/master/e2e/benchmarks/browserstack-benchmark/preconfigured_browser.json)

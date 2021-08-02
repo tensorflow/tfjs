@@ -108,16 +108,16 @@ describe('test app.js cli', () => {
         jasmine.createSpy('mockRunOneBenchmark').and.callFake((tabId) => {
           return Promise.resolve(mockResults[tabId]);
         });
-    
+
     // Bypasses Browserstack with preset failed mock results
     failMockRunOneBenchmark =
         jasmine.createSpy('mockRunOneBenchmark').and.callFake((tabId) => {
           return Promise.reject(`Error: ${tabId} failed.`);
         });
-    
-    /* Before each spec, create a mock benchmark and set testing browser
-     * configuration this helps ensure that everything is set to the expected
-     * contents before the spec is run */
+
+    // Before each spec, create a mock benchmark and set testing browser
+    // configuration this helps ensure that everything is set to the expected
+    // contents before the spec is run
     mockBenchmark = jasmine.createSpy('mockBenchmark');
     testingConfig = require('./test_config.json');
   })

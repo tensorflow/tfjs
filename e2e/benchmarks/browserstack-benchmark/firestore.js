@@ -41,8 +41,8 @@ async function runFirestore(firebaseConfig) {
     await firebase.auth().signInAnonymously();
     console.log('\nSuccesfuly signed into Firebase with anonymous account.');
 
-    /* Reference to the "BenchmarkResults" collection on firestore that contains
-     * the benchmark results. */
+    // Reference to the "BenchmarkResults" collection on firestore that contains
+    // the benchmark results.
     return firebase.firestore().collection('BenchmarkResults');
   } catch (err) {
     console.log(`\nError code: ${err.code}`);
