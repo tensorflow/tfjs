@@ -2,8 +2,8 @@
   "name": "@tensorflow/tfjs-tflite",
   "version": "0.0.0",
   "description": "TFLite support for TensorFlow.js",
-  "main": "dist/tf-tflite.node.js",
-  "jsnext:main": "dist/index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "jsdelivr": "dist/tf-tflite.min.js",
   "unpkg": "dist/tf-tflite.min.js",
   "types": "dist/index.d.ts",
@@ -52,14 +52,17 @@
   },
   "scripts": {
     "prep": "./scripts/download-tflite-web-api.sh",
-    "build": "tsc",
-    "build-ci": "tsc",
+    "build": "bazel build :tfjs-tflite_pkg",
+    "build-ci": "yarn build",
+    "bundle": "bazel build :tfjs-tflite_pkg",
+    "bundle-ci": "yarn bundle",
     "build-link-package": "cd ../link-package && yarn build",
     "build-deps": "yarn build-link-package",
-    "build-npm": "./scripts/build-npm.sh",
+    "build-npm": "bazel build :tfjs-tflite_pkg",
     "lint": "tslint -p . -t verbose",
-    "run-browserstack": "karma start --browserstack",
-    "test": "yarn && yarn build-deps && yarn build && karma start",
-    "test-ci": "./scripts/test-ci.sh"
+    "publish-npm": "bazel run :tfjs-tflite_pkg.publish",
+    "test": "bazel test --flaky_test_attempts=3 :tfjs-tflite_test --test_output=all",
+    "test-ci": "yarn test",
+    "test-debug": "bazel run :tfjs-tflite_test"
   }
 }

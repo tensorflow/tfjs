@@ -28,8 +28,8 @@ import * as shell from 'shelljs';
 import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase, getReleaseBranch, checkoutReleaseBranch} from './release-util';
 
 const TMP_DIR = '/tmp/tfjs-publish';
-const BAZEL_PACKAGES =
-    new Set(['tfjs-core', 'tfjs-backend-cpu', 'tfjs-backend-webgl']);
+const BAZEL_PACKAGES = new Set(
+    ['tfjs-core', 'tfjs-backend-cpu', 'tfjs-backend-webgl', 'tfjs-tflite']);
 
 const parser = new argparse.ArgumentParser();
 parser.addArgument('--git-protocol', {
@@ -88,10 +88,6 @@ async function main() {
     // tfjs-node-gpu needs to get some files from tfjs-node.
     if (pkg === 'tfjs-node-gpu') {
       $('yarn prep-gpu');
-    }
-    // tfjs-tflite needs to download the tflite web api from google storage.
-    if (pkg === 'tfjs-tflite') {
-      $('yarn prep');
     }
 
     // Yarn above the other checks to make sure yarn doesn't change the lock
