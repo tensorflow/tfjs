@@ -51,8 +51,8 @@
     "yargs": "~13.2.2"
   },
   "scripts": {
-    "build-ci": "./scripts/enumerate-tests.js --ci && bazel build :tfjs-core_pkg",
-    "build": "node ./scripts/enumerate-tests.js && bazel build :tfjs-core_pkg",
+    "build-ci": "yarn build",
+    "build": "bazel build :tfjs-core_pkg",
     "bundle": "bazel build :tfjs-core_pkg",
     "bundle-ci": "yarn bundle",
     "build-npm": "bazel build :tfjs-core_pkg",
