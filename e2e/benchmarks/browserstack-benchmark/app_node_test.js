@@ -6,7 +6,8 @@ const {
   serializeTensors,
   getReadableDate,
   formatForFirestore,
-  db
+  runFirestore,
+  firebaseConfig
 } = require('./firestore.js');
 
 describe('test app.js cli', () => {
@@ -114,11 +115,9 @@ describe('test app.js cli', () => {
           return Promise.reject(`Error: ${tabId} failed.`);
         });
 
-    /*
-    before each spec, create a mock benchmark and set testing browser
-    configuration this helps ensure that everything is set to the expected
-    contents before the spec is run
-    */
+    // Before each spec, create a mock benchmark and set testing browser
+    // configuration this helps ensure that everything is set to the expected
+    // contents before the spec is run
     mockBenchmark = jasmine.createSpy('mockBenchmark');
     testingConfig = require('./test_config.json');
   })
@@ -216,12 +215,16 @@ describe('test app.js cli', () => {
 });
 
 describe('test adding to firestore', () => {
+  let db;
   let mockDb;
   let mockResultValue;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     // Set a longer jasmine timeout than 5 seconds
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
+
+    // References result collection and checks credentials
+    db = await runFirestore(firebaseConfig);
   });
 
   beforeEach(() => {
@@ -238,7 +241,7 @@ describe('test adding to firestore', () => {
       result:
           formatForFirestore(mockResultValue, serializeTensors, getReadableDate)
     };
-    addResultToFirestore(mockResultValue);
+    addResultToFirestore(db, mockResultValue);
     expect(db.add).toHaveBeenCalledWith(expectedAdd);
   });
 

@@ -14,8 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
+
 require('firebase/firestore');
 require('firebase/auth');
+
 const firebase = require('firebase/app');
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_KEY,
@@ -27,22 +29,26 @@ const firebaseConfig = {
   appId: '1:834911136599:web:4b65685455bdf916a1ec12'
 };
 
-firebase.initializeApp(firebaseConfig);
+/**
+ * Initializes Firebase, signs in with secret credentials, and accesses the
+ * Firestore collection of results.
+ *
+ * @param firebaseConfig A configuration with Firebase credentials
+ */
+async function runFirestore(firebaseConfig) {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    await firebase.auth().signInAnonymously();
+    console.log('\nSuccesfuly signed into Firebase with anonymous account.');
 
-firebase.auth()
-    .signInAnonymously()
-    .then(() => {console.log('Signed into Firebase with anonymous account.')})
-    .catch((error) => {
-      let errorCode = error.code;
-      let errorMessage = error.message;
-      console.log(`Error code: ${errorCode}`);
-      console.log(`Error message: ${errorMessage}`);
-    });
-
-
-// Reference to the "BenchmarkResults" collection on firestore that contains the
-// benchmark results.
-const db = firebase.firestore().collection('BenchmarkResults');
+    // Reference to the "BenchmarkResults" collection on firestore that contains
+    // the benchmark results.
+    return firebase.firestore().collection('BenchmarkResults');
+  } catch (err) {
+    console.log(`\nError code: ${err.code}`);
+    throw new Error(`Error message: ${err.message}`);
+  }
+}
 
 /**
  * After being returned from Browserstack, benchmark results are stored as
@@ -53,7 +59,7 @@ const db = firebase.firestore().collection('BenchmarkResults');
  *
  * @param result Individual result in a list of fulfilled promises
  */
-function addResultToFirestore(resultValue) {
+function addResultToFirestore(db, resultValue) {
   const firestoreMap =
       formatForFirestore(resultValue, serializeTensors, getReadableDate);
 
@@ -108,4 +114,5 @@ exports.addResultToFirestore = addResultToFirestore;
 exports.serializeTensors = serializeTensors;
 exports.getReadableDate = getReadableDate;
 exports.formatForFirestore = formatForFirestore;
-exports.db = db;
+exports.runFirestore = runFirestore;
+exports.firebaseConfig = firebaseConfig;
