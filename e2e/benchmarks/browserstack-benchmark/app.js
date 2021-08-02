@@ -22,7 +22,7 @@ const path = require('path');
 const {execFile} = require('child_process');
 const {ArgumentParser} = require('argparse');
 const {version} = require('./package.json');
-const {resolve} = require('path')
+const {resolve} = require('path');
 const {addResultToFirestore, runFirestore, firebaseConfig} =
     require('./firestore.js');
 
@@ -143,21 +143,23 @@ async function benchmarkAll(config) {
  *
  *
  * @param {{browsers, benchmark}} config Benchmark configuration
- * @param benchmarkResult Function that benchmarks one browser-device pair
+ * @param runOneBenchmark Function that benchmarks one browser-device pair
  */
-async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
+async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   console.log('Preparing configuration files for the test runner.\n');
   setupBenchmarkEnv(config);
   if (require.main === module) {
     console.log(
-        `Starting benchmarks using ${cliArgs.webDeps ? 'cdn' : 'local'} ` +
+        `Starting benchmarks using ${cliArgs?.webDeps ? 'cdn' : 'local'} ` +
         `dependencies...`);
   }
+
   const results = [];
   let numActiveBenchmarks = 0;
+  // Runs and gets result of each queued benchmark
   for (const tabId in config.browsers) {
     numActiveBenchmarks++;
-    results.push(runOneBenchmark(tabId).then((value) => {
+    results.push(runOneBenchmark(tabId, cliArgs?.maxTries).then((value) => {
       value.deviceInfo = config.browsers[tabId];
       value.modelInfo = config.benchmark;
       return value;
@@ -170,17 +172,49 @@ async function benchmark(config, runOneBenchmark = runBrowserStackBenchmark) {
     }
   }
 
-  /** Optional outfile written once all benchmarks have returned results. */
+  // Optional outfile written once all benchmarks have returned results.
   const fulfilled = await Promise.allSettled(results);
   if (cliArgs?.outfile) {
     await write('./benchmark_results.json', fulfilled);
   } else {
-    console.log('\nAll benchmarks complete.\n');
+    console.log('\Benchmarks complete.\n');
   }
   if (cliArgs?.firestore) {
     pushToFirestore(fulfilled)
   };
   return fulfilled;
+}
+
+/**
+ * Gets the benchmark result of a singular browser-device pairing.
+ *
+ * If benchmarking produces an error, the given browser-device pairing is
+ * retried up to the specific max number of tries. Default is 3.
+ *
+ * @param tabId Indicates browser-device pairing for benchmark
+ * @param triesLeft Number of tries left for a benchmark to succeed
+ * @param runOneBenchmark Function that runs a singular BrowserStack
+ *     performance test
+ * @param retyOneBenchmark Function that retries a singular BrowserStack
+ *     performance test
+ */
+async function getOneBenchmarkResult(
+    tabId, triesLeft, runOneBenchmark = runBrowserStackBenchmark) {
+  triesLeft--;
+  try {
+    const result = await runOneBenchmark(tabId);
+    console.log(`${tabId} benchmark succeeded.`);
+    return result;
+  } catch (err) {
+    // Retries benchmark until resolved or until no retries left
+    if (triesLeft > 0) {
+      console.log(`Retrying ${tabId} benchmark. ${triesLeft} tries left...`);
+      return await getOneBenchmarkResult(tabId, triesLeft, runOneBenchmark);
+    } else {
+      console.log(`${tabId} benchmark failed.`);
+      throw err;
+    }
+  }
 }
 
 /**
@@ -201,9 +235,9 @@ function runBrowserStackBenchmark(tabId) {
     console.log(`Running: ${command}`);
 
     execFile('yarn', args, (error, stdout, stderr) => {
-      console.log(`benchmark ${tabId} completed.`);
       if (error) {
-        console.log(error);
+        console.log(`\nerror: ${error}`);
+        console.log(`stdout: ${stdout}`);
         if (!cliArgs.cloud) {
           io.emit(
               'benchmarkComplete',
@@ -301,6 +335,13 @@ function setupHelpMessage() {
     default: 5,
     action: 'store'
   });
+  parser.add_argument('--maxTries', {
+    help: 'the maximum number of times a given benchmark is tried befor it ' +
+        'officially fails',
+    type: 'int',
+    default: 3,
+    action: 'store'
+  });
   parser.add_argument('--firestore', {
     help: 'Store benchmark results in Firestore database',
     action: 'store_true'
@@ -357,5 +398,6 @@ if (require.main === module) {
 }
 
 exports.runBenchmarkFromFile = runBenchmarkFromFile;
+exports.getOneBenchmarkResult = getOneBenchmarkResult;
 exports.benchmark = benchmark;
 exports.write = write;
