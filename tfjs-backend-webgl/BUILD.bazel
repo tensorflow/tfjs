@@ -113,10 +113,3 @@ tfjs_web_test(
         "//tfjs-core:tf-core.min.js.map",
     ],
 )
-
-js_library(
-    name = "package_json",
-    srcs = [
-        ":package.json",
-    ],
-)
