@@ -23,12 +23,14 @@ const {execFile} = require('child_process');
 const {ArgumentParser} = require('argparse');
 const {version} = require('./package.json');
 const {resolve} = require('path');
-const {addResultToFirestore} = require('./firestore.js');
+const {addResultToFirestore, runFirestore, firebaseConfig} =
+    require('./firestore.js');
 
 const port = process.env.PORT || 8001;
 let io;
 let parser;
 let cliArgs;
+let db;
 
 function checkBrowserStackAccount() {
   if (process.env.BROWSERSTACK_USERNAME == null ||
@@ -94,6 +96,33 @@ function setupBenchmarkEnv(config) {
 }
 
 /**
+ * Creates and runs benchmark configurations for each model-backend pairing.
+ *
+ * @param {{browsers, benchmark}} config
+ */
+async function benchmarkAll(config) {
+  const allResults = [];
+  const benchmarkInfo = config.benchmark;
+
+  for (backend of benchmarkInfo.backend) {
+    for (model of benchmarkInfo.model) {
+      console.log(
+          `\nRunning ${model} model benchmarks over ${backend} backend...`);
+      const result = await benchmark({
+        'benchmark': {
+          'model': model,
+          'numRuns': benchmarkInfo.numRuns,
+          'backend': backend
+        },
+        'browsers': config.browsers
+      });
+      allResults.push(result);
+    }
+  }
+  return allResults;
+}
+
+/**
  * Run model benchmark on BrowserStack.
  *
  * Each browser-device pairing is benchmarked in parallel. Results are sent to
@@ -107,8 +136,8 @@ function setupBenchmarkEnv(config) {
  * - `benchmark`: An object with the following properties:
  *  - `model`: The name of model (registed at
  * 'tfjs/e2e/benchmarks/model_config.js') or `custom`.
- *  - modelUrl: The URL to the model description file. Only applicable when the
- * `model` is `custom`.
+ *  - modelUrl: The URL to the model description file. Only applicable when
+ * the `model` is `custom`.
  *  - `numRuns`: The number of rounds for model inference.
  *  - `backend`: The backend to be benchmarked on.
  *
@@ -143,28 +172,16 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
     }
   }
 
-  // Optional outfile written once all benchmarks have returned results.
+  // Optional outfile written once all benchmarks have returned results
   const fulfilled = await Promise.allSettled(results);
   if (cliArgs?.outfile) {
     await write('./benchmark_results.json', fulfilled);
   } else {
-    console.log('\nAll benchmarks complete.');
+    console.log('\Benchmarks complete.\n');
   }
-
-  /** Push results to Firestore if user wants */
-  if (require.main === module && cliArgs.firestore) {
-    let numRejectedPromises = 0;
-    for (result of fulfilled) {
-      if (result.status == 'fulfilled') {
-        addResultToFirestore(result.value);
-      } else if (result.status == 'rejected') {
-        numRejectedPromises += 1;
-        console.log('Promise rejected. Not adding to result to database.');
-      }
-    }
-    console.log(`Encountered ${numRejectedPromises} rejected promises.`)
-  }
-
+  if (cliArgs?.firestore) {
+    pushToFirestore(fulfilled)
+  };
   return fulfilled;
 }
 
@@ -211,7 +228,9 @@ async function getOneBenchmarkResult(
 function runBrowserStackBenchmark(tabId) {
   return new Promise((resolve, reject) => {
     const args = ['test', '--browserstack', `--browsers=${tabId}`];
-    if (cliArgs.webDeps) args.push('--cdn');
+    if (cliArgs.webDeps) {
+      args.push('--cdn')
+    };
     const command = `yarn ${args.join(' ')}`;
     console.log(`Running: ${command}`);
 
@@ -241,13 +260,17 @@ function runBrowserStackBenchmark(tabId) {
       if (matchedResult != null) {
         const benchmarkResult = JSON.parse(matchedResult[1]);
         benchmarkResult.tabId = tabId;
-        if (!cliArgs.cloud) io.emit('benchmarkComplete', benchmarkResult);
+        if (!cliArgs.cloud) {
+          io.emit('benchmarkComplete', benchmarkResult)
+        };
         return resolve(benchmarkResult);
       }
 
       const errorMessage = 'Did not find benchmark results from the logs ' +
           'of the benchmark test (benchmark_models.js).';
-      if (!cliArgs.cloud) io.emit('benchmarkComplete', {error: errorMessage});
+      if (!cliArgs.cloud) {
+        io.emit('benchmarkComplete', {error: errorMessage})
+      };
       return reject(errorMessage);
     });
   });
@@ -273,7 +296,25 @@ function write(filePath, msg) {
   })
 }
 
-/* Set up --help menu for file description and available optional commands */
+/**
+ * Pushes all benchmark results to Firestore.
+ *
+ * @param benchmarkResults List of all benchmark results
+ */
+function pushToFirestore(benchmarkResults) {
+  let numRejectedPromises = 0;
+  for (result of benchmarkResults) {
+    if (result.status == 'fulfilled') {
+      addResultToFirestore(db, result.value);
+    } else if (result.status == 'rejected') {
+      numRejectedPromises += 1;
+      console.log('Promise rejected. Not adding to result to database.');
+    }
+  }
+  console.log(`Encountered ${numRejectedPromises} rejected promises.`);
+}
+
+/** Set up --help menu for file description and available optional commands */
 function setupHelpMessage() {
   parser = new ArgumentParser({
     description: 'This file launches a server to connect to BrowserStack ' +
@@ -316,17 +357,26 @@ function setupHelpMessage() {
   console.dir(cliArgs);
 }
 
-/* Runs a benchmark with a preconfigured file */
-function runBenchmarkFromFile(file, runBenchmark = benchmark) {
+/**
+ * Runs a benchmark with a preconfigured file
+ *
+ * @param file Relative filepath to preset benchmark configuration
+ * @param runBenchmark Function to run a benchmark configuration
+ */
+function runBenchmarkFromFile(file, runBenchmark = benchmarkAll) {
   console.log('Running a preconfigured benchmark...');
   runBenchmark(file);
 }
 
-// Only run this code if app.js is called from the command line
-if (require.main === module) {
-  setupHelpMessage();
+/** Sets up the local or remote environment for benchmarking. */
+async function prebenchmarkSetup() {
   checkBrowserStackAccount();
-  if (!cliArgs.cloud) runServer();
+  if (cliArgs.firestore) {
+    db = await runFirestore(firebaseConfig)
+  };
+  if (!cliArgs.cloud) {
+    runServer()
+  };
   if (cliArgs.benchmarks) {
     const filePath = resolve(cliArgs.benchmarks);
     if (fs.existsSync(filePath)) {
@@ -339,6 +389,12 @@ if (require.main === module) {
           `Please provide a valid path.`);
     }
   }
+}
+
+/* Only run this code if app.js is called from the command line */
+if (require.main === module) {
+  setupHelpMessage();
+  prebenchmarkSetup();
 }
 
 exports.runBenchmarkFromFile = runBenchmarkFromFile;
