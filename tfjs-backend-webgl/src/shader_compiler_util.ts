@@ -105,6 +105,14 @@ export function getFlatIndexFrom3D(shape: [number, number, number]): string {
 `;
 }
 
+export function getFlatIndexFrom3DOutput(): string {
+  return `
+  int getFlatIndex(ivec3 coords) {
+    return coords.x * outShapeStrides[0] + coords.y * outShapeStrides[1] + coords.z;
+  }
+`;
+}
+
 export const ENCODE_FLOAT_SNIPPET = `
   const float FLOAT_MAX = 1.70141184e38;
   const float FLOAT_MIN = 1.17549435e-38;

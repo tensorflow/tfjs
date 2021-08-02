@@ -54,7 +54,8 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
     // The number of comparisons each thread will do
     this.reductionFactor = 2;
-    const xMaxThreads = 1024;  // gl_MaxComputeWorkGroupSize
+    // Note that the maximum of workgroup X dimension is 256.
+    const xMaxThreads = 256;  // gl_MaxComputeWorkGroupSize.
     const xThreads =
         Math.min(Math.ceil(reduceSize / this.reductionFactor), xMaxThreads);
 

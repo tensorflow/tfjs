@@ -51,6 +51,11 @@ The following are supported options arguments which trigger options features:
     ``` shell
     node app.js --cloud
     ```
+  * --firestore
+    - Pushes successful benchmark results to a Firestore database.
+    ``` shell
+    node app.js --firestore
+    ```
   * --h, --help
     - Shows help menu and all optional arguments in the shell window.
     ``` shell
@@ -61,9 +66,14 @@ The following are supported options arguments which trigger options features:
     node app.js --help
     ```
   * --maxBenchmarks
-    - Sets maximum for number of benchmarks run in parallel.
+    - Sets maximum for number of benchmarks run in parallel.Expects a positive integer.
     ``` shell
-    node app.js --maxBenchmarks
+    node app.js --maxBenchmarks=positive_integer
+    ```
+  * --maxTries
+    - Sets maximum for number of tries a given benchmark has to succeed. Expects a positive integer.
+    ``` shell
+    node app.js --maxTries=positive_integer
     ```
   * --outfile
     - Writes results to an accessible external file, benchmark_results.json.

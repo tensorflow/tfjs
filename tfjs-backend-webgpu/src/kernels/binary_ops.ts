@@ -29,9 +29,9 @@ export function getBinaryProgram(
     return new BinaryOpVec4Program(op, aShape, bShape);
   }
   const useSharedMemoryWithA =
-      aShape.length === 1 && bShape.length > 1 && aShape[0] < 2048;
+      aShape.length === 1 && bShape.length > 1 && aShape[0] < 1024;
   const useSharedMemoryWithB =
-      bShape.length === 1 && aShape.length > 1 && bShape[0] < 2048;
+      bShape.length === 1 && aShape.length > 1 && bShape[0] < 1024;
   if (useSharedMemoryWithA || useSharedMemoryWithB) {
     return new BinaryOpSharedProgram(op, aShape, bShape, useSharedMemoryWithB);
   } else {

@@ -19,8 +19,20 @@ import {version_core} from './index';
 
 describe('version', () => {
   it('version is contained', () => {
-    // tslint:disable-next-line:no-require-imports
-    const expected = require('../package.json').version;
+    let expected: string;
+    // Due to the difference between esbuild and bazel we need to try both
+    // reltive and full path to load the package.json file.
+    try {
+      // For esbuild, the package.json need to be loaded with relative path.
+      // tslint:disable-next-line:no-require-imports
+      expected = require('../package.json').version;
+      console.log(expected);
+    } catch (e) {
+      // In bazel nodejs test, the package.json is exported as js_library with
+      // name tfjs-core. require will need the full path.
+      // tslint:disable-next-line:no-require-imports
+      expected = require('tfjs-core/package.json').version;
+    }
     expect(version_core).toBe(expected);
   });
 });
