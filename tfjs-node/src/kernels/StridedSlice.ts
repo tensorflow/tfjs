@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, KernelConfig, reshape, slice, StridedSlice, StridedSliceAttrs, StridedSliceInputs, Tensor, tensor1d, tidy} from '@tensorflow/tfjs';
+import {KernelConfig, StridedSlice, StridedSliceAttrs, StridedSliceInputs, tensor1d, tidy} from '@tensorflow/tfjs';
 
 import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
