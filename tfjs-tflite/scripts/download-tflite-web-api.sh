@@ -17,15 +17,16 @@
 # Halt if a single command errors
 set -e
 
-# Start in scripts/ even if run from root directory
-cd "$(dirname "$0")"
+# The output dir is stored in the first parameter.
+# It is passed from genrule.
+OUTPUT_DIR="$1"
 
 # The default version.
 CURRENT_VERSION=0.0.3
 
-# Get the version from the first parameter.
+# Get the version from the second parameter.
 # Default to the value in CURRENT_VERSION.
-VERSION="${1:-${CURRENT_VERSION}}"
+VERSION="${2:-${CURRENT_VERSION}}"
 
 # Make sure the version is provided.
 if [[ -z ${VERSION} ]]; then
@@ -33,11 +34,13 @@ if [[ -z ${VERSION} ]]; then
   exit 1
 fi
 
-# Copy the artifacts from GCP to the deps/ dir.
-mkdir -p ../deps
-GCP_DIR="gs://tfweb/${VERSION}/dist"
-gsutil -m cp "${GCP_DIR}/*" ../deps/
+# Download the zipped lib to the output dir.
+wget https://storage.googleapis.com/tfweb/${VERSION}/dist/tflite_web_api.zip -P "${OUTPUT_DIR}"
+
+# Unzip and delete the zipped file.
+unzip "${OUTPUT_DIR}/tflite_web_api.zip" -d "${OUTPUT_DIR}"
+rm -f "${OUTPUT_DIR}/tflite_web_api.zip"
 
 # Append module exports to the JS client to make it a valid CommonJS module.
 # This is needed to help bundler correctly initialize the tfweb namespace.
-echo "var tfweb = (typeof window !== 'undefined' && window['tfweb']) || this['tfweb']; exports.tfweb = tfweb;" >> ../deps/tflite_web_api_client.js
+echo "var tfweb = (typeof window !== 'undefined' && window['tfweb']) || this['tfweb']; exports.tfweb = tfweb;" >> "${OUTPUT_DIR}/tflite_web_api_client.js"

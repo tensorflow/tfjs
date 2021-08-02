@@ -33,6 +33,9 @@
     node-fetch "~2.6.1"
     seedrandom "2.4.3"
 
+"@tensorflow/tfjs-tflite@file:../dist/bin/tfjs-tflite/tfjs-tflite_pkg":
+  version "0.0.0"
+
 "@types/long@^4.0.1":
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/@types/long/-/long-4.0.1.tgz#459c65fa1867dafe6a8f322c4c51695663cc55e9"

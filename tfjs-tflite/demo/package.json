@@ -4,9 +4,9 @@
   "main": "script.js",
   "license": "Apache-2.0",
   "dependencies": {
-    "@tensorflow/tfjs-backend-cpu": "link:../../tfjs-backend-cpu",
-    "@tensorflow/tfjs-core": "link:../../tfjs-core",
-    "@tensorflow/tfjs-tflite": "link:../dist"
+    "@tensorflow/tfjs-backend-cpu": "link:../../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
+    "@tensorflow/tfjs-core": "link:../../link-package/node_modules/@tensorflow/tfjs-core",
+    "@tensorflow/tfjs-tflite": "link:../../link-package/node_modules/@tensorflow/tfjs-tflite"
   },
   "devDependencies": {
     "@babel/core": "7.13.14",
@@ -20,10 +20,11 @@
   },
   "staticFiles": {
     "staticPath": [
-      "../dist"
+      "../../link-package/node_modules/@tensorflow/tfjs-tflite/dist"
     ]
   },
   "scripts": {
+    "build-deps": "cd ../../link-package && yarn build",
     "watch": "cross-env NODE_ENV=development parcel src/index.html --no-hmr --open",
     "build": "NODE_ENV=production parcel build src/index.html --no-minify --public-url ./"
   }
