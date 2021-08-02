@@ -14,7 +14,7 @@
 # =============================================================================
 
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
-load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "pkg_npm")
+load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm")
 load("//tools:copy_to_dist.bzl", "copy_to_dist")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
@@ -111,12 +111,5 @@ tfjs_web_test(
         "//tfjs-backend-cpu:tf-backend-cpu.min.js.map",
         "//tfjs-core:tf-core.min.js",
         "//tfjs-core:tf-core.min.js.map",
-    ],
-)
-
-js_library(
-    name = "package_json",
-    srcs = [
-        ":package.json",
     ],
 )

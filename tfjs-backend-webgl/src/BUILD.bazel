@@ -79,7 +79,6 @@ esbuild(
     deps = [
         ":tfjs-backend-webgl_lib",
         ":tfjs-backend-webgl_test_lib",
-        "//tfjs-backend-webgl:package_json",
         "//tfjs-core/src:tfjs-core_test_bundle",
     ],
 )
