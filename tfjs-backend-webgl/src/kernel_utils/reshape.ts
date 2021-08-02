@@ -38,8 +38,9 @@ export function packedReshape(
 
   const program = new ReshapePackedProgram(afterShapeAs3D, input3DShape);
   const preventEagerUnpackingOfOutput = true;
+  const customValues = [input3DShape];
   const output = backend.runWebGLProgram(
-      program, [input3D], input.dtype, null /* customSetup */,
+      program, [input3D], input.dtype, customValues,
       preventEagerUnpackingOfOutput);
   return {dataId: output.dataId, shape: afterShape, dtype: output.dtype};
 }

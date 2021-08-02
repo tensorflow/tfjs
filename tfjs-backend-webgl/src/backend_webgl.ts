@@ -733,8 +733,9 @@ export class MathBackendWebGL extends KernelBackend {
 
     const program = new ReshapePackedProgram(afterShapeAs3D, input3DShape);
     const preventEagerUnpackingOfOutput = true;
+    const customValues = [input3DShape];
     const output = this.runWebGLProgram(
-        program, [input3D], input.dtype, null /* customUniformValues */,
+        program, [input3D], input.dtype, customValues,
         preventEagerUnpackingOfOutput);
     return {dataId: output.dataId, shape: afterShape, dtype: output.dtype};
   }
