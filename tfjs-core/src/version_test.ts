@@ -31,7 +31,7 @@ describe('version', () => {
       // In bazel nodejs test, the package.json is exported as js_library with
       // name tfjs-core. require will need the full path.
       // tslint:disable-next-line:no-require-imports
-      expected = require('tfjs-core/package.json').version;
+      expected = require('../../tfjs-core/package.json').version;
     }
     expect(version_core).toBe(expected);
   });
