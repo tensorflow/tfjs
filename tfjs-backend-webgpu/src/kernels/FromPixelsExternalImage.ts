@@ -16,9 +16,61 @@
  */
 
 import {FromPixelsAttrs, TensorInfo, util} from '@tensorflow/tfjs-core';
+
 import {WebGPUBackend} from '../backend_webgpu';
+
+import {FromPixelsImportProgram} from './FromPixels_utils/from_pixels_import_webgpu';
 import {FromPixelsProgram} from './FromPixels_utils/from_pixels_webgpu';
 import * as webgpu_program from './webgpu_program';
+
+export function fromPixelsImportTexture(args: {
+  externalImage: HTMLVideoElement,
+  backend: WebGPUBackend,
+  attrs: FromPixelsAttrs
+}): TensorInfo {
+  const {externalImage, backend, attrs} = args;
+  const {numChannels} = attrs;
+
+  const outShape = [externalImage.height, externalImage.width, numChannels];
+  const size = util.sizeFromShape(outShape);
+  const strides = util.computeStrides(outShape);
+  const uniformData = [size, numChannels, ...strides];
+
+  const output = backend.makeTensorInfo(outShape, 'int32');
+  if (!backend.fromPixelImportProgram) {
+    backend.fromPixelImportProgram = new FromPixelsImportProgram(outShape);
+  } else {
+    backend.fromPixelImportProgram.updateOutputShape(outShape);
+  }
+
+  // Different outShape will affect preprocessor result,
+  // e.g. getCoordsFromFlatIndex. FromPixelsImageExternalImage needs
+  // to recompile the pipeline to get the correct result.
+  // FromPixelsExternalImage leverages webgpu backend pipeline
+  // cache system to avoid useless recompile.
+  const outputShapes = [output.shape];
+  const outputTypes = [output.dtype];
+  const key = webgpu_program.makeShaderKey(
+      backend.fromPixelImportProgram, outputShapes, outputTypes);
+
+  const pipeline = backend.getAndSavePipeline(key, () => {
+    return webgpu_program.compileProgram(
+        backend.glslang, backend.device, backend.fromPixelImportProgram,
+        backend.fromPixelImportLayout.pipelineLayout, [], output, true);
+  });
+
+  backend.fromPixelImportProgram.setPipeline(pipeline);
+
+  const info = backend.tensorMap.get(output.dataId);
+
+  info.bufferInfo.buffer = backend.acquireBuffer(info.bufferInfo.byteSize);
+
+  backend.fromPixelImportProgram.setUniform(backend.device, uniformData);
+
+  backend.recordFromPixelsImportCommands(info.bufferInfo.buffer, externalImage);
+  backend.submitQueue();
+  return output;
+}
 
 export function fromPixelsExternalImage(args: {
   externalImage: HTMLCanvasElement|ImageBitmap|OffscreenCanvas,

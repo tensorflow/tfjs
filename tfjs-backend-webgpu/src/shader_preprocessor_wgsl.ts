@@ -80,9 +80,31 @@ export function getWorkGroupSizeStringWgsl(
 export function makeShader(
     inputInfo: InputInfo[], outputData: {dtype: DataType, shape: number[]},
     program: ProgramParams, isFromPixel = false): string {
-  const prefixSnippets: string[] = [];
+  if (isFromPixel === true) {
+    const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
+    const outputBufferStr = `
+      [[block]] struct Matrix0 {
+        numbers: array<${mapToTypesWgsl(outputData.dtype, program.isVec4)}>;
+      };
+      [[block]] struct Uniform {
+        size            : i32;
+        numChannels     : i32;
+        outShapeStrides : vec2<u32>;
+      };
 
-  let uniformDeclaration = '[[block]] struct Uniforms { NAN : f32; ';
+      [[group(0), binding(0)]] var<storage, write> result : Matrix0;
+      [[group(0), binding(1)]] var<uniform> uniforms: Uniform;
+    `;
+    return [
+      SHADER_PREFIX,
+      outputBufferStr,
+      getCoords,
+      program.getUserCodeWgsl(),
+    ].join('\n');
+  }
+
+  const prefixSnippets: string[] = [];
+  let uniformDeclaration = '[[block]] struct Uniforms { NAN : u32; ';
   program.variableNames.forEach((x, i) => {
     uniformDeclaration += `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${
         getCoordsDataTypeWgsl(inputInfo[i].shape.length)}; `;
