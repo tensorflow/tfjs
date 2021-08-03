@@ -52,7 +52,7 @@ const parser = new ArgumentParser({
       + " other packages (e.g. WebGPU).",
 });
 
-parser.addArgument('tests', {action: 'store', type: String, nargs: '+'});
+parser.addArgument('test_file_list', {action: 'store', type: String});
 parser.addArgument(['-o', '--output'], {
   action: 'store',
   required: true,
@@ -66,8 +66,14 @@ parser.addArgument(['-r', '--root'], {
 
 const args = parser.parseArgs();
 
+const tests_file_contents = fs.readFileSync(args.test_file_list, 'utf8');
+if (! tests_file_contents) {
+  throw new Error(`Failed to read tests file ${args.test_file_list}`);
+}
+const tests = tests_file_contents.split('\n');
+
 const root: string = path.normalize(args.root);
-const files = (args.tests as string[]).map(filePath => {
+const files = tests.map(filePath => {
   const normalized = path.normalize(filePath);
   if (normalized.slice(0, root.length) !== root) {
     throw new Error(`File ${normalized} is not under root path ${root}`);
