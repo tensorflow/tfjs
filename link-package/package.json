@@ -6,7 +6,7 @@
   "license": "Apache 2.0",
   "private": true,
   "scripts": {
-    "build": "yarn build-backend-cpu && yarn build-backend-webgo && yarn build-core && yarn build-tflite && yarn reinstall",
+    "build": "yarn build-backend-cpu && yarn build-backend-webgl && yarn build-core && yarn build-tflite && yarn reinstall",
     "build-backend-cpu": "cd ../tfjs-backend-cpu && yarn && yarn build",
     "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build",
     "build-core": "cd ../tfjs-core && yarn && yarn build",
