@@ -70,11 +70,15 @@ function endFirebaseInstance() {
  * @param result Individual result in a list of fulfilled promises
  */
 async function addResultToFirestore(db, resultId, result) {
-  const firestoreMap =
-      formatForFirestore(result, serializeTensors, getReadableDate);
-  await db.add({result: firestoreMap}).then((ref) => {
-    console.log(`Added ${resultId} to Firestore with ID: ${ref.id}`);
-  });
+  try {
+    const firestoreMap =
+        formatForFirestore(result, serializeTensors, getReadableDate);
+    await db.add({result: firestoreMap}).then((ref) => {
+      console.log(`Added ${resultId} to Firestore with ID: ${ref.id}`);
+    });
+  } catch (err) {
+    throw new Error(err);
+  }
 }
 
 /**
