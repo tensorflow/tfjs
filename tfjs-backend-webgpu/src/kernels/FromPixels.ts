@@ -20,7 +20,7 @@ import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '@tensorflow/tfjs-co
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {fromPixelsExternalImage} from './FromPixelsExternalImage';
+import {fromPixelsExternalImage, fromPixelsImportTexture} from './FromPixelsExternalImage';
 
 export const fromPixelsConfig: KernelConfig = {
   kernelName: FromPixels,
@@ -58,6 +58,12 @@ export function fromPixels(args: {
           `ImageBitmap ` +
           `or {data: Uint32Array, width: number, height: number}, ` +
           `but was ${(pixels as {}).constructor.name}`);
+    }
+
+    if (env().getBool('WEBGPU_USE_IMPORT')) {
+      if (pixels instanceof HTMLVideoElement) {
+        return fromPixelsImportTexture({externalImage: pixels, backend, attrs});
+      }
     }
 
     if (pixels instanceof HTMLVideoElement ||

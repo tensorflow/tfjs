@@ -23,6 +23,7 @@ import {backend_util, buffer, DataStorage, DataType, DataValues, engine, env, Ke
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
+import {FromPixelsImportProgram} from './kernels/FromPixels_utils/from_pixels_import_webgpu';
 import {FromPixelsProgram} from './kernels/FromPixels_utils/from_pixels_webgpu';
 import * as webgpu_program from './kernels/webgpu_program';
 import * as webgpu_util from './webgpu_util';
@@ -80,10 +81,12 @@ export class WebGPUBackend extends KernelBackend {
   currentCommandEncoder: GPUCommandEncoder;
   tensorMap: DataStorage<TensorBufferInfo>;
   fromPixelProgram: FromPixelsProgram;
+  fromPixelImportProgram: FromPixelsImportProgram;
   fromPixelLayout: WebGPULayout;
+  fromPixelImportLayout: WebGPULayout;
   supportTimeQuery: boolean;
   dummyCanvas: HTMLCanvasElement;
-  dummyContext: GPUPresentationContext; 
+  dummyContext: GPUPresentationContext;
 
   private static nextDataId = 0;
   private nextDataId(): number {
@@ -130,19 +133,21 @@ export class WebGPUBackend extends KernelBackend {
     // FromPixel has only one input texture.
     this.fromPixelLayout = this.createTextureLayout();
 
+    this.fromPixelImportLayout = this.createTextureImportLayout();
+
     // Profiling tools like PIX needs this dummy canvas to
     // trigger capturing a frame.
     if (env().getBool('WEBGPU_USE_PROFILE_TOOL')) {
       this.dummyCanvas = document.createElement('canvas');
       this.dummyCanvas.width = 1;
       this.dummyCanvas.height = 1;
-      
+
       this.dummyContext = this.dummyCanvas.getContext('gpupresent');
       this.dummyContext.configure({
         device,
         format: 'bgra8unorm',
       });
-  
+
       document.body.appendChild(this.dummyCanvas);
     }
   }
@@ -345,8 +350,9 @@ export class WebGPUBackend extends KernelBackend {
     // Need to get texture from swapChain to enable profiling tool
     // to capture a frame
     if (env().getBool('WEBGPU_USE_PROFILE_TOOL')) {
-      util.assert(this.dummyContext !== undefined, 
-                  () => `Fail to get context for profiling tool`);
+      util.assert(
+          this.dummyContext !== undefined,
+          () => `Fail to get context for profiling tool`);
       this.dummyContext.getCurrentTexture();
     }
 
@@ -694,6 +700,36 @@ export class WebGPUBackend extends KernelBackend {
     };
   }
 
+  private createTextureImportLayout(): WebGPULayout {
+    const bindGroupLayoutEntries: GPUBindGroupLayoutEntry[] = [];
+    // Output buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 0,
+      visibility: GPUShaderStage.COMPUTE,
+      buffer: {type: 'storage' as const}
+    });
+    // Uniform buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 1,
+      visibility: GPUShaderStage.COMPUTE,
+      buffer: {type: 'uniform' as const}
+    });
+    // Input buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 2,
+      visibility: GPUShaderStage.COMPUTE,
+      externalTexture: {},
+    });
+    const fromPixelImportBindGroupLayout =
+        this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
+    const fromPixelImportPipelineLayout = this.device.createPipelineLayout(
+        {bindGroupLayouts: [fromPixelImportBindGroupLayout]});
+    return {
+      bindGroupLayout: fromPixelImportBindGroupLayout,
+      pipelineLayout: fromPixelImportPipelineLayout
+    };
+  }
+
   private getCachedOrCreateLayout(inputEntrySize: number): WebGPULayout {
     if (!(inputEntrySize in this.layoutCache)) {
       this.layoutCache[inputEntrySize] = this.createLayout(inputEntrySize);
@@ -845,7 +881,6 @@ export class WebGPUBackend extends KernelBackend {
         }
       ],
     });
-
     this.ensureCommandEncoderReady();
     const passEncoder = this.currentCommandEncoder.beginComputePass();
     passEncoder.setPipeline(this.fromPixelProgram.pipeline);
@@ -853,6 +888,41 @@ export class WebGPUBackend extends KernelBackend {
     passEncoder.dispatch(
         this.fromPixelProgram.dispatch[0], this.fromPixelProgram.dispatch[1],
         this.fromPixelProgram.dispatch[2]);
+    passEncoder.endPass();
+  }
+
+  recordFromPixelsImportCommands(
+      output: GPUBuffer, externalImage: HTMLVideoElement) {
+    const bindGroup = this.device.createBindGroup({
+      layout: this.fromPixelImportLayout.bindGroupLayout,
+      entries: [
+        {
+          binding: 0,
+          resource: {
+            buffer: output,
+          }
+        },
+        {
+          binding: 1,
+          resource: {
+            buffer: this.fromPixelImportProgram.uniform,
+          }
+        },
+        {
+          binding: 2,
+          resource: this.fromPixelImportProgram.getImportTexture(
+              this.device, externalImage),
+        },
+      ],
+    });
+    this.ensureCommandEncoderReady();
+    const passEncoder = this.currentCommandEncoder.beginComputePass();
+    passEncoder.setPipeline(this.fromPixelImportProgram.pipeline);
+    passEncoder.setBindGroup(0, bindGroup);
+    passEncoder.dispatch(
+        this.fromPixelImportProgram.dispatch[0],
+        this.fromPixelImportProgram.dispatch[1],
+        this.fromPixelImportProgram.dispatch[2]);
     passEncoder.endPass();
   }
 
@@ -900,6 +970,9 @@ export class WebGPUBackend extends KernelBackend {
     this.bufferManager.dispose();
     if (this.fromPixelProgram) {
       this.fromPixelProgram.dispose();
+    }
+    if (this.fromPixelImportProgram) {
+      this.fromPixelImportProgram.dispose();
     }
     this.disposed = true;
   }
