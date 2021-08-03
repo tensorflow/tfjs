@@ -21,9 +21,7 @@ def _enumerate_tests_impl(ctx):
         ],
     )
 
-    return [DefaultInfo(
-        files = depset([output_file]),
-    )]
+    return [DefaultInfo(files = depset([output_file]))]
 
 enumerate_tests = rule(
     implementation = _enumerate_tests_impl,
