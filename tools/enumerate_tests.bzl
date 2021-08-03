@@ -4,17 +4,21 @@ def _enumerate_tests_impl(ctx):
     output_file = ctx.actions.declare_file(ctx.attr.name + ".ts")
     input_paths = [src.path for src in ctx.files.srcs]
 
+    input_paths_file = ctx.actions.declare_file("enumerate_tests_paths")
+    ctx.actions.write(input_paths_file, "\n".join(input_paths))
+
     run_node(
         ctx,
         executable = "enumerate_tests_bin",
-        inputs = ctx.files.srcs,
+        inputs = ctx.files.srcs + [input_paths_file],
         outputs = [output_file],
         arguments = [
             "-r",
             ctx.attr.root_path,
             "-o",
             output_file.path,
-        ] + input_paths,
+            input_paths_file.path,
+        ],
     )
 
     return [DefaultInfo(files = depset([output_file]))]
