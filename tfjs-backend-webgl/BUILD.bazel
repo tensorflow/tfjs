@@ -26,9 +26,16 @@ tfjs_bundle(
     name = "tf-backend-webgl",
     entry_point = "//tfjs-backend-webgl/src:index.ts",
     external = [
+        "crypto",
         "node-fetch",
         "util",
+        "@tensorflow/tfjs-core",
+        "seedrandom",
     ],
+    globals = {
+        "@tensorflow/tfjs-core": "tf",
+        "seedrandom": "seedrandom",
+    },
     umd_name = "tf",
     deps = [
         "//tfjs-backend-webgl/src:tfjs-backend-webgl_lib",
