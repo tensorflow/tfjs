@@ -241,7 +241,7 @@ describe('test adding to firestore', () => {
       result:
           formatForFirestore(mockResultValue, serializeTensors, getReadableDate)
     };
-    addResultToFirestore(db, mockResultValue);
+    addResultToFirestore(db, mockResultValue.tabId, mockResultValue);
     expect(db.add).toHaveBeenCalledWith(expectedAdd);
   });
 
