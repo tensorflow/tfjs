@@ -132,7 +132,7 @@ export class FromPixelsProgram implements WebGPUProgram {
         size: [pixelWidth, pixelHeight],
         format: 'rgba8unorm',
         usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.STORAGE |
-               GPUTextureUsage.RENDER_ATTACHMENT,
+            GPUTextureUsage.RENDER_ATTACHMENT,
       });
       this.lastPixelSize.width = pixelWidth;
       this.lastPixelSize.height = pixelHeight;
