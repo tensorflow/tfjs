@@ -183,10 +183,11 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
   const fulfilled = await Promise.allSettled(results);
   if (cliArgs?.outfile) {
     await write('./benchmark_results.json', fulfilled);
-  } else if (cliArgs?.firestore) {
-    await pushToFirestore(fulfilled);
   } else {
     console.log('\Benchmarks complete.\n');
+  }
+  if (cliArgs?.firestore) {
+    await pushToFirestore(fulfilled);
   }
   return fulfilled;
 }
@@ -317,12 +318,13 @@ async function pushToFirestore(benchmarkResults) {
           addResultToFirestore(db, result.value.tabId, result.value));
     } else if (result.status == 'rejected') {
       numRejectedPromises++;
-      console.log(
-          `${result.value.tabId} failed. Not pushing result to database.`);
     }
   }
-  await Promise.allSettled(firestoreResults);
-  console.log(`Encountered ${numRejectedPromises} rejected promises.`);
+  return await Promise.allSettled(firestoreResults).then(() => {
+    console.log(
+        `Encountered ${numRejectedPromises} rejected promises that were not ` +
+        `added to the database.`);
+  });
 }
 
 /** Set up --help menu for file description and available optional commands */

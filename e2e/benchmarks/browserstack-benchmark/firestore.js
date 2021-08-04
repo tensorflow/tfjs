@@ -77,7 +77,7 @@ async function addResultToFirestore(db, resultId, result) {
       console.log(`Added ${resultId} to Firestore with ID: ${ref.id}`);
     });
   } catch (err) {
-    throw new Error(err);
+    throw err;
   }
 }
 
