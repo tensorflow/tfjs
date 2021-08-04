@@ -23,71 +23,29 @@ import {FromPixelsImportProgram} from './FromPixels_utils/from_pixels_import_web
 import {FromPixelsProgram} from './FromPixels_utils/from_pixels_webgpu';
 import * as webgpu_program from './webgpu_program';
 
-export function fromPixelsImportTexture(args: {
-  externalImage: HTMLVideoElement,
-  backend: WebGPUBackend,
-  attrs: FromPixelsAttrs
-}): TensorInfo {
-  const {externalImage, backend, attrs} = args;
-  const {numChannels} = attrs;
-
-  const outShape = [externalImage.height, externalImage.width, numChannels];
-  const size = util.sizeFromShape(outShape);
-  const strides = util.computeStrides(outShape);
-  const uniformData = [size, numChannels, ...strides];
-
-  const output = backend.makeTensorInfo(outShape, 'int32');
-  if (!backend.fromPixelImportProgram) {
-    backend.fromPixelImportProgram = new FromPixelsImportProgram(outShape);
-  } else {
-    backend.fromPixelImportProgram.updateOutputShape(outShape);
-  }
-
-  // Different outShape will affect preprocessor result,
-  // e.g. getCoordsFromFlatIndex. FromPixelsImageExternalImage needs
-  // to recompile the pipeline to get the correct result.
-  // FromPixelsExternalImage leverages webgpu backend pipeline
-  // cache system to avoid useless recompile.
-  const outputShapes = [output.shape];
-  const outputTypes = [output.dtype];
-  const key = webgpu_program.makeShaderKey(
-      backend.fromPixelImportProgram, outputShapes, outputTypes);
-
-  const pipeline = backend.getAndSavePipeline(key, () => {
-    return webgpu_program.compileProgram(
-        backend.glslang, backend.device, backend.fromPixelImportProgram,
-        backend.fromPixelImportLayout.pipelineLayout, [], output, true);
-  });
-
-  backend.fromPixelImportProgram.setPipeline(pipeline);
-
-  const info = backend.tensorMap.get(output.dataId);
-
-  info.bufferInfo.buffer = backend.acquireBuffer(info.bufferInfo.byteSize);
-
-  backend.fromPixelImportProgram.setUniform(backend.device, uniformData);
-
-  backend.recordFromPixelsImportCommands(info.bufferInfo.buffer, externalImage);
-  backend.submitQueue();
-  return output;
-}
+type ExternalImage = HTMLCanvasElement|ImageBitmap|OffscreenCanvas;
 
 export function fromPixelsExternalImage(args: {
-  externalImage: HTMLCanvasElement|ImageBitmap|OffscreenCanvas,
+  externalImage: ExternalImage|HTMLVideoElement,
   backend: WebGPUBackend,
-  attrs: FromPixelsAttrs
+  attrs: FromPixelsAttrs,
+  useImport: boolean
 }): TensorInfo {
-  const {externalImage, backend, attrs} = args;
+  const {externalImage, backend, attrs, useImport} = args;
   const {numChannels} = attrs;
 
   const outShape = [externalImage.height, externalImage.width, numChannels];
   const size = util.sizeFromShape(outShape);
   const strides = util.computeStrides(outShape);
   const uniformData = [size, numChannels, ...strides];
-
   const output = backend.makeTensorInfo(outShape, 'int32');
+
   if (!backend.fromPixelProgram) {
-    backend.fromPixelProgram = new FromPixelsProgram(outShape);
+    if (useImport) {
+      backend.fromPixelProgram = new FromPixelsImportProgram(outShape);
+    } else {
+      backend.fromPixelProgram = new FromPixelsProgram(outShape);
+    }
   } else {
     backend.fromPixelProgram.updateOutputShape(outShape);
   }
@@ -102,20 +60,24 @@ export function fromPixelsExternalImage(args: {
   const key = webgpu_program.makeShaderKey(
       backend.fromPixelProgram, outputShapes, outputTypes);
 
+  const layout = backend.fromPixelProgram.getLayout(backend.device);
+
   const pipeline = backend.getAndSavePipeline(key, () => {
     return webgpu_program.compileProgram(
         backend.glslang, backend.device, backend.fromPixelProgram,
-        backend.fromPixelLayout.pipelineLayout, [], output, true);
+        layout.pipelineLayout, [], output, true);
   });
 
   backend.fromPixelProgram.setPipeline(pipeline);
 
-  backend.queue.copyExternalImageToTexture(
-      {source: externalImage, origin: {x: 0, y: 0}}, {
-        texture: backend.fromPixelProgram.makeInputTexture(
-            backend.device, externalImage.width, externalImage.height)
-      },
-      [externalImage.width, externalImage.height]);
+  if (!useImport) {
+    backend.queue.copyExternalImageToTexture(
+        {source: externalImage as ExternalImage, origin: {x: 0, y: 0}}, {
+          texture: backend.fromPixelProgram.makeInputTexture(
+              backend.device, externalImage.width, externalImage.height)
+        },
+        [externalImage.width, externalImage.height]);
+  }
 
   const info = backend.tensorMap.get(output.dataId);
 
@@ -123,7 +85,19 @@ export function fromPixelsExternalImage(args: {
 
   backend.fromPixelProgram.setUniform(backend.device, uniformData);
 
-  backend.recordFromPixelsCommands(info.bufferInfo.buffer);
+  let externalResource: GPUExternalTexture|GPUTextureView;
+  if (useImport) {
+    const externalTextureDescriptor = {
+      source: externalImage as HTMLVideoElement
+    };
+    externalResource =
+        backend.device.importExternalTexture(externalTextureDescriptor);
+  } else {
+    externalResource = backend.fromPixelProgram.inputTexture.createView();
+  }
+
+  backend.recordFromPixelsCommands(
+      info.bufferInfo.buffer, layout, externalResource);
   backend.submitQueue();
   return output;
 }

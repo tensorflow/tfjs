@@ -16,6 +16,7 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
+import {WebGPULayout} from '../../backend_webgpu';
 
 import {computeDispatch, flatDispatchLayout} from '../../webgpu_util';
 import {WebGPUProgram} from '../webgpu_program';
@@ -35,6 +36,7 @@ export class FromPixelsProgram implements WebGPUProgram {
   lastUniformData: number[] = [];
 
   inputTexture: GPUTexture = null;
+  layout: WebGPULayout = null;
   lastPixelSize = {width: 0, height: 0};
 
   private disposed = false;
@@ -151,5 +153,42 @@ export class FromPixelsProgram implements WebGPUProgram {
       this.inputTexture.destroy();
     }
     this.disposed = true;
+  }
+
+  getLayout(device: GPUDevice): WebGPULayout {
+    if (this.layout === null) {
+      this.layout = this.createTextureLayout(device);
+    }
+    return this.layout;
+  }
+
+  private createTextureLayout(device: GPUDevice): WebGPULayout {
+    const bindGroupLayoutEntries: GPUBindGroupLayoutEntry[] = [];
+    // Output buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 0,
+      visibility: GPUShaderStage.COMPUTE,
+      buffer: {type: 'storage' as const}
+    });
+    // Input buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 1,
+      visibility: GPUShaderStage.COMPUTE,
+      storageTexture: {access: 'read-only', format: 'rgba8unorm'}
+    });
+    // Uniform buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 2,
+      visibility: GPUShaderStage.COMPUTE,
+      buffer: {type: 'uniform' as const}
+    });
+    const fromPixelBindGroupLayout =
+        device.createBindGroupLayout({entries: bindGroupLayoutEntries});
+    const fromPixelPipelineLayout = device.createPipelineLayout(
+        {bindGroupLayouts: [fromPixelBindGroupLayout]});
+    return {
+      bindGroupLayout: fromPixelBindGroupLayout,
+      pipelineLayout: fromPixelPipelineLayout
+    };
   }
 }
