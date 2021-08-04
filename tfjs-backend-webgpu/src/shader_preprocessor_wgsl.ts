@@ -82,7 +82,7 @@ export function makeShader(
       };
 
       [[group(0), binding(0)]] var<storage, write> result : Matrix0;
-      [[group(0), binding(1)]] var<uniform> uniforms: Uniform;
+      [[group(0), binding(2)]] var<uniform> uniforms: Uniform;
     `;
     return [
       SHADER_PREFIX,
