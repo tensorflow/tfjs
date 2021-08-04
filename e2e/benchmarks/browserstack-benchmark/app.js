@@ -23,8 +23,12 @@ const {execFile} = require('child_process');
 const {ArgumentParser} = require('argparse');
 const {version} = require('./package.json');
 const {resolve} = require('path');
-const {addResultToFirestore, runFirestore, firebaseConfig} =
-    require('./firestore.js');
+const {
+  addResultToFirestore,
+  runFirestore,
+  firebaseConfig,
+  endFirebaseInstance
+} = require('./firestore.js');
 
 const port = process.env.PORT || 8001;
 let io;
@@ -119,6 +123,8 @@ async function benchmarkAll(config) {
       allResults.push(result);
     }
   }
+  console.log('\nAll benchmarks complete!');
+  endFirebaseInstance();
   return allResults;
 }
 
@@ -172,7 +178,8 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
     }
   }
 
-  // Optional outfile written once all benchmarks have returned results
+  // Optionally written to an outfile or pushed to a database once all
+  // benchmarks return results
   const fulfilled = await Promise.allSettled(results);
   if (cliArgs?.outfile) {
     await write('./benchmark_results.json', fulfilled);
@@ -180,8 +187,8 @@ async function benchmark(config, runOneBenchmark = getOneBenchmarkResult) {
     console.log('\Benchmarks complete.\n');
   }
   if (cliArgs?.firestore) {
-    pushToFirestore(fulfilled)
-  };
+    await pushToFirestore(fulfilled);
+  }
   return fulfilled;
 }
 
@@ -236,7 +243,7 @@ function runBrowserStackBenchmark(tabId) {
 
     execFile('yarn', args, (error, stdout, stderr) => {
       if (error) {
-        console.log(`\nerror: ${error}`);
+        console.log(`\n${error}`);
         console.log(`stdout: ${stdout}`);
         if (!cliArgs.cloud) {
           io.emit(
@@ -301,17 +308,23 @@ function write(filePath, msg) {
  *
  * @param benchmarkResults List of all benchmark results
  */
-function pushToFirestore(benchmarkResults) {
+async function pushToFirestore(benchmarkResults) {
+  let firestoreResults = [];
   let numRejectedPromises = 0;
+  console.log('\Pushing results to Firestore...');
   for (result of benchmarkResults) {
     if (result.status == 'fulfilled') {
-      addResultToFirestore(db, result.value);
+      firestoreResults.push(
+          addResultToFirestore(db, result.value.tabId, result.value));
     } else if (result.status == 'rejected') {
-      numRejectedPromises += 1;
-      console.log('Promise rejected. Not adding to result to database.');
+      numRejectedPromises++;
     }
   }
-  console.log(`Encountered ${numRejectedPromises} rejected promises.`);
+  return await Promise.allSettled(firestoreResults).then(() => {
+    console.log(
+        `Encountered ${numRejectedPromises} rejected promises that were not ` +
+        `added to the database.`);
+  });
 }
 
 /** Set up --help menu for file description and available optional commands */

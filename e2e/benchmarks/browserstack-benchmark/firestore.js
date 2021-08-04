@@ -51,21 +51,34 @@ async function runFirestore(firebaseConfig) {
 }
 
 /**
+ * Deletes the Firebase instance, which allows the Node.js process to finish.
+ */
+function endFirebaseInstance() {
+  firebase.app().delete();
+  console.log('Exited Firebase instance.');
+}
+
+/**
  * After being returned from Browserstack, benchmark results are stored as
  * a list of fulfilled promises.
  *
  * As results are being iterated through, this function handles taking a result,
  * serializing it, and pushing it to Firestore.
  *
+ * @param db Reference to Firestore collection
+ * @param resultId ID of value added to Firestore
  * @param result Individual result in a list of fulfilled promises
  */
-function addResultToFirestore(db, resultValue) {
-  const firestoreMap =
-      formatForFirestore(resultValue, serializeTensors, getReadableDate);
-
-  db.add({result: firestoreMap}).then((ref) => {
-    console.log(`Added document to Firestore with ID: ${ref.id}`);
-  });
+async function addResultToFirestore(db, resultId, result) {
+  try {
+    const firestoreMap =
+        formatForFirestore(result, serializeTensors, getReadableDate);
+    await db.add({result: firestoreMap}).then((ref) => {
+      console.log(`Added ${resultId} to Firestore with ID: ${ref.id}`);
+    });
+  } catch (err) {
+    throw err;
+  }
 }
 
 /**
@@ -75,9 +88,9 @@ function addResultToFirestore(db, resultValue) {
  * @param result Individual result in a list of fulfilled promises
  */
 function formatForFirestore(
-    resultValue, makeCompatable = serializeTensors, getDate = getReadableDate) {
+    result, makeCompatable = serializeTensors, getDate = getReadableDate) {
   let firestoreMap = {};
-  firestoreMap.benchmarkInfo = makeCompatable(resultValue);
+  firestoreMap.benchmarkInfo = makeCompatable(result);
   firestoreMap.date = getDate();
 
   return firestoreMap;
@@ -90,13 +103,13 @@ function formatForFirestore(
  *
  * @param result Individual result in a list of fulfilled promises
  */
-function serializeTensors(resultValue) {
-  let kernels = resultValue.memoryInfo.kernels;
+function serializeTensors(result) {
+  let kernels = result.memoryInfo.kernels;
   for (kernel of kernels) {
     kernel.inputShapes = JSON.stringify(kernel.inputShapes);
     kernel.outputShapes = JSON.stringify(kernel.outputShapes);
   }
-  return resultValue;
+  return result;
 }
 
 /**
@@ -116,3 +129,4 @@ exports.getReadableDate = getReadableDate;
 exports.formatForFirestore = formatForFirestore;
 exports.runFirestore = runFirestore;
 exports.firebaseConfig = firebaseConfig;
+exports.endFirebaseInstance = endFirebaseInstance;
