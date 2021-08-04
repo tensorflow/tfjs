@@ -243,6 +243,15 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'nonMaxSuppression'},
   {include: 'argmax', excludes: ['gradient']},
   {include: 'exp '},
+  {
+    include: 'elu',
+    excludes: [
+      'derivative',        // Not yet implemented.
+      'gradient',          // Not yet implemented.
+      'broadcasted bias',  // Not yet implemented.
+      'selu'               // Not yet implemented.
+    ]
+  },
   {include: 'unstack'},
   {
     include: 'minimum',

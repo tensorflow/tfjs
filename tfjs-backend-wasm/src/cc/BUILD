@@ -176,6 +176,16 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "elu_impl",
+    srcs = ["elu_impl.cc"],
+    hdrs = ["elu_impl.h"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "interpolate_bilinear_impl",
     srcs = ["interpolate_bilinear_impl.cc"],
     hdrs = ["interpolate_bilinear_impl.h"],
@@ -268,6 +278,7 @@ tfjs_cc_library(
         ":Cumsum",
         ":DepthToSpace",
         ":DepthwiseConv2dNative",
+        ":Elu",
         ":Equal",
         ":Exp",
         ":FlipLeftRight",
@@ -543,6 +554,17 @@ tfjs_cc_library(
     deps = [
         ":binary",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Elu",
+    srcs = ["kernels/Elu.cc"],
+    hdrs = ["kernels/Elu.h"],
+    deps = [
+        ":backend",
+        ":elu_impl",
+        ":unary",
     ],
 )
 
