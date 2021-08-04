@@ -15,14 +15,16 @@
  * =============================================================================
  */
 
+import {WebGPULayout} from '../../backend_webgpu';
 import {FromPixelsProgram} from './from_pixels_webgpu';
 
 export class FromPixelsImportProgram extends FromPixelsProgram {
-  useWgsl = true;
+  useWgsl: boolean = true;
+  layout: WebGPULayout = null;
 
   getUserCodeWgsl(): string {
     const userCode = `
-    [[binding(2), group(0)]] var src: texture_external;
+    [[binding(1), group(0)]] var src: texture_external;
 
     [[stage(compute), workgroup_size(${this.workGroupSize[0]}, 1, 1)]]
     fn main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {
@@ -44,9 +46,40 @@ export class FromPixelsImportProgram extends FromPixelsProgram {
     return userCode;
   }
 
-  getImportTexture(device: GPUDevice, externalImage: HTMLVideoElement):
-      GPUExternalTexture {
-    const externalTextureDescriptor = {source: externalImage};
-    return device.importExternalTexture(externalTextureDescriptor);
+  getLayout(device: GPUDevice): WebGPULayout {
+    if (this.layout === null) {
+      this.layout = this.createTextureImportLayout(device);
+    }
+    return this.layout;
+  }
+
+  private createTextureImportLayout(device: GPUDevice): WebGPULayout {
+    const bindGroupLayoutEntries: GPUBindGroupLayoutEntry[] = [];
+    // Output buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 0,
+      visibility: GPUShaderStage.COMPUTE,
+      buffer: {type: 'storage' as const}
+    });
+    // Input buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 1,
+      visibility: GPUShaderStage.COMPUTE,
+      externalTexture: {},
+    });
+    // Uniform buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 2,
+      visibility: GPUShaderStage.COMPUTE,
+      buffer: {type: 'uniform' as const}
+    });
+    const fromPixelImportBindGroupLayout =
+        device.createBindGroupLayout({entries: bindGroupLayoutEntries});
+    const fromPixelImportPipelineLayout = device.createPipelineLayout(
+        {bindGroupLayouts: [fromPixelImportBindGroupLayout]});
+    return {
+      bindGroupLayout: fromPixelImportBindGroupLayout,
+      pipelineLayout: fromPixelImportPipelineLayout
+    };
   }
 }
