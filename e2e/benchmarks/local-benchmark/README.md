@@ -63,3 +63,17 @@ shape = `[-1, 224, 224, 3]`), you are requires to set it to a valid shape
 In the Inputs section you will see an input box for you to update the shape.
 Once the shape is set, you can click the 'Run benchmark' button again to run
 the benchmark.
+
+# Benchmark test
+It's easy to set up a web server to host benchmarks and run against them via e2e/benchmarks/local-benchmark/index.html. Before testing, we need to manually specify all the configurations we'd like to use. For convenience, a bunch of url parameters are supported and listed as below.
+
+<b>architecture</b>: same as architecture<br>
+<b>backend</b>: same as backend<br>
+<b>bazelDir</b>: bazel directory for local build. Example: 'k8-fastbuild', 'darwin-fastbuild' or 'x64_windows-opt'<br>
+<b>benchmark</b>: same as models<br>
+<b>inputSize</b>: same as inputSizes<br>
+<b>inputType</b>: same as inputTypes<br>
+<b>localBuild</b>: local builds split by comma, which is different from npm packages. Example: 'webgl,core'<br>
+<b>run</b>: same as numRuns<br>
+<b>task</b>: correctness to "Test correctness" or performance to "Run benchmark"<br>
+<b>warmup</b>: same as numWarmups<br>
