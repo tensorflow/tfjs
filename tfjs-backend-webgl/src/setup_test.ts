@@ -52,3 +52,5 @@ if (typeof __karma__ !== 'undefined') {
 // Import and run tests from core.
 // tslint:disable-next-line:no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/tests';
+// Import and run tests from webgl.
+import './tests';
