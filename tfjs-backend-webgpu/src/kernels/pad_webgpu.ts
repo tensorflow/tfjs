@@ -32,17 +32,32 @@ export class PadProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   xShape: number[];
   size: number;
+  reshapeDispatch: boolean;
 
   constructor(xShape: number[], paddings: Array<[number, number]>) {
     this.outputShape = paddings.map(
         (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
+    this.size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
+    // If the dispatch size exceeds the limit size of the x dimension, we should
+    // reshape dispatch layout on x/y or x/y/z dimensions.
+    if (this.dispatch[0] > 65535) {
+      this.reshapeDispatch = true;
+      this.workGroupSize = [256, 1, 1];
+      const dispatchX = Math.ceil(this.size / 256) > 65535 ? 65535 :
+          Math.ceil(this.size / 256);
+      const dispatchY = Math.ceil(this.size / (256 * 65535)) > 65535 ? 65535 :
+          Math.ceil(this.size / (256 * 65535));
+      const dispatchZ = Math.ceil(this.size / (256 * 65535 * 65535));
+          this.dispatch = [dispatchX, dispatchY, dispatchZ];
+    } else {
+      this.reshapeDispatch = false;
+    }
     paddings.map((_, i) => this.uniforms += ` ivec2 pad${i};`);
     this.xShape = xShape;
-    this.shaderKey = 'pad';
-    this.size = util.sizeFromShape(this.outputShape);
+    this.shaderKey = `pad_${this.reshapeDispatch}`;
   }
 
   getUserCode(): string {
@@ -65,13 +80,16 @@ export class PadProgram implements WebGPUProgram {
     const unpackedCoords = rank > 1 ?
         ['coords[0]', 'coords[1]', 'coords[2]', 'coords[3]'].slice(0, rank) :
         'coords';
+    const flatIndexSnippet = this.reshapeDispatch ? `int((gl_WorkGroupID.z
+        * 65535 * 65535 + gl_WorkGroupID.y * 65535 + gl_WorkGroupID.x) * 256
+        + gl_LocalInvocationIndex)` : 'int(gl_GlobalInvocationID.x)';
 
     const userCode = `
       ${type} start = ${startValue};
       ${type} end = ${endValue};
 
       void main() {
-        int flatIndex = int(gl_GlobalInvocationID.x);
+        int flatIndex = ${flatIndexSnippet};
 
           if (flatIndex < size) {
             ${type} outC = getOutputCoords();

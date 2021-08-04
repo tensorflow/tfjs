@@ -32,29 +32,47 @@ export class UnaryOpProgram implements WebGPUProgram {
   useWgsl: boolean;
   op: UnaryOpType;
   size: number;
+  reshapeDispatch: boolean;
 
   constructor(outputShape: number[], op: UnaryOpType) {
     // TODO(jiajia.qin@intel.com): Heuristically select a good work group size.
     const workGroupSizeX = 128;
     this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = outputShape;
+    this.size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
+    // If the dispatch size exceeds the limit size of the x dimension, we should
+    // reshape dispatch layout on x/y or x/y/z dimensions.
+    if (this.dispatch[0] > 65535) {
+      this.reshapeDispatch = true;
+      this.workGroupSize = [256, 1, 1];
+      const dispatchX = Math.ceil(this.size / 256) > 65535 ? 65535 :
+          Math.ceil(this.size / 256);
+      const dispatchY = Math.ceil(this.size / (256 * 65535)) > 65535 ? 65535 :
+          Math.ceil(this.size / (256 * 65535));
+      const dispatchZ = Math.ceil(this.size / (256 * 65535 * 65535));
+      this.dispatch = [dispatchX, dispatchY, dispatchZ];
+    } else {
+      this.reshapeDispatch = false;
+    }
     this.useWgsl = getUseWgsl();
     this.op = op;
-    this.shaderKey = `unary_${op}`;
-    this.size = util.sizeFromShape(this.outputShape);
+    this.shaderKey = `unary_${op}_${this.reshapeDispatch}`;
   }
 
   getUserCode(): string {
+    const flatIndexSnippet = this.reshapeDispatch ? `int((gl_WorkGroupID.z
+        * 65535 * 65535 + gl_WorkGroupID.y * 65535 + gl_WorkGroupID.x) * 256
+        + gl_LocalInvocationIndex)` : 'int(gl_GlobalInvocationID.x)';
     return `
       float unaryOperation(float a) {
         ${getUnaryOpString(this.op)}
       }
 
       void main() {
-        int index = int(gl_GlobalInvocationID.x);
+        int index = ${flatIndexSnippet};
         if (index < size)
         {
           float a = getAAtOutCoords();
