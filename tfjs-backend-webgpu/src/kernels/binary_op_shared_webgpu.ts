@@ -36,6 +36,7 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
   op: BinaryOpType;
   size: number;
   sizeFit: boolean;
+  reshapeDispatch: boolean;
 
   constructor(
       op: BinaryOpType, aShape: number[], bShape: number[],
@@ -45,6 +46,7 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
     const workGroupSizeX = 256;
     this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
+    this.size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.lastDimensionSize = useSharedMemoryWithB ? bShape[0] : aShape[0];
     if (this.lastDimensionSize < 256) {
@@ -57,15 +59,30 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
+    // If the dispatch size exceeds the limit size of the x dimension, we should
+    // reshape dispatch layout on x/y or x/y/z dimensions.
+    if (this.dispatch[0] > 65535) {
+      this.reshapeDispatch = true;
+      this.workPerThread = 1;
+      this.workGroupSize = [256, 1, 1];
+      const dispatchX = Math.ceil(this.size / 256) > 65535 ? 65535 :
+          Math.ceil(this.size / 256);
+      const dispatchY = Math.ceil(this.size / (256 * 65535)) > 65535 ? 65535 :
+          Math.ceil(this.size / (256 * 65535));
+      const dispatchZ = Math.ceil(this.size / (256 * 65535 * 65535));
+      this.dispatch = [dispatchX, dispatchY, dispatchZ];
+    } else {
+      this.reshapeDispatch = false;
+    }
+
     this.useSharedMemoryWithB = useSharedMemoryWithB;
     this.op = op;
-    this.size = util.sizeFromShape(this.outputShape);
-    this.sizeFit =
+    this.sizeFit = this.reshapeDispatch ? false :
         this.size % (this.workGroupSize[0] * this.workPerThread) === 0;
     // this.lastDimensionSize is used as sharedBuf array size, so can not be
     // used as uniform.
     this.shaderKey = `binaryShared_${op}_${this.lastDimensionSize}_${
-        this.useSharedMemoryWithB}_${this.sizeFit}`;
+        this.useSharedMemoryWithB}_${this.sizeFit}_${this.reshapeDispatch}`;
   }
 
   getUserCode(): string {
@@ -91,6 +108,9 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
             setOutput(flatIndex, binaryOperation(a, b));
           }`;
     const opStr = getBinaryOpString(this.op);
+    const flatIndexSnippet = this.reshapeDispatch ? `int((gl_WorkGroupID.z
+        * 65535 * 65535 + gl_WorkGroupID.y * 65535 + gl_WorkGroupID.x) * 256
+        + gl_LocalInvocationIndex)` : 'int(gl_GlobalInvocationID.x)';
     const userCode = `
         float binaryOperation(float a, float b) {
           ${opStr}
@@ -98,7 +118,7 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
 
         shared float sharedBuf[${this.lastDimensionSize}];
         void main() {
-          int index = int(gl_GlobalInvocationID.x);
+          int index = ${flatIndexSnippet};
           int localIndex = int(gl_LocalInvocationIndex);
 
           // Fill in the shared memory buffer. Here we need a loop to make sure
