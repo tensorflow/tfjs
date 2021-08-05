@@ -38,6 +38,7 @@ tfjs_bundle(
         "//tfjs-backend-webgpu/src:tfjs-backend-webgpu_src_lib",
     ],
 )
+
 ts_library_outputs(
     name = "tfjs-backend-webgpu_outputs",
     srcs = [
