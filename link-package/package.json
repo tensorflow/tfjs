@@ -2,22 +2,19 @@
   "name": "link-package",
   "version": "1.0.0",
   "description": "A package to help resolve npm link dependencies during the Bazel transition. Other packages link to the packages installed in its node_modules directory. Should never be published.",
-  "main": "index.js",
   "license": "Apache 2.0",
   "private": true,
   "scripts": {
-    "build": "yarn build-backend-cpu && yarn build-backend-webgl && yarn build-core && yarn build-tflite && yarn reinstall",
-    "build-backend-cpu": "cd ../tfjs-backend-cpu && yarn && yarn build",
+    "build": "yarn build-link-package-core && yarn build-backend-webgl && yarn reinstall",
+    "build-link-package-core": "cd ../link-package-core && yarn build",
     "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build",
-    "build-core": "cd ../tfjs-core && yarn && yarn build",
-    "build-tflite": "cd ../tfjs-tflite && yarn && yarn build",
-    "reinstall": "yarn && yarn cache clean @tensorflow/tfjs-core && yarn cache clean @tensorflow/tfjs-backend-cpu && yarn cache clean @tensorflow/tfjs-tflite && rimraf node_modules && yarn"
+    "reinstall-link-package-core": "cd ../link-package-core && yarn reinstall",
+    "reinstall": "yarn && yarn reinstall-link-package-core && yarn cache clean @tensorflow/tfjs-backend-webgl && rimraf node_modules && yarn"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-backend-cpu": "file:../dist/bin/tfjs-backend-cpu/tfjs-backend-cpu_pkg",
+    "@tensorflow/tfjs-backend-cpu": "link:../link-package-core/node_modules/@tensorflow/tfjs-backend-cpu",
+    "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core",
     "@tensorflow/tfjs-backend-webgl": "file:../dist/bin/tfjs-backend-webgl/tfjs-backend-webgl_pkg",
-    "@tensorflow/tfjs-core": "file:../dist/bin/tfjs-core/tfjs-core_pkg",
-    "@tensorflow/tfjs-tflite": "file:../dist/bin/tfjs-tflite/tfjs-tflite_pkg",
     "rimraf": "^3.0.2"
   }
 }
