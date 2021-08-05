@@ -8,7 +8,7 @@
   "tfjs-node": ["tfjs"],
   "tfjs-node-gpu": ["tfjs"],
   "tfjs-backend-wasm": ["tfjs-core"],
-  "tfjs-backend-webgpu": ["tfjs-core", "tfjs-converter"],
+  "tfjs-backend-webgpu": ["tfjs-core"],
   "tfjs-inference": [],
   "tfjs-react-native": [],
   "tfjs-vis": [],
