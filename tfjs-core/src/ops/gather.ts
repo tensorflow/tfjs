@@ -22,6 +22,7 @@ import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
+import * as util from '../util';
 
 import {op} from './operation';
 
@@ -55,6 +56,18 @@ function gather_<T extends Tensor>(
     x: T|TensorLike, indices: Tensor|TensorLike, axis = 0, batchDims = 0): T {
   const $x = convertToTensor(x, 'x', 'gather');
   const $indices = convertToTensor(indices, 'indices', 'gather', 'int32');
+
+  util.assert(
+      axis < $x.rank,
+      () => 'GatherV2: axis must be < rank of the input tensor');
+  const indicesVal = Array.from($indices.dataSync());
+  const axisDim = $x.shape[axis];
+  indicesVal.forEach(index => {
+    util.assert(
+        index <= axisDim - 1 && index >= 0,
+        () =>
+            `GatherV2: the index value ${index} is not in [0, ${axisDim - 1}]`);
+  });
 
   const inputs: GatherV2Inputs = {x: $x, indices: $indices};
   const attrs: GatherV2Attrs = {axis, batchDims};
