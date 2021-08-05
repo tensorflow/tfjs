@@ -38,6 +38,14 @@ steps:
     secretEnv:
       - BROWSERSTACK_KEY
   - name: 'node:10'
+    dir: link-package-core
+    entrypoint: yarn
+    id: yarn-link-package-core
+    args:
+      - install
+    waitFor:
+      - bazel-tests
+  - name: 'node:10'
     dir: link-package
     entrypoint: yarn
     id: yarn-link-package
@@ -45,6 +53,7 @@ steps:
       - install
     waitFor:
       - bazel-tests
+      - yarn-link-package-core
   - name: 'node:10'
     dir: tfjs-converter
     entrypoint: yarn
