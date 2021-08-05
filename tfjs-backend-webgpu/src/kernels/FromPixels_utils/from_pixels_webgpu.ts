@@ -16,9 +16,8 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-import {WebGPULayout} from '../../backend_webgpu';
 
-import {computeDispatch, flatDispatchLayout} from '../../webgpu_util';
+import {computeDispatch, flatDispatchLayout, WebGPULayout} from '../../webgpu_util';
 import {WebGPUProgram} from '../webgpu_program';
 
 export class FromPixelsProgram implements WebGPUProgram {
