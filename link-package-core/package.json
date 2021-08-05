@@ -1,5 +1,5 @@
 {
-  "name": "link-package-webgpu",
+  "name": "link-package-core",
   "version": "1.0.0",
   "description": "A package to help resolve npm link dependencies during the Bazel transition. tfjs-backend-webgpu links to the packages installed in its node_modules directory. Should never be published.",
   "license": "Apache 2.0",
