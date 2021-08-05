@@ -9,17 +9,17 @@ This package will work on Linux, Windows, and Mac platforms where TensorFlow is 
 TensorFlow.js for Node currently supports the following platforms:
 - Mac OS X CPU (10.12.6 Siera or higher)
 - Linux CPU (Ubuntu 14.04 or higher)
-- Linux GPU (Ubuntu 14.04 or higher and Cuda 10.0 w/ CUDNN v7) ([see installation instructions](https://www.tensorflow.org/install/gpu#software_requirements))
+- Linux GPU (Ubuntu 14.04 or higher and Cuda 11.2 w/ CUDNN v8) ([see installation instructions](https://www.tensorflow.org/install/gpu#software_requirements))
 - Windows CPU (Win 7 or higher)
-- Windows GPU (Win 7 or higher and Cuda 10.0 w/ CUDNN v7) ([see installation instructions](https://www.tensorflow.org/install/gpu#windows_setup))
+- Windows GPU (Win 7 or higher and Cuda 11.2 w/ CUDNN v8) ([see installation instructions](https://www.tensorflow.org/install/gpu#windows_setup))
 
 For GPU support, tfjs-node-gpu@1.2.4 or later requires the following NVIDIA® software installed on your system:
 
 | Name | Version |
 | ------------- | ------------- |
-| [NVIDIA® GPU drivers](https://www.nvidia.com/Download/index.aspx?lang=en-us) | >410.x  |
-| [CUDA® Toolkit](https://developer.nvidia.com/cuda-10.0-download-archive)  | 10.0  |
-| [cuDNN SDK](https://developer.nvidia.com/rdp/cudnn-download)  | >=7.4.1  |
+| [NVIDIA® GPU drivers](https://www.nvidia.com/Download/index.aspx?lang=en-us) | >450.x  |
+| [CUDA® Toolkit](https://developer.nvidia.com/cuda-toolkit-archive)  | 11.2  |
+| [cuDNN SDK](https://developer.nvidia.com/rdp/cudnn-download)  | 8.1.0  |
 
 *Other Linux variants might also work but this project matches [core TensorFlow installation requirements](https://www.tensorflow.org/install/install_linux).*
 
