@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import "@webgpu/types";
+import '@webgpu/types';
 import './flags_webgpu';
 
 import {backend_util, buffer, DataStorage, DataType, DataValues, engine, env, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, util} from '@tensorflow/tfjs-core';
