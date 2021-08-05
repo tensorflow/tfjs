@@ -61,7 +61,7 @@
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "bazel run :tfjs-backend-webgl_pkg.publish",
     "lint": "tslint -p . -t verbose",
-    "test": "bazel test :tfjs-backend-webgl_test --test_output=streamed",
+    "test": "yarn test-dev",
     "test-dev": "ibazel run :tfjs-backend-webgl_test --test-output=streamed",
     "coverage": "KARMA_COVERAGE=1 karma start --browsers='Chrome' --singleRun",
     "run-browserstack": "bazel test :browserstack_bs_chrome_mac_tfjs-backend-webgl_test"
