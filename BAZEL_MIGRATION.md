@@ -360,6 +360,8 @@ You should also add a script to build the package itself without publishing (use
 
 ### Update Downstream `package.json` Paths
 
+If no packages depend on your package (i.e. no `package.json` file includes your package via a `link` dependency), then you can skip this section.
+
 As a core featue of its design, Bazel places outputs in a different directory than sources. Outputs are symlinked to `dist/bin/[package-name]/.....` instead of appearing in `[package-name]/dist`. Due to the different location, all downstream packages' `package.json` files need to be updated to point to the new outputs. However, due to some details of how Bazel and the Node module resolution algorithm work, we can't directly `link:` to Bazel's output.
 
 Instead, we maintain a `link-package` pseudopackage where we copy the Bazel outputs. This package allows for correct Node module resolution between Bazel outputs because it has its own `node_modules` folder. This package will never be published and will be removed once the migration is complete.
@@ -370,6 +372,7 @@ Add your package to the `devDependencies` of the `link-package`'s `package.json`
 ```json
 "devDependencies": {
   "@tensorflow/tfjs-core": "file:../dist/bin/tfjs-core/tfjs-core_pkg",
+  "@tensorflow/your-package": "file:../dist/bin/...",
 }
 ```
 
@@ -380,7 +383,15 @@ Add a script to build your package to the link-package's `package.json`. Be sure
 "scripts": {
   "build": "yarn build-backend-cpu && yarn build-core && yarn reinstall",
   "build-core": "cd ../tfjs-core && yarn && yarn build",
+  "build-your-package": "...",
 },
+```
+
+#### Add your package to the `reinstall` script
+This ensures that when the link package is rebuilt, it uses the most up-to-date version of your package.
+
+```json
+    "reinstall": "yarn && yarn reinstall-link-package-core && yarn cache clean @tensorflow/your-package && ... && rimraf node_modules && yarn"
 ```
 
 #### Change Downstream Dependency `package.json` Paths
@@ -389,10 +400,11 @@ Update all downstream dependencies that depend on the package to point to its lo
 ```json
 "devDependencies": {
   "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
+  "@tensorflow/your-package": "link:../link-package/node_modules/@tensorflow/your-package",
 },
 ```
 
-To find downstream packages, run `grep -r --exclude=yarn.lock --exclude-dir=node_modules "link:.*the-package-name" .` in the root of the repository.
+To find downstream packages, run `grep -r --exclude=yarn.lock --exclude-dir=node_modules "link:.*your-package-name" .` in the root of the repository.
 
 ### Update or Remove `cloudbuild.yml`
 Update the `cloudbuild.yml` to remove any steps that are now built with Bazel. These will be run by the `bazel-tests` step, which runs before other packages' steps. Any Bazel rule tagged as `ci` will be tested / build in CI.
