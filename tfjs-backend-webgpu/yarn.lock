@@ -926,7 +926,7 @@
   version "0.0.0"
   uid ""
 
-"@tensorflow/tfjs-core@link:../link-package/node_modules/@tensorflow/tfjs-core":
+"@tensorflow/tfjs-core@link:../link-package-core/node_modules/@tensorflow/tfjs-core":
   version "0.0.0"
   uid ""
 

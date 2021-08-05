@@ -33,7 +33,7 @@
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
-    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
+    "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core",
     "@types/jasmine": "~3.0.0",
     "clang-format": "~1.5.0",
     "jasmine": "~3.1.0",
