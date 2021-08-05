@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import {WebGPULayout} from '../../backend_webgpu';
+import {WebGPULayout} from '../../webgpu_util';
 import {FromPixelsProgram} from './from_pixels_webgpu';
 
 export class FromPixelsImportProgram extends FromPixelsProgram {
-  useWgsl: boolean = true;
+  useWgsl = true;
   layout: WebGPULayout = null;
 
   getUserCodeWgsl(): string {
