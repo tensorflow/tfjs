@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/elu_impl.h"
 #include "tfjs-backend-wasm/src/cc/leakyrelu_impl.h"
 #include "tfjs-backend-wasm/src/cc/prelu_impl.h"
 #include "tfjs-backend-wasm/src/cc/sigmoid_impl.h"
@@ -309,6 +310,8 @@ void fused_batch_mat_mul(const size_t a_id, const size_t* a_shape_ptr,
     leakyrelu(out_buf, out_info.size, leakyrelu_alpha, out_id);
   } else if (activation == FusableActivation::SIGMOID) {
     sigmoid(out_buf, out_info.size, out_id);
+  } else if (activation == FusableActivation::ELU) {
+    elu(out_buf, out_info.size, out_id);
   }
 }
 }  // namespace wasm
