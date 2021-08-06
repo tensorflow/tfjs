@@ -27,7 +27,6 @@ filegroup(
     srcs = glob(
         ["**/*_test.ts"],
         exclude = [
-            "backends/**/*",
             "setup_test.ts",
         ],
     ),
