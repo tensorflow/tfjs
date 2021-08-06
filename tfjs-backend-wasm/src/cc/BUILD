@@ -153,7 +153,7 @@ tfjs_cc_library(
     hdrs = ["conv2d_impl.h"],
     deps = [
         ":backend",
-	      ":elu_impl",
+        ":elu_impl",
         ":leakyrelu_impl",
         ":prelu_impl",
         ":sigmoid_impl",
@@ -168,7 +168,7 @@ tfjs_cc_library(
     hdrs = ["batch_mat_mul_impl.h"],
     deps = [
         ":backend",
-	      ":elu_impl",
+        ":elu_impl",
         ":leakyrelu_impl",
         ":prelu_impl",
         ":sigmoid_impl",
