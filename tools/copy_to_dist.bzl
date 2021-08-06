@@ -23,6 +23,12 @@ def _copy_to_dist_impl(ctx):
     outputs = []
     for f in files:
         dest_path = paths.join(ctx.attr.dest_dir, paths.relativize(f.short_path, root_dir))
+        if ctx.attr.extension:
+            if f.extension:
+                dest_path = dest_path[:-len(f.extension)] + ctx.attr.extension
+            else:
+                dest_path = dest_path + "." + ctx.attr.extension
+
         out = ctx.actions.declare_file(dest_path)
         outputs.append(out)
         ctx.actions.symlink(
@@ -38,6 +44,9 @@ copy_to_dist = rule(
         "dest_dir": attr.string(
             default = "dist",
             doc = "Destination directory to copy the source file tree to",
+        ),
+        "extension": attr.string(
+            doc = "New file extension to use for each file",
         ),
         "root": attr.string(
             default = "",

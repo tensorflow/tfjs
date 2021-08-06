@@ -887,11 +887,14 @@
     estree-walker "^1.0.1"
     picomatch "^2.2.2"
 
+"@tensorflow/tfjs-backend-cpu@link:../link-package/node_modules/@tensorflow/link-package/node_modules/@tensorflow/tfjs-backend-cpu":
+  version "0.0.0"
+
 "@tensorflow/tfjs-backend-cpu@link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu":
   version "0.0.0"
   uid ""
 
-"@tensorflow/tfjs-backend-webgl@link:../tfjs-backend-webgl":
+"@tensorflow/tfjs-backend-webgl@link:../link-package/node_modules/@tensorflow/tfjs-backend-webgl":
   version "0.0.0"
   uid ""
 

@@ -19,7 +19,8 @@ import {version_core} from './index';
 
 describe('version', () => {
   it('version is contained', () => {
-    const expected = require('@tensorflow/tfjs-core/package.json').version;
+    //const expected = require('@tensorflow/tfjs-core/package.json').version;
+    const expected = require('tfjs-core/package.json').version;
     expect(version_core).toBe(expected);
   });
 });

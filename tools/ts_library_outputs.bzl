@@ -13,6 +13,8 @@
 # limitations under the License.
 # =============================================================================
 
+load("//tools:copy_to_dist.bzl", "copy_to_dist")
+
 """Extracts the file outputs of ts_library"""
 
 def ts_library_outputs(name, srcs):
@@ -44,4 +46,58 @@ def ts_library_outputs(name, srcs):
     native.filegroup(
         name = name,
         srcs = [es6, es5, declaration],
+    )
+
+def copy_ts_library_to_output(name, srcs, root="src"):
+    # Declaration (.d.ts) files
+    declaration = name + "_declaration"
+    native.filegroup(
+        name = declaration,
+        srcs = srcs,
+    )
+
+    # ES Module es2017 compilation results. This is configured in
+    # tools/defaults.bzl. Outputs '.mjs' files.
+    esm = name + "_esm_sources"
+    native.filegroup(
+        name = esm,
+        srcs = srcs,
+        output_group = "es6_sources",
+    )
+
+    copy_esm = name + "_copy_esm"
+    copy_to_dist(
+        name = copy_esm,
+        srcs = [esm],
+        root = root,
+        dest_dir = "esm",
+        extension = "js", # Rewrite '.mjs' extension to '.js'
+    )
+
+    copy_esm_declaration = name + "_copy_esm_declaration"
+    copy_to_dist(
+        name = copy_esm_declaration,
+        srcs = [declaration],
+        root = root,
+        dest_dir = "esm",
+    )
+
+    # Commonjs es2017 compilation results. Outputs '.js' files
+    cjs = name + "_cjs_sources"
+    native.filegroup(
+        name = cjs,
+        srcs = srcs,
+        output_group = "es5_sources",
+    )
+
+    copy_cjs = name + "_copy_cjs"
+    copy_to_dist(
+        name = copy_cjs,
+        srcs = [cjs, declaration],
+        root = root,
+    )
+
+    native.filegroup(
+        name = name,
+        srcs = [copy_esm, copy_esm_declaration, copy_cjs],
     )
