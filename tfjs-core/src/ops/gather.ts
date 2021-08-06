@@ -60,14 +60,6 @@ function gather_<T extends Tensor>(
   util.assert(
       axis < $x.rank,
       () => 'GatherV2: axis must be < rank of the input tensor');
-  const indicesVal = Array.from($indices.dataSync());
-  const axisDim = $x.shape[axis];
-  indicesVal.forEach(index => {
-    util.assert(
-        index <= axisDim - 1 && index >= 0,
-        () =>
-            `GatherV2: the index value ${index} is not in [0, ${axisDim - 1}]`);
-  });
 
   const inputs: GatherV2Inputs = {x: $x, indices: $indices};
   const attrs: GatherV2Attrs = {axis, batchDims};
