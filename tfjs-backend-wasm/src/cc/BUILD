@@ -271,6 +271,7 @@ tfjs_cc_library(
         ":ArgMax",
         ":AvgPool",
         ":BatchMatMul",
+        ":Bincount",
         ":ClipByValue",
         ":Conv2D",
         ":Conv2DBackpropInput",
@@ -415,6 +416,15 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":batch_mat_mul_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Bincount",
+    srcs = ["kernels/Bincount.cc"],
+    deps = [
+        ":backend",
         ":util",
     ],
 )
