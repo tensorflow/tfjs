@@ -30,7 +30,7 @@ steps:
   waitFor: ['yarn', 'build-deps']
 
 # Run tests.
-- name: 'gcr.io/learnjs-174218/release'
+- name: 'node:11'
   dir: 'tfjs-backend-webgpu'
   entrypoint: 'yarn'
   id: 'test-webgpu'
