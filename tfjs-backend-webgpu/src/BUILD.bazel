@@ -13,7 +13,7 @@
 # limitations under the License.
 # =============================================================================
 
-load("//tools:defaults.bzl", "ts_library")
+load("//tools:defaults.bzl", "esbuild", "ts_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -61,7 +61,30 @@ ts_library(
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
         "//tfjs-core/src:tfjs-core_test_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
         "@npm//@types/jasmine",
         "@npm//jasmine",
+        "@npm//@webgpu/glslang",
+    ],
+)
+
+esbuild(
+    name = "tfjs-backend-webgpu_test_bundle",
+    testonly = True,
+    entry_point = "setup_test.ts",
+    external = [
+        # webworker tests call 'require('@tensorflow/tfjs')', which
+        # is external to the test bundle.
+        # Note: This is not a bazel target. It's just a string.
+        "@tensorflow/tfjs",
+        "worker_threads",
+        "util",
+    ],
+    sources_content = True,
+    deps = [
+        ":tfjs-backend-webgpu_lib",
+        ":tfjs-backend-webgpu_test_lib",
+        "//tfjs-core/src:tfjs-core_test_bundle",
     ],
 )
