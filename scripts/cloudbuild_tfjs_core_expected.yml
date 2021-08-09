@@ -64,11 +64,10 @@ steps:
       - yarn-common
       - yarn-link-package
   - name: gcr.io/google-appengine/python
-    dir: tfjs-converter/python
     entrypoint: bash
     id: test-python-pip-tfjs-converter
     args:
-      - ./build-pip-package.sh
+      - ./tfjs-converter/python/build-pip-package.sh
       - '--test'
       - /tmp/tfjs-pips
     waitFor:
