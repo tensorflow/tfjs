@@ -226,8 +226,17 @@ const SHADER_PREFIX = `
   }
 
   fn greaterThanVec4F32(a : vec4<f32>, b : vec4<f32>) -> vec4<f32> {
-    let resultBool = vec4<bool>(a > b);
-    return vec4BoolToVec4F32(resultBool);
+    var res = vec4<f32>(0.0);
+    for (var i = 0u; i < 4u; i = i + 1u) {
+      if (isNanCustom(a[i])) {
+        res[i] = 0.0;
+      } elseif (isNanCustom(b[i])) {
+        res[i] = 0.0;
+      } elseif (a[i] > b[i]) {
+        res[i] = 1.0;
+      }
+    }
+    return res;
   }
 
   fn greaterThanEqualF32(a : f32, b : f32) -> f32 {
@@ -238,8 +247,17 @@ const SHADER_PREFIX = `
   }
 
   fn greaterThanEqualVec4F32(a : vec4<f32>, b : vec4<f32>) -> vec4<f32> {
-    let resultBool = vec4<bool>(a >= b);
-    return vec4BoolToVec4F32(resultBool);
+    var res = vec4<f32>(0.0);
+    for (var i = 0u; i < 4u; i = i + 1u) {
+      if (isNanCustom(a[i])) {
+        res[i] = 0.0;
+      } elseif (isNanCustom(b[i])) {
+        res[i] = 0.0;
+      } elseif (a[i] >= b[i]) {
+        res[i] = 1.0;
+      }
+    }
+    return res;
   }
 
   fn lessF32(a : f32, b : f32) -> f32 {
@@ -250,8 +268,17 @@ const SHADER_PREFIX = `
   }
 
   fn lessVec4F32(a : vec4<f32>, b : vec4<f32>) -> vec4<f32> {
-    let resultBool = vec4<bool>(a < b);
-    return vec4BoolToVec4F32(resultBool);
+    var res = vec4<f32>(0.0);
+    for (var i = 0u; i < 4u; i = i + 1u) {
+      if (isNanCustom(a[i])) {
+        res[i] = 0.0;
+      } elseif (isNanCustom(b[i])) {
+        res[i] = 0.0;
+      } elseif (a[i] < b[i]) {
+        res[i] = 1.0;
+      }
+    }
+    return res;
   }
 
   fn lessEqualF32(a : f32, b : f32) -> f32 {
@@ -262,8 +289,17 @@ const SHADER_PREFIX = `
   }
 
   fn lessEqualVec4F32(a : vec4<f32>, b : vec4<f32>) -> vec4<f32> {
-    let resultBool = vec4<bool>(a <= b);
-    return vec4BoolToVec4F32(resultBool);
+    var res = vec4<f32>(0.0);
+    for (var i = 0u; i < 4u; i = i + 1u) {
+      if (isNanCustom(a[i])) {
+        res[i] = 0.0;
+      } elseif (isNanCustom(b[i])) {
+        res[i] = 0.0;
+      } elseif (a[i] <= b[i]) {
+        res[i] = 1.0;
+      }
+    }
+    return res;
   }
 
   // Checks whether coordinates lie within the bounds of the shape.
