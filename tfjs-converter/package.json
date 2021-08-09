@@ -69,7 +69,6 @@
     "test-snippets": "bazel test :test_snippets_test --test_output=all",
     "test-snippets-ci": "yarn test-snippets",
     "lint": "tslint -p . -t verbose",
-    "make-version": "sh -c ./scripts/make-version",
     "gen-doc": "ts-node -s ./scripts/gen_doc.ts",
     "model-summary": "ts-node -s ./tools/model_summary.ts",
     "pb2json": "ts-node -s ./tools/pb2json_converter.ts",

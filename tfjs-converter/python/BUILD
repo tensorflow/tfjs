@@ -86,7 +86,7 @@ py_wheel(
         "tfjs-converter/python",
     ],
     tags = ["ci"],
-    version = "3.8.0",
+    version = "0.0.0",
     #keywords='tensorflow javascript machine deep learning converter',
     deps = [
         ":tensorflowjs_pkg",
@@ -135,7 +135,7 @@ py_wheel(
         "tfjs-converter/python",
     ],
     tags = ["ci"],
-    version = "3.8.0",
+    version = "0.0.0",
     #keywords='tensorflow javascript machine deep learning converter',
     deps = [
         ":tensorflowjs_pkg",
