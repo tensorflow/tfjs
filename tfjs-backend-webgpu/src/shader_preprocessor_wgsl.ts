@@ -40,6 +40,8 @@ function mapToTypesWgsl(type: DataType, isVec4: boolean): DataTypeWGSL|
   } else if (type === 'int32') {
     return isVec4 ? 'vec4<i32>' : 'i32';
   } else if (type === 'bool') {
+    // Type 'bool' cannot be used in storage class,
+    // https://www.w3.org/TR/WGSL/#host-shareable-types.
     return isVec4 ? 'vec4<i32>' : 'i32';
   }
 
