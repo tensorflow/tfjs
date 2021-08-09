@@ -18,8 +18,9 @@
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType} from '../shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+import {computeDispatch, flatDispatchLayout, reshapeComputeDispatch} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
+import {getReshapeDispatchGlobalInvocationID} from '../shader_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -65,12 +66,7 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
       this.reshapeDispatch = true;
       this.workPerThread = 1;
       this.workGroupSize = [256, 1, 1];
-      const dispatchX = Math.ceil(this.size / 256) > 65535 ? 65535 :
-          Math.ceil(this.size / 256);
-      const dispatchY = Math.ceil(this.size / (256 * 65535)) > 65535 ? 65535 :
-          Math.ceil(this.size / (256 * 65535));
-      const dispatchZ = Math.ceil(this.size / (256 * 65535 * 65535));
-      this.dispatch = [dispatchX, dispatchY, dispatchZ];
+      this.dispatch = reshapeComputeDispatch(this.size, this.workGroupSize);
     } else {
       this.reshapeDispatch = false;
     }
@@ -82,7 +78,7 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
     // this.lastDimensionSize is used as sharedBuf array size, so can not be
     // used as uniform.
     this.shaderKey = `binaryShared_${op}_${this.lastDimensionSize}_${
-        this.useSharedMemoryWithB}_${this.sizeFit}_${this.reshapeDispatch}`;
+        this.useSharedMemoryWithB}_${this.sizeFit}`;
   }
 
   getUserCode(): string {
@@ -108,9 +104,8 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
             setOutput(flatIndex, binaryOperation(a, b));
           }`;
     const opStr = getBinaryOpString(this.op);
-    const flatIndexSnippet = this.reshapeDispatch ? `int((gl_WorkGroupID.z
-        * 65535 * 65535 + gl_WorkGroupID.y * 65535 + gl_WorkGroupID.x) * 256
-        + gl_LocalInvocationIndex)` : 'int(gl_GlobalInvocationID.x)';
+    const flatIndexSnippet = this.reshapeDispatch ?
+        getReshapeDispatchGlobalInvocationID() : 'int(gl_GlobalInvocationID.x)';
     const userCode = `
         float binaryOperation(float a, float b) {
           ${opStr}

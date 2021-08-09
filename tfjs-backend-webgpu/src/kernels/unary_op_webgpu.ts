@@ -16,9 +16,10 @@
  */
 import {util} from '@tensorflow/tfjs-core';
 
-import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+import {computeDispatch, flatDispatchLayout, reshapeComputeDispatch} from '../webgpu_util';
 import {getWorkGroupSizeString} from '../webgpu_util_wgsl';
 import {getUnaryOpString, UnaryOpType} from './unary_op_util';
+import {getReshapeDispatchGlobalInvocationID} from '../shader_util';
 
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
@@ -43,29 +44,21 @@ export class UnaryOpProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    // If the dispatch size exceeds the limit size of the x dimension, we should
-    // reshape dispatch layout on x/y or x/y/z dimensions.
     if (this.dispatch[0] > 65535) {
       this.reshapeDispatch = true;
       this.workGroupSize = [256, 1, 1];
-      const dispatchX = Math.ceil(this.size / 256) > 65535 ? 65535 :
-          Math.ceil(this.size / 256);
-      const dispatchY = Math.ceil(this.size / (256 * 65535)) > 65535 ? 65535 :
-          Math.ceil(this.size / (256 * 65535));
-      const dispatchZ = Math.ceil(this.size / (256 * 65535 * 65535));
-      this.dispatch = [dispatchX, dispatchY, dispatchZ];
+      this.dispatch = reshapeComputeDispatch(this.size, this.workGroupSize);
     } else {
       this.reshapeDispatch = false;
     }
     this.useWgsl = getUseWgsl();
     this.op = op;
-    this.shaderKey = `unary_${op}_${this.reshapeDispatch}`;
+    this.shaderKey = `unary_${op}`;
   }
 
   getUserCode(): string {
-    const flatIndexSnippet = this.reshapeDispatch ? `int((gl_WorkGroupID.z
-        * 65535 * 65535 + gl_WorkGroupID.y * 65535 + gl_WorkGroupID.x) * 256
-        + gl_LocalInvocationIndex)` : 'int(gl_GlobalInvocationID.x)';
+    const flatIndexSnippet = this.reshapeDispatch ?
+        getReshapeDispatchGlobalInvocationID() : 'int(gl_GlobalInvocationID.x)';
     return `
       float unaryOperation(float a) {
         ${getUnaryOpString(this.op)}

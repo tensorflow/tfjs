@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {DataType} from '@tensorflow/tfjs-core';
+import {DataType, util} from '@tensorflow/tfjs-core';
 
 const arrayProduct = (arr: number[]) => {
   let product = 1;
@@ -56,6 +56,25 @@ export function computeDispatch(
                    (workGroupSize[2] * elementsPerThread[2])) :
                1
   ];
+}
+
+// If flat dispatch layout only on x dimension and the dispatch size exceeds
+// the limit size of the x dimension, we should reshape dispatch layout on
+// x/y or x/y/z dimensions. We may not need to reshape the dispatch size if
+// enlarge the work group size to [256, 1, 1], which is maximum limit size.
+export function reshapeComputeDispatch(size: number,
+    workGroupSize: [number, number, number]): [number, number, number] {
+  util.assert(workGroupSize[0] === 256 && workGroupSize[1] === 1 &&
+      workGroupSize[2] === 1, () => `The work group size must be [256, 1, 1] ` +
+          `when reshaping dispatch size for exceeding the limit size.`);
+
+  // The maximum dispatch size is 65535 for x/y/z dimensions.
+  const dispatchX = Math.ceil(size / 256) > 65535 ? 65535 :
+      Math.ceil(size / 256);
+  const dispatchY = Math.ceil(size / (256 * 65535)) > 65535 ? 65535 :
+      Math.ceil(size / (256 * 65535));
+  const dispatchZ = Math.ceil(size / (256 * 65535 * 65535));
+  return [dispatchX, dispatchY, dispatchZ];
 }
 
 export function computeWorkGroupSizeForConv2d(

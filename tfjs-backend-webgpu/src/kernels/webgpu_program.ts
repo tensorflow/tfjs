@@ -45,6 +45,7 @@ export interface WebGPUProgram {
   isVec4?: boolean;
   // size is used for bounds checking.
   size?: number;
+  reshapeDispatch?: boolean;
   getUserCode: () => string;
 }
 
@@ -102,10 +103,15 @@ export function makeShaderKey<R extends Rank>(
   if (program.useWgsl) {
     useWgslKey = '_1';
   }
+  let reshapeDispatchKey = '';
+  if (program.reshapeDispatch) {
+    reshapeDispatchKey = '_reshapeDispatch';
+  }
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
       shapes.map(shape => shape.length).join(',') + types.join(',') +
       program.variableNames.join(',') + broadcastDimsKey +
-      inputShapesEqualsOutShape + program.shaderKey + useWgslKey;
+      inputShapesEqualsOutShape + program.shaderKey + reshapeDispatchKey +
+      useWgslKey;
   return key;
 }
 
