@@ -189,7 +189,7 @@ steps:
       - yarn-tfjs-backend-webgpu
       - yarn-common
       - yarn-link-package
-  - name: 'node:11'
+  - name: 'node:10'
     dir: tfjs-backend-webgpu
     entrypoint: yarn
     id: test-webgpu-tfjs-backend-webgpu
