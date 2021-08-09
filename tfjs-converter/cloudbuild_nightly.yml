@@ -14,6 +14,18 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
+# Bazel tests
+# These use a remote cache and only re-run if changes occurred, so we run them
+# in every build.
+- name: 'node:10'
+  id: 'bazel-tests'
+  entrypoint: 'bash'
+  args:
+    - './tfjs-converter/scripts/create_python_pips.sh'
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  waitFor: ['yarn-common']
+  secretEnv: ['BROWSERSTACK_KEY']
+
 # Run python tests.
 - name: 'gcr.io/google-appengine/python'
   dir: 'tfjs-converter/python'
