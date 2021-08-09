@@ -22,8 +22,8 @@
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "./scripts/publish-npm.sh",
     "lint": "tslint -p . -t verbose",
-    "test": "yarn && yarn build-deps && karma start --browsers=chrome_webgpu --excludeTest=src/benchmark_*_test.ts",
-    "test-dev": "karma start --browsers=chrome_webgpu --excludeTest=src/benchmark_*_test.ts",
+    "test": "bazel test :tfjs-backend-webgpu_test --test_output=streamed",
+    "test-dev": "ibazel run :tfjs-backend-webgpu_test --test-output=streamed",
     "test-ci": "./scripts/test-ci.sh",
     "unlink-local": "yalc remove"
   },
