@@ -137,20 +137,19 @@ const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
 const SUB = 'return a - b;';
 
 // WGSL shader.
-const EQUAL_WGSL = 'if (a == b) { return 1.0; } return 0.0;';
-const EQUAL_VEC4_WGSL = 'return vec4BoolToVec4F32(a == b);';
-const GREATER_WGSL = 'return greaterThanF32(a, b);';
-const GREATER_VEC4_WGSL = 'return greaterThanVec4F32(a, b);';
-const GREATER_EQUAL_WGSL = 'return greaterThanEqualF32(a, b);';
-const GREATER_EQUAL_VEC4_WGSL = 'return greaterThanEqualVec4F32(a, b);';
-const LESS_WGSL = 'return lessF32(a, b);';
-const LESS_VEC4_WGSL = 'return lessVec4F32(a, b);';
-const LESS_EQUAL_WGSL = 'return lessEqualF32(a, b);';
-const LESS_EQUAL_VEC4_WGSL = 'return lessEqualVec4F32(a, b);';
-const LOGICAL_AND_WGSL = 'return boolToF32(f32(a) >= 1.0 && f32(b) >= 1.0);';
-const LOGICAL_AND_VEC4_WGSL = `return vec4<f32>(
-  greaterThanEqualVec4F32(a, vec4<f32>(1.0)) *
-  greaterThanEqualVec4F32(b, vec4<f32>(1.0)));`;
+const EQUAL_WGSL = 'return f32(a == b);';
+const EQUAL_VEC4_WGSL = 'return vec4<f32>(a == b);';
+const GREATER_WGSL = 'return f32(a > b);';
+const GREATER_VEC4_WGSL = 'return vec4<f32>(a > b);';
+const GREATER_EQUAL_WGSL = 'return f32(a >= b);';
+const GREATER_EQUAL_VEC4_WGSL = 'return vec4<f32>(a >= b);';
+const LESS_WGSL = 'return f32(a < b);';
+const LESS_VEC4_WGSL = 'return vec4<f32>(a < b);';
+const LESS_EQUAL_WGSL = 'return f32(a <= b);';
+const LESS_EQUAL_VEC4_WGSL = 'return vec4<f32>(a <= b);';
+const LOGICAL_AND_WGSL = 'return f32(f32(a) >= 1.0 && f32(b) >= 1.0);';
+const LOGICAL_AND_VEC4_WGSL = `return (vec4<f32>(a >= vec4<f32>(1.0)) *
+  vec4<f32>(b >= vec4<f32>(1.0)));`;
 const CHECK_NAN_SNIPPET_WGSL = `
   if (isNanCustom(a)) { return a; }
   if (isNanCustom(b)) { return b; }
@@ -198,8 +197,8 @@ const INT_DIV_VEC4_WGSL = `
   return vec4<f32>(resultTemp);
   `;
 
-const NOT_EQUAL_WGSL = 'return notEqualF32(a, b);';
-const NOT_EQUAL_VEC4_WGSL = 'return notEqualVec4F32(a, b);';
+const NOT_EQUAL_WGSL = 'return f32(a != b);';
+const NOT_EQUAL_VEC4_WGSL = 'return vec4<f32>(a != b);';
 
 const POW_WGSL = `
   if(a < 0.0 && floor(b) < b) {
@@ -216,7 +215,7 @@ const POW_WGSL = `
 
 const POW_VEC4_WGSL = `
   let isModRound1Bool = vec4<i32>(round(b % vec4<f32>(2.0))) == vec4<i32>(1);
-  let isModRound1 = vec4BoolToVec4F32(isModRound1Bool);
+  let isModRound1 = vec4<f32>(isModRound1Bool);
   let multiplier = sign(a) * isModRound1 + (vec4<f32>(1.0) - isModRound1);
   var resultTemp = multiplier * pow(abs(a), b);
 
@@ -234,7 +233,7 @@ const POW_VEC4_WGSL = `
   if (isExpZero.a) {
     resultTemp.a = 1.0;
   }
-  let isNaN = vec4<f32>(lessVec4F32(a, vec4<f32>(0.0))) * vec4<f32>(lessVec4F32(floor(b), b));
+  let isNaN = vec4<f32>(a < vec4<f32>(0.0)) * vec4<f32>(floor(b) < b);
   ${CHECK_NAN_SNIPPET_VEC4_WGSL}
   return resultTemp;
   `;
@@ -242,7 +241,7 @@ const POW_VEC4_WGSL = `
 const PRELU_WGSL = `if (a < 0.0) { return b * a; }  return a;`;
 const PRELU_VEC4_WGSL = `
   let aLessThanZero : vec4<bool> = vec4<bool>(a < vec4<f32>(0.0));
-  let aLessThanZeroF32 = vec4BoolToVec4F32(aLessThanZero);
+  let aLessThanZeroF32 = vec4<f32>(aLessThanZero);
   return (vec4<f32>(aLessThanZeroF32) * (b * a)) + ((vec4<f32>(1.0) - vec4<f32>(aLessThanZeroF32)) * a);
   `;
 
