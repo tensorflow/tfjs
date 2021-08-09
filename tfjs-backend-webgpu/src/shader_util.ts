@@ -32,3 +32,8 @@ export function symbolicallyComputeStrides(
 
   return strides;
 }
+
+export function getReshapeDispatchGlobalInvocationID(): string {
+  return `int((gl_WorkGroupID.z * 65535 * 65535 + gl_WorkGroupID.y * 65535 +
+      gl_WorkGroupID.x) * 256 + gl_LocalInvocationIndex)`;
+}
