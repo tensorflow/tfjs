@@ -840,11 +840,28 @@ export class WebGPUBackend extends KernelBackend {
     });
     this.ensureCommandEncoderReady();
     const passEncoder = this.currentCommandEncoder.beginComputePass();
+    const shouldTimeProgram = this.activeTimers != null;
+    if (shouldTimeProgram) {
+      if (this.supportTimeQuery) {
+        passEncoder.writeTimestamp(this.querySet, 0);
+      }
+    }
     passEncoder.setPipeline(program.pipeline);
     passEncoder.setBindGroup(0, bindGroup);
     passEncoder.dispatch(
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+    if (shouldTimeProgram) {
+      if (this.supportTimeQuery) {
+        passEncoder.writeTimestamp(this.querySet, 1);
+      }
+    }
     passEncoder.endPass();
+    if (shouldTimeProgram) {
+      this.activeTimers.push({
+        name: this.fromPixelProgram.constructor.name,
+        query: this.getQueryTime(this.querySet)
+      });
+    }
   }
 
   async getTimeFromQuerySet(querySet: GPUQuerySet) {
