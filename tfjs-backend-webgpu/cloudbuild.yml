@@ -30,7 +30,7 @@ steps:
   waitFor: ['yarn', 'build-deps']
 
 # Run tests.
-- name: 'node:11'
+- name: 'node:10'
   dir: 'tfjs-backend-webgpu'
   entrypoint: 'yarn'
   id: 'test-webgpu'
