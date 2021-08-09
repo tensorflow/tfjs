@@ -23,6 +23,7 @@ import {backend_util, buffer, DataStorage, DataType, DataValues, engine, env, Ke
 import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
+import {FromPixelsImportProgram} from './kernels/FromPixels_utils/from_pixels_import_webgpu';
 import {FromPixelsProgram} from './kernels/FromPixels_utils/from_pixels_webgpu';
 import * as webgpu_program from './kernels/webgpu_program';
 import * as webgpu_util from './webgpu_util';
@@ -75,7 +76,6 @@ export class WebGPUBackend extends KernelBackend {
   glslang: Glslang;
   currentCommandEncoder: GPUCommandEncoder;
   tensorMap: DataStorage<TensorBufferInfo>;
-  fromPixelProgram: FromPixelsProgram;
   supportTimeQuery: boolean;
   dummyCanvas: HTMLCanvasElement;
   dummyContext: GPUPresentationContext;
@@ -100,6 +100,8 @@ export class WebGPUBackend extends KernelBackend {
   private downloadWaitMs = 0;
   private computePassNumberInEncoder = 0;
   private querySet: GPUQuerySet;
+  private fromPixelProgram:
+      {copyExternal: FromPixelsProgram, import: FromPixelsImportProgram};
 
   constructor(device: GPUDevice, glslang: Glslang, supportTimeQuery = false) {
     super();
@@ -138,6 +140,12 @@ export class WebGPUBackend extends KernelBackend {
 
       document.body.appendChild(this.dummyCanvas);
     }
+
+    // Create FromPixelsProgram instance is light weight;
+    this.fromPixelProgram = {
+      copyExternal: new FromPixelsProgram(),
+      import: new FromPixelsImportProgram()
+    };
   }
 
   floatPrecision(): 32 {
@@ -303,6 +311,26 @@ export class WebGPUBackend extends KernelBackend {
   getBuffer(dataId: DataId) {
     this.uploadToGPU(dataId);
     return this.tensorMap.get(dataId).bufferInfo.buffer;
+  }
+
+  getFromPixelsProgram(type: 'copyExternal'|'import'): FromPixelsProgram {
+    switch (type) {
+      case 'copyExternal': {
+        if (!this.fromPixelProgram.copyExternal) {
+          this.fromPixelProgram.copyExternal = new FromPixelsProgram();
+        }
+        return this.fromPixelProgram.copyExternal;
+      }
+      case 'import': {
+        if (!this.fromPixelProgram.import) {
+          this.fromPixelProgram.import = new FromPixelsImportProgram();
+        }
+        return this.fromPixelProgram.import;
+      }
+      default:
+        util.assert(false, () => `Unsupported fromPixels shape`);
+        return undefined;
+    }
   }
 
   ensureCommandEncoderReady() {
@@ -787,7 +815,7 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   recordFromPixelsCommands(
-      output: GPUBuffer, layout: WebGPULayout,
+      program: FromPixelsProgram, output: GPUBuffer, layout: WebGPULayout,
       externalResource: GPUExternalTexture|GPUTextureView) {
     const bindGroup = this.device.createBindGroup({
       layout: layout.bindGroupLayout,
@@ -805,18 +833,17 @@ export class WebGPUBackend extends KernelBackend {
         {
           binding: 2,
           resource: {
-            buffer: this.fromPixelProgram.uniform,
+            buffer: program.uniform,
           }
         }
       ],
     });
     this.ensureCommandEncoderReady();
     const passEncoder = this.currentCommandEncoder.beginComputePass();
-    passEncoder.setPipeline(this.fromPixelProgram.pipeline);
+    passEncoder.setPipeline(program.pipeline);
     passEncoder.setBindGroup(0, bindGroup);
     passEncoder.dispatch(
-        this.fromPixelProgram.dispatch[0], this.fromPixelProgram.dispatch[1],
-        this.fromPixelProgram.dispatch[2]);
+        program.dispatch[0], program.dispatch[1], program.dispatch[2]);
     passEncoder.endPass();
   }
 
@@ -862,9 +889,15 @@ export class WebGPUBackend extends KernelBackend {
       return;
     }
     this.bufferManager.dispose();
-    if (this.fromPixelProgram) {
-      this.fromPixelProgram.dispose();
+
+    if (this.fromPixelProgram.copyExternal) {
+      this.fromPixelProgram.copyExternal.dispose();
     }
+
+    if (this.fromPixelProgram.import) {
+      this.fromPixelProgram.import.dispose();
+    }
+
     this.disposed = true;
   }
 }

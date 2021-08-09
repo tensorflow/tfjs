@@ -53,8 +53,7 @@ export class FromPixelsProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
   }
 
-  constructor(outputShape: number[]) {
-    this.updateOutputShape(outputShape);
+  constructor() {
     this.shaderKey = 'fromPixels';
   }
 
