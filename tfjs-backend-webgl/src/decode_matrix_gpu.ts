@@ -39,7 +39,7 @@ export class DecodeMatrixProgram implements GPGPUProgram {
       ivec3 outCoordsFromFlatIndex(int index) {
         ${
         this.enableShapeUniforms ?
-            shader_util.getLogicalCoordinatesFromFlatIndexByUniform(
+            shader_util.getOutputLogicalCoordinatesFromFlatIndexByUniform(
                 ['r', 'c', 'd'], outputShape) :
             shader_util.getLogicalCoordinatesFromFlatIndex(
                 ['r', 'c', 'd'], outputShape)}

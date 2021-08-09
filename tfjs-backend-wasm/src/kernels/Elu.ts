@@ -14,8 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
+import {Elu, KernelConfig} from '@tensorflow/tfjs-core';
 
-import '@tensorflow/tfjs-backend-cpu';
+import {createUnaryKernelConfig} from './unary_kernel';
 
-import './tflite_model_test';
-import './tflite_web_api_client_test';
+export const eluConfig: KernelConfig = createUnaryKernelConfig(Elu);

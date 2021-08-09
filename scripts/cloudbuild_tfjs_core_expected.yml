@@ -38,6 +38,14 @@ steps:
     secretEnv:
       - BROWSERSTACK_KEY
   - name: 'node:10'
+    dir: link-package-core
+    entrypoint: yarn
+    id: yarn-link-package-core
+    args:
+      - install
+    waitFor:
+      - bazel-tests
+  - name: 'node:10'
     dir: link-package
     entrypoint: yarn
     id: yarn-link-package
@@ -45,6 +53,7 @@ steps:
       - install
     waitFor:
       - bazel-tests
+      - yarn-link-package-core
   - name: 'node:10'
     dir: tfjs-converter
     entrypoint: yarn
@@ -178,63 +187,35 @@ steps:
       - yarn-common
       - yarn-link-package
   - name: 'node:10'
-    dir: tfjs-tflite
+    dir: tfjs-backend-webgpu
+    id: yarn-tfjs-backend-webgpu
     entrypoint: yarn
-    id: yarn-tfjs-tflite
     args:
       - install
     waitFor:
       - yarn-common
       - yarn-link-package
-  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
-    dir: tfjs-tflite
-    id: download-tflite-web-api-tfjs-tflite
-    entrypoint: bash
-    args:
-      - scripts/download-tflite-web-api.sh
-    waitFor:
-      - yarn-tfjs-tflite
-      - yarn-common
-      - yarn-link-package
   - name: 'node:10'
-    dir: tfjs-tflite
-    id: build-tfjs-tflite
+    dir: tfjs-backend-webgpu
+    id: lint-tfjs-backend-webgpu
     entrypoint: yarn
-    args:
-      - build-ci
-    waitFor:
-      - yarn-tfjs-tflite
-      - download-tflite-web-api-tfjs-tflite
-      - yarn-common
-      - yarn-link-package
-  - name: 'node:10'
-    dir: tfjs-tflite
-    entrypoint: yarn
-    id: lint-tfjs-tflite
     args:
       - lint
     waitFor:
-      - yarn-tfjs-tflite
-      - download-tflite-web-api-tfjs-tflite
+      - yarn-tfjs-backend-webgpu
       - yarn-common
       - yarn-link-package
   - name: 'node:10'
-    dir: tfjs-tflite
+    dir: tfjs-backend-webgpu
     entrypoint: yarn
-    id: test-tfjs-tflite-tfjs-tflite
+    id: test-webgpu-tfjs-backend-webgpu
     args:
       - test-ci
     waitFor:
-      - yarn-tfjs-tflite
-      - lint-tfjs-tflite
-      - download-tflite-web-api-tfjs-tflite
+      - yarn-tfjs-backend-webgpu
+      - lint-tfjs-backend-webgpu
       - yarn-common
       - yarn-link-package
-    env:
-      - BROWSERSTACK_USERNAME=deeplearnjs1
-      - NIGHTLY=$_NIGHTLY
-    secretEnv:
-      - BROWSERSTACK_KEY
   - name: 'node:10'
     dir: tfjs-data
     entrypoint: yarn
@@ -300,39 +281,6 @@ steps:
       - yarn-tfjs-layers
       - build-tfjs-layers
       - lint-tfjs-layers
-  - name: 'node:10'
-    dir: tfjs-backend-webgpu
-    id: yarn-tfjs-backend-webgpu
-    entrypoint: yarn
-    args:
-      - install
-    waitFor:
-      - yarn-common
-      - yarn-link-package
-      - yarn-tfjs-converter
-  - name: 'node:10'
-    dir: tfjs-backend-webgpu
-    id: lint-tfjs-backend-webgpu
-    entrypoint: yarn
-    args:
-      - lint
-    waitFor:
-      - yarn-tfjs-backend-webgpu
-      - yarn-common
-      - yarn-link-package
-      - yarn-tfjs-converter
-  - name: 'node:10'
-    dir: tfjs-backend-webgpu
-    entrypoint: yarn
-    id: test-webgpu-tfjs-backend-webgpu
-    args:
-      - test-ci
-    waitFor:
-      - yarn-tfjs-backend-webgpu
-      - lint-tfjs-backend-webgpu
-      - yarn-common
-      - yarn-link-package
-      - yarn-tfjs-converter
   - name: 'node:10'
     dir: tfjs
     entrypoint: yarn
