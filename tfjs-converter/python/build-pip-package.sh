@@ -150,7 +150,7 @@ for VENV_PYTHON_BIN in ${VENV_PYTHON_BINS}; do
   echo "Building wheel for ${VENV_PYTHON_BIN}: $(python --version 2>&1) ..."
   echo
 
-  #bazel build ${VENV_PYTHON_BIN}_wheel
+  yarn bazel build ${VENV_PYTHON_BIN}_wheel
 
   pushd "${TMP_DIR}" > /dev/null
   echo
