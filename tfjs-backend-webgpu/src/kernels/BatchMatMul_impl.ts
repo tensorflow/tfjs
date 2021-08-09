@@ -19,7 +19,7 @@ import {backend_util, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 
-import {MatMulSmallOutputSizeWidthProgram} from './matmul_small_output_size_webgpu';
+import {MatMulSmallOutputSizeProgram} from './matmul_small_output_size_webgpu';
 import {MatMulPackedVec4Program} from './matmul_packed_vec4_webgpu';
 import {MatMulPackedProgram} from './matmul_packed_webgpu';
 import {reshape} from './Reshape';
@@ -99,10 +99,10 @@ export function batchMatMulImpl({
   const useVec4 = a.shape[2] % 4 === 0 && b.shape[2] % 4 === 0 && !transposeA &&
       !transposeB && outerShapeB >= 32;
   let program: MatMulPackedProgram|MatMulPackedVec4Program
-      |MatMulSmallOutputSizeWidthProgram;
+      |MatMulSmallOutputSizeProgram;
   let dimensions = null;
   if ((a.shape[1] <= 16 || b.shape[2] <= 16) && !transposeA && !transposeB) {
-    program = new MatMulSmallOutputSizeWidthProgram(a3dShape, b3dShape,
+    program = new MatMulSmallOutputSizeProgram(a3dShape, b3dShape,
         [batchDim, outerShapeA, outerShapeB], bias, activation,
         preluActivationWeights);
   } else if (useVec4) {
@@ -113,7 +113,7 @@ export function batchMatMulImpl({
         a3dShape, [batchDim, outerShapeA, outerShapeB],
         env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, bias, activation,
         preluActivationWeights);
-    if (program.useWgsl) {
+    if ((program as MatMulPackedVec4Program).useWgsl) {
       const dimAOuter = a3d.shape[1];
       const dimInner = a3d.shape[2];
       const dimBOuter = b3d.shape[2];
