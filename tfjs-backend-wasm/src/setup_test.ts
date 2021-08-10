@@ -431,7 +431,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'image.transform'},
   {include: 'batchToSpaceND'},
   {include: 'spaceToBatchND'},
-  {include: 'bincount'}
+  {include: 'bincount'},
 ];
 
 const customInclude = (testName: string) => {
