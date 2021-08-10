@@ -14,10 +14,18 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Run python tests.
 - name: 'node:10'
+  id: 'create-pips'
   entrypoint: 'bash'
-  args: ['./tfjs-converter/python/build-pip-package.sh', '--test-nightly', '/tmp/tfjs-pips']
+  args:
+    - './tfjs-converter/scripts/create_python_pips.sh'
+  waitFor: ['yarn-common']
+
+# Run python tests.
+- name: 'gcr.io/google-appengine/python'
+  dir: 'tfjs-converter/python'
+  entrypoint: 'bash'
+  args: ['./build-pip-package.sh', '--test-nightly', '/tmp/tfjs-pips']
   waitFor: ['create-pips']
 
 timeout: 1800s

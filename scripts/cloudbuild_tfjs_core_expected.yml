@@ -64,10 +64,17 @@ steps:
       - yarn-common
       - yarn-link-package
   - name: 'node:10'
+    id: 'create-pips'
+    entrypoint: 'bash'
+    args:
+      - './tfjs-converter/scripts/create_python_pips.sh'
+    waitFor: ['yarn-common']
+  - name: gcr.io/google-appengine/python
+    dir: tfjs-converter/python
     entrypoint: bash
     id: test-python-pip-tfjs-converter
     args:
-      - ./tfjs-converter/python/build-pip-package.sh
+      - ./build-pip-package.sh
       - '--test'
       - /tmp/tfjs-pips
     waitFor:

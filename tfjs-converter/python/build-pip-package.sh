@@ -150,7 +150,7 @@ for VENV_PYTHON_BIN in ${VENV_PYTHON_BINS}; do
   echo "Building wheel for ${VENV_PYTHON_BIN}: $(python --version 2>&1) ..."
   echo
 
-  yarn bazel build //tfjs-converter/python:${VENV_PYTHON_BIN}_wheel
+  #bazel build ${VENV_PYTHON_BIN}_wheel
 
   pushd "${TMP_DIR}" > /dev/null
   echo
@@ -159,8 +159,8 @@ for VENV_PYTHON_BIN in ${VENV_PYTHON_BINS}; do
   echo
 
   echo `pwd`
-  WHEELS=$(ls ./dist/bin/tfjs-converter/python/*py${VENV_PYTHON_BIN: -1}*.whl)
-  mv ./dist/bin/tfjs-converter/python/*py${VENV_PYTHON_BIN: -1}*.whl "${DEST_DIR}/"
+  WHEELS=$(ls ../../dist/bin/tfjs-converter/python/*py${VENV_PYTHON_BIN: -1}*.whl)
+  mv ../../dist/bin/tfjs-converter/python/*py${VENV_PYTHON_BIN: -1}*.whl "${DEST_DIR}/"
 
   WHEEL_PATH=""
   echo
