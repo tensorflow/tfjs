@@ -25,12 +25,4 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'app_webpack.js',
   },
-  // module: {
-  //   rules: [{
-  //     test: /\.m?js/,
-  //     resolve: {
-  //       fullySpecified: false
-  //     }
-  //   }],
-  // }
 };
