@@ -34,7 +34,7 @@ export function mapActivationToShaderProgram(
   } else if (activation === 'relu6') {
     return getUnaryOpString(UnaryOpType.RELU6, packed, useWgsl);
   } else if (activation === 'prelu') {
-    return getBinaryOpString(BinaryOpType.PRELU, packed);
+    return getBinaryOpString(BinaryOpType.PRELU, packed, useWgsl);
   } else if (activation === 'sigmoid') {
     return getUnaryOpString(UnaryOpType.SIGMOID);
   }
