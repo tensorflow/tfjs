@@ -161,7 +161,7 @@ for VENV_PYTHON_BIN in ${VENV_PYTHON_BINS}; do
   echo `pwd`
   echo `ls ../..`
   echo `ls ../../dist/bin`
-  echo `ls ../../dist/bin/tfjs-converter/python`
+  echo `ls ../../dist/bin/tfjs-converter/`
   WHEELS=$(ls ../../dist/bin/tfjs-converter/python/*py${VENV_PYTHON_BIN: -1}*.whl)
   cp ../../dist/bin/tfjs-converter/python/*py${VENV_PYTHON_BIN: -1}*.whl "${DEST_DIR}/"
 
