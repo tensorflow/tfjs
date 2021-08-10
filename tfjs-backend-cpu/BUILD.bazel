@@ -16,7 +16,7 @@
 load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_test", "pkg_npm")
 load("//tools:copy_to_dist.bzl", "copy_to_dist")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
-load("//tools:ts_library_outputs.bzl", "copy_ts_library_to_output")
+load("//tools:ts_library_outputs.bzl", "copy_ts_library_to_dist")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -51,18 +51,20 @@ tfjs_bundle(
     ],
 )
 
-copy_ts_library_to_output(
+copy_ts_library_to_dist(
     name = "copy_src_to_dist",
     srcs = [
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
     ],
+    root = "src",
 )
 
 copy_to_dist(
     name = "copy_bundles",
     srcs = [
         ":tf-backend-cpu",
+        ":tf-backend-cpu.node",
         ":tf-backend-cpu.es2017",
         ":tf-backend-cpu.es2017.min",
         ":tf-backend-cpu.fesm",
