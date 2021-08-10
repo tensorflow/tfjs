@@ -34,7 +34,7 @@ function bincount(
     args:
         {backend: BackendWasm, inputs: BincountInputs, attrs: BincountAttrs}) {
   const {backend, inputs, attrs} = args;
-  const {x, weights} = inputs as {} as BincountInputs;
+  const {x, weights} = inputs;
   const {size} = attrs;
 
   const xId = backend.dataIdMap.get(x.dataId).id;
@@ -42,6 +42,9 @@ function bincount(
 
   const out = backend.makeOutput([size], weights.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
+
+  const outVals = backend.typedArrayFromHeap(out);
+  outVals.fill(0);
 
   wasmFunc(xId, weightsId, size, outId);
 

@@ -34,8 +34,8 @@ void Bincount(const size_t x_id, const size_t w_id, const size_t size,
   auto& out_info = backend::get_tensor_info_out(out_id);
 
   const int* x_buf = x_info.i32();
-  const int* w_buf = w_info.i32();
-  int* out_buf = out_info.i32_write();
+  const float* w_buf = w_info.f32();
+  float* out_buf = out_info.f32_write();
 
   const int x_size = x_info.size;
   const int w_size = w_info.size;
@@ -51,9 +51,9 @@ void Bincount(const size_t x_id, const size_t w_id, const size_t size,
     }
 
     if (w_size > 0) {
-      out_buf[value] += w_buf[i];
+      out_buf[value] = out_buf[value] + w_buf[i];
     } else {
-      out_buf[value] += 1;
+      out_buf[value]++;
     }
   }
 }
