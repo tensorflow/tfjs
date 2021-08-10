@@ -17,10 +17,11 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
+import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class BinaryOpProgram implements WebGPUProgram {
   outputShape: number[];
@@ -30,6 +31,7 @@ export class BinaryOpProgram implements WebGPUProgram {
   variableNames = ['A', 'B'];
   workPerThread: number;
   workGroupSize: [number, number, number];
+  useWgsl: boolean;
   op: BinaryOpType;
   sizeFit: boolean;
   shapesFit: boolean;
@@ -50,6 +52,7 @@ export class BinaryOpProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
     this.shaderKey = `binary_${op}_${this.sizeFit}_${this.shapesFit}`;
+    this.useWgsl = getUseWgsl();
     this.op = op;
   }
 
@@ -106,6 +109,61 @@ export class BinaryOpProgram implements WebGPUProgram {
             float a = getAAtOutCoords(coords);
             float b = getBAtOutCoords(coords);
             setOutput(flatIndex, binaryOperation(a, b));
+          }
+        }
+      }
+      `;
+    }
+    return userCode;
+  }
+
+  getUserCodeWgsl(): string {
+    let userCode: string;
+    const opStr = getBinaryOpString(this.op, false, this.useWgsl);
+    const miscStr = `          fn binaryOperation(a : f32, b : f32) -> f32 {
+      ${opStr}
+    }`;
+    if (this.shapesFit) {
+      userCode = `
+          ${miscStr}
+          ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
+          fn main([[builtin(global_invocation_id)]] global_id : vec3<u32>) {
+            let index = global_id.x;
+
+            let a = f32(A[index]);
+            let b = f32(B[index]);
+            setOutputFlat(index, binaryOperation(a, b));
+          }
+        `;
+    } else if (this.sizeFit) {
+      userCode = `
+      ${miscStr}
+      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
+      fn main([[builtin(global_invocation_id)]] global_id : vec3<u32>) {
+        let index = global_id.x;
+
+        let coords = getCoordsFromFlatIndex(index);
+
+        let a = getAAtOutCoordsByCoords(coords);
+        let b = getBAtOutCoordsByCoords(coords);
+        setOutputFlat(index, binaryOperation(a, b));
+      }
+      `;
+    } else {
+      userCode = `
+      ${miscStr}
+      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
+      fn main([[builtin(global_invocation_id)]] global_id : vec3<u32>) {
+        let index = global_id.x;
+        for (var i = 0u; i < ${this.workPerThread}u; i = i + 1u ) {
+          let flatIndex = index * ${this.workPerThread}u + i;
+
+          if(flatIndex < uniforms.size) {
+            let coords = getCoordsFromFlatIndex(flatIndex);
+
+            let a = getAAtOutCoordsByCoords(coords);
+            let b = getBAtOutCoordsByCoords(coords);
+            setOutputFlat(flatIndex, binaryOperation(a, b));
           }
         }
       }
