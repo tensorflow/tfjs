@@ -60,6 +60,13 @@ export function fromPixels(args: {
           `but was ${(pixels as {}).constructor.name}`);
     }
 
+    if (env().getBool('WEBGPU_USE_IMPORT')) {
+      if (pixels instanceof HTMLVideoElement) {
+        return fromPixelsExternalImage(
+            {externalImage: pixels, backend, attrs, useImport: true});
+      }
+    }
+
     if (pixels instanceof HTMLVideoElement ||
         pixels instanceof HTMLImageElement) {
       if (fromPixels2DContext == null) {
@@ -72,7 +79,8 @@ export function fromPixels(args: {
     }
 
     if (pixels instanceof ImageBitmap || pixels instanceof HTMLCanvasElement) {
-      return fromPixelsExternalImage({externalImage: pixels, backend, attrs});
+      return fromPixelsExternalImage(
+          {externalImage: pixels, backend, attrs, useImport: false});
     }
   }
 
