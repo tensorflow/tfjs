@@ -36,7 +36,6 @@ export * from '../ops/array_ops_util';
 export * from '../ops/gather_nd_util';
 export * from '../ops/scatter_nd_util';
 export * from '../ops/selu_util';
-export * from '../ops/fused_util';
 export * from '../ops/erf_util';
 export * from '../log';
 export * from '../backends/complex_util';
