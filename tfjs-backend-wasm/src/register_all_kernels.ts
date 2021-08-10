@@ -29,6 +29,7 @@ import {argMaxConfig} from './kernels/ArgMax';
 import {avgPoolConfig} from './kernels/AvgPool';
 import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
+import {bincountConfig} from './kernels/Bincount';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipByValueConfig} from './kernels/ClipByValue';
@@ -127,6 +128,7 @@ const kernelConfigs: KernelConfig[] = [
   avgPoolConfig,
   batchMatMulConfig,
   batchToSpaceNDConfig,
+  bincountConfig,
   castConfig,
   ceilConfig,
   clipByValueConfig,
