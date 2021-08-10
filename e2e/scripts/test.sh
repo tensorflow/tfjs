@@ -53,6 +53,10 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
 
   cd ..
 
+  # Test webpack
+  cd webpack_test
+  yarn build
+  cd ..
 
   # Build the wasm backend
   yarn build-backend-wasm
