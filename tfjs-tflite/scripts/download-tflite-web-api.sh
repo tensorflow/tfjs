@@ -35,7 +35,7 @@ if [[ -z ${VERSION} ]]; then
 fi
 
 # Download the zipped lib to the output dir.
-wget https://storage.googleapis.com/tfweb/${VERSION}/dist/tflite_web_api.zip -P "${OUTPUT_DIR}"
+wget https://storage.googleapis.com/tfweb/${VERSION}/tflite_web_api.zip -P "${OUTPUT_DIR}"
 
 # Unzip and delete the zipped file.
 unzip "${OUTPUT_DIR}/tflite_web_api.zip" -d "${OUTPUT_DIR}"
