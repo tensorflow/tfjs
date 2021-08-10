@@ -64,6 +64,14 @@ steps:
       - yarn-common
       - yarn-link-package
   - name: 'node:10'
+    id: 'create-pips-tfjs-converter'
+    entrypoint: 'bash'
+    args:
+      - './tfjs-converter/scripts/create_python_pips.sh'
+    waitFor:
+      - yarn-common
+      - yarn-link-package
+  - name: 'node:10'
     dir: tfjs-layers
     entrypoint: yarn
     id: yarn-tfjs-layers
@@ -169,6 +177,7 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-converter
+      - create-pips-tfjs-converter
       - yarn-tfjs-layers
       - build-tfjs-layers
       - lint-tfjs-layers
@@ -186,6 +195,7 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-converter
+      - create-pips-tfjs-converter
       - yarn-tfjs-layers
       - build-tfjs-layers
       - lint-tfjs-layers
@@ -203,6 +213,7 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-converter
+      - create-pips-tfjs-converter
       - yarn-tfjs-layers
       - build-tfjs-layers
       - lint-tfjs-layers
@@ -299,6 +310,7 @@ steps:
       - build-tfjs
       - lint-tfjs
       - yarn-tfjs-converter
+      - create-pips-tfjs-converter
       - yarn-tfjs-data
       - build-tfjs-data
       - lint-tfjs-data
@@ -332,6 +344,7 @@ steps:
       - build-tfjs
       - lint-tfjs
       - yarn-tfjs-converter
+      - create-pips-tfjs-converter
       - yarn-tfjs-data
       - build-tfjs-data
       - lint-tfjs-data
