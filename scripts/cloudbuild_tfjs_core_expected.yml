@@ -63,7 +63,7 @@ steps:
     waitFor:
       - yarn-common
       - yarn-link-package
-  - name: gcr.io/google-appengine/python
+  - name: 'node:10'
     entrypoint: bash
     id: test-python-pip-tfjs-converter
     args:
