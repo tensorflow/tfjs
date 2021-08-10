@@ -68,3 +68,42 @@ copy_to_dist = rule(
     It is also used for copying tfjs bundles and miniprogram outputs.
     """,
 )
+
+def copy_ts_library_to_dist(name, srcs, root="", dest_dir="dist"):
+    # Declaration (.d.ts) files
+    declaration = name + "_declaration"
+    native.filegroup(
+        name = declaration,
+        srcs = srcs,
+    )
+
+    # ES Module es2017 compilation results. This is configured in
+    # tools/defaults.bzl. Outputs '.mjs' files.
+    esm = name + "_esm_sources"
+    native.filegroup(
+        name = esm,
+        srcs = srcs,
+        output_group = "es6_sources",
+    )
+
+    copy_esm = name + "_copy_esm"
+    copy_to_dist(
+        name = copy_esm,
+        srcs = [esm],
+        root = root,
+        dest_dir = dest_dir,
+        extension = "js", # Rewrite '.mjs' extension to '.js'
+    )
+
+    copy_esm_declaration = name + "_copy_esm_declaration"
+    copy_to_dist(
+        name = copy_esm_declaration,
+        srcs = [declaration],
+        root = root,
+        dest_dir = dest_dir,
+    )
+
+    native.filegroup(
+        name = name,
+        srcs = [copy_esm, copy_esm_declaration],
+    )
