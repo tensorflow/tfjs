@@ -80,6 +80,7 @@ steps:
       - '--test'
       - /tmp/tfjs-pips
     waitFor:
+      - create-pips-tfjs-converter
       - yarn-common
       - yarn-link-package
   - name: 'node:10'

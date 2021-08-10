@@ -28,7 +28,7 @@ steps:
   entrypoint: 'bash'
   id: 'test-python-pip'
   args: ['./build-pip-package.sh', '--test', '/tmp/tfjs-pips']
-  waitFor: ['yarn-common']
+  waitFor: ['create-pips']
 
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
