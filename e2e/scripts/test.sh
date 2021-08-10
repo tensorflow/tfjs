@@ -55,6 +55,7 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
 
   # Test webpack
   cd webpack_test
+  yarn
   yarn build
   cd ..
 
