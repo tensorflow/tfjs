@@ -1,4 +1,5 @@
 load("@build_bazel_rules_nodejs//:providers.bzl", "run_node")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 
 def _enumerate_tests_impl(ctx):
     output_file = ctx.actions.declare_file(ctx.attr.name + ".ts")

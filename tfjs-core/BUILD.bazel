@@ -141,7 +141,6 @@ nodejs_test(
 nodejs_test(
     name = "tfjs-core_node_test",
     data = [
-        "package.json",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
@@ -155,21 +154,10 @@ nodejs_test(
 nodejs_test(
     name = "tfjs-core_async_backends_test",
     data = [
-        "package.json",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-core/src:tfjs-core_test_lib",
     ],
     entry_point = "//tfjs-core/src:test_async_backends.ts",
     link_workspace_root = True,
     tags = ["ci"],
-)
-
-# This is necessary for tests to have acess to
-# the package.json so src/version_test.ts can 'require()' it.
-js_library(
-    name = "package_json",
-    #package_name = "tfjs-core",
-    srcs = [
-        ":package.json",
-    ],
 )

@@ -24,10 +24,7 @@ def _copy_to_dist_impl(ctx):
     for f in files:
         dest_path = paths.join(ctx.attr.dest_dir, paths.relativize(f.short_path, root_dir))
         if ctx.attr.extension:
-            if f.extension:
-                dest_path = dest_path[:-len(f.extension)] + ctx.attr.extension
-            else:
-                dest_path = dest_path + "." + ctx.attr.extension
+            dest_path = paths.replace_extension(dest_path, ctx.attr.extension)
 
         out = ctx.actions.declare_file(dest_path)
         outputs.append(out)
@@ -92,7 +89,7 @@ def copy_ts_library_to_dist(name, srcs, root = "", dest_dir = "dist"):
         srcs = [esm],
         root = root,
         dest_dir = dest_dir,
-        extension = "js",  # Rewrite '.mjs' extension to '.js'
+        extension = ".js",  # Rewrite '.mjs' extension to '.js'
     )
 
     copy_esm_declaration = name + "_copy_esm_declaration"
