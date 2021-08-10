@@ -16,7 +16,7 @@ steps:
   waitFor: ['yarn-common']
 
 # Run python tests.
-- name: 'gcr.io/google-appengine/python'
+- name: 'node:10'
   entrypoint: 'bash'
   id: 'test-python-pip'
   args: ['./tfjs-converter/python/build-pip-package.sh', '--test', '/tmp/tfjs-pips']
