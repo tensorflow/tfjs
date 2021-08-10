@@ -55,12 +55,12 @@ copy_to_dist(
     name = "copy_bundles",
     srcs = [
         ":tf-backend-webgl",
-        ":tf-backend-webgl.node",
         ":tf-backend-webgl.es2017",
         ":tf-backend-webgl.es2017.min",
         ":tf-backend-webgl.fesm",
         ":tf-backend-webgl.fesm.min",
         ":tf-backend-webgl.min",
+        ":tf-backend-webgl.node",
     ],
 )
 

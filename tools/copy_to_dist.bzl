@@ -69,7 +69,7 @@ copy_to_dist = rule(
     """,
 )
 
-def copy_ts_library_to_dist(name, srcs, root="", dest_dir="dist"):
+def copy_ts_library_to_dist(name, srcs, root = "", dest_dir = "dist"):
     # Declaration (.d.ts) files
     declaration = name + "_declaration"
     native.filegroup(
@@ -92,7 +92,7 @@ def copy_ts_library_to_dist(name, srcs, root="", dest_dir="dist"):
         srcs = [esm],
         root = root,
         dest_dir = dest_dir,
-        extension = "js", # Rewrite '.mjs' extension to '.js'
+        extension = "js",  # Rewrite '.mjs' extension to '.js'
     )
 
     copy_esm_declaration = name + "_copy_esm_declaration"

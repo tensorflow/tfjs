@@ -63,12 +63,12 @@ copy_to_dist(
     name = "copy_bundles",
     srcs = [
         ":tf-backend-cpu",
-        ":tf-backend-cpu.node",
         ":tf-backend-cpu.es2017",
         ":tf-backend-cpu.es2017.min",
         ":tf-backend-cpu.fesm",
         ":tf-backend-cpu.fesm.min",
         ":tf-backend-cpu.min",
+        ":tf-backend-cpu.node",
     ],
 )
 

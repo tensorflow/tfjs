@@ -55,12 +55,12 @@ copy_to_dist(
     name = "copy_bundles",
     srcs = [
         ":tf-core",
-        ":tf-core.node",
         ":tf-core.es2017",
         ":tf-core.es2017.min",
         ":tf-core.fesm",
         ":tf-core.fesm.min",
         ":tf-core.min",
+        ":tf-core.node",
     ],
 )
 
