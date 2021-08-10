@@ -93,6 +93,8 @@ def tfjs_web_test(name, ci = True, **kwargs):
                 additional_tags.append("ci")
 
         karma_web_test(
+            size = size,
+            timeout = timeout,
             name = "browserstack_{}_{}".format(browser, name),
             config_file = config_file,
             peer_deps = [

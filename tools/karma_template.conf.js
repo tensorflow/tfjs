@@ -27,6 +27,7 @@ module.exports = function(config) {
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
+      timeout: 900, // Seconds
       tunnelIdentifier:
       `tfjs_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     },
@@ -34,7 +35,7 @@ module.exports = function(config) {
     reportSlowerThan: 500,
     browserNoActivityTimeout: 3e5,
     browserDisconnectTimeout: 3e5,
-    browserDisconnectTolerance: 3,
+    browserDisconnectTolerance: 0,
     browserSocketTimeout: 1.2e5,
     browsers: ['TEMPLATE_browser'],
     customLaunchers: {

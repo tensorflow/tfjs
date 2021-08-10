@@ -1,6 +1,4 @@
-/**
- * @license
- * Copyright 2021 Google LLC. All Rights Reserved.
+/* Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,16 +10,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * =============================================================================
- */
+ * ===========================================================================*/
 
-export function getWorkGroupSizeString(workGroupSize: [number, number, number]):
-    string {
-  if (workGroupSize == null) {
-    return '';
-  }
-  return `
-  [[stage(compute), workgroup_size(${workGroupSize[0]}, ${workGroupSize[1]}, ${
-      workGroupSize[2]})]]
-`;
+#ifndef KERNELS_ELU_H_
+#define KERNELS_ELU_H_
+
+#include <cstddef>
+
+namespace tfjs {
+namespace wasm {
+extern "C" {
+
+void Elu(const size_t x_id, const size_t out_id);
 }
+
+}  // namespace wasm
+}  // namespace tfjs
+
+#endif  // KERNELS_ELU_H_
