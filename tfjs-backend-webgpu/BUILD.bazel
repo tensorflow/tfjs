@@ -98,12 +98,7 @@ tfjs_web_test(
         "//tfjs-backend-webgpu/src:tfjs-backend-webgpu_test_bundle",
     ],
     browsers = [
-        "bs_chrome_mac",
-        "bs_firefox_mac",
-        "bs_safari_mac",
-        "bs_ios_11",
-        "bs_android_9",
-        "win_10_chrome",
+        "chrome_webgpu",
     ],
     static_files = [
         # Listed here so sourcemaps are served
