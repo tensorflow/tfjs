@@ -44,3 +44,23 @@ nodejs_binary(
     ],
     entry_point = "enumerate-tests.ts",
 )
+
+ts_library(
+    name = "make_version_test_file_lib",
+    srcs = [
+        "make_version_test_file.ts",
+    ],
+    deps = [
+        "@npm//@types/argparse",
+        "@npm//@types/node",
+        "@npm//argparse",
+    ],
+)
+
+nodejs_binary(
+    name = "make_version_test_file_bin",
+    data = [
+        ":make_version_test_file_lib",
+    ],
+    entry_point = "make_version_test_file.ts",
+)
