@@ -5,16 +5,14 @@
   "license": "Apache 2.0",
   "private": true,
   "scripts": {
-    "build": "yarn build-link-package-core && yarn build-backend-webgl && yarn reinstall",
+    "build": "yarn build-link-package-core && yarn reinstall",
     "build-link-package-core": "cd ../link-package-core && yarn build",
-    "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build",
     "reinstall-link-package-core": "cd ../link-package-core && yarn reinstall",
-    "reinstall": "yarn && yarn reinstall-link-package-core && yarn cache clean @tensorflow/tfjs-backend-webgl && rimraf node_modules && yarn"
+    "reinstall": "yarn && yarn reinstall-link-package-core && rimraf node_modules && yarn"
   },
   "devDependencies": {
     "@tensorflow/tfjs-backend-cpu": "link:../link-package-core/node_modules/@tensorflow/tfjs-backend-cpu",
     "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core",
-    "@tensorflow/tfjs-backend-webgl": "file:../dist/bin/tfjs-backend-webgl/tfjs-backend-webgl_pkg",
     "rimraf": "^3.0.2"
   }
 }
