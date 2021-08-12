@@ -63,3 +63,16 @@ shape = `[-1, 224, 224, 3]`), you are requires to set it to a valid shape
 In the Inputs section you will see an input box for you to update the shape.
 Once the shape is set, you can click the 'Run benchmark' button again to run
 the benchmark.
+
+# Benchmark test
+It's easy to set up a web server to host benchmarks and run against them via e2e/benchmarks/local-benchmark/index.html. You can manually specify the optional url parameters as needed. Here are the list of supported url parameters:
+
+<b>architecture</b>: same as architecture<br>
+<b>backend</b>: same as backend<br>
+<b>benchmark</b>: same as models<br>
+<b>inputSize</b>: same as inputSizes<br>
+<b>inputType</b>: same as inputTypes<br>
+<b>localBuild</b>: local build name list, separated by comma. The name is in short form (in general the name without the tfjs- and backend- prefixes, for example webgl for tfjs-backend-webgl, core for tfjs-core). Example: 'webgl,core'.<br>
+<b>run</b>: same as numRuns<br>
+<b>task</b>: correctness to "Test correctness" or performance to "Run benchmark"<br>
+<b>warmup</b>: same as numWarmups<br>
