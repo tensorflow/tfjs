@@ -17,9 +17,9 @@
 
 import {Elu, KernelConfig} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
-import {ELU} from './unary_op_webgpu';
+import {UnaryOpType} from './unary_op_util';
 
-export const elu = unaryKernelFunc({opSnippet: ELU});
+export const elu = unaryKernelFunc({opType: UnaryOpType.ELU});
 
 export const eluConfig: KernelConfig = {
   kernelName: Elu,

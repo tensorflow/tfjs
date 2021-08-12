@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, env, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {Im2ColPackedProgram} from '../im2col_packed_gpu';
@@ -70,64 +70,34 @@ export function conv2dByMatMul({
   const batchMatMulWillBeUnpacked =
       (outerShapeX === 1 || outerShapeFilter === 1) &&
       sharedMatMulDim > MATMUL_SHARED_DIM_THRESHOLD;
-  const reshapeWillBeExpensive = xShape[2] % 2 !== 0 && !!xTexData.isPacked;
 
-  if (batchMatMulWillBeUnpacked || !env().getBool('WEBGL_LAZILY_UNPACK') ||
-      !env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ||
-      !reshapeWillBeExpensive) {
-    const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] :
-                                         xShape[0] * xShape[2] * xShape[3];
-    const xReshaped = reshape({
-      inputs: {x},
-      backend,
-      attrs: {shape: [1, targetShape, convInfo.inChannels]}
-    });
-    const filterReshaped = reshape({
-      inputs: {x: filter},
-      backend,
-      attrs: {shape: [1, convInfo.inChannels, convInfo.outChannels]}
-    });
-    const result = batchMatMulImpl({
-      a: xReshaped,
-      b: filterReshaped,
-      transposeA,
-      transposeB,
-      backend,
-      bias,
-      activation,
-      preluActivationWeights,
-      leakyreluAlpha
-    });
+  // The algorithm in the if condition assumes (1) the output will be packed,
+  // (2) x is packed, (3) x isChannelsLast, (4)  x's packed texture is already
+  // on GPU, (5) col is odd, (6) the width, height and inChannels are the same
+  // for xTexData.shape and xShape.
+  const canOptimize = !batchMatMulWillBeUnpacked && xTexData.isPacked &&
+      isChannelsLast && xTexData.texture != null && xShape[2] % 2 !== 0 &&
+      util.arraysEqual(xTexData.shape.slice(-3), xShape.slice(-3));
 
-    out = reshape(
-        {inputs: {x: result}, backend, attrs: {shape: convInfo.outShape}});
-
-    intermediates.push(xReshaped);
-    intermediates.push(filterReshaped);
-    intermediates.push(result);
-  } else {
-    // Following optimization is specific to packed |x| with odd row count
-    // (For example, in channelLast mode, 'row count' refers to x.shape[2]):
-    // we avoid expensive packed 2x2 reshape by padding row count to next,
-    // even number. When x.shape[2] is odd, the result of packed batchMatMul is
+  if (canOptimize) {
+    // We avoid expensive packed 2x2 reshape by padding col count to next,
+    // even number. When col is odd, the result of packed batchMatMul is
     // the same (has the same texture layout and and values in the texture) as
-    // it is for even x.shape[2] + 1. We make the odd-rows tensor to look like
-    // even-rows tensor before the operation and, after the batchMatMul,
-    // fix the even-rows result to have odd number of rows.
-    const targetShape = isChannelsLast ?
-        xShape[0] * xShape[1] * (xShape[2] + 1) :
-        xShape[0] * xShape[2] * (xShape[3] + 1);
+    // it is for next even col. We make the odd-cols tensor to look like
+    // even-cols tensor before the operation and, after the batchMatMul,
+    // fix the even-cols result to have odd number of cols.
+    const targetShape = xShape[0] * xShape[1] * (xShape[2] + 1);
     const xReshaped: TensorInfo = {
       dataId: x.dataId,
       shape: [1, targetShape, convInfo.inChannels],
       dtype: x.dtype
     };
     // xTexData.shape gets referenced from GPGPUBinary.inShapeInfos.
-    // Decrementing row count, after batchMatMul->...->compileProgram leads to
-    // invalid row count within the reference in GPGPUBinary.inShapeInfos.
+    // Decrementing col count, after batchMatMul->...->compileProgram leads to
+    // invalid col count within the reference in GPGPUBinary.inShapeInfos.
     // Alternative fix would be to provide a copy to GPGPUBinary.inShapeInfos
     // in compileProgram method, but that would affect compilation of all
-    // programs - instead, provide a copy here, with even row count, before
+    // programs - instead, provide a copy here, with even col count, before
     // calling batchMatMul->...->compileProgram and after that, the original
     // xTexData.shape is restored.
     const originalXTexDataShape = xTexData.shape;
@@ -169,6 +139,37 @@ export function conv2dByMatMul({
     out.shape = convInfo.outShape;
 
     intermediates.push(pointwiseConv);
+  } else {
+    const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] :
+                                         xShape[0] * xShape[2] * xShape[3];
+    const xReshaped = reshape({
+      inputs: {x},
+      backend,
+      attrs: {shape: [1, targetShape, convInfo.inChannels]}
+    });
+    const filterReshaped = reshape({
+      inputs: {x: filter},
+      backend,
+      attrs: {shape: [1, convInfo.inChannels, convInfo.outChannels]}
+    });
+    const result = batchMatMulImpl({
+      a: xReshaped,
+      b: filterReshaped,
+      transposeA,
+      transposeB,
+      backend,
+      bias,
+      activation,
+      preluActivationWeights,
+      leakyreluAlpha
+    });
+
+    out = reshape(
+        {inputs: {x: result}, backend, attrs: {shape: convInfo.outShape}});
+
+    intermediates.push(xReshaped);
+    intermediates.push(filterReshaped);
+    intermediates.push(result);
   }
 
   for (const i of intermediates) {
@@ -226,9 +227,15 @@ export function conv2dWithIm2Row({
   intermediates.push(xSqueezed);
   intermediates.push(w2Row);
 
-  const im2ColProgram =
-      new Im2ColPackedProgram(x2ColShape, xSqueezed.shape, convInfo);
-  const im2Col = backend.runWebGLProgram(im2ColProgram, [xSqueezed], 'float32');
+  const im2ColProgram = new Im2ColPackedProgram(x2ColShape, convInfo);
+  const customValues = [
+    xSqueezed.shape, [convInfo.padInfo.left, convInfo.padInfo.top],
+    [convInfo.strideHeight, convInfo.strideWidth],
+    [convInfo.dilationHeight, convInfo.dilationWidth], [convInfo.inChannels],
+    [convInfo.filterWidth * convInfo.inChannels]
+  ];
+  const im2Col = backend.runWebGLProgram(
+      im2ColProgram, [xSqueezed], 'float32', customValues);
   const im2ColReshaped = reshape({
     inputs: {x: im2Col},
     backend,

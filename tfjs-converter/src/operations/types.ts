@@ -24,9 +24,9 @@ import {ResourceManager} from '../executor/resource_manager';
 export type ParamType = 'number'|'string'|'string[]'|'number[]'|'bool'|'bool[]'|
     'shape'|'shape[]'|'tensor'|'tensors'|'dtype'|'dtype[]'|'func';
 export type Category = 'arithmetic'|'basic_math'|'control'|'convolution'|
-    'custom'|'dynamic'|'evaluation'|'image'|'creation'|'graph'|'logical'|
-    'matrices'|'normalization'|'reduction'|'slice_join'|'spectral'|
-    'transformation'|'hash_table';
+    'creation'|'custom'|'dynamic'|'evaluation'|'graph'|'hash_table'|'image'|
+    'logical'|'matrices'|'normalization'|'reduction'|'slice_join'|'sparse'|
+    'spectral'|'string'|'transformation';
 
 // For mapping input or attributes of NodeDef into TensorFlow.js op param.
 export declare interface ParamMapper {
@@ -89,6 +89,7 @@ export declare interface OpMapper {
   category?: Category;
   inputs?: InputParamMapper[];
   attrs?: AttrParamMapper[];
+  outputs?: string[];
   customExecutor?: OpExecutor;
 }
 
@@ -104,6 +105,7 @@ export declare interface Node {
   children: Node[];
   rawAttrs?: {[k: string]: tensorflow.IAttrValue};
   defaultOutput?: number;
+  outputs?: string[];
 }
 
 export declare interface Graph {

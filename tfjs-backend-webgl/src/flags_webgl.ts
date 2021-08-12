@@ -62,8 +62,7 @@ ENV.registerFlag('WEBGL_PACK_NORMALIZATION', () => ENV.getBool('WEBGL_PACK'));
 ENV.registerFlag('WEBGL_PACK_CLIP', () => ENV.getBool('WEBGL_PACK'));
 
 /** Whether we will pack the depthwise conv op. */
-// TODO: https://github.com/tensorflow/tfjs/issues/1679
-ENV.registerFlag('WEBGL_PACK_DEPTHWISECONV', () => false);
+ENV.registerFlag('WEBGL_PACK_DEPTHWISECONV', () => ENV.getBool('WEBGL_PACK'));
 
 /** Whether we will pack binary ops. */
 ENV.registerFlag(
@@ -209,3 +208,32 @@ ENV.registerFlag(
             `manual flush) or at least 0, but got ${threshold}.`);
       }
     });
+
+/**
+ * Threshold for input tensor size that determines whether WebGL backend will
+ * delegate computation to CPU.
+ *
+ * Default value is 128.
+ */
+ENV.registerFlag('CPU_HANDOFF_SIZE_THRESHOLD', () => 128);
+
+/** Whether we will use shapes uniforms. */
+ENV.registerFlag('WEBGL_USE_SHAPES_UNIFORMS', () => false);
+
+/**
+ * Threshold for last dimension of input tensor that determines whether
+ * WebGL backend for the Top K op will delegate computation to CPU. If input
+ * is smaller than threshold then CPU will be used
+ *
+ * Default value is 100000.
+ */
+ENV.registerFlag('TOPK_LAST_DIM_CPU_HANDOFF_SIZE_THRESHOLD', () => 100000);
+
+/**
+ * Threshold for K that determines whether
+ * WebGL backend for the Top K op will delegate computation to CPU. If k
+ * is larger than threshold then CPU will be used
+ *
+ * Default value is 128.
+ */
+ENV.registerFlag('TOPK_K_CPU_HANDOFF_THRESHOLD', () => 128);

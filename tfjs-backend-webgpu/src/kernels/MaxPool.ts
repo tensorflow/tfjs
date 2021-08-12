@@ -17,7 +17,6 @@
 import {backend_util, KernelConfig, KernelFunc, MaxPool, MaxPoolAttrs, MaxPoolInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-
 import {identity} from './Identity';
 import {Pool2DProgram} from './pool2d_webgpu';
 import {PoolWithFilterSizeEqualsOneProgram} from './pool_filtersizeone_webgpu';
@@ -43,15 +42,16 @@ export function maxPool(
   }
 
   const dimensions = [
-    convInfo.padInfo.top, convInfo.padInfo.left,      // Padding.
-    convInfo.strideHeight, convInfo.strideWidth,      // Stride.
-    convInfo.dilationHeight, convInfo.dilationWidth,  // Dilation.
-    convInfo.inHeight, convInfo.inWidth,              // Conv dims.
-    convInfo.effectiveFilterHeight,
-    convInfo.effectiveFilterWidth  // Filter dims.
+    {type: 'int32', data: [convInfo.padInfo.top, convInfo.padInfo.left]},
+    {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
+    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]},
+    {type: 'int32', data: [convInfo.inHeight, convInfo.inWidth]}, {
+      type: 'int32',
+      data: [convInfo.effectiveFilterHeight, convInfo.effectiveFilterWidth]
+    }
   ];
-  const uniformData = new Int32Array(dimensions);
-  return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
+
+  return backend.runWebGPUProgram(program, [x], x.dtype, dimensions);
 }
 
 export const maxPoolConfig: KernelConfig = {

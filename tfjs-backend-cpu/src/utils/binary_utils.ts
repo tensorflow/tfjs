@@ -48,10 +48,18 @@ export function binaryKernelFunc(
       const aVals = cpuBackend.data.get(a.dataId).values as TypedArray;
       const bVals = cpuBackend.data.get(b.dataId).values as TypedArray;
 
+      const decodedAVals = a.dtype === 'string' ?
+          // tslint:disable-next-line: no-any
+          backend_util.fromUint8ToStringArray(aVals as any as Uint8Array[]) :
+          aVals;
+      const decodedBVals = a.dtype === 'string' ?
+          // tslint:disable-next-line: no-any
+          backend_util.fromUint8ToStringArray(bVals as any as Uint8Array[]) :
+          bVals;
       const $dtype = dtype || a.dtype;
 
       const [resultData, resultShape] =
-          simpleImpl(a.shape, b.shape, aVals, bVals, $dtype);
+          simpleImpl(a.shape, b.shape, decodedAVals, decodedBVals, $dtype);
 
       return cpuBackend.makeTensorInfo(resultShape, $dtype, resultData);
     };

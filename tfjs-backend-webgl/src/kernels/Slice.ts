@@ -84,8 +84,8 @@ export function slice(
     const program = env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') ?
         new SlicePackedProgram($size) :
         new SliceProgram($size);
-    const customSetup = program.getCustomSetupFunc($begin);
-    return backend.runWebGLProgram(program, [x], x.dtype, customSetup);
+    const customValues = [$begin];
+    return backend.runWebGLProgram(program, [x], x.dtype, customValues);
   }
   backend.uploadToGPU(x.dataId);
   return shallowSlice(x, $begin, $size, backend);

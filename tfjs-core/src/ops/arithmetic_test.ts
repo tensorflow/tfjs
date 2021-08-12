@@ -29,6 +29,16 @@ describeWithFlags('div', ALL_ENVS, () => {
     expectArraysClose(await r.data(), [1, 1, 1, 1, 2.5, 6 / 5]);
   });
 
+  it('vec4 same shape', async () => {
+    const a = tf.tensor2d([1, 2, -3, -4], [2, 2]);
+    const b = tf.tensor2d([5, 3, 4, -7], [2, 2]);
+    const expected = [0.2, 0.666, -0.75, 0.571];
+    const result = tf.div(a, b);
+
+    expect(result.shape).toEqual([2, 2]);
+    expectArraysClose(await result.data(), expected);
+  });
+
   it('TensorLike', async () => {
     const a = [0, 1, -2, -4, 4, -4];
     const b = [0.15, 0.2, 0.25, 0.5, 0.7, 1.2];

@@ -23,6 +23,9 @@ import {expectArraysClose} from './test_util';
 
 describeWithFlags('kernel_registry', ALL_ENVS, () => {
   it('register a kernel and call it', () => {
+    // Make sure the backend is loaded. Perhaps tf.getBackend
+    // should call tf.backend to make sure the backend is loaded?
+    expect(tf.backend()).toBeDefined();
     let called = false;
     tf.registerKernel({
       kernelName: 'MyKernel',

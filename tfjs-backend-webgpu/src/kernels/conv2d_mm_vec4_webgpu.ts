@@ -17,8 +17,8 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getShapeCoords} from '../shader_preprocessor';
 import {computeDispatch, tilesFitEvenlyIntoShape} from '../webgpu_util';
+import {mapActivationToShaderProgram} from './activation_util';
 
 import {makeMatMulPackedVec4Source} from './matmul_packed_vec4_webgpu';
 import {WebGPUProgram} from './webgpu_program';
@@ -34,21 +34,23 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   isVec4 = true;
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
-  activation: string;
+  activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
   hasLeakyreluAlpha: boolean;
+  fitA: boolean;
+  fitB: boolean;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
-      activation: string = null, hasPreluActivationWeights = false,
-      hasLeakyreluAlpha = false) {
+      activation: backend_util.Activation = null,
+      hasPreluActivationWeights = false, hasLeakyreluAlpha = false) {
     this.outputShape = convInfo.outShape;
 
     util.assert(
         convInfo.dataFormat === 'channelsLast',
         () => 'TODO: NCHW is unimplemented');
     this.dispatchLayout = {x: [3], y: [1, 2], z: [0]};
-    this.workGroupSize = [16, 16, 1];
+    this.workGroupSize = [8, 8, 1];
     const elementsPerThread: [number, number, number] = [4, 4, 1];
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
@@ -58,7 +60,6 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
     this.hasLeakyreluAlpha = hasLeakyreluAlpha;
-    this.shaderKey = `conv2DMMVec4_${this.activation}`;
     if (this.addBias) {
       this.variableNames.push('bias');
     }
@@ -70,12 +71,13 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     if (this.hasLeakyreluAlpha) {
       this.variableNames.push('leakyreluAlpha');
     }
+
+    [this.fitA, this.fitB] = this.getShapeFit(elementsPerThread);
+    this.shaderKey =
+        `conv2DMMVec4_${this.activation}_${this.fitA}_${this.fitB}`;
   }
 
-  getUserCode(): string {
-    const elementsPerThread: [number, number, number] = [4, 4, 1];
-    const matMulSource = makeMatMulPackedVec4Source(elementsPerThread);
-
+  getShapeFit(elementsPerThread: [number, number, number]): boolean[] {
     const tileAOuter = this.workGroupSize[1] * elementsPerThread[1];
     const tileBOuter = this.workGroupSize[0] * elementsPerThread[0];
     const tileInner = tileBOuter;
@@ -86,10 +88,18 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     const dimBOuter = this.outputShape[3];
     const dimInner = this.convInfo.filterHeight * this.convInfo.filterWidth *
         this.convInfo.inChannels;
+    return [
+      tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]),
+      tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter])
+    ];
+  }
+
+  getUserCode(): string {
+    const elementsPerThread: [number, number, number] = [4, 4, 1];
+    const matMulSource = makeMatMulPackedVec4Source(elementsPerThread);
 
     // Below code only applys to valid padding type.
-    const sampleAWithRemainder = `int flatIndex = getFlatIndex(coord, ${
-        getShapeCoords(this.convInfo.inShape)});
+    const sampleAWithRemainder = `int flatIndex = getFlatIndex(coord, xShape);
         int divBy4Remainder = flatIndex % 4;
         int divBy4Index = flatIndex / 4;
         vec4 curData = x[divBy4Index];
@@ -114,10 +124,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     const remainderSnippet = remainder === 0 ?
         `// The bounds checking is always needed since we use it to pad zero for
         // the 'same' padding type.
-        resData = coordsInBounds(coord, ${
-            getShapeCoords(this.convInfo.inShape)}) ? x[getFlatIndex(coord, ${
-            getShapeCoords(
-                this.convInfo.inShape)}) / 4] : vec4(0.0, 0.0, 0.0, 0.0);` :
+        resData = coordsInBounds(coord, xShape) ?
+        x[getFlatIndex(coord, xShape) / 4] : vec4(0.0, 0.0, 0.0, 0.0);` :
         `vec4 temp = vec4(0, 0, 0, 0);
         ${sampleAWithRemainder}
         resData = temp;
@@ -135,11 +143,11 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         }
         `;
 
-    const readASnippet = `int outRow = r / ${this.outputShape[2]};
-        int outCol = r % ${this.outputShape[2]};
-        int WRow = c / (filterDims[1] * ${this.convInfo.inShape[3]});
-        int WCol = (c / ${this.convInfo.inShape[3]}) % filterDims[1];
-        int inChCoord = c % ${this.convInfo.inShape[3]};
+    const readASnippet = `int outRow = r / outShape[2];
+        int outCol = r % outShape[2];
+        int WRow = c / (filterDims[1] * xShape[3]);
+        int WCol = (c / xShape[3]) % filterDims[1];
+        int inChCoord = c % xShape[3];
         ivec4 coord = ivec4(
             batch,
             outRow * stride[0] + dilation[0] * WRow - pad[0],
@@ -149,37 +157,37 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         ${remainderSnippet}
         return resData;`;
 
-    const fitA = tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]);
     const sampleA =
-        fitA ? `${readASnippet}` : `if (r < dimAOuter && c < dimInner) {
+        this.fitA ? `${readASnippet}` : `if (r < dimAOuter && c < dimInner) {
           ${readASnippet}
         } else {
           return vec4(0.0, 0.0, 0.0, 0.0);
         }`;
 
-    const fitB = tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter]);
-    const sampleB = fitB ?
+    const sampleB = this.fitB ?
         `W[row * dimBOuter / 4 + col]` :
         `coordsInBounds(ivec2(row, col * 4), ivec2(dimInner, dimBOuter)) ?
             W[row * dimBOuter / 4 + col] : vec4(0.0, 0.0, 0.0, 0.0)`;
 
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
+      const activationOp =
+          mapActivationToShaderProgram(this.activation, this.isVec4);
       if (this.hasPreluActivationWeights) {
         activationSnippet = `vec4 activation(vec4 a, ivec4 outCoord) {
           vec4 b = getPreluActivationWeightsAtOutCoords(outCoord);
-          ${this.activation}
+          ${activationOp}
         }`;
       } else if (this.hasLeakyreluAlpha) {
         activationSnippet = `vec4 activation(vec4 a) {
           vec4 b = getLeakyreluAlphaAtOutCoords();
-          ${this.activation}
+          ${activationOp}
         }`;
         throw new Error('Leakyrelu is not supported.');
       } else {
         activationSnippet = `
         vec4 activation(vec4 a, ivec4 outCoord) {
-          ${this.activation}
+          ${activationOp}
         }`;
       }
 
@@ -195,10 +203,9 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         ${matMulSource}
 
         int batch;
-        int dimAOuter = ${this.outputShape[1]} * ${this.outputShape[2]};
-        int dimBOuter = ${this.outputShape[3]};
-        int dimInner = filterDims[0] * filterDims[1] * ${
-        this.convInfo.inShape[3]};
+        int dimAOuter = outShape[1] * outShape[2];
+        int dimBOuter = outShape[3];
+        int dimInner = filterDims[0] * filterDims[1] * xShape[3];
         vec4 mm_readA(int row, int col) {
           int r = int(row), c = int(col * 4);
           ${sampleA};
@@ -213,8 +220,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
           {
             ivec4 outCoord = ivec4(
               batch,
-              row / ${this.outputShape[2]},
-              row % ${this.outputShape[2]},
+              row / outShape[2],
+              row % outShape[2],
               col * 4);
             ${addBiasSnippet}
             ${applyActivationSnippet}

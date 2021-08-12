@@ -1273,4 +1273,13 @@ describeWithFlags('floorDiv', ALL_ENVS, () => {
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(await result.data(), [1, 1, -3, -8]);
   });
+
+  it('floorDiv vec4', async () => {
+    const a = tf.tensor1d([10, 20, -20, -40], 'int32');
+    const b = tf.tensor1d([10, 12, 8, 5], 'int32');
+    const result = tf.floorDiv(a, b);
+
+    expect(result.shape).toEqual(a.shape);
+    expectArraysClose(await result.data(), [1, 1, -3, -8]);
+  });
 });

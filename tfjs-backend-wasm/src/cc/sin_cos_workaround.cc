@@ -37,5 +37,10 @@ float sin_fixed(float x) {
 
 float cos_fixed(float x) { return sin_fixed(x + M_PI_2); }
 
+float tan_fixed(float x) {
+  if (isnan(x)) return nan("");
+  return sin_fixed(x) / cos_fixed(x);
+}
+
 }  // namespace sin_cos_workaround
 }  // namespace tfjs

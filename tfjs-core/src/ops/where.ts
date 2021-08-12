@@ -21,7 +21,6 @@ import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
-import {assert, assertShapesMatch} from '../util';
 
 import {broadcastTo} from './broadcast_to';
 import {assertAndGetBroadcastShape} from './broadcast_util';
@@ -57,30 +56,19 @@ function where_<T extends Tensor>(
   const $condition = convertToTensor(condition, 'condition', 'where', 'bool');
   // TODO: move this logic to forward function when the broadcastTo op is
   // implemented in WASM.
-  // Find the broadcastable shape for $a and $b.
-  const broadcastShape = assertAndGetBroadcastShape($a.shape, $b.shape);
+  // Find the broadcastable shape for $condition, $a, and $b.
+  const broadcastShape = assertAndGetBroadcastShape(
+      assertAndGetBroadcastShape($condition.shape, $a.shape), $b.shape);
+  const $broadcastedCondition = broadcastTo($condition, broadcastShape);
   const $broadcastedA = broadcastTo($a, broadcastShape);
   const $broadcastedB = broadcastTo($b, broadcastShape);
-  if ($condition.rank === 1) {
-    // If condition rank is 1, then the first dimension must match the size of
-    // condition.
-    assert(
-        $condition.shape[0] === $a.shape[0],
-        () => 'The first dimension of `a` must match the size of `condition`.');
-  }
-
-  if ($condition.rank !== 1) {
-    // A must have the same shape as condition.
-    assertShapesMatch(
-        $condition.shape, $broadcastedB.shape, 'Error in where: ');
-  }
 
   const inputs: SelectInputs = {
-    condition: $condition,
+    condition: $broadcastedCondition,
     t: $broadcastedA,
     e: $broadcastedB
   };
-  return ENGINE.runKernel(Select, inputs as unknown as NamedTensorMap);
+  return ENGINE.runKernel(Select, inputs as {} as NamedTensorMap);
 }
 
 export const where = op({where_});

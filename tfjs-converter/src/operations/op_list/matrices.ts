@@ -130,11 +130,18 @@ export const json: OpMapper[] = [
       {'start': 0, 'name': 'x', 'type': 'tensor'},
       {'start': 1, 'name': 'perm', 'type': 'number[]'},
     ],
-    'attrs': [{
-      'tfName': 'T',
-      'name': 'dtype',
-      'type': 'dtype',
-      'notSupported': true
-    }]
+    'attrs': [
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype', 'notSupported': true}
+    ]
+  },
+  {
+    'tfOpName': 'Einsum',
+    'category': 'matrices',
+    'inputs': [{'start': 0, 'end': 0, 'name': 'tensors', 'type': 'tensors'}],
+    'attrs': [
+      {'tfName': 'equation', 'name': 'equation', 'type': 'string'},
+      {'tfName': 'N', 'name': 'n', 'type': 'number', 'defaultValue': 2},
+      {'tfName': 'T', 'name': 'dtype', 'type': 'dtype'}
+    ]
   }
 ];

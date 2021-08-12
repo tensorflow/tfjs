@@ -21,10 +21,22 @@
 
 namespace tfnodejs {
 
-TFJSBackend *gBackend = nullptr;
+/**
+ * Get the TFJSBackend associated with this environment instance.
+ * While this does throw a JS error if the instance data is not found,
+ * the caller should still check if the return value is a `nullptr`.
+ */
+static inline TFJSBackend *GetTFJSBackend(napi_env env)
+{
+  TFJSBackend *backend = nullptr;
+  napi_status nstatus = napi_get_instance_data(env, reinterpret_cast<void **>(&backend));
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
+  return backend;
+}
 
 static void AssignIntProperty(napi_env env, napi_value exports,
                               const char *name, int32_t value) {
+
   napi_value js_value;
   napi_status nstatus = napi_create_int32(env, value, &js_value);
   ENSURE_NAPI_OK(env, nstatus);
@@ -65,7 +77,10 @@ static napi_value CreateTensor(napi_env env, napi_callback_info info) {
     ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[2], nullptr);
   }
 
-  return gBackend->CreateTensor(env, args[0], args[1], args[2]);
+  TFJSBackend *const backend = GetTFJSBackend(env);
+  if (!backend) return nullptr;
+
+  return backend->CreateTensor(env, args[0], args[1], args[2]);
 }
 
 static napi_value DeleteTensor(napi_env env, napi_callback_info info) {
@@ -88,7 +103,10 @@ static napi_value DeleteTensor(napi_env env, napi_callback_info info) {
 
   ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[0], js_this);
 
-  gBackend->DeleteTensor(env, args[0]);
+  TFJSBackend *const backend = GetTFJSBackend(env);
+  if (!backend) return nullptr;
+
+  backend->DeleteTensor(env, args[0]);
   return js_this;
 }
 
@@ -112,7 +130,10 @@ static napi_value TensorDataSync(napi_env env, napi_callback_info info) {
 
   ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[0], js_this);
 
-  return gBackend->GetTensorData(env, args[0]);
+  TFJSBackend *const backend = GetTFJSBackend(env);
+  if (!backend) return nullptr;
+
+  return backend->GetTensorData(env, args[0]);
 }
 
 static napi_value ExecuteOp(napi_env env, napi_callback_info info) {
@@ -139,14 +160,20 @@ static napi_value ExecuteOp(napi_env env, napi_callback_info info) {
   ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[2], nullptr);
   ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[3], nullptr);
 
-  return gBackend->ExecuteOp(env, args[0], args[1], args[2], args[3]);
+  TFJSBackend *const backend = GetTFJSBackend(env);
+  if (!backend) return nullptr;
+
+  return backend->ExecuteOp(env, args[0], args[1], args[2], args[3]);
 }
 
 static napi_value IsUsingGPUDevice(napi_env env, napi_callback_info info) {
   napi_value result;
 
+  TFJSBackend *const backend = GetTFJSBackend(env);
+  if (!backend) return nullptr;
+
   napi_status nstatus;
-  nstatus = napi_get_boolean(env, gBackend->is_gpu_device, &result);
+  nstatus = napi_get_boolean(env, backend->is_gpu_device, &result);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   return result;
@@ -173,7 +200,10 @@ static napi_value LoadSavedModel(napi_env env, napi_callback_info info) {
   ENSURE_VALUE_IS_STRING_RETVAL(env, args[0], nullptr);
   ENSURE_VALUE_IS_STRING_RETVAL(env, args[1], nullptr);
 
-  return gBackend->LoadSavedModel(env, args[0], args[1]);
+  TFJSBackend *const backend = GetTFJSBackend(env);
+  if (!backend) return nullptr;
+
+  return backend->LoadSavedModel(env, args[0], args[1]);
 }
 
 static napi_value DeleteSavedModel(napi_env env, napi_callback_info info) {
@@ -196,7 +226,10 @@ static napi_value DeleteSavedModel(napi_env env, napi_callback_info info) {
 
   ENSURE_VALUE_IS_NUMBER_RETVAL(env, args[0], js_this);
 
-  gBackend->DeleteSavedModel(env, args[0]);
+  TFJSBackend *const backend = GetTFJSBackend(env);
+  if (!backend) return nullptr;
+
+  backend->DeleteSavedModel(env, args[0]);
   return js_this;
 }
 
@@ -221,19 +254,38 @@ static napi_value RunSavedModel(napi_env env, napi_callback_info info) {
   ENSURE_VALUE_IS_STRING_RETVAL(env, args[2], nullptr);
   ENSURE_VALUE_IS_STRING_RETVAL(env, args[3], nullptr);
 
-  return gBackend->RunSavedModel(env, args[0], args[1], args[2], args[3]);
+  TFJSBackend *const backend = GetTFJSBackend(env);
+  if (!backend) return nullptr;
+
+  return backend->RunSavedModel(env, args[0], args[1], args[2], args[3]);
 }
 
 static napi_value GetNumOfSavedModels(napi_env env, napi_callback_info info) {
+  TFJSBackend *const backend = GetTFJSBackend(env);
+  if (!backend) return nullptr;
   // Delete SavedModel takes 0 param;
-  return gBackend->GetNumOfSavedModels(env);
+  return backend->GetNumOfSavedModels(env);
+}
+
+/**
+ * Called by Node to cleanup our instance data, which is
+ * the TFJSBackend allocated in `InitTFNodeJSBinding`.
+ */
+static void FinalizeTFNodeJSBinding(napi_env env, void *finalize_data, void *finalize_hint)
+{
+  delete reinterpret_cast<TFJSBackend *>(finalize_data);
 }
 
 static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
+
   napi_status nstatus;
 
-  gBackend = TFJSBackend::Create(env);
-  ENSURE_VALUE_IS_NOT_NULL_RETVAL(env, gBackend, nullptr);
+  TFJSBackend *const backend = TFJSBackend::Create(env);
+  ENSURE_VALUE_IS_NOT_NULL_RETVAL(env, backend, nullptr);
+
+  // Store the backend in node's instance data for this addon
+  nstatus = napi_set_instance_data(env, backend, &FinalizeTFNodeJSBinding, nullptr);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, exports);
 
   // TF version
   napi_value tf_version;

@@ -21,6 +21,7 @@ import node from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
 import visualizer from 'rollup-plugin-visualizer';
 import {getBrowserBundleConfigOptions} from '../rollup.config.helpers';
+import {patchWechatWebAssembly} from './scripts/patch-wechat-webassembly';
 
 const PREAMBLE = `/**
  * @license
@@ -43,6 +44,7 @@ function config({
   plugins = [],
   output = {},
   external = [],
+  ignore = [],
   visualize = false,
   tsCompilerOptions = {}
 }) {
@@ -62,10 +64,10 @@ function config({
   return {
     input: 'src/index.ts',
     plugins: [
-      typescript(tsoptions), resolve(), node({preferBuiltins: true}),
+      typescript(tsoptions), resolve(), node({preferBuiltins: false}),
       // Polyfill require() from dependencies.
       commonjs({
-        ignore: ['crypto', 'node-fetch', 'util'],
+        ignore: ['crypto', 'node-fetch', 'util', ...ignore],
         include: ['node_modules/**', 'wasm-out/**']
       }),
       ...plugins
@@ -132,6 +134,19 @@ module.exports = cmdOptions => {
         config, name, fileName, PREAMBLE, cmdOptions.visualize, false /* CI */,
         terserExtraOptions);
     bundles.push(...browserBundles);
+    // Wechat miniprogram
+    bundles.push(config({
+      output: {
+        format: 'cjs',
+        name,
+        extend,
+        file: `dist/miniprogram/index.js`,
+        freeze: false
+      },
+      ignore: ['fs', 'path', 'worker_threads', 'perf_hooks', 'os'],
+      tsCompilerOptions: {target: 'es5'},
+      plugins: [ patchWechatWebAssembly() ]
+    }));
   } else {
     const browserBundles = getBrowserBundleConfigOptions(
         config, name, fileName, PREAMBLE, cmdOptions.visualize, true /* CI */,

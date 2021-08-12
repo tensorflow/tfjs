@@ -42,11 +42,12 @@ const mkdir = util.promisify(fs.mkdir);
 const rename = util.promisify(fs.rename);
 const rimrafPromise = util.promisify(rimraf);
 
-const CDN_STORAGE = process.env.TFJS_NODE_CDN_STORAGE || process.env.npm_config_TFJS_NODE_CDN_STORAGE
-    || process.env.CDN_STORAGE;
+const CDN_STORAGE = process.env.TFJS_NODE_CDN_STORAGE ||
+    process.env.npm_config_TFJS_NODE_CDN_STORAGE || process.env.CDN_STORAGE;
 const BASE_HOST = CDN_STORAGE || 'https://storage.googleapis.com/';
-const BASE_URI = process.env.TFJS_NODE_BASE_URI || process.env.npm_config_TFJS_NODE_BASE_URI
-    || `${BASE_HOST}tensorflow/libtensorflow/libtensorflow-`;
+const BASE_URI = process.env.TFJS_NODE_BASE_URI ||
+    process.env.npm_config_TFJS_NODE_BASE_URI ||
+    `${BASE_HOST}tensorflow/libtensorflow/libtensorflow-`;
 
 const platform = os.platform();
 // Use windows path
@@ -95,7 +96,7 @@ function getPlatformLibtensorflowUri() {
   }
 
   if (platform === 'linux' && os.arch() === 'arm') {
-    return `${BASE_HOST}tf-builds/libtensorflow_r1_14_linux_arm.tar.gz`;
+    return `${BASE_HOST}tf-builds/libtensorflow_r2_5_linux_arm7l.tar.gz`;
   }
 
   if (ALL_SUPPORTED_COMBINATION.indexOf(system) === -1) {
@@ -132,6 +133,7 @@ async function downloadLibtensorflow(callback) {
   await ensureDir(depsPath);
 
   console.warn('* Downloading libtensorflow');
+  console.log(getPlatformLibtensorflowUri());
   resources.downloadAndUnpackResource(
       getPlatformLibtensorflowUri(), depsPath, async () => {
         if (platform === 'win32') {

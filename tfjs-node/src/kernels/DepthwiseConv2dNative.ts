@@ -45,7 +45,8 @@ export const depthwiseConv2dNativeConfig: KernelConfig = {
 export function depthwiseConv2dNativeImpl(
     input: TensorInfo, filter: TensorInfo, convInfo: backend_util.Conv2DInfo,
     backend: NodeJSKernelBackend): Tensor4D {
-  if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
+  if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME' &&
+      convInfo.padInfo.type !== 'EXPLICIT') {
     throw new Error(
         `TF Backend supports only 'valid' and 'same' padding ` +
         `while padding was ${convInfo.padInfo.type}`);
@@ -64,6 +65,18 @@ export function depthwiseConv2dNativeImpl(
     },
     {name: 'dilations', type: backend.binding.TF_ATTR_INT, value: dilations}
   ];
+  if (padding === 'EXPLICIT') {
+    const padValue = [
+      convInfo.padInfo.top, convInfo.padInfo.bottom, convInfo.padInfo.left,
+      convInfo.padInfo.right
+    ];
+    opAttrs.push({
+      name: 'explicit_paddings',
+      type: backend.binding.TF_ATTR_INT,
+      value: dataFormat === 'NHWC' ? [0, 0, ...padValue, 0, 0] :
+                                     [0, 0, 0, 0, ...padValue]
+    });
+  }
   return backend.executeSingleOutput(
              DepthwiseConv2dNative, opAttrs, [input, filter]) as Tensor4D;
 }

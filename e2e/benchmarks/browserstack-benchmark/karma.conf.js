@@ -31,8 +31,8 @@ function getBrowserStackConfig() {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_ACCESS_KEY,
       apiClientEndpoint: 'https://api.browserstack.com',
-      tunnelIdentifier:
-          `e2e_browserstack_benchmark_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+      tunnelIdentifier: `e2e_browserstack_benchmark_${Date.now()}_${
+          Math.floor(Math.random() * 1000)}`
     },
     customLaunchers: {},
     browsers: []
@@ -53,10 +53,24 @@ module.exports = function(config) {
     extraConfig = localRunConfig;
   }
 
-  config.set({
-    ...extraConfig,
-    frameworks: ['jasmine'],
-    files: [
+  let files = [
+    './node_modules/@tensorflow/tfjs-core/dist/tf-core.js',
+    './node_modules/@tensorflow/tfjs-backend-cpu/dist/tf-backend-cpu.js',
+    './node_modules/@tensorflow/tfjs-backend-webgl/dist/tf-backend-webgl.js',
+    './node_modules/@tensorflow/tfjs-layers/dist/tf-layers.js',
+    './node_modules/@tensorflow/tfjs-converter/dist/tf-converter.js',
+    './node_modules/@tensorflow/tfjs-backend-wasm/dist/tf-backend-wasm.js', {
+      pattern: './node_modules/@tensorflow/tfjs-backend-wasm/dist/*',
+      included: false,
+      served: true
+    },
+    {pattern: './benchmark_parameters.json', included: false, served: true},
+    '../util.js', '../benchmark_util.js', '../model_config.js',
+    'benchmark_models.js'
+  ];
+
+  if (config.cdn) {
+    files = [
       'https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js',
       'https://unpkg.com/@tensorflow/tfjs-backend-cpu@latest/dist/tf-backend-cpu.js',
       'https://unpkg.com/@tensorflow/tfjs-backend-webgl@latest/dist/tf-backend-webgl.js',
@@ -66,13 +80,19 @@ module.exports = function(config) {
       {pattern: './benchmark_parameters.json', included: false, served: true},
       '../util.js', '../benchmark_util.js', '../model_config.js',
       'benchmark_models.js'
-    ],
+    ];
+  }
+
+  config.set({
+    ...extraConfig,
+    frameworks: ['jasmine'],
+    files: files,
     preprocessors: {},
     singleRun: true,
     captureTimeout: 3e5,
     reportSlowerThan: 500,
-    browserNoActivityTimeout: 3e5,
-    browserDisconnectTimeout: 3e5,
+    browserNoActivityTimeout: 1.2e5,
+    browserDisconnectTimeout: 1.2e5,
     browserDisconnectTolerance: 0,
     browserSocketTimeout: 1.2e5,
     client: {jasmine: {random: false}},

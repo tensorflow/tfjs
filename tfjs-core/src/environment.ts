@@ -17,6 +17,7 @@
 
 import {Platform} from './platforms/platform';
 import {isPromise} from './util_base';
+import * as log from './log';
 
 // Expects flags from URL in the format ?tfjsflags=FLAG1:1,FLAG2:true.
 const TENSORFLOWJS_FLAGS_PREFIX = 'tfjsflags';
@@ -47,6 +48,9 @@ export class Environment {
   platformName: string;
   platform: Platform;
 
+  // Jasmine spies on this in 'environment_test.ts'
+  getQueryParams = getQueryParams;
+
   // tslint:disable-next-line: no-any
   constructor(public global: any) {
     this.populateURLFlags();
@@ -54,7 +58,7 @@ export class Environment {
 
   setPlatform(platformName: string, platform: Platform) {
     if (this.platform != null) {
-      console.warn(
+      log.warn(
           `Platform ${this.platformName} has already been set. ` +
           `Overwriting the platform with ${platform}.`);
     }
@@ -71,7 +75,7 @@ export class Environment {
     // environment is initialized before flags get registered.
     if (this.urlFlags[flagName] != null) {
       const flagValue = this.urlFlags[flagName];
-      console.warn(
+      log.warn(
           `Setting feature override from URL ${flagName}: ${flagValue}.`);
       this.set(flagName, flagValue);
     }
@@ -155,7 +159,7 @@ export class Environment {
       return;
     }
 
-    const urlParams = getQueryParams(this.global.location.search);
+    const urlParams = this.getQueryParams(this.global.location.search);
     if (TENSORFLOWJS_FLAGS_PREFIX in urlParams) {
       const keyValues = urlParams[TENSORFLOWJS_FLAGS_PREFIX].split(',');
       keyValues.forEach(keyValue => {

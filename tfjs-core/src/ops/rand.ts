@@ -30,6 +30,8 @@ import {op} from './operation';
  * @param randFunction A random number generator function which is called
  * for each element in the output tensor.
  * @param dtype The data type of the output tensor. Defaults to 'float32'.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Random'}
  */
 function rand_<R extends Rank>(
     shape: ShapeMap[R], randFunction: () => number,

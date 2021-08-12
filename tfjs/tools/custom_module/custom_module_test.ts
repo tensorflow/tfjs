@@ -22,20 +22,32 @@ const mockImportProvider: ImportProvider = {
   importCoreStr: () => 'import CORE',
   importConverterStr: () => 'import CONVERTER',
   importBackendStr: (name: string) => `import BACKEND ${name}`,
-  importKernelStr: (kernelName: string, backend: string) => ({
-    importStatement: `import KERNEL ${kernelName} from BACKEND ${backend}`,
-    kernelConfigId: `${kernelName}_${backend}`
-  }),
-  importGradientConfigStr: (kernel: string) => ({
-    importStatement: `import GRADIENT ${kernel}`,
-    gradConfigId: `${kernel}_GRAD_CONFIG`,
-  }),
+  importKernelStr: (kernelName: string, backend: string) => {
+    const importPath = `${
+        kernelName === 'Invalid' ? 'BACKEND_Invalid' : 'BACKEND'} ${backend}`;
+    return {
+      importPath,
+      importStatement: `import KERNEL ${kernelName} from ${importPath}`,
+      kernelConfigId: `${kernelName}_${backend}`
+    };
+  },
+  importGradientConfigStr: (kernel: string) => {
+    const importPath = kernel === 'Invalid' ? 'BACKEND_Invalid' : 'BACKEND';
+    return {
+      importPath,
+      importStatement: `import GRADIENT ${kernel} from ${importPath}`,
+      gradConfigId: `${kernel}_GRAD_CONFIG`,
+    };
+  },
   importOpForConverterStr: (opSymbol: string) => {
     return `export * from ${opSymbol}`;
   },
   importNamespacedOpsForConverterStr: (
       namespace: string, opSymbols: string[]) => {
     return `export ${opSymbols.join(',')} as ${namespace} from ${namespace}/`;
+  },
+  validateImportPath: (importPath: string) => {
+    return !importPath.includes('Invalid');
   }
 };
 
@@ -43,7 +55,7 @@ describe('getCustomModuleString forwardModeOnly=true', () => {
   const forwardModeOnly = true;
   it('one kernel, one backend', () => {
     const config = {
-      kernels: ['MathKrnl'],
+      kernels: ['MathKrnl', 'Invalid'],
       backends: ['FastBcknd'],
       models: [] as string[],
       forwardModeOnly
@@ -58,6 +70,8 @@ describe('getCustomModuleString forwardModeOnly=true', () => {
     expect(tfjs).toContain('import BACKEND FastBcknd');
     expect(tfjs).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
     expect(tfjs).toContain('registerKernel(MathKrnl_FastBcknd)');
+    expect(tfjs).not.toContain('import KERNEL Invalid from BACKEND FastBcknd');
+    expect(tfjs).not.toContain('registerKernel(Invalid_FastBcknd)');
 
     expect(tfjs).not.toContain('GRADIENT');
   });
@@ -163,7 +177,7 @@ describe('getCustomModuleString forwardModeOnly=false', () => {
 
   it('one kernel, one backend', () => {
     const config = {
-      kernels: ['MathKrnl'],
+      kernels: ['MathKrnl', 'Invalid'],
       backends: ['FastBcknd'],
       models: [] as string[],
       forwardModeOnly
@@ -177,9 +191,13 @@ describe('getCustomModuleString forwardModeOnly=false', () => {
     expect(tfjs).toContain('import BACKEND FastBcknd');
     expect(tfjs).toContain('import KERNEL MathKrnl from BACKEND FastBcknd');
     expect(tfjs).toContain('registerKernel(MathKrnl_FastBcknd)');
+    expect(tfjs).not.toContain('import KERNEL Invalid from BACKEND FastBcknd');
+    expect(tfjs).not.toContain('registerKernel(Invalid_FastBcknd)');
 
     expect(tfjs).toContain('import GRADIENT MathKrnl');
     expect(tfjs).toContain('registerGradient(MathKrnl_GRAD_CONFIG)');
+    expect(tfjs).not.toContain('import GRADIENT Invalid');
+    expect(tfjs).not.toContain('registerKernel(Invalid_GRAD_CONFIG)');
   });
 
   it('one kernel, two backend', () => {

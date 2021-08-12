@@ -23,6 +23,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {ExplicitPadding} from './conv_util';
 import {op} from './operation';
 import {reshape} from './reshape';
 
@@ -55,8 +56,8 @@ import {reshape} from './reshape';
  *   - `valid`: output will be smaller than input if filter is larger
  *       than 1x1.
  *   - For more info, see this guide:
- *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
- *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dilations The dilation rates: `[dilationHeight, dilationWidth]`
  *     in which we sample input values across the height and width dimensions
  *     in atrous convolution. Defaults to `[1, 1]`. If `rate` is a single
@@ -73,7 +74,8 @@ import {reshape} from './reshape';
  */
 function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filter: Tensor4D|TensorLike,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
+    strides: [number, number]|number,
+    pad: 'valid'|'same'|number|ExplicitPadding,
     dataFormat: 'NHWC'|'NCHW' = 'NHWC',
     dilations: [number, number]|number = [1, 1],
     dimRoundingMode?: 'floor'|'round'|'ceil'): T {

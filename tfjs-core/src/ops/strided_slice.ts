@@ -62,7 +62,7 @@ function stridedSlice_(
     x: Tensor|TensorLike, begin: number[], end: number[], strides?: number[],
     beginMask = 0, endMask = 0, ellipsisMask = 0, newAxisMask = 0,
     shrinkAxisMask = 0): Tensor {
-  const $x = convertToTensor(x, 'x', 'stridedSlice');
+  const $x = convertToTensor(x, 'x', 'stridedSlice', 'string_or_numeric');
 
   const inputs: StridedSliceInputs = {x: $x};
   const attrs: StridedSliceAttrs = {

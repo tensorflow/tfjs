@@ -72,31 +72,21 @@ export function fusedConv2d(args: {
 
   const useVec4 =
       convInfo.inChannels % 4 === 0 && convInfo.outChannels % 4 === 0;
-  const packed = !useNaive && useVec4;
-  const fusedActivation = activation ?
-      backend.mapActivationToShaderProgram(activation, packed) :
-      null;
 
   if (useNaive) {
     // TODO(kainino0x): This may be obsolete, but is kept for reference.
     program = new Conv2DNaiveProgram(
-        convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
+        convInfo, hasBias, activation, hasPreluActivationWeights);
   } else if (useVec4) {
     program = new Conv2DMMVec4Program(
-        convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
+        convInfo, hasBias, activation, hasPreluActivationWeights);
   } else {
     program = new Conv2DMMProgram(
-        convInfo, hasBias, fusedActivation, hasPreluActivationWeights);
+        convInfo, hasBias, activation, hasPreluActivationWeights);
   }
 
   const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
 
-  const dimensions = [
-    convInfo.filterHeight, convInfo.filterWidth, ...padInfo,
-    convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationHeight,
-    convInfo.dilationWidth
-  ];
-  const uniformData = new Int32Array(dimensions);
   const inputVar: TensorInfo[] = [x, filter];
   if (hasBias) {
     inputVar.push(bias);
@@ -104,7 +94,15 @@ export function fusedConv2d(args: {
   if (hasPreluActivationWeights) {
     inputVar.push(preluActivationWeights);
   }
-  return backend.runWebGPUProgram(program, inputVar, x.dtype, uniformData);
+
+  const dimensions = [
+    {type: 'int32', data: [convInfo.filterHeight, convInfo.filterWidth]},
+    {type: 'int32', data: [...padInfo]},
+    {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
+    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]}
+  ];
+
+  return backend.runWebGPUProgram(program, inputVar, x.dtype, dimensions);
 }
 
 export const fusedConv2DConfig: KernelConfig = {

@@ -24,6 +24,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {ExplicitPadding} from './conv_util';
 import {op} from './operation';
 
 /**
@@ -40,15 +41,18 @@ import {op} from './operation';
  *     `filterSize` is a single number, then `filterHeight == filterWidth`.
  * @param strides The strides of the pooling: `[strideHeight, strideWidth]`. If
  *     `strides` is a single number, then `strideHeight == strideWidth`.
- * @param pad A string from: 'same', 'valid'. The type of padding algorithm
- *     used in the forward prop of the op.
+ * @param pad The type of padding algorithm used in the forward prop of the op.
+ *     'same', 'valid', for more info, see this guide:
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
  *     provided, it will default to truncate.
  */
 function maxPoolGrad_(
     dy: Tensor4D|TensorLike, input: Tensor4D|TensorLike,
     output: Tensor4D|TensorLike, filterSize: [number, number]|number,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
+    strides: [number, number]|number,
+    pad: 'valid'|'same'|number|ExplicitPadding,
     dimRoundingMode?: 'floor'|'round'|'ceil'): Tensor4D {
   const $dy = convertToTensor(dy, 'dy', 'maxPoolGrad');
   const $input = convertToTensor(input, 'input', 'maxPoolGrad');

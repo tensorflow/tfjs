@@ -18,13 +18,22 @@
 const BACKEND_FLAGS_MAP = {
   general: [],
   cpu: [],
-  wasm: ['WASM_HAS_SIMD_SUPPORT', 'WASM_HAS_MULTITHREAD_SUPPORT'],
+  wasm: [
+    'WASM_HAS_SIMD_SUPPORT',
+    'WASM_HAS_MULTITHREAD_SUPPORT',
+    'CHECK_COMPUTATION_FOR_ERRORS',
+  ],
   webgl: [
     'WEBGL_VERSION', 'WEBGL_CPU_FORWARD', 'WEBGL_PACK',
     'WEBGL_FORCE_F16_TEXTURES', 'WEBGL_RENDER_FLOAT32_CAPABLE',
-    'WEBGL_FLUSH_THRESHOLD'
-  ]
+    'WEBGL_FLUSH_THRESHOLD', 'WEBGL_PACK_DEPTHWISECONV',
+    'CHECK_COMPUTATION_FOR_ERRORS', 'WEBGL_USE_SHAPES_UNIFORMS'
+  ],
 };
+if (tf.engine().backendNames().includes('webgpu')) {
+  BACKEND_FLAGS_MAP['webgpu'] = ['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'];
+}
+
 const TUNABLE_FLAG_NAME_MAP = {
   PROD: 'production mode',
   WEBGL_VERSION: 'webgl version',
@@ -34,8 +43,15 @@ const TUNABLE_FLAG_NAME_MAP = {
   WEBGL_PACK: 'webgl pack',
   WEBGL_FORCE_F16_TEXTURES: 'enforce float16',
   WEBGL_RENDER_FLOAT32_CAPABLE: 'enable float32',
-  WEBGL_FLUSH_THRESHOLD: 'GL flush wait time(ms)'
+  WEBGL_FLUSH_THRESHOLD: 'GL flush wait time(ms)',
+  WEBGL_PACK_DEPTHWISECONV: 'Packed depthwise Conv2d',
+  WEBGL_USE_SHAPES_UNIFORMS: 'Use shapes uniforms',
+  CHECK_COMPUTATION_FOR_ERRORS: 'Check each op result',
 };
+if (tf.engine().backendNames().includes('webgpu')) {
+  TUNABLE_FLAG_NAME_MAP['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'] =
+      'deferred submit batch size';
+}
 
 /**
  * Records each flag's default value under the runtime environment and is a
@@ -53,11 +69,13 @@ let TUNABLE_FLAG_DEFAULT_VALUE_MAP;
  * @param {dat.gui.GUI} folderController
  * @param {string} backendName
  */
-async function showFlagSettings(folderController, backendName) {
+async function showFlagSettingsAndReturnTunableFlagControllers(
+    folderController, backendName) {
   // Determine wether it is the first call.
   if (TUNABLE_FLAG_DEFAULT_VALUE_MAP == null) {
     await initDefaultValueMap();
-    showBackendFlagSettings(folderController, 'general');
+    showBackendFlagSettingsAndReturnTunableFlagControllers(
+        folderController, 'general');
   } else {
     // Clean up flag settings for the previous backend.
     // The first constroller under the `folderController` is the backend
@@ -70,8 +88,10 @@ async function showFlagSettings(folderController, backendName) {
     }
   }
 
-  // Show flag settings for the new backend.
-  showBackendFlagSettings(folderController, backendName);
+  // Show flag settings for the new backend and return the tunable flags
+  // controllers.
+  return showBackendFlagSettingsAndReturnTunableFlagControllers(
+      folderController, backendName);
 }
 
 const stringValueMap = {};
@@ -82,8 +102,10 @@ const stringValueMap = {};
  * @param {dat.gui.GUI} folderController
  * @param {string} backendName
  */
-function showBackendFlagSettings(folderController, backendName) {
+function showBackendFlagSettingsAndReturnTunableFlagControllers(
+    folderController, backendName) {
   const tunableFlags = BACKEND_FLAGS_MAP[backendName];
+  const tunableFlagControllers = {};
   for (let index = 0; index < tunableFlags.length; index++) {
     const flag = tunableFlags[index];
     const flagName = TUNABLE_FLAG_NAME_MAP[flag] || flag;
@@ -124,7 +146,9 @@ function showBackendFlagSettings(folderController, backendName) {
     flagController.name(flagName).onChange(() => {
       state.isFlagChanged = true;
     });
+    tunableFlagControllers[flag] = flagController;
   }
+  return tunableFlagControllers;
 }
 
 /**
@@ -161,7 +185,8 @@ async function initDefaultValueMap() {
  */
 function getTunableRange(flag) {
   const defaultValue = TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag];
-  if (flag === 'WEBGL_FORCE_F16_TEXTURES') {
+  if (flag === 'WEBGL_FORCE_F16_TEXTURES' ||
+      flag === 'WEBGL_PACK_DEPTHWISECONV') {
     return [false, true];
   } else if (flag === 'WEBGL_VERSION') {
     const tunableRange = [];
@@ -176,7 +201,9 @@ function getTunableRange(flag) {
     }
     return tunableRange;
   } else if (typeof defaultValue === 'boolean') {
-    return defaultValue ? [false, true] : [false];
+    return defaultValue || flag === 'WEBGL_USE_SHAPES_UNIFORMS' ?
+        [false, true] :
+        [false];
   } else if (TUNABLE_FLAG_VALUE_RANGE_MAP[flag] != null) {
     return TUNABLE_FLAG_VALUE_RANGE_MAP[flag];
   } else {

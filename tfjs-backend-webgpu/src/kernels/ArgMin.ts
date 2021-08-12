@@ -40,7 +40,7 @@ export function argMin(
 
   backend_util.assertAxesAreInnerMostDims('argMin', [axes[0]], $x.shape.length);
   const program = new ArgMinMaxProgram($x.shape, axes[0], 'min');
-  const uniformData = new Int32Array([axes[0]]);
+  const uniformData = [{type: 'int32', data: [axes[0]]}];
   const out = backend.runWebGPUProgram(program, [$x], 'int32', uniformData);
   intermediateTensorInfos.forEach(t => backend.disposeData(t.dataId));
   return out;

@@ -85,8 +85,14 @@ export function fusedDepthwiseConv2D(args: {
         convInfo, hasBias, fusedActivation, hasPreluActivationWeights,
         hasLeakyreluAlpha);
   }
-
-  const result = backend.runWebGLProgram(program, programInputs, 'float32');
+  const customValues = [
+    [convInfo.padInfo.top, convInfo.padInfo.left],
+    [convInfo.strideHeight, convInfo.strideWidth],
+    [convInfo.dilationHeight, convInfo.dilationWidth],
+    [convInfo.inHeight, convInfo.inWidth]
+  ];
+  const result =
+      backend.runWebGLProgram(program, programInputs, 'float32', customValues);
 
   intermediates.forEach(t => backend.disposeIntermediateTensorInfo(t));
 

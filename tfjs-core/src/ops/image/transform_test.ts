@@ -23,12 +23,13 @@ describeWithFlags('image.transform', ALL_ENVS, () => {
     const images = tf.tensor4d(
         [1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1], [1, 4, 4, 1]);
     const transform = tf.tensor2d([1, 0, 0, 0, 1, 0, -1, 0], [1, 8]);
-    const transformedImages = tf.image.transform(images, transform).toInt();
+    const transformedImages =
+        tf.image.transform(images, transform, 'nearest', 'constant', 0).toInt();
     const transformedImagesData = await transformedImages.data();
 
     const expected = [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0];
 
-    expectArraysClose(expected, transformedImagesData);
+    expectArraysClose(transformedImagesData, expected);
   });
 
   it('static output shape.', async () => {
@@ -46,10 +47,9 @@ describeWithFlags('image.transform', ALL_ENVS, () => {
     const transform = tf.tensor2d([0, 0.5, 1, -1, 2, 3, 0, 0], [1, 8]);
     const transformedImages = tf.image.transform(images, transform);
     const transformedImagesData = await transformedImages.data();
-
     const expected = [1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0];
 
-    expectArraysClose(expected, transformedImagesData);
+    expectArraysClose(transformedImagesData, expected);
   });
 
   it('fill=constant, interpolation=bilinear.', async () => {
@@ -58,10 +58,9 @@ describeWithFlags('image.transform', ALL_ENVS, () => {
     const transform = tf.tensor2d([0, 0.5, 1, -1, 2, 3, 0, 0], [1, 8]);
     const transformedImages = tf.image.transform(images, transform, 'bilinear');
     const transformedImagesData = await transformedImages.data();
-
     const expected = [1, 0, 1, 1, 0, 0, 0.5, 0.5, 0, 0, 0, 0, 0, 0, 0, 0];
 
-    expectArraysClose(expected, transformedImagesData);
+    expectArraysClose(transformedImagesData, expected);
   });
 
   it('fill=reflect, interpolation=bilinear.', async () => {
@@ -75,7 +74,7 @@ describeWithFlags('image.transform', ALL_ENVS, () => {
     const expected =
         [1, 0, 1, 1, 0.5, 0.5, 0.5, 0.5, 1, 0, 1, 0, 0, 0.5, 0.5, 0];
 
-    expectArraysClose(expected, transformedImagesData);
+    expectArraysClose(transformedImagesData, expected);
   });
 
   it('fill=wrap, interpolation=bilinear.', async () => {
@@ -89,7 +88,7 @@ describeWithFlags('image.transform', ALL_ENVS, () => {
     const expected =
         [1, 0, 1, 1, 0.5, 1, 0.5, 0.5, 1, 1, 0, 1, 0.5, 0.5, 0.5, 0.5];
 
-    expectArraysClose(expected, transformedImagesData);
+    expectArraysClose(transformedImagesData, expected);
   });
 
   it('fill=nearest, interpolation=bilinear.', async () => {
@@ -102,6 +101,6 @@ describeWithFlags('image.transform', ALL_ENVS, () => {
 
     const expected = [1, 0, 1, 1, 0.5, 0.5, 0.5, 0.5, 0, 0, 0, 0, 0, 0, 0, 0];
 
-    expectArraysClose(expected, transformedImagesData);
+    expectArraysClose(transformedImagesData, expected);
   });
 });

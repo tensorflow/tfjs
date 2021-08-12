@@ -57,6 +57,30 @@
   },
   {
     "os": "ios",
+    "os_version": "14",
+    "browser": "iphone",
+    "device": "iPhone 12 Pro Max",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "14",
+    "browser": "iphone",
+    "device": "iPhone 12",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "14",
+    "browser": "iphone",
+    "device": "iPhone XS",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
     "os_version": "13",
     "browser": "iphone",
     "device": "iPhone XS",
@@ -220,6 +244,14 @@
     "os_version": "12",
     "browser": "ipad",
     "device": "iPad Air 2019",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
+    "os_version": "11.0",
+    "browser": "android",
+    "device": "Google Pixel 5",
     "browser_version": null,
     "real_mobile": true
   },

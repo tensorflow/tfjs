@@ -17,10 +17,11 @@
 
 import {DataType, TypedArray} from '@tensorflow/tfjs-core';
 
-export type SimpleBinaryOperation = (a: number, b: number) => number;
+export type SimpleBinaryOperation = (a: number|string, b: number|string) =>
+    number;
 export type SimpleBinaryKernelImpl =
-    (aShape: number[], bShape: number[], aVals: TypedArray, bVals: TypedArray,
-     dtype: DataType) => [TypedArray, number[]];
+    (aShape: number[], bShape: number[], aVals: TypedArray|string[],
+     bVals: TypedArray|string[], dtype: DataType) => [TypedArray, number[]];
 export type ComplexBinaryOperation =
     (aReal: number, aImag: number, bReal: number, bImag: number) => {
       real: number, imag: number

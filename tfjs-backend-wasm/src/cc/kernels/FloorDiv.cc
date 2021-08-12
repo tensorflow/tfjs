@@ -35,7 +35,6 @@ void FloorDiv(const size_t a_id, const size_t* a_shape_ptr,
               const size_t a_shape_len, const size_t b_id,
               const size_t* b_shape_ptr, const size_t b_shape_len,
               const DType dtype, const size_t out_id) {
-  auto& a_info = backend::get_tensor_info(a_id);
   switch (dtype) {
     case DType::float32:
       binary_f32(a_id, b_id, out_id,

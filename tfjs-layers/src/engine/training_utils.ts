@@ -8,7 +8,7 @@
  * =============================================================================
  */
 
-import {dispose, mul, Tensor, Tensor1D, tensor1d, tidy} from '@tensorflow/tfjs-core';
+import {argMax, clone, dispose, mul, reshape, Tensor, Tensor1D, tensor1d, tidy} from '@tensorflow/tfjs-core';
 
 /**
  * For multi-class classification problems, this object is designed to store a
@@ -136,15 +136,15 @@ export async function standardizeWeights(
     const yClasses: Tensor1D = tidy(() => {
       if (y.shape.length === 1) {
         // Assume class indices.
-        return y.clone() as Tensor1D;
+        return clone(y) as Tensor1D;
       } else if (y.shape.length === 2) {
         if (y.shape[1] > 1) {
           // Assume one-hot encoding of classes.
           const axis = 1;
-          return y.argMax(axis);
+          return argMax(y, axis);
         } else if (y.shape[1] === 1) {
           // Class index.
-          return y.reshape([y.shape[0]]);
+          return reshape(y, [y.shape[0]]);
         } else {
           throw new Error(
               `Encountered unexpected last-dimension size (${y.shape[1]}) ` +

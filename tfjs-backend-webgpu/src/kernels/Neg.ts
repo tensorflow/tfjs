@@ -16,10 +16,12 @@
  */
 
 import {KernelConfig, KernelFunc, Neg, NegInputs, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
+
 import {WebGPUBackend} from '../backend_webgpu';
 import {negImplCPU} from '../kernel_utils/shared';
+
+import {UnaryOpType} from './unary_op_util';
 import {UnaryOpProgram} from './unary_op_webgpu';
-import {NEG} from './unary_op_webgpu';
 
 // This doesn't use unaryKernelFunc because negImplCPU is not of type
 // SimpleUnaryKernelImplCPU.
@@ -35,7 +37,7 @@ export function neg(args: {inputs: NegInputs, backend: WebGPUBackend}):
     return backend.makeTensorInfo(newShape, x.dtype, outValues);
   }
 
-  const program = new UnaryOpProgram(x.shape, NEG);
+  const program = new UnaryOpProgram(x.shape, UnaryOpType.NEG);
 
   return backend.runWebGPUProgram(program, [x], x.dtype);
 }

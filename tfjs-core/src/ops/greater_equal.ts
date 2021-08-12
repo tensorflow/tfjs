@@ -42,8 +42,8 @@ import {op} from './operation';
  */
 function greaterEqual_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
-  let $a = convertToTensor(a, 'a', 'greaterEqual');
-  let $b = convertToTensor(b, 'b', 'greaterEqual');
+  let $a = convertToTensor(a, 'a', 'greaterEqual', 'string_or_numeric');
+  let $b = convertToTensor(b, 'b', 'greaterEqual', 'string_or_numeric');
   [$a, $b] = makeTypesMatch($a, $b);
 
   assertAndGetBroadcastShape($a.shape, $b.shape);

@@ -28,7 +28,8 @@ export function maxImpl(
     let max = aVals[offset];
     for (let j = 0; j < reduceSize; ++j) {
       const value = aVals[offset + j];
-      if (value > max) {
+      if (Number.isNaN(value) ||
+          value > max) {  // comparison with NaN always return false
         max = value;
       }
     }

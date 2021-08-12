@@ -68,6 +68,7 @@ import {diagConfig} from './kernels/Diag';
 import {dilation2dConfig} from './kernels/Dilation2D';
 import {dilation2dBackpropFilterConfig} from './kernels/Dilation2DBackpropFilter';
 import {dilation2dBackpropInputConfig} from './kernels/Dilation2DBackpropInput';
+import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
 import {eluGradConfig} from './kernels/EluGrad';
 import {equalConfig} from './kernels/Equal';
@@ -155,6 +156,10 @@ import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {softplusConfig} from './kernels/Softplus';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
+import {sparseFillEmptyRowsConfig} from './kernels/SparseFillEmptyRows';
+import {sparseReshapeConfig} from './kernels/SparseReshape';
+import {sparseSegmentMeanConfig} from './kernels/SparseSegmentMean';
+import {sparseSegmentSumConfig} from './kernels/SparseSegmentSum';
 import {sparseToDenseConfig} from './kernels/SparseToDense';
 import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
@@ -162,6 +167,9 @@ import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {stepConfig} from './kernels/Step';
 import {stridedSliceConfig} from './kernels/StridedSlice';
+import {stringNGramsConfig} from './kernels/StringNGrams';
+import {stringSplitConfig} from './kernels/StringSplit';
+import {stringToHashBucketFastConfig} from './kernels/StringToHashBucketFast';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
@@ -227,6 +235,7 @@ const kernelConfigs: KernelConfig[] = [
   dilation2dBackpropInputConfig,
   dilation2dBackpropFilterConfig,
   realDivConfig,
+  einsumConfig,
   eluConfig,
   eluGradConfig,
   equalConfig,
@@ -313,6 +322,10 @@ const kernelConfigs: KernelConfig[] = [
   softmaxConfig,
   softplusConfig,
   spaceToBatchNDConfig,
+  sparseFillEmptyRowsConfig,
+  sparseReshapeConfig,
+  sparseSegmentMeanConfig,
+  sparseSegmentSumConfig,
   sparseToDenseConfig,
   splitVConfig,
   sqrtConfig,
@@ -320,6 +333,9 @@ const kernelConfigs: KernelConfig[] = [
   squaredDifferenceConfig,
   stepConfig,
   stridedSliceConfig,
+  stringNGramsConfig,
+  stringSplitConfig,
+  stringToHashBucketFastConfig,
   subConfig,
   sumConfig,
   tanConfig,

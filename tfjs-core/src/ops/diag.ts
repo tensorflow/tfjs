@@ -43,6 +43,8 @@ import {op} from './operation';
  * tf.diag(x).print()
  * ```
  * @param x The input tensor.
+ *
+ * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
 function diag_(x: Tensor): Tensor {
   const $x = convertToTensor(x, 'x', 'diag');

@@ -103,8 +103,6 @@ const TEST_FILTERS: TestFilter[] = [
       'zero in its shape',         // Zero in shapes aren't supported yet
       'matmul followed by mul',    // mul not supported yet
       'upcasts',                   // Upcasting not supported yet.
-      'fused A x B with elu',      // Fused matMul with elu activation not yet
-                                   // supported.
       'fused A x B with 2d bias',  // Fused matMul with 2D bias not yet
                                    // supported.
     ]
@@ -121,8 +119,6 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'conv2d ',
     excludes: [
       'broadcasted bias',  // Broadcasted bias not yet supported.
-      'basic with elu',    // Only fused relu, relu6, prelu activations
-                           // supported.
       'gradient',          // Gradients not defined yet.
       'backProp input x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // Gradients not
                                                          // defined.
@@ -133,6 +129,7 @@ const TEST_FILTERS: TestFilter[] = [
       'prelu bias stride 2 x=[1,8,8,16] f=[3,3,16,1] s=[2,2] d=8 p=same',
     ]
   },
+  {include: 'conv2dTranspose ', excludes: ['gradient']},
   {
     include: 'prelu ',
     excludes: [
@@ -210,15 +207,13 @@ const TEST_FILTERS: TestFilter[] = [
                      // implemented.
       'index corresponds to start of a non-initial window',  // argMin not yet
                                                              // implemented.,
-      'gradient',     // Gradients not yet implemented
-      'ignores NaNs'  // Doesn't yet ignore NaN
+      'gradient'  // Gradients not yet implemented
     ]
   },
   {
     startsWith: 'max ',
     excludes: [
-      'gradient',     // Gradients not yet implemented
-      'ignores NaNs'  // Doesn't yet ignore NaN
+      'gradient'  // Gradients not yet implemented
     ]
   },
   {
@@ -244,6 +239,14 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'nonMaxSuppression'},
   {include: 'argmax', excludes: ['gradient']},
   {include: 'exp '},
+  {
+    include: 'elu',
+    excludes: [
+      'derivative',  // Not yet implemented.
+      'gradient',    // Not yet implemented.
+      'selu'         // Not yet implemented.
+    ]
+  },
   {include: 'unstack'},
   {
     include: 'minimum',
@@ -270,7 +273,8 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
                                        // supported yet.
       'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes'   // Same as above.
+      'broadcasting Tensor4D shapes',  // Same as above.
+      'string'
     ]
   },
   {
@@ -279,7 +283,8 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
                                        // supported yet.
       'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes'   // Same as above.
+      'broadcasting Tensor4D shapes',  // Same as above.
+      'string'
     ]
   },
   {
@@ -289,7 +294,8 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
                                        // supported yet.
       'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes'   // Same as above.
+      'broadcasting Tensor4D shapes',  // Same as above.
+      'string'
     ]
   },
   {
@@ -299,7 +305,8 @@ const TEST_FILTERS: TestFilter[] = [
                                         // supported yet.
       'broadcasting Tensor3D shapes',   // Same as above.
       'broadcasting Tensor3D float32',  // Same as above.
-      'broadcasting Tensor4D shapes'    // Same as above.
+      'broadcasting Tensor4D shapes',   // Same as above.
+      'string'
     ]
   },
   {
@@ -310,7 +317,8 @@ const TEST_FILTERS: TestFilter[] = [
                                         // supported yet.
       'broadcasting Tensor3D shapes',   // Same as above.
       'broadcasting Tensor3D float32',  // Same as above.
-      'broadcasting Tensor4D shapes'    // Same as above.
+      'broadcasting Tensor4D shapes',   // Same as above.
+      'string'
     ]
   },
   {
@@ -319,7 +327,8 @@ const TEST_FILTERS: TestFilter[] = [
       'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
                                        // supported yet.
       'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes'   // Same as above.
+      'broadcasting Tensor4D shapes',  // Same as above.
+      'string'
     ]
   },
   {
@@ -353,6 +362,17 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'gradient',  // Gradient not yet implemented.
     ]
+  },
+  {
+    startsWith: 'cosh',
+    excludes: [
+      'gradient'  // Gradient not yet implemented.
+    ]
+  },
+  {
+    startsWith: 'tan',
+    excludes: ['gradient']  // Gradient not yet implemented.
+
   },
   {
     startsWith: 'tanh ',
@@ -408,6 +428,9 @@ const TEST_FILTERS: TestFilter[] = [
       'ignores NaNs'  // Doesn't yet ignore NaN
     ]
   },
+  {include: 'image.transform'},
+  {include: 'batchToSpaceND'},
+  {include: 'spaceToBatchND'},
 ];
 
 const customInclude = (testName: string) => {
@@ -427,4 +450,5 @@ setupTestFilters(TEST_FILTERS, customInclude);
 
 // Import and run all the tests from core.
 // tslint:disable-next-line:no-imports-from-dist
-import '@tensorflow/tfjs-core/dist/tests';
+// tslint:disable-next-line:no-require-imports
+require('@tensorflow/tfjs-core/dist/tests');

@@ -21,6 +21,7 @@ import {expectArraysClose} from '../test_util';
 
 describeWithFlags('AdamOptimizer', ALL_ENVS, () => {
   it('basic', async () => {
+    const initialTensors = tf.memory().numTensors;
     const learningRate = .1;
     const beta1 = .8;
     const beta2 = .9;
@@ -76,11 +77,13 @@ describeWithFlags('AdamOptimizer', ALL_ENVS, () => {
     x.dispose();
     optimizer.dispose();
 
-    // The only tensor remaining should be the argument to variable().
-    expect(tf.memory().numTensors).toBe(1);
+    // The only additional tensor remaining should be the argument to
+    // variable().
+    expect(tf.memory().numTensors).toBe(initialTensors + 1);
   });
 
   it('Continue training after loading weights', async () => {
+    const initialTensors = tf.memory().numTensors;
     const learningRate = .1;
     const beta1 = .8;
     const beta2 = .9;
@@ -109,7 +112,7 @@ describeWithFlags('AdamOptimizer', ALL_ENVS, () => {
     await optimizer3.setWeights(await optimizer2.getWeights());
     cost = optimizer2.minimize(f, /* returnCost */ true);
     expectArraysClose(await cost.data(), 17.681284);
-    expect(optimizer3.iterations).toEqual(2);
+    expect(optimizer3.iterations).toEqual(initialTensors + 2);
   });
 
   it('serialization round-trip', () => {

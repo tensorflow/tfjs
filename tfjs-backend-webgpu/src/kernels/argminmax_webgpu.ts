@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType, getShapeCoords} from '../shader_preprocessor';
+import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -54,7 +54,8 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
     // The number of comparisons each thread will do
     this.reductionFactor = 2;
-    const xMaxThreads = 1024;  // gl_MaxComputeWorkGroupSize
+    // Note that the maximum of workgroup X dimension is 256.
+    const xMaxThreads = 256;  // gl_MaxComputeWorkGroupSize.
     const xThreads =
         Math.min(Math.ceil(reduceSize / this.reductionFactor), xMaxThreads);
 
@@ -65,7 +66,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.inputShape = inputShape;
-    this.shaderKey = `argMinMax_${this.op}_${reduceSize}`;
+    this.shaderKey = `argMinMax${this.op}`;
   }
 
   getUserCode(): string {
@@ -121,9 +122,9 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
     const indexInputShape = (index: string) => {
       if (this.inputShape.length === 1) {
-        return `${getShapeCoords(this.inputShape)}`;
+        return 'xShape';
       } else {
-        return `${getShapeCoords(this.inputShape)}[${index}]`;
+        return `xShape[${index}]`;
       }
     };
 
@@ -167,7 +168,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         const ivec2 coordInfo = getInputCoordInfo();
 
         int bestIndex = 0;
-        float bestValue = x[getInputIndex(coordInfo, bestIndex)];
+        float bestValue = float(x[getInputIndex(coordInfo, bestIndex)]);
 
         const int Length = ${indexInputShape('axis')};
         const int WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
@@ -175,7 +176,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         for (int w = 0; w < WorkPerThread; ++w) {
           int i = int(gl_GlobalInvocationID.x) * WorkPerThread + w;
           if (i < Length) {
-            float candidate = x[getInputIndex(coordInfo, i)];
+            float candidate = float(x[getInputIndex(coordInfo, i)]);
             if (candidate ${this.op} bestValue && !isnan(candidate)) {
               bestValue = candidate;
               bestIndex = i;

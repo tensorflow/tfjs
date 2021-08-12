@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {util} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
@@ -22,15 +23,16 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class SliceProgram implements WebGPUProgram {
   variableNames = ['source'];
+  uniforms: string;
   outputShape: number[];
   shaderKey: string;
   rank: number;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workPerThread = 1;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workGroupSize: [number, number, number] = [64, 1, 1];
   start: number[];
-  destSize: number[];
+  size: number;
 
   constructor(start: number[], destSize: number[]) {
     this.outputShape = destSize;
@@ -41,25 +43,35 @@ export class SliceProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
 
     this.start = start;
-    this.destSize = destSize;
-    this.shaderKey = `slice_${start}_${destSize}`;
+    this.uniforms = `${getCoordsDataType(start.length)} start; `;
+    this.shaderKey = 'slice';
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
     const dtype = getCoordsDataType(this.rank);
     const sourceCoords = getCoords(this.rank);
-
-    const coordSum = this.destSize.map((_, i) => {
-      return `sourceLoc.${coords[i]} = ${this.start[i]} + coords.${coords[i]};`;
-    });
+    let coordSum;
+    if (this.start.length === 1) {
+      coordSum = this.outputShape.map((_, i) => {
+        return `sourceLoc.${coords[i]} = start + coords.${coords[i]};`;
+      });
+    } else {
+      coordSum = this.outputShape.map((_, i) => {
+        return `sourceLoc.${coords[i]} = start[${i}] + coords.${coords[i]};`;
+      });
+    }
 
     const userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
-        ${dtype} sourceLoc;
-        ${dtype} coords = getOutputCoords();
-        ${coordSum.join('\n')}
-        setOutput(index, getSource(${sourceCoords}));
+        if (index < size)
+        {
+          ${dtype} sourceLoc;
+          ${dtype} coords = getOutputCoords();
+          ${coordSum.join('\n')}
+          setOutput(index, getSource(${sourceCoords}));
+        }
       }
     `;
     return userCode;

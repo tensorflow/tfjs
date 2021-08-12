@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {util} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
@@ -22,32 +23,32 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class StridedSliceProgram implements WebGPUProgram {
   variableNames = ['x'];
+  uniforms: string;
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   // TODO(xing.xu): Increase the workPerThread.
   workPerThread = 1;
-  workGroupSize: [number, number, number] = [16, 1, 1];
-  begin: number[];
-  strides: number[];
+  workGroupSize: [number, number, number] = [64, 1, 1];
+  dtype: string;
+  size: number;
 
-  constructor(begin: number[], strides: number[], destSize: number[]) {
+  constructor(destSize: number[]) {
     this.outputShape = destSize;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
 
-    this.begin = begin;
-    this.strides = strides;
-    this.shaderKey = `stridedSlice_${begin}_${strides}`;
+    this.dtype = getCoordsDataType(this.outputShape.length);
+    this.uniforms = `${this.dtype} begin; ${this.dtype} strides; `;
+    this.shaderKey = 'stridedSlice';
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
     const rank = this.outputShape.length;
-    const inputDtype = getCoordsDataType(this.outputShape.length);
-    const dtype = getCoordsDataType(this.outputShape.length);
     let newCoords = '';
     if (rank === 1) {
       newCoords = 'coords * strides + begin';
@@ -65,15 +66,15 @@ export class StridedSliceProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      ${inputDtype} begin = ${inputDtype}(${this.begin});
-      ${inputDtype} strides = ${inputDtype}(${this.strides});
-
-      void main() {
-        ${dtype} coords = getOutputCoords();
-        int index = int(gl_GlobalInvocationID.x);
-        setOutput(index, getX(${newCoords}));
-      }
-    `;
+       void main() {
+         int index = int(gl_GlobalInvocationID.x);
+         if (index < size)
+         {
+           ${this.dtype} coords = getOutputCoords();
+           setOutput(index, getX(${newCoords}));
+         }
+       }
+     `;
     return userCode;
   }
 }

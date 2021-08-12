@@ -68,6 +68,7 @@ export {dilation2d} from './dilation2d';
 export {div} from './div';
 export {divNoNan} from './div_no_nan';
 export {dot} from './dot';
+export {einsum} from './einsum';
 export {elu} from './elu';
 export {equal} from './equal';
 export {erf} from './erf';
@@ -106,6 +107,7 @@ export {maxPool3d} from './max_pool_3d';
 export {maxPoolWithArgmax} from './max_pool_with_argmax';
 export {maximum} from './maximum';
 export {mean} from './mean';
+export {meshgrid} from './meshgrid';
 export {min} from './min';
 export {minimum} from './minimum';
 export {mirrorPad} from './mirror_pad';
@@ -238,6 +240,7 @@ const signal = {
 // Image Ops namespace
 import {cropAndResize} from './image/crop_and_resize';
 import {flipLeftRight} from './image/flip_left_right';
+import {grayscaleToRGB} from './image/grayscale_to_rgb';
 import {rotateWithOffset} from './image/rotate_with_offset';
 import {nonMaxSuppression} from './image/non_max_suppression';
 import {nonMaxSuppressionAsync} from './image/non_max_suppression_async';
@@ -247,9 +250,11 @@ import {nonMaxSuppressionPadded} from './image/non_max_suppression_padded';
 import {nonMaxSuppressionPaddedAsync} from './image/non_max_suppression_padded_async';
 import {resizeBilinear} from './image/resize_bilinear';
 import {resizeNearestNeighbor} from './image/resize_nearest_neighbor';
+import {threshold} from './image/threshold';
 import {transform} from './image/transform';
 const image = {
   flipLeftRight,
+  grayscaleToRGB,
   resizeNearestNeighbor,
   resizeBilinear,
   rotateWithOffset,
@@ -260,6 +265,7 @@ const image = {
   nonMaxSuppressionWithScoreAsync,
   nonMaxSuppressionPadded,
   nonMaxSuppressionPaddedAsync,
+  threshold,
   transform
 };
 
@@ -295,5 +301,26 @@ const losses = {
   softmaxCrossEntropy
 };
 
+import {sparseFillEmptyRows} from './sparse/sparse_fill_empty_rows';
+import {sparseReshape} from './sparse/sparse_reshape';
+import {sparseSegmentMean} from './sparse/sparse_segment_mean';
+import {sparseSegmentSum} from './sparse/sparse_segment_sum';
+const sparse = {
+  sparseFillEmptyRows,
+  sparseReshape,
+  sparseSegmentMean,
+  sparseSegmentSum
+};
+
+import {stringNGrams} from './string/string_n_grams';
+import {stringSplit} from './string/string_split';
+import {stringToHashBucketFast} from './string/string_to_hash_bucket_fast';
+// tslint:disable-next-line:variable-name
+const string = {
+  stringNGrams,
+  stringSplit,
+  stringToHashBucketFast
+};
+
 // Second level exports.
-export {image, linalg, losses, spectral, fused, signal};
+export {image, linalg, losses, spectral, fused, signal, sparse, string};

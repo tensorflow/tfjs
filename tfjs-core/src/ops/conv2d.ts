@@ -43,8 +43,8 @@ import {reshape} from './reshape';
  *    - `valid`: output will be smaller than input if filter is larger
  *       than 1x1.
  *   - For more info, see this guide:
- *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
- *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dataFormat: An optional string from: "NHWC", "NCHW". Defaults to
  *     "NHWC". Specify the data format of the input and output data. With the
  *     default format "NHWC", the data is stored in the order of: [batch,

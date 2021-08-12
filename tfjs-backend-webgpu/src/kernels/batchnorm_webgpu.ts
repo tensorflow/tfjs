@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType, getShapeCoords} from '../shader_preprocessor';
+import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -28,6 +28,7 @@ export class BatchNormProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   dispatch: [number, number, number];
   variableNames: string[];
+  uniforms = 'float varianceEpsilon;';
   // This is an experimental value.
   workGroupSize: [number, number, number] = [128, 1, 1];
   offsetShape: number[]|null;
@@ -36,8 +37,7 @@ export class BatchNormProgram implements WebGPUProgram {
 
   constructor(
       xShape: number[], meanShape: number[], varianceShape: number[],
-      offsetShape: number[]|null, scaleShape: number[]|null,
-      varianceEpsilon: number) {
+      offsetShape: number[]|null, scaleShape: number[]|null) {
     this.variableNames = ['x', 'mean', 'variance'];
     backend_util.assertAndGetBroadcastShape(xShape, meanShape);
     backend_util.assertAndGetBroadcastShape(xShape, varianceShape);
@@ -56,8 +56,7 @@ export class BatchNormProgram implements WebGPUProgram {
     }
     this.offsetShape = offsetShape;
     this.scaleShape = scaleShape;
-    this.varianceEpsilon = varianceEpsilon;
-    this.shaderKey = `batchNorm_${varianceEpsilon}`;
+    this.shaderKey = 'batchNorm';
   }
 
   getUserCode(): string {
@@ -83,7 +82,7 @@ export class BatchNormProgram implements WebGPUProgram {
     }
     const userCode = `
       void writeResult(${coordsDataType} coords,float value) {
-        if (coordsInBounds(coords, ${getShapeCoords(this.outputShape)})) {
+        if (coordsInBounds(coords, outShape)) {
           ${setOutput}
         }
       }
@@ -94,8 +93,7 @@ export class BatchNormProgram implements WebGPUProgram {
         float variance = getVarianceAtOutCoords();
         float offset = ${offsetSnippet};
         float scale = ${scaleSnippet};
-        float inv = scale * inversesqrt(variance + float(${
-        this.varianceEpsilon}));
+        float inv = scale * inversesqrt(variance + float(varianceEpsilon));
         writeResult(coords,dot(vec3(x, -mean, offset), vec3(inv, inv, 1)));
       }
   `;

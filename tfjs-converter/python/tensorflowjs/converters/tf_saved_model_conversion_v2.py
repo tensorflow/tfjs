@@ -34,6 +34,7 @@ from tensorflow.python.grappler import tf_optimizer
 from tensorflow.python.saved_model.load import load
 from tensorflow.python.saved_model import loader
 from tensorflow.python.training.saver import export_meta_graph
+from tensorflow.python.tools.saved_model_cli import get_signature_def_map
 from google.protobuf.json_format import MessageToDict
 import tensorflow_hub as hub
 
@@ -77,14 +78,19 @@ def get_cluster():
   cluster = gcluster.Cluster(devices=[named_device])
   return cluster
 
-def validate(nodes, skip_op_check, strip_debug_ops):
+def validate(graph_def, skip_op_check, strip_debug_ops):
   """Validate if the node's op is compatible with TensorFlow.js.
 
   Args:
-    nodes: tf.NodeDef TensorFlow NodeDef objects from GraphDef.
+    graph_def: tf.GraphDef TensorFlow GraphDef proto object, which represents
+      the model topology.
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to allow unsupported debug ops.
   """
+  nodes = [] + list(graph_def.node)
+  for func in graph_def.library.function:
+    nodes.extend(list(func.node_def))
+
   if skip_op_check:
     return set()
   ops = []
@@ -141,7 +147,7 @@ def optimize_graph(graph, signature_def, output_graph,
 
   graph_def = graph.as_graph_def()
 
-  unsupported = validate(graph_def.node, skip_op_check,
+  unsupported = validate(graph_def, skip_op_check,
                          strip_debug_ops)
   if unsupported:
     raise ValueError('Unsupported Ops in the model before optimization\n' +
@@ -194,7 +200,7 @@ def optimize_graph(graph, signature_def, output_graph,
   optimized_graph = fuse_prelu.fuse_prelu_with_fused_conv2d_or_matmul(
       optimized_graph)
 
-  unsupported = validate(optimized_graph.node, skip_op_check,
+  unsupported = validate(optimized_graph, skip_op_check,
                          strip_debug_ops)
   if unsupported:
     raise ValueError('Unsupported Ops in the model after optimization\n' +
@@ -424,8 +430,26 @@ def _freeze_saved_model_v2(concrete_func, control_flow_v2=False):
       concrete_func, lower_control_flow=not control_flow_v2,
       aggressive_inlining=True).graph
 
+def _find_signature_def_name(tensor, signature_map):
+  if not signature_map:
+    return tensor.name
 
-def _build_signature_def(frozen_graph, input_nodes, output_nodes):
+  tensor_shape_str = tensor.shape.as_proto().SerializeToString()
+  names = []
+  for key in signature_map:
+    tensor_info = signature_map[key]
+    signature_shape_str = tensor_info.tensor_shape.SerializeToString()
+    if (tensor_info.dtype == tensor.dtype and
+        tensor_shape_str == signature_shape_str):
+      names.append(key)
+
+  if not names or len(names) > 1:
+    return tensor.name
+  else:
+    return names[0]
+
+def _build_signature_def(frozen_graph, input_nodes, output_nodes,
+                         signature_def=None):
   signature = meta_graph_pb2.SignatureDef()
   for input_tensor in input_nodes:
     op_name = input_tensor.name.split(':')[0]
@@ -434,20 +458,24 @@ def _build_signature_def(frozen_graph, input_nodes, output_nodes):
     try:
       op = frozen_graph.get_operation_by_name(op_name)
       if op.type != 'Const':
-        signature.inputs[input_tensor.name].name = input_tensor.name
-        signature.inputs[
-            input_tensor.name].dtype = input_tensor.dtype.as_datatype_enum
-        signature.inputs[input_tensor.name].tensor_shape.CopyFrom(
+        name = input_tensor.name
+        if hasattr(signature_def, 'inputs'):
+          name = _find_signature_def_name(input_tensor, signature_def.inputs)
+        signature.inputs[name].name = input_tensor.name
+        signature.inputs[name].dtype = input_tensor.dtype.as_datatype_enum
+        signature.inputs[name].tensor_shape.CopyFrom(
             input_tensor.shape.as_proto())
     except KeyError:
       # The original input was removed when the graph was frozen.
       continue
   for output_tensor in output_nodes:
     if hasattr(output_tensor, 'name'):
-      signature.outputs[output_tensor.name].name = output_tensor.name
-      signature.outputs[
-          output_tensor.name].dtype = output_tensor.dtype.as_datatype_enum
-      signature.outputs[output_tensor.name].tensor_shape.CopyFrom(
+      name = output_tensor.name
+      if hasattr(signature_def, 'inputs'):
+        name = _find_signature_def_name(output_tensor, signature_def.outputs)
+      signature.outputs[name].name = output_tensor.name
+      signature.outputs[name].dtype = output_tensor.dtype.as_datatype_enum
+      signature.outputs[name].tensor_shape.CopyFrom(
           output_tensor.shape.as_proto())
     else: #just the tensor name string array
       signature.outputs[output_tensor].name = output_tensor
@@ -510,6 +538,14 @@ def _load_model(saved_model_dir, saved_model_tags):
       model = load(saved_model_dir)
   return model
 
+def _find_signature(saved_model_dir, saved_model_tags, signature_def):
+  signature_def_map = get_signature_def_map(saved_model_dir, saved_model_tags)
+  if signature_def not in signature_def_map.keys():
+    raise ValueError('Signature "%s" does on exist in the saved model'
+                     % (signature_def))
+
+  return signature_def_map[signature_def]
+
 def convert_tf_saved_model(saved_model_dir,
                            output_dir, signature_def='serving_default',
                            saved_model_tags='serve',
@@ -554,6 +590,9 @@ def convert_tf_saved_model(saved_model_dir,
   output_graph = os.path.join(
       output_dir, common.ARTIFACT_MODEL_JSON_FILE_NAME)
 
+  saved_model_sigature = _find_signature(saved_model_dir, saved_model_tags,
+                                         signature_def)
+
   if saved_model_tags:
     saved_model_tags = saved_model_tags.split(',')
 
@@ -581,7 +620,7 @@ def convert_tf_saved_model(saved_model_dir,
 
   inputs = [x for x in concrete_func.inputs if not x.dtype == 'resource']
   signature = _build_signature_def(
-      frozen_graph, inputs, concrete_func.outputs)
+      frozen_graph, inputs, concrete_func.outputs, saved_model_sigature)
 
   # Check if the TransformGraph is available to be imported, this package is
   # available in g3 but not in oss version of TensorFlow.

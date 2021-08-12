@@ -31,6 +31,7 @@ function fusedConvAndDepthWiseParams(
       (getParamValue('fusedOps', node, tensorMap, context) as string[]);
 
   const isBiasAdd = extraOp === 'biasadd';
+  const noBiasAdd = !isBiasAdd;
   const isPrelu = activationFunc === 'prelu';
   const isBatchNorm = extraOp === 'fusedbatchnorm';
 
@@ -42,7 +43,7 @@ function fusedConvAndDepthWiseParams(
           'FusedConv2d and DepthwiseConv2d with BiasAdd and Prelu ' +
           'must have two extra arguments: bias and alpha.');
     }
-    if (!isPrelu && numArgs !== 1) {
+    if (!isPrelu && isBiasAdd && numArgs !== 1) {
       throw new Error(
           'FusedConv2d and DepthwiseConv2d with BiasAdd must have ' +
           'one extra argument: bias.');
@@ -50,7 +51,7 @@ function fusedConvAndDepthWiseParams(
   }
   if (isBatchNorm) {
     throw new Error(
-        'FusedConv2d and DepthwiseConv2d with FusedBatchNorm is not supported.');
+        'FusedConv2d and DepthwiseConv2d with FusedBatchNorm is not supported');
   }
   const stride = getParamValue('strides', node, tensorMap, context) as number[];
   const pad = getPadding(node, tensorMap, context);
@@ -59,8 +60,12 @@ function fusedConvAndDepthWiseParams(
           .toUpperCase();
   const dilations =
       getParamValue('dilations', node, tensorMap, context) as number[];
-  const [biasArg, preluArg] =
+  let [biasArg, preluArg] =
       getParamValue('args', node, tensorMap, context) as Tensor[];
+  if (noBiasAdd) {
+    preluArg = biasArg;
+    biasArg = undefined;
+  }
   const leakyreluAlpha =
       getParamValue('leakyreluAlpha', node, tensorMap, context) as number;
 

@@ -289,4 +289,13 @@ describeWithFlags('notEqual', ALL_ENVS, () => {
     const b = tf.tensor1d([2, 3, 5], 'int32');
     expectArraysClose(await tf.notEqual(a, b).data(), [1, 1, 0]);
   });
+
+  it('should support string comparison', async () => {
+    const tensorA = tf.tensor('', [], 'string');
+    const tensorB = tf.tensor(['a', 'b', ''], [3], 'string');
+    const result = await tf.notEqual(tensorA, tensorB);
+
+    expectArraysEqual(result.shape, [3]);
+    expectArraysEqual(await result.data(), [1, 1, 0]);
+  });
 });

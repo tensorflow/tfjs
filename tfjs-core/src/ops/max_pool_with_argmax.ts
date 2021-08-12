@@ -51,8 +51,8 @@ import {op} from './operation';
  *    - `valid`: output will be smaller than input if filter is larger
  *       than 1x1.
  *    - For more info, see this guide:
- *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
- *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param includeBatchIndex Defaults to False. Whether to include batch
  *    dimension in flattened index of argmax.
  *

@@ -84,7 +84,7 @@ export type AvgPoolInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface AvgPoolAttrs {
   filterSize: [number, number]|number;
   strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 
@@ -93,7 +93,7 @@ export type AvgPoolGradInputs = Pick<NamedTensorInfoMap, 'dy'|'input'>;
 export interface AvgPoolGradAttrs {
   filterSize: [number, number]|number;
   strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
 }
 
 export const AvgPool3D = 'AvgPool3D';
@@ -274,7 +274,7 @@ export type DepthwiseConv2dNativeInputs =
     Pick<NamedTensorInfoMap, 'x'|'filter'>;
 export interface DepthwiseConv2dNativeAttrs {
   strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dataFormat: 'NHWC'|'NCHW';
   dilations: [number, number]|number;
   dimRoundingMode?: 'floor'|'round'|'ceil';
@@ -287,7 +287,7 @@ export type DepthwiseConv2dNativeBackpropFilterInputs =
 export interface DepthwiseConv2dNativeBackpropFilterAttrs {
   strides: [number, number]|number;
   dilations: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dimRoundingMode?: 'floor'|'round'|'ceil';
   filterShape: [number, number, number, number];
 }
@@ -299,7 +299,7 @@ export type DepthwiseConv2dNativeBackpropInputInputs =
 export interface DepthwiseConv2dNativeBackpropInputAttrs {
   strides: [number, number]|number;
   dilations: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dimRoundingMode?: 'floor'|'round'|'ceil';
   inputShape: [number, number, number, number];
 }
@@ -325,6 +325,12 @@ export type Dilation2DBackpropFilterInputs =
 
 export const RealDiv = 'RealDiv';
 export type RealDivInputs = BinaryInputs;
+
+export const Einsum = 'Einsum';
+export type EinsumInputs = TensorInfo[];
+export interface EinsumAttrs {
+  equation: string;
+}
 
 export const Elu = 'Elu';
 export type EluInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -482,7 +488,7 @@ export type MaxPoolInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface MaxPoolAttrs {
   filterSize: [number, number]|number;
   strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 
@@ -491,7 +497,7 @@ export type MaxPoolGradInputs = Pick<NamedTensorInfoMap, 'dy'|'input'|'output'>;
 export interface MaxPoolGradAttrs {
   filterSize: [number, number]|number;
   strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 
@@ -763,14 +769,21 @@ export interface SoftmaxAttrs {
   dim: number;
 }
 
-export const SquaredDifference = 'SquaredDifference';
-export type SquaredDifferenceInputs = BinaryInputs;
+export const SparseFillEmptyRows = 'SparseFillEmptyRows';
+export type SparseFillEmptyRowsInputs =
+    Pick<NamedTensorInfoMap, 'indices'|'values'|'denseShape'|'defaultValue'>;
 
-export const Square = 'Square';
-export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
+export const SparseReshape = 'SparseReshape';
+export type SparseReshapeInputs =
+    Pick<NamedTensorInfoMap, 'inputIndices'|'inputShape'|'newShape'>;
 
-export const Sub = 'Sub';
-export type SubInputs = BinaryInputs;
+export const SparseSegmentMean = 'SparseSegmentMean';
+export type SparseSegmentMeanInputs =
+    Pick<NamedTensorInfoMap, 'data'|'indices'|'segmentIds'>;
+
+export const SparseSegmentSum = 'SparseSegmentSum';
+export type SparseSegmentSumInputs =
+    Pick<NamedTensorInfoMap, 'data'|'indices'|'segmentIds'>;
 
 export const SparseToDense = 'SparseToDense';
 export type SparseToDenseInputs =
@@ -778,6 +791,12 @@ export type SparseToDenseInputs =
 export interface SparseToDenseAttrs {
   outputShape: number[];
 }
+
+export const SquaredDifference = 'SquaredDifference';
+export type SquaredDifferenceInputs = BinaryInputs;
+
+export const Square = 'Square';
+export type SquareInputs = Pick<NamedTensorInfoMap, 'x'>;
 
 export const StridedSlice = 'StridedSlice';
 export type StridedSliceInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -791,6 +810,32 @@ export interface StridedSliceAttrs {
   newAxisMask: number;
   shrinkAxisMask: number;
 }
+
+export const StringNGrams = 'StringNGrams';
+export type StringNGramsInputs = Pick<NamedTensorInfoMap, 'data'|'dataSplits'>;
+export interface StringNGramsAttrs {
+  separator: string;
+  nGramWidths: number[];
+  leftPad: string;
+  rightPad: string;
+  padWidth: number;
+  preserveShortSequences: boolean;
+}
+
+export const StringSplit = 'StringSplit';
+export type StringSplitInputs = Pick<NamedTensorInfoMap, 'input'|'delimiter'>;
+export interface StringSplitAttrs {
+  skipEmpty: boolean;
+}
+
+export const StringToHashBucketFast = 'StringToHashBucketFast';
+export type StringToHashBucketFastInputs = Pick<NamedTensorInfoMap, 'input'>;
+export interface StringToHashBucketFastAttrs {
+  numBuckets: number;
+}
+
+export const Sub = 'Sub';
+export type SubInputs = BinaryInputs;
 
 export const Tan = 'Tan';
 export type TanInputs = UnaryInputs;
@@ -918,7 +963,7 @@ export interface FusedDepthwiseConv2DInputs extends NamedTensorInfoMap {
 }
 export interface FusedDepthwiseConv2DAttrs {
   strides: [number, number]|number;
-  pad: 'valid'|'same'|number;
+  pad: 'valid'|'same'|number|ExplicitPadding;
   dataFormat: 'NHWC'|'NCHW';
   dilations: [number, number]|number;
   dimRoundingMode: 'floor'|'round'|'ceil';

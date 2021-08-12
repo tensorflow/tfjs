@@ -31,9 +31,12 @@ import {clipByValueConfig} from './kernels/ClipByValue';
 import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
+import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
+import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
 import {expm1Config} from './kernels/Expm1';
@@ -44,6 +47,7 @@ import {fromPixelsConfig} from './kernels/FromPixels';
 import {fusedBatchNormConfig} from './kernels/FusedBatchNorm';
 import {fusedConv2DConfig} from './kernels/FusedConv2D';
 import {fusedDepthwiseConv2DConfig} from './kernels/FusedDepthwiseConv2D';
+import {gatherNdConfig} from './kernels/GatherNd';
 import {gatherV2Config} from './kernels/GatherV2';
 import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
@@ -52,6 +56,7 @@ import {imagConfig} from './kernels/Imag';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
+import {logicalAndConfig} from './kernels/LogicalAnd';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
@@ -67,26 +72,33 @@ import {notEqualConfig} from './kernels/NotEqual';
 import {onesLikeConfig} from './kernels/OnesLike';
 import {packConfig} from './kernels/Pack';
 import {padV2Config} from './kernels/PadV2';
+import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
+import {rangeConfig} from './kernels/Range';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
+import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
+import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {stridedSliceConfig} from './kernels/StridedSlice';
+import {stringNGramsConfig} from './kernels/StringNGrams';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanhConfig} from './kernels/Tanh';
+import {tileConfig} from './kernels/Tile';
+import {transformConfig} from './kernels/Transform';
 import {transposeConfig} from './kernels/Transpose';
 import {unpackConfig} from './kernels/Unpack';
 import {zerosLikeConfig} from './kernels/ZerosLike';
@@ -108,9 +120,12 @@ const kernelConfigs: KernelConfig[] = [
   complexConfig,
   concatConfig,
   conv2DConfig,
+  conv2DBackpropInputConfig,
   cropAndResizeConfig,
   depthwiseConv2dNativeConfig,
+  einsumConfig,
   eluConfig,
+  equalConfig,
   expandDimsConfig,
   expConfig,
   expm1Config,
@@ -121,6 +136,7 @@ const kernelConfigs: KernelConfig[] = [
   fusedBatchNormConfig,
   fusedConv2DConfig,
   fusedDepthwiseConv2DConfig,
+  gatherNdConfig,
   gatherV2Config,
   greaterConfig,
   greaterEqualConfig,
@@ -129,6 +145,7 @@ const kernelConfigs: KernelConfig[] = [
   lessConfig,
   lessEqualConfig,
   logConfig,
+  logicalAndConfig,
   maxConfig,
   maximumConfig,
   maxPoolConfig,
@@ -146,24 +163,31 @@ const kernelConfigs: KernelConfig[] = [
   padV2Config,
   preluConfig,
   prodConfig,
+  powConfig,
+  rangeConfig,
   realConfig,
   realDivConfig,
   reluConfig,
   relu6Config,
   reshapeConfig,
   resizeBilinearConfig,
+  resizeNearestNeighborConfig,
   rsqrtConfig,
   selectConfig,
   sigmoidConfig,
   sliceConfig,
   stridedSliceConfig,
+  stringNGramsConfig,
   softmaxConfig,
   spaceToBatchNDConfig,
+  sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
   subConfig,
   sumConfig,
   tanhConfig,
+  tileConfig,
+  transformConfig,
   transposeConfig,
   unpackConfig,
   zerosLikeConfig

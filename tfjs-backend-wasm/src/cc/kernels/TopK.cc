@@ -16,7 +16,6 @@
 #include <emscripten.h>
 #endif
 
-#include <math.h>
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
@@ -25,38 +24,115 @@
 #include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/util.h"
 
+using std::swap;
+using std::vector;
+
 namespace tfjs {
 
 template <typename T>
 struct ValAndInd {
   T value;
-  int32_t index;
+  size_t index;
+  bool operator<(const ValAndInd& other) const {
+    return value == other.value ? index < other.index : value > other.value;
+  }
+  bool operator==(const ValAndInd& other) const {
+    return value == other.value && index == other.index;
+  }
 };
+
+template <typename T>
+T sign(T value) {
+  if (value == 0) return 0;
+  return value < 0 ? -1 : 1;
+}
+
+template <typename T>
+void select(ValAndInd<T>* array, int k, int left, int right) {
+  while (right > left) {
+    // Use select recursively to sample a smaller set of size s
+    // the arbitrary constants 600 and 0.5 are used in the original
+    // version to minimize execution time.
+    if (right - left > 600) {
+      const int n = right - left + 1;
+      const int i = k - left + 1;
+      const auto z = log(n);
+      const auto s = 0.5 * exp(2 * z / 3);
+      const auto sd = 0.5 * sqrt(z * s * (n - s) / n) * sign(i - n / 2);
+      const int newLeft = std::max(left, static_cast<int>(k - i * s / n + sd));
+      const int newRight =
+          std::min(right, static_cast<int>(k + (n - i) * s / n + sd));
+      select(array, k, newLeft, newRight);
+    }
+    // partition the elements between left and right around t
+    auto t = array[k];
+    int i = left;
+    int j = right;
+
+    swap(array[left], array[k]);
+
+    if (t < array[right]) {
+      swap(array[left], array[right]);
+    }
+    while (i < j) {
+      swap(array[i], array[j]);
+      i++;
+      j--;
+      while (array[i] < t) {
+        i = i + 1;
+      }
+      while (t < array[j]) {
+        j = j - 1;
+      }
+    }
+    if (array[left] == t) {
+      swap(array[left], array[j]);
+    } else {
+      j = j + 1;
+      swap(array[j], array[right]);
+    }
+    // Adjust left and right towards the boundaries of the subset
+    // containing the (k - left + 1)th smallest element.
+    if (j <= k) {
+      left = j + 1;
+    }
+    if (k <= j) {
+      right = j - 1;
+    }
+  }
+}
 
 // Based on tfjs-core/src/backends/topk_impl.ts
 template <typename T>
-void topk(const T* x_data, const size_t x_len,
-          const std::vector<size_t>& x_shape, const int k, const bool sorted,
-          T* out_values_data, int32_t* out_indices_data) {
-  int last_dim = x_shape.back();
-  int batch = x_len / last_dim;
-  int size = last_dim;
+void topk(const T* x_data, const size_t x_len, const vector<size_t>& x_shape,
+          const int k, const bool sorted, T* out_values_data,
+          int32_t* out_indices_data) {
+  size_t last_dim = x_shape.back();
+  size_t batch = x_len / last_dim;
+  size_t size = last_dim;
 
-  for (int b = 0; b < batch; b++) {
-    int offset = b * size;
-    std::vector<ValAndInd<T>> val_and_ind;
-    for (int i = offset; i < offset + size; i++) {
+  for (size_t b = 0; b < batch; b++) {
+    size_t offset = b * size;
+    vector<ValAndInd<T>> val_and_ind;
+    val_and_ind.reserve(size);
+    for (size_t i = offset; i < offset + size; i++) {
       val_and_ind.push_back({.value = x_data[i], .index = i - offset});
     }
-    std::sort(val_and_ind.begin(), val_and_ind.end(),
-              [](const ValAndInd<T>& a, const ValAndInd<T>& b) -> bool {
-                return a.value > b.value;
-              });
-    int out_offset = b * k;
-    for (int i = 0; i < k; i++) {
-      int index = out_offset + i;
+
+    if (k < size) {
+      select(val_and_ind.data(), k, 0, size - 1);
+      val_and_ind.resize(k);
+    }
+
+    if (sorted) {
+      std::sort(val_and_ind.begin(), val_and_ind.end());
+    }
+
+    size_t out_offset = b * k;
+    for (size_t i = 0; i < k; i++) {
+      size_t index = out_offset + i;
       out_values_data[index] = val_and_ind[i].value;
-      out_indices_data[index] = val_and_ind[i].index;
+      out_indices_data[index] = static_cast<int32_t>(val_and_ind[i].index);
     }
   }
 }
@@ -73,7 +149,7 @@ void TopK(const size_t x_id, const size_t* x_shape_ptr,
           const size_t x_shape_length, const DType x_dtype, const int k,
           const bool sorted, const size_t out_values_id,
           const size_t out_indices_id) {
-  auto x_shape = std::vector<size_t>(x_shape_ptr, x_shape_ptr + x_shape_length);
+  auto x_shape = vector<size_t>(x_shape_ptr, x_shape_ptr + x_shape_length);
   auto& x_info = backend::get_tensor_info(x_id);
   auto& out_values_info = backend::get_tensor_info_out(out_values_id);
   auto& out_indices_info = backend::get_tensor_info_out(out_indices_id);

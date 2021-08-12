@@ -33,7 +33,6 @@ void All(const size_t x_id, const size_t reduce_size, const size_t out_id) {
   auto& out_info = backend::get_tensor_info_out(out_id);
 
   const bool* x_buf = x_info.b();
-  const size_t x_size = x_info.size;
 
   bool* out_buf = out_info.b_write();
   const size_t out_size = out_info.size;

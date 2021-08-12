@@ -52,8 +52,13 @@ export function depthwiseConv2dNative(args: {
   } else {
     program = new DepthwiseConv2DProgram(convInfo);
   }
-
-  return backend.runWebGLProgram(program, [x, filter], 'float32');
+  const customValues = [
+    [convInfo.padInfo.top, convInfo.padInfo.left],
+    [convInfo.strideHeight, convInfo.strideWidth],
+    [convInfo.dilationHeight, convInfo.dilationWidth],
+    [convInfo.inHeight, convInfo.inWidth]
+  ];
+  return backend.runWebGLProgram(program, [x, filter], 'float32', customValues);
 }
 
 export const depthwiseConv2dNativeConfig: KernelConfig = {

@@ -16,11 +16,13 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
+
 import {getCoordsDataType} from '../shader_preprocessor';
-
+import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class BinaryOpSharedProgram implements WebGPUProgram {
   outputShape: number[];
@@ -32,20 +34,24 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
   workGroupSize: [number, number, number];
   useSharedMemoryWithB: boolean;
   lastDimensionSize: number;
-  op: string;
+  op: BinaryOpType;
+  useWgsl: boolean;
+  size: number;
+  sizeFit: boolean;
 
   constructor(
-      op: string, aShape: number[], bShape: number[],
+      op: BinaryOpType, aShape: number[], bShape: number[],
       useSharedMemoryWithB: boolean) {
     // This is an experimental value when using shared memory.
-    const workGroupSizeX = 512;
+    // Note that the maximum of workgroup X dimension is 256.
+    const workGroupSizeX = 256;
     this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.lastDimensionSize = useSharedMemoryWithB ? bShape[0] : aShape[0];
-    if (this.lastDimensionSize < 512) {
+    if (this.lastDimensionSize < 256) {
       this.workPerThread = 1;
-    } else if (this.lastDimensionSize < 1024) {
+    } else if (this.lastDimensionSize < 512) {
       this.workPerThread = 2;
     } else {
       this.workPerThread = 4;
@@ -53,14 +59,20 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-    this.shaderKey = `binaryShared_${op}`;
     this.useSharedMemoryWithB = useSharedMemoryWithB;
     this.op = op;
+    this.useWgsl = getUseWgsl();
+    this.size = util.sizeFromShape(this.outputShape);
+    this.sizeFit =
+        this.size % (this.workGroupSize[0] * this.workPerThread) === 0;
+    // this.lastDimensionSize is used as sharedBuf array size, so can not be
+    // used as uniform.
+    this.shaderKey = `binaryShared_${op}_${this.lastDimensionSize}_${
+        this.useSharedMemoryWithB}_${this.sizeFit}`;
   }
 
   getUserCode(): string {
     const type = getCoordsDataType(this.outputShape.length);
-    const size = util.sizeFromShape(this.outputShape);
     const sharedIndexSnippet = this.lastDimensionSize > 1 ?
         `coords[${this.outputShape.length - 1}]` :
         '0';
@@ -69,21 +81,22 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
          float b = sharedBuf[${sharedIndexSnippet}];` :
         `float a = sharedBuf[${sharedIndexSnippet}];
          float b = getBAtOutCoords(coords);`;
-    const sizeFit = size % (this.workGroupSize[0] * this.workPerThread) === 0;
-    const writeDataSnippet = sizeFit ?
+
+    const writeDataSnippet = this.sizeFit ?
         `${type} coords = getCoordsFromFlatIndex(flatIndex);
 
          ${accessDataSnippet}
          setOutput(flatIndex, binaryOperation(a, b));` :
-        `if(flatIndex < ${size}) {
+        `if(flatIndex < size) {
             ${type} coords = getCoordsFromFlatIndex(flatIndex);
 
             ${accessDataSnippet}
             setOutput(flatIndex, binaryOperation(a, b));
           }`;
+    const opStr = getBinaryOpString(this.op);
     const userCode = `
         float binaryOperation(float a, float b) {
-          ${this.op}
+          ${opStr}
         }
 
         shared float sharedBuf[${this.lastDimensionSize}];
@@ -104,6 +117,59 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
 
           for(int i = 0; i < ${this.workPerThread}; i++) {
             int flatIndex = index * ${this.workPerThread} + i;
+
+            ${writeDataSnippet}
+          }
+        }
+        `;
+    return userCode;
+  }
+
+  getUserCodeWgsl(): string {
+    const sharedIndexSnippet = this.lastDimensionSize > 1 ?
+        `coords[${this.outputShape.length - 1}]` :
+        '0';
+    const accessDataSnippet = this.useSharedMemoryWithB ?
+        `let a = getAAtOutCoordsByCoords(coords);
+         let b = sharedBuf[${sharedIndexSnippet}];` :
+        `let a = sharedBuf[${sharedIndexSnippet}];
+         let b = getBAtOutCoordsByCoords(coords);`;
+
+    const writeDataSnippet = this.sizeFit ?
+        `let coords = getCoordsFromFlatIndex(flatIndex);
+
+         ${accessDataSnippet}
+         setOutputFlat(flatIndex, binaryOperation(a, b));` :
+        `if(flatIndex < uniforms.size) {
+            let coords = getCoordsFromFlatIndex(flatIndex);
+
+            ${accessDataSnippet}
+            setOutputFlat(flatIndex, binaryOperation(a, b));
+          }`;
+    const opStr = getBinaryOpString(this.op, false, this.useWgsl);
+    const userCode = `
+        fn binaryOperation(a : f32, b : f32) -> f32 {
+          ${opStr}
+        }
+        var<workgroup> sharedBuf : array<f32, ${this.lastDimensionSize}>;
+        ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
+        fn main([[builtin(local_invocation_id)]] local_id : vec3<u32>,
+                [[builtin(global_invocation_id)]] global_id : vec3<u32>) {
+          let index = global_id.x;
+
+          // Fill in the shared memory buffer. Here we need a loop to make sure
+          // that all data in A|B are uploaded when |sharedMemorySize| is larger
+          // than work group size.
+          for(var localIndex = local_id.x; localIndex < ${
+        this.lastDimensionSize}u; localIndex = localIndex + ${
+        this.workGroupSize[0]}u) {
+            sharedBuf[localIndex] = f32(${
+        this.useSharedMemoryWithB ? 'B' : 'A'}.numbers[localIndex]);
+          }
+          workgroupBarrier();
+
+          for(var i = 0u; i < ${this.workPerThread}u; i = i + 1u) {
+            let flatIndex = index * ${this.workPerThread}u + i;
 
             ${writeDataSnippet}
           }

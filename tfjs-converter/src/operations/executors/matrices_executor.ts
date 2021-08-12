@@ -39,6 +39,12 @@ export const executeOp: InternalOpExecutor =
               getParamValue('transposeB', node, tensorMap, context) as
                   boolean)];
 
+        case 'Einsum':
+          return [tfOps.einsum(
+              getParamValue('equation', node, tensorMap, context) as string,
+              ...getParamValue('tensors', node, tensorMap, context) as
+                  Tensor[])];
+
         case 'Transpose':
           return [tfOps.transpose(
               getParamValue('x', node, tensorMap, context) as Tensor,

@@ -66,13 +66,13 @@ export function conv2d(
   const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
 
   const dimensions = [
-    convInfo.filterHeight, convInfo.filterWidth, ...padInfo,
-    convInfo.strideHeight, convInfo.strideWidth, convInfo.dilationHeight,
-    convInfo.dilationWidth
+    {type: 'int32', data: [convInfo.filterHeight, convInfo.filterWidth]},
+    {type: 'int32', data: [...padInfo]},
+    {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
+    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]}
   ];
-  const uniformData = new Int32Array(dimensions);
 
-  return backend.runWebGPUProgram(program, [x, filter], x.dtype, uniformData);
+  return backend.runWebGPUProgram(program, [x, filter], x.dtype, dimensions);
 }
 
 export const conv2DConfig: KernelConfig = {

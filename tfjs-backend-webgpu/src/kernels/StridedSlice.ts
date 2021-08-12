@@ -68,8 +68,10 @@ export function stridedSlice(args: {
           stridedSliceImplCPU(outShape, xBuf, $strides, $begin);
       result = backend.makeTensorInfo(outShape, $x.dtype, resultValues.values);
     } else {
-      const program = new StridedSliceProgram($begin, $strides, outShape);
-      result = backend.runWebGPUProgram(program, [$x], $x.dtype);
+      const program = new StridedSliceProgram(outShape);
+      const uniformData =
+          [{type: 'int32', data: $begin}, {type: 'int32', data: $strides}];
+      result = backend.runWebGPUProgram(program, [$x], $x.dtype, uniformData);
     }
   }
 
