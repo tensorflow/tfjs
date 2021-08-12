@@ -49,22 +49,23 @@
     "yalc": "~1.0.0-pre.50"
   },
   "scripts": {
-    "build-ci": "yarn build",
-    "build": "bazel build :tfjs-backend-webgl_pkg",
-    "bundle": "bazel build :tfjs-backend-webgl_pkg",
-    "bundle-ci": "yarn bundle",
+    "build-ci": "tsc && yarn bundle-ci",
+    "build": "tsc && yarn bundle",
+    "bundle": "rollup -c",
+    "bundle-ci": "rollup -c --ci",
     "build-link-package": "cd ../link-package && yarn build",
     "build-deps": "yarn build-link-package",
     "build-deps-ci": "yarn build-deps",
-    "build-npm": "bazel build :tfjs-backend-webgl_pkg",
+    "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
-    "publish-npm": "bazel run :tfjs-backend-webgl_pkg.publish",
+    "publish-npm": "npm publish",
     "lint": "tslint -p . -t verbose",
-    "test": "bazel test :tfjs-backend-webgl_test --test_output=streamed",
-    "test-dev": "ibazel run :tfjs-backend-webgl_test --test-output=streamed",
+    "test": "yarn build-deps && karma start",
+    "test-dev": "karma start --testEnv webgl2",
     "coverage": "KARMA_COVERAGE=1 karma start --browsers='Chrome' --singleRun",
-    "run-browserstack": "bazel test :browserstack_bs_chrome_mac_tfjs-backend-webgl_test"
+    "run-browserstack": "karma start --browserstack",
+    "test-ci": "./scripts/test-ci.sh"
   },
   "dependencies": {
     "@tensorflow/tfjs-backend-cpu": "link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
@@ -85,14 +86,6 @@
     "./dist/register_all_kernels.js",
     "./dist/flags_webgl.js",
     "./dist/base.js",
-    "./dist/index.js",
-    "./dist/register_all_kernels.mjs",
-    "./dist/flags_webgl.mjs",
-    "./dist/base.mjs",
-    "./dist/index.mjs",
-    "./src/register_all_kernels.mjs",
-    "./src/flags_webgl.mjs",
-    "./src/base.mjs",
-    "./src/index.mjs"
+    "./dist/index.js"
   ]
 }
