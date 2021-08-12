@@ -104,7 +104,7 @@ export function makeShader(
   }
 
   const prefixSnippets: string[] = [];
-  let uniformDeclaration = '[[block]] struct Uniforms { NAN : u32; ';
+  let uniformDeclaration = '[[block]] struct Uniforms { NAN : f32; ';
   program.variableNames.forEach((x, i) => {
     uniformDeclaration += `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${
         getCoordsDataTypeWgsl(inputInfo[i].shape.length)}; `;
