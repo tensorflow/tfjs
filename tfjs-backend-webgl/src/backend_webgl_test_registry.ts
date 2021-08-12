@@ -22,6 +22,7 @@ export const WEBGL_ENVS: Constraints = {
   predicate: testEnv => testEnv.backendName === 'webgl'
 };
 export const PACKED_ENVS: Constraints = {
+  predicate: testEnv => testEnv.name !== 'webgl1',
   flags: {'WEBGL_PACK': true}
 };
 
