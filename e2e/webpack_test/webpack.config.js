@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,11 +15,14 @@
  * =============================================================================
  */
 
-import {version_core} from './index';
+const path = require('path');
 
-describe('version', () => {
-  it('version is contained', () => {
-    const expected = require('@tensorflow/tfjs-core/package.json').version;
-    expect(version_core).toBe(expected);
-  });
-});
+module.exports = {
+  mode: 'production',
+  entry: './app.js',
+  target: 'web',
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'app_webpack.js',
+  },
+};

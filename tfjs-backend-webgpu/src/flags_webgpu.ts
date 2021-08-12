@@ -42,7 +42,7 @@ ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D', () => false);
 /**
  * Whether to use GLSL shading language.
  */
- ENV.registerFlag('WEBGPU_USE_GLSL', () => true);
+ENV.registerFlag('WEBGPU_USE_GLSL', () => true);
 
 /**
  * Whether to use conv2dTranspose_naive which directly implement the
@@ -74,3 +74,8 @@ ENV.registerFlag('CPU_HANDOFF_SIZE_THRESHOLD', () => 128);
  * TFJS webgpu backend.
  */
 ENV.registerFlag('WEBGPU_USE_PROFILE_TOOL', () => false);
+
+/**
+ * Whether to use import API.
+ */
+ENV.registerFlag('WEBGPU_USE_IMPORT', () => true);
