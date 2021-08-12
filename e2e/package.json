@@ -12,7 +12,7 @@
     "@tensorflow/tfjs": "link:../tfjs",
     "@tensorflow/tfjs-backend-cpu": "link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
     "@tensorflow/tfjs-backend-wasm": "link:../tfjs-backend-wasm",
-    "@tensorflow/tfjs-backend-webgl": "link:../link-package/node_modules/@tensorflow/tfjs-backend-webgl",
+    "@tensorflow/tfjs-backend-webgl": "link:../tfjs-backend-webgl",
     "@tensorflow/tfjs-converter": "link:../tfjs-converter",
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
     "@tensorflow/tfjs-data": "link:../tfjs-data",
