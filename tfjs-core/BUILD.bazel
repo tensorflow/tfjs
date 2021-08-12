@@ -14,11 +14,10 @@
 # =============================================================================
 
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
-load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "nodejs_test", "pkg_npm")
-load("//tools:copy_to_dist.bzl", "copy_to_dist")
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_test", "pkg_npm")
+load("//tools:copy_to_dist.bzl", "copy_to_dist", "copy_ts_library_to_dist")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
-load("//tools:ts_library_outputs.bzl", "ts_library_outputs")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -42,19 +41,12 @@ tfjs_bundle(
     ],
 )
 
-ts_library_outputs(
-    name = "tfjs-core_outputs",
+copy_ts_library_to_dist(
+    name = "copy_src_to_dist",
     srcs = [
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
         "//tfjs-core/src:tfjs-core_test_lib",
-    ],
-)
-
-copy_to_dist(
-    name = "copy_src_to_dist",
-    srcs = [
-        ":tfjs-core_outputs",
     ],
     root = "src",
 )
@@ -68,21 +60,16 @@ copy_to_dist(
         ":tf-core.fesm",
         ":tf-core.fesm.min",
         ":tf-core.min",
+        ":tf-core.node",
     ],
 )
 
-ts_library_outputs(
-    name = "test_snippets_outputs",
+copy_ts_library_to_dist(
+    name = "copy_test_snippets",
     srcs = [
         "//tfjs-core/scripts/test_snippets:test_snippets_util_lib",
     ],
-)
-
-copy_to_dist(
-    name = "copy_test_snippets",
-    srcs = [
-        ":test_snippets_outputs",
-    ],
+    root = ".",
 )
 
 copy_file(
@@ -154,7 +141,6 @@ nodejs_test(
 nodejs_test(
     name = "tfjs-core_node_test",
     data = [
-        "package.json",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
@@ -168,21 +154,10 @@ nodejs_test(
 nodejs_test(
     name = "tfjs-core_async_backends_test",
     data = [
-        "package.json",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-core/src:tfjs-core_test_lib",
     ],
     entry_point = "//tfjs-core/src:test_async_backends.ts",
     link_workspace_root = True,
     tags = ["ci"],
-)
-
-# This is necessary for tests to have acess to
-# the package.json so src/version_test.ts can 'require()' it.
-js_library(
-    name = "package_json",
-    package_name = "@tensorflow/tfjs-core",
-    srcs = [
-        ":package.json",
-    ],
 )
