@@ -20,8 +20,8 @@ import {util} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
 import {getCoordsDataTypeWgsl} from '../shader_preprocessor_wgsl';
 import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
-import {computeDispatch, flatDispatchLayout, reshapeComputeDispatch} from '../webgpu_util';
-import {getReshapeDispatchGlobalInvocationID} from '../shader_util';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+import {getReshapeDispatchflatIndex} from '../shader_util';
 
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
@@ -46,13 +46,7 @@ export class PadProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    if (this.dispatch[0] > 65535) {
-      this.reshapeDispatch = true;
-      this.workGroupSize = [256, 1, 1];
-      this.dispatch = reshapeComputeDispatch(this.size, this.workGroupSize);
-    } else {
-      this.reshapeDispatch = false;
-    }
+    this.reshapeDispatch = this.dispatch[1] > 1;
     paddings.map((_, i) => {
       this.uniforms += ` ivec2 pad${i};`;
       this.uniformsWgsl += ` pad${i} : vec2<u32>;`;
@@ -83,7 +77,7 @@ export class PadProgram implements WebGPUProgram {
         ['coords[0]', 'coords[1]', 'coords[2]', 'coords[3]'].slice(0, rank) :
         'coords';
     const flatIndexSnippet = this.reshapeDispatch ?
-        getReshapeDispatchGlobalInvocationID() : 'int(gl_GlobalInvocationID.x)';
+        getReshapeDispatchflatIndex() : 'int(gl_GlobalInvocationID.x)';
 
     const userCode = `
       ${type} start = ${startValue};

@@ -17,9 +17,8 @@
 import {util} from '@tensorflow/tfjs-core';
 
 import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
-import {computeDispatch, flatDispatchLayout, reshapeComputeDispatch} from '../webgpu_util';
-import {getUnaryOpString, UnaryOpType} from './unary_op_util';
-import {getReshapeDispatchGlobalInvocationID} from '../shader_util';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+import {getReshapeDispatchflatIndex} from '../shader_util';
 
 import {getUnaryOpString, UnaryOpType} from './unary_op_util';
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
@@ -45,13 +44,7 @@ export class UnaryOpProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    if (this.dispatch[0] > 65535) {
-      this.reshapeDispatch = true;
-      this.workGroupSize = [256, 1, 1];
-      this.dispatch = reshapeComputeDispatch(this.size, this.workGroupSize);
-    } else {
-      this.reshapeDispatch = false;
-    }
+    this.reshapeDispatch = this.dispatch[1] > 1;
     this.useWgsl = getUseWgsl();
     this.op = op;
     this.shaderKey = `unary_${op}`;
@@ -59,7 +52,7 @@ export class UnaryOpProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const flatIndexSnippet = this.reshapeDispatch ?
-        getReshapeDispatchGlobalInvocationID() : 'int(gl_GlobalInvocationID.x)';
+        getReshapeDispatchflatIndex() : 'int(gl_GlobalInvocationID.x)';
     return `
       float unaryOperation(float a) {
         ${getUnaryOpString(this.op)}

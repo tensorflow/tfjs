@@ -54,6 +54,7 @@ interface ProgramParams {
   uniforms?: string;
   isVec4?: boolean;
   size?: number;
+  reshapeDispatch?: boolean;
   getUserCode: () => string;
 }
 
@@ -113,6 +114,10 @@ export function makeShader(
 
   if (program.size != null) {
     uniformDeclaration += 'int size; ';
+  }
+
+  if (program.reshapeDispatch) {
+    uniformDeclaration += 'ivec3 dispatchSize; ';
   }
 
   if (program.uniforms) {
