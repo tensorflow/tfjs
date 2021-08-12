@@ -30,7 +30,14 @@ export function isMobile(nav?: Navigator): boolean {
     }
 
     // tslint:disable-next-line:no-any
-    const a = nav.userAgent || nav.vendor || (window as any).opera;
+    const a = nav.userAgent || nav.vendor ||
+        (typeof window !== 'undefined' ? (window as any).opera : '');
+    // Use `navigator.userAgentData.mobile` as fallback.
+    if (!a) {
+      // tslint:disable-next-line:no-any
+      const navAny = nav as any;
+      return navAny.userAgentData && navAny.userAgentData.mobile;
+    }
     // tslint:disable-next-line:max-line-length
     return /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i
                .test(a) ||
