@@ -54,12 +54,12 @@ fi
 
 # Packages to publish.
 PACKAGES=("tfjs-core" "tfjs-backend-cpu" "tfjs-backend-webgl" \
-"tfjs-backend-wasm" "tfjs-layers" "tfjs-converter" "tfjs-data" "tfjs" \
+"tfjs-backend-wasm" "tfjs-layers" "tfjs-data" "tfjs" \
 "tfjs-node" "tfjs-node-gpu")
 
 # Packages that build with Bazel
 BAZEL_PACKAGES=("tfjs-core" "tfjs-backend-cpu" "tfjs-backend-webgl" \
-"tfjs-tflite")
+"tfjs-tflite" "tfjs-converter")
 
 for package in "${PACKAGES[@]}"
 do
