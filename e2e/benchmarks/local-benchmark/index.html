@@ -86,25 +86,6 @@ limitations under the License.
       <tbody></tbody>
     </table>
   </div>
-  <script src="https://unpkg.com/@tensorflow/tfjs-core@latest/dist/tf-core.js" crossorigin></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-backend-cpu@latest/dist/tf-backend-cpu.js" crossorigin></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgl@latest/dist/tf-backend-webgl.js" crossorigin></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgpu@latest/dist/tf-backend-webgpu.min.js"
-    crossorigin></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-layers@latest/dist/tf-layers.js" crossorigin></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-converter@latest/dist/tf-converter.js" crossorigin></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@latest/dist/tf-backend-wasm.js" crossorigin></script>
-  <script src="https://unpkg.com/@tensorflow/tfjs-automl@latest/dist/tf-automl.js" crossorigin></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder" crossorigin></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands" crossorigin> </script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2" crossorigin></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2" crossorigin></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection" crossorigin></script>
-
-  <script src="../model_config.js"></script>
-  <script src="../benchmark_util.js"></script>
-  <script src="./util.js"></script>
-  <script src="./index.js"></script>
   <script>
     'use strict';
 
@@ -131,6 +112,7 @@ limitations under the License.
     }
     // Controllers can be updated by URI or clicked by user.
     let modelController = null;
+    let numWarmupsController = null;
     let numRunsController = null;
     let modelParameterFolder = null;
     let runButton = null;
@@ -157,6 +139,8 @@ limitations under the License.
       // The model parameter will be update automically by onChange.
       if (modelController != null && urlState.has('benchmark'))
         modelController.setValue(urlState.get('benchmark'));
+      if (numWarmupsController != null && urlState.has('warmup'))
+        numWarmupsController.setValue(urlState.get('warmup'));
       if (numRunsController != null && urlState.has('run'))
         numRunsController.setValue(urlState.get('run'));
       // Only auto run when URI component exists.
@@ -169,6 +153,7 @@ limitations under the License.
     }
 
     const state = {
+      numWarmups: warmupTimes,
       numRuns: runTimes,
       benchmark: 'mobilenet_v2',
       run: (v) => {
@@ -673,11 +658,68 @@ limitations under the License.
       return false;
     }
 
+    // Promise is used to guarantee scripts are loaded in order.
+    async function loadScript(url) {
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.onload = resolve;
+        script.onerror = reject;
+        script.src = url;
+        if (url.startsWith('http')) {
+          script.crossOrigin = 'anonymous';
+        }
+        document.body.append(script);
+      })
+    }
+
+    function processUrls(urls, localBuild) {
+      for (let i = 0; i < urls.length; i++) {
+        let name = urls[i].split('/')[0].replace('tfjs-', '').replace('backend-', '');
+        if (localBuild.includes(name)) {
+          urls[i] = `../../../dist/bin/${urls[i]}`;
+        } else {
+          urls[i] = `https://unpkg.com/@tensorflow/${urls[i].replace('/', '@latest/')}`;
+        }
+      }
+    }
+
     async function onPageLoad() {
       const gui = new dat.gui.GUI({ width: 550 });
       gui.domElement.id = 'gui';
 
       urlState = getURLState(location.search);
+
+      let urls = [
+        'tfjs-core/dist/tf-core.js',
+        'tfjs-backend-cpu/dist/tf-backend-cpu.js',
+        'tfjs-backend-webgl/dist/tf-backend-webgl.js',
+        'tfjs-backend-webgpu/dist/tf-backend-webgpu.min.js',
+        'tfjs-layers/dist/tf-layers.js',
+        'tfjs-converter/dist/tf-converter.js',
+        'tfjs-backend-wasm/dist/tf-backend-wasm.js',
+        'tfjs-automl/dist/tf-automl.js',
+      ];
+      let localBuild = [];
+      if (urlState && urlState.has('localBuild')) {
+        localBuild = urlState.get('localBuild').split(',');
+      }
+      processUrls(urls, localBuild);
+      urls = urls.concat([
+        'https://cdn.jsdelivr.net/npm/@tensorflow-models/universal-sentence-encoder',
+        'https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands',
+        'https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2',
+        'https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2',
+        'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection',
+        '../model_config.js',
+        '../benchmark_util.js',
+        './util.js',
+        './index.js',
+      ]);
+
+      for (let url of urls) {
+        await loadScript(url);
+      }
+
       if (urlState && urlState.has('backend'))
         state.backend = urlState.get('backend');
       await tf.setBackend(state.backend);
@@ -781,6 +823,7 @@ limitations under the License.
       modelFolder.open();
 
       const parameterFolder = gui.addFolder('Parameters');
+      numWarmupsController = parameterFolder.add(state, 'numWarmups');
       numRunsController = parameterFolder.add(state, 'numRuns');
       parameterFolder.add(state, 'kernelTiming', ['aggregate', 'individual']);
       parameterFolder.open();
