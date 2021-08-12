@@ -715,6 +715,9 @@ export class WebGPUBackend extends KernelBackend {
     if (program.size != null) {
       uniformsWithType.push({type: uniformsType, data: [program.size]});
     }
+    if (program.reshapeDispatch) {
+      uniformsWithType.push({type: 'int32', data: program.dispatch});
+    }
     if (programUniforms) {
       uniformsWithType = [...uniformsWithType, ...programUniforms];
     }

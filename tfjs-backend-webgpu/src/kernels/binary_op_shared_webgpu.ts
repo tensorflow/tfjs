@@ -19,9 +19,9 @@ import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType} from '../shader_preprocessor';
 import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
-import {computeDispatch, flatDispatchLayout, reshapeComputeDispatch} from '../webgpu_util';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
-import {getReshapeDispatchGlobalInvocationID} from '../shader_util';
+import {getReshapeDispatchflatIndex} from '../shader_util';
 
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
@@ -62,16 +62,7 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-    // If the dispatch size exceeds the limit size of the x dimension, we should
-    // reshape dispatch layout on x/y or x/y/z dimensions.
-    if (this.dispatch[0] > 65535) {
-      this.reshapeDispatch = true;
-      this.workPerThread = 1;
-      this.workGroupSize = [256, 1, 1];
-      this.dispatch = reshapeComputeDispatch(this.size, this.workGroupSize);
-    } else {
-      this.reshapeDispatch = false;
-    }
+    this.reshapeDispatch = this.dispatch[1] > 1;
 
     this.useSharedMemoryWithB = useSharedMemoryWithB;
     this.op = op;
@@ -109,7 +100,7 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
           }`;
     const opStr = getBinaryOpString(this.op);
     const flatIndexSnippet = this.reshapeDispatch ?
-        getReshapeDispatchGlobalInvocationID() : 'int(gl_GlobalInvocationID.x)';
+        getReshapeDispatchflatIndex() : 'int(gl_GlobalInvocationID.x)';
     const userCode = `
         float binaryOperation(float a, float b) {
           ${opStr}

@@ -16,6 +16,8 @@
  */
 import {DataType, util} from '@tensorflow/tfjs-core';
 
+import {MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE} from './constants';
+
 const arrayProduct = (arr: number[]) => {
   let product = 1;
   for (let i = 0; i < arr.length; i++) {
@@ -43,7 +45,7 @@ export function computeDispatch(
     workGroupSize: [number, number, number] = [1, 1, 1],
     elementsPerThread: [number, number, number] =
         [1, 1, 1]): [number, number, number] {
-  return [
+  const [dispatchX, dispatchY, dispatchZ] = [
     Math.ceil(
         arrayProduct(layout.x.map(d => outputShape[d])) /
         (workGroupSize[0] * elementsPerThread[0])),
@@ -56,25 +58,24 @@ export function computeDispatch(
                    (workGroupSize[2] * elementsPerThread[2])) :
                1
   ];
-}
 
-// If flat dispatch layout only on x dimension and the dispatch size exceeds
-// the limit size of the x dimension, we should reshape dispatch layout on
-// x/y or x/y/z dimensions. We may not need to reshape the dispatch size if
-// enlarge the work group size to [256, 1, 1], which is maximum limit size.
-export function reshapeComputeDispatch(size: number,
-    workGroupSize: [number, number, number]): [number, number, number] {
-  util.assert(workGroupSize[0] === 256 && workGroupSize[1] === 1 &&
-      workGroupSize[2] === 1, () => `The work group size must be [256, 1, 1] ` +
-          `when reshaping dispatch size for exceeding the limit size.`);
+  if (dispatchX <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
+      dispatchY <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
+      dispatchZ <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
+    return [dispatchX, dispatchY, dispatchZ];
+  }
 
-  // The maximum dispatch size is 65535 for x/y/z dimensions.
-  const dispatchX = Math.ceil(size / 256) > 65535 ? 65535 :
-      Math.ceil(size / 256);
-  const dispatchY = Math.ceil(size / (256 * 65535)) > 65535 ? 65535 :
-      Math.ceil(size / (256 * 65535));
-  const dispatchZ = Math.ceil(size / (256 * 65535 * 65535));
-  return [dispatchX, dispatchY, dispatchZ];
+  util.assert(dispatchX > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE && !layout.y
+      && !layout.z, () => `Only support flatted layout to reshape dispatch ` +
+      `size when the dispatch size exceeds the limit size on x dimension.`);
+
+  let dispatchAverage = Math.ceil(Math.sqrt(dispatchX));
+  if (dispatchAverage > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
+    dispatchAverage = Math.ceil(Math.cbrt(dispatchX));
+    return [dispatchAverage, dispatchAverage, dispatchAverage];
+  } else {
+    return [dispatchAverage, dispatchAverage, 1];
+  }
 }
 
 export function computeWorkGroupSizeForConv2d(
