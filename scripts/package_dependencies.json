@@ -2,15 +2,16 @@
   "tfjs-automl": [],
   "tfjs-core": [],
   "tfjs-converter": ["tfjs-core"],
-  "tfjs-layers": ["tfjs-core"],
+  "tfjs-layers": ["tfjs-core", "tfjs-backend-webgl"],
   "tfjs-data": ["tfjs-core", "tfjs-layers"],
-  "tfjs": ["tfjs-core", "tfjs-converter", "tfjs-layers", "tfjs-data"],
+  "tfjs": ["tfjs-core", "tfjs-converter", "tfjs-layers", "tfjs-data", "tfjs-backend-webgl"],
   "tfjs-node": ["tfjs"],
   "tfjs-node-gpu": ["tfjs"],
   "tfjs-backend-wasm": ["tfjs-core"],
+  "tfjs-backend-webgl": ["tfjs-core"],
   "tfjs-backend-webgpu": ["tfjs-core"],
   "tfjs-inference": [],
   "tfjs-react-native": [],
   "tfjs-vis": [],
-  "e2e": ["tfjs", "tfjs-converter", "tfjs-core", "tfjs-data", "tfjs-layers", "tfjs-node", "tfjs-backend-wasm"]
+  "e2e": ["tfjs", "tfjs-backend-webgl", "tfjs-converter", "tfjs-core", "tfjs-data", "tfjs-layers", "tfjs-node", "tfjs-backend-wasm"]
 }
