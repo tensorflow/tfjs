@@ -17,6 +17,7 @@
  */
 
 import {TensorContainer, TensorContainerArray, TensorContainerObject} from '@tensorflow/tfjs-core';
+
 import {iteratorFromConcatenated, iteratorFromConcatenatedFunction, iteratorFromFunction, iteratorFromIncrementing, iteratorFromItems, iteratorFromZipped, LazyIterator, ZipMismatchMode} from './lazy_iterator';
 
 export class TestIntegerIterator extends LazyIterator<number> {
@@ -323,6 +324,14 @@ describe('LazyIterator', () => {
     const readIterator = a.concatenate(b);
     const result = await readIterator.toArrayForTest();
     expect(result).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+
+  it('can be concatenated after skipping', async () => {
+    const a = iteratorFromItems([1, 2, 3]);
+    const b = iteratorFromItems([4, 5, 6]);
+    const readIterator = a.skip(1).concatenate(b);
+    const result = await readIterator.toArrayForTest();
+    expect(result).toEqual([2, 3, 4, 5, 6]);
   });
 
   it('can be created by concatenating streams', async () => {

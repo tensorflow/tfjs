@@ -25,7 +25,7 @@ import {TensorLike} from '../types';
 import {op} from './operation';
 
 /**
- * Computes exponential linear element-wise: `x > 0 ? e ^ x - 1 : 0`.
+ * Computes exponential linear element-wise: `x > 0 ? x : (e ^ x) - 1`.
  *
  * ```js
  * const x = tf.tensor1d([-1, 1, -3, 2]);

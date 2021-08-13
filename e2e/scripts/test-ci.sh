@@ -49,6 +49,12 @@ if [[ "$TAGS" == *"#REGRESSION"*  ]]; then
 
   # Generate custom bundle files for tests
   ./scripts/run-custom-builds.sh
+
+  # Test webpack
+  cd webpack_test
+  yarn
+  yarn build
+  cd ..
 fi
 
 if [[ "$NIGHTLY" = true || "$RELEASE" = true ]]; then
