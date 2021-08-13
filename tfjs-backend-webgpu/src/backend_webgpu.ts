@@ -653,6 +653,14 @@ export class WebGPUBackend extends KernelBackend {
       currentOffset += d.data.length + padding;
     });
 
+    // Force the resulting size of uniform block to be evenly divisible
+    // by sizeof(four-component vector).
+    padding = Math.ceil(currentOffset / 4) * 4 - currentOffset;
+    for (let p = 0; p < padding; ++p) {
+      dimUniformsData.push({type: 'int32', data: [0]});
+      dataViewIndex++;
+    }
+
     return this.arrayToDataView(dimUniformsData, dataViewIndex);
   }
 
