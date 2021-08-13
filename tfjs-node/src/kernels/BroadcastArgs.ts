@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,27 +15,19 @@
  * =============================================================================
  */
 
-import {
-  BroadcastArgs,
-  BroadcastArgsInputs,
-  backend_util,
-  KernelConfig
-} from '@tensorflow/tfjs';
+import {backend_util, BroadcastArgs, BroadcastArgsInputs, KernelConfig} from '@tensorflow/tfjs';
 
-import {
-  createTensorsTypeOpAttr,
-  NodeJSKernelBackend
-} from '../nodejs_kernel_backend';
+import {createTensorsTypeOpAttr, NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
 export const broadcastArgsConfig: KernelConfig = {
   kernelName: BroadcastArgs,
   backendName: 'tensorflow',
   kernelFunc: (args) => {
-    const { s0, s1 } = args.inputs as BroadcastArgsInputs;
+    const {s0, s1} = args.inputs as BroadcastArgsInputs;
     const backend = args.backend as NodeJSKernelBackend;
 
     const opAttrs = [createTensorsTypeOpAttr(
-      'T', backend_util.upcastType(s0.dtype, s1.dtype))];
+        'T', backend_util.upcastType(s0.dtype, s1.dtype))];
     return backend.executeSingleOutput(BroadcastArgs, opAttrs, [s0, s1]);
   }
 };

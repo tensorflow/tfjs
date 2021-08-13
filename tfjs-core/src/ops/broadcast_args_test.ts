@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,8 +16,8 @@
  */
 
 import * as tf from '../index';
-import { ALL_ENVS, describeWithFlags } from '../jasmine_util';
-import { expectArraysEqual } from '../test_util';
+import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
+import {expectArraysEqual} from '../test_util';
 
 describeWithFlags('broadcastArgs', ALL_ENVS, () => {
   it('([1,1], [1,1]) -> [1,1]', async () => {
@@ -64,15 +64,13 @@ describeWithFlags('broadcastArgs', ALL_ENVS, () => {
     const s1 = tf.tensor1d([1, 2], 'int32');
     const s2 = tf.tensor1d([1, 3], 'int32');
 
-    expect(() => tf.broadcastArgs(s1, s2).arraySync())
-      .toThrowError();
+    expect(() => tf.broadcastArgs(s1, s2).arraySync()).toThrowError();
   });
 
   it('([[1,1],[1,1]], [[1,1],[1,1]]) -> error', async () => {
     const s1 = tf.tensor2d([[1, 1], [1, 1]], [2, 2], 'int32');
     const s2 = tf.tensor2d([[1, 1], [1, 1]], [2, 2], 'int32');
 
-    expect(() => tf.broadcastArgs(s1, s2).arraySync())
-      .toThrowError();
+    expect(() => tf.broadcastArgs(s1, s2).arraySync()).toThrowError();
   });
 });
