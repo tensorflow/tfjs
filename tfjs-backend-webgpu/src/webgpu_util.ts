@@ -157,3 +157,8 @@ export function isWebGPUSupported(): boolean {
   }
   return true;
 }
+
+export interface WebGPULayout {
+  bindGroupLayout: GPUBindGroupLayout;
+  pipelineLayout: GPUPipelineLayout;
+}
