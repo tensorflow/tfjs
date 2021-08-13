@@ -17,7 +17,7 @@
 // We explicitly import the modular kernels so they get registered in the
 // global registry when we compile the library. A modular build would replace
 // the contents of this file and import only the kernels that are needed.
-import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
+import { KernelConfig, registerKernel } from '@tensorflow/tfjs-core';
 
 import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {absConfig} from './kernels/Abs';
@@ -42,6 +42,7 @@ import {batchMatMulConfig} from './kernels/BatchMatMul';
 import {batchNormConfig} from './kernels/BatchNorm';
 import {batchToSpaceNDConfig} from './kernels/BatchToSpaceND';
 import {bincountConfig} from './kernels/Bincount';
+import {broadcastArgsConfig} from './kernels/BroadcastArgs';
 import {castConfig} from './kernels/Cast';
 import {ceilConfig} from './kernels/Ceil';
 import {clipConfig} from './kernels/Clip';
@@ -207,6 +208,7 @@ const kernelConfigs: KernelConfig[] = [
   batchNormConfig,
   batchToSpaceNDConfig,
   bincountConfig,
+  broadcastArgsConfig,
   castConfig,
   ceilConfig,
   clipConfig,
