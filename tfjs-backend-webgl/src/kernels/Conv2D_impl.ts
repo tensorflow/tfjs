@@ -231,8 +231,7 @@ export function conv2dWithIm2Row({
   const customValues = [
     xSqueezed.shape, [convInfo.padInfo.left, convInfo.padInfo.top],
     [convInfo.strideHeight, convInfo.strideWidth],
-    [convInfo.dilationHeight, convInfo.dilationWidth], [convInfo.inChannels],
-    [convInfo.filterWidth * convInfo.inChannels]
+    [convInfo.dilationHeight, convInfo.dilationWidth]
   ];
   const im2Col = backend.runWebGLProgram(
       im2ColProgram, [xSqueezed], 'float32', customValues);
