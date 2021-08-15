@@ -39,6 +39,7 @@ export {batchNorm2d} from './batchnorm2d';
 export {batchNorm3d} from './batchnorm3d';
 export {batchNorm4d} from './batchnorm4d';
 export {bincount} from './bincount';
+export {broadcastArgs} from './broadcast_args';
 export {broadcastTo} from './broadcast_to';
 export {buffer} from './buffer';
 export {cast} from './cast';
