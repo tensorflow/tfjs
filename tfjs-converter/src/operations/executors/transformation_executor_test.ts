@@ -180,5 +180,19 @@ describe('transformation', () => {
         expect(tfOps.broadcastTo).toHaveBeenCalledWith(input1[0], [1, 1]);
       });
     });
+    describe('BroadcastArgs', () => {
+      it('should call tfOps.broadcastArgs', () => {
+        spyOn(tfOps, 'broadcastArgs');
+        node.op = 'BroadcastArgs';
+        node.inputParams.s0 = createTensorAttr(0);
+        node.inputParams.s1 = createTensorAttr(1);
+        node.inputNames = ['input1', 'input2'];
+        const input1 = [tfOps.tensor1d([1, 1])];
+        const input2 = [tfOps.tensor1d([1, 1])];
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfOps.broadcastArgs).toHaveBeenCalledWith(input1[0], input2[0]);
+      });
+    });
   });
 });

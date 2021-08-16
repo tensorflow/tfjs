@@ -84,61 +84,6 @@ steps:
       - yarn-common
       - yarn-link-package
   - name: 'node:10'
-    dir: tfjs-layers
-    entrypoint: yarn
-    id: yarn-tfjs-layers
-    args:
-      - install
-    waitFor:
-      - yarn-common
-      - yarn-link-package
-  - name: 'node:10'
-    dir: tfjs-layers
-    entrypoint: yarn
-    id: build-tfjs-layers
-    args:
-      - build-ci
-    waitFor:
-      - yarn-tfjs-layers
-      - yarn-common
-      - yarn-link-package
-  - name: 'node:10'
-    dir: tfjs-layers
-    entrypoint: yarn
-    id: lint-tfjs-layers
-    args:
-      - lint
-    waitFor:
-      - yarn-tfjs-layers
-      - yarn-common
-      - yarn-link-package
-  - name: 'node:10'
-    dir: tfjs-layers
-    entrypoint: yarn
-    id: test-browser-tfjs-layers
-    args:
-      - test-ci
-    waitFor:
-      - yarn-tfjs-layers
-      - lint-tfjs-layers
-      - yarn-common
-      - yarn-link-package
-    env:
-      - BROWSERSTACK_USERNAME=deeplearnjs1
-      - NIGHTLY=$_NIGHTLY
-    secretEnv:
-      - BROWSERSTACK_KEY
-  - name: 'node:10'
-    dir: tfjs-layers
-    entrypoint: yarn
-    id: test-snippets-tfjs-layers
-    args:
-      - test-snippets-ci
-    waitFor:
-      - build-tfjs-layers
-      - yarn-common
-      - yarn-link-package
-  - name: 'node:10'
     dir: tfjs-backend-wasm
     entrypoint: yarn
     id: yarn-tfjs-backend-wasm
@@ -196,6 +141,51 @@ steps:
       - yarn-common
       - yarn-link-package
   - name: 'node:10'
+    dir: tfjs-backend-webgl
+    id: yarn-tfjs-backend-webgl
+    entrypoint: yarn
+    args:
+      - install
+    waitFor:
+      - yarn-common
+      - yarn-link-package
+  - name: 'node:10'
+    dir: tfjs-backend-webgl
+    id: build-tfjs-backend-webgl
+    entrypoint: yarn
+    args:
+      - build-ci
+    waitFor:
+      - yarn-tfjs-backend-webgl
+      - yarn-common
+      - yarn-link-package
+  - name: 'node:10'
+    dir: tfjs-backend-webgl
+    id: lint-tfjs-backend-webgl
+    entrypoint: yarn
+    args:
+      - lint
+    waitFor:
+      - yarn-tfjs-backend-webgl
+      - yarn-common
+      - yarn-link-package
+  - name: 'node:10'
+    dir: tfjs-backend-webgl
+    entrypoint: yarn
+    id: test-tfjs-backend-webgl
+    args:
+      - test-ci
+    waitFor:
+      - yarn-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
+      - yarn-common
+      - yarn-link-package
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+  - name: 'node:10'
     dir: tfjs-backend-webgpu
     id: yarn-tfjs-backend-webgpu
     entrypoint: yarn
@@ -225,6 +215,76 @@ steps:
       - lint-tfjs-backend-webgpu
       - yarn-common
       - yarn-link-package
+  - name: 'node:10'
+    dir: tfjs-layers
+    entrypoint: yarn
+    id: yarn-tfjs-layers
+    args:
+      - install
+    waitFor:
+      - yarn-common
+      - yarn-link-package
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
+  - name: 'node:10'
+    dir: tfjs-layers
+    entrypoint: yarn
+    id: build-tfjs-layers
+    args:
+      - build-ci
+    waitFor:
+      - yarn-tfjs-layers
+      - yarn-common
+      - yarn-link-package
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
+  - name: 'node:10'
+    dir: tfjs-layers
+    entrypoint: yarn
+    id: lint-tfjs-layers
+    args:
+      - lint
+    waitFor:
+      - yarn-tfjs-layers
+      - yarn-common
+      - yarn-link-package
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
+  - name: 'node:10'
+    dir: tfjs-layers
+    entrypoint: yarn
+    id: test-browser-tfjs-layers
+    args:
+      - test-ci
+    waitFor:
+      - yarn-tfjs-layers
+      - lint-tfjs-layers
+      - yarn-common
+      - yarn-link-package
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
+    env:
+      - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
+    secretEnv:
+      - BROWSERSTACK_KEY
+  - name: 'node:10'
+    dir: tfjs-layers
+    entrypoint: yarn
+    id: test-snippets-tfjs-layers
+    args:
+      - test-snippets-ci
+    waitFor:
+      - build-tfjs-layers
+      - yarn-common
+      - yarn-link-package
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
   - name: 'node:10'
     dir: tfjs-data
     entrypoint: yarn
@@ -307,6 +367,9 @@ steps:
       - yarn-tfjs-data
       - build-tfjs-data
       - lint-tfjs-data
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
   - name: 'node:10'
     dir: tfjs
     entrypoint: yarn
@@ -325,6 +388,9 @@ steps:
       - yarn-tfjs-data
       - build-tfjs-data
       - lint-tfjs-data
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
   - name: 'node:10'
     dir: tfjs
     entrypoint: yarn
@@ -343,6 +409,9 @@ steps:
       - yarn-tfjs-data
       - build-tfjs-data
       - lint-tfjs-data
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
   - name: 'node:10'
     dir: tfjs
     entrypoint: yarn
@@ -362,6 +431,9 @@ steps:
       - yarn-tfjs-data
       - build-tfjs-data
       - lint-tfjs-data
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
     env:
       - BROWSERSTACK_USERNAME=deeplearnjs1
       - NIGHTLY=$_NIGHTLY
@@ -548,6 +620,9 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
       - yarn-tfjs-converter
       - create-pips-tfjs-converter
       - yarn-tfjs-data
@@ -582,6 +657,9 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
+      - yarn-tfjs-backend-webgl
+      - build-tfjs-backend-webgl
+      - lint-tfjs-backend-webgl
       - yarn-tfjs-converter
       - create-pips-tfjs-converter
       - yarn-tfjs-data
