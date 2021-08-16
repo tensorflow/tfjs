@@ -65,6 +65,9 @@
   "Bincount": [
     "bincount"
   ],
+  "BroadcastArgs": [
+    "broadcastArgs"
+  ],
   "BroadcastTo": [
     "broadcastTo"
   ],

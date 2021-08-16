@@ -17,7 +17,7 @@
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
     "@tensorflow/tfjs-backend-cpu": "link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
-    "@tensorflow/tfjs-backend-webgl": "link:../link-package/node_modules/@tensorflow/tfjs-backend-webgl",
+    "@tensorflow/tfjs-backend-webgl": "link:../tfjs-backend-webgl",
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
     "@types/jasmine": "~2.5.53",
     "clang-format": "~1.2.2",

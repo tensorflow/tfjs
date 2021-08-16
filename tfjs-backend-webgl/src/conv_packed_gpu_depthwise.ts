@@ -172,7 +172,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
               if ((dilationWidth % 2 === 0 && padLeft % 2 === 1) ||
                   (dilationWidth % 2 !== 0 && padLeft % 2 !== 1)) {
                 mainLoop += `
-                  xCOffset = xC + pads[1] % 2 + ${nextTexelOffset};
+                  xCOffset = xC + imod(pads[1], 2) + ${nextTexelOffset};
 
                   if (xCOffset >= 0 && xCOffset < inDims[1] && xTexelC${
                     colIndex + 1}Ready == 0) {

@@ -63,7 +63,7 @@
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
     "publish-npm": "npm publish",
-    "test": "yarn build && yarn gen-json --test && yarn gen-kernel2ops && ts-node --transpile-only -P tsconfig.test.json src/run_tests.ts",
+    "test": "yarn build && yarn gen-json --test && yarn gen-kernel2ops && ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/run_tests.ts",
     "test-ci": "ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/run_tests.ts",
     "test-dev": "tsc && ts-node --transpile-only -P tsconfig.test.json src/run_tests.ts",
     "test-snippets": "yarn build && ts-node --skip-ignore -s ./scripts/test_snippets.ts",
