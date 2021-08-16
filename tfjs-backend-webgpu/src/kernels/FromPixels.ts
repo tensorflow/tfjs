@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {env, KernelConfig, KernelFunc, PixelData} from '@tensorflow/tfjs-core';
+import {env, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '@tensorflow/tfjs-core';
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
@@ -54,21 +54,6 @@ export function fromPixels(args: {
       pixels instanceof HTMLCanvasElement;
   const isImageBitmap =
       typeof (ImageBitmap) !== 'undefined' && pixels instanceof ImageBitmap;
-  const isImageData =
-      typeof (ImageData) !== 'undefined' && pixels instanceof ImageData;
-  const isPixelData = !isImageData &&
-      typeof ((pixels as PixelData).data) !== 'undefined' &&
-      (pixels as PixelData).data instanceof Uint8Array;
-
-  if (!isVideo && !isImage && !isCanvas && !isImageData && !isImageBitmap &&
-      !isPixelData) {
-    throw new Error(
-        'pixels passed to tf.browser.fromPixels() must be either an ' +
-        `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData, ` +
-        `ImageBitmap ` +
-        `or {data: Uint32Array, width: number, height: number}, ` +
-        `but was ${(pixels as {}).constructor.name}`);
-  }
 
   if (env().getBool('WEBGPU_USE_IMPORT')) {
     if (isVideo) {
