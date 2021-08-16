@@ -21,7 +21,6 @@ import {getCoordsDataType} from '../shader_preprocessor';
 import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
-import {getReshapeDispatchflatIndex} from '../shader_util';
 
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
@@ -39,7 +38,6 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
   useWgsl: boolean;
   size: number;
   sizeFit: boolean;
-  reshapeDispatch: boolean;
 
   constructor(
       op: BinaryOpType, aShape: number[], bShape: number[],
@@ -49,7 +47,6 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
     const workGroupSizeX = 256;
     this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
-    this.size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.lastDimensionSize = useSharedMemoryWithB ? bShape[0] : aShape[0];
     if (this.lastDimensionSize < 256) {
@@ -62,13 +59,12 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
-    this.reshapeDispatch = this.dispatch[1] > 1;
 
     this.useSharedMemoryWithB = useSharedMemoryWithB;
     this.op = op;
     this.useWgsl = getUseWgsl();
     this.size = util.sizeFromShape(this.outputShape);
-    this.sizeFit = this.reshapeDispatch ? false :
+    this.sizeFit =
         this.size % (this.workGroupSize[0] * this.workPerThread) === 0;
     // this.lastDimensionSize is used as sharedBuf array size, so can not be
     // used as uniform.
@@ -99,8 +95,6 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
             setOutput(flatIndex, binaryOperation(a, b));
           }`;
     const opStr = getBinaryOpString(this.op);
-    const flatIndexSnippet = this.reshapeDispatch ?
-        getReshapeDispatchflatIndex() : 'int(gl_GlobalInvocationID.x)';
     const userCode = `
         float binaryOperation(float a, float b) {
           ${opStr}
@@ -108,7 +102,7 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
 
         shared float sharedBuf[${this.lastDimensionSize}];
         void main() {
-          int index = ${flatIndexSnippet};
+          int index = getGlobalIndex();
           int localIndex = int(gl_LocalInvocationIndex);
 
           // Fill in the shared memory buffer. Here we need a loop to make sure

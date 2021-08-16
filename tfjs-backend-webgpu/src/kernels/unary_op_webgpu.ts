@@ -18,7 +18,6 @@ import {util} from '@tensorflow/tfjs-core';
 
 import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
-import {getReshapeDispatchflatIndex} from '../shader_util';
 
 import {getUnaryOpString, UnaryOpType} from './unary_op_util';
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
@@ -33,7 +32,6 @@ export class UnaryOpProgram implements WebGPUProgram {
   useWgsl: boolean;
   op: UnaryOpType;
   size: number;
-  reshapeDispatch: boolean;
 
   constructor(outputShape: number[], op: UnaryOpType) {
     // TODO(jiajia.qin@intel.com): Heuristically select a good work group size.
@@ -44,22 +42,19 @@ export class UnaryOpProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.reshapeDispatch = this.dispatch[1] > 1;
     this.useWgsl = getUseWgsl();
     this.op = op;
     this.shaderKey = `unary_${op}`;
   }
 
   getUserCode(): string {
-    const flatIndexSnippet = this.reshapeDispatch ?
-        getReshapeDispatchflatIndex() : 'int(gl_GlobalInvocationID.x)';
     return `
       float unaryOperation(float a) {
         ${getUnaryOpString(this.op)}
       }
 
       void main() {
-        int index = ${flatIndexSnippet};
+        int index = getGlobalIndex();
         if (index < size)
         {
           float a = getAAtOutCoords();

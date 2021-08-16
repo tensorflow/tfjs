@@ -32,10 +32,3 @@ export function symbolicallyComputeStrides(
 
   return strides;
 }
-
-export function getReshapeDispatchflatIndex(): string {
-  return `int((gl_WorkGroupID.z * dispatchSize.x * dispatchSize.y +
-      gl_WorkGroupID.y * dispatchSize.x + gl_WorkGroupID.x) *
-      (gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z) +
-      gl_LocalInvocationIndex)`;
-}
