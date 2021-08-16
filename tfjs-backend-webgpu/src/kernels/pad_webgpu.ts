@@ -19,7 +19,6 @@ import {util} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
-import {getReshapeDispatchflatIndex} from '../shader_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -33,19 +32,17 @@ export class PadProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   xShape: number[];
   size: number;
-  reshapeDispatch: boolean;
 
   constructor(xShape: number[], paddings: Array<[number, number]>) {
     this.outputShape = paddings.map(
         (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
-    this.size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.reshapeDispatch = this.dispatch[1] > 1;
     paddings.map((_, i) => this.uniforms += ` ivec2 pad${i};`);
     this.xShape = xShape;
     this.shaderKey = `pad`;
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
@@ -68,15 +65,13 @@ export class PadProgram implements WebGPUProgram {
     const unpackedCoords = rank > 1 ?
         ['coords[0]', 'coords[1]', 'coords[2]', 'coords[3]'].slice(0, rank) :
         'coords';
-    const flatIndexSnippet = this.reshapeDispatch ?
-        getReshapeDispatchflatIndex() : 'int(gl_GlobalInvocationID.x)';
 
     const userCode = `
       ${type} start = ${startValue};
       ${type} end = ${endValue};
 
       void main() {
-        int flatIndex = ${flatIndexSnippet};
+        int flatIndex = getGlobalIndex();
 
           if (flatIndex < size) {
             ${type} outC = getOutputCoords();
