@@ -364,7 +364,7 @@ export function makeShaderKey(
     // TODO: Remove the condition of !x.isUniform.
     if (program.enableShapeUniforms && !x.isUniform) {
       const xTexShape = x.texData.texShape;
-      const {useSqueezeShape, uniformShape} =
+      const {useSqueezeShape, uniformShape, keptDims} =
           shader_compiler.getUniformInfoFromShape(
               program.packedInputs, x.shape, xTexShape);
       let rank1 = '', rank2 = '', rank34 = '';
@@ -381,14 +381,15 @@ export function makeShaderKey(
       }
       const xRank = x.shape.length;
       const isLogicalShapTexShapeEqual =
-          xRank === 2 && util.arraysEqual(x.shape, xTexShape);
+          uniformShape.length === 2 && util.arraysEqual(x.shape, xTexShape);
       const isScalar = util.sizeFromShape(x.shape) === 1;
       const broadcastDims =
           backend_util.getBroadcastDims(x.shape, output.shape);
       const isInOutTexShapeEqual = !program.packedInputs &&
           xRank === output.shape.length &&
           util.arraysEqual(xTexShape, output.texData.texShape);
-      const isTexShapeGreaterThanOne = program.packedInputs || xRank > 2 ?
+      const isTexShapeGreaterThanOne =
+          program.packedInputs || uniformShape.length > 2 ?
           '' :
           `${xTexShape[0] > 1}_${xTexShape[1] > 1}`;
       // These key components are needed due to shader_compiler is embedding
@@ -409,10 +410,10 @@ export function makeShaderKey(
       // |rank34| is used in getSampler3D/getSampler4D.
       // |isTexShapeGreaterThanOne| are used in
       // getSampler[Scalar|1D|2D]/getOutput1DCoords.
-      keyInputs += `${xRank}_${isInOutTexShapeEqual}_${useSqueezeShape}_${
-          uniformShape.length}_${isScalar}_${broadcastDims}_${
-          isLogicalShapTexShapeEqual}_${rank1}_${rank2}_${rank34}_${
-          isTexShapeGreaterThanOne}_${hasOffset}`;
+      keyInputs += `${xRank}_${isInOutTexShapeEqual}_${
+          useSqueezeShape ? keptDims : ''}_${uniformShape.length}_${isScalar}_${
+          broadcastDims}_${isLogicalShapTexShapeEqual}_${rank1}_${rank2}_${
+          rank34}_${isTexShapeGreaterThanOne}_${hasOffset}`;
     } else {
       const texShape = x.isUniform ? 'uniform' : x.texData.texShape;
       keyInputs += `${x.shape}_${texShape}_${hasOffset}`;
