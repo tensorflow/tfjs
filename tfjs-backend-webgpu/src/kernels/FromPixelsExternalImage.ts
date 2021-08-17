@@ -89,5 +89,12 @@ export function fromPixelsExternalImage(args: {
   backend.recordFromPixelsCommands(
       program, info.bufferInfo.buffer, layout, externalResource);
   backend.submitQueue();
+  const shouldTimeProgram = backend.activeTimers != null;
+  if (shouldTimeProgram) {
+    backend.activeTimers.push({
+      name: program.constructor.name,
+      query: backend.getQueryTime(backend.querySet)
+    });
+  }
   return output;
 }

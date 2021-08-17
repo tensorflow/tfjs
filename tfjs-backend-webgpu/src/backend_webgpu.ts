@@ -73,6 +73,8 @@ const CPU_HANDOFF_SIZE_THRESHOLD =
 export class WebGPUBackend extends KernelBackend {
   device: GPUDevice;
   queue: GPUQueue;
+  querySet: GPUQuerySet;
+  activeTimers: TimerNode[];
   glslang: Glslang;
   currentCommandEncoder: GPUCommandEncoder;
   tensorMap: DataStorage<TensorBufferInfo>;
@@ -95,11 +97,9 @@ export class WebGPUBackend extends KernelBackend {
   private disposed = false;
 
   private programTimersStack: TimerNode[];
-  private activeTimers: TimerNode[];
   private uploadWaitMs = 0;
   private downloadWaitMs = 0;
   private computePassNumberInEncoder = 0;
-  private querySet: GPUQuerySet;
   private fromPixelProgram:
       {copyExternal: FromPixelsProgram, import: FromPixelsImportProgram};
 
@@ -856,12 +856,6 @@ export class WebGPUBackend extends KernelBackend {
       }
     }
     passEncoder.endPass();
-    if (shouldTimeProgram) {
-      this.activeTimers.push({
-        name: this.fromPixelProgram.constructor.name,
-        query: this.getQueryTime(this.querySet)
-      });
-    }
   }
 
   async getTimeFromQuerySet(querySet: GPUQuerySet) {
