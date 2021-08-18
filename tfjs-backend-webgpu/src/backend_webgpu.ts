@@ -79,6 +79,7 @@ export class WebGPUBackend extends KernelBackend {
   supportTimeQuery: boolean;
   dummyCanvas: HTMLCanvasElement;
   dummyContext: GPUPresentationContext;
+  computePassNumberInEncoder = 0;
 
   private static nextDataId = 0;
   private nextDataId(): number {
@@ -98,7 +99,6 @@ export class WebGPUBackend extends KernelBackend {
   private activeTimers: TimerNode[];
   private uploadWaitMs = 0;
   private downloadWaitMs = 0;
-  private computePassNumberInEncoder = 0;
   private querySet: GPUQuerySet;
   private fromPixelProgram:
       {copyExternal: FromPixelsProgram, import: FromPixelsImportProgram};
@@ -849,11 +849,29 @@ export class WebGPUBackend extends KernelBackend {
     });
     this.ensureCommandEncoderReady();
     const passEncoder = this.currentCommandEncoder.beginComputePass();
+    const shouldTimeProgram = this.activeTimers != null;
+    if (shouldTimeProgram) {
+      if (this.supportTimeQuery) {
+        passEncoder.writeTimestamp(this.querySet, 0);
+      }
+    }
     passEncoder.setPipeline(program.pipeline);
     passEncoder.setBindGroup(0, bindGroup);
     passEncoder.dispatch(
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+    if (shouldTimeProgram) {
+      if (this.supportTimeQuery) {
+        passEncoder.writeTimestamp(this.querySet, 1);
+      }
+    }
     passEncoder.endPass();
+    this.computePassNumberInEncoder++;
+    if (shouldTimeProgram) {
+      this.activeTimers.push({
+        name: program.constructor.name,
+        query: this.getQueryTime(this.querySet)
+      });
+    }
   }
 
   async getTimeFromQuerySet(querySet: GPUQuerySet) {
