@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,15 +12,15 @@
  * limitations under the License.
  * ===========================================================================*/
 
-#include "src/cc/binary.h"
+#include "tfjs-backend-wasm/src/cc/binary.h"
 
 #include <xnnpack.h>
 #include <cstddef>
 #include <limits>
 #include <unordered_map>
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 // Maps an `xnn_create_*_nd_f32` function pointer to an instantiated operator.
@@ -61,10 +61,9 @@ void binary_xnn_f32(const size_t a_id, const size_t* a_shape_ptr,
   } else {
     binary_op = cache_result->second;
   }
-  const size_t batch_size = out_info.size;
   xnn_status status =
       setup_op(binary_op, a_shape_len, a_shape_ptr, b_shape_len, b_shape_ptr,
-               a_buf, b_buf, out_buf, nullptr /* thread pool */);
+               a_buf, b_buf, out_buf, tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     util::warn(
         "XNN status for xnn_setup_*_nd_f32 is not successful. Got "
@@ -73,7 +72,7 @@ void binary_xnn_f32(const size_t a_id, const size_t* a_shape_ptr,
     return;
   }
 
-  xnn_run_operator(binary_op, nullptr /* thread pool */);
+  xnn_run_operator(binary_op, tfjs::backend::threadpool);
 }
 
 }  // namespace wasm

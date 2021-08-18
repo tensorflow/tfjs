@@ -50,4 +50,14 @@ describe('Union package', () => {
     expect(tf.version['tfjs-data']).not.toBeNull();
     expect(tf.version['tfjs-layers']).not.toBeNull();
   });
+
+  it('has cpu backend', () => {
+    const backend = tf.findBackend('cpu');
+    expect(backend).not.toBeNull();
+  });
+
+  it('has webgl backend', () => {
+    const backend = tf.findBackend('webgl');
+    expect(backend).not.toBeNull();
+  });
 });

@@ -16,58 +16,67 @@
  */
 import {util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
+import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
-
-export const RELU = 'return max(a, 0.0);';
-export const RELU6 = 'return (a < 0.0) ? 0.0 : min(6.0, a);';
-export const LINEAR = `return x;`;
-export const ELU = `return (x >= 0.0) ? x : (exp(x) - 1.0);`;
-
-export const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
-export const ABS = `return abs(a);`;
+import {getUnaryOpString, UnaryOpType} from './unary_op_util';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class UnaryOpProgram implements WebGPUProgram {
   outputShape: number[];
-  userCode: string;
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A'];
-  workPerThread = 4;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workGroupSize: [number, number, number];
+  useWgsl: boolean;
+  op: UnaryOpType;
+  size: number;
 
-  constructor(outputShape: number[], op: string) {
+  constructor(outputShape: number[], op: UnaryOpType) {
+    // TODO(jiajia.qin@intel.com): Heuristically select a good work group size.
+    const workGroupSizeX = 128;
+    this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = outputShape;
-    const size = util.sizeFromShape(this.outputShape);
-
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
-    const type = getCoordsDataType(this.outputShape.length);
-    this.userCode = `
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
+    this.useWgsl = getUseWgsl();
+    this.op = op;
+    this.shaderKey = `unary_${op}`;
+    this.size = util.sizeFromShape(this.outputShape);
+  }
+
+  getUserCode(): string {
+    return `
       float unaryOperation(float a) {
-        ${op}
+        ${getUnaryOpString(this.op)}
       }
 
       void main() {
         int index = int(gl_GlobalInvocationID.x);
-
-        for(int i = 0; i < ${this.workPerThread}; i++) {
-          int flatIndex = index * ${this.workPerThread} + i;
-
-          if(flatIndex < ${size}) {
-            ${type} coords = getCoordsFromFlatIndex(flatIndex);
-
-            float a = getAAtOutCoords(coords);
-            setOutput(flatIndex, unaryOperation(a));
-          }
+        if (index < size)
+        {
+          float a = getAAtOutCoords();
+          setOutput(index, unaryOperation(a));
         }
       }
-    `;
-    this.shaderKey = `unary${op}${type}${size}`;
+      `;
+  }
+
+  getUserCodeWgsl(): string {
+    return `
+      fn unaryOperation(a : f32) -> f32 {
+        ${getUnaryOpString(this.op, false, true)}
+      }
+      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
+      fn main([[builtin(global_invocation_id)]] globalId  : vec3<u32>) {
+        let index = globalId.x;
+        if (index < uniforms.size) {
+          let a = getAAtOutCoordsByGlobalId(globalId);
+          setOutputFlat(index, unaryOperation(a));
+        }
+      }
+      `;
   }
 }

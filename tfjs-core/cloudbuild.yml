@@ -5,72 +5,17 @@ steps:
   entrypoint: 'yarn'
   args: ['install']
 
-# Install tfjs-core dependencies.
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'yarn'
-  entrypoint: 'yarn'
-  args: ['install']
-  waitFor: ['yarn-common']
-
-# Build
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'build'
-  entrypoint: 'yarn'
-  args: ['build-ci']
-  waitFor: ['yarn']
-
-# Run unit tests.
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'test'
-  entrypoint: 'yarn'
-  args: ['test-ci']
-  waitFor: ['build']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
-  secretEnv: ['BROWSERSTACK_KEY']
-
-# Run unit tests in react native.
-- name: 'node:10'
-  dir: 'tfjs-react-native/integration_rn59'
-  id: 'react-native-from-core'
-  entrypoint: 'yarn'
-  args: ['test-ci', 'use-core-build']
-  waitFor: ['build']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
-  secretEnv: ['BROWSERSTACK_KEY']
-
-# bundle size check
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'test-bundle-size'
-  entrypoint: 'yarn'
-  args: ['test-bundle-size']
-  waitFor: ['yarn']
-
-# test doc snippets
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'test-snippets'
-  entrypoint: 'yarn'
-  args: ['test-snippets']
-  waitFor: ['yarn']
-
-# test Async backends
-- name: 'node:10'
-  dir: 'tfjs-core'
-  id: 'test-async-backends'
-  entrypoint: 'yarn'
-  args: ['test-async-backends-ci']
-  waitFor: ['build']
+# All steps are now handled by Bazel tests, but a future PR may add back the
+# 'test-bundle-size' step, which will be adapted to work on Bazel outputs but
+# will not be able to compare a Bazel output (in dist/bin) with a non-bazel
+# output.
 
 # General configuration
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
   secretEnv:
     BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
-timeout: 1800s
+timeout: 3600s
 logsBucket: 'gs://tfjs-build-logs'
 substitutions:
   _NIGHTLY: ''

@@ -14,7 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-
+import '@tensorflow/tfjs-backend-cpu';
+import '@tensorflow/tfjs-backend-webgl';
 import {util} from '@tensorflow/tfjs-core';
 import {loadDictionary} from './util';
 

@@ -1,6 +1,6 @@
 ##
 # @license
-# Copyright 2018 Google Inc. All Rights Reserved.
+# Copyright 2018 Google LLC. All Rights Reserved.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -45,8 +45,8 @@
       [
         'OS=="mac"', {
           'libraries' : [
-            '<(module_root_dir)/deps/lib/libtensorflow.dylib',
-            '<(module_root_dir)/deps/lib/libtensorflow_framework.dylib',
+            '<(module_root_dir)/deps/lib/libtensorflow.2.dylib',
+            '<(module_root_dir)/deps/lib/libtensorflow_framework.2.dylib',
           ],
           'postbuilds': [
             {
@@ -54,8 +54,8 @@
               'action': [
                 'install_name_tool',
                 "-change",
-                "@rpath/libtensorflow.1.dylib",
-                "@loader_path/../../deps/lib/libtensorflow.dylib",
+                "@rpath/libtensorflow.2.dylib",
+                "@loader_path/../../deps/lib/libtensorflow.2.dylib",
                 "<(PRODUCT_DIR)/tfjs_binding.node"
               ]
             },
@@ -64,8 +64,8 @@
               'action': [
                 'install_name_tool',
                 "-change",
-                "@rpath/libtensorflow_framework.1.dylib",
-                "@loader_path/../../deps/lib/libtensorflow_framework.dylib",
+                "@rpath/libtensorflow_framework.2.dylib",
+                "@loader_path/../../deps/lib/libtensorflow_framework.2.dylib",
                 "<(PRODUCT_DIR)/tfjs_binding.node"
               ]
             }

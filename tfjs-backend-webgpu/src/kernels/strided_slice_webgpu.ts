@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {util} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
@@ -22,49 +23,58 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class StridedSliceProgram implements WebGPUProgram {
   variableNames = ['x'];
+  uniforms: string;
   outputShape: number[];
-  userCode: string;
+  shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   // TODO(xing.xu): Increase the workPerThread.
   workPerThread = 1;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workGroupSize: [number, number, number] = [64, 1, 1];
+  dtype: string;
+  size: number;
 
-  constructor(begin: number[], strides: number[], destSize: number[]) {
+  constructor(destSize: number[]) {
     this.outputShape = destSize;
-    const rank = destSize.length;
-    const inputDtype = getCoordsDataType(destSize.length);
-    const dtype = getCoordsDataType(destSize.length);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
 
+    this.dtype = getCoordsDataType(this.outputShape.length);
+    this.uniforms = `${this.dtype} begin; ${this.dtype} strides; `;
+    this.shaderKey = 'stridedSlice';
+    this.size = util.sizeFromShape(this.outputShape);
+  }
+
+  getUserCode(): string {
+    const rank = this.outputShape.length;
     let newCoords = '';
     if (rank === 1) {
       newCoords = 'coords * strides + begin';
     } else {
       let outputAxis = 0;
       newCoords =
-          destSize
+          this.outputShape
               .map((_, i) => {
                 outputAxis++;
-                return destSize.length === 1 ?
+                return this.outputShape.length === 1 ?
                     `coords * strides[${i}] + begin[${i}]` :
                     `coords[${outputAxis - 1}] * strides[${i}] + begin[${i}]`;
               })
               .join(',');
     }
 
-    this.userCode = `
-      ${inputDtype} begin = ${inputDtype}(${begin});
-      ${inputDtype} strides = ${inputDtype}(${strides});
-
-      void main() {
-        ${dtype} coords = getOutputCoords();
-        int index = int(gl_GlobalInvocationID.x);
-        setOutput(index, getX(${newCoords}));
-      }
-    `;
+    const userCode = `
+       void main() {
+         int index = int(gl_GlobalInvocationID.x);
+         if (index < size)
+         {
+           ${this.dtype} coords = getOutputCoords();
+           setOutput(index, getX(${newCoords}));
+         }
+       }
+     `;
+    return userCode;
   }
 }

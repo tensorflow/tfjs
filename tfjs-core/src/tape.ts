@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -130,7 +130,8 @@ export function getFilteredNodesXToY(
  */
 export function backpropagateGradients(
     tensorAccumulatedGradientMap: {[tensorId: number]: Tensor},
-    filteredTape: TapeNode[], tidy: (f: Function) => Tensor) {
+    filteredTape: TapeNode[], tidy: (f: Function) => Tensor,
+    add: (a: Tensor, b: Tensor) => Tensor) {
   // Walk the tape backward and keep a map of Tensor to its gradient.
   for (let i = filteredTape.length - 1; i >= 0; i--) {
     const node = filteredTape[i];
@@ -184,7 +185,7 @@ export function backpropagateGradients(
         tensorAccumulatedGradientMap[x.id] = dx;
       } else {
         const curGradient = tensorAccumulatedGradientMap[x.id];
-        tensorAccumulatedGradientMap[x.id] = curGradient.add(dx);
+        tensorAccumulatedGradientMap[x.id] = add(curGradient, dx);
         curGradient.dispose();
       }
     }

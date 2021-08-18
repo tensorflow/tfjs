@@ -63,8 +63,9 @@ import {getDrawArea} from './render_utils';
  *   shadeDiagonal: false
  * });
  * ```
+ *
+ * @doc {heading: 'Charts', namespace: 'render'}
  */
-/** @doc {heading: 'Charts', namespace: 'render'} */
 export async function confusionMatrix(
     container: Drawable, data: ConfusionMatrixData,
     opts: ConfusionMatrixOptions = {}): Promise<void> {
@@ -134,6 +135,7 @@ export async function confusionMatrix(
     defaultStyle: false,
   };
 
+  //@ts-ignore
   const spec: VisualizationSpec = {
     'width': options.width || getDefaultWidth(drawArea),
     'height': options.height || getDefaultHeight(drawArea),
@@ -154,6 +156,7 @@ export async function confusionMatrix(
         'titleFontSize': options.fontSize,
       }
     },
+    //@ts-ignore
     'data': {'values': values},
     'encoding': {
       'x': {
@@ -184,6 +187,7 @@ export async function confusionMatrix(
           'color': {
             'field': 'scaleCount',
             'type': 'quantitative',
+            //@ts-ignore
             'scale': {'range': options.colorMap},
           },
           'tooltip': [
@@ -197,6 +201,7 @@ export async function confusionMatrix(
   };
 
   if (options.shadeDiagonal === false) {
+    //@ts-ignore
     spec.layer.push(
         {
           // render unfilled rects for the diagonal
@@ -219,6 +224,7 @@ export async function confusionMatrix(
   }
 
   if (options.showTextOverlay) {
+    //@ts-ignore
     spec.layer.push({
       // The text labels
       'mark': {'type': 'text', 'baseline': 'middle'},

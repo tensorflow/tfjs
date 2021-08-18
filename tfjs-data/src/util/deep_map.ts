@@ -226,7 +226,7 @@ export async function deepMapAndAwaitAll(
   // (There's no advantage to Promise.all(), and that would be tricky anyway.)
   for (const key of Array.from(seen.keys())) {
     const value = seen.get(key);
-    if (value instanceof Promise) {
+    if (tf.util.isPromise(value)) {
       const mappedValue = await value;
       seen.set(key, mappedValue);
     }
@@ -246,9 +246,18 @@ export async function deepMapAndAwaitAll(
  */
 // tslint:disable-next-line:no-any
 export function isIterable(obj: any): boolean {
+  let isTextDecoder = false;
+  if (tf.env().get('IS_BROWSER')) {
+    isTextDecoder = obj instanceof TextDecoder;
+  } else {
+    // tslint:disable-next-line:no-require-imports
+    const {StringDecoder} = require('string_decoder');
+    isTextDecoder = obj instanceof StringDecoder;
+  }
   return obj != null && (!ArrayBuffer.isView(obj)) &&
       (Array.isArray(obj) ||
-       (typeof obj === 'object' && !(obj instanceof tf.Tensor)));
+       (typeof obj === 'object' && !(obj instanceof tf.Tensor) &&
+        !(obj instanceof Promise) && !isTextDecoder));
 }
 
 /**

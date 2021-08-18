@@ -40,8 +40,9 @@ const STATE_WITHIN_QUOTE_IN_QUOTE = Symbol('quoteinquote');
  * are parsed as `string`.
  *
  * The results are not batched.
+ *
+ * @doc {heading: 'Data', subheading: 'Classes', namespace: 'data'}
  */
-/** @doc {heading: 'Data', subheading: 'Classes', namespace: 'data'} */
 export class CSVDataset extends Dataset<TensorContainer> {
   base: TextLineDataset;
   private hasHeader = true;
@@ -59,8 +60,9 @@ export class CSVDataset extends Dataset<TensorContainer> {
    * `configuredColumnsOnly` is false and `columnNames` is not provided, return
    * all column names parsed from the csv file. For example usage please go to
    * `tf.data.csv`.
+   *
+   * @doc {heading: 'Data', subheading: 'Classes'}
    */
-  /** @doc {heading: 'Data', subheading: 'Classes'} */
   async columnNames() {
     if (!this.columnNamesValidated) {
       await this.setColumnNames();

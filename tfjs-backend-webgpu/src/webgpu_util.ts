@@ -81,6 +81,25 @@ export function computeWorkGroupSizeForConv2d(
   return [16, 16, 1];
 }
 
+export function computeWorkGroupSizeForMatMul(
+    dimAOuter: number, dimInner: number,
+    dimBOuter: number): [number, number, number] {
+  // These are experimental values. Usually, we need to adjust the work group
+  // size based on the input shapes to improve the EU occupancy.
+  // TODO: WebGPU limits the maximum allowed shared memory size as 16K. To make
+  // sure it doesn't exceed this limitations. Temporarily reduce the work group
+  // size to [8, 8, 1] and the work per thread size is [4, 4, 1]. But we should
+  // revisit it and find the balance between work group size and work per thread
+  // size.
+  if (dimAOuter === 1) {
+    return [32, 1, 1];
+  } else if (dimBOuter === 1) {
+    return [1, 32, 1];
+  }
+
+  return [8, 8, 1];
+}
+
 export function computeWorkPerThreadForConv2d(
     layout: {x: number[], y?: number[], z?: number[]},
     outputShape: number[]): [number, number, number] {
@@ -96,13 +115,6 @@ export function computeWorkPerThreadForConv2d(
     return [2, 1, 1];
   }
 
-  if ((dim1 > dim0) && (dim1 / dim0 >= 2)) {
-    return [2, 4, 1];
-  }
-  if ((dim0 > dim1) && (dim0 / dim1 >= 2)) {
-    return [4, 2, 1];
-  }
-
   return [2, 2, 1];
 }
 
@@ -111,7 +123,8 @@ export function flatDispatchLayout(shape: number[]) {
 }
 
 export function GPUBytesPerElement(dtype: DataType): number {
-  if (dtype === 'float32' || dtype === 'int32' || dtype === 'bool') {
+  if (dtype === 'float32' || dtype === 'int32' || dtype === 'bool' ||
+      dtype === 'string') {
     return 4;
   } else if (dtype === 'complex64') {
     return 8;
@@ -125,7 +138,7 @@ export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
     return new Float32Array(data);
   } else if (dtype === 'int32') {
     return new Int32Array(data);
-  } else if (dtype === 'bool') {
+  } else if (dtype === 'bool' || dtype === 'string') {
     const dataAsInt32Array = new Int32Array(data);
     const boolData = new ArrayBuffer(dataAsInt32Array.length);
     const dataAsTypedArray = new Uint8Array(boolData);
@@ -136,4 +149,16 @@ export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
   } else {
     throw new Error(`Unknown dtype ${dtype}`);
   }
+}
+
+export function isWebGPUSupported(): boolean {
+  if (!navigator.gpu) {
+    return false;
+  }
+  return true;
+}
+
+export interface WebGPULayout {
+  bindGroupLayout: GPUBindGroupLayout;
+  pipelineLayout: GPUPipelineLayout;
 }

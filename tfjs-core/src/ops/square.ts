@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,17 +30,13 @@ import {op} from './operation';
  * x.square().print();  // or tf.square(x)
  * ```
  * @param x The input Tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
-/** @doc {heading: 'Operations', subheading: 'Basic math'} */
 function square_<T extends Tensor>(x: T|TensorLike): T {
   const $x = convertToTensor(x, 'x', 'square');
   const attrs = {};
-  const inputsToSave = [$x];
-  const outputsToSave: boolean[] = [];
-  return ENGINE.runKernelFunc((backend, save) => {
-    save([$x]);
-    return backend.square($x);
-  }, {x: $x}, null /* grad */, 'Square', attrs, inputsToSave, outputsToSave);
+  return ENGINE.runKernel('Square', {x: $x}, attrs);
 }
 
 export const square = op({square_});

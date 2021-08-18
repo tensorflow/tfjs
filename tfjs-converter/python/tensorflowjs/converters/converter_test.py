@@ -208,6 +208,26 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertIsInstance(output_json['weightsManifest'], list)
     self.assertTrue(glob.glob(os.path.join(self._tmp_dir, 'group*-*')))
 
+  def testUserDefinedMetadata(self):
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      sequential_model = tf.keras.models.Sequential([
+          tf.keras.layers.Dense(
+              3, input_shape=(2,), use_bias=True, kernel_initializer='ones',
+              name='Dense1'),
+          tf.keras.layers.Dense(
+              1, use_bias=False, kernel_initializer='ones', name='Dense2')])
+      h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
+      sequential_model.save_weights(h5_path)
+
+    metadata_json = {'a': 1}
+    converter.dispatch_keras_h5_to_tfjs_layers_model_conversion(
+        h5_path, output_dir=self._tmp_dir, metadata={'key': metadata_json})
+
+    # Check the content of the output directory.
+    output_json = json.load(
+        open(os.path.join(self._tmp_dir, 'model.json'), 'rt'))
+    self.assertEqual(metadata_json, output_json['userDefinedMetadata']['key'])
+
   def testConvertModelForNonexistentDirCreatesDir(self):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       output_dir = os.path.join(self._tmp_dir, 'foo_model')
@@ -331,7 +351,7 @@ class ConvertKerasToTfGraphModelTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertTrue(model_json['modelTopology'])
     self.assertIsNot(model_json['modelTopology']['versions'], None)
-    signature = model_json['userDefinedMetadata']['signature']
+    signature = model_json['signature']
     self.assertIsNot(signature, None)
     self.assertIsNot(signature['inputs'], None)
     self.assertIsNot(signature['outputs'], None)
@@ -380,6 +400,22 @@ class ConvertKerasToTfGraphModelTest(tf.test.TestCase):
     self.assertEqual(weight_file_sizes[0], weight_file_sizes[2])
     self.assertLess(weight_file_sizes[3], weight_file_sizes[0])
 
+  def testUserDefinedMetadata(self):
+    output_dir = os.path.join(self._tmp_dir, 'foo_model')
+    sequential_model = tf.keras.models.Sequential([
+        tf.keras.layers.Dense(
+            3, input_shape=(2,), use_bias=True, kernel_initializer='ones',
+            name='Dense1')])
+    h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
+    sequential_model.save(h5_path)
+    metadata_json = {'a': 1}
+    converter.dispatch_keras_h5_to_tfjs_graph_model_conversion(
+        h5_path, output_dir=output_dir, metadata={'key': metadata_json})
+
+    # Check model.json and weights manifest.
+    with open(os.path.join(output_dir, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertEqual(metadata_json, model_json['userDefinedMetadata']['key'])
 
 class ConvertTfKerasSavedModelTest(tf.test.TestCase):
 
@@ -564,7 +600,8 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       # Convert the keras SavedModel to tfjs format.
       tfjs_output_dir = os.path.join(self._tmp_dir, 'tfjs')
       converter.dispatch_keras_saved_model_to_tensorflowjs_conversion(
-          self._tmp_dir, tfjs_output_dir, quantization_dtype=np.uint16)
+          self._tmp_dir, tfjs_output_dir,
+          quantization_dtype_map={'uint16': '*'})
 
       # Verify the size of the weight file.
       weight_path = glob.glob(os.path.join(tfjs_output_dir, 'group*-*'))[0]
@@ -688,7 +725,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       sharded_model_path = os.path.join(self._tmp_dir, 'sharded_model')
       converter.dispatch_tensorflowjs_to_tensorflowjs_conversion(
           os.path.join(tfjs_output_dir, 'model.json'), sharded_model_path,
-          quantization_dtype=np.uint16,
+          quantization_dtype_map={'uint16': '*'},
           weight_shard_size_bytes=weight_shard_size_bytes)
 
       # Check the number of quantized files and their sizes.
@@ -723,7 +760,7 @@ class ConvertTfKerasSavedModelTest(tf.test.TestCase):
       sharded_model_path = os.path.join(self._tmp_dir, 'sharded_model')
       converter.dispatch_tensorflowjs_to_tensorflowjs_conversion(
           os.path.join(tfjs_output_dir, 'model.json'), sharded_model_path,
-          quantization_dtype=np.uint8,
+          quantization_dtype_map={'uint8': '*'},
           weight_shard_size_bytes=weight_shard_size_bytes)
 
       # Check the number of quantized files and their sizes.

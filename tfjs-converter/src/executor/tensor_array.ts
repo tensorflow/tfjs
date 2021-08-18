@@ -15,7 +15,9 @@
  * =============================================================================
  */
 
-import {concat, DataType, slice, stack, Tensor, tensor, tidy, unstack, util} from '@tensorflow/tfjs-core';
+import {concat, DataType, keep, reshape, scalar, slice, stack, Tensor, tensor, tidy, unstack} from '@tensorflow/tfjs-core';
+
+import {assertShapesMatchAllowUndefinedSize} from './tensor_utils';
 
 export interface TensorWithState {
   tensor?: Tensor;
@@ -28,17 +30,19 @@ export interface TensorWithState {
  * allows reading from the array and writing to the array.
  */
 export class TensorArray {
-  private static nextId = 0;
   private tensors: TensorWithState[] = [];
   private closed_ = false;
-  readonly id: number;
+  readonly idTensor: Tensor;
   constructor(
-      public readonly name: string, public readonly dtype: DataType,
-      private maxSize: number, private elementShape: number[],
-      public readonly identicalElementShapes: boolean,
-      public readonly dynamicSize: boolean,
-      public readonly clearAfterRead: boolean) {
-    this.id = TensorArray.nextId++;
+      readonly name: string, readonly dtype: DataType, private maxSize: number,
+      private elementShape: number[], readonly identicalElementShapes: boolean,
+      readonly dynamicSize: boolean, readonly clearAfterRead: boolean) {
+    this.idTensor = scalar(0);
+    keep(this.idTensor);
+  }
+
+  get id() {
+    return this.idTensor.id;
   }
 
   get closed() {
@@ -46,12 +50,17 @@ export class TensorArray {
   }
 
   /**
-   * Close the current TensorArray.
+   * Dispose the tensors and idTensor and mark the TensoryArray as closed.
    */
-  clearAndClose() {
-    this.tensors.forEach(tensor => tensor.tensor.dispose());
+  clearAndClose(keepIds?: Set<number>) {
+    this.tensors.forEach(tensor => {
+      if (keepIds == null || !keepIds.has(tensor.tensor.id)) {
+        tensor.tensor.dispose();
+      }
+    });
     this.tensors = [];
     this.closed_ = true;
+    this.idTensor.dispose();
   }
 
   size(): number {
@@ -67,9 +76,9 @@ export class TensorArray {
       throw new Error(`TensorArray ${this.name} has already been closed.`);
     }
 
-    if (index < 0 || index >= this.tensors.length) {
+    if (index < 0 || index >= this.size()) {
       throw new Error(`Tried to read from index ${index}, but array size is: ${
-          this.tensors.length}`);
+          this.size()}`);
     }
 
     const tensorWithState = this.tensors[index];
@@ -125,24 +134,25 @@ export class TensorArray {
       this.elementShape = tensor.shape;
     }
 
-    this.assertShapesMatchAllowUndefinedSize(
+    assertShapesMatchAllowUndefinedSize(
         this.elementShape, tensor.shape,
         `TensorArray ${this.name}: Could not write to TensorArray index ${
             index}.`);
 
-    if (t && t.read) {
+    if (t.read) {
       throw new Error(
           `TensorArray ${this.name}: Could not write to TensorArray index ${
               index}, because it has already been read.`);
     }
 
-    if (t && t.written) {
+    if (t.written) {
       throw new Error(
           `TensorArray ${this.name}: Could not write to TensorArray index ${
               index}, because it has already been written.`);
     }
 
     t.tensor = tensor;
+    keep(tensor);
     t.written = true;
 
     this.tensors[index] = t;
@@ -182,6 +192,8 @@ export class TensorArray {
       for (let i = 0; i < this.size(); i++) {
         indices.push(i);
       }
+    } else {
+      indices = indices.slice(0, this.size());
     }
 
     if (indices.length === 0) {
@@ -192,7 +204,7 @@ export class TensorArray {
     // their memory.
     const tensors = this.readMany(indices);
 
-    this.assertShapesMatchAllowUndefinedSize(
+    assertShapesMatchAllowUndefinedSize(
         this.elementShape, tensors[0].shape, 'TensorArray shape mismatch: ');
 
     return stack(tensors, 0);
@@ -218,7 +230,7 @@ export class TensorArray {
     // Collect all the tensors from the tensors array.
     const tensors = this.readMany(indices);
 
-    this.assertShapesMatchAllowUndefinedSize(
+    assertShapesMatchAllowUndefinedSize(
         this.elementShape, tensors[0].shape,
         `TensorArray shape mismatch: tensor array shape (${
             this.elementShape}) vs first tensor shape (${tensors[0].shape})`);
@@ -286,12 +298,12 @@ export class TensorArray {
     const elementPerRow = totalLength === 0 ? 0 : tensor.size / totalLength;
     const tensors: Tensor[] = [];
     tidy(() => {
-      tensor = tensor.reshape([1, totalLength, elementPerRow]);
+      tensor = reshape(tensor, [1, totalLength, elementPerRow]);
       for (let i = 0; i < length.length; ++i) {
         const previousLength = (i === 0) ? 0 : cumulativeLengths[i - 1];
         const indices = [0, previousLength, 0];
         const sizes = [1, length[i], elementPerRow];
-        tensors[i] = slice(tensor, indices, sizes).reshape(this.elementShape);
+        tensors[i] = reshape(slice(tensor, indices, sizes), this.elementShape);
       }
       return tensors;
     });
@@ -300,30 +312,5 @@ export class TensorArray {
       indices[i] = i;
     }
     this.writeMany(indices, tensors);
-  }
-
-  /**
-   * This differs from util.assertShapesMatch in that it allows values of
-   * negative one, an undefined size of a dimensinon, in a shape to match
-   * anything.
-   */
-  private assertShapesMatchAllowUndefinedSize(
-      shapeA: number[], shapeB: number[], errorMessagePrefix = ''): void {
-    util.assert(
-        this.shapesEqualAllowUndefinedSize(shapeA, shapeB),
-        () =>
-            errorMessagePrefix + ` Shapes ${shapeA} and ${shapeB} must match`);
-  }
-
-  private shapesEqualAllowUndefinedSize(n1: number[], n2: number[]) {
-    if (n1.length !== n2.length) {
-      return false;
-    }
-    for (let i = 0; i < n1.length; i++) {
-      if (n1[i] !== -1 && n2[i] !== -1 && n1[i] !== n2[i]) {
-        return false;
-      }
-    }
-    return true;
   }
 }

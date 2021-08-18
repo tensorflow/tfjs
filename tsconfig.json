@@ -1,15 +1,17 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "ES2015",
     "moduleResolution": "node",
     "noImplicitAny": true,
     "sourceMap": true,
+    "inlineSources": true,
     "removeComments": false,
     "preserveConstEnums": true,
+    "allowSyntheticDefaultImports": true,
     "declaration": true,
-    "target": "es5",
+    "target": "es2017",
     "lib": [
-      "es2015",
+      "es2017",
       "dom"
     ],
     "outDir": "./dist",
@@ -20,7 +22,18 @@
     "noUnusedParameters": false,
     "pretty": true,
     "noFallthroughCasesInSwitch": true,
-    "allowUnreachableCode": false
+    "allowUnreachableCode": false,
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "@bazel/tsetse",
+        "disabledRules": [
+          "must-use-promises",
+          "must-type-assert-json-parse",
+          "ban-promise-as-condition"
+        ]
+      }
+    ]
   },
   "include": [
     "src/"

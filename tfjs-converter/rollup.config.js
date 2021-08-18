@@ -15,10 +15,13 @@
  * =============================================================================
  */
 
-import node from 'rollup-plugin-node-resolve';
-import typescript from 'rollup-plugin-typescript2';
-import commonjs from 'rollup-plugin-commonjs';
-import uglify from 'rollup-plugin-uglify';
+import commonjs from '@rollup/plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
+import replace from '@rollup/plugin-replace';
+import typescript from '@rollup/plugin-typescript';
+import {terser} from 'rollup-plugin-terser';
+import visualizer from 'rollup-plugin-visualizer';
+import {getBrowserBundleConfigOptions} from '../rollup.config.helpers';
 
 const PREAMBLE = `/**
  * @license
@@ -37,24 +40,35 @@ const PREAMBLE = `/**
  * =============================================================================
  */`;
 
-function minify() {
-  return uglify({
-    output: {preamble: PREAMBLE}
-  });
-}
+function config({
+  plugins = [],
+  output = {},
+  external = [],
+  visualize = false,
+  tsCompilerOptions = {}
+}) {
+  if (visualize) {
+    const filename = output.file + '.html';
+    plugins.push(visualizer(
+        {sourcemap: true, filename, template: 'sunburst', gzipSize: true}));
+    console.log(`Will output a bundle visualization in ${filename}`);
+  }
 
-function config({plugins = [], output = {}}) {
+  const defaultTsOptions = {
+    include: ['src/**/*.ts'],
+    module: 'ES2015',
+  };
+  const tsoptions = Object.assign({}, defaultTsOptions, tsCompilerOptions);
+
   return {
     input: 'src/index.ts',
     plugins: [
-      typescript({
-        tsconfigOverride: {compilerOptions: {module: 'ES2015'}}
-      }),
-      node(),
+      typescript(tsoptions), resolve(),
       // Polyfill require() from dependencies.
       commonjs({
         namedExports: {
-          './node_modules/protobufjs/minimal.js': ['roots', 'Reader', 'util']
+          './node_modules/protobufjs/minimal.js':
+              ['roots', 'Reader', 'util']
         }
       }),
       ...plugins
@@ -62,14 +76,20 @@ function config({plugins = [], output = {}}) {
     output: {
       banner: PREAMBLE,
       sourcemap: true,
-      globals: {'@tensorflow/tfjs-core': 'tf'},
+      globals: {
+        '@tensorflow/tfjs-core': 'tf',
+        '@tensorflow/tfjs-core/dist/ops/ops_for_converter': 'tf'
+      },
       ...output
     },
-    external: ['@tensorflow/tfjs-core'],
+    external: [
+      '@tensorflow/tfjs-core',
+      '@tensorflow/tfjs-core/dist/ops/ops_for_converter', ...external
+    ],
     onwarn: warning => {
       let {code} = warning;
-      if (code === 'CIRCULAR_DEPENDENCY' ||
-          code === 'CIRCULAR' || code === 'EVAL') {
+      if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR' ||
+          code === 'EVAL') {
         return;
       }
       console.warn('WARNING: ', warning.toString());
@@ -77,29 +97,70 @@ function config({plugins = [], output = {}}) {
   };
 }
 
-export default [
-  config({
+module.exports = cmdOptions => {
+  const bundles = [];
+
+  const terserPlugin = terser({output: {preamble: PREAMBLE, comments: false}});
+  const name = 'tf';
+  const extend = true;
+  const browserFormat = 'umd';
+  const fileName = 'tf-converter';
+
+  // Node
+  bundles.push(config({
+    plugins: [
+      // replace dist import with tfjs-core because our modules are not
+      // es5 commonjs modules
+      replace({
+        '@tensorflow/tfjs-core/dist/ops/ops_for_converter':
+            '@tensorflow/tfjs-core',
+        delimiters: ['', '']
+      })
+    ],
     output: {
-      format: 'umd',
-      name: 'tf',
-      extend: true,
-      file: 'dist/tf-converter.js'
-    }
-  }),
-  config({
-    plugins: [minify()],
-    output: {
-      format: 'umd',
-      name: 'tf',
-      extend: true,
-      file: 'dist/tf-converter.min.js'
-    }
-  }),
-  config({
-    plugins: [minify()],
-    output: {
-      format: 'es',
-      file: 'dist/tf-converter.esm.js'
-    }
-  })
-];
+      format: 'cjs',
+      name,
+      extend,
+      file: `dist/${fileName}.node.js`,
+      freeze: false
+    },
+    tsCompilerOptions: {target: 'es5'}
+  }));
+
+  if (cmdOptions.ci) {
+    const browserBundles = getBrowserBundleConfigOptions(
+        config, name, fileName, PREAMBLE, cmdOptions.visualize, true /* CI */);
+    bundles.push(...browserBundles);
+  }
+
+  if (cmdOptions.npm) {
+    const browserBundles = getBrowserBundleConfigOptions(
+        config, name, fileName, PREAMBLE, cmdOptions.visualize, false /* CI */);
+    bundles.push(...browserBundles);
+
+    // Miniprogram entry (minified es5)
+    bundles.push(config({
+      plugins: [
+        // replace dist import with tfjs-core because miniprogram build
+        // systems modify the package structure of our npm package, and only
+        // mirrors the 'main' entries.
+        replace({
+          '@tensorflow/tfjs-core/dist/ops/ops_for_converter':
+              '@tensorflow/tfjs-core',
+          delimiters: ['', '']
+        }),
+        terserPlugin
+      ],
+      output: {
+        format: browserFormat,
+        name,
+        extend,
+        file: `dist/miniprogram/index.js`,
+        freeze: false
+      },
+      tsCompilerOptions: {target: 'es5'},
+    }));
+  }
+
+  return bundles;
+};

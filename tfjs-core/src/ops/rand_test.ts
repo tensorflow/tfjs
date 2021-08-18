@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,9 +15,123 @@
  * =============================================================================
  */
 
+import {util} from '..';
+import * as tf from '../index';
+import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectValuesInRange} from '../test_util';
-import {MPRandGauss, RandGamma, UniformRandom} from './rand';
+
+import {MPRandGauss, RandGamma, UniformRandom} from './rand_util';
 import {expectArrayInMeanStdRange, jarqueBeraNormalityTest} from './rand_util';
+
+describeWithFlags('rand', ALL_ENVS, () => {
+  it('should return a random 1D float32 array', async () => {
+    const shape: [number] = [10];
+
+    // Enusre defaults to float32 w/o type:
+    let result = tf.rand(shape, () => util.randUniform(0, 2));
+    expect(result.dtype).toBe('float32');
+    expectValuesInRange(await result.data(), 0, 2);
+
+    result = tf.rand(shape, () => util.randUniform(0, 1.5));
+    expect(result.dtype).toBe('float32');
+    expectValuesInRange(await result.data(), 0, 1.5);
+  });
+
+  it('should return a random 1D int32 array', async () => {
+    const shape: [number] = [10];
+    const result = tf.rand(shape, () => util.randUniform(0, 2), 'int32');
+    expect(result.dtype).toBe('int32');
+    expectValuesInRange(await result.data(), 0, 2);
+  });
+
+  it('should return a random 1D bool array', async () => {
+    const shape: [number] = [10];
+    const result = tf.rand(shape, () => util.randUniform(0, 1), 'bool');
+    expect(result.dtype).toBe('bool');
+    expectValuesInRange(await result.data(), 0, 1);
+  });
+
+  it('should return a random 2D float32 array', async () => {
+    const shape = [3, 4];
+
+    // Enusre defaults to float32 w/o type:
+    let result = tf.rand(shape, () => util.randUniform(0, 2.5));
+    expect(result.dtype).toBe('float32');
+    expectValuesInRange(await result.data(), 0, 2.5);
+
+    result = tf.rand(shape, () => util.randUniform(0, 1.5), 'float32');
+    expect(result.dtype).toBe('float32');
+    expectValuesInRange(await result.data(), 0, 1.5);
+  });
+
+  it('should return a random 2D int32 array', async () => {
+    const shape = [3, 4];
+    const result = tf.rand(shape, () => util.randUniform(0, 2), 'int32');
+    expect(result.dtype).toBe('int32');
+    expectValuesInRange(await result.data(), 0, 2);
+  });
+
+  it('should return a random 2D bool array', async () => {
+    const shape = [3, 4];
+    const result = tf.rand(shape, () => util.randUniform(0, 1), 'bool');
+    expect(result.dtype).toBe('bool');
+    expectValuesInRange(await result.data(), 0, 1);
+  });
+
+  it('should return a random 3D float32 array', async () => {
+    const shape = [3, 4, 5];
+
+    // Enusre defaults to float32 w/o type:
+    let result = tf.rand(shape, () => util.randUniform(0, 2.5));
+    expect(result.dtype).toBe('float32');
+    expectValuesInRange(await result.data(), 0, 2.5);
+
+    result = tf.rand(shape, () => util.randUniform(0, 1.5), 'float32');
+    expect(result.dtype).toBe('float32');
+    expectValuesInRange(await result.data(), 0, 1.5);
+  });
+
+  it('should return a random 3D int32 array', async () => {
+    const shape = [3, 4, 5];
+    const result = tf.rand(shape, () => util.randUniform(0, 2), 'int32');
+    expect(result.dtype).toBe('int32');
+    expectValuesInRange(await result.data(), 0, 2);
+  });
+
+  it('should return a random 3D bool array', async () => {
+    const shape = [3, 4, 5];
+    const result = tf.rand(shape, () => util.randUniform(0, 1), 'bool');
+    expect(result.dtype).toBe('bool');
+    expectValuesInRange(await result.data(), 0, 1);
+  });
+
+  it('should return a random 4D float32 array', async () => {
+    const shape = [3, 4, 5, 6];
+
+    // Enusre defaults to float32 w/o type:
+    let result = tf.rand(shape, () => util.randUniform(0, 2.5));
+    expect(result.dtype).toBe('float32');
+    expectValuesInRange(await result.data(), 0, 2.5);
+
+    result = tf.rand(shape, () => util.randUniform(0, 1.5));
+    expect(result.dtype).toBe('float32');
+    expectValuesInRange(await result.data(), 0, 1.5);
+  });
+
+  it('should return a random 4D int32 array', async () => {
+    const shape = [3, 4, 5, 6];
+    const result = tf.rand(shape, () => util.randUniform(0, 2), 'int32');
+    expect(result.dtype).toBe('int32');
+    expectValuesInRange(await result.data(), 0, 2);
+  });
+
+  it('should return a random 4D bool array', async () => {
+    const shape = [3, 4, 5, 6];
+    const result = tf.rand(shape, () => util.randUniform(0, 1), 'bool');
+    expect(result.dtype).toBe('bool');
+    expectValuesInRange(await result.data(), 0, 1);
+  });
+});
 
 function isFloat(n: number): boolean {
   return Number(n) === n && n % 1 !== 0;

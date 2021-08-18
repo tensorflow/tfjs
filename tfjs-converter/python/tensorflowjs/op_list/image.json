@@ -21,6 +21,11 @@
         "type": "bool"
       },
       {
+        "tfName": "half_pixel_centers",
+        "name": "halfPixelCenters",
+        "type": "bool"
+      },
+      {
         "tfName": "T",
         "name": "dtype",
         "type": "dtype",
@@ -47,6 +52,11 @@
       {
         "tfName": "align_corners",
         "name": "alignCorners",
+        "type": "bool"
+      },
+      {
+        "tfName": "half_pixel_centers",
+        "name": "halfPixelCenters",
         "type": "bool"
       },
       {

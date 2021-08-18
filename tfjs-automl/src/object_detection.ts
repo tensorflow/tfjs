@@ -16,7 +16,7 @@
  */
 
 import {GraphModel, loadGraphModel} from '@tensorflow/tfjs-converter';
-import {dispose, image, Tensor, Tensor2D, tidy} from '@tensorflow/tfjs-core';
+import {cast, dispose, expandDims, image, Tensor, Tensor2D, tidy} from '@tensorflow/tfjs-core';
 
 import {ImageInput} from './types';
 import {imageToTensor, loadDictionary} from './util';
@@ -98,7 +98,7 @@ export class ObjectDetectionModel {
   }
 
   private preprocess(input: ImageInput, options: ObjectDetectionOptions) {
-    return imageToTensor(input).expandDims().toFloat();
+    return cast(expandDims(imageToTensor(input)), 'float32');
   }
 }
 

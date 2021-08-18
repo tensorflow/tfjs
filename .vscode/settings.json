@@ -140,5 +140,6 @@
     "*.inc": "cpp",
     "hash_map": "cpp",
     "__refstring": "cpp"
-  }
+  },
+  "editor.formatOnSave": true
 }

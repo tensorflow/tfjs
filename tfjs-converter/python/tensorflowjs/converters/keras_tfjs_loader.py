@@ -51,17 +51,12 @@ def _deserialize_keras_model(model_topology_json,
     model_topology_json = json.loads(tf.compat.as_text(model_topology_json))
   elif not isinstance(model_topology_json, dict):
     model_topology_json = json.load(model_topology_json)
-  is_tf_keras = ('keras_version' in model_topology_json and
-                 model_topology_json['keras_version'].endswith('-tf'))
 
   if 'model_config' in model_topology_json:
     model_topology_json = model_topology_json['model_config']
   unique_name_scope = uuid.uuid4().hex if use_unique_name_scope else None
   with tf.compat.v1.name_scope(unique_name_scope):
-    if is_tf_keras:
-      model = tf.keras.models.model_from_json(json.dumps(model_topology_json))
-    else:
-      model = tf.keras.models.model_from_json(json.dumps(model_topology_json))
+    model = tf.keras.models.model_from_json(json.dumps(model_topology_json))
 
   if weight_entries:
     weights_dict = dict()
@@ -80,7 +75,19 @@ def _deserialize_keras_model(model_topology_json,
             else keras_h5_conversion.normalize_weight_name(w.name))
 
     # Prepare list of weight values for calling set_weights().
-    weights_list = [weights_dict[name] for name in weight_names]
+    weights_list = []
+
+    for name in weight_names:
+      if name in weights_dict:
+        weights_list.append(weights_dict[name])
+      else:
+        # TF 2.2.0 added cell name to the weight name in the format of
+        # layer_name/cell_name/weight_name, we need to remove
+        # the inner cell name.
+        tokens = name.split('/')
+        shorten_name = '/'.join(tokens[0:-2] + [tokens[-1]])
+        weights_list.append(weights_dict[shorten_name])
+
     model.set_weights(weights_list)
 
   return model

@@ -21,7 +21,7 @@ import {BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
 import {BrowserIndexedDB, browserIndexedDB} from './indexed_db';
 import {BrowserLocalStorage, browserLocalStorage} from './local_storage';
 import {IORouterRegistry} from './router_registry';
-import {IOHandler, LoadHandler, OnProgressCallback, SaveHandler} from './types';
+import {IOHandler, LoadHandler, LoadOptions, SaveHandler} from './types';
 
 describeWithFlags('IORouterRegistry', BROWSER_ENVS, () => {
   const localStorageRouter = (url: string) => {
@@ -118,30 +118,31 @@ describeWithFlags('IORouterRegistry', BROWSER_ENVS, () => {
     expect(tf.io.getLoadHandlers('localstorage://foo-model')).toEqual([]);
   });
 
-  const fakeOnProgressRouter =
-      (url: string, onProgress?: OnProgressCallback) => {
-        return new FakeOnProgressHandler(url, onProgress);
-      };
+  const fakeLoadOptionsRouter = (url: string, loadOptions?: LoadOptions) => {
+    return new FakeLoadOptionsHandler(url, loadOptions);
+  };
 
-  class FakeOnProgressHandler implements IOHandler {
+  class FakeLoadOptionsHandler implements IOHandler {
     save?: SaveHandler;
     load?: LoadHandler;
-    constructor(url: string, private readonly onProgress?: OnProgressCallback) {
-    }
-    get onProgressCallback() {
-      return this.onProgress;
+    constructor(url: string, private readonly loadOptions?: LoadOptions) {}
+    get loadOptionsData() {
+      return this.loadOptions;
     }
   }
 
-  it('getLoadHandler onProgress', () => {
-    IORouterRegistry.registerLoadRouter(fakeOnProgressRouter);
+  it('getLoadHandler loadOptions', () => {
+    IORouterRegistry.registerLoadRouter(fakeLoadOptionsRouter);
 
-    const onProgress: OnProgressCallback = (fraction: number) => {};
-    const loadHandler = tf.io.getLoadHandlers('foo:///123', onProgress);
+    const loadOptions: LoadOptions = {
+      onProgress: (fraction: number) => {},
+      fetchFunc: () => {}
+    };
+    const loadHandler = tf.io.getLoadHandlers('foo:///123', loadOptions);
     expect(loadHandler.length).toEqual(1);
-    expect(loadHandler[0] instanceof FakeOnProgressHandler).toEqual(true);
+    expect(loadHandler[0] instanceof FakeLoadOptionsHandler).toEqual(true);
     // Check callback function passed to IOHandler
-    expect((loadHandler[0] as FakeOnProgressHandler).onProgressCallback)
-        .toBe(onProgress);
+    expect((loadHandler[0] as FakeLoadOptionsHandler).loadOptionsData)
+        .toBe(loadOptions);
   });
 });

@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,11 +16,11 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/kernels/Conv2D.h"
+#include "tfjs-backend-wasm/src/cc/kernels/Conv2D.h"
 
 #include <cstddef>
 
-#include "src/cc/conv2d_impl.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
 
 namespace tfjs {
 namespace wasm {
@@ -41,6 +41,7 @@ void Conv2D(const size_t x_id, const size_t batch_size,
             const size_t out_id) {
   const size_t bias_id = 0;
   const size_t prelu_weights_id = 0;
+  const float leakyrelu_alpha = 0;
   const bool is_depthwise = false;
   const FusableActivation activation = FusableActivation::LINEAR;
   tfjs::wasm::conv2d(x_id, batch_size, input_height, input_width, filter_id,
@@ -48,7 +49,7 @@ void Conv2D(const size_t x_id, const size_t batch_size,
                      pad_bottom, pad_left, is_same_pad, dilation_height,
                      dilation_width, stride_height, stride_width,
                      input_channels, output_channels, is_depthwise, activation,
-                     prelu_weights_id, out_id);
+                     prelu_weights_id, leakyrelu_alpha, out_id);
 }
 
 }  // extern "C"

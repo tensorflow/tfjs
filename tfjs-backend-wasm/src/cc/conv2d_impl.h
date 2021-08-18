@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,11 +17,10 @@
 
 #include <cstddef>
 
+#include "tfjs-backend-wasm/src/cc/backend.h"
+
 namespace tfjs {
 namespace wasm {
-
-// Must match enum in FusedConv2D.ts.
-enum FusableActivation { LINEAR = 0, RELU = 1, RELU6 = 2, PRELU = 3 };
 
 void conv2d(const size_t x_id, const size_t batch_size,
             const size_t input_height, const size_t input_width,
@@ -33,7 +32,7 @@ void conv2d(const size_t x_id, const size_t batch_size,
             const size_t stride_width, const size_t input_channels,
             const size_t output_channels, const bool is_depthwise,
             const FusableActivation activation, const size_t prelu_weighs_id,
-            const size_t out_id);
+            const float leakyrelu_alpha, const size_t out_id);
 }  // namespace wasm
 }  // namespace tfjs
 

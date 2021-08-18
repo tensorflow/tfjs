@@ -46,8 +46,9 @@ const glCapabilities = {
  *
  * For best performance this should be be called once before using the other
  * camera related functions.
+ *
+ * @doc {heading: 'Media', subheading: 'Camera'}
  */
-/** @doc {heading: 'Media', subheading: 'Camera'} */
 export async function detectGLCapabilities(gl: WebGL2RenderingContext) {
   if (glCapabilities.glCapabilitiesTested.get(gl)) {
     return;
@@ -100,8 +101,9 @@ export async function detectGLCapabilities(gl: WebGL2RenderingContext) {
  * @param imageTensor the tensor to upload
  * @param texture optional the target texture. If none is passed in a new
  *     texture will be created.
+ *
+ * @doc {heading: 'Media', subheading: 'Camera'}
  */
-/** @doc {heading: 'Media', subheading: 'Camera'} */
 export async function toTexture(
     gl: WebGL2RenderingContext, imageTensor: tf.Tensor3D,
     texture?: WebGLTexture): Promise<WebGLTexture> {
@@ -133,8 +135,9 @@ export async function toTexture(
  * @param texture the texture to convert into a tensor
  * @param sourceDims source dimensions of input texture (width, height, depth)
  * @param targetShape desired shape of output tensor
+ *
+ * @doc {heading: 'Media', subheading: 'Camera'}
  */
-/** @doc {heading: 'Media', subheading: 'Camera'} */
 export function fromTexture(
     gl: WebGL2RenderingContext, texture: WebGLTexture, sourceDims: Dimensions,
     targetShape: Dimensions, options: FromTextureOptions = {}): tf.Tensor3D {
@@ -219,8 +222,9 @@ export function fromTexture(
  * @param gl
  * @param texture
  * @param dims Dimensions of tensor
+ *
+ * @doc {heading: 'Media', subheading: 'Camera'}
  */
-/** @doc {heading: 'Media', subheading: 'Camera'} */
 export function renderToGLView(
     gl: WebGL2RenderingContext, texture: WebGLTexture, size: Size,
     flipHorizontal = true) {

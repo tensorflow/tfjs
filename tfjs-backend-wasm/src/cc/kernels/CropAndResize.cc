@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,10 +20,10 @@
 #include <cstddef>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/interpolate_bilinear_impl.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/interpolate_bilinear_impl.h"
 
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 // Must match enum in CropAndResize.ts
 enum InterpolationMethod {
@@ -91,16 +91,12 @@ void CropAndResize(size_t images_id, size_t boxes_id, size_t box_ind_id,
   auto& out_info = backend::get_tensor_info_out(out_id);
 
   const float* images_buf = images_info.f32();
-  const size_t images_size = images_info.size;
 
   const float* boxes_buf = boxes_info.f32();
-  const size_t boxes_size = boxes_info.size;
 
   const int* box_ind_buf = box_ind_info.i32();
-  const size_t box_ind_size = box_ind_info.size;
 
   float* out_buf = out_info.f32_write();
-  const size_t out_size = out_info.size;
 
   const size_t batch = images_shape[0];
   const size_t image_height = images_shape[1];

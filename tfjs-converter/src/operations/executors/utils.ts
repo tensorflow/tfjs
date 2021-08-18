@@ -15,15 +15,16 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import {clone, Tensor, util} from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
+import {ResourceManager} from '../../executor/resource_manager';
 import {Node, ValueType} from '../types';
 
 export function getParamValue(
     paramName: string, node: Node, tensorMap: NamedTensorsMap,
-    context: ExecutionContext): ValueType {
+    context: ExecutionContext, resourceManager?: ResourceManager): ValueType {
   const inputParam = node.inputParams[paramName];
   if (inputParam && inputParam.inputIndexStart !== undefined) {
     const start = inputParam.inputIndexStart;
@@ -33,32 +34,45 @@ export function getParamValue(
                                                   inputParam.inputIndexEnd);
     if (inputParam.type === 'tensor') {
       return getTensor(
-          node.inputNames[inputParam.inputIndexStart], tensorMap, context);
+          node.inputNames[inputParam.inputIndexStart], tensorMap, context,
+          resourceManager);
     }
     if (inputParam.type === 'tensors') {
       const inputs = node.inputNames.slice(start, end);
 
-      return inputs.map(name => getTensor(name, tensorMap, context));
+      return inputs.map(
+          name => getTensor(name, tensorMap, context, resourceManager));
     }
-    const data = Array.prototype.slice.call(
-        getTensor(node.inputNames.slice(start)[0], tensorMap, context)
-            .dataSync());
-    return inputParam.type === 'number' ? data[0] : data;
+    const tensor = getTensor(
+        node.inputNames.slice(start)[0], tensorMap, context, resourceManager);
+    const data = tensor.dataSync();
+    return inputParam.type === 'number' ?
+        data[0] :
+        util.toNestedArray(tensor.shape, data);
   }
   const attrParam = node.attrParams[paramName];
   return attrParam && attrParam.value;
 }
 
 /**
- * Retrieve the tensor based on input name by extracting the node name and
- * output index information.
+ * Retrieve the tensor from tensorsMap based on input name.
  * @param name Node input name
  * @param tensorsMap Tensors map keyed by the node
+ * @param context contains tensors and information for running the current node.
+ * @param resourceManager Optional. Contains global resources of the model.
  */
 export function getTensor(
-    name: string, tensorsMap: NamedTensorsMap,
-    context: ExecutionContext): tfc.Tensor {
+    name: string, tensorsMap: NamedTensorsMap, context: ExecutionContext,
+    resourceManager?: ResourceManager): Tensor {
   const [nodeName, index] = parseNodeName(name);
+
+  if (resourceManager != null) {
+    const tensor = resourceManager.getHashTableHandleByName(nodeName);
+    if (tensor != null) {
+      return tensor;
+    }
+  }
+
   const contextId = context.currentContextIds.find(contextId => {
     return !!tensorsMap[getNodeNameWithContextId(nodeName, contextId)];
   });
@@ -75,23 +89,25 @@ export function getTensor(
  */
 export function getTensorsForCurrentContenxt(
     name: string, tensorsMap: NamedTensorsMap,
-    context: ExecutionContext): tfc.Tensor[] {
+    context: ExecutionContext): Tensor[] {
   return tensorsMap[getNodeNameWithContextId(name, context.currentContextId)];
 }
 
 /**
- * Returns the node name and index from the Node input name.
+ * Returns the node name, outputName and index from the Node input name.
  * @param inputName The input name of the node, in format of
  * node_name:output_index, i.e. MatMul:0, if the output_index is not set, it is
  * default to 0.
+ * If the input name contains output name i.e. StringSplit:indices:0, it will
+ * return ['StringSplit', 0, 'indices'].
  */
 export function getNodeNameAndIndex(
-    inputName: string, context?: ExecutionContext): [string, number] {
-  const [nodeName, index] = parseNodeName(inputName);
+    inputName: string, context?: ExecutionContext): [string, number, string] {
+  const [nodeName, index, outputName] = parseNodeName(inputName);
 
   return [
     getNodeNameWithContextId(nodeName, context && context.currentContextId),
-    index
+    index, outputName
   ];
 }
 
@@ -99,14 +115,16 @@ function getNodeNameWithContextId(name: string, contextId?: string): string {
   return !!contextId ? `${name}-${contextId}` : name;
 }
 
-export function parseNodeName(name: string): [string, number] {
-  const index = name.lastIndexOf(':');
-  if (index === -1) {
-    return [name, 0];
+export function parseNodeName(name: string): [string, number, string] {
+  const parts = name.split(':');
+  if (parts.length === 1) {
+    return [name, 0, undefined];
   }
 
-  const nodeName = name.substring(0, index);
-  return [nodeName, Number(name.substring(index + 1))];
+  const nodeName = parts[0];
+  const outputName = parts.length === 3 ? parts[1] : undefined;
+  const index = Number(parts[parts.length - 1]);
+  return [nodeName, index, outputName];
 }
 
 export function split(arr: number[], size: number) {
@@ -115,4 +133,35 @@ export function split(arr: number[], size: number) {
     res.push(arr.slice(i, i + size));
   }
   return res;
+}
+export function getPadding(
+    node: Node, tensorMap: NamedTensorsMap,
+    context: ExecutionContext): ValueType {
+  let pad = getParamValue('pad', node, tensorMap, context);
+  if (pad === 'explicit') {
+    // This is 1d array, we need to convert it to 2d array
+    pad = getParamValue('explicitPaddings', node, tensorMap, context);
+    const explicitPadding: [
+      [number, number], [number, number], [number, number], [number, number]
+    ] = [[0, 0], [0, 0], [0, 0], [0, 0]];
+    for (let i = 0; i < 4; i++) {
+      explicitPadding[i][0] = (pad as number[])[i * 2];
+      explicitPadding[i][1] = (pad as number[])[i * 2 + 1];
+    }
+    return explicitPadding;
+  }
+  return pad;
+}
+
+/**
+ *  Reuse the tensor if it is marked as keep, otherwise clone the tensor to
+ *  avoid disposal. This is important for TensorArray and TensorList ops, since
+ *  internally they use a tensor as the id for TensorArray and TensorList, and
+ * to simplify lookup, they also use Tensor.id as the key to the internal map.
+ * These id tensors have been marked as kept in the backend, we need avoid clone
+ * them in order to create new Tensor.id.
+ * @param tensor
+ */
+export function cloneTensor(tensor: Tensor): Tensor {
+  return tensor.kept ? tensor : clone(tensor);
 }

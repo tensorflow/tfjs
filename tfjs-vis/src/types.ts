@@ -1,4 +1,4 @@
-import {Tensor2D} from '@tensorflow/tfjs';
+import {Tensor2D} from '@tensorflow/tfjs-core';
 
 /*
  * @license

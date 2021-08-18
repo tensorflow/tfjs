@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,8 +18,9 @@
 
 #include <cstddef>
 
-#include "src/cc/conv2d_impl.h"
-#include "src/cc/kernels/DepthwiseConv2dNative.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/conv2d_impl.h"
+#include "tfjs-backend-wasm/src/cc/kernels/DepthwiseConv2dNative.h"
 
 namespace tfjs {
 namespace wasm {
@@ -40,6 +41,7 @@ void DepthwiseConv2dNative(
     const size_t output_channels, const size_t out_id) {
   const size_t bias_id = 0;
   const size_t prelu_weights_id = 0;
+  const float leakyrelu_alpha = 0;
   const bool is_depthwise = true;
   const FusableActivation activation = FusableActivation::LINEAR;
   tfjs::wasm::conv2d(x_id, batch_size, input_height, input_width, filter_id,
@@ -47,7 +49,7 @@ void DepthwiseConv2dNative(
                      pad_bottom, pad_left, is_same_pad, dilation_height,
                      dilation_width, stride_height, stride_width,
                      input_channels, output_channels, is_depthwise, activation,
-                     prelu_weights_id, out_id);
+                     prelu_weights_id, leakyrelu_alpha, out_id);
 }
 
 }  // extern "C"

@@ -1,0 +1,39 @@
+steps:
+
+# Install packages.
+- name: 'gcr.io/learnjs-174218/release'
+  dir: 'e2e'
+  entrypoint: 'yarn'
+  id: 'yarn'
+  args: ['install']
+
+# Build deps.
+- name: 'gcr.io/learnjs-174218/release'
+  dir: 'e2e'
+  entrypoint: 'yarn'
+  id: 'build-deps'
+  args: ['build-deps-ci']
+  env: ['NIGHTLY=$_NIGHTLY']
+
+# Test.
+- name: 'gcr.io/learnjs-174218/release'
+  dir: 'e2e'
+  entrypoint: 'yarn'
+  id: 'test'
+  args: ['test-ci']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
+  secretEnv: ['BROWSERSTACK_KEY']
+  waitFor: ['yarn', 'build-deps']
+
+secrets:
+- kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
+  secretEnv:
+    BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
+timeout: 7200s
+logsBucket: 'gs://tfjs-build-logs'
+substitutions:
+  _NIGHTLY: ''
+options:
+  logStreamingOption: 'STREAM_ON'
+  machineType: 'N1_HIGHCPU_8'
+  substitution_option: 'ALLOW_LOOSE'

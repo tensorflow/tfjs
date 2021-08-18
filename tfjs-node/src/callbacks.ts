@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {CustomCallback, Logs, nextFrame, util} from '@tensorflow/tfjs';
+import {CustomCallback, LayersModel, Logs, nextFrame, util} from '@tensorflow/tfjs';
 import * as path from 'path';
 import * as ProgressBar from 'progress';
 
@@ -121,8 +121,8 @@ export class ProgbarLogger extends CustomCallback {
     });
   }
 
-  private formatLogsAsMetricsContent(
-      logs: Logs, maxMetricsLength?: number): string {
+  private formatLogsAsMetricsContent(logs: Logs, maxMetricsLength?: number):
+      string {
     let metricsContent = '';
     const keys = Object.keys(logs).sort();
     for (const key of keys) {
@@ -160,7 +160,8 @@ const MAX_NUM_DECIMAL_PLACES = 4;
 export function getSuccinctNumberDisplay(x: number): string {
   const decimalPlaces = getDisplayDecimalPlaces(x);
   return decimalPlaces > MAX_NUM_DECIMAL_PLACES ?
-      x.toExponential(BASE_NUM_DIGITS) : x.toFixed(decimalPlaces);
+      x.toExponential(BASE_NUM_DIGITS) :
+      x.toFixed(decimalPlaces);
 }
 
 /**
@@ -192,19 +193,31 @@ export interface TensorBoardCallbackArgs {
    * Default: 'epoch'.
    */
   updateFreq?: 'batch'|'epoch';
+
+  /**
+   * The frequency (in epochs) at which to compute activation and weight
+   * histograms for the layers of the model.
+   *
+   * If set to 0, histograms won't be computed.
+   *
+   * Validation data (or split) must be specified for histogram visualizations.
+   *
+   * Default: 0.
+   */
+  histogramFreq?: number;
 }
 
 /**
- * Callback for logging to TensorBoard durnig training.
+ * Callback for logging to TensorBoard during training.
  *
  * Users are expected to access this class through the `tensorBoardCallback()`
  * factory method instead.
  */
 export class TensorBoardCallback extends CustomCallback {
+  private model: LayersModel = null;
   private trainWriter: SummaryFileWriter;
   private valWriter: SummaryFileWriter;
   private batchesSeen: number;
-  private epochsSeen: number;
   private readonly args: TensorBoardCallbackArgs;
 
   constructor(readonly logdir = './logs', args?: TensorBoardCallbackArgs) {
@@ -216,8 +229,11 @@ export class TensorBoardCallback extends CustomCallback {
         }
       },
       onEpochEnd: async (epoch: number, logs?: Logs) => {
-        this.epochsSeen++;
-        this.logMetrics(logs, 'epoch_', this.epochsSeen);
+        this.logMetrics(logs, 'epoch_', epoch + 1);
+        if (this.args.histogramFreq > 0 &&
+            epoch % this.args.histogramFreq === 0) {
+          this.logWeights(epoch);
+        }
       },
       onTrainEnd: async (logs?: Logs) => {
         if (this.trainWriter != null) {
@@ -237,8 +253,24 @@ export class TensorBoardCallback extends CustomCallback {
         ['batch', 'epoch'].indexOf(this.args.updateFreq) !== -1,
         () => `Expected updateFreq to be 'batch' or 'epoch', but got ` +
             `${this.args.updateFreq}`);
+    if (this.args.histogramFreq == null) {
+      this.args.histogramFreq = 0;
+    }
+    util.assert(
+        Number.isInteger(this.args.histogramFreq) &&
+            this.args.histogramFreq >= 0,
+        () => `Expected histogramFreq to be a positive integer, but got ` +
+            `${this.args.histogramFreq}`);
     this.batchesSeen = 0;
-    this.epochsSeen = 0;
+  }
+
+  setModel(model: LayersModel): void {
+    // This method is inherited from BaseCallback. To avoid cyclical imports,
+    // that class uses Container instead of LayersModel, and uses a run-time
+    // check to make sure the model is a LayersModel.
+    // Since this subclass isn't imported by tfjs-layers, we can safely use type
+    // the parameter as a LayersModel.
+    this.model = model;
   }
 
   private logMetrics(logs: Logs, prefix: string, step: number) {
@@ -259,6 +291,12 @@ export class TensorBoardCallback extends CustomCallback {
     }
   }
 
+  private logWeights(step: number) {
+    for (const weights of this.model.weights) {
+      this.trainWriter.histogram(weights.name, weights.read(), step);
+    }
+  }
+
   private ensureTrainWriterCreated() {
     this.trainWriter = summaryFileWriter(path.join(this.logdir, 'train'));
   }
@@ -269,7 +307,7 @@ export class TensorBoardCallback extends CustomCallback {
 }
 
 /**
- * Callback for logging to TensorBoard durnig training.
+ * Callback for logging to TensorBoard during training.
  *
  * Writes the loss and metric values (if any) to the specified log directory
  * (`logdir`) which can be ingested and visualized by TensorBoard.
@@ -318,8 +356,7 @@ export class TensorBoardCallback extends CustomCallback {
  * @param args Optional configuration arguments.
  * @returns An instance of `TensorBoardCallback`, which is a subclass of
  *   `tf.CustomCallback`.
- */
-/**
+ *
  * @doc {heading: 'TensorBoard', namespace: 'node'}
  */
 export function tensorBoard(

@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,9 +24,9 @@
 #include <map>
 #include <unordered_map>
 
-#include "src/cc/backend.h"
-#include "src/cc/kernels/AvgPool.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/kernels/AvgPool.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 typedef std::array<size_t, 14> OperatorCacheKey;
@@ -93,7 +93,7 @@ void AvgPool(const size_t x_id, const size_t batch_size,
 
   xnn_status status = xnn_setup_average_pooling2d_nhwc_f32(
       avg_pool_op, batch_size, input_height, input_width, x_buf, out_buf,
-      nullptr /* thread pool */);
+      tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     util::warn(
         "XNN status for xnn_setup_average_pooling2d_nhwc_f32 is not "
@@ -103,7 +103,7 @@ void AvgPool(const size_t x_id, const size_t batch_size,
     return;
   }
 
-  xnn_run_operator(avg_pool_op, nullptr /* thread pool */);
+  xnn_run_operator(avg_pool_op, tfjs::backend::threadpool);
 }
 }  // extern "C"
 }  // namespace wasm

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -81,4 +81,22 @@ export class Int64Scalar {
   get valueArray(): Int32Array {
     return this.valueArray_;
   }
+}
+
+/**
+ * This method encodes a Int32Array as Int64 layout in order to create TF_INT64
+ * tensor through binding.
+ */
+export function encodeInt32ArrayAsInt64(value: Int32Array): Int32Array {
+  if (endianness() !== 'LE') {
+    throw new Error(
+        `Int64Scalar does not support endianness of this machine: ` +
+        `${endianness()}`);
+  }
+
+  const buffer = new Int32Array(value.length * 2);
+  for (let i = 0; i < value.length; i++) {
+    buffer[i * 2] = value[i];
+  }
+  return buffer;
 }

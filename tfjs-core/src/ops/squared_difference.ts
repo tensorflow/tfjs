@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENGINE, ForwardFunc} from '../engine';
+import {ENGINE} from '../engine';
 import {SquaredDifference, SquaredDifferenceInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
@@ -25,15 +25,10 @@ import {TensorLike} from '../types';
 
 import {assertAndGetBroadcastShape} from './broadcast_util';
 import {op} from './operation';
-import {scalar} from './tensor_ops';
 
 /**
  * Returns (a - b) * (a - b) element-wise.
  * Supports broadcasting.
- *
- * We also expose `tf.squaredDifferenceStrict` which has the same signature as
- * this op and asserts that `a` and `b` are the same shape (does not
- * broadcast).
  *
  * ```js
  * const a = tf.tensor1d([1, 4, 3, 16]);
@@ -52,8 +47,9 @@ import {scalar} from './tensor_ops';
  *
  * @param a The first tensor.
  * @param b The second tensor. Must have the same type as `a`.
+ *
+ * @doc {heading: 'Operations', subheading: 'Arithmetic'}
  */
-/** @doc {heading: 'Operations', subheading: 'Arithmetic'} */
 function squaredDifference_<T extends Tensor>(
     a: Tensor|TensorLike, b: Tensor|TensorLike): T {
   let $a = convertToTensor(a, 'a', 'squaredDifference');
@@ -61,27 +57,12 @@ function squaredDifference_<T extends Tensor>(
   [$a, $b] = makeTypesMatch($a, $b);
 
   assertAndGetBroadcastShape($a.shape, $b.shape);
-  const der = (dy: Tensor, saved: Tensor[]) => {
-    const [$a, $b] = saved;
-    const two = scalar(2);
-    const derA = () => dy.mul($a.sub($b).mul(two));
-    const derB = () => dy.mul($b.sub($a).mul(two));
-    return {a: derA, b: derB};
-  };
-  const forward: ForwardFunc<Tensor> = (backend, save) => {
-    const res = backend.squaredDifference($a, $b);
-    save([$a, $b]);
-    return res;
-  };
 
   const inputs: SquaredDifferenceInputs = {a: $a, b: $b};
   const attrs = {};
 
-  const inputsToSave = [$a, $b];
-  const outputToSave: boolean[] = [];
-  return ENGINE.runKernelFunc(
-             forward, inputs as unknown as NamedTensorMap, der,
-             SquaredDifference, attrs, inputsToSave, outputToSave) as T;
+  return ENGINE.runKernel(
+      SquaredDifference, inputs as unknown as NamedTensorMap, attrs);
 }
 
 export const squaredDifference = op({squaredDifference_});

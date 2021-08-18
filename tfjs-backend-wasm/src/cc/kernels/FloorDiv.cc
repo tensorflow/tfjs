@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,9 +19,9 @@
 #include <cmath>
 #include <cstddef>
 
-#include "src/cc/backend.h"
-#include "src/cc/binary.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/binary.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
@@ -35,7 +35,6 @@ void FloorDiv(const size_t a_id, const size_t* a_shape_ptr,
               const size_t a_shape_len, const size_t b_id,
               const size_t* b_shape_ptr, const size_t b_shape_len,
               const DType dtype, const size_t out_id) {
-  auto& a_info = backend::get_tensor_info(a_id);
   switch (dtype) {
     case DType::float32:
       binary_f32(a_id, b_id, out_id,

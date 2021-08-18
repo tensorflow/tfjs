@@ -19,11 +19,9 @@
  * 2) not having to convert the returned Tensors to numbers.
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
-import {scalar, Tensor1D, tensor1d} from '@tensorflow/tfjs-core';
 import {ValueError} from '../errors';
 
-export type ArrayTypes = Uint8Array | Int32Array | Float32Array;
+export type ArrayTypes = Uint8Array|Int32Array|Float32Array;
 
 /**
  * Determine if a number is an integer.
@@ -40,7 +38,7 @@ export function isInteger(x: number): boolean {
  * @return The product.
  */
 export function arrayProd(
-  array: number[] | ArrayTypes, begin?: number, end?: number): number {
+    array: number[]|ArrayTypes, begin?: number, end?: number): number {
   if (begin == null) {
     begin = 0;
   }
@@ -56,22 +54,23 @@ export function arrayProd(
 }
 
 /**
- * A helper function transforms the two input types to an instance of Tensor1D,
- * so the return value can be fed directly into various TF.js Core functions.
- * @param array
- */
-function toArray1D(array: number[] | Float32Array): Tensor1D {
-  array = Array.isArray(array) ? new Float32Array(array) : array;
-  return tensor1d(array);
-}
-
-/**
  * Compute minimum value.
  * @param array
  * @return minimum value.
  */
-export function min(array: number[] | Float32Array): number {
-  return tfc.min(toArray1D(array)).dataSync()[0];
+export function min(array: number[]|Float32Array): number {
+  // same behavior as tf.min()
+  if (array.length === 0) {
+    return Number.NaN;
+  }
+  let min = Number.POSITIVE_INFINITY;
+  for (let i = 0; i < array.length; i++) {
+    const value = array[i];
+    if (value < min) {
+      min = value;
+    }
+  }
+  return min;
 }
 
 /**
@@ -79,8 +78,19 @@ export function min(array: number[] | Float32Array): number {
  * @param array
  * @return maximum value
  */
-export function max(array: number[] | Float32Array): number {
-  return tfc.max(toArray1D(array)).dataSync()[0];
+export function max(array: number[]|Float32Array): number {
+  // same behavior as tf.max()
+  if (array.length === 0) {
+    return Number.NaN;
+  }
+  let max = Number.NEGATIVE_INFINITY;
+  for (let i = 0; i < array.length; i++) {
+    const value = array[i];
+    if (value > max) {
+      max = value;
+    }
+  }
+  return max;
 }
 
 /**
@@ -88,8 +98,13 @@ export function max(array: number[] | Float32Array): number {
  * @param array
  * @return The sum.
  */
-export function sum(array: number[] | Float32Array): number {
-  return tfc.sum(toArray1D(array)).dataSync()[0];
+export function sum(array: number[]|Float32Array): number {
+  let sum = 0;
+  for (let i = 0; i < array.length; i++) {
+    const value = array[i];
+    sum += value;
+  }
+  return sum;
 }
 
 /**
@@ -97,7 +112,7 @@ export function sum(array: number[] | Float32Array): number {
  * @param array
  * @return The mean.
  */
-export function mean(array: number[] | Float32Array): number {
+export function mean(array: number[]|Float32Array): number {
   return sum(array) / array.length;
 }
 
@@ -106,9 +121,14 @@ export function mean(array: number[] | Float32Array): number {
  * @param array
  * @return The variance.
  */
-export function variance(array: number[] | Float32Array): number {
-  const demeaned = tfc.sub(toArray1D(array), scalar(mean(array)));
-  const sumSquare = tfc.sum(tfc.mulStrict(demeaned, demeaned)).dataSync()[0];
+export function variance(array: number[]|Float32Array): number {
+  const meanValue = mean(array);
+  const demeaned = array.map((value: number) => value - meanValue);
+  let sumSquare = 0;
+  for (let i = 0; i < demeaned.length; i++) {
+    const value = demeaned[i];
+    sumSquare += value * value;
+  }
   return sumSquare / array.length;
 }
 
@@ -117,7 +137,7 @@ export function variance(array: number[] | Float32Array): number {
  * @param array
  * @return The median value.
  */
-export function median(array: number[] | Float32Array): number {
+export function median(array: number[]|Float32Array): number {
   const arraySorted = array.slice().sort((a, b) => a - b);
   const lowIdx = Math.floor((arraySorted.length - 1) / 2);
   const highIdx = Math.ceil((arraySorted.length - 1) / 2);

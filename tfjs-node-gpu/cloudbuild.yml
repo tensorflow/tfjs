@@ -1,52 +1,77 @@
 steps:
 # Prepare tfjs-node-gpu folder, copy files from tfjs-node.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-node-gpu'
   id: 'prep-gpu'
   entrypoint: 'yarn'
   args: ['prep-gpu']
 
 # Install common dependencies.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   id: 'yarn-common'
   entrypoint: 'yarn'
   args: ['install']
   waitFor: ['prep-gpu']
 
-# Install tfjs-node dependencies.
-- name: 'node:10'
+# Install packages.
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-node-gpu'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
-  waitFor: ['yarn-common']
+  waitFor: ['yarn-common', 'prep-gpu']
+
+# Build add-on.
+- name: 'gcr.io/learnjs-174218/release'
+  dir: 'tfjs-node-gpu'
+  entrypoint: 'yarn'
+  id: 'build-addon'
+  args: ['build-addon-from-source']
+  waitFor: ['yarn']
+
+# Build deps.
+- name: 'gcr.io/learnjs-174218/release'
+  dir: 'tfjs-node-gpu'
+  entrypoint: 'yarn'
+  id: 'build-deps'
+  args: ['build-deps-ci']
+  waitFor: ['yarn-common', 'prep-gpu']
+
+# Build.
+- name: 'gcr.io/learnjs-174218/release'
+  dir: 'tfjs-node-gpu'
+  entrypoint: 'yarn'
+  id: 'build'
+  args: ['build-ci']
+  waitFor: ['yarn', 'build-deps']
+
+# Lint.
+- name: 'gcr.io/learnjs-174218/release'
+  dir: 'tfjs-node-gpu'
+  entrypoint: 'yarn'
+  id: 'lint'
+  args: ['lint']
+  waitFor: ['yarn', 'build-deps']
 
 # Unit tests.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-node-gpu'
   entrypoint: 'yarn'
   id: 'test'
   args: ['test-ci']
-  waitFor: ['yarn']
-
-# Integration test.
-- name: 'node:10'
-  dir: 'tfjs-node-gpu'
-  entrypoint: 'yarn'
-  id: 'test-ts-integration'
-  args: ['test-ts-integration']
-  waitFor: ['yarn', 'test']
+  waitFor: ['yarn', 'build-deps', 'lint']
 
 # CPU / GPU package alignment.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-node-gpu'
   entrypoint: 'yarn'
   id: 'ensure-cpu-gpu-packages-align'
   args: ['ensure-cpu-gpu-packages-align']
-  waitFor: ['yarn', 'test']
+  waitFor: ['yarn-common', 'prep-gpu']
 
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
 options:
   logStreamingOption: 'STREAM_ON'
+  machineType: 'N1_HIGHCPU_8'
   substitution_option: 'ALLOW_LOOSE'

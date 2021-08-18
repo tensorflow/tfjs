@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {util} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
@@ -22,14 +23,16 @@ import {WebGPUProgram} from './webgpu_program';
 
 export class SliceProgram implements WebGPUProgram {
   variableNames = ['source'];
+  uniforms: string;
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   rank: number;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workPerThread = 1;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workGroupSize: [number, number, number] = [64, 1, 1];
+  start: number[];
+  size: number;
 
   constructor(start: number[], destSize: number[]) {
     this.outputShape = destSize;
@@ -39,23 +42,39 @@ export class SliceProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
 
+    this.start = start;
+    this.uniforms = `${getCoordsDataType(start.length)} start; `;
+    this.shaderKey = 'slice';
+    this.size = util.sizeFromShape(this.outputShape);
+  }
+
+  getUserCode(): string {
     const dtype = getCoordsDataType(this.rank);
     const sourceCoords = getCoords(this.rank);
+    let coordSum;
+    if (this.start.length === 1) {
+      coordSum = this.outputShape.map((_, i) => {
+        return `sourceLoc.${coords[i]} = start + coords.${coords[i]};`;
+      });
+    } else {
+      coordSum = this.outputShape.map((_, i) => {
+        return `sourceLoc.${coords[i]} = start[${i}] + coords.${coords[i]};`;
+      });
+    }
 
-    const coordSum = destSize.map((_, i) => {
-      return `sourceLoc.${coords[i]} = ${start[i]} + coords.${coords[i]};`;
-    });
-
-    this.userCode = `
+    const userCode = `
       void main() {
         int index = int(gl_GlobalInvocationID.x);
-        ${dtype} sourceLoc;
-        ${dtype} coords = getOutputCoords();
-        ${coordSum.join('\n')}
-        setOutput(index, getSource(${sourceCoords}));
+        if (index < size)
+        {
+          ${dtype} sourceLoc;
+          ${dtype} coords = getOutputCoords();
+          ${coordSum.join('\n')}
+          setOutput(index, getSource(${sourceCoords}));
+        }
       }
     `;
-    this.shaderKey = `slice${this.rank}${start.join(',')}`;
+    return userCode;
   }
 }
 

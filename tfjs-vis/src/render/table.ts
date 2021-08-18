@@ -43,8 +43,8 @@ import {getDrawArea} from './render_utils';
  *
  * @param opts.fontSize fontSize in pixels for text in the chart.
  *
+ * @doc {heading: 'Charts', namespace: 'render'}
  */
-/** @doc {heading: 'Charts', namespace: 'render'} */
 export function table(
     container: Drawable,
     // tslint:disable-next-line:no-any

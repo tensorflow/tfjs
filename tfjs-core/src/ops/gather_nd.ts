@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,9 @@
  * =============================================================================
  */
 import {ENGINE} from '../engine';
+import {GatherNd, GatherNdInputs} from '../kernel_names';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {op} from './operation';
@@ -55,13 +57,16 @@ import {op} from './operation';
  *
  * @param x The tensor from which to gather values.
  * @param indices Index tensor, must be of type int32.
+ *
+ * @doc {heading: 'Operations', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Operations', subheading: 'Slicing and Joining'} */
 function gatherND_(x: Tensor|TensorLike, indices: Tensor|TensorLike): Tensor {
   const $indices = convertToTensor(indices, 'indices', 'gatherND', 'int32');
-  const $x = convertToTensor(x, 'x', 'gatherND');
-  return ENGINE.runKernelFunc(
-      backend => backend.gatherND($x, $indices), {x: $x, indices: $indices},
-      null /* backward */, 'GatherNd');
+  const $x = convertToTensor(x, 'x', 'gatherND', 'string_or_numeric');
+
+  const inputs: GatherNdInputs = {params: $x, indices: $indices};
+
+  return ENGINE.runKernel(GatherNd, inputs as {} as NamedTensorMap);
 }
+
 export const gatherND = op({gatherND_});

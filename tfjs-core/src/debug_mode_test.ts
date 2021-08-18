@@ -98,7 +98,8 @@ describeWithFlags('debug on', SYNC_BACKEND_ENVS, () => {
     expect(a).toThrowError();
   });
 
-  it('A x B', async () => {
+  // tslint:disable-next-line: ban
+  xit('A x B', async () => {
     const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
 

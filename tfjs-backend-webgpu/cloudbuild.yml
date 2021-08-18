@@ -13,13 +13,21 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Build core from master.
+# Build deps.
 - name: 'node:10'
   dir: 'tfjs-backend-webgpu'
-  id: 'build-core'
+  id: 'build-deps'
   entrypoint: 'yarn'
-  args: ['build-core']
+  args: ['build-deps-ci']
   waitFor: ['yarn-common']
+
+# Lint.
+- name: 'node:10'
+  dir: 'tfjs-backend-webgpu'
+  id: 'lint'
+  entrypoint: 'yarn'
+  args: ['lint']
+  waitFor: ['yarn', 'build-deps']
 
 # Run tests.
 - name: 'node:10'
@@ -27,7 +35,7 @@ steps:
   entrypoint: 'yarn'
   id: 'test-webgpu'
   args: ['test-ci']
-  waitFor: ['build-core']
+  waitFor: ['yarn', 'build-deps', 'lint']
 
 # General configuration
 timeout: 1800s

@@ -12,7 +12,7 @@
  * Unit tests for core.ts.
  */
 
-import {ones, serialization, Tensor, tensor1d, Tensor2D, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
+import {cast, ones, serialization, Tensor, tensor1d, Tensor2D, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
 import {SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
@@ -338,7 +338,7 @@ describeMathCPUAndGPU('Add Layer: Tensor', () => {
     const addLayer = tfl.layers.add({});
     const m1 = tensor1d([true, false], 'bool');
     const m2 = tensor1d([true, true], 'bool');
-    const mask = addLayer.computeMask([x1, x2], [m1, m2]) as Tensor;
+    const mask = addLayer.computeMask([x1, x2], [m1, m2]);
     expectTensorsClose(mask, tensor2d([[true, false]], [1, 2], 'bool'));
   });
   it('computeMask error condition: non-array input', () => {
@@ -445,8 +445,7 @@ describeMathCPUAndGPU('Concatenate Layer: Tensor', () => {
     const x1 = tensor2d([[1], [0], [1]]);
     const x2 = tensor2d([[1], [0], [0]]);
     const mask =
-        layer.computeMask([x1, x2], [x1.asType('bool'), x2.asType('bool')]) as
-        Tensor;
+        layer.computeMask([x1, x2], [cast(x1, 'bool'), cast(x2, 'bool')]);
     expectTensorsClose(mask, tensor1d([true, false, false], 'bool'));
   });
 

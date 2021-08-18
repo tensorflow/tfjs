@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,14 +15,9 @@
  * =============================================================================
  */
 
-import {backend_util, KernelFunc, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, DepthwiseConv2dNative, DepthwiseConv2dNativeAttrs, DepthwiseConv2dNativeInputs, KernelConfig, KernelFunc, Tensor4D} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
-
-interface DepthwiseConv2DInputs extends NamedTensorInfoMap {
-  x: TensorInfo;
-  filter: TensorInfo;
-}
 
 let wasmDepthwiseConv2d: (
     xId: number, batchSize: number, inputHeight: number, inputWidth: number,
@@ -34,7 +29,7 @@ let wasmDepthwiseConv2d: (
 
 function setup(backend: BackendWasm) {
   wasmDepthwiseConv2d =
-      backend.wasm.cwrap('DepthwiseConv2dNative', null /* void */, [
+      backend.wasm.cwrap(DepthwiseConv2dNative, null /* void */, [
         'number',  // xId
         'number',  // batchSize
         'number',  // inputHeight
@@ -58,16 +53,24 @@ function setup(backend: BackendWasm) {
 }
 
 function depthwiseConv2d(args: {
-  inputs: DepthwiseConv2DInputs,
+  inputs: DepthwiseConv2dNativeInputs,
   backend: BackendWasm,
-  attrs: backend_util.Conv2DInfo
+  attrs: DepthwiseConv2dNativeAttrs
 }) {
   const {inputs, attrs, backend} = args;
-  const convInfo = attrs;
 
   const {x, filter} = inputs;
   const xId = backend.dataIdMap.get(x.dataId).id;
   const filterId = backend.dataIdMap.get(filter.dataId).id;
+
+  const {strides, dilations, pad, dimRoundingMode} = attrs;
+
+  const $dilations = dilations == null ? [1, 1] : dilations;
+
+  const convInfo = backend_util.computeConv2DInfo(
+      (x as Tensor4D).shape, (filter as Tensor4D).shape, strides,
+      ($dilations as number | [number, number]), pad, dimRoundingMode,
+      true /* depthwise */);
 
   const filterHeight = convInfo.filterHeight;
   const filterWidth = convInfo.filterWidth;
@@ -99,9 +102,9 @@ function depthwiseConv2d(args: {
   return out;
 }
 
-registerKernel({
-  kernelName: 'DepthwiseConv2dNative',
+export const depthwiseConv2dNativeConfig: KernelConfig = {
+  kernelName: DepthwiseConv2dNative,
   backendName: 'wasm',
   setupFunc: setup,
   kernelFunc: depthwiseConv2d as {} as KernelFunc
-});
+};

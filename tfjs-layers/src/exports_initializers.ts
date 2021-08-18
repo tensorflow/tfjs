@@ -12,24 +12,27 @@ import {Constant, ConstantArgs, GlorotNormal, GlorotUniform, HeNormal, HeUniform
 
 /**
  * Initializer that generates tensors initialized to 0.
+ *
+ * @doc {heading: 'Initializers', namespace: 'initializers'}
  */
-/** @doc {heading: 'Initializers', namespace: 'initializers'} */
 export function zeros(): Zeros {
   return new Zeros();
 }
 
 /**
  * Initializer that generates tensors initialized to 1.
+ *
+ * @doc {heading: 'Initializers', namespace: 'initializers'}
  */
-/** @doc {heading: 'Initializers', namespace: 'initializers'} */
 export function ones(): Initializer {
   return new Ones();
 }
 
 /**
  * Initializer that generates values initialized to some constant.
+ *
+ * @doc {heading: 'Initializers', namespace: 'initializers'}
  */
-/** @doc {heading: 'Initializers', namespace: 'initializers'} */
 export function constant(args: ConstantArgs): Initializer {
   return new Constant(args);
 }
@@ -40,8 +43,9 @@ export function constant(args: ConstantArgs): Initializer {
  *
  * Values will be distributed uniformly between the configured minval and
  * maxval.
+ *
+ * @doc {heading: 'Initializers', namespace: 'initializers'}
  */
-/** @doc {heading: 'Initializers', namespace: 'initializers'} */
 export function randomUniform(args: RandomUniformArgs): Initializer {
   return new RandomUniform(args);
 }
@@ -49,8 +53,9 @@ export function randomUniform(args: RandomUniformArgs): Initializer {
 /**
  * Initializer that generates random values initialized to a normal
  * distribution.
+ *
+ * @doc {heading: 'Initializers', namespace: 'initializers'}
  */
-/** @doc {heading: 'Initializers', namespace: 'initializers'} */
 export function randomNormal(args: RandomNormalArgs): Initializer {
   return new RandomNormal(args);
 }
@@ -62,8 +67,9 @@ export function randomNormal(args: RandomNormalArgs): Initializer {
  * These values are similar to values from a `RandomNormal` except that values
  * more than two standard deviations from the mean are discarded and re-drawn.
  * This is the recommended initializer for neural network weights and filters.
+ *
+ * @doc {heading: 'Initializers', namespace: 'initializers'}
  */
-/** @doc {heading: 'Initializers', namespace: 'initializers'} */
 export function truncatedNormal(args: TruncatedNormalArgs): Initializer {
   return new TruncatedNormal(args);
 }
@@ -71,8 +77,9 @@ export function truncatedNormal(args: TruncatedNormalArgs): Initializer {
 /**
  * Initializer that generates the identity matrix.
  * Only use for square 2D matrices.
+ *
+ * @doc {heading: 'Initializers', namespace: 'initializers'}
  */
-/** @doc {heading: 'Initializers', namespace: 'initializers'} */
 export function identity(args: IdentityArgs): Initializer {
   return new Identity(args);
 }
@@ -87,8 +94,9 @@ export function identity(args: IdentityArgs): Initializer {
  * With distribution=UNIFORM,
  * samples are drawn from a uniform distribution
  * within [-limit, limit], with `limit = sqrt(3 * scale / n)`.
+ *
+ * @doc {heading: 'Initializers',namespace: 'initializers'}
  */
-/** @doc {heading: 'Initializers',namespace: 'initializers'} */
 export function varianceScaling(config: VarianceScalingArgs): Initializer {
   return new VarianceScaling(config);
 }
@@ -103,8 +111,9 @@ export function varianceScaling(config: VarianceScalingArgs): Initializer {
  * Reference:
  *   Glorot & Bengio, AISTATS 2010
  *       http://jmlr.org/proceedings/papers/v9/glorot10a/glorot10a.pdf.
+ *
+ * @doc {heading: 'Initializers', namespace: 'initializers'}
  */
-/** @doc {heading: 'Initializers', namespace: 'initializers'} */
 export function glorotUniform(args: SeedOnlyInitializerArgs): Initializer {
   return new GlorotUniform(args);
 }
@@ -119,8 +128,9 @@ export function glorotUniform(args: SeedOnlyInitializerArgs): Initializer {
  * Reference:
  *   Glorot & Bengio, AISTATS 2010
  *       http://jmlr.org/proceedings/papers/v9/glorot10a/glorot10a.pdf
+ *
+ * @doc {heading: 'Initializers', namespace: 'initializers'}
  */
-/** @doc {heading: 'Initializers', namespace: 'initializers'} */
 export function glorotNormal(args: SeedOnlyInitializerArgs): Initializer {
   return new GlorotNormal(args);
 }
@@ -134,8 +144,9 @@ export function glorotNormal(args: SeedOnlyInitializerArgs): Initializer {
  *
  * Reference:
  *     He et al., http://arxiv.org/abs/1502.01852
+ *
+ * @doc {heading: 'Initializers', namespace: 'initializers'}
  */
-/** @doc {heading: 'Initializers', namespace: 'initializers'} */
 export function heNormal(args: SeedOnlyInitializerArgs): Initializer {
   return new HeNormal(args);
 }
@@ -149,8 +160,9 @@ export function heNormal(args: SeedOnlyInitializerArgs): Initializer {
  *
  * Reference:
  *     He et al., http://arxiv.org/abs/1502.01852
+ *
+ * @doc {heading: 'Initializers',namespace: 'initializers'}
  */
-/** @doc {heading: 'Initializers',namespace: 'initializers'} */
 export function heUniform(args: SeedOnlyInitializerArgs): Initializer {
   return new HeUniform(args);
 }
@@ -165,8 +177,9 @@ export function heUniform(args: SeedOnlyInitializerArgs): Initializer {
  * References:
  *   [Self-Normalizing Neural Networks](https://arxiv.org/abs/1706.02515)
  *   [Efficient Backprop](http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf)
+ *
+ * @doc {heading: 'Initializers', namespace: 'initializers'}
  */
-/** @doc {heading: 'Initializers', namespace: 'initializers'} */
 export function leCunNormal(args: SeedOnlyInitializerArgs): Initializer {
   return new LeCunNormal(args);
 }
@@ -177,8 +190,9 @@ export function leCunNormal(args: SeedOnlyInitializerArgs): Initializer {
  * It draws samples from a uniform distribution in the interval
  * `[-limit, limit]` with `limit = sqrt(3 / fanIn)`,
  * where `fanIn` is the number of input units in the weight tensor.
+ *
+ * @doc {heading: 'Initializers', namespace: 'initializers'}
  */
-/** @doc {heading: 'Initializers', namespace: 'initializers'} */
 export function leCunUniform(args: SeedOnlyInitializerArgs): Initializer {
   return new LeCunUniform(args);
 }
@@ -188,8 +202,9 @@ export function leCunUniform(args: SeedOnlyInitializerArgs): Initializer {
  *
  * Reference:
  * [Saxe et al., http://arxiv.org/abs/1312.6120](http://arxiv.org/abs/1312.6120)
+ *
+ * @doc {heading: 'Initializers', namespace: 'initializers'}
  */
-/** @doc {heading: 'Initializers', namespace: 'initializers'} */
 export function orthogonal(args: OrthogonalArgs): Initializer {
   return new Orthogonal(args);
 }

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2017 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -759,11 +759,11 @@ describe('conv_util computeConv2DInfo roundingMode', () => {
   const dilation = 1;
   const pad = 1;
 
-  it('should fail computing the output dimension of Conv Layer', () => {
-    expect(
-        () => conv_util.computeConv2DInfo(
-            inShape, [fSize, fSize, inChannels, chMul], stride, dilation, pad))
-        .toThrowError();
+  it('Default truncate the output dimension of Conv Layer', () => {
+    const convInfo = conv_util.computeConv2DInfo(
+        inShape, [fSize, fSize, inChannels, chMul], stride, dilation, pad);
+
+    expect(convInfo.outShape).toEqual([batchSize, 3, 3, chMul]);
   });
 
   it('Floor the output dimension of Conv Layer', () => {
@@ -802,11 +802,11 @@ describe('conv_util computePoolInfo roundingMode', () => {
   const dilation = 1;
   const pad = 1;
 
-  it('should fail computing the output dimension of Pool Layer', () => {
-    expect(
-        () => conv_util.computePool2DInfo(
-            inShape, [fSize, fSize], stride, dilation, pad))
-        .toThrowError();
+  it('Default truncate the output dimension of Pool Layer', () => {
+    const poolInfo = conv_util.computePool2DInfo(
+        inShape, [fSize, fSize], stride, pad, dilation, 'floor');
+
+    expect(poolInfo.outShape).toEqual([batchSize, 3, 3, inChannels]);
   });
 
   it('Floor the output dimension of Pool Layer', () => {

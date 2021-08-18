@@ -25,28 +25,35 @@ import {WebGPUProgram} from './webgpu_program';
 export class PadProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  userCode: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  workPerThread = 8;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  uniforms = 'float constantValue;';
+  workGroupSize: [number, number, number] = [64, 1, 1];
+  xShape: number[];
+  size: number;
 
-  constructor(
-      xShape: number[], paddings: Array<[number, number]>,
-      constantValue: number) {
+  constructor(xShape: number[], paddings: Array<[number, number]>) {
     this.outputShape = paddings.map(
         (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
-    const rank = xShape.length;
-    const size = util.sizeFromShape(this.outputShape);
-    const type = getCoordsDataType(rank);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
+    paddings.map((_, i) => this.uniforms += ` ivec2 pad${i};`);
+    this.xShape = xShape;
+    this.shaderKey = 'pad';
+    this.size = util.sizeFromShape(this.outputShape);
+  }
 
-    const start = paddings.map(p => p[0]).join(',');
-    const end = paddings.map((p, i) => p[0] + xShape[i]).join(',');
+  getUserCode(): string {
+    const rank = this.xShape.length;
+    const type = getCoordsDataType(rank);
+    // The length of paddings are same with the rank of the input tensor.
+    const start = this.xShape.map((_, i) => `pad${i}[0]`).join(',');
+    const end =
+        this.xShape
+            .map((_, i) => `pad${i}[0] + xShape${rank > 1 ? `[${i}]` : ''}`)
+            .join(',');
     const startValue = rank > 1 ? `${type}(${start})` : `${start}`;
     const endValue = rank > 1 ? `${type}(${end})` : `${end}`;
 
@@ -59,30 +66,25 @@ export class PadProgram implements WebGPUProgram {
         ['coords[0]', 'coords[1]', 'coords[2]', 'coords[3]'].slice(0, rank) :
         'coords';
 
-    this.userCode = `
+    const userCode = `
       ${type} start = ${startValue};
       ${type} end = ${endValue};
 
       void main() {
-        int index = int(gl_GlobalInvocationID.x);
+        int flatIndex = int(gl_GlobalInvocationID.x);
 
-        for (int i = 0; i < ${this.workPerThread}; i++) {
-          int flatIndex = index * ${this.workPerThread} + i;
-
-          if (flatIndex < ${size}) {
-            ${type} outC = getCoordsFromFlatIndex(flatIndex);
+          if (flatIndex < size) {
+            ${type} outC = getOutputCoords();
 
             if (${leftPadCondition} || ${rightPadCondition}) {
-              setOutput(flatIndex, ${constantValue});
+              setOutput(flatIndex, constantValue);
             } else {
               ${type} coords = outC - start;
               setOutput(flatIndex, getX(${unpackedCoords}));
             }
           }
-        }
       }
     `;
-    this.shaderKey =
-        `pad${startValue}${endValue}${rank}${size}${type}${constantValue}`;
+    return userCode;
   }
 }

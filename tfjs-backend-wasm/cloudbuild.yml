@@ -5,86 +5,62 @@ steps:
   entrypoint: 'yarn'
   args: ['install']
 
-# Install wasm dependencies.
+# Install packages.
 - name: 'node:10'
   dir: 'tfjs-backend-wasm'
-  id: 'yarn'
   entrypoint: 'yarn'
+  id: 'yarn'
   args: ['install']
   waitFor: ['yarn-common']
 
-# Build core from master.
+# Install build-deps.
 - name: 'node:10'
   dir: 'tfjs-backend-wasm'
-  id: 'build-core'
   entrypoint: 'yarn'
-  args: ['build-core']
+  id: 'build-deps'
+  args: ['build-deps']
   waitFor: ['yarn-common']
 
-# Run lint.
+# Build.
+- name: 'gcr.io/learnjs-174218/wasm'
+  dir: 'tfjs-backend-wasm'
+  entrypoint: 'bash'
+  id: 'build'
+  args: ['./scripts/build-ci.sh']
+  waitFor: ['yarn', 'build-deps']
+
+# Lint.
 - name: 'node:10'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'lint'
   args: ['lint']
-  waitFor: ['build-core']
+  waitFor: ['yarn', 'build-deps']
 
-# Build the project.
-- name: 'node:10'
-  dir: 'tfjs-backend-wasm'
-  entrypoint: 'yarn'
-  id: 'build'
-  args: ['build-ci']
-  waitFor: ['build-core']
-
-# Run tests in browser.
+# Run JS tests.
 - name: 'node:10'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'yarn'
   id: 'test-wasm'
-  args: ['test-browser-ci']
-  waitFor: ['build']
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  args: ['test-ci']
+  waitFor: ['yarn', 'build-deps', 'build', 'lint']
+  env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 
-# Run tests in node.
-- name: 'node:10'
-  dir: 'tfjs-backend-wasm'
-  entrypoint: 'yarn'
-  id: 'test-node'
-  args: ['test-node']
-  waitFor: ['build']
-
-# Run C++ tests.
-- name: 'node:10'
-  dir: 'tfjs-backend-wasm'
-  entrypoint: 'yarn'
-  id: 'test-cc'
-  args: ['test-cc']
-  waitFor: ['build']
-
 # Check bundle size.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/wasm'
   dir: 'tfjs-backend-wasm'
   id: 'test-bundle-size'
   entrypoint: 'yarn'
   args: ['test-bundle-size']
-  waitFor: ['build']
-
-# Lint bazel files.
-- name: 'node:10'
-  dir: 'tfjs-backend-wasm'
-  id: 'buildifier'
-  entrypoint: 'yarn'
-  args: ['buildifier-ci']
-  waitFor: ['yarn']
+  waitFor: ['yarn', 'build-deps', 'build']
 
 # General configuration
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc
   secretEnv:
     BROWSERSTACK_KEY: CiQAkwyoIW0LcnxymzotLwaH4udVTQFBEN4AEA5CA+a3+yflL2ASPQAD8BdZnGARf78MhH5T9rQqyz9HNODwVjVIj64CTkFlUCGrP1B2HX9LXHWHLmtKutEGTeFFX9XhuBzNExA=
-timeout: 1800s
+timeout: 3600s
 logsBucket: 'gs://tfjs-build-logs'
 substitutions:
   _NIGHTLY: ''

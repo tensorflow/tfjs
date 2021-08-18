@@ -1,0 +1,582 @@
+{
+  "Abs": [
+    "abs"
+  ],
+  "Acos": [
+    "acos"
+  ],
+  "Acosh": [
+    "acosh"
+  ],
+  "Add": [
+    "add"
+  ],
+  "AddN": [
+    "addN"
+  ],
+  "AddV2": [
+    "add"
+  ],
+  "All": [
+    "all"
+  ],
+  "Any": [
+    "any"
+  ],
+  "ArgMax": [
+    "argMax"
+  ],
+  "ArgMin": [
+    "argMin"
+  ],
+  "Asin": [
+    "asin"
+  ],
+  "Asinh": [
+    "asinh"
+  ],
+  "Atan": [
+    "atan"
+  ],
+  "Atan2": [
+    "atan2"
+  ],
+  "Atanh": [
+    "atanh"
+  ],
+  "AvgPool": [
+    "avgPool"
+  ],
+  "AvgPool3D": [
+    "avgPool3d"
+  ],
+  "BatchMatMul": [
+    "matMul"
+  ],
+  "BatchMatMulV2": [
+    "matMul"
+  ],
+  "BatchToSpaceND": [
+    "batchToSpaceND"
+  ],
+  "BiasAdd": [
+    "add"
+  ],
+  "Bincount": [
+    "bincount"
+  ],
+  "BroadcastArgs": [
+    "broadcastArgs"
+  ],
+  "BroadcastTo": [
+    "broadcastTo"
+  ],
+  "Cast": [
+    "cast"
+  ],
+  "Ceil": [
+    "ceil"
+  ],
+  "ClipByValue": [
+    "clipByValue"
+  ],
+  "Complex": [
+    "complex"
+  ],
+  "ComplexAbs": [
+    "abs"
+  ],
+  "Concat": [
+    "concat"
+  ],
+  "ConcatV2": [
+    "concat"
+  ],
+  "Const": [],
+  "Conv1D": [
+    "conv1d"
+  ],
+  "Conv2D": [
+    "conv2d"
+  ],
+  "Conv2DBackpropInput": [
+    "conv2dTranspose"
+  ],
+  "Conv2dTranspose": [
+    "conv2dTranspose"
+  ],
+  "Conv3D": [
+    "conv3d"
+  ],
+  "Cos": [
+    "cos"
+  ],
+  "Cosh": [
+    "cosh"
+  ],
+  "CropAndResize": [
+    "image.cropAndResize"
+  ],
+  "Cumsum": [
+    "cumsum"
+  ],
+  "DenseBincount": [
+    "denseBincount"
+  ],
+  "DepthToSpace": [
+    "depthToSpace"
+  ],
+  "DepthwiseConv2d": [
+    "depthwiseConv2d"
+  ],
+  "DepthwiseConv2dNative": [
+    "depthwiseConv2d"
+  ],
+  "Dilation2D": [
+    "dilation2d"
+  ],
+  "Div": [
+    "div"
+  ],
+  "DivNoNan": [
+    "divNoNan"
+  ],
+  "Einsum": [
+    "einsum"
+  ],
+  "Elu": [
+    "elu"
+  ],
+  "EmptyTensorList": [],
+  "Enter": [],
+  "Equal": [
+    "equal"
+  ],
+  "Erf": [
+    "erf"
+  ],
+  "Exit": [],
+  "Exp": [
+    "exp"
+  ],
+  "ExpandDims": [
+    "expandDims"
+  ],
+  "Expm1": [
+    "expm1"
+  ],
+  "FFT": [
+    "fft"
+  ],
+  "FakeQuantWithMinMaxVars": [],
+  "Fill": [
+    "fill"
+  ],
+  "Floor": [
+    "floor"
+  ],
+  "FloorDiv": [
+    "floorDiv"
+  ],
+  "FloorMod": [
+    "mod"
+  ],
+  "FusedBatchNorm": [
+    "batchNorm"
+  ],
+  "FusedBatchNormV2": [
+    "batchNorm"
+  ],
+  "FusedBatchNormV3": [
+    "batchNorm"
+  ],
+  "FusedDepthwiseConv2dNative": [
+    "fused.depthwiseConv2d"
+  ],
+  "Gather": [
+    "gather",
+    "cast"
+  ],
+  "GatherNd": [
+    "gatherND"
+  ],
+  "GatherV2": [
+    "gather",
+    "cast"
+  ],
+  "Greater": [
+    "greater"
+  ],
+  "GreaterEqual": [
+    "greaterEqual"
+  ],
+  "HashTable": [],
+  "HashTableV2": [],
+  "IFFT": [
+    "ifft"
+  ],
+  "IRFFT": [
+    "irfft"
+  ],
+  "Identity": [],
+  "IdentityN": [],
+  "If": [],
+  "Imag": [
+    "imag"
+  ],
+  "IsNan": [
+    "isNaN"
+  ],
+  "LRN": [
+    "localResponseNormalization"
+  ],
+  "LeakyRelu": [
+    "leakyRelu"
+  ],
+  "Less": [
+    "less"
+  ],
+  "LessEqual": [
+    "lessEqual"
+  ],
+  "LinSpace": [
+    "linspace"
+  ],
+  "ListDiff": [
+    "setdiff1dAsync"
+  ],
+  "Log": [
+    "log"
+  ],
+  "Log1p": [
+    "log1p"
+  ],
+  "LogSoftmax": [
+    "logSoftmax"
+  ],
+  "LogicalAnd": [
+    "logicalAnd"
+  ],
+  "LogicalNot": [
+    "logicalNot"
+  ],
+  "LogicalOr": [
+    "logicalOr"
+  ],
+  "LookupTableFind": [],
+  "LookupTableFindV2": [],
+  "LookupTableImport": [],
+  "LookupTableImportV2": [],
+  "LookupTableSize": [],
+  "LookupTableSizeV2": [],
+  "LoopCond": [],
+  "MatMul": [
+    "matMul"
+  ],
+  "Max": [
+    "max"
+  ],
+  "MaxPool": [
+    "maxPool"
+  ],
+  "MaxPool3D": [
+    "maxPool3d"
+  ],
+  "MaxPoolWithArgmax": [
+    "maxPoolWithArgmax"
+  ],
+  "Maximum": [
+    "maximum"
+  ],
+  "Mean": [
+    "mean"
+  ],
+  "Merge": [],
+  "Min": [
+    "min"
+  ],
+  "Minimum": [
+    "minimum"
+  ],
+  "MirrorPad": [
+    "mirrorPad"
+  ],
+  "Mod": [
+    "mod"
+  ],
+  "Mul": [
+    "mul"
+  ],
+  "Multinomial": [
+    "multinomial"
+  ],
+  "Neg": [
+    "neg"
+  ],
+  "NextIteration": [],
+  "NoOp": [
+    "scalar"
+  ],
+  "NonMaxSuppressionV2": [
+    "image.nonMaxSuppressionAsync"
+  ],
+  "NonMaxSuppressionV3": [
+    "image.nonMaxSuppressionAsync"
+  ],
+  "NonMaxSuppressionV4": [
+    "image.nonMaxSuppressionPaddedAsync"
+  ],
+  "NonMaxSuppressionV5": [
+    "image.nonMaxSuppressionWithScoreAsync"
+  ],
+  "NotEqual": [
+    "notEqual"
+  ],
+  "OneHot": [
+    "oneHot"
+  ],
+  "Ones": [
+    "ones"
+  ],
+  "OnesLike": [
+    "onesLike"
+  ],
+  "Pack": [
+    "squeeze",
+    "reshape",
+    "stack"
+  ],
+  "Pad": [
+    "pad"
+  ],
+  "PadV2": [
+    "pad"
+  ],
+  "Placeholder": [],
+  "PlaceholderWithDefault": [],
+  "Pow": [
+    "pow"
+  ],
+  "Prelu": [
+    "prelu"
+  ],
+  "Print": [],
+  "Prod": [
+    "prod"
+  ],
+  "RFFT": [
+    "rfft"
+  ],
+  "RandomUniform": [
+    "randomUniform"
+  ],
+  "Range": [
+    "range"
+  ],
+  "Rank": [
+    "scalar"
+  ],
+  "Real": [
+    "real"
+  ],
+  "RealDiv": [
+    "div"
+  ],
+  "Reciprocal": [
+    "reciprocal"
+  ],
+  "Relu": [
+    "relu"
+  ],
+  "Relu6": [
+    "relu6"
+  ],
+  "Reshape": [
+    "reshape"
+  ],
+  "ResizeBilinear": [
+    "image.resizeBilinear"
+  ],
+  "ResizeNearestNeighbor": [
+    "image.resizeNearestNeighbor"
+  ],
+  "Reverse": [
+    "reverse"
+  ],
+  "ReverseV2": [
+    "reverse"
+  ],
+  "Round": [
+    "round"
+  ],
+  "Rsqrt": [
+    "rsqrt"
+  ],
+  "ScatterNd": [
+    "scatterND"
+  ],
+  "Select": [
+    "where"
+  ],
+  "SelectV2": [
+    "where"
+  ],
+  "Selu": [
+    "selu"
+  ],
+  "Shape": [
+    "tensor1d"
+  ],
+  "ShapeN": [
+    "tensor1d"
+  ],
+  "Sigmoid": [
+    "sigmoid"
+  ],
+  "Sign": [
+    "sign"
+  ],
+  "Sin": [
+    "sin"
+  ],
+  "Sinh": [
+    "sinh"
+  ],
+  "Size": [
+    "scalar"
+  ],
+  "Slice": [
+    "slice"
+  ],
+  "Snapshot": [],
+  "Softmax": [
+    "softmax"
+  ],
+  "Softplus": [
+    "softplus"
+  ],
+  "SpaceToBatchND": [
+    "spaceToBatchND"
+  ],
+  "SparseFillEmptyRows": [
+    "sparse.sparseFillEmptyRows"
+  ],
+  "SparseReshape": [
+    "sparse.sparseReshape"
+  ],
+  "SparseSegmentMean": [
+    "sparse.sparseSegmentMean"
+  ],
+  "SparseSegmentSum": [
+    "sparse.sparseSegmentSum"
+  ],
+  "SparseToDense": [
+    "sparseToDense",
+    "cast"
+  ],
+  "Split": [
+    "split"
+  ],
+  "SplitV": [
+    "split"
+  ],
+  "Sqrt": [
+    "sqrt"
+  ],
+  "Square": [
+    "square"
+  ],
+  "SquaredDifference": [
+    "squaredDifference"
+  ],
+  "Squeeze": [
+    "squeeze"
+  ],
+  "StatelessIf": [],
+  "StatelessWhile": [],
+  "StopGradient": [],
+  "StridedSlice": [
+    "stridedSlice"
+  ],
+  "StringNGrams": [
+    "string.stringNGrams"
+  ],
+  "StringSplit": [
+    "string.stringSplit"
+  ],
+  "StringToHashBucketFast": [
+    "string.stringToHashBucketFast"
+  ],
+  "Sub": [
+    "sub"
+  ],
+  "Sum": [
+    "sum"
+  ],
+  "Switch": [],
+  "Tan": [
+    "tan"
+  ],
+  "Tanh": [
+    "tanh"
+  ],
+  "TensorArrayCloseV3": [],
+  "TensorArrayConcatV3": [],
+  "TensorArrayGatherV3": [],
+  "TensorArrayReadV3": [],
+  "TensorArrayScatterV3": [],
+  "TensorArraySizeV3": [],
+  "TensorArraySplitV3": [],
+  "TensorArrayV3": [],
+  "TensorArrayWriteV3": [],
+  "TensorListConcat": [],
+  "TensorListFromTensor": [],
+  "TensorListGather": [],
+  "TensorListGetItem": [],
+  "TensorListPopBack": [],
+  "TensorListPushBack": [],
+  "TensorListReserve": [],
+  "TensorListScatter": [],
+  "TensorListScatterV2": [],
+  "TensorListSetItem": [],
+  "TensorListSplit": [],
+  "TensorListStack": [],
+  "Tile": [
+    "tile"
+  ],
+  "TopKV2": [
+    "topk"
+  ],
+  "Transpose": [
+    "transpose"
+  ],
+  "TruncatedNormal": [
+    "truncatedNormal"
+  ],
+  "Unique": [
+    "unique"
+  ],
+  "UniqueV2": [
+    "unique"
+  ],
+  "Unpack": [
+    "unstack"
+  ],
+  "Where": [
+    "cast",
+    "whereAsync"
+  ],
+  "While": [],
+  "Zeros": [
+    "zeros"
+  ],
+  "ZerosLike": [
+    "zerosLike"
+  ],
+  "_FusedConv2D": [
+    "fused.conv2d"
+  ],
+  "_FusedMatMul": [
+    "fused.matMul"
+  ]
+}

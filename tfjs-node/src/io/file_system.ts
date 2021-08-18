@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,11 +15,10 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs';
 import * as fs from 'fs';
 import {dirname, join, resolve} from 'path';
 import {promisify} from 'util';
-
 import {getModelArtifactsInfoForJSON, toArrayBuffer} from './io_utils';
 
 const stat = promisify(fs.stat);
@@ -39,7 +38,7 @@ function doesNotExistHandler(name: string): (e: NodeJS.ErrnoException) =>
   };
 }
 
-export class NodeFileSystem implements tfc.io.IOHandler {
+export class NodeFileSystem implements tf.io.IOHandler {
   static readonly URL_SCHEME = 'file://';
 
   protected readonly path: string|string[];
@@ -68,7 +67,7 @@ export class NodeFileSystem implements tfc.io.IOHandler {
    */
   constructor(path: string|string[]) {
     if (Array.isArray(path)) {
-      tfc.util.assert(
+      tf.util.assert(
           path.length === 2,
           () => 'file paths must have a length of 2, ' +
               `(actual length is ${path.length}).`);
@@ -78,8 +77,7 @@ export class NodeFileSystem implements tfc.io.IOHandler {
     }
   }
 
-  async save(modelArtifacts: tfc.io.ModelArtifacts):
-      Promise<tfc.io.SaveResult> {
+  async save(modelArtifacts: tf.io.ModelArtifacts): Promise<tf.io.SaveResult> {
     if (Array.isArray(this.path)) {
       throw new Error('Cannot perform saving to multiple paths.');
     }
@@ -98,7 +96,7 @@ export class NodeFileSystem implements tfc.io.IOHandler {
         paths: [this.WEIGHTS_BINARY_FILENAME],
         weights: modelArtifacts.weightSpecs
       }];
-      const modelJSON: tfc.io.ModelJSON = {
+      const modelJSON: tf.io.ModelJSON = {
         modelTopology: modelArtifacts.modelTopology,
         weightsManifest,
         format: modelArtifacts.format,
@@ -107,6 +105,9 @@ export class NodeFileSystem implements tfc.io.IOHandler {
       };
       if (modelArtifacts.trainingConfig != null) {
         modelJSON.trainingConfig = modelArtifacts.trainingConfig;
+      }
+      if (modelArtifacts.signature != null) {
+        modelJSON.signature = modelArtifacts.signature;
       }
       if (modelArtifacts.userDefinedMetadata != null) {
         modelJSON.userDefinedMetadata = modelArtifacts.userDefinedMetadata;
@@ -117,19 +118,19 @@ export class NodeFileSystem implements tfc.io.IOHandler {
           weightsBinPath, Buffer.from(modelArtifacts.weightData), 'binary');
 
       return {
-        // TODO(cais): Use explicit tfc.io.ModelArtifactsInfo type below once it
+        // TODO(cais): Use explicit tf.io.ModelArtifactsInfo type below once it
         // is available.
         // tslint:disable-next-line:no-any
         modelArtifactsInfo: getModelArtifactsInfoForJSON(modelArtifacts) as any
       };
     }
   }
-  async load(): Promise<tfc.io.ModelArtifacts> {
+  async load(): Promise<tf.io.ModelArtifacts> {
     return Array.isArray(this.path) ? this.loadBinaryModel() :
                                       this.loadJSONModel();
   }
 
-  protected async loadBinaryModel(): Promise<tfc.io.ModelArtifacts> {
+  protected async loadBinaryModel(): Promise<tf.io.ModelArtifacts> {
     const topologyPath = this.path[0];
     const weightManifestPath = this.path[1];
     const topology =
@@ -150,7 +151,7 @@ export class NodeFileSystem implements tfc.io.IOHandler {
     const modelTopology = await readFile(this.path[0]);
     const weightsManifest = JSON.parse(await readFile(this.path[1], 'utf8'));
 
-    const modelArtifacts: tfc.io.ModelArtifacts = {
+    const modelArtifacts: tf.io.ModelArtifacts = {
       modelTopology,
     };
     const [weightSpecs, weightData] =
@@ -162,7 +163,7 @@ export class NodeFileSystem implements tfc.io.IOHandler {
     return modelArtifacts;
   }
 
-  protected async loadJSONModel(): Promise<tfc.io.ModelArtifacts> {
+  protected async loadJSONModel(): Promise<tf.io.ModelArtifacts> {
     const path = this.path as string;
     const info = await stat(path).catch(doesNotExistHandler('Path'));
 
@@ -170,26 +171,9 @@ export class NodeFileSystem implements tfc.io.IOHandler {
     // it is model.json file.
     if (info.isFile()) {
       const modelJSON = JSON.parse(await readFile(path, 'utf8'));
-
-      const modelArtifacts: tfc.io.ModelArtifacts = {
-        modelTopology: modelJSON.modelTopology,
-        format: modelJSON.format,
-        generatedBy: modelJSON.generatedBy,
-        convertedBy: modelJSON.convertedBy
-      };
-      if (modelJSON.weightsManifest != null) {
-        const [weightSpecs, weightData] =
-            await this.loadWeights(modelJSON.weightsManifest, path);
-        modelArtifacts.weightSpecs = weightSpecs;
-        modelArtifacts.weightData = weightData;
-      }
-      if (modelJSON.trainingConfig != null) {
-        modelArtifacts.trainingConfig = modelJSON.trainingConfig;
-      }
-      if (modelJSON.userDefinedMetadata != null) {
-        modelArtifacts.userDefinedMetadata = modelJSON.userDefinedMetadata;
-      }
-      return modelArtifacts;
+      return tf.io.getModelArtifactsForJSON(
+          modelJSON,
+          (weightsManifest) => this.loadWeights(weightsManifest, path));
     } else {
       throw new Error(
           'The path to load from must be a file. Loading from a directory ' +
@@ -198,11 +182,11 @@ export class NodeFileSystem implements tfc.io.IOHandler {
   }
 
   private async loadWeights(
-      weightsManifest: tfc.io.WeightsManifestConfig,
-      path: string): Promise<[tfc.io.WeightsManifestEntry[], ArrayBuffer]> {
+      weightsManifest: tf.io.WeightsManifestConfig,
+      path: string): Promise<[tf.io.WeightsManifestEntry[], ArrayBuffer]> {
     const dirName = dirname(path);
     const buffers: Buffer[] = [];
-    const weightSpecs: tfc.io.WeightsManifestEntry[] = [];
+    const weightSpecs: tf.io.WeightsManifestEntry[] = [];
     for (const group of weightsManifest) {
       for (const path of group.paths) {
         const weightFilePath = join(dirName, path);

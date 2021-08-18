@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,23 +15,11 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, NonMaxSuppressionV5, NonMaxSuppressionV5Attrs, NonMaxSuppressionV5Inputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
 import {parseResultStruct} from './NonMaxSuppression_util';
-
-interface NonMaxSuppressionInputs extends NamedTensorInfoMap {
-  boxes: TensorInfo;
-  scores: TensorInfo;
-}
-
-interface NonMaxSuppressionAttrs extends NamedAttrMap {
-  maxOutputSize: number;
-  iouThreshold: number;
-  scoreThreshold: number;
-  softNmsSigma: number;
-}
 
 let wasmFunc:
     (boxesId: number, scoresId: number, maxOutputSize: number,
@@ -40,7 +28,7 @@ let wasmFunc:
 
 function setup(backend: BackendWasm): void {
   wasmFunc = backend.wasm.cwrap(
-      'NonMaxSuppressionV5',
+      NonMaxSuppressionV5,
       'number',  // Result*
       [
         'number',  // boxesId
@@ -54,8 +42,8 @@ function setup(backend: BackendWasm): void {
 
 function kernelFunc(args: {
   backend: BackendWasm,
-  inputs: NonMaxSuppressionInputs,
-  attrs: NonMaxSuppressionAttrs
+  inputs: NonMaxSuppressionV5Inputs,
+  attrs: NonMaxSuppressionV5Attrs
 }): TensorInfo[] {
   const {backend, inputs, attrs} = args;
   const {iouThreshold, maxOutputSize, scoreThreshold, softNmsSigma} = attrs;
@@ -68,11 +56,12 @@ function kernelFunc(args: {
       boxesId, scoresId, maxOutputSize, iouThreshold, scoreThreshold,
       softNmsSigma);
 
-  const {
-    pSelectedIndices,
-    selectedSize,
-    pSelectedScores,
-  } = parseResultStruct(backend, resOffset);
+  const {pSelectedIndices, selectedSize, pSelectedScores, pValidOutputs} =
+      parseResultStruct(backend, resOffset);
+
+  // Since we are not using validOutputs for V5, we have to delete it from the
+  // heap.
+  backend.wasm._free(pValidOutputs);
 
   const selectedIndicesTensor =
       backend.makeOutput([selectedSize], 'int32', pSelectedIndices);
@@ -82,9 +71,9 @@ function kernelFunc(args: {
   return [selectedIndicesTensor, selectedScoresTensor];
 }
 
-registerKernel({
-  kernelName: 'NonMaxSuppressionV5',
+export const nonMaxSuppressionV5Config: KernelConfig = {
+  kernelName: NonMaxSuppressionV5,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc,
-});
+  kernelFunc: kernelFunc as {} as KernelFunc,
+};

@@ -24,7 +24,6 @@ import json
 import os
 import shutil
 import tempfile
-import unittest
 
 import numpy as np
 import tensorflow.compat.v2 as tf
@@ -56,6 +55,14 @@ class LoadKerasModelTest(tf.test.TestCase):
     keras_h5_conversion.save_keras_model(model, path)
     return model
 
+
+  def _saveRNNKerasModelForTest(self, path):
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Embedding(100, 20, input_shape=[10]))
+    model.add(tf.keras.layers.SimpleRNN(4))
+    keras_h5_conversion.save_keras_model(model, path)
+    return model
+
   def testLoadKerasModelAndWeights(self):
     """Test loading of model and its weights."""
     # Use separate tf.Graph and tf.compat.v1.Session contexts to
@@ -63,6 +70,29 @@ class LoadKerasModelTest(tf.test.TestCase):
     with tf.Graph().as_default(), tf.compat.v1.Session():
       tfjs_path = os.path.join(self._tmp_dir, 'model_for_test')
       model1 = self._saveKerasModelForTest(tfjs_path)
+      model1_weight_values = model1.get_weights()
+
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      model2 = keras_tfjs_loader.load_keras_model(
+          os.path.join(tfjs_path, 'model.json'))
+
+      # Verify the equality of all the weight values.
+      model2_weight_values = model2.get_weights()
+      self.assertEqual(len(model1_weight_values), len(model2_weight_values))
+      for model1_weight_value, model2_weight_value in zip(
+          model1_weight_values, model2_weight_values):
+        self.assertAllClose(model1_weight_value, model2_weight_value)
+
+      # The two model JSONs should match exactly.
+      self.assertEqual(model1.to_json(), model2.to_json())
+
+  def testLoadKerasRNNModelAndWeights(self):
+    """Test loading of model and its weights."""
+    # Use separate tf.Graph and tf.compat.v1.Session contexts to
+    # prevent name collision.
+    with tf.Graph().as_default(), tf.compat.v1.Session():
+      tfjs_path = os.path.join(self._tmp_dir, 'model_for_test')
+      model1 = self._saveRNNKerasModelForTest(tfjs_path)
       model1_weight_values = model1.get_weights()
 
     with tf.Graph().as_default(), tf.compat.v1.Session():
@@ -446,4 +476,4 @@ class LoadKerasModelTest(tf.test.TestCase):
 
 
 if __name__ == '__main__':
-  unittest.main()
+  tf.test.main()

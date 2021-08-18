@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,13 @@
 
 import {ENGINE} from '../engine';
 import {dispose, tidy} from '../globals';
-import {zerosLike} from '../ops/ops';
+import {add} from '../ops/add';
+import {div} from '../ops/div';
+import {mul} from '../ops/mul';
+import {sqrt} from '../ops/sqrt';
+import {square} from '../ops/square';
+import {sub} from '../ops/sub';
+import {zerosLike} from '../ops/zeros_like';
 import {ConfigDict, registerClass, Serializable, SerializableConstructor} from '../serialization';
 import {NamedTensor, NamedTensorMap} from '../tensor_types';
 
@@ -87,45 +93,45 @@ export class RMSPropOptimizer extends Optimizer {
       const accumulatedMoments = this.accumulatedMoments[i].variable;
       tidy(() => {
         const newAccumulatedMeanSquare =
-            accumulatedMeanSquare.mul(this.decay)
-                .add(gradient.square().mul(1 - this.decay));
+            add(mul(accumulatedMeanSquare, this.decay),
+                mul(square(gradient), 1 - this.decay));
 
         if (this.centered) {
           const accumulatedMeanGrad = this.accumulatedMeanGrads[i].variable;
           // Centered gradient
-          const newAccumulatedMeanGrad = accumulatedMeanGrad.mul(this.decay)
-                                             .add(gradient.mul(1 - this.decay));
+          const newAccumulatedMeanGrad =
+              add(mul(accumulatedMeanGrad, this.decay),
+                  mul(gradient, 1 - this.decay));
 
+          const gradContribution =
+              div(mul(gradient, this.learningRate),
+                  sqrt(
+                      sub(newAccumulatedMeanSquare,
+                          add(square(newAccumulatedMeanGrad), this.epsilon))));
           const newAccumulatedMoments =
-              accumulatedMoments.mul(this.momentum)
-                  .add(gradient.mul(this.learningRate)
-                           .div(newAccumulatedMeanSquare
-                                    .sub(newAccumulatedMeanGrad.square().add(
-                                        this.epsilon))
-                                    .sqrt()));
+              add(mul(accumulatedMoments, this.momentum), gradContribution);
 
           accumulatedMeanSquare.assign(newAccumulatedMeanSquare);
           accumulatedMeanGrad.assign(newAccumulatedMeanGrad);
           accumulatedMoments.assign(newAccumulatedMoments);
 
-          const newValue = value.sub(newAccumulatedMoments);
+          const newValue = sub(value, newAccumulatedMoments);
           value.assign(newValue);
         } else {
           // Plain gradient
           const newAccumulatedMeanSquare =
-              accumulatedMeanSquare.mul(this.decay)
-                  .add(gradient.square().mul(1 - this.decay));
+              add(mul(accumulatedMeanSquare, this.decay),
+                  mul(square(gradient), 1 - this.decay));
 
           const newAccumulatedMoments =
-              accumulatedMoments.mul(this.momentum)
-                  .add(gradient.mul(this.learningRate)
-                           .div(newAccumulatedMeanSquare.add(this.epsilon)
-                                    .sqrt()));
+              add(mul(accumulatedMoments, this.momentum),
+                  div(mul(gradient, this.learningRate),
+                      sqrt(add(newAccumulatedMeanSquare, this.epsilon))));
 
           accumulatedMeanSquare.assign(newAccumulatedMeanSquare);
           accumulatedMoments.assign(newAccumulatedMoments);
 
-          const newValue = value.sub(newAccumulatedMoments);
+          const newValue = sub(value, newAccumulatedMoments);
           value.assign(newValue);
         }
       });

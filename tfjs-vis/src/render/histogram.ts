@@ -44,8 +44,9 @@ const defaultOpts = {
  * const surface = { name: 'Histogram', tab: 'Charts' };
  * tfvis.render.histogram(surface, data);
  * ```
+ *
+ * @doc {heading: 'Charts', namespace: 'render'}
  */
-/** @doc {heading: 'Charts', namespace: 'render'} */
 export async function histogram(
     container: Drawable, data: Array<{value: number}>|number[]|TypedArray,
     opts: HistogramOpts = {}) {
@@ -72,6 +73,11 @@ export async function histogram(
       stats = arrayStats(values.map(x => x.value));
     }
     renderStats(stats, statsContainer, {fontSize: options.fontSize});
+  }
+
+  // If there are no data values return early
+  if (values.length === 0) {
+    return undefined;
   }
 
   // Now that we have rendered stats we need to remove any NaNs and Infinities

@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,17 +14,20 @@
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#include <emscripten/threading.h>
 #endif
 
 #include <xnnpack.h>
+#include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
-#include "src/cc/backend.h"
-#include "src/cc/check_macros.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/check_macros.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 // Maps a unique tensor id to info about that tensor. The map owns all of its
@@ -48,6 +51,19 @@ TensorInfo &get_tensor_info_out(const size_t tensor_id) {
 }
 
 size_t xnn_operator_count = 0;
+
+// emscripten_num_logical_cores corresponds to navigator.hardwareConcurrency.
+// Many x86-64 processors have 2 threads per core, so we are dividing by 2.
+#ifdef __EMSCRIPTEN_PTHREADS__
+int num_cores = emscripten_num_logical_cores() / 2;
+#else
+int num_cores = 1;
+#endif
+
+int min_num_threads = 1;
+int max_num_threads = 4;
+pthreadpool *threadpool = pthreadpool_create(
+    std::min(std::max(num_cores, min_num_threads), max_num_threads));
 
 // Registers a disposal callback for a tensor id with a given callback function.
 void register_disposal_callback(const size_t tensor_id,

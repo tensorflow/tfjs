@@ -32,18 +32,10 @@
  * https://github.com/settings/tokens
  *
  * Usage:
- *   # Release notes for all commits after tfjs union version 0.9.0.
- *   yarn release-notes --startVersion 0.9.0 --out ./draft_notes.md
- *
- *   # Release notes for all commits after version 0.9.0 up to and including
- *   # version 0.10.0.
- *   yarn release-notes --startVersion 0.9.0 --endVersion 0.10.3 \
- *       --out ./draft_notes.md
+ *   yarn release-notes
  */
 
-import * as commander from 'commander';
-import * as mkdirp from 'mkdirp';
-import * as readline from 'readline';
+import * as argparse from 'argparse';
 import * as fs from 'fs';
 import * as util from './util';
 import {$, Commit, Repo, RepoCommits} from './util';
@@ -51,18 +43,40 @@ import {$, Commit, Repo, RepoCommits} from './util';
 const octokit = require('@octokit/rest')();
 
 const OUT_FILE = 'release-notes.md';
-const TMP_DIR = '/tmp/tfjs-release-notes';
 
-const UNION_DEPENDENCIES: Repo[] = [
-  {name: 'Core', identifier: 'tfjs-core'},
-  {name: 'Data', identifier: 'tfjs-data'},
-  {name: 'Layers', identifier: 'tfjs-layers'},
-  {name: 'Converter', identifier: 'tfjs-converter'}
+const TFJS_REPOS: Repo[] = [
+  {name: 'Core', identifier: 'tfjs', path: 'tfjs-core'},
+  {name: 'Data', identifier: 'tfjs', path: 'tfjs-data'},
+  {name: 'Layers', identifier: 'tfjs', path: 'tfjs-layers'},
+  {name: 'Converter', identifier: 'tfjs', path: 'tfjs-converter'},
+  {name: 'Node', identifier: 'tfjs', path: 'tfjs-node'},
+  {name: 'Wasm', identifier: 'tfjs', path: 'tfjs-backend-wasm'},
+  {name: 'Cpu', identifier: 'tfjs', path: 'tfjs-backend-cpu'},
+  {name: 'Webgl', identifier: 'tfjs', path: 'tfjs-backend-webgl'}
 ];
 
-const NODE_REPO: Repo = {
-  name: 'Node',
-  identifier: 'tfjs-node'
+const VIS_REPO: Repo = {
+  name: 'tfjs-vis',
+  identifier: 'tfjs-vis',
+  path: 'tfjs-vis',
+};
+
+const RN_REPO: Repo = {
+  name: 'tfjs-react-native',
+  identifier: 'tfjs-react-native',
+  path: 'tfjs-react-native',
+};
+
+const TFLITE_REPO: Repo = {
+  name: 'tfjs-tflite',
+  identifier: 'tfjs-tflite',
+  path: 'tfjs-tflite',
+};
+
+const WEBGPU_REPO: Repo = {
+  name: 'tfjs-backend-webgpu',
+  identifier: 'tfjs-backend-webgpu',
+  path: 'tfjs-backend-webgpu',
 };
 
 async function askUserForVersions(validVersions: string[], packageName: string):
@@ -72,14 +86,14 @@ async function askUserForVersions(validVersions: string[], packageName: string):
 
   console.log(YELLOW_TERMINAL_COLOR, packageName + ' versions');
   console.log(validVersions.join(', '));
-  const startVersion = await util.question(`Enter the union start version: `);
+  const startVersion = await util.question(`Enter the start version: `);
   if (validVersions.indexOf(startVersion) === -1) {
     console.log(RED_TERMINAL_COLOR, `Unknown start version: ${startVersion}`);
     process.exit(1);
   }
   const defaultVersion = validVersions[validVersions.length - 1];
   let endVersion = await util.question(
-      `Enter the union end version (leave empty for ${defaultVersion}): `);
+      `Enter the end version (leave empty for ${defaultVersion}): `);
   if (endVersion === '') {
     endVersion = defaultVersion;
   }
@@ -103,72 +117,93 @@ function getTagName(packageName: string, version: string) {
   return packageName + '-v' + version;
 }
 
-async function main() {
-  mkdirp(TMP_DIR, (err) => {
-    if (err) {
-      console.log('Error creating temp dir', TMP_DIR);
-      process.exit(1);
-    }
-  });
-
-  // Remove anything that exists already in the tmp dir.
-  $(`rm -f -r ${TMP_DIR}/*`);
-
+async function generateTfjsPackageNotes() {
   // Get union start version and end version.
-  const versions = getTaggedVersions('tfjs');
-  const {startVersion, endVersion} = await askUserForVersions(versions, 'tfjs');
+  const identifier = 'tfjs';
+  const versions = getTaggedVersions(identifier);
+  const {startVersion, endVersion} =
+      await askUserForVersions(versions, identifier);
+  const startCommit =
+      `git rev-list -n 1 ` + getTagName(identifier, startVersion);
 
-  // Clone the Node.js repo eagerly so we can query the tags.
-  const validNodeVersions = getTaggedVersions('tfjs-node');
-  const nodeVersions =
-      await askUserForVersions(validNodeVersions, NODE_REPO.identifier);
-  NODE_REPO.startVersion = nodeVersions.startVersion;
-  NODE_REPO.endVersion = nodeVersions.endVersion;
-  NODE_REPO.startCommit = $(`git rev-list -n 1 ${
-      getTagName(NODE_REPO.identifier, NODE_REPO.startVersion)}`);
-
-  // Get all the commits of the union package between the versions.
-  const unionCommits =
-      $(`git log --pretty=format:"%H" ` +
-        `${getTagName('tfjs', startVersion)}..` +
-        `${getTagName('tfjs', endVersion)}`);
-
-  const commitLines = unionCommits.trim().split('\n');
-
-  // Read the union package.json from the earliest commit so we can find the
-  // dependencies.
-  const earliestCommit = commitLines[commitLines.length - 1];
-  const earliestUnionPackageJson =
-      JSON.parse($(`git show ${earliestCommit}:tfjs/package.json`));
-  const latestCommit = commitLines[0];
-  const latestUnionPackageJson =
-      JSON.parse($(`git show ${latestCommit}:tfjs/package.json`));
-
-  // Populate start and end for each of the union dependencies.
-  UNION_DEPENDENCIES.forEach(repo => {
+  // Populate start and end for each of the tfjs packages.
+  TFJS_REPOS.forEach(repo => {
     // Find the version of the dependency from the package.json from the
-    // earliest union tag.
-    const npm = '@tensorflow/' + repo.identifier;
-    const repoStartVersion = earliestUnionPackageJson.dependencies[npm];
-    const repoEndVersion = latestUnionPackageJson.dependencies[npm];
-
-    const dir = `${repo.name}`;
-
-    repo.startCommit =
-        $(repoStartVersion != null ?
-              `git rev-list -n 1 ` +
-                  getTagName(repo.identifier, repoStartVersion) :
-              // Get the first commit if there are no tags yet.
-              `git rev-list --max-parents=0 HEAD`);
-
-    repo.startVersion = repoStartVersion != null ? repoStartVersion : null;
-    repo.endVersion = repoEndVersion;
+    // earliest tfjs tag.
+    repo.startCommit = startCommit;
+    repo.startVersion = startVersion;
+    repo.endVersion = endVersion;
   });
 
-  const repoCommits: RepoCommits[] = [];
+  await generateNotes(TFJS_REPOS);
+}
 
+async function generateVisNotes() {
+  // Get union start version and end version.
+  const versions = getTaggedVersions('tfjs-vis');
+  const {startVersion, endVersion} =
+      await askUserForVersions(versions, 'tfjs-vis');
+
+  // Get tfjs-vis start version and end version.
+  VIS_REPO.startVersion = startVersion;
+  VIS_REPO.endVersion = endVersion;
+  VIS_REPO.startCommit = $(`git rev-list -n 1 ${
+      getTagName(VIS_REPO.identifier, VIS_REPO.startVersion)}`);
+
+  await generateNotes([VIS_REPO]);
+}
+
+
+async function generateReactNativeNotes() {
+  // Get start version and end version.
+  const versions = getTaggedVersions('tfjs-react-native');
+  const {startVersion, endVersion} =
+      await askUserForVersions(versions, 'tfjs-react-native');
+
+  // Get tfjs-react-native start version and end version.
+  RN_REPO.startVersion = startVersion;
+  RN_REPO.endVersion = endVersion;
+  RN_REPO.startCommit = $(`git rev-list -n 1 ${
+      getTagName(RN_REPO.identifier, RN_REPO.startVersion)}`);
+
+  await generateNotes([RN_REPO]);
+}
+
+async function generateTfliteNotes() {
+  // Get start version and end version.
+  const versions = getTaggedVersions('tfjs-tflite');
+  const {startVersion, endVersion} =
+      await askUserForVersions(versions, 'tfjs-tflite');
+
+  // Get tfjs-tflite start version and end version.
+  TFLITE_REPO.startVersion = startVersion;
+  TFLITE_REPO.endVersion = endVersion;
+  TFLITE_REPO.startCommit = $(`git rev-list -n 1 ${
+      getTagName(TFLITE_REPO.identifier, TFLITE_REPO.startVersion)}`);
+
+  await generateNotes([TFLITE_REPO]);
+}
+
+async function generateWebgpuNotes() {
+  // Get start version and end version.
+  const versions = getTaggedVersions('tfjs-backend-webgpu');
+  const {startVersion, endVersion} =
+      await askUserForVersions(versions, 'tfjs-backend-webgpu');
+
+  // Get tfjs-webgpu start version and end version.
+  WEBGPU_REPO.startVersion = startVersion;
+  WEBGPU_REPO.endVersion = endVersion;
+  WEBGPU_REPO.startCommit = $(`git rev-list -n 1 ${
+      getTagName(WEBGPU_REPO.identifier, WEBGPU_REPO.startVersion)}`);
+
+  await generateNotes([WEBGPU_REPO]);
+}
+
+
+async function generateNotes(repositories: util.Repo[]) {
+  const repoCommits: RepoCommits[] = [];
   // Clone all of the dependencies into the tmp directory.
-  [...UNION_DEPENDENCIES, NODE_REPO].forEach(repo => {
+  repositories.forEach(repo => {
     console.log(
         `${repo.name}: ${repo.startVersion}` +
         ` =====> ${repo.endVersion}`);
@@ -200,7 +235,7 @@ async function main() {
               .split('\n');
       let touchedDir = false;
       for (let j = 0; j < filesTouched.length; j++) {
-        if (filesTouched[j].startsWith(repo.identifier)) {
+        if (filesTouched[j].startsWith(repo.path)) {
           touchedDir = true;
           break;
         }
@@ -240,4 +275,26 @@ async function main() {
   // So the script doesn't just hang.
   process.exit(0);
 }
-main();
+
+const parser = new argparse.ArgumentParser();
+
+parser.addArgument('--project', {
+  help:
+      'Which project to generate release notes for. One of union|vis|rn|tflite|webgpu. Defaults to union.',
+  defaultValue: 'union',
+  choices: ['union', 'vis', 'rn', 'tflite', 'webgpu']
+});
+
+const args = parser.parseArgs();
+
+if (args.project === 'union') {
+  generateTfjsPackageNotes();
+} else if (args.project === 'vis') {
+  generateVisNotes();
+} else if (args.project === 'rn') {
+  generateReactNativeNotes();
+} else if (args.project === 'tflite') {
+  generateTfliteNotes();
+} else if (args.project === 'webgpu') {
+  generateWebgpuNotes();
+}

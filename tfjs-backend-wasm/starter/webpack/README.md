@@ -24,12 +24,19 @@ module: {
 }
 ```
 
-Then we obtain the final serving path of the `tfjs-backend-wasm.wasm` file
-that was shipped on NPM, and use `setWasmPath` to let the library know the
-serving location:
+Then we obtain the final serving path of the WASM binaries that were shipped on
+NPM, and use `setWasmPaths` to let the library know the serving locations:
 
 ```ts
-import {setWasmPath} from '@tensorflow/tfjs-backend-wasm';
-import wasmPath from '../node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm';
-setWasmPath(wasmPath);
+import {setWasmPaths} from '@tensorflow/tfjs-backend-wasm';
+
+import wasmSimdPath from './node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-simd.wasm';
+import wasmSimdThreadedPath from './node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-threaded-simd.wasm';
+import wasmPath from './node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm';
+
+setWasmPaths({
+  'tfjs-backend-wasm.wasm': wasmPath,
+  'tfjs-backend-wasm-simd.wasm': wasmSimdPath,
+  'tfjs-backend-wasm-threaded-simd.wasm': wasmSimdThreadedPath
+});
 ```

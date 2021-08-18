@@ -1,0 +1,88 @@
+{
+  "name": "@tensorflow/tfjs-backend-cpu",
+  "version": "0.0.0",
+  "description": "Vanilla JavaScript backend for TensorFlow.js",
+  "private": false,
+  "main": "dist/tf-backend-cpu.node.js",
+  "jsdelivr": "dist/tf-backend-cpu.min.js",
+  "unpkg": "dist/tf-backend-cpu.min.js",
+  "types": "dist/index.d.ts",
+  "jsnext:main": "dist/index.js",
+  "module": "dist/index.js",
+  "miniprogram": "dist/miniprogram",
+  "engines": {
+    "yarn": ">= 1.3.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tensorflow/tfjs.git"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@bazel/bazelisk": "^1.9.0",
+    "@bazel/ibazel": "^0.15.10",
+    "@rollup/plugin-commonjs": "^11.0.2",
+    "@rollup/plugin-node-resolve": "^7.1.1",
+    "@rollup/plugin-typescript": "^3.0.0",
+    "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@types/jasmine": "~3.0.0",
+    "clang-format": "~1.2.4",
+    "jasmine": "~3.1.0",
+    "jasmine-core": "~3.1.0",
+    "karma": "~6.3.1",
+    "karma-browserstack-launcher": "~1.4.0",
+    "karma-chrome-launcher": "~2.2.0",
+    "karma-jasmine": "~1.1.0",
+    "karma-typescript": "~5.5.1",
+    "npm-run-all": "~4.1.3",
+    "nyc": "^15.1.0",
+    "rimraf": "~2.6.2",
+    "rollup": "~2.3.2",
+    "rollup-plugin-terser": "~5.3.0",
+    "rollup-plugin-visualizer": "~3.3.2",
+    "ts-node": "~8.8.2",
+    "tslint": "~6.1.3",
+    "tslint-no-circular-imports": "~0.7.0",
+    "typescript": "3.5.3",
+    "yalc": "~1.0.0-pre.50"
+  },
+  "scripts": {
+    "build-ci": "yarn build",
+    "build": "bazel build :tfjs-backend-cpu_pkg",
+    "bundle": "bazel build :tfjs-backend-cpu_pkg",
+    "bundle-ci": "yarn bundle",
+    "build-core": "cd ../tfjs-core && yarn && yarn build",
+    "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
+    "build-deps": "yarn build-core && yarn build",
+    "build-deps-ci": "yarn build-core-ci && yarn build-ci",
+    "build-npm": "bazel build :tfjs-backend-cpu_pkg",
+    "link-local": "yalc link",
+    "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
+    "publish-npm": "bazel run :tfjs-backend-cpu_pkg.publish",
+    "lint": "tslint -p . -t verbose",
+    "coverage": "bazel coverage :tfjs-backend-cpu_test",
+    "test": "bazel test :tfjs-backend-cpu_test --test_output=streamed",
+    "test-debug": "bazel run :tfjs-backend-cpu_test --config=debug",
+    "test-dev": "ibazel run :tfjs-backend-cpu_test --test-output=streamed",
+    "test-ci": "yarn test"
+  },
+  "dependencies": {
+    "@types/seedrandom": "2.4.27",
+    "seedrandom": "2.4.3"
+  },
+  "peerDependencies": {
+    "@tensorflow/tfjs-core": "link:../dist/bin/tfjs-core/tfjs-core_pkg"
+  },
+  "browser": {
+    "util": false,
+    "crypto": false
+  },
+  "sideEffects": [
+    "./dist/register_all_kernels.js",
+    "./dist/base.js",
+    "./dist/index.js",
+    "./src/register_all_kernels.mjs",
+    "./src/base.mjs",
+    "./src/index.mjs"
+  ]
+}

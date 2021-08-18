@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,9 +16,13 @@
  */
 
 import {ENGINE} from '../engine';
+import {ScatterNd, ScatterNdAttrs, ScatterNdInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {Rank, ShapeMap, TensorLike} from '../types';
+
 import {op} from './operation';
 import * as scatter_nd_util from './scatter_nd_util';
 
@@ -38,8 +42,9 @@ import * as scatter_nd_util from './scatter_nd_util';
  * @param indices The tensor contains the indices into the output tensor.
  * @param updates The tensor contains the value for the indices.
  * @param shape: The shape of the output tensor.
+ *
+ * @doc {heading: 'Operations', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Operations', subheading: 'Slicing and Joining'} */
 function scatterND_<R extends Rank>(
     indices: Tensor|TensorLike, updates: Tensor|TensorLike,
     shape: ShapeMap[R]): Tensor<R> {
@@ -47,10 +52,13 @@ function scatterND_<R extends Rank>(
   const $updates = convertToTensor(updates, 'updates', 'scatterND');
   scatter_nd_util.validateInput($updates, $indices, shape);
 
-  return ENGINE.runKernelFunc(
-      backend => backend.scatterND($indices, $updates, shape),
-      {indices: $indices, updates: $updates}, null /* backward */, 'ScatterNd',
-      {shape});
+  const inputs: ScatterNdInputs = {indices: $indices, updates: $updates};
+  const attrs: ScatterNdAttrs = {shape};
+
+  // tslint:disable-next-line: no-unnecessary-type-assertion
+  return ENGINE.runKernel(
+             ScatterNd, inputs as {} as NamedTensorMap,
+             attrs as {} as NamedAttrMap) as Tensor<R>;
 }
 
 export const scatterND = op({scatterND_});

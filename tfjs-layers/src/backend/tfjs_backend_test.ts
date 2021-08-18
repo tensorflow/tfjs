@@ -34,7 +34,7 @@ describe('TensorMath', () => {
 });
 
 describe('dtype', () => {
-  it('returns float32 for an Tensor', () => {
+  it('returns float32 for a Tensor', () => {
     const x = zeros([1]);
     expect(x.dtype).toEqual('float32');
   });

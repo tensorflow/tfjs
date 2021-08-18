@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -155,8 +155,9 @@ export class SerializationMap {
  *
  * @param cls The class to be registered. It must have a public static member
  *   called `className` defined and the value must be a non-empty string.
+ *
+ * @doc {heading: 'Models', subheading: 'Serialization', ignoreCI: true}
  */
-/** @doc {heading: 'Models', subheading: 'Serialization', ignoreCI: true} */
 export function registerClass<T extends Serializable>(
     cls: SerializableConstructor<T>) {
   assert(

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,22 +15,11 @@
  * =============================================================================
  */
 
-import {NamedAttrMap, NamedTensorInfoMap, registerKernel, TensorInfo} from '@tensorflow/tfjs-core';
+import {CropAndResize, CropAndResizeAttrs, CropAndResizeInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
+
 import {cast} from './Cast';
-
-interface CropAndResizeInputs extends NamedTensorInfoMap {
-  images: TensorInfo;
-  boxes: TensorInfo;
-  boxInd: TensorInfo;
-}
-
-interface CropAndResizeAttrs extends NamedAttrMap {
-  method: keyof InterpolationMethod;
-  extrapolationValue: number;
-  cropSize: [number, number];
-}
 
 // Must match enum in CropAndResize.cc
 enum InterpolationMethod {
@@ -44,7 +33,7 @@ let wasmCropAndResize: (
     method: number, extrapolationValue: number, outId: number) => void;
 
 function setup(backend: BackendWasm): void {
-  wasmCropAndResize = backend.wasm.cwrap('CropAndResize', null /*void*/, [
+  wasmCropAndResize = backend.wasm.cwrap(CropAndResize, null /*void*/, [
     'number',  // imagesId
     'number',  // boxesId
     'number',  // boxIndId
@@ -65,18 +54,17 @@ function cropAndResize(args: {
 }): TensorInfo {
   const {backend, inputs, attrs} = args;
   const {method, extrapolationValue, cropSize} = attrs;
-  const {images, boxes, boxInd} = inputs;
+  const {image, boxes, boxInd} = inputs;
 
   const numBoxes = boxes.shape[0];
 
   const [cropHeight, cropWidth] = cropSize as [number, number];
-  const outShape = [numBoxes, cropHeight, cropWidth, images.shape[3]];
+  const outShape = [numBoxes, cropHeight, cropWidth, image.shape[3]];
 
-  let imagesData = backend.dataIdMap.get(images.dataId);
+  let imagesData = backend.dataIdMap.get(image.dataId);
   let castedData;
-  if (images.dtype !== 'float32') {
-    castedData =
-        cast({backend, inputs: {x: images}, attrs: {dtype: 'float32'}});
+  if (image.dtype !== 'float32') {
+    castedData = cast({backend, inputs: {x: image}, attrs: {dtype: 'float32'}});
     imagesData = backend.dataIdMap.get(castedData.dataId);
   }
 
@@ -87,7 +75,7 @@ function cropAndResize(args: {
   const out = backend.makeOutput(outShape, 'float32');
   const outId = backend.dataIdMap.get(out.dataId).id;
 
-  const imagesShapeBytes = new Uint8Array(new Int32Array(images.shape).buffer);
+  const imagesShapeBytes = new Uint8Array(new Int32Array(image.shape).buffer);
 
   wasmCropAndResize(
       imagesId, boxesId, boxIndId, numBoxes, imagesShapeBytes, cropHeight,
@@ -102,9 +90,9 @@ function cropAndResize(args: {
   return out;
 }
 
-registerKernel({
-  kernelName: 'CropAndResize',
+export const cropAndResizeConfig: KernelConfig = {
+  kernelName: CropAndResize,
   backendName: 'wasm',
   setupFunc: setup,
-  kernelFunc: cropAndResize
-});
+  kernelFunc: cropAndResize as {} as KernelFunc
+};

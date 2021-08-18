@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,7 @@ import {SGDOptimizer} from './sgd_optimizer';
 
 describeWithFlags('optimizer', ALL_ENVS, () => {
   it('basic', async () => {
+    const initialTensors = tf.memory().numTensors;
     const learningRate = .1;
     const optimizer = tf.train.sgd(learningRate);
 
@@ -34,7 +35,8 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
 
     let numTensors = tf.memory().numTensors;
 
-    const f = () => x.square().addStrict(bias);
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    const f = () => x.square().add(bias) as tf.Scalar;
 
     let cost = optimizer.minimize(f, /* returnCost */ true);
 
@@ -70,8 +72,8 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     x.dispose();
     bias.dispose();
     strayVariable.dispose();
-    // The only tensors remaining are the arguments to variable().
-    expect(tf.memory().numTensors).toBe(3);
+    // The only additional tensors remaining are the arguments to variable().
+    expect(tf.memory().numTensors).toBe(initialTensors + 3);
   });
 
   it('varList array of all variables', async () => {
@@ -83,7 +85,8 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     const strayVariable = tf.scalar(-1).variable();
     const varList = [x, bias];
 
-    const f = () => x.square().addStrict(bias);
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    const f = () => x.square().add(bias) as tf.Scalar;
 
     let cost = optimizer.minimize(f, /* returnCost */ true, varList);
 
@@ -118,7 +121,8 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     tf.scalar(-1).variable();
     const varList: Variable[] = [];
 
-    const f = () => x.square().addStrict(bias);
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    const f = () => x.square().add(bias) as tf.Scalar;
 
     expect(() => optimizer.minimize(f, /* returnCost */ true, varList))
         .toThrowError();
@@ -133,7 +137,8 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     const strayVariable = tf.scalar(-1).variable();
     const varList = [x];
 
-    const f = () => x.square().addStrict(bias);
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    const f = () => x.square().add(bias) as tf.Scalar;
 
     let cost = optimizer.minimize(f, /* returnCost */ true, varList);
 
@@ -166,7 +171,8 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     const bias = tf.scalar(1).variable();
     const strayVariable = tf.scalar(-1).variable();
 
-    const f = () => x.square().addStrict(bias);
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    const f = () => x.square().add(bias) as tf.Scalar;
 
     let cost = optimizer.minimize(f, /* returnCost */ true);
 
@@ -201,7 +207,8 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     tf.scalar(-1).variable();
     const varList = [x];
 
-    const f = () => x.square().addStrict(bias);
+    // tslint:disable-next-line: no-unnecessary-type-assertion
+    const f = () => x.square().add(bias) as tf.Scalar;
 
     expect(() => optimizer.minimize(f, /* returnCost */ true, varList))
         .toThrowError();

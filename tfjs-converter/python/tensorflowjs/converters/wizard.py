@@ -23,7 +23,12 @@ import sys
 import tempfile
 import traceback
 
-import PyInquirer
+try:
+  import PyInquirer
+except ImportError:
+  sys.exit("""Please install PyInquirer using following command:
+              pip install PyInquirer==1.0.3""")
+
 import h5py
 import tensorflow.compat.v2 as tf
 from tensorflow.core.framework import types_pb2
@@ -215,7 +220,7 @@ def generate_arguments(params):
   """
   args = []
   not_param_list = [common.INPUT_PATH, common.OUTPUT_PATH,
-                    'overwrite_output_path']
+                    'overwrite_output_path', 'quantize']
   no_false_param = [common.SPLIT_WEIGHTS_BY_LAYER, common.SKIP_OP_CHECK]
   for key, value in sorted(params.items()):
     if key not in not_param_list and value is not None:
@@ -463,19 +468,53 @@ def run(dryrun):
       },
       {
           'type': 'list',
-          'name': common.QUANTIZATION_BYTES,
+          'name': 'quantize',
           'message': 'Do you want to compress the model? '
                      '(this will decrease the model precision.)',
           'choices': [{
               'name': 'No compression (Higher accuracy)',
               'value': None
           }, {
-              'name': '2x compression (Accuracy/size trade-off)',
-              'value': 2
+              'name': 'float16 quantization '
+                      '(2x smaller, Minimal accuracy loss)',
+              'value': 'float16'
           }, {
-              'name': '4x compression (Smaller size)',
-              'value': 1
+              'name': 'uint16 affine quantization (2x smaller, Accuracy loss)',
+              'value': 'uint16'
+          }, {
+              'name': 'uint8 affine quantization (4x smaller, Accuracy loss)',
+              'value': 'uint8'
           }]
+      },
+      {
+          'type': 'input',
+          'name': common.QUANTIZATION_TYPE_FLOAT16,
+          'message': 'Please enter the layers to apply float16 quantization '
+                     '(2x smaller, minimal accuracy tradeoff).\n'
+                     'Supports wildcard expansion with *, e.g., conv/*/weights',
+          'default': '*',
+          'when': lambda answers:
+                  value_in_list(answers, 'quantize', ('float16'))
+      },
+      {
+          'type': 'input',
+          'name': common.QUANTIZATION_TYPE_UINT8,
+          'message': 'Please enter the layers to apply affine 1-byte integer '
+                     'quantization (4x smaller, accuracy tradeoff).\n'
+                     'Supports wildcard expansion with *, e.g., conv/*/weights',
+          'default': '*',
+          'when': lambda answers:
+                  value_in_list(answers, 'quantize', ('uint8'))
+      },
+      {
+          'type': 'input',
+          'name': common.QUANTIZATION_TYPE_UINT16,
+          'message': 'Please enter the layers to apply affine 2-byte integer '
+                     'quantization (2x smaller, accuracy tradeoff).\n'
+                     'Supports wildcard expansion with *, e.g., conv/*/weights',
+          'default': '*',
+          'when': lambda answers:
+                  value_in_list(answers, 'quantize', ('uint16'))
       },
       {
           'type': 'input',
@@ -523,6 +562,24 @@ def run(dryrun):
           'when': lambda answers: value_in_list(answers, common.INPUT_FORMAT,
                                                 (common.TF_SAVED_MODEL,
                                                  common.TF_HUB_MODEL))
+      },
+      {
+          'type': 'confirm',
+          'name': common.CONTROL_FLOW_V2,
+          'message': 'Do you want to enable Control Flow V2 ops? \n'
+                     'This will improve branch and loop execution performance.',
+          'default': True,
+          'when': lambda answers: value_in_list(answers, common.INPUT_FORMAT,
+                                                (common.TF_SAVED_MODEL,
+                                                 common.TF_HUB_MODEL))
+      },
+      {
+          'type': 'input',
+          'name': common.METADATA,
+          'message': 'Do you want to provide metadata? \n'
+                     'Provide your own metadata in the form: \n'
+                     'metadata_key:path/metadata.json \n'
+                     'Separate multiple metadata by comma.'
       }
   ]
   params = PyInquirer.prompt(questions, format_params, style=prompt_style)

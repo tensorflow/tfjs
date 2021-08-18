@@ -1,0 +1,4190 @@
+{
+  "timeInfo": {
+    "times": [
+      240.42999999801395
+    ],
+    "averageTime": 240.42999999801395,
+    "minTime": 240.42999999801395,
+    "maxTime": 240.42999999801395
+  },
+  "memoryInfo": {
+    "newBytes": 0,
+    "newTensors": 0,
+    "peakBytes": 20579628,
+    "kernels": [
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 4816896,
+        "totalBytesSnapshot": 20178220,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            112,
+            112,
+            16
+          ],
+          [
+            1,
+            1,
+            16,
+            96
+          ],
+          [
+            96
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            112,
+            112,
+            96
+          ]
+        ],
+        "kernelTimeMs": 23.860000001150183,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 4816896,
+        "totalBytesSnapshot": 20178220,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            112,
+            112,
+            16
+          ],
+          [
+            1,
+            1,
+            16,
+            96
+          ],
+          [
+            96
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            112,
+            112,
+            96
+          ]
+        ],
+        "kernelTimeMs": 17.025000001012813,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 1605632,
+        "totalBytesSnapshot": 16766252,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            224,
+            224,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            32
+          ],
+          [
+            32
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            112,
+            112,
+            32
+          ]
+        ],
+        "kernelTimeMs": 8.620000000519212,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedDepthwiseConv2d__op",
+        "bytesAdded": 1605632,
+        "totalBytesSnapshot": 17769772,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            112,
+            112,
+            32
+          ],
+          [
+            3,
+            3,
+            32,
+            1
+          ],
+          [
+            32
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            112,
+            112,
+            32
+          ]
+        ],
+        "kernelTimeMs": 8.200000003853347,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedDepthwiseConv2d__op",
+        "bytesAdded": 1806336,
+        "totalBytesSnapshot": 18472236,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            56,
+            56,
+            144
+          ],
+          [
+            3,
+            3,
+            144,
+            1
+          ],
+          [
+            144
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            56,
+            56,
+            144
+          ]
+        ],
+        "kernelTimeMs": 7.769999996526167,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 1605632,
+        "totalBytesSnapshot": 16766252,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            224,
+            224,
+            3
+          ],
+          [
+            3,
+            3,
+            3,
+            32
+          ],
+          [
+            32
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            112,
+            112,
+            32
+          ]
+        ],
+        "kernelTimeMs": 7.579999997687992,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 1806336,
+        "totalBytesSnapshot": 16665900,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            56,
+            56,
+            24
+          ],
+          [
+            1,
+            1,
+            24,
+            144
+          ],
+          [
+            144
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            56,
+            56,
+            144
+          ]
+        ],
+        "kernelTimeMs": 7.515000004786998,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 250880,
+        "totalBytesSnapshot": 14872108,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            320
+          ],
+          [
+            1,
+            1,
+            320,
+            1280
+          ],
+          [
+            1280
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            1280
+          ]
+        ],
+        "kernelTimeMs": 7.265000000188593,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedDepthwiseConv2D",
+        "bytesAdded": 1605632,
+        "totalBytesSnapshot": 17769772,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            112,
+            112,
+            32
+          ],
+          [
+            3,
+            3,
+            32,
+            1
+          ],
+          [
+            32
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            112,
+            112,
+            32
+          ]
+        ],
+        "kernelTimeMs": 7.149999997636769,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 250880,
+        "totalBytesSnapshot": 14872108,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            320
+          ],
+          [
+            1,
+            1,
+            320,
+            1280
+          ],
+          [
+            1280
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            1280
+          ]
+        ],
+        "kernelTimeMs": 6.990000001678709,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 1806336,
+        "totalBytesSnapshot": 16665900,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            56,
+            56,
+            24
+          ],
+          [
+            1,
+            1,
+            24,
+            144
+          ],
+          [
+            144
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            56,
+            56,
+            144
+          ]
+        ],
+        "kernelTimeMs": 6.874999999126885,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedDepthwiseConv2d__op",
+        "bytesAdded": 1204224,
+        "totalBytesSnapshot": 20579628,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            112,
+            112,
+            96
+          ],
+          [
+            3,
+            3,
+            96,
+            1
+          ],
+          [
+            96
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            56,
+            56,
+            96
+          ]
+        ],
+        "kernelTimeMs": 6.7149999958928674,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedDepthwiseConv2D",
+        "bytesAdded": 1806336,
+        "totalBytesSnapshot": 18472236,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            56,
+            56,
+            144
+          ],
+          [
+            3,
+            3,
+            144,
+            1
+          ],
+          [
+            144
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            56,
+            56,
+            144
+          ]
+        ],
+        "kernelTimeMs": 6.560000001627486,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 1806336,
+        "totalBytesSnapshot": 16665900,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            56,
+            56,
+            24
+          ],
+          [
+            1,
+            1,
+            24,
+            144
+          ],
+          [
+            144
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            56,
+            56,
+            144
+          ]
+        ],
+        "kernelTimeMs": 6.269999998039566,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 1806336,
+        "totalBytesSnapshot": 16665900,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            56,
+            56,
+            24
+          ],
+          [
+            1,
+            1,
+            24,
+            144
+          ],
+          [
+            144
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            56,
+            56,
+            144
+          ]
+        ],
+        "kernelTimeMs": 5.680000002030283,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedDepthwiseConv2D",
+        "bytesAdded": 1204224,
+        "totalBytesSnapshot": 20579628,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            112,
+            112,
+            96
+          ],
+          [
+            3,
+            3,
+            96,
+            1
+          ],
+          [
+            96
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            56,
+            56,
+            96
+          ]
+        ],
+        "kernelTimeMs": 5.435000006400514,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 62720,
+        "totalBytesSnapshot": 14809388,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ],
+          [
+            1,
+            1,
+            960,
+            320
+          ],
+          [
+            320
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            320
+          ]
+        ],
+        "kernelTimeMs": 5.164999995031394,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 62720,
+        "totalBytesSnapshot": 14809388,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ],
+          [
+            1,
+            1,
+            960,
+            320
+          ],
+          [
+            320
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            320
+          ]
+        ],
+        "kernelTimeMs": 5.0649999975576065,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 451584,
+        "totalBytesSnapshot": 15085356,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            96
+          ],
+          [
+            1,
+            1,
+            96,
+            576
+          ],
+          [
+            576
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ]
+        ],
+        "kernelTimeMs": 4.634999997506384,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 451584,
+        "totalBytesSnapshot": 15085356,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            96
+          ],
+          [
+            1,
+            1,
+            96,
+            576
+          ],
+          [
+            576
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ]
+        ],
+        "kernelTimeMs": 4.309999996621627,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 451584,
+        "totalBytesSnapshot": 15085356,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            96
+          ],
+          [
+            1,
+            1,
+            96,
+            576
+          ],
+          [
+            576
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ]
+        ],
+        "kernelTimeMs": 4.285000002710149,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 451584,
+        "totalBytesSnapshot": 15085356,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            96
+          ],
+          [
+            1,
+            1,
+            96,
+            576
+          ],
+          [
+            576
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ]
+        ],
+        "kernelTimeMs": 4.235000000335276,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 16966956,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            56,
+            56,
+            144
+          ],
+          [
+            1,
+            1,
+            144,
+            24
+          ],
+          [
+            24
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            56,
+            56,
+            24
+          ]
+        ],
+        "kernelTimeMs": 4.229999998642597,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 451584,
+        "totalBytesSnapshot": 15085356,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            96
+          ],
+          [
+            1,
+            1,
+            96,
+            576
+          ],
+          [
+            576
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ]
+        ],
+        "kernelTimeMs": 4.000000000814907,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 451584,
+        "totalBytesSnapshot": 15085356,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            96
+          ],
+          [
+            1,
+            1,
+            96,
+            576
+          ],
+          [
+            576
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ]
+        ],
+        "kernelTimeMs": 3.9099999994505197,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 16063788,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            56,
+            56,
+            96
+          ],
+          [
+            1,
+            1,
+            96,
+            24
+          ],
+          [
+            24
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            56,
+            56,
+            24
+          ]
+        ],
+        "kernelTimeMs": 3.9000000033411197,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 16966956,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            56,
+            56,
+            144
+          ],
+          [
+            1,
+            1,
+            144,
+            24
+          ],
+          [
+            24
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            56,
+            56,
+            24
+          ]
+        ],
+        "kernelTimeMs": 3.8750000021536835,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 75264,
+        "totalBytesSnapshot": 15160620,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ],
+          [
+            1,
+            1,
+            576,
+            96
+          ],
+          [
+            96
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            96
+          ]
+        ],
+        "kernelTimeMs": 3.7599999996018596,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 75264,
+        "totalBytesSnapshot": 15160620,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ],
+          [
+            1,
+            1,
+            576,
+            96
+          ],
+          [
+            96
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            96
+          ]
+        ],
+        "kernelTimeMs": 3.749999996216502,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 75264,
+        "totalBytesSnapshot": 15160620,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ],
+          [
+            1,
+            1,
+            576,
+            96
+          ],
+          [
+            96
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            96
+          ]
+        ],
+        "kernelTimeMs": 3.635000000940636,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 75264,
+        "totalBytesSnapshot": 15160620,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ],
+          [
+            1,
+            1,
+            576,
+            96
+          ],
+          [
+            96
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            96
+          ]
+        ],
+        "kernelTimeMs": 3.6249999975552782,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 31360,
+        "totalBytesSnapshot": 14809388,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ],
+          [
+            1,
+            1,
+            960,
+            160
+          ],
+          [
+            160
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            160
+          ]
+        ],
+        "kernelTimeMs": 3.515000003972091,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 188160,
+        "totalBytesSnapshot": 14778028,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            160
+          ],
+          [
+            1,
+            1,
+            160,
+            960
+          ],
+          [
+            960
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ]
+        ],
+        "kernelTimeMs": 3.0600000027334318,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 802816,
+        "totalBytesSnapshot": 16966956,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            112,
+            112,
+            32
+          ],
+          [
+            1,
+            1,
+            32,
+            16
+          ],
+          [
+            16
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            112,
+            112,
+            16
+          ]
+        ],
+        "kernelTimeMs": 3.059999995457474,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 188160,
+        "totalBytesSnapshot": 14778028,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            160
+          ],
+          [
+            1,
+            1,
+            160,
+            960
+          ],
+          [
+            960
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ]
+        ],
+        "kernelTimeMs": 2.9900000008638017,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 16063788,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            56,
+            56,
+            96
+          ],
+          [
+            1,
+            1,
+            96,
+            24
+          ],
+          [
+            24
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            56,
+            56,
+            24
+          ]
+        ],
+        "kernelTimeMs": 2.979999997478444,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 188160,
+        "totalBytesSnapshot": 14778028,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            160
+          ],
+          [
+            1,
+            1,
+            160,
+            960
+          ],
+          [
+            960
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ]
+        ],
+        "kernelTimeMs": 2.9200000062701292,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedDepthwiseConv2d__op",
+        "bytesAdded": 602112,
+        "totalBytesSnapshot": 15863084,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ],
+          [
+            3,
+            3,
+            192,
+            1
+          ],
+          [
+            192
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ]
+        ],
+        "kernelTimeMs": 2.905000001192093,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 31360,
+        "totalBytesSnapshot": 14809388,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ],
+          [
+            1,
+            1,
+            960,
+            160
+          ],
+          [
+            160
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            160
+          ]
+        ],
+        "kernelTimeMs": 2.8149999998277053,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 188160,
+        "totalBytesSnapshot": 14778028,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            160
+          ],
+          [
+            1,
+            1,
+            160,
+            960
+          ],
+          [
+            960
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ]
+        ],
+        "kernelTimeMs": 2.8149999998277053,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 188160,
+        "totalBytesSnapshot": 14778028,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            160
+          ],
+          [
+            1,
+            1,
+            160,
+            960
+          ],
+          [
+            960
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ]
+        ],
+        "kernelTimeMs": 2.745000005234033,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 188160,
+        "totalBytesSnapshot": 14778028,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            160
+          ],
+          [
+            1,
+            1,
+            160,
+            960
+          ],
+          [
+            960
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ]
+        ],
+        "kernelTimeMs": 2.740000003541354,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 31360,
+        "totalBytesSnapshot": 14809388,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ],
+          [
+            1,
+            1,
+            960,
+            160
+          ],
+          [
+            160
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            160
+          ]
+        ],
+        "kernelTimeMs": 2.740000003541354,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 602112,
+        "totalBytesSnapshot": 15260972,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            32
+          ],
+          [
+            1,
+            1,
+            32,
+            192
+          ],
+          [
+            192
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ]
+        ],
+        "kernelTimeMs": 2.6100000031874515,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 602112,
+        "totalBytesSnapshot": 15260972,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            32
+          ],
+          [
+            1,
+            1,
+            32,
+            192
+          ],
+          [
+            192
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ]
+        ],
+        "kernelTimeMs": 2.5850000020000152,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 31360,
+        "totalBytesSnapshot": 14809388,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ],
+          [
+            1,
+            1,
+            960,
+            160
+          ],
+          [
+            160
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            160
+          ]
+        ],
+        "kernelTimeMs": 2.5450000030105002,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 75264,
+        "totalBytesSnapshot": 14934828,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ],
+          [
+            1,
+            1,
+            384,
+            96
+          ],
+          [
+            96
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            96
+          ]
+        ],
+        "kernelTimeMs": 2.505000004020985,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 802816,
+        "totalBytesSnapshot": 16966956,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            112,
+            112,
+            32
+          ],
+          [
+            1,
+            1,
+            32,
+            16
+          ],
+          [
+            16
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            112,
+            112,
+            16
+          ]
+        ],
+        "kernelTimeMs": 2.449999999953434,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 75264,
+        "totalBytesSnapshot": 14934828,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ],
+          [
+            1,
+            1,
+            384,
+            96
+          ],
+          [
+            96
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            96
+          ]
+        ],
+        "kernelTimeMs": 2.40499999927124,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedDepthwiseConv2d__op",
+        "bytesAdded": 602112,
+        "totalBytesSnapshot": 15863084,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ],
+          [
+            3,
+            3,
+            192,
+            1
+          ],
+          [
+            192
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ]
+        ],
+        "kernelTimeMs": 2.3050000017974526,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 14909740,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ],
+          [
+            1,
+            1,
+            64,
+            384
+          ],
+          [
+            384
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ]
+        ],
+        "kernelTimeMs": 2.294999998412095,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 602112,
+        "totalBytesSnapshot": 15260972,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            32
+          ],
+          [
+            1,
+            1,
+            32,
+            192
+          ],
+          [
+            192
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ]
+        ],
+        "kernelTimeMs": 2.2499999977299012,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 100352,
+        "totalBytesSnapshot": 15361324,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ],
+          [
+            1,
+            1,
+            192,
+            32
+          ],
+          [
+            32
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            32
+          ]
+        ],
+        "kernelTimeMs": 2.2349999999278225,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 602112,
+        "totalBytesSnapshot": 15260972,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            32
+          ],
+          [
+            1,
+            1,
+            32,
+            192
+          ],
+          [
+            192
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ]
+        ],
+        "kernelTimeMs": 2.1850000048289075,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 602112,
+        "totalBytesSnapshot": 15260972,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            32
+          ],
+          [
+            1,
+            1,
+            32,
+            192
+          ],
+          [
+            192
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ]
+        ],
+        "kernelTimeMs": 2.1500000002561137,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 14909740,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ],
+          [
+            1,
+            1,
+            64,
+            384
+          ],
+          [
+            384
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ]
+        ],
+        "kernelTimeMs": 2.1200000046519563,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 14909740,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ],
+          [
+            1,
+            1,
+            64,
+            384
+          ],
+          [
+            384
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ]
+        ],
+        "kernelTimeMs": 2.1150000029592775,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 602112,
+        "totalBytesSnapshot": 15260972,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            32
+          ],
+          [
+            1,
+            1,
+            32,
+            192
+          ],
+          [
+            192
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ]
+        ],
+        "kernelTimeMs": 2.099999997881241,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedDepthwiseConv2D",
+        "bytesAdded": 602112,
+        "totalBytesSnapshot": 15863084,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ],
+          [
+            3,
+            3,
+            192,
+            1
+          ],
+          [
+            192
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ]
+        ],
+        "kernelTimeMs": 2.0949999961885624,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 14909740,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ],
+          [
+            1,
+            1,
+            64,
+            384
+          ],
+          [
+            384
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ]
+        ],
+        "kernelTimeMs": 2.0750000039697625,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 14909740,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ],
+          [
+            1,
+            1,
+            64,
+            384
+          ],
+          [
+            384
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ]
+        ],
+        "kernelTimeMs": 2.0099999965168536,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedDepthwiseConv2d__op",
+        "bytesAdded": 451584,
+        "totalBytesSnapshot": 16816428,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            56,
+            56,
+            144
+          ],
+          [
+            3,
+            3,
+            144,
+            1
+          ],
+          [
+            144
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            144
+          ]
+        ],
+        "kernelTimeMs": 1.9949999987147748,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedDepthwiseConv2D",
+        "bytesAdded": 602112,
+        "totalBytesSnapshot": 15863084,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ],
+          [
+            3,
+            3,
+            192,
+            1
+          ],
+          [
+            192
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ]
+        ],
+        "kernelTimeMs": 1.9949999987147748,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 14909740,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ],
+          [
+            1,
+            1,
+            64,
+            384
+          ],
+          [
+            384
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ]
+        ],
+        "kernelTimeMs": 1.8899999995483086,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 14909740,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ],
+          [
+            1,
+            1,
+            64,
+            384
+          ],
+          [
+            384
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ]
+        ],
+        "kernelTimeMs": 1.8850000051315874,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 14909740,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ],
+          [
+            1,
+            1,
+            64,
+            384
+          ],
+          [
+            384
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ]
+        ],
+        "kernelTimeMs": 1.8449999988661148,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 50176,
+        "totalBytesSnapshot": 14959916,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ],
+          [
+            1,
+            1,
+            384,
+            64
+          ],
+          [
+            64
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ]
+        ],
+        "kernelTimeMs": 1.830000001064036,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 100352,
+        "totalBytesSnapshot": 15361324,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ],
+          [
+            1,
+            1,
+            192,
+            32
+          ],
+          [
+            32
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            32
+          ]
+        ],
+        "kernelTimeMs": 1.7750000042724423,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 50176,
+        "totalBytesSnapshot": 14959916,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ],
+          [
+            1,
+            1,
+            384,
+            64
+          ],
+          [
+            64
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ]
+        ],
+        "kernelTimeMs": 1.7750000042724423,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedDepthwiseConv2d__op",
+        "bytesAdded": 451584,
+        "totalBytesSnapshot": 15536940,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ],
+          [
+            3,
+            3,
+            576,
+            1
+          ],
+          [
+            576
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ]
+        ],
+        "kernelTimeMs": 1.7300000035902485,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 50176,
+        "totalBytesSnapshot": 14959916,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ],
+          [
+            1,
+            1,
+            384,
+            64
+          ],
+          [
+            64
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ]
+        ],
+        "kernelTimeMs": 1.7250000018975697,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 50176,
+        "totalBytesSnapshot": 14959916,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ],
+          [
+            1,
+            1,
+            384,
+            64
+          ],
+          [
+            64
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ]
+        ],
+        "kernelTimeMs": 1.7149999985122122,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 50176,
+        "totalBytesSnapshot": 14959916,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ],
+          [
+            1,
+            1,
+            384,
+            64
+          ],
+          [
+            64
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ]
+        ],
+        "kernelTimeMs": 1.6850000029080547,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 100352,
+        "totalBytesSnapshot": 15361324,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ],
+          [
+            1,
+            1,
+            192,
+            32
+          ],
+          [
+            32
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            32
+          ]
+        ],
+        "kernelTimeMs": 1.640000002225861,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 100352,
+        "totalBytesSnapshot": 15361324,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ],
+          [
+            1,
+            1,
+            192,
+            32
+          ],
+          [
+            32
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            32
+          ]
+        ],
+        "kernelTimeMs": 1.6350000005331822,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedDepthwiseConv2d__op",
+        "bytesAdded": 451584,
+        "totalBytesSnapshot": 15536940,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ],
+          [
+            3,
+            3,
+            576,
+            1
+          ],
+          [
+            576
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ]
+        ],
+        "kernelTimeMs": 1.6200000027311035,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 50176,
+        "totalBytesSnapshot": 14959916,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ],
+          [
+            1,
+            1,
+            384,
+            64
+          ],
+          [
+            64
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ]
+        ],
+        "kernelTimeMs": 1.600000003236346,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 31360,
+        "totalBytesSnapshot": 14702764,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            576
+          ],
+          [
+            1,
+            1,
+            576,
+            160
+          ],
+          [
+            160
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            160
+          ]
+        ],
+        "kernelTimeMs": 1.600000003236346,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 31360,
+        "totalBytesSnapshot": 14702764,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            576
+          ],
+          [
+            1,
+            1,
+            576,
+            160
+          ],
+          [
+            160
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            160
+          ]
+        ],
+        "kernelTimeMs": 1.534999995783437,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedDepthwiseConv2D",
+        "bytesAdded": 451584,
+        "totalBytesSnapshot": 16816428,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            56,
+            56,
+            144
+          ],
+          [
+            3,
+            3,
+            144,
+            1
+          ],
+          [
+            144
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            144
+          ]
+        ],
+        "kernelTimeMs": 1.4799999989918433,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 100352,
+        "totalBytesSnapshot": 15110444,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            144
+          ],
+          [
+            1,
+            1,
+            144,
+            32
+          ],
+          [
+            32
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            32
+          ]
+        ],
+        "kernelTimeMs": 1.4799999989918433,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedDepthwiseConv2D",
+        "bytesAdded": 451584,
+        "totalBytesSnapshot": 15536940,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ],
+          [
+            3,
+            3,
+            576,
+            1
+          ],
+          [
+            576
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ]
+        ],
+        "kernelTimeMs": 1.405000002705492,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 100352,
+        "totalBytesSnapshot": 15110444,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            144
+          ],
+          [
+            1,
+            1,
+            144,
+            32
+          ],
+          [
+            32
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            32
+          ]
+        ],
+        "kernelTimeMs": 1.3249999974505045,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedDepthwiseConv2D",
+        "bytesAdded": 451584,
+        "totalBytesSnapshot": 15536940,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ],
+          [
+            3,
+            3,
+            576,
+            1
+          ],
+          [
+            576
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ]
+        ],
+        "kernelTimeMs": 1.2600000045495108,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedDepthwiseConv2d__op",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 15210796,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ],
+          [
+            3,
+            3,
+            384,
+            1
+          ],
+          [
+            384
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ]
+        ],
+        "kernelTimeMs": 1.2500000011641532,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedDepthwiseConv2d__op",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 15210796,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ],
+          [
+            3,
+            3,
+            384,
+            1
+          ],
+          [
+            384
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ]
+        ],
+        "kernelTimeMs": 1.224999999976717,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedDepthwiseConv2d__op",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 15210796,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ],
+          [
+            3,
+            3,
+            384,
+            1
+          ],
+          [
+            384
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ]
+        ],
+        "kernelTimeMs": 1.2199999982840382,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedDepthwiseConv2d__op",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 15160620,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ],
+          [
+            3,
+            3,
+            384,
+            1
+          ],
+          [
+            384
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ]
+        ],
+        "kernelTimeMs": 1.1299999969196506,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedDepthwiseConv2D",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 15210796,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ],
+          [
+            3,
+            3,
+            384,
+            1
+          ],
+          [
+            384
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ]
+        ],
+        "kernelTimeMs": 1.0150000016437843,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedDepthwiseConv2D",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 15210796,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ],
+          [
+            3,
+            3,
+            384,
+            1
+          ],
+          [
+            384
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ]
+        ],
+        "kernelTimeMs": 1.0000000038417056,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedDepthwiseConv2D",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 15210796,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ],
+          [
+            3,
+            3,
+            384,
+            1
+          ],
+          [
+            384
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ]
+        ],
+        "kernelTimeMs": 0.9700000009615906,
+        "extraInfo": ""
+      },
+      {
+        "name": "Sub",
+        "bytesAdded": 602112,
+        "totalBytesSnapshot": 15762732,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            224,
+            224,
+            3
+          ],
+          []
+        ],
+        "outputShapes": [
+          [
+            1,
+            224,
+            224,
+            3
+          ]
+        ],
+        "kernelTimeMs": 0.9400000053574331,
+        "extraInfo": ""
+      },
+      {
+        "name": "Multiply",
+        "bytesAdded": 602112,
+        "totalBytesSnapshot": 15160620,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 110,
+        "inputShapes": [
+          [
+            1,
+            224,
+            224,
+            3
+          ],
+          []
+        ],
+        "outputShapes": [
+          [
+            1,
+            224,
+            224,
+            3
+          ]
+        ],
+        "kernelTimeMs": 0.9399999980814755,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 50176,
+        "totalBytesSnapshot": 14759212,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            192
+          ],
+          [
+            1,
+            1,
+            192,
+            64
+          ],
+          [
+            64
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ]
+        ],
+        "kernelTimeMs": 0.9149999968940392,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedDepthwiseConv2D",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 15160620,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ],
+          [
+            3,
+            3,
+            384,
+            1
+          ],
+          [
+            384
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            384
+          ]
+        ],
+        "kernelTimeMs": 0.8950000046752393,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedDepthwiseConv2d__op",
+        "bytesAdded": 188160,
+        "totalBytesSnapshot": 14966188,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ],
+          [
+            3,
+            3,
+            960,
+            1
+          ],
+          [
+            960
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ]
+        ],
+        "kernelTimeMs": 0.8349999989150092,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 50176,
+        "totalBytesSnapshot": 14759212,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            192
+          ],
+          [
+            1,
+            1,
+            192,
+            64
+          ],
+          [
+            64
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ]
+        ],
+        "kernelTimeMs": 0.8299999972223304,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedDepthwiseConv2d__op",
+        "bytesAdded": 188160,
+        "totalBytesSnapshot": 14934828,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ],
+          [
+            3,
+            3,
+            960,
+            1
+          ],
+          [
+            960
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ]
+        ],
+        "kernelTimeMs": 0.7949999999254942,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedDepthwiseConv2d__op",
+        "bytesAdded": 188160,
+        "totalBytesSnapshot": 14966188,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ],
+          [
+            3,
+            3,
+            960,
+            1
+          ],
+          [
+            960
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ]
+        ],
+        "kernelTimeMs": 0.7299999997485429,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedConv2d__op",
+        "bytesAdded": 4004,
+        "totalBytesSnapshot": 14567632,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            1,
+            1,
+            1280
+          ],
+          [
+            1,
+            1,
+            1280,
+            1001
+          ],
+          [
+            1001
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            1,
+            1,
+            1001
+          ]
+        ],
+        "kernelTimeMs": 0.6849999990663491,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedDepthwiseConv2D",
+        "bytesAdded": 188160,
+        "totalBytesSnapshot": 14966188,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ],
+          [
+            3,
+            3,
+            960,
+            1
+          ],
+          [
+            960
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ]
+        ],
+        "kernelTimeMs": 0.6599999978789128,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedDepthwiseConv2D",
+        "bytesAdded": 188160,
+        "totalBytesSnapshot": 14934828,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ],
+          [
+            3,
+            3,
+            960,
+            1
+          ],
+          [
+            960
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ]
+        ],
+        "kernelTimeMs": 0.6100000027799979,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedConv2D",
+        "bytesAdded": 4004,
+        "totalBytesSnapshot": 14567632,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            1,
+            1,
+            1280
+          ],
+          [
+            1,
+            1,
+            1280,
+            1001
+          ],
+          [
+            1001
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            1,
+            1,
+            1001
+          ]
+        ],
+        "kernelTimeMs": 0.6100000027799979,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedDepthwiseConv2d__op",
+        "bytesAdded": 150528,
+        "totalBytesSnapshot": 15311148,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ],
+          [
+            3,
+            3,
+            192,
+            1
+          ],
+          [
+            192
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            192
+          ]
+        ],
+        "kernelTimeMs": 0.6099999955040403,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedDepthwiseConv2D",
+        "bytesAdded": 188160,
+        "totalBytesSnapshot": 14966188,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ],
+          [
+            3,
+            3,
+            960,
+            1
+          ],
+          [
+            960
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            960
+          ]
+        ],
+        "kernelTimeMs": 0.5500000042957254,
+        "extraInfo": ""
+      },
+      {
+        "name": "fusedDepthwiseConv2d__op",
+        "bytesAdded": 112896,
+        "totalBytesSnapshot": 15122988,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ],
+          [
+            3,
+            3,
+            576,
+            1
+          ],
+          [
+            576
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            576
+          ]
+        ],
+        "kernelTimeMs": 0.4800000024260953,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedDepthwiseConv2D",
+        "bytesAdded": 150528,
+        "totalBytesSnapshot": 15311148,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            192
+          ],
+          [
+            3,
+            3,
+            192,
+            1
+          ],
+          [
+            192
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            192
+          ]
+        ],
+        "kernelTimeMs": 0.41000000055646524,
+        "extraInfo": ""
+      },
+      {
+        "name": "FusedDepthwiseConv2D",
+        "bytesAdded": 112896,
+        "totalBytesSnapshot": 15122988,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            576
+          ],
+          [
+            3,
+            3,
+            576,
+            1
+          ],
+          [
+            576
+          ],
+          null
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            576
+          ]
+        ],
+        "kernelTimeMs": 0.3599999981815927,
+        "extraInfo": ""
+      },
+      {
+        "name": "Add",
+        "bytesAdded": 301056,
+        "totalBytesSnapshot": 15461676,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            56,
+            56,
+            24
+          ],
+          [
+            1,
+            56,
+            56,
+            24
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            56,
+            56,
+            24
+          ]
+        ],
+        "kernelTimeMs": 0.18000000272877514,
+        "extraInfo": ""
+      },
+      {
+        "name": "AvgPool",
+        "bytesAdded": 5120,
+        "totalBytesSnapshot": 14814508,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            1280
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            1,
+            1,
+            1280
+          ]
+        ],
+        "kernelTimeMs": 0.1049999991664663,
+        "extraInfo": ""
+      },
+      {
+        "name": "Add",
+        "bytesAdded": 100352,
+        "totalBytesSnapshot": 14859564,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            32
+          ],
+          [
+            1,
+            28,
+            28,
+            32
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            32
+          ]
+        ],
+        "kernelTimeMs": 0.09500000305706635,
+        "extraInfo": ""
+      },
+      {
+        "name": "Add",
+        "bytesAdded": 100352,
+        "totalBytesSnapshot": 14859564,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            28,
+            28,
+            32
+          ],
+          [
+            1,
+            28,
+            28,
+            32
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            28,
+            28,
+            32
+          ]
+        ],
+        "kernelTimeMs": 0.09499999578110874,
+        "extraInfo": ""
+      },
+      {
+        "name": "Add",
+        "bytesAdded": 31360,
+        "totalBytesSnapshot": 14652588,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            160
+          ],
+          [
+            1,
+            7,
+            7,
+            160
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            160
+          ]
+        ],
+        "kernelTimeMs": 0.09499999578110874,
+        "extraInfo": ""
+      },
+      {
+        "name": "Add",
+        "bytesAdded": 75264,
+        "totalBytesSnapshot": 14784300,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            96
+          ],
+          [
+            1,
+            14,
+            14,
+            96
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            96
+          ]
+        ],
+        "kernelTimeMs": 0.07999999797903001,
+        "extraInfo": ""
+      },
+      {
+        "name": "Add",
+        "bytesAdded": 50176,
+        "totalBytesSnapshot": 14709036,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ],
+          [
+            1,
+            14,
+            14,
+            64
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ]
+        ],
+        "kernelTimeMs": 0.07500000356230885,
+        "extraInfo": ""
+      },
+      {
+        "name": "Add",
+        "bytesAdded": 75264,
+        "totalBytesSnapshot": 14784300,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            96
+          ],
+          [
+            1,
+            14,
+            14,
+            96
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            96
+          ]
+        ],
+        "kernelTimeMs": 0.07499999628635123,
+        "extraInfo": ""
+      },
+      {
+        "name": "Add",
+        "bytesAdded": 50176,
+        "totalBytesSnapshot": 14709036,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ],
+          [
+            1,
+            14,
+            14,
+            64
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ]
+        ],
+        "kernelTimeMs": 0.07000000186963007,
+        "extraInfo": ""
+      },
+      {
+        "name": "Add",
+        "bytesAdded": 50176,
+        "totalBytesSnapshot": 14709036,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ],
+          [
+            1,
+            14,
+            14,
+            64
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            14,
+            14,
+            64
+          ]
+        ],
+        "kernelTimeMs": 0.06500000017695129,
+        "extraInfo": ""
+      },
+      {
+        "name": "Add",
+        "bytesAdded": 31360,
+        "totalBytesSnapshot": 14652588,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            7,
+            7,
+            160
+          ],
+          [
+            1,
+            7,
+            7,
+            160
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            7,
+            7,
+            160
+          ]
+        ],
+        "kernelTimeMs": 0.05999999848427251,
+        "extraInfo": ""
+      },
+      {
+        "name": "Cast",
+        "bytesAdded": 5120,
+        "totalBytesSnapshot": 14819628,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 112,
+        "inputShapes": [
+          [
+            1,
+            1,
+            1,
+            1280
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            1,
+            1,
+            1280
+          ]
+        ],
+        "kernelTimeMs": 0.030000002880115062,
+        "extraInfo": ""
+      },
+      {
+        "name": "Identity",
+        "bytesAdded": 4004,
+        "totalBytesSnapshot": 14566516,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            1001
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            1001
+          ]
+        ],
+        "kernelTimeMs": 0.029999995604157448,
+        "extraInfo": ""
+      },
+      {
+        "name": "Reshape",
+        "bytesAdded": 4004,
+        "totalBytesSnapshot": 14566516,
+        "tensorsAdded": 1,
+        "totalTensorsSnapshot": 111,
+        "inputShapes": [
+          [
+            1,
+            1,
+            1,
+            1001
+          ]
+        ],
+        "outputShapes": [
+          [
+            1,
+            1001
+          ]
+        ],
+        "kernelTimeMs": 0.019999999494757503,
+        "extraInfo": ""
+      }
+    ],
+    "kernelNames": [
+      "fusedConv2d__op",
+      "FusedConv2D",
+      "fusedDepthwiseConv2d__op",
+      "FusedDepthwiseConv2D",
+      "Sub",
+      "Multiply",
+      "Add",
+      "AvgPool",
+      "Cast",
+      "Identity",
+      "Reshape"
+    ],
+    "aggregatedKernels": [
+      {
+        "name": "fusedConv2d__op",
+        "timeMs": 139.04500002536224
+      },
+      {
+        "name": "FusedConv2D",
+        "timeMs": 120.01000002055662
+      },
+      {
+        "name": "fusedDepthwiseConv2d__op",
+        "timeMs": 41.514999997161794
+      },
+      {
+        "name": "FusedDepthwiseConv2D",
+        "timeMs": 33.85000002162997
+      },
+      {
+        "name": "Sub",
+        "timeMs": 0.9400000053574331
+      },
+      {
+        "name": "Multiply",
+        "timeMs": 0.9399999980814755
+      },
+      {
+        "name": "Add",
+        "timeMs": 0.8899999957066029
+      },
+      {
+        "name": "AvgPool",
+        "timeMs": 0.1049999991664663
+      },
+      {
+        "name": "Cast",
+        "timeMs": 0.030000002880115062
+      },
+      {
+        "name": "Identity",
+        "timeMs": 0.029999995604157448
+      },
+      {
+        "name": "Reshape",
+        "timeMs": 0.019999999494757503
+      }
+    ]
+  },
+  "tabId": "OS_X_Catalina_1"
+}

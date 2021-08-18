@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,7 +22,7 @@ const modulePath =
     module_path_napi.replace('{napi_build_version}', process.versions.napi);
 
 /** Version of the libtensorflow shared library to depend on. */
-const LIBTENSORFLOW_VERSION = '1.15.0';
+const LIBTENSORFLOW_VERSION = '2.5.0';
 
 /** Map the os.arch() to arch string in a file name */
 const ARCH_MAPPING = {

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tfc from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import * as image from '../op_list/image';
@@ -25,8 +26,8 @@ import {createBoolAttr, createNumberAttr, createNumericArrayAttrFromIndex, creat
 
 describe('image', () => {
   let node: Node;
-  const input1 = [tfc.tensor1d([1])];
-  const context = new ExecutionContext({}, {});
+  const input1 = [tfOps.tensor1d([1])];
+  const context = new ExecutionContext({}, {}, {});
 
   beforeEach(() => {
     node = {
@@ -48,18 +49,20 @@ describe('image', () => {
         node.inputParams['images'] = createTensorAttr(0);
         node.inputParams['size'] = createNumericArrayAttrFromIndex(1);
         node.attrParams['alignCorners'] = createBoolAttr(true);
+        node.attrParams['halfPixelCenters'] = createBoolAttr(true);
         node.inputNames = ['input1', 'input2'];
-        const input2 = [tfc.tensor1d([1, 2])];
-        spyOn(tfc.image, 'resizeBilinear');
+        const input2 = [tfOps.tensor1d([1, 2])];
+        spyOn(tfOps.image, 'resizeBilinear');
         executeOp(node, {input1, input2}, context);
-        expect(tfc.image.resizeBilinear)
-            .toHaveBeenCalledWith(input1[0], [1, 2], true);
+        expect(tfOps.image.resizeBilinear)
+            .toHaveBeenCalledWith(input1[0], [1, 2], true, true);
       });
       it('should match json def', () => {
         node.op = 'ResizeBilinear';
         node.inputParams['images'] = createTensorAttr(0);
         node.inputParams['size'] = createNumericArrayAttrFromIndex(1);
         node.attrParams['alignCorners'] = createBoolAttr(true);
+        node.attrParams['halfPixelCenters'] = createBoolAttr(true);
 
         expect(validateParam(node, image.json)).toBeTruthy();
       });
@@ -70,18 +73,20 @@ describe('image', () => {
         node.inputParams['images'] = createTensorAttr(0);
         node.inputParams['size'] = createNumericArrayAttrFromIndex(1);
         node.attrParams['alignCorners'] = createBoolAttr(true);
+        node.attrParams['halfPixelCenters'] = createBoolAttr(true);
         node.inputNames = ['input1', 'input2'];
-        const input2 = [tfc.tensor1d([1, 2])];
-        spyOn(tfc.image, 'resizeNearestNeighbor');
+        const input2 = [tfOps.tensor1d([1, 2])];
+        spyOn(tfOps.image, 'resizeNearestNeighbor');
         executeOp(node, {input1, input2}, context);
-        expect(tfc.image.resizeNearestNeighbor)
-            .toHaveBeenCalledWith(input1[0], [1, 2], true);
+        expect(tfOps.image.resizeNearestNeighbor)
+            .toHaveBeenCalledWith(input1[0], [1, 2], true, true);
       });
       it('should match json def', () => {
         node.op = 'ResizeNearestNeighbor';
         node.inputParams['images'] = createTensorAttr(0);
         node.inputParams['size'] = createNumericArrayAttrFromIndex(1);
         node.attrParams['alignCorners'] = createBoolAttr(true);
+        node.attrParams['halfPixelCenters'] = createBoolAttr(true);
 
         expect(validateParam(node, image.json)).toBeTruthy();
       });
@@ -97,13 +102,13 @@ describe('image', () => {
         node.attrParams['extrapolationValue'] = createNumberAttr(0.5);
         node.inputNames = ['input1', 'input2', 'input3', 'input4'];
 
-        spyOn(tfc.image, 'cropAndResize');
-        const input2 = [tfc.tensor1d([2])];
-        const input3 = [tfc.tensor1d([3])];
-        const input4 = [tfc.tensor1d([4, 5])];
+        spyOn(tfOps.image, 'cropAndResize');
+        const input2 = [tfOps.tensor1d([2])];
+        const input3 = [tfOps.tensor1d([3])];
+        const input4 = [tfOps.tensor1d([4, 5])];
 
         executeOp(node, {input1, input2, input3, input4}, context);
-        expect(tfc.image.cropAndResize)
+        expect(tfOps.image.cropAndResize)
             .toHaveBeenCalledWith(
                 input1[0], input2[0], input3[0], [4, 5], 'bilinear', 0.5);
       });

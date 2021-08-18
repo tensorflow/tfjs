@@ -19,7 +19,7 @@
 import * as tf from '@tensorflow/tfjs-core';
 import * as seedrandom from 'seedrandom';
 
-import {Container, DataElement} from '../types';
+import {Container} from '../types';
 import {deepClone} from '../util/deep_clone';
 import {deepMapAndAwaitAll, DeepMapAsyncResult, DeepMapResult, deepZip, zipToList} from '../util/deep_map';
 import {GrowingRingBuffer} from '../util/growing_ring_buffer';
@@ -28,7 +28,7 @@ import {RingBuffer} from '../util/ring_buffer';
 /**
  * A nested structure of LazyIterators, used as the input to zip().
  */
-export type IteratorContainer = Container<LazyIterator<DataElement>>;
+export type IteratorContainer = Container<LazyIterator<tf.TensorContainer>>;
 
 // Here we implement a simple asynchronous iterator.
 // This lets us avoid using either third-party stream libraries or

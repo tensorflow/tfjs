@@ -26,7 +26,7 @@ export class BufferManager {
 
   constructor(private device: GPUDevice) {}
 
-  acquireBuffer(byteSize: number, usage: GPUBufferUsage) {
+  acquireBuffer(byteSize: number, usage: GPUBufferUsageFlags) {
     const key = getBufferKey(byteSize, usage);
     if (!this.freeBuffers.has(key)) {
       this.freeBuffers.set(key, []);
@@ -54,7 +54,8 @@ export class BufferManager {
     return newBuffer;
   }
 
-  releaseBuffer(buffer: GPUBuffer, byteSize: number, usage: GPUBufferUsage) {
+  releaseBuffer(
+      buffer: GPUBuffer, byteSize: number, usage: GPUBufferUsageFlags) {
     if (this.freeBuffers == null) {
       return;
     }
@@ -122,6 +123,6 @@ export class BufferManager {
   }
 }
 
-function getBufferKey(byteSize: number, usage: GPUBufferUsage) {
+function getBufferKey(byteSize: number, usage: GPUBufferUsageFlags) {
   return `${byteSize}_${usage}`;
 }

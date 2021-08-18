@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +16,7 @@
 #include <emscripten.h>
 #endif
 
-#include "src/cc/kernels/ClipByValue.h"
+#include "tfjs-backend-wasm/src/cc/kernels/ClipByValue.h"
 
 #include <xnnpack.h>
 #include <array>
@@ -25,8 +25,8 @@
 #include <map>
 #include <unordered_map>
 
-#include "src/cc/backend.h"
-#include "src/cc/util.h"
+#include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
 // These float values are keys to creating the clip operator. We use
@@ -79,7 +79,7 @@ void ClipByValue(const size_t x_id, const float min, const float max,
 
   const size_t batch_size = x_info.size;
   xnn_status status = xnn_setup_clamp_nc_f32(
-      clamp_op, batch_size, x_buf, out_buf, nullptr /* thread pool */);
+      clamp_op, batch_size, x_buf, out_buf, tfjs::backend::threadpool);
   if (status != xnn_status_success) {
     util::warn(
         "XNN status for xnn_setup_clamp_nc_f32 is not successful. Got "
@@ -87,7 +87,7 @@ void ClipByValue(const size_t x_id, const float min, const float max,
         status);
   }
 
-  xnn_run_operator(clamp_op, nullptr /* thread pool */);
+  xnn_run_operator(clamp_op, tfjs::backend::threadpool);
 }
 
 }  // extern "C"

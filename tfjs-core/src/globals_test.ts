@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,7 +25,11 @@ describe('deprecation warnings', () => {
   });
 
   it('deprecationWarn warns', () => {
+    // flags_test.ts verifies deprecation warnings are on by default.
+    const deprecationVal = tf.env().get('DEPRECATION_WARNINGS_ENABLED');
+    tf.env().set('DEPRECATION_WARNINGS_ENABLED', true);
     tf.deprecationWarn('xyz is deprecated.');
+    tf.env().set('DEPRECATION_WARNINGS_ENABLED', deprecationVal);
     expect(console.warn).toHaveBeenCalledTimes(1);
     expect(console.warn)
         .toHaveBeenCalledWith(
@@ -86,9 +90,9 @@ describeWithFlags('tidy', ALL_ENVS, () => {
       expect(tf.memory().numTensors).toBe(2);
       tf.tidy(() => {
         const result = tf.tidy(() => {
-          b = tf.addStrict(a, b);
-          b = tf.addStrict(a, b);
-          b = tf.addStrict(a, b);
+          b = tf.add(a, b);
+          b = tf.add(a, b);
+          b = tf.add(a, b);
           return tf.add(a, b);
         });
 
@@ -167,9 +171,9 @@ describeWithFlags('tidy', ALL_ENVS, () => {
     expect(tf.memory().numTensors).toBe(2);
 
     tf.tidy(() => {
-      b = tf.addStrict(a, b);
-      b = tf.addStrict(a, b);
-      b = tf.addStrict(a, b);
+      b = tf.add(a, b);
+      b = tf.add(a, b);
+      b = tf.add(a, b);
       tf.add(a, b);
     });
 
@@ -185,25 +189,25 @@ describeWithFlags('tidy', ALL_ENVS, () => {
 
     tf.tidy(() => {
       const result = tf.tidy(() => {
-        b = tf.addStrict(a, b);
+        b = tf.add(a, b);
         b = tf.tidy(() => {
           b = tf.tidy(() => {
-            return tf.addStrict(a, b);
+            return tf.add(a, b);
           });
           // original a, b, and two intermediates.
           expect(tf.memory().numTensors).toBe(4);
 
           tf.tidy(() => {
-            tf.addStrict(a, b);
+            tf.add(a, b);
           });
           // All the intermediates should be cleaned up.
           expect(tf.memory().numTensors).toBe(4);
 
-          return tf.addStrict(a, b);
+          return tf.add(a, b);
         });
         expect(tf.memory().numTensors).toBe(4);
 
-        return tf.addStrict(a, b);
+        return tf.add(a, b);
       });
 
       expect(tf.memory().numTensors).toBe(3);

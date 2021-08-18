@@ -34,8 +34,9 @@ const VISOR_CONTAINER_ID = 'tfjs-visor-container';
  * tfvis.visor();
  * ```
  *
+ *
+ * @doc {heading: 'Visor & Surfaces'}
  */
-/** @doc {heading: 'Visor & Surfaces'} */
 export function visor(): Visor {
   if (typeof document === 'undefined') {
     throw new Error(
@@ -83,8 +84,9 @@ export function visor(): Visor {
 /**
  * An instance of the visor. An instance of this class is created using the
  * `visor()` function.
+ *
+ * @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'}
  */
-/** @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'} */
 export class Visor {
   private visorComponent: VisorComponent;
   private surfaceList: Map<string, SurfaceInfoStrict>;
@@ -129,8 +131,9 @@ export class Visor {
    * ```
    *
    * @param options
+   *
+   * @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'}
    */
-  /** @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'} */
   surface(options: SurfaceInfo) {
     const {name} = options;
     const tab = options.tab == null ? DEFAULT_TAB : options.tab;
@@ -159,40 +162,45 @@ export class Visor {
 
   /**
    * Returns a boolean indicating if the visor is in 'fullscreen' mode
+   *
+   * @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'}
    */
-  /** @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'} */
   isFullscreen() {
     return this.visorComponent.isFullscreen();
   }
 
   /**
    * Returns a boolean indicating if the visor is open
+   *
+   * @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'}
    */
-  /** @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'} */
   isOpen() {
     return this.visorComponent.isOpen();
   }
 
   /**
    * Closes the visor.
+   *
+   * @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'}
    */
-  /** @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'} */
   close() {
     return this.visorComponent.close();
   }
 
   /**
    * Opens the visor.
+   *
+   * @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'}
    */
-  /** @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'} */
   open() {
     return this.visorComponent.open();
   }
 
   /**
    * Toggles the visor (closed vs open).
+   *
+   * @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'}
    */
-  /** @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'} */
   toggle() {
     return this.visorComponent.toggle();
   }
@@ -206,24 +214,27 @@ export class Visor {
    * Binds the ~ (tilde) key to toggle the visor.
    *
    * This is called by default when the visor is initially created.
+   *
+   * @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'}
    */
-  /** @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'} */
   bindKeys() {
     return this.visorComponent.bindKeys();
   }
 
   /**
    * Unbinds the keyboard control to toggle the visor.
+   *
+   * @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'}
    */
-  /** @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'} */
   unbindKeys() {
     return this.visorComponent.unbindKeys();
   }
 
   /**
    * Sets the active tab for the visor.
+   *
+   * @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'}
    */
-  /** @doc {heading: 'Visor & Surfaces', subheading: 'Visor Methods'} */
   setActiveTab(tabName: string) {
     const tabs = this.visorComponent.state.tabs;
     if (!tabs.has(tabName)) {

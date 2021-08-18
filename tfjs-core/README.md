@@ -31,6 +31,10 @@ import * as tfc from '@tensorflow/tfjs-core';
 // No Layers API.
 ```
 
+**Note**: If you are only importing the Core API, you also need to import a
+backend (e.g., [tfjs-backend-cpu](/tfjs-backend-cpu),
+[tfjs-backend-webgl](/tfjs-backend-webgl), [tfjs-backend-wasm](/tfjs-backend-wasm)).
+
 For info about development, check out [DEVELOPMENT.md](/DEVELOPMENT.md).
 
 ## For more information

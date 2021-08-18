@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@ import {expectArraysClose} from '../test_util';
 
 describeWithFlags('AdagradOptimizer', ALL_ENVS, () => {
   it('basic', async () => {
+    const initialTensors = tf.memory().numTensors;
     const learningRate = .1;
     const initialAccumulatorValue = .1;
     const optimizer = tf.train.adagrad(learningRate, initialAccumulatorValue);
@@ -66,8 +67,8 @@ describeWithFlags('AdagradOptimizer', ALL_ENVS, () => {
     x.dispose();
     optimizer.dispose();
 
-    // The only tensor remaining is the argument to variable().
-    expect(tf.memory().numTensors).toBe(1);
+    // The only additional tensor remaining is the argument to variable().
+    expect(tf.memory().numTensors).toBe(initialTensors + 1);
   });
 
   it('Continue training after loading weights', async () => {

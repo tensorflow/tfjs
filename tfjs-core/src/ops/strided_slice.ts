@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,13 +16,14 @@
  */
 
 import {ENGINE} from '../engine';
+import {StridedSlice, StridedSliceAttrs, StridedSliceInputs} from '../kernel_names';
+import {NamedAttrMap} from '../kernel_registry';
 import {Tensor} from '../tensor';
+import {NamedTensorMap} from '../tensor_types';
 import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 
 import {op} from './operation';
-import {slice} from './slice';
-import {computeOutShape, maskToAxes, startForAxis, stopForAxis} from './slice_util';
 
 /**
  * Extracts a strided slice of a tensor.
@@ -54,56 +55,30 @@ import {computeOutShape, maskToAxes, startForAxis, stopForAxis} from './slice_ut
  * @param shrinkAxisMask: a bitmask where bit i implies that
  * the ith specification should shrink the dimensionality. begin and end must
  * imply a slice of size 1 in the dimension.
+ *
+ * @doc {heading: 'Operations', subheading: 'Slicing and Joining'}
  */
-/** @doc {heading: 'Operations', subheading: 'Slicing and Joining'} */
 function stridedSlice_(
     x: Tensor|TensorLike, begin: number[], end: number[], strides?: number[],
     beginMask = 0, endMask = 0, ellipsisMask = 0, newAxisMask = 0,
     shrinkAxisMask = 0): Tensor {
-  if (strides == null) {
-    strides = new Array(begin.length);
-  }
-  if (ellipsisMask !== 0) {
-    throw new Error('ellipsis mask is not yet supported');
-  }
-  let $x = convertToTensor(x, 'x', 'stridedSlice');
+  const $x = convertToTensor(x, 'x', 'stridedSlice', 'string_or_numeric');
 
-  // Expand the dims of x based on the newAxisMask.
-  const expandAxes = maskToAxes(newAxisMask);
-  const newShape = $x.shape.slice();
-  expandAxes.forEach(axis => {
-    begin[axis] = 0;
-    end[axis] = 1;
-    newShape.splice(axis, 0, 1);
-  });
-  $x = $x.reshape(newShape);
+  const inputs: StridedSliceInputs = {x: $x};
+  const attrs: StridedSliceAttrs = {
+    begin,
+    end,
+    strides,
+    beginMask,
+    endMask,
+    ellipsisMask,
+    newAxisMask,
+    shrinkAxisMask
+  };
 
-  // Normalize the start, end and strides.
-  for (let axis = 0; axis < $x.rank; axis++) {
-    begin[axis] = startForAxis(beginMask, begin, strides, $x.shape, axis);
-    end[axis] = stopForAxis(endMask, end, strides, $x.shape, axis);
-    strides[axis] = strides[axis] || 1;
-  }
-
-  const shrinkAxes = maskToAxes(shrinkAxisMask);
-  // Adjust the ends based on the shrink mask.
-  shrinkAxes.forEach(axis => {
-    end[axis] = begin[axis] + 1;
-    strides[axis] = 1;
-  });
-
-  // Figure out the output shape.
-  const size = computeOutShape(begin, end, strides);
-  // Remove the axes based on shrinkMask.
-  const outShape = size.filter((_, axis) => shrinkAxes.indexOf(axis) === -1);
-
-  const nonStrided = strides.every(v => v === 1);
-  if (nonStrided) {
-    return slice($x, begin, size).reshape(outShape);
-  }
-  const res = ENGINE.runKernelFunc(
-      backend => backend.stridedSlice($x, begin, end, strides), {$x});
-  return res.reshape(outShape);
+  return ENGINE.runKernel(
+      StridedSlice, inputs as {} as NamedTensorMap,
+      attrs as {} as NamedAttrMap);
 }
 
 export const stridedSlice = op({stridedSlice_});

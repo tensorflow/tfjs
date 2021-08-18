@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google Inc. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,8 +19,8 @@ import {env} from '@tensorflow/tfjs-core';
 
 const ENV = env();
 
-/** Whether we submit commands to the device queue immediately. */
-ENV.registerFlag('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', () => true);
+/** The batched command encoders size in the device queue. */
+ENV.registerFlag('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', () => 15);
 
 /**
  * Whether we forward execution to the CPU backend if tensors are small and
@@ -29,17 +29,26 @@ ENV.registerFlag('WEBGPU_IMMEDIATE_EXECUTION_ENABLED', () => true);
 ENV.registerFlag('WEBGPU_CPU_FORWARD', () => true);
 
 /**
- * Thread register block size for matmul kernel. If 0, we use the version of
- * matMul without register blocking.
+ * Thread register block size for matmul kernel.
  */
 ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
 
 /**
- * -1: conv2d_naive
- *  0: conv2d_mm with matmul without register blocking
- * >0: conv2d_mm with matmul_packed with WPT=this
+ * Whether to use conv2d_naive which directly implement the conv2d logic rather
+ * than using a matmul to simulate.
  */
-ENV.registerFlag('WEBGPU_CONV2D_WORK_PER_THREAD', () => 2);
+ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D', () => false);
+
+/**
+ * Whether to use GLSL shading language.
+ */
+ENV.registerFlag('WEBGPU_USE_GLSL', () => true);
+
+/**
+ * Whether to use conv2dTranspose_naive which directly implement the
+ * conv2dTranspose logic rather than using a matmul to simulate.
+ */
+ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE', () => false);
 
 /**
  * Whether we will run im2col as a separate shader for convolution.
@@ -51,3 +60,22 @@ ENV.registerFlag('WEBGPU_CONV_SEPARATE_IM2COL_SHADER', () => false);
  * requested.
  */
 ENV.registerFlag('WEBGPU_USE_LOW_POWER_GPU', () => false);
+
+/**
+ * Threshold for input tensor size that determines whether WebGPU backend will
+ * delegate computation to CPU.
+ *
+ * Default value is 128.
+ */
+ENV.registerFlag('CPU_HANDOFF_SIZE_THRESHOLD', () => 128);
+
+/**
+ * Whether to use a dummy canvas to make profiling tools like PIX work with
+ * TFJS webgpu backend.
+ */
+ENV.registerFlag('WEBGPU_USE_PROFILE_TOOL', () => false);
+
+/**
+ * Whether to use import API.
+ */
+ENV.registerFlag('WEBGPU_USE_IMPORT', () => true);

@@ -11,7 +11,6 @@
 /**
  * Unit tests for core.ts.
  */
-
 import {mul, ones, scalar, Tensor, tensor2d, tensor3d, tensor4d, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
@@ -116,18 +115,20 @@ describeMathCPUAndGPU('Dropout Layer', () => {
     }
   });
 
-  describe('tensor with seed get specific value', () => {
-    const training = true;
-    const rate = 0.5;
-    const noiseShape = [2, 3, 4];
-    const x = ones([2, 3, 4]);
-    const seed = 23;
-    const dropoutLayer = tfl.layers.dropout({rate, noiseShape, seed});
-    const y = dropoutLayer.apply(x, {training}) as Tensor;
-    const yValuesExpected = [
-      0, 2, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 2, 0, 0, 0, 2, 0, 2, 0, 2, 2, 2, 0
-    ];
-    expectTensorsClose(y, tensor3d(yValuesExpected, [2, 3, 4]));
+  describe('tensor with seed', () => {
+    it('get specific value.', () => {
+      const training = true;
+      const rate = 0.5;
+      const noiseShape = [2, 3, 4];
+      const x = ones([2, 3, 4]);
+      const seed = 23;
+      const dropoutLayer = tfl.layers.dropout({rate, noiseShape, seed});
+      const y = dropoutLayer.apply(x, {training}) as Tensor;
+      const yValuesExpected = [
+        0, 2, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 2, 0, 0, 0, 2, 0, 2, 0, 2, 2, 2, 0
+      ];
+      expectTensorsClose(y, tensor3d(yValuesExpected, [2, 3, 4]));
+    });
   });
 });
 

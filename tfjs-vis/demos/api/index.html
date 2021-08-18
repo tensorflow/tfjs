@@ -770,6 +770,36 @@
         }
       </script>
 
+
+      <p>
+        Heatmap displays labels in order provided
+      </p>
+      <div id='heatmap-sort-order'></div>
+
+      <script class='show-script'>
+        {
+          const data = {
+            values: [
+              [5, 4, 3, 2, 1],
+              [10, 9, 8, 7, 6],
+              [15, 14, 13, 12, 11],
+              [20, 19, 18, 17, 16],
+              [24, 24, 23, 22, 21]
+            ],
+            xTickLabels: [0, 1, 10, 50, 100],
+            yTickLabels: [0, 1, 10, 50, 100],
+          }
+
+          // Render to visor
+          const surface = tfvis.visor().surface({ name: 'Heatmap w Custom Colormap', tab: 'Charts' });
+          tfvis.render.heatmap(surface, data);
+
+          // Render to page
+          const container = document.getElementById('heatmap-sort-order');
+          tfvis.render.heatmap(container, data);
+        }
+      </script>
+
       <p>
         Tensor2D's are also supported
       </p>

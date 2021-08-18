@@ -40,6 +40,11 @@ export function createBoolAttr(value: boolean): ParamValue {
 export function createTensorShapeAttr(value: number[]): ParamValue {
   return {value, type: 'shape'};
 }
+
+export function createShapeAttrFromIndex(inputIndex: number): InputParamValue {
+  return {inputIndexStart: inputIndex, type: 'shape'};
+}
+
 export function createNumericArrayAttr(value: number[]): ParamValue {
   return {value, type: 'number[]'};
 }
@@ -47,6 +52,11 @@ export function createNumericArrayAttr(value: number[]): ParamValue {
 export function createNumericArrayAttrFromIndex(inputIndex: number):
     InputParamValue {
   return {inputIndexStart: inputIndex, type: 'number[]'};
+}
+
+export function createBooleanArrayAttrFromIndex(inputIndex: number):
+    InputParamValue {
+  return {inputIndexStart: inputIndex, type: 'bool[]'};
 }
 
 export function createTensorAttr(index: number): InputParamValue {
@@ -67,7 +77,7 @@ export function validateParam(
   const opMapper = tfOpName != null ?
       opMappers.find(mapper => mapper.tfOpName === tfOpName) :
       opMappers.find(mapper => mapper.tfOpName === node.op);
-  return Object.keys(node.inputParams).every(key => {
+  const matched = Object.keys(node.inputParams).every(key => {
     const value = node.inputParams[key];
     const def = opMapper.inputs.find(param => param.name === key);
     return def && def.type === value.type &&
@@ -78,4 +88,9 @@ export function validateParam(
         const def = opMapper.attrs.find(param => param.name === key);
         return def && def.type === value.type;
       });
+  if (!matched) {
+    console.log('node = ', node);
+    console.log('opMapper = ', opMapper);
+  }
+  return matched;
 }

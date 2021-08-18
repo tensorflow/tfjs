@@ -1,0 +1,18 @@
+{
+  "name": "link-package",
+  "version": "1.0.0",
+  "description": "A package to help resolve npm link dependencies during the Bazel transition. Other packages link to the packages installed in its node_modules directory. Should never be published.",
+  "license": "Apache 2.0",
+  "private": true,
+  "scripts": {
+    "build": "yarn build-link-package-core && yarn reinstall",
+    "build-link-package-core": "cd ../link-package-core && yarn build",
+    "reinstall-link-package-core": "cd ../link-package-core && yarn reinstall",
+    "reinstall": "yarn && yarn reinstall-link-package-core && rimraf node_modules && yarn"
+  },
+  "devDependencies": {
+    "@tensorflow/tfjs-backend-cpu": "link:../link-package-core/node_modules/@tensorflow/tfjs-backend-cpu",
+    "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core",
+    "rimraf": "^3.0.2"
+  }
+}

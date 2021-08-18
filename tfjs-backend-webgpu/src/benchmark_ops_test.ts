@@ -126,6 +126,13 @@ describeWebGPU('Ops benchmarks', () => {
     await time(() => tf.matMul(a, b));
   });
 
+  it('matMul - dispatch 1', async () => {
+    const a = tf.randomNormal([16, 2048]);
+    const b = tf.randomNormal([2048, 16]);
+
+    await time(() => tf.matMul(a, b));
+  });
+
   it('add', async () => {
     const a = tf.randomNormal([1, 65, 65, 256]);
     const b = tf.randomNormal([1, 65, 65, 256]);
@@ -146,6 +153,13 @@ describeWebGPU('Ops benchmarks', () => {
     await time(() => tf.conv2d(a, b, 1, 'same'));
   });
 
+  it('conv2dWithInChannel3', async () => {
+    const a = tf.randomNormal<tf.Rank.R4>([1, 231, 231, 3]);
+    const b = tf.randomNormal<tf.Rank.R4>([7, 7, 3, 64]);
+
+    await time(() => tf.conv2d(a, b, 2, 'valid'));
+  });
+
   it('depthwiseconv2d', async () => {
     const x = tf.randomNormal<tf.Rank.R4>([1, 128, 128, 1]);
     const w = tf.tensor4d(
@@ -154,6 +168,13 @@ describeWebGPU('Ops benchmarks', () => {
     );
 
     await time(() => tf.depthwiseConv2d(x, w, 1, 'valid'));
+  });
+
+  it('maxPool with filter size = 1', async () => {
+    const y = tf.randomNormal<tf.Rank.R4>([1, 57, 57, 256]);
+    const z = tf.randomNormal<tf.Rank.R4>([1, 29, 29, 512]);
+    await time(() => tf.maxPool(y, 1, 2, 'same'), null, true, 10, 10);
+    await time(() => tf.maxPool(z, 1, 2, 'same'), null, true, 10, 10);
   });
 
   it('maxPool', async () => {

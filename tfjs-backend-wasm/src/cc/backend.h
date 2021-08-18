@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,7 @@
 #ifndef BACKEND_H_
 #define BACKEND_H_
 
+#include <xnnpack.h>
 #include <cstddef>
 #include <cstdint>
 
@@ -25,6 +26,17 @@ enum DType {
   boolean = 2,
   str = 3,
   complex64 = 4,
+};
+
+// Must match enum in kernels/types.ts.
+enum FusableActivation {
+  LINEAR = 0,
+  RELU = 1,
+  RELU6 = 2,
+  PRELU = 3,
+  LEAKYRELU = 4,
+  SIGMOID = 5,
+  ELU = 6
 };
 
 // Holds the memory offset and the size of a tensor.
@@ -78,6 +90,8 @@ const size_t num_tensors();
 
 // The number of instantiated XNN operators.
 extern size_t xnn_operator_count;
+
+extern pthreadpool *threadpool;
 }  // namespace backend
 
 namespace wasm {

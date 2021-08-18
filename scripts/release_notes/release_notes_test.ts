@@ -25,10 +25,28 @@ const fakeCommitContributors: {[key: string]: string;} = {
   'sha3': 'fakecontributor3'
 };
 
+const missingAuthorLoginFake = {
+  name: 'example',
+  email: 'example@example.com'
+};
+
+
 const fakeOctokit: OctokitGetCommit = {
   repos: {
     getCommit: (config: {owner: string, repo: string, sha: string}) => {
-      return {data: {author: {login: fakeCommitContributors[config.sha]}}};
+      return {
+        data: {
+          author: {
+            login: fakeCommitContributors[config.sha],
+          },
+          commit: {
+            author: {
+              name: missingAuthorLoginFake.name,
+              email: missingAuthorLoginFake.email
+            }
+          }
+        }
+      };
     }
   }
 };
@@ -36,7 +54,7 @@ const fakeOctokit: OctokitGetCommit = {
 describe('getReleaseNotesDraft', () => {
   it('Basic draft written', done => {
     const repoCommits: RepoCommits[] = [{
-      repo: {name: 'Core', identifier: 'tfjs-core'},
+      repo: {name: 'Core', identifier: 'tfjs', path: 'tfjs-core'},
       startVersion: '0.9.0',
       endVersion: '0.10.0',
       startCommit: 'fakecommit',
@@ -63,7 +81,7 @@ describe('getReleaseNotesDraft', () => {
 
   it('Basic draft external contributor thanks them', done => {
     const repoCommits: RepoCommits[] = [{
-      repo: {name: 'Core', identifier: 'tfjs'},
+      repo: {name: 'Core', identifier: 'tfjs', path: 'tfjs-core'},
       startVersion: '0.9.0',
       endVersion: '0.10.0',
       startCommit: 'fakecommit',
@@ -92,7 +110,7 @@ describe('getReleaseNotesDraft', () => {
   it('Complex draft', done => {
     const repoCommits: RepoCommits[] = [
       {
-        repo: {name: 'Core', identifier: 'tfjs'},
+        repo: {name: 'Core', identifier: 'tfjs', path: 'tfjs-core'},
         startVersion: '0.9.0',
         endVersion: '0.10.0',
         startCommit: 'fakecommit',
@@ -118,7 +136,7 @@ describe('getReleaseNotesDraft', () => {
         ]
       },
       {
-        repo: {name: 'Layers', identifier: 'tfjs-layers'},
+        repo: {name: 'Layers', identifier: 'tfjs', path: 'tfjs-layers'},
         startVersion: '0.4.0',
         endVersion: '0.5.1',
         startCommit: 'fakecommit2',
@@ -175,7 +193,7 @@ describe('getReleaseNotesDraft', () => {
 
   it('Subject has no pull request number', done => {
     const repoCommits: RepoCommits[] = [{
-      repo: {name: 'Core', identifier: 'tfjs-core'},
+      repo: {name: 'Core', identifier: 'tfjs', path: 'tfjs-core'},
       startVersion: '0.9.0',
       endVersion: '0.10.0',
       startCommit: 'fakecommit',

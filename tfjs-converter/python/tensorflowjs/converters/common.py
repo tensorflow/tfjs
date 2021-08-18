@@ -20,6 +20,7 @@ ARTIFACT_MODEL_JSON_FILE_NAME = 'model.json'
 
 # JSON string keys for fields of the indexing JSON.
 ARTIFACT_MODEL_TOPOLOGY_KEY = 'modelTopology'
+ARTIFACT_MODEL_INITIALIZER = 'modelInitializer'
 ARTIFACT_WEIGHTS_MANIFEST_KEY = 'weightsManifest'
 
 FORMAT_KEY = 'format'
@@ -50,11 +51,17 @@ OUTPUT_NODE = 'output_node_names'
 SIGNATURE_NAME = 'signature_name'
 SAVED_MODEL_TAGS = 'saved_model_tags'
 QUANTIZATION_BYTES = 'quantization_bytes'
+QUANTIZATION_TYPE_FLOAT16 = 'quantize_float16'
+QUANTIZATION_TYPE_UINT8 = 'quantize_uint8'
+QUANTIZATION_TYPE_UINT16 = 'quantize_uint16'
 SPLIT_WEIGHTS_BY_LAYER = 'split_weights_by_layer'
 VERSION = 'version'
 SKIP_OP_CHECK = 'skip_op_check'
 STRIP_DEBUG_OPS = 'strip_debug_ops'
 WEIGHT_SHARD_SIZE_BYTES = 'weight_shard_size_bytes'
+CONTROL_FLOW_V2 = 'control_flow_v2'
+EXPERIMENTS = 'experiments'
+METADATA = 'metadata'
 
 def get_converted_by():
   """Get the convertedBy string for storage in model artifacts."""

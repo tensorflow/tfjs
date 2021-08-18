@@ -3,6 +3,7 @@
 TensorFlow.js is an open-source hardware-accelerated JavaScript library for
 training and deploying machine learning models.
 
+
 **Develop ML in the Browser** <br/>
 Use flexible and intuitive APIs to build models from scratch using the low-level
 JavaScript linear algebra library or the high-level layers API.
@@ -43,10 +44,12 @@ APIs:
 
 
 Backends/Platforms:
-- [TensorFlow.js Node](/tfjs-node), Node backend via TensorFlow C++
-- [TensorFlow.js WASM](/tfjs-backend-wasm), WebAssembly backend
-- [TensorFlow.js React Native](/tfjs-react-native), Support for React Native.
-- [TensorFlow.js WebGPU](/tfjs-backend-webgpu), WebGPU backend.
+- [TensorFlow.js CPU Backend](/tfjs-backend-cpu), pure-JS backend for Node.js and the browser.
+- [TensorFlow.js WebGL Backend](/tfjs-backend-webgl), WebGL backend for the browser.
+- [TensorFlow.js WASM Backend](/tfjs-backend-wasm), WebAssembly backend for the browser.
+- [TensorFlow.js WebGPU](/tfjs-backend-webgpu), WebGPU backend for the browser.
+- [TensorFlow.js Node](/tfjs-node), Node.js platform via TensorFlow C++ adapter.
+- [TensorFlow.js React Native](/tfjs-react-native), React Native platform via expo-gl adapter.
 
 If you care about bundle size, you can import those packages individually.
 
@@ -66,6 +69,11 @@ Be sure to check out [the gallery](GALLERY.md) of all projects related to Tensor
 
 Be sure to also check out our [models repository](https://github.com/tensorflow/tfjs-models) where we host pre-trained models
 on NPM.
+
+## Benchmarks
+
+* [Local benchmark tool](https://tensorflow.github.io/tfjs/e2e/benchmarks/local-benchmark/index.html). Use this webpage tool to collect the performance related metrics (speed, memory, etc) of TensorFlow.js models and kernels **on your local device** with CPU, WebGL or WASM backends. You can benchmark custom models by following this [guide](https://github.com/tensorflow/tfjs/blob/master/e2e/benchmarks/local-benchmark/README.md).
+* [Multi-device benchmark tool](https://github.com/tensorflow/tfjs/tree/master/e2e/benchmarks/browserstack-benchmark/README.md). Use this tool to collect the same performance related metrics **on a collection of remote devices**.
 
 ## Getting started
 
@@ -167,5 +175,6 @@ We support porting pre-trained models from:
 - [Tutorials](https://js.tensorflow.org/tutorials)
 - [API reference](https://js.tensorflow.org/api/latest/)
 - [Discussion mailing list](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs)
+- [TensorFlow.js Blog](https://blog.tensorflow.org/search?label=TensorFlow.js)
 
 Thanks, <a href="https://www.browserstack.com/">BrowserStack</a>, for providing testing support.

@@ -16,16 +16,5 @@
 
 set -e
 
-# Install emsdk
-git clone --depth=1 --single-branch https://github.com/emscripten-core/emsdk.git
-cd emsdk
-# Need to tell emsdk where to write the .emscripten file.
-export HOME='/root'
-./emsdk install 1.39.1
-./emsdk activate 1.39.1
-source ./emsdk_env.sh
-cd ..
-
 yarn tsc
-
-./scripts/build-wasm.sh
+BAZEL_REMOTE="--config=ci" ./scripts/build-wasm.sh

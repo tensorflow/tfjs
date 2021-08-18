@@ -1,4 +1,4 @@
-/* Copyright 2019 Google Inc. All Rights Reserved.
+/* Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,7 +23,8 @@ extern "C" {
 
 void ResizeBilinear(size_t x_id, size_t batch, size_t old_height,
                     size_t old_width, size_t num_channels, size_t new_height,
-                    size_t new_width, bool align_corners, size_t out_id);
+                    size_t new_width, bool align_corners,
+                    bool half_pixel_centers, size_t out_id);
 }
 
 }  // namespace wasm

@@ -36,7 +36,7 @@ import com.android.build.OutputFile
  *   entryFile: "index.android.js",
  *
  *   // whether to bundle JS and assets in debug mode
- *   bundleInDebug: false,
+ *   bundleInDebug: false,/
  *
  *   // whether to bundle JS and assets in release mode
  *   bundleInRelease: true,
@@ -90,7 +90,9 @@ import com.android.build.OutputFile
  */
 
 project.ext.react = [
-    entryFile: "index.js"
+    entryFile: "index.js",
+    // Uncomment when using ./gradlew assembleDebug
+    // bundleInDebug: true,
 ]
 
 apply from: "../../node_modules/react-native/react.gradle"

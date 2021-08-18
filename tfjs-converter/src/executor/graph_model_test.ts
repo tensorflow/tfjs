@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +16,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {scalar} from '@tensorflow/tfjs-core';
+import {io, scalar} from '@tensorflow/tfjs-core';
 
 import * as tensorflow from '../data/compiled_api';
 import {deregisterOp, registerOp} from '../operations/custom_op/register';
@@ -32,6 +32,11 @@ const bias = tfc.tensor1d([1], 'int32');
 
 const weightsManifest: tfc.io.WeightsManifestEntry[] =
     [{'name': 'Const', 'dtype': 'int32', 'shape': [1]}];
+
+const weightsManifestWithInitializer: tfc.io.WeightsManifestEntry[] = [
+  {'dtype': 'string', 'name': 'transform/keys', 'shape': [1]},
+  {'dtype': 'float32', 'name': 'transform/values', 'shape': [1]}
+];
 
 const SIMPLE_MODEL: tensorflow.IGraphDef = {
   node: [
@@ -99,6 +104,7 @@ const DYNAMIC_SHAPE_MODEL: tensorflow.IGraphDef = {
   ],
   versions: {producer: 1.0, minConsumer: 3}
 };
+
 const SIGNATURE: tensorflow.ISignatureDef = {
   inputs: {x: {name: 'Input:0', dtype: tensorflow.DataType.DT_INT32}},
   outputs: {y: {name: 'Add:0', dtype: tensorflow.DataType.DT_INT32}}
@@ -181,6 +187,127 @@ const CONTROL_FLOW_HTTP_MODEL_LOADER = {
   }
 };
 
+const INITIALIZER_GRAPHDEF: tensorflow.IGraphDef = {
+  node: [
+    {
+      name: 'transform/values',
+      op: 'Const',
+      attr: {
+        dtype: {type: tensorflow.DataType.DT_FLOAT},
+        value: {
+          tensor: {
+            dtype: tensorflow.DataType.DT_FLOAT,
+            tensorShape: {dim: [{size: 1}]}
+          }
+        }
+      }
+    },
+    {
+      name: 'transform/keys',
+      op: 'Const',
+      attr: {
+        dtype: {type: tensorflow.DataType.DT_STRING},
+        value: {
+          tensor: {
+            dtype: tensorflow.DataType.DT_STRING,
+            tensorShape: {dim: [{size: 1}]}
+          }
+        }
+      }
+    },
+    {
+      name: 'transform/hash_table',
+      op: 'HashTableV2',
+      attr: {
+        value_dtype: {type: tensorflow.DataType.DT_FLOAT},
+        use_node_name_sharing: {b: false},
+        key_dtype: {type: tensorflow.DataType.DT_STRING},
+        container: {s: ''},
+        shared_name: {s: 'tablename'}
+      }
+    },
+    {
+      name: 'transform/key_value_init/LookupTableImportV2',
+      op: 'LookupTableImportV2',
+      input: ['transform/hash_table', 'transform/keys', 'transform/values'],
+      attr: {
+        Tin: {type: tensorflow.DataType.DT_FLOAT},
+        Tout: {type: tensorflow.DataType.DT_STRING}
+      }
+    }
+  ],
+  versions: {producer: 1.0, minConsumer: 3}
+};
+
+const HASH_TABLE_MODEL: tensorflow.IGraphDef = {
+  node: [
+    {
+      name: 'Input',
+      op: 'Placeholder',
+      attr: {
+        dtype: {
+          type: tensorflow.DataType.DT_STRING,
+        },
+        shape: {shape: {dim: [{size: 1}]}}
+      }
+    },
+    {
+      name: 'Input_1',
+      op: 'Placeholder',
+      attr: {
+        dtype: {
+          type: tensorflow.DataType.DT_FLOAT,
+        },
+        shape: {shape: {dim: [{size: 1}]}}
+      }
+    },
+    {
+      name: 'transform/hash_table',
+      op: 'HashTableV2',
+      input: [],
+      attr: {
+        value_dtype: {type: tensorflow.DataType.DT_FLOAT},
+        use_node_name_sharing: {b: false},
+        key_dtype: {type: tensorflow.DataType.DT_STRING},
+        container: {s: ''},
+        shared_name: {s: 'tablename'}
+      }
+    },
+    {
+      name: 'LookupTableFindV2',
+      op: 'LookupTableFindV2',
+      input: ['transform/hash_table', 'Input', 'Input_1'],
+      attr: {}
+    }
+  ],
+  versions: {producer: 1.0, minConsumer: 3}
+};
+
+const HASH_TABLE_SIGNATURE: tensorflow.ISignatureDef = {
+  inputs: {
+    keys: {name: 'Input:0', dtype: tensorflow.DataType.DT_STRING},
+    defaultValues: {name: 'Input_1:0', dtype: tensorflow.DataType.DT_FLOAT}
+  },
+  outputs: {
+    values:
+        {name: 'LookupTableFindV2:0', dtype: tensorflow.DataType.DT_FLOAT}
+  }
+};
+const HASHTABLE_HTTP_MODEL_LOADER = {
+  load: async () => {
+    return {
+      modelTopology: HASH_TABLE_MODEL,
+      weightSpecs: weightsManifestWithInitializer,
+      weightData: new ArrayBuffer(16),
+      format: 'tfjs-graph-model',
+      generatedBy: '1.15',
+      convertedBy: '2.4',
+      userDefinedMetadata: {signature: HASH_TABLE_SIGNATURE},
+      modelInitializer: INITIALIZER_GRAPHDEF
+    };
+  }
+};
+
 class IOHandlerForTest implements tfc.io.IOHandler {
   savedArtifacts: tfc.io.ModelArtifacts;
 
@@ -190,6 +317,55 @@ class IOHandlerForTest implements tfc.io.IOHandler {
     return {modelArtifactsInfo: null};
   }
 }
+
+describe('loadSync', () => {
+  let artifacts: io.ModelArtifacts;
+
+  beforeEach(() => {
+    model = new GraphModel(MODEL_URL);
+    artifacts = {
+      format: 'graph-model',
+      generatedBy: '0.0.0',
+      modelTopology: SIMPLE_MODEL,
+      weightSpecs: weightsManifest,
+      weightData: new Int32Array([5]).buffer
+    };
+  });
+
+  it('Can load old model.', () => {
+    artifacts.convertedBy = 'TensorFlow.js Converter v1.3.2';
+    artifacts.userDefinedMetadata = {signature: SIGNATURE};
+    const loaded = model.loadSync(artifacts);
+
+    expect(loaded).toBe(true);
+    expect(model.modelSignature).toEqual(SIGNATURE);
+  });
+
+  it('Can load new model.', () => {
+    artifacts.convertedBy = 'TensorFlow.js Converter v2.8.0';
+    artifacts.signature = SIGNATURE;
+    const loaded = model.loadSync(artifacts);
+
+    expect(loaded).toBe(true);
+    expect(model.modelSignature).toEqual(SIGNATURE);
+  });
+
+  it('Can load model without signature.', () => {
+    const loaded = model.loadSync(artifacts);
+
+    expect(loaded).toBe(true);
+    expect(model.modelSignature).toBeUndefined();
+  });
+
+  it('Can load model with different convertedBy language.', () => {
+    artifacts.convertedBy = '1.3.2';
+    artifacts.userDefinedMetadata = {signature: SIGNATURE};
+    const loaded = model.loadSync(artifacts);
+
+    expect(loaded).toBe(true);
+    expect(model.modelSignature).toEqual(SIGNATURE);
+  });
+});
 
 describe('loadGraphModel', () => {
   it('Pass a custom io handler', async () => {
@@ -217,6 +393,15 @@ describe('loadGraphModel', () => {
       errorMsg = err.message;
     }
     expect(errorMsg).toMatch(/modelUrl in loadGraphModel\(\) cannot be null/);
+  });
+
+  it('Pass a fetchFunc', async () => {
+    const fetchFunc = () => {};
+    spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+      CUSTOM_HTTP_MODEL_LOADER
+    ]);
+    await loadGraphModel(MODEL_URL, {fetchFunc});
+    expect(tfc.io.getLoadHandlers).toHaveBeenCalledWith(MODEL_URL, {fetchFunc});
   });
 });
 
@@ -548,6 +733,18 @@ describe('Model', () => {
       };
     }
   };
+  const DYNAMIC_HTTP_MODEL_NEW_LOADER = {
+    load: async () => {
+      return {
+        convertedBy: '2.8',
+        modelTopology: DYNAMIC_SHAPE_MODEL,
+        weightSpecs: weightsManifest,
+        weightData: bias.dataSync(),
+        signature: DYNAMIC_SIGNATURE,
+        userDefinedMetadata: {metadata1: {a: '1'}}
+      };
+    }
+  };
   describe('dynamic shape model', () => {
     beforeEach(() => {
       spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
@@ -590,6 +787,48 @@ describe('Model', () => {
       await model.load();
       const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
       const res = await model.executeAsync({Where: input});
+      expect(res).not.toBeNull();
+    });
+  });
+  describe('dynamic shape model with metadata', () => {
+    beforeEach(() => {
+      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+        DYNAMIC_HTTP_MODEL_NEW_LOADER
+      ]);
+      spyOn(tfc.io, 'browserHTTPRequest')
+          .and.returnValue(DYNAMIC_HTTP_MODEL_NEW_LOADER);
+    });
+
+    it('should be success if call executeAsync with signature key',
+       async () => {
+         await model.load();
+         const input = tfc.tensor2d([1, 1], [2, 1], 'bool');
+         const res = await model.executeAsync({x: input}, ['y']);
+         expect(res).not.toBeNull();
+         expect(model.metadata).toEqual({metadata1: {a: '1'}});
+       });
+
+    it('should allow feed intermediate node with executeAsync', async () => {
+      await model.load();
+      const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
+      const res = await model.executeAsync({Where: input});
+      expect(res).not.toBeNull();
+    });
+  });
+
+  describe('Hashtable model', () => {
+    beforeEach(() => {
+      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+        HASHTABLE_HTTP_MODEL_LOADER
+      ]);
+      spyOn(tfc.io, 'browserHTTPRequest')
+          .and.returnValue(HASHTABLE_HTTP_MODEL_LOADER);
+    });
+    it('should be successful if call executeAsync', async () => {
+      await model.load();
+      const keys = tfc.tensor1d(['a'], 'string');
+      const defaultValues = tfc.tensor1d([0]);
+      const res = await model.executeAsync({keys, defaultValues});
       expect(res).not.toBeNull();
     });
   });
