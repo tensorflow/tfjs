@@ -106,14 +106,6 @@ function showBackendFlagSettingsAndReturnTunableFlagControllers(
     folderController, backendName) {
   const tunableFlags = BACKEND_FLAGS_MAP[backendName];
   const tunableFlagControllers = {};
-
-  // Remove it once we figure out how to correctly read the tensor data
-  // before the tensor is disposed in profiling mode.
-  if (tf.engine().backendNames().includes('webgpu')) {
-    tf.env().set('CHECK_COMPUTATION_FOR_ERRORS', false);
-    state.flags['CHECK_COMPUTATION_FOR_ERRORS'] = false;
-  }
-
   for (let index = 0; index < tunableFlags.length; index++) {
     const flag = tunableFlags[index];
     const flagName = TUNABLE_FLAG_NAME_MAP[flag] || flag;
