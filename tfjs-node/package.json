@@ -70,7 +70,7 @@
   "dependencies": {
     "@mapbox/node-pre-gyp": "1.0.4",
     "@tensorflow/tfjs": "link:../tfjs",
-    "adm-zip": "^0.4.11",
+    "adm-zip": "^0.5.2",
     "google-protobuf": "^3.9.2",
     "https-proxy-agent": "^2.2.1",
     "progress": "^2.0.0",
