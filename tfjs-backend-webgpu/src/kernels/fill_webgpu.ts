@@ -69,7 +69,7 @@ export class FillProgram implements WebGPUProgram {
       for (var i = 0u; i < ${this.workPerThread}u; i = i + 1u) {
         let flatIndex = index * ${this.workPerThread}u + i;
         if (flatIndex < uniforms.size) {
-          setOutputFlat(flatIndex, f32(uniforms.value));
+          setOutputFlat(flatIndex, uniforms.value);
         }
       }
     }
