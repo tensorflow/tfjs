@@ -28,7 +28,7 @@ export class SelectProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workGroupSize: [number, number, number] = [64, 1, 1];
   cRank: number;
   rank: number;
   size: number;
