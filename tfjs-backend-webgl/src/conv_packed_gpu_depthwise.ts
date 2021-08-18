@@ -84,10 +84,9 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
 
       for (let texelC = 0; texelC < (texelsAcross + 1) / 2; texelC++) {
         const colIndex = texelC * 2;
-        const c = colIndex * dilationWidth;
 
         mainLoop += `
-          xC = xCCorner + ${c};
+          xC = xCCorner + ${colIndex * dilationWidth};
           `;
 
         if (strideWidth === 1) {
@@ -119,7 +118,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
               `;
               // This texel has been read in previous iteration if the dilation
               // is 1.
-              if (dilationWidth === 1 && c > 0) {
+              if (dilationWidth === 1 && colIndex > 0) {
                 mainLoop += `
                 xC${colIndex} = vec4(xTexelC${colIndex - 2}.zw, xTexelC${
                     colIndex}.xy);
@@ -158,7 +157,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                 `;
             }
 
-            if (c + 1 < filterWidth) {
+            if (colIndex + 1 < filterWidth) {
               // If dilation is even, the second entry should match the first
               // (either both are composed or both are single samples). But if
               // dilation is odd, then the second entry should be the opposite
@@ -232,7 +231,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
             }
           }
         } else {  // stride === 2
-          if (c < filterWidth) {
+          if (colIndex < filterWidth) {
             // Depending on whether padLeft is even or odd, we want either the
             // xy or zw channels from X texels for xC${colIndex}. If padLeft is
             // even, xC${colIndex +1} is simply the zw channels of texels we've
@@ -269,7 +268,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                   colIndex + 1}.zw);
               `;
 
-              if (c + 1 < filterWidth) {
+              if (colIndex + 1 < filterWidth) {
                 mainLoop += `
                   final = vec4(0.0);
                   xCOffset = xC + 1 + strides[1];
@@ -303,7 +302,7 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
                   xTexelC${colIndex}.xy, xTexelC${colIndex + 1}.xy);
               `;
 
-              if (c + 1 < filterWidth) {
+              if (colIndex + 1 < filterWidth) {
                 mainLoop += `
                   xC${colIndex + 1} = vec4(xTexelC${colIndex}.zw, xTexelC${
                     colIndex + 1}.zw);
@@ -319,13 +318,13 @@ export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
         // 50 variables)
         if (colIndex < filterWidth) {
           mainLoop += `
-            wTexel = getW(${r}, ${c}, d1, q);
+            wTexel = getW(${r}, ${colIndex}, d1, q);
             dotProd += xC${colIndex} * vec4(wTexel.xz, wTexel.xz);
           `;
 
-          if (c + 1 < filterWidth) {
+          if (colIndex + 1 < filterWidth) {
             mainLoop += `
-              wTexel = getW(${r}, ${c + 1}, d1, q);
+              wTexel = getW(${r}, ${colIndex + 1}, d1, q);
               dotProd += xC${colIndex + 1} * vec4(wTexel.xz, wTexel.xz);
             `;
           }
