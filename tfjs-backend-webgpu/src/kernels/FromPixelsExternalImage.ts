@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {env, FromPixelsAttrs, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {FromPixelsAttrs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import * as webgpu_program from './webgpu_program';
@@ -86,11 +86,7 @@ export function fromPixelsExternalImage(args: {
     externalResource = program.inputTexture.createView();
   }
 
-  backend.recordFromPixelsCommands(
-      program, info.bufferInfo.buffer, layout, externalResource);
-  if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
-      number <= backend.computePassNumberInEncoder) {
-    backend.submitQueue();
-  }
+  backend.runFromPixelsProgram(
+      program, info.bufferInfo.buffer, layout, externalResource, output.dataId);
   return output;
 }
