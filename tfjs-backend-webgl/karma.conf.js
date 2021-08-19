@@ -58,7 +58,7 @@ const devConfig = {
   ],
   preprocessors: {'**/*.ts': ['karma-typescript']},
   karmaTypescriptConfig,
-  reporters: ['dots', 'karma-typescript']
+  reporters: ['karma-typescript']
 };
 
 const browserstackConfig = {
@@ -123,7 +123,7 @@ module.exports = function(config) {
       bs_firefox_mac: {
         base: 'BrowserStack',
         browser: 'firefox',
-        browser_version: 'latest',
+        browser_version: '90.0',
         os: 'OS X',
         os_version: 'High Sierra'
       },

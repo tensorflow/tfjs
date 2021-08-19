@@ -216,7 +216,7 @@ describeWithFlags('fromPixelsAsync, |WRAP_TO_IMAGEBITMAP| false', BROWSER_ENVS, 
     const data = await res.data();
     expect(data.length).toEqual(10 * 10 * 3);
   });
-  xit('fromPixelsAsync for HTMLVideoElement', async () => {
+  it('fromPixelsAsync for HTMLVideoElement', async () => {
     const video = document.createElement('video');
     video.autoplay = true;
     const source = document.createElement('source');
@@ -314,7 +314,7 @@ describeWithFlags('fromPixelsAsync, |WRAP_TO_IMAGEBITMAP| true', BROWSER_ENVS, (
     const data = await res.data();
     expect(data.length).toEqual(10 * 10 * 3);
   });
-  xit('fromPixelsAsync for HTMLVideoElement', async () => {
+  it('fromPixelsAsync for HTMLVideoElement', async () => {
     const video = document.createElement('video');
     video.autoplay = true;
     const source = document.createElement('source');
@@ -339,7 +339,7 @@ describeWithFlags('fromPixelsAsync, |WRAP_TO_IMAGEBITMAP| true', BROWSER_ENVS, (
     document.body.removeChild(video);
   });
 
-  xit('canvas and image match', async () => {
+  it('canvas and image match', async () => {
     const img = new Image();
     const size = 80;
     // tslint:disable:max-line-length
