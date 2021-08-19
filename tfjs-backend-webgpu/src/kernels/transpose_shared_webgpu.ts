@@ -15,8 +15,10 @@
  * =============================================================================
  */
 
+import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch} from '../webgpu_util';
-import {WebGPUProgram} from './webgpu_program';
+
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class TransposeSharedProgram implements WebGPUProgram {
   variableNames = ['A'];
@@ -26,6 +28,7 @@ export class TransposeSharedProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   // Note that the maximum number of workgroup invocations by webgpu is 256.
   workGroupSize: [number, number, number] = [16, 16, 1];
+  useWgsl: boolean;
 
   constructor(aShape: number[], newDim: number[]) {
     const outputShape: number[] = new Array(aShape.length);
@@ -38,6 +41,7 @@ export class TransposeSharedProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize, [1, 1, 1]);
 
     this.shaderKey = 'transposeShared';
+    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
@@ -61,6 +65,38 @@ export class TransposeSharedProgram implements WebGPUProgram {
         if (x < height && y < width) {
           setOutput((y * height + x), tile[gl_LocalInvocationID.x]
             [gl_LocalInvocationID.y]);
+        }
+      }
+    `;
+    return userCode;
+  }
+
+  getUserCodeWgsl(): string {
+    const userCode = `
+    let TILE_DIM = ${this.workGroupSize[0]}u;
+    var<workgroup> tile : array<array<f32, ${this.workGroupSize[0] + 1}>, ${
+        this.workGroupSize[0]}>;
+    ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
+    fn main([[builtin(local_invocation_id)]] localId : vec3<u32>, [[builtin(global_invocation_id)]] globalId : vec3<u32>) {
+        let index = globalId.x;
+        let workGroupID = (globalId - localId)/vec3<u32>(${
+        this.workGroupSize[0]}u, ${this.workGroupSize[1]}u, ${
+        this.workGroupSize[2]}u);
+        var x = workGroupID.x * TILE_DIM + localId.x;
+        var y = workGroupID.y * TILE_DIM + localId.y;
+        let width = uniforms.outShape[0];
+        let height = uniforms.outShape[1];
+        if (x < width && y < height) {
+          tile[localId.y][localId.x] =
+              A.numbers[y * width + x];
+        }
+        workgroupBarrier();
+
+        x = workGroupID.y * TILE_DIM + localId.x;
+        y = workGroupID.x * TILE_DIM + localId.y;
+        if (x < height && y < width) {
+          setOutputFlat((y * height + x), tile[localId.x]
+            [localId.y]);
         }
       }
     `;
