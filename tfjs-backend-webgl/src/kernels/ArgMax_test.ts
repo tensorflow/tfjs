@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,12 +15,20 @@
  * =============================================================================
  */
 
-import {version_core} from './index';
+import * as tf from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
+import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-describe('version', () => {
-  it('version is contained', () => {
-    // tslint:disable-next-line:no-require-imports
-    const expected = require('../package.json').version;
-    expect(version_core).toBe(expected);
+import {WEBGL_ENVS} from '../backend_webgl_test_registry';
+
+describeWithFlags('ArgMax', WEBGL_ENVS, () => {
+  it('handles packed inputs', async () => {
+    const a = tf.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
+
+    // pack a using the add op which packs outputs
+    tf.env().set('WEBGL_PACK', true);
+    const aPacked = tf.addN([a, tf.zeros(a.shape)]);
+
+    tf.test_util.expectArraysEqual(await tf.argMax(aPacked).data(), [1, 0, 1]);
   });
 });

@@ -137,8 +137,15 @@ import {setWasmPaths} from '@tensorflow/tfjs-backend-wasm';
 // setWasmPaths accepts a `prefixOrFileMap` argument which can be either a
 // string or an object. If passing in a string, this indicates the path to
 // the directory where your WASM binaries are located.
-setWasmPaths('www.yourdomain.com/'); // or tf.wasm.setWasmPaths when using <script> tags.
+setWasmPaths('www.yourdomain.com/');
 tf.setBackend('wasm').then(() => {...});
+```
+
+If the WASM backend is imported through `<script>` tag, `setWasmPaths` needs to
+be called on the `tf.wasm` object:
+
+```ts
+tf.wasm.setWasmPaths('www.yourdomain.com/');
 ```
 
 Note that if you call `setWasmPaths` with a string, it will be used to load

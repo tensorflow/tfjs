@@ -35,10 +35,10 @@ import {loadTFLiteModel, TFLiteModel} from '@tensorflow/tfjs-tflite';
 ### Via a script tag
 
 ```html
-<!-- Adds the CPU backend -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-cpu"></script>
 <!-- Import @tensorflow/tfjs-core -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+<!-- Adds the CPU backend -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-cpu"></script>
 <!--
   Import @tensorflow/tfjs-tflite
 
@@ -63,7 +63,7 @@ setWasmPath('https://your-server/path');
 
 ## Load a TFLite model
 ```js
-const tfliteModel = await loadTFLiteModel('url/to/your/model.tflite');
+const tfliteModel = await tflite.loadTFLiteModel('url/to/your/model.tflite');
 ```
 
 ## Run inference

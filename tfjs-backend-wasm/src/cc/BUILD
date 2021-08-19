@@ -153,6 +153,7 @@ tfjs_cc_library(
     hdrs = ["conv2d_impl.h"],
     deps = [
         ":backend",
+        ":elu_impl",
         ":leakyrelu_impl",
         ":prelu_impl",
         ":sigmoid_impl",
@@ -167,10 +168,21 @@ tfjs_cc_library(
     hdrs = ["batch_mat_mul_impl.h"],
     deps = [
         ":backend",
+        ":elu_impl",
         ":leakyrelu_impl",
         ":prelu_impl",
         ":sigmoid_impl",
         ":transpose_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "elu_impl",
+    srcs = ["elu_impl.cc"],
+    hdrs = ["elu_impl.h"],
+    deps = [
+        ":backend",
         ":util",
     ],
 )
@@ -268,6 +280,7 @@ tfjs_cc_library(
         ":Cumsum",
         ":DepthToSpace",
         ":DepthwiseConv2dNative",
+        ":Elu",
         ":Equal",
         ":Exp",
         ":FlipLeftRight",
@@ -544,6 +557,17 @@ tfjs_cc_library(
     deps = [
         ":binary",
         ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Elu",
+    srcs = ["kernels/Elu.cc"],
+    hdrs = ["kernels/Elu.h"],
+    deps = [
+        ":backend",
+        ":elu_impl",
+        ":unary",
     ],
 )
 

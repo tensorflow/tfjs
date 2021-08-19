@@ -7,51 +7,43 @@ steps:
 
 # Install packages.
 - name: 'node:10'
-  dir: 'tfjs-tflite'
-  entrypoint: 'yarn'
+  dir: 'tfjs-backend-webgl'
   id: 'yarn'
+  entrypoint: 'yarn'
   args: ['install']
   waitFor: ['yarn-common']
 
-# Install build-deps.
+# Build deps.
 - name: 'node:10'
-  dir: 'tfjs-tflite'
-  entrypoint: 'yarn'
+  dir: 'tfjs-backend-webgl'
   id: 'build-deps'
+  entrypoint: 'yarn'
   args: ['build-deps-ci']
   waitFor: ['yarn-common']
 
-# Download tflite web API.
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  dir: 'tfjs-tflite'
-  id: 'download-tflite-web-api'
-  entrypoint: 'bash'
-  args: ['scripts/download-tflite-web-api.sh']
-  waitFor: ['yarn', 'build-deps']
-
 # Build.
 - name: 'node:10'
-  dir: 'tfjs-tflite'
+  dir: 'tfjs-backend-webgl'
   id: 'build'
   entrypoint: 'yarn'
   args: ['build-ci']
-  waitFor: ['yarn', 'build-deps', 'download-tflite-web-api']
+  waitFor: ['yarn', build-deps]
 
 # Lint.
 - name: 'node:10'
-  dir: 'tfjs-tflite'
-  entrypoint: 'yarn'
+  dir: 'tfjs-backend-webgl'
   id: 'lint'
+  entrypoint: 'yarn'
   args: ['lint']
-  waitFor: ['yarn', 'build-deps', 'download-tflite-web-api']
+  waitFor: ['yarn', 'build-deps']
 
 # Run tests.
 - name: 'node:10'
-  dir: 'tfjs-tflite'
+  dir: 'tfjs-backend-webgl'
   entrypoint: 'yarn'
-  id: 'test-tfjs-tflite'
+  id: 'test'
   args: ['test-ci']
-  waitFor: ['yarn', 'build-deps', 'lint', 'download-tflite-web-api']
+  waitFor: ['yarn', 'build-deps', 'lint']
   env: ['BROWSERSTACK_USERNAME=deeplearnjs1', 'NIGHTLY=$_NIGHTLY']
   secretEnv: ['BROWSERSTACK_KEY']
 
@@ -66,5 +58,4 @@ substitutions:
   _NIGHTLY: ''
 options:
   logStreamingOption: 'STREAM_ON'
-  machineType: 'N1_HIGHCPU_8'
   substitution_option: 'ALLOW_LOOSE'

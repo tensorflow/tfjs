@@ -15,13 +15,8 @@
  * =============================================================================
  */
 
-export function getWorkGroupSizeString(workGroupSize: [number, number, number]):
-    string {
-  if (workGroupSize == null) {
-    return '';
-  }
-  return `
-  [[stage(compute), workgroup_size(${workGroupSize[0]}, ${workGroupSize[1]}, ${
-      workGroupSize[2]})]]
-`;
-}
+import * as tf from '@tensorflow/tfjs-core';
+import '@tensorflow/tfjs-backend-cpu';
+
+const t = tf.tensor1d([1,2,3,4,5]);
+t.print();

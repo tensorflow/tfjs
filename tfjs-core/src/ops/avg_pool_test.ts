@@ -101,8 +101,7 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
     const result = tf.avgPool(x, 3, 1, padding);
 
     expect(result.shape).toEqual([4, 2, 1]);
-    expectArraysClose(
-        await result.data(), [2.5, 3, 4, 4.5, 5.5, 6, 7, 7.5]);
+    expectArraysClose(await result.data(), [2.5, 3, 4, 4.5, 5.5, 6, 7, 7.5]);
   });
 
   it('x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor', () => {
@@ -156,8 +155,7 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
     const dy = tf.tensor3d([0, 3, 0, 6, 0, 9, 0, 12], [4, 2, 1]);
     const dx = tf.grad((x: tf.Tensor3D) => x.avgPool(3, 1, padding))(x, dy);
     expect(dx.shape).toEqual(x.shape);
-    expectArraysClose(
-        await dx.data(), [0, 1, 1, 0, 2, 2, 0, 3, 3]);
+    expectArraysClose(await dx.data(), [0, 1, 1, 0, 2, 2, 0, 3, 3]);
   });
 
   it('gradient x=[2,3,3,1] f=[2,2], s=1', async () => {

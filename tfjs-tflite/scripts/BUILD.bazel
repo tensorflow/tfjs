@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # Copyright 2021 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,20 +13,9 @@
 # limitations under the License.
 # =============================================================================
 
-set -e
+package(default_visibility = ["//visibility:public"])
 
-DEPS_DIR="./deps"
-if [ ! -d ${DEPS_DIR} ] || [ ! "$(ls -A ${DEPS_DIR})" ]; then
-    echo "ERROR: TFLite web API not downloaded yet. Run './scripts/download-tflite-web-api.sh {version}' first."
-    exit 1
-fi
-
-yarn rimraf dist/
-mkdir -p dist
-yarn
-
-cp ${DEPS_DIR}/* dist/
-yarn build
-yarn rollup -c --visualize --npm
-
-echo "Stored standalone library at dist/tf-tflite(.min).js"
+sh_binary(
+    name = "download_tflite_web_api",
+    srcs = ["download-tflite-web-api.sh"],
+)

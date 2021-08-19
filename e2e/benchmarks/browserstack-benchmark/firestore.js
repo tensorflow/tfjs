@@ -14,8 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
+
 require('firebase/firestore');
 require('firebase/auth');
+
 const firebase = require('firebase/app');
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_KEY,
@@ -27,22 +29,34 @@ const firebaseConfig = {
   appId: '1:834911136599:web:4b65685455bdf916a1ec12'
 };
 
-firebase.initializeApp(firebaseConfig);
+/**
+ * Initializes Firebase, signs in with secret credentials, and accesses the
+ * Firestore collection of results.
+ *
+ * @param firebaseConfig A configuration with Firebase credentials
+ */
+async function runFirestore(firebaseConfig) {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    await firebase.auth().signInAnonymously();
+    console.log('\nSuccesfuly signed into Firebase with anonymous account.');
 
-firebase.auth()
-    .signInAnonymously()
-    .then(() => {console.log('Signed into Firebase with anonymous account.')})
-    .catch((error) => {
-      let errorCode = error.code;
-      let errorMessage = error.message;
-      console.log(`Error code: ${errorCode}`);
-      console.log(`Error message: ${errorMessage}`);
-    });
+    // Reference to the "BenchmarkResults" collection on firestore that contains
+    // the benchmark results.
+    return firebase.firestore().collection('BenchmarkResults');
+  } catch (err) {
+    console.log(`\nError code: ${err.code}`);
+    throw new Error(`Error message: ${err.message}`);
+  }
+}
 
-
-// Reference to the "BenchmarkResults" collection on firestore that contains the
-// benchmark results.
-const db = firebase.firestore().collection('BenchmarkResults');
+/**
+ * Deletes the Firebase instance, which allows the Node.js process to finish.
+ */
+function endFirebaseInstance() {
+  firebase.app().delete();
+  console.log('Exited Firebase instance.');
+}
 
 /**
  * After being returned from Browserstack, benchmark results are stored as
@@ -51,15 +65,20 @@ const db = firebase.firestore().collection('BenchmarkResults');
  * As results are being iterated through, this function handles taking a result,
  * serializing it, and pushing it to Firestore.
  *
+ * @param db Reference to Firestore collection
+ * @param resultId ID of value added to Firestore
  * @param result Individual result in a list of fulfilled promises
  */
-function addResultToFirestore(resultValue) {
-  const firestoreMap =
-      formatForFirestore(resultValue, serializeTensors, getReadableDate);
-
-  db.add({result: firestoreMap}).then((ref) => {
-    console.log(`Added document to Firestore with ID: ${ref.id}`);
-  });
+async function addResultToFirestore(db, resultId, result) {
+  try {
+    const firestoreMap =
+        formatForFirestore(result, serializeTensors, getReadableDate);
+    await db.add({result: firestoreMap}).then((ref) => {
+      console.log(`Added ${resultId} to Firestore with ID: ${ref.id}`);
+    });
+  } catch (err) {
+    throw err;
+  }
 }
 
 /**
@@ -69,9 +88,9 @@ function addResultToFirestore(resultValue) {
  * @param result Individual result in a list of fulfilled promises
  */
 function formatForFirestore(
-    resultValue, makeCompatable = serializeTensors, getDate = getReadableDate) {
+    result, makeCompatable = serializeTensors, getDate = getReadableDate) {
   let firestoreMap = {};
-  firestoreMap.benchmarkInfo = makeCompatable(resultValue);
+  firestoreMap.benchmarkInfo = makeCompatable(result);
   firestoreMap.date = getDate();
 
   return firestoreMap;
@@ -84,13 +103,13 @@ function formatForFirestore(
  *
  * @param result Individual result in a list of fulfilled promises
  */
-function serializeTensors(resultValue) {
-  let kernels = resultValue.memoryInfo.kernels;
+function serializeTensors(result) {
+  let kernels = result.memoryInfo.kernels;
   for (kernel of kernels) {
     kernel.inputShapes = JSON.stringify(kernel.inputShapes);
     kernel.outputShapes = JSON.stringify(kernel.outputShapes);
   }
-  return resultValue;
+  return result;
 }
 
 /**
@@ -108,4 +127,6 @@ exports.addResultToFirestore = addResultToFirestore;
 exports.serializeTensors = serializeTensors;
 exports.getReadableDate = getReadableDate;
 exports.formatForFirestore = formatForFirestore;
-exports.db = db;
+exports.runFirestore = runFirestore;
+exports.firebaseConfig = firebaseConfig;
+exports.endFirebaseInstance = endFirebaseInstance;

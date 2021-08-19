@@ -13,73 +13,71 @@
 # limitations under the License.
 # =============================================================================
 
+load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin")
 load("//tools:defaults.bzl", "esbuild", "ts_library")
 
 package(default_visibility = ["//visibility:public"])
 
 TEST_SRCS = [
     "**/*_test.ts",
+    "setup_test.ts",
 ]
 
 ts_library(
-    name = "tfjs-backend-webgl_src_lib",
+    name = "tfjs-tflite_src_lib",
     srcs = glob(
         ["**/*.ts"],
         exclude = TEST_SRCS + ["index.ts"],
     ),
-    module_name = "@tensorflow/tfjs-backend-webgl/dist",
+    module_name = "@tensorflow/tfjs-tflite/dist",
     deps = [
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
         "//tfjs-core/src:tfjs-core_lib",
-        "//tfjs-core/src:tfjs-core_src_lib",
-        "@npm//@types/offscreencanvas",
         "@npm//@types/seedrandom",
-        "@npm//@types/webgl-ext",
-        "@npm//@types/webgl2",
+        "@npm//seedrandom",
     ],
 )
 
 ts_library(
-    name = "tfjs-backend-webgl_lib",
+    name = "tfjs-tflite_lib",
     srcs = ["index.ts"],
-    module_name = "@tensorflow/tfjs-backend-webgl",
+    module_name = "@tensorflow/tfjs-tflite",
     deps = [
-        ":tfjs-backend-webgl_src_lib",
+        ":tfjs-tflite_src_lib",
+    ],
+)
+
+copy_to_bin(
+    name = "tflite_web_api_client_js",
+    srcs = [
+        "tflite_web_api_client.js",
     ],
 )
 
 ts_library(
-    name = "tfjs-backend-webgl_test_lib",
-    testonly = True,
+    name = "tfjs-tflite_test_lib",
     srcs = glob(TEST_SRCS),
-    module_name = "@tensorflow/tfjs-backend-webgl/dist",
+    module_name = "@tensorflow/tfjs-tflite/dist",
     deps = [
-        ":tfjs-backend-webgl_lib",
-        ":tfjs-backend-webgl_src_lib",
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        ":tfjs-tflite_lib",
+        ":tfjs-tflite_src_lib",
         "//tfjs-core/src:tfjs-core_lib",
-        "//tfjs-core/src:tfjs-core_src_lib",
     ],
 )
 
 esbuild(
-    name = "tfjs-backend-webgl_test_bundle",
+    name = "tfjs-tflite_test_bundle",
     testonly = True,
     entry_point = "setup_test.ts",
     external = [
-        # webworker tests call 'require('@tensorflow/tfjs')', which
-        # is external to the test bundle.
-        # Note: This is not a bazel target. It's just a string.
         "@tensorflow/tfjs",
         "worker_threads",
         "util",
     ],
     sources_content = True,
     deps = [
-        ":tfjs-backend-webgl_lib",
-        ":tfjs-backend-webgl_test_lib",
-        "//tfjs-backend-webgl:package_json",
-        "//tfjs-core/src:tfjs-core_test_bundle",
+        ":tfjs-tflite_lib",
+        ":tfjs-tflite_test_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-core/src:tfjs-core_lib",
     ],
 )
