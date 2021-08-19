@@ -326,12 +326,12 @@ describeWithFlags('fromPixelsAsync, |WRAP_TO_IMAGEBITMAP| true', BROWSER_ENVS, (
     source.type = 'video/mp4';
     video.appendChild(source);
     document.body.appendChild(video);
+    video.load();
 
     // On mobile safari the ready state is ready immediately so we and skip
     // firefox browser.
     console.log(navigator.userAgent, video.readyState);
-    if (!!navigator && navigator.userAgent.search('Firefox') < 0 &&
-        video.readyState < 2) {
+    if (video.readyState < 2) {
       await new Promise(resolve => {
         video.addEventListener('loadeddata', () => resolve(video));
       });
