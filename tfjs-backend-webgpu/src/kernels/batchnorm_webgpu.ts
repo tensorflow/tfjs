@@ -139,7 +139,7 @@ export class BatchNormProgram implements WebGPUProgram {
         let varianValue = getVarianceAtOutCoordsByGlobalId(globalId);
         let offsetValue = ${offsetSnippet};
         let scaleValue = ${scaleSnippet};
-        let inv = scaleValue * 1.0/sqrt(varianValue + f32(uniforms.varianceEpsilon));
+        let inv = scaleValue * inverseSqrt(varianValue + f32(uniforms.varianceEpsilon));
         writeResult(coords,dot(vec3<f32>(xValue, -meanValue, offsetValue), vec3<f32>(inv, inv, 1.0)));
       }
   `;
