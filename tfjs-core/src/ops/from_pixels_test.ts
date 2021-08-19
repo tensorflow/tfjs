@@ -208,7 +208,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     const data = await res.data();
     expect(data.length).toEqual(10 * 10 * 3);
   });
-  xit('fromPixels for HTMLVideoElement', async () => {
+  it('fromPixels for HTMLVideoElement', async () => {
     const video = document.createElement('video');
     video.autoplay = true;
     const source = document.createElement('source');
