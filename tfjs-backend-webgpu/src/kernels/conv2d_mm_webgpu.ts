@@ -20,8 +20,8 @@ import {backend_util, util} from '@tensorflow/tfjs-core';
 import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d, tilesFitEvenlyIntoShape} from '../webgpu_util';
 import {mapActivationToShaderProgram} from './activation_util';
 
-import {makeMatMulPackedSource} from './matmul_packed_webgpu';
-import {WebGPUProgram} from './webgpu_program';
+import {makeMatMulPackedSource, makeMatMulPackedSourceWgsl} from './matmul_packed_webgpu';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class Conv2DMMProgram implements WebGPUProgram {
   outputShape: number[];
@@ -30,6 +30,8 @@ export class Conv2DMMProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
+  uniformsWgsl =
+      `filterDims : vec2<u32>; pad : vec2<u32>; stride : vec2<u32>; dilation : vec2<u32>; dimAOuter : u32; dimBOuter : u32; dimInner : u32;`;
   workGroupSize: [number, number, number];
   elementsPerThread: [number, number, number];
   convInfo: backend_util.Conv2DInfo;
@@ -38,6 +40,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
   hasPreluActivationWeights: boolean;
   fitA: boolean;
   fitB: boolean;
+  useWgsl: boolean;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
@@ -73,6 +76,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
     [this.fitA, this.fitB] = this.getShapeFit();
     this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}_${
         this.fitA}_${this.fitB}`;
+    this.useWgsl = getUseWgsl();
   }
 
   getShapeFit(): boolean[] {
@@ -183,6 +187,98 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
       mm_matMul(dimAOuter, dimInner, dimBOuter);
     }
+  `;
+    return userCode;
+  }
+
+  getUserCodeWgsl(): string {
+    const matMulSource =
+        makeMatMulPackedSourceWgsl(this.elementsPerThread, this.workGroupSize);
+
+    const readASnippet = `
+    let outRow = row / uniforms.outShape[2];
+    let outCol = row % uniforms.outShape[2];
+
+    let WRow = col / (uniforms.filterDims[1] * uniforms.xShape[3]);
+    let WCol = (col / uniforms.xShape[3]) % uniforms.filterDims[1];
+
+    let coord = vec4<u32>(
+        batch,
+        outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0],
+        outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1],
+        col % uniforms.xShape[3]);
+    // The bounds checking is always needed since we use it to pad zero for the
+    // 'same' padding type.
+    if(coordsInBounds4D(coord, uniforms.xShape)) {
+      return x.numbers[getFlatIndex4D(coord, uniforms.xShape)];
+    }
+    return 0.0;`;
+
+    const sampleA = this.fitA ?
+        `${readASnippet}` :
+        `if (row < uniforms.dimAOuter && col < uniforms.dimInner) {
+      ${readASnippet}
+    }
+    return 0.0;
+    `;
+
+    const sampleB = this.fitB ?
+        `return W.numbers[row * uniforms.dimBOuter + col];` :
+        `if(coordsInBounds2D(vec2<u32>(row, col), vec2<u32>(uniforms.dimInner, uniforms.dimBOuter))) {
+           return W.numbers[row * uniforms.dimBOuter + col];
+	 }
+	 return 0.0;
+	 `;
+
+    let activationSnippet = '', applyActivationSnippet = '';
+    if (this.activation) {
+      const activationOp =
+          mapActivationToShaderProgram(this.activation, false, this.useWgsl);
+      if (this.hasPreluActivationWeights) {
+        activationSnippet =
+            `fn activation(a: f32, outCoord : vec4<u32>) -> f32 {
+                  let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
+                  ${activationOp}
+                }`;
+      } else {
+        activationSnippet = `
+                  fn activation(a : f32, outCoord : vec4<u32>) -> f32 {
+                    ${activationOp}
+                  }
+                `;
+      }
+
+      applyActivationSnippet = `value = activation(value, outCoord);`;
+    }
+
+    const addBiasSnippet = this.addBias ?
+        'value = value + getBiasAtOutCoordsByCoords(outCoord);' :
+        '';
+
+    const userCode = `
+    ${activationSnippet}
+    fn mm_readA(row : u32, col : u32, globalId : vec3<u32>) -> f32 {
+      var batch = globalId.z;
+      ${sampleA}
+    }
+
+    fn mm_readB(row : u32, col : u32, globalId : vec3<u32>) -> f32 {
+      ${sampleB}
+    }
+
+    fn mm_write(row : u32, col : u32, valueInput : f32, globalId : vec3<u32>) {
+      var batch = globalId.z;
+      var value = valueInput;
+      let outCoord = vec4<u32>(
+          batch,
+          row / uniforms.outShape[2],
+          row % uniforms.outShape[2],
+          col);
+      ${addBiasSnippet}
+      ${applyActivationSnippet}
+      result.numbers[getFlatIndex4D(outCoord, uniforms.outShape)] = value;
+    }
+    ${matMulSource}
   `;
     return userCode;
   }

@@ -54,7 +54,8 @@ export function conv2d(
     {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
     {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]}
   ];
-  if (env().getBool('WEBGPU_USE_NAIVE_CONV2D')) {
+  const useNaive = env().getBool('WEBGPU_USE_NAIVE_CONV2D');
+  if (useNaive) {
     // TODO(kainino0x): This may be obsolete, but is kept for reference.
     program = new Conv2DNaiveProgram(convInfo);
   } else if (
@@ -66,18 +67,18 @@ export function conv2d(
        (convInfo.inChannels === 3 && convInfo.padInfo.type === 'VALID')) &&
       convInfo.outChannels % 4 === 0 && convInfo.outChannels >= 64) {
     program = new Conv2DMMVec4Program(convInfo);
-    if ((program as Conv2DMMVec4Program).useWgsl === true) {
-      const dimAOuter = convInfo.outShape[1] * convInfo.outShape[2];
-      const dimBOuter = convInfo.outShape[3];
-      const dimInner =
-          convInfo.filterHeight * convInfo.filterWidth * convInfo.inShape[3];
-      dimensions.push(
-          {type: 'uint32', data: [dimAOuter]},
-          {type: 'uint32', data: [dimBOuter]},
-          {type: 'uint32', data: [dimInner]});
-    }
   } else {
     program = new Conv2DMMProgram(convInfo);
+  }
+  if (!useNaive && program.useWgsl === true) {
+    const dimAOuter = convInfo.outShape[1] * convInfo.outShape[2];
+    const dimBOuter = convInfo.outShape[3];
+    const dimInner =
+        convInfo.filterHeight * convInfo.filterWidth * convInfo.inShape[3];
+    dimensions.push(
+        {type: 'uint32', data: [dimAOuter]},
+        {type: 'uint32', data: [dimBOuter]},
+        {type: 'uint32', data: [dimInner]});
   }
 
   return backend.runWebGPUProgram(program, [x, filter], x.dtype, dimensions);

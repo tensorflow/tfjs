@@ -30,7 +30,7 @@ export function mapActivationToShaderProgram(
   } else if (activation === 'relu') {
     return getUnaryOpString(UnaryOpType.RELU, packed, useWgsl);
   } else if (activation === 'elu') {
-    return getUnaryOpString(UnaryOpType.ELU, packed);
+    return getUnaryOpString(UnaryOpType.ELU, packed, useWgsl);
   } else if (activation === 'relu6') {
     return getUnaryOpString(UnaryOpType.RELU6, packed, useWgsl);
   } else if (activation === 'prelu') {

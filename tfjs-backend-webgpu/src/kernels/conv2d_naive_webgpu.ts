@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,10 +17,11 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
+import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
-import {mapActivationToShaderProgram} from './activation_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {mapActivationToShaderProgram} from './activation_util';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class Conv2DNaiveProgram implements WebGPUProgram {
   outputShape: number[];
@@ -29,11 +30,14 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
+  uniformsWgsl =
+      `filterDims : vec2<u32>; pad : vec2<u32>; stride : vec2<u32>; dilation : vec2<u32>;`;
   workGroupSize: [number, number, number] = [128, 1, 1];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
+  useWgsl: boolean;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
@@ -61,6 +65,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
     this.hasPreluActivationWeights = hasPreluActivationWeights;
 
     this.shaderKey = `conv2DNaive_${this.activation}`;
+    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
@@ -124,6 +129,85 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
                   xChannel);
               float f = readFilt(row, col, xChannel, outChannel);
               acc += v * f;
+            }
+          }
+        }
+
+        writeResult(batch, coords[1], coords[2], outChannel, acc);
+      }
+    `;
+    return userCode;
+  }
+
+  getUserCodeWgsl(): string {
+    let activationSnippet = '', applyActivationSnippet = '';
+    if (this.activation) {
+      const activationOp = mapActivationToShaderProgram(this.activation);
+      if (this.hasPreluActivationWeights) {
+        activationSnippet =
+            `fn activation(a : f32, outCoord : vec4<u32>) -> f32{
+               let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
+               ${activationOp}
+             }`;
+      } else {
+        activationSnippet = `
+                  fn activation(a : f32, outCoord : vec4<u32>) -> f32{
+                    ${activationOp}
+                  }
+                `;
+      }
+
+      applyActivationSnippet = `value = activation(value, outCoord);`;
+    }
+
+    const addBiasSnippet = this.addBias ?
+        'value = value + getBiasAtOutCoordsByCoords(outCoord);' :
+        '';
+
+    const userCode = `
+      ${activationSnippet}
+      fn readInp(batch : u32, row : u32, col : u32, chan : u32) -> f32 {
+        let coord = vec4<u32>(batch, row, col, chan);
+        if(coordsInBounds4D(coord, uniforms.xShape)) {
+          return getX(batch, row, col, chan);
+        }
+        return 0.0;
+      }
+
+      fn readFilt(row : u32, col : u32, xChannel : u32, outChannel : u32) -> f32{
+        let coord = vec4<u32>(row, col, xChannel, outChannel);
+        if(coordsInBounds4D(coord, uniforms.wShape)) {
+          return getW(row, col, xChannel, outChannel);
+        }
+        return 0.0;
+      }
+
+      fn writeResult(batch : u32, row : u32, col : u32, chan : u32, value : f32) {
+        let coord = vec4<u32>(batch, row, col, chan);
+        if (coordsInBounds4D(coord, uniforms.outShape)) {
+          ${addBiasSnippet}
+          ${applyActivationSnippet}
+          setOutput(batch, row, col, chan, value);
+        }
+      }
+
+      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
+      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
+        let coords = getOutputCoords(globalId);
+        let batch = coords[0];
+        let outChannel = coords[3];
+
+        var acc = 0.0;
+
+        for (var row = 0u; row < uniforms.filterDims[0]; row = row + 1u) {
+          for (var col = 0u; col < uniforms.filterDims[1]; col = col + 1u) {
+            for (var xChannel = 0u; xChannel < uniforms.xShape[3]; xChannel = xChannel + 1u) {
+              let v = readInp(batch,
+                  coords[1] * uniforms.stride[0] + uniforms.dilation[0] * row - uniforms.pad[0],
+                  coords[2] * uniforms.stride[1] + uniforms.dilation[1] * col - uniforms.pad[1],
+                  xChannel);
+              let f = readFilt(row, col, xChannel, outChannel);
+              acc = acc + v * f;
             }
           }
         }
