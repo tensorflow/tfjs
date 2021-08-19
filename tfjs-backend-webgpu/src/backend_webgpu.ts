@@ -814,9 +814,9 @@ export class WebGPUBackend extends KernelBackend {
     return output;
   }
 
-  recordFromPixelsCommands(
+  runFromPixelsProgram(
       program: FromPixelsProgram, output: GPUBuffer, layout: WebGPULayout,
-      externalResource: GPUExternalTexture|GPUTextureView) {
+      externalResource: GPUExternalTexture|GPUTextureView, outputId: DataId) {
     const bindGroup = this.device.createBindGroup({
       layout: layout.bindGroupLayout,
       entries: [
@@ -857,6 +857,11 @@ export class WebGPUBackend extends KernelBackend {
     }
     passEncoder.endPass();
     this.computePassNumberInEncoder++;
+    this.commandQueueOwnedIds.add(outputId);
+    if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
+        number <= this.computePassNumberInEncoder) {
+      this.submitQueue();
+    }
     if (shouldTimeProgram) {
       this.activeTimers.push({
         name: program.constructor.name,
