@@ -48,7 +48,7 @@ export class PadProgram implements WebGPUProgram {
       this.uniformsWgsl += ` pad${i} : vec2<u32>;`;
     });
     this.xShape = xShape;
-    this.shaderKey = `pad`;
+    this.shaderKey = 'pad';
     this.useWgsl = getUseWgsl();
     this.size = util.sizeFromShape(this.outputShape);
   }

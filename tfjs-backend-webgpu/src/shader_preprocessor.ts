@@ -206,9 +206,9 @@ const SAMPLING_SNIPPETS = `
       shape.y * shape.z * shape.w, shape.z * shape.w, shape.w, 1.)));
   }
 
+  // Only used when the y/z dimension of workgroup size is 1.
   int getGlobalIndex() {
-    if (dispatchSize.y == 1 && dispatchSize.z == 1)
-    {
+    if (dispatchSize.y == 1 && dispatchSize.z == 1) {
       return int(gl_GlobalInvocationID.x);
     } else {
       return int((gl_WorkGroupID.z * dispatchSize.x * dispatchSize.y +
