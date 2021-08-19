@@ -17,9 +17,10 @@
 
 import {util} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
+import {getCoordsDataTypeWgsl, getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class TransposeProgram implements WebGPUProgram {
   variableNames = ['A'];
@@ -31,6 +32,7 @@ export class TransposeProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   newDim: number[];
   size: number;
+  useWgsl: boolean;
 
   constructor(aShape: number[], newDim: number[]) {
     const outputShape: number[] = new Array(aShape.length);
@@ -46,6 +48,7 @@ export class TransposeProgram implements WebGPUProgram {
     this.newDim = newDim;
     this.shaderKey = `transpose_${newDim}`;
     this.size = util.sizeFromShape(this.outputShape);
+    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
@@ -62,6 +65,29 @@ export class TransposeProgram implements WebGPUProgram {
             ${dtype} resRC = getCoordsFromFlatIndex(flatIndex);
             setOutput(flatIndex, A[getFlatIndex(
               ${dtype}(${switched}), aShape)]);
+          }
+        }
+      }
+    `;
+    return userCode;
+  }
+
+  getUserCodeWgsl(): string {
+    const dtype = getCoordsDataTypeWgsl(this.outputShape.length);
+    const switched = getSwitchedCoords(this.newDim);
+
+    const userCode = `
+      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
+      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
+        let index = globalId.x;
+
+        for(var i = 0u; i < ${this.workPerThread}u; i = i + 1u) {
+          let flatIndex = index * ${this.workPerThread}u + i;
+          if(flatIndex < uniforms.size) {
+            let resRC = getCoordsFromFlatIndex(flatIndex);
+            setOutputFlat(flatIndex, A.numbers[getFlatIndex${
+        this.outputShape.length}D(
+              ${dtype}(${switched}), uniforms.aShape)]);
           }
         }
       }

@@ -16,9 +16,11 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
+
+import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class GatherProgram implements WebGPUProgram {
   outputShape: number[];
@@ -29,6 +31,7 @@ export class GatherProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   aShape: number[];
   size: number;
+  useWgsl: boolean;
 
   constructor(aShape: number[], outputShape: number[]) {
     this.outputShape = aShape.slice();
@@ -39,6 +42,7 @@ export class GatherProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = `gather`;
     this.size = util.sizeFromShape(this.outputShape);
+    this.useWgsl = getUseWgsl();
   }
   getUserCode(): string {
     const sourceCoords = getSourceCoords(this.aShape);
@@ -53,15 +57,30 @@ export class GatherProgram implements WebGPUProgram {
     `;
     return userCode;
   }
+
+  getUserCodeWgsl(): string {
+    const sourceCoords = getSourceCoords(this.aShape, 'u32');
+    const userCode = `
+      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
+      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
+        let index = globalId.x;
+        let resRC = getOutputCoords(globalId);
+        if (index < uniforms.size) {
+          setOutputFlat(index, getA(${sourceCoords}));
+        }
+      }
+    `;
+    return userCode;
+  }
 }
 
 // The input and output are always flattened into rank 4 tensors.
-function getSourceCoords(aShape: number[]): string {
+function getSourceCoords(aShape: number[], typePrefix = 'int'): string {
   const currentCoords = ['resRC.x', 'resRC.y', 'resRC.z', 'resRC.w'];
   const sourceCoords = [];
   for (let i = 0; i < aShape.length; i++) {
     if (i === 2) {
-      sourceCoords.push('int(getIndices(resRC.x, resRC.z))');
+      sourceCoords.push(`${typePrefix}(getIndices(resRC.x, resRC.z))`);
     } else {
       sourceCoords.push(`${currentCoords[i]}`);
     }
