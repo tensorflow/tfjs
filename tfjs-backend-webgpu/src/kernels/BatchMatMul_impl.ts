@@ -125,15 +125,6 @@ export function batchMatMulImpl({
         a3dShape, [batchDim, outerShapeA, outerShapeB],
         env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, bias, activation,
         preluActivationWeights);
-    if ((program as MatMulPackedVec4Program).useWgsl) {
-      const dimAOuter = a3d.shape[1];
-      const dimInner = a3d.shape[2];
-      const dimBOuter = b3d.shape[2];
-      dimensions = [
-        {type: 'uint32', data: [dimAOuter]},
-        {type: 'uint32', data: [dimBOuter]}, {type: 'uint32', data: [dimInner]}
-      ];
-    }
   } else {
     program = new MatMulPackedProgram(
         a3dShape, [batchDim, outerShapeA, outerShapeB],
@@ -146,6 +137,15 @@ export function batchMatMulImpl({
   }
   if (preluActivationWeights) {
     inputs.push(preluActivationWeights);
+  }
+  if (program.useWgsl) {
+    const dimAOuter = transposeA === true ? a3d.shape[2] : a3d.shape[1];
+    const dimInner = transposeA === true ? a3d.shape[1] : a3d.shape[2];
+    const dimBOuter = transposeB === true ? b3d.shape[1] : b3d.shape[2];
+    dimensions = [
+      {type: 'uint32', data: [dimAOuter]}, {type: 'uint32', data: [dimBOuter]},
+      {type: 'uint32', data: [dimInner]}
+    ];
   }
   const out = backend.runWebGPUProgram(program, inputs, a.dtype, dimensions);
   const outReshaped =
