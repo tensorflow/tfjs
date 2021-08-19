@@ -269,9 +269,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
 
   getUserCodeWgsl(): string {
     const elementsPerThread: [number, number, number] = [4, 4, 1];
-    const varSnippet = `var dimInner = uniforms.dimInner;`;
-    const matMulSource = makeMatMulPackedVec4SourceWgsl(
-        varSnippet, elementsPerThread, this.workGroupSize);
+    const matMulSource =
+        makeMatMulPackedVec4SourceWgsl(elementsPerThread, this.workGroupSize);
 
     const remainder = this.convInfo.inChannels % 4;
     // Below code only applys to valid padding type.

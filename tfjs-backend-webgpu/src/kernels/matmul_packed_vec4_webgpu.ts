@@ -16,10 +16,11 @@
  */
 
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
-import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
-import {mapActivationToShaderProgram} from './activation_util';
 
+import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
+
+import {mapActivationToShaderProgram} from './activation_util';
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export function makeMatMulPackedVec4Source(workPerThread: number[]): string {
@@ -164,8 +165,7 @@ export function makeMatMulVectorVec4Source(): string {
 }
 
 export function makeMatMulPackedVec4SourceWgsl(
-    varSnippet: string, workPerThread: number[],
-    workGroupSize: [number, number, number]): string {
+    workPerThread: number[], workGroupSize: [number, number, number]): string {
   const tileInfo = {
     RowPerThread: workPerThread[1],
     ColPerThread: workPerThread[0],
@@ -180,8 +180,7 @@ export function makeMatMulPackedVec4SourceWgsl(
       tileInfo.TileBOuter / tileInfo.ColPerThread}>, ${tileInfo.TileInner}>;
 
   let RowPerThread = ${tileInfo.RowPerThread}u;
-  let ColPerThread = ${
-      tileInfo.ColPerThread}u; // only support ColPerThread = 4
+  let ColPerThread = ${tileInfo.ColPerThread}u; // only support ColPerThread = 4
   let TileAOuter = ${tileInfo.TileAOuter}u;
   let TileBOuter = ${tileInfo.TileBOuter}u;
   let TileInner = ${tileInfo.TileInner}u;
@@ -195,7 +194,6 @@ export function makeMatMulPackedVec4SourceWgsl(
 
     let globalRow = globalId.y * RowPerThread;
     let globalCol = globalId.x;
-    ${varSnippet}
     let numTiles = (uniforms.dimInner - 1u) / TileInner + 1u;
 
     var acc: array<vec4<f32>, ${tileInfo.RowPerThread}>;
@@ -487,7 +485,6 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
         'value = value + getBiasAtOutCoordsByCoords(outCoord);' :
         '';
 
-    const varSnippet = `let dimInner = uniforms.dimInner;`;
     const userCode = `
       ${activationSnippet}
       fn mm_readA(row : u32, col : u32,  globalId : vec3<u32>) -> vec4<f32> {
@@ -518,8 +515,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
       ${
         this.outputShape[1] > 1 ?
             makeMatMulPackedVec4SourceWgsl(
-                varSnippet, [this.vecSize, this.workPerThread, 1],
-                this.workGroupSize) :
+                [this.vecSize, this.workPerThread, 1], this.workGroupSize) :
             makeMatMulVectorVec4SourceWgsl(this.workGroupSize)}
 
     `;
