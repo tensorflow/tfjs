@@ -219,10 +219,8 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     video.appendChild(source);
     document.body.appendChild(video);
 
-    // On mobile safari the ready state is ready immediately so we and skip
-    // firefox browser.
-    if (!!navigator && navigator.userAgent.search('Firefox') < 0 &&
-        video.readyState < 2) {
+    // On mobile safari the ready state is ready immediately.
+    if (video.readyState < 2) {
       await new Promise(resolve => {
         video.addEventListener('loadeddata', () => resolve(video));
       });
