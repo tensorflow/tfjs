@@ -24,6 +24,7 @@ const expectArraysClose = test_util.expectArraysClose;
 describeWebGPU('pool', () => {
   // For PoolWithFilterSizeEqualsOneProgram. This case will fail wasm, so keep
   // it here. Wasm bug: https://github.com/tensorflow/tfjs/issues/5471.
+  // TODO(xing.xu): https://github.com/tensorflow/tfjs/issues/5506.
   it('x=[4,4,1] f=[1,1] s=2 d=1', async () => {
     // Feed forward.
     const a = tf.tensor3d(
