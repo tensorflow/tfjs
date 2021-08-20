@@ -98,7 +98,7 @@ describeWithFlags('stringSplit', ALL_ENVS, () => {
         result, [[0, 0], [1, 0], [2, 0]], ['a', 'b', 'c'], [3, 1]);
   });
 
-  it('large input does not produce call stack overflow', async () => {
+  it('large input does not cause an argument overflow', async () => {
     const input = 'a'.repeat(200000);
     const result = tf.string.stringSplit([input], '');
     await expectResult(
