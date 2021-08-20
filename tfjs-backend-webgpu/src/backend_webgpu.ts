@@ -79,7 +79,6 @@ export class WebGPUBackend extends KernelBackend {
   supportTimeQuery: boolean;
   dummyCanvas: HTMLCanvasElement;
   dummyContext: GPUPresentationContext;
-  computePassNumberInEncoder = 0;
 
   private static nextDataId = 0;
   private nextDataId(): number {
@@ -99,6 +98,7 @@ export class WebGPUBackend extends KernelBackend {
   private activeTimers: TimerNode[];
   private uploadWaitMs = 0;
   private downloadWaitMs = 0;
+  private computePassNumberInEncoder = 0;
   private querySet: GPUQuerySet;
   private fromPixelProgram:
       {copyExternal: FromPixelsProgram, import: FromPixelsImportProgram};
