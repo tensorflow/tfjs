@@ -62,7 +62,7 @@ export class AddNPackedProgram implements WebGPUProgram {
     const type = getCoordsDataType(this.outputShape.length);
     const userCode = `
       void main() {
-        int index = int(gl_GlobalInvocationID.x);
+        int index = getGlobalIndex();
         for (int i = 0; i < ${this.workPerThread}; i++) {
           int flatIndex = index * ${this.workPerThread} + i;
           if (flatIndex < size) {

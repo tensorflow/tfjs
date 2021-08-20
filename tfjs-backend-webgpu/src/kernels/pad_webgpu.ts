@@ -49,8 +49,8 @@ export class PadProgram implements WebGPUProgram {
     });
     this.xShape = xShape;
     this.shaderKey = 'pad';
-    this.size = util.sizeFromShape(this.outputShape);
     this.useWgsl = getUseWgsl();
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
@@ -79,7 +79,7 @@ export class PadProgram implements WebGPUProgram {
       ${type} end = ${endValue};
 
       void main() {
-        int flatIndex = int(gl_GlobalInvocationID.x);
+        int flatIndex = getGlobalIndex();
 
           if (flatIndex < size) {
             ${type} outC = getOutputCoords();

@@ -80,7 +80,7 @@ export class MirrorPadProgram implements WebGPUProgram {
 
       void main() {
         ${dtype} outC = getOutputCoords();
-        int index = int(gl_GlobalInvocationID.x);
+        int index = getGlobalIndex();
         if (index < size)
         {
           for (int i = 0; i < ${rank}; i++) {

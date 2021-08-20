@@ -55,7 +55,7 @@ export class TileProgram implements WebGPUProgram {
 
     const userCode = `
       void main() {
-        int index = int(gl_GlobalInvocationID.x);
+        int index = getGlobalIndex();
         if (index < size) {
           ${dtype} resRC = getOutputCoords();
           setOutput(index, getA(${sourceCoords}));
