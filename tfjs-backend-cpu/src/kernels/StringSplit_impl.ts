@@ -19,7 +19,7 @@ import {TypedArray, util} from '@tensorflow/tfjs-core';
 
 function split(
     str: Uint8Array, delimiters: Uint8Array, skipEmpty: boolean,
-    result: Uint8Array[]) {
+    result: Uint8Array[]): void {
   if (!str.length) {
     return;
   }
