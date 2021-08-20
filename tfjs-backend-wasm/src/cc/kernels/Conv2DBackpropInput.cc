@@ -86,9 +86,9 @@ void Conv2DBackpropInput(
               }
             }
           }
-
-          *out_buf_ptr = dot_prod;
-          out_buf_ptr++;
+          size_t dx_offset = x_batch_stride * b + x_row_stride * xr +
+                             x_col_stride * xc + x_channel_stride * d1;
+          *(out_buf_ptr + dx_offset) = dot_prod;
         }
       }
     }
