@@ -62,8 +62,7 @@ describeWithFlags('fromPixelsAsync, mock canvas', NODE_ENVS, () => {
 // Flag 'WRAP_TO_IMAGEBITMAP' is set by customer. The default
 // value is false. The cases below won't try to wrap input to
 // imageBitmap.
-describeWithFlags('fromPixelsAsync, |WRAP_TO_IMAGEBITMAP| false',
-  BROWSER_ENVS, () => {
+describeWithFlags('fromPixelsAsync, |WRAP_TO_IMAGEBITMAP| false', BROWSER_ENVS, () => {
   it('ImageData 1x1x3', async () => {
     const pixels = new ImageData(1, 1);
     pixels.data[0] = 0;
@@ -209,7 +208,7 @@ describeWithFlags('fromPixelsAsync, |WRAP_TO_IMAGEBITMAP| false',
         ',R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
 
     await new Promise(resolve => {
-        img.onload = () => resolve(img);
+      img.onload = () => resolve(img);
     });
 
     const res = await tf.browser.fromPixelsAsync(img);
@@ -228,7 +227,7 @@ describeWithFlags('fromPixelsAsync, |WRAP_TO_IMAGEBITMAP| false',
     video.appendChild(source);
     document.body.appendChild(video);
 
-    // On mobile safari the ready state is ready immediately so we
+    // On mobile safari the ready state is ready immediately.
     if (video.readyState < 2) {
       await new Promise(resolve => {
         video.addEventListener('loadeddata', () => resolve(video));
@@ -276,10 +275,9 @@ describeWithFlags('fromPixelsAsync, |WRAP_TO_IMAGEBITMAP| false',
 // This flag helps on image, video and canvas input cases
 // for WebGPU backends. We'll cover these inputs with test
 // cases set 'WRAP_TO_IMAGEBITMAP' to true.
-describeWithFlags('fromPixelsAsync, |WRAP_TO_IMAGEBITMAP| true',
-  BROWSER_ENVS, () => {
+describeWithFlags('fromPixelsAsync, |WRAP_TO_IMAGEBITMAP| true', BROWSER_ENVS, () => {
   beforeAll(() => {
-      tf.env().set('WRAP_TO_IMAGEBITMAP', true);
+    tf.env().set('WRAP_TO_IMAGEBITMAP', true);
   });
 
   afterAll(() => {
@@ -308,7 +306,7 @@ describeWithFlags('fromPixelsAsync, |WRAP_TO_IMAGEBITMAP| true',
         ',R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
 
     await new Promise(resolve => {
-        img.onload = () => resolve(img);
+      img.onload = () => resolve(img);
     });
 
     const res = await tf.browser.fromPixelsAsync(img);
@@ -327,7 +325,7 @@ describeWithFlags('fromPixelsAsync, |WRAP_TO_IMAGEBITMAP| true',
     video.appendChild(source);
     document.body.appendChild(video);
 
-    // On mobile safari the ready state is ready immediately so we
+    // On mobile safari the ready state is ready immediately.
     if (video.readyState < 2) {
       await new Promise(resolve => {
         video.addEventListener('loadeddata', () => resolve(video));
