@@ -53,12 +53,16 @@ export class ClipVec4Program implements WebGPUProgram {
         int index = int(gl_GlobalInvocationID.x);
           if(index < size) {
             vec4 value = getAAtOutCoords();
-            if (any(isnan(value))) {
-              setOutput(index, value);
-              return;
+            vec4 clampedValue;
+            for (int i = 0; i < 4; ++i) {
+              if (isnan(value[i])) {
+                clampedValue[i] = value[i];
+              } else {
+                clampedValue[i] = clamp(value[i], minVal, maxVal);
+              }
             }
 
-            setOutput(index, clamp(value, minVal, maxVal));
+            setOutput(index, clampedValue);
           }
       }
     `;
