@@ -17,13 +17,15 @@
 
 import {util} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
+import {getCoordsDataTypeWgsl, getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class SliceProgram implements WebGPUProgram {
   variableNames = ['source'];
   uniforms: string;
+  uniformsWgsl: string;
   outputShape: number[];
   shaderKey: string;
   rank: number;
@@ -33,6 +35,7 @@ export class SliceProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   start: number[];
   size: number;
+  useWgsl: boolean;
 
   constructor(start: number[], destSize: number[]) {
     this.outputShape = destSize;
@@ -44,8 +47,10 @@ export class SliceProgram implements WebGPUProgram {
 
     this.start = start;
     this.uniforms = `${getCoordsDataType(start.length)} start; `;
+    this.uniformsWgsl = `start : ${getCoordsDataTypeWgsl(start.length)}; `;
     this.shaderKey = 'slice';
     this.size = util.sizeFromShape(this.outputShape);
+    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
@@ -71,6 +76,37 @@ export class SliceProgram implements WebGPUProgram {
           ${dtype} coords = getOutputCoords();
           ${coordSum.join('\n')}
           setOutput(index, getSource(${sourceCoords}));
+        }
+      }
+    `;
+    return userCode;
+  }
+
+  getUserCodeWgsl(): string {
+    const dtype = getCoordsDataTypeWgsl(this.rank);
+    const sourceCoords = getCoords(this.rank);
+    let coordSum;
+    if (this.start.length === 1) {
+      coordSum = this.outputShape.map((_, i) => {
+        return `sourceLoc = uniforms.start + coords;`;
+      });
+    } else {
+      coordSum = this.outputShape.map((_, i) => {
+        return `sourceLoc.${coords[i]} = uniforms.start[${i}] + coords.${
+            coords[i]};`;
+      });
+    }
+
+    const userCode = `
+      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
+      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
+        let index = globalId.x;
+        if (index < uniforms.size)
+        {
+          var sourceLoc : ${dtype};
+          let coords = getOutputCoords(globalId);
+          ${coordSum.join('\n')}
+          setOutputFlat(index, getSource(${sourceCoords}));
         }
       }
     `;

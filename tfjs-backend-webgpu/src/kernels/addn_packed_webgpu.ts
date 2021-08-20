@@ -18,9 +18,10 @@
 import {util} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType} from '../shader_preprocessor';
+import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class AddNPackedProgram implements WebGPUProgram {
   outputShape: number[];
@@ -31,6 +32,7 @@ export class AddNPackedProgram implements WebGPUProgram {
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
   size: number;
+  useWgsl: boolean;
 
   constructor(shapes: number[][]) {
     this.outputShape = shapes[0];
@@ -41,6 +43,7 @@ export class AddNPackedProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
     this.shaderKey = 'addN';
     this.size = util.sizeFromShape(this.outputShape);
+    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
@@ -66,6 +69,37 @@ export class AddNPackedProgram implements WebGPUProgram {
             ${type} coords = getCoordsFromFlatIndex(flatIndex);
             ${snippets.join('\n        ')}
             setOutput(flatIndex, ${operation});
+          }
+        }
+      }
+    `;
+    return userCode;
+  }
+
+  getUserCodeWgsl(): string {
+    const snippets: string[] = [];
+    // Get target elements from every input tensor.
+    this.variableNames.forEach(variable => {
+      snippets.push(
+          `let v${variable} = get${variable}AtOutCoordsByCoords(coords);`);
+    });
+    // Calculate the sum of all elements.
+    const operation = this.variableNames
+                          .map(variable => {
+                            return `v${variable}`;
+                          })
+                          .join(' + ');
+
+    const userCode = `
+      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
+      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
+        let index = globalId.x;
+        for (var i = 0u; i < ${this.workPerThread}u; i = i + 1u) {
+          let flatIndex = index * ${this.workPerThread}u + i;
+          if (flatIndex < uniforms.size) {
+            let coords = getCoordsFromFlatIndex(flatIndex);
+            ${snippets.join('\n        ')}
+            setOutputFlat(flatIndex, ${operation});
           }
         }
       }
