@@ -136,7 +136,7 @@ module.exports = function(config) {
         browser: 'safari',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'High Sierra'
+        os_version: 'Catalina'
       },
       bs_ios_11: {
         base: 'BrowserStack',
@@ -164,9 +164,9 @@ module.exports = function(config) {
       chrome_simd: {
         base: 'Chrome',
         flags: [
-	  '--enable-features=WebAssemblySimd',
-	  '--disable-features=WebAssemblyThreads',
-	]
+          '--enable-features=WebAssemblySimd',
+          '--disable-features=WebAssemblyThreads',
+        ]
       },
       chrome_threaded_simd: {
         base: 'Chrome',
