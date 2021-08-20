@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
@@ -178,23 +178,24 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
           mapActivationToShaderProgram(this.activation, false, this.useWgsl);
       if (this.hasPreluActivation) {
         activationSnippet =
-            `fn activation(a : f32, globalId : vec3<u32>) -> f32 {
-          let b = getPreluActivationWeightsAtOutCoordsByGlobalId(globalId);
+            `fn activation(a : f32, globalId : vec3<u32>, index : u32) -> f32 {
+          let b = getPreluActivationWeightsAtOutCoordsByGlobalId(globalId, index);
           ${activationOp}
         }`;
       } else {
         activationSnippet = `
-          fn activation(a : f32, globalId : vec3<u32>) -> f32 {
+          fn activation(a : f32, globalId : vec3<u32>, index : u32) -> f32 {
             ${activationOp}
           }
         `;
       }
 
-      applyActivationSnippet = `dotProd = activation(dotProd, globalId);`;
+      applyActivationSnippet =
+          `dotProd = activation(dotProd, globalId, index);`;
     }
 
     const addBiasSnippet = this.addBias ?
-        'dotProd = dotProd + getBiasAtOutCoordsByGlobalId(globalId);' :
+        'dotProd = dotProd + getBiasAtOutCoordsByGlobalId(globalId, index);' :
         '';
 
     const userCode = `
@@ -207,9 +208,9 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
         }
       }
 
-      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-        let coords = getOutputCoords(globalId);
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)};
+        let coords = getOutputCoords(globalId, index);
         let batch = coords[0];
         let xRCCorner = vec2<i32>(coords.yz * uniforms.stride - uniforms.pad);
         let d2 = coords[3];

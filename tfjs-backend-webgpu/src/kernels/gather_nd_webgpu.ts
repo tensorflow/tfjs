@@ -18,7 +18,7 @@
 import {util} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType} from '../shader_preprocessor';
-import {getCoordsDataTypeWgsl, getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
@@ -82,18 +82,17 @@ export class GatherNDProgram implements WebGPUProgram {
       strideString = 'uniforms.strides';
     }
     const userCode = `
-        ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-        fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-          let currentIndex = globalId.x;
-          let coords = getOutputCoords(globalId);
+       ${getMainHeaderStringWgsl(this.workGroupSize)} {
+       ${getGlobalIndexStringWgsl(this.workGroupSize)};
+          let coords = getOutputCoords(globalId, index);
           var flattenIndex = 0u;
           for (var j = 0u; j < uniforms.sliceDim; j = j + 1u) {
-            let index = u32(round(getIndices(coords[0], j)));
+            let indexTemp = u32(round(getIndices(coords[0], j)));
             let strideNum = ${strideString};
-            flattenIndex = flattenIndex + index * strideNum;
+            flattenIndex = flattenIndex + indexTemp * strideNum;
           }
-          if (currentIndex < uniforms.size) {
-            setOutputFlat(currentIndex, getA(flattenIndex, coords[1]));
+          if (index < uniforms.size) {
+            setOutputFlat(index, getA(flattenIndex, coords[1]));
           }
         }
       `;

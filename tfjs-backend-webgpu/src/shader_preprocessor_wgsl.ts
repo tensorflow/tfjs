@@ -69,11 +69,34 @@ export interface InputInfo {
 export function getWorkGroupSizeStringWgsl(
     workGroupSize: [number, number, number]): string {
   if (workGroupSize == null) {
-    return '';
+    throw new Error('Work group size is null!');
   }
   return `
   [[stage(compute), workgroup_size(${workGroupSize[0]}, ${workGroupSize[1]}, ${
       workGroupSize[2]})]]
+`;
+}
+
+export function getGlobalIndexStringWgsl(
+    workGroupSize: [number, number, number]): string {
+  if (workGroupSize == null) {
+    throw new Error('workGroupSize is null!');
+  }
+  return `
+  let index = getGlobalIndex(globalId, localId, vec3<u32>(${
+      workGroupSize[0]}u, ${workGroupSize[1]}u, ${workGroupSize[2]}u));
+`;
+}
+
+export function getMainHeaderStringWgsl(
+    workGroupSize: [number, number, number]) {
+  if (workGroupSize == null) {
+    throw new Error('Work group size is null!');
+  }
+  return `
+  [[stage(compute), workgroup_size(${workGroupSize[0]}, ${workGroupSize[1]}, ${
+      workGroupSize[2]})]]
+  fn main([[builtin(local_invocation_id)]] localId : vec3<u32>, [[builtin(global_invocation_id)]] globalId : vec3<u32>)
 `;
 }
 
@@ -118,7 +141,7 @@ export function makeShader(
   if (program.size != null) {
     uniformDeclaration += 'size : u32; ';
   }
-
+  uniformDeclaration += 'dispatchSize : vec3<u32>; ';
   if (program.uniformsWgsl) {
     uniformDeclaration += program.uniformsWgsl;
   }
@@ -245,6 +268,21 @@ const SAMPLING_SNIPPETS = `
   fn getFlatIndex4D(coords : vec4<u32>, shape : vec4<u32>) -> u32 {
     return u32(dot(vec4<f32>(coords), vec4<f32>(
         f32(shape.y) * f32(shape.z) * f32(shape.w), f32(shape.z) * f32(shape.w), f32(shape.w), 1.0)));
+  }
+
+  // Only used when the y/z dimension of workgroup size is 1.
+  fn getGlobalIndex(globalId : vec3<u32>, localId : vec3<u32>, workGroupSize : vec3<u32>) -> u32 {
+    let workGroupID = (globalId - localId)/vec3<u32>(
+      workGroupSize[0], workGroupSize[1], workGroupSize[2]);
+    if (uniforms.dispatchSize.y == 1u && uniforms.dispatchSize.z == 1u) {
+      return globalId.x;
+    }
+    let localInvocationIndex = localId.z * workGroupSize.x * workGroupSize.y +
+      localId.y * workGroupSize.x + localId.x;
+    return (workGroupID.z * uniforms.dispatchSize.x * uniforms.dispatchSize.y +
+      workGroupID.y * uniforms.dispatchSize.x + workGroupID.x) *
+      (workGroupSize.x * workGroupSize.y * workGroupSize.z) +
+      localInvocationIndex;
   }
 `;
 
@@ -412,8 +450,9 @@ export function getSamplerAtOutputCoords(
   if (util.arraysEqual(inInfo.shape, outShape) && isFlatDispatchLayout) {
     if (isVec4) {
       return `
-        fn ${funcName}ByGlobalId(globalId : vec3<u32>) -> vec4<f32> {
-          return vec4<f32>(${texName}.numbers[globalId.x]);
+        fn ${
+          funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : u32) -> vec4<f32> {
+          return vec4<f32>(${texName}.numbers[globalIndex]);
         }
 
         fn ${funcName}ByCoords(coords : ${type}) -> vec4<f32> {
@@ -423,8 +462,8 @@ export function getSamplerAtOutputCoords(
         `;
     } else {
       return `
-      fn ${funcName}ByGlobalId(globalId : vec3<u32>) -> f32 {
-        return f32(${texName}.numbers[globalId.x]);
+      fn ${funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : u32) -> f32 {
+        return f32(${texName}.numbers[globalIndex]);
       }
 
       fn ${funcName}ByCoords(coords : ${type}) -> f32 {
@@ -443,7 +482,8 @@ export function getSamplerAtOutputCoords(
   if (inRank === 0) {
     if (isVec4) {
       return `
-      fn ${funcName}ByGlobalId(globalId : vec3<u32>) -> vec4<f32> {
+      fn ${
+          funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : u32) -> vec4<f32> {
         return get${texFuncSnippet}();
       }
 
@@ -453,7 +493,7 @@ export function getSamplerAtOutputCoords(
     `;
     }
     return `
-      fn ${funcName}ByGlobalId(globalId : vec3<u32>) -> f32{
+      fn ${funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : u32) -> f32{
         return get${texFuncSnippet}();
       }
 
@@ -489,8 +529,9 @@ export function getSamplerAtOutputCoords(
   const rankStr = `${inRank}D`;
   if (isVec4) {
     return `
-      fn ${funcName}ByGlobalId(globalId : vec3<u32>) -> vec4<f32> {
-        var coords = getOutputCoords(globalId);
+      fn ${
+        funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : u32) -> vec4<f32> {
+        var coords = getOutputCoords(globalId, globalIndex);
         ${coordsSnippet}
         return ${texName}.numbers[getFlatIndex${rankStr}(${
         unpackedCoordsSnippet}, ${shapeStr}) / 4u];
@@ -506,8 +547,8 @@ export function getSamplerAtOutputCoords(
   }
 
   return `
-    fn ${funcName}ByGlobalId(globalId : vec3<u32>) -> f32 {
-      var coords = getOutputCoords(globalId);
+    fn ${funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : u32) -> f32 {
+      var coords = getOutputCoords(globalId, globalIndex);
       ${coordsSnippet}
       return f32(${texName}.numbers[getFlatIndex${rankStr}(${
       unpackedCoordsSnippet}, ${shapeStr})]);
@@ -535,8 +576,10 @@ export function generateGetOutputCoords(
   const outRank = outShape.length;
   if (x.length === outRank) {
     const dtype = getCoordsDataTypeWgsl(outRank);
-    const snippet = `fn getOutputCoords(globalId : vec3<u32>) -> ${dtype}{
-      return getCoordsFromFlatIndex(u32(globalId.x));
+    const snippet =
+        `fn getOutputCoords(globalId : vec3<u32>, globalIndex : u32) -> ${
+            dtype}{
+      return getCoordsFromFlatIndex(u32(globalIndex));
     }
     `;
     return [snippet, outRank];
@@ -581,7 +624,8 @@ export function generateGetOutputCoords(
   }
 
   const dtype = getCoordsDataTypeWgsl(rank);
-  let snippet = `fn getOutputCoords(globalId : vec3<u32>) -> ${dtype} {
+  let snippet =
+      `fn getOutputCoords(globalId : vec3<u32>, globalIndex : u32) -> ${dtype} {
     ${gatherDimensionsStr}
   `;
   if (dimensions.length === 0) {

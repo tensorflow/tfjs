@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
@@ -126,9 +126,8 @@ export class BinaryOpProgram implements WebGPUProgram {
     if (this.shapesFit) {
       userCode = `
           ${miscStr}
-          ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-          fn main([[builtin(global_invocation_id)]] global_id : vec3<u32>) {
-            let index = global_id.x;
+          ${getMainHeaderStringWgsl(this.workGroupSize)} {
+            ${getGlobalIndexStringWgsl(this.workGroupSize)};
 
             let a = f32(A[index]);
             let b = f32(B[index]);
@@ -138,9 +137,8 @@ export class BinaryOpProgram implements WebGPUProgram {
     } else if (this.sizeFit) {
       userCode = `
       ${miscStr}
-      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-      fn main([[builtin(global_invocation_id)]] global_id : vec3<u32>) {
-        let index = global_id.x;
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)};
 
         let coords = getCoordsFromFlatIndex(index);
 
@@ -152,9 +150,8 @@ export class BinaryOpProgram implements WebGPUProgram {
     } else {
       userCode = `
       ${miscStr}
-      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-      fn main([[builtin(global_invocation_id)]] global_id : vec3<u32>) {
-        let index = global_id.x;
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)};
         for (var i = 0u; i < ${this.workPerThread}u; i = i + 1u ) {
           let flatIndex = index * ${this.workPerThread}u + i;
 

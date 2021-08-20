@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch} from '../webgpu_util';
 
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
@@ -73,12 +73,11 @@ export class TransposeSharedProgram implements WebGPUProgram {
 
   getUserCodeWgsl(): string {
     const userCode = `
-    let TILE_DIM = ${this.workGroupSize[0]}u;
-    var<workgroup> tile : array<array<f32, ${this.workGroupSize[0] + 1}>, ${
+      let TILE_DIM = ${this.workGroupSize[0]}u;
+      var<workgroup> tile : array<array<f32, ${this.workGroupSize[0] + 1}>, ${
         this.workGroupSize[0]}>;
-    ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-    fn main([[builtin(local_invocation_id)]] localId : vec3<u32>, [[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-        let index = globalId.x;
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)};
         let workGroupID = (globalId - localId)/vec3<u32>(${
         this.workGroupSize[0]}u, ${this.workGroupSize[1]}u, ${
         this.workGroupSize[2]}u);

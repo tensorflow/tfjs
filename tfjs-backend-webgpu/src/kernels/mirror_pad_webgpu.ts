@@ -18,7 +18,7 @@
 import {util} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType} from '../shader_preprocessor';
-import {getCoordsDataTypeWgsl, getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
@@ -118,12 +118,11 @@ export class MirrorPadProgram implements WebGPUProgram {
         'coords';
 
     return `
-      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+      ${getGlobalIndexStringWgsl(this.workGroupSize)};
         let start = ${dtype}(${start});
         let end = ${dtype}(${end});
-        var outC = getOutputCoords(globalId);
-        let index = globalId.x;
+        var outC = getOutputCoords(globalId, index);
         if (index < uniforms.size)
         {
           for (var i = 0u; i < ${rank}u; i = i + 1u) {

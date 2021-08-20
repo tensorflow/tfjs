@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
@@ -181,11 +181,11 @@ export class CropAndResizeProgram implements WebGPUProgram {
           setOutput(coords[0], coords[1], coords[2], coords[3], value);
         }
       }
-      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)};
         let height_ratio = f32(${heightRatio});
         let width_ratio = f32(${widthRatio});
-        let coords = getOutputCoords(globalId);
+        let coords = getOutputCoords(globalId, index);
         let b = coords[0];
         let y = coords[1];
         let x = coords[2];

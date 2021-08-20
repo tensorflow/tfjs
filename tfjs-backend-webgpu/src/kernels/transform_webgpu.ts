@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
@@ -224,9 +224,9 @@ export class TransformProgram implements WebGPUProgram {
             return outputValue;
           }
 
-          ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-          fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-            let coords = getOutputCoords(globalId);
+          ${getMainHeaderStringWgsl(this.workGroupSize)} {
+            ${getGlobalIndexStringWgsl(this.workGroupSize)};
+            let coords = getOutputCoords(globalId, index);
             if (coordsInBounds4D(coords, uniforms.outShape)) {
               var outputValue : f32;
               let batch = coords[0];

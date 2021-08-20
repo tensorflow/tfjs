@@ -16,7 +16,7 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
@@ -99,9 +99,8 @@ export class BinaryOpVec4Program implements WebGPUProgram {
     if (this.fitShape) {
       userCode = `
       ${miscStr}
-      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-      fn main([[builtin(global_invocation_id)]] global_id : vec3<u32>) {
-        let index = global_id.x;
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)};
         let a = vec4<f32>(A.numbers[index]);
         let b = vec4<f32>(B.numbers[index]);
         setOutputFlat(index, binaryOperation(a, b));
@@ -110,9 +109,8 @@ export class BinaryOpVec4Program implements WebGPUProgram {
     } else {
       userCode = `
       ${miscStr}
-      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-      fn main([[builtin(global_invocation_id)]] global_id : vec3<u32>) {
-        let index = global_id.x;
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)};
         if (index < uniforms.size) {
           let a = vec4<f32>(A.numbers[index]);
           let b = vec4<f32>(B.numbers[index]);
