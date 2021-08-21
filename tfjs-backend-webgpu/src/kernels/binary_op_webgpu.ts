@@ -66,7 +66,7 @@ export class BinaryOpProgram implements WebGPUProgram {
           }
 
           void main() {
-            int index = int(gl_GlobalInvocationID.x);
+            int index = getGlobalIndex();
 
             float a = float(A[index]);
             float b = float(B[index]);
@@ -81,7 +81,7 @@ export class BinaryOpProgram implements WebGPUProgram {
       }
 
       void main() {
-        int index = int(gl_GlobalInvocationID.x);
+        int index = getGlobalIndex();
 
         ${type} coords = getCoordsFromFlatIndex(index);
 
@@ -98,7 +98,7 @@ export class BinaryOpProgram implements WebGPUProgram {
       }
 
       void main() {
-        int index = int(gl_GlobalInvocationID.x);
+        int index = getGlobalIndex();
 
         for(int i = 0; i < ${this.workPerThread}; i++) {
           int flatIndex = index * ${this.workPerThread} + i;

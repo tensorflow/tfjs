@@ -76,7 +76,7 @@ export class StridedSliceProgram implements WebGPUProgram {
 
     const userCode = `
        void main() {
-         int index = int(gl_GlobalInvocationID.x);
+         int index = getGlobalIndex();
          if (index < size)
          {
            ${this.dtype} coords = getOutputCoords();

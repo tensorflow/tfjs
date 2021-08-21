@@ -48,7 +48,7 @@ export class GatherProgram implements WebGPUProgram {
     const sourceCoords = getSourceCoords(this.aShape);
     const userCode = `
       void main() {
-        int index = int(gl_GlobalInvocationID.x);
+        int index = getGlobalIndex();
         ivec4 resRC = getOutputCoords();
         if (index < size) {
           setOutput(index, getA(${sourceCoords}));

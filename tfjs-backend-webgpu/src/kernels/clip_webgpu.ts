@@ -50,7 +50,7 @@ export class ClipProgram implements WebGPUProgram {
   getUserCode(): string {
     const userCode = `
       void main() {
-        int index = int(gl_GlobalInvocationID.x);
+        int index = getGlobalIndex();
         if(index < size) {
           float value = getAAtOutCoords();
           if (isnan(value)) {

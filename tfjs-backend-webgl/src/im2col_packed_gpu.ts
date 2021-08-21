@@ -31,16 +31,15 @@ export class Im2ColPackedProgram implements GPGPUProgram {
     {name: 'pad', type: 'ivec2' as const },
     {name: 'stride', type: 'ivec2' as const },
     {name: 'dilation', type: 'ivec2' as const },
+    {name: 'inChannels', type: 'int' as const },
+    {name: 'itemsPerBlockRow', type: 'int' as const },
+    {name: 'outWidth', type: 'int' as const },
   ];
 
   constructor(outputShape: number[], convInfo: backend_util.Conv2DInfo) {
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
-    // TODO: Investigate why the results of mobilenetv2/blazeface are not
-    // correct when using below values as uniforms.
-    // https://github.com/tensorflow/tfjs/issues/5447
-    const {filterWidth, inChannels, outWidth, dataFormat} = convInfo;
-    const itemsPerBlockRow = inChannels * filterWidth;
+    const {dataFormat} = convInfo;
     const glsl = getGlslDifferences();
     const isChannelsLast = dataFormat === 'channelsLast';
     const rowDim = isChannelsLast ? 0 : 1;
@@ -58,19 +57,20 @@ export class Im2ColPackedProgram implements GPGPUProgram {
           pos = rc.x + ${row};
 
           ${boundsCheckingSnippet}
-            offsetY = int(blockIndex / ${outWidth}) * stride[0] - pad[1];
-            d0 = offsetY + dilation[0] * (pos / ${itemsPerBlockRow});
+            offsetY = int(blockIndex / outWidth) * stride[0] - pad[0];
+            d0 = offsetY + dilation[0] * (pos / itemsPerBlockRow);
 
             if(d0 < inputShape[${rowDim}] && d0 >= 0) {
-
-              offsetX = int(mod(float(blockIndex), ${outWidth}.) *
-                  float(stride[1]) - float(pad[0]));
-              d1 = offsetX + dilation[1] * (int(mod(float(pos),
-                  float(${itemsPerBlockRow})) / ${inChannels}.));
+              // Use custom imod instead mod. On Intel GPU, mod may generate
+              // unexpected value.
+              // https://github.com/tensorflow/tfjs/issues/5447
+              offsetX = imod(blockIndex, outWidth) * stride[1] - pad[1];
+              d1 = offsetX + dilation[1] * (imod(pos, itemsPerBlockRow) /
+                  inChannels);
 
               if(d1 < inputShape[${colDim}] && d1 >= 0) {
 
-                ch = int(mod(float(pos), ${inChannels}.));
+                ch = imod(pos, inChannels);
 
                 if (${isChannelsLast}) {
                   innerDims = vec2(d1, ch);

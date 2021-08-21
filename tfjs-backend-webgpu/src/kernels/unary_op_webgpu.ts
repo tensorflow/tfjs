@@ -38,13 +38,13 @@ export class UnaryOpProgram implements WebGPUProgram {
     const workGroupSizeX = 128;
     this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = outputShape;
+    this.size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.useWgsl = getUseWgsl();
     this.op = op;
     this.shaderKey = `unary_${op}`;
-    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
@@ -54,7 +54,7 @@ export class UnaryOpProgram implements WebGPUProgram {
       }
 
       void main() {
-        int index = int(gl_GlobalInvocationID.x);
+        int index = getGlobalIndex();
         if (index < size)
         {
           float a = getAAtOutCoords();
