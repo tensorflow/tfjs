@@ -74,7 +74,7 @@ export class SelectProgram implements WebGPUProgram {
     const dtype = getCoordsDataType(this.rank);
     const userCode = `
       void main() {
-        int index = int(gl_GlobalInvocationID.x);
+        int index = getGlobalIndex();
         if (index < size) {
           ${dtype} resRC = getOutputCoords();
 

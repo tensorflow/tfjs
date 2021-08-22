@@ -50,7 +50,7 @@ export class ClipVec4Program implements WebGPUProgram {
   getUserCode(): string {
     const userCode = `
       void main() {
-        int index = int(gl_GlobalInvocationID.x);
+        int index = getGlobalIndex();
           if(index < size) {
             vec4 value = getAAtOutCoords();
             vec4 clampedValue;

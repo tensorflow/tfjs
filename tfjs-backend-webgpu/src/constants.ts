@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,20 +15,12 @@
  * =============================================================================
  */
 
-// Generates GLSL that computes strides.
-export function symbolicallyComputeStrides(
-    indicesArr: number[], variableName: string): string[] {
-  if (Math.max(...indicesArr) > 3) {
-    throw new Error('Cannot symbolically compute strides for rank > 4 tensor.');
-  }
+export const MAX_COMPUTE_WORKGROUP_INVOCATIONS = 256;
 
-  const numCoords = indicesArr.length;
-  const shape = indicesArr.map(d => `${variableName}[${d}]`);
-  const strides = new Array(numCoords - 1);
-  strides[numCoords - 2] = shape[numCoords - 1];
-  for (let i = numCoords - 3; i >= 0; --i) {
-    strides[i] = `(${strides[i + 1]} * ${shape[i + 1]})`;
-  }
+export const MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE = 65535;
 
-  return strides;
-}
+export const MAX_COMPUTE_WORKGROUP_SIZE_X = 256;
+
+export const MAX_COMPUTE_WORKGROUP_SIZE_Y = 256;
+
+export const MAX_COMPUTE_WORKGROUP_SIZE_Z = 256;

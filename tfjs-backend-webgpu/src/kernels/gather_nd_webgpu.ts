@@ -58,7 +58,7 @@ export class GatherNDProgram implements WebGPUProgram {
     }
     const userCode = `
          void main() {
-          int currentIndex = int(gl_GlobalInvocationID.x);
+          int currentIndex = getGlobalIndex();
           ${dtype} coords = getOutputCoords();
           int flattenIndex = 0;
           for (int j = 0; j < sliceDim; j++) {

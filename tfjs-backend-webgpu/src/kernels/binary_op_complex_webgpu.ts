@@ -54,7 +54,7 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
       }
 
       void main() {
-        int index = int(gl_GlobalInvocationID.x);
+        int index = getGlobalIndex();
         if(index < size) {
           float areal = getARealAtOutCoords();
           float aimag = getAImagAtOutCoords();
