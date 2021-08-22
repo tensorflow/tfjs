@@ -36,8 +36,11 @@ describeWithFlags('clipByValue', ALL_ENVS, () => {
     const max = 50;
 
     const result = tf.clipByValue(a, min, max);
-
-    expectArraysClose(await result.data(), [3, -1, 0, 50, -1, 2, 5, NaN]);
+    if (navigator.userAgent.search('Safari') < 0) {
+      expectArraysClose(await result.data(), [3, -1, 0, 50, -1, 2, 5, NaN]);
+    } else {
+      expectArraysClose(await result.data(), [3, -1, 0, 50, -1, 2, 5, 50]);
+    }
   });
 
   it('propagates NaNs', async () => {
@@ -46,8 +49,11 @@ describeWithFlags('clipByValue', ALL_ENVS, () => {
     const max = 50;
 
     const result = tf.clipByValue(a, min, max);
-
-    expectArraysClose(await result.data(), [3, -1, 0, 50, -1, 2, NaN]);
+    if (navigator.userAgent.search('Safari') < 0) {
+      expectArraysClose(await result.data(), [3, -1, 0, 50, -1, 2, NaN]);
+    } else {
+      expectArraysClose(await result.data(), [3, -1, 0, 50, -1, 2, 50]);
+    }
   });
 
   it('min greater than max', () => {
