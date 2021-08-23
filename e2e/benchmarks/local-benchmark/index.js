@@ -109,9 +109,10 @@ function showBackendFlagSettingsAndReturnTunableFlagControllers(
 
   // Remove it once we figure out how to correctly read the tensor data
   // before the tensor is disposed in profiling mode.
-  if (backendName === 'webgpu') {
-    tf.env().set('CHECK_COMPUTATION_FOR_ERRORS', false);
+  if (backendName === 'webgpu' &&
+      state.flags['CHECK_COMPUTATION_FOR_ERRORS'] === true) {
     state.flags['CHECK_COMPUTATION_FOR_ERRORS'] = false;
+    state.isFlagChanged = true;
   }
 
   for (let index = 0; index < tunableFlags.length; index++) {
