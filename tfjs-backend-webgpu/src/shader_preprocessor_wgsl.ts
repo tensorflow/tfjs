@@ -272,13 +272,13 @@ const SAMPLING_SNIPPETS = `
 
   // Only used when the y/z dimension of workgroup size is 1.
   fn getGlobalIndex(globalId : vec3<u32>, localId : vec3<u32>, workGroupSize : vec3<u32>) -> u32 {
-    let workGroupID = (globalId - localId)/vec3<u32>(
-      workGroupSize[0], workGroupSize[1], workGroupSize[2]);
     if (uniforms.dispatchSize.y == 1u && uniforms.dispatchSize.z == 1u) {
       return globalId.x;
     }
     let localInvocationIndex = localId.z * workGroupSize.x * workGroupSize.y +
       localId.y * workGroupSize.x + localId.x;
+    let workGroupID = (globalId - localId)/vec3<u32>(
+      workGroupSize[0], workGroupSize[1], workGroupSize[2]);
     return (workGroupID.z * uniforms.dispatchSize.x * uniforms.dispatchSize.y +
       workGroupID.y * uniforms.dispatchSize.x + workGroupID.x) *
       (workGroupSize.x * workGroupSize.y * workGroupSize.z) +
