@@ -22,8 +22,7 @@ if [ "$NIGHTLY" = true ]; then
   node ../scripts/run_flaky.js "yarn run-browserstack --browsers='win_10_chrome,bs_android_9' --testEnv webgl2"
   node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac --testEnv webgl2 --flags '{"\""WEBGL_PACK"\"": false}'"
   node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac --testEnv webgl2 --flags '{"\""WEBGL_CPU_FORWARD"\"": true}'"
-  # Temporarily disabled due to #5479
-  # node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac --testEnv webgl2 --flags '{"\""WEBGL_USE_SHAPES_UNIFORMS"\"": true}'"
+  node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac --testEnv webgl2 --flags '{"\""WEBGL_USE_SHAPES_UNIFORMS"\"": true}'"
 else
   node ../scripts/run_flaky.js "yarn run-browserstack --browsers=bs_chrome_mac"
 fi
