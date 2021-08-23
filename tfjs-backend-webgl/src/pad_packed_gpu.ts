@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 import {getChannels} from './packing_util';
 import {getCoordsDataType, UniformType} from './shader_compiler';
 
@@ -26,17 +26,26 @@ export class PadPackedProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
   customUniforms = [{name: 'value', type: 'float' as UniformType}];
+  enableShapeUniforms: boolean;
 
-  constructor(
-      xShape: number[], paddings: Array<[number, number]>,
-      constantValue: number) {
+  constructor(xShape: number[], paddings: Array<[number, number]>) {
     this.outputShape = paddings.map(
         (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const rank = xShape.length;
     const dtype = getCoordsDataType(rank);
 
-    const start = paddings.map(p => p[0]).join(',');
-    const end = paddings.map((p, i) => p[0] + xShape[i]).join(',');
+    paddings.map((_, i) => {
+      this.customUniforms.push({name: `pad${i}`, type: 'ivec2' as const });
+    });
+    const start = paddings.map((_, i) => `pad${i}[0]`).join(',');
+    const end = paddings
+                    .map(
+                        (_, i) => `pad${i}[0] + ${
+                            this.enableShapeUniforms ?
+                                `xShape${rank > 1 ? `[${i}]` : ''}` :
+                                xShape[i]}`)
+                    .join(',');
     const coords = getChannels('rc', rank);
     const source = getChannels('source', rank);
     const cLimit = `${coords[rank - 1]} < ${this.outputShape[rank - 1]}`;
@@ -73,10 +82,10 @@ export class PadPackedProgram implements GPGPUProgram {
     mainLoop += (rank === 1 ? `} ` : `}}`);
 
     this.userCode = `
-      const ${dtype} start = ${dtype}(${start});
-      const ${dtype} end = ${dtype}(${end});
-
       void main() {
+        ${dtype} start = ${dtype}(${start});
+        ${dtype} end = ${dtype}(${end});
+
         ${dtype} outputLoc = getOutputCoords();
         vec4 result = vec4(0.);
         ${mainLoop}
