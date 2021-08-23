@@ -123,7 +123,9 @@ module.exports = function(config) {
       bs_firefox_mac: {
         base: 'BrowserStack',
         browser: 'firefox',
-        browser_version: 'latest',
+        // Firefox 91.0 on browserstack has issue updating the video readyState
+        // for fromPixel video element tests.
+        browser_version: '90.0',
         os: 'OS X',
         os_version: 'High Sierra'
       },
