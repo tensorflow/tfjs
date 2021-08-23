@@ -1889,7 +1889,7 @@ export function getCoordsDataType(rank: number): string {
 
 export function getUniformInfoFromShape(
     isPacked: boolean, shape: number[], texShape: number[]) {
-  const {newShape} = util.squeezeShape(shape);
+  const {newShape, keptDims} = util.squeezeShape(shape);
   const rank = shape.length;
   const useSqueezePackedShape = isPacked && rank === 3 && shape[0] === 1;
   const squeezeShape = useSqueezePackedShape ? shape.slice(1) : newShape;
@@ -1898,7 +1898,7 @@ export function getUniformInfoFromShape(
        newShape.length < rank) ||
       useSqueezePackedShape;
   const uniformShape = useSqueezeShape ? squeezeShape : shape;
-  return {useSqueezeShape, uniformShape};
+  return {useSqueezeShape, uniformShape, keptDims};
 }
 
 /** Returns a new input info (a copy) that has a squeezed logical shape. */
