@@ -42,9 +42,10 @@ export const padV2 =
           }
 
           const program = env().getBool('WEBGL_PACK_ARRAY_OPERATIONS') ?
-              new PadPackedProgram(x.shape, paddings, constantValue) :
-              new PadProgram(x.shape, paddings, constantValue);
+              new PadPackedProgram(x.shape, paddings) :
+              new PadProgram(x.shape, paddings);
           const customValues = [[constantValue]];
+          paddings.map(p => customValues.push([p[0], p[1]]));
           return backend.runWebGLProgram(program, [x], x.dtype, customValues);
         };
 
