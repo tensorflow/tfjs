@@ -697,6 +697,14 @@ export class WebGPUBackend extends KernelBackend {
       outputDtype: DataType,
       programUniforms?: Array<{type: string; data: number[]}>): TensorInfo {
     const output = this.makeTensorInfo(program.outputShape, outputDtype);
+    const outData = this.tensorMap.get(output.dataId);
+    if (util.sizeFromShape(output.shape) === 0) {
+      // Short-circuit the computation since the result is empty (has 0 in its
+      // shape).
+      outData.values =
+          util.getTypedArrayFromDType(output.dtype as 'float32', 0);
+      return output;
+    }
 
     // There are five kinds of uniforms: NAN, shapes, shape strides, program
     // size, program defined uniforms.
