@@ -100,7 +100,7 @@ export class ResizeBilinearProgram implements WebGPUProgram {
 
     const userCode = `
       ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)};
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
         let coords = getOutputCoords(globalId, index);
         if (all(coords < uniforms.outShape)) {
           let b = coords[0];

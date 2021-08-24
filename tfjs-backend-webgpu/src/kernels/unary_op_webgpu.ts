@@ -70,7 +70,7 @@ export class UnaryOpProgram implements WebGPUProgram {
         ${getUnaryOpString(this.op, false, true)}
       }
       ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)};
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
         if (index < uniforms.size) {
           let a = getAAtOutCoordsByGlobalId(globalId, index);
           setOutputFlat(index, unaryOperation(a));

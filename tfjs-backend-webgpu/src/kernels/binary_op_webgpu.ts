@@ -127,7 +127,7 @@ export class BinaryOpProgram implements WebGPUProgram {
       userCode = `
           ${miscStr}
           ${getMainHeaderStringWgsl(this.workGroupSize)} {
-            ${getGlobalIndexStringWgsl(this.workGroupSize)};
+            ${getGlobalIndexStringWgsl(this.workGroupSize)}
 
             let a = f32(A[index]);
             let b = f32(B[index]);
@@ -138,7 +138,7 @@ export class BinaryOpProgram implements WebGPUProgram {
       userCode = `
       ${miscStr}
       ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)};
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
 
         let coords = getCoordsFromFlatIndex(index);
 
@@ -151,7 +151,7 @@ export class BinaryOpProgram implements WebGPUProgram {
       userCode = `
       ${miscStr}
       ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)};
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
         for (var i = 0u; i < ${this.workPerThread}u; i = i + 1u ) {
           let flatIndex = index * ${this.workPerThread}u + i;
 

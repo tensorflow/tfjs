@@ -154,7 +154,7 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
         }
         var<workgroup> sharedBuf : array<f32, ${this.lastDimensionSize}>;
         ${getMainHeaderStringWgsl(this.workGroupSize)} {
-          ${getGlobalIndexStringWgsl(this.workGroupSize)};
+          ${getGlobalIndexStringWgsl(this.workGroupSize)}
 
           // Fill in the shared memory buffer. Here we need a loop to make sure
           // that all data in A|B are uploaded when |sharedMemorySize| is larger

@@ -99,7 +99,7 @@ export class SliceProgram implements WebGPUProgram {
 
     const userCode = `
       ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)};
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
         if (index < uniforms.size)
         {
           var sourceLoc : ${dtype};

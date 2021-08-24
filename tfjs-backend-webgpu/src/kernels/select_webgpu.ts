@@ -117,7 +117,7 @@ export class SelectProgram implements WebGPUProgram {
 
     const userCode = `
       ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)};
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
         if (index < uniforms.size) {
           let resRC = getOutputCoords(globalId, index);
           let cVal = getC(${cCoords});

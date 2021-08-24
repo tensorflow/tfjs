@@ -82,8 +82,8 @@ export class GatherNDProgram implements WebGPUProgram {
       strideString = 'uniforms.strides';
     }
     const userCode = `
-       ${getMainHeaderStringWgsl(this.workGroupSize)} {
-       ${getGlobalIndexStringWgsl(this.workGroupSize)};
+        ${getMainHeaderStringWgsl(this.workGroupSize)} {
+          ${getGlobalIndexStringWgsl(this.workGroupSize)}
           let coords = getOutputCoords(globalId, index);
           var flattenIndex = 0u;
           for (var j = 0u; j < uniforms.sliceDim; j = j + 1u) {

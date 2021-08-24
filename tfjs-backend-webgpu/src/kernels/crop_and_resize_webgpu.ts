@@ -182,7 +182,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
         }
       }
       ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)};
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
         let height_ratio = f32(${heightRatio});
         let width_ratio = f32(${widthRatio});
         let coords = getOutputCoords(globalId, index);

@@ -117,7 +117,7 @@ export class PadProgram implements WebGPUProgram {
 
     const userCode = `
       ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)};
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
         let start = ${startValue};
         let end = ${endValue};
         if (index < uniforms.size) {

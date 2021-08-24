@@ -80,7 +80,7 @@ export function getWorkGroupSizeStringWgsl(
 export function getGlobalIndexStringWgsl(
     workGroupSize: [number, number, number]): string {
   if (workGroupSize == null) {
-    throw new Error('workGroupSize is null!');
+    throw new Error('Work group size is null!');
   }
   return `
   let index = getGlobalIndex(globalId, localId, vec3<u32>(${

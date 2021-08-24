@@ -68,7 +68,7 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   getUserCodeWgsl(): string {
     const userCode = `
       ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)};
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
         let coords = getOutputCoords(globalId, index);
         let batch = coords[0];
         let d = coords[3];

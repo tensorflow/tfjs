@@ -108,7 +108,7 @@ export class StridedSliceProgram implements WebGPUProgram {
 
     const userCode = `
        ${getMainHeaderStringWgsl(this.workGroupSize)} {
-         ${getGlobalIndexStringWgsl(this.workGroupSize)};
+         ${getGlobalIndexStringWgsl(this.workGroupSize)}
          if (index < uniforms.size)
          {
            let coords = getOutputCoords(globalId, index);

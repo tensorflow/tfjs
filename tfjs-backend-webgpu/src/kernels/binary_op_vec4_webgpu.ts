@@ -100,7 +100,7 @@ export class BinaryOpVec4Program implements WebGPUProgram {
       userCode = `
       ${miscStr}
       ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)};
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
         let a = vec4<f32>(A.numbers[index]);
         let b = vec4<f32>(B.numbers[index]);
         setOutputFlat(index, binaryOperation(a, b));
@@ -110,7 +110,7 @@ export class BinaryOpVec4Program implements WebGPUProgram {
       userCode = `
       ${miscStr}
       ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)};
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
         if (index < uniforms.size) {
           let a = vec4<f32>(A.numbers[index]);
           let b = vec4<f32>(B.numbers[index]);
