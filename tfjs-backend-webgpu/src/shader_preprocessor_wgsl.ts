@@ -68,9 +68,6 @@ export interface InputInfo {
 
 export function getWorkGroupSizeStringWgsl(
     workGroupSize: [number, number, number]): string {
-  if (workGroupSize == null) {
-    throw new Error('Work group size is null!');
-  }
   return `
   [[stage(compute), workgroup_size(${workGroupSize[0]}, ${workGroupSize[1]}, ${
       workGroupSize[2]})]]
@@ -79,9 +76,6 @@ export function getWorkGroupSizeStringWgsl(
 
 export function getGlobalIndexStringWgsl(
     workGroupSize: [number, number, number]): string {
-  if (workGroupSize == null) {
-    throw new Error('Work group size is null!');
-  }
   return `
   let index = getGlobalIndex(globalId, localId, vec3<u32>(${
       workGroupSize[0]}u, ${workGroupSize[1]}u, ${workGroupSize[2]}u));
@@ -90,9 +84,6 @@ export function getGlobalIndexStringWgsl(
 
 export function getMainHeaderStringWgsl(
     workGroupSize: [number, number, number]) {
-  if (workGroupSize == null) {
-    throw new Error('Work group size is null!');
-  }
   return `
   [[stage(compute), workgroup_size(${workGroupSize[0]}, ${workGroupSize[1]}, ${
       workGroupSize[2]})]]
@@ -431,7 +422,8 @@ function getSamplerFromInInfo(inInfo: InputInfo, isVec4: boolean): string {
     }
    `;
 }
-
+// TODO: Implement getXXXFromFlatIndex, use it instead of getXXXAtOutCoords when
+// it's flat dispatch layout.
 export function getSamplerAtOutputCoords(
     inInfo: InputInfo, outShape: number[], isVec4: boolean,
     isFlatDispatchLayout: boolean): string {
