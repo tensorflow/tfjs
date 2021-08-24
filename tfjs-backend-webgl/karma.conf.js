@@ -58,13 +58,13 @@ const devConfig = {
   ],
   preprocessors: {'**/*.ts': ['karma-typescript']},
   karmaTypescriptConfig,
-  reporters: ['dots', 'karma-typescript']
+  reporters: ['dots', 'karma-typescript'],
+  singleRun: true,
 };
 
 const browserstackConfig = {
   ...devConfig,
   hostname: 'bs-local.com',
-  singleRun: true,
   port: 9886
 };
 
