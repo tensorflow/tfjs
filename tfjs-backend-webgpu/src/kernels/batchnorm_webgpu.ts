@@ -18,7 +18,7 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType} from '../shader_preprocessor';
-import {getCoordsDataTypeWgsl, getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
@@ -107,12 +107,12 @@ export class BatchNormProgram implements WebGPUProgram {
   getUserCodeWgsl(): string {
     let offsetSnippet = '0.0';
     if (this.offsetShape != null) {
-      offsetSnippet = 'getOffsetAtOutCoordsByGlobalId(globalId)';
+      offsetSnippet = 'getOffsetAtOutCoordsByGlobalId(globalId, index)';
     }
 
     let scaleSnippet = '1.0';
     if (this.scaleShape != null) {
-      scaleSnippet = 'getScaleAtOutCoordsByGlobalId(globalId)';
+      scaleSnippet = 'getScaleAtOutCoordsByGlobalId(globalId, index)';
     }
 
     const dim = this.outputShape.length;
@@ -131,12 +131,12 @@ export class BatchNormProgram implements WebGPUProgram {
           ${setOutput}
         }
       }
-      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-        let coords = getOutputCoords(globalId);
-        let xValue = getXAtOutCoordsByGlobalId(globalId);
-        let meanValue = getMeanAtOutCoordsByGlobalId(globalId);
-        let varianValue = getVarianceAtOutCoordsByGlobalId(globalId);
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+        let coords = getOutputCoords(globalId, index);
+        let xValue = getXAtOutCoordsByGlobalId(globalId, index);
+        let meanValue = getMeanAtOutCoordsByGlobalId(globalId, index);
+        let varianValue = getVarianceAtOutCoordsByGlobalId(globalId, index);
         let offsetValue = ${offsetSnippet};
         let scaleValue = ${scaleSnippet};
         let inv = scaleValue * inverseSqrt(varianValue + f32(uniforms.varianceEpsilon));

@@ -16,7 +16,7 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
@@ -75,14 +75,13 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
         ${opStr}
       }
 
-      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-      fn main([[builtin(global_invocation_id)]] global_id : vec3<u32>) {
-        let index = global_id.x;
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
         if(index < uniforms.size) {
-          let areal = getARealAtOutCoordsByGlobalId(global_id);
-          let aimag = getAImagAtOutCoordsByGlobalId(global_id);
-          let breal = getBRealAtOutCoordsByGlobalId(global_id);
-          let bimag = getBImagAtOutCoordsByGlobalId(global_id);
+          let areal = getARealAtOutCoordsByGlobalId(globalId, index);
+          let aimag = getAImagAtOutCoordsByGlobalId(globalId, index);
+          let breal = getBRealAtOutCoordsByGlobalId(globalId, index);
+          let bimag = getBImagAtOutCoordsByGlobalId(globalId, index);
           setOutputFlat(index, binaryOpComplex(areal, aimag, breal, bimag));
         }
       }
