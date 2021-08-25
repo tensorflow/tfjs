@@ -17,7 +17,7 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
@@ -61,10 +61,9 @@ export class GatherProgram implements WebGPUProgram {
   getUserCodeWgsl(): string {
     const sourceCoords = getSourceCoords(this.aShape, 'u32');
     const userCode = `
-      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-        let index = globalId.x;
-        let resRC = getOutputCoords(globalId);
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+        let resRC = getOutputCoords(globalId, index);
         if (index < uniforms.size) {
           setOutputFlat(index, getA(${sourceCoords}));
         }

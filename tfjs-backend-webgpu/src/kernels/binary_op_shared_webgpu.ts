@@ -18,7 +18,7 @@
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType} from '../shader_preprocessor';
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
@@ -153,15 +153,13 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
           ${opStr}
         }
         var<workgroup> sharedBuf : array<f32, ${this.lastDimensionSize}>;
-        ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-        fn main([[builtin(local_invocation_id)]] local_id : vec3<u32>,
-                [[builtin(global_invocation_id)]] global_id : vec3<u32>) {
-          let index = global_id.x;
+        ${getMainHeaderStringWgsl(this.workGroupSize)} {
+          ${getGlobalIndexStringWgsl(this.workGroupSize)}
 
           // Fill in the shared memory buffer. Here we need a loop to make sure
           // that all data in A|B are uploaded when |sharedMemorySize| is larger
           // than work group size.
-          for(var localIndex = local_id.x; localIndex < ${
+          for(var localIndex = localId.x; localIndex < ${
         this.lastDimensionSize}u; localIndex = localIndex + ${
         this.workGroupSize[0]}u) {
             sharedBuf[localIndex] = f32(${
