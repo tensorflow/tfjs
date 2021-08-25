@@ -18,8 +18,7 @@
 import {util} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType} from '../shader_preprocessor';
-import {getCoordsDataTypeWgsl} from '../shader_preprocessor_wgsl';
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
@@ -117,19 +116,18 @@ export class PadProgram implements WebGPUProgram {
         'coords';
 
     const userCode = `
-      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
         let start = ${startValue};
         let end = ${endValue};
-        let flatIndex = globalId.x;
-        if (flatIndex < uniforms.size) {
-          let outC = getOutputCoords(globalId);
+        if (index < uniforms.size) {
+          let outC = getOutputCoords(globalId, index);
 
           if (${leftPadCondition} || ${rightPadCondition}) {
-            setOutputFlat(flatIndex, uniforms.constantValue);
+            setOutputFlat(index, uniforms.constantValue);
           } else {
             let coords = outC - start;
-            setOutputFlat(flatIndex, getX(${unpackedCoords}));
+            setOutputFlat(index, getX(${unpackedCoords}));
           }
         }
       }

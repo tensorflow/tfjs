@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
@@ -67,9 +67,9 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
 
   getUserCodeWgsl(): string {
     const userCode = `
-    ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-    fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-        let coords = getOutputCoords(globalId);
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+        let coords = getOutputCoords(globalId, index);
         let batch = coords[0];
         let d = coords[3];
 
