@@ -17,7 +17,7 @@
 import {util} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType} from '../shader_preprocessor';
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
@@ -116,11 +116,10 @@ export class SelectProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-        let index = globalId.x;
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
         if (index < uniforms.size) {
-          let resRC = getOutputCoords(globalId);
+          let resRC = getOutputCoords(globalId, index);
           let cVal = getC(${cCoords});
           if (cVal >= 1.0) {
             setOutputFlat(index, getA(${abCoords}));

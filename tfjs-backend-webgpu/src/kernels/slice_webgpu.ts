@@ -17,7 +17,7 @@
 
 import {util} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
-import {getCoordsDataTypeWgsl, getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
@@ -98,13 +98,12 @@ export class SliceProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-        let index = globalId.x;
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
         if (index < uniforms.size)
         {
           var sourceLoc : ${dtype};
-          let coords = getOutputCoords(globalId);
+          let coords = getOutputCoords(globalId, index);
           ${coordSum.join('\n')}
           setOutputFlat(index, getSource(${sourceCoords}));
         }
