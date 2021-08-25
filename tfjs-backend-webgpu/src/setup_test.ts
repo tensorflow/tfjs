@@ -126,17 +126,9 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {
     include: 'fromPixels',
-    excludes: [
-      'HTMLVideoElement',  // Failed to execute 'getImageData' on
-                           // 'CanvasRenderingContext2D': The source width is 0
-    ]
   },
   {
     include: 'fromPixelsAsync',
-    excludes: [
-      'HTMLVideoElement',  // Failed to execute 'getImageData' on
-                           // 'CanvasRenderingContext2D': The source width is 0
-    ]
   },
   {
     include: 'nonMaxSuppression',
