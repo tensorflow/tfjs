@@ -17,9 +17,10 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
+import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   outputShape: number[];
@@ -28,7 +29,10 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   uniforms = 'ivec2 pad, stride, dilation, convDims, filterDims;';
+  uniformsWgsl =
+      `pad : vec2<u32>; stride : vec2<u32>; dilation : vec2<u32>; convDims : vec2<u32>; filterDims : vec2<u32>;`;
   workGroupSize: [number, number, number] = [256, 1, 1];
+  useWgsl: boolean;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.outShape;
@@ -38,6 +42,7 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.shaderKey = 'poolWithFilterSizeEqualsOne';
+    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
@@ -53,6 +58,27 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
           int xCCorner = xRCCorner.y;
 
           float value = getX(batch, xRCorner, xCCorner, d);
+          setOutput(batch, coords[1], coords[2], d, value);
+        }
+      }
+    `;
+    return userCode;
+  }
+
+  getUserCodeWgsl(): string {
+    const userCode = `
+    ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
+    fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
+        let coords = getOutputCoords(globalId);
+        let batch = coords[0];
+        let d = coords[3];
+
+        if (all(coords < uniforms.outShape)) {
+          let xRCCorner = coords.yz * uniforms.stride;
+          let xRCorner = xRCCorner.x;
+          let xCCorner = xRCCorner.y;
+
+          let value = getX(batch, xRCorner, xCCorner, d);
           setOutput(batch, coords[1], coords[2], d, value);
         }
       }

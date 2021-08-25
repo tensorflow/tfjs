@@ -59,6 +59,7 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
+
     this.useSharedMemoryWithB = useSharedMemoryWithB;
     this.op = op;
     this.useWgsl = getUseWgsl();
@@ -101,7 +102,7 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
 
         shared float sharedBuf[${this.lastDimensionSize}];
         void main() {
-          int index = int(gl_GlobalInvocationID.x);
+          int index = getGlobalIndex();
           int localIndex = int(gl_LocalInvocationIndex);
 
           // Fill in the shared memory buffer. Here we need a loop to make sure

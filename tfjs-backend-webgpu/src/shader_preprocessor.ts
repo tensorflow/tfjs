@@ -115,6 +115,8 @@ export function makeShader(
     uniformDeclaration += 'int size; ';
   }
 
+  uniformDeclaration += 'ivec3 dispatchSize; ';
+
   if (program.uniforms) {
     uniformDeclaration += program.uniforms;
   }
@@ -202,6 +204,18 @@ const SAMPLING_SNIPPETS = `
   int getFlatIndex(ivec4 coords, ivec4 shape) {
     return int(dot(coords, ivec4(
       shape.y * shape.z * shape.w, shape.z * shape.w, shape.w, 1.)));
+  }
+
+  // Only used when the y/z dimension of workgroup size is 1.
+  int getGlobalIndex() {
+    if (dispatchSize.y == 1 && dispatchSize.z == 1) {
+      return int(gl_GlobalInvocationID.x);
+    } else {
+      return int((gl_WorkGroupID.z * dispatchSize.x * dispatchSize.y +
+        gl_WorkGroupID.y * dispatchSize.x + gl_WorkGroupID.x) *
+        (gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z) +
+        gl_LocalInvocationIndex);
+    }
   }
 `;
 
@@ -372,7 +386,7 @@ function getSamplerAtOutputCoords(
     if (isVec4) {
       return `
         vec4 ${funcName}() {
-          return vec4(${texName}[gl_GlobalInvocationID.x]);
+          return vec4(${texName}[getGlobalIndex()]);
         }
 
         vec4 ${funcName}(${type} coords) {
@@ -383,7 +397,7 @@ function getSamplerAtOutputCoords(
     } else {
       return `
       float ${funcName}() {
-        return float(${texName}[gl_GlobalInvocationID.x]);
+        return float(${texName}[getGlobalIndex()]);
       }
 
       float ${funcName}(${type} coords) {
@@ -492,7 +506,7 @@ function generateGetOutputCoords(
   if (x.length === outRank) {
     const dtype = getCoordsDataType(outRank);
     const snippet = `${dtype} getOutputCoords() {
-      return getCoordsFromFlatIndex(int(gl_GlobalInvocationID.x));
+      return getCoordsFromFlatIndex(getGlobalIndex());
     }
     `;
     return [snippet, outRank];

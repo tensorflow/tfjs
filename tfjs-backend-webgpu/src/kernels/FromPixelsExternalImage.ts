@@ -26,12 +26,12 @@ export function fromPixelsExternalImage(args: {
   externalImage: ExternalImage|HTMLVideoElement,
   backend: WebGPUBackend,
   attrs: FromPixelsAttrs,
+  outShape: number[],
   useImport: boolean
 }): TensorInfo {
-  const {externalImage, backend, attrs, useImport} = args;
+  const {externalImage, backend, attrs, outShape, useImport} = args;
   const {numChannels} = attrs;
 
-  const outShape = [externalImage.height, externalImage.width, numChannels];
   const size = util.sizeFromShape(outShape);
   const strides = util.computeStrides(outShape);
   const uniformData = [size, numChannels, ...strides];
@@ -63,10 +63,10 @@ export function fromPixelsExternalImage(args: {
   if (!useImport) {
     backend.queue.copyExternalImageToTexture(
         {source: externalImage as ExternalImage, origin: {x: 0, y: 0}}, {
-          texture: program.makeInputTexture(
-              backend.device, externalImage.width, externalImage.height)
+          texture:
+              program.makeInputTexture(backend.device, outShape[1], outShape[0])
         },
-        [externalImage.width, externalImage.height]);
+        [outShape[1], outShape[0]]);
   }
 
   const info = backend.tensorMap.get(output.dataId);

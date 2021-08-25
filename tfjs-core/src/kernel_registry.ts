@@ -15,12 +15,11 @@
  * =============================================================================
  */
 import {env} from './environment';
-
 import {getGlobal} from './global_util';
+import * as log from './log';
 import {NamedGradientMap} from './tape';
 import {Tensor} from './tensor';
 import {DataType, RecursiveArray} from './types';
-import * as log from './log';
 
 const kernelRegistry =
     getGlobal('kernelRegistry', () => new Map<string, KernelConfig>());
@@ -80,7 +79,7 @@ export interface TensorInfo {
 }
 
 export interface NamedTensorInfoMap {
-  [name: string]: TensorInfo;
+  [name: string]: TensorInfo|undefined;
 }
 
 export interface NamedAttrMap {
