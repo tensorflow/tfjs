@@ -86,8 +86,7 @@ export function fromPixelsExternalImage(args: {
     externalResource = program.inputTexture.createView();
   }
 
-  backend.recordFromPixelsCommands(
-      program, info.bufferInfo.buffer, layout, externalResource);
-  backend.submitQueue();
+  backend.runFromPixelsProgram(
+      program, info.bufferInfo.buffer, layout, externalResource, output.dataId);
   return output;
 }
