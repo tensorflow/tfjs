@@ -43,9 +43,6 @@ export function fromPixels(args: {
     throw new Error('pixels passed to tf.browser.fromPixels() can not be null');
   }
 
-  const outShape = [pixels.height, pixels.width, numChannels];
-  const imageData = (pixels as ImageData | backend_util.PixelData).data;
-
   const isVideo = typeof (HTMLVideoElement) !== 'undefined' &&
       pixels instanceof HTMLVideoElement;
   const isImage = typeof (HTMLImageElement) !== 'undefined' &&
@@ -55,12 +52,21 @@ export function fromPixels(args: {
   const isImageBitmap =
       typeof (ImageBitmap) !== 'undefined' && pixels instanceof ImageBitmap;
 
+  const [width, height] = isVideo ?
+      [
+        (pixels as HTMLVideoElement).videoWidth,
+        (pixels as HTMLVideoElement).videoHeight
+      ] :
+      [pixels.width, pixels.height];
+  const outShape = [height, width, numChannels];
+
   if (env().getBool('WEBGPU_USE_IMPORT')) {
     if (isVideo) {
       return fromPixelsExternalImage({
         externalImage: pixels as HTMLVideoElement,
         backend,
         attrs,
+        outShape,
         useImport: true
       });
     }
@@ -70,12 +76,6 @@ export function fromPixels(args: {
     if (fromPixels2DContext == null) {
       fromPixels2DContext = document.createElement('canvas').getContext('2d');
     }
-    const [width, height] = isVideo ?
-        [
-          (pixels as HTMLVideoElement).videoWidth,
-          (pixels as HTMLVideoElement).videoHeight
-        ] :
-        [pixels.width, pixels.height];
     fromPixels2DContext.canvas.width = width;
     fromPixels2DContext.canvas.height = height;
     fromPixels2DContext.drawImage(
@@ -88,12 +88,14 @@ export function fromPixels(args: {
       externalImage: pixels as HTMLCanvasElement | ImageBitmap,
       backend,
       attrs,
+      outShape,
       useImport: false
     });
   }
 
   // TODO: Encoding should happen on GPU once we no longer have to download
   // image data to the CPU.
+  const imageData = (pixels as ImageData | backend_util.PixelData).data;
   let pixelArray = imageData;
   if (numChannels != null && numChannels !== 4) {
     pixelArray = new Uint8Array(pixels.width * pixels.height * numChannels);
