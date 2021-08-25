@@ -59,7 +59,7 @@ const devConfig = {
   preprocessors: {'**/*.ts': ['karma-typescript']},
   karmaTypescriptConfig,
   reporters: ['dots', 'karma-typescript'],
-  singleRun: true,
+  singleRun: true
 };
 
 const browserstackConfig = {
