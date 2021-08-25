@@ -865,12 +865,8 @@ export class WebGPUBackend extends KernelBackend {
       }
     }
     passEncoder.endPass();
-    this.computePassNumberInEncoder++;
     this.commandQueueOwnedIds.add(outputId);
-    if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
-        number <= this.computePassNumberInEncoder) {
-      this.submitQueue();
-    }
+    this.submitQueue();
     if (shouldTimeProgram) {
       this.activeTimers.push({
         name: program.constructor.name,
