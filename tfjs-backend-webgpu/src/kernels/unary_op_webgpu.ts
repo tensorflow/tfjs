@@ -16,7 +16,7 @@
  */
 import {util} from '@tensorflow/tfjs-core';
 
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {getUnaryOpString, UnaryOpType} from './unary_op_util';
@@ -69,11 +69,10 @@ export class UnaryOpProgram implements WebGPUProgram {
       fn unaryOperation(a : f32) -> f32 {
         ${getUnaryOpString(this.op, false, true)}
       }
-      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-      fn main([[builtin(global_invocation_id)]] globalId  : vec3<u32>) {
-        let index = globalId.x;
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
         if (index < uniforms.size) {
-          let a = getAAtOutCoordsByGlobalId(globalId);
+          let a = getAAtOutCoordsByGlobalId(globalId, index);
           setOutputFlat(index, unaryOperation(a));
         }
       }

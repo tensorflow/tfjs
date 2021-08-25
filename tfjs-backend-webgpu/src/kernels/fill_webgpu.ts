@@ -16,7 +16,7 @@
  */
 import {util} from '@tensorflow/tfjs-core';
 
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
@@ -63,9 +63,8 @@ export class FillProgram implements WebGPUProgram {
 
   getUserCodeWgsl(): string {
     const userCode = `
-    ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-    fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-      let index = globalId.x;
+    ${getMainHeaderStringWgsl(this.workGroupSize)} {
+      ${getGlobalIndexStringWgsl(this.workGroupSize)}
       for (var i = 0u; i < ${this.workPerThread}u; i = i + 1u) {
         let flatIndex = index * ${this.workPerThread}u + i;
         if (flatIndex < uniforms.size) {
