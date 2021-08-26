@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC. All Rights Reserved.
+ * Copyright 2019 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
@@ -191,9 +191,8 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
         }
       }
 
-      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-        let coords = getOutputCoords(globalId);
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        let coords = getOutputCoords(globalId, index);
         let batch = coords[0];
         let outChannel = coords[3];
 
