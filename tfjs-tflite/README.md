@@ -28,7 +28,7 @@ manipulating tensors.
 import '@tensorflow/tfjs-backend-cpu';
 // Import @tensorflow/tfjs-core
 import * as tf from '@tensorflow/tfjs-core';
-// Import @tensorflow/tfjs-tflite.
+// Import @tensorflow/tfjs-tflite@0.0.1-alpha.4.
 import {loadTFLiteModel, TFLiteModel} from '@tensorflow/tfjs-tflite';
 ```
 
@@ -45,7 +45,7 @@ import {loadTFLiteModel, TFLiteModel} from '@tensorflow/tfjs-tflite';
   Note that we need to explicitly load dist/tf-tflite.min.js so that it can
   locate WASM module files from their default location (dist/).
 -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite/dist/tf-tflite.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.4/dist/tf-tflite.min.js"></script>
 ```
 
 ## Set WASM modules location (optional)
