@@ -697,6 +697,14 @@ export class WebGPUBackend extends KernelBackend {
       outputDtype: DataType,
       programUniforms?: Array<{type: string; data: number[]}>): TensorInfo {
     const output = this.makeTensorInfo(program.outputShape, outputDtype);
+    const outData = this.tensorMap.get(output.dataId);
+    if (util.sizeFromShape(output.shape) === 0) {
+      // Short-circuit the computation since the result is empty (has 0 in its
+      // shape).
+      outData.values =
+          util.getTypedArrayFromDType(output.dtype as 'float32', 0);
+      return output;
+    }
 
     // There are five kinds of uniforms: NAN, shapes, shape strides, program
     // size, program defined uniforms.
@@ -715,6 +723,7 @@ export class WebGPUBackend extends KernelBackend {
     if (program.size != null) {
       uniformsWithType.push({type: uniformsType, data: [program.size]});
     }
+    uniformsWithType.push({type: 'int32', data: program.dispatch});
     if (programUniforms) {
       uniformsWithType = [...uniformsWithType, ...programUniforms];
     }
@@ -814,9 +823,9 @@ export class WebGPUBackend extends KernelBackend {
     return output;
   }
 
-  recordFromPixelsCommands(
+  runFromPixelsProgram(
       program: FromPixelsProgram, output: GPUBuffer, layout: WebGPULayout,
-      externalResource: GPUExternalTexture|GPUTextureView) {
+      externalResource: GPUExternalTexture|GPUTextureView, outputId: DataId) {
     const bindGroup = this.device.createBindGroup({
       layout: layout.bindGroupLayout,
       entries: [
@@ -840,11 +849,30 @@ export class WebGPUBackend extends KernelBackend {
     });
     this.ensureCommandEncoderReady();
     const passEncoder = this.currentCommandEncoder.beginComputePass();
+    const shouldTimeProgram = this.activeTimers != null;
+    if (shouldTimeProgram) {
+      if (this.supportTimeQuery) {
+        passEncoder.writeTimestamp(this.querySet, 0);
+      }
+    }
     passEncoder.setPipeline(program.pipeline);
     passEncoder.setBindGroup(0, bindGroup);
     passEncoder.dispatch(
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+    if (shouldTimeProgram) {
+      if (this.supportTimeQuery) {
+        passEncoder.writeTimestamp(this.querySet, 1);
+      }
+    }
     passEncoder.endPass();
+    this.commandQueueOwnedIds.add(outputId);
+    this.submitQueue();
+    if (shouldTimeProgram) {
+      this.activeTimers.push({
+        name: program.constructor.name,
+        query: this.getQueryTime(this.querySet)
+      });
+    }
   }
 
   async getTimeFromQuerySet(querySet: GPUQuerySet) {

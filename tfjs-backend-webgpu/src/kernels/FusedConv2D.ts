@@ -73,6 +73,13 @@ export function fusedConv2d(args: {
   const useVec4 =
       convInfo.inChannels % 4 === 0 && convInfo.outChannels % 4 === 0;
 
+  const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
+  const dimensions = [
+    {type: 'int32', data: [convInfo.filterHeight, convInfo.filterWidth]},
+    {type: 'int32', data: [...padInfo]},
+    {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
+    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]}
+  ];
   if (useNaive) {
     // TODO(kainino0x): This may be obsolete, but is kept for reference.
     program = new Conv2DNaiveProgram(
@@ -80,12 +87,17 @@ export function fusedConv2d(args: {
   } else if (useVec4) {
     program = new Conv2DMMVec4Program(
         convInfo, hasBias, activation, hasPreluActivationWeights);
+    const dimAOuter = convInfo.outShape[1] * convInfo.outShape[2];
+    const dimBOuter = convInfo.outShape[3];
+    const dimInner =
+        convInfo.filterHeight * convInfo.filterWidth * convInfo.inShape[3];
+    dimensions.push(
+        {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
+        {type: 'int32', data: [dimInner]});
   } else {
     program = new Conv2DMMProgram(
         convInfo, hasBias, activation, hasPreluActivationWeights);
   }
-
-  const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
 
   const inputVar: TensorInfo[] = [x, filter];
   if (hasBias) {
@@ -94,13 +106,6 @@ export function fusedConv2d(args: {
   if (hasPreluActivationWeights) {
     inputVar.push(preluActivationWeights);
   }
-
-  const dimensions = [
-    {type: 'int32', data: [convInfo.filterHeight, convInfo.filterWidth]},
-    {type: 'int32', data: [...padInfo]},
-    {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
-    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]}
-  ];
 
   return backend.runWebGPUProgram(program, inputVar, x.dtype, dimensions);
 }

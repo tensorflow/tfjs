@@ -18,9 +18,10 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType} from '../shader_preprocessor';
+import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class BatchNormProgram implements WebGPUProgram {
   outputShape: number[];
@@ -29,11 +30,13 @@ export class BatchNormProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[];
   uniforms = 'float varianceEpsilon;';
+  uniformsWgsl = 'varianceEpsilon : f32;';
   // This is an experimental value.
   workGroupSize: [number, number, number] = [128, 1, 1];
   offsetShape: number[]|null;
   scaleShape: number[]|null;
   varianceEpsilon: number;
+  useWgsl: boolean;
 
   constructor(
       xShape: number[], meanShape: number[], varianceShape: number[],
@@ -57,6 +60,7 @@ export class BatchNormProgram implements WebGPUProgram {
     this.offsetShape = offsetShape;
     this.scaleShape = scaleShape;
     this.shaderKey = 'batchNorm';
+    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
@@ -95,6 +99,48 @@ export class BatchNormProgram implements WebGPUProgram {
         float scale = ${scaleSnippet};
         float inv = scale * inversesqrt(variance + float(varianceEpsilon));
         writeResult(coords,dot(vec3(x, -mean, offset), vec3(inv, inv, 1)));
+      }
+  `;
+    return userCode;
+  }
+
+  getUserCodeWgsl(): string {
+    let offsetSnippet = '0.0';
+    if (this.offsetShape != null) {
+      offsetSnippet = 'getOffsetAtOutCoordsByGlobalId(globalId, index)';
+    }
+
+    let scaleSnippet = '1.0';
+    if (this.scaleShape != null) {
+      scaleSnippet = 'getScaleAtOutCoordsByGlobalId(globalId, index)';
+    }
+
+    const dim = this.outputShape.length;
+    const coordsDataType = getCoordsDataTypeWgsl(dim);
+    let setOutput =
+        'setOutput(coords[0], coords[1], coords[2], coords[3], value);';
+    if (dim === 2) {
+      setOutput = 'setOutput(coords[0], coords[1], value);';
+    }
+    if (dim === 3) {
+      setOutput = 'setOutput(coords[0], coords[1], coords[2], value);';
+    }
+    const userCode = `
+      fn writeResult(coords : ${coordsDataType}, value : f32) {
+        if (coordsInBounds${dim}D(coords, uniforms.outShape)) {
+          ${setOutput}
+        }
+      }
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+        let coords = getOutputCoords(globalId, index);
+        let xValue = getXAtOutCoordsByGlobalId(globalId, index);
+        let meanValue = getMeanAtOutCoordsByGlobalId(globalId, index);
+        let varianValue = getVarianceAtOutCoordsByGlobalId(globalId, index);
+        let offsetValue = ${offsetSnippet};
+        let scaleValue = ${scaleSnippet};
+        let inv = scaleValue * inverseSqrt(varianValue + f32(uniforms.varianceEpsilon));
+        writeResult(coords,dot(vec3<f32>(xValue, -meanValue, offsetValue), vec3<f32>(inv, inv, 1.0)));
       }
   `;
     return userCode;

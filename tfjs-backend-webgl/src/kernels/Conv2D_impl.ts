@@ -229,9 +229,10 @@ export function conv2dWithIm2Row({
 
   const im2ColProgram = new Im2ColPackedProgram(x2ColShape, convInfo);
   const customValues = [
-    xSqueezed.shape, [convInfo.padInfo.left, convInfo.padInfo.top],
+    xSqueezed.shape, [convInfo.padInfo.top, convInfo.padInfo.left],
     [convInfo.strideHeight, convInfo.strideWidth],
-    [convInfo.dilationHeight, convInfo.dilationWidth]
+    [convInfo.dilationHeight, convInfo.dilationWidth], [convInfo.inChannels],
+    [convInfo.filterWidth * convInfo.inChannels], [convInfo.outWidth]
   ];
   const im2Col = backend.runWebGLProgram(
       im2ColProgram, [xSqueezed], 'float32', customValues);

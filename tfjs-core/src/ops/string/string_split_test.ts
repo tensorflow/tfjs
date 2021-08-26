@@ -97,4 +97,12 @@ describeWithFlags('stringSplit', ALL_ENVS, () => {
     await expectResult(
         result, [[0, 0], [1, 0], [2, 0]], ['a', 'b', 'c'], [3, 1]);
   });
+
+  it('large input does not cause an argument overflow', async () => {
+    const input = 'a'.repeat(200000);
+    const result = tf.string.stringSplit([input], '');
+    await expectResult(
+        result, Array(input.length).fill(0).map((_, i) => [0, i]),
+        input.split(''), [1, input.length]);
+  });
 });
