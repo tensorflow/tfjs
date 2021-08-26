@@ -228,8 +228,6 @@ py_library(
         ":keras_h5_conversion",
         ":keras_tfjs_loader",
         ":tf_saved_model_conversion_v2",
-        #"//third_party/py/h5py",
-        #"//third_party/py/tensorflow",
         "//tfjs-converter/python/tensorflowjs:version",
     ],
 )

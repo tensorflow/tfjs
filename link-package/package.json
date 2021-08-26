@@ -5,7 +5,7 @@
   "license": "Apache 2.0",
   "private": true,
   "scripts": {
-    "build": "yarn build-link-package-core && yarn reinstall",
+    "build": "yarn build-link-package-core && yarn build-converter && yarn reinstall",
     "build-link-package-core": "cd ../link-package-core && yarn build",
     "build-converter": "cd ../tfjs-converter && yarn && yarn build",
     "reinstall-link-package-core": "cd ../link-package-core && yarn reinstall",

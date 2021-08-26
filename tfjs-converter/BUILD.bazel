@@ -13,8 +13,9 @@
 # limitations under the License.
 # =============================================================================
 
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "nodejs_test", "pkg_npm")
-load("//tools:copy_to_dist.bzl", "copy_to_dist")
+load("//tools:copy_to_dist.bzl", "copy_to_dist", "copy_ts_library_to_dist")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 
 package(default_visibility = ["//visibility:public"])
@@ -22,6 +23,7 @@ package(default_visibility = ["//visibility:public"])
 # Allow typescript rules in any package to reference this file
 exports_files([
     "package.json",
+    "README.md",
 ])
 
 nodejs_test(
@@ -88,7 +90,7 @@ filegroup(
     output_group = "es5_sources",
 )
 
-copy_to_dist(
+copy_ts_library_to_dist(
     name = "copy_src_to_dist",
     srcs = [
         ":es5_sources",
@@ -103,6 +105,7 @@ copy_to_dist(
     name = "copy_bundles",
     srcs = [
         ":tf-converter",
+        ":tf-converter.node",
         ":tf-converter.es2017",
         ":tf-converter.es2017.min",
         ":tf-converter.fesm",
@@ -111,12 +114,26 @@ copy_to_dist(
     ],
 )
 
+copy_file(
+    name = "copy_miniprogram",
+    src = ":tf-converter.min.js",
+    out = "dist/miniprogram/index.js",
+)
+
+copy_file(
+    name = "copy_miniprogram_map",
+    src = ":tf-converter.min.js.map",
+    out = "dist/miniprogram/index.js.map",
+)
+
 pkg_npm(
     name = "tfjs-converter_pkg",
-    srcs = ["package.json"],
+    srcs = ["package.json", "README.md"],
     tags = ["ci"],
     deps = [
         ":copy_bundles",
+        ":copy_miniprogram",
+        ":copy_miniprogram_map",
         ":copy_src_to_dist",
         "//tfjs-converter/metadata:kernels_to_ops",
     ],

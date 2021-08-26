@@ -2,35 +2,10 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-backend-cpu@link:../link-package-core/node_modules/@tensorflow/tfjs-backend-cpu":
-  version "0.0.0"
-  uid ""
-
-<<<<<<< HEAD
-"@tensorflow/tfjs-backend-webgl@file:../dist/bin/tfjs-backend-webgl/tfjs-backend-webgl_pkg":
-  version "0.0.0"
-  dependencies:
-<<<<<<< HEAD
-    "@tensorflow/tfjs-backend-cpu" "link:../../../Library/Caches/Yarn/v6/npm-@tensorflow-tfjs-backend-webgl-0.0.0-11c2195e-d2b9-4fc0-88c6-7ca981154613-1627511367479/node_modules/@tensorflow/link-package/node_modules/@tensorflow/tfjs-backend-cpu"
-=======
-    "@tensorflow/tfjs-backend-cpu" "link:../../.cache/yarn/v6/npm-@tensorflow-tfjs-backend-webgl-0.0.0-7bd291f1-1a02-4b56-b1f6-06782c5cd20f-1628181296214/node_modules/@tensorflow/link-package/node_modules/@tensorflow/tfjs-backend-cpu"
->>>>>>> master
-    "@types/offscreencanvas" "~2019.3.0"
-    "@types/seedrandom" "2.4.27"
-    "@types/webgl-ext" "0.0.30"
-    "@types/webgl2" "0.0.5"
-    seedrandom "2.4.3"
-
-<<<<<<< HEAD
 "@tensorflow/tfjs-converter@file:../dist/bin/tfjs-converter/tfjs-converter_pkg":
   version "0.0.0"
 
-"@tensorflow/tfjs-core@file:../dist/bin/tfjs-core/tfjs-core_pkg":
-=======
-=======
->>>>>>> master
 "@tensorflow/tfjs-core@link:../link-package-core/node_modules/@tensorflow/tfjs-core":
->>>>>>> master
   version "0.0.0"
   uid ""
 

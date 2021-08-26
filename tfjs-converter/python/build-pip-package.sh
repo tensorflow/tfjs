@@ -147,15 +147,11 @@ for VENV_PYTHON_BIN in ${VENV_PYTHON_BINS}; do
   source "${TMP_VENV_DIR}/bin/activate"
 
   echo
-  echo "Building wheel for ${VENV_PYTHON_BIN}: $(python --version 2>&1) ..."
+  echo "Looking for wheel for ${VENV_PYTHON_BIN}: $(python --version 2>&1) ..."
+  echo "The wheel should be build with `bazel python2_wheel python3_wheel command"
   echo
-
-  #bazel build ${VENV_PYTHON_BIN}_wheel
 
   pushd "${TMP_DIR}" > /dev/null
-  echo
-
-  echo "Building wheel for $(python --version 2>&1) ..."
   echo
 
   WHEELS=$(ls ../../dist/bin/tfjs-converter/python/*py${VENV_PYTHON_BIN: -1}*.whl)

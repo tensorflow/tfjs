@@ -15,6 +15,14 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
+# Lint.
+- name: 'node:10'
+  dir: 'tfjs-converter'
+  id: 'lint'
+  entrypoint: 'yarn'
+  args: ['lint']
+  waitFor: ['yarn']
+
 - name: 'node:10'
   id: 'create-pips'
   entrypoint: 'bash'

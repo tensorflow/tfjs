@@ -3,7 +3,7 @@ load("@tensorflowjs_dev_deps//:requirements.bzl", "requirement")
 
 package(
     default_visibility = [
-        "//tfjs-converter/python/tensorflowjs:__subpackages__",
+        ":__subpackages__",
     ],
 )
 
@@ -17,7 +17,7 @@ py_library(
     name = "tensorflowjs",
     srcs = ["__init__.py"],
     data = [
-        "//tfjs-converter/python/tensorflowjs/op_list:ops",
+        "/op_list:ops",
     ],
     srcs_version = "PY2AND3",
     visibility = ["//visibility:public"],
@@ -25,7 +25,7 @@ py_library(
         ":resource_loader",
         ":version",
         ":write_weights",
-        "//tfjs-converter/python/tensorflowjs/converters",
+        ":converters",
     ],
 )
 
@@ -74,7 +74,7 @@ py_library(
     srcs = ["quantization.py"],
     srcs_version = "PY2AND3",
     deps = [
-        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        ":expect_numpy_installed",
     ],
 )
 
@@ -85,8 +85,8 @@ py_library(
     deps = [
         ":quantization",
         ":read_weights",
-        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
-        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+        ":expect_numpy_installed",
+        ":expect_tensorflow_installed",
     ],
 )
 
@@ -96,7 +96,7 @@ py_library(
     srcs_version = "PY2AND3",
     deps = [
         ":quantization",
-        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        ":expect_numpy_installed",
     ],
 )
 
@@ -121,7 +121,7 @@ py_test(
     tags = ["ci"],
     deps = [
         ":quantization",
-        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        ":expect_numpy_installed",
     ],
 )
 
@@ -133,8 +133,8 @@ py_test(
     tags = ["ci"],
     deps = [
         ":write_weights",
-        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
-        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+        ":expect_numpy_installed",
+        ":expect_tensorflow_installed",
     ],
 )
 
@@ -147,15 +147,15 @@ py_test(
     deps = [
         ":read_weights",
         ":write_weights",
-        "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
-        "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
+        ":expect_numpy_installed",
+        ":expect_tensorflow_installed",
     ],
 )
 
 py_test(
     name = "resource_loader_test",
     srcs = ["resource_loader_test.py"],
-    data = ["//tfjs-converter/python/tensorflowjs/op_list:ops"],
+    data = ["/op_list:ops"],
     imports = [".."],
     srcs_version = "PY2AND3",
     tags = ["ci"],
