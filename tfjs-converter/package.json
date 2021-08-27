@@ -73,6 +73,6 @@
     "model-summary": "ts-node -s ./tools/model_summary.ts",
     "pb2json": "ts-node -s ./tools/pb2json_converter.ts",
     "build-pip-package": "cd python && ./build-pip-package.sh --test /tmp/tfjs-pips",
-    "run-python-tests": "cd python && ./run-python-tests.sh"
+    "run-python-tests": "bazel test python/..."
   }
 }
