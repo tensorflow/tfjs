@@ -22,7 +22,7 @@ set -e
 OUTPUT_DIR="$1"
 
 # The default version.
-CURRENT_VERSION=0.0.3
+CURRENT_VERSION=0.0.4
 
 # Get the version from the second parameter.
 # Default to the value in CURRENT_VERSION.
@@ -41,6 +41,3 @@ wget https://storage.googleapis.com/tfweb/${VERSION}/tflite_web_api.zip -P "${OU
 unzip "${OUTPUT_DIR}/tflite_web_api.zip" -d "${OUTPUT_DIR}"
 rm -f "${OUTPUT_DIR}/tflite_web_api.zip"
 
-# Append module exports to the JS client to make it a valid CommonJS module.
-# This is needed to help bundler correctly initialize the tfweb namespace.
-echo "var tfweb = (typeof window !== 'undefined' && window['tfweb']) || this['tfweb']; exports.tfweb = tfweb;" >> "${OUTPUT_DIR}/tflite_web_api_client.js"
