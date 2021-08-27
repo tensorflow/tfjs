@@ -15,10 +15,9 @@
 
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "pkg_npm")
-load("//tools:copy_to_dist.bzl", "copy_to_dist")
+load("//tools:copy_to_dist.bzl", "copy_to_dist", "copy_ts_library_to_dist")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
-load("//tools:ts_library_outputs.bzl", "ts_library_outputs")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -36,18 +35,11 @@ tfjs_bundle(
     ],
 )
 
-ts_library_outputs(
-    name = "tfjs-backend-webgl_outputs",
+copy_ts_library_to_dist(
+    name = "copy_src_to_dist",
     srcs = [
         "//tfjs-backend-webgl/src:tfjs-backend-webgl_lib",
         "//tfjs-backend-webgl/src:tfjs-backend-webgl_src_lib",
-    ],
-)
-
-copy_to_dist(
-    name = "copy_src_to_dist",
-    srcs = [
-        ":tfjs-backend-webgl_outputs",
     ],
     root = "src",
 )
