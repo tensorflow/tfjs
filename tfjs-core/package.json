@@ -45,7 +45,9 @@
     "rollup-plugin-visualizer": "~5.6.0",
     "shelljs": "~0.8.3",
     "ts-node": "~8.8.2",
-    "typescript": "3.5.3",
+    "tslint": "~5.11.0",
+    "tslint-no-circular-imports": "~0.5.0",
+    "typescript": "4.4.2",
     "yalc": "~1.0.0-pre.21",
     "yargs": "~17.3.1"
   },
