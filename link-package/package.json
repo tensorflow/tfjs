@@ -12,6 +12,7 @@
     "reinstall": "yarn && yarn reinstall-link-package-core && rimraf node_modules && yarn"
   },
   "devDependencies": {
+    "@tensorflow/tfjs-backend-cpu": "link:../link-package-core/node_modules/@tensorflow/tfjs-backend-cpu",
     "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core",
     "@tensorflow/tfjs-converter": "file:../dist/bin/tfjs-converter/tfjs-converter_pkg",
     "rimraf": "^3.0.2"
