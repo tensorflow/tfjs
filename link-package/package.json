@@ -5,14 +5,16 @@
   "license": "Apache 2.0",
   "private": true,
   "scripts": {
-    "build": "yarn build-link-package-core && yarn reinstall",
+    "build": "yarn build-link-package-core && yarn build-tflite && yarn reinstall",
     "build-link-package-core": "cd ../link-package-core && yarn build",
+    "build-tflite": "cd ../tfjs-tflite && yarn && yarn build",
     "reinstall-link-package-core": "cd ../link-package-core && yarn reinstall",
-    "reinstall": "yarn && yarn reinstall-link-package-core && rimraf node_modules && yarn"
+    "reinstall": "yarn && yarn reinstall-link-package-core && yarn cache clean @tensorflow/tfjs-tflite && rimraf node_modules && yarn"
   },
   "devDependencies": {
     "@tensorflow/tfjs-backend-cpu": "link:../link-package-core/node_modules/@tensorflow/tfjs-backend-cpu",
     "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core",
+    "@tensorflow/tfjs-tflite": "link:../dist/bin/tfjs-tflite/tfjs-tflite_pkg",
     "rimraf": "^3.0.2"
   }
 }
