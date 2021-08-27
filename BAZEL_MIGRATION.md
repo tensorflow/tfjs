@@ -314,14 +314,19 @@ load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm")
 
 pkg_npm(
     name = "tfjs-core_pkg",
-    srcs = ["package.json"],
+    srcs = [
+        # Add any static files the package should include here
+        "package.json",
+        "README.md",
+    ],
     tags = ["ci"],
     deps = [
         ":copy_bundles",
         ":copy_miniprogram",
         ":copy_miniprogram_map",
         ":copy_src_to_dist",
-        ":copy_test_snippets", # <- This is only in core, so I've omitted its definition.
+        ":copy_test_snippets", # <- This is only in core, so I've omitted its
+                               # definition in these docs.
     ],
 )
 ```
