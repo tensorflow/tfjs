@@ -64,6 +64,16 @@ steps:
       - yarn-common
       - yarn-link-package
   - name: 'node:10'
+    dir: tfjs-converter
+    entrypoint: yarn
+    id: lint-tfjs-converter
+    args:
+      - lint
+    waitFor:
+      - yarn-tfjs-converter
+      - yarn-common
+      - yarn-link-package
+  - name: 'node:10'
     id: 'create-pips-tfjs-converter'
     entrypoint: 'bash'
     args:
@@ -360,6 +370,7 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-converter
+      - lint-tfjs-converter
       - create-pips-tfjs-converter
       - yarn-tfjs-layers
       - build-tfjs-layers
@@ -381,6 +392,7 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-converter
+      - lint-tfjs-converter
       - create-pips-tfjs-converter
       - yarn-tfjs-layers
       - build-tfjs-layers
@@ -402,6 +414,7 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-converter
+      - lint-tfjs-converter
       - create-pips-tfjs-converter
       - yarn-tfjs-layers
       - build-tfjs-layers
@@ -424,6 +437,7 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-converter
+      - lint-tfjs-converter
       - create-pips-tfjs-converter
       - yarn-tfjs-layers
       - build-tfjs-layers
@@ -624,6 +638,7 @@ steps:
       - build-tfjs-backend-webgl
       - lint-tfjs-backend-webgl
       - yarn-tfjs-converter
+      - lint-tfjs-converter
       - create-pips-tfjs-converter
       - yarn-tfjs-data
       - build-tfjs-data
@@ -661,6 +676,7 @@ steps:
       - build-tfjs-backend-webgl
       - lint-tfjs-backend-webgl
       - yarn-tfjs-converter
+      - lint-tfjs-converter
       - create-pips-tfjs-converter
       - yarn-tfjs-data
       - build-tfjs-data
