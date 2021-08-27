@@ -83,10 +83,10 @@ py_library(
     srcs = ["write_weights.py"],
     srcs_version = "PY2AND3",
     deps = [
-        ":quantization",
-        ":read_weights",
         ":expect_numpy_installed",
         ":expect_tensorflow_installed",
+        ":quantization",
+        ":read_weights",
     ],
 )
 
@@ -95,8 +95,8 @@ py_library(
     srcs = ["read_weights.py"],
     srcs_version = "PY2AND3",
     deps = [
-        ":quantization",
         ":expect_numpy_installed",
+        ":quantization",
     ],
 )
 
@@ -120,8 +120,8 @@ py_test(
     srcs_version = "PY2AND3",
     tags = ["ci"],
     deps = [
-        ":quantization",
         ":expect_numpy_installed",
+        ":quantization",
     ],
 )
 
@@ -132,9 +132,9 @@ py_test(
     srcs_version = "PY2AND3",
     tags = ["ci"],
     deps = [
-        ":write_weights",
         ":expect_numpy_installed",
         ":expect_tensorflow_installed",
+        ":write_weights",
     ],
 )
 
@@ -145,10 +145,10 @@ py_test(
     srcs_version = "PY2AND3",
     tags = ["ci"],
     deps = [
-        ":read_weights",
-        ":write_weights",
         ":expect_numpy_installed",
         ":expect_tensorflow_installed",
+        ":read_weights",
+        ":write_weights",
     ],
 )
 

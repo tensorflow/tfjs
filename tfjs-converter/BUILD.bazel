@@ -85,12 +85,12 @@ copy_to_dist(
     name = "copy_bundles",
     srcs = [
         ":tf-converter",
-        ":tf-converter.node",
         ":tf-converter.es2017",
         ":tf-converter.es2017.min",
         ":tf-converter.fesm",
         ":tf-converter.fesm.min",
         ":tf-converter.min",
+        ":tf-converter.node",
     ],
 )
 
@@ -108,7 +108,10 @@ copy_file(
 
 pkg_npm(
     name = "tfjs-converter_pkg",
-    srcs = ["package.json", "README.md"],
+    srcs = [
+        "README.md",
+        "package.json",
+    ],
     tags = ["ci"],
     deps = [
         ":copy_bundles",
