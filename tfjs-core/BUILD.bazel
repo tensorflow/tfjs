@@ -86,7 +86,10 @@ copy_file(
 
 pkg_npm(
     name = "tfjs-core_pkg",
-    srcs = ["package.json", "README.md"],
+    srcs = [
+        "README.md",
+        "package.json",
+    ],
     tags = ["ci"],
     deps = [
         ":copy_bundles",
