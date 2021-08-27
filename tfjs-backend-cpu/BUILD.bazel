@@ -75,8 +75,8 @@ copy_to_dist(
 pkg_npm(
     name = "tfjs-backend-cpu_pkg",
     srcs = [
-        "package.json",
         "README.md",
+        "package.json",
     ],
     tags = ["ci"],
     deps = [
