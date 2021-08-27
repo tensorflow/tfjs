@@ -72,29 +72,9 @@ tfjs_bundle(
     ],
 )
 
-filegroup(
-    name = "es6_sources",
-    srcs = [
-        "//tfjs-converter/src:tfjs-converter_lib",
-        "//tfjs-converter/src:tfjs-converter_src_lib",
-    ],
-    output_group = "es6_sources",
-)
-
-filegroup(
-    name = "es5_sources",
-    srcs = [
-        "//tfjs-converter/src:tfjs-converter_lib",
-        "//tfjs-converter/src:tfjs-converter_src_lib",
-    ],
-    output_group = "es5_sources",
-)
-
 copy_ts_library_to_dist(
     name = "copy_src_to_dist",
     srcs = [
-        ":es5_sources",
-        ":es6_sources",
         "//tfjs-converter/src:tfjs-converter_lib",
         "//tfjs-converter/src:tfjs-converter_src_lib",
     ],

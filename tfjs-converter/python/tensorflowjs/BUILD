@@ -17,7 +17,7 @@ py_library(
     name = "tensorflowjs",
     srcs = ["__init__.py"],
     data = [
-        "/op_list:ops",
+        "//tfjs-converter/python/tensorflowjs/op_list:ops",
     ],
     srcs_version = "PY2AND3",
     visibility = ["//visibility:public"],
@@ -25,7 +25,7 @@ py_library(
         ":resource_loader",
         ":version",
         ":write_weights",
-        ":converters",
+        "//tfjs-converter/python/tensorflowjs/converters",
     ],
 )
 
@@ -155,7 +155,7 @@ py_test(
 py_test(
     name = "resource_loader_test",
     srcs = ["resource_loader_test.py"],
-    data = ["/op_list:ops"],
+    data = ["//tfjs-converter/python/tensorflowjs/op_list:ops"],
     imports = [".."],
     srcs_version = "PY2AND3",
     tags = ["ci"],

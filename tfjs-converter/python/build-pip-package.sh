@@ -148,7 +148,7 @@ for VENV_PYTHON_BIN in ${VENV_PYTHON_BINS}; do
 
   echo
   echo "Looking for wheel for ${VENV_PYTHON_BIN}: $(python --version 2>&1) ..."
-  echo "The wheel should be build with `bazel python2_wheel python3_wheel command"
+  echo "The wheel should be build with `bazel python2_wheel python3_wheel` command"
   echo
 
   pushd "${TMP_DIR}" > /dev/null
