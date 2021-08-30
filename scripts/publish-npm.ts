@@ -105,7 +105,7 @@ async function main() {
     console.log(chalk.magenta.bold(`~~~ Publishing ${pkg} to npm ~~~`));
 
     const otp =
-          await question(`Enter one-time password from your authenticator: `);
+        await question(`Enter one-time password from your authenticator: `);
 
     if (BAZEL_PACKAGES.has(pkg)) {
       $(`YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm -- -- --otp=${otp}`);
