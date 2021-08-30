@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../../shader_preprocessor_wgsl';
 import {WebGPULayout} from '../../webgpu_util';
 import {FromPixelsProgram} from './from_pixels_webgpu';
 
@@ -26,19 +27,19 @@ export class FromPixelsImportProgram extends FromPixelsProgram {
     const userCode = `
     [[binding(1), group(0)]] var src: texture_external;
 
-    [[stage(compute), workgroup_size(${this.workGroupSize[0]}, 1, 1)]]
-    fn main([[builtin(global_invocation_id)]] GlobalInvocationID : vec3<u32>) {
-      var flatIndexBase = i32(GlobalInvocationID.x) * uniforms.numChannels;
+    ${getMainHeaderStringWgsl(this.workGroupSize)} {
+      ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      var flatIndexBase = index * uniforms.numChannels;
       var coords: vec3<u32> = getCoordsFromFlatIndex(u32(flatIndexBase));
       var texR: i32 = i32(coords[0]);
       var texC: i32 = i32(coords[1]);
       var depth: i32 = i32(coords[2]);
       var values = textureLoad(src, vec2<i32>(texC, texR));
-      for (var i: i32 = 0; i < uniforms.numChannels; i = i + 1) {
+      for (var i: u32 = 0u; i < uniforms.numChannels; i = i + 1u) {
         var value = values[i];
-        var flatIndex = i32(flatIndexBase) + i;
+        var flatIndex = flatIndexBase + i;
         if (flatIndex < uniforms.size) {
-          result.numbers[u32(flatIndex)] = i32(floor(255.0 * value));
+          result.numbers[flatIndex] = i32(floor(255.0 * value));
         }
       }
     }
@@ -68,11 +69,8 @@ export class FromPixelsImportProgram extends FromPixelsProgram {
       externalTexture: {},
     });
     // Uniform buffer binding layout.
-    bindGroupLayoutEntries.push({
-      binding: 2,
-      visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'uniform' as const}
-    });
+    bindGroupLayoutEntries.push(
+        {binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: {}});
     const fromPixelImportBindGroupLayout =
         device.createBindGroupLayout({entries: bindGroupLayoutEntries});
     const fromPixelImportPipelineLayout = device.createPipelineLayout(
