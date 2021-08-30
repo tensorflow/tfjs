@@ -101,7 +101,10 @@ export function batchMatMulImpl({
   let program: MatMulPackedProgram|MatMulPackedVec4Program
       |MatMulSmallOutputSizeProgram;
   let dimensions = null;
-  if ((a.shape[1] <= 16 || b.shape[2] <= 16) && !transposeA && !transposeB) {
+  if (!transposeA && !transposeB && ((a.shape[1] <= 16 &&
+      (b.shape[2] <= 512 || b.shape[1] >= 2 * b.shape[2])) ||
+      (b.shape[2] <= 16 &&
+      (a.shape[1] <= 512 || a.shape[2] >= 2 * a.shape[1])))) {
     program = new MatMulSmallOutputSizeProgram(a3dShape, b3dShape,
         [batchDim, outerShapeA, outerShapeB], bias, activation,
         preluActivationWeights);
