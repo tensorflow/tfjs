@@ -46,7 +46,7 @@ export async function replaceHTMLVideoElementSource(
   videoElement.play();
 
   if (videoElement.readyState < 2) {
-    await new Promise(resolve => {
+    await new Promise<void>(resolve => {
       videoElement.addEventListener('loadeddata', () => resolve());
     });
   }

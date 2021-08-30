@@ -221,7 +221,7 @@ describeBrowserEnvs('MicrophoneIterator', () => {
       const interval = setInterval(getTensor, 1);
 
       // Wait 3 seconds for the intervals to run.
-      await new Promise(resolve => {
+      await new Promise<void>(resolve => {
         setTimeout(() => {
           resolve();
         }, 100);
