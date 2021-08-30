@@ -1,5 +1,5 @@
 # Supported Tensorflow Ops
-
+Please check the list of supported ops in various backends [here](https://docs.google.com/spreadsheets/d/1D25XtWaBrmUEErbGQB0QmNhH-xtwHo9LDl59w0TbxrI/edit#gid=0) 
 ## Operations - Arithmetic
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
