@@ -17,9 +17,10 @@
 
 import {backend_util, DataType} from '@tensorflow/tfjs-core';
 import {getCoordsDataType} from '../shader_preprocessor';
+import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch} from '../webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class ReduceProgram implements WebGPUProgram {
   outputShape: number[];
@@ -29,9 +30,11 @@ export class ReduceProgram implements WebGPUProgram {
   workGroupSize: [number, number, number];
   variableNames = ['x'];
   uniforms = 'int reduceSize;';
+  uniformsWgsl = 'reduceSize : u32;';
   reduceType: 'max'|'mean'|'min'|'prod'|'sum';
   inputShape: number[];
   reductionFactor: number;
+  useWgsl: boolean;
 
   constructor(
       reduceInfo: backend_util.ReduceInfo,
@@ -54,6 +57,7 @@ export class ReduceProgram implements WebGPUProgram {
 
     this.reduceType = reduceType;
     this.shaderKey = `reduce_${reduceType}_${outputDtype}`;
+    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
@@ -140,6 +144,99 @@ export class ReduceProgram implements WebGPUProgram {
            }
          }
          const int flatOutputIndex = int(gl_GlobalInvocationID.y);
+         ${reduceInSharedMemory ? sharedMemoryReduceSnippet : outputSnippet}
+       }
+     `;
+    return userCode;
+  }
+
+  getUserCodeWgsl(): string {
+    const reduceInSharedMemory = this.workGroupSize[0] > 1;
+
+    let reduceOp = ``;
+    let initValue = '0.0';
+    if (this.reduceType === 'min' || this.reduceType === 'max') {
+      reduceOp = `
+         if (isNanCustom(candidate)) {
+          bestValue = uniforms.NAN;
+         } elseif (candidate ${this.reduceType === 'min' ? '<' : '>'}
+           bestValue)
+           {  bestValue = candidate; }`;
+      initValue = 'f32(x.numbers[offset])';
+    } else if (this.reduceType === 'sum' || this.reduceType === 'mean') {
+      reduceOp = ' bestValue = bestValue + candidate; ';
+    } else if (this.reduceType === 'prod') {
+      reduceOp = ' bestValue = bestValue * candidate; ';
+      initValue = '1.0';
+    }
+
+    const outputSnippet = this.reduceType === 'mean' ?
+        // tslint:disable-next-line:max-line-length
+        `setOutputFlat(flatOutputIndex, bestValue / f32(uniforms.reduceSize));` :
+        `setOutputFlat(flatOutputIndex, bestValue);`;
+
+    const sharedMemorySnippet = `
+         var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
+       `;
+    const sharedMemoryReduceSnippet = `
+       xBestValues[localId.x] = bestValue;
+       ${
+        this.reduceType === 'sum' || this.reduceType === 'mean' ||
+                this.reduceType === 'prod' ?
+            `bestValue = ${initValue};` :
+            ' '}
+       var currentSize = WorkGroupSize;
+       for(; currentSize > 1u;) {
+         workgroupBarrier();
+         for (var w = 0u; w < ${this.reductionFactor}u; w = w + 1u) {
+           let i = localId.x * ${this.reductionFactor}u + w;
+           if (i < currentSize) {
+             let candidate = xBestValues[i];
+             ${reduceOp}
+           }
+         }
+         workgroupBarrier();
+         xBestValues[localId.x] = bestValue;
+         currentSize = DIV_CEIL(currentSize, ${this.reductionFactor}u);
+         ${
+        this.reduceType === 'sum' || this.reduceType === 'mean' ||
+                this.reduceType === 'prod' ?
+            `if(currentSize > 1u) { bestValue = ${initValue}; }` :
+            ''}
+       }
+       if (localId.x == 0u) {
+         ${outputSnippet}
+       }
+     `;
+
+    const userCode = `
+       fn DIV_CEIL(a : u32, b : u32) -> u32 {
+        return ((a - 1u) / b + 1u);
+       }
+       let WorkGroupSize = ${this.workGroupSize[0]}u;
+       ${reduceInSharedMemory ? sharedMemorySnippet : ''}
+       fn getOffset(globalId : vec3<u32>, index : u32) -> u32 {
+         let outputCoords = getOutputCoords(globalId, index);
+         let offset = ${
+        this.outputShape.length === 1 ?
+            'outputCoords' :
+            'outputCoords[0]'} * uniforms.reduceSize;
+         return offset;
+       }
+       ${getMainHeaderStringWgsl(this.workGroupSize)} {
+         ${getGlobalIndexStringWgsl(this.workGroupSize)}
+         let offset= getOffset(globalId, index);
+         var bestValue = ${initValue};
+         let Length = uniforms.reduceSize;
+         let WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
+         for (var w = 0u; w < WorkPerThread; w = w + 1u) {
+           let i = globalId.x * WorkPerThread + w;
+           if (i < Length) {
+             let candidate = f32(x.numbers[offset + i]);
+             ${reduceOp}
+           }
+         }
+         let flatOutputIndex = globalId.y;
          ${reduceInSharedMemory ? sharedMemoryReduceSnippet : outputSnippet}
        }
      `;
