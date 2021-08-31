@@ -166,6 +166,11 @@ We support porting pre-trained models from:
 - [TensorFlow SavedModel](https://github.com/tensorflow/tfjs-converter)
 - [Keras](https://js.tensorflow.org/tutorials/import-keras.html)
 
+## Various ops supported in different backends
+
+Please refer to below :
+- [TFJS Ops Metrix](https://docs.google.com/spreadsheets/d/1D25XtWaBrmUEErbGQB0QmNhH-xtwHo9LDl59w0TbxrI/edit#gid=0)
+
 ## Find out more
 
 [TensorFlow.js](https://js.tensorflow.org) is a part of the
