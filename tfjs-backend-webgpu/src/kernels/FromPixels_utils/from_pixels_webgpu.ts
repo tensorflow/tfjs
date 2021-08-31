@@ -65,7 +65,7 @@ export class FromPixelsProgram implements WebGPUProgram {
   makeFromPixelsSource(): string {
     const textureLoad = this.useImport ?
         'textureLoad(src, vec2<i32>(coords.yx));' :
-        'textureLoad(src, vec2<i32>(coords.yx), 0)'
+        'textureLoad(src, vec2<i32>(coords.yx), 0)';
     const textureType = this.useImport ? 'texture_external' : 'texture_2d<f32>';
     return `
       [[binding(1), group(0)]] var src: ${textureType};
