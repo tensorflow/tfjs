@@ -19,7 +19,7 @@ import {util} from '@tensorflow/tfjs-core';
 import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../../shader_preprocessor_wgsl';
 
 import {computeDispatch, flatDispatchLayout, WebGPULayout} from '../../webgpu_util';
-import {WebGPUProgram} from '../webgpu_program';
+import {getUseWgsl, WebGPUProgram} from '../webgpu_program';
 
 export class FromPixelsProgram implements WebGPUProgram {
   outputShape: number[] = [0];
@@ -58,7 +58,7 @@ export class FromPixelsProgram implements WebGPUProgram {
 
   constructor() {
     this.shaderKey = 'fromPixels';
-    this.useWgsl = true;  // getUseWgsl();
+    this.useWgsl = getUseWgsl();
     this.useImport = false;
   }
 
