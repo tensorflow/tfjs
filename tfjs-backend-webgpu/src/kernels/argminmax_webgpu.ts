@@ -211,8 +211,8 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       xBestIndices[localId.x] = bestIndex;
       xBestValues[localId.x] = bestValue;
 
-      var currentSize = WorkGroupSize;
-      for( ;currentSize > 1u; ) {
+      for(var currentSize = WorkGroupSize; currentSize > 1u; currentSize = DIV_CEIL(currentSize, ${
+        this.reductionFactor}u)) {
         workgroupBarrier();
 
         for (var w = 0u; w < ${this.reductionFactor}u; w = w + 1u) {
@@ -229,8 +229,6 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
         xBestIndices[localId.x] = bestIndex;
         xBestValues[localId.x] = bestValue;
-
-        currentSize = DIV_CEIL(currentSize, ${this.reductionFactor}u);
       }
 
       if (localId.x == 0u) {
@@ -270,7 +268,8 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       // This function outputs the offset to the first value along
       // |axis| and the stride to get the next value of the input along |axis|.
       fn getInputCoordInfo(globalId : vec3<u32>, globalIndex : u32) -> vec2<u32>{
-        let outputCoords : ${outputCoordsType} = getOutputCoords(globalId, globalIndex);
+        let outputCoords : ${
+        outputCoordsType} = getOutputCoords(globalId, globalIndex);
         var i = ${this.outputShape.length - 1}u;
 
         var stride = 1u;
