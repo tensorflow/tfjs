@@ -4,6 +4,7 @@
 **Prerequisite**
 1. The op should already be supported in [TF](https://www.tensorflow.org/api_docs/python/tf/all_symbols) api.
 2. The op should not have been supported in TF.js, see [op support list](https://github.com/tensorflow/tfjs/blob/master/tfjs-converter/docs/supported_ops.md).
+3. Check [here](https://docs.google.com/spreadsheets/d/1D25XtWaBrmUEErbGQB0QmNhH-xtwHo9LDl59w0TbxrI/edit#gid=0) for various ops supported in different backends. 
 
 **Implementation Details**
 1. Create a new op in `tfjs-core/ops` directory.
