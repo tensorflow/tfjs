@@ -230,8 +230,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
 
         // Extract if checking out of for loop for performance.
         if (inputRowStart >= 0 && inputColStart >= 0 &&
-          inputRowEnd < i32(uniforms.inDims[0]) && inputColEnd < i32(uniforms.inDims[1]))
-          {
+          inputRowEnd < i32(uniforms.inDims[0]) && inputColEnd < i32(uniforms.inDims[1])) {
             // Here using a constant value |this.convInfo.filterHeight| instead
             // of uniform value is in order to loop unrolling.
             for (var wR = 0u; wR < ${
