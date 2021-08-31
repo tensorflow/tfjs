@@ -106,7 +106,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         xBestIndices[gl_LocalInvocationID.x] = bestIndex;
         xBestValues[gl_LocalInvocationID.x] = bestValue;
 
-        currentSize = DIV_CEIL(currentSize, ${this.reductionFactor}u);
+        currentSize = DIV_CEIL(currentSize, ${this.reductionFactor});
       }
 
       if (gl_LocalInvocationID.x == 0) {
