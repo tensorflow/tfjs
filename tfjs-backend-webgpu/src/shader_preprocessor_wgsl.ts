@@ -229,18 +229,15 @@ const SHADER_PREFIX = `
 
   // Checks whether coordinates lie within the bounds of the shape.
   fn coordsInBounds4D(coord : vec4<u32>, shape : vec4<u32>) -> bool {
-    return all(coord >= vec4<u32>(0u)) &&
-        all(coord < shape);
+    return all(coord < shape);
   }
 
   fn coordsInBounds3D(coord : vec3<u32>, shape : vec3<u32>) -> bool {
-    return all(coord >= vec3<u32>(0u)) &&
-        all(coord < shape);
+    return all(coord < shape);
   }
 
   fn coordsInBounds2D(coord : vec2<u32>, shape : vec2<u32>) -> bool {
-    return all(coord >= vec2<u32>(0u)) &&
-        all(coord < shape);
+    return all(coord < shape);
   }
   `;
 const SAMPLING_SNIPPETS = `
