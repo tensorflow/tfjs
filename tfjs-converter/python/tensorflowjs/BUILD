@@ -1,22 +1,31 @@
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
+load("@tensorflowjs_dev_deps//:requirements.bzl", "requirement")
+
 package(
     default_visibility = [
-        "//tensorflowjs:__subpackages__",
+        ":__subpackages__",
     ],
 )
 
 licenses(["notice"])
 
-exports_files(["LICENSE"])
+exports_files([
+    "LICENSE",
+])
 
 py_library(
     name = "tensorflowjs",
     srcs = ["__init__.py"],
+    data = [
+        "//tfjs-converter/python/tensorflowjs/op_list:ops",
+    ],
     srcs_version = "PY2AND3",
     visibility = ["//visibility:public"],
     deps = [
-        ":quantization",
+        ":resource_loader",
         ":version",
-        "//tensorflowjs/converters:converter",
+        ":write_weights",
+        "//tfjs-converter/python/tensorflowjs/converters",
     ],
 )
 
@@ -25,6 +34,7 @@ py_library(
     # This is a dummy rule used as a h5py dependency in open-source.
     # We expect h5py to already be installed on the system, e.g. via
     # `pip install h5py`.
+    deps = [requirement("h5py")],
 )
 
 py_library(
@@ -32,6 +42,7 @@ py_library(
     # This is a dummy rule used as a numpy dependency in open-source.
     # We expect numpy to already be installed on the system, e.g. via
     # `pip install numpy`.
+    deps = [requirement("numpy")],
 )
 
 py_library(
@@ -39,6 +50,7 @@ py_library(
     # This is a dummy rule used as a tensorflow dependency in open-source.
     # We expect tensorflow to already be installed on the system, e.g. via
     # `pip install tensorflow` or `pip install tensorflow-gpu`.
+    deps = [requirement("tensorflow")],
 )
 
 py_library(
@@ -46,6 +58,7 @@ py_library(
     # This is a dummy rule used as a tensorflow_hub dependency in open-source.
     # We expect tensorflow to already be installed on the system, e.g. via
     # `pip install tensorflow` or `pip install tensorflow-gpu`.
+    deps = [requirement("tensorflow-hub")],
 )
 
 py_library(
@@ -53,6 +66,7 @@ py_library(
     # This is a dummy rule used as a PyInquirer dependency in open-source.
     # We expect PyInquirer to already be installed on the system, e.g. via
     # `pip install PyInquirer`.
+    deps = [requirement("PyInquirer")],
 )
 
 py_library(
@@ -60,7 +74,7 @@ py_library(
     srcs = ["quantization.py"],
     srcs_version = "PY2AND3",
     deps = [
-        "//tensorflowjs:expect_numpy_installed",
+        ":expect_numpy_installed",
     ],
 )
 
@@ -69,10 +83,10 @@ py_library(
     srcs = ["write_weights.py"],
     srcs_version = "PY2AND3",
     deps = [
+        ":expect_numpy_installed",
+        ":expect_tensorflow_installed",
         ":quantization",
         ":read_weights",
-        "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
@@ -81,8 +95,8 @@ py_library(
     srcs = ["read_weights.py"],
     srcs_version = "PY2AND3",
     deps = [
+        ":expect_numpy_installed",
         ":quantization",
-        "//tensorflowjs:expect_numpy_installed",
     ],
 )
 
@@ -102,50 +116,50 @@ py_library(
 py_test(
     name = "quantization_test",
     srcs = ["quantization_test.py"],
+    imports = [".."],
     srcs_version = "PY2AND3",
+    tags = ["ci"],
     deps = [
+        ":expect_numpy_installed",
         ":quantization",
-        "//tensorflowjs:expect_numpy_installed",
     ],
 )
 
 py_test(
     name = "write_weights_test",
     srcs = ["write_weights_test.py"],
+    imports = [".."],
     srcs_version = "PY2AND3",
+    tags = ["ci"],
     deps = [
+        ":expect_numpy_installed",
+        ":expect_tensorflow_installed",
         ":write_weights",
-        "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
 py_test(
     name = "read_weights_test",
     srcs = ["read_weights_test.py"],
+    imports = [".."],
     srcs_version = "PY2AND3",
+    tags = ["ci"],
     deps = [
+        ":expect_numpy_installed",
+        ":expect_tensorflow_installed",
         ":read_weights",
         ":write_weights",
-        "//tensorflowjs:expect_numpy_installed",
-        "//tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
 py_test(
     name = "resource_loader_test",
     srcs = ["resource_loader_test.py"],
-    data = [":op_list_jsons"],
+    data = ["//tfjs-converter/python/tensorflowjs/op_list:ops"],
+    imports = [".."],
     srcs_version = "PY2AND3",
+    tags = ["ci"],
     deps = [
         ":resource_loader",
     ],
-)
-
-# A filegroup BUILD target that includes all the op list json files in the
-# the op_list/ folder. The op_list folder itself is a symbolic link to the
-# actual op_list folder under src/.
-filegroup(
-    name = "op_list_jsons",
-    srcs = glob(["op_list/*.json"]),
 )
