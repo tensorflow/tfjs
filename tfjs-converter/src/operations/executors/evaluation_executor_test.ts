@@ -22,6 +22,7 @@ import {Node} from '../types';
 
 import {executeOp} from './evaluation_executor';
 import {createBoolAttr, createNumberAttrFromIndex, createTensorAttr} from './test_helper';
+import {spyOnAllFunctions, RecursiveSpy} from './spy_ops';
 
 describe('evaluation', () => {
   let node: Node;
@@ -43,15 +44,22 @@ describe('evaluation', () => {
   });
 
   describe('executeOp', () => {
+    let spyOps: RecursiveSpy<typeof tfOps>;
+    let spyOpsAsTfOps: typeof tfOps;
+
+    beforeEach(() => {
+      spyOps = spyOnAllFunctions(tfOps);
+      spyOpsAsTfOps = spyOps as unknown as typeof tfOps;
+    });
+
     describe('TopKV2', () => {
       it('should return input', () => {
         node.op = 'TopKV2';
         node.inputParams['x'] = createTensorAttr(0);
         node.inputParams['k'] = createNumberAttrFromIndex(1);
         node.attrParams['sorted'] = createBoolAttr(true);
-        spyOn(tfOps, 'topk').and.callThrough();
-        executeOp(node, {input1, input2}, context);
-        expect(tfOps.topk).toHaveBeenCalledWith(input1[0], 1, true);
+        executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
+        expect(spyOps.topk).toHaveBeenCalledWith(input1[0], 1, true);
       });
     });
 
@@ -59,9 +67,8 @@ describe('evaluation', () => {
       it('should get called correctly', () => {
         node.op = 'Unique';
         node.inputParams['x'] = createTensorAttr(0);
-        spyOn(tfOps, 'unique').and.callThrough();
-        executeOp(node, {input1}, context);
-        expect(tfOps.unique).toHaveBeenCalledWith(input1[0]);
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
+        expect(spyOps.unique).toHaveBeenCalledWith(input1[0]);
       });
     });
 
@@ -70,11 +77,10 @@ describe('evaluation', () => {
         node.op = 'UniqueV2';
         node.inputParams['x'] = createTensorAttr(0);
         node.inputParams['axis'] = createNumberAttrFromIndex(1);
-        spyOn(tfOps, 'unique').and.callThrough();
         const xInput = [tfOps.tensor2d([[1], [2]])];
         const axisInput = [tfOps.scalar(1)];
-        executeOp(node, {'input1': xInput, 'input2': axisInput}, context);
-        expect(tfOps.unique).toHaveBeenCalledWith(xInput[0], 1);
+        executeOp(node, {'input1': xInput, 'input2': axisInput}, context, spyOpsAsTfOps);
+        expect(spyOps.unique).toHaveBeenCalledWith(xInput[0], 1);
       });
     });
   });
