@@ -29,12 +29,9 @@ export class FromPixelsImportProgram extends FromPixelsProgram {
 
     ${getMainHeaderStringWgsl(this.workGroupSize)} {
       ${getGlobalIndexStringWgsl(this.workGroupSize)}
-      var flatIndexBase = index * uniforms.numChannels;
-      var coords: vec3<u32> = getCoordsFromFlatIndex(u32(flatIndexBase));
-      var texR: i32 = i32(coords[0]);
-      var texC: i32 = i32(coords[1]);
-      var depth: i32 = i32(coords[2]);
-      var values = textureLoad(src, vec2<i32>(texC, texR));
+      let flatIndexBase = index * uniforms.numChannels;
+      let coords: vec3<u32> = getCoordsFromFlatIndex(flatIndexBase);
+      let values = textureLoad(src, vec2<i32>(coords.yx));
       for (var i: u32 = 0u; i < uniforms.numChannels; i = i + 1u) {
         var value = values[i];
         var flatIndex = flatIndexBase + i;

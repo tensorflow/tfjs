@@ -19,7 +19,7 @@ import {util} from '@tensorflow/tfjs-core';
 import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../../shader_preprocessor_wgsl';
 
 import {computeDispatch, flatDispatchLayout, WebGPULayout} from '../../webgpu_util';
-import {getUseWgsl, WebGPUProgram} from '../webgpu_program';
+import {WebGPUProgram} from '../webgpu_program';
 
 export class FromPixelsProgram implements WebGPUProgram {
   outputShape: number[] = [0];
@@ -57,7 +57,7 @@ export class FromPixelsProgram implements WebGPUProgram {
 
   constructor() {
     this.shaderKey = 'fromPixels';
-    this.useWgsl = getUseWgsl();
+    this.useWgsl = true;  // getUseWgsl();
   }
 
   getUserCodeWgsl(): string {
@@ -66,12 +66,9 @@ export class FromPixelsProgram implements WebGPUProgram {
 
     ${getMainHeaderStringWgsl(this.workGroupSize)} {
       ${getGlobalIndexStringWgsl(this.workGroupSize)}
-      var flatIndexBase = index * uniforms.numChannels;
-      var coords: vec3<u32> = getCoordsFromFlatIndex(u32(flatIndexBase));
-      var texR: i32 = i32(coords[0]);
-      var texC: i32 = i32(coords[1]);
-      var depth: i32 = i32(coords[2]);
-      var values = textureLoad(src, vec2<i32>(texC, texR), 0);
+      let flatIndexBase = index * uniforms.numChannels;
+      let coords: vec3<u32> = getCoordsFromFlatIndex(flatIndexBase);
+      let values = textureLoad(src, vec2<i32>(coords.yx), 0);
       for (var i: u32 = 0u; i < uniforms.numChannels; i = i + 1u) {
         var value = values[i];
         var flatIndex = flatIndexBase + i;
@@ -103,7 +100,6 @@ export class FromPixelsProgram implements WebGPUProgram {
       ivec3 coords = getCoordsFromFlatIndex(flatIndexBase);
       int texR = coords[0];
       int texC = coords[1];
-      int depth = coords[2];
       vec4 values = imageLoad(srcImage, ivec2(texC, texR));
       for(int i = 0; i < numChannels; i++) {
         float value = values[i];
