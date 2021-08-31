@@ -101,6 +101,15 @@ export function batchMatMulImpl({
   let program: MatMulPackedProgram|MatMulPackedVec4Program
       |MatMulSmallOutputSizeProgram;
   let dimensions = null;
+
+  // When the output size is absolutely small or relatively small, we may use
+  // MatMulSmallOutputSizeProgram to get better performance.
+  // Absolutely small size means that the output size is smaller than [16, 512].
+  // Relatively small size means that one demension size of the output is
+  // smaller than 16, and the output size is also more than or equal two times
+  // smaller than each of the two input sizes. For example, if input sizes are
+  // [12, 2048] and [2048, 1024], the output size is [12, 1024], which is
+  // relatively small compared to input sizes.
   if (!transposeA && !transposeB && ((a.shape[1] <= 16 &&
       (b.shape[2] <= 512 || b.shape[1] >= 2 * b.shape[2])) ||
       (b.shape[2] <= 16 &&
