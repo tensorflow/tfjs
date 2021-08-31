@@ -39,6 +39,7 @@ export class FromPixelsProgram implements WebGPUProgram {
   layout: WebGPULayout = null;
   lastPixelSize = {width: 0, height: 0};
   useWgsl: boolean;
+  useImport: boolean;
 
   private disposed = false;
 
@@ -58,27 +59,34 @@ export class FromPixelsProgram implements WebGPUProgram {
   constructor() {
     this.shaderKey = 'fromPixels';
     this.useWgsl = true;  // getUseWgsl();
+    this.useImport = false;
+  }
+
+  makeFromPixelsSource(): string {
+    const textureLoad = this.useImport ?
+        'textureLoad(src, vec2<i32>(coords.yx));' :
+        'textureLoad(src, vec2<i32>(coords.yx), 0)'
+    const textureType = this.useImport ? 'texture_external' : 'texture_2d<f32>';
+    return `
+      [[binding(1), group(0)]] var src: ${textureType};
+
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+        let flatIndexBase = index * uniforms.numChannels;
+        let coords: vec3<u32> = getCoordsFromFlatIndex(flatIndexBase);
+        let values = ${textureLoad};
+        for (var i: u32 = 0u; i < uniforms.numChannels; i = i + 1u) {
+          let flatIndex = flatIndexBase + i;
+          if (flatIndex < uniforms.size) {
+            result.numbers[flatIndex] = i32(floor(255.0 * values[i]));
+          }
+        }
+      }
+  `;
   }
 
   getUserCodeWgsl(): string {
-    const userCode = `
-    [[binding(1), group(0)]] var src: texture_2d<f32>;
-
-    ${getMainHeaderStringWgsl(this.workGroupSize)} {
-      ${getGlobalIndexStringWgsl(this.workGroupSize)}
-      let flatIndexBase = index * uniforms.numChannels;
-      let coords: vec3<u32> = getCoordsFromFlatIndex(flatIndexBase);
-      let values = textureLoad(src, vec2<i32>(coords.yx), 0);
-      for (var i: u32 = 0u; i < uniforms.numChannels; i = i + 1u) {
-        var value = values[i];
-        var flatIndex = flatIndexBase + i;
-        if (flatIndex < uniforms.size) {
-          result.numbers[flatIndex] = i32(floor(255.0 * value));
-        }
-      }
-    }
-`;
-    return userCode;
+    return this.makeFromPixelsSource();
   }
 
   getUserCode(): string {

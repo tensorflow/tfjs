@@ -15,33 +15,16 @@
  * =============================================================================
  */
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../../shader_preprocessor_wgsl';
 import {WebGPULayout} from '../../webgpu_util';
 import {FromPixelsProgram} from './from_pixels_webgpu';
 
 export class FromPixelsImportProgram extends FromPixelsProgram {
   useWgsl = true;
   layout: WebGPULayout = null;
+  useImport = true;
 
   getUserCodeWgsl(): string {
-    const userCode = `
-    [[binding(1), group(0)]] var src: texture_external;
-
-    ${getMainHeaderStringWgsl(this.workGroupSize)} {
-      ${getGlobalIndexStringWgsl(this.workGroupSize)}
-      let flatIndexBase = index * uniforms.numChannels;
-      let coords: vec3<u32> = getCoordsFromFlatIndex(flatIndexBase);
-      let values = textureLoad(src, vec2<i32>(coords.yx));
-      for (var i: u32 = 0u; i < uniforms.numChannels; i = i + 1u) {
-        var value = values[i];
-        var flatIndex = flatIndexBase + i;
-        if (flatIndex < uniforms.size) {
-          result.numbers[flatIndex] = i32(floor(255.0 * value));
-        }
-      }
-    }
-`;
-    return userCode;
+    return this.makeFromPixelsSource();
   }
 
   getLayout(device: GPUDevice): WebGPULayout {
