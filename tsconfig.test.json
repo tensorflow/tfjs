@@ -10,7 +10,7 @@
     "declaration": false,
     "target": "es5",
     "lib": [
-      "es2017",
+      "es2019",
       "dom"
     ],
     "outDir": "./dist",
