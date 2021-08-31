@@ -168,7 +168,7 @@ We support porting pre-trained models from:
 
 ## Various ops supported in different backends
 
-Please refer to below :
+Please refer below :
 - [TFJS Ops Metrix](https://docs.google.com/spreadsheets/d/1D25XtWaBrmUEErbGQB0QmNhH-xtwHo9LDl59w0TbxrI/edit#gid=0)
 
 ## Find out more
