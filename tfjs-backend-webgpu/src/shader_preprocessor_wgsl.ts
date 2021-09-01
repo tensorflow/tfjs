@@ -597,7 +597,7 @@ export function generateGetOutputCoords(
       gatherDimensionsStr += `let d${arr[0]} = globalId[${i}];`;
     } else {
       const strides = symbolicallyComputeStrides(arr, 'uniforms.outShape');
-      gatherDimensionsStr += `let index${i} = globalId[${i}];`;
+      gatherDimensionsStr += `var index${i} = globalId[${i}];`;
       for (let j = 0; j < strides.length; j++) {
         gatherDimensionsStr += `let d${arr[j]} = index${i} / ${strides[j]};`;
 

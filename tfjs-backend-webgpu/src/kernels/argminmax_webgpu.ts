@@ -18,9 +18,10 @@
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType} from '../shader_preprocessor';
+import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch} from '../webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class ArgMinMaxProgram implements WebGPUProgram {
   outputShape: number[];
@@ -30,9 +31,11 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   workGroupSize: [number, number, number];
   variableNames = ['x'];
   uniforms = 'int axis;';
+  uniformsWgsl = 'axis : u32;';
   inputShape: number[];
   reductionFactor: number;
   op: string;
+  useWgsl: boolean;
 
   constructor(inputShape: number[], axis: number, reduceType: 'min'|'max') {
     const axes = [axis];
@@ -67,6 +70,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
     this.inputShape = inputShape;
     this.shaderKey = `argMinMax${this.op}`;
+    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
@@ -188,6 +192,136 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         ${
         reduceInSharedMemory ? sharedMemoryReduceSnippet :
                                'setOutput(flatOutputIndex, int(bestIndex));'}
+      }
+    `;
+    return userCode;
+  }
+
+  getUserCodeWgsl(): string {
+    // When this.workGroupSize[0] > 1, each thread reduces Length /
+    // this.workGroupSize[0] values. Thes results are stored in shared memory
+    // and iteratively reduced.
+    const reduceInSharedMemory = this.workGroupSize[0] > 1;
+    const sharedMemorySnippet = `
+      var<workgroup> xBestIndices : array<u32, ${this.workGroupSize[0]}>;
+      var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
+    `;
+
+    const sharedMemoryReduceSnippet = `
+      xBestIndices[localId.x] = bestIndex;
+      xBestValues[localId.x] = bestValue;
+
+      for(var currentSize = WorkGroupSize; currentSize > 1u; currentSize = DIV_CEIL(currentSize, ${
+        this.reductionFactor}u)) {
+        workgroupBarrier();
+
+        for (var w = 0u; w < ${this.reductionFactor}u; w = w + 1u) {
+          let i = localId.x * ${this.reductionFactor}u + w;
+          if (i < currentSize) {
+            let candidateIndex = xBestIndices[i];
+            let candidate = xBestValues[i];
+            if(candidate ${this.op} bestValue && !isNanCustom(candidate)) {
+              bestValue = candidate;
+              bestIndex = candidateIndex;
+            }
+          }
+        }
+
+        xBestIndices[localId.x] = bestIndex;
+        xBestValues[localId.x] = bestValue;
+      }
+
+      if (localId.x == 0u) {
+        setOutputFlatI32(flatOutputIndex, i32(bestIndex));
+      }
+    `;
+
+    const outputCoordsType = getCoordsDataTypeWgsl(this.outputShape.length);
+
+    const indexOutputCoords = (outputCoords: string, index: string) => {
+      if (this.outputShape.length === 1) {
+        return outputCoords;
+      } else {
+        return `${outputCoords}[${index}]`;
+      }
+    };
+
+    const indexInputShape = (index: string) => {
+      if (this.inputShape.length === 1) {
+        return 'uniforms.xShape';
+      } else {
+        return `uniforms.xShape[${index}]`;
+      }
+    };
+
+    const userCode = `
+      fn DIV_CEIL(a : u32, b : u32) -> u32 {
+        return ((a - 1u) / b + 1u);
+      }
+
+      let WorkGroupSize = ${this.workGroupSize[0]}u;
+
+      ${reduceInSharedMemory ? sharedMemorySnippet : ''}
+
+      // In order to get a flattened index into the input tensor, we need to
+      // add back the index along the reduced dimension to |outputCoords|.
+      // This function outputs the offset to the first value along
+      // |axis| and the stride to get the next value of the input along |axis|.
+      fn getInputCoordInfo(globalId : vec3<u32>, globalIndex : u32) -> vec2<u32>{
+        let outputCoords : ${
+        outputCoordsType} = getOutputCoords(globalId, globalIndex);
+        var i = ${this.outputShape.length - 1}u;
+
+        var stride = 1u;
+        var inputStride = 1u;
+        var offset = 0u;
+
+        for (var r = 1u; r <= ${this.inputShape.length}u; r = r + 1u) {
+          let length = ${indexInputShape(`${this.inputShape.length}u - r`)};
+          if (${this.inputShape.length}u - r == uniforms.axis) {
+            inputStride = stride;
+          } else {
+            offset = offset + ${
+        indexOutputCoords('outputCoords', 'i')} * stride;
+            i = i - 1u;
+          }
+          stride = stride * length;
+        }
+
+        return vec2<u32>(offset, inputStride);
+      }
+
+      fn getInputIndex(coordInfo : vec2<u32>, index : u32) -> u32{
+        return coordInfo[0] + coordInfo[1] * index;
+      }
+
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+        let coordInfo = getInputCoordInfo(globalId, index);
+
+        var bestIndex = 0u;
+        var bestValue = x.numbers[getInputIndex(coordInfo, bestIndex)];
+
+        let Length = ${indexInputShape('uniforms.axis')};
+        let WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
+
+        for (var w = 0u; w < WorkPerThread; w = w + 1u) {
+          let i = globalId.x * WorkPerThread + w;
+          if (i < Length) {
+            let candidate = x.numbers[getInputIndex(coordInfo, i)];
+            if (candidate ${
+        this.op} bestValue && !isNanCustom(f32(candidate))) {
+              bestValue = candidate;
+              bestIndex = i;
+            }
+          }
+        }
+
+        let flatOutputIndex = globalId.y;
+        ${
+        reduceInSharedMemory ?
+            sharedMemoryReduceSnippet :
+            'setOutputFlatI32(flatOutputIndex, i32(bestIndex));'}
       }
     `;
     return userCode;
