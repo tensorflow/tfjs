@@ -20,7 +20,7 @@ import '@tensorflow/tfjs-backend-cpu';
 // tslint:disable-next-line: no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
 // tslint:disable-next-line:no-imports-from-dist
-import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 // tslint:disable-next-line:no-require-imports
 const jasmineCtor = require('jasmine');
@@ -32,10 +32,9 @@ process.on('unhandledRejection', e => {
   throw e;
 });
 
-jasmine_util.setTestEnvs(
-    [{name: 'test-converter', backendName: 'cpu', flags: {}}]);
+setTestEnvs([{name: 'test-converter', backendName: 'cpu', flags: {}}]);
 
-const unitTests = 'src/**/*_test.ts';
+const unitTests = 'tfjs-converter/src/**/*_test.js';
 
 const runner = new jasmineCtor();
 runner.loadConfig({spec_files: [unitTests], random: false});
