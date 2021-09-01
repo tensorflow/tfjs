@@ -541,7 +541,7 @@ def _load_model(saved_model_dir, saved_model_tags):
 def _find_signature(saved_model_dir, saved_model_tags, signature_def):
   signature_def_map = get_signature_def_map(saved_model_dir, saved_model_tags)
   if signature_def not in signature_def_map.keys():
-    raise ValueError('Signature "%s" does on exist in the saved model'
+    raise ValueError('Signature "%s" does not exist in the saved model'
                      % (signature_def))
 
   return signature_def_map[signature_def]
