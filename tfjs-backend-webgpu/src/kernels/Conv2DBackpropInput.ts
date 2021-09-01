@@ -35,13 +35,6 @@ export function conv2DBackpropInput(args: {
       inputShape, filter.shape as [number, number, number, number], strides,
       1 /* dilations */, pad, dimRoundingMode, false, $dataFormat);
 
-  let program: Conv2DDerInputProgram|Conv2DDerInputMMProgram;
-  if (env().getBool('WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE')) {
-    // Keep Conv2DDerInputProgram for reference.
-    program = new Conv2DDerInputProgram(convInfo);
-  } else {
-    program = new Conv2DDerInputMMProgram(convInfo);
-  }
   const dimensions = [
     {type: 'int32', data: [convInfo.filterHeight, convInfo.filterWidth]},
     {
@@ -60,6 +53,23 @@ export function conv2DBackpropInput(args: {
       ]
     },
   ];
+  let program: Conv2DDerInputProgram|Conv2DDerInputMMProgram;
+  if (env().getBool('WEBGPU_USE_NAIVE_CONV2D_TRANSPOSE')) {
+    // Keep Conv2DDerInputProgram for reference.
+    program = new Conv2DDerInputProgram(convInfo);
+  } else {
+    program = new Conv2DDerInputMMProgram(convInfo);
+    if (program.useWgsl) {
+      const dimAOuter = convInfo.inShape[1] * convInfo.inShape[2];
+      const dimBOuter = convInfo.inShape[3];
+      const dimInner =
+          convInfo.filterHeight * convInfo.filterWidth * convInfo.outChannels;
+      dimensions.push(
+          {type: 'uint32', data: [dimAOuter]},
+          {type: 'uint32', data: [dimBOuter]},
+          {type: 'uint32', data: [dimInner]});
+    }
+  }
   return backend.runWebGPUProgram(program, [dy, filter], 'float32', dimensions);
 }
 
