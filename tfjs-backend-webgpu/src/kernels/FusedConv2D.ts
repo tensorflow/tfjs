@@ -84,19 +84,24 @@ export function fusedConv2d(args: {
     // TODO(kainino0x): This may be obsolete, but is kept for reference.
     program = new Conv2DNaiveProgram(
         convInfo, hasBias, activation, hasPreluActivationWeights);
-  } else if (useVec4) {
-    program = new Conv2DMMVec4Program(
-        convInfo, hasBias, activation, hasPreluActivationWeights);
+  } else {
+    if (useVec4) {
+      program = new Conv2DMMVec4Program(
+          convInfo, hasBias, activation, hasPreluActivationWeights);
+    } else {
+      program = new Conv2DMMProgram(
+          convInfo, hasBias, activation, hasPreluActivationWeights);
+    }
     const dimAOuter = convInfo.outShape[1] * convInfo.outShape[2];
     const dimBOuter = convInfo.outShape[3];
     const dimInner =
         convInfo.filterHeight * convInfo.filterWidth * convInfo.inShape[3];
-    dimensions.push(
-        {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
-        {type: 'int32', data: [dimInner]});
-  } else {
-    program = new Conv2DMMProgram(
-        convInfo, hasBias, activation, hasPreluActivationWeights);
+    if (program.useWgsl) {
+      dimensions.push(
+          {type: 'uint32', data: [dimAOuter]},
+          {type: 'uint32', data: [dimBOuter]},
+          {type: 'uint32', data: [dimInner]});
+    }
   }
 
   const inputVar: TensorInfo[] = [x, filter];
