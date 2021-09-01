@@ -101,9 +101,10 @@ export function makeShader(
         numbers: array<${mapToTypesWgsl(outputData.dtype, program.isVec4)}>;
       };
       [[block]] struct Uniform {
-        size            : i32;
-        numChannels     : i32;
+        size            : u32;
+        numChannels     : u32;
         outShapeStrides : vec2<u32>;
+        dispatchSize    : vec3<u32>;
       };
 
       [[group(0), binding(0)]] var<storage, write> result : Matrix0;
@@ -112,6 +113,7 @@ export function makeShader(
     return [
       SHADER_PREFIX,
       outputBufferStr,
+      SAMPLING_SNIPPETS,
       getCoords,
       program.getUserCodeWgsl(),
     ].join('\n');
