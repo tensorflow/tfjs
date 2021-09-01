@@ -19,10 +19,11 @@ import {backend_util, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 
-import {MatMulSmallOutputSizeProgram} from './matmul_small_output_size_webgpu';
 import {MatMulPackedVec4Program} from './matmul_packed_vec4_webgpu';
 import {MatMulPackedProgram} from './matmul_packed_webgpu';
+import {MatMulSmallOutputSizeProgram} from './matmul_small_output_size_webgpu';
 import {reshape} from './Reshape';
+import {WebGPUProgram} from './webgpu_program';
 
 type BatchMatMulConfig = {
   a: TensorInfo,
@@ -98,8 +99,7 @@ export function batchMatMulImpl({
 
   const useVec4 = a.shape[2] % 4 === 0 && b.shape[2] % 4 === 0 && !transposeA &&
       !transposeB && outerShapeB >= 32;
-  let program: MatMulPackedProgram|MatMulPackedVec4Program
-      |MatMulSmallOutputSizeProgram;
+  let program: WebGPUProgram;
   let dimensions = null;
 
   // When the output size is absolutely small or relatively small, we may use
@@ -110,13 +110,14 @@ export function batchMatMulImpl({
   // smaller than each of the two input sizes. For example, if input sizes are
   // [12, 2048] and [2048, 1024], the output size is [12, 1024], which is
   // relatively small compared to input sizes.
-  if (!transposeA && !transposeB && ((a.shape[1] <= 16 &&
-      (b.shape[2] <= 512 || b.shape[1] >= 2 * b.shape[2])) ||
-      (b.shape[2] <= 16 &&
-      (a.shape[1] <= 512 || a.shape[2] >= 2 * a.shape[1])))) {
-    program = new MatMulSmallOutputSizeProgram(a3dShape, b3dShape,
-        [batchDim, outerShapeA, outerShapeB], bias, activation,
-        preluActivationWeights);
+  if (!transposeA && !transposeB &&
+      ((a.shape[1] <= 16 &&
+        (b.shape[2] <= 512 || b.shape[1] >= 2 * b.shape[2])) ||
+       (b.shape[2] <= 16 &&
+        (a.shape[1] <= 512 || a.shape[2] >= 2 * a.shape[1])))) {
+    program = new MatMulSmallOutputSizeProgram(
+        a3dShape, b3dShape, [batchDim, outerShapeA, outerShapeB], bias,
+        activation, preluActivationWeights);
   } else if (useVec4) {
     // TODO: Currently we need to make sure that a.shape[2] and b.shape[2]
     // are divisible by 4 since we use vec4 to get data. In future, we can
@@ -125,15 +126,6 @@ export function batchMatMulImpl({
         a3dShape, [batchDim, outerShapeA, outerShapeB],
         env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, bias, activation,
         preluActivationWeights);
-    if ((program as MatMulPackedVec4Program).useWgsl) {
-      const dimAOuter = a3d.shape[1];
-      const dimInner = a3d.shape[2];
-      const dimBOuter = b3d.shape[2];
-      dimensions = [
-        {type: 'uint32', data: [dimAOuter]},
-        {type: 'uint32', data: [dimBOuter]}, {type: 'uint32', data: [dimInner]}
-      ];
-    }
   } else {
     program = new MatMulPackedProgram(
         a3dShape, [batchDim, outerShapeA, outerShapeB],
@@ -146,6 +138,15 @@ export function batchMatMulImpl({
   }
   if (preluActivationWeights) {
     inputs.push(preluActivationWeights);
+  }
+  if (program.useWgsl) {
+    const dimAOuter = transposeA === true ? a3d.shape[2] : a3d.shape[1];
+    const dimInner = transposeA === true ? a3d.shape[1] : a3d.shape[2];
+    const dimBOuter = transposeB === true ? b3d.shape[1] : b3d.shape[2];
+    dimensions = [
+      {type: 'uint32', data: [dimAOuter]}, {type: 'uint32', data: [dimBOuter]},
+      {type: 'uint32', data: [dimInner]}
+    ];
   }
   const out = backend.runWebGPUProgram(program, inputs, a.dtype, dimensions);
   const outReshaped =
