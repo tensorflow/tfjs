@@ -285,15 +285,20 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
           ${this.getSampleAWithRemainderWgsl(1)}
           resData = temp;
           if (WCol == (uniforms.filterDims[1] - 1u)) {
-            coord = vec4<u32>(
-              coord.x, coord.y + 1u, coord.z + 1u - uniforms.filterDims[1], 0u);
-              ${this.getSampleAWithRemainderWgsl(2)}
-            if (inChCoord == 0u) {
-              resData = vec4<f32>(resData.xyz, temp.x);
-            } elseif (inChCoord == 1u) {
-              resData = vec4<f32>(resData.xy, temp.xy);
+            let coordZ = i32(coord.z + 1u - uniforms.filterDims[1]);
+            if (coordZ < 0) {
+              resData = vec4<f32>(0.0);
             } else {
-              resData = vec4<f32>(resData.x, temp.xyz);
+              coord = vec4<u32>(
+                coord.x, coord.y + 1u, u32(coordZ), 0u);
+                ${this.getSampleAWithRemainderWgsl(2)}
+              if (inChCoord == 0u) {
+                resData = vec4<f32>(resData.xyz, temp.x);
+              } elseif (inChCoord == 1u) {
+                resData = vec4<f32>(resData.xy, temp.xy);
+              } else {
+                resData = vec4<f32>(resData.x, temp.xyz);
+              }
             }
           }
           `;
@@ -303,10 +308,18 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         let WRow = c / (uniforms.filterDims[1] * uniforms.xShape[3]);
         let WCol = (c / uniforms.xShape[3]) % uniforms.filterDims[1];
         let inChCoord = c % uniforms.xShape[3];
+        let coordRow = i32(outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0]);
+        if (coordRow < 0) {
+          return vec4<f32>(0.0);
+        }
+        let coordCol = i32(outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1]);
+        if (coordCol < 0) {
+          return vec4<f32>(0.0);
+        }
         var coord = vec4<u32>(
             batch,
-            outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0],
-            outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1],
+            u32(coordRow),
+            u32(coordCol),
             inChCoord);
         var resData = vec4<f32>(0.0);
         ${remainderSnippet}
