@@ -29,7 +29,6 @@ export class ResizeBilinearProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   alignCorners: boolean;
   halfPixelCenters: boolean;
-  sourceFracIndexRC: string;
   useWgsl: boolean;
 
   constructor(
@@ -44,13 +43,6 @@ export class ResizeBilinearProgram implements WebGPUProgram {
 
     this.alignCorners = alignCorners;
     this.halfPixelCenters = halfPixelCenters;
-    if (halfPixelCenters) {
-      this.sourceFracIndexRC =
-          `(vec2(rc) + vec2(0.5)) * effectiveInputOverOutputRatioRC` +
-          ` - vec2(0.5)`;
-    } else {
-      this.sourceFracIndexRC = `vec2(rc) * effectiveInputOverOutputRatioRC`;
-    }
     this.shaderKey = `resizeBilinear_${alignCorners}_${halfPixelCenters}_${
         this.outputShape[1] > 1}_${this.outputShape[2] > 1}`;
     this.useWgsl = getUseWgsl();
@@ -80,7 +72,10 @@ export class ResizeBilinearProgram implements WebGPUProgram {
               effectiveInSize / effectiveOutSize;
 
           // Fractional source index
-          vec2 sourceFracIndexRC = ${this.sourceFracIndexRC};
+          vec2 sourceFracIndexRC = ${
+        this.halfPixelCenters ?
+            '(vec2(rc) + vec2(0.5)) * effectiveInputOverOutputRatioRC - vec2(0.5)' :
+            'vec2(rc) * effectiveInputOverOutputRatioRC'};
 
           // Compute the four integer indices.
           ivec2 sourceFloorRC = ivec2(sourceFracIndexRC);
@@ -137,7 +132,10 @@ export class ResizeBilinearProgram implements WebGPUProgram {
               effectiveInSize / effectiveOutSize;
 
           // Fractional source index
-          let sourceFracIndexRC = ${this.sourceFracIndexRC};
+          let sourceFracIndexRC = ${
+        this.halfPixelCenters ?
+            '(vec2<f32>(rc) + vec2<f32>(0.5)) * effectiveInputOverOutputRatioRC - vec2<f32>(0.5)' :
+            'vec2<f32>(rc) * effectiveInputOverOutputRatioRC'};
 
           // Compute the four integer indices.
           let sourceFloorRC = vec2<u32>(sourceFracIndexRC);
