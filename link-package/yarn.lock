@@ -6,6 +6,9 @@
   version "0.0.0"
   uid ""
 
+"@tensorflow/tfjs-converter@file:../dist/bin/tfjs-converter/tfjs-converter_pkg":
+  version "0.0.0"
+
 "@tensorflow/tfjs-core@link:../link-package-core/node_modules/@tensorflow/tfjs-core":
   version "0.0.0"
   uid ""
