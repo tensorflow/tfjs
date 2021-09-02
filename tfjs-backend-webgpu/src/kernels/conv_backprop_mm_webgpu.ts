@@ -30,7 +30,7 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pads, stride; ivec4 outBackprop;';
   uniformsWgsl =
-      'filterDims : vec2<u32>; pads : vec2<u32>; stride : vec2<u32>; outBackprop : vec4<u32>; dimAOuter : u32; dimBOuter : u32; dimInner : u32;';
+      'filterDims : vec2<u32>; pads : vec2<i32>; stride : vec2<u32>; outBackprop : vec4<u32>; dimAOuter : u32; dimBOuter : u32; dimInner : u32;';
   workGroupSize: [number, number, number];
   elementsPerThread: [number, number, number];
   useWgsl: boolean;
@@ -142,8 +142,8 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
 
     let WRow = col / (uniforms.filterDims[1] * uniforms.outBackprop[3]);
     let WCol = (col / uniforms.outBackprop[3]) % uniforms.filterDims[1];
-    let xR = f32(outRow - uniforms.pads[0] + WRow) / f32(uniforms.stride[0]);
-    let xC = f32(outCol - uniforms.pads[1] + WCol) / f32(uniforms.stride[1]);
+    let xR = (f32(outRow) - f32(uniforms.pads[0]) + f32(WRow)) / f32(uniforms.stride[0]);
+    let xC = (f32(outCol) - f32(uniforms.pads[1]) + f32(WCol)) / f32(uniforms.stride[1]);
     if (xR < 0.0 || xR >= f32(uniforms.outBackprop[1]) || fract(xR) > 0.0) {
       return 0.0;
     }
