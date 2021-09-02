@@ -16,9 +16,10 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
+import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../../shader_preprocessor_wgsl';
 
 import {computeDispatch, flatDispatchLayout, WebGPULayout} from '../../webgpu_util';
-import {WebGPUProgram} from '../webgpu_program';
+import {getUseWgsl, WebGPUProgram} from '../webgpu_program';
 
 export class FromPixelsProgram implements WebGPUProgram {
   outputShape: number[] = [0];
@@ -37,6 +38,8 @@ export class FromPixelsProgram implements WebGPUProgram {
   inputTexture: GPUTexture = null;
   layout: WebGPULayout = null;
   lastPixelSize = {width: 0, height: 0};
+  useWgsl: boolean;
+  useImport: boolean;
 
   private disposed = false;
 
@@ -55,6 +58,35 @@ export class FromPixelsProgram implements WebGPUProgram {
 
   constructor() {
     this.shaderKey = 'fromPixels';
+    this.useWgsl = getUseWgsl();
+    this.useImport = false;
+  }
+
+  makeFromPixelsSource(): string {
+    const textureLoad = this.useImport ?
+        'textureLoad(src, vec2<i32>(coords.yx));' :
+        'textureLoad(src, vec2<i32>(coords.yx), 0)';
+    const textureType = this.useImport ? 'texture_external' : 'texture_2d<f32>';
+    return `
+      [[binding(1), group(0)]] var src: ${textureType};
+
+      ${getMainHeaderStringWgsl(this.workGroupSize)} {
+        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+        let flatIndexBase = index * uniforms.numChannels;
+        let coords: vec3<u32> = getCoordsFromFlatIndex(flatIndexBase);
+        let values = ${textureLoad};
+        for (var i: u32 = 0u; i < uniforms.numChannels; i = i + 1u) {
+          let flatIndex = flatIndexBase + i;
+          if (flatIndex < uniforms.size) {
+            result.numbers[flatIndex] = i32(floor(255.0 * values[i]));
+          }
+        }
+      }
+  `;
+  }
+
+  getUserCodeWgsl(): string {
+    return this.makeFromPixelsSource();
   }
 
   getUserCode(): string {
@@ -76,7 +108,6 @@ export class FromPixelsProgram implements WebGPUProgram {
       ivec3 coords = getCoordsFromFlatIndex(flatIndexBase);
       int texR = coords[0];
       int texC = coords[1];
-      int depth = coords[2];
       vec4 values = imageLoad(srcImage, ivec2(texC, texR));
       for(int i = 0; i < numChannels; i++) {
         float value = values[i];
@@ -131,8 +162,11 @@ export class FromPixelsProgram implements WebGPUProgram {
       this.inputTexture = device.createTexture({
         size: [pixelWidth, pixelHeight],
         format: 'rgba8unorm',
-        usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.STORAGE |
-            GPUTextureUsage.RENDER_ATTACHMENT,
+        usage: this.useWgsl ?
+            GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT |
+                GPUTextureUsage.TEXTURE_BINDING :
+            GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT |
+                GPUTextureUsage.STORAGE_BINDING,
       });
       this.lastPixelSize.width = pixelWidth;
       this.lastPixelSize.height = pixelHeight;
@@ -169,17 +203,17 @@ export class FromPixelsProgram implements WebGPUProgram {
       buffer: {type: 'storage' as const}
     });
     // Input buffer binding layout.
-    bindGroupLayoutEntries.push({
-      binding: 1,
-      visibility: GPUShaderStage.COMPUTE,
-      storageTexture: {access: 'read-only', format: 'rgba8unorm'}
-    });
+    this.useWgsl ?
+        bindGroupLayoutEntries.push(
+            {binding: 1, visibility: GPUShaderStage.COMPUTE, texture: {}}) :
+        bindGroupLayoutEntries.push({
+          binding: 1,
+          visibility: GPUShaderStage.COMPUTE,
+          storageTexture: {access: 'read-only', format: 'rgba8unorm'}
+        });
     // Uniform buffer binding layout.
-    bindGroupLayoutEntries.push({
-      binding: 2,
-      visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'uniform' as const}
-    });
+    bindGroupLayoutEntries.push(
+        {binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: {}});
     const fromPixelBindGroupLayout =
         device.createBindGroupLayout({entries: bindGroupLayoutEntries});
     const fromPixelPipelineLayout = device.createPipelineLayout(
