@@ -552,6 +552,12 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'depthToSpace',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
     startsWith: 'logicalAnd ',
   },
   {
