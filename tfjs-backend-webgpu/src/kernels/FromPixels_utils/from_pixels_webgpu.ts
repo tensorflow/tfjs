@@ -70,8 +70,8 @@ export class FromPixelsProgram implements WebGPUProgram {
     return `
       [[binding(1), group(0)]] var src: ${textureType};
 
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
         let flatIndexBase = index * uniforms.numChannels;
         let coords: vec3<u32> = getCoordsFromFlatIndex(flatIndexBase);
         let values = ${textureLoad};

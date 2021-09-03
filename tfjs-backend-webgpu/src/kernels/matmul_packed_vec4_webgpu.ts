@@ -185,7 +185,7 @@ export function makeMatMulPackedVec4SourceWgsl(
   let TileBOuter = ${tileInfo.TileBOuter}u;
   let TileInner = ${tileInfo.TileInner}u;
 
-  ${getWorkGroupSizeStringWgsl(workGroupSize)}
+  ${getWorkGroupSizeStringWgsl()}
   fn main([[builtin(local_invocation_id)]] localId : vec3<u32>,
         [[builtin(global_invocation_id)]] globalId : vec3<u32>) {
 
@@ -254,7 +254,7 @@ export function makeMatMulVectorVec4SourceWgsl(
   return `
   var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
   let tileSize = ${workGroupSize[0] * 4}u;
-  ${getWorkGroupSizeStringWgsl(workGroupSize)}
+  ${getWorkGroupSizeStringWgsl()}
   fn main([[builtin(local_invocation_id)]] localId : vec3<u32>,
         [[builtin(global_invocation_id)]] globalId : vec3<u32>) {
     let tileCol = localId.x;
