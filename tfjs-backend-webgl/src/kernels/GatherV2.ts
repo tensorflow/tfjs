@@ -32,6 +32,17 @@ export function gatherV2(args: {
   const {x, indices} = inputs;
   const {axis, batchDims} = attrs;
 
+  // Throw error when any index is out of bound.
+  const indicesVals = backend.readSync(indices.dataId) as TypedArray;
+  const axisDim = x.shape[axis];
+  for (let i = 0; i < indicesVals.length; ++i) {
+    const index = indicesVals[i];
+    util.assert(
+        index <= axisDim - 1 && index >= 0,
+        () =>
+            `GatherV2: the index value ${index} is not in [0, ${axisDim - 1}]`);
+  }
+
   const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
   const shapeInfo = backend_util.segment_util.collectGatherOpShapeInfo(
       x, indices, parsedAxis, batchDims);
