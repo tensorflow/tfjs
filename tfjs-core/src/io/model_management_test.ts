@@ -16,10 +16,9 @@
  */
 
 import * as tf from '../index';
-import {CHROME_ENVS, describeWithFlags} from '../jasmine_util';
+import {CHROME_ENVS, describeWithFlags, runWithLock} from '../jasmine_util';
 import {deleteDatabase} from './indexed_db';
 import {purgeLocalStorageArtifacts} from './local_storage';
-import { runWithLock } from './run_with_lock';
 
 // Disabled for non-Chrome browsers due to:
 // https://github.com/tensorflow/tfjs/issues/427

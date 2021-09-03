@@ -20,10 +20,9 @@
  */
 
 import * as tf from '../index';
-import {BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
+import {BROWSER_ENVS, describeWithFlags, runWithLock} from '../jasmine_util';
 import {expectArrayBuffersEqual} from '../test_util';
 import {browserIndexedDB, BrowserIndexedDB, BrowserIndexedDBManager, deleteDatabase, indexedDBRouter} from './indexed_db';
-import { runWithLock } from './run_with_lock';
 
 describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
   // Test data.

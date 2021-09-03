@@ -16,10 +16,9 @@
  */
 
 import * as tf from '../index';
-import {BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
+import {BROWSER_ENVS, describeWithFlags, runWithLock} from '../jasmine_util';
 import {arrayBufferToBase64String, base64StringToArrayBuffer} from './io_utils';
 import {browserLocalStorage, BrowserLocalStorage, BrowserLocalStorageManager, localStorageRouter, purgeLocalStorageArtifacts} from './local_storage';
-import {runWithLock} from './run_with_lock';
 
 describeWithFlags('LocalStorage', BROWSER_ENVS, () => {
   // Test data.
