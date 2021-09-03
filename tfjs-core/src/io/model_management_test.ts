@@ -19,6 +19,7 @@ import * as tf from '../index';
 import {CHROME_ENVS, describeWithFlags} from '../jasmine_util';
 import {deleteDatabase} from './indexed_db';
 import {purgeLocalStorageArtifacts} from './local_storage';
+import { runWithLock } from './run_with_lock';
 
 // Disabled for non-Chrome browsers due to:
 // https://github.com/tensorflow/tfjs/issues/427
@@ -325,7 +326,7 @@ describeWithFlags('ModelManagement', CHROME_ENVS, () => {
         .catch(err => done.fail(err.stack));
   });
 
-  it('Failed copyModel to invalid source URL', done => {
+  it('Failed copyModel to invalid source URL', runWithLock(done => {
     const url1 = 'invalidurl';
     const url2 = 'localstorage://a1/FooModel';
     tf.io.copyModel(url1, url2)
@@ -339,9 +340,9 @@ describeWithFlags('ModelManagement', CHROME_ENVS, () => {
                   'source URL invalidurl.');
           done();
         });
-  });
+  }));
 
-  it('Failed copyModel to invalid destination URL', done => {
+  it('Failed copyModel to invalid destination URL', runWithLock(done => {
     const url1 = 'localstorage://a1/FooModel';
     const url2 = 'invalidurl';
     // First, save a model.
@@ -362,9 +363,9 @@ describeWithFlags('ModelManagement', CHROME_ENVS, () => {
               });
         })
         .catch(err => done.fail(err.stack));
-  });
+  }));
 
-  it('Failed moveModel to invalid destination URL', done => {
+  it('Failed moveModel to invalid destination URL', runWithLock(done => {
     const url1 = 'localstorage://a1/FooModel';
     const url2 = 'invalidurl';
     // First, save a model.
@@ -393,9 +394,9 @@ describeWithFlags('ModelManagement', CHROME_ENVS, () => {
               });
         })
         .catch(err => done.fail(err.stack));
-  });
+  }));
 
-  it('Failed deletedModel: Absent scheme', done => {
+  it('Failed deletedModel: Absent scheme', runWithLock(done => {
     // Attempt to delete a nonexistent model is expected to fail.
     tf.io.removeModel('foo')
         .then(out => {
@@ -409,9 +410,9 @@ describeWithFlags('ModelManagement', CHROME_ENVS, () => {
           expect(err.message.indexOf('indexeddb')).toBeGreaterThan(0);
           done();
         });
-  });
+  }));
 
-  it('Failed deletedModel: Invalid scheme', done => {
+  it('Failed deletedModel: Invalid scheme', runWithLock(done => {
     // Attempt to delete a nonexistent model is expected to fail.
     tf.io.removeModel('invalidscheme://foo')
         .then(out => {
@@ -423,9 +424,9 @@ describeWithFlags('ModelManagement', CHROME_ENVS, () => {
                   'Cannot find model manager for scheme \'invalidscheme\'');
           done();
         });
-  });
+  }));
 
-  it('Failed deletedModel: Nonexistent model', done => {
+  it('Failed deletedModel: Nonexistent model', runWithLock(done => {
     // Attempt to delete a nonexistent model is expected to fail.
     tf.io.removeModel('indexeddb://nonexistent')
         .then(out => {
@@ -437,9 +438,9 @@ describeWithFlags('ModelManagement', CHROME_ENVS, () => {
                   'Cannot find model with path \'nonexistent\' in IndexedDB.');
           done();
         });
-  });
+  }));
 
-  it('Failed copyModel', done => {
+  it('Failed copyModel', runWithLock(done => {
     // Attempt to copy a nonexistent model should fail.
     tf.io.copyModel('indexeddb://nonexistent', 'indexeddb://destination')
         .then(out => {
@@ -451,9 +452,9 @@ describeWithFlags('ModelManagement', CHROME_ENVS, () => {
                   'Cannot find model with path \'nonexistent\' in IndexedDB.');
           done();
         });
-  });
+  }));
 
-  it('copyModel: Identical oldPath and newPath leads to Error', done => {
+  it('copyModel: Identical oldPath and newPath leads to Error', runWithLock(done => {
     tf.io.copyModel('a/1', 'a/1')
         .then(out => {
           done.fail(
@@ -464,9 +465,9 @@ describeWithFlags('ModelManagement', CHROME_ENVS, () => {
               .toEqual('Old path and new path are the same: \'a/1\'');
           done();
         });
-  });
+  }));
 
-  it('moveModel: Identical oldPath and newPath leads to Error', done => {
+  it('moveModel: Identical oldPath and newPath leads to Error', runWithLock(done => {
     tf.io.moveModel('a/1', 'a/1')
         .then(out => {
           done.fail(
@@ -477,5 +478,5 @@ describeWithFlags('ModelManagement', CHROME_ENVS, () => {
               .toEqual('Old path and new path are the same: \'a/1\'');
           done();
         });
-  });
+  }));
 });
