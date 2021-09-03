@@ -16,7 +16,7 @@
  */
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {mapActivationToShaderProgram} from './activation_util';
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
@@ -126,7 +126,6 @@ export function makeMatMulSmallOutputSizeSourceWgsl(
   // makes ALUs and load/store units work simultaneously, could improves
   // the performance.
   ${getMainHeaderStringWgsl(workGroupSize)} {
-    ${getGlobalIndexStringWgsl(workGroupSize)}
     let tileRow = localId.y;
     let tileCol = localId.x;
     let globalRow = globalId.y;
