@@ -1,0 +1,79 @@
+# Copyright 2021 Google LLC. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
+load("//tfjs-converter/scripts:gen_op.bzl", "gen_op")
+load("//tools:defaults.bzl", "ts_library")
+
+package(default_visibility = ["//visibility:public"])
+
+TEST_SRCS = [
+    "**/*_test.ts",
+    "run_tests.ts",
+]
+
+# Used for test-snippets
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**/*.ts"]),
+)
+
+gen_op(
+    name = "ops_ts_files",
+    srcs = [
+        "//tfjs-converter/python/tensorflowjs/op_list:ops",
+    ],
+    dest_dir = "operations/op_list/",
+)
+
+ts_library(
+    name = "tfjs-converter_src_lib",
+    srcs = glob(
+        ["**/*.ts"],
+        exclude = TEST_SRCS + ["index.ts"],
+    ) + [":ops_ts_files"],
+    module_name = "@tensorflow/tfjs-converter/dist",
+    deps = [
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_src_lib",
+        "@npm//@types/seedrandom",
+        "@npm//seedrandom",
+    ],
+)
+
+ts_library(
+    name = "tfjs-converter_lib",
+    srcs = ["index.ts"],
+    module_name = "@tensorflow/tfjs-converter",
+    deps = [
+        ":tfjs-converter_src_lib",
+    ],
+)
+
+ts_library(
+    name = "tfjs-converter_test_lib",
+    testonly = True,
+    srcs = glob(TEST_SRCS),
+    module_name = "@tensorflow/tfjs-converter/dist",
+    deps = [
+        ":tfjs-converter_lib",
+        ":tfjs-converter_src_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_src_lib",
+        "@npm//@types/jasmine",
+        "@npm//ajv",
+        "@npm//jasmine",
+    ],
+)

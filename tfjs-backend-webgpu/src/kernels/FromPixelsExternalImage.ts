@@ -34,7 +34,6 @@ export function fromPixelsExternalImage(args: {
 
   const size = util.sizeFromShape(outShape);
   const strides = util.computeStrides(outShape);
-  const uniformData = [size, numChannels, ...strides];
   const output = backend.makeTensorInfo(outShape, 'int32');
   const program =
       backend.getFromPixelsProgram(useImport ? 'import' : 'copyExternal');
@@ -47,7 +46,7 @@ export function fromPixelsExternalImage(args: {
   // FromPixelsExternalImage leverages webgpu backend pipeline
   // cache system to avoid useless recompile.
   const outputShapes = [output.shape];
-  const outputTypes = [output.dtype];
+  const outputTypes = [output.dtype, useImport ? 'import' : 'copyExternal'];
   const key = webgpu_program.makeShaderKey(program, outputShapes, outputTypes);
 
   const layout = program.getLayout(backend.device);
@@ -73,6 +72,7 @@ export function fromPixelsExternalImage(args: {
 
   info.bufferInfo.buffer = backend.acquireBuffer(info.bufferInfo.byteSize);
 
+  const uniformData = [size, numChannels, ...strides, ...program.dispatch];
   program.setUniform(backend.device, uniformData);
 
   let externalResource: GPUExternalTexture|GPUTextureView;

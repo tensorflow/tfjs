@@ -78,7 +78,7 @@ export class WebGPUBackend extends KernelBackend {
   tensorMap: DataStorage<TensorBufferInfo>;
   supportTimeQuery: boolean;
   dummyCanvas: HTMLCanvasElement;
-  dummyContext: GPUPresentationContext;
+  dummyContext: GPUCanvasContext;
 
   private static nextDataId = 0;
   private nextDataId(): number {
@@ -132,7 +132,10 @@ export class WebGPUBackend extends KernelBackend {
       this.dummyCanvas.width = 1;
       this.dummyCanvas.height = 1;
 
-      this.dummyContext = this.dummyCanvas.getContext('gpupresent');
+      // TODO: @webgpu/types 0.1.6 version has a bug to support both old
+      // rendring context type and webgpu context type. Use any to bypass this.
+      // tslint:disable-next-line:no-any
+      this.dummyContext = this.dummyCanvas.getContext('webgpu') as any;
       this.dummyContext.configure({
         device,
         format: 'bgra8unorm',
