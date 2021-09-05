@@ -16,14 +16,18 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
+
+import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class Im2ColProgram implements WebGPUProgram {
   variableNames = ['A'];
   uniforms = `ivec2 pad, stride, dilation; int outWidth, itemsPerBlockRow,
       inChannels;`;
+  uniformsWgsl = `pad : vec2<u32>; stride : vec2<u32>; dilation : vec2<u32>; outWidth : u32; itemsPerBlockRow : u32;
+      inChannels : u32;`;
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[]};
@@ -32,6 +36,7 @@ export class Im2ColProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   isChannelsLast: boolean;
   size: number;
+  useWgsl: boolean;
 
   constructor(outputShape: number[], isChannelsLast: boolean) {
     this.outputShape = outputShape;
@@ -42,6 +47,7 @@ export class Im2ColProgram implements WebGPUProgram {
     this.isChannelsLast = isChannelsLast;
     this.shaderKey = `im2col_${this.isChannelsLast}`;
     this.size = util.sizeFromShape(this.outputShape);
+    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
@@ -79,6 +85,45 @@ export class Im2ColProgram implements WebGPUProgram {
         }
       }
     `;
+    return userCode;
+  }
+
+  getUserCodeWgsl(): string {
+    const rowDim = this.isChannelsLast ? 0 : 1;
+    const colDim = this.isChannelsLast ? 1 : 2;
+
+    const userCode = `
+    ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
+    fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
+      let index = globalId.x;
+
+      for(var i = 0u; i<${this.workPerThread}u; i = i + 1u) {
+        let flatIndex = index * ${this.workPerThread}u + i;
+
+        let rc = getCoordsFromFlatIndex(flatIndex);
+
+        if(flatIndex < uniforms.size) {
+          let blockIndex = rc[0];
+          let pos = rc[1];
+
+          let offsetY = i32(u32(blockIndex / uniforms.outWidth) * uniforms.stride[1] - uniforms.pad[1]);
+          let d0 = offsetY + i32(uniforms.dilation[1] * (pos / uniforms.itemsPerBlockRow));
+          var value = 0.0;
+          if(d0 < i32(uniforms.aShape[${rowDim}]) && d0 >= 0) {
+            let offsetX = i32((blockIndex % uniforms.outWidth) * uniforms.stride[0] -
+              uniforms.pad[0]);
+            let d1 = offsetX + i32(uniforms.dilation[0]) * (i32((pos %
+              uniforms.itemsPerBlockRow) / uniforms.inChannels));
+            let ch = u32(pos % uniforms.inChannels);
+            if(d1 < i32(uniforms.aShape[${colDim}]) && d1 >= 0) {
+              value = getA(u32(d0), u32(d1), ch);
+            }
+          }
+          setOutputFlat(flatIndex, value);
+        }
+      }
+    }
+  `;
     return userCode;
   }
 }
