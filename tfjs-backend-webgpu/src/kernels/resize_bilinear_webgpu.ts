@@ -106,7 +106,7 @@ export class ResizeBilinearProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
-        let coords = getOutputCoords(globalId, index);
+        let coords = getOutputCoords(vec3<i32>(globalId), index);
         if (all(coords < uniforms.outShape)) {
           let b = coords[0];
           let d = coords[3];
@@ -138,8 +138,8 @@ export class ResizeBilinearProgram implements WebGPUProgram {
             'vec2<f32>(rc) * effectiveInputOverOutputRatioRC'};
 
           // Compute the four integer indices.
-          let sourceFloorRC = vec2<u32>(sourceFracIndexRC);
-          let sourceCeilRC = vec2<u32>(
+          let sourceFloorRC = vec2<i32>(sourceFracIndexRC);
+          let sourceCeilRC = vec2<i32>(
             min(vec2<f32>(uniforms.xShape.yz) - vec2<f32>(1.0), ceil(sourceFracIndexRC)));
 
           let topLeft = getX(b, sourceFloorRC.x, sourceFloorRC.y, d);

@@ -126,78 +126,78 @@ export function makeMatMulSmallOutputSizeSourceWgsl(
   // makes ALUs and load/store units work simultaneously, could improves
   // the performance.
   ${getMainHeaderStringWgsl()} {
-    let tileRow = localId.y;
-    let tileCol = localId.x;
-    let globalRow = globalId.y;
-    let globalCol = globalId.x;
+    let tileRow = i32(localId.y);
+    let tileCol = i32(localId.x);
+    let globalRow = i32(globalId.y);
+    let globalCol = i32(globalId.x);
 
     // uniforms.dimInner should be greater than 0.
-    let numTiles = (uniforms.dimInner - 1u) / ${tileInner}u + 1u;
+    let numTiles = (uniforms.dimInner - 1) / ${tileInner} + 1;
     var acc = 0.0;
 
     var globalColA = tileCol;
     var globalRowB = tileRow;
-    for (var t = 0u; t < numTiles; t = t + 1u) {
-      if (t == 0u) {
-        if (tileRow < ${tileAOuter}u) {
+    for (var t = 0; t < numTiles; t = t + 1) {
+      if (t == 0) {
+        if (tileRow < ${tileAOuter}) {
           // Load one tile of A and B into local memory.
           // globalRow is always greater than or equal tileRow.
           mm_Asub1[tileRow][tileCol] =
-              mm_readA((globalRow - tileRow) / 2u + tileRow, globalColA, globalId);
-          globalColA = globalColA + ${tileInner}u;
-          mm_Bsub1[tileRow][tileCol] = mm_readB(globalRowB, globalCol, globalId);
-          globalRowB = globalRowB + ${tileInner}u;
+              mm_readA((globalRow - tileRow) / 2 + tileRow, globalColA, vec3<i32>(globalId));
+          globalColA = globalColA + ${tileInner};
+          mm_Bsub1[tileRow][tileCol] = mm_readB(globalRowB, globalCol, vec3<i32>(globalId));
+          globalRowB = globalRowB + ${tileInner};
         }
       } else {
-        if (tileRow < ${tileAOuter}u) {
+        if (tileRow < ${tileAOuter}) {
           // Load one tile of A and B into local memory.
           // globalRow is always greater than or equal tileRow.
           mm_Asub1[tileRow][tileCol] =
-              mm_readA((globalRow - tileRow) / 2u + tileRow, globalColA, globalId);
-          globalColA = globalColA + ${tileInner}u;
-          mm_Bsub1[tileRow][tileCol] = mm_readB(globalRowB, globalCol, globalId);
-          globalRowB = globalRowB + ${tileInner}u;
+              mm_readA((globalRow - tileRow) / 2 + tileRow, globalColA, vec3<i32>(globalId));
+          globalColA = globalColA + ${tileInner};
+          mm_Bsub1[tileRow][tileCol] = mm_readB(globalRowB, globalCol, vec3<i32>(globalId));
+          globalRowB = globalRowB + ${tileInner};
         } else {
           // Compute acc values for a single thread.
-          for (var k = 0u; k < ${tileInner}u; k = k + 1u) {
-            let subRow = i32(tileRow - ${tileAOuter}u);
+          for (var k = 0; k < ${tileInner}; k = k + 1) {
+            let subRow = i32(tileRow - ${tileAOuter});
             if (subRow < 0) {
               continue;
             }
-            acc = acc + mm_Asub2[u32(subRow)][k] * mm_Bsub2[k][tileCol];
+            acc = acc + mm_Asub2[i32(subRow)][k] * mm_Bsub2[k][tileCol];
           }
         }
       }
       workgroupBarrier();
-      if (t != 0u) {
-        t = t + 1u;
+      if (t != 0) {
+        t = t + 1;
       }
 
       if (t < numTiles) {
-        if (tileRow < ${tileAOuter}u) {
+        if (tileRow < ${tileAOuter}) {
           // Load one tile of A and B into local memory.
           // globalRow is always greater than or equal tileRow.
           mm_Asub2[tileRow][tileCol] =
-              mm_readA((globalRow - tileRow) / 2u + tileRow, globalColA, globalId);
-          globalColA = globalColA + ${tileInner}u;
-          mm_Bsub2[tileRow][tileCol] = mm_readB(globalRowB, globalCol, globalId);
-          globalRowB = globalRowB + ${tileInner}u;
+              mm_readA((globalRow - tileRow) / 2 + tileRow, globalColA, vec3<i32>(globalId));
+          globalColA = globalColA + ${tileInner};
+          mm_Bsub2[tileRow][tileCol] = mm_readB(globalRowB, globalCol, vec3<i32>(globalId));
+          globalRowB = globalRowB + ${tileInner};
         } else {
           // Compute acc values for a single thread.
-          for (var k = 0u; k < ${tileInner}u; k = k + 1u) {
-            let subRow = i32(tileRow - ${tileAOuter}u);
+          for (var k = 0; k < ${tileInner}; k = k + 1) {
+            let subRow = tileRow - ${tileAOuter};
             if (subRow < 0) {
               continue;
             }
-            acc = acc + mm_Asub1[u32(subRow)][k] * mm_Bsub1[k][tileCol];
+            acc = acc + mm_Asub1[subRow][k] * mm_Bsub1[k][tileCol];
           }
         }
       }
       workgroupBarrier();
     }
-    let writeCol = i32((globalRow - tileRow) / 2u + tileRow - ${tileAOuter}u);
-    if (tileRow >= ${tileAOuter}u && writeCol >= 0) {
-      mm_write(u32(writeCol), globalCol, acc, globalId);
+    let writeCol = (globalRow - tileRow) / 2 + tileRow - ${tileAOuter};
+    if (tileRow >= ${tileAOuter} && writeCol >= 0) {
+      mm_write(writeCol, globalCol, acc, vec3<i32>(globalId));
     }
   }
   `;
@@ -209,7 +209,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
-  uniformsWgsl = `dimAOuter : u32; dimBOuter : u32; dimInner : u32;`;
+  uniformsWgsl = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
   workGroupSize: [number, number, number] = [8, 16, 1];
   addBias: boolean;
   activation: backend_util.Activation;
@@ -312,13 +312,13 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
 
   getUserCodeWgsl(): string {
     const sampleA =
-        `if (coordsInBounds2D(vec2<u32>(row, col), vec2<u32>(uniforms.dimAOuter, uniforms.dimInner))) {
+        `if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
           return A.numbers[batch * batchASize + row * uniforms.dimInner + col]; 
         } 
         return 0.0;`;
 
     const sampleB =
-        `if (coordsInBounds2D(vec2<u32>(row, col), vec2<u32>(uniforms.dimInner, uniforms.dimBOuter))) {
+        `if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
            return B.numbers[batch * batchBSize + row * uniforms.dimBOuter + col]; 
          }
          return 0.0;`;
@@ -329,13 +329,13 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
           mapActivationToShaderProgram(this.activation, false, true);
       if (this.hasPreluActivationWeights) {
         activationSnippet =
-            `fn activation(a : f32, outCoord : vec3<u32>) -> f32 {
+            `fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
             let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
             ${activationOp}
             }`;
       } else {
         activationSnippet =
-            `fn activation(a : f32, outCoord : vec3<u32>) -> f32 {
+            `fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
             ${activationOp}
         }`;
       }
@@ -350,20 +350,20 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
     const userCode = `
       ${activationSnippet}
       
-      fn mm_readA(row : u32, col : u32,  globalId : vec3<u32>) -> f32 {
+      fn mm_readA(row : i32, col : i32,  globalId : vec3<i32>) -> f32 {
         let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
         let batch = globalId.z;
         ${sampleA}
       }
-      fn mm_readB(row : u32, col : u32,  globalId : vec3<u32>) -> f32 {
+      fn mm_readB(row : i32, col : i32,  globalId : vec3<i32>) -> f32 {
         let batch = globalId.z;
         let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
         ${sampleB}
       }
-      fn mm_write(row : u32, col : u32, valueIn : f32, globalId : vec3<u32>) {
-        if (coordsInBounds2D(vec2<u32>(row, col), vec2<u32>(uniforms.dimAOuter, uniforms.dimBOuter))) {
+      fn mm_write(row : i32, col : i32, valueIn : f32, globalId : vec3<i32>) {
+        if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimBOuter))) {
           let batch = globalId.z;
-          let outCoord = vec3<u32>(batch, row, col);
+          let outCoord = vec3<i32>(batch, row, col);
           var value = valueIn;
           ${addBiasSnippet}
           ${applyActivationSnippet}

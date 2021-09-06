@@ -31,7 +31,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   uniformsWgsl =
-      `filterDims : vec2<u32>; pad : vec2<u32>; stride : vec2<u32>; dilation : vec2<u32>;`;
+      `filterDims : vec2<i32>; pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>;`;
   workGroupSize: [number, number, number] = [128, 1, 1];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
@@ -145,13 +145,13 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
       const activationOp = mapActivationToShaderProgram(this.activation);
       if (this.hasPreluActivationWeights) {
         activationSnippet =
-            `fn activation(a : f32, outCoord : vec4<u32>) -> f32{
+            `fn activation(a : f32, outCoord : vec4<i32>) -> f32{
                let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
                ${activationOp}
              }`;
       } else {
         activationSnippet = `
-                  fn activation(a : f32, outCoord : vec4<u32>) -> f32{
+                  fn activation(a : f32, outCoord : vec4<i32>) -> f32{
                     ${activationOp}
                   }
                 `;
@@ -166,24 +166,24 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
 
     const userCode = `
       ${activationSnippet}
-      fn readInp(batch : u32, row : u32, col : u32, chan : u32) -> f32 {
-        let coord = vec4<u32>(batch, row, col, chan);
+      fn readInp(batch : i32, row : i32, col : i32, chan : i32) -> f32 {
+        let coord = vec4<i32>(batch, row, col, chan);
         if(coordsInBounds4D(coord, uniforms.xShape)) {
           return getX(batch, row, col, chan);
         }
         return 0.0;
       }
 
-      fn readFilt(row : u32, col : u32, xChannel : u32, outChannel : u32) -> f32{
-        let coord = vec4<u32>(row, col, xChannel, outChannel);
+      fn readFilt(row : i32, col : i32, xChannel : i32, outChannel : i32) -> f32{
+        let coord = vec4<i32>(row, col, xChannel, outChannel);
         if(coordsInBounds4D(coord, uniforms.wShape)) {
           return getW(row, col, xChannel, outChannel);
         }
         return 0.0;
       }
 
-      fn writeResult(batch : u32, row : u32, col : u32, chan : u32, value : f32) {
-        let coord = vec4<u32>(batch, row, col, chan);
+      fn writeResult(batch : i32, row : i32, col : i32, chan : i32, value : f32) {
+        let coord = vec4<i32>(batch, row, col, chan);
         if (coordsInBounds4D(coord, uniforms.outShape)) {
           ${addBiasSnippet}
           ${applyActivationSnippet}
@@ -193,24 +193,24 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
 
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
-        let coords = getOutputCoords(globalId, index);
+        let coords = getOutputCoords(vec3<i32>(globalId), index);
         let batch = coords[0];
         let outChannel = coords[3];
 
         var acc = 0.0;
 
-        for (var row = 0u; row < uniforms.filterDims[0]; row = row + 1u) {
-          for (var col = 0u; col < uniforms.filterDims[1]; col = col + 1u) {
-            for (var xChannel = 0u; xChannel < uniforms.xShape[3]; xChannel = xChannel + 1u) {
-              let coordRow = i32(coords[1] * uniforms.stride[0] + uniforms.dilation[0] * row - uniforms.pad[0]);
+        for (var row = 0; row < uniforms.filterDims[0]; row = row + 1) {
+          for (var col = 0; col < uniforms.filterDims[1]; col = col + 1) {
+            for (var xChannel = 0u; xChannel < uniforms.xShape[3]; xChannel = xChannel + 1) {
+              let coordRow = coords[1] * uniforms.stride[0] + uniforms.dilation[0] * row - uniforms.pad[0];
               if (coordRow < 0) {
                 continue;
               }
-              let coordCol = i32(coords[2] * uniforms.stride[1] + uniforms.dilation[1] * col - uniforms.pad[1]);
+              let coordCol = coords[2] * uniforms.stride[1] + uniforms.dilation[1] * col - uniforms.pad[1];
               if (coordCol < 0) {
                 continue;
               }
-              let v = readInp(batch, u32(coordRow), u32(coordCol), xChannel);
+              let v = readInp(batch, coordRow, coordCol, xChannel);
               let f = readFilt(row, col, xChannel, outChannel);
               acc = acc + v * f;
             }

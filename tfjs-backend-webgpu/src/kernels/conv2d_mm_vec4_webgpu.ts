@@ -31,8 +31,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   uniformsWgsl =
-      `filterDims : vec2<u32>; pad : vec2<u32>; stride : vec2<u32>; dilation : vec2<u32>;
-      dimAOuter : u32; dimBOuter : u32; dimInner : u32;`;
+      `filterDims : vec2<i32>; pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>;
+      dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
   workGroupSize: [number, number, number];
   useWgsl: boolean;
   isVec4 = true;
@@ -246,21 +246,21 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   // index is used to avoid repeated definition error.
   getSampleAWithRemainderWgsl(index: number): string {
     return `let flatIndex${index} = getFlatIndex4D(coord, uniforms.xShape);
-    let divBy4Remainder${index} = flatIndex${index} % 4u;
-    let divBy4Index${index} = flatIndex${index} / 4u;
+    let divBy4Remainder${index} = flatIndex${index} % 4;
+    let divBy4Index${index} = flatIndex${index} / 4;
     let curData${index} = x.numbers[divBy4Index${index}];
-    if (divBy4Remainder${index} == 0u) {
+    if (divBy4Remainder${index} == 0) {
       temp = curData${index};
     } else {
       // TODO: This could end up being a redundant load with another one in
       // the same shader invocation. Perhaps there's an opportunity for
       // optimization
-      let nextData${index} = x.numbers[divBy4Index${index} + 1u];
-      if (divBy4Remainder${index} == 1u) {
+      let nextData${index} = x.numbers[divBy4Index${index} + 1];
+      if (divBy4Remainder${index} == 1) {
         temp = vec4<f32>(curData${index}.yzw, nextData${index}.x);
-      } elseif (divBy4Remainder${index} == 2u) {
+      } elseif (divBy4Remainder${index} == 2) {
         temp = vec4<f32>(curData${index}.zw, nextData${index}.xy);
-      } elseif (divBy4Remainder${index} == 3u) {
+      } elseif (divBy4Remainder${index} == 3) {
         temp = vec4<f32>(curData${index}.w, nextData${index}.xyz);
       }
     }
@@ -278,23 +278,23 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         `// The bounds checking is always needed since we use it to pad zero for
           // the 'same' padding type.
           if (coordsInBounds4D(coord, uniforms.xShape)) {
-            resData = x.numbers[getFlatIndex4D(coord, uniforms.xShape) / 4u];
+            resData = x.numbers[getFlatIndex4D(coord, uniforms.xShape) / 4];
           } else {
             resData = vec4<f32>(0.0); }` :
         `var temp = vec4<f32>(0.0);
           ${this.getSampleAWithRemainderWgsl(1)}
           resData = temp;
-          if (WCol == (uniforms.filterDims[1] - 1u)) {
-            let coordZ = i32(coord.z + 1u - uniforms.filterDims[1]);
+          if (WCol == uniforms.filterDims[1] - 1) {
+            let coordZ = i32(coord.z) + 1 - uniforms.filterDims[1];
             if (coordZ < 0) {
               resData = vec4<f32>(0.0);
             } else {
-              coord = vec4<u32>(
-                coord.x, coord.y + 1u, u32(coordZ), 0u);
+              coord = vec4<i32>(
+                coord.x, coord.y + 1, coordZ, 0);
                 ${this.getSampleAWithRemainderWgsl(2)}
-              if (inChCoord == 0u) {
+              if (inChCoord == 0) {
                 resData = vec4<f32>(resData.xyz, temp.x);
-              } elseif (inChCoord == 1u) {
+              } elseif (inChCoord == 1) {
                 resData = vec4<f32>(resData.xy, temp.xy);
               } else {
                 resData = vec4<f32>(resData.x, temp.xyz);
@@ -306,20 +306,20 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     const readASnippet = `let outRow = r / uniforms.outShape[2];
         let outCol = r % uniforms.outShape[2];
         let WRow = c / (uniforms.filterDims[1] * uniforms.xShape[3]);
-        let WCol = (c / uniforms.xShape[3]) % uniforms.filterDims[1];
+        let WCol = c / uniforms.xShape[3] % uniforms.filterDims[1];
         let inChCoord = c % uniforms.xShape[3];
-        let coordRow = i32(outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0]);
+        let coordRow = i32(outRow) * uniforms.stride[0] + uniforms.dilation[0] * i32(WRow) - uniforms.pad[0];
         if (coordRow < 0) {
           return vec4<f32>(0.0);
         }
-        let coordCol = i32(outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1]);
+        let coordCol = i32(outCol) * uniforms.stride[1] + uniforms.dilation[1] * i32(WCol) - uniforms.pad[1];
         if (coordCol < 0) {
           return vec4<f32>(0.0);
         }
-        var coord = vec4<u32>(
+        var coord = vec4<i32>(
             batch,
-            u32(coordRow),
-            u32(coordCol),
+            coordRow,
+            coordCol,
             inChCoord);
         var resData = vec4<f32>(0.0);
         ${remainderSnippet}
@@ -335,8 +335,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
 
     const sampleB = this.fitB ?
         `return W.numbers[row * uniforms.dimBOuter / 4u + col];` :
-        `if(coordsInBounds2D(vec2<u32>(row, col * 4u), vec2<u32>(uniforms.dimInner, uniforms.dimBOuter))) {
-           return W.numbers[row * uniforms.dimBOuter / 4u + col];
+        `if(coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
+           return W.numbers[row * uniforms.dimBOuter / 4 + col];
          }
          return vec4<f32>(0.0);
         `;
@@ -346,7 +346,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
           this.activation, this.isVec4, this.useWgsl);
       if (this.hasPreluActivationWeights) {
         activationSnippet =
-            `fn activation(a : vec4<f32>, outCoord : vec4<u32>) -> vec4<f32> {
+            `fn activation(a : vec4<f32>, outCoord : vec4<i32>) -> vec4<f32> {
           let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
           ${activationOp}
         }`;
@@ -358,7 +358,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         throw new Error('Leakyrelu is not supported.');
       } else {
         activationSnippet = `
-        fn activation(a : vec4<f32>, outCoord : vec4<u32>) -> vec4<f32> {
+        fn activation(a : vec4<f32>, outCoord : vec4<i32>) -> vec4<f32> {
           ${activationOp}
         }`;
       }
@@ -372,27 +372,27 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
 
     const userCode = `
         ${activationSnippet}
-        fn mm_readA(row : u32, col : u32, globalId : vec3<u32>) -> vec4<f32> {
+        fn mm_readA(row : i32, col : i32, globalId : vec3<i32>) -> vec4<f32> {
           let r = row;
-          let c = col * 4u;
+          let c = col * 4;
           var batch = globalId.z;
           ${sampleA}
         }
 
-        fn mm_readB(row : u32, col : u32, globalId : vec3<u32>) -> vec4<f32> {
+        fn mm_readB(row : i32, col : i32, globalId : vec3<i32>) -> vec4<f32> {
           ${sampleB}
         }
 
-        fn mm_write(row : u32, col : u32, valueInput : vec4<f32>, globalId : vec3<u32>) {
+        fn mm_write(row : i32, col : i32, valueInput : vec4<f32>, globalId : vec3<i32>) {
           var batch = globalId.z;
           var value = valueInput;
-          if (row < uniforms.dimAOuter && col * 4u < uniforms.dimBOuter)
+          if (row < uniforms.dimAOuter && col * 4 < uniforms.dimBOuter)
           {
-            let outCoord = vec4<u32>(
+            let outCoord = vec4<i32>(
               batch,
               row / uniforms.outShape[2],
               row % uniforms.outShape[2],
-              col * 4u);
+              col * 4);
             ${addBiasSnippet}
             ${applyActivationSnippet}
             setOutput(outCoord[0], outCoord[1], outCoord[2], outCoord[3],

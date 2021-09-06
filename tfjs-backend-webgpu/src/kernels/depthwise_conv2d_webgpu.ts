@@ -31,7 +31,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 pad, stride, dilation, inDims;';
   uniformsWgsl =
-      `pad : vec2<u32>; stride : vec2<u32>; dilation : vec2<u32>; inDims : vec2<u32>;`;
+      `pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>; inDims : vec2<i32>;`;
   // This is an experimental value.
   workGroupSize: [number, number, number] = [256, 1, 1];
   convInfo: backend_util.Conv2DInfo;
@@ -178,31 +178,31 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
           mapActivationToShaderProgram(this.activation, false, this.useWgsl);
       if (this.hasPreluActivation) {
         activationSnippet =
-            `fn activation(a : f32, globalId : vec3<u32>, index : u32) -> f32 {
+            `fn activation(a : f32, globalId : vec3<i32>, index : i32) -> f32 {
           let b = getPreluActivationWeightsAtOutCoordsByGlobalId(globalId, index);
           ${activationOp}
         }`;
       } else {
         activationSnippet = `
-          fn activation(a : f32, globalId : vec3<u32>, index : u32) -> f32 {
+          fn activation(a : f32, globalId : vec3<i32>, index : i32) -> f32 {
             ${activationOp}
           }
         `;
       }
 
       applyActivationSnippet =
-          `dotProd = activation(dotProd, globalId, index);`;
+          `dotProd = activation(dotProd, vec3<i32>(globalId), index);`;
     }
 
     const addBiasSnippet = this.addBias ?
-        'dotProd = dotProd + getBiasAtOutCoordsByGlobalId(globalId, index);' :
+        'dotProd = dotProd + getBiasAtOutCoordsByGlobalId(vec3<i32>(globalId), index);' :
         '';
 
     const userCode = `
       ${activationSnippet}
 
-      fn writeResult(batch : u32, row : u32, col : u32, chan : u32, value : f32) {
-        let coord = vec4<u32>(batch, row, col, chan);
+      fn writeResult(batch : i32, row : i32, col : i32, chan : i32, value : f32) {
+        let coord = vec4<i32>(batch, row, col, chan);
         if (coordsInBounds4D(coord, uniforms.outShape)) {
           setOutput(batch, row, col, chan, value);
         }
@@ -210,19 +210,19 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
 
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
-        let coords = getOutputCoords(globalId, index);
+        let coords = getOutputCoords(vec3<i32>(globalId), index);
         let batch = coords[0];
-        let xRCCorner = vec2<i32>(coords.yz * uniforms.stride - uniforms.pad);
+        let xRCCorner = vec2<i32>(coords.yz) * uniforms.stride - uniforms.pad;
         let d2 = coords[3];
-        let d1 = d2 / ${channelMul}u;
-        let q = d2 - d1 * ${channelMul}u;
+        let d1 = d2 / ${channelMul};
+        let q = d2 - d1 * ${channelMul};
 
         let inputRowStart = xRCCorner.x;
         let inputColStart = xRCCorner.y;
-        let inputRowEnd = inputRowStart + i32(${
-        this.convInfo.filterHeight}u * uniforms.dilation[0]);
-        let inputColEnd = inputColStart + i32(${
-        this.convInfo.filterWidth}u * uniforms.dilation[1]);
+        let inputRowEnd = inputRowStart + ${
+        this.convInfo.filterHeight} * uniforms.dilation[0];
+        let inputColEnd = inputColStart + ${
+        this.convInfo.filterWidth} * uniforms.dilation[1];
 
         // Convolve x(?, ?, d1) with w(:, :, d1, q) to get y(yR, yC, d2).
         // ? = to be determined. : = across all values in that axis.
@@ -230,40 +230,40 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
 
         // Extract if checking out of for loop for performance.
         if (inputRowStart >= 0 && inputColStart >= 0 &&
-          inputRowEnd < i32(uniforms.inDims[0]) && inputColEnd < i32(uniforms.inDims[1])) {
+          inputRowEnd < uniforms.inDims[0] && inputColEnd < uniforms.inDims[1]) {
             // Here using a constant value |this.convInfo.filterHeight| instead
             // of uniform value is in order to loop unrolling.
-            for (var wR = 0u; wR < ${
-        this.convInfo.filterHeight}u; wR = wR + 1u) {
-              let xR = inputRowStart + i32(wR * uniforms.dilation[0]);
+            for (var wR = 0; wR < ${
+        this.convInfo.filterHeight}; wR = wR + 1) {
+              let xR = inputRowStart + i32(wR) * uniforms.dilation[0];
 
-              for (var wC = 0u; wC < ${
-        this.convInfo.filterWidth}u; wC = wC + 1u) {
-                let xC = inputColStart + i32(wC * uniforms.dilation[1]);
+              for (var wC = 0; wC < ${
+        this.convInfo.filterWidth}; wC = wC + 1) {
+                let xC = inputColStart + i32(wC) * uniforms.dilation[1];
 
-                let xVal = getX(batch, u32(xR), u32(xC), d1);
-                let wVal = getW(wR, u32(wC), d1, q);
+                let xVal = getX(batch, i32(xR), i32(xC), d1);
+                let wVal = getW(wR, i32(wC), d1, q);
                 dotProd = dotProd + xVal * wVal;
               }
             }
           } else {
-            for (var wR = 0u; wR < ${
-        this.convInfo.filterHeight}u; wR = wR + 1u) {
-              let xR = inputRowStart + i32(wR * uniforms.dilation[0]);
+            for (var wR = 0; wR < ${
+        this.convInfo.filterHeight}; wR = wR + 1) {
+              let xR = inputRowStart + i32(wR) * uniforms.dilation[0];
 
-              if (xR < 0 || xR >= i32(uniforms.inDims[0])) {
+              if (xR < 0 || xR >= uniforms.inDims[0]) {
                 continue;
               }
 
-              for (var wC = 0u; wC < ${
-        this.convInfo.filterWidth}u; wC = wC + 1u) {
-                let xC = inputColStart + i32(wC * uniforms.dilation[1]);
+              for (var wC = 0; wC < ${
+        this.convInfo.filterWidth}; wC = wC + 1) {
+                let xC = inputColStart + i32(wC) * uniforms.dilation[1];
 
-                if (xC < 0 || xC >= i32(uniforms.inDims[1])) {
+                if (xC < 0 || xC >= uniforms.inDims[1]) {
                   continue;
                 }
 
-                let xVal = getX(batch, u32(xR), u32(xC), d1);
+                let xVal = getX(batch, i32(xR), i32(xC), d1);
                 let wVal = getW(wR, wC, d1, q);
                 dotProd = dotProd + xVal * wVal;
               }

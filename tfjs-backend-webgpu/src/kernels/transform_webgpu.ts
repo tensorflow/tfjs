@@ -217,7 +217,7 @@ export class TransformProgram implements WebGPUProgram {
             channel : i32) -> f32 {
             var outputValue : f32;
             if (0 <= coordY && coordY < i32(uniforms.imageShape[1]) && 0 <= coordX && coordX < i32(uniforms.imageShape[2])) {
-                outputValue = getImage(u32(batch), u32(coordY), u32(coordX), u32(channel));
+                outputValue = getImage(batch, coordY, coordX, channel);
             } else {
               outputValue = uniforms.fillValue;
             }
@@ -226,7 +226,7 @@ export class TransformProgram implements WebGPUProgram {
 
           ${getMainHeaderStringWgsl()} {
             ${getGlobalIndexStringWgsl()}
-            let coords = getOutputCoords(globalId, index);
+            let coords = getOutputCoords(vec3<i32>(globalId), index);
             if (coordsInBounds4D(coords, uniforms.outShape)) {
               var outputValue : f32;
               let batch = coords[0];
@@ -235,14 +235,14 @@ export class TransformProgram implements WebGPUProgram {
               let channel = coords[3];
               let xf = f32(x);
               let yf = f32(y);
-              let a1 = getTransforms(batch, 0u);
-              let a2 = getTransforms(batch, 1u);
-              let a3 = getTransforms(batch, 2u);
-              let b1 = getTransforms(batch, 3u);
-              let b2 = getTransforms(batch, 4u);
-              let b3 = getTransforms(batch, 5u);
-              let c1 = getTransforms(batch, 6u);
-              let c2 = getTransforms(batch, 7u);
+              let a1 = getTransforms(batch, 0);
+              let a2 = getTransforms(batch, 1);
+              let a3 = getTransforms(batch, 2);
+              let b1 = getTransforms(batch, 3);
+              let b2 = getTransforms(batch, 4);
+              let b3 = getTransforms(batch, 5);
+              let c1 = getTransforms(batch, 6);
+              let c2 = getTransforms(batch, 7);
               let projection = c1 * xf + c2 * yf + 1.0;
               if (projection == 0.0) {
                 outputValue = uniforms.fillValue;
