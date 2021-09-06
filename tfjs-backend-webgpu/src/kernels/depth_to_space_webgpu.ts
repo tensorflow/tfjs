@@ -99,7 +99,6 @@ export class DepthToSpaceProgram implements WebGPUProgram {
     return userCode;
   }
 
-
   private getHeightCoordString(): string {
     if (this.dataFormat === 'NHWC') {
       return `coords[1]`;
