@@ -135,6 +135,15 @@ limitations under the License.
             tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(false);
           }
         }
+        if (tunableFlagsControllers['WEBGPU_USE_GLSL'] != null &&
+            urlState.has('WEBGPU_USE_GLSL')) {
+          const value = urlState.get('WEBGPU_USE_GLSL');
+          if (value === 'true') {
+            tunableFlagsControllers['WEBGPU_USE_GLSL'].setValue(true);
+          } else {
+            tunableFlagsControllers['WEBGPU_USE_GLSL'].setValue(false);
+          }
+        }
       }
       // The model parameter will be update automically by onChange.
       if (modelController != null && urlState.has('benchmark'))
