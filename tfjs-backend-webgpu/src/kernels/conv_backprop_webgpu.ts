@@ -112,7 +112,7 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
     return `
     ${getMainHeaderStringWgsl()} {
       ${getGlobalIndexStringWgsl()}
-      let coords = getOutputCoords(globalId, index);
+      let coords = getOutputCoords(vec3<i32>(globalId), index);
       if (coordsInBounds4D(coords, uniforms.outShape)) {
         let batch = coords[0];
         let d1 = coords[${channelDim}];
@@ -132,7 +132,7 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
               wRPerm < 0) {
             continue;
           }
-          let idyR = u32(dyR);
+          let idyR = dyR;
 
           for (var wC = 0; wC < uniforms.filterDims.y; wC = wC + 1) {
             let dyC = (f32(dyCCorner) + f32(wC)) / f32(uniforms.stride.y);
@@ -141,16 +141,16 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
                 fract(dyC) > 0.0 || wCPerm < 0) {
               continue;
             }
-            let idyC = u32(dyC);
+            let idyC = dyC;
 
-            for (var d2 = 0u; d2 < u32(uniforms.outBackprop[3]); d2 = d2 + 1u) {
+            for (var d2 = 0; d2 < uniforms.outBackprop[3]; d2 = d2 + 1) {
               if (${this.isChannelsLast}) {
                 let xValue = getDy(batch, idyR, idyC, d2);
-                let wValue = getW(u32(wRPerm), u32(wCPerm), d1, d2);
+                let wValue = getW(wRPerm, wCPerm, d1, d2);
                 dotProd = dotProd + xValue * wValue;
               } else {
                 let xValue = getDy(batch, d2, idyR, idyC);
-                let wValue = getW(u32(wRPerm), u32(wCPerm), d1, d2);
+                let wValue = getW(wRPerm, wCPerm, d1, d2);
                 dotProd = dotProd + xValue * wValue;
               }
 

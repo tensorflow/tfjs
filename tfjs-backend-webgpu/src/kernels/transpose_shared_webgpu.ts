@@ -73,16 +73,16 @@ export class TransposeSharedProgram implements WebGPUProgram {
 
   getUserCodeWgsl(): string {
     const userCode = `
-      let TILE_DIM = ${this.workGroupSize[0]}u;
+      let TILE_DIM = ${this.workGroupSize[0]};
       var<workgroup> tile : array<array<f32, ${this.workGroupSize[0] + 1}>, ${
         this.workGroupSize[0]}>;
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
-        let workGroupID = (globalId - localId)/vec3<u32>(${
-        this.workGroupSize[0]}u, ${this.workGroupSize[1]}u, ${
-        this.workGroupSize[2]}u);
-        var x = workGroupID.x * TILE_DIM + localId.x;
-        var y = workGroupID.y * TILE_DIM + localId.y;
+        let workGroupID = (vec3<i32>(globalId) - vec3<i32>(localId))/vec3<i32>(${
+        this.workGroupSize[0]}, ${this.workGroupSize[1]}, ${
+        this.workGroupSize[2]});
+        var x = workGroupID.x * TILE_DIM + i32(localId.x);
+        var y = workGroupID.y * TILE_DIM + i32(localId.y);
         let width = uniforms.outShape[0];
         let height = uniforms.outShape[1];
         if (x < width && y < height) {
@@ -91,8 +91,8 @@ export class TransposeSharedProgram implements WebGPUProgram {
         }
         workgroupBarrier();
 
-        x = workGroupID.y * TILE_DIM + localId.x;
-        y = workGroupID.x * TILE_DIM + localId.y;
+        x = workGroupID.y * TILE_DIM + i32(localId.x);
+        y = workGroupID.x * TILE_DIM + i32(localId.y);
         if (x < height && y < width) {
           setOutputFlat((y * height + x), tile[localId.x]
             [localId.y]);

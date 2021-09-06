@@ -26,8 +26,9 @@ export class Im2ColProgram implements WebGPUProgram {
   variableNames = ['A'];
   uniforms = `ivec2 pad, stride, dilation; int outWidth, itemsPerBlockRow,
       inChannels;`;
-  uniformsWgsl = `pad : vec2<u32>; stride : vec2<u32>; dilation : vec2<u32>; outWidth : u32; itemsPerBlockRow : u32;
-      inChannels : u32;`;
+  uniformsWgsl =
+      `pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>; outWidth : i32; itemsPerBlockRow : i32;
+      inChannels : i32;`;
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[]};
@@ -95,10 +96,10 @@ export class Im2ColProgram implements WebGPUProgram {
     const userCode = `
     ${getWorkGroupSizeStringWgsl()}
     fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-      let index = globalId.x;
+      let index = i32(globalId.x);
 
-      for(var i = 0u; i<${this.workPerThread}u; i = i + 1u) {
-        let flatIndex = index * ${this.workPerThread}u + i;
+      for(var i = 0; i<${this.workPerThread}; i = i + 1) {
+        let flatIndex = index * ${this.workPerThread} + i;
 
         let rc = getCoordsFromFlatIndex(flatIndex);
 
@@ -106,17 +107,17 @@ export class Im2ColProgram implements WebGPUProgram {
           let blockIndex = rc[0];
           let pos = rc[1];
 
-          let offsetY = i32(u32(blockIndex / uniforms.outWidth) * uniforms.stride[1] - uniforms.pad[1]);
-          let d0 = offsetY + i32(uniforms.dilation[1] * (pos / uniforms.itemsPerBlockRow));
+          let offsetY = blockIndex / uniforms.outWidth * uniforms.stride[1] - uniforms.pad[1];
+          let d0 = offsetY + uniforms.dilation[1] * pos / uniforms.itemsPerBlockRow;
           var value = 0.0;
-          if(d0 < i32(uniforms.aShape[${rowDim}]) && d0 >= 0) {
-            let offsetX = i32((blockIndex % uniforms.outWidth) * uniforms.stride[0] -
-              uniforms.pad[0]);
-            let d1 = offsetX + i32(uniforms.dilation[0]) * (i32((pos %
-              uniforms.itemsPerBlockRow) / uniforms.inChannels));
-            let ch = u32(pos % uniforms.inChannels);
-            if(d1 < i32(uniforms.aShape[${colDim}]) && d1 >= 0) {
-              value = getA(u32(d0), u32(d1), ch);
+          if(d0 < uniforms.aShape[${rowDim}] && d0 >= 0) {
+            let offsetX = (blockIndex % uniforms.outWidth) * uniforms.stride[0] -
+              uniforms.pad[0];
+            let d1 = offsetX + uniforms.dilation[0] * ((pos %
+              uniforms.itemsPerBlockRow) / uniforms.inChannels);
+            let ch = pos % uniforms.inChannels;
+            if(d1 < uniforms.aShape[${colDim}] && d1 >= 0) {
+              value = getA(d0, d1, ch);
             }
           }
           setOutputFlat(flatIndex, value);

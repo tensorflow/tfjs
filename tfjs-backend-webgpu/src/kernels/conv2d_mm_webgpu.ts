@@ -31,7 +31,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   uniformsWgsl =
-      `filterDims : vec2<u32>; pad : vec2<u32>; stride : vec2<u32>; dilation : vec2<u32>; dimAOuter : u32; dimBOuter : u32; dimInner : u32;`;
+      `filterDims : vec2<i32>; pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>; dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
   workGroupSize: [number, number, number];
   elementsPerThread: [number, number, number];
   convInfo: backend_util.Conv2DInfo;
@@ -200,19 +200,19 @@ export class Conv2DMMProgram implements WebGPUProgram {
     let outCol = row % uniforms.outShape[2];
 
     let WRow = col / (uniforms.filterDims[1] * uniforms.xShape[3]);
-    let WCol = (col / uniforms.xShape[3]) % uniforms.filterDims[1];
-    let coordRow = i32(outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0]);
+    let WCol = col / uniforms.xShape[3] % uniforms.filterDims[1];
+    let coordRow = i32(outRow) * uniforms.stride[0] + uniforms.dilation[0] * i32(WRow) - uniforms.pad[0];
     if (coordRow < 0) {
       return 0.0;
     }
-    let coordCol = i32(outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1]);
+    let coordCol = i32(outCol) * uniforms.stride[1] + uniforms.dilation[1] * i32(WCol) - uniforms.pad[1];
     if (coordCol < 0) {
       return 0.0;
     }
-    let coord = vec4<u32>(
+    let coord = vec4<i32>(
         batch,
-        u32(coordRow),
-        u32(coordCol),
+        coordRow,
+        coordCol,
         col % uniforms.xShape[3]);
     // The bounds checking is always needed since we use it to pad zero for the
     // 'same' padding type.
@@ -231,7 +231,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
     const sampleB = this.fitB ?
         `return W.numbers[row * uniforms.dimBOuter + col];` :
-        `if(coordsInBounds2D(vec2<u32>(row, col), vec2<u32>(uniforms.dimInner, uniforms.dimBOuter))) {
+        `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
            return W.numbers[row * uniforms.dimBOuter + col];
 	 }
 	 return 0.0;
@@ -243,13 +243,13 @@ export class Conv2DMMProgram implements WebGPUProgram {
           mapActivationToShaderProgram(this.activation, false, this.useWgsl);
       if (this.hasPreluActivationWeights) {
         activationSnippet =
-            `fn activation(a: f32, outCoord : vec4<u32>) -> f32 {
+            `fn activation(a: f32, outCoord : vec4<i32>) -> f32 {
                   let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
                   ${activationOp}
                 }`;
       } else {
         activationSnippet = `
-                  fn activation(a : f32, outCoord : vec4<u32>) -> f32 {
+                  fn activation(a : f32, outCoord : vec4<i32>) -> f32 {
                     ${activationOp}
                   }
                 `;
@@ -264,19 +264,19 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
     const userCode = `
     ${activationSnippet}
-    fn mm_readA(row : u32, col : u32, globalId : vec3<u32>) -> f32 {
+    fn mm_readA(row : i32, col : i32, globalId : vec3<i32>) -> f32 {
       var batch = globalId.z;
       ${sampleA}
     }
 
-    fn mm_readB(row : u32, col : u32, globalId : vec3<u32>) -> f32 {
+    fn mm_readB(row : i32, col : i32, globalId : vec3<i32>) -> f32 {
       ${sampleB}
     }
 
-    fn mm_write(row : u32, col : u32, valueInput : f32, globalId : vec3<u32>) {
+    fn mm_write(row : i32, col : i32, valueInput : f32, globalId : vec3<i32>) {
       var batch = globalId.z;
       var value = valueInput;
-      let outCoord = vec4<u32>(
+      let outCoord = vec4<i32>(
           batch,
           row / uniforms.outShape[2],
           row % uniforms.outShape[2],

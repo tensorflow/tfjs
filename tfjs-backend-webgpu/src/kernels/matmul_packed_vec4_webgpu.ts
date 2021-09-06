@@ -17,7 +17,7 @@
 
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
@@ -179,22 +179,20 @@ export function makeMatMulPackedVec4SourceWgsl(
   var<workgroup> mm_Bsub : array<array<vec4<f32>, ${
       tileInfo.TileBOuter / tileInfo.ColPerThread}>, ${tileInfo.TileInner}>;
 
-  let RowPerThread = ${tileInfo.RowPerThread}u;
-  let ColPerThread = ${tileInfo.ColPerThread}u; // only support ColPerThread = 4
-  let TileAOuter = ${tileInfo.TileAOuter}u;
-  let TileBOuter = ${tileInfo.TileBOuter}u;
-  let TileInner = ${tileInfo.TileInner}u;
+  let RowPerThread = ${tileInfo.RowPerThread};
+  let ColPerThread = ${tileInfo.ColPerThread}; // only support ColPerThread = 4
+  let TileAOuter = ${tileInfo.TileAOuter};
+  let TileBOuter = ${tileInfo.TileBOuter};
+  let TileInner = ${tileInfo.TileInner};
 
-  ${getWorkGroupSizeStringWgsl()}
-  fn main([[builtin(local_invocation_id)]] localId : vec3<u32>,
-        [[builtin(global_invocation_id)]] globalId : vec3<u32>) {
+  ${getMainHeaderStringWgsl()} {
 
-    let tileRow = localId.y * RowPerThread;
-    let tileCol = localId.x;
+    let tileRow = i32(localId.y) * RowPerThread;
+    let tileCol = i32(localId.x);
 
-    let globalRow = globalId.y * RowPerThread;
-    let globalCol = globalId.x;
-    let numTiles = (uniforms.dimInner - 1u) / TileInner + 1u;
+    let globalRow = i32(globalId.y) * RowPerThread;
+    let globalCol = i32(globalId.x);
+    let numTiles = (uniforms.dimInner - 1) / TileInner + 1;
 
     var acc: array<vec4<f32>, ${tileInfo.RowPerThread}>;
     var ACached : vec4<f32>;
@@ -202,34 +200,34 @@ export function makeMatMulPackedVec4SourceWgsl(
 
     // Loop over shared dimension.
     var globalColA = tileCol;
-    let RowPerThreadB = TileInner / ${workGroupSize[1]}u;
-    let tileRowB = localId.y * RowPerThreadB;
-    for (var t = 0u; t < numTiles; t = t + 1u) {
+    let RowPerThreadB = TileInner / ${workGroupSize[1]};
+    let tileRowB = i32(localId.y) * RowPerThreadB;
+    for (var t = 0; t < numTiles; t = t + 1) {
         // Load one tile of A into local memory.
-        for (var innerRow = 0u; innerRow < RowPerThread; innerRow = innerRow + 1u) {
+        for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
             let inputRow = tileRow + innerRow;
             let inputCol = tileCol;
-            mm_Asub[inputRow][inputCol] = mm_readA(globalRow + innerRow, globalColA, globalId);
+            mm_Asub[inputRow][inputCol] = mm_readA(globalRow + innerRow, globalColA, vec3<i32>(globalId));
         }
         globalColA = globalColA + TileInner / ColPerThread;
 
         // Load one tile of B into local memory.
-        for (var innerRow = 0u; innerRow < RowPerThreadB; innerRow = innerRow + 1u) {
+        for (var innerRow = 0; innerRow < RowPerThreadB; innerRow = innerRow + 1) {
             let inputRow = tileRowB + innerRow;
             let inputCol = tileCol;
-            mm_Bsub[inputRow][inputCol] = mm_readB(t * TileInner + inputRow, globalCol, globalId);
+            mm_Bsub[inputRow][inputCol] = mm_readB(t * TileInner + inputRow, globalCol, vec3<i32>(globalId));
         }
 
         workgroupBarrier();
 
         // Compute acc values for a single thread.
-        for (var k = 0u; k < TileInner / ColPerThread; k = k + 1u) {
+        for (var k = 0; k < TileInner / ColPerThread; k = k + 1) {
             BCached[0] = mm_Bsub[k * ColPerThread][tileCol];
-            BCached[1] = mm_Bsub[k * ColPerThread + 1u][tileCol];
-            BCached[2] = mm_Bsub[k * ColPerThread + 2u][tileCol];
-            BCached[3] = mm_Bsub[k * ColPerThread + 3u][tileCol];
+            BCached[1] = mm_Bsub[k * ColPerThread + 1][tileCol];
+            BCached[2] = mm_Bsub[k * ColPerThread + 2][tileCol];
+            BCached[3] = mm_Bsub[k * ColPerThread + 3][tileCol];
 
-            for (var i = 0u; i < RowPerThread; i = i + 1u) {
+            for (var i = 0; i < RowPerThread; i = i + 1) {
                 ACached = mm_Asub[tileRow + i][k];
                 acc[i] = BCached[0] * ACached.x + acc[i];
                 acc[i] = BCached[1] * ACached.y + acc[i];
@@ -241,10 +239,10 @@ export function makeMatMulPackedVec4SourceWgsl(
         workgroupBarrier();
     }
 
-    for (var innerRow = 0u; innerRow < RowPerThread; innerRow = innerRow + 1u) {
+    for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
         mm_write(globalRow + innerRow,
                  globalCol,
-                 acc[innerRow], globalId);
+                 acc[innerRow], vec3<i32>(globalId));
     }
 }`;
 }
@@ -253,34 +251,32 @@ export function makeMatMulVectorVec4SourceWgsl(
     workGroupSize: [number, number, number]): string {
   return `
   var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
-  let tileSize = ${workGroupSize[0] * 4}u;
-  ${getWorkGroupSizeStringWgsl()}
-  fn main([[builtin(local_invocation_id)]] localId : vec3<u32>,
-        [[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-    let tileCol = localId.x;
-    let globalCol = globalId.x;
-    let globalRow = globalId.y;
+  let tileSize = ${workGroupSize[0] * 4};
+  ${getMainHeaderStringWgsl()} {
+    let tileCol = i32(localId.x);
+    let globalCol = i32(globalId.x);
+    let globalRow = i32(globalId.y);
 
-    let numTiles = (uniforms.dimInner - 1u) / tileSize + 1u;
+    let numTiles = (uniforms.dimInner - 1) / tileSize + 1;
 
     // Without this initialization strange values show up in acc.
     var acc = vec4<f32>(0.0);
 
     // Loop over shared dimension.
-    for (var t = 0u; t < numTiles; t = t + 1u) {
+    for (var t = 0; t < numTiles; t = t + 1) {
       // Load one tile of A into local memory.
-      let colA = t * tileSize / 4u + tileCol;
-      mm_Asub[tileCol] = mm_readA(globalRow, colA, globalId);
+      let colA = t * tileSize / 4 + tileCol;
+      mm_Asub[tileCol] = mm_readA(globalRow, colA, vec3<i32>(globalId));
 
       workgroupBarrier();
 
       // Compute acc values for a single thread.
-      for (var k = 0u; k < tileSize / 4u; k = k + 1u) {
-        let rowB = t * tileSize + k * 4u;
-        let BCached0 = mm_readB(rowB, globalCol, globalId);
-        let BCached1 = mm_readB(rowB + 1u, globalCol, globalId);
-        let BCached2 = mm_readB(rowB + 2u, globalCol, globalId);
-        let BCached3 = mm_readB(rowB + 3u, globalCol, globalId);
+      for (var k = 0; k < tileSize / 4; k = k + 1) {
+        let rowB = t * tileSize + k * 4;
+        let BCached0 = mm_readB(rowB, globalCol, vec3<i32>(globalId));
+        let BCached1 = mm_readB(rowB + 1, globalCol, vec3<i32>(globalId));
+        let BCached2 = mm_readB(rowB + 2, globalCol, vec3<i32>(globalId));
+        let BCached3 = mm_readB(rowB + 3, globalCol, vec3<i32>(globalId));
 
         let ACached = mm_Asub[k];
         acc = acc + BCached0 * ACached.x;
@@ -293,7 +289,7 @@ export function makeMatMulVectorVec4SourceWgsl(
     }
 
     if (globalRow < uniforms.dimAOuter && globalCol < uniforms.dimBOuter) {
-      mm_write(globalRow, globalCol, acc, globalId);
+      mm_write(globalRow, globalCol, acc, vec3<i32>(globalId));
     }
   }
 `;
@@ -306,7 +302,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   dispatch: [number, number, number];
   workPerThread: number;
   variableNames = ['A', 'B'];
-  uniformsWgsl = `dimAOuter : u32; dimBOuter : u32; dimInner : u32;`;
+  uniformsWgsl = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
   workGroupSize: [number, number, number] = [16, 16, 1];
   useWgsl: boolean;
   isVec4 = true;
@@ -449,16 +445,16 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
 
   getUserCodeWgsl(): string {
     const sampleA = this.fitA ?
-        `return A.numbers[batch * batchASize + row * uniforms.dimInner / 4u + col]` :
-        `if (coordsInBounds2D(vec2<u32>(row, col * 4u), vec2<u32>(uniforms.dimAOuter, uniforms.dimInner))) {
-            return A.numbers[batch * batchASize + row * uniforms.dimInner / 4u + col];
+        `return A.numbers[batch * batchASize + row * uniforms.dimInner / 4 + col]` :
+        `if (coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
+            return A.numbers[batch * batchASize + row * uniforms.dimInner / 4 + col];
         }
         return vec4<f32>(0.0)`;
 
     const sampleB = this.fitB ?
-        `return B.numbers[batch * batchBSize + row * uniforms.dimBOuter / 4u + col]` :
-        `if(coordsInBounds2D(vec2<u32>(row, col * 4u), vec2<u32>(uniforms.dimInner, uniforms.dimBOuter))) {
-             return B.numbers[batch * batchBSize + row * uniforms.dimBOuter / 4u + col];
+        `return B.numbers[batch * batchBSize + row * uniforms.dimBOuter / 4 + col]` :
+        `if(coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
+             return B.numbers[batch * batchBSize + row * uniforms.dimBOuter / 4 + col];
         }
         return vec4<f32>(0.0)`;
 
@@ -468,13 +464,13 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
           this.activation, this.isVec4, this.useWgsl);
       if (this.hasPreluActivationWeights) {
         activationSnippet =
-            `fn activation(a : vec4<f32>, outCoord : vec3<u32>) -> vec4<f32> {
+            `fn activation(a : vec4<f32>, outCoord : vec3<i32>) -> vec4<f32> {
                   let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
                   ${activationOp}
                 }`;
       } else {
         activationSnippet = `
-            fn activation(a : vec4<f32>, outCoord : vec3<u32>) -> vec4<f32> {
+            fn activation(a : vec4<f32>, outCoord : vec3<i32>) -> vec4<f32> {
               ${activationOp}
             }`;
       }
@@ -487,26 +483,26 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
 
     const userCode = `
       ${activationSnippet}
-      fn mm_readA(row : u32, col : u32,  globalId : vec3<u32>) -> vec4<f32> {
+      fn mm_readA(row : i32, col : i32,  globalId : vec3<i32>) -> vec4<f32> {
         let batchASize = uniforms.aShape[1] * uniforms.aShape[2] / ${
-        this.vecSize}u;
+        this.vecSize};
         let batch = globalId.z;
         ${sampleA};
       }
 
-      fn mm_readB(row : u32, col : u32,  globalId : vec3<u32>) -> vec4<f32> {
+      fn mm_readB(row : i32, col : i32,  globalId : vec3<i32>) -> vec4<f32> {
         let batchBSize = uniforms.bShape[1] * uniforms.bShape[2] / ${
-        this.vecSize}u;
+        this.vecSize};
         let batch = globalId.z;
         ${sampleB};
       }
 
-      fn mm_write(row : u32, col : u32, valueIn : vec4<f32>, globalId : vec3<u32>) {
-        if (row < uniforms.aShape[1] && col * 4u < uniforms.bShape[2])
+      fn mm_write(row : i32, col : i32, valueIn : vec4<f32>, globalId : vec3<i32>) {
+        if (row < uniforms.aShape[1] && col * 4 < uniforms.bShape[2])
         {
           var value = valueIn;
           let batch = globalId.z;
-          let outCoord = vec3<u32>(batch, row, col * 4u);
+          let outCoord = vec3<i32>(batch, row, col * 4);
           ${addBiasSnippet}
           ${applyActivationSnippet}
           setOutput(outCoord[0], outCoord[1], outCoord[2], value);

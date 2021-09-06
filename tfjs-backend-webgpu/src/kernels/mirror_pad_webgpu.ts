@@ -49,7 +49,7 @@ export class MirrorPadProgram implements WebGPUProgram {
     this.xShape = xShape;
     paddings.map((_, i) => {
       this.uniforms += ` ivec2 pad${i};`;
-      this.uniformsWgsl += ` pad${i} : vec2<u32>;`;
+      this.uniformsWgsl += ` pad${i} : vec2<i32>;`;
     });
     this.offset = mode === 'reflect' ? 0 : 1;
     this.shaderKey = `mirrorPad_${mode}`;
@@ -102,7 +102,8 @@ export class MirrorPadProgram implements WebGPUProgram {
   getUserCodeWgsl(): string {
     const rank = this.xShape.length;
     // The length of paddings are same with the rank of the input tensor.
-    const start = this.xShape.map((_, i) => `uniforms.pad${i}[0]`).join(',');
+    const start =
+        this.xShape.map((_, i) => `uniforms.pad${i}[0]`).join(',');
     const end = this.xShape
                     .map(
                         (_, i) => `uniforms.pad${i}[0] + uniforms.xShape${
@@ -122,16 +123,15 @@ export class MirrorPadProgram implements WebGPUProgram {
         ${getGlobalIndexStringWgsl()}
         let start = ${dtype}(${start});
         let end = ${dtype}(${end});
-        var outC = getOutputCoords(globalId, index);
-        if (index < uniforms.size)
-        {
-          for (var i = 0u; i < ${rank}u; i = i + 1u) {
+        var outC = getOutputCoords(vec3<i32>(globalId), index);
+        if (index < uniforms.size) {
+          for (var i = 0; i < ${rank}; i = i + 1) {
             if (${shaderOutC} < ${shaderStart}) {
-              ${shaderOutC} = ${shaderStart} * 2u - ${shaderOutC} - ${
-        this.offset}u;
+              ${shaderOutC} = ${shaderStart} * 2 - ${shaderOutC} - ${
+        this.offset};
             } elseif(${shaderOutC} >= ${shaderEnd}) {
-              ${shaderOutC} = (${shaderEnd} - 1u) * 2u - ${shaderOutC} + ${
-        this.offset}u;
+              ${shaderOutC} = (${shaderEnd} - 1) * 2 - ${shaderOutC} + ${
+        this.offset};
             }
           }
           let coords = outC - start;
