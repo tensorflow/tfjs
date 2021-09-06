@@ -31,7 +31,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   uniformsWgsl =
-      `filterDims : vec2<u32>; pad : vec2<u32>; stride : vec2<u32>; dilation : vec2<u32>;
+      `filterDims : vec2<i32>; pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>;
       dimAOuter : u32; dimBOuter : u32; dimInner : u32;`;
   workGroupSize: [number, number, number];
   useWgsl: boolean;
@@ -284,8 +284,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         `var temp = vec4<f32>(0.0);
           ${this.getSampleAWithRemainderWgsl(1)}
           resData = temp;
-          if (WCol == (uniforms.filterDims[1] - 1u)) {
-            let coordZ = i32(coord.z + 1u - uniforms.filterDims[1]);
+          if (i32(WCol) == uniforms.filterDims[1] - 1) {
+            let coordZ = i32(coord.z) + 1 - uniforms.filterDims[1];
             if (coordZ < 0) {
               resData = vec4<f32>(0.0);
             } else {
@@ -305,14 +305,14 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
 
     const readASnippet = `let outRow = r / uniforms.outShape[2];
         let outCol = r % uniforms.outShape[2];
-        let WRow = c / (uniforms.filterDims[1] * uniforms.xShape[3]);
-        let WCol = (c / uniforms.xShape[3]) % uniforms.filterDims[1];
+        let WRow = c / (u32(uniforms.filterDims[1]) * uniforms.xShape[3]);
+        let WCol = (c / uniforms.xShape[3]) % u32(uniforms.filterDims[1]);
         let inChCoord = c % uniforms.xShape[3];
-        let coordRow = i32(outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0]);
+        let coordRow = i32(outRow) * uniforms.stride[0] + uniforms.dilation[0] * i32(WRow) - uniforms.pad[0];
         if (coordRow < 0) {
           return vec4<f32>(0.0);
         }
-        let coordCol = i32(outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1]);
+        let coordCol = i32(outCol) * uniforms.stride[1] + uniforms.dilation[1] * i32(WCol) - uniforms.pad[1];
         if (coordCol < 0) {
           return vec4<f32>(0.0);
         }

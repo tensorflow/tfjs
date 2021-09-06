@@ -47,7 +47,7 @@ export class StridedSliceProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
 
     this.dtype = getCoordsDataType(this.outputShape.length);
-    this.dtypeWgsl = getCoordsDataTypeWgsl(this.outputShape.length);
+    this.dtypeWgsl = getCoordsDataTypeWgsl(this.outputShape.length, 'i32');
     this.uniforms = `${this.dtype} begin; ${this.dtype} strides; `;
     this.uniformsWgsl =
         `begin : ${this.dtypeWgsl};  strides : ${this.dtypeWgsl}; `;
@@ -91,7 +91,7 @@ export class StridedSliceProgram implements WebGPUProgram {
     const rank = this.outputShape.length;
     let newCoords = '';
     if (rank === 1) {
-      newCoords = 'coords * uniforms.strides + uniforms.begin';
+      newCoords = 'coords * u32(uniforms.strides) + u32(uniforms.begin)';
     } else {
       let outputAxis = 0;
       newCoords =
@@ -99,9 +99,9 @@ export class StridedSliceProgram implements WebGPUProgram {
               .map((_, i) => {
                 outputAxis++;
                 return this.outputShape.length === 1 ?
-                    `coords * uniforms.strides[${i}] + uniforms.begin[${i}]` :
-                    `coords[${outputAxis - 1}] * uniforms.strides[${
-                        i}] + uniforms.begin[${i}]`;
+                    `coords * u32(uniforms.strides[${i}]) + u32(uniforms.begin[${i}])` :
+                    `coords[${outputAxis - 1}] * u32(uniforms.strides[${
+                        i}]) + u32(uniforms.begin[${i}])`;
               })
               .join(',');
     }

@@ -31,7 +31,7 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 pad, stride, dilation, inDims;';
   uniformsWgsl =
-      'pad : vec2<u32>; stride : vec2<u32>; dilation : vec2<u32>; inDims : vec2<u32>;';
+      'pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>; inDims : vec2<i32>;';
   workGroupSize: [number, number, number] = [4, 4, 4];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
@@ -197,7 +197,7 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
         let r = globalId.x;
         let c = globalId.y * 4u;
         let d2 = globalId.z * 4u;
-        let xRCCorner = vec2<i32>(vec2<u32>(r, c) * uniforms.stride - uniforms.pad);
+        let xRCCorner = vec2<i32>(i32(r), i32(c)) * uniforms.stride - uniforms.pad;
         let d1 = d2;
         let q = 0u;
 
@@ -217,10 +217,10 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
 
         var xVals : array<array<vec4<f32>, 6>, 3>;
         for (var wR = 0u; wR < 3u; wR = wR + 1u) {
-          let xR = xRCorner + i32(wR * uniforms.dilation[0]);
+          let xR = xRCorner + i32(wR) * uniforms.dilation[0];
           for (var wC = 0u; wC < 6u; wC = wC + 1u) {
-            let xC = xCCorner + i32(wC * uniforms.dilation[1]);
-            if (xR < 0 || xR >= i32(uniforms.inDims[0]) || xC < 0 || xC >= i32(uniforms.inDims[1])) {
+            let xC = xCCorner + i32(wC) * uniforms.dilation[1];
+            if (xR < 0 || xR >= uniforms.inDims[0] || xC < 0 || xC >= uniforms.inDims[1]) {
               xVals[wR][wC] = vec4<f32>(0.0);
             } else {
               xVals[wR][wC] = getX(batch, u32(xR), u32(xC), d1);

@@ -31,7 +31,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   workGroupSize: [number, number, number];
   variableNames = ['x'];
   uniforms = 'int axis;';
-  uniformsWgsl = 'axis : u32;';
+  uniformsWgsl = 'axis : i32;';
   inputShape: number[];
   reductionFactor: number;
   op: string;
@@ -270,22 +270,22 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       fn getInputCoordInfo(globalId : vec3<u32>, globalIndex : u32) -> vec2<u32>{
         let outputCoords : ${
         outputCoordsType} = getOutputCoords(globalId, globalIndex);
-        var i = ${this.outputShape.length - 1}u;
+        var i = ${this.outputShape.length - 1};
 
         var stride = 1u;
         var inputStride = 1u;
         var offset = 0u;
 
-        for (var r = 1u; r <= ${this.inputShape.length}u; r = r + 1u) {
-          let length = ${indexInputShape(`${this.inputShape.length}u - r`)};
-          if (${this.inputShape.length}u - r == uniforms.axis) {
+        for (var r = 1; r <= ${this.inputShape.length}; r = r + 1) {
+          let length = ${indexInputShape(`${this.inputShape.length} - r`)};
+          if (${this.inputShape.length} - r == uniforms.axis) {
             inputStride = stride;
           } else {
             offset = offset + ${
         indexOutputCoords('outputCoords', 'i')} * stride;
-            i = i - 1u;
+            i = i - 1;
           }
-          stride = stride * length;
+          stride = stride * u32(length);
         }
 
         return vec2<u32>(offset, inputStride);

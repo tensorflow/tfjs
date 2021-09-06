@@ -31,7 +31,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pad, stride, dilation;';
   uniformsWgsl =
-      `filterDims : vec2<u32>; pad : vec2<u32>; stride : vec2<u32>; dilation : vec2<u32>;`;
+      `filterDims : vec2<i32>; pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>;`;
   workGroupSize: [number, number, number] = [128, 1, 1];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
@@ -199,19 +199,19 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
 
         var acc = 0.0;
 
-        for (var row = 0u; row < uniforms.filterDims[0]; row = row + 1u) {
-          for (var col = 0u; col < uniforms.filterDims[1]; col = col + 1u) {
+        for (var row = 0; row < uniforms.filterDims[0]; row = row + 1) {
+          for (var col = 0; col < uniforms.filterDims[1]; col = col + 1) {
             for (var xChannel = 0u; xChannel < uniforms.xShape[3]; xChannel = xChannel + 1u) {
-              let coordRow = i32(coords[1] * uniforms.stride[0] + uniforms.dilation[0] * row - uniforms.pad[0]);
+              let coordRow = i32(coords[1]) * uniforms.stride[0] + uniforms.dilation[0] * row - uniforms.pad[0];
               if (coordRow < 0) {
                 continue;
               }
-              let coordCol = i32(coords[2] * uniforms.stride[1] + uniforms.dilation[1] * col - uniforms.pad[1]);
+              let coordCol = i32(coords[2]) * uniforms.stride[1] + uniforms.dilation[1] * col - uniforms.pad[1];
               if (coordCol < 0) {
                 continue;
               }
               let v = readInp(batch, u32(coordRow), u32(coordCol), xChannel);
-              let f = readFilt(row, col, xChannel, outChannel);
+              let f = readFilt(u32(row), u32(col), xChannel, outChannel);
               acc = acc + v * f;
             }
           }

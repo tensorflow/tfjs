@@ -47,7 +47,7 @@ export class SliceProgram implements WebGPUProgram {
 
     this.start = start;
     this.uniforms = `${getCoordsDataType(start.length)} start; `;
-    this.uniformsWgsl = `start : ${getCoordsDataTypeWgsl(start.length)}; `;
+    this.uniformsWgsl = `start : ${getCoordsDataTypeWgsl(start.length, 'i32')}; `;
     this.shaderKey = 'slice';
     this.size = util.sizeFromShape(this.outputShape);
     this.useWgsl = getUseWgsl();
@@ -88,11 +88,11 @@ export class SliceProgram implements WebGPUProgram {
     let coordSum;
     if (this.start.length === 1) {
       coordSum = this.outputShape.map((_, i) => {
-        return `sourceLoc = uniforms.start + coords;`;
+        return `sourceLoc = u32(uniforms.start) + coords;`;
       });
     } else {
       coordSum = this.outputShape.map((_, i) => {
-        return `sourceLoc.${coords[i]} = uniforms.start[${i}] + coords.${
+        return `sourceLoc.${coords[i]} = u32(uniforms.start[${i}]) + coords.${
             coords[i]};`;
       });
     }

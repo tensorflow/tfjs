@@ -31,7 +31,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 pad, stride, dilation, inDims;';
   uniformsWgsl =
-      `pad : vec2<u32>; stride : vec2<u32>; dilation : vec2<u32>; inDims : vec2<u32>;`;
+      `pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>; inDims : vec2<i32>;`;
   // This is an experimental value.
   workGroupSize: [number, number, number] = [256, 1, 1];
   convInfo: backend_util.Conv2DInfo;
@@ -212,17 +212,18 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
         ${getGlobalIndexStringWgsl()}
         let coords = getOutputCoords(globalId, index);
         let batch = coords[0];
-        let xRCCorner = vec2<i32>(coords.yz * uniforms.stride - uniforms.pad);
+        let xRCCorner = vec2<i32>(coords.yz) * uniforms.stride - uniforms.pad;
         let d2 = coords[3];
         let d1 = d2 / ${channelMul}u;
+        // q >= 0, use u32.
         let q = d2 - d1 * ${channelMul}u;
 
         let inputRowStart = xRCCorner.x;
         let inputColStart = xRCCorner.y;
-        let inputRowEnd = inputRowStart + i32(${
-        this.convInfo.filterHeight}u * uniforms.dilation[0]);
-        let inputColEnd = inputColStart + i32(${
-        this.convInfo.filterWidth}u * uniforms.dilation[1]);
+        let inputRowEnd = inputRowStart + ${
+        this.convInfo.filterHeight} * uniforms.dilation[0];
+        let inputColEnd = inputColStart + ${
+        this.convInfo.filterWidth} * uniforms.dilation[1];
 
         // Convolve x(?, ?, d1) with w(:, :, d1, q) to get y(yR, yC, d2).
         // ? = to be determined. : = across all values in that axis.
@@ -230,16 +231,16 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
 
         // Extract if checking out of for loop for performance.
         if (inputRowStart >= 0 && inputColStart >= 0 &&
-          inputRowEnd < i32(uniforms.inDims[0]) && inputColEnd < i32(uniforms.inDims[1])) {
+          inputRowEnd < uniforms.inDims[0] && inputColEnd < uniforms.inDims[1]) {
             // Here using a constant value |this.convInfo.filterHeight| instead
             // of uniform value is in order to loop unrolling.
             for (var wR = 0u; wR < ${
         this.convInfo.filterHeight}u; wR = wR + 1u) {
-              let xR = inputRowStart + i32(wR * uniforms.dilation[0]);
+              let xR = inputRowStart + i32(wR) * uniforms.dilation[0];
 
               for (var wC = 0u; wC < ${
         this.convInfo.filterWidth}u; wC = wC + 1u) {
-                let xC = inputColStart + i32(wC * uniforms.dilation[1]);
+                let xC = inputColStart + i32(wC) * uniforms.dilation[1];
 
                 let xVal = getX(batch, u32(xR), u32(xC), d1);
                 let wVal = getW(wR, u32(wC), d1, q);
@@ -249,17 +250,17 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
           } else {
             for (var wR = 0u; wR < ${
         this.convInfo.filterHeight}u; wR = wR + 1u) {
-              let xR = inputRowStart + i32(wR * uniforms.dilation[0]);
+              let xR = inputRowStart + i32(wR) * uniforms.dilation[0];
 
-              if (xR < 0 || xR >= i32(uniforms.inDims[0])) {
+              if (xR < 0 || xR >= uniforms.inDims[0]) {
                 continue;
               }
 
               for (var wC = 0u; wC < ${
         this.convInfo.filterWidth}u; wC = wC + 1u) {
-                let xC = inputColStart + i32(wC * uniforms.dilation[1]);
+                let xC = inputColStart + i32(wC) * uniforms.dilation[1];
 
-                if (xC < 0 || xC >= i32(uniforms.inDims[1])) {
+                if (xC < 0 || xC >= uniforms.inDims[1]) {
                   continue;
                 }
 
