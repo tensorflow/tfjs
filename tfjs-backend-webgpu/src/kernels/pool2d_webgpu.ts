@@ -113,7 +113,7 @@ export class Pool2DProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
-        let coords = getOutputCoords(globalId, index);
+        let coords = getOutputCoords(vec3<i32>(globalId), index);
         if (coordsInBounds4D(coords, uniforms.outShape)) {
           let batch = coords[0];
           let xRCCorner = vec2<i32>(coords.yz) * uniforms.stride - uniforms.pad;
@@ -137,7 +137,7 @@ export class Pool2DProgram implements WebGPUProgram {
                 continue;
               }
 
-              let value = getX(batch, u32(xR), u32(xC), coords[3]);
+              let value = getX(batch, xR, xC, coords[3]);
               ${updateSnippet}
             }
           }

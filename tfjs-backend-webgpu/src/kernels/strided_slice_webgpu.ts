@@ -47,7 +47,7 @@ export class StridedSliceProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
 
     this.dtype = getCoordsDataType(this.outputShape.length);
-    this.dtypeWgsl = getCoordsDataTypeWgsl(this.outputShape.length);
+    this.dtypeWgsl = getCoordsDataTypeWgsl(this.outputShape.length, 'i32');
     this.uniforms = `${this.dtype} begin; ${this.dtype} strides; `;
     this.uniformsWgsl =
         `begin : ${this.dtypeWgsl};  strides : ${this.dtypeWgsl}; `;
@@ -109,9 +109,8 @@ export class StridedSliceProgram implements WebGPUProgram {
     const userCode = `
        ${getMainHeaderStringWgsl()} {
          ${getGlobalIndexStringWgsl()}
-         if (index < uniforms.size)
-         {
-           let coords = getOutputCoords(globalId, index);
+         if (index < uniforms.size) {
+           let coords = getOutputCoords(vec3<i32>(globalId), index);
            setOutputFlat(index, getX(${newCoords}));
          }
        }

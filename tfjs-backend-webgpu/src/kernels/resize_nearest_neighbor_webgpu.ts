@@ -117,7 +117,7 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
-        let coords = getOutputCoords(globalId, index);
+        let coords = getOutputCoords(vec3<i32>(globalId), index);
         if (all(coords < uniforms.outShape)) {
           let b = coords[0];
           let d = coords[3];
@@ -147,7 +147,7 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
 
           // Compute the coordinators of nearest neighbor point.
           let inputShapeRC = vec2<f32>(f32(uniforms.xShape.y), f32(uniforms.xShape.z));
-          let sourceNearestRC = vec2<u32>(
+          let sourceNearestRC = vec2<i32>(
             min(inputShapeRC - 1.0, floor(sourceFracIndexRC + ${roundBase})));
           let newValue = getX(b, sourceNearestRC.x, sourceNearestRC.y, d);
 

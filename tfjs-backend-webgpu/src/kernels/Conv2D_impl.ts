@@ -166,8 +166,8 @@ export function conv2dWithIm2Col({
     const dimInner = a3dShape[2];
     const dimBOuter = convInfo.outChannels;
     matmulDimensions = [
-      {type: 'uint32', data: [dimAOuter]}, {type: 'uint32', data: [dimBOuter]},
-      {type: 'uint32', data: [dimInner]}
+      {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
+      {type: 'int32', data: [dimInner]}
     ];
   }
 

@@ -107,12 +107,14 @@ export class BatchNormProgram implements WebGPUProgram {
   getUserCodeWgsl(): string {
     let offsetSnippet = '0.0';
     if (this.offsetShape != null) {
-      offsetSnippet = 'getOffsetAtOutCoordsByGlobalId(globalId, index)';
+      offsetSnippet =
+          'getOffsetAtOutCoordsByGlobalId(vec3<i32>(globalId), index)';
     }
 
     let scaleSnippet = '1.0';
     if (this.scaleShape != null) {
-      scaleSnippet = 'getScaleAtOutCoordsByGlobalId(globalId, index)';
+      scaleSnippet =
+          'getScaleAtOutCoordsByGlobalId(vec3<i32>(globalId), index)';
     }
 
     const dim = this.outputShape.length;
@@ -133,10 +135,10 @@ export class BatchNormProgram implements WebGPUProgram {
       }
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
-        let coords = getOutputCoords(globalId, index);
-        let xValue = getXAtOutCoordsByGlobalId(globalId, index);
-        let meanValue = getMeanAtOutCoordsByGlobalId(globalId, index);
-        let varianValue = getVarianceAtOutCoordsByGlobalId(globalId, index);
+        let coords = getOutputCoords(vec3<i32>(globalId), index);
+        let xValue = getXAtOutCoordsByGlobalId(vec3<i32>(globalId), index);
+        let meanValue = getMeanAtOutCoordsByGlobalId(vec3<i32>(globalId), index);
+        let varianValue = getVarianceAtOutCoordsByGlobalId(vec3<i32>(globalId), index);
         let offsetValue = ${offsetSnippet};
         let scaleValue = ${scaleSnippet};
         let inv = scaleValue * inverseSqrt(varianValue + f32(uniforms.varianceEpsilon));

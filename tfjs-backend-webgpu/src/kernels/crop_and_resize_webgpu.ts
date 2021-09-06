@@ -146,12 +146,12 @@ export class CropAndResizeProgram implements WebGPUProgram {
 
   getUserCodeWgsl(): string {
     const [inputHeightFloat, inputWidthFloat] = [
-      `f32(uniforms.imageShape[1] - 1u)`, `f32(uniforms.imageShape[2] - 1u)`
+      `f32(uniforms.imageShape[1] - 1)`, `f32(uniforms.imageShape[2] - 1)`
     ];
 
     const [heightRatio, heightScale, inY] = this.cropHeightBiggerThan1 ?
         [
-          `(${inputHeightFloat} / f32(uniforms.outShape[1] - 1u))`,
+          `(${inputHeightFloat} / f32(uniforms.outShape[1] - 1))`,
           '(y2-y1) * height_ratio',
           `y1*${inputHeightFloat} + f32(y)*(height_scale)`,
         ] :
@@ -162,7 +162,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
         ];
     const [widthRatio, widthScale, inX] = this.cropWidthBiggerThan1 ?
         [
-          `(${inputWidthFloat} / f32(uniforms.outShape[2] - 1u))`,
+          `(${inputWidthFloat} / f32(uniforms.outShape[2] - 1))`,
           '(x2-x1) * width_ratio',
           `x1*${inputWidthFloat} + f32(x)*(width_scale)`,
         ] :
@@ -176,7 +176,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
     // tslint:disable-next-line:max-line-length
     // https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/kernels/crop_and_resize_op_gpu.cu.cc
     const userCode = `
-      fn writeResult(coords : vec4<u32>, value : f32) {
+      fn writeResult(coords : vec4<i32>, value : f32) {
         if (coordsInBounds4D(coords, uniforms.outShape)) {
           setOutput(coords[0], coords[1], coords[2], coords[3], value);
         }
@@ -185,19 +185,19 @@ export class CropAndResizeProgram implements WebGPUProgram {
         ${getGlobalIndexStringWgsl()}
         let height_ratio = f32(${heightRatio});
         let width_ratio = f32(${widthRatio});
-        let coords = getOutputCoords(globalId, index);
+        let coords = getOutputCoords(vec3<i32>(globalId), index);
         let b = coords[0];
         let y = coords[1];
         let x = coords[2];
         let d = coords[3];
         // get box vals
-        let y1 = getBoxes(b, 0u);
-        let x1 = getBoxes(b, 1u);
-        let y2 = getBoxes(b, 2u);
-        let x2 = getBoxes(b, 3u);
+        let y1 = getBoxes(b, 0);
+        let x1 = getBoxes(b, 1);
+        let y2 = getBoxes(b, 2);
+        let x2 = getBoxes(b, 3);
         // get image in batch index
         let bInd = i32(round(getBoxInd(b)));
-        if(bInd < 0 || bInd >= i32(uniforms.outShape[0])) {
+        if(bInd < 0 || bInd >= uniforms.outShape[0]) {
           return;
         }
         let height_scale = ${heightScale};
@@ -217,10 +217,10 @@ export class CropAndResizeProgram implements WebGPUProgram {
           // Compute the four integer indices.
           let sourceFloorCR = vec2<i32>(sourceFracIndexCR);
           let sourceCeilCR = vec2<i32>(ceil(sourceFracIndexCR));
-          let topLeft = getImage(u32(bInd), u32(sourceFloorCR.y), u32(sourceFloorCR.x), d);
-          let bottomLeft = getImage(u32(bInd), u32(sourceCeilCR.y), u32(sourceFloorCR.x), d);
-          let topRight = getImage(u32(bInd), u32(sourceFloorCR.y), u32(sourceCeilCR.x), d);
-          let bottomRight = getImage(u32(bInd), u32(sourceCeilCR.y), u32(sourceCeilCR.x), d);
+          let topLeft = getImage(bInd, sourceFloorCR.y, sourceFloorCR.x, d);
+          let bottomLeft = getImage(bInd, sourceCeilCR.y, sourceFloorCR.x, d);
+          let topRight = getImage(bInd, sourceFloorCR.y, sourceCeilCR.x, d);
+          let bottomRight = getImage(bInd, sourceCeilCR.y, sourceCeilCR.x, d);
           let fracCR = sourceFracIndexCR - vec2<f32>(sourceFloorCR);
           let top = topLeft + (topRight - topLeft) * fracCR.x;
           let bottom = bottomLeft + (bottomRight - bottomLeft) * fracCR.x;
@@ -231,7 +231,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
           let sourceNearestCR = vec2<i32>(floor(
             sourceFracIndexCR + vec2<f32>(0.5,0.5)));
           let newValue = getImage(
-            u32(bInd), u32(sourceNearestCR.y), u32(sourceNearestCR.x), d);
+            bInd, sourceNearestCR.y, sourceNearestCR.x, d);
           writeResult(coords,newValue);
         }
       }

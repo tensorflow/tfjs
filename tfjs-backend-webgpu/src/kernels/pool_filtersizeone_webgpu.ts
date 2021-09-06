@@ -68,12 +68,12 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
-        let coords = getOutputCoords(globalId, index);
+        let coords = getOutputCoords(vec3<i32>(globalId), index);
         let batch = coords[0];
         let d = coords[3];
 
         if (all(coords < uniforms.outShape)) {
-          let xRCCorner = coords.yz * vec2<u32>(uniforms.stride);
+          let xRCCorner = coords.yz * uniforms.stride;
           let xRCorner = xRCCorner.x;
           let xCCorner = xRCCorner.y;
 
