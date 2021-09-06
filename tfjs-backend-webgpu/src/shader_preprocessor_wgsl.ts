@@ -18,15 +18,15 @@
 import {backend_util, DataType, util} from '@tensorflow/tfjs-core';
 import {symbolicallyComputeStrides} from './shader_util';
 
-export function getCoordsDataTypeWgsl(rank: number): string {
+export function getCoordsDataTypeWgsl(rank: number, type = 'u32'): string {
   if (rank <= 1) {
-    return 'u32';
+    return type;
   } else if (rank === 2) {
-    return 'vec2<u32>';
+    return `vec2<${type}>`;
   } else if (rank === 3) {
-    return 'vec3<u32>';
+    return `vec3<${type}>`;
   } else if (rank === 4) {
-    return 'vec4<u32>';
+    return `vec4<${type}>`;
   } else {
     throw Error(`GPU for rank ${rank} is not yet supported`);
   }

@@ -44,7 +44,7 @@ export class PadProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     paddings.map((_, i) => {
       this.uniforms += ` ivec2 pad${i};`;
-      this.uniformsWgsl += ` pad${i} : vec2<u32>;`;
+      this.uniformsWgsl += ` pad${i} : vec2<i32>;`;
     });
     this.xShape = xShape;
     this.shaderKey = 'pad';
@@ -99,10 +99,11 @@ export class PadProgram implements WebGPUProgram {
     const rank = this.xShape.length;
     const type = getCoordsDataTypeWgsl(rank);
     // The length of paddings are same with the rank of the input tensor.
-    const start = this.xShape.map((_, i) => `uniforms.pad${i}[0]`).join(',');
+    const start =
+        this.xShape.map((_, i) => `u32(uniforms.pad${i}[0])`).join(',');
     const end = this.xShape
                     .map(
-                        (_, i) => `uniforms.pad${i}[0] + uniforms.xShape${
+                        (_, i) => `u32(uniforms.pad${i}[0]) + uniforms.xShape${
                             rank > 1 ? `[${i}]` : ''}`)
                     .join(',');
     const startValue = rank > 1 ? `${type}(${start})` : `${start}`;
