@@ -6,7 +6,6 @@
       "firebase_prod.json",
       "firebase_staging.json"
     ],
-    // Set up headers for cross-origin isolation.
     "headers": [{
       "source": "local-benchmark/",
       "headers": [
