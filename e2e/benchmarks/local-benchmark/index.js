@@ -31,7 +31,8 @@ const BACKEND_FLAGS_MAP = {
   ],
 };
 if (tf.engine().backendNames().includes('webgpu')) {
-  BACKEND_FLAGS_MAP['webgpu'] = ['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'];
+  BACKEND_FLAGS_MAP['webgpu'] =
+      ['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 'WEBGPU_USE_GLSL'];
 }
 
 const TUNABLE_FLAG_NAME_MAP = {
@@ -51,6 +52,7 @@ const TUNABLE_FLAG_NAME_MAP = {
 if (tf.engine().backendNames().includes('webgpu')) {
   TUNABLE_FLAG_NAME_MAP['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'] =
       'deferred submit batch size';
+  TUNABLE_FLAG_NAME_MAP['WEBGPU_USE_GLSL'] = 'use GLSL';
 }
 
 /**
@@ -133,11 +135,21 @@ function showBackendFlagSettingsAndReturnTunableFlagControllers(
     let flagController;
     if (typeof flagValueRange[0] === 'boolean') {
       // Show checkbox for boolean flags.
-      flagController = folderController.add(state.flags, flag);
+      try {
+        flagController = folderController.add(state.flags, flag);
+      } catch (ex) {
+        console.warn(ex.message);
+        continue;
+      }
     } else {
       // Show dropdown for other types of flags.
-      flagController = folderController.add(state.flags, flag, flagValueRange);
-
+      try {
+        flagController =
+            folderController.add(state.flags, flag, flagValueRange);
+      } catch (ex) {
+        console.warn(ex.message);
+        continue;
+      }
       // Because dat.gui always casts dropdown option values to string, we need
       // `stringValueMap` and `onFinishChange()` to recover the value type.
       if (stringValueMap[flag] == null) {
@@ -170,7 +182,11 @@ async function initDefaultValueMap() {
   for (const backend in BACKEND_FLAGS_MAP) {
     for (let index = 0; index < BACKEND_FLAGS_MAP[backend].length; index++) {
       const flag = BACKEND_FLAGS_MAP[backend][index];
-      TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag] = await tf.env().getAsync(flag);
+      try {
+        TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag] = await tf.env().getAsync(flag);
+      } catch (ex) {
+        console.warn(ex.message);
+      }
     }
   }
 
