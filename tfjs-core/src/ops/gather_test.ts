@@ -220,12 +220,6 @@ describeWithFlags('gather', ALL_ENVS, () => {
         .toThrowError(/Argument 'indices' passed to 'gather' must be a Tensor/);
   });
 
-  it('throws when axis is out of bound', async () => {
-    const t = tf.tensor2d([1, 11, 2, 22], [2, 2]);
-    expect(() => tf.gather(t, tf.tensor1d([1, 0, 0, 1], 'int32'), 2 /* axis */))
-        .toThrowError(/GatherV2: axis must be < rank of the input tensor/);
-  });
-
   it('throws when index is out of bound', async () => {
     const t = tf.tensor2d([1, 11, 2, 22], [2, 2]);
     expect(() => tf.gather(t, tf.tensor1d([100], 'int32')))

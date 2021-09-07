@@ -34,8 +34,9 @@ export function gatherV2(args: {
   assertNotComplex([x, indices], 'gatherV2');
 
   // Throw error when any index is out of bound.
+  const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
   const indicesVals = backend.data.get(indices.dataId).values as TypedArray;
-  const axisDim = x.shape[axis];
+  const axisDim = x.shape[parsedAxis];
   for (let i = 0; i < indicesVals.length; ++i) {
     const index = indicesVals[i];
     util.assert(
@@ -52,7 +53,6 @@ export function gatherV2(args: {
 
   const indicesSize = util.sizeFromShape(indices.shape);
 
-  const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
   const shapeInfo = backend_util.segment_util.collectGatherOpShapeInfo(
       x, indices, parsedAxis, $batchDims);
 
