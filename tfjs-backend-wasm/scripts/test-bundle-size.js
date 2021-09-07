@@ -26,41 +26,20 @@ const minBundleSize = getFileSizeBytes(bundleFilename);
 const wasmFileName = 'dist/tfjs-backend-wasm.wasm';
 const wasmSize = getFileSizeBytes(wasmFileName);
 
-// Clone master and get the bundle size from master.
-const dirName = '/tmp/tfjs-backend-wasm-bundle';
-const wasmDirName = 'tfjs-backend-wasm';
-exec(
-    `git clone --depth=1 --single-branch ` +
-        `https://github.com/tensorflow/tfjs ${dirName}`,
-    {silent: true});
-
-shell.cd(dirName);
-shell.cd(wasmDirName);
-
-exec(
-    `yarn && yarn build-deps && yarn build-ci && yarn rollup -c`,
-    {silent: false});
-
-const masterMinBundleSize = getFileSizeBytes(bundleFilename);
-const masterWasmSize = getFileSizeBytes(wasmFileName);
-
 console.log(`~~~~ WASM file ~~~~`);
 console.log(`==> post-gzip`)
-showDiff(wasmSize.gzipFileSizeBytes, masterWasmSize.gzipFileSizeBytes);
+console.log(`size: ${wasmSize.gzipFileSizeBytes}`);
 console.log();
 console.log(`==> pre-gzip`)
-showDiff(wasmSize.fileSizeBytes, masterWasmSize.fileSizeBytes);
+console.log(`size: ${wasmSize.fileSizeBytes}`);
 console.log();
 console.log();
 
 console.log(`~~~~ minified bundle (JavaScript) ~~~~`);
 console.log(`==> post-gzip`)
-showDiff(
-    minBundleSize.gzipFileSizeBytes, masterMinBundleSize.gzipFileSizeBytes);
+console.log(`size: ${minBundleSize.gzipFileSizeBytes}`);
 console.log();
 console.log(`==> pre-gzip`)
-showDiff(minBundleSize.fileSizeBytes, masterMinBundleSize.fileSizeBytes);
+console.log(`size: ${minBundleSize.fileSizeBytes}`);
 console.log();
 console.log();
-
-exec(`rm -r ${dirName}`);
