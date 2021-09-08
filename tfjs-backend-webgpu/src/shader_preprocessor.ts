@@ -49,6 +49,7 @@ function mapToGlslTypes(type: DataType, isVec4: boolean): GLSLDataType|
 
 interface ProgramParams {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
+  dispatch: [number, number, number];
   workGroupSize?: [number, number, number];
   variableNames: string[];
   uniforms?: string;
@@ -132,12 +133,17 @@ export function makeShader(
 
   prefixSnippets.push(getGlslDifferences().defineSpecialNaN);
 
+  let globalIndexSnippet = '';
+  if (program.dispatchLayout.x.length === outputData.shape.length) {
+    globalIndexSnippet = getGlobalIndexSnippet(program.dispatch);
+  }
+
   const [getOutputCoords, dispatchLayoutRank] =
       generateGetOutputCoords(outputData.shape, program.dispatchLayout);
   const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
   const sources = [
-    SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS, getCoords,
-    getOutputCoords,
+    SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS,
+    getCoords, globalIndexSnippet, getOutputCoords,
     getSetOutputSnippet(outputData.shape, outputData.dtype, program.isVec4)
   ];
 
@@ -204,18 +210,6 @@ const SAMPLING_SNIPPETS = `
   int getFlatIndex(ivec4 coords, ivec4 shape) {
     return int(dot(coords, ivec4(
       shape.y * shape.z * shape.w, shape.z * shape.w, shape.w, 1.)));
-  }
-
-  // Only used when the y/z dimension of workgroup size is 1.
-  int getGlobalIndex() {
-    if (dispatchSize.y == 1 && dispatchSize.z == 1) {
-      return int(gl_GlobalInvocationID.x);
-    } else {
-      return int((gl_WorkGroupID.z * dispatchSize.x * dispatchSize.y +
-        gl_WorkGroupID.y * dispatchSize.x + gl_WorkGroupID.x) *
-        (gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z) +
-        gl_LocalInvocationIndex);
-    }
   }
 `;
 
@@ -607,4 +601,17 @@ function generateGetCoordsFromFlatIndex(shape: number[]): string {
       return ${dtype}(${coords.join(',')});
     }
   `;
+}
+
+// Only used for kernels whose layout is flat dispatch.
+function getGlobalIndexSnippet(dispatch: number[]): string {
+  const snippet = `  int getGlobalIndex() {
+      ${dispatch[1] === 1 && dispatch[2] === 1 ?
+      `  return int(gl_GlobalInvocationID.x);` :
+      `  return int((gl_WorkGroupID.z * dispatchSize.x * dispatchSize.y +
+           gl_WorkGroupID.y * dispatchSize.x + gl_WorkGroupID.x) *
+           (gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z) +
+           gl_LocalInvocationIndex);`};
+      }`;
+  return snippet;
 }
