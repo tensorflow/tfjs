@@ -304,7 +304,7 @@ export function runWithLock(spec: (done?: DoneFn) => Promise<void> | void) {
           resolve();
         }) as DoneFn;
         done.fail = (message?) => {
-          reject(message)
+          reject(message);
         }
       });
 
