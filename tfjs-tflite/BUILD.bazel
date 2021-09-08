@@ -79,8 +79,8 @@ copy_to_dist(
 pkg_npm(
     name = "tfjs-tflite_pkg",
     srcs = [
-      "package.json",
-      "README.md",
+        "README.md",
+        "package.json",
     ],
     tags = ["ci"],
     deps = [
