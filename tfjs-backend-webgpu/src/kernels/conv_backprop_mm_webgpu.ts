@@ -30,7 +30,7 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
   variableNames = ['x', 'W'];
   uniforms = 'ivec2 filterDims, pads, stride; ivec4 outBackprop;';
   uniformsWgsl =
-      'filterDims : vec2<u32>; pads : vec2<i32>; stride : vec2<u32>; outBackprop : vec4<u32>; dimAOuter : u32; dimBOuter : u32; dimInner : u32;';
+      'filterDims : vec2<i32>; pads : vec2<i32>; stride : vec2<i32>; outBackprop : vec4<i32>; dimAOuter : u32; dimBOuter : u32; dimInner : u32;';
   workGroupSize: [number, number, number];
   elementsPerThread: [number, number, number];
   useWgsl: boolean;
@@ -140,8 +140,8 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
     let outRow = row / uniforms.outShape[2];
     let outCol = row % uniforms.outShape[2];
 
-    let WRow = col / (uniforms.filterDims[1] * uniforms.outBackprop[3]);
-    let WCol = (col / uniforms.outBackprop[3]) % uniforms.filterDims[1];
+    let WRow = i32(col) / (uniforms.filterDims[1] * uniforms.outBackprop[3]);
+    let WCol = i32(col) / uniforms.outBackprop[3] % uniforms.filterDims[1];
     let xR = (f32(outRow) - f32(uniforms.pads[0]) + f32(WRow)) / f32(uniforms.stride[0]);
     let xC = (f32(outCol) - f32(uniforms.pads[1]) + f32(WCol)) / f32(uniforms.stride[1]);
     if (xR < 0.0 || xR >= f32(uniforms.outBackprop[1]) || fract(xR) > 0.0) {
@@ -154,7 +154,7 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
         batch,
         u32(xR),
         u32(xC),
-        col % uniforms.outBackprop[3]);
+        col % u32(uniforms.outBackprop[3]));
     return x.numbers[getFlatIndex4D(coord, uniforms.xShape)];`;
 
     const sampleA = `if (row < uniforms.dimAOuter && col < uniforms.dimInner) {
@@ -169,14 +169,14 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
     }
 
     fn mm_readB(row : u32, col : u32, globalId : vec3<u32>) -> f32 {
-      let coordX = i32(uniforms.filterDims.x - 1u -
-          row / (uniforms.filterDims[1] * uniforms.outBackprop[3]));
-      let coordY = i32(uniforms.filterDims.y - 1u -
-          (row / uniforms.outBackprop[3]) % uniforms.filterDims[1]);
+      let coordX = uniforms.filterDims.x - 1 -
+          i32(row) / (uniforms.filterDims[1] * uniforms.outBackprop[3]);
+      let coordY = uniforms.filterDims.y - 1 -
+          (i32(row) / uniforms.outBackprop[3]) % uniforms.filterDims[1];
       if (row < uniforms.dimInner && col < uniforms.dimBOuter &&
           coordX >= 0 && coordY >= 0) {
         let coord = vec4<u32>(u32(coordX), u32(coordY), col,
-            row % uniforms.outBackprop[3]);
+            row % u32(uniforms.outBackprop[3]));
         return W.numbers[getFlatIndex4D(coord, uniforms.wShape)];
       }
       return 0.0;

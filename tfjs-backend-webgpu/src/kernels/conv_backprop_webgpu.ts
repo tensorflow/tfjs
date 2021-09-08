@@ -26,7 +26,7 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
   variableNames = ['dy', 'W'];
   uniforms = 'ivec2 filterDims, pads, stride; ivec4 outBackprop;';
   uniformsWgsl =
-      'filterDims : vec2<u32>; pads : vec2<u32>; stride : vec2<u32>; outBackprop : vec4<u32>;';
+      'filterDims : vec2<i32>; pads : vec2<i32>; stride : vec2<i32>; outBackprop : vec4<i32>;';
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[]};
@@ -117,8 +117,8 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
         let batch = coords[0];
         let d1 = coords[${channelDim}];
 
-        let dyCorner = vec2<i32>(vec2<u32>(coords[${rowDim}], coords[${
-        colDim}]) - uniforms.pads);
+        let dyCorner = vec2<i32>(i32(coords[${rowDim}]), i32(coords[${
+        colDim}])) - uniforms.pads;
         let dyRCorner = dyCorner.x;
         let dyCCorner = dyCorner.y;
 
@@ -127,23 +127,23 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
         var dotProd = 0.0;
         for (var wR = 0u; wR < uniforms.filterDims.x; wR = wR + 1u) {
           let dyR = (f32(dyRCorner) + f32(wR)) / f32(uniforms.stride.x);
-          let wRPerm = i32(uniforms.filterDims.x - 1u - wR);
+          let wRPerm = uniforms.filterDims.x - 1 - i32(wR);
           if (dyR < 0.0 || dyR >= f32(uniforms.outBackprop[1]) || fract(dyR) > 0.0 ||
               wRPerm < 0) {
             continue;
           }
           let idyR = u32(dyR);
 
-          for (var wC = 0u; wC < uniforms.filterDims.y; wC = wC + 1u) {
+          for (var wC = 0; wC < uniforms.filterDims.y; wC = wC + 1) {
             let dyC = (f32(dyCCorner) + f32(wC)) / f32(uniforms.stride.y);
-            let wCPerm = i32(uniforms.filterDims.y - 1u - wC);
+            let wCPerm = uniforms.filterDims.y - 1 - wC;
             if (dyC < 0.0 || dyC >= f32(uniforms.outBackprop[2]) ||
                 fract(dyC) > 0.0 || wCPerm < 0) {
               continue;
             }
             let idyC = u32(dyC);
 
-            for (var d2 = 0u; d2 < uniforms.outBackprop[3]; d2 = d2 + 1u) {
+            for (var d2 = 0u; d2 < u32(uniforms.outBackprop[3]); d2 = d2 + 1u) {
               if (${this.isChannelsLast}) {
                 let xValue = getDy(batch, idyR, idyC, d2);
                 let wValue = getW(u32(wRPerm), u32(wCPerm), d1, d2);
