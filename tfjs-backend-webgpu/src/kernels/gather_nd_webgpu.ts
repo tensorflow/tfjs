@@ -18,9 +18,10 @@
 import {util} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType} from '../shader_preprocessor';
+import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class GatherNDProgram implements WebGPUProgram {
   outputShape: number[];
@@ -29,9 +30,11 @@ export class GatherNDProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames: string[] = ['A', 'indices'];
   uniforms: string;
+  uniformsWgsl: string;
   workGroupSize: [number, number, number] = [64, 1, 1];
   size: number;
   sliceDim: number;
+  useWgsl: boolean;
   constructor(sliceDim: number, shape: number[]) {
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
@@ -41,6 +44,9 @@ export class GatherNDProgram implements WebGPUProgram {
     this.size = util.sizeFromShape(this.outputShape);
     this.sliceDim = sliceDim;
     this.uniforms = `int sliceDim; ${getCoordsDataType(sliceDim)} strides;`;
+    this.uniformsWgsl =
+        `sliceDim : u32; strides : ${getCoordsDataTypeWgsl(sliceDim)};`;
+    this.useWgsl = getUseWgsl();
   }
   getUserCode(): string {
     const dtype = getCoordsDataType(this.outputShape.length);
@@ -52,7 +58,7 @@ export class GatherNDProgram implements WebGPUProgram {
     }
     const userCode = `
          void main() {
-          int currentIndex = int(gl_GlobalInvocationID.x);
+          int currentIndex = getGlobalIndex();
           ${dtype} coords = getOutputCoords();
           int flattenIndex = 0;
           for (int j = 0; j < sliceDim; j++) {
@@ -62,6 +68,31 @@ export class GatherNDProgram implements WebGPUProgram {
           }
           if (currentIndex < size) {
             setOutput(currentIndex, getA(flattenIndex, coords[1]));
+          }
+        }
+      `;
+    return userCode;
+  }
+
+  getUserCodeWgsl(): string {
+    let strideString;
+    if (this.sliceDim > 1) {
+      strideString = 'uniforms.strides[j]';
+    } else {
+      strideString = 'uniforms.strides';
+    }
+    const userCode = `
+        ${getMainHeaderStringWgsl(this.workGroupSize)} {
+          ${getGlobalIndexStringWgsl(this.workGroupSize)}
+          let coords = getOutputCoords(globalId, index);
+          var flattenIndex = 0u;
+          for (var j = 0u; j < uniforms.sliceDim; j = j + 1u) {
+            let indexTemp = u32(round(getIndices(coords[0], j)));
+            let strideNum = ${strideString};
+            flattenIndex = flattenIndex + indexTemp * strideNum;
+          }
+          if (index < uniforms.size) {
+            setOutputFlat(index, getA(flattenIndex, coords[1]));
           }
         }
       `;

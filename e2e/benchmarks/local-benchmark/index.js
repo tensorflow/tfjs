@@ -31,7 +31,8 @@ const BACKEND_FLAGS_MAP = {
   ],
 };
 if (tf.engine().backendNames().includes('webgpu')) {
-  BACKEND_FLAGS_MAP['webgpu'] = ['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'];
+  BACKEND_FLAGS_MAP['webgpu'] =
+      ['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 'WEBGPU_USE_GLSL'];
 }
 
 const TUNABLE_FLAG_NAME_MAP = {
@@ -51,6 +52,7 @@ const TUNABLE_FLAG_NAME_MAP = {
 if (tf.engine().backendNames().includes('webgpu')) {
   TUNABLE_FLAG_NAME_MAP['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'] =
       'deferred submit batch size';
+  TUNABLE_FLAG_NAME_MAP['WEBGPU_USE_GLSL'] = 'use GLSL';
 }
 
 /**
@@ -106,6 +108,15 @@ function showBackendFlagSettingsAndReturnTunableFlagControllers(
     folderController, backendName) {
   const tunableFlags = BACKEND_FLAGS_MAP[backendName];
   const tunableFlagControllers = {};
+
+  // Remove it once we figure out how to correctly read the tensor data
+  // before the tensor is disposed in profiling mode.
+  if (backendName === 'webgpu' &&
+      state.flags['CHECK_COMPUTATION_FOR_ERRORS'] === true) {
+    state.flags['CHECK_COMPUTATION_FOR_ERRORS'] = false;
+    state.isFlagChanged = true;
+  }
+
   for (let index = 0; index < tunableFlags.length; index++) {
     const flag = tunableFlags[index];
     const flagName = TUNABLE_FLAG_NAME_MAP[flag] || flag;
@@ -124,11 +135,21 @@ function showBackendFlagSettingsAndReturnTunableFlagControllers(
     let flagController;
     if (typeof flagValueRange[0] === 'boolean') {
       // Show checkbox for boolean flags.
-      flagController = folderController.add(state.flags, flag);
+      try {
+        flagController = folderController.add(state.flags, flag);
+      } catch (ex) {
+        console.warn(ex.message);
+        continue;
+      }
     } else {
       // Show dropdown for other types of flags.
-      flagController = folderController.add(state.flags, flag, flagValueRange);
-
+      try {
+        flagController =
+            folderController.add(state.flags, flag, flagValueRange);
+      } catch (ex) {
+        console.warn(ex.message);
+        continue;
+      }
       // Because dat.gui always casts dropdown option values to string, we need
       // `stringValueMap` and `onFinishChange()` to recover the value type.
       if (stringValueMap[flag] == null) {
@@ -161,7 +182,11 @@ async function initDefaultValueMap() {
   for (const backend in BACKEND_FLAGS_MAP) {
     for (let index = 0; index < BACKEND_FLAGS_MAP[backend].length; index++) {
       const flag = BACKEND_FLAGS_MAP[backend][index];
-      TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag] = await tf.env().getAsync(flag);
+      try {
+        TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag] = await tf.env().getAsync(flag);
+      } catch (ex) {
+        console.warn(ex.message);
+      }
     }
   }
 

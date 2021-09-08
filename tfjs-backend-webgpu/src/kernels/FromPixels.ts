@@ -43,49 +43,59 @@ export function fromPixels(args: {
     throw new Error('pixels passed to tf.browser.fromPixels() can not be null');
   }
 
-  const outShape = [pixels.height, pixels.width, numChannels];
-  const imageData = (pixels as ImageData | backend_util.PixelData).data;
+  const isVideo = typeof (HTMLVideoElement) !== 'undefined' &&
+      pixels instanceof HTMLVideoElement;
+  const isImage = typeof (HTMLImageElement) !== 'undefined' &&
+      pixels instanceof HTMLImageElement;
+  const isCanvas = typeof (HTMLCanvasElement) !== 'undefined' &&
+      pixels instanceof HTMLCanvasElement;
+  const isImageBitmap =
+      typeof (ImageBitmap) !== 'undefined' && pixels instanceof ImageBitmap;
 
-  if (env().getBool('IS_BROWSER')) {
-    if (!(pixels instanceof HTMLVideoElement) &&
-        !(pixels instanceof HTMLImageElement) &&
-        !(pixels instanceof HTMLCanvasElement) &&
-        !(pixels instanceof ImageData) && !(pixels instanceof ImageBitmap) &&
-        !(pixels.data instanceof Uint8Array)) {
-      throw new Error(
-          'pixels passed to tf.browser.fromPixels() must be either an ' +
-          `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData, ` +
-          `ImageBitmap ` +
-          `or {data: Uint32Array, width: number, height: number}, ` +
-          `but was ${(pixels as {}).constructor.name}`);
-    }
+  const [width, height] = isVideo ?
+      [
+        (pixels as HTMLVideoElement).videoWidth,
+        (pixels as HTMLVideoElement).videoHeight
+      ] :
+      [pixels.width, pixels.height];
+  const outShape = [height, width, numChannels];
 
-    if (env().getBool('WEBGPU_USE_IMPORT')) {
-      if (pixels instanceof HTMLVideoElement) {
-        return fromPixelsExternalImage(
-            {externalImage: pixels, backend, attrs, useImport: true});
-      }
+  if (env().getBool('WEBGPU_USE_IMPORT')) {
+    if (isVideo) {
+      return fromPixelsExternalImage({
+        externalImage: pixels as HTMLVideoElement,
+        backend,
+        attrs,
+        outShape,
+        useImport: true
+      });
     }
+  }
 
-    if (pixels instanceof HTMLVideoElement ||
-        pixels instanceof HTMLImageElement) {
-      if (fromPixels2DContext == null) {
-        fromPixels2DContext = document.createElement('canvas').getContext('2d');
-      }
-      fromPixels2DContext.canvas.width = pixels.width;
-      fromPixels2DContext.canvas.height = pixels.height;
-      fromPixels2DContext.drawImage(pixels, 0, 0, pixels.width, pixels.height);
-      pixels = fromPixels2DContext.canvas;
+  if (isVideo || isImage) {
+    if (fromPixels2DContext == null) {
+      fromPixels2DContext = document.createElement('canvas').getContext('2d');
     }
+    fromPixels2DContext.canvas.width = width;
+    fromPixels2DContext.canvas.height = height;
+    fromPixels2DContext.drawImage(
+        pixels as HTMLVideoElement | HTMLImageElement, 0, 0, width, height);
+    pixels = fromPixels2DContext.canvas;
+  }
 
-    if (pixels instanceof ImageBitmap || pixels instanceof HTMLCanvasElement) {
-      return fromPixelsExternalImage(
-          {externalImage: pixels, backend, attrs, useImport: false});
-    }
+  if (isImageBitmap || isCanvas || isVideo || isImage) {
+    return fromPixelsExternalImage({
+      externalImage: pixels as HTMLCanvasElement | ImageBitmap,
+      backend,
+      attrs,
+      outShape,
+      useImport: false
+    });
   }
 
   // TODO: Encoding should happen on GPU once we no longer have to download
   // image data to the CPU.
+  const imageData = (pixels as ImageData | backend_util.PixelData).data;
   let pixelArray = imageData;
   if (numChannels != null && numChannels !== 4) {
     pixelArray = new Uint8Array(pixels.width * pixels.height * numChannels);

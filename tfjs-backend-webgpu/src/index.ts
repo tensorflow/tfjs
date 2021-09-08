@@ -47,7 +47,9 @@ if (device_util.isBrowser() && isWebGPUSupported()) {
     } else {
       console.warn(
           `This device doesn't support timestamp-query extension. ` +
-          `Zero will shown for the kernel time when profiling mode is` +
+          `Start Chrome browser with flag ` +
+          `--disable-dawn-features=disallow_unsafe_apis then try again. ` +
+          `Or zero will shown for the kernel time when profiling mode is` +
           `enabled. Using performance.now is not workable for webgpu since` +
           `it doesn't support synchronously to read data from GPU.`);
     }

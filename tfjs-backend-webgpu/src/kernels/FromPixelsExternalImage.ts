@@ -26,15 +26,14 @@ export function fromPixelsExternalImage(args: {
   externalImage: ExternalImage|HTMLVideoElement,
   backend: WebGPUBackend,
   attrs: FromPixelsAttrs,
+  outShape: number[],
   useImport: boolean
 }): TensorInfo {
-  const {externalImage, backend, attrs, useImport} = args;
+  const {externalImage, backend, attrs, outShape, useImport} = args;
   const {numChannels} = attrs;
 
-  const outShape = [externalImage.height, externalImage.width, numChannels];
   const size = util.sizeFromShape(outShape);
   const strides = util.computeStrides(outShape);
-  const uniformData = [size, numChannels, ...strides];
   const output = backend.makeTensorInfo(outShape, 'int32');
   const program =
       backend.getFromPixelsProgram(useImport ? 'import' : 'copyExternal');
@@ -47,7 +46,7 @@ export function fromPixelsExternalImage(args: {
   // FromPixelsExternalImage leverages webgpu backend pipeline
   // cache system to avoid useless recompile.
   const outputShapes = [output.shape];
-  const outputTypes = [output.dtype];
+  const outputTypes = [output.dtype, useImport ? 'import' : 'copyExternal'];
   const key = webgpu_program.makeShaderKey(program, outputShapes, outputTypes);
 
   const layout = program.getLayout(backend.device);
@@ -63,16 +62,17 @@ export function fromPixelsExternalImage(args: {
   if (!useImport) {
     backend.queue.copyExternalImageToTexture(
         {source: externalImage as ExternalImage, origin: {x: 0, y: 0}}, {
-          texture: program.makeInputTexture(
-              backend.device, externalImage.width, externalImage.height)
+          texture:
+              program.makeInputTexture(backend.device, outShape[1], outShape[0])
         },
-        [externalImage.width, externalImage.height]);
+        [outShape[1], outShape[0]]);
   }
 
   const info = backend.tensorMap.get(output.dataId);
 
   info.bufferInfo.buffer = backend.acquireBuffer(info.bufferInfo.byteSize);
 
+  const uniformData = [size, numChannels, ...strides, ...program.dispatch];
   program.setUniform(backend.device, uniformData);
 
   let externalResource: GPUExternalTexture|GPUTextureView;
@@ -86,8 +86,7 @@ export function fromPixelsExternalImage(args: {
     externalResource = program.inputTexture.createView();
   }
 
-  backend.recordFromPixelsCommands(
-      program, info.bufferInfo.buffer, layout, externalResource);
-  backend.submitQueue();
+  backend.runFromPixelsProgram(
+      program, info.bufferInfo.buffer, layout, externalResource, output.dataId);
   return output;
 }
