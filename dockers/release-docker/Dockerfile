@@ -2,7 +2,7 @@
 FROM emscripten/emsdk:2.0.14 AS emscripten_base
 
 # Install cloud-sdk
-ARG CLOUD_SDK_VERSION=305.0.0
+ARG CLOUD_SDK_VERSION=355.0.0
 ENV CLOUD_SDK_VERSION=$CLOUD_SDK_VERSION
 ENV CLOUDSDK_PYTHON=python3
 ENV PATH "$PATH:/opt/google-cloud-sdk/bin/"
@@ -10,6 +10,7 @@ RUN apt-get update -qqy && apt-get install -qqy \
         curl \
         gcc \
         python \
+        python-pip \
         python3 \
         python3-setuptools \
         python3-dev \
