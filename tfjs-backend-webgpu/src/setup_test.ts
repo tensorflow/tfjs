@@ -81,7 +81,7 @@ export function setupTestFilters(
 setTestEnvs([{
   name: 'test-webgpu',
   backendName: 'webgpu',
-  flags: {'WEBGPU_CPU_FORWARD': false},
+  flags: {'WEBGPU_CPU_FORWARD': false, 'WEBGPU_USE_GLSL': false},
   isDataSync: false,
 }]);
 
