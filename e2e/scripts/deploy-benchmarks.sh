@@ -33,7 +33,7 @@ elif [[ "$1" == "--staging"  ]]; then
     --project ${PROJECT}
 else
   firebase deploy \
-    --config benchmarks/firebase_prod.json \
+    --config benchmarks/firebase.json \
     --only hosting:tfjs-benchmarks \
     --project ${PROJECT}
 fi

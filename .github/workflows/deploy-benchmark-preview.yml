@@ -17,4 +17,4 @@ jobs:
           expires: 30d
           projectId: jstensorflow
           target: tfjs-benchmarks
-          entryPoint: e2e/benchmarks/firebase_prod.json
+          entryPoint: e2e/benchmarks/
