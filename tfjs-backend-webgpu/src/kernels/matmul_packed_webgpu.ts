@@ -17,7 +17,7 @@
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
@@ -182,11 +182,9 @@ export function makeMatMulPackedSourceWgsl(
   const tileBOuter = workGroupSize[0] * workPerThread[0];
   const tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
   return `
-  var<workgroup> mm_Asub : array<array<f32, ${tileInner}>, ${tileAOuter}>;
-  var<workgroup> mm_Bsub : array<array<f32, ${tileBOuter}>, ${tileInner}>;
-  ${getWorkGroupSizeStringWgsl(workGroupSize)}
-  fn main([[builtin(local_invocation_id)]] localId : vec3<u32>,
-        [[builtin(global_invocation_id)]] globalId : vec3<u32>) {
+    var<workgroup> mm_Asub : array<array<f32, ${tileInner}>, ${tileAOuter}>;
+    var<workgroup> mm_Bsub : array<array<f32, ${tileBOuter}>, ${tileInner}>;
+    ${getMainHeaderStringWgsl()} {
       let tileRow = localId.y * ${workPerThread[1]}u;
       let tileCol = localId.x * ${workPerThread[0]}u;
 
@@ -285,9 +283,7 @@ export function makeMatMulVectorSourceWgsl(
     let TileSize = ${workGroupSize[0] * 4}u;
     var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
 
-    ${getWorkGroupSizeStringWgsl(workGroupSize)}
-    fn main([[builtin(local_invocation_id)]] localId : vec3<u32>,
-        [[builtin(global_invocation_id)]] globalId : vec3<u32>) {
+    ${getMainHeaderStringWgsl()} {
       let tileCol = localId.x;
       let globalCol = globalId.x;
       let globalRow = globalId.y;

@@ -191,8 +191,8 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
         }
       }
 
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
         let coords = getOutputCoords(globalId, index);
         let batch = coords[0];
         let outChannel = coords[3];

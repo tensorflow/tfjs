@@ -6,6 +6,11 @@
       "firebase_prod.json",
       "firebase_staging.json"
     ],
+    "redirects": [{
+      "source": "/",
+      "destination": "local-benchmark/",
+      "type": 301
+    }],
     "headers": [{
       "source": "local-benchmark/",
       "headers": [
