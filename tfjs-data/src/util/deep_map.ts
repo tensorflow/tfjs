@@ -215,7 +215,7 @@ export type DeepMapAsyncResult = {
  */
 export async function deepMapAndAwaitAll(
     input: any, mapFn: (x: any) => DeepMapAsyncResult): Promise<any|any[]> {
-  const seen: Map<any, Promise<any>> = new Map();
+  const seen: Map<any, any> = new Map();
 
   // First do a normal deepMap, collecting Promises in 'seen' as a side effect.
   deepMapInternal(input, mapFn, seen);
