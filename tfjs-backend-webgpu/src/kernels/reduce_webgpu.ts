@@ -223,8 +223,8 @@ export class ReduceProgram implements WebGPUProgram {
             'outputCoords[0]'} * uniforms.reduceSize;
          return offset;
        }
-       ${getMainHeaderStringWgsl(this.workGroupSize)} {
-         ${getGlobalIndexStringWgsl(this.workGroupSize)}
+       ${getMainHeaderStringWgsl()} {
+         ${getGlobalIndexStringWgsl()}
          let offset= getOffset(globalId, index);
          var bestValue = ${initValue};
          let Length = uniforms.reduceSize;

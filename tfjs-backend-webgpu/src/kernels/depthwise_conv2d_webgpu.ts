@@ -208,8 +208,8 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
         }
       }
 
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
         let coords = getOutputCoords(globalId, index);
         let batch = coords[0];
         let xRCCorner = vec2<i32>(coords.yz * uniforms.stride - uniforms.pad);
