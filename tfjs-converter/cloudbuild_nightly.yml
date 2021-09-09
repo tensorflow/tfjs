@@ -22,7 +22,7 @@ steps:
   waitFor: ['yarn-common']
 
 # Run python tests.
-- name: 'gcr.io/google-appengine/python'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-converter/python'
   entrypoint: 'bash'
   args: ['./build-pip-package.sh', '--test-nightly', '/tmp/tfjs-pips']
