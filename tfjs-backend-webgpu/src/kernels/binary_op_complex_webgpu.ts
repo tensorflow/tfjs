@@ -75,8 +75,8 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
         ${opStr}
       }
 
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
         if(index < uniforms.size) {
           let areal = getARealAtOutCoordsByGlobalId(globalId, index);
           let aimag = getAImagAtOutCoordsByGlobalId(globalId, index);

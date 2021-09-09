@@ -77,8 +77,8 @@ export class TransposeProgram implements WebGPUProgram {
     const switched = getSwitchedCoords(this.newDim);
 
     const userCode = `
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
 
         for(var i = 0u; i < ${this.workPerThread}u; i = i + 1u) {
           let flatIndex = index * ${this.workPerThread}u + i;

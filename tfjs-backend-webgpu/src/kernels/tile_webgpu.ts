@@ -69,8 +69,8 @@ export class TileProgram implements WebGPUProgram {
     const sourceCoords = getSourceCoords(this.rank, 'uniforms.');
 
     const userCode = `
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
         if (index < uniforms.size) {
           let resRC = getOutputCoords(globalId, index);
           setOutputFlat(index, getA(${sourceCoords}));
