@@ -31,7 +31,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   workGroupSize: [number, number, number];
   variableNames = ['x'];
   uniforms = 'int axis;';
-  uniformsWgsl = 'axis : u32;';
+  uniformsWgsl = 'axis : i32;';
   inputShape: number[];
   reductionFactor: number;
   op: string;
@@ -278,7 +278,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
         for (var r = 1u; r <= ${this.inputShape.length}u; r = r + 1u) {
           let length = ${indexInputShape(`${this.inputShape.length}u - r`)};
-          if (${this.inputShape.length}u - r == uniforms.axis) {
+          if (${this.inputShape.length}u - r == u32(uniforms.axis)) {
             inputStride = stride;
           } else {
             offset = offset + ${

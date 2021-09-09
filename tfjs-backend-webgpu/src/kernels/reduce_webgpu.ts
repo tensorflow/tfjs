@@ -30,7 +30,7 @@ export class ReduceProgram implements WebGPUProgram {
   workGroupSize: [number, number, number];
   variableNames = ['x'];
   uniforms = 'int reduceSize;';
-  uniformsWgsl = 'reduceSize : u32;';
+  uniformsWgsl = 'reduceSize : i32;';
   reduceType: 'max'|'mean'|'min'|'prod'|'sum';
   inputShape: number[];
   reductionFactor: number;
@@ -220,14 +220,14 @@ export class ReduceProgram implements WebGPUProgram {
          let offset = ${
         this.outputShape.length === 1 ?
             'outputCoords' :
-            'outputCoords[0]'} * uniforms.reduceSize;
+            'outputCoords[0]'} * u32(uniforms.reduceSize);
          return offset;
        }
        ${getMainHeaderStringWgsl()} {
          ${getGlobalIndexStringWgsl()}
          let offset= getOffset(globalId, index);
          var bestValue = ${initValue};
-         let Length = uniforms.reduceSize;
+         let Length = u32(uniforms.reduceSize);
          let WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
          for (var w = 0u; w < WorkPerThread; w = w + 1u) {
            let i = globalId.x * WorkPerThread + w;
