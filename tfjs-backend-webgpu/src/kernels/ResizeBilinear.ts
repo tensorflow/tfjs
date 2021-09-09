@@ -27,12 +27,12 @@ export function resizeBilinear(args: {
 }): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {images} = inputs;
-  const {alignCorners, size} = attrs;
+  const {alignCorners, size, halfPixelCenters} = attrs;
 
   const [newHeight, newWidth] = size;
   const program = new ResizeBilinearProgram(
       images.shape as [number, number, number, number], newHeight, newWidth,
-      alignCorners);
+      alignCorners, halfPixelCenters);
 
   return backend.runWebGPUProgram(program, [images], 'float32');
 }
