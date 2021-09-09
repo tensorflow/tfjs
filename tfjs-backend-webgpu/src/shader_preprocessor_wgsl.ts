@@ -50,7 +50,7 @@ function mapToTypesWgsl(type: DataType, isVec4: boolean): DataTypeWGSL|
 
 interface ProgramParams {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
-  workGroupSize?: [number, number, number];
+  workGroupSize: [number, number, number];
   variableNames: string[];
   uniforms?: string;
   uniformsWgsl?: string;
@@ -66,27 +66,21 @@ export interface InputInfo {
   name: string;
 }
 
-export function getWorkGroupSizeStringWgsl(
-    workGroupSize: [number, number, number]): string {
+export function getWorkGroupSizeStringWgsl(): string {
   return `
-  [[stage(compute), workgroup_size(${workGroupSize[0]}, ${workGroupSize[1]}, ${
-      workGroupSize[2]})]]
+  [[stage(compute), workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)]]
 `;
 }
 
-export function getGlobalIndexStringWgsl(
-    workGroupSize: [number, number, number]): string {
+export function getGlobalIndexStringWgsl(): string {
   return `
-  let index = getGlobalIndex(globalId, localId, vec3<u32>(${
-      workGroupSize[0]}u, ${workGroupSize[1]}u, ${workGroupSize[2]}u));
+  let index = getGlobalIndex(globalId, localId);
 `;
 }
 
-export function getMainHeaderStringWgsl(
-    workGroupSize: [number, number, number]) {
+export function getMainHeaderStringWgsl() {
   return `
-  [[stage(compute), workgroup_size(${workGroupSize[0]}, ${workGroupSize[1]}, ${
-      workGroupSize[2]})]]
+  [[stage(compute), workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)]]
   fn main([[builtin(local_invocation_id)]] localId : vec3<u32>, [[builtin(global_invocation_id)]] globalId : vec3<u32>)
 `;
 }
@@ -94,6 +88,11 @@ export function getMainHeaderStringWgsl(
 export function makeShader(
     inputInfo: InputInfo[], outputData: {dtype: DataType, shape: number[]},
     program: ProgramParams, isFromPixel = false): string {
+  const workGroupSizeSnippet = `
+    let workGroupSizeX = ${program.workGroupSize[0]}u;
+    let workGroupSizeY = ${program.workGroupSize[1]}u;
+    let workGroupSizeZ = ${program.workGroupSize[2]}u;`;
+
   if (isFromPixel === true) {
     const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
     const outputBufferStr = `
@@ -113,6 +112,7 @@ export function makeShader(
     return [
       SHADER_PREFIX,
       outputBufferStr,
+      workGroupSizeSnippet,
       SAMPLING_SNIPPETS,
       getCoords,
       program.getUserCodeWgsl(),
@@ -165,6 +165,8 @@ export function makeShader(
         1 + program.variableNames.length})]] var<uniform> uniforms : Uniforms;
     `);
   }
+
+  prefixSnippets.push(workGroupSizeSnippet);
 
   const [getOutputCoords, dispatchLayoutRank] =
       generateGetOutputCoords(outputData.shape, program.dispatchLayout);
@@ -261,17 +263,17 @@ const SAMPLING_SNIPPETS = `
   }
 
   // Only used when the y/z dimension of workgroup size is 1.
-  fn getGlobalIndex(globalId : vec3<u32>, localId : vec3<u32>, workGroupSize : vec3<u32>) -> u32 {
+  fn getGlobalIndex(globalId : vec3<u32>, localId : vec3<u32>) -> u32 {
     if (uniforms.dispatchSize.y == 1u && uniforms.dispatchSize.z == 1u) {
       return globalId.x;
     }
-    let localInvocationIndex = localId.z * workGroupSize.x * workGroupSize.y +
-      localId.y * workGroupSize.x + localId.x;
+    let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
+      localId.y * workGroupSizeX + localId.x;
     let workGroupID = (globalId - localId)/vec3<u32>(
-      workGroupSize[0], workGroupSize[1], workGroupSize[2]);
+      workGroupSizeX, workGroupSizeY, workGroupSizeZ);
     return (workGroupID.z * uniforms.dispatchSize.x * uniforms.dispatchSize.y +
       workGroupID.y * uniforms.dispatchSize.x + workGroupID.x) *
-      (workGroupSize.x * workGroupSize.y * workGroupSize.z) +
+      (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
       localInvocationIndex;
   }
 `;

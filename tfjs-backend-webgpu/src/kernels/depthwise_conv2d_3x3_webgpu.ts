@@ -191,8 +191,8 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
     const userCode = `
       ${activationSnippet}
 
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
         let batch = 0u;
         let r = globalId.x;
         let c = globalId.y * 4u;

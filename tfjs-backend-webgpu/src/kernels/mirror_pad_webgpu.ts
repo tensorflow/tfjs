@@ -118,8 +118,8 @@ export class MirrorPadProgram implements WebGPUProgram {
         'coords';
 
     return `
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
         let start = ${dtype}(${start});
         let end = ${dtype}(${end});
         var outC = getOutputCoords(globalId, index);

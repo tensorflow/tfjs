@@ -224,8 +224,8 @@ export class TransformProgram implements WebGPUProgram {
             return outputValue;
           }
 
-          ${getMainHeaderStringWgsl(this.workGroupSize)} {
-            ${getGlobalIndexStringWgsl(this.workGroupSize)}
+          ${getMainHeaderStringWgsl()} {
+            ${getGlobalIndexStringWgsl()}
             let coords = getOutputCoords(globalId, index);
             if (coordsInBounds4D(coords, uniforms.outShape)) {
               var outputValue : f32;

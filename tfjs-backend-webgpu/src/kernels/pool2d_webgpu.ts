@@ -111,8 +111,8 @@ export class Pool2DProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
         let coords = getOutputCoords(globalId, index);
         if (coordsInBounds4D(coords, uniforms.outShape)) {
           let batch = coords[0];

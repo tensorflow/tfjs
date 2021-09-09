@@ -71,8 +71,8 @@ export class ClipVec4Program implements WebGPUProgram {
 
   getUserCodeWgsl(): string {
     const userCode = `
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
         if(index < uniforms.size) {
           let value = getAAtOutCoordsByGlobalId(globalId, index);
           var clampedValue : vec4<f32>;
