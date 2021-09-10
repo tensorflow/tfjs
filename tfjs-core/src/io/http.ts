@@ -111,10 +111,12 @@ export class HTTPRequest implements IOHandler {
         'model.json');
 
     if (modelArtifacts.weightData != null) {
-      init.body.append(
-          'model.weights.bin',
-          new Blob([modelArtifacts.weightData], {type: OCTET_STREAM_MIME_TYPE}),
-          'model.weights.bin');
+      if(useNodeBuffer){
+      init.body.append('model.json', new Buffer.from([JSON.stringify(modelTopologyAndWeightManifest)], { type: JSON_TYPE }), 'model.json');
+    }
+    else{
+        init.body.append('model.json', new Blob([JSON.stringify(modelTopologyAndWeightManifest)], { type: JSON_TYPE }), 'model.json');
+    }
     }
 
     const response = await this.fetch(this.path, init);
