@@ -110,8 +110,8 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
     const colDim = this.isChannelsLast ? 2 : 3;
     const channelDim = this.isChannelsLast ? 3 : 1;
     return `
-    ${getMainHeaderStringWgsl(this.workGroupSize)} {
-      ${getGlobalIndexStringWgsl(this.workGroupSize)}
+    ${getMainHeaderStringWgsl()} {
+      ${getGlobalIndexStringWgsl()}
       let coords = getOutputCoords(globalId, index);
       if (coordsInBounds4D(coords, uniforms.outShape)) {
         let batch = coords[0];
