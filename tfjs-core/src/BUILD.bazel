@@ -92,6 +92,7 @@ ts_library(
     deps = [
         ":tfjs-core_lib",
         ":tfjs-core_src_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
     ],
 )
 
