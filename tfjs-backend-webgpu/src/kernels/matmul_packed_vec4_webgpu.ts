@@ -194,7 +194,7 @@ export function makeMatMulPackedVec4SourceWgsl(
 
     let globalRow = globalId.y * RowPerThread;
     let globalCol = globalId.x;
-    let numTiles = (uniforms.dimInner - 1u) / TileInner + 1u;
+    let numTiles = u32(i32(uniforms.dimInner) - 1) / TileInner + 1u;
 
     var acc: array<vec4<f32>, ${tileInfo.RowPerThread}>;
     var ACached : vec4<f32>;
@@ -261,7 +261,7 @@ export function makeMatMulVectorVec4SourceWgsl(
     let globalCol = globalId.x;
     let globalRow = globalId.y;
 
-    let numTiles = (uniforms.dimInner - 1u) / tileSize + 1u;
+    let numTiles = u32(i32(uniforms.dimInner) - 1) / tileSize + 1u;
 
     // Without this initialization strange values show up in acc.
     var acc = vec4<f32>(0.0);

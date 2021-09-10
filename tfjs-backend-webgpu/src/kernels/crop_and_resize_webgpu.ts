@@ -146,12 +146,12 @@ export class CropAndResizeProgram implements WebGPUProgram {
 
   getUserCodeWgsl(): string {
     const [inputHeightFloat, inputWidthFloat] = [
-      `f32(uniforms.imageShape[1] - 1u)`, `f32(uniforms.imageShape[2] - 1u)`
+      `f32(i32(uniforms.imageShape[1]) - 1)`, `f32(i32(uniforms.imageShape[2]) - 1)`
     ];
 
     const [heightRatio, heightScale, inY] = this.cropHeightBiggerThan1 ?
         [
-          `(${inputHeightFloat} / f32(uniforms.outShape[1] - 1u))`,
+          `(${inputHeightFloat} / f32(i32(uniforms.outShape[1]) - 1))`,
           '(y2-y1) * height_ratio',
           `y1*${inputHeightFloat} + f32(y)*(height_scale)`,
         ] :
@@ -162,7 +162,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
         ];
     const [widthRatio, widthScale, inX] = this.cropWidthBiggerThan1 ?
         [
-          `(${inputWidthFloat} / f32(uniforms.outShape[2] - 1u))`,
+          `(${inputWidthFloat} / f32(i32(uniforms.outShape[2]) - 1))`,
           '(x2-x1) * width_ratio',
           `x1*${inputWidthFloat} + f32(x)*(width_scale)`,
         ] :

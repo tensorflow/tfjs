@@ -211,7 +211,7 @@ export class ReduceProgram implements WebGPUProgram {
 
     const userCode = `
        fn DIV_CEIL(a : u32, b : u32) -> u32 {
-        return ((a - 1u) / b + 1u);
+        return u32(i32(a) - 1) / b + 1u;
        }
        let WorkGroupSize = ${this.workGroupSize[0]}u;
        ${reduceInSharedMemory ? sharedMemorySnippet : ''}

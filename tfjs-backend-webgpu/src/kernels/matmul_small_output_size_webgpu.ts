@@ -132,7 +132,7 @@ export function makeMatMulSmallOutputSizeSourceWgsl(
     let globalCol = globalId.x;
 
     // uniforms.dimInner should be greater than 0.
-    let numTiles = (uniforms.dimInner - 1u) / ${tileInner}u + 1u;
+    let numTiles = u32(i32(uniforms.dimInner) - 1) / ${tileInner}u + 1u;
     var acc = 0.0;
 
     var globalColA = tileCol;

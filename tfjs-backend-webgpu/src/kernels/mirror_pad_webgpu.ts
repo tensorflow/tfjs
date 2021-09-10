@@ -128,13 +128,14 @@ export class MirrorPadProgram implements WebGPUProgram {
         {
           for (var i = 0u; i < ${rank}u; i = i + 1u) {
             if (${shaderOutC} < ${shaderStart}) {
-              ${shaderOutC} = ${shaderStart} * 2u - ${shaderOutC} - ${
-        this.offset}u;
+              ${shaderOutC} = u32(i32(${shaderStart}) * 2 - i32(${
+        shaderOutC}) - ${this.offset});
             } elseif(${shaderOutC} >= ${shaderEnd}) {
-              ${shaderOutC} = (${shaderEnd} - 1u) * 2u - ${shaderOutC} + ${
-        this.offset}u;
+              ${shaderOutC} = u32((i32(${shaderEnd}) - 1) * 2 - i32(${
+        shaderOutC}) + ${this.offset});
             }
           }
+          // Both outC and start are of type u32.
           let coords = outC - start;
           setOutputFlat(index, getX(${unpackedCoords}));
         }

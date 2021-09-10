@@ -191,7 +191,7 @@ export function makeMatMulPackedSourceWgsl(
       let globalRow = globalId.y * ${workPerThread[1]}u;
       let globalCol = globalId.x * ${workPerThread[0]}u;
 
-      let numTiles = (uniforms.dimInner - 1u) / ${tileInner}u + 1u;
+      let numTiles = u32(i32(uniforms.dimInner) - 1) / ${tileInner}u + 1u;
 
       var acc : array<array<f32, ${workPerThread[0]}>, ${workPerThread[1]}>;
       var ACached : f32;
@@ -288,7 +288,7 @@ export function makeMatMulVectorSourceWgsl(
       let globalCol = globalId.x;
       let globalRow = globalId.y;
 
-      let numTiles = (uniforms.dimInner - 1u) / TileSize + 1u;
+      let numTiles = u32(i32(uniforms.dimInner) - 1) / TileSize + 1u;
 
       // Without this initialization strange values show up in acc.
       var acc = 0.0;
