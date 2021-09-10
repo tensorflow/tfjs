@@ -25,6 +25,7 @@ import * as canvas_util from './canvas_util';
 import {forceHalfFloat, webgl_util} from './webgl';
 
 describe('WEBGL_FORCE_F16_TEXTURES', () => {
+  beforeEach(() => tf.env().reset());
   afterAll(() => tf.env().reset());
 
   it('can be activated via forceHalfFloat utility', () => {
@@ -357,12 +358,18 @@ describe('WEBGL_SIZE_UPLOAD_UNIFORM', () => {
 });
 
 describeWithFlags('WEBGL_DELETE_TEXTURE_THRESHOLD', WEBGL_ENVS, () => {
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
+
   it('should throw an error if given a negative value', () => {
     expect(() => tf.env().set('WEBGL_DELETE_TEXTURE_THRESHOLD', -2)).toThrow();
   });
 });
 
 describeWithFlags('WEBGL_FLUSH_THRESHOLD', WEBGL_ENVS, () => {
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
+
   it('should return the correct default value', () => {
     if (device_util.isMobile() && tf.env().getBool('IS_CHROME')) {
       expect(tf.env().getNumber('WEBGL_FLUSH_THRESHOLD')).toEqual(1);
