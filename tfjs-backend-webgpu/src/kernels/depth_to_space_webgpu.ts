@@ -74,8 +74,8 @@ export class DepthToSpaceProgram implements WebGPUProgram {
 
   getUserCodeWgsl(): string {
     const userCode = `
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
         let index = getGlobalIndex();
         if (index < size) {
           let coords = getOutputCoords();
