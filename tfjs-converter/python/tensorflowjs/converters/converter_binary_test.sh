@@ -15,8 +15,8 @@
 
 set -e
 
-GENERATE_BIN="${TEST_SRCDIR}/org_tensorflow_js/tensorflowjs/converters/generate_test_model"
-CONVERTER_BIN="${TEST_SRCDIR}/org_tensorflow_js/tensorflowjs/converters/converter"
+GENERATE_BIN="${TEST_SRCDIR}/tfjs/tfjs-converter/python/tensorflowjs/converters/generate_test_model"
+CONVERTER_BIN="${TEST_SRCDIR}/tfjs/tfjs-converter/python/tensorflowjs/converters/converter"
 
 # 1. Test tf_saved_model --> tfjs_graph_model conversion.
 SAVED_MODEL_DIR="$(mktemp -d)"

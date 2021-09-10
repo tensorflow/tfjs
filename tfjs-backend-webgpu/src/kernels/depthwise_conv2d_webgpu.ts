@@ -208,8 +208,8 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
         }
       }
 
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
         let coords = getOutputCoords(globalId, index);
         let batch = coords[0];
         let xRCCorner = vec2<i32>(coords.yz * uniforms.stride - uniforms.pad);
@@ -230,8 +230,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
 
         // Extract if checking out of for loop for performance.
         if (inputRowStart >= 0 && inputColStart >= 0 &&
-          inputRowEnd < i32(uniforms.inDims[0]) && inputColEnd < i32(uniforms.inDims[1]))
-          {
+          inputRowEnd < i32(uniforms.inDims[0]) && inputColEnd < i32(uniforms.inDims[1])) {
             // Here using a constant value |this.convInfo.filterHeight| instead
             // of uniform value is in order to loop unrolling.
             for (var wR = 0u; wR < ${

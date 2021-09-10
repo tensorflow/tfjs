@@ -72,7 +72,7 @@ on NPM.
 
 ## Benchmarks
 
-* [Local benchmark tool](https://tensorflow.github.io/tfjs/e2e/benchmarks/local-benchmark/index.html). Use this webpage tool to collect the performance related metrics (speed, memory, etc) of TensorFlow.js models and kernels **on your local device** with CPU, WebGL or WASM backends. You can benchmark custom models by following this [guide](https://github.com/tensorflow/tfjs/blob/master/e2e/benchmarks/local-benchmark/README.md).
+* [Local benchmark tool](https://tfjs-benchmarks.web.app/). Use this webpage tool to collect the performance related metrics (speed, memory, etc) of TensorFlow.js models and kernels **on your local device** with CPU, WebGL or WASM backends. You can benchmark custom models by following this [guide](https://github.com/tensorflow/tfjs/blob/master/e2e/benchmarks/local-benchmark/README.md).
 * [Multi-device benchmark tool](https://github.com/tensorflow/tfjs/tree/master/e2e/benchmarks/browserstack-benchmark/README.md). Use this tool to collect the same performance related metrics **on a collection of remote devices**.
 
 ## Getting started
@@ -165,6 +165,11 @@ and <a href="https://js.tensorflow.org/api/latest/">documentation</a> for more d
 We support porting pre-trained models from:
 - [TensorFlow SavedModel](https://github.com/tensorflow/tfjs-converter)
 - [Keras](https://js.tensorflow.org/tutorials/import-keras.html)
+
+## Various ops supported in different backends
+
+Please refer below :
+- [TFJS Ops Metrix](https://docs.google.com/spreadsheets/d/1D25XtWaBrmUEErbGQB0QmNhH-xtwHo9LDl59w0TbxrI/edit#gid=0)
 
 ## Find out more
 

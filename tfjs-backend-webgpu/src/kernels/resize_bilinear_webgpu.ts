@@ -28,11 +28,12 @@ export class ResizeBilinearProgram implements WebGPUProgram {
   variableNames = ['x'];
   workGroupSize: [number, number, number] = [64, 1, 1];
   alignCorners: boolean;
+  halfPixelCenters: boolean;
   useWgsl: boolean;
 
   constructor(
       inputShape: [number, number, number, number], newHeight: number,
-      newWidth: number, alignCorners: boolean) {
+      newWidth: number, alignCorners: boolean, halfPixelCenters: boolean) {
     this.outputShape = [inputShape[0], newHeight, newWidth, inputShape[3]];
 
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
@@ -41,7 +42,8 @@ export class ResizeBilinearProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.alignCorners = alignCorners;
-    this.shaderKey = `resizeBilinear_${alignCorners}_${
+    this.halfPixelCenters = halfPixelCenters;
+    this.shaderKey = `resizeBilinear_${alignCorners}_${halfPixelCenters}_${
         this.outputShape[1] > 1}_${this.outputShape[2] > 1}`;
     this.useWgsl = getUseWgsl();
   }
@@ -70,7 +72,10 @@ export class ResizeBilinearProgram implements WebGPUProgram {
               effectiveInSize / effectiveOutSize;
 
           // Fractional source index
-          vec2 sourceFracIndexRC = vec2(rc) * effectiveInputOverOutputRatioRC;
+          vec2 sourceFracIndexRC = ${
+        this.halfPixelCenters ?
+            '(vec2(rc) + vec2(0.5)) * effectiveInputOverOutputRatioRC - vec2(0.5)' :
+            'vec2(rc) * effectiveInputOverOutputRatioRC'};
 
           // Compute the four integer indices.
           ivec2 sourceFloorRC = ivec2(sourceFracIndexRC);
@@ -99,8 +104,8 @@ export class ResizeBilinearProgram implements WebGPUProgram {
     const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
 
     const userCode = `
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
         let coords = getOutputCoords(globalId, index);
         if (all(coords < uniforms.outShape)) {
           let b = coords[0];
@@ -127,7 +132,10 @@ export class ResizeBilinearProgram implements WebGPUProgram {
               effectiveInSize / effectiveOutSize;
 
           // Fractional source index
-          let sourceFracIndexRC = vec2<f32>(rc) * effectiveInputOverOutputRatioRC;
+          let sourceFracIndexRC = ${
+        this.halfPixelCenters ?
+            '(vec2<f32>(rc) + vec2<f32>(0.5)) * effectiveInputOverOutputRatioRC - vec2<f32>(0.5)' :
+            'vec2<f32>(rc) * effectiveInputOverOutputRatioRC'};
 
           // Compute the four integer indices.
           let sourceFloorRC = vec2<u32>(sourceFracIndexRC);

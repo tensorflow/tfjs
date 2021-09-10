@@ -28,9 +28,8 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  uniforms = 'ivec2 pad, stride, dilation, convDims, filterDims;';
-  uniformsWgsl =
-      `pad : vec2<u32>; stride : vec2<u32>; dilation : vec2<u32>; convDims : vec2<u32>; filterDims : vec2<u32>;`;
+  uniforms = 'ivec2 stride;';
+  uniformsWgsl = `stride : vec2<i32>;`;
   workGroupSize: [number, number, number] = [256, 1, 1];
   useWgsl: boolean;
 
@@ -67,14 +66,14 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
 
   getUserCodeWgsl(): string {
     const userCode = `
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
         let coords = getOutputCoords(globalId, index);
         let batch = coords[0];
         let d = coords[3];
 
         if (all(coords < uniforms.outShape)) {
-          let xRCCorner = coords.yz * uniforms.stride;
+          let xRCCorner = coords.yz * vec2<u32>(uniforms.stride);
           let xRCorner = xRCCorner.x;
           let xCCorner = xRCCorner.y;
 

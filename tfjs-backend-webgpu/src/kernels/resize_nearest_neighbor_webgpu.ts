@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
+import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class ResizeNearestNeighborProgram implements WebGPUProgram {
   outputShape: number[];
@@ -28,6 +29,7 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   alignCorners: boolean;
   halfPixelCenters: boolean;
+  useWgsl: boolean;
 
   constructor(
       inputShape: [number, number, number, number], newHeight: number,
@@ -44,6 +46,7 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
     this.shaderKey =
         `resizeNearest_${alignCorners}_${this.outputShape[1] > 1}_${
             this.outputShape[2] > 1}_${halfPixelCenters}`;
+    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
@@ -88,6 +91,65 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
           ivec2 sourceNearestRC = ivec2(
             min(inputShapeRC - 1.0, floor(sourceFracIndexRC + ${roundBase})));
           float newValue = getX(b, sourceNearestRC.x, sourceNearestRC.y, d);
+
+          setOutput(b, coords[1], coords[2], d, newValue);
+        }
+      }
+    `;
+    return userCode;
+  }
+
+  getUserCodeWgsl(): string {
+    // When align corners is false, we rounds the value with floor.
+    const roundBase = this.alignCorners ? '0.5' : '0.0';
+    let sourceFracIndexRC: string;
+    if (this.halfPixelCenters) {
+      sourceFracIndexRC =
+          `max((vec2<f32>(rc) + vec2<f32>(0.5)) * effectiveInputOverOutputRatioRC` +
+          `, vec2<f32>(0.0))`;
+    } else {
+      sourceFracIndexRC = `vec2<f32>(rc) * effectiveInputOverOutputRatioRC`;
+    }
+
+    const adjustHeight = this.alignCorners && this.outputShape[1] > 1;
+    const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
+
+    const userCode = `
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
+        let coords = getOutputCoords(globalId, index);
+        if (all(coords < uniforms.outShape)) {
+          let b = coords[0];
+          let d = coords[3];
+          let rc = coords.yz;
+
+          let effectiveInSize = vec2<f32>(
+            ${
+        adjustHeight ? `f32(uniforms.xShape.y) - 1.0` :
+                       `f32(uniforms.xShape.y)`},
+            ${
+        adjustWidth ? `f32(uniforms.xShape.z) - 1.0` :
+                      `f32(uniforms.xShape.z)`});
+
+          let effectiveOutSize = vec2<f32>(
+            ${
+        adjustHeight ? `f32(uniforms.outShape.y) - 1.0` :
+                       `f32(uniforms.outShape.y)`},
+            ${
+        adjustWidth ? `f32(uniforms.outShape.z) - 1.0` :
+                      `f32(uniforms.outShape.z)`});
+
+          let effectiveInputOverOutputRatioRC =
+              effectiveInSize / effectiveOutSize;
+
+          // Fractional source index
+          let sourceFracIndexRC = ${sourceFracIndexRC};
+
+          // Compute the coordinators of nearest neighbor point.
+          let inputShapeRC = vec2<f32>(f32(uniforms.xShape.y), f32(uniforms.xShape.z));
+          let sourceNearestRC = vec2<u32>(
+            min(inputShapeRC - 1.0, floor(sourceFracIndexRC + ${roundBase})));
+          let newValue = getX(b, sourceNearestRC.x, sourceNearestRC.y, d);
 
           setOutput(b, coords[1], coords[2], d, newValue);
         }

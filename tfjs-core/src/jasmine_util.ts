@@ -25,6 +25,8 @@ const jasmineCore = jasmineRequire.core(jasmineRequire);
 import {KernelBackend} from './backends/backend';
 import {ENGINE} from './engine';
 import {env, Environment, Flags} from './environment';
+import {purgeLocalStorageArtifacts} from './io/local_storage';
+import {isPromise} from './util_base';
 
 Error.stackTraceLimit = Infinity;
 jasmineCore.DEFAULT_TIMEOUT_INTERVAL = 20000;
@@ -281,4 +283,41 @@ function executeTests(
 
 export class TestKernelBackend extends KernelBackend {
   dispose(): void {}
+}
+
+let lock = Promise.resolve();
+
+/**
+ * Wraps a Jasmine spec's test function so it is run exclusively to others that
+ * use runWithLock.
+ *
+ * @param spec The function that runs the spec. Must return a promise or call
+ *     `done()`.
+ *
+ */
+export function runWithLock(spec: (done?: DoneFn) => Promise<void> | void) {
+  return () => {
+    lock = lock.then(async () => {
+      let done: DoneFn;
+      const donePromise = new Promise<void>((resolve, reject) => {
+        done = (() => {
+          resolve();
+        }) as DoneFn;
+        done.fail = (message?) => {
+          reject(message);
+        }
+      });
+
+      purgeLocalStorageArtifacts();
+      const result = spec(done);
+
+      if (isPromise(result)) {
+        await result;
+      }
+      else {
+        await donePromise;
+      }
+    });
+    return lock;
+  }
 }

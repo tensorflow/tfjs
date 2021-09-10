@@ -186,8 +186,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'resizeBilinear',
     excludes: [
-      'gradient',          // Not yet implemented.
-      'halfPixelCenters',  // Not yet implemented.
+      'gradient',  // Not yet implemented.
     ]
   },
   {

@@ -40,7 +40,7 @@ export interface WebGPUProgram {
   // workGroupSize.x * workGroupSize.y * workGroupSize.z = the number of threads
   // in a thread group. Individual dimensions determines thread layout within
   // the group.
-  workGroupSize?: [number, number, number];
+  workGroupSize: [number, number, number];
   useWgsl?: boolean;
   isVec4?: boolean;
   // size is used for bounds checking.

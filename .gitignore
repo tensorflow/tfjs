@@ -62,6 +62,8 @@ tfjs-backend-wasm/wasm-out/*.wasm
 yalc.lock
 yarn-error.log
 cloudbuild_generated.yml
+wasm-dist/
+.firebase/
 
 # User-specific .bazelrc
 .bazelrc.user
