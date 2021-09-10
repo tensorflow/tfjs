@@ -69,8 +69,8 @@ export class UnaryOpProgram implements WebGPUProgram {
       fn unaryOperation(a : f32) -> f32 {
         ${getUnaryOpString(this.op, false, true)}
       }
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
         if (index < uniforms.size) {
           let a = getAAtOutCoordsByGlobalId(globalId, index);
           setOutputFlat(index, unaryOperation(a));

@@ -28,9 +28,9 @@ export class Pool2DProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  uniforms = 'ivec2 pad, stride, dilation, convDims, filterDims;';
+  uniforms = 'ivec2 stride, pad, dilation, convDims, filterDims;';
   uniformsWgsl =
-      `pad : vec2<u32>; stride : vec2<u32>; dilation : vec2<u32>; convDims : vec2<u32>; filterDims : vec2<u32>;`;
+      `stride : vec2<i32>; pad : vec2<i32>; dilation : vec2<i32>; convDims : vec2<i32>; filterDims : vec2<i32>;`;
   // TODO(jiajia.qin@intel.com): Dynamically choose different workGroupSize for
   // different output shapes.
   workGroupSize: [number, number, number] = [128, 1, 1];
@@ -111,12 +111,12 @@ export class Pool2DProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
         let coords = getOutputCoords(globalId, index);
         if (coordsInBounds4D(coords, uniforms.outShape)) {
           let batch = coords[0];
-          let xRCCorner = vec2<i32>(coords.yz * uniforms.stride - uniforms.pad);
+          let xRCCorner = vec2<i32>(coords.yz) * uniforms.stride - uniforms.pad;
           let xRCorner = xRCCorner.x;
           let xCCorner = xRCCorner.y;
 
@@ -124,16 +124,16 @@ export class Pool2DProgram implements WebGPUProgram {
         this.poolType === 'avg' ? '0.0' : '-1.0 / pow(10.0, -20.0)'};
           var count = 0.0;
 
-          for (var wR = 0u; wR < uniforms.filterDims.x; wR = wR + uniforms.dilation.x) {
-            let xR = xRCorner + i32(wR);
+          for (var wR = 0; wR < uniforms.filterDims.x; wR = wR + uniforms.dilation.x) {
+            let xR = xRCorner + wR;
 
-            if (xR < 0 || xR >= i32(uniforms.convDims.x)) {
+            if (xR < 0 || xR >= uniforms.convDims.x) {
               continue;
             }
 
-            for (var wC = 0u; wC < uniforms.filterDims.y; wC = wC + uniforms.dilation.y) {
-              let xC = xCCorner + i32(wC);
-              if (xC < 0 || xC >= i32(uniforms.convDims.y)) {
+            for (var wC = 0; wC < uniforms.filterDims.y; wC = wC + uniforms.dilation.y) {
+              let xC = xCCorner + wC;
+              if (xC < 0 || xC >= uniforms.convDims.y) {
                 continue;
               }
 
