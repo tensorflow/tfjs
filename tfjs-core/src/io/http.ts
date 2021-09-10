@@ -113,10 +113,10 @@ export class HTTPRequest implements IOHandler {
     if (modelArtifacts.weightData != null) {
       if(useNodeBuffer){
       init.body.append('model.json', new Buffer.from([JSON.stringify(modelTopologyAndWeightManifest)], { type: JSON_TYPE }), 'model.json');
-    }
-    else{
+      }
+      else{
         init.body.append('model.json', new Blob([JSON.stringify(modelTopologyAndWeightManifest)], { type: JSON_TYPE }), 'model.json');
-    }
+      }
     }
 
     const response = await this.fetch(this.path, init);
