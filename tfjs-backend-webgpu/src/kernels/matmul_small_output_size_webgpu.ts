@@ -125,7 +125,7 @@ export function makeMatMulSmallOutputSizeSourceWgsl(
   // arithmetic operations and others handle IO operations between barrier api,
   // makes ALUs and load/store units work simultaneously, could improves
   // the performance.
-  ${getMainHeaderStringWgsl(workGroupSize)} {
+  ${getMainHeaderStringWgsl()} {
     let tileRow = localId.y;
     let tileCol = localId.x;
     let globalRow = globalId.y;
