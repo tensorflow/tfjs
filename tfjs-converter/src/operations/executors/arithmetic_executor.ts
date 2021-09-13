@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor} from '@tensorflow/tfjs-core';
+import {reshape, Tensor} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
@@ -30,6 +30,17 @@ export const executeOp: InternalOpExecutor =
      context: ExecutionContext): Tensor[] => {
       switch (node.op) {
         case 'BiasAdd':
+          const dataFormat =
+              getParamValue('dataFormat', node, tensorMap, context) as string;
+          if (dataFormat === 'ncwh') {
+            const b = getParamValue('b', node, tensorMap, context) as Tensor;
+            return [tfOps.add(
+                (getParamValue('a', node, tensorMap, context) as Tensor),
+                reshape(b, [1, b.shape[0], 1, 1]))];
+          }
+          return [tfOps.add(
+              (getParamValue('a', node, tensorMap, context) as Tensor),
+              getParamValue('b', node, tensorMap, context) as Tensor)];
         case 'AddV2':
         case 'Add': {
           return [tfOps.add(

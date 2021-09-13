@@ -142,7 +142,8 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
       () => `Error in fused depthwiseConv2d: filter must be rank 4, ` +
           `but got rank ${$filter.rank}.`);
   util.assert(
-      x4D.shape[3] === $filter.shape[2],
+      dataFormat === 'NHWC' ? x4D.shape[3] === $filter.shape[2] :
+                              x4D.shape[1] === $filter.shape[2],
       () => `Error in fused depthwiseConv2d: number of input channels ` +
           `(${x4D.shape[3]}) must match the inChannels dimension in ` +
           `filter ${$filter.shape[2]}.`);

@@ -1466,7 +1466,7 @@ colorette@^1.2.2:
   resolved "https://registry.npmjs.org/colorette/-/colorette-1.2.2.tgz#cbcc79d5e99caea2dbf10eb3a26fd8b3e6acfa94"
   integrity sha512-MKGMzyfeuutC/ZJ1cba9NqcNpfeqMUcYmyF1ZFY6/Cn7CNSAKx6a+s48sqLqyAiZuaP2TcqMhoo+dlwFnVxT9w==
 
-colors@^1.4.0:
+colors@>=1.0, colors@^1.4.0:
   version "1.4.0"
   resolved "https://registry.npmjs.org/colors/-/colors-1.4.0.tgz#c50491479d4c1bdaed2c9ced32cf7c7dc2360f78"
   integrity sha512-a+UqTh4kgZg/SlGvfbzDHpgRu7AAQOmmqRHJnxhRZICKFUT91brVhNNt58CMWU9PsBbv3PDCZUHbVxuDiH2mtA==
@@ -2566,6 +2566,13 @@ karma-typescript@~5.5.1:
     url "^0.11.0"
     util "^0.12.1"
     vm-browserify "^1.1.2"
+
+karma-verbose-reporter@0.0.6:
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/karma-verbose-reporter/-/karma-verbose-reporter-0.0.6.tgz#5909052451c607f02ac77c763791a2fe1251260c"
+  integrity sha1-WQkFJFHGB/Aqx3x2N5Gi/hJRJgw=
+  dependencies:
+    colors ">=1.0"
 
 karma@~6.3.1:
   version "6.3.4"
