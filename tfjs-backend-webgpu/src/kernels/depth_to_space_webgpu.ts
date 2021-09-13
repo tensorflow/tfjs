@@ -25,7 +25,6 @@ import {WebGPUProgram} from './webgpu_program';
 export class DepthToSpaceProgram implements WebGPUProgram {
   variableNames = ['x'];
   outputShape: number[];
-  blockSize: number;
   dataFormat: string;
   shaderKey: string;
   dispatchLayout: {x: number[]};
@@ -33,16 +32,16 @@ export class DepthToSpaceProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   size: number;
   useWgsl: boolean;
+  uniforms = 'ivec4 outputShape; int blockSize;';
+  uniformsWgsl = 'outputShape : vec4<u32>; blockSize : u32;';
 
-  constructor(
-      outputShape: number[], blockSize: number, dataFormat: 'NHWC'|'NCHW') {
+  constructor(outputShape: number[], dataFormat: 'NHWC'|'NCHW') {
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.shaderKey = `depthToSpace_${outputShape}_${blockSize}_${dataFormat}`;
+    this.shaderKey = `depthToSpace_${dataFormat}`;
     this.size = util.sizeFromShape(this.outputShape);
-    this.blockSize = blockSize;
     this.dataFormat = dataFormat;
   }
 
@@ -57,11 +56,11 @@ export class DepthToSpaceProgram implements WebGPUProgram {
           int w = ${this.getWidthCoordString()};
           int d = ${this.getDepthCoordString()};
 
-          int in_h = h / ${this.blockSize};
-          int offset_h = h % ${this.blockSize};
-          int in_w = w / ${this.blockSize};
-          int offset_w = w % ${this.blockSize};
-          int offset_d = (offset_h * ${this.blockSize} + offset_w) *
+          int in_h = h / blockSize;
+          int offset_h = h % blockSize;
+          int in_w = w / blockSize;
+          int offset_w = w % blockSize;
+          int offset_d = (offset_h * blockSize + offset_w) *
             ${this.getOutputDepthSize()};
           int in_d = d + offset_d;
 
@@ -84,12 +83,12 @@ export class DepthToSpaceProgram implements WebGPUProgram {
           let w = ${this.getWidthCoordString()};
           let d = ${this.getDepthCoordString()};
 
-          let in_h = h / ${this.blockSize};
-          let offset_h = h % ${this.blockSize};
-          let in_w = w / ${this.blockSize};
-          let offset_w = w % ${this.blockSize};
-          let offset_d = (offset_h * ${this.blockSize} + offset_w) *
-            ${this.getOutputDepthSize()};
+          let in_h = h / uniforms.blockSize;
+          let offset_h = h % uniforms.blockSize;
+          let in_w = w / uniforms.blockSize;
+          let offset_w = w % uniforms.blockSize;
+          let offset_d = (offset_h * uniforms.blockSize + offset_w) *
+            ${this.getOutputDepthSizeWgsl()};
           let in_d = d + offset_d;
 
           let result = ${this.getInputSamplingString()};
@@ -123,11 +122,19 @@ export class DepthToSpaceProgram implements WebGPUProgram {
     }
   }
 
-  private getOutputDepthSize(): number {
+  private getOutputDepthSize(): string {
     if (this.dataFormat === 'NHWC') {
-      return this.outputShape[3];
+      return `outputShape[3]`;
     } else {
-      return this.outputShape[1];
+      return `outputShape[1]`;
+    }
+  }
+
+  private getOutputDepthSizeWgsl(): string {
+    if (this.dataFormat === 'NHWC') {
+      return `uniforms.outShape[3]`;
+    } else {
+      return `uniforms.outShape[1]`;
     }
   }
 

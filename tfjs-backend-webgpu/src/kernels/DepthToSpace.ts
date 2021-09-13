@@ -46,8 +46,13 @@ export function depthToSpace(args: {
       [batchSize, outputHeight, outputWidth, outputDepth] :
       [batchSize, outputDepth, outputHeight, outputWidth];
 
-  const program = new DepthToSpaceProgram(outputShape, blockSize, dataFormat);
-  return backend.runWebGPUProgram(program, [x], x.dtype);
+  const uniformData = [
+    {type: 'int32', data: outputShape},
+    {type: 'int32', data: [blockSize]},
+  ];
+
+  const program = new DepthToSpaceProgram(outputShape, dataFormat);
+  return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
 }
 
 export const depthToSpaceConfig: KernelConfig = {
