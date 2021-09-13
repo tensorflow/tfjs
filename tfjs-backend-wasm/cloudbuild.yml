@@ -22,7 +22,7 @@ steps:
   waitFor: ['yarn-common']
 
 # Build.
-- name: 'gcr.io/learnjs-174218/wasm'
+- name: 'node:10'
   dir: 'tfjs-backend-wasm'
   entrypoint: 'bash'
   id: 'build'
@@ -48,7 +48,7 @@ steps:
   secretEnv: ['BROWSERSTACK_KEY']
 
 # Check bundle size.
-- name: 'gcr.io/learnjs-174218/wasm'
+- name: 'node:10'
   dir: 'tfjs-backend-wasm'
   id: 'test-bundle-size'
   entrypoint: 'yarn'
