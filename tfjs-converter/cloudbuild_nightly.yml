@@ -28,7 +28,7 @@ steps:
   args: ['./build-pip-package.sh', '--test-nightly', '/tmp/tfjs-pips']
   waitFor: ['create-pips']
 
-timeout: 2400s
+timeout: 4800s
 logsBucket: 'gs://tfjs-build-logs'
 substitutions:
   _NIGHTLY: ''

@@ -93,7 +93,7 @@ export class Im2ColProgram implements WebGPUProgram {
     const colDim = this.isChannelsLast ? 1 : 2;
 
     const userCode = `
-    ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
+    ${getWorkGroupSizeStringWgsl()}
     fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
       let index = globalId.x;
 

@@ -20,7 +20,7 @@
  */
 
 import * as tf from '../index';
-import {BROWSER_ENVS, describeWithFlags} from '../jasmine_util';
+import {BROWSER_ENVS, describeWithFlags, runWithLock} from '../jasmine_util';
 import {expectArrayBuffersEqual} from '../test_util';
 import {browserIndexedDB, BrowserIndexedDB, BrowserIndexedDBManager, deleteDatabase, indexedDBRouter} from './indexed_db';
 
@@ -98,7 +98,7 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
 
   afterEach(deleteDatabase);
 
-  it('Save-load round trip', async () => {
+  it('Save-load round trip', runWithLock(async () => {
     const testStartDate = new Date();
     const handler = tf.io.getSaveHandlers('indexeddb://FooModel')[0];
 
@@ -122,9 +122,9 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
     expect(loadedArtifacts.convertedBy).toEqual(null);
     expect(loadedArtifacts.modelInitializer).toEqual({});
     expectArrayBuffersEqual(loadedArtifacts.weightData, weightData1);
-  });
+  }));
 
-  it('Save two models and load one', async () => {
+  it('Save two models and load one', runWithLock(async () => {
     const weightData2 = new ArrayBuffer(24);
     const artifacts2: tf.io.ModelArtifacts = {
       modelTopology: modelTopology1,
@@ -161,9 +161,9 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
     expect(loadedArtifacts.modelTopology).toEqual(modelTopology1);
     expect(loadedArtifacts.weightSpecs).toEqual(weightSpecs1);
     expectArrayBuffersEqual(loadedArtifacts.weightData, weightData1);
-  });
+  }));
 
-  it('Loading nonexistent model fails', async () => {
+  it('Loading nonexistent model fails', runWithLock(async () => {
     const handler = tf.io.getSaveHandlers('indexeddb://NonexistentModel')[0];
 
     try {
@@ -174,7 +174,7 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
           .toEqual(
               'Cannot find model with path \'NonexistentModel\' in IndexedDB.');
     }
-  });
+  }));
 
   it('Null, undefined or empty modelPath throws Error', () => {
     expect(() => browserIndexedDB(null))
@@ -195,13 +195,13 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
     expect(indexedDBRouter('qux')).toBeNull();
   });
 
-  it('Manager: List models: 0 result', async () => {
+  it('Manager: List models: 0 result', runWithLock(async () => {
     // Before any model is saved, listModels should return empty result.
     const models = await new BrowserIndexedDBManager().listModels();
     expect(models).toEqual({});
-  });
+  }));
 
-  it('Manager: List models: 1 result', async () => {
+  it('Manager: List models: 1 result', runWithLock(async () => {
     const handler = tf.io.getSaveHandlers('indexeddb://baz/QuxModel')[0];
     const saveResult = await handler.save(artifacts1);
 
@@ -216,9 +216,9 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
         .toEqual(saveResult.modelArtifactsInfo.weightSpecsBytes);
     expect(models['baz/QuxModel'].weightDataBytes)
         .toEqual(saveResult.modelArtifactsInfo.weightDataBytes);
-  });
+  }));
 
-  it('Manager: List models: 2 results', async () => {
+  it('Manager: List models: 2 results', runWithLock(async () => {
     // First, save a model.
     const handler1 = tf.io.getSaveHandlers('indexeddb://QuxModel')[0];
     const saveResult1 = await handler1.save(artifacts1);
@@ -246,9 +246,9 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
         .toEqual(saveResult2.modelArtifactsInfo.weightSpecsBytes);
     expect(models['repeat/QuxModel'].weightDataBytes)
         .toEqual(saveResult2.modelArtifactsInfo.weightDataBytes);
-  });
+  }));
 
-  it('Manager: Successful removeModel', async () => {
+  it('Manager: Successful removeModel', runWithLock(async () => {
     // First, save a model.
     const handler1 = tf.io.getSaveHandlers('indexeddb://QuxModel')[0];
     await handler1.save(artifacts1);
@@ -264,9 +264,9 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
 
     const models = await manager.listModels();
     expect(Object.keys(models)).toEqual(['repeat/QuxModel']);
-  });
+  }));
 
-  it('Manager: Successful removeModel with URL scheme', async () => {
+  it('Manager: Successful removeModel with URL scheme', runWithLock(async () => {
     // First, save a model.
     const handler1 = tf.io.getSaveHandlers('indexeddb://QuxModel')[0];
     await handler1.save(artifacts1);
@@ -285,9 +285,9 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
 
     const models = await manager.listModels();
     expect(Object.keys(models)).toEqual(['repeat/QuxModel']);
-  });
+  }));
 
-  it('Manager: Failed removeModel', async () => {
+  it('Manager: Failed removeModel', runWithLock(async () => {
     try {
       // Attempt to delete a nonexistent model is expected to fail.
       await new BrowserIndexedDBManager().removeModel('nonexistent');
@@ -296,5 +296,5 @@ describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
       expect(err.message)
           .toEqual('Cannot find model with path \'nonexistent\' in IndexedDB.');
     }
-  });
+  }));
 });

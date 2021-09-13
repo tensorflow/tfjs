@@ -23,6 +23,7 @@ ts_library(
     module_name = "@tensorflow/tfjs-core/dist/scripts/test_snippets",
     deps = [
         ":test_snippets_util_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
         "//tfjs-core/src:tfjs-core_test_lib",

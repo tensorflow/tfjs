@@ -295,8 +295,8 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         return coordInfo[0] + coordInfo[1] * index;
       }
 
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
         let coordInfo = getInputCoordInfo(globalId, index);
 
         var bestIndex = 0u;

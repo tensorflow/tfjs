@@ -737,7 +737,7 @@ export function indexToLoc(
  * @param object
  */
 // tslint:disable-next-line: no-any
-export function isPromise(object: any) {
+export function isPromise(object: any): object is Promise<unknown> {
   //  We chose to not use 'obj instanceOf Promise' for two reasons:
   //  1. It only reliably works for es6 Promise, not other Promise
   //  implementations.

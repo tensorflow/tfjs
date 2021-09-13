@@ -131,8 +131,8 @@ export class BatchNormProgram implements WebGPUProgram {
           ${setOutput}
         }
       }
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderStringWgsl()} {
+        ${getGlobalIndexStringWgsl()}
         let coords = getOutputCoords(globalId, index);
         let xValue = getXAtOutCoordsByGlobalId(globalId, index);
         let meanValue = getMeanAtOutCoordsByGlobalId(globalId, index);
