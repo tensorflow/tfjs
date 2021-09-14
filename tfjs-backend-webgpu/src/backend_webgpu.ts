@@ -100,8 +100,8 @@ export class WebGPUBackend extends KernelBackend {
   private downloadWaitMs = 0;
   private computePassNumberInEncoder = 0;
   private querySet: GPUQuerySet;
-  private fromPixelProgram:
-      {copyExternal: FromPixelsProgram, import: FromPixelsImportProgram};
+  private fromPixelProgram?: FromPixelsProgram;
+  private fromPixelImportProgram?: FromPixelsImportProgram;
 
   constructor(device: GPUDevice, glslang: Glslang, supportTimeQuery = false) {
     super();
@@ -143,12 +143,6 @@ export class WebGPUBackend extends KernelBackend {
 
       document.body.appendChild(this.dummyCanvas);
     }
-
-    // Create FromPixelsProgram instance is light weight;
-    this.fromPixelProgram = {
-      copyExternal: new FromPixelsProgram(),
-      import: new FromPixelsImportProgram()
-    };
   }
 
   floatPrecision(): 32 {
@@ -319,16 +313,16 @@ export class WebGPUBackend extends KernelBackend {
   getFromPixelsProgram(type: 'copyExternal'|'import'): FromPixelsProgram {
     switch (type) {
       case 'copyExternal': {
-        if (!this.fromPixelProgram.copyExternal) {
-          this.fromPixelProgram.copyExternal = new FromPixelsProgram();
+        if (!this.fromPixelProgram) {
+          this.fromPixelProgram = new FromPixelsProgram();
         }
-        return this.fromPixelProgram.copyExternal;
+        return this.fromPixelProgram;
       }
       case 'import': {
-        if (!this.fromPixelProgram.import) {
-          this.fromPixelProgram.import = new FromPixelsImportProgram();
+        if (!this.fromPixelImportProgram) {
+          this.fromPixelImportProgram = new FromPixelsImportProgram();
         }
-        return this.fromPixelProgram.import;
+        return this.fromPixelImportProgram;
       }
       default:
         util.assert(false, () => `Unsupported fromPixels shape`);
@@ -921,12 +915,12 @@ export class WebGPUBackend extends KernelBackend {
     }
     this.bufferManager.dispose();
 
-    if (this.fromPixelProgram.copyExternal) {
-      this.fromPixelProgram.copyExternal.dispose();
+    if (this.fromPixelProgram) {
+      this.fromPixelProgram.dispose();
     }
 
-    if (this.fromPixelProgram.import) {
-      this.fromPixelProgram.import.dispose();
+    if (this.fromPixelImportProgram) {
+      this.fromPixelImportProgram.dispose();
     }
 
     this.disposed = true;
