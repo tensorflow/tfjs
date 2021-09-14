@@ -1,14 +1,14 @@
 steps:
 
 # Install packages.
-- name: 'gcr.io/learnjs-174218/release'
+- name: 'node:16'
   dir: 'e2e'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
 
 # Build deps.
-- name: 'gcr.io/learnjs-174218/release'
+- name: 'node:16'
   dir: 'e2e'
   entrypoint: 'yarn'
   id: 'build-deps'
@@ -16,7 +16,7 @@ steps:
   env: ['NIGHTLY=$_NIGHTLY']
 
 # Test.
-- name: 'gcr.io/learnjs-174218/release'
+- name: 'node:16'
   dir: 'e2e'
   entrypoint: 'yarn'
   id: 'test'

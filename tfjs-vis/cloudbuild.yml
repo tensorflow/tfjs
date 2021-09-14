@@ -1,13 +1,13 @@
 
 steps:
 # Install common dependencies.
-- name: 'node:10'
+- name: 'node:16'
   id: 'yarn-common'
   entrypoint: 'yarn'
   args: ['install']
 
 # Install tfjs-vis dependencies.
-- name: 'node:10'
+- name: 'node:16'
   dir: 'tfjs-node'
   entrypoint: 'yarn'
   id: 'yarn'
@@ -15,7 +15,7 @@ steps:
   waitFor: ['yarn-common']
 
 # Run vis tests.
-- name: 'node:10'
+- name: 'node:16'
   dir: 'tfjs-vis'
   entrypoint: 'yarn'
   id: 'test-vis'

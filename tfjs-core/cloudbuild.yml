@@ -1,6 +1,6 @@
 steps:
 # Install common dependencies.
-- name: 'node:10'
+- name: 'node:16'
   id: 'yarn-common'
   entrypoint: 'yarn'
   args: ['install']
