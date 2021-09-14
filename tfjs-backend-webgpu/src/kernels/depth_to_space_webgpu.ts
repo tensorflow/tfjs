@@ -32,8 +32,8 @@ export class DepthToSpaceProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   size: number;
   useWgsl: boolean;
-  uniforms = 'ivec4 outputShape; int blockSize;';
-  uniformsWgsl = 'outputShape : vec4<u32>; blockSize : u32;';
+  uniforms = 'int blockSize;';
+  uniformsWgsl = 'blockSize : u32;';
 
   constructor(outputShape: number[], dataFormat: 'NHWC'|'NCHW') {
     this.outputShape = outputShape;
@@ -88,7 +88,7 @@ export class DepthToSpaceProgram implements WebGPUProgram {
           let in_w = w / uniforms.blockSize;
           let offset_w = w % uniforms.blockSize;
           let offset_d = (offset_h * uniforms.blockSize + offset_w) *
-            ${this.getOutputDepthSizeWgsl()};
+            ${this.getOutputDepthSize()};
           let in_d = d + offset_d;
 
           let result = ${this.getInputSamplingString()};
@@ -124,17 +124,9 @@ export class DepthToSpaceProgram implements WebGPUProgram {
 
   private getOutputDepthSize(): string {
     if (this.dataFormat === 'NHWC') {
-      return `outputShape[3]`;
+      return `outShape[3]`;
     } else {
-      return `outputShape[1]`;
-    }
-  }
-
-  private getOutputDepthSizeWgsl(): string {
-    if (this.dataFormat === 'NHWC') {
-      return `uniforms.outShape[3]`;
-    } else {
-      return `uniforms.outShape[1]`;
+      return `outShape[1]`;
     }
   }
 

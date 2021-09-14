@@ -47,7 +47,6 @@ export function depthToSpace(args: {
       [batchSize, outputDepth, outputHeight, outputWidth];
 
   const uniformData = [
-    {type: 'int32', data: outputShape},
     {type: 'int32', data: [blockSize]},
   ];
 
