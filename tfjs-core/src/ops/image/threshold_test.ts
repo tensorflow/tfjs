@@ -22,7 +22,7 @@ describeWithFlags('threshold', ALL_ENVS, () => {
   let originalTimeout: number;
   beforeEach(() => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20_000;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 40_000;
     tf.env().reset();
   });
   afterAll(() => {
