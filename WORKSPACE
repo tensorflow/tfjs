@@ -228,51 +228,52 @@ else
 fi
 """
 
-http_archive(
-    name = "python3_interpreter",
-    build_file_content = """
-exports_files(["python3_bin"])
-filegroup(
-    name = "files",
-    srcs = glob(["bazel_install_py3/**"], exclude = ["**/* *"]),
-    visibility = ["//visibility:public"],
-)
-""",
-    patch_cmds = [
-        "mkdir $(pwd)/bazel_install_py3",
-        _py3_configure,
-        "make",
-        "make install",
-        "ln -s bazel_install_py3/bin/python3 python3_bin",
-    ],
-    sha256 = "fb1a1114ebfe9e97199603c6083e20b236a0e007a2c51f29283ffb50c1420fb2",
-    strip_prefix = "Python-3.8.11",
-    urls = ["https://www.python.org/ftp/python/3.8.11/Python-3.8.11.tar.xz"],
-)
+# http_archive(
+#     name = "python3_interpreter",
+#     build_file_content = """
+# exports_files(["python3_bin"])
+# filegroup(
+#     name = "files",
+#     srcs = glob(["bazel_install_py3/**"], exclude = ["**/* *"]),
+#     visibility = ["//visibility:public"],
+# )
+# """,
+#     patch_cmds = [
+#         "mkdir $(pwd)/bazel_install_py3",
+#         _py3_configure,
+#         "make",
+#         "make install",
+#         "ln -s bazel_install_py3/bin/python3 python3_bin",
+#     ],
+#     sha256 = "fb1a1114ebfe9e97199603c6083e20b236a0e007a2c51f29283ffb50c1420fb2",
+#     strip_prefix = "Python-3.8.11",
+#     urls = ["https://www.python.org/ftp/python/3.8.11/Python-3.8.11.tar.xz"],
+# )
 
-http_archive(
-    name = "python2_interpreter",
-    build_file_content = """
-exports_files(["python_bin"])
-filegroup(
-    name = "files",
-    srcs = glob(["bazel_install_py2/**"], exclude = ["**/* *"]),
-    visibility = ["//visibility:public"],
-)
-""",
-    patch_cmds = [
-        "mkdir $(pwd)/bazel_install_py2",
-        _py2_configure,
-        "make",
-        "make install",
-        "ln -s bazel_install_py2/bin/python python_bin",
-    ],
-    sha256 = "a4f05a0720ce0fd92626f0278b6b433eee9a6173ddf2bced7957dfb599a5ece1",
-    strip_prefix = "Python-2.7.13",
-    urls = ["https://www.python.org/ftp/python/2.7.13/Python-2.7.13.tgz"],
-)
+# http_archive(
+#     name = "python2_interpreter",
+#     build_file_content = """
+# exports_files(["python_bin"])
+# filegroup(
+#     name = "files",
+#     srcs = glob(["bazel_install_py2/**"], exclude = ["**/* *"]),
+#     visibility = ["//visibility:public"],
+# )
+# """,
+#     patch_cmds = [
+#         "mkdir $(pwd)/bazel_install_py2",
+#         _py2_configure,
+#         "make",
+#         "make install",
+#         "ln -s bazel_install_py2/bin/python python_bin",
+#     ],
+#     sha256 = "a4f05a0720ce0fd92626f0278b6b433eee9a6173ddf2bced7957dfb599a5ece1",
+#     strip_prefix = "Python-2.7.13",
+#     urls = ["https://www.python.org/ftp/python/2.7.13/Python-2.7.13.tgz"],
+# )
 
-register_toolchains("//tfjs-converter/python:tfjs_py_toolchain")
+#register_toolchains("//tfjs-converter/python:tfjs_py_toolchain")
+#register_toolchains("@bazel_tools//tools/python:autodetecting_python_toolchain")
 
 http_archive(
     name = "rules_python",
@@ -286,12 +287,12 @@ load("@rules_python//python:pip.bzl", "pip_install")
 # third-party packages specified in the requirements.txt file.
 pip_install(
     name = "tensorflowjs_dev_deps",
-    python_interpreter_target = "@python3_interpreter//:python3_bin",
+    #python_interpreter_target = "@python3_interpreter//:python3_bin",
     requirements = "//tfjs-converter/python:requirements-dev.txt",
 )
 
 pip_install(
     name = "tensorflowjs_deps",
-    python_interpreter_target = "@python3_interpreter//:python3_bin",
+    #python_interpreter_target = "@python3_interpreter//:python3_bin",
     requirements = "//tfjs-converter/python:requirements.txt",
 )
