@@ -39,7 +39,6 @@ const RENDER_FLOAT32_ENVS = {
 
 describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
   beforeEach(() => {
-    tf.env().reset();
     tf.env().set('WEBGL_RENDER_FLOAT32_ENABLED', false);
   });
   afterAll(() => tf.env().reset());
@@ -54,10 +53,11 @@ describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
     // Silence debug warnings.
     spyOn(console, 'warn');
 
-    tf.enableDebugMode();
+    const debug = tf.env().get('DEBUG');
+    tf.env().set('DEBUG', true);
     const a = () => tf.tensor1d([2, Math.pow(2, 17)], 'float32');
     expect(a).toThrowError();
-    tf.enableProdMode();
+    tf.env().set('DEBUG', debug);
   });
 });
 
