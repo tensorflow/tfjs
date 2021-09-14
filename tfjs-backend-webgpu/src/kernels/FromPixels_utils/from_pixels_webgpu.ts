@@ -19,7 +19,7 @@ import {util} from '@tensorflow/tfjs-core';
 import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../../shader_preprocessor_wgsl';
 
 import {computeDispatch, flatDispatchLayout, WebGPULayout} from '../../webgpu_util';
-import {getUseWgsl, WebGPUProgram} from '../webgpu_program';
+import {WebGPUProgram} from '../webgpu_program';
 
 export class FromPixelsProgram implements WebGPUProgram {
   outputShape: number[] = [0];
@@ -38,7 +38,9 @@ export class FromPixelsProgram implements WebGPUProgram {
   inputTexture: GPUTexture = null;
   layout: WebGPULayout = null;
   lastPixelSize = {width: 0, height: 0};
-  useWgsl: boolean;
+  // Default to WGSL, because GLSL will complain: The provided value
+  // 'read-only' is not a valid enum value of type GPUStorageTextureAccess.
+  useWgsl = true;
   useImport: boolean;
 
   private disposed = false;
@@ -58,7 +60,6 @@ export class FromPixelsProgram implements WebGPUProgram {
 
   constructor() {
     this.shaderKey = 'fromPixels';
-    this.useWgsl = getUseWgsl();
     this.useImport = false;
   }
 
