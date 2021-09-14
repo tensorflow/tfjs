@@ -1,4 +1,3 @@
-load("@rules_python//python:defs.bzl", "py_runtime_pair")
 load("@rules_python//python:packaging.bzl", "py_package", "py_wheel")
 
 package(default_visibility = ["//visibility:public"])
