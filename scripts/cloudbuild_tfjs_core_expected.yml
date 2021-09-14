@@ -454,7 +454,7 @@ steps:
     secretEnv:
       - BROWSERSTACK_KEY
       - FIREBASE_KEY
-  - name: 'node:16'
+  - name: 'node:10'
     dir: tfjs-node
     entrypoint: yarn
     id: yarn-tfjs-node
@@ -466,7 +466,7 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-  - name: 'node:16'
+  - name: 'node:10'
     dir: tfjs-node
     entrypoint: yarn
     id: build-addon-tfjs-node
@@ -479,7 +479,7 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-  - name: 'node:16'
+  - name: 'node:10'
     dir: tfjs-node
     entrypoint: yarn
     id: build-tfjs-node
@@ -492,7 +492,7 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-  - name: 'node:16'
+  - name: 'node:10'
     dir: tfjs-node
     entrypoint: yarn
     id: lint-tfjs-node
@@ -505,7 +505,7 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-  - name: 'node:16'
+  - name: 'node:10'
     dir: tfjs-node
     entrypoint: yarn
     id: test-tfjs-node
@@ -519,7 +519,7 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-  - name: 'node:16'
+  - name: 'node:10'
     dir: tfjs-node
     entrypoint: yarn
     id: ensure-cpu-gpu-packages-align-tfjs-node
@@ -531,7 +531,7 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-  - name: 'node:16'
+  - name: 'node:10'
     dir: tfjs-node-gpu
     id: prep-gpu-tfjs-node-gpu
     entrypoint: yarn
@@ -543,7 +543,7 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-  - name: 'node:16'
+  - name: 'node:10'
     dir: tfjs-node-gpu
     entrypoint: yarn
     id: yarn-tfjs-node-gpu
@@ -556,7 +556,7 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-  - name: 'node:16'
+  - name: 'node:10'
     dir: tfjs-node-gpu
     entrypoint: yarn
     id: build-addon-tfjs-node-gpu
@@ -569,7 +569,7 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-  - name: 'node:16'
+  - name: 'node:10'
     dir: tfjs-node-gpu
     entrypoint: yarn
     id: build-tfjs-node-gpu
@@ -582,7 +582,7 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-  - name: 'node:16'
+  - name: 'node:10'
     dir: tfjs-node-gpu
     entrypoint: yarn
     id: lint-tfjs-node-gpu
@@ -595,7 +595,7 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-  - name: 'node:16'
+  - name: 'node:10'
     dir: tfjs-node-gpu
     entrypoint: yarn
     id: test-tfjs-node-gpu
@@ -609,7 +609,7 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-  - name: 'node:16'
+  - name: 'node:10'
     dir: tfjs-node-gpu
     entrypoint: yarn
     id: ensure-cpu-gpu-packages-align-tfjs-node-gpu

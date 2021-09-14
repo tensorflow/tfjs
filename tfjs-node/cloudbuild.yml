@@ -1,12 +1,14 @@
 steps:
 # Install common dependencies.
-- name: 'node:16'
+# We use node:10 instead of a newer version because e2e requires the native
+# module to be built for n-api v7
+- name: 'node:10'
   id: 'yarn-common'
   entrypoint: 'yarn'
   args: ['install']
 
 # Install packages.
-- name: 'node:16'
+- name: 'node:10'
   dir: 'tfjs-node'
   entrypoint: 'yarn'
   id: 'yarn'
@@ -14,7 +16,7 @@ steps:
   waitFor: ['yarn-common']
 
 # Build add-on.
-- name: 'node:16'
+- name: 'node:10'
   dir: 'tfjs-node'
   entrypoint: 'yarn'
   id: 'build-addon'
@@ -22,7 +24,7 @@ steps:
   waitFor: ['yarn']
 
 # Build deps.
-- name: 'node:16'
+- name: 'node:10'
   dir: 'tfjs-node'
   entrypoint: 'yarn'
   id: 'build-deps'
@@ -30,7 +32,7 @@ steps:
   waitFor: ['yarn-common']
 
 # Build.
-- name: 'node:16'
+- name: 'node:10'
   dir: 'tfjs-node'
   entrypoint: 'yarn'
   id: 'build'
@@ -38,7 +40,7 @@ steps:
   waitFor: ['yarn', 'build-deps']
 
 # Lint.
-- name: 'node:16'
+- name: 'node:10'
   dir: 'tfjs-node'
   entrypoint: 'yarn'
   id: 'lint'
@@ -46,7 +48,7 @@ steps:
   waitFor: ['yarn', 'build-deps']
 
 # Unit tests.
-- name: 'node:16'
+- name: 'node:10'
   dir: 'tfjs-node'
   entrypoint: 'yarn'
   id: 'test'
@@ -54,7 +56,7 @@ steps:
   waitFor: ['yarn', 'build-deps', 'lint']
 
 # CPU / GPU package alignment.
-- name: 'node:16'
+- name: 'node:10'
   dir: 'tfjs-node'
   entrypoint: 'yarn'
   id: 'ensure-cpu-gpu-packages-align'
