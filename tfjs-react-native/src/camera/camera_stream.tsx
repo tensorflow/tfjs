@@ -77,7 +77,7 @@ const DEFAULT_USE_CUSTOM_SHADERS_TO_RESIZE = false;
  *   tensor.
  *   - If it is set to false (default and recommended), the resize will be done
  *     by the underlying GL system when drawing the camera image texture to the
- *     target output texture with TEXTURE_MIN_FILTER/TEXTURE_MAX_FILTER set to
+ *     target output texture with TEXTURE_MIN_FILTER/TEXTURE_MAG_FILTER set to
  *     gl.LINEAR, and there is no need to provide `cameraTextureWidth` and
  *     `cameraTextureHeight` props below.
  *   - If it is set to true (legacy), the resize will be done by the custom

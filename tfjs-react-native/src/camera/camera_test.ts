@@ -66,7 +66,7 @@ describeWithFlags('toTexture', RN_ENVS, () => {
     const texture = await toTexture(gl, inTensor);
 
     const outTensor = fromTexture(
-        gl, texture, {width, height, depth}, {width, height, depth});
+        gl, texture, {width, height, depth}, {width, height, depth}, true);
 
     expectArraysEqual(await inTensor.data(), await outTensor.data());
     expectArraysEqual(inTensor.shape, outTensor.shape);

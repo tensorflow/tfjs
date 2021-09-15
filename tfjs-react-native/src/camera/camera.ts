@@ -142,7 +142,7 @@ export async function toTexture(
  */
 export function fromTexture(
     gl: WebGL2RenderingContext, texture: WebGLTexture, sourceDims: Dimensions,
-    targetShape: Dimensions, useCustomShadersToResize = true,
+    targetShape: Dimensions, useCustomShadersToResize = false,
     options: FromTextureOptions = {}): tf.Tensor3D {
   tf.util.assert(
       targetShape.depth === 3 || targetShape.depth === 4,
