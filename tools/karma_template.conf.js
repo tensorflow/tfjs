@@ -22,6 +22,12 @@ const browserstackConfig = {
 };
 
 module.exports = function(config) {
+  let browser = 'TEMPLATE_browser';
+  let browserConfig = {};
+  if (browser) {
+    browserConfig.browsers = [browser];
+  }
+
   config.set({
     ...browserstackConfig,
     browserStack: {
@@ -37,7 +43,7 @@ module.exports = function(config) {
     browserDisconnectTimeout: 3e5,
     browserDisconnectTolerance: 0,
     browserSocketTimeout: 1.2e5,
-    browsers: ['TEMPLATE_browser'],
+    ...browserConfig,
     customLaunchers: {
       // For browserstack configs see:
       // https://www.browserstack.com/automate/node

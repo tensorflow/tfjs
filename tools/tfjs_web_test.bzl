@@ -31,7 +31,7 @@ _make_karma_config = rule(
     implementation = _make_karma_config_impl,
     attrs = {
         "browser": attr.string(
-            mandatory = True,
+            default = "",
             doc = "The browser to run",
         ),
         "template": attr.label(
@@ -65,13 +65,16 @@ def tfjs_web_test(name, ci = True, **kwargs):
     timeout = kwargs.pop("timeout", "long")
 
     # For local testing
-    # NOTE: If karma_template.conf.js is changed such that it affects the tests
-    # outside of choosing which browsers they run on, it may need to be added
-    # here.
+    config_file = "{}_config".format(name)
+    _make_karma_config(
+        name = config_file,
+    )
+
     karma_web_test(
         size = size,
         timeout = timeout,
         name = name,
+        config_file = config_file,
         tags = ["native"] + tags,
         **kwargs
     )
