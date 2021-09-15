@@ -160,6 +160,6 @@ module.exports = function(config) {
         os_version: '10'
       },
     },
-    client: {jasmine: {random: false}, args: args}
+    client: {jasmine: {random: true}, args: args}
   })
 }
