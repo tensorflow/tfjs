@@ -320,8 +320,14 @@ describe('WEBGL_MAX_TEXTURES_IN_SHADER', () => {
 });
 
 describe('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', () => {
-  beforeEach(() => tf.env().reset());
-  afterAll(() => tf.env().reset());
+  beforeEach(() => {
+    tf.env().reset();
+    device_util.mockIsMobile(undefined);
+  });
+  afterAll(() => {
+    tf.env().reset();
+    device_util.mockIsMobile(undefined);
+  });
 
   it('disjoint query timer disabled', () => {
     tf.env().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', 0);
@@ -332,7 +338,7 @@ describe('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', () => {
 
   it('disjoint query timer enabled, mobile', () => {
     tf.env().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', 1);
-    spyOn(device_util, 'isMobile').and.returnValue(true);
+    device_util.mockIsMobile(true);
 
     expect(tf.env().getBool('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'))
         .toBe(false);
@@ -340,8 +346,7 @@ describe('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', () => {
 
   it('disjoint query timer enabled, not mobile', () => {
     tf.env().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', 1);
-
-    spyOn(device_util, 'isMobile').and.returnValue(false);
+    device_util.mockIsMobile(false);
 
     expect(tf.env().getBool('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'))
         .toBe(true);
