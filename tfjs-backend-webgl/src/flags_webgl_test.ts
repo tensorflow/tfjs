@@ -257,8 +257,7 @@ describe('WEBGL_MAX_TEXTURE_SIZE', () => {
   beforeEach(() => {
     tf.env().reset();
     webgl_util.resetMaxTextureSize();
-
-    spyOn(canvas_util, 'getWebGLContext').and.returnValue({
+    canvas_util.mockWebGLContext({
       MAX_TEXTURE_SIZE: 101,
       getParameter: (param: number) => {
         if (param === 101) {
@@ -270,6 +269,7 @@ describe('WEBGL_MAX_TEXTURE_SIZE', () => {
   });
   afterAll(() => {
     tf.env().reset();
+    canvas_util.mockWebGLContext(undefined);
     webgl_util.resetMaxTextureSize();
   });
 
@@ -284,20 +284,19 @@ describe('WEBGL_MAX_TEXTURES_IN_SHADER', () => {
     tf.env().reset();
     webgl_util.resetMaxTexturesInShader();
 
-    spyOn(canvas_util, 'getWebGLContext').and.callFake(() => {
-      return {
-        MAX_TEXTURE_IMAGE_UNITS: 101,
-        getParameter: (param: number) => {
-          if (param === 101) {
-            return maxTextures;
-          }
-          throw new Error(`Got undefined param ${param}.`);
+    canvas_util.mockWebGLContext({
+      MAX_TEXTURE_IMAGE_UNITS: 101,
+      getParameter: (param: number) => {
+        if (param === 101) {
+          return maxTextures;
         }
-      };
+        throw new Error(`Got undefined param ${param}.`);
+      }
     });
   });
   afterAll(() => {
     tf.env().reset();
+    canvas_util.mockWebGLContext(undefined);
     webgl_util.resetMaxTexturesInShader();
   });
 
