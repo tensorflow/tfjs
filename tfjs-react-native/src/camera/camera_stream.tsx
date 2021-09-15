@@ -34,6 +34,7 @@ interface WrappedComponentProps {
 }
 
 interface Props {
+  useCustomShadersToResize: boolean;
   cameraTextureWidth: number;
   cameraTextureHeight: number;
   resizeWidth: number;
@@ -54,6 +55,7 @@ interface State {
 
 const DEFAULT_AUTORENDER = true;
 const DEFAULT_RESIZE_DEPTH = 3;
+const DEFAULT_USE_CUSTOM_SHADERS_TO_RESIZE = false;
 
 /**
  * A higher-order-component (HOC) that augments the [Expo.Camera](https://docs.expo.io/versions/latest/sdk/camera/)
@@ -70,10 +72,26 @@ const DEFAULT_RESIZE_DEPTH = 3;
  * __In addition to__ all the props taken by Expo.Camera. The returned
  * component takes the following props
  *
+ * - __use_custom_shaders_to_resize__: boolean — whether to use custom shaders
+ *   to resize the camera image to smaller dimensions that fit the output
+ *   tensor.
+ *   - If it is set to false (default and recommended), the resize will be done
+ *     by the underlying GL system when drawing the camera image texture to the
+ *     target output texture with TEXTURE_MIN_FILTER/TEXTURE_MAX_FILTER set to
+ *     gl.LINEAR, and there is no need to provide `cameraTextureWidth` and
+ *     `cameraTextureHeight` props below.
+ *   - If it is set to true (legacy), the resize will be done by the custom
+ *     shaders defined in `resize_bilinear_program_info.ts`. Setting it to true
+ *     also requires that client provide the correct `cameraTextureWidth` and
+ *     `cameraTextureHeight` props below. Unfortunately there is no official API
+ *     to get the camera texture size programmatically so they have to be
+ *     decided empirically. From our experience, it is hard to cover all cases
+ *     in this way because different devices models and/or preview sizes might
+ *     produce different camera texture sizes.
  * - __cameraTextureWidth__: number — the width the camera preview texture
- *   (see example and note below)
+ *   (see note above)
  * - __cameraTextureHeight__: number — the height the camera preview texture
- *   (see example and note below)
+ *   (see note above)
  * - __resizeWidth__: number — the width of the output tensor
  * - __resizeHeight__: number — the height of the output tensor
  * - __resizeDepth__: number — the depth (num of channels) of the output tensor.
@@ -127,31 +145,12 @@ const DEFAULT_RESIZE_DEPTH = 3;
  *   }
  *
  *   render() {
- *    // Currently expo does not support automatically determining the
- *    // resolution of the camera texture used. So it must be determined
- *    // empirically for the supported devices and preview size.
- *
- *    let textureDims;
- *    if (Platform.OS === 'ios') {
- *     textureDims = {
- *       height: 1920,
- *       width: 1080,
- *     };
- *    } else {
- *     textureDims = {
- *       height: 1200,
- *       width: 1600,
- *     };
- *    }
- *
  *    return <View>
  *      <TensorCamera
  *       // Standard Camera props
  *       style={styles.camera}
  *       type={Camera.Constants.Type.front}
  *       // Tensor related props
- *       cameraTextureHeight={textureDims.height}
- *       cameraTextureWidth={textureDims.width}
  *       resizeHeight={200}
  *       resizeWidth={152}
  *       resizeDepth={3}
@@ -251,9 +250,23 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         resizeHeight,
         resizeWidth,
         resizeDepth,
-        cameraTextureHeight,
-        cameraTextureWidth,
       } = this.props;
+
+      // cameraTextureHeight and cameraTextureWidth props can be omitted when
+      // useCustomShadersToResize is set to false. Setting a default value to
+      // them here.
+      const cameraTextureHeight =
+        this.props.cameraTextureHeight != null
+          ? this.props.cameraTextureHeight
+          : 0;
+      const cameraTextureWidth =
+        this.props.cameraTextureWidth != null
+          ? this.props.cameraTextureWidth
+          : 0;
+      const useCustomShadersToResize =
+        this.props.useCustomShadersToResize != null
+          ? this.props.useCustomShadersToResize
+          : DEFAULT_USE_CUSTOM_SHADERS_TO_RESIZE;
 
       //
       //  Set up a generator function that yields tensors representing the
@@ -279,7 +292,8 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
             gl,
             cameraTexture,
             textureDims,
-            targetDims
+            targetDims,
+            useCustomShadersToResize,
           );
           yield imageTensor;
         }
@@ -329,6 +343,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
       // Use this object to use typescript to check that we are removing
       // all the tensorCamera properties.
       const tensorCameraPropMap: Props = {
+        useCustomShadersToResize: null,
         cameraTextureWidth: null,
         cameraTextureHeight: null,
         resizeWidth: null,
