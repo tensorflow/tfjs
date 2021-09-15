@@ -36,15 +36,7 @@ export function setWebGLContext(
   contexts[webGLVersion] = gl;
 }
 
-let mockWebGLContextValue: WebGLRenderingContext | undefined;
-export function mockWebGLContext(value: Partial<WebGLRenderingContext> | undefined) {
-    mockWebGLContextValue = value as WebGLRenderingContext | undefined;
-}
-
 export function getWebGLContext(webGLVersion: number): WebGLRenderingContext {
-  if (mockWebGLContextValue) {
-    return mockWebGLContextValue;
-  }
   if (!(webGLVersion in contexts)) {
     const newCtx = getWebGLRenderingContext(webGLVersion);
     if (newCtx !== null) {
