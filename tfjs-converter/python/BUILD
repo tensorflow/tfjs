@@ -126,6 +126,7 @@ py_wheel(
     python_tag = "py2",
     requires = [
         "tensorflow>=2.1.0,<3",
+        "protobuf==3.17.3",
         "six>=1.12.0,<2",
         'tensorflow-hub>=0.7.0,<0.10; python_version < "3"',
         'tensorflow-hub>=0.7.0,<0.13; python_version >= "3"',
