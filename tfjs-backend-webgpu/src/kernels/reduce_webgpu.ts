@@ -215,8 +215,8 @@ export class ReduceProgram implements WebGPUProgram {
        }
        let WorkGroupSize = ${this.workGroupSize[0]};
        ${reduceInSharedMemory ? sharedMemorySnippet : ''}
-       fn getOffset(globalId : vec3<i32>, index : i32) -> i32 {
-         let outputCoords = getOutputCoords(vec3<i32>(globalId), index);
+       fn getOffset(globalId : vec3<u32>, index : i32) -> i32 {
+         let outputCoords = getOutputCoords(globalId, index);
          let offset = ${
         this.outputShape.length === 1 ?
             'outputCoords' :
@@ -225,7 +225,7 @@ export class ReduceProgram implements WebGPUProgram {
        }
        ${getMainHeaderStringWgsl()} {
          ${getGlobalIndexStringWgsl()}
-         let offset= getOffset(vec3<i32>(globalId), index);
+         let offset= getOffset(globalId, index);
          var bestValue = ${initValue};
          let Length = uniforms.reduceSize;
          let WorkPerThread = DIV_CEIL(Length, WorkGroupSize);

@@ -163,12 +163,12 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
     return 0.0;`;
 
     const userCode = `
-    fn mm_readA(row : i32, col : i32, globalId : vec3<i32>) -> f32 {
-      var batch = globalId.z;
+    fn mm_readA(row : i32, col : i32, globalId : vec3<u32>) -> f32 {
+      var batch = i32(globalId.z);
       ${sampleA}
     }
 
-    fn mm_readB(row : i32, col : i32, globalId : vec3<i32>) -> f32 {
+    fn mm_readB(row : i32, col : i32, globalId : vec3<u32>) -> f32 {
       let coordX = uniforms.filterDims.x - 1 -
           row / (uniforms.filterDims[1] * uniforms.outBackprop[3]);
       let coordY = uniforms.filterDims.y - 1 -
@@ -182,8 +182,8 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
       return 0.0;
     }
 
-    fn mm_write(row : i32, col : i32, valueInput : f32, globalId : vec3<i32>) {
-      var batch = globalId.z;
+    fn mm_write(row : i32, col : i32, valueInput : f32, globalId : vec3<u32>) {
+      var batch = i32(globalId.z);
       var value = valueInput;
       let outCoord = vec4<i32>(
           batch,

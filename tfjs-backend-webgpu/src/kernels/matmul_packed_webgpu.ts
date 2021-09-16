@@ -222,7 +222,7 @@ export function makeMatMulPackedSourceWgsl(
 
             mm_Asub[inputRow][inputCol] = mm_readA(
                 globalRow + innerRow,
-                t * ${tileInner} + inputCol, vec3<i32>(globalId));
+                t * ${tileInner} + inputCol, globalId);
           }
         }
         // Load one tile of B into local memory.
@@ -234,7 +234,7 @@ export function makeMatMulPackedSourceWgsl(
 
             mm_Bsub[inputRow][inputCol] = mm_readB(
               t * ${tileInner} + inputRow,
-              globalCol + innerCol, vec3<i32>(globalId));
+              globalCol + innerCol, globalId);
           }
         }
 
@@ -269,7 +269,7 @@ export function makeMatMulPackedSourceWgsl(
               (globalRow + innerRow) < uniforms.dimAOuter) {
             mm_write(globalRow + innerRow,
                      globalCol + innerCol,
-                     acc[innerRow][innerCol], vec3<i32>(globalId));
+                     acc[innerRow][innerCol], globalId);
           }
         }
       }
@@ -297,19 +297,19 @@ export function makeMatMulVectorSourceWgsl(
       for (var t = 0; t < numTiles; t = t + 1) {
         // Load one tile of A into local memory.
         let colA = t * TileSize + tileCol * 4;
-        mm_Asub[tileCol] = vec4<f32>(mm_readA(globalRow, colA, vec3<i32>(globalId)),
-                                mm_readA(globalRow, colA + 1, vec3<i32>(globalId)),
-                                mm_readA(globalRow, colA + 2, vec3<i32>(globalId)),
-                                mm_readA(globalRow, colA + 3, vec3<i32>(globalId)));
+        mm_Asub[tileCol] = vec4<f32>(mm_readA(globalRow, colA, globalId),
+                                mm_readA(globalRow, colA + 1, globalId),
+                                mm_readA(globalRow, colA + 2, globalId),
+                                mm_readA(globalRow, colA + 3, globalId));
         workgroupBarrier();
 
         // Compute acc values for a single thread.
         for (var k = 0; k < TileSize / 4; k = k + 1) {
           let rowB = t * TileSize + k * 4;
-          let BCached = vec4<f32>(mm_readB(rowB, globalCol, vec3<i32>(globalId)),
-                              mm_readB(rowB + 1, globalCol, vec3<i32>(globalId)),
-                              mm_readB(rowB + 2, globalCol, vec3<i32>(globalId)),
-                              mm_readB(rowB + 3, globalCol, vec3<i32>(globalId)));
+          let BCached = vec4<f32>(mm_readB(rowB, globalCol, globalId),
+                              mm_readB(rowB + 1, globalCol, globalId),
+                              mm_readB(rowB + 2, globalCol, globalId),
+                              mm_readB(rowB + 3, globalCol, globalId));
 
           let ACached = mm_Asub[k];
           acc = acc + dot(ACached, BCached);
@@ -319,7 +319,7 @@ export function makeMatMulVectorSourceWgsl(
       }
 
       if (globalRow < uniforms.dimAOuter && globalCol < uniforms.dimBOuter) {
-        mm_write(globalRow, globalCol, acc, vec3<i32>(globalId));
+        mm_write(globalRow, globalCol, acc, globalId);
       }
     }
   `;
@@ -573,21 +573,21 @@ export class MatMulPackedProgram implements WebGPUProgram {
     const userCode = `
       ${activationSnippet}
 
-      fn mm_readA(row : i32, col : i32,  globalId : vec3<i32>) -> f32 {
+      fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
         let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
-        let batch = globalId.z;
+        let batch = i32(globalId.z);
         ${sampleA}
       }
 
-      fn mm_readB(row : i32, col : i32,  globalId : vec3<i32>) -> f32 {
-        let batch = globalId.z;
+      fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
+        let batch = i32(globalId.z);
         let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
         ${sampleB}
       }
 
-      fn mm_write(row : i32, col : i32, valueIn : f32, globalId : vec3<i32>) {
+      fn mm_write(row : i32, col : i32, valueIn : f32, globalId : vec3<u32>) {
         var value = valueIn;
-        let batch = globalId.z;
+        let batch = i32(globalId.z);
         let outCoord = vec3<i32>(batch, row, col);
         ${addBiasSnippet}
         ${applyActivationSnippet}

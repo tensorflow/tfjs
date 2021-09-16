@@ -226,7 +226,7 @@ export class TransformProgram implements WebGPUProgram {
 
           ${getMainHeaderStringWgsl()} {
             ${getGlobalIndexStringWgsl()}
-            let coords = getOutputCoords(vec3<i32>(globalId), index);
+            let coords = getOutputCoords(globalId, index);
             if (coordsInBounds4D(coords, uniforms.outShape)) {
               var outputValue : f32;
               let batch = coords[0];

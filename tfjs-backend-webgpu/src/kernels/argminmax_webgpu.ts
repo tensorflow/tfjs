@@ -267,7 +267,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       // add back the index along the reduced dimension to |outputCoords|.
       // This function outputs the offset to the first value along
       // |axis| and the stride to get the next value of the input along |axis|.
-      fn getInputCoordInfo(globalId : vec3<i32>, globalIndex : i32) -> vec2<i32>{
+      fn getInputCoordInfo(globalId : vec3<u32>, globalIndex : i32) -> vec2<i32>{
         let outputCoords : ${
         outputCoordsType} = getOutputCoords(globalId, globalIndex);
         var i = ${this.outputShape.length - 1};
@@ -297,7 +297,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
-        let coordInfo = getInputCoordInfo(vec3<i32>(globalId), index);
+        let coordInfo = getInputCoordInfo(globalId, index);
 
         var bestIndex = 0;
         var bestValue = x.numbers[getInputIndex(coordInfo, bestIndex)];

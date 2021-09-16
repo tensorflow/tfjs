@@ -168,20 +168,20 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
           this.activation, this.isVec4, this.useWgsl);
       if (this.hasPreluActivation) {
         activationSnippet =
-            `fn activation(a : vec4<f32>, globalId : vec3<i32>, globalIndex : i32) -> vec4<f32> {
+            `fn activation(a : vec4<f32>, globalId : vec3<u32>, globalIndex : i32) -> vec4<f32> {
           let b = getPreluActivationWeightsAtOutCoordsByGlobalId(globalId, globalIndex);
           ${activationOp}
         }`;
       } else {
         activationSnippet = `
-        fn activation(a : vec4<f32>, globalId : vec3<i32>, globalIndex : i32) -> vec4<f32> {
+        fn activation(a : vec4<f32>, globalId : vec3<u32>, globalIndex : i32) -> vec4<f32> {
             ${activationOp}
           }
         `;
       }
 
       applyActivationSnippet =
-          `dotProd[i] = activation(dotProd[i], vec3<i32>(globalId), index);`;
+          `dotProd[i] = activation(dotProd[i], globalId, index);`;
     }
 
     const addBiasSnippet = this.addBias ?

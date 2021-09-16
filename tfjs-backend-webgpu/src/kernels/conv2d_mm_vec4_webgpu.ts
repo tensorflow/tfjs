@@ -284,21 +284,16 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         `var temp = vec4<f32>(0.0);
           ${this.getSampleAWithRemainderWgsl(1)}
           resData = temp;
-          if (WCol == uniforms.filterDims[1] - 1) {
-            let coordZ = coord.z + 1 - uniforms.filterDims[1];
-            if (coordZ < 0) {
-              resData = vec4<f32>(0.0);
+          if (WCol == (uniforms.filterDims[1] - 1)) {
+            coord = vec4<i32>(
+              coord.x, coord.y + 1, coord.z + 1 - uniforms.filterDims[1], 0);
+              ${this.getSampleAWithRemainderWgsl(2)}
+            if (inChCoord == 0) {
+              resData = vec4<f32>(resData.xyz, temp.x);
+            } elseif (inChCoord == 1) {
+              resData = vec4<f32>(resData.xy, temp.xy);
             } else {
-              coord = vec4<i32>(
-                coord.x, coord.y + 1, coordZ, 0);
-                ${this.getSampleAWithRemainderWgsl(2)}
-              if (inChCoord == 0) {
-                resData = vec4<f32>(resData.xyz, temp.x);
-              } elseif (inChCoord == 1) {
-                resData = vec4<f32>(resData.xy, temp.xy);
-              } else {
-                resData = vec4<f32>(resData.x, temp.xyz);
-              }
+              resData = vec4<f32>(resData.x, temp.xyz);
             }
           }
           `;
@@ -308,18 +303,10 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         let WRow = c / (uniforms.filterDims[1] * uniforms.xShape[3]);
         let WCol = c / uniforms.xShape[3] % uniforms.filterDims[1];
         let inChCoord = c % uniforms.xShape[3];
-        let coordRow = outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0];
-        if (coordRow < 0) {
-          return vec4<f32>(0.0);
-        }
-        let coordCol = outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1];
-        if (coordCol < 0) {
-          return vec4<f32>(0.0);
-        }
         var coord = vec4<i32>(
             batch,
-            coordRow,
-            coordCol,
+            outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0],
+            outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1],
             inChCoord);
         var resData = vec4<f32>(0.0);
         ${remainderSnippet}
@@ -372,19 +359,19 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
 
     const userCode = `
         ${activationSnippet}
-        fn mm_readA(row : i32, col : i32, globalId : vec3<i32>) -> vec4<f32> {
+        fn mm_readA(row : i32, col : i32, globalId : vec3<u32>) -> vec4<f32> {
           let r = row;
           let c = col * 4;
-          var batch = globalId.z;
+          var batch = i32(globalId.z);
           ${sampleA}
         }
 
-        fn mm_readB(row : i32, col : i32, globalId : vec3<i32>) -> vec4<f32> {
+        fn mm_readB(row : i32, col : i32, globalId : vec3<u32>) -> vec4<f32> {
           ${sampleB}
         }
 
-        fn mm_write(row : i32, col : i32, valueInput : vec4<f32>, globalId : vec3<i32>) {
-          var batch = globalId.z;
+        fn mm_write(row : i32, col : i32, valueInput : vec4<f32>, globalId : vec3<u32>) {
+          var batch = i32(globalId.z);
           var value = valueInput;
           if (row < uniforms.dimAOuter && col * 4 < uniforms.dimBOuter)
           {

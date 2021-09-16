@@ -123,7 +123,7 @@ export class MirrorPadProgram implements WebGPUProgram {
         ${getGlobalIndexStringWgsl()}
         let start = ${dtype}(${start});
         let end = ${dtype}(${end});
-        var outC = getOutputCoords(vec3<i32>(globalId), index);
+        var outC = getOutputCoords(globalId, index);
         if (index < uniforms.size) {
           for (var i = 0; i < ${rank}; i = i + 1) {
             if (${shaderOutC} < ${shaderStart}) {

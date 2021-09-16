@@ -72,7 +72,7 @@ export class TileProgram implements WebGPUProgram {
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
         if (index < uniforms.size) {
-          let resRC = getOutputCoords(vec3<i32>(globalId), index);
+          let resRC = getOutputCoords(globalId, index);
           setOutputFlat(index, getA(${sourceCoords}));
         }
       }

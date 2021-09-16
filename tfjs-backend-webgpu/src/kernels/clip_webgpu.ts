@@ -69,7 +69,7 @@ export class ClipProgram implements WebGPUProgram {
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
         if(index < uniforms.size) {
-          let value = getAAtOutCoordsByGlobalId(vec3<i32>(globalId), index);
+          let value = getAAtOutCoordsByGlobalId(globalId, index);
           if (isNanCustom(value)) {
             setOutputFlat(index, value);
             return;
