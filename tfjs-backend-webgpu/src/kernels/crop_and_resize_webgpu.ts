@@ -185,7 +185,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
         ${getGlobalIndexStringWgsl()}
         let height_ratio = f32(${heightRatio});
         let width_ratio = f32(${widthRatio});
-        let coords = getOutputCoords(vec3<i32>(globalId), index);
+        let coords = getOutputCoords(globalId, index);
         let b = coords[0];
         let y = coords[1];
         let x = coords[2];

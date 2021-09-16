@@ -110,7 +110,7 @@ export class StridedSliceProgram implements WebGPUProgram {
        ${getMainHeaderStringWgsl()} {
          ${getGlobalIndexStringWgsl()}
          if (index < uniforms.size) {
-           let coords = getOutputCoords(vec3<i32>(globalId), index);
+           let coords = getOutputCoords(globalId, index);
            setOutputFlat(index, getX(${newCoords}));
          }
        }

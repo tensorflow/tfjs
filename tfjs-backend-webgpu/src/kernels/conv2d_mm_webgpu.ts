@@ -201,11 +201,11 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
     let WRow = col / (uniforms.filterDims[1] * uniforms.xShape[3]);
     let WCol = col / uniforms.xShape[3] % uniforms.filterDims[1];
-    let coordRow = i32(outRow) * uniforms.stride[0] + uniforms.dilation[0] * i32(WRow) - uniforms.pad[0];
+    let coordRow = outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0];
     if (coordRow < 0) {
       return 0.0;
     }
-    let coordCol = i32(outCol) * uniforms.stride[1] + uniforms.dilation[1] * i32(WCol) - uniforms.pad[1];
+    let coordCol = outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1];
     if (coordCol < 0) {
       return 0.0;
     }
@@ -264,17 +264,17 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
     const userCode = `
     ${activationSnippet}
-    fn mm_readA(row : i32, col : i32, globalId : vec3<i32>) -> f32 {
-      var batch = globalId.z;
+    fn mm_readA(row : i32, col : i32, globalId : vec3<u32>) -> f32 {
+      var batch = i32(globalId.z);
       ${sampleA}
     }
 
-    fn mm_readB(row : i32, col : i32, globalId : vec3<i32>) -> f32 {
+    fn mm_readB(row : i32, col : i32, globalId : vec3<u32>) -> f32 {
       ${sampleB}
     }
 
-    fn mm_write(row : i32, col : i32, valueInput : f32, globalId : vec3<i32>) {
-      var batch = globalId.z;
+    fn mm_write(row : i32, col : i32, valueInput : f32, globalId : vec3<u32>) {
+      var batch = i32(globalId.z);
       var value = valueInput;
       let outCoord = vec4<i32>(
           batch,

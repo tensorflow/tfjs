@@ -119,7 +119,7 @@ export class SelectProgram implements WebGPUProgram {
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
         if (index < uniforms.size) {
-          let resRC = getOutputCoords(vec3<i32>(globalId), index);
+          let resRC = getOutputCoords(globalId, index);
           let cVal = getC(${cCoords});
           if (cVal >= 1.0) {
             setOutputFlat(index, getA(${abCoords}));

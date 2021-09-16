@@ -63,7 +63,7 @@ export class GatherProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
-        let resRC = getOutputCoords(vec3<i32>(globalId), index);
+        let resRC = getOutputCoords(globalId, index);
         if (index < uniforms.size) {
           setOutputFlat(index, getA(${sourceCoords}));
         }

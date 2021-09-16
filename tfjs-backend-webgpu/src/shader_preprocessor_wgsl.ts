@@ -74,7 +74,7 @@ export function getWorkGroupSizeStringWgsl(): string {
 
 export function getGlobalIndexStringWgsl(): string {
   return `
-  let index = getGlobalIndex(vec3<i32>(globalId), vec3<i32>(localId));
+  let index = getGlobalIndex(globalId, localId);
 `;
 }
 
@@ -103,7 +103,7 @@ export function makeShader(
         size            : i32;
         numChannels     : i32;
         outShapeStrides : vec2<i32>;
-        dispatchSize    : vec3<i32>;
+        dispatchSize    : vec3<u32>;
       };
 
       [[group(0), binding(0)]] var<storage, write> result : Matrix0;
@@ -134,7 +134,7 @@ export function makeShader(
   if (program.size != null) {
     uniformDeclaration += 'size : i32; ';
   }
-  uniformDeclaration += 'dispatchSize : vec3<i32>; ';
+  uniformDeclaration += 'dispatchSize : vec3<u32>; ';
   if (program.uniformsWgsl) {
     uniformDeclaration += program.uniformsWgsl;
   }
@@ -246,15 +246,18 @@ const SHADER_PREFIX = `
 
   // Checks whether coordinates lie within the bounds of the shape.
   fn coordsInBounds4D(coord : vec4<i32>, shape : vec4<i32>) -> bool {
-    return all(coord < shape);
+    return all(coord >= vec4<i32>(0)) &&
+        all(coord < shape);
   }
 
   fn coordsInBounds3D(coord : vec3<i32>, shape : vec3<i32>) -> bool {
-    return all(coord < shape);
+    return all(coord >= vec3<i32>(0)) &&
+        all(coord < shape);
   }
 
   fn coordsInBounds2D(coord : vec2<i32>, shape : vec2<i32>) -> bool {
-    return all(coord < shape);
+    return all(coord >= vec2<i32>(0)) &&
+        all(coord < shape);
   }
   `;
 const SAMPLING_SNIPPETS = `
@@ -276,18 +279,18 @@ const SAMPLING_SNIPPETS = `
   }
 
   // Only used when the y/z dimension of workgroup size is 1.
-  fn getGlobalIndex(globalId : vec3<i32>, localId : vec3<i32>) -> i32 {
-    if (uniforms.dispatchSize.y == 1 && uniforms.dispatchSize.z == 1) {
-      return globalId.x;
+  fn getGlobalIndex(globalId : vec3<u32>, localId : vec3<u32>) -> i32 {
+    if (uniforms.dispatchSize.y == 1u && uniforms.dispatchSize.z == 1u) {
+      return i32(globalId.x);
     }
-    let localInvocationIndex = localId.z * i32(workGroupSizeX) * i32(workGroupSizeY) +
-      localId.y * i32(workGroupSizeX) + localId.x;
-    let workGroupID = (globalId - localId)/vec3<i32>(
-      i32(workGroupSizeX), i32(workGroupSizeY), i32(workGroupSizeZ));
-    return (workGroupID.z * uniforms.dispatchSize.x * uniforms.dispatchSize.y +
+    let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
+      localId.y * workGroupSizeX + localId.x;
+    let workGroupID = (globalId - localId)/vec3<u32>(
+      workGroupSizeX, workGroupSizeY, workGroupSizeZ);
+    return i32((workGroupID.z * uniforms.dispatchSize.x * uniforms.dispatchSize.y +
       workGroupID.y * uniforms.dispatchSize.x + workGroupID.x) *
-      (i32(workGroupSizeX) * i32(workGroupSizeY) * i32(workGroupSizeZ)) +
-      localInvocationIndex;
+      (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
+      localInvocationIndex);
   }
 `;
 
@@ -457,7 +460,7 @@ export function getSamplerAtOutputCoords(
     if (isVec4) {
       return `
         fn ${
-          funcName}ByGlobalId(globalId : vec3<i32>, globalIndex : i32) -> vec4<f32> {
+          funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : i32) -> vec4<f32> {
           return vec4<f32>(${texName}.numbers[globalIndex]);
         }
 
@@ -468,7 +471,7 @@ export function getSamplerAtOutputCoords(
         `;
     } else {
       return `
-      fn ${funcName}ByGlobalId(globalId : vec3<i32>, globalIndex : i32) -> f32 {
+      fn ${funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : i32) -> f32 {
         return f32(${texName}.numbers[globalIndex]);
       }
 
@@ -489,7 +492,7 @@ export function getSamplerAtOutputCoords(
     if (isVec4) {
       return `
       fn ${
-          funcName}ByGlobalId(globalId : vec3<i32>, globalIndex : i32) -> vec4<f32> {
+          funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : i32) -> vec4<f32> {
         return get${texFuncSnippet}();
       }
 
@@ -499,7 +502,7 @@ export function getSamplerAtOutputCoords(
     `;
     }
     return `
-      fn ${funcName}ByGlobalId(globalId : vec3<i32>, globalIndex : i32) -> f32{
+      fn ${funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : i32) -> f32{
         return get${texFuncSnippet}();
       }
 
@@ -536,7 +539,7 @@ export function getSamplerAtOutputCoords(
   if (isVec4) {
     return `
       fn ${
-        funcName}ByGlobalId(globalId : vec3<i32>, globalIndex : i32) -> vec4<f32> {
+        funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : i32) -> vec4<f32> {
         var coords = getOutputCoords(globalId, globalIndex);
         ${coordsSnippet}
         return ${texName}.numbers[getFlatIndex${rankStr}(${
@@ -553,7 +556,7 @@ export function getSamplerAtOutputCoords(
   }
 
   return `
-    fn ${funcName}ByGlobalId(globalId : vec3<i32>, globalIndex : i32) -> f32 {
+    fn ${funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : i32) -> f32 {
       var coords = getOutputCoords(globalId, globalIndex);
       ${coordsSnippet}
       return f32(${texName}.numbers[getFlatIndex${rankStr}(${
@@ -583,7 +586,7 @@ export function generateGetOutputCoords(
   if (x.length === outRank) {
     const dtype = getCoordsDataTypeWgsl(outRank);
     const snippet =
-        `fn getOutputCoords(globalId : vec3<i32>, globalIndex : i32) -> ${
+        `fn getOutputCoords(globalId : vec3<u32>, globalIndex : i32) -> ${
             dtype}{
       return getCoordsFromFlatIndex(i32(globalIndex));
     }
@@ -606,10 +609,10 @@ export function generateGetOutputCoords(
     rank += arr.length;
 
     if (arr.length === 1) {
-      gatherDimensionsStr += `let d${arr[0]} = globalId[${i}];`;
+      gatherDimensionsStr += `let d${arr[0]} = i32(globalId[${i}]);`;
     } else {
       const strides = symbolicallyComputeStrides(arr, 'uniforms.outShape');
-      gatherDimensionsStr += `var index${i} = globalId[${i}];`;
+      gatherDimensionsStr += `var index${i} = i32(globalId[${i}]);`;
       for (let j = 0; j < strides.length; j++) {
         gatherDimensionsStr += `let d${arr[j]} = index${i} / ${strides[j]};`;
 
@@ -631,7 +634,7 @@ export function generateGetOutputCoords(
 
   const dtype = getCoordsDataTypeWgsl(rank);
   let snippet =
-      `fn getOutputCoords(globalId : vec3<i32>, globalIndex : i32) -> ${dtype} {
+      `fn getOutputCoords(globalId : vec3<u32>, globalIndex : i32) -> ${dtype} {
     ${gatherDimensionsStr}
   `;
   if (dimensions.length === 0) {

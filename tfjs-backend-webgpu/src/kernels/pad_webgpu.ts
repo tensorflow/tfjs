@@ -122,7 +122,7 @@ export class PadProgram implements WebGPUProgram {
         let start = ${startValue};
         let end = ${endValue};
         if (index < uniforms.size) {
-          let outC = getOutputCoords(vec3<i32>(globalId), index);
+          let outC = getOutputCoords(globalId, index);
 
           if (${leftPadCondition} || ${rightPadCondition}) {
             setOutputFlat(index, uniforms.constantValue);

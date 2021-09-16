@@ -102,7 +102,7 @@ export class SliceProgram implements WebGPUProgram {
         ${getGlobalIndexStringWgsl()}
         if (index < uniforms.size) {
           var sourceLoc : ${dtype};
-          let coords = getOutputCoords(vec3<i32>(globalId), index);
+          let coords = getOutputCoords(globalId, index);
           ${coordSum.join('\n')}
           setOutputFlat(index, getSource(${sourceCoords}));
         }

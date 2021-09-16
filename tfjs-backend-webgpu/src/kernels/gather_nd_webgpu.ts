@@ -84,7 +84,7 @@ export class GatherNDProgram implements WebGPUProgram {
     const userCode = `
         ${getMainHeaderStringWgsl()} {
           ${getGlobalIndexStringWgsl()}
-          let coords = getOutputCoords(vec3<i32>(globalId), index);
+          let coords = getOutputCoords(globalId, index);
           var flattenIndex = 0;
           for (var j = 0; j < uniforms.sliceDim; j = j + 1) {
             let indexTemp = i32(round(getIndices(coords[0], j)));

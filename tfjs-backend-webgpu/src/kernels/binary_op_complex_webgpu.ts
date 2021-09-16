@@ -78,10 +78,10 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
         if(index < uniforms.size) {
-          let areal = getARealAtOutCoordsByGlobalId(vec3<i32>(globalId), index);
-          let aimag = getAImagAtOutCoordsByGlobalId(vec3<i32>(globalId), index);
-          let breal = getBRealAtOutCoordsByGlobalId(vec3<i32>(globalId), index);
-          let bimag = getBImagAtOutCoordsByGlobalId(vec3<i32>(globalId), index);
+          let areal = getARealAtOutCoordsByGlobalId(globalId, index);
+          let aimag = getAImagAtOutCoordsByGlobalId(globalId, index);
+          let breal = getBRealAtOutCoordsByGlobalId(globalId, index);
+          let bimag = getBImagAtOutCoordsByGlobalId(globalId, index);
           setOutputFlat(index, binaryOpComplex(areal, aimag, breal, bimag));
         }
       }

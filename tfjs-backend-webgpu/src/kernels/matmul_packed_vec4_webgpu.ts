@@ -207,7 +207,7 @@ export function makeMatMulPackedVec4SourceWgsl(
         for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
             let inputRow = tileRow + innerRow;
             let inputCol = tileCol;
-            mm_Asub[inputRow][inputCol] = mm_readA(globalRow + innerRow, globalColA, vec3<i32>(globalId));
+            mm_Asub[inputRow][inputCol] = mm_readA(globalRow + innerRow, globalColA, globalId);
         }
         globalColA = globalColA + TileInner / ColPerThread;
 
@@ -215,7 +215,7 @@ export function makeMatMulPackedVec4SourceWgsl(
         for (var innerRow = 0; innerRow < RowPerThreadB; innerRow = innerRow + 1) {
             let inputRow = tileRowB + innerRow;
             let inputCol = tileCol;
-            mm_Bsub[inputRow][inputCol] = mm_readB(t * TileInner + inputRow, globalCol, vec3<i32>(globalId));
+            mm_Bsub[inputRow][inputCol] = mm_readB(t * TileInner + inputRow, globalCol, globalId);
         }
 
         workgroupBarrier();
@@ -242,7 +242,7 @@ export function makeMatMulPackedVec4SourceWgsl(
     for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
         mm_write(globalRow + innerRow,
                  globalCol,
-                 acc[innerRow], vec3<i32>(globalId));
+                 acc[innerRow], globalId);
     }
 }`;
 }
@@ -266,17 +266,17 @@ export function makeMatMulVectorVec4SourceWgsl(
     for (var t = 0; t < numTiles; t = t + 1) {
       // Load one tile of A into local memory.
       let colA = t * tileSize / 4 + tileCol;
-      mm_Asub[tileCol] = mm_readA(globalRow, colA, vec3<i32>(globalId));
+      mm_Asub[tileCol] = mm_readA(globalRow, colA, globalId);
 
       workgroupBarrier();
 
       // Compute acc values for a single thread.
       for (var k = 0; k < tileSize / 4; k = k + 1) {
         let rowB = t * tileSize + k * 4;
-        let BCached0 = mm_readB(rowB, globalCol, vec3<i32>(globalId));
-        let BCached1 = mm_readB(rowB + 1, globalCol, vec3<i32>(globalId));
-        let BCached2 = mm_readB(rowB + 2, globalCol, vec3<i32>(globalId));
-        let BCached3 = mm_readB(rowB + 3, globalCol, vec3<i32>(globalId));
+        let BCached0 = mm_readB(rowB, globalCol, globalId);
+        let BCached1 = mm_readB(rowB + 1, globalCol, globalId);
+        let BCached2 = mm_readB(rowB + 2, globalCol, globalId);
+        let BCached3 = mm_readB(rowB + 3, globalCol, globalId);
 
         let ACached = mm_Asub[k];
         acc = acc + BCached0 * ACached.x;
@@ -289,7 +289,7 @@ export function makeMatMulVectorVec4SourceWgsl(
     }
 
     if (globalRow < uniforms.dimAOuter && globalCol < uniforms.dimBOuter) {
-      mm_write(globalRow, globalCol, acc, vec3<i32>(globalId));
+      mm_write(globalRow, globalCol, acc, globalId);
     }
   }
 `;
@@ -483,25 +483,25 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
 
     const userCode = `
       ${activationSnippet}
-      fn mm_readA(row : i32, col : i32,  globalId : vec3<i32>) -> vec4<f32> {
+      fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> vec4<f32> {
         let batchASize = uniforms.aShape[1] * uniforms.aShape[2] / ${
         this.vecSize};
-        let batch = globalId.z;
+        let batch = i32(globalId.z);
         ${sampleA};
       }
 
-      fn mm_readB(row : i32, col : i32,  globalId : vec3<i32>) -> vec4<f32> {
+      fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> vec4<f32> {
         let batchBSize = uniforms.bShape[1] * uniforms.bShape[2] / ${
         this.vecSize};
-        let batch = globalId.z;
+        let batch = i32(globalId.z);
         ${sampleB};
       }
 
-      fn mm_write(row : i32, col : i32, valueIn : vec4<f32>, globalId : vec3<i32>) {
+      fn mm_write(row : i32, col : i32, valueIn : vec4<f32>, globalId : vec3<u32>) {
         if (row < uniforms.aShape[1] && col * 4 < uniforms.bShape[2])
         {
           var value = valueIn;
-          let batch = globalId.z;
+          let batch = i32(globalId.z);
           let outCoord = vec3<i32>(batch, row, col * 4);
           ${addBiasSnippet}
           ${applyActivationSnippet}

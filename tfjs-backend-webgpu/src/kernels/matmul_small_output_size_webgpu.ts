@@ -143,9 +143,9 @@ export function makeMatMulSmallOutputSizeSourceWgsl(
           // Load one tile of A and B into local memory.
           // globalRow is always greater than or equal tileRow.
           mm_Asub1[tileRow][tileCol] =
-              mm_readA((globalRow - tileRow) / 2 + tileRow, globalColA, vec3<i32>(globalId));
+              mm_readA((globalRow - tileRow) / 2 + tileRow, globalColA, globalId);
           globalColA = globalColA + ${tileInner};
-          mm_Bsub1[tileRow][tileCol] = mm_readB(globalRowB, globalCol, vec3<i32>(globalId));
+          mm_Bsub1[tileRow][tileCol] = mm_readB(globalRowB, globalCol, globalId);
           globalRowB = globalRowB + ${tileInner};
         }
       } else {
@@ -153,9 +153,9 @@ export function makeMatMulSmallOutputSizeSourceWgsl(
           // Load one tile of A and B into local memory.
           // globalRow is always greater than or equal tileRow.
           mm_Asub1[tileRow][tileCol] =
-              mm_readA((globalRow - tileRow) / 2 + tileRow, globalColA, vec3<i32>(globalId));
+              mm_readA((globalRow - tileRow) / 2 + tileRow, globalColA, globalId);
           globalColA = globalColA + ${tileInner};
-          mm_Bsub1[tileRow][tileCol] = mm_readB(globalRowB, globalCol, vec3<i32>(globalId));
+          mm_Bsub1[tileRow][tileCol] = mm_readB(globalRowB, globalCol, globalId);
           globalRowB = globalRowB + ${tileInner};
         } else {
           // Compute acc values for a single thread.
@@ -178,9 +178,9 @@ export function makeMatMulSmallOutputSizeSourceWgsl(
           // Load one tile of A and B into local memory.
           // globalRow is always greater than or equal tileRow.
           mm_Asub2[tileRow][tileCol] =
-              mm_readA((globalRow - tileRow) / 2 + tileRow, globalColA, vec3<i32>(globalId));
+              mm_readA((globalRow - tileRow) / 2 + tileRow, globalColA, globalId);
           globalColA = globalColA + ${tileInner};
-          mm_Bsub2[tileRow][tileCol] = mm_readB(globalRowB, globalCol, vec3<i32>(globalId));
+          mm_Bsub2[tileRow][tileCol] = mm_readB(globalRowB, globalCol, globalId);
           globalRowB = globalRowB + ${tileInner};
         } else {
           // Compute acc values for a single thread.
@@ -197,7 +197,7 @@ export function makeMatMulSmallOutputSizeSourceWgsl(
     }
     let writeCol = (globalRow - tileRow) / 2 + tileRow - ${tileAOuter};
     if (tileRow >= ${tileAOuter} && writeCol >= 0) {
-      mm_write(writeCol, globalCol, acc, vec3<i32>(globalId));
+      mm_write(writeCol, globalCol, acc, globalId);
     }
   }
   `;
@@ -350,19 +350,19 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
     const userCode = `
       ${activationSnippet}
       
-      fn mm_readA(row : i32, col : i32,  globalId : vec3<i32>) -> f32 {
+      fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
         let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
-        let batch = globalId.z;
+        let batch = i32(globalId.z);
         ${sampleA}
       }
-      fn mm_readB(row : i32, col : i32,  globalId : vec3<i32>) -> f32 {
-        let batch = globalId.z;
+      fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
+        let batch = i32(globalId.z);
         let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
         ${sampleB}
       }
-      fn mm_write(row : i32, col : i32, valueIn : f32, globalId : vec3<i32>) {
+      fn mm_write(row : i32, col : i32, valueIn : f32, globalId : vec3<u32>) {
         if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimBOuter))) {
-          let batch = globalId.z;
+          let batch = i32(globalId.z);
           let outCoord = vec3<i32>(batch, row, col);
           var value = valueIn;
           ${addBiasSnippet}

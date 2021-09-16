@@ -178,24 +178,24 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
           mapActivationToShaderProgram(this.activation, false, this.useWgsl);
       if (this.hasPreluActivation) {
         activationSnippet =
-            `fn activation(a : f32, globalId : vec3<i32>, index : i32) -> f32 {
+            `fn activation(a : f32, globalId : vec3<u32>, index : i32) -> f32 {
           let b = getPreluActivationWeightsAtOutCoordsByGlobalId(globalId, index);
           ${activationOp}
         }`;
       } else {
         activationSnippet = `
-          fn activation(a : f32, globalId : vec3<i32>, index : i32) -> f32 {
+          fn activation(a : f32, globalId : vec3<u32>, index : i32) -> f32 {
             ${activationOp}
           }
         `;
       }
 
       applyActivationSnippet =
-          `dotProd = activation(dotProd, vec3<i32>(globalId), index);`;
+          `dotProd = activation(dotProd, globalId, index);`;
     }
 
     const addBiasSnippet = this.addBias ?
-        'dotProd = dotProd + getBiasAtOutCoordsByGlobalId(vec3<i32>(globalId), index);' :
+        'dotProd = dotProd + getBiasAtOutCoordsByGlobalId(globalId, index);' :
         '';
 
     const userCode = `
@@ -210,7 +210,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
 
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
-        let coords = getOutputCoords(vec3<i32>(globalId), index);
+        let coords = getOutputCoords(globalId, index);
         let batch = coords[0];
         let xRCCorner = vec2<i32>(coords.yz) * uniforms.stride - uniforms.pad;
         let d2 = coords[3];
