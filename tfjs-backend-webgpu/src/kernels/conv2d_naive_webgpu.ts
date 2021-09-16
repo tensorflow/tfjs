@@ -203,13 +203,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
           for (var col = 0; col < uniforms.filterDims[1]; col = col + 1) {
             for (var xChannel = 0; xChannel < uniforms.xShape[3]; xChannel = xChannel + 1) {
               let coordRow = coords[1] * uniforms.stride[0] + uniforms.dilation[0] * row - uniforms.pad[0];
-              if (coordRow < 0) {
-                continue;
-              }
               let coordCol = coords[2] * uniforms.stride[1] + uniforms.dilation[1] * col - uniforms.pad[1];
-              if (coordCol < 0) {
-                continue;
-              }
               let v = readInp(batch, coordRow, coordCol, xChannel);
               let f = readFilt(row, col, xChannel, outChannel);
               acc = acc + v * f;

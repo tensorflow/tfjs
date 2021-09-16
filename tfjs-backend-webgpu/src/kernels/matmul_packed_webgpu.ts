@@ -242,8 +242,7 @@ export function makeMatMulPackedSourceWgsl(
 
         // Compute acc values for a single thread.
         for (var k = 0; k < ${tileInner}; k = k + 1) {
-          for (var inner = 0; inner < ${
-      workPerThread[0]}; inner = inner + 1) {
+          for (var inner = 0; inner < ${workPerThread[0]}; inner = inner + 1) {
             BCached[inner] = mm_Bsub[k][tileCol + inner];
           }
 
