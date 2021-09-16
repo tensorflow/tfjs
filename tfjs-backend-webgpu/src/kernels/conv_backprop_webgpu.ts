@@ -117,17 +117,17 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
         let batch = coords[0];
         let d1 = coords[${channelDim}];
 
-        let dyCorner = vec2<i32>(i32(coords[${rowDim}]), i32(coords[${
-        colDim}])) - uniforms.pads;
+        let dyCorner = vec2<i32>(coords[${rowDim}]), coords[${
+        colDim}]) - uniforms.pads;
         let dyRCorner = dyCorner.x;
         let dyCCorner = dyCorner.y;
 
         // Convolve dy(?, ?, d2) with w(:, :, d1, d2) to compute dx(xR, xC, d1).
         // ? = to be determined. : = across all values in that axis.
         var dotProd = 0.0;
-        for (var wR = 0u; wR < uniforms.filterDims.x; wR = wR + 1u) {
+        for (var wR = 0; wR < uniforms.filterDims.x; wR = wR + 1) {
           let dyR = (f32(dyRCorner) + f32(wR)) / f32(uniforms.stride.x);
-          let wRPerm = uniforms.filterDims.x - 1 - i32(wR);
+          let wRPerm = uniforms.filterDims.x - 1 - wR;
           if (dyR < 0.0 || dyR >= f32(uniforms.outBackprop[1]) || fract(dyR) > 0.0 ||
               wRPerm < 0) {
             continue;
