@@ -19,7 +19,7 @@ import {env} from '@tensorflow/tfjs-core';
 
 const ENV = env();
 
-/** The batched command encoders size in the device queue. */
+/** The batched dispatching calls size in the device queue. */
 ENV.registerFlag('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', () => 15);
 
 /**
