@@ -17,7 +17,7 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {getUseWgsl, WebGPUProgram} from './webgpu_program';
@@ -94,9 +94,8 @@ export class Im2ColProgram implements WebGPUProgram {
     const colDim = this.isChannelsLast ? 1 : 2;
 
     const userCode = `
-    ${getWorkGroupSizeStringWgsl()}
-    fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-      let index = i32(globalId.x);
+    ${getMainHeaderStringWgsl()} {
+      ${getGlobalIndexStringWgsl()}
 
       for(var i = 0; i<${this.workPerThread}; i = i + 1) {
         let flatIndex = index * ${this.workPerThread} + i;

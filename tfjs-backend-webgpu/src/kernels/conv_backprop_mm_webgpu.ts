@@ -140,8 +140,8 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
     let outRow = row / uniforms.outShape[2];
     let outCol = row % uniforms.outShape[2];
 
-    let WRow = i32(col) / (uniforms.filterDims[1] * uniforms.outBackprop[3]);
-    let WCol = i32(col) / uniforms.outBackprop[3] % uniforms.filterDims[1];
+    let WRow = col / (uniforms.filterDims[1] * uniforms.outBackprop[3]);
+    let WCol = col / uniforms.outBackprop[3] % uniforms.filterDims[1];
     let xR = (f32(outRow) - f32(uniforms.pads[0]) + f32(WRow)) / f32(uniforms.stride[0]);
     let xC = (f32(outCol) - f32(uniforms.pads[1]) + f32(WCol)) / f32(uniforms.stride[1]);
     if (xR < 0.0 || xR >= f32(uniforms.outBackprop[1]) || fract(xR) > 0.0) {
