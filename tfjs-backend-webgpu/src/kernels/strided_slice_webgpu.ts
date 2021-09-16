@@ -47,7 +47,7 @@ export class StridedSliceProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
 
     this.dtype = getCoordsDataType(this.outputShape.length);
-    this.dtypeWgsl = getCoordsDataTypeWgsl(this.outputShape.length, 'i32');
+    this.dtypeWgsl = getCoordsDataTypeWgsl(this.outputShape.length);
     this.uniforms = `${this.dtype} begin; ${this.dtype} strides; `;
     this.uniformsWgsl =
         `begin : ${this.dtypeWgsl};  strides : ${this.dtypeWgsl}; `;

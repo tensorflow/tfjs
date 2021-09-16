@@ -45,7 +45,7 @@ export class GatherNDProgram implements WebGPUProgram {
     this.sliceDim = sliceDim;
     this.uniforms = `int sliceDim; ${getCoordsDataType(sliceDim)} strides;`;
     this.uniformsWgsl =
-        `sliceDim : i32; strides : ${getCoordsDataTypeWgsl(sliceDim, 'i32')};`;
+        `sliceDim : i32; strides : ${getCoordsDataTypeWgsl(sliceDim)};`;
     this.useWgsl = getUseWgsl();
   }
   getUserCode(): string {

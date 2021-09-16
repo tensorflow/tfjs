@@ -47,7 +47,7 @@ export class SliceProgram implements WebGPUProgram {
 
     this.start = start;
     this.uniforms = `${getCoordsDataType(start.length)} start; `;
-    this.uniformsWgsl = `start : ${getCoordsDataTypeWgsl(start.length, 'i32')}; `;
+    this.uniformsWgsl = `start : ${getCoordsDataTypeWgsl(start.length)}; `;
     this.shaderKey = 'slice';
     this.size = util.sizeFromShape(this.outputShape);
     this.useWgsl = getUseWgsl();
