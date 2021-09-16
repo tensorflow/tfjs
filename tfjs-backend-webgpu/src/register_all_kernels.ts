@@ -42,6 +42,7 @@ import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
 import {expm1Config} from './kernels/Expm1';
 import {fillConfig} from './kernels/Fill';
+import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {fromPixelsConfig} from './kernels/FromPixels';
@@ -84,6 +85,7 @@ import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
+import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
@@ -132,6 +134,7 @@ const kernelConfigs: KernelConfig[] = [
   expConfig,
   expm1Config,
   fillConfig,
+  flipLeftRightConfig,
   fromPixelsConfig,
   floorConfig,
   floorDivConfig,
@@ -174,6 +177,7 @@ const kernelConfigs: KernelConfig[] = [
   reshapeConfig,
   resizeBilinearConfig,
   resizeNearestNeighborConfig,
+  rotateWithOffsetConfig,
   rsqrtConfig,
   selectConfig,
   sigmoidConfig,

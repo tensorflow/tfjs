@@ -558,6 +558,12 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'flipLeftRight',
+  },
+  {
+    include: 'rotateWithOffset',
+  },
+  {
     startsWith: 'logicalAnd ',
   },
   {
