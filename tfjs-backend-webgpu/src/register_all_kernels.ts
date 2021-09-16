@@ -97,6 +97,7 @@ import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
+import {sparseToDenseConfig} from './kernels/SparseToDense';
 import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
@@ -198,6 +199,7 @@ const kernelConfigs: KernelConfig[] = [
   softmaxConfig,
   spaceToBatchNDConfig,
   splitVConfig,
+  sparseToDenseConfig,
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,

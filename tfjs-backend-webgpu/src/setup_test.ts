@@ -577,6 +577,12 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'rotateWithOffset',
   },
   {
+    include: 'sparseToDense',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
     startsWith: 'logicalAnd ',
   },
   {
