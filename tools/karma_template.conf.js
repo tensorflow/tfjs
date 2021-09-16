@@ -27,8 +27,6 @@ module.exports = function(config) {
   if (browser) {
     browserConfig.browsers = [browser];
   }
-  
-  //throw new Error(`Running with args ${args} config ${JSON.stringify(config)} extra config TEMPLATE_config`);
 
   config.set({
     ...browserstackConfig,
