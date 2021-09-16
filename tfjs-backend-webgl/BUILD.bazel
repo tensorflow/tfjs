@@ -27,7 +27,15 @@ tfjs_bundle(
     external = [
         "node-fetch",
         "util",
+        "crypto",
+        "@tensorflow/tfjs-core",
+        "seedrandom",
+        "@tensorflow/tfjs-backend-cpu",
     ],
+    globals = {
+        '@tensorflow/tfjs-core': 'tf',
+        'seedrandom': 'seedrandom',
+    },
     umd_name = "tf",
     deps = [
         "//tfjs-backend-webgl/src:tfjs-backend-webgl_lib",
@@ -48,6 +56,7 @@ copy_to_dist(
     name = "copy_bundles",
     srcs = [
         ":tf-backend-webgl",
+        ":tf-backend-webgl.node",
         ":tf-backend-webgl.es2017",
         ":tf-backend-webgl.es2017.min",
         ":tf-backend-webgl.fesm",
@@ -70,7 +79,10 @@ copy_file(
 
 pkg_npm(
     name = "tfjs-backend-webgl_pkg",
-    srcs = ["package.json"],
+    srcs = [
+        "package.json",
+        "README.md",
+    ],
     tags = ["ci"],
     deps = [
         ":copy_bundles",
