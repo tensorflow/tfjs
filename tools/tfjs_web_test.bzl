@@ -23,6 +23,7 @@ def _make_karma_config_impl(ctx):
         output = ctx.outputs.config_file,
         substitutions = {
             "TEMPLATE_browser": ctx.attr.browser,
+            "TEMPLATE_args": str(ctx.attr.args),
         },
     )
     return [DefaultInfo(files = depset([output_file]))]
@@ -30,6 +31,13 @@ def _make_karma_config_impl(ctx):
 _make_karma_config = rule(
     implementation = _make_karma_config_impl,
     attrs = {
+        "args": attr.string_list(
+            # TODO(mattsoulanille): Make this a dict instead of a list
+            doc = """Args to pass through to the client.
+
+            They appear in '__karma__.config.args'.
+            """,
+        ),
         "browser": attr.string(
             default = "",
             doc = "The browser to run",
@@ -43,7 +51,7 @@ _make_karma_config = rule(
     outputs = {"config_file": "%{name}.js"},
 )
 
-def tfjs_web_test(name, ci = True, **kwargs):
+def tfjs_web_test(name, ci = True, args=[], **kwargs):
     tags = kwargs.pop("tags", [])
     browsers = kwargs.pop("browsers", [
         "bs_chrome_mac",
@@ -68,6 +76,7 @@ def tfjs_web_test(name, ci = True, **kwargs):
     config_file = "{}_config".format(name)
     _make_karma_config(
         name = config_file,
+        args = args,
     )
 
     karma_web_test(
@@ -85,6 +94,7 @@ def tfjs_web_test(name, ci = True, **kwargs):
         _make_karma_config(
             name = config_file,
             browser = browser,
+            args = args,
         )
 
         additional_tags = []

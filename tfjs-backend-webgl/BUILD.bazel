@@ -80,30 +80,45 @@ pkg_npm(
     ],
 )
 
+BROWSERS = [
+    "bs_chrome_mac",
+    "bs_firefox_mac",
+    "bs_safari_mac",
+    "bs_ios_11",
+    "bs_android_9",
+    "win_10_chrome",
+]
+
+STATIC_FILES = [
+    # Listed here so sourcemaps are served
+    "//tfjs-backend-webgl/src:tfjs-backend-webgl_test_bundle",
+    # For the webworker
+    ":tf-backend-webgl.min.js",
+    ":tf-backend-webgl.min.js.map",
+    "//tfjs-backend-cpu:tf-backend-cpu.min.js",
+    "//tfjs-backend-cpu:tf-backend-cpu.min.js.map",
+    "//tfjs-core:tf-core.min.js",
+    "//tfjs-core:tf-core.min.js.map",
+]
+
 tfjs_web_test(
-    name = "tfjs-backend-webgl_test",
+    name = "tfjs-backend-webgl2_test",
     srcs = [
         "//tfjs-backend-webgl/src:tfjs-backend-webgl_test_bundle",
     ],
-    browsers = [
-        "bs_chrome_mac",
-        "bs_firefox_mac",
-        "bs_safari_mac",
-        "bs_ios_11",
-        "bs_android_9",
-        "win_10_chrome",
-    ],
-    static_files = [
-        # Listed here so sourcemaps are served
+    browsers = BROWSERS,
+    args = ["--testEnv", "webgl2"],
+    static_files = STATIC_FILES,
+)
+
+tfjs_web_test(
+    name = "tfjs-backend-webgl1_test",
+    srcs = [
         "//tfjs-backend-webgl/src:tfjs-backend-webgl_test_bundle",
-        # For the webworker
-        ":tf-backend-webgl.min.js",
-        ":tf-backend-webgl.min.js.map",
-        "//tfjs-backend-cpu:tf-backend-cpu.min.js",
-        "//tfjs-backend-cpu:tf-backend-cpu.min.js.map",
-        "//tfjs-core:tf-core.min.js",
-        "//tfjs-core:tf-core.min.js.map",
     ],
+    browsers = BROWSERS,
+    args = ["--testEnv", "webgl1"],
+    static_files = STATIC_FILES,
 )
 
 js_library(

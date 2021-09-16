@@ -49,8 +49,13 @@ if (typeof __karma__ !== 'undefined') {
   }
 }
 
+// These use 'require' because they must not be hoisted above
+// the preceding snippet that parses test environments.
 // Import and run tests from core.
 // tslint:disable-next-line:no-imports-from-dist
-import '@tensorflow/tfjs-core/dist/tests';
+// tslint:disable-next-line:no-require
+require('@tensorflow/tfjs-core/dist/tests');
 // Import and run tests from webgl.
-import './tests';
+// tslint:disable-next-line:no-imports-from-dist
+// tslint:disable-next-line:no-require
+require('./tests');

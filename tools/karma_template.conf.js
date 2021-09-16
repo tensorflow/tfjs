@@ -27,6 +27,8 @@ module.exports = function(config) {
   if (browser) {
     browserConfig.browsers = [browser];
   }
+  
+  //throw new Error(`Running with args ${args} config ${JSON.stringify(config)} extra config TEMPLATE_config`);
 
   config.set({
     ...browserstackConfig,
@@ -97,6 +99,7 @@ module.exports = function(config) {
       },
       chrome_debugging:
       {base: 'Chrome', flags: ['--remote-debugging-port=9333']}
-    }
+    },
+    client: {args: TEMPLATE_args},
   });
 }

@@ -62,9 +62,9 @@
     "publish-npm": "bazel run :tfjs-backend-webgl_pkg.publish",
     "lint": "tslint -p . -t verbose",
     "test": "yarn test-dev",
-    "test-dev": "ibazel run :tfjs-backend-webgl_test --test-output=streamed",
+    "test-dev": "ibazel run :tfjs-backend-webgl2_test --test-output=streamed",
     "coverage": "KARMA_COVERAGE=1 karma start --browsers='Chrome' --singleRun",
-    "run-browserstack": "bazel test :browserstack_bs_chrome_mac_tfjs-backend-webgl_test"
+    "run-browserstack": "bazel test :browserstack_bs_chrome_mac_tfjs-backend-webgl2_test"
   },
   "dependencies": {
     "@tensorflow/tfjs-backend-cpu": "link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
