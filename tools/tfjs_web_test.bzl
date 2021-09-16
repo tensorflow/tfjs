@@ -18,8 +18,6 @@ load("@npm//@bazel/concatjs:index.bzl", "karma_web_test")
 def _make_karma_config_impl(ctx):
     output_file_path = ctx.label.name + ".js"
     output_file = ctx.actions.declare_file(output_file_path)
-    print("Arguments to karma config")
-    print(ctx.actions.args())
     ctx.actions.expand_template(
         template = ctx.file.template,
         output = ctx.outputs.config_file,
