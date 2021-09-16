@@ -558,6 +558,12 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'sparseToDense',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
     startsWith: 'logicalAnd ',
   },
   {
