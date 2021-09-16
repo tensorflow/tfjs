@@ -33,8 +33,8 @@ tfjs_bundle(
         "@tensorflow/tfjs-backend-cpu",
     ],
     globals = {
-        '@tensorflow/tfjs-core': 'tf',
-        'seedrandom': 'seedrandom',
+        "@tensorflow/tfjs-core": "tf",
+        "seedrandom": "seedrandom",
     },
     umd_name = "tf",
     deps = [
@@ -56,12 +56,12 @@ copy_to_dist(
     name = "copy_bundles",
     srcs = [
         ":tf-backend-webgl",
-        ":tf-backend-webgl.node",
         ":tf-backend-webgl.es2017",
         ":tf-backend-webgl.es2017.min",
         ":tf-backend-webgl.fesm",
         ":tf-backend-webgl.fesm.min",
         ":tf-backend-webgl.min",
+        ":tf-backend-webgl.node",
     ],
 )
 
@@ -80,8 +80,8 @@ copy_file(
 pkg_npm(
     name = "tfjs-backend-webgl_pkg",
     srcs = [
-        "package.json",
         "README.md",
+        "package.json",
     ],
     tags = ["ci"],
     deps = [
