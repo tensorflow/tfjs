@@ -18,12 +18,14 @@ load("@npm//@bazel/concatjs:index.bzl", "karma_web_test")
 def _make_karma_config_impl(ctx):
     output_file_path = ctx.label.name + ".js"
     output_file = ctx.actions.declare_file(output_file_path)
+    print("Arguments to karma config")
+    print(ctx.actions.args())
     ctx.actions.expand_template(
         template = ctx.file.template,
         output = ctx.outputs.config_file,
         substitutions = {
-            "TEMPLATE_browser": ctx.attr.browser,
             "TEMPLATE_args": str(ctx.attr.args),
+            "TEMPLATE_browser": ctx.attr.browser,
         },
     )
     return [DefaultInfo(files = depset([output_file]))]
@@ -51,7 +53,7 @@ _make_karma_config = rule(
     outputs = {"config_file": "%{name}.js"},
 )
 
-def tfjs_web_test(name, ci = True, args=[], **kwargs):
+def tfjs_web_test(name, ci = True, args = [], **kwargs):
     tags = kwargs.pop("tags", [])
     browsers = kwargs.pop("browsers", [
         "bs_chrome_mac",
