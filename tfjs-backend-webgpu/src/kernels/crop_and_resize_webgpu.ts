@@ -145,9 +145,8 @@ export class CropAndResizeProgram implements WebGPUProgram {
   }
 
   getUserCodeWgsl(): string {
-    const [inputHeightFloat, inputWidthFloat] = [
-      `f32(uniforms.imageShape[1] - 1)`, `f32(uniforms.imageShape[2] - 1)`
-    ];
+    const [inputHeightFloat, inputWidthFloat] =
+        [`f32(uniforms.imageShape[1] - 1)`, `f32(uniforms.imageShape[2] - 1)`];
 
     const [heightRatio, heightScale, inY] = this.cropHeightBiggerThan1 ?
         [

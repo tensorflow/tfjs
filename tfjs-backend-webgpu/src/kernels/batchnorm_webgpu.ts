@@ -107,14 +107,12 @@ export class BatchNormProgram implements WebGPUProgram {
   getUserCodeWgsl(): string {
     let offsetSnippet = '0.0';
     if (this.offsetShape != null) {
-      offsetSnippet =
-          'getOffsetAtOutCoordsByGlobalId(globalId, index)';
+      offsetSnippet = 'getOffsetAtOutCoordsByGlobalId(globalId, index)';
     }
 
     let scaleSnippet = '1.0';
     if (this.scaleShape != null) {
-      scaleSnippet =
-          'getScaleAtOutCoordsByGlobalId(globalId, index)';
+      scaleSnippet = 'getScaleAtOutCoordsByGlobalId(globalId, index)';
     }
 
     const dim = this.outputShape.length;
