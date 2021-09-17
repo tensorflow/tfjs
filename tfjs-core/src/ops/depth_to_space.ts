@@ -73,6 +73,10 @@ function depthToSpace_(
   const inputDepth = (dataFormat === 'NHWC') ? $x.shape[3] : $x.shape[1];
 
   util.assert(
+      blockSize > 1,
+      () => `blockSize should be > 1 for depthToSpace, but was: ${blockSize}`);
+
+  util.assert(
       inputHeight * blockSize >= 0,
       () => `Negative dimension size caused by overflow when multiplying
     ${inputHeight} and ${blockSize}  for depthToSpace with input shape
