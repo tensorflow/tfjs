@@ -144,8 +144,8 @@ export function batchMatMulImpl({
     const dimInner = transposeA === true ? a3d.shape[1] : a3d.shape[2];
     const dimBOuter = transposeB === true ? b3d.shape[1] : b3d.shape[2];
     dimensions = [
-      {type: 'uint32', data: [dimAOuter]}, {type: 'uint32', data: [dimBOuter]},
-      {type: 'uint32', data: [dimInner]}
+      {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
+      {type: 'int32', data: [dimInner]}
     ];
   }
   const out = backend.runWebGPUProgram(program, inputs, a.dtype, dimensions);
