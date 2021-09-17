@@ -216,8 +216,8 @@ export class TransformProgram implements WebGPUProgram {
           fn readWithFillValue(batch : i32, coordY : i32, coordX : i32,
             channel : i32) -> f32 {
             var outputValue : f32;
-            if (0 <= coordY && coordY < i32(uniforms.imageShape[1]) && 0 <= coordX && coordX < i32(uniforms.imageShape[2])) {
-                outputValue = getImage(u32(batch), u32(coordY), u32(coordX), u32(channel));
+            if (0 <= coordY && coordY < uniforms.imageShape[1] && 0 <= coordX && coordX < uniforms.imageShape[2]) {
+                outputValue = getImage(batch, coordY, coordX, channel);
             } else {
               outputValue = uniforms.fillValue;
             }
@@ -235,14 +235,14 @@ export class TransformProgram implements WebGPUProgram {
               let channel = coords[3];
               let xf = f32(x);
               let yf = f32(y);
-              let a1 = getTransforms(batch, 0u);
-              let a2 = getTransforms(batch, 1u);
-              let a3 = getTransforms(batch, 2u);
-              let b1 = getTransforms(batch, 3u);
-              let b2 = getTransforms(batch, 4u);
-              let b3 = getTransforms(batch, 5u);
-              let c1 = getTransforms(batch, 6u);
-              let c2 = getTransforms(batch, 7u);
+              let a1 = getTransforms(batch, 0);
+              let a2 = getTransforms(batch, 1);
+              let a3 = getTransforms(batch, 2);
+              let b1 = getTransforms(batch, 3);
+              let b2 = getTransforms(batch, 4);
+              let b3 = getTransforms(batch, 5);
+              let c1 = getTransforms(batch, 6);
+              let c2 = getTransforms(batch, 7);
               let projection = c1 * xf + c2 * yf + 1.0;
               if (projection == 0.0) {
                 outputValue = uniforms.fillValue;
@@ -255,21 +255,21 @@ export class TransformProgram implements WebGPUProgram {
                 if (uniforms.interpolationModeId == 1) {
                   let coordY = i32(round(mapY));
                   let coordX = i32(round(mapX));
-                  outputValue = readWithFillValue(i32(batch), coordY, coordX,
-                    i32(channel));
+                  outputValue = readWithFillValue(batch, coordY, coordX,
+                    channel);
                 } else {
                   let yFloor = floor(mapY);
                   let xFloor = floor(mapX);
                   let yCeil = yFloor + 1.0;
                   let xCeil = xFloor + 1.0;
                   let valueYFloor = (xCeil - mapX) *
-                  readWithFillValue(i32(batch), i32(yFloor), i32(xFloor), i32(channel)) +
+                  readWithFillValue(batch, i32(yFloor), i32(xFloor), channel) +
                   (mapX - xFloor) *
-                  readWithFillValue(i32(batch), i32(yFloor), i32(xCeil), i32(channel));
+                  readWithFillValue(batch, i32(yFloor), i32(xCeil), channel);
                   let valueYCeil = (xCeil - mapX) *
-                  readWithFillValue(i32(batch), i32(yCeil), i32(xFloor), i32(channel)) +
+                  readWithFillValue(batch, i32(yCeil), i32(xFloor), channel) +
                   (mapX - xFloor) *
-                  readWithFillValue(i32(batch), i32(yCeil), i32(xCeil), i32(channel));
+                  readWithFillValue(batch, i32(yCeil), i32(xCeil), channel);
                   outputValue = (yCeil - mapY) * valueYFloor +
                   (mapY - yFloor) * valueYCeil;
                 }

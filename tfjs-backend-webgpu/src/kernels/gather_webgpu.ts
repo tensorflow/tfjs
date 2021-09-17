@@ -59,7 +59,7 @@ export class GatherProgram implements WebGPUProgram {
   }
 
   getUserCodeWgsl(): string {
-    const sourceCoords = getSourceCoords(this.aShape, 'u32');
+    const sourceCoords = getSourceCoords(this.aShape, 'i32');
     const userCode = `
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}

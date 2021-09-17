@@ -117,22 +117,22 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
         let batch = coords[0];
         let d1 = coords[${channelDim}];
 
-        let dyCorner = vec2<i32>(i32(coords[${rowDim}]), i32(coords[${
-        colDim}])) - uniforms.pads;
+        let dyCorner = vec2<i32>(coords[${rowDim}]), coords[${
+        colDim}]) - uniforms.pads;
         let dyRCorner = dyCorner.x;
         let dyCCorner = dyCorner.y;
 
         // Convolve dy(?, ?, d2) with w(:, :, d1, d2) to compute dx(xR, xC, d1).
         // ? = to be determined. : = across all values in that axis.
         var dotProd = 0.0;
-        for (var wR = 0u; wR < uniforms.filterDims.x; wR = wR + 1u) {
+        for (var wR = 0; wR < uniforms.filterDims.x; wR = wR + 1) {
           let dyR = (f32(dyRCorner) + f32(wR)) / f32(uniforms.stride.x);
-          let wRPerm = uniforms.filterDims.x - 1 - i32(wR);
+          let wRPerm = uniforms.filterDims.x - 1 - wR;
           if (dyR < 0.0 || dyR >= f32(uniforms.outBackprop[1]) || fract(dyR) > 0.0 ||
               wRPerm < 0) {
             continue;
           }
-          let idyR = u32(dyR);
+          let idyR = dyR;
 
           for (var wC = 0; wC < uniforms.filterDims.y; wC = wC + 1) {
             let dyC = (f32(dyCCorner) + f32(wC)) / f32(uniforms.stride.y);
@@ -141,16 +141,16 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
                 fract(dyC) > 0.0 || wCPerm < 0) {
               continue;
             }
-            let idyC = u32(dyC);
+            let idyC = dyC;
 
-            for (var d2 = 0u; d2 < u32(uniforms.outBackprop[3]); d2 = d2 + 1u) {
+            for (var d2 = 0; d2 < uniforms.outBackprop[3]; d2 = d2 + 1) {
               if (${this.isChannelsLast}) {
                 let xValue = getDy(batch, idyR, idyC, d2);
-                let wValue = getW(u32(wRPerm), u32(wCPerm), d1, d2);
+                let wValue = getW(wRPerm, wCPerm, d1, d2);
                 dotProd = dotProd + xValue * wValue;
               } else {
                 let xValue = getDy(batch, d2, idyR, idyC);
-                let wValue = getW(u32(wRPerm), u32(wCPerm), d1, d2);
+                let wValue = getW(wRPerm, wCPerm, d1, d2);
                 dotProd = dotProd + xValue * wValue;
               }
 

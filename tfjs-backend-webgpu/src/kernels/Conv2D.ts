@@ -76,9 +76,9 @@ export function conv2d(
     const dimInner =
         convInfo.filterHeight * convInfo.filterWidth * convInfo.inShape[3];
     dimensions.push(
-        {type: 'uint32', data: [dimAOuter]},
-        {type: 'uint32', data: [dimBOuter]},
-        {type: 'uint32', data: [dimInner]});
+        {type: 'int32', data: [dimAOuter]},
+        {type: 'int32', data: [dimBOuter]},
+        {type: 'int32', data: [dimInner]});
   }
 
   return backend.runWebGPUProgram(program, [x, filter], x.dtype, dimensions);
