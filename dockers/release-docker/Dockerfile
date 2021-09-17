@@ -10,6 +10,7 @@ RUN apt-get update -qqy && apt-get install -qqy \
         curl \
         gcc \
         python \
+        python-dev \
         python3 \
         python3-setuptools \
         python3-dev \
