@@ -20,7 +20,7 @@ import {util} from '@tensorflow/tfjs-core';
 import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class DepthToSpaceProgram implements WebGPUProgram {
   variableNames = ['x'];
@@ -33,7 +33,7 @@ export class DepthToSpaceProgram implements WebGPUProgram {
   size: number;
   useWgsl: boolean;
   uniforms = 'int blockSize;';
-  uniformsWgsl = 'blockSize : u32;';
+  uniformsWgsl = 'blockSize : i32;';
 
   constructor(outputShape: number[], dataFormat: 'NHWC'|'NCHW') {
     this.outputShape = outputShape;
@@ -42,6 +42,7 @@ export class DepthToSpaceProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = `depthToSpace_${dataFormat}`;
     this.size = util.sizeFromShape(this.outputShape);
+    this.useWgsl = getUseWgsl();
     this.dataFormat = dataFormat;
   }
 
@@ -75,9 +76,8 @@ export class DepthToSpaceProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
-        let index = getGlobalIndex();
-        if (index < size) {
-          let coords = getOutputCoords();
+        if (index < uniforms.size) {
+          let coords = getOutputCoords(globalId, index);
           let b = coords[0];
           let h = ${this.getHeightCoordString()};
           let w = ${this.getWidthCoordString()};
@@ -91,8 +91,8 @@ export class DepthToSpaceProgram implements WebGPUProgram {
             ${this.getOutputDepthSize()};
           let in_d = d + offset_d;
 
-          let result = ${this.getInputSamplingString()};
-          setOutput(index, result);
+          let rlt = ${this.getInputSamplingString()};
+          setOutputFlat(index, rlt);
         }
       }`;
     return userCode;
@@ -124,9 +124,9 @@ export class DepthToSpaceProgram implements WebGPUProgram {
 
   private getOutputDepthSize(): string {
     if (this.dataFormat === 'NHWC') {
-      return `outShape[3]`;
+      return getUseWgsl() ? `uniforms.outShape[3]` : `outShape[3]`;
     } else {
-      return `outShape[1]`;
+      return getUseWgsl() ? `uniforms.outShape[1]` : `outShape[1]`;
     }
   }
 
