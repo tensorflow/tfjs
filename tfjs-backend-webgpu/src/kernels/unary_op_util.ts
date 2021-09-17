@@ -24,6 +24,7 @@ export enum UnaryOpType {
   FLOOR,
   LINEAR,
   LOG,
+  LOGICAL_NOT,
   NEG,
   PRELU,
   RELU,
@@ -56,6 +57,7 @@ const FLOOR = `return floor(a);`;
 const LINEAR = `return a;`;
 const LOG = `if (a < 0.0) { return 1.0/0.0; }
   return log(a);`;
+const LOGICAL_NOT = `return float(!(a >= 1.0));`;
 const NEG = `return -a;`;
 const PRELU = `return (a < 0.0) ? b * a : a;`;
 const RELU = 'return max(a, 0.0);';
@@ -83,6 +85,7 @@ const TO_INT = `return float(int(a));`;
 
 // WGSL shader.
 const ELU_WGSL = `if (a >= 0.0) { return a; }  return (exp(a) - 1.0);`;
+const LOGICAL_NOT_WGSL = `return f32(!(a >= 1.0));`;
 const RELU_WGSL = 'return max(a, 0.0);';
 const RELU6_VEC4_WGSL =
     'return clamp(a, vec4<f32>(0.0, 0.0, 0.0, 0.0), vec4<f32>(6.0, 6.0, 6.0, 6.0));';
@@ -140,6 +143,8 @@ export function getUnaryOpString(
       return LINEAR;
     case UnaryOpType.LOG:
       return LOG;
+    case UnaryOpType.LOGICAL_NOT:
+      return useWgsl ? LOGICAL_NOT_WGSL : LOGICAL_NOT;
     case UnaryOpType.NEG:
       return NEG;
     case UnaryOpType.PRELU:
