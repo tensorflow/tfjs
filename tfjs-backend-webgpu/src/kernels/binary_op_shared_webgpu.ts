@@ -159,16 +159,16 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
           // Fill in the shared memory buffer. Here we need a loop to make sure
           // that all data in A|B are uploaded when |sharedMemorySize| is larger
           // than work group size.
-          for(var localIndex = localId.x; localIndex < ${
-        this.lastDimensionSize}u; localIndex = localIndex + ${
-        this.workGroupSize[0]}u) {
+          for(var localIndex = i32(localId.x); localIndex < ${
+        this.lastDimensionSize}; localIndex = localIndex + ${
+        this.workGroupSize[0]}) {
             sharedBuf[localIndex] = f32(${
         this.useSharedMemoryWithB ? 'B' : 'A'}.numbers[localIndex]);
           }
           workgroupBarrier();
 
-          for(var i = 0u; i < ${this.workPerThread}u; i = i + 1u) {
-            let flatIndex = index * ${this.workPerThread}u + i;
+          for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
+            let flatIndex = index * ${this.workPerThread} + i;
 
             ${writeDataSnippet}
           }

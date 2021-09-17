@@ -137,7 +137,7 @@ export class Pool2DProgram implements WebGPUProgram {
                 continue;
               }
 
-              let value = getX(batch, u32(xR), u32(xC), coords[3]);
+              let value = getX(batch, xR, xC, coords[3]);
               ${updateSnippet}
             }
           }

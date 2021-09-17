@@ -98,9 +98,9 @@ export function fusedConv2d(args: {
         convInfo.filterHeight * convInfo.filterWidth * convInfo.inShape[3];
     if (program.useWgsl) {
       dimensions.push(
-          {type: 'uint32', data: [dimAOuter]},
-          {type: 'uint32', data: [dimBOuter]},
-          {type: 'uint32', data: [dimInner]});
+          {type: 'int32', data: [dimAOuter]},
+          {type: 'int32', data: [dimBOuter]},
+          {type: 'int32', data: [dimInner]});
     }
   }
 

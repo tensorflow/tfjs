@@ -30,7 +30,7 @@ export class ReduceProgram implements WebGPUProgram {
   workGroupSize: [number, number, number];
   variableNames = ['x'];
   uniforms = 'int reduceSize;';
-  uniformsWgsl = 'reduceSize : u32;';
+  uniformsWgsl = 'reduceSize : i32;';
   reduceType: 'max'|'mean'|'min'|'prod'|'sum';
   inputShape: number[];
   reductionFactor: number;
@@ -186,10 +186,10 @@ export class ReduceProgram implements WebGPUProgram {
             `bestValue = ${initValue};` :
             ' '}
        var currentSize = WorkGroupSize;
-       for(; currentSize > 1u;) {
+       for(; currentSize > 1;) {
          workgroupBarrier();
-         for (var w = 0u; w < ${this.reductionFactor}u; w = w + 1u) {
-           let i = localId.x * ${this.reductionFactor}u + w;
+         for (var w = 0; w < ${this.reductionFactor}; w = w + 1) {
+           let i = i32(localId.x) * ${this.reductionFactor} + w;
            if (i < currentSize) {
              let candidate = xBestValues[i];
              ${reduceOp}
@@ -197,11 +197,11 @@ export class ReduceProgram implements WebGPUProgram {
          }
          workgroupBarrier();
          xBestValues[localId.x] = bestValue;
-         currentSize = DIV_CEIL(currentSize, ${this.reductionFactor}u);
+         currentSize = DIV_CEIL(currentSize, ${this.reductionFactor});
          ${
         this.reduceType === 'sum' || this.reduceType === 'mean' ||
                 this.reduceType === 'prod' ?
-            `if(currentSize > 1u) { bestValue = ${initValue}; }` :
+            `if(currentSize > 1) { bestValue = ${initValue}; }` :
             ''}
        }
        if (localId.x == 0u) {
@@ -210,12 +210,12 @@ export class ReduceProgram implements WebGPUProgram {
      `;
 
     const userCode = `
-       fn DIV_CEIL(a : u32, b : u32) -> u32 {
-        return ((a - 1u) / b + 1u);
+       fn DIV_CEIL(a : i32, b : i32) -> i32 {
+        return ((a - 1) / b + 1);
        }
-       let WorkGroupSize = ${this.workGroupSize[0]}u;
+       let WorkGroupSize = ${this.workGroupSize[0]};
        ${reduceInSharedMemory ? sharedMemorySnippet : ''}
-       fn getOffset(globalId : vec3<u32>, index : u32) -> u32 {
+       fn getOffset(globalId : vec3<u32>, index : i32) -> i32 {
          let outputCoords = getOutputCoords(globalId, index);
          let offset = ${
         this.outputShape.length === 1 ?
@@ -229,14 +229,14 @@ export class ReduceProgram implements WebGPUProgram {
          var bestValue = ${initValue};
          let Length = uniforms.reduceSize;
          let WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
-         for (var w = 0u; w < WorkPerThread; w = w + 1u) {
-           let i = globalId.x * WorkPerThread + w;
+         for (var w = 0; w < WorkPerThread; w = w + 1) {
+           let i = i32(globalId.x) * WorkPerThread + w;
            if (i < Length) {
              let candidate = f32(x.numbers[offset + i]);
              ${reduceOp}
            }
          }
-         let flatOutputIndex = globalId.y;
+         let flatOutputIndex = i32(globalId.y);
          ${reduceInSharedMemory ? sharedMemoryReduceSnippet : outputSnippet}
        }
      `;
