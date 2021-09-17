@@ -19,9 +19,10 @@ import {backend_util, env, FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs, Ker
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {Conv2DProgram} from '../conv_gpu';
+import {ConvPacked2DProgram} from '../conv_packed_gpu';
 import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
 
-import {conv2dByMatMul, conv2dWithIm2Row} from './Conv2D_impl';
+import {conv2dWithIm2Row} from './Conv2D_impl';
 import {reshape} from './Reshape';
 
 export function fusedConv2d(args: {
@@ -49,20 +50,63 @@ export function fusedConv2d(args: {
   let out: TensorInfo;
   const intermediates: TensorInfo[] = [];
 
-  if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
-      convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
-      convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
-      (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID')) {
-    out = conv2dByMatMul({
-      x,
-      filter,
-      convInfo,
-      backend,
-      bias,
-      activation,
-      preluActivationWeights,
-      leakyreluAlpha
-    });
+  // if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
+  //     convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
+  //     convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
+  //     (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type ===
+  //     'VALID')) {
+  //   out = conv2dByMatMul({
+  //     x,
+  //     filter,
+  //     convInfo,
+  //     backend,
+  //     bias,
+  //     activation,
+  //     preluActivationWeights,
+  //     leakyreluAlpha
+  //   });
+  // } else
+  if (
+      // env().getBool('WEBGL_PACK_DEPTHWISECONV') &&
+      convInfo.strideWidth <= 2) {
+    // console.log('packed conv2d');
+    const fusedActivation =
+        activation ? mapActivationToShaderProgram(activation, true) : null;
+    const programInputs: TensorInfo[] = [x, filter];
+
+    const hasBias = bias != null;
+    const hasPreluActivationWeights = preluActivationWeights != null;
+    const hasLeakyreluAlpha = activation === 'leakyrelu';
+
+    if (hasBias) {
+      programInputs.push(bias);
+    }
+    if (hasPreluActivationWeights) {
+      programInputs.push(preluActivationWeights);
+    }
+    if (hasLeakyreluAlpha) {
+      const $leakyreluAlpha = backend.makeTensorInfo(
+          [], 'float32',
+          util.createScalarValue(leakyreluAlpha as {} as 'float32', 'float32'));
+      programInputs.push($leakyreluAlpha);
+      intermediates.push($leakyreluAlpha);
+    }
+    const program = new ConvPacked2DProgram(
+        convInfo, hasBias, fusedActivation, hasPreluActivationWeights,
+        hasLeakyreluAlpha);
+    const customValues = [
+      [convInfo.padInfo.top, convInfo.padInfo.left],
+      [convInfo.strideHeight, convInfo.strideWidth],
+      [convInfo.dilationHeight, convInfo.dilationWidth],
+      [convInfo.inHeight, convInfo.inWidth]
+    ];
+    const result = backend.runWebGLProgram(
+        program, programInputs, 'float32', customValues);
+
+    intermediates.forEach(t => backend.disposeIntermediateTensorInfo(t));
+
+    return result;
+
   } else if (env().getBool('WEBGL_CONV_IM2COL') && x.shape[0] === 1) {
     out = conv2dWithIm2Row({
       x,

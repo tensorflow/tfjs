@@ -19,7 +19,9 @@ import {backend_util, Conv2D, Conv2DAttrs, Conv2DInputs, env, KernelConfig, Kern
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {Conv2DProgram} from '../conv_gpu';
-import {conv2dByMatMul, conv2dWithIm2Row} from './Conv2D_impl';
+import {ConvPacked2DProgram} from '../conv_packed_gpu';
+
+import {conv2dWithIm2Row} from './Conv2D_impl';
 import {reshape} from './Reshape';
 
 export function conv2d(
@@ -36,11 +38,30 @@ export function conv2d(
       dimRoundingMode, false /* depthwise */, $dataFormat);
   let out: TensorInfo;
 
-  if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
-      convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
-      convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
-      (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID')) {
-    out = conv2dByMatMul({x, filter, convInfo, backend});
+  // if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
+  //     convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
+  //     convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
+  //     (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type ===
+  //     'VALID')) {
+  //   out = conv2dByMatMul({x, filter, convInfo, backend});
+  // } else
+  if (
+      // env().getBool('WEBGL_PACK_DEPTHWISECONV') &&
+      convInfo.strideWidth <= 2) {
+    // console.log('packed conv2d');
+    const programInputs: TensorInfo[] = [x, filter];
+
+    const program = new ConvPacked2DProgram(convInfo);
+    const customValues = [
+      [convInfo.padInfo.top, convInfo.padInfo.left],
+      [convInfo.strideHeight, convInfo.strideWidth],
+      [convInfo.dilationHeight, convInfo.dilationWidth],
+      [convInfo.inHeight, convInfo.inWidth]
+    ];
+    const result = backend.runWebGLProgram(
+        program, programInputs, 'float32', customValues);
+
+    return result;
   } else if (env().getBool('WEBGL_CONV_IM2COL') && x.shape[0] === 1) {
     out = conv2dWithIm2Row({x, filter, convInfo, backend});
   } else {
