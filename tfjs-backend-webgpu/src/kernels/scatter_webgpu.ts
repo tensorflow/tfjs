@@ -111,7 +111,7 @@ export class ScatterProgram implements WebGPUProgram {
         let strides = ${stridesType}(${this.strides});
 
         if (index < uniforms.size) {
-          let coords = getOutputCoords(vec3<i32>(globalId), index);
+          let coords = getOutputCoords(globalId, index);
           var sum = 0.0;
           var found = false;
           for (var i = 0; i < ${this.updateSize}; i = i + 1) {
