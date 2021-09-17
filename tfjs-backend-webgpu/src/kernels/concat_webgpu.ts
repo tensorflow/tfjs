@@ -104,17 +104,17 @@ export class ConcatProgram implements WebGPUProgram {
       }
 
       snippets.push(`if (yC < ${
-          offsets[0]}u){ setOutput(coords.x, coords.y, getT0(yR, yC)); }`);
+          offsets[0]}){ setOutput(coords.x, coords.y, getT0(yR, yC)); }`);
       for (let i = 1; i < offsets.length; i++) {
         const shift = offsets[i - 1];
         snippets.push(
-            `elseif (yC < ${offsets[i]}u){ ` +
-            `setOutput(coords.x, coords.y, getT${i}(yR, yC - ${shift}u)); }`);
+            `elseif (yC < ${offsets[i]}){ ` +
+            `setOutput(coords.x, coords.y, getT${i}(yR, yC - ${shift})); }`);
       }
       const lastIndex = offsets.length;
       const lastShift = offsets[offsets.length - 1];
       snippets.push(`else { setOutput(coords.x, coords.y, getT${
-          lastIndex}(yR, yC - ${lastShift}u)); }`);
+          lastIndex}(yR, yC - ${lastShift})); }`);
     } else {
       snippets.push(`setOutput(coords.x, coords.y, getT0(yR, yC));`);
     }
@@ -122,8 +122,8 @@ export class ConcatProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
-        for(var i = 0u; i < ${this.workPerThread}u; i = i + 1u) {
-          let flatIndex = index * ${this.workPerThread}u + i;
+        for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
+          let flatIndex = index * ${this.workPerThread} + i;
           if(flatIndex < uniforms.size) {
             let coords = getCoordsFromFlatIndex(flatIndex);
             let yR = coords.x;

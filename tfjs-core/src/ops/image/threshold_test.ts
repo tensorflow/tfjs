@@ -19,6 +19,15 @@ import {ALL_ENVS, describeWithFlags} from '../../jasmine_util';
 import {expectArraysEqual} from '../../test_util';
 
 describeWithFlags('threshold', ALL_ENVS, () => {
+  let originalTimeout: number;
+  beforeEach(() => {
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 40_000;
+  });
+  afterAll(() => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
+  });
+
   it('default method binary, no arguments passed but input image', async () => {
     const image: tf.Tensor3D = tf.tensor3d(
     [144,255,51,13,32,59,222,100,51,69,71,222],
@@ -162,5 +171,4 @@ describeWithFlags('threshold', ALL_ENVS, () => {
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     );
   });
-
 });
