@@ -135,12 +135,15 @@ export async function toTexture(
  * @param texture the texture to convert into a tensor
  * @param sourceDims source dimensions of input texture (width, height, depth)
  * @param targetShape desired shape of output tensor
+ * @param useCustomShadersToResize whether to use custom shaders to resize
+ *   texture.
  *
  * @doc {heading: 'Media', subheading: 'Camera'}
  */
 export function fromTexture(
     gl: WebGL2RenderingContext, texture: WebGLTexture, sourceDims: Dimensions,
-    targetShape: Dimensions, options: FromTextureOptions = {}): tf.Tensor3D {
+    targetShape: Dimensions, useCustomShadersToResize = false,
+    options: FromTextureOptions = {}): tf.Tensor3D {
   tf.util.assert(
       targetShape.depth === 3 || targetShape.depth === 4,
       () => 'fromTexture Error: target depth must be 3 or 4');
@@ -188,7 +191,8 @@ export function fromTexture(
           ' "bilinear" or "nearest_neighbor"');
 
   const resizedTexture = runResizeProgram(
-      gl, texture, sourceDims, targetShape, alignCorners, interpolation);
+      gl, texture, sourceDims, targetShape, alignCorners,
+      useCustomShadersToResize, interpolation);
   const downloadedTextureData =
       downloadTextureData(gl, resizedTexture, targetShape);
 
