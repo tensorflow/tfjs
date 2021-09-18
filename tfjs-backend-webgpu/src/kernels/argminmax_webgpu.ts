@@ -31,7 +31,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   workGroupSize: [number, number, number];
   variableNames = ['x'];
   uniforms = 'int axis;';
-  uniformsWgsl = 'axis : u32;';
+  uniformsWgsl = 'axis : i32;';
   inputShape: number[];
   reductionFactor: number;
   op: string;
@@ -203,7 +203,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
     // and iteratively reduced.
     const reduceInSharedMemory = this.workGroupSize[0] > 1;
     const sharedMemorySnippet = `
-      var<workgroup> xBestIndices : array<u32, ${this.workGroupSize[0]}>;
+      var<workgroup> xBestIndices : array<i32, ${this.workGroupSize[0]}>;
       var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
     `;
 
@@ -211,12 +211,12 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       xBestIndices[localId.x] = bestIndex;
       xBestValues[localId.x] = bestValue;
 
-      for(var currentSize = WorkGroupSize; currentSize > 1u; currentSize = DIV_CEIL(currentSize, ${
-        this.reductionFactor}u)) {
+      for(var currentSize = WorkGroupSize; currentSize > 1; currentSize = DIV_CEIL(currentSize, ${
+        this.reductionFactor})) {
         workgroupBarrier();
 
-        for (var w = 0u; w < ${this.reductionFactor}u; w = w + 1u) {
-          let i = localId.x * ${this.reductionFactor}u + w;
+        for (var w = 0; w < ${this.reductionFactor}; w = w + 1) {
+          let i = i32(localId.x) * ${this.reductionFactor} + w;
           if (i < currentSize) {
             let candidateIndex = xBestIndices[i];
             let candidate = xBestValues[i];
@@ -255,11 +255,11 @@ export class ArgMinMaxProgram implements WebGPUProgram {
     };
 
     const userCode = `
-      fn DIV_CEIL(a : u32, b : u32) -> u32 {
-        return ((a - 1u) / b + 1u);
+      fn DIV_CEIL(a : i32, b : i32) -> i32 {
+        return ((a - 1) / b + 1);
       }
 
-      let WorkGroupSize = ${this.workGroupSize[0]}u;
+      let WorkGroupSize = ${this.workGroupSize[0]};
 
       ${reduceInSharedMemory ? sharedMemorySnippet : ''}
 
@@ -267,31 +267,31 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       // add back the index along the reduced dimension to |outputCoords|.
       // This function outputs the offset to the first value along
       // |axis| and the stride to get the next value of the input along |axis|.
-      fn getInputCoordInfo(globalId : vec3<u32>, globalIndex : u32) -> vec2<u32>{
+      fn getInputCoordInfo(globalId : vec3<u32>, globalIndex : i32) -> vec2<i32>{
         let outputCoords : ${
         outputCoordsType} = getOutputCoords(globalId, globalIndex);
-        var i = ${this.outputShape.length - 1}u;
+        var i = ${this.outputShape.length - 1};
 
-        var stride = 1u;
-        var inputStride = 1u;
-        var offset = 0u;
+        var stride = 1;
+        var inputStride = 1;
+        var offset = 0;
 
-        for (var r = 1u; r <= ${this.inputShape.length}u; r = r + 1u) {
-          let length = ${indexInputShape(`${this.inputShape.length}u - r`)};
-          if (${this.inputShape.length}u - r == uniforms.axis) {
+        for (var r = 1; r <= ${this.inputShape.length}; r = r + 1) {
+          let length = ${indexInputShape(`${this.inputShape.length} - r`)};
+          if (${this.inputShape.length} - r == uniforms.axis) {
             inputStride = stride;
           } else {
             offset = offset + ${
         indexOutputCoords('outputCoords', 'i')} * stride;
-            i = i - 1u;
+            i = i - 1;
           }
           stride = stride * length;
         }
 
-        return vec2<u32>(offset, inputStride);
+        return vec2<i32>(offset, inputStride);
       }
 
-      fn getInputIndex(coordInfo : vec2<u32>, index : u32) -> u32{
+      fn getInputIndex(coordInfo : vec2<i32>, index : i32) -> i32{
         return coordInfo[0] + coordInfo[1] * index;
       }
 
@@ -299,14 +299,14 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         ${getGlobalIndexStringWgsl()}
         let coordInfo = getInputCoordInfo(globalId, index);
 
-        var bestIndex = 0u;
+        var bestIndex = 0;
         var bestValue = x.numbers[getInputIndex(coordInfo, bestIndex)];
 
         let Length = ${indexInputShape('uniforms.axis')};
         let WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
 
-        for (var w = 0u; w < WorkPerThread; w = w + 1u) {
-          let i = globalId.x * WorkPerThread + w;
+        for (var w = 0; w < WorkPerThread; w = w + 1) {
+          let i = i32(globalId.x) * WorkPerThread + w;
           if (i < Length) {
             let candidate = x.numbers[getInputIndex(coordInfo, i)];
             if (candidate ${
@@ -317,11 +317,11 @@ export class ArgMinMaxProgram implements WebGPUProgram {
           }
         }
 
-        let flatOutputIndex = globalId.y;
+        let flatOutputIndex = i32(globalId.y);
         ${
         reduceInSharedMemory ?
             sharedMemoryReduceSnippet :
-            'setOutputFlatI32(flatOutputIndex, i32(bestIndex));'}
+            'setOutputFlatI32(flatOutputIndex, bestIndex);'}
       }
     `;
     return userCode;

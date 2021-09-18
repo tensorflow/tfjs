@@ -73,7 +73,7 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
         let d = coords[3];
 
         if (all(coords < uniforms.outShape)) {
-          let xRCCorner = coords.yz * vec2<u32>(uniforms.stride);
+          let xRCCorner = coords.yz * uniforms.stride;
           let xRCorner = xRCCorner.x;
           let xCCorner = xRCCorner.y;
 

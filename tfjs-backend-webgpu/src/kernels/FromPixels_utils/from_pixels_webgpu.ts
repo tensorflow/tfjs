@@ -74,9 +74,9 @@ export class FromPixelsProgram implements WebGPUProgram {
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
         let flatIndexBase = index * uniforms.numChannels;
-        let coords: vec3<u32> = getCoordsFromFlatIndex(flatIndexBase);
+        let coords = getCoordsFromFlatIndex(flatIndexBase);
         let values = ${textureLoad};
-        for (var i: u32 = 0u; i < uniforms.numChannels; i = i + 1u) {
+        for (var i = 0; i < uniforms.numChannels; i = i + 1) {
           let flatIndex = flatIndexBase + i;
           if (flatIndex < uniforms.size) {
             result.numbers[flatIndex] = i32(floor(255.0 * values[i]));
