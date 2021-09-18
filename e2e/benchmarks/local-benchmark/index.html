@@ -135,6 +135,15 @@ limitations under the License.
             tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(false);
           }
         }
+        if (tunableFlagsControllers['MODEL_DEBUG'] != null &&
+            urlState.has('MODEL_DEBUG')) {
+          const value = urlState.get('MODEL_DEBUG');
+          if (value === 'true') {
+            tunableFlagsControllers['MODEL_DEBUG'].setValue(true);
+          } else {
+            tunableFlagsControllers['MODEL_DEBUG'].setValue(false);
+          }
+        }
       }
       // The model parameter will be update automically by onChange.
       if (modelController != null && urlState.has('benchmark'))
@@ -191,12 +200,12 @@ limitations under the License.
             inferenceInput = generateInputFromDef(
               state.inputs, model instanceof tf.GraphModel);
           }
-          const referencePrediction = predict(model, inferenceInput);
+          const referencePrediction = await predict(model, inferenceInput);
           referenceData = await getPredictionData(referencePrediction);
 
           await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
-          const prediction = predict(model, inferenceInput);
+          const prediction = await predict(model, inferenceInput);
           predictionData = await getPredictionData(prediction);
         } catch (e) {
           showMsg('Error: ' + e.message);
@@ -207,6 +216,8 @@ limitations under the License.
         try {
           await showMsg(null);
           expectObjectsClose(predictionData, referenceData);
+          // For model debug mode. Otherwise this is nop.
+          model.disposeDebugTensors();
           match = true;
         } catch (e) {
           match = false;
