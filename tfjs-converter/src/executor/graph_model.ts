@@ -347,6 +347,7 @@ export class GraphModel implements InferenceModel {
    * are specified, the default outputs of the model would be used. You can
    * inspect intermediate nodes of the model by adding them to the outputs
    * array.
+   * @param keepTensorForDebug Flag for printing all tensor values.
    *
    * @returns A Promise of single tensor if provided with a single output or
    * no outputs are provided and there is only one default output, otherwise
@@ -355,11 +356,12 @@ export class GraphModel implements InferenceModel {
    * @doc {heading: 'Models', subheading: 'Classes'}
    */
   async executeAsync(
-      inputs: Tensor|Tensor[]|NamedTensorMap,
-      outputs?: string|string[]): Promise<Tensor|Tensor[]> {
+      inputs: Tensor|Tensor[]|NamedTensorMap, outputs?: string|string[],
+      keepTensorForDebug = false): Promise<Tensor|Tensor[]> {
     inputs = this.normalizeInputs(inputs);
     outputs = this.normalizeOutputs(outputs);
-    const result = await this.executor.executeAsync(inputs, outputs);
+    const result =
+        await this.executor.executeAsync(inputs, outputs, keepTensorForDebug);
     return result.length > 1 ? result : result[0];
   }
 

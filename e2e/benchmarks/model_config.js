@@ -82,9 +82,17 @@ const benchmarks = {
           'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
       return tf.loadGraphModel(url);
     },
-    predictFunc: () => {
-      const input = tf.randomNormal([1, 224, 224, 3]);
+    predictFunc: (input) => {
+      // For model debug mode, using same inputs for the reference and actual.
+      // For model perf mode, using different inputs for the reference and
+      // actual.
+      if (!debug) {
+        input = tf.randomNormal([1, 224, 224, 3]);
+      }
       return model => model.predict(input);
+    },
+    predictDebugFunc: (input) => {
+      return model => model.executeAsync(input, null, true);
     }
   },
   'mesh_128': {

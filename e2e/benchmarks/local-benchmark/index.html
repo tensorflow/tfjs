@@ -94,6 +94,7 @@ limitations under the License.
     let warmupTimes = 1;
     // Default do not run any task.
     let task = '';
+    let debug = false;
     function getURLState(url) {
       let params = new URLSearchParams(url);
       const keys = [...params.keys()];
@@ -107,6 +108,11 @@ limitations under the License.
       }
       if (params.has('task')) {
         task = params.get('task');
+      }
+      if (params.has('debug')) {
+        if(params.get('debug') === "true") {
+          debug = true;
+        }
       }
       return params;
     }
@@ -191,12 +197,17 @@ limitations under the License.
             inferenceInput = generateInputFromDef(
               state.inputs, model instanceof tf.GraphModel);
           }
-          const referencePrediction = predict(model, inferenceInput);
+          const referencePrediction = predict(model, inferenceInput, debug);
           referenceData = await getPredictionData(referencePrediction);
 
           await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
-          const prediction = predict(model, inferenceInput);
+          let prediction;
+          if (debug) {
+            prediction = await predictDebug(model, inferenceInput);
+          } else {
+            prediction = await predict(model, inferenceInput, debug);
+          }
           predictionData = await getPredictionData(prediction);
         } catch (e) {
           showMsg('Error: ' + e.message);
@@ -239,7 +250,7 @@ limitations under the License.
     const parameterTable = document.querySelector('#parameters tbody');
     const modelInputsTable = document.querySelector('#modelInputs tbody');
 
-    let model, predict, chartWidth;
+    let model, predict, predictDebug, chartWidth;
 
     async function showMsg(message) {
       if (message != null) {
@@ -464,7 +475,14 @@ limitations under the License.
           });
         }
       }
-      predict = benchmark.predictFunc(inputSize);
+
+      if (debug) {
+        const input = tf.randomNormal([1, 224, 224, 3]);
+        predict = benchmark.predictFunc(input);
+        predictDebug = benchmark.predictDebugFunc(input);
+      } else {
+        predict = benchmark.predictFunc(null);
+      }
       const elapsed = performance.now() - start;
 
       await showMsg(null);
