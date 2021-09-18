@@ -579,6 +579,8 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'sparseToDense',
     excludes: [
+      // TODO: Fix 0-sized buffer binding on WebGPU
+      '0-sized',  // Not yet implemented.
       'gradient'  // gradient function not found.
     ]
   },
