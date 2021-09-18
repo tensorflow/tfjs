@@ -35,6 +35,17 @@ ENV.registerFlag('DEBUG', () => false, debugValue => {
   }
 });
 
+/** Whether to enable model debug mode. */
+ENV.registerFlag('MODEL_DEBUG', () => false, debugValue => {
+  if (debugValue) {
+    console.warn(
+        'Model debug mode is ON. This will print the values of all ' +
+        'intermediate tensors during model inference. Not all models ' +
+        'support this mode. For details, check e2e/benchmarks/ ' +
+        'model_config.js. This significantly impacts performance.');
+  }
+});
+
 /** Whether we are in a browser (as versus, say, node.js) environment. */
 ENV.registerFlag('IS_BROWSER', () => device_util.isBrowser());
 
