@@ -33,6 +33,7 @@ import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
+import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {einsumConfig} from './kernels/Einsum';
 import {eluConfig} from './kernels/Elu';
@@ -122,6 +123,7 @@ const kernelConfigs: KernelConfig[] = [
   conv2DConfig,
   conv2DBackpropInputConfig,
   cropAndResizeConfig,
+  depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
   einsumConfig,
   eluConfig,

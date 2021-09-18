@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,12 +17,12 @@
 
 import {DepthToSpace, DepthToSpaceAttrs, DepthToSpaceInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
-import {MathBackendWebGL} from '../backend_webgl';
-import {DepthToSpaceProgram} from '../depth_to_space_gpu';
+import {WebGPUBackend} from '../backend_webgpu';
+import {DepthToSpaceProgram} from './depth_to_space_webgpu';
 
 export function depthToSpace(args: {
   inputs: DepthToSpaceInputs,
-  backend: MathBackendWebGL,
+  backend: WebGPUBackend,
   attrs: DepthToSpaceAttrs
 }): TensorInfo {
   const {inputs, backend, attrs} = args;
@@ -42,12 +42,16 @@ export function depthToSpace(args: {
       [batchSize, outputHeight, outputWidth, outputDepth] :
       [batchSize, outputDepth, outputHeight, outputWidth];
 
-  const program = new DepthToSpaceProgram(outputShape, blockSize, dataFormat);
-  return backend.runWebGLProgram(program, [x], x.dtype);
+  const uniformData = [
+    {type: 'int32', data: [blockSize]},
+  ];
+
+  const program = new DepthToSpaceProgram(outputShape, dataFormat);
+  return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
 }
 
 export const depthToSpaceConfig: KernelConfig = {
   kernelName: DepthToSpace,
-  backendName: 'webgl',
+  backendName: 'webgpu',
   kernelFunc: depthToSpace as {} as KernelFunc
 };
