@@ -74,6 +74,20 @@ const sentences = [
   'what is the forecast for here at tea time',
 ];
 
+function predictFunction(model, input) {
+  let debug = false;
+  try {
+    debug = tf.env().getBool('MODEL_DEBUG');
+  } catch (e) {
+    console.warn(e.message);
+  }
+  if (debug) {
+    return model => model.executeAsync(input);
+  } else {
+    return model => model.predict(input);
+  }
+}
+
 const benchmarks = {
   'mobilenet_v2': {
     type: 'GraphModel',
@@ -84,7 +98,7 @@ const benchmarks = {
     },
     predictFunc: () => {
       const input = tf.randomNormal([1, 224, 224, 3]);
-      return model => model.predict(input);
+      return predictFunction(model, input);
     }
   },
   'mesh_128': {
@@ -95,10 +109,8 @@ const benchmarks = {
       return tf.loadGraphModel(url);
     },
     predictFunc: () => {
-      const zeros = tf.zeros([1, 128, 128, 3]);
-      return model => {
-        return model.predict(zeros)[0];
-      };
+      const input = tf.zeros([1, 128, 128, 3]);
+      return predictFunction(model, input);
     },
   },
   'face_detector': {
@@ -109,10 +121,8 @@ const benchmarks = {
       return tf.loadGraphModel(url);
     },
     predictFunc: () => {
-      const zeros = tf.zeros([1, 128, 128, 3]);
-      return model => {
-        return model.predict(zeros);
-      };
+      const input = tf.zeros([1, 128, 128, 3]);
+      return predictFunction(model, input);
     },
   },
   'hand_detector': {
@@ -122,10 +132,8 @@ const benchmarks = {
       return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
-      const zeros = tf.zeros([1, 256, 256, 3]);
-      return model => {
-        return model.predict(zeros);
-      };
+      const input = tf.zeros([1, 256, 256, 3]);
+      return predictFunction(model, input);
     },
   },
   'hand_skeleton': {
@@ -135,10 +143,8 @@ const benchmarks = {
       return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
-      const zeros = tf.zeros([1, 256, 256, 3]);
-      return model => {
-        return model.predict(zeros);
-      };
+      const input = tf.zeros([1, 256, 256, 3]);
+      return predictFunction(model, input);
     },
   },
   'AutoML Image': {
@@ -284,9 +290,7 @@ const benchmarks = {
     },
     predictFunc: (inputResolution = 128) => {
       const input = tf.randomNormal([1, inputResolution, inputResolution, 3]);
-      return model => {
-        return model.predict(input);
-      };
+      return predictFunction(model, input);
     },
   },
   'speech-commands': {
