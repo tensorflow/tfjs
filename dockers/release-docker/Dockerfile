@@ -23,7 +23,7 @@ RUN apt-get update -qqy && apt-get install -qqy \
         file \
         nodejs \
         yarnpkg \
-        npm \ # Needed for node-pre-gyp in tfjs-node
+        npm \
         wget \
         unzip && \
     ln -s /usr/bin/yarnpkg /usr/bin/yarn && \
