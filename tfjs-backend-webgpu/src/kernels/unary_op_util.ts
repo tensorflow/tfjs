@@ -111,7 +111,10 @@ const RELU_VEC4_WGSL = `
   }
   return resFloat;
 `;
-
+const TANH_WGSL = `
+  let e2x = exp(-2.0 * abs(a));
+  return sign(a) * (1.0 - e2x) / (1.0 + e2x);
+`;
 const TO_INT_WGSL = `return f32(i32((a)));`;
 
 export function getUnaryOpString(
@@ -165,6 +168,9 @@ export function getUnaryOpString(
     case UnaryOpType.SQUARE:
       return SQUARE;
     case UnaryOpType.TANH:
+      if (useWgsl) {
+        return TANH_WGSL;
+      }
       return TANH;
     case UnaryOpType.TO_INT:
       return useWgsl ? TO_INT_WGSL : TO_INT;
