@@ -222,7 +222,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
       activation: backend_util.Activation = null,
       preluActivationWeights: TensorInfo = null) {
     util.assert(
-        aShape[1] <= 16 || bShape[2] <= 16,
+        aShape[0] <= 16 || bShape[1] <= 16,
         () => 'This program can be only used when A width is small.');
     this.outputShape = outputShape;
 
@@ -313,13 +313,13 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
   getUserCodeWgsl(): string {
     const sampleA =
         `if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-          return A.numbers[batch * batchASize + row * uniforms.dimInner + col]; 
-        } 
+          return A.numbers[batch * batchASize + row * uniforms.dimInner + col];
+        }
         return 0.0;`;
 
     const sampleB =
         `if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-           return B.numbers[batch * batchBSize + row * uniforms.dimBOuter + col]; 
+           return B.numbers[batch * batchBSize + row * uniforms.dimBOuter + col];
          }
          return 0.0;`;
 
@@ -349,7 +349,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
 
     const userCode = `
       ${activationSnippet}
-      
+
       fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
         let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
         let batch = i32(globalId.z);
