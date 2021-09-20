@@ -685,7 +685,7 @@ limitations under the License.
       for (let i = 0; i < urls.length; i++) {
         let name = urls[i].split('/')[0].replace('tfjs-', '').replace('backend-', '');
         if (localBuild.includes(name)) {
-          urls[i] = `../../../dist/bin/${urls[i]}`;
+          urls[i] = `../../../${urls[i]}`;
         } else {
           urls[i] = `https://unpkg.com/@tensorflow/${urls[i].replace('/', '@latest/')}`;
         }

@@ -157,17 +157,19 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   }
 
   util.assert(
-      x4D.shape[3] === $filter.shape[2],
+      dataFormat === 'NHWC' ? x4D.shape[3] === $filter.shape[2] :
+                              x4D.shape[1] === $filter.shape[2],
       () => `Error in conv2d: depth of input (${x4D.shape[3]}) must match ` +
           `input depth for filter ${$filter.shape[2]}.`);
+
   util.assert(
       conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
       () => 'Error in conv2D: Either strides or dilations must be 1. ' +
           `Got strides ${strides} and dilations '${dilations}'`);
-  util.assert(
-      dataFormat === 'NHWC',
-      () => `Error in conv2d: got dataFormat of ${
-          dataFormat} but only NHWC is currently supported.`);
+  // util.assert(
+  //     dataFormat === 'NHWC',
+  //     () => `Error in conv2d: got dataFormat of ${
+  //         dataFormat} but only NHWC is currently supported.`);
 
   const convInfo = conv_util.computeConv2DInfo(
       x4D.shape, $filter.shape, strides, dilations, pad, dimRoundingMode);

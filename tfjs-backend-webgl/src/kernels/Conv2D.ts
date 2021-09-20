@@ -21,7 +21,7 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {Conv2DProgram} from '../conv_gpu';
 import {ConvPacked2DProgram} from '../conv_packed_gpu';
 
-import {conv2dWithIm2Row} from './Conv2D_impl';
+import {conv2dByMatMul, conv2dWithIm2Row} from './Conv2D_impl';
 import {reshape} from './Reshape';
 
 export function conv2d(
@@ -38,14 +38,12 @@ export function conv2d(
       dimRoundingMode, false /* depthwise */, $dataFormat);
   let out: TensorInfo;
 
-  // if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
-  //     convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
-  //     convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
-  //     (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type ===
-  //     'VALID')) {
-  //   out = conv2dByMatMul({x, filter, convInfo, backend});
-  // } else
-  if (
+  if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
+      convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
+      convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
+      (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID')) {
+    out = conv2dByMatMul({x, filter, convInfo, backend});
+  } else if (
       // env().getBool('WEBGL_PACK_DEPTHWISECONV') &&
       convInfo.strideWidth <= 2) {
     // console.log('packed conv2d');

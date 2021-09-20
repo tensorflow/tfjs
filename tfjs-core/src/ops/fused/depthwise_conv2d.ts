@@ -165,13 +165,17 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
 
   const convInfo = conv_util.computeConv2DInfo(
       x4D.shape, $filter.shape, strides, dilations, pad, dimRoundingMode,
-      true /* depthwise */);
+      true /* depthwise */,
+      dataFormat === 'NHWC' ? 'channelsLast' : 'channelsFirst');
 
   let $bias: Tensor;
   if (bias != null) {
     $bias = convertToTensor(bias, 'bias', 'fused conv2d');
     [$bias] = makeTypesMatch($bias, $x);
 
+    if (dataFormat === 'NCHW') {
+      $bias = reshape($bias, [1, $bias.shape[0], 1, 1]);
+    }
     broadcast_util.assertAndGetBroadcastShape(convInfo.outShape, $bias.shape);
   }
 
