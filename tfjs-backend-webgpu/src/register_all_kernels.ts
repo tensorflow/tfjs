@@ -32,6 +32,8 @@ import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
+import {cosConfig} from './kernels/Cos';
+import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
@@ -122,6 +124,8 @@ const kernelConfigs: KernelConfig[] = [
   concatConfig,
   conv2DConfig,
   conv2DBackpropInputConfig,
+  cosConfig,
+  coshConfig,
   cropAndResizeConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,

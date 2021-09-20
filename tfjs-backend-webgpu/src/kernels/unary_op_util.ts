@@ -18,6 +18,8 @@
 export enum UnaryOpType {
   ABS,
   CEIL,
+  COS,
+  COSH,
   ELU,
   EXP,
   EXPM1,
@@ -39,6 +41,11 @@ export enum UnaryOpType {
 // GLSL shader.
 const ABS = `return abs(a);`;
 const CEIL = `return ceil(a);`;
+const COS = `return cos(a);`;
+const COSH = `
+  float e2x = exp(-a);
+  return (e2x + 1.0 / e2x) / 2.0;
+`;
 const EXPM1 = `return exp(a) - 1.0;`;
 const ELU = `return (a >= 0.0) ? a : (exp(a) - 1.0);`;
 const ELU_VEC4 = `
@@ -82,6 +89,10 @@ const TANH = `
 const TO_INT = `return float(int(a));`;
 
 // WGSL shader.
+const COSH_WGSL = `
+  let e2x = exp(-a);
+  return (e2x + 1.0 / e2x) / 2.0;
+`;
 const ELU_WGSL = `if (a >= 0.0) { return a; }  return (exp(a) - 1.0);`;
 const RELU_WGSL = 'return max(a, 0.0);';
 const RELU6_VEC4_WGSL =
@@ -119,6 +130,13 @@ export function getUnaryOpString(
   switch (type) {
     case UnaryOpType.ABS:
       return ABS;
+    case UnaryOpType.COS:
+      return COS;
+    case UnaryOpType.COSH:
+      if (useWgsl) {
+        return COSH_WGSL;
+      }
+      return COSH;
     case UnaryOpType.CEIL:
       return CEIL;
     case UnaryOpType.ELU:
