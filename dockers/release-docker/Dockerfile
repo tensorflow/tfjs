@@ -25,7 +25,10 @@ RUN apt-get update -qqy && apt-get install -qqy \
         yarnpkg \
         npm \
         wget \
-        unzip && \
+        unzip \
+        libssl-dev \
+        libffi-dev \
+        zlib1g-dev && \
     ln -s /usr/bin/yarnpkg /usr/bin/yarn && \
     pip3 install -U crcmod && \
     export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
