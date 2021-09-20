@@ -47,11 +47,17 @@ export function scatterNd(args: {
 
   const defaultValue = backend.makeTensorInfo(
       [], 'float32', new Float32Array([0]));  // scalar(0)
+  const uniformData = [
+    {type: 'int32', data: [numUpdates]},
+    {type: 'int32', data: [sliceRank]},
+    {type: 'int32', data: strides},
+  ];
   const program = new ScatterProgram(
       numUpdates, sliceRank, flattenIndices.shape.length, flattenX.shape.length,
       strides, flattenShape);
   const res = backend.runWebGPUProgram(
-      program, [flattenX, flattenIndices, defaultValue], flattenX.dtype);
+      program, [flattenX, flattenIndices, defaultValue], flattenX.dtype,
+      uniformData);
 
   const reshaped = reshape({inputs: {x: res}, backend, attrs: {shape}});
 
