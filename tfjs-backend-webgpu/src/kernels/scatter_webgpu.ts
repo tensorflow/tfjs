@@ -24,6 +24,8 @@ import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class ScatterProgram implements WebGPUProgram {
   variableNames = ['updates', 'indices', 'defaultValue'];
+  uniforms: string;
+  uniformsWgsl: string;
   outputShape: number[];
   userCode: string;
   shaderKey: string;
@@ -32,9 +34,7 @@ export class ScatterProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   size: number;
   useWgsl: boolean;
-  updateSize: number;
   sliceDim: number;
-  strides: number[];
   shape: number[];
   indicesSnippet: string;
   strideString: string;
@@ -48,12 +48,14 @@ export class ScatterProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.shaderKey = `scatter`;
+    this.shaderKey = `scatter_${indicesRank}_${updatesRank}_${strides}`;
     this.size = util.sizeFromShape(this.outputShape);
     this.useWgsl = getUseWgsl();
-    this.updateSize = updateSize;
-    this.strides = strides;
-    this.sliceDim = sliceDim;
+    const stridesType = this.useWgsl ? getCoordsDataTypeWgsl(strides.length) :
+                                       getCoordsDataType(strides.length);
+    this.uniforms = `int updateSize, sliceDim; ${stridesType} strides;`;
+    this.uniformsWgsl =
+        `updateSize : i32; sliceDim : i32; strides: ${stridesType};`;
     let indicesString = '';
     if (indicesRank === 1) {
       indicesString = 'i';
@@ -70,14 +72,14 @@ export class ScatterProgram implements WebGPUProgram {
     }
     this.updatesSnippet = `getUpdates(${updatesString})`;
 
-    this.strideString = sliceDim > 1 ? 'strides[j]' : 'strides';
+    this.strideString = sliceDim > 1 ?
+        this.useWgsl ? 'uniforms.strides[j]' : 'strides[j]' :
+        this.useWgsl ? 'uniforms.strides' : 'strides';
   }
 
   getUserCode(): string {
-    const stridesType = getCoordsDataType(this.strides.length);
     const dtype = getCoordsDataType(this.outputShape.length);
     const userCode = `
-        ${stridesType} strides = ${stridesType}(${this.strides});
 
         void main() {
           int gIndex = getGlobalIndex();
@@ -85,9 +87,9 @@ export class ScatterProgram implements WebGPUProgram {
             ${dtype} coords = getOutputCoords();
             float sum = 0.0;
             bool found = false;
-            for (int i = 0; i < ${this.updateSize}; i++) {
+            for (int i = 0; i < updateSize; i++) {
               int flattenedIndex = 0;
-              for (int j = 0; j < ${this.sliceDim}; j++) {
+              for (int j = 0; j < sliceDim; j++) {
                 int index = int(round(${this.indicesSnippet}));
                 flattenedIndex += index * ${this.strideString};
               }
@@ -104,19 +106,17 @@ export class ScatterProgram implements WebGPUProgram {
   }
 
   getUserCodeWgsl(): string {
-    const stridesType = getCoordsDataTypeWgsl(this.strides.length);
     const userCode = `
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
-        let strides = ${stridesType}(${this.strides});
 
         if (index < uniforms.size) {
           let coords = getOutputCoords(globalId, index);
           var sum = 0.0;
           var found = false;
-          for (var i = 0; i < ${this.updateSize}; i = i + 1) {
+          for (var i = 0; i < uniforms.updateSize; i = i + 1) {
             var flattenedIndex = 0;
-            for (var j = 0; j < ${this.sliceDim}; j = j + 1) {
+            for (var j = 0; j < uniforms.sliceDim; j = j + 1) {
               let indexInside = i32(round(${this.indicesSnippet}));
               flattenedIndex = flattenedIndex + indexInside * ${
         this.strideString};
