@@ -558,6 +558,12 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'scatterND',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
     startsWith: 'logicalAnd ',
   },
   {

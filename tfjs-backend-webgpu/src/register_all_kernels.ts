@@ -85,6 +85,7 @@ import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
 import {rsqrtConfig} from './kernels/Rsqrt';
+import {scatterNdConfig} from './kernels/ScatterNd';
 import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {sliceConfig} from './kernels/Slice';
@@ -175,6 +176,7 @@ const kernelConfigs: KernelConfig[] = [
   resizeBilinearConfig,
   resizeNearestNeighborConfig,
   rsqrtConfig,
+  scatterNdConfig,
   selectConfig,
   sigmoidConfig,
   sliceConfig,
