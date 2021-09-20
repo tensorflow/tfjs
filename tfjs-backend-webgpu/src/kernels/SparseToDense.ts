@@ -35,12 +35,18 @@ export function sparseToDense(args: {
       backend_util.calculateShapes(sparseValues, sparseIndices, outputShape);
 
   const sumDupeIndices = false;
+  const uniformData = [
+    {type: 'int32', data: [numUpdates]},
+    {type: 'int32', data: [sliceRank]},
+    {type: 'int32', data: strides},
+  ];
   const program = new ScatterProgram(
       numUpdates, sliceRank, sparseIndices.shape.length,
       sparseValues.shape.length, strides, [outputSize, 1], sumDupeIndices);
 
   const res = backend.runWebGPUProgram(
-      program, [sparseValues, sparseIndices, defaultValue], sparseValues.dtype);
+      program, [sparseValues, sparseIndices, defaultValue], sparseValues.dtype,
+      uniformData);
 
   const reshaped =
       reshape({inputs: {x: res}, backend, attrs: {shape: outputShape}});
