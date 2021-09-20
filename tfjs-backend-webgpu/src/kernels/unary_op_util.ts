@@ -31,6 +31,8 @@ export enum UnaryOpType {
   RELU,
   RELU6,
   RSQRT,
+  SIN,
+  SINH,
   SIGMOID,
   SQRT,
   SQUARE,
@@ -80,6 +82,11 @@ const RELU_VEC4 = `
 `;
 const RSQRT = `return 1.0/sqrt(a);`;
 const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
+const SIN = `return sin(a);`;
+const SINH = `
+  float e2x = exp(a);
+  return (e2x - 1.0 / e2x) / 2.0;
+`;
 const SQRT = `return sqrt(a);`;
 const SQUARE = `return a * a;`;
 const TANH = `
@@ -92,6 +99,10 @@ const TO_INT = `return float(int(a));`;
 const COSH_WGSL = `
   let e2x = exp(-a);
   return (e2x + 1.0 / e2x) / 2.0;
+`;
+const SINH_WGSL = `
+  let e2x = exp(a);
+  return (e2x - 1.0 / e2x) / 2.0;
 `;
 const ELU_WGSL = `if (a >= 0.0) { return a; }  return (exp(a) - 1.0);`;
 const RELU_WGSL = 'return max(a, 0.0);';
@@ -178,6 +189,13 @@ export function getUnaryOpString(
       return RSQRT;
     case UnaryOpType.SIGMOID:
       return SIGMOID;
+    case UnaryOpType.SIN:
+      return SIN;
+    case UnaryOpType.SINH:
+      if (useWgsl) {
+        return SINH_WGSL;
+      }
+      return SINH;
     case UnaryOpType.SQRT:
       return SQRT;
     case UnaryOpType.SQUARE:
