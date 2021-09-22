@@ -25,8 +25,6 @@ tfjs_bundle(
     name = "tf-backend-webgl",
     entry_point = "//tfjs-backend-webgl/src:index.ts",
     external = [
-        "node-fetch",
-        "util",
         "crypto",
         "@tensorflow/tfjs-core",
         "seedrandom",
