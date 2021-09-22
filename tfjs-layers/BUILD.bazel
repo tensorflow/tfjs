@@ -63,6 +63,10 @@ tfjs_web_test(
         "//tfjs-layers/src:tfjs-layers_test_bundle",
         "//tfjs-backend-cpu:tf-backend-cpu.min.js",
         "//tfjs-backend-cpu:tf-backend-cpu.min.js.map",
+        "//tfjs-backend-webgl:tf-backend-webgl.min.js",
+        "//tfjs-backend-webgl:tf-backend-webgl.min.js.map",
+        "//tfjs-core:tf-core.min.js",
+        "//tfjs-core:tf-core.min.js.map",
     ],
 )
 
