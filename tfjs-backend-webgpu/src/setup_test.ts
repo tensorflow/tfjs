@@ -596,6 +596,12 @@ const TEST_FILTERS: TestFilter[] = [
       'grad',        // gradient function not found.
       'bool tensor'  // Expected object not to have properties.
     ]
+  },
+  {
+    startsWith: 'tanh',
+    excludes: [
+      'grad',  // gradient function not found.
+    ]
   }
 ];
 
