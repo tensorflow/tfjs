@@ -34,8 +34,6 @@ export class ScatterProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   size: number;
   useWgsl: boolean;
-  sliceDim: number;
-  shape: number[];
   indicesSnippet: string;
   strideString: string;
   updatesSnippet: string;
@@ -48,7 +46,7 @@ export class ScatterProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.shaderKey = `scatter_${indicesRank}_${updatesRank}_${strides}`;
+    this.shaderKey = `scatter_${indicesRank}_${updatesRank}`;
     this.size = util.sizeFromShape(this.outputShape);
     this.useWgsl = getUseWgsl();
     const stridesType = this.useWgsl ? getCoordsDataTypeWgsl(strides.length) :
