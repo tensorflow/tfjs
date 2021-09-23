@@ -26,6 +26,12 @@ describeWithFlags('relu6', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [1, 0, 0, 6, 0]);
   });
 
+  it('int32', async () => {
+    const a = tf.tensor1d([12345678, -2, 0, 3, -1], 'int32');
+    const result = tf.relu6(a);
+    expectArraysClose(await result.data(), [6, 0, 0, 3, 0]);
+  });
+
   it('gradients: relu6', async () => {
     const a = tf.scalar(8);
     const dy = tf.scalar(5);

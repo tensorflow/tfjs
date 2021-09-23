@@ -95,6 +95,11 @@ describeWithFlags('exp', ALL_ENVS, () => {
 
   it('throws for string tensor', () => {
     expect(() => tf.exp('q'))
-        .toThrowError(/Argument 'x' passed to 'exp' must be numeric/);
+        .toThrowError(/Argument 'x' passed to 'exp' must be float32/);
+  });
+
+  it('throws for int32 tensor', () => {
+    expect(() => tf.exp(tf.tensor1d([1], 'int32')))
+        .toThrowError(/Argument 'x' passed to 'exp' must be float32/);
   });
 });

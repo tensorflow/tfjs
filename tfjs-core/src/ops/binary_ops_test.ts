@@ -47,6 +47,15 @@ describeWithFlags('prelu', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [0, 1, -0.5, -0.6]);
   });
 
+  it('basic int32', async () => {
+    const x = tf.tensor1d([0, 1, -2, -4], 'int32');
+    const a = [0.15, 0.2, 0.25, 0.15];
+    const result = tf.prelu(x, a);
+
+    expect(result.shape).toEqual([4]);
+    expectArraysClose(await result.data(), [0, 1, -0.5, -0.6]);
+  });
+
   it('derivative', async () => {
     const x = tf.tensor1d([0.5, 3, -0.1, -4]);
     const a = tf.tensor1d([0.2, 0.4, 0.25, 0.15]);

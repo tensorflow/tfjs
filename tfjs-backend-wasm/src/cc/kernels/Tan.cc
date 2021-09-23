@@ -30,7 +30,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Tan(const int x_id, const int out_id) {
+void Tan(const int x_id, const DType dtype, const int out_id) {
   unary(x_id, out_id, tfjs::sin_cos_workaround::tan_fixed);
 }
 

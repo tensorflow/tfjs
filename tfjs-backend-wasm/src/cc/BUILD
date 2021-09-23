@@ -271,6 +271,7 @@ tfjs_cc_library(
         ":ArgMax",
         ":AvgPool",
         ":BatchMatMul",
+        ":Ceil",
         ":ClipByValue",
         ":Conv2D",
         ":Conv2DBackpropInput",
@@ -317,6 +318,7 @@ tfjs_cc_library(
         ":ResizeBilinear",
         ":Reverse",
         ":RotateWithOffset",
+        ":Round",
         ":ScatterNd",
         ":SelectV2",
         ":Sigmoid",
@@ -340,6 +342,7 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":unary",
+        ":util",
     ],
 )
 
@@ -444,6 +447,16 @@ tfjs_unit_test(
     tags = ["ci"],
     deps = [
         ":_FusedMatMul",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Ceil",
+    srcs = ["kernels/Ceil.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
     ],
 )
 
@@ -833,6 +846,7 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":unary",
+        ":util",
     ],
 )
 
@@ -930,6 +944,7 @@ tfjs_cc_library(
         ":backend",
         ":clamp_impl",
         ":unary",
+        ":util",
     ],
 )
 
@@ -940,6 +955,7 @@ tfjs_cc_library(
         ":backend",
         ":clamp_impl",
         ":unary",
+        ":util",
     ],
 )
 
@@ -976,6 +992,16 @@ tfjs_cc_library(
     srcs = ["kernels/RotateWithOffset.cc"],
     deps = [
         ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Round",
+    srcs = ["kernels/Round.cc"],
+    deps = [
+        ":backend",
+        ":unary",
         ":util",
     ],
 )
@@ -1053,6 +1079,7 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":unary",
+        ":util",
     ],
 )
 
@@ -1128,6 +1155,7 @@ tfjs_cc_library(
     srcs = ["kernels/Step.cc"],
     deps = [
         ":backend",
+        ":util",
     ],
 )
 

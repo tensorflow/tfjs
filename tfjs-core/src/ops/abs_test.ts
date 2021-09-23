@@ -38,6 +38,12 @@ describeWithFlags('abs', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [1, 2, 5, 3, 1, 4, 7, 8]);
   });
 
+  it('int32', async () => {
+    const a = tf.tensor1d([10, 12345678, -12345678], 'int32');
+    const result = tf.abs(a);
+    expectArraysClose(await result.data(), [10, 12345678, 12345678]);
+  });
+
   it('complex64 rank-1', async () => {
     const a = tf.complex([-2, -1, 0, 1, 2], [1, 2, 3, 0, -1]);
     const result = tf.abs(a);
@@ -97,7 +103,7 @@ describeWithFlags('abs', ALL_ENVS, () => {
           Math.hypot(small, small), Math.hypot(0, small), Math.hypot(small, 0),
           Math.hypot(0, 0)
         ],
-        /*tolerance=*/small / 100);
+        /*tolerance=*/ small / 100);
     expect(result.shape).toEqual([4]);
   });
 

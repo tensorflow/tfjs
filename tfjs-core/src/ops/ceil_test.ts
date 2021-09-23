@@ -88,6 +88,11 @@ describeWithFlags('ceil', ALL_ENVS, () => {
 
   it('throws for string tensor', () => {
     expect(() => tf.ceil('q'))
-        .toThrowError(/Argument 'x' passed to 'ceil' must be numeric/);
+        .toThrowError(/Argument 'x' passed to 'ceil' must be float32/);
+  });
+
+  it('throws for int32 tensor', () => {
+    expect(() => tf.ceil(tf.tensor1d([1], 'int32')))
+        .toThrowError(/Argument 'x' passed to 'ceil' must be float32/);
   });
 });

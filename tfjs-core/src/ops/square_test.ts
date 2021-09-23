@@ -55,6 +55,12 @@ describeWithFlags('square', ALL_ENVS, () => {
     expectArraysClose(await r.data(), [2.25, NaN]);
   });
 
+  it('int32', async () => {
+    const a = tf.tensor1d([2, 4, 40000], 'int32');
+    const r = tf.square(a);
+    expectArraysClose(await r.data(), [4, 16, 1600000000]);
+  });
+
   it('gradients: Scalar', async () => {
     const a = tf.scalar(5);
     const dy = tf.scalar(8);

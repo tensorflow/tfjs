@@ -19,12 +19,17 @@ import {KernelConfig, TensorInfo, UnaryInputs, util} from '@tensorflow/tfjs-core
 
 import {BackendWasm} from '../backend_wasm';
 
+import {CppDType} from './types';
+
 export function createUnaryKernelConfig(kernelName: string): KernelConfig {
-  let wasmFunc: (xId: number, outId: number) => void;
+  let wasmFunc: (xId: number, dtype: number, outId: number) => void;
 
   function setupFunc(backend: BackendWasm): void {
-    wasmFunc =
-        backend.wasm.cwrap(kernelName, null /* void */, ['number', 'number']);
+    wasmFunc = backend.wasm.cwrap(kernelName, null /* void */, [
+      'number',  // x_id
+      'number',  // dtype
+      'number',  // out_id
+    ]);
   }
 
   function kernelFunc(args: {backend: BackendWasm, inputs: UnaryInputs}):
@@ -39,7 +44,7 @@ export function createUnaryKernelConfig(kernelName: string): KernelConfig {
       return out;
     }
 
-    wasmFunc(xId, outId);
+    wasmFunc(xId, CppDType[x.dtype], outId);
     return out;
   }
 

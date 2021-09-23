@@ -32,6 +32,14 @@ describeWithFlags('reverse', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [3, 2, 1]);
   });
 
+  it('works with int32 input', async () => {
+    const input = tf.tensor1d([1, 2, 12345678], 'int32');
+    const result = tf.reverse(input);
+    expect(result.shape).toEqual([3]);
+    expectArraysClose(await result.data(), [12345678, 2, 1]);
+  });
+
+
   it('ensure no memory leak', async () => {
     const numTensorsBefore = tf.memory().numTensors;
     const numDataIdBefore = tf.engine().backend.numDataIds();

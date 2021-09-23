@@ -26,6 +26,12 @@ describeWithFlags('neg', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [-1, 3, -2, -7, 4]);
   });
 
+  it('int32', async () => {
+    const a = tf.tensor1d([1, -3, 12345678, -12345678], 'int32');
+    const result = tf.neg(a);
+    expectArraysClose(await result.data(), [-1, 3, -12345678, 12345678]);
+  });
+
   it('propagate NaNs', async () => {
     const a = tf.tensor1d([1, -3, 2, 7, NaN]);
     const result = tf.neg(a);
