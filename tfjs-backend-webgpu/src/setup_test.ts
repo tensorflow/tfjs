@@ -591,6 +591,18 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {startsWith: 'memory'},
   {
+    startsWith: 'sin',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
+    startsWith: 'cos',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
     startsWith: 'tensor',
     excludes: [
       'grad',        // gradient function not found.

@@ -32,6 +32,8 @@ import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
+import {cosConfig} from './kernels/Cos';
+import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
@@ -87,6 +89,8 @@ import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
+import {sinConfig} from './kernels/Sin';
+import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
@@ -122,6 +126,8 @@ const kernelConfigs: KernelConfig[] = [
   concatConfig,
   conv2DConfig,
   conv2DBackpropInputConfig,
+  cosConfig,
+  coshConfig,
   cropAndResizeConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
@@ -177,6 +183,8 @@ const kernelConfigs: KernelConfig[] = [
   rsqrtConfig,
   selectConfig,
   sigmoidConfig,
+  sinConfig,
+  sinhConfig,
   sliceConfig,
   stridedSliceConfig,
   stringNGramsConfig,
