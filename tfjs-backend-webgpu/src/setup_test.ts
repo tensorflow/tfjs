@@ -564,6 +564,13 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'logicalNot',
+    excludes: [
+      'Tensor6D',  // Not yet implemented.
+      'gradient'   // gradient function not found.
+    ]
+  },
+  {
     startsWith: 'logicalAnd ',
   },
   {
