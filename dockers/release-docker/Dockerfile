@@ -1,5 +1,5 @@
 # Official emsdk docker: https://hub.docker.com/r/emscripten/emsdk
-FROM debian:11-slim
+FROM debian:10-slim
 
 # Install cloud-sdk
 ARG CLOUD_SDK_VERSION=355.0.0
