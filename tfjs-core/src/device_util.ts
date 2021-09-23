@@ -20,7 +20,16 @@ function _isNavigatorDefined(): boolean {
   return typeof navigator !== 'undefined' && navigator != null;
 }
 
+let isMobileMockValue: boolean | undefined;
+
+export function mockIsMobile(value: boolean | undefined) {
+  isMobileMockValue = value;
+}
+
 export function isMobile(nav?: Navigator): boolean {
+  if (isMobileMockValue !== undefined) {
+    return isMobileMockValue;
+  }
   if (nav || _isNavigatorDefined()) {
     if (!nav) {
       nav = navigator;

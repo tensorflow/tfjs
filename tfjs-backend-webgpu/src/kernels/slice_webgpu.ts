@@ -100,8 +100,7 @@ export class SliceProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
-        if (index < uniforms.size)
-        {
+        if (index < uniforms.size) {
           var sourceLoc : ${dtype};
           let coords = getOutputCoords(globalId, index);
           ${coordSum.join('\n')}

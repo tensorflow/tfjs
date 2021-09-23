@@ -93,8 +93,8 @@ export class AddNPackedProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}
-        for (var i = 0u; i < ${this.workPerThread}u; i = i + 1u) {
-          let flatIndex = index * ${this.workPerThread}u + i;
+        for (var i = 0; i < ${this.workPerThread}; i = i + 1) {
+          let flatIndex = index * ${this.workPerThread} + i;
           if (flatIndex < uniforms.size) {
             let coords = getCoordsFromFlatIndex(flatIndex);
             ${snippets.join('\n        ')}

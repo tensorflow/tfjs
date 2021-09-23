@@ -45,7 +45,7 @@ export class GatherNDProgram implements WebGPUProgram {
     this.sliceDim = sliceDim;
     this.uniforms = `int sliceDim; ${getCoordsDataType(sliceDim)} strides;`;
     this.uniformsWgsl =
-        `sliceDim : u32; strides : ${getCoordsDataTypeWgsl(sliceDim)};`;
+        `sliceDim : i32; strides : ${getCoordsDataTypeWgsl(sliceDim)};`;
     this.useWgsl = getUseWgsl();
   }
   getUserCode(): string {
@@ -85,9 +85,9 @@ export class GatherNDProgram implements WebGPUProgram {
         ${getMainHeaderStringWgsl()} {
           ${getGlobalIndexStringWgsl()}
           let coords = getOutputCoords(globalId, index);
-          var flattenIndex = 0u;
-          for (var j = 0u; j < uniforms.sliceDim; j = j + 1u) {
-            let indexTemp = u32(round(getIndices(coords[0], j)));
+          var flattenIndex = 0;
+          for (var j = 0; j < uniforms.sliceDim; j = j + 1) {
+            let indexTemp = i32(round(getIndices(coords[0], j)));
             let strideNum = ${strideString};
             flattenIndex = flattenIndex + indexTemp * strideNum;
           }

@@ -546,10 +546,35 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'split',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
     include: 'sqrt',
     excludes: [
       'gradient'  // gradient function not found.
     ]
+  },
+  {
+    include: 'depthToSpace',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
+    include: 'logicalNot',
+    excludes: [
+      'Tensor6D',  // Not yet implemented.
+      'gradient'   // gradient function not found.
+    ]
+  },
+  {
+    include: 'flipLeftRight',
+  },
+  {
+    include: 'rotateWithOffset',
   },
   {
     startsWith: 'logicalAnd ',
@@ -585,10 +610,28 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {startsWith: 'memory'},
   {
+    startsWith: 'sin',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
+    startsWith: 'cos',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
     startsWith: 'tensor',
     excludes: [
       'grad',        // gradient function not found.
       'bool tensor'  // Expected object not to have properties.
+    ]
+  },
+  {
+    startsWith: 'tanh',
+    excludes: [
+      'grad',  // gradient function not found.
     ]
   }
 ];
