@@ -21,7 +21,8 @@ async function convertTensorToData(tensor) {
   return data;
 }
 
-async function getPredictionData(output) {
+async function predictAndGetPredictionData(predict, model, inferenceInput) {
+  let output = predict(model, inferenceInput);
   if (output instanceof Promise) {
     output = await output;
   }

@@ -200,13 +200,11 @@ limitations under the License.
             inferenceInput = generateInputFromDef(
               state.inputs, model instanceof tf.GraphModel);
           }
-          const referencePrediction = predict(model, inferenceInput);
-          referenceData = await getPredictionData(referencePrediction);
+          referenceData = await predictAndGetPredictionData(predict, model, inferenceInput);
 
           await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
-          const prediction = predict(model, inferenceInput);
-          predictionData = await getPredictionData(prediction);
+          predictionData = await predictAndGetPredictionData(predict, model, inferenceInput);
         } catch (e) {
           showMsg('Error: ' + e.message);
           throw e;
