@@ -28,7 +28,6 @@ export class TileProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
-  dtype: string;
   size: number;
   rank: number;
 
