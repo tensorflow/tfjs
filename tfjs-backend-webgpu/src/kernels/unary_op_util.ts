@@ -18,6 +18,8 @@
 export enum UnaryOpType {
   ABS,
   CEIL,
+  COS,
+  COSH,
   ELU,
   EXP,
   EXPM1,
@@ -30,6 +32,8 @@ export enum UnaryOpType {
   RELU,
   RELU6,
   RSQRT,
+  SIN,
+  SINH,
   SIGMOID,
   SQRT,
   SQUARE,
@@ -40,6 +44,11 @@ export enum UnaryOpType {
 // GLSL shader.
 const ABS = `return abs(a);`;
 const CEIL = `return ceil(a);`;
+const COS = `return cos(a);`;
+const COSH = `
+  float e2x = exp(-a);
+  return (e2x + 1.0 / e2x) / 2.0;
+`;
 const EXPM1 = `return exp(a) - 1.0;`;
 const ELU = `return (a >= 0.0) ? a : (exp(a) - 1.0);`;
 const ELU_VEC4 = `
@@ -75,6 +84,11 @@ const RELU_VEC4 = `
 `;
 const RSQRT = `return 1.0/sqrt(a);`;
 const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * a));`;
+const SIN = `return sin(a);`;
+const SINH = `
+  float e2x = exp(a);
+  return (e2x - 1.0 / e2x) / 2.0;
+`;
 const SQRT = `return sqrt(a);`;
 const SQUARE = `return a * a;`;
 const TANH = `
@@ -84,6 +98,14 @@ const TANH = `
 const TO_INT = `return float(int(a));`;
 
 // WGSL shader.
+const COSH_WGSL = `
+  let e2x = exp(-a);
+  return (e2x + 1.0 / e2x) / 2.0;
+`;
+const SINH_WGSL = `
+  let e2x = exp(a);
+  return (e2x - 1.0 / e2x) / 2.0;
+`;
 const ELU_WGSL = `if (a >= 0.0) { return a; }  return (exp(a) - 1.0);`;
 const LOGICAL_NOT_WGSL = `return f32(!(a >= 1.0));`;
 const RELU_WGSL = 'return max(a, 0.0);';
@@ -122,6 +144,13 @@ export function getUnaryOpString(
   switch (type) {
     case UnaryOpType.ABS:
       return ABS;
+    case UnaryOpType.COS:
+      return COS;
+    case UnaryOpType.COSH:
+      if (useWgsl) {
+        return COSH_WGSL;
+      }
+      return COSH;
     case UnaryOpType.CEIL:
       return CEIL;
     case UnaryOpType.ELU:
@@ -165,6 +194,13 @@ export function getUnaryOpString(
       return RSQRT;
     case UnaryOpType.SIGMOID:
       return SIGMOID;
+    case UnaryOpType.SIN:
+      return SIN;
+    case UnaryOpType.SINH:
+      if (useWgsl) {
+        return SINH_WGSL;
+      }
+      return SINH;
     case UnaryOpType.SQRT:
       return SQRT;
     case UnaryOpType.SQUARE:
