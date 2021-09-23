@@ -31,7 +31,6 @@ export class RotateProgram implements WebGPUProgram {
     uniforms: string;
     uniformsWgsl: string;
     workGroupSize: [number, number, number] = [64, 1, 1];
-    xShape: number[];
     size: number;
     fillSnippet: string;
     fillSnippetWgsl: string;
@@ -48,7 +47,6 @@ export class RotateProgram implements WebGPUProgram {
           float cosRadians;`;
       this.uniformsWgsl = `centerX : f32; centerY : f32; sinRadians : f32;
           cosRadians : f32;`;
-      this.xShape = imageShape;
       this.shaderKey = 'rotate';
       this.useWgsl = getUseWgsl();
       this.size = util.sizeFromShape(this.outputShape);

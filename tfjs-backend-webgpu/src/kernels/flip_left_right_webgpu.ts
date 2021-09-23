@@ -29,7 +29,6 @@ export class FlipLeftRightProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   workGroupSize: [number, number, number] = [64, 1, 1];
-  xShape: number[];
   size: number;
   useWgsl: boolean;
 
@@ -38,7 +37,6 @@ export class FlipLeftRightProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.xShape = imageShape;
     this.shaderKey = 'flipLeftRight';
     this.useWgsl = getUseWgsl();
     this.size = util.sizeFromShape(this.outputShape);
