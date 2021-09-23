@@ -110,11 +110,11 @@ export function batchMatMulImpl({
   // smaller than each of the two input sizes. For example, if input sizes are
   // [12, 2048] and [2048, 1024], the output size is [12, 1024], which is
   // relatively small compared to input sizes.
-  if (!transposeA && !transposeB && (a3dShape[1] <= 16 || b3dShape[2] <= 16) &&
-      ((a.shape[1] <= 16 &&
-        (b.shape[2] <= 512 || b.shape[1] >= 2 * b.shape[2])) ||
-       (b.shape[2] <= 16 &&
-        (a.shape[1] <= 512 || a.shape[2] >= 2 * a.shape[1])))) {
+  if (!transposeA && !transposeB &&
+      ((a3dShape[1] <= 16 &&
+        (b3dShape[2] <= 512 || b3dShape[1] >= 2 * b3dShape[2])) ||
+       (b3dShape[2] <= 16 &&
+        (a3dShape[1] <= 512 || a3dShape[2] >= 2 * a3dShape[1])))) {
     program = new MatMulSmallOutputSizeProgram(
         a3dShape, b3dShape, [batchDim, outerShapeA, outerShapeB], bias,
         activation, preluActivationWeights);
