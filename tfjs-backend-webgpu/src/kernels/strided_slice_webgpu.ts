@@ -21,11 +21,10 @@ import {getCoordsDataType} from '../shader_preprocessor';
 import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class StridedSliceProgram implements WebGPUProgram {
   variableNames = ['x'];
-  uniforms: string;
   uniformsWgsl: string;
   outputShape: number[];
   shaderKey: string;
@@ -37,7 +36,6 @@ export class StridedSliceProgram implements WebGPUProgram {
   dtype: string;
   dtypeWgsl: string;
   size: number;
-  useWgsl: boolean;
 
   constructor(destSize: number[]) {
     this.outputShape = destSize;
@@ -48,43 +46,10 @@ export class StridedSliceProgram implements WebGPUProgram {
 
     this.dtype = getCoordsDataType(this.outputShape.length);
     this.dtypeWgsl = getCoordsDataTypeWgsl(this.outputShape.length);
-    this.uniforms = `${this.dtype} begin; ${this.dtype} strides; `;
     this.uniformsWgsl =
         `begin : ${this.dtypeWgsl};  strides : ${this.dtypeWgsl}; `;
     this.shaderKey = 'stridedSlice';
     this.size = util.sizeFromShape(this.outputShape);
-    this.useWgsl = getUseWgsl();
-  }
-
-  getUserCode(): string {
-    const rank = this.outputShape.length;
-    let newCoords = '';
-    if (rank === 1) {
-      newCoords = 'coords * strides + begin';
-    } else {
-      let outputAxis = 0;
-      newCoords =
-          this.outputShape
-              .map((_, i) => {
-                outputAxis++;
-                return this.outputShape.length === 1 ?
-                    `coords * strides[${i}] + begin[${i}]` :
-                    `coords[${outputAxis - 1}] * strides[${i}] + begin[${i}]`;
-              })
-              .join(',');
-    }
-
-    const userCode = `
-       void main() {
-         int index = getGlobalIndex();
-         if (index < size)
-         {
-           ${this.dtype} coords = getOutputCoords();
-           setOutput(index, getX(${newCoords}));
-         }
-       }
-     `;
-    return userCode;
   }
 
   getUserCodeWgsl(): string {

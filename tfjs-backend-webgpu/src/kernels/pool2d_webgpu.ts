@@ -20,7 +20,7 @@ import {backend_util} from '@tensorflow/tfjs-core';
 import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class Pool2DProgram implements WebGPUProgram {
   outputShape: number[];
@@ -28,14 +28,12 @@ export class Pool2DProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  uniforms = 'ivec2 stride, pad, dilation, convDims, filterDims;';
   uniformsWgsl =
       `stride : vec2<i32>; pad : vec2<i32>; dilation : vec2<i32>; convDims : vec2<i32>; filterDims : vec2<i32>;`;
   // TODO(jiajia.qin@intel.com): Dynamically choose different workGroupSize for
   // different output shapes.
   workGroupSize: [number, number, number] = [128, 1, 1];
   poolType: 'max'|'avg';
-  useWgsl: boolean;
 
   constructor(convInfo: backend_util.Conv2DInfo, poolType: 'max'|'avg') {
     this.outputShape = convInfo.outShape;
@@ -47,56 +45,6 @@ export class Pool2DProgram implements WebGPUProgram {
 
     this.shaderKey = `pool2D_${poolType}`;
     this.poolType = poolType;
-    this.useWgsl = getUseWgsl();
-  }
-
-  getUserCode(): string {
-    let updateSnippet = `resultValue = max(value, resultValue);`;
-    if (this.poolType === 'avg') {
-      updateSnippet = `resultValue += value; count += 1.0;`;
-    }
-
-    let returnValue = `resultValue`;
-    if (this.poolType === 'avg') {
-      returnValue = `resultValue / count`;
-    }
-
-    const userCode = `
-      void main() {
-        ivec4 coords = getOutputCoords();
-        if (coordsInBounds(coords, outShape)) {
-          int batch = coords[0];
-          ivec2 xRCCorner = coords.yz * stride - pad;
-          int xRCorner = xRCCorner.x;
-          int xCCorner = xRCCorner.y;
-
-          float resultValue = ${
-        this.poolType === 'avg' ? '0.0' : '-1.0 / 1e-20'};
-          float count = 0.0;
-
-          for (int wR = 0; wR < filterDims.x; wR += dilation.x) {
-            int xR = xRCorner + wR;
-
-            if (xR < 0 || xR >= convDims.x) {
-              continue;
-            }
-
-            for (int wC = 0; wC < filterDims.y; wC += dilation.y) {
-              int xC = xCCorner + wC;
-              if (xC < 0 || xC >= convDims.y) {
-                continue;
-              }
-
-              float value = getX(batch, xR, xC, coords[3]);
-              ${updateSnippet}
-            }
-          }
-
-          setOutput(batch, coords[1], coords[2], coords[3], ${returnValue});
-        }
-      }
-    `;
-    return userCode;
   }
 
   getUserCodeWgsl(): string {

@@ -18,7 +18,7 @@
 import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class TransposeSharedProgram implements WebGPUProgram {
   variableNames = ['A'];
@@ -28,7 +28,6 @@ export class TransposeSharedProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   // Note that the maximum number of workgroup invocations by webgpu is 256.
   workGroupSize: [number, number, number] = [16, 16, 1];
-  useWgsl: boolean;
 
   constructor(aShape: number[], newDim: number[]) {
     const outputShape: number[] = new Array(aShape.length);
@@ -41,34 +40,6 @@ export class TransposeSharedProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize, [1, 1, 1]);
 
     this.shaderKey = 'transposeShared';
-    this.useWgsl = getUseWgsl();
-  }
-
-  getUserCode(): string {
-    const userCode = `
-    const int TILE_DIM = ${this.workGroupSize[0]};
-    shared float tile[TILE_DIM][TILE_DIM + 1];
-    void main() {
-        int index = int(gl_GlobalInvocationID.x);
-        int x = int(gl_WorkGroupID.x) * TILE_DIM + int(gl_LocalInvocationID.x);
-        int y = int(gl_WorkGroupID.y) * TILE_DIM + int(gl_LocalInvocationID.y);
-        int width = outShape[0];
-        int height = outShape[1];
-        if (x < width && y < height) {
-          tile[gl_LocalInvocationID.y][gl_LocalInvocationID.x] =
-              A[y * width + x];
-        }
-        barrier();
-
-        x = int(gl_WorkGroupID.y) * TILE_DIM + int(gl_LocalInvocationID.x);
-        y = int(gl_WorkGroupID.x) * TILE_DIM + int(gl_LocalInvocationID.y);
-        if (x < height && y < width) {
-          setOutput((y * height + x), tile[gl_LocalInvocationID.x]
-            [gl_LocalInvocationID.y]);
-        }
-      }
-    `;
-    return userCode;
   }
 
   getUserCodeWgsl(): string {

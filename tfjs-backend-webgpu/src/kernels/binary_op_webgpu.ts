@@ -16,12 +16,11 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-import {getCoordsDataType} from '../shader_preprocessor';
 import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class BinaryOpProgram implements WebGPUProgram {
   outputShape: number[];
@@ -31,7 +30,6 @@ export class BinaryOpProgram implements WebGPUProgram {
   variableNames = ['A', 'B'];
   workPerThread: number;
   workGroupSize: [number, number, number];
-  useWgsl: boolean;
   op: BinaryOpType;
   sizeFit: boolean;
   shapesFit: boolean;
@@ -52,74 +50,12 @@ export class BinaryOpProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
     this.shaderKey = `binary_${op}_${this.sizeFit}_${this.shapesFit}`;
-    this.useWgsl = getUseWgsl();
     this.op = op;
-  }
-
-  getUserCode(): string {
-    let userCode: string;
-    const opStr = getBinaryOpString(this.op);
-    if (this.shapesFit) {
-      userCode = `
-          float binaryOperation(float a, float b) {
-            ${opStr}
-          }
-
-          void main() {
-            int index = getGlobalIndex();
-
-            float a = float(A[index]);
-            float b = float(B[index]);
-            setOutput(index, binaryOperation(a, b));
-          }
-        `;
-    } else if (this.sizeFit) {
-      const type = getCoordsDataType(this.outputShape.length);
-      userCode = `
-      float binaryOperation(float a, float b) {
-        ${opStr}
-      }
-
-      void main() {
-        int index = getGlobalIndex();
-
-        ${type} coords = getCoordsFromFlatIndex(index);
-
-        float a = getAAtOutCoords(coords);
-        float b = getBAtOutCoords(coords);
-        setOutput(index, binaryOperation(a, b));
-      }
-      `;
-    } else {
-      const type = getCoordsDataType(this.outputShape.length);
-      userCode = `
-      float binaryOperation(float a, float b) {
-        ${opStr}
-      }
-
-      void main() {
-        int index = getGlobalIndex();
-
-        for(int i = 0; i < ${this.workPerThread}; i++) {
-          int flatIndex = index * ${this.workPerThread} + i;
-
-          if(flatIndex < size) {
-            ${type} coords = getCoordsFromFlatIndex(flatIndex);
-
-            float a = getAAtOutCoords(coords);
-            float b = getBAtOutCoords(coords);
-            setOutput(flatIndex, binaryOperation(a, b));
-          }
-        }
-      }
-      `;
-    }
-    return userCode;
   }
 
   getUserCodeWgsl(): string {
     let userCode: string;
-    const opStr = getBinaryOpString(this.op, false, this.useWgsl);
+    const opStr = getBinaryOpString(this.op, false);
     const miscStr = `          fn binaryOperation(a : f32, b : f32) -> f32 {
       ${opStr}
     }`;

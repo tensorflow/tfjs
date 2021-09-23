@@ -52,12 +52,10 @@ interface ProgramParams {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   workGroupSize: [number, number, number];
   variableNames: string[];
-  uniforms?: string;
   uniformsWgsl?: string;
   isVec4?: boolean;
   size?: number;
-  getUserCode: () => string;
-  getUserCodeWgsl?: () => string;
+  getUserCodeWgsl: () => string;
 }
 
 export interface InputInfo {

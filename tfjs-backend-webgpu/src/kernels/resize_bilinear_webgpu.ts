@@ -18,7 +18,7 @@
 import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class ResizeBilinearProgram implements WebGPUProgram {
   outputShape: number[];
@@ -29,7 +29,6 @@ export class ResizeBilinearProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   alignCorners: boolean;
   halfPixelCenters: boolean;
-  useWgsl: boolean;
 
   constructor(
       inputShape: [number, number, number, number], newHeight: number,
@@ -45,60 +44,8 @@ export class ResizeBilinearProgram implements WebGPUProgram {
     this.halfPixelCenters = halfPixelCenters;
     this.shaderKey = `resizeBilinear_${alignCorners}_${halfPixelCenters}_${
         this.outputShape[1] > 1}_${this.outputShape[2] > 1}`;
-    this.useWgsl = getUseWgsl();
   }
 
-  getUserCode(): string {
-    const adjustHeight = this.alignCorners && this.outputShape[1] > 1;
-    const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
-
-    const userCode = `
-      void main() {
-        ivec4 coords = getOutputCoords();
-        if (all(lessThan(coords, outShape))) {
-          int b = coords[0];
-          int d = coords[3];
-          ivec2 rc = coords.yz;
-
-          vec2 effectiveInSize = vec2(
-            ${adjustHeight ? `xShape.y - 1.0` : `xShape.y`},
-            ${adjustWidth ? `xShape.z - 1.0` : `xShape.z`});
-
-          vec2 effectiveOutSize = vec2(
-            ${adjustHeight ? `outShape.y - 1.0` : `outShape.y`},
-            ${adjustWidth ? `outShape.z - 1.0` : `outShape.z`});
-
-          vec2 effectiveInputOverOutputRatioRC =
-              effectiveInSize / effectiveOutSize;
-
-          // Fractional source index
-          vec2 sourceFracIndexRC = ${
-        this.halfPixelCenters ?
-            '(vec2(rc) + vec2(0.5)) * effectiveInputOverOutputRatioRC - vec2(0.5)' :
-            'vec2(rc) * effectiveInputOverOutputRatioRC'};
-
-          // Compute the four integer indices.
-          ivec2 sourceFloorRC = ivec2(sourceFracIndexRC);
-          ivec2 sourceCeilRC = ivec2(
-            min(xShape.yz - 1.0, ceil(sourceFracIndexRC)));
-
-          float topLeft = getX(b, sourceFloorRC.x, sourceFloorRC.y, d);
-          float bottomLeft = getX(b, sourceCeilRC.x, sourceFloorRC.y, d);
-          float topRight = getX(b, sourceFloorRC.x, sourceCeilRC.y, d);
-          float bottomRight = getX(b, sourceCeilRC.x, sourceCeilRC.y, d);
-
-          vec2 fracRC = sourceFracIndexRC - vec2(sourceFloorRC);
-
-          float top = topLeft + (topRight - topLeft) * fracRC.y;
-          float bottom = bottomLeft + (bottomRight - bottomLeft) * fracRC.y;
-          float newValue = top + (bottom - top) * fracRC.x;
-
-          setOutput(b, coords[1], coords[2], d, newValue);
-        }
-      }
-    `;
-    return userCode;
-  }
   getUserCodeWgsl(): string {
     const adjustHeight = this.alignCorners && this.outputShape[1] > 1;
     const adjustWidth = this.alignCorners && this.outputShape[2] > 1;

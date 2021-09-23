@@ -16,11 +16,10 @@
  */
 import {util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
 import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class TileProgram implements WebGPUProgram {
   variableNames = ['A'];
@@ -32,7 +31,6 @@ export class TileProgram implements WebGPUProgram {
   dtype: string;
   size: number;
   rank: number;
-  useWgsl: boolean;
 
   constructor(aShape: number[], reps: number[]) {
     const outputShape: number[] = new Array(aShape.length);
@@ -46,23 +44,6 @@ export class TileProgram implements WebGPUProgram {
     this.rank = this.outputShape.length;
     this.size = util.sizeFromShape(this.outputShape);
     this.shaderKey = 'tile';
-    this.useWgsl = getUseWgsl();
-  }
-
-  getUserCode(): string {
-    const dtype = getCoordsDataType(this.rank);
-    const sourceCoords = getSourceCoords(this.rank);
-
-    const userCode = `
-      void main() {
-        int index = getGlobalIndex();
-        if (index < size) {
-          ${dtype} resRC = getOutputCoords();
-          setOutput(index, getA(${sourceCoords}));
-        }
-      }
-    `;
-    return userCode;
   }
 
   getUserCodeWgsl(): string {

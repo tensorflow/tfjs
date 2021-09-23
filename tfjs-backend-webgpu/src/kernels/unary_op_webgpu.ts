@@ -20,7 +20,7 @@ import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_prepr
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {getUnaryOpString, UnaryOpType} from './unary_op_util';
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class UnaryOpProgram implements WebGPUProgram {
   outputShape: number[];
@@ -29,7 +29,6 @@ export class UnaryOpProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A'];
   workGroupSize: [number, number, number];
-  useWgsl: boolean;
   op: UnaryOpType;
   size: number;
 
@@ -42,32 +41,14 @@ export class UnaryOpProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.useWgsl = getUseWgsl();
     this.op = op;
     this.shaderKey = `unary_${op}`;
-  }
-
-  getUserCode(): string {
-    return `
-      float unaryOperation(float a) {
-        ${getUnaryOpString(this.op)}
-      }
-
-      void main() {
-        int index = getGlobalIndex();
-        if (index < size)
-        {
-          float a = getAAtOutCoords();
-          setOutput(index, unaryOperation(a));
-        }
-      }
-      `;
   }
 
   getUserCodeWgsl(): string {
     return `
       fn unaryOperation(a : f32) -> f32 {
-        ${getUnaryOpString(this.op, false, true)}
+        ${getUnaryOpString(this.op, false)}
       }
       ${getMainHeaderStringWgsl()} {
         ${getGlobalIndexStringWgsl()}

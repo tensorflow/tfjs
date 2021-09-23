@@ -17,11 +17,10 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
 import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class GatherNDProgram implements WebGPUProgram {
   outputShape: number[];
@@ -29,12 +28,10 @@ export class GatherNDProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames: string[] = ['A', 'indices'];
-  uniforms: string;
   uniformsWgsl: string;
   workGroupSize: [number, number, number] = [64, 1, 1];
   size: number;
   sliceDim: number;
-  useWgsl: boolean;
   constructor(sliceDim: number, shape: number[]) {
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
@@ -43,35 +40,8 @@ export class GatherNDProgram implements WebGPUProgram {
     this.shaderKey = `gathernd_${sliceDim}`;
     this.size = util.sizeFromShape(this.outputShape);
     this.sliceDim = sliceDim;
-    this.uniforms = `int sliceDim; ${getCoordsDataType(sliceDim)} strides;`;
     this.uniformsWgsl =
         `sliceDim : i32; strides : ${getCoordsDataTypeWgsl(sliceDim)};`;
-    this.useWgsl = getUseWgsl();
-  }
-  getUserCode(): string {
-    const dtype = getCoordsDataType(this.outputShape.length);
-    let strideString;
-    if (this.sliceDim > 1) {
-      strideString = 'strides[j]';
-    } else {
-      strideString = 'strides';
-    }
-    const userCode = `
-         void main() {
-          int currentIndex = getGlobalIndex();
-          ${dtype} coords = getOutputCoords();
-          int flattenIndex = 0;
-          for (int j = 0; j < sliceDim; j++) {
-            int index = int(round(getIndices(coords[0], j)));
-            int strideNum = ${strideString};
-            flattenIndex += index * strideNum;
-          }
-          if (currentIndex < size) {
-            setOutput(currentIndex, getA(flattenIndex, coords[1]));
-          }
-        }
-      `;
-    return userCode;
   }
 
   getUserCodeWgsl(): string {
