@@ -571,6 +571,12 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'flipLeftRight',
+  },
+  {
+    include: 'rotateWithOffset',
+  },
+  {
     startsWith: 'logicalAnd ',
   },
   {
@@ -620,6 +626,12 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'grad',        // gradient function not found.
       'bool tensor'  // Expected object not to have properties.
+    ]
+  },
+  {
+    startsWith: 'tanh',
+    excludes: [
+      'grad',  // gradient function not found.
     ]
   }
 ];
