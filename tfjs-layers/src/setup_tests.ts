@@ -23,3 +23,8 @@ import '@tensorflow/tfjs-core/dist/register_all_gradients';
 
 import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-webgl';
+
+// Import and run tests from layers.
+// tslint:disable-next-line:no-imports-from-dist
+// tslint:disable-next-line:no-require
+require('./tests');

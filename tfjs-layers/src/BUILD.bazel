@@ -27,6 +27,7 @@ filegroup(
 
 TEST_SRCS = [
     "**/*_test.ts",
+    "setup_tests.ts",
 ]
 
 filegroup(
