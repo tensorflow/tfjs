@@ -32,6 +32,8 @@ import {complexConfig} from './kernels/Complex';
 import {concatConfig} from './kernels/Concat';
 import {conv2DConfig} from './kernels/Conv2D';
 import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
+import {cosConfig} from './kernels/Cos';
+import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
@@ -42,6 +44,7 @@ import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
 import {expm1Config} from './kernels/Expm1';
 import {fillConfig} from './kernels/Fill';
+import {flipLeftRightConfig} from './kernels/FlipLeftRight';
 import {floorConfig} from './kernels/Floor';
 import {floorDivConfig} from './kernels/FloorDiv';
 import {fromPixelsConfig} from './kernels/FromPixels';
@@ -58,6 +61,7 @@ import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
 import {logicalAndConfig} from './kernels/LogicalAnd';
+import {logicalNotConfig} from './kernels/LogicalNot';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
@@ -84,12 +88,16 @@ import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
+import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {rsqrtConfig} from './kernels/Rsqrt';
 import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
+import {sinConfig} from './kernels/Sin';
+import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
+import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
@@ -122,6 +130,8 @@ const kernelConfigs: KernelConfig[] = [
   concatConfig,
   conv2DConfig,
   conv2DBackpropInputConfig,
+  cosConfig,
+  coshConfig,
   cropAndResizeConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
@@ -132,6 +142,7 @@ const kernelConfigs: KernelConfig[] = [
   expConfig,
   expm1Config,
   fillConfig,
+  flipLeftRightConfig,
   fromPixelsConfig,
   floorConfig,
   floorDivConfig,
@@ -148,6 +159,7 @@ const kernelConfigs: KernelConfig[] = [
   lessEqualConfig,
   logConfig,
   logicalAndConfig,
+  logicalNotConfig,
   maxConfig,
   maximumConfig,
   maxPoolConfig,
@@ -174,14 +186,18 @@ const kernelConfigs: KernelConfig[] = [
   reshapeConfig,
   resizeBilinearConfig,
   resizeNearestNeighborConfig,
+  rotateWithOffsetConfig,
   rsqrtConfig,
   selectConfig,
   sigmoidConfig,
+  sinConfig,
+  sinhConfig,
   sliceConfig,
   stridedSliceConfig,
   stringNGramsConfig,
   softmaxConfig,
   spaceToBatchNDConfig,
+  splitVConfig,
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
