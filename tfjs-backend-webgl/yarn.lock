@@ -876,7 +876,7 @@
     "@babel/helper-validator-identifier" "^7.14.5"
     to-fast-properties "^2.0.0"
 
-"@bazel/bazelisk@^1.9.0":
+"@bazel/bazelisk@^1.10.1":
   version "1.10.1"
   resolved "https://registry.yarnpkg.com/@bazel/bazelisk/-/bazelisk-1.10.1.tgz#46236a43ad58e310c55247f866da0dc6083c3d8b"
   integrity sha512-IHszNzBO2UrUy6YtsSAsZtnU6I6qpzXGkWdEvGoMxLgJnDsEnsIYniDCUjvjU1KAP+A03eepmCHlyFcRHMSxRA==
@@ -2777,9 +2777,9 @@ nice-try@^1.0.4:
   integrity sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==
 
 node-fetch@~2.6.1:
-  version "2.6.1"
-  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.1.tgz#045bd323631f76ed2e2b55573394416b639a0052"
-  integrity sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==
+  version "2.6.2"
+  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.2.tgz#986996818b73785e47b1965cc34eb093a1d464d0"
+  integrity sha512-aLoxToI6RfZ+0NOjmWAgn9+LEd30YCkJKFSyWacNZdEKTit/ZMcKjGkTRo8uWEsnIb/hfKecNPEbln02PdWbcA==
 
 node-releases@^1.1.71:
   version "1.1.73"
