@@ -271,7 +271,7 @@ describeWebGPU('conv2d vec4', () => {
            ]));
      });
 
-  it('conv2d x=[1,8,8,64] f=[3,3,3,64] s=[1,1] d=1 p=same Conv2DMMVec4Program fitA == true and fitB == true',
+  it('conv2d x=[1,8,8,64] f=[3,3,64,64] s=[1,1] d=1 p=same Conv2DMMVec4Program fitA == true and fitB == true',
      async () => {
        const inputDepth = 64;
        const xSize = 8;
