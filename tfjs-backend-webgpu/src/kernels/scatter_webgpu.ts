@@ -27,7 +27,6 @@ export class ScatterProgram implements WebGPUProgram {
   uniforms: string;
   uniformsWgsl: string;
   outputShape: number[];
-  userCode: string;
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
