@@ -20,13 +20,12 @@ import {util} from '@tensorflow/tfjs-core';
 import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class ClipVec4Program implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   variableNames = ['A'];
-  uniforms = 'float minVal; float maxVal;';
   uniformsWgsl = 'minVal : f32; maxVal : f32;';
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
@@ -34,7 +33,6 @@ export class ClipVec4Program implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   isVec4 = true;
   size: number;
-  useWgsl: boolean;
 
   constructor(outputShape: number[]) {
     this.outputShape = outputShape;
@@ -44,29 +42,6 @@ export class ClipVec4Program implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
     this.shaderKey = 'clipVec4';
     this.size = util.sizeFromShape(this.outputShape) / 4;
-    this.useWgsl = getUseWgsl();
-  }
-
-  getUserCode(): string {
-    const userCode = `
-      void main() {
-        int index = getGlobalIndex();
-          if(index < size) {
-            vec4 value = getAAtOutCoords();
-            vec4 clampedValue;
-            for (int i = 0; i < 4; ++i) {
-              if (isnan(value[i])) {
-                clampedValue[i] = value[i];
-              } else {
-                clampedValue[i] = clamp(value[i], minVal, maxVal);
-              }
-            }
-
-            setOutput(index, clampedValue);
-          }
-      }
-    `;
-    return userCode;
   }
 
   getUserCodeWgsl(): string {

@@ -20,7 +20,7 @@ import {util} from '@tensorflow/tfjs-core';
 import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class FlipLeftRightProgram implements WebGPUProgram {
   outputShape: number[] = [];
@@ -30,7 +30,6 @@ export class FlipLeftRightProgram implements WebGPUProgram {
   variableNames = ['x'];
   workGroupSize: [number, number, number] = [64, 1, 1];
   size: number;
-  useWgsl: boolean;
 
   constructor(imageShape: [number, number, number, number]) {
     this.outputShape = imageShape;
@@ -38,24 +37,7 @@ export class FlipLeftRightProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = 'flipLeftRight';
-    this.useWgsl = getUseWgsl();
     this.size = util.sizeFromShape(this.outputShape);
-  }
-
-  getUserCode(): string {
-    const userCode = `
-      void main() {
-        int flatIndex = getGlobalIndex();
-
-        if (flatIndex < size) {
-          ivec4 coords = getOutputCoords();
-          int coordX = xShape[2] - coords[2] - 1;
-          float outputValue = getX(coords[0], coords[1], coordX, coords[3]);
-          setOutput(flatIndex, outputValue);
-        }
-      }
-    `;
-    return userCode;
   }
 
   getUserCodeWgsl(): string {

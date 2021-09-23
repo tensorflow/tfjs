@@ -20,7 +20,7 @@ import {util} from '@tensorflow/tfjs-core';
 import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class DepthToSpaceProgram implements WebGPUProgram {
   variableNames = ['x'];
@@ -31,8 +31,6 @@ export class DepthToSpaceProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
   size: number;
-  useWgsl: boolean;
-  uniforms = 'int blockSize;';
   uniformsWgsl = 'blockSize : i32;';
 
   constructor(outputShape: number[], dataFormat: 'NHWC'|'NCHW') {
@@ -42,34 +40,7 @@ export class DepthToSpaceProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = `depthToSpace_${dataFormat}`;
     this.size = util.sizeFromShape(this.outputShape);
-    this.useWgsl = getUseWgsl();
     this.dataFormat = dataFormat;
-  }
-
-  getUserCode(): string {
-    const userCode = `
-      void main() {
-        int index = getGlobalIndex();
-        if (index < size) {
-          ivec4 coords = getOutputCoords();
-          int b = coords[0];
-          int h = ${this.getHeightCoordString()};
-          int w = ${this.getWidthCoordString()};
-          int d = ${this.getDepthCoordString()};
-
-          int in_h = h / blockSize;
-          int offset_h = h % blockSize;
-          int in_w = w / blockSize;
-          int offset_w = w % blockSize;
-          int offset_d = (offset_h * blockSize + offset_w) *
-            ${this.getOutputDepthSize()};
-          int in_d = d + offset_d;
-
-          float result = ${this.getInputSamplingString()};
-          setOutput(index, result);
-        }
-      }`;
-    return userCode;
   }
 
   getUserCodeWgsl(): string {
@@ -124,9 +95,9 @@ export class DepthToSpaceProgram implements WebGPUProgram {
 
   private getOutputDepthSize(): string {
     if (this.dataFormat === 'NHWC') {
-      return getUseWgsl() ? `uniforms.outShape[3]` : `outShape[3]`;
+      return `uniforms.outShape[3]`;
     } else {
-      return getUseWgsl() ? `uniforms.outShape[1]` : `outShape[1]`;
+      return `uniforms.outShape[1]`;
     }
   }
 

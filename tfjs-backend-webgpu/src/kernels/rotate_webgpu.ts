@@ -20,78 +20,42 @@ import {util} from '@tensorflow/tfjs-core';
 import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class RotateProgram implements WebGPUProgram {
-    outputShape: number[] = [];
-    shaderKey: string;
-    dispatchLayout: {x: number[]};
-    dispatch: [number, number, number];
-    variableNames = ['x'];
-    uniforms: string;
-    uniformsWgsl: string;
-    workGroupSize: [number, number, number] = [64, 1, 1];
-    size: number;
-    fillSnippet: string;
-    fillSnippetWgsl: string;
-    useWgsl: boolean;
+  outputShape: number[] = [];
+  shaderKey: string;
+  dispatchLayout: {x: number[]};
+  dispatch: [number, number, number];
+  variableNames = ['x'];
+  uniformsWgsl: string;
+  workGroupSize: [number, number, number] = [64, 1, 1];
+  size: number;
+  fillSnippetWgsl: string;
 
-    constructor(
-        imageShape: [number, number, number, number],
-        fillValue: number|[number, number, number]) {
-      this.outputShape = imageShape;
-      this.dispatchLayout = flatDispatchLayout(this.outputShape);
-      this.dispatch = computeDispatch(
-          this.dispatchLayout, this.outputShape, this.workGroupSize);
-      this.uniforms = `float centerX; float centerY; float sinRadians;
-          float cosRadians;`;
-      this.uniformsWgsl = `centerX : f32; centerY : f32; sinRadians : f32;
+  constructor(
+      imageShape: [number, number, number, number],
+      fillValue: number|[number, number, number]) {
+    this.outputShape = imageShape;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
+    this.uniformsWgsl = `centerX : f32; centerY : f32; sinRadians : f32;
           cosRadians : f32;`;
-      this.shaderKey = 'rotate';
-      this.useWgsl = getUseWgsl();
-      this.size = util.sizeFromShape(this.outputShape);
-      this.outputShape = imageShape;
+    this.shaderKey = 'rotate';
+    this.size = util.sizeFromShape(this.outputShape);
+    this.outputShape = imageShape;
 
-      if (typeof fillValue === 'number') {
-        this.uniforms += ` float fillValue;`;
-        this.uniformsWgsl += ` fillValue : f32;`;
-        this.fillSnippet = `float outputValue = fillValue;`;
-        this.fillSnippetWgsl = `var outputValue = uniforms.fillValue;`;
-        this.shaderKey += '_float';
-      } else {
-        this.uniforms += ` vec3 fillValue;`;
-        this.uniformsWgsl += ` fillValue : vec3<f32>;`;
-        this.fillSnippet = `float outputValue = fillValue[coords[3]];`;
-        this.fillSnippetWgsl =
-            `var outputValue = uniforms.fillValue[coords[3]];`;
-        this.shaderKey += '_vec3';
-      }
+    if (typeof fillValue === 'number') {
+      this.uniformsWgsl += ` fillValue : f32;`;
+      this.fillSnippetWgsl = `var outputValue = uniforms.fillValue;`;
+      this.shaderKey += '_float';
+    } else {
+      this.uniformsWgsl += ` fillValue : vec3<f32>;`;
+      this.fillSnippetWgsl = `var outputValue = uniforms.fillValue[coords[3]];`;
+      this.shaderKey += '_vec3';
     }
-
-    getUserCode(): string {
-      const userCode = `
-          void main() {
-            int flatIndex = getGlobalIndex();
-
-            if (flatIndex < size) {
-              ivec4 coords = getOutputCoords();
-              float coordXFloat = (float(coords[2]) - centerX) * cosRadians -
-                  (float(coords[1]) - centerY) * sinRadians;
-              float coordYFloat = (float(coords[2]) - centerX) * sinRadians +
-                  (float(coords[1]) - centerY) * cosRadians;
-              int coordX = int(round(coordXFloat + centerX));
-              int coordY = int(round(coordYFloat + centerY));
-              ${this.fillSnippet}
-              if(coordX >= 0 && coordX < xShape[2] && coordY >= 0 &&
-                  coordY < xShape[1]) {
-                outputValue = getX(coords[0], coordY, coordX, coords[3]);
-              }
-              setOutput(flatIndex, outputValue);
-            }
-          }
-      `;
-      return userCode;
-   }
+  }
 
   getUserCodeWgsl(): string {
     const userCode = `
@@ -119,4 +83,4 @@ export class RotateProgram implements WebGPUProgram {
       `;
     return userCode;
   }
- }
+}

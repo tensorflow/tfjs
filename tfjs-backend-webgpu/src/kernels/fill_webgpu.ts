@@ -19,7 +19,7 @@ import {util} from '@tensorflow/tfjs-core';
 import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class FillProgram implements WebGPUProgram {
   variableNames: string[] = [];
@@ -27,12 +27,10 @@ export class FillProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  uniforms = 'float value;';
   uniformsWgsl = 'value : f32;';
   workPerThread = 4;
   workGroupSize: [number, number, number] = [16, 1, 1];
   size: number;
-  useWgsl: boolean;
 
   constructor(shape: number[]) {
     this.outputShape = shape;
@@ -43,22 +41,6 @@ export class FillProgram implements WebGPUProgram {
 
     this.shaderKey = 'fill';
     this.size = util.sizeFromShape(this.outputShape);
-    this.useWgsl = getUseWgsl();
-  }
-
-  getUserCode(): string {
-    const userCode = `
-    void main() {
-      int index = getGlobalIndex();
-      for (int i = 0; i < ${this.workPerThread}; i++) {
-        int flatIndex = index * ${this.workPerThread} + i;
-        if (flatIndex < size) {
-          setOutput(flatIndex, float(value));
-        }
-      }
-    }
-  `;
-    return userCode;
   }
 
   getUserCodeWgsl(): string {

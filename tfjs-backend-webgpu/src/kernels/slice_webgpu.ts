@@ -16,15 +16,13 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-import {getCoordsDataType} from '../shader_preprocessor';
 import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class SliceProgram implements WebGPUProgram {
   variableNames = ['source'];
-  uniforms: string;
   uniformsWgsl: string;
   outputShape: number[];
   shaderKey: string;
@@ -35,7 +33,6 @@ export class SliceProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   start: number[];
   size: number;
-  useWgsl: boolean;
 
   constructor(start: number[], destSize: number[]) {
     this.outputShape = destSize;
@@ -46,40 +43,9 @@ export class SliceProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
 
     this.start = start;
-    this.uniforms = `${getCoordsDataType(start.length)} start; `;
     this.uniformsWgsl = `start : ${getCoordsDataTypeWgsl(start.length)}; `;
     this.shaderKey = 'slice';
     this.size = util.sizeFromShape(this.outputShape);
-    this.useWgsl = getUseWgsl();
-  }
-
-  getUserCode(): string {
-    const dtype = getCoordsDataType(this.rank);
-    const sourceCoords = getCoords(this.rank);
-    let coordSum;
-    if (this.start.length === 1) {
-      coordSum = this.outputShape.map((_, i) => {
-        return `sourceLoc.${coords[i]} = start + coords.${coords[i]};`;
-      });
-    } else {
-      coordSum = this.outputShape.map((_, i) => {
-        return `sourceLoc.${coords[i]} = start[${i}] + coords.${coords[i]};`;
-      });
-    }
-
-    const userCode = `
-      void main() {
-        int index = getGlobalIndex();
-        if (index < size)
-        {
-          ${dtype} sourceLoc;
-          ${dtype} coords = getOutputCoords();
-          ${coordSum.join('\n')}
-          setOutput(index, getSource(${sourceCoords}));
-        }
-      }
-    `;
-    return userCode;
   }
 
   getUserCodeWgsl(): string {

@@ -20,7 +20,7 @@ import {util} from '@tensorflow/tfjs-core';
 import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class GatherProgram implements WebGPUProgram {
   outputShape: number[];
@@ -31,7 +31,6 @@ export class GatherProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   aShape: number[];
   size: number;
-  useWgsl: boolean;
 
   constructor(aShape: number[], outputShape: number[]) {
     this.outputShape = aShape.slice();
@@ -42,20 +41,6 @@ export class GatherProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = `gather`;
     this.size = util.sizeFromShape(this.outputShape);
-    this.useWgsl = getUseWgsl();
-  }
-  getUserCode(): string {
-    const sourceCoords = getSourceCoords(this.aShape);
-    const userCode = `
-      void main() {
-        int index = getGlobalIndex();
-        ivec4 resRC = getOutputCoords();
-        if (index < size) {
-          setOutput(index, getA(${sourceCoords}));
-        }
-      }
-    `;
-    return userCode;
   }
 
   getUserCodeWgsl(): string {

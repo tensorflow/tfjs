@@ -16,11 +16,10 @@
  */
 
 import {backend_util, DataType} from '@tensorflow/tfjs-core';
-import {getCoordsDataType} from '../shader_preprocessor';
 import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class ReduceProgram implements WebGPUProgram {
   outputShape: number[];
@@ -29,12 +28,10 @@ export class ReduceProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number];
   variableNames = ['x'];
-  uniforms = 'int reduceSize;';
   uniformsWgsl = 'reduceSize : i32;';
   reduceType: 'max'|'mean'|'min'|'prod'|'sum';
   inputShape: number[];
   reductionFactor: number;
-  useWgsl: boolean;
 
   constructor(
       reduceInfo: backend_util.ReduceInfo,
@@ -57,97 +54,6 @@ export class ReduceProgram implements WebGPUProgram {
 
     this.reduceType = reduceType;
     this.shaderKey = `reduce_${reduceType}_${outputDtype}`;
-    this.useWgsl = getUseWgsl();
-  }
-
-  getUserCode(): string {
-    const reduceInSharedMemory = this.workGroupSize[0] > 1;
-
-    let reduceOp = ``;
-    let initValue = '0.0';
-    if (this.reduceType === 'min' || this.reduceType === 'max') {
-      reduceOp = `
-         if (isnan(candidate)) {
-          bestValue = float(NAN);
-         } else if (candidate ${this.reduceType === 'min' ? '<' : '>'}
-           bestValue)
-           {  bestValue = candidate; }`;
-      initValue = 'float(x[offset])';
-    } else if (this.reduceType === 'sum' || this.reduceType === 'mean') {
-      reduceOp = ' bestValue += candidate; ';
-    } else if (this.reduceType === 'prod') {
-      reduceOp = ' bestValue *= candidate; ';
-      initValue = '1.0';
-    }
-
-    const outputSnippet = this.reduceType === 'mean' ?
-        `setOutput(flatOutputIndex, bestValue / float(reduceSize));` :
-        `setOutput(flatOutputIndex, bestValue);`;
-
-    const sharedMemorySnippet = `
-         shared float xBestValues[WorkGroupSize];
-       `;
-    const sharedMemoryReduceSnippet = `
-       xBestValues[gl_LocalInvocationID.x] = bestValue;
-       ${
-        this.reduceType === 'sum' || this.reduceType === 'mean' ||
-                this.reduceType === 'prod' ?
-            `bestValue=${initValue};` :
-            ' '}
-       int currentSize = WorkGroupSize;
-       while (currentSize > 1) {
-         barrier();
-         for (int w = 0; w < ${this.reductionFactor}; ++w) {
-           int i = int(gl_LocalInvocationID.x) * ${this.reductionFactor} + w;
-           if (i < currentSize) {
-             float candidate = xBestValues[i];
-             ${reduceOp}
-           }
-         }
-         barrier();
-         xBestValues[gl_LocalInvocationID.x] = bestValue;
-         currentSize = DIV_CEIL(currentSize, ${this.reductionFactor});
-         ${
-        this.reduceType === 'sum' || this.reduceType === 'mean' ||
-                this.reduceType === 'prod' ?
-            `if(currentSize > 1) bestValue=${initValue};` :
-            ''}
-       }
-       if (gl_LocalInvocationID.x == 0) {
-         ${outputSnippet}
-       }
-     `;
-
-    const outputCoordsType = getCoordsDataType(this.outputShape.length);
-
-    const userCode = `
-       #define DIV_CEIL(x, y) (((x) - 1) / (y) + 1)
-       const int WorkGroupSize = int(gl_WorkGroupSize.x);
-       ${reduceInSharedMemory ? sharedMemorySnippet : ''}
-       int getOffset() {
-         const ${outputCoordsType} outputCoords = getOutputCoords();
-         int offset = ${
-        this.outputShape.length === 1 ? 'outputCoords' :
-                                        'outputCoords[0]'} * reduceSize;
-         return offset;
-       }
-       void main() {
-         const int offset= getOffset();
-         float bestValue = ${initValue};
-         const int Length = reduceSize;
-         const int WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
-         for (int w = 0; w < WorkPerThread; ++w) {
-           int i = int(gl_GlobalInvocationID.x) * WorkPerThread + w;
-           if (i < Length) {
-             float candidate = float(x[offset + i]);
-             ${reduceOp}
-           }
-         }
-         const int flatOutputIndex = int(gl_GlobalInvocationID.y);
-         ${reduceInSharedMemory ? sharedMemoryReduceSnippet : outputSnippet}
-       }
-     `;
-    return userCode;
   }
 
   getUserCodeWgsl(): string {

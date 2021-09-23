@@ -20,7 +20,7 @@ import {util} from '@tensorflow/tfjs-core';
 import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class ClipProgram implements WebGPUProgram {
   outputShape: number[];
@@ -34,7 +34,6 @@ export class ClipProgram implements WebGPUProgram {
   minVal: number;
   maxVal: number;
   size: number;
-  useWgsl: boolean;
 
   constructor(outputShape: number[]) {
     this.outputShape = outputShape;
@@ -44,24 +43,6 @@ export class ClipProgram implements WebGPUProgram {
 
     this.shaderKey = 'clip';
     this.size = util.sizeFromShape(this.outputShape);
-    this.useWgsl = getUseWgsl();
-  }
-
-  getUserCode(): string {
-    const userCode = `
-      void main() {
-        int index = getGlobalIndex();
-        if(index < size) {
-          float value = getAAtOutCoords();
-          if (isnan(value)) {
-            setOutput(index, value);
-            return;
-          }
-          setOutput(index, clamp(value, minVal, maxVal));
-        }
-      }
-    `;
-    return userCode;
   }
 
   getUserCodeWgsl(): string {

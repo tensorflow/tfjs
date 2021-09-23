@@ -17,12 +17,11 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
 import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class BinaryOpSharedProgram implements WebGPUProgram {
   outputShape: number[];
@@ -35,7 +34,6 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
   useSharedMemoryWithB: boolean;
   lastDimensionSize: number;
   op: BinaryOpType;
-  useWgsl: boolean;
   size: number;
   sizeFit: boolean;
 
@@ -62,7 +60,6 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
 
     this.useSharedMemoryWithB = useSharedMemoryWithB;
     this.op = op;
-    this.useWgsl = getUseWgsl();
     this.size = util.sizeFromShape(this.outputShape);
     this.sizeFit =
         this.size % (this.workGroupSize[0] * this.workPerThread) === 0;
@@ -70,60 +67,6 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
     // used as uniform.
     this.shaderKey = `binaryShared_${op}_${this.lastDimensionSize}_${
         this.useSharedMemoryWithB}_${this.sizeFit}`;
-  }
-
-  getUserCode(): string {
-    const type = getCoordsDataType(this.outputShape.length);
-    const sharedIndexSnippet = this.lastDimensionSize > 1 ?
-        `coords[${this.outputShape.length - 1}]` :
-        '0';
-    const accessDataSnippet = this.useSharedMemoryWithB ?
-        `float a = getAAtOutCoords(coords);
-         float b = sharedBuf[${sharedIndexSnippet}];` :
-        `float a = sharedBuf[${sharedIndexSnippet}];
-         float b = getBAtOutCoords(coords);`;
-
-    const writeDataSnippet = this.sizeFit ?
-        `${type} coords = getCoordsFromFlatIndex(flatIndex);
-
-         ${accessDataSnippet}
-         setOutput(flatIndex, binaryOperation(a, b));` :
-        `if(flatIndex < size) {
-            ${type} coords = getCoordsFromFlatIndex(flatIndex);
-
-            ${accessDataSnippet}
-            setOutput(flatIndex, binaryOperation(a, b));
-          }`;
-    const opStr = getBinaryOpString(this.op);
-    const userCode = `
-        float binaryOperation(float a, float b) {
-          ${opStr}
-        }
-
-        shared float sharedBuf[${this.lastDimensionSize}];
-        void main() {
-          int index = getGlobalIndex();
-          int localIndex = int(gl_LocalInvocationIndex);
-
-          // Fill in the shared memory buffer. Here we need a loop to make sure
-          // that all data in A|B are uploaded when |sharedMemorySize| is larger
-          // than work group size.
-          while(localIndex < ${this.lastDimensionSize})
-          {
-            sharedBuf[localIndex] = ${
-        this.useSharedMemoryWithB ? 'B' : 'A'}[localIndex];
-            localIndex += int(gl_WorkGroupSize.x);
-          }
-          barrier();
-
-          for(int i = 0; i < ${this.workPerThread}; i++) {
-            int flatIndex = index * ${this.workPerThread} + i;
-
-            ${writeDataSnippet}
-          }
-        }
-        `;
-    return userCode;
   }
 
   getUserCodeWgsl(): string {
@@ -147,7 +90,7 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
             ${accessDataSnippet}
             setOutputFlat(flatIndex, binaryOperation(a, b));
           }`;
-    const opStr = getBinaryOpString(this.op, false, this.useWgsl);
+    const opStr = getBinaryOpString(this.op, false);
     const userCode = `
         fn binaryOperation(a : f32, b : f32) -> f32 {
           ${opStr}
