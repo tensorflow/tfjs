@@ -17,11 +17,10 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class AddNPackedProgram implements WebGPUProgram {
   outputShape: number[];
@@ -32,7 +31,6 @@ export class AddNPackedProgram implements WebGPUProgram {
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
   size: number;
-  useWgsl: boolean;
 
   constructor(shapes: number[][]) {
     this.outputShape = shapes[0];
@@ -43,40 +41,9 @@ export class AddNPackedProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
     this.shaderKey = 'addN';
     this.size = util.sizeFromShape(this.outputShape);
-    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
-    const snippets: string[] = [];
-    // Get target elements from every input tensor.
-    this.variableNames.forEach(variable => {
-      snippets.push(`float v${variable} = get${variable}AtOutCoords(coords);`);
-    });
-    // Calculate the sum of all elements.
-    const operation = this.variableNames
-                          .map(variable => {
-                            return `v${variable}`;
-                          })
-                          .join(' + ');
-
-    const type = getCoordsDataType(this.outputShape.length);
-    const userCode = `
-      void main() {
-        int index = getGlobalIndex();
-        for (int i = 0; i < ${this.workPerThread}; i++) {
-          int flatIndex = index * ${this.workPerThread} + i;
-          if (flatIndex < size) {
-            ${type} coords = getCoordsFromFlatIndex(flatIndex);
-            ${snippets.join('\n        ')}
-            setOutput(flatIndex, ${operation});
-          }
-        }
-      }
-    `;
-    return userCode;
-  }
-
-  getUserCodeWgsl(): string {
     const snippets: string[] = [];
     // Get target elements from every input tensor.
     this.variableNames.forEach(variable => {
@@ -91,8 +58,8 @@ export class AddNPackedProgram implements WebGPUProgram {
                           .join(' + ');
 
     const userCode = `
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         for (var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
           if (flatIndex < uniforms.size) {
