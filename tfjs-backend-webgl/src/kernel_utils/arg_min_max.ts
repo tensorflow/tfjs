@@ -77,10 +77,21 @@ export function argMinMaxReduce(
       x.shape.length);
   if (!env().getBool('WEBGL_PACK_REDUCE') || x.shape.length <= 2) {
     const intermediateTensorInfos = [];
+    // Eagerly unpack x input since it is passed in to all the shaders which
+    // require unpacked inputs.
+    const xtexData = backend.texData.get(x.dataId);
+    const xIsPacked = xtexData !== null && xtexData.isPacked;
+    let xUnPacked = x;
+    if (xIsPacked) {
+      xUnPacked = backend.unpackTensor(x);
+      intermediateTensorInfos.push(xUnPacked);
+    }
+
     const [outShape, reduceShape] =
-        backend_util.computeOutAndReduceShapes(x.shape, axes);
+        backend_util.computeOutAndReduceShapes(xUnPacked.shape, axes);
     const inSize = util.sizeFromShape(reduceShape);
-    const a2D = reshape({inputs: {x}, backend, attrs: {shape: [-1, inSize]}});
+    const a2D = reshape(
+        {inputs: {x: xUnPacked}, backend, attrs: {shape: [-1, inSize]}});
     intermediateTensorInfos.push(a2D);
 
     const reduced = argReduce(backend, a2D, reduceType);

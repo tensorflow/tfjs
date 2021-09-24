@@ -18,14 +18,20 @@
 module.exports = function(config) {
   const args = [];
 
-  const tfjsBundle = config.testBundle ? config.testBundle : 'tf.min.js';
-  const tfjsBundlePath = `../node_modules/@tensorflow/tfjs/dist/${tfjsBundle}`;
+  const coreBundle = config.coreBundle ? config.coreBundle : 'tf-core.min.js';
+  const coreBundlePath = `../../node_modules/@tensorflow/tfjs-core/dist/${coreBundle}`;
+  const cpuBundle = config.cpuBundle ? config.cpuBundle : 'tf-backend-cpu.min.js';
+  const cpuBundlePath = `../../node_modules/@tensorflow/tfjs-backend-cpu/dist/${cpuBundle}`;
 
   const devConfig = {
     frameworks: ['jasmine'],
     files: [
       {
-        pattern: tfjsBundlePath,
+        pattern: coreBundlePath,
+        nocache: true,
+      },
+      {
+        pattern: cpuBundlePath,
         nocache: true,
       },
       {pattern: './**/*_test.js'},

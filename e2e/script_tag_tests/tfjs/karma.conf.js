@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2021 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,32 +15,62 @@
  * =============================================================================
  */
 
-const browserstackConfig = {
-  hostname: 'bs-local.com',
-  reporters: ['dots'],
-  port: 9896,
-};
-
-
 module.exports = function(config) {
+  const args = [];
+
+  const tfjsBundle = config.testBundle ? config.testBundle : 'tf.min.js';
+  const tfjsBundlePath = `../../node_modules/@tensorflow/tfjs/dist/${tfjsBundle}`;
+
+  const devConfig = {
+    frameworks: ['jasmine'],
+    files: [
+      {
+        pattern: tfjsBundlePath,
+        nocache: true,
+      },
+      {pattern: './**/*_test.js'},
+    ],
+    reporters: ['progress']
+  };
+
+  const browserstackConfig = {
+    ...devConfig,
+    hostname: 'bs-local.com',
+    singleRun: true,
+    port: 9811
+  };
+
+  if (config.grep) {
+    args.push('--grep', config.grep);
+  }
+  if (config.tags) {
+    args.push('--tags', config.tags);
+  }
+
+  let extraConfig = null;
+
+  if (config.browserstack) {
+    extraConfig = browserstackConfig;
+  } else {
+    extraConfig = devConfig;
+  }
+
   config.set({
-    ...browserstackConfig,
+    ...extraConfig,
+    browsers: ['Chrome'],
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
       tunnelIdentifier:
-      `tfjs_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+          `e2e_script_tag_tests_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     },
     captureTimeout: 3e5,
     reportSlowerThan: 500,
     browserNoActivityTimeout: 3e5,
     browserDisconnectTimeout: 3e5,
-    browserDisconnectTolerance: 3,
+    browserDisconnectTolerance: 0,
     browserSocketTimeout: 1.2e5,
-    browsers: ['bs_chrome_mac'],
     customLaunchers: {
-      // For browserstack configs see:
-      // https://www.browserstack.com/automate/node
       bs_chrome_mac: {
         base: 'BrowserStack',
         browser: 'chrome',
@@ -65,7 +95,7 @@ module.exports = function(config) {
       bs_ios_11: {
         base: 'BrowserStack',
         device: 'iPhone X',
-        os: 'ios',
+        os: 'iOS',
         os_version: '11.0',
         real_mobile: true
       },
@@ -84,13 +114,8 @@ module.exports = function(config) {
         browser_version: '77.0',
         os: 'Windows',
         os_version: '10'
-      },
-      chrome_with_swift_shader: {
-        base: 'Chrome',
-        flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
-      },
-      chrome_debugging:
-      {base: 'Chrome', flags: ['--remote-debugging-port=9333']}
-    }
+      }
+    },
+    client: {jasmine: {random: false}, args: args}
   });
-}
+};

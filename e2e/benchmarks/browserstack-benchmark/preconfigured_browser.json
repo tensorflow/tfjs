@@ -1,22 +1,146 @@
 {
-  "summaryTabId": "Summary_1",
-  "benchmark": { "model": "face_detector", "numRuns": 10, "backend": "wasm" },
+  "benchmark": {
+    "model": ["mobilenet_v2", "mesh_128", "face_detector", "hand_detector",
+      "hand_skeleton", "blazeface"],
+    "numRuns": 10,
+    "backend": ["wasm", "webgl"]
+  },
   "browsers": {
+    "Windows_10_1": {
+      "base": "BrowserStack",
+      "browser": "chrome",
+      "browser_version": "84.0",
+      "os": "Windows",
+      "os_version": "10",
+      "device": null
+    },
+    "Windows_10_2": {
+      "base": "BrowserStack",
+      "browser": "edge",
+      "browser_version": "84.0",
+      "os": "Windows",
+      "os_version": "10",
+      "device": null
+    },
+    "Windows_7_1": {
+      "base": "BrowserStack",
+      "browser": "firefox",
+      "browser_version": "79.0",
+      "os": "Windows",
+      "os_version": "7",
+      "device": null
+    },
+    "OS_X_Catalina_1": {
+      "base": "BrowserStack",
+      "browser": "safari",
+      "browser_version": "13.1",
+      "os": "OS X",
+      "os_version": "Catalina",
+      "device": null
+    },
+    "iPhone_12_Pro_Max_1": {
+      "base": "BrowserStack",
+      "browser": "iphone",
+      "browser_version": null,
+      "os": "ios",
+      "os_version": "14",
+      "device": "iPhone 12 Pro Max"
+    },
     "iPhone_12_1": {
       "base": "BrowserStack",
       "browser": "iphone",
-      "browser_version": "null",
+      "browser_version": null,
       "os": "ios",
       "os_version": "14",
       "device": "iPhone 12"
     },
+    "iPhone_XS_1": {
+      "base": "BrowserStack",
+      "browser": "iphone",
+      "browser_version": null,
+      "os": "ios",
+      "os_version": "14",
+      "device": "iPhone XS"
+    },
+    "iPhone_11_Pro_Max_1": {
+      "base": "BrowserStack",
+      "browser": "iphone",
+      "browser_version": null,
+      "os": "ios",
+      "os_version": "13",
+      "device": "iPhone 11 Pro Max"
+    },
+    "iPhone_11_1": {
+      "base": "BrowserStack",
+      "browser": "iphone",
+      "browser_version": null,
+      "os": "ios",
+      "os_version": "13",
+      "device": "iPhone 11"
+    },
+    "iPhone_7_1": {
+      "base": "BrowserStack",
+      "browser": "iphone",
+      "browser_version": null,
+      "os": "ios",
+      "os_version": "12",
+      "device": "iPhone 7"
+    },
     "Google_Pixel_5_1": {
       "base": "BrowserStack",
       "browser": "android",
-      "browser_version": "null",
+      "browser_version": null,
       "os": "android",
       "os_version": "11.0",
       "device": "Google Pixel 5"
+    },
+    "Samsung_Galaxy_S20_Ultra_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": null,
+      "os": "android",
+      "os_version": "10.0",
+      "device": "Samsung Galaxy S20 Ultra"
+    },
+    "Samsung_Galaxy_A11_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": null,
+      "os": "android",
+      "os_version": "10.0",
+      "device": "Samsung Galaxy A11"
+    },
+    "Google_Pixel_4_XL_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": null,
+      "os": "android",
+      "os_version": "10.0",
+      "device": "Google Pixel 4 XL"
+    },
+    "Samsung_Galaxy_A51_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": null,
+      "os": "android",
+      "os_version": "10.0",
+      "device": "Samsung Galaxy A51"
+    },
+    "Samsung_Galaxy_S10_Plus_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": null,
+      "os": "android",
+      "os_version": "9.0",
+      "device": "Samsung Galaxy S10 Plus"
+    },
+    "Google_Pixel_2_1": {
+      "base": "BrowserStack",
+      "browser": "android",
+      "browser_version": null,
+      "os": "android",
+      "os_version": "9.0",
+      "device": "Google Pixel 2"
     }
   }
 }

@@ -14,17 +14,10 @@
     "build": "rimraf dist/ && tsc && yarn bundle",
     "bundle": "rollup -c",
     "bundle-ci": "rollup -c --ci",
-    "build-deps": "yarn build-core && yarn build-converter && yarn build-cpu-backend && yarn build-webgl-backend",
-    "build-deps-ci": "yarn build-core-ci && yarn build-cpu-backend-ci && yarn build-converter-ci && yarn build-webgl-backend-ci",
-    "build-converter": "cd ../tfjs-converter && yarn && yarn build",
-    "build-converter-ci": "cd ../tfjs-converter && yarn && yarn build-ci",
-    "build-core": "cd ../tfjs-core && yarn && yarn build",
-    "build-core-ci": "cd ../tfjs-core && yarn && yarn build-ci",
-    "build-cpu-backend": "cd ../tfjs-backend-cpu && yarn && yarn build",
-    "build-cpu-backend-ci": "cd ../tfjs-backend-cpu && yarn && yarn build-ci",
+    "build-link-package-core": "cd ../link-package-core && yarn build",
+    "build-deps": "yarn build-link-package-core",
+    "build-deps-ci": "yarn build-link-package-core",
     "build-npm": "./scripts/build-npm.sh",
-    "build-webgl-backend": "cd ../tfjs-backend-webgl && yarn && yarn build",
-    "build-webgl-backend-ci": "cd ../tfjs-backend-webgl && yarn && yarn build-ci",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "./scripts/publish-npm.sh",
@@ -40,9 +33,7 @@
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
-    "@tensorflow/tfjs-backend-webgl": "link:../tfjs-backend-webgl",
-    "@tensorflow/tfjs-converter": "link:../tfjs-converter",
-    "@tensorflow/tfjs-core": "link:../tfjs-core",
+    "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core",
     "@types/jasmine": "~3.0.0",
     "clang-format": "~1.5.0",
     "jasmine": "~3.1.0",
@@ -66,11 +57,11 @@
     "yalc": "~1.0.0-pre.50"
   },
   "dependencies": {
-    "@tensorflow/tfjs-backend-cpu": "link:../tfjs-backend-cpu",
+    "@tensorflow/tfjs-backend-cpu": "link:../link-package-core/node_modules/@tensorflow/tfjs-backend-cpu",
     "@webgpu/glslang": "0.0.12",
     "@webgpu/types": "0.1.4"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../tfjs-core"
+    "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core"
   }
 }

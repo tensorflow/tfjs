@@ -46,34 +46,50 @@ export function fromPixels(args: {
   const outShape = [pixels.height, pixels.width, numChannels];
   const imageData = (pixels as ImageData | backend_util.PixelData).data;
 
-  if (env().getBool('IS_BROWSER')) {
-    if (!(pixels instanceof HTMLVideoElement) &&
-        !(pixels instanceof HTMLImageElement) &&
-        !(pixels instanceof HTMLCanvasElement) &&
-        !(pixels instanceof ImageData) && !(pixels instanceof ImageBitmap) &&
-        !(pixels.data instanceof Uint8Array)) {
-      throw new Error(
-          'pixels passed to tf.browser.fromPixels() must be either an ' +
-          `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement, ImageData, ` +
-          `ImageBitmap ` +
-          `or {data: Uint32Array, width: number, height: number}, ` +
-          `but was ${(pixels as {}).constructor.name}`);
-    }
+  const isVideo = typeof (HTMLVideoElement) !== 'undefined' &&
+      pixels instanceof HTMLVideoElement;
+  const isImage = typeof (HTMLImageElement) !== 'undefined' &&
+      pixels instanceof HTMLImageElement;
+  const isCanvas = typeof (HTMLCanvasElement) !== 'undefined' &&
+      pixels instanceof HTMLCanvasElement;
+  const isImageBitmap =
+      typeof (ImageBitmap) !== 'undefined' && pixels instanceof ImageBitmap;
 
-    if (pixels instanceof HTMLVideoElement ||
-        pixels instanceof HTMLImageElement) {
-      if (fromPixels2DContext == null) {
-        fromPixels2DContext = document.createElement('canvas').getContext('2d');
-      }
-      fromPixels2DContext.canvas.width = pixels.width;
-      fromPixels2DContext.canvas.height = pixels.height;
-      fromPixels2DContext.drawImage(pixels, 0, 0, pixels.width, pixels.height);
-      pixels = fromPixels2DContext.canvas;
+  if (env().getBool('WEBGPU_USE_IMPORT')) {
+    if (isVideo) {
+      return fromPixelsExternalImage({
+        externalImage: pixels as HTMLVideoElement,
+        backend,
+        attrs,
+        useImport: true
+      });
     }
+  }
 
-    if (pixels instanceof ImageBitmap || pixels instanceof HTMLCanvasElement) {
-      return fromPixelsExternalImage({externalImage: pixels, backend, attrs});
+  if (isVideo || isImage) {
+    if (fromPixels2DContext == null) {
+      fromPixels2DContext = document.createElement('canvas').getContext('2d');
     }
+    const [width, height] = isVideo ?
+        [
+          (pixels as HTMLVideoElement).videoWidth,
+          (pixels as HTMLVideoElement).videoHeight
+        ] :
+        [pixels.width, pixels.height];
+    fromPixels2DContext.canvas.width = width;
+    fromPixels2DContext.canvas.height = height;
+    fromPixels2DContext.drawImage(
+        pixels as HTMLVideoElement | HTMLImageElement, 0, 0, width, height);
+    pixels = fromPixels2DContext.canvas;
+  }
+
+  if (isImageBitmap || isCanvas || isVideo || isImage) {
+    return fromPixelsExternalImage({
+      externalImage: pixels as HTMLCanvasElement | ImageBitmap,
+      backend,
+      attrs,
+      useImport: false
+    });
   }
 
   // TODO: Encoding should happen on GPU once we no longer have to download

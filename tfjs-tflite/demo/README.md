@@ -12,35 +12,15 @@ the "WebAssembly SIMD support" and "WebAssembly threads support" in
 
 ## Run the demo locally
 
-cd into the `tfjs-tflite` folder:
+Build the dependencies.
 
 ```sh
-$ cd tfjs/tfjs-tflite
-```
-
-Make sure `gsutil` is installed. It will be used by the script below.
-Follow the installation instructions [here][gsutil]. You can skip the
-"Setting Up Credentials to Access Protected Data" section.
-
-Build the `tfjs-tflite` package locally.
-```sh
+$ yarn build-deps
 $ yarn
-# This script will download the TFLite web API WASM module files and JS client
-# to deps/. This script will use `gsutil`.
-$ ./scripts/download-tflite-web-api.sh
-# This will bundle and copy everything needed to tfjs-tflite/dist/ which will
-# be used by the local demo.
-$ yarn build-npm
 ```
 
-cd into the `demo` folder
+Run the demo locally
 ```sh
-$ cd demo
-```
-
-Build and run the demo locally
-```sh
-$ yarn
 $ yarn watch
 ```
 

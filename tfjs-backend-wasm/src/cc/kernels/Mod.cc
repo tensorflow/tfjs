@@ -34,21 +34,24 @@ EMSCRIPTEN_KEEPALIVE
 void Mod(const size_t a_id, const size_t* a_shape_ptr, const size_t a_shape_len,
          const size_t b_id, const size_t* b_shape_ptr, const size_t b_shape_len,
          const DType dtype, const size_t out_id) {
-  binary_f32(a_id, b_id, out_id, [](float a, float b) {
-    float mod = fmod(a, b);
-    if ((a < 0 && b < 0) || (a >= 0 && b >= 0)) {
-      return mod;
-    } else {
-      return fmod((mod + b), b);
-    }
-  });
+  switch (dtype) {
+    case DType::float32:
+      binary_f32(a_id, b_id, out_id, [](float a, float b) {
+        float mod = fmod(a, b);
+        if ((a < 0 && b < 0) || (a >= 0 && b >= 0)) {
+          return mod;
+        } else {
+          return fmod((mod + b), b);
+        }
+      });
+      break;
 
-  default:
-    util::warn("Mod for tensor ids %d and %d failed. Unsupported dtype %d",
-               a_id, b_id, dtype);
-}
+    default:
+      util::warn("Mod for tensor ids %d and %d failed. Unsupported dtype %d",
+                 a_id, b_id, dtype);
+  }
 }
 
 }  // namespace wasm
-}  // namespace tfjs
+}  // namespace wasm
 }  // namespace tfjs

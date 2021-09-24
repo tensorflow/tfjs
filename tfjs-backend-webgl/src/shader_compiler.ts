@@ -571,7 +571,7 @@ function getOutput3DCoords(
     enableShapeUniforms: boolean): string {
   if (enableShapeUniforms) {
     const coordsFromIndexSnippet =
-        shader_util.getLogicalCoordinatesFromFlatIndexByUniform(
+        shader_util.getOutputLogicalCoordinatesFromFlatIndexByUniform(
             ['r', 'c', 'd'], shape);
 
     return `
@@ -670,7 +670,7 @@ function getOutput4DCoords(
     enableShapeUniforms: boolean): string {
   if (enableShapeUniforms) {
     const coordsFromIndexSnippet =
-        shader_util.getLogicalCoordinatesFromFlatIndexByUniform(
+        shader_util.getOutputLogicalCoordinatesFromFlatIndexByUniform(
             ['r', 'c', 'd', 'd2'], shape);
 
     return `

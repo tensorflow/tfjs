@@ -16,21 +16,25 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
+
+import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
+import {getUseWgsl, WebGPUProgram} from './webgpu_program';
 
 export class ClipVec4Program implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   variableNames = ['A'];
   uniforms = 'float minVal; float maxVal;';
+  uniformsWgsl = 'minVal : f32; maxVal : f32;';
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
   isVec4 = true;
   size: number;
+  useWgsl: boolean;
 
   constructor(outputShape: number[]) {
     this.outputShape = outputShape;
@@ -40,6 +44,7 @@ export class ClipVec4Program implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
     this.shaderKey = 'clipVec4';
     this.size = util.sizeFromShape(this.outputShape) / 4;
+    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
@@ -55,6 +60,29 @@ export class ClipVec4Program implements WebGPUProgram {
 
             setOutput(index, clamp(value, minVal, maxVal));
           }
+      }
+    `;
+    return userCode;
+  }
+
+  getUserCodeWgsl(): string {
+    const userCode = `
+      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
+      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
+        let index = globalId.x;
+        if(index < uniforms.size) {
+          let value = getAAtOutCoordsByGlobalId(globalId);
+          var clampedValue : vec4<f32>;
+          for (var i = 0u; i < 4u; i = i + 1u) {
+            if (isNanCustom(value[i])) {
+              clampedValue[i] = value[i];
+            } else {
+              clampedValue[i] = clamp(value[i], uniforms.minVal, uniforms.maxVal);
+            }
+          }
+
+          setOutputFlat(index, clampedValue);
+        }
       }
     `;
     return userCode;
