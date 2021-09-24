@@ -90,6 +90,7 @@ import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {rsqrtConfig} from './kernels/Rsqrt';
+import {scatterNdConfig} from './kernels/ScatterNd';
 import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {sinConfig} from './kernels/Sin';
@@ -189,6 +190,7 @@ const kernelConfigs: KernelConfig[] = [
   resizeNearestNeighborConfig,
   rotateWithOffsetConfig,
   rsqrtConfig,
+  scatterNdConfig,
   selectConfig,
   sigmoidConfig,
   sinConfig,
