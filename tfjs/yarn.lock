@@ -887,24 +887,27 @@
 
 "@tensorflow/tfjs-backend-cpu@link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu":
   version "0.0.0"
+  uid ""
 
 "@tensorflow/tfjs-backend-webgl@link:../link-package/node_modules/@tensorflow/tfjs-backend-webgl":
   version "0.0.0"
+  uid ""
 
-"@tensorflow/tfjs-converter@link:../tfjs-converter":
+"@tensorflow/tfjs-converter@link:../link-package/node_modules/@tensorflow/tfjs-converter":
   version "0.0.0"
+  uid ""
 
 "@tensorflow/tfjs-core@link:../link-package/node_modules/@tensorflow/tfjs-core":
   version "0.0.0"
+  uid ""
 
 "@tensorflow/tfjs-data@link:../tfjs-data":
   version "0.0.0"
-  dependencies:
-    "@types/node-fetch" "^2.1.2"
-    node-fetch "~2.6.1"
+  uid ""
 
 "@tensorflow/tfjs-layers@link:../tfjs-layers":
   version "0.0.0"
+  uid ""
 
 "@types/argparse@^1.0.38":
   version "1.0.38"

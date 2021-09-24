@@ -16,11 +16,10 @@
  */
 import {util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class TileProgram implements WebGPUProgram {
   variableNames = ['A'];
@@ -29,10 +28,8 @@ export class TileProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
-  dtype: string;
   size: number;
   rank: number;
-  useWgsl: boolean;
 
   constructor(aShape: number[], reps: number[]) {
     const outputShape: number[] = new Array(aShape.length);
@@ -46,34 +43,16 @@ export class TileProgram implements WebGPUProgram {
     this.rank = this.outputShape.length;
     this.size = util.sizeFromShape(this.outputShape);
     this.shaderKey = 'tile';
-    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
-    const dtype = getCoordsDataType(this.rank);
-    const sourceCoords = getSourceCoords(this.rank);
-
-    const userCode = `
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
-        if (index < size) {
-          ${dtype} resRC = getOutputCoords();
-          setOutput(index, getA(${sourceCoords}));
-        }
-      }
-    `;
-    return userCode;
-  }
-
-  getUserCodeWgsl(): string {
     const sourceCoords = getSourceCoords(this.rank, 'uniforms.');
 
     const userCode = `
-      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-        let index = globalId.x;
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         if (index < uniforms.size) {
-          let resRC = getOutputCoords(globalId);
+          let resRC = getOutputCoords(globalId, index);
           setOutputFlat(index, getA(${sourceCoords}));
         }
       }

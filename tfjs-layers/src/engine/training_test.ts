@@ -121,6 +121,11 @@ describeMathCPU('standardizeInputData', () => {
     expect(() => standardizeInputData({'Foo': getX()}, ['Foo', 'Bar']))
         .toThrowError(/No data provided for \"Bar\"/);
   });
+  it('Shape mismatch: input shape [1,1] vs expected shape [*,2]', () => {
+    expect(() => standardizeInputData(getX(), ['Foo'], [[null, 2]]))
+        .toThrowError(
+            / expected a batch of elements where each example has shape \[2\]/);
+  });
 });
 
 describeMathCPU('checkArrayLengths', () => {

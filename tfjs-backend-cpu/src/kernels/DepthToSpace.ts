@@ -32,9 +32,6 @@ export function depthToSpace(args: {
       dataFormat === 'NHWC',
       () => `Only NHWC dataFormat supported on CPU for depthToSpace. Got ${
           dataFormat}`);
-  util.assert(
-      blockSize > 1,
-      () => `blockSize should be > 1 for depthToSpace, but was: ${blockSize}`);
 
   const batchSize = x.shape[0];
   const inputHeight = x.shape[1];

@@ -16,10 +16,10 @@
  */
 import {util} from '@tensorflow/tfjs-core';
 
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class FillProgram implements WebGPUProgram {
   variableNames: string[] = [];
@@ -27,12 +27,10 @@ export class FillProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  uniforms = 'float value;';
-  uniformsWgsl = 'value : f32;';
+  uniforms = 'value : f32;';
   workPerThread = 4;
   workGroupSize: [number, number, number] = [16, 1, 1];
   size: number;
-  useWgsl: boolean;
 
   constructor(shape: number[]) {
     this.outputShape = shape;
@@ -43,31 +41,14 @@ export class FillProgram implements WebGPUProgram {
 
     this.shaderKey = 'fill';
     this.size = util.sizeFromShape(this.outputShape);
-    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
     const userCode = `
-    void main() {
-      int index = int(gl_GlobalInvocationID.x);
-      for (int i = 0; i < ${this.workPerThread}; i++) {
-        int flatIndex = index * ${this.workPerThread} + i;
-        if (flatIndex < size) {
-          setOutput(flatIndex, float(value));
-        }
-      }
-    }
-  `;
-    return userCode;
-  }
-
-  getUserCodeWgsl(): string {
-    const userCode = `
-    ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-    fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-      let index = globalId.x;
-      for (var i = 0u; i < ${this.workPerThread}u; i = i + 1u) {
-        let flatIndex = index * ${this.workPerThread}u + i;
+    ${getMainHeaderString()} {
+      ${getGlobalIndexString()}
+      for (var i = 0; i < ${this.workPerThread}; i = i + 1) {
+        let flatIndex = index * ${this.workPerThread} + i;
         if (flatIndex < uniforms.size) {
           setOutputFlat(flatIndex, uniforms.value);
         }

@@ -20,7 +20,6 @@
 import './flags_webgpu';
 
 import {backend_util, buffer, DataStorage, DataType, DataValues, engine, env, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, util} from '@tensorflow/tfjs-core';
-import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
 import {FromPixelsImportProgram} from './kernels/FromPixels_utils/from_pixels_import_webgpu';
@@ -73,12 +72,11 @@ const CPU_HANDOFF_SIZE_THRESHOLD =
 export class WebGPUBackend extends KernelBackend {
   device: GPUDevice;
   queue: GPUQueue;
-  glslang: Glslang;
   currentCommandEncoder: GPUCommandEncoder;
   tensorMap: DataStorage<TensorBufferInfo>;
   supportTimeQuery: boolean;
   dummyCanvas: HTMLCanvasElement;
-  dummyContext: GPUPresentationContext;
+  dummyContext: GPUCanvasContext;
 
   private static nextDataId = 0;
   private nextDataId(): number {
@@ -100,10 +98,10 @@ export class WebGPUBackend extends KernelBackend {
   private downloadWaitMs = 0;
   private computePassNumberInEncoder = 0;
   private querySet: GPUQuerySet;
-  private fromPixelProgram:
-      {copyExternal: FromPixelsProgram, import: FromPixelsImportProgram};
+  private fromPixelProgram?: FromPixelsProgram;
+  private fromPixelImportProgram?: FromPixelsImportProgram;
 
-  constructor(device: GPUDevice, glslang: Glslang, supportTimeQuery = false) {
+  constructor(device: GPUDevice, supportTimeQuery = false) {
     super();
     if (!webgpu_util.isWebGPUSupported()) {
       throw new Error('WebGPU is not supported on this device');
@@ -113,7 +111,6 @@ export class WebGPUBackend extends KernelBackend {
     this.device = device;
     this.queue = device.queue;
     this.currentCommandEncoder = null;
-    this.glslang = glslang;
     this.supportTimeQuery = supportTimeQuery;
 
     this.bufferManager = new BufferManager(this.device);
@@ -132,7 +129,10 @@ export class WebGPUBackend extends KernelBackend {
       this.dummyCanvas.width = 1;
       this.dummyCanvas.height = 1;
 
-      this.dummyContext = this.dummyCanvas.getContext('gpupresent');
+      // TODO: @webgpu/types 0.1.6 version has a bug to support both old
+      // rendring context type and webgpu context type. Use any to bypass this.
+      // tslint:disable-next-line:no-any
+      this.dummyContext = this.dummyCanvas.getContext('webgpu') as any;
       this.dummyContext.configure({
         device,
         format: 'bgra8unorm',
@@ -140,12 +140,6 @@ export class WebGPUBackend extends KernelBackend {
 
       document.body.appendChild(this.dummyCanvas);
     }
-
-    // Create FromPixelsProgram instance is light weight;
-    this.fromPixelProgram = {
-      copyExternal: new FromPixelsProgram(),
-      import: new FromPixelsImportProgram()
-    };
   }
 
   floatPrecision(): 32 {
@@ -316,16 +310,16 @@ export class WebGPUBackend extends KernelBackend {
   getFromPixelsProgram(type: 'copyExternal'|'import'): FromPixelsProgram {
     switch (type) {
       case 'copyExternal': {
-        if (!this.fromPixelProgram.copyExternal) {
-          this.fromPixelProgram.copyExternal = new FromPixelsProgram();
+        if (!this.fromPixelProgram) {
+          this.fromPixelProgram = new FromPixelsProgram();
         }
-        return this.fromPixelProgram.copyExternal;
+        return this.fromPixelProgram;
       }
       case 'import': {
-        if (!this.fromPixelProgram.import) {
-          this.fromPixelProgram.import = new FromPixelsImportProgram();
+        if (!this.fromPixelImportProgram) {
+          this.fromPixelImportProgram = new FromPixelsImportProgram();
         }
-        return this.fromPixelProgram.import;
+        return this.fromPixelImportProgram;
       }
       default:
         util.assert(false, () => `Unsupported fromPixels shape`);
@@ -697,16 +691,21 @@ export class WebGPUBackend extends KernelBackend {
       outputDtype: DataType,
       programUniforms?: Array<{type: string; data: number[]}>): TensorInfo {
     const output = this.makeTensorInfo(program.outputShape, outputDtype);
+    const outData = this.tensorMap.get(output.dataId);
+    if (util.sizeFromShape(output.shape) === 0) {
+      // Short-circuit the computation since the result is empty (has 0 in its
+      // shape).
+      outData.values =
+          util.getTypedArrayFromDType(output.dtype as 'float32', 0);
+      return output;
+    }
 
     // There are five kinds of uniforms: NAN, shapes, shape strides, program
     // size, program defined uniforms.
     let uniformsWithType: Array<{type: string; data: number[];}> =
         [{type: 'float32', data: [NaN]}];
     const bufferShapes = inputs.concat(output).map(d => d.shape);
-    let uniformsType = 'int32';
-    if (program.useWgsl) {
-      uniformsType = 'uint32';
-    }
+    const uniformsType = 'int32';
     bufferShapes.map(d => {
       uniformsWithType.push({type: uniformsType, data: d});
     });
@@ -715,6 +714,7 @@ export class WebGPUBackend extends KernelBackend {
     if (program.size != null) {
       uniformsWithType.push({type: uniformsType, data: [program.size]});
     }
+    uniformsWithType.push({type: 'uint32', data: program.dispatch});
     if (programUniforms) {
       uniformsWithType = [...uniformsWithType, ...programUniforms];
     }
@@ -757,8 +757,7 @@ export class WebGPUBackend extends KernelBackend {
 
     const pipeline = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(
-          this.glslang, this.device, program, pipelineLayout, inputsData,
-          output);
+          this.device, program, pipelineLayout, inputsData, output);
     });
 
     const shouldTimeProgram = this.activeTimers != null;
@@ -814,9 +813,9 @@ export class WebGPUBackend extends KernelBackend {
     return output;
   }
 
-  recordFromPixelsCommands(
+  runFromPixelsProgram(
       program: FromPixelsProgram, output: GPUBuffer, layout: WebGPULayout,
-      externalResource: GPUExternalTexture|GPUTextureView) {
+      externalResource: GPUExternalTexture|GPUTextureView, outputId: DataId) {
     const bindGroup = this.device.createBindGroup({
       layout: layout.bindGroupLayout,
       entries: [
@@ -840,11 +839,30 @@ export class WebGPUBackend extends KernelBackend {
     });
     this.ensureCommandEncoderReady();
     const passEncoder = this.currentCommandEncoder.beginComputePass();
+    const shouldTimeProgram = this.activeTimers != null;
+    if (shouldTimeProgram) {
+      if (this.supportTimeQuery) {
+        passEncoder.writeTimestamp(this.querySet, 0);
+      }
+    }
     passEncoder.setPipeline(program.pipeline);
     passEncoder.setBindGroup(0, bindGroup);
     passEncoder.dispatch(
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+    if (shouldTimeProgram) {
+      if (this.supportTimeQuery) {
+        passEncoder.writeTimestamp(this.querySet, 1);
+      }
+    }
     passEncoder.endPass();
+    this.commandQueueOwnedIds.add(outputId);
+    this.submitQueue();
+    if (shouldTimeProgram) {
+      this.activeTimers.push({
+        name: program.constructor.name,
+        query: this.getQueryTime(this.querySet)
+      });
+    }
   }
 
   async getTimeFromQuerySet(querySet: GPUQuerySet) {
@@ -890,12 +908,12 @@ export class WebGPUBackend extends KernelBackend {
     }
     this.bufferManager.dispose();
 
-    if (this.fromPixelProgram.copyExternal) {
-      this.fromPixelProgram.copyExternal.dispose();
+    if (this.fromPixelProgram) {
+      this.fromPixelProgram.dispose();
     }
 
-    if (this.fromPixelProgram.import) {
-      this.fromPixelProgram.import.dispose();
+    if (this.fromPixelImportProgram) {
+      this.fromPixelImportProgram.dispose();
     }
 
     this.disposed = true;

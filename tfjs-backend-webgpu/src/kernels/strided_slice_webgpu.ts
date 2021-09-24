@@ -17,16 +17,14 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
-import {getCoordsDataTypeWgsl, getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class StridedSliceProgram implements WebGPUProgram {
   variableNames = ['x'];
   uniforms: string;
-  uniformsWgsl: string;
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[]};
@@ -34,10 +32,7 @@ export class StridedSliceProgram implements WebGPUProgram {
   // TODO(xing.xu): Increase the workPerThread.
   workPerThread = 1;
   workGroupSize: [number, number, number] = [64, 1, 1];
-  dtype: string;
-  dtypeWgsl: string;
   size: number;
-  useWgsl: boolean;
 
   constructor(destSize: number[]) {
     this.outputShape = destSize;
@@ -46,48 +41,13 @@ export class StridedSliceProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
 
-    this.dtype = getCoordsDataType(this.outputShape.length);
-    this.dtypeWgsl = getCoordsDataTypeWgsl(this.outputShape.length);
-    this.uniforms = `${this.dtype} begin; ${this.dtype} strides; `;
-    this.uniformsWgsl =
-        `begin : ${this.dtypeWgsl};  strides : ${this.dtypeWgsl}; `;
+    const dtype = getCoordsDataType(this.outputShape.length);
+    this.uniforms = `begin : ${dtype};  strides : ${dtype}; `;
     this.shaderKey = 'stridedSlice';
     this.size = util.sizeFromShape(this.outputShape);
-    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
-    const rank = this.outputShape.length;
-    let newCoords = '';
-    if (rank === 1) {
-      newCoords = 'coords * strides + begin';
-    } else {
-      let outputAxis = 0;
-      newCoords =
-          this.outputShape
-              .map((_, i) => {
-                outputAxis++;
-                return this.outputShape.length === 1 ?
-                    `coords * strides[${i}] + begin[${i}]` :
-                    `coords[${outputAxis - 1}] * strides[${i}] + begin[${i}]`;
-              })
-              .join(',');
-    }
-
-    const userCode = `
-       void main() {
-         int index = int(gl_GlobalInvocationID.x);
-         if (index < size)
-         {
-           ${this.dtype} coords = getOutputCoords();
-           setOutput(index, getX(${newCoords}));
-         }
-       }
-     `;
-    return userCode;
-  }
-
-  getUserCodeWgsl(): string {
     const rank = this.outputShape.length;
     let newCoords = '';
     if (rank === 1) {
@@ -107,12 +67,10 @@ export class StridedSliceProgram implements WebGPUProgram {
     }
 
     const userCode = `
-       ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-       fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-         let index = globalId.x;
-         if (index < uniforms.size)
-         {
-           let coords = getOutputCoords(globalId);
+       ${getMainHeaderString()} {
+         ${getGlobalIndexString()}
+         if (index < uniforms.size) {
+           let coords = getOutputCoords(globalId, index);
            setOutputFlat(index, getX(${newCoords}));
          }
        }

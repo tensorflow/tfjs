@@ -17,10 +17,10 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class GatherProgram implements WebGPUProgram {
   outputShape: number[];
@@ -31,7 +31,6 @@ export class GatherProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   aShape: number[];
   size: number;
-  useWgsl: boolean;
 
   constructor(aShape: number[], outputShape: number[]) {
     this.outputShape = aShape.slice();
@@ -42,29 +41,14 @@ export class GatherProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = `gather`;
     this.size = util.sizeFromShape(this.outputShape);
-    this.useWgsl = getUseWgsl();
-  }
-  getUserCode(): string {
-    const sourceCoords = getSourceCoords(this.aShape);
-    const userCode = `
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
-        ivec4 resRC = getOutputCoords();
-        if (index < size) {
-          setOutput(index, getA(${sourceCoords}));
-        }
-      }
-    `;
-    return userCode;
   }
 
-  getUserCodeWgsl(): string {
-    const sourceCoords = getSourceCoords(this.aShape, 'u32');
+  getUserCode(): string {
+    const sourceCoords = getSourceCoords(this.aShape, 'i32');
     const userCode = `
-      ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-      fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-        let index = globalId.x;
-        let resRC = getOutputCoords(globalId);
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        let resRC = getOutputCoords(globalId, index);
         if (index < uniforms.size) {
           setOutputFlat(index, getA(${sourceCoords}));
         }

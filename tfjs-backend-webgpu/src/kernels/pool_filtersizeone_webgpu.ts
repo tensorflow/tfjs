@@ -17,10 +17,10 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getWorkGroupSizeStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   outputShape: number[];
@@ -28,11 +28,8 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  uniforms = 'ivec2 pad, stride, dilation, convDims, filterDims;';
-  uniformsWgsl =
-      `pad : vec2<u32>; stride : vec2<u32>; dilation : vec2<u32>; convDims : vec2<u32>; filterDims : vec2<u32>;`;
+  uniforms = `stride : vec2<i32>;`;
   workGroupSize: [number, number, number] = [256, 1, 1];
-  useWgsl: boolean;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.outShape;
@@ -42,34 +39,13 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.shaderKey = 'poolWithFilterSizeEqualsOne';
-    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
     const userCode = `
-      void main() {
-        ivec4 coords = getOutputCoords();
-        int batch = coords[0];
-        int d = coords[3];
-
-        if (all(lessThan(coords, outShape))) {
-          ivec2 xRCCorner = coords.yz * stride;
-          int xRCorner = xRCCorner.x;
-          int xCCorner = xRCCorner.y;
-
-          float value = getX(batch, xRCorner, xCCorner, d);
-          setOutput(batch, coords[1], coords[2], d, value);
-        }
-      }
-    `;
-    return userCode;
-  }
-
-  getUserCodeWgsl(): string {
-    const userCode = `
-    ${getWorkGroupSizeStringWgsl(this.workGroupSize)}
-    fn main([[builtin(global_invocation_id)]] globalId : vec3<u32>) {
-        let coords = getOutputCoords(globalId);
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        let coords = getOutputCoords(globalId, index);
         let batch = coords[0];
         let d = coords[3];
 

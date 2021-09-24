@@ -19,7 +19,7 @@ import 'regenerator-runtime/runtime';
 import '@tensorflow/tfjs-backend-cpu';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {loadTFLiteModel, TFLiteModel} from '@tensorflow/tfjs-tflite';
+import * as tflite from '@tensorflow/tfjs-tflite';
 
 const CARTOONIZER_LINK =
     'https://github.com/margaretmz/Cartoonizer-with-TFLite';
@@ -27,7 +27,7 @@ const CARTOONIZER_LINK =
 async function start() {
   // Load model runner with the cartoonizer tflite model.
   const start = Date.now();
-  const tfliteModel = await loadTFLiteModel(
+  const tfliteModel = await tflite.loadTFLiteModel(
       'https://tfhub.dev/sayakpaul/lite-model/cartoongan/fp16/1',
   );
   ele('.loading-msg').innerHTML = `Loaded WASM module and <a href='${
@@ -83,7 +83,8 @@ async function setupCam() {
   await new Promise(resolve => camEle.onplaying = resolve);
 }
 
-function handleClickTrigger(trigger: HTMLElement, tfliteModel: TFLiteModel) {
+function handleClickTrigger(
+    trigger: HTMLElement, tfliteModel: tflite.TFLiteModel) {
   // Get the source media (either a picture or the cam video).
   const imageContainer = trigger.closest('.img-container')!;
   let srcMedia: HTMLImageElement|HTMLVideoElement =
@@ -110,7 +111,7 @@ function handleClickTrigger(trigger: HTMLElement, tfliteModel: TFLiteModel) {
 }
 
 function cartoonize(
-    tfliteModel: TFLiteModel,
+    tfliteModel: tflite.TFLiteModel,
     ele: HTMLImageElement|HTMLVideoElement): ImageData {
   const outputTensor = tf.tidy(() => {
     // Get pixels data.

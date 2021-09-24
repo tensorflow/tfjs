@@ -16,7 +16,10 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
+
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
+
 import {mapActivationToShaderProgram} from './activation_util';
 import {WebGPUProgram} from './webgpu_program';
 
@@ -26,7 +29,8 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = 'ivec2 pad, stride, dilation, inDims;';
+  uniforms =
+      'pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>; inDims : vec2<i32>;';
   workGroupSize: [number, number, number] = [4, 4, 4];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
@@ -67,40 +71,44 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
       const activationOp =
           mapActivationToShaderProgram(this.activation, this.isVec4);
       if (this.hasPreluActivation) {
-        activationSnippet = `vec4 activation(vec4 a) {
-          vec4 b = getPreluActivationWeightsAtOutCoords(coords);
+        activationSnippet =
+            `fn activation(a : vec4<f32>, globalId : vec3<u32>, globalIndex : i32) -> vec4<f32> {
+          let b = getPreluActivationWeightsAtOutCoordsByGlobalId(globalId, globalIndex);
           ${activationOp}
         }`;
       } else {
         activationSnippet = `
-        vec4 activation(vec4 a) {
+        fn activation(a : vec4<f32>, globalId : vec3<u32>, globalIndex : i32) -> vec4<f32> {
             ${activationOp}
           }
         `;
       }
 
-      applyActivationSnippet = `dotProd[i] = activation(dotProd[i]);`;
+      applyActivationSnippet =
+          `dotProd[i] = activation(dotProd[i], globalId, index);`;
     }
 
-    const addBiasSnippet =
-        this.addBias ? 'dotProd[i] += getBiasAtOutCoords(coords);' : '';
+    const addBiasSnippet = this.addBias ?
+        'dotProd[i] = dotProd[i] + getBiasAtOutCoordsByCoords(coords);' :
+        '';
 
     const userCode = `
       ${activationSnippet}
 
-      void main() {
-        int batch = 0;
-        int r = int(gl_GlobalInvocationID.x);
-        int c = int(gl_GlobalInvocationID.y) * 4;
-        int d2= int(gl_GlobalInvocationID.z) * 4;
-        ivec2 xRCCorner = ivec2(r, c) * stride - pad;
-        int d1 = d2;
-        int q = 0;
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        let batch = 0;
+        let r = i32(globalId.x);
+        let c = i32(globalId.y) * 4;
+        let d2 = i32(globalId.z) * 4;
+        let xRCCorner = vec2<i32>(r, c) * uniforms.stride - uniforms.pad;
+        let d1 = d2;
+        let q = 0;
 
-        int xRCorner = xRCCorner.x;
-        int xCCorner = xRCCorner.y;
+        let xRCorner = xRCCorner.x;
+        let xCCorner = xRCCorner.y;
 
-        vec4 wVals[9];
+        var wVals : array<vec4<f32>, 9>;
         wVals[0] = getW(0, 0, d1, q);
         wVals[1] = getW(0, 1, d1, q);
         wVals[2] = getW(0, 2, d1, q);
@@ -111,39 +119,38 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
         wVals[7] = getW(2, 1, d1, q);
         wVals[8] = getW(2, 2, d1, q);
 
-        vec4 xVals[3][6];
-        for (int wR = 0; wR < 3; wR++) {
-          int xR = xRCorner + wR * dilation[0];
-          for (int wC = 0; wC < 6; wC++) {
-            int xC = xCCorner + wC * dilation[1];
-            if (xR < 0 || xR >= inDims[0] || xC < 0 || xC >= inDims[1]) {
-              xVals[wR][wC] = vec4(0.0, 0.0, 0.0, 0.0);
+        var xVals : array<array<vec4<f32>, 6>, 3>;
+        for (var wR = 0; wR < 3; wR = wR + 1) {
+          let xR = xRCorner + wR * uniforms.dilation[0];
+          for (var wC = 0; wC < 6; wC = wC + 1) {
+            let xC = xCCorner + wC * uniforms.dilation[1];
+            if (xR < 0 || xR >= uniforms.inDims[0] || xC < 0 || xC >= uniforms.inDims[1]) {
+              xVals[wR][wC] = vec4<f32>(0.0);
             } else {
               xVals[wR][wC] = getX(batch, xR, xC, d1);
             }
           }
         }
 
-        vec4 dotProd[4];
-        dotProd[0] = vec4(0.0, 0.0, 0.0, 0.0);
-        dotProd[1] = vec4(0.0, 0.0, 0.0, 0.0);
-        dotProd[2] = vec4(0.0, 0.0, 0.0, 0.0);
-        dotProd[3] = vec4(0.0, 0.0, 0.0, 0.0);
+        var dotProd : array<vec4<f32>, 4>;
+        dotProd[0] = vec4<f32>(0.0);
+        dotProd[1] = vec4<f32>(0.0);
+        dotProd[2] = vec4<f32>(0.0);
+        dotProd[3] = vec4<f32>(0.0);
 
-        for (int wR = 0; wR < 3; wR++) {
-          for (int wC = 0; wC < 3; wC++) {
-            int indexW = wR * 3 + wC;
-            dotProd[0] += xVals[wR][0 + wC] * wVals[indexW];
-            dotProd[1] += xVals[wR][1 + wC] * wVals[indexW];
-            dotProd[2] += xVals[wR][2 + wC] * wVals[indexW];
-            dotProd[3] += xVals[wR][3 + wC] * wVals[indexW];
+        for (var wR = 0; wR < 3; wR = wR + 1) {
+          for (var wC = 0; wC < 3; wC = wC + 1) {
+            let indexW = wR * 3 + wC;
+            dotProd[0] = dotProd[0] + xVals[wR][0 + wC] * wVals[indexW];
+            dotProd[1] = dotProd[1] + xVals[wR][1 + wC] * wVals[indexW];
+            dotProd[2] = dotProd[2] + xVals[wR][2 + wC] * wVals[indexW];
+            dotProd[3] = dotProd[3] + xVals[wR][3 + wC] * wVals[indexW];
           }
         }
 
-        for (int i = 0; i < 4; i++)
-        {
-          ivec4 coords = ivec4(batch, r, c + i, d2);
-          if (coordsInBounds(coords, outShape)) {
+        for (var i = 0; i < 4; i = i + 1) {
+          let coords = vec4<i32>(batch, r, c + i, d2);
+          if (coordsInBounds4D(coords, uniforms.outShape)) {
             ${addBiasSnippet}
             ${applyActivationSnippet}
             setOutput(coords[0], coords[1], coords[2], coords[3], dotProd[i]);
