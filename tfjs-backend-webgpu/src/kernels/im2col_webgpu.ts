@@ -17,16 +17,14 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class Im2ColProgram implements WebGPUProgram {
   variableNames = ['A'];
-  uniforms = `ivec2 pad, stride, dilation; int outWidth, itemsPerBlockRow,
-      inChannels;`;
-  uniformsWgsl =
+  uniforms =
       `pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>; outWidth : i32; itemsPerBlockRow : i32;
       inChannels : i32;`;
   outputShape: number[];
@@ -37,7 +35,6 @@ export class Im2ColProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   isChannelsLast: boolean;
   size: number;
-  useWgsl: boolean;
 
   constructor(outputShape: number[], isChannelsLast: boolean) {
     this.outputShape = outputShape;
@@ -48,7 +45,6 @@ export class Im2ColProgram implements WebGPUProgram {
     this.isChannelsLast = isChannelsLast;
     this.shaderKey = `im2col_${this.isChannelsLast}`;
     this.size = util.sizeFromShape(this.outputShape);
-    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
@@ -56,46 +52,8 @@ export class Im2ColProgram implements WebGPUProgram {
     const colDim = this.isChannelsLast ? 1 : 2;
 
     const userCode = `
-      void main() {
-        int index = getGlobalIndex();
-
-        for(int i=0; i<${this.workPerThread}; i++) {
-          int flatIndex = index * ${this.workPerThread} + i;
-
-          ivec2 rc = getCoordsFromFlatIndex(flatIndex);
-
-          if(flatIndex < size) {
-            int blockIndex = rc[0];
-            int pos = rc[1];
-
-            int offsetY = int(blockIndex / outWidth) * stride[1] - pad[1];
-            int d0 = offsetY + dilation[1] * (pos / itemsPerBlockRow);
-            float value = 0.0;
-            if(d0 < aShape[${rowDim}] && d0 >= 0) {
-              int offsetX = int(mod(blockIndex, outWidth) * stride[0] -
-                pad[0]);
-              int d1 = offsetX + dilation[0] * (int(mod(pos,
-                itemsPerBlockRow) / inChannels));
-              int ch = int(mod(pos, inChannels));
-              if(d1 < aShape[${colDim}] && d1 >= 0) {
-                value = getA(d0, d1, ch);
-              }
-            }
-            setOutput(flatIndex, value);
-          }
-        }
-      }
-    `;
-    return userCode;
-  }
-
-  getUserCodeWgsl(): string {
-    const rowDim = this.isChannelsLast ? 0 : 1;
-    const colDim = this.isChannelsLast ? 1 : 2;
-
-    const userCode = `
-    ${getMainHeaderStringWgsl()} {
-      ${getGlobalIndexStringWgsl()}
+    ${getMainHeaderString()} {
+      ${getGlobalIndexString()}
 
       for(var i = 0; i<${this.workPerThread}; i = i + 1) {
         let flatIndex = index * ${this.workPerThread} + i;
