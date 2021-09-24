@@ -83,12 +83,6 @@ const benchmarks = {
       return tf.loadGraphModel(url);
     },
     predictFunc: (input) => {
-      // For model debug mode, using same inputs for the reference and actual.
-      // For model perf mode, using different inputs for the reference and
-      // actual.
-      if (!debug) {
-        input = tf.randomNormal([1, 224, 224, 3]);
-      }
       return model => model.predict(input);
     },
     predictDebugFunc: (input) => {

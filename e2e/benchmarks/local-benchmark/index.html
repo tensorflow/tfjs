@@ -476,12 +476,15 @@ limitations under the License.
         }
       }
 
+      // For model debug mode, using same inputs for the reference and actual.
+      // For model perf mode, using different inputs for the reference and
+      // actual.
+      const input = tf.randomNormal([1, 224, 224, 3]);
       if (debug) {
-        const input = tf.randomNormal([1, 224, 224, 3]);
         predict = benchmark.predictFunc(input);
         predictDebug = benchmark.predictDebugFunc(input);
       } else {
-        predict = benchmark.predictFunc(null);
+        predict = benchmark.predictFunc(input);
       }
       const elapsed = performance.now() - start;
 
