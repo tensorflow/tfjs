@@ -13,6 +13,7 @@
  */
 
 import {scalar, Tensor, tensor, tensor1d, tensor2d} from '@tensorflow/tfjs-core';
+import {setEpsilon} from './backend/common';
 
 import * as tfl from './index';
 import {binaryAccuracy, categoricalAccuracy, get, getLossOrMetricName} from './metrics';
@@ -72,6 +73,10 @@ describeMathCPUAndGPU('sparseCategoricalAccuracy', () => {
 });
 
 describeMathCPUAndGPU('binaryCrossentropy', () => {
+  beforeEach(() => {
+    setEpsilon(1e-7);
+  });
+
   it('2D single-value yTrue', () => {
     // Use the following Python code to generate the reference values:
     // ```python
