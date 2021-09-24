@@ -112,4 +112,5 @@ esbuild(
         ":tfjs-layers_test_lib",
         "//tfjs-layers:package_json",
     ],
+    args = ['--keep-names'],
 )

@@ -918,8 +918,7 @@ describeMathCPUAndGPU('LayersModel.fit', () => {
          loss: 'categoricalCrossentropy',
          metrics: tfl.metrics.meanSquaredError
        });
-       expect(model.metricsNames[0]).toMatch('loss');
-       expect(model.metricsNames[1]).toMatch(/meanSquaredError/);
+       expect(model.metricsNames).toEqual(['loss', 'meanSquaredError']);
        const history = await model.fit(
            inputs, targets,
            {batchSize: numSamples, epochs: 2, validationSplit: 0.2});
@@ -940,9 +939,7 @@ describeMathCPUAndGPU('LayersModel.fit', () => {
          loss: 'categoricalCrossentropy',
          metrics: [tfl.metrics.meanSquaredError, 'acc']
        });
-       expect(model.metricsNames[0]).toEqual('loss');
-       expect(model.metricsNames[1]).toMatch(/meanSquaredError/);
-       expect(model.metricsNames[2]).toEqual('acc');
+       expect(model.metricsNames).toEqual(['loss', 'meanSquaredError', 'acc']);
        const history = await model.fit(
            inputs, targets,
            {batchSize: numSamples, epochs: 2, validationSplit: 0.2});
