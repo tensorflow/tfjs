@@ -1,12 +1,12 @@
 steps:
 # Install common dependencies.
-- name: 'gcr.io/learnjs-174218/release'
+- name: 'node:10'
   id: 'yarn-common'
   entrypoint: 'yarn'
   args: ['install']
 
 # Install webgpu dependencies.
-- name: 'gcr.io/learnjs-174218/release'
+- name: 'node:10'
   dir: 'tfjs-backend-webgpu'
   id: 'yarn'
   entrypoint: 'yarn'
@@ -14,7 +14,7 @@ steps:
   waitFor: ['yarn-common']
 
 # Build deps.
-- name: 'gcr.io/learnjs-174218/release'
+- name: 'node:10'
   dir: 'tfjs-backend-webgpu'
   id: 'build-deps'
   entrypoint: 'yarn'
@@ -22,7 +22,7 @@ steps:
   waitFor: ['yarn-common']
 
 # Lint.
-- name: 'gcr.io/learnjs-174218/release'
+- name: 'node:10'
   dir: 'tfjs-backend-webgpu'
   id: 'lint'
   entrypoint: 'yarn'
@@ -30,7 +30,7 @@ steps:
   waitFor: ['yarn', 'build-deps']
 
 # Run tests.
-- name: 'gcr.io/learnjs-174218/release'
+- name: 'node:10'
   dir: 'tfjs-backend-webgpu'
   entrypoint: 'yarn'
   id: 'test-webgpu'

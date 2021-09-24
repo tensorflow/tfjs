@@ -1,13 +1,13 @@
 steps:
 
 # Install common dependencies.
-- name: 'gcr.io/learnjs-174218/release'
+- name: 'node:10'
   id: 'yarn-common'
   entrypoint: 'yarn'
   args: ['install']
 
 # Install packages.
-- name: 'gcr.io/learnjs-174218/release'
+- name: 'node:10'
   dir: 'tfjs'
   entrypoint: 'yarn'
   id: 'yarn'
@@ -15,7 +15,7 @@ steps:
   waitFor: ['yarn-common']
 
 # Build deps.
-- name: 'gcr.io/learnjs-174218/release'
+- name: 'node:10'
   dir: 'tfjs'
   entrypoint: 'yarn'
   id: 'build-deps'
@@ -23,7 +23,7 @@ steps:
   waitFor: ['yarn-common']
 
 # Build.
-- name: 'gcr.io/learnjs-174218/release'
+- name: 'node:10'
   dir: 'tfjs'
   entrypoint: 'yarn'
   id: 'build'
@@ -31,7 +31,7 @@ steps:
   waitFor: ['yarn', 'build-deps']
 
 # Lint.
-- name: 'gcr.io/learnjs-174218/release'
+- name: 'node:10'
   dir: 'tfjs'
   entrypoint: 'yarn'
   id: 'lint'
@@ -39,7 +39,7 @@ steps:
   waitFor: ['yarn', 'build-deps']
 
 # Run tfjs tests.
-- name: 'gcr.io/learnjs-174218/release'
+- name: 'node:10'
   dir: 'tfjs'
   entrypoint: 'yarn'
   id: 'test'
