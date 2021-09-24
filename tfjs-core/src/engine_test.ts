@@ -593,6 +593,8 @@ describeWithFlags(
  * have coverage for when these backends are enabled and ensure they work with
  * the engine.
  */
+// TODO(#5632): Re-enable these tests
+/*
 describeWithFlags(
     'Switching WebGL + CPU backends', {
       predicate: testEnv => testEnv.backendName === 'webgl' &&
@@ -681,7 +683,7 @@ describeWithFlags(
         tf.unregisterKernel('Square', 'webgl2');
       });
     });
-
+*/
 interface TestStorage extends KernelBackend {
   id: number;
 }

@@ -29,7 +29,8 @@ import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase, getReleaseBran
 
 const TMP_DIR = '/tmp/tfjs-publish';
 const BAZEL_PACKAGES =
-    new Set(['tfjs-core', 'tfjs-backend-cpu', 'tfjs-tflite', 'tfjs-converter']);
+    new Set(['tfjs-core', 'tfjs-backend-cpu', 'tfjs-tflite', 'tfjs-converter',
+             'tfjs-backend-webgl']);
 
 const parser = new argparse.ArgumentParser();
 parser.addArgument('--git-protocol', {
