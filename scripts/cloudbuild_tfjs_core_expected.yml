@@ -65,8 +65,8 @@ steps:
       - yarn-link-package
   - name: 'node:10'
     dir: tfjs-converter
-    entrypoint: yarn
     id: lint-tfjs-converter
+    entrypoint: yarn
     args:
       - lint
     waitFor:
@@ -74,10 +74,10 @@ steps:
       - yarn-common
       - yarn-link-package
   - name: 'node:10'
-    id: 'create-pips-tfjs-converter'
-    entrypoint: 'bash'
+    id: create-pips-tfjs-converter
+    entrypoint: bash
     args:
-      - './tfjs-converter/scripts/create_python_pips.sh'
+      - ./tfjs-converter/scripts/create_python_pips.sh
     waitFor:
       - yarn-common
       - yarn-link-package
