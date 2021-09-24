@@ -42,7 +42,9 @@ export class ScatterProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.shaderKey = `scatter_${indicesRank}_${updatesRank}`;
+    const sliceDimGreaterThanOne = sliceDim > 1;
+    this.shaderKey =
+        `scatter_${indicesRank}_${updatesRank}_${sliceDimGreaterThanOne}`;
     this.size = util.sizeFromShape(this.outputShape);
     const stridesType = getCoordsDataType(strides.length);
     this.uniforms =
@@ -64,7 +66,7 @@ export class ScatterProgram implements WebGPUProgram {
     this.updatesSnippet = `getUpdates(${updatesString})`;
 
     this.strideString =
-        sliceDim > 1 ? 'uniforms.strides[j]' : 'uniforms.strides';
+        sliceDimGreaterThanOne ? 'uniforms.strides[j]' : 'uniforms.strides';
   }
 
   getUserCode(): string {
