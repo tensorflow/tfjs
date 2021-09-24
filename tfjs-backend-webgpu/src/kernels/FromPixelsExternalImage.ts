@@ -53,8 +53,7 @@ export function fromPixelsExternalImage(args: {
 
   const pipeline = backend.getAndSavePipeline(key, () => {
     return webgpu_program.compileProgram(
-        backend.glslang, backend.device, program, layout.pipelineLayout, [],
-        output, true);
+        backend.device, program, layout.pipelineLayout, [], output, true);
   });
 
   program.setPipeline(pipeline);

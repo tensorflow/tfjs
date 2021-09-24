@@ -59,16 +59,14 @@ export function conv2DBackpropInput(args: {
     program = new Conv2DDerInputProgram(convInfo);
   } else {
     program = new Conv2DDerInputMMProgram(convInfo);
-    if (program.useWgsl) {
-      const dimAOuter = convInfo.inShape[1] * convInfo.inShape[2];
-      const dimBOuter = convInfo.inShape[3];
-      const dimInner =
-          convInfo.filterHeight * convInfo.filterWidth * convInfo.outChannels;
-      dimensions.push(
-          {type: 'uint32', data: [dimAOuter]},
-          {type: 'uint32', data: [dimBOuter]},
-          {type: 'uint32', data: [dimInner]});
-    }
+    const dimAOuter = convInfo.inShape[1] * convInfo.inShape[2];
+    const dimBOuter = convInfo.inShape[3];
+    const dimInner =
+        convInfo.filterHeight * convInfo.filterWidth * convInfo.outChannels;
+    dimensions.push(
+        {type: 'uint32', data: [dimAOuter]},
+        {type: 'uint32', data: [dimBOuter]},
+        {type: 'uint32', data: [dimInner]});
   }
   return backend.runWebGPUProgram(program, [dy, filter], 'float32', dimensions);
 }

@@ -17,10 +17,10 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class ConcatProgram implements WebGPUProgram {
   outputShape: number[];
@@ -32,7 +32,6 @@ export class ConcatProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   shapes: Array<[number, number]>;
   size: number;
-  useWgsl: boolean;
 
   constructor(shapes: Array<[number, number]>) {
     this.outputShape =
@@ -47,54 +46,9 @@ export class ConcatProgram implements WebGPUProgram {
     // shapes is used by const snippets.
     this.shaderKey = `concat${shapes}`;
     this.size = util.sizeFromShape(this.outputShape);
-    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
-    const offsets: number[] = new Array(this.shapes.length - 1);
-    const snippets: string[] = [];
-    if (offsets.length > 0) {
-      offsets[0] = this.shapes[0][1];
-      for (let i = 1; i < offsets.length; i++) {
-        offsets[i] = offsets[i - 1] + this.shapes[i][1];
-      }
-
-      snippets.push(`if (yC < ${
-          offsets[0]}) setOutput(coords.x, coords.y, getT0(yR, yC));`);
-      for (let i = 1; i < offsets.length; i++) {
-        const shift = offsets[i - 1];
-        snippets.push(
-            `else if (yC < ${offsets[i]}) ` +
-            `setOutput(coords.x, coords.y, getT${i}(yR, yC-${shift}));`);
-      }
-      const lastIndex = offsets.length;
-      const lastShift = offsets[offsets.length - 1];
-      snippets.push(`else setOutput(coords.x, coords.y, getT${
-          lastIndex}(yR, yC-${lastShift}));`);
-    } else {
-      snippets.push(`setOutput(coords.x, coords.y, getT0(yR, yC));`);
-    }
-
-    const userCode = `
-      void main() {
-        int index = getGlobalIndex();
-
-        for(int i = 0; i < ${this.workPerThread}; i++) {
-          int flatIndex = index * ${this.workPerThread} + i;
-          if(flatIndex < size) {
-            ivec2 coords = getCoordsFromFlatIndex(flatIndex);
-            int yR = coords.x;
-            int yC = coords.y;
-
-            ${snippets.join('\n        ')}
-          }
-        }
-      }
-    `;
-    return userCode;
-  }
-
-  getUserCodeWgsl(): string {
     const offsets: number[] = new Array(this.shapes.length - 1);
     const snippets: string[] = [];
     if (offsets.length > 0) {
@@ -120,8 +74,8 @@ export class ConcatProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
           if(flatIndex < uniforms.size) {

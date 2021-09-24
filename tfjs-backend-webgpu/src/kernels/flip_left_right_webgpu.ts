@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,44 +22,34 @@ import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
-export class ClipVec4Program implements WebGPUProgram {
-  outputShape: number[];
+export class FlipLeftRightProgram implements WebGPUProgram {
+  outputShape: number[] = [];
   shaderKey: string;
-  variableNames = ['A'];
-  uniforms = 'minVal : f32; maxVal : f32;';
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workPerThread = 4;
+  variableNames = ['x'];
   workGroupSize: [number, number, number] = [64, 1, 1];
-  isVec4 = true;
   size: number;
 
-  constructor(outputShape: number[]) {
-    this.outputShape = outputShape;
+  constructor(imageShape: [number, number, number, number]) {
+    this.outputShape = imageShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
-    this.shaderKey = 'clipVec4';
-    this.size = util.sizeFromShape(this.outputShape) / 4;
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
+    this.shaderKey = 'flipLeftRight';
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
     const userCode = `
       ${getMainHeaderString()} {
         ${getGlobalIndexString()}
-        if(index < uniforms.size) {
-          let value = getAAtOutCoordsByGlobalId(globalId, index);
-          var clampedValue : vec4<f32>;
-          for (var i = 0; i < 4; i = i + 1) {
-            if (isNanCustom(value[i])) {
-              clampedValue[i] = value[i];
-            } else {
-              clampedValue[i] = clamp(value[i], uniforms.minVal, uniforms.maxVal);
-            }
-          }
 
-          setOutputFlat(index, clampedValue);
+        if (index < uniforms.size) {
+          let coords = getOutputCoords(globalId, index);
+          let coordX = uniforms.xShape[2] - coords[2] - 1;
+          let outputValue = getX(coords[0], coords[1], coordX, coords[3]);
+          setOutputFlat(index, outputValue);
         }
       }
     `;

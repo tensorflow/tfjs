@@ -70,14 +70,13 @@ export function conv2d(
   } else {
     program = new Conv2DMMProgram(convInfo);
   }
-  if (!useNaive && program.useWgsl) {
+  if (!useNaive) {
     const dimAOuter = convInfo.outShape[1] * convInfo.outShape[2];
     const dimBOuter = convInfo.outShape[3];
     const dimInner =
         convInfo.filterHeight * convInfo.filterWidth * convInfo.inShape[3];
     dimensions.push(
-        {type: 'int32', data: [dimAOuter]},
-        {type: 'int32', data: [dimBOuter]},
+        {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
         {type: 'int32', data: [dimInner]});
   }
 
