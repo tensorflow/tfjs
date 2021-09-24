@@ -20,7 +20,6 @@
 import './flags_webgpu';
 
 import {backend_util, buffer, DataStorage, DataType, DataValues, engine, env, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, util} from '@tensorflow/tfjs-core';
-import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
 import {FromPixelsImportProgram} from './kernels/FromPixels_utils/from_pixels_import_webgpu';
@@ -73,7 +72,6 @@ const CPU_HANDOFF_SIZE_THRESHOLD =
 export class WebGPUBackend extends KernelBackend {
   device: GPUDevice;
   queue: GPUQueue;
-  glslang: Glslang;
   currentCommandEncoder: GPUCommandEncoder;
   tensorMap: DataStorage<TensorBufferInfo>;
   supportTimeQuery: boolean;
@@ -103,7 +101,7 @@ export class WebGPUBackend extends KernelBackend {
   private fromPixelProgram?: FromPixelsProgram;
   private fromPixelImportProgram?: FromPixelsImportProgram;
 
-  constructor(device: GPUDevice, glslang: Glslang, supportTimeQuery = false) {
+  constructor(device: GPUDevice, supportTimeQuery = false) {
     super();
     if (!webgpu_util.isWebGPUSupported()) {
       throw new Error('WebGPU is not supported on this device');
@@ -113,7 +111,6 @@ export class WebGPUBackend extends KernelBackend {
     this.device = device;
     this.queue = device.queue;
     this.currentCommandEncoder = null;
-    this.glslang = glslang;
     this.supportTimeQuery = supportTimeQuery;
 
     this.bufferManager = new BufferManager(this.device);
@@ -708,10 +705,7 @@ export class WebGPUBackend extends KernelBackend {
     let uniformsWithType: Array<{type: string; data: number[];}> =
         [{type: 'float32', data: [NaN]}];
     const bufferShapes = inputs.concat(output).map(d => d.shape);
-    let uniformsType = 'int32';
-    if (program.useWgsl) {
-      uniformsType = 'uint32';
-    }
+    const uniformsType = 'int32';
     bufferShapes.map(d => {
       uniformsWithType.push({type: uniformsType, data: d});
     });
@@ -720,7 +714,7 @@ export class WebGPUBackend extends KernelBackend {
     if (program.size != null) {
       uniformsWithType.push({type: uniformsType, data: [program.size]});
     }
-    uniformsWithType.push({type: 'int32', data: program.dispatch});
+    uniformsWithType.push({type: 'uint32', data: program.dispatch});
     if (programUniforms) {
       uniformsWithType = [...uniformsWithType, ...programUniforms];
     }
@@ -763,8 +757,7 @@ export class WebGPUBackend extends KernelBackend {
 
     const pipeline = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(
-          this.glslang, this.device, program, pipelineLayout, inputsData,
-          output);
+          this.device, program, pipelineLayout, inputsData, output);
     });
 
     const shouldTimeProgram = this.activeTimers != null;

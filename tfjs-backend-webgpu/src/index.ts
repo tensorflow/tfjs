@@ -19,7 +19,6 @@ import './flags_webgpu';
 import './register_all_kernels';
 
 import {device_util, env, registerBackend} from '@tensorflow/tfjs-core';
-import glslangInit from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {WebGPUBackend} from './backend_webgpu';
 import * as webgpu from './webgpu';
@@ -31,7 +30,6 @@ if (device_util.isBrowser() && isWebGPUSupported()) {
     // before the tensor is disposed in profiling mode.
     env().set('CHECK_COMPUTATION_FOR_ERRORS', false);
 
-    const glslang = await glslangInit();
     const gpuDescriptor: GPURequestAdapterOptions = {
       powerPreference: env().get('WEBGPU_USE_LOW_POWER_GPU') ?
           'low-power' :
@@ -54,7 +52,7 @@ if (device_util.isBrowser() && isWebGPUSupported()) {
           `it doesn't support synchronously to read data from GPU.`);
     }
     const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
-    return new WebGPUBackend(device, glslang, supportTimeQuery);
+    return new WebGPUBackend(device, supportTimeQuery);
   }, 3 /*priority*/);
 }
 

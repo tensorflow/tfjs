@@ -90,6 +90,7 @@ import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {rsqrtConfig} from './kernels/Rsqrt';
+import {scatterNdConfig} from './kernels/ScatterNd';
 import {selectConfig} from './kernels/Select';
 import {sigmoidConfig} from './kernels/Sigmoid';
 import {sinConfig} from './kernels/Sin';
@@ -97,6 +98,7 @@ import {sinhConfig} from './kernels/Sinh';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
+import {sparseToDenseConfig} from './kernels/SparseToDense';
 import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
@@ -188,6 +190,7 @@ const kernelConfigs: KernelConfig[] = [
   resizeNearestNeighborConfig,
   rotateWithOffsetConfig,
   rsqrtConfig,
+  scatterNdConfig,
   selectConfig,
   sigmoidConfig,
   sinConfig,
@@ -198,6 +201,7 @@ const kernelConfigs: KernelConfig[] = [
   softmaxConfig,
   spaceToBatchNDConfig,
   splitVConfig,
+  sparseToDenseConfig,
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,

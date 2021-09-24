@@ -19,11 +19,10 @@ import {WebGPULayout} from '../../webgpu_util';
 import {FromPixelsProgram} from './from_pixels_webgpu';
 
 export class FromPixelsImportProgram extends FromPixelsProgram {
-  useWgsl = true;
   layout: WebGPULayout = null;
   useImport = true;
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     return this.makeFromPixelsSource();
   }
 
