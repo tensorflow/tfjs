@@ -197,7 +197,8 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'gradient',  // Gradient not defined yet.
       'upcasts',   // Cast not supported yet.
-      'divNoNan'   // divNoNan not yet implemented.
+      'divNoNan',  // divNoNan not yet implemented.
+      'broadcasts 2x1 Tensor2D and 2x2 Tensor2D'
     ]
   },
   {
