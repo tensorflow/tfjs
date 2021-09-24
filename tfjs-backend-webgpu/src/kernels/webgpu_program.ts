@@ -17,7 +17,7 @@
 
 import {DataType, Rank, ShapeMap, TensorInfo} from '@tensorflow/tfjs-core';
 
-import * as shader_preprocessor_wgsl from '../shader_preprocessor_wgsl';
+import * as shader_preprocessor from '../shader_preprocessor';
 
 export interface WebGPUProgram {
   // The unique key to distinguish different shader source code.
@@ -65,11 +65,11 @@ export const makeBindGroup =
 export const compileProgram =
     (device: GPUDevice, program: WebGPUProgram,
      pipelineLayout: GPUPipelineLayout,
-     inputsData: shader_preprocessor_wgsl.InputInfo[], output: TensorInfo,
+     inputsData: shader_preprocessor.InputInfo[], output: TensorInfo,
      isFromPixel = false): GPUComputePipeline => {
       const outputData = {dtype: output.dtype, shape: output.shape};
 
-      const source = shader_preprocessor_wgsl.makeShader(
+      const source = shader_preprocessor.makeShader(
           inputsData, outputData, program, isFromPixel);
       const module = device.createShaderModule({code: source});
       const pipeline = device.createComputePipeline(
