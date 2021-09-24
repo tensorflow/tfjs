@@ -297,17 +297,17 @@ describe('metrics.get', () => {
 describe('getLossOrMetricName', () => {
   it('string short cut name', async () => {
     const fnName = getLossOrMetricName('meanSquaredError');
-    expect(fnName).toEqual('meanSquaredError');
+    expect(fnName).toMatch(/meanSquaredError/);
   });
 
   it('function included in losses map', async () => {
     const fnName = getLossOrMetricName(tfl.metrics.meanSquaredError);
-    expect(fnName).toEqual('meanSquaredError');
+    expect(fnName).toMatch(/meanSquaredError/);
   });
 
   it('function included in metrics map', async () => {
     const fnName = getLossOrMetricName(tfl.metrics.categoricalAccuracy);
-    expect(fnName).toEqual('categoricalAccuracy');
+    expect(fnName).toMatch(/categoricalAccuracy/);
   });
 
   it('function not included in losses map or metrics map', async () => {
