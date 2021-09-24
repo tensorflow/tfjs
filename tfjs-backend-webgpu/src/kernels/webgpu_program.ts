@@ -102,10 +102,16 @@ export function makeShaderKey<R extends Rank>(
   if (program.useWgsl) {
     useWgslKey = '_1';
   }
+  let flatDispatchReshaped = '';
+  if (program.dispatchLayout.x.length === program.outputShape.length &&
+      program.dispatch[1] !== 1) {
+    flatDispatchReshaped = 'flatDispatchReshaped';
+  }
   const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
       shapes.map(shape => shape.length).join(',') + types.join(',') +
       program.variableNames.join(',') + broadcastDimsKey +
-      inputShapesEqualsOutShape + program.shaderKey + useWgslKey;
+      inputShapesEqualsOutShape + program.shaderKey + useWgslKey +
+      flatDispatchReshaped;
   return key;
 }
 
