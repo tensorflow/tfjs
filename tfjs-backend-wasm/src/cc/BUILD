@@ -598,6 +598,7 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":unary",
+        ":util",
     ],
 )
 

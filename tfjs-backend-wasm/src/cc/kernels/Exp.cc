@@ -20,6 +20,7 @@
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/unary.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
@@ -30,7 +31,18 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 void Exp(const int x_id, const DType dtype, const int out_id) {
-  unary(x_id, out_id, std::exp);
+  switch (dtype) {
+    case DType::float32:
+      unary(x_id, out_id, std::exp);
+      break;
+    case DType::int32:
+      unary_i32(x_id, out_id, [](int a) {
+        return static_cast<int32_t>(std::exp(static_cast<float>(a)));
+      });
+      break;
+    default:
+      util::warn("Exp failed. Unknown dtype %d", dtype);
+  }
 }
 
 }  // extern "C"

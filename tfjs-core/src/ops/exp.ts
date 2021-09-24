@@ -37,7 +37,7 @@ import {op} from './operation';
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
 function exp_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'exp', 'float32');
+  const $x = convertToTensor(x, 'x', 'exp');
 
   const inputs: ExpInputs = {x: $x};
   return ENGINE.runKernel(Exp, inputs as {} as NamedTensorMap);

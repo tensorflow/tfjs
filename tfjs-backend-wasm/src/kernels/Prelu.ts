@@ -38,7 +38,7 @@ function prelu(args: {inputs: PreluInputs, backend: BackendWasm}) {
   const weightsId = backend.dataIdMap.get(alpha.dataId).id;
 
   let inputId = xId;
-  let input = x;
+  const input = x;
   let castedInput = input;
   if (input.dtype !== 'float32') {
     castedInput = cast({backend, inputs: {x}, attrs: {dtype: 'float32'}});

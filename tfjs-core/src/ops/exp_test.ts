@@ -27,6 +27,13 @@ describeWithFlags('exp', ALL_ENVS, () => {
     expectArraysClose(await r.data(), [Math.exp(1), Math.exp(2), 1]);
   });
 
+  it('int32', async () => {
+    const a = tf.tensor1d([10], 'int32');
+    const r = tf.exp(a);
+
+    expectArraysClose(await r.data(), [Math.floor(Math.exp(10))], 1);
+  });
+
   it('exp propagates NaNs', async () => {
     const a = tf.tensor1d([1, NaN, 0]);
     const r = tf.exp(a);
@@ -95,11 +102,6 @@ describeWithFlags('exp', ALL_ENVS, () => {
 
   it('throws for string tensor', () => {
     expect(() => tf.exp('q'))
-        .toThrowError(/Argument 'x' passed to 'exp' must be float32/);
-  });
-
-  it('throws for int32 tensor', () => {
-    expect(() => tf.exp(tf.tensor1d([1], 'int32')))
-        .toThrowError(/Argument 'x' passed to 'exp' must be float32/);
+        .toThrowError(/Argument 'x' passed to 'exp' must be numeric/);
   });
 });

@@ -17,8 +17,6 @@
 
 #include <cstddef>
 
-#include "tfjs-backend-wasm/src/cc/backend.h"
-
 namespace tfjs {
 namespace wasm {
 extern "C" {
