@@ -134,7 +134,9 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
       preluActivationWeights: TensorInfo = null) {
     util.assert(
         aShape[1] <= 16 || bShape[2] <= 16,
-        () => 'This program can be only used when A width is small.');
+        () =>
+            'This program can be only used when A width or B Height are small');
+
     this.outputShape = outputShape;
 
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
