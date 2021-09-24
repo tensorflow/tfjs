@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -46,13 +46,13 @@ export class ResizeBilinearProgram implements WebGPUProgram {
         this.outputShape[1] > 1}_${this.outputShape[2] > 1}`;
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const adjustHeight = this.alignCorners && this.outputShape[1] > 1;
     const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
 
     const userCode = `
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         let coords = getOutputCoords(globalId, index);
         if (all(coords < uniforms.outShape)) {
           let b = coords[0];

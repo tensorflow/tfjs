@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -26,7 +26,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['Image', 'Boxes', 'BoxInd'];
-  uniformsWgsl = 'extrapolationValue : f32;';
+  uniforms = 'extrapolationValue : f32;';
   workGroupSize: [number, number, number] = [64, 1, 1];
   methodId: number;
   cropHeightBiggerThan1: boolean;
@@ -48,7 +48,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
         this.cropHeightBiggerThan1}_${this.cropWidthBiggerThan1}`;
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const [inputHeightFloat, inputWidthFloat] =
         [`f32(uniforms.imageShape[1] - 1)`, `f32(uniforms.imageShape[2] - 1)`];
 
@@ -84,8 +84,8 @@ export class CropAndResizeProgram implements WebGPUProgram {
           setOutput(coords[0], coords[1], coords[2], coords[3], value);
         }
       }
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         let height_ratio = f32(${heightRatio});
         let width_ratio = f32(${widthRatio});
         let coords = getOutputCoords(globalId, index);

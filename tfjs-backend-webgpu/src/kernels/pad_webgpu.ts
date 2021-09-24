@@ -17,7 +17,7 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -28,7 +28,7 @@ export class PadProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  uniformsWgsl = 'constantValue : f32;';
+  uniforms = 'constantValue : f32;';
   workGroupSize: [number, number, number] = [64, 1, 1];
   xShape: number[];
   size: number;
@@ -40,16 +40,16 @@ export class PadProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     paddings.map((_, i) => {
-      this.uniformsWgsl += ` pad${i} : vec2<i32>;`;
+      this.uniforms += ` pad${i} : vec2<i32>;`;
     });
     this.xShape = xShape;
     this.shaderKey = 'pad';
     this.size = util.sizeFromShape(this.outputShape);
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const rank = this.xShape.length;
-    const type = getCoordsDataTypeWgsl(rank);
+    const type = getCoordsDataType(rank);
     // The length of paddings are same with the rank of the input tensor.
     const start = this.xShape.map((_, i) => `uniforms.pad${i}[0]`).join(',');
     const end = this.xShape
@@ -68,8 +68,8 @@ export class PadProgram implements WebGPUProgram {
         'coords';
 
     const userCode = `
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         let start = ${startValue};
         let end = ${endValue};
         if (index < uniforms.size) {

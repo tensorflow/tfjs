@@ -29,7 +29,7 @@ export interface WebGPUProgram {
   // dispatch specifies geometry of thread groups - derived from dispatchLayout.
   dispatch: [number, number, number];
   variableNames: string[];
-  uniformsWgsl?: string;
+  uniforms?: string;
   // Size of register cache in one dimension (assumes square cache).
   // Each thread writes to workPerThread * workPerThread locations in the output
   // buffer.
@@ -41,7 +41,7 @@ export interface WebGPUProgram {
   isVec4?: boolean;
   // size is used for bounds checking.
   size?: number;
-  getUserCodeWgsl: () => string;
+  getUserCode: () => string;
 }
 
 export interface TensorData {

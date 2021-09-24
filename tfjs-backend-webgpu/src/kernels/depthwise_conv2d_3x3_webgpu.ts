@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
@@ -29,8 +29,7 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = 'ivec2 pad, stride, dilation, inDims;';
-  uniformsWgsl =
+  uniforms =
       'pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>; inDims : vec2<i32>;';
   workGroupSize: [number, number, number] = [4, 4, 4];
   convInfo: backend_util.Conv2DInfo;
@@ -66,7 +65,7 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
     this.shaderKey = `depthwise3x3_${activation}`;
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
       const activationOp =
@@ -96,8 +95,8 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
     const userCode = `
       ${activationSnippet}
 
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         let batch = 0;
         let r = i32(globalId.x);
         let c = i32(globalId.y) * 4;

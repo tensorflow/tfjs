@@ -16,7 +16,7 @@
  */
 
 import {backend_util, DataType} from '@tensorflow/tfjs-core';
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -28,7 +28,7 @@ export class ReduceProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number];
   variableNames = ['x'];
-  uniformsWgsl = 'reduceSize : i32;';
+  uniforms = 'reduceSize : i32;';
   reduceType: 'max'|'mean'|'min'|'prod'|'sum';
   inputShape: number[];
   reductionFactor: number;
@@ -56,7 +56,7 @@ export class ReduceProgram implements WebGPUProgram {
     this.shaderKey = `reduce_${reduceType}_${outputDtype}`;
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const reduceInSharedMemory = this.workGroupSize[0] > 1;
 
     let reduceOp = ``;
@@ -129,8 +129,8 @@ export class ReduceProgram implements WebGPUProgram {
             'outputCoords[0]'} * uniforms.reduceSize;
          return offset;
        }
-       ${getMainHeaderStringWgsl()} {
-         ${getGlobalIndexStringWgsl()}
+       ${getMainHeaderString()} {
+         ${getGlobalIndexString()}
          let offset= getOffset(globalId, index);
          var bestValue = ${initValue};
          let Length = uniforms.reduceSize;

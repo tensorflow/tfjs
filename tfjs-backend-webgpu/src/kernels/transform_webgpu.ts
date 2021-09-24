@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -23,8 +23,7 @@ import {WebGPUProgram} from './webgpu_program';
 export class TransformProgram implements WebGPUProgram {
   variableNames = ['Image', 'Transforms'];
   outputShape: number[];
-  uniformsWgsl =
-      'interpolationModeId : i32; fillModeId : i32; fillValue : f32;';
+  uniforms = 'interpolationModeId : i32; fillModeId : i32; fillValue : f32;';
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
@@ -38,7 +37,7 @@ export class TransformProgram implements WebGPUProgram {
     this.shaderKey = 'transform';
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const userCode = `
           fn mapCoord(outCoord : f32, len : f32) -> f32{
             var inCoord = outCoord;
@@ -103,8 +102,8 @@ export class TransformProgram implements WebGPUProgram {
             return outputValue;
           }
 
-          ${getMainHeaderStringWgsl()} {
-            ${getGlobalIndexStringWgsl()}
+          ${getMainHeaderString()} {
+            ${getGlobalIndexString()}
             let coords = getOutputCoords(globalId, index);
             if (coordsInBounds4D(coords, uniforms.outShape)) {
               var outputValue : f32;

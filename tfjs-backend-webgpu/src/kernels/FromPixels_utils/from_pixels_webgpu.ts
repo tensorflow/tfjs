@@ -16,7 +16,7 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../../shader_preprocessor_wgsl';
 
 import {computeDispatch, flatDispatchLayout, WebGPULayout} from '../../webgpu_util';
 import {WebGPUProgram} from '../webgpu_program';
@@ -68,8 +68,8 @@ export class FromPixelsProgram implements WebGPUProgram {
     return `
       [[binding(1), group(0)]] var src: ${textureType};
 
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         let flatIndexBase = index * uniforms.numChannels;
         let coords = getCoordsFromFlatIndex(flatIndexBase);
         let values = ${textureLoad};
@@ -83,7 +83,7 @@ export class FromPixelsProgram implements WebGPUProgram {
   `;
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     return this.makeFromPixelsSource();
   }
 

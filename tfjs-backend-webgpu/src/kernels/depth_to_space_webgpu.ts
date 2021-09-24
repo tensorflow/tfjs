@@ -17,7 +17,7 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -31,7 +31,7 @@ export class DepthToSpaceProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
   size: number;
-  uniformsWgsl = 'blockSize : i32;';
+  uniforms = 'blockSize : i32;';
 
   constructor(outputShape: number[], dataFormat: 'NHWC'|'NCHW') {
     this.outputShape = outputShape;
@@ -43,10 +43,10 @@ export class DepthToSpaceProgram implements WebGPUProgram {
     this.dataFormat = dataFormat;
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const userCode = `
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         if (index < uniforms.size) {
           let coords = getOutputCoords(globalId, index);
           let b = coords[0];

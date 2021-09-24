@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -28,7 +28,7 @@ export class Pool2DProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  uniformsWgsl =
+  uniforms =
       `stride : vec2<i32>; pad : vec2<i32>; dilation : vec2<i32>; convDims : vec2<i32>; filterDims : vec2<i32>;`;
   // TODO(jiajia.qin@intel.com): Dynamically choose different workGroupSize for
   // different output shapes.
@@ -47,7 +47,7 @@ export class Pool2DProgram implements WebGPUProgram {
     this.poolType = poolType;
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     let updateSnippet = `resultValue = max(value, resultValue);`;
     if (this.poolType === 'avg') {
       updateSnippet = `resultValue = resultValue + value; count = count + 1.0;`;
@@ -59,8 +59,8 @@ export class Pool2DProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         let coords = getOutputCoords(globalId, index);
         if (coordsInBounds4D(coords, uniforms.outShape)) {
           let batch = coords[0];

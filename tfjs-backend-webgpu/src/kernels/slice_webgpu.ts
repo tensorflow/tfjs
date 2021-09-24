@@ -16,14 +16,14 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
 export class SliceProgram implements WebGPUProgram {
   variableNames = ['source'];
-  uniformsWgsl: string;
+  uniforms: string;
   outputShape: number[];
   shaderKey: string;
   rank: number;
@@ -43,13 +43,13 @@ export class SliceProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
 
     this.start = start;
-    this.uniformsWgsl = `start : ${getCoordsDataTypeWgsl(start.length)}; `;
+    this.uniforms = `start : ${getCoordsDataType(start.length)}; `;
     this.shaderKey = 'slice';
     this.size = util.sizeFromShape(this.outputShape);
   }
 
-  getUserCodeWgsl(): string {
-    const dtype = getCoordsDataTypeWgsl(this.rank);
+  getUserCode(): string {
+    const dtype = getCoordsDataType(this.rank);
     const sourceCoords = getCoords(this.rank);
     let coordSum;
     if (this.start.length === 1) {
@@ -64,8 +64,8 @@ export class SliceProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         if (index < uniforms.size) {
           var sourceLoc : ${dtype};
           let coords = getOutputCoords(globalId, index);

@@ -17,7 +17,7 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -25,7 +25,7 @@ import {WebGPUProgram} from './webgpu_program';
 export class MirrorPadProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  uniformsWgsl = '';
+  uniforms = '';
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
@@ -45,14 +45,14 @@ export class MirrorPadProgram implements WebGPUProgram {
 
     this.xShape = xShape;
     paddings.map((_, i) => {
-      this.uniformsWgsl += ` pad${i} : vec2<i32>;`;
+      this.uniforms += ` pad${i} : vec2<i32>;`;
     });
     this.offset = mode === 'reflect' ? 0 : 1;
     this.shaderKey = `mirrorPad_${mode}`;
     this.size = util.sizeFromShape(this.outputShape);
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const rank = this.xShape.length;
     // The length of paddings are same with the rank of the input tensor.
     const start = this.xShape.map((_, i) => `uniforms.pad${i}[0]`).join(',');
@@ -65,14 +65,14 @@ export class MirrorPadProgram implements WebGPUProgram {
     const shaderStart = rank === 1 ? 'start' : 'start[i]';
     const shaderEnd = rank === 1 ? 'end' : 'end[i]';
     const shaderOutC = rank === 1 ? 'outC' : 'outC[i]';
-    const dtype = getCoordsDataTypeWgsl(rank);
+    const dtype = getCoordsDataType(rank);
     const unpackedCoords = rank > 1 ?
         ['coords[0]', 'coords[1]', 'coords[2]', 'coords[3]'].slice(0, rank) :
         'coords';
 
     return `
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         let start = ${dtype}(${start});
         let end = ${dtype}(${end});
         var outC = getOutputCoords(globalId, index);

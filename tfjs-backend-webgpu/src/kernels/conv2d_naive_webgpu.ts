@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
@@ -29,7 +29,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniformsWgsl =
+  uniforms =
       `filterDims : vec2<i32>; pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>;`;
   workGroupSize: [number, number, number] = [128, 1, 1];
   convInfo: backend_util.Conv2DInfo;
@@ -65,7 +65,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
     this.shaderKey = `conv2DNaive_${this.activation}`;
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
       const activationOp = mapActivationToShaderProgram(this.activation);
@@ -117,8 +117,8 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
         }
       }
 
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         let coords = getOutputCoords(globalId, index);
         let batch = coords[0];
         let outChannel = coords[3];

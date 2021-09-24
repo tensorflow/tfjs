@@ -17,13 +17,13 @@
 
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
-import {getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
 import {WebGPUProgram} from './webgpu_program';
 
-export function makeMatMulPackedVec4SourceWgsl(
+export function makeMatMulPackedVec4Source(
     workPerThread: number[], workGroupSize: [number, number, number]): string {
   const tileInfo = {
     RowPerThread: workPerThread[1],
@@ -44,7 +44,7 @@ export function makeMatMulPackedVec4SourceWgsl(
   let TileBOuter = ${tileInfo.TileBOuter};
   let TileInner = ${tileInfo.TileInner};
 
-  ${getMainHeaderStringWgsl()} {
+  ${getMainHeaderString()} {
 
     let tileRow = i32(localId.y) * RowPerThread;
     let tileCol = i32(localId.x);
@@ -106,12 +106,12 @@ export function makeMatMulPackedVec4SourceWgsl(
 }`;
 }
 
-export function makeMatMulVectorVec4SourceWgsl(
+export function makeMatMulVectorVec4Source(
     workGroupSize: [number, number, number]): string {
   return `
   var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
   let tileSize = ${workGroupSize[0] * 4};
-  ${getMainHeaderStringWgsl()} {
+  ${getMainHeaderString()} {
     let tileCol = i32(localId.x);
     let globalCol = i32(globalId.x);
     let globalRow = i32(globalId.y);
@@ -161,7 +161,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   dispatch: [number, number, number];
   workPerThread: number;
   variableNames = ['A', 'B'];
-  uniformsWgsl = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
+  uniforms = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
   workGroupSize: [number, number, number] = [16, 16, 1];
   isVec4 = true;
   aShape: [number, number, number];
@@ -226,7 +226,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     ];
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const sampleA = this.fitA ?
         `return A.numbers[batch * batchASize + row * uniforms.dimInner / 4 + col]` :
         `if (coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
@@ -293,9 +293,9 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
       }
       ${
         this.outputShape[1] > 1 ?
-            makeMatMulPackedVec4SourceWgsl(
+            makeMatMulPackedVec4Source(
                 [this.vecSize, this.workPerThread, 1], this.workGroupSize) :
-            makeMatMulVectorVec4SourceWgsl(this.workGroupSize)}
+            makeMatMulVectorVec4Source(this.workGroupSize)}
 
     `;
 

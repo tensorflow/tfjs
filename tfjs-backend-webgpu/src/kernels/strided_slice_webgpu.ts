@@ -17,14 +17,14 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
 export class StridedSliceProgram implements WebGPUProgram {
   variableNames = ['x'];
-  uniformsWgsl: string;
+  uniforms: string;
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[]};
@@ -41,13 +41,13 @@ export class StridedSliceProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
 
-    const dtype = getCoordsDataTypeWgsl(this.outputShape.length);
-    this.uniformsWgsl = `begin : ${dtype};  strides : ${dtype}; `;
+    const dtype = getCoordsDataType(this.outputShape.length);
+    this.uniforms = `begin : ${dtype};  strides : ${dtype}; `;
     this.shaderKey = 'stridedSlice';
     this.size = util.sizeFromShape(this.outputShape);
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const rank = this.outputShape.length;
     let newCoords = '';
     if (rank === 1) {
@@ -67,8 +67,8 @@ export class StridedSliceProgram implements WebGPUProgram {
     }
 
     const userCode = `
-       ${getMainHeaderStringWgsl()} {
-         ${getGlobalIndexStringWgsl()}
+       ${getMainHeaderString()} {
+         ${getGlobalIndexString()}
          if (index < uniforms.size) {
            let coords = getOutputCoords(globalId, index);
            setOutputFlat(index, getX(${newCoords}));

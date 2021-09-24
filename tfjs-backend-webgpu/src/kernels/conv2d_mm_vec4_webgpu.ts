@@ -20,7 +20,7 @@ import {backend_util, util} from '@tensorflow/tfjs-core';
 import {computeDispatch, tilesFitEvenlyIntoShape} from '../webgpu_util';
 import {mapActivationToShaderProgram} from './activation_util';
 
-import {makeMatMulPackedVec4SourceWgsl} from './matmul_packed_vec4_webgpu';
+import {makeMatMulPackedVec4Source} from './matmul_packed_vec4_webgpu';
 import {WebGPUProgram} from './webgpu_program';
 
 export class Conv2DMMVec4Program implements WebGPUProgram {
@@ -29,7 +29,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniformsWgsl =
+  uniforms =
       `filterDims : vec2<i32>; pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>;
       dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
   workGroupSize: [number, number, number];
@@ -97,7 +97,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   }
 
   // index is used to avoid repeated definition error.
-  getSampleAWithRemainderWgsl(index: number): string {
+  getSampleAWithRemainder(index: number): string {
     return `let flatIndex${index} = getFlatIndex4D(coord, uniforms.xShape);
     let divBy4Remainder${index} = flatIndex${index} % 4;
     let divBy4Index${index} = flatIndex${index} / 4;
@@ -120,10 +120,10 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     `;
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const elementsPerThread: [number, number, number] = [4, 4, 1];
     const matMulSource =
-        makeMatMulPackedVec4SourceWgsl(elementsPerThread, this.workGroupSize);
+        makeMatMulPackedVec4Source(elementsPerThread, this.workGroupSize);
 
     const remainder = this.convInfo.inChannels % 4;
     // Below code only applys to valid padding type.
@@ -135,12 +135,12 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
           } else {
             resData = vec4<f32>(0.0); }` :
         `var temp = vec4<f32>(0.0);
-          ${this.getSampleAWithRemainderWgsl(1)}
+          ${this.getSampleAWithRemainder(1)}
           resData = temp;
           if (WCol == (uniforms.filterDims[1] - 1)) {
             coord = vec4<i32>(
               coord.x, coord.y + 1, coord.z + 1 - uniforms.filterDims[1], 0);
-              ${this.getSampleAWithRemainderWgsl(2)}
+              ${this.getSampleAWithRemainder(2)}
             if (inChCoord == 0) {
               resData = vec4<f32>(resData.xyz, temp.x);
             } elseif (inChCoord == 1) {

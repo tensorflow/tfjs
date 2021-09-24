@@ -16,11 +16,11 @@
  */
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
-import {getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {mapActivationToShaderProgram} from './activation_util';
 import {WebGPUProgram} from './webgpu_program';
 
-export function makeMatMulSmallOutputSizeSourceWgsl(
+export function makeMatMulSmallOutputSizeSource(
     workGroupSize: [number, number, number]): string {
   const tileAOuter = workGroupSize[1] / 2;
   const tileBOuter = workGroupSize[0];
@@ -37,7 +37,7 @@ export function makeMatMulSmallOutputSizeSourceWgsl(
   // arithmetic operations and others handle IO operations between barrier api,
   // makes ALUs and load/store units work simultaneously, could improves
   // the performance.
-  ${getMainHeaderStringWgsl()} {
+  ${getMainHeaderString()} {
     let tileRow = i32(localId.y);
     let tileCol = i32(localId.x);
     let globalRow = i32(globalId.y);
@@ -121,7 +121,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
-  uniformsWgsl = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
+  uniforms = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
   workGroupSize: [number, number, number] = [8, 16, 1];
   addBias: boolean;
   activation: backend_util.Activation;
@@ -159,7 +159,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
     this.shaderKey = `matMulSmallOutputSize_${this.activation}`;
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const sampleA =
         `if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
           return A.numbers[batch * batchASize + row * uniforms.dimInner + col];
@@ -218,7 +218,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
           setOutput(batch, row, col, value);
         }
       }
-      ${makeMatMulSmallOutputSizeSourceWgsl(this.workGroupSize)}
+      ${makeMatMulSmallOutputSizeSource(this.workGroupSize)}
     `;
     return userCode;
   }

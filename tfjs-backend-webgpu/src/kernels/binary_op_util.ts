@@ -155,16 +155,15 @@ const PRELU_VEC4 = `
   `;
 
 function getMinMaxString(op: string, useVec4: boolean) {
-  const checkNanSnippetWgsl =
-      useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET;
+  const checkNanSnippet = useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET;
   return useVec4 ? `
     var resultTemp = vec4<f32>(${op}(a, b));
     let isNaN = min(vec4<f32>(isNanCustomVec4F32(a)) + vec4<f32>(isNanCustomVec4F32(b)), vec4<f32>(1.0));
-    ` + checkNanSnippetWgsl +
+    ` + checkNanSnippet +
           `
     return resultTemp;
   ` :
-                   checkNanSnippetWgsl + `
+                   checkNanSnippet + `
     return ${op}(a, b);
   `;
 }

@@ -19,7 +19,7 @@ import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d} from '../webgpu_util';
 
-import {makeMatMulPackedSourceWgsl} from './matmul_packed_webgpu';
+import {makeMatMulPackedSource} from './matmul_packed_webgpu';
 import {WebGPUProgram} from './webgpu_program';
 
 export class Conv2DDerInputMMProgram implements WebGPUProgram {
@@ -28,7 +28,7 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniformsWgsl =
+  uniforms =
       'filterDims : vec2<i32>; pads : vec2<i32>; stride : vec2<i32>; outBackprop : vec4<i32>; dimAOuter : i32; dimBOuter : i32; dimInner : i32;';
   workGroupSize: [number, number, number];
   elementsPerThread: [number, number, number];
@@ -52,9 +52,9 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
     this.shaderKey = `conv2DDerInputMM_${this.elementsPerThread}`;
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const matMulSource =
-        makeMatMulPackedSourceWgsl(this.elementsPerThread, this.workGroupSize);
+        makeMatMulPackedSource(this.elementsPerThread, this.workGroupSize);
 
     const readASnippet = `
     let outRow = row / uniforms.outShape[2];

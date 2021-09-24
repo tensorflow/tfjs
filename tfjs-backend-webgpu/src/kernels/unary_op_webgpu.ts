@@ -16,7 +16,7 @@
  */
 import {util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {getUnaryOpString, UnaryOpType} from './unary_op_util';
@@ -45,13 +45,13 @@ export class UnaryOpProgram implements WebGPUProgram {
     this.shaderKey = `unary_${op}`;
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     return `
       fn unaryOperation(a : f32) -> f32 {
         ${getUnaryOpString(this.op, false)}
       }
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         if (index < uniforms.size) {
           let a = getAAtOutCoordsByGlobalId(globalId, index);
           setOutputFlat(index, unaryOperation(a));

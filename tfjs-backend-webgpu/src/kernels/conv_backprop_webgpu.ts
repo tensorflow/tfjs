@@ -17,14 +17,14 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
 export class Conv2DDerInputProgram implements WebGPUProgram {
   variableNames = ['dy', 'W'];
-  uniformsWgsl =
+  uniforms =
       'filterDims : vec2<i32>; pads : vec2<i32>; stride : vec2<i32>; outBackprop : vec4<i32>;';
   outputShape: number[];
   shaderKey: string;
@@ -42,13 +42,13 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
     this.shaderKey = `conv2DDerInput_${this.isChannelsLast}`;
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const rowDim = this.isChannelsLast ? 1 : 2;
     const colDim = this.isChannelsLast ? 2 : 3;
     const channelDim = this.isChannelsLast ? 3 : 1;
     return `
-    ${getMainHeaderStringWgsl()} {
-      ${getGlobalIndexStringWgsl()}
+    ${getMainHeaderString()} {
+      ${getGlobalIndexString()}
       let coords = getOutputCoords(globalId, index);
       if (coordsInBounds4D(coords, uniforms.outShape)) {
         let batch = coords[0];

@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -29,7 +29,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number];
   variableNames = ['x'];
-  uniformsWgsl = 'axis : i32;';
+  uniforms = 'axis : i32;';
   inputShape: number[];
   reductionFactor: number;
   op: string;
@@ -69,7 +69,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
     this.shaderKey = `argMinMax${this.op}`;
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     // When this.workGroupSize[0] > 1, each thread reduces Length /
     // this.workGroupSize[0] values. Thes results are stored in shared memory
     // and iteratively reduced.
@@ -108,7 +108,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       }
     `;
 
-    const outputCoordsType = getCoordsDataTypeWgsl(this.outputShape.length);
+    const outputCoordsType = getCoordsDataType(this.outputShape.length);
 
     const indexOutputCoords = (outputCoords: string, index: string) => {
       if (this.outputShape.length === 1) {
@@ -167,8 +167,8 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         return coordInfo[0] + coordInfo[1] * index;
       }
 
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         let coordInfo = getInputCoordInfo(globalId, index);
 
         var bestIndex = 0;

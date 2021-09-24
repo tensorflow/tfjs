@@ -17,7 +17,7 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -28,10 +28,10 @@ export class RotateProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  uniformsWgsl: string;
+  uniforms: string;
   workGroupSize: [number, number, number] = [64, 1, 1];
   size: number;
-  fillSnippetWgsl: string;
+  fillSnippet: string;
 
   constructor(
       imageShape: [number, number, number, number],
@@ -40,27 +40,27 @@ export class RotateProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.uniformsWgsl = `centerX : f32; centerY : f32; sinRadians : f32;
+    this.uniforms = `centerX : f32; centerY : f32; sinRadians : f32;
           cosRadians : f32;`;
     this.shaderKey = 'rotate';
     this.size = util.sizeFromShape(this.outputShape);
     this.outputShape = imageShape;
 
     if (typeof fillValue === 'number') {
-      this.uniformsWgsl += ` fillValue : f32;`;
-      this.fillSnippetWgsl = `var outputValue = uniforms.fillValue;`;
+      this.uniforms += ` fillValue : f32;`;
+      this.fillSnippet = `var outputValue = uniforms.fillValue;`;
       this.shaderKey += '_float';
     } else {
-      this.uniformsWgsl += ` fillValue : vec3<f32>;`;
-      this.fillSnippetWgsl = `var outputValue = uniforms.fillValue[coords[3]];`;
+      this.uniforms += ` fillValue : vec3<f32>;`;
+      this.fillSnippet = `var outputValue = uniforms.fillValue[coords[3]];`;
       this.shaderKey += '_vec3';
     }
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const userCode = `
-        ${getMainHeaderStringWgsl()} {
-          ${getGlobalIndexStringWgsl()}
+        ${getMainHeaderString()} {
+          ${getGlobalIndexString()}
 
           if (index < uniforms.size) {
             let coords = getOutputCoords(globalId, index);
@@ -72,7 +72,7 @@ export class RotateProgram implements WebGPUProgram {
                 uniforms.cosRadians;
             let coordX = i32(round(coordXFloat + uniforms.centerX));
             let coordY = i32(round(coordYFloat + uniforms.centerY));
-            ${this.fillSnippetWgsl}
+            ${this.fillSnippet}
             if(coordX >= 0 && coordX < uniforms.xShape[2] && coordY >= 0 &&
                 coordY < uniforms.xShape[1]) {
               outputValue = getX(coords[0], coordY, coordX, coords[3]);

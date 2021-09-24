@@ -17,7 +17,7 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -26,7 +26,7 @@ export class ClipVec4Program implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   variableNames = ['A'];
-  uniformsWgsl = 'minVal : f32; maxVal : f32;';
+  uniforms = 'minVal : f32; maxVal : f32;';
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workPerThread = 4;
@@ -44,10 +44,10 @@ export class ClipVec4Program implements WebGPUProgram {
     this.size = util.sizeFromShape(this.outputShape) / 4;
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const userCode = `
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         if(index < uniforms.size) {
           let value = getAAtOutCoordsByGlobalId(globalId, index);
           var clampedValue : vec4<f32>;

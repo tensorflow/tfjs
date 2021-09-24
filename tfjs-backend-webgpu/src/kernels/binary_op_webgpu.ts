@@ -16,7 +16,7 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
@@ -53,7 +53,7 @@ export class BinaryOpProgram implements WebGPUProgram {
     this.op = op;
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     let userCode: string;
     const opStr = getBinaryOpString(this.op, false);
     const miscStr = `          fn binaryOperation(a : f32, b : f32) -> f32 {
@@ -62,8 +62,8 @@ export class BinaryOpProgram implements WebGPUProgram {
     if (this.shapesFit) {
       userCode = `
           ${miscStr}
-          ${getMainHeaderStringWgsl()} {
-            ${getGlobalIndexStringWgsl()}
+          ${getMainHeaderString()} {
+            ${getGlobalIndexString()}
 
             let a = f32(A[index]);
             let b = f32(B[index]);
@@ -73,8 +73,8 @@ export class BinaryOpProgram implements WebGPUProgram {
     } else if (this.sizeFit) {
       userCode = `
       ${miscStr}
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
 
         let coords = getCoordsFromFlatIndex(index);
 
@@ -86,8 +86,8 @@ export class BinaryOpProgram implements WebGPUProgram {
     } else {
       userCode = `
       ${miscStr}
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         for (var i = 0; i < ${this.workPerThread}; i = i + 1 ) {
           let flatIndex = index * ${this.workPerThread} + i;
 

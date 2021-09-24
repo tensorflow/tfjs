@@ -16,7 +16,7 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
@@ -43,7 +43,7 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
     this.size = util.sizeFromShape(this.outputShape);
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const opStr = getBinaryOpString(this.op, false);
     const userCode = `
       fn binaryOpComplex(
@@ -51,8 +51,8 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
         ${opStr}
       }
 
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         if(index < uniforms.size) {
           let areal = getARealAtOutCoordsByGlobalId(globalId, index);
           let aimag = getAImagAtOutCoordsByGlobalId(globalId, index);

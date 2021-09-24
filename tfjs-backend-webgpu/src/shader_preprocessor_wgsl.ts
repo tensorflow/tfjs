@@ -18,7 +18,7 @@
 import {backend_util, DataType, util} from '@tensorflow/tfjs-core';
 import {symbolicallyComputeStrides} from './shader_util';
 
-export function getCoordsDataTypeWgsl(rank: number): string {
+export function getCoordsDataType(rank: number): string {
   if (rank <= 1) {
     return 'i32';
   } else if (rank === 2) {
@@ -33,8 +33,7 @@ export function getCoordsDataTypeWgsl(rank: number): string {
 }
 
 type DataTypeWGSL = 'f32'|'i32'|'vec4<f32>'|'vec4<i32>'|'vec4<bool>';
-function mapToTypesWgsl(type: DataType, isVec4: boolean): DataTypeWGSL|
-    DataType {
+function mapToTypes(type: DataType, isVec4: boolean): DataTypeWGSL|DataType {
   if (type === 'float32') {
     return isVec4 ? 'vec4<f32>' : 'f32';
   } else if (type === 'int32') {
@@ -52,10 +51,10 @@ interface ProgramParams {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   workGroupSize: [number, number, number];
   variableNames: string[];
-  uniformsWgsl?: string;
+  uniforms?: string;
   isVec4?: boolean;
   size?: number;
-  getUserCodeWgsl: () => string;
+  getUserCode: () => string;
 }
 
 export interface InputInfo {
@@ -64,19 +63,19 @@ export interface InputInfo {
   name: string;
 }
 
-export function getWorkGroupSizeStringWgsl(): string {
+export function getWorkGroupSizeString(): string {
   return `
   [[stage(compute), workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)]]
 `;
 }
 
-export function getGlobalIndexStringWgsl(): string {
+export function getGlobalIndexString(): string {
   return `
   let index = getGlobalIndex(globalId, localId);
 `;
 }
 
-export function getMainHeaderStringWgsl() {
+export function getMainHeaderString() {
   return `
   [[stage(compute), workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)]]
   fn main([[builtin(local_invocation_id)]] localId : vec3<u32>, [[builtin(global_invocation_id)]] globalId : vec3<u32>)
@@ -95,7 +94,7 @@ export function makeShader(
     const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
     const outputBufferStr = `
       [[block]] struct Matrix0 {
-        numbers: array<${mapToTypesWgsl(outputData.dtype, program.isVec4)}>;
+        numbers: array<${mapToTypes(outputData.dtype, program.isVec4)}>;
       };
       [[block]] struct Uniform {
         size            : i32;
@@ -113,7 +112,7 @@ export function makeShader(
       workGroupSizeSnippet,
       SAMPLING_SNIPPETS,
       getCoords,
-      program.getUserCodeWgsl(),
+      program.getUserCode(),
     ].join('\n');
   }
 
@@ -121,20 +120,20 @@ export function makeShader(
   let uniformDeclaration = '[[block]] struct Uniforms { NAN : f32; ';
   program.variableNames.forEach((x, i) => {
     uniformDeclaration += `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${
-        getCoordsDataTypeWgsl(inputInfo[i].shape.length)}; `;
+        getCoordsDataType(inputInfo[i].shape.length)}; `;
   });
   uniformDeclaration +=
-      `outShape : ${getCoordsDataTypeWgsl(outputData.shape.length)} ; `;
+      `outShape : ${getCoordsDataType(outputData.shape.length)} ; `;
   const stridesLength = outputData.shape.length - 1;
   uniformDeclaration += `
-       outShapeStrides: ${getCoordsDataTypeWgsl(stridesLength)}; `;
+       outShapeStrides: ${getCoordsDataType(stridesLength)}; `;
 
   if (program.size != null) {
     uniformDeclaration += 'size : i32; ';
   }
   uniformDeclaration += 'dispatchSize : vec3<u32>; ';
-  if (program.uniformsWgsl) {
-    uniformDeclaration += program.uniformsWgsl;
+  if (program.uniforms) {
+    uniformDeclaration += program.uniforms;
   }
   uniformDeclaration += '};';
 
@@ -143,7 +142,7 @@ export function makeShader(
   // Output buffer.
   prefixSnippets.push(`
     [[block]] struct Matrix0 {
-        numbers: array<${mapToTypesWgsl(outputData.dtype, program.isVec4)}>;
+        numbers: array<${mapToTypes(outputData.dtype, program.isVec4)}>;
     };
 
     [[group(0), binding(0)]] var<storage, write> result : Matrix0;
@@ -151,7 +150,7 @@ export function makeShader(
   program.variableNames.forEach((x, i) => {
     prefixSnippets.push(`
     [[block]] struct Matrix${1 + i} {
-      numbers: array<${mapToTypesWgsl(inputInfo[i].dtype, program.isVec4)}>;
+      numbers: array<${mapToTypes(inputInfo[i].dtype, program.isVec4)}>;
     };
     [[group(0), binding(${1 + i})]] var<storage, read> ${x} : Matrix${1 + i};
     `);
@@ -189,7 +188,7 @@ export function makeShader(
     sources.push(inputSamplingSnippet);
   }
 
-  sources.push(program.getUserCodeWgsl());
+  sources.push(program.getUserCode());
   const source = sources.join('\n');
   return source;
 }
@@ -295,7 +294,7 @@ const SAMPLING_SNIPPETS = `
 function getSetOutputSnippet(
     outShape: number[], outBufferType: DataType, isVec4: boolean): string {
   const outRank = outShape.length;
-  const wgslType = mapToTypesWgsl(outBufferType, isVec4);
+  const wgslType = mapToTypes(outBufferType, isVec4);
   let snippet;
   if (isVec4) {
     snippet = `fn setOutputFlat(flatIndex : i32, value : vec4<f32>) {
@@ -342,7 +341,7 @@ function getSetOutputSnippet(
         break;
     }
     const dims = ['d0', 'd1', 'd2', 'd3'].slice(0, outRank);
-    const type = getCoordsDataTypeWgsl(outRank);
+    const type = getCoordsDataType(outRank);
 
     if (isVec4) {
       snippet += `
@@ -391,7 +390,7 @@ function getInputSamplingSnippet(
 function getSamplerFromInInfo(inInfo: InputInfo, isVec4: boolean): string {
   const texName = inInfo.name;
   const rank = inInfo.shape.length;
-  const type = getCoordsDataTypeWgsl(rank);
+  const type = getCoordsDataType(rank);
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
   const dims = ['d0', 'd1', 'd2', 'd3'].slice(0, rank);
   const inputs = dims.map(d => `${d} : i32`).join(', ');
@@ -449,7 +448,7 @@ export function getSamplerAtOutputCoords(
 
   const inRank = inInfo.shape.length;
   const outRank = outShape.length;
-  const type = getCoordsDataTypeWgsl(outRank);
+  const type = getCoordsDataType(outRank);
 
   // If the inShape equals the outShape and the dispatch layout is flat, we can
   // directly use |gl_GlobalInvocationID.x| as the index and don't need coords
@@ -522,7 +521,7 @@ export function getSamplerAtOutputCoords(
     unpackedCoordsSnippet = 'coords';
   } else {
     if (outRank > 1) {
-      const coordsType = getCoordsDataTypeWgsl(inRank);
+      const coordsType = getCoordsDataType(inRank);
       const coordsValues =
           inInfo.shape.map((s, i) => `coords[${i + rankDiff}]`).join(', ');
       unpackedCoordsSnippet = `${coordsType}(${coordsValues})`;
@@ -582,7 +581,7 @@ export function generateGetOutputCoords(
 
   const outRank = outShape.length;
   if (x.length === outRank) {
-    const dtype = getCoordsDataTypeWgsl(outRank);
+    const dtype = getCoordsDataType(outRank);
     const snippet =
         `fn getOutputCoords(globalId : vec3<u32>, globalIndex : i32) -> ${
             dtype}{
@@ -630,7 +629,7 @@ export function generateGetOutputCoords(
     dimensions.push(`d${i}`);
   }
 
-  const dtype = getCoordsDataTypeWgsl(rank);
+  const dtype = getCoordsDataType(rank);
   let snippet =
       `fn getOutputCoords(globalId : vec3<u32>, globalIndex : i32) -> ${dtype} {
     ${gatherDimensionsStr}
@@ -657,7 +656,7 @@ function generateGetCoordsFromFlatIndex(shape: number[]): string {
   }
 
   const strides = util.computeStrides(shape);
-  const dtype = getCoordsDataTypeWgsl(rank);
+  const dtype = getCoordsDataType(rank);
 
   const coords: string[] = [];
   for (let i = 0; i < rank; i++) {

@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -48,7 +48,7 @@ export class ConcatProgram implements WebGPUProgram {
     this.size = util.sizeFromShape(this.outputShape);
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const offsets: number[] = new Array(this.shapes.length - 1);
     const snippets: string[] = [];
     if (offsets.length > 0) {
@@ -74,8 +74,8 @@ export class ConcatProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
           if(flatIndex < uniforms.size) {

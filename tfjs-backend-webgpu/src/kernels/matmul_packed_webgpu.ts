@@ -17,13 +17,13 @@
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import {getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
 import {WebGPUProgram} from './webgpu_program';
 
-export function makeMatMulPackedSourceWgsl(
+export function makeMatMulPackedSource(
     workPerThread: number[], workGroupSize: [number, number, number]): string {
   const tileAOuter = workGroupSize[1] * workPerThread[1];
   const tileBOuter = workGroupSize[0] * workPerThread[0];
@@ -31,7 +31,7 @@ export function makeMatMulPackedSourceWgsl(
   return `
     var<workgroup> mm_Asub : array<array<f32, ${tileInner}>, ${tileAOuter}>;
     var<workgroup> mm_Bsub : array<array<f32, ${tileBOuter}>, ${tileInner}>;
-    ${getMainHeaderStringWgsl()} {
+    ${getMainHeaderString()} {
       let tileRow = i32(localId.y) * ${workPerThread[1]};
       let tileCol = i32(localId.x) * ${workPerThread[0]};
 
@@ -123,13 +123,13 @@ export function makeMatMulPackedSourceWgsl(
   `;
 }
 
-export function makeMatMulVectorSourceWgsl(
-    workGroupSize: [number, number, number]): string {
+export function makeMatMulVectorSource(workGroupSize: [number, number, number]):
+    string {
   return `
     let TileSize = ${workGroupSize[0] * 4};
     var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
 
-    ${getMainHeaderStringWgsl()} {
+    ${getMainHeaderString()} {
       let tileCol = i32(localId.x);
       let globalCol = i32(globalId.x);
       let globalRow = i32(globalId.y);
@@ -178,7 +178,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workPerThread: number;
   variableNames = ['A', 'B'];
-  uniformsWgsl = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
+  uniforms = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
   workGroupSize: [number, number, number] = [16, 16, 1];
   aShape: [number, number, number];
   transposeA: boolean;
@@ -266,7 +266,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
     ];
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     let sampleA;
 
     if (this.transposeA === false) {
@@ -351,10 +351,10 @@ export class MatMulPackedProgram implements WebGPUProgram {
       }
       ${
         this.outputShape[1] > 1 ?
-            makeMatMulPackedSourceWgsl(
+            makeMatMulPackedSource(
                 [this.workPerThread, this.workPerThread, 1],
                 this.workGroupSize) :
-            makeMatMulVectorSourceWgsl(this.workGroupSize)}
+            makeMatMulVectorSource(this.workGroupSize)}
     `;
     return userCode;
   }

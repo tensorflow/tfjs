@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -28,7 +28,7 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  uniformsWgsl = `stride : vec2<i32>;`;
+  uniforms = `stride : vec2<i32>;`;
   workGroupSize: [number, number, number] = [256, 1, 1];
 
   constructor(convInfo: backend_util.Conv2DInfo) {
@@ -41,10 +41,10 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
     this.shaderKey = 'poolWithFilterSizeEqualsOne';
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const userCode = `
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         let coords = getOutputCoords(globalId, index);
         let batch = coords[0];
         let d = coords[3];

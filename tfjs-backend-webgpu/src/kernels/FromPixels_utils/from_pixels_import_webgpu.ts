@@ -22,7 +22,7 @@ export class FromPixelsImportProgram extends FromPixelsProgram {
   layout: WebGPULayout = null;
   useImport = true;
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     return this.makeFromPixelsSource();
   }
 

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -47,7 +47,7 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
             this.outputShape[2] > 1}_${halfPixelCenters}`;
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     // When align corners is false, we rounds the value with floor.
     const roundBase = this.alignCorners ? '0.5' : '0.0';
     let sourceFracIndexRC: string;
@@ -63,8 +63,8 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
     const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
 
     const userCode = `
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         let coords = getOutputCoords(globalId, index);
         if (all(coords < uniforms.outShape)) {
           let b = coords[0];

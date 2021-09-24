@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -28,7 +28,7 @@ export class BatchNormProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   dispatch: [number, number, number];
   variableNames: string[];
-  uniformsWgsl = 'varianceEpsilon : f32;';
+  uniforms = 'varianceEpsilon : f32;';
   // This is an experimental value.
   workGroupSize: [number, number, number] = [128, 1, 1];
   offsetShape: number[]|null;
@@ -59,7 +59,7 @@ export class BatchNormProgram implements WebGPUProgram {
     this.shaderKey = 'batchNorm';
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     let offsetSnippet = '0.0';
     if (this.offsetShape != null) {
       offsetSnippet = 'getOffsetAtOutCoordsByGlobalId(globalId, index)';
@@ -71,7 +71,7 @@ export class BatchNormProgram implements WebGPUProgram {
     }
 
     const dim = this.outputShape.length;
-    const coordsDataType = getCoordsDataTypeWgsl(dim);
+    const coordsDataType = getCoordsDataType(dim);
     let setOutput =
         'setOutput(coords[0], coords[1], coords[2], coords[3], value);';
     if (dim === 2) {
@@ -86,8 +86,8 @@ export class BatchNormProgram implements WebGPUProgram {
           ${setOutput}
         }
       }
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         let coords = getOutputCoords(globalId, index);
         let xValue = getXAtOutCoordsByGlobalId(globalId, index);
         let meanValue = getMeanAtOutCoordsByGlobalId(globalId, index);

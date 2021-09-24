@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -42,13 +42,13 @@ export class TransposeSharedProgram implements WebGPUProgram {
     this.shaderKey = 'transposeShared';
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     const userCode = `
       let TILE_DIM = ${this.workGroupSize[0]};
       var<workgroup> tile : array<array<f32, ${this.workGroupSize[0] + 1}>, ${
         this.workGroupSize[0]}>;
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         let workGroupID = (globalId - localId)/vec3<u32>(${
         this.workGroupSize[0]}u, ${this.workGroupSize[1]}u, ${
         this.workGroupSize[2]}u);

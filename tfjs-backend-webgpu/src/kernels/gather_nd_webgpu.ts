@@ -17,7 +17,7 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor_wgsl';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -28,7 +28,7 @@ export class GatherNDProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames: string[] = ['A', 'indices'];
-  uniformsWgsl: string;
+  uniforms: string;
   workGroupSize: [number, number, number] = [64, 1, 1];
   size: number;
   sliceDim: number;
@@ -40,11 +40,10 @@ export class GatherNDProgram implements WebGPUProgram {
     this.shaderKey = `gathernd_${sliceDim}`;
     this.size = util.sizeFromShape(this.outputShape);
     this.sliceDim = sliceDim;
-    this.uniformsWgsl =
-        `sliceDim : i32; strides : ${getCoordsDataTypeWgsl(sliceDim)};`;
+    this.uniforms = `sliceDim : i32; strides : ${getCoordsDataType(sliceDim)};`;
   }
 
-  getUserCodeWgsl(): string {
+  getUserCode(): string {
     let strideString;
     if (this.sliceDim > 1) {
       strideString = 'uniforms.strides[j]';
@@ -52,8 +51,8 @@ export class GatherNDProgram implements WebGPUProgram {
       strideString = 'uniforms.strides';
     }
     const userCode = `
-        ${getMainHeaderStringWgsl()} {
-          ${getGlobalIndexStringWgsl()}
+        ${getMainHeaderString()} {
+          ${getGlobalIndexString()}
           let coords = getOutputCoords(globalId, index);
           var flattenIndex = 0;
           for (var j = 0; j < uniforms.sliceDim; j = j + 1) {
