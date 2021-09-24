@@ -16,7 +16,7 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../../shader_preprocessor';
 
 import {computeDispatch, flatDispatchLayout, WebGPULayout} from '../../webgpu_util';
 import {WebGPUProgram} from '../webgpu_program';
@@ -38,9 +38,6 @@ export class FromPixelsProgram implements WebGPUProgram {
   inputTexture: GPUTexture = null;
   layout: WebGPULayout = null;
   lastPixelSize = {width: 0, height: 0};
-  // Default to WGSL, because GLSL will complain: The provided value
-  // 'read-only' is not a valid enum value of type GPUStorageTextureAccess.
-  useWgsl = true;
   useImport: boolean;
 
   private disposed = false;
@@ -71,8 +68,8 @@ export class FromPixelsProgram implements WebGPUProgram {
     return `
       [[binding(1), group(0)]] var src: ${textureType};
 
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         let flatIndexBase = index * uniforms.numChannels;
         let coords = getCoordsFromFlatIndex(flatIndexBase);
         let values = ${textureLoad};
@@ -86,40 +83,8 @@ export class FromPixelsProgram implements WebGPUProgram {
   `;
   }
 
-  getUserCodeWgsl(): string {
-    return this.makeFromPixelsSource();
-  }
-
   getUserCode(): string {
-    const userCode = `
-    layout (local_size_x = ${this.workGroupSize[0]},
-      local_size_y = 1,
-      local_size_z = 1) in;
-    layout(set = 0, binding = 1, rgba8) uniform readonly image2D srcImage;
-    layout(set = 0, binding = 2) uniform Meta {
-      int size;
-      int numChannels;
-      ivec2 outShapeStrides;
-    };
-
-    ivec3 getCoordsFromFlatIndex(int flatIndexBase);
-
-    void main() {
-      int flatIndexBase = int(gl_GlobalInvocationID.x) * numChannels;
-      ivec3 coords = getCoordsFromFlatIndex(flatIndexBase);
-      int texR = coords[0];
-      int texC = coords[1];
-      vec4 values = imageLoad(srcImage, ivec2(texC, texR));
-      for(int i = 0; i < numChannels; i++) {
-        float value = values[i];
-        int flatIndex = flatIndexBase + i;
-        if (flatIndex < size) {
-          result[flatIndex] = int(floor(255.0 * value));
-        }
-      }
-    }
-    `;
-    return userCode;
+    return this.makeFromPixelsSource();
   }
 
   setPipeline(pipeline: GPUComputePipeline) {
@@ -163,11 +128,8 @@ export class FromPixelsProgram implements WebGPUProgram {
       this.inputTexture = device.createTexture({
         size: [pixelWidth, pixelHeight],
         format: 'rgba8unorm',
-        usage: this.useWgsl ?
-            GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT |
-                GPUTextureUsage.TEXTURE_BINDING :
-            GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT |
-                GPUTextureUsage.STORAGE_BINDING,
+        usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT |
+            GPUTextureUsage.TEXTURE_BINDING,
       });
       this.lastPixelSize.width = pixelWidth;
       this.lastPixelSize.height = pixelHeight;
@@ -204,14 +166,8 @@ export class FromPixelsProgram implements WebGPUProgram {
       buffer: {type: 'storage' as const}
     });
     // Input buffer binding layout.
-    this.useWgsl ?
-        bindGroupLayoutEntries.push(
-            {binding: 1, visibility: GPUShaderStage.COMPUTE, texture: {}}) :
-        bindGroupLayoutEntries.push({
-          binding: 1,
-          visibility: GPUShaderStage.COMPUTE,
-          storageTexture: {access: 'read-only', format: 'rgba8unorm'}
-        });
+    bindGroupLayoutEntries.push(
+        {binding: 1, visibility: GPUShaderStage.COMPUTE, texture: {}});
     // Uniform buffer binding layout.
     bindGroupLayoutEntries.push(
         {binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: {}});

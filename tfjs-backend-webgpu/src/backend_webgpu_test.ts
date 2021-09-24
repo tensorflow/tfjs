@@ -16,7 +16,6 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import glslangInit from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {WebGPUBackend, WebGPUMemoryInfo} from './backend_webgpu';
 import {describeWebGPU} from './test_util';
@@ -223,10 +222,9 @@ describeWebGPU('backend webgpu', () => {
   });
 
   it('lazily upload', async () => {
-    const glslang = await glslangInit();
     const adapter = await navigator.gpu.requestAdapter({});
     const device = await adapter.requestDevice({});
-    const backend = new WebGPUBackend(device, glslang);
+    const backend = new WebGPUBackend(device);
     tf.registerBackend('test-storage', () => backend);
     tf.setBackend('test-storage');
 

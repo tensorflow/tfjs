@@ -19,8 +19,8 @@ import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d} from '../webgpu_util';
 
-import {makeMatMulPackedSource, makeMatMulPackedSourceWgsl} from './matmul_packed_webgpu';
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {makeMatMulPackedSource} from './matmul_packed_webgpu';
+import {WebGPUProgram} from './webgpu_program';
 
 export class Conv2DDerInputMMProgram implements WebGPUProgram {
   outputShape: number[];
@@ -28,12 +28,10 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = 'ivec2 filterDims, pads, stride; ivec4 outBackprop;';
-  uniformsWgsl =
+  uniforms =
       'filterDims : vec2<i32>; pads : vec2<i32>; stride : vec2<i32>; outBackprop : vec4<i32>; dimAOuter : i32; dimBOuter : i32; dimInner : i32;';
   workGroupSize: [number, number, number];
   elementsPerThread: [number, number, number];
-  useWgsl: boolean;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.inShape;
@@ -52,89 +50,11 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
         this.elementsPerThread);
 
     this.shaderKey = `conv2DDerInputMM_${this.elementsPerThread}`;
-    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
-    const matMulSource = makeMatMulPackedSource(this.elementsPerThread);
-
-    const readASnippet = `
-    int outRow = row / outShape[2];
-    int outCol = row % outShape[2];
-
-    int WRow = col / (filterDims[1] * outBackprop[3]);
-    int WCol = (col / outBackprop[3]) % filterDims[1];
-    float xR = float(outRow - pads[0] + WRow) / float(stride[0]);
-    float xC = float(outCol - pads[1] + WCol) / float(stride[1]);
-    if (xR < 0.0 || xR >= float(outBackprop[1]) || fract(xR) > 0.0) {
-      return 0;
-    }
-    if (xC < 0.0 || xC >= float(outBackprop[2]) || fract(xC) > 0.0) {
-      return 0;
-    }
-    ivec4 coord = ivec4(
-        batch,
-        int(xR),
-        int(xC),
-        col % outBackprop[3]);
-    return x[getFlatIndex(coord, xShape)];`;
-
-    const sampleA = `if (row < dimAOuter && col < dimInner) {
-      ${readASnippet}
-    } else {
-      return 0;
-    }`;
-
-    const userCode = `
-    ${matMulSource}
-
-    int batch;
-    int dimAOuter = outShape[1] * outShape[2];
-    int dimBOuter = outShape[3];
-    int dimInner = filterDims[0] * filterDims[1] * outBackprop[3];
-
-    float mm_readA(int row, int col) {
-      ${sampleA}
-    }
-
-    float mm_readB(int row, int col) {
-      if (row < dimInner && col < dimBOuter)
-      {
-        int WRow = row / (filterDims[1] * outBackprop[3]);
-        int WCol = (row / outBackprop[3]) % filterDims[1];
-        ivec4 coord = ivec4(
-            filterDims.x - 1 - WRow,
-            filterDims.y - 1 - WCol,
-            col,
-            row % outBackprop[3]);
-        return W[getFlatIndex(coord, wShape)];
-      } else
-      {
-        return 0;
-      }
-    }
-
-    void mm_write(int row, int col, float value) {
-      ivec4 outCoord = ivec4(
-          batch,
-          row / outShape[2],
-          row % outShape[2],
-          col);
-      result[getFlatIndex(outCoord, outShape)] = value;
-    }
-
-    void main() {
-      batch = int(gl_GlobalInvocationID.z);
-
-      mm_matMul(dimAOuter, dimInner, dimBOuter);
-    }
-  `;
-    return userCode;
-  }
-
-  getUserCodeWgsl(): string {
     const matMulSource =
-        makeMatMulPackedSourceWgsl(this.elementsPerThread, this.workGroupSize);
+        makeMatMulPackedSource(this.elementsPerThread, this.workGroupSize);
 
     const readASnippet = `
     let outRow = row / uniforms.outShape[2];
