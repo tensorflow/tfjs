@@ -31,57 +31,24 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Mod(const size_t a_id, const size_t* a_shape_ptr,
-              const size_t a_shape_len, const size_t b_id,
-              const size_t* b_shape_ptr, const size_t b_shape_len,
-              const DType dtype, const size_t out_id) {
-  switch (dtype) {
-    case DType::float32:
-      binary_f32(a_id, b_id, out_id,
-                 [](float a, float b) {
-                   float mod = fmod(a, b);
-    // Handling negative values
-    if (a < 0) {
-      mod = -a;
+void Mod(const size_t a_id, const size_t* a_shape_ptr, const size_t a_shape_len,
+         const size_t b_id, const size_t* b_shape_ptr, const size_t b_shape_len,
+         const DType dtype, const size_t out_id) {
+  binary_f32(a_id, b_id, out_id, [](float a, float b) {
+    float mod = fmod(a, b);
+    if ((a < 0 && b < 0) || (a >= 0 && b >= 0)) {
+      return mod;
     } else {
-      mod =  a;
+      return fmod((mod + b), b);
     }
+  });
 
-    if (b < 0) {
-      b = -b;
-    }
-
-
-    // Finding mod by repeated subtraction
-
-    while (mod >= b) {
-      mod = mod - b;
-    }
-
-
-    // Sign of result typically depends
-    // on sign of a.
-    if (a < 0) {
-      return -mod;
-    }
-
-
-
-    return mod;
-                  });
-      break;
-    case DType::int32:
-      binary_i32(a_id, b_id, out_id, [](int a, int b) {
-        return a >= 0 ? a % b : ( b - abs ( a%b ) ) % b;
-      });
-      break;
-    default:
-      util::warn(
-          "Mod for tensor ids %d and %d failed. Unsupported dtype %d",
-          a_id, b_id, dtype);
-  }
+  default:
+    util::warn("Mod for tensor ids %d and %d failed. Unsupported dtype %d",
+               a_id, b_id, dtype);
+}
 }
 
-}  // extern "C"
 }  // namespace wasm
+}  // namespace tfjs
 }  // namespace tfjs
