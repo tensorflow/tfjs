@@ -215,7 +215,7 @@ export type DeepMapAsyncResult = {
  */
 export async function deepMapAndAwaitAll(
     input: any, mapFn: (x: any) => DeepMapAsyncResult): Promise<any|any[]> {
-  const seen: Map<any, Promise<any>> = new Map();
+  const seen: Map<any, any> = new Map();
 
   // First do a normal deepMap, collecting Promises in 'seen' as a side effect.
   deepMapInternal(input, mapFn, seen);
@@ -246,9 +246,18 @@ export async function deepMapAndAwaitAll(
  */
 // tslint:disable-next-line:no-any
 export function isIterable(obj: any): boolean {
+  let isTextDecoder = false;
+  if (tf.env().get('IS_BROWSER')) {
+    isTextDecoder = obj instanceof TextDecoder;
+  } else {
+    // tslint:disable-next-line:no-require-imports
+    const {StringDecoder} = require('string_decoder');
+    isTextDecoder = obj instanceof StringDecoder;
+  }
   return obj != null && (!ArrayBuffer.isView(obj)) &&
       (Array.isArray(obj) ||
-       (typeof obj === 'object' && !(obj instanceof tf.Tensor)));
+       (typeof obj === 'object' && !(obj instanceof tf.Tensor) &&
+        !(obj instanceof Promise) && !isTextDecoder));
 }
 
 /**

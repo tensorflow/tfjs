@@ -17,6 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -27,7 +28,7 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  uniforms = 'ivec2 pad, stride, dilation, convDims, filterDims;';
+  uniforms = `stride : vec2<i32>;`;
   workGroupSize: [number, number, number] = [256, 1, 1];
 
   constructor(convInfo: backend_util.Conv2DInfo) {
@@ -42,17 +43,18 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-      void main() {
-        ivec4 coords = getOutputCoords();
-        int batch = coords[0];
-        int d = coords[3];
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        let coords = getOutputCoords(globalId, index);
+        let batch = coords[0];
+        let d = coords[3];
 
-        if (all(lessThan(coords, outShape))) {
-          ivec2 xRCCorner = coords.yz * stride;
-          int xRCorner = xRCCorner.x;
-          int xCCorner = xRCCorner.y;
+        if (all(coords < uniforms.outShape)) {
+          let xRCCorner = coords.yz * uniforms.stride;
+          let xRCorner = xRCCorner.x;
+          let xCCorner = xRCCorner.y;
 
-          float value = getX(batch, xRCorner, xCCorner, d);
+          let value = getX(batch, xRCorner, xCCorner, d);
           setOutput(batch, coords[1], coords[2], d, value);
         }
       }

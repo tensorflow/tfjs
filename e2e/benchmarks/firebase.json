@@ -1,0 +1,28 @@
+{
+  "hosting": {
+    "site": "tfjs-benchmarks",
+    "public": ".",
+    "ignore": [
+      "firebase_prod.json",
+      "firebase_staging.json"
+    ],
+    "redirects": [{
+      "source": "/",
+      "destination": "local-benchmark/",
+      "type": 301
+    }],
+    "headers": [{
+      "source": "local-benchmark/",
+      "headers": [
+        {
+          "key": "Cross-Origin-Embedder-Policy",
+          "value": "require-corp"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin"
+        }
+      ]
+    }]
+  }
+}

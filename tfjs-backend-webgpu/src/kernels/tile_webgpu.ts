@@ -16,7 +16,7 @@
  */
 import {util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -28,7 +28,6 @@ export class TileProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
-  dtype: string;
   size: number;
   rank: number;
 
@@ -47,15 +46,14 @@ export class TileProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
-    const dtype = getCoordsDataType(this.rank);
-    const sourceCoords = getSourceCoords(this.rank);
+    const sourceCoords = getSourceCoords(this.rank, 'uniforms.');
 
     const userCode = `
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
-        if (index < size) {
-          ${dtype} resRC = getOutputCoords();
-          setOutput(index, getA(${sourceCoords}));
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        if (index < uniforms.size) {
+          let resRC = getOutputCoords(globalId, index);
+          setOutputFlat(index, getA(${sourceCoords}));
         }
       }
     `;
@@ -63,18 +61,18 @@ export class TileProgram implements WebGPUProgram {
   }
 }
 
-function getSourceCoords(rank: number): string {
+function getSourceCoords(rank: number, uniformPrefix = ''): string {
   if (rank >= 5) {
     throw Error(`Tile for rank ${rank} is not yet supported`);
   }
   if (rank === 1) {
-    return `(resRC % aShape)`;
+    return `(resRC % ${uniformPrefix}aShape)`;
   }
 
   const currentCoords = ['resRC.x', 'resRC.y', 'resRC.z', 'resRC.w'];
   const sourceCoords = [];
   for (let i = 0; i < rank; i++) {
-    sourceCoords.push(`(${currentCoords[i]} % aShape[${i}])`);
+    sourceCoords.push(`(${currentCoords[i]} % ${uniformPrefix}aShape[${i}])`);
   }
   return sourceCoords.join();
 }

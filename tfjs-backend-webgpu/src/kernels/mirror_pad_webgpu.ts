@@ -17,7 +17,7 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
+import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -44,7 +44,9 @@ export class MirrorPadProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.xShape = xShape;
-    paddings.map((_, i) => this.uniforms += ` ivec2 pad${i};`);
+    paddings.map((_, i) => {
+      this.uniforms += ` pad${i} : vec2<i32>;`;
+    });
     this.offset = mode === 'reflect' ? 0 : 1;
     this.shaderKey = `mirrorPad_${mode}`;
     this.size = util.sizeFromShape(this.outputShape);
@@ -53,11 +55,12 @@ export class MirrorPadProgram implements WebGPUProgram {
   getUserCode(): string {
     const rank = this.xShape.length;
     // The length of paddings are same with the rank of the input tensor.
-    const start = this.xShape.map((_, i) => `pad${i}[0]`).join(',');
-    const end =
-        this.xShape
-            .map((_, i) => `pad${i}[0] + xShape${rank > 1 ? `[${i}]` : ''}`)
-            .join(',');
+    const start = this.xShape.map((_, i) => `uniforms.pad${i}[0]`).join(',');
+    const end = this.xShape
+                    .map(
+                        (_, i) => `uniforms.pad${i}[0] + uniforms.xShape${
+                            rank > 1 ? `[${i}]` : ''}`)
+                    .join(',');
 
     const shaderStart = rank === 1 ? 'start' : 'start[i]';
     const shaderEnd = rank === 1 ? 'end' : 'end[i]';
@@ -68,25 +71,23 @@ export class MirrorPadProgram implements WebGPUProgram {
         'coords';
 
     return `
-      ${dtype} start = ${dtype}(${start});
-      ${dtype} end = ${dtype}(${end});
-
-      void main() {
-        ${dtype} outC = getOutputCoords();
-        int index = int(gl_GlobalInvocationID.x);
-        if (index < size)
-        {
-          for (int i = 0; i < ${rank}; i++) {
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        let start = ${dtype}(${start});
+        let end = ${dtype}(${end});
+        var outC = getOutputCoords(globalId, index);
+        if (index < uniforms.size) {
+          for (var i = 0; i < ${rank}; i = i + 1) {
             if (${shaderOutC} < ${shaderStart}) {
               ${shaderOutC} = ${shaderStart} * 2 - ${shaderOutC} - ${
         this.offset};
-            } else if(${shaderOutC} >= ${shaderEnd}) {
+            } elseif(${shaderOutC} >= ${shaderEnd}) {
               ${shaderOutC} = (${shaderEnd} - 1) * 2 - ${shaderOutC} + ${
         this.offset};
             }
           }
-          ${dtype} coords = outC - start;
-          setOutput(index, getX(${unpackedCoords}));
+          let coords = outC - start;
+          setOutputFlat(index, getX(${unpackedCoords}));
         }
       }
     `;

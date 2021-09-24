@@ -16,6 +16,8 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
+
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -24,7 +26,7 @@ export class ClipProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   variableNames = ['A'];
-  uniforms = 'float minVal; float maxVal;';
+  uniforms = 'minVal : f32; maxVal : f32;';
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
@@ -44,15 +46,15 @@ export class ClipProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
-        if(index < size) {
-          float value = getAAtOutCoords();
-          if (isnan(value)) {
-            setOutput(index, value);
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        if(index < uniforms.size) {
+          let value = getAAtOutCoordsByGlobalId(globalId, index);
+          if (isNanCustom(value)) {
+            setOutputFlat(index, value);
             return;
           }
-          setOutput(index, clamp(value, minVal, maxVal));
+          setOutputFlat(index, clamp(value, uniforms.minVal, uniforms.maxVal));
         }
       }
     `;

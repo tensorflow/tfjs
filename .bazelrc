@@ -14,11 +14,13 @@ build --cxxopt="-fno-exceptions"
 build --cxxopt="-fomit-frame-pointer"
 
 # Remote cache config. Users can add credentials in their .bazelrc.user files.
-build:remote --remote_cache=https://storage.googleapis.com/bazel-remote-cache-tfjs
+build:remote --remote_cache=remotebuildexecution.googleapis.com --auth_enabled=true --google_default_credentials --remote_instance_name=projects/learnjs-174218/instances/default_instance --project_id=learnjs-174218 --remote_timeout=180s
+
+# Stream build results to the results UI
+build:bes --config=remote --bes_backend="buildeventservice.googleapis.com" --bes_timeout=60s --bes_results_url="https://source.cloud.google.com/results/invocations/"
 
 # Config for Google Cloud continuous integration that uses default credentials.
-build:ci --config=remote
-build:ci --google_default_credentials
+build:ci --config=bes
 
 # This flag is needed to prevent the bazel cache from being invalidated when
 # running bazel via `yarn bazel`.
@@ -31,8 +33,12 @@ run --incompatible_strict_action_env
 build --spawn_strategy=worker,local
 
 # Pass BrowserStack credentials
+build --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 run --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 test --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
+
+# Enable debugging tests with --config=debug
+run:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test_strategy=exclusive --test_timeout=9999 --nocache_test_results
 
 # Load any settings specific to the current user.
 # .bazelrc.user should appear in .gitignore so that settings are not shared with

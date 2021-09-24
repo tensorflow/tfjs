@@ -17,6 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -27,7 +28,8 @@ export class Pool2DProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  uniforms = 'ivec2 pad, stride, dilation, convDims, filterDims;';
+  uniforms =
+      `stride : vec2<i32>; pad : vec2<i32>; dilation : vec2<i32>; convDims : vec2<i32>; filterDims : vec2<i32>;`;
   // TODO(jiajia.qin@intel.com): Dynamically choose different workGroupSize for
   // different output shapes.
   workGroupSize: [number, number, number] = [128, 1, 1];
@@ -48,7 +50,7 @@ export class Pool2DProgram implements WebGPUProgram {
   getUserCode(): string {
     let updateSnippet = `resultValue = max(value, resultValue);`;
     if (this.poolType === 'avg') {
-      updateSnippet = `resultValue += value; count += 1.0;`;
+      updateSnippet = `resultValue = resultValue + value; count = count + 1.0;`;
     }
 
     let returnValue = `resultValue`;
@@ -57,32 +59,33 @@ export class Pool2DProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      void main() {
-        ivec4 coords = getOutputCoords();
-        if (coordsInBounds(coords, outShape)) {
-          int batch = coords[0];
-          ivec2 xRCCorner = coords.yz * stride - pad;
-          int xRCorner = xRCCorner.x;
-          int xCCorner = xRCCorner.y;
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        let coords = getOutputCoords(globalId, index);
+        if (coordsInBounds4D(coords, uniforms.outShape)) {
+          let batch = coords[0];
+          let xRCCorner = vec2<i32>(coords.yz) * uniforms.stride - uniforms.pad;
+          let xRCorner = xRCCorner.x;
+          let xCCorner = xRCCorner.y;
 
-          float resultValue = ${
-        this.poolType === 'avg' ? '0.0' : '-1.0 / 1e-20'};
-          float count = 0.0;
+          var resultValue = ${
+        this.poolType === 'avg' ? '0.0' : '-1.0 / pow(10.0, -20.0)'};
+          var count = 0.0;
 
-          for (int wR = 0; wR < filterDims.x; wR += dilation.x) {
-            int xR = xRCorner + wR;
+          for (var wR = 0; wR < uniforms.filterDims.x; wR = wR + uniforms.dilation.x) {
+            let xR = xRCorner + wR;
 
-            if (xR < 0 || xR >= convDims.x) {
+            if (xR < 0 || xR >= uniforms.convDims.x) {
               continue;
             }
 
-            for (int wC = 0; wC < filterDims.y; wC += dilation.y) {
-              int xC = xCCorner + wC;
-              if (xC < 0 || xC >= convDims.y) {
+            for (var wC = 0; wC < uniforms.filterDims.y; wC = wC + uniforms.dilation.y) {
+              let xC = xCCorner + wC;
+              if (xC < 0 || xC >= uniforms.convDims.y) {
                 continue;
               }
 
-              float value = getX(batch, xR, xC, coords[3]);
+              let value = getX(batch, xR, xC, coords[3]);
               ${updateSnippet}
             }
           }

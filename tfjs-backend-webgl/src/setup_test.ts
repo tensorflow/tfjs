@@ -16,6 +16,8 @@
  */
 
 import '@tensorflow/tfjs-backend-cpu';
+// Register the backend.
+import './index';
 // tslint:disable-next-line: no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
 // tslint:disable-next-line: no-imports-from-dist
@@ -47,6 +49,13 @@ if (typeof __karma__ !== 'undefined') {
   }
 }
 
+// These use 'require' because they must not be hoisted above
+// the preceding snippet that parses test environments.
 // Import and run tests from core.
 // tslint:disable-next-line:no-imports-from-dist
-import '@tensorflow/tfjs-core/dist/tests';
+// tslint:disable-next-line:no-require
+require('@tensorflow/tfjs-core/dist/tests');
+// Import and run tests from webgl.
+// tslint:disable-next-line:no-imports-from-dist
+// tslint:disable-next-line:no-require
+require('./tests');

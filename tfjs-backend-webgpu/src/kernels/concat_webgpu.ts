@@ -17,7 +17,9 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+
 import {WebGPUProgram} from './webgpu_program';
 
 export class ConcatProgram implements WebGPUProgram {
@@ -56,31 +58,30 @@ export class ConcatProgram implements WebGPUProgram {
       }
 
       snippets.push(`if (yC < ${
-          offsets[0]}) setOutput(coords.x, coords.y, getT0(yR, yC));`);
+          offsets[0]}){ setOutput(coords.x, coords.y, getT0(yR, yC)); }`);
       for (let i = 1; i < offsets.length; i++) {
         const shift = offsets[i - 1];
         snippets.push(
-            `else if (yC < ${offsets[i]}) ` +
-            `setOutput(coords.x, coords.y, getT${i}(yR, yC-${shift}));`);
+            `elseif (yC < ${offsets[i]}){ ` +
+            `setOutput(coords.x, coords.y, getT${i}(yR, yC - ${shift})); }`);
       }
       const lastIndex = offsets.length;
       const lastShift = offsets[offsets.length - 1];
-      snippets.push(`else setOutput(coords.x, coords.y, getT${
-          lastIndex}(yR, yC-${lastShift}));`);
+      snippets.push(`else { setOutput(coords.x, coords.y, getT${
+          lastIndex}(yR, yC - ${lastShift})); }`);
     } else {
       snippets.push(`setOutput(coords.x, coords.y, getT0(yR, yC));`);
     }
 
     const userCode = `
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
-
-        for(int i = 0; i < ${this.workPerThread}; i++) {
-          int flatIndex = index * ${this.workPerThread} + i;
-          if(flatIndex < size) {
-            ivec2 coords = getCoordsFromFlatIndex(flatIndex);
-            int yR = coords.x;
-            int yC = coords.y;
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
+          let flatIndex = index * ${this.workPerThread} + i;
+          if(flatIndex < uniforms.size) {
+            let coords = getCoordsFromFlatIndex(flatIndex);
+            let yR = coords.x;
+            let yC = coords.y;
 
             ${snippets.join('\n        ')}
           }

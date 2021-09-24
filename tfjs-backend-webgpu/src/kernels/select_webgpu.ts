@@ -16,7 +16,7 @@
  */
 import {util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -27,8 +27,7 @@ export class SelectProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workPerThread = 4;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workGroupSize: [number, number, number] = [64, 1, 1];
   cRank: number;
   rank: number;
   size: number;
@@ -37,8 +36,7 @@ export class SelectProgram implements WebGPUProgram {
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.cRank = cRank;
     this.rank = rank;
@@ -47,6 +45,7 @@ export class SelectProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
+    // TODO(WGSL): below code can be merged with getUserCode.
     let cCoords;
     let abCoords;
     if (this.rank > 4) {
@@ -70,22 +69,16 @@ export class SelectProgram implements WebGPUProgram {
       abCoords = abCoordVars.join();
     }
 
-    const dtype = getCoordsDataType(this.rank);
     const userCode = `
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
-
-        for (int i = 0; i < ${this.workPerThread}; i++) {
-          int flatIndex = index * ${this.workPerThread} + i;
-
-          if (flatIndex < size) {
-            ${dtype} resRC = getOutputCoords();
-            float cVal = getC(${cCoords});
-            if (cVal >= 1.0) {
-              setOutput(flatIndex,getA(${abCoords}));
-            } else {
-              setOutput(flatIndex,getB(${abCoords}));
-            }
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        if (index < uniforms.size) {
+          let resRC = getOutputCoords(globalId, index);
+          let cVal = getC(${cCoords});
+          if (cVal >= 1.0) {
+            setOutputFlat(index, getA(${abCoords}));
+          } else {
+            setOutputFlat(index, getB(${abCoords}));
           }
         }
       }

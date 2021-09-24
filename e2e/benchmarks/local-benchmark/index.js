@@ -27,7 +27,7 @@ const BACKEND_FLAGS_MAP = {
     'WEBGL_VERSION', 'WEBGL_CPU_FORWARD', 'WEBGL_PACK',
     'WEBGL_FORCE_F16_TEXTURES', 'WEBGL_RENDER_FLOAT32_CAPABLE',
     'WEBGL_FLUSH_THRESHOLD', 'WEBGL_PACK_DEPTHWISECONV',
-    'CHECK_COMPUTATION_FOR_ERRORS'
+    'CHECK_COMPUTATION_FOR_ERRORS', 'WEBGL_USE_SHAPES_UNIFORMS'
   ],
 };
 if (tf.engine().backendNames().includes('webgpu')) {
@@ -45,6 +45,7 @@ const TUNABLE_FLAG_NAME_MAP = {
   WEBGL_RENDER_FLOAT32_CAPABLE: 'enable float32',
   WEBGL_FLUSH_THRESHOLD: 'GL flush wait time(ms)',
   WEBGL_PACK_DEPTHWISECONV: 'Packed depthwise Conv2d',
+  WEBGL_USE_SHAPES_UNIFORMS: 'Use shapes uniforms',
   CHECK_COMPUTATION_FOR_ERRORS: 'Check each op result',
 };
 if (tf.engine().backendNames().includes('webgpu')) {
@@ -68,11 +69,13 @@ let TUNABLE_FLAG_DEFAULT_VALUE_MAP;
  * @param {dat.gui.GUI} folderController
  * @param {string} backendName
  */
-async function showFlagSettings(folderController, backendName) {
+async function showFlagSettingsAndReturnTunableFlagControllers(
+    folderController, backendName) {
   // Determine wether it is the first call.
   if (TUNABLE_FLAG_DEFAULT_VALUE_MAP == null) {
     await initDefaultValueMap();
-    showBackendFlagSettings(folderController, 'general');
+    showBackendFlagSettingsAndReturnTunableFlagControllers(
+        folderController, 'general');
   } else {
     // Clean up flag settings for the previous backend.
     // The first constroller under the `folderController` is the backend
@@ -85,8 +88,10 @@ async function showFlagSettings(folderController, backendName) {
     }
   }
 
-  // Show flag settings for the new backend.
-  showBackendFlagSettings(folderController, backendName);
+  // Show flag settings for the new backend and return the tunable flags
+  // controllers.
+  return showBackendFlagSettingsAndReturnTunableFlagControllers(
+      folderController, backendName);
 }
 
 const stringValueMap = {};
@@ -97,8 +102,19 @@ const stringValueMap = {};
  * @param {dat.gui.GUI} folderController
  * @param {string} backendName
  */
-function showBackendFlagSettings(folderController, backendName) {
+function showBackendFlagSettingsAndReturnTunableFlagControllers(
+    folderController, backendName) {
   const tunableFlags = BACKEND_FLAGS_MAP[backendName];
+  const tunableFlagControllers = {};
+
+  // Remove it once we figure out how to correctly read the tensor data
+  // before the tensor is disposed in profiling mode.
+  if (backendName === 'webgpu' &&
+      state.flags['CHECK_COMPUTATION_FOR_ERRORS'] === true) {
+    state.flags['CHECK_COMPUTATION_FOR_ERRORS'] = false;
+    state.isFlagChanged = true;
+  }
+
   for (let index = 0; index < tunableFlags.length; index++) {
     const flag = tunableFlags[index];
     const flagName = TUNABLE_FLAG_NAME_MAP[flag] || flag;
@@ -117,11 +133,21 @@ function showBackendFlagSettings(folderController, backendName) {
     let flagController;
     if (typeof flagValueRange[0] === 'boolean') {
       // Show checkbox for boolean flags.
-      flagController = folderController.add(state.flags, flag);
+      try {
+        flagController = folderController.add(state.flags, flag);
+      } catch (ex) {
+        console.warn(ex.message);
+        continue;
+      }
     } else {
       // Show dropdown for other types of flags.
-      flagController = folderController.add(state.flags, flag, flagValueRange);
-
+      try {
+        flagController =
+            folderController.add(state.flags, flag, flagValueRange);
+      } catch (ex) {
+        console.warn(ex.message);
+        continue;
+      }
       // Because dat.gui always casts dropdown option values to string, we need
       // `stringValueMap` and `onFinishChange()` to recover the value type.
       if (stringValueMap[flag] == null) {
@@ -139,7 +165,9 @@ function showBackendFlagSettings(folderController, backendName) {
     flagController.name(flagName).onChange(() => {
       state.isFlagChanged = true;
     });
+    tunableFlagControllers[flag] = flagController;
   }
+  return tunableFlagControllers;
 }
 
 /**
@@ -152,7 +180,11 @@ async function initDefaultValueMap() {
   for (const backend in BACKEND_FLAGS_MAP) {
     for (let index = 0; index < BACKEND_FLAGS_MAP[backend].length; index++) {
       const flag = BACKEND_FLAGS_MAP[backend][index];
-      TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag] = await tf.env().getAsync(flag);
+      try {
+        TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag] = await tf.env().getAsync(flag);
+      } catch (ex) {
+        console.warn(ex.message);
+      }
     }
   }
 
@@ -192,7 +224,9 @@ function getTunableRange(flag) {
     }
     return tunableRange;
   } else if (typeof defaultValue === 'boolean') {
-    return defaultValue ? [false, true] : [false];
+    return defaultValue || flag === 'WEBGL_USE_SHAPES_UNIFORMS' ?
+        [false, true] :
+        [false];
   } else if (TUNABLE_FLAG_VALUE_RANGE_MAP[flag] != null) {
     return TUNABLE_FLAG_VALUE_RANGE_MAP[flag];
   } else {

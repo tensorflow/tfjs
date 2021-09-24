@@ -18,22 +18,21 @@
 import {TypedArray, util} from '@tensorflow/tfjs-core';
 
 function split(
-    str: Uint8Array, delimiters: Uint8Array, skipEmpty: boolean): Uint8Array[] {
+    str: Uint8Array, delimiters: Uint8Array, skipEmpty: boolean,
+    result: Uint8Array[]): void {
   if (!str.length) {
-    return [];
+    return;
   }
   // When the delimiter is empty, the input is split into individual characters.
   if (delimiters.length === 0) {
-    const result: Uint8Array[] = new Array(str.length);
     for (let i = 0; i < str.length; ++i) {
-      result[i] = str.subarray(i, i + 1);
+      result.push(str.subarray(i, i + 1));
     }
-    return result;
+    return;
   }
   // When there is one delimiter, the input is split only at that delimiter.
   if (delimiters.length === 1) {
     const delimiter = delimiters[0];
-    const result: Uint8Array[] = [];
     let f = str.indexOf(delimiter);
     while (f !== -1) {
       const token = str.subarray(0, f);
@@ -46,11 +45,10 @@ function split(
     if (!skipEmpty || str.length !== 0) {
       result.push(str);
     }
-    return result;
+    return;
   }
   // When there are multiple delimiters, the input is split at every instance
   // one of the delimiters appears.
-  const result: Uint8Array[] = [];
   let tokenStart = 0;
   for (let i = 0; i < str.length + 1; i++) {
     if ((i === str.length) || (delimiters.indexOf(str[i]) !== -1)) {
@@ -61,7 +59,6 @@ function split(
       tokenStart = i + 1;
     }
   }
-  return result;
 }
 
 export function stringSplitImpl(
@@ -76,12 +73,12 @@ export function stringSplitImpl(
   let maxNumEntries = 0;
   const numIndices: number[] = new Array(batchSize);
   for (let i = 0; i < batchSize; ++i) {
-    const parts = split(input[i], delimiter, skipEmpty);
-    const nEntries = parts.length;
+    const prevTokensLength = tokens.length;
+    split(input[i], delimiter, skipEmpty, tokens);
+    const nEntries = tokens.length - prevTokensLength;
     numIndices[i] = nEntries;
     outputSize += nEntries;
     maxNumEntries = Math.max(maxNumEntries, nEntries);
-    tokens.push(...parts);
   }
 
   const indices = util.getArrayFromDType('int32', outputSize * 2) as TypedArray;

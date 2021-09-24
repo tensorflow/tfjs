@@ -16,8 +16,9 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
+import {getGlobalIndexString, getMainHeaderString} from '../../shader_preprocessor';
 
-import {computeDispatch, flatDispatchLayout} from '../../webgpu_util';
+import {computeDispatch, flatDispatchLayout, WebGPULayout} from '../../webgpu_util';
 import {WebGPUProgram} from '../webgpu_program';
 
 export class FromPixelsProgram implements WebGPUProgram {
@@ -35,7 +36,9 @@ export class FromPixelsProgram implements WebGPUProgram {
   lastUniformData: number[] = [];
 
   inputTexture: GPUTexture = null;
+  layout: WebGPULayout = null;
   lastPixelSize = {width: 0, height: 0};
+  useImport: boolean;
 
   private disposed = false;
 
@@ -52,42 +55,36 @@ export class FromPixelsProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
   }
 
-  constructor(outputShape: number[]) {
-    this.updateOutputShape(outputShape);
+  constructor() {
     this.shaderKey = 'fromPixels';
+    this.useImport = false;
+  }
+
+  makeFromPixelsSource(): string {
+    const textureLoad = this.useImport ?
+        'textureLoad(src, vec2<i32>(coords.yx));' :
+        'textureLoad(src, vec2<i32>(coords.yx), 0)';
+    const textureType = this.useImport ? 'texture_external' : 'texture_2d<f32>';
+    return `
+      [[binding(1), group(0)]] var src: ${textureType};
+
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        let flatIndexBase = index * uniforms.numChannels;
+        let coords = getCoordsFromFlatIndex(flatIndexBase);
+        let values = ${textureLoad};
+        for (var i = 0; i < uniforms.numChannels; i = i + 1) {
+          let flatIndex = flatIndexBase + i;
+          if (flatIndex < uniforms.size) {
+            result.numbers[flatIndex] = i32(floor(255.0 * values[i]));
+          }
+        }
+      }
+  `;
   }
 
   getUserCode(): string {
-    const userCode = `
-    layout (local_size_x = ${this.workGroupSize[0]},
-      local_size_y = 1,
-      local_size_z = 1) in;
-    layout(set = 0, binding = 1, rgba8) uniform readonly image2D srcImage;
-    layout(set = 0, binding = 2) uniform Meta {
-      int size;
-      int numChannels;
-      ivec2 outShapeStrides;
-    };
-
-    ivec3 getCoordsFromFlatIndex(int flatIndexBase);
-
-    void main() {
-      int flatIndexBase = int(gl_GlobalInvocationID.x) * numChannels;
-      ivec3 coords = getCoordsFromFlatIndex(flatIndexBase);
-      int texR = coords[0];
-      int texC = coords[1];
-      int depth = coords[2];
-      vec4 values = imageLoad(srcImage, ivec2(texC, texR));
-      for(int i = 0; i < numChannels; i++) {
-        float value = values[i];
-        int flatIndex = flatIndexBase + i;
-        if (flatIndex < size) {
-          result[flatIndex] = int(floor(255.0 * value));
-        }
-      }
-    }
-    `;
-    return userCode;
+    return this.makeFromPixelsSource();
   }
 
   setPipeline(pipeline: GPUComputePipeline) {
@@ -131,8 +128,8 @@ export class FromPixelsProgram implements WebGPUProgram {
       this.inputTexture = device.createTexture({
         size: [pixelWidth, pixelHeight],
         format: 'rgba8unorm',
-        usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.STORAGE |
-               GPUTextureUsage.RENDER_ATTACHMENT,
+        usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT |
+            GPUTextureUsage.TEXTURE_BINDING,
       });
       this.lastPixelSize.width = pixelWidth;
       this.lastPixelSize.height = pixelHeight;
@@ -151,5 +148,36 @@ export class FromPixelsProgram implements WebGPUProgram {
       this.inputTexture.destroy();
     }
     this.disposed = true;
+  }
+
+  getLayout(device: GPUDevice): WebGPULayout {
+    if (this.layout === null) {
+      this.layout = this.createTextureLayout(device);
+    }
+    return this.layout;
+  }
+
+  private createTextureLayout(device: GPUDevice): WebGPULayout {
+    const bindGroupLayoutEntries: GPUBindGroupLayoutEntry[] = [];
+    // Output buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 0,
+      visibility: GPUShaderStage.COMPUTE,
+      buffer: {type: 'storage' as const}
+    });
+    // Input buffer binding layout.
+    bindGroupLayoutEntries.push(
+        {binding: 1, visibility: GPUShaderStage.COMPUTE, texture: {}});
+    // Uniform buffer binding layout.
+    bindGroupLayoutEntries.push(
+        {binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: {}});
+    const fromPixelBindGroupLayout =
+        device.createBindGroupLayout({entries: bindGroupLayoutEntries});
+    const fromPixelPipelineLayout = device.createPipelineLayout(
+        {bindGroupLayouts: [fromPixelBindGroupLayout]});
+    return {
+      bindGroupLayout: fromPixelBindGroupLayout,
+      pipelineLayout: fromPixelPipelineLayout
+    };
   }
 }

@@ -26,8 +26,8 @@ The Multi-device benchmark tool can benchmark the performance (time, memory) of 
   ``` shell
   git clone https://github.com/tensorflow/tfjs.git
   cd tfjs/e2e/benchmarks/browserstack-benchmark
-  yarn build-deps
   yarn install
+  yarn build-deps
 
   node app.js
   ```
@@ -40,15 +40,92 @@ The Multi-device benchmark tool can benchmark the performance (time, memory) of 
 </div>
 
 ### Command Line Arguments
-* --benchmarks
-  - Optional argument that runs a preconfigured benchmark from a user-specified JSON file instead of from the website.
-  ``` shell
-  node app.js --benchmarks preconfigured_browser.json
-  ```
+The following are supported options arguments which trigger options features:
+  * --benchmarks
+    - Runs benchmarks from a user-specified, pre-configured JSON file.
+    ``` shell
+    node app.js --benchmarks=relative_file_path.json
+    ```
+    A pre-configuration file consists of a JSON object with the following format:
+    ```
+    {
+      "benchmark": {
+        "model": ["model_name"], //List of one or more custom or official models to be benchmarked
+        "numRuns": positive_integer,
+        "backend": ["backend_name"] //List of one or more backends to be benchmarked
+      },
+      "browsers": {
+        "unique_identifier_laptop_or_desktop": {
+          "base": "BrowserStack",
+          "browser": "browser_name",
+          "browser_version": "browser_version",
+          "os": "os_name",
+          "os_version": "os_version",
+          "device": null
+        },
+        "unique_identifier_mobile_device": {
+          "base": "BrowserStack",
+          "browser": "iphone_or_android",
+          "browser_version": null,
+          "os": "os_name",
+          "os_version": "os_version",
+          "device": "device_name"
+        }
+      }
+    }
+    ```
+    Each model in the model list will be run on each backend in the backend list. Each model-backend combination will run on every browser. If you would like to test specific backends on specific models, the recommended method is to create multiple configuration files.
+
+    For more examples of documentation, refer to the links below:
+    [List of officially supported TFJS browsers](https://github.com/tensorflow/tfjs/blob/master/e2e/benchmarks/browserstack-benchmark/browser_list.json)
+    [Example benchmark pre-configuration](https://github.com/tensorflow/tfjs/blob/master/e2e/benchmarks/browserstack-benchmark/preconfigured_browser.json)
+  * --cloud
+    - Runs GCP compatible version of benchmarking by blocking the local server.
+    ``` shell
+    node app.js --cloud
+    ```
+  * --firestore
+    - Pushes successful benchmark results to a Firestore database.
+    ``` shell
+    node app.js --firestore
+    ```
+  * --h, --help
+    - Shows help menu and all optional arguments in the shell window.
+    ``` shell
+    node app.js --h
+    ```
+    or
+    ``` shell
+    node app.js --help
+    ```
+  * --maxBenchmarks
+    - Sets maximum for number of benchmarks run in parallel. Expects a positive integer.
+    ``` shell
+    node app.js --maxBenchmarks=positive_integer
+    ```
+  * --maxTries
+    - Sets maximum for number of tries a given benchmark has to succeed. Expects a positive integer.
+    ``` shell
+    node app.js --maxTries=positive_integer
+    ```
   * --outfile
-    - Optional argument that writes results to an accessible external file, benchmark_results.json.
+    - Writes results to an accessible external file, benchmark_results.json.
     ``` shell
     node app.js --outfile
+    ```
+  * --v, --version
+    - Shows node version in use.
+    ``` shell
+    node app.js --v
+    ```
+    or
+    ``` shell
+    node app.js --version
+    ```
+  * --webDeps
+    - Uses public CDNs instead of local file dependencies.
+    ``` shell
+    node app.js --webDeps
     ```
 
 ## Custom model

@@ -71,6 +71,7 @@ module.exports = function(config) {
         base: 'Chrome',
         flags: [
           '--enable-unsafe-webgpu',
+          '--disable-dawn-features=disallow_unsafe_apis'
         ],
       }
     },

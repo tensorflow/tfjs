@@ -19,28 +19,24 @@ import {describeWithFlags, HAS_NODE_WORKER} from './jasmine_util';
 import {expectArraysClose} from './test_util';
 // tslint:disable:no-require-imports
 
-const fn2String = (fn: Function): string => {
-  const funcStr = '(' + fn.toString() + ')()';
-  return funcStr;
-};
+const workerTestNode = `
+// Web worker scripts in node live relative to the CWD, not to the dir of the
+// file that spawned them.
+const tf = require('@tensorflow/tfjs-core');
+require('@tensorflow/tfjs-backend-cpu');
+const {parentPort} = require('worker_threads');
 
-// The source code of a web worker.
-const workerTestNode = () => {
-  // Web worker scripts in node live relative to the CWD, not to the dir of the
-  // file that spawned them.
-  const tf = require('@tensorflow/tfjs');
-  const {parentPort} = require('worker_threads');
-  let a = tf.tensor1d([1, 2, 3]);
-  const b = tf.tensor1d([3, 2, 1]);
-  a = a.add(b);
-  parentPort.postMessage({data: a.dataSync()});
-};
+let a = tf.tensor1d([1, 2, 3]);
+const b = tf.tensor1d([3, 2, 1]);
+a = tf.add(a, b);
+parentPort.postMessage({data: a.dataSync()});
+`;
 
 describeWithFlags('computation in worker (node env)', HAS_NODE_WORKER, () => {
   // tslint:disable-next-line: ban
   it('tensor in worker', (done) => {
     const {Worker} = require('worker_threads');
-    const worker = new Worker(fn2String(workerTestNode), {eval: true});
+    const worker = new Worker(workerTestNode, {eval: true});
     // tslint:disable-next-line:no-any
     worker.on('message', (msg: any) => {
       const data = msg.data;

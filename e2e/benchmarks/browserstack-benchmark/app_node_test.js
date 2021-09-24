@@ -1,10 +1,20 @@
 const fs = require('fs');
-const {benchmark, write, runBenchmarkFromFile} = require('./app.js');
+const {benchmark, write, getOneBenchmarkResult, runBenchmarkFromFile} =
+    require('./app.js');
+const {
+  addResultToFirestore,
+  serializeTensors,
+  getReadableDate,
+  formatForFirestore,
+  runFirestore,
+  firebaseConfig
+} = require('./firestore.js');
 
 describe('test app.js cli', () => {
   const filePath = './benchmark_test_results.json';
   let config;
   let mockRunOneBenchmark;
+  let failMockRunOneBenchmark;
   let mockResults;
   let mockBenchmark;
 
@@ -93,16 +103,21 @@ describe('test app.js cli', () => {
       }
     };
 
-    // Bypasses BrowserStack with preset mock results
+    // Bypasses BrowserStack with preset successful mock results
     mockRunOneBenchmark =
         jasmine.createSpy('mockRunOneBenchmark').and.callFake((tabId) => {
           return Promise.resolve(mockResults[tabId]);
         });
 
-    /*
-    before each spec, create a mock benchmark and set testing browser configuration
-    this helps ensure that everything is set to the expected contents before the spec is run
-    */
+    // Bypasses Browserstack with preset failed mock results
+    failMockRunOneBenchmark =
+        jasmine.createSpy('mockRunOneBenchmark').and.callFake((tabId) => {
+          return Promise.reject(`Error: ${tabId} failed.`);
+        });
+
+    // Before each spec, create a mock benchmark and set testing browser
+    // configuration this helps ensure that everything is set to the expected
+    // contents before the spec is run
     mockBenchmark = jasmine.createSpy('mockBenchmark');
     testingConfig = require('./test_config.json');
   })
@@ -116,7 +131,7 @@ describe('test app.js cli', () => {
     });
   });
 
-  it('checks mocked function and consequent value of promise all', async () => {
+  it('benchmark function benchmarks each browser-device pairing ', async () => {
     // Receives list of promises from benchmark function call
     const testResults = await benchmark(config, mockRunOneBenchmark);
 
@@ -124,8 +139,8 @@ describe('test app.js cli', () => {
     const formattedResults = {};
     for (let i = 0; i < Object.keys(config.browsers).length; i++) {
       await new Promise(resolve => {
-        const result = testResults[i]['value'];
-        formattedResults[result['tabId']] = result;
+        const result = testResults[i].value;
+        formattedResults[result.tabId] = result;
         return resolve();
       });
     }
@@ -133,22 +148,115 @@ describe('test app.js cli', () => {
     // Expected mockRunOneBenchmark stats
     expect(mockRunOneBenchmark.calls.count())
         .toEqual(Object.keys(config.browsers).length);
-    expect(mockRunOneBenchmark).toHaveBeenCalledWith('iPhone_XS_1');
-    expect(mockRunOneBenchmark).toHaveBeenCalledWith('Samsung_Galaxy_S20_1');
-    expect(mockRunOneBenchmark).toHaveBeenCalledWith('Windows_10_1');
-    expect(mockRunOneBenchmark).toHaveBeenCalledWith('OS_X_Catalina_1');
+    expect(mockRunOneBenchmark).toHaveBeenCalledWith('iPhone_XS_1', undefined);
+    expect(mockRunOneBenchmark)
+        .toHaveBeenCalledWith('Samsung_Galaxy_S20_1', undefined);
+    expect(mockRunOneBenchmark).toHaveBeenCalledWith('Windows_10_1', undefined);
+    expect(mockRunOneBenchmark)
+        .toHaveBeenCalledWith('OS_X_Catalina_1', undefined);
 
     // Expected value from promise all
     expect(formattedResults).toEqual(mockResults);
   });
 
-  it("checks that the benchmark function is called", () => {
-    runBenchmarkFromFile(testingConfig, mockBenchmark);
-    expect(mockBenchmark).toHaveBeenCalled();
+  it('getOneBenchmark rejects if a benchmark consistently fails', async () => {
+    // Expected failed mock benchmark results
+    await expectAsync(
+        getOneBenchmarkResult('iPhone_XS_1', 3, failMockRunOneBenchmark))
+        .toBeRejectedWith(`Error: iPhone_XS_1 failed.`);
+
+    // Expected mock function call stats
+    expect(failMockRunOneBenchmark.calls.count()).toEqual(3);
   });
 
-  it("checks that the benchmark is being run with the correct JSON", () => {
+  it('getOneBenchmark fulfills if a benchmark fails and then succeeds',
+     async () => {
+       /* Bypasses Browserstack with preset results. Benchmark will fail on the
+        * call, but succeed on the second call */
+       let called = false;
+       const failThenSucceedMockRunOneBenchmark =
+           jasmine.createSpy('mockRunOneBenchmark').and.callFake((tabId) => {
+             if (called) {
+               return mockRunOneBenchmark(tabId);
+             }
+             called = true;
+             return failMockRunOneBenchmark(tabId);
+           });
+
+       // Gets a successful benchmark result
+       const succeedBenchmarkResult = await getOneBenchmarkResult(
+           'iPhone_XS_1', 3, failThenSucceedMockRunOneBenchmark);
+
+       // Expected mock function call stats
+       expect(failMockRunOneBenchmark.calls.count()).toEqual(1);
+       expect(mockRunOneBenchmark.calls.count()).toEqual(1);
+
+       // Expected successful mock benchmark results
+       expect(succeedBenchmarkResult).toEqual(mockResults.iPhone_XS_1);
+     });
+
+  it('getOneBenchmark fulfills if a benchmark succeeds immediately',
+     async () => {
+       // Gets a successful benchmark result
+       const succeedBenchmarkResult =
+           await getOneBenchmarkResult('iPhone_XS_1', 3, mockRunOneBenchmark);
+
+       // Expected mock funciton call stats
+       expect(mockRunOneBenchmark.calls.count()).toEqual(1);
+
+       // Expected successful mock benchmark results
+       expect(succeedBenchmarkResult).toEqual(mockResults.iPhone_XS_1);
+     });
+
+  it('checks that the benchmark is being run with the correct JSON', () => {
     runBenchmarkFromFile(testingConfig, mockBenchmark);
     expect(mockBenchmark).toHaveBeenCalledWith(testingConfig);
+  });
+});
+
+describe('test adding to firestore', () => {
+  let db;
+  let mockDb;
+  let mockResultValue;
+
+  beforeAll(async () => {
+    // Set a longer jasmine timeout than 5 seconds
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
+
+    // References result collection and checks credentials
+    db = await runFirestore(firebaseConfig);
+  });
+
+  beforeEach(() => {
+    // mockResultValue is the result of a successful benchmark
+    mockResultValue = require('./firestore_test_value.json');
+    mockDb = spyOn(db, 'add');
+    mockSerialization = jasmine.createSpy('mockSerialization');
+    mockDate = jasmine.createSpy('mockDate').and.returnValue('7/21/2021');
+  });
+
+  it('Expects db.add to be called with formatted results', () => {
+    mockDb.and.returnValue(Promise.resolve({id: 123}));
+    let expectedAdd = {
+      result:
+          formatForFirestore(mockResultValue, serializeTensors, getReadableDate)
+    };
+    addResultToFirestore(db, mockResultValue.tabId, mockResultValue);
+    expect(db.add).toHaveBeenCalledWith(expectedAdd);
+  });
+
+  it('Expects a date key to exist and have the correct value', () => {
+    let testFormat =
+        formatForFirestore(mockResultValue, mockSerialization, mockDate);
+    expect(testFormat.date).toEqual('7/21/2021');
+  });
+
+  it('Expects serialization to cover all nested arrays', () => {
+    const mockSerializedResults =
+        formatForFirestore(mockResultValue, serializeTensors, mockDate);
+    for (kernel of mockSerializedResults.benchmarkInfo.memoryInfo.kernels) {
+      expect(typeof (kernel.inputShapes)).toEqual('string');
+      expect(typeof (kernel.outputShapes)).toEqual('string');
+    }
   });
 });

@@ -12,6 +12,7 @@
     "@tensorflow/tfjs-backend-wasm": "link:../../../tfjs-backend-wasm",
     "@tensorflow/tfjs-vis": "link:../../../tfjs-vis",
     "argparse": "^2.0.1",
+    "firebase": "^8.7.1",
     "jasmine": "^3.7.0",
     "karma": "^4.4.1",
     "karma-browserstack-launcher": "^1.6.0",
@@ -35,7 +36,8 @@
     "build-core": "cd ../../../tfjs-core && yarn && yarn build && yarn build-npm",
     "build-data": "cd ../../../tfjs-data && yarn && yarn build",
     "build-layers": "cd ../../../tfjs-layers && yarn && yarn build && yarn build-npm",
-    "build-vis": "cd ../../../tfjs-vis && yarn && yarn build"
+    "build-vis": "cd ../../../tfjs-vis && yarn && yarn build",
+    "run-cloud-benchmarks": "node app.js --benchmark='./preconfigured_browser.json' --webDeps --cloud --maxBenchmarks=9 --firestore"
   },
   "license": "Apache-2.0",
   "engines": {

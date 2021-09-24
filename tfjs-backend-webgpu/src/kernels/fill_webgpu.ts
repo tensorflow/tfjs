@@ -15,7 +15,10 @@
  * =============================================================================
  */
 import {util} from '@tensorflow/tfjs-core';
+
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+
 import {WebGPUProgram} from './webgpu_program';
 
 export class FillProgram implements WebGPUProgram {
@@ -24,7 +27,7 @@ export class FillProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  uniforms = 'float value;';
+  uniforms = 'value : f32;';
   workPerThread = 4;
   workGroupSize: [number, number, number] = [16, 1, 1];
   size: number;
@@ -42,12 +45,12 @@ export class FillProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-    void main() {
-      int index = int(gl_GlobalInvocationID.x);
-      for (int i = 0; i < ${this.workPerThread}; i++) {
-        int flatIndex = index * ${this.workPerThread} + i;
-        if (flatIndex < size) {
-          setOutput(flatIndex, float(value));
+    ${getMainHeaderString()} {
+      ${getGlobalIndexString()}
+      for (var i = 0; i < ${this.workPerThread}; i = i + 1) {
+        let flatIndex = index * ${this.workPerThread} + i;
+        if (flatIndex < uniforms.size) {
+          setOutputFlat(flatIndex, uniforms.value);
         }
       }
     }

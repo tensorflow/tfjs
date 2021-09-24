@@ -57,9 +57,9 @@
   },
   {
     "os": "ios",
-    "os_version": "13",
+    "os_version": "14",
     "browser": "iphone",
-    "device": "iPhone XS",
+    "device": "iPhone 12 Pro Max",
     "browser_version": null,
     "real_mobile": true
   },
@@ -68,6 +68,22 @@
     "os_version": "14",
     "browser": "iphone",
     "device": "iPhone 12",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "14",
+    "browser": "iphone",
+    "device": "iPhone XS",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "ios",
+    "os_version": "13",
+    "browser": "iphone",
+    "device": "iPhone XS",
     "browser_version": null,
     "real_mobile": true
   },
@@ -233,6 +249,14 @@
   },
   {
     "os": "android",
+    "os_version": "11.0",
+    "browser": "android",
+    "device": "Google Pixel 5",
+    "browser_version": null,
+    "real_mobile": true
+  },
+  {
+    "os": "android",
     "os_version": "10.0",
     "browser": "android",
     "device": "Samsung Galaxy S20",
@@ -268,14 +292,6 @@
     "os_version": "10.0",
     "browser": "android",
     "device": "Samsung Galaxy A11",
-    "browser_version": null,
-    "real_mobile": true
-  },
-  {
-    "os": "android",
-    "os_version": "11.0",
-    "browser": "android",
-    "device": "Google Pixel 5",
     "browser_version": null,
     "real_mobile": true
   },

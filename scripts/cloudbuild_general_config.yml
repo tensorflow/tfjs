@@ -42,6 +42,23 @@ steps:
   waitFor: ['yarn-common']
   secretEnv: ['BROWSERSTACK_KEY']
 
+# The following steps build the link packages, which are temporary packages
+# that help packages that don't build with Bazel load outputs from packages
+# that build with Bazel.
+- name: 'node:10'
+  dir: 'link-package-core'
+  entrypoint: 'yarn'
+  id: 'yarn-link-package-core'
+  args: ['install']
+  waitFor: ['bazel-tests']
+
+- name: 'node:10'
+  dir: 'link-package'
+  entrypoint: 'yarn'
+  id: 'yarn-link-package'
+  args: ['install']
+  waitFor: ['bazel-tests', 'yarn-link-package-core']
+
 # General configuration
 secrets:
 - kmsKeyName: projects/learnjs-174218/locations/global/keyRings/tfjs/cryptoKeys/enc

@@ -16,7 +16,7 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-import {getCoordsDataType} from '../shader_preprocessor';
+import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -43,7 +43,7 @@ export class SliceProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
 
     this.start = start;
-    this.uniforms = `${getCoordsDataType(start.length)} start; `;
+    this.uniforms = `start : ${getCoordsDataType(start.length)}; `;
     this.shaderKey = 'slice';
     this.size = util.sizeFromShape(this.outputShape);
   }
@@ -54,23 +54,23 @@ export class SliceProgram implements WebGPUProgram {
     let coordSum;
     if (this.start.length === 1) {
       coordSum = this.outputShape.map((_, i) => {
-        return `sourceLoc.${coords[i]} = start + coords.${coords[i]};`;
+        return `sourceLoc = uniforms.start + coords;`;
       });
     } else {
       coordSum = this.outputShape.map((_, i) => {
-        return `sourceLoc.${coords[i]} = start[${i}] + coords.${coords[i]};`;
+        return `sourceLoc.${coords[i]} = uniforms.start[${i}] + coords.${
+            coords[i]};`;
       });
     }
 
     const userCode = `
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
-        if (index < size)
-        {
-          ${dtype} sourceLoc;
-          ${dtype} coords = getOutputCoords();
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        if (index < uniforms.size) {
+          var sourceLoc : ${dtype};
+          let coords = getOutputCoords(globalId, index);
           ${coordSum.join('\n')}
-          setOutput(index, getSource(${sourceCoords}));
+          setOutputFlat(index, getSource(${sourceCoords}));
         }
       }
     `;

@@ -16,6 +16,8 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
+
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -40,14 +42,15 @@ export class GatherProgram implements WebGPUProgram {
     this.shaderKey = `gather`;
     this.size = util.sizeFromShape(this.outputShape);
   }
+
   getUserCode(): string {
-    const sourceCoords = getSourceCoords(this.aShape);
+    const sourceCoords = getSourceCoords(this.aShape, 'i32');
     const userCode = `
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
-        ivec4 resRC = getOutputCoords();
-        if (index < size) {
-          setOutput(index, getA(${sourceCoords}));
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        let resRC = getOutputCoords(globalId, index);
+        if (index < uniforms.size) {
+          setOutputFlat(index, getA(${sourceCoords}));
         }
       }
     `;
@@ -56,12 +59,12 @@ export class GatherProgram implements WebGPUProgram {
 }
 
 // The input and output are always flattened into rank 4 tensors.
-function getSourceCoords(aShape: number[]): string {
+function getSourceCoords(aShape: number[], typePrefix = 'int'): string {
   const currentCoords = ['resRC.x', 'resRC.y', 'resRC.z', 'resRC.w'];
   const sourceCoords = [];
   for (let i = 0; i < aShape.length; i++) {
     if (i === 2) {
-      sourceCoords.push('int(getIndices(resRC.x, resRC.z))');
+      sourceCoords.push(`${typePrefix}(getIndices(resRC.x, resRC.z))`);
     } else {
       sourceCoords.push(`${currentCoords[i]}`);
     }

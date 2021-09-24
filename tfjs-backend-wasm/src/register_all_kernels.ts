@@ -41,6 +41,7 @@ import {cropAndResizeConfig} from './kernels/CropAndResize';
 import {cumsumConfig} from './kernels/Cumsum';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
+import {eluConfig} from './kernels/Elu';
 import {equalConfig} from './kernels/Equal';
 import {expConfig} from './kernels/Exp';
 import {expandDimsConfig} from './kernels/ExpandDims';
@@ -139,6 +140,7 @@ const kernelConfigs: KernelConfig[] = [
   cumsumConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
+  eluConfig,
   equalConfig,
   expConfig,
   expandDimsConfig,

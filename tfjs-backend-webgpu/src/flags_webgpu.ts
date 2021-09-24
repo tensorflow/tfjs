@@ -40,11 +40,6 @@ ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
 ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D', () => false);
 
 /**
- * Whether to use GLSL shading language.
- */
- ENV.registerFlag('WEBGPU_USE_GLSL', () => true);
-
-/**
  * Whether to use conv2dTranspose_naive which directly implement the
  * conv2dTranspose logic rather than using a matmul to simulate.
  */
@@ -68,3 +63,14 @@ ENV.registerFlag('WEBGPU_USE_LOW_POWER_GPU', () => false);
  * Default value is 128.
  */
 ENV.registerFlag('CPU_HANDOFF_SIZE_THRESHOLD', () => 128);
+
+/**
+ * Whether to use a dummy canvas to make profiling tools like PIX work with
+ * TFJS webgpu backend.
+ */
+ENV.registerFlag('WEBGPU_USE_PROFILE_TOOL', () => false);
+
+/**
+ * Whether to use import API.
+ */
+ENV.registerFlag('WEBGPU_USE_IMPORT', () => false);

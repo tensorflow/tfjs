@@ -52,10 +52,14 @@ else
   echo "Publishing version ${RELEASE_VERSION}"
 fi
 
-# Packages to publish.
+# All packages to publish. This includes Bazel packages.
 PACKAGES=("tfjs-core" "tfjs-backend-cpu" "tfjs-backend-webgl" \
 "tfjs-backend-wasm" "tfjs-layers" "tfjs-converter" "tfjs-data" "tfjs" \
 "tfjs-node" "tfjs-node-gpu")
+
+# Packages that build with Bazel
+BAZEL_PACKAGES=("tfjs-core" "tfjs-backend-cpu" "tfjs-tflite" "tfjs-converter"
+"tfjs-backend-webgl")
 
 for package in "${PACKAGES[@]}"
 do
@@ -69,11 +73,17 @@ do
   # Install dependencies.
   yarn
 
-  # Build npm.
-  yarn build-npm for-publish
+  if [[ " ${BAZEL_PACKAGES[@]} " =~ " ${package} " ]]; then
+    # Build and publish to local npm.
+    yarn publish-npm
+  else
+    # Build npm.
+    echo $package
+    yarn build-npm for-publish
 
-  # Publish to local npm.
-  npm publish
+    # Publish to local npm.
+    npm publish
+  fi
   echo "Published ${package}@${RELEASE_VERSION}"
 
   cd ..

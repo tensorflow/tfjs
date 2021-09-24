@@ -125,57 +125,6 @@ fi
 mkdir -p "${DEST_DIR}"
 DEST_DIR="$(cd "${DEST_DIR}" 2>/dev/null && pwd -P)"
 
-# Copy all non-test .py files.
-TMP_DIR="$(mktemp -d)"
-echo "Using temporary directory: ${TMP_DIR}"
-
-PY_FILES=$(find . -name '*.py' ! -name '*_test.py')
-for PY_FILE in ${PY_FILES}; do
-  echo "Copying ${PY_FILE}"
-  PY_DIR=$(dirname "${PY_FILE}")
-  mkdir -p "${TMP_DIR}/${PY_DIR}"
-  cp "${PY_FILE}" "${TMP_DIR}/${PY_DIR}"
-done
-
-# Copy .json files under op_list
-OP_LIST_DIR="tensorflowjs/op_list"
-JSON_FILES=$(find -L "${SCRIPTS_DIR}/${OP_LIST_DIR}" -name '*.json')
-if [[ -z "${JSON_FILES}" ]]; then
-  echo "ERROR: Failed to find any .json files in ${SCRIPTS_DIR}/${OP_LIST_DIR}"
-  echo "You need to run 'yarn gen-json' first."
-  exit 1
-fi
-
-mkdir -p "${TMP_DIR}/${OP_LIST_DIR}"
-echo
-for JSON_FILE in ${JSON_FILES}; do
-  echo "Copying JSON file: $(basename "${JSON_FILE}")"
-  cp "${JSON_FILE}" "${TMP_DIR}/${OP_LIST_DIR}"
-done
-
-# Copy requirements.txt
-echo
-echo "Copying requirements.txt"
-cp "${SCRIPTS_DIR}/requirements.txt" "${TMP_DIR}/"
-
-# Copy requirements.txt
-echo
-echo "Copying extra-requirements.txt"
-cp "${SCRIPTS_DIR}/extra-requirements.txt" "${TMP_DIR}/"
-
-# Copy README.md.
-echo
-echo "Copying README.md"
-cp "${SCRIPTS_DIR}/README.md" "${TMP_DIR}/"
-
-# Copy setup.cfg
-echo
-echo "Copying setup.cfg"
-cp "${SCRIPTS_DIR}/setup.cfg" "${TMP_DIR}/"
-
-echo
-
-
 pip install virtualenv
 
 # Check virtualenv is on path.
@@ -198,20 +147,15 @@ for VENV_PYTHON_BIN in ${VENV_PYTHON_BINS}; do
   source "${TMP_VENV_DIR}/bin/activate"
 
   echo
-  echo "Building wheel for ${VENV_PYTHON_BIN}: $(python --version 2>&1) ..."
+  echo "Looking for wheel for ${VENV_PYTHON_BIN}: $(python --version 2>&1) ..."
+  echo "The wheel should be build with 'bazel build python2_wheel python3_wheel' command"
   echo
-
-  pip install -r "${SCRIPTS_DIR}/requirements.txt"
 
   pushd "${TMP_DIR}" > /dev/null
   echo
 
-  echo "Building wheel for $(python --version 2>&1) ..."
-  echo
-
-  python setup.py bdist_wheel
-  WHEELS=$(ls dist/*.whl)
-  mv dist/*.whl "${DEST_DIR}/"
+  WHEELS=$(ls ../../dist/bin/tfjs-converter/python/*py${VENV_PYTHON_BIN: -1}*.whl)
+  cp ../../dist/bin/tfjs-converter/python/*py${VENV_PYTHON_BIN: -1}*.whl "${DEST_DIR}/"
 
   WHEEL_PATH=""
   echo
