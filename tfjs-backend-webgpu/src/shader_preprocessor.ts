@@ -32,8 +32,9 @@ export function getCoordsDataType(rank: number): string {
   }
 }
 
-type DataTypeWGSL = 'f32'|'i32'|'vec4<f32>'|'vec4<i32>'|'vec4<bool>';
-function mapToTypes(type: DataType, isVec4: boolean): DataTypeWGSL|DataType {
+type WGSLDataType = 'f32'|'i32'|'vec4<f32>'|'vec4<i32>'|'vec4<bool>';
+function mapToWgslTypes(type: DataType, isVec4: boolean): WGSLDataType|
+    DataType {
   if (type === 'float32') {
     return isVec4 ? 'vec4<f32>' : 'f32';
   } else if (type === 'int32') {
@@ -94,7 +95,7 @@ export function makeShader(
     const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
     const outputBufferStr = `
       [[block]] struct Matrix0 {
-        numbers: array<${mapToTypes(outputData.dtype, program.isVec4)}>;
+        numbers: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
       };
       [[block]] struct Uniform {
         size            : i32;
@@ -142,7 +143,7 @@ export function makeShader(
   // Output buffer.
   prefixSnippets.push(`
     [[block]] struct Matrix0 {
-        numbers: array<${mapToTypes(outputData.dtype, program.isVec4)}>;
+        numbers: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
     };
 
     [[group(0), binding(0)]] var<storage, write> result : Matrix0;
@@ -150,7 +151,7 @@ export function makeShader(
   program.variableNames.forEach((x, i) => {
     prefixSnippets.push(`
     [[block]] struct Matrix${1 + i} {
-      numbers: array<${mapToTypes(inputInfo[i].dtype, program.isVec4)}>;
+      numbers: array<${mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
     };
     [[group(0), binding(${1 + i})]] var<storage, read> ${x} : Matrix${1 + i};
     `);
@@ -294,7 +295,7 @@ const SAMPLING_SNIPPETS = `
 function getSetOutputSnippet(
     outShape: number[], outBufferType: DataType, isVec4: boolean): string {
   const outRank = outShape.length;
-  const wgslType = mapToTypes(outBufferType, isVec4);
+  const wgslType = mapToWgslTypes(outBufferType, isVec4);
   let snippet;
   if (isVec4) {
     snippet = `fn setOutputFlat(flatIndex : i32, value : vec4<f32>) {
@@ -350,7 +351,7 @@ function getSetOutputSnippet(
         let flatIndex = getOutputFlatIndex(${type}(${dims.join(', ')}));
         setOutputFlat(flatIndex / 4, value);
       }
-      fn setOutputVectorI32(${
+      fn setOutputI32(${
           dims.map(d => `${d} : i32`).join(', ')}, value : vec4<i32>) {
         let flatIndex = getOutputFlatIndex(${type}(${dims.join(', ')}));
         setOutputFlatI32(flatIndex / 4, value);
