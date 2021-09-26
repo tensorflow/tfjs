@@ -75,7 +75,13 @@ const sentences = [
 ];
 
 function predictFunction(model, input) {
-  if (tf.env().getBool('MODEL_DEBUG')) {
+  let debug = false;
+  try {
+    debug = tf.env().getBool('MODEL_DEBUG');
+  } catch (e) {
+    console.warn(e.message);
+  }
+  if (debug) {
     return model => model.executeAsync(input, null, true);
   } else {
     return model => model.predict(input);
