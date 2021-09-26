@@ -82,11 +82,13 @@ const benchmarks = {
           'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
       return tf.loadGraphModel(url);
     },
-    predictFunc: (inputSize, input) => {
-      return model => model.predict(input);
-    },
-    predictDebugFunc: (inputSize, input) => {
-      return model => model.executeAsync(input, null, true);
+    predictFunc: (inputSize) => {
+      const input = tf.randomNormal([1, 224, 224, 3]);
+      if (tf.env().getBool('MODEL_DEBUG')) {
+        return model => model.executeAsync(input, null, true);
+      } else {
+        return model => model.predict(input);
+      }
     }
   },
   'mesh_128': {

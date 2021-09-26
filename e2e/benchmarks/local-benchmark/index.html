@@ -94,7 +94,6 @@ limitations under the License.
     let warmupTimes = 1;
     // Default do not run any task.
     let task = '';
-    let debug = false;
     function getURLState(url) {
       let params = new URLSearchParams(url);
       const keys = [...params.keys()];
@@ -108,9 +107,6 @@ limitations under the License.
       }
       if (params.has('task')) {
         task = params.get('task');
-      }
-      if (params.has('debug') && params.get('debug') === "true") {
-        debug = true;
       }
       return params;
     }
@@ -137,6 +133,15 @@ limitations under the License.
             tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(true);
           } else {
             tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(false);
+          }
+        }
+        if (tunableFlagsControllers['MODEL_DEBUG'] != null &&
+            urlState.has('MODEL_DEBUG')) {
+          const value = urlState.get('MODEL_DEBUG');
+          if (value === 'true') {
+            tunableFlagsControllers['MODEL_DEBUG'].setValue(true);
+          } else {
+            tunableFlagsControllers['MODEL_DEBUG'].setValue(false);
           }
         }
       }
@@ -469,16 +474,8 @@ limitations under the License.
         }
       }
 
-      const input = tf.randomNormal([1, 224, 224, 3]);
-      if (debug) {
-        try {
-          predict = benchmark.predictDebugFunc(inputSize, input);
-        } catch {
-          throw new Error(`Debug is not supported for model ${state.benchmark}`);
-        }
-      } else {
-        predict = benchmark.predictFunc(inputSize, input);
-      }
+      predict = benchmark.predictFunc(inputSize);
+
       const elapsed = performance.now() - start;
 
       await showMsg(null);
