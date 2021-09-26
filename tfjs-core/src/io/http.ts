@@ -64,7 +64,9 @@ export class HTTPRequest implements IOHandler {
     } else {
       const platform = env().platform;
       this.fetch = platform.fetch;
-      this.loadInSerial = platform.loadInSerial ?? this.loadInSerial;
+      if (platform.loadInSerial) {
+        this.loadInSerial = platform.loadInSerial;
+      }
     }
 
     assert(
