@@ -82,10 +82,10 @@ const benchmarks = {
           'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
       return tf.loadGraphModel(url);
     },
-    predictFunc: (input) => {
+    predictFunc: (inputSize, input) => {
       return model => model.predict(input);
     },
-    predictDebugFunc: (input) => {
+    predictDebugFunc: (inputSize, input) => {
       return model => model.executeAsync(input, null, true);
     }
   },

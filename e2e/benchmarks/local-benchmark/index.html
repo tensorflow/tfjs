@@ -109,10 +109,8 @@ limitations under the License.
       if (params.has('task')) {
         task = params.get('task');
       }
-      if (params.has('debug')) {
-        if(params.get('debug') === "true") {
-          debug = true;
-        }
+      if (params.has('debug') && params.get('debug') === "true") {
+        debug = true;
       }
       return params;
     }
@@ -197,17 +195,12 @@ limitations under the License.
             inferenceInput = generateInputFromDef(
               state.inputs, model instanceof tf.GraphModel);
           }
-          const referencePrediction = predict(model, inferenceInput, debug);
+          const referencePrediction = await predict(model, inferenceInput);
           referenceData = await getPredictionData(referencePrediction);
 
           await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
-          let prediction;
-          if (debug) {
-            prediction = await predictDebug(model, inferenceInput);
-          } else {
-            prediction = await predict(model, inferenceInput, debug);
-          }
+          const prediction = await predict(model, inferenceInput);
           predictionData = await getPredictionData(prediction);
         } catch (e) {
           showMsg('Error: ' + e.message);
@@ -250,7 +243,7 @@ limitations under the License.
     const parameterTable = document.querySelector('#parameters tbody');
     const modelInputsTable = document.querySelector('#modelInputs tbody');
 
-    let model, predict, predictDebug, chartWidth;
+    let model, predict, chartWidth;
 
     async function showMsg(message) {
       if (message != null) {
@@ -476,15 +469,15 @@ limitations under the License.
         }
       }
 
-      // For model debug mode, using same inputs for the reference and actual.
-      // For model perf mode, using different inputs for the reference and
-      // actual.
       const input = tf.randomNormal([1, 224, 224, 3]);
       if (debug) {
-        predict = benchmark.predictFunc(input);
-        predictDebug = benchmark.predictDebugFunc(input);
+        try {
+          predict = benchmark.predictDebugFunc(inputSize, input);
+        } catch {
+          throw new Error(`Debug is not supported for model ${state.benchmark}`);
+        }
       } else {
-        predict = benchmark.predictFunc(input);
+        predict = benchmark.predictFunc(inputSize, input);
       }
       const elapsed = performance.now() - start;
 
