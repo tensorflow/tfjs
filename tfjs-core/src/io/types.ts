@@ -497,6 +497,13 @@ export interface LoadOptions {
    */
   weightUrlConverter?: (weightFileName: string) => Promise<string>;
 
+  /**
+   * Whether the module or model is to be loaded from in serial.
+   *
+   * Setting this to `true` ensures one request at a time
+   *
+   * Default: `false`.
+   */
   loadinSerial?: boolean;
 }
 
