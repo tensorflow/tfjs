@@ -496,6 +496,8 @@ export interface LoadOptions {
    * With this func you can convert the weight file name to any URL.
    */
   weightUrlConverter?: (weightFileName: string) => Promise<string>;
+
+  loadinSerial?: boolean;
 }
 
 /**

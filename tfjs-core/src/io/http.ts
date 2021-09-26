@@ -36,6 +36,7 @@ export class HTTPRequest implements IOHandler {
   protected readonly requestInit: RequestInit;
 
   private readonly fetch: Function;
+  private readonly loadInSerial: boolean = false;
   private readonly weightUrlConverter: (weightName: string) => Promise<string>;
 
   readonly DEFAULT_METHOD = 'POST';
@@ -61,7 +62,9 @@ export class HTTPRequest implements IOHandler {
               'https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)');
       this.fetch = loadOptions.fetchFunc;
     } else {
-      this.fetch = env().platform.fetch;
+      const platform = env().platform;
+      this.fetch = platform.fetch;
+      this.loadInSerial = platform.loadInSerial ?? this.loadInSerial;
     }
 
     assert(
@@ -211,7 +214,8 @@ export class HTTPRequest implements IOHandler {
     const buffers = await loadWeightsAsArrayBuffer(fetchURLs, {
       requestInit: this.requestInit,
       fetchFunc: this.fetch,
-      onProgress: this.onProgress
+      onProgress: this.onProgress,
+      loadinSerial: this.loadInSerial
     });
     return [weightSpecs, concatenateArrayBuffers(buffers)];
   }

@@ -43,6 +43,16 @@ export async function loadWeightsAsArrayBuffer(
   const fetchFunc = loadOptions.fetchFunc == null ? env().platform.fetch :
                                                     loadOptions.fetchFunc;
 
+  if (loadOptions.loadinSerial) {
+    const buffers: ArrayBuffer[] = [];
+    for (const fetchURL of fetchURLs) {
+      const res = await fetchFunc(fetchURL, loadOptions.requestInit, { isBinary: true })
+      buffers.push(await res.arrayBuffer())
+    }
+
+    return buffers;
+  }
+
   // Create the requests for all of the weights in parallel.
   const requests = fetchURLs.map(
       fetchURL =>
