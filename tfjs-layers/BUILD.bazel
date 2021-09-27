@@ -58,6 +58,7 @@ tfjs_web_test(
         "bs_android_9",
         "win_10_chrome",
     ],
+    random = "false",
     static_files = [
         # Listed here so sourcemaps are served
         "//tfjs-layers/src:tfjs-layers_test_bundle",

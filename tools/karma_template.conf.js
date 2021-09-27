@@ -98,6 +98,6 @@ module.exports = function(config) {
       chrome_debugging:
       {base: 'Chrome', flags: ['--remote-debugging-port=9333']}
     },
-    client: {args: TEMPLATE_args},
+    client: {args: TEMPLATE_args, jasmine: {random: TEMPLATE_random}},
   });
 }
