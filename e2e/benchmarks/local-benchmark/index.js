@@ -31,8 +31,7 @@ const BACKEND_FLAGS_MAP = {
   ],
 };
 if (tf.engine().backendNames().includes('webgpu')) {
-  BACKEND_FLAGS_MAP['webgpu'] =
-      ['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 'WEBGPU_USE_GLSL'];
+  BACKEND_FLAGS_MAP['webgpu'] = ['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'];
 }
 
 const TUNABLE_FLAG_NAME_MAP = {
@@ -52,7 +51,6 @@ const TUNABLE_FLAG_NAME_MAP = {
 if (tf.engine().backendNames().includes('webgpu')) {
   TUNABLE_FLAG_NAME_MAP['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'] =
       'deferred submit batch size';
-  TUNABLE_FLAG_NAME_MAP['WEBGPU_USE_GLSL'] = 'use GLSL';
 }
 
 /**

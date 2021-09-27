@@ -546,6 +546,12 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    include: 'split',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
     include: 'sqrt',
     excludes: [
       'gradient'  // gradient function not found.
@@ -553,6 +559,33 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {
     include: 'depthToSpace',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
+    include: 'logicalNot',
+    excludes: [
+      'Tensor6D',  // Not yet implemented.
+      'gradient'   // gradient function not found.
+    ]
+  },
+  {
+    include: 'flipLeftRight',
+  },
+  {
+    include: 'rotateWithOffset',
+  },
+  {
+    include: 'sparseToDense',
+    excludes: [
+      // TODO: Fix 0-sized buffer binding on WebGPU
+      '0-sized',  // Not yet implemented.
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
+    include: 'scatterND',
     excludes: [
       'gradient'  // gradient function not found.
     ]
@@ -591,10 +624,28 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {startsWith: 'memory'},
   {
+    startsWith: 'sin',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
+    startsWith: 'cos',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
     startsWith: 'tensor',
     excludes: [
       'grad',        // gradient function not found.
       'bool tensor'  // Expected object not to have properties.
+    ]
+  },
+  {
+    startsWith: 'tanh',
+    excludes: [
+      'grad',  // gradient function not found.
     ]
   }
 ];

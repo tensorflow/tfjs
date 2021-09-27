@@ -19,7 +19,7 @@ import {env} from '@tensorflow/tfjs-core';
 
 const ENV = env();
 
-/** The batched command encoders size in the device queue. */
+/** The batched dispatching calls size in the device queue. */
 ENV.registerFlag('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', () => 15);
 
 /**
@@ -38,11 +38,6 @@ ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
  * than using a matmul to simulate.
  */
 ENV.registerFlag('WEBGPU_USE_NAIVE_CONV2D', () => false);
-
-/**
- * Whether to use GLSL shading language.
- */
-ENV.registerFlag('WEBGPU_USE_GLSL', () => false);
 
 /**
  * Whether to use conv2dTranspose_naive which directly implement the
