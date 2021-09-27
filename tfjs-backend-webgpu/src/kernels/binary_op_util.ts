@@ -118,7 +118,7 @@ const POW = `
   if (b == 0.0) {
     return 1.0;
   }
-  if (i32(round(mod(b, 2.0))) != 1) {
+  if (round(abs(b)) % 2.0 != 1.0) {
     return pow(abs(a), b);
   }
   return sign(a) * pow(abs(a), b);
