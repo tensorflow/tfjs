@@ -239,9 +239,9 @@ filegroup(
         "make install",
         "ln -s bazel_install_py2/bin/python python_bin",
     ],
-    sha256 = "a4f05a0720ce0fd92626f0278b6b433eee9a6173ddf2bced7957dfb599a5ece1",
-    strip_prefix = "Python-2.7.13",
-    urls = ["https://www.python.org/ftp/python/2.7.13/Python-2.7.13.tgz"],
+    sha256 = "da3080e3b488f648a3d7a4560ddee895284c3380b11d6de75edb986526b9a814",
+    strip_prefix = "Python-2.7.18",
+    urls = ["https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz"],
 )
 
 register_toolchains("//tfjs-converter/python:tfjs_py_toolchain")

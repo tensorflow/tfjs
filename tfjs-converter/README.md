@@ -441,11 +441,11 @@ version is located.
 
 To build **TensorFlow.js converter** from source, we need to prepare the dev environment and clone the project.
 
-Bazel builds Python from source, so we install the dependencies required to build it. Since we will be using pip and C extensions, we also install the ssl and foreign functions development packages. On debian, this is done with:
+Bazel builds Python from source, so we install the dependencies required to build it. Since we will be using pip and C extensions, we also install the ssl, foreign functions, and zlib development packages. On debian, this is done with:
 
 ```bash
 sudo apt-get build-dep python3
-sudo apt install libssl-dev libffi-dev
+sudo apt install libssl-dev libffi-dev zlib1g-dev
 ```
 
 See the [python developer guide](https://devguide.python.org/setup/#install-dependencies) for instructions on installing these for other platforms.
