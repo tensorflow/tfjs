@@ -118,13 +118,13 @@ const POW = `
   if (b == 0.0) {
     return 1.0;
   }
-  if (i32(round(mod(b, 2.0))) != 1) {
+  if (round(abs(b) % 2.0) != 1.0) {
     return pow(abs(a), b);
   }
   return sign(a) * pow(abs(a), b);
   `;
 const POW_VEC4 = `
-  let isModRound1Bool = vec4<i32>(round(modVec4(b, vec4<f32>(2.0)))) == vec4<i32>(1);
+  let isModRound1Bool = vec4<i32>(round(abs(b) % vec4<f32>(2.0))) == vec4<i32>(1);
   let isModRound1 = vec4<f32>(isModRound1Bool);
   let multiplier = sign(a) * isModRound1 + (vec4<f32>(1.0) - isModRound1);
   var resultTemp = multiplier * pow(abs(a), b);
