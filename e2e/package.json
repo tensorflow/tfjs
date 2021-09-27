@@ -16,7 +16,7 @@
     "@tensorflow/tfjs-converter": "link:../link-package/node_modules/@tensorflow/tfjs-converter",
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
     "@tensorflow/tfjs-data": "link:../tfjs-data",
-    "@tensorflow/tfjs-layers": "link:../tfjs-layers",
+    "@tensorflow/tfjs-layers": "link:../link-package/node_modules/@tensorflow/tfjs-layers",
     "@tensorflow/tfjs-node": "link:../tfjs-node",
     "@types/detect-browser": "^4.0.0",
     "@types/jasmine": "~3.0.0",
