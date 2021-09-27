@@ -204,19 +204,6 @@ const SHADER_PREFIX = `
     return res;
   }
 
-  // The GLSL mod and WGSL '%' are defined differently.
-  // GLSL mod returns the value of x modulo y. This is computed as x - y * floor(x/y).
-  // WGSL '%' is floating point remainder, where sign of non-zero result matches sign of e1.
-  // Component-wise when T is a vector. Result equals to: e1 - e2 * trunc(e1 / e2).
-  // The below mod and modVec4 can be used as alternatives to GLSL's mod, not WGSL's '%'.
-  fn mod(a : f32, b : f32) -> f32 {
-    return a - b * floor(a/b);
-  }
-
-  fn modVec4(a : vec4<f32>, b : vec4<f32>) -> vec4<f32> {
-    return a - b * floor(a/b);
-  }
-
   fn isNanCustom(val : f32) -> bool {
     if (val > 0.0) {
       return false;
