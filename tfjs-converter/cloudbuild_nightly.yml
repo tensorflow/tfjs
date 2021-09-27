@@ -1,20 +1,20 @@
 steps:
 
 # Install common dependencies.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   entrypoint: 'yarn'
   id: 'yarn-common'
   args: ['install']
 
 # Install converter dependencies
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-converter'
   entrypoint: 'yarn'
   id: 'yarn'
   args: ['install']
   waitFor: ['yarn-common']
 
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   id: 'create-pips'
   entrypoint: 'bash'
   args:
