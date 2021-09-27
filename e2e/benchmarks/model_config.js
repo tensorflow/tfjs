@@ -82,7 +82,7 @@ function predictFunction(model, input) {
     console.warn(e.message);
   }
   if (debug) {
-    return model => model.executeAsync(input, null, true);
+    return model => model.executeAsync(input);
   } else {
     return model => model.predict(input);
   }
