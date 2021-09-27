@@ -365,6 +365,10 @@ export class GraphModel implements InferenceModel {
     return result.length > 1 ? result : result[0];
   }
 
+  disposeDebugTensors() {
+    this.executor.disposeDebugTensors();
+  }
+
   private convertTensorMapToTensorsMap(map: NamedTensorMap): NamedTensorsMap {
     return Object.keys(map).reduce((newMap: NamedTensorsMap, key) => {
       newMap[key] = [map[key]];

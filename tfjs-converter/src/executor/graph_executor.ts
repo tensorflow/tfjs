@@ -45,6 +45,7 @@ export class GraphExecutor implements FunctionExecutor {
   private _functions: {[key: string]: Graph} = {};
   private _functionExecutorMap: {[key: string]: FunctionExecutor} = {};
   private _resourceManager: ResourceManager;
+  private debugTensors: Tensor[] = [];
 
   get weightIds(): number[] {
     return this.parent ? this.parent.weightIds : this._weightIds;
@@ -296,6 +297,8 @@ export class GraphExecutor implements FunctionExecutor {
               if (count === 1) {
                 if (!keepTensorForDebug) {
                   tensor.dispose();
+                } else {
+                  this.debugTensors.push(tensor);
                 }
                 delete intermediateTensorConsumerCount[tensor.id];
               } else if (count != null) {
@@ -326,6 +329,11 @@ export class GraphExecutor implements FunctionExecutor {
     return this._executeAsync(inputs, outputs, keepTensorForDebug);
   }
 
+  disposeDebugTensors() {
+    this.debugTensors.forEach(tensor => {
+      tensor.dispose();
+    });
+  }
   /**
    * Executes the inference for given input tensors in Async fashion.
    * @param inputs Tensor map for the model inputs, keyed by the input node

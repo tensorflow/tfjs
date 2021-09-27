@@ -216,6 +216,8 @@ limitations under the License.
         try {
           await showMsg(null);
           expectObjectsClose(predictionData, referenceData);
+          // For model debug mode. Otherwise this is nop.
+          model.disposeDebugTensors();
           match = true;
         } catch (e) {
           match = false;
