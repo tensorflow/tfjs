@@ -15,22 +15,19 @@
  * =============================================================================
  */
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class TransformProgram implements WebGPUProgram {
   variableNames = ['Image', 'Transforms'];
   outputShape: number[];
-  uniforms = 'int interpolationModeId; int fillModeId; float fillValue;';
-  uniformsWgsl =
-      'interpolationModeId : i32; fillModeId : i32; fillValue : f32;';
+  uniforms = 'interpolationModeId : i32; fillModeId : i32; fillValue : f32;';
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
-  useWgsl: boolean;
 
   constructor(outShape: [number, number, number, number]) {
     this.outputShape = outShape;
@@ -38,128 +35,9 @@ export class TransformProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = 'transform';
-    this.useWgsl = getUseWgsl();
   }
+
   getUserCode(): string {
-    const userCode = `
-            float mapCoord(float outCoord, float len) {
-              float inCoord = outCoord;
-              if(fillModeId == 2) {
-                if (inCoord < 0.0) {
-                  if (len <= 1.0) {
-                    inCoord = 0.0;
-                  } else {
-                    float sz2 = 2.0 * len;
-                    if (inCoord < sz2) {
-                      inCoord = sz2 * float(int(float(-inCoord / sz2))) +
-                      inCoord;
-                    }
-                    inCoord = inCoord < -len ? inCoord + sz2 : -inCoord - 1.0;
-                  }
-                } else if (inCoord > len - 1.0) {
-                  if (len <= 1.0) {
-                    inCoord = 0.0;
-                  } else {
-                    float sz2 = 2.0 * len;
-                    inCoord -= sz2 * float(int(float(inCoord / sz2)));
-                    if (inCoord >= len) {
-                      inCoord = sz2 - inCoord - 1.0;
-                    }
-                  }
-                }
-                return clamp(inCoord, 0.0, len - 1.0);
-              } else if (fillModeId == 3) {
-                if (inCoord < 0.0) {
-                  if (len <= 1.0) {
-                    inCoord = 0.0;
-                  } else {
-                    float sz = len - 1.0;
-                    inCoord += len * (float(int(float(-inCoord / sz))) + 1.0);
-                  }
-                } else if (inCoord > len - 1.0) {
-                  if (len <= 1.0) {
-                    inCoord = 0.0;
-                  } else {
-                    float sz = len - 1.0;
-                    inCoord -= len * float(int(float(inCoord / sz)));
-                  }
-                }
-                return clamp(inCoord, 0.0, len - 1.0);
-              } else if (fillModeId == 4) {
-                return clamp(outCoord, 0.0, len - 1.0);
-              } else {
-                return outCoord;
-              }
-            }
-
-            float readWithFillValue(int batch, int coordY, int coordX,
-              int channel) {
-              float outputValue;
-              if (0 <= coordY && coordY < imageShape[1] && 0 <= coordX && coordX < imageShape[2]) {
-                  outputValue = getImage(batch, coordY, coordX, channel);
-              } else {
-                outputValue = fillValue;
-              }
-              return outputValue;
-            }
-
-          void main() {
-            ivec4 coords = getOutputCoords();
-            if (coordsInBounds(coords, outShape)) {
-              float outputValue;
-              int batch = coords[0];
-              int x = coords[2];
-              int y = coords[1];
-              int channel = coords[3];
-              float xf = float(x);
-              float yf = float(y);
-              float a1 = getTransforms(batch, 0);
-              float a2 = getTransforms(batch, 1);
-              float a3 = getTransforms(batch, 2);
-              float b1 = getTransforms(batch, 3);
-              float b2 = getTransforms(batch, 4);
-              float b3 = getTransforms(batch, 5);
-              float c1 = getTransforms(batch, 6);
-              float c2 = getTransforms(batch, 7);
-              float projection = c1 * xf + c2 * yf + 1.0;
-              if (projection == 0.0) {
-                outputValue = fillValue;
-              } else {
-                float inX = (a1 * xf + a2 * yf + a3) / projection;
-                float inY = (b1 * xf + b2 * yf + b3) / projection;
-                float mapX = mapCoord(inX, float(imageShape[2]));
-                float mapY = mapCoord(inY, float(imageShape[1]));
-
-                if (interpolationModeId == 1) {
-                  int coordY = int(round(mapY));
-                  int coordX = int(round(mapX));
-                  outputValue = readWithFillValue(batch, coordY, coordX,
-                    channel);
-                } else {
-                  float yFloor = floor(mapY);
-                  float xFloor = floor(mapX);
-                  float yCeil = yFloor + 1.0;
-                  float xCeil = xFloor + 1.0;
-                  float valueYFloor = (xCeil - mapX) *
-                  readWithFillValue(batch, int(yFloor), int(xFloor), channel) +
-                  (mapX - xFloor) *
-                  readWithFillValue(batch, int(yFloor), int(xCeil), channel);
-                  float valueYCeil = (xCeil - mapX) *
-                  readWithFillValue(batch, int(yCeil), int(xFloor), channel) +
-                  (mapX - xFloor) *
-                  readWithFillValue(batch, int(yCeil), int(xCeil), channel);
-                  outputValue = (yCeil - mapY) * valueYFloor +
-                  (mapY - yFloor) * valueYCeil;
-                }
-              }
-              setOutput(coords[0], coords[1], coords[2], coords[3], outputValue);
-            }
-          }
-        `;
-    return userCode;
-  }
-
-  getUserCodeWgsl(): string {
     const userCode = `
           fn mapCoord(outCoord : f32, len : f32) -> f32{
             var inCoord = outCoord;
@@ -216,16 +94,16 @@ export class TransformProgram implements WebGPUProgram {
           fn readWithFillValue(batch : i32, coordY : i32, coordX : i32,
             channel : i32) -> f32 {
             var outputValue : f32;
-            if (0 <= coordY && coordY < i32(uniforms.imageShape[1]) && 0 <= coordX && coordX < i32(uniforms.imageShape[2])) {
-                outputValue = getImage(u32(batch), u32(coordY), u32(coordX), u32(channel));
+            if (0 <= coordY && coordY < uniforms.imageShape[1] && 0 <= coordX && coordX < uniforms.imageShape[2]) {
+                outputValue = getImage(batch, coordY, coordX, channel);
             } else {
               outputValue = uniforms.fillValue;
             }
             return outputValue;
           }
 
-          ${getMainHeaderStringWgsl()} {
-            ${getGlobalIndexStringWgsl()}
+          ${getMainHeaderString()} {
+            ${getGlobalIndexString()}
             let coords = getOutputCoords(globalId, index);
             if (coordsInBounds4D(coords, uniforms.outShape)) {
               var outputValue : f32;
@@ -235,14 +113,14 @@ export class TransformProgram implements WebGPUProgram {
               let channel = coords[3];
               let xf = f32(x);
               let yf = f32(y);
-              let a1 = getTransforms(batch, 0u);
-              let a2 = getTransforms(batch, 1u);
-              let a3 = getTransforms(batch, 2u);
-              let b1 = getTransforms(batch, 3u);
-              let b2 = getTransforms(batch, 4u);
-              let b3 = getTransforms(batch, 5u);
-              let c1 = getTransforms(batch, 6u);
-              let c2 = getTransforms(batch, 7u);
+              let a1 = getTransforms(batch, 0);
+              let a2 = getTransforms(batch, 1);
+              let a3 = getTransforms(batch, 2);
+              let b1 = getTransforms(batch, 3);
+              let b2 = getTransforms(batch, 4);
+              let b3 = getTransforms(batch, 5);
+              let c1 = getTransforms(batch, 6);
+              let c2 = getTransforms(batch, 7);
               let projection = c1 * xf + c2 * yf + 1.0;
               if (projection == 0.0) {
                 outputValue = uniforms.fillValue;
@@ -255,21 +133,21 @@ export class TransformProgram implements WebGPUProgram {
                 if (uniforms.interpolationModeId == 1) {
                   let coordY = i32(round(mapY));
                   let coordX = i32(round(mapX));
-                  outputValue = readWithFillValue(i32(batch), coordY, coordX,
-                    i32(channel));
+                  outputValue = readWithFillValue(batch, coordY, coordX,
+                    channel);
                 } else {
                   let yFloor = floor(mapY);
                   let xFloor = floor(mapX);
                   let yCeil = yFloor + 1.0;
                   let xCeil = xFloor + 1.0;
                   let valueYFloor = (xCeil - mapX) *
-                  readWithFillValue(i32(batch), i32(yFloor), i32(xFloor), i32(channel)) +
+                  readWithFillValue(batch, i32(yFloor), i32(xFloor), channel) +
                   (mapX - xFloor) *
-                  readWithFillValue(i32(batch), i32(yFloor), i32(xCeil), i32(channel));
+                  readWithFillValue(batch, i32(yFloor), i32(xCeil), channel);
                   let valueYCeil = (xCeil - mapX) *
-                  readWithFillValue(i32(batch), i32(yCeil), i32(xFloor), i32(channel)) +
+                  readWithFillValue(batch, i32(yCeil), i32(xFloor), channel) +
                   (mapX - xFloor) *
-                  readWithFillValue(i32(batch), i32(yCeil), i32(xCeil), i32(channel));
+                  readWithFillValue(batch, i32(yCeil), i32(xCeil), channel);
                   outputValue = (yCeil - mapY) * valueYFloor +
                   (mapY - yFloor) * valueYCeil;
                 }

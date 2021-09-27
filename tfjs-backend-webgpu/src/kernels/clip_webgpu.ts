@@ -17,24 +17,22 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class ClipProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   variableNames = ['A'];
-  uniforms = 'float minVal; float maxVal;';
-  uniformsWgsl = 'minVal : f32; maxVal : f32;';
+  uniforms = 'minVal : f32; maxVal : f32;';
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
   minVal: number;
   maxVal: number;
   size: number;
-  useWgsl: boolean;
 
   constructor(outputShape: number[]) {
     this.outputShape = outputShape;
@@ -44,30 +42,12 @@ export class ClipProgram implements WebGPUProgram {
 
     this.shaderKey = 'clip';
     this.size = util.sizeFromShape(this.outputShape);
-    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
     const userCode = `
-      void main() {
-        int index = getGlobalIndex();
-        if(index < size) {
-          float value = getAAtOutCoords();
-          if (isnan(value)) {
-            setOutput(index, value);
-            return;
-          }
-          setOutput(index, clamp(value, minVal, maxVal));
-        }
-      }
-    `;
-    return userCode;
-  }
-
-  getUserCodeWgsl(): string {
-    const userCode = `
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         if(index < uniforms.size) {
           let value = getAAtOutCoordsByGlobalId(globalId, index);
           if (isNanCustom(value)) {

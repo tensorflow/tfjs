@@ -66,7 +66,7 @@ describeWithFlags('toTexture', RN_ENVS, () => {
     const texture = await toTexture(gl, inTensor);
 
     const outTensor = fromTexture(
-        gl, texture, {width, height, depth}, {width, height, depth});
+        gl, texture, {width, height, depth}, {width, height, depth}, true);
 
     expectArraysEqual(await inTensor.data(), await outTensor.data());
     expectArraysEqual(inTensor.shape, outTensor.shape);
@@ -168,6 +168,7 @@ describeWithFlags('fromTexture:nearestNeighbor', RN_ENVS, () => {
           width: inShape[1],
           depth: inShape[2],
         },
+        true,
         {
           alignCorners: false,
           interpolation: 'nearest_neighbor',
@@ -192,6 +193,7 @@ describeWithFlags('fromTexture:nearestNeighbor', RN_ENVS, () => {
           width: inShape[1],
           depth: inShape[2],
         },
+        true,
         {
           alignCorners: true,
           interpolation: 'nearest_neighbor',
@@ -231,6 +233,7 @@ describeWithFlags('fromTexture:nearestNeighbor', RN_ENVS, () => {
              width: expectedShape[1],
              depth: expectedShape[2],
            },
+           true,
            {alignCorners: false, interpolation: 'nearest_neighbor'},
        );
 
@@ -267,6 +270,7 @@ describeWithFlags('fromTexture:nearestNeighbor', RN_ENVS, () => {
              width: expectedShape[1],
              depth: expectedShape[2],
            },
+           true,
            {alignCorners: true, interpolation: 'nearest_neighbor'},
        );
 
@@ -304,6 +308,7 @@ describeWithFlags('fromTexture:nearestNeighbor', RN_ENVS, () => {
           width: expectedShape[1],
           depth: expectedShape[2],
         },
+        true,
         {alignCorners: false, interpolation: 'nearest_neighbor'},
     );
 
@@ -342,6 +347,7 @@ describeWithFlags('fromTexture:nearestNeighbor', RN_ENVS, () => {
           width: expectedShape[1],
           depth: expectedShape[2],
         },
+        true,
         {alignCorners: true, interpolation: 'nearest_neighbor'},
     );
 
@@ -393,6 +399,7 @@ describeWithFlags('fromTexture:nearestNeighbor', RN_ENVS, () => {
           width: inShape[1],
           depth: 3,
         },
+        true,
         {
           alignCorners: true,
           interpolation: 'nearest_neighbor',
@@ -465,6 +472,7 @@ describeWithFlags('fromTexture:bilinear', RN_ENVS, () => {
           width: inShape[1],
           depth: inShape[2],
         },
+        true,
         {
           alignCorners: false,
           interpolation: 'bilinear',
@@ -489,6 +497,7 @@ describeWithFlags('fromTexture:bilinear', RN_ENVS, () => {
           width: inShape[1],
           depth: inShape[2],
         },
+        true,
         {
           alignCorners: true,
           interpolation: 'bilinear',
@@ -527,6 +536,7 @@ describeWithFlags('fromTexture:bilinear', RN_ENVS, () => {
           width: expectedShape[1],
           depth: expectedShape[2],
         },
+        true,
         {alignCorners: false, interpolation: 'bilinear'},
     );
 
@@ -562,6 +572,7 @@ describeWithFlags('fromTexture:bilinear', RN_ENVS, () => {
           width: expectedShape[1],
           depth: expectedShape[2],
         },
+        true,
         {alignCorners: true, interpolation: 'bilinear'},
     );
 
@@ -599,6 +610,7 @@ describeWithFlags('fromTexture:bilinear', RN_ENVS, () => {
           width: expectedShape[1],
           depth: expectedShape[2],
         },
+        true,
         {alignCorners: false, interpolation: 'bilinear'},
     );
 
@@ -636,6 +648,7 @@ describeWithFlags('fromTexture:bilinear', RN_ENVS, () => {
           width: expectedShape[1],
           depth: expectedShape[2],
         },
+        true,
         {alignCorners: true, interpolation: 'bilinear'},
     );
 
@@ -687,6 +700,7 @@ describeWithFlags('fromTexture:bilinear', RN_ENVS, () => {
           width: inShape[1],
           depth: 3,
         },
+        true,
         {
           alignCorners: true,
           interpolation: 'bilinear',

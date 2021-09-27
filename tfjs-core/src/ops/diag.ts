@@ -38,7 +38,7 @@ import {op} from './operation';
  * tf.diag(x).print()
  * ```
  * ```js
- * const x = tf.tensor1d([1, 2, 3, 4, 5, 6, 6, 8], [4, 2])
+ * const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 6, 8], [4, 2])
  *
  * tf.diag(x).print()
  * ```
