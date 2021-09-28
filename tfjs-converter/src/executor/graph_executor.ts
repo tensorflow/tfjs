@@ -45,7 +45,7 @@ export class GraphExecutor implements FunctionExecutor {
   private _functions: {[key: string]: Graph} = {};
   private _functionExecutorMap: {[key: string]: FunctionExecutor} = {};
   private _resourceManager: ResourceManager;
-  private debugTensors: Tensor[] = [];
+  private intermediateTensors: NamedTensorsMap = {};
   private keepTensorForDebug = false;
 
   get weightIds(): number[] {
@@ -143,12 +143,6 @@ export class GraphExecutor implements FunctionExecutor {
             new GraphExecutor(graph.functions[name], this);
       });
     }
-
-    try {
-      this.keepTensorForDebug = env().getBool('MODEL_DEBUG');
-    } catch (e) {
-      console.warn(e.message);
-    }
   }
 
   private getCompilationKey(inputs: Node[], outputs: Node[]): string {
@@ -206,7 +200,7 @@ export class GraphExecutor implements FunctionExecutor {
         names.map(name => this.graph.nodes[parseNodeName(name)[0]]);
     const outputNodeNames = outputs.map(name => parseNodeName(name)[0]);
     let outputNodes = outputNodeNames.map(name => this.graph.nodes[name]);
-
+    this.resetIntermediateTensors();
     // If no outputs are specified, then use the default outputs of the model.
     if (outputNodes.length === 0) {
       outputNodes = this._outputs;
@@ -304,7 +298,11 @@ export class GraphExecutor implements FunctionExecutor {
                 if (!this.keepTensorForDebug) {
                   tensor.dispose();
                 } else {
-                  this.debugTensors.push(tensor);
+                  if (this.intermediateTensors[node.name]) {
+                    this.intermediateTensors[node.name].push(tensor);
+                  } else {
+                    this.intermediateTensors[node.name] = [tensor];
+                  }
                 }
                 delete intermediateTensorConsumerCount[tensor.id];
               } else if (count != null) {
@@ -333,10 +331,18 @@ export class GraphExecutor implements FunctionExecutor {
     return this._executeAsync(inputs, outputs);
   }
 
-  disposeDebugTensors() {
-    this.debugTensors.forEach(tensor => {
-      tensor.dispose();
-    });
+  disposeIntermediateTensors() {
+    Object.keys(this.intermediateTensors)
+        .forEach(
+            key => this.intermediateTensors[key].forEach(
+                tensor => tensor.dispose()));
+  }
+
+  private resetIntermediateTensors() {
+    for (const key in this.intermediateTensors) {
+      this.intermediateTensors[key].forEach(tensor => tensor.dispose());
+      delete this.intermediateTensors[key];
+    }
   }
 
   /**
@@ -364,6 +370,14 @@ export class GraphExecutor implements FunctionExecutor {
       outputs = this.mapOutputs(outputs);
       this.checkOutputs(outputs);
     }
+
+    // For model debug.
+    try {
+      this.keepTensorForDebug = env().getBool('KEEP_INTERMEDIATE_TENSORS');
+    } catch (e) {
+      console.warn(e.message);
+    }
+    this.resetIntermediateTensors();
 
     const context = new ExecutionContext(
         this.weightMap, tensorArrayMap, tensorListMap,
