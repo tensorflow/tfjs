@@ -24,8 +24,8 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "build_bazel_rules_nodejs",
-    sha256 = "8f5f192ba02319254aaf2cdcca00ec12eaafeb979a80a1e946773c520ae0a2c9",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/3.7.0/rules_nodejs-3.7.0.tar.gz"],
+    sha256 = "4e1a5633267a0ca1d550cced2919dd4148575c0bafd47608b88aea79c41b5ca3",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/4.2.0/rules_nodejs-4.2.0.tar.gz"],
 )
 
 load("@build_bazel_rules_nodejs//:index.bzl", "yarn_install")
@@ -54,38 +54,10 @@ browser_repositories(
     chromium = True,
 )
 
-# Install esbuild
-_ESBUILD_VERSION = "0.12.1"  # reminder: update SHAs below when changing this value
+# Esbuild toolchain
+load("@build_bazel_rules_nodejs//toolchains/esbuild:esbuild_repositories.bzl", "esbuild_repositories")
 
-http_archive(
-    name = "esbuild_darwin",
-    build_file_content = """exports_files(["bin/esbuild"])""",
-    sha256 = "efb34692bfa34db61139eb8e46cd6cf767a42048f41c8108267279aaf58a948f",
-    strip_prefix = "package",
-    urls = [
-        "https://registry.npmjs.org/esbuild-darwin-64/-/esbuild-darwin-64-%s.tgz" % _ESBUILD_VERSION,
-    ],
-)
-
-http_archive(
-    name = "esbuild_windows",
-    build_file_content = """exports_files(["esbuild.exe"])""",
-    sha256 = "10439647b11c7fd1d9647fd98d022fe2188b4877d2d0b4acbe857f4e764b17a9",
-    strip_prefix = "package",
-    urls = [
-        "https://registry.npmjs.org/esbuild-windows-64/-/esbuild-windows-64-%s.tgz" % _ESBUILD_VERSION,
-    ],
-)
-
-http_archive(
-    name = "esbuild_linux",
-    build_file_content = """exports_files(["bin/esbuild"])""",
-    sha256 = "de8409b90ec3c018ffd899b49ed5fc462c61b8c702ea0f9da013e0e1cd71549a",
-    strip_prefix = "package",
-    urls = [
-        "https://registry.npmjs.org/esbuild-linux-64/-/esbuild-linux-64-%s.tgz" % _ESBUILD_VERSION,
-    ],
-)
+esbuild_repositories(npm_repository = "npm")
 
 # Emscripten toolchain
 http_archive(
