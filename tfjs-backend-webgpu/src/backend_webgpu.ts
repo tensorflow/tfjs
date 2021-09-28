@@ -67,7 +67,7 @@ export interface WebGPUTimingInfo extends TimingInfo {
 // Empirically determined constant used to determine size threshold for handing
 // off execution to the CPU.
 const CPU_HANDOFF_SIZE_THRESHOLD =
-    env().getNumber('CPU_HANDOFF_SIZE_THRESHOLD');
+    env().getNumber('WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD');
 
 export class WebGPUBackend extends KernelBackend {
   device: GPUDevice;
