@@ -364,10 +364,11 @@ export class GraphModel implements InferenceModel {
   }
 
   /**
-   * This is used for model debugging mode (flag MODEL_DEBUG is true).
+   * This is used for model debugging mode (flag KEEP_INTERMEDIATE_TENSORS is
+   * true).
    */
-  disposeDebugTensors() {
-    this.executor.disposeDebugTensors();
+  disposeIntermediateTensors() {
+    this.executor.disposeIntermediateTensors();
   }
 
   private convertTensorMapToTensorsMap(map: NamedTensorMap): NamedTensorsMap {
