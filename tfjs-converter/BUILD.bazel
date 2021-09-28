@@ -108,6 +108,7 @@ copy_file(
 
 pkg_npm(
     name = "tfjs-converter_pkg",
+    package_name = "@tensorflow/tfjs-converter",
     srcs = [
         "README.md",
         "package.json",
