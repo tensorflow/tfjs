@@ -105,47 +105,11 @@ steps:
   - name: gcr.io/learnjs-174218/release
     dir: tfjs-layers
     entrypoint: yarn
-    id: build-tfjs-layers
-    args:
-      - build-ci
-    waitFor:
-      - yarn-tfjs-layers
-      - yarn-common
-      - yarn-link-package
-  - name: gcr.io/learnjs-174218/release
-    dir: tfjs-layers
-    entrypoint: yarn
     id: lint-tfjs-layers
     args:
       - lint
     waitFor:
       - yarn-tfjs-layers
-      - yarn-common
-      - yarn-link-package
-  - name: gcr.io/learnjs-174218/release
-    dir: tfjs-layers
-    entrypoint: yarn
-    id: test-browser-tfjs-layers
-    args:
-      - test-ci
-    waitFor:
-      - yarn-tfjs-layers
-      - lint-tfjs-layers
-      - yarn-common
-      - yarn-link-package
-    env:
-      - BROWSERSTACK_USERNAME=deeplearnjs1
-      - NIGHTLY=$_NIGHTLY
-    secretEnv:
-      - BROWSERSTACK_KEY
-  - name: gcr.io/learnjs-174218/release
-    dir: tfjs-layers
-    entrypoint: yarn
-    id: test-snippets-tfjs-layers
-    args:
-      - test-snippets-ci
-    waitFor:
-      - build-tfjs-layers
       - yarn-common
       - yarn-link-package
   - name: gcr.io/learnjs-174218/release
@@ -245,7 +209,6 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
   - name: gcr.io/learnjs-174218/release
     dir: tfjs-data
@@ -258,7 +221,6 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
   - name: gcr.io/learnjs-174218/release
     dir: tfjs-data
@@ -271,7 +233,6 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
   - name: gcr.io/learnjs-174218/release
     dir: tfjs-data
@@ -285,7 +246,6 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
   - name: gcr.io/learnjs-174218/release
     dir: tfjs-data
@@ -298,7 +258,6 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
   - name: gcr.io/learnjs-174218/release
     dir: tfjs
@@ -313,7 +272,6 @@ steps:
       - lint-tfjs-converter
       - create-pips-tfjs-converter
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
       - yarn-tfjs-data
       - build-tfjs-data
@@ -332,7 +290,6 @@ steps:
       - lint-tfjs-converter
       - create-pips-tfjs-converter
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
       - yarn-tfjs-data
       - build-tfjs-data
@@ -351,7 +308,6 @@ steps:
       - lint-tfjs-converter
       - create-pips-tfjs-converter
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
       - yarn-tfjs-data
       - build-tfjs-data
@@ -371,7 +327,6 @@ steps:
       - lint-tfjs-converter
       - create-pips-tfjs-converter
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
       - yarn-tfjs-data
       - build-tfjs-data
@@ -569,7 +524,6 @@ steps:
       - build-tfjs-data
       - lint-tfjs-data
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
       - yarn-tfjs-node
       - build-addon-tfjs-node
@@ -604,7 +558,6 @@ steps:
       - build-tfjs-data
       - lint-tfjs-data
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
       - yarn-tfjs-node
       - build-addon-tfjs-node
