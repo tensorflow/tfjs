@@ -1,5 +1,5 @@
 # Official emsdk docker: https://hub.docker.com/r/emscripten/emsdk
-FROM emscripten/emsdk:2.0.14 AS emscripten_base
+FROM debian:10-slim
 
 # Install cloud-sdk
 ARG CLOUD_SDK_VERSION=355.0.0
@@ -10,7 +10,7 @@ RUN apt-get update -qqy && apt-get install -qqy \
         curl \
         gcc \
         python \
-        python-pip \
+        python-dev \
         python3 \
         python3-setuptools \
         python3-dev \
@@ -20,7 +20,18 @@ RUN apt-get update -qqy && apt-get install -qqy \
         openssh-client \
         git \
         gnupg \
-        file && \
+        file \
+        nodejs \
+        yarnpkg \
+        npm \
+        wget \
+        unzip \
+        libssl-dev \
+        libffi-dev \
+        zlib1g-dev \
+        procps && \
+    ln -s /usr/bin/yarnpkg /usr/bin/yarn && \
+    ln -s /usr/bin/pip3 /usr/bin/pip && \
     pip3 install -U crcmod && \
     export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     echo "deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
@@ -34,9 +45,6 @@ RUN apt-get update -qqy && apt-get install -qqy \
 RUN git config --system credential.'https://source.developers.google.com'.helper gcloud.sh
 
 VOLUME ["/root/.config"]
-
-# Install yarn
-RUN npm install -g yarn
 
 # Install virtualenv
 RUN pip3 install virtualenv
