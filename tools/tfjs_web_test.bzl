@@ -43,14 +43,14 @@ _make_karma_config = rule(
             default = "",
             doc = "The browser to run",
         ),
+        "random": attr.string(
+            default = "true",
+            doc = "Jasmine tests run in random",
+        ),
         "template": attr.label(
             default = Label("@//tools:karma_template.conf.js"),
             allow_single_file = True,
             doc = "The karma config template to expand",
-        ),
-        "random": attr.string(
-            default = "true",
-            doc = "Jasmine tests run in random",
         ),
     },
     outputs = {"config_file": "%{name}.js"},

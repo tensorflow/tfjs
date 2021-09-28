@@ -13,8 +13,7 @@
 # limitations under the License.
 # =============================================================================
 
-load("//tools:defaults.bzl", "ts_library")
-load("//tools:defaults.bzl", "esbuild")
+load("//tools:defaults.bzl", "esbuild", "ts_library")
 load("//tools:enumerate_tests.bzl", "enumerate_tests")
 
 package(default_visibility = ["//visibility:public"])
