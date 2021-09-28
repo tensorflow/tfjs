@@ -77,7 +77,7 @@ const sentences = [
 function predictFunction(model, input) {
   let debug = false;
   try {
-    debug = tf.env().getBool('MODEL_DEBUG');
+    debug = tf.env().getBool('KEEP_INTERMEDIATE_TENSORS');
   } catch (e) {
     console.warn(e.message);
   }
