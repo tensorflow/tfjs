@@ -86,6 +86,7 @@ copy_file(
 
 pkg_npm(
     name = "tfjs-core_pkg",
+    package_name = "@tensorflow/tfjs-core",
     srcs = [
         "README.md",
         "package.json",

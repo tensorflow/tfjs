@@ -314,6 +314,7 @@ load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm")
 
 pkg_npm(
     name = "tfjs-core_pkg",
+    package_name = "@tensorflow/tfjs-core",
     srcs = [
         # Add any static files the package should include here
         "package.json",
