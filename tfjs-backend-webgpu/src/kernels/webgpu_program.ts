@@ -41,6 +41,8 @@ export interface WebGPUProgram {
   isVec4?: boolean;
   // size is used for bounds checking.
   size?: number;
+  // Whether to use atomic built-in functions.
+  atomic?: boolean;
   getUserCode: () => string;
 }
 
