@@ -29,6 +29,7 @@ export class ScatterProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
+  workPerThread = 4;
   size: number;
   indicesSnippet: string;
   strideString: string;
@@ -41,7 +42,8 @@ export class ScatterProgram implements WebGPUProgram {
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [this.workPerThread, 1, 1]);
     const sliceDimGreaterThanOne = sliceDim > 1;
     this.shaderKey =
         `scatter_${indicesRank}_${updatesRank}_${sliceDimGreaterThanOne}`;
@@ -74,10 +76,10 @@ export class ScatterProgram implements WebGPUProgram {
       ${getMainHeaderString()} {
         ${getGlobalIndexString()}
 
-        if (index < uniforms.size) {
-          let coords = getOutputCoords(globalId, index);
-          var sum = 0.0;
-          var found = false;
+        let globalIndex = index * ${this.workPerThread};
+        if (globalIndex < uniforms.size) {
+          var sum = vec4<f32>(0.0);
+          var found = vec4<bool>(false);
           for (var i = 0; i < uniforms.updateSize; i = i + 1) {
             var flattenedIndex = 0;
             for (var j = 0; j < uniforms.sliceDim; j = j + 1) {
@@ -85,12 +87,24 @@ export class ScatterProgram implements WebGPUProgram {
               flattenedIndex = flattenedIndex + indexInside * ${
         this.strideString};
             }
-            if (flattenedIndex == coords[0]) {
-              sum = sum + ${this.updatesSnippet};
-              found = true;
+            for (var innerIndex = 0; innerIndex < ${
+        this.workPerThread}; innerIndex = innerIndex + 1) {
+              let curIndex = globalIndex + innerIndex;
+              let coords = getCoordsFromFlatIndex(curIndex);
+              if (flattenedIndex == coords[0]) {
+                sum[innerIndex] = sum[innerIndex] + ${this.updatesSnippet};
+                found[innerIndex] = true;
+              }
             }
           }
-          setOutputFlat(index, mix(getDefaultValue(), sum, f32(found)));
+          for (var innerIndex = 0; innerIndex < ${
+        this.workPerThread}; innerIndex = innerIndex + 1) {
+            let curIndex = globalIndex + innerIndex;
+            if (curIndex < uniforms.size)
+            {
+              setOutputFlat(curIndex, mix(getDefaultValue(), sum[innerIndex], f32(found[innerIndex])));
+            }
+          }
         }
       }`;
     return userCode;
