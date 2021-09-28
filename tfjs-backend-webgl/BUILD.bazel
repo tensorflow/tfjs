@@ -77,6 +77,7 @@ copy_file(
 
 pkg_npm(
     name = "tfjs-backend-webgl_pkg",
+    package_name = "@tensorflow/tfjs-backend-webgl",
     srcs = [
         "README.md",
         "package.json",
