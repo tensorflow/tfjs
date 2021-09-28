@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,8 +14,18 @@
  * limitations under the License.
  * =============================================================================
  */
-import './flags';
-export {GraphModel, loadGraphModel} from './executor/graph_model';
-export {deregisterOp, registerOp} from './operations/custom_op/register';
-export {GraphNode, OpExecutor} from './operations/types';
-export {version as version_converter} from './version';
+
+import {env} from '@tensorflow/tfjs-core';
+
+const ENV = env();
+
+/** Whether to keep intermediate tensors. */
+ENV.registerFlag('KEEP_INTERMEDIATE_TENSORS', () => false, debugValue => {
+  if (debugValue) {
+    console.warn(
+        'Keep intermediate tensors is ON. This will print the values of all ' +
+        'intermediate tensors during model inference. Not all models ' +
+        'support this mode. For details, check e2e/benchmarks/ ' +
+        'model_config.js. This significantly impacts performance.');
+  }
+});

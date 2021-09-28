@@ -135,13 +135,13 @@ limitations under the License.
             tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(false);
           }
         }
-        if (tunableFlagsControllers['MODEL_DEBUG'] != null &&
-            urlState.has('MODEL_DEBUG')) {
-          const value = urlState.get('MODEL_DEBUG');
+        if (tunableFlagsControllers['KEEP_INTERMEDIATE_TENSORS'] != null &&
+            urlState.has('KEEP_INTERMEDIATE_TENSORS')) {
+          const value = urlState.get('KEEP_INTERMEDIATE_TENSORS');
           if (value === 'true') {
-            tunableFlagsControllers['MODEL_DEBUG'].setValue(true);
+            tunableFlagsControllers['KEEP_INTERMEDIATE_TENSORS'].setValue(true);
           } else {
-            tunableFlagsControllers['MODEL_DEBUG'].setValue(false);
+            tunableFlagsControllers['KEEP_INTERMEDIATE_TENSORS'].setValue(false);
           }
         }
       }
@@ -217,7 +217,7 @@ limitations under the License.
           await showMsg(null);
           expectObjectsClose(predictionData, referenceData);
           // For model debug mode. Otherwise this is nop.
-          model.disposeDebugTensors();
+          model.disposeIntermediateTensors();
           match = true;
         } catch (e) {
           match = false;
