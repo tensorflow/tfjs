@@ -1,12 +1,12 @@
 steps:
 # Install common dependencies.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   id: 'yarn-common'
   entrypoint: 'yarn'
   args: ['install']
 
 # Install react native dependencies.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-react-native'
   id: 'yarn'
   entrypoint: 'yarn'
@@ -14,7 +14,7 @@ steps:
   waitFor: ['yarn-common']
 
 # Build tfjs-react-native.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-react-native'
   id: 'build'
   entrypoint: 'yarn'
@@ -22,7 +22,7 @@ steps:
   waitFor: ['yarn']
 
 # Run unit tests in react native. Tests against version published on NPM.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-react-native/integration_rn59'
   id: 'test-ci'
   entrypoint: 'yarn'
