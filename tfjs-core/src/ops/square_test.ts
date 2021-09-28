@@ -58,6 +58,7 @@ describeWithFlags('square', ALL_ENVS, () => {
   it('int32', async () => {
     const a = tf.tensor1d([2, 4, 40000], 'int32');
     const r = tf.square(a);
+    expect(r.dtype).toEqual('int32');
     expectArraysClose(await r.data(), [4, 16, 1600000000]);
   });
 

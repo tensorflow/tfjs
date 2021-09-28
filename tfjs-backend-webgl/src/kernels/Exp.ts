@@ -21,8 +21,12 @@ import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {expImplCPU} from '../kernel_utils/shared';
 
 export const EXP = `return exp(x);`;
-export const exp = unaryKernelFunc(
-    {opSnippet: EXP, packedOpSnippet: EXP, cpuKernelImpl: expImplCPU});
+export const exp = unaryKernelFunc({
+  opSnippet: EXP,
+  packedOpSnippet: EXP,
+  cpuKernelImpl: expImplCPU,
+  dtype: 'float32',
+});
 
 export const expConfig: KernelConfig = {
   kernelName: Exp,

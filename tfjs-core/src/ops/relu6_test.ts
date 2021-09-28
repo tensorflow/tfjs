@@ -29,6 +29,7 @@ describeWithFlags('relu6', ALL_ENVS, () => {
   it('int32', async () => {
     const a = tf.tensor1d([12345678, -2, 0, 3, -1], 'int32');
     const result = tf.relu6(a);
+    expect(result.dtype).toEqual('int32');
     expectArraysClose(await result.data(), [6, 0, 0, 3, 0]);
   });
 

@@ -33,7 +33,7 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 void Rsqrt(const int x_id, const DType dtype, const int out_id) {
-  unary(x_id, out_id, rsqrt);
+  unary_f32(x_id, out_id, rsqrt);
 }
 
 }  // extern "C"

@@ -30,7 +30,7 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 void Tanh(const int x_id, const DType dtype, const int out_id) {
-  unary(x_id, out_id, tanh);
+  unary_f32(x_id, out_id, tanh);
 }
 
 }  // extern "C"

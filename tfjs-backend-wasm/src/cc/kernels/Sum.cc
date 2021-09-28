@@ -69,9 +69,6 @@ void Sum(const size_t x_id, const size_t reduce_size, const DType dtype,
     case DType::int32:
       sum<int32_t>(x_info.i32(), out_size, reduce_size, out_info.i32_write());
       break;
-    case DType::boolean:
-      sum<bool>(x_info.b(), out_size, reduce_size, out_info.b_write());
-      break;
     default:
       util::warn("Sum failed. Unknown dtype %d", dtype);
   }

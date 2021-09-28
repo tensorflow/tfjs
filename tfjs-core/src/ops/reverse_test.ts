@@ -36,6 +36,7 @@ describeWithFlags('reverse', ALL_ENVS, () => {
     const input = tf.tensor1d([1, 2, 12345678], 'int32');
     const result = tf.reverse(input);
     expect(result.shape).toEqual([3]);
+    expect(result.dtype).toEqual('int32');
     expectArraysClose(await result.data(), [12345678, 2, 1]);
   });
 

@@ -33,6 +33,7 @@ describeWithFlags('leakyrelu', ALL_ENVS, () => {
     const result = tf.leakyRelu(a);
 
     expect(result.shape).toEqual(a.shape);
+    expect(result.dtype).toEqual('float32');
     expectArraysClose(await result.data(), [0, 1, -0.4]);
   });
 

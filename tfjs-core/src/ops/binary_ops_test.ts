@@ -53,6 +53,7 @@ describeWithFlags('prelu', ALL_ENVS, () => {
     const result = tf.prelu(x, a);
 
     expect(result.shape).toEqual([4]);
+    expect(result.dtype).toEqual('float32');
     expectArraysClose(await result.data(), [0, 1, -0.5, -0.6]);
   });
 

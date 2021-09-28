@@ -31,6 +31,7 @@ describeWithFlags('round', ALL_ENVS, () => {
     const a = tf.tensor1d([-12345678, 10, 12345678], 'int32');
     const r = a.round();
 
+    expect(r.dtype).toEqual('int32');
     expectArraysClose(await r.data(), [-12345678, 10, 12345678]);
   });
 

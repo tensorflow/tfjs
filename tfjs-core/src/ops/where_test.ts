@@ -228,6 +228,7 @@ describeWithFlags('where', ALL_ENVS, () => {
     const a = tf.tensor1d([12345678, 10, 10], 'int32');
     const b = tf.tensor1d([20, 20, -12345678], 'int32');
     const res = tf.where(c, a, b);
+    expect(res.dtype).toEqual('int32');
     expectArraysClose(await res.data(), [12345678, 20, -12345678]);
   });
 

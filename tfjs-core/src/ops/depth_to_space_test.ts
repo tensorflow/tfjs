@@ -73,7 +73,8 @@ describeWithFlags('depthToSpace', ALL_ENVS, () => {
     const blockSize = 2;
     const dataFormat = 'NHWC';
 
-    expect(() => tf.depthToSpace(t, blockSize, dataFormat)).toThrowError();
+    expect(() => tf.depthToSpace(t, blockSize, dataFormat))
+        .toThrowError(/Argument 'x' passed to 'depthToSpace' must be float32/);
   });
 });
 

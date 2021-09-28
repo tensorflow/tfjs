@@ -41,6 +41,7 @@ describeWithFlags('abs', ALL_ENVS, () => {
   it('int32', async () => {
     const a = tf.tensor1d([10, 12345678, -12345678], 'int32');
     const result = tf.abs(a);
+    expect(result.dtype).toEqual('int32');
     expectArraysClose(await result.data(), [10, 12345678, 12345678]);
   });
 

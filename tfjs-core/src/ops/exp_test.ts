@@ -31,7 +31,8 @@ describeWithFlags('exp', ALL_ENVS, () => {
     const a = tf.tensor1d([10], 'int32');
     const r = tf.exp(a);
 
-    expectArraysClose(await r.data(), [Math.floor(Math.exp(10))], 1);
+    expect(r.dtype).toEqual('float32');
+    expectArraysClose(await r.data(), [Math.exp(10)]);
   });
 
   it('exp propagates NaNs', async () => {

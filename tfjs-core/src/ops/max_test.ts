@@ -120,6 +120,7 @@ describeWithFlags('max', ALL_ENVS, () => {
 
   it('accepts int32 tensor', async () => {
     const a = tf.tensor2d([3, -1, 0, 100, -7, 2], [2, 3], 'int32');
+    expect(a.dtype).toEqual('int32');
     expectArraysClose(await tf.max(a).data(), 100);
   });
 

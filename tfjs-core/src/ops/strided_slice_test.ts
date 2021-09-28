@@ -464,6 +464,7 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     const tensor = tf.tensor2d([1, 2, 3, 4, 12345678, 6], [2, 3], 'int32');
     const output = tf.stridedSlice(tensor, [1, 0], [2, 2], [1, 1]);
     expect(output.shape).toEqual([1, 2]);
+    expect(output.dtype).toEqual('int32');
     expectArraysClose(await output.data(), [4, 12345678]);
   });
 

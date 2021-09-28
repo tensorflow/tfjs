@@ -33,12 +33,11 @@ EMSCRIPTEN_KEEPALIVE
 void Exp(const int x_id, const DType dtype, const int out_id) {
   switch (dtype) {
     case DType::float32:
-      unary(x_id, out_id, std::exp);
+      unary_f32(x_id, out_id, std::exp);
       break;
     case DType::int32:
-      unary_i32(x_id, out_id, [](int a) {
-        return static_cast<int32_t>(std::exp(static_cast<float>(a)));
-      });
+      unary_i32_with_f32_out(
+          x_id, out_id, [](int a) { return std::exp(static_cast<float>(a)); });
       break;
     default:
       util::warn("Exp failed. Unknown dtype %d", dtype);
