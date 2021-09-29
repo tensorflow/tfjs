@@ -113,6 +113,11 @@ describeWithFlags('cos', ALL_ENVS, () => {
 
   it('throws for string tensor', () => {
     expect(() => tf.cos('q'))
-        .toThrowError(/Argument 'x' passed to 'cos' must be numeric/);
+        .toThrowError(/Argument 'x' passed to 'cos' must be float32/);
+  });
+
+  it('throws for int32 tensor', async () => {
+    expect(() => tf.cos(tf.tensor([10], [1], 'int32')))
+        .toThrowError(/Argument 'x' passed to 'cos' must be float32/);
   });
 });

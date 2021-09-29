@@ -66,7 +66,7 @@ import {op} from './operation';
 function depthToSpace_(
     x: Tensor4D|TensorLike4D, blockSize: number,
     dataFormat: 'NHWC'|'NCHW' = 'NHWC'): Tensor4D {
-  const $x = convertToTensor(x, 'x', 'depthToSpace') as Tensor4D;
+  const $x = convertToTensor(x, 'x', 'depthToSpace', 'float32') as Tensor4D;
 
   const inputHeight = (dataFormat === 'NHWC') ? $x.shape[1] : $x.shape[2];
   const inputWidth = (dataFormat === 'NHWC') ? $x.shape[2] : $x.shape[3];

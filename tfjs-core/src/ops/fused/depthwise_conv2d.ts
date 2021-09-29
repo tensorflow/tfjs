@@ -25,7 +25,6 @@ import {makeTypesMatch} from '../../tensor_util';
 import {convertToTensor} from '../../tensor_util_env';
 import {TensorLike} from '../../types';
 import * as util from '../../util';
-
 import {add} from '../add';
 import * as broadcast_util from '../broadcast_util';
 import * as conv_util from '../conv_util';
@@ -124,8 +123,9 @@ function fusedDepthwiseConv2d_<T extends Tensor3D|Tensor4D>({
                result, activation, preluActivationWeights, leakyreluAlpha) as T;
   }
 
-  const $x = convertToTensor(x, 'x', 'depthwiseConv2d');
-  const $filter = convertToTensor(filter, 'filter', 'depthwiseConv2d');
+  const $x = convertToTensor(x, 'x', 'depthwiseConv2d', 'float32');
+  const $filter =
+      convertToTensor(filter, 'filter', 'depthwiseConv2d', 'float32');
 
   let x4D = $x as Tensor4D;
   let reshapedTo4D = false;

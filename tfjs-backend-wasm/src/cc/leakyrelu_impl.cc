@@ -16,12 +16,12 @@
 #include <emscripten.h>
 #endif
 
-#include "tfjs-backend-wasm/src/cc/leakyrelu_impl.h"
-
 #include <cmath>
 #include <cstddef>
+#include <iostream>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/leakyrelu_impl.h"
 #include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace {
@@ -34,16 +34,30 @@ inline T leakyrelu_op(T a, T b) {
 namespace tfjs {
 namespace wasm {
 
-void leakyrelu(const float* x_buf, const size_t x_size,
-               const float leakyrelu_alpha, const size_t out_id) {
+template <typename T>
+void leakyrelu(const T* x_buf, const size_t x_size, const float leakyrelu_alpha,
+               const size_t out_id) {
   auto& out_info = backend::get_tensor_info_out(out_id);
 
   float* out_buf = out_info.f32_write();
 
   for (size_t i = 0; i < out_info.size; i++) {
-    out_buf[i] = x_buf[i] < 0 ? leakyrelu_alpha * x_buf[i] : x_buf[i];
+    float float_x = static_cast<float>(x_buf[i]);
+    out_buf[i] = float_x < 0 ? leakyrelu_alpha * float_x : float_x;
   }
 }
+
+// Following is required to avoid linker error.
+//
+// See https://isocpp.org/wiki/faq/templates#separate-template-fn-defn-from-decl
+
+template void leakyrelu<float>(const float* x_buf, const size_t x_size,
+                               const float leakyrelu_alpha,
+                               const size_t out_id);
+
+template void leakyrelu<int32_t>(const int32_t* x_buf, const size_t x_size,
+                                 const float leakyrelu_alpha,
+                                 const size_t out_id);
 
 }  // namespace wasm
 }  // namespace tfjs
