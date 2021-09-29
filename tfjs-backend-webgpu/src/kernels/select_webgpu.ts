@@ -16,11 +16,10 @@
  */
 import {util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class SelectProgram implements WebGPUProgram {
   variableNames = ['c', 'a', 'b'];
@@ -32,7 +31,6 @@ export class SelectProgram implements WebGPUProgram {
   cRank: number;
   rank: number;
   size: number;
-  useWgsl: boolean;
 
   constructor(cRank: number, shape: number[], rank: number) {
     this.outputShape = shape;
@@ -44,53 +42,9 @@ export class SelectProgram implements WebGPUProgram {
     this.rank = rank;
     this.shaderKey = 'select';
     this.size = util.sizeFromShape(this.outputShape);
-    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
-    let cCoords;
-    let abCoords;
-    if (this.rank > 4) {
-      throw Error(`Where for rank ${this.rank} is not yet supported`);
-    }
-
-    if (this.rank === 1) {
-      abCoords = `resRC`;
-      cCoords = `resRC`;
-    } else {
-      const currentCoords = ['resRC.x', 'resRC.y', 'resRC.z', 'resRC.w'];
-      const cCoordVars = [];
-      const abCoordVars = [];
-      for (let i = 0; i < this.outputShape.length; i++) {
-        abCoordVars.push(`${currentCoords[i]}`);
-        if (i < this.cRank) {
-          cCoordVars.push(`${currentCoords[i]}`);
-        }
-      }
-      cCoords = cCoordVars.join();
-      abCoords = abCoordVars.join();
-    }
-
-    const dtype = getCoordsDataType(this.rank);
-    const userCode = `
-      void main() {
-        int index = getGlobalIndex();
-        if (index < size) {
-          ${dtype} resRC = getOutputCoords();
-
-          float cVal = getC(${cCoords});
-          if (cVal >= 1.0) {
-            setOutput(index, getA(${abCoords}));
-          } else {
-            setOutput(index, getB(${abCoords}));
-          }
-        }
-      }
-    `;
-    return userCode;
-  }
-
-  getUserCodeWgsl(): string {
     // TODO(WGSL): below code can be merged with getUserCode.
     let cCoords;
     let abCoords;
@@ -116,8 +70,8 @@ export class SelectProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         if (index < uniforms.size) {
           let resRC = getOutputCoords(globalId, index);
           let cVal = getC(${cCoords});

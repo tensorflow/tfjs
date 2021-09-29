@@ -96,12 +96,9 @@ export function fusedConv2d(args: {
     const dimBOuter = convInfo.outShape[3];
     const dimInner =
         convInfo.filterHeight * convInfo.filterWidth * convInfo.inShape[3];
-    if (program.useWgsl) {
-      dimensions.push(
-          {type: 'int32', data: [dimAOuter]},
-          {type: 'int32', data: [dimBOuter]},
-          {type: 'int32', data: [dimInner]});
-    }
+    dimensions.push(
+        {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
+        {type: 'int32', data: [dimInner]});
   }
 
   const inputVar: TensorInfo[] = [x, filter];
