@@ -71,8 +71,14 @@ function areClose(a, e, epsilon) {
   if (!isFinite(a) && !isFinite(e)) {
     return true;
   }
-  if (isNaN(a) || isNaN(e) || Math.abs(a - e) > epsilon) {
-    return false;
+  if (Math.abs(a) >= 1) {
+    if (isNaN(a) || isNaN(e) || Math.abs(a - e) / Math.abs(a) > 0.01) {
+      return false;
+    }
+  } else {
+    if (isNaN(a) || isNaN(e) || Math.abs(a - e) > epsilon) {
+      return false;
+    }
   }
   return true;
 }
@@ -145,6 +151,7 @@ function expectArraysPredicateFuzzy(actual, expected, predicate, errorRate) {
   }
 }
 
+// TODO: support relative comparison for array.
 function expectArraysClose(actual, expected, epsilon, key) {
   if (epsilon == null) {
     epsilon = tf.test_util.testEpsilon();
