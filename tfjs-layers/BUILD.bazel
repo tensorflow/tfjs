@@ -122,6 +122,7 @@ copy_file(
 
 pkg_npm(
     name = "tfjs-layers_pkg",
+    package_name = "@tensorflow/tfjs-layers",
     srcs = [
         "README.md",
         "package.json",
