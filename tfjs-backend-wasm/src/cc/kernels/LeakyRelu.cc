@@ -16,11 +16,10 @@
 #include <emscripten.h>
 #endif
 
-#include "tfjs-backend-wasm/src/cc/kernels/LeakyRelu.h"
-
 #include <cstddef>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
+#include "tfjs-backend-wasm/src/cc/kernels/LeakyRelu.h"
 #include "tfjs-backend-wasm/src/cc/leakyrelu_impl.h"
 #include "tfjs-backend-wasm/src/cc/util.h"
 
@@ -32,12 +31,25 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void LeakyRelu(const size_t x_id, const float leakyrelu_alpha,
-               const size_t out_id) {
+void LeakyRelu(const size_t x_id, const DType dtype,
+               const float leakyrelu_alpha, const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
-  const float* x_buf = x_info.f32();
 
-  tfjs::wasm::leakyrelu(x_buf, x_info.size, leakyrelu_alpha, out_id);
+  switch (dtype) {
+    case DType::float32:
+      tfjs::wasm::leakyrelu<float>(x_info.f32(), x_info.size, leakyrelu_alpha,
+                                   out_id);
+      break;
+    case DType::int32:
+      tfjs::wasm::leakyrelu<int32_t>(x_info.i32(), x_info.size, leakyrelu_alpha,
+                                     out_id);
+      break;
+    default:
+      util::warn(
+          "LeakyRelu for tensor ids %d failed. "
+          "Unknown dtype %d",
+          x_id, dtype);
+  }
 }
 
 }  // extern "C"

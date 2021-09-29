@@ -107,6 +107,11 @@ describeWithFlags('sin', ALL_ENVS, () => {
 
   it('throws for string tensor', () => {
     expect(() => tf.sin('q'))
-        .toThrowError(/Argument 'x' passed to 'sin' must be numeric/);
+        .toThrowError(/Argument 'x' passed to 'sin' must be float32/);
+  });
+
+  it('throws for int32 tensor', () => {
+    expect(() => tf.sin(tf.tensor1d([1], 'int32')))
+        .toThrowError(/Argument 'x' passed to 'sin' must be float32/);
   });
 });

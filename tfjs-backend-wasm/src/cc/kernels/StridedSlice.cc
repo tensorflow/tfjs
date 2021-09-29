@@ -26,6 +26,8 @@ extern "C" {
 EMSCRIPTEN_KEEPALIVE
 #endif
 
+// Note that the following implementation also works with int32 since it just
+// moves values around.
 void StridedSlice(const size_t x_id, const int32_t* x_strides_ptr,
                   const size_t x_rank, const int32_t* begin_ptr,
                   const int32_t* end_ptr, const int32_t* strides_ptr,
