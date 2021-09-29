@@ -526,8 +526,7 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'sum',
     excludes: [
       'gradient',
-      'cumsum',     // 'Cumsum' not registered.
-      'scatterND',  // 'scatterND' not registered.
+      'cumsum',  // 'Cumsum' not registered.
     ]
   },
   {
