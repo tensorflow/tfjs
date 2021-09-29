@@ -77,6 +77,17 @@ function areClose(a, e, epsilon) {
   return true;
 }
 
+function areRelativeClose(a, e, epsilon) {
+  if (!isFinite(a) && !isFinite(e)) {
+    return true;
+  }
+  if (isNaN(a) || isNaN(e) || Math.abs(a - e) / Math.abs(a) > epsilon) {
+    return false;
+  }
+  return true;
+}
+
+
 function expectObjectsPredicate(actual, expected, epsilon, predicate) {
   let actualKeys = Object.getOwnPropertyNames(actual);
   let expectedKeys = Object.getOwnPropertyNames(expected);
@@ -105,12 +116,17 @@ function expectObjectsPredicate(actual, expected, epsilon, predicate) {
   return true;
 }
 
-function expectObjectsClose(actual, expected, epsilon) {
+function expectObjectsClose(actual, expected, epsilon, relative) {
   if (epsilon == null) {
     epsilon = tf.test_util.testEpsilon();
   }
-  expectObjectsPredicate(
-      actual, expected, epsilon, (a, b) => areClose(a, b, epsilon));
+  if (relative) {
+    expectObjectsPredicate(
+        actual, expected, epsilon, (a, b) => areRelativeClose(a, b, epsilon));
+  } else {
+    expectObjectsPredicate(
+        actual, expected, epsilon, (a, b) => areClose(a, b, epsilon));
+  }
 }
 
 function expectArraysPredicateFuzzy(actual, expected, predicate, errorRate) {
@@ -145,6 +161,7 @@ function expectArraysPredicateFuzzy(actual, expected, predicate, errorRate) {
   }
 }
 
+// TODO: support relative comparison for array.
 function expectArraysClose(actual, expected, epsilon, key) {
   if (epsilon == null) {
     epsilon = tf.test_util.testEpsilon();

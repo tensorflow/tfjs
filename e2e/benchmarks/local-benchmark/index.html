@@ -206,7 +206,10 @@ limitations under the License.
         // compare results
         try {
           await showMsg(null);
-          expectObjectsClose(predictionData, referenceData);
+          // For pose-detection, the returned value is predict result * imageSize.
+          // This means the error will be magnified by imageSize, which results in
+          // comparison fail. So here uses relative comparison.
+          expectObjectsClose(predictionData, referenceData, null, state.benchmark == "pose-detection");
           match = true;
         } catch (e) {
           match = false;
