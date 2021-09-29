@@ -117,6 +117,11 @@ describeWithFlags('tan', ALL_ENVS, () => {
 
   it('throws for string tensor', () => {
     expect(() => tf.tan('q'))
-        .toThrowError(/Argument 'x' passed to 'tan' must be numeric/);
+        .toThrowError(/Argument 'x' passed to 'tan' must be float32/);
+  });
+
+  it('throws for int32 tensor', () => {
+    expect(() => tf.tan(tf.tensor1d([1], 'int32')))
+        .toThrowError(/Argument 'x' passed to 'tan' must be float32/);
   });
 });

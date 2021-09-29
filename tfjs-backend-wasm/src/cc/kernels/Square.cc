@@ -19,6 +19,7 @@
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/unary.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
@@ -28,9 +29,21 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Square(const size_t x_id, const size_t out_id) {
-  unary_xnn_f32(x_id, out_id, xnn_create_square_nc_f32,
-                xnn_setup_square_nc_f32);
+void Square(const size_t x_id, const DType dtype, const size_t out_id) {
+  switch (dtype) {
+    case DType::float32:
+      unary_xnn_f32(x_id, out_id, xnn_create_square_nc_f32,
+                    xnn_setup_square_nc_f32);
+      break;
+    case DType::int32:
+      unary_i32(x_id, out_id, [](int a) { return a * a; });
+      break;
+    default:
+      util::warn(
+          "Square for tensor ids %d failed. "
+          "Unknown dtype %d",
+          x_id, dtype);
+  }
 }
 
 }  // extern "C"
