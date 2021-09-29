@@ -2451,6 +2451,7 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
   // TODO: disabled the test, since it will be very hard to inject dependency of
   // resolveScalarsInLogs, it will be better to test result instead of internal
   // code structure.
+  // tslint:disable-next-line: ban
   xit('resolveScalarInLogs is not called if no custom callbacks', async () => {
     const inputSize = 1;
     const numExamples = 10;

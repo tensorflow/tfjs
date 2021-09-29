@@ -950,7 +950,7 @@ export declare interface SimpleRNNCellLayerArgs extends LayerArgs {
   /**
    * This is added for test DI purpose.
    */
-  dropoutFunc?: Function
+  dropoutFunc?: Function;
 }
 
 export class SimpleRNNCell extends RNNCell {
