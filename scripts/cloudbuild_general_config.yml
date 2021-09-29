@@ -38,7 +38,9 @@ steps:
   entrypoint: 'bash'
   args:
     - './scripts/run_bazel_ci_tests.sh'
-  env: ['BROWSERSTACK_USERNAME=deeplearnjs1']
+  env:
+    - 'BROWSERSTACK_USERNAME=deeplearnjs1'
+    - 'NIGHTLY=$_NIGHTLY'
   waitFor: ['yarn-common']
   secretEnv: ['BROWSERSTACK_KEY']
 
