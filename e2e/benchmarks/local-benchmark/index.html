@@ -206,6 +206,16 @@ limitations under the License.
         // compare results
         try {
           await showMsg(null);
+          // For pose-detection, the returned value is predict result * imageSize.
+          // This means the error will be magnified by imageSize, which results in
+          // comparasion fail. So here run normalization before comparision.
+          if (state.benchmark = "pose-detection") {
+            const {height, width} = getImageSize(model.input);
+            predictionData[0].keypoints = keypointsToNormalizedKeypoints(
+              predictionData[0].keypoints, {height: height, width: width});
+            referenceData[0].keypoints = keypointsToNormalizedKeypoints(
+                referenceData[0].keypoints, {height: height, width: width});
+          }
           expectObjectsClose(predictionData, referenceData);
           match = true;
         } catch (e) {
@@ -230,6 +240,31 @@ limitations under the License.
       isModelLoaded: false,
       inputs: {}
     };
+
+    function getImageSize(input) {
+      if (input instanceof tf.Tensor) {
+        return {height: input.shape[0], width: input.shape[1]};
+      } else {
+        return {height: input.height, width: input.width};
+      }
+    }
+
+    function keypointsToNormalizedKeypoints(keypoints, imageSize) {
+      return keypoints.map(keypoint => {
+        const normalizedKeypoint = {
+          ...keypoint,
+          x: keypoint.x / imageSize.width,
+          y: keypoint.y / imageSize.height
+        };
+
+        if (keypoint.z != null) {
+          // Downscale z the same way as x (using image width).
+          normalizedKeypoint.z = keypoint.z / imageSize.width;
+        }
+
+        return normalizedKeypoint;
+      });
+    }
 
     const modalDiv = document.getElementById('modal-msg');
     const timeTable = document.querySelector('#timings tbody');
