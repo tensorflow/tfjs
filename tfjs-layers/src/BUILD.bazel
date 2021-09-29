@@ -78,7 +78,9 @@ ts_library(
 
 ts_library(
     name = "tfjs-layers_test_lib",
-    testonly = True,
+    # disable testonly for the issue in the nodejs build target.
+    # https://github.com/bazelbuild/rules_nodejs/pull/2984
+    #testonly = True,
     srcs = glob(TEST_SRCS) + [":tests"],
     module_name = "@tensorflow/tfjs-layers/dist",
     deps = [
@@ -97,7 +99,7 @@ ts_library(
 esbuild(
     name = "tfjs-layers_test_bundle",
     testonly = True,
-    args = ["--keep-names"],
+    args = {"keepNames": True},
     entry_point = "setup_tests.ts",
     external = [
         # webworker tests call 'require('@tensorflow/tfjs')', which
