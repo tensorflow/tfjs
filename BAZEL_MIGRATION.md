@@ -432,3 +432,4 @@ Before pushing to Git, run the Bazel linter by running `yarn bazel:format` and `
 * Make sure the main `pkg_npm` rule is tagged with `ci` or `nightly` so all parts of the build are tested.
 * Make sure the `package.json` scripts are updated and that the package.json includes `@bazel/bazelisk` as a dev dependency.
 * Make sure the package has a `build-npm` script and a `publish-npm` script. These are used by the release script.
+* Check the generated bundle sizes and make sure they don't include any unexpected files. Check the `_stats` files for info on this.
