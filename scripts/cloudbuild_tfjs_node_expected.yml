@@ -33,6 +33,7 @@ steps:
       - ./scripts/run_bazel_ci_tests.sh
     env:
       - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
     waitFor:
       - yarn-common
     secretEnv:

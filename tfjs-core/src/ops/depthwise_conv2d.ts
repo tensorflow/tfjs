@@ -79,8 +79,9 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
     dataFormat: 'NHWC'|'NCHW' = 'NHWC',
     dilations: [number, number]|number = [1, 1],
     dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-  const $x = convertToTensor(x, 'x', 'depthwiseConv2d');
-  const $filter = convertToTensor(filter, 'filter', 'depthwiseConv2d');
+  const $x = convertToTensor(x, 'x', 'depthwiseConv2d', 'float32');
+  const $filter =
+      convertToTensor(filter, 'filter', 'depthwiseConv2d', 'float32');
 
   let x4D = $x as Tensor4D;
   let reshapedTo4D = false;

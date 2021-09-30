@@ -223,6 +223,15 @@ describeWithFlags('where', ALL_ENVS, () => {
     expectArraysClose(await a.where(true, 20).data(), [10]);
   });
 
+  it('int32', async () => {
+    const c = tf.tensor1d([1, 0, 0], 'bool');
+    const a = tf.tensor1d([12345678, 10, 10], 'int32');
+    const b = tf.tensor1d([20, 20, -12345678], 'int32');
+    const res = tf.where(c, a, b);
+    expect(res.dtype).toEqual('int32');
+    expectArraysClose(await res.data(), [12345678, 20, -12345678]);
+  });
+
   it('throws when passed condition as a non-tensor', () => {
     expect(
         () => tf.where(
