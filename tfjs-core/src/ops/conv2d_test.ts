@@ -721,6 +721,41 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
         .toThrowError(/Argument 'filter' passed to 'conv2d' must be a Tensor/);
   });
 
+  it('throws when input is int32', async () => {
+    const inputDepth = 2;
+    const inShape: [number, number, number, number] = [2, 2, 2, inputDepth];
+    const outputDepth = 2;
+    const fSize = 1;
+    const pad = 0;
+    const stride = 1;
+
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], inShape,
+        'int32');
+    const w =
+        tf.tensor4d([-1, 1, -2, 0.5], [fSize, fSize, inputDepth, outputDepth]);
+
+    expect(() => tf.conv2d(x, w, stride, pad))
+        .toThrowError(/Argument 'x' passed to 'conv2d' must be float32/);
+  });
+
+  it('throws when filter is int32', async () => {
+    const inputDepth = 2;
+    const inShape: [number, number, number, number] = [2, 2, 2, inputDepth];
+    const outputDepth = 2;
+    const fSize = 1;
+    const pad = 0;
+    const stride = 1;
+
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], inShape);
+    const w = tf.tensor4d(
+        [-1, 1, -2, 0.5], [fSize, fSize, inputDepth, outputDepth], 'int32');
+
+    expect(() => tf.conv2d(x, w, stride, pad))
+        .toThrowError(/Argument 'filter' passed to 'conv2d' must be float32/);
+  });
+
   it('accepts a tensor-like object', async () => {
     const pad = 0;
     const stride = 1;

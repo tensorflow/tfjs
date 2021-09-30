@@ -526,8 +526,7 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'sum',
     excludes: [
       'gradient',
-      'cumsum',     // 'Cumsum' not registered.
-      'scatterND',  // 'scatterND' not registered.
+      'cumsum',  // 'Cumsum' not registered.
     ]
   },
   {
@@ -575,6 +574,20 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {
     include: 'rotateWithOffset',
+  },
+  {
+    include: 'sparseToDense',
+    excludes: [
+      // TODO: Fix 0-sized buffer binding on WebGPU
+      '0-sized',  // Not yet implemented.
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
+    include: 'scatterND',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
   },
   {
     startsWith: 'logicalAnd ',

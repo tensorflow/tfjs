@@ -17,11 +17,10 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
-import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class ArgMinMaxProgram implements WebGPUProgram {
   outputShape: number[];
@@ -30,12 +29,10 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number];
   variableNames = ['x'];
-  uniforms = 'int axis;';
-  uniformsWgsl = 'axis : i32;';
+  uniforms = 'axis : i32;';
   inputShape: number[];
   reductionFactor: number;
   op: string;
-  useWgsl: boolean;
 
   constructor(inputShape: number[], axis: number, reduceType: 'min'|'max') {
     const axes = [axis];
@@ -70,134 +67,9 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
     this.inputShape = inputShape;
     this.shaderKey = `argMinMax${this.op}`;
-    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
-    // When this.workGroupSize[0] > 1, each thread reduces Length /
-    // this.workGroupSize[0] values. Thes results are stored in shared memory
-    // and iteratively reduced.
-    const reduceInSharedMemory = this.workGroupSize[0] > 1;
-    const sharedMemorySnippet = `
-      shared int xBestIndices[WorkGroupSize];
-      shared float xBestValues[WorkGroupSize];
-    `;
-
-    const sharedMemoryReduceSnippet = `
-      xBestIndices[gl_LocalInvocationID.x] = bestIndex;
-      xBestValues[gl_LocalInvocationID.x] = bestValue;
-
-      int currentSize = WorkGroupSize;
-      while (currentSize > 1) {
-        barrier();
-
-        for (int w = 0; w < ${this.reductionFactor}; ++w) {
-          int i = int(gl_LocalInvocationID.x) * ${this.reductionFactor} + w;
-          if (i < currentSize) {
-            int candidateIndex = xBestIndices[i];
-            float candidate = xBestValues[i];
-            if (candidate ${this.op} bestValue && !isnan(candidate)) {
-              bestValue = candidate;
-              bestIndex = candidateIndex;
-            }
-          }
-        }
-
-        xBestIndices[gl_LocalInvocationID.x] = bestIndex;
-        xBestValues[gl_LocalInvocationID.x] = bestValue;
-
-        currentSize = DIV_CEIL(currentSize, ${this.reductionFactor});
-      }
-
-      if (gl_LocalInvocationID.x == 0) {
-        setOutput(flatOutputIndex, int(bestIndex));
-      }
-    `;
-
-    const outputCoordsType = getCoordsDataType(this.outputShape.length);
-
-    const indexOutputCoords = (outputCoords: string, index: string) => {
-      if (this.outputShape.length === 1) {
-        return outputCoords;
-      } else {
-        return `${outputCoords}[${index}]`;
-      }
-    };
-
-    const indexInputShape = (index: string) => {
-      if (this.inputShape.length === 1) {
-        return 'xShape';
-      } else {
-        return `xShape[${index}]`;
-      }
-    };
-
-    const userCode = `
-      #define DIV_CEIL(x, y) (((x) - 1) / (y) + 1)
-
-      const int WorkGroupSize = int(gl_WorkGroupSize.x);
-
-      ${reduceInSharedMemory ? sharedMemorySnippet : ''}
-
-      // In order to get a flattened index into the input tensor, we need to
-      // add back the index along the reduced dimension to |outputCoords|.
-      // This function outputs the offset to the first value along
-      // |axis| and the stride to get the next value of the input along |axis|.
-      ivec2 getInputCoordInfo() {
-        const ${outputCoordsType} outputCoords = getOutputCoords();
-        int i = ${this.outputShape.length - 1};
-
-        int stride = 1;
-        int inputStride = 1;
-        int offset = 0;
-
-        for (int r = 1; r <= ${this.inputShape.length}; ++r) {
-          int length = ${indexInputShape(`${this.inputShape.length} - r`)};
-          if (${this.inputShape.length} - r == axis) {
-            inputStride = stride;
-          } else {
-            offset += ${indexOutputCoords('outputCoords', 'i--')} * stride;
-          }
-          stride *= length;
-        }
-
-        return ivec2(offset, inputStride);
-      }
-
-      int getInputIndex(ivec2 coordInfo, int index) {
-        return coordInfo[0] + coordInfo[1] * index;
-      }
-
-      void main() {
-        const ivec2 coordInfo = getInputCoordInfo();
-
-        int bestIndex = 0;
-        float bestValue = float(x[getInputIndex(coordInfo, bestIndex)]);
-
-        const int Length = ${indexInputShape('axis')};
-        const int WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
-
-        for (int w = 0; w < WorkPerThread; ++w) {
-          int i = int(gl_GlobalInvocationID.x) * WorkPerThread + w;
-          if (i < Length) {
-            float candidate = float(x[getInputIndex(coordInfo, i)]);
-            if (candidate ${this.op} bestValue && !isnan(candidate)) {
-              bestValue = candidate;
-              bestIndex = i;
-            }
-          }
-        }
-
-        const int flatOutputIndex = int(gl_GlobalInvocationID.y);
-        ${
-        reduceInSharedMemory ? sharedMemoryReduceSnippet :
-                               'setOutput(flatOutputIndex, int(bestIndex));'}
-      }
-    `;
-    return userCode;
-  }
-
-  getUserCodeWgsl(): string {
     // When this.workGroupSize[0] > 1, each thread reduces Length /
     // this.workGroupSize[0] values. Thes results are stored in shared memory
     // and iteratively reduced.
@@ -236,7 +108,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       }
     `;
 
-    const outputCoordsType = getCoordsDataTypeWgsl(this.outputShape.length);
+    const outputCoordsType = getCoordsDataType(this.outputShape.length);
 
     const indexOutputCoords = (outputCoords: string, index: string) => {
       if (this.outputShape.length === 1) {
@@ -295,8 +167,8 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         return coordInfo[0] + coordInfo[1] * index;
       }
 
-      ${getMainHeaderStringWgsl()} {
-        ${getGlobalIndexStringWgsl()}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         let coordInfo = getInputCoordInfo(globalId, index);
 
         var bestIndex = 0;
@@ -319,9 +191,8 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
         let flatOutputIndex = i32(globalId.y);
         ${
-        reduceInSharedMemory ?
-            sharedMemoryReduceSnippet :
-            'setOutputFlatI32(flatOutputIndex, bestIndex);'}
+        reduceInSharedMemory ? sharedMemoryReduceSnippet :
+                               'setOutputFlatI32(flatOutputIndex, bestIndex);'}
       }
     `;
     return userCode;

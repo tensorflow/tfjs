@@ -97,10 +97,9 @@ export function batchMatMulImpl({
 
   const batchDim = Math.max(batchDimA, batchDimB);
 
-  const useVec4 = a.shape[2] % 4 === 0 && b.shape[2] % 4 === 0 && !transposeA &&
-      !transposeB && outerShapeB >= 32;
+  const useVec4 = innerShapeA % 4 === 0 && outerShapeB % 4 === 0 &&
+      !transposeA && !transposeB && outerShapeB >= 32;
   let program: WebGPUProgram;
-  let dimensions = null;
 
   // When the output size is absolutely small or relatively small, we may use
   // MatMulSmallOutputSizeProgram to get better performance.
@@ -111,15 +110,15 @@ export function batchMatMulImpl({
   // [12, 2048] and [2048, 1024], the output size is [12, 1024], which is
   // relatively small compared to input sizes.
   if (!transposeA && !transposeB &&
-      ((a.shape[1] <= 16 &&
-        (b.shape[2] <= 512 || b.shape[1] >= 2 * b.shape[2])) ||
-       (b.shape[2] <= 16 &&
-        (a.shape[1] <= 512 || a.shape[2] >= 2 * a.shape[1])))) {
+      ((outerShapeA <= 16 &&
+        (outerShapeB <= 512 || innerShapeB >= 2 * outerShapeB)) ||
+       (outerShapeB <= 16 &&
+        (outerShapeA <= 512 || innerShapeA >= 2 * outerShapeA)))) {
     program = new MatMulSmallOutputSizeProgram(
         a3dShape, b3dShape, [batchDim, outerShapeA, outerShapeB], bias,
         activation, preluActivationWeights);
   } else if (useVec4) {
-    // TODO: Currently we need to make sure that a.shape[2] and b.shape[2]
+    // TODO: Currently we need to make sure that innerShapeA and outerShapeB
     // are divisible by 4 since we use vec4 to get data. In future, we can
     // remove this limitation by insert 0 to pack data.
     program = new MatMulPackedVec4Program(
@@ -139,15 +138,10 @@ export function batchMatMulImpl({
   if (preluActivationWeights) {
     inputs.push(preluActivationWeights);
   }
-  if (program.useWgsl) {
-    const dimAOuter = transposeA === true ? a3d.shape[2] : a3d.shape[1];
-    const dimInner = transposeA === true ? a3d.shape[1] : a3d.shape[2];
-    const dimBOuter = transposeB === true ? b3d.shape[1] : b3d.shape[2];
-    dimensions = [
-      {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
-      {type: 'int32', data: [dimInner]}
-    ];
-  }
+  const dimensions = [
+    {type: 'int32', data: [outerShapeA]}, {type: 'int32', data: [outerShapeB]},
+    {type: 'int32', data: [innerShapeA]}
+  ];
   const out = backend.runWebGPUProgram(program, inputs, a.dtype, dimensions);
   const outReshaped =
       reshape({inputs: {x: out}, backend, attrs: {shape: outShape}});

@@ -68,6 +68,11 @@ describeWithFlags('elu', ALL_ENVS, () => {
 
   it('throws for string tensor', () => {
     expect(() => tf.elu('q'))
-        .toThrowError(/Argument 'x' passed to 'elu' must be numeric/);
+        .toThrowError(/Argument 'x' passed to 'elu' must be float32/);
+  });
+
+  it('throws for int32 tensor', () => {
+    expect(() => tf.elu(tf.tensor1d([1, 2, 3], 'int32')))
+        .toThrowError(/Argument 'x' passed to 'elu' must be float32/);
   });
 });

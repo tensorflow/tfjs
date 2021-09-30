@@ -17,6 +17,7 @@
 #endif
 
 #include <xnnpack.h>
+
 #include <cmath>
 #include <cstddef>
 #include <map>
@@ -35,7 +36,7 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Elu(const size_t x_id, const size_t out_id) {
+void Elu(const size_t x_id, const DType dtype, const size_t out_id) {
   auto& x_info = backend::get_tensor_info(x_id);
   const float* x_buf = x_info.f32();
 
