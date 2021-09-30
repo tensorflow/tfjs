@@ -17,12 +17,14 @@
 
 #include <cstddef>
 
+#include "tfjs-backend-wasm/src/cc/backend.h"
+
 namespace tfjs {
 namespace wasm {
 extern "C" {
 
-void LeakyRelu(const size_t x_id, const float leakyrelu_alpha,
-               const size_t out_id);
+void LeakyRelu(const size_t x_id, const DType dtype,
+               const float leakyrelu_alpha, const size_t out_id);
 }
 
 }  // namespace wasm

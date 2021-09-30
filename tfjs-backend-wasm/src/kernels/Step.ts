@@ -19,12 +19,16 @@ import {KernelConfig, KernelFunc, Step, StepAttrs, StepInputs, TensorInfo} from 
 
 import {BackendWasm} from '../backend_wasm';
 
-let wasmStep: (xId: number, alpha: number, outId: number) => void;
+import {CppDType} from './types';
+
+let wasmStep: (xId: number, alpha: number, dtype: number, outId: number) =>
+    void;
 
 function setup(backend: BackendWasm): void {
   wasmStep = backend.wasm.cwrap(Step, null /*void*/, [
     'number',  // x_id
     'number',  // alpha
+    'number',  // dtype
     'number',  // out_id
   ]);
 }
@@ -39,7 +43,7 @@ function step(
 
   const out = backend.makeOutput(x.shape, x.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
-  wasmStep(xId, alpha, outId);
+  wasmStep(xId, alpha, CppDType[x.dtype], outId);
   return out;
 }
 

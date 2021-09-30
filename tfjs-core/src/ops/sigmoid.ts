@@ -37,7 +37,7 @@ import {op} from './operation';
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
 function sigmoid_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'sigmoid');
+  const $x = convertToTensor(x, 'x', 'sigmoid', 'float32');
 
   const inputs: SigmoidInputs = {x: $x};
 

@@ -19,6 +19,8 @@ import {KernelConfig, KernelFunc, Prelu, PreluInputs} from '@tensorflow/tfjs-cor
 
 import {BackendWasm} from '../backend_wasm';
 
+import {cast} from './Cast';
+
 let wasmPrelu: (xId: number, weightsId: number, outId: number) => void;
 
 function setup(backend: BackendWasm) {
@@ -35,9 +37,21 @@ function prelu(args: {inputs: PreluInputs, backend: BackendWasm}) {
   const xId = backend.dataIdMap.get(x.dataId).id;
   const weightsId = backend.dataIdMap.get(alpha.dataId).id;
 
+  let inputId = xId;
+  const input = x;
+  let castedInput = input;
+  if (input.dtype !== 'float32') {
+    castedInput = cast({backend, inputs: {x}, attrs: {dtype: 'float32'}});
+    inputId = backend.dataIdMap.get(castedInput.dataId).id;
+  }
+
   const out = backend.makeOutput(x.shape, 'float32');
   const outId = backend.dataIdMap.get(out.dataId).id;
-  wasmPrelu(xId, weightsId, outId);
+  wasmPrelu(inputId, weightsId, outId);
+
+  if (input.dtype !== 'float32') {
+    backend.disposeData(castedInput.dataId);
+  }
   return out;
 }
 

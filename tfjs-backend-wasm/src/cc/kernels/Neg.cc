@@ -19,6 +19,7 @@
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/unary.h"
+#include "tfjs-backend-wasm/src/cc/util.h"
 
 namespace tfjs {
 namespace wasm {
@@ -28,9 +29,23 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Neg(const int x_id, const int out_id) {
-  unary_xnn_f32(x_id, out_id, xnn_create_negate_nc_f32,
-                xnn_setup_negate_nc_f32);
+void Neg(const int x_id, const DType dtype, const int out_id) {
+  switch (dtype) {
+    case DType::float32:
+      unary_xnn_f32(x_id, out_id, xnn_create_negate_nc_f32,
+                    xnn_setup_negate_nc_f32);
+      break;
+    case DType::int32:
+      unary_i32(x_id, out_id, [](int a) {
+        return static_cast<int32_t>(static_cast<float>(-a));
+      });
+      break;
+    default:
+      util::warn(
+          "Neg for tensor ids %d failed. "
+          "Unknown dtype %d",
+          x_id, dtype);
+  }
 }
 
 }  // extern "C"
