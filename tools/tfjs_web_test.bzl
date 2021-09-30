@@ -24,7 +24,6 @@ def _make_karma_config_impl(ctx):
         substitutions = {
             "TEMPLATE_args": str(ctx.attr.args),
             "TEMPLATE_browser": ctx.attr.browser,
-            "TEMPLATE_random": str(ctx.attr.random),
         },
     )
     return [DefaultInfo(files = depset([output_file]))]
@@ -43,10 +42,6 @@ _make_karma_config = rule(
             default = "",
             doc = "The browser to run",
         ),
-        "random": attr.string(
-            default = "true",
-            doc = "Jasmine tests run in random",
-        ),
         "template": attr.label(
             default = Label("@//tools:karma_template.conf.js"),
             allow_single_file = True,
@@ -58,7 +53,6 @@ _make_karma_config = rule(
 
 def tfjs_web_test(name, ci = True, args = [], **kwargs):
     tags = kwargs.pop("tags", [])
-    random = kwargs.pop("random", "true")
     browsers = kwargs.pop("browsers", [
         "bs_chrome_mac",
         "bs_firefox_mac",
@@ -83,7 +77,6 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
     _make_karma_config(
         name = config_file,
         args = args,
-        random = random,
     )
 
     karma_web_test(
