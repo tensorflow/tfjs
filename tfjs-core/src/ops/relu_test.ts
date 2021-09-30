@@ -26,6 +26,13 @@ describeWithFlags('relu', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [1, 0, 0, 3, 0]);
   });
 
+  it('int32', async () => {
+    const a = tf.tensor1d([12345678, -2, 0, 3, -1], 'int32');
+    const result = tf.relu(a);
+    expect(result.dtype).toEqual('int32');
+    expectArraysClose(await result.data(), [12345678, 0, 0, 3, 0]);
+  });
+
   it('5D', async () => {
     const a = tf.tensor5d([1, -2, 5, -3], [1, 2, 2, 1, 1]);
     const result = tf.relu(a);

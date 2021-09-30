@@ -103,4 +103,26 @@ describeWithFlags('image.transform', ALL_ENVS, () => {
 
     expectArraysClose(transformedImagesData, expected);
   });
+
+  it('throws when input is int32.', async () => {
+    const images = tf.tensor4d(
+        [1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1], [1, 4, 4, 1],
+        'int32');
+    const transform = tf.tensor2d([1, 0, 0, 0, 1, 0, -1, 0], [1, 8]);
+    expect(
+        () => tf.image.transform(images, transform, 'nearest', 'constant', 0))
+        .toThrowError(/Argument 'image' passed to 'transform' must be float32/);
+  });
+
+  it('throws when transforms is int32.', async () => {
+    const images = tf.tensor4d(
+        [1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1],
+        [1, 4, 4, 1],
+    );
+    const transform = tf.tensor2d([1, 0, 0, 0, 1, 0, -1, 0], [1, 8], 'int32');
+    expect(
+        () => tf.image.transform(images, transform, 'nearest', 'constant', 0))
+        .toThrowError(
+            /Argument 'transforms' passed to 'transform' must be float32/);
+  });
 });

@@ -766,6 +766,43 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
         .toThrowError(e);
   });
 
+  it('throws when input is int32', async () => {
+    const fSize = 2;
+    const pad = 'valid';
+    const stride = 1;
+    const chMul = 1;
+    const inDepth = 1;
+
+    const x =
+        tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 3, 3, inDepth], 'int32');
+    const w = tf.tensor4d(
+        [0.303873, 0.229223, 0.144333, 0.803373],
+        [fSize, fSize, inDepth, chMul],
+    );
+
+    const errRegex = /Argument 'x' passed to 'depthwiseConv2d' must be float32/;
+    expect(() => tf.depthwiseConv2d(x, w, stride, pad)).toThrowError(errRegex);
+  });
+
+  it('throws when filter is int32', async () => {
+    const fSize = 2;
+    const pad = 'valid';
+    const stride = 1;
+    const chMul = 1;
+    const inDepth = 1;
+
+    const x = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 3, 3, inDepth]);
+    const w = tf.tensor4d(
+        [1, 2, 3, 4],
+        [fSize, fSize, inDepth, chMul],
+        'int32',
+    );
+
+    const errRegex =
+        /Argument 'filter' passed to 'depthwiseConv2d' must be float32/;
+    expect(() => tf.depthwiseConv2d(x, w, stride, pad)).toThrowError(errRegex);
+  });
+
   it('accepts a tensor-like object', async () => {
     const pad = 'valid';
     const stride = 1;

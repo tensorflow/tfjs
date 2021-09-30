@@ -37,7 +37,7 @@ import {op} from './operation';
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
 function sin_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'sin');
+  const $x = convertToTensor(x, 'x', 'sin', 'float32');
 
   const inputs: SinInputs = {x: $x};
 

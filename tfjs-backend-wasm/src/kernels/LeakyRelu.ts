@@ -15,18 +15,21 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, LeakyRelu, LeakyReluAttrs, LeakyReluInputs, util} from '@tensorflow/tfjs-core';
-import {TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, LeakyRelu, LeakyReluAttrs, LeakyReluInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
-let wasmFunc: (xId: number, leakyreluAlpha: number, outId: number) => void;
+import {CppDType} from './types';
+
+let wasmFunc: (
+    xId: number, dtype: number, leakyreluAlpha: number, outId: number) => void;
 
 function setupFunc(backend: BackendWasm): void {
   wasmFunc = backend.wasm.cwrap(LeakyRelu, null /* void */, [
-    'number',  // x_id,
+    'number',  // x_id
+    'number',  // dtype
     'number',  // leakyrelu_alpha
-    'number'   // out_id
+    'number',  // out_id
   ]);
 }
 
@@ -37,11 +40,13 @@ export function leakyRelu(
   const {inputs: {x}, attrs: {alpha}, backend} = args;
 
   const xId = backend.dataIdMap.get(x.dataId).id;
-  const out = backend.makeOutput(x.shape, x.dtype);
+  // According to TF API, LeakyRelu returns float32 when input is either float32
+  // or int32.
+  const out = backend.makeOutput(x.shape, 'float32');
 
   if (util.sizeFromShape(x.shape) !== 0) {
     const outId = backend.dataIdMap.get(out.dataId).id;
-    wasmFunc(xId, alpha, outId);
+    wasmFunc(xId, CppDType[x.dtype], alpha, outId);
   }
 
   return out;
