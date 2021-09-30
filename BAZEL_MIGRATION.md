@@ -425,7 +425,10 @@ Before pushing to Git, run the Bazel linter by running `yarn bazel:format` and `
 * Make sure the package is added to the link-package's package.json and that downstream pakcages are updated to point to the link package's copy instead of the package's directory.
 * For browser tests, it may be worth checking that all desired browser configurations will run in nightly CI.
 * Make sure browser tests include all required tests. The `enumerate_tests` rule is usually necessary to make the browser actually run tests.
+* Make sure as many cloudbuild steps as possible are converted to Bazel, and that those steps are removed from the cloudbuild file.
+  * TODO: Repo-wide linting so the lint steps can be removed from `cloudbuild.yml`.
 * If the build and tests are fully handled by Bazel and don't need any other cloudbuild steps, make sure the package's `cloudbuild.yml` file is removed and the package is removed from [scripts/package_dependencies.json](https://github.com/tensorflow/tfjs/blob/master/scripts/package_dependencies.json).
-* Make sure tests are tagged with `nightly` and / or `ci` (`tfjs_web_test` automatically tags tests with `nightly`).
+* Make sure tests are tagged with `nightly` or `ci` (`tfjs_web_test` automatically tags tests with `nightly` and `ci`).
 * Make sure the main `pkg_npm` rule is tagged with `ci` or `nightly` so all parts of the build are tested.
 * Make sure the `package.json` scripts are updated and that the package.json includes `@bazel/bazelisk` as a dev dependency.
+* Make sure the package has a `build-npm` script and a `publish-npm` script. These are used by the release script.
