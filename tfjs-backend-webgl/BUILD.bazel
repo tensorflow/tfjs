@@ -91,9 +91,6 @@ pkg_npm(
     ],
 )
 
-BROWSERS = [
-]
-
 STATIC_FILES = [
     # Listed here so sourcemaps are served
     "//tfjs-backend-webgl/src:tfjs-backend-webgl_test_bundle",
@@ -156,7 +153,7 @@ tfjs_web_test(
     browsers = [
         "bs_chrome_mac",
     ],
-    presubmit_browsers = [], # Only run in nightly
+    presubmit_browsers = [],  # Only run in nightly
     static_files = STATIC_FILES,
 )
 
@@ -174,7 +171,7 @@ tfjs_web_test(
     browsers = [
         "bs_chrome_mac",
     ],
-    presubmit_browsers = [], # Only run in nightly
+    presubmit_browsers = [],  # Only run in nightly
     static_files = STATIC_FILES,
 )
 
@@ -192,7 +189,7 @@ tfjs_web_test(
     browsers = [
         "bs_chrome_mac",
     ],
-    presubmit_browsers = [], # Only run in nightly
+    presubmit_browsers = [],  # Only run in nightly
     static_files = STATIC_FILES,
 )
 
