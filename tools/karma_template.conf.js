@@ -30,9 +30,8 @@ module.exports = function(config) {
     extraConfig.browserStack = {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
-      timeout: 900, // Seconds
-      tunnelIdentifier:
-      `tfjs_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+      timeout: 900,  // Seconds
+      tunnelIdentifier: `tfjs_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     };
   }
 
@@ -96,7 +95,7 @@ module.exports = function(config) {
         flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
       },
       chrome_debugging:
-      {base: 'Chrome', flags: ['--remote-debugging-port=9333']}
+          {base: 'Chrome', flags: ['--remote-debugging-port=9333']}
     },
     client: {args: TEMPLATE_args},
   });

@@ -582,8 +582,7 @@ export class LayerNormalization extends Layer {
       }
 
       const broadcast = (v: Tensor) => {
-        if (v != null && v.shape.length !== nDims &&
-            this.axis !== [nDims - 1]) {
+        if (v != null && v.shape.length !== nDims) {
           return tfc.reshape(v, broadcastShape);
         } else {
           return v;
