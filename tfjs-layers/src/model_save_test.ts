@@ -12,7 +12,7 @@ import {io, linalg, randomNormal, Tensor, zeros} from '@tensorflow/tfjs-core';
 
 import * as tfl from './index';
 // tslint:disable-next-line:max-line-length
-import {describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from './utils/test_utils';
+import {describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 import {version} from './version';
 
 describeMathCPUAndGPU('LayersModel.save', () => {
@@ -114,7 +114,7 @@ describeMathCPUAndGPU('LayersModel.save', () => {
   });
 });
 
-describeMathGPU('Save-load round trips', () => {
+describeMathCPUAndGPU('Save-load round trips', () => {
   it('Sequential model, Local storage', async () => {
     const model1 = tfl.sequential();
     model1.add(
