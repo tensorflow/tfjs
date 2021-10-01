@@ -231,12 +231,8 @@ describeMathCPU('RNN-Layer', () => {
 
   it('constructor: cell and custom options', () => {
     const cell = new RNNCellForTest(5);
-    const rnn = tfl.layers.rnn({
-      cell,
-      returnSequences: true,
-      returnState: true,
-      goBackwards: true
-    });
+    const rnn = tfl.layers.rnn(
+        {cell, returnSequences: true, returnState: true, goBackwards: true});
     expect(rnn.returnSequences).toEqual(true);
     expect(rnn.returnState).toEqual(true);
     expect(rnn.goBackwards).toEqual(true);
@@ -559,26 +555,29 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
           ` ${training}, dropout=${dropout}`;
       it(testTitle, () => {
         const timeSteps = 3;
+        const dropoutFunc = jasmine.createSpy('dropout').and.callFake(
+            (x: Tensor, level: number, noiseShape?: number[], seed?: number) =>
+                tfc.tidy(() => tfc.dropout(x, level, noiseShape, seed)));
         const simpleRNN = tfl.layers.simpleRNN({
           units,
           kernelInitializer: 'ones',
           recurrentInitializer: 'ones',
           biasInitializer: 'ones',
           dropout,
+          dropoutFunc
         });
         const kwargs: Kwargs = {};
         if (training) {
           kwargs['training'] = true;
         }
         const input = tfc.ones([batchSize, timeSteps, inputSize]);
-        spyOn(tfc, 'dropout').and.callThrough();
         let numTensors = 0;
         for (let i = 0; i < 2; i++) {
           tfc.dispose(simpleRNN.apply(input, kwargs) as Tensor);
           if (dropout !== 0.0 && training) {
-            expect(tfc.dropout).toHaveBeenCalledTimes(1 * (i + 1));
+            expect(dropoutFunc).toHaveBeenCalledTimes(1 * (i + 1));
           } else {
-            expect(tfc.dropout).toHaveBeenCalledTimes(0);
+            expect(dropoutFunc).toHaveBeenCalledTimes(0);
           }
           if (i === 0) {
             numTensors = tfc.memory().numTensors;
@@ -598,26 +597,29 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
           ` ${training}, recurrentDropout=${recurrentDropout}`;
       it(testTitle, () => {
         const timeSteps = 3;
+        const dropoutFunc = jasmine.createSpy('dropout').and.callFake(
+            (x: Tensor, level: number, noiseShape?: number[], seed?: number) =>
+                tfc.tidy(() => tfc.dropout(x, level, noiseShape, seed)));
         const simpleRNN = tfl.layers.simpleRNN({
           units,
           kernelInitializer: 'ones',
           recurrentInitializer: 'ones',
           biasInitializer: 'ones',
           recurrentDropout,
+          dropoutFunc
         });
         const kwargs: Kwargs = {};
         if (training) {
           kwargs['training'] = true;
         }
         const input = tfc.ones([batchSize, timeSteps, inputSize]);
-        spyOn(tfc, 'dropout').and.callThrough();
         let numTensors = 0;
         for (let i = 0; i < 2; i++) {
           tfc.dispose(simpleRNN.apply(input, kwargs) as Tensor);
           if (recurrentDropout !== 0.0 && training) {
-            expect(tfc.dropout).toHaveBeenCalledTimes(1 * (i + 1));
+            expect(dropoutFunc).toHaveBeenCalledTimes(1 * (i + 1));
           } else {
-            expect(tfc.dropout).toHaveBeenCalledTimes(0);
+            expect(dropoutFunc).toHaveBeenCalledTimes(0);
           }
           if (i === 0) {
             numTensors = tfc.memory().numTensors;
@@ -1249,27 +1251,30 @@ describeMathCPUAndGPU('GRU Tensor', () => {
           `returnSequences=false, returnState=false, useBias=true,` +
           ` ${training}, dropout=${dropout}`;
       it(testTitle, () => {
+        const dropoutFunc = jasmine.createSpy('dropout').and.callFake(
+            (x: Tensor, level: number, noiseShape?: number[], seed?: number) =>
+                tfc.tidy(() => tfc.dropout(x, level, noiseShape, seed)));
         const gru = tfl.layers.gru({
           units,
           kernelInitializer: 'ones',
           recurrentInitializer: 'ones',
           biasInitializer: 'ones',
           dropout,
-          implementation: 1
+          implementation: 1,
+          dropoutFunc
         });
         const kwargs: Kwargs = {};
         if (training) {
           kwargs['training'] = true;
         }
         const input = tfc.ones([batchSize, timeSteps, inputSize]);
-        spyOn(tfc, 'dropout').and.callThrough();
         let numTensors = 0;
         for (let i = 0; i < 2; i++) {
           tfc.dispose(gru.apply(input, kwargs) as Tensor);
           if (dropout !== 0.0 && training) {
-            expect(tfc.dropout).toHaveBeenCalledTimes(3 * (i + 1));
+            expect(dropoutFunc).toHaveBeenCalledTimes(3 * (i + 1));
           } else {
-            expect(tfc.dropout).toHaveBeenCalledTimes(0);
+            expect(dropoutFunc).toHaveBeenCalledTimes(0);
           }
           if (i === 0) {
             numTensors = tfc.memory().numTensors;
@@ -1288,27 +1293,30 @@ describeMathCPUAndGPU('GRU Tensor', () => {
           `returnSequences=false, returnState=false, useBias=true,` +
           ` ${training}, recurrentDropout=${recurrentDropout}`;
       it(testTitle, () => {
+        const dropoutFunc = jasmine.createSpy('dropout').and.callFake(
+            (x: Tensor, level: number, noiseShape?: number[], seed?: number) =>
+                tfc.tidy(() => tfc.dropout(x, level, noiseShape, seed)));
         const gru = tfl.layers.gru({
           units,
           kernelInitializer: 'ones',
           recurrentInitializer: 'ones',
           biasInitializer: 'ones',
           recurrentDropout,
-          implementation: 1
+          implementation: 1,
+          dropoutFunc
         });
         const kwargs: Kwargs = {};
         if (training) {
           kwargs['training'] = true;
         }
         const input = tfc.ones([batchSize, timeSteps, inputSize]);
-        spyOn(tfc, 'dropout').and.callThrough();
         let numTensors = 0;
         for (let i = 0; i < 2; i++) {
           tfc.dispose(gru.apply(input, kwargs) as Tensor);
           if (recurrentDropout !== 0.0 && training) {
-            expect(tfc.dropout).toHaveBeenCalledTimes(3 * (i + 1));
+            expect(dropoutFunc).toHaveBeenCalledTimes(3 * (i + 1));
           } else {
-            expect(tfc.dropout).toHaveBeenCalledTimes(0);
+            expect(dropoutFunc).toHaveBeenCalledTimes(0);
           }
           if (i === 0) {
             numTensors = tfc.memory().numTensors;
@@ -1649,8 +1657,7 @@ describeMathCPU('GRU-deserialization', () => {
 
   it('Non-default recurrentActivation round trip', () => {
     const x = randomNormal([1, 2, 3]);
-    const layer =
-        tfl.layers.gru({units: 4, recurrentActivation: 'tanh'});
+    const layer = tfl.layers.gru({units: 4, recurrentActivation: 'tanh'});
     const y = layer.apply(x) as Tensor;
     const pythonicConfig = convertTsToPythonic(layer.getConfig());
     // tslint:disable-next-line:no-any
@@ -1913,27 +1920,30 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
           `returnSequences=false, returnState=false, useBias=true,` +
           ` ${training}, dropout=${dropout}`;
       it(testTitle, () => {
+        const dropoutFunc = jasmine.createSpy('dropout').and.callFake(
+            (x: Tensor, level: number, noiseShape?: number[], seed?: number) =>
+                tfc.tidy(() => tfc.dropout(x, level, noiseShape, seed)));
         const lstm = tfl.layers.lstm({
           units,
           kernelInitializer: 'ones',
           recurrentInitializer: 'ones',
           biasInitializer: 'ones',
           dropout,
-          implementation: 1
+          implementation: 1,
+          dropoutFunc
         });
         const kwargs: Kwargs = {};
         if (training) {
           kwargs['training'] = true;
         }
         const input = tfc.ones([batchSize, timeSteps, inputSize]);
-        spyOn(tfc, 'dropout').and.callThrough();
         let numTensors = 0;
         for (let i = 0; i < 2; i++) {
           tfc.dispose(lstm.apply(input, kwargs) as Tensor);
           if (dropout !== 0.0 && training) {
-            expect(tfc.dropout).toHaveBeenCalledTimes(4 * (i + 1));
+            expect(dropoutFunc).toHaveBeenCalledTimes(4 * (i + 1));
           } else {
-            expect(tfc.dropout).toHaveBeenCalledTimes(0);
+            expect(dropoutFunc).toHaveBeenCalledTimes(0);
           }
           if (i === 0) {
             numTensors = tfc.memory().numTensors;
@@ -1952,27 +1962,30 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
           `returnSequences=false, returnState=false, useBias=true,` +
           ` ${training}, recurrentDropout=${recurrentDropout}`;
       it(testTitle, () => {
+        const dropoutFunc = jasmine.createSpy('dropout').and.callFake(
+            (x: Tensor, level: number, noiseShape?: number[], seed?: number) =>
+                tfc.tidy(() => tfc.dropout(x, level, noiseShape, seed)));
         const lstm = tfl.layers.lstm({
           units,
           kernelInitializer: 'ones',
           recurrentInitializer: 'ones',
           biasInitializer: 'ones',
           recurrentDropout,
-          implementation: 1
+          implementation: 1,
+          dropoutFunc
         });
         const kwargs: Kwargs = {};
         if (training) {
           kwargs['training'] = true;
         }
         const input = tfc.ones([batchSize, timeSteps, inputSize]);
-        spyOn(tfc, 'dropout').and.callThrough();
         let numTensors = 0;
         for (let i = 0; i < 2; i++) {
           tfc.dispose(lstm.apply(input, kwargs) as Tensor);
           if (recurrentDropout !== 0.0 && training) {
-            expect(tfc.dropout).toHaveBeenCalledTimes(4 * (i + 1));
+            expect(dropoutFunc).toHaveBeenCalledTimes(4 * (i + 1));
           } else {
-            expect(tfc.dropout).toHaveBeenCalledTimes(0);
+            expect(dropoutFunc).toHaveBeenCalledTimes(0);
           }
           if (i === 0) {
             numTensors = tfc.memory().numTensors;
@@ -2713,8 +2726,7 @@ describeMathCPU('LSTM-deserialization', () => {
 
   it('Non-default recurrentActivation round trip', () => {
     const x = randomNormal([1, 2, 3]);
-    const layer =
-        tfl.layers.lstm({units: 4, recurrentActivation: 'tanh'});
+    const layer = tfl.layers.lstm({units: 4, recurrentActivation: 'tanh'});
     const y = layer.apply(x) as Tensor;
     const pythonicConfig = convertTsToPythonic(layer.getConfig());
     // tslint:disable-next-line:no-any

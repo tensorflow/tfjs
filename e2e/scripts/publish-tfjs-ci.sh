@@ -59,7 +59,7 @@ PACKAGES=("tfjs-core" "tfjs-backend-cpu" "tfjs-backend-webgl" \
 
 # Packages that build with Bazel
 BAZEL_PACKAGES=("tfjs-core" "tfjs-backend-cpu" "tfjs-tflite" "tfjs-converter"
-"tfjs-backend-webgl")
+"tfjs-backend-webgl", "tfjs-layers")
 
 for package in "${PACKAGES[@]}"
 do

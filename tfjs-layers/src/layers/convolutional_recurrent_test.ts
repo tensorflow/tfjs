@@ -10,9 +10,10 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
+import {Tensor} from '@tensorflow/tfjs-core';
+
 import {serializeActivation, Tanh} from '../activations';
 import {NonNeg, serializeConstraint, UnitNorm} from '../constraints';
-
 import {sequential} from '../exports';
 import * as tfl from '../index';
 import {GlorotUniform, HeUniform, Ones, serializeInitializer} from '../initializers';
@@ -357,6 +358,10 @@ describeMathCPUAndGPU('ConvLSTM2D Tensor', () => {
           training}, implementation=${implementation}`;
 
       it(testTitle, () => {
+        const dropoutFunc = jasmine.createSpy('dropout').and.callFake(
+            (x: Tensor, level: number, noiseShape?: number[], seed?: number) =>
+                tfc.tidy(() => tfc.dropout(x, level, noiseShape, seed)));
+
         const convLstm = tfl.layers.convLstm2d({
           filters,
           kernelSize,
@@ -366,11 +371,11 @@ describeMathCPUAndGPU('ConvLSTM2D Tensor', () => {
           dropout,
           recurrentDropout,
           implementation,
+          dropoutFunc,
         });
 
         const input = tfc.ones(inputShape);
 
-        spyOn(tfc, 'dropout').and.callThrough();
         let dropoutCall = 0;
         if (dropout !== 0.0 && training) {
           dropoutCall += 4;
@@ -384,7 +389,7 @@ describeMathCPUAndGPU('ConvLSTM2D Tensor', () => {
         for (let i = 0; i < 2; i++) {
           tfc.dispose(convLstm.apply(input, {training}) as tfc.Tensor);
 
-          expect(tfc.dropout).toHaveBeenCalledTimes((i + 1) * dropoutCall);
+          expect(dropoutFunc).toHaveBeenCalledTimes((i + 1) * dropoutCall);
 
           if (i === 0) {
             numTensors = tfc.memory().numTensors;

@@ -28,16 +28,14 @@ export class FillProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   uniforms = 'value : f32;';
-  workPerThread = 4;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  workGroupSize: [number, number, number] = [64, 1, 1];
   size: number;
 
   constructor(shape: number[]) {
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.shaderKey = 'fill';
     this.size = util.sizeFromShape(this.outputShape);
@@ -47,11 +45,8 @@ export class FillProgram implements WebGPUProgram {
     const userCode = `
     ${getMainHeaderString()} {
       ${getGlobalIndexString()}
-      for (var i = 0; i < ${this.workPerThread}; i = i + 1) {
-        let flatIndex = index * ${this.workPerThread} + i;
-        if (flatIndex < uniforms.size) {
-          setOutputFlat(flatIndex, uniforms.value);
-        }
+      if (index < uniforms.size) {
+        setOutputFlat(index, uniforms.value);
       }
     }
   `;
