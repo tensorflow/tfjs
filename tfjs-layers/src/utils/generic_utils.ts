@@ -485,11 +485,12 @@ export function formatAsFriendlyString(value: any): string {
  * @param waitMs The time between two consecutive calls to `f` in ms.
  */
 export function debounce<T>(
-    f: (...args: Array<{}>) => T, waitMs: number): (...args: Array<{}>) => T {
-  let lastTime = util.now();
+    f: (...args: Array<{}>) => T, waitMs: number,
+    nowFunc?: Function): (...args: Array<{}>) => T {
+  let lastTime = nowFunc != null ? nowFunc() : util.now();
   let lastResult: T;
   const f2 = (...args: Array<{}>) => {
-    const now = util.now();
+    const now = nowFunc != null ? nowFunc() : util.now();
     if (now - lastTime < waitMs) {
       return lastResult;
     }

@@ -1,0 +1,118 @@
+# Copyright 2021 Google LLC. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
+load("//tools:defaults.bzl", "esbuild", "ts_library")
+load("//tools:enumerate_tests.bzl", "enumerate_tests")
+
+package(default_visibility = ["//visibility:public"])
+
+# Used for test-snippets
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**/*.ts"]),
+)
+
+TEST_SRCS = [
+    "**/*_test.ts",
+    "setup_tests.ts",
+]
+
+filegroup(
+    name = "all_test_entrypoints",
+    srcs = glob(
+        ["**/*_test.ts"],
+    ),
+)
+
+# Generates the 'tests.ts' file that imports all test entrypoints.
+enumerate_tests(
+    name = "tests",
+    srcs = [":all_test_entrypoints"],
+    root_path = "tfjs-layers/src",
+)
+
+# Compiles the majority of tfjs-layers using the `@tensorflow/tfjs-layers/dist`
+# module name.
+ts_library(
+    name = "tfjs-layers_src_lib",
+    srcs = glob(
+        ["**/*.ts"],
+        exclude = TEST_SRCS + ["index.ts"],
+    ),
+    module_name = "@tensorflow/tfjs-layers/dist",
+    deps = [
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_src_lib",
+        "@npm//@types/seedrandom",
+        "@npm//seedrandom",
+    ],
+)
+
+# Compiles the `index.ts` entrypoint of tfjs-layers separately from the rest of
+# the sources in order to use the `@tensorflow/tfjs-layers` module name instead
+# of `@tensorflow/tfjs-layers/dist`,
+ts_library(
+    name = "tfjs-layers_lib",
+    srcs = ["index.ts"],
+    module_name = "@tensorflow/tfjs-layers",
+    deps = [
+        ":tfjs-layers_src_lib",
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_src_lib",
+    ],
+)
+
+ts_library(
+    name = "tfjs-layers_test_lib",
+    # disable testonly for the issue in the nodejs build target.
+    # https://github.com/bazelbuild/rules_nodejs/pull/2984
+    #testonly = True,
+    srcs = glob(TEST_SRCS) + [":tests"],
+    module_name = "@tensorflow/tfjs-layers/dist",
+    deps = [
+        ":tfjs-layers_lib",
+        ":tfjs-layers_src_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-backend-webgl/src:tfjs-backend-webgl_lib",
+        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-core/src:tfjs-core_src_lib",
+        "//tfjs-core/src:tfjs-core_test_lib",
+        "@npm//@types/jasmine",
+        "@npm//jasmine",
+    ],
+)
+
+esbuild(
+    name = "tfjs-layers_test_bundle",
+    testonly = True,
+    args = {"keepNames": True},
+    entry_point = "setup_tests.ts",
+    external = [
+        # webworker tests call 'require('@tensorflow/tfjs')', which
+        # is external to the test bundle.
+        # Note: This is not a bazel target. It's just a string.
+        "@tensorflow/tfjs",
+        "worker_threads",
+        "util",
+    ],
+    sources_content = True,
+    deps = [
+        ":tfjs-layers_lib",
+        ":tfjs-layers_test_lib",
+        "//tfjs-layers:package_json",
+    ],
+)
