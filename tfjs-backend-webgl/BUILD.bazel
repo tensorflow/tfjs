@@ -94,13 +94,6 @@ pkg_npm(
 STATIC_FILES = [
     # Listed here so sourcemaps are served
     "//tfjs-backend-webgl/src:tfjs-backend-webgl_test_bundle",
-    # For the webworker
-    ":tf-backend-webgl.min.js",
-    ":tf-backend-webgl.min.js.map",
-    "//tfjs-backend-cpu:tf-backend-cpu.min.js",
-    "//tfjs-backend-cpu:tf-backend-cpu.min.js.map",
-    "//tfjs-core:tf-core.min.js",
-    "//tfjs-core:tf-core.min.js.map",
 ]
 
 tfjs_web_test(
