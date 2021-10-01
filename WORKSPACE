@@ -213,7 +213,7 @@ filegroup(
     patch_cmds = [
         "mkdir $(pwd)/bazel_install_py3",
         _py3_configure,
-        "make",
+        "make -j",
         "make install",
         "ln -s bazel_install_py3/bin/python3 python3_bin",
     ],
@@ -235,7 +235,7 @@ filegroup(
     patch_cmds = [
         "mkdir $(pwd)/bazel_install_py2",
         _py2_configure,
-        "make",
+        "make -j",
         "make install",
         "ln -s bazel_install_py2/bin/python python_bin",
     ],
