@@ -124,8 +124,6 @@ tfjs_web_test(
         "webgl1",
     ],
     browsers = [
-        "bs_chrome_mac",
-        "bs_firefox_mac",
         "bs_safari_mac",
         "bs_ios_11",
     ],
