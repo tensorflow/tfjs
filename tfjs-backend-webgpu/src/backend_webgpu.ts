@@ -707,15 +707,19 @@ export class WebGPUBackend extends KernelBackend {
   public runWebGPUProgram(
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
       outputDtype: DataType,
-      programUniforms?: Array<{type: string; data: number[]}>): TensorInfo {
-    const output = this.makeTensorInfo(program.outputShape, outputDtype);
-    const outData = this.tensorMap.get(output.dataId);
-    if (util.sizeFromShape(output.shape) === 0) {
-      // Short-circuit the computation since the result is empty (has 0 in its
-      // shape).
-      outData.values =
-          util.getTypedArrayFromDType(output.dtype as 'float32', 0);
-      return output;
+      programUniforms?: Array<{type: string; data: number[]}>,
+      output?: TensorInfo): TensorInfo {
+    if (!output) {
+      output = this.makeTensorInfo(program.outputShape, outputDtype);
+      if (util.sizeFromShape(output.shape) === 0) {
+        // Short-circuit the computation since the result is empty (has 0 in its
+        // shape).
+        const outData = this.tensorMap.get(output.dataId);
+        outData.values =
+            util.getTypedArrayFromDType(output.dtype as 'float32', 0);
+        return output;
+      }
+      this.uploadToGPU(output.dataId);
     }
 
     // There are five kinds of uniforms: NAN, shapes, shape strides, program
@@ -759,7 +763,6 @@ export class WebGPUBackend extends KernelBackend {
         name: program.variableNames[i]
       };
     });
-    this.uploadToGPU(output.dataId);
     const bufferTypes = inputsData.map(d => d.dtype).concat(output.dtype);
     const broadcastDims = inputsData.map(
         d => backend_util.getBroadcastDims(d.shape, output.shape));
