@@ -41,10 +41,8 @@ registerTestEnv({
 // tslint:disable-next-line:no-any
 declare let __karma__: any;
 if (typeof __karma__ !== 'undefined') {
-  console.log(__karma__.config.args);
   const testEnv = parseTestEnvFromKarmaFlags(__karma__.config.args, TEST_ENVS);
   if (testEnv != null) {
-    console.log(testEnv);
     setTestEnvs([testEnv]);
   }
 }
