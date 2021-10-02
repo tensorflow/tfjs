@@ -22,7 +22,7 @@ import {modelFromJSON} from '../models';
 import {L1L2, serializeRegularizer} from '../regularizers';
 import {getCartesianProductOfValues} from '../utils/generic_utils';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from '../utils/test_utils';
 
 import {ConvLSTM2DArgs, ConvLSTM2DCellArgs} from './convolutional_recurrent';
 
@@ -325,7 +325,7 @@ describeMathCPU('ConvLSTM2D Symbolic', () => {
   });
 });
 
-describeMathCPUAndGPU('ConvLSTM2D Tensor', () => {
+describeMathCPUAndWebGL2('ConvLSTM2D Tensor', () => {
   const filters = 5;
   const kernelSize = 3;
 
