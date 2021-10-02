@@ -21,7 +21,7 @@ import {PyJsonDict} from './keras_format/types';
 import {deserialize} from './layers/serialization';
 import * as math_utils from './utils/math_utils';
 import {convertPythonicToTs} from './utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectNoLeakedTensors, expectTensorsClose, expectTensorsValuesInRange} from './utils/test_utils';
+import {describeMathCPU, describeMathCPUAndWebGL2, expectNoLeakedTensors, expectTensorsClose, expectTensorsValuesInRange} from './utils/test_utils';
 
 describeMathCPU('Zeros initializer', () => {
   it('1D', () => {

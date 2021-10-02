@@ -19,7 +19,7 @@ import {LayersModel} from '../engine/training';
 import * as tfl from '../index';
 import {BidirectionalMergeMode, VALID_BIDIRECTIONAL_MERGE_MODES} from '../keras_format/common';
 import {convertPythonicToTs} from '../utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndWebGL2, expectTensorsClose} from '../utils/test_utils';
 
 import {Dense, Reshape} from './core';
 import {RNN, SimpleRNN} from './recurrent';
