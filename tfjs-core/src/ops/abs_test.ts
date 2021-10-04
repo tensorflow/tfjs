@@ -18,6 +18,7 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
+import {ENGINE} from '../engine';
 
 describeWithFlags('abs', ALL_ENVS, () => {
   it('basic', async () => {
@@ -38,12 +39,14 @@ describeWithFlags('abs', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [1, 2, 5, 3, 1, 4, 7, 8]);
   });
 
-  it('int32', async () => {
-    const a = tf.tensor1d([10, 12345678, -12345678], 'int32');
-    const result = tf.abs(a);
-    expect(result.dtype).toEqual('int32');
-    expectArraysClose(await result.data(), [10, 12345678, 12345678]);
-  });
+  if (ENGINE.backend.floatPrecision() === 32) {
+    it('int32', async () => {
+      const a = tf.tensor1d([10, 12345678, -12345678], 'int32');
+      const result = tf.abs(a);
+      expect(result.dtype).toEqual('int32');
+      expectArraysClose(await result.data(), [10, 12345678, 12345678]);
+    });
+  }
 
   it('complex64 rank-1', async () => {
     const a = tf.complex([-2, -1, 0, 1, 2], [1, 2, 3, 0, -1]);
