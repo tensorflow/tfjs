@@ -56,7 +56,7 @@ describeWithFlags('square', ALL_ENVS, () => {
     expectArraysClose(await r.data(), [2.25, NaN]);
   });
 
-  if (ENGINE.backend.floatPrecision() === 32) {
+  if (ENGINE.backend && ENGINE.backend.floatPrecision() === 32) {
     it('int32', async () => {
       const a = tf.tensor1d([2, 4, 40000], 'int32');
       const r = tf.square(a);

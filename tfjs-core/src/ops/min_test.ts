@@ -94,7 +94,7 @@ describeWithFlags('min', ALL_ENVS, () => {
     expectArraysClose(await tf.min([3, -1, 0, 100, -7, 2]).data(), -7);
   });
 
-  if (ENGINE.backend.floatPrecision() === 32) {
+  if (ENGINE.backend && ENGINE.backend.floatPrecision() === 32) {
     it('accpets int32 input', async () => {
       const a = tf.tensor1d([12345678, 12345679], 'int32');
       expect(a.dtype).toEqual('int32');

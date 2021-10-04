@@ -39,7 +39,7 @@ describeWithFlags('abs', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [1, 2, 5, 3, 1, 4, 7, 8]);
   });
 
-  if (ENGINE.backend.floatPrecision() === 32) {
+  if (ENGINE.backend && ENGINE.backend.floatPrecision() === 32) {
     it('int32', async () => {
       const a = tf.tensor1d([10, 12345678, -12345678], 'int32');
       const result = tf.abs(a);

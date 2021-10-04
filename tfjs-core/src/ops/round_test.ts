@@ -28,7 +28,7 @@ describeWithFlags('round', ALL_ENVS, () => {
     expectArraysClose(await r.data(), [1, 2, 2, 2, -4]);
   });
 
-  if (ENGINE.backend.floatPrecision() === 32) {
+  if (ENGINE.backend && ENGINE.backend.floatPrecision() === 32) {
     it('int32', async () => {
       const a = tf.tensor1d([-12345678, 10, 12345678], 'int32');
       const r = a.round();

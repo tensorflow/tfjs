@@ -33,7 +33,7 @@ describeWithFlags('reverse', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [3, 2, 1]);
   });
 
-  if (ENGINE.backend.floatPrecision() === 32) {
+  if (ENGINE.backend && ENGINE.backend.floatPrecision() === 32) {
     it('works with int32 input', async () => {
       const input = tf.tensor1d([1, 2, 12345678], 'int32');
       const result = tf.reverse(input);

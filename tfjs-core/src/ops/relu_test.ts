@@ -27,7 +27,7 @@ describeWithFlags('relu', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [1, 0, 0, 3, 0]);
   });
 
-  if (ENGINE.backend.floatPrecision() === 32) {
+  if (ENGINE.backend && ENGINE.backend.floatPrecision() === 32) {
     it('int32', async () => {
       const a = tf.tensor1d([12345678, -2, 0, 3, -1], 'int32');
       const result = tf.relu(a);

@@ -28,7 +28,7 @@ describeWithFlags('exp', ALL_ENVS, () => {
     expectArraysClose(await r.data(), [Math.exp(1), Math.exp(2), 1]);
   });
 
-  if (ENGINE.backend.floatPrecision() === 32) {
+  if (ENGINE.backend && ENGINE.backend.floatPrecision() === 32) {
     it('int32', async () => {
       const a = tf.tensor1d([10], 'int32');
       const r = tf.exp(a);
