@@ -23,7 +23,7 @@ import {Logs, UnresolvedLogs} from '../logs';
 import {Regularizer} from '../regularizers';
 import {Kwargs} from '../types';
 import {pyListRepeat, stringsEqual, unique} from '../utils/generic_utils';
-import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
 // TODO(bileschi): Use external version of Layer.
 import {Layer, SymbolicTensor} from './topology';
@@ -150,7 +150,7 @@ describeMathCPU('checkArrayLengths', () => {
   });
 });
 
-describeMathCPUAndGPU('collectMetrics', () => {
+describeMathCPUAndWebGL2('collectMetrics', () => {
   it('shortcut strings name', () => {
     const metrics = 'mse';
     const outputNames = ['output'];
@@ -444,7 +444,7 @@ describeMathCPUAndGPU('LayersModel.predict', () => {
   });
 });
 
-describeMathCPUAndGPU('LayersModel.fit', () => {
+describeMathCPUAndWebGL2('LayersModel.fit', () => {
   const inputSize = 4;   // Input vector size for model with one input.
   const inputSize1 = 3;  // 1st input vector size for model with two inputs.
   const inputSize2 = 4;  // 2nd input vector size for model with two inputs.
@@ -1729,48 +1729,50 @@ describeMathCPUAndGPU('LayersModel.fit', () => {
   });
 });
 
-describeMathCPUAndGPU('LayersModel.fit with training-sensitive layers', () => {
-  it('Correct training arg during fit/evaluate/predict', async () => {
-    const inputTensor =
-        tfl.layers.input({shape: [1], name: 'inputLayer1', dtype: 'float32'});
-    const layer1 = tfl.layers.dense({units: 1});
-    const layer2 = tfl.layers.dropout({rate: 0.5});
+describeMathCPUAndWebGL2(
+    'LayersModel.fit with training-sensitive layers', () => {
+      it('Correct training arg during fit/evaluate/predict', async () => {
+        const inputTensor = tfl.layers.input(
+            {shape: [1], name: 'inputLayer1', dtype: 'float32'});
+        const layer1 = tfl.layers.dense({units: 1});
+        const layer2 = tfl.layers.dropout({rate: 0.5});
 
-    // Hook the dropout layer to observe the training arg values during the
-    // fit(), evaluate() and predict() calls.
-    const dropoutLayerTrainingFlags: boolean[] = [];
-    const recordDropoutTrainingArgHook =
-        (inputs: Tensor|Tensor[], kwargs: Kwargs) => {
-          dropoutLayerTrainingFlags.push(kwargs.training as boolean);
-        };
-    layer2.setCallHook(recordDropoutTrainingArgHook);
+        // Hook the dropout layer to observe the training arg values during the
+        // fit(), evaluate() and predict() calls.
+        const dropoutLayerTrainingFlags: boolean[] = [];
+        const recordDropoutTrainingArgHook =
+            (inputs: Tensor|Tensor[], kwargs: Kwargs) => {
+              dropoutLayerTrainingFlags.push(kwargs.training as boolean);
+            };
+        layer2.setCallHook(recordDropoutTrainingArgHook);
 
-    const output =
-        layer2.apply(layer1.apply(inputTensor)) as tfl.SymbolicTensor;
-    const model =
-        new tfl.LayersModel({inputs: [inputTensor], outputs: [output]});
-    model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
-    const xs = ones([4, 1]);
-    const ys = ones([4, 1]);
+        const output =
+            layer2.apply(layer1.apply(inputTensor)) as tfl.SymbolicTensor;
+        const model =
+            new tfl.LayersModel({inputs: [inputTensor], outputs: [output]});
+        model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
+        const xs = ones([4, 1]);
+        const ys = ones([4, 1]);
 
-    // 1. Call fit: Dropout layer should be called twice, with training as
-    // true.
-    await model.fit(xs, ys, {epochs: 2, batchSize: 4});
-    expect(dropoutLayerTrainingFlags).toEqual([true, true]);
+        // 1. Call fit: Dropout layer should be called twice, with training as
+        // true.
+        await model.fit(xs, ys, {epochs: 2, batchSize: 4});
+        expect(dropoutLayerTrainingFlags).toEqual([true, true]);
 
-    // 2. Call evaluate, Dropout layer should be called once, without
-    // training defined.
-    model.evaluate(xs, ys, {batchSize: 4});
-    expect(dropoutLayerTrainingFlags).toEqual([true, true, undefined]);
+        // 2. Call evaluate, Dropout layer should be called once, without
+        // training defined.
+        model.evaluate(xs, ys, {batchSize: 4});
+        expect(dropoutLayerTrainingFlags).toEqual([true, true, undefined]);
 
-    // 3. Call predict, Dropout layer should be called once, without training
-    //   defined.
-    model.predict(xs, {batchSize: 4});
-    expect(dropoutLayerTrainingFlags).toEqual([
-      true, true, undefined, undefined
-    ]);
-  });
-});
+        // 3. Call predict, Dropout layer should be called once, without
+        // training
+        //   defined.
+        model.predict(xs, {batchSize: 4});
+        expect(dropoutLayerTrainingFlags).toEqual([
+          true, true, undefined, undefined
+        ]);
+      });
+    });
 
 describeMathCPUAndGPU(
     'LayersModel.predict and LayersModel.evaluate: No memory leak', () => {
@@ -1880,7 +1882,7 @@ describeMathCPUAndGPU(
       });
     });
 
-describeMathCPUAndGPU('LayersModel.fit: No memory leak', () => {
+describeMathCPUAndWebGL2('LayersModel.fit: No memory leak', () => {
   const inputSize = 4;   // Input vector size for model with one input.
   const numSamples = 5;  // Number of samples in a batch.
 
@@ -2467,7 +2469,7 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
   });
 });
 
-describeMathCPUAndGPU('LayersModel.trainOnBatch', () => {
+describeMathCPUAndWebGL2('LayersModel.trainOnBatch', () => {
   // Reference Python Keras code:
   // ```py
   // import keras

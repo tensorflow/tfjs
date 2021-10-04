@@ -89,6 +89,19 @@ export function describeMathCPUAndGPU(testName: string, tests: () => void) {
 }
 
 /**
+ * Describe tests to be run on CPU and GPU WebGL2.
+ * @param testName
+ * @param tests
+ */
+export function describeMathCPUAndWebGL2(testName: string, tests: () => void) {
+  describeWithFlags(
+      testName, {predicate: testEnv => testEnv.flags['WEBGL_VERSION'] !== 1},
+      () => {
+        tests();
+      });
+}
+
+/**
  * Describe tests to be run on CPU only.
  * @param testName
  * @param tests
