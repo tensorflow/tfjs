@@ -13,12 +13,12 @@
  */
 
 import {scalar, Tensor, tensor, tensor1d, tensor2d} from '@tensorflow/tfjs-core';
-import {setEpsilon} from './backend/common';
 
+import {setEpsilon} from './backend/common';
 import * as tfl from './index';
 import {binaryAccuracy, categoricalAccuracy, get, getLossOrMetricName} from './metrics';
 import {LossOrMetricFn} from './types';
-import {describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
+import {describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from './utils/test_utils';
 
 describeMathCPUAndGPU('binaryAccuracy', () => {
   it('1D exact', () => {
@@ -72,7 +72,7 @@ describeMathCPUAndGPU('sparseCategoricalAccuracy', () => {
   });
 });
 
-describeMathCPUAndGPU('binaryCrossentropy', () => {
+describeMathCPUAndWebGL2('binaryCrossentropy', () => {
   beforeEach(() => {
     setEpsilon(1e-7);
   });

@@ -45,17 +45,34 @@ nodejs_test(
 )
 
 tfjs_web_test(
-    name = "tfjs-layers_test",
+    name = "tfjs-layers_webgl2_test",
     srcs = [
         "//tfjs-layers/src:tfjs-layers_test_bundle",
     ],
     browsers = [
         "bs_chrome_mac",
         "bs_firefox_mac",
-        "bs_safari_mac",
-        "bs_ios_11",
         "bs_android_9",
         "win_10_chrome",
+    ],
+    static_files = [
+        # Listed here so sourcemaps are served
+        "//tfjs-layers/src:tfjs-layers_test_bundle",
+    ],
+)
+
+tfjs_web_test(
+    name = "tfjs-layers_webgl1_test",
+    srcs = [
+        "//tfjs-layers/src:tfjs-layers_test_bundle",
+    ],
+    args = [
+        "--testEnv",
+        "webgl1",
+    ],
+    browsers = [
+        "bs_safari_mac",
+        "bs_ios_11",
     ],
     static_files = [
         # Listed here so sourcemaps are served
