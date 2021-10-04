@@ -18,6 +18,7 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose, expectNumbersClose} from '../test_util';
+import {ENGINE} from '../engine';
 
 describeWithFlags('square', ALL_ENVS, () => {
   it('1D array', async () => {
@@ -55,18 +56,20 @@ describeWithFlags('square', ALL_ENVS, () => {
     expectArraysClose(await r.data(), [2.25, NaN]);
   });
 
-  it('int32', async () => {
-    const a = tf.tensor1d([2, 4, 40000], 'int32');
-    const r = tf.square(a);
-    expect(r.dtype).toEqual('int32');
-    const data = await r.data();
-    expectNumbersClose(data[0], 4);
-    expectNumbersClose(data[1], 16);
-    // Epsilon must be larger here for webgl1
-    // TODO: Use expectArraysClose when it supports epsilons scaled by the
-    // numbers being compared.
-    expectNumbersClose(data[2], 1_600_000_000, 1_000 /* epsilon */);
-  });
+  if (ENGINE.backend.floatPrecision() === 32) {
+    it('int32', async () => {
+      const a = tf.tensor1d([2, 4, 40000], 'int32');
+      const r = tf.square(a);
+      expect(r.dtype).toEqual('int32');
+      const data = await r.data();
+      expectNumbersClose(data[0], 4);
+      expectNumbersClose(data[1], 16);
+      // Epsilon must be larger here for webgl1
+      // TODO: Use expectArraysClose when it supports epsilons scaled by the
+      // numbers being compared.
+      expectNumbersClose(data[2], 1_600_000_000, 1_000 /* epsilon */);
+    });
+  }
 
   it('gradients: Scalar', async () => {
     const a = tf.scalar(5);

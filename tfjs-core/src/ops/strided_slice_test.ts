@@ -18,6 +18,7 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
+import {ENGINE} from '../engine';
 
 describeWithFlags('stridedSlice', ALL_ENVS, () => {
   it('with ellipsisMask=1', async () => {
@@ -460,13 +461,15 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expectArraysClose(await output.data(), [0, 2]);
   });
 
-  it('accepts int32 tensor', async () => {
-    const tensor = tf.tensor2d([1, 2, 3, 4, 12345678, 6], [2, 3], 'int32');
-    const output = tf.stridedSlice(tensor, [1, 0], [2, 2], [1, 1]);
-    expect(output.shape).toEqual([1, 2]);
-    expect(output.dtype).toEqual('int32');
-    expectArraysClose(await output.data(), [4, 12345678]);
-  });
+  if (ENGINE.backend.floatPrecision() === 32) {
+    it('accepts int32 tensor', async () => {
+      const tensor = tf.tensor2d([1, 2, 3, 4, 12345678, 6], [2, 3], 'int32');
+      const output = tf.stridedSlice(tensor, [1, 0], [2, 2], [1, 1]);
+      expect(output.shape).toEqual([1, 2]);
+      expect(output.dtype).toEqual('int32');
+      expectArraysClose(await output.data(), [4, 12345678]);
+    });
+  }
 
   it('ensure no memory leak', async () => {
     const numTensorsBefore = tf.memory().numTensors;
