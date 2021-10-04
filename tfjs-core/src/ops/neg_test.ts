@@ -18,7 +18,7 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
-import {ENGINE} from '../engine';
+import {backend} from '../index';
 
 describeWithFlags('neg', ALL_ENVS, () => {
   it('basic', async () => {
@@ -27,7 +27,7 @@ describeWithFlags('neg', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [-1, 3, -2, -7, 4]);
   });
 
-  if (ENGINE.backend && ENGINE.backend.floatPrecision() === 32) {
+  if (backend() && backend().floatPrecision() === 32) {
     it('int32', async () => {
       const a = tf.tensor1d([1, -3, 12345678, -12345678], 'int32');
       const result = tf.neg(a);

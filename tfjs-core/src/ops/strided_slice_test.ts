@@ -18,7 +18,7 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
-import {ENGINE} from '../engine';
+import {backend} from '../index';
 
 describeWithFlags('stridedSlice', ALL_ENVS, () => {
   it('with ellipsisMask=1', async () => {
@@ -461,7 +461,7 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expectArraysClose(await output.data(), [0, 2]);
   });
 
-  if (ENGINE.backend && ENGINE.backend.floatPrecision() === 32) {
+  if (backend() && backend().floatPrecision() === 32) {
     it('accepts int32 tensor', async () => {
       const tensor = tf.tensor2d([1, 2, 3, 4, 12345678, 6], [2, 3], 'int32');
       const output = tf.stridedSlice(tensor, [1, 0], [2, 2], [1, 1]);

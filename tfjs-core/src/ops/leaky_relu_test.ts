@@ -18,7 +18,7 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
-import {ENGINE} from '../engine';
+import {backend} from '../index';
 
 describeWithFlags('leakyrelu', ALL_ENVS, () => {
   it('basic', async () => {
@@ -29,7 +29,7 @@ describeWithFlags('leakyrelu', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [0, 1, -0.4]);
   });
 
-  if (ENGINE.backend && ENGINE.backend.floatPrecision() === 32) {
+  if (backend() && backend().floatPrecision() === 32) {
     it('int32', async () => {
       const a = tf.tensor1d([0, 1, -2], 'int32');
       const result = tf.leakyRelu(a);
