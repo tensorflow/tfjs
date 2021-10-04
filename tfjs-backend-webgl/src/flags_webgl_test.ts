@@ -379,7 +379,7 @@ describeWithFlags('WEBGL_FLUSH_THRESHOLD', WEBGL_ENVS, () => {
   afterAll(() => tf.env().reset());
 
   it('should return the correct default value', () => {
-    if (device_util.isMobile() && tf.env().getBool('IS_CHROME')) {
+    if (device_util.isMobile()) {
       expect(tf.env().getNumber('WEBGL_FLUSH_THRESHOLD')).toEqual(1);
     } else {
       expect(tf.env().getNumber('WEBGL_FLUSH_THRESHOLD')).toEqual(-1);
