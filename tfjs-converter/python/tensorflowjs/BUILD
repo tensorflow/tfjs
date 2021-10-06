@@ -1,5 +1,5 @@
 load("@rules_python//python:defs.bzl", "py_library", "py_test")
-load("@tensorflowjs_dev_deps_linux_amd64//:requirements.bzl", "requirement")
+load("@//:python_toolchain.bzl", requirement = "dev_requirement")
 
 package(
     default_visibility = [

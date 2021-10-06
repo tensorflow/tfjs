@@ -3,7 +3,11 @@ load(":python_packages.bzl", "PYTHON_PACKAGES")
 load("@rules_python//python:pip.bzl", "pip_install")
 
 def python_repositories():
+    """Load and register python toolchains from PYTHON_PACKAGES.
 
+    Declare `http_archive`s, register toolchains, and define `pip_install`
+    external repositories for each platform in PYTHON_PACKAGES.
+    """
     for name, platform_data in PYTHON_PACKAGES.items():
         if name not in native.existing_rules():
             py2 = platform_data.python2
@@ -27,17 +31,20 @@ def python_repositories():
                 urls = py3.urls,
             )
 
-            native.register_toolchains("@tfjs//:tfjs_py_toolchain_%s" % name)
+            native.register_toolchains("@//:tfjs_py_toolchain_%s" % name)
 
+            # Create a central external repo, @tensorflowjs_dev_deps, that
+            # contains Bazel targets for all the third-party packages specified
+            # in the requirements.txt file.
             pip_install(
                 name = "tensorflowjs_dev_deps_%s" % name,
                 python_interpreter_target = "@python3_interpreter_%s//:python3_bin" % name,
-                requirements = "//tfjs-converter/python:requirements-dev.txt",
+                requirements = "@//tfjs-converter/python:requirements-dev.txt",
             )
 
             pip_install(
                 name = "tensorflowjs_deps_%s" % name,
                 python_interpreter_target = "@python3_interpreter_%s//:python3_bin" % name,
-                requirements = "//tfjs-converter/python:requirements.txt",
+                requirements = "@//tfjs-converter/python:requirements.txt",
             )
 

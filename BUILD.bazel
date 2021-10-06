@@ -24,8 +24,6 @@ exports_files([
     "tsconfig_ts_library.json",
 ])
 
-
-
 configure_python_toolchains(
     platforms = PYTHON_PACKAGES
 )
