@@ -13,6 +13,9 @@
 # limitations under the License.
 # =============================================================================
 
+load(":python_toolchain.bzl", "configure_python_toolchains")
+load(":python_packages.bzl", "PYTHON_PACKAGES")
+
 exports_files([
     "babel.config.json",
     "tsconfig.json",
@@ -20,3 +23,9 @@ exports_files([
     "tsconfig.test.json",
     "tsconfig_ts_library.json",
 ])
+
+
+
+configure_python_toolchains(
+    platforms = PYTHON_PACKAGES
+)
