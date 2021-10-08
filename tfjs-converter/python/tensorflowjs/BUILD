@@ -1,5 +1,5 @@
-load("@rules_python//python:defs.bzl", "py_library", "py_test")
 load("@//:python_toolchain.bzl", requirement = "dev_requirement")
+load("@rules_python//python:defs.bzl", "py_library", "py_test")
 
 package(
     default_visibility = [

@@ -11,7 +11,7 @@ def configure_python_toolchain(name, platform_data):
     The toolchain is registered in the `python_repositories` workspace function.
     """
 
-    py2 = platform_data.python2 if 'python2' in dir(platform_data) else None
+    py2 = platform_data.python2 if "python2" in dir(platform_data) else None
     py3 = platform_data.python3
 
     py2_runtime_name = "python2_runtime_%s" % name
@@ -63,7 +63,7 @@ def configure_python_toolchains(platforms = PYTHON_PACKAGES):
             name = name,
             platform_data = platform_data,
         )
-            
+
 def dev_requirement(name):
     """Get the dev target name corresponding to the python pip package name
 
@@ -85,6 +85,6 @@ def dev_requirement(name):
 
         native.alias(
             name = alias_name,
-            actual = select(selection_values)
+            actual = select(selection_values),
         )
     return alias_name

@@ -24,7 +24,6 @@ def _py2_patch_cmds(configure):
         "ln -s bazel_install_py2/bin/python python_bin",
     ]
 
-
 _py3_from_source_build_file_content = """
 exports_files(["python3_bin"])
 filegroup(
@@ -76,7 +75,7 @@ PYTHON_PACKAGES = dict({
         exec_compatible_with = [
             "@platforms//os:macos",
             "@platforms//cpu:x86_64",
-        ]
+        ],
     ),
     "linux_amd64": struct(
         python2 = struct(
@@ -102,7 +101,7 @@ PYTHON_PACKAGES = dict({
         exec_compatible_with = [
             "@platforms//os:linux",
             "@platforms//cpu:x86_64",
-        ]
+        ],
     ),
     "windows_amd64": struct(
         # There is no easy install candidate for python2. There is an installer
@@ -135,6 +134,6 @@ filegroup(
         exec_compatible_with = [
             "@platforms//os:windows",
             "@platforms//cpu:x86_64",
-        ]
+        ],
     ),
 })

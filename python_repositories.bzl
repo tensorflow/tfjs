@@ -1,6 +1,6 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load(":python_packages.bzl", "PYTHON_PACKAGES")
 load("@rules_python//python:pip.bzl", "pip_install")
+load(":python_packages.bzl", "PYTHON_PACKAGES")
 
 def python_repositories():
     """Load and register python toolchains from PYTHON_PACKAGES.
@@ -10,7 +10,7 @@ def python_repositories():
     """
     for name, platform_data in PYTHON_PACKAGES.items():
         if name not in native.existing_rules():
-            py2 = platform_data.python2 if 'python2' in dir(platform_data) else None
+            py2 = platform_data.python2 if "python2" in dir(platform_data) else None
             py3 = platform_data.python3
 
             if py2:
@@ -49,4 +49,3 @@ def python_repositories():
                 python_interpreter_target = interpreter,
                 requirements = "@//tfjs-converter/python:requirements.txt",
             )
-
