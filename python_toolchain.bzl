@@ -11,6 +11,9 @@ def configure_python_toolchain(name, platform_data):
     The toolchain is registered in the `python_repositories` workspace function.
     """
 
+    py2 = platform_data.python2 if 'python2' in dir(platform_data) else None
+    py3 = platform_data.python3
+
     py2_runtime_name = "python2_runtime_%s" % name
     py3_runtime_name = "python3_runtime_%s" % name
     runtime_pair_name = "tfjs_py_runtime_pair_%s" % name
@@ -18,22 +21,23 @@ def configure_python_toolchain(name, platform_data):
     native.py_runtime(
         name = py3_runtime_name,
         files = ["@python3_interpreter_%s//:files" % name],
-        interpreter = "@python3_interpreter_%s//:python3_bin" % name,
+        interpreter = "@python3_interpreter_%s//:%s" % (name, py3.python_interpreter),
         python_version = "PY3",
         visibility = ["//visibility:public"],
     )
 
-    native.py_runtime(
-        name = py2_runtime_name,
-        files = ["@python2_interpreter_%s//:files" % name],
-        interpreter = "@python2_interpreter_%s//:python_bin" % name,
-        python_version = "PY2",
-        visibility = ["//visibility:public"],
-    )
+    if py2:
+        native.py_runtime(
+            name = py2_runtime_name,
+            files = ["@python2_interpreter_%s//:files" % name],
+            interpreter = "@python2_interpreter_%s//:%s" % (name, py2.python_interpreter),
+            python_version = "PY2",
+            visibility = ["//visibility:public"],
+        )
 
     py_runtime_pair(
         name = runtime_pair_name,
-        py2_runtime = ":%s" % py2_runtime_name,
+        py2_runtime = ":%s" % py2_runtime_name if py2 else None,
         py3_runtime = ":%s" % py3_runtime_name,
     )
 
