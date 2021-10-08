@@ -182,88 +182,12 @@ load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
 bazel_skylib_workspace()
 
-# Special logic for building python interpreter with OpenSSL from homebrew.
-# See https://devguide.python.org/setup/#macos-and-os-x
-_py3_configure = """
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    ./configure --prefix=$(pwd)/bazel_install_py3 --with-openssl=$(brew --prefix openssl)
-else
-    ./configure --prefix=$(pwd)/bazel_install_py3
-fi
-"""
-
-_py2_configure = """
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    ./configure --prefix=$(pwd)/bazel_install_py2 --with-openssl=$(brew --prefix openssl)
-else
-    ./configure --prefix=$(pwd)/bazel_install_py2
-fi
-"""
-
-http_archive(
-    name = "python3_interpreter",
-    build_file_content = """
-exports_files(["python3_bin"])
-filegroup(
-    name = "files",
-    srcs = glob(["bazel_install_py3/**"], exclude = ["**/* *"]),
-    visibility = ["//visibility:public"],
-)
-""",
-    patch_cmds = [
-        "mkdir $(pwd)/bazel_install_py3",
-        _py3_configure,
-        "make -j",
-        "make install",
-        "ln -s bazel_install_py3/bin/python3 python3_bin",
-    ],
-    sha256 = "fb1a1114ebfe9e97199603c6083e20b236a0e007a2c51f29283ffb50c1420fb2",
-    strip_prefix = "Python-3.8.11",
-    urls = ["https://www.python.org/ftp/python/3.8.11/Python-3.8.11.tar.xz"],
-)
-
-http_archive(
-    name = "python2_interpreter",
-    build_file_content = """
-exports_files(["python_bin"])
-filegroup(
-    name = "files",
-    srcs = glob(["bazel_install_py2/**"], exclude = ["**/* *"]),
-    visibility = ["//visibility:public"],
-)
-""",
-    patch_cmds = [
-        "mkdir $(pwd)/bazel_install_py2",
-        _py2_configure,
-        "make -j",
-        "make install",
-        "ln -s bazel_install_py2/bin/python python_bin",
-    ],
-    sha256 = "da3080e3b488f648a3d7a4560ddee895284c3380b11d6de75edb986526b9a814",
-    strip_prefix = "Python-2.7.18",
-    urls = ["https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz"],
-)
-
-register_toolchains("//tfjs-converter/python:tfjs_py_toolchain")
-
 http_archive(
     name = "rules_python",
     sha256 = "934c9ceb552e84577b0faf1e5a2f0450314985b4d8712b2b70717dc679fdc01b",
     url = "https://github.com/bazelbuild/rules_python/releases/download/0.3.0/rules_python-0.3.0.tar.gz",
 )
 
-load("@rules_python//python:pip.bzl", "pip_install")
+load("//:python_repositories.bzl", "python_repositories")
 
-# Create a central external repo, @tensorflowjs_dev_deps, that contains Bazel targets for all the
-# third-party packages specified in the requirements.txt file.
-pip_install(
-    name = "tensorflowjs_dev_deps",
-    python_interpreter_target = "@python3_interpreter//:python3_bin",
-    requirements = "//tfjs-converter/python:requirements-dev.txt",
-)
-
-pip_install(
-    name = "tensorflowjs_deps",
-    python_interpreter_target = "@python3_interpreter//:python3_bin",
-    requirements = "//tfjs-converter/python:requirements.txt",
-)
+python_repositories()
