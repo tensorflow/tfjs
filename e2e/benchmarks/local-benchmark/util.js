@@ -72,7 +72,10 @@ function areClose(a, e, epsilon) {
     return true;
   }
   if (Math.abs(a) >= 1) {
-    if (isNaN(a) || isNaN(e) || Math.abs(a - e) / Math.abs(a) > 0.01) {
+    const RELATIVE_EPSILON = 0.01;
+    if (isNaN(a) || isNaN(e) ||
+        Math.abs(a - e) / Math.min(Math.abs(a), Math.abs(e)) >
+            RELATIVE_EPSILON) {
       return false;
     }
   } else {
