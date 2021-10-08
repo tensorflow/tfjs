@@ -39,14 +39,15 @@ describeWithFlags('abs', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [1, 2, 5, 3, 1, 4, 7, 8]);
   });
 
-  if (backend() && backend().floatPrecision() === 32) {
-    it('int32', async () => {
+  it('int32', async () => {
+    if (backend() && backend().floatPrecision() === 32) {
+      // TODO: Use skip() instead when it is implemented
       const a = tf.tensor1d([10, 12345678, -12345678], 'int32');
       const result = tf.abs(a);
       expect(result.dtype).toEqual('int32');
       expectArraysClose(await result.data(), [10, 12345678, 12345678]);
-    });
-  }
+    }
+  });
 
   it('complex64 rank-1', async () => {
     const a = tf.complex([-2, -1, 0, 1, 2], [1, 2, 3, 0, -1]);

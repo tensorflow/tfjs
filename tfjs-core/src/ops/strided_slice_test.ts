@@ -461,15 +461,16 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expectArraysClose(await output.data(), [0, 2]);
   });
 
-  if (backend() && backend().floatPrecision() === 32) {
-    it('accepts int32 tensor', async () => {
+  it('accepts int32 tensor', async () => {
+    if (backend() && backend().floatPrecision() === 32) {
+      // TODO: Use skip() instead when it is implemented
       const tensor = tf.tensor2d([1, 2, 3, 4, 12345678, 6], [2, 3], 'int32');
       const output = tf.stridedSlice(tensor, [1, 0], [2, 2], [1, 1]);
       expect(output.shape).toEqual([1, 2]);
       expect(output.dtype).toEqual('int32');
       expectArraysClose(await output.data(), [4, 12345678]);
-    });
-  }
+    }
+  });
 
   it('ensure no memory leak', async () => {
     const numTensorsBefore = tf.memory().numTensors;

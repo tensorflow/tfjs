@@ -94,13 +94,14 @@ describeWithFlags('min', ALL_ENVS, () => {
     expectArraysClose(await tf.min([3, -1, 0, 100, -7, 2]).data(), -7);
   });
 
-  if (backend() && backend().floatPrecision() === 32) {
-    it('accpets int32 input', async () => {
+  it('accpets int32 input', async () => {
+    if (backend() && backend().floatPrecision() === 32) {
+      // TODO: Use skip() instead when it is implemented
       const a = tf.tensor1d([12345678, 12345679], 'int32');
       expect(a.dtype).toEqual('int32');
       expectArraysClose(await tf.min(a).data(), 12345678);
-    });
-  }
+    }
+  });
 
   it('min gradient: Scalar', async () => {
     const x = tf.scalar(42);

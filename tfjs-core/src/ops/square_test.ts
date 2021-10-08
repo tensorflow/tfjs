@@ -56,8 +56,9 @@ describeWithFlags('square', ALL_ENVS, () => {
     expectArraysClose(await r.data(), [2.25, NaN]);
   });
 
-  if (backend() && backend().floatPrecision() === 32) {
-    it('int32', async () => {
+  it('int32', async () => {
+    if (backend() && backend().floatPrecision() === 32) {
+      // TODO: Use skip() instead when it is implemented
       const a = tf.tensor1d([2, 4, 40000], 'int32');
       const r = tf.square(a);
       expect(r.dtype).toEqual('int32');
@@ -68,8 +69,8 @@ describeWithFlags('square', ALL_ENVS, () => {
       // TODO: Use expectArraysClose when it supports epsilons scaled by the
       // numbers being compared.
       expectNumbersClose(data[2], 1_600_000_000, 1_000 /* epsilon */);
-    });
-  }
+    }
+  });
 
   it('gradients: Scalar', async () => {
     const a = tf.scalar(5);

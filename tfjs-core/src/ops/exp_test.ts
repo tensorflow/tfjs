@@ -28,15 +28,16 @@ describeWithFlags('exp', ALL_ENVS, () => {
     expectArraysClose(await r.data(), [Math.exp(1), Math.exp(2), 1]);
   });
 
-  if (backend() && backend().floatPrecision() === 32) {
-    it('int32', async () => {
+  it('int32', async () => {
+    if (backend() && backend().floatPrecision() === 32) {
+      // TODO: Use skip() instead when it is implemented
       const a = tf.tensor1d([10], 'int32');
       const r = tf.exp(a);
 
       expect(r.dtype).toEqual('float32');
       expectArraysClose(await r.data(), [Math.exp(10)]);
-    });
-  }
+    }
+  });
 
   it('exp propagates NaNs', async () => {
     const a = tf.tensor1d([1, NaN, 0]);

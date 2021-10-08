@@ -29,16 +29,17 @@ describeWithFlags('leakyrelu', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [0, 1, -0.4]);
   });
 
-  if (backend() && backend().floatPrecision() === 32) {
-    it('int32', async () => {
+  it('int32', async () => {
+    if (backend() && backend().floatPrecision() === 32) {
+      // TODO: Use skip() instead when it is implemented
       const a = tf.tensor1d([0, 1, -2], 'int32');
       const result = tf.leakyRelu(a);
 
       expect(result.shape).toEqual(a.shape);
       expect(result.dtype).toEqual('float32');
       expectArraysClose(await result.data(), [0, 1, -0.4]);
-    });
-  }
+    }
+  });
 
   it('propagates NaN', async () => {
     const a = tf.tensor1d([0, 1, NaN]);
