@@ -98,13 +98,16 @@ export class ScatterOptimizedProgram implements WebGPUProgram {
     const atomicAddSnippet = this.type === 'int32' ?
         `ignore(atomicAdd(&(result.numbers[flatIndex]), i32(updateValue)));` :
         `
-     var oldI32 = atomicLoad(&(result.numbers[flatIndex]));
-     var assumed = oldI32 - 1;
-     for (; assumed != oldI32;) {
-       assumed = oldI32;
+     var assumed = atomicLoad(&(result.numbers[flatIndex]));
+     var success = 0;
+     // TODO: Will it have the risk of falling infinite loop? See discussion
+     // https://github.com/tensorflow/tfjs/pull/5682#discussion_r725414008
+     for (; success == 0;) {
        let new = bitcast<f32>(assumed) + updateValue;
        let newI32 = bitcast<i32>(new);
-       oldI32 = atomicCompareExchangeWeak(&(result.numbers[flatIndex]), assumed, newI32)[0];
+       let resValue = atomicCompareExchangeWeak(&(result.numbers[flatIndex]), assumed, newI32);
+       assumed = resValue[0];
+       success = resValue[1];
      }
      `;
 
