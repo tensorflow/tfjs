@@ -71,13 +71,8 @@ export function getWorkGroupSizeString(): string {
 `;
 }
 
-export function getGlobalIndexString(nonFlatDispatch = false): string {
-  if (nonFlatDispatch) {
-    return 'let index = getGlobalIndex(globalId, localId);';
-  } else {
-    // Only used when the y/z dimension of workgroup size is 1.
-    return 'let index = i32(globalId.x);';
-  }
+export function getGlobalIndexString(): string {
+  return 'let index = getGlobalIndex(globalId, localId);';
 }
 
 export function getMainHeaderString() {

@@ -65,7 +65,7 @@ export class SliceProgram implements WebGPUProgram {
 
     const userCode = `
       ${getMainHeaderString()} {
-        ${getGlobalIndexString(true)}
+        ${getGlobalIndexString()}
         if (index < uniforms.size) {
           var sourceLoc : ${dtype};
           let coords = getOutputCoords(globalId, index);
