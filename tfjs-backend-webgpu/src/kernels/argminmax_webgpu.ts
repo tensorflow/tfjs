@@ -168,7 +168,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       }
 
       ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+        ${getGlobalIndexString(true)}
         let coordInfo = getInputCoordInfo(globalId, index);
 
         var bestIndex = 0;

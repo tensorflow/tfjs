@@ -96,7 +96,7 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
       ${activationSnippet}
 
       ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+        ${getGlobalIndexString(true)}
         let batch = 0;
         let r = i32(globalId.x);
         let c = i32(globalId.y) * 4;

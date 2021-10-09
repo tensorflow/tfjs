@@ -48,7 +48,7 @@ export class TransposeSharedProgram implements WebGPUProgram {
       var<workgroup> tile : array<array<f32, ${this.workGroupSize[0] + 1}>, ${
         this.workGroupSize[0]}>;
       ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+        ${getGlobalIndexString(true)}
         let workGroupID = (globalId - localId)/vec3<u32>(${
         this.workGroupSize[0]}u, ${this.workGroupSize[1]}u, ${
         this.workGroupSize[2]}u);

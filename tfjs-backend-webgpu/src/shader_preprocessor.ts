@@ -71,10 +71,13 @@ export function getWorkGroupSizeString(): string {
 `;
 }
 
-export function getGlobalIndexString(): string {
-  return `
-  let index = getGlobalIndex(globalId, localId);
-`;
+export function getGlobalIndexString(nonFlatDispatch = false): string {
+  if (nonFlatDispatch) {
+    return 'let index = getGlobalIndex(globalId, localId);';
+  } else {
+    // Only used when the y/z dimension of workgroup size is 1.
+    return 'let index = i32(globalId.x);';
+  }
 }
 
 export function getMainHeaderString() {
@@ -278,11 +281,7 @@ const SAMPLING_SNIPPETS = `
         f32(shape.y) * f32(shape.z) * f32(shape.w), f32(shape.z) * f32(shape.w), f32(shape.w), 1.0)));
   }
 
-  // Only used when the y/z dimension of workgroup size is 1.
   fn getGlobalIndex(globalId : vec3<u32>, localId : vec3<u32>) -> i32 {
-    if (uniforms.dispatchSize.y == 1u && uniforms.dispatchSize.z == 1u) {
-      return i32(globalId.x);
-    }
     let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
       localId.y * workGroupSizeX + localId.x;
     let workGroupID = (globalId - localId)/vec3<u32>(

@@ -130,7 +130,7 @@ export class ReduceProgram implements WebGPUProgram {
          return offset;
        }
        ${getMainHeaderString()} {
-         ${getGlobalIndexString()}
+         ${getGlobalIndexString(true)}
          let offset= getOffset(globalId, index);
          var bestValue = ${initValue};
          let Length = uniforms.reduceSize;
