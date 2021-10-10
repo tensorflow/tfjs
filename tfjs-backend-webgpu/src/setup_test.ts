@@ -576,6 +576,9 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'rotateWithOffset',
   },
   {
+    include: 'topk',
+  },
+  {
     include: 'sparseToDense',
     excludes: [
       // TODO: Fix 0-sized buffer binding on WebGPU
