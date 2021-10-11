@@ -433,6 +433,9 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'image.transform'},
   {include: 'batchToSpaceND'},
   {include: 'spaceToBatchND'},
+  {include: 'stringNGrams'},
+  {include: 'stringSplit'},
+  {include: 'stringToHashBucketFast'},
 ];
 
 const customInclude = (testName: string) => {
