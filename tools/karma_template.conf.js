@@ -18,25 +18,31 @@
 const browserstackConfig = {
   hostname: 'bs-local.com',
   reporters: ['dots'],
-  port: 9896,
+  port: 9876,
 };
 
 module.exports = function(config) {
-  config.set({
-    ...browserstackConfig,
-    browserStack: {
+  let browser = 'TEMPLATE_browser';
+  let extraConfig = {};
+  if (browser) {
+    Object.assign(extraConfig, browserstackConfig);
+    extraConfig.browsers = [browser];
+    extraConfig.browserStack = {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
-      tunnelIdentifier:
-      `tfjs_${Date.now()}_${Math.floor(Math.random() * 1000)}`
-    },
+      timeout: 900,  // Seconds
+      tunnelIdentifier: `tfjs_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+    };
+  }
+
+  config.set({
     captureTimeout: 3e5,
     reportSlowerThan: 500,
     browserNoActivityTimeout: 3e5,
     browserDisconnectTimeout: 3e5,
-    browserDisconnectTolerance: 3,
+    browserDisconnectTolerance: 0,
     browserSocketTimeout: 1.2e5,
-    browsers: ['TEMPLATE_browser'],
+    ...extraConfig,
     customLaunchers: {
       // For browserstack configs see:
       // https://www.browserstack.com/automate/node
@@ -50,7 +56,7 @@ module.exports = function(config) {
       bs_firefox_mac: {
         base: 'BrowserStack',
         browser: 'firefox',
-        browser_version: 'latest',
+        browser_version: '90',
         os: 'OS X',
         os_version: 'High Sierra'
       },
@@ -89,7 +95,8 @@ module.exports = function(config) {
         flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
       },
       chrome_debugging:
-      {base: 'Chrome', flags: ['--remote-debugging-port=9333']}
-    }
+          {base: 'Chrome', flags: ['--remote-debugging-port=9333']}
+    },
+    client: {args: TEMPLATE_args},
   });
 }

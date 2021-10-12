@@ -156,5 +156,4 @@ async function run(outputFilePath: string) {
 }
 
 const args = parser.parseArgs();
-console.log('Writing output to', args.out);
 run(args.out);

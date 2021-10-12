@@ -167,9 +167,15 @@ export function standardizeInputData(
         const refDim = shapes[i][j];
         if (refDim != null && refDim >= 0 && dim !== refDim) {
           throw new ValueError(
-              `Error when checking ${exceptionPrefix}: expected ${names[i]} ` +
-              `to have shape [${shapes[i]}], but got array with shape ` +
-              `[${array.shape}].`);
+              `${exceptionPrefix} expected a batch of elements where each ` +
+              `example has shape [${shapes[i].slice(1, shapes[i].length)}] ` +
+              `(i.e.,tensor shape [*,${
+                  shapes[i].slice(1, shapes[i].length)}])` +
+              ` but the ${exceptionPrefix} received an input with ${
+                  array.shape[0]}` +
+              ` examples, each with shape [${
+                  array.shape.slice(1, array.shape.length)}]` +
+              ` (tensor shape [${array.shape}])`);
         }
       }
     }

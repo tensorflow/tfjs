@@ -16,7 +16,7 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-import {getCoordsDataType} from '../shader_preprocessor';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
@@ -55,57 +55,48 @@ export class BinaryOpProgram implements WebGPUProgram {
 
   getUserCode(): string {
     let userCode: string;
-    const opStr = getBinaryOpString(this.op);
+    const opStr = getBinaryOpString(this.op, false);
+    const miscStr = `          fn binaryOperation(a : f32, b : f32) -> f32 {
+      ${opStr}
+    }`;
     if (this.shapesFit) {
       userCode = `
-          float binaryOperation(float a, float b) {
-            ${opStr}
-          }
+          ${miscStr}
+          ${getMainHeaderString()} {
+            ${getGlobalIndexString()}
 
-          void main() {
-            int index = int(gl_GlobalInvocationID.x);
-
-            float a = float(A[index]);
-            float b = float(B[index]);
-            setOutput(index, binaryOperation(a, b));
+            let a = f32(A[index]);
+            let b = f32(B[index]);
+            setOutputFlat(index, binaryOperation(a, b));
           }
         `;
     } else if (this.sizeFit) {
-      const type = getCoordsDataType(this.outputShape.length);
       userCode = `
-      float binaryOperation(float a, float b) {
-        ${opStr}
-      }
+      ${miscStr}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
 
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
+        let coords = getCoordsFromFlatIndex(index);
 
-        ${type} coords = getCoordsFromFlatIndex(index);
-
-        float a = getAAtOutCoords(coords);
-        float b = getBAtOutCoords(coords);
-        setOutput(index, binaryOperation(a, b));
+        let a = getAAtOutCoordsByCoords(coords);
+        let b = getBAtOutCoordsByCoords(coords);
+        setOutputFlat(index, binaryOperation(a, b));
       }
       `;
     } else {
-      const type = getCoordsDataType(this.outputShape.length);
       userCode = `
-      float binaryOperation(float a, float b) {
-        ${opStr}
-      }
+      ${miscStr}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        for (var i = 0; i < ${this.workPerThread}; i = i + 1 ) {
+          let flatIndex = index * ${this.workPerThread} + i;
 
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
+          if(flatIndex < uniforms.size) {
+            let coords = getCoordsFromFlatIndex(flatIndex);
 
-        for(int i = 0; i < ${this.workPerThread}; i++) {
-          int flatIndex = index * ${this.workPerThread} + i;
-
-          if(flatIndex < size) {
-            ${type} coords = getCoordsFromFlatIndex(flatIndex);
-
-            float a = getAAtOutCoords(coords);
-            float b = getBAtOutCoords(coords);
-            setOutput(flatIndex, binaryOperation(a, b));
+            let a = getAAtOutCoordsByCoords(coords);
+            let b = getBAtOutCoordsByCoords(coords);
+            setOutputFlat(flatIndex, binaryOperation(a, b));
           }
         }
       }

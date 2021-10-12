@@ -52,13 +52,14 @@ else
   echo "Publishing version ${RELEASE_VERSION}"
 fi
 
-# Packages to publish.
+# All packages to publish. This includes Bazel packages.
 PACKAGES=("tfjs-core" "tfjs-backend-cpu" "tfjs-backend-webgl" \
 "tfjs-backend-wasm" "tfjs-layers" "tfjs-converter" "tfjs-data" "tfjs" \
 "tfjs-node" "tfjs-node-gpu")
 
 # Packages that build with Bazel
-BAZEL_PACKAGES=("tfjs-core" "tfjs-backend-cpu" "tfjs-backend-webgl")
+BAZEL_PACKAGES=("tfjs-core" "tfjs-backend-cpu" "tfjs-tflite" "tfjs-converter"
+"tfjs-backend-webgl", "tfjs-layers")
 
 for package in "${PACKAGES[@]}"
 do

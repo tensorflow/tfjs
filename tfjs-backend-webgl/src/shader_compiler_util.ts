@@ -36,7 +36,7 @@ export function getLogicalCoordinatesFromFlatIndex(
       .join('');
 }
 
-export function getLogicalCoordinatesFromFlatIndexByUniform(
+export function getOutputLogicalCoordinatesFromFlatIndexByUniform(
     coords: string[], shape: number[], index = 'index'): string {
   const strides = util.computeStrides(shape);
   return strides
@@ -46,6 +46,35 @@ export function getLogicalCoordinatesFromFlatIndexByUniform(
             `int ${coords[i + 1]} = ${index} - ${coords[i]} * outShapeStrides[${
                 i}]` :
             `index -= ${coords[i]} * outShapeStrides[${i}]`;
+        return `${line1}; ${line2};`;
+      })
+      .join('');
+}
+
+// Produces GLSL code that computes strides.
+function symbolicallyComputeStrides(
+    indicesArr: number[], variableName: string): string[] {
+  const numCoords = indicesArr.length;
+  const shape = indicesArr.map(d => `${variableName}[${d}]`);
+  const strides = new Array(numCoords - 1);
+  strides[numCoords - 2] = shape[numCoords - 1];
+  for (let i = numCoords - 3; i >= 0; --i) {
+    strides[i] = `(${strides[i + 1]} * ${shape[i + 1]})`;
+  }
+
+  return strides;
+}
+
+export function getLogicalCoordinatesFromFlatIndexByUniform(
+    coords: string[], variableName: string, index = 'index'): string {
+  const indicesArray = coords.map((_, i) => i);
+  const strides = symbolicallyComputeStrides(indicesArray, variableName);
+  return strides
+      .map((_, i) => {
+        const line1 = `int ${coords[i]} = ${index} / ${strides[i]}`;
+        const line2 = i === strides.length - 1 ?
+            `int ${coords[i + 1]} = ${index} - ${coords[i]} * ${strides[i]}` :
+            `index -= ${coords[i]} * ${strides[i]}`;
         return `${line1}; ${line2};`;
       })
       .join('');
@@ -101,6 +130,14 @@ export function getFlatIndexFrom3D(shape: [number, number, number]): string {
   return `
   int getFlatIndex(ivec3 coords) {
     return coords.x * ${strides[0]} + coords.y * ${strides[1]} + coords.z;
+  }
+`;
+}
+
+export function getFlatIndexFrom3DOutput(): string {
+  return `
+  int getFlatIndex(ivec3 coords) {
+    return coords.x * outShapeStrides[0] + coords.y * outShapeStrides[1] + coords.z;
   }
 `;
 }

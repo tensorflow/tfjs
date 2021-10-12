@@ -16,7 +16,7 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
@@ -53,32 +53,30 @@ export class BinaryOpVec4Program implements WebGPUProgram {
   getUserCode(): string {
     let userCode: string;
     const opStr = getBinaryOpString(this.op, this.isVec4);
+    const miscStr =
+        `fn binaryOperation(a : vec4<f32>, b : vec4<f32>) -> vec4<f32> {
+          ${opStr}
+        }`;
+
     if (this.fitShape) {
       userCode = `
-      vec4 binaryOperation(vec4 a, vec4 b) {
-        ${opStr}
-      }
-
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
-        vec4 a = vec4(A[index]);
-        vec4 b = vec4(B[index]);
-        setOutput(index, binaryOperation(a, b));
+      ${miscStr}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        let a = vec4<f32>(A.numbers[index]);
+        let b = vec4<f32>(B.numbers[index]);
+        setOutputFlat(index, binaryOperation(a, b));
       }
     `;
     } else {
       userCode = `
-      vec4 binaryOperation(vec4 a, vec4 b) {
-        ${opStr}
-      }
-
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
-        if (index < size)
-        {
-          vec4 a = vec4(A[index]);
-          vec4 b = vec4(B[index]);
-          setOutput(index, binaryOperation(a, b));
+      ${miscStr}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        if (index < uniforms.size) {
+          let a = vec4<f32>(A.numbers[index]);
+          let b = vec4<f32>(B.numbers[index]);
+          setOutputFlat(index, binaryOperation(a, b));
         }
       }
     `;

@@ -17,7 +17,10 @@
  */
 
 import {env} from '@tensorflow/tfjs-core';
+
+import {array} from '../dataset';
 import {FileDataSource} from '../sources/file_data_source';
+
 import {CSVDataset} from './csv_dataset';
 
 const csvString = `ab,cd,ef
@@ -505,5 +508,27 @@ describe('CSVDataset', () => {
     expect(result[0]).toEqual({A: 1, B: 2, C: 3});
     expect(result[1]).toEqual({A: 'v', B: '\rw', C: 'x'});
     expect(result[2]).toEqual({A: 3, B: 2, C: 3});
+  });
+
+  it('can be used with concatenate', async () => {
+    const source = new FileDataSource(csvData, {chunkSize: 10});
+    const dataset = new CSVDataset(
+        source, {hasHeader: false, columnNames: ['foo', 'bar', 'baz']});
+    const datasetAfterAdd =
+        dataset.concatenate(array([{'foo': '1', 'bar': '2', 'baz': '3'}]));
+
+    const iter = await datasetAfterAdd.iterator();
+    const result = await iter.toArrayForTest();
+
+    expect(result).toEqual([
+      {'foo': 'ab', 'bar': 'cd', 'baz': 'ef'},
+      {'foo': 'ghi', 'bar': undefined, 'baz': 'jkl'},
+      {'foo': undefined, 'bar': 'mn', 'baz': 'op'},
+      {'foo': 1.4, 'bar': 7.8, 'baz': 12},
+      {'foo': 'qrs', 'bar': 'tu', 'baz': undefined},
+      {'foo': 'v', 'bar': 'w', 'baz': 'x'},
+      {'foo': 'y', 'bar': 'z', 'baz': undefined},
+      {'foo': '1', 'bar': '2', 'baz': '3'},  // This is the added entry.
+    ]);
   });
 });

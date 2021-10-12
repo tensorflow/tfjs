@@ -20,7 +20,7 @@ import {test_util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-const {expectArraysEqual} = test_util;
+const {expectArraysClose} = test_util;
 
 describeWithFlags('Conv2D WebGL Implementation ', ALL_ENVS, () => {
   it('should work when width is odd and called multiple times.', async () => {
@@ -44,7 +44,7 @@ describeWithFlags('Conv2D WebGL Implementation ', ALL_ENVS, () => {
       1869, 2588, 1929, 2668, 1989
     ];
 
-    expectArraysEqual(resultData, expected);
+    expectArraysClose(resultData, expected);
   });
 
   it('image is packed and isChannelFirst.', async () => {
@@ -61,7 +61,7 @@ describeWithFlags('Conv2D WebGL Implementation ', ALL_ENVS, () => {
 
     const expected = [11, 12, 13, 21, 22, 23, 31, 32, 33];
 
-    expectArraysEqual(resultData, expected);
+    expectArraysClose(resultData, expected);
   });
 
   it('image is unpacked and isChannelFirst.', async () => {
@@ -75,7 +75,7 @@ describeWithFlags('Conv2D WebGL Implementation ', ALL_ENVS, () => {
 
     const expected = [11, 12, 13, 21, 22, 23, 31, 32, 33];
 
-    expectArraysEqual(resultData, expected);
+    expectArraysClose(resultData, expected);
   });
 
   it('image is packed and isChannelLast.', async () => {
@@ -92,7 +92,7 @@ describeWithFlags('Conv2D WebGL Implementation ', ALL_ENVS, () => {
 
     const expected = [11, 12, 13, 21, 22, 23, 31, 32, 33];
 
-    expectArraysEqual(resultData, expected);
+    expectArraysClose(resultData, expected);
   });
 
   it('image is unpacked and isChannelLast.', async () => {
@@ -106,6 +106,6 @@ describeWithFlags('Conv2D WebGL Implementation ', ALL_ENVS, () => {
 
     const expected = [11, 12, 13, 21, 22, 23, 31, 32, 33];
 
-    expectArraysEqual(resultData, expected);
+    expectArraysClose(resultData, expected);
   });
 });

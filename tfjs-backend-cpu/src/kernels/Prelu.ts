@@ -35,9 +35,9 @@ export function prelu(args: {inputs: PreluInputs, backend: MathBackendCPU}):
   const bVals = backend.data.get(alpha.dataId).values as TypedArray;
 
   const [resultData, resultShape] =
-      preluImpl(x.shape, alpha.shape, aVals, bVals, x.dtype);
+      preluImpl(x.shape, alpha.shape, aVals, bVals, 'float32');
 
-  return backend.makeTensorInfo(resultShape, x.dtype, resultData);
+  return backend.makeTensorInfo(resultShape, 'float32', resultData);
 }
 
 export const preluConfig: KernelConfig = {

@@ -16,14 +16,17 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
+
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
 export class Im2ColProgram implements WebGPUProgram {
   variableNames = ['A'];
-  uniforms = `ivec2 pad, stride, dilation; int outWidth, itemsPerBlockRow,
-      inChannels;`;
+  uniforms =
+      `pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>; outWidth : i32; itemsPerBlockRow : i32;
+      inChannels : i32;`;
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[]};
@@ -49,36 +52,36 @@ export class Im2ColProgram implements WebGPUProgram {
     const colDim = this.isChannelsLast ? 1 : 2;
 
     const userCode = `
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
+    ${getMainHeaderString()} {
+      ${getGlobalIndexString()}
 
-        for(int i=0; i<${this.workPerThread}; i++) {
-          int flatIndex = index * ${this.workPerThread} + i;
+      for(var i = 0; i<${this.workPerThread}; i = i + 1) {
+        let flatIndex = index * ${this.workPerThread} + i;
 
-          ivec2 rc = getCoordsFromFlatIndex(flatIndex);
+        let rc = getCoordsFromFlatIndex(flatIndex);
 
-          if(flatIndex < size) {
-            int blockIndex = rc[0];
-            int pos = rc[1];
+        if(flatIndex < uniforms.size) {
+          let blockIndex = rc[0];
+          let pos = rc[1];
 
-            int offsetY = int(blockIndex / outWidth) * stride[1] - pad[1];
-            int d0 = offsetY + dilation[1] * (pos / itemsPerBlockRow);
-            float value = 0.0;
-            if(d0 < aShape[${rowDim}] && d0 >= 0) {
-              int offsetX = int(mod(blockIndex, outWidth) * stride[0] -
-                pad[0]);
-              int d1 = offsetX + dilation[0] * (int(mod(pos,
-                itemsPerBlockRow) / inChannels));
-              int ch = int(mod(pos, inChannels));
-              if(d1 < aShape[${colDim}] && d1 >= 0) {
-                value = getA(d0, d1, ch);
-              }
+          let offsetY = blockIndex / uniforms.outWidth * uniforms.stride[1] - uniforms.pad[1];
+          let d0 = offsetY + uniforms.dilation[1] * pos / uniforms.itemsPerBlockRow;
+          var value = 0.0;
+          if(d0 < uniforms.aShape[${rowDim}] && d0 >= 0) {
+            let offsetX = (blockIndex % uniforms.outWidth) * uniforms.stride[0] -
+              uniforms.pad[0];
+            let d1 = offsetX + uniforms.dilation[0] * ((pos %
+              uniforms.itemsPerBlockRow) / uniforms.inChannels);
+            let ch = pos % uniforms.inChannels;
+            if(d1 < uniforms.aShape[${colDim}] && d1 >= 0) {
+              value = getA(d0, d1, ch);
             }
-            setOutput(flatIndex, value);
           }
+          setOutputFlat(flatIndex, value);
         }
       }
-    `;
+    }
+  `;
     return userCode;
   }
 }

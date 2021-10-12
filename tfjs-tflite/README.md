@@ -29,16 +29,16 @@ import '@tensorflow/tfjs-backend-cpu';
 // Import @tensorflow/tfjs-core
 import * as tf from '@tensorflow/tfjs-core';
 // Import @tensorflow/tfjs-tflite.
-import {loadTFLiteModel, TFLiteModel} from '@tensorflow/tfjs-tflite';
+import * as tflite from '@tensorflow/tfjs-tflite';
 ```
 
 ### Via a script tag
 
 ```html
-<!-- Adds the CPU backend -->
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-cpu"></script>
 <!-- Import @tensorflow/tfjs-core -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+<!-- Adds the CPU backend -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-cpu"></script>
 <!--
   Import @tensorflow/tfjs-tflite
 
@@ -56,14 +56,12 @@ location. See `src/tflite_web_api_client.d.ts` for more details.
 
 
 ```js
-import {setWasmPath} from '@tensorflow/tfjs-tflite';
-
-setWasmPath('https://your-server/path');
+tflite.setWasmPath('https://your-server/path');
 ```
 
 ## Load a TFLite model
 ```js
-const tfliteModel = await loadTFLiteModel('url/to/your/model.tflite');
+const tfliteModel = await tflite.loadTFLiteModel('url/to/your/model.tflite');
 ```
 
 ## Run inference
@@ -79,12 +77,21 @@ console.log(outputTensor.dataSync());
 
 # Performance
 
-Similar to TFJS WASM backend, this package uses [XNNPACK][xnnpack] to accelerate
-model inference. To achieve the best performance, use a browser that supports
-"WebAssembly SIMD" and "WebAssembly threads". In Chrome, these can be enabled
-in `chrome://flags/`. As of March 2021, XNNPACK can only be enabled for
-non-quantized TFLite models. Quantized models can still be used, but not
-accelerated. Support for quantized model acceleration is in the works.
+This package uses [XNNPACK][xnnpack] to accelerate inference for floating-point
+and quantized models. See [XNNPACK documentation][xnnpack doc] for the full list
+of supported floating-point and quantized operators.
+
+To achieve the best performance, use a browser that supports
+"WebAssembly SIMD" and "WebAssembly threads". In Chrome 92+, these features are
+enabled by default. In older versions of Chrome, they can be enabled in
+`chrome://flags/`.
+
+Starting from Chrome 92, **cross-origin isolation** needs to be set up in your
+site in order to take advantage of the multi-threading support. Without this, it
+will fallback to the WASM binary with SIMD-only support (or the vanila version
+if SIMD is not enabled). Without multi-threading support, certain models might
+not achieve the best performance. See [here][cross origin setup steps] for the
+high-level steps to set up the cross-origin isolation.
 
 Setting the number of threads when calling `loadTFLiteModel` can also help with
 the performance. In most cases, the threads count should be the same as the
@@ -92,7 +99,7 @@ number of physical cores, which is half of `navigator.hardwareConcurrency` on
 many x86-64 processors.
 
 ```js
-const tfliteModel = await loadTFLiteModel(
+const tfliteModel = await tflite.loadTFLiteModel(
     'path/to/your/my_model.tflite',
     {numThreads: navigator.hardwareConcurrency / 2});
 ```
@@ -103,12 +110,6 @@ const tfliteModel = await loadTFLiteModel(
 
 ```sh
 $ yarn
-# This script will download the TFLite Web API WASM module files and JS client
-# to deps/.
-#
-# The version number is optional. By default, the script will use the current
-# version from the package.json file.
-$ ./script/download-tflite-web-api.sh [version number]
 $ yarn build
 ```
 
@@ -127,3 +128,5 @@ $ yarn build-npm
 [demo]: https://storage.googleapis.com/tfweb/demos/cartoonizer/index.html
 [model]: https://blog.tensorflow.org/2020/09/how-to-create-cartoonizer-with-tf-lite.html
 [xnnpack]: https://github.com/google/XNNPACK
+[xnnpack doc]: https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/delegates/xnnpack/README.md#limitations-and-supported-operators
+[cross origin setup steps]: https://github.com/tensorflow/tfjs/tree/master/tfjs-backend-wasm#setting-up-cross-origin-isolation

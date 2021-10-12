@@ -16,7 +16,7 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
@@ -44,21 +44,21 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
-    const opStr = getBinaryOpString(this.op);
+    const opStr = getBinaryOpString(this.op, false);
     const userCode = `
-      float binaryOpComplex(
-          float areal, float aimag, float breal, float bimag) {
+      fn binaryOpComplex(
+          areal : f32, aimag : f32, breal : f32, bimag : f32) -> f32 {
         ${opStr}
       }
 
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
-        if(index < size) {
-          float areal = getARealAtOutCoords();
-          float aimag = getAImagAtOutCoords();
-          float breal = getBRealAtOutCoords();
-          float bimag = getBImagAtOutCoords();
-          setOutput(index, binaryOpComplex(areal, aimag, breal, bimag));
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        if(index < uniforms.size) {
+          let areal = getARealAtOutCoordsByGlobalId(globalId, index);
+          let aimag = getAImagAtOutCoordsByGlobalId(globalId, index);
+          let breal = getBRealAtOutCoordsByGlobalId(globalId, index);
+          let bimag = getBImagAtOutCoordsByGlobalId(globalId, index);
+          setOutputFlat(index, binaryOpComplex(areal, aimag, breal, bimag));
         }
       }
     `;

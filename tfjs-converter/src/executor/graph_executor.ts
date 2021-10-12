@@ -497,7 +497,7 @@ export class GraphExecutor implements FunctionExecutor {
         }
         const currentContext = context.currentContext;
         if (util.isPromise(tensors)) {
-          promises.push((tensors as Promise<Tensor[]>).then(t => {
+          promises.push(tensors.then(t => {
             tensorMap[nodeName] = t;
             context.currentContext = currentContext;
             this.checkTensorForDisposal(
@@ -508,7 +508,7 @@ export class GraphExecutor implements FunctionExecutor {
             return t;
           }));
         } else {
-          tensorMap[nodeName] = tensors as Tensor[];
+          tensorMap[nodeName] = tensors;
           this.checkTensorForDisposal(
               nodeName, item.node, tensorMap, context, tensorsToKeep,
               outputNames, intermediateTensorConsumerCount);

@@ -28,8 +28,10 @@ import * as shell from 'shelljs';
 import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase, getReleaseBranch, checkoutReleaseBranch} from './release-util';
 
 const TMP_DIR = '/tmp/tfjs-publish';
-const BAZEL_PACKAGES =
-    new Set(['tfjs-core', 'tfjs-backend-cpu', 'tfjs-backend-webgl']);
+const BAZEL_PACKAGES = new Set([
+  'tfjs-core', 'tfjs-backend-cpu', 'tfjs-tflite', 'tfjs-converter',
+  'tfjs-backend-webgl', 'tfjs-layers'
+]);
 
 const parser = new argparse.ArgumentParser();
 parser.addArgument('--git-protocol', {
@@ -89,10 +91,6 @@ async function main() {
     if (pkg === 'tfjs-node-gpu') {
       $('yarn prep-gpu');
     }
-    // tfjs-tflite needs to download the tflite web api from google storage.
-    if (pkg === 'tfjs-tflite') {
-      $('yarn prep');
-    }
 
     // Yarn above the other checks to make sure yarn doesn't change the lock
     // file.
@@ -100,18 +98,19 @@ async function main() {
 
     console.log(chalk.magenta('~~~ Build npm ~~~'));
 
-    if (pkg === 'tfjs-react-native') {
+    if (pkg === 'tfjs-react-native' || BAZEL_PACKAGES.has(pkg)) {
       $('yarn build-npm');
     } else {
       $('yarn build-npm for-publish');
     }
 
     console.log(chalk.magenta.bold(`~~~ Publishing ${pkg} to npm ~~~`));
+
     const otp =
         await question(`Enter one-time password from your authenticator: `);
 
     if (BAZEL_PACKAGES.has(pkg)) {
-      $(`YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm --otp=${
+      $(`YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm -- -- --otp=${
           otp}`);
     } else {
       $(`YARN_REGISTRY="https://registry.npmjs.org/" npm publish --otp=${otp}`);

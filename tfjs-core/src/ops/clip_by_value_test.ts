@@ -30,6 +30,16 @@ describeWithFlags('clipByValue', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [3, -1, 0, 50, -1, 2]);
   });
 
+  it('basic vec4', async () => {
+    const a = tf.tensor1d([3, -1, 0, 100, -7, 2, 5, NaN]);
+    const min = -1;
+    const max = 50;
+
+    const result = tf.clipByValue(a, min, max);
+
+    expectArraysClose(await result.data(), [3, -1, 0, 50, -1, 2, 5, NaN]);
+  });
+
   it('propagates NaNs', async () => {
     const a = tf.tensor1d([3, -1, 0, 100, -7, 2, NaN]);
     const min = -1;

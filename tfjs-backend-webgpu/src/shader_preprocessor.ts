@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,32 +16,33 @@
  */
 
 import {backend_util, DataType, util} from '@tensorflow/tfjs-core';
-import {getGlslDifferences} from './glsl_version';
 import {symbolicallyComputeStrides} from './shader_util';
 
 export function getCoordsDataType(rank: number): string {
   if (rank <= 1) {
-    return 'int';
+    return 'i32';
   } else if (rank === 2) {
-    return 'ivec2';
+    return `vec2<i32>`;
   } else if (rank === 3) {
-    return 'ivec3';
+    return `vec3<i32>`;
   } else if (rank === 4) {
-    return 'ivec4';
+    return `vec4<i32>`;
   } else {
     throw Error(`GPU for rank ${rank} is not yet supported`);
   }
 }
 
-type GLSLDataType = 'float'|'int'|'vec4'|'ivec4'|'bvec4';
-function mapToGlslTypes(type: DataType, isVec4: boolean): GLSLDataType|
+type WGSLDataType = 'f32'|'i32'|'vec4<f32>'|'vec4<i32>'|'vec4<bool>';
+function mapToWgslTypes(type: DataType, isVec4: boolean): WGSLDataType|
     DataType {
   if (type === 'float32') {
-    return isVec4 ? 'vec4' : 'float';
+    return isVec4 ? 'vec4<f32>' : 'f32';
   } else if (type === 'int32') {
-    return isVec4 ? 'ivec4' : 'int';
+    return isVec4 ? 'vec4<i32>' : 'i32';
   } else if (type === 'bool') {
-    return isVec4 ? 'bvec4' : 'bool';
+    // Type 'bool' cannot be used in storage class,
+    // https://www.w3.org/TR/WGSL/#host-shareable-types.
+    return isVec4 ? 'vec4<i32>' : 'i32';
   }
 
   return type;
@@ -49,11 +50,12 @@ function mapToGlslTypes(type: DataType, isVec4: boolean): GLSLDataType|
 
 interface ProgramParams {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
-  workGroupSize?: [number, number, number];
+  workGroupSize: [number, number, number];
   variableNames: string[];
   uniforms?: string;
   isVec4?: boolean;
   size?: number;
+  atomic?: boolean;
   getUserCode: () => string;
 }
 
@@ -63,82 +65,131 @@ export interface InputInfo {
   name: string;
 }
 
+export function getWorkGroupSizeString(): string {
+  return `
+  [[stage(compute), workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)]]
+`;
+}
+
+export function getGlobalIndexString(): string {
+  return `
+  let index = getGlobalIndex(globalId, localId);
+`;
+}
+
+export function getMainHeaderString() {
+  return `
+  [[stage(compute), workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)]]
+  fn main([[builtin(local_invocation_id)]] localId : vec3<u32>, [[builtin(global_invocation_id)]] globalId : vec3<u32>)
+`;
+}
+
 export function makeShader(
     inputInfo: InputInfo[], outputData: {dtype: DataType, shape: number[]},
     program: ProgramParams, isFromPixel = false): string {
-  const outputBufferStr =
-      `    layout(std430, set = 0, binding = 0) writeonly buffer ssbOut {
-      ${mapToGlslTypes(outputData.dtype, program.isVec4)} result[];
-    };`;
+  const workGroupSizeSnippet = `
+    let workGroupSizeX = ${program.workGroupSize[0]}u;
+    let workGroupSizeY = ${program.workGroupSize[1]}u;
+    let workGroupSizeZ = ${program.workGroupSize[2]}u;`;
+
   if (isFromPixel === true) {
     const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
+    const outputBufferStr = `
+      [[block]] struct Matrix0 {
+        numbers: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
+      };
+      [[block]] struct Uniform {
+        size            : i32;
+        numChannels     : i32;
+        outShapeStrides : vec2<i32>;
+        dispatchSize    : vec3<u32>;
+      };
+
+      [[group(0), binding(0)]] var<storage, write> result : Matrix0;
+      [[group(0), binding(2)]] var<uniform> uniforms: Uniform;
+    `;
     return [
-      SHADER_PREFIX, outputBufferStr, program.getUserCode(), getCoords
+      SHADER_PREFIX,
+      outputBufferStr,
+      workGroupSizeSnippet,
+      SAMPLING_SNIPPETS,
+      getCoords,
+      program.getUserCode(),
     ].join('\n');
   }
+
   const prefixSnippets: string[] = [];
-
-  if (program.workGroupSize != null) {
-    prefixSnippets.push(`
-      layout (local_size_x = ${program.workGroupSize[0]},
-              local_size_y = ${program.workGroupSize[1]},
-              local_size_z = ${program.workGroupSize[2]}) in;
-    `);
-  }
-
-  // Output buffer.
-  prefixSnippets.push(`
-    layout(std430, set = 0, binding = 0) writeonly buffer ssbOut {
-      ${mapToGlslTypes(outputData.dtype, program.isVec4)} result[];
-    };
-  `);
-
+  let uniformDeclaration = '[[block]] struct Uniforms { NAN : f32; ';
   program.variableNames.forEach((x, i) => {
-    prefixSnippets.push(`
-      layout(std430, set = 0, binding = ${1 + i}) readonly buffer ssb${x} {
-        ${mapToGlslTypes(inputInfo[i].dtype, program.isVec4)} ${x}[];
-      };
-    `);
-  });
-
-  let uniformDeclaration = 'float NAN; ';
-  program.variableNames.forEach((x, i) => {
-    uniformDeclaration += `${getCoordsDataType(inputInfo[i].shape.length)} ${
-        x.charAt(0).toLowerCase() + x.slice(1)}Shape; `;
+    uniformDeclaration += `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${
+        getCoordsDataType(inputInfo[i].shape.length)}; `;
   });
   uniformDeclaration +=
-      `${getCoordsDataType(outputData.shape.length)} outShape; `;
+      `outShape : ${getCoordsDataType(outputData.shape.length)} ; `;
   const stridesLength = outputData.shape.length - 1;
-  uniformDeclaration += `${getCoordsDataType(stridesLength)} outShapeStrides; `;
+  uniformDeclaration += `
+       outShapeStrides: ${getCoordsDataType(stridesLength)}; `;
 
   if (program.size != null) {
-    uniformDeclaration += 'int size; ';
+    uniformDeclaration += 'size : i32; ';
   }
-
+  uniformDeclaration += 'dispatchSize : vec3<u32>; ';
   if (program.uniforms) {
     uniformDeclaration += program.uniforms;
   }
+  uniformDeclaration += '};';
+
+  prefixSnippets.push(uniformDeclaration);
+
+  // Output buffer.
+  if (program.atomic) {
+    prefixSnippets.push(`
+    [[block]] struct Matrix0 {
+        numbers: array<atomic<i32>>;
+    };
+
+    [[group(0), binding(0)]] var<storage, read_write> result : Matrix0;
+  `);
+  } else {
+    prefixSnippets.push(`
+    [[block]] struct Matrix0 {
+        numbers: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
+    };
+
+    [[group(0), binding(0)]] var<storage, write> result : Matrix0;
+  `);
+  }
+  program.variableNames.forEach((x, i) => {
+    prefixSnippets.push(`
+    [[block]] struct Matrix${1 + i} {
+      numbers: array<${mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
+    };
+    [[group(0), binding(${1 + i})]] var<storage, read> ${x} : Matrix${1 + i};
+    `);
+  });
 
   if (uniformDeclaration !== '') {
     prefixSnippets.push(`
-        layout(std140, set = 0, binding = ${
-        1 + program.variableNames.length}) uniform Uniforms {
-            ${uniformDeclaration}
-        };
+    [[group(0), binding(${
+        1 + program.variableNames.length})]] var<uniform> uniforms : Uniforms;
     `);
   }
 
-  prefixSnippets.push(getGlslDifferences().defineSpecialNaN);
+  prefixSnippets.push(workGroupSizeSnippet);
 
   const [getOutputCoords, dispatchLayoutRank] =
       generateGetOutputCoords(outputData.shape, program.dispatchLayout);
   const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
+
   const sources = [
     SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS, getCoords,
-    getOutputCoords,
-    getSetOutputSnippet(outputData.shape, outputData.dtype, program.isVec4)
-  ];
+    getOutputCoords, getOutputFlatIndexSnippet(outputData.shape.length)
 
+  ];
+  if (!program.atomic) {
+    sources.push(getSetOutputSnippet(
+        outputData.shape, outputData.dtype, program.isVec4));
+  }
   if (dispatchLayoutRank === outputData.shape.length) {
     // Input sampling snippet is only meaningful when the output isn't getting
     // implicitly reshaped (like it does in conv2d_matmul).
@@ -158,136 +209,176 @@ export function makeShader(
   return source;
 }
 
-const SHADER_PREFIX = `#version 450
-
-  int idiv(int a, int b, float sign) {
-    int res = a / b;
-    int mod = a % b;
+const SHADER_PREFIX = `
+  fn idiv(a: i32, b: i32, sign: f32) -> i32 {
+    var res: i32 = a / b;
+    let mod: i32 = a % b;
     if (sign < 0. && mod != 0) {
-      res -= 1;
+      res = res - 1;
+    }
+    return res;
+  }
+
+  fn isNanCustom(val : f32) -> bool {
+    if (val > 0.0) {
+      return false;
+    }
+    if (val < 0.0) {
+      return false;
+    }
+    if (val == 0.0) {
+      return false;
+    }
+    return true;
+  }
+
+  fn isNanCustomVec4F32(val : vec4<f32>) -> vec4<f32> {
+    var res = vec4<f32> (0.0);
+    for (var i = 0u; i < 4u; i = i + 1u) {
+      if (isNanCustom(val[i])) {
+        res[i] = 1.0;
+      } else {
+        res[i] = 0.0;
+      }
     }
     return res;
   }
 
   // Checks whether coordinates lie within the bounds of the shape.
-  bool coordsInBounds(ivec4 coord, ivec4 shape) {
-    return all(greaterThanEqual(coord, ivec4(0))) &&
-        all(lessThan(coord, shape));
+  fn coordsInBounds4D(coord : vec4<i32>, shape : vec4<i32>) -> bool {
+    return all(coord >= vec4<i32>(0)) &&
+        all(coord < shape);
   }
 
-  bool coordsInBounds(ivec3 coord, ivec3 shape) {
-    return all(greaterThanEqual(coord, ivec3(0))) &&
-        all(lessThan(coord, shape));
+  fn coordsInBounds3D(coord : vec3<i32>, shape : vec3<i32>) -> bool {
+    return all(coord >= vec3<i32>(0)) &&
+        all(coord < shape);
   }
 
-  bool coordsInBounds(ivec2 coord, ivec2 shape) {
-    return all(greaterThanEqual(coord, ivec2(0))) &&
-        all(lessThan(coord, shape));
+  fn coordsInBounds2D(coord : vec2<i32>, shape : vec2<i32>) -> bool {
+    return all(coord >= vec2<i32>(0)) &&
+        all(coord < shape);
   }
-`;
-
+  `;
 const SAMPLING_SNIPPETS = `
-  int getFlatIndex(int coord, int shape) {
+  fn getFlatIndex1D(coord : i32, shape : i32) -> i32 {
     return coord;
   }
 
-  int getFlatIndex(ivec2 coords, ivec2 shape) {
-    return int(dot(coords, ivec2(shape.y, 1.)));
+  fn getFlatIndex2D(coords : vec2<i32>, shape : vec2<i32>) -> i32 {
+    return i32(dot(vec2<f32>(coords), vec2<f32>(f32(shape.y), 1.0)));
   }
 
-  int getFlatIndex(ivec3 coords, ivec3 shape) {
-    return int(dot(coords, ivec3(shape.y * shape.z, shape.z, 1.)));
+  fn getFlatIndex3D(coords : vec3<i32>, shape : vec3<i32>) -> i32 {
+    return i32(dot(vec3<f32>(coords), vec3<f32>(f32(shape.y) * f32(shape.z), f32(shape.z), 1.0)));
   }
 
-  int getFlatIndex(ivec4 coords, ivec4 shape) {
-    return int(dot(coords, ivec4(
-      shape.y * shape.z * shape.w, shape.z * shape.w, shape.w, 1.)));
+  fn getFlatIndex4D(coords : vec4<i32>, shape : vec4<i32>) -> i32 {
+    return i32(dot(vec4<f32>(coords), vec4<f32>(
+        f32(shape.y) * f32(shape.z) * f32(shape.w), f32(shape.z) * f32(shape.w), f32(shape.w), 1.0)));
+  }
+
+  // Only used when the y/z dimension of workgroup size is 1.
+  fn getGlobalIndex(globalId : vec3<u32>, localId : vec3<u32>) -> i32 {
+    if (uniforms.dispatchSize.y == 1u && uniforms.dispatchSize.z == 1u) {
+      return i32(globalId.x);
+    }
+    let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
+      localId.y * workGroupSizeX + localId.x;
+    let workGroupID = (globalId - localId)/vec3<u32>(
+      workGroupSizeX, workGroupSizeY, workGroupSizeZ);
+    return i32((workGroupID.z * uniforms.dispatchSize.x * uniforms.dispatchSize.y +
+      workGroupID.y * uniforms.dispatchSize.x + workGroupID.x) *
+      (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
+      localInvocationIndex);
   }
 `;
 
+function getOutputFlatIndexSnippet(outRank: number) {
+  let snippet = '';
+  switch (outRank) {
+    case 0:
+    case 1:
+      snippet += `
+        fn getOutputFlatIndex(coords : i32) -> i32 {
+          return coords;
+        }
+        `;
+      break;
+    case 2:
+      snippet += `
+        fn getOutputFlatIndex(coords : vec2<i32>) -> i32 {
+          return i32(dot(vec2<f32>(coords), vec2<f32>(f32(uniforms.outShapeStrides), 1.0)));
+        }
+        `;
+      break;
+    case 3:
+      snippet += `
+        fn getOutputFlatIndex(coords : vec3<i32>) -> i32 {
+          return i32(dot(vec3<f32>(coords), vec3<f32>(f32(uniforms.outShapeStrides.x), f32(uniforms.outShapeStrides.y), 1.0)));
+        }
+        `;
+      break;
+    case 4:
+      snippet += `
+        fn getOutputFlatIndex(coords : vec4<i32>) -> i32 {
+          return i32(dot(vec4<f32>(coords), vec4<f32>(
+            f32(uniforms.outShapeStrides.x), f32(uniforms.outShapeStrides.y), f32(uniforms.outShapeStrides.z), 1.0)));
+        }
+        `;
+      break;
+    default:
+      util.assert(false, () => `Unsupported ${outRank}D shape`);
+      break;
+  }
+  return snippet;
+}
 function getSetOutputSnippet(
     outShape: number[], outBufferType: DataType, isVec4: boolean): string {
   const outRank = outShape.length;
-  const glslType = mapToGlslTypes(outBufferType, isVec4);
+  const wgslType = mapToWgslTypes(outBufferType, isVec4);
   let snippet;
   if (isVec4) {
-    snippet = `void setOutput(int flatIndex, vec4 value) {
-      result[flatIndex] = ${
-        glslType === 'ivec4' ?
-            'ivec4(value)' :
-            (glslType === 'bvec4' ? 'bvec4(value)' : 'value')};
+    snippet = `fn setOutputFlat(flatIndex : i32, value : vec4<f32>) {
+      result.numbers[flatIndex] = ${wgslType}(value);
     }
-    void setOutput(int flatIndex, ivec4 value) {
-      result[flatIndex] = ${
-        glslType === 'vec4' ?
-            'vec4(value)' :
-            (glslType === 'bvec4' ? 'bvec4(value)' : 'value')};
+    fn setOutputFlatI32(flatIndex : i32, value : vec4<i32>) {
+      result.numbers[flatIndex] = ${wgslType}(value);
     }`;
   } else {
-    snippet = `void setOutput(int flatIndex, float value) {
-      result[flatIndex] = ${
-        glslType === 'int' ? 'int(value)' :
-                             (glslType === 'bool' ? 'bool(value)' : 'value')};
+    snippet = `fn setOutputFlat(flatIndex : i32, value : f32) {
+      result.numbers[flatIndex] = ${wgslType}(value);
     }
-    void setOutput(int flatIndex, int value) {
-      result[flatIndex] = ${
-        glslType === 'float' ?
-            'float(value)' :
-            (glslType === 'bool' ? 'bool(value)' : 'value')};
+    fn setOutputFlatI32(flatIndex : i32, value : i32) {
+      result.numbers[flatIndex] = ${wgslType}(value);
     }`;
   }
-
   if (outRank >= 2) {
-    switch (outRank) {
-      case 2:
-        snippet += `
-        int getOutputFlatIndex(ivec2 coords) {
-          return int(dot(coords, ivec2(outShapeStrides, 1)));
-        }
-        `;
-        break;
-      case 3:
-        snippet += `
-        int getOutputFlatIndex(ivec3 coords) {
-          return int(dot(coords, ivec3(outShapeStrides.x, outShapeStrides.y, 1)));
-        }
-        `;
-        break;
-      case 4:
-        snippet += `
-        int getOutputFlatIndex(ivec4 coords) {
-          return int(dot(coords, ivec4(
-            outShapeStrides.x, outShapeStrides.y, outShapeStrides.z, 1)));
-        }
-        `;
-        break;
-      default:
-        util.assert(false, () => `Unsupported ${outRank}D shape`);
-        break;
-    }
     const dims = ['d0', 'd1', 'd2', 'd3'].slice(0, outRank);
     const type = getCoordsDataType(outRank);
 
     if (isVec4) {
       snippet += `
-      void setOutput(${dims.map(d => `int ${d}`).join(', ')}, vec4 value) {
-        int flatIndex = getOutputFlatIndex(${type}(${dims.join(', ')}));
-        setOutput(flatIndex / 4, value);
+      fn setOutput(${
+          dims.map(d => `${d} : i32`).join(', ')}, value : vec4<f32>) {
+        let flatIndex = getOutputFlatIndex(${type}(${dims.join(', ')}));
+        setOutputFlat(flatIndex / 4, value);
       }
-      void setOutput(${dims.map(d => `int ${d}`).join(', ')}, ivec4 value) {
-        int flatIndex = getOutputFlatIndex(${type}(${dims.join(', ')}));
-        setOutput(flatIndex / 4, value);
+      fn setOutputI32(${
+          dims.map(d => `${d} : i32`).join(', ')}, value : vec4<i32>) {
+        let flatIndex = getOutputFlatIndex(${type}(${dims.join(', ')}));
+        setOutputFlatI32(flatIndex / 4, value);
       }
     `;
     } else {
       snippet += `
-      void setOutput(${dims.map(d => `int ${d}`).join(', ')}, float value) {
-        int flatIndex = getOutputFlatIndex(${type}(${dims.join(', ')}));
-        setOutput(flatIndex, value);
+      fn setOutput(${dims.map(d => `${d} : i32`).join(', ')}, value : f32) {
+        let flatIndex = getOutputFlatIndex(${type}(${dims.join(', ')}));
+        setOutputFlat(flatIndex, value);
       }
-      void setOutput(${dims.map(d => `int ${d}`).join(', ')}, int value) {
-        int flatIndex = getOutputFlatIndex(${type}(${dims.join(', ')}));
-        setOutput(flatIndex, value);
+      fn setOutputI32(${dims.map(d => `${d} : i32`).join(', ')}, value : i32) {
+        let flatIndex = getOutputFlatIndex(${type}(${dims.join(', ')}));
+        setOutputFlatI32(flatIndex, value);
       }
     `;
     }
@@ -316,44 +407,52 @@ function getSamplerFromInInfo(inInfo: InputInfo, isVec4: boolean): string {
   const type = getCoordsDataType(rank);
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
   const dims = ['d0', 'd1', 'd2', 'd3'].slice(0, rank);
-  const inputs = dims.map(d => `int ${d}`).join(', ');
+  const inputs = dims.map(d => `${d} : i32`).join(', ');
 
   if (rank < 1) {
     if (isVec4) {
       return `
-        vec4 ${funcName}() {
-          return vec4(${texName}[0]);
+        fn ${funcName}() -> vec4<f32> {
+          return vec4<f32>(${texName}.numbers[0]);
         }
       `;
     }
 
     return `
-      float ${funcName}() {
-        return float(${texName}[0]);
+      fn ${funcName}() ->f32 {
+        return f32(${texName}.numbers[0]);
       }
     `;
   }
 
-  const shapeStr = `${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape`;
+  const shapeStr =
+      `uniforms.${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape`;
+  let rankStr = `${rank}D`;
+  if (rank === 0) {
+    rankStr = '1D';
+  }
 
   if (isVec4) {
     return `
-      vec4 ${funcName}(${inputs}) {
-        return vec4(${texName}[getFlatIndex(${type}(${dims.join(',')}),
+      fn ${funcName}(${inputs}) -> vec4<f32> {
+        return vec4<f32>(${texName}.numbers[getFlatIndex${rankStr}(${type}(${
+        dims.join(',')}),
           ${shapeStr}) / 4]);
       }
       `;
   }
 
   return `
-    float ${funcName}(${inputs}) {
-      return float(${texName}[getFlatIndex(${type}(${dims.join(',')}),
+    fn ${funcName}(${inputs}) -> f32 {
+      return f32(${texName}.numbers[getFlatIndex${rankStr}(${type}(${
+      dims.join(',')}),
         ${shapeStr})]);
     }
    `;
 }
-
-function getSamplerAtOutputCoords(
+// TODO: Implement getXXXFromFlatIndex, use it instead of getXXXAtOutCoords when
+// it's flat dispatch layout.
+export function getSamplerAtOutputCoords(
     inInfo: InputInfo, outShape: number[], isVec4: boolean,
     isFlatDispatchLayout: boolean): string {
   const texName = inInfo.name;
@@ -371,23 +470,24 @@ function getSamplerAtOutputCoords(
   if (util.arraysEqual(inInfo.shape, outShape) && isFlatDispatchLayout) {
     if (isVec4) {
       return `
-        vec4 ${funcName}() {
-          return vec4(${texName}[gl_GlobalInvocationID.x]);
+        fn ${
+          funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : i32) -> vec4<f32> {
+          return vec4<f32>(${texName}.numbers[globalIndex]);
         }
 
-        vec4 ${funcName}(${type} coords) {
-          return vec4(${texName}[${
+        fn ${funcName}ByCoords(coords : ${type}) -> vec4<f32> {
+          return vec4<f32>(${texName}.numbers[${
           outRank > 1 ? 'getOutputFlatIndex(coords)' : 'coords'} / 4]);
         }
         `;
     } else {
       return `
-      float ${funcName}() {
-        return float(${texName}[gl_GlobalInvocationID.x]);
+      fn ${funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : i32) -> f32 {
+        return f32(${texName}.numbers[globalIndex]);
       }
 
-      float ${funcName}(${type} coords) {
-        return float(${texName}[${
+      fn ${funcName}ByCoords(coords : ${type}) -> f32 {
+        return f32(${texName}.numbers[${
           outRank > 1 ? 'getOutputFlatIndex(coords)' : 'coords'}]);
       }
       `;
@@ -402,21 +502,22 @@ function getSamplerAtOutputCoords(
   if (inRank === 0) {
     if (isVec4) {
       return `
-      vec4 ${funcName}() {
+      fn ${
+          funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : i32) -> vec4<f32> {
         return get${texFuncSnippet}();
       }
 
-      vec4 ${funcName}(${type} coords) {
+      fn ${funcName}ByCoords(coords : ${type}) -> vec4<f32> {
         return get${texFuncSnippet}();
       }
     `;
     }
     return `
-      float ${funcName}() {
+      fn ${funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : i32) -> f32{
         return get${texFuncSnippet}();
       }
 
-      float ${funcName}(${type} coords) {
+      fn ${funcName}ByCoords(coords : ${type}) -> f32{
         return get${texFuncSnippet}();
       }
     `;
@@ -443,37 +544,41 @@ function getSamplerAtOutputCoords(
     }
   }
 
-  const shapeStr = `${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape`;
-
+  const shapeStr =
+      `uniforms.${texName.charAt(0).toLowerCase() + texName.slice(1)}Shape`;
+  const rankStr = `${inRank}D`;
   if (isVec4) {
     return `
-      vec4 ${funcName}() {
-        ${type} coords = getOutputCoords();
+      fn ${
+        funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : i32) -> vec4<f32> {
+        var coords = getOutputCoords(globalId, globalIndex);
         ${coordsSnippet}
-        return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
-        shapeStr}) / 4];
+        return ${texName}.numbers[getFlatIndex${rankStr}(${
+        unpackedCoordsSnippet}, ${shapeStr}) / 4];
       }
 
-      vec4 ${funcName}(${type} coords) {
+      fn ${funcName}ByCoords(coordsIn : ${type}) -> vec4<f32> {
+        var coords = coordsIn;
         ${coordsSnippet}
-        return ${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
-        shapeStr}) / 4];
+        return ${texName}.numbers[getFlatIndex${rankStr}(${
+        unpackedCoordsSnippet}, ${shapeStr}) / 4];
       }
     `;
   }
 
   return `
-    float ${funcName}() {
-      ${type} coords = getOutputCoords();
+    fn ${funcName}ByGlobalId(globalId : vec3<u32>, globalIndex : i32) -> f32 {
+      var coords = getOutputCoords(globalId, globalIndex);
       ${coordsSnippet}
-      return float(${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
-      shapeStr})]);
+      return f32(${texName}.numbers[getFlatIndex${rankStr}(${
+      unpackedCoordsSnippet}, ${shapeStr})]);
     }
 
-    float ${funcName}(${type} coords) {
+    fn ${funcName}ByCoords(coordsIn : ${type}) -> f32 {
+      var coords = coordsIn;
       ${coordsSnippet}
-      return float(${texName}[getFlatIndex(${unpackedCoordsSnippet}, ${
-      shapeStr})]);
+      return f32(${texName}.numbers[getFlatIndex${rankStr}(${
+      unpackedCoordsSnippet}, ${shapeStr})]);
     }
   `;
 }
@@ -482,7 +587,7 @@ function getSamplerAtOutputCoords(
  * Generates getOutputCoords() function that computes output coordinates from
  * dispatch geometry to reduce arithmetic.
  */
-function generateGetOutputCoords(
+export function generateGetOutputCoords(
     outShape: number[],
     dispatchLayout: {x: number[], y?: number[], z?: number[]}):
     [string, number] {
@@ -491,8 +596,10 @@ function generateGetOutputCoords(
   const outRank = outShape.length;
   if (x.length === outRank) {
     const dtype = getCoordsDataType(outRank);
-    const snippet = `${dtype} getOutputCoords() {
-      return getCoordsFromFlatIndex(int(gl_GlobalInvocationID.x));
+    const snippet =
+        `fn getOutputCoords(globalId : vec3<u32>, globalIndex : i32) -> ${
+            dtype}{
+      return getCoordsFromFlatIndex(i32(globalIndex));
     }
     `;
     return [snippet, outRank];
@@ -513,20 +620,19 @@ function generateGetOutputCoords(
     rank += arr.length;
 
     if (arr.length === 1) {
-      gatherDimensionsStr += `int d${arr[0]} =
-        int(gl_GlobalInvocationID[${i}]);`;
+      gatherDimensionsStr += `let d${arr[0]} = i32(globalId[${i}]);`;
     } else {
-      const strides = symbolicallyComputeStrides(arr, 'outShape');
-      gatherDimensionsStr += `int index${i} =
-          int(gl_GlobalInvocationID[${i}]);`;
+      const strides = symbolicallyComputeStrides(arr, 'uniforms.outShape');
+      gatherDimensionsStr += `var index${i} = i32(globalId[${i}]);`;
       for (let j = 0; j < strides.length; j++) {
-        gatherDimensionsStr += `int d${arr[j]} = index${i} / ${strides[j]};`;
+        gatherDimensionsStr += `let d${arr[j]} = index${i} / ${strides[j]};`;
 
         if (j === strides.length - 1) {
-          gatherDimensionsStr += `int d${arr[j + 1]} = ` +
+          gatherDimensionsStr += `let d${arr[j + 1]} = ` +
               `index${i} - d${arr[j]} * ${strides[j]};`;
         } else {
-          gatherDimensionsStr += `index${i} -= d${arr[j]} * ${strides[j]};`;
+          gatherDimensionsStr +=
+              `index${i} = index${i} - d${arr[j]} * ${strides[j]};`;
         }
       }
     }
@@ -538,13 +644,14 @@ function generateGetOutputCoords(
   }
 
   const dtype = getCoordsDataType(rank);
-  let snippet = `${dtype} getOutputCoords() {
+  let snippet =
+      `fn getOutputCoords(globalId : vec3<u32>, globalIndex : i32) -> ${dtype} {
     ${gatherDimensionsStr}
   `;
   if (dimensions.length === 0) {
-    snippet += `return ${dtype}(0);}`;
+    snippet += `return ${dtype}(0); }`;
   } else {
-    snippet += `return ${dtype}(${dimensions.join(',')});}`;
+    snippet += `return ${dtype}(${dimensions.join(',')}); }`;
   }
 
   return [snippet, rank];
@@ -559,36 +666,39 @@ function generateGetCoordsFromFlatIndex(shape: number[]): string {
   const rank = shape.length;
 
   if (rank <= 1) {
-    return `int getCoordsFromFlatIndex(int index) {return index; }`;
+    return `fn getCoordsFromFlatIndex(index : i32) -> i32 { return index; }`;
   }
 
   const strides = util.computeStrides(shape);
   const dtype = getCoordsDataType(rank);
+
   const coords: string[] = [];
   for (let i = 0; i < rank; i++) {
     coords.push(`d${i}`);
   }
 
   if (strides.length === 1) {
-    return `    ivec2 getCoordsFromFlatIndex(int index) {
-      int d0 = index / outShapeStrides; int d1 = index - d0 * outShapeStrides;
-      return ivec2(d0,d1);
+    return `    fn getCoordsFromFlatIndex(index : i32) -> vec2<i32> {
+      let d0 = index / uniforms.outShapeStrides; let d1 = index - d0 * uniforms.outShapeStrides;
+      return vec2<i32>(d0, d1);
     }`;
   }
-  const snippet = strides
-                      .map((_, i) => {
-                        const line1 =
-                            `int ${coords[i]} = index / outShapeStrides[${i}]`;
-                        const line2 = i === strides.length - 1 ?
-                            `int ${coords[i + 1]} = index - ${
-                                coords[i]} * outShapeStrides[${i}]` :
-                            `index -= ${coords[i]} * outShapeStrides[${i}]`;
-                        return `${line1}; ${line2};`;
-                      })
-                      .join('');
+  const snippet = 'var index2 = index;' +
+      strides
+          .map((_, i) => {
+            const line1 =
+                `let ${coords[i]} = index2 / uniforms.outShapeStrides[${i}]`;
+            const line2 = i === strides.length - 1 ?
+                `let ${coords[i + 1]} = index2 - ${
+                    coords[i]} * uniforms.outShapeStrides[${i}]` :
+                `index2 = index2 - ${coords[i]} * uniforms.outShapeStrides[${
+                    i}]`;
+            return `${line1}; ${line2};`;
+          })
+          .join('');
 
   return `
-    ${dtype} getCoordsFromFlatIndex(int index) {
+    fn getCoordsFromFlatIndex(index : i32) -> ${dtype} {
       ${snippet}
       return ${dtype}(${coords.join(',')});
     }

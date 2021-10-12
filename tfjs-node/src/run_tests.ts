@@ -118,7 +118,10 @@ const IGNORE_LIST: string[] = [
   'greaterEqual test-tensorflow {} should support string comparison',
   'greater test-tensorflow {} should support string comparison',
   'lessEqual test-tensorflow {} should support string comparison',
-  'less test-tensorflow {} should support string comparison'
+  'less test-tensorflow {} should support string comparison',
+  // int32 input for the following ops not supported by TF 2.4.0.
+  'leakyrelu test-tensorflow {} int32',
+  'step kernel test-tensorflow {} with int32 tensor',
 ];
 
 if (process.platform === 'win32') {

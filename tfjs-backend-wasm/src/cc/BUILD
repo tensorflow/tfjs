@@ -153,6 +153,7 @@ tfjs_cc_library(
     hdrs = ["conv2d_impl.h"],
     deps = [
         ":backend",
+        ":elu_impl",
         ":leakyrelu_impl",
         ":prelu_impl",
         ":sigmoid_impl",
@@ -167,10 +168,21 @@ tfjs_cc_library(
     hdrs = ["batch_mat_mul_impl.h"],
     deps = [
         ":backend",
+        ":elu_impl",
         ":leakyrelu_impl",
         ":prelu_impl",
         ":sigmoid_impl",
         ":transpose_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "elu_impl",
+    srcs = ["elu_impl.cc"],
+    hdrs = ["elu_impl.h"],
+    deps = [
+        ":backend",
         ":util",
     ],
 )
@@ -259,6 +271,7 @@ tfjs_cc_library(
         ":ArgMax",
         ":AvgPool",
         ":BatchMatMul",
+        ":Ceil",
         ":ClipByValue",
         ":Conv2D",
         ":Conv2DBackpropInput",
@@ -268,6 +281,7 @@ tfjs_cc_library(
         ":Cumsum",
         ":DepthToSpace",
         ":DepthwiseConv2dNative",
+        ":Elu",
         ":Equal",
         ":Exp",
         ":FlipLeftRight",
@@ -304,6 +318,7 @@ tfjs_cc_library(
         ":ResizeBilinear",
         ":Reverse",
         ":RotateWithOffset",
+        ":Round",
         ":ScatterNd",
         ":SelectV2",
         ":Sigmoid",
@@ -327,6 +342,7 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":unary",
+        ":util",
     ],
 )
 
@@ -431,6 +447,16 @@ tfjs_unit_test(
     tags = ["ci"],
     deps = [
         ":_FusedMatMul",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Ceil",
+    srcs = ["kernels/Ceil.cc"],
+    deps = [
+        ":backend",
+        ":unary",
+        ":util",
     ],
 )
 
@@ -547,6 +573,17 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "Elu",
+    srcs = ["kernels/Elu.cc"],
+    hdrs = ["kernels/Elu.h"],
+    deps = [
+        ":backend",
+        ":elu_impl",
+        ":unary",
+    ],
+)
+
+tfjs_cc_library(
     name = "Equal",
     srcs = ["kernels/Equal.cc"],
     deps = [
@@ -561,6 +598,7 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":unary",
+        ":util",
     ],
 )
 
@@ -809,6 +847,7 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":unary",
+        ":util",
     ],
 )
 
@@ -906,6 +945,7 @@ tfjs_cc_library(
         ":backend",
         ":clamp_impl",
         ":unary",
+        ":util",
     ],
 )
 
@@ -916,6 +956,7 @@ tfjs_cc_library(
         ":backend",
         ":clamp_impl",
         ":unary",
+        ":util",
     ],
 )
 
@@ -952,6 +993,16 @@ tfjs_cc_library(
     srcs = ["kernels/RotateWithOffset.cc"],
     deps = [
         ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Round",
+    srcs = ["kernels/Round.cc"],
+    deps = [
+        ":backend",
+        ":unary",
         ":util",
     ],
 )
@@ -1029,6 +1080,7 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":unary",
+        ":util",
     ],
 )
 
@@ -1104,6 +1156,7 @@ tfjs_cc_library(
     srcs = ["kernels/Step.cc"],
     deps = [
         ":backend",
+        ":util",
     ],
 )
 

@@ -733,8 +733,9 @@ export class MathBackendWebGL extends KernelBackend {
 
     const program = new ReshapePackedProgram(afterShapeAs3D, input3DShape);
     const preventEagerUnpackingOfOutput = true;
+    const customValues = [input3DShape];
     const output = this.runWebGLProgram(
-        program, [input3D], input.dtype, null /* customUniformValues */,
+        program, [input3D], input.dtype, customValues,
         preventEagerUnpackingOfOutput);
     return {dataId: output.dataId, shape: afterShape, dtype: output.dtype};
   }
@@ -745,15 +746,17 @@ export class MathBackendWebGL extends KernelBackend {
     const shapeAs3D =
         webgl_util.getShapeAs3D(shape) as [number, number, number];
     let program;
+    const denseTexShape = tex_util.getDenseTexShape(shapeAs3D);
     if (isPacked) {
       program = new DecodeMatrixPackedProgram(shapeAs3D);
     } else {
       program = new DecodeMatrixProgram(shapeAs3D);
     }
     const preventEagerUnpackingOfOutput = true;
+    const customValues = [denseTexShape];
     const out = this.runWebGLProgram(
-        program, [{shape: shapeAs3D, dtype, dataId}], dtype,
-        null /* customUniformValues */, preventEagerUnpackingOfOutput);
+        program, [{shape: shapeAs3D, dtype, dataId}], dtype, customValues,
+        preventEagerUnpackingOfOutput);
     return {dtype, shape, dataId: out.dataId};
   }
 
@@ -997,16 +1000,15 @@ export class MathBackendWebGL extends KernelBackend {
 
       let program;
       let width = texShape[1], height = texShape[0];
-      const isByteArray = values instanceof Uint8Array;
+      const isByteArray = values instanceof Uint8Array
+                          || values instanceof Uint8ClampedArray;
 
       if (isPacked) {
         [width, height] = tex_util.getPackedMatrixTextureShapeWidthHeight(
             texShape[0], texShape[1]);
-        program = new EncodeMatrixPackedProgram(
-            shapeAs3D, [height, width], isByteArray);
+        program = new EncodeMatrixPackedProgram(shapeAs3D, isByteArray);
       } else {
-        program =
-            new EncodeMatrixProgram(shapeAs3D, [height, width], isByteArray);
+        program = new EncodeMatrixProgram(shapeAs3D, isByteArray);
       }
 
       const tempDenseInputHandle = this.makeTensorInfo([height, width], dtype);
@@ -1021,11 +1023,13 @@ export class MathBackendWebGL extends KernelBackend {
           this.getTexture(tempDenseInputHandle.dataId), width, height,
           values as TypedArray);
 
+      const customValues = [[height, width]];
       // We want the output to remain packed regardless of the value of
       // WEBGL_PACK.
       const preventEagerUnpacking = true;
       const encodedOutputTarget = this.runWebGLProgram(
-          program, [tempDenseInputHandle], dtype, null, preventEagerUnpacking);
+          program, [tempDenseInputHandle], dtype, customValues,
+          preventEagerUnpacking);
 
       // Have the original texture assume the identity of the encoded output.
       const outputTexData = this.texData.get(encodedOutputTarget.dataId);

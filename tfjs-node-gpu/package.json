@@ -45,8 +45,8 @@
     "prep-gpu-windows": "./prep-gpu-windows.bat",
     "publish-local": "yarn prep && yalc push",
     "publish-npm": "npm publish",
-    "test": "yarn && yarn build-deps && yarn build && ts-node --transpile-only -P tsconfig.test.json src/run_tests.ts",
-    "test-dev": "tsc && ts-node --transpile-only -P tsconfig.test.json src/run_tests.ts",
+    "test": "yarn && yarn build-deps && yarn build && ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/run_tests.ts",
+    "test-dev": "tsc && ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/run_tests.ts",
     "test-ci": "ts-node --transpile-only --skip-ignore -P tsconfig.test.json src/run_tests.ts",
     "upload-windows-addon": "prep-gpu-windows.bat && ./scripts/build-and-upload-windows-addon-gpu.bat"
   },
@@ -73,7 +73,7 @@
   "dependencies": {
     "@mapbox/node-pre-gyp": "1.0.4",
     "@tensorflow/tfjs": "link:../tfjs",
-    "adm-zip": "^0.4.11",
+    "adm-zip": "^0.5.2",
     "google-protobuf": "^3.9.2",
     "https-proxy-agent": "^2.2.1",
     "progress": "^2.0.0",

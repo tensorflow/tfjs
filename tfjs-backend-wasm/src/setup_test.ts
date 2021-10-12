@@ -21,6 +21,7 @@ import '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
 // tslint:disable-next-line: no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/register_all_gradients';
+
 // tslint:disable-next-line: no-imports-from-dist
 import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
@@ -103,8 +104,6 @@ const TEST_FILTERS: TestFilter[] = [
       'zero in its shape',         // Zero in shapes aren't supported yet
       'matmul followed by mul',    // mul not supported yet
       'upcasts',                   // Upcasting not supported yet.
-      'fused A x B with elu',      // Fused matMul with elu activation not yet
-                                   // supported.
       'fused A x B with 2d bias',  // Fused matMul with 2D bias not yet
                                    // supported.
     ]
@@ -121,8 +120,6 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'conv2d ',
     excludes: [
       'broadcasted bias',  // Broadcasted bias not yet supported.
-      'basic with elu',    // Only fused relu, relu6, prelu activations
-                           // supported.
       'gradient',          // Gradients not defined yet.
       'backProp input x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // Gradients not
                                                          // defined.
@@ -201,6 +198,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'slice '},
   {include: 'stridedSlice '},
   {include: 'rotate '},
+  {include: 'rotateWithOffset'},
   {include: 'flipLeftRight '},
   {include: 'square '},
   {include: 'squaredDifference'},
@@ -243,6 +241,14 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'nonMaxSuppression'},
   {include: 'argmax', excludes: ['gradient']},
   {include: 'exp '},
+  {
+    include: 'elu',
+    excludes: [
+      'derivative',  // Not yet implemented.
+      'gradient',    // Not yet implemented.
+      'selu'         // Not yet implemented.
+    ]
+  },
   {include: 'unstack'},
   {
     include: 'minimum',

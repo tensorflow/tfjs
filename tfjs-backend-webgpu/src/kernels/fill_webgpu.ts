@@ -15,7 +15,10 @@
  * =============================================================================
  */
 import {util} from '@tensorflow/tfjs-core';
+
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+
 import {WebGPUProgram} from './webgpu_program';
 
 export class FillProgram implements WebGPUProgram {
@@ -24,17 +27,15 @@ export class FillProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  uniforms = 'float value;';
-  workPerThread = 4;
-  workGroupSize: [number, number, number] = [16, 1, 1];
+  uniforms = 'value : f32;';
+  workGroupSize: [number, number, number] = [64, 1, 1];
   size: number;
 
   constructor(shape: number[]) {
     this.outputShape = shape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.shaderKey = 'fill';
     this.size = util.sizeFromShape(this.outputShape);
@@ -42,13 +43,10 @@ export class FillProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-    void main() {
-      int index = int(gl_GlobalInvocationID.x);
-      for (int i = 0; i < ${this.workPerThread}; i++) {
-        int flatIndex = index * ${this.workPerThread} + i;
-        if (flatIndex < size) {
-          setOutput(flatIndex, float(value));
-        }
+    ${getMainHeaderString()} {
+      ${getGlobalIndexString()}
+      if (index < uniforms.size) {
+        setOutputFlat(index, uniforms.value);
       }
     }
   `;

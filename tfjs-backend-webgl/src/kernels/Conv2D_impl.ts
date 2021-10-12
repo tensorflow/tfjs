@@ -227,9 +227,15 @@ export function conv2dWithIm2Row({
   intermediates.push(xSqueezed);
   intermediates.push(w2Row);
 
-  const im2ColProgram =
-      new Im2ColPackedProgram(x2ColShape, xSqueezed.shape, convInfo);
-  const im2Col = backend.runWebGLProgram(im2ColProgram, [xSqueezed], 'float32');
+  const im2ColProgram = new Im2ColPackedProgram(x2ColShape, convInfo);
+  const customValues = [
+    xSqueezed.shape, [convInfo.padInfo.top, convInfo.padInfo.left],
+    [convInfo.strideHeight, convInfo.strideWidth],
+    [convInfo.dilationHeight, convInfo.dilationWidth], [convInfo.inChannels],
+    [convInfo.filterWidth * convInfo.inChannels], [convInfo.outWidth]
+  ];
+  const im2Col = backend.runWebGLProgram(
+      im2ColProgram, [xSqueezed], 'float32', customValues);
   const im2ColReshaped = reshape({
     inputs: {x: im2Col},
     backend,

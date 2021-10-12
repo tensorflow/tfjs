@@ -17,7 +17,7 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -47,7 +47,8 @@ export class AddNPackedProgram implements WebGPUProgram {
     const snippets: string[] = [];
     // Get target elements from every input tensor.
     this.variableNames.forEach(variable => {
-      snippets.push(`float v${variable} = get${variable}AtOutCoords(coords);`);
+      snippets.push(
+          `let v${variable} = get${variable}AtOutCoordsByCoords(coords);`);
     });
     // Calculate the sum of all elements.
     const operation = this.variableNames
@@ -56,16 +57,15 @@ export class AddNPackedProgram implements WebGPUProgram {
                           })
                           .join(' + ');
 
-    const type = getCoordsDataType(this.outputShape.length);
     const userCode = `
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
-        for (int i = 0; i < ${this.workPerThread}; i++) {
-          int flatIndex = index * ${this.workPerThread} + i;
-          if (flatIndex < size) {
-            ${type} coords = getCoordsFromFlatIndex(flatIndex);
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        for (var i = 0; i < ${this.workPerThread}; i = i + 1) {
+          let flatIndex = index * ${this.workPerThread} + i;
+          if (flatIndex < uniforms.size) {
+            let coords = getCoordsFromFlatIndex(flatIndex);
             ${snippets.join('\n        ')}
-            setOutput(flatIndex, ${operation});
+            setOutputFlat(flatIndex, ${operation});
           }
         }
       }
