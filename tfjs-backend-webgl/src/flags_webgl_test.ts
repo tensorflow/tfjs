@@ -257,18 +257,22 @@ describe('WEBGL_MAX_TEXTURE_SIZE', () => {
   beforeEach(() => {
     tf.env().reset();
     webgl_util.resetMaxTextureSize();
-
-    spyOn(canvas_util, 'getWebGLContext').and.returnValue({
+    canvas_util.setWebGLContext(2, {
       MAX_TEXTURE_SIZE: 101,
+      isContextLost: () => false,
+      disable: (cap: number) => {},
+      enable: (cap: number) => {},
+      cullFace: (mode: number) => {},
       getParameter: (param: number) => {
         if (param === 101) {
           return 50;
         }
         throw new Error(`Got undefined param ${param}.`);
       }
-    });
+    } as WebGLRenderingContext);
   });
   afterAll(() => {
+    canvas_util.clearWebGLContext(2);
     tf.env().reset();
     webgl_util.resetMaxTextureSize();
   });
@@ -284,19 +288,22 @@ describe('WEBGL_MAX_TEXTURES_IN_SHADER', () => {
     tf.env().reset();
     webgl_util.resetMaxTexturesInShader();
 
-    spyOn(canvas_util, 'getWebGLContext').and.callFake(() => {
-      return {
-        MAX_TEXTURE_IMAGE_UNITS: 101,
-        getParameter: (param: number) => {
-          if (param === 101) {
-            return maxTextures;
-          }
-          throw new Error(`Got undefined param ${param}.`);
+    canvas_util.setWebGLContext(2, {
+      MAX_TEXTURE_IMAGE_UNITS: 101,
+      isContextLost: () => false,
+      disable: (cap: number) => {},
+      enable: (cap: number) => {},
+      cullFace: (mode: number) => {},
+      getParameter: (param: number) => {
+        if (param === 101) {
+          return maxTextures;
         }
-      };
-    });
+        throw new Error(`Got undefined param ${param}.`);
+      }
+    } as WebGLRenderingContext);
   });
   afterAll(() => {
+    canvas_util.clearWebGLContext(2);
     tf.env().reset();
     webgl_util.resetMaxTexturesInShader();
   });
@@ -313,8 +320,14 @@ describe('WEBGL_MAX_TEXTURES_IN_SHADER', () => {
 });
 
 describe('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', () => {
-  beforeEach(() => tf.env().reset());
-  afterAll(() => tf.env().reset());
+  beforeEach(() => {
+    tf.env().reset();
+    device_util.mockIsMobile(undefined);
+  });
+  afterAll(() => {
+    tf.env().reset();
+    device_util.mockIsMobile(undefined);
+  });
 
   it('disjoint query timer disabled', () => {
     tf.env().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', 0);
@@ -325,7 +338,7 @@ describe('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', () => {
 
   it('disjoint query timer enabled, mobile', () => {
     tf.env().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', 1);
-    spyOn(device_util, 'isMobile').and.returnValue(true);
+    device_util.mockIsMobile(true);
 
     expect(tf.env().getBool('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'))
         .toBe(false);
@@ -333,8 +346,7 @@ describe('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', () => {
 
   it('disjoint query timer enabled, not mobile', () => {
     tf.env().set('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', 1);
-
-    spyOn(device_util, 'isMobile').and.returnValue(false);
+    device_util.mockIsMobile(false);
 
     expect(tf.env().getBool('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'))
         .toBe(true);
@@ -363,8 +375,11 @@ describeWithFlags('WEBGL_DELETE_TEXTURE_THRESHOLD', WEBGL_ENVS, () => {
 });
 
 describeWithFlags('WEBGL_FLUSH_THRESHOLD', WEBGL_ENVS, () => {
+  beforeEach(() => tf.env().reset());
+  afterAll(() => tf.env().reset());
+
   it('should return the correct default value', () => {
-    if (device_util.isMobile() && tf.env().getBool('IS_CHROME')) {
+    if (device_util.isMobile()) {
       expect(tf.env().getNumber('WEBGL_FLUSH_THRESHOLD')).toEqual(1);
     } else {
       expect(tf.env().getNumber('WEBGL_FLUSH_THRESHOLD')).toEqual(-1);

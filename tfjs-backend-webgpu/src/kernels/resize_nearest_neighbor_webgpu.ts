@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import {getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class ResizeNearestNeighborProgram implements WebGPUProgram {
   outputShape: number[];
@@ -29,7 +29,6 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   alignCorners: boolean;
   halfPixelCenters: boolean;
-  useWgsl: boolean;
 
   constructor(
       inputShape: [number, number, number, number], newHeight: number,
@@ -46,60 +45,9 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
     this.shaderKey =
         `resizeNearest_${alignCorners}_${this.outputShape[1] > 1}_${
             this.outputShape[2] > 1}_${halfPixelCenters}`;
-    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
-    // When align corners is false, we rounds the value with floor.
-    const roundBase = this.alignCorners ? '0.5' : '0.0';
-    let sourceFracIndexRC: string;
-    if (this.halfPixelCenters) {
-      sourceFracIndexRC =
-          `max((vec2(rc) + vec2(0.5)) * effectiveInputOverOutputRatioRC` +
-          `, vec2(0.0))`;
-    } else {
-      sourceFracIndexRC = `vec2(rc) * effectiveInputOverOutputRatioRC`;
-    }
-
-    const adjustHeight = this.alignCorners && this.outputShape[1] > 1;
-    const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
-
-    const userCode = `
-      void main() {
-        ivec4 coords = getOutputCoords();
-        if (all(lessThan(coords, outShape))) {
-          int b = coords[0];
-          int d = coords[3];
-          ivec2 rc = coords.yz;
-
-          vec2 effectiveInSize = vec2(
-            ${adjustHeight ? `xShape.y - 1.0` : `xShape.y`},
-            ${adjustWidth ? `xShape.z - 1.0` : `xShape.z`});
-
-          vec2 effectiveOutSize = vec2(
-            ${adjustHeight ? `outShape.y - 1.0` : `outShape.y`},
-            ${adjustWidth ? `outShape.z - 1.0` : `outShape.z`});
-
-          vec2 effectiveInputOverOutputRatioRC =
-              effectiveInSize / effectiveOutSize;
-
-          // Fractional source index
-          vec2 sourceFracIndexRC = ${sourceFracIndexRC};
-
-          // Compute the coordinators of nearest neighbor point.
-          const vec2 inputShapeRC = vec2(xShape.y, xShape.z);
-          ivec2 sourceNearestRC = ivec2(
-            min(inputShapeRC - 1.0, floor(sourceFracIndexRC + ${roundBase})));
-          float newValue = getX(b, sourceNearestRC.x, sourceNearestRC.y, d);
-
-          setOutput(b, coords[1], coords[2], d, newValue);
-        }
-      }
-    `;
-    return userCode;
-  }
-
-  getUserCodeWgsl(): string {
     // When align corners is false, we rounds the value with floor.
     const roundBase = this.alignCorners ? '0.5' : '0.0';
     let sourceFracIndexRC: string;
@@ -115,8 +63,8 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
     const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
 
     const userCode = `
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         let coords = getOutputCoords(globalId, index);
         if (all(coords < uniforms.outShape)) {
           let b = coords[0];
@@ -147,7 +95,7 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
 
           // Compute the coordinators of nearest neighbor point.
           let inputShapeRC = vec2<f32>(f32(uniforms.xShape.y), f32(uniforms.xShape.z));
-          let sourceNearestRC = vec2<u32>(
+          let sourceNearestRC = vec2<i32>(
             min(inputShapeRC - 1.0, floor(sourceFracIndexRC + ${roundBase})));
           let newValue = getX(b, sourceNearestRC.x, sourceNearestRC.y, d);
 

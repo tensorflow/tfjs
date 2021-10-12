@@ -504,9 +504,10 @@ export function hasEncodingLoss(oldType: DataType, newType: DataType): boolean {
   return true;
 }
 
-export function isTypedArray(a: {}): a is Float32Array|Int32Array|Uint8Array {
+export function isTypedArray(a: {}):
+  a is Float32Array|Int32Array|Uint8Array|Uint8ClampedArray {
   return a instanceof Float32Array || a instanceof Int32Array ||
-      a instanceof Uint8Array;
+      a instanceof Uint8Array || a instanceof Uint8ClampedArray;
 }
 
 export function bytesPerElement(dtype: DataType): number {
@@ -555,7 +556,9 @@ export function inferDtype(values: TensorLike): DataType {
   }
   if (values instanceof Float32Array) {
     return 'float32';
-  } else if (values instanceof Int32Array || values instanceof Uint8Array) {
+  } else if (values instanceof Int32Array
+             || values instanceof Uint8Array
+             || values instanceof Uint8ClampedArray) {
     return 'int32';
   } else if (isNumber(values)) {
     return 'float32';
@@ -737,7 +740,7 @@ export function indexToLoc(
  * @param object
  */
 // tslint:disable-next-line: no-any
-export function isPromise(object: any) {
+export function isPromise(object: any): object is Promise<unknown> {
   //  We chose to not use 'obj instanceOf Promise' for two reasons:
   //  1. It only reliably works for es6 Promise, not other Promise
   //  implementations.

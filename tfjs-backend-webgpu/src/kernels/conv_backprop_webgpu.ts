@@ -16,12 +16,16 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
+
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
+
 import {WebGPUProgram} from './webgpu_program';
 
 export class Conv2DDerInputProgram implements WebGPUProgram {
   variableNames = ['dy', 'W'];
-  uniforms = 'ivec2 filterDims, pads, stride; ivec4 outBackprop;';
+  uniforms =
+      'filterDims : vec2<i32>; pads : vec2<i32>; stride : vec2<i32>; outBackprop : vec4<i32>;';
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[]};
@@ -43,50 +47,48 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
     const colDim = this.isChannelsLast ? 2 : 3;
     const channelDim = this.isChannelsLast ? 3 : 1;
     return `
-    void main() {
-      ivec4 coords = getOutputCoords();
-      if (coordsInBounds(coords, outShape)) {
-        int batch = coords[0];
-        int d1 = coords[${channelDim}];
+    ${getMainHeaderString()} {
+      ${getGlobalIndexString()}
+      let coords = getOutputCoords(globalId, index);
+      if (coordsInBounds4D(coords, uniforms.outShape)) {
+        let batch = coords[0];
+        let d1 = coords[${channelDim}];
 
-        ivec2 dyCorner = ivec2(coords[${rowDim}], coords[${colDim}]) - pads;
-        int dyRCorner = dyCorner.x;
-        int dyCCorner = dyCorner.y;
+        let dyCorner = vec2<i32>(coords[${rowDim}]), coords[${
+        colDim}]) - uniforms.pads;
+        let dyRCorner = dyCorner.x;
+        let dyCCorner = dyCorner.y;
 
         // Convolve dy(?, ?, d2) with w(:, :, d1, d2) to compute dx(xR, xC, d1).
         // ? = to be determined. : = across all values in that axis.
-        float dotProd = 0.0;
-        for (int wR = 0; wR < filterDims.x; wR++) {
-          float dyR = float(dyRCorner + wR) / float(stride.x);
-
-          if (dyR < 0.0 || dyR >= float(outBackprop[1]) || fract(dyR) > 0.0) {
+        var dotProd = 0.0;
+        for (var wR = 0; wR < uniforms.filterDims.x; wR = wR + 1) {
+          let dyR = (f32(dyRCorner) + f32(wR)) / f32(uniforms.stride.x);
+          let wRPerm = uniforms.filterDims.x - 1 - wR;
+          if (dyR < 0.0 || dyR >= f32(uniforms.outBackprop[1]) || fract(dyR) > 0.0 ||
+              wRPerm < 0) {
             continue;
           }
-          int idyR = int(dyR);
+          let idyR = dyR;
 
-          int wRPerm = filterDims.x - 1 - wR;
-
-          for (int wC = 0; wC < filterDims.y; wC++) {
-            float dyC = float(dyCCorner + wC) / float(stride.y);
-
-            if (dyC < 0.0 || dyC >= float(outBackprop[2]) ||
-                fract(dyC) > 0.0) {
+          for (var wC = 0; wC < uniforms.filterDims.y; wC = wC + 1) {
+            let dyC = (f32(dyCCorner) + f32(wC)) / f32(uniforms.stride.y);
+            let wCPerm = uniforms.filterDims.y - 1 - wC;
+            if (dyC < 0.0 || dyC >= f32(uniforms.outBackprop[2]) ||
+                fract(dyC) > 0.0 || wCPerm < 0) {
               continue;
             }
-            int idyC = int(dyC);
+            let idyC = dyC;
 
-            int wCPerm = filterDims.y - 1 - wC;
-
-            for (int d2 = 0; d2 < outBackprop[3]; d2++) {
-
+            for (var d2 = 0; d2 < uniforms.outBackprop[3]; d2 = d2 + 1) {
               if (${this.isChannelsLast}) {
-                float xValue = getDy(batch, idyR, idyC, d2);
-                float wValue = getW(wRPerm, wCPerm, d1, d2);
-                dotProd += xValue * wValue;
+                let xValue = getDy(batch, idyR, idyC, d2);
+                let wValue = getW(wRPerm, wCPerm, d1, d2);
+                dotProd = dotProd + xValue * wValue;
               } else {
-                float xValue = getDy(batch, d2, idyR, idyC);
-                float wValue = getW(wRPerm, wCPerm, d1, d2);
-                dotProd += xValue * wValue;
+                let xValue = getDy(batch, d2, idyR, idyC);
+                let wValue = getW(wRPerm, wCPerm, d1, d2);
+                dotProd = dotProd + xValue * wValue;
               }
 
             }

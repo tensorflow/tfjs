@@ -40,7 +40,6 @@ filegroup(
     srcs = glob(
         ["**/*_test.ts"],
         exclude = [
-            "backends/**/*",
             "setup_test.ts",
         ],
     ) + [":version_test"],
@@ -92,6 +91,7 @@ ts_library(
     deps = [
         ":tfjs-core_lib",
         ":tfjs-core_src_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
     ],
 )
 

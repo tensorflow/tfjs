@@ -21,7 +21,7 @@ limitations under the License.
   <link href="./main.css" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
   <link rel="shortcut icon"
-    href="https://www.gstatic.com/devrel-devsite/prod/vf4ca28c48392b1412e7b030290622a0dd55b62dec1202c59f119b1e23227c988/tensorflow/images/favicon.png">
+        href="https://www.gstatic.com/devrel-devsite/prod/vf4ca28c48392b1412e7b030290622a0dd55b62dec1202c59f119b1e23227c988/tensorflow/images/favicon.png">
 </head>
 
 <body>
@@ -133,15 +133,6 @@ limitations under the License.
             tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(true);
           } else {
             tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(false);
-          }
-        }
-        if (tunableFlagsControllers['WEBGPU_USE_GLSL'] != null &&
-            urlState.has('WEBGPU_USE_GLSL')) {
-          const value = urlState.get('WEBGPU_USE_GLSL');
-          if (value === 'true') {
-            tunableFlagsControllers['WEBGPU_USE_GLSL'].setValue(true);
-          } else {
-            tunableFlagsControllers['WEBGPU_USE_GLSL'].setValue(false);
           }
         }
       }

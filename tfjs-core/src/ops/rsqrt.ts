@@ -38,7 +38,7 @@ import {op} from './operation';
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
 function rsqrt_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'rsqrt');
+  const $x = convertToTensor(x, 'x', 'rsqrt', 'float32');
 
   const inputs: RsqrtInputs = {x: $x};
 

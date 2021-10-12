@@ -34,23 +34,25 @@ def ts_library(**kwargs):
     devmode_target = kwargs.pop("devmode_target", "es5")
     prodmode_target = kwargs.pop("prodmode_target", "es2017")
 
+    # By default, set package_name based on module_name to mimic pre-4.0 behavior
+    # of automatically linking the ts_library.
+    maybe_module_name = kwargs["module_name"] if "module_name" in kwargs else None
+    package_name = kwargs.pop("package_name", maybe_module_name)
+
     _ts_library(
         tsconfig = tsconfig,
         devmode_target = devmode_target,
         prodmode_target = prodmode_target,
+        package_name = package_name,
         **kwargs
     )
 
 def esbuild(**kwargs):
     # Make sure esbuild always resolve the module (.mjs) files before .js files.
-    args = kwargs.pop("args", []) + ["--resolve-extensions=.mjs,.js"]
+    args = kwargs.pop("args", {})
+    args["resolveExtensions"] = [".mjs", ".js"]
 
     _esbuild(
-        tool = select({
-            "@bazel_tools//src/conditions:darwin": "@esbuild_darwin//:bin/esbuild",
-            "@bazel_tools//src/conditions:linux_x86_64": "@esbuild_linux//:bin/esbuild",
-            "@bazel_tools//src/conditions:windows": "@esbuild_windows//:esbuild.exe",
-        }),
         args = args,
         **kwargs
     )

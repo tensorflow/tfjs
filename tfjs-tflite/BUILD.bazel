@@ -78,6 +78,7 @@ copy_to_dist(
 # Package for npm.
 pkg_npm(
     name = "tfjs-tflite_pkg",
+    package_name = "@tensorflow/tfjs-tflite",
     srcs = [
         "README.md",
         "package.json",

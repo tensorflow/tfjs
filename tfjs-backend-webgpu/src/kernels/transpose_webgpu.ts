@@ -16,11 +16,10 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-import {getCoordsDataType} from '../shader_preprocessor';
-import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class TransposeProgram implements WebGPUProgram {
   variableNames = ['A'];
@@ -32,7 +31,6 @@ export class TransposeProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   newDim: number[];
   size: number;
-  useWgsl: boolean;
 
   constructor(aShape: number[], newDim: number[]) {
     const outputShape: number[] = new Array(aShape.length);
@@ -48,7 +46,6 @@ export class TransposeProgram implements WebGPUProgram {
     this.newDim = newDim;
     this.shaderKey = `transpose_${newDim}`;
     this.size = util.sizeFromShape(this.outputShape);
-    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
@@ -56,32 +53,11 @@ export class TransposeProgram implements WebGPUProgram {
     const switched = getSwitchedCoords(this.newDim);
 
     const userCode = `
-      void main() {
-        int index = getGlobalIndex();
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
 
-        for(int i = 0; i < ${this.workPerThread}; i++) {
-          int flatIndex = index * ${this.workPerThread} + i;
-          if(flatIndex < size) {
-            ${dtype} resRC = getCoordsFromFlatIndex(flatIndex);
-            setOutput(flatIndex, A[getFlatIndex(
-              ${dtype}(${switched}), aShape)]);
-          }
-        }
-      }
-    `;
-    return userCode;
-  }
-
-  getUserCodeWgsl(): string {
-    const dtype = getCoordsDataTypeWgsl(this.outputShape.length);
-    const switched = getSwitchedCoords(this.newDim);
-
-    const userCode = `
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
-
-        for(var i = 0u; i < ${this.workPerThread}u; i = i + 1u) {
-          let flatIndex = index * ${this.workPerThread}u + i;
+        for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
+          let flatIndex = index * ${this.workPerThread} + i;
           if(flatIndex < uniforms.size) {
             let resRC = getCoordsFromFlatIndex(flatIndex);
             setOutputFlat(flatIndex, A.numbers[getFlatIndex${

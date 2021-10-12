@@ -1,10 +1,10 @@
 steps:
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     entrypoint: yarn
     id: yarn-common
     args:
       - install
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: scripts
     id: test-generate-cloudbuild
     entrypoint: yarn
@@ -12,32 +12,33 @@ steps:
       - test-generate-cloudbuild
     waitFor:
       - yarn-common
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     id: test-run-flaky
     entrypoint: yarn
     args:
       - test-run-flaky
     waitFor:
       - yarn-common
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     id: buildifier
     entrypoint: yarn
     args:
       - buildifier-ci
     waitFor:
       - yarn-common
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     id: bazel-tests
     entrypoint: bash
     args:
       - ./scripts/run_bazel_ci_tests.sh
     env:
       - BROWSERSTACK_USERNAME=deeplearnjs1
+      - NIGHTLY=$_NIGHTLY
     waitFor:
       - yarn-common
     secretEnv:
       - BROWSERSTACK_KEY
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: link-package-core
     entrypoint: yarn
     id: yarn-link-package-core
@@ -45,7 +46,7 @@ steps:
       - install
     waitFor:
       - bazel-tests
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: link-package
     entrypoint: yarn
     id: yarn-link-package
@@ -54,7 +55,7 @@ steps:
     waitFor:
       - bazel-tests
       - yarn-link-package-core
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-converter
     entrypoint: yarn
     id: yarn-tfjs-converter
@@ -63,25 +64,25 @@ steps:
     waitFor:
       - yarn-common
       - yarn-link-package
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-converter
-    entrypoint: yarn
     id: lint-tfjs-converter
+    entrypoint: yarn
     args:
       - lint
     waitFor:
       - yarn-tfjs-converter
       - yarn-common
       - yarn-link-package
-  - name: 'node:10'
-    id: 'create-pips-tfjs-converter'
-    entrypoint: 'bash'
+  - name: gcr.io/learnjs-174218/release
+    id: create-pips-tfjs-converter
+    entrypoint: bash
     args:
-      - './tfjs-converter/scripts/create_python_pips.sh'
+      - ./tfjs-converter/scripts/create_python_pips.sh
     waitFor:
       - yarn-common
       - yarn-link-package
-  - name: gcr.io/google-appengine/python
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-converter/python
     entrypoint: bash
     id: test-python-pip-tfjs-converter
@@ -93,7 +94,26 @@ steps:
       - create-pips-tfjs-converter
       - yarn-common
       - yarn-link-package
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
+    dir: tfjs-layers
+    entrypoint: yarn
+    id: yarn-tfjs-layers
+    args:
+      - install
+    waitFor:
+      - yarn-common
+      - yarn-link-package
+  - name: gcr.io/learnjs-174218/release
+    dir: tfjs-layers
+    entrypoint: yarn
+    id: lint-tfjs-layers
+    args:
+      - lint
+    waitFor:
+      - yarn-tfjs-layers
+      - yarn-common
+      - yarn-link-package
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-backend-wasm
     entrypoint: yarn
     id: yarn-tfjs-backend-wasm
@@ -102,7 +122,7 @@ steps:
     waitFor:
       - yarn-common
       - yarn-link-package
-  - name: gcr.io/learnjs-174218/wasm
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-backend-wasm
     entrypoint: bash
     id: build-tfjs-backend-wasm
@@ -112,7 +132,7 @@ steps:
       - yarn-tfjs-backend-wasm
       - yarn-common
       - yarn-link-package
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-backend-wasm
     entrypoint: yarn
     id: lint-tfjs-backend-wasm
@@ -122,7 +142,7 @@ steps:
       - yarn-tfjs-backend-wasm
       - yarn-common
       - yarn-link-package
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-backend-wasm
     entrypoint: yarn
     id: test-wasm-tfjs-backend-wasm
@@ -139,7 +159,7 @@ steps:
       - NIGHTLY=$_NIGHTLY
     secretEnv:
       - BROWSERSTACK_KEY
-  - name: gcr.io/learnjs-174218/wasm
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-backend-wasm
     id: test-bundle-size-tfjs-backend-wasm
     entrypoint: yarn
@@ -150,52 +170,7 @@ steps:
       - build-tfjs-backend-wasm
       - yarn-common
       - yarn-link-package
-  - name: 'node:10'
-    dir: tfjs-backend-webgl
-    id: yarn-tfjs-backend-webgl
-    entrypoint: yarn
-    args:
-      - install
-    waitFor:
-      - yarn-common
-      - yarn-link-package
-  - name: 'node:10'
-    dir: tfjs-backend-webgl
-    id: build-tfjs-backend-webgl
-    entrypoint: yarn
-    args:
-      - build-ci
-    waitFor:
-      - yarn-tfjs-backend-webgl
-      - yarn-common
-      - yarn-link-package
-  - name: 'node:10'
-    dir: tfjs-backend-webgl
-    id: lint-tfjs-backend-webgl
-    entrypoint: yarn
-    args:
-      - lint
-    waitFor:
-      - yarn-tfjs-backend-webgl
-      - yarn-common
-      - yarn-link-package
-  - name: 'node:10'
-    dir: tfjs-backend-webgl
-    entrypoint: yarn
-    id: test-tfjs-backend-webgl
-    args:
-      - test-ci
-    waitFor:
-      - yarn-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
-      - yarn-common
-      - yarn-link-package
-    env:
-      - BROWSERSTACK_USERNAME=deeplearnjs1
-      - NIGHTLY=$_NIGHTLY
-    secretEnv:
-      - BROWSERSTACK_KEY
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-backend-webgpu
     id: yarn-tfjs-backend-webgpu
     entrypoint: yarn
@@ -204,7 +179,7 @@ steps:
     waitFor:
       - yarn-common
       - yarn-link-package
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-backend-webgpu
     id: lint-tfjs-backend-webgpu
     entrypoint: yarn
@@ -214,7 +189,7 @@ steps:
       - yarn-tfjs-backend-webgpu
       - yarn-common
       - yarn-link-package
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-backend-webgpu
     entrypoint: yarn
     id: test-webgpu-tfjs-backend-webgpu
@@ -225,77 +200,7 @@ steps:
       - lint-tfjs-backend-webgpu
       - yarn-common
       - yarn-link-package
-  - name: 'node:10'
-    dir: tfjs-layers
-    entrypoint: yarn
-    id: yarn-tfjs-layers
-    args:
-      - install
-    waitFor:
-      - yarn-common
-      - yarn-link-package
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
-  - name: 'node:10'
-    dir: tfjs-layers
-    entrypoint: yarn
-    id: build-tfjs-layers
-    args:
-      - build-ci
-    waitFor:
-      - yarn-tfjs-layers
-      - yarn-common
-      - yarn-link-package
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
-  - name: 'node:10'
-    dir: tfjs-layers
-    entrypoint: yarn
-    id: lint-tfjs-layers
-    args:
-      - lint
-    waitFor:
-      - yarn-tfjs-layers
-      - yarn-common
-      - yarn-link-package
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
-  - name: 'node:10'
-    dir: tfjs-layers
-    entrypoint: yarn
-    id: test-browser-tfjs-layers
-    args:
-      - test-ci
-    waitFor:
-      - yarn-tfjs-layers
-      - lint-tfjs-layers
-      - yarn-common
-      - yarn-link-package
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
-    env:
-      - BROWSERSTACK_USERNAME=deeplearnjs1
-      - NIGHTLY=$_NIGHTLY
-    secretEnv:
-      - BROWSERSTACK_KEY
-  - name: 'node:10'
-    dir: tfjs-layers
-    entrypoint: yarn
-    id: test-snippets-tfjs-layers
-    args:
-      - test-snippets-ci
-    waitFor:
-      - build-tfjs-layers
-      - yarn-common
-      - yarn-link-package
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-data
     entrypoint: yarn
     id: yarn-tfjs-data
@@ -305,9 +210,8 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-data
     entrypoint: yarn
     id: build-tfjs-data
@@ -318,9 +222,8 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-data
     entrypoint: yarn
     id: lint-tfjs-data
@@ -331,9 +234,8 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-data
     entrypoint: yarn
     id: test-tfjs-data
@@ -345,9 +247,8 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs-data
     entrypoint: yarn
     id: test-snippets-tfjs-data
@@ -358,9 +259,8 @@ steps:
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs
     entrypoint: yarn
     id: yarn-tfjs
@@ -373,15 +273,11 @@ steps:
       - lint-tfjs-converter
       - create-pips-tfjs-converter
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
       - yarn-tfjs-data
       - build-tfjs-data
       - lint-tfjs-data
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs
     entrypoint: yarn
     id: build-tfjs
@@ -395,15 +291,11 @@ steps:
       - lint-tfjs-converter
       - create-pips-tfjs-converter
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
       - yarn-tfjs-data
       - build-tfjs-data
       - lint-tfjs-data
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs
     entrypoint: yarn
     id: lint-tfjs
@@ -417,15 +309,11 @@ steps:
       - lint-tfjs-converter
       - create-pips-tfjs-converter
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
       - yarn-tfjs-data
       - build-tfjs-data
       - lint-tfjs-data
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
-  - name: 'node:10'
+  - name: gcr.io/learnjs-174218/release
     dir: tfjs
     entrypoint: yarn
     id: test-tfjs
@@ -440,14 +328,10 @@ steps:
       - lint-tfjs-converter
       - create-pips-tfjs-converter
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
       - yarn-tfjs-data
       - build-tfjs-data
       - lint-tfjs-data
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
     env:
       - BROWSERSTACK_USERNAME=deeplearnjs1
       - NIGHTLY=$_NIGHTLY
@@ -634,9 +518,6 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
       - yarn-tfjs-converter
       - lint-tfjs-converter
       - create-pips-tfjs-converter
@@ -644,7 +525,6 @@ steps:
       - build-tfjs-data
       - lint-tfjs-data
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
       - yarn-tfjs-node
       - build-addon-tfjs-node
@@ -672,9 +552,6 @@ steps:
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-backend-webgl
-      - build-tfjs-backend-webgl
-      - lint-tfjs-backend-webgl
       - yarn-tfjs-converter
       - lint-tfjs-converter
       - create-pips-tfjs-converter
@@ -682,7 +559,6 @@ steps:
       - build-tfjs-data
       - lint-tfjs-data
       - yarn-tfjs-layers
-      - build-tfjs-layers
       - lint-tfjs-layers
       - yarn-tfjs-node
       - build-addon-tfjs-node

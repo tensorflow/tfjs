@@ -199,7 +199,7 @@ ENV.registerFlag(
 ENV.registerFlag(
     'WEBGL_FLUSH_THRESHOLD',
     () => {
-      return device_util.isMobile() && ENV.getBool('IS_CHROME') ? 1 : -1;
+      return device_util.isMobile() ? 1 : -1;
     },
     threshold => {
       if (threshold < 0 && threshold !== -1) {

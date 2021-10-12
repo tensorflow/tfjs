@@ -20,7 +20,6 @@
 import './flags_webgpu';
 
 import {backend_util, buffer, DataStorage, DataType, DataValues, engine, env, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, util} from '@tensorflow/tfjs-core';
-import {Glslang} from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {BufferManager} from './buffer_manager';
 import {FromPixelsImportProgram} from './kernels/FromPixels_utils/from_pixels_import_webgpu';
@@ -68,13 +67,13 @@ export interface WebGPUTimingInfo extends TimingInfo {
 // Empirically determined constant used to determine size threshold for handing
 // off execution to the CPU.
 const CPU_HANDOFF_SIZE_THRESHOLD =
-    env().getNumber('CPU_HANDOFF_SIZE_THRESHOLD');
+    env().getNumber('WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD');
 
 export class WebGPUBackend extends KernelBackend {
   device: GPUDevice;
   queue: GPUQueue;
-  glslang: Glslang;
   currentCommandEncoder: GPUCommandEncoder;
+  currentComputePass: GPUComputePassEncoder;
   tensorMap: DataStorage<TensorBufferInfo>;
   supportTimeQuery: boolean;
   dummyCanvas: HTMLCanvasElement;
@@ -98,12 +97,12 @@ export class WebGPUBackend extends KernelBackend {
   private activeTimers: TimerNode[];
   private uploadWaitMs = 0;
   private downloadWaitMs = 0;
-  private computePassNumberInEncoder = 0;
+  private dispatchNumberInEncoder = 0;
   private querySet: GPUQuerySet;
-  private fromPixelProgram:
-      {copyExternal: FromPixelsProgram, import: FromPixelsImportProgram};
+  private fromPixelProgram?: FromPixelsProgram;
+  private fromPixelImportProgram?: FromPixelsImportProgram;
 
-  constructor(device: GPUDevice, glslang: Glslang, supportTimeQuery = false) {
+  constructor(device: GPUDevice, supportTimeQuery = false) {
     super();
     if (!webgpu_util.isWebGPUSupported()) {
       throw new Error('WebGPU is not supported on this device');
@@ -113,7 +112,7 @@ export class WebGPUBackend extends KernelBackend {
     this.device = device;
     this.queue = device.queue;
     this.currentCommandEncoder = null;
-    this.glslang = glslang;
+    this.currentComputePass = null;
     this.supportTimeQuery = supportTimeQuery;
 
     this.bufferManager = new BufferManager(this.device);
@@ -143,12 +142,6 @@ export class WebGPUBackend extends KernelBackend {
 
       document.body.appendChild(this.dummyCanvas);
     }
-
-    // Create FromPixelsProgram instance is light weight;
-    this.fromPixelProgram = {
-      copyExternal: new FromPixelsProgram(),
-      import: new FromPixelsImportProgram()
-    };
   }
 
   floatPrecision(): 32 {
@@ -302,9 +295,10 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   submitQueue() {
+    this.ensureComputePassEnded();
     this.queue.submit([this.currentCommandEncoder.finish()]);
     this.currentCommandEncoder = null;
-    this.computePassNumberInEncoder = 0;
+    this.dispatchNumberInEncoder = 0;
 
     this.commandQueueOwnedIds = new WeakSet<DataId>();
 
@@ -319,16 +313,16 @@ export class WebGPUBackend extends KernelBackend {
   getFromPixelsProgram(type: 'copyExternal'|'import'): FromPixelsProgram {
     switch (type) {
       case 'copyExternal': {
-        if (!this.fromPixelProgram.copyExternal) {
-          this.fromPixelProgram.copyExternal = new FromPixelsProgram();
+        if (!this.fromPixelProgram) {
+          this.fromPixelProgram = new FromPixelsProgram();
         }
-        return this.fromPixelProgram.copyExternal;
+        return this.fromPixelProgram;
       }
       case 'import': {
-        if (!this.fromPixelProgram.import) {
-          this.fromPixelProgram.import = new FromPixelsImportProgram();
+        if (!this.fromPixelImportProgram) {
+          this.fromPixelImportProgram = new FromPixelsImportProgram();
         }
-        return this.fromPixelProgram.import;
+        return this.fromPixelImportProgram;
       }
       default:
         util.assert(false, () => `Unsupported fromPixels shape`);
@@ -342,6 +336,20 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
+  ensureComputePassEnded() {
+    if (this.currentComputePass) {
+      this.currentComputePass.endPass();
+      this.currentComputePass = null;
+    }
+  }
+
+  getComputePass() {
+    if (!this.currentComputePass) {
+      this.currentComputePass = this.currentCommandEncoder.beginComputePass();
+    }
+    return this.currentComputePass;
+  }
+
   private async getBufferData(info: TensorBufferInfo):
       Promise<backend_util.BackendValues> {
     if (info.values != null) {
@@ -352,6 +360,7 @@ export class WebGPUBackend extends KernelBackend {
         info.bufferInfo.byteSize,
         GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
     this.ensureCommandEncoderReady();
+    this.ensureComputePassEnded();
     this.currentCommandEncoder.copyBufferToBuffer(
         info.bufferInfo.buffer, 0, staging, 0, info.bufferInfo.byteSize);
     this.submitQueue();
@@ -698,15 +707,19 @@ export class WebGPUBackend extends KernelBackend {
   public runWebGPUProgram(
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
       outputDtype: DataType,
-      programUniforms?: Array<{type: string; data: number[]}>): TensorInfo {
-    const output = this.makeTensorInfo(program.outputShape, outputDtype);
-    const outData = this.tensorMap.get(output.dataId);
-    if (util.sizeFromShape(output.shape) === 0) {
-      // Short-circuit the computation since the result is empty (has 0 in its
-      // shape).
-      outData.values =
-          util.getTypedArrayFromDType(output.dtype as 'float32', 0);
-      return output;
+      programUniforms?: Array<{type: string; data: number[]}>,
+      output?: TensorInfo): TensorInfo {
+    if (!output) {
+      output = this.makeTensorInfo(program.outputShape, outputDtype);
+      if (util.sizeFromShape(output.shape) === 0) {
+        // Short-circuit the computation since the result is empty (has 0 in its
+        // shape).
+        const outData = this.tensorMap.get(output.dataId);
+        outData.values =
+            util.getTypedArrayFromDType(output.dtype as 'float32', 0);
+        return output;
+      }
+      this.uploadToGPU(output.dataId);
     }
 
     // There are five kinds of uniforms: NAN, shapes, shape strides, program
@@ -714,10 +727,7 @@ export class WebGPUBackend extends KernelBackend {
     let uniformsWithType: Array<{type: string; data: number[];}> =
         [{type: 'float32', data: [NaN]}];
     const bufferShapes = inputs.concat(output).map(d => d.shape);
-    let uniformsType = 'int32';
-    if (program.useWgsl) {
-      uniformsType = 'uint32';
-    }
+    const uniformsType = 'int32';
     bufferShapes.map(d => {
       uniformsWithType.push({type: uniformsType, data: d});
     });
@@ -726,7 +736,7 @@ export class WebGPUBackend extends KernelBackend {
     if (program.size != null) {
       uniformsWithType.push({type: uniformsType, data: [program.size]});
     }
-    uniformsWithType.push({type: 'int32', data: program.dispatch});
+    uniformsWithType.push({type: 'uint32', data: program.dispatch});
     if (programUniforms) {
       uniformsWithType = [...uniformsWithType, ...programUniforms];
     }
@@ -753,7 +763,6 @@ export class WebGPUBackend extends KernelBackend {
         name: program.variableNames[i]
       };
     });
-    this.uploadToGPU(output.dataId);
     const bufferTypes = inputsData.map(d => d.dtype).concat(output.dtype);
     const broadcastDims = inputsData.map(
         d => backend_util.getBroadcastDims(d.shape, output.shape));
@@ -769,8 +778,7 @@ export class WebGPUBackend extends KernelBackend {
 
     const pipeline = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(
-          this.glslang, this.device, program, pipelineLayout, inputsData,
-          output);
+          this.device, program, pipelineLayout, inputsData, output);
     });
 
     const shouldTimeProgram = this.activeTimers != null;
@@ -781,7 +789,7 @@ export class WebGPUBackend extends KernelBackend {
         this.tensorToBinding(output), uniforms);
 
     this.ensureCommandEncoderReady();
-    const pass = this.currentCommandEncoder.beginComputePass();
+    const pass = this.getComputePass();
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
         pass.writeTimestamp(this.querySet, 0);
@@ -796,8 +804,7 @@ export class WebGPUBackend extends KernelBackend {
         pass.writeTimestamp(this.querySet, 1);
       }
     }
-    pass.endPass();
-    this.computePassNumberInEncoder++;
+    this.dispatchNumberInEncoder++;
 
     inputs.forEach(input => {
       this.commandQueueOwnedIds.add(input.dataId);
@@ -813,7 +820,7 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
-        number <= this.computePassNumberInEncoder) {
+        number <= this.dispatchNumberInEncoder) {
       this.submitQueue();
     }
 
@@ -851,7 +858,7 @@ export class WebGPUBackend extends KernelBackend {
       ],
     });
     this.ensureCommandEncoderReady();
-    const passEncoder = this.currentCommandEncoder.beginComputePass();
+    const passEncoder = this.getComputePass();
     const shouldTimeProgram = this.activeTimers != null;
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
@@ -867,7 +874,6 @@ export class WebGPUBackend extends KernelBackend {
         passEncoder.writeTimestamp(this.querySet, 1);
       }
     }
-    passEncoder.endPass();
     this.commandQueueOwnedIds.add(outputId);
     this.submitQueue();
     if (shouldTimeProgram) {
@@ -885,6 +891,7 @@ export class WebGPUBackend extends KernelBackend {
         16, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
 
     this.ensureCommandEncoderReady();
+    this.ensureComputePassEnded();
     this.currentCommandEncoder.resolveQuerySet(querySet, 0, 2, queryBuffer, 0);
     this.currentCommandEncoder.copyBufferToBuffer(queryBuffer, 0, dst, 0, 16);
     this.submitQueue();
@@ -921,12 +928,12 @@ export class WebGPUBackend extends KernelBackend {
     }
     this.bufferManager.dispose();
 
-    if (this.fromPixelProgram.copyExternal) {
-      this.fromPixelProgram.copyExternal.dispose();
+    if (this.fromPixelProgram) {
+      this.fromPixelProgram.dispose();
     }
 
-    if (this.fromPixelProgram.import) {
-      this.fromPixelProgram.import.dispose();
+    if (this.fromPixelImportProgram) {
+      this.fromPixelImportProgram.dispose();
     }
 
     this.disposed = true;

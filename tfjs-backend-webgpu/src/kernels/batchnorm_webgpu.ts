@@ -17,11 +17,10 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
-import {getCoordsDataTypeWgsl, getGlobalIndexStringWgsl, getMainHeaderStringWgsl} from '../shader_preprocessor_wgsl';
+import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
-import {getUseWgsl, WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from './webgpu_program';
 
 export class BatchNormProgram implements WebGPUProgram {
   outputShape: number[];
@@ -29,14 +28,12 @@ export class BatchNormProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   dispatch: [number, number, number];
   variableNames: string[];
-  uniforms = 'float varianceEpsilon;';
-  uniformsWgsl = 'varianceEpsilon : f32;';
+  uniforms = 'varianceEpsilon : f32;';
   // This is an experimental value.
   workGroupSize: [number, number, number] = [128, 1, 1];
   offsetShape: number[]|null;
   scaleShape: number[]|null;
   varianceEpsilon: number;
-  useWgsl: boolean;
 
   constructor(
       xShape: number[], meanShape: number[], varianceShape: number[],
@@ -60,51 +57,9 @@ export class BatchNormProgram implements WebGPUProgram {
     this.offsetShape = offsetShape;
     this.scaleShape = scaleShape;
     this.shaderKey = 'batchNorm';
-    this.useWgsl = getUseWgsl();
   }
 
   getUserCode(): string {
-    let offsetSnippet = '0.0';
-    if (this.offsetShape != null) {
-      offsetSnippet = 'getOffsetAtOutCoords()';
-    }
-
-    let scaleSnippet = '1.0';
-    if (this.scaleShape != null) {
-      scaleSnippet = 'getScaleAtOutCoords()';
-    }
-
-    const dim = this.outputShape.length;
-    const coordsDataType = getCoordsDataType(dim);
-    let setOutput =
-        'setOutput(coords[0], coords[1], coords[2], coords[3], value);';
-    if (dim === 2) {
-      setOutput = 'setOutput(coords[0], coords[1], value);';
-    }
-    if (dim === 3) {
-      setOutput = 'setOutput(coords[0], coords[1], coords[2], value);';
-    }
-    const userCode = `
-      void writeResult(${coordsDataType} coords,float value) {
-        if (coordsInBounds(coords, outShape)) {
-          ${setOutput}
-        }
-      }
-      void main() {
-        ${coordsDataType} coords = getOutputCoords();
-        float x = getXAtOutCoords();
-        float mean = getMeanAtOutCoords();
-        float variance = getVarianceAtOutCoords();
-        float offset = ${offsetSnippet};
-        float scale = ${scaleSnippet};
-        float inv = scale * inversesqrt(variance + float(varianceEpsilon));
-        writeResult(coords,dot(vec3(x, -mean, offset), vec3(inv, inv, 1)));
-      }
-  `;
-    return userCode;
-  }
-
-  getUserCodeWgsl(): string {
     let offsetSnippet = '0.0';
     if (this.offsetShape != null) {
       offsetSnippet = 'getOffsetAtOutCoordsByGlobalId(globalId, index)';
@@ -116,7 +71,7 @@ export class BatchNormProgram implements WebGPUProgram {
     }
 
     const dim = this.outputShape.length;
-    const coordsDataType = getCoordsDataTypeWgsl(dim);
+    const coordsDataType = getCoordsDataType(dim);
     let setOutput =
         'setOutput(coords[0], coords[1], coords[2], coords[3], value);';
     if (dim === 2) {
@@ -131,8 +86,8 @@ export class BatchNormProgram implements WebGPUProgram {
           ${setOutput}
         }
       }
-      ${getMainHeaderStringWgsl(this.workGroupSize)} {
-        ${getGlobalIndexStringWgsl(this.workGroupSize)}
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
         let coords = getOutputCoords(globalId, index);
         let xValue = getXAtOutCoordsByGlobalId(globalId, index);
         let meanValue = getMeanAtOutCoordsByGlobalId(globalId, index);
