@@ -25,7 +25,7 @@ import {ModelAndWeightsConfig, modelFromJSON} from '../models';
 import {L1L2, serializeRegularizer} from '../regularizers';
 import {Kwargs} from '../types';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, describeMathWebGL2, expectTensorsClose} from '../utils/test_utils';
 
 import {GRUCellLayerArgs, GRULayerArgs, LSTMCellLayerArgs, LSTMLayerArgs, rnn, RNN, RNNCell, SimpleRNNCellLayerArgs, SimpleRNNLayerArgs} from './recurrent';
 
@@ -3108,7 +3108,7 @@ describeMathCPU('Stacked RNN serialization', () => {
   });
 });
 
-describeMathGPU('StackedRNNCells Tensor', () => {
+describeMathWebGL2('StackedRNNCells Tensor', () => {
   // The golden values for assertion below can be obtained with the following
   // Python Keras code:
   //
