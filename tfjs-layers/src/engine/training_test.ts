@@ -13,7 +13,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {abs, mean, memory, mul, NamedTensorMap, ones, Scalar, scalar, SGDOptimizer, Tensor, tensor1d, tensor2d, tensor3d, test_util, util, zeros} from '@tensorflow/tfjs-core';
+import {abs, mean, memory, mul, NamedTensorMap, ones, Scalar, scalar, SGDOptimizer, Tensor, tensor1d, tensor2d, tensor3d, test_util, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {CustomCallback, CustomCallbackArgs, DEFAULT_YIELD_EVERY_MS, Params} from '../base_callbacks';
@@ -23,7 +23,7 @@ import {Logs, UnresolvedLogs} from '../logs';
 import {Regularizer} from '../regularizers';
 import {Kwargs} from '../types';
 import {pyListRepeat, stringsEqual, unique} from '../utils/generic_utils';
-import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
 // TODO(bileschi): Use external version of Layer.
 import {Layer, SymbolicTensor} from './topology';
@@ -150,7 +150,7 @@ describeMathCPU('checkArrayLengths', () => {
   });
 });
 
-describeMathCPUAndGPU('collectMetrics', () => {
+describeMathCPUAndWebGL2('collectMetrics', () => {
   it('shortcut strings name', () => {
     const metrics = 'mse';
     const outputNames = ['output'];
@@ -444,7 +444,7 @@ describeMathCPUAndGPU('LayersModel.predict', () => {
   });
 });
 
-describeMathCPUAndGPU('LayersModel.fit', () => {
+describeMathCPUAndWebGL2('LayersModel.fit', () => {
   const inputSize = 4;   // Input vector size for model with one input.
   const inputSize1 = 3;  // 1st input vector size for model with two inputs.
   const inputSize2 = 4;  // 2nd input vector size for model with two inputs.
@@ -1729,48 +1729,50 @@ describeMathCPUAndGPU('LayersModel.fit', () => {
   });
 });
 
-describeMathCPUAndGPU('LayersModel.fit with training-sensitive layers', () => {
-  it('Correct training arg during fit/evaluate/predict', async () => {
-    const inputTensor =
-        tfl.layers.input({shape: [1], name: 'inputLayer1', dtype: 'float32'});
-    const layer1 = tfl.layers.dense({units: 1});
-    const layer2 = tfl.layers.dropout({rate: 0.5});
+describeMathCPUAndWebGL2(
+    'LayersModel.fit with training-sensitive layers', () => {
+      it('Correct training arg during fit/evaluate/predict', async () => {
+        const inputTensor = tfl.layers.input(
+            {shape: [1], name: 'inputLayer1', dtype: 'float32'});
+        const layer1 = tfl.layers.dense({units: 1});
+        const layer2 = tfl.layers.dropout({rate: 0.5});
 
-    // Hook the dropout layer to observe the training arg values during the
-    // fit(), evaluate() and predict() calls.
-    const dropoutLayerTrainingFlags: boolean[] = [];
-    const recordDropoutTrainingArgHook =
-        (inputs: Tensor|Tensor[], kwargs: Kwargs) => {
-          dropoutLayerTrainingFlags.push(kwargs.training as boolean);
-        };
-    layer2.setCallHook(recordDropoutTrainingArgHook);
+        // Hook the dropout layer to observe the training arg values during the
+        // fit(), evaluate() and predict() calls.
+        const dropoutLayerTrainingFlags: boolean[] = [];
+        const recordDropoutTrainingArgHook =
+            (inputs: Tensor|Tensor[], kwargs: Kwargs) => {
+              dropoutLayerTrainingFlags.push(kwargs.training as boolean);
+            };
+        layer2.setCallHook(recordDropoutTrainingArgHook);
 
-    const output =
-        layer2.apply(layer1.apply(inputTensor)) as tfl.SymbolicTensor;
-    const model =
-        new tfl.LayersModel({inputs: [inputTensor], outputs: [output]});
-    model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
-    const xs = ones([4, 1]);
-    const ys = ones([4, 1]);
+        const output =
+            layer2.apply(layer1.apply(inputTensor)) as tfl.SymbolicTensor;
+        const model =
+            new tfl.LayersModel({inputs: [inputTensor], outputs: [output]});
+        model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
+        const xs = ones([4, 1]);
+        const ys = ones([4, 1]);
 
-    // 1. Call fit: Dropout layer should be called twice, with training as
-    // true.
-    await model.fit(xs, ys, {epochs: 2, batchSize: 4});
-    expect(dropoutLayerTrainingFlags).toEqual([true, true]);
+        // 1. Call fit: Dropout layer should be called twice, with training as
+        // true.
+        await model.fit(xs, ys, {epochs: 2, batchSize: 4});
+        expect(dropoutLayerTrainingFlags).toEqual([true, true]);
 
-    // 2. Call evaluate, Dropout layer should be called once, without
-    // training defined.
-    model.evaluate(xs, ys, {batchSize: 4});
-    expect(dropoutLayerTrainingFlags).toEqual([true, true, undefined]);
+        // 2. Call evaluate, Dropout layer should be called once, without
+        // training defined.
+        model.evaluate(xs, ys, {batchSize: 4});
+        expect(dropoutLayerTrainingFlags).toEqual([true, true, undefined]);
 
-    // 3. Call predict, Dropout layer should be called once, without training
-    //   defined.
-    model.predict(xs, {batchSize: 4});
-    expect(dropoutLayerTrainingFlags).toEqual([
-      true, true, undefined, undefined
-    ]);
-  });
-});
+        // 3. Call predict, Dropout layer should be called once, without
+        // training
+        //   defined.
+        model.predict(xs, {batchSize: 4});
+        expect(dropoutLayerTrainingFlags).toEqual([
+          true, true, undefined, undefined
+        ]);
+      });
+    });
 
 describeMathCPUAndGPU(
     'LayersModel.predict and LayersModel.evaluate: No memory leak', () => {
@@ -1880,7 +1882,7 @@ describeMathCPUAndGPU(
       });
     });
 
-describeMathCPUAndGPU('LayersModel.fit: No memory leak', () => {
+describeMathCPUAndWebGL2('LayersModel.fit: No memory leak', () => {
   const inputSize = 4;   // Input vector size for model with one input.
   const numSamples = 5;  // Number of samples in a batch.
 
@@ -2212,14 +2214,15 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
     ];
     let counter = 0;
     let prevTime = 0;
-    spyOn(util, 'now').and.callFake(() => {
+    const nowFunc = jasmine.createSpy('now').and.callFake(() => {
       prevTime += timeBetweenCalls[counter++];
       return prevTime;
     });
     let nextFrameCallCount = 0;
-    spyOn(tfc, 'nextFrame').and.callFake(async () => {
-      nextFrameCallCount++;
-    });
+    const nextFrameFunc =
+        jasmine.createSpy('nextFrame').and.callFake(async () => {
+          nextFrameCallCount++;
+        });
 
     const inputSize = 2;
     const numExamples = 10;
@@ -2233,6 +2236,8 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
       epochs,
       batchSize: numExamples,
       callbacks: {
+        nowFunc,
+        nextFrameFunc,
         onYield: async (epoch, batch, _logs) => {
           onYieldBatchesIds.push(batch);
           onYieldEpochIds.push(epoch);
@@ -2262,14 +2267,15 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
     ];
     let counter = 0;
     let prevTime = 0;
-    spyOn(util, 'now').and.callFake(() => {
+    const nowFunc = jasmine.createSpy('now').and.callFake(() => {
       prevTime += timeBetweenCalls[counter++];
       return prevTime;
     });
     let nextFrameCallCount = 0;
-    spyOn(tfc, 'nextFrame').and.callFake(async () => {
-      nextFrameCallCount++;
-    });
+    const nextFrameFunc =
+        jasmine.createSpy('nextFrame').and.callFake(async () => {
+          nextFrameCallCount++;
+        });
 
     const inputSize = 2;
     const numExamples = 10;
@@ -2283,6 +2289,8 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
       epochs,
       batchSize: numExamples / 2,
       callbacks: {
+        nowFunc,
+        nextFrameFunc,
         onYield: async (epoch, batch, _logs) => {
           onYieldBatchesIds.push(batch);
           onYieldEpochIds.push(epoch);
@@ -2308,15 +2316,15 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
     ];
     let counter = 0;
     let prevTime = 0;
-    spyOn(util, 'now').and.callFake(() => {
+    const nowFunc = jasmine.createSpy('now').and.callFake(() => {
       prevTime += timeBetweenCalls[counter++];
       return prevTime;
     });
     let nextFrameCallCount = 0;
-    spyOn(tfc, 'nextFrame').and.callFake(async () => {
-      nextFrameCallCount++;
-    });
-
+    const nextFrameFunc =
+        jasmine.createSpy('nextFrame').and.callFake(async () => {
+          nextFrameCallCount++;
+        });
     const inputSize = 2;
     const numExamples = 10;
     const epochs = 5;
@@ -2330,6 +2338,8 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
       batchSize: numExamples,
       yieldEvery,
       callbacks: {
+        nowFunc,
+        nextFrameFunc,
         onYield: async (epoch, batch, _logs) => {
           onYieldBatchesIds.push(batch);
           onYieldEpochIds.push(epoch);
@@ -2367,11 +2377,13 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
   it('batch: uneven 9 batches per epoch; 2 epochs', async () => {
     const presetBatchTimestamps = [0, 2, 4, 6, 8, 10];
     let counter = 0;
-    spyOn(util, 'now').and.callFake(() => presetBatchTimestamps[counter++]);
+    const nowFunc = jasmine.createSpy('now').and.callFake(
+        () => presetBatchTimestamps[counter++]);
     let nextFrameCallCount = 0;
-    spyOn(tfc, 'nextFrame').and.callFake(async () => {
-      nextFrameCallCount++;
-    });
+    const nextFrameFunc =
+        jasmine.createSpy('nextFrame').and.callFake(async () => {
+          nextFrameCallCount++;
+        });
 
     const inputSize = 1;
     const numExamples = 10;
@@ -2379,8 +2391,12 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
     const model = createDummyModel(inputSize);
     const xs = ones([numExamples, inputSize]);
     const ys = ones([numExamples, 1]);
-    const history =
-        await model.fit(xs, ys, {epochs, batchSize: 4, yieldEvery: 'batch'});
+    const history = await model.fit(xs, ys, {
+      epochs,
+      batchSize: 4,
+      yieldEvery: 'batch',
+      callbacks: {nowFunc, nextFrameFunc}
+    });
     expect(history.history.loss.length).toEqual(epochs);
     // There are `ceil(10 / 4)` batches per epoch.
     expect(nextFrameCallCount).toEqual(Math.ceil(10 / 4) * epochs);
@@ -2388,9 +2404,10 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
 
   it('epoch: 10 batches per epoch; 2 epochs', async () => {
     let nextFrameCallCount = 0;
-    spyOn(tfc, 'nextFrame').and.callFake(async () => {
-      nextFrameCallCount++;
-    });
+    const nextFrameFunc =
+        jasmine.createSpy('nextFrame').and.callFake(async () => {
+          nextFrameCallCount++;
+        });
 
     const inputSize = 5;
     const numExamples = 10;
@@ -2398,17 +2415,22 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
     const model = createDummyModel(inputSize);
     const xs = ones([numExamples, inputSize]);
     const ys = ones([numExamples, 1]);
-    const history = await model.fit(
-        xs, ys, {epochs, batchSize: numExamples / 10, yieldEvery: 'epoch'});
+    const history = await model.fit(xs, ys, {
+      callbacks: {nextFrameFunc},
+      epochs,
+      batchSize: numExamples / 10,
+      yieldEvery: 'epoch'
+    });
     expect(history.history.loss.length).toEqual(epochs);
     expect(nextFrameCallCount).toEqual(epochs);
   });
 
   it('never: 2 batches per epoch; 20 epochs', async () => {
     let nextFrameCallCount = 0;
-    spyOn(tfc, 'nextFrame').and.callFake(async () => {
-      nextFrameCallCount++;
-    });
+    const nextFrameFunc =
+        jasmine.createSpy('nextFrame').and.callFake(async () => {
+          nextFrameCallCount++;
+        });
 
     const inputSize = 5;
     const numExamples = 10;
@@ -2416,15 +2438,23 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
     const model = createDummyModel(inputSize);
     const xs = ones([numExamples, inputSize]);
     const ys = ones([numExamples, 1]);
-    const history = await model.fit(
-        xs, ys, {epochs, batchSize: numExamples / 2, yieldEvery: 'never'});
+    const history = await model.fit(xs, ys, {
+      callbacks: {nextFrameFunc},
+      epochs,
+      batchSize: numExamples / 2,
+      yieldEvery: 'never'
+    });
     expect(history.history.loss.length).toEqual(epochs);
     // Due to yieldEvery = 'never', no `await nextFrame()` call should have
     // happened.
     expect(nextFrameCallCount).toEqual(0);
   });
 
-  it('resolveScalarInLogs is not called if no custom callbacks', async () => {
+  // TODO: disabled the test, since it will be very hard to inject dependency of
+  // resolveScalarsInLogs, it will be better to test result instead of internal
+  // code structure.
+  // tslint:disable-next-line: ban
+  xit('resolveScalarInLogs is not called if no custom callbacks', async () => {
     const inputSize = 1;
     const numExamples = 10;
     const batchSize = 2;
@@ -2439,7 +2469,7 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
   });
 });
 
-describeMathCPUAndGPU('LayersModel.trainOnBatch', () => {
+describeMathCPUAndWebGL2('LayersModel.trainOnBatch', () => {
   // Reference Python Keras code:
   // ```py
   // import keras

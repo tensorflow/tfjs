@@ -314,6 +314,10 @@ describe('CallbackConstructorRegistry', () => {
 });
 
 describeMathCPUAndGPU('CallbackConstructorRegistry initialization', () => {
+  beforeEach(() => {
+    // tslint:disable-next-line:no-any
+    (CallbackConstructorRegistry as any).clear();
+  });
   it('CallbackConstructorRegistry is initialized properly', () => {
     expect(CallbackConstructorRegistry.createCallbacks(1)).toEqual([]);
   });

@@ -42,7 +42,7 @@ export function leakyRelu(args: {
   const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
       new BinaryOpPackedProgram(LEAKYRELU_PACKED, x.shape, $alpha.shape) :
       new BinaryOpProgram(LEAKYRELU, x.shape, $alpha.shape);
-  const result = backend.runWebGLProgram(program, [x, $alpha], x.dtype);
+  const result = backend.runWebGLProgram(program, [x, $alpha], 'float32');
 
   backend.disposeIntermediateTensorInfo($alpha);
 

@@ -55,6 +55,7 @@ interface ProgramParams {
   uniforms?: string;
   isVec4?: boolean;
   size?: number;
+  atomic?: boolean;
   getUserCode: () => string;
 }
 
@@ -141,13 +142,23 @@ export function makeShader(
   prefixSnippets.push(uniformDeclaration);
 
   // Output buffer.
-  prefixSnippets.push(`
+  if (program.atomic) {
+    prefixSnippets.push(`
+    [[block]] struct Matrix0 {
+        numbers: array<atomic<i32>>;
+    };
+
+    [[group(0), binding(0)]] var<storage, read_write> result : Matrix0;
+  `);
+  } else {
+    prefixSnippets.push(`
     [[block]] struct Matrix0 {
         numbers: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
     };
 
     [[group(0), binding(0)]] var<storage, write> result : Matrix0;
   `);
+  }
   program.variableNames.forEach((x, i) => {
     prefixSnippets.push(`
     [[block]] struct Matrix${1 + i} {
@@ -172,9 +183,13 @@ export function makeShader(
 
   const sources = [
     SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS, getCoords,
-    getOutputCoords,
-    getSetOutputSnippet(outputData.shape, outputData.dtype, program.isVec4)
+    getOutputCoords, getOutputFlatIndexSnippet(outputData.shape.length)
+
   ];
+  if (!program.atomic) {
+    sources.push(getSetOutputSnippet(
+        outputData.shape, outputData.dtype, program.isVec4));
+  }
   if (dispatchLayoutRank === outputData.shape.length) {
     // Input sampling snippet is only meaningful when the output isn't getting
     // implicitly reshaped (like it does in conv2d_matmul).
@@ -279,6 +294,45 @@ const SAMPLING_SNIPPETS = `
   }
 `;
 
+function getOutputFlatIndexSnippet(outRank: number) {
+  let snippet = '';
+  switch (outRank) {
+    case 0:
+    case 1:
+      snippet += `
+        fn getOutputFlatIndex(coords : i32) -> i32 {
+          return coords;
+        }
+        `;
+      break;
+    case 2:
+      snippet += `
+        fn getOutputFlatIndex(coords : vec2<i32>) -> i32 {
+          return i32(dot(vec2<f32>(coords), vec2<f32>(f32(uniforms.outShapeStrides), 1.0)));
+        }
+        `;
+      break;
+    case 3:
+      snippet += `
+        fn getOutputFlatIndex(coords : vec3<i32>) -> i32 {
+          return i32(dot(vec3<f32>(coords), vec3<f32>(f32(uniforms.outShapeStrides.x), f32(uniforms.outShapeStrides.y), 1.0)));
+        }
+        `;
+      break;
+    case 4:
+      snippet += `
+        fn getOutputFlatIndex(coords : vec4<i32>) -> i32 {
+          return i32(dot(vec4<f32>(coords), vec4<f32>(
+            f32(uniforms.outShapeStrides.x), f32(uniforms.outShapeStrides.y), f32(uniforms.outShapeStrides.z), 1.0)));
+        }
+        `;
+      break;
+    default:
+      util.assert(false, () => `Unsupported ${outRank}D shape`);
+      break;
+  }
+  return snippet;
+}
 function getSetOutputSnippet(
     outShape: number[], outBufferType: DataType, isVec4: boolean): string {
   const outRank = outShape.length;
@@ -299,35 +353,7 @@ function getSetOutputSnippet(
       result.numbers[flatIndex] = ${wgslType}(value);
     }`;
   }
-
   if (outRank >= 2) {
-    switch (outRank) {
-      case 2:
-        snippet += `
-        fn getOutputFlatIndex(coords : vec2<i32>) -> i32 {
-          return i32(dot(vec2<f32>(coords), vec2<f32>(f32(uniforms.outShapeStrides), 1.0)));
-        }
-        `;
-        break;
-      case 3:
-        snippet += `
-        fn getOutputFlatIndex(coords : vec3<i32>) -> i32 {
-          return i32(dot(vec3<f32>(coords), vec3<f32>(f32(uniforms.outShapeStrides.x), f32(uniforms.outShapeStrides.y), 1.0)));
-        }
-        `;
-        break;
-      case 4:
-        snippet += `
-        fn getOutputFlatIndex(coords : vec4<i32>) -> i32 {
-          return i32(dot(vec4<f32>(coords), vec4<f32>(
-            f32(uniforms.outShapeStrides.x), f32(uniforms.outShapeStrides.y), f32(uniforms.outShapeStrides.z), 1.0)));
-        }
-        `;
-        break;
-      default:
-        util.assert(false, () => `Unsupported ${outRank}D shape`);
-        break;
-    }
     const dims = ['d0', 'd1', 'd2', 'd3'].slice(0, outRank);
     const type = getCoordsDataType(outRank);
 

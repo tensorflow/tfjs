@@ -110,12 +110,6 @@ const tfliteModel = await tflite.loadTFLiteModel(
 
 ```sh
 $ yarn
-# This script will download the TFLite Web API WASM module files and JS client
-# to deps/.
-#
-# The version number is optional. By default, the script will use the current
-# version from the package.json file.
-$ ./script/download-tflite-web-api.sh [version number]
 $ yarn build
 ```
 

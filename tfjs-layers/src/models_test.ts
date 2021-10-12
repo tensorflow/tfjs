@@ -17,7 +17,7 @@ import {Reshape} from './layers/core';
 import {deserialize} from './layers/serialization';
 import {loadLayersModelInternal, ModelAndWeightsConfig, modelFromJSON} from './models';
 import {convertPythonicToTs, convertTsToPythonic} from './utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from './utils/test_utils';
 import {version as layersVersion} from './version';
 
 const OCTET_STREAM_TYPE = 'application/octet-stream';
@@ -1259,7 +1259,7 @@ describeMathCPU('loadLayersModel from URL', () => {
   });
 });
 
-describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
+describeMathCPUAndWebGL2('Saving+loading model with optimizer', () => {
   it('SGD', async () => {
     const model1 = tfl.sequential();
     model1.add(tfl.layers.dense(

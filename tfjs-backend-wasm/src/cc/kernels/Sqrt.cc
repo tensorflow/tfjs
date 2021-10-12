@@ -29,7 +29,9 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void Sqrt(const int x_id, const int out_id) { unary(x_id, out_id, sqrt); }
+void Sqrt(const int x_id, const DType dtype, const int out_id) {
+  unary_f32(x_id, out_id, sqrt);
+}
 
 }  // extern "C"
 }  // namespace wasm

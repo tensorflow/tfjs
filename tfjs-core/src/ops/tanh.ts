@@ -37,7 +37,7 @@ import {op} from './operation';
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
 function tanh_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'tanh');
+  const $x = convertToTensor(x, 'x', 'tanh', 'float32');
 
   const inputs: TanhInputs = {x: $x};
 
