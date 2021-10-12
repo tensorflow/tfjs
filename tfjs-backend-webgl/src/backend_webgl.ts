@@ -1000,7 +1000,8 @@ export class MathBackendWebGL extends KernelBackend {
 
       let program;
       let width = texShape[1], height = texShape[0];
-      const isByteArray = values instanceof Uint8Array;
+      const isByteArray = values instanceof Uint8Array
+                          || values instanceof Uint8ClampedArray;
 
       if (isPacked) {
         [width, height] = tex_util.getPackedMatrixTextureShapeWidthHeight(
