@@ -31,6 +31,7 @@ import {assertPositiveInteger} from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
 import {getExactlyOneShape, getExactlyOneTensor, isArrayOfShapes} from '../utils/types_utils';
 import {batchGetValue, batchSetValue, LayerVariable} from '../variables';
+
 import {deserialize} from './serialization';
 
 /**
@@ -945,6 +946,11 @@ export declare interface SimpleRNNCellLayerArgs extends LayerArgs {
    * transformation of the recurrent state.
    */
   recurrentDropout?: number;
+
+  /**
+   * This is added for test DI purpose.
+   */
+  dropoutFunc?: Function;
 }
 
 export class SimpleRNNCell extends RNNCell {
@@ -968,6 +974,7 @@ export class SimpleRNNCell extends RNNCell {
 
   readonly dropout: number;
   readonly recurrentDropout: number;
+  readonly dropoutFunc: Function;
 
   readonly stateSize: number;
 
@@ -1011,6 +1018,7 @@ export class SimpleRNNCell extends RNNCell {
       math_utils.max(
           [0, args.recurrentDropout == null ? 0 : args.recurrentDropout])
     ]);
+    this.dropoutFunc = args.dropoutFunc;
     this.stateSize = this.units;
     this.dropoutMask = null;
     this.recurrentDropoutMask = null;
@@ -1058,7 +1066,8 @@ export class SimpleRNNCell extends RNNCell {
         this.dropoutMask = generateDropoutMask({
                              ones: () => tfc.onesLike(inputs as Tensor),
                              rate: this.dropout,
-                             training
+                             training,
+                             dropoutFunc: this.dropoutFunc,
                            }) as Tensor;
       }
       if (0 < this.recurrentDropout && this.recurrentDropout < 1 &&
@@ -1066,7 +1075,8 @@ export class SimpleRNNCell extends RNNCell {
         this.recurrentDropoutMask = generateDropoutMask({
                                       ones: () => tfc.onesLike(prevOutput),
                                       rate: this.recurrentDropout,
-                                      training
+                                      training,
+                                      dropoutFunc: this.dropoutFunc,
                                     }) as Tensor;
       }
       let h: Tensor;
@@ -1197,6 +1207,11 @@ export declare interface SimpleRNNLayerArgs extends BaseRNNLayerArgs {
    * transformation of the recurrent state.
    */
   recurrentDropout?: number;
+
+  /**
+   * This is added for test DI purpose.
+   */
+  dropoutFunc?: Function;
 }
 
 /**
@@ -1301,6 +1316,7 @@ export class GRUCell extends RNNCell {
 
   readonly dropout: number;
   readonly recurrentDropout: number;
+  readonly dropoutFunc: Function;
 
   readonly stateSize: number;
   readonly implementation: number;
@@ -1356,6 +1372,7 @@ export class GRUCell extends RNNCell {
       math_utils.max(
           [0, args.recurrentDropout == null ? 0 : args.recurrentDropout])
     ]);
+    this.dropoutFunc = args.dropoutFunc;
     this.implementation = args.implementation;
     this.stateSize = this.units;
     this.dropoutMask = null;
@@ -1405,7 +1422,8 @@ export class GRUCell extends RNNCell {
                              ones: () => tfc.onesLike(inputs as Tensor),
                              rate: this.dropout,
                              training,
-                             count: 3
+                             count: 3,
+                             dropoutFunc: this.dropoutFunc,
                            }) as Tensor[];
       }
       if (0 < this.recurrentDropout && this.recurrentDropout < 1 &&
@@ -1414,7 +1432,8 @@ export class GRUCell extends RNNCell {
                                       ones: () => tfc.onesLike(hTMinus1),
                                       rate: this.recurrentDropout,
                                       training,
-                                      count: 3
+                                      count: 3,
+                                      dropoutFunc: this.dropoutFunc,
                                     }) as Tensor[];
       }
       const dpMask = this.dropoutMask as [Tensor, Tensor, Tensor];
@@ -1617,6 +1636,7 @@ export class LSTMCell extends RNNCell {
 
   readonly dropout: number;
   readonly recurrentDropout: number;
+  readonly dropoutFunc: Function;
 
   readonly stateSize: number[];
   readonly implementation: number;
@@ -1670,6 +1690,7 @@ export class LSTMCell extends RNNCell {
       math_utils.max(
           [0, args.recurrentDropout == null ? 0 : args.recurrentDropout])
     ]);
+    this.dropoutFunc = args.dropoutFunc;
     this.implementation = args.implementation;
     this.stateSize = [this.units, this.units];
     this.dropoutMask = null;
@@ -1735,7 +1756,8 @@ export class LSTMCell extends RNNCell {
                              ones: () => tfc.onesLike(inputs as Tensor),
                              rate: this.dropout,
                              training,
-                             count: 4
+                             count: 4,
+                             dropoutFunc: this.dropoutFunc
                            }) as Tensor[];
       }
       if (0 < this.recurrentDropout && this.recurrentDropout < 1 &&
@@ -1744,7 +1766,8 @@ export class LSTMCell extends RNNCell {
                                       ones: () => tfc.onesLike(hTMinus1),
                                       rate: this.recurrentDropout,
                                       training,
-                                      count: 4
+                                      count: 4,
+                                      dropoutFunc: this.dropoutFunc
                                     }) as Tensor[];
       }
       const dpMask = this.dropoutMask as [Tensor, Tensor, Tensor, Tensor];
@@ -2084,10 +2107,12 @@ export function generateDropoutMask(args: {
   rate: number,
   training?: boolean,
   count?: number,
+  dropoutFunc?: Function,
 }): tfc.Tensor|tfc.Tensor[] {
-  const {ones, rate, training = false, count = 1} = args;
+  const {ones, rate, training = false, count = 1, dropoutFunc} = args;
 
-  const droppedInputs = () => K.dropout(ones(), rate);
+  const droppedInputs = () =>
+      dropoutFunc != null ? dropoutFunc(ones(), rate) : K.dropout(ones(), rate);
 
   const createMask = () => K.inTrainPhase(droppedInputs, ones, training);
 

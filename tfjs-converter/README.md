@@ -439,13 +439,23 @@ version is located.
 
 ## Development
 
-To build **TensorFlow.js converter** from source, we need to clone the project
-and prepare the dev environment:
+To build **TensorFlow.js converter** from source, we need to prepare the dev environment and clone the project.
+
+Bazel builds Python from source, so we install the dependencies required to build it. Since we will be using pip and C extensions, we also install the ssl, foreign functions, and zlib development packages. On debian, this is done with:
 
 ```bash
-git clone https://github.com/tensorflow/tfjs-converter.git
-cd tfjs-converter
-$ yarn # Installs dependencies.
+sudo apt-get build-dep python3
+sudo apt install libssl-dev libffi-dev zlib1g-dev
+```
+
+See the [python developer guide](https://devguide.python.org/setup/#install-dependencies) for instructions on installing these for other platforms.
+
+Then, we clone the project and install dependencies with:
+
+```bash
+git clone https://github.com/tensorflow/tfjs.git
+cd tfjs/tfjs-converter
+yarn # Installs dependencies.
 ```
 
 We recommend using [Visual Studio Code](https://code.visualstudio.com/) for

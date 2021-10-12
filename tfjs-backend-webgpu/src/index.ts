@@ -19,7 +19,6 @@ import './flags_webgpu';
 import './register_all_kernels';
 
 import {device_util, env, registerBackend} from '@tensorflow/tfjs-core';
-import glslangInit from '@webgpu/glslang/dist/web-devel/glslang.onefile';
 
 import {WebGPUBackend} from './backend_webgpu';
 import * as webgpu from './webgpu';
@@ -31,7 +30,6 @@ if (device_util.isBrowser() && isWebGPUSupported()) {
     // before the tensor is disposed in profiling mode.
     env().set('CHECK_COMPUTATION_FOR_ERRORS', false);
 
-    const glslang = await glslangInit();
     const gpuDescriptor: GPURequestAdapterOptions = {
       powerPreference: env().get('WEBGPU_USE_LOW_POWER_GPU') ?
           'low-power' :
@@ -47,12 +45,14 @@ if (device_util.isBrowser() && isWebGPUSupported()) {
     } else {
       console.warn(
           `This device doesn't support timestamp-query extension. ` +
-          `Zero will shown for the kernel time when profiling mode is` +
+          `Start Chrome browser with flag ` +
+          `--disable-dawn-features=disallow_unsafe_apis then try again. ` +
+          `Or zero will shown for the kernel time when profiling mode is` +
           `enabled. Using performance.now is not workable for webgpu since` +
           `it doesn't support synchronously to read data from GPU.`);
     }
     const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
-    return new WebGPUBackend(device, glslang, supportTimeQuery);
+    return new WebGPUBackend(device, supportTimeQuery);
   }, 3 /*priority*/);
 }
 

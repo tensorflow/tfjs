@@ -16,6 +16,8 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
+
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -24,7 +26,7 @@ export class ClipVec4Program implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   variableNames = ['A'];
-  uniforms = 'float minVal; float maxVal;';
+  uniforms = 'minVal : f32; maxVal : f32;';
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workPerThread = 4;
@@ -44,17 +46,21 @@ export class ClipVec4Program implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
-          if(index < size) {
-            vec4 value = getAAtOutCoords();
-            if (any(isnan(value))) {
-              setOutput(index, value);
-              return;
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        if(index < uniforms.size) {
+          let value = getAAtOutCoordsByGlobalId(globalId, index);
+          var clampedValue : vec4<f32>;
+          for (var i = 0; i < 4; i = i + 1) {
+            if (isNanCustom(value[i])) {
+              clampedValue[i] = value[i];
+            } else {
+              clampedValue[i] = clamp(value[i], uniforms.minVal, uniforms.maxVal);
             }
-
-            setOutput(index, clamp(value, minVal, maxVal));
           }
+
+          setOutputFlat(index, clampedValue);
+        }
       }
     `;
     return userCode;

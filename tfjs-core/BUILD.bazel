@@ -86,7 +86,11 @@ copy_file(
 
 pkg_npm(
     name = "tfjs-core_pkg",
-    srcs = ["package.json"],
+    package_name = "@tensorflow/tfjs-core",
+    srcs = [
+        "README.md",
+        "package.json",
+    ],
     tags = ["ci"],
     deps = [
         ":copy_bundles",

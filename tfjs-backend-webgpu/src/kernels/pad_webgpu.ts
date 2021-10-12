@@ -17,7 +17,7 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
+import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -28,7 +28,7 @@ export class PadProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  uniforms = 'float constantValue;';
+  uniforms = 'constantValue : f32;';
   workGroupSize: [number, number, number] = [64, 1, 1];
   xShape: number[];
   size: number;
@@ -39,7 +39,9 @@ export class PadProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    paddings.map((_, i) => this.uniforms += ` ivec2 pad${i};`);
+    paddings.map((_, i) => {
+      this.uniforms += ` pad${i} : vec2<i32>;`;
+    });
     this.xShape = xShape;
     this.shaderKey = 'pad';
     this.size = util.sizeFromShape(this.outputShape);
@@ -49,40 +51,37 @@ export class PadProgram implements WebGPUProgram {
     const rank = this.xShape.length;
     const type = getCoordsDataType(rank);
     // The length of paddings are same with the rank of the input tensor.
-    const start = this.xShape.map((_, i) => `pad${i}[0]`).join(',');
-    const end =
-        this.xShape
-            .map((_, i) => `pad${i}[0] + xShape${rank > 1 ? `[${i}]` : ''}`)
-            .join(',');
+    const start = this.xShape.map((_, i) => `uniforms.pad${i}[0]`).join(',');
+    const end = this.xShape
+                    .map(
+                        (_, i) => `uniforms.pad${i}[0] + uniforms.xShape${
+                            rank > 1 ? `[${i}]` : ''}`)
+                    .join(',');
     const startValue = rank > 1 ? `${type}(${start})` : `${start}`;
     const endValue = rank > 1 ? `${type}(${end})` : `${end}`;
 
-    const leftPadCondition =
-        rank > 1 ? `any(lessThan(outC, start))` : `outC < start`;
-    const rightPadCondition =
-        rank > 1 ? `any(greaterThanEqual(outC, end))` : `outC >= end`;
+    const leftPadCondition = rank > 1 ? `any(outC < start)` : `outC < start`;
+    const rightPadCondition = rank > 1 ? `any(outC >= end)` : `outC >= end`;
 
     const unpackedCoords = rank > 1 ?
         ['coords[0]', 'coords[1]', 'coords[2]', 'coords[3]'].slice(0, rank) :
         'coords';
 
     const userCode = `
-      ${type} start = ${startValue};
-      ${type} end = ${endValue};
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        let start = ${startValue};
+        let end = ${endValue};
+        if (index < uniforms.size) {
+          let outC = getOutputCoords(globalId, index);
 
-      void main() {
-        int flatIndex = int(gl_GlobalInvocationID.x);
-
-          if (flatIndex < size) {
-            ${type} outC = getOutputCoords();
-
-            if (${leftPadCondition} || ${rightPadCondition}) {
-              setOutput(flatIndex, constantValue);
-            } else {
-              ${type} coords = outC - start;
-              setOutput(flatIndex, getX(${unpackedCoords}));
-            }
+          if (${leftPadCondition} || ${rightPadCondition}) {
+            setOutputFlat(index, uniforms.constantValue);
+          } else {
+            let coords = outC - start;
+            setOutputFlat(index, getX(${unpackedCoords}));
           }
+        }
       }
     `;
     return userCode;

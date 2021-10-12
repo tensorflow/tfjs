@@ -18,6 +18,7 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
+import {backend} from '../index';
 
 describeWithFlags('leakyrelu', ALL_ENVS, () => {
   it('basic', async () => {
@@ -26,6 +27,18 @@ describeWithFlags('leakyrelu', ALL_ENVS, () => {
 
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(await result.data(), [0, 1, -0.4]);
+  });
+
+  it('int32', async () => {
+    if (backend() && backend().floatPrecision() === 32) {
+      // TODO: Use skip() instead when it is implemented
+      const a = tf.tensor1d([0, 1, -2], 'int32');
+      const result = tf.leakyRelu(a);
+
+      expect(result.shape).toEqual(a.shape);
+      expect(result.dtype).toEqual('float32');
+      expectArraysClose(await result.data(), [0, 1, -0.4]);
+    }
   });
 
   it('propagates NaN', async () => {

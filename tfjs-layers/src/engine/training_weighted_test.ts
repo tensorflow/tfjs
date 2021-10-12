@@ -14,11 +14,11 @@ import {memory, ones, Tensor, tensor2d, train, zeros} from '@tensorflow/tfjs-cor
 
 import * as tfl from '../index';
 
-import {describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPUAndWebGL2, expectTensorsClose} from '../utils/test_utils';
 import {FakeNumericDataset} from './dataset_fakes';
 import {ClassWeight, ClassWeightMap} from './training_utils';
 
-describeMathCPUAndGPU('LayersModel.fit() with classWeight', () => {
+describeMathCPUAndWebGL2('LayersModel.fit() with classWeight', () => {
   // Reference Python code:
   // ```py
   // import numpy as np
@@ -538,7 +538,7 @@ describeMathCPUAndGPU('LayersModel.fit() with classWeight', () => {
   });
 });
 
-describeMathCPUAndGPU('LayersModel.fitDataset() with classWeight', () => {
+describeMathCPUAndWebGL2('LayersModel.fitDataset() with classWeight', () => {
   // Reference Python code:
   // ```py
   // import numpy as np

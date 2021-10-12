@@ -155,13 +155,21 @@ export function conv2dWithIm2Col({
   });
   intermediates.push(im2Col);
   intermediates.push(im2Col3D);
-
+  const a3dShape: [number, number, number] = [1, x2ColShape[0], x2ColShape[1]];
   const matMulProgram = new MatMulPackedProgram(
-      [1, x2ColShape[0], x2ColShape[1]], [1, numCols, convInfo.outChannels],
+      a3dShape, [1, numCols, convInfo.outChannels],
       env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, transposeA,
       transposeB);
+  const dimAOuter = a3dShape[1];
+  const dimInner = a3dShape[2];
+  const dimBOuter = convInfo.outChannels;
+  const matmulDimensions = [
+    {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
+    {type: 'int32', data: [dimInner]}
+  ];
+
   const result: TensorInfo = backend.runWebGPUProgram(
-      matMulProgram, [im2Col3D, w2Row], im2Col3D.dtype);
+      matMulProgram, [im2Col3D, w2Row], im2Col3D.dtype, matmulDimensions);
 
   const outShape = isChannelsLast ?
       [1, outHeight, outWidth, convInfo.outChannels] :

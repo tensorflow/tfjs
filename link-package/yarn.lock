@@ -2,11 +2,31 @@
 # yarn lockfile v1
 
 
+"@tensorflow/tfjs-backend-cpu@link:../dist/bin/tfjs-backend-webgl/link-package/node_modules/@tensorflow/tfjs-backend-cpu":
+  version "0.0.0"
+
 "@tensorflow/tfjs-backend-cpu@link:../link-package-core/node_modules/@tensorflow/tfjs-backend-cpu":
   version "0.0.0"
   uid ""
 
+"@tensorflow/tfjs-backend-webgl@file:../dist/bin/tfjs-backend-webgl/tfjs-backend-webgl_pkg":
+  version "0.0.0"
+  dependencies:
+    "@tensorflow/tfjs-backend-cpu" "link:../../.cache/yarn/v6/npm-@tensorflow-tfjs-backend-webgl-0.0.0-8e4fb2ff-5577-4ca0-b455-e1622ae3ee25-1632506441313/node_modules/@tensorflow/link-package/node_modules/@tensorflow/tfjs-backend-cpu"
+    "@types/offscreencanvas" "~2019.3.0"
+    "@types/seedrandom" "2.4.27"
+    "@types/webgl-ext" "0.0.30"
+    "@types/webgl2" "0.0.6"
+    seedrandom "2.4.3"
+
+"@tensorflow/tfjs-converter@file:../dist/bin/tfjs-converter/tfjs-converter_pkg":
+  version "0.0.0"
+
 "@tensorflow/tfjs-core@link:../link-package-core/node_modules/@tensorflow/tfjs-core":
+  version "0.0.0"
+  uid ""
+
+"@tensorflow/tfjs-tflite@link:../dist/bin/tfjs-tflite/tfjs-tflite_pkg":
   version "0.0.0"
   uid ""
 
@@ -29,6 +49,11 @@
   version "0.0.30"
   resolved "https://registry.yarnpkg.com/@types/webgl-ext/-/webgl-ext-0.0.30.tgz#0ce498c16a41a23d15289e0b844d945b25f0fb9d"
   integrity sha512-LKVgNmBxN0BbljJrVUwkxwRYqzsAEPcZOe6S2T6ZaBDIrFp0qu4FNlpc5sM1tGbXUYFgdVQIoeLk1Y1UoblyEg==
+
+"@types/webgl2@0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@types/webgl2/-/webgl2-0.0.6.tgz#1ea2db791362bd8521548d664dbd3c5311cdf4b6"
+  integrity sha512-50GQhDVTq/herLMiqSQkdtRu+d5q/cWHn4VvKJtrj4DJAjo1MNkWYa2MA41BaBO1q1HgsUjuQvEOk0QHvlnAaQ==
 
 balanced-match@^1.0.0:
   version "1.0.2"

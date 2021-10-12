@@ -16,7 +16,8 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-import {getCoordsDataType} from '../shader_preprocessor';
+
+import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -31,7 +32,6 @@ export class StridedSliceProgram implements WebGPUProgram {
   // TODO(xing.xu): Increase the workPerThread.
   workPerThread = 1;
   workGroupSize: [number, number, number] = [64, 1, 1];
-  dtype: string;
   size: number;
 
   constructor(destSize: number[]) {
@@ -41,8 +41,8 @@ export class StridedSliceProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
 
-    this.dtype = getCoordsDataType(this.outputShape.length);
-    this.uniforms = `${this.dtype} begin; ${this.dtype} strides; `;
+    const dtype = getCoordsDataType(this.outputShape.length);
+    this.uniforms = `begin : ${dtype};  strides : ${dtype}; `;
     this.shaderKey = 'stridedSlice';
     this.size = util.sizeFromShape(this.outputShape);
   }
@@ -51,7 +51,7 @@ export class StridedSliceProgram implements WebGPUProgram {
     const rank = this.outputShape.length;
     let newCoords = '';
     if (rank === 1) {
-      newCoords = 'coords * strides + begin';
+      newCoords = 'coords * uniforms.strides + uniforms.begin';
     } else {
       let outputAxis = 0;
       newCoords =
@@ -59,19 +59,19 @@ export class StridedSliceProgram implements WebGPUProgram {
               .map((_, i) => {
                 outputAxis++;
                 return this.outputShape.length === 1 ?
-                    `coords * strides[${i}] + begin[${i}]` :
-                    `coords[${outputAxis - 1}] * strides[${i}] + begin[${i}]`;
+                    `coords * uniforms.strides[${i}] + uniforms.begin[${i}]` :
+                    `coords[${outputAxis - 1}] * uniforms.strides[${
+                        i}] + uniforms.begin[${i}]`;
               })
               .join(',');
     }
 
     const userCode = `
-       void main() {
-         int index = int(gl_GlobalInvocationID.x);
-         if (index < size)
-         {
-           ${this.dtype} coords = getOutputCoords();
-           setOutput(index, getX(${newCoords}));
+       ${getMainHeaderString()} {
+         ${getGlobalIndexString()}
+         if (index < uniforms.size) {
+           let coords = getOutputCoords(globalId, index);
+           setOutputFlat(index, getX(${newCoords}));
          }
        }
      `;

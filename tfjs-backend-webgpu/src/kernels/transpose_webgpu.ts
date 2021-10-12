@@ -16,7 +16,7 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-import {getCoordsDataType} from '../shader_preprocessor';
+import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -53,15 +53,16 @@ export class TransposeProgram implements WebGPUProgram {
     const switched = getSwitchedCoords(this.newDim);
 
     const userCode = `
-      void main() {
-        int index = int(gl_GlobalInvocationID.x);
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
 
-        for(int i = 0; i < ${this.workPerThread}; i++) {
-          int flatIndex = index * ${this.workPerThread} + i;
-          if(flatIndex < size) {
-            ${dtype} resRC = getCoordsFromFlatIndex(flatIndex);
-            setOutput(flatIndex, A[getFlatIndex(
-              ${dtype}(${switched}), aShape)]);
+        for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
+          let flatIndex = index * ${this.workPerThread} + i;
+          if(flatIndex < uniforms.size) {
+            let resRC = getCoordsFromFlatIndex(flatIndex);
+            setOutputFlat(flatIndex, A.numbers[getFlatIndex${
+        this.outputShape.length}D(
+              ${dtype}(${switched}), uniforms.aShape)]);
           }
         }
       }

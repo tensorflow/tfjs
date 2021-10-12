@@ -38,21 +38,22 @@ export function avgPool(
   }
 
   let program: Pool2DProgram|PoolWithFilterSizeEqualsOneProgram;
+  const dimensions =
+      [{type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]}];
   if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1) {
     program = new PoolWithFilterSizeEqualsOneProgram(convInfo);
   } else {
     program = new Pool2DProgram(convInfo, 'avg');
+    dimensions.push(
+        {type: 'int32', data: [convInfo.padInfo.top, convInfo.padInfo.left]}, {
+          type: 'int32',
+          data: [convInfo.dilationHeight, convInfo.dilationWidth]
+        },
+        {type: 'int32', data: [convInfo.inHeight, convInfo.inWidth]}, {
+          type: 'int32',
+          data: [convInfo.effectiveFilterHeight, convInfo.effectiveFilterWidth]
+        });
   }
-
-  const dimensions = [
-    {type: 'int32', data: [convInfo.padInfo.top, convInfo.padInfo.left]},
-    {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
-    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]},
-    {type: 'int32', data: [convInfo.inHeight, convInfo.inWidth]}, {
-      type: 'int32',
-      data: [convInfo.effectiveFilterHeight, convInfo.effectiveFilterWidth]
-    }
-  ];
 
   return backend.runWebGPUProgram(program, [x], x.dtype, dimensions);
 }

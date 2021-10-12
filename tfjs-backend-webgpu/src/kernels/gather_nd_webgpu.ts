@@ -17,7 +17,7 @@
 
 import {util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
+import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -40,28 +40,28 @@ export class GatherNDProgram implements WebGPUProgram {
     this.shaderKey = `gathernd_${sliceDim}`;
     this.size = util.sizeFromShape(this.outputShape);
     this.sliceDim = sliceDim;
-    this.uniforms = `int sliceDim; ${getCoordsDataType(sliceDim)} strides;`;
+    this.uniforms = `sliceDim : i32; strides : ${getCoordsDataType(sliceDim)};`;
   }
+
   getUserCode(): string {
-    const dtype = getCoordsDataType(this.outputShape.length);
     let strideString;
     if (this.sliceDim > 1) {
-      strideString = 'strides[j]';
+      strideString = 'uniforms.strides[j]';
     } else {
-      strideString = 'strides';
+      strideString = 'uniforms.strides';
     }
     const userCode = `
-         void main() {
-          int currentIndex = int(gl_GlobalInvocationID.x);
-          ${dtype} coords = getOutputCoords();
-          int flattenIndex = 0;
-          for (int j = 0; j < sliceDim; j++) {
-            int index = int(round(getIndices(coords[0], j)));
-            int strideNum = ${strideString};
-            flattenIndex += index * strideNum;
+        ${getMainHeaderString()} {
+          ${getGlobalIndexString()}
+          let coords = getOutputCoords(globalId, index);
+          var flattenIndex = 0;
+          for (var j = 0; j < uniforms.sliceDim; j = j + 1) {
+            let indexTemp = i32(round(getIndices(coords[0], j)));
+            let strideNum = ${strideString};
+            flattenIndex = flattenIndex + indexTemp * strideNum;
           }
-          if (currentIndex < size) {
-            setOutput(currentIndex, getA(flattenIndex, coords[1]));
+          if (index < uniforms.size) {
+            setOutputFlat(index, getA(flattenIndex, coords[1]));
           }
         }
       `;

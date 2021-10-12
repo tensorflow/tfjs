@@ -74,7 +74,11 @@ copy_to_dist(
 
 pkg_npm(
     name = "tfjs-backend-cpu_pkg",
-    srcs = ["package.json"],
+    package_name = "@tensorflow/tfjs-backend-cpu",
+    srcs = [
+        "README.md",
+        "package.json",
+    ],
     tags = ["ci"],
     deps = [
         ":copy_bundles",

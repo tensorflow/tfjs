@@ -235,6 +235,7 @@ class LoadKerasModelTest(tf.test.TestCase):
 
       # The two model JSONs should match exactly.
       self.assertEqual(model1.to_json(), model2.to_json())
+    os.chdir("/")
 
   def testLoadKerasModelWithoutWeights(self):
     """Test loading of model topology only, without loading weight values."""

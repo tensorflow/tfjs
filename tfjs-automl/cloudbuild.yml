@@ -1,12 +1,12 @@
 steps:
 # Install common dependencies.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   entrypoint: 'yarn'
   id: 'yarn-common'
   args: ['install']
 
 # Install tfjs-automl dependencies.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-automl'
   entrypoint: 'yarn'
   id: 'yarn'
@@ -14,7 +14,7 @@ steps:
   waitFor: ['yarn-common']
 
 # Build.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-automl'
   entrypoint: 'yarn'
   id: 'build'
@@ -22,7 +22,7 @@ steps:
   waitFor: ['yarn']
 
 # Lint.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-automl'
   entrypoint: 'yarn'
   id: 'lint'
@@ -30,7 +30,7 @@ steps:
   waitFor: ['yarn']
 
 # Run node tests.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-automl'
   entrypoint: 'yarn'
   id: 'test-js'
@@ -38,7 +38,7 @@ steps:
   waitFor: ['yarn', 'build', 'lint']
 
   # Run browser tests.
-- name: 'node:10'
+- name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-automl'
   entrypoint: 'yarn'
   id: 'test-browser'

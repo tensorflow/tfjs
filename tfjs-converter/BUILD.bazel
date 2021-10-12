@@ -1,0 +1,132 @@
+# Copyright 2021 Google LLC. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# =============================================================================
+
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "nodejs_test", "pkg_npm")
+load("//tools:copy_to_dist.bzl", "copy_to_dist", "copy_ts_library_to_dist")
+load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
+
+package(default_visibility = ["//visibility:public"])
+
+# Allow typescript rules in any package to reference this file
+exports_files([
+    "package.json",
+    "README.md",
+])
+
+nodejs_test(
+    name = "tfjs-converter_test",
+    data = [
+        ":package_json",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-converter/metadata:kernels_to_ops",
+        "//tfjs-converter/src:tfjs-converter_test_lib",
+    ],
+    entry_point = "//tfjs-converter/src:run_tests.ts",
+    link_workspace_root = True,
+    tags = ["ci"],
+)
+
+# Defined here because chdir must be a subdirectory of the directory the rule is
+# defined in.
+nodejs_test(
+    name = "test_snippets_test",
+    chdir = "tfjs-converter",
+    data = [
+        ":tsconfig.json",
+        "//:tsconfig.json",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-converter/scripts:test_snippets_lib",
+        "//tfjs-converter/src:all_srcs",
+    ],
+    entry_point = "//tfjs-converter/scripts:test_snippets.ts",
+    link_workspace_root = True,
+    tags = ["ci"],
+)
+
+tfjs_bundle(
+    name = "tf-converter",
+    entry_point = "//tfjs-converter/src:index.ts",
+    external = [
+        "@tensorflow/tfjs-core",
+    ],
+    globals = {
+        "@tensorflow/tfjs-core": "tf",
+    },
+    umd_name = "tf",
+    deps = [
+        "//tfjs-converter/src:tfjs-converter_lib",
+        "//tfjs-converter/src:tfjs-converter_src_lib",
+    ],
+)
+
+copy_ts_library_to_dist(
+    name = "copy_src_to_dist",
+    srcs = [
+        "//tfjs-converter/src:tfjs-converter_lib",
+        "//tfjs-converter/src:tfjs-converter_src_lib",
+    ],
+    root = "src",
+)
+
+copy_to_dist(
+    name = "copy_bundles",
+    srcs = [
+        ":tf-converter",
+        ":tf-converter.es2017",
+        ":tf-converter.es2017.min",
+        ":tf-converter.fesm",
+        ":tf-converter.fesm.min",
+        ":tf-converter.min",
+        ":tf-converter.node",
+    ],
+)
+
+copy_file(
+    name = "copy_miniprogram",
+    src = ":tf-converter.min.js",
+    out = "dist/miniprogram/index.js",
+)
+
+copy_file(
+    name = "copy_miniprogram_map",
+    src = ":tf-converter.min.js.map",
+    out = "dist/miniprogram/index.js.map",
+)
+
+pkg_npm(
+    name = "tfjs-converter_pkg",
+    package_name = "@tensorflow/tfjs-converter",
+    srcs = [
+        "README.md",
+        "package.json",
+    ],
+    tags = ["ci"],
+    deps = [
+        ":copy_bundles",
+        ":copy_miniprogram",
+        ":copy_miniprogram_map",
+        ":copy_src_to_dist",
+        "//tfjs-converter/metadata:kernels_to_ops",
+    ],
+)
+
+js_library(
+    name = "package_json",
+    package_name = "tfjs-converter",
+    srcs = [
+        ":package.json",
+    ],
+)

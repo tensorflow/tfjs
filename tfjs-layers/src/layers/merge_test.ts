@@ -19,7 +19,7 @@ import * as tfl from '../index';
 import {Shape} from '../keras_format/common';
 import {deserialize} from '../layers/serialization';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from '../utils/test_utils';
 
 import {Add, Average, Concatenate, Maximum, Minimum, Multiply} from './merge';
 
@@ -419,7 +419,7 @@ describeMathCPUAndGPU('Minimum Layer: Tensor', () => {
   });
 });
 
-describeMathCPUAndGPU('Concatenate Layer: Tensor', () => {
+describeMathCPUAndWebGL2('Concatenate Layer: Tensor', () => {
   let x1: Tensor2D;
   let x2: Tensor2D;
 
@@ -814,7 +814,7 @@ describeMathCPU('Dot-Layer: Symbolic', () => {
   });
 });
 
-describeMathCPUAndGPU('Dot-Layer: Tensor', () => {
+describeMathCPUAndWebGL2('Dot-Layer: Tensor', () => {
   // Example reference Python Keras code:
   //
   // ```py

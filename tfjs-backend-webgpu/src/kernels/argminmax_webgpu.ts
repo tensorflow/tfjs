@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType} from '../shader_preprocessor';
+import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -29,7 +29,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number];
   variableNames = ['x'];
-  uniforms = 'int axis;';
+  uniforms = 'axis : i32;';
   inputShape: number[];
   reductionFactor: number;
   op: string;
@@ -75,38 +75,36 @@ export class ArgMinMaxProgram implements WebGPUProgram {
     // and iteratively reduced.
     const reduceInSharedMemory = this.workGroupSize[0] > 1;
     const sharedMemorySnippet = `
-      shared int xBestIndices[WorkGroupSize];
-      shared float xBestValues[WorkGroupSize];
+      var<workgroup> xBestIndices : array<i32, ${this.workGroupSize[0]}>;
+      var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
     `;
 
     const sharedMemoryReduceSnippet = `
-      xBestIndices[gl_LocalInvocationID.x] = bestIndex;
-      xBestValues[gl_LocalInvocationID.x] = bestValue;
+      xBestIndices[localId.x] = bestIndex;
+      xBestValues[localId.x] = bestValue;
 
-      int currentSize = WorkGroupSize;
-      while (currentSize > 1) {
-        barrier();
+      for(var currentSize = WorkGroupSize; currentSize > 1; currentSize = DIV_CEIL(currentSize, ${
+        this.reductionFactor})) {
+        workgroupBarrier();
 
-        for (int w = 0; w < ${this.reductionFactor}; ++w) {
-          int i = int(gl_LocalInvocationID.x) * ${this.reductionFactor} + w;
+        for (var w = 0; w < ${this.reductionFactor}; w = w + 1) {
+          let i = i32(localId.x) * ${this.reductionFactor} + w;
           if (i < currentSize) {
-            int candidateIndex = xBestIndices[i];
-            float candidate = xBestValues[i];
-            if (candidate ${this.op} bestValue && !isnan(candidate)) {
+            let candidateIndex = xBestIndices[i];
+            let candidate = xBestValues[i];
+            if(candidate ${this.op} bestValue && !isNanCustom(candidate)) {
               bestValue = candidate;
               bestIndex = candidateIndex;
             }
           }
         }
 
-        xBestIndices[gl_LocalInvocationID.x] = bestIndex;
-        xBestValues[gl_LocalInvocationID.x] = bestValue;
-
-        currentSize = DIV_CEIL(currentSize, ${this.reductionFactor});
+        xBestIndices[localId.x] = bestIndex;
+        xBestValues[localId.x] = bestValue;
       }
 
-      if (gl_LocalInvocationID.x == 0) {
-        setOutput(flatOutputIndex, int(bestIndex));
+      if (localId.x == 0u) {
+        setOutputFlatI32(flatOutputIndex, i32(bestIndex));
       }
     `;
 
@@ -122,16 +120,18 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
     const indexInputShape = (index: string) => {
       if (this.inputShape.length === 1) {
-        return 'xShape';
+        return 'uniforms.xShape';
       } else {
-        return `xShape[${index}]`;
+        return `uniforms.xShape[${index}]`;
       }
     };
 
     const userCode = `
-      #define DIV_CEIL(x, y) (((x) - 1) / (y) + 1)
+      fn DIV_CEIL(a : i32, b : i32) -> i32 {
+        return ((a - 1) / b + 1);
+      }
 
-      const int WorkGroupSize = int(gl_WorkGroupSize.x);
+      let WorkGroupSize = ${this.workGroupSize[0]};
 
       ${reduceInSharedMemory ? sharedMemorySnippet : ''}
 
@@ -139,55 +139,60 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       // add back the index along the reduced dimension to |outputCoords|.
       // This function outputs the offset to the first value along
       // |axis| and the stride to get the next value of the input along |axis|.
-      ivec2 getInputCoordInfo() {
-        const ${outputCoordsType} outputCoords = getOutputCoords();
-        int i = ${this.outputShape.length - 1};
+      fn getInputCoordInfo(globalId : vec3<u32>, globalIndex : i32) -> vec2<i32>{
+        let outputCoords : ${
+        outputCoordsType} = getOutputCoords(globalId, globalIndex);
+        var i = ${this.outputShape.length - 1};
 
-        int stride = 1;
-        int inputStride = 1;
-        int offset = 0;
+        var stride = 1;
+        var inputStride = 1;
+        var offset = 0;
 
-        for (int r = 1; r <= ${this.inputShape.length}; ++r) {
-          int length = ${indexInputShape(`${this.inputShape.length} - r`)};
-          if (${this.inputShape.length} - r == axis) {
+        for (var r = 1; r <= ${this.inputShape.length}; r = r + 1) {
+          let length = ${indexInputShape(`${this.inputShape.length} - r`)};
+          if (${this.inputShape.length} - r == uniforms.axis) {
             inputStride = stride;
           } else {
-            offset += ${indexOutputCoords('outputCoords', 'i--')} * stride;
+            offset = offset + ${
+        indexOutputCoords('outputCoords', 'i')} * stride;
+            i = i - 1;
           }
-          stride *= length;
+          stride = stride * length;
         }
 
-        return ivec2(offset, inputStride);
+        return vec2<i32>(offset, inputStride);
       }
 
-      int getInputIndex(ivec2 coordInfo, int index) {
+      fn getInputIndex(coordInfo : vec2<i32>, index : i32) -> i32{
         return coordInfo[0] + coordInfo[1] * index;
       }
 
-      void main() {
-        const ivec2 coordInfo = getInputCoordInfo();
+      ${getMainHeaderString()} {
+        ${getGlobalIndexString()}
+        let coordInfo = getInputCoordInfo(globalId, index);
 
-        int bestIndex = 0;
-        float bestValue = float(x[getInputIndex(coordInfo, bestIndex)]);
+        var bestIndex = 0;
+        var bestValue = x.numbers[getInputIndex(coordInfo, bestIndex)];
 
-        const int Length = ${indexInputShape('axis')};
-        const int WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
+        let Length = ${indexInputShape('uniforms.axis')};
+        let WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
 
-        for (int w = 0; w < WorkPerThread; ++w) {
-          int i = int(gl_GlobalInvocationID.x) * WorkPerThread + w;
+        for (var w = 0; w < WorkPerThread; w = w + 1) {
+          let i = i32(globalId.x) * WorkPerThread + w;
           if (i < Length) {
-            float candidate = float(x[getInputIndex(coordInfo, i)]);
-            if (candidate ${this.op} bestValue && !isnan(candidate)) {
+            let candidate = x.numbers[getInputIndex(coordInfo, i)];
+            if (candidate ${
+        this.op} bestValue && !isNanCustom(f32(candidate))) {
               bestValue = candidate;
               bestIndex = i;
             }
           }
         }
 
-        const int flatOutputIndex = int(gl_GlobalInvocationID.y);
+        let flatOutputIndex = i32(globalId.y);
         ${
         reduceInSharedMemory ? sharedMemoryReduceSnippet :
-                               'setOutput(flatOutputIndex, int(bestIndex));'}
+                               'setOutputFlatI32(flatOutputIndex, bestIndex);'}
       }
     `;
     return userCode;

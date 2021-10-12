@@ -37,7 +37,7 @@ import {op} from './operation';
  * @doc {heading: 'Operations', subheading: 'Basic math'}
  */
 function elu_<T extends Tensor>(x: T|TensorLike): T {
-  const $x = convertToTensor(x, 'x', 'elu');
+  const $x = convertToTensor(x, 'x', 'elu', 'float32');
 
   const inputs: EluInputs = {x: $x};
 

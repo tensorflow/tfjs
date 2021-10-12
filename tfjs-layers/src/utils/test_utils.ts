@@ -15,6 +15,7 @@
 import {memory, Tensor, test_util, util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {ALL_ENVS, describeWithFlags, registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
 import {ValueError} from '../errors';
 
 // Register backends.
@@ -85,6 +86,19 @@ export function describeMathCPUAndGPU(testName: string, tests: () => void) {
   describeWithFlags(testName, ALL_ENVS, () => {
     tests();
   });
+}
+
+/**
+ * Describe tests to be run on CPU and GPU WebGL2.
+ * @param testName
+ * @param tests
+ */
+export function describeMathCPUAndWebGL2(testName: string, tests: () => void) {
+  describeWithFlags(
+      testName, {predicate: testEnv => testEnv.flags['WEBGL_VERSION'] !== 1},
+      () => {
+        tests();
+      });
 }
 
 /**

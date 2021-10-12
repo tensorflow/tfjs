@@ -111,4 +111,12 @@ describeWithFlags('flipLeftRight', ALL_ENVS, () => {
 
     expectArraysClose(expected, flippedPixelsData);
   });
+
+  it('throws when input is int32', async () => {
+    const image: tf.Tensor4D = tf.tensor(
+        [[[[1, 2, 3, 255]], [[7, 8, 9, 255]]]], [1, 2, 1, 4], 'int32');
+    expect(() => tf.image.flipLeftRight(image))
+        .toThrowError(
+            /Argument 'image' passed to 'flipLeftRight' must be float32/);
+  });
 });
