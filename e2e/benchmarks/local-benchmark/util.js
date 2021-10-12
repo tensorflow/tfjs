@@ -67,19 +67,22 @@ function queryTimerIsEnabled() {
              'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0;
 }
 
-function areClose(a, e, epsilon) {
+function areClose(
+    a, e, epsilon, epsilonOfBigNumber = 0.1, relativeEpsilon = 0.01) {
   if (!isFinite(a) && !isFinite(e)) {
     return true;
+  } else if (isNaN(a) || isNaN(e)) {
+    return false;
   }
+
+  const absoluteError = Math.abs(a - e);
   if (Math.abs(a) >= 1) {
-    const RELATIVE_EPSILON = 0.01;
-    if (isNaN(a) || isNaN(e) ||
-        Math.abs(a - e) / Math.min(Math.abs(a), Math.abs(e)) >
-            RELATIVE_EPSILON) {
+    if ((absoluteError > epsilonOfBigNumber) ||
+        absoluteError / Math.min(Math.abs(a), Math.abs(e)) > relativeEpsilon) {
       return false;
     }
   } else {
-    if (isNaN(a) || isNaN(e) || Math.abs(a - e) > epsilon) {
+    if (absoluteError > epsilon) {
       return false;
     }
   }
