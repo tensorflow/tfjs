@@ -21,8 +21,6 @@ import {MathBackendWebGL} from '../backend_webgl';
 import {DepthwiseConv2DProgram} from '../conv_gpu_depthwise';
 import {DepthwiseConvPacked2DProgram} from '../conv_packed_gpu_depthwise';
 import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
-import {conv2dWithIm2Row} from './Conv2D_impl';
-import {reshape} from './Reshape';
 
 export function fusedDepthwiseConv2D(args: {
   inputs: FusedDepthwiseConv2DInputs,
@@ -31,11 +29,18 @@ export function fusedDepthwiseConv2D(args: {
 }) {
   const {inputs, backend, attrs} = args;
   const {x, filter, bias, preluActivationWeights} = inputs;
-  const {strides, pad, dilations, dimRoundingMode, activation, leakyreluAlpha} =
-      attrs;
+  const {
+    strides,
+    pad,
+    dilations,
+    dimRoundingMode,
+    activation,
+    leakyreluAlpha,
+    dataFormat
+  } = attrs;
 
   const intermediates: TensorInfo[] = [];
-
+  const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
   let $dilations = dilations;
   if ($dilations == null) {
     $dilations = [1, 1];
@@ -49,29 +54,8 @@ export function fusedDepthwiseConv2D(args: {
   const convInfo = backend_util.computeConv2DInfo(
       x.shape as [number, number, number, number],
       filter.shape as [number, number, number, number], strides, $dilations,
-      pad, dimRoundingMode, true /* depthwise */);
+      pad, dimRoundingMode, true, $dataFormat);
 
-  convInfo.outChannels = convInfo.inChannels;
-  convInfo.inChannels = 1;
-  if (env().getBool('WEBGL_CONV_IM2COL') && x.shape[0] === 1) {
-    const out = conv2dWithIm2Row({
-      x,
-      filter,
-      convInfo,
-      backend,
-      bias,
-      activation,
-      preluActivationWeights,
-      leakyreluAlpha
-    });
-    const outReshaped =
-        reshape({inputs: {x: out}, backend, attrs: {shape: convInfo.outShape}});
-
-    intermediates.push(out);
-    intermediates.forEach(t => backend.disposeIntermediateTensorInfo(t));
-
-    return outReshaped;
-  }
   const shouldPackDepthwiseConv = env().getBool('WEBGL_PACK_DEPTHWISECONV') &&
       convInfo.strideWidth <= 2 &&
       convInfo.outChannels / convInfo.inChannels === 1;
