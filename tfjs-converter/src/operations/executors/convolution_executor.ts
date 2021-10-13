@@ -133,7 +133,8 @@ export const executeOp: InternalOpExecutor =
                 Tensor4D,
             filter: getParamValue('filter', node, tensorMap, context) as
                 Tensor4D,
-            strides: [stride[1], stride[2]],
+            strides: dataFormat === 'NCHW' ? [stride[2], stride[3]] :
+                                             [stride[1], stride[2]],
             pad: pad as 'valid' | 'same',
             dataFormat: dataFormat as 'NHWC' | 'NCHW',
             dilations: [dilations[1], dilations[2]],
@@ -161,7 +162,8 @@ export const executeOp: InternalOpExecutor =
                 Tensor4D,
             filter: getParamValue('filter', node, tensorMap, context) as
                 Tensor4D,
-            strides: [stride[1], stride[2]],
+            strides: dataFormat === 'NCHW' ? [stride[2], stride[3]] :
+                                             [stride[1], stride[2]],
             pad: pad as 'valid' | 'same',
             dataFormat: dataFormat as 'NHWC' | 'NCHW',
             dilations: [dilations[1], dilations[2]],
