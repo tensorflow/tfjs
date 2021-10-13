@@ -15,6 +15,7 @@
  * =============================================================================
  */
 import * as tf from '../index';
+import {backend} from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
@@ -224,12 +225,15 @@ describeWithFlags('where', ALL_ENVS, () => {
   });
 
   it('int32', async () => {
-    const c = tf.tensor1d([1, 0, 0], 'bool');
-    const a = tf.tensor1d([12345678, 10, 10], 'int32');
-    const b = tf.tensor1d([20, 20, -12345678], 'int32');
-    const res = tf.where(c, a, b);
-    expect(res.dtype).toEqual('int32');
-    expectArraysClose(await res.data(), [12345678, 20, -12345678]);
+    if (backend() && backend().floatPrecision() === 32) {
+      // TODO: Use skip() instead when it is implemented
+      const c = tf.tensor1d([1, 0, 0], 'bool');
+      const a = tf.tensor1d([12345678, 10, 10], 'int32');
+      const b = tf.tensor1d([20, 20, -12345678], 'int32');
+      const res = tf.where(c, a, b);
+      expect(res.dtype).toEqual('int32');
+      expectArraysClose(await res.data(), [12345678, 20, -12345678]);
+    }
   });
 
   it('throws when passed condition as a non-tensor', () => {

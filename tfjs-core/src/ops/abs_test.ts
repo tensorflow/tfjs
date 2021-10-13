@@ -16,6 +16,7 @@
  */
 
 import * as tf from '../index';
+import {backend} from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
@@ -39,10 +40,13 @@ describeWithFlags('abs', ALL_ENVS, () => {
   });
 
   it('int32', async () => {
-    const a = tf.tensor1d([10, 12345678, -12345678], 'int32');
-    const result = tf.abs(a);
-    expect(result.dtype).toEqual('int32');
-    expectArraysClose(await result.data(), [10, 12345678, 12345678]);
+    if (backend() && backend().floatPrecision() === 32) {
+      // TODO: Use skip() instead when it is implemented
+      const a = tf.tensor1d([10, 12345678, -12345678], 'int32');
+      const result = tf.abs(a);
+      expect(result.dtype).toEqual('int32');
+      expectArraysClose(await result.data(), [10, 12345678, 12345678]);
+    }
   });
 
   it('complex64 rank-1', async () => {
@@ -104,7 +108,7 @@ describeWithFlags('abs', ALL_ENVS, () => {
           Math.hypot(small, small), Math.hypot(0, small), Math.hypot(small, 0),
           Math.hypot(0, 0)
         ],
-        /*tolerance=*/ small / 100);
+        /*tolerance=*/small / 100);
     expect(result.shape).toEqual([4]);
   });
 
