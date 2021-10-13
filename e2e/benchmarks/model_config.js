@@ -149,6 +149,7 @@ const benchmarks = {
   },
   'AutoML Image': {
     type: 'GraphModel',
+    supportDebug: false,
     load: async () => {
       const url =
           'https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/model.json';
@@ -161,6 +162,7 @@ const benchmarks = {
   },
   'AutoML Object': {
     type: 'GraphModel',
+    supportDebug: false,
     load: async () => {
       const url =
           'https://storage.googleapis.com/tfjs-testing/tfjs-automl/object_detection/model.json';
@@ -173,6 +175,7 @@ const benchmarks = {
   },
   'USE - batchsize 30': {
     type: 'GraphModel',
+    supportDebug: false,
     load: async () => {
       return use.load();
     },
@@ -186,6 +189,7 @@ const benchmarks = {
   },
   'USE - batchsize 1': {
     type: 'GraphModel',
+    supportDebug: false,
     load: async () => {
       return use.load();
     },
@@ -205,6 +209,7 @@ const benchmarks = {
     inputSizes: [128, 256, 512, 1024],
     architectures: ['MobileNetV1', 'ResNet50'],
     inputTypes: ['image', 'tensor'],
+    supportDebug: false,
     load: async (
         inputResolution = 128, modelArchitecture = 'MobileNetV1',
         inputType = 'image') => {
@@ -240,6 +245,7 @@ const benchmarks = {
   },
   'bodypix': {
     type: 'GraphModel',
+    supportDebug: false,
     // The ratio to the default camera size [480, 640].
     inputSizes: [0.25, 0.5, 0.75, 1.0],
     architectures: ['MobileNetV1', 'ResNet50'],
@@ -328,6 +334,7 @@ const benchmarks = {
     ],
     inputTypes: ['image', 'tensor', 'imageBitmap'],
     modelTypes: ['lite', 'full', 'heavy', 'lightning'],
+    supportDebug: false,
     load: async (
         inputResolution = 128, modelArchitecture = 'BlazePose-lite',
         inputType = 'image') => {
