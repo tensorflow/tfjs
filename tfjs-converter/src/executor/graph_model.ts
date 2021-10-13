@@ -364,8 +364,20 @@ export class GraphModel implements InferenceModel {
   }
 
   /**
-   * This is used for model debugging mode (flag KEEP_INTERMEDIATE_TENSORS is
-   * true).
+   * Get intermediate tensors for model debugging mode (flag
+   * KEEP_INTERMEDIATE_TENSORS is true).
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
+   */
+  getIntermediateTensors(): NamedTensorsMap {
+    return this.executor.getIntermediateTensors();
+  }
+
+  /**
+   * Dispose intermediate tensors for model debugging mode (flag
+   * KEEP_INTERMEDIATE_TENSORS is true).
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
    */
   disposeIntermediateTensors() {
     this.executor.disposeIntermediateTensors();
