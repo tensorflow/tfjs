@@ -15,18 +15,18 @@
  * =============================================================================
  */
 
-require('firebase/firestore');
-require('firebase/auth');
+require("firebase/firestore");
+require("firebase/auth");
 
-const firebase = require('firebase/app');
+const firebase = require("firebase/app");
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_KEY,
-  authDomain: 'learnjs-174218.firebaseapp.com',
-  databaseURL: 'https://learnjs-174218.firebaseio.com',
-  projectId: 'learnjs-174218',
-  storageBucket: 'learnjs-174218.appspot.com',
-  messagingSenderId: '834911136599',
-  appId: '1:834911136599:web:4b65685455bdf916a1ec12'
+  authDomain: "learnjs-174218.firebaseapp.com",
+  databaseURL: "https://learnjs-174218.firebaseio.com",
+  projectId: "learnjs-174218",
+  storageBucket: "learnjs-174218.appspot.com",
+  messagingSenderId: "834911136599",
+  appId: "1:834911136599:web:4b65685455bdf916a1ec12",
 };
 
 /**
@@ -39,11 +39,11 @@ async function runFirestore(firebaseConfig) {
   try {
     firebase.initializeApp(firebaseConfig);
     await firebase.auth().signInAnonymously();
-    console.log('\nSuccesfuly signed into Firebase with anonymous account.');
+    console.log("\nSuccesfuly signed into Firebase with anonymous account.");
 
     // Reference to the "BenchmarkResults" collection on firestore that contains
     // the benchmark results.
-    return firebase.firestore().collection('BenchmarkResults');
+    return firebase.firestore().collection("BenchmarkResults");
   } catch (err) {
     console.log(`\nError code: ${err.code}`);
     throw new Error(`Error message: ${err.message}`);
@@ -55,7 +55,7 @@ async function runFirestore(firebaseConfig) {
  */
 function endFirebaseInstance() {
   firebase.app().delete();
-  console.log('Exited Firebase instance.');
+  console.log("Exited Firebase instance.");
 }
 
 /**
@@ -70,10 +70,17 @@ function endFirebaseInstance() {
  * @param result Individual result in a list of fulfilled promises
  */
 async function addResultToFirestore(db, resultId, result) {
+  // const firestoreMap = formatForFirestore(
+  //   result, serializeTensors, getReadableDate
+  // );
+  // const
   try {
-    const firestoreMap =
-        formatForFirestore(result, serializeTensors, getReadableDate);
-    await db.add({result: firestoreMap}).then((ref) => {
+    const firestoreMap = formatForFirestore(
+      result,
+      serializeTensors,
+      getReadableDate
+    );
+    await db.add({ result: firestoreMap }).then((ref) => {
       console.log(`Added ${resultId} to Firestore with ID: ${ref.id}`);
     });
   } catch (err) {
@@ -88,7 +95,10 @@ async function addResultToFirestore(db, resultId, result) {
  * @param result Individual result in a list of fulfilled promises
  */
 function formatForFirestore(
-    result, makeCompatable = serializeTensors, getDate = getReadableDate) {
+  result,
+  makeCompatable = serializeTensors,
+  getDate = getReadableDate
+) {
   let firestoreMap = {};
   firestoreMap.benchmarkInfo = makeCompatable(result);
   firestoreMap.date = getDate();
@@ -119,7 +129,7 @@ function serializeTensors(result) {
  */
 function getReadableDate() {
   const fullISODateString = new Date().toISOString();
-  const dateOnly = fullISODateString.split('T')[0];
+  const dateOnly = fullISODateString.split("T")[0];
   return dateOnly;
 }
 

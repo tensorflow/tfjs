@@ -49,29 +49,24 @@ The following are supported options arguments which trigger options features:
     A pre-configuration file consists of a JSON object with the following format:
     ```
     {
-      "benchmark": {
-        "model": ["model_name"], //List of one or more custom or official models to be benchmarked
-        "numRuns": positive_integer,
-        "backend": ["backend_name"] //List of one or more backends to be benchmarked
-      },
-      "browsers": {
-        "unique_identifier_laptop_or_desktop": {
-          "base": "BrowserStack",
-          "browser": "browser_name",
-          "browser_version": "browser_version",
-          "os": "os_name",
-          "os_version": "os_version",
-          "device": null
-        },
-        "unique_identifier_mobile_device": {
-          "base": "BrowserStack",
-          "browser": "iphone_or_android",
-          "browser_version": null,
-          "os": "os_name",
-          "os_version": "os_version",
-          "device": "device_name"
+      "benchmarks": [
+        {
+          "model": "model_name", //List of one or more custom or official models to be benchmarked
+          "numRuns": "positive_integer,
+          "backend": "backend_name",  //List of one or more backends to be benchmarked
+          "browsers": [
+            {
+              "base": "BrowserStack",
+              "browser": "browser_name",
+              "browser_version": "browser_version",
+              "os": "os_name",
+              "os_version": "os_version",
+              "device": null,
+              "deviceId": "unique_identifier_laptop_or_desktop"
+            }
+          ]
         }
-      }
+      ]
     }
     ```
     Each model in the model list will be run on each backend in the backend list. Each model-backend combination will run on every browser. If you would like to test specific backends on specific models, the recommended method is to create multiple configuration files.

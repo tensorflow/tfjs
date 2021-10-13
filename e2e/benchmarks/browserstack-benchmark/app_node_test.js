@@ -124,6 +124,7 @@ describe('test app.js cli', () => {
 
   it('checks for outfile accuracy', async () => {
     // Writes to mock results file
+    // rewrite mockResults
     await write(filePath, mockResults);
 
     fs.readFile(filePath, 'utf8', (err, data) => {
