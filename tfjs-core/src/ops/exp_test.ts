@@ -18,6 +18,7 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
+import {backend} from '../index';
 
 describeWithFlags('exp', ALL_ENVS, () => {
   it('exp', async () => {
@@ -28,11 +29,14 @@ describeWithFlags('exp', ALL_ENVS, () => {
   });
 
   it('int32', async () => {
-    const a = tf.tensor1d([10], 'int32');
-    const r = tf.exp(a);
+    if (backend() && backend().floatPrecision() === 32) {
+      // TODO: Use skip() instead when it is implemented
+      const a = tf.tensor1d([10], 'int32');
+      const r = tf.exp(a);
 
-    expect(r.dtype).toEqual('float32');
-    expectArraysClose(await r.data(), [Math.exp(10)]);
+      expect(r.dtype).toEqual('float32');
+      expectArraysClose(await r.data(), [Math.exp(10)]);
+    }
   });
 
   it('exp propagates NaNs', async () => {

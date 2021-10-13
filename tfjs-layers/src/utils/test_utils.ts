@@ -126,6 +126,22 @@ export function describeMathGPU(testName: string, tests: () => void) {
 }
 
 /**
+ * Describe tests to be run on WebGL2 GPU only.
+ * @param testName
+ * @param tests
+ */
+export function describeMathWebGL2(testName: string, tests: () => void) {
+  describeWithFlags(
+      testName, {
+        predicate: testEnv => testEnv.backendName === 'webgl' &&
+            testEnv.flags['WEBGL_VERSION'] !== 1
+      },
+      () => {
+        tests();
+      });
+}
+
+/**
  * Check that a function only generates the expected number of new Tensors.
  *
  * The test  function is called twice, once to prime any regular constants and

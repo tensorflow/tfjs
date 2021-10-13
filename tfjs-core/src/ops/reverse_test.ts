@@ -18,6 +18,7 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
+import {backend} from '../index';
 
 describeWithFlags('reverse', ALL_ENVS, () => {
   it('throws when passed a non-tensor', () => {
@@ -33,13 +34,15 @@ describeWithFlags('reverse', ALL_ENVS, () => {
   });
 
   it('works with int32 input', async () => {
-    const input = tf.tensor1d([1, 2, 12345678], 'int32');
-    const result = tf.reverse(input);
-    expect(result.shape).toEqual([3]);
-    expect(result.dtype).toEqual('int32');
-    expectArraysClose(await result.data(), [12345678, 2, 1]);
+    if (backend() && backend().floatPrecision() === 32) {
+      // TODO: Use skip() instead when it is implemented
+      const input = tf.tensor1d([1, 2, 12345678], 'int32');
+      const result = tf.reverse(input);
+      expect(result.shape).toEqual([3]);
+      expect(result.dtype).toEqual('int32');
+      expectArraysClose(await result.data(), [12345678, 2, 1]);
+    }
   });
-
 
   it('ensure no memory leak', async () => {
     const numTensorsBefore = tf.memory().numTensors;
