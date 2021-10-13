@@ -324,6 +324,7 @@ tfjs_cc_library(
         ":Sigmoid",
         ":Sin",
         ":Softmax",
+        ":SparseReshape",
         ":Square",
         ":SquaredDifference",
         ":StridedSlice",
@@ -1071,6 +1072,15 @@ tfjs_unit_test(
     tags = ["ci"],
     deps = [
         ":Softmax",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SparseReshape",
+    srcs = ["kernels/SparseReshape.cc"],
+    deps = [
+        ":backend",
+        ":util",
     ],
 )
 

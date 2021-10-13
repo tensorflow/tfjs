@@ -66,6 +66,18 @@ describeWithFlags('sparseReshape', ALL_ENVS, () => {
       -1, 7
     ])).toThrowError(/multiple of 7/);
   });
+  it('throw error if negative output dim', async () => {
+    const sparseTensor = sparseTensorValue2x3x4();
+    expect(() => tf.sparse.sparseReshape(sparseTensor.ind, sparseTensor.shape, [
+      1, -7
+    ])).toThrowError('size 1 must be non-negative, not -7');
+  });
+  it('throw error if negative output dim', async () => {
+    const sparseTensor = sparseTensorValue2x3x4();
+    expect(() => tf.sparse.sparseReshape(sparseTensor.ind, sparseTensor.shape, [
+      -1, 0
+    ])).toThrowError(/unless all specified input sizes are non-zero/);
+  });
   it('same shape', async () => {
     const sparseTensor = sparseTensorValue5x6();
     const result =
