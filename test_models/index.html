@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <script src="../dist/bin/tfjs-core/tfjs-core_pkg/dist/tf-core.min.js"></script>
+    <script src="../dist/bin/tfjs-backend-cpu/tfjs-backend-cpu_pkg/dist/tf-backend-cpu.js"></script>
+    <script src="../dist/bin/tfjs-backend-webgl/tfjs-backend-webgl_pkg/dist/tf-backend-webgl.js"></script>
+    <script src="../dist/bin/tfjs-converter/tfjs-converter_pkg/dist/tf-converter.js"></script>
+    <script>
+        window.addEventListener("DOMContentLoaded", main);
+
+        const NCHW_MODEL_URL = "./nchw_model/model.json";
+        const NHWC_MODEL_URL = "./nhwc_model/model.json";
+        //const NHWC_MODEL_URL = "./effientdet/web_model/model.json";
+        //tf.env().set('WEBGL_PACK_DEPTHWISECONV', false);
+        async function main() {
+            const model2 = await tf.loadGraphModel(NHWC_MODEL_URL);
+
+            const input = tf.ones([1, 224,224,3], 'float32');
+            const start1 = performance.now();
+            const output2 = await model2.execute(input);
+            output2.dataSync();
+            console.log('nhwc warmup time: ', performance.now() - start1);
+            const start2 = performance.now();
+            for (let i = 0; i < 50; i++) {
+            const output = await model2.execute(input);
+            output.dataSync();
+            }
+            console.log('nhwc average time: ', (performance.now() - start2) / 50);
+            tf.env().set('WEBGL_CONV_IM2COL', false);
+
+            const model = await tf.loadGraphModel(NCHW_MODEL_URL);
+            const start0 = performance.now();
+            const output = await model.execute(input);
+            output.dataSync();
+            console.log('nhwc warmup time: ', performance.now() - start0);
+            const start = performance.now();
+            for (let i = 0; i < 100; i++) {
+            const output = await model.execute(input);
+            output.dataSync();
+            }
+            console.log('nchw average time: ', (performance.now() - start) / 100);
+
+          }
+    </script>
+</body>
+</html>
