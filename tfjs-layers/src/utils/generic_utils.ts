@@ -487,10 +487,10 @@ export function formatAsFriendlyString(value: any): string {
 export function debounce<T>(
     f: (...args: Array<{}>) => T, waitMs: number,
     nowFunc?: Function): (...args: Array<{}>) => T {
-  let lastTime = nowFunc ? nowFunc() : util.now();
+  let lastTime = nowFunc != null ? nowFunc() : util.now();
   let lastResult: T;
   const f2 = (...args: Array<{}>) => {
-    const now = nowFunc ? nowFunc() : util.now();
+    const now = nowFunc != null ? nowFunc() : util.now();
     if (now - lastTime < waitMs) {
       return lastResult;
     }
