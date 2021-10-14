@@ -481,8 +481,7 @@ let threadsCount = -1;
 
 /**
  * Sets the number of threads that will be used by XNNPACK to create
- * threadpool (default to the number of logical CPU cores when passing in
- * negative values).
+ * threadpool (default to the number of logical CPU cores).
  *
  * This must be called before calling `tf.setBackend('wasm')`.
  */
