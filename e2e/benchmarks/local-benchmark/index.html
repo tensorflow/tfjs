@@ -473,6 +473,9 @@ limitations under the License.
 
     const chartHeight = 150;
     function populateTrendline(node, data, forceYMinToZero = false, yFormatter = d => d) {
+      if (data.length == 0) {
+        return;
+      }
       node.querySelector('svg').setAttribute('width', chartWidth);
       node.querySelector('svg').setAttribute('height', chartHeight);
 
