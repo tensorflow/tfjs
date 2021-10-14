@@ -47,7 +47,7 @@
     "prep": "yarn install && yarn build-ci",
     "build": "bazel build :tfjs-layers_pkg",
     "build-ci": "yarn build",
-    "bundle": "bazel build :tfjs-backend-webgl_pkg",
+    "bundle": "yarn build",
     "bundle-ci": "yarn bundle",
     "build-link-package": "cd ../link-package && yarn build",
     "build-deps": "yarn build-link-package",
@@ -58,9 +58,9 @@
     "publish-local": "yarn build-npm && yalc push",
     "publish-npm": "bazel run :tfjs-layers_pkg.publish",
     "coverage": "KARMA_COVERAGE=1 karma start --browsers='Chrome' --singleRun",
-    "test-dev": "ibazel run :tfjs-layers_test --test-output=streamed",
+    "test-dev": "ibazel run :tfjs-layers_webgl2_test --test-output=streamed",
     "test": "yarn test-dev",
-    "run-browserstack": "bazel test :browserstack_bs_chrome_mac_tfjs-layers_test",
+    "run-browserstack": "bazel test :browserstack_bs_chrome_mac_tfjs-layers_webgl2_test",
     "lint": "tslint -p . -t verbose"
   },
   "peerDependencies": {

@@ -108,6 +108,11 @@ describe('Util', () => {
     expect(inferShape(a)).toEqual([5]);
   });
 
+  it('infer shape of clamped typed array', () => {
+    const a = new Uint8ClampedArray([1, 2, 3, 4, 5]);
+    expect(inferShape(a)).toEqual([5]);
+  });
+
   it('infer shape of Uint8Array[], string tensor', () => {
     const a = [new Uint8Array([1, 2]), new Uint8Array([3, 4])];
     expect(inferShape(a, 'string')).toEqual([2]);
