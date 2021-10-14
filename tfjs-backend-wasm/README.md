@@ -91,6 +91,30 @@ If the steps above are correctly done, you can check the Network tab from the
 console and make sure the
 <code>tfjs-backend-wasm-<b>threaded-simd</b>.wasm</code> WASM binary is loaded.
 
+## Setting threads count
+
+By default, the backend will use the number of logical CPU cores as the
+threads count when creating the threadpool used by XNNPACK. You can use the
+`setThreadsCount` API to manually set it (must be called before calling
+`tf.setBackend('wasm')`).
+
+### Via NPM
+
+```js
+import * as tf from '@tensorflow/tfjs';
+import {setThreadsCount} from '@tensorflow/tfjs-backend-wasm';
+
+setThreadsCount(2);
+tf.setBackend('wasm').then(() => {...});
+```
+
+### Via script tag
+
+```js
+tf.wasm.setThreadsCount(2);
+tf.setBackend('wasm').then(() => {...});
+```
+
 ## Running MobileNet
 
 ```js

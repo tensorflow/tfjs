@@ -42,9 +42,9 @@ export class BackendWasm extends KernelBackend {
   private dataIdNextNumber = 1;
   dataIdMap: DataStorage<TensorData>;
 
-  constructor(public wasm: BackendWasmModule | BackendWasmThreadedSimdModule) {
+  constructor(public wasm: BackendWasmModule|BackendWasmThreadedSimdModule) {
     super();
-    this.wasm.tfjs.init();
+    this.wasm.tfjs.initWithThreadsCount(threadsCount);
     this.dataIdMap = new DataStorage(this, engine());
   }
 
@@ -210,7 +210,7 @@ export class BackendWasm extends KernelBackend {
 }
 
 function createInstantiateWasmFunc(path: string) {
-  // this will be replace by rollup plugin patchWechatWebAssembly in 
+  // this will be replace by rollup plugin patchWechatWebAssembly in
   // minprogram's output.
   // tslint:disable-next-line:no-any
   return (imports: any, callback: any) => {
@@ -346,6 +346,8 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       // Using the tfjs namespace to avoid conflict with emscripten's API.
       module.tfjs = {
         init: module.cwrap('init', null, []),
+        initWithThreadsCount:
+            module.cwrap('init_with_threads_count', null, ['number']),
         registerTensor: module.cwrap(
             'register_tensor', null,
             [
@@ -473,4 +475,15 @@ export function resetWasmPath(): void {
   wasmFileMap = {};
   customFetch = false;
   initAborted = false;
+}
+
+let threadsCount =
+    navigator.hardwareConcurrency ? (navigator.hardwareConcurrency / 2) : 1;
+
+/**
+ * Sets the number of threads that will be used by XNNPACK to create
+ * threadpool.
+ */
+export function setThreadsCount(numThreads: number) {
+  threadsCount = numThreads;
 }
