@@ -98,9 +98,12 @@ void init() { init_with_threads_count(num_cores); }
 EMSCRIPTEN_KEEPALIVE
 #endif
 void init_with_threads_count(const int threads_count) {
+  int count = threads_count;
+  if (threads_count < 0) {
+    count = num_cores;
+  }
   int capped_num_threads = std::min(
-      std::min(std::max(threads_count, min_num_threads), max_num_threads),
-      num_cores);
+      std::min(std::max(count, min_num_threads), max_num_threads), num_cores);
   tfjs::backend::threadpool = pthreadpool_create(capped_num_threads);
   xnn_initialize(nullptr);
 }

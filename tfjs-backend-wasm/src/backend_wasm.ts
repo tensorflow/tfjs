@@ -477,12 +477,12 @@ export function resetWasmPath(): void {
   initAborted = false;
 }
 
-let threadsCount =
-    navigator.hardwareConcurrency ? (navigator.hardwareConcurrency / 2) : 1;
+let threadsCount = -1;
 
 /**
  * Sets the number of threads that will be used by XNNPACK to create
- * threadpool (default to the number of logical CPU cores).
+ * threadpool (default to the number of logical CPU cores when passing in
+ * negative values).
  *
  * This must be called before calling `tf.setBackend('wasm')`.
  */
