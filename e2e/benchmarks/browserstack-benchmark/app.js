@@ -341,6 +341,9 @@ async function pushToFirestore(benchmarkResults) {
         addResultToFirestore(db, result.value.tabId, result.value)
       );
     } else if (result.status == "rejected") {
+      firestoreResults.push(
+        addResultToFirestore(db, result.value.tabId, result.value)
+      );
       numRejectedPromises++;
     }
   }
