@@ -68,45 +68,51 @@ describe("test app.js cli", () => {
       },
     };
     config = {
-      benchmark: { model: "mobilenet_v2", numRuns: 1, backend: "wasm" },
-      browsers: [
+      benchmarks: [
         {
-          base: "BrowserStack",
-          browser: "iphone",
-          browser_version: "null",
-          os: "ios",
-          os_version: "12",
-          device: "iPhone XS",
-          deviceId: "iPhone_XS_1",
-          real_mobile: true,
-        },
-        {
-          base: "BrowserStack",
-          browser: "android",
-          browser_version: "null",
-          os: "android",
-          os_version: "10.0",
-          device: "Samsung Galaxy S20",
-          deviceId: "Samsung_Galaxy_S20_1",
-          real_mobile: true,
-        },
-        {
-          base: "BrowserStack",
-          browser: "chrome",
-          browser_version: "84.0",
-          os: "Windows",
-          os_version: "10",
-          deviceId: "Windows_10_1",
-          device: null,
-        },
-        {
-          base: "BrowserStack",
-          browser: "chrome",
-          browser_version: "84.0",
-          os: "OS X",
-          os_version: "Catalina",
-          device: null,
-          deviceId: "OS_X_Catalina_1",
+          model: "mobilenet_v2",
+          numRuns: 1,
+          backend: "wasm",
+          browsers: [
+            {
+              base: "BrowserStack",
+              browser: "iphone",
+              browser_version: "null",
+              os: "ios",
+              os_version: "12",
+              device: "iPhone XS",
+              deviceId: "iPhone_XS_1",
+              real_mobile: true,
+            },
+            {
+              base: "BrowserStack",
+              browser: "android",
+              browser_version: "null",
+              os: "android",
+              os_version: "10.0",
+              device: "Samsung Galaxy S20",
+              deviceId: "Samsung_Galaxy_S20_1",
+              real_mobile: true,
+            },
+            {
+              base: "BrowserStack",
+              browser: "chrome",
+              browser_version: "84.0",
+              os: "Windows",
+              os_version: "10",
+              deviceId: "Windows_10_1",
+              device: null,
+            },
+            {
+              base: "BrowserStack",
+              browser: "chrome",
+              browser_version: "84.0",
+              os: "OS X",
+              os_version: "Catalina",
+              device: null,
+              deviceId: "OS_X_Catalina_1",
+            },
+          ],
         },
       ],
     };
@@ -142,13 +148,50 @@ describe("test app.js cli", () => {
     });
   });
 
+  it("should benchmark all models and return results", async () => {
+    const results = [];
+
+    // run benchmark for each configuration
+    for (info of config.benchmarks) {
+      const { model, backend, numRuns, browsers } = info;
+
+      const result = await benchmark(
+        {
+          benchmark: {
+            model: model,
+            numRuns: numRuns,
+            backend: backend,
+          },
+          browsers: browsers,
+        },
+        mockRunOneBenchmark
+      );
+
+      results.push(result);
+    }
+
+    // Expected benchmarkAll results
+    expect(results.length).toEqual(config.benchmarks);
+    expect(mockRunOneBenchmark.call.count()).toEqual(config.benchmarks.length);
+  });
+
   it("benchmark function benchmarks each browser-device pairing ", async () => {
     // Receives list of promises from benchmark function call
-    const testResults = await benchmark(config, mockRunOneBenchmark);
+    const { model, numRuns, backend, browsers } = config.benchmarks[0];
+
+    const formattedConfig = {
+      benchmark: {
+        model,
+        numRuns,
+        backend,
+      },
+      browsers,
+    };
+    const testResults = await benchmark(formattedConfig, mockRunOneBenchmark);
 
     // Extracts value results from promises, effectively formatting
     const formattedResults = {};
-    for (let i = 0; i < config.browsers.length; i++) {
+    for (let i = 0; i < formattedConfig.browsers.length; i++) {
       await new Promise((resolve) => {
         const result = testResults[i].value;
         formattedResults[result.tabId] = result;
@@ -157,7 +200,9 @@ describe("test app.js cli", () => {
     }
 
     // Expected mockRunOneBenchmark stats
-    expect(mockRunOneBenchmark.calls.count()).toEqual(config.browsers.length);
+    expect(mockRunOneBenchmark.calls.count()).toEqual(
+      formattedConfig.browsers.length
+    );
     expect(mockRunOneBenchmark).toHaveBeenCalledWith("iPhone_XS_1", undefined);
     expect(mockRunOneBenchmark).toHaveBeenCalledWith(
       "Samsung_Galaxy_S20_1",

@@ -87,8 +87,7 @@ function runServer() {
  */
 function setupBenchmarkEnv(config) {
   // Write the map (tabId - browser setting) to `./browsers.json`.
-  for (const tabId in config.browsers) {
-    const browser = config.browsers[tabId];
+  for (const browser of config.browsers) {
     browser.base = "BrowserStack";
     // For mobile devices, we would use real devices instead of emulators.
     if (browser.os === "ios" || browser.os === "android") {
@@ -119,8 +118,8 @@ async function benchmarkAll(config) {
   const allResults = [];
   const benchmarkInfo = config.benchmarks;
 
-  for (backend of benchmarkInfo) {
-    const { model, backend, numRuns, browsers } = benchmarkInfo;
+  for (info of benchmarkInfo) {
+    const { model, backend, numRuns, browsers } = info;
     console.log(
       `\nRunning ${model} model benchmarks over ${backend} backend...`
     );

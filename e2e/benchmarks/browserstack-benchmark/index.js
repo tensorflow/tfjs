@@ -15,11 +15,16 @@
  * =============================================================================
  */
 
-const TUNABLE_BROWSER_FIELDS =
-    ['os', 'os_version', 'browser', 'browser_version', 'device'];
-const WAITING_STATUS_COLOR = '#AAAAAA';
-const COMPLETE_STATUS_COLOR = '#357edd';
-const ERROR_STATUS_COLOR = '#e8564b';
+const TUNABLE_BROWSER_FIELDS = [
+  "os",
+  "os_version",
+  "browser",
+  "browser_version",
+  "device",
+];
+const WAITING_STATUS_COLOR = "#AAAAAA";
+const COMPLETE_STATUS_COLOR = "#357edd";
+const ERROR_STATUS_COLOR = "#e8564b";
 const DISABLED_BUTTON_OPACITY = 0.8;
 const ENABLED_BUTTON_OPACITY = 1;
 
@@ -35,14 +40,19 @@ const state = {
 
   // The following `browser` and `benchmark` fields are kept updated by dat.gui.
   browser: {
-    base: 'BrowserStack',
-    browser: 'chrome',
-    browser_version: '84.0',
-    os: 'OS X',
-    os_version: 'Catalina',
-    device: 'null'
+    base: "BrowserStack",
+    browser: "chrome",
+    browser_version: "84.0",
+    os: "OS X",
+    os_version: "Catalina",
+    device: "null",
   },
-  benchmark: {model: 'mobilenet_v2', modelUrl: '', numRuns: 1, backend: 'wasm'},
+  benchmark: {
+    model: "mobilenet_v2",
+    modelUrl: "",
+    numRuns: 1,
+    backend: "wasm",
+  },
 
   /**
    * An array of browser configurations, used to record the browsers to
@@ -60,10 +70,10 @@ const state = {
 
   addBrowser: () => {
     // Add browser config to `state.browsers` array.
-    state.browsers.push({...state.browser});
+    state.browsers.push({ ...state.browser });
 
     // Enable the benchmark button.
-    benchmarkButton.__li.style.pointerEvents = '';
+    benchmarkButton.__li.style.pointerEvents = "";
     benchmarkButton.__li.style.opacity = ENABLED_BUTTON_OPACITY;
 
     // Initialize tfvis, if it is the first call.
@@ -72,11 +82,12 @@ const state = {
     drawTunableBrowserSummaryTable(state.summaryTabId, state.browsers);
   },
 
-  removeBrowser: index => {
+  removeBrowser: (index) => {
     if (index >= state.browsers.length) {
       throw new Error(
-          `Invalid index ${index}, while the state.browsers only ` +
-          `has ${state.browsers.length} items.`);
+        `Invalid index ${index}, while the state.browsers only ` +
+          `has ${state.browsers.length} items.`
+      );
     }
 
     // Remove the browser from the `state.browsers` array.
@@ -84,7 +95,7 @@ const state = {
 
     if (state.browsers.length === 0) {
       // Disable the benchmark button.
-      benchmarkButton.__li.style.pointerEvents = 'none';
+      benchmarkButton.__li.style.pointerEvents = "none";
       benchmarkButton.__li.style.opacity = DISABLED_BUTTON_OPACITY;
     }
 
@@ -96,13 +107,13 @@ const state = {
     state.browsers.splice(0, state.browsers.length);
 
     // Disable the benchmark button.
-    benchmarkButton.__li.style.pointerEvents = 'none';
+    benchmarkButton.__li.style.pointerEvents = "none";
     benchmarkButton.__li.style.opacity = DISABLED_BUTTON_OPACITY;
   },
 
   run: () => {
     // Disable the 'Add browser' button.
-    addingBrowserButton.__li.style.pointerEvents = 'none';
+    addingBrowserButton.__li.style.pointerEvents = "none";
     addingBrowserButton.__li.style.opacity = DISABLED_BUTTON_OPACITY;
 
     // Initialize tfvis, if it is the first call.
@@ -110,21 +121,21 @@ const state = {
 
     // Build 'tabId - browser config' map (one of benchmark config arguments).
     const browserTabIdConfigMap = {};
-    state.browsers.forEach(browser => {
+    state.browsers.forEach((browser) => {
       const tabId = createTab(browser);
-      if (browser.device === 'null') {
+      if (browser.device === "null") {
         browser.device = null;
       }
       browserTabIdConfigMap[tabId] = browser;
     });
 
-    const benchmark = {...state.benchmark};
-    if (state.benchmark.model !== 'custom') {
-      delete benchmark['modelUrl'];
+    const benchmark = { ...state.benchmark };
+    if (state.benchmark.model !== "custom") {
+      delete benchmark["modelUrl"];
     }
 
     // Send the configuration object to the server to start the benchmark.
-    socket.emit('run', {
+    socket.emit("run", {
       summaryTabId: state.summaryTabId,
       benchmark,
       browsers: browserTabIdConfigMap,
@@ -136,7 +147,7 @@ const state = {
     // Prepare for the next round benchmark.
     state.summaryTabId = getTabId();
     state.clearBrowsers();
-  }
+  },
 };
 
 let socket;
@@ -166,12 +177,15 @@ let browserTreeRoot;
  */
 function constructBrowserTree(browsersArray) {
   const browserTreeRoot = {};
-  browsersArray.forEach(browser => {
+  browsersArray.forEach((browser) => {
     let currentNode = browserTreeRoot;
 
     // Route through non-leaf nodes.
-    for (let fieldIndex = 0; fieldIndex <= TUNABLE_BROWSER_FIELDS.length - 2;
-         fieldIndex++) {
+    for (
+      let fieldIndex = 0;
+      fieldIndex <= TUNABLE_BROWSER_FIELDS.length - 2;
+      fieldIndex++
+    ) {
       const fieldName = TUNABLE_BROWSER_FIELDS[fieldIndex];
       if (currentNode[browser[fieldName]] == null) {
         currentNode[browser[fieldName]] = {};
@@ -181,14 +195,15 @@ function constructBrowserTree(browsersArray) {
 
     // Set the full configuration as the leaf node.
     const leafFieldName =
-        TUNABLE_BROWSER_FIELDS[TUNABLE_BROWSER_FIELDS.length - 1];
+      TUNABLE_BROWSER_FIELDS[TUNABLE_BROWSER_FIELDS.length - 1];
     const leafFieldValue = browser[leafFieldName];
     if (currentNode[leafFieldValue] == null) {
       currentNode[leafFieldValue] = browser;
     } else {
       console.warn(
-          `The browser ${browser} shares the same ` +
-          'configuration with another browser.');
+        `The browser ${browser} shares the same ` +
+          "configuration with another browser."
+      );
     }
   });
   return browserTreeRoot;
@@ -204,7 +219,10 @@ function constructBrowserTree(browsersArray) {
  * @param {object} currentNode
  */
 function updateFollowingFields(
-    currentFieldIndex, currentFieldValue, currentNode) {
+  currentFieldIndex,
+  currentFieldValue,
+  currentNode
+) {
   const nextFieldIndex = currentFieldIndex + 1;
   if (nextFieldIndex === TUNABLE_BROWSER_FIELDS.length) {
     return;
@@ -222,7 +240,8 @@ function updateFollowingFields(
 
   // Update the options for the next field.
   const nextFieldController = browserSettingControllers[nextFieldIndex].options(
-      nextFieldAvailableValues);
+    nextFieldAvailableValues
+  );
 
   // When updating options for a dat.gui controller, a new controller instacne
   // will be created, so we need to bind the event again and record the new
@@ -235,7 +254,7 @@ function updateFollowingFields(
 
   nextFieldController.setValue(nextFieldValue);
 
-  if (nextFieldValue === 'null') {
+  if (nextFieldValue === "null") {
     nextFieldController.__li.hidden = true;
   } else {
     nextFieldController.__li.hidden = false;
@@ -256,8 +275,11 @@ function updateFollowingFields(
  */
 function showBrowserField(fieldIndex, currentNode) {
   const fieldName = TUNABLE_BROWSER_FIELDS[fieldIndex];
-  const fieldController =
-      browserFolder.add(state.browser, fieldName, Object.keys(currentNode));
+  const fieldController = browserFolder.add(
+    state.browser,
+    fieldName,
+    Object.keys(currentNode)
+  );
 
   fieldController.onFinishChange(() => {
     const newValue = state.browser[fieldName];
@@ -266,7 +288,7 @@ function showBrowserField(fieldIndex, currentNode) {
 
   // Null represents the field is not applicable for this browser. For example,
   // `browser_version` is normally not applicable for mobile devices.
-  if (state.browser[fieldName] === 'null') {
+  if (state.browser[fieldName] === "null") {
     fieldController.__li.hidden = true;
   }
 
@@ -286,15 +308,15 @@ function showBrowserField(fieldIndex, currentNode) {
  *     `TUNABLE_BROWSER_FIELDS`.
  */
 function drawTunableBrowserSummaryTable(summaryTabId, browsers) {
-  const headers = [...TUNABLE_BROWSER_FIELDS, ''];
+  const headers = [...TUNABLE_BROWSER_FIELDS, ""];
   const values = [];
 
   for (let index = 0; index < browsers.length; index++) {
     const browser = browsers[index];
     const row = [];
     for (const fieldName of TUNABLE_BROWSER_FIELDS) {
-      if (browser[fieldName] == null || browser[fieldName] === 'null') {
-        row.push('-');
+      if (browser[fieldName] == null || browser[fieldName] === "null") {
+        row.push("-");
       } else {
         row.push(browser[fieldName]);
       }
@@ -302,19 +324,18 @@ function drawTunableBrowserSummaryTable(summaryTabId, browsers) {
 
     // Whenever a browser configuration is removed, this table will be re-drawn,
     // so the index (the argument for state.removeBrowser) will be re-assigned.
-    const removeBrowserButtonElement =
-        `<button onclick="state.removeBrowser(${index})">Remove</button>`;
+    const removeBrowserButtonElement = `<button onclick="state.removeBrowser(${index})">Remove</button>`;
     row.push(removeBrowserButtonElement);
 
     values.push(row);
   }
 
   const surface = {
-    name: 'Browsers to benchmark',
+    name: "Browsers to benchmark",
     tab: summaryTabId,
-    styles: {width: '100%'}
+    styles: { width: "100%" },
   };
-  tfvis.render.table(surface, {headers, values});
+  tfvis.render.table(surface, { headers, values });
 }
 
 /**
@@ -328,23 +349,23 @@ function drawTunableBrowserSummaryTable(summaryTabId, browsers) {
  *     of ' tabId - browser' pairs.
  */
 function drawUntunableBrowserSummaryTable(summaryTabId, browserTabIdConfigMap) {
-  const headers = ['tabId', ...TUNABLE_BROWSER_FIELDS];
+  const headers = ["tabId", ...TUNABLE_BROWSER_FIELDS];
   const values = [];
   for (const browserTabId in browserTabIdConfigMap) {
     const browser = browserTabIdConfigMap[browserTabId];
     const row = [browserTabId];
     for (const fieldName of TUNABLE_BROWSER_FIELDS) {
-      row.push(browser[fieldName] || '-');
+      row.push(browser[fieldName] || "-");
     }
     values.push(row);
   }
 
   const surface = {
-    name: 'Browsers to benchmark',
+    name: "Browsers to benchmark",
     tab: summaryTabId,
-    styles: {width: '100%'}
+    styles: { width: "100%" },
   };
-  tfvis.render.table(surface, {headers, values});
+  tfvis.render.table(surface, { headers, values });
 }
 
 function initVisor() {
@@ -354,9 +375,10 @@ function initVisor() {
   state.isVisorInitiated = true;
 
   // Bind an event to visor's 'Maximize/Minimize' button.
-  const visorFullScreenButton =
-      tfvis.visor().el.getElementsByTagName('button')[0];
-  const guiCloseButton = document.getElementsByClassName('close-button')[0];
+  const visorFullScreenButton = tfvis
+    .visor()
+    .el.getElementsByTagName("button")[0];
+  const guiCloseButton = document.getElementsByClassName("close-button")[0];
   const originalGuiWidth = gui.domElement.style.width;
 
   // The following two bound events are to implemet:
@@ -371,7 +393,7 @@ function initVisor() {
     } else {
       // When closing the controll panel, narrow the size.
       gui.close();
-      gui.domElement.style.width = '10%';
+      gui.domElement.style.width = "10%";
     }
     state.isDatGuiHidden = !state.isDatGuiHidden;
   };
@@ -381,7 +403,7 @@ function initVisor() {
       gui.domElement.style.width = originalGuiWidth;
     } else {
       // When closing the controll panel, narrow the size.
-      gui.domElement.style.width = '10%';
+      gui.domElement.style.width = "10%";
     }
     tfvis.visor().toggleFullScreen();
     state.isDatGuiHidden = !state.isDatGuiHidden;
@@ -389,8 +411,8 @@ function initVisor() {
 
   // If this button (hide visor) is exposed, then too much extra logics will be
   // needed to tell the full story.
-  const visorHideButton = tfvis.visor().el.getElementsByTagName('button')[1];
-  visorHideButton.style.display = 'none';
+  const visorHideButton = tfvis.visor().el.getElementsByTagName("button")[1];
+  visorHideButton.style.display = "none";
 }
 
 /**
@@ -404,14 +426,14 @@ function getTabId(browserConf) {
   let baseName;
   if (browserConf == null) {
     // The tab is a summary tab.
-    baseName = 'Summary';
-  } else if (browserConf.os === 'android' || browserConf.os === 'ios') {
+    baseName = "Summary";
+  } else if (browserConf.os === "android" || browserConf.os === "ios") {
     // For mobile devices.
     baseName = browserConf.device;
   } else {
     baseName = `${browserConf.os}_${browserConf.os_version}`;
   }
-  baseName = baseName.split(' ').join('_');
+  baseName = baseName.split(" ").join("_");
   if (visorTabNameCounter[baseName] == null) {
     visorTabNameCounter[baseName] = 0;
   }
@@ -427,15 +449,15 @@ function createTab(browserConf) {
   drawBenchmarkParameterTable(tabId);
 
   // Add a status indicator into the tab button.
-  const visorTabList = document.getElementsByClassName('tf-tab');
+  const visorTabList = document.getElementsByClassName("tf-tab");
   const curTabElement = visorTabList[visorTabList.length - 1];
-  const indicatorElement = document.createElement('span');
-  indicatorElement.innerHTML = '.';
-  indicatorElement.style.fontSize = '20px';
+  const indicatorElement = document.createElement("span");
+  indicatorElement.innerHTML = ".";
+  indicatorElement.style.fontSize = "20px";
   indicatorElement.id = `${tabId}-indicator`;
   curTabElement.appendChild(indicatorElement);
 
-  setTabStatus(tabId, 'WAITING');
+  setTabStatus(tabId, "WAITING");
   addLoaderElement(tabId);
   return tabId;
 }
@@ -445,11 +467,11 @@ function reportBenchmarkResult(benchmarkResult) {
   removeLoaderElement(tabId);
 
   if (benchmarkResult.error != null) {
-    setTabStatus(tabId, 'ERROR');
+    setTabStatus(tabId, "ERROR");
     // TODO: show error message under the tab.
     console.log(benchmarkResult.error);
   } else {
-    setTabStatus(tabId, 'COMPLETE');
+    setTabStatus(tabId, "COMPLETE");
     drawInferenceTimeLineChart(benchmarkResult);
     drawBenchmarkResultSummaryTable(benchmarkResult);
     // TODO: draw a table for inference kernel information.
@@ -469,13 +491,13 @@ function setTabStatus(tabId, status) {
   const indicatorElementId = `${tabId}-indicator`;
   const indicatorElement = document.getElementById(indicatorElementId);
   switch (status) {
-    case 'WAITING':
+    case "WAITING":
       indicatorElement.style.color = WAITING_STATUS_COLOR;
       break;
-    case 'COMPLETE':
+    case "COMPLETE":
       indicatorElement.style.color = COMPLETE_STATUS_COLOR;
       break;
-    case 'ERROR':
+    case "ERROR":
       indicatorElement.style.color = ERROR_STATUS_COLOR;
       break;
     default:
@@ -489,10 +511,13 @@ function setTabStatus(tabId, status) {
  * @param {string} tabId
  */
 function addLoaderElement(tabId) {
-  const surface = tfvis.visor().surface(
-      {name: 'Benchmark Summary', tab: tabId, styles: {width: '100%'}});
-  const loaderElement = document.createElement('div');
-  loaderElement.className = 'loader';
+  const surface = tfvis.visor().surface({
+    name: "Benchmark Summary",
+    tab: tabId,
+    styles: { width: "100%" },
+  });
+  const loaderElement = document.createElement("div");
+  loaderElement.className = "loader";
   loaderElement.id = `${tabId}-loader`;
   surface.drawArea.appendChild(loaderElement);
 }
@@ -511,37 +536,37 @@ function removeLoaderElement(tabId) {
 }
 
 function drawBenchmarkResultSummaryTable(benchmarkResult) {
-  const headers = ['Field', 'Value'];
+  const headers = ["Field", "Value"];
   const values = [];
 
-  const {timeInfo, memoryInfo, tabId} = benchmarkResult;
+  const { timeInfo, memoryInfo, tabId } = benchmarkResult;
   const timeArray = benchmarkResult.timeInfo.times;
   const numRuns = timeArray.length;
 
   if (numRuns >= 1) {
-    values.push(['1st inference time', printTime(timeArray[0])]);
+    values.push(["1st inference time", printTime(timeArray[0])]);
     if (numRuns >= 2) {
-      values.push(['2nd inference time', printTime(timeArray[1])]);
+      values.push(["2nd inference time", printTime(timeArray[1])]);
     }
     values.push([
       `Average inference time (${numRuns} runs)`,
-      printTime(timeInfo.averageTime)
+      printTime(timeInfo.averageTime),
     ]);
-    values.push(['Best time', printTime(timeInfo.minTime)]);
-    values.push(['Worst time', printTime(timeInfo.maxTime)]);
+    values.push(["Best time", printTime(timeInfo.minTime)]);
+    values.push(["Worst time", printTime(timeInfo.maxTime)]);
   }
 
-  values.push(['Peak memory', printMemory(memoryInfo.peakBytes)]);
-  values.push(['Leaked tensors', memoryInfo.newTensors]);
+  values.push(["Peak memory", printMemory(memoryInfo.peakBytes)]);
+  values.push(["Leaked tensors", memoryInfo.newTensors]);
 
-  values.push(['Number of kernels', memoryInfo.kernels.length]);
+  values.push(["Number of kernels", memoryInfo.kernels.length]);
 
   const surface = {
-    name: 'Benchmark Summary',
+    name: "Benchmark Summary",
     tab: tabId,
-    styles: {width: '100%'}
+    styles: { width: "100%" },
   };
-  tfvis.render.table(surface, {headers, values});
+  tfvis.render.table(surface, { headers, values });
 }
 
 async function drawInferenceTimeLineChart(benchmarkResult) {
@@ -558,34 +583,39 @@ async function drawInferenceTimeLineChart(benchmarkResult) {
     if (index === 0) {
       return;
     }
-    values.push({x: index + 1, y: time});
+    values.push({ x: index + 1, y: time });
   });
 
   const surface = {
     name: `2nd - ${inferenceTimeArray.length}st Inference Time`,
     tab: tabId,
-    styles: {width: '100%'}
+    styles: { width: "100%" },
   };
-  const data = {values};
-  const drawOptions =
-      {zoomToFit: true, xLabel: '', yLabel: 'time (ms)', xType: 'ordinal'};
+  const data = { values };
+  const drawOptions = {
+    zoomToFit: true,
+    xLabel: "",
+    yLabel: "time (ms)",
+    xType: "ordinal",
+  };
 
   await tfvis.render.linechart(surface, data, drawOptions);
 
   // Whenever resize the parent div element, re-draw the chart canvas.
   try {
-    const originalCanvasHeight = tfvis.visor()
-                                     .surface(surface)
-                                     .drawArea.getElementsByTagName('canvas')[0]
-                                     .height;
+    const originalCanvasHeight = tfvis
+      .visor()
+      .surface(surface)
+      .drawArea.getElementsByTagName("canvas")[0].height;
     const labelElement = tfvis.visor().surface(surface).label;
 
     new ResizeObserver(() => {
       // Keep the height of chart/canvas unchanged.
-      tfvis.visor()
-          .surface(surface)
-          .drawArea.getElementsByTagName('canvas')[0]
-          .height = originalCanvasHeight;
+      tfvis
+        .visor()
+        .surface(surface)
+        .drawArea.getElementsByTagName("canvas")[0].height =
+        originalCanvasHeight;
       tfvis.render.linechart(surface, data, drawOptions);
     }).observe(labelElement);
   } catch (e) {
@@ -594,66 +624,67 @@ async function drawInferenceTimeLineChart(benchmarkResult) {
 }
 
 function drawBrowserSettingTable(tabId, browserConf) {
-  const headers = ['Field', 'Value'];
+  const headers = ["Field", "Value"];
   const values = [];
   for (const fieldName of TUNABLE_BROWSER_FIELDS) {
-    if (browserConf[fieldName] != null && browserConf[fieldName] !== 'null') {
+    if (browserConf[fieldName] != null && browserConf[fieldName] !== "null") {
       const row = [fieldName, browserConf[fieldName]];
       values.push(row);
     }
   }
   const surface = {
-    name: 'Browser Setting',
+    name: "Browser Setting",
     tab: tabId,
-    styles: {width: '100%'}
+    styles: { width: "100%" },
   };
-  tfvis.render.table(surface, {headers, values});
+  tfvis.render.table(surface, { headers, values });
 }
 
 function drawBenchmarkParameterTable(tabId) {
-  const headers = ['Field', 'Value'];
+  const headers = ["Field", "Value"];
   const values = [];
 
   for (const entry of Object.entries(state.benchmark)) {
-    if (entry[1] != null && entry[1] !== '') {
+    if (entry[1] != null && entry[1] !== "") {
       values.push(entry);
     }
   }
 
   const surface = {
-    name: 'Benchmark Parameter',
+    name: "Benchmark Parameter",
     tab: tabId,
-    styles: {width: '100%'}
+    styles: { width: "100%" },
   };
-  tfvis.render.table(surface, {headers, values});
+  tfvis.render.table(surface, { headers, values });
 }
 
 function showModelSelection() {
-  const modelFolder = gui.addFolder('Model');
+  const modelFolder = gui.addFolder("Model");
   let modelUrlController = null;
 
-  modelFolder.add(state.benchmark, 'model', Object.keys(benchmarks))
-      .name('model name')
-      .onChange(async model => {
-        if (model === 'custom') {
-          if (modelUrlController === null) {
-            modelUrlController = modelFolder.add(state.benchmark, 'modelUrl');
-            modelUrlController.domElement.querySelector('input').placeholder =
-                'https://your-domain.com/model-path/model.json';
-          }
-        } else if (modelUrlController != null) {
-          modelFolder.remove(modelUrlController);
-          modelUrlController = null;
+  modelFolder
+    .add(state.benchmark, "model", Object.keys(benchmarks))
+    .name("model name")
+    .onChange(async (model) => {
+      if (model === "custom") {
+        if (modelUrlController === null) {
+          modelUrlController = modelFolder.add(state.benchmark, "modelUrl");
+          modelUrlController.domElement.querySelector("input").placeholder =
+            "https://your-domain.com/model-path/model.json";
         }
-      });
+      } else if (modelUrlController != null) {
+        modelFolder.remove(modelUrlController);
+        modelUrlController = null;
+      }
+    });
   modelFolder.open();
   return modelFolder;
 }
 
 function showParameterSettings() {
-  const parameterFolder = gui.addFolder('Parameters');
-  parameterFolder.add(state.benchmark, 'numRuns');
-  parameterFolder.add(state.benchmark, 'backend', ['wasm', 'webgl', 'cpu']);
+  const parameterFolder = gui.addFolder("Parameters");
+  parameterFolder.add(state.benchmark, "numRuns");
+  parameterFolder.add(state.benchmark, "backend", ["wasm", "webgl", "cpu"]);
   parameterFolder.open();
   return parameterFolder;
 }
@@ -673,18 +704,18 @@ function printMemory(bytes) {
 }
 
 function onPageLoad() {
-  gui = new dat.gui.GUI({width: 400});
-  gui.domElement.id = 'gui';
+  gui = new dat.gui.GUI({ width: 400 });
+  gui.domElement.id = "gui";
   socket = io();
 
   // Once the server is connected, the server will send back all
   // BrowserStack's available browsers in an array.
-  socket.on('availableBrowsers', availableBrowsersArray => {
+  socket.on("availableBrowsers", (availableBrowsersArray) => {
     if (browserTreeRoot == null) {
       // Build UI folders.
       showModelSelection();
       showParameterSettings();
-      browserFolder = gui.addFolder('Browser');
+      browserFolder = gui.addFolder("Browser");
 
       // Initialize the browser tree.
       browserTreeRoot = constructBrowserTree(availableBrowsersArray);
@@ -698,19 +729,20 @@ function onPageLoad() {
       browserFolder.open();
 
       // Enable users to benchmark.
-      addingBrowserButton =
-          browserFolder.add(state, 'addBrowser').name('Add browser');
-      benchmarkButton = gui.add(state, 'run').name('Run benchmark');
+      addingBrowserButton = browserFolder
+        .add(state, "addBrowser")
+        .name("Add browser");
+      benchmarkButton = gui.add(state, "run").name("Run benchmark");
 
       // Disable the 'Run benchmark' button until a browser is added.
-      benchmarkButton.__li.style.pointerEvents = 'none';
+      benchmarkButton.__li.style.pointerEvents = "none";
       benchmarkButton.__li.style.opacity = DISABLED_BUTTON_OPACITY;
     }
   });
 
-  socket.on('benchmarkComplete', benchmarkResult => {
+  socket.on("benchmarkComplete", (benchmarkResult) => {
     // Enable the 'Add browser' button.
-    addingBrowserButton.__li.style.pointerEvents = '';
+    addingBrowserButton.__li.style.pointerEvents = "";
     addingBrowserButton.__li.style.opacity = ENABLED_BUTTON_OPACITY;
 
     reportBenchmarkResult(benchmarkResult);
