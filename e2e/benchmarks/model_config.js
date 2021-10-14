@@ -184,11 +184,8 @@ const benchmarks = {
       return use.load();
     },
     predictFunc: () => {
-      let nextIdx = 0;
-
       return async model => {
-        const next = [sentences[(nextIdx % sentences.length)]];
-        nextIdx += 1;
+        const next = [sentences[0]];
         const res = await model.embed(next);
         return res;
       };
