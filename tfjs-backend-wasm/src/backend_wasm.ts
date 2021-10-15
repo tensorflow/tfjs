@@ -498,5 +498,8 @@ export function setThreadsCount(numThreads: number) {
  * It is set after the backend is intialized.
  */
 export function getThreadsCount(): number {
+  if (actualThreadsCount === -1) {
+    throw new Error(`WASM backend not initialized.`);
+  }
   return actualThreadsCount;
 }
