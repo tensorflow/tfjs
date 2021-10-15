@@ -111,6 +111,16 @@ void init_with_threads_count(const int threads_count) {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
+int get_threads_count() {
+  if (tfjs::backend::threadpool == NULL) {
+    return -1;
+  }
+  return pthreadpool_get_threads_count(tfjs::backend::threadpool);
+}
+
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif
 void register_tensor(const size_t tensor_id, const size_t size,
                      void *memory_offset) {
   DCHECK(tensor_id > 0,

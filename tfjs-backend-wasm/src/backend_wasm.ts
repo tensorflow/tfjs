@@ -45,6 +45,7 @@ export class BackendWasm extends KernelBackend {
   constructor(public wasm: BackendWasmModule|BackendWasmThreadedSimdModule) {
     super();
     this.wasm.tfjs.initWithThreadsCount(threadsCount);
+    actualThreadsCount = this.wasm.tfjs.getThreadsCount();
     this.dataIdMap = new DataStorage(this, engine());
   }
 
@@ -348,6 +349,7 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
         init: module.cwrap('init', null, []),
         initWithThreadsCount:
             module.cwrap('init_with_threads_count', null, ['number']),
+        getThreadsCount: module.cwrap('get_threads_count', 'number', []),
         registerTensor: module.cwrap(
             'register_tensor', null,
             [
@@ -478,6 +480,7 @@ export function resetWasmPath(): void {
 }
 
 let threadsCount = -1;
+let actualThreadsCount = -1;
 
 /**
  * Sets the number of threads that will be used by XNNPACK to create
@@ -487,4 +490,13 @@ let threadsCount = -1;
  */
 export function setThreadsCount(numThreads: number) {
   threadsCount = numThreads;
+}
+
+/**
+ * Gets the actual threads count that is used by XNNPACK.
+ *
+ * It is set after the backend is intialized.
+ */
+export function getThreadsCount(): number {
+  return actualThreadsCount;
 }
