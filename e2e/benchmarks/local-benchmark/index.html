@@ -473,9 +473,6 @@ limitations under the License.
 
     const chartHeight = 150;
     function populateTrendline(node, data, forceYMinToZero = false, yFormatter = d => d) {
-      if (data.length == 0) {
-        return;
-      }
       node.querySelector('svg').setAttribute('width', chartWidth);
       node.querySelector('svg').setAttribute('height', chartHeight);
 
@@ -497,6 +494,9 @@ limitations under the License.
     }
 
     async function measureAveragePredictTime() {
+      if (state.numRuns == 0) {
+        return;
+      }
       await showMsg(`Running predict ${state.numRuns} times`);
       chartWidth = document.querySelector('#perf-trendline-container').getBoundingClientRect().width;
 
