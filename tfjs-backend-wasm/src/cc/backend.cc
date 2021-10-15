@@ -52,18 +52,7 @@ TensorInfo &get_tensor_info_out(const size_t tensor_id) {
 
 size_t xnn_operator_count = 0;
 
-// emscripten_num_logical_cores corresponds to navigator.hardwareConcurrency.
-// Many x86-64 processors have 2 threads per core, so we are dividing by 2.
-#ifdef __EMSCRIPTEN_PTHREADS__
-int num_cores = emscripten_num_logical_cores() / 2;
-#else
-int num_cores = 1;
-#endif
-
-int min_num_threads = 1;
-int max_num_threads = 4;
-pthreadpool *threadpool = pthreadpool_create(
-    std::min(std::max(num_cores, min_num_threads), max_num_threads));
+pthreadpool *threadpool = NULL;
 
 // Registers a disposal callback for a tensor id with a given callback function.
 void register_disposal_callback(const size_t tensor_id,
@@ -82,13 +71,52 @@ const size_t num_tensors() { return data.size(); }
 }  // namespace backend
 
 namespace wasm {
+
+// emscripten_num_logical_cores corresponds to navigator.hardwareConcurrency.
+// Many x86-64 processors have 2 threads per core, so we are dividing by 2.
+#ifdef __EMSCRIPTEN_PTHREADS__
+int num_cores = emscripten_num_logical_cores() / 2;
+#else
+int num_cores = 1;
+#endif
+
+int min_num_threads = 1;
+// In cc/BUILD, we pre-created 8 webworker threads which is the maximum number
+// of threads that the threadpool could use here.
+int max_num_threads = 8;
+
 // We use C-style API to interface with Javascript.
+
 extern "C" {
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void init() { xnn_initialize(nullptr); }
+void init() { init_with_threads_count(num_cores); }
+
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif
+void init_with_threads_count(const int threads_count) {
+  int count = threads_count;
+  if (threads_count < 0) {
+    count = num_cores;
+  }
+  int capped_num_threads = std::min(
+      std::min(std::max(count, min_num_threads), max_num_threads), num_cores);
+  tfjs::backend::threadpool = pthreadpool_create(capped_num_threads);
+  xnn_initialize(nullptr);
+}
+
+#ifdef __EMSCRIPTEN__
+EMSCRIPTEN_KEEPALIVE
+#endif
+int get_threads_count() {
+  if (tfjs::backend::threadpool == NULL) {
+    return -1;
+  }
+  return pthreadpool_get_threads_count(tfjs::backend::threadpool);
+}
 
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
@@ -139,6 +167,9 @@ void dispose() {
 
   data.clear();
   disposal_callbacks.clear();
+
+  pthreadpool_destroy(tfjs::backend::threadpool);
+  tfjs::backend::threadpool = NULL;
 }
 
 }  // extern "C"
