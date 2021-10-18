@@ -336,6 +336,7 @@ tfjs_cc_library(
         ":SparseReshape",
         ":Square",
         ":SquaredDifference",
+        ":SparseSegmentReduction",
         ":StridedSlice",
         ":Sub",
         ":Tan",
@@ -1119,6 +1120,15 @@ tfjs_cc_library(
         ":backend",
         ":binary",
         ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SparseSegmentReduction",
+    srcs = ["kernels/SparseSegmentReduction.cc"],
+    deps = [
+        ":backend",
         ":util",
     ],
 )
