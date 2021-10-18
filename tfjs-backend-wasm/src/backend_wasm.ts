@@ -42,7 +42,7 @@ export class BackendWasm extends KernelBackend {
   private dataIdNextNumber = 1;
   dataIdMap: DataStorage<TensorData>;
 
-  constructor(public wasm: BackendWasmModule | BackendWasmThreadedSimdModule) {
+  constructor(public wasm: BackendWasmModule|BackendWasmThreadedSimdModule) {
     super();
     this.wasm.tfjs.init();
     this.dataIdMap = new DataStorage(this, engine());
@@ -99,15 +99,23 @@ export class BackendWasm extends KernelBackend {
     return this.readSync(dataId);
   }
 
-  readSync(dataId: DataId): backend_util.BackendValues {
+  readSync(dataId: DataId, start?: number, end?: number):
+      backend_util.BackendValues {
     const {memoryOffset, dtype, shape, stringBytes} =
         this.dataIdMap.get(dataId);
     if (dtype === 'string') {
-      return stringBytes;
+      // Slice all elements.
+      if (!start && (end === undefined || end >= stringBytes.length)) {
+        return stringBytes;
+      }
+      return stringBytes.slice(start, end);
     }
+    start = start || 0;
+    end = end || util.sizeFromShape(shape);
+    const bytesPerElement = util.bytesPerElement(dtype);
     const bytes = this.wasm.HEAPU8.slice(
-        memoryOffset,
-        memoryOffset + util.sizeFromShape(shape) * util.bytesPerElement(dtype));
+        memoryOffset + start * bytesPerElement,
+        memoryOffset + end * bytesPerElement);
     return typedArrayFromBuffer(bytes.buffer, dtype);
   }
 
@@ -210,7 +218,7 @@ export class BackendWasm extends KernelBackend {
 }
 
 function createInstantiateWasmFunc(path: string) {
-  // this will be replace by rollup plugin patchWechatWebAssembly in 
+  // this will be replace by rollup plugin patchWechatWebAssembly in
   // minprogram's output.
   // tslint:disable-next-line:no-any
   return (imports: any, callback: any) => {

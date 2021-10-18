@@ -97,6 +97,28 @@ describeWithFlags('sparseSegmentSum', ALL_ENVS, () => {
         [[33, 34, 35, 36], [13, 14, 15, 16], [38, 40, 42, 44]]);
   });
 
+  it('does not have memory leak.', async () => {
+    const beforeDataIds = tf.engine().backend.numDataIds();
+
+    const data = TensorValue3x4();
+    const indices = tf.tensor1d([0, 1], 'int32');
+    const segmentIds = tf.tensor1d([0, 0], 'int32');
+    const result = tf.sparse.sparseSegmentSum(data, indices, segmentIds);
+
+    await result.data();
+
+    const afterResDataIds = tf.engine().backend.numDataIds();
+    expect(afterResDataIds).toEqual(beforeDataIds + 4);
+
+    data.dispose();
+    indices.dispose();
+    segmentIds.dispose();
+    result.dispose();
+
+    const afterDisposeDataIds = tf.engine().backend.numDataIds();
+    expect(afterDisposeDataIds).toEqual(beforeDataIds);
+  });
+
   it('indices invalid 1', async () => {
     expect(() => tf.sparse.sparseSegmentSum(TensorValue10x4(), [8, -1, 0, 9], [
       0, 1, 2, 2
