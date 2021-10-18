@@ -68,7 +68,6 @@ function sum(args: {backend: BackendWasm, inputs: SumInputs, attrs: SumAttrs}):
   const out = backend.makeOutput(outShape, input.dtype);
   if (util.sizeFromShape(input.shape) !== 0) {
     const outId = backend.dataIdMap.get(out.dataId).id;
-    console.log('reduceshape', reduceShape);
     wasmSum(inputId, reduceSize, CppDType[out.dtype], outId);
   }
 
