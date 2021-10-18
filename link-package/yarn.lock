@@ -12,7 +12,7 @@
 "@tensorflow/tfjs-backend-webgl@file:../dist/bin/tfjs-backend-webgl/tfjs-backend-webgl_pkg":
   version "0.0.0"
   dependencies:
-    "@tensorflow/tfjs-backend-cpu" "link:../../.cache/yarn/v6/npm-@tensorflow-tfjs-backend-webgl-0.0.0-8e4fb2ff-5577-4ca0-b455-e1622ae3ee25-1632506441313/node_modules/@tensorflow/link-package/node_modules/@tensorflow/tfjs-backend-cpu"
+    "@tensorflow/tfjs-backend-cpu" "link:../../.cache/yarn/v6/npm-@tensorflow-tfjs-backend-webgl-0.0.0-7561c250-a987-4093-a1fc-a0cbaa5c8e2e-1634333904046/node_modules/@tensorflow/link-package/node_modules/@tensorflow/tfjs-backend-cpu"
     "@types/offscreencanvas" "~2019.3.0"
     "@types/seedrandom" "2.4.27"
     "@types/webgl-ext" "0.0.30"
@@ -25,6 +25,9 @@
 "@tensorflow/tfjs-core@link:../link-package-core/node_modules/@tensorflow/tfjs-core":
   version "0.0.0"
   uid ""
+
+"@tensorflow/tfjs-layers@file:../dist/bin/tfjs-layers/tfjs-layers_pkg":
+  version "0.0.0"
 
 "@tensorflow/tfjs-tflite@link:../dist/bin/tfjs-tflite/tfjs-tflite_pkg":
   version "0.0.0"
