@@ -53,6 +53,31 @@ describeWithFlags('sparseReshape', ALL_ENVS, () => {
     expectArraysClose(await result.outputShape.data(), [2, 3 * 4]);
   });
 
+  it('does not have memory leak.', async () => {
+    const beforeDataIds = tf.engine().backend.numDataIds();
+
+    const sparseTensor = sparseTensorValue5x6();
+    const indices = sparseTensor.ind;
+    const shape = tf.tensor1d(sparseTensor.shape, 'int32');
+    const newShape = tf.tensor1d([1, 5, 2, 3], 'int32');
+    const result = tf.sparse.sparseReshape(indices, shape, newShape);
+
+    await result.outputIndices.data();
+    await result.outputShape.data();
+
+    const afterResDataIds = tf.engine().backend.numDataIds();
+    expect(afterResDataIds).toEqual(beforeDataIds + 5);
+
+    indices.dispose();
+    shape.dispose();
+    newShape.dispose();
+    result.outputIndices.dispose();
+    result.outputShape.dispose();
+
+    const afterDisposeDataIds = tf.engine().backend.numDataIds();
+    expect(afterDisposeDataIds).toEqual(beforeDataIds);
+  });
+
   it('throw error if more than one inferred dim', async () => {
     const sparseTensor = sparseTensorValue2x3x4();
     expect(() => tf.sparse.sparseReshape(sparseTensor.ind, sparseTensor.shape, [

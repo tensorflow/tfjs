@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,7 +20,7 @@ import {sizeFromShape} from '../../util';
  * Generates sparse reshape multiple negative 1 output dimension error message.
  *
  * @param dim1 The first dimension with a negative 1 value.
- * @param dim2 The second dimension with a negative 1 value..
+ * @param dim2 The second dimension with a negative 1 value.
  */
 export function getSparseReshapeMultipleNegativeOneOutputDimErrorMessage(
     dim1: number, dim2: number) {
@@ -31,7 +31,7 @@ export function getSparseReshapeMultipleNegativeOneOutputDimErrorMessage(
  * Generates sparse reshape negative output dimension error message.
  *
  * @param dim The dimension with a negative value.
- * @param value The negative value..
+ * @param value The negative value.
  */
 export function getSparseReshapeNegativeOutputDimErrorMessage(
     dim: number, value: number) {
