@@ -58,9 +58,12 @@ cc_binary(
         "-s MALLOC=emmalloc",
         "-s USE_PTHREADS=1",
         "-s PROXY_TO_PTHREAD=1",
-        # Many x86-64 processors have 2 threads per core, so we divide by 2.
-        "-s PTHREAD_POOL_SIZE=" +
-        "'Math.min(4, Math.max(1, (navigator.hardwareConcurrency || 1) / 2))'",
+        # Pre-create 8 webworkers (threads). The actual number of threads that
+        # will be used by XNNPACK for creating the threadpool might be fewer. It
+        # is by default set to the number of logical cores which in most cases
+        # should be fewer than 8. It can also be set manually by calling the
+        # `setThreadsCount` API.
+        "-s PTHREAD_POOL_SIZE=8",
     ],
     deps = [
         ":all_kernels",

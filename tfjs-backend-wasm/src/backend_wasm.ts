@@ -42,9 +42,10 @@ export class BackendWasm extends KernelBackend {
   private dataIdNextNumber = 1;
   dataIdMap: DataStorage<TensorData>;
 
-  constructor(public wasm: BackendWasmModule | BackendWasmThreadedSimdModule) {
+  constructor(public wasm: BackendWasmModule|BackendWasmThreadedSimdModule) {
     super();
-    this.wasm.tfjs.init();
+    this.wasm.tfjs.initWithThreadsCount(threadsCount);
+    actualThreadsCount = this.wasm.tfjs.getThreadsCount();
     this.dataIdMap = new DataStorage(this, engine());
   }
 
@@ -210,7 +211,7 @@ export class BackendWasm extends KernelBackend {
 }
 
 function createInstantiateWasmFunc(path: string) {
-  // this will be replace by rollup plugin patchWechatWebAssembly in 
+  // this will be replace by rollup plugin patchWechatWebAssembly in
   // minprogram's output.
   // tslint:disable-next-line:no-any
   return (imports: any, callback: any) => {
@@ -346,6 +347,9 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       // Using the tfjs namespace to avoid conflict with emscripten's API.
       module.tfjs = {
         init: module.cwrap('init', null, []),
+        initWithThreadsCount:
+            module.cwrap('init_with_threads_count', null, ['number']),
+        getThreadsCount: module.cwrap('get_threads_count', 'number', []),
         registerTensor: module.cwrap(
             'register_tensor', null,
             [
@@ -473,4 +477,29 @@ export function resetWasmPath(): void {
   wasmFileMap = {};
   customFetch = false;
   initAborted = false;
+}
+
+let threadsCount = -1;
+let actualThreadsCount = -1;
+
+/**
+ * Sets the number of threads that will be used by XNNPACK to create
+ * threadpool (default to the number of logical CPU cores).
+ *
+ * This must be called before calling `tf.setBackend('wasm')`.
+ */
+export function setThreadsCount(numThreads: number) {
+  threadsCount = numThreads;
+}
+
+/**
+ * Gets the actual threads count that is used by XNNPACK.
+ *
+ * It is set after the backend is intialized.
+ */
+export function getThreadsCount(): number {
+  if (actualThreadsCount === -1) {
+    throw new Error(`WASM backend not initialized.`);
+  }
+  return actualThreadsCount;
 }
