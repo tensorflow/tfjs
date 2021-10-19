@@ -45,16 +45,8 @@ export class FileDataSource extends DataSource {
   async iterator(): Promise<ByteChunkIterator> {
     if (isLocalPath(this.input) && env().get('IS_NODE')) {
       // tslint:disable-next-line:no-require-imports
-      const fs = require('fs');
-      this.input = await new Promise((resolve, reject) => {
-        fs.readFile((this.input as string).substr(7), (err: Error, data: FileElement) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(data);
-          }
-        });
-      });
+      const { promises } = require('fs');
+      this.input = await promises.readFile((this.input as string).substr(7));
     }
     // TODO(kangyizhang): Add LocalFileChunkIterator to split local streaming
     // with file in browser.
