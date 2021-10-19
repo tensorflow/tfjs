@@ -433,6 +433,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'image.transform'},
   {include: 'batchToSpaceND'},
   {include: 'spaceToBatchND'},
+  {include: 'sparseFillEmptyRows'},
 ];
 
 const customInclude = (testName: string) => {

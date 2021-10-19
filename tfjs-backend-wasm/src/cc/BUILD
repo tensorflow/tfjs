@@ -327,6 +327,7 @@ tfjs_cc_library(
         ":Sigmoid",
         ":Sin",
         ":Softmax",
+        ":SparseFillEmptyRows",
         ":Square",
         ":SquaredDifference",
         ":StridedSlice",
@@ -1074,6 +1075,15 @@ tfjs_unit_test(
     tags = ["ci"],
     deps = [
         ":Softmax",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SparseFillEmptyRows",
+    srcs = ["kernels/SparseFillEmptyRows.cc"],
+    deps = [
+        ":backend",
+        ":util",
     ],
 )
 
