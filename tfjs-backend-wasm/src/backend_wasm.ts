@@ -106,7 +106,8 @@ export class BackendWasm extends KernelBackend {
         this.dataIdMap.get(dataId);
     if (dtype === 'string') {
       // Slice all elements.
-      if (!start && (end === undefined || end >= stringBytes.length)) {
+      if ((start == null || start === 0) &&
+          (end == null || end >= stringBytes.length)) {
         return stringBytes;
       }
       return stringBytes.slice(start, end);
