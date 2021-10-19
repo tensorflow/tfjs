@@ -91,7 +91,7 @@ export function setupFakeAudeoStream() {
     return stream;
   };
   // tslint:disable-next-line:no-any
-  (window as any).AudioContext = FakeAudioContext.createInstance;
+  (window as any).AudioContext = FakeAudioContext;
 }
 
 export class FakeAudioContext {

@@ -27,6 +27,18 @@ exports_files([
     "README.md",
 ])
 
+nodejs_test(
+    name = "tfjs-data_test",
+    data = [
+        ":package_json",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-data/src:tfjs-data_test_lib",
+    ],
+    entry_point = "//tfjs-data/src:test_node.ts",
+    link_workspace_root = True,
+    tags = ["ci"],
+)
+
 # Defined here because chdir must be a subdirectory of the directory the rule is
 # defined in.
 nodejs_test(

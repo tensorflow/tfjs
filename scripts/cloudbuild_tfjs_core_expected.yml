@@ -214,48 +214,11 @@ steps:
   - name: gcr.io/learnjs-174218/release
     dir: tfjs-data
     entrypoint: yarn
-    id: build-tfjs-data
-    args:
-      - build-ci
-    waitFor:
-      - yarn-tfjs-data
-      - yarn-common
-      - yarn-link-package
-      - yarn-tfjs-layers
-      - lint-tfjs-layers
-  - name: gcr.io/learnjs-174218/release
-    dir: tfjs-data
-    entrypoint: yarn
     id: lint-tfjs-data
     args:
       - lint
     waitFor:
       - yarn-tfjs-data
-      - yarn-common
-      - yarn-link-package
-      - yarn-tfjs-layers
-      - lint-tfjs-layers
-  - name: gcr.io/learnjs-174218/release
-    dir: tfjs-data
-    entrypoint: yarn
-    id: test-tfjs-data
-    args:
-      - test-ci
-    waitFor:
-      - yarn-tfjs-data
-      - lint-tfjs-data
-      - yarn-common
-      - yarn-link-package
-      - yarn-tfjs-layers
-      - lint-tfjs-layers
-  - name: gcr.io/learnjs-174218/release
-    dir: tfjs-data
-    entrypoint: yarn
-    id: test-snippets-tfjs-data
-    args:
-      - test-snippets-ci
-    waitFor:
-      - build-tfjs-data
       - yarn-common
       - yarn-link-package
       - yarn-tfjs-layers
@@ -275,7 +238,6 @@ steps:
       - yarn-tfjs-layers
       - lint-tfjs-layers
       - yarn-tfjs-data
-      - build-tfjs-data
       - lint-tfjs-data
   - name: gcr.io/learnjs-174218/release
     dir: tfjs
@@ -293,7 +255,6 @@ steps:
       - yarn-tfjs-layers
       - lint-tfjs-layers
       - yarn-tfjs-data
-      - build-tfjs-data
       - lint-tfjs-data
   - name: gcr.io/learnjs-174218/release
     dir: tfjs
@@ -311,7 +272,6 @@ steps:
       - yarn-tfjs-layers
       - lint-tfjs-layers
       - yarn-tfjs-data
-      - build-tfjs-data
       - lint-tfjs-data
   - name: gcr.io/learnjs-174218/release
     dir: tfjs
@@ -330,7 +290,6 @@ steps:
       - yarn-tfjs-layers
       - lint-tfjs-layers
       - yarn-tfjs-data
-      - build-tfjs-data
       - lint-tfjs-data
     env:
       - BROWSERSTACK_USERNAME=deeplearnjs1
@@ -522,7 +481,6 @@ steps:
       - lint-tfjs-converter
       - create-pips-tfjs-converter
       - yarn-tfjs-data
-      - build-tfjs-data
       - lint-tfjs-data
       - yarn-tfjs-layers
       - lint-tfjs-layers
@@ -556,7 +514,6 @@ steps:
       - lint-tfjs-converter
       - create-pips-tfjs-converter
       - yarn-tfjs-data
-      - build-tfjs-data
       - lint-tfjs-data
       - yarn-tfjs-layers
       - lint-tfjs-layers

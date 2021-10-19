@@ -14,22 +14,6 @@ steps:
   args: ['install']
   waitFor: ['yarn-common']
 
-# Build deps.
-- name: 'gcr.io/learnjs-174218/release'
-  dir: 'tfjs-data'
-  entrypoint: 'yarn'
-  id: 'build-deps'
-  args: ['build-deps-ci']
-  waitFor: ['yarn-common']
-
-# Build.
-- name: 'gcr.io/learnjs-174218/release'
-  dir: 'tfjs-data'
-  entrypoint: 'yarn'
-  id: 'build'
-  args: ['build-ci']
-  waitFor: ['yarn', 'build-deps']
-
 # Lint.
 - name: 'gcr.io/learnjs-174218/release'
   dir: 'tfjs-data'
@@ -37,22 +21,6 @@ steps:
   id: 'lint'
   args: ['lint']
   waitFor: ['yarn', 'build-deps']
-
-# Run tests in node.
-- name: 'gcr.io/learnjs-174218/release'
-  dir: 'tfjs-data'
-  entrypoint: 'yarn'
-  id: 'test'
-  args: ['test-ci']
-  waitFor: ['yarn', 'build-deps', 'lint']
-
-# Run data snippets tests.
-- name: 'gcr.io/learnjs-174218/release'
-  dir: 'tfjs-data'
-  entrypoint: 'yarn'
-  id: 'test-snippets'
-  args: ['test-snippets-ci']
-  waitFor: ['build']
 
 timeout: 1800s
 logsBucket: 'gs://tfjs-build-logs'
