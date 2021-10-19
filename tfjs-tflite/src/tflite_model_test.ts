@@ -66,27 +66,28 @@ class MockModelRunner implements TFLiteWebModelRunner {
     const shape0 = [1, 2, 3];
     let buffer0: Int8Array|Uint8Array|Int16Array|Int32Array|Uint32Array|
         Float32Array|Float64Array = undefined;
+    const size0 = shape0.reduce((a, c) => a * c, 1);
     switch (firstTensorType) {
       case 'int8':
-        buffer0 = new Int8Array(shape0.reduce((a, c) => a * c, 1));
+        buffer0 = new Int8Array(size0);
         break;
       case 'uint8':
-        buffer0 = new Uint8Array(shape0.reduce((a, c) => a * c, 1));
+        buffer0 = new Uint8Array(size0);
         break;
       case 'int16':
-        buffer0 = new Int16Array(shape0.reduce((a, c) => a * c, 1));
+        buffer0 = new Int16Array(size0);
         break;
       case 'int32':
-        buffer0 = new Int32Array(shape0.reduce((a, c) => a * c, 1));
+        buffer0 = new Int32Array(size0);
         break;
       case 'uint32':
-        buffer0 = new Uint32Array(shape0.reduce((a, c) => a * c, 1));
+        buffer0 = new Uint32Array(size0);
         break;
       case 'float32':
-        buffer0 = new Float32Array(shape0.reduce((a, c) => a * c, 1));
+        buffer0 = new Float32Array(size0);
         break;
       case 'float64':
-        buffer0 = new Float64Array(shape0.reduce((a, c) => a * c, 1));
+        buffer0 = new Float64Array(size0);
         break;
       default:
         break;
