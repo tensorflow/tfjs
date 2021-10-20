@@ -57,34 +57,15 @@ nodejs_test(
 )
 
 tfjs_web_test(
-    name = "tfjs-data_webgl2_test",
+    name = "tfjs-data_browser_test",
     srcs = [
         "//tfjs-data/src:tfjs-data_test_bundle",
-    ],
-    browsers = [
-        "bs_chrome_mac",
-        "bs_firefox_mac",
-        "bs_android_9",
-        "win_10_chrome",
-    ],
-    static_files = [
-        # Listed here so sourcemaps are served
-        "//tfjs-data/src:tfjs-data_test_bundle",
-    ],
-)
-
-tfjs_web_test(
-    name = "tfjs-data_webgl1_test",
-    srcs = [
-        "//tfjs-data/src:tfjs-data_test_bundle",
-    ],
-    args = [
-        "--testEnv",
-        "webgl1",
     ],
     browsers = [
         "bs_safari_mac",
-        "bs_ios_11",
+        "bs_firefox_mac",
+        "bs_android_9",
+        "win_10_chrome",
     ],
     static_files = [
         # Listed here so sourcemaps are served
