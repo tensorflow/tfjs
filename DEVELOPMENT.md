@@ -114,7 +114,12 @@ source ~/.bashrc &&
 git clone https://github.com/tensorflow/tfjs.git &&
 cd tfjs &&
 # Create the .bazelrc.user file for WSL.
-echo "# Pass necessary WSL variables for running in Windows Subsystem for Linux
+echo "# Pass necessary WSL variables for running in Windows Subsystem for Linux.
+# WSLENV and WSL_DISTRO_NAME are build-in variables that are needed for running
+# the 'wslpath' command, which Karma uses to resolve file paths.
+# DISPLAY=true is passed to the Chrome process to make it launch in a window
+# since running Chrome headlessly from WSL does not seem to work. If you get
+# this working, please send a PR updating these docs (or open an issue :).
 run --test_env=CHROME_BIN --test_env=WSLENV --test_env=WSL_DISTRO_NAME --define DISPLAY=true
 test --test_env=CHROME_BIN --test_env=WSLENV --test_env=WSL_DISTRO_NAME --define DISPLAY=true" > .bazelrc.user &&
 printf "\n\nDone! Try running a browser test to verify the installation worked, e.g. 'cd tfjs-core && yarn && yarn test-browser'\n"
