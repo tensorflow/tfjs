@@ -169,13 +169,13 @@ We support porting pre-trained models from:
 ## Various ops supported in different backends
 
 Please refer below :
-- [TFJS Ops Metrix](https://docs.google.com/spreadsheets/d/1D25XtWaBrmUEErbGQB0QmNhH-xtwHo9LDl59w0TbxrI/edit#gid=0)
+- [TFJS Ops Matrix](https://docs.google.com/spreadsheets/d/1D25XtWaBrmUEErbGQB0QmNhH-xtwHo9LDl59w0TbxrI/edit#gid=0)
 
 ## Find out more
 
 [TensorFlow.js](https://js.tensorflow.org) is a part of the
 [TensorFlow](https://www.tensorflow.org) ecosystem. For more info:
-- For help from the community, use [`tensorflow.js`](https://stackoverflow.com/questions/tagged/tensorflow.js) tag on Stack Overflow.
+- For help from the community, use the `tfjs` tag on the [TensorFlow Forum](https://discuss.tensorflow.org/tag/tfjs).
 - [js.tensorflow.org](https://js.tensorflow.org)
 - [Tutorials](https://js.tensorflow.org/tutorials)
 - [API reference](https://js.tensorflow.org/api/latest/)
