@@ -176,10 +176,9 @@ Please refer below :
 [TensorFlow.js](https://js.tensorflow.org) is a part of the
 [TensorFlow](https://www.tensorflow.org) ecosystem. For more info:
 - For help from the community, use the `tfjs` tag on the [TensorFlow Forum](https://discuss.tensorflow.org/tag/tfjs).
-- [js.tensorflow.org](https://js.tensorflow.org)
+- [TensorFlow.js Website](https://js.tensorflow.org)
 - [Tutorials](https://js.tensorflow.org/tutorials)
 - [API reference](https://js.tensorflow.org/api/latest/)
-- [Discussion mailing list](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs)
 - [TensorFlow.js Blog](https://blog.tensorflow.org/search?label=TensorFlow.js)
 
 Thanks, <a href="https://www.browserstack.com/">BrowserStack</a>, for providing testing support.
