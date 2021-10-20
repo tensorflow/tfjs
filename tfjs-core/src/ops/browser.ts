@@ -137,7 +137,11 @@ function fromPixels_(
     vals = (pixels as PixelData | ImageData).data;
   } else if (isImage || isVideo || isImageBitmap) {
     if (fromPixels2DContext == null) {
-      fromPixels2DContext = document.createElement('canvas').getContext('2d');
+      if(typeof document === 'undefined') { 
+         fromPixels2DContext = new OffscreenCanvas(1, 1).getContext('2d');
+      } else {
+         fromPixels2DContext = document.createElement('canvas').getContext('2d');
+      }  
     }
     fromPixels2DContext.canvas.width = width;
     fromPixels2DContext.canvas.height = height;
