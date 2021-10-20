@@ -81,8 +81,7 @@
     "buildifier-ci": "./scripts/buildifier-ci.sh"
   },
   "dependencies": {
-    "@webgpu/glslang": "0.0.12",
-    "@webgpu/types": "0.1.4",
+    "@webgpu/types": "0.1.6",
     "node-fetch": "^2.6.1"
   }
 }
