@@ -55,10 +55,6 @@ export class SwapProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-        fn imod(x : i32, y : i32) -> i32 {
-          return x - y * (x / y);
-        }
-
         ${getMainHeaderString()} {
           ${getGlobalIndexString()}
           if (index < uniforms.size) {
@@ -76,7 +72,7 @@ export class SwapProgram implements WebGPUProgram {
             // above, Figure5(a) shows that element[1] is in the second half of
             // the group when group size is 2, but it is in the first half of
             // the group when group size is 4.
-            let isFirstInPair = imod(elemIdx, 2 * uniforms.inc) < uniforms.inc;
+            let isFirstInPair = elemIdx % (2 * uniforms.inc) < uniforms.inc;
             var i = 0;
             if (isFirstInPair) {
               i = elemIdx;
@@ -111,7 +107,7 @@ export class SwapProgram implements WebGPUProgram {
               x1 = uniforms.negativeInf;
             }
 
-            let reverse = imod(elemIdx, 2 * uniforms.dir) >= uniforms.dir;
+            let reverse = elemIdx % (2 * uniforms.dir) >= uniforms.dir;
             let isGreater = x0 > x1 || (x0 == x1 && i1 > i0);
             if (reverse == isGreater) {
               // Elements in opposite order of direction
@@ -157,10 +153,6 @@ export class MergeProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-        fn imod(x : i32, y : i32) -> i32 {
-          return x - y * (x / y);
-        }
-
         ${getMainHeaderString()} {
           ${getGlobalIndexString()}
           if (index < uniforms.size) {
@@ -190,7 +182,7 @@ export class MergeProgram implements WebGPUProgram {
             if (elemIdx < uniforms.k) {
               i = elemIdx;
             } else {
-              i = elemIdx * 2 - imod(elemIdx, uniforms.k);
+              i = elemIdx * 2 - elemIdx % uniforms.k;
             }
             var i0 = 0;
             if (uniforms.firstPass == 1) {
