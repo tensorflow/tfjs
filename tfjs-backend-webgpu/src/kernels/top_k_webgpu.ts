@@ -15,8 +15,10 @@
  * =============================================================================
  */
 
-import {getMainHeaderString} from '../shader_preprocessor';
-import {computeDispatch} from '../webgpu_util';
+import {util} from '@tensorflow/tfjs-core';
+
+import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -33,20 +35,22 @@ import {WebGPUProgram} from './webgpu_program';
 export class SwapProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  dispatchLayout: {x: number[], y: number[]};
+  dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'indices'];
   uniforms: string;
-  workGroupSize: [number, number, number] = [16, 16, 1];
+  workGroupSize: [number, number, number] = [256, 1, 1];
+  size: number;
 
   constructor(shape: number[]) {
     this.outputShape = shape;
-    this.dispatchLayout = {x: [1], y: [0]};
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.uniforms = `inputSize : i32; firstPass : i32; negativeInf : f32;
         dir : i32; inc : i32;`;
     this.shaderKey = 'swap';
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
@@ -56,9 +60,11 @@ export class SwapProgram implements WebGPUProgram {
         }
 
         ${getMainHeaderString()} {
-          let batch = i32(globalId.y);
-          let elemIdx = i32(globalId.x);
-          if (coordsInBounds2D(vec2<i32>(batch, elemIdx), uniforms.outShape)) {
+          ${getGlobalIndexString()}
+          if (index < uniforms.size) {
+            let outC = getOutputCoords(globalId, index);
+            let batch = outC[0];
+            let elemIdx = outC[1];
             // We compare elements pair-wise within a group of size 2 * inc.
             // The comparing rule for each group alternates between ascending
             // and descending. Within each group, we compare each pair at
@@ -114,9 +120,9 @@ export class SwapProgram implements WebGPUProgram {
               i1 = iTemp;
             }
             if (isFirstInPair) {
-              setOutput(batch, elemIdx, f32(i0));
+              setOutputFlat(index, f32(i0));
             } else {
-              setOutput(batch, elemIdx, f32(i1));
+              setOutputFlat(index, f32(i1));
             }
           }
         }
@@ -128,15 +134,16 @@ export class SwapProgram implements WebGPUProgram {
 export class MergeProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  dispatchLayout: {x: number[], y: number[]};
+  dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'indices'];
   uniforms: string;
-  workGroupSize: [number, number, number] = [16, 16, 1];
+  workGroupSize: [number, number, number] = [256, 1, 1];
+  size: number;
 
   constructor(shape: number[]) {
     this.outputShape = shape;
-    this.dispatchLayout = {x: [1], y: [0]};
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     // |n| Size of the original input of TopK
@@ -145,6 +152,7 @@ export class MergeProgram implements WebGPUProgram {
     // |k| Top k elements desired
     this.uniforms = `inputSize : i32; firstPass : i32; k : i32;`;
     this.shaderKey = 'merge';
+    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
@@ -154,9 +162,11 @@ export class MergeProgram implements WebGPUProgram {
         }
 
         ${getMainHeaderString()} {
-          let batch = i32(globalId.y);
-          let elemIdx = i32(globalId.x);
-          if (coordsInBounds2D(vec2<i32>(batch, elemIdx), uniforms.outShape)) {
+          ${getGlobalIndexString()}
+          if (index < uniforms.size) {
+            let outC = getOutputCoords(globalId, index);
+            let batch = outC[0];
+            let elemIdx = outC[1];
             // The output size is half of the previous size.
             // If the previous sequence is | | | | _ _ _ _  | | | |  _ _ _ _
             // (k=4), we only need to output the indices at positions |, the
@@ -204,9 +214,9 @@ export class MergeProgram implements WebGPUProgram {
             }
 
             if (x0 >= x1) {
-              setOutput(batch, elemIdx, f32(i0));
+              setOutputFlat(index, f32(i0));
             } else {
-              setOutput(batch, elemIdx, f32(i1));
+              setOutputFlat(index, f32(i1));
             }
           }
         }

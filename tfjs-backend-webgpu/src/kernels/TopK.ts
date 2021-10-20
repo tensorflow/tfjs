@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, TensorInfo, TopK, TopKAttrs, TopKInputs, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, NumericDataType, TensorInfo, TopK, TopKAttrs, TopKInputs, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {topKImplCPU} from '../kernel_utils/shared';
 import {MergeProgram, SwapProgram} from './top_k_webgpu';
 import {fill} from './Fill';
 import {gatherV2} from './GatherV2';
@@ -46,10 +47,23 @@ export function topK(
     TensorInfo[] {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
-  const k= attrs.k;
+  const {k, sorted}= attrs;
 
   const xShape = x.shape;
   const lastDim = xShape[xShape.length - 1];
+
+  if (backend.shouldExecuteOnCPU([x])) {
+    const xVals = backend.readSync(x.dataId) as TypedArray;
+    const [allTopKVals, allTopKIndices] =
+        topKImplCPU(xVals, xShape, x.dtype as NumericDataType, k, sorted);
+
+    return [
+      backend.makeTensorInfo(
+          allTopKVals.shape, allTopKVals.dtype, allTopKVals.values),
+      backend.makeTensorInfo(
+          allTopKIndices.shape, allTopKIndices.dtype, allTopKIndices.values)
+    ];
+  }
 
   if (k === 0) {
     xShape[xShape.length - 1] = 0;
