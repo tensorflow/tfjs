@@ -14,11 +14,10 @@
 # =============================================================================
 
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
-load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm")
-load("//tools:copy_to_dist.bzl", "copy_to_dist")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "pkg_npm")
+load("//tools:copy_to_dist.bzl", "copy_to_dist", "copy_ts_library_to_dist")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
-load("//tools:ts_library_outputs.bzl", "ts_library_outputs")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -27,6 +26,7 @@ tfjs_bundle(
     entry_point = "//tfjs-backend-webgpu/src:index.ts",
     external = [
         "@tensorflow/tfjs-core",
+        "@webgpu/types",
         "node-fetch",
         "util",
     ],
@@ -40,19 +40,13 @@ tfjs_bundle(
     ],
 )
 
-ts_library_outputs(
-    name = "tfjs-backend-webgpu_outputs",
+copy_ts_library_to_dist(
+    name = "copy_src_to_dist",
     srcs = [
         "//tfjs-backend-webgpu/src:tfjs-backend-webgpu_lib",
         "//tfjs-backend-webgpu/src:tfjs-backend-webgpu_src_lib",
     ],
-)
 
-copy_to_dist(
-    name = "copy_src_to_dist",
-    srcs = [
-        ":tfjs-backend-webgpu_outputs",
-    ],
     root = "src",
 )
 
@@ -82,7 +76,11 @@ copy_file(
 
 pkg_npm(
     name = "tfjs-backend-webgpu_pkg",
-    srcs = ["package.json"],
+    package_name = "@tensorflow/tfjs-backend-webgpu",
+    srcs = [
+        "README.md",
+        "package.json",
+    ],
     tags = ["ci"],
     deps = [
         ":copy_bundles",
@@ -92,6 +90,11 @@ pkg_npm(
     ],
 )
 
+STATIC_FILES = [
+    # Listed here so sourcemaps are served
+    "//tfjs-backend-webgpu/src:tfjs-backend-webgpu_test_bundle",
+]
+
 tfjs_web_test(
     name = "tfjs-backend-webgpu_test",
     srcs = [
@@ -100,15 +103,12 @@ tfjs_web_test(
     browsers = [
         "chrome_webgpu",
     ],
-    static_files = [
-        # Listed here so sourcemaps are served
-        "//tfjs-backend-webgpu/src:tfjs-backend-webgpu_test_bundle",
-        # For the webworker
-        ":tf-backend-webgpu.min.js",
-        ":tf-backend-webgpu.min.js.map",
-        "//tfjs-backend-cpu:tf-backend-cpu.min.js",
-        "//tfjs-backend-cpu:tf-backend-cpu.min.js.map",
-        "//tfjs-core:tf-core.min.js",
-        "//tfjs-core:tf-core.min.js.map",
+    static_files = STATIC_FILES,
+)
+
+js_library(
+    name = "package_json",
+    srcs = [
+        ":package.json",
     ],
 )

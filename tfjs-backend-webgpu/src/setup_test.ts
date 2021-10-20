@@ -669,6 +669,9 @@ const customInclude = (testName: string) => {
 
 setupTestFilters(TEST_FILTERS, customInclude);
 
-// Import and run all the tests from core.
-// tslint:disable-next-line: no-imports-from-dist
-import '@tensorflow/tfjs-core/dist/tests';
+// These use 'require' because they must not be hoisted above
+// the preceding snippet that parses test environments.
+// Import and run tests from core.
+// tslint:disable-next-line:no-imports-from-dist
+// tslint:disable-next-line:no-require
+require('@tensorflow/tfjs-core/dist/tests');
