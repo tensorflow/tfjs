@@ -43,6 +43,7 @@ nodejs_test(
     name = "test_snippets_test",
     chdir = "tfjs-data",
     data = [
+        ":tsconfig.json",
         "//:tsconfig.json",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-data/scripts:test_snippets_lib",
