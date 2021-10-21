@@ -16,10 +16,9 @@
  */
 
 import {DataType, InferenceModel, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, tensor, Tensor} from '@tensorflow/tfjs-core';
+
 import {getDefaultNumThreads} from './tflite_task_library_client/common';
-
 import * as tfliteWebAPIClient from './tflite_web_api_client';
-
 import {TFLiteDataType, TFLiteWebModelRunner, TFLiteWebModelRunnerOptions, TFLiteWebModelRunnerTensorInfo} from './types/tflite_web_model_runner';
 
 const TFHUB_SEARCH_PARAM = '?lite-format=tflite';
@@ -131,8 +130,26 @@ export class TFLiteModel implements InferenceModel {
     const outputTensors: NamedTensorMap = {};
     for (let i = 0; i < modelOutputs.length; i++) {
       const modelOutput = modelOutputs[i];
-      const outputTensor = tensor(
-          modelOutput.data(), this.getShapeFromTFLiteTensorInfo(modelOutput));
+      let data = modelOutput.data();
+
+      // Convert TFLite tensor types that are not supported by TFJS to
+      // compatible types.
+      switch (modelOutput.dataType) {
+        case 'int8':
+        case 'int16':
+        case 'uint32':
+          data = Int32Array.from(data);
+          break;
+        case 'float64':
+          console.warn(
+              `WARNING: converting output tensor from 'float64' to 'float32'`);
+          data = Float32Array.from(data);
+          break;
+        default:
+          break;
+      }
+      const outputTensor =
+          tensor(data, this.getShapeFromTFLiteTensorInfo(modelOutput));
       outputTensors[modelOutput.name] = outputTensor;
     }
     const names = Object.keys(outputTensors);

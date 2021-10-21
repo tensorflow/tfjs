@@ -135,6 +135,11 @@ limitations under the License.
             tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(false);
           }
         }
+        if (tunableFlagsControllers['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'] != null &&
+          urlState.has('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE')) {
+          const value = Number(urlState.get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'));
+          tunableFlagsControllers['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'].setValue(value);
+        }
       }
       // The model parameter will be update automically by onChange.
       if (modelController != null && urlState.has('benchmark'))
