@@ -81,7 +81,7 @@
     "@tensorflow/tfjs-backend-webgl": "link:../link-package/node_modules/@tensorflow/tfjs-backend-webgl",
     "@tensorflow/tfjs-converter": "link:../link-package/node_modules/@tensorflow/tfjs-converter",
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
-    "@tensorflow/tfjs-data": "link:../tfjs-data",
+    "@tensorflow/tfjs-data": "link:../link-package/node_modules/@tensorflow/tfjs-data",
     "@tensorflow/tfjs-layers": "link:../link-package/node_modules/@tensorflow/tfjs-layers",
     "argparse": "^1.0.10",
     "chalk": "^4.1.0",
