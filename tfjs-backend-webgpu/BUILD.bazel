@@ -46,7 +46,6 @@ copy_ts_library_to_dist(
         "//tfjs-backend-webgpu/src:tfjs-backend-webgpu_lib",
         "//tfjs-backend-webgpu/src:tfjs-backend-webgpu_src_lib",
     ],
-
     root = "src",
 )
 
