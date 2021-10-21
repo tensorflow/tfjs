@@ -16,9 +16,9 @@
  */
 
 import * as tf from '../index';
+import {backend} from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
-import {backend} from '../index';
 
 describeWithFlags('stridedSlice', ALL_ENVS, () => {
   it('with ellipsisMask=1', async () => {
@@ -427,6 +427,13 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
         tf.stridedSlice(a, [0, 0, 0], [0, -1, 0], [1, 1, 1], 3, 1, 4);
     expect(output.shape).toEqual([1, 239, 1, 10]);
   });
+
+  it('stridedSlice should handle negative begin with ellipsis_mask', () => {
+    const a = tf.ones([1, 36, 17, 3]);
+    const output = tf.stridedSlice(a, [0, -1], [0, 0], [1, 1], 0, 2, 1, 0, 0);
+    expect(output.shape).toEqual([1, 36, 17, 1]);
+  });
+
   it('accepts a tensor-like object', async () => {
     const tensor = [0, 1, 2, 3];
     const output = tf.stridedSlice(tensor, [0], [3], [2]);
