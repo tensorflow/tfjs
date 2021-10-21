@@ -244,7 +244,7 @@ function checkLossAndTargetCompatibility(
       if (y.shape[y.shape.length - 1] === 1) {
         throw new ValueError(
             `You are passing a target array of shape ${y.shape} while using ` +
-            `a loss 'categorical_crossentropy'. 'categorical_crossentropy'` +
+            `a loss 'categorical_crossentropy'. 'categorical_crossentropy' ` +
             `expects targets to be binary matrices (1s and 0s) of shape ` +
             `[samples, classes].`);
         // TODO(cais): Example code in error message.
