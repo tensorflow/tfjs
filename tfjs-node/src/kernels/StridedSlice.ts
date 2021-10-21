@@ -23,15 +23,16 @@ export const stridedSliceConfig: KernelConfig = {
   kernelName: StridedSlice,
   backendName: 'tensorflow',
   kernelFunc: (args) => {
-    let {x} = args.inputs as StridedSliceInputs;
+    const {x} = args.inputs as StridedSliceInputs;
     const backend = args.backend as NodeJSKernelBackend;
     const {beginMask, endMask, ellipsisMask, newAxisMask, shrinkAxisMask} =
         args.attrs as {} as StridedSliceAttrs;
 
-    let {begin, end, strides} = args.attrs as {} as StridedSliceAttrs;
+    const attrs = args.attrs as {} as StridedSliceAttrs;
     // make a copy because it may be modified in-place further down.
-    begin = begin.slice();
-    end = end.slice();
+    const begin = attrs.begin.slice();
+    const end = attrs.end.slice();
+    const strides = attrs.strides;
 
     return tidy(() => {
       const beginTensor = tensor1d(begin, 'int32');
