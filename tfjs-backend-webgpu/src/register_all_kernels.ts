@@ -109,6 +109,7 @@ import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanhConfig} from './kernels/Tanh';
 import {tileConfig} from './kernels/Tile';
+import {topKConfig} from './kernels/TopK';
 import {transformConfig} from './kernels/Transform';
 import {transposeConfig} from './kernels/Transpose';
 import {unpackConfig} from './kernels/Unpack';
@@ -209,6 +210,7 @@ const kernelConfigs: KernelConfig[] = [
   sumConfig,
   tanhConfig,
   tileConfig,
+  topKConfig,
   transformConfig,
   transposeConfig,
   unpackConfig,
