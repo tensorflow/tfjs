@@ -42,7 +42,6 @@ export function stridedSlice(args: {
     shrinkAxisMask
   } = attrs;
 
-
   const {
     finalShapeSparse,
     finalShape,
