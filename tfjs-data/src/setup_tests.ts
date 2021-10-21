@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2020 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,19 +15,12 @@
  * =============================================================================
  */
 
+import '@tensorflow/tfjs-core';
+// tslint:disable-next-line:no-imports-from-dist
+import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
 import '@tensorflow/tfjs-backend-cpu';
-// tslint:disable-next-line: no-imports-from-dist
-import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import '@tensorflow/tfjs-backend-webgl';
 
+// Import and run tests from data.
 // tslint:disable-next-line:no-require-imports
-const jasmine = require('jasmine');
-
-process.on('unhandledRejection', e => {
-  throw e;
-});
-
-setTestEnvs([{name: 'node', backendName: 'cpu'}]);
-const unitTests = 'tfjs-data/src/**/*_test.js';
-const runner = new jasmine();
-runner.loadConfig({spec_files: [unitTests], random: false});
-runner.execute();
+require('./tests');
