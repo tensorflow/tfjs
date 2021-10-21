@@ -106,6 +106,8 @@ esbuild(
         # is external to the test bundle.
         # Note: This is not a bazel target. It's just a string.
         "@tensorflow/tfjs",
+        "buffer",
+        "fs",
         "worker_threads",
         "util",
     ],
@@ -113,6 +115,5 @@ esbuild(
     deps = [
         ":tfjs-data_lib",
         ":tfjs-data_test_lib",
-        "//tfjs-data:package_json",
     ],
 )

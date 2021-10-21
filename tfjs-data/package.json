@@ -57,7 +57,7 @@
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build-npm && yalc push",
     "publish-npm": "bazel run :tfjs-data_pkg.publish",
-    "test-browser": "ibazel run :tfjs-data_webgl2_test --test-output=streamed",
+    "test-browser": "ibazel run :fjs-data_browser_test --test-output=streamed",
     "test-dev": "bazel test tfjs-data_test",
     "coverage": "yarn nyc yarn ts-node --transpile-only -P tsconfig.test.json src/test_node.ts",
     "lint": "tslint -p . -t verbose"
