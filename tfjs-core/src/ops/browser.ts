@@ -138,7 +138,7 @@ function fromPixels_(
   } else if (isImage || isVideo || isImageBitmap) {
     if (fromPixels2DContext == null) {
       if(typeof document === 'undefined') {
-         if(typeof OffscreenCanvas !== 'undefined' && typeof OffscreenCanvasRenderingContext2D === 'function') {
+         if(typeof OffscreenCanvas !== 'undefined' && typeof OffscreenCanvasRenderingContext2D !== 'undefined') {
               // @ts-ignore
               fromPixels2DContext = new OffscreenCanvas(1, 1).getContext('2d');
          } else {
