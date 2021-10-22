@@ -585,30 +585,6 @@ describeWithFlags(
     });
 
 /**
- * Browser-only test.
- */
-describeWithFlags('Check fromPixels', ALL_ENVS , () => {
-  it('pass ImageBitmap', async () => {
-        if(typeof ImageData === 'undefined') return
-    
-        const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1);
-        const bitmap = await createImageBitmap(imData);
-    
-        try {
-          tf.browser.fromPixels(bitmap);
-        } catch(e) {
-          if(typeof OffscreenCanvas === 'undefined' || typeof OffscreenCanvasRenderingContext2D === 'undefined') {
-            expect(e.message).toEqual('Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported.');
-          } else {
-            throw e;
-          }
-          
-        }
-        
-      });
-});
-
-/**
  * The following unit test is a special integration-style test that assumes
  * things about CPU & WebGL backends being registered. This tests doesn't live
  * in the backend directory because it is testing engine rather than
