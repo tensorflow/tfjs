@@ -584,8 +584,13 @@ describeWithFlags(
       });
     });
 
-describeWithFlags('Check fromPixels', ALL_ENVS, () => {
+/**
+ * Browser-only test.
+ */
+describeWithFlags('Check fromPixels', ALL_ENVS , () => {
   it('pass ImageBitmap', async () => {
+        if(typeof ImageData === 'undefined') return
+    
         const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1);
         const bitmap = await createImageBitmap(imData);
     
