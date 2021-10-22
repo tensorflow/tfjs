@@ -283,7 +283,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     expectArraysClose(pixelsData, actualInt32, 10);
   });
   
-  it('fromPixels for ImageBitmap, no channels', async () => {
+  it('fromPixels for ImageBitmap, no args', async () => {
         if(typeof ImageData === 'undefined' || typeof createImageBitmap === 'undefined') return
     
         const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1);
