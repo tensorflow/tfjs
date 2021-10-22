@@ -18,6 +18,9 @@
     "parcel-plugin-static-files-copy": "^2.2.1",
     "typescript": "3.5.3"
   },
+  "staticFiles": {
+    "staticPath": "../../link-package/node_modules/@tensorflow/tfjs-tflite/dist"
+  },
   "scripts": {
     "build-deps": "cd ../../link-package && yarn build",
     "watch": "cross-env NODE_ENV=development parcel src/index.html --no-hmr --open",
