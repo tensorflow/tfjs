@@ -592,7 +592,7 @@ describeWithFlags('Check fromPixels', ALL_ENVS, () => {
         try {
           tf.browser.fromPixels(bitmap);
         } catch(e) {
-          if(typeof OffscreenCanvasRenderingContext2D === 'undefined') {
+          if(typeof OffscreenCanvas === 'undefined' || typeof OffscreenCanvasRenderingContext2D === 'undefined') {
             expect(e.message).toEqual('Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported.');
           } else {
             throw e;
