@@ -138,11 +138,11 @@ function fromPixels_(
   } else if (isImage || isVideo || isImageBitmap) {
     if (fromPixels2DContext == null) {
       if(typeof document === 'undefined') {
-         if(typeof OffscreenCanvas !== 'undefined') {
+         if(typeof OffscreenCanvas !== 'undefined' && typeof OffscreenCanvasRenderingContext2D === 'function') {
               // @ts-ignore
               fromPixels2DContext = new OffscreenCanvas(1, 1).getContext('2d');
          } else {
-             throw new Error('Cannot parse input in current context. Reason: OffscreenCanvas is not supported');
+             throw new Error('Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported.');
          }
       } else {
          fromPixels2DContext = document.createElement('canvas').getContext('2d');
