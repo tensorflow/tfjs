@@ -188,7 +188,6 @@ export function softmax(args?: SoftmaxLayerArgs) {
   return new Softmax(args);
 }
 
-
 /**
  * SigmoidRange layer.
  * It follows
@@ -210,7 +209,6 @@ export function softmax(args?: SoftmaxLayerArgs) {
  export function sigmoidRange(args?: SigmoidRangeLayerArgs) {
   return new SigmoidRange(args);
 }
-
 
 /**
  * Thresholded Rectified Linear Unit.
