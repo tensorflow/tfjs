@@ -282,6 +282,25 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
 
     expectArraysClose(pixelsData, actualInt32, 10);
   });
+  
+  it('fromPixels for ImageBitmap, no channels', async () => {
+        if(typeof ImageData === 'undefined' || typeof createImageBitmap === 'undefined') return
+    
+        const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1);
+        const bitmap = await createImageBitmap(imData);
+    
+        try {
+          tf.browser.fromPixels(bitmap);
+        } catch(e) {
+          if(typeof OffscreenCanvas === 'undefined' || typeof OffscreenCanvasRenderingContext2D === 'undefined') {
+            expect(e.message).toEqual('Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported.');
+          } else {
+            throw e;
+          }
+          
+        }
+        
+  });
 
   if (tf.env().getBool('IS_CHROME')) {
     it('fromPixels for ImageBitmap', async () => {
