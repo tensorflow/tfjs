@@ -284,7 +284,15 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
   });
   
   it('fromPixels for ImageBitmap, worker', (done) => {
-    if(typeof ImageData === 'undefined' || typeof createImageBitmap === 'undefined') {
+    // Necessary preconditions
+    if(typeof createImageBitmap === 'undefined' || typeof (Worker) === 'undefined') {
+      done();
+      return;
+    }
+    
+    // Test-only preconditions
+    if(typeof (Blob) === 'undefined' || typeof (URL) === 'undefined') {
+      pending('Test-only js APIs are not supported in this context');
       done();
       return;
     }
@@ -315,8 +323,8 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
       done();
     };
     
-    const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1);
-    createImageBitmap(imData).then((bitmap) => { worker.postMessage(bitmap, [bitmap]); });
+    const canvas = new MockCanvas(2, 2);
+    createImageBitmap(canvas).then((bitmap) => { worker.postMessage(bitmap, [bitmap]); });
   });
 
   if (tf.env().getBool('IS_CHROME')) {
