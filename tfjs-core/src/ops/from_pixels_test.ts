@@ -326,6 +326,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     };
     
     const canvas = new MockCanvas(2, 2);
+    // @ts-ignore
     createImageBitmap(canvas).then((bitmap) => { worker.postMessage(bitmap, [bitmap]); });
   });
 
