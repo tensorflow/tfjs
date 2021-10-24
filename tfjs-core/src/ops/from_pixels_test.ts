@@ -305,6 +305,8 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     // The source code of a web worker.
     const workerTest = `
     importScripts(location.origin + '/base/tfjs/tfjs-core/tf-core.min.js');
+    importScripts(location.origin
+      + '/base/tfjs/tfjs-backend-cpu/tf-backend-cpu.min.js');
     
     tf.browser.fromPixels(bitmap);
     self.postMessage('DONE');
