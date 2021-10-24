@@ -283,23 +283,40 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     expectArraysClose(pixelsData, actualInt32, 10);
   });
   
-  it('fromPixels for ImageBitmap, no args', async () => {
-        if(typeof ImageData === 'undefined' || typeof createImageBitmap === 'undefined') return
+  it('fromPixels for ImageBitmap, worker', (done) => {
+    if(typeof ImageData === 'undefined' || typeof createImageBitmap === 'undefined') {
+      done();
+      return;
+    }
     
-        const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1);
-        const bitmap = await createImageBitmap(imData);
+    const str2workerURL = (str: string): string => {
+      const blob = new Blob([str], {type: 'application/javascript'});
+      return URL.createObjectURL(blob);
+    };
+
+    // The source code of a web worker.
+    const workerTest = `
+    importScripts(location.origin + '/base/tfjs/tfjs-core/tf-core.min.js');
     
-        try {
-          tf.browser.fromPixels(bitmap);
-        } catch(e) {
-          if(typeof OffscreenCanvas === 'undefined' || typeof OffscreenCanvasRenderingContext2D === 'undefined') {
-            expect(e.message).toEqual('Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported.');
-          } else {
-            throw e;
-          }
-          
-        }
-        
+    tf.browser.fromPixels(bitmap);
+    self.postMessage('DONE');
+    `;
+    
+    const worker = new Worker(str2workerURL(workerTest));
+    
+    worker.onmessage = (msg) => { done(); };
+    
+    worker.onerror = (e) => {
+      if(typeof OffscreenCanvas === 'undefined' || typeof OffscreenCanvasRenderingContext2D === 'undefined') {
+        expect(e.message).toEqual('Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported.');
+      } else {
+        throw e;
+      } 
+      done();
+    };
+    
+    const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1);
+    createImageBitmap(imData).then((bitmap) => { worker.postMessage(bitmap, [bitmap]); });
   });
 
   if (tf.env().getBool('IS_CHROME')) {
