@@ -285,7 +285,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
   
   it('fromPixels for ImageBitmap, worker', (done) => {
     // Necessary preconditions
-    if(typeof (createImageBitmap_ === 'undefined' || typeof (Worker) === 'undefined') {
+    if(typeof (createImageBitmap) === 'undefined' || typeof (Worker) === 'undefined') {
       done();
       return;
     }
