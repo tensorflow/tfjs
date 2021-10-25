@@ -22,6 +22,9 @@ const ENV = env();
 /** The batched dispatching calls size in the device queue. */
 ENV.registerFlag('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', () => 15);
 
+/** Wether print shader keys. */
+ENV.registerFlag('WEBGPU_PRINT_SHADER_KEYS', () => false);
+
 /**
  * Whether we forward execution to the CPU backend if tensors are small and
  * reside on the CPU.

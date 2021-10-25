@@ -31,7 +31,8 @@ const BACKEND_FLAGS_MAP = {
   ],
 };
 if (tf.engine().backendNames().includes('webgpu')) {
-  BACKEND_FLAGS_MAP['webgpu'] = ['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'];
+  BACKEND_FLAGS_MAP['webgpu'] =
+      ['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 'WEBGPU_PRINT_SHADER_KEYS'];
 }
 
 const TUNABLE_FLAG_NAME_MAP = {
@@ -51,6 +52,7 @@ const TUNABLE_FLAG_NAME_MAP = {
 if (tf.engine().backendNames().includes('webgpu')) {
   TUNABLE_FLAG_NAME_MAP['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'] =
       'deferred submit batch size';
+  TUNABLE_FLAG_NAME_MAP['WEBGPU_PRINT_SHADER_KEYS'] = 'print shader keys';
 }
 
 /**
@@ -61,8 +63,8 @@ let TUNABLE_FLAG_DEFAULT_VALUE_MAP;
 
 /**
  * Set up flag settings under the UI element of `folderController`:
- * - If it is the first call, initialize the flags' default value and show flag
- * settings for both the general and the given backend.
+ * - If it is the first call, initialize the flags' default value and show
+ * flag settings for both the general and the given backend.
  * - Else, clean up flag settings for the previous backend and show flag
  * settings for the new backend.
  *
@@ -148,8 +150,9 @@ function showBackendFlagSettingsAndReturnTunableFlagControllers(
         console.warn(ex.message);
         continue;
       }
-      // Because dat.gui always casts dropdown option values to string, we need
-      // `stringValueMap` and `onFinishChange()` to recover the value type.
+      // Because dat.gui always casts dropdown option values to string, we
+      // need `stringValueMap` and `onFinishChange()` to recover the value
+      // type.
       if (stringValueMap[flag] == null) {
         stringValueMap[flag] = {};
         for (let index = 0; index < flagValueRange.length; index++) {
@@ -171,7 +174,8 @@ function showBackendFlagSettingsAndReturnTunableFlagControllers(
 }
 
 /**
- * Query all tunable flags' default value and populate `state.flags` with them.
+ * Query all tunable flags' default value and populate `state.flags` with
+ * them.
  */
 async function initDefaultValueMap() {
   // Clean up the cache to query tunable flags' default values.
@@ -201,8 +205,9 @@ async function initDefaultValueMap() {
  * Assume that the flag's default value has already chosen the best option for
  * the runtime environment, so users can only tune the flag value downwards.
  *
- * For example, if the default value of `WEBGL_RENDER_FLOAT32_CAPABLE` is false,
- * the tunable range is [false]; otherwise, the tunable range is [true. false].
+ * For example, if the default value of `WEBGL_RENDER_FLOAT32_CAPABLE` is
+ * false, the tunable range is [false]; otherwise, the tunable range is [true.
+ * false].
  *
  * @param {string} flag
  */

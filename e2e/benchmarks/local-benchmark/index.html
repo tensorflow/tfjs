@@ -135,6 +135,15 @@ limitations under the License.
             tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(false);
           }
         }
+        if (tunableFlagsControllers['WEBGPU_PRINT_SHADER_KEYS'] != null &&
+          urlState.has('WEBGPU_PRINT_SHADER_KEYS')) {
+          const value = urlState.get('WEBGPU_PRINT_SHADER_KEYS');
+          if (value === 'true') {
+            tunableFlagsControllers['WEBGPU_PRINT_SHADER_KEYS'].setValue(true);
+          } else {
+            tunableFlagsControllers['WEBGPU_PRINT_SHADER_KEYS'].setValue(false);
+          }
+        }
         if (tunableFlagsControllers['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'] != null &&
           urlState.has('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE')) {
           const value = Number(urlState.get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'));
@@ -529,6 +538,9 @@ limitations under the License.
     }
 
     async function profileMemoryAndKernelTime() {
+      if (state.numRuns == 0) {
+        return;
+      }
       await showMsg('Profile memory and kernels');
       const start = performance.now();
 
