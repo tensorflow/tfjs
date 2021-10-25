@@ -133,7 +133,6 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
 
     const output = tf.stridedSlice(
         t, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask);
-    console.log(output.shape);
     expect(output.shape).toEqual([1, 2]);
     expectArraysClose(await output.data(), [0, 2]);
   });
