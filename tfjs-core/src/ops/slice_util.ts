@@ -499,11 +499,11 @@ export function sliceInfo(
   const finalShape = [];
 
   for (let i = 0; i < xShape.length; ++i) {
-    const dimI = xShape[i];
     if (denseSpec.strides[i] === 0) {
       throw Error(`strides[${i}] must be non-zero`);
     }
     const shrinkI = !!(denseSpec.shrinkAxisMask & (1 << i));
+    const dimI = xShape[i];
     if (dimI === -1) {
       processingShape.push(shrinkI ? 1 : -1);
       continue;
