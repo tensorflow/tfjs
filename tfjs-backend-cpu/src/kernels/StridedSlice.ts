@@ -59,6 +59,8 @@ export function stridedSlice(args: {
 
   let result;
 
+  // ref:
+  // https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/kernels/strided_slice_op.cc
   if (isIdentity) {
     // Optimization #1, slice is a no-op plus reshape
     result = reshape({inputs: {x}, backend, attrs: {shape: finalShape}});
