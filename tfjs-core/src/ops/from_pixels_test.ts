@@ -291,7 +291,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     }
     
     // Test-only preconditions
-    if(typeof (ImageData) || typeof (Blob) === 'undefined' || typeof (URL) === 'undefined') {
+    if(typeof (ImageData) === 'undefined' || typeof (Blob) === 'undefined' || typeof (URL) === 'undefined') {
       pending('Test-only js APIs are not supported in this context');
       done();
       return;
