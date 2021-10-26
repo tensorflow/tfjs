@@ -94,19 +94,19 @@ export function sparseFillEmptyRows(args: {
 
   let exceptionMessage: string;
   switch (exceptionValuesArray[0]) {
-    case 0: {
+    case 1: {
       exceptionMessage =
           backend_util.getSparseFillEmptyRowsIndicesDenseShapeMismatch(
               exceptionValuesArray[1]);
       break;
     }
-    case 1: {
+    case 2: {
       exceptionMessage =
           backend_util.getSparseFillEmptyRowsNegativeIndexErrorMessage(
               exceptionValuesArray[1], exceptionValuesArray[2]);
       break;
     }
-    case 2:
+    case 3:
       exceptionMessage =
           backend_util.getSparseFillEmptyRowsOutOfRangeIndexErrorMessage(
               exceptionValuesArray[1], exceptionValuesArray[2],

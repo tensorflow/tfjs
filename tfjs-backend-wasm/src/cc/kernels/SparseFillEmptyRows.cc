@@ -35,11 +35,11 @@ size_t sparse_fill_empty_rows(const int32_t* indices,
                               int32_t* reverse_index_map,
                               int32_t* exception_values) {
   // Initialize to no exceptions.
-  exception_values[0] = -1;
+  exception_values[0] = 0;
 
   if (dense_rows == 0) {
     if (indices_count != 0) {
-      exception_values[0] = 0;
+      exception_values[0] = 1;
       exception_values[1] = indices_count;
     }
     return 0;
@@ -53,13 +53,13 @@ size_t sparse_fill_empty_rows(const int32_t* indices,
     // indices is a 2d tensor with shape of [N, rank]
     const int32_t row = indices[i * rank];
     if (row < 0) {
-      exception_values[0] = 1;
+      exception_values[0] = 2;
       exception_values[1] = i;
       exception_values[2] = row;
       return 0;
     }
     if (row >= dense_rows) {
-      exception_values[0] = 2;
+      exception_values[0] = 3;
       exception_values[1] = i;
       exception_values[2] = row;
       exception_values[3] = dense_rows;
