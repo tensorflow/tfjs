@@ -321,6 +321,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
       const res = msg.data;
       expect(res.shape).toEqual([1, 1, 3]);
       expect(res.dtype).toBe('int32');
+      // @ts-ignore
       res.data().then((data) => {
         expectArraysEqual(data, [1, 2, 3]);
         done();
