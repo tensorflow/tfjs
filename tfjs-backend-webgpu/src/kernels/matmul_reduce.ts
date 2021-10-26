@@ -25,10 +25,6 @@ import {WebGPUProgram} from './webgpu_program';
 
 export function makeMatMulReduceSource(): string {
   return `
-    fn DIV_CEIL(a : i32, b : i32) -> i32 {
-      return ((a - 1) / b + 1);
-    }
-
     var<workgroup> sumValues : array<f32, workGroupSizeX>;
     ${getMainHeaderString()} {
       ${getGlobalIndexString()}
@@ -36,36 +32,28 @@ export function makeMatMulReduceSource(): string {
       let batch = coords[0];
       let row = coords[1];
       let col = coords[2];
-      var bestValue = 0.0;
+      var sum = 0.0;
       let Length = uniforms.dimInner;
-      let WorkPerThread = DIV_CEIL(Length, i32(workGroupSizeX));
-      for (var w = 0; w < WorkPerThread; w = w + 1) {
-        let i = i32(localId.x) * WorkPerThread + w;
-        if (i < Length) {
-          let candidate = mm_read(batch, row, col, i);
-          bestValue = bestValue + candidate;
-        }
+      for (var k = i32(localId.x); k < Length; k = k + i32(workGroupSizeX)) {
+        let dataA = mm_readA(batch, row, k);
+        let dataB = mm_readB(batch, k, col);
+        sum = sum + dataA * dataB;
       }
-      sumValues[localId.x] = bestValue;
+      sumValues[localId.x] = sum;
+      workgroupBarrier();
 
-      bestValue = 0.0;
-      var currentSize = i32(workGroupSizeX);
-      for(; currentSize > 1;) {
-        workgroupBarrier();
-        for (var w = 0; w < 2; w = w + 1) {
-          let i = i32(localId.x) * 2 + w;
-          if (i < currentSize) {
-            let candidate = sumValues[i];
-            bestValue = bestValue + candidate;
-          }
+      for(var currentSize = workGroupSizeX / 2u; currentSize > 1u;
+          currentSize = currentSize / 2u) {
+        if (localId.x < currentSize)
+        {
+          sumValues[localId.x] = sumValues[localId.x] + sumValues[localId.x + currentSize];
         }
         workgroupBarrier();
-        sumValues[localId.x] = bestValue;
-        currentSize = DIV_CEIL(currentSize, 2);
-        if(currentSize > 1) { bestValue = 0.0; }
       }
+
       if (localId.x == 0u) {
-        mm_write(batch, row, col, bestValue);
+        sum = sumValues[0] + sumValues[1];
+        mm_write(batch, row, col, sum);
       }
     }
   `;
@@ -168,12 +156,6 @@ export class MatMulReduceProgram implements WebGPUProgram {
       fn mm_readB(batch: i32, row : i32, col : i32) -> f32 {
         let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
         ${sampleB}
-      }
-
-      fn mm_read(batch: i32, row : i32, col : i32, k: i32) -> f32 {
-        let dataA = mm_readA(batch, row, k);
-        let dataB = mm_readB(batch, k, col);
-        return dataA * dataB;
       }
 
       fn mm_write(batch: i32, row : i32, col : i32, valueIn : f32) {
