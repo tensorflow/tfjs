@@ -435,8 +435,7 @@ export function sliceInfo(
   // of 2. When i is a power of 2, i & (i - 1) is always 0.
   // Also ref:
   // https://stackoverflow.com/questions/600293/how-to-check-if-a-number-is-a-power-of-2
-  if (ellipsisMask != null && ellipsisMask !== 0 &&
-      (ellipsisMask & (ellipsisMask - 1)) !== 0) {
+  if (ellipsisMask != null && (ellipsisMask & (ellipsisMask - 1)) !== 0) {
     throw new Error('Multiple ellipses in slice is not allowed.');
   }
 
