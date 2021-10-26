@@ -308,8 +308,11 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     importScripts(location.origin
       + '/base/tfjs/tfjs-backend-cpu/tf-backend-cpu.min.js');
     
-    tf.browser.fromPixels(bitmap);
-    self.postMessage('DONE');
+    self.onmessage = (event) => {
+      const bitmap = event.data;
+      tf.browser.fromPixels(bitmap);
+      self.postMessage('DONE');
+    };
     `;
     
     const worker = new Worker(str2workerURL(workerTest));
