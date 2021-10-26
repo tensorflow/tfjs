@@ -112,6 +112,23 @@ describe('deepMap', () => {
     const input = [b, c];
     expect(() => deepMap(input, transform)).toThrowError();
   });
+  it('handle prototype', () => {
+    class Test {
+      first() {
+        return true;
+      }
+    }
+    class ChildTest extends Test {
+      second() {
+        return false;
+      }
+    }
+    // tslint:disable-next-line:no-any
+    const b: ChildTest = new ChildTest();
+    const transformed = deepMap(b, transform);
+    expect(transformed.first).toBeDefined();
+    expect(transformed.second).toBeDefined();
+  });
 });
 
 describe('asyncDeepMap', () => {

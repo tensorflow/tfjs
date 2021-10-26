@@ -47,8 +47,10 @@ export function fromPixels(args: {
       pixels instanceof HTMLVideoElement;
   const isImage = typeof (HTMLImageElement) !== 'undefined' &&
       pixels instanceof HTMLImageElement;
-  const isCanvas = typeof (HTMLCanvasElement) !== 'undefined' &&
-      pixels instanceof HTMLCanvasElement;
+  const isCanvas = (typeof (HTMLCanvasElement) !== 'undefined' &&
+      pixels instanceof HTMLCanvasElement) ||
+      (typeof (OffscreenCanvas) !== 'undefined' &&
+      pixels instanceof OffscreenCanvas);
   const isImageBitmap =
       typeof (ImageBitmap) !== 'undefined' && pixels instanceof ImageBitmap;
 

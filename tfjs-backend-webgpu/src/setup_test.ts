@@ -487,6 +487,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'gather',
     excludes: [
+      'throws when index is out of bound',
       'gradient'  // gradient function not found.
     ]
   },
@@ -574,6 +575,9 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {
     include: 'rotateWithOffset',
+  },
+  {
+    include: 'topk',
   },
   {
     include: 'sparseToDense',
