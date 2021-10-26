@@ -308,16 +308,24 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     importScripts(location.origin
       + '/base/tfjs/tfjs-backend-cpu/tf-backend-cpu.min.js');
     
-    self.onmessage = (event) => {
-      const bitmap = event.data;
-      tf.browser.fromPixels(bitmap);
-      self.postMessage('DONE');
+    self.onmessage = (msg) => {
+      const bitmap = msg.data;
+      const res = tf.browser.fromPixels(bitmap);
+      self.postMessage(res);
     };
     `;
     
     const worker = new Worker(str2workerURL(workerTest));
     
-    worker.onmessage = (msg) => { done(); };
+    worker.onmessage = (msg) => { 
+      const res = msg.data;
+      expect(res.shape).toEqual([1, 1, 3]);
+      expect(res.dtype).toBe('int32');
+      res.data().then((data) => {
+        expectArraysEqual(data, [1, 2, 3]);
+        done();
+      });
+    };
     
     worker.onerror = (e) => {
       if(typeof OffscreenCanvas === 'undefined' || typeof OffscreenCanvasRenderingContext2D === 'undefined') {
@@ -328,7 +336,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
       done();
     };
     
-    const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1);
+    const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 255]), 1, 1);
     createImageBitmap(imData).then((bitmap) => { worker.postMessage(bitmap, [bitmap]); });
   });
 
