@@ -319,7 +319,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     
     worker.onmessage = (msg) => { 
       const res = msg.data;
-      expect(res.shape).toEqual([100, 1, 3]);
+      expect(res.shape).toEqual([1, 1, 3]);
       expect(res.dtype).toBe('int32');
       // @ts-ignore
       res.data().then((data) => {
