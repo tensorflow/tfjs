@@ -3,6 +3,11 @@
   "version": "0.0.0",
   "description": "TensorFlow layers API in JavaScript",
   "license": "Apache-2.0 AND MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tensorflow/tfjs.git",
+    "directory": "tfjs-layers"
+  },
   "private": false,
   "main": "dist/tf-layers.node.js",
   "types": "dist/index.d.ts",
