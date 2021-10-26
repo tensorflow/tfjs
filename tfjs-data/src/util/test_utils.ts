@@ -83,15 +83,15 @@ export function describeNodeEnvs(testName: string, tests: () => void) {
 }
 
 /**
- * Testing Utilities for browser audeo stream.
+ * Testing Utilities for browser audio stream.
  */
-export function setupFakeAudeoStream() {
+export function setupFakeAudioStream() {
   navigator.mediaDevices.getUserMedia = async () => {
     const stream = new MediaStream();
     return stream;
   };
   // tslint:disable-next-line:no-any
-  (window as any).AudioContext = FakeAudioContext.createInstance;
+  (window as any).AudioContext = FakeAudioContext;
 }
 
 export class FakeAudioContext {
