@@ -282,6 +282,52 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
 
     expectArraysClose(pixelsData, actualInt32, 10);
   });
+  
+  it('fromPixels for ImageBitmap, worker', (done) => {
+    // Necessary preconditions
+    if(typeof (createImageBitmap) === 'undefined' || typeof (Worker) === 'undefined') {
+      done();
+      return;
+    }
+    
+    // Test-only preconditions
+    if(typeof (ImageData) || typeof (Blob) === 'undefined' || typeof (URL) === 'undefined') {
+      pending('Test-only js APIs are not supported in this context');
+      done();
+      return;
+    }
+    
+    const str2workerURL = (str: string): string => {
+      const blob = new Blob([str], {type: 'application/javascript'});
+      return URL.createObjectURL(blob);
+    };
+
+    // The source code of a web worker.
+    const workerTest = `
+    importScripts(location.origin + '/base/tfjs/tfjs-core/tf-core.min.js');
+    importScripts(location.origin
+      + '/base/tfjs/tfjs-backend-cpu/tf-backend-cpu.min.js');
+    
+    tf.browser.fromPixels(bitmap);
+    self.postMessage('DONE');
+    `;
+    
+    const worker = new Worker(str2workerURL(workerTest));
+    
+    worker.onmessage = (msg) => { done(); };
+    
+    worker.onerror = (e) => {
+      if(typeof OffscreenCanvas === 'undefined' || typeof OffscreenCanvasRenderingContext2D === 'undefined') {
+        expect(e.message).toEqual('Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported.');
+      } else {
+        throw e;
+      } 
+      done();
+    };
+    
+    const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1);
+    createImageBitmap(imData).then((bitmap) => { worker.postMessage(bitmap, [bitmap]); });
+  });
 
   if (tf.env().getBool('IS_CHROME')) {
     it('fromPixels for ImageBitmap', async () => {
