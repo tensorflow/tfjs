@@ -31,6 +31,9 @@ from tensorflow.python.eager import context
 from tensorflow.python.framework import convert_to_constants
 from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
+from tensorflow.python.keras.saving.saving_utils import trace_model_call
+from tensorflow.python.keras.saving.saving_utils import def_function
+from tensorflow.python.keras.saving.saving_utils import model_input_signature
 from tensorflow.python.saved_model.load import load
 from tensorflow.python.saved_model import loader
 from tensorflow.python.training.saver import export_meta_graph
@@ -870,3 +873,139 @@ def convert_tf_hub_module(module_handle, output_dir,
                            control_flow_v2=control_flow_v2,
                            experiments=experiments,
                            metadata=metadata)
+
+def convert_keras_model_to_graph_model(keras_model,
+                                       output_dir,
+                                       saved_model_tags='serve',
+                                       quantization_dtype_map=None,
+                                       skip_op_check=False,
+                                       strip_debug_ops=False,
+                                       weight_shard_size_bytes=1024 * 1024 * 4,
+                                       control_flow_v2=False,
+                                       experiments=False,
+                                       metadata=None):
+  """Convert an in-memory keras model to Tensorflow.js graph model format.
+
+  Args:
+    keras_model: Keras Model object.
+    output_dir: string The name of the output directory. The directory
+      will consist of
+      - a file named 'model.json'
+      - possibly sharded binary weight files.
+    saved_model_tags: tags of the GraphDef to load. Defaults to 'serve'.
+    quantization_dtype_map: A mapping from dtype
+      (`uint8`, `uint16`, `float16`) to weights names. The weight mapping
+      supports wildcard substitution.
+    skip_op_check: Bool whether to skip the op check.
+    strip_debug_ops: Bool whether to strip debug ops.
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
+    control_flow_v2: Bool whether to enable control flow v2 ops.
+    experiments: Bool enable experimental features.
+    metadata: User defined metadata map.
+  """
+  input_signature = None
+  # If the model's call is not a `tf.function`, then we need to first get its
+  # input signature from `model_input_signature` method. We can't directly
+  # call `trace_model_call` because otherwise the batch dimension is set
+  # to None.
+  if not isinstance(keras_model.call, def_function.Function):
+    # Pass `keep_original_batch_size=True` will ensure that we get an input
+    # signature including the batch dimension specified by the user.
+    input_signature = model_input_signature(
+        keras_model, keep_original_batch_size=True)
+  func = trace_model_call(keras_model, input_signature)
+  concrete_func = func.get_concrete_function()
+
+  if not tf.io.gfile.exists(output_dir):
+    tf.io.gfile.makedirs(output_dir)
+  output_graph = os.path.join(
+      output_dir, common.ARTIFACT_MODEL_JSON_FILE_NAME)
+
+  if saved_model_tags:
+    saved_model_tags = saved_model_tags.split(',')
+
+  output_node_names = []
+  for output_tensor in concrete_func.outputs:
+    output_node_names.append(output_tensor.name.split(':')[0])
+
+  # TensorFlow doesn't encode the saved model version in the graph in a
+  # reliable way. Try to freeze the graph using V2 utils. If that fails, freeze
+  # the graph using V1 utils.
+  frozen_initializer_graph = None
+  try:
+    frozen_graph = _freeze_saved_model_v2(concrete_func, control_flow_v2)
+  except BaseException:
+    print('Can not freeze saved model v1.')
+    return
+
+  inputs = [x for x in concrete_func.inputs if not x.dtype == 'resource']
+  signature = _build_signature_def(frozen_graph, inputs, concrete_func.outputs)
+
+  # Check if the TransformGraph is available to be imported, this package is
+  # available in g3 but not in oss version of TensorFlow.
+  transform_graph_available = True
+  try:
+    from google3.third_party.tensorflow.tools.graph_transforms import TransformGraph # pylint: disable=C0415
+  except: # pylint: disable=W0702
+    transform_graph_available = False
+
+  # Define the strip graph functions when TransformGraph is available, this will
+  # strip the unused nodes from the graph.
+  if transform_graph_available:
+    def _strip_unused_nodes(frozen_graph, concrete_func, output_node_names):
+      # Find the names of the input nodes needed to extract the minimal
+      # inference graph. This is particularly useful for cases when the concrete
+      # function contains nodes that do not contribute the inference computation
+      # defined by the input/output pair. This would also eliminate op
+      # unsupported error caused by nodes outside of the minial infrerence
+      # graph.
+      input_node_names = []
+      input_tensors = {}
+      for input_tensor in concrete_func.inputs:
+        if input_tensor.dtype != 'resource':
+          op_name = input_tensor.name.split(':')[0]
+          # The graph freezing may turn the original inputs into constants, or
+          # remove them from the graph, so we need to ignore those.
+          try:
+            op = frozen_graph.get_operation_by_name(op_name)
+            if op.type != 'Const':
+              input_node_names.append(op_name)
+              input_tensors[op_name] = input_tensor
+          except KeyError:
+            # The original input was removed when the graph was frozen.
+            continue
+
+      graph_transformations = ['strip_unused_nodes']
+      stripped_graph_def = TransformGraph(
+          frozen_graph.as_graph_def(), input_node_names, output_node_names,
+          graph_transformations)
+
+      # The transform graph library cannot support input nodes that has dynamic
+      # shape, this code will update the dtype and shape based on the
+      # input tensor manually.
+      for node in stripped_graph_def.node:
+        if node.name in input_tensors:
+          if node.attr['shape'] and node.attr['shape'].shape:
+            node.attr['shape'].shape.CopyFrom(
+                input_tensors[node.name].shape.as_proto())
+          if node.attr['dtype'] and node.attr['dtype'].type:
+            node.attr['dtype'].type = input_tensors[
+                node.name].dtype.as_datatype_enum
+
+      with tf.Graph().as_default() as stripped_graph:
+        tf.import_graph_def(stripped_graph_def, name='')
+        return stripped_graph
+
+    frozen_graph = _strip_unused_nodes(
+        frozen_graph, concrete_func, output_node_names)
+
+  optimize_graph(frozen_graph, signature,
+                 output_graph, '2.6.0',
+                 quantization_dtype_map=quantization_dtype_map,
+                 skip_op_check=skip_op_check,
+                 strip_debug_ops=strip_debug_ops,
+                 weight_shard_size_bytes=weight_shard_size_bytes,
+                 experiments=experiments,
+                 initializer_graph=frozen_initializer_graph,
+                 metadata=metadata)
