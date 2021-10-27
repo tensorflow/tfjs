@@ -313,7 +313,8 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
       const bitmap = msg.data;
       const tensor = tf.browser.fromPixels(bitmap, 4);
       tensor.data().then((data) => {
-        self.postMessage({tensor: tensor, data: data});
+        const thinTensor = {shape: tensor.shape, dtype: tensor.dtype, data: data}
+        self.postMessage(thinTensor);
       });
     };
     `;
@@ -321,11 +322,10 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     const worker = new Worker(str2workerURL(workerTest));
     
     worker.onmessage = (msg) => { 
-      const tensor = msg.data.tensor;
-      const data = msg.data.data;
-      expect(tensor.shape).toEqual([1, 1, 4]);
-      expect(tensor.dtype).toBe('int32');
-      expectArraysEqual(data, [1, 2, 3, 4]);
+      const thinTensor = msg.data;
+      expect(thinTensor.shape).toEqual([1, 1, 4]);
+      expect(thinTensor.dtype).toBe('int32');
+      expectArraysEqual(thinTensor.data, [1, 2, 3, 4]);
       done();
     };
     
