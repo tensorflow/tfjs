@@ -39,8 +39,17 @@
     "**/src/"
   ],
   "exclude": [
-    "bazel-out/",
-    "dist/",
-    "node_modules/"
+    "bazel-out",
+    "dist",
+    "tfjs",
+    "tfjs-automl",
+    "tfjs-backend-nodegl",
+    "tfjs-backend-wasm",
+    "tfjs-backend-webgpu",
+    "tfjs-node",
+    "tfjs-node-gpu",
+    "tfjs-react-native",
+    "tfjs-vis",
+    "node_modules"
   ]
 }
