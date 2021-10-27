@@ -43,6 +43,7 @@ import {version} from './version';
 
 export {InferenceModel, MetaGraph, MetaGraphInfo, ModelPredictConfig, ModelTensorInfo, SavedModelTensorInfo, SignatureDef, SignatureDefEntry, SignatureDefInfo} from './model_types';
 // Optimizers.
+export {OptimizerConstructors} from './optimizers/optimizer_constructors';
 export {AdadeltaOptimizer} from './optimizers/adadelta_optimizer';
 export {AdagradOptimizer} from './optimizers/adagrad_optimizer';
 export {AdamOptimizer} from './optimizers/adam_optimizer';
