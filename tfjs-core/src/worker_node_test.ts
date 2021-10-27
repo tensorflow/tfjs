@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {describeWithFlags, HAS_NODE_WORKER} from './jasmine_util';
+import '@tensorflow/tfjs-backend-cpu';
 import {expectArraysClose} from './test_util';
 // tslint:disable:no-require-imports
 
@@ -32,7 +32,7 @@ a = tf.add(a, b);
 parentPort.postMessage({data: a.dataSync()});
 `;
 
-describeWithFlags('computation in worker (node env)', HAS_NODE_WORKER, () => {
+describe('computation in worker (node env)', () => {
   // tslint:disable-next-line: ban
   it('tensor in worker', (done) => {
     const {Worker} = require('worker_threads');
