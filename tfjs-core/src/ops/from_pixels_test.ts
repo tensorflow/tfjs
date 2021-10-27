@@ -325,7 +325,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
       const thinTensor = msg.data;
       expect(thinTensor.shape).toEqual([1, 1, 4]);
       expect(thinTensor.dtype).toBe('int32');
-      expectArraysEqual(thinTensor.data, [1, 2, 3, 4]);
+      expectArraysEqual(thinTensor.data, [1, 2, 3, 255]);
       done();
       worker.terminate();
     };
@@ -344,7 +344,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
       worker.terminate();
     };
     
-    const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1);
+    const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 255]), 1, 1);
     createImageBitmap(imData)
       .then((bitmap) => { worker.postMessage(bitmap, [bitmap]); });
   });
