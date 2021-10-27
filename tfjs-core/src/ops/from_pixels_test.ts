@@ -310,22 +310,22 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     
     self.onmessage = (msg) => {
       const bitmap = msg.data;
-      const res = tf.browser.fromPixels(bitmap);
-      self.postMessage(res);
+      const tensor = tf.browser.fromPixels(bitmap, 4);
+      tensor.data().then((data) => {
+        self.postMessage({tensor: tensor, data: data});
+      });
     };
     `;
     
     const worker = new Worker(str2workerURL(workerTest));
     
     worker.onmessage = (msg) => { 
-      const res = msg.data;
-      expect(res.shape).toEqual([1, 1, 3]);
-      expect(res.dtype).toBe('int32');
-      // @ts-ignore
-      res.data().then((data) => {
-        expectArraysEqual(data, [1, 2, 3]);
-        done();
-      });
+      const tensor = msg.data.tensor;
+      const data = msg.data.data;
+      expect(tensor.shape).toEqual([1, 1, 4]);
+      expect(tensor.dtype).toBe('int32');
+      expectArraysEqual(data, [1, 2, 3, 4]);
+      done();
     };
     
     worker.onerror = (e) => {
@@ -337,7 +337,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
       done();
     };
     
-    const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 255]), 1, 1);
+    const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1);
     createImageBitmap(imData).then((bitmap) => { worker.postMessage(bitmap, [bitmap]); });
   });
 
