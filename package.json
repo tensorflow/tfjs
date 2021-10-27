@@ -60,6 +60,7 @@
     "typescript": "3.5.3"
   },
   "scripts": {
+    "lint": "tslint -p .",
     "test-packages-ci": "yarn generate-cloudbuild-for-packages && ./scripts/run-build.sh",
     "generate-cloudbuild-for-packages": "./scripts/generate_cloudbuild_for_packages.js",
     "test-generate-cloudbuild": "jasmine run scripts/generate_cloudbuild_test.js",

@@ -36,9 +36,11 @@
     ]
   },
   "include": [
-    "src/"
+    "**/src/"
   ],
   "exclude": [
+    "bazel-out/",
+    "dist/",
     "node_modules/"
   ]
 }
