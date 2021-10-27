@@ -172,7 +172,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         let coordInfo = getInputCoordInfo(globalId, index);
 
         var bestIndex = 0;
-        var bestValue = x.numbers[getInputIndex(coordInfo, bestIndex)];
+        var bestValue = f32(x.numbers[getInputIndex(coordInfo, bestIndex)]);
 
         let Length = ${indexInputShape('uniforms.axis')};
         let WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
@@ -180,7 +180,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         for (var w = 0; w < WorkPerThread; w = w + 1) {
           let i = i32(globalId.x) * WorkPerThread + w;
           if (i < Length) {
-            let candidate = x.numbers[getInputIndex(coordInfo, i)];
+            let candidate = f32(x.numbers[getInputIndex(coordInfo, i)]);
             if (candidate ${
         this.op} bestValue && !isNanCustom(f32(candidate))) {
               bestValue = candidate;

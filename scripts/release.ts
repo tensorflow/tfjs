@@ -44,6 +44,14 @@ parser.addArgument('--git-protocol', {
 function getPatchUpdateVersion(version: string): string {
   const versionSplit = version.split('.');
 
+  // For alpha or beta version string (e.g. "0.0.1-alpha.5"), increase the
+  // number after alpha/beta.
+  if (versionSplit[2].includes('alpha') || versionSplit[2].includes('beta')) {
+    return [
+      versionSplit[0], versionSplit[1], versionSplit[2], +versionSplit[3] + 1
+    ].join('.');
+  }
+
   return [versionSplit[0], versionSplit[1], +versionSplit[2] + 1].join('.');
 }
 
