@@ -313,7 +313,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
       const bitmap = msg.data;
       const tensor = tf.browser.fromPixels(bitmap, 4);
       tensor.data().then((data) => {
-        const thinTensor = {shape: tensor.shape, dtype: tensor.dtype, data: data}
+        const thinTensor = {shape: tensor.shape, dtype: tensor.dtype, data: data};
         self.postMessage(thinTensor);
       });
     };
@@ -327,6 +327,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
       expect(thinTensor.dtype).toBe('int32');
       expectArraysEqual(thinTensor.data, [1, 2, 3, 4]);
       done();
+      worker.terminate();
     };
     
     worker.onerror = (e) => {
@@ -340,6 +341,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
         throw e;
       } 
       done();
+      worker.terminate();
     };
     
     const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1);
