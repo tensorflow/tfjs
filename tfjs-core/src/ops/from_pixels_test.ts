@@ -291,7 +291,8 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     }
     
     // Test-only preconditions
-    if(typeof (ImageData) === 'undefined' || typeof (Blob) === 'undefined' || typeof (URL) === 'undefined') {
+    if(typeof (ImageData) === 'undefined' || typeof (Blob) === 'undefined'
+       || typeof (URL) === 'undefined') {
       pending('Test-only js APIs are not supported in this context');
       done();
       return;
@@ -329,8 +330,12 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     };
     
     worker.onerror = (e) => {
-      if(typeof OffscreenCanvas === 'undefined' || typeof OffscreenCanvasRenderingContext2D === 'undefined') {
-        expect(e.message).toEqual('Cannot parse input in current context. Reason: OffscreenCanvas Context2D rendering is not supported.');
+      if(typeof OffscreenCanvas === 'undefined' 
+         || typeof OffscreenCanvasRenderingContext2D === 'undefined') {
+        expect(e.message).toEqual(
+          'Cannot parse input in current context. ' +
+          'Reason: OffscreenCanvas Context2D rendering is not supported.'
+        );
       } else {
         throw e;
       } 
@@ -338,7 +343,8 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     };
     
     const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1);
-    createImageBitmap(imData).then((bitmap) => { worker.postMessage(bitmap, [bitmap]); });
+    createImageBitmap(imData)
+      .then((bitmap) => { worker.postMessage(bitmap, [bitmap]); });
   });
 
   if (tf.env().getBool('IS_CHROME')) {
