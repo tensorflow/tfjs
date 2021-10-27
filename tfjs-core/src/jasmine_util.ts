@@ -295,17 +295,17 @@ let lock = Promise.resolve();
  *     `done()`.
  *
  */
-export function runWithLock(spec: (done?: DoneFn) => Promise<void> | void) {
+export function runWithLock(spec: (done?: DoneFn) => Promise<void>| void) {
   return () => {
     lock = lock.then(async () => {
       let done: DoneFn;
       const donePromise = new Promise<void>((resolve, reject) => {
         done = (() => {
-          resolve();
-        }) as DoneFn;
+                 resolve();
+               }) as DoneFn;
         done.fail = (message?) => {
           reject(message);
-        }
+        };
       });
 
       purgeLocalStorageArtifacts();
@@ -313,11 +313,10 @@ export function runWithLock(spec: (done?: DoneFn) => Promise<void> | void) {
 
       if (isPromise(result)) {
         await result;
-      }
-      else {
+      } else {
         await donePromise;
       }
     });
     return lock;
-  }
+  };
 }
