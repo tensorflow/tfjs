@@ -24,10 +24,10 @@ const path = require('path');
 // TODO(mattsoulanille): When Jasmine is updated to >=3.3.0, Use
 // jasmine.withContext to show the above message if the tests fail.
 describe('generateCloudbuild', () => {
-  it('generates the correct cloudbuild file for tfjs-core', () => {
+  it('generates the correct cloudbuild file for e2e', () => {
     const expectedCloudbuild = yaml.safeLoad(fs.readFileSync(
-        path.join('scripts/cloudbuild_tfjs_core_expected.yml')));
-    const cloudbuild = generateCloudbuild(['tfjs-core'], /* print */ false);
+        path.join('scripts/cloudbuild_e2e_expected.yml')));
+    const cloudbuild = generateCloudbuild(['e2e'], /* print */ false);
     expect(cloudbuild).toEqual(expectedCloudbuild);
   });
 
