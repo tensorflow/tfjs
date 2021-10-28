@@ -49,8 +49,6 @@
     "rollup-plugin-visualizer": "~3.3.2",
     "ts-morph": "^7.1.3",
     "ts-node": "~8.8.2",
-    "tslint": "~6.1.3",
-    "tslint-no-circular-imports": "~0.7.0",
     "typescript": "3.5.3",
     "yalc": "~1.0.0-pre.50"
   },
@@ -69,7 +67,6 @@
     "test-dev": "ibazel run :tfjs-converter_test",
     "test-snippets": "bazel test :test_snippets_test --test_output=all",
     "test-snippets-ci": "yarn test-snippets",
-    "lint": "tslint -p . -t verbose",
     "gen-doc": "ts-node -s ./scripts/gen_doc.ts",
     "model-summary": "ts-node -s ./tools/model_summary.ts",
     "pb2json": "ts-node -s ./tools/pb2json_converter.ts",
