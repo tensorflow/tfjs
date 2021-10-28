@@ -44,8 +44,6 @@
     "rollup-plugin-visualizer": "~3.3.2",
     "shelljs": "~0.8.3",
     "ts-node": "~8.8.2",
-    "tslint": "~5.11.0",
-    "tslint-no-circular-imports": "~0.5.0",
     "typescript": "3.5.3",
     "yalc": "~1.0.0-pre.21",
     "yargs": "~13.2.2"
@@ -61,7 +59,6 @@
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "bazel run :tfjs-core_pkg.publish",
-    "lint": "tslint -p . -t verbose",
     "coverage": "bazel coverage :tfjs-core_node_test",
     "test": "bazel test --flaky_test_attempts=3 :tfjs-core_test :test_snippets_test :tfjs-core_node_test tfjs-core_async_backends_test --test_output=all",
     "test-dev": "ibazel test --flaky_test_attempts=3 :tfjs-core_test :test_snippets_test :tfjs-core_node_test tfjs-core_async_backends_test --test_output=all",
