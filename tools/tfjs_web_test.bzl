@@ -84,6 +84,7 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
         timeout = timeout,
         name = name,
         config_file = config_file,
+        configuration_env_vars = ["DISPLAY"],
         tags = ["native"] + tags,
         **kwargs
     )
