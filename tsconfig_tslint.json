@@ -14,6 +14,8 @@
       "@tensorflow/tfjs-core/dist/*": ["tfjs-core/src/*"],
       "@tensorflow/tfjs-layers": ["tfjs-layers/src/index.ts"],
       "@tensorflow/tfjs-layers/dist/*": ["tfjs-layers/src/*"],
+      "@tensorflow/tfjs-data": ["tfjs-data/src/index.ts"],
+      "@tensorflow/tfjs-data/dist/*": ["tfjs-data/src/*"],
       "@tensorflow/tfjs-tflite": ["tfjs-tflite/src/index.ts"],
       "@tensorflow/tfjs-tflite/dist/*": ["tfjs-tflite/src/*"]
     },
