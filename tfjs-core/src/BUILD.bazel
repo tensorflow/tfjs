@@ -45,6 +45,7 @@ filegroup(
             "setup_test.ts",
             "worker_test.ts",
             "worker_node_test.ts",
+            "ops/from_pixels_worker_test.ts",
         ],
     ) + [":version_test"],
 )
@@ -90,6 +91,7 @@ ts_library(
         exclude = [
             "worker_test.ts",
             "worker_node_test.ts",
+            "ops/from_pixels_worker_test.ts",
         ],
     ) + [
         ":tests",
@@ -150,6 +152,7 @@ jasmine_node_test(
 ts_library(
     name = "worker_test_lib",
     srcs = [
+        "ops/from_pixels_worker_test.ts",
         "worker_test.ts",
     ],
     deps = [
