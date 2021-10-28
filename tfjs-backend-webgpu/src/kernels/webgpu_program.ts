@@ -39,8 +39,8 @@ export interface WebGPUProgram {
   // the group.
   workGroupSize: [number, number, number];
   isVec4?: boolean;
-  // size is used for bounds checking.
-  size?: number;
+  // Whether to use output size for bounds checking.
+  size?: boolean;
   // Whether to use atomic built-in functions.
   atomic?: boolean;
   getUserCode: () => string;

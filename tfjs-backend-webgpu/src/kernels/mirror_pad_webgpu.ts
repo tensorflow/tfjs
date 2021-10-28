@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
-
-import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -32,7 +30,7 @@ export class MirrorPadProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   xShape: number[];
   offset: number;
-  size: number;
+  size = true;
 
   constructor(
       xShape: number[], paddings: Array<[number, number]>,
@@ -49,7 +47,6 @@ export class MirrorPadProgram implements WebGPUProgram {
     });
     this.offset = mode === 'reflect' ? 0 : 1;
     this.shaderKey = `mirrorPad_${mode}`;
-    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
@@ -71,12 +68,11 @@ export class MirrorPadProgram implements WebGPUProgram {
         'coords';
 
     return `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let start = ${dtype}(${start});
-        let end = ${dtype}(${end});
-        var outC = getOutputCoords(globalId, index);
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
+          let start = ${dtype}(${start});
+          let end = ${dtype}(${end});
+          var outC = getCoordsFromFlatIndex(index);
           for (var i = 0; i < ${rank}; i = i + 1) {
             if (${shaderOutC} < ${shaderStart}) {
               ${shaderOutC} = ${shaderStart} * 2 - ${shaderOutC} - ${

@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
-
-import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -30,7 +28,7 @@ export class GatherNDProgram implements WebGPUProgram {
   variableNames: string[] = ['A', 'indices'];
   uniforms: string;
   workGroupSize: [number, number, number] = [64, 1, 1];
-  size: number;
+  size = true;
   sliceDim: number;
   constructor(sliceDim: number, shape: number[]) {
     this.outputShape = shape;
@@ -38,7 +36,6 @@ export class GatherNDProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = `gathernd_${sliceDim}`;
-    this.size = util.sizeFromShape(this.outputShape);
     this.sliceDim = sliceDim;
     this.uniforms = `sliceDim : i32; strides : ${getCoordsDataType(sliceDim)};`;
   }
@@ -51,19 +48,19 @@ export class GatherNDProgram implements WebGPUProgram {
       strideString = 'uniforms.strides';
     }
     const userCode = `
-        ${getMainHeaderString()} {
-          ${getGlobalIndexString()}
-          let coords = getOutputCoords(globalId, index);
+        ${getMainHeaderAndGlobalIndexString()}
+        if (index < uniforms.size) {
+          let coords = getCoordsFromFlatIndex(index);
           var flattenIndex = 0;
           for (var j = 0; j < uniforms.sliceDim; j = j + 1) {
             let indexTemp = i32(round(getIndices(coords[0], j)));
             let strideNum = ${strideString};
             flattenIndex = flattenIndex + indexTemp * strideNum;
           }
-          if (index < uniforms.size) {
-            setOutputFlat(index, getA(flattenIndex, coords[1]));
-          }
+
+          setOutputFlat(index, getA(flattenIndex, coords[1]));
         }
+      }
       `;
     return userCode;
   }
