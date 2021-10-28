@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -29,6 +29,7 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   alignCorners: boolean;
   halfPixelCenters: boolean;
+  size = true;
 
   constructor(
       inputShape: [number, number, number, number], newHeight: number,
@@ -63,10 +64,9 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
     const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
 
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let coords = getOutputCoords(globalId, index);
-        if (all(coords < uniforms.outShape)) {
+      ${getMainHeaderAndGlobalIndexString()}
+        if (index < uniforms.size) {
+          let coords = getCoordsFromFlatIndex(index);
           let b = coords[0];
           let d = coords[3];
           let rc = coords.yz;
@@ -99,7 +99,7 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
             min(inputShapeRC - 1.0, floor(sourceFracIndexRC + ${roundBase})));
           let newValue = getX(b, sourceNearestRC.x, sourceNearestRC.y, d);
 
-          setOutput(b, coords[1], coords[2], d, newValue);
+          setOutputFlat(index, newValue);
         }
       }
     `;

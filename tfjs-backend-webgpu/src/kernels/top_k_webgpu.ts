@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
-
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -40,7 +38,7 @@ export class SwapProgram implements WebGPUProgram {
   variableNames = ['x', 'indices'];
   uniforms: string;
   workGroupSize: [number, number, number] = [256, 1, 1];
-  size: number;
+  size = true;
 
   constructor(shape: number[]) {
     this.outputShape = shape;
@@ -50,15 +48,13 @@ export class SwapProgram implements WebGPUProgram {
     this.uniforms = `inputSize : i32; firstPass : i32; negativeInf : f32;
         dir : i32; inc : i32;`;
     this.shaderKey = 'swap';
-    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
     const userCode = `
-        ${getMainHeaderString()} {
-          ${getGlobalIndexString()}
+        ${getMainHeaderAndGlobalIndexString()}
           if (index < uniforms.size) {
-            let outC = getOutputCoords(globalId, index);
+            let outC = getCoordsFromFlatIndex(index);
             let batch = outC[0];
             let elemIdx = outC[1];
             // We compare elements pair-wise within a group of size 2 * inc.
@@ -135,7 +131,7 @@ export class MergeProgram implements WebGPUProgram {
   variableNames = ['x', 'indices'];
   uniforms: string;
   workGroupSize: [number, number, number] = [256, 1, 1];
-  size: number;
+  size = true;
 
   constructor(shape: number[]) {
     this.outputShape = shape;
@@ -148,15 +144,13 @@ export class MergeProgram implements WebGPUProgram {
     // |k| Top k elements desired
     this.uniforms = `inputSize : i32; firstPass : i32; k : i32;`;
     this.shaderKey = 'merge';
-    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
     const userCode = `
-        ${getMainHeaderString()} {
-          ${getGlobalIndexString()}
+        ${getMainHeaderAndGlobalIndexString()}
           if (index < uniforms.size) {
-            let outC = getOutputCoords(globalId, index);
+            let outC = getCoordsFromFlatIndex(index);
             let batch = outC[0];
             let elemIdx = outC[1];
             // The output size is half of the previous size.

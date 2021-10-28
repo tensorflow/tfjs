@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -28,6 +28,7 @@ export class TransformProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
+  size = true;
 
   constructor(outShape: [number, number, number, number]) {
     this.outputShape = outShape;
@@ -102,10 +103,9 @@ export class TransformProgram implements WebGPUProgram {
             return outputValue;
           }
 
-          ${getMainHeaderString()} {
-            ${getGlobalIndexString()}
-            let coords = getOutputCoords(globalId, index);
-            if (coordsInBounds4D(coords, uniforms.outShape)) {
+          ${getMainHeaderAndGlobalIndexString()}
+            if (index < uniforms.size) {
+              let coords = getCoordsFromFlatIndex(index);
               var outputValue : f32;
               let batch = coords[0];
               let x = coords[2];
@@ -152,7 +152,7 @@ export class TransformProgram implements WebGPUProgram {
                   (mapY - yFloor) * valueYCeil;
                 }
               }
-              setOutput(coords[0], coords[1], coords[2], coords[3], outputValue);
+              setOutputFlat(index, outputValue);
             }
           }
         `;

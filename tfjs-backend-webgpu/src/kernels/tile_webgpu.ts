@@ -14,9 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import {util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -28,7 +27,7 @@ export class TileProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
-  size: number;
+  size = true;
   rank: number;
 
   constructor(aShape: number[], reps: number[]) {
@@ -41,7 +40,6 @@ export class TileProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.rank = this.outputShape.length;
-    this.size = util.sizeFromShape(this.outputShape);
     this.shaderKey = 'tile';
   }
 
@@ -49,10 +47,9 @@ export class TileProgram implements WebGPUProgram {
     const sourceCoords = getSourceCoords(this.rank, 'uniforms.');
 
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let resRC = getOutputCoords(globalId, index);
+          let resRC = getCoordsFromFlatIndex(index);
           setOutputFlat(index, getA(${sourceCoords}));
         }
       }

@@ -14,9 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import {util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {getUnaryOpString, UnaryOpType} from './unary_op_util';
@@ -30,14 +29,13 @@ export class UnaryOpProgram implements WebGPUProgram {
   variableNames = ['A'];
   workGroupSize: [number, number, number];
   op: UnaryOpType;
-  size: number;
+  size = true;
 
   constructor(outputShape: number[], op: UnaryOpType) {
     // TODO(jiajia.qin@intel.com): Heuristically select a good work group size.
     const workGroupSizeX = 128;
     this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = outputShape;
-    this.size = util.sizeFromShape(this.outputShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
@@ -50,10 +48,9 @@ export class UnaryOpProgram implements WebGPUProgram {
       fn unaryOperation(a : f32) -> f32 {
         ${getUnaryOpString(this.op, false)}
       }
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let a = getAAtOutCoordsByGlobalId(globalId, index);
+          let a = getAAtOutCoordsByGlobalIndex(index);
           setOutputFlat(index, unaryOperation(a));
         }
       }

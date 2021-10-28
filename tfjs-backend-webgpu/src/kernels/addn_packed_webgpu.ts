@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
-
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -30,7 +28,7 @@ export class AddNPackedProgram implements WebGPUProgram {
   variableNames: string[];
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
-  size: number;
+  size = true;
 
   constructor(shapes: number[][]) {
     this.outputShape = shapes[0];
@@ -40,7 +38,6 @@ export class AddNPackedProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
     this.shaderKey = 'addN';
-    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
@@ -58,8 +55,7 @@ export class AddNPackedProgram implements WebGPUProgram {
                           .join(' + ');
 
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         for (var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
           if (flatIndex < uniforms.size) {
