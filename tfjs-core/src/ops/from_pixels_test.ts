@@ -291,7 +291,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     }
 
     // Test-only preconditions
-    if (typeof (ImageData) || typeof (Blob) === 'undefined' ||
+    if (typeof (ImageData) === 'undefined' || typeof (Blob) === 'undefined' ||
         typeof (URL) === 'undefined') {
       pending('Test-only js APIs are not supported in this context');
       done();
@@ -309,29 +309,42 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     importScripts(location.origin
       + '/base/tfjs/tfjs-backend-cpu/tf-backend-cpu.min.js');
 
-    tf.browser.fromPixels(bitmap);
-    self.postMessage('DONE');
+    self.onmessage = (msg) => {
+      const bitmap = msg.data;
+      const tensor = tf.browser.fromPixels(bitmap, 4);
+      tensor.data().then((data) => {
+        const thinTensor = {shape: tensor.shape, dtype: tensor.dtype, data: data};
+        self.postMessage(thinTensor);
+      });
+    };
     `;
 
     const worker = new Worker(str2workerURL(workerTest));
-
-    worker.onmessage = (msg) => {
+    
+    worker.onmessage = (msg) => { 
+      const thinTensor = msg.data;
+      expect(thinTensor.shape).toEqual([1, 1, 4]);
+      expect(thinTensor.dtype).toBe('int32');
+      expectArraysEqual(thinTensor.data, [1, 2, 3, 255]);
       done();
+      worker.terminate();
     };
-
+    
     worker.onerror = (e) => {
-      if (typeof OffscreenCanvas === 'undefined' ||
-          typeof OffscreenCanvasRenderingContext2D === 'undefined') {
+      if(typeof OffscreenCanvas === 'undefined' ||
+         typeof OffscreenCanvasRenderingContext2D === 'undefined') {
         expect(e.message).toEqual(
             'Cannot parse input in current context. ' +
-            'Reason: OffscreenCanvas Context2D rendering is not supported.');
+            'Reason: OffscreenCanvas Context2D rendering is not supported.'
+        );
       } else {
         throw e;
       }
       done();
+      worker.terminate();
     };
 
-    const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1);
+    const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 255]), 1, 1);
     createImageBitmap(imData).then((bitmap) => {
       worker.postMessage(bitmap, [bitmap]);
     });
