@@ -590,6 +590,12 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'grad',  // gradient function not found.
     ]
+  },
+  {
+    startsWith: 'oneHot',
+    excludes: [
+      'grad',  // gradient function not found.
+    ]
   }
 ];
 
