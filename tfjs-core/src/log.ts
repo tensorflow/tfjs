@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+// tslint:disable-next-line:no-circular-imports
 import {env} from './environment';
 
 export function warn(...msg: Array<{}>): void {
