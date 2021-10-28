@@ -1,9 +1,8 @@
 {
   "tfjs-automl": [],
   "tfjs-converter": [],
-  "tfjs-layers": [],
-  "tfjs-data": ["tfjs-layers"],
-  "tfjs": ["tfjs-converter", "tfjs-layers", "tfjs-data"],
+  "tfjs-data": [],
+  "tfjs": ["tfjs-converter", "tfjs-data"],
   "tfjs-node": ["tfjs"],
   "tfjs-node-gpu": ["tfjs"],
   "tfjs-backend-wasm": [],
@@ -11,5 +10,5 @@
   "tfjs-inference": [],
   "tfjs-react-native": [],
   "tfjs-vis": [],
-  "e2e": ["tfjs", "tfjs-converter", "tfjs-data", "tfjs-layers", "tfjs-node", "tfjs-backend-wasm"]
+  "e2e": ["tfjs", "tfjs-converter", "tfjs-data", "tfjs-node", "tfjs-backend-wasm"]
 }
