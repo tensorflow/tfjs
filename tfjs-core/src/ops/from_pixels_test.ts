@@ -344,7 +344,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
       worker.terminate();
     };
 
-    const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 4]), 1, 1);
+    const imData = new ImageData(new Uint8ClampedArray([1, 2, 3, 255]), 1, 1);
     createImageBitmap(imData).then((bitmap) => {
       worker.postMessage(bitmap, [bitmap]);
     });
