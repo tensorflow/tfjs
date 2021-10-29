@@ -88,8 +88,12 @@ export function stridedSlice(args: {
       result = backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
     }
   }
+  const resultReshaped =
+      reshape({inputs: {x: result}, backend, attrs: {shape: finalShape}});
 
-  return result;
+  backend.disposeData(result.dataId);
+
+  return resultReshaped;
 }
 
 export const stridedSliceConfig: KernelConfig = {
