@@ -152,7 +152,6 @@ jasmine_node_test(
 ts_library(
     name = "worker_test_lib",
     srcs = [
-        "ops/from_pixels_worker_test.ts",
         "worker_test.ts",
     ],
     deps = [
@@ -173,8 +172,6 @@ tfjs_web_test(
         "win_10_chrome",
     ],
     static_files = [
-        # Listed here so sourcemaps are served
-        "//tfjs-core/src:tfjs-core_test_bundle",
         # For the webworker
         "//tfjs-core:tf-core.min.js",
         "//tfjs-core:tf-core.min.js.map",
@@ -183,6 +180,42 @@ tfjs_web_test(
     ],
     deps = [
         ":worker_test_lib",
+        "@npm//long:long__umd",
+        "@npm//seedrandom:seedrandom__umd",
+    ],
+)
+
+ts_library(
+    name = "from_pixels_worker_test_lib",
+    srcs = [
+        "ops/from_pixels_worker_test.ts",
+    ],
+    deps = [
+        ":tfjs-core_lib",
+        ":tfjs-core_src_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+    ],
+)
+
+tfjs_web_test(
+    name = "from_pixels_worker_test",
+    browsers = [
+        "bs_chrome_mac",
+        # Omit Firefox since it does not support offscreen canvas.
+        "bs_safari_mac",
+        "bs_ios_11",
+        "bs_android_9",
+        "win_10_chrome",
+    ],
+    static_files = [
+        # For the webworker
+        "//tfjs-core:tf-core.min.js",
+        "//tfjs-core:tf-core.min.js.map",
+        "//tfjs-backend-cpu:tf-backend-cpu.min.js",
+        "//tfjs-backend-cpu:tf-backend-cpu.min.js.map",
+    ],
+    deps = [
+        ":from_pixels_worker_test_lib",
         "@npm//long:long__umd",
         "@npm//seedrandom:seedrandom__umd",
     ],
