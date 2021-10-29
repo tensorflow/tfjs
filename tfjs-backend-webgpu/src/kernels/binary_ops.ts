@@ -15,26 +15,30 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
+import {backend_util, util} from '@tensorflow/tfjs-core';
+
 import {BinaryOpSharedProgram} from './binary_op_shared_webgpu';
+import {BinaryOpType} from './binary_op_util';
 import {BinaryOpVec4Program} from './binary_op_vec4_webgpu';
 import {BinaryOpProgram} from './binary_op_webgpu';
-import {BinaryOpType} from './binary_op_util';
 
 export function getBinaryProgram(
     op: BinaryOpType, aShape: number[], bShape: number[]) {
+  const outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
   const useVec4 =
       util.arraysEqual(aShape, bShape) && util.sizeFromShape(aShape) % 4 === 0;
   if (useVec4) {
-    return new BinaryOpVec4Program(op, aShape, bShape);
+    return new BinaryOpVec4Program(op, outputShape);
   }
   const useSharedMemoryWithA =
-      aShape.length === 1 && bShape.length > 1 && aShape[0] < 1024;
+      aShape.length === 1 && bShape.length > 1 && aShape[0] < 512;
   const useSharedMemoryWithB =
-      bShape.length === 1 && aShape.length > 1 && bShape[0] < 1024;
+      bShape.length === 1 && aShape.length > 1 && bShape[0] < 512;
   if (useSharedMemoryWithA || useSharedMemoryWithB) {
-    return new BinaryOpSharedProgram(op, aShape, bShape, useSharedMemoryWithB);
+    const isScater = useSharedMemoryWithB ? bShape[0] === 1 : aShape[0] === 1;
+    return new BinaryOpSharedProgram(
+        op, outputShape, useSharedMemoryWithB, isScater);
   } else {
-    return new BinaryOpProgram(op, aShape, bShape);
+    return new BinaryOpProgram(op, outputShape);
   }
 }

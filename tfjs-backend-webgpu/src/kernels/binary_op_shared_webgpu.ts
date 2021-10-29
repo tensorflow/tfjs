@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-import {backend_util} from '@tensorflow/tfjs-core';
-
 import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
@@ -29,66 +27,57 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
-  workPerThread: number;
+  workPerThread = 4;
   workGroupSize: [number, number, number];
   useSharedMemoryWithB: boolean;
-  lastDimensionSize: number;
+  isScater: boolean;
   op: BinaryOpType;
   size = true;
 
   constructor(
-      op: BinaryOpType, aShape: number[], bShape: number[],
-      useSharedMemoryWithB: boolean) {
+      op: BinaryOpType, outputShape: number[], useSharedMemoryWithB: boolean,
+      isScater: boolean) {
     // This is an experimental value when using shared memory.
     // Note that the maximum of workgroup X dimension is 256.
     const workGroupSizeX = 256;
     this.workGroupSize = [workGroupSizeX, 1, 1];
-    this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
+    this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.lastDimensionSize = useSharedMemoryWithB ? bShape[0] : aShape[0];
-    if (this.lastDimensionSize < 256) {
-      this.workPerThread = 1;
-    } else if (this.lastDimensionSize < 512) {
-      this.workPerThread = 2;
-    } else {
-      this.workPerThread = 4;
-    }
+    this.isScater = isScater;
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
 
     this.useSharedMemoryWithB = useSharedMemoryWithB;
     this.op = op;
-    // this.lastDimensionSize is used as sharedBuf array size, so can not be
-    // used as uniform.
-    this.shaderKey = `binaryShared_${op}_${this.lastDimensionSize}_${
-        this.useSharedMemoryWithB}`;
+    this.shaderKey =
+        `binaryShared_${op}_${this.useSharedMemoryWithB}_${isScater}`;
   }
 
   getUserCode(): string {
-    const sharedIndexSnippet = this.lastDimensionSize > 1 ?
-        `coords[${this.outputShape.length - 1}]` :
-        '0';
+    const sharedIndexSnippet =
+        this.isScater ? '0' : `coords[${this.outputShape.length - 1}]`;
     const accessDataSnippet = this.useSharedMemoryWithB ?
-        `let a = getAAtOutCoordsByCoords(coords);
+        `let a = getAAtOutCoordsByGlobalIndex(flatIndex);
          let b = sharedBuf[${sharedIndexSnippet}];` :
         `let a = sharedBuf[${sharedIndexSnippet}];
-         let b = getBAtOutCoordsByCoords(coords);`;
+         let b = getBAtOutCoordsByGlobalIndex(flatIndex);`;
 
-    const opStr = getBinaryOpString(this.op, false);
     const userCode = `
         fn binaryOperation(a : f32, b : f32) -> f32 {
-          ${opStr}
+          ${getBinaryOpString(this.op, false)}
         }
-        var<workgroup> sharedBuf : array<f32, ${this.lastDimensionSize}>;
+
+        var<workgroup> sharedBuf : array<f32, ${
+        this.workGroupSize[0] * this.workPerThread}>;
         ${getMainHeaderAndGlobalIndexString()}
 
           // Fill in the shared memory buffer. Here we need a loop to make sure
           // that all data in A|B are uploaded when |sharedMemorySize| is larger
           // than work group size.
           for(var localIndex = i32(localId.x); localIndex < ${
-        this.lastDimensionSize}; localIndex = localIndex + ${
-        this.workGroupSize[0]}) {
+        this.useSharedMemoryWithB ? 'uniforms.bShape' : 'uniforms.aShape'};
+              localIndex = localIndex + ${this.workGroupSize[0]}) {
             sharedBuf[localIndex] = f32(${
         this.useSharedMemoryWithB ? 'B' : 'A'}.numbers[localIndex]);
           }
