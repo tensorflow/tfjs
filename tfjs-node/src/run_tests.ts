@@ -80,7 +80,8 @@ const IGNORE_LIST: string[] = [
   // tslint:disable-next-line:max-line-length
   'maxPool3d test-tensorflow {} x=[1,2,2,2,1] f=[2,2,2] s=1 p=1 roundingMode=floor',
   // libtensorflow doesn't support 6D ArgMax yet.
-  'argmax test-tensorflow {} 6D, axis=0', 'diag test-tensorflow {} complex',
+  'argmax test-tensorflow {} 6D, axis=0',
+  'diag test-tensorflow {} complex',
   'diag test-tensorflow {} bool',
   // See https://github.com/tensorflow/tfjs/issues/1891
   'conv2d test-tensorflow {} x=[2,1,2,2] f=[1,1,1,1] s=1 d=1 p=0 NCHW',
@@ -94,9 +95,13 @@ const IGNORE_LIST: string[] = [
   'conv2dTranspose test-tensorflow {} input=3x3x1,d2=1,f=2,s=2,p=explicit',
   // tslint:disable-next-line:max-line-length
   'conv2dTranspose test-tensorflow {} gradient input=[1,3,3,1] f=[2,2,2,1] s=[1,1] p=explicit',
-  'maxPoolWithArgmax', 'rotate', 'unique',
+  'maxPoolWithArgmax',
+  'rotate',
+  'unique',
   // libtensorflow does not yet support tf.matmul with broadcast
-  'broadcast with unequal batch dims', 'broadcast with unequal ranks',
+  'broadcast with unequal batch dims',
+  'broadcast batch shape',
+  'broadcast with unequal ranks',
   // Node backend which uses TF 2.4.0 doesn't support explicit padding
   'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=1 d=1 p=explicit',
   // tslint:disable-next-line:max-line-length
@@ -108,13 +113,20 @@ const IGNORE_LIST: string[] = [
   // not available in tf yet.
   'denseBincount',
   // only available in tf addon.
-  'image.transform', 'sign test-tensorflow {} basic',
+  'image.transform',
+  'sign test-tensorflow {} basic',
   'sign test-tensorflow {} does not propagate NaNs',
   'sign test-tensorflow {} accepts a tensor-like object',
   // Node kernel for einsum is yet to be implemented.
   // See: ttps://github.com/tensorflow/tfjs/issues/2349
-  'einsum', 'sparseFillEmptyRows', 'sparseReshape', 'sparseSegmentMean',
-  'sparseSegmentSum', 'stringNGrams', 'stringSplit', 'stringToHashBucketFast',
+  'einsum',
+  'sparseFillEmptyRows',
+  'sparseReshape',
+  'sparseSegmentMean',
+  'sparseSegmentSum',
+  'stringNGrams',
+  'stringSplit',
+  'stringToHashBucketFast',
   'greaterEqual test-tensorflow {} should support string comparison',
   'greater test-tensorflow {} should support string comparison',
   'lessEqual test-tensorflow {} should support string comparison',

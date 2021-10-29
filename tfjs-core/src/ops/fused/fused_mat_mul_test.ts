@@ -181,6 +181,21 @@ describeWithFlags('fused matmul', ALL_ENVS, () => {
     expectArraysClose(await d.data(), [1, 9, -0.8647, 21]);
   });
 
+  it('fused A x B with elu and broadcasted shape', async () => {
+    const a = tf.tensor3d([1, 2, 3, 4, 5, 6], [1, 2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+    const c = tf.tensor1d([1, 1]);
+    const act: tf.fused.Activation = 'elu';
+    const transposeA = false;
+    const transposeB = false;
+
+    const d = tf.fused.matMul(
+        {a, b, transposeA, transposeB, bias: c, activation: act});
+
+    expect(d.shape).toEqual([1, 2, 2]);
+    expectArraysClose(await d.data(), [1, 9, -0.8647, 21]);
+  });
+
   it('fused A x B with relu and broadcasted bias different rank', async () => {
     const a = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [2, 2, 3]);
     const b = tf.tensor3d([0, 1, -3, 2, 2, 1, 0, 1, -3, 2, 2, 1], [2, 3, 2]);

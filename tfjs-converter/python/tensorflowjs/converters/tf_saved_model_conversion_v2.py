@@ -593,20 +593,20 @@ def _convert_tf_saved_model(output_dir,
   output_graph = os.path.join(
       output_dir, common.ARTIFACT_MODEL_JSON_FILE_NAME)
 
+  saved_model_tags_list = None
+  if saved_model_tags:
+    saved_model_tags_list = saved_model_tags.split(',')
+
   model = None
   concrete_func = None
   saved_model_sigature = None
   if saved_model_dir:
     saved_model_sigature = _find_signature(saved_model_dir, saved_model_tags,
                                         signature_def)
-    if saved_model_tags:
-      saved_model_tags = saved_model_tags.split(',')
-    model = _load_model(saved_model_dir, saved_model_tags)
+    model = _load_model(saved_model_dir, saved_model_tags_list)
     _check_signature_in_model(model, signature_def)
     concrete_func = model.signatures[signature_def]
   elif keras_model:
-    if saved_model_tags:
-      saved_model_tags = saved_model_tags.split(',')
     model = keras_model
     input_signature = None
     # If the model's call is not a `tf.function`, then we need to first get its
@@ -637,7 +637,7 @@ def _convert_tf_saved_model(output_dir,
     if saved_model_dir:
       (frozen_graph,
       frozen_initializer_graph) = _freeze_saved_model_v1(saved_model_dir,
-                                                          saved_model_tags,
+                                                          saved_model_tags_list,
                                                           output_node_names)
     else:
       print('Can not freeze saved model v1.')
@@ -711,7 +711,7 @@ def _convert_tf_saved_model(output_dir,
   except: # pylint: disable=W0702
     # keras model does not have tensorflow_version, hard code to the latest
     # tensorflow version.
-    version = '2.6.0'
+    version = tf.__version__
 
   optimize_graph(frozen_graph, signature,
                  output_graph, version,
