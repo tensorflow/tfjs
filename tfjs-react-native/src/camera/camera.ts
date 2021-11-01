@@ -18,6 +18,7 @@
 import * as tf from '@tensorflow/tfjs-core';
 
 import {downloadTextureData, drawTexture, runResizeProgram, uploadTextureData} from './camera_webgl_util';
+import {Rotation} from './types';
 interface Dimensions {
   width: number;
   height: number;
@@ -32,6 +33,7 @@ interface Size {
 interface FromTextureOptions {
   alignCorners?: boolean;
   interpolation?: 'nearest_neighbor'|'bilinear';
+  rotation?: Rotation;
 }
 
 const glCapabilities = {
@@ -184,15 +186,21 @@ export function fromTexture(
       options.alignCorners != null ? options.alignCorners : false;
   const interpolation =
       options.interpolation != null ? options.interpolation : 'bilinear';
+  const rotation = options.rotation != null ? options.rotation : 0;
 
   tf.util.assert(
       interpolation === 'bilinear' || interpolation === 'nearest_neighbor',
       () => 'fromTexture Error: interpolation must be one of' +
           ' "bilinear" or "nearest_neighbor"');
 
+  tf.util.assert(
+      [0, 90, 180, 270, 360, -90, -180, -270].includes(rotation),
+      () => 'fromTexture Error: rotation must be ' +
+          '0, +/- 90, +/- 180, +/- 270 or +/- 360');
+
   const resizedTexture = runResizeProgram(
       gl, texture, sourceDims, targetShape, alignCorners,
-      useCustomShadersToResize, interpolation);
+      useCustomShadersToResize, interpolation, rotation);
   const downloadedTextureData =
       downloadTextureData(gl, resizedTexture, targetShape);
 
@@ -231,10 +239,15 @@ export function fromTexture(
  */
 export function renderToGLView(
     gl: WebGL2RenderingContext, texture: WebGLTexture, size: Size,
-    flipHorizontal = true) {
+    flipHorizontal = true, rotation: Rotation = 0) {
+  tf.util.assert(
+      [0, 90, 180, 270, 360, -90, -180, -270].includes(rotation),
+      () => 'renderToGLView Error: rotation must be ' +
+          '0, +/- 90, +/- 180, +/- 270 or +/- 360');
+
   size = {
     width: Math.floor(size.width),
     height: Math.floor(size.height),
   };
-  drawTexture(gl, texture, size, flipHorizontal);
+  drawTexture(gl, texture, size, flipHorizontal, rotation);
 }

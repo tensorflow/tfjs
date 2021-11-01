@@ -26,6 +26,7 @@ import {
 import { Camera } from 'expo-camera';
 import { GLView, ExpoWebGLRenderingContext } from 'expo-gl';
 import { fromTexture, renderToGLView, detectGLCapabilities } from './camera';
+import { Rotation } from './types';
 
 interface WrappedComponentProps {
   onLayout?: (event: LayoutChangeEvent) => void;
@@ -41,6 +42,7 @@ interface Props {
   resizeHeight: number;
   resizeDepth: number;
   autorender: boolean;
+  rotation?: Rotation;
   onReady: (
     images: IterableIterator<tf.Tensor3D>,
     updateCameraPreview: () => void,
@@ -247,8 +249,6 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
       }
 
       const {
-        resizeHeight,
-        resizeWidth,
         resizeDepth,
       } = this.props;
 
@@ -281,19 +281,21 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
           depth: RGBA_DEPTH,
         };
 
-        const targetDims = {
-          height: resizeHeight,
-          width: resizeWidth,
-          depth: resizeDepth || DEFAULT_RESIZE_DEPTH,
-        };
 
         while (cameraStreamView.glContext != null) {
+          const targetDims = {
+            height:  cameraStreamView.props.resizeHeight,
+            width:  cameraStreamView.props.resizeWidth,
+            depth: resizeDepth || DEFAULT_RESIZE_DEPTH,
+          };
+
           const imageTensor = fromTexture(
             gl,
             cameraTexture,
             textureDims,
             targetDims,
             useCustomShadersToResize,
+            { rotation: cameraStreamView.props.rotation }
           );
           yield imageTensor;
         }
@@ -316,6 +318,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
     ) {
       const renderFunc = () => {
         const { cameraLayout } = this.state;
+        const { rotation } = this.props;
         const width = PixelRatio.getPixelSizeForLayoutSize(cameraLayout.width);
         const height = PixelRatio.getPixelSizeForLayoutSize(
           cameraLayout.height
@@ -325,7 +328,13 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         const flipHorizontal =
           Platform.OS === 'ios' && isFrontCamera ? false : true;
 
-        renderToGLView(gl, cameraTexture, { width, height }, flipHorizontal);
+        renderToGLView(
+          gl,
+          cameraTexture,
+          { width, height },
+          flipHorizontal,
+          rotation
+        );
       };
 
       return renderFunc.bind(this);
@@ -351,6 +360,7 @@ export function cameraWithTensors<T extends WrappedComponentProps>(
         resizeDepth: null,
         autorender: null,
         onReady: null,
+        rotation: 0,
       };
       const tensorCameraPropKeys = Object.keys(tensorCameraPropMap);
 
