@@ -343,7 +343,7 @@ export class GraphExecutor implements FunctionExecutor {
     Object.keys(this.intermediateTensors)
         .forEach(
             key => this.intermediateTensors[key].forEach(
-                tensor => tensor.dispose()));
+                tensor => tensor != null && tensor.dispose()));
     this.disposeTensorsMap();
   }
 
@@ -368,7 +368,7 @@ export class GraphExecutor implements FunctionExecutor {
 
   private resetIntermediateTensors() {
     for (const key in this.intermediateTensors) {
-      this.intermediateTensors[key].forEach(tensor => tensor.dispose());
+      this.intermediateTensors[key].forEach(tensor => tensor != null && tensor.dispose());
       delete this.intermediateTensors[key];
     }
   }
