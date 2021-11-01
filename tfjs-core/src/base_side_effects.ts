@@ -25,6 +25,7 @@ getOrMakeEngine();
 import './flags';
 // Register platforms
 import './platforms/platform_browser';
+// tslint:disable-next-line:no-circular-imports
 import './platforms/platform_node';
 
 // Set up OpHandler

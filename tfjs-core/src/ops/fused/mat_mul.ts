@@ -81,8 +81,7 @@ function fusedMatMul_({
       }
 
       return applyActivation(
-                 result, activation, preluActivationWeights, leakyreluAlpha) as
-          Tensor;
+                 result, activation, preluActivationWeights, leakyreluAlpha);
     }
 
     let $a = convertToTensor(a, 'a', 'fused matMul');
@@ -192,7 +191,7 @@ function fusedMatMul_({
 
             return {value: reshape(res, outShape), gradFunc: grad};
           });
-      return customOp(a3D, b3D) as Tensor;
+      return customOp(a3D, b3D);
     } else {
       const customOpWithBias = customGrad(
           (a3D: Tensor3D, b3D: Tensor3D, $bias: Tensor, save: GradSaveFunc) => {
@@ -207,7 +206,7 @@ function fusedMatMul_({
             return {value: reshape(res, outShape), gradFunc: grad};
           });
 
-      return customOpWithBias(a3D, b3D, $bias) as Tensor;
+      return customOpWithBias(a3D, b3D, $bias);
     }
   }
 
