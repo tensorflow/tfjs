@@ -67,7 +67,7 @@ export class GraphExecutor implements FunctionExecutor {
   }
 
   /**
-   * Set `ResourceManager` shared by executors of a model.
+   * Set `ResourceManager` sharedd by executors of a model.
    * @param resourceManager: `ResourceManager` of the `GraphModel`.
    */
   set resourceManager(resourceManager: ResourceManager) {
