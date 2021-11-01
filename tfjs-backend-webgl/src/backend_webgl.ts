@@ -307,11 +307,16 @@ export class MathBackendWebGL extends KernelBackend {
       return this.convertAndCacheOnCPU(dataId);
     }
 
-    if (!env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED') &&
+    if (env().getBool('DEBUG')) {
+      // getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED') caused a blocking GPU call.
+      // For performance reason, only check it for debugging. In production,
+      // it doesn't handle this use case anyway, so behavior is not changed.
+      if (!env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED') &&
         env().getNumber('WEBGL_VERSION') === 2) {
-      throw new Error(
-          `tensor.data() with WEBGL_DOWNLOAD_FLOAT_ENABLED=false and ` +
-          `WEBGL_VERSION=2 not yet supported.`);
+        throw new Error(
+            `tensor.data() with WEBGL_DOWNLOAD_FLOAT_ENABLED=false and ` +
+            `WEBGL_VERSION=2 not yet supported.`);
+      }
     }
 
     let buffer: WebGLBuffer = null;

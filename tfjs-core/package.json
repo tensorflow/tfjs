@@ -60,7 +60,7 @@
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "bazel run :tfjs-core_pkg.publish",
     "coverage": "bazel coverage :tfjs-core_node_test",
-    "test": "bazel test --flaky_test_attempts=3 :tfjs-core_test :test_snippets_test :tfjs-core_node_test tfjs-core_async_backends_test --test_output=all",
+    "test": "bazel test --flaky_test_attempts=3 :tfjs-core_test :test_snippets_test :tfjs-core_node_test :tfjs-core_async_backends_test src:worker_node_test src:worker_test --test_output=all",
     "test-dev": "ibazel test --flaky_test_attempts=3 :tfjs-core_test :test_snippets_test :tfjs-core_node_test tfjs-core_async_backends_test --test_output=all",
     "test-bundle-size": "./scripts/test-bundle-size.js",
     "test-browser": "bazel test --flaky_test_attempts=3 :tfjs-core_test --test_output=all",
