@@ -100,8 +100,6 @@ export class ScatterOptimizedProgram implements WebGPUProgram {
         `
      var assumed = atomicLoad(&(result.numbers[flatIndex]));
      var success = 0;
-     // TODO: Will it have the risk of falling infinite loop? See discussion
-     // https://github.com/tensorflow/tfjs/pull/5682#discussion_r725414008
      for (; success == 0;) {
        let new = bitcast<f32>(assumed) + updateValue;
        let newI32 = bitcast<i32>(new);
