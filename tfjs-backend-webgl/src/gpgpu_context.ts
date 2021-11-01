@@ -275,13 +275,9 @@ export class GPGPUContext {
 
   private vertexAttrsAreBound = false;
 
-  public createProgram(fragmentShaderSource: string|WebGLShader): WebGLProgram {
+  public createProgram(fragmentShader: WebGLShader): WebGLProgram {
     this.throwIfDisposed();
     const gl = this.gl;
-    const fragmentShader: WebGLShader =
-        fragmentShaderSource instanceof WebGLShader ?
-        fragmentShaderSource :
-        webgl_util.createFragmentShader(gl, fragmentShaderSource);
     if (this.vertexShader == null) {
       this.vertexShader = gpgpu_util.createVertexShader(gl);
     }
