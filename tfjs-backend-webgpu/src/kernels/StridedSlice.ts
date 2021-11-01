@@ -85,15 +85,15 @@ export function stridedSlice(args: {
       const program = new StridedSliceProgram(finalShapeSparse);
       const uniformData =
           [{type: 'int32', data: $begin}, {type: 'int32', data: $strides}];
-      result = backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
+      const resultValues =
+          backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
+      result = reshape(
+          {inputs: {x: resultValues}, backend, attrs: {shape: finalShape}});
+      backend.disposeData(resultValues.dataId);
     }
   }
-  const resultReshaped =
-      reshape({inputs: {x: result}, backend, attrs: {shape: finalShape}});
 
-  backend.disposeData(result.dataId);
-
-  return resultReshaped;
+  return result;
 }
 
 export const stridedSliceConfig: KernelConfig = {
