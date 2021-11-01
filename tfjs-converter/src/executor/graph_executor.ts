@@ -300,11 +300,13 @@ export class GraphExecutor implements FunctionExecutor {
                 if (!this.keepTensorForDebug) {
                   tensor.dispose();
                 } else {
-                  [nodeName] = getNodeNameAndIndex(node.name, context);
+                  const [nodeName, index] =
+                      getNodeNameAndIndex(node.name, context);
                   if (this.intermediateTensors[nodeName]) {
-                    this.intermediateTensors[nodeName].push(tensor);
+                    this.intermediateTensors[nodeName][index] = tensor;
                   } else {
-                    this.intermediateTensors[nodeName] = [tensor];
+                    this.intermediateTensors[nodeName] = [];
+                    this.intermediateTensors[nodeName][index] = tensor;
                   }
                 }
                 delete intermediateTensorConsumerCount[tensor.id];
