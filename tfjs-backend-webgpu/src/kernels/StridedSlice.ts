@@ -72,7 +72,7 @@ export function stridedSlice(args: {
     const sliced = slice({inputs: {x}, backend, attrs: {begin: $begin, size}});
     result =
         reshape({inputs: {x: sliced}, backend, attrs: {shape: finalShape}});
-    backend.disposeData(sliced);
+    backend.disposeData(sliced.dataId);
   } else {
     const shouldExecuteOnCPU = backend.shouldExecuteOnCPU([x]);
     if (shouldExecuteOnCPU) {
