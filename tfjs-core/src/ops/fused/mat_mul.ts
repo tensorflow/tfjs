@@ -55,7 +55,7 @@ import {reshape} from '../reshape';
  * - `preluActivationWeights` Tensor of prelu weights.
  * - `leakyreluAlpha` Alpha of leakyrelu.
  */
-function fusedMatMul_<T extends Tensor>({
+function fusedMatMul_({
   a,
   b,
   transposeA = false,
@@ -65,15 +65,15 @@ function fusedMatMul_<T extends Tensor>({
   preluActivationWeights,
   leakyreluAlpha,
 }: {
-  a: T|TensorLike,
-  b: T|TensorLike,
+  a: Tensor|TensorLike,
+  b: Tensor|TensorLike,
   transposeA?: boolean,
   transposeB?: boolean,
   bias?: Tensor|TensorLike,
   activation?: Activation,
   preluActivationWeights?: Tensor
   leakyreluAlpha?: number
-}): T {
+}): Tensor {
     if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
       let result = unfusedMatMul(a, b, transposeA, transposeB);
       if (bias != null) {
@@ -82,7 +82,7 @@ function fusedMatMul_<T extends Tensor>({
 
       return applyActivation(
                  result, activation, preluActivationWeights, leakyreluAlpha) as
-          T;
+          Tensor;
     }
 
     let $a = convertToTensor(a, 'a', 'fused matMul');
@@ -105,24 +105,15 @@ function fusedMatMul_<T extends Tensor>({
     const batchDimB = util.sizeFromShape(outerDimsB);
 
     util.assert(
-        $a.rank >= 2 && $b.rank >= 2 && $a.rank === $b.rank,
-        () => `Error in fused matMul: inputs must have the same rank of at ` +
-            `least 2, got ranks ${$a.rank} and ${$b.rank}.`);
-
-    util.assert(
-        util.arraysEqual(outerDimsA, outerDimsB),
-        () => `Error in fused matMul: outer dimensions (${outerDimsA}) and (` +
-            `${outerDimsB}) of Tensors with shapes ${$a.shape} and ` +
-            `${$b.shape} must match.`);
-
-    util.assert(
         innerShapeA === innerShapeB,
         () => `Error in fused matMul: inner shapes (${innerShapeA}) and (` +
             `${innerShapeB}) of Tensors with shapes ${$a.shape} and ` +
             `${$b.shape} and transposeA=${transposeA}` +
             ` and transposeB=${transposeB} must match.`);
 
-    const outShape = $a.shape.slice(0, -2).concat([outerShapeA, outerShapeB]);
+    const outShapeOuterDims = broadcast_util.assertAndGetBroadcastShape(
+        $a.shape.slice(0, -2), $b.shape.slice(0, -2));
+    const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
 
     const a3D: Tensor3D = transposeA ?
         reshape($a, [batchDimA, innerShapeA, outerShapeA]) :
@@ -195,13 +186,13 @@ function fusedMatMul_<T extends Tensor>({
                 // tslint:disable-next-line: no-unnecessary-type-assertion
                 ENGINE.runKernel(
                     _FusedMatMul, inputs as {} as NamedTensorMap,
-                    attrs as {} as NamedAttrMap) as T;
+                    attrs as {} as NamedAttrMap) as Tensor;
 
             save([a3D, b3D, res]);
 
             return {value: reshape(res, outShape), gradFunc: grad};
           });
-      return customOp(a3D, b3D) as T;
+      return customOp(a3D, b3D) as Tensor;
     } else {
       const customOpWithBias = customGrad(
           (a3D: Tensor3D, b3D: Tensor3D, $bias: Tensor, save: GradSaveFunc) => {
@@ -209,14 +200,14 @@ function fusedMatMul_<T extends Tensor>({
                 // tslint:disable-next-line: no-unnecessary-type-assertion
                 ENGINE.runKernel(
                     _FusedMatMul, inputs as {} as NamedTensorMap,
-                    attrs as {} as NamedAttrMap) as T;
+                    attrs as {} as NamedAttrMap) as Tensor;
 
             save([a3D, b3D, res, $bias]);
 
             return {value: reshape(res, outShape), gradFunc: grad};
           });
 
-      return customOpWithBias(a3D, b3D, $bias) as T;
+      return customOpWithBias(a3D, b3D, $bias) as Tensor;
     }
   }
 

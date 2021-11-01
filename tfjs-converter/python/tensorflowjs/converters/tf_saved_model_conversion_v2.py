@@ -31,6 +31,9 @@ from tensorflow.python.eager import context
 from tensorflow.python.framework import convert_to_constants
 from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
+from tensorflow.python.keras.saving.saving_utils import trace_model_call
+from tensorflow.python.keras.saving.saving_utils import def_function
+from tensorflow.python.keras.saving.saving_utils import model_input_signature
 from tensorflow.python.saved_model.load import load
 from tensorflow.python.saved_model import loader
 from tensorflow.python.training.saver import export_meta_graph
@@ -546,8 +549,10 @@ def _find_signature(saved_model_dir, saved_model_tags, signature_def):
 
   return signature_def_map[signature_def]
 
-def convert_tf_saved_model(saved_model_dir,
-                           output_dir, signature_def='serving_default',
+def _convert_tf_saved_model(output_dir,
+                           saved_model_dir=None,
+                           keras_model=None,
+                           signature_def='serving_default',
                            saved_model_tags='serve',
                            quantization_dtype_map=None,
                            skip_op_check=False,
@@ -556,18 +561,16 @@ def convert_tf_saved_model(saved_model_dir,
                            control_flow_v2=False,
                            experiments=False,
                            metadata=None):
-  """Freeze the SavedModel and check the model compatibility with Tensorflow.js.
-
-  Optimize and convert the model to Tensorflow.js format, when the model passes
-  the compatiblity check.
+  """Take a SavedModel or KerasModel and convert to Tensorflow.js graph model.
 
   Args:
-    saved_model_dir: string The saved model directory.
-    : string The names of the output nodes, comma separated.
     output_dir: string The name of the output directory. The directory
       will consist of
       - a file named 'model.json'
       - possibly sharded binary weight files.
+    saved_model_dir: string The saved model directory.
+    : string The names of the output nodes, comma separated.
+    keras_model: An in-memory Keras model object.
     signature_def: string Tagset of the SignatureDef to load. Defaults to
       'serving_default'.
     saved_model_tags: tags of the GraphDef to load. Defaults to 'serve'.
@@ -590,17 +593,35 @@ def convert_tf_saved_model(saved_model_dir,
   output_graph = os.path.join(
       output_dir, common.ARTIFACT_MODEL_JSON_FILE_NAME)
 
-  saved_model_sigature = _find_signature(saved_model_dir, saved_model_tags,
-                                         signature_def)
-
+  saved_model_tags_list = None
   if saved_model_tags:
-    saved_model_tags = saved_model_tags.split(',')
+    saved_model_tags_list = saved_model_tags.split(',')
 
-  model = _load_model(saved_model_dir, saved_model_tags)
-
-  _check_signature_in_model(model, signature_def)
-
-  concrete_func = model.signatures[signature_def]
+  model = None
+  concrete_func = None
+  saved_model_sigature = None
+  if saved_model_dir:
+    saved_model_sigature = _find_signature(saved_model_dir, saved_model_tags,
+                                        signature_def)
+    model = _load_model(saved_model_dir, saved_model_tags_list)
+    _check_signature_in_model(model, signature_def)
+    concrete_func = model.signatures[signature_def]
+  elif keras_model:
+    model = keras_model
+    input_signature = None
+    # If the model's call is not a `tf.function`, then we need to first get its
+    # input signature from `model_input_signature` method. We can't directly
+    # call `trace_model_call` because otherwise the batch dimension is set
+    # to None.
+    if not isinstance(model.call, def_function.Function):
+      # Pass `keep_original_batch_size=True` will ensure that we get an input
+      # signature including the batch dimension specified by the user.
+      input_signature = model_input_signature(
+          model, keep_original_batch_size=True)
+    func = trace_model_call(model, input_signature)
+    concrete_func = func.get_concrete_function()
+  else:
+    raise Exception('Provide either a saved model or keras model to convert.')
 
   output_node_names = []
   for output_tensor in concrete_func.outputs:
@@ -613,10 +634,14 @@ def convert_tf_saved_model(saved_model_dir,
   try:
     frozen_graph = _freeze_saved_model_v2(concrete_func, control_flow_v2)
   except BaseException:
-    (frozen_graph,
-     frozen_initializer_graph) = _freeze_saved_model_v1(saved_model_dir,
-                                                        saved_model_tags,
-                                                        output_node_names)
+    if saved_model_dir:
+      (frozen_graph,
+      frozen_initializer_graph) = _freeze_saved_model_v1(saved_model_dir,
+                                                          saved_model_tags_list,
+                                                          output_node_names)
+    else:
+      print('Can not freeze saved model v1.')
+      return
 
   inputs = [x for x in concrete_func.inputs if not x.dtype == 'resource']
   signature = _build_signature_def(
@@ -680,8 +705,16 @@ def convert_tf_saved_model(saved_model_dir,
     frozen_graph = _strip_unused_nodes(
         frozen_graph, concrete_func, output_node_names)
 
+  version = None
+  try:
+    version = model.tensorflow_version
+  except: # pylint: disable=W0702
+    # keras model does not have tensorflow_version, hard code to the latest
+    # tensorflow version.
+    version = tf.__version__
+
   optimize_graph(frozen_graph, signature,
-                 output_graph, model.tensorflow_version,
+                 output_graph, version,
                  quantization_dtype_map=quantization_dtype_map,
                  skip_op_check=skip_op_check,
                  strip_debug_ops=strip_debug_ops,
@@ -689,6 +722,53 @@ def convert_tf_saved_model(saved_model_dir,
                  experiments=experiments,
                  initializer_graph=frozen_initializer_graph,
                  metadata=metadata)
+
+def convert_tf_saved_model(saved_model_dir,
+                           output_dir, signature_def='serving_default',
+                           saved_model_tags='serve',
+                           quantization_dtype_map=None,
+                           skip_op_check=False,
+                           strip_debug_ops=False,
+                           weight_shard_size_bytes=1024 * 1024 * 4,
+                           control_flow_v2=False,
+                           experiments=False,
+                           metadata=None):
+  """Freeze the SavedModel and check the model compatibility with Tensorflow.js.
+
+  Optimize and convert the model to Tensorflow.js format, when the model passes
+  the compatiblity check.
+
+  Args:
+    saved_model_dir: string The saved model directory.
+    : string The names of the output nodes, comma separated.
+    output_dir: string The name of the output directory. The directory
+      will consist of
+      - a file named 'model.json'
+      - possibly sharded binary weight files.
+    signature_def: string Tagset of the SignatureDef to load. Defaults to
+      'serving_default'.
+    saved_model_tags: tags of the GraphDef to load. Defaults to 'serve'.
+    quantization_dtype_map: A mapping from dtype
+      (`uint8`, `uint16`, `float16`) to weights names. The weight mapping
+      supports wildcard substitution.
+    skip_op_check: Bool whether to skip the op check.
+    strip_debug_ops: Bool whether to strip debug ops.
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
+    control_flow_v2: Bool whether to enable control flow v2 ops.
+    experiments: Bool enable experimental features.
+    metadata: User defined metadata map.
+  """
+  _convert_tf_saved_model(output_dir, saved_model_dir=saved_model_dir,
+                          signature_def=signature_def,
+                          saved_model_tags=saved_model_tags,
+                          quantization_dtype_map=quantization_dtype_map,
+                          skip_op_check=skip_op_check,
+                          strip_debug_ops=strip_debug_ops,
+                          weight_shard_size_bytes=weight_shard_size_bytes,
+                          control_flow_v2=control_flow_v2,
+                          experiments=experiments,
+                          metadata=metadata)
 
 def load_and_initialize_hub_module(module_path, signature='default'):
   """Loads graph of a TF-Hub module and initializes it into a session.
@@ -870,3 +950,43 @@ def convert_tf_hub_module(module_handle, output_dir,
                            control_flow_v2=control_flow_v2,
                            experiments=experiments,
                            metadata=metadata)
+
+def convert_keras_model_to_graph_model(keras_model,
+                                       output_dir,
+                                       saved_model_tags='serve',
+                                       quantization_dtype_map=None,
+                                       skip_op_check=False,
+                                       strip_debug_ops=False,
+                                       weight_shard_size_bytes=1024 * 1024 * 4,
+                                       control_flow_v2=False,
+                                       experiments=False,
+                                       metadata=None):
+  """Convert an in-memory keras model to Tensorflow.js graph model format.
+
+  Args:
+    keras_model: Keras Model object.
+    output_dir: string The name of the output directory. The directory
+      will consist of
+      - a file named 'model.json'
+      - possibly sharded binary weight files.
+    saved_model_tags: tags of the GraphDef to load. Defaults to 'serve'.
+    quantization_dtype_map: A mapping from dtype
+      (`uint8`, `uint16`, `float16`) to weights names. The weight mapping
+      supports wildcard substitution.
+    skip_op_check: Bool whether to skip the op check.
+    strip_debug_ops: Bool whether to strip debug ops.
+    weight_shard_size_bytes: Shard size (in bytes) of the weight files.
+      The size of each weight file will be <= this value.
+    control_flow_v2: Bool whether to enable control flow v2 ops.
+    experiments: Bool enable experimental features.
+    metadata: User defined metadata map.
+  """
+  _convert_tf_saved_model(output_dir, keras_model=keras_model,
+                                      saved_model_tags=saved_model_tags,
+                                      quantization_dtype_map=quantization_dtype_map,
+                                      skip_op_check=skip_op_check,
+                                      strip_debug_ops=strip_debug_ops,
+                                      weight_shard_size_bytes=weight_shard_size_bytes,
+                                      control_flow_v2=control_flow_v2,
+                                      experiments=experiments,
+                                      metadata=metadata)

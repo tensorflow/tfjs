@@ -15,12 +15,13 @@
  * =============================================================================
  */
 
-import {backend_util, env, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, broadcast_util, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 
 import {MatMulPackedVec4Program} from './matmul_packed_vec4_webgpu';
 import {MatMulPackedProgram} from './matmul_packed_webgpu';
+import {MatMulReduceProgram} from './matmul_reduce';
 import {MatMulSmallOutputSizeProgram} from './matmul_small_output_size_webgpu';
 import {reshape} from './Reshape';
 import {WebGPUProgram} from './webgpu_program';
@@ -63,17 +64,8 @@ export function batchMatMulImpl({
   const batchDimA = util.sizeFromShape(outerDimsA);
   const batchDimB = util.sizeFromShape(outerDimsB);
 
-  const batchDimsCompatible =
-      batchDimA === batchDimB || batchDimA === 1 || batchDimB === 1;
-
-  util.assert(
-      aRank >= 2 && bRank >= 2 && batchDimsCompatible,
-      () => `Error in matMul: the input batch dimensions must either be the ` +
-          `same or at least one input batch dimension must be 1. Got input ` +
-          `batch dimensions of (${outerDimsA}) and (${outerDimsB}).`);
-
-  const outShapeOuterDims =
-      batchDimA > batchDimB ? a.shape.slice(0, -2) : b.shape.slice(0, -2);
+  const outShapeOuterDims = broadcast_util.assertAndGetBroadcastShape(
+      a.shape.slice(0, -2), b.shape.slice(0, -2));
   const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
 
   util.assert(
@@ -100,20 +92,25 @@ export function batchMatMulImpl({
   const useVec4 = innerShapeA % 4 === 0 && outerShapeB % 4 === 0 &&
       !transposeA && !transposeB && outerShapeB >= 32;
   let program: WebGPUProgram;
+  if (outerShapeA * outerShapeB <= 32) {
+    program = new MatMulReduceProgram(
+        [batchDim, outerShapeA, outerShapeB], transposeA, transposeB, bias,
+        activation, preluActivationWeights);
 
-  // When the output size is absolutely small or relatively small, we may use
-  // MatMulSmallOutputSizeProgram to get better performance.
-  // Absolutely small size means that the output size is smaller than [16, 512].
-  // Relatively small size means that one demension size of the output is
-  // smaller than 16, and the output size is also more than or equal two times
-  // smaller than each of the two input sizes. For example, if input sizes are
-  // [12, 2048] and [2048, 1024], the output size is [12, 1024], which is
-  // relatively small compared to input sizes.
-  if (!transposeA && !transposeB &&
-      ((outerShapeA <= 16 &&
-        (outerShapeB <= 512 || innerShapeB >= 2 * outerShapeB)) ||
-       (outerShapeB <= 16 &&
-        (outerShapeA <= 512 || innerShapeA >= 2 * outerShapeA)))) {
+  } else
+      // When the output size is absolutely small or relatively small, we may
+      // use MatMulSmallOutputSizeProgram to get better performance. Absolutely
+      // small size means that the output size is smaller than [16, 512].
+      // Relatively small size means that one demension size of the output is
+      // smaller than 16, and the output size is also more than or equal two
+      // times smaller than each of the two input sizes. For example, if input
+      // sizes are [12, 2048] and [2048, 1024], the output size is [12, 1024],
+      // which is relatively small compared to input sizes.
+      if (!transposeA && !transposeB &&
+          ((outerShapeA <= 16 &&
+            (outerShapeB <= 512 || innerShapeB >= 2 * outerShapeB)) ||
+           (outerShapeB <= 16 &&
+            (outerShapeA <= 512 || innerShapeA >= 2 * outerShapeA)))) {
     program = new MatMulSmallOutputSizeProgram(
         a3dShape, b3dShape, [batchDim, outerShapeA, outerShapeB], bias,
         activation, preluActivationWeights);

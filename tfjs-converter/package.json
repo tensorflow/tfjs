@@ -18,6 +18,7 @@
     "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core"
   },
   "devDependencies": {
+    "@bazel/bazelisk": "^1.10.1",
     "@bazel/ibazel": "^0.15.10",
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
@@ -60,7 +61,7 @@
     "bundle-ci": "yarn build",
     "build-link-package": "cd ../link-package && yarn build",
     "build-deps": "yarn build-link-package",
-    "build-npm": "bazel test :tfjs-converter_pkg.pack",
+    "build-npm": "bazel build :tfjs-converter_pkg.pack",
     "publish-npm": "bazel run :tfjs-converter_pkg.publish",
     "test": "bazel test :tfjs-converter_test :test_snippets_test",
     "test-ci": "yarn test",

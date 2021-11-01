@@ -59,7 +59,7 @@ PACKAGES=("tfjs-core" "tfjs-backend-cpu" "tfjs-backend-webgl" \
 
 # Packages that build with Bazel
 BAZEL_PACKAGES=("tfjs-core" "tfjs-backend-cpu" "tfjs-tflite" "tfjs-converter"
-"tfjs-backend-webgl", "tfjs-layers")
+"tfjs-backend-webgl" "tfjs-layers" "tfjs-data")
 
 for package in "${PACKAGES[@]}"
 do
@@ -75,10 +75,11 @@ do
 
   if [[ " ${BAZEL_PACKAGES[@]} " =~ " ${package} " ]]; then
     # Build and publish to local npm.
+    echo "Publishing $package using Bazel"
     yarn publish-npm
   else
+    echo "Publishing $package using npm"
     # Build npm.
-    echo $package
     yarn build-npm for-publish
 
     # Publish to local npm.

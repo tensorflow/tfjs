@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {env} from '../environment';
-
+import '../base_side_effects';
 import {Platform} from './platform';
 
 // We are wrapping this within an object so it can be stubbed by Jasmine.

@@ -1256,6 +1256,17 @@ describeWithFlags('dot', ALL_ENVS, () => {
     expectArraysClose(cData, [9, 12, 15, 19, 26, 33]);
   });
 
+  it('broadcast batch shape', async () => {
+    const a = tf.tensor3d([1, 2, 3, 4], [1, 2, 2]);
+    const b = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+
+    const c = tf.matMul(a, b);
+    const cData = await c.data();
+
+    expect(c.shape).toEqual([1, 2, 3]);
+    expectArraysClose(cData, [9, 12, 15, 19, 26, 33]);
+  });
+
   it('throws error on incompatible dimensions', () => {
     expect(() => tf.dot(c, f)).toThrowError();
   });

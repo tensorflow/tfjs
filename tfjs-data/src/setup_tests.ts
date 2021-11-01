@@ -15,17 +15,12 @@
  * =============================================================================
  */
 
-import './flags_wasm';
+import '@tensorflow/tfjs-core';
+// tslint:disable-next-line:no-imports-from-dist
+import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
+import '@tensorflow/tfjs-backend-cpu';
+import '@tensorflow/tfjs-backend-webgl';
 
-import {registerBackend} from '@tensorflow/tfjs-core';
-
-import {BackendWasm, init} from './backend_wasm';
-
-export {BackendWasm, getThreadsCount, setThreadsCount, setWasmPath, setWasmPaths} from './backend_wasm';
-export {version as version_wasm} from './version';
-
-const WASM_PRIORITY = 2;
-registerBackend('wasm', async () => {
-  const {wasm} = await init();
-  return new BackendWasm(wasm);
-}, WASM_PRIORITY);
+// Import and run tests from data.
+// tslint:disable-next-line:no-require-imports
+require('./tests');
