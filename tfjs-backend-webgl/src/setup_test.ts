@@ -53,9 +53,9 @@ if (typeof __karma__ !== 'undefined') {
 // the preceding snippet that parses test environments.
 // Import and run tests from core.
 // tslint:disable-next-line:no-imports-from-dist
-// tslint:disable-next-line:no-require
+// tslint:disable-next-line:no-require-imports
 require('@tensorflow/tfjs-core/dist/tests');
 // Import and run tests from webgl.
 // tslint:disable-next-line:no-imports-from-dist
-// tslint:disable-next-line:no-require
+// tslint:disable-next-line:no-require-imports
 require('./tests');

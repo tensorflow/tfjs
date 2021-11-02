@@ -154,7 +154,7 @@ function fromPixels_(
     fromPixels2DContext.canvas.width = width;
     fromPixels2DContext.canvas.height = height;
     fromPixels2DContext.drawImage(
-        pixels as HTMLVideoElement, 0, 0, width, height);
+      pixels as HTMLVideoElement, 0, 0, width, height);
     vals = fromPixels2DContext.getImageData(0, 0, width, height).data;
   }
   let values: Int32Array;

@@ -16,7 +16,7 @@
  */
 
 import '@tensorflow/tfjs-backend-cpu';
-import { expectArraysEqual } from "../test_util";
+import {expectArraysEqual} from '../test_util';
 
 describe('fromPixels worker', () => {
   it('fromPixels for ImageBitmap, worker', (done) => {
