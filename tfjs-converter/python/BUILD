@@ -48,6 +48,7 @@ py_wheel(
     license = "Apache 2.0",
     python_tag = "py3",
     requires = [
+        "tensorflow-estimator<=2.6.0",
         "tensorflow>=2.1.0,<3",
         "six>=1.12.0,<2",
         "tensorflow-hub>=0.7.0,<0.13",
