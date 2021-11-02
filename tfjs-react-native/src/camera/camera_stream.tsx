@@ -102,7 +102,8 @@ const DEFAULT_USE_CUSTOM_SHADERS_TO_RESIZE = false;
  *   with the contents of the camera. Set this to false if you want more direct
  *   control on when rendering happens.
  * - __rotation__: number — the degrees that the internal camera texture and
- *   preview will be rotated.
+ *   preview will be rotated. Accepted values: 0, +/- 90, +/- 180, +/- 270 or
+ *   360.
  * - __onReady__: (
  *    images: IterableIterator<tf.Tensor3D>,
  *    updateCameraPreview: () => void,

@@ -196,7 +196,7 @@ export function fromTexture(
   tf.util.assert(
       [0, 90, 180, 270, 360, -90, -180, -270].includes(rotation),
       () => 'fromTexture Error: rotation must be ' +
-          '0, +/- 90, +/- 180, +/- 270 or +/- 360');
+          '0, +/- 90, +/- 180, +/- 270 or 360');
 
   const resizedTexture = runResizeProgram(
       gl, texture, sourceDims, targetShape, alignCorners,
@@ -243,7 +243,7 @@ export function renderToGLView(
   tf.util.assert(
       [0, 90, 180, 270, 360, -90, -180, -270].includes(rotation),
       () => 'renderToGLView Error: rotation must be ' +
-          '0, +/- 90, +/- 180, +/- 270 or +/- 360');
+          '0, +/- 90, +/- 180, +/- 270 or 360');
 
   size = {
     width: Math.floor(size.width),
