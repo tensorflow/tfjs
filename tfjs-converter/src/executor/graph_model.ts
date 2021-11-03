@@ -363,6 +363,26 @@ export class GraphModel implements InferenceModel {
     return result.length > 1 ? result : result[0];
   }
 
+  /**
+   * Get intermediate tensors for model debugging mode (flag
+   * KEEP_INTERMEDIATE_TENSORS is true).
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
+   */
+  getIntermediateTensors(): NamedTensorsMap {
+    return this.executor.getIntermediateTensors();
+  }
+
+  /**
+   * Dispose intermediate tensors for model debugging mode (flag
+   * KEEP_INTERMEDIATE_TENSORS is true).
+   *
+   * @doc {heading: 'Models', subheading: 'Classes'}
+   */
+  disposeIntermediateTensors() {
+    this.executor.disposeIntermediateTensors();
+  }
+
   private convertTensorMapToTensorsMap(map: NamedTensorMap): NamedTensorsMap {
     return Object.keys(map).reduce((newMap: NamedTensorsMap, key) => {
       newMap[key] = [map[key]];
