@@ -21,8 +21,8 @@ import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
 
 import {executeOp} from './evaluation_executor';
+import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
 import {createBoolAttr, createNumberAttrFromIndex, createTensorAttr} from './test_helper';
-import {spyOnAllFunctions, RecursiveSpy} from './spy_ops';
 
 describe('evaluation', () => {
   let node: Node;
@@ -79,7 +79,9 @@ describe('evaluation', () => {
         node.inputParams['axis'] = createNumberAttrFromIndex(1);
         const xInput = [tfOps.tensor2d([[1], [2]])];
         const axisInput = [tfOps.scalar(1)];
-        executeOp(node, {'input1': xInput, 'input2': axisInput}, context, spyOpsAsTfOps);
+        executeOp(
+            node, {'input1': xInput, 'input2': axisInput}, context,
+            spyOpsAsTfOps);
         expect(spyOps.unique).toHaveBeenCalledWith(xInput[0], 1);
       });
     });

@@ -23,8 +23,8 @@ import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
 
 import {executeOp} from './matrices_executor';
-import {createBoolAttr, createNumberAttr, createNumericArrayAttr, createStrArrayAttr, createStrAttr, createTensorAttr, createTensorsAttr} from './test_helper';
 import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
+import {createBoolAttr, createNumberAttr, createNumericArrayAttr, createStrArrayAttr, createStrAttr, createTensorAttr, createTensorsAttr} from './test_helper';
 
 describe('matrices', () => {
   let node: Node;
@@ -97,7 +97,8 @@ describe('matrices', () => {
         const input4 = [tfOps.scalar(4.0)];
         node.inputNames = ['input1', 'input2', 'input3', 'input4'];
         spyOps.fused.matMul.and.returnValue({});
-        executeOp(node, {input1, input2, input3, input4}, context, spyOpsAsTfOps);
+        executeOp(
+            node, {input1, input2, input3, input4}, context, spyOpsAsTfOps);
 
         expect(spyOps.fused.matMul).toHaveBeenCalledWith({
           a: input1[0],

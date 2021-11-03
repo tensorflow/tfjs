@@ -90,8 +90,7 @@ export class GraphModel implements InferenceModel {
    */
   constructor(
       private modelUrl: string|io.IOHandler,
-      private loadOptions: io.LoadOptions = {},
-      tfio = io) {
+      private loadOptions: io.LoadOptions = {}, tfio = io) {
     this.io = tfio;
     if (loadOptions == null) {
       this.loadOptions = {};
@@ -105,13 +104,16 @@ export class GraphModel implements InferenceModel {
       // Path is an IO Handler.
       this.handler = path as io.IOHandler;
     } else if (this.loadOptions.requestInit != null) {
-      this.handler = this.io.browserHTTPRequest(path as string, this.loadOptions);
+      this.handler =
+          this.io.browserHTTPRequest(path as string, this.loadOptions);
     } else {
-      const handlers = this.io.getLoadHandlers(path as string, this.loadOptions);
+      const handlers =
+          this.io.getLoadHandlers(path as string, this.loadOptions);
       if (handlers.length === 0) {
         // For backward compatibility: if no load handler can be found,
         // assume it is a relative http path.
-        handlers.push(this.io.browserHTTPRequest(path as string, this.loadOptions));
+        handlers.push(
+            this.io.browserHTTPRequest(path as string, this.loadOptions));
       } else if (handlers.length > 1) {
         throw new Error(
             `Found more than one (${handlers.length}) load handlers for ` +
@@ -159,8 +161,8 @@ export class GraphModel implements InferenceModel {
     this.signature = signature;
 
     this.version = `${graph.versions.producer}.${graph.versions.minConsumer}`;
-    const weightMap =
-        this.io.decodeWeights(this.artifacts.weightData, this.artifacts.weightSpecs);
+    const weightMap = this.io.decodeWeights(
+        this.artifacts.weightData, this.artifacts.weightSpecs);
     this.executor = new GraphExecutor(
         OperationMapper.Instance.transformGraph(graph, this.signature));
     this.executor.weightMap = this.convertTensorMapToTensorsMap(weightMap);
@@ -440,8 +442,8 @@ export class GraphModel implements InferenceModel {
  * @doc {heading: 'Models', subheading: 'Loading'}
  */
 export async function loadGraphModel(
-    modelUrl: string|io.IOHandler,
-    options: io.LoadOptions = {}, tfio = io): Promise<GraphModel> {
+    modelUrl: string|io.IOHandler, options: io.LoadOptions = {},
+    tfio = io): Promise<GraphModel> {
   if (modelUrl == null) {
     throw new Error(
         'modelUrl in loadGraphModel() cannot be null. Please provide a url ' +

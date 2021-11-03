@@ -22,8 +22,8 @@ import * as reduction from '../op_list/reduction';
 import {Node} from '../types';
 
 import {executeOp} from './reduction_executor';
-import { createBoolAttr, createNumberAttr, createNumberAttrFromIndex, createTensorAttr, validateParam, uncapitalize} from './test_helper';
 import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
+import {createBoolAttr, createNumberAttr, createNumberAttrFromIndex, createTensorAttr, uncapitalize, validateParam} from './test_helper';
 
 describe('reduction', () => {
   let node: Node;
@@ -48,18 +48,19 @@ describe('reduction', () => {
   });
 
   describe('executeOp', () => {
-    (['Max', 'Mean', 'Min', 'Sum', 'All', 'Any', 'Prod'] as const)
-      .forEach(op => {
-        it('should call tfOps.' + op, () => {
-          node.op = op;
-          node.attrParams.keepDims = createBoolAttr(true);
-          node.attrParams.axis = createNumberAttr(1);
-          spyOps[uncapitalize(op)].and.returnValue({});
-          executeOp(node, {input1}, context, spyOpsAsTfOps);
+    (['Max', 'Mean', 'Min', 'Sum', 'All', 'Any', 'Prod'] as const )
+        .forEach(op => {
+          it('should call tfOps.' + op, () => {
+            node.op = op;
+            node.attrParams.keepDims = createBoolAttr(true);
+            node.attrParams.axis = createNumberAttr(1);
+            spyOps[uncapitalize(op)].and.returnValue({});
+            executeOp(node, {input1}, context, spyOpsAsTfOps);
 
-          expect(spyOps[uncapitalize(op)]).toHaveBeenCalledWith(input1[0], 1, true);
+            expect(spyOps[uncapitalize(op)])
+                .toHaveBeenCalledWith(input1[0], 1, true);
+          });
         });
-      });
     describe('ArgMax', () => {
       it('should call tfOps.argMax', () => {
         node.op = 'ArgMax';

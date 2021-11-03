@@ -22,8 +22,8 @@ import * as slice_join from '../op_list/slice_join';
 import {Node} from '../types';
 
 import {executeOp} from './slice_join_executor';
-import {createBooleanArrayAttrFromIndex, createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, createTensorsAttr, validateParam} from './test_helper';
 import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
+import {createBooleanArrayAttrFromIndex, createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, createTensorsAttr, validateParam} from './test_helper';
 
 describe('slice join', () => {
   let node: Node;
@@ -153,8 +153,8 @@ describe('slice join', () => {
         node.inputParams.tensors = createTensorsAttr(0, 0);
         node.attrParams.axis = createNumberAttr(4);
         spyOps.stack.and.returnValue({});
-        executeOp(node, {input1, input2, input3, input4}, context,
-                  spyOpsAsTfOps);
+        executeOp(
+            node, {input1, input2, input3, input4}, context, spyOpsAsTfOps);
 
         expect(spyOps.stack.calls.mostRecent().args[0][0]).toEqual(input1[0]);
         expect(spyOps.stack.calls.mostRecent().args[0][1]).toEqual(input2[0]);
@@ -266,7 +266,8 @@ describe('slice join', () => {
         node.inputNames = ['input1', 'input6', 'input7', 'input4'];
         const input6 = [tfOps.tensor1d([2], 'int32')];
         const input7 = [tfOps.tensor1d([3], 'int32')];
-        executeOp(node, {input1, input6, input7, input4}, context, spyOpsAsTfOps);
+        executeOp(
+            node, {input1, input6, input7, input4}, context, spyOpsAsTfOps);
 
         expect(spyOps.stridedSlice)
             .toHaveBeenCalledWith(input1[0], [2], [3], [3], 4, 5, 1, 2, 3);
@@ -386,7 +387,9 @@ describe('slice join', () => {
         spyOps.scatterND.and.returnValue({});
         executeOp(node, {input1, input2, input4}, context, spyOpsAsTfOps);
 
-        expect(spyOps.scatterND).toHaveBeenCalledWith(input1[0], input2[0], [3]);
+        expect(spyOps.scatterND).toHaveBeenCalledWith(input1[0], input2[0], [
+          3
+        ]);
       });
       it('should match json def for scatterND', () => {
         node.op = 'ScatterNd';
@@ -423,7 +426,8 @@ describe('slice join', () => {
         node.inputParams.indices = createTensorAttr(1);
         node.inputNames = ['input1', 'input4', 'input3', 'input2'];
         spyOps.sparseToDense.and.returnValue({});
-        executeOp(node, {input1, input2, input3, input4}, context, spyOpsAsTfOps);
+        executeOp(
+            node, {input1, input2, input3, input4}, context, spyOpsAsTfOps);
 
         expect(spyOps.sparseToDense)
             .toHaveBeenCalledWith(input1[0], input3[0], [3], input2[0]);
@@ -438,7 +442,8 @@ describe('slice join', () => {
         const input5 = [tfOps.scalar(5, 'int32')];
         node.inputNames = ['input1', 'input4', 'input3', 'input5'];
         spyOps.sparseToDense.and.returnValue({});
-        executeOp(node, {input1, input5, input3, input4}, context, spyOpsAsTfOps);
+        executeOp(
+            node, {input1, input5, input3, input4}, context, spyOpsAsTfOps);
 
         expect(spyOps.sparseToDense)
             .toHaveBeenCalledWith(

@@ -32,7 +32,7 @@ describeBrowserEnvs('MicrophoneIterator', () => {
       const result = await microphoneIterator.next();
       expect(result.done).toBeFalsy();
       // tslint:disable-next-line:no-any
-      expect((result.value as any).spectrogram.shape).toEqual([43, 1024, 1]);
+      expect((result.value).spectrogram.shape).toEqual([43, 1024, 1]);
     });
 
     it('throws error when sample rate is not available', async done => {
@@ -62,7 +62,7 @@ describeBrowserEnvs('MicrophoneIterator', () => {
       const result = await microphoneIterator.next();
       expect(result.done).toBeFalsy();
       // tslint:disable-next-line:no-any
-      expect((result.value as any).spectrogram.shape).toEqual([43, 16, 1]);
+      expect((result.value).spectrogram.shape).toEqual([43, 16, 1]);
     });
 
     it('throws error with invalid fftSize', async done => {
@@ -83,7 +83,7 @@ describeBrowserEnvs('MicrophoneIterator', () => {
       const result = await microphoneIterator.next();
       expect(result.done).toBeFalsy();
       // tslint:disable-next-line:no-any
-      expect((result.value as any).spectrogram.shape).toEqual([43, 232, 1]);
+      expect((result.value).spectrogram.shape).toEqual([43, 232, 1]);
     });
 
     it('gets tensor in correct shape with numFramesPerSpectrogram',
@@ -93,7 +93,7 @@ describeBrowserEnvs('MicrophoneIterator', () => {
          const result = await microphoneIterator.next();
          expect(result.done).toBeFalsy();
          // tslint:disable-next-line:no-any
-         expect((result.value as any).spectrogram.shape).toEqual([3, 16, 1]);
+         expect((result.value).spectrogram.shape).toEqual([3, 16, 1]);
        });
 
     it('gets tensor in correct shape with full spectrogram config',
@@ -107,7 +107,7 @@ describeBrowserEnvs('MicrophoneIterator', () => {
          const result = await microphoneIterator.next();
          expect(result.done).toBeFalsy();
          // tslint:disable-next-line:no-any
-         expect((result.value as any).spectrogram.shape).toEqual([10, 10, 1]);
+         expect((result.value).spectrogram.shape).toEqual([10, 10, 1]);
        });
 
     it('provides both spectrogram and waveform', async () => {
@@ -116,9 +116,9 @@ describeBrowserEnvs('MicrophoneIterator', () => {
       const result = await microphoneIterator.next();
       expect(result.done).toBeFalsy();
       // tslint:disable-next-line:no-any
-      expect((result.value as any).spectrogram.shape).toEqual([43, 16, 1]);
+      expect((result.value).spectrogram.shape).toEqual([43, 16, 1]);
       // tslint:disable-next-line:no-any
-      expect((result.value as any).waveform.shape).toEqual([688, 1]);
+      expect((result.value).waveform.shape).toEqual([688, 1]);
     });
 
     it('stops and restarts microphone', async () => {
@@ -126,7 +126,7 @@ describeBrowserEnvs('MicrophoneIterator', () => {
       const result1 = await microphoneIterator.next();
       expect(result1.done).toBeFalsy();
       // tslint:disable-next-line:no-any
-      expect((result1.value as any).spectrogram.shape).toEqual([43, 16, 1]);
+      expect((result1.value).spectrogram.shape).toEqual([43, 16, 1]);
       microphoneIterator.stop();
       const result2 = await microphoneIterator.next();
       expect(result2.done).toBeTruthy();
@@ -134,7 +134,7 @@ describeBrowserEnvs('MicrophoneIterator', () => {
       microphoneIterator.start();
       expect(result1.done).toBeFalsy();
       // tslint:disable-next-line:no-any
-      expect((result1.value as any).spectrogram.shape).toEqual([43, 16, 1]);
+      expect((result1.value).spectrogram.shape).toEqual([43, 16, 1]);
     });
 
     it('stops microphone multiple times', async () => {
@@ -143,7 +143,7 @@ describeBrowserEnvs('MicrophoneIterator', () => {
       const result1 = await microphoneIterator.next();
       expect(result1.done).toBeFalsy();
       // tslint:disable-next-line:no-any
-      expect((result1.value as any).spectrogram.shape).toEqual([2, 16, 1]);
+      expect((result1.value).spectrogram.shape).toEqual([2, 16, 1]);
       microphoneIterator.stop();
       const result2 = await microphoneIterator.next();
       expect(result2.done).toBeTruthy();
@@ -164,7 +164,7 @@ describeBrowserEnvs('MicrophoneIterator', () => {
       const result = await microphoneIterator.next();
       expect(result.done).toBeFalsy();
       // tslint:disable-next-line:no-any
-      const value = result.value as any;
+      const value = result.value;
       expect(value.spectrogram.shape).toEqual([1, 16, 1]);
       test_util.expectArraysClose(
           await value.spectrogram.array(),
@@ -212,7 +212,7 @@ describeBrowserEnvs('MicrophoneIterator', () => {
           expect(timesRun).toBe(3);
           expect(result.done).toBeFalsy();
           // tslint:disable-next-line:no-any
-          const value = result.value as any;
+          const value = result.value;
           expect(value.spectrogram.shape).toEqual([10, 10, 1]);
         }
       };

@@ -23,14 +23,14 @@ import * as dynamic from '../op_list/dynamic';
 import {Node} from '../types';
 
 import {executeOp} from './dynamic_executor';
+import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
 import {createBoolAttr, createNumberAttrFromIndex, createTensorAttr, validateParam} from './test_helper';
-import {spyOnAllFunctions, RecursiveSpy} from './spy_ops';
 
 describe('dynamic', () => {
   let node: Node;
   const input1 = [tfOps.tensor1d([1])];
   const context = new ExecutionContext({}, {}, {});
-  let spyOps: RecursiveSpy<typeof tfOps>
+  let spyOps: RecursiveSpy<typeof tfOps>;
   let spyOpsAsTfOps: typeof tfOps;
 
   beforeEach(() => {
@@ -64,8 +64,9 @@ describe('dynamic', () => {
         const input5 = [tfOps.tensor1d([1])];
         spyOps.image.nonMaxSuppressionAsync.and.returnValue({});
 
-        const result =
-          executeOp(node, {input1, input2, input3, input4, input5}, context, undefined, spyOpsAsTfOps);
+        const result = executeOp(
+            node, {input1, input2, input3, input4, input5}, context, undefined,
+            spyOpsAsTfOps);
         expect(spyOps.image.nonMaxSuppressionAsync)
             .toHaveBeenCalledWith(input1[0], input2[0], 1, 1, 1);
         expect(result instanceof Promise).toBeTruthy();
@@ -98,9 +99,9 @@ describe('dynamic', () => {
         const input5 = [tfOps.tensor1d([1])];
         spyOps.image.nonMaxSuppressionAsync.and.returnValue({});
 
-        const result =
-            executeOp(node, {input1, input2, input3, input4, input5}, context,
-                    undefined, spyOpsAsTfOps);
+        const result = executeOp(
+            node, {input1, input2, input3, input4, input5}, context, undefined,
+            spyOpsAsTfOps);
         expect(spyOps.image.nonMaxSuppressionAsync)
             .toHaveBeenCalledWith(input1[0], input2[0], 1, 1, 1);
         expect(result instanceof Promise).toBeTruthy();
@@ -136,9 +137,9 @@ describe('dynamic', () => {
 
         spyOps.image.nonMaxSuppressionPaddedAsync.and.returnValue({});
 
-        const result =
-            executeOp(node, {input1, input2, input3, input4, input5}, context,
-                      undefined, spyOpsAsTfOps);
+        const result = executeOp(
+            node, {input1, input2, input3, input4, input5}, context, undefined,
+            spyOpsAsTfOps);
         expect(spyOps.image.nonMaxSuppressionPaddedAsync)
             .toHaveBeenCalledWith(input1[0], input2[0], 1, 1, 1, true);
         expect(result instanceof Promise).toBeTruthy();
@@ -203,17 +204,13 @@ describe('dynamic', () => {
         node.op = 'Where';
         node.inputParams = {'condition': createTensorAttr(0)};
         const input1 = [tfOps.scalar(1)];
-        //spyOn(tfOps, 'whereAsync');
+        // spyOn(tfOps, 'whereAsync');
 
-        const result = executeOp(node, {input1}, context, undefined,
-                                 spyOpsAsTfOps);
-        expect(
-            spyOps.whereAsync.calls.mostRecent().args[0].dtype)
+        const result =
+            executeOp(node, {input1}, context, undefined, spyOpsAsTfOps);
+        expect(spyOps.whereAsync.calls.mostRecent().args[0].dtype)
             .toEqual('bool');
-        expect(spyOps.whereAsync
-                   .calls.mostRecent()
-                   .args[0]
-                   .arraySync())
+        expect(spyOps.whereAsync.calls.mostRecent().args[0].arraySync())
             .toEqual(1);
         expect(result instanceof Promise).toBeTruthy();
       });
@@ -244,9 +241,10 @@ describe('dynamic', () => {
         const input2 = [tfOps.scalar(1)];
         spyOps.setdiff1dAsync.and.returnValue({});
 
-        const result = executeOp(node, {input1, input2}, context, undefined,
-                                 spyOpsAsTfOps);
-        expect(spyOps.setdiff1dAsync).toHaveBeenCalledWith(input1[0], input2[0]);
+        const result = executeOp(
+            node, {input1, input2}, context, undefined, spyOpsAsTfOps);
+        expect(spyOps.setdiff1dAsync)
+            .toHaveBeenCalledWith(input1[0], input2[0]);
         expect(result instanceof Promise).toBeTruthy();
       });
       it('should match json def', () => {
