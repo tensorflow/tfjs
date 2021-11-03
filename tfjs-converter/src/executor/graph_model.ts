@@ -44,6 +44,7 @@ export class GraphModel implements InferenceModel {
   private initializer: GraphExecutor;
   private resourceManager: ResourceManager;
   private signature: tensorflow.ISignatureDef;
+  private readonly io: typeof io;
 
   // Returns the version information for the tensorflow model GraphDef.
   get modelVersion(): string {
@@ -89,7 +90,9 @@ export class GraphModel implements InferenceModel {
    */
   constructor(
       private modelUrl: string|io.IOHandler,
-      private loadOptions: io.LoadOptions = {}) {
+      private loadOptions: io.LoadOptions = {},
+      tfio = io) {
+    this.io = tfio;
     if (loadOptions == null) {
       this.loadOptions = {};
     }
@@ -102,13 +105,13 @@ export class GraphModel implements InferenceModel {
       // Path is an IO Handler.
       this.handler = path as io.IOHandler;
     } else if (this.loadOptions.requestInit != null) {
-      this.handler = io.browserHTTPRequest(path as string, this.loadOptions);
+      this.handler = this.io.browserHTTPRequest(path as string, this.loadOptions);
     } else {
-      const handlers = io.getLoadHandlers(path as string, this.loadOptions);
+      const handlers = this.io.getLoadHandlers(path as string, this.loadOptions);
       if (handlers.length === 0) {
         // For backward compatibility: if no load handler can be found,
         // assume it is a relative http path.
-        handlers.push(io.browserHTTPRequest(path as string, this.loadOptions));
+        handlers.push(this.io.browserHTTPRequest(path as string, this.loadOptions));
       } else if (handlers.length > 1) {
         throw new Error(
             `Found more than one (${handlers.length}) load handlers for ` +
@@ -157,7 +160,7 @@ export class GraphModel implements InferenceModel {
 
     this.version = `${graph.versions.producer}.${graph.versions.minConsumer}`;
     const weightMap =
-        io.decodeWeights(this.artifacts.weightData, this.artifacts.weightSpecs);
+        this.io.decodeWeights(this.artifacts.weightData, this.artifacts.weightSpecs);
     this.executor = new GraphExecutor(
         OperationMapper.Instance.transformGraph(graph, this.signature));
     this.executor.weightMap = this.convertTensorMapToTensorsMap(weightMap);
@@ -228,7 +231,7 @@ export class GraphModel implements InferenceModel {
   async save(handlerOrURL: io.IOHandler|string, config?: io.SaveConfig):
       Promise<io.SaveResult> {
     if (typeof handlerOrURL === 'string') {
-      const handlers = io.getSaveHandlers(handlerOrURL);
+      const handlers = this.io.getSaveHandlers(handlerOrURL);
       if (handlers.length === 0) {
         throw new Error(
             `Cannot find any save handlers for URL '${handlerOrURL}'`);
@@ -438,7 +441,7 @@ export class GraphModel implements InferenceModel {
  */
 export async function loadGraphModel(
     modelUrl: string|io.IOHandler,
-    options: io.LoadOptions = {}): Promise<GraphModel> {
+    options: io.LoadOptions = {}, tfio = io): Promise<GraphModel> {
   if (modelUrl == null) {
     throw new Error(
         'modelUrl in loadGraphModel() cannot be null. Please provide a url ' +
@@ -456,7 +459,7 @@ export async function loadGraphModel(
       modelUrl = `${modelUrl}${DEFAULT_MODEL_NAME}${TFHUB_SEARCH_PARAM}`;
     }
   }
-  const model = new GraphModel(modelUrl, options);
+  const model = new GraphModel(modelUrl, options, tfio);
   await model.load();
   return model;
 }
