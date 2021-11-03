@@ -255,6 +255,30 @@ const SHADER_PREFIX = `
     return res;
   }
 
+  fn dotVec2I32(a : vec2<i32>, b : vec2<i32>) -> i32 {
+    var dotResult = 0;
+    for (var i = 0; i < 2; i = i + 1) {
+      dotResult = dotResult + a[i]*b[i];
+    }
+    return dotResult;
+  }
+
+  fn dotVec3I32(a : vec3<i32>, b : vec3<i32>) -> i32 {
+    var dotResult = 0;
+    for (var i = 0; i < 3; i = i + 1) {
+      dotResult = dotResult + a[i]*b[i];
+    }
+    return dotResult;
+  }
+
+  fn dotVec4I32(a : vec4<i32>, b : vec4<i32>) -> i32 {
+    var dotResult = 0;
+    for (var i = 0; i < 4; i = i + 1) {
+      dotResult = dotResult + a[i]*b[i];
+    }
+    return dotResult;
+  }
+
   // Checks whether coordinates lie within the bounds of the shape.
   fn coordsInBounds4D(coord : vec4<i32>, shape : vec4<i32>) -> bool {
     return all(coord >= vec4<i32>(0)) &&
@@ -277,16 +301,16 @@ const SAMPLING_SNIPPETS = `
   }
 
   fn getFlatIndex2D(coords : vec2<i32>, shape : vec2<i32>) -> i32 {
-    return i32(dot(vec2<f32>(coords), vec2<f32>(f32(shape.y), 1.0)));
+    return dotVec2I32(coords, vec2<i32>(shape.y, 1));
   }
 
   fn getFlatIndex3D(coords : vec3<i32>, shape : vec3<i32>) -> i32 {
-    return i32(dot(vec3<f32>(coords), vec3<f32>(f32(shape.y) * f32(shape.z), f32(shape.z), 1.0)));
+    return dotVec3I32(coords, vec3<i32>(shape.y * shape.z, shape.z, 1));
   }
 
   fn getFlatIndex4D(coords : vec4<i32>, shape : vec4<i32>) -> i32 {
-    return i32(dot(vec4<f32>(coords), vec4<f32>(
-        f32(shape.y) * f32(shape.z) * f32(shape.w), f32(shape.z) * f32(shape.w), f32(shape.w), 1.0)));
+    return dotVec4I32(coords, vec4<i32>(
+        shape.y * shape.z * shape.w, shape.z * shape.w, shape.w, 1));
   }
 
   // Only used when the y/z dimension of workgroup size is 1.
@@ -321,22 +345,22 @@ function getOutputFlatIndexSnippet(outRank: number) {
     case 2:
       snippet += `
         fn getOutputFlatIndex(coords : vec2<i32>) -> i32 {
-          return i32(dot(vec2<f32>(coords), vec2<f32>(f32(uniforms.outShapeStrides), 1.0)));
+          return dotVec2I32(coords, vec2<i32>(uniforms.outShapeStrides, 1));
         }
         `;
       break;
     case 3:
       snippet += `
         fn getOutputFlatIndex(coords : vec3<i32>) -> i32 {
-          return i32(dot(vec3<f32>(coords), vec3<f32>(f32(uniforms.outShapeStrides.x), f32(uniforms.outShapeStrides.y), 1.0)));
+          return dotVec3I32(coords, vec3<i32>(uniforms.outShapeStrides.x, uniforms.outShapeStrides.y, 1));
         }
         `;
       break;
     case 4:
       snippet += `
         fn getOutputFlatIndex(coords : vec4<i32>) -> i32 {
-          return i32(dot(vec4<f32>(coords), vec4<f32>(
-            f32(uniforms.outShapeStrides.x), f32(uniforms.outShapeStrides.y), f32(uniforms.outShapeStrides.z), 1.0)));
+          return dotVec4I32(coords, vec4<i32>(
+            uniforms.outShapeStrides.x, uniforms.outShapeStrides.y, uniforms.outShapeStrides.z, 1));
         }
         `;
       break;
