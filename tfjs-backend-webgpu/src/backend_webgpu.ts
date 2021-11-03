@@ -86,6 +86,7 @@ export class WebGPUBackend extends KernelBackend {
   private commandQueueOwnedIds = new WeakSet<DataId>();
   private layoutCache: {[key: number]: WebGPULayout};
   private pipelineCache: {[key: string]: GPUComputePipeline};
+  private keyMap = new Map();
   private bufferManager: BufferManager;
 
   private tensorDisposalQueue: DataId[] = [];
@@ -704,6 +705,55 @@ export class WebGPUBackend extends KernelBackend {
     return this.layoutCache[inputEntrySize];
   }
 
+  private getShaderKernelName(programKey: string) {
+    if (programKey.startsWith('unary')) {
+      return programKey;
+    } else {
+      const text = programKey.split('_');
+      if (programKey.startsWith('binary')) {
+        return text[0] + '_' + text[1];
+      } else {
+        return text[0];
+      }
+    }
+  }
+
+  private printKey(key: string, program: webgpu_program.WebGPUProgram) {
+    try {
+      if (!env().getBool('DEBUG')) {
+        return;
+      }
+    } catch (ex) {
+      return;
+    }
+    const keyInCache = key in this.pipelineCache;
+    const keyMap = this.keyMap;
+    const shaderKey = program.shaderKey;
+    let kernelCount = 0;
+    const kernelName = this.getShaderKernelName(shaderKey);
+    // TODO: when and where should the map be cleaned?
+    if (this.keyMap.has(kernelName)) {
+      const [, count] = keyMap.get(kernelName);
+      kernelCount = Number(count) + 1;
+      keyMap.set(kernelName, [shaderKey, kernelCount]);
+    } else {
+      kernelCount = 1;
+      keyMap.set(kernelName, [shaderKey, kernelCount]);
+    }
+    const countNot1 = kernelCount !== 1;
+    // true: need to optimize.
+    // false: no need to optimize.
+    const needOptimization = !keyInCache && countNot1;
+    console.log(
+        program.constructor.name + '*' + key + '*' + shaderKey + '*' +
+        kernelName + '*' +
+        `${keyInCache}` +
+        '*' +
+        `${countNot1}` +
+        '*' +
+        `${needOptimization}`);
+  }
+
   public runWebGPUProgram(
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
       outputDtype: DataType,
@@ -775,6 +825,8 @@ export class WebGPUBackend extends KernelBackend {
 
     const {bindGroupLayout, pipelineLayout} =
         this.getCachedOrCreateLayout(program.variableNames.length);
+
+    this.printKey(key, program);
 
     const pipeline = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(
