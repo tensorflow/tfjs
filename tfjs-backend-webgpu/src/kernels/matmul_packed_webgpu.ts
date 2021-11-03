@@ -271,16 +271,16 @@ export class MatMulPackedProgram implements WebGPUProgram {
 
     if (this.transposeA === false) {
       sampleA = this.fitA ?
-          `return A.numbers[batch * batchASize + row * uniforms.dimInner + col];` :
+          `return f32(A.numbers[batch * batchASize + row * uniforms.dimInner + col]);` :
           `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-             return A.numbers[batch * batchASize + row * uniforms.dimInner + col];
+             return f32(A.numbers[batch * batchASize + row * uniforms.dimInner + col]);
            }
            return 0.0;`;
     } else {
       sampleA = this.fitA ?
-          `return A.numbers[batch * batchASize + col * uniforms.dimAOuter + row];` :
+          `return f32(A.numbers[batch * batchASize + col * uniforms.dimAOuter + row]);` :
           `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-             return A.numbers[batch* batchASize + col * uniforms.dimAOuter + row];
+             return f32(A.numbers[batch* batchASize + col * uniforms.dimAOuter + row]);
            }
            return 0.0;`;
     }
@@ -288,16 +288,16 @@ export class MatMulPackedProgram implements WebGPUProgram {
     let sampleB;
     if (this.transposeB === false) {
       sampleB = this.fitB ?
-          `return B.numbers[batch * batchBSize + row * uniforms.dimBOuter + col];` :
+          `return f32(B.numbers[batch * batchBSize + row * uniforms.dimBOuter + col]);` :
           `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-             return B.numbers[batch * batchBSize + row * uniforms.dimBOuter + col];
+             return f32(B.numbers[batch * batchBSize + row * uniforms.dimBOuter + col]);
            }
            return 0.0;`;
     } else {
       sampleB = this.fitB ?
-          `return B.numbers[batch * batchBSize + col * uniforms.dimInner + row];` :
+          `return f32(B.numbers[batch * batchBSize + col * uniforms.dimInner + row]);` :
           `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-             return B.numbers[batch * batchBSize + col * uniforms.dimInner + row];
+             return f32(B.numbers[batch * batchBSize + col * uniforms.dimInner + row]);
            }
            return 0.0;`;
     }
