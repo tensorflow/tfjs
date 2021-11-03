@@ -941,7 +941,7 @@ export class LayersModel extends Container implements tfc.InferenceModel {
 
     const outputsIsArray = Array.isArray(outputs);
     const outputNames =
-        (outputsIsArray ? outputs as string[] : [outputs as string]);
+        (outputsIsArray ? outputs : [outputs]);
     const outputSymbolicTensors = this.retrieveSymbolicTensors(outputNames);
 
     // Format the input into a FeedDict.

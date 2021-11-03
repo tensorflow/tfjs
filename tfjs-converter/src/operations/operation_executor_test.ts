@@ -78,7 +78,7 @@ describe('OperationExecutor', () => {
      string, transformation]
         .forEach(category => {
           it('should call tidy around executor', () => {
-            let tidySpy = jasmine.createSpy('tidy spy', tfc.tidy);
+            const tidySpy = jasmine.createSpy('tidy spy', tfc.tidy);
 
             node.category = category.CATEGORY;
             executeOp(node, {}, context, undefined, tidySpy);

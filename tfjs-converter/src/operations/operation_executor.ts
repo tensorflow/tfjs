@@ -53,28 +53,25 @@ import {Node} from './types';
  */
 export function executeOp(
     node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
-    resourceManager?: ResourceManager, tidy = tfc.tidy): tfc.Tensor[]|Promise<tfc.Tensor[]> {
+    resourceManager?: ResourceManager, tidy = tfc.tidy): tfc.Tensor[]|
+    Promise<tfc.Tensor[]> {
   const value =
       ((node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext) => {
         switch (node.category) {
           case 'arithmetic':
-            return tidy(
-                () => arithmetic.executeOp(node, tensorMap, context));
+            return tidy(() => arithmetic.executeOp(node, tensorMap, context));
           case 'basic_math':
-            return tidy(
-                () => basicMath.executeOp(node, tensorMap, context));
+            return tidy(() => basicMath.executeOp(node, tensorMap, context));
           case 'control':
             return control.executeOp(node, tensorMap, context);
           case 'convolution':
-            return tidy(
-                () => convolution.executeOp(node, tensorMap, context));
+            return tidy(() => convolution.executeOp(node, tensorMap, context));
           case 'creation':
             return tidy(() => creation.executeOp(node, tensorMap, context));
           case 'dynamic':
             return dynamic.executeOp(node, tensorMap, context);
           case 'evaluation':
-            return tidy(
-                () => evaluation.executeOp(node, tensorMap, context));
+            return tidy(() => evaluation.executeOp(node, tensorMap, context));
           case 'image':
             return tidy(() => image.executeOp(node, tensorMap, context));
           case 'graph':
@@ -87,11 +84,9 @@ export function executeOp(
             return tidy(
                 () => normalization.executeOp(node, tensorMap, context));
           case 'reduction':
-            return tidy(
-                () => reduction.executeOp(node, tensorMap, context));
+            return tidy(() => reduction.executeOp(node, tensorMap, context));
           case 'slice_join':
-            return tidy(
-                () => sliceJoin.executeOp(node, tensorMap, context));
+            return tidy(() => sliceJoin.executeOp(node, tensorMap, context));
           case 'sparse':
             return tidy(() => sparse.executeOp(node, tensorMap, context));
           case 'spectral':

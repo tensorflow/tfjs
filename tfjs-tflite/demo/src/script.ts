@@ -107,8 +107,7 @@ function handleClickTrigger(
   canvas.classList.add('show');
 
   // Show latency stat.
-  const stats = trigger.closest('.img-container')!.querySelector('.stats')! as
-      HTMLCanvasElement;
+  const stats = trigger.closest('.img-container')!.querySelector('.stats')!;
   stats.classList.add('show');
   stats.innerHTML = latency.toFixed(1) + ' ms';
 }

@@ -21,11 +21,9 @@ import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
 
 import {executeOp} from './convolution_executor';
+import {RecursiveSpy} from './spy_ops';
 import {createNumberAttr, createNumericArrayAttr, createStrArrayAttr, createStrAttr, createTensorAttr, createTensorsAttr} from './test_helper';
 import {createBoolAttr} from './test_helper';
-
-import { RecursiveSpy } from './spy_ops';
-
 
 describe('convolution', () => {
   let node: Node;
@@ -46,18 +44,20 @@ describe('convolution', () => {
       attrParams: {},
       children: []
     };
-    spyOps = Object.fromEntries(
-      Object.keys(tfOps).map((op: keyof typeof tfOps) => {
-        if (op === 'fused') {
-          return [op, {
-            conv2d: jasmine.createSpy(op),
-            depthwiseConv2d: jasmine.createSpy(op),
-            matMul: jasmine.createSpy(op),
-          }];
-        }
-        const spy = jasmine.createSpy(op);
-        return [op, spy] as const;
-      })) as unknown as typeof spyOps;
+    spyOps =
+        Object.fromEntries(Object.keys(tfOps).map((op: keyof typeof tfOps) => {
+          if (op === 'fused') {
+            return [
+              op, {
+                conv2d: jasmine.createSpy(op),
+                depthwiseConv2d: jasmine.createSpy(op),
+                matMul: jasmine.createSpy(op),
+              }
+            ];
+          }
+          const spy = jasmine.createSpy(op);
+          return [op, spy] as const ;
+        })) as unknown as typeof spyOps;
     spyOpsAsTfOps = spyOps as unknown as typeof tfOps;
   });
 
@@ -297,7 +297,7 @@ describe('convolution', () => {
         node.attrParams['dataFormat'] = createStrAttr('NDHWC');
         node.attrParams['includeBatchInIndex'] = createBoolAttr(true);
         spyOps.maxPoolWithArgmax.and.returnValue(
-          {result: 'fake', indexes: 'fake'});
+            {result: 'fake', indexes: 'fake'});
 
         executeOp(node, {input}, context, spyOpsAsTfOps);
 
@@ -384,7 +384,8 @@ describe('convolution', () => {
         const input3 = [tfOps.scalar(3.0)];
         const input4 = [tfOps.scalar(4.0)];
         node.inputNames = ['input1', 'input2', 'input3', 'input4'];
-        executeOp(node, {input1, input2, input3, input4}, context, spyOpsAsTfOps);
+        executeOp(
+            node, {input1, input2, input3, input4}, context, spyOpsAsTfOps);
 
         expect(spyOps.fused.conv2d).toHaveBeenCalledWith({
           x: input1[0],
@@ -476,7 +477,9 @@ describe('convolution', () => {
         const input3 = [tfOps.scalar(3.0)];
 
         node.inputNames = ['input1', 'input2', 'input3'];
-        expect(() => executeOp(node, {input1, input2, input3}, context, spyOpsAsTfOps))
+        expect(
+            () => executeOp(
+                node, {input1, input2, input3}, context, spyOpsAsTfOps))
             .toThrow();
       });
     });

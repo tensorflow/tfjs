@@ -23,8 +23,8 @@ import * as basic_math from '../op_list/basic_math';
 import {Node} from '../types';
 
 import {executeOp} from './basic_math_executor';
-import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, uncapitalize, validateParam} from './test_helper';
 import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
+import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createTensorAttr, uncapitalize, validateParam} from './test_helper';
 
 describe('basic math', () => {
   let node: Node;
@@ -53,24 +53,27 @@ describe('basic math', () => {
       spyOpsAsTfOps = spyOps as unknown as typeof tfOps;
     });
 
-    (['Abs', 'Acos', 'Asin', 'Atan', 'Ceil', 'Cos', 'Cosh', 'Elu', 'Exp',
-      'Floor', 'Log', 'Imag', 'Neg', 'Real', 'Relu', 'Selu', 'Sigmoid', 'Sin',
-      'Sinh', 'Sqrt', 'Square', 'Tanh', 'Tan', 'Sign', 'Round', 'Expm1', 'Log1p',
-      'Reciprocal', 'Softplus', 'Asinh', 'Acosh', 'Atanh', 'Erf'] as const)
-         .forEach(op => {
-           it('should call tfOps.' + op, () => {
-             node.op = op;
-             spyOps[uncapitalize(op)].and.returnValue({});
-             executeOp(node, {input1}, context, spyOpsAsTfOps);
+    ([
+      'Abs',      'Acos',  'Asin',    'Atan',  'Ceil',  'Cos',   'Cosh',
+      'Elu',      'Exp',   'Floor',   'Log',   'Imag',  'Neg',   'Real',
+      'Relu',     'Selu',  'Sigmoid', 'Sin',   'Sinh',  'Sqrt',  'Square',
+      'Tanh',     'Tan',   'Sign',    'Round', 'Expm1', 'Log1p', 'Reciprocal',
+      'Softplus', 'Asinh', 'Acosh',   'Atanh', 'Erf'
+    ] as const )
+        .forEach(op => {
+          it('should call tfOps.' + op, () => {
+            node.op = op;
+            spyOps[uncapitalize(op)].and.returnValue({});
+            executeOp(node, {input1}, context, spyOpsAsTfOps);
 
-             expect(spyOps[uncapitalize(op)]).toHaveBeenCalledWith(input1[0]);
-           });
-           it('should match op def', () => {
-             node.op = op;
+            expect(spyOps[uncapitalize(op)]).toHaveBeenCalledWith(input1[0]);
+          });
+          it('should match op def', () => {
+            node.op = op;
 
-             expect(validateParam(node, basic_math.json)).toBeTruthy();
-           });
-         });
+            expect(validateParam(node, basic_math.json)).toBeTruthy();
+          });
+        });
     describe('Relu6', () => {
       it('should call tfOps.relu6', () => {
         node.op = 'Relu6';

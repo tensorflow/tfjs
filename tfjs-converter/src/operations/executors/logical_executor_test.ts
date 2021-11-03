@@ -21,8 +21,8 @@ import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
 
 import {executeOp} from './logical_executor';
+import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
 import {createTensorAttr, uncapitalize} from './test_helper';
-import {spyOnAllFunctions, RecursiveSpy} from './spy_ops';
 
 describe('logical', () => {
   let node: Node;
@@ -52,17 +52,20 @@ describe('logical', () => {
       spyOpsAsTfOps = spyOps as unknown as typeof tfOps;
     });
 
-    (['Equal', 'NotEqual', 'Greater', 'GreaterEqual', 'Less', 'LessEqual',
-      'LogicalAnd', 'LogicalOr'] as const)
-         .forEach(op => {
-           it('should call tfOps.' + op, () => {
-             node.op = op;
-             spyOps[uncapitalize(op)].and.returnValue({});
-             executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
+    ([
+      'Equal', 'NotEqual', 'Greater', 'GreaterEqual', 'Less', 'LessEqual',
+      'LogicalAnd', 'LogicalOr'
+    ] as const )
+        .forEach(op => {
+          it('should call tfOps.' + op, () => {
+            node.op = op;
+            spyOps[uncapitalize(op)].and.returnValue({});
+            executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
 
-             expect(spyOps[uncapitalize(op)]).toHaveBeenCalledWith(input1[0], input2[0]);
-           });
-         });
+            expect(spyOps[uncapitalize(op)])
+                .toHaveBeenCalledWith(input1[0], input2[0]);
+          });
+        });
     describe('LogicalNot', () => {
       it('should call tfOps.logicalNot', () => {
         node.op = 'LogicalNot';
