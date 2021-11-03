@@ -60,7 +60,7 @@ const TUNABLE_FLAG_NAME_MAP = {
   WEBGL_PACK_DEPTHWISECONV: 'Packed depthwise Conv2d',
   WEBGL_USE_SHAPES_UNIFORMS: 'Use shapes uniforms',
   CHECK_COMPUTATION_FOR_ERRORS: 'Check each op result',
-  DEBUG: 'Profile mode',
+  DEBUG: 'Debug mode',
   KEEP_INTERMEDIATE_TENSORS: 'Print intermediate tensors',
 };
 if (tf.engine().backendNames().includes('webgpu')) {

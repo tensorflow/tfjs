@@ -188,9 +188,9 @@ limitations under the License.
       }
     }
 
-    async function predictAndGetPredictionData(predict, model, inferenceInput, debug) {
+    async function predictAndGetPredictionData(predict, model, inferenceInput, debugModel) {
       const prediction = await predict(model, inferenceInput);
-      if (debug) {
+      if (debugModel) {
         await printTensors(model.getIntermediateTensors());
         model.disposeIntermediateTensors();
       }
@@ -245,12 +245,12 @@ limitations under the License.
             console.warn(e.message);
           }
 
-          const debug = keepIntermediateTensors & (benchmarks[state.benchmark].supportDebug !== false);
-          referenceData = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
+          const debugModel = keepIntermediateTensors & (benchmarks[state.benchmark].supportDebugModel !== false);
+          referenceData = await predictAndGetPredictionData(predict, model, inferenceInput, debugModel);
 
           await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
-          predictionData = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
+          predictionData = await predictAndGetPredictionData(predict, model, inferenceInput, debugModel);
         } catch (e) {
           showMsg('Error: ' + e.message);
           throw e;
