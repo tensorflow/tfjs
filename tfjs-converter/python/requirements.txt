@@ -1,3 +1,4 @@
+keras<=2.6.0
 tensorflow-estimator<=2.6.0
 tensorflow>=2.1.0,<3
 protobuf==3.17.3; python_version < "3"
