@@ -86,6 +86,7 @@ export class WebGPUBackend extends KernelBackend {
   private commandQueueOwnedIds = new WeakSet<DataId>();
   private layoutCache: {[key: number]: WebGPULayout};
   private pipelineCache: {[key: string]: GPUComputePipeline};
+  private keyMap = new Map();
   private bufferManager: BufferManager;
 
   private tensorDisposalQueue: DataId[] = [];
