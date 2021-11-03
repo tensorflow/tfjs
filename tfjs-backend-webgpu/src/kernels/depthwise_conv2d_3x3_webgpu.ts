@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
@@ -72,20 +72,20 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
           mapActivationToShaderProgram(this.activation, this.isVec4);
       if (this.hasPreluActivation) {
         activationSnippet =
-            `fn activation(a : vec4<f32>, globalId : vec3<u32>, globalIndex : i32) -> vec4<f32> {
-          let b = getPreluActivationWeightsAtOutCoordsByGlobalId(globalId, globalIndex);
+            `fn activation(a : vec4<f32>, globalId : vec3<u32>) -> vec4<f32> {
+          let b = getPreluActivationWeightsAtOutCoordsByGlobalId(globalId, i32(globalId.x));
           ${activationOp}
         }`;
       } else {
         activationSnippet = `
-        fn activation(a : vec4<f32>, globalId : vec3<u32>, globalIndex : i32) -> vec4<f32> {
+        fn activation(a : vec4<f32>, globalId : vec3<u32>) -> vec4<f32> {
             ${activationOp}
           }
         `;
       }
 
       applyActivationSnippet =
-          `dotProd[i] = activation(dotProd[i], globalId, index);`;
+          `dotProd[i] = activation(dotProd[i], globalId);`;
     }
 
     const addBiasSnippet = this.addBias ?
@@ -96,7 +96,6 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
       ${activationSnippet}
 
       ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
         let batch = 0;
         let r = i32(globalId.x);
         let c = i32(globalId.y) * 4;

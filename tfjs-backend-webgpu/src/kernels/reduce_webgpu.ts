@@ -16,7 +16,7 @@
  */
 
 import {backend_util, DataType} from '@tensorflow/tfjs-core';
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -121,8 +121,8 @@ export class ReduceProgram implements WebGPUProgram {
        }
        let WorkGroupSize = ${this.workGroupSize[0]};
        ${reduceInSharedMemory ? sharedMemorySnippet : ''}
-       fn getOffset(globalId : vec3<u32>, index : i32) -> i32 {
-         let outputCoords = getOutputCoords(globalId, index);
+       fn getOffset(globalId : vec3<u32>) -> i32 {
+         let outputCoords = getOutputCoords(globalId, i32(globalId.x));
          let offset = ${
         this.outputShape.length === 1 ?
             'outputCoords' :
@@ -130,8 +130,7 @@ export class ReduceProgram implements WebGPUProgram {
          return offset;
        }
        ${getMainHeaderString()} {
-         ${getGlobalIndexString()}
-         let offset= getOffset(globalId, index);
+         let offset = getOffset(globalId);
          var bestValue = ${initValue};
          let Length = uniforms.reduceSize;
          let WorkPerThread = DIV_CEIL(Length, WorkGroupSize);

@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getCoordsDataType, getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -139,9 +139,9 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       // add back the index along the reduced dimension to |outputCoords|.
       // This function outputs the offset to the first value along
       // |axis| and the stride to get the next value of the input along |axis|.
-      fn getInputCoordInfo(globalId : vec3<u32>, globalIndex : i32) -> vec2<i32>{
+      fn getInputCoordInfo(globalId : vec3<u32>) -> vec2<i32>{
         let outputCoords : ${
-        outputCoordsType} = getOutputCoords(globalId, globalIndex);
+        outputCoordsType} = getOutputCoords(globalId, i32(globalId.x));
         var i = ${this.outputShape.length - 1};
 
         var stride = 1;
@@ -168,8 +168,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       }
 
       ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let coordInfo = getInputCoordInfo(globalId, index);
+        let coordInfo = getInputCoordInfo(globalId);
 
         var bestIndex = 0;
         var bestValue = f32(x.numbers[getInputIndex(coordInfo, bestIndex)]);
