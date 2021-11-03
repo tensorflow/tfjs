@@ -403,6 +403,24 @@ Update all downstream dependencies that depend on the package to point to its lo
 
 To find downstream packages, run `grep -r --exclude=yarn.lock --exclude-dir=node_modules "link:.*your-package-name" .` in the root of the repository.
 
+### Move linting to the repo-wide lint script
+#### Add the new Bazel package to the [repo-wide tslint tsconfig](tsconfig_tslint.json):
+
+Add the path mapping:
+```json
+"paths": {
+  ...,
+  "@tensorflow/the-new-package": ["the-new-package/src/index.ts"],
+  "@tensorflow/the-new-package/dist/*": ["the-new-package/src/*"]
+```
+
+Also, remove the package from the `exclude` list.
+
+It's a good idea to test that linting is working on the package. Create a lint error in one if its files, e.g. `const x = "Hello, world!"` (note the double quotes), and then run `yarn lint` in the root of the repository.
+
+#### Remove the package's own TypeScript linting scripts:
+Remove the `package.json` `lint` script, the `tslint.json` file, and the cloudbuild `lint` step from the package's `cloudbuild.yml` file. Remove `tslint`-related dependencies from the package's `package.json` and run `yarn` to regenerate the `yarn.lock` file.
+
 ### Update or Remove `cloudbuild.yml`
 Update the `cloudbuild.yml` to remove any steps that are now built with Bazel. These will be run by the `bazel-tests` step, which runs before other packages' steps. Any Bazel rule tagged as `ci` will be tested / build in CI.
 
@@ -433,3 +451,4 @@ Before pushing to Git, run the Bazel linter by running `yarn bazel:format` and `
 * Make sure the `package.json` scripts are updated and that the package.json includes `@bazel/bazelisk` as a dev dependency.
 * Make sure the package has a `build-npm` script and a `publish-npm` script. These are used by the release script.
 * Check the generated bundle sizes and make sure they don't include any unexpected files. Check the `_stats` files for info on this.
+* Make sure the package is added to the [repo-wide tslint tsconfig](tsconfig_tslint.json) and that its original lint scripts are removed.

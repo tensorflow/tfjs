@@ -21,6 +21,7 @@ import {GPGPUContext} from './gpgpu_context';
 import * as shader_compiler from './shader_compiler';
 import {InputInfo, ShapeInfo, UniformType} from './shader_compiler';
 import {PackingScheme, TextureData, TextureUsage} from './tex_util';
+import {createFragmentShader} from './webgl_util';
 
 export interface GPGPUProgram {
   variableNames: string[];
@@ -51,6 +52,7 @@ export interface GPGPUBinary {
   uniformLocations: {[name: string]: WebGLUniformLocation};
   customUniformLocations?: WebGLUniformLocation[];
   source: string;
+  fragmentShader: WebGLShader;
   inShapeInfos: ShapeInfo[];
   outShapeInfo: ShapeInfo;
   infLoc: WebGLUniformLocation;
@@ -96,8 +98,8 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
     flatOffset: null
   };
   const source = shader_compiler.makeShader(inputInfos, outShapeInfo, program);
-
-  const webGLProgram = gpgpu.createProgram(source);
+  const fragmentShader = createFragmentShader(gpgpu.gl, source);
+  const webGLProgram = gpgpu.createProgram(fragmentShader);
 
   // Add special uniforms (NAN, INFINITY)
   let infLoc: WebGLUniformLocation = null;
@@ -147,6 +149,7 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
 
   return {
     program,
+    fragmentShader,
     source,
     webGLProgram,
     uniformLocations,
