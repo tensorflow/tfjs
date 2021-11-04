@@ -5,6 +5,9 @@
 "@tensorflow/tfjs-backend-cpu@link:../dist/bin/tfjs-backend-webgl/link-package/node_modules/@tensorflow/tfjs-backend-cpu":
   version "0.0.0"
 
+"@tensorflow/tfjs-backend-cpu@link:../dist/bin/tfjs-backend-webgpu/link-package-core/node_modules/@tensorflow/tfjs-backend-cpu":
+  version "0.0.0"
+
 "@tensorflow/tfjs-backend-cpu@link:../link-package-core/node_modules/@tensorflow/tfjs-backend-cpu":
   version "0.0.0"
   uid ""
@@ -12,12 +15,17 @@
 "@tensorflow/tfjs-backend-webgl@file:../dist/bin/tfjs-backend-webgl/tfjs-backend-webgl_pkg":
   version "0.0.0"
   dependencies:
-    "@tensorflow/tfjs-backend-cpu" "link:../../../.cache/yarn/v6/npm-@tensorflow-tfjs-backend-webgl-0.0.0-10003ece-7ef2-4086-b2e3-b4d246691b03-1647374227759/node_modules/@tensorflow/link-package/node_modules/@tensorflow/tfjs-backend-cpu"
+    "@tensorflow/tfjs-backend-cpu" "link:../../../.cache/yarn/v6/npm-@tensorflow-tfjs-backend-webgl-0.0.0-b901bcae-753e-4bf2-becd-93228d006c89-1650661711500/node_modules/@tensorflow/link-package/node_modules/@tensorflow/tfjs-backend-cpu"
     "@types/offscreencanvas" "~2019.3.0"
     "@types/seedrandom" "2.4.27"
     "@types/webgl-ext" "0.0.30"
     "@types/webgl2" "0.0.6"
     seedrandom "2.4.3"
+
+"@tensorflow/tfjs-backend-webgpu@file:../dist/bin/tfjs-backend-webgpu/tfjs-backend-webgpu_pkg":
+  version "0.0.1-alpha.4"
+  dependencies:
+    "@tensorflow/tfjs-backend-cpu" "link:../../../.cache/yarn/v6/npm-@tensorflow-tfjs-backend-webgpu-0.0.1-alpha.4-223b403f-04fa-4af6-953e-433de81cef9e-1650661711502/node_modules/@tensorflow/link-package-core/node_modules/@tensorflow/tfjs-backend-cpu"
 
 "@tensorflow/tfjs-converter@file:../dist/bin/tfjs-converter/tfjs-converter_pkg":
   version "0.0.0"
@@ -45,17 +53,17 @@
   integrity sha512-5tXH6Bx/kNGd3MgffdmP4dy2Z+G4eaXw0SE81Tq3BNadtnMR5/ySMzX4SLEzHJzSmPNn4HIdpQsBvXMUykr58w==
 
 "@types/node-fetch@^2.1.2":
-  version "2.6.1"
-  resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.6.1.tgz#8f127c50481db65886800ef496f20bbf15518975"
-  integrity sha512-oMqjURCaxoSIsHSr1E47QHzbmzNR5rK8McHuNb11BOM9cHcIK3Avy0s/b2JlXHoQGTYS3NsvWzV1M0iK7l0wbA==
+  version "2.5.12"
+  resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.5.12.tgz#8a6f779b1d4e60b7a57fb6fd48d84fb545b9cc66"
+  integrity sha512-MKgC4dlq4kKNa/mYrwpKfzQMB5X3ee5U6fSprkKpToBqBmX4nFZL9cW5jl6sWn+xpRJ7ypWh2yyqqr8UUCstSw==
   dependencies:
     "@types/node" "*"
     form-data "^3.0.0"
 
 "@types/node@*":
-  version "17.0.21"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-17.0.21.tgz#864b987c0c68d07b4345845c3e63b75edd143644"
-  integrity sha512-DBZCJbhII3r90XbQxI8Y9IjjiiOGlZ0Hr32omXIZvwwZ7p4DMMXGrKXVyPfuoBOri9XNtL0UK69jYIBIsRX3QQ==
+  version "16.11.6"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.6.tgz#6bef7a2a0ad684cf6e90fcfe31cecabd9ce0a3ae"
+  integrity sha512-ua7PgUoeQFjmWPcoo9khiPum3Pd60k4/2ZGXt18sm2Slk0W0xZTqt5Y0Ny1NyBiN1EVQ/+FaF9NcY4Qe6rwk5w==
 
 "@types/offscreencanvas@~2019.3.0":
   version "2019.3.0"
@@ -156,17 +164,17 @@ long@4.0.0:
   resolved "https://registry.yarnpkg.com/long/-/long-4.0.0.tgz#9a7b71cfb7d361a194ea555241c92f7468d5bf28"
   integrity sha512-XsP+KhQif4bjX1kbuSiySJFNAehNxgLb6hPRGJ9QsUr8ajHkuXGdrHmFUTUUXhDwVX2R5bY4JNZEwbUiMhV+MA==
 
-mime-db@1.52.0:
-  version "1.52.0"
-  resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.52.0.tgz#bbabcdc02859f4987301c856e3387ce5ec43bf70"
-  integrity sha512-sPU4uV7dYlvtWJxwwxHD0PuihVNiE7TyAbQ5SWxDCB9mUYvOgroQOwYQQOKPJ8CIbE+1ETVlOoK1UC2nU3gYvg==
+mime-db@1.50.0:
+  version "1.50.0"
+  resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.50.0.tgz#abd4ac94e98d3c0e185016c67ab45d5fde40c11f"
+  integrity sha512-9tMZCDlYHqeERXEHO9f/hKfNXhre5dK2eE/krIvUjZbS2KPcqGDfNShIWS1uW9XOTKQKqK6qbeOci18rbfW77A==
 
 mime-types@^2.1.12:
-  version "2.1.35"
-  resolved "https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.35.tgz#381a871b62a734450660ae3deee44813f70d959a"
-  integrity sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw==
+  version "2.1.33"
+  resolved "https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.33.tgz#1fa12a904472fafd068e48d9e8401f74d3f70edb"
+  integrity sha512-plLElXp7pRDd0bNZHw+nMd52vRYjLwQjygaNg7ddJ2uJtTlmnTCjWuPKxVu6//AdaRuME84SvLW91sIkBqGT0g==
   dependencies:
-    mime-db "1.52.0"
+    mime-db "1.50.0"
 
 minimatch@^3.0.4:
   version "3.0.4"
