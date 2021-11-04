@@ -16,7 +16,7 @@
     "cross-env": "^7.0.3",
     "parcel-bundler": "^1.12.3",
     "parcel-plugin-static-files-copy": "^2.2.1",
-    "typescript": "3.5.3"
+    "typescript": "4.4.2"
   },
   "staticFiles": {
     "staticPath": "../../link-package/node_modules/@tensorflow/tfjs-tflite/dist"
