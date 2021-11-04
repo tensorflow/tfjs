@@ -220,6 +220,19 @@ describeWebGPU('backend webgpu', () => {
     // Now that data has been downloaded to the CPU, dataSync should work.
     expect(() => c.dataSync()).not.toThrow();
   });
+});
+
+describeWebGPU('backendWebGPU', () => {
+  let prevBackend: string;
+
+  beforeAll(() => {
+    prevBackend = tf.getBackend();
+  });
+
+  afterEach(() => {
+    tf.setBackend(prevBackend);
+    tf.removeBackend('test-storage');
+  });
 
   it('lazily upload', async () => {
     const adapter = await navigator.gpu.requestAdapter({});

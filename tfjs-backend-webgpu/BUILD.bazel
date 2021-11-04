@@ -37,6 +37,7 @@ tfjs_bundle(
     deps = [
         "//tfjs-backend-webgpu/src:tfjs-backend-webgpu_lib",
         "//tfjs-backend-webgpu/src:tfjs-backend-webgpu_src_lib",
+        "@npm//@webgpu/types",
     ],
 )
 
@@ -58,6 +59,7 @@ copy_to_dist(
         ":tf-backend-webgpu.fesm",
         ":tf-backend-webgpu.fesm.min",
         ":tf-backend-webgpu.min",
+        ":tf-backend-webgpu.node",
     ],
 )
 
@@ -98,6 +100,12 @@ tfjs_web_test(
     name = "tfjs-backend-webgpu_test",
     srcs = [
         "//tfjs-backend-webgpu/src:tfjs-backend-webgpu_test_bundle",
+    ],
+    args = [
+        "--testEnv",
+        "webgpu",
+        "--flags",
+        '{"WEBGPU_CPU_FORWARD": false}',
     ],
     browsers = [
         "chrome_webgpu",
