@@ -43,6 +43,7 @@ export interface WebGPUProgram {
   size?: boolean;
   // Whether to use atomic built-in functions.
   atomic?: boolean;
+  includes?: string;
   getUserCode: () => string;
 }
 

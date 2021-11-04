@@ -19,7 +19,7 @@ import {backend_util} from '@tensorflow/tfjs-core';
 import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
-
+import {idivAndIsNanCustom} from './shader_lib';
 import {WebGPUProgram} from './webgpu_program';
 
 export class BinaryOpComplexProgram implements WebGPUProgram {
@@ -31,6 +31,7 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [128, 1, 1];
   op: BinaryOpType;
   size = true;
+  includes = idivAndIsNanCustom;
 
   constructor(op: BinaryOpType, aShape: number[], bShape: number[]) {
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);

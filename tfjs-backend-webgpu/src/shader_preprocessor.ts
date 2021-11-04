@@ -56,6 +56,7 @@ interface ProgramParams {
   isVec4?: boolean;
   size?: boolean;
   atomic?: boolean;
+  includes?: string;
   getUserCode: () => string;
 }
 
@@ -192,9 +193,11 @@ export function makeShader(
       generateGetOutputCoords(outputData.shape, program.dispatchLayout);
   const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
 
+  let includes = program.includes ? program.includes : '';
   const sources = [
-    SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS, getCoords,
-    getOutputCoords, getOutputFlatIndexSnippet(outputData.shape.length)
+    includes, SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS,
+    getCoords, getOutputCoords,
+    getOutputFlatIndexSnippet(outputData.shape.length)
 
   ];
   if (!program.atomic) {
@@ -221,40 +224,6 @@ export function makeShader(
 }
 
 const SHADER_PREFIX = `
-  fn idiv(a: i32, b: i32, sign: f32) -> i32 {
-    var res: i32 = a / b;
-    let mod: i32 = a % b;
-    if (sign < 0. && mod != 0) {
-      res = res - 1;
-    }
-    return res;
-  }
-
-  fn isNanCustom(val : f32) -> bool {
-    if (val > 0.0) {
-      return false;
-    }
-    if (val < 0.0) {
-      return false;
-    }
-    if (val == 0.0) {
-      return false;
-    }
-    return true;
-  }
-
-  fn isNanCustomVec4F32(val : vec4<f32>) -> vec4<f32> {
-    var res = vec4<f32> (0.0);
-    for (var i = 0u; i < 4u; i = i + 1u) {
-      if (isNanCustom(val[i])) {
-        res[i] = 1.0;
-      } else {
-        res[i] = 0.0;
-      }
-    }
-    return res;
-  }
-
   // Checks whether coordinates lie within the bounds of the shape.
   fn coordsInBounds4D(coord : vec4<i32>, shape : vec4<i32>) -> bool {
     return all(coord >= vec4<i32>(0)) &&

@@ -17,7 +17,7 @@
 
 import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
-
+import {isNanCustom} from './shader_lib';
 import {WebGPUProgram} from './webgpu_program';
 
 export class ClipProgram implements WebGPUProgram {
@@ -31,6 +31,7 @@ export class ClipProgram implements WebGPUProgram {
   minVal: number;
   maxVal: number;
   size = true;
+  includes = isNanCustom;
 
   constructor(outputShape: number[]) {
     this.outputShape = outputShape;

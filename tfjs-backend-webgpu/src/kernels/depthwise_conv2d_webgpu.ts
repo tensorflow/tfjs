@@ -21,6 +21,7 @@ import {getFlatDispatchLayoutMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
+import {idivAndIsNanCustom} from './shader_lib';
 import {WebGPUProgram} from './webgpu_program';
 
 export class DepthwiseConv2DProgram implements WebGPUProgram {
@@ -37,6 +38,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivation: boolean;
+  includes = '';
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
@@ -72,6 +74,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
       const activationOp = mapActivationToShaderProgram(this.activation, false);
+      this.includes = idivAndIsNanCustom;
       if (this.hasPreluActivation) {
         activationSnippet =
             `fn activation(a : f32, outCoord : vec4<i32>) -> f32 {

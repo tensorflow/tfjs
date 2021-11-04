@@ -21,6 +21,7 @@ import {getNonFlatDispatchLayoutMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
+import {idivAndIsNanCustom} from './shader_lib';
 import {WebGPUProgram} from './webgpu_program';
 
 export function makeMatMulReduceSource(): string {
@@ -71,6 +72,7 @@ export class MatMulReduceProgram implements WebGPUProgram {
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
+  includes = '';
 
   constructor(
       outputShape: [number, number, number], transposeA = false,
@@ -123,6 +125,7 @@ export class MatMulReduceProgram implements WebGPUProgram {
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
       const activationOp = mapActivationToShaderProgram(this.activation, false);
+      this.includes = idivAndIsNanCustom;
       if (this.hasPreluActivationWeights) {
         activationSnippet =
             `fn activation(a : f32, outCoord : vec3<i32>) -> f32 {

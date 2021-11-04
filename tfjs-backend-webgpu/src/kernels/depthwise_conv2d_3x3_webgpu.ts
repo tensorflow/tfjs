@@ -21,6 +21,7 @@ import {getWorkGroupSizeString} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
+import {idivAndIsNanCustom} from './shader_lib';
 import {WebGPUProgram} from './webgpu_program';
 
 export class DepthwiseConv2D3x3Program implements WebGPUProgram {
@@ -37,6 +38,7 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
   activation: backend_util.Activation;
   hasPreluActivation: boolean;
   isVec4 = true;
+  includes = '';
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
@@ -70,6 +72,7 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
     if (this.activation) {
       const activationOp =
           mapActivationToShaderProgram(this.activation, this.isVec4);
+      this.includes = idivAndIsNanCustom;
       if (this.hasPreluActivation) {
         activationSnippet =
             `fn activation(a : vec4<f32>, outCoord : vec4<i32>) -> vec4<f32> {

@@ -19,6 +19,7 @@ import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {getNonFlatDispatchLayoutMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
+import {isNanCustom} from './shader_lib';
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -33,6 +34,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   inputShape: number[];
   reductionFactor: number;
   op: string;
+  includes = isNanCustom;
 
   constructor(inputShape: number[], axis: number, reduceType: 'min'|'max') {
     const axes = [axis];

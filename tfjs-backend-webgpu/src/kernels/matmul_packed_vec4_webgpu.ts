@@ -21,6 +21,7 @@ import {getNonFlatDispatchLayoutMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
+import {idivAndIsNanCustom} from './shader_lib';
 import {WebGPUProgram} from './webgpu_program';
 
 export function makeMatMulPackedVec4Source(
@@ -171,6 +172,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   vecSize = 4;
   fitA: boolean;
   fitB: boolean;
+  includes = '';
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
@@ -245,6 +247,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     if (this.activation) {
       const activationOp =
           mapActivationToShaderProgram(this.activation, this.isVec4);
+      this.includes = idivAndIsNanCustom;
       if (this.hasPreluActivationWeights) {
         activationSnippet =
             `fn activation(a : vec4<f32>, outCoord : vec3<i32>) -> vec4<f32> {
