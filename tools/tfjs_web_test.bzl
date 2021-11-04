@@ -74,10 +74,18 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
 
     # For local testing
     config_file = "{}_config".format(name)
-    _make_karma_config(
-        name = config_file,
-        args = args,
-    )
+    if browsers[0] == 'chrome_webgpu':
+        # For WebGPU local testing
+        _make_karma_config(
+            name = config_file,
+            args = args,
+            browser = browsers[0]
+        )
+    else:
+        _make_karma_config(
+            name = config_file,
+            args = args,
+        )
 
     karma_web_test(
         size = size,
