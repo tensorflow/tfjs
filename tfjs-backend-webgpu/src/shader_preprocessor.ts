@@ -256,27 +256,15 @@ const SHADER_PREFIX = `
   }
 
   fn dotVec2I32(a : vec2<i32>, b : vec2<i32>) -> i32 {
-    var dotResult = 0;
-    for (var i = 0; i < 2; i = i + 1) {
-      dotResult = dotResult + a[i]*b[i];
-    }
-    return dotResult;
+    return a[0] * b[0] + a[1] * b[1];
   }
 
   fn dotVec3I32(a : vec3<i32>, b : vec3<i32>) -> i32 {
-    var dotResult = 0;
-    for (var i = 0; i < 3; i = i + 1) {
-      dotResult = dotResult + a[i]*b[i];
-    }
-    return dotResult;
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
   }
 
   fn dotVec4I32(a : vec4<i32>, b : vec4<i32>) -> i32 {
-    var dotResult = 0;
-    for (var i = 0; i < 4; i = i + 1) {
-      dotResult = dotResult + a[i]*b[i];
-    }
-    return dotResult;
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
   }
 
   // Checks whether coordinates lie within the bounds of the shape.
