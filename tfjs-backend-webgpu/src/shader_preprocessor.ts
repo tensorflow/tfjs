@@ -56,6 +56,7 @@ interface ProgramParams {
   isVec4?: boolean;
   size?: number;
   atomic?: boolean;
+  include?: string;
   getUserCode: () => string;
 }
 
@@ -181,7 +182,9 @@ export function makeShader(
       generateGetOutputCoords(outputData.shape, program.dispatchLayout);
   const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
 
+  let include = program.include? program.include: '';
   const sources = [
+    include,
     SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS, getCoords,
     getOutputCoords, getOutputFlatIndexSnippet(outputData.shape.length)
 
