@@ -18,7 +18,7 @@
 import {backend_util, DataType} from '@tensorflow/tfjs-core';
 import {getNonFlatDispatchLayoutMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
-import {isNanCustom} from './shader_lib';
+import {IncludesFlag, isNanCustom} from './shader_lib';
 import {WebGPUProgram} from './webgpu_program';
 
 export class ReduceProgram implements WebGPUProgram {
@@ -33,6 +33,7 @@ export class ReduceProgram implements WebGPUProgram {
   inputShape: number[];
   reductionFactor: number;
   includes = isNanCustom;
+  includesFlag = IncludesFlag.GET_OUTPUT_COORDS;
 
   constructor(
       reduceInfo: backend_util.ReduceInfo,

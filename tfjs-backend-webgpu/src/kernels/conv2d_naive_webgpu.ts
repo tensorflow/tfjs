@@ -21,7 +21,7 @@ import {getFlatDispatchLayoutMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
-import {idivAndIsNanCustom} from './shader_lib';
+import {IncludesFlag, idivAndIsNanCustom} from './shader_lib';
 import {WebGPUProgram} from './webgpu_program';
 
 export class Conv2DNaiveProgram implements WebGPUProgram {
@@ -38,6 +38,7 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
   includes = '';
+  includesFlag = IncludesFlag.GET_OUTPUT_COORDS;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,

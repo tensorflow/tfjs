@@ -21,7 +21,7 @@ import {getNonFlatDispatchLayoutMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
-import {idivAndIsNanCustom} from './shader_lib';
+import {IncludesFlag, idivAndIsNanCustom} from './shader_lib';
 import {WebGPUProgram} from './webgpu_program';
 
 export function makeMatMulReduceSource(): string {
@@ -73,6 +73,7 @@ export class MatMulReduceProgram implements WebGPUProgram {
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
   includes = '';
+  includesFlag = IncludesFlag.GET_OUTPUT_COORDS;
 
   constructor(
       outputShape: [number, number, number], transposeA = false,

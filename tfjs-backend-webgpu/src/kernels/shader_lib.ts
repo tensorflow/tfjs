@@ -14,6 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
+export enum IncludesFlag {
+  GET_OUTPUT_COORDS = 1,
+}
 
 export const idiv = `
   fn idiv(a: i32, b: i32, sign: f32) -> i32 {

@@ -16,6 +16,7 @@
  */
 
 import {backend_util, DataType, util} from '@tensorflow/tfjs-core';
+import {IncludesFlag} from './kernels/shader_lib';
 import {symbolicallyComputeStrides} from './shader_util';
 
 export function getCoordsDataType(rank: number): string {
@@ -57,6 +58,7 @@ interface ProgramParams {
   size?: boolean;
   atomic?: boolean;
   includes?: string;
+  includesFlag?: number;
   getUserCode: () => string;
 }
 
@@ -189,11 +191,14 @@ export function makeShader(
 
   prefixSnippets.push(workGroupSizeSnippet);
 
-  const [getOutputCoords, dispatchLayoutRank] =
-      generateGetOutputCoords(outputData.shape, program.dispatchLayout);
+  const includeGetOutputCoords =
+      program.includesFlag === IncludesFlag.GET_OUTPUT_COORDS;
+
+  const [getOutputCoords, dispatchLayoutRank] = generateGetOutputCoords(
+      outputData.shape, program.dispatchLayout, includeGetOutputCoords);
   const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
 
-  let includes = program.includes ? program.includes : '';
+  const includes = program.includes ? program.includes : '';
   const sources = [
     includes, SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS,
     getCoords, getOutputCoords,
@@ -567,12 +572,15 @@ export function getSamplerAtOutputCoords(
  */
 export function generateGetOutputCoords(
     outShape: number[],
-    dispatchLayout: {x: number[], y?: number[], z?: number[]}):
-    [string, number] {
+    dispatchLayout: {x: number[], y?: number[], z?: number[]},
+    hasSnippet: boolean): [string, number] {
   const {x, y = [], z = []} = dispatchLayout;
 
   const outRank = outShape.length;
   if (x.length === outRank) {
+    if (hasSnippet === false) {
+      return ['', outRank];
+    }
     const dtype = getCoordsDataType(outRank);
     const snippet =
         `fn getOutputCoordsWithFlatDispatchLayout(globalId : vec3<u32>, localId : vec3<u32>, numWorkgroups: vec3<u32>) -> ${
@@ -598,23 +606,29 @@ export function generateGetOutputCoords(
 
     rank += arr.length;
 
-    if (arr.length === 1) {
-      gatherDimensionsStr += `let d${arr[0]} = i32(globalId[${i}]);`;
-    } else {
-      const strides = symbolicallyComputeStrides(arr, 'uniforms.outShape');
-      gatherDimensionsStr += `var index${i} = i32(globalId[${i}]);`;
-      for (let j = 0; j < strides.length; j++) {
-        gatherDimensionsStr += `let d${arr[j]} = index${i} / ${strides[j]};`;
+    if (hasSnippet === true) {
+      if (arr.length === 1) {
+        gatherDimensionsStr += `let d${arr[0]} = i32(globalId[${i}]);`;
+      } else {
+        const strides = symbolicallyComputeStrides(arr, 'uniforms.outShape');
+        gatherDimensionsStr += `var index${i} = i32(globalId[${i}]);`;
+        for (let j = 0; j < strides.length; j++) {
+          gatherDimensionsStr += `let d${arr[j]} = index${i} / ${strides[j]};`;
 
-        if (j === strides.length - 1) {
-          gatherDimensionsStr += `let d${arr[j + 1]} = ` +
-              `index${i} - d${arr[j]} * ${strides[j]};`;
-        } else {
-          gatherDimensionsStr +=
-              `index${i} = index${i} - d${arr[j]} * ${strides[j]};`;
+          if (j === strides.length - 1) {
+            gatherDimensionsStr += `let d${arr[j + 1]} = ` +
+                `index${i} - d${arr[j]} * ${strides[j]};`;
+          } else {
+            gatherDimensionsStr +=
+                `index${i} = index${i} - d${arr[j]} * ${strides[j]};`;
+          }
         }
       }
     }
+  }
+
+  if (hasSnippet === false) {
+    return ['', rank];
   }
 
   const dimensions = [];

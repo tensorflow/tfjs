@@ -43,7 +43,10 @@ export interface WebGPUProgram {
   size?: boolean;
   // Whether to use atomic built-in functions.
   atomic?: boolean;
+  // Include the shader defined in the shader_lib.
   includes?: string;
+  // Include the shader defined in shader preprocessor.
+  includesFlag?: number;
   getUserCode: () => string;
 }
 
