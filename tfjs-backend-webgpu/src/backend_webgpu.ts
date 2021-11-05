@@ -361,12 +361,12 @@ export class WebGPUBackend extends KernelBackend {
     const pipelinesPromise =
         this.activePrograms.map(program => program.pipeline);
     const pipelines = await Promise.all(pipelinesPromise);
-    let arrayLength = this.activePrograms.length;
+    const arrayLength = this.activePrograms.length;
     if (arrayLength > 0) {
       this.ensureCommandEncoderReady();
       const pass = this.getComputePass();
       for (let i = 0; i < arrayLength; i++) {
-        let program = this.activePrograms[i];
+        const program = this.activePrograms[i];
         const pipeline = pipelines[i];
         this.pipelineCache[program.shaderKey] = pipeline;
         pass.setPipeline(pipeline);
