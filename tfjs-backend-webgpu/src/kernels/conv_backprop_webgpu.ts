@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -32,6 +32,7 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
   isChannelsLast: boolean;
+  size = true;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.inShape;
@@ -47,10 +48,9 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
     const colDim = this.isChannelsLast ? 2 : 3;
     const channelDim = this.isChannelsLast ? 3 : 1;
     return `
-    ${getMainHeaderString()} {
-      ${getGlobalIndexString()}
-      let coords = getOutputCoords(globalId, index);
-      if (coordsInBounds4D(coords, uniforms.outShape)) {
+    ${getMainHeaderAndGlobalIndexString()} {
+      if(index < uniforms.size) {
+        let coords = getCoordsFromFlatIndex(index);
         let batch = coords[0];
         let d1 = coords[${channelDim}];
 
@@ -94,7 +94,7 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
             }
           }
         }
-        setOutput(coords[0], coords[1], coords[2], coords[3], dotProd);
+        setOutputFlat(index, dotProd);
       }
     }
   `;

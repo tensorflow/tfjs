@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -29,6 +29,7 @@ export class ResizeBilinearProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   alignCorners: boolean;
   halfPixelCenters: boolean;
+  size = true;
 
   constructor(
       inputShape: [number, number, number, number], newHeight: number,
@@ -51,10 +52,9 @@ export class ResizeBilinearProgram implements WebGPUProgram {
     const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
 
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let coords = getOutputCoords(globalId, index);
-        if (all(coords < uniforms.outShape)) {
+      ${getMainHeaderAndGlobalIndexString()}
+        if (index < uniforms.size) {
+        let coords = getCoordsFromFlatIndex(index);
           let b = coords[0];
           let d = coords[3];
           let rc = coords.yz;
@@ -100,7 +100,7 @@ export class ResizeBilinearProgram implements WebGPUProgram {
           let bottom = bottomLeft + (bottomRight - bottomLeft) * fracRC.y;
           let newValue = top + (bottom - top) * fracRC.x;
 
-          setOutput(b, coords[1], coords[2], d, newValue);
+          setOutputFlat(index, newValue);
         }
       }
     `;

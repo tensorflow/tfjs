@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
-
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -30,7 +28,7 @@ export class DepthToSpaceProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
-  size: number;
+  size = true;
   uniforms = 'blockSize : i32;';
 
   constructor(outputShape: number[], dataFormat: 'NHWC'|'NCHW') {
@@ -39,16 +37,14 @@ export class DepthToSpaceProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = `depthToSpace_${dataFormat}`;
-    this.size = util.sizeFromShape(this.outputShape);
     this.dataFormat = dataFormat;
   }
 
   getUserCode(): string {
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let coords = getOutputCoords(globalId, index);
+          let coords = getCoordsFromFlatIndex(index);
           let b = coords[0];
           let h = ${this.getHeightCoordString()};
           let w = ${this.getWidthCoordString()};
