@@ -43,6 +43,9 @@ export interface WebGPUProgram {
   size?: boolean;
   // Whether to use atomic built-in functions.
   atomic?: boolean;
+  // pipeline: Promise<GPUComputePipeline>;
+  pipeline?: GPUComputePipeline;
+  bindGroup?: GPUBindGroup;
   getUserCode: () => string;
 }
 

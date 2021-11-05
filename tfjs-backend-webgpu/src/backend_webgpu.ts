@@ -90,6 +90,7 @@ export class WebGPUBackend extends KernelBackend {
 
   private tensorDisposalQueue: DataId[] = [];
   private uniformDisposalQueue: BufferInfo[] = [];
+  private activePrograms: webgpu_program.WebGPUProgram[] = [];
 
   private disposed = false;
 
@@ -356,11 +357,21 @@ export class WebGPUBackend extends KernelBackend {
       // Data is on the CPU.
       return info.values;
     }
+
+    this.ensureCommandEncoderReady();
+    const pass = this.getComputePass();
+    this.activePrograms.map((program: webgpu_program.WebGPUProgram) => {
+      pass.setPipeline(program.pipeline);
+      pass.setBindGroup(0, program.bindGroup);
+      pass.dispatch(
+          program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+    });
+    this.ensureComputePassEnded();
+    this.activePrograms = [];
+
     const staging = this.acquireBuffer(
         info.bufferInfo.byteSize,
         GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
-    this.ensureCommandEncoderReady();
-    this.ensureComputePassEnded();
     this.currentCommandEncoder.copyBufferToBuffer(
         info.bufferInfo.buffer, 0, staging, 0, info.bufferInfo.byteSize);
     this.submitQueue();
@@ -777,35 +788,15 @@ export class WebGPUBackend extends KernelBackend {
     const {bindGroupLayout, pipelineLayout} =
         this.getCachedOrCreateLayout(program.variableNames.length);
 
-    const pipeline = this.getAndSavePipeline(key, () => {
+    program.pipeline = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(
           this.device, program, pipelineLayout, inputsData, output);
     });
 
-    const shouldTimeProgram = this.activeTimers != null;
-
     // Creating bind groups on the fly should never be a bottleneck.
-    const bg = webgpu_program.makeBindGroup(
+    program.bindGroup = webgpu_program.makeBindGroup(
         this.device, bindGroupLayout, inputs.map(t => this.tensorToBinding(t)),
         this.tensorToBinding(output), uniforms);
-
-    this.ensureCommandEncoderReady();
-    const pass = this.getComputePass();
-    if (shouldTimeProgram) {
-      if (this.supportTimeQuery) {
-        pass.writeTimestamp(this.querySet, 0);
-      }
-    }
-    pass.setPipeline(pipeline);
-    pass.setBindGroup(0, bg);
-    pass.dispatch(
-        program.dispatch[0], program.dispatch[1], program.dispatch[2]);
-    if (shouldTimeProgram) {
-      if (this.supportTimeQuery) {
-        pass.writeTimestamp(this.querySet, 1);
-      }
-    }
-    this.dispatchNumberInEncoder++;
 
     inputs.forEach(input => {
       this.commandQueueOwnedIds.add(input.dataId);
@@ -820,16 +811,37 @@ export class WebGPUBackend extends KernelBackend {
       this.uniformDisposalQueue.push(uniformInfo);
     }
 
-    if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
-        number <= this.dispatchNumberInEncoder) {
-      this.submitQueue();
-    }
-
+    const shouldTimeProgram = this.activeTimers != null;
     if (shouldTimeProgram) {
+      this.ensureCommandEncoderReady();
+      const pass = this.getComputePass();
+
+      if (this.supportTimeQuery) {
+        pass.writeTimestamp(this.querySet, 0);
+      }
+
+      pass.setPipeline(program.pipeline);
+      pass.setBindGroup(0, program.bindGroup);
+      pass.dispatch(
+          program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+      if (shouldTimeProgram) {
+        if (this.supportTimeQuery) {
+          pass.writeTimestamp(this.querySet, 1);
+        }
+      }
+      this.dispatchNumberInEncoder++;
+
+      if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
+          number <= this.dispatchNumberInEncoder) {
+        this.submitQueue();
+      }
+
       this.activeTimers.push({
         name: program.constructor.name,
         query: this.getQueryTime(this.querySet)
       });
+    } else {
+      this.activePrograms.push(program);
     }
     return output;
   }
