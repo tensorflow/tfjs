@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
-
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -29,7 +27,7 @@ export class FlipLeftRightProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   workGroupSize: [number, number, number] = [64, 1, 1];
-  size: number;
+  size = true;
 
   constructor(imageShape: [number, number, number, number]) {
     this.outputShape = imageShape;
@@ -37,16 +35,13 @@ export class FlipLeftRightProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = 'flipLeftRight';
-    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let coords = getOutputCoords(globalId, index);
+          let coords = getCoordsFromFlatIndex(index);
           let coordX = uniforms.xShape[2] - coords[2] - 1;
           let outputValue = getX(coords[0], coords[1], coordX, coords[3]);
           setOutputFlat(index, outputValue);

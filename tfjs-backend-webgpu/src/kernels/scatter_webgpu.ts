@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
-import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -30,7 +29,7 @@ export class ScatterProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
   workPerThread = 4;
-  size: number;
+  size = true;
   indicesSnippet: string;
   strideString: string;
   updatesSnippet: string;
@@ -47,7 +46,6 @@ export class ScatterProgram implements WebGPUProgram {
     const sliceDimGreaterThanOne = sliceDim > 1;
     this.shaderKey =
         `scatter_${indicesRank}_${updatesRank}_${sliceDimGreaterThanOne}`;
-    this.size = util.sizeFromShape(this.outputShape);
     const stridesType = getCoordsDataType(strides.length);
     this.uniforms =
         `updateSize : i32; sliceDim : i32; strides: ${stridesType};`;
@@ -73,8 +71,7 @@ export class ScatterProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
 
         let globalIndex = index * ${this.workPerThread};
         if (globalIndex < uniforms.size) {
