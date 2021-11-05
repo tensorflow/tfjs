@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
-
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -32,7 +30,7 @@ export class ClipVec4Program implements WebGPUProgram {
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
   isVec4 = true;
-  size: number;
+  size = true;
 
   constructor(outputShape: number[]) {
     this.outputShape = outputShape;
@@ -41,15 +39,13 @@ export class ClipVec4Program implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
     this.shaderKey = 'clipVec4';
-    this.size = util.sizeFromShape(this.outputShape) / 4;
   }
 
   getUserCode(): string {
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         if(index < uniforms.size) {
-          let value = getAAtOutCoordsByGlobalId(globalId, index);
+          let value = getAAtOutCoordsByGlobalIndex(index);
           var clampedValue : vec4<f32>;
           for (var i = 0; i < 4; i = i + 1) {
             if (isNanCustom(value[i])) {

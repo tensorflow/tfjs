@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -34,6 +34,7 @@ export class Pool2DProgram implements WebGPUProgram {
   // different output shapes.
   workGroupSize: [number, number, number] = [128, 1, 1];
   poolType: 'max'|'avg';
+  size = true;
 
   constructor(convInfo: backend_util.Conv2DInfo, poolType: 'max'|'avg') {
     this.outputShape = convInfo.outShape;
@@ -59,10 +60,9 @@ export class Pool2DProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let coords = getOutputCoords(globalId, index);
-        if (coordsInBounds4D(coords, uniforms.outShape)) {
+      ${getMainHeaderAndGlobalIndexString()}
+      if (index < uniforms.size) {
+        let coords = getCoordsFromFlatIndex(index);
           let batch = coords[0];
           let xRCCorner = vec2<i32>(coords.yz) * uniforms.stride - uniforms.pad;
           let xRCorner = xRCCorner.x;
@@ -90,7 +90,7 @@ export class Pool2DProgram implements WebGPUProgram {
             }
           }
 
-          setOutput(batch, coords[1], coords[2], coords[3], ${returnValue});
+          setOutputFlat(index, ${returnValue});
         }
       }
     `;

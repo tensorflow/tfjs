@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {backend_util, util} from '@tensorflow/tfjs-core';
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {backend_util} from '@tensorflow/tfjs-core';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
@@ -28,12 +28,9 @@ export class BinaryOpProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
-  workPerThread: number;
   workGroupSize: [number, number, number];
   op: BinaryOpType;
-  sizeFit: boolean;
-  shapesFit: boolean;
-  size: number;
+  size = true;
 
   constructor(op: BinaryOpType, aShape: number[], bShape: number[]) {
     // TODO(jiajia.qin@intel.com): Heuristically select a good work group size.
@@ -41,67 +38,27 @@ export class BinaryOpProgram implements WebGPUProgram {
     this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    this.size = util.sizeFromShape(this.outputShape);
-    this.sizeFit = this.size % workGroupSizeX === 0;
-    this.shapesFit = util.arraysEqual(aShape, bShape) && this.sizeFit;
-    this.workPerThread = this.sizeFit || this.shapesFit ? 1 : 2;
 
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize,
-        [this.workPerThread, 1, 1]);
-    this.shaderKey = `binary_${op}_${this.sizeFit}_${this.shapesFit}`;
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
+    this.shaderKey = `binary_${op}`;
     this.op = op;
   }
 
   getUserCode(): string {
-    let userCode: string;
     const opStr = getBinaryOpString(this.op, false);
-    const miscStr = `          fn binaryOperation(a : f32, b : f32) -> f32 {
-      ${opStr}
-    }`;
-    if (this.shapesFit) {
-      userCode = `
-          ${miscStr}
-          ${getMainHeaderString()} {
-            ${getGlobalIndexString()}
-
-            let a = f32(A[index]);
-            let b = f32(B[index]);
-            setOutputFlat(index, binaryOperation(a, b));
-          }
-        `;
-    } else if (this.sizeFit) {
-      userCode = `
-      ${miscStr}
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-
-        let coords = getCoordsFromFlatIndex(index);
-
-        let a = getAAtOutCoordsByCoords(coords);
-        let b = getBAtOutCoordsByCoords(coords);
-        setOutputFlat(index, binaryOperation(a, b));
+    const userCode = `
+      fn binaryOperation(a : f32, b : f32) -> f32 {
+        ${opStr}
       }
-      `;
-    } else {
-      userCode = `
-      ${miscStr}
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        for (var i = 0; i < ${this.workPerThread}; i = i + 1 ) {
-          let flatIndex = index * ${this.workPerThread} + i;
-
-          if(flatIndex < uniforms.size) {
-            let coords = getCoordsFromFlatIndex(flatIndex);
-
-            let a = getAAtOutCoordsByCoords(coords);
-            let b = getBAtOutCoordsByCoords(coords);
-            setOutputFlat(flatIndex, binaryOperation(a, b));
-          }
+      ${getMainHeaderAndGlobalIndexString()}
+        if (index < uniforms.size) {
+          let a = getAAtOutCoordsByGlobalIndex(index);
+          let b = getBAtOutCoordsByGlobalIndex(index);
+          setOutputFlat(index, binaryOperation(a, b));
         }
       }
       `;
-    }
     return userCode;
   }
 }
