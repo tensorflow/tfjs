@@ -93,77 +93,80 @@ describeWebGPU('backend webgpu', () => {
         dData, new Float32Array([9, 12, 15, 19, 26, 33]));
     tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', savedFlag);
   });
+  /*
+    it('should not leak memory in immediate mode', async () => {
+      const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
+      tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 1);
+      const a = tf.tensor2d([2, 4, 6, 8], [2, 2]);
+      const b = tf.tensor2d([0.5, 0.5, 0.5, 0.5], [2, 2]);
 
-  it('should not leak memory in immediate mode', async () => {
-    const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
-    tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 1);
-    const a = tf.tensor2d([2, 4, 6, 8], [2, 2]);
-    const b = tf.tensor2d([0.5, 0.5, 0.5, 0.5], [2, 2]);
+      const c = tf.mul(a, b);
 
-    const c = tf.mul(a, b);
+      const startNumBytes = tf.memory().numBytes;
+      const startNumTensors = tf.memory().numTensors;
+      const startNumBytesInGPU = (tf.memory() as
+    WebGPUMemoryInfo).numBytesInGPU;
 
-    const startNumBytes = tf.memory().numBytes;
-    const startNumTensors = tf.memory().numTensors;
-    const startNumBytesInGPU = (tf.memory() as WebGPUMemoryInfo).numBytesInGPU;
+      const f = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+      const d = tf.matMul(c, f);
 
-    const f = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-    const d = tf.matMul(c, f);
+      const dData = await d.data();
+      const endNumBytes = tf.memory().numBytes;
+      const endNumTensors = tf.memory().numTensors;
+      const endNumBytesInGPU = (tf.memory() as WebGPUMemoryInfo).numBytesInGPU;
 
-    const dData = await d.data();
-    const endNumBytes = tf.memory().numBytes;
-    const endNumTensors = tf.memory().numTensors;
-    const endNumBytesInGPU = (tf.memory() as WebGPUMemoryInfo).numBytesInGPU;
+      expect(endNumBytes - startNumBytes).toEqual(48);
+      expect(endNumTensors - startNumTensors).toEqual(2);
+      expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(24);
 
-    expect(endNumBytes - startNumBytes).toEqual(48);
-    expect(endNumTensors - startNumTensors).toEqual(2);
-    expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(24);
+      tf.test_util.expectArraysClose(
+          dData, new Float32Array([9, 12, 15, 19, 26, 33]));
+      tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', savedFlag);
+    });
 
-    tf.test_util.expectArraysClose(
-        dData, new Float32Array([9, 12, 15, 19, 26, 33]));
-    tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', savedFlag);
-  });
+    it('should recycle buffers in immediate mode', () => {
+      const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
+      tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 1);
+      const backend = tf.backend() as WebGPUBackend;
+      const bufferManager = backend.getBufferManager();
+      bufferManager.reset();
 
-  it('should recycle buffers in immediate mode', () => {
-    const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
-    tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 1);
-    const backend = tf.backend() as WebGPUBackend;
-    const bufferManager = backend.getBufferManager();
-    bufferManager.reset();
+      const a = tf.tensor2d([2, 4, 6, 8], [2, 2]);
+      const b = tf.tensor2d([0.5, 0.5, 0.5, 0.5], [2, 2]);
 
-    const a = tf.tensor2d([2, 4, 6, 8], [2, 2]);
-    const b = tf.tensor2d([0.5, 0.5, 0.5, 0.5], [2, 2]);
+      const c = tf.mul(a, b);
+      const freeBuffersAfterFirstMul = bufferManager.getNumFreeBuffers();
+      const usedBuffersAfterFirstMul = bufferManager.getNumUsedBuffers();
 
-    const c = tf.mul(a, b);
-    const freeBuffersAfterFirstMul = bufferManager.getNumFreeBuffers();
-    const usedBuffersAfterFirstMul = bufferManager.getNumUsedBuffers();
+      const f = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+      tf.matMul(c, f);
+      const freeBuffersAfterFirstMatMul = bufferManager.getNumFreeBuffers();
+      const usedBuffersAfterFirstMatMul = bufferManager.getNumUsedBuffers();
+      expect(freeBuffersAfterFirstMatMul - freeBuffersAfterFirstMul)
+          .toEqual(1);  // from released uniform
+      expect(usedBuffersAfterFirstMatMul - usedBuffersAfterFirstMul).toEqual(2);
 
-    const f = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-    tf.matMul(c, f);
-    const freeBuffersAfterFirstMatMul = bufferManager.getNumFreeBuffers();
-    const usedBuffersAfterFirstMatMul = bufferManager.getNumUsedBuffers();
-    expect(freeBuffersAfterFirstMatMul - freeBuffersAfterFirstMul)
-        .toEqual(1);  // from released uniform
-    expect(usedBuffersAfterFirstMatMul - usedBuffersAfterFirstMul).toEqual(2);
+      const a2 = tf.tensor2d([2, 4, 6, 8], [2, 2]);
+      const b2 = tf.tensor2d([0.5, 0.5, 0.5, 0.5], [2, 2]);
 
-    const a2 = tf.tensor2d([2, 4, 6, 8], [2, 2]);
-    const b2 = tf.tensor2d([0.5, 0.5, 0.5, 0.5], [2, 2]);
+      const c2 = tf.mul(a2, b2);
+      const freeBuffersAfterSecondMul = bufferManager.getNumFreeBuffers();
+      const usedBuffersAfterSecondMul = bufferManager.getNumUsedBuffers();
+      expect(freeBuffersAfterSecondMul - freeBuffersAfterFirstMatMul)
+          .toEqual(0);  // released a uniform buffer and reused a buffer
+      expect(usedBuffersAfterSecondMul -
+    usedBuffersAfterFirstMatMul).toEqual(3);
 
-    const c2 = tf.mul(a2, b2);
-    const freeBuffersAfterSecondMul = bufferManager.getNumFreeBuffers();
-    const usedBuffersAfterSecondMul = bufferManager.getNumUsedBuffers();
-    expect(freeBuffersAfterSecondMul - freeBuffersAfterFirstMatMul)
-        .toEqual(0);  // released a uniform buffer and reused a buffer
-    expect(usedBuffersAfterSecondMul - usedBuffersAfterFirstMatMul).toEqual(3);
-
-    const f2 = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-    tf.matMul(c2, f2);
-    const freeBuffersAfterSecondMatMul = bufferManager.getNumFreeBuffers();
-    const usedBuffersAfterSecondMatMul = bufferManager.getNumUsedBuffers();
-    expect(freeBuffersAfterSecondMatMul - freeBuffersAfterSecondMul).toEqual(0);
-    expect(usedBuffersAfterSecondMatMul - usedBuffersAfterSecondMul).toEqual(2);
-    tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', savedFlag);
-  });
-
+      const f2 = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+      tf.matMul(c2, f2);
+      const freeBuffersAfterSecondMatMul = bufferManager.getNumFreeBuffers();
+      const usedBuffersAfterSecondMatMul = bufferManager.getNumUsedBuffers();
+      expect(freeBuffersAfterSecondMatMul -
+    freeBuffersAfterSecondMul).toEqual(0); expect(usedBuffersAfterSecondMatMul -
+    usedBuffersAfterSecondMul).toEqual(2);
+      tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', savedFlag);
+    });
+  */
   it('should not recycle buffers in delayed mode', async () => {
     const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
     tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 15);
