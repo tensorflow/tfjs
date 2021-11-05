@@ -15,15 +15,10 @@
  * =============================================================================
  */
 
-import {backend_util, util} from '@tensorflow/tfjs-core';
+import {backend_util} from '@tensorflow/tfjs-core';
 
-<<<<<<< HEAD
-import {getNonFlatDispatchLayoutMainHeaderString} from '../shader_preprocessor';
-import {computeDispatch} from '../webgpu_util';
-=======
-import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
->>>>>>> 867e2d33a (webgpu: modify ArgMinMaxProgram to flat dispatch layout)
 
 import {WebGPUProgram} from './webgpu_program';
 
@@ -32,13 +27,13 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workGroupSize: [number, number, number];
+  workGroupSize: [number, number, number] = [256, 1, 1];
   variableNames = ['x'];
-  uniforms = 'axis : i32;';
+  uniforms = 'axis : i32; infinityValue : f32;';
   inputShape: number[];
   reductionFactor: number;
   op: string;
-  size: number;
+  size = true;
 
   constructor(inputShape: number[], axis: number, reduceType: 'min'|'max') {
     const axes = [axis];
@@ -49,73 +44,28 @@ export class ArgMinMaxProgram implements WebGPUProgram {
     this.op = reduceType === 'min' ? '<' : '>';
 
     // |outShape| is the shape with the removed axis
-    // |reduceShape| is the shape we are reducing. i.e. [ inputShape[axis] ]
-    const [outputShape, reduceShape] =
+    const [outputShape] =
         backend_util.computeOutAndReduceShapes(inputShape, axes);
 
     this.outputShape = outputShape.length === 0 ? [1] : outputShape;
 
-    // Length of the axis we're reducing on.
-    const reduceSize = util.sizeFromShape(reduceShape);
-
-    // The number of comparisons each thread will do
-    this.reductionFactor = 2;
-    // Note that the maximum of workgroup X dimension is 256.
-    const xMaxThreads = 256;  // gl_MaxComputeWorkGroupSize.
-    const xThreads =
-        Math.min(Math.ceil(reduceSize / this.reductionFactor), xMaxThreads);
-
-    this.workGroupSize = [xThreads, 1, 1];
-
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
-    // A work group only output a data, so we transfer [1, 1, 1] to compute
+    // A work group only outputs a data, so we transfer [1, 1, 1] to compute
     // dispatch size.
     this.dispatch =
         computeDispatch(this.dispatchLayout, this.outputShape, [1, 1, 1]);
 
     this.inputShape = inputShape;
     this.shaderKey = `argMinMax${this.op}`;
-    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
-    // When this.workGroupSize[0] > 1, each thread reduces Length /
-    // this.workGroupSize[0] values. Thes results are stored in shared memory
-    // and iteratively reduced.
-    const reduceInSharedMemory = this.workGroupSize[0] > 1;
     const sharedMemorySnippet = `
       var<workgroup> xBestIndices : array<i32, ${this.workGroupSize[0]}>;
       var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
     `;
 
-    const sharedMemoryReduceSnippet = `
-      xBestIndices[localId.x] = bestIndex;
-      xBestValues[localId.x] = bestValue;
-
-      for(var currentSize = WorkGroupSize; currentSize > 1;
-          currentSize = DIV_CEIL(currentSize, ${this.reductionFactor})) {
-        workgroupBarrier();
-
-        for (var w = 0; w < ${this.reductionFactor}; w = w + 1) {
-          let i = i32(localId.x) * ${this.reductionFactor} + w;
-          if (i < currentSize) {
-            let candidateIndex = xBestIndices[i];
-            let candidate = xBestValues[i];
-            if(candidate ${this.op} bestValue && !isNanCustom(candidate)) {
-              bestValue = candidate;
-              bestIndex = candidateIndex;
-            }
-          }
-        }
-
-        xBestIndices[localId.x] = bestIndex;
-        xBestValues[localId.x] = bestValue;
-      }
-
-      if (localId.x == 0u && index / i32(workGroupSizeX) < uniforms.size) {
-        setOutputFlatI32(index / i32(workGroupSizeX), i32(bestIndex));
-      }
-    `;
+    const outputCoordsType = getCoordsDataType(this.outputShape.length);
 
     const indexOutputCoords = (outputCoords: string, index: string) => {
       if (this.outputShape.length === 1) {
@@ -134,22 +84,19 @@ export class ArgMinMaxProgram implements WebGPUProgram {
     };
 
     const userCode = `
-      fn DIV_CEIL(a : i32, b : i32) -> i32 {
-        return ((a - 1) / b + 1);
+      fn DIV_CEIL(a : u32, b : u32) -> u32 {
+        return ((a - 1u) / b + 1u);
       }
 
-      let WorkGroupSize = ${this.workGroupSize[0]};
-
-      ${reduceInSharedMemory ? sharedMemorySnippet : ''}
+      ${sharedMemorySnippet}
 
       // In order to get a flattened index into the input tensor, we need to
       // add back the index along the reduced dimension to |outputCoords|.
       // This function outputs the offset to the first value along
       // |axis| and the stride to get the next value of the input along |axis|.
-      fn getInputCoordInfo(globalId : vec3<u32>,
-          globalIndex : i32) -> vec2<i32>{
+      fn getInputCoordInfo(outputIndex : i32) -> vec2<i32>{
         let outputCoords : ${outputCoordsType} =
-            getOutputCoords(globalId, globalIndex / i32(workGroupSizeX));
+            getCoordsFromFlatIndex(outputIndex);
         var i = ${this.outputShape.length - 1};
 
         var stride = 1;
@@ -175,33 +122,51 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         return coordInfo[0] + coordInfo[1] * index;
       }
 
-      ${getNonFlatDispatchLayoutMainHeaderString()} {
-        let coordInfo = getInputCoordInfo(globalId);
-
-        var bestIndex = 0;
-        var bestValue = f32(x.numbers[getInputIndex(coordInfo, bestIndex)]);
-
+      ${getMainHeaderAndGlobalIndexString()}
+        let outputIndex = index / i32(workGroupSizeX);
+        let coordInfo = getInputCoordInfo(outputIndex);
         let Length = ${indexInputShape('uniforms.axis')};
-        let WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
 
-        for (var w = 0; w < WorkPerThread; w = w + 1) {
-          let i = i32(localId.x) * WorkPerThread + w;
-          if (i < Length) {
-            let candidate = f32(x.numbers[getInputIndex(coordInfo, i)]);
-            if (candidate ${this.op} bestValue
-                && !isNanCustom(f32(candidate))) {
+        var bestIndex = i32(localId.x);
+        var bestValue = uniforms.infinityValue;
+
+        if (i32(localId.x) < Length && outputIndex < uniforms.size) {
+          let candidate = f32(x.numbers[getInputIndex(coordInfo, bestIndex)]);
+          if (!isNanCustom(candidate)) {
               bestValue = candidate;
-              bestIndex = i;
-            }
           }
         }
 
-        ${
-        reduceInSharedMemory ?
-            sharedMemoryReduceSnippet :
-            `if (index / i32(workGroupSizeX) < uniforms.size) {
-              setOutputFlatI32(index / i32(workGroupSizeX), bestIndex);
-            }`}
+        for (var k = i32(localId.x) + i32(workGroupSizeX); k < Length &&
+            outputIndex < uniforms.size; k = k + i32(workGroupSizeX)) {
+          let candidate = f32(x.numbers[getInputIndex(coordInfo, k)]);
+          if (candidate ${this.op} bestValue && !isNanCustom(candidate)) {
+            bestValue = candidate;
+            bestIndex = k;
+          }
+        }
+        xBestValues[localId.x] = bestValue;
+        xBestIndices[localId.x] = bestIndex;
+        workgroupBarrier();
+
+        var reduceSize = min(u32(Length), workGroupSizeX);
+        for (var currentSize = reduceSize / 2u; reduceSize > 1u;
+            currentSize = reduceSize / 2u) {
+          let interval = DIV_CEIL(reduceSize, 2u);
+          if (localId.x < currentSize) {
+            if (xBestValues[localId.x + interval] ${
+        this.op} xBestValues[localId.x]) {
+              xBestValues[localId.x] = xBestValues[localId.x + interval];
+              xBestIndices[localId.x] = xBestIndices[localId.x + interval];
+            }
+          }
+          reduceSize = interval;
+          workgroupBarrier();
+        }
+
+        if (localId.x == 0u && outputIndex < uniforms.size) {
+          setOutputFlatI32(outputIndex, xBestIndices[localId.x]);
+        }
       }
     `;
     return userCode;
