@@ -1,0 +1,32 @@
+name: Deploy TFJS Debugger Site to Live
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "tfjs-debugger/**"
+
+jobs:
+  deploy_live_website:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: tfjs-debugger
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 12
+      - run: |
+          yarn
+          yarn build
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSTENSORFLOW }}"
+          projectId: jstensorflow
+          target: tfjs-debugger
+          channelId: live
+          entryPoint: tfjs-debugger/

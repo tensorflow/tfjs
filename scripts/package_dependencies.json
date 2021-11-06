@@ -2,6 +2,7 @@
   "tfjs-automl": [],
   "tfjs-converter": [],
   "tfjs": ["tfjs-converter"],
+  "tfjs-debugger": [],
   "tfjs-node": ["tfjs"],
   "tfjs-node-gpu": ["tfjs"],
   "tfjs-backend-wasm": [],

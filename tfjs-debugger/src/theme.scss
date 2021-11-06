@@ -1,0 +1,50 @@
+/**
+ * @license
+ * Copyright 2021 Google LLC. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+
+// Related docs:
+//
+// https://material.angular.io/guide/theming
+// https://material.angular.io/guide/typography
+// https://material.io/archive/guidelines/style/color.html#color-color-palette
+// https://github.com/angular/components/blob/master/src/material/core/theming/_palette.scss
+
+@use '~@angular/material' as mat;
+@use 'variables' as var;
+@import '~@angular/material/theming';
+
+@include mat.core();
+
+// Theme colors and font.
+$tfjs-debugger-primary: mat.define-palette(mat.$amber-palette, 500);
+$tfjs-debugger-accent: mat.define-palette(mat.$blue-grey-palette, 800);
+$tfjs-debugger-typography: mat.define-typography-config(
+  $font-family: var.$font-face,
+);
+
+// Set up theme.
+$tfjs-debugger-theme: mat.define-light-theme((
+  color: (
+    primary: $tfjs-debugger-primary,
+    accent: $tfjs-debugger-accent,
+  ),
+  typography: $tfjs-debugger-typography
+));
+@include mat.all-component-themes($tfjs-debugger-theme);
+
+// Export theme colors that can be used in components.
+$primary-color: mat-color($tfjs-debugger-primary);
+$accent-color: mat-color($tfjs-debugger-accent);
