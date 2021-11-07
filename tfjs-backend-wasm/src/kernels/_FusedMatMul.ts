@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {_FusedMatMul, _FusedMatMulAttrs, _FusedMatMulInputs, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
+import {_FusedMatMul, _FusedMatMulAttrs, _FusedMatMulInputs, broadcast_util, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -86,9 +86,10 @@ function fusedBatchMatMul(args: {
 
   const leftDim = transposeA ? a.shape[2] : a.shape[1];
   const rightDim = transposeB ? b.shape[1] : b.shape[2];
-  const batchDim = a.shape[0];
+  const batchDims = broadcast_util.assertAndGetBroadcastShape(
+      a.shape.slice(0, -2), b.shape.slice(0, -2));
 
-  const out = backend.makeOutput([batchDim, leftDim, rightDim], a.dtype);
+  const out = backend.makeOutput([...batchDims, leftDim, rightDim], a.dtype);
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   const aShapeBytes = new Uint8Array(new Int32Array(a.shape).buffer);

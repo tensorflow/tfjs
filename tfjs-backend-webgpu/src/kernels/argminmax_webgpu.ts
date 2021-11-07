@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getNonFlatDispatchLayoutMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -108,8 +108,6 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       }
     `;
 
-    const outputCoordsType = getCoordsDataType(this.outputShape.length);
-
     const indexOutputCoords = (outputCoords: string, index: string) => {
       if (this.outputShape.length === 1) {
         return outputCoords;
@@ -139,9 +137,8 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       // add back the index along the reduced dimension to |outputCoords|.
       // This function outputs the offset to the first value along
       // |axis| and the stride to get the next value of the input along |axis|.
-      fn getInputCoordInfo(globalId : vec3<u32>, globalIndex : i32) -> vec2<i32>{
-        let outputCoords : ${
-        outputCoordsType} = getOutputCoords(globalId, globalIndex);
+      fn getInputCoordInfo(globalId : vec3<u32>) -> vec2<i32>{
+        let outputCoords = getOutputCoordsWithNonFlatDispatchLayout(globalId);
         var i = ${this.outputShape.length - 1};
 
         var stride = 1;
@@ -167,12 +164,11 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         return coordInfo[0] + coordInfo[1] * index;
       }
 
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let coordInfo = getInputCoordInfo(globalId, index);
+      ${getNonFlatDispatchLayoutMainHeaderString()} {
+        let coordInfo = getInputCoordInfo(globalId);
 
         var bestIndex = 0;
-        var bestValue = x.numbers[getInputIndex(coordInfo, bestIndex)];
+        var bestValue = f32(x.numbers[getInputIndex(coordInfo, bestIndex)]);
 
         let Length = ${indexInputShape('uniforms.axis')};
         let WorkPerThread = DIV_CEIL(Length, WorkGroupSize);
@@ -180,7 +176,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         for (var w = 0; w < WorkPerThread; w = w + 1) {
           let i = i32(globalId.x) * WorkPerThread + w;
           if (i < Length) {
-            let candidate = x.numbers[getInputIndex(coordInfo, i)];
+            let candidate = f32(x.numbers[getInputIndex(coordInfo, i)]);
             if (candidate ${
         this.op} bestValue && !isNanCustom(f32(candidate))) {
               bestValue = candidate;

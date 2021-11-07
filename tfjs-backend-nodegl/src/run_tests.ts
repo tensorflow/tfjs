@@ -19,6 +19,7 @@
 import './index';
 
 import * as tf from '@tensorflow/tfjs-core';
+// tslint:disable-next-line:no-imports-from-dist
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 Error.stackTraceLimit = Infinity;

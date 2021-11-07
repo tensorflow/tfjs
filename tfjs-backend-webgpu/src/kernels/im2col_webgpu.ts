@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
-
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -34,7 +32,7 @@ export class Im2ColProgram implements WebGPUProgram {
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
   isChannelsLast: boolean;
-  size: number;
+  size = true;
 
   constructor(outputShape: number[], isChannelsLast: boolean) {
     this.outputShape = outputShape;
@@ -44,7 +42,6 @@ export class Im2ColProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
     this.isChannelsLast = isChannelsLast;
     this.shaderKey = `im2col_${this.isChannelsLast}`;
-    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
@@ -52,8 +49,7 @@ export class Im2ColProgram implements WebGPUProgram {
     const colDim = this.isChannelsLast ? 1 : 2;
 
     const userCode = `
-    ${getMainHeaderString()} {
-      ${getGlobalIndexString()}
+    ${getMainHeaderAndGlobalIndexString()}
 
       for(var i = 0; i<${this.workPerThread}; i = i + 1) {
         let flatIndex = index * ${this.workPerThread} + i;

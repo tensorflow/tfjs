@@ -29,7 +29,7 @@ import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, Te
 const TEST_FILTERS: TestFilter[] = [];
 const customInclude = (testName: string) => {
   const toExclude =
-      ['isBrowser: false', 'tensor in worker', 'dilation gradient'];
+      ['isBrowser: false', 'dilation gradient'];
   for (const subStr of toExclude) {
     if (testName.includes(subStr)) {
       return false;
@@ -53,9 +53,9 @@ if (typeof __karma__ !== 'undefined') {
 // the preceding snippet that parses test environments.
 // Import and run tests from core.
 // tslint:disable-next-line:no-imports-from-dist
-// tslint:disable-next-line:no-require
+// tslint:disable-next-line:no-require-imports
 require('@tensorflow/tfjs-core/dist/tests');
 // Import and run tests from webgl.
 // tslint:disable-next-line:no-imports-from-dist
-// tslint:disable-next-line:no-require
+// tslint:disable-next-line:no-require-imports
 require('./tests');
