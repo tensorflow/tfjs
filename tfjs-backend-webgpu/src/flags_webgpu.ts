@@ -74,3 +74,9 @@ ENV.registerFlag('WEBGPU_USE_PROFILE_TOOL', () => false);
  * Whether to use import API.
  */
 ENV.registerFlag('WEBGPU_USE_IMPORT', () => false);
+
+/**
+ * Only for test, nhwc to nchw.
+ */
+
+ ENV.registerFlag('WEBGPU_NHWC_TO_NCHW', () => false);

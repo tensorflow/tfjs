@@ -9,7 +9,8 @@
 <body>
     <script src="../dist/bin/tfjs-core/tfjs-core_pkg/dist/tf-core.min.js"></script>
     <script src="../dist/bin/tfjs-backend-cpu/tfjs-backend-cpu_pkg/dist/tf-backend-cpu.js"></script>
-    <script src="../dist/bin/tfjs-backend-webgl/tfjs-backend-webgl_pkg/dist/tf-backend-webgl.js"></script>
+    <!---<script src="../dist/bin/tfjs-backend-webgl/tfjs-backend-webgl_pkg/dist/tf-backend-webgl.js"></script>-->
+    <script src="../tfjs-backend-webgpu/dist/tf-backend-webgpu.js"></script>
     <script src="../dist/bin/tfjs-converter/tfjs-converter_pkg/dist/tf-converter.js"></script>
     <script>
         window.addEventListener("DOMContentLoaded", main);
@@ -19,32 +20,60 @@
         //const NHWC_MODEL_URL = "./effientdet/web_model/model.json";
         //tf.env().set('WEBGL_PACK_DEPTHWISECONV', false);
         async function main() {
-            const model2 = await tf.loadGraphModel(NHWC_MODEL_URL);
 
-            const input = tf.ones([1, 224,224,3], 'float32');
+            await tf.ready();
+            tf.env().set('WEBGPU_NHWC_TO_NCHW', false);
+            const input = tf.ones([1, 224, 224, 3], 'float32');
+            const model2 = await tf.loadGraphModel(NHWC_MODEL_URL);
             const start1 = performance.now();
             const output2 = await model2.execute(input);
-            output2.dataSync();
+            await output2.data();
             console.log('nhwc warmup time: ', performance.now() - start1);
             const start2 = performance.now();
-            for (let i = 0; i < 50; i++) {
+            for (let i = 0; i < 100; i++) {
             const output = await model2.execute(input);
-            output.dataSync();
+            await output.data();
             }
-            console.log('nhwc average time: ', (performance.now() - start2) / 50);
-            tf.env().set('WEBGL_CONV_IM2COL', false);
+            console.log('nhwc average time: ', (performance.now() - start2) / 100);
 
-            const model = await tf.loadGraphModel(NCHW_MODEL_URL);
+
+            tf.env().set('WEBGPU_NHWC_TO_NCHW', true);
+
+            /*const model = await tf.loadGraphModel(NCHW_MODEL_URL);*/
             const start0 = performance.now();
-            const output = await model.execute(input);
-            output.dataSync();
-            console.log('nhwc warmup time: ', performance.now() - start0);
+            const output = await model2.execute(input);
+            await output.data();
+            console.log('nchw warmup time: ', performance.now() - start0);
             const start = performance.now();
             for (let i = 0; i < 100; i++) {
-            const output = await model.execute(input);
-            output.dataSync();
+            const output = await model2.execute(input);
+            await output.data();
             }
             console.log('nchw average time: ', (performance.now() - start) / 100);
+
+            tf.env().set('WEBGPU_NHWC_TO_NCHW', false);
+            const start3 = performance.now();
+            const output3 = await model2.execute(input);
+            await output3.data();
+            console.log('nhwc warmup time: ', performance.now() - start3);
+            const start4 = performance.now();
+            for (let i = 0; i < 100; i++) {
+            const output = await model2.execute(input);
+            await output.data();
+            }
+            console.log('nhwc average time: ', (performance.now() - start4) / 100);
+
+            tf.env().set('WEBGPU_NHWC_TO_NCHW', true);
+            const start5 = performance.now();
+            const output5 = await model2.execute(input);
+            await output5.data();
+            console.log('nchw warmup time: ', performance.now() - start5);
+            const start6 = performance.now();
+            for (let i = 0; i < 100; i++) {
+            const output = await model2.execute(input);
+            await output.data();
+            }
+            console.log('nchw average time: ', (performance.now() - start6) / 100);
 
           }
     </script>

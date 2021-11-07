@@ -17,6 +17,7 @@
 
 import {backend_util, DataType, util} from '@tensorflow/tfjs-core';
 import {symbolicallyComputeStrides} from './shader_util';
+import {DepthwiseConv2D3x3ProgramChannelFirst} from './kernels/depthwise_conv2d_3x3_webgpu_channel_first'
 
 export function getCoordsDataType(rank: number): string {
   if (rank <= 1) {
@@ -162,7 +163,7 @@ export function makeShader(
   program.variableNames.forEach((x, i) => {
     prefixSnippets.push(`
     [[block]] struct Matrix${1 + i} {
-      numbers: array<${mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
+      numbers: array<${mapToWgslTypes(inputInfo[i].dtype, program instanceof DepthwiseConv2D3x3ProgramChannelFirst ? false : program.isVec4,)}>;
     };
     [[group(0), binding(${1 + i})]] var<storage, read> ${x} : Matrix${1 + i};
     `);
@@ -197,7 +198,7 @@ export function makeShader(
         inputInfo
             .map(
                 x => getInputSamplingSnippet(
-                    x, outputData.shape, program.isVec4,
+                    x, outputData.shape, program instanceof DepthwiseConv2D3x3ProgramChannelFirst ? false : program.isVec4,
                     program.dispatchLayout.x.length ===
                         outputData.shape.length))
             .join('\n');

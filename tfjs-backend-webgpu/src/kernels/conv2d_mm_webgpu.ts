@@ -46,9 +46,9 @@ export class Conv2DMMProgram implements WebGPUProgram {
       hasPreluActivationWeights = false) {
     this.outputShape = convInfo.outShape;
 
-    util.assert(
+    /*util.assert(
         convInfo.dataFormat === 'channelsLast',
-        () => 'TODO: NCHW is unimplemented');
+        () => 'TODO: NCHW is unimplemented');*/
     this.dispatchLayout = {x: [3], y: [1, 2], z: [0]};
     this.workGroupSize =
         computeWorkGroupSizeForConv2d(this.dispatchLayout, this.outputShape);

@@ -15,11 +15,13 @@
  * =============================================================================
  */
 
-import {backend_util, FusedDepthwiseConv2D, FusedDepthwiseConv2DAttrs, FusedDepthwiseConv2DInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, env, FusedDepthwiseConv2D, FusedDepthwiseConv2DAttrs, FusedDepthwiseConv2DInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {DepthwiseConv2D3x3ProgramChannelFirst} from './depthwise_conv2d_3x3_webgpu_channel_first';
 import {DepthwiseConv2D3x3Program} from './depthwise_conv2d_3x3_webgpu';
 import {DepthwiseConv2DProgram} from './depthwise_conv2d_webgpu';
+import { transpose } from './Transpose';
 
 export function fusedDepthwiseConv2D(args: {
   inputs: FusedDepthwiseConv2DInputs,
@@ -45,19 +47,13 @@ export function fusedDepthwiseConv2D(args: {
       filter.shape as [number, number, number, number], strides, $dilations,
       pad, dimRoundingMode, true /* depthwise */);
 
-  const programInputs: TensorInfo[] = [x, filter];
-
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
 
-  if (hasBias) {
-    programInputs.push(bias);
-  }
-  if (hasPreluActivationWeights) {
-    programInputs.push(preluActivationWeights);
-  }
-
-  let program: DepthwiseConv2DProgram|DepthwiseConv2D3x3Program;
+  let $x = x;
+  let xTransposed = false;
+  const intermediateTensorInfos = [];
+  let program: DepthwiseConv2DProgram|DepthwiseConv2D3x3ProgramChannelFirst | DepthwiseConv2D3x3Program;
   // TODO: To see if we need to relax the limitation. Currently, it's only for
   // filter size 3x3.
   if (convInfo.batchSize === 1 && convInfo.inHeight === convInfo.outHeight &&
@@ -66,8 +62,16 @@ export function fusedDepthwiseConv2D(args: {
       convInfo.filterHeight === convInfo.filterWidth &&
       convInfo.inChannels === convInfo.outChannels &&
       convInfo.filterHeight === 3 && convInfo.inChannels % 4 === 0) {
-    program = new DepthwiseConv2D3x3Program(
-        convInfo, hasBias, activation, hasPreluActivationWeights);
+        if (env().getBool('WEBGPU_NHWC_TO_NCHW')) {
+        $x = transpose({inputs: {x}, backend, attrs: {perm: [0, 3, 1, 2]}});
+        xTransposed = true;
+        intermediateTensorInfos.push($x);
+        program = new DepthwiseConv2D3x3ProgramChannelFirst(
+          convInfo, hasBias, activation, hasPreluActivationWeights);
+      } else {
+        program = new DepthwiseConv2D3x3Program(
+          convInfo, hasBias, activation, hasPreluActivationWeights);
+      }
   } else {
     program = new DepthwiseConv2DProgram(
         convInfo, hasBias, activation, hasPreluActivationWeights);
@@ -80,9 +84,23 @@ export function fusedDepthwiseConv2D(args: {
     {type: 'int32', data: [convInfo.inHeight, convInfo.inWidth]}
   ];
 
+  const programInputs: TensorInfo[] = [$x, filter];
+
+  if (hasBias) {
+    programInputs.push(bias);
+  }
+  if (hasPreluActivationWeights) {
+    programInputs.push(preluActivationWeights);
+  }
+
   const result =
       backend.runWebGPUProgram(program, programInputs, 'float32', dimensions);
-
+  if (xTransposed) {
+    const transposeRes = transpose({inputs: {x: result}, backend, attrs: {perm: [0, 2, 3, 1]}});
+    intermediateTensorInfos.push(result);
+    intermediateTensorInfos.forEach(t => backend.disposeData(t.dataId));
+    return transposeRes;
+  }
   return result;
 }
 
