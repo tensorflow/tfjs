@@ -43,8 +43,7 @@ export interface WebGPUProgram {
   size?: boolean;
   // Whether to use atomic built-in functions.
   atomic?: boolean;
-  // pipeline: Promise<GPUComputePipeline>;
-  pipeline?: GPUComputePipeline;
+  pipeline?: GPUComputePipeline|Promise<GPUComputePipeline>;
   bindGroup?: GPUBindGroup;
   getUserCode: () => string;
 }
@@ -78,6 +77,22 @@ export const compileProgram =
           inputsData, outputData, program, isFromPixel);
       const module = device.createShaderModule({code: source});
       const pipeline = device.createComputePipeline(
+          {layout: pipelineLayout, compute: {module, entryPoint: 'main'}});
+
+      return pipeline;
+    };
+
+export const compileProgramAsync =
+    (device: GPUDevice, program: WebGPUProgram,
+     pipelineLayout: GPUPipelineLayout,
+     inputsData: shader_preprocessor.InputInfo[], output: TensorInfo,
+     isFromPixel = false): Promise<GPUComputePipeline> => {
+      const outputData = {dtype: output.dtype, shape: output.shape};
+
+      const source = shader_preprocessor.makeShader(
+          inputsData, outputData, program, isFromPixel);
+      const module = device.createShaderModule({code: source});
+      const pipeline = device.createComputePipelineAsync(
           {layout: pipelineLayout, compute: {module, entryPoint: 'main'}});
 
       return pipeline;
