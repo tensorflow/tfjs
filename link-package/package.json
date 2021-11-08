@@ -6,6 +6,7 @@
   "private": true,
   "scripts": {
     "build": "yarn build-link-package-core && yarn build-backend-webgl && yarn build-converter && yarn build-tflite && yarn build-layers && yarn build-data && yarn reinstall",
+    "build-win32": "yarn build-link-package-core && yarn build-backend-webgl && yarn build-converter && yarn build-layers && yarn build-data && yarn reinstall",
     "build-link-package-core": "cd ../link-package-core && yarn build",
     "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build",
     "build-converter": "cd ../tfjs-converter && yarn && yarn build",

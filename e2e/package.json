@@ -43,6 +43,7 @@
   "scripts": {
     "build": "tsc",
     "build-link-package": "cd ../link-package && yarn build",
+    "build-link-package-win32": "cd ../link-package && yarn build-win32",
     "build-layers": "cd ../tfjs-layers && yarn && yarn build",
     "build-layers-ci": "cd ../tfjs-layers && yarn && yarn build-ci",
     "build-converter": "cd ../tfjs-converter && yarn && yarn build",
@@ -58,6 +59,7 @@
     "build-node": "cd ../tfjs-node && yarn && yarn build",
     "build-node-ci": "cd ../tfjs-node && yarn && yarn build-ci",
     "build-deps": "yarn build-link-package && yarn build-backend-webgl && yarn build-layers && yarn build-converter && yarn build-data && yarn build-union && yarn build-node",
+    "build-deps-win32": "yarn build-link-package-win32 && yarn build-backend-webgl && yarn build-layers && yarn build-converter && yarn build-data && yarn build-union",
     "build-deps-ci": "./scripts/build-deps-ci.sh",
     "lint": "tslint -p . -t verbose",
     "run-browserstack": "karma start --browserstack",
