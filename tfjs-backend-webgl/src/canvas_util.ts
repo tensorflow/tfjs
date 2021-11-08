@@ -47,7 +47,7 @@ export function getWebGLContext(webGLVersion: number): WebGLRenderingContext {
     }
   }
   const gl = contexts[webGLVersion];
-  if (!gl || gl === null || gl.isContextLost()) {
+  if (gl == null || gl.isContextLost()) {
     delete contexts[webGLVersion];
     return getWebGLContext(webGLVersion);
   }
