@@ -21,7 +21,7 @@ import {computeDispatch, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
 import {makeMatMulPackedVec4Source} from './matmul_packed_vec4_webgpu';
-import {idivAndIsNanCustom} from './shader_lib';
+import {coordsInBounds, idivAndIsNanCustom} from './shader_lib';
 import {WebGPUProgram} from './webgpu_program';
 
 export class Conv2DMMVec4Program implements WebGPUProgram {
@@ -42,7 +42,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   hasLeakyreluAlpha: boolean;
   fitA: boolean;
   fitB: boolean;
-  includes = '';
+  includes = coordsInBounds;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
@@ -186,7 +186,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     if (this.activation) {
       const activationOp =
           mapActivationToShaderProgram(this.activation, this.isVec4);
-      this.includes = idivAndIsNanCustom;
+      this.includes += idivAndIsNanCustom;
       if (this.hasPreluActivationWeights) {
         activationSnippet =
             `fn activation(a : vec4<f32>, outCoord : vec4<i32>) -> vec4<f32> {

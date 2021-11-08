@@ -20,7 +20,7 @@ import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 import {getNonFlatDispatchLayoutMainHeaderString} from '../shader_preprocessor';
 
 import {mapActivationToShaderProgram} from './activation_util';
-import {idivAndIsNanCustom} from './shader_lib';
+import {coordsInBounds, idivAndIsNanCustom} from './shader_lib';
 import {WebGPUProgram} from './webgpu_program';
 
 export function makeMatMulSmallOutputSizeSource(
@@ -129,7 +129,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
-  includes = '';
+  includes = coordsInBounds;
 
   constructor(
       aShape: [number, number, number], bShape: [number, number, number],
@@ -181,7 +181,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
       const activationOp = mapActivationToShaderProgram(this.activation, false);
-      this.includes = idivAndIsNanCustom;
+      this.includes += idivAndIsNanCustom;
       if (this.hasPreluActivationWeights) {
         activationSnippet =
             `fn activation(a : f32, outCoord : vec3<i32>) -> f32 {

@@ -123,7 +123,6 @@ export function makeShader(
       [[group(0), binding(2)]] var<uniform> uniforms: Uniform;
     `;
     return [
-      SHADER_PREFIX,
       outputBufferStr,
       workGroupSizeSnippet,
       SAMPLING_SNIPPETS,
@@ -200,9 +199,8 @@ export function makeShader(
 
   const includes = program.includes ? program.includes : '';
   const sources = [
-    includes, SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS,
-    getCoords, getOutputCoords,
-    getOutputFlatIndexSnippet(outputData.shape.length)
+    includes, prefixSnippets.join('\n'), SAMPLING_SNIPPETS, getCoords,
+    getOutputCoords, getOutputFlatIndexSnippet(outputData.shape.length)
 
   ];
   if (!program.atomic) {
@@ -228,23 +226,6 @@ export function makeShader(
   return source;
 }
 
-const SHADER_PREFIX = `
-  // Checks whether coordinates lie within the bounds of the shape.
-  fn coordsInBounds4D(coord : vec4<i32>, shape : vec4<i32>) -> bool {
-    return all(coord >= vec4<i32>(0)) &&
-        all(coord < shape);
-  }
-
-  fn coordsInBounds3D(coord : vec3<i32>, shape : vec3<i32>) -> bool {
-    return all(coord >= vec3<i32>(0)) &&
-        all(coord < shape);
-  }
-
-  fn coordsInBounds2D(coord : vec2<i32>, shape : vec2<i32>) -> bool {
-    return all(coord >= vec2<i32>(0)) &&
-        all(coord < shape);
-  }
-  `;
 const SAMPLING_SNIPPETS = `
   fn getFlatIndex1D(coord : i32, shape : i32) -> i32 {
     return coord;

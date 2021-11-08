@@ -74,3 +74,15 @@ export const getGlobalIndex = `
       (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
       localInvocationIndex);
   }`;
+
+export const coordsInBounds = `
+  // Checks whether coordinates lie within the bounds of the shape.
+  fn coordsInBounds4D(coord : vec4<i32>, shape : vec4<i32>) -> bool {
+    return all(coord >= vec4<i32>(0)) &&
+        all(coord < shape);
+  }
+
+  fn coordsInBounds2D(coord : vec2<i32>, shape : vec2<i32>) -> bool {
+    return all(coord >= vec2<i32>(0)) &&
+        all(coord < shape);
+  }`;

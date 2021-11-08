@@ -21,7 +21,7 @@ import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForC
 
 import {mapActivationToShaderProgram} from './activation_util';
 import {makeMatMulPackedSource} from './matmul_packed_webgpu';
-import {idivAndIsNanCustom} from './shader_lib';
+import {coordsInBounds, idivAndIsNanCustom} from './shader_lib';
 import {WebGPUProgram} from './webgpu_program';
 
 export class Conv2DMMProgram implements WebGPUProgram {
@@ -40,7 +40,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
   hasPreluActivationWeights: boolean;
   fitA: boolean;
   fitB: boolean;
-  includes = '';
+  includes = coordsInBounds;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
@@ -142,7 +142,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
       const activationOp = mapActivationToShaderProgram(this.activation, false);
-      this.includes = idivAndIsNanCustom;
+      this.includes += idivAndIsNanCustom;
       if (this.hasPreluActivationWeights) {
         activationSnippet =
             `fn activation(a: f32, outCoord : vec4<i32>) -> f32 {
