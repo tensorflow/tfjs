@@ -31,7 +31,7 @@ export class FromPixelsProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] =
       [256, 1, 1];  // The empirical value.
 
-  pipeline: GPUComputePipeline;
+  pipeline: GPUComputePipeline|Promise<GPUComputePipeline>;
   uniform: GPUBuffer;
   lastUniformData: number[] = [];
 

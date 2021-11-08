@@ -356,17 +356,27 @@ export class WebGPUBackend extends KernelBackend {
       return info.values;
     }
 
-    this.ensureCommandEncoderReady();
-    const pass = this.getComputePass();
-    this.activePrograms.map((program: webgpu_program.WebGPUProgram) => {
-      pass.setPipeline(program.pipeline);
-      pass.setBindGroup(0, program.bindGroup);
-      pass.dispatch(
-          program.dispatch[0], program.dispatch[1], program.dispatch[2]);
-    });
-    this.ensureComputePassEnded();
-    this.activePrograms = [];
+    const pipelinesPromise =
+        this.activePrograms.map(program => program.pipeline);
+    const pipelines = await Promise.all(pipelinesPromise);
+    let arrayLength = this.activePrograms.length;
+    if (arrayLength > 0) {
+      this.ensureCommandEncoderReady();
+      const pass = this.getComputePass();
+      for (let i = 0; i < arrayLength; i++) {
+        let program = this.activePrograms[i];
+        const pipeline = pipelines[i];
+        this.pipelineCache[program.shaderKey] = pipeline;
+        pass.setPipeline(pipeline);
+        pass.setBindGroup(0, program.bindGroup);
+        pass.dispatch(
+            program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+      }
+      this.activePrograms = [];
+      this.submitQueue();
+    }
 
+    this.ensureCommandEncoderReady();
     const staging = this.acquireBuffer(
         info.bufferInfo.byteSize,
         GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
@@ -520,6 +530,16 @@ export class WebGPUBackend extends KernelBackend {
   getAndSavePipeline(key: string, getPipeline: () => GPUComputePipeline) {
     if (!(key in this.pipelineCache)) {
       this.pipelineCache[key] = getPipeline();
+    }
+    return this.pipelineCache[key];
+  }
+
+  private getPipeline(
+      key: string,
+      getPipelineAsync: () => GPUComputePipeline |
+          Promise<GPUComputePipeline>) {
+    if (!(key in this.pipelineCache)) {
+      return getPipelineAsync();
     }
     return this.pipelineCache[key];
   }
@@ -779,17 +799,25 @@ export class WebGPUBackend extends KernelBackend {
     const inputShapesEqualsOutShape =
         inputsData.map(d => util.arraysEqual(d.shape, output.shape)).join('_');
     const broadcastDimsKey = broadcastDims.map(d => d.join('_')).join(';');
-    const key = webgpu_program.makeShaderKey(
+    program.shaderKey = webgpu_program.makeShaderKey(
         program, bufferShapes, bufferTypes, broadcastDimsKey,
         inputShapesEqualsOutShape);
 
     const {bindGroupLayout, pipelineLayout} =
         this.getCachedOrCreateLayout(program.variableNames.length);
 
-    program.pipeline = this.getAndSavePipeline(key, () => {
-      return webgpu_program.compileProgram(
-          this.device, program, pipelineLayout, inputsData, output);
-    });
+    const shouldTimeProgram = this.activeTimers != null;
+    if (shouldTimeProgram) {
+      program.pipeline = this.getAndSavePipeline(program.shaderKey, () => {
+        return webgpu_program.compileProgram(
+            this.device, program, pipelineLayout, inputsData, output);
+      });
+    } else {
+      program.pipeline = this.getPipeline(program.shaderKey, () => {
+        return webgpu_program.compileProgramAsync(
+            this.device, program, pipelineLayout, inputsData, output);
+      });
+    }
 
     // Creating bind groups on the fly should never be a bottleneck.
     program.bindGroup = webgpu_program.makeBindGroup(
@@ -810,7 +838,6 @@ export class WebGPUBackend extends KernelBackend {
       this.uniformDisposalQueue.push(uniformInfo);
     }
 
-    const shouldTimeProgram = this.activeTimers != null;
     if (shouldTimeProgram) {
       this.ensureCommandEncoderReady();
       const pass = this.getComputePass();
@@ -819,14 +846,13 @@ export class WebGPUBackend extends KernelBackend {
         pass.writeTimestamp(this.querySet, 0);
       }
 
-      pass.setPipeline(program.pipeline);
+      pass.setPipeline(program.pipeline as GPUComputePipeline);
       pass.setBindGroup(0, program.bindGroup);
       pass.dispatch(
           program.dispatch[0], program.dispatch[1], program.dispatch[2]);
-      if (shouldTimeProgram) {
-        if (this.supportTimeQuery) {
-          pass.writeTimestamp(this.querySet, 1);
-        }
+
+      if (this.supportTimeQuery) {
+        pass.writeTimestamp(this.querySet, 1);
       }
       this.dispatchNumberInEncoder++;
 
@@ -877,7 +903,7 @@ export class WebGPUBackend extends KernelBackend {
         passEncoder.writeTimestamp(this.querySet, 0);
       }
     }
-    passEncoder.setPipeline(program.pipeline);
+    passEncoder.setPipeline(program.pipeline as GPUComputePipeline);
     passEncoder.setBindGroup(0, bindGroup);
     passEncoder.dispatch(
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
