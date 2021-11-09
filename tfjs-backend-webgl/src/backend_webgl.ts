@@ -19,7 +19,7 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendValues, buffer, DataId, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, MemoryInfo, NumericDataType, Rank, RecursiveArray, scalar, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendValues, buffer, DataId, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, MemoryInfo, nextFrame, NumericDataType, Rank, RecursiveArray, scalar, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {getWebGLContext} from './canvas_util';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
@@ -30,7 +30,7 @@ import {EncodeMatrixProgram} from './encode_matrix_gpu';
 import {EncodeMatrixPackedProgram} from './encode_matrix_packed_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
-import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
+import {getUniformLocations, GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
 import {simpleAbsImplCPU} from './kernel_utils/shared';
 import {PackProgram} from './pack_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
@@ -312,7 +312,7 @@ export class MathBackendWebGL extends KernelBackend {
       // For performance reason, only check it for debugging. In production,
       // it doesn't handle this use case anyway, so behavior is not changed.
       if (!env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED') &&
-        env().getNumber('WEBGL_VERSION') === 2) {
+          env().getNumber('WEBGL_VERSION') === 2) {
         throw new Error(
             `tensor.data() with WEBGL_DOWNLOAD_FLOAT_ENABLED=false and ` +
             `WEBGL_VERSION=2 not yet supported.`);
@@ -827,30 +827,37 @@ export class MathBackendWebGL extends KernelBackend {
           texData.isPacked = true;
           texData.shape = input.shape;
         }
-      } else if (!!texData.isPacked !== !!program.packedInputs) {
-        input = texData.isPacked ? this.unpackTensor(input) :
-                                   this.packTensor(input);
-        dataToDispose.push(input);
-        texData = this.texData.get(input.dataId);
-      } else if (
-          texData.isPacked &&
-          !webgl_util.isReshapeFree(texData.shape, input.shape)) {
-        // This is a special case where a texture exists for a tensor
-        // but the shapes are incompatible (due to packing constraints) because
-        // the tensor did not have a chance to go through the packed reshape
-        // shader. This only happens when we reshape the *same* tensor to form
-        // *distinct* inputs to an op, e.g. dotting a vector with itself. This
-        // case will disappear once packed uploading is the default.
+      }
 
-        const savedInput = input;
-        const targetShape = input.shape;
+      // When in precompile phase, we want to precompile all the shaders, no
+      // matter whether texture is uploaded or not.
+      if (texData.texture != null || engine().state.compileOnly) {
+        if (!!texData.isPacked !== !!program.packedInputs) {
+          input = texData.isPacked ? this.unpackTensor(input) :
+                                     this.packTensor(input);
+          dataToDispose.push(input);
+          texData = this.texData.get(input.dataId);
+        } else if (
+            texData.isPacked &&
+            !webgl_util.isReshapeFree(texData.shape, input.shape)) {
+          // This is a special case where a texture exists for a tensor
+          // but the shapes are incompatible (due to packing constraints)
+          // because the tensor did not have a chance to go through the packed
+          // reshape shader. This only happens when we reshape the *same* tensor
+          // to form *distinct* inputs to an op, e.g. dotting a vector with
+          // itself. This case will disappear once packed uploading is the
+          // default.
 
-        input.shape = texData.shape;
-        input = this.packedReshape(input as Tensor, targetShape);
-        dataToDispose.push(input);
-        texData = this.texData.get(input.dataId);
+          const savedInput = input;
+          const targetShape = input.shape;
 
-        savedInput.shape = targetShape;
+          input.shape = texData.shape;
+          input = this.packedReshape(input as Tensor, targetShape);
+          dataToDispose.push(input);
+          texData = this.texData.get(input.dataId);
+
+          savedInput.shape = targetShape;
+        }
       }
 
       this.uploadToGPU(input.dataId);
@@ -871,8 +878,10 @@ export class MathBackendWebGL extends KernelBackend {
       query = this.startTimer();
     }
 
-    gpgpu_math.runProgram(
-        this.gpgpu, binary, inputsData, outputData, customUniformValues);
+    if (!engine().state.compileOnly) {
+      gpgpu_math.runProgram(
+          this.gpgpu, binary, inputsData, outputData, customUniformValues);
+    }
 
     dataToDispose.forEach(info => this.disposeIntermediateTensorInfo(info));
 
@@ -1005,8 +1014,8 @@ export class MathBackendWebGL extends KernelBackend {
 
       let program;
       let width = texShape[1], height = texShape[0];
-      const isByteArray = values instanceof Uint8Array
-                          || values instanceof Uint8ClampedArray;
+      const isByteArray =
+          values instanceof Uint8Array || values instanceof Uint8ClampedArray;
 
       if (isPacked) {
         [width, height] = tex_util.getPackedMatrixTextureShapeWidthHeight(
@@ -1038,16 +1047,19 @@ export class MathBackendWebGL extends KernelBackend {
 
       // Have the original texture assume the identity of the encoded output.
       const outputTexData = this.texData.get(encodedOutputTarget.dataId);
-      texData.texture = outputTexData.texture;
       texData.texShape = outputTexData.texShape;
       texData.isPacked = outputTexData.isPacked;
       texData.usage = outputTexData.usage;
 
+      if (!engine().state.compileOnly) {
+        texData.texture = outputTexData.texture;
+        // Once uploaded, don't store the values on cpu.
+        texData.values = null;
+      }
+
       this.disposeIntermediateTensorInfo(tempDenseInputHandle);
       this.texData.delete(encodedOutputTarget.dataId);
 
-      // Once uploaded, don't store the values on cpu.
-      texData.values = null;
       if (shouldTimeProgram) {
         this.uploadWaitMs += util.now() - start;
       }
@@ -1087,6 +1099,100 @@ export class MathBackendWebGL extends KernelBackend {
 
   private computeBytes(shape: [number, number], dtype: DataType) {
     return shape[0] * shape[1] * util.bytesPerElement(dtype);
+  }
+
+  checkCompileCompletion() {
+    for (const [, binary] of Object.entries(this.binaryCache)) {
+      if (this.gpgpu.gl.getProgramParameter(
+              binary.webGLProgram, this.gpgpu.gl.LINK_STATUS) === false) {
+        if (this.gpgpu.gl.getShaderParameter(
+                binary.fragmentShader, this.gpgpu.gl.COMPILE_STATUS) ===
+            false) {
+          webgl_util.logShaderSourceAndInfoLog(
+              binary.source,
+              this.gpgpu.gl.getShaderInfoLog(binary.fragmentShader));
+          throw new Error('Failed to compile fragment shader.');
+        }
+        throw new Error('Failed to link vertex and fragment shaders.');
+      }
+    }
+  }
+
+  async checkCompileCompletionAsync(): Promise<boolean[]> {
+    const ps = [];
+    if (this.gpgpu.parallelCompilationExtension) {
+      console.log(Object.keys(this.binaryCache).length);
+      for (const [, binary] of Object.entries(this.binaryCache)) {
+        ps.push(this.checkCompletion(binary, binary.webGLProgram));
+      }
+      return Promise.all(ps);
+    } else {
+      for (const [, binary] of Object.entries(this.binaryCache)) {
+        const p: Promise<boolean> = new Promise((resolve) => {
+          if (this.gpgpu.gl.getProgramParameter(
+                  binary.webGLProgram, this.gpgpu.gl.LINK_STATUS) === false) {
+            console.log(this.gpgpu.gl.getProgramInfoLog(binary.webGLProgram));
+            throw new Error('Failed to link vertex and fragment shaders.');
+          } else {
+            resolve(true);
+          }
+        });
+        ps.push(p);
+      }
+      return Promise.all(ps);
+    }
+  }
+
+  async checkCompletion(binary: GPGPUBinary, program: WebGLProgram):
+      Promise<boolean> {
+    if (this.gpgpu.gl.getProgramParameter(
+            program,
+            this.gpgpu.parallelCompilationExtension.COMPLETION_STATUS_KHR)) {
+      console.log('completed');
+      if (this.gpgpu.gl.getProgramParameter(
+              binary.webGLProgram, this.gpgpu.gl.LINK_STATUS) === false) {
+        console.log(this.gpgpu.gl.getProgramInfoLog(binary.webGLProgram));
+        if (this.gpgpu.gl.getShaderParameter(
+                binary.fragmentShader, this.gpgpu.gl.COMPILE_STATUS) ===
+            false) {
+          webgl_util.logShaderSourceAndInfoLog(
+              binary.source,
+              this.gpgpu.gl.getShaderInfoLog(binary.fragmentShader));
+          throw new Error('Failed to compile fragment shader.');
+        }
+        throw new Error('Failed to link vertex and fragment shaders.');
+      }
+      return true;
+    } else {
+      console.log('not completed');
+      await nextFrame();
+      return this.checkCompletion(binary, program);
+    }
+  }
+
+  getUniformLocations() {
+    for (const [, binary] of Object.entries(this.binaryCache)) {
+      const {
+        uniformLocations,
+        customUniformLocations,
+        infLoc,
+        nanLoc,
+        inShapesLocations,
+        inTexShapesLocations,
+        outShapeLocation,
+        outShapeStridesLocation,
+        outTexShapeLocation
+      } = getUniformLocations(this.gpgpu, binary.program, binary.webGLProgram);
+      binary.uniformLocations = uniformLocations;
+      binary.customUniformLocations = customUniformLocations;
+      binary.infLoc = infLoc;
+      binary.nanLoc = nanLoc;
+      binary.inShapesLocations = inShapesLocations;
+      binary.inTexShapesLocations = inTexShapesLocations;
+      binary.outShapeLocation = outShapeLocation;
+      binary.outShapeStridesLocation = outShapeStridesLocation;
+      binary.outTexShapeLocation = outTexShapeLocation;
+    }
   }
 }
 

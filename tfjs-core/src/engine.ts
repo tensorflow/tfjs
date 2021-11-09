@@ -20,6 +20,7 @@ import {Environment, setEnvironmentGlobal} from './environment';
 import {getGlobalNamespace} from './global_util';
 import {Add, Cast, Identity} from './kernel_names';
 import {getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap, TensorInfo} from './kernel_registry';
+import * as log from './log';
 import {KernelProfile, Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
 import {DataId, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
@@ -28,7 +29,7 @@ import {getTensorsInContainer} from './tensor_util';
 import {BackendValues, DataType, DataValues} from './types';
 import * as util from './util';
 import {bytesFromStringArray, makeOnesTypedArray, now, sizeFromShape} from './util';
-import * as log from './log';
+
 /**
  * A function that computes an output. The save function is for saving tensors
  * computed in the forward pass, that we need in the backward pass.
@@ -154,6 +155,8 @@ class EngineState {
           return Array.from(new Set(this.kernels.map(k => k.name)));
         }
   };
+
+  compileOnly = false;
 
   dispose() {
     for (const variableName in this.registeredVariables) {
@@ -348,8 +351,7 @@ export class Engine implements TensorTracker, DataMover {
                     return false;
                   }
                   this.pendingBackendInit = null;
-                  log.warn(
-                      `Initialization of backend ${backendName} failed`);
+                  log.warn(`Initialization of backend ${backendName} failed`);
                   log.warn(err.stack || err.message);
                   return false;
                 });
