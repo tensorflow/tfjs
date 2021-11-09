@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {DataType, util} from '@tensorflow/tfjs-core';
+import {DataType} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -30,7 +30,6 @@ export class ScatterOptimizedProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
-  size: number;
   updatesRank: number;
   indicesRank: number;
   sliceDimGreaterThanOne: boolean;
@@ -50,9 +49,8 @@ export class ScatterOptimizedProgram implements WebGPUProgram {
     this.sliceDimGreaterThanOne = sliceDim > 1;
     this.shaderKey = `scatter_${indicesRank}_${updatesRank}_${
         this.sliceDimGreaterThanOne}_${outputDtype}`;
-    this.size = util.sizeFromShape(flattenXShape);
     const stridesType = getCoordsDataType(strides.length);
-    this.uniforms = `sliceDim : i32; strides: ${stridesType};`;
+    this.uniforms = `sliceDim : i32; strides: ${stridesType}; size: i32;`;
     this.updatesRank = updatesRank;
     this.indicesRank = indicesRank;
   }
@@ -112,8 +110,7 @@ export class ScatterOptimizedProgram implements WebGPUProgram {
     const userCode = `
     ${getUpdatesCoordsFromFlatIndex}
 
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
 
         if (index < uniforms.size) {
           let coords = getUpdatesCoordsFromFlatIndex(index);

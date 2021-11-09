@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {backend_util, util} from '@tensorflow/tfjs-core';
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {backend_util} from '@tensorflow/tfjs-core';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
@@ -32,7 +32,7 @@ export class BinaryOpVec4Program implements WebGPUProgram {
   workGroupSize: [number, number, number];
   isVec4 = true;
   op: BinaryOpType;
-  size: number;
+  size = true;
   fitShape: boolean;
 
   constructor(op: BinaryOpType, aShape: number[], bShape: number[]) {
@@ -45,42 +45,23 @@ export class BinaryOpVec4Program implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
     this.op = op;
-    this.fitShape = this.size % this.workGroupSize[0] === 0;
-    this.shaderKey = `binaryVec4_${op}_${this.fitShape}`;
-    this.size = util.sizeFromShape(this.outputShape) / this.workPerThread;
+    this.shaderKey = `binaryVec4_${op}`;
   }
 
   getUserCode(): string {
-    let userCode: string;
     const opStr = getBinaryOpString(this.op, this.isVec4);
-    const miscStr =
-        `fn binaryOperation(a : vec4<f32>, b : vec4<f32>) -> vec4<f32> {
-          ${opStr}
-        }`;
-
-    if (this.fitShape) {
-      userCode = `
-      ${miscStr}
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let a = vec4<f32>(A.numbers[index]);
-        let b = vec4<f32>(B.numbers[index]);
-        setOutputFlat(index, binaryOperation(a, b));
+    const userCode = `
+      fn binaryOperation(a : vec4<f32>, b : vec4<f32>) -> vec4<f32> {
+        ${opStr}
       }
-    `;
-    } else {
-      userCode = `
-      ${miscStr}
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let a = vec4<f32>(A.numbers[index]);
-          let b = vec4<f32>(B.numbers[index]);
+          let a = getAAtOutCoordsByGlobalIndex(index);
+          let b = getBAtOutCoordsByGlobalIndex(index);
           setOutputFlat(index, binaryOperation(a, b));
         }
       }
     `;
-    }
     return userCode;
   }
 }

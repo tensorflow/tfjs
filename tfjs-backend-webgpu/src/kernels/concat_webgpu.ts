@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {backend_util, util} from '@tensorflow/tfjs-core';
+import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -31,7 +31,7 @@ export class ConcatProgram implements WebGPUProgram {
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
   shapes: Array<[number, number]>;
-  size: number;
+  size = true;
 
   constructor(shapes: Array<[number, number]>) {
     this.outputShape =
@@ -45,7 +45,6 @@ export class ConcatProgram implements WebGPUProgram {
     this.shapes = shapes;
     // shapes is used by const snippets.
     this.shaderKey = `concat${shapes}`;
-    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
@@ -74,8 +73,7 @@ export class ConcatProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
           if(flatIndex < uniforms.size) {

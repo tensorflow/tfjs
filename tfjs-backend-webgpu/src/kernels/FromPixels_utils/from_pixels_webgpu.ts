@@ -16,7 +16,7 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-import {getGlobalIndexString, getMainHeaderString} from '../../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../../shader_preprocessor';
 
 import {computeDispatch, flatDispatchLayout, WebGPULayout} from '../../webgpu_util';
 import {WebGPUProgram} from '../webgpu_program';
@@ -68,14 +68,13 @@ export class FromPixelsProgram implements WebGPUProgram {
     return `
       [[binding(1), group(0)]] var src: ${textureType};
 
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         let flatIndexBase = index * uniforms.numChannels;
-        let coords = getCoordsFromFlatIndex(flatIndexBase);
-        let values = ${textureLoad};
         for (var i = 0; i < uniforms.numChannels; i = i + 1) {
           let flatIndex = flatIndexBase + i;
           if (flatIndex < uniforms.size) {
+            let coords = getCoordsFromFlatIndex(flatIndexBase);
+            let values = ${textureLoad};
             result.numbers[flatIndex] = i32(floor(255.0 * values[i]));
           }
         }

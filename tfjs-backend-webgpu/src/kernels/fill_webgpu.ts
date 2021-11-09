@@ -14,9 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import {util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -29,7 +28,7 @@ export class FillProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   uniforms = 'value : f32;';
   workGroupSize: [number, number, number] = [64, 1, 1];
-  size: number;
+  size = true;
 
   constructor(shape: number[]) {
     this.outputShape = shape;
@@ -38,13 +37,11 @@ export class FillProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.shaderKey = 'fill';
-    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
     const userCode = `
-    ${getMainHeaderString()} {
-      ${getGlobalIndexString()}
+    ${getMainHeaderAndGlobalIndexString()}
       if (index < uniforms.size) {
         setOutputFlat(index, uniforms.value);
       }

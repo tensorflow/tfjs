@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -31,6 +31,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
   methodId: number;
   cropHeightBiggerThan1: boolean;
   cropWidthBiggerThan1: boolean;
+  size = true;
 
   constructor(
       channnel: number, boxShape: [number, number], cropSize: [number, number],
@@ -79,16 +80,11 @@ export class CropAndResizeProgram implements WebGPUProgram {
     // tslint:disable-next-line:max-line-length
     // https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/kernels/crop_and_resize_op_gpu.cu.cc
     const userCode = `
-      fn writeResult(coords : vec4<i32>, value : f32) {
-        if (coordsInBounds4D(coords, uniforms.outShape)) {
-          setOutput(coords[0], coords[1], coords[2], coords[3], value);
-        }
-      }
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
+      if (index < uniforms.size) {
+        let coords = getCoordsFromFlatIndex(index);
         let height_ratio = f32(${heightRatio});
         let width_ratio = f32(${widthRatio});
-        let coords = getOutputCoords(globalId, index);
         let b = coords[0];
         let y = coords[1];
         let x = coords[2];
@@ -107,12 +103,12 @@ export class CropAndResizeProgram implements WebGPUProgram {
         let width_scale = ${widthScale};
         let in_y = ${inY};
         if( in_y < 0.0 || in_y > ${inputHeightFloat} ) {
-          writeResult(coords, uniforms.extrapolationValue);
+          setOutputFlat(index, uniforms.extrapolationValue);
           return;
         }
         let in_x = ${inX};
         if( in_x < 0.0 || in_x > ${inputWidthFloat} ) {
-          writeResult(coords, uniforms.extrapolationValue);
+          setOutputFlat(index, uniforms.extrapolationValue);
           return;
         }
         let sourceFracIndexCR = vec2<f32>(in_x,in_y);
@@ -128,16 +124,17 @@ export class CropAndResizeProgram implements WebGPUProgram {
           let top = topLeft + (topRight - topLeft) * fracCR.x;
           let bottom = bottomLeft + (bottomRight - bottomLeft) * fracCR.x;
           let newValue = top + (bottom - top) * fracCR.y;
-          writeResult(coords, newValue);
+          setOutputFlat(index, newValue);
         } else {
           // Compute the coordinators of nearest neighbor point.
           let sourceNearestCR = vec2<i32>(floor(
             sourceFracIndexCR + vec2<f32>(0.5,0.5)));
           let newValue = getImage(
             bInd, sourceNearestCR.y, sourceNearestCR.x, d);
-          writeResult(coords,newValue);
+          setOutputFlat(index, newValue);
         }
       }
+    }
     `;
     return userCode;
   }
