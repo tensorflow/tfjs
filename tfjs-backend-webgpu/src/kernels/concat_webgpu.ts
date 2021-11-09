@@ -28,10 +28,12 @@ export class ConcatProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames: string[];
+  uniforms = '';
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
   shapes: Array<[number, number]>;
   size = true;
+  offsetLength: number;
 
   constructor(shapes: Array<[number, number]>) {
     this.outputShape =
@@ -43,31 +45,30 @@ export class ConcatProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
 
     this.shapes = shapes;
+    this.offsetLength = this.shapes.length - 1;
+    for (let i = 0; i < this.offsetLength; i++) {
+      this.uniforms += `offset${i} : i32;`;
+    }
     // shapes is used by const snippets.
-    this.shaderKey = `concat${shapes}`;
+    this.shaderKey = 'concat';
   }
 
   getUserCode(): string {
-    const offsets: number[] = new Array(this.shapes.length - 1);
+    const offsets: number[] = new Array(this.offsetLength);
     const snippets: string[] = [];
-    if (offsets.length > 0) {
-      offsets[0] = this.shapes[0][1];
+    if (this.offsetLength > 0) {
+      snippets.push(
+          `if (yC < uniforms.offset0){ setOutput(coords.x, coords.y, getT0(yR, yC)); }`);
       for (let i = 1; i < offsets.length; i++) {
-        offsets[i] = offsets[i - 1] + this.shapes[i][1];
-      }
-
-      snippets.push(`if (yC < ${
-          offsets[0]}){ setOutput(coords.x, coords.y, getT0(yR, yC)); }`);
-      for (let i = 1; i < offsets.length; i++) {
-        const shift = offsets[i - 1];
         snippets.push(
-            `elseif (yC < ${offsets[i]}){ ` +
-            `setOutput(coords.x, coords.y, getT${i}(yR, yC - ${shift})); }`);
+            `elseif (yC < uniforms.offset${[i]}){ ` +
+            `setOutput(coords.x, coords.y, getT${i}(yR, yC - uniforms.offset${
+                i - 1})); }`);
       }
       const lastIndex = offsets.length;
-      const lastShift = offsets[offsets.length - 1];
+      const lastShift = offsets.length - 1;
       snippets.push(`else { setOutput(coords.x, coords.y, getT${
-          lastIndex}(yR, yC - ${lastShift})); }`);
+          lastIndex}(yR, yC - uniforms.offset${lastShift})); }`);
     } else {
       snippets.push(`setOutput(coords.x, coords.y, getT0(yR, yC));`);
     }
