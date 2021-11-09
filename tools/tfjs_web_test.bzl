@@ -53,7 +53,10 @@ _make_karma_config = rule(
 
 def tfjs_web_test(name, ci = True, args = [], **kwargs):
     tags = kwargs.pop("tags", [])
-    browsers = kwargs.pop("browsers", [
+    local_browser = kwargs.pop("local_browser", "")
+
+    # Skip other BrowserStack testing when local_browser is not empty
+    browsers = [] if local_browser else kwargs.pop("browsers", [
         "bs_chrome_mac",
         "bs_firefox_mac",
         "bs_safari_mac",
@@ -77,8 +80,7 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
     _make_karma_config(
         name = config_file,
         args = args,
-        # For WebGPU local testing
-        browser = browsers[0] if browsers[0] == "chrome_webgpu" else "",
+        browser = local_browser,
     )
 
     karma_web_test(
@@ -91,11 +93,8 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
         **kwargs
     )
 
-    # Create a 'karma_web_test' target for each browser except for WebGPU,
-    # as BrowserStack does not support setting chrome options in JS testing yet.
+    # Create a 'karma_web_test' target for each browser
     for browser in browsers:
-        if browser == "chrome_webgpu":
-            continue
         config_file = "{}_config_{}".format(name, browser)
         _make_karma_config(
             name = config_file,

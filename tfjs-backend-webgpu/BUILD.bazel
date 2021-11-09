@@ -37,7 +37,6 @@ tfjs_bundle(
     deps = [
         "//tfjs-backend-webgpu/src:tfjs-backend-webgpu_lib",
         "//tfjs-backend-webgpu/src:tfjs-backend-webgpu_src_lib",
-        "@npm//@webgpu/types",
     ],
 )
 
@@ -107,15 +106,6 @@ tfjs_web_test(
         "--flags",
         '{"WEBGPU_CPU_FORWARD": false}',
     ],
-    browsers = [
-        "chrome_webgpu",
-    ],
+    local_browser = "chrome_webgpu",
     static_files = STATIC_FILES,
-)
-
-js_library(
-    name = "package_json",
-    srcs = [
-        ":package.json",
-    ],
 )
