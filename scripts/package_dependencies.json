@@ -5,7 +5,6 @@
   "tfjs-node": ["tfjs"],
   "tfjs-node-gpu": ["tfjs"],
   "tfjs-backend-wasm": [],
-  "tfjs-backend-webgpu": [],
   "tfjs-inference": [],
   "tfjs-react-native": [],
   "tfjs-vis": [],
