@@ -1067,10 +1067,12 @@ export class MathBackendWebGL extends KernelBackend {
         texData.texture = outputTexData.texture;
         // Once uploaded, don't store the values on cpu.
         texData.values = null;
+        this.texData.delete(encodedOutputTarget.dataId);
+      } else {
+        this.disposeData(encodedOutputTarget.dataId);
       }
 
       this.disposeIntermediateTensorInfo(tempDenseInputHandle);
-      this.texData.delete(encodedOutputTarget.dataId);
 
       if (shouldTimeProgram) {
         this.uploadWaitMs += util.now() - start;
