@@ -813,6 +813,7 @@ export class WebGPUBackend extends KernelBackend {
       const uniformInfo = {
         byteSize: uniformsByteLength,
         usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
+        // tslint:disable-next-line: no-unnecessary-type-assertion
         buffer: (uniforms as GPUBufferBinding).buffer
       };
       this.uniformDisposalQueue.push(uniformInfo);
