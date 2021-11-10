@@ -21,6 +21,7 @@ import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
+import { ResourceManager } from '../../executor/resource_manager';
 import {InternalOpAsyncExecutor, Node} from '../types';
 
 import {getParamValue} from './utils';
@@ -50,7 +51,7 @@ function nmsParams(
 
 export const executeOp: InternalOpAsyncExecutor = async(
     node: Node, tensorMap: NamedTensorsMap,
-    context: ExecutionContext, _resourceManager,
+    context: ExecutionContext, resourceManager: ResourceManager,
     ops = tfOps): Promise<Tensor[]> => {
   switch (node.op) {
     case 'NonMaxSuppressionV5': {
