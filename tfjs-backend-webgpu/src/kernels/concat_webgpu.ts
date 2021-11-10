@@ -31,7 +31,6 @@ export class ConcatProgram implements WebGPUProgram {
   uniforms = '';
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
-  shapes: Array<[number, number]>;
   size = true;
   offsetLength: number;
 
@@ -44,29 +43,26 @@ export class ConcatProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [this.workPerThread, 1, 1]);
 
-    this.shapes = shapes;
-    this.offsetLength = this.shapes.length - 1;
+    this.offsetLength = shapes.length - 1;
     for (let i = 0; i < this.offsetLength; i++) {
       this.uniforms += `offset${i} : i32;`;
     }
-    // shapes is used by const snippets.
     this.shaderKey = 'concat';
   }
 
   getUserCode(): string {
-    const offsets: number[] = new Array(this.offsetLength);
     const snippets: string[] = [];
     if (this.offsetLength > 0) {
       snippets.push(
           `if (yC < uniforms.offset0){ setOutput(coords.x, coords.y, getT0(yR, yC)); }`);
-      for (let i = 1; i < offsets.length; i++) {
+      for (let i = 1; i < this.offsetLength; i++) {
         snippets.push(
             `elseif (yC < uniforms.offset${[i]}){ ` +
             `setOutput(coords.x, coords.y, getT${i}(yR, yC - uniforms.offset${
                 i - 1})); }`);
       }
-      const lastIndex = offsets.length;
-      const lastShift = offsets.length - 1;
+      const lastIndex = this.offsetLength;
+      const lastShift = this.offsetLength - 1;
       snippets.push(`else { setOutput(coords.x, coords.y, getT${
           lastIndex}(yR, yC - uniforms.offset${lastShift})); }`);
     } else {
