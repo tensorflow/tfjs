@@ -15,17 +15,9 @@
  * =============================================================================
  */
 
-// Import shared functionality from tfjs-backend-cpu without triggering
-// side effects.
 // tslint:disable-next-line: no-imports-from-dist
 import * as shared from '@tensorflow/tfjs-backend-cpu/dist/shared';
-// tslint:disable-next-line: no-imports-from-dist
-import {SimpleBinaryKernelImpl} from '@tensorflow/tfjs-backend-cpu/dist/shared';
-// tslint:disable-next-line: no-imports-from-dist
-import {SimpleUnaryImpl} from '@tensorflow/tfjs-backend-cpu/dist/utils/unary_types';
 
-export type SimpleBinaryKernelImplCPU = SimpleBinaryKernelImpl;
-export type SimpleUnaryKernelImplCPU = SimpleUnaryImpl;
 const {
   addImpl: addImplCPU,
   ceilImpl: ceilImplCPU,

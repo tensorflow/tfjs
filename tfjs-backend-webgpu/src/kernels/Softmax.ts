@@ -16,15 +16,12 @@
  */
 
 import {backend_util, KernelConfig, KernelFunc, Softmax, SoftmaxAttrs, SoftmaxInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
-
 import {WebGPUBackend} from '../backend_webgpu';
-
-import {exp} from './Exp';
+import {realDiv, sub} from './Binary';
 import {max} from './Max';
-import {realDiv} from './RealDiv';
 import {reshape} from './Reshape';
-import {sub} from './Sub';
 import {sum} from './Sum';
+import {exp} from './Unary';
 
 export function softmax(
     args: {inputs: SoftmaxInputs, backend: WebGPUBackend, attrs: SoftmaxAttrs}):

@@ -19,7 +19,7 @@ import {backend_util, Einsum, EinsumAttrs, EinsumInputs, KernelConfig, KernelFun
 
 import {WebGPUBackend} from '../backend_webgpu';
 
-import {multiplyKernelFunc} from './Multiply';
+import {multiply} from './Binary';
 import {reshape} from './Reshape';
 import {sum} from './Sum';
 import {transpose} from './Transpose';
@@ -65,7 +65,7 @@ export function einsum(
       } else {
         // tslint:disable-next-line: no-unnecessary-type-assertion
         out =
-            multiplyKernelFunc({inputs: {a: x, b: out}, backend}) as TensorInfo;
+            multiply({inputs: {a: x, b: out}, backend}) as TensorInfo;
         tensorsToDispose.push(out);
       }
     }

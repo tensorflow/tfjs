@@ -16,15 +16,11 @@
  */
 import * as tf from '@tensorflow/tfjs-core';
 import {BinaryInputs, Cast, CastAttrs, CastInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
-
 import {WebGPUBackend} from '../backend_webgpu';
-
-import {complex} from './Complex';
+import {complex, notEqual} from './Binary';
 import {identity} from './Identity';
-import {notEqual} from './NotEqual';
 import {real} from './Real';
-
-import {int} from '../kernel_utils/int';
+import {int} from './Unary';
 
 export function cast(
     args: {inputs: CastInputs, backend: WebGPUBackend, attrs: CastAttrs}):
