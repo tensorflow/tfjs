@@ -609,7 +609,6 @@ declare let __karma__: any;
 if (typeof __karma__ !== 'undefined') {
   const testEnv = parseTestEnvFromKarmaFlags(__karma__.config.args, TEST_ENVS);
   if (testEnv != null) {
-    testEnv.isDataSync = false;
     setTestEnvs([testEnv]);
   }
 }
