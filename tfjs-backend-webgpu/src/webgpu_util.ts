@@ -14,9 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {DataType, util} from '@tensorflow/tfjs-core';
-
-import {MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE} from './constants';
+import {DataType, env, util} from '@tensorflow/tfjs-core';
 
 const arrayProduct = (arr: number[]) => {
   let product = 1;
@@ -45,6 +43,8 @@ export function computeDispatch(
     workGroupSize: [number, number, number] = [1, 1, 1],
     elementsPerThread: [number, number, number] =
         [1, 1, 1]): [number, number, number] {
+  const MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE =
+      env().get('MAX_COMPUTE_WORKGROUPS_PER_DIMENSION');
   const [dispatchX, dispatchY, dispatchZ] = [
     Math.ceil(
         arrayProduct(layout.x.map(d => outputShape[d])) /
@@ -65,14 +65,16 @@ export function computeDispatch(
     return [dispatchX, dispatchY, dispatchZ];
   }
 
-  util.assert(dispatchX > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
-      layout.y === undefined && layout.z === undefined, () =>
-      'Dispatch size exceeds WebGPU limits in Y or Z dimension.');
+  util.assert(
+      dispatchX > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
+          layout.y === undefined && layout.z === undefined,
+      () => 'Dispatch size exceeds WebGPU limits in Y or Z dimension.');
 
   let dispatchAverage = Math.ceil(Math.sqrt(dispatchX));
   if (dispatchAverage > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
     dispatchAverage = Math.ceil(Math.cbrt(dispatchX));
-    util.assert(dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE,
+    util.assert(
+        dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE,
         () => 'Total dispatch size exceeds WebGPU maximum.');
     return [dispatchAverage, dispatchAverage, dispatchAverage];
   } else {
