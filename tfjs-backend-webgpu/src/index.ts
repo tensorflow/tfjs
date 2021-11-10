@@ -52,6 +52,9 @@ if (device_util.isBrowser() && isWebGPUSupported()) {
           `it doesn't support synchronously to read data from GPU.`);
     }
     const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
+    env().set(
+        'MAX_COMPUTE_WORKGROUPS_PER_DIMENSION',
+        device.limits.maxComputeWorkgroupsPerDimension);
     return new WebGPUBackend(device, supportTimeQuery);
   }, 3 /*priority*/);
 }
