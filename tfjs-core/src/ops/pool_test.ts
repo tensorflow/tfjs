@@ -97,6 +97,70 @@ describeWithFlags('pool', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [5, 5, 8, 8, 8, 8, 8, 8]);
   });
 
+  it('max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit defualt dimRoundingMode',
+    async () => {
+      // Feed forward.
+      const x = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8], [3, 3, 1]);
+
+      const windowShape = 3;
+      const padding =
+          [[0, 0], [2, 2], [1, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
+      const dilationRate: number = undefined;
+      const strides = 3;
+
+      const result =
+          tf.pool(x, windowShape, 'max', padding, dilationRate, strides);
+      expect(result.shape).toEqual([2, 1, 1]);
+  });
+
+  it('max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=floor',
+    async () => {
+      // Feed forward.
+      const x = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8], [3, 3, 1]);
+
+      const windowShape = 3;
+      const padding =
+          [[0, 0], [2, 2], [1, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
+      const dilationRate: number = undefined;
+      const strides = 3;
+
+      const result = tf.pool(x, windowShape, 'max', padding, dilationRate,
+                             strides, 'floor');
+      expect(result.shape).toEqual([2, 1, 1]);
+  });
+
+  it('max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=round',
+    async () => {
+      // Feed forward.
+      const x = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8], [3, 3, 1]);
+
+      const windowShape = 3;
+      const padding =
+          [[0, 0], [2, 2], [1, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
+      const dilationRate: number = undefined;
+      const strides = 3;
+
+      const result = tf.pool(x, windowShape, 'max', padding, dilationRate,
+                             strides, 'round');
+      expect(result.shape).toEqual([2, 2, 1]);
+  });
+
+  it('max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=ceil',
+    async () => {
+      // Feed forward.
+      const x = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8], [3, 3, 1]);
+
+      const windowShape = 3;
+      const padding =
+          [[0, 0], [2, 2], [1, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
+      const dilationRate: number = undefined;
+      const strides = 3;
+
+      const result = tf.pool(x, windowShape, 'max', padding, dilationRate,
+                             strides, 'ceil');
+      expect(result.shape).toEqual([3, 2, 1]);
+  });
+
   it('max x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding',
     async () => {
       // Feed forward.
@@ -189,6 +253,70 @@ describeWithFlags('pool', ALL_ENVS, () => {
     expect(result.shape).toEqual([4, 2, 1]);
     expectArraysClose(
         await result.data(), [2.5, 3, 4, 4.5, 5.5, 6, 7, 7.5]);
+  });
+
+  it('avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit defualt dimRoundingMode',
+    async () => {
+      // Feed forward.
+      const x = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8], [3, 3, 1]);
+
+      const windowShape = 3;
+      const padding =
+          [[0, 0], [2, 2], [1, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
+      const dilationRate: number = undefined;
+      const strides = 3;
+
+      const result =
+          tf.pool(x, windowShape, 'avg', padding, dilationRate, strides);
+      expect(result.shape).toEqual([2, 1, 1]);
+  });
+
+  it('avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=floor',
+    async () => {
+      // Feed forward.
+      const x = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8], [3, 3, 1]);
+
+      const windowShape = 3;
+      const padding =
+          [[0, 0], [2, 2], [1, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
+      const dilationRate: number = undefined;
+      const strides = 3;
+
+      const result = tf.pool(x, windowShape, 'avg', padding, dilationRate,
+                             strides, 'floor');
+      expect(result.shape).toEqual([2, 1, 1]);
+  });
+
+  it('avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=round',
+    async () => {
+      // Feed forward.
+      const x = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8], [3, 3, 1]);
+
+      const windowShape = 3;
+      const padding =
+          [[0, 0], [2, 2], [1, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
+      const dilationRate: number = undefined;
+      const strides = 3;
+
+      const result = tf.pool(x, windowShape, 'avg', padding, dilationRate,
+                             strides, 'round');
+      expect(result.shape).toEqual([2, 2, 1]);
+  });
+
+  it('avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=ceil',
+    async () => {
+      // Feed forward.
+      const x = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8], [3, 3, 1]);
+
+      const windowShape = 3;
+      const padding =
+          [[0, 0], [2, 2], [1, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
+      const dilationRate: number = undefined;
+      const strides = 3;
+
+      const result = tf.pool(x, windowShape, 'avg', padding, dilationRate,
+                             strides, 'ceil');
+      expect(result.shape).toEqual([3, 2, 1]);
   });
 
   it('avg x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding',

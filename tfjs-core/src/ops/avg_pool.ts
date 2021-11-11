@@ -74,10 +74,26 @@ function avgPool_<T extends Tensor3D|Tensor4D>(
       () => `Error in avgPool: x must be rank 4 but got rank ${x4D.rank}.`);
 
   if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in avgPool: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
+    if (typeof pad === 'string') {
+      throw Error(
+          `Error in avgPool: pad must be an integer when using `  +
+          `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
+    } else if (typeof pad === 'number') {
+      util.assert(
+          util.isInt(pad),
+          () => `Error in avgPool: pad must be an integer when using ` +
+              `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
+    } else if (typeof pad === 'object') {
+      (pad as conv_util.ExplicitPadding).forEach(p => {p.forEach(v =>{
+        util.assert(
+            util.isInt(v),
+            () => `Error in avgPool: pad must be an integer when using ` +
+                `dimRoundingMode ${dimRoundingMode} but got pad ${v}.`);
+        });
+      });
+    } else {
+      throw Error(`Unknown padding parameter: ${pad}`);
+    }
   }
 
   const inputs: AvgPoolInputs = {x: x4D};
