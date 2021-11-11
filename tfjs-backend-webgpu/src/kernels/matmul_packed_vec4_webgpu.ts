@@ -18,7 +18,7 @@
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {getNonFlatDispatchLayoutMainHeaderString} from '../shader_preprocessor';
-import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
+import {computeDispatch, computeWorkGroupSizeForMatMul} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
 import {WebGPUProgram} from './webgpu_program';
@@ -161,7 +161,8 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   dispatch: [number, number, number];
   workPerThread: number;
   variableNames = ['A', 'B'];
-  uniforms = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
+  uniforms =
+      `dimAOuter : i32; dimBOuter : i32; dimInner : i32; fitA : i32; fitB : i32;`;
   workGroupSize: [number, number, number] = [16, 16, 1];
   isVec4 = true;
   aShape: [number, number, number];
@@ -169,8 +170,6 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
   vecSize = 4;
-  fitA: boolean;
-  fitB: boolean;
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
@@ -204,42 +203,26 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
 
-    [this.fitA, this.fitB] = this.getShapeFit();
-
-    this.shaderKey = `matMulPackedVec4_${rowPerThread}_${this.activation}_${
-        this.fitA}_${this.fitB}_${this.outputShape[1] > 1}`;
-  }
-
-  getShapeFit(): boolean[] {
-    const dimInner = this.aShape[2];
-    const dimBOuter = this.outputShape[2];
-    const bShape = [this.outputShape[0], dimInner, dimBOuter];
-    const tileAOuter = this.workGroupSize[1] * this.workPerThread;
-    const tileBOuter = this.workGroupSize[0] * this.vecSize;
-    const tileInner = tileBOuter;  // Make sure tileInner is divisible by 4.
-
-    const tileSizeA = [tileAOuter, tileInner];
-    const tileSizeB = [tileInner, tileBOuter];
-    return [
-      tilesFitEvenlyIntoShape(tileSizeA, this.aShape.slice(1)),
-      tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1))
-    ];
+    this.shaderKey = `matMulPackedVec4_${rowPerThread}_${this.activation}_
+        ${this.outputShape[1] > 1}`;
   }
 
   getUserCode(): string {
-    const sampleA = this.fitA ?
-        `return A.numbers[batch * batchASize + row * uniforms.dimInner / 4 + col]` :
-        `if (coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-            return A.numbers[batch * batchASize + row * uniforms.dimInner / 4 + col];
-        }
-        return vec4<f32>(0.0)`;
+    const sampleA = `
+      if (uniforms.fitA == 1) {
+        return A.numbers[batch * batchASize + row * uniforms.dimInner / 4 + col];
+      } elseif (coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
+        return A.numbers[batch * batchASize + row * uniforms.dimInner / 4 + col];
+      }
+      return vec4<f32>(0.0);`;
 
-    const sampleB = this.fitB ?
-        `return B.numbers[batch * batchBSize + row * uniforms.dimBOuter / 4 + col]` :
-        `if(coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-             return B.numbers[batch * batchBSize + row * uniforms.dimBOuter / 4 + col];
-        }
-        return vec4<f32>(0.0)`;
+    const sampleB = `
+      if (uniforms.fitB == 1) {
+        return B.numbers[batch * batchBSize + row * uniforms.dimBOuter / 4 + col];
+      } elseif (coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
+        return B.numbers[batch * batchBSize + row * uniforms.dimBOuter / 4 + col];
+      }
+      return vec4<f32>(0.0);`;
 
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {

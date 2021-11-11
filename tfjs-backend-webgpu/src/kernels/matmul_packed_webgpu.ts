@@ -18,7 +18,7 @@
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {getNonFlatDispatchLayoutMainHeaderString} from '../shader_preprocessor';
-import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
+import {computeDispatch, computeWorkGroupSizeForMatMul} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
 import {WebGPUProgram} from './webgpu_program';
@@ -178,9 +178,11 @@ export class MatMulPackedProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workPerThread: number;
   variableNames = ['A', 'B'];
-  uniforms = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
+  uniforms =
+      `dimAOuter : i32; dimBOuter : i32; dimInner : i32; fitA : i32; fitB : i32;`;
   workGroupSize: [number, number, number] = [16, 16, 1];
   aShape: [number, number, number];
+  bShape: [number, number, number];
   transposeA: boolean;
   transposeB: boolean;
   addBias: boolean;
@@ -235,88 +237,67 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.hasPreluActivationWeights = hasPreluActivationWeights;
 
     const dimBOuter = this.outputShape[2];
-    const bShape = this.transposeB ?
-        [this.outputShape[0], dimBOuter, dimInner] :
-        [this.outputShape[0], dimInner, dimBOuter];
+    this.bShape = this.transposeB ? [this.outputShape[0], dimBOuter, dimInner] :
+                                    [this.outputShape[0], dimInner, dimBOuter];
 
-    [this.fitA, this.fitB] = this.getShapeFit(bShape);
     this.shaderKey = `matMulPacked_${this.workPerThread}_${transposeA}_${
-        transposeB}_${this.activation}_${this.fitA}_${this.fitB}_${
-        this.outputShape[1] > 1}`;
-  }
-
-  getShapeFit(bShape: number[]): boolean[] {
-    const tileAOuter = this.workGroupSize[1] * this.workPerThread;
-    const tileBOuter = this.workGroupSize[0] * this.workPerThread;
-    let tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
-    if (this.outputShape[1] === 1) {
-      tileInner *= 4;
-    }
-    util.assert(
-        tileInner % this.workGroupSize[0] === 0 &&
-            tileInner % this.workGroupSize[1] === 0,
-        () => `tileInner must be multiple of workgroupsize.x ` +
-            `and workgroupsize.y`);
-    const tileSizeA = [tileAOuter, tileInner];
-    const tileSizeB = [tileInner, tileBOuter];
-
-    return [
-      tilesFitEvenlyIntoShape(tileSizeA, this.aShape.slice(1)),
-      tilesFitEvenlyIntoShape(tileSizeB, bShape.slice(1))
-    ];
+        transposeB}_${this.activation}_${this.outputShape[1] > 1}`;
   }
 
   getUserCode(): string {
     let sampleA;
 
     if (this.transposeA === false) {
-      sampleA = this.fitA ?
-          `return A.numbers[batch * batchASize + row * uniforms.dimInner + col];` :
-          `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-             return A.numbers[batch * batchASize + row * uniforms.dimInner + col];
-           }
-           return 0.0;`;
+      sampleA = `
+        if (uniforms.fitA == 1) {
+          return A.numbers[batch * batchASize + row * uniforms.dimInner + col];
+        } elseif (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
+          return A.numbers[batch * batchASize + row * uniforms.dimInner + col];
+        }
+        return 0.0;`;
     } else {
-      sampleA = this.fitA ?
-          `return A.numbers[batch * batchASize + col * uniforms.dimAOuter + row];` :
-          `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-             return A.numbers[batch* batchASize + col * uniforms.dimAOuter + row];
-           }
-           return 0.0;`;
+      sampleA = `
+        if (uniforms.fitA == 1) {
+          return A.numbers[batch * batchASize + col * uniforms.dimAOuter + row];
+        } elseif (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
+          return A.numbers[batch* batchASize + col * uniforms.dimAOuter + row];
+        }
+        return 0.0;`;
     }
 
     let sampleB;
     if (this.transposeB === false) {
-      sampleB = this.fitB ?
-          `return B.numbers[batch * batchBSize + row * uniforms.dimBOuter + col];` :
-          `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-             return B.numbers[batch * batchBSize + row * uniforms.dimBOuter + col];
-           }
-           return 0.0;`;
+      sampleB = `
+        if (uniforms.fitB == 1) {
+          return B.numbers[batch * batchBSize + row * uniforms.dimBOuter + col];
+        } elseif (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
+          return B.numbers[batch * batchBSize + row * uniforms.dimBOuter + col];
+        }
+        return 0.0;`;
     } else {
-      sampleB = this.fitB ?
-          `return B.numbers[batch * batchBSize + col * uniforms.dimInner + row];` :
-          `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-             return B.numbers[batch * batchBSize + col * uniforms.dimInner + row];
-           }
-           return 0.0;`;
+      sampleB = `
+        if(uniforms.fitB == 1) {
+          return B.numbers[batch * batchBSize + col * uniforms.dimInner + row];
+        } elseif (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
+          return B.numbers[batch * batchBSize + col * uniforms.dimInner + row];
+        }
+        return 0.0;`;
     }
 
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
       const activationOp = mapActivationToShaderProgram(this.activation, false);
       if (this.hasPreluActivationWeights) {
-        activationSnippet =
-            `fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
-               let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
-               ${activationOp}
-            }`;
+        activationSnippet = `
+          fn activation(a: f32, outCoord: vec3<i32>) -> f32 {
+            let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
+            ${activationOp}
+          }`;
       } else {
         activationSnippet = `
-              fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
-                ${activationOp}
-              }
-            `;
+          fn activation(a: f32, outCoord: vec3<i32>) -> f32 {
+            ${activationOp}
+          }`;
       }
 
       applyActivationSnippet = 'value = activation(value, outCoord);';
@@ -329,13 +310,13 @@ export class MatMulPackedProgram implements WebGPUProgram {
     const userCode = `
       ${activationSnippet}
 
-      fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
+      fn mm_readA(row : i32, col : i32, globalId : vec3<u32>) -> f32 {
         let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
         let batch = i32(globalId.z);
         ${sampleA}
       }
 
-      fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
+      fn mm_readB(row : i32, col : i32, globalId : vec3<u32>) -> f32 {
         let batch = i32(globalId.z);
         let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
         ${sampleB}
@@ -355,7 +336,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
                 [this.workPerThread, this.workPerThread, 1],
                 this.workGroupSize) :
             makeMatMulVectorSource(this.workGroupSize)}
-    `;
+      `;
     return userCode;
   }
 }

@@ -18,6 +18,7 @@
 import {backend_util, env, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {getShapeFitForMatMulPackedProgram} from './program_util';
 
 import {batchMatMulImpl} from './BatchMatMul_impl';
 import {Im2ColProgram} from './im2col_webgpu';
@@ -167,6 +168,11 @@ export function conv2dWithIm2Col({
     {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
     {type: 'int32', data: [dimInner]}
   ];
+
+  const [fitA, fitB] = getShapeFitForMatMulPackedProgram(matMulProgram);
+  matmulDimensions.push(
+      {type: 'int32', data: [Number(fitA)]},
+      {type: 'int32', data: [Number(fitB)]});
 
   const result: TensorInfo = backend.runWebGPUProgram(
       matMulProgram, [im2Col3D, w2Row], im2Col3D.dtype, matmulDimensions);

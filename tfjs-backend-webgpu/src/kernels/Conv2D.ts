@@ -18,6 +18,7 @@
 import {backend_util, Conv2D, Conv2DAttrs, Conv2DInputs, env, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {getShapeFitForConv2DMMProgram, getShapeFitForConv2DMMVec4Program} from './program_util';
 
 import {conv2dByMatMul, conv2dWithIm2Col} from './Conv2D_impl';
 import {Conv2DMMVec4Program} from './conv2d_mm_vec4_webgpu';
@@ -80,6 +81,14 @@ export function conv2d(
         {type: 'int32', data: [dimInner]});
   }
 
+  const [fitA, fitB] = program instanceof Conv2DMMProgram ?
+      getShapeFitForConv2DMMProgram(program) :
+      (program instanceof Conv2DMMVec4Program ?
+           getShapeFitForConv2DMMVec4Program(program) :
+           [0, 0]);
+  dimensions.push(
+      {type: 'int32', data: [fitA as number]},
+      {type: 'int32', data: [fitB as number]});
   return backend.runWebGPUProgram(program, [x, filter], x.dtype, dimensions);
 }
 

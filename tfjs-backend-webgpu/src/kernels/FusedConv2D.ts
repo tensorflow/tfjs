@@ -18,6 +18,7 @@
 import {backend_util, env, FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {getShapeFitForConv2DMMProgram, getShapeFitForConv2DMMVec4Program} from './program_util';
 
 import {conv2dByMatMul} from './Conv2D_impl';
 import {Conv2DMMVec4Program} from './conv2d_mm_vec4_webgpu';
@@ -109,6 +110,14 @@ export function fusedConv2d(args: {
     inputVar.push(preluActivationWeights);
   }
 
+  const [fitA, fitB] = program instanceof Conv2DMMProgram ?
+      getShapeFitForConv2DMMProgram(program) :
+      (program instanceof Conv2DMMVec4Program ?
+           getShapeFitForConv2DMMVec4Program(program) :
+           [0, 0]);
+  dimensions.push(
+      {type: 'int32', data: [fitA as number]},
+      {type: 'int32', data: [fitB as number]});
   return backend.runWebGPUProgram(program, inputVar, x.dtype, dimensions);
 }
 

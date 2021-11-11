@@ -18,6 +18,7 @@
 import {backend_util, broadcast_util, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {getShapeFitForMatMulPackedProgram, getShapeFitForMatMulPackedVec4Program} from './program_util';
 
 import {MatMulPackedVec4Program} from './matmul_packed_vec4_webgpu';
 import {MatMulPackedProgram} from './matmul_packed_webgpu';
@@ -139,6 +140,16 @@ export function batchMatMulImpl({
     {type: 'int32', data: [outerShapeA]}, {type: 'int32', data: [outerShapeB]},
     {type: 'int32', data: [innerShapeA]}
   ];
+
+  const [fitA, fitB] = program instanceof MatMulPackedVec4Program ?
+      getShapeFitForMatMulPackedVec4Program(program) :
+      (program instanceof MatMulPackedProgram ?
+           getShapeFitForMatMulPackedProgram(program) :
+           [0, 0]);
+  dimensions.push(
+      {type: 'int32', data: [fitA as number]},
+      {type: 'int32', data: [fitB as number]});
+
   const out = backend.runWebGPUProgram(program, inputs, a.dtype, dimensions);
   const outReshaped =
       reshape({inputs: {x: out}, backend, attrs: {shape: outShape}});

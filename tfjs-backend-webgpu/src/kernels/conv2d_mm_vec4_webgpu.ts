@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {computeDispatch, tilesFitEvenlyIntoShape} from '../webgpu_util';
+import {computeDispatch} from '../webgpu_util';
 import {mapActivationToShaderProgram} from './activation_util';
 
 import {makeMatMulPackedVec4Source} from './matmul_packed_vec4_webgpu';
@@ -29,18 +29,17 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms =
-      `filterDims : vec2<i32>; pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>;
-      dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
+  uniforms = `filterDims : vec2<i32>; pad : vec2<i32>; stride : vec2<i32>;
+      dilation : vec2<i32>; dimAOuter : i32; dimBOuter : i32;
+      dimInner : i32; fitA : i32; fitB : i32;`;
   workGroupSize: [number, number, number];
+  elementsPerThread: [number, number, number] = [4, 4, 1];
   isVec4 = true;
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
   hasLeakyreluAlpha: boolean;
-  fitA: boolean;
-  fitB: boolean;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
@@ -53,10 +52,9 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         () => 'TODO: NCHW is unimplemented');
     this.dispatchLayout = {x: [3], y: [1, 2], z: [0]};
     this.workGroupSize = [8, 8, 1];
-    const elementsPerThread: [number, number, number] = [4, 4, 1];
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
-        elementsPerThread);
+        this.elementsPerThread);
     this.convInfo = convInfo;
     this.addBias = addBias;
     this.activation = activation;
@@ -74,26 +72,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
       this.variableNames.push('leakyreluAlpha');
     }
 
-    [this.fitA, this.fitB] = this.getShapeFit(elementsPerThread);
-    this.shaderKey =
-        `conv2DMMVec4_${this.activation}_${this.fitA}_${this.fitB}`;
-  }
-
-  getShapeFit(elementsPerThread: [number, number, number]): boolean[] {
-    const tileAOuter = this.workGroupSize[1] * elementsPerThread[1];
-    const tileBOuter = this.workGroupSize[0] * elementsPerThread[0];
-    const tileInner = tileBOuter;
-
-    const tileSizeA = [tileAOuter, tileInner];
-    const tileSizeB = [tileInner, tileBOuter];
-    const dimAOuter = this.outputShape[1] * this.outputShape[2];
-    const dimBOuter = this.outputShape[3];
-    const dimInner = this.convInfo.filterHeight * this.convInfo.filterWidth *
-        this.convInfo.inChannels;
-    return [
-      tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]),
-      tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter])
-    ];
+    this.shaderKey = `conv2DMMVec4_${this.activation}`;
   }
 
   // index is used to avoid repeated definition error.
@@ -152,34 +131,34 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
           `;
 
     const readASnippet = `let outRow = r / uniforms.outShape[2];
-        let outCol = r % uniforms.outShape[2];
-        let WRow = c / (uniforms.filterDims[1] * uniforms.xShape[3]);
-        let WCol = c / uniforms.xShape[3] % uniforms.filterDims[1];
-        let inChCoord = c % uniforms.xShape[3];
-        var coord = vec4<i32>(
-            batch,
-            outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0],
-            outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1],
-            inChCoord);
-        var resData = vec4<f32>(0.0);
-        ${remainderSnippet}
-        return resData;`;
+      let outCol = r % uniforms.outShape[2];
+      let WRow = c / (uniforms.filterDims[1] * uniforms.xShape[3]);
+      let WCol = c / uniforms.xShape[3] % uniforms.filterDims[1];
+      let inChCoord = c % uniforms.xShape[3];
+      var coord = vec4<i32>(
+          batch,
+          outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0],
+          outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1],
+          inChCoord);
+      var resData = vec4<f32>(0.0);
+      ${remainderSnippet}
+      return resData;`;
 
-    const sampleA = this.fitA ?
-        `${readASnippet}` :
-        `if (r < uniforms.dimAOuter && c < uniforms.dimInner) {
-          ${readASnippet}
-         }
-         return vec4<f32>(0.0);
-        `;
+    const sampleA = `
+      if (uniforms.fitA == 1) {
+        ${readASnippet}
+      } elseif (r < uniforms.dimAOuter && c < uniforms.dimInner) {
+        ${readASnippet}
+      }
+      return vec4<f32>(0.0);`;
 
-    const sampleB = this.fitB ?
-        `return W.numbers[row * uniforms.dimBOuter / 4 + col];` :
-        `if(coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-           return W.numbers[row * uniforms.dimBOuter / 4 + col];
-         }
-         return vec4<f32>(0.0);
-        `;
+    const sampleB = `
+      if (uniforms.fitB == 1) {
+        return W.numbers[row * uniforms.dimBOuter / 4 + col];
+      } elseif (coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
+        return W.numbers[row * uniforms.dimBOuter / 4 + col];
+      }
+      return vec4<f32>(0.0);`;
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
       const activationOp =

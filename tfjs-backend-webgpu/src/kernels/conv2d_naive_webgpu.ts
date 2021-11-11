@@ -29,8 +29,8 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms =
-      `filterDims : vec2<i32>; pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>;`;
+  uniforms = `filterDims : vec2<i32>; pad : vec2<i32>; stride : vec2<i32>;
+      dilation : vec2<i32>;`;
   workGroupSize: [number, number, number] = [128, 1, 1];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
