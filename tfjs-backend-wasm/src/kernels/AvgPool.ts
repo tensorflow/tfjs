@@ -51,9 +51,10 @@ function avgPool(
   const x = inputs.x as Tensor4D;
   const xId = backend.dataIdMap.get(x.dataId).id;
 
-  const {filterSize, strides, pad, dimRoundingMode} = attrs;
+  const {filterSize, strides, pad, dimRoundingMode, outputSizes} = attrs;
   const convInfo = backend_util.computePool2DInfo(
-      x.shape, filterSize, strides, 1 /* dilations */, pad, dimRoundingMode);
+      x.shape, filterSize, strides, 1 /* dilations */, pad, dimRoundingMode,
+      'channelsLast', outputSizes);
 
   const filterHeight = convInfo.filterHeight;
   const filterWidth = convInfo.filterWidth;

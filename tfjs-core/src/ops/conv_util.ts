@@ -120,7 +120,8 @@ export function computePool2DInfo(
     dilations: number|[number, number],
     pad: 'same'|'valid'|number|ExplicitPadding,
     roundingMode?: 'floor'|'round'|'ceil',
-    dataFormat: 'channelsFirst'|'channelsLast' = 'channelsLast'): Conv2DInfo {
+    dataFormat: 'channelsFirst'|'channelsLast' = 'channelsLast',
+    outputSizes?: [number, number]): Conv2DInfo {
   const [filterHeight, filterWidth] = parseTupleParam(filterSize);
 
   let filterShape: [number, number, number, number];
@@ -131,10 +132,9 @@ export function computePool2DInfo(
   } else {
     throw new Error(`Unknown dataFormat ${dataFormat}`);
   }
-
   return computeConv2DInfo(
       inShape, filterShape, strides, dilations, pad, roundingMode, false,
-      dataFormat);
+      dataFormat, outputSizes);
 }
 
 /**
@@ -178,7 +178,8 @@ export function computeConv2DInfo(
     strides: number|[number, number], dilations: number|[number, number],
     pad: 'same'|'valid'|number|ExplicitPadding,
     roundingMode?: 'floor'|'round'|'ceil', depthwise = false,
-    dataFormat: 'channelsFirst'|'channelsLast' = 'channelsLast'): Conv2DInfo {
+    dataFormat: 'channelsFirst'|'channelsLast' = 'channelsLast',
+    outputSizes?: [number, number]): Conv2DInfo {
   let [batchSize, inHeight, inWidth, inChannels] = [-1, -1, -1, -1];
   if (dataFormat === 'channelsLast') {
     [batchSize, inHeight, inWidth, inChannels] = inShape;
@@ -198,7 +199,7 @@ export function computeConv2DInfo(
       getEffectiveFilterSize(filterWidth, dilationWidth);
   const {padInfo, outHeight, outWidth} = getPadAndOutInfo(
       pad, inHeight, inWidth, strideHeight, strideWidth, effectiveFilterHeight,
-      effectiveFilterWidth, roundingMode, dataFormat);
+      effectiveFilterWidth, roundingMode, dataFormat, outputSizes);
 
   const outChannels = depthwise ? filterChannels * inChannels : filterChannels;
 
@@ -347,17 +348,38 @@ export function computeConv3DInfo(
 
 function computeOutputShape2D(
     inShape: [number, number], fieldSize: number, stride: number,
-    zeroPad?: number, roundingMode?: 'floor'|'round'|'ceil'): [number, number] {
+    zeroPad?: number, roundingMode?: 'floor'|'round'|'ceil',
+    outputSizes?: [number, number]): [number, number] {
   if (zeroPad == null) {
     zeroPad = computeDefaultPad(inShape, fieldSize, stride);
   }
   const inputRows = inShape[0];
   const inputCols = inShape[1];
 
-  const outputRows =
-      round((inputRows - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-  const outputCols =
-      round((inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
+  let outputRows: number;
+  let outputCols: number;
+
+  if (outputSizes != null) {
+    let checked = false;
+    for (const t of [undefined, 'floor', 'round', 'ceil']) {
+      [outputRows, outputCols] =
+          computeOutputShape2D(inShape, fieldSize, stride, zeroPad,
+                               t as undefined|'floor'|'round'|'ceil');
+      if (outputRows === outputSizes[0] && outputCols === outputSizes[1]) {
+        checked = true;
+        break;
+      }
+    }
+    if (!checked) {
+      throw Error(
+        `Invaild outputSizes parameter: [${outputSizes}]`);
+    }
+  } else {
+    outputRows =
+        round((inputRows - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
+    outputCols =
+        round((inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
+  }
 
   return [outputRows, outputCols];
 }
@@ -430,8 +452,8 @@ function getPadAndOutInfo(
     inWidth: number, strideHeight: number, strideWidth: number,
     filterHeight: number, filterWidth: number,
     roundingMode: 'floor'|'round'|'ceil',
-    dataFormat: 'channelsFirst'|
-    'channelsLast'): {padInfo: PadInfo, outHeight: number, outWidth: number} {
+    dataFormat: 'channelsFirst'|'channelsLast', outputSizes?: [number, number]):
+    {padInfo: PadInfo, outHeight: number, outWidth: number} {
   let padInfo: PadInfo;
   let outHeight: number;
   let outWidth: number;
@@ -439,13 +461,21 @@ function getPadAndOutInfo(
   if (typeof pad === 'number') {
     const padType = (pad === 0) ? 'VALID' : 'NUMBER';
     padInfo = {top: pad, bottom: pad, left: pad, right: pad, type: padType};
-    const outShape = computeOutputShape2D(
-        [inHeight, inWidth], filterHeight, strideHeight, pad, roundingMode);
+    const outShape = computeOutputShape2D([inHeight, inWidth], filterHeight,
+                                          strideHeight, pad, roundingMode,
+                                          outputSizes);
     outHeight = outShape[0];
     outWidth = outShape[1];
   } else if (pad === 'same') {
     outHeight = Math.ceil(inHeight / strideHeight);
     outWidth = Math.ceil(inWidth / strideWidth);
+    if (outputSizes != null) {
+      if (outHeight !== outputSizes[0] || outWidth !== outputSizes[1]) {
+        throw Error(
+            `Invaild outputSizes parameter: [${outputSizes}] when using ` +
+            'same pad');
+      }
+    }
     const padAlongHeight =
         Math.max(0, (outHeight - 1) * strideHeight + filterHeight - inHeight);
     const padAlongWidth =
@@ -459,6 +489,13 @@ function getPadAndOutInfo(
     padInfo = {top: 0, bottom: 0, left: 0, right: 0, type: 'VALID'};
     outHeight = Math.ceil((inHeight - filterHeight + 1) / strideHeight);
     outWidth = Math.ceil((inWidth - filterWidth + 1) / strideWidth);
+    if (outputSizes != null) {
+      if (outHeight !== outputSizes[0] || outWidth !== outputSizes[1]) {
+        throw Error(
+            `Invaild outputSizes parameter: [${outputSizes}] when using ` +
+            'valid pad');
+      }
+    }
   } else if (typeof pad === 'object') {
     const top = dataFormat === 'channelsLast' ? pad[1][0] : pad[2][0];
     const bottom = dataFormat === 'channelsLast' ? pad[1][1] : pad[2][1];
@@ -468,11 +505,32 @@ function getPadAndOutInfo(
         'VALID' :
         'EXPLICIT';
     padInfo = {top, bottom, left, right, type: padType};
-    outHeight = round(
+    if (outputSizes != null) {
+      let checked = false;
+      for (const t of [undefined, 'floor', 'round', 'ceil']) {
+        outHeight = round(
+            (inHeight - filterHeight + top + bottom) / strideHeight + 1,
+            t as undefined|'floor'|'round'|'ceil');
+        outWidth = round(
+            (inWidth - filterWidth + left + right) / strideWidth + 1,
+            t as undefined|'floor'|'round'|'ceil');
+        if (outHeight === outputSizes[0] && outWidth === outputSizes[1]) {
+          checked = true;
+          break;
+        }
+      }
+      if (!checked) {
+        throw Error(
+          `Invaild outputSizes parameter: [${outputSizes}]`);
+      }
+    } else {
+      outHeight = round(
         (inHeight - filterHeight + top + bottom) / strideHeight + 1,
         roundingMode);
-    outWidth = round(
-        (inWidth - filterWidth + left + right) / strideWidth + 1, roundingMode);
+      outWidth = round(
+          (inWidth - filterWidth + left + right) / strideWidth + 1,
+          roundingMode);
+    }
   } else {
     throw Error(`Unknown padding parameter: ${pad}`);
   }

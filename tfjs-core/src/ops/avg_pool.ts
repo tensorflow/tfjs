@@ -48,12 +48,15 @@ import {reshape} from './reshape';
  *         https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
  *     provided, it will default to truncate.
+ * @param outputSizes The height and width of output shape:
+ *     `[outHeight, outWidth]`.
  */
 function avgPool_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filterSize: [number, number]|number,
     strides: [number, number]|number,
     pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
-    dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+    dimRoundingMode?: 'floor'|'round'|'ceil', outputSizes?: [number, number]):
+    T {
   const $x = convertToTensor(x, 'x', 'avgPool', 'float32');
   const dilations = 1;
 
@@ -74,15 +77,28 @@ function avgPool_<T extends Tensor3D|Tensor4D>(
       () => `Error in avgPool: x must be rank 4 but got rank ${x4D.rank}.`);
 
   if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
+    if (typeof pad === 'string'){
+      throw new Error(
+          `dimRoundingMode ${dimRoundingMode} is set when using ${pad} pad`);
+    }
+    else if (typeof pad === 'number') {
+      util.assert(
+        util.isInt(pad),
         () => `Error in avgPool: pad must be an integer when using, ` +
             `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
+    } else {
+      (pad as conv_util.ExplicitPadding).forEach(p => {p.forEach(v =>{
+        util.assert(
+          util.isInt(v),
+          () => `Error in avgPool: pad must be an integer when using, ` +
+              `dimRoundingMode ${dimRoundingMode} but got pad ${v}.`);
+      });});
+    }
   }
 
   const inputs: AvgPoolInputs = {x: x4D};
-
-  const attrs: AvgPoolAttrs = {filterSize, strides, pad, dimRoundingMode};
+  const attrs: AvgPoolAttrs =
+      {filterSize, strides, pad, dimRoundingMode, outputSizes};
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
   let res = ENGINE.runKernel(

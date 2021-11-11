@@ -68,9 +68,10 @@ function maxPool(
       () =>
           `Error in MaxPool: only float32 input is supported. Got ${x.dtype}.`);
 
-  const {filterSize, strides, pad, dimRoundingMode} = attrs;
+  const {filterSize, strides, pad, dimRoundingMode, outputSizes} = attrs;
   const convInfo = backend_util.computePool2DInfo(
-      x.shape, filterSize, strides, 1 /* dilations */, pad, dimRoundingMode);
+      x.shape, filterSize, strides, 1 /* dilations */, pad, dimRoundingMode,
+      'channelsLast', outputSizes);
 
   const filterHeight = convInfo.filterHeight;
   const filterWidth = convInfo.filterWidth;

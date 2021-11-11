@@ -28,7 +28,7 @@ export function avgPool(
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
   assertNotComplex(x, 'avgPool');
-  const {filterSize, strides, pad, dimRoundingMode} = attrs;
+  const {filterSize, strides, pad, dimRoundingMode, outputSizes} = attrs;
   const dilations = 1;
 
   util.assert(
@@ -38,7 +38,7 @@ export function avgPool(
 
   const convInfo = backend_util.computePool2DInfo(
       x.shape as [number, number, number, number], filterSize, strides,
-      dilations, pad, dimRoundingMode);
+      dilations, pad, dimRoundingMode, 'channelsLast', outputSizes);
   let res: TensorInfo;
 
   if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&

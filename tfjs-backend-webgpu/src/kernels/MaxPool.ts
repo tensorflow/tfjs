@@ -26,11 +26,11 @@ export function maxPool(
     TensorInfo {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
-  const {filterSize, strides, pad, dimRoundingMode} = attrs;
+  const {filterSize, strides, pad, dimRoundingMode, outputSizes} = attrs;
   const dilations = 1;
   const convInfo = backend_util.computePool2DInfo(
       x.shape as [number, number, number, number], filterSize, strides,
-      dilations, pad, dimRoundingMode);
+      dilations, pad, dimRoundingMode, 'channelsLast', outputSizes);
   let program: Pool2DProgram|PoolWithFilterSizeEqualsOneProgram;
   const dimensions = [];
   if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1) {

@@ -29,7 +29,7 @@ export function maxPool(args: {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
   assertNotComplex(x, 'maxPool');
-  const {filterSize, strides, pad, dimRoundingMode} = attrs;
+  const {filterSize, strides, pad, dimRoundingMode, outputSizes} = attrs;
   const dilations = 1;
 
   util.assert(
@@ -39,7 +39,7 @@ export function maxPool(args: {
 
   const convInfo = backend_util.computePool2DInfo(
       x.shape as [number, number, number, number], filterSize, strides,
-      dilations, pad, dimRoundingMode);
+      dilations, pad, dimRoundingMode, 'channelsLast', outputSizes);
   if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
       util.arraysEqual(convInfo.inShape, convInfo.outShape)) {
     return identity({inputs: {x}, backend});

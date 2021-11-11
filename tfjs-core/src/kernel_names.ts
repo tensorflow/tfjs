@@ -86,6 +86,7 @@ export interface AvgPoolAttrs {
   strides: [number, number]|number;
   pad: 'valid'|'same'|number|ExplicitPadding;
   dimRoundingMode?: 'floor'|'round'|'ceil';
+  outputSizes?: [number, number];
 }
 
 export const AvgPoolGrad = 'AvgPoolGrad';
@@ -490,6 +491,7 @@ export interface MaxPoolAttrs {
   strides: [number, number]|number;
   pad: 'valid'|'same'|number|ExplicitPadding;
   dimRoundingMode?: 'floor'|'round'|'ceil';
+  outputSizes?: [number, number];
 }
 
 export const MaxPoolGrad = 'MaxPoolGrad';

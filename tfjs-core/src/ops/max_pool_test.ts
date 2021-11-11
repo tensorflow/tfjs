@@ -58,6 +58,28 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [5, 5, 8, 8, 8, 8, 8, 8]);
   });
 
+  it('x=[3,3,1] f=[3,3] s=1 p=explicit outputSizes=[4,2]', async () => {
+    const x = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8], [3, 3, 1]);
+    const padding =
+        [[0, 0], [1, 2], [0, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
+    const outputSizes: [number, number] = [4, 2];
+    const result = tf.maxPool(x, 3, 1, padding, undefined, outputSizes);
+
+    expect(result.shape).toEqual([4, 2, 1]);
+    expectArraysClose(await result.data(), [5, 5, 8, 8, 8, 8, 8, 8]);
+  });
+
+  it('throws when x=[3,3,1] f=[3,3] s=1 p=explicit outputSizes=[3,3]',
+    async () => {
+      const x = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8], [3, 3, 1]);
+      const padding =
+          [[0, 0], [1, 2], [0, 1], [0, 0]] as tf.backend_util.ExplicitPadding;
+      const outputSizes: [number, number] = [3, 3];
+
+      expect(() => tf.maxPool(x, 3, 1, padding, 'ceil', outputSizes))
+          .toThrowError();
+  });
+
   it('x=[2,3,3,1] f=[2,2] s=1', async () => {
     // Feed forward.
     const x = tf.tensor4d(
@@ -111,12 +133,82 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
     expectArraysClose(await result.data(), [4, 4, 4, 4]);
   });
 
+  it('throws when x=[2,2,1] f=[2,2] s=1 p=same outputSizes=[2,3]',
+    async () => {
+      // Feed forward.
+      const x = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
+      const fSize = 2;
+      const strides = 1;
+      const outputSizes: [number, number] = [2, 3];
+      expect(() => tf.maxPool(x, fSize, strides, 'same', 'ceil', outputSizes))
+          .toThrowError();
+  });
+
+  it('x=[2,2,3] f=[2,2] s=3 p=1 default dimRoundingMode', () => {
+    // Feed forward.
+    const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
+    const result = tf.maxPool(x, 2, 3, 1);
+
+    expect(result.shape).toEqual([1, 1, 3]);
+  });
+
   it('x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor', () => {
     // Feed forward.
     const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
     const result = tf.maxPool(x, 1, 2, 1, 'floor');
 
     expect(result.shape).toEqual([2, 2, 3]);
+  });
+
+  it('x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=floor', () => {
+    // Feed forward.
+    const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
+    const result = tf.maxPool(x, 2, 3, 1, 'floor');
+
+    expect(result.shape).toEqual([1, 1, 3]);
+  });
+
+  it('x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=round', () => {
+    // Feed forward.
+    const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
+    const result = tf.maxPool(x, 2, 3, 1, 'round');
+
+    expect(result.shape).toEqual([2, 2, 3]);
+  });
+
+  it('x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=ceil', () => {
+    // Feed forward.
+    const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
+    const result = tf.maxPool(x, 2, 3, 1, 'ceil');
+
+    expect(result.shape).toEqual([2, 2, 3]);
+  });
+
+  it('x=[2,2,3] f=[2,2] s=3 p=1 outputSizes=[1,1]', () => {
+    // Feed forward.
+    const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
+    const outputSizes: [number, number] = [1, 1];
+    const result = tf.maxPool(x, 2, 3, 1, 'ceil', outputSizes);
+
+    expect(result.shape).toEqual([1, 1, 3]);
+  });
+
+  it('x=[2,2,3] f=[2,2] s=3 p=1 outputSizes=[2,2]', () => {
+    // Feed forward.
+    const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
+    const outputSizes: [number, number] = [2, 2];
+    const result = tf.maxPool(x, 2, 3, 1, 'floor', outputSizes);
+
+    expect(result.shape).toEqual([2, 2, 3]);
+  });
+
+  it('throws when x=[2,2,3] f=[2,2] s=3 p=1 outputSizes=[1,3]',
+    async () => {
+      // Feed forward.
+      const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 2, 3]);
+      const outputSizes: [number, number] = [1, 3];
+
+      expect(() => tf.maxPool(x, 2, 3, 1, 'ceil', outputSizes)).toThrowError();
   });
 
   it('throws when x is not rank 3', () => {
