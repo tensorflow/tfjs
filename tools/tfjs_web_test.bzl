@@ -55,8 +55,7 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
     tags = kwargs.pop("tags", [])
     local_browser = kwargs.pop("local_browser", "")
 
-    # Skip other BrowserStack testing when local_browser is not empty
-    browsers = [] if local_browser else kwargs.pop("browsers", [
+    browsers = kwargs.pop("browsers", [
         "bs_chrome_mac",
         "bs_firefox_mac",
         "bs_safari_mac",

@@ -15,12 +15,9 @@
     "bundle": "bazel build :tfjs-backend-webgpu_pkg",
     "bundle-ci": "yarn bundle",
     "build-npm": "bazel build :tfjs-backend-webgpu_pkg",
-    "link-local": "yalc link",
-    "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
     "publish-npm": "bazel run :tfjs-backend-webgpu_pkg.publish",
     "test": "yarn test-dev",
-    "test-dev": "ibazel run :tfjs-backend-webgpu_test --test-output=streamed",
-    "unlink-local": "yalc remove"
+    "test-dev": "ibazel run :tfjs-backend-webgpu_test --test-output=streamed"
   },
   "license": "Apache-2.0",
   "devDependencies": {
