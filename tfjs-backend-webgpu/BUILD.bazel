@@ -107,5 +107,6 @@ tfjs_web_test(
         '{"WEBGPU_CPU_FORWARD": false}',
     ],
     local_browser = "chrome_webgpu",
+    browsers = [],
     static_files = STATIC_FILES,
 )
