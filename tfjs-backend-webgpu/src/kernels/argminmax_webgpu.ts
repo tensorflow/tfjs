@@ -27,7 +27,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  workGroupSize: [number, number, number] = [256, 1, 1];
+  workGroupSize: [number, number, number] = [64, 1, 1];
   variableNames = ['x'];
   uniforms = 'axis : i32; infinityValue : f32;';
   inputShape: number[];
@@ -130,17 +130,10 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         var bestIndex = i32(localId.x);
         var bestValue = uniforms.infinityValue;
 
-        if (i32(localId.x) < Length && outputIndex < uniforms.size) {
-          let candidate = f32(x.numbers[getInputIndex(coordInfo, bestIndex)]);
-          if (!isNanCustom(candidate)) {
-              bestValue = candidate;
-          }
-        }
-
-        for (var k = i32(localId.x) + i32(workGroupSizeX); k < Length &&
-            outputIndex < uniforms.size; k = k + i32(workGroupSizeX)) {
+        for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
+            k = k + i32(workGroupSizeX)) {
           let candidate = f32(x.numbers[getInputIndex(coordInfo, k)]);
-          if (candidate ${this.op} bestValue && !isNanCustom(candidate)) {
+          if (!isNanCustom(candidate) && candidate ${this.op} bestValue) {
             bestValue = candidate;
             bestIndex = k;
           }
@@ -154,9 +147,10 @@ export class ArgMinMaxProgram implements WebGPUProgram {
             currentSize = reduceSize / 2u) {
           let interval = DIV_CEIL(reduceSize, 2u);
           if (localId.x < currentSize) {
-            if (xBestValues[localId.x + interval] ${
-        this.op} xBestValues[localId.x]) {
-              xBestValues[localId.x] = xBestValues[localId.x + interval];
+            let candidate = xBestValues[localId.x + interval];
+            if (candidate ${this.op} bestValue) {
+              bestValue = candidate;
+              xBestValues[localId.x] = bestValue;
               xBestIndices[localId.x] = xBestIndices[localId.x + interval];
             }
           }
