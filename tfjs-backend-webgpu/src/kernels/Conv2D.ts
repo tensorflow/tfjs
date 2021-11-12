@@ -18,12 +18,12 @@
 import {backend_util, Conv2D, Conv2DAttrs, Conv2DInputs, env, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {getShapeFitForConv2DMMProgram, getShapeFitForConv2DMMVec4Program} from './program_util';
 
 import {conv2dByMatMul, conv2dWithIm2Col} from './Conv2D_impl';
 import {Conv2DMMVec4Program} from './conv2d_mm_vec4_webgpu';
 import {Conv2DMMProgram} from './conv2d_mm_webgpu';
 import {Conv2DNaiveProgram} from './conv2d_naive_webgpu';
+import {setProgramUniformForConv2D} from './program_util';
 
 export function conv2d(
     args: {inputs: Conv2DInputs, attrs: Conv2DAttrs, backend: WebGPUBackend}) {
@@ -71,24 +71,10 @@ export function conv2d(
   } else {
     program = new Conv2DMMProgram(convInfo);
   }
-  if (!useNaive) {
-    const dimAOuter = convInfo.outShape[1] * convInfo.outShape[2];
-    const dimBOuter = convInfo.outShape[3];
-    const dimInner =
-        convInfo.filterHeight * convInfo.filterWidth * convInfo.inShape[3];
-    dimensions.push(
-        {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
-        {type: 'int32', data: [dimInner]});
+  if (!(program instanceof Conv2DNaiveProgram)) {
+    setProgramUniformForConv2D(program, dimensions);
   }
 
-  const [fitA, fitB] = program instanceof Conv2DMMProgram ?
-      getShapeFitForConv2DMMProgram(program) :
-      (program instanceof Conv2DMMVec4Program ?
-           getShapeFitForConv2DMMVec4Program(program) :
-           [0, 0]);
-  dimensions.push(
-      {type: 'int32', data: [fitA as number]},
-      {type: 'int32', data: [fitB as number]});
   return backend.runWebGPUProgram(program, [x, filter], x.dtype, dimensions);
 }
 

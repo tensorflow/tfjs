@@ -15,14 +15,13 @@
  * =============================================================================
  */
 import {util} from '@tensorflow/tfjs-core';
+import {Conv2DMMVec4Program} from './conv2d_mm_vec4_webgpu';
 
-import {Conv2DMMVec4Program} from './kernels/conv2d_mm_vec4_webgpu';
-import {Conv2DMMProgram} from './kernels/conv2d_mm_webgpu';
-import {MatMulPackedVec4Program} from './kernels/matmul_packed_vec4_webgpu';
-import {MatMulPackedProgram} from './kernels/matmul_packed_webgpu';
+import {Conv2DMMProgram} from './conv2d_mm_webgpu';
+import {MatMulPackedVec4Program} from './matmul_packed_vec4_webgpu';
+import {MatMulPackedProgram} from './matmul_packed_webgpu';
 
-function tilesFitEvenlyIntoShape(
-    tileSize: number[], shape: number[]): boolean {
+function tilesFitEvenlyIntoShape(tileSize: number[], shape: number[]): boolean {
   if (tileSize.length !== shape.length) {
     throw new Error(
         `Cannot compute whether rank ${tileSize.length}` +
@@ -72,17 +71,23 @@ export function getShapeFitForMatMulPackedVec4Program(
   ];
 }
 
-export function getShapeFitForConv2DMMProgram(program: Conv2DMMProgram):
-    boolean[] {
+export function setProgramUniformForConv2D(
+    program: Conv2DMMProgram|Conv2DMMVec4Program,
+    dimensions: Array<{type: string; data: number[]}>) {
   const tileAOuter = program.workGroupSize[1] * program.elementsPerThread[1];
   const tileBOuter = program.workGroupSize[0] * program.elementsPerThread[0];
-  const tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
-  util.assert(
-      tileInner % program.workGroupSize[0] === 0 &&
-          tileInner % program.workGroupSize[1] === 0,
-      () =>
-          // tslint:disable-next-line: max-line-length
-      'tileInner must be multiple of workgroupsize.x and workgroupsize.y');
+  let tileInner;
+  if (program instanceof Conv2DMMProgram) {
+    tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
+    util.assert(
+        tileInner % program.workGroupSize[0] === 0 &&
+            tileInner % program.workGroupSize[1] === 0,
+        () =>
+            // tslint:disable-next-line: max-line-length
+        'tileInner must be multiple of workgroupsize.x and workgroupsize.y');
+  } else {
+    tileInner = tileBOuter;
+  }
   const tileSizeA = [tileAOuter, tileInner];
   const tileSizeB = [tileInner, tileBOuter];
   const dimAOuter = program.outputShape[1] * program.outputShape[2];
@@ -90,26 +95,10 @@ export function getShapeFitForConv2DMMProgram(program: Conv2DMMProgram):
   const dimInner = program.convInfo.filterHeight *
       program.convInfo.filterWidth * program.convInfo.inChannels;
 
-  return [
-    tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]),
-    tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter])
-  ];
-}
-
-export function getShapeFitForConv2DMMVec4Program(program: Conv2DMMVec4Program):
-    boolean[] {
-  const tileAOuter = program.workGroupSize[1] * program.elementsPerThread[1];
-  const tileBOuter = program.workGroupSize[0] * program.elementsPerThread[0];
-  const tileInner = tileBOuter;
-
-  const tileSizeA = [tileAOuter, tileInner];
-  const tileSizeB = [tileInner, tileBOuter];
-  const dimAOuter = program.outputShape[1] * program.outputShape[2];
-  const dimBOuter = program.outputShape[3];
-  const dimInner = program.convInfo.filterHeight *
-      program.convInfo.filterWidth * program.convInfo.inChannels;
-  return [
-    tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]),
-    tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter])
-  ];
+  const fitA = tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]);
+  const fitB = tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter]);
+  dimensions.push(
+      {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
+      {type: 'int32', data: [dimInner]}, {type: 'int32', data: [Number(fitA)]},
+      {type: 'int32', data: [Number(fitB)]});
 }
