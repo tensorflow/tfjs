@@ -110,7 +110,7 @@ export class MathBackendWebGL extends KernelBackend {
   private nextDataId(): number {
     return MathBackendWebGL.nextDataId++;
   }
-  // Maps data ids that have a pending read operation, to list of subscribers.
+  // Maps data ids that have a pending read operation, to list of subscribers
   private pendingRead = new WeakMap<DataId, Array<(arr: TypedArray) => void>>();
   // List of data ids that are scheduled for disposal, but are waiting on a
   // pending read operation.
@@ -312,7 +312,7 @@ export class MathBackendWebGL extends KernelBackend {
       // For performance reason, only check it for debugging. In production,
       // it doesn't handle this use case anyway, so behavior is not changed.
       if (!env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED') &&
-        env().getNumber('WEBGL_VERSION') === 2) {
+          env().getNumber('WEBGL_VERSION') === 2) {
         throw new Error(
             `tensor.data() with WEBGL_DOWNLOAD_FLOAT_ENABLED=false and ` +
             `WEBGL_VERSION=2 not yet supported.`);
@@ -1005,8 +1005,8 @@ export class MathBackendWebGL extends KernelBackend {
 
       let program;
       let width = texShape[1], height = texShape[0];
-      const isByteArray = values instanceof Uint8Array
-                          || values instanceof Uint8ClampedArray;
+      const isByteArray =
+          values instanceof Uint8Array || values instanceof Uint8ClampedArray;
 
       if (isPacked) {
         [width, height] = tex_util.getPackedMatrixTextureShapeWidthHeight(
