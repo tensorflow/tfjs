@@ -752,7 +752,11 @@ describeWithFlags('WebGL backend has sync init', WEBGL_ENVS, () => {
 });
 
 describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
+  // TODO(lina128): Change to async test after parallel compilation flag is
+  // implemented in context object. We have to keep it sync for now, because
+  // it's a global flag, the async test will affect other tests.
   it('does not have memory leak.', () => {
+    console.log('hello world');
     const savedWebGLCPUForward = tf.env().get('WEBGL_CPU_FORWARD');
     tf.env().set('WEBGL_CPU_FORWARD', false);
 
@@ -769,8 +773,7 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
     const data = c0.dataSync();
     const numOfBinaryCacheNoParallelCompillation =
         Object.keys(getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'))).length;
-    console.log(data);
-    // expectArraysClose(data, [2, 2, 2]);
+    expectArraysClose(data, [2, 2, 2]);
     tf.dispose([a0, b0, c0]);
     tf.removeBackend(customWebGLBackendName);
 
