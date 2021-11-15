@@ -777,7 +777,12 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
     tf.dispose([a0, b0, c0]);
     tf.removeBackend(customWebGLBackendName);
 
-    tf.setBackend('webgl');
+    const customWebGLBackendName1 = 'my-webgl1';
+    tf.copyRegisteredKernels('webgl', customWebGLBackendName1);
+    tf.registerBackend(customWebGLBackendName1, () => {
+      return new MathBackendWebGL();
+    });
+    tf.setBackend(customWebGLBackendName1);
     const webGLBackend = tf.backend() as MathBackendWebGL;
 
     const startNumBytes = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
@@ -822,6 +827,8 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
         Object.keys(getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'))).length;
     expect(numOfBinaryCacheWithParallelCompillation)
         .toEqual(numOfBinaryCacheNoParallelCompillation);
+
+    tf.removeBackend(customWebGLBackendName1);
 
     tf.env().set('WEBGL_CPU_FORWARD', savedWebGLCPUForward);
   });
