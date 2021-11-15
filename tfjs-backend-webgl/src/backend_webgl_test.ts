@@ -766,14 +766,19 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
     const a0 = tf.tensor1d([1, 1, 1]);
     const b0 = tf.tensor1d([1, 1, 1]);
     const c0 = tf.add(a0, b0);
-    const numOfBinaryCacheNoParallelCompillation =
-        Object.keys(getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'))).length;
+    // const numOfBinaryCacheNoParallelCompillation =
+    //     Object.keys(getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'))).length;
     // expectArraysClose(await c0.data(), [2, 2, 2]);
     tf.dispose([a0, b0, c0]);
     const endNumBytesAllocated0 =
         (tf.memory() as WebGLMemoryInfo).numBytesInGPUAllocated;
     console.log(
         `numBytesAllocatedInGPUBeforeAfterDispose: ${endNumBytesAllocated0}`);
+    console.log(`numBytesInGPUBeforeAfterDispose: ${
+        (tf.memory() as WebGLMemoryInfo).numBytesInGPU}`);
+    console.log(`numBytesInGPUFreeBeforeAfterDispose: ${
+        (tf.memory() as WebGLMemoryInfo).numBytesInGPUFree}`);
+    console.log(getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION')));
     tf.removeBackend(customWebGLBackendName);
 
     tf.setBackend('webgl');
@@ -808,6 +813,10 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
     const endNumBytesAllocated =
         (tf.memory() as WebGLMemoryInfo).numBytesInGPUAllocated;
     console.log(`numBytesAllocatedInGPUAfterDispose: ${endNumBytesAllocated}`);
+    console.log(`numBytesInGPUAfterDispose: ${
+        (tf.memory() as WebGLMemoryInfo).numBytesInGPU}`);
+    console.log(`numBytesInGPUFreeAfterDispose: ${
+        (tf.memory() as WebGLMemoryInfo).numBytesInGPUFree}`);
     const endTensor = tf.memory().numTensors;
     console.log(`endTensor: ${endTensor}`);
     const endDataBuckets = webGLBackend.numDataIds();
@@ -817,10 +826,11 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
     // expect(startTensor).toEqual(endTensor);
     // expect(endDataBuckets).toEqual(startDataBuckets);
 
-    const numOfBinaryCacheWithParallelCompillation =
-        Object.keys(getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'))).length;
-    expect(numOfBinaryCacheWithParallelCompillation)
-        .toEqual(numOfBinaryCacheNoParallelCompillation);
+    // const numOfBinaryCacheWithParallelCompillation =
+    //     Object.keys(getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'))).length;
+    // expect(numOfBinaryCacheWithParallelCompillation)
+    //     .toEqual(numOfBinaryCacheNoParallelCompillation);
+    console.log(getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION')));
 
     tf.env().set('WEBGL_CPU_FORWARD', savedWebGLCPUForward);
   });
