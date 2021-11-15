@@ -752,9 +752,9 @@ describeWithFlags('WebGL backend has sync init', WEBGL_ENVS, () => {
 });
 
 describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
-  // TODO(lina128): Change to async test after parallel compilation flag is
-  // implemented in context object. We have to keep it sync for now, because
-  // it's a global flag, the async test will affect other tests.
+  // TODO(lina128): Also test async after parallel compilation flag is
+  // implemented in context object. We have to keep the test sync for now,
+  // because it's a global flag, the async test will affect other tests.
   it('does not have memory leak.', () => {
     console.log('hello world');
     const savedWebGLCPUForward = tf.env().get('WEBGL_CPU_FORWARD');
@@ -777,6 +777,9 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
     tf.dispose([a0, b0, c0]);
     tf.removeBackend(customWebGLBackendName);
 
+    // TODO(lina128): Also test use an existing backend after parallel
+    // compilation flag is implemented in context object. The current approach
+    // assumes there's no binary cache, and it doesn't check existing cache.
     const customWebGLBackendName1 = 'my-webgl1';
     tf.copyRegisteredKernels('webgl', customWebGLBackendName1);
     tf.registerBackend(customWebGLBackendName1, () => {
@@ -792,9 +795,8 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
     const a1 = tf.tensor1d([1, 1, 1]);
     const b1 = tf.tensor1d([1, 1, 1]);
 
-    tf.engine().state.compileOnly = true;
-
     // Pre-compile round.
+    tf.engine().state.compileOnly = true;
     const c1 = tf.add(a1, b1);
     webGLBackend.checkCompileCompletion();
     webGLBackend.getUniformLocations();
@@ -806,9 +808,7 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
 
     // Actual inference.
     const c3 = tf.add(a1, b1);
-
-    console.log(c3.dataSync());
-    // expectArraysEqual(, [2, 2, 2]);
+    expectArraysEqual(c3.dataSync(), [2, 2, 2]);
 
     tf.dispose([a1, b1, c1, c2, c3]);
     const endNumBytes = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
