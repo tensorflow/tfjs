@@ -751,8 +751,8 @@ describeWithFlags('WebGL backend has sync init', WEBGL_ENVS, () => {
   });
 });
 
-describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
-  it('does not have memory leak.', () => {
+describeWithFlags('Parallel compilation', WEBGL_ENVS, async () => {
+  it('does not have memory leak.', async () => {
     const savedWebGLCPUForward = tf.env().get('WEBGL_CPU_FORWARD');
     tf.env().set('WEBGL_CPU_FORWARD', false);
 
@@ -766,10 +766,10 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
     const a0 = tf.tensor1d([1, 1, 1]);
     const b0 = tf.tensor1d([1, 1, 1]);
     const c0 = tf.add(a0, b0);
-    c0.dataSync();
+    const data = c0.dataSync();
     const numOfBinaryCacheNoParallelCompillation =
         Object.keys(getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'))).length;
-    // expectArraysClose(await c0.data(), [2, 2, 2]);
+    expectArraysClose(data, [2, 2, 2]);
     tf.dispose([a0, b0, c0]);
     tf.removeBackend(customWebGLBackendName);
 
@@ -791,17 +791,20 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
     webGLBackend.getUniformLocations();
     tf.engine().state.compileOnly = false;
     const c2 = tf.add(a1, b1);
-    c2.dataSync();
-    // await c2.data();
+    await c2.data();
     const c3 = tf.add(a1, b1);
 
-    // expectArraysEqual(await c3.data(), [2, 2, 2]);
+    expectArraysEqual(await c3.data(), [2, 2, 2]);
 
     tf.dispose([a1, b1, c1, c2, c3]);
     const endNumBytes = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
     const endTensor = tf.memory().numTensors;
     const endDataBuckets = webGLBackend.numDataIds();
 
+    // We only check numBytesInGPU. For parallel compilation,
+    // numBytesInGPUAllocated will be more because of the two pass uploadToGPU,
+    // but they will all be freed, resulting in endNumbytes equal to
+    // startNumBytes.
     expect(startNumBytes).toEqual(endNumBytes);
     expect(startTensor).toEqual(endTensor);
     expect(endDataBuckets).toEqual(startDataBuckets);
