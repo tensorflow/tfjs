@@ -827,7 +827,7 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
     // expect(endDataBuckets).toEqual(startDataBuckets);
 
     // const numOfBinaryCacheWithParallelCompillation =
-    //     Object.keys(getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'))).length;
+    //    Object.keys(getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'))).length;
     // expect(numOfBinaryCacheWithParallelCompillation)
     //     .toEqual(numOfBinaryCacheNoParallelCompillation);
     console.log(getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION')));
