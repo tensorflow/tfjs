@@ -767,7 +767,7 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
     const b0 = tf.tensor1d([1, 1, 1]);
     const c0 = tf.add(a0, b0);
     // const numOfBinaryCacheNoParallelCompillation =
-    //     Object.keys(getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'))).length;
+    //    Object.keys(getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'))).length;
     // expectArraysClose(await c0.data(), [2, 2, 2]);
     tf.dispose([a0, b0, c0]);
     const endNumBytesAllocated0 =
