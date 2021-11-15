@@ -1117,38 +1117,25 @@ export class MathBackendWebGL extends KernelBackend {
 
   checkCompileCompletion() {
     for (const [, binary] of Object.entries(this.binaryCache)) {
-      if (this.gpgpu.gl.getProgramParameter(
-              binary.webGLProgram, this.gpgpu.gl.LINK_STATUS) === false) {
-        if (this.gpgpu.gl.getShaderParameter(
-                binary.fragmentShader, this.gpgpu.gl.COMPILE_STATUS) ===
-            false) {
-          webgl_util.logShaderSourceAndInfoLog(
-              binary.source,
-              this.gpgpu.gl.getShaderInfoLog(binary.fragmentShader));
-          throw new Error('Failed to compile fragment shader.');
-        }
-        throw new Error('Failed to link vertex and fragment shaders.');
-      }
+      this.checkCompletion_(binary);
     }
   }
 
   async checkCompileCompletionAsync(): Promise<boolean[]> {
     const ps = [];
     if (this.gpgpu.parallelCompilationExtension) {
-      console.log(Object.keys(this.binaryCache).length);
       for (const [, binary] of Object.entries(this.binaryCache)) {
-        ps.push(this.checkCompletion(binary, binary.webGLProgram));
+        ps.push(this.checkCompletionAsync_(binary));
       }
       return Promise.all(ps);
     } else {
       for (const [, binary] of Object.entries(this.binaryCache)) {
         const p: Promise<boolean> = new Promise((resolve) => {
-          if (this.gpgpu.gl.getProgramParameter(
-                  binary.webGLProgram, this.gpgpu.gl.LINK_STATUS) === false) {
-            console.log(this.gpgpu.gl.getProgramInfoLog(binary.webGLProgram));
-            throw new Error('Failed to link vertex and fragment shaders.');
-          } else {
+          try {
+            this.checkCompletion_(binary);
             resolve(true);
+          } catch (error) {
+            throw error;
           }
         });
         ps.push(p);
@@ -1157,31 +1144,31 @@ export class MathBackendWebGL extends KernelBackend {
     }
   }
 
-  async checkCompletion(binary: GPGPUBinary, program: WebGLProgram):
-      Promise<boolean> {
+  private async checkCompletionAsync_(binary: GPGPUBinary): Promise<boolean> {
     if (this.gpgpu.gl.getProgramParameter(
-            program,
+            binary.webGLProgram,
             this.gpgpu.parallelCompilationExtension.COMPLETION_STATUS_KHR)) {
-      console.log('completed');
-      if (this.gpgpu.gl.getProgramParameter(
-              binary.webGLProgram, this.gpgpu.gl.LINK_STATUS) === false) {
-        console.log(this.gpgpu.gl.getProgramInfoLog(binary.webGLProgram));
-        if (this.gpgpu.gl.getShaderParameter(
-                binary.fragmentShader, this.gpgpu.gl.COMPILE_STATUS) ===
-            false) {
-          webgl_util.logShaderSourceAndInfoLog(
-              binary.source,
-              this.gpgpu.gl.getShaderInfoLog(binary.fragmentShader));
-          throw new Error('Failed to compile fragment shader.');
-        }
-        throw new Error('Failed to link vertex and fragment shaders.');
-      }
-      return true;
+      return this.checkCompletion_(binary);
     } else {
-      console.log('not completed');
       await nextFrame();
-      return this.checkCompletion(binary, program);
+      return this.checkCompletionAsync_(binary);
     }
+  }
+
+  private checkCompletion_(binary: GPGPUBinary): boolean {
+    if (this.gpgpu.gl.getProgramParameter(
+            binary.webGLProgram, this.gpgpu.gl.LINK_STATUS) === false) {
+      console.log(this.gpgpu.gl.getProgramInfoLog(binary.webGLProgram));
+      if (this.gpgpu.gl.getShaderParameter(
+              binary.fragmentShader, this.gpgpu.gl.COMPILE_STATUS) === false) {
+        webgl_util.logShaderSourceAndInfoLog(
+            binary.source,
+            this.gpgpu.gl.getShaderInfoLog(binary.fragmentShader));
+        throw new Error('Failed to compile fragment shader.');
+      }
+      throw new Error('Failed to link vertex and fragment shaders.');
+    }
+    return true;
   }
 
   getUniformLocations() {
