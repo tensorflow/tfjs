@@ -56,7 +56,7 @@ export function fromPixelsExternalImage(args: {
         backend.device, program, layout.pipelineLayout, [], output, true);
   });
 
-  program.setPipeline(pipeline);
+  program.setPipeline(pipeline as GPUComputePipeline);
 
   if (!useImport) {
     backend.queue.copyExternalImageToTexture(
