@@ -848,6 +848,12 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     if (!parallelCompilation) {
+      if (this.activePrograms.length > 0) {
+        throw new Error(
+            `Please make sure that await tensor.data() is called when
+             WEBGPU_PARALLEL_COMPILATION_PASS is on so that the parallel
+             compilation pass is really completed.`);
+      }
       this.ensureCommandEncoderReady();
       const pass = this.getComputePass();
 
