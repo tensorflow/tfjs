@@ -25,14 +25,18 @@ module.exports = function(config) {
   let browser = 'TEMPLATE_browser';
   let extraConfig = {};
   if (browser) {
-    Object.assign(extraConfig, browserstackConfig);
-    extraConfig.browsers = [browser];
-    extraConfig.browserStack = {
-      username: process.env.BROWSERSTACK_USERNAME,
-      accessKey: process.env.BROWSERSTACK_KEY,
-      timeout: 900,  // Seconds
-      tunnelIdentifier: `tfjs_${Date.now()}_${Math.floor(Math.random() * 1000)}`
-    };
+    if (browser !== 'chrome_webgpu') {
+      Object.assign(extraConfig, browserstackConfig);
+      extraConfig.browsers = [browser];
+      extraConfig.browserStack = {
+        username: process.env.BROWSERSTACK_USERNAME,
+        accessKey: process.env.BROWSERSTACK_KEY,
+        timeout: 900,  // Seconds
+        tunnelIdentifier: `tfjs_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+      };
+    } else {
+      extraConfig.browsers = [browser];
+    }
   }
 
   config.set({
@@ -93,6 +97,10 @@ module.exports = function(config) {
       chrome_with_swift_shader: {
         base: 'Chrome',
         flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
+      },
+      chrome_webgpu: {
+        base: 'Chrome',
+        flags: ['--enable-unsafe-webgpu', '--disable-dawn-features=disallow_unsafe_apis']
       },
       chrome_debugging:
           {base: 'Chrome', flags: ['--remote-debugging-port=9333']}
