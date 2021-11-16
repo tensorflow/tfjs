@@ -53,8 +53,18 @@ import {spaceToBatchND} from './space_to_batch_nd';
  *     `strides` is a single number, then `strideHeight == strideWidth`.
  * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
  *     provided, it will default to truncate.
- * @param outputSizes The height and width of output shape:
- *     `[outHeight, outWidth]`.
+ * @param outputSizes The sizes of the two spacial dimensions of the output
+ *     tensor: `[outHeight, outWidth]`. When the output sizes are explicitly
+ *     specified, the `dimRoundingMode` is ignored. If not specified, the output
+ *     sizes are automatically computed, for example, when the `dimRoundingMode`
+ *     is 'floor', the spatial dimensions of the output tensor can be calculated
+ *     as follow:
+ *         output size = floor(1 + (input size - filter size + beginning padding
+ *                                  + ending padding) / stride)
+ *     when the `dimRoundingMode` is 'ceil', the spatial dimensions of the
+ *     output tensor can be calculated as follow:
+ *         output size = ceil(1 + (input size - filter size + beginning padding
+ *                                 + ending padding) / stride)
  *
  * @doc {heading: 'Operations', subheading: 'Convolution'}
  */

@@ -132,6 +132,7 @@ export function computePool2DInfo(
   } else {
     throw new Error(`Unknown dataFormat ${dataFormat}`);
   }
+
   return computeConv2DInfo(
       inShape, filterShape, strides, dilations, pad, roundingMode, false,
       dataFormat, outputSizes);
@@ -371,8 +372,7 @@ function computeOutputShape2D(
       }
     }
     if (!checked) {
-      throw Error(
-        `Invaild outputSizes parameter: [${outputSizes}]`);
+      throw Error(`Invaild outputSizes parameter: [${outputSizes}]`);
     }
   } else {
     outputRows =
@@ -520,8 +520,7 @@ function getPadAndOutInfo(
         }
       }
       if (!checked) {
-        throw Error(
-          `Invaild outputSizes parameter: [${outputSizes}]`);
+        throw Error(`Invaild outputSizes parameter: [${outputSizes}]`);
       }
     } else {
       outHeight = round(

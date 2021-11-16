@@ -52,8 +52,18 @@ import {reshape} from './reshape';
  *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
  * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
  *     provided, it will default to truncate.
- * @param outputSizes The height and width of output shape:
- *     `[outHeight, outWidth]`.
+ * @param outputSizes The sizes of the two spacial dimensions of the output
+ *     tensor: `[outHeight, outWidth]`. When the output sizes are explicitly
+ *     specified, the `dimRoundingMode` is ignored. If not specified, the output
+ *     sizes are automatically computed, for example, when the `dimRoundingMode`
+ *     is 'floor', the spatial dimensions of the output tensor can be calculated
+ *     as follow:
+ *         output size = floor(1 + (input size - filter size + beginning padding
+ *                                  + ending padding) / stride)
+ *     when the `dimRoundingMode` is 'ceil', the spatial dimensions of the
+ *     output tensor can be calculated as follow:
+ *         output size = ceil(1 + (input size - filter size + beginning padding
+ *                                 + ending padding) / stride)
  */
 function maxPool_<T extends Tensor3D|Tensor4D>(
     x: T|TensorLike, filterSize: [number, number]|number,
@@ -79,23 +89,32 @@ function maxPool_<T extends Tensor3D|Tensor4D>(
       () => 'Error in maxPool: Either strides or dilations must be 1. ' +
           `Got strides ${strides} and dilations '${dilations}'`);
   if (dimRoundingMode != null) {
-    if (typeof pad === 'string'){
-      throw new Error(
-        `dimRoundingMode ${dimRoundingMode} is set when using ${pad} pad`);
-    }
-    else if (typeof pad === 'number') {
+    if (typeof pad === 'string') {
+      throw Error(
+          `Error in maxPool: pad must be an integer when using `  +
+          `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
+    } else if (typeof pad === 'number') {
       util.assert(
-        util.isInt(pad),
-        () => `Error in maxPool: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-    } else {
+          util.isInt(pad),
+          () => `Error in maxPool: pad must be an integer when using ` +
+              `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
+    } else if (typeof pad === 'object') {
       (pad as conv_util.ExplicitPadding).forEach(p => {p.forEach(v =>{
         util.assert(
-          util.isInt(v),
-          () => `Error in maxPool: pad must be an integer when using, ` +
-              `dimRoundingMode ${dimRoundingMode} but got pad ${v}.`);
-      });});
+            util.isInt(v),
+            () => `Error in maxPool: pad must be an integer when using ` +
+                `dimRoundingMode ${dimRoundingMode} but got pad ${v}.`);
+        });
+      });
+    } else {
+      throw Error(`Unknown padding parameter: ${pad}`);
     }
+  }
+
+  if (outputSizes != null) {
+    console.log(
+        'The dimRoundingMode is ignored when the output sizes are explicitly' +
+        ' specified.');
   }
 
   const inputs: MaxPoolInputs = {x: x4D};
