@@ -550,17 +550,17 @@ def _find_signature(saved_model_dir, saved_model_tags, signature_def):
   return signature_def_map[signature_def]
 
 def _convert_tf_saved_model(output_dir,
-                           saved_model_dir=None,
-                           keras_model=None,
-                           signature_def='serving_default',
-                           saved_model_tags='serve',
-                           quantization_dtype_map=None,
-                           skip_op_check=False,
-                           strip_debug_ops=False,
-                           weight_shard_size_bytes=1024 * 1024 * 4,
-                           control_flow_v2=False,
-                           experiments=False,
-                           metadata=None):
+                            saved_model_dir=None,
+                            keras_model=None,
+                            signature_def='serving_default',
+                            saved_model_tags='serve',
+                            quantization_dtype_map=None,
+                            skip_op_check=False,
+                            strip_debug_ops=False,
+                            weight_shard_size_bytes=1024 * 1024 * 4,
+                            control_flow_v2=False,
+                            experiments=False,
+                            metadata=None):
   """Take a SavedModel or KerasModel and convert to Tensorflow.js graph model.
 
   Args:
@@ -602,7 +602,7 @@ def _convert_tf_saved_model(output_dir,
   saved_model_sigature = None
   if saved_model_dir:
     saved_model_sigature = _find_signature(saved_model_dir, saved_model_tags,
-                                        signature_def)
+                                           signature_def)
     model = _load_model(saved_model_dir, saved_model_tags_list)
     _check_signature_in_model(model, signature_def)
     concrete_func = model.signatures[signature_def]
@@ -636,7 +636,7 @@ def _convert_tf_saved_model(output_dir,
   except BaseException:
     if saved_model_dir:
       (frozen_graph,
-      frozen_initializer_graph) = _freeze_saved_model_v1(saved_model_dir,
+       frozen_initializer_graph) = _freeze_saved_model_v1(saved_model_dir,
                                                           saved_model_tags_list,
                                                           output_node_names)
     else:
@@ -982,11 +982,11 @@ def convert_keras_model_to_graph_model(keras_model,
     metadata: User defined metadata map.
   """
   _convert_tf_saved_model(output_dir, keras_model=keras_model,
-                                      saved_model_tags=saved_model_tags,
-                                      quantization_dtype_map=quantization_dtype_map,
-                                      skip_op_check=skip_op_check,
-                                      strip_debug_ops=strip_debug_ops,
-                                      weight_shard_size_bytes=weight_shard_size_bytes,
-                                      control_flow_v2=control_flow_v2,
-                                      experiments=experiments,
-                                      metadata=metadata)
+                          saved_model_tags=saved_model_tags,
+                          quantization_dtype_map=quantization_dtype_map,
+                          skip_op_check=skip_op_check,
+                          strip_debug_ops=strip_debug_ops,
+                          weight_shard_size_bytes=weight_shard_size_bytes,
+                          control_flow_v2=control_flow_v2,
+                          experiments=experiments,
+                          metadata=metadata)
