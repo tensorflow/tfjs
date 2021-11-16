@@ -27,6 +27,7 @@ from tensorflowjs import read_weights
 _OUTPUT_DTYPES = [np.float16, np.float32, np.int32, np.complex64,
                   np.uint8, np.uint16, np.bool, np.object]
 _AUTO_DTYPE_CONVERSION = {
+    np.dtype(np.float16): np.float32,
     np.dtype(np.float64): np.float32,
     np.dtype(np.int64): np.int32,
     np.dtype(np.complex128): np.complex64}

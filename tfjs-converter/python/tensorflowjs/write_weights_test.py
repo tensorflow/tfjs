@@ -545,6 +545,9 @@ class TestWriteWeights(tf.test.TestCase):
         }, {
             'name': 'weight2',
             'data': np.array([[4, 5], [6, 7]], 'float32')
+        }, {
+            'name': 'weight5',
+            'data': np.array([1], 'float16')
         }],
         # Group 2
         [{
@@ -574,6 +577,10 @@ class TestWriteWeights(tf.test.TestCase):
                 'name': 'weight2',
                 'shape': [2, 2],
                 'dtype': 'float32'
+            }, {
+                'name': 'weight5',
+                'shape': [1],
+                'dtype': 'float32'
             }]
         }, {
             'paths': ['group2-shard1of3.bin',
@@ -598,7 +605,7 @@ class TestWriteWeights(tf.test.TestCase):
     group0_shard_2_path = os.path.join(TMP_DIR, 'group1-shard2of2.bin')
     group0_shard_2 = np.fromfile(group0_shard_2_path, 'float32')
     np.testing.assert_array_equal(
-        group0_shard_2, np.array([5, 6, 7], 'float32'))
+        group0_shard_2, np.array([5, 6, 7, 1], 'float32'))
 
     group1_shard_1_path = os.path.join(TMP_DIR, 'group2-shard1of3.bin')
     group1_shard_1 = np.fromfile(group1_shard_1_path, 'int32')
