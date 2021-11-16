@@ -208,6 +208,14 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     const data = await res.data();
     expect(data.length).toEqual(10 * 10 * 3);
   });
+  it('fromPixels for HTMLImageElement load twice.', async () => {
+    const img = new Image(10, 10);
+    img.src = 'data:image/gif;base64' +
+        ',R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
+    const imgTensor1 = tf.browser.fromPixels(img);
+    const imgTensor2 = tf.browser.fromPixels(img);
+    expect(await imgTensor1.data()).toEqual(await imgTensor2.data());
+  });
   it('fromPixels for HTMLVideoElement', async () => {
     const video = document.createElement('video');
     video.autoplay = true;

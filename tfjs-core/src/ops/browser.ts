@@ -28,8 +28,6 @@ import {cast} from './cast';
 import {op} from './operation';
 import {tensor3d} from './tensor3d';
 
-let fromPixels2DContext: CanvasRenderingContext2D;
-
 /**
  * Creates a `tf.Tensor` from an image.
  *
@@ -136,25 +134,28 @@ function fromPixels_(
   } else if (isImageData || isPixelData) {
     vals = (pixels as PixelData | ImageData).data;
   } else if (isImage || isVideo || isImageBitmap) {
-    if (fromPixels2DContext == null) {
-      if (typeof document === 'undefined') {
-        if (typeof OffscreenCanvas !== 'undefined' &&
-            typeof OffscreenCanvasRenderingContext2D !== 'undefined') {
-          // @ts-ignore
-          fromPixels2DContext = new OffscreenCanvas(1, 1).getContext('2d');
-        } else {
-          throw new Error(
-              'Cannot parse input in current context. ' +
-              'Reason: OffscreenCanvas Context2D rendering is not supported.');
-        }
+    let fromPixels2DCanvas: HTMLCanvasElement|OffscreenCanvas;
+    let fromPixels2DContext: CanvasRenderingContext2D;
+
+    if (typeof document === 'undefined') {
+      if (typeof OffscreenCanvas !== 'undefined' &&
+          typeof OffscreenCanvasRenderingContext2D !== 'undefined') {
+        // @ts-ignore
+        fromPixels2DCanvas = new OffscreenCanvas(1, 1);
       } else {
-        fromPixels2DContext = document.createElement('canvas').getContext('2d');
+        throw new Error(
+            'Cannot parse input in current context. ' +
+            'Reason: OffscreenCanvas Context2D rendering is not supported.');
       }
+    } else {
+      fromPixels2DCanvas = document.createElement('canvas');
     }
+    fromPixels2DContext =
+        fromPixels2DCanvas.getContext('2d') as CanvasRenderingContext2D;
     fromPixels2DContext.canvas.width = width;
     fromPixels2DContext.canvas.height = height;
     fromPixels2DContext.drawImage(
-      pixels as HTMLVideoElement, 0, 0, width, height);
+        pixels as HTMLVideoElement, 0, 0, width, height);
     vals = fromPixels2DContext.getImageData(0, 0, width, height).data;
   }
   let values: Int32Array;
@@ -170,6 +171,7 @@ function fromPixels_(
     }
   }
   const outShape: [number, number, number] = [height, width, numChannels];
+
   return tensor3d(values, outShape, 'int32');
 }
 
