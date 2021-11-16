@@ -85,7 +85,8 @@ export class WebGPUBackend extends KernelBackend {
   }
   private commandQueueOwnedIds = new WeakSet<DataId>();
   private layoutCache: {[key: number]: WebGPULayout};
-  private pipelineCache: {[key: string]: GPUComputePipeline};
+  private pipelineCache:
+      {[key: string]: GPUComputePipeline|Promise<GPUComputePipeline>};
   private bufferManager: BufferManager;
 
   private tensorDisposalQueue: DataId[] = [];
@@ -536,12 +537,12 @@ export class WebGPUBackend extends KernelBackend {
     return this.pipelineCache[key];
   }
 
-  private getPipeline(
+  private getAndSaveAsyncPipeline(
       key: string,
       getPipelineAsync: () => GPUComputePipeline |
           Promise<GPUComputePipeline>) {
     if (!(key in this.pipelineCache)) {
-      return getPipelineAsync();
+      this.pipelineCache[key] = getPipelineAsync();
     }
     return this.pipelineCache[key];
   }
@@ -815,7 +816,7 @@ export class WebGPUBackend extends KernelBackend {
             this.device, program, pipelineLayout, inputsData, output);
       });
     } else {
-      program.pipeline = this.getPipeline(program.shaderKey, () => {
+      program.pipeline = this.getAndSaveAsyncPipeline(program.shaderKey, () => {
         return webgpu_program.compileProgramAsync(
             this.device, program, pipelineLayout, inputsData, output);
       });
