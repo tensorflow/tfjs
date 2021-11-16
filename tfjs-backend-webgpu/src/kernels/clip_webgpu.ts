@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
-
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -32,7 +30,7 @@ export class ClipProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   minVal: number;
   maxVal: number;
-  size: number;
+  size = true;
 
   constructor(outputShape: number[]) {
     this.outputShape = outputShape;
@@ -41,15 +39,13 @@ export class ClipProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.shaderKey = 'clip';
-    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         if(index < uniforms.size) {
-          let value = getAAtOutCoordsByGlobalId(globalId, index);
+          let value = getAAtOutCoordsByGlobalIndex(index);
           if (isNanCustom(value)) {
             setOutputFlat(index, value);
             return;

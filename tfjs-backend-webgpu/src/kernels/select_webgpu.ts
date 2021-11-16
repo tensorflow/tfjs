@@ -14,9 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import {util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -30,7 +29,7 @@ export class SelectProgram implements WebGPUProgram {
   workGroupSize: [number, number, number] = [64, 1, 1];
   cRank: number;
   rank: number;
-  size: number;
+  size = true;
 
   constructor(cRank: number, shape: number[], rank: number) {
     this.outputShape = shape;
@@ -41,7 +40,6 @@ export class SelectProgram implements WebGPUProgram {
     this.cRank = cRank;
     this.rank = rank;
     this.shaderKey = 'select';
-    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
@@ -70,10 +68,9 @@ export class SelectProgram implements WebGPUProgram {
     }
 
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let resRC = getOutputCoords(globalId, index);
+          let resRC = getCoordsFromFlatIndex(index);
           let cVal = getC(${cCoords});
           if (cVal >= 1.0) {
             setOutputFlat(index, getA(${abCoords}));

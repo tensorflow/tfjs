@@ -30,7 +30,7 @@ import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase, getReleaseBran
 const TMP_DIR = '/tmp/tfjs-publish';
 const BAZEL_PACKAGES = new Set([
   'tfjs-core', 'tfjs-backend-cpu', 'tfjs-tflite', 'tfjs-converter',
-  'tfjs-backend-webgl', 'tfjs-layers'
+  'tfjs-backend-webgl', 'tfjs-backend-webgpu', 'tfjs-layers', 'tfjs-data'
 ]);
 
 const parser = new argparse.ArgumentParser();

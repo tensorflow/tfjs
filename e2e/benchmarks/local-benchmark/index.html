@@ -135,6 +135,20 @@ limitations under the License.
             tunableFlagsControllers['WEBGL_USE_SHAPES_UNIFORMS'].setValue(false);
           }
         }
+        if (tunableFlagsControllers['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'] != null &&
+          urlState.has('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE')) {
+          const value = Number(urlState.get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'));
+          tunableFlagsControllers['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'].setValue(value);
+        }
+        if (tunableFlagsControllers['KEEP_INTERMEDIATE_TENSORS'] != null &&
+            urlState.has('KEEP_INTERMEDIATE_TENSORS')) {
+          const value = urlState.get('KEEP_INTERMEDIATE_TENSORS');
+          if (value === 'true') {
+            tunableFlagsControllers['KEEP_INTERMEDIATE_TENSORS'].setValue(true);
+          } else {
+            tunableFlagsControllers['KEEP_INTERMEDIATE_TENSORS'].setValue(false);
+          }
+        }
       }
       // The model parameter will be update automically by onChange.
       if (modelController != null && urlState.has('benchmark'))
@@ -150,6 +164,29 @@ limitations under the License.
       if (runButton != null && task == 'performance') {
         runButton.domElement.click();
       }
+    }
+
+    async function printTensors(tensorsMap) {
+      if (!tensorsMap) {
+        return;
+      }
+      const keysOfTensors = Object.keys(tensorsMap);
+      for (let i = 0; i < keysOfTensors.length; i++) {
+        console.warn(keysOfTensors[i]);
+        for (let j = 0; j < tensorsMap[keysOfTensors[i]].length; j++) {
+          console.warn(await (tensorsMap[keysOfTensors[i]][j]).data());
+        }
+      }
+    }
+
+    async function predictAndGetPredictionData(predict, model, inferenceInput, debug) {
+      const prediction = await predict(model, inferenceInput);
+      if (debug) {
+        await printTensors(model.getIntermediateTensors());
+        model.disposeIntermediateTensors();
+      }
+      const predictionData = await getPredictionData(prediction);
+      return predictionData;
     }
 
     const state = {
@@ -191,13 +228,20 @@ limitations under the License.
             inferenceInput = generateInputFromDef(
               state.inputs, model instanceof tf.GraphModel);
           }
-          const referencePrediction = predict(model, inferenceInput);
-          referenceData = await getPredictionData(referencePrediction);
+
+          let keepIntermediateTensors = false;
+          try {
+            keepIntermediateTensors = tf.env().getBool('KEEP_INTERMEDIATE_TENSORS');
+          } catch (e) {
+            console.warn(e.message);
+          }
+
+          const debug = keepIntermediateTensors & (benchmarks[state.benchmark].supportDebug !== false);
+          referenceData = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
 
           await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
-          const prediction = predict(model, inferenceInput);
-          predictionData = await getPredictionData(prediction);
+          predictionData = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
         } catch (e) {
           showMsg('Error: ' + e.message);
           throw e;

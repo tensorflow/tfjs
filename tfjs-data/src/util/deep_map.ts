@@ -66,6 +66,10 @@ function deepMapInternal(
   if (input == null) {
     return null;
   }
+  if (typeof Blob === 'function' && input instanceof Blob) {
+    return input.slice();
+  }
+
   if (containedIn.has(input)) {
     throw new Error('Circular references are not supported.');
   }
@@ -92,6 +96,9 @@ function deepMapInternal(
       mappedIterable[k] = childResult;
     }
     containedIn.delete(input);
+    if (input.__proto__) {
+      mappedIterable.__proto__ = input.__proto__;
+    }
     return mappedIterable;
   } else {
     throw new Error(`Can't recurse into non-iterable type: ${input}`);

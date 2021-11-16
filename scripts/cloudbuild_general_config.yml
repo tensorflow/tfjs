@@ -30,6 +30,13 @@ steps:
   args: ['buildifier-ci']
   waitFor: ['yarn-common']
 
+# Lint Bazel package typescript files.
+- name: 'gcr.io/learnjs-174218/release'
+  id: 'tslint'
+  entrypoint: 'yarn'
+  args: ['lint']
+  waitFor: ['yarn-common']
+
 # Bazel tests
 # These use a remote cache and only re-run if changes occurred, so we run them
 # in every build.

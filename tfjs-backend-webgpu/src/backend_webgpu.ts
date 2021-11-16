@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-/// <reference types="@webgpu/types" />
-
 import './flags_webgpu';
 
 import {backend_util, buffer, DataStorage, DataType, DataValues, engine, env, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, util} from '@tensorflow/tfjs-core';
@@ -733,10 +731,11 @@ export class WebGPUBackend extends KernelBackend {
     });
     const strides = util.computeStrides(output.shape);
     uniformsWithType.push({type: uniformsType, data: strides});
-    if (program.size != null) {
-      uniformsWithType.push({type: uniformsType, data: [program.size]});
+    if (program.size) {
+      const size = util.sizeFromShape(program.outputShape);
+      uniformsWithType.push(
+          {type: uniformsType, data: [program.isVec4 ? size / 4 : size]});
     }
-    uniformsWithType.push({type: 'uint32', data: program.dispatch});
     if (programUniforms) {
       uniformsWithType = [...uniformsWithType, ...programUniforms];
     }
@@ -814,6 +813,7 @@ export class WebGPUBackend extends KernelBackend {
       const uniformInfo = {
         byteSize: uniformsByteLength,
         usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
+        // tslint:disable-next-line: no-unnecessary-type-assertion
         buffer: (uniforms as GPUBufferBinding).buffer
       };
       this.uniformDisposalQueue.push(uniformInfo);

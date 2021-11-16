@@ -39,8 +39,8 @@ export interface WebGPUProgram {
   // the group.
   workGroupSize: [number, number, number];
   isVec4?: boolean;
-  // size is used for bounds checking.
-  size?: number;
+  // Whether to use output size for bounds checking.
+  size?: boolean;
   // Whether to use atomic built-in functions.
   atomic?: boolean;
   getUserCode: () => string;
@@ -83,9 +83,10 @@ export const compileProgram =
 export function makeShaderKey<R extends Rank>(
     program: WebGPUProgram, shapes: Array<ShapeMap[R]>, types: string[],
     broadcastDimsKey = '', inputShapesEqualsOutShape = ''): string {
-  const key = (program.workGroupSize ? program.workGroupSize.join(',') : '') +
+  const key = program.shaderKey + '_' +
+      (program.workGroupSize ? program.workGroupSize.join(',') : '') +
       shapes.map(shape => shape.length).join(',') + types.join(',') +
       program.variableNames.join(',') + broadcastDimsKey +
-      inputShapesEqualsOutShape + program.shaderKey;
+      inputShapesEqualsOutShape;
   return key;
 }
