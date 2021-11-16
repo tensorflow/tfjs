@@ -181,8 +181,8 @@ function intersectionOverUnion(boxes: TypedArray, i: number, j: number) {
   const intersectionXmin = Math.max(xminI, xminJ);
   const intersectionYmax = Math.min(ymaxI, ymaxJ);
   const intersectionXmax = Math.min(xmaxI, xmaxJ);
-  const intersectionArea = Math.max(intersectionYmax - intersectionYmin, 0.0) *
-      Math.max(intersectionXmax - intersectionXmin, 0.0);
+  const intersectionArea = Math.abs(intersectionYmax - intersectionYmin) *
+      Math.abs(intersectionXmax - intersectionXmin);
   return intersectionArea / (areaI + areaJ - intersectionArea);
 }
 
