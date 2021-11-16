@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,75 +15,15 @@
  * =============================================================================
  */
 
-import '@tensorflow/tfjs-backend-cpu';
-
+// Register the backend.
+import './index';
 // tslint:disable-next-line: no-imports-from-dist
-import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
-
-// TODO: Remove and import from tfjs-core once 1.3.2 is released, like so:
-// import {setTestEnvs, setupTestFilters, TestFilter} from
-// '@tensorflow/tfjs-core/dist/jasmine_util';
-
-interface TestFilter {
-  include?: string;
-  startsWith?: string;
-  excludes?: string[];
-}
-
-export function setupTestFilters(
-    testFilters: TestFilter[], customInclude: (name: string) => boolean) {
-  const env = jasmine.getEnv();
-  // Account for --grep flag passed to karma by saving the existing specFilter.
-  const grepFilter = env.specFilter;
-
-  /**
-   * Filter method that returns boolean, if a given test should run or be
-   * ignored based on its name. The exclude list has priority over the
-   * include list. Thus, if a test matches both the exclude and the include
-   * list, it will be exluded.
-   */
-  // tslint:disable-next-line: no-any
-  env.specFilter = (spec: any) => {
-    // Filter out tests if the --grep flag is passed.
-    if (!grepFilter(spec)) {
-      return false;
-    }
-
-    const name = spec.getFullName();
-
-    if (customInclude(name)) {
-      return true;
-    }
-
-    // Include a describeWithFlags() test from tfjs-core only if the test is
-    // in the include list.
-    for (let i = 0; i < testFilters.length; ++i) {
-      const testFilter = testFilters[i];
-      if ((testFilter.include != null &&
-           name.indexOf(testFilter.include) > -1) ||
-          (testFilter.startsWith != null &&
-           name.startsWith(testFilter.startsWith))) {
-        if (testFilter.excludes != null) {
-          for (let j = 0; j < testFilter.excludes.length; j++) {
-            if (name.indexOf(testFilter.excludes[j]) > -1) {
-              return false;
-            }
-          }
-        }
-        return true;
-      }
-    }
-    // Otherwise ignore the test.
-    return false;
-  };
-}
-
-setTestEnvs([{
-  name: 'test-webgpu',
-  backendName: 'webgpu',
-  flags: {'WEBGPU_CPU_FORWARD': false},
-  isDataSync: false,
-}]);
+import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
+// tslint:disable-next-line: no-imports-from-dist
+import '@tensorflow/tfjs-core/dist/register_all_gradients';
+import './backend_webgpu_test_registry';
+// tslint:disable-next-line: no-imports-from-dist
+import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 const TEST_FILTERS: TestFilter[] = [
   {
@@ -654,11 +594,6 @@ const TEST_FILTERS: TestFilter[] = [
 ];
 
 const customInclude = (testName: string) => {
-  // Include regular describe() tests.
-  if (testName.indexOf('test-webgpu') < 0) {
-    return true;
-  }
-
   // Include webgpu specific tests.
   if (testName.startsWith('webgpu')) {
     return true;
@@ -666,9 +601,25 @@ const customInclude = (testName: string) => {
 
   return false;
 };
-
 setupTestFilters(TEST_FILTERS, customInclude);
 
-// Import and run all the tests from core.
-// tslint:disable-next-line: no-imports-from-dist
-import '@tensorflow/tfjs-core/dist/tests';
+// Allow flags to override test envs
+// tslint:disable-next-line:no-any
+declare let __karma__: any;
+if (typeof __karma__ !== 'undefined') {
+  const testEnv = parseTestEnvFromKarmaFlags(__karma__.config.args, TEST_ENVS);
+  if (testEnv != null) {
+    setTestEnvs([testEnv]);
+  }
+}
+
+// These use 'require' because they must not be hoisted above
+// the preceding snippet that parses test environments.
+// Import and run tests from core.
+// tslint:disable-next-line:no-imports-from-dist
+// tslint:disable-next-line:no-require-imports
+require('@tensorflow/tfjs-core/dist/tests');
+// Import and run tests from webgl.
+// tslint:disable-next-line:no-imports-from-dist
+// tslint:disable-next-line:no-require-imports
+require('./tests');
