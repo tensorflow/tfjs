@@ -74,3 +74,8 @@ ENV.registerFlag('WEBGPU_USE_PROFILE_TOOL', () => false);
  * Whether to use import API.
  */
 ENV.registerFlag('WEBGPU_USE_IMPORT', () => false);
+
+/**
+ * Whether to use parallel shader compilation.
+ */
+ENV.registerFlag('WEBGPU_PARALLEL_COMPILATION_PASS', () => false);
