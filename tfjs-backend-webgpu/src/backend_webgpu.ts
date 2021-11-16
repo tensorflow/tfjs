@@ -359,30 +359,35 @@ export class WebGPUBackend extends KernelBackend {
       return info.values;
     }
 
-    const pipelinesPromise =
-        this.activePrograms.map(program => program.pipeline);
-    const pipelines = await Promise.all(pipelinesPromise);
-    const arrayLength = this.activePrograms.length;
-    if (arrayLength > 0) {
-      this.ensureCommandEncoderReady();
-      const pass = this.getComputePass();
-      for (let i = 0; i < arrayLength; i++) {
-        const program = this.activePrograms[i];
-        const pipeline = pipelines[i];
-        this.pipelineCache[program.shaderKey] = pipeline;
-        pass.setPipeline(pipeline);
-        pass.setBindGroup(0, program.bindGroup);
-        pass.dispatch(
-            program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+    const parallelCompilation =
+        env().getBool('WEBGPU_PARALLEL_COMPILATION_PASS') && !this.activeTimers;
+    if (parallelCompilation) {
+      const pipelinesPromise =
+          this.activePrograms.map(program => program.pipeline);
+      const pipelines = await Promise.all(pipelinesPromise);
+      const arrayLength = this.activePrograms.length;
+      if (arrayLength > 0) {
+        this.ensureCommandEncoderReady();
+        const pass = this.getComputePass();
+        for (let i = 0; i < arrayLength; i++) {
+          const program = this.activePrograms[i];
+          const pipeline = pipelines[i];
+          this.pipelineCache[program.shaderKey] = pipeline;
+          pass.setPipeline(pipeline);
+          pass.setBindGroup(0, program.bindGroup);
+          pass.dispatch(
+              program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+        }
+        this.activePrograms = [];
+        this.submitQueue();
       }
-      this.activePrograms = [];
-      this.submitQueue();
     }
 
-    this.ensureCommandEncoderReady();
     const staging = this.acquireBuffer(
         info.bufferInfo.byteSize,
         GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
+    this.ensureCommandEncoderReady();
+    this.ensureComputePassEnded();
     this.currentCommandEncoder.copyBufferToBuffer(
         info.bufferInfo.buffer, 0, staging, 0, info.bufferInfo.byteSize);
     this.submitQueue();
@@ -810,14 +815,17 @@ export class WebGPUBackend extends KernelBackend {
         this.getCachedOrCreateLayout(program.variableNames.length);
 
     const shouldTimeProgram = this.activeTimers != null;
-    if (shouldTimeProgram) {
-      program.pipeline = this.getAndSavePipeline(program.shaderKey, () => {
-        return webgpu_program.compileProgram(
+    // Currently only support parallel compilation for non-profiling mode.
+    const parallelCompilation =
+        env().getBool('WEBGPU_PARALLEL_COMPILATION_PASS') && !shouldTimeProgram;
+    if (parallelCompilation) {
+      program.pipeline = this.getAndSaveAsyncPipeline(program.shaderKey, () => {
+        return webgpu_program.compileProgramAsync(
             this.device, program, pipelineLayout, inputsData, output);
       });
     } else {
-      program.pipeline = this.getAndSaveAsyncPipeline(program.shaderKey, () => {
-        return webgpu_program.compileProgramAsync(
+      program.pipeline = this.getAndSavePipeline(program.shaderKey, () => {
+        return webgpu_program.compileProgram(
             this.device, program, pipelineLayout, inputsData, output);
       });
     }
@@ -840,11 +848,11 @@ export class WebGPUBackend extends KernelBackend {
       this.uniformDisposalQueue.push(uniformInfo);
     }
 
-    if (shouldTimeProgram) {
+    if (!parallelCompilation) {
       this.ensureCommandEncoderReady();
       const pass = this.getComputePass();
 
-      if (this.supportTimeQuery) {
+      if (shouldTimeProgram && this.supportTimeQuery) {
         pass.writeTimestamp(this.querySet, 0);
       }
 
@@ -853,7 +861,7 @@ export class WebGPUBackend extends KernelBackend {
       pass.dispatch(
           program.dispatch[0], program.dispatch[1], program.dispatch[2]);
 
-      if (this.supportTimeQuery) {
+      if (shouldTimeProgram && this.supportTimeQuery) {
         pass.writeTimestamp(this.querySet, 1);
       }
       this.dispatchNumberInEncoder++;
@@ -863,10 +871,12 @@ export class WebGPUBackend extends KernelBackend {
         this.submitQueue();
       }
 
-      this.activeTimers.push({
-        name: program.constructor.name,
-        query: this.getQueryTime(this.querySet)
-      });
+      if (shouldTimeProgram) {
+        this.activeTimers.push({
+          name: program.constructor.name,
+          query: this.getQueryTime(this.querySet)
+        });
+      }
     } else {
       this.activePrograms.push(program);
     }
