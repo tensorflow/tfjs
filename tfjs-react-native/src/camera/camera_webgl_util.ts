@@ -21,6 +21,7 @@ import * as tf from '@tensorflow/tfjs-core';
 import * as drawTextureProgramInfo from './draw_texture_program_info';
 import * as resizeBilinearProgramInfo from './resize_bilinear_program_info';
 import * as resizeNNProgramInfo from './resize_nearest_neigbor_program_info';
+import {Rotation} from './types';
 
 interface Dimensions {
   width: number;
@@ -149,9 +150,10 @@ export function uploadTextureData(
  */
 export function drawTexture(
     gl: WebGL2RenderingContext, texture: WebGLTexture,
-    dims: {width: number, height: number}, flipHorizontal: boolean) {
+    dims: {width: number, height: number}, flipHorizontal: boolean,
+    rotation: Rotation) {
   const {program, vao, vertices, uniformLocations} =
-      drawTextureProgram(gl, flipHorizontal, false);
+      drawTextureProgram(gl, flipHorizontal, false, rotation);
   gl.useProgram(program);
   gl.bindVertexArray(vao);
 
@@ -177,10 +179,10 @@ export function runResizeProgram(
     gl: WebGL2RenderingContext, inputTexture: WebGLTexture,
     inputDims: Dimensions, outputDims: Dimensions, alignCorners: boolean,
     useCustomShadersToResize: boolean,
-    interpolation: 'nearest_neighbor'|'bilinear') {
+    interpolation: 'nearest_neighbor'|'bilinear', rotation: Rotation) {
   const {program, vao, vertices, uniformLocations} = useCustomShadersToResize ?
       resizeProgram(gl, inputDims, outputDims, alignCorners, interpolation) :
-      drawTextureProgram(gl, false, true);
+      drawTextureProgram(gl, false, true, rotation);
   gl.useProgram(program);
   // Set up geometry
   webgl_util.callAndCheck(gl, () => {
@@ -304,17 +306,17 @@ function createFrameBuffer(gl: WebGL2RenderingContext): WebGLFramebuffer {
 }
 
 export function drawTextureProgram(
-    gl: WebGL2RenderingContext, flipHorizontal: boolean,
-    flipVertical: boolean): ProgramObjects {
+    gl: WebGL2RenderingContext, flipHorizontal: boolean, flipVertical: boolean,
+    rotation: Rotation): ProgramObjects {
   if (!programCacheByContext.has(gl)) {
     programCacheByContext.set(gl, new Map());
   }
   const programCache = programCacheByContext.get(gl);
 
-  const cacheKey = `drawTexture_${flipHorizontal}_${flipVertical}`;
+  const cacheKey = `drawTexture_${flipHorizontal}_${flipVertical}_${rotation}`;
   if (!programCache.has(cacheKey)) {
-    const vertSource =
-        drawTextureProgramInfo.vertexShaderSource(flipHorizontal, flipVertical);
+    const vertSource = drawTextureProgramInfo.vertexShaderSource(
+        flipHorizontal, flipVertical, rotation);
     const fragSource = drawTextureProgramInfo.fragmentShaderSource();
 
     const vertices = drawTextureProgramInfo.vertices();

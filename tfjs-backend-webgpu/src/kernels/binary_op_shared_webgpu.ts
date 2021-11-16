@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {backend_util, util} from '@tensorflow/tfjs-core';
+import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
@@ -34,8 +34,7 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
   useSharedMemoryWithB: boolean;
   lastDimensionSize: number;
   op: BinaryOpType;
-  size: number;
-  sizeFit: boolean;
+  size = true;
 
   constructor(
       op: BinaryOpType, aShape: number[], bShape: number[],
@@ -60,13 +59,10 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
 
     this.useSharedMemoryWithB = useSharedMemoryWithB;
     this.op = op;
-    this.size = util.sizeFromShape(this.outputShape);
-    this.sizeFit =
-        this.size % (this.workGroupSize[0] * this.workPerThread) === 0;
     // this.lastDimensionSize is used as sharedBuf array size, so can not be
     // used as uniform.
     this.shaderKey = `binaryShared_${op}_${this.lastDimensionSize}_${
-        this.useSharedMemoryWithB}_${this.sizeFit}`;
+        this.useSharedMemoryWithB}`;
   }
 
   getUserCode(): string {
@@ -79,25 +75,13 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
         `let a = sharedBuf[${sharedIndexSnippet}];
          let b = getBAtOutCoordsByCoords(coords);`;
 
-    const writeDataSnippet = this.sizeFit ?
-        `let coords = getCoordsFromFlatIndex(flatIndex);
-
-         ${accessDataSnippet}
-         setOutputFlat(flatIndex, binaryOperation(a, b));` :
-        `if(flatIndex < uniforms.size) {
-            let coords = getCoordsFromFlatIndex(flatIndex);
-
-            ${accessDataSnippet}
-            setOutputFlat(flatIndex, binaryOperation(a, b));
-          }`;
     const opStr = getBinaryOpString(this.op, false);
     const userCode = `
         fn binaryOperation(a : f32, b : f32) -> f32 {
           ${opStr}
         }
         var<workgroup> sharedBuf : array<f32, ${this.lastDimensionSize}>;
-        ${getMainHeaderString()} {
-          ${getGlobalIndexString()}
+        ${getMainHeaderAndGlobalIndexString()}
 
           // Fill in the shared memory buffer. Here we need a loop to make sure
           // that all data in A|B are uploaded when |sharedMemorySize| is larger
@@ -112,8 +96,12 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
 
           for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
             let flatIndex = index * ${this.workPerThread} + i;
+            if(flatIndex < uniforms.size) {
+              let coords = getCoordsFromFlatIndex(flatIndex);
 
-            ${writeDataSnippet}
+              ${accessDataSnippet}
+              setOutputFlat(flatIndex, binaryOperation(a, b));
+            }
           }
         }
         `;

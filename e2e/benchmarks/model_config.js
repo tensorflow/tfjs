@@ -74,6 +74,20 @@ const sentences = [
   'what is the forecast for here at tea time',
 ];
 
+function predictFunction(model, input) {
+  let debug = false;
+  try {
+    debug = tf.env().getBool('KEEP_INTERMEDIATE_TENSORS');
+  } catch (e) {
+    console.warn(e.message);
+  }
+  if (debug) {
+    return model => model.executeAsync(input);
+  } else {
+    return model => model.predict(input);
+  }
+}
+
 const benchmarks = {
   'mobilenet_v2': {
     type: 'GraphModel',
@@ -84,7 +98,7 @@ const benchmarks = {
     },
     predictFunc: () => {
       const input = tf.randomNormal([1, 224, 224, 3]);
-      return model => model.predict(input);
+      return predictFunction(model, input);
     }
   },
   'mesh_128': {
@@ -95,10 +109,8 @@ const benchmarks = {
       return tf.loadGraphModel(url);
     },
     predictFunc: () => {
-      const zeros = tf.zeros([1, 128, 128, 3]);
-      return model => {
-        return model.predict(zeros)[0];
-      };
+      const input = tf.zeros([1, 128, 128, 3]);
+      return predictFunction(model, input);
     },
   },
   'face_detector': {
@@ -109,10 +121,8 @@ const benchmarks = {
       return tf.loadGraphModel(url);
     },
     predictFunc: () => {
-      const zeros = tf.zeros([1, 128, 128, 3]);
-      return model => {
-        return model.predict(zeros);
-      };
+      const input = tf.zeros([1, 128, 128, 3]);
+      return predictFunction(model, input);
     },
   },
   'hand_detector': {
@@ -122,10 +132,8 @@ const benchmarks = {
       return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
-      const zeros = tf.zeros([1, 256, 256, 3]);
-      return model => {
-        return model.predict(zeros);
-      };
+      const input = tf.zeros([1, 256, 256, 3]);
+      return predictFunction(model, input);
     },
   },
   'hand_skeleton': {
@@ -135,14 +143,13 @@ const benchmarks = {
       return tf.loadGraphModel(url, {fromTFHub: true});
     },
     predictFunc: () => {
-      const zeros = tf.zeros([1, 256, 256, 3]);
-      return model => {
-        return model.predict(zeros);
-      };
+      const input = tf.zeros([1, 256, 256, 3]);
+      return predictFunction(model, input);
     },
   },
   'AutoML Image': {
     type: 'GraphModel',
+    supportDebug: false,
     load: async () => {
       const url =
           'https://storage.googleapis.com/tfjs-testing/tfjs-automl/img_classification/model.json';
@@ -155,6 +162,7 @@ const benchmarks = {
   },
   'AutoML Object': {
     type: 'GraphModel',
+    supportDebug: false,
     load: async () => {
       const url =
           'https://storage.googleapis.com/tfjs-testing/tfjs-automl/object_detection/model.json';
@@ -167,6 +175,7 @@ const benchmarks = {
   },
   'USE - batchsize 30': {
     type: 'GraphModel',
+    supportDebug: false,
     load: async () => {
       return use.load();
     },
@@ -180,15 +189,13 @@ const benchmarks = {
   },
   'USE - batchsize 1': {
     type: 'GraphModel',
+    supportDebug: false,
     load: async () => {
       return use.load();
     },
     predictFunc: () => {
-      let nextIdx = 0;
-
       return async model => {
-        const next = [sentences[(nextIdx % sentences.length)]];
-        nextIdx += 1;
+        const next = [sentences[0]];
         const res = await model.embed(next);
         return res;
       };
@@ -199,6 +206,7 @@ const benchmarks = {
     inputSizes: [128, 256, 512, 1024],
     architectures: ['MobileNetV1', 'ResNet50'],
     inputTypes: ['image', 'tensor'],
+    supportDebug: false,
     load: async (
         inputResolution = 128, modelArchitecture = 'MobileNetV1',
         inputType = 'image') => {
@@ -234,6 +242,7 @@ const benchmarks = {
   },
   'bodypix': {
     type: 'GraphModel',
+    supportDebug: false,
     // The ratio to the default camera size [480, 640].
     inputSizes: [0.25, 0.5, 0.75, 1.0],
     architectures: ['MobileNetV1', 'ResNet50'],
@@ -284,9 +293,7 @@ const benchmarks = {
     },
     predictFunc: (inputResolution = 128) => {
       const input = tf.randomNormal([1, inputResolution, inputResolution, 3]);
-      return model => {
-        return model.predict(input);
-      };
+      return predictFunction(model, input);
     },
   },
   'speech-commands': {
@@ -324,6 +331,7 @@ const benchmarks = {
     ],
     inputTypes: ['image', 'tensor', 'imageBitmap'],
     modelTypes: ['lite', 'full', 'heavy', 'lightning'],
+    supportDebug: false,
     load: async (
         inputResolution = 128, modelArchitecture = 'BlazePose-lite',
         inputType = 'image') => {

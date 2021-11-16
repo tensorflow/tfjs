@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
-
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -30,7 +28,7 @@ export class GatherProgram implements WebGPUProgram {
   variableNames: string[] = ['A', 'indices'];
   workGroupSize: [number, number, number] = [64, 1, 1];
   aShape: number[];
-  size: number;
+  size = true;
 
   constructor(aShape: number[], outputShape: number[]) {
     this.outputShape = aShape.slice();
@@ -40,16 +38,14 @@ export class GatherProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = `gather`;
-    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
     const sourceCoords = getSourceCoords(this.aShape, 'i32');
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let resRC = getOutputCoords(globalId, index);
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
+          let resRC = getCoordsFromFlatIndex(index);
           setOutputFlat(index, getA(${sourceCoords}));
         }
       }

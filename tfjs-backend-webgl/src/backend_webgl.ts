@@ -307,11 +307,16 @@ export class MathBackendWebGL extends KernelBackend {
       return this.convertAndCacheOnCPU(dataId);
     }
 
-    if (!env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED') &&
+    if (env().getBool('DEBUG')) {
+      // getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED') caused a blocking GPU call.
+      // For performance reason, only check it for debugging. In production,
+      // it doesn't handle this use case anyway, so behavior is not changed.
+      if (!env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED') &&
         env().getNumber('WEBGL_VERSION') === 2) {
-      throw new Error(
-          `tensor.data() with WEBGL_DOWNLOAD_FLOAT_ENABLED=false and ` +
-          `WEBGL_VERSION=2 not yet supported.`);
+        throw new Error(
+            `tensor.data() with WEBGL_DOWNLOAD_FLOAT_ENABLED=false and ` +
+            `WEBGL_VERSION=2 not yet supported.`);
+      }
     }
 
     let buffer: WebGLBuffer = null;
@@ -1000,7 +1005,8 @@ export class MathBackendWebGL extends KernelBackend {
 
       let program;
       let width = texShape[1], height = texShape[0];
-      const isByteArray = values instanceof Uint8Array;
+      const isByteArray = values instanceof Uint8Array
+                          || values instanceof Uint8ClampedArray;
 
       if (isPacked) {
         [width, height] = tex_util.getPackedMatrixTextureShapeWidthHeight(

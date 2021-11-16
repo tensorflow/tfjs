@@ -19,6 +19,8 @@ export interface BackendWasmModule extends EmscriptenModule {
   // Using the tfjs namespace to avoid conflict with emscripten's API.
   tfjs: {
     init(): void,
+    initWithThreadsCount(threadsCount: number): void,
+    getThreadsCount(): number,
     registerTensor(id: number, size: number, memoryOffset: number): void,
     // Disposes the data behind the data bucket.
     disposeData(id: number): void,

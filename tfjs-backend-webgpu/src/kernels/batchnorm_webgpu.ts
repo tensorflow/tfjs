@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -34,6 +34,7 @@ export class BatchNormProgram implements WebGPUProgram {
   offsetShape: number[]|null;
   scaleShape: number[]|null;
   varianceEpsilon: number;
+  size = true;
 
   constructor(
       xShape: number[], meanShape: number[], varianceShape: number[],
@@ -62,40 +63,26 @@ export class BatchNormProgram implements WebGPUProgram {
   getUserCode(): string {
     let offsetSnippet = '0.0';
     if (this.offsetShape != null) {
-      offsetSnippet = 'getOffsetAtOutCoordsByGlobalId(globalId, index)';
+      offsetSnippet = 'getOffsetAtOutCoordsByGlobalIndex(index)';
     }
 
     let scaleSnippet = '1.0';
     if (this.scaleShape != null) {
-      scaleSnippet = 'getScaleAtOutCoordsByGlobalId(globalId, index)';
+      scaleSnippet = 'getScaleAtOutCoordsByGlobalIndex(index)';
     }
 
-    const dim = this.outputShape.length;
-    const coordsDataType = getCoordsDataType(dim);
-    let setOutput =
-        'setOutput(coords[0], coords[1], coords[2], coords[3], value);';
-    if (dim === 2) {
-      setOutput = 'setOutput(coords[0], coords[1], value);';
-    }
-    if (dim === 3) {
-      setOutput = 'setOutput(coords[0], coords[1], coords[2], value);';
-    }
     const userCode = `
-      fn writeResult(coords : ${coordsDataType}, value : f32) {
-        if (coordsInBounds${dim}D(coords, uniforms.outShape)) {
-          ${setOutput}
+      ${getMainHeaderAndGlobalIndexString()}
+        if (index < uniforms.size)
+        {
+          let xValue = getXAtOutCoordsByGlobalIndex(index);
+          let meanValue = getMeanAtOutCoordsByGlobalIndex(index);
+          let varianValue = getVarianceAtOutCoordsByGlobalIndex(index);
+          let offsetValue = ${offsetSnippet};
+          let scaleValue = ${scaleSnippet};
+          let inv = scaleValue * inverseSqrt(varianValue + f32(uniforms.varianceEpsilon));
+          setOutputFlat(index,dot(vec3<f32>(xValue, -meanValue, offsetValue), vec3<f32>(inv, inv, 1.0)));
         }
-      }
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let coords = getOutputCoords(globalId, index);
-        let xValue = getXAtOutCoordsByGlobalId(globalId, index);
-        let meanValue = getMeanAtOutCoordsByGlobalId(globalId, index);
-        let varianValue = getVarianceAtOutCoordsByGlobalId(globalId, index);
-        let offsetValue = ${offsetSnippet};
-        let scaleValue = ${scaleSnippet};
-        let inv = scaleValue * inverseSqrt(varianValue + f32(uniforms.varianceEpsilon));
-        writeResult(coords,dot(vec3<f32>(xValue, -meanValue, offsetValue), vec3<f32>(inv, inv, 1.0)));
       }
   `;
     return userCode;

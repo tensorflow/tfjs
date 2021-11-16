@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
-
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -30,8 +28,8 @@ export class RotateProgram implements WebGPUProgram {
   variableNames = ['x'];
   uniforms: string;
   workGroupSize: [number, number, number] = [64, 1, 1];
-  size: number;
   fillSnippet: string;
+  size = true;
 
   constructor(
       imageShape: [number, number, number, number],
@@ -43,7 +41,6 @@ export class RotateProgram implements WebGPUProgram {
     this.uniforms = `centerX : f32; centerY : f32; sinRadians : f32;
           cosRadians : f32;`;
     this.shaderKey = 'rotate';
-    this.size = util.sizeFromShape(this.outputShape);
     this.outputShape = imageShape;
 
     if (typeof fillValue === 'number') {
@@ -59,11 +56,10 @@ export class RotateProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-        ${getMainHeaderString()} {
-          ${getGlobalIndexString()}
+        ${getMainHeaderAndGlobalIndexString()}
 
           if (index < uniforms.size) {
-            let coords = getOutputCoords(globalId, index);
+            let coords = getCoordsFromFlatIndex(index);
             let coordXFloat = (f32(coords[2]) - uniforms.centerX) *
                 uniforms.cosRadians - (f32(coords[1]) - uniforms.centerY) *
                 uniforms.sinRadians;

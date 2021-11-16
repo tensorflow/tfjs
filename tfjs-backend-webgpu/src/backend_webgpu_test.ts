@@ -87,7 +87,7 @@ describeWebGPU('backend webgpu', () => {
 
     expect(endNumBytes - startNumBytes).toEqual(48);
     expect(endNumTensors - startNumTensors).toEqual(2);
-    expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(-36);
+    expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(-16);
 
     tf.test_util.expectArraysClose(
         dData, new Float32Array([9, 12, 15, 19, 26, 33]));
@@ -219,6 +219,19 @@ describeWebGPU('backend webgpu', () => {
     await c.data();
     // Now that data has been downloaded to the CPU, dataSync should work.
     expect(() => c.dataSync()).not.toThrow();
+  });
+});
+
+describeWebGPU('backendWebGPU', () => {
+  let prevBackend: string;
+
+  beforeAll(() => {
+    prevBackend = tf.getBackend();
+  });
+
+  afterEach(() => {
+    tf.setBackend(prevBackend);
+    tf.removeBackend('test-storage');
   });
 
   it('lazily upload', async () => {
