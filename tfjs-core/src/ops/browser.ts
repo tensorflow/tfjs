@@ -150,11 +150,18 @@ function fromPixels_(
       } else {
         fromPixels2DContext = document.createElement('canvas').getContext('2d');
       }
+      // Use a 1x1 image to warm up the canvas. After the initial drawing,
+      // canvas will draw on GPU.
+      const img = new Image();
+      img.src = 'data:image/gif;base64' +
+          ',R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
+      const tempTensor = fromPixels_(pixels);
+      tempTensor.dispose();
     }
     fromPixels2DContext.canvas.width = width;
     fromPixels2DContext.canvas.height = height;
     fromPixels2DContext.drawImage(
-      pixels as HTMLVideoElement, 0, 0, width, height);
+        pixels as HTMLVideoElement, 0, 0, width, height);
     vals = fromPixels2DContext.getImageData(0, 0, width, height).data;
   }
   let values: Int32Array;
