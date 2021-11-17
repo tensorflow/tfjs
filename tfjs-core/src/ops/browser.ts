@@ -142,6 +142,8 @@ function fromPixels_(
             typeof OffscreenCanvasRenderingContext2D !== 'undefined') {
           // @ts-ignore
           fromPixels2DContext = new OffscreenCanvas(1, 1).getContext('2d');
+          const tempTensor = fromPixels_(pixels);
+          tempTensor.dispose();
         } else {
           throw new Error(
               'Cannot parse input in current context. ' +
@@ -149,14 +151,14 @@ function fromPixels_(
         }
       } else {
         fromPixels2DContext = document.createElement('canvas').getContext('2d');
+        // Use a 1x1 image to warm up the canvas. After the initial drawing,
+        // canvas will draw on GPU.
+        const img = new Image();
+        img.src = 'data:image/gif;base64' +
+            ',R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
+        const tempTensor = fromPixels_(img);
+        tempTensor.dispose();
       }
-      // Use a 1x1 image to warm up the canvas. After the initial drawing,
-      // canvas will draw on GPU.
-      const img = new Image();
-      img.src = 'data:image/gif;base64' +
-          ',R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
-      const tempTensor = fromPixels_(pixels);
-      tempTensor.dispose();
     }
     fromPixels2DContext.canvas.width = width;
     fromPixels2DContext.canvas.height = height;
