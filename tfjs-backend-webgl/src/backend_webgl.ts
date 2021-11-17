@@ -312,7 +312,7 @@ export class MathBackendWebGL extends KernelBackend {
       // For performance reason, only check it for debugging. In production,
       // it doesn't handle this use case anyway, so behavior is not changed.
       if (!env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED') &&
-        env().getNumber('WEBGL_VERSION') === 2) {
+          env().getNumber('WEBGL_VERSION') === 2) {
         throw new Error(
             `tensor.data() with WEBGL_DOWNLOAD_FLOAT_ENABLED=false and ` +
             `WEBGL_VERSION=2 not yet supported.`);
@@ -827,7 +827,10 @@ export class MathBackendWebGL extends KernelBackend {
           texData.isPacked = true;
           texData.shape = input.shape;
         }
-      } else if (!!texData.isPacked !== !!program.packedInputs) {
+      }
+
+      this.uploadToGPU(input.dataId);
+      if (!!texData.isPacked !== !!program.packedInputs) {
         input = texData.isPacked ? this.unpackTensor(input) :
                                    this.packTensor(input);
         dataToDispose.push(input);
@@ -853,7 +856,6 @@ export class MathBackendWebGL extends KernelBackend {
         savedInput.shape = targetShape;
       }
 
-      this.uploadToGPU(input.dataId);
       return {shape: input.shape, texData, isUniform: false};
     });
 
@@ -1005,25 +1007,32 @@ export class MathBackendWebGL extends KernelBackend {
 
       let program;
       let width = texShape[1], height = texShape[0];
-      const isByteArray = values instanceof Uint8Array
-                          || values instanceof Uint8ClampedArray;
+      const isByteArray =
+          values instanceof Uint8Array || values instanceof Uint8ClampedArray;
 
-      if (isPacked) {
+      if (isPacked || !isByteArray) {
         [width, height] = tex_util.getPackedMatrixTextureShapeWidthHeight(
             texShape[0], texShape[1]);
+      }
+
+      if (isPacked) {
         program = new EncodeMatrixPackedProgram(shapeAs3D, isByteArray);
       } else {
         program = new EncodeMatrixProgram(shapeAs3D, isByteArray);
       }
 
-      const tempDenseInputHandle = this.makeTensorInfo([height, width], dtype);
+      const tempDenseInputTexShape: [number, number] =
+          isByteArray ? [height, width] : texShape;
+      const tempDenseInputHandle =
+          this.makeTensorInfo(tempDenseInputTexShape, dtype);
+      const tempDenseInputTexData =
+          this.texData.get(tempDenseInputHandle.dataId);
       if (isByteArray) {
-        this.texData.get(tempDenseInputHandle.dataId).usage =
-            TextureUsage.PIXELS;
+        tempDenseInputTexData.usage = TextureUsage.PIXELS;
       } else {
-        this.texData.get(tempDenseInputHandle.dataId).usage =
-            TextureUsage.UPLOAD;
+        tempDenseInputTexData.usage = TextureUsage.UPLOAD;
       }
+      tempDenseInputTexData.texShape = tempDenseInputTexShape;
       this.gpgpu.uploadDenseMatrixToTexture(
           this.getTexture(tempDenseInputHandle.dataId), width, height,
           values as TypedArray);

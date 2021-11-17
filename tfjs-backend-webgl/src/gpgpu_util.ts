@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {PixelData, TypedArray} from '@tensorflow/tfjs-core';
+import {env, PixelData, TypedArray} from '@tensorflow/tfjs-core';
 
 import {getGlslDifferences} from './glsl_version';
 import * as tex_util from './tex_util';
@@ -67,11 +67,19 @@ function createAndConfigureTexture(
       gl, () => gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST));
   webgl_util.callAndCheck(
       gl, () => gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST));
-  webgl_util.callAndCheck(
-      gl,
-      () => gl.texImage2D(
-          tex2d, 0, internalFormat, width, height, 0, textureFormat,
-          textureType, null));
+  if (env().getNumber('WEBGL_VERSION') === 1) {
+    webgl_util.callAndCheck(
+        gl,
+        () => gl.texImage2D(
+            tex2d, 0, internalFormat, width, height, 0, textureFormat,
+            textureType, null));
+  } else {
+    // console.log('create', width, height, internalFormat);
+    webgl_util.callAndCheck(
+        gl,
+        () => (gl as WebGL2RenderingContext)
+                  .texStorage2D(tex2d, 1, internalFormat, width, height));
+  }
   webgl_util.callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, null));
   return texture;
 }
@@ -187,12 +195,20 @@ export function uploadDenseMatrixToTexture(
   }
 
   dataForUpload.set(data);
-
-  webgl_util.callAndCheck(
-      gl,
-      () => gl.texImage2D(
-          gl.TEXTURE_2D, 0, internalFormat, width, height, 0, gl.RGBA,
-          texelDataType, dataForUpload));
+  // console.log('upload', width, height);
+  if (env().getNumber('WEBGL_VERSION') === 2) {
+    webgl_util.callAndCheck(
+        gl,
+        () => gl.texSubImage2D(
+            gl.TEXTURE_2D, 0, 0, 0, width, height, gl.RGBA, texelDataType,
+            dataForUpload));
+  } else {
+    webgl_util.callAndCheck(
+        gl,
+        () => gl.texImage2D(
+            gl.TEXTURE_2D, 0, internalFormat, width, height, 0, gl.RGBA,
+            texelDataType, dataForUpload));
+  }
 
   webgl_util.callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, null));
 }
@@ -202,19 +218,39 @@ export function uploadPixelDataToTexture(
     pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
     HTMLVideoElement|ImageBitmap) {
   webgl_util.callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, texture));
+  // console.log('upload', pixels.width, pixels.height);
   if ((pixels as PixelData).data instanceof Uint8Array) {
-    webgl_util.callAndCheck(
-        gl,
-        () => gl.texImage2D(
-            gl.TEXTURE_2D, 0, gl.RGBA, pixels.width, pixels.height, 0, gl.RGBA,
-            gl.UNSIGNED_BYTE, (pixels as PixelData).data));
+    if (env().getNumber('WEBGL_VERSION') === 2) {
+      webgl_util.callAndCheck(
+          gl,
+          () => gl.texSubImage2D(
+              gl.TEXTURE_2D, 0, 0, 0, pixels.width, pixels.height, gl.RGBA,
+              gl.UNSIGNED_BYTE, (pixels as PixelData).data));
+      gl.flush();
+    } else {
+      webgl_util.callAndCheck(
+          gl,
+          () => gl.texImage2D(
+              gl.TEXTURE_2D, 0, gl.RGBA, pixels.width, pixels.height, 0,
+              gl.RGBA, gl.UNSIGNED_BYTE, (pixels as PixelData).data));
+    }
   } else {
-    webgl_util.callAndCheck(
-        gl,
-        () => gl.texImage2D(
-            gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
-            pixels as ImageData | HTMLImageElement | HTMLCanvasElement |
-                HTMLVideoElement|ImageBitmap));
+    if (env().getNumber('WEBGL_VERSION') === 2) {
+      webgl_util.callAndCheck(
+          gl,
+          () => gl.texSubImage2D(
+              gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+              (pixels as ImageData | HTMLImageElement | HTMLCanvasElement |
+               HTMLVideoElement | ImageBitmap)));
+      gl.flush();
+    } else {
+      webgl_util.callAndCheck(
+          gl,
+          () => gl.texImage2D(
+              gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
+              pixels as ImageData | HTMLImageElement | HTMLCanvasElement |
+                  HTMLVideoElement | ImageBitmap));
+    }
   }
 
   webgl_util.callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, null));
