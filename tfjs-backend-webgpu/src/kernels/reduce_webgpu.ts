@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, DataType} from '@tensorflow/tfjs-core';
+import {backend_util} from '@tensorflow/tfjs-core';
 import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
@@ -35,7 +35,7 @@ export class ReduceProgram implements WebGPUProgram {
 
   constructor(
       reduceInfo: backend_util.ReduceInfo,
-      reduceType: 'max'|'mean'|'min'|'prod'|'sum', outputDtype: DataType) {
+      reduceType: 'max'|'mean'|'min'|'prod'|'sum') {
     this.inputShape = [reduceInfo.batchSize, reduceInfo.inSize];
     const [outputShape, ] =
         backend_util.computeOutAndReduceShapes(this.inputShape, [1]);
@@ -48,7 +48,7 @@ export class ReduceProgram implements WebGPUProgram {
         computeDispatch(this.dispatchLayout, this.outputShape, [1, 1, 1]);
 
     this.reduceType = reduceType;
-    this.shaderKey = `reduce_${reduceType}_${outputDtype}`;
+    this.shaderKey = `reduce_${reduceType}`;
   }
 
   getUserCode(): string {
