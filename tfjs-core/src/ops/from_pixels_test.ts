@@ -225,8 +225,6 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     const data2 = await imgTensor2.data();
     imgTensor1.dispose();
     imgTensor2.dispose();
-    console.log(data1);
-    console.log(data2);
     expectArraysEqual(data2, data1);
     expect(tf.memory().numTensors).toEqual(numTensorsBefore);
   });
