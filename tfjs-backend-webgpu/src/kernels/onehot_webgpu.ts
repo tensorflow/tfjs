@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -29,7 +28,7 @@ export class OneHotProgram implements WebGPUProgram {
   variableNames = ['indices'];
   uniforms = `onValue : f32; offValue : f32;`;
   workGroupSize: [number, number, number] = [256, 1, 1];
-  size: number;
+  size = true;
 
   constructor(numIndices: number, depth: number) {
     this.outputShape = [numIndices, depth];
@@ -39,15 +38,14 @@ export class OneHotProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
     this.shaderKey = 'oneHot';
-    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let coords = getOutputCoords(globalId, index);
+          let coords = getOutputCoordsWithFlatDispatchLayout(globalId, localId,
+                      numWorkgroups);
           let ind = round(getIndices(coords.x));
           setOutputFlat(index, mix(uniforms.offValue, uniforms.onValue,
                       f32(i32(ind) == coords.y)));
