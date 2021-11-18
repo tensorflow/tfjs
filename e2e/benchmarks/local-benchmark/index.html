@@ -283,7 +283,7 @@ limitations under the License.
     const parameterTable = document.querySelector('#parameters tbody');
     const modelInputsTable = document.querySelector('#modelInputs tbody');
 
-    let model, predict, chartWidth;
+    let model, tfliteModel, predict, chartWidth;
 
     async function showMsg(message) {
       if (message != null) {
@@ -387,7 +387,9 @@ limitations under the License.
       if (state.benchmark === 'custom') {
         const input = generateInputFromDef(state.inputs, model instanceof tf.GraphModel);
         try {
-          timeInfo = await timeModelInference(model, input, warmupTimes);
+          timeInfo = isTflite() ?
+              await timeInference(()=>predict(input), warmupTimes) :
+              await timeModelInference(model, input, warmupTimes);
         } finally {
           tf.dispose(input);
         }
@@ -407,7 +409,8 @@ limitations under the License.
       }
       let variableShape = false;
       const modelInputsElement = document.getElementById('modelInputs');
-      if (model['inputs'] == null) {
+      const inputs = isTflite() ? tfliteModel.inputs : model.inputs;
+      if (inputs == null) {
         modelInputsElement.style.display = 'none';
       } else {
         modelInputsElement.style.display = '';
@@ -488,16 +491,27 @@ limitations under the License.
       if (benchmark['load'] == null) {
         throw new Error(`Please provide a load method for '${state.benchmark}' model.`);
       }
+      if ((benchmark['loadTflite'] == null || benchmark['predictFuncTflite'] == null) && isTflite()) {
+        throw new Error(`Please provide a loadTflite and a predictFuncTflite method for '${state.benchmark}' model.`);
+      }
 
       await showMsg('Loading the model');
       let start = performance.now();
       const inputSize = parseFloat(state.inputSize);
-      model = await benchmark.load(inputSize, state.architecture, state.inputType);
+      if (isTflite()) {
+        if (tfliteModel) {
+          tfliteModel.modelRunner.cleanUp();
+        }
+        tfliteModel = await benchmark.loadTflite();
+      } else {
+        model = await benchmark.load(inputSize, state.architecture, state.inputType);
+      }
       state.inputs = [];
-      if (model.inputs) {
+      const inputs = isTflite() ? tfliteModel.inputs : model.inputs
+      if (inputs) {
         // construct the input state for the model
-        for (let modelInputIndex = 0; modelInputIndex < model.inputs.length; modelInputIndex++) {
-          let modelInput = model.inputs[modelInputIndex];
+        for (let modelInputIndex = 0; modelInputIndex < inputs.length; modelInputIndex++) {
+          let modelInput = inputs[modelInputIndex];
           if (modelInput.shape == null) continue;
           let shape = modelInput.shape.map(e => e == null ? -1 : e);
           state.inputs.push({
@@ -508,7 +522,7 @@ limitations under the License.
           });
         }
       }
-      predict = benchmark.predictFunc(inputSize);
+      predict = isTflite() ? benchmark.predictFuncTflite() : benchmark.predictFunc(inputSize);
       const elapsed = performance.now() - start;
 
       await showMsg(null);
@@ -549,7 +563,9 @@ limitations under the License.
       if (state.benchmark === 'custom') {
         const input = generateInputFromDef(state.inputs, model instanceof tf.GraphModel);
         try {
-          timeInfo = await timeModelInference(model, input, numRuns);
+          timeInfo = isTflite() ?
+              await timeInference(()=>predict(input), numRuns) :
+              await timeModelInference(model, input, numRuns);
         } finally {
           tf.dispose(input);
         }
@@ -568,6 +584,15 @@ limitations under the License.
     }
 
     async function profileMemoryAndKernelTime() {
+      if (isTflite()) {
+        await showMsg(null);
+        const tbody = document.querySelector('#kernels tbody');
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = '[TODO] Per-kernel stats not supported yet for TFLite models';
+        appendRow(tbody, nameSpan, '');
+        return;
+      }
+
       await showMsg('Profile memory and kernels');
       const start = performance.now();
 
@@ -659,7 +684,7 @@ limitations under the License.
     }
 
     async function runBenchmark() {
-      if (!tf.engine().backendNames().includes(state.backend)) {
+      if (!tf.engine().backendNames().includes(state.backend) && !isTflite()) {
         return;
       }
       await tf.ready();
@@ -757,6 +782,9 @@ limitations under the License.
         'https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@2',
         'https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix@2',
         'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection',
+        // Load tfjs-tflite from jsdelivr because it correctly sets the
+        // "cross-origin-resource-policy" header.
+        'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite/dist/tf-tflite.js',
         '../model_config.js',
         '../benchmark_util.js',
         './util.js',
@@ -889,7 +917,8 @@ limitations under the License.
       modelParameterFolder.open();
 
       const envFolder = gui.addFolder('Environment');
-      const backendsController = envFolder.add(state, 'backend', ['wasm', 'webgl', 'cpu', 'webgpu']);
+      const backendsController = envFolder.add(
+        state, 'backend', ['wasm', 'webgl', 'cpu', 'webgpu', 'tflite']);
       backendsController.onChange(async backend => {
         // TODO: Failed to set backend
         if (state.backend === 'webgpu' && !tf.engine().backendNames().includes(state.backend)) {
@@ -899,7 +928,31 @@ limitations under the License.
         } else {
           showMsg(null);
         }
-        await tf.setBackend(backend);
+        if (isTflite()) {
+          // Remove the "Test correctness" button which doesn't apply to tfjs-tflite.
+          correctnessButton.remove();
+          correctnessButton = null;
+
+          // Update models drop down to only show models that support tflite.
+          const tfliteBenchmarks = Object.keys(benchmarks)
+            .filter(name => benchmarks[name].loadTflite);
+          updateModelsDropdown(tfliteBenchmarks);
+          modelController.setValue(tfliteBenchmarks[0]);
+          state.isModelLoaded = false;
+          state.isModelChanged = true;
+        } else {
+          // Show the "Test correctness" button and re-populate models dropdown when changed from
+          // tflite to non-tflite backend.
+          if (correctnessButton == null) {
+            correctnessButton = gui.add(state, 'testCorrectness');
+            const tfliteBenchmarks = Object.keys(benchmarks);
+            updateModelsDropdown(tfliteBenchmarks);
+            modelController.setValue(tfliteBenchmarks[0]);
+            state.isModelLoaded = false;
+            state.isModelChanged = true;
+          }
+          await tf.setBackend(backend);
+        }
         await showFlagSettingsAndReturnTunableFlagControllers(envFolder, state.backend);
       });
       envFolder.open();
@@ -913,6 +966,15 @@ limitations under the License.
       showVersions();
       await showEnvironment();
       updateGUIFromURLState();
+    }
+
+    function isTflite() {
+      return state.backend === 'tflite';
+    }
+
+    function updateModelsDropdown(newValues) {
+      const tfliteBenchmarksHtml = newValues.map(name => `<option value="${name}">${name}</option>`);
+      modelController.domElement.children[0].innerHTML = tfliteBenchmarksHtml;
     }
 
     onPageLoad();
