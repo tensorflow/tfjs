@@ -56,7 +56,7 @@ export function getGlslDifferences(): GLSL {
     // using isnan directly.
     defineSpecialNaN = `
       bool isnan_custom(float val) {
-        return (val > 0.0 || val < 0.0) ? false : val != 0.0;
+        return val != val || !(val < 0.0 || 0.0 < val || val == 0.0);
       }
 
       bvec4 isnan_custom(vec4 val) {
@@ -91,7 +91,7 @@ export function getGlslDifferences(): GLSL {
     defineSpecialNaN = `
       #define isnan(value) isnan_custom(value)
       bool isnan_custom(float val) {
-        return (val > 0. || val < 1. || val == 0.) ? false : true;
+        return val != val || !(val < 0.0 || 0.0 < val || val == 0.0);
       }
       bvec4 isnan_custom(vec4 val) {
         return bvec4(isnan(val.x), isnan(val.y), isnan(val.z), isnan(val.w));
