@@ -53,6 +53,12 @@ let fromPixels2DContext: CanvasRenderingContext2D;
  *
  * @returns A Tensor3D with the shape `[height, width, numChannels]`.
  *
+ * Note: fromPixels can be lossy in some cases, image may result in slightly
+ * different tensor values, if rendered with different rendering engines.
+ * This means that results from different browsers, or even same browser with
+ * CPU and GPU rendering engines can be different. See discussion in details:
+ * https://github.com/tensorflow/tfjs/issues/5482
+ *
  * @doc {heading: 'Browser', namespace: 'browser', ignoreCI: true}
  */
 function fromPixels_(
@@ -154,7 +160,7 @@ function fromPixels_(
     fromPixels2DContext.canvas.width = width;
     fromPixels2DContext.canvas.height = height;
     fromPixels2DContext.drawImage(
-      pixels as HTMLVideoElement, 0, 0, width, height);
+        pixels as HTMLVideoElement, 0, 0, width, height);
     vals = fromPixels2DContext.getImageData(0, 0, width, height).data;
   }
   let values: Int32Array;
