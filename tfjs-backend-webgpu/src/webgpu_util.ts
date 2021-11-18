@@ -179,3 +179,11 @@ export interface WebGPULayout {
   bindGroupLayout: GPUBindGroupLayout;
   pipelineLayout: GPUPipelineLayout;
 }
+
+export function setDeviceLimitToFlag(limitName: string, value: number) {
+  if (!Object.keys(env().getFlags()).includes(limitName)) {
+    env().registerFlag(limitName, () => value);
+  } else {
+    env().set(limitName, value);
+  }
+}
