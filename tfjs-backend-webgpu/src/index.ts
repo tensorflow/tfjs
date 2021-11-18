@@ -37,11 +37,20 @@ if (device_util.isBrowser() && isWebGPUSupported()) {
     };
 
     const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
+    const deviceLimits: GPUSupportedLimits = adapter.limits;
     let deviceDescriptor: GPUDeviceDescriptor = {};
     const supportTimeQuery = adapter.features.has('timestamp-query');
 
     if (supportTimeQuery) {
-      deviceDescriptor = {requiredFeatures: ['timestamp-query' as const]};
+      deviceDescriptor = {
+        requiredFeatures: ['timestamp-query' as const],
+        requiredLimits: {
+          maxComputeWorkgroupsPerDimension:
+              deviceLimits.maxComputeWorkgroupsPerDimension,
+          maxComputeWorkgroupStorageSize:
+              deviceLimits.maxComputeWorkgroupStorageSize,
+        }
+      };
     } else {
       console.warn(
           `This device doesn't support timestamp-query extension. ` +
@@ -52,9 +61,6 @@ if (device_util.isBrowser() && isWebGPUSupported()) {
           `it doesn't support synchronously to read data from GPU.`);
     }
     const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
-    env().set(
-        'MAX_COMPUTE_WORKGROUPS_PER_DIMENSION',
-        device.limits.maxComputeWorkgroupsPerDimension);
     return new WebGPUBackend(device, supportTimeQuery);
   }, 3 /*priority*/);
 }
