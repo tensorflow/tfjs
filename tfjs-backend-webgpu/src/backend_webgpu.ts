@@ -141,11 +141,6 @@ export class WebGPUBackend extends KernelBackend {
 
       document.body.appendChild(this.dummyCanvas);
     }
-
-    // Set up device limits here.
-    webgpu_util.setDeviceLimitToFlag(
-        'MAX_COMPUTE_WORKGROUPS_PER_DIMENSION',
-        device.limits.maxComputeWorkgroupsPerDimension);
   }
 
   floatPrecision(): 32 {
