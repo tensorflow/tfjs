@@ -37,20 +37,19 @@ if (device_util.isBrowser() && isWebGPUSupported()) {
     };
 
     const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
-    const deviceLimits: GPUSupportedLimits = adapter.limits;
+    const adapterLimits: GPUSupportedLimits = adapter.limits;
     let deviceDescriptor: GPUDeviceDescriptor = {};
     const supportTimeQuery = adapter.features.has('timestamp-query');
+    let init: {[key: string]: number} = {};
+    const deviceLimits = Object.keys(Object.getPrototypeOf(adapterLimits))
+                             .reduce((all, name) => {
+                               all[name] = (adapterLimits as any)[name];
+                               return all;
+                             }, init);
+    deviceDescriptor.requiredLimits = deviceLimits;
 
     if (supportTimeQuery) {
-      deviceDescriptor = {
-        requiredFeatures: ['timestamp-query' as const],
-        requiredLimits: {
-          maxComputeWorkgroupsPerDimension:
-              deviceLimits.maxComputeWorkgroupsPerDimension,
-          maxComputeWorkgroupStorageSize:
-              deviceLimits.maxComputeWorkgroupStorageSize,
-        }
-      };
+      deviceDescriptor.requiredFeatures = ['timestamp-query' as const];
     } else {
       console.warn(
           `This device doesn't support timestamp-query extension. ` +
