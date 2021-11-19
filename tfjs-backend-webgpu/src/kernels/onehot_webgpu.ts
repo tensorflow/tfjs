@@ -27,7 +27,7 @@ export class OneHotProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['indices'];
   uniforms = `onValue : f32; offValue : f32;`;
-  workGroupSize: [number, number, number] = [256, 1, 1];
+  workGroupSize: [number, number, number] = [64, 1, 1];
   size = true;
 
   constructor(numIndices: number, depth: number) {
