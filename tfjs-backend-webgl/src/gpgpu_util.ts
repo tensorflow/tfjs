@@ -74,7 +74,6 @@ function createAndConfigureTexture(
             tex2d, 0, internalFormat, width, height, 0, textureFormat,
             textureType, null));
   } else {
-    // console.log('create', width, height, internalFormat);
     webgl_util.callAndCheck(
         gl,
         () => (gl as WebGL2RenderingContext)
@@ -195,7 +194,6 @@ export function uploadDenseMatrixToTexture(
   }
 
   dataForUpload.set(data);
-  // console.log('upload', width, height);
   if (env().getNumber('WEBGL_VERSION') === 2) {
     webgl_util.callAndCheck(
         gl,
@@ -218,7 +216,6 @@ export function uploadPixelDataToTexture(
     pixels: PixelData|ImageData|HTMLImageElement|HTMLCanvasElement|
     HTMLVideoElement|ImageBitmap) {
   webgl_util.callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, texture));
-  // console.log('upload', pixels.width, pixels.height);
   if ((pixels as PixelData).data instanceof Uint8Array) {
     if (env().getNumber('WEBGL_VERSION') === 2) {
       webgl_util.callAndCheck(

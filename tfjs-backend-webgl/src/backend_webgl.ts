@@ -1010,6 +1010,8 @@ export class MathBackendWebGL extends KernelBackend {
       const isByteArray =
           values instanceof Uint8Array || values instanceof Uint8ClampedArray;
 
+      // texture for float array is PhysicalTextureType.PACKED_2X2_FLOAT32, we
+      // need to make sure the upload uses the same packed size
       if (isPacked || !isByteArray) {
         [width, height] = tex_util.getPackedMatrixTextureShapeWidthHeight(
             texShape[0], texShape[1]);
@@ -1021,6 +1023,9 @@ export class MathBackendWebGL extends KernelBackend {
         program = new EncodeMatrixProgram(shapeAs3D, isByteArray);
       }
 
+      // TexShape for float array needs to be the original shape, which byte
+      // array needs to be packed size. This allow the data upload shape to be
+      // matched with texture creation logic.
       const tempDenseInputTexShape: [number, number] =
           isByteArray ? [height, width] : texShape;
       const tempDenseInputHandle =
