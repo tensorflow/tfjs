@@ -509,7 +509,7 @@ describeWithFlags('computeBytes counts bytes correctly', WEBGL2_ENVS, () => {
     bytesForTex = computeBytes(
         shapeRC, PhysicalTextureType.PACKED_4X1_UNSIGNED_BYTE, gpgpu.gl,
         gpgpu.textureConfig, true /* isPacked */);
-    expect(bytesForTex).toBe(32);
+    expect(bytesForTex).toBe(8);
 
     bytesForTex = computeBytes(
         shapeRC, PhysicalTextureType.PACKED_2X2_FLOAT32, gpgpu.gl,

@@ -131,8 +131,8 @@ describeWithFlags(
         // tslint:disable-next-line: max-line-length
         const fragmentShader = createFragmentShader(gpgpu.gl, src);
         program = gpgpu.createProgram(fragmentShader);
-        output = gpgpu.createFloat32MatrixTexture(4, 4);
-        gpgpu.uploadDenseMatrixToTexture(output, 4, 4, new Float32Array(16));
+        output = gpgpu.createPackedMatrixTexture(4, 4);
+        gpgpu.uploadDenseMatrixToTexture(output, 2, 2, new Float32Array(16));
         gpgpu.setOutputMatrixTexture(output, 4, 4);
         gpgpu.setProgram(program);
       });
