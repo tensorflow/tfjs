@@ -82,7 +82,7 @@ export function reduce(
     const uniformData = [
       {type: 'int32', data: [inSize]},
     ];
-    const program = new ReduceProgram(reduceInfo, reduceType, dtype);
+    const program = new ReduceProgram(reduceInfo, reduceType);
     const reduced =
         backend.runWebGPUProgram(program, [input], dtype, uniformData);
     toDispose.push(reduced);
