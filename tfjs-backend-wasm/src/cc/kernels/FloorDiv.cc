@@ -37,13 +37,15 @@ void FloorDiv(const size_t a_id, const size_t* a_shape_ptr,
               const DType dtype, const size_t out_id) {
   switch (dtype) {
     case DType::float32:
-      binary_f32(a_id, b_id, out_id,
-                 [](float a, float b) { return floor(a / b); });
+      binary_f32(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr, b_shape_len,
+                 out_id, [](float a, float b) { return floor(a / b); });
       break;
     case DType::int32:
-      binary_i32(a_id, b_id, out_id, [](int a, int b) {
-        return static_cast<int32_t>(floor(static_cast<float>(a) / b));
-      });
+      binary_i32(
+          a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr, b_shape_len,
+          out_id, [](int a, int b) {
+            return static_cast<int32_t>(floor(static_cast<float>(a) / b));
+          });
       break;
     default:
       util::warn(

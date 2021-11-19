@@ -30,6 +30,55 @@ std::unordered_map<tfjs::wasm::xnn_create_binary_op, xnn_operator_t> op_cache;
 namespace tfjs {
 namespace wasm {
 
+template <class I, class O>
+void binary_impl(const I* a_buf, const size_t a_size, const I* b_buf,
+                 const size_t b_size, O* out_buf, O operation(I, I),
+                 const size_t* a_shape_ptr, const size_t a_rank,
+                 const size_t* b_shape_ptr, const size_t b_rank) {
+  std::vector<size_t> a_shape(a_shape_ptr, a_shape_ptr + a_rank);
+  std::vector<size_t> b_shape(b_shape_ptr, b_shape_ptr + b_rank);
+  const std::vector<size_t> new_shape =
+      tfjs::util::assert_and_get_broadcast_shape(a_shape, b_shape);
+  const std::vector<size_t> result_strides =
+      tfjs::util::compute_strides(new_shape);
+  const size_t result_size = tfjs::util::size_from_shape(new_shape);
+  const std::vector<size_t> a_strides = tfjs::util::compute_strides(a_shape);
+  const std::vector<size_t> b_strides = tfjs::util::compute_strides(b_shape);
+  const std::vector<size_t> a_broadcast_dims =
+      tfjs::util::get_broadcast_dims(a_shape, new_shape);
+  const std::vector<size_t> b_broadcast_dims =
+      tfjs::util::get_broadcast_dims(b_shape, new_shape);
+
+  if (a_broadcast_dims.size() == 0 && b_broadcast_dims.size() == 0) {
+    for (size_t i = 0; i < result_size; ++i) {
+      out_buf[i] = operation(a_buf[i % a_size], b_buf[i % b_size]);
+    }
+  } else {
+    for (size_t i = 0; i < result_size; ++i) {
+      const std::vector<size_t> loc =
+          tfjs::util::offset_to_loc(i, result_strides);
+
+      std::vector<size_t> a_loc =
+          std::vector<size_t>(loc.end() - a_rank + 1, loc.end());
+      for (size_t j = 0; j < a_broadcast_dims.size(); ++j) {
+        const size_t d = a_broadcast_dims[j];
+        a_loc[d] = 0;
+      }
+      const size_t a_idx = tfjs::util::loc_to_offset(a_loc, a_strides);
+
+      std::vector<size_t> b_loc =
+          std::vector<size_t>(loc.end() - b_rank + 1, loc.end());
+      for (size_t k = 0; k < b_broadcast_dims.size(); ++k) {
+        const size_t d = b_broadcast_dims[k];
+        b_loc[d] = 0;
+      }
+      const size_t b_idx = tfjs::util::loc_to_offset(b_loc, b_strides);
+
+      out_buf[i] = operation(a_buf[a_idx], b_buf[b_idx]);
+    }
+  }
+}
+
 void binary_xnn_f32(const size_t a_id, const size_t* a_shape_ptr,
                     const size_t a_shape_len, const size_t b_id,
                     const size_t* b_shape_ptr, const size_t b_shape_len,

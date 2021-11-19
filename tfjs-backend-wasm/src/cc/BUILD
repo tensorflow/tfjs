@@ -18,6 +18,7 @@ BASE_LINKOPTS = [
     "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
     "-s MODULARIZE=1",
     "-s MALLOC=emmalloc",
+    "-s LLD_REPORT_UNDEFINED",
     # TODO(mattsoulanille): Mark these files as dependencies so Bazel rebuilds
     # when they change. github.com/emscripten-core/emsdk/issues/933
     "--pre-js ./tfjs-backend-wasm/src/cc/pre.js",
@@ -127,6 +128,7 @@ tfjs_cc_library(
     hdrs = ["binary.h"],
     deps = [
         ":backend",
+        ":util",
     ],
 )
 
