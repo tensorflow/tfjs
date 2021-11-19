@@ -14,7 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import {DataType, env, util} from '@tensorflow/tfjs-core';
+import {backend, DataType, util} from '@tensorflow/tfjs-core';
+import {WebGPUBackend} from './backend_webgpu';
 
 const arrayProduct = (arr: number[]) => {
   let product = 1;
@@ -44,7 +45,8 @@ export function computeDispatch(
     elementsPerThread: [number, number, number] =
         [1, 1, 1]): [number, number, number] {
   const MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE =
-      env().get('MAX_COMPUTE_WORKGROUPS_PER_DIMENSION');
+      (backend() as WebGPUBackend)
+          .device.limits.maxComputeWorkgroupsPerDimension;
   const [dispatchX, dispatchY, dispatchZ] = [
     Math.ceil(
         arrayProduct(layout.x.map(d => outputShape[d])) /
@@ -185,12 +187,4 @@ export function isWebGPUSupported(): boolean {
 export interface WebGPULayout {
   bindGroupLayout: GPUBindGroupLayout;
   pipelineLayout: GPUPipelineLayout;
-}
-
-export function setDeviceLimitToFlag(limitName: string, value: number) {
-  if (!Object.keys(env().getFlags()).includes(limitName)) {
-    env().registerFlag(limitName, () => value);
-  } else {
-    env().set(limitName, value);
-  }
 }
