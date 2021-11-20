@@ -300,17 +300,7 @@ const TEST_FILTERS: TestFilter[] = [
       'string'
     ]
   },
-  {
-    include: 'less ',
-    excludes: [
-      'broadcasting Tensor2D shapes',   // Broadcasting along outer dims not
-                                        // supported yet.
-      'broadcasting Tensor3D shapes',   // Same as above.
-      'broadcasting Tensor3D float32',  // Same as above.
-      'broadcasting Tensor4D shapes',   // Same as above.
-      'string'
-    ]
-  },
+  {include: 'less ', excludes: ['string']},
   {
     include: 'lessEqual',
     excludes: [

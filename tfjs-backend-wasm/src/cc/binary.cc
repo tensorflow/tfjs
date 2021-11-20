@@ -37,6 +37,9 @@ void binary_impl(const I* a_buf, const size_t a_size, const I* b_buf,
                  const size_t* b_shape_ptr, const size_t b_rank) {
   std::vector<size_t> a_shape(a_shape_ptr, a_shape_ptr + a_rank);
   std::vector<size_t> b_shape(b_shape_ptr, b_shape_ptr + b_rank);
+  const size_t zero = 0;
+  const size_t one = 1;
+  tfjs::util::warn("starting, %d, %d", a_buf[zero], a_buf[one]);
   const std::vector<size_t> new_shape =
       tfjs::util::assert_and_get_broadcast_shape(a_shape, b_shape);
   const std::vector<size_t> result_strides =
@@ -64,7 +67,10 @@ void binary_impl(const I* a_buf, const size_t a_size, const I* b_buf,
         const size_t d = a_broadcast_dims[j];
         a_loc[d] = 0;
       }
+      tfjs::util::log_vector(a_loc);
       const size_t a_idx = tfjs::util::loc_to_offset(a_loc, a_strides);
+      tfjs::util::warn("a_idx is %d", a_idx);
+      tfjs::util::warn("a_buf[i] is %d", a_buf[a_idx]);
 
       std::vector<size_t> b_loc =
           std::vector<size_t>(loc.end() - b_rank + 1, loc.end());
@@ -73,10 +79,96 @@ void binary_impl(const I* a_buf, const size_t a_size, const I* b_buf,
         b_loc[d] = 0;
       }
       const size_t b_idx = tfjs::util::loc_to_offset(b_loc, b_strides);
-
+      tfjs::util::warn("comparing %d vs %d", a_buf[a_idx], b_buf[b_idx]);
       out_buf[i] = operation(a_buf[a_idx], b_buf[b_idx]);
+      tfjs::util::warn("out_buf[i] is %d", out_buf[i]);
     }
   }
+}
+
+void binary_f32(const int a_id, const size_t* a_shape_ptr,
+                const size_t a_shape_len, const int b_id,
+                const size_t* b_shape_ptr, const size_t b_shape_len,
+                const size_t out_id, float operation(float, float)) {
+  auto& a_info = backend::get_tensor_info(a_id);
+  auto& b_info = backend::get_tensor_info(b_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+  binary_impl<float, float>(a_info.f32(), a_info.size, b_info.f32(),
+                            b_info.size, out_info.f32_write(), operation,
+                            a_shape_ptr, a_shape_len, b_shape_ptr, b_shape_len);
+}
+
+void binary_i32(const int a_id, const size_t* a_shape_ptr,
+                const size_t a_shape_len, const int b_id,
+                const size_t* b_shape_ptr, const size_t b_shape_len,
+                const size_t out_id, int operation(int, int)) {
+  auto& a_info = backend::get_tensor_info(a_id);
+  auto& b_info = backend::get_tensor_info(b_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+  binary_impl<int32_t, int32_t>(a_info.i32(), a_info.size, b_info.i32(),
+                                b_info.size, out_info.i32_write(), operation,
+                                a_shape_ptr, a_shape_len, b_shape_ptr,
+                                b_shape_len);
+}
+
+void binary_bool(const int a_id, const size_t* a_shape_ptr,
+                 const size_t a_shape_len, const int b_id,
+                 const size_t* b_shape_ptr, const size_t b_shape_len,
+                 const size_t out_id, bool operation(bool, bool)) {
+  auto& a_info = backend::get_tensor_info(a_id);
+  auto& b_info = backend::get_tensor_info(b_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+  binary_impl<bool, bool>(a_info.b(), a_info.size, b_info.b(), b_info.size,
+                          out_info.b_write(), operation, a_shape_ptr,
+                          a_shape_len, b_shape_ptr, b_shape_len);
+}
+
+void compare_f32(const int a_id, const size_t* a_shape_ptr,
+                 const size_t a_shape_len, const int b_id,
+                 const size_t* b_shape_ptr, const size_t b_shape_len,
+                 const int out_id, bool operation(float, float)) {
+  auto& a_info = backend::get_tensor_info(a_id);
+  auto& b_info = backend::get_tensor_info(b_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+  binary_impl<float, bool>(a_info.f32(), a_info.size, b_info.f32(), b_info.size,
+                           out_info.b_write(), operation, a_shape_ptr,
+                           a_shape_len, b_shape_ptr, b_shape_len);
+}
+
+void compare_i32(const int a_id, const size_t* a_shape_ptr,
+                 const size_t a_shape_len, const int b_id,
+                 const size_t* b_shape_ptr, const size_t b_shape_len,
+                 const int out_id, bool operation(int, int)) {
+  auto& a_info = backend::get_tensor_info(a_id);
+  auto& b_info = backend::get_tensor_info(b_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+  binary_impl<int, bool>(a_info.i32(), a_info.size, b_info.i32(), b_info.size,
+                         out_info.b_write(), operation, a_shape_ptr,
+                         a_shape_len, b_shape_ptr, b_shape_len);
+}
+
+void compare_bool(const int a_id, const size_t* a_shape_ptr,
+                  const size_t a_shape_len, const int b_id,
+                  const size_t* b_shape_ptr, const size_t b_shape_len,
+                  const int out_id, bool operation(bool, bool)) {
+  auto& a_info = backend::get_tensor_info(a_id);
+  auto& b_info = backend::get_tensor_info(b_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+  binary_impl<bool, bool>(a_info.b(), a_info.size, b_info.b(), b_info.size,
+                          out_info.b_write(), operation, a_shape_ptr,
+                          a_shape_len, b_shape_ptr, b_shape_len);
+}
+
+void logical(const int a_id, const size_t* a_shape_ptr,
+             const size_t a_shape_len, const int b_id,
+             const size_t* b_shape_ptr, const size_t b_shape_len,
+             const int out_id, bool operation(bool, bool)) {
+  auto& a_info = backend::get_tensor_info(a_id);
+  auto& b_info = backend::get_tensor_info(b_id);
+  auto& out_info = backend::get_tensor_info_out(out_id);
+  binary_impl<bool, bool>(a_info.b(), a_info.size, b_info.b(), b_info.size,
+                          out_info.b_write(), operation, a_shape_ptr,
+                          a_shape_len, b_shape_ptr, b_shape_len);
 }
 
 void binary_xnn_f32(const size_t a_id, const size_t* a_shape_ptr,

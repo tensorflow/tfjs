@@ -33,87 +33,37 @@ void binary_impl(const I* a_buf, const size_t a_size, const I* b_buf,
 void binary_f32(const int a_id, const size_t* a_shape_ptr,
                 const size_t a_shape_len, const int b_id,
                 const size_t* b_shape_ptr, const size_t b_shape_len,
-                const size_t out_id, float operation(float, float)) {
-  auto& a_info = backend::get_tensor_info(a_id);
-  auto& b_info = backend::get_tensor_info(b_id);
-  auto& out_info = backend::get_tensor_info_out(out_id);
-  binary_impl<float, float>(a_info.f32(), a_info.size, b_info.f32(),
-                            b_info.size, out_info.f32_write(), operation,
-                            a_shape_ptr, a_shape_len, b_shape_ptr, b_shape_len);
-}
+                const size_t out_id, float operation(float, float));
 
 void binary_i32(const int a_id, const size_t* a_shape_ptr,
                 const size_t a_shape_len, const int b_id,
                 const size_t* b_shape_ptr, const size_t b_shape_len,
-                const size_t out_id, int operation(int, int)) {
-  auto& a_info = backend::get_tensor_info(a_id);
-  auto& b_info = backend::get_tensor_info(b_id);
-  auto& out_info = backend::get_tensor_info_out(out_id);
-  binary_impl<int32_t, int32_t>(a_info.i32(), a_info.size, b_info.i32(),
-                                b_info.size, out_info.i32_write(), operation,
-                                a_shape_ptr, a_shape_len, b_shape_ptr,
-                                b_shape_len);
-}
+                const size_t out_id, int operation(int, int));
 
 void binary_bool(const int a_id, const size_t* a_shape_ptr,
                  const size_t a_shape_len, const int b_id,
                  const size_t* b_shape_ptr, const size_t b_shape_len,
-                 const size_t out_id, bool operation(bool, bool)) {
-  auto& a_info = backend::get_tensor_info(a_id);
-  auto& b_info = backend::get_tensor_info(b_id);
-  auto& out_info = backend::get_tensor_info_out(out_id);
-  binary_impl<bool, bool>(a_info.b(), a_info.size, b_info.b(), b_info.size,
-                          out_info.b_write(), operation, a_shape_ptr,
-                          a_shape_len, b_shape_ptr, b_shape_len);
-}
+                 const size_t out_id, bool operation(bool, bool));
 
 void compare_f32(const int a_id, const size_t* a_shape_ptr,
                  const size_t a_shape_len, const int b_id,
                  const size_t* b_shape_ptr, const size_t b_shape_len,
-                 const int out_id, bool operation(float, float)) {
-  auto& a_info = backend::get_tensor_info(a_id);
-  auto& b_info = backend::get_tensor_info(b_id);
-  auto& out_info = backend::get_tensor_info_out(out_id);
-  binary_impl<float, bool>(a_info.f32(), a_info.size, b_info.f32(), b_info.size,
-                           out_info.b_write(), operation, a_shape_ptr,
-                           a_shape_len, b_shape_ptr, b_shape_len);
-}
+                 const int out_id, bool operation(float, float));
 
 void compare_i32(const int a_id, const size_t* a_shape_ptr,
                  const size_t a_shape_len, const int b_id,
                  const size_t* b_shape_ptr, const size_t b_shape_len,
-                 const int out_id, bool operation(int, int)) {
-  auto& a_info = backend::get_tensor_info(a_id);
-  auto& b_info = backend::get_tensor_info(b_id);
-  auto& out_info = backend::get_tensor_info_out(out_id);
-  binary_impl<int, bool>(a_info.i32(), a_info.size, b_info.i32(), b_info.size,
-                         out_info.b_write(), operation, a_shape_ptr,
-                         a_shape_len, b_shape_ptr, b_shape_len);
-}
+                 const int out_id, bool operation(int, int));
 
 void compare_bool(const int a_id, const size_t* a_shape_ptr,
                   const size_t a_shape_len, const int b_id,
                   const size_t* b_shape_ptr, const size_t b_shape_len,
-                  const int out_id, bool operation(bool, bool)) {
-  auto& a_info = backend::get_tensor_info(a_id);
-  auto& b_info = backend::get_tensor_info(b_id);
-  auto& out_info = backend::get_tensor_info_out(out_id);
-  binary_impl<bool, bool>(a_info.b(), a_info.size, b_info.b(), b_info.size,
-                          out_info.b_write(), operation, a_shape_ptr,
-                          a_shape_len, b_shape_ptr, b_shape_len);
-}
+                  const int out_id, bool operation(bool, bool));
 
 void logical(const int a_id, const size_t* a_shape_ptr,
              const size_t a_shape_len, const int b_id,
              const size_t* b_shape_ptr, const size_t b_shape_len,
-             const int out_id, bool operation(bool, bool)) {
-  auto& a_info = backend::get_tensor_info(a_id);
-  auto& b_info = backend::get_tensor_info(b_id);
-  auto& out_info = backend::get_tensor_info_out(out_id);
-  binary_impl<bool, bool>(a_info.b(), a_info.size, b_info.b(), b_info.size,
-                          out_info.b_write(), operation, a_shape_ptr,
-                          a_shape_len, b_shape_ptr, b_shape_len);
-}
+             const int out_id, bool operation(bool, bool));
 
 typedef xnn_status (*xnn_create_binary_op)(float, float, uint32_t,
                                            xnn_operator_t*);
