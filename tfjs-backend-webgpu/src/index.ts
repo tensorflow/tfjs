@@ -21,8 +21,9 @@ import './register_all_kernels';
 import {device_util, env, registerBackend} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from './backend_webgpu';
+import {setDeviceLimits} from './device_limits';
 import * as webgpu from './webgpu';
-import {isWebGPUSupported} from './webgpu_util';
+import {isWebGPUSupported, requiredLimitsNames} from './webgpu_util';
 
 if (device_util.isBrowser() && isWebGPUSupported()) {
   registerBackend('webgpu', async () => {
@@ -37,13 +38,14 @@ if (device_util.isBrowser() && isWebGPUSupported()) {
     };
 
     const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
-    const adapterLimits: GPUSupportedLimits = adapter.limits;
-    let deviceDescriptor: GPUDeviceDescriptor = {};
+    const adapterLimits = adapter.limits;
+    const deviceDescriptor: GPUDeviceDescriptor = {};
     const supportTimeQuery = adapter.features.has('timestamp-query');
-    let init: {[key: string]: number} = {};
+    const init: {[key: string]: number} = {};
     const deviceLimits = Object.keys(Object.getPrototypeOf(adapterLimits))
                              .reduce((all, name) => {
-                               all[name] = (adapterLimits as any)[name];
+                               all[name] =
+                                   adapterLimits[name as requiredLimitsNames];
                                return all;
                              }, init);
     deviceDescriptor.requiredLimits = deviceLimits;
@@ -60,6 +62,7 @@ if (device_util.isBrowser() && isWebGPUSupported()) {
           `it doesn't support synchronously to read data from GPU.`);
     }
     const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
+    setDeviceLimits(device.limits);
     return new WebGPUBackend(device, supportTimeQuery);
   }, 3 /*priority*/);
 }
