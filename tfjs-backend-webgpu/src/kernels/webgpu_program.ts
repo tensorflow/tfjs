@@ -69,10 +69,8 @@ export const compileProgram =
      pipelineLayout: GPUPipelineLayout,
      inputsData: shader_preprocessor.InputInfo[], output: TensorInfo,
      isFromPixel = false): GPUComputePipeline => {
-      const outputData = {dtype: output.dtype, shape: output.shape};
-
       const source = shader_preprocessor.makeShader(
-          inputsData, outputData, program, isFromPixel);
+          inputsData, output.shape, program, isFromPixel);
       const module = device.createShaderModule(
           {code: source, label: program.constructor.name});
       const pipeline = device.createComputePipeline({
@@ -85,11 +83,11 @@ export const compileProgram =
     };
 
 export function makeShaderKey<R extends Rank>(
-    program: WebGPUProgram, shapes: Array<ShapeMap[R]>, types: string[],
-    broadcastDimsKey = '', inputShapesEqualsOutShape = ''): string {
+    program: WebGPUProgram, shapes: Array<ShapeMap[R]>, broadcastDimsKey = '',
+    inputShapesEqualsOutShape = ''): string {
   const key = program.shaderKey + '_' +
       (program.workGroupSize ? program.workGroupSize.join(',') : '') +
-      shapes.map(shape => shape.length).join(',') + types.join(',') +
+      shapes.map(shape => shape.length).join(',') +
       program.variableNames.join(',') + broadcastDimsKey +
       inputShapesEqualsOutShape;
   return key;

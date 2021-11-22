@@ -20,7 +20,12 @@ import {FromPixelsProgram} from './from_pixels_webgpu';
 
 export class FromPixelsImportProgram extends FromPixelsProgram {
   layout: WebGPULayout = null;
-  useImport = true;
+
+  constructor() {
+    super();
+    this.shaderKey = 'fromPixelsImport';
+    this.useImport = true;
+  }
 
   getUserCode(): string {
     return this.makeFromPixelsSource();

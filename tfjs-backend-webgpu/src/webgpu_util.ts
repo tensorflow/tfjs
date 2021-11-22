@@ -65,14 +65,16 @@ export function computeDispatch(
     return [dispatchX, dispatchY, dispatchZ];
   }
 
-  util.assert(dispatchX > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
-      layout.y === undefined && layout.z === undefined, () =>
-      'Dispatch size exceeds WebGPU limits in Y or Z dimension.');
+  util.assert(
+      dispatchX > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
+          layout.y === undefined && layout.z === undefined,
+      () => 'Dispatch size exceeds WebGPU limits in Y or Z dimension.');
 
   let dispatchAverage = Math.ceil(Math.sqrt(dispatchX));
   if (dispatchAverage > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
     dispatchAverage = Math.ceil(Math.cbrt(dispatchX));
-    util.assert(dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE,
+    util.assert(
+        dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE,
         () => 'Total dispatch size exceeds WebGPU maximum.');
     return [dispatchAverage, dispatchAverage, dispatchAverage];
   } else {
@@ -159,9 +161,9 @@ export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
   if (dtype === 'float32') {
     return new Float32Array(data);
   } else if (dtype === 'int32') {
-    return new Int32Array(data);
+    return Int32Array.from(new Float32Array(data));
   } else if (dtype === 'bool' || dtype === 'string') {
-    const dataAsInt32Array = new Int32Array(data);
+    const dataAsInt32Array = new Float32Array(data);
     const boolData = new ArrayBuffer(dataAsInt32Array.length);
     const dataAsTypedArray = new Uint8Array(boolData);
     for (let i = 0; i < dataAsInt32Array.length; i++) {

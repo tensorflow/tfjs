@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-import {DataType} from '@tensorflow/tfjs-core';
-
 import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
@@ -34,21 +32,18 @@ export class ScatterOptimizedProgram implements WebGPUProgram {
   indicesRank: number;
   sliceDimGreaterThanOne: boolean;
   atomic = true;
-  type: DataType;
 
   constructor(
       flattenXShape: number[], sliceDim: number, indicesRank: number,
-      updatesRank: number, strides: number[], shape: number[],
-      outputDtype: DataType) {
+      updatesRank: number, strides: number[], shape: number[]) {
     this.outputShape = shape;
-    this.type = outputDtype;
     this.dispatchLayout = flatDispatchLayout(flattenXShape);
     // Dispatching based on |updates| shape instead of output shape.
     this.dispatch =
         computeDispatch(this.dispatchLayout, flattenXShape, this.workGroupSize);
     this.sliceDimGreaterThanOne = sliceDim > 1;
-    this.shaderKey = `scatter_${indicesRank}_${updatesRank}_${
-        this.sliceDimGreaterThanOne}_${outputDtype}`;
+    this.shaderKey =
+        `scatter_${indicesRank}_${updatesRank}_${this.sliceDimGreaterThanOne}`;
     const stridesType = getCoordsDataType(strides.length);
     this.uniforms = `sliceDim : i32; strides: ${stridesType}; size: i32;`;
     this.updatesRank = updatesRank;
@@ -93,9 +88,7 @@ export class ScatterOptimizedProgram implements WebGPUProgram {
 
     // atomicAdd only supports uint/int type. For float, we use
     // atomicCompareExchangeWeak to simulate.
-    const atomicAddSnippet = this.type === 'int32' ?
-        `atomicAdd(&(result.numbers[flatIndex]), i32(updateValue));` :
-        `
+    const atomicAddSnippet = `
      var assumed = atomicLoad(&(result.numbers[flatIndex]));
      var success = 0;
      for (; success == 0;) {
