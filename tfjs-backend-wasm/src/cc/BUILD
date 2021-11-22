@@ -22,7 +22,6 @@ BASE_LINKOPTS = [
     # when they change. github.com/emscripten-core/emsdk/issues/933
     "--pre-js ./tfjs-backend-wasm/src/cc/pre.js",
     "--post-js ./tfjs-backend-wasm/src/cc/post.js",
-    "--verbose_failures",
 ]
 
 # This build rule generates tfjs-backend-wasm.{js,wasm}.

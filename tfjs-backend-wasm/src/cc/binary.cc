@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <limits>
 #include <unordered_map>
+#include <vector>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/util.h"

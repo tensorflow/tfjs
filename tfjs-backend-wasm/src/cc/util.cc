@@ -51,9 +51,9 @@ const std::vector<size_t> assert_and_get_broadcast_shape(
   std::vector<size_t> result = {};
   const size_t l = std::max(shape_a.size(), shape_b.size());
   for (size_t i = 0; i < l; ++i) {
-    const int a_idx = int(shape_a.size()) - i - 1;
+    const int a_idx = static_cast<int32_t>(shape_a.size()) - i - 1;
     const size_t a = (a_idx < 0) ? 1 : shape_a[a_idx];
-    const int b_idx = int(shape_b.size()) - i - 1;
+    const int b_idx = static_cast<int32_t>(shape_b.size()) - i - 1;
     const size_t b = b_idx < 0 ? 1 : shape_b[b_idx];
     if (a == 1) {
       result.push_back(b);
