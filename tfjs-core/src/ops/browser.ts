@@ -53,10 +53,11 @@ let fromPixels2DContext: CanvasRenderingContext2D;
  *
  * @returns A Tensor3D with the shape `[height, width, numChannels]`.
  *
- * Note: fromPixels can be lossy in some cases, image may result in slightly
- * different tensor values, if rendered with different rendering engines.
- * This means that results from different browsers, or even same browser with
- * CPU and GPU rendering engines can be different. See discussion in details:
+ * Note: fromPixels can be lossy in some cases, same image may result in
+ * slightly different tensor values, if rendered by different rendering
+ * engines. This means that results from different browsers, or even same
+ * browser with CPU and GPU rendering engines can be different. See discussion
+ * in details:
  * https://github.com/tensorflow/tfjs/issues/5482
  *
  * @doc {heading: 'Browser', namespace: 'browser', ignoreCI: true}
