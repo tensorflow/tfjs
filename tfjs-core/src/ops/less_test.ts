@@ -152,7 +152,7 @@ describeWithFlags('less', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expectArraysClose(await res.data(), [0, 0, 0, 0]);
   });
-  fit('broadcasting Tensor2D shapes - int32', async () => {
+  it('broadcasting Tensor2D shapes - int32', async () => {
     const a = tf.tensor2d([[3], [7]], [2, 1], 'int32');
     const b = tf.tensor2d([[2, 3, 4], [7, 8, 9]], [2, 3], 'int32');
     const res = tf.less(a, b);
@@ -167,8 +167,6 @@ describeWithFlags('less', ALL_ENVS, () => {
     const res = tf.less(a, b);
 
     expect(res.dtype).toBe('bool');
-    console.log(res.shape);
-    console.log(res.dataSync());
     expectArraysClose(await res.data(), [0, 0, 1, 0, 1, 1]);
   });
   it('NaNs in Tensor2D - float32', async () => {

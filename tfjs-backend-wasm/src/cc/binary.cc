@@ -39,7 +39,6 @@ void binary_impl(const I* a_buf, const size_t a_size, const I* b_buf,
   std::vector<size_t> b_shape(b_shape_ptr, b_shape_ptr + b_rank);
   const size_t zero = 0;
   const size_t one = 1;
-  tfjs::util::warn("starting, %d, %d", a_buf[zero], a_buf[one]);
   const std::vector<size_t> new_shape =
       tfjs::util::assert_and_get_broadcast_shape(a_shape, b_shape);
   const std::vector<size_t> result_strides =
@@ -62,26 +61,21 @@ void binary_impl(const I* a_buf, const size_t a_size, const I* b_buf,
           tfjs::util::offset_to_loc(i, result_strides);
 
       std::vector<size_t> a_loc =
-          std::vector<size_t>(loc.end() - a_rank + 1, loc.end());
+          std::vector<size_t>(loc.end() - a_rank, loc.end());
       for (size_t j = 0; j < a_broadcast_dims.size(); ++j) {
         const size_t d = a_broadcast_dims[j];
         a_loc[d] = 0;
       }
-      tfjs::util::log_vector(a_loc);
       const size_t a_idx = tfjs::util::loc_to_offset(a_loc, a_strides);
-      tfjs::util::warn("a_idx is %d", a_idx);
-      tfjs::util::warn("a_buf[i] is %d", a_buf[a_idx]);
 
       std::vector<size_t> b_loc =
-          std::vector<size_t>(loc.end() - b_rank + 1, loc.end());
+          std::vector<size_t>(loc.end() - b_rank, loc.end());
       for (size_t k = 0; k < b_broadcast_dims.size(); ++k) {
         const size_t d = b_broadcast_dims[k];
         b_loc[d] = 0;
       }
       const size_t b_idx = tfjs::util::loc_to_offset(b_loc, b_strides);
-      tfjs::util::warn("comparing %d vs %d", a_buf[a_idx], b_buf[b_idx]);
       out_buf[i] = operation(a_buf[a_idx], b_buf[b_idx]);
-      tfjs::util::warn("out_buf[i] is %d", out_buf[i]);
     }
   }
 }
