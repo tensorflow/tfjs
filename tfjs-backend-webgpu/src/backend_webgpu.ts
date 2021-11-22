@@ -261,7 +261,7 @@ export class WebGPUBackend extends KernelBackend {
 
     // bool is stored in Uint8Array, converted it to Int32Array.
     if (dtype === 'bool' && values instanceof Uint8Array) {
-      values = Int32Array.from(values);
+      values = Float32Array.from(values);
     }
 
     this.tensorMap.set(dataId, {
@@ -562,8 +562,13 @@ export class WebGPUBackend extends KernelBackend {
     info.bufferInfo.buffer = this.acquireBuffer(info.bufferInfo.byteSize);
 
     if (info.values) {
+      let gpuValues = info.values;
+      if (info.values instanceof Int32Array) {
+        gpuValues = Float32Array.from(info.values);
+      }
+
       this.queue.writeBuffer(
-          info.bufferInfo.buffer, 0, info.values as ArrayBuffer);
+          info.bufferInfo.buffer, 0, gpuValues as ArrayBuffer);
       // TODO: WebGPU doesn't support read data synchronously from GPU to CPU.
       // So it will report error when switching backend from WebGPU to others.
       // There are two situations: 1) swithcing the backend after running a
@@ -753,16 +758,18 @@ export class WebGPUBackend extends KernelBackend {
             `parts.`);
       }
       this.uploadToGPU(input.dataId);
-
       return {
         // Returning dtype from tensorMap because it reflects dtype
         // of underlying buffer, rather than abstract dtype.
-        dtype: this.tensorMap.get(input.dataId).dtype,
+        dtype: 'float32' as DataType,
         shape: input.shape,
         name: program.variableNames[i]
       };
     });
-    const bufferTypes = inputsData.map(d => d.dtype).concat(output.dtype);
+    let bufferTypes: string[] = [];
+    if (program.atomic) {
+      bufferTypes = inputsData.map(d => d.dtype).concat(output.dtype);
+    }
     const broadcastDims = inputsData.map(
         d => backend_util.getBroadcastDims(d.shape, output.shape));
     const inputShapesEqualsOutShape =

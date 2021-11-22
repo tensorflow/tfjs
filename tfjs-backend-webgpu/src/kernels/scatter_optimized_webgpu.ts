@@ -41,7 +41,7 @@ export class ScatterOptimizedProgram implements WebGPUProgram {
       updatesRank: number, strides: number[], shape: number[],
       outputDtype: DataType) {
     this.outputShape = shape;
-    this.type = outputDtype;
+    this.type = 'float32';//outputDtype;
     this.dispatchLayout = flatDispatchLayout(flattenXShape);
     // Dispatching based on |updates| shape instead of output shape.
     this.dispatch =

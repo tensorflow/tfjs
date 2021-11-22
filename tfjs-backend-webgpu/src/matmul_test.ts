@@ -20,6 +20,56 @@ import {test_util} from '@tensorflow/tfjs-core';
 import {describeWebGPU} from './test_util';
 
 describeWebGPU('matmul', () => {
+  it('f3232scatternd should work for 2d', async () => {
+    const indices = tf.tensor1d([0, 4, 2], 'int32');
+    const updates = tf.tensor2d(
+        [100, 101, 102, 777, 778, 779, 1000, 1001, 1002], [3, 3], 'int32');
+    const shape = [5, 3];
+    const result = tf.scatterND(indices, updates, shape);
+    // Below line will make the case pass.
+    // console.log(await result.data());
+    expect(result.shape).toEqual(shape);
+    expect(result.dtype).toEqual(updates.dtype);
+    const add2 = tf.tensor2d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], [5, 3], 'int32');
+
+    const result2 = add2.add(await result);
+    console.log(await result2.data());
+
+    test_util.expectArraysClose(
+        await result2.data(),
+        [101, 103, 105, 4, 5, 6, 1007, 1009, 1011, 10, 11, 12, 790, 792, 794]);
+
+    test_util.expectArraysClose(
+        await result.data(),
+        [100, 101, 102, 0, 0, 0, 1000, 1001, 1002, 0, 0, 0, 777, 778, 779]);
+  });
+
+  it('f3232scatterndfloat should work for 2d', async () => {
+    const indices = tf.tensor1d([0, 4, 2], 'int32');
+    const updates = tf.tensor2d(
+        [100, 101, 102, 777, 778, 779, 1000, 1001, 1002], [3, 3], 'float32');
+    const shape = [5, 3];
+    const result = tf.scatterND(indices, updates, shape);
+    // Below line will make the case pass.
+    // console.log(await result.data());
+    expect(result.shape).toEqual(shape);
+    expect(result.dtype).toEqual(updates.dtype);
+    const add2 = tf.tensor2d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], [5, 3], 'float32');
+
+    const result2 = add2.add(await result);
+    console.log(await result2.data());
+
+    test_util.expectArraysClose(
+        await result2.data(),
+        [101, 103, 105, 4, 5, 6, 1007, 1009, 1011, 10, 11, 12, 790, 792, 794]);
+
+    test_util.expectArraysClose(
+        await result.data(),
+        [100, 101, 102, 0, 0, 0, 1000, 1001, 1002, 0, 0, 0, 777, 778, 779]);
+  });
+
   it('it works in delayed mode.', async () => {
     const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
     tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 15);
