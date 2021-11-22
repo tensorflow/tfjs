@@ -38,8 +38,6 @@ void binary_impl(const I* a_buf, const size_t a_size, const I* b_buf,
                  const size_t* b_shape_ptr, const size_t b_rank) {
   std::vector<size_t> a_shape(a_shape_ptr, a_shape_ptr + a_rank);
   std::vector<size_t> b_shape(b_shape_ptr, b_shape_ptr + b_rank);
-  const size_t zero = 0;
-  const size_t one = 1;
   const std::vector<size_t> new_shape =
       tfjs::util::assert_and_get_broadcast_shape(a_shape, b_shape);
   const std::vector<size_t> result_strides =
