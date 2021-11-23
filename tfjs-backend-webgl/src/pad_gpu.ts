@@ -16,7 +16,7 @@
  */
 
 import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
-import {getCoordsDataType, UniformType} from './shader_compiler';
+import {getCoordsDataType, getUniformInfoFromShape, UniformType} from './shader_compiler';
 
 export class PadProgram implements GPGPUProgram {
   variableNames = ['x'];
@@ -25,7 +25,9 @@ export class PadProgram implements GPGPUProgram {
   customUniforms = [{name: 'value', type: 'float' as UniformType}];
   enableShapeUniforms: boolean;
 
-  constructor(xShape: number[], paddings: Array<[number, number]>) {
+  constructor(
+      xShape: number[], paddings: Array<[number, number]>,
+      xTexShape: number[]) {
     this.outputShape = paddings.map(
         (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
@@ -36,10 +38,12 @@ export class PadProgram implements GPGPUProgram {
       this.customUniforms.push({name: `pad${i}`, type: 'ivec2' as UniformType});
     });
     const start = paddings.map((_, i) => `pad${i}[0]`).join(',');
+    // If the |xShape| is squeezed, we can't use it to calculate |end|.
+    const {useSqueezeShape} = getUniformInfoFromShape(false, xShape, xTexShape);
     const end = paddings
                     .map(
                         (_, i) => `pad${i}[0] + ${
-                            this.enableShapeUniforms ?
+                            this.enableShapeUniforms && !useSqueezeShape ?
                                 `xShape${rank > 1 ? `[${i}]` : ''}` :
                                 xShape[i]}`)
                     .join(',');
