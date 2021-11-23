@@ -95,9 +95,22 @@ export function concatImpl(
   }
 
   const {tensors2D, outShape} = computeTensors2D(inputs, axis, backend);
-  const program =
-      new ConcatProgram((tensors2D).map(t => t.shape as [number, number]));
-  const res = backend.runWebGPUProgram(program, tensors2D, tensors2D[0].dtype);
+  const shapes = (tensors2D).map(t => t.shape as [number, number]);
+  const program = new ConcatProgram(shapes);
+
+  const uniformData: Array<{type: string; data: number[]}> = [];
+  const offsets: number[] = new Array(shapes.length - 1);
+  if (offsets.length > 0) {
+    offsets[0] = shapes[0][1];
+    uniformData.push({type: 'int32', data: [offsets[0]]});
+    for (let i = 1; i < offsets.length; i++) {
+      offsets[i] = offsets[i - 1] + shapes[i][1];
+      uniformData.push({type: 'int32', data: [offsets[i]]});
+    }
+  }
+
+  const res = backend.runWebGPUProgram(
+      program, tensors2D, tensors2D[0].dtype, uniformData);
   tensors2D.forEach(r => backend.disposeData(r.dataId));
 
   const reshapedResult =
