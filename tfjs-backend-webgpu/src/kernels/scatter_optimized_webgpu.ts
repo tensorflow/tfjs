@@ -94,7 +94,7 @@ export class ScatterOptimizedProgram implements WebGPUProgram {
     // atomicAdd only supports uint/int type. For float, we use
     // atomicCompareExchangeWeak to simulate.
     const atomicAddSnippet = this.type === 'int32' ?
-        `ignore(atomicAdd(&(result.numbers[flatIndex]), i32(updateValue)));` :
+        `atomicAdd(&(result.numbers[flatIndex]), i32(updateValue));` :
         `
      var assumed = atomicLoad(&(result.numbers[flatIndex]));
      var success = 0;
