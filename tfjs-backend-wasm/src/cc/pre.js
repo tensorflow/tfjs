@@ -5,7 +5,7 @@
 // removed. See post.js for the other half of the logic.
 
 var beforeListeners;
-if (process && process.listeners) {
+if (typeof process !== 'undefined' && process.listeners) {
   beforeListeners = {
     uncaughtException: process.listeners('uncaughtException'),
     unhandledRejection: process.listeners('unhandledRejection'),
