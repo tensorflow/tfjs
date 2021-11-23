@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 import {getChannels, getSourceCoords} from './packing_util';
 import {getCoordsDataType} from './shader_compiler';
 
@@ -25,9 +25,11 @@ export class UnpackProgram implements GPGPUProgram {
   packedOutput = false;
   outputShape: number[];
   userCode: string;
+  enableShapeUniforms: boolean;
 
   constructor(outputShape: number[]) {
     this.outputShape = outputShape;
+    this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
     const rank = outputShape.length;
 
     const channels = getChannels('rc', rank);
