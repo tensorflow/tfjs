@@ -62,9 +62,9 @@ export class ConcatProgram implements WebGPUProgram {
                 i - 1})); }`);
       }
       const lastIndex = this.offsetLength;
-      const lastShift = this.offsetLength - 1;
+      const lastShiftIndex = this.offsetLength - 1;
       snippets.push(`else { setOutput(coords.x, coords.y, getT${
-          lastIndex}(yR, yC - uniforms.offset${lastShift})); }`);
+          lastIndex}(yR, yC - uniforms.offset${lastShiftIndex})); }`);
     } else {
       snippets.push(`setOutput(coords.x, coords.y, getT0(yR, yC));`);
     }
