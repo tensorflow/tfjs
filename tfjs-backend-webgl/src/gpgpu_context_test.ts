@@ -24,6 +24,7 @@ import * as canvas_util from './canvas_util';
 import {getGlslDifferences} from './glsl_version';
 import {GPGPUContext, linearSearchLastTrue} from './gpgpu_context';
 import * as tex_util from './tex_util';
+import {createFragmentShader} from './webgl_util';
 
 const DOWNLOAD_FLOAT_ENVS = {
   flags: {'WEBGL_DOWNLOAD_FLOAT_ENABLED': true},
@@ -127,9 +128,11 @@ describeWithFlags(
             ${glsl.output} = vec4(2,0,0,0);
           }
         `;
-        program = gpgpu.createProgram(src);
-        output = gpgpu.createFloat32MatrixTexture(4, 4);
-        gpgpu.uploadDenseMatrixToTexture(output, 4, 4, new Float32Array(16));
+        // tslint:disable-next-line: max-line-length
+        const fragmentShader = createFragmentShader(gpgpu.gl, src);
+        program = gpgpu.createProgram(fragmentShader);
+        output = gpgpu.createPackedMatrixTexture(4, 4);
+        gpgpu.uploadDenseMatrixToTexture(output, 2, 2, new Float32Array(16));
         gpgpu.setOutputMatrixTexture(output, 4, 4);
         gpgpu.setProgram(program);
       });
@@ -176,7 +179,8 @@ describeWithFlags('GPGPUContext', DOWNLOAD_FLOAT_ENVS, () => {
       precision highp float;
       void main() {}
     `;
-    const program = gpgpu.createProgram(src);
+    const fragmentShader = createFragmentShader(gpgpu.gl, src);
+    const program = gpgpu.createProgram(fragmentShader);
     const result = gpgpu.createFloat32MatrixTexture(1, 1);
     gpgpu.setOutputMatrixTexture(result, 1, 1);
     gpgpu.setProgram(program);

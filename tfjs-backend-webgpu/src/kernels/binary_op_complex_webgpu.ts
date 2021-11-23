@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {backend_util, util} from '@tensorflow/tfjs-core';
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {backend_util} from '@tensorflow/tfjs-core';
+import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
@@ -30,7 +30,7 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [128, 1, 1];
   op: BinaryOpType;
-  size: number;
+  size = true;
 
   constructor(op: BinaryOpType, aShape: number[], bShape: number[]) {
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
@@ -40,7 +40,6 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
 
     this.shaderKey = `binaryOpComplex_${op}`;
     this.op = op;
-    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
@@ -51,13 +50,12 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
         ${opStr}
       }
 
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
         if(index < uniforms.size) {
-          let areal = getARealAtOutCoordsByGlobalId(globalId, index);
-          let aimag = getAImagAtOutCoordsByGlobalId(globalId, index);
-          let breal = getBRealAtOutCoordsByGlobalId(globalId, index);
-          let bimag = getBImagAtOutCoordsByGlobalId(globalId, index);
+          let areal = getARealAtOutCoordsByGlobalIndex(index);
+          let aimag = getAImagAtOutCoordsByGlobalIndex(index);
+          let breal = getBRealAtOutCoordsByGlobalIndex(index);
+          let bimag = getBImagAtOutCoordsByGlobalIndex(index);
           setOutputFlat(index, binaryOpComplex(areal, aimag, breal, bimag));
         }
       }

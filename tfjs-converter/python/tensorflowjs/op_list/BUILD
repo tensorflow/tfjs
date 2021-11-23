@@ -13,6 +13,10 @@
 # limitations under the License.
 # =============================================================================
 
+package(
+    licenses = ["notice"],  # Apache 2.0
+)
+
 filegroup(
     name = "ops",
     srcs = glob(["*.json"]),

@@ -1028,5 +1028,31 @@ class ConvertTest(tf.test.TestCase):
       model_json = json.load(f)
     self.assertEqual(metadata_json, model_json['userDefinedMetadata']['key'])
 
+  def test_convert_keras_model_to_saved_model(self):
+    keras_model = tf.keras.Sequential(
+        [tf.keras.layers.Dense(1, input_shape=[2])])
+
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tf_saved_model_conversion_v2.convert_keras_model_to_graph_model(
+        keras_model, tfjs_path)
+
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertTrue(model_json['modelTopology'])
+    self.assertIsNot(model_json['modelTopology']['versions'], None)
+    signature = model_json['signature']
+    self.assertIsNot(signature, None)
+    self.assertIsNot(signature['inputs'], None)
+    self.assertIsNot(signature['outputs'], None)
+
+    weights_manifest = model_json['weightsManifest']
+    self.assertCountEqual(weights_manifest[0]['paths'],
+                          ['group1-shard1of1.bin'])
+    self.assertIn('weights', weights_manifest[0])
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
 if __name__ == '__main__':
   tf.test.main()

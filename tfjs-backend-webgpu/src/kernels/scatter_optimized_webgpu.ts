@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {DataType, util} from '@tensorflow/tfjs-core';
+import {DataType} from '@tensorflow/tfjs-core';
 
-import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -30,7 +30,6 @@ export class ScatterOptimizedProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
-  size: number;
   updatesRank: number;
   indicesRank: number;
   sliceDimGreaterThanOne: boolean;
@@ -50,9 +49,8 @@ export class ScatterOptimizedProgram implements WebGPUProgram {
     this.sliceDimGreaterThanOne = sliceDim > 1;
     this.shaderKey = `scatter_${indicesRank}_${updatesRank}_${
         this.sliceDimGreaterThanOne}_${outputDtype}`;
-    this.size = util.sizeFromShape(flattenXShape);
     const stridesType = getCoordsDataType(strides.length);
-    this.uniforms = `sliceDim : i32; strides: ${stridesType};`;
+    this.uniforms = `sliceDim : i32; strides: ${stridesType}; size: i32;`;
     this.updatesRank = updatesRank;
     this.indicesRank = indicesRank;
   }
@@ -96,23 +94,23 @@ export class ScatterOptimizedProgram implements WebGPUProgram {
     // atomicAdd only supports uint/int type. For float, we use
     // atomicCompareExchangeWeak to simulate.
     const atomicAddSnippet = this.type === 'int32' ?
-        `ignore(atomicAdd(&(result.numbers[flatIndex]), i32(updateValue)));` :
+        `atomicAdd(&(result.numbers[flatIndex]), i32(updateValue));` :
         `
-     var oldI32 = atomicLoad(&(result.numbers[flatIndex]));
-     var assumed = oldI32 - 1;
-     for (; assumed != oldI32;) {
-       assumed = oldI32;
+     var assumed = atomicLoad(&(result.numbers[flatIndex]));
+     var success = 0;
+     for (; success == 0;) {
        let new = bitcast<f32>(assumed) + updateValue;
        let newI32 = bitcast<i32>(new);
-       oldI32 = atomicCompareExchangeWeak(&(result.numbers[flatIndex]), assumed, newI32)[0];
+       let resValue = atomicCompareExchangeWeak(&(result.numbers[flatIndex]), assumed, newI32);
+       assumed = resValue[0];
+       success = resValue[1];
      }
      `;
 
     const userCode = `
     ${getUpdatesCoordsFromFlatIndex}
 
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
+      ${getMainHeaderAndGlobalIndexString()}
 
         if (index < uniforms.size) {
           let coords = getUpdatesCoordsFromFlatIndex(index);

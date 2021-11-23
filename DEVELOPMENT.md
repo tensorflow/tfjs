@@ -94,6 +94,37 @@ To install it locally, run `yarn add ./tensorflow-tf-core-VERSION.tgz`.
 
 Looking to contribute, and don't know where to start? Check out our "stat:contributions welcome" [issues](https://github.com/tensorflow/tfjs/labels/stat%3Acontributions%20welcome).
 
+#### Developing on Windows
+Developing on Windows is supported through the [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/about) running Debian.
+
+1. Install WSL2 (if necessary) by following [Microsoft's instructions](https://docs.microsoft.com/en-us/windows/wsl/install). WSL1 has not been tested, but it may work.
+2. Install Debian in WSL2. [Debian is available from the Microsoft store](https://www.microsoft.com/en-us/p/debian/9msvkqc78pk6?activetab=pivot:overviewtab).
+3. Open Debian and install node and yarn with 
+`sudo apt update && sudo apt install nodejs && npm i -g yarn`. 
+If you need to reset the root debian password, you can get a root shell from command prompt with `wsl -u root`.
+4. Make sure Chrome is installed on Windows. Then, find the path to `chrome.exe`. It's probably `C:\Program Files\Google\Chrome\Application\chrome.exe`.
+5. Run the following to set up the `CHROME_BIN` variable, clone the `tfjs` repo, and create a custom `.bazelrc.user` config for WSL. If your `chrome.exe` is not located at the above path, you will need to change it to the correct path in the command below.
+```bash
+# Add yarn bin to the path
+echo "export PATH=$PATH:~/.yarn/bin/" >> ~/.bashrc &&
+# Set CHROME_BIN. Change this if your CHROME_BIN has a different path.
+echo "export CHROME_BIN=/mnt/c/Program\ Files/Google/Chrome/Application/chrome.exe" >> ~/.bashrc &&
+source ~/.bashrc &&
+# Clone tfjs.
+git clone https://github.com/tensorflow/tfjs.git &&
+cd tfjs &&
+# Create the .bazelrc.user file for WSL.
+echo "# Pass necessary WSL variables for running in Windows Subsystem for Linux.
+# WSLENV and WSL_DISTRO_NAME are build-in variables that are needed for running
+# the 'wslpath' command, which Karma uses to resolve file paths.
+# DISPLAY=:0 is passed to the Chrome process to make it launch in a window
+# since running Chrome headlessly from WSL does not seem to work. If you get
+# this working, please send a PR updating these docs (or open an issue :).
+run --test_env=CHROME_BIN --test_env=WSLENV --test_env=WSL_DISTRO_NAME --define DISPLAY=:0
+test --test_env=CHROME_BIN --test_env=WSLENV --test_env=WSL_DISTRO_NAME --define DISPLAY=:0" > .bazelrc.user &&
+printf "\n\nDone! Try running a browser test to verify the installation worked, e.g. 'cd tfjs-core && yarn && yarn test-browser'\n"
+```
+6. To access this repo from VScode, follow [Microsoft's WSL VSCode Tutorial](https://docs.microsoft.com/en-us/windows/wsl/tutorials/wsl-vscode).
 
 ## For repository owners: commit style guide
 

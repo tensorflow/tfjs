@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getFlatDispatchLayoutMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
@@ -74,24 +74,23 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
       const activationOp = mapActivationToShaderProgram(this.activation, false);
       if (this.hasPreluActivation) {
         activationSnippet =
-            `fn activation(a : f32, globalId : vec3<u32>, index : i32) -> f32 {
-          let b = getPreluActivationWeightsAtOutCoordsByGlobalId(globalId, index);
+            `fn activation(a : f32, outCoord : vec4<i32>) -> f32 {
+          let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
           ${activationOp}
         }`;
       } else {
         activationSnippet = `
-          fn activation(a : f32, globalId : vec3<u32>, index : i32) -> f32 {
+          fn activation(a : f32, outCoord : vec4<i32>) -> f32 {
             ${activationOp}
           }
         `;
       }
 
-      applyActivationSnippet =
-          `dotProd = activation(dotProd, globalId, index);`;
+      applyActivationSnippet = `dotProd = activation(dotProd, coords);`;
     }
 
     const addBiasSnippet = this.addBias ?
-        'dotProd = dotProd + getBiasAtOutCoordsByGlobalId(globalId, index);' :
+        'dotProd = dotProd + getBiasAtOutCoordsByCoords(coords);' :
         '';
 
     const userCode = `
@@ -104,9 +103,8 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
         }
       }
 
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let coords = getOutputCoords(globalId, index);
+      ${getFlatDispatchLayoutMainHeaderString()} {
+        let coords = getOutputCoordsWithFlatDispatchLayout(globalId, localId, numWorkgroups);
         let batch = coords[0];
         let xRCCorner = vec2<i32>(coords.yz) * uniforms.stride - uniforms.pad;
         let d2 = coords[3];

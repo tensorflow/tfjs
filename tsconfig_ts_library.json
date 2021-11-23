@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "typeRoots": [ "./node_modules/@webgpu", "./node_modules/@types"],
     "module": "ES2015",
     "moduleResolution": "node",
     "noImplicitAny": true,
@@ -32,6 +33,7 @@
       {
         "name": "@bazel/tsetse",
         "disabledRules": [
+          "check-return-value",
           "must-use-promises",
           "must-type-assert-json-parse",
           "ban-promise-as-condition"

@@ -14,6 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+import './flags';
 export {GraphModel, loadGraphModel} from './executor/graph_model';
 export {deregisterOp, registerOp} from './operations/custom_op/register';
 export {GraphNode, OpExecutor} from './operations/types';

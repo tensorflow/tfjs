@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
-
-import {getCoordsDataType, getGlobalIndexString, getMainHeaderString} from '../shader_preprocessor';
+import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {WebGPUProgram} from './webgpu_program';
@@ -31,7 +29,7 @@ export class PadProgram implements WebGPUProgram {
   uniforms = 'constantValue : f32;';
   workGroupSize: [number, number, number] = [64, 1, 1];
   xShape: number[];
-  size: number;
+  size = true;
 
   constructor(xShape: number[], paddings: Array<[number, number]>) {
     this.outputShape = paddings.map(
@@ -44,7 +42,6 @@ export class PadProgram implements WebGPUProgram {
     });
     this.xShape = xShape;
     this.shaderKey = 'pad';
-    this.size = util.sizeFromShape(this.outputShape);
   }
 
   getUserCode(): string {
@@ -68,12 +65,11 @@ export class PadProgram implements WebGPUProgram {
         'coords';
 
     const userCode = `
-      ${getMainHeaderString()} {
-        ${getGlobalIndexString()}
-        let start = ${startValue};
-        let end = ${endValue};
+      ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let outC = getOutputCoords(globalId, index);
+          let start = ${startValue};
+          let end = ${endValue};
+          let outC = getCoordsFromFlatIndex(index);
 
           if (${leftPadCondition} || ${rightPadCondition}) {
             setOutputFlat(index, uniforms.constantValue);

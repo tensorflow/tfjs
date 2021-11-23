@@ -72,7 +72,7 @@ export function stridedSlice(args: {
     const sliced = slice({inputs: {x}, backend, attrs: {begin: $begin, size}});
     result =
         reshape({inputs: {x: sliced}, backend, attrs: {shape: finalShape}});
-    backend.disposeData(sliced);
+    backend.disposeData(sliced.dataId);
   } else {
     const shouldExecuteOnCPU = backend.shouldExecuteOnCPU([x]);
     if (shouldExecuteOnCPU) {
@@ -85,7 +85,11 @@ export function stridedSlice(args: {
       const program = new StridedSliceProgram(finalShapeSparse);
       const uniformData =
           [{type: 'int32', data: $begin}, {type: 'int32', data: $strides}];
-      result = backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
+      const resultValues =
+          backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
+      result = reshape(
+          {inputs: {x: resultValues}, backend, attrs: {shape: finalShape}});
+      backend.disposeData(resultValues.dataId);
     }
   }
 
