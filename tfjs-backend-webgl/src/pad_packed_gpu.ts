@@ -52,7 +52,9 @@ export class PadPackedProgram implements GPGPUProgram {
                     .join(',');
     const coords = getChannels('rc', rank);
     const source = getChannels('source', rank);
-    const cLimit = `${coords[rank - 1]} < ${this.outputShape[rank - 1]}`;
+    const cLimit = `${coords[rank - 1]} < ${
+        this.enableShapeUniforms ? `outShape[${rank} - 1]` :
+                                   this.outputShape[rank - 1]}`;
     const innerDims =
         rank === 1 ? 'source' : `vec2(${source.slice(-2).join()})`;
 
@@ -60,10 +62,14 @@ export class PadPackedProgram implements GPGPUProgram {
       `${dtype} rc = outputLoc;`, `${coords[rank - 1]} += 1;
        if(${cLimit}) {
       `,
-      rank === 1 ? '' : `}
+      rank === 1 ?
+          '' :
+          `}
        rc = outputLoc;
        ${coords[rank - 2]} += 1;
-       if(${coords[rank - 2]} < ${this.outputShape[rank - 2]}) {`,
+       if(${coords[rank - 2]} < ${
+              this.enableShapeUniforms ? `outShape[${rank} - 2]` :
+                                         this.outputShape[rank - 2]}) {`,
       rank === 1 ? '' : `  ${coords[rank - 1]} += 1;
          if(${cLimit}) {`
     ];
