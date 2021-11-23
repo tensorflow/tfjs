@@ -20,13 +20,20 @@ if (beforeListeners) {
   };
 }
 
-var actualModule = (WasmBackendModule || WasmBackendModuleThreadedSimd);
+var actualModule;
+if (typeof WasmBackendModule !== 'undefined') {
+  actualModule = WasmBackendModule;
+} else if (typeof WasmBackendModuleThreadedSimd !== 'undefined') {
+  actualModule = WasmBackendModuleThreadedSimd;
+} else {
+  throw new Error('Could not find wasm module in post.js');
+}
 
-// Patch the wasm module's dispose method to also unregister listeners.
-var tmpDispose = actualModule['_dispose'];
-actualModule['_dispose'] = function() {
-  tmpDispose();
-  if (listenersAdded) {
+if (listenersAdded) {
+  // Patch the wasm module's dispose method to also unregister listeners.
+  var tmpDispose = actualModule['_dispose'];
+  actualModule['_dispose'] = function() {
+    tmpDispose();
     listenersAdded.uncaughtException.forEach(function(listener) {
       process.removeListener('uncaughtException', listener);
     });
