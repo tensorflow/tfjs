@@ -20,6 +20,11 @@
     "test-dev": "ibazel run :tfjs-backend-webgpu_test --test-output=streamed"
   },
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tensorflow/tfjs.git",
+    "directory": "tfjs-backend-webgpu"
+  },
   "devDependencies": {
     "@babel/polyfill": "^7.8.7",
     "@bazel/bazelisk": "^1.9.0",
