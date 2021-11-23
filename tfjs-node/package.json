@@ -6,7 +6,8 @@
   "gypfile": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/tensorflow/tfjs.git"
+    "url": "https://github.com/tensorflow/tfjs.git",
+    "directory": "tfjs-node"
   },
   "license": "Apache-2.0",
   "engines": {
