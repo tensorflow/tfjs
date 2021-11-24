@@ -34,12 +34,12 @@ void Minimum(const int a_id, const size_t* a_shape_ptr, const int a_shape_len,
              const DType dtype, const int out_id) {
   switch (dtype) {
     case DType::float32:
-      binary_f32(a_id, b_id, out_id,
-                 [](float a, float b) { return std::min(a, b); });
+      binary_f32(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr, b_shape_len,
+                 out_id, [](float a, float b) { return std::min(a, b); });
       break;
     case DType::int32:
-      binary_i32(a_id, b_id, out_id,
-                 [](int a, int b) { return std::min(a, b); });
+      binary_i32(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr, b_shape_len,
+                 out_id, [](int a, int b) { return std::min(a, b); });
       break;
     default:
       util::warn(
