@@ -158,7 +158,16 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
     expect(() => tf.maxPool(x, 2, 1, 0)).toThrowError();
   });
 
-  it('throws when dimRoundingMode is set and pad is not a number', () => {
+  it('throws when dimRoundingMode is set and pad is same', () => {
+    const x = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
+
+    const pad = 'same';
+    const dimRoundingMode = 'round';
+
+    expect(() => tf.maxPool(x, 2, 1, pad, dimRoundingMode)).toThrowError();
+  });
+
+  it('throws when dimRoundingMode is set and pad is valid', () => {
     const x = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
 
     const pad = 'valid';
@@ -166,6 +175,28 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
 
     expect(() => tf.maxPool(x, 2, 1, pad, dimRoundingMode)).toThrowError();
   });
+
+  it('throws when dimRoundingMode is set and pad is a non-integer number',
+     () => {
+       const x = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
+
+       const pad = 1.2;
+       const dimRoundingMode = 'round';
+
+       expect(() => tf.maxPool(x, 2, 1, pad, dimRoundingMode)).toThrowError();
+     });
+
+  it('throws when dimRoundingMode is set and pad is explicit by non-integer ' +
+         'number',
+     () => {
+       const x = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
+
+       const pad = [[0, 0], [0, 2.1], [1, 1], [0, 0]] as
+           tf.backend_util.ExplicitPadding;
+       const dimRoundingMode = 'round';
+
+       expect(() => tf.maxPool(x, 2, 1, pad, dimRoundingMode)).toThrowError();
+     });
 
   it('throws when passed a non-tensor', () => {
     expect(() => tf.maxPool({} as tf.Tensor3D, 2, 1, 'valid'))

@@ -75,31 +75,8 @@ function maxPool_<T extends Tensor3D|Tensor4D>(
       conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
       () => 'Error in maxPool: Either strides or dilations must be 1. ' +
           `Got strides ${strides} and dilations '${dilations}'`);
-  if (dimRoundingMode != null) {
-    if (typeof pad === 'string') {
-      throw Error(
-          `Error in maxPool: pad must be an integer when using `  +
-          `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-    } else if (typeof pad === 'number') {
-      util.assert(
-          util.isInt(pad),
-          () => `Error in maxPool: pad must be an integer when using ` +
-              `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-    } else if (typeof pad === 'object') {
-      (pad as conv_util.ExplicitPadding).forEach(p => {p.forEach(v =>{
-        util.assert(
-            util.isInt(v),
-            () => `Error in maxPool: pad must be an integer when using ` +
-                `dimRoundingMode ${dimRoundingMode} but got pad ${v}.`);
-        });
-      });
-    } else {
-      throw Error(`Unknown padding parameter: ${pad}`);
-    }
-  }
-
+  conv_util.checkPadOnDimRoundingMode('maxPool', pad, dimRoundingMode);
   const inputs: MaxPoolInputs = {x: x4D};
-
   const attrs: MaxPoolAttrs = {filterSize, strides, pad, dimRoundingMode};
 
   // tslint:disable-next-line: no-unnecessary-type-assertion
