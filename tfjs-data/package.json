@@ -4,6 +4,11 @@
   "description": "TensorFlow Data API in JavaScript",
   "private": false,
   "main": "dist/tf-data.node.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tensorflow/tfjs.git",
+    "directory": "tfjs-data"
+  },
   "jsdelivr": "dist/tf-data.min.js",
   "unpkg": "dist/tf-data.min.js",
   "types": "dist/index.d.ts",

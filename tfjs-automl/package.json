@@ -20,6 +20,11 @@
     "build-npm": "./scripts/build-npm.sh"
   },
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tensorflow/tfjs.git",
+    "directory": "tfjs-automl"
+  },
   "devDependencies": {
     "@babel/polyfill": "^7.8.7",
     "@tensorflow/tfjs-converter": "^3.9.0",

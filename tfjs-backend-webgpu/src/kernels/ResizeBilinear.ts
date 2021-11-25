@@ -30,11 +30,18 @@ export function resizeBilinear(args: {
   const {alignCorners, size, halfPixelCenters} = attrs;
 
   const [newHeight, newWidth] = size;
-  const program = new ResizeBilinearProgram(
-      images.shape as [number, number, number, number], newHeight, newWidth,
-      alignCorners, halfPixelCenters);
+  const adjustHeight = alignCorners && newHeight > 1 ? 1.0 : 0.0;
+  const adjustWidth = alignCorners && newWidth > 1 ? 1.0 : 0.0;
+  const halfPixelCentersValue = halfPixelCenters ? 0.5 : 0.0;
+  const uniformData = [
+    {type: 'float32', data: [adjustHeight, adjustWidth]},
+    {type: 'float32', data: [halfPixelCentersValue]}
+  ];
 
-  return backend.runWebGPUProgram(program, [images], 'float32');
+  const program = new ResizeBilinearProgram(
+      images.shape as [number, number, number, number], newHeight, newWidth);
+
+  return backend.runWebGPUProgram(program, [images], 'float32', uniformData);
 }
 
 export const resizeBilinearConfig: KernelConfig = {
