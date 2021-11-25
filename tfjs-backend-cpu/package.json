@@ -15,7 +15,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/tensorflow/tfjs.git"
+    "url": "https://github.com/tensorflow/tfjs.git",
+    "directory": "tfjs-backend-cpu"
   },
   "license": "Apache-2.0",
   "devDependencies": {
