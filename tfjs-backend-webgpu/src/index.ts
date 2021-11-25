@@ -21,9 +21,9 @@ import './register_all_kernels';
 import {env, registerBackend} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from './backend_webgpu';
-import {setDeviceLimits} from './device_limits';
+import {requiredLimitsNames, setDeviceLimits} from './device_limits';
 import * as webgpu from './webgpu';
-import {isWebGPUSupported, requiredLimitsNames} from './webgpu_util';
+import {isWebGPUSupported} from './webgpu_util';
 
 if (isWebGPUSupported()) {
   registerBackend('webgpu', async () => {

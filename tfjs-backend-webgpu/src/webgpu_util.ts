@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {DataType, util} from '@tensorflow/tfjs-core';
-import * as device_limits from './device_limits';
+import {maxComputeWorkgroupsPerDimension} from './device_limits';
 const arrayProduct = (arr: number[]) => {
   let product = 1;
   for (let i = 0; i < arr.length; i++) {
@@ -44,7 +44,7 @@ export function computeDispatch(
     elementsPerThread: [number, number, number] =
         [1, 1, 1]): [number, number, number] {
   const MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE =
-      device_limits.maxComputeWorkgroupsPerDimension;
+      maxComputeWorkgroupsPerDimension;
   const [dispatchX, dispatchY, dispatchZ] = [
     Math.ceil(
         arrayProduct(layout.x.map(d => outputShape[d])) /
@@ -179,17 +179,3 @@ export interface WebGPULayout {
   bindGroupLayout: GPUBindGroupLayout;
   pipelineLayout: GPUPipelineLayout;
 }
-
-export type requiredLimitsNames =|'maxTextureDimension1D'|
-    'maxTextureDimension2D'|'maxTextureDimension3D'|'maxTextureArrayLayers'|
-    'maxBindGroups'|'maxDynamicUniformBuffersPerPipelineLayout'|
-    'maxDynamicStorageBuffersPerPipelineLayout'|
-    'maxSampledTexturesPerShaderStage'|'maxSamplersPerShaderStage'|
-    'maxStorageBuffersPerShaderStage'|'maxStorageTexturesPerShaderStage'|
-    'maxUniformBuffersPerShaderStage'|'maxUniformBufferBindingSize'|
-    'maxStorageBufferBindingSize'|'minUniformBufferOffsetAlignment'|
-    'minStorageBufferOffsetAlignment'|'maxVertexBuffers'|'maxVertexAttributes'|
-    'maxVertexBufferArrayStride'|'maxInterStageShaderComponents'|
-    'maxComputeWorkgroupStorageSize'|'maxComputeInvocationsPerWorkgroup'|
-    'maxComputeWorkgroupSizeX'|'maxComputeWorkgroupSizeY'|
-    'maxComputeWorkgroupSizeZ'|'maxComputeWorkgroupsPerDimension';
