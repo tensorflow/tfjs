@@ -15,9 +15,11 @@
  * =============================================================================
  */
 
-export let maxComputeWorkgroupsPerDimension: number;
+export let maxComputeWorkgroupsPerDimension = 256;
 
 export function setDeviceLimits(deviceLimits: GPUSupportedLimits) {
   maxComputeWorkgroupsPerDimension =
       deviceLimits.maxComputeWorkgroupsPerDimension;
 }
+
+export type requiredLimitsNames =|'maxComputeWorkgroupsPerDimension';
