@@ -24,7 +24,6 @@ export type GLSL = {
   texture2D: string,
   output: string,
   defineOutput: string,
-  defineSpecialNaN: string,
   defineSpecialInf: string,
   defineRound: string
 };
@@ -37,7 +36,6 @@ export function getGlslDifferences(): GLSL {
   let texture2D: string;
   let output: string;
   let defineOutput: string;
-  let defineSpecialNaN: string;
   let defineSpecialInf: string;
   let defineRound: string;
 
@@ -50,22 +48,6 @@ export function getGlslDifferences(): GLSL {
     output = 'outputColor';
     defineOutput = 'out vec4 outputColor;';
 
-    // Use custom isnan definition to work across differences between
-    // implementations on various platforms. While this should happen in ANGLE
-    // we still see differences between android and windows (on chrome) when
-    // using isnan directly.
-    defineSpecialNaN = `
-      bool isnan_custom(float val) {
-        return val != val || !(val < 0.0 || 0.0 < val || val == 0.0);
-      }
-
-      bvec4 isnan_custom(vec4 val) {
-        return bvec4(isnan_custom(val.x),
-          isnan_custom(val.y), isnan_custom(val.z), isnan_custom(val.w));
-      }
-
-      #define isnan(value) isnan_custom(value)
-    `;
     // In webgl 2 we do not need to specify a custom isinf so there is no
     // need for a special INFINITY constant.
     defineSpecialInf = ``;
@@ -87,16 +69,6 @@ export function getGlslDifferences(): GLSL {
     texture2D = 'texture2D';
     output = 'gl_FragColor';
     defineOutput = '';
-    // WebGL1 has no built in isnan so we define one here.
-    defineSpecialNaN = `
-      #define isnan(value) isnan_custom(value)
-      bool isnan_custom(float val) {
-        return val != val || !(val < 0.0 || 0.0 < val || val == 0.0);
-      }
-      bvec4 isnan_custom(vec4 val) {
-        return bvec4(isnan(val.x), isnan(val.y), isnan(val.z), isnan(val.w));
-      }
-    `;
     defineSpecialInf = `
       uniform float INFINITY;
 
@@ -126,7 +98,6 @@ export function getGlslDifferences(): GLSL {
     texture2D,
     output,
     defineOutput,
-    defineSpecialNaN,
     defineSpecialInf,
     defineRound
   };
