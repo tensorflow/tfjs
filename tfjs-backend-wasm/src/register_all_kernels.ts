@@ -100,6 +100,7 @@ import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
 import {sparseFillEmptyRowsConfig} from './kernels/SparseFillEmptyRows';
+import {sparseReshapeConfig} from './kernels/SparseReshape';
 import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
@@ -200,6 +201,7 @@ const kernelConfigs: KernelConfig[] = [
   softmaxConfig,
   spaceToBatchNDConfig,
   sparseFillEmptyRowsConfig,
+  sparseReshapeConfig,
   splitVConfig,
   sqrtConfig,
   squareConfig,

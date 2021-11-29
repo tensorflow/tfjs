@@ -376,6 +376,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'batchToSpaceND'},
   {include: 'spaceToBatchND'},
   {include: 'sparseFillEmptyRows'},
+  {include: 'sparseReshape'},
 ];
 
 const customInclude = (testName: string) => {
