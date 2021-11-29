@@ -335,6 +335,9 @@ export async function toPixels(
     const pixels = ENGINE.runKernel(
         ToPixels, inputs as {} as NamedTensorMap, output as {} as NamedAttrMap);
     const data = await (pixels as Tensor3D).data();
+    if ($img !== img) {
+      $img.dispose();
+    }
     return new Uint8ClampedArray(data);
   }
 
