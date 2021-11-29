@@ -323,22 +323,17 @@ function getShaderPrefix(glsl: GLSL): string {
     };
 
     uniform float NAN;
-
     // Use custom isnan definition to work across differences between
     // implementations on various platforms. While this should happen in ANGLE
     // we still see differences between android and windows (on chrome) when
     // using isnan directly.
+    #define isnan(value) isnan_custom(value)
     bool isnan_custom(float val) {
       return val != val || !(val < 0.0 || 0.0 < val || val == 0.0);
     }
-
     bvec4 isnan_custom(vec4 val) {
-      return bvec4(isnan_custom(val.x),
-        isnan_custom(val.y), isnan_custom(val.z), isnan_custom(val.w));
+      return bvec4(isnan(val.x), isnan(val.y), isnan(val.z), isnan(val.w));
     }
-
-    #define isnan(value) isnan_custom(value)
-
     ${glsl.defineSpecialInf}
     ${glsl.defineRound}
 
