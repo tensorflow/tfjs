@@ -329,7 +329,7 @@ export async function toPixels(
   // If the current backend has 'ToPixels' registered, it has a more
   // efficient way of handling pixel downloads, so we call that.
   const kernel = getKernel(ToPixels, ENGINE.backendName);
-  if (kernel != null && canvas) {
+  if (kernel != null) {
     const inputs: ToPixelsInputs = {$img};
     const output: ToPixelsOutput = {canvas};
     const pixels = ENGINE.runKernel(
