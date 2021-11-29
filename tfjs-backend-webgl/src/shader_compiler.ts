@@ -329,7 +329,7 @@ function getShaderPrefix(glsl: GLSL): string {
     // using isnan directly.
     #define isnan(value) isnan_custom(value)
     bool isnan_custom(float val) {
-      return val != val || !(val < 0.0 || 0.0 < val || val == 0.0);
+      return val != val || !(val > 0. || val < 1. || val == 0.0);
     }
     bvec4 isnan_custom(vec4 val) {
       return bvec4(isnan(val.x), isnan(val.y), isnan(val.z), isnan(val.w));
