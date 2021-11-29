@@ -44,12 +44,12 @@ export class ToPixelsProgram implements WebGPUProgram {
     const userCode = `
           ${getMainHeaderAndGlobalIndexString()}
             if (index < uniforms.size) {
-              let rgba = vec4<f32>(0, 0, 0, 255);
+              var rgba = vec4<f32>(0.0, 0.0, 0.0, 255.0);
 
-              for (let d = 0; d < uniforms.depth; d++) {
-                let value = f32(Image[index * uniforms.depth + d]);
+              for (var d = 0; d < uniforms.depth; d = d + 1) {
+                let value = f32(Image.numbers[index * uniforms.depth + d]);
 
-                if (uniforms.depth === 1) {
+                if (uniforms.depth == 1) {
                   rgba[0] = value * uniforms.multiplier;
                   rgba[1] = value * uniforms.multiplier;
                   rgba[2] = value * uniforms.multiplier;
