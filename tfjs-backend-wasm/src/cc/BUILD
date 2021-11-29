@@ -127,6 +127,7 @@ tfjs_cc_library(
     hdrs = ["binary.h"],
     deps = [
         ":backend",
+        ":util",
     ],
 )
 
