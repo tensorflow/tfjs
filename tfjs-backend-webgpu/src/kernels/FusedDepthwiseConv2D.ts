@@ -57,6 +57,13 @@ export function fusedDepthwiseConv2D(args: {
     programInputs.push(preluActivationWeights);
   }
 
+  const dimensions = [
+    {type: 'int32', data: [convInfo.padInfo.top, convInfo.padInfo.left]},
+    {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
+    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]},
+    {type: 'int32', data: [convInfo.inHeight, convInfo.inWidth]}
+  ];
+
   let program: DepthwiseConv2DProgram|DepthwiseConv2D3x3Program;
   // TODO: To see if we need to relax the limitation. Currently, it's only for
   // filter size 3x3.
@@ -71,14 +78,10 @@ export function fusedDepthwiseConv2D(args: {
   } else {
     program = new DepthwiseConv2DProgram(
         convInfo, hasBias, activation, hasPreluActivationWeights);
+    dimensions.push({type: 'int32', data: [convInfo.filterHeight]},
+        {type: 'int32', data: [convInfo.filterWidth]},
+        {type: 'int32', data: [convInfo.outChannels / convInfo.inChannels]});
   }
-
-  const dimensions = [
-    {type: 'int32', data: [convInfo.padInfo.top, convInfo.padInfo.left]},
-    {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
-    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]},
-    {type: 'int32', data: [convInfo.inHeight, convInfo.inWidth]}
-  ];
 
   const result =
       backend.runWebGPUProgram(program, programInputs, 'float32', dimensions);

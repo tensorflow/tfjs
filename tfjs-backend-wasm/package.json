@@ -3,6 +3,11 @@
   "version": "0.0.0",
   "main": "dist/tf-backend-wasm.node.js",
   "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tensorflow/tfjs.git",
+    "directory": "tfjs-backend-wasm"
+  },
   "jsnext:main": "dist/index.js",
   "module": "dist/index.js",
   "unpkg": "dist/tf-backend-wasm.min.js",

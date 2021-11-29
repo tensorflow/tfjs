@@ -26,14 +26,14 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
+  uniforms = 'adjustHeightWidth : vec2<f32>; roundBase : f32;';
   workGroupSize: [number, number, number] = [64, 1, 1];
-  alignCorners: boolean;
   halfPixelCenters: boolean;
   size = true;
 
   constructor(
       inputShape: [number, number, number, number], newHeight: number,
-      newWidth: number, alignCorners: boolean, halfPixelCenters: boolean) {
+      newWidth: number, halfPixelCenters: boolean) {
     this.outputShape = [inputShape[0], newHeight, newWidth, inputShape[3]];
 
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
@@ -41,16 +41,12 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
-    this.alignCorners = alignCorners;
     this.halfPixelCenters = halfPixelCenters;
     this.shaderKey =
-        `resizeNearest_${alignCorners}_${this.outputShape[1] > 1}_${
-            this.outputShape[2] > 1}_${halfPixelCenters}`;
+        `resizeNearest_${halfPixelCenters}`;
   }
 
   getUserCode(): string {
-    // When align corners is false, we rounds the value with floor.
-    const roundBase = this.alignCorners ? '0.5' : '0.0';
     let sourceFracIndexRC: string;
     if (this.halfPixelCenters) {
       sourceFracIndexRC =
@@ -59,9 +55,6 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
     } else {
       sourceFracIndexRC = `vec2<f32>(rc) * effectiveInputOverOutputRatioRC`;
     }
-
-    const adjustHeight = this.alignCorners && this.outputShape[1] > 1;
-    const adjustWidth = this.alignCorners && this.outputShape[2] > 1;
 
     const userCode = `
       ${getMainHeaderAndGlobalIndexString()}
@@ -72,20 +65,12 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
           let rc = coords.yz;
 
           let effectiveInSize = vec2<f32>(
-            ${
-        adjustHeight ? `f32(uniforms.xShape.y) - 1.0` :
-                       `f32(uniforms.xShape.y)`},
-            ${
-        adjustWidth ? `f32(uniforms.xShape.z) - 1.0` :
-                      `f32(uniforms.xShape.z)`});
+            f32(uniforms.xShape.y) - uniforms.adjustHeightWidth[0],
+            f32(uniforms.xShape.z) - uniforms.adjustHeightWidth[1]);
 
           let effectiveOutSize = vec2<f32>(
-            ${
-        adjustHeight ? `f32(uniforms.outShape.y) - 1.0` :
-                       `f32(uniforms.outShape.y)`},
-            ${
-        adjustWidth ? `f32(uniforms.outShape.z) - 1.0` :
-                      `f32(uniforms.outShape.z)`});
+            f32(uniforms.outShape.y) - uniforms.adjustHeightWidth[0],
+            f32(uniforms.outShape.z) - uniforms.adjustHeightWidth[1]);
 
           let effectiveInputOverOutputRatioRC =
               effectiveInSize / effectiveOutSize;
@@ -96,7 +81,7 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
           // Compute the coordinators of nearest neighbor point.
           let inputShapeRC = vec2<f32>(f32(uniforms.xShape.y), f32(uniforms.xShape.z));
           let sourceNearestRC = vec2<i32>(
-            min(inputShapeRC - 1.0, floor(sourceFracIndexRC + ${roundBase})));
+            min(inputShapeRC - 1.0, floor(sourceFracIndexRC + uniforms.roundBase)));
           let newValue = getX(b, sourceNearestRC.x, sourceNearestRC.y, d);
 
           setOutputFlat(index, newValue);
