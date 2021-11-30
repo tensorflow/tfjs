@@ -25,7 +25,8 @@ declare module '../../tensor' {
         windowShape: [number, number]|number, poolingType: 'avg'|'max',
         padding: 'valid'|'same'|number|ExplicitPadding,
         diationRate?: [number, number]|number,
-        strides?: [number, number]|number): T;
+        strides?: [number, number]|number,
+        dimRoundingMode?: 'floor'|'round'|'ceil'): T;
   }
 }
 
@@ -33,7 +34,9 @@ getGlobalTensorClass().prototype.pool = function<T extends Tensor3D|Tensor4D>(
     this: T, windowShape: [number, number]|number, poolingType: 'max'|'avg',
     padding: 'valid'|'same'|number|ExplicitPadding,
     dilationRate?: [number, number]|number,
-    strides?: [number, number]|number): T {
+    strides?: [number, number]|number,
+    dimRoundingMode?: 'floor'|'round'|'ceil'): T {
   this.throwIfDisposed();
-  return pool(this, windowShape, poolingType, padding, dilationRate, strides);
+  return pool(this, windowShape, poolingType, padding, dilationRate, strides,
+              dimRoundingMode);
 };

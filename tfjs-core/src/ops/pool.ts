@@ -51,6 +51,8 @@ import {spaceToBatchND} from './space_to_batch_nd';
  *     1, then all values of `strides` must be 1.
  * @param strides The strides of the pooling: `[strideHeight, strideWidth]`. If
  *     `strides` is a single number, then `strideHeight == strideWidth`.
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
  *
  * @doc {heading: 'Operations', subheading: 'Convolution'}
  */
@@ -58,7 +60,8 @@ function pool_<T extends Tensor3D|Tensor4D>(
     input: T|TensorLike, windowShape: [number, number]|number,
     poolingType: 'avg'|'max',
     pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
-    dilations?: [number, number]|number, strides?: [number, number]|number) {
+    dilations?: [number, number]|number, strides?: [number, number]|number,
+    dimRoundingMode?: 'floor'|'round'|'ceil') {
   if (dilations == null) {
     dilations = [1, 1];
   }
@@ -109,8 +112,10 @@ function pool_<T extends Tensor3D|Tensor4D>(
       isDilationOne ? x4D : spaceToBatchND(x4D, dilation, adjustedPadding);
 
   const forwardOp = poolingType === 'avg' ?
-      () => avgPool(convertedX, windowShape, strides, convertedPad) :
-      () => maxPool(convertedX, windowShape, strides, convertedPad);
+      () => avgPool(convertedX, windowShape, strides, convertedPad,
+                    dimRoundingMode) :
+      () => maxPool(convertedX, windowShape, strides, convertedPad,
+                    dimRoundingMode);
   const y = forwardOp();
 
   const res = isDilationOne ? y : batchToSpaceND(y, dilation, adjustedCrops);

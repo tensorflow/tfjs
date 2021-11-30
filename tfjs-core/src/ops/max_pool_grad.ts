@@ -24,7 +24,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
-import {ExplicitPadding} from './conv_util';
+import * as conv_util from './conv_util';
 import {op} from './operation';
 
 /**
@@ -52,7 +52,7 @@ function maxPoolGrad_(
     dy: Tensor4D|TensorLike, input: Tensor4D|TensorLike,
     output: Tensor4D|TensorLike, filterSize: [number, number]|number,
     strides: [number, number]|number,
-    pad: 'valid'|'same'|number|ExplicitPadding,
+    pad: 'valid'|'same'|number|conv_util.ExplicitPadding,
     dimRoundingMode?: 'floor'|'round'|'ceil'): Tensor4D {
   const $dy = convertToTensor(dy, 'dy', 'maxPoolGrad');
   const $input = convertToTensor(input, 'input', 'maxPoolGrad');
@@ -71,15 +71,8 @@ function maxPoolGrad_(
       $input.rank === 4,
       () => `Error in maxPoolGrad: input must be rank 4 but got rank ` +
           `${$input.rank}.`);
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in maxPoolGrad: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
+  conv_util.checkPadOnDimRoundingMode('maxPoolGrad', pad, dimRoundingMode);
   const inputs: MaxPoolGradInputs = {dy: $dy, input: $input, output: $output};
-
   const attrs: MaxPoolGradAttrs = {filterSize, strides, pad, dimRoundingMode};
 
   // tslint:disable-next-line: no-unnecessary-type-assertion

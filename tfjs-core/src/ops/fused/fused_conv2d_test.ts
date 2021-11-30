@@ -610,6 +610,154 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
            ]));
      });
 
+  it('throws when dimRoundingMode is set and pad is same', () => {
+    const inputDepth = 16;
+    const xSize = 8;
+    const inputShape: [number, number, number, number] =
+        [1, xSize, xSize, inputDepth];
+    const outputDepth = 8;
+    const fSize = 3;
+    const pad = 'same';
+    const stride: [number, number] = [2, 2];
+
+    const inputs = generateCaseInputs(
+        1 * xSize * xSize * inputDepth,
+        fSize * fSize * inputDepth * outputDepth);
+    const x = tf.tensor4d(inputs.input, inputShape);
+    const w =
+        tf.tensor4d(inputs.filter, [fSize, fSize, inputDepth, outputDepth]);
+    const bias = tf.tensor1d([1, 4, 2, 3, 9, 6, 5, 8]);
+    const leakyreluAlpha = 0.3;
+
+    expect(
+        () => tf.fused.conv2d(
+            {
+              x,
+              filter: w,
+              strides: stride,
+              pad,
+              dataFormat: 'NHWC',
+              dilations: [1, 1],
+              activation: 'leakyrelu',
+              leakyreluAlpha,
+              bias,
+              dimRoundingMode: 'round'
+            }))
+        .toThrowError();
+  });
+
+  it('throws when dimRoundingMode is set and pad is valid', () => {
+    const inputDepth = 16;
+    const xSize = 8;
+    const inputShape: [number, number, number, number] =
+        [1, xSize, xSize, inputDepth];
+    const outputDepth = 8;
+    const fSize = 3;
+    const pad = 'valid';
+    const stride: [number, number] = [2, 2];
+
+    const inputs = generateCaseInputs(
+        1 * xSize * xSize * inputDepth,
+        fSize * fSize * inputDepth * outputDepth);
+    const x = tf.tensor4d(inputs.input, inputShape);
+    const w =
+        tf.tensor4d(inputs.filter, [fSize, fSize, inputDepth, outputDepth]);
+    const bias = tf.tensor1d([1, 4, 2, 3, 9, 6, 5, 8]);
+    const leakyreluAlpha = 0.3;
+
+    expect(
+        () => tf.fused.conv2d(
+            {
+              x,
+              filter: w,
+              strides: stride,
+              pad,
+              dataFormat: 'NHWC',
+              dilations: [1, 1],
+              activation: 'leakyrelu',
+              leakyreluAlpha,
+              bias,
+              dimRoundingMode: 'round'
+            }))
+        .toThrowError();
+  });
+
+  it('throws when dimRoundingMode is set and pad is a non-integer number',
+     () => {
+       const inputDepth = 16;
+       const xSize = 8;
+       const inputShape: [number, number, number, number] =
+           [1, xSize, xSize, inputDepth];
+       const outputDepth = 8;
+       const fSize = 3;
+       const pad = 1.2;
+       const stride: [number, number] = [2, 2];
+
+       const inputs = generateCaseInputs(
+           1 * xSize * xSize * inputDepth,
+           fSize * fSize * inputDepth * outputDepth);
+       const x = tf.tensor4d(inputs.input, inputShape);
+       const w =
+           tf.tensor4d(inputs.filter, [fSize, fSize, inputDepth, outputDepth]);
+       const bias = tf.tensor1d([1, 4, 2, 3, 9, 6, 5, 8]);
+       const leakyreluAlpha = 0.3;
+
+       expect(
+           () => tf.fused.conv2d(
+               {
+                 x,
+                 filter: w,
+                 strides: stride,
+                 pad,
+                 dataFormat: 'NHWC',
+                 dilations: [1, 1],
+                 activation: 'leakyrelu',
+                 leakyreluAlpha,
+                 bias,
+                 dimRoundingMode: 'round'
+               }))
+           .toThrowError();
+     });
+
+  it('throws when dimRoundingMode is set and pad is explicit by non-integer ' +
+         'number',
+     () => {
+       const inputDepth = 16;
+       const xSize = 8;
+       const inputShape: [number, number, number, number] =
+           [1, xSize, xSize, inputDepth];
+       const outputDepth = 8;
+       const fSize = 3;
+       const pad = [[0, 0], [0, 2.1], [1, 1], [0, 0]] as
+           tf.backend_util.ExplicitPadding;
+       const stride: [number, number] = [2, 2];
+
+       const inputs = generateCaseInputs(
+           1 * xSize * xSize * inputDepth,
+           fSize * fSize * inputDepth * outputDepth);
+       const x = tf.tensor4d(inputs.input, inputShape);
+       const w =
+           tf.tensor4d(inputs.filter, [fSize, fSize, inputDepth, outputDepth]);
+       const bias = tf.tensor1d([1, 4, 2, 3, 9, 6, 5, 8]);
+       const leakyreluAlpha = 0.3;
+
+       expect(
+           () => tf.fused.conv2d(
+               {
+                 x,
+                 filter: w,
+                 strides: stride,
+                 pad,
+                 dataFormat: 'NHWC',
+                 dilations: [1, 1],
+                 activation: 'leakyrelu',
+                 leakyreluAlpha,
+                 bias,
+                 dimRoundingMode: 'round'
+               }))
+           .toThrowError();
+     });
+
   it('basic with bias', async () => {
     const inputDepth = 2;
     const inShape: [number, number, number, number] = [2, 2, 2, inputDepth];
