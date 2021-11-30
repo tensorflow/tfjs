@@ -75,9 +75,8 @@ export function sparseSegmentReductionImpl(
       }
       // We have a new segment here.  Verify that the segment ids are growing.
       if (outIndex >= nextIndex) {
-        throw new Error(
-            backend_util
-                .getSparseSegmentReductionNonIncreasingSegmentIdsErrorMessage());
+        throw new Error(backend_util
+            .getSparseSegmentReductionNonIncreasingSegmentIdsErrorMessage());
       }
     }
 
