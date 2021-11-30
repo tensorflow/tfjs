@@ -334,6 +334,7 @@ tfjs_cc_library(
         ":Softmax",
         ":SparseFillEmptyRows",
         ":SparseReshape",
+        ":SparseSegmentReduction",
         ":Square",
         ":SquaredDifference",
         ":StridedSlice",
@@ -1096,6 +1097,15 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "SparseReshape",
     srcs = ["kernels/SparseReshape.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SparseSegmentReduction",
+    srcs = ["kernels/SparseSegmentReduction.cc"],
     deps = [
         ":backend",
         ":util",
