@@ -41,8 +41,8 @@ describeWithFlags('sparseFillEmptyRows', ALL_ENVS, () => {
   it('fill float', async () => {
     const sparseTensor = {
       ind: tf.tensor2d(
-          [[0, 0], [1, 0], [1, 3], [1, 4], [3, 2], [3, 3]], [6, 2], 'float32'),
-      val: [0.0, 10.0, 13.0, 14.0, 32.0, 33.0],
+          [[0, 0], [1, 0], [1, 3], [1, 4], [3, 2], [3, 3]], [6, 2], 'int32'),
+      val: tf.tensor1d([0.0, 10.0, 13.0, 14.0, 32.0, 33.0], 'float32'),
       shape: [5, 6],
     };
     const result = tf.sparse.sparseFillEmptyRows(
@@ -73,7 +73,7 @@ describeWithFlags('sparseFillEmptyRows', ALL_ENVS, () => {
 
   it('no empty rows and unordered', async () => {
     const sparseTensor = {
-      ind: tf.tensor2d([[1, 2], [1, 3], [0, 1], [0, 3]], [4, 2], 'float32'),
+      ind: tf.tensor2d([[1, 2], [1, 3], [0, 1], [0, 3]], [4, 2], 'int32'),
       val: [1, 3, 2, 4],
       shape: [2, 5],
     };
@@ -127,6 +127,41 @@ describeWithFlags('sparseFillEmptyRows', ALL_ENVS, () => {
     expect(result.outputValues.dtype).toEqual(sparseTensor.val.dtype);
     expect(result.emptyRowIndicator.dtype).toEqual('bool');
     expect(result.reverseIndexMap.dtype).toEqual(sparseTensor.ind.dtype);
+  });
+
+  it('does not have memory leak.', async () => {
+    const beforeDataIds = tf.engine().backend.numDataIds();
+
+    const sparseTensor = {
+      ind: tf.tensor2d(
+          [[0, 0], [1, 0], [1, 3], [1, 4], [3, 2], [3, 3]], [6, 2], 'int32'),
+      val: [0, 10, 13, 14, 32, 33],
+      shape: [5, 6],
+    };
+    const indices = sparseTensor.ind;
+    const values = tf.tensor1d(sparseTensor.val, 'float32');
+    const denseShape = tf.tensor1d(sparseTensor.shape, 'int32');
+    const result =
+        tf.sparse.sparseFillEmptyRows(indices, values, denseShape, -1);
+
+    await result.outputIndices.data();
+    await result.outputValues.data();
+    await result.emptyRowIndicator.data();
+    await result.reverseIndexMap.data();
+
+    const afterResDataIds = tf.engine().backend.numDataIds();
+    expect(afterResDataIds).toEqual(beforeDataIds + 7);
+
+    indices.dispose();
+    values.dispose();
+    denseShape.dispose();
+    result.outputIndices.dispose();
+    result.outputValues.dispose();
+    result.emptyRowIndicator.dispose();
+    result.reverseIndexMap.dispose();
+
+    const afterDisposeDataIds = tf.engine().backend.numDataIds();
+    expect(afterDisposeDataIds).toEqual(beforeDataIds);
   });
 
   it('throw error if dense rows is empty and indices is not', async () => {

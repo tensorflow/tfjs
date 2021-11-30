@@ -375,7 +375,10 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'image.transform'},
   {include: 'batchToSpaceND'},
   {include: 'spaceToBatchND'},
+  {include: 'sparseFillEmptyRows'},
   {include: 'sparseReshape'},
+  {include: 'sparseSegmentMean'},
+  {include: 'sparseSegmentSum'},
 ];
 
 const customInclude = (testName: string) => {

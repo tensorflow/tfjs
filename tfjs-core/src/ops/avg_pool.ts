@@ -72,16 +72,8 @@ function avgPool_<T extends Tensor3D|Tensor4D>(
   util.assert(
       x4D.rank === 4,
       () => `Error in avgPool: x must be rank 4 but got rank ${x4D.rank}.`);
-
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in avgPool: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
+  conv_util.checkPadOnDimRoundingMode('avgPool', pad, dimRoundingMode);
   const inputs: AvgPoolInputs = {x: x4D};
-
   const attrs: AvgPoolAttrs = {filterSize, strides, pad, dimRoundingMode};
 
   // tslint:disable-next-line: no-unnecessary-type-assertion

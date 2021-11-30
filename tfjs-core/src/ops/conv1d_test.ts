@@ -134,6 +134,90 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), await expectedResult.data());
   });
 
+  it('throws when dimRoundingMode is set and pad is same', () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [2, 2, inputDepth];
+    const outputDepth = 1;
+    const fSize = 1;
+    const pad = 'same';
+    const stride = 1;
+    const dataFormat = 'NWC';
+    const dilation = 1;
+    const dimRoundingMode = 'round';
+
+    const x = tf.tensor3d([1, 2, 3, 4], inputShape);
+    const w = tf.tensor3d([3], [fSize, inputDepth, outputDepth]);
+
+    expect(
+        () => tf.conv1d(
+            x, w, stride, pad, dataFormat, dilation, dimRoundingMode))
+        .toThrowError();
+  });
+
+  it('throws when dimRoundingMode is set and pad is valid', () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [2, 2, inputDepth];
+    const outputDepth = 1;
+    const fSize = 1;
+    const pad = 'valid';
+    const stride = 1;
+    const dataFormat = 'NWC';
+    const dilation = 1;
+    const dimRoundingMode = 'round';
+
+    const x = tf.tensor3d([1, 2, 3, 4], inputShape);
+    const w = tf.tensor3d([3], [fSize, inputDepth, outputDepth]);
+
+    expect(
+        () => tf.conv1d(
+            x, w, stride, pad, dataFormat, dilation, dimRoundingMode))
+        .toThrowError();
+  });
+
+  it('throws when dimRoundingMode is set and pad is a non-integer number',
+     () => {
+       const inputDepth = 1;
+       const inputShape: [number, number, number] = [2, 2, inputDepth];
+       const outputDepth = 1;
+       const fSize = 1;
+       const pad = 1.2;
+       const stride = 1;
+       const dataFormat = 'NWC';
+       const dilation = 1;
+       const dimRoundingMode = 'round';
+
+       const x = tf.tensor3d([1, 2, 3, 4], inputShape);
+       const w = tf.tensor3d([3], [fSize, inputDepth, outputDepth]);
+
+       expect(
+           () => tf.conv1d(
+               x, w, stride, pad, dataFormat, dilation, dimRoundingMode))
+           .toThrowError();
+     });
+
+  it('throws when dimRoundingMode is set and pad is explicit by non-integer ' +
+         'number',
+     () => {
+       const inputDepth = 1;
+       const inputShape: [number, number, number] = [2, 2, inputDepth];
+       const outputDepth = 1;
+       const fSize = 1;
+       const pad = [[0, 0], [0, 2.1], [1, 1], [0, 0]] as
+          tf.backend_util.ExplicitPadding;
+       const stride = 1;
+       const dataFormat = 'NWC';
+       const dilation = 1;
+       const dimRoundingMode = 'round';
+
+       const x = tf.tensor3d([1, 2, 3, 4], inputShape);
+       const w = tf.tensor3d([3], [fSize, inputDepth, outputDepth]);
+
+       expect(
+           () => tf.conv1d(
+               x, w, stride, pad, dataFormat, dilation, dimRoundingMode))
+           .toThrowError();
+     });
+
   it('TensorLike', async () => {
     const pad = 'same';
     const stride = 1;
