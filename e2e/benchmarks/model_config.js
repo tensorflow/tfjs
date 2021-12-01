@@ -103,11 +103,11 @@ const benchmarks = {
     },
     predictFunc: () => {
       const input = tf.randomNormal([1, 224, 224, 3]);
-      return predictFunction(model, input);
-    },
-    predictFuncTflite: () => {
-      const input = tf.randomNormal([1, 224, 224, 3]);
-      return () => tfliteModel.predict(input);
+      if (isTflite()) {
+        return () => tfliteModel.predict(input);
+      } else {
+        return predictFunction(model, input);
+      }
     },
   },
   'mesh_128': {
@@ -413,24 +413,13 @@ const benchmarks = {
           inferenceInput = customInput ||
               generateInputFromDef(
                                state.inputs, model instanceof tf.GraphModel);
-          const predict = getPredictFnForModel(model, inferenceInput);
-          const inferenceOutput = await predict();
-          return inferenceOutput;
-        } finally {
-          // dispose input tensors
-          if (!customInput) {
-            tf.dispose(inferenceInput);
+          if (isTflite()) {
+            return await tfliteModel.predict(inferenceInput);
+          } else {
+            const predict = getPredictFnForModel(model, inferenceInput);
+            const inferenceOutput = await predict();
+            return inferenceOutput;
           }
-        }
-      };
-    },
-    predictFuncTflite: () => {
-      return async (customInput) => {
-        let inferenceInput;
-        try {
-          inferenceInput = customInput || generateInputFromDef(state.inputs);
-          const inferenceOutput = await tfliteModel.predict(inferenceInput);
-          return inferenceOutput;
         } finally {
           // dispose input tensors
           if (!customInput) {

@@ -491,8 +491,8 @@ limitations under the License.
       if (benchmark['load'] == null) {
         throw new Error(`Please provide a load method for '${state.benchmark}' model.`);
       }
-      if ((benchmark['loadTflite'] == null || benchmark['predictFuncTflite'] == null) && isTflite()) {
-        throw new Error(`Please provide a loadTflite and a predictFuncTflite method for '${state.benchmark}' model.`);
+      if ((benchmark['loadTflite'] == null) && isTflite()) {
+        throw new Error(`Please provide a loadTflite method for '${state.benchmark}' model.`);
       }
 
       await showMsg('Loading the model');
@@ -522,7 +522,7 @@ limitations under the License.
           });
         }
       }
-      predict = isTflite() ? benchmark.predictFuncTflite() : benchmark.predictFunc(inputSize);
+      predict = benchmark.predictFunc(inputSize);
       const elapsed = performance.now() - start;
 
       await showMsg(null);
@@ -945,9 +945,9 @@ limitations under the License.
           // tflite to non-tflite backend.
           if (correctnessButton == null) {
             correctnessButton = gui.add(state, 'testCorrectness');
-            const tfliteBenchmarks = Object.keys(benchmarks);
-            updateModelsDropdown(tfliteBenchmarks);
-            modelController.setValue(tfliteBenchmarks[0]);
+            const allBenchmarks = Object.keys(benchmarks);
+            updateModelsDropdown(allBenchmarks);
+            modelController.setValue(allBenchmarks[0]);
             state.isModelLoaded = false;
             state.isModelChanged = true;
           }
