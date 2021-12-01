@@ -17,9 +17,8 @@
 
 import {DataType, InferenceModel, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, tensor, Tensor} from '@tensorflow/tfjs-core';
 
-import {getDefaultNumThreads} from './tflite_task_library_client/common';
 import * as tfliteWebAPIClient from './tflite_web_api_client';
-import {TFLiteDataType, TFLiteWebModelRunner, TFLiteWebModelRunnerOptions, TFLiteWebModelRunnerTensorInfo} from './types/tflite_web_model_runner';
+import {ProfileItem, TFLiteDataType, TFLiteWebModelRunner, TFLiteWebModelRunnerOptions, TFLiteWebModelRunnerTensorInfo} from './types/tflite_web_model_runner';
 
 const TFHUB_SEARCH_PARAM = '?lite-format=tflite';
 
@@ -178,6 +177,14 @@ export class TFLiteModel implements InferenceModel {
     throw new Error('execute() of TFLiteModel is not supported yet.');
   }
 
+  getProfilingResults(): ProfileItem[] {
+    return this.modelRunner.getProfilingResults();
+  }
+
+  getProfilingSummary(): string {
+    return this.modelRunner.getProfilingSummary();
+  }
+
   private setModelInputFromTensor(
       modelInput: TFLiteWebModelRunnerTensorInfo, tensor: Tensor) {
     // String and complex tensors are not supported.
@@ -317,17 +324,9 @@ export async function loadTFLiteModel(
     model = `${model}${TFHUB_SEARCH_PARAM}`;
   }
 
-  // Process options.
-  const curOptions: TFLiteWebModelRunnerOptions = {};
-  if (options && options.numThreads !== undefined) {
-    curOptions.numThreads = options.numThreads;
-  } else {
-    curOptions.numThreads = await getDefaultNumThreads();
-  }
-
   const tfliteModelRunner =
       await tfliteWebAPIClient.tfweb.TFLiteWebModelRunner.create(
-          model, curOptions);
+          model, options);
   return new TFLiteModel(tfliteModelRunner);
 }
 
