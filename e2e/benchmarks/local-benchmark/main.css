@@ -101,6 +101,7 @@ div[id*='trendline-container'] path {
   padding: 7px;
   position: absolute;
   top: 15px;
+  z-index: 100;
 }
 
 .table {
