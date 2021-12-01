@@ -1137,9 +1137,9 @@ export class MathBackendWebGL extends KernelBackend {
           } catch (error) {
             throw error;
           }
-        }) as Promise<boolean>);
+        }));
       }
-      return Promise.all(promises);
+      return Promise.all(promises) as Promise<boolean[]>;
     }
   }
 
