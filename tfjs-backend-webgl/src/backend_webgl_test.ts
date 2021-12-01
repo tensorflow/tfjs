@@ -756,7 +756,6 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
   // implemented in context object. We have to keep the test sync for now,
   // because it's a global flag, the async test will affect other tests.
   it('does not have memory leak.', () => {
-    console.log('hello world');
     const savedWebGLCPUForward = tf.env().get('WEBGL_CPU_FORWARD');
     tf.env().set('WEBGL_CPU_FORWARD', false);
 

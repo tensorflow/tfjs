@@ -46,24 +46,6 @@ export interface GPGPUProgram {
       Array<{name: string; arrayIndex?: number; type: UniformType;}>;
 }
 
-export interface GPGPUBinary {
-  webGLProgram: WebGLProgram;
-  program: GPGPUProgram;
-  uniformLocations: {[name: string]: WebGLUniformLocation};
-  customUniformLocations?: WebGLUniformLocation[];
-  source: string;
-  fragmentShader: WebGLShader;
-  inShapeInfos: ShapeInfo[];
-  outShapeInfo: ShapeInfo;
-  infLoc: WebGLUniformLocation;
-  nanLoc: WebGLUniformLocation;
-  inShapesLocations?: {[name: string]: WebGLUniformLocation};
-  inTexShapesLocations?: {[name: string]: WebGLUniformLocation};
-  outShapeLocation?: WebGLUniformLocation;
-  outShapeStridesLocation?: WebGLUniformLocation;
-  outTexShapeLocation?: WebGLUniformLocation;
-}
-
 export interface GPGPUBinaryLocations {
   uniformLocations: {[name: string]: WebGLUniformLocation};
   customUniformLocations?: WebGLUniformLocation[];
@@ -74,6 +56,14 @@ export interface GPGPUBinaryLocations {
   outShapeLocation?: WebGLUniformLocation;
   outShapeStridesLocation?: WebGLUniformLocation;
   outTexShapeLocation?: WebGLUniformLocation;
+}
+export interface GPGPUBinary extends GPGPUBinaryLocations {
+  webGLProgram: WebGLProgram;
+  program: GPGPUProgram;
+  source: string;
+  fragmentShader: WebGLShader;
+  inShapeInfos: ShapeInfo[];
+  outShapeInfo: ShapeInfo;
 }
 
 export interface TensorData {
