@@ -66,10 +66,20 @@ const IGNORE_LIST: string[] = [
   'scatterND test-tensorflow {} should sum the duplicated indices',
   'scatterND test-tensorflow {} should work for tensorLike input',
   // https://github.com/tensorflow/tfjs/issues/1077
+  // tslint:disable-next-line:max-line-length
+  'maxPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 default dimRoundingMode',
   'maxPool test-tensorflow {} x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor',
+  'maxPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=floor',
+  'maxPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=round',
+  'maxPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=ceil',
   // Node backend which uses TF 2.4.0 doesn't support explicit padding
   'avgPool test-tensorflow {} x=[3,3,1] f=[3,3] s=1 p=explicit',
+  // tslint:disable-next-line:max-line-length
+  'avgPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 default dimRoundingMode',
   'avgPool test-tensorflow {} x=[2,2,3] f=[1,1] s=2 p=1 dimRoundingMode=floor',
+  'avgPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=floor',
+  'avgPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=round',
+  'avgPool test-tensorflow {} x=[2,2,3] f=[2,2] s=3 p=1 dimRoundingMode=ceil',
   // Node backend which uses TF 2.4.0 doesn't support explicit padding
   'avgPool test-tensorflow {} gradient x=[3,3,1] f=[3,3] s=1 p=explicit',
   // tslint:disable-next-line:max-line-length
@@ -104,6 +114,22 @@ const IGNORE_LIST: string[] = [
   'broadcast with unequal ranks',
   // Node backend which uses TF 2.4.0 doesn't support explicit padding
   'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=1 d=1 p=explicit',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit defualt dimRoundingMode',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=floor',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=round',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=ceil',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit defualt dimRoundingMode',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=floor',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=round',
+  // tslint:disable-next-line:max-line-length
+  'pool test-tensorflow {} avg x=[3,3,1] f=[3,3] s=3 d=1 p=explicit dimRoundingMode=ceil',
   // tslint:disable-next-line:max-line-length
   'pool test-tensorflow {} max x=[2,2,3] f=[1,1] s=2 p=1 fractional outputs default rounding',
   // Node backend which uses TF 2.4.0 doesn't support explicit padding

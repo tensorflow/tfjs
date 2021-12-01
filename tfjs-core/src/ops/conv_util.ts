@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import * as util from '../util';
+
 type PadType = 'SAME'|'VALID'|'NUMBER'|'EXPLICIT';
 
 // For NHWC should be in the following form:
@@ -595,5 +597,47 @@ export function convertConv2DDataFormat(dataFormat: 'NHWC'|'NCHW'):
     return 'channelsFirst';
   } else {
     throw new Error(`Unknown dataFormat ${dataFormat}`);
+  }
+}
+
+/**
+ * Check validity of pad when using dimRoundingMode.
+ * @param opDesc A string of op description
+ * @param pad The type of padding algorithm.
+ *   - `same` and stride 1: output will be of same size as input,
+ *       regardless of filter size.
+ *   - `valid` output will be smaller than input if filter is larger
+ *       than 1x1.
+ *   - For more info, see this guide:
+ *     [https://www.tensorflow.org/api_docs/python/tf/nn/convolution](
+ *          https://www.tensorflow.org/api_docs/python/tf/nn/convolution)
+ * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. If none is
+ *     provided, it will default to truncate.
+ * @throws unknown padding parameter
+ */
+export function checkPadOnDimRoundingMode(
+    opDesc: string, pad: 'valid'|'same'|number|ExplicitPadding,
+    dimRoundingMode?: 'floor'|'round'|'ceil') {
+  if (dimRoundingMode != null) {
+    if (typeof pad === 'string') {
+      throw Error(
+          `Error in ${opDesc}: pad must be an integer when using `  +
+          `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
+    } else if (typeof pad === 'number') {
+      util.assert(
+        util.isInt(pad),
+          () => `Error in ${opDesc}: pad must be an integer when using ` +
+              `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
+    } else if (typeof pad === 'object') {
+      (pad as ExplicitPadding).forEach(p => {p.forEach(v =>{
+        util.assert(
+          util.isInt(v),
+            () => `Error in ${opDesc}: pad must be an integer when using ` +
+                `dimRoundingMode ${dimRoundingMode} but got pad ${v}.`);
+        });
+      });
+    } else {
+      throw Error(`Error in ${opDesc}: Unknown padding parameter: ${pad}`);
+    }
   }
 }

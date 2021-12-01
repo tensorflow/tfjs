@@ -149,13 +149,7 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
       $filter.rank === 4,
       () => `Error in fused conv2d: filter must be rank 4, but got rank ` +
           `${$filter.rank}.`);
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in fused conv2d: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
+  conv_util.checkPadOnDimRoundingMode('fused conv2d', pad, dimRoundingMode);
   util.assert(
       x4D.shape[3] === $filter.shape[2],
       () => `Error in conv2d: depth of input (${x4D.shape[3]}) must match ` +
