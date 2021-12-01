@@ -96,10 +96,19 @@ const benchmarks = {
           'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
       return tf.loadGraphModel(url);
     },
+    loadTflite: async () => {
+      const url =
+          'https://tfhub.dev/tensorflow/lite-model/mobilenet_v2_1.0_224/1/metadata/1';
+      return tflite.loadTFLiteModel(url);
+    },
     predictFunc: () => {
       const input = tf.randomNormal([1, 224, 224, 3]);
-      return predictFunction(model, input);
-    }
+      if (isTflite()) {
+        return () => tfliteModel.predict(input);
+      } else {
+        return predictFunction(model, input);
+      }
+    },
   },
   'mesh_128': {
     type: 'GraphModel',
@@ -394,6 +403,9 @@ const benchmarks = {
     load: async () => {
       return loadModelByUrlWithState(state.modelUrl, {}, state);
     },
+    loadTflite: async () => {
+      return tflite.loadTFLiteModel(state.modelUrl);
+    },
     predictFunc: () => {
       return async (model, customInput) => {
         let inferenceInput;
@@ -401,9 +413,13 @@ const benchmarks = {
           inferenceInput = customInput ||
               generateInputFromDef(
                                state.inputs, model instanceof tf.GraphModel);
-          const predict = getPredictFnForModel(model, inferenceInput);
-          const inferenceOutput = await predict();
-          return inferenceOutput;
+          if (isTflite()) {
+            return await tfliteModel.predict(inferenceInput);
+          } else {
+            const predict = getPredictFnForModel(model, inferenceInput);
+            const inferenceOutput = await predict();
+            return inferenceOutput;
+          }
         } finally {
           // dispose input tensors
           if (!customInput) {
@@ -411,7 +427,7 @@ const benchmarks = {
           }
         }
       };
-    }
+    },
   },
 };
 
