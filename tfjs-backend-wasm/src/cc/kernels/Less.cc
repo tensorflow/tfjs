@@ -39,13 +39,16 @@ void Less(const int a_id, const size_t* a_shape_ptr, const int a_shape_len,
           const DType input_type, const int out_id) {
   switch (input_type) {
     case DType::float32:
-      compare_f32(a_id, b_id, out_id, less<float>);
+      compare_f32(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr,
+                  b_shape_len, out_id, less<float>);
       break;
     case DType::int32:
-      compare_i32(a_id, b_id, out_id, less<int>);
+      compare_i32(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr,
+                  b_shape_len, out_id, less<int>);
       break;
     case DType::boolean:
-      compare_bool(a_id, b_id, out_id, less<bool>);
+      compare_bool(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr,
+                   b_shape_len, out_id, less<bool>);
       break;
     default:
       util::warn(

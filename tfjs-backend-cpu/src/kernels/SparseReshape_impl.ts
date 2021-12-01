@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, DataType, TypedArray, util} from '@tensorflow/tfjs-core';
 
 export function sparseReshapeImpl(
     inputIndices: TypedArray, inputIndicesShape: number[], inputDType: DataType,
@@ -34,14 +34,18 @@ export function sparseReshapeImpl(
     const size = targetShape[d];
     if (size === -1) {
       if (unknownIndex !== -1) {
-        throw new Error(`only one output dimension may be -1, not both ${
-            unknownIndex} and ${d}`);
+        throw new Error(
+            backend_util
+                .getSparseReshapeMultipleNegativeOneOutputDimErrorMessage(
+                    unknownIndex, d));
       }
       unknownIndex = d;
       outputShape.push(1);
     } else {
       if (size < 0) {
-        throw new Error(`size ${d} must be non-negative, not ${size}`);
+        throw new Error(
+            backend_util.getSparseReshapeNegativeOutputDimErrorMessage(
+                d, size));
       }
       product *= size;
       outputShape.push(size);
@@ -50,24 +54,22 @@ export function sparseReshapeImpl(
   if (unknownIndex !== -1) {
     if (product <= 0) {
       throw new Error(
-          'reshape cannot infer the missing ' +
-          'input size for an empty tensor unless all ' +
-          'specified input sizes are non-zero');
+          backend_util.getSparseReshapeEmptyTensorZeroOutputDimErrorMessage());
     }
     const missing = Math.trunc(denseSize / product);
     if (product * missing !== denseSize) {
-      throw new Error(`Input to reshape is a SparseTensor with ${denseSize}
-          dense values, but the requested shape requires a multiple of ${
-          product}. inputShape=${inputShape} outputShape= ${outputShape}`);
+      throw new Error(
+          backend_util.getSparseReshapeInputOutputMultipleErrorMessage(
+              inputShape, outputShape));
     }
 
     outputShape[unknownIndex] = missing;
   }
   const outputSize = util.sizeFromShape(outputShape);
   if (outputSize !== denseSize) {
-    throw new Error(`Input to reshape is a tensor with ${
-        denseSize} dense values, but the requested shape has ${
-        outputSize}. inputShape=${inputShape} outputShape=${outputShape}`);
+    throw new Error(
+        backend_util.getSparseReshapeInputOutputMismatchErrorMessage(
+            inputShape, outputShape));
   }
 
   const inputRank = inputShape.length;

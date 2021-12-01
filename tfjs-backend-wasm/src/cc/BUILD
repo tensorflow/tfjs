@@ -127,6 +127,7 @@ tfjs_cc_library(
     hdrs = ["binary.h"],
     deps = [
         ":backend",
+        ":util",
     ],
 )
 
@@ -331,6 +332,9 @@ tfjs_cc_library(
         ":Sigmoid",
         ":Sin",
         ":Softmax",
+        ":SparseFillEmptyRows",
+        ":SparseReshape",
+        ":SparseSegmentReduction",
         ":Square",
         ":SquaredDifference",
         ":StridedSlice",
@@ -1078,6 +1082,33 @@ tfjs_unit_test(
     tags = ["ci"],
     deps = [
         ":Softmax",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SparseFillEmptyRows",
+    srcs = ["kernels/SparseFillEmptyRows.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SparseReshape",
+    srcs = ["kernels/SparseReshape.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SparseSegmentReduction",
+    srcs = ["kernels/SparseSegmentReduction.cc"],
+    deps = [
+        ":backend",
+        ":util",
     ],
 )
 

@@ -58,13 +58,8 @@ export const depthwiseConv2dNativeGradConfig: GradConfig = {
             `dilations must be  1. Got strides ${strides} and dilations ` +
             `'${$dilations}'.`);
 
-    if (dimRoundingMode != null) {
-      util.assert(
-          util.isInt(pad as number),
-          () =>
-              `Error in depthwiseConv2d: pad must be an integer when using, ` +
-              `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-    }
+    conv_util.checkPadOnDimRoundingMode(
+        'depthwiseConv2d', pad, dimRoundingMode);
 
     return {
       x: () => depthwiseConv2dNativeBackpropInput(

@@ -88,6 +88,9 @@ function revertAddonName(orig) {
 function getPlatformLibtensorflowUri() {
   // Exception for mac+gpu user
   if (platform === 'darwin') {
+    if (os.arch() === 'arm64') {
+      return `${BASE_HOST}tf-builds/libtensorflow_r2_7_darwin_arm64_cpu.tar.gz`;
+    }
     system = `cpu-${PLATFORM_MAPPING[platform]}-${ARCH_MAPPING[os.arch()]}`;
   }
 

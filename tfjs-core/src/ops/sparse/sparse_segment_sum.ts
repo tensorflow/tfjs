@@ -60,9 +60,10 @@ function sparseSegmentSum_(
     data: Tensor|TensorLike, indices: Tensor1D|TensorLike,
     segmentIds: Tensor1D|TensorLike): Tensor {
   const $data = convertToTensor(data, 'data', 'sparseSegmentSum');
-  const $indices = convertToTensor(indices, 'indices', 'sparseSegmentSum');
+  const $indices =
+      convertToTensor(indices, 'indices', 'sparseSegmentSum', 'int32');
   const $segmentIds =
-      convertToTensor(segmentIds, 'segmentIds', 'sparseSegmentSum');
+      convertToTensor(segmentIds, 'segmentIds', 'sparseSegmentSum', 'int32');
 
   if ($data.rank < 1) {
     throw new Error(

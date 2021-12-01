@@ -45,10 +45,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'pow',
     excludes: [
-      'gradient',  // zerosLike not defined yet.
-      'broadcasting same rank Tensors different shape',  // Broadcasting along
-                                                         // inner dims not
-                                                         // supported yet.
+      'gradient'  // zerosLike not defined yet.
     ]
   },
   {
@@ -261,78 +258,30 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: 'maximum',
     excludes: [
-      'gradient',                                 // Not yet implemented.
-      'broadcasts 2x1 Tensor2D and 2x2 Tensor2D'  // Broadcasting along inner
-                                                  // dims not supported yet.
+      'gradient'  // Not yet implemented.
     ]
   },
   {
     include: 'log ',
   },
-  {
-    startsWith: 'equal ',
-    excludes: [
-      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
-                                       // supported yet.
-      'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes',  // Same as above.
-      'string'
-    ]
-  },
-  {
-    include: 'greater ',
-    excludes: [
-      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
-                                       // supported yet.
-      'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes',  // Same as above.
-      'string'
-    ]
-  },
+  {startsWith: 'equal ', excludes: ['string']},
+  {include: 'greater ', excludes: ['string']},
   {
     include: 'greaterEqual',
     excludes: [
-      'gradient',                      // Not yet implemented.
-      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
-                                       // supported yet.
-      'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes',  // Same as above.
+      'gradient',  // Not yet implemented.
       'string'
     ]
   },
-  {
-    include: 'less ',
-    excludes: [
-      'broadcasting Tensor2D shapes',   // Broadcasting along outer dims not
-                                        // supported yet.
-      'broadcasting Tensor3D shapes',   // Same as above.
-      'broadcasting Tensor3D float32',  // Same as above.
-      'broadcasting Tensor4D shapes',   // Same as above.
-      'string'
-    ]
-  },
+  {include: 'less ', excludes: ['string']},
   {
     include: 'lessEqual',
     excludes: [
-      'gradient',                       // Not yet implemented.
-      'broadcasting Tensor2D shapes',   // Broadcasting along outer dims not
-                                        // supported yet.
-      'broadcasting Tensor3D shapes',   // Same as above.
-      'broadcasting Tensor3D float32',  // Same as above.
-      'broadcasting Tensor4D shapes',   // Same as above.
+      'gradient',  // Not yet implemented.
       'string'
     ]
   },
-  {
-    include: 'notEqual',
-    excludes: [
-      'broadcasting Tensor2D shapes',  // Broadcasting along outer dims not
-                                       // supported yet.
-      'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes',  // Same as above.
-      'string'
-    ]
-  },
+  {include: 'notEqual', excludes: ['string']},
   {
     include: 'mean ',
     excludes: [
@@ -342,15 +291,7 @@ const TEST_FILTERS: TestFilter[] = [
   {startsWith: 'reverse'},
   {startsWith: 'sum '},
   {startsWith: 'cumsum'},
-  {
-    startsWith: 'logicalAnd ',
-    excludes: [
-      'broadcasting Tensor2D shapes',  // Broadcasting along outer dimensions
-                                       // not yet supported.
-      'broadcasting Tensor3D shapes',  // Same as above.
-      'broadcasting Tensor4D shapes',  // Same as above.
-    ]
-  },
+  {startsWith: 'logicalAnd '},
   {
     startsWith: 'tile ',
     excludes: [
@@ -407,6 +348,7 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {include: 'prod'},
   {include: 'floor'},
+  {include: 'floorDiv'},
   {include: 'topk'},
   {include: 'expandDims'},
   {include: 'stack'},
@@ -433,6 +375,10 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'image.transform'},
   {include: 'batchToSpaceND'},
   {include: 'spaceToBatchND'},
+  {include: 'sparseFillEmptyRows'},
+  {include: 'sparseReshape'},
+  {include: 'sparseSegmentMean'},
+  {include: 'sparseSegmentSum'},
 ];
 
 const customInclude = (testName: string) => {
