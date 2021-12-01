@@ -24,6 +24,7 @@ import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 
+import {checkPadOnDimRoundingMode} from './conv_util';
 import {cast} from './cast';
 import {op} from './operation';
 import {reshape} from './reshape';
@@ -85,16 +86,8 @@ function avgPool3d_<T extends Tensor4D|Tensor5D>(
       dataFormat === 'NDHWC',
       () => `Error in avgPool3d: Only NDHWC is currently supported, ` +
           `but got dataFormat of ${dataFormat}`);
-
-  if (dimRoundingMode != null) {
-    util.assert(
-        util.isInt(pad as number),
-        () => `Error in avgPool3d: pad must be an integer when using, ` +
-            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-  }
-
+  checkPadOnDimRoundingMode('avgPool3d', pad, dimRoundingMode);
   const inputs: AvgPool3DInputs = {x: x5D};
-
   const attrs:
       AvgPool3DAttrs = {filterSize, strides, pad, dimRoundingMode, dataFormat};
 

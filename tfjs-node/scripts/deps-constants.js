@@ -26,7 +26,8 @@ const LIBTENSORFLOW_VERSION = '2.7.0';
 
 /** Map the os.arch() to arch string in a file name */
 const ARCH_MAPPING = {
-  'x64': 'x86_64'
+  'x64': 'x86_64',
+  'arm64': 'arm64'
 };
 /** Map the os.platform() to the platform value in a file name */
 const PLATFORM_MAPPING = {
