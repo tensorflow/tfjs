@@ -117,7 +117,7 @@ const tfliteModel = await tflite.loadTFLiteModel(
 Once it is enabled, the runtime will record per-op latency data when the
 `predict` method is called. The profiling results can be retrieved in two ways:
 
-- `tfliteModel.getProfilingResults()`: this method will return an arrya of
+- `tfliteModel.getProfilingResults()`: this method will return an array of
   `{nodeType, nodeName, execTimeInMs}`.
 - `tfliteModel.getProfilingSummary()`: this method will return a human-readable
   profiling result summary that looks like [this][profiling summary].
