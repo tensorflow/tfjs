@@ -73,9 +73,13 @@ export const compileProgram =
 
       const source = shader_preprocessor.makeShader(
           inputsData, outputData, program, isFromPixel);
-      const module = device.createShaderModule({code: source});
-      const pipeline = device.createComputePipeline(
-          {layout: pipelineLayout, compute: {module, entryPoint: 'main'}});
+      const module = device.createShaderModule(
+          {code: source, label: program.constructor.name});
+      const pipeline = device.createComputePipeline({
+        layout: pipelineLayout,
+        compute: {module, entryPoint: 'main'},
+        label: program.constructor.name
+      });
 
       return pipeline;
     };
