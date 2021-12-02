@@ -941,8 +941,8 @@ export class WebGPUBackend extends KernelBackend {
 fn main([[builtin(position)]] coord_in: vec4<f32>) -> [[location(0)]] vec4<f32> {
   var coord_in_vec2 = vec2<i32>(i32(coord_in.x), i32(coord_in.y));
   let value = textureLoad(image0, coord_in_vec2, 0);
-  let result = vec4<f32>(value.b, value.g, value.r, value.a);
-  return result;
+  //let result = vec4<f32>(value.b, value.g, value.r, value.a);
+  return value;
 }
           `,
         }),
@@ -966,7 +966,7 @@ fn main([[builtin(position)]] coord_in: vec4<f32>) -> [[location(0)]] vec4<f32> 
         {
           view: ctx.getCurrentTexture().createView(),
 
-          loadValue: {r: 0.0, g: 0.0, b: 0.0, a: 1.0},
+          loadValue: {r: 0.0, g: 0.0, b: 0.0, a: 0.0},
           storeOp: 'store',
         },
       ],
@@ -999,6 +999,7 @@ fn main([[builtin(position)]] coord_in: vec4<f32>) -> [[location(0)]] vec4<f32> 
     interContext.configure({
       device: this.device,
       format: 'bgra8unorm',
+      compositingAlphaMode: 'opaque'
     });
 
     const interTexture = this.device.createTexture({
