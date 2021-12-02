@@ -75,6 +75,10 @@ load("@emsdk//:emscripten_deps.bzl", emsdk_emscripten_deps = "emscripten_deps")
 
 emsdk_emscripten_deps()
 
+load("//tfjs-tflite:tflite_repositories.bzl", "tflite_repositories")
+
+tflite_repositories()
+
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 # xnnpack used for fast vectorized wasm operations
