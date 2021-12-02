@@ -582,7 +582,6 @@ limitations under the License.
 
     async function profileMemoryAndKernelTime() {
       await showMsg('Profile memory and kernels');
-      const start = performance.now();
 
       // Reload tflite model with profiling enabled.
       if (isTflite()) {
@@ -595,6 +594,8 @@ limitations under the License.
         state.isModelChanged = true;
         state.isModelLoaded = false;
       }
+
+      const start = performance.now();
 
       let profileInfo;
       if (state.benchmark === 'custom') {
