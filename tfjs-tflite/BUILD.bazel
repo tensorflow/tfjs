@@ -39,7 +39,6 @@ tfjs_bundle(
         "//tfjs-tflite/src:tfjs-tflite_src_lib",
         "//tfjs-tflite/src:tflite_web_api_client_js",
         "@tflite_wasm_files//:wasm_files",
-        #"//tfjs-tflite/wasm:wasm_files",
     ],
 )
 
