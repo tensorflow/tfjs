@@ -777,7 +777,7 @@ export class WebGPUBackend extends KernelBackend {
 
     const pipeline = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(
-          this.device, program, pipelineLayout, inputsData, output);
+          this.device, program, pipelineLayout, inputsData, output.dtype);
     });
 
     const shouldTimeProgram = this.activeTimers != null;
@@ -875,6 +875,183 @@ export class WebGPUBackend extends KernelBackend {
       }
     }
     this.commandQueueOwnedIds.add(outputId);
+    this.submitQueue();
+    if (shouldTimeProgram) {
+      this.activeTimers.push({
+        name: program.constructor.name,
+        query: this.getQueryTime(this.querySet)
+      });
+    }
+  }
+
+  private createTexture1Layout(): WebGPULayout {
+    const bindGroupLayoutEntries: GPUBindGroupLayoutEntry[] = [];
+    // Output buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 0,
+      visibility: GPUShaderStage.COMPUTE,
+      storageTexture: {access: 'write-only', format: 'rgba8unorm'}
+    });
+    // Input buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 1,
+      visibility: GPUShaderStage.COMPUTE,
+      buffer: {type: 'read-only-storage' as const}
+    });
+    // Uniform buffer binding layout.
+    bindGroupLayoutEntries.push({
+      binding: 2,
+      visibility: GPUShaderStage.COMPUTE,
+      buffer: {type: 'uniform' as const}
+    });
+    const fromPixelBindGroupLayout =
+        this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
+    const fromPixelPipelineLayout = this.device.createPipelineLayout(
+        {bindGroupLayouts: [fromPixelBindGroupLayout]});
+    return {
+      bindGroupLayout: fromPixelBindGroupLayout,
+      pipelineLayout: fromPixelPipelineLayout
+    };
+  }
+
+  private runDrawTexture(ctx: GPUCanvasContext, srcTexture: GPUTexture) {
+    const pipeline = this.device.createRenderPipeline({
+      vertex: {
+        module: this.device.createShaderModule({
+          code: `
+          [[stage(vertex)]]
+          fn main([[builtin(vertex_index)]] VertexIndex : u32) -> [[builtin(position)]] vec4<f32> {
+            var pos = array<vec2<f32>, 6>(
+              vec2<f32>(-1.0,  1.0),
+              vec2<f32>(-1.0, -1.0),
+              vec2<f32>( 1.0,  1.0),
+              vec2<f32>(-1.0, -1.0),
+              vec2<f32>( 1.0,  1.0),
+              vec2<f32>( 1.0, -1.0));
+            return vec4<f32>(pos[VertexIndex], 0.0, 1.0);
+          }`,
+        }),
+        entryPoint: 'main',
+      },
+      fragment: {
+        module: this.device.createShaderModule({
+          code: `
+[[group(0), binding(0)]] var image0 : texture_2d<f32>;
+[[stage(fragment)]]
+fn main([[builtin(position)]] coord_in: vec4<f32>) -> [[location(0)]] vec4<f32> {
+  var coord_in_vec2 = vec2<i32>(i32(coord_in.x), i32(coord_in.y));
+  let value = textureLoad(image0, coord_in_vec2, 0);
+  //let result = vec4<f32>(value.b, value.g, value.r, value.a);
+  return value;
+}
+          `,
+        }),
+        entryPoint: 'main',
+        targets: [{format: 'bgra8unorm'}],
+      },
+    });
+
+    const uniformBindGroup = this.device.createBindGroup({
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        {
+          binding: 0,
+          resource: srcTexture.createView(),
+        },
+      ],
+    });
+
+    const renderPassDescriptor: GPURenderPassDescriptor = {
+      colorAttachments: [
+        {
+          view: ctx.getCurrentTexture().createView(),
+
+          loadValue: {r: 0.0, g: 0.0, b: 0.0, a: 0.0},
+          storeOp: 'store',
+        },
+      ],
+    };
+
+    this.ensureCommandEncoderReady();
+    const passEncoder =
+        this.currentCommandEncoder.beginRenderPass(renderPassDescriptor);
+    passEncoder.setPipeline(pipeline);
+    passEncoder.setBindGroup(0, uniformBindGroup);
+    passEncoder.draw(6);
+    passEncoder.endPass();
+  }
+
+  runToCanvasProgram(
+      program: webgpu_program.WebGPUProgram, input: TensorInfo,
+      ctx: GPUCanvasContext) {
+    this.uploadToGPU(input.dataId);
+    const srcBuffer = this.tensorMap.get(input.dataId).bufferInfo.buffer;
+    const width = input.shape[1];
+    const height = input.shape[0];
+
+    const interTexture = this.device.createTexture({
+      format: 'rgba8unorm',
+      size: [width, height, 1],
+      usage: GPUTextureUsage.COPY_SRC | GPUTextureUsage.STORAGE_BINDING |
+          GPUTextureUsage.TEXTURE_BINDING
+    });
+
+    const size = util.sizeFromShape(program.outputShape);
+    const depth = input.shape.length === 2 ? 1 : input.shape[2];
+    const strides = util.computeStrides(program.outputShape);
+    const uniformData = [size, depth, ...strides];
+    const uniformBuffer = this.bufferManager.acquireBuffer(
+        uniformData.length * 4,
+        GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
+    this.device.queue.writeBuffer(
+        uniformBuffer, 0, new Int32Array(uniformData));
+
+    const layout = this.createTexture1Layout();
+    const pipeline = this.getAndSavePipeline(program.shaderKey, () => {
+      return webgpu_program.compileProgram(
+          this.device, program, layout.pipelineLayout, [], input.dtype, true);
+    });
+
+    const bindGroup = this.device.createBindGroup({
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        {
+          binding: 0,
+          resource: interTexture.createView(),
+        },
+        {
+          binding: 1,
+          resource: {
+            buffer: srcBuffer,
+          }
+        },
+        {
+          binding: 2,
+          resource: {
+            buffer: uniformBuffer,
+          }
+        }
+      ],
+    });
+    this.ensureCommandEncoderReady();
+    const passEncoder = this.getComputePass();
+    const shouldTimeProgram = this.activeTimers != null;
+    if (shouldTimeProgram) {
+      if (this.supportTimeQuery) {
+        passEncoder.writeTimestamp(this.querySet, 0);
+      }
+    }
+    passEncoder.setPipeline(pipeline);
+    passEncoder.setBindGroup(0, bindGroup);
+    passEncoder.dispatch(
+        program.dispatch[0], program.dispatch[1], program.dispatch[2]);
+    if (shouldTimeProgram) {
+      if (this.supportTimeQuery) {
+        passEncoder.writeTimestamp(this.querySet, 1);
+      }
+    }
+    this.ensureComputePassEnded();
+    this.runDrawTexture(ctx, interTexture);
     this.submitQueue();
     if (shouldTimeProgram) {
       this.activeTimers.push({

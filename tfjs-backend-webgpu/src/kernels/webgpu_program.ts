@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DataType, Rank, ShapeMap, TensorInfo} from '@tensorflow/tfjs-core';
+import {DataType, Rank, ShapeMap} from '@tensorflow/tfjs-core';
 
 import * as shader_preprocessor from '../shader_preprocessor';
 
@@ -67,12 +67,12 @@ export const makeBindGroup =
 export const compileProgram =
     (device: GPUDevice, program: WebGPUProgram,
      pipelineLayout: GPUPipelineLayout,
-     inputsData: shader_preprocessor.InputInfo[], output: TensorInfo,
-     isFromPixel = false): GPUComputePipeline => {
-      const outputData = {dtype: output.dtype, shape: output.shape};
+     inputsData: shader_preprocessor.InputInfo[], type: DataType,
+     useTexture = false): GPUComputePipeline => {
+      const outputData = {dtype: type, shape: program.outputShape};
 
       const source = shader_preprocessor.makeShader(
-          inputsData, outputData, program, isFromPixel);
+          inputsData, outputData, program, useTexture);
       const module = device.createShaderModule({code: source});
       const pipeline = device.createComputePipeline(
           {layout: pipelineLayout, compute: {module, entryPoint: 'main'}});
