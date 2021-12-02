@@ -38,32 +38,40 @@ export function toPixels(args: {
   let {$img} = inputs;
   // const {canvas} = output;
   const [height, width] = $img.shape.slice(0, 2);
-  /*
-  const depth = $img.shape.length === 2 ? 1 : $img.shape[2];
-  const multiplier = $img.dtype === 'float32' ? 255 : 1;
-  const outShape = [height, width, 4];
-  const program = new ToPixelsProgram(outShape);
-  const uniformData =
-      [{type: 'float32', data: [multiplier]}, {type: 'int32', data: [depth]}];
-  const pixels =
-      backend.runWebGPUProgram(program, [$img], 'int32', uniformData);
-  return pixels;
-*/
+
   const outShape = [height, width, 4];
   const program = new ToCanvasProgram(outShape, $img.dtype);
-  const newCanvas = document.createElement('canvas');
-  backend.runToCanvasProgram(program, $img, newCanvas);
-  const ctx = newCanvas.getContext('2d');
-  const imageData = ctx.getImageData(0, 0, width, height).data;
+  const gpuCanvas = document.createElement('canvas');
+  gpuCanvas.width = width;
+  gpuCanvas.height = height;
+  const gpuContext = gpuCanvas.getContext('webgpu') as any;
+  //  'rgba8unorm' is not supported yet as the context format. Otherwise, we
+  //  can save the second render pass. Ideally, just one comput pass, we can
+  //  transfer the input tensor data to webgpu context canvas and then return
+  //  the canvas to user. https://bugs.chromium.org/p/dawn/issues/detail?id=1219
+  gpuContext.configure({
+    device: backend.device,
+    format: 'bgra8unorm',
+    compositingAlphaMode: 'opaque'
+  });
+
+  backend.runToCanvasProgram(program, $img, gpuContext);
+  // In the final version, we should return a webgpu context canvas.
+  // return gpuCanvas;
+
+  // Currently, below codes are just used to test the correctness using the
+  // existed toPixel tests. Once all faiures are resolved, I will do the
+  // refacor, rename it to a new kernel, and return |gpuCanvas| directly.
+  const testCanvas = document.createElement('canvas');
+  const testContext = testCanvas.getContext('2d');
+  testContext.canvas.width = width;
+  testContext.canvas.height = height;
+  testContext.drawImage(gpuCanvas, 0, 0, width, height);
+  const imageData = testContext.getImageData(0, 0, width, height).data;
 
   const outTensor = backend.makeTensorInfo(outShape, 'int32');
   const info = backend.tensorMap.get(outTensor.dataId);
   info.values = new Int32Array(imageData);
   backend.uploadToGPU(outTensor.dataId);
   return outTensor;
-  // upload pixels to a temporary webgpu canvas by canvas->getCurrentTexture =>
-  // copyBufferToTexture. Then if canvas is a 2d canvas, then call
-  // 2dCanvasContext.drawImage If canvas is a webgl canvas,
-  // texImage2D(webgpuCanvas)->texture, render the texture to webgl canvas. If
-  // cavas is a webgpu canvas, copyExternalImageToTexture.
 }

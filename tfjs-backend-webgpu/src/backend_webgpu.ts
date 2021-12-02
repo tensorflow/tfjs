@@ -983,24 +983,11 @@ fn main([[builtin(position)]] coord_in: vec4<f32>) -> [[location(0)]] vec4<f32> 
 
   runToCanvasProgram(
       program: webgpu_program.WebGPUProgram, input: TensorInfo,
-      canvas?: HTMLCanvasElement) {
+      ctx: GPUCanvasContext) {
     this.uploadToGPU(input.dataId);
     const srcBuffer = this.tensorMap.get(input.dataId).bufferInfo.buffer;
-    const interCanvas = document.createElement('canvas');
     const width = input.shape[1];
     const height = input.shape[0];
-    interCanvas.width = width;
-    interCanvas.height = height;
-    const interContext = interCanvas.getContext('webgpu') as any;
-
-    //  'rgba8unorm' is not supported yet as the context format. Otherwise, we
-    //  can save the second render pass.
-    //  https://bugs.chromium.org/p/dawn/issues/detail?id=1219
-    interContext.configure({
-      device: this.device,
-      format: 'bgra8unorm',
-      compositingAlphaMode: 'opaque'
-    });
 
     const interTexture = this.device.createTexture({
       format: 'rgba8unorm',
@@ -1064,23 +1051,13 @@ fn main([[builtin(position)]] coord_in: vec4<f32>) -> [[location(0)]] vec4<f32> 
       }
     }
     this.ensureComputePassEnded();
-    this.runDrawTexture(interContext, interTexture);
+    this.runDrawTexture(ctx, interTexture);
     this.submitQueue();
     if (shouldTimeProgram) {
       this.activeTimers.push({
         name: program.constructor.name,
         query: this.getQueryTime(this.querySet)
       });
-    }
-
-
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.canvas.width = width;
-      ctx.canvas.height = height;
-      ctx.drawImage(interCanvas, 0, 0, width, height);
-    } else {
-      // TODO: support webgl/webgpu context
     }
   }
 
