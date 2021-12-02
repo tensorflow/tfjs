@@ -53,7 +53,7 @@ export function fromPixelsExternalImage(args: {
 
   const pipeline = backend.getAndSavePipeline(key, () => {
     return webgpu_program.compileProgram(
-        backend.device, program, layout.pipelineLayout, [], output, true);
+        backend.device, program, layout.pipelineLayout, [], output.dtype, true);
   });
 
   program.setPipeline(pipeline);
@@ -71,7 +71,7 @@ export function fromPixelsExternalImage(args: {
 
   info.bufferInfo.buffer = backend.acquireBuffer(info.bufferInfo.byteSize);
 
-  const uniformData = [size, numChannels, ...strides, ...program.dispatch];
+  const uniformData = [size, numChannels, ...strides];
   program.setUniform(backend.device, uniformData);
 
   let externalResource: GPUExternalTexture|GPUTextureView;

@@ -20,7 +20,8 @@ import {ToPixels, ToPixelsInputs, ToPixelsOutput} from '@tensorflow/tfjs-core';
 import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {ToPixelsProgram} from './toPixels_webgpu';
+// import {ToPixelsProgram} from './toPixels_webgpu';
+import {ToCanvasProgram} from './to_canvas_webgpu';
 
 export const toPixelsConfig: KernelConfig = {
   kernelName: ToPixels,
@@ -37,6 +38,7 @@ export function toPixels(args: {
   let {$img} = inputs;
   // const {canvas} = output;
   const [height, width] = $img.shape.slice(0, 2);
+  /*
   const depth = $img.shape.length === 2 ? 1 : $img.shape[2];
   const multiplier = $img.dtype === 'float32' ? 255 : 1;
   const outShape = [height, width, 4];
@@ -45,11 +47,23 @@ export function toPixels(args: {
       [{type: 'float32', data: [multiplier]}, {type: 'int32', data: [depth]}];
   const pixels =
       backend.runWebGPUProgram(program, [$img], 'int32', uniformData);
+  return pixels;
+*/
+  const outShape = [height, width, 4];
+  const program = new ToCanvasProgram(outShape, $img.dtype);
+  const newCanvas = document.createElement('canvas');
+  backend.runToCanvasProgram(program, $img, newCanvas);
+  const ctx = newCanvas.getContext('2d');
+  const imageData = ctx.getImageData(0, 0, width, height).data;
 
+  const outTensor = backend.makeTensorInfo(outShape, 'int32');
+  const info = backend.tensorMap.get(outTensor.dataId);
+  info.values = new Int32Array(imageData);
+  backend.uploadToGPU(outTensor.dataId);
+  return outTensor;
   // upload pixels to a temporary webgpu canvas by canvas->getCurrentTexture =>
   // copyBufferToTexture. Then if canvas is a 2d canvas, then call
   // 2dCanvasContext.drawImage If canvas is a webgl canvas,
   // texImage2D(webgpuCanvas)->texture, render the texture to webgl canvas. If
   // cavas is a webgpu canvas, copyExternalImageToTexture.
-  return pixels;
 }

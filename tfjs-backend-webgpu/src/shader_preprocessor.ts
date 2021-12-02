@@ -97,13 +97,13 @@ export function getMainHeaderAndGlobalIndexString(): string {
 
 export function makeShader(
     inputInfo: InputInfo[], outputData: {dtype: DataType, shape: number[]},
-    program: ProgramParams, isFromPixel = false): string {
+    program: ProgramParams, useTexture = false): string {
   const workGroupSizeSnippet = `
     let workGroupSizeX = ${program.workGroupSize[0]}u;
     let workGroupSizeY = ${program.workGroupSize[1]}u;
     let workGroupSizeZ = ${program.workGroupSize[2]}u;`;
 
-  if (isFromPixel === true) {
+  if (useTexture === true) {
     const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
     const outputBufferStr = `
       [[block]] struct Matrix0 {
@@ -113,10 +113,8 @@ export function makeShader(
         size            : i32;
         numChannels     : i32;
         outShapeStrides : vec2<i32>;
-        dispatchSize    : vec3<u32>;
       };
 
-      [[group(0), binding(0)]] var<storage, write> result : Matrix0;
       [[group(0), binding(2)]] var<uniform> uniforms: Uniform;
     `;
     return [
