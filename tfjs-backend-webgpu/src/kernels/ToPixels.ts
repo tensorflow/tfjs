@@ -35,7 +35,7 @@ export function toPixels(args: {
   output: ToPixelsOutput
 }): TensorInfo {
   const {inputs, backend /*, output*/} = args;
-  let {$img} = inputs;
+  const {$img} = inputs;
   // const {canvas} = output;
   const [height, width] = $img.shape.slice(0, 2);
 
@@ -44,7 +44,7 @@ export function toPixels(args: {
   const gpuCanvas = document.createElement('canvas');
   gpuCanvas.width = width;
   gpuCanvas.height = height;
-  const gpuContext = gpuCanvas.getContext('webgpu') as any;
+  const gpuContext = gpuCanvas.getContext('webgpu');
   //  'rgba8unorm' is not supported yet as the context format. Otherwise, we
   //  can save the second render pass. Ideally, just one comput pass, we can
   //  transfer the input tensor data to webgpu context canvas and then return
