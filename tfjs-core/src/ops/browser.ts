@@ -331,14 +331,21 @@ export async function toPixels(
   const kernel = getKernel(ToPixels, ENGINE.backendName);
   if (kernel != null) {
     const inputs: ToPixelsInputs = {$img};
-    const output: ToPixelsOutput = {canvas};
-    const pixels = ENGINE.runKernel(
-        ToPixels, inputs as {} as NamedTensorMap, output as {} as NamedAttrMap);
-    const data = await (pixels as Tensor3D).data();
+    const gpucanvas = document.createElement('canvas');
+    const attrs: ToPixelsOutput = {gpucanvas};
+    ENGINE.runKernel(
+        ToPixels, inputs as {} as NamedTensorMap, attrs as {} as NamedAttrMap);
+
+    const testcanvas = document.createElement('canvas');
+    const testContext = testcanvas.getContext('2d', {alpha: false});
+    testContext.canvas.width = width;
+    testContext.canvas.height = height;
+    testContext.drawImage(gpucanvas as HTMLCanvasElement, 0, 0, width, height);
+    const imageData = testContext.getImageData(0, 0, width, height).data;
     if ($img !== img) {
       $img.dispose();
     }
-    return new Uint8ClampedArray(data);
+    return new Uint8ClampedArray(imageData);
   }
 
   const data = await $img.data();

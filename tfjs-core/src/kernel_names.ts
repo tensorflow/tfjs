@@ -918,7 +918,7 @@ export interface ToPixelsInputs extends NamedTensorInfoMap {
   $img: TensorInfo;
 }
 export interface ToPixelsOutput {
-  canvas: HTMLCanvasElement;
+  gpucanvas: HTMLCanvasElement;
 }
 
 export const RotateWithOffset = 'RotateWithOffset';

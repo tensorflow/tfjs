@@ -15,9 +15,8 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 import {ToPixels, ToPixelsInputs, ToPixelsOutput} from '@tensorflow/tfjs-core';
-import {TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 // import {ToPixelsProgram} from './toPixels_webgpu';
@@ -32,19 +31,18 @@ export const toPixelsConfig: KernelConfig = {
 export function toPixels(args: {
   inputs: ToPixelsInputs,
   backend: WebGPUBackend,
-  output: ToPixelsOutput
+  attrs: ToPixelsOutput
 }): TensorInfo {
-  const {inputs, backend /*, output*/} = args;
+  const {inputs, backend, attrs} = args;
   const {$img} = inputs;
-  // const {canvas} = output;
+  const {gpucanvas} = attrs;
   const [height, width] = $img.shape.slice(0, 2);
 
   const outShape = [height, width, 4];
   const program = new ToCanvasProgram(outShape, $img.dtype);
-  const gpuCanvas = document.createElement('canvas');
-  gpuCanvas.width = width;
-  gpuCanvas.height = height;
-  const gpuContext = gpuCanvas.getContext('webgpu');
+  gpucanvas.width = width;
+  gpucanvas.height = height;
+  const gpuContext = gpucanvas.getContext('webgpu');
   //  'rgba8unorm' is not supported yet as the context format. Otherwise, we
   //  can save the second render pass. Ideally, just one comput pass, we can
   //  transfer the input tensor data to webgpu context canvas and then return
@@ -56,22 +54,7 @@ export function toPixels(args: {
   });
 
   backend.runToCanvasProgram(program, $img, gpuContext);
-  // In the final version, we should return a webgpu context canvas.
-  // return gpuCanvas;
 
-  // Currently, below codes are just used to test the correctness using the
-  // existed toPixel tests. Once all faiures are resolved, I will do the
-  // refacor, rename it to a new kernel, and return |gpuCanvas| directly.
-  const testCanvas = document.createElement('canvas');
-  const testContext = testCanvas.getContext('2d', {alpha: false});
-  testContext.canvas.width = width;
-  testContext.canvas.height = height;
-  testContext.drawImage(gpuCanvas, 0, 0, width, height);
-  const imageData = testContext.getImageData(0, 0, width, height).data;
-
-  const outTensor = backend.makeTensorInfo(outShape, 'int32');
-  const info = backend.tensorMap.get(outTensor.dataId);
-  info.values = new Int32Array(imageData);
-  backend.uploadToGPU(outTensor.dataId);
+  const outTensor = backend.makeTensorInfo(program.outputShape, 'int32');
   return outTensor;
 }
