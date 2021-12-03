@@ -63,7 +63,7 @@ export function toPixels(args: {
   // existed toPixel tests. Once all faiures are resolved, I will do the
   // refacor, rename it to a new kernel, and return |gpuCanvas| directly.
   const testCanvas = document.createElement('canvas');
-  const testContext = testCanvas.getContext('2d');
+  const testContext = testCanvas.getContext('2d', {alpha: false});
   testContext.canvas.width = width;
   testContext.canvas.height = height;
   testContext.drawImage(gpuCanvas, 0, 0, width, height);
