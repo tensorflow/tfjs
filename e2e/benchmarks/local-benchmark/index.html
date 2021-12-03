@@ -499,10 +499,7 @@ limitations under the License.
       let start = performance.now();
       const inputSize = parseFloat(state.inputSize);
       if (isTflite()) {
-        if (tfliteModel) {
-          tfliteModel.modelRunner.cleanUp();
-        }
-        tfliteModel = await benchmark.loadTflite();
+        await loadTfliteModel();
       } else {
         model = await benchmark.load(inputSize, state.architecture, state.inputType);
       }
@@ -584,34 +581,41 @@ limitations under the License.
     }
 
     async function profileMemoryAndKernelTime() {
+      await showMsg('Profile memory and kernels');
+
+      // Reload tflite model with profiling enabled.
       if (isTflite()) {
-        await showMsg(null);
-        const tbody = document.querySelector('#kernels tbody');
-        const nameSpan = document.createElement('span');
-        nameSpan.textContent = '[TODO] Per-kernel stats not supported yet for TFLite models';
-        appendRow(tbody, nameSpan, '');
-        return;
+        await loadTfliteModel(true);
+        // This will make sure the model will be reloaded (with profiling disabled) next time
+        // when "Run benchmark" is clicked.
+        //
+        // Without this, the model with profiling *enabled* will continued to be used to measure
+        // the total run time when "Run benchmark" is clicked, which is not accurate.
+        state.isModelChanged = true;
+        state.isModelLoaded = false;
       }
 
-      await showMsg('Profile memory and kernels');
       const start = performance.now();
 
       let profileInfo;
       if (state.benchmark === 'custom') {
         const input = generateInputFromDef(state.inputs, model instanceof tf.GraphModel);
         try {
-          profileInfo = await profileModelInference(model, input);
+          profileInfo = await profileModelInference(model, input, isTflite());
         } finally {
           tf.dispose(input);
         }
       } else {
-        profileInfo = await profileInference(() => predict(model));
+        profileInfo = await profileInference(() => predict(model), isTflite());
       }
 
       const elapsed = performance.now() - start;
       await showMsg(null);
-      appendRow(timeTable, 'Peak memory', printMemory(profileInfo.peakBytes));
-      appendRow(timeTable, 'Leaked tensors', profileInfo.newTensors);
+      // TODO: These are not supported by tflite models yet.
+      if (!isTflite()) {
+        appendRow(timeTable, 'Peak memory', printMemory(profileInfo.peakBytes));
+        appendRow(timeTable, 'Leaked tensors', profileInfo.newTensors);
+      }
       appendRow(timeTable, 'Profile time', printTime(elapsed));
 
       if (state.backend === 'webgl' && !queryTimerIsEnabled()) {
@@ -648,7 +652,10 @@ limitations under the License.
               inputInfo += `input${index}: ${inputShape.length}D[${inputShape}]`;
             }
           });
-          appendRow(tbody, nameSpan, kernel.kernelTimeMs.toFixed(2), inputInfo, kernel.outputShapes, kernel.extraInfo);
+          appendRow(tbody, nameSpan, kernel.kernelTimeMs.toFixed(2),
+                    inputInfo || '-',
+                    kernel.outputShapes.length !== 0 ? kernel.outputShapes : '-',
+                    kernel.extraInfo || '-');
         });
       } else {
         profileInfo.aggregatedKernels.forEach(r => {
@@ -784,7 +791,7 @@ limitations under the License.
         'https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection',
         // Load tfjs-tflite from jsdelivr because it correctly sets the
         // "cross-origin-resource-policy" header.
-        'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite/dist/tf-tflite.js',
+        'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@latest/dist/tf-tflite.js',
         '../model_config.js',
         '../benchmark_util.js',
         './util.js',
@@ -970,6 +977,14 @@ limitations under the License.
 
     function isTflite() {
       return state.backend === 'tflite';
+    }
+
+    async function loadTfliteModel(enableProfiling = false) {
+      if (tfliteModel) {
+        tfliteModel.modelRunner.cleanUp();
+      }
+      const benchmark = benchmarks[state.benchmark];
+      tfliteModel = await benchmark.loadTflite(enableProfiling);
     }
 
     function updateModelsDropdown(newValues) {
