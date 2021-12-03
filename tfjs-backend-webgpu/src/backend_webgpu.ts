@@ -84,6 +84,7 @@ export class WebGPUBackend extends KernelBackend {
   private commandQueueOwnedIds = new WeakSet<DataId>();
   private layoutCache: {[key: number]: WebGPULayout};
   private pipelineCache: {[key: string]: GPUComputePipeline};
+  private renderPipeline: GPURenderPipeline;
   private bufferManager: BufferManager;
 
   private tensorDisposalQueue: DataId[] = [];
@@ -884,7 +885,7 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
-  private createTexture1Layout(): WebGPULayout {
+  private createBufferToTextureLayout(): WebGPULayout {
     const bindGroupLayoutEntries: GPUBindGroupLayoutEntry[] = [];
     // Output buffer binding layout.
     bindGroupLayoutEntries.push({
@@ -904,55 +905,53 @@ export class WebGPUBackend extends KernelBackend {
       visibility: GPUShaderStage.COMPUTE,
       buffer: {type: 'uniform' as const}
     });
-    const fromPixelBindGroupLayout =
+    const bindGroupLayout =
         this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
-    const fromPixelPipelineLayout = this.device.createPipelineLayout(
-        {bindGroupLayouts: [fromPixelBindGroupLayout]});
-    return {
-      bindGroupLayout: fromPixelBindGroupLayout,
-      pipelineLayout: fromPixelPipelineLayout
-    };
+    const pipelineLayout =
+        this.device.createPipelineLayout({bindGroupLayouts: [bindGroupLayout]});
+    return {bindGroupLayout, pipelineLayout};
   }
 
   private runDrawTexture(ctx: GPUCanvasContext, srcTexture: GPUTexture) {
-    const pipeline = this.device.createRenderPipeline({
-      vertex: {
-        module: this.device.createShaderModule({
-          code: `
-          [[stage(vertex)]]
-          fn main([[builtin(vertex_index)]] VertexIndex : u32) -> [[builtin(position)]] vec4<f32> {
-            var pos = array<vec2<f32>, 6>(
-              vec2<f32>(-1.0,  1.0),
-              vec2<f32>(-1.0, -1.0),
-              vec2<f32>( 1.0,  1.0),
-              vec2<f32>(-1.0, -1.0),
-              vec2<f32>( 1.0,  1.0),
-              vec2<f32>( 1.0, -1.0));
-            return vec4<f32>(pos[VertexIndex], 0.0, 1.0);
-          }`,
-        }),
-        entryPoint: 'main',
-      },
-      fragment: {
-        module: this.device.createShaderModule({
-          code: `
-[[group(0), binding(0)]] var image0 : texture_2d<f32>;
-[[stage(fragment)]]
-fn main([[builtin(position)]] coord_in: vec4<f32>) -> [[location(0)]] vec4<f32> {
-  var coord_in_vec2 = vec2<i32>(i32(coord_in.x), i32(coord_in.y));
-  let value = textureLoad(image0, coord_in_vec2, 0);
-  //let result = vec4<f32>(value.b, value.g, value.r, value.a);
-  return value;
-}
-          `,
-        }),
-        entryPoint: 'main',
-        targets: [{format: 'bgra8unorm'}],
-      },
-    });
+    if (!this.renderPipeline) {
+      this.renderPipeline = this.device.createRenderPipeline({
+        vertex: {
+          module: this.device.createShaderModule({
+            code: `
+            [[stage(vertex)]]
+            fn main([[builtin(vertex_index)]] VertexIndex : u32) -> [[builtin(position)]] vec4<f32> {
+              var pos = array<vec2<f32>, 6>(
+                vec2<f32>(-1.0,  1.0),
+                vec2<f32>(-1.0, -1.0),
+                vec2<f32>( 1.0,  1.0),
+                vec2<f32>(-1.0, -1.0),
+                vec2<f32>( 1.0,  1.0),
+                vec2<f32>( 1.0, -1.0));
+              return vec4<f32>(pos[VertexIndex], 0.0, 1.0);
+            }`,
+          }),
+          entryPoint: 'main',
+        },
+        fragment: {
+          module: this.device.createShaderModule({
+            code: `
+            [[group(0), binding(0)]] var image0 : texture_2d<f32>;
+            [[stage(fragment)]]
+            fn main([[builtin(position)]] coord_in: vec4<f32>) -> [[location(0)]] vec4<f32> {
+              var coord_in_vec2 = vec2<i32>(i32(coord_in.x), i32(coord_in.y));
+              let value = textureLoad(image0, coord_in_vec2, 0);
+              return value;
+            }
+            `,
+          }),
+          entryPoint: 'main',
+          targets: [{format: 'bgra8unorm'}],
+        },
+      });
+    }
 
-    const uniformBindGroup = this.device.createBindGroup({
-      layout: pipeline.getBindGroupLayout(0),
+    const bindGroup = this.device.createBindGroup({
+      layout: this.renderPipeline.getBindGroupLayout(0),
       entries: [
         {
           binding: 0,
@@ -975,8 +974,8 @@ fn main([[builtin(position)]] coord_in: vec4<f32>) -> [[location(0)]] vec4<f32> 
     this.ensureCommandEncoderReady();
     const passEncoder =
         this.currentCommandEncoder.beginRenderPass(renderPassDescriptor);
-    passEncoder.setPipeline(pipeline);
-    passEncoder.setBindGroup(0, uniformBindGroup);
+    passEncoder.setPipeline(this.renderPipeline);
+    passEncoder.setBindGroup(0, bindGroup);
     passEncoder.draw(6);
     passEncoder.endPass();
   }
@@ -1006,14 +1005,14 @@ fn main([[builtin(position)]] coord_in: vec4<f32>) -> [[location(0)]] vec4<f32> 
     this.device.queue.writeBuffer(
         uniformBuffer, 0, new Int32Array(uniformData));
 
-    const layout = this.createTexture1Layout();
+    const layout = this.createBufferToTextureLayout();
     const pipeline = this.getAndSavePipeline(program.shaderKey, () => {
       return webgpu_program.compileProgram(
           this.device, program, layout.pipelineLayout, [], input.dtype, true);
     });
 
     const bindGroup = this.device.createBindGroup({
-      layout: pipeline.getBindGroupLayout(0),
+      layout: layout.bindGroupLayout,
       entries: [
         {
           binding: 0,

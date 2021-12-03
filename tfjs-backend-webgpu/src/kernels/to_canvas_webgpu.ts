@@ -25,13 +25,11 @@ import {WebGPUProgram} from './webgpu_program';
 export class ToCanvasProgram implements WebGPUProgram {
   variableNames = ['Image'];
   outputShape: number[];
-  uniforms = 'depth: i32;';
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
   workPerThread = 4;
-  size = true;
   type: DataType;
 
   constructor(outShape: number[], type: DataType) {
