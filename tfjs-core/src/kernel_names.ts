@@ -913,12 +913,12 @@ export interface FromPixelsAttrs {
   numChannels: number;
 }
 
-export const ToPixels = 'ToPixels';
-export interface ToPixelsInputs extends NamedTensorInfoMap {
+export const ToCanvas = 'ToCanvas';
+export interface ToCanvasInputs extends NamedTensorInfoMap {
   $img: TensorInfo;
 }
-export interface ToPixelsOutput {
-  gpucanvas: HTMLCanvasElement;
+export interface ToCanvasOutput {
+  canvas: HTMLCanvasElement;
 }
 
 export const RotateWithOffset = 'RotateWithOffset';

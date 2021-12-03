@@ -591,7 +591,8 @@ const TEST_FILTERS: TestFilter[] = [
       'grad',  // gradient function not found.
     ]
   },
-  {startsWith: 'toPixels'}
+  {startsWith: 'toPixels'},
+  {startsWith: 'toCanvas'}
 ];
 
 const customInclude = (testName: string) => {

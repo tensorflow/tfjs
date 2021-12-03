@@ -16,33 +16,33 @@
  */
 
 import {KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
-import {ToPixels, ToPixelsInputs, ToPixelsOutput} from '@tensorflow/tfjs-core';
+import {ToCanvas, ToCanvasInputs, ToCanvasOutput} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-// import {ToPixelsProgram} from './toPixels_webgpu';
+
 import {ToCanvasProgram} from './to_canvas_webgpu';
 
-export const toPixelsConfig: KernelConfig = {
-  kernelName: ToPixels,
+export const toCanvasConfig: KernelConfig = {
+  kernelName: ToCanvas,
   backendName: 'webgpu',
-  kernelFunc: toPixels as {} as KernelFunc,
+  kernelFunc: toCanvas as {} as KernelFunc,
 };
 
-export function toPixels(args: {
-  inputs: ToPixelsInputs,
+export function toCanvas(args: {
+  inputs: ToCanvasInputs,
   backend: WebGPUBackend,
-  attrs: ToPixelsOutput
+  attrs: ToCanvasOutput
 }): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {$img} = inputs;
-  const {gpucanvas} = attrs;
+  const {canvas} = attrs;
   const [height, width] = $img.shape.slice(0, 2);
 
   const outShape = [height, width, 4];
   const program = new ToCanvasProgram(outShape, $img.dtype);
-  gpucanvas.width = width;
-  gpucanvas.height = height;
-  const gpuContext = gpucanvas.getContext('webgpu');
+  canvas.width = width;
+  canvas.height = height;
+  const gpuContext = canvas.getContext('webgpu');
   //  'rgba8unorm' is not supported yet as the context format. Otherwise, we
   //  can save the second render pass. Ideally, just one comput pass, we can
   //  transfer the input tensor data to webgpu context canvas and then return
