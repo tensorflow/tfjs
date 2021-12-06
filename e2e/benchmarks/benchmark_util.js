@@ -335,10 +335,12 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
  * @param model An instance of tf.GraphModel or tf.LayersModel for profiling
  *     memory usage in the inference process.
  * @param input The input tensor container for model inference.
+ * @param isTflite Whether a TFLite model is being profiled or not.
  */
-async function profileModelInference(model, input) {
-  const predict = getPredictFnForModel(model, input);
-  return profileInference(predict);
+async function profileModelInference(model, input, isTflite = false) {
+  const predict = isTflite ? () => tfliteModel.predict(input) :
+                             getPredictFnForModel(model, input);
+  return profileInference(predict, isTflite);
 }
 
 /**
@@ -369,20 +371,35 @@ async function profileModelInference(model, input) {
  * ```
  *
  * @param predict The predict function to execute for profiling memory usage.
+ * @param isTflite Whether a TFLite model is being profiled or not.
  */
-async function profileInference(predict) {
+async function profileInference(predict, isTflite = false) {
   if (typeof predict !== 'function') {
     throw new Error(
         'The first parameter should be a function, while ' +
         `a(n) ${typeof predict} is found.`);
   }
 
-  const kernelInfo = await tf.profile(async () => {
-    const res = await predict();
-    await downloadValuesFromTensorContainer(res);
-    tf.dispose(res);
-  });
-
+  let kernelInfo = {};
+  if (isTflite) {
+    await predict();
+    const profileItems = tfliteModel.getProfilingResults();
+    kernelInfo.kernels = profileItems.map(item => {
+      return {
+        name: item.nodeType,
+        kernelTimeMs: item.nodeExecMs,
+        // TODO: Shapes are not supported yet.
+        inputShapes: [],
+        outputShapes: [],
+      };
+    });
+  } else {
+    kernelInfo = await tf.profile(async () => {
+      const res = await predict();
+      await downloadValuesFromTensorContainer(res);
+      tf.dispose(res);
+    });
+  }
   kernelInfo.kernels =
       kernelInfo.kernels.sort((a, b) => b.kernelTimeMs - a.kernelTimeMs);
   kernelInfo.aggregatedKernels = aggregateKernelTime(kernelInfo.kernels);
