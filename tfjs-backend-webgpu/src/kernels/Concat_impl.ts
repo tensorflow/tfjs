@@ -16,15 +16,13 @@
  */
 
 import {backend_util, ConcatInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
-
 import {WebGPUBackend} from '../backend_webgpu';
 import {concatImplCPU} from '../kernel_utils/shared';
-
-import {complex} from './Complex';
-import {ConcatProgram} from './concat_webgpu';
+import {complex} from './Binary';
 import {imag} from './Imag';
 import {real} from './Real';
 import {reshape} from './Reshape';
+import {ConcatProgram} from './concat_webgpu';
 
 export function concatImpl(
     inputs: ConcatInputs, axis: number, backend: WebGPUBackend): TensorInfo {

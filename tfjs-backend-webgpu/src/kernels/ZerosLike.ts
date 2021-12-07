@@ -19,7 +19,7 @@ import {KernelConfig, KernelFunc, TensorInfo, ZerosLike, ZerosLikeInputs} from '
 
 import {WebGPUBackend} from '../backend_webgpu';
 
-import {complex} from './Complex';
+import {complex} from './Binary';
 import {fill} from './Fill';
 import {imag} from './Imag';
 import {real} from './Real';

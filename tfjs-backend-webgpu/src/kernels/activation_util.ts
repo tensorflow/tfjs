@@ -16,26 +16,27 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
+import {getShaderBinary} from './Binary';
+import {getShaderUnary} from './Unary';
 
-import {BinaryOpType, getBinaryOpString} from './binary_op_util';
-import {getUnaryOpString, UnaryOpType} from './unary_op_util';
+function capitalize(s: string) {
+  return s[0].toUpperCase() + s.slice(1);
+}
 
 export function mapActivationToShaderProgram(
     activation: backend_util.Activation, packed = false): string {
   if (activation === null) {
     return null;
-  } else if (activation === 'linear') {
-    return getUnaryOpString(UnaryOpType.LINEAR);
-  } else if (activation === 'relu') {
-    return getUnaryOpString(UnaryOpType.RELU, packed);
-  } else if (activation === 'elu') {
-    return getUnaryOpString(UnaryOpType.ELU, packed);
-  } else if (activation === 'relu6') {
-    return getUnaryOpString(UnaryOpType.RELU6, packed);
-  } else if (activation === 'prelu') {
-    return getBinaryOpString(BinaryOpType.PRELU, packed);
-  } else if (activation === 'sigmoid') {
-    return getUnaryOpString(UnaryOpType.SIGMOID);
+  } else {
+    let key = capitalize(activation);
+    if (!['linear', 'sigmoid'].includes(activation) && packed) {
+      key += '_vec4';
+    }
+    if (['elu', 'linear', 'relu', 'relu6', 'sigmoid'].includes(activation)) {
+      return getShaderUnary(key);
+    } else if (activation === 'prelu') {
+      return getShaderBinary(key);
+    }
   }
   throw new Error(`Activation ${
       activation} has not been implemented for the WebGPU backend.`);
