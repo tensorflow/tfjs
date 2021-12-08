@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-backend-webgl",
-  "version": "0.0.0",
+  "version": "3.12.0",
   "description": "GPU accelerated WebGL backend for TensorFlow.js",
   "private": false,
   "main": "dist/tf-backend-webgl.node.js",
@@ -25,7 +25,7 @@
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
-    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
+    "@tensorflow/tfjs-core": "3.12.0",
     "@types/jasmine": "~3.0.0",
     "clang-format": "~1.2.4",
     "jasmine": "~3.1.0",
@@ -64,7 +64,7 @@
     "run-browserstack": "bazel test :browserstack_bs_chrome_mac_tfjs-backend-webgl2_test"
   },
   "dependencies": {
-    "@tensorflow/tfjs-backend-cpu": "link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
+    "@tensorflow/tfjs-backend-cpu": "3.12.0",
     "@types/offscreencanvas": "~2019.3.0",
     "@types/seedrandom": "2.4.27",
     "@types/webgl-ext": "0.0.30",
@@ -72,7 +72,7 @@
     "seedrandom": "2.4.3"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core"
+    "@tensorflow/tfjs-core": "3.12.0"
   },
   "browser": {
     "util": false,
