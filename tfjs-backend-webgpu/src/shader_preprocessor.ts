@@ -243,16 +243,8 @@ const SHADER_PREFIX = `
     return true;
   }
 
-  fn isNanCustomVec4F32(val : vec4<f32>) -> vec4<f32> {
-    var res = vec4<f32> (0.0);
-    for (var i = 0u; i < 4u; i = i + 1u) {
-      if (isNanCustom(val[i])) {
-        res[i] = 1.0;
-      } else {
-        res[i] = 0.0;
-      }
-    }
-    return res;
+  fn isNanCustomVec4(val : vec4<f32>) -> vec4<bool> {
+    return vec4<bool>(isNanCustom(val[0]), isNanCustom(val[1]), isNanCustom(val[2]), isNanCustom(val[3]));
   }
 
   // Checks whether coordinates lie within the bounds of the shape.
