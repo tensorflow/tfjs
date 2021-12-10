@@ -69,6 +69,7 @@ Please reach out to us if you'd like to put your project on the list.
 - [Custom Object Detection on browser using TensorFlow.js](https://github.com/NSTiwari/TensorFlow.js-Custom-Object-Detection) - An E2E app for custom object detection on the browser using TensorFlow.js; by Nitin Tiwari & Rony Benny.
 - [audiate](https://cjbayron.github.io/audiate/) - Ear training game using Pitch Transcription model in the browser - By CJ Bayron [[demo](https://www.youtube.com/watch?v=VZ3i4V7i7Iw&t=2s)][[repo](https://github.com/cjbayron/audiate)]
 - [Plant AI](https://github.com/Rishit-dagli/Greenathon-Plant-AI) - This web app identifies diseases in plants across 38 healthy and unhealthy plant categories by species and diseases all in the browser - By Rishit Dagli, Rishabh Singh and Rucha Yagnik. [[demo](https://www.plant-ai.tech/)][[repo](https://github.com/Rishit-dagli/Greenathon-Plant-AI)]
+- [Brainchop.org](https://neuroneural.github.io/brainchop/) - Brings automatic 3D MRI segmentation capability to neuroimaging by running a deep learning model in the web-browser on the user side - By Mohamed Masoud and Sergey Plis. [[demo](https://neuroneural.github.io/brainchop/)][[repo](https://github.com/neuroneural/brainchop)][[wiki](https://github.com/neuroneural/brainchop/wiki)]  
 
 ## Tutorials / Codelabs
 
