@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
- import {KernelConfig, KernelFunc, LeakyRelu, LeakyReluInputs, LeakyReluAttrs, TensorInfo} from '@tensorflow/tfjs-core';
+ import {KernelConfig, KernelFunc, LeakyRelu,
+  LeakyReluInputs, LeakyReluAttrs, TensorInfo} from '@tensorflow/tfjs-core';
  import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
  import {WebGPUBackend} from '../backend_webgpu';
  import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
@@ -57,7 +58,8 @@
   }
 }
 
- export function leakyRelu(args: {inputs: LeakyReluInputs, backend: WebGPUBackend, attrs: LeakyReluAttrs}):
+ export function leakyRelu(args:
+  {inputs: LeakyReluInputs, backend: WebGPUBackend, attrs: LeakyReluAttrs}):
  TensorInfo {
    const {inputs, backend, attrs} = args;
    const {x} = inputs;
@@ -65,7 +67,7 @@
    const program = new LeakyReluProgram(x.shape);
    const uniformData = [{type: 'float32', data: [alpha]}];
    return backend.runWebGPUProgram(program, [x], 'float32', uniformData);
- };
+ }
 
  export const leakyReluConfig: KernelConfig = {
    kernelName: LeakyRelu,
