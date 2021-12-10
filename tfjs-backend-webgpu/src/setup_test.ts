@@ -116,7 +116,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    include: 'leakyrelu',
+    startsWith: 'leakyrelu',
   },
   {
     include: 'elu',
@@ -604,7 +604,6 @@ const customInclude = (testName: string) => {
 
   return false;
 };
-
 setupTestFilters(TEST_FILTERS, customInclude);
 
 // Allow flags to override test envs
