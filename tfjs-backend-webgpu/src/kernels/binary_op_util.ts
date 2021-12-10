@@ -66,16 +66,16 @@ const CHECK_NAN_SNIPPET = `
   if (isNanCustom(b)) { return b; }
   `;
 const CHECK_NAN_SNIPPET_VEC4 = `
-  if (isNaN.r > 0.) {
+  if (isNaN.r) {
     resultTemp.r = uniforms.NAN;
   }
-  if (isNaN.g > 0.) {
+  if (isNaN.g) {
     resultTemp.g = uniforms.NAN;
   }
-  if (isNaN.b > 0.) {
+  if (isNaN.b) {
     resultTemp.b = uniforms.NAN;
   }
-  if (isNaN.a > 0.) {
+  if (isNaN.a) {
     resultTemp.a = uniforms.NAN;
   }
   `;
@@ -143,7 +143,7 @@ const POW_VEC4 = `
   if (isExpZero.a) {
     resultTemp.a = 1.0;
   }
-  let isNaN = vec4<f32>(a < vec4<f32>(0.0)) * vec4<f32>(floor(b) < b);
+  let isNaN = a < vec4<f32>(0.0) & floor(b) < b;
   ${CHECK_NAN_SNIPPET_VEC4}
   return resultTemp;
   `;
@@ -158,7 +158,7 @@ function getMinMaxString(op: string, useVec4: boolean) {
   const checkNanSnippet = useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET;
   return useVec4 ? `
     var resultTemp = vec4<f32>(${op}(a, b));
-    let isNaN = min(vec4<f32>(isNanCustomVec4F32(a)) + vec4<f32>(isNanCustomVec4F32(b)), vec4<f32>(1.0));
+    let isNaN = isNanCustomVec4(a) | isNanCustomVec4(b);
     ` + checkNanSnippet +
           `
     return resultTemp;
