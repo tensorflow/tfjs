@@ -259,7 +259,7 @@ export class WebGPUBackend extends KernelBackend {
     const byteSize =
         util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
 
-    // bool is stored in Uint8Array, converted it to Int32Array.
+    // bool is stored in Uint8Array, converted it to Float32Array.
     if (dtype === 'bool' && values instanceof Uint8Array) {
       values = Float32Array.from(values);
     }

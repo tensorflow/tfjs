@@ -216,13 +216,7 @@ limitations under the License.
 
         // load model and run inference
         try {
-          if (state.benchmark === "pose-detection") {
-            tf.setBackend('webgl');
-            await showMsg('Runing on webgl');
-          } else {
-            tf.setBackend('cpu');
-            await showMsg('Runing on cpu');
-          }
+          tf.setBackend('cpu');
           await loadModelAndRecordTime();
           await showMsg('Testing correctness');
           await showInputs();
@@ -245,12 +239,7 @@ limitations under the License.
           const debug = keepIntermediateTensors & (benchmarks[state.benchmark].supportDebug !== false);
           referenceData = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
 
-          // webgl correctness test use webgpu as baseline
-          if (state.benchmark === "pose-detection" && state.backend === "webgl") {
-            await tf.setBackend("webgpu");
-          } else {
-            await tf.setBackend(state.backend);
-          }
+          await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
           predictionData = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
         } catch (e) {
