@@ -766,10 +766,8 @@ export class WebGPUBackend extends KernelBackend {
         name: program.variableNames[i]
       };
     });
-    let bufferTypes: string[] = [];
-    if (program.atomic) {
-      bufferTypes = inputsData.map(d => d.dtype).concat(output.dtype);
-    }
+    let bufferTypes: string[] =
+        program.atomic ? inputsData.map(d => d.dtype) : [];
     const broadcastDims = inputsData.map(
         d => backend_util.getBroadcastDims(d.shape, output.shape));
     const inputShapesEqualsOutShape =

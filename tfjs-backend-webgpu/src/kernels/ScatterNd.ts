@@ -56,7 +56,7 @@ export function scatterNd(args: {
   ];
   const program = new ScatterOptimizedProgram(
       flattenX.shape, sliceRank, flattenIndices.shape.length,
-      flattenX.shape.length, strides, flattenShape, type);
+      flattenX.shape.length, strides, flattenShape);
   const res = backend.runWebGPUProgram(
       program, [flattenX, flattenIndices], type, uniformData, output);
 
