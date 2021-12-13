@@ -32,20 +32,10 @@ export function getCoordsDataType(rank: number): string {
   }
 }
 
-type WGSLDataType = 'f32'|'i32'|'vec4<f32>'|'vec4<i32>'|'vec4<bool>';
-function mapToWgslTypes(type: DataType, isVec4: boolean): WGSLDataType|
+type WGSLDataType = 'f32'|'vec4<f32>';
+function mapToWgslTypes(isVec4: boolean): WGSLDataType|
     DataType {
-  if (type === 'float32') {
-    return isVec4 ? 'vec4<f32>' : 'f32';
-  } else if (type === 'int32') {
-    return isVec4 ? 'vec4<i32>' : 'i32';
-  } else if (type === 'bool') {
-    // Type 'bool' cannot be used in storage class,
-    // https://www.w3.org/TR/WGSL/#host-shareable-types.
-    return isVec4 ? 'vec4<i32>' : 'i32';
-  }
-
-  return type;
+  return isVec4 ? 'vec4<f32>' : 'f32';
 }
 
 interface ProgramParams {
@@ -96,7 +86,7 @@ export function getMainHeaderAndGlobalIndexString(): string {
 }
 
 export function makeShader(
-    inputInfo: InputInfo[], outputData: {dtype: DataType, shape: number[]},
+    inputInfo: InputInfo[], outputDataShape: number[],
     program: ProgramParams, isFromPixel = false): string {
   const workGroupSizeSnippet = `
     let workGroupSizeX = ${program.workGroupSize[0]}u;
@@ -104,7 +94,7 @@ export function makeShader(
     let workGroupSizeZ = ${program.workGroupSize[2]}u;`;
 
   if (isFromPixel === true) {
-    const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
+    const getCoords = generateGetCoordsFromFlatIndex(outputDataShape);
     const outputBufferStr = `
       [[block]] struct Matrix0 {
         numbers: array<f32>;
@@ -136,8 +126,8 @@ export function makeShader(
         getCoordsDataType(inputInfo[i].shape.length)}; `;
   });
   uniformDeclaration +=
-      `outShape : ${getCoordsDataType(outputData.shape.length)} ; `;
-  const stridesLength = outputData.shape.length - 1;
+      `outShape : ${getCoordsDataType(outputDataShape.length)} ; `;
+  const stridesLength = outputDataShape.length - 1;
   uniformDeclaration += `
        outShapeStrides: ${getCoordsDataType(stridesLength)}; `;
 
@@ -164,7 +154,7 @@ export function makeShader(
   } else {
     prefixSnippets.push(`
     [[block]] struct Matrix0 {
-        numbers: array<${mapToWgslTypes('float32', program.isVec4)}>;
+        numbers: array<${mapToWgslTypes(program.isVec4)}>;
     };
 
     [[group(0), binding(0)]] var<storage, write> result : Matrix0;
@@ -173,7 +163,7 @@ export function makeShader(
   program.variableNames.forEach((x, i) => {
     prefixSnippets.push(`
     [[block]] struct Matrix${1 + i} {
-      numbers: array<${mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
+      numbers: array<${mapToWgslTypes(program.isVec4)}>;
     };
     [[group(0), binding(${1 + i})]] var<storage, read> ${x} : Matrix${1 + i};
     `);
@@ -189,28 +179,28 @@ export function makeShader(
   prefixSnippets.push(workGroupSizeSnippet);
 
   const [getOutputCoords, dispatchLayoutRank] =
-      generateGetOutputCoords(outputData.shape, program.dispatchLayout);
-  const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
+      generateGetOutputCoords(outputDataShape, program.dispatchLayout);
+  const getCoords = generateGetCoordsFromFlatIndex(outputDataShape);
 
   const sources = [
     SHADER_PREFIX, prefixSnippets.join('\n'), SAMPLING_SNIPPETS, getCoords,
-    getOutputCoords, getOutputFlatIndexSnippet(outputData.shape.length)
+    getOutputCoords, getOutputFlatIndexSnippet(outputDataShape.length)
 
   ];
   if (!program.atomic) {
     sources.push(
-        getSetOutputSnippet(outputData.shape, 'float32', program.isVec4));
+        getSetOutputSnippet(outputDataShape, 'float32', program.isVec4));
   }
-  if (dispatchLayoutRank === outputData.shape.length) {
+  if (dispatchLayoutRank === outputDataShape.length) {
     // Input sampling snippet is only meaningful when the output isn't getting
     // implicitly reshaped (like it does in conv2d_matmul).
     const inputSamplingSnippet =
         inputInfo
             .map(
                 x => getInputSamplingSnippet(
-                    x, outputData.shape, program.isVec4,
+                    x, outputDataShape, program.isVec4,
                     program.dispatchLayout.x.length ===
-                        outputData.shape.length))
+                        outputDataShape.length))
             .join('\n');
     sources.push(inputSamplingSnippet);
   }
@@ -341,7 +331,7 @@ function getOutputFlatIndexSnippet(outRank: number) {
 function getSetOutputSnippet(
     outShape: number[], outBufferType: DataType, isVec4: boolean): string {
   const outRank = outShape.length;
-  const wgslType = mapToWgslTypes(outBufferType, isVec4);
+  const wgslType = mapToWgslTypes(isVec4);
   let snippet;
   if (isVec4) {
     snippet = `fn setOutputFlat(flatIndex : i32, value : vec4<f32>) {
