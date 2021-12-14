@@ -35,7 +35,7 @@ import {simpleAbsImplCPU} from './kernel_utils/shared';
 import {PackProgram} from './pack_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
 import * as tex_util from './tex_util';
-import {TextureData, TextureUsage} from './tex_util';
+import {Texture, TextureData, TextureUsage} from './tex_util';
 import {TextureManager} from './texture_manager';
 import * as unary_op from './unaryop_gpu';
 import {UnaryOpProgram} from './unaryop_gpu';
@@ -998,6 +998,8 @@ export class MathBackendWebGL extends KernelBackend {
 
     let texShape = texData.texShape;
     if (texShape == null) {
+      // This texShape may not be the final texture shape. For packed or dense
+      // textures, the texShape will be changed when textures are created.
       texShape = webgl_util.getTextureShapeFromLogicalShape(shape, isPacked);
       texData.texShape = texShape;
     }
@@ -1086,7 +1088,7 @@ export class MathBackendWebGL extends KernelBackend {
 
   private acquireTexture(
       texShape: [number, number], texType: TextureUsage, dtype: DataType,
-      isPacked: boolean): WebGLTexture {
+      isPacked: boolean): Texture {
     this.numBytesInGPU += this.computeBytes(texShape, dtype);
     if (!this.warnedAboutMemory &&
         this.numBytesInGPU > this.numMBBeforeWarning * 1024 * 1024) {

@@ -63,7 +63,8 @@ describeWithFlags('gpgpu_util createFloat32MatrixTexture', WEBGL_ENVS, () => {
     const gpgpu = new GPGPUContext();
     const textureConfig = tex_util.getTextureConfig(gpgpu.gl);
     const tex =
-        gpgpu_util.createFloat32MatrixTexture(gpgpu.gl, 32, 32, textureConfig);
+        gpgpu_util.createFloat32MatrixTexture(gpgpu.gl, 32, 32, textureConfig)
+            .texture;
     gpgpu.gl.bindTexture(gpgpu.gl.TEXTURE_2D, tex);
     expect(
         gpgpu.gl.getTexParameter(gpgpu.gl.TEXTURE_2D, gpgpu.gl.TEXTURE_WRAP_S))
@@ -80,7 +81,8 @@ describeWithFlags('gpgpu_util createFloat32MatrixTexture', WEBGL_ENVS, () => {
     const gpgpu = new GPGPUContext();
     const textureConfig = tex_util.getTextureConfig(gpgpu.gl);
     const tex =
-        gpgpu_util.createFloat32MatrixTexture(gpgpu.gl, 32, 32, textureConfig);
+        gpgpu_util.createFloat32MatrixTexture(gpgpu.gl, 32, 32, textureConfig)
+            .texture;
     gpgpu.gl.bindTexture(gpgpu.gl.TEXTURE_2D, tex);
     expect(gpgpu.gl.getTexParameter(
                gpgpu.gl.TEXTURE_2D, gpgpu.gl.TEXTURE_MIN_FILTER))

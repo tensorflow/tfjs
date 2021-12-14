@@ -54,7 +54,7 @@ describeWithFlags(
       });
 
       it('sets the output texture property to the output texture', () => {
-        texture = gpgpu.createFloat32MatrixTexture(1, 1);
+        texture = gpgpu.createFloat32MatrixTexture(1, 1).texture;
         gpgpu.setOutputMatrixTexture(texture, 1, 1);
         expect(gpgpu.outputTexture).toBe(texture);
       });
@@ -62,7 +62,7 @@ describeWithFlags(
       it('sets the gl viewport to the output texture dimensions', () => {
         const columns = 456;
         const rows = 123;
-        texture = gpgpu.createFloat32MatrixTexture(rows, columns);
+        texture = gpgpu.createFloat32MatrixTexture(rows, columns).texture;
         gpgpu.setOutputMatrixTexture(texture, rows, columns);
         const expected = new Int32Array([0, 0, columns, rows]);
         expect(gpgpu.gl.getParameter(gpgpu.gl.VIEWPORT)).toEqual(expected);
@@ -181,7 +181,7 @@ describeWithFlags('GPGPUContext', DOWNLOAD_FLOAT_ENVS, () => {
     `;
     const fragmentShader = createFragmentShader(gpgpu.gl, src);
     const program = gpgpu.createProgram(fragmentShader);
-    const result = gpgpu.createFloat32MatrixTexture(1, 1);
+    const result = gpgpu.createFloat32MatrixTexture(1, 1).texture;
     gpgpu.setOutputMatrixTexture(result, 1, 1);
     gpgpu.setProgram(program);
     gpgpu.deleteMatrixTexture(result);
