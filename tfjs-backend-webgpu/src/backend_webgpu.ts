@@ -597,97 +597,55 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
-  private makeUniformsDataView(data: DataView): GPUBindingResource {
-    const dimensionsBuffer = this.acquireBuffer(
-        data.byteLength, GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
-    this.queue.writeBuffer(dimensionsBuffer, 0, data);
-
-    return {offset: 0, size: data.byteLength, buffer: dimensionsBuffer};
-  }
-
-  private arrayToDataView(
-      arrays: Array<{type: string; data: number[]}>, length: number): DataView {
-    const BYTES_PER_ELEMENT = 4;
-    const uniformDataView =
-        new DataView(new ArrayBuffer(length * BYTES_PER_ELEMENT));
-
-    let dataViewIndex = 0;
-    arrays.forEach(array => {
-      const arrayData = array.data;
-
-      if (array.type !== 'int32' && array.type !== 'float32' &&
-          array.type !== 'uint32') {
-        throw new Error(`${array.type} not supported!`);
-      }
-
-      if (array.type === 'int32') {
-        arrayData.forEach(d => {
-          uniformDataView.setInt32(dataViewIndex * BYTES_PER_ELEMENT, d, true);
-          dataViewIndex++;
-        });
-      } else if (array.type === 'uint32') {
-        arrayData.forEach(d => {
-          uniformDataView.setUint32(dataViewIndex * BYTES_PER_ELEMENT, d, true);
-          dataViewIndex++;
-        });
-      } else {
-        arrayData.forEach(d => {
-          uniformDataView.setFloat32(
-              dataViewIndex * BYTES_PER_ELEMENT, d, true);
-          dataViewIndex++;
-        });
-      }
-    });
-
-    return uniformDataView;
-  }
-
-  private computePadding(uniformsWithType:
-                             Array<{type: string; data: number[];}>): DataView {
+  private makeUniforms(uniformsWithType:
+                           Array<{type: string; data: number[];}>):
+      GPUBindingResource {
     let currentOffset = 0;
-    let padding = 0;
-    let dataViewIndex = 0;
-    const dimUniformsData: Array<{type: string; data: number[];}> = [];
+    // 512 is enough for current uniform size.
+    const maxUniformSize = 512;
+    const arrayBuffer = new ArrayBuffer(maxUniformSize);
     uniformsWithType.forEach((d, i) => {
       if (d.data.length === 0) {
         d.data = [1];
       }
-      // Complete std140 layout rules are documented here:
-      // tslint:disable-next-line:max-line-length
-      // https://www.khronos.org/registry/OpenGL/specs/gl/glspec45.core.pdf#page=159
+      // https://www.w3.org/TR/WGSL/#alignof
       let baseAlignment: number;
       switch (d.data.length) {
         case 0:
-          baseAlignment = 1;
+          baseAlignment = 4;
           break;
         case 1:
-          baseAlignment = 1;
+          baseAlignment = 4;
           break;
         case 2:
-          baseAlignment = 2;
+          baseAlignment = 8;
           break;
         case 3:
-          baseAlignment = 4;
+          baseAlignment = 16;
           break;
         case 4:
-          baseAlignment = 4;
+          baseAlignment = 16;
           break;
         default:
           util.assert(false, () => `Unsupported ${d.data.length}D shape`);
       }
 
-      padding = Math.ceil(currentOffset / baseAlignment) * baseAlignment -
-          currentOffset;
-      for (let p = 0; p < padding; ++p) {
-        dimUniformsData.push({type: d.type, data: [0]});
-        dataViewIndex++;
+      currentOffset = Math.ceil(currentOffset / baseAlignment) * baseAlignment;
+      if (d.type === 'int32') {
+        new Int32Array(arrayBuffer, currentOffset, d.data.length).set(d.data);
+      } else if (d.type === 'uint32') {
+        new Uint32Array(arrayBuffer, currentOffset, d.data.length).set(d.data);
+      } else {
+        new Float32Array(arrayBuffer, currentOffset, d.data.length).set(d.data);
       }
-      dimUniformsData.push({type: d.type, data: d.data});
-      dataViewIndex = dataViewIndex + d.data.length;
-      currentOffset += d.data.length + padding;
+      currentOffset += d.data.length * 4;
     });
 
-    return this.arrayToDataView(dimUniformsData, dataViewIndex);
+    const uniformBuffer = this.acquireBuffer(
+        currentOffset, GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
+    this.queue.writeBuffer(uniformBuffer, 0, arrayBuffer, 0, currentOffset);
+
+    return {offset: 0, size: currentOffset, buffer: uniformBuffer};
   }
 
   // This layout is used by all programs except fromPixel.
@@ -764,10 +722,7 @@ export class WebGPUBackend extends KernelBackend {
       uniformsWithType = [...uniformsWithType, ...programUniforms];
     }
 
-    let uniforms: GPUBindingResource = null;
-    const uniformsDataView = this.computePadding(uniformsWithType);
-    const uniformsByteLength = uniformsDataView.byteLength;
-    uniforms = this.makeUniformsDataView(uniformsDataView);
+    const uniforms = this.makeUniforms(uniformsWithType);
 
     const inputsData = inputs.map((input: TensorInfo, i: number) => {
       if (input.dtype === 'complex64') {
@@ -833,15 +788,15 @@ export class WebGPUBackend extends KernelBackend {
       this.commandQueueOwnedIds.add(input.dataId);
     });
     this.commandQueueOwnedIds.add(output.dataId);
-    if (uniforms) {
-      const uniformInfo = {
-        byteSize: uniformsByteLength,
-        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
-        // tslint:disable-next-line: no-unnecessary-type-assertion
-        buffer: (uniforms as GPUBufferBinding).buffer
-      };
-      this.uniformDisposalQueue.push(uniformInfo);
-    }
+
+    const uniformInfo = {
+      // tslint:disable-next-line: no-unnecessary-type-assertion
+      byteSize: (uniforms as GPUBufferBinding).size,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
+      // tslint:disable-next-line: no-unnecessary-type-assertion
+      buffer: (uniforms as GPUBufferBinding).buffer
+    };
+    this.uniformDisposalQueue.push(uniformInfo);
 
     if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
         number <= this.dispatchNumberInEncoder) {
