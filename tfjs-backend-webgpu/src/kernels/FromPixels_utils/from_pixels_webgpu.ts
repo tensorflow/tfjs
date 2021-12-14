@@ -75,7 +75,7 @@ export class FromPixelsProgram implements WebGPUProgram {
           if (flatIndex < uniforms.size) {
             let coords = getCoordsFromFlatIndex(flatIndexBase);
             let values = ${textureLoad};
-            result.numbers[flatIndex] = i32(floor(255.0 * values[i]));
+            result.numbers[flatIndex] = f32(floor(255.0 * values[i]));
           }
         }
       }

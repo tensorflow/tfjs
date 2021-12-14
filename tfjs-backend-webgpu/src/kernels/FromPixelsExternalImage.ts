@@ -46,8 +46,7 @@ export function fromPixelsExternalImage(args: {
   // FromPixelsExternalImage leverages webgpu backend pipeline
   // cache system to avoid useless recompile.
   const outputShapes = [output.shape];
-  const outputTypes = [output.dtype, useImport ? 'import' : 'copyExternal'];
-  const key = webgpu_program.makeShaderKey(program, outputShapes, outputTypes);
+  const key = webgpu_program.makeShaderKey(program, outputShapes);
 
   const layout = program.getLayout(backend.device);
 
