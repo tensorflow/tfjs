@@ -85,6 +85,7 @@ import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
+import {leakyReluConfig} from './kernels/LeakyRelu';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
@@ -186,6 +187,7 @@ const kernelConfigs: KernelConfig[] = [
   realDivConfig,
   reluConfig,
   relu6Config,
+  leakyReluConfig,
   reshapeConfig,
   resizeBilinearConfig,
   resizeNearestNeighborConfig,
