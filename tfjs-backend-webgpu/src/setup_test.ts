@@ -104,19 +104,24 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    include: 'relu',
+    startsWith: 'relu',
     excludes: [
       'valueAndGradients',  // gradient function not found.
       '5D',                 // Rank 5 is not yet implemented.
       '6D',                 // Rank 5 is not yet implemented.
       'propagates NaNs',    // Arrays differ.
       'derivative',         // gradient function not found.
-      'gradient',           // gradient function not found.
-      'leakyrelu'           // Not yet implemented.
+      'gradient'            // gradient function not found.
     ]
   },
   {
-    include: 'elu',
+    startsWith: 'leakyrelu',
+    excludes: [
+      'gradients: Tensor2D', // Not yet implemented.
+    ]
+  },
+  {
+    startsWith: 'elu',
     excludes: [
       'selu',        // Not yet implemented.
       'derivative',  // gradient function not found.
@@ -175,6 +180,7 @@ const TEST_FILTERS: TestFilter[] = [
                                                              // not yet
                                                              // implemented.
       'leakyrelu',  // Not yet implemented.
+      'gradient',  // Kernel 'Step' not registered
     ]
   },
   {
