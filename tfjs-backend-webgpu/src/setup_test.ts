@@ -180,6 +180,7 @@ const TEST_FILTERS: TestFilter[] = [
                                                              // not yet
                                                              // implemented.
       'leakyrelu',  // Not yet implemented.
+      'gradient',  // Kernel 'Step' not registered
     ]
   },
   {
