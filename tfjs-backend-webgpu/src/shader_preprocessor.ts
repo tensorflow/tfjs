@@ -106,10 +106,10 @@ export function makeShader(
   if (isFromPixel === true) {
     const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
     const outputBufferStr = `
-      [[block]] struct Matrix0 {
+      struct Matrix0 {
         numbers: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
       };
-      [[block]] struct Uniform {
+      struct Uniform {
         size            : i32;
         numChannels     : i32;
         outShapeStrides : vec2<i32>;
@@ -130,7 +130,7 @@ export function makeShader(
   }
 
   const prefixSnippets: string[] = [];
-  let uniformDeclaration = '[[block]] struct Uniforms { NAN : f32; ';
+  let uniformDeclaration = 'struct Uniforms { NAN : f32; ';
   program.variableNames.forEach((x, i) => {
     uniformDeclaration += `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${
         getCoordsDataType(inputInfo[i].shape.length)}; `;
@@ -155,7 +155,7 @@ export function makeShader(
   // Output buffer.
   if (program.atomic) {
     prefixSnippets.push(`
-    [[block]] struct Matrix0 {
+    struct Matrix0 {
         numbers: array<atomic<i32>>;
     };
 
@@ -163,7 +163,7 @@ export function makeShader(
   `);
   } else {
     prefixSnippets.push(`
-    [[block]] struct Matrix0 {
+    struct Matrix0 {
         numbers: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
     };
 
@@ -172,7 +172,7 @@ export function makeShader(
   }
   program.variableNames.forEach((x, i) => {
     prefixSnippets.push(`
-    [[block]] struct Matrix${1 + i} {
+    struct Matrix${1 + i} {
       numbers: array<${mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
     };
     [[group(0), binding(${1 + i})]] var<storage, read> ${x} : Matrix${1 + i};
