@@ -596,7 +596,8 @@ export function generateGetOutputCoords(
   const outRank = outShape.length;
   if (x.length === outRank) {
     const dtype = getCoordsDataType(outRank);
-    const snippet = `fn getOutputCoords(globalIndex: i32) -> ${dtype}{
+    const snippet = `fn getOutputCoords() -> ${dtype}{
+      let globalIndex = getGlobalIndex();
       return getCoordsFromFlatIndex(globalIndex);
     }
     `;
@@ -642,7 +643,7 @@ export function generateGetOutputCoords(
   }
 
   const dtype = getCoordsDataType(rank);
-  let snippet = `fn getOutputCoords(globalIndex: i32) -> ${dtype} {
+  let snippet = `fn getOutputCoords() -> ${dtype} {
     ${gatherDimensionsStr}
   `;
   if (dimensions.length === 0) {

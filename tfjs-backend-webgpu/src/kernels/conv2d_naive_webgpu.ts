@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
+import {getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
@@ -117,8 +117,8 @@ export class Conv2DNaiveProgram implements WebGPUProgram {
         }
       }
 
-      ${getMainHeaderAndGlobalIndexString()}
-        let coords = getOutputCoords(index);
+      ${getMainHeaderString()}
+        let coords = getOutputCoords();
         let batch = coords[0];
         let outChannel = coords[3];
 
