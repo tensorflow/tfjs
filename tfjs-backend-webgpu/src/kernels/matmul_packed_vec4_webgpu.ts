@@ -17,7 +17,7 @@
 
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
-import {getNonFlatDispatchLayoutMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
@@ -44,7 +44,7 @@ export function makeMatMulPackedVec4Source(
   let TileBOuter = ${tileInfo.TileBOuter};
   let TileInner = ${tileInfo.TileInner};
 
-  ${getNonFlatDispatchLayoutMainHeaderString()} {
+  ${getMainHeaderString()}
 
     let tileRow = i32(localId.y) * RowPerThread;
     let tileCol = i32(localId.x);
@@ -103,7 +103,7 @@ export function makeMatMulPackedVec4Source(
                  globalCol,
                  acc[innerRow], globalId);
     }
-}`;
+  }`;
 }
 
 export function makeMatMulVectorVec4Source(
@@ -111,7 +111,7 @@ export function makeMatMulVectorVec4Source(
   return `
   var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
   let tileSize = ${workGroupSize[0] * 4};
-  ${getNonFlatDispatchLayoutMainHeaderString()} {
+  ${getMainHeaderString()}
     let tileCol = i32(localId.x);
     let globalCol = i32(globalId.x);
     let globalRow = i32(globalId.y);
