@@ -17,7 +17,7 @@
 
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
-import {getNonFlatDispatchLayoutMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
@@ -26,8 +26,8 @@ import {WebGPUProgram} from './webgpu_program';
 export function makeMatMulReduceSource(): string {
   return `
     var<workgroup> sumValues : array<f32, workGroupSizeX>;
-    ${getNonFlatDispatchLayoutMainHeaderString()} {
-      let coords = getOutputCoordsWithNonFlatDispatchLayout(globalId);
+    ${getMainHeaderString()}
+      let coords = getOutputCoords();
       let batch = coords[0];
       let row = coords[1];
       let col = coords[2];
