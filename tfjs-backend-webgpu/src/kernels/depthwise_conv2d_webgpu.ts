@@ -17,7 +17,7 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getFlatDispatchLayoutMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 
 import {mapActivationToShaderProgram} from './activation_util';
@@ -101,9 +101,8 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
         }
       }
 
-      ${getFlatDispatchLayoutMainHeaderString()} {
-        let coords = getOutputCoordsWithFlatDispatchLayout(globalId,
-            localId, numWorkgroups);
+      ${getMainHeaderString()}
+        let coords = getOutputCoords();
         let batch = coords[0];
         let xRCCorner = vec2<i32>(coords.yz) * uniforms.stride - uniforms.pad;
         let d2 = coords[3];

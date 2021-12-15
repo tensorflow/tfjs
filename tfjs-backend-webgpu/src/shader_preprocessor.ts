@@ -71,27 +71,22 @@ export function getWorkGroupSizeString(): string {
 `;
 }
 
-export function getFlatDispatchLayoutMainHeaderString(): string {
+export function getMainHeaderString(): string {
   return `
   ${getWorkGroupSizeString()}
-  fn main([[builtin(local_invocation_id)]] localId : vec3<u32>,
-          [[builtin(global_invocation_id)]] globalId : vec3<u32>,
-          [[builtin(num_workgroups)]] numWorkgroups: vec3<u32>)
-`;
-}
-
-export function getNonFlatDispatchLayoutMainHeaderString(): string {
-  return `
-  ${getWorkGroupSizeString()}
-  fn main([[builtin(local_invocation_id)]] localId : vec3<u32>,
-          [[builtin(global_invocation_id)]] globalId : vec3<u32>)
+  fn main([[builtin(local_invocation_id)]] LocalId : vec3<u32>,
+          [[builtin(global_invocation_id)]] GlobalId : vec3<u32>,
+          [[builtin(num_workgroups)]] NumWorkgroups: vec3<u32>) {
+    localId = LocalId;
+    globalId = GlobalId;
+    numWorkgroups = NumWorkgroups;
 `;
 }
 
 export function getMainHeaderAndGlobalIndexString(): string {
   return `
-    ${getFlatDispatchLayoutMainHeaderString()} {
-      let index = getGlobalIndex(globalId, localId, numWorkgroups);
+    ${getMainHeaderString()}
+      let index = getGlobalIndex();
 `;
 }
 
@@ -221,6 +216,10 @@ export function makeShader(
 }
 
 const SHADER_PREFIX = `
+  var<private> localId: vec3<u32>;
+  var<private> globalId: vec3<u32>;
+  var<private> numWorkgroups: vec3<u32>;
+
   fn idiv(a: i32, b: i32, sign: f32) -> i32 {
     var res: i32 = a / b;
     let mod: i32 = a % b;
@@ -282,7 +281,7 @@ const SAMPLING_SNIPPETS = `
   }
 
   // Only used when the y/z dimension of workgroup size is 1.
-  fn getGlobalIndex(globalId : vec3<u32>, localId : vec3<u32>, numWorkgroups: vec3<u32>) -> i32 {
+  fn getGlobalIndex() -> i32 {
     if (numWorkgroups.y == 1u && numWorkgroups.z == 1u) {
       return i32(globalId.x);
     }
@@ -597,10 +596,8 @@ export function generateGetOutputCoords(
   const outRank = outShape.length;
   if (x.length === outRank) {
     const dtype = getCoordsDataType(outRank);
-    const snippet =
-        `fn getOutputCoordsWithFlatDispatchLayout(globalId : vec3<u32>, localId : vec3<u32>, numWorkgroups: vec3<u32>) -> ${
-            dtype}{
-      let globalIndex = getGlobalIndex(globalId, localId, numWorkgroups);
+    const snippet = `fn getOutputCoords() -> ${dtype}{
+      let globalIndex = getGlobalIndex();
       return getCoordsFromFlatIndex(globalIndex);
     }
     `;
@@ -646,9 +643,7 @@ export function generateGetOutputCoords(
   }
 
   const dtype = getCoordsDataType(rank);
-  let snippet =
-      `fn getOutputCoordsWithNonFlatDispatchLayout(globalId : vec3<u32>) -> ${
-          dtype} {
+  let snippet = `fn getOutputCoords() -> ${dtype} {
     ${gatherDimensionsStr}
   `;
   if (dimensions.length === 0) {
