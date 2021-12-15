@@ -92,7 +92,7 @@ describeWithFlags(
       });
 
       it('sets the output texture property to the output texture', () => {
-        texture = gpgpu.createPackedMatrixTexture(1, 1);
+        texture = gpgpu.createPackedMatrixTexture(1, 1).texture;
         gpgpu.setOutputPackedMatrixTexture(texture, 1, 1);
         expect(gpgpu.outputTexture).toBe(texture);
       });
@@ -100,7 +100,7 @@ describeWithFlags(
       it('sets the gl viewport to the output packed texture dimensions', () => {
         const columns = 456;
         const rows = 123;
-        texture = gpgpu.createPackedMatrixTexture(rows, columns);
+        texture = gpgpu.createPackedMatrixTexture(rows, columns).texture;
         gpgpu.setOutputPackedMatrixTexture(texture, rows, columns);
         const [width, height] =
             tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
@@ -131,7 +131,7 @@ describeWithFlags(
         // tslint:disable-next-line: max-line-length
         const fragmentShader = createFragmentShader(gpgpu.gl, src);
         program = gpgpu.createProgram(fragmentShader);
-        output = gpgpu.createPackedMatrixTexture(4, 4);
+        output = gpgpu.createPackedMatrixTexture(4, 4).texture;
         gpgpu.uploadDenseMatrixToTexture(output, 2, 2, new Float32Array(16));
         gpgpu.setOutputMatrixTexture(output, 4, 4);
         gpgpu.setProgram(program);

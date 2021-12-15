@@ -87,8 +87,8 @@ export class TextureManager {
   }
 
   releaseTexture(
-      texture: WebGLTexture, shape: [number, number],
-      logicalTexType: TextureUsage, isPacked: boolean): void {
+      texture: Texture, shape: [number, number], logicalTexType: TextureUsage,
+      isPacked: boolean): void {
     if (this.freeTextures == null) {
       // Already disposed.
       return;
@@ -106,7 +106,7 @@ export class TextureManager {
     const deleteTexThreshold = env().get('WEBGL_DELETE_TEXTURE_THRESHOLD');
     if (deleteTexThreshold !== -1 &&
         this._numBytesAllocated > deleteTexThreshold) {
-      this.gpgpu.deleteMatrixTexture(texture);
+      this.gpgpu.deleteMatrixTexture(texture.texture);
       this._numBytesAllocated -= texBytes;
     } else {
       this.freeTextures[shapeKey].push(texture);
@@ -164,12 +164,12 @@ export class TextureManager {
     }
     for (const texShape in this.freeTextures) {
       this.freeTextures[texShape].forEach(tex => {
-        this.gpgpu.deleteMatrixTexture(tex);
+        this.gpgpu.deleteMatrixTexture(tex.texture);
       });
     }
     for (const texShape in this.usedTextures) {
       this.usedTextures[texShape].forEach(tex => {
-        this.gpgpu.deleteMatrixTexture(tex);
+        this.gpgpu.deleteMatrixTexture(tex.texture);
       });
     }
     this.freeTextures = null;

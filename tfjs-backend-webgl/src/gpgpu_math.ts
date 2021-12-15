@@ -210,9 +210,11 @@ export function runProgram<T extends Tensor, K extends Tensor>(
   const outTex = output.texData.texture;
   const outTexShape = output.texData.texShape;
   if (output.texData.isPacked) {
-    gpgpu.setOutputPackedMatrixTexture(outTex, outTexShape[0], outTexShape[1]);
+    gpgpu.setOutputPackedMatrixTexture(
+        outTex.texture, outTexShape[0], outTexShape[1]);
   } else {
-    gpgpu.setOutputMatrixTexture(outTex, outTexShape[0], outTexShape[1]);
+    gpgpu.setOutputMatrixTexture(
+        outTex.texture, outTexShape[0], outTexShape[1]);
   }
   gpgpu.setProgram(binary.webGLProgram);
 
@@ -283,7 +285,7 @@ export function runProgram<T extends Tensor, K extends Tensor>(
       gpgpu.gl.uniform1i(varOffsetLoc, input.texData.slice.flatOffset);
     }
 
-    gpgpu.setInputMatrixTexture(input.texData.texture, varLoc, i);
+    gpgpu.setInputMatrixTexture(input.texData.texture.texture, varLoc, i);
   });
 
   const outShapeLoc = binary.outShapeLocation;
