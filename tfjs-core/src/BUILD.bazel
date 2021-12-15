@@ -26,6 +26,14 @@ TEST_SRCS = [
     "image_test_util.ts",
 ]
 
+TEST_ENTRYPOINTS = [
+    "test_node.ts",
+    "setup_test.ts",
+    "worker_test.ts",
+    "worker_node_test.ts",
+    "ops/from_pixels_worker_test.ts",
+]
+
 # Used for test-snippets
 filegroup(
     name = "all_srcs",
@@ -38,22 +46,19 @@ make_version_test_file(
 )
 
 filegroup(
-    name = "shared_test_entrypoints",
+    name = "shared_test_srcs",
     srcs = glob(
         ["**/*_test.ts"],
-        exclude = [
-            "setup_test.ts",
-            "worker_test.ts",
-            "worker_node_test.ts",
-            "ops/from_pixels_worker_test.ts",
-        ],
-    ) + [":version_test"],
+        exclude = TEST_ENTRYPOINTS,
+    ) + [
+        ":version_test",
+    ],
 )
 
 # Generates the 'tests.ts' file that imports all test entrypoints.
 enumerate_tests(
     name = "tests",
-    srcs = [":shared_test_entrypoints"],
+    srcs = [":shared_test_srcs"],
     root_path = "tfjs-core/src",
 )
 
@@ -63,7 +68,7 @@ ts_library(
     name = "tfjs-core_src_lib",
     srcs = glob(
         ["**/*.ts"],
-        exclude = TEST_SRCS + ["index.ts"],
+        exclude = TEST_SRCS + TEST_ENTRYPOINTS + ["index.ts"],
     ),
     module_name = "@tensorflow/tfjs-core/dist",
     deps = [
@@ -88,11 +93,7 @@ ts_library(
     name = "tfjs-core_test_lib",
     srcs = glob(
         TEST_SRCS,
-        exclude = [
-            "worker_test.ts",
-            "worker_node_test.ts",
-            "ops/from_pixels_worker_test.ts",
-        ],
+        exclude = TEST_ENTRYPOINTS,
     ) + [
         ":tests",
         ":version_test",
@@ -103,6 +104,31 @@ ts_library(
     deps = [
         ":tfjs-core_lib",
         ":tfjs-core_src_lib",
+    ],
+)
+
+ts_library(
+    name = "setup_test_lib",
+    srcs = [
+        "setup_test.ts",
+    ],
+    deps = [
+        ":tfjs-core_src_lib",
+        ":tfjs-core_test_lib",
+        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+    ],
+)
+
+ts_library(
+    name = "test_node_lib",
+    srcs = [
+        "test_node.ts",
+    ],
+    deps = [
+        # test_node.ts depends on setup_test.js as a runtime dependency,
+        # so it is not listed here (it is listed in the nodejs_test, instead).
+        ":tfjs-core_src_lib",
+        ":tfjs-core_test_lib",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
     ],
 )
@@ -121,6 +147,7 @@ esbuild(
     ],
     sources_content = True,
     deps = [
+        ":setup_test_lib",
         ":tfjs-core_lib",
         ":tfjs-core_test_lib",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
