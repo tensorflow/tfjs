@@ -16,7 +16,7 @@
  */
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
-import {getNonFlatDispatchLayoutMainHeaderString} from '../shader_preprocessor';
+import {getMainHeaderString} from '../shader_preprocessor';
 import {mapActivationToShaderProgram} from './activation_util';
 import {WebGPUProgram} from './webgpu_program';
 
@@ -37,7 +37,7 @@ export function makeMatMulSmallOutputSizeSource(
   // arithmetic operations and others handle IO operations between barrier api,
   // makes ALUs and load/store units work simultaneously, could improves
   // the performance.
-  ${getNonFlatDispatchLayoutMainHeaderString()} {
+  ${getMainHeaderString()}
     let tileRow = i32(localId.y);
     let tileCol = i32(localId.x);
     let globalRow = i32(globalId.y);
