@@ -62,7 +62,7 @@ export class BufferManager {
 
   releaseBuffer(
       buffer: GPUBuffer, byteSize: number, usage: GPUBufferUsageFlags) {
-    if (this.freeBuffers == null) {
+    if (this.freeBuffers.size === 0) {
       return;
     }
 
@@ -94,8 +94,7 @@ export class BufferManager {
               this.releaseBuffer(buffer, byteSize, usage);
             },
             (err) => {
-              // Do nothing;
-              console.log('jiajia:' + err);
+                // Do nothing;
             })
   }
 
@@ -117,7 +116,7 @@ export class BufferManager {
   }
 
   dispose() {
-    if (this.freeBuffers == null && this.usedBuffers == null) {
+    if (this.freeBuffers.size === 0 && this.usedBuffers.size === 0) {
       return;
     }
 
@@ -133,8 +132,8 @@ export class BufferManager {
       });
     });
 
-    this.freeBuffers = null;
-    this.usedBuffers = null;
+    this.freeBuffers = new Map();
+    this.usedBuffers = new Map();
     this.numUsedBuffers = 0;
     this.numFreeBuffers = 0;
     this.numBytesUsed = 0;
