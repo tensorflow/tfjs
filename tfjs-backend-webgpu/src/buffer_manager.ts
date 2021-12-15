@@ -88,9 +88,15 @@ export class BufferManager {
 
   releaseUploadBuffer(
       buffer: GPUBuffer, byteSize: number, usage: GPUBufferUsageFlags) {
-    buffer.mapAsync(GPUMapMode.WRITE).then(() => {
-      this.releaseBuffer(buffer, byteSize, usage);
-    });
+    buffer.mapAsync(GPUMapMode.WRITE)
+        .then(
+            () => {
+              this.releaseBuffer(buffer, byteSize, usage);
+            },
+            (err) => {
+              // Do nothing;
+              console.log('jiajia:' + err);
+            })
   }
 
   getNumUsedBuffers(): number {
