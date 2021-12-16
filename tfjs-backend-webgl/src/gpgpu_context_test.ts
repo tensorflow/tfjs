@@ -18,6 +18,7 @@
 import * as tf from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+// tslint:disable-next-line: no-imports-from-dist
 import {expectArraysEqual} from '@tensorflow/tfjs-core/dist/test_util';
 
 import {WEBGL_ENVS} from './backend_webgl_test_registry';
