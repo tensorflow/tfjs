@@ -69,6 +69,10 @@ export enum PhysicalTextureType {
   PACKED_2X2_FLOAT16
 }
 
+export interface Texture {
+  texture: WebGLTexture;
+  texShape: [number, number];
+}
 export interface TextureData {
   // Required.
   shape: number[];
@@ -76,7 +80,7 @@ export interface TextureData {
 
   // Optional.
   values?: backend_util.BackendValues;
-  texture?: WebGLTexture;
+  texture?: Texture;
   // For complex numbers, the real and imaginary parts are stored as their own
   // individual tensorInfos, with a parent joining the two with the
   // complexTensors field. When this is defined, texture will be null.
