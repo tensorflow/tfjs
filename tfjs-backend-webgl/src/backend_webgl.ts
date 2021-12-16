@@ -112,6 +112,9 @@ export class MathBackendWebGL extends KernelBackend {
   }
   // Maps data ids that have a pending read operation, to list of subscribers.
   private pendingRead = new WeakMap<DataId, Array<(arr: TypedArray) => void>>();
+  // Maps data ids that have a pending read operation, to list of subscribers.
+  // private pendingReadTexture =
+  //     new WeakMap<DataId, Array<(arr: TextureMetadata) => void>>();
   // List of data ids that are scheduled for disposal, but are waiting on a
   // pending read operation.
   private pendingDisposal = new WeakSet<DataId>();
@@ -379,6 +382,74 @@ export class MathBackendWebGL extends KernelBackend {
     }
     return dTypeVals;
   }
+
+  // async readToTexture(dataId: DataId): Promise<TextureMetadata> {
+  //   if (this.pendingReadTexture.has(dataId)) {
+  //     const subscribers = this.pendingReadTexture.get(dataId);
+  //     return new Promise<TextureMetadata>(resolve =>
+  //     subscribers.push(resolve));
+  //   }
+  //   const texData = this.texData.get(dataId);
+  //   const {values, shape, slice, dtype, isPacked} = texData;
+
+  //   if (dtype !== 'complex64') {
+  //     throw new Error('Does not support reading texture for complex64
+  //     dtype.');
+  //   };
+
+  //   // The presence of `slice` indicates this tensor is a shallow slice of a
+  //   // different tensor, and is using that original tensor's texture. Run
+  //   // `clone` in order to copy that texture and read from it.
+  //   if (slice != null) {
+  //     let program;
+  //     if (isPacked) {
+  //       program = new UnaryOpPackedProgram(shape, unary_op.CLONE);
+  //     } else {
+  //       program = new UnaryOpProgram(shape, unary_op.CLONE);
+  //     }
+  //     const res =
+  //         this.runWebGLProgram(program, [{dataId, shape, dtype}], dtype);
+  //     const data = this.readToTexture(res.dataId);
+  //     this.disposeIntermediateTensorInfo(res);
+  //     return data;
+  //   }
+
+  //   let tmpDownloadTarget: TensorInfo;
+
+  //   // Decode the texture so that it is stored densely (using four channels).
+  //   tmpDownloadTarget = this.decode(dataId);
+  //   const tmpData = this.texData.get(tmpDownloadTarget.dataId);
+
+  //   this.pendingReadTexture.set(dataId, []);
+
+  //   if (dtype !== 'complex64') {
+  //     // Create a fence and wait for it to resolve.
+  //     await this.gpgpu.createAndWaitForFence();
+  //   }
+
+  //   if (tmpDownloadTarget != null) {
+  //     this.disposeIntermediateTensorInfo(tmpDownloadTarget);
+  //   }
+  //   if (buffer != null) {
+  //     const gl = this.gpgpu.gl;
+  //     webgl_util.callAndCheck(gl, () => gl.deleteBuffer(buffer));
+  //   }
+  //   const dTypeVals = this.convertAndCacheOnCPU(dataId, vals);
+
+  //   const subscribers = this.pendingRead.get(dataId);
+  //   this.pendingRead.delete(dataId);
+
+  //   // Notify all pending reads.
+  //   subscribers.forEach(resolve => resolve(dTypeVals));
+  //   if (this.pendingDisposal.has(dataId)) {
+  //     this.pendingDisposal.delete(dataId);
+  //     if (this.disposeData(dataId)) {
+  //       engine().removeDataId(dataId, this);
+  //     }
+  //     this.pendingDeletes--;
+  //   }
+  //   return dTypeVals;
+  // }
 
   bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {
     const data = this.readSync(t.dataId);
@@ -746,30 +817,33 @@ export class MathBackendWebGL extends KernelBackend {
     return {dataId: output.dataId, shape: afterShape, dtype: output.dtype};
   }
 
-  private decode(dataId: DataId): TensorInfo {
+  public decode(
+      dataId: DataId, customTexShape?: [number, number],
+      outUsage?: TextureUsage): TensorInfo {
     const texData = this.texData.get(dataId);
     const {isPacked, shape, dtype} = texData;
     const shapeAs3D =
         webgl_util.getShapeAs3D(shape) as [number, number, number];
     let program;
-    const denseTexShape = tex_util.getDenseTexShape(shapeAs3D);
     if (isPacked) {
       program = new DecodeMatrixPackedProgram(shapeAs3D);
     } else {
       program = new DecodeMatrixProgram(shapeAs3D);
     }
     const preventEagerUnpackingOfOutput = true;
-    const customValues = [denseTexShape];
+    const customValues =
+        [customTexShape != null ? customTexShape :
+                                  tex_util.getDenseTexShape(shapeAs3D)];
     const out = this.runWebGLProgram(
         program, [{shape: shapeAs3D, dtype, dataId}], dtype, customValues,
-        preventEagerUnpackingOfOutput);
+        preventEagerUnpackingOfOutput, customTexShape, outUsage);
     return {dtype, shape, dataId: out.dataId};
   }
 
   runWebGLProgram(
       program: GPGPUProgram, inputs: TensorInfo[], outputDtype: DataType,
-      customUniformValues?: number[][],
-      preventEagerUnpackingOfOutput = false): TensorInfo {
+      customUniformValues?: number[][], preventEagerUnpackingOfOutput = false,
+      customTexShape?: [number, number], outUsage?: TextureUsage): TensorInfo {
     const output = this.makeTensorInfo(program.outputShape, outputDtype);
     const outData = this.texData.get(output.dataId);
     if (program.packedOutput) {
@@ -781,10 +855,15 @@ export class MathBackendWebGL extends KernelBackend {
       // so it doesn't get assigned later according to our typical packing
       // scheme wherein a single texel can only contain values from adjacent
       // rows/cols.
-      outData.texShape = texelShape.map(d => d * 2) as [number, number];
+      outData.texShape = customTexShape != null ?
+          customTexShape :
+          texelShape.map(d => d * 2) as [number, number];
     }
     if (program.outTexUsage != null) {
       outData.usage = program.outTexUsage;
+    }
+    if (outUsage != null) {
+      outData.usage = outUsage;
     }
     if (util.sizeFromShape(output.shape) === 0) {
       // Short-circuit the computation since the result is empty (has 0 in its
