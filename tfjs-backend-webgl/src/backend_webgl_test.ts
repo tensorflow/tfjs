@@ -795,13 +795,13 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
     const b1 = tf.tensor1d([1, 1, 1]);
 
     // Pre-compile round.
-    tf.engine().state.compileOnly = true;
+    tf.env().set('ENGINE_COMPILE_ONLY', true);
     const c1 = tf.add(a1, b1);
     webGLBackend.checkCompileCompletion();
     webGLBackend.getUniformLocations();
 
     // Warm-up upload and download round.
-    tf.engine().state.compileOnly = false;
+    tf.env().set('ENGINE_COMPILE_ONLY', false);
     const c2 = tf.add(a1, b1);
     c2.dataSync();
 

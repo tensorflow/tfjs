@@ -830,35 +830,31 @@ export class MathBackendWebGL extends KernelBackend {
       }
 
       this.uploadToGPU(input.dataId);
-      // When in precompile phase, we want to precompile all the shaders, no
-      // matter whether texture is uploaded or not.
-      if (texData.texture != null || engine().state.compileOnly) {
-        if (!!texData.isPacked !== !!program.packedInputs) {
-          input = texData.isPacked ? this.unpackTensor(input) :
-                                     this.packTensor(input);
-          dataToDispose.push(input);
-          texData = this.texData.get(input.dataId);
-        } else if (
-            texData.isPacked &&
-            !webgl_util.isReshapeFree(texData.shape, input.shape)) {
-          // This is a special case where a texture exists for a tensor
-          // but the shapes are incompatible (due to packing constraints)
-          // because the tensor did not have a chance to go through the packed
-          // reshape shader. This only happens when we reshape the *same* tensor
-          // to form *distinct* inputs to an op, e.g. dotting a vector with
-          // itself. This case will disappear once packed uploading is the
-          // default.
+      if (!!texData.isPacked !== !!program.packedInputs) {
+        input = texData.isPacked ? this.unpackTensor(input) :
+                                   this.packTensor(input);
+        dataToDispose.push(input);
+        texData = this.texData.get(input.dataId);
+      } else if (
+          texData.isPacked &&
+          !webgl_util.isReshapeFree(texData.shape, input.shape)) {
+        // This is a special case where a texture exists for a tensor
+        // but the shapes are incompatible (due to packing constraints)
+        // because the tensor did not have a chance to go through the packed
+        // reshape shader. This only happens when we reshape the *same* tensor
+        // to form *distinct* inputs to an op, e.g. dotting a vector with
+        // itself. This case will disappear once packed uploading is the
+        // default.
 
-          const savedInput = input;
-          const targetShape = input.shape;
+        const savedInput = input;
+        const targetShape = input.shape;
 
-          input.shape = texData.shape;
-          input = this.packedReshape(input as Tensor, targetShape);
-          dataToDispose.push(input);
-          texData = this.texData.get(input.dataId);
+        input.shape = texData.shape;
+        input = this.packedReshape(input as Tensor, targetShape);
+        dataToDispose.push(input);
+        texData = this.texData.get(input.dataId);
 
-          savedInput.shape = targetShape;
-        }
+        savedInput.shape = targetShape;
       }
 
       return {shape: input.shape, texData, isUniform: false};
@@ -878,7 +874,7 @@ export class MathBackendWebGL extends KernelBackend {
       query = this.startTimer();
     }
 
-    if (!engine().state.compileOnly) {
+    if (!env().get('ENGINE_COMPILE_ONLY')) {
       gpgpu_math.runProgram(
           this.gpgpu, binary, inputsData, outputData, customUniformValues);
     }
@@ -1063,7 +1059,7 @@ export class MathBackendWebGL extends KernelBackend {
       texData.isPacked = outputTexData.isPacked;
       texData.usage = outputTexData.usage;
 
-      if (!engine().state.compileOnly) {
+      if (!env().get('ENGINE_COMPILE_ONLY')) {
         texData.texture = outputTexData.texture;
         // Once uploaded, don't store the values on cpu.
         texData.values = null;

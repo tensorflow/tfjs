@@ -149,7 +149,7 @@ export function createProgram(gl: WebGLRenderingContext): WebGLProgram {
 
 export function linkProgram(gl: WebGLRenderingContext, program: WebGLProgram) {
   callAndCheck(gl, () => gl.linkProgram(program));
-  if (engine().state.compileOnly) {
+  if (env().get('ENGINE_COMPILE_ONLY')) {
     return;
   }
   if (gl.getProgramParameter(program, gl.LINK_STATUS) === false) {
