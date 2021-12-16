@@ -18,12 +18,14 @@
 import * as tf from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {expectArraysEqual} from '@tensorflow/tfjs-core/dist/test_util';
 
 import {WEBGL_ENVS} from './backend_webgl_test_registry';
 import * as canvas_util from './canvas_util';
 import {getGlslDifferences} from './glsl_version';
 import {GPGPUContext, linearSearchLastTrue} from './gpgpu_context';
 import * as tex_util from './tex_util';
+import {Texture} from './tex_util';
 import {createFragmentShader} from './webgl_util';
 
 const DOWNLOAD_FLOAT_ENVS = {
@@ -72,7 +74,7 @@ describeWithFlags(
 describeWithFlags(
     'GPGPUContext setOutputPackedMatrixTexture', DOWNLOAD_FLOAT_ENVS, () => {
       let gpgpu: GPGPUContext;
-      let texture: WebGLTexture;
+      let texture: Texture;
       let gl: WebGLRenderingContext;
 
       beforeEach(() => {
@@ -86,26 +88,28 @@ describeWithFlags(
 
       afterEach(() => {
         if (texture != null) {
-          gpgpu.deleteMatrixTexture(texture);
+          gpgpu.deleteMatrixTexture(texture.texture);
         }
         gpgpu.dispose();
       });
 
       it('sets the output texture property to the output texture', () => {
-        texture = gpgpu.createPackedMatrixTexture(1, 1).texture;
-        gpgpu.setOutputPackedMatrixTexture(texture, 1, 1);
-        expect(gpgpu.outputTexture).toBe(texture);
+        texture = gpgpu.createPackedMatrixTexture(1, 1);
+        expectArraysEqual(texture.texShape, [1, 1]);
+        gpgpu.setOutputPackedMatrixTexture(texture.texture, 1, 1);
+        expect(gpgpu.outputTexture).toBe(texture.texture);
       });
 
       it('sets the gl viewport to the output packed texture dimensions', () => {
         const columns = 456;
         const rows = 123;
-        texture = gpgpu.createPackedMatrixTexture(rows, columns).texture;
-        gpgpu.setOutputPackedMatrixTexture(texture, rows, columns);
+        texture = gpgpu.createPackedMatrixTexture(rows, columns);
+        gpgpu.setOutputPackedMatrixTexture(texture.texture, rows, columns);
         const [width, height] =
             tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
         const expected = new Int32Array([0, 0, width, height]);
         expect(gpgpu.gl.getParameter(gpgpu.gl.VIEWPORT)).toEqual(expected);
+        expectArraysEqual(texture.texShape, [height, width]);
       });
     });
 
