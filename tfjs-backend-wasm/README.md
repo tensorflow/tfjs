@@ -12,6 +12,7 @@ the following models from our
 - MobileNet
 - PoseDetection
 - Q&A
+- Universal sentence encoder
 - AutoML Image classification
 - AutoML Object detection
 
