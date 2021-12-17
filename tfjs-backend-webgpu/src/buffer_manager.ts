@@ -95,7 +95,7 @@ export class BufferManager {
             },
             (err) => {
                 // Do nothing;
-            })
+            });
   }
 
   getNumUsedBuffers(): number {
