@@ -695,7 +695,8 @@ describeWithFlags('keeping data on gpu ', WEBGL_ENVS, () => {
     const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     const texShape = [2, 2];
     const a = tf.tensor(data, [1, 3, 4]);
-    const res = a.dataToGPU();
+    const b = tf.add(a, 0);
+    const res = b.dataToGPU();
     expectArraysEqual(res.texShape, texShape);
 
     const webGLBackend = tf.backend() as MathBackendWebGL;
@@ -708,8 +709,9 @@ describeWithFlags('keeping data on gpu ', WEBGL_ENVS, () => {
   it('uses user defined texShape.', () => {
     const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     const a = tf.tensor(data, [1, 3, 4]);
+    const b = tf.add(a, 0);
     const texShape = [1, 3] as [number, number];
-    const res = a.dataToGPU({customTexShape: texShape});
+    const res = b.dataToGPU({customTexShape: texShape});
     expectArraysEqual(res.texShape, texShape);
 
     const webGLBackend = tf.backend() as MathBackendWebGL;
@@ -723,7 +725,8 @@ describeWithFlags('keeping data on gpu ', WEBGL_ENVS, () => {
     const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     const texShape = [2, 2];
     const a = tf.tensor(data, [1, 3, 4], 'int32');
-    const res = a.dataToGPU();
+    const b = tf.add(a, 0);
+    const res = b.dataToGPU();
     expectArraysEqual(res.texShape, texShape);
 
     const webGLBackend = tf.backend() as MathBackendWebGL;
@@ -736,9 +739,10 @@ describeWithFlags('keeping data on gpu ', WEBGL_ENVS, () => {
   it('throws error when user defined texShape is too small.', () => {
     const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     const a = tf.tensor(data, [1, 3, 4]);
+    const b = tf.add(a, 0);
 
     expect(() => {
-      a.dataToGPU();
+      b.dataToGPU();
     }).toThrowError();
   });
 });
