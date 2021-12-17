@@ -19,7 +19,7 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendValues, buffer, DataId, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, MemoryInfo, NumericDataType, Rank, RecursiveArray, scalar, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendValues, buffer, DataId, DataStorage, DataToGPUWebGLOption, DataType, DataValues, engine, env, GPUResource, kernel_impls, KernelBackend, MemoryInfo, NumericDataType, Rank, RecursiveArray, scalar, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {getWebGLContext} from './canvas_util';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
@@ -383,8 +383,14 @@ export class MathBackendWebGL extends KernelBackend {
     return dTypeVals;
   }
 
-  readToTexture(dataId: DataId, customTexShape?: [number, number]): TextureData
-      |null {
+  /**
+   * Read tensor to a new texture that is densely packed for ease of use.
+   * @param dataId The source tensor.
+   * @param customTexShape Optional. If set, will use the user defined texture
+   *     shape to create the texture.
+
+   */
+  readToGPU(dataId: DataId, options?: DataToGPUWebGLOption): GPUResource {
     const texData = this.texData.get(dataId);
     const {values, shape, slice, dtype, isPacked, texture} = texData;
 
@@ -404,9 +410,9 @@ export class MathBackendWebGL extends KernelBackend {
       }
       const res =
           this.runWebGLProgram(program, [{dataId, shape, dtype}], dtype);
-      const textureData = this.readToTexture(res.dataId, customTexShape);
+      const gpuResouorce = this.readToGPU(res, options);
       this.disposeIntermediateTensorInfo(res);
-      return textureData;
+      return gpuResouorce;
     }
 
     if (values != null && texture == null) {
@@ -414,8 +420,17 @@ export class MathBackendWebGL extends KernelBackend {
     }
 
     // Decode the texture so that it is stored densely (using four channels).
-    const tmpDownloadTarget = this.decode(dataId, customTexShape);
-    return this.texData.get(tmpDownloadTarget.dataId);
+    const tmpDownloadTarget = this.decode(dataId, options.customTexShape);
+
+    // Make engine track this tensor, so that we can dispose it later.
+    engine().makeTensorFromDataId(
+        tmpDownloadTarget.dataId, tmpDownloadTarget.shape,
+        tmpDownloadTarget.dtype);
+
+    return {
+      dataId: tmpDownloadTarget.dataId,
+          ...this.texData.get(tmpDownloadTarget.dataId).texture
+    }
   }
 
   bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {

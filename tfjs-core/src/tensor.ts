@@ -156,6 +156,17 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
   }
 }
 
+export interface DataToGPUWebGLOption {
+  customTexShape?: [number, number];
+}
+
+export type DataToGPUOptions = DataToGPUWebGLOption;
+
+export interface GPUResource {
+  dataId: DataId;
+  texture?: WebGLTexture;
+  texShape?: [number, number];
+}
 export interface TensorTracker {
   makeTensor(
       values: DataValues, shape: number[], dtype: DataType,
@@ -168,6 +179,7 @@ export interface TensorTracker {
   disposeVariable(v: Variable): void;
   read(dataId: DataId): Promise<BackendValues>;
   readSync(dataId: DataId): BackendValues;
+  readToGPU(dataId: DataId, options?: DataToGPUOptions): GPUResource;
 }
 
 /**
@@ -351,6 +363,31 @@ export class Tensor<R extends Rank = Rank> {
       }
     }
     return data as Promise<DataTypeMap[D]>;
+  }
+
+  /**
+   * Synchronously copy the tensor's data to a new GPU resource. Comparing to
+   * the `dataSync()` and `data()`, this method prevents data from being
+   * downloaded to CPU.
+   *
+   * For WebGL backend, the data will be stored on a densely packed texture.
+   * This means that the texture will use the RGBA channels to store value.
+   *
+   * @returns For WebGL backend, a GPUResource contains the new texture and
+   *     its information.
+   *     {
+   *        dataId: Object,
+   *        texture: WebGLTexture,
+   *        texShape: [number, number] // [height, width]
+   *     }
+   *     Remember to dispose the GPUResource after it is used by
+   *     `tf.dispose(GPUResource as {} as Tensor)`.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
+  dataToGPU(options: DataToGPUOptions): GPUResource {
+    this.throwIfDisposed();
+    return trackerFn().readToGPU(this.dataId, options);
   }
 
   /**
