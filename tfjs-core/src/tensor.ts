@@ -373,6 +373,11 @@ export class Tensor<R extends Rank = Rank> {
    * For WebGL backend, the data will be stored on a densely packed texture.
    * This means that the texture will use the RGBA channels to store value.
    *
+   * @param options:
+   *     For WebGL,
+   *         - customTexShape: Optional. If set, will use the user defined
+   *     texture shape to create the texture.
+   *
    * @returns For WebGL backend, a GPUResource contains the new texture and
    *     its information.
    *     {

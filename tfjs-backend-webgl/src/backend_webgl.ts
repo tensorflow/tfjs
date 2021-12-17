@@ -112,9 +112,6 @@ export class MathBackendWebGL extends KernelBackend {
   }
   // Maps data ids that have a pending read operation, to list of subscribers.
   private pendingRead = new WeakMap<DataId, Array<(arr: TypedArray) => void>>();
-  // Maps data ids that have a pending read operation, to list of subscribers.
-  // private pendingReadTexture =
-  //     new WeakMap<DataId, Array<(arr: TextureMetadata) => void>>();
   // List of data ids that are scheduled for disposal, but are waiting on a
   // pending read operation.
   private pendingDisposal = new WeakSet<DataId>();
@@ -386,9 +383,9 @@ export class MathBackendWebGL extends KernelBackend {
   /**
    * Read tensor to a new texture that is densely packed for ease of use.
    * @param dataId The source tensor.
-   * @param customTexShape Optional. If set, will use the user defined texture
+   * @param options
+   *     customTexShape: Optional. If set, will use the user defined texture
    *     shape to create the texture.
-
    */
   readToGPU(dataId: DataId, options?: DataToGPUWebGLOption): GPUResource {
     const texData = this.texData.get(dataId);
@@ -396,7 +393,7 @@ export class MathBackendWebGL extends KernelBackend {
 
     if (dtype === 'complex64') {
       throw new Error('Does not support reading texture for complex64 dtype.');
-    };
+    }
 
     // The presence of `slice` indicates this tensor is a shallow slice of a
     // different tensor, and is using that original tensor's texture. Run
@@ -429,8 +426,8 @@ export class MathBackendWebGL extends KernelBackend {
 
     return {
       dataId: tmpDownloadTarget.dataId,
-          ...this.texData.get(tmpDownloadTarget.dataId).texture
-    }
+      ...this.texData.get(tmpDownloadTarget.dataId).texture
+    };
   }
 
   bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {
@@ -799,7 +796,8 @@ export class MathBackendWebGL extends KernelBackend {
     return {dataId: output.dataId, shape: afterShape, dtype: output.dtype};
   }
 
-  public decode(dataId: DataId, customTexShape?: [number, number]): TensorInfo {
+  private decode(dataId: DataId, customTexShape?: [number, number]):
+      TensorInfo {
     const texData = this.texData.get(dataId);
     const {isPacked, shape, dtype} = texData;
     const shapeAs3D =
