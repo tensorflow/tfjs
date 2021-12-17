@@ -611,9 +611,6 @@ export class WebGPUBackend extends KernelBackend {
       // https://www.w3.org/TR/WGSL/#alignof
       let baseAlignment: number;
       switch (d.data.length) {
-        case 0:
-          baseAlignment = 4;
-          break;
         case 1:
           baseAlignment = 4;
           break;
