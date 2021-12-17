@@ -394,7 +394,7 @@ export class MathBackendWebGL extends KernelBackend {
    *     customTexShape: Optional. If set, will use the user defined texture
    *     shape to create the texture.
    */
-  readToGPU(dataId: DataId, options?: DataToGPUWebGLOption): GPUResource {
+  readToGPU(dataId: DataId, options: DataToGPUWebGLOption = {}): GPUResource {
     const texData = this.texData.get(dataId);
     const {values, shape, slice, dtype, isPacked, texture} = texData;
 
@@ -807,6 +807,15 @@ export class MathBackendWebGL extends KernelBackend {
       TensorInfo {
     const texData = this.texData.get(dataId);
     const {isPacked, shape, dtype} = texData;
+    if (customTexShape != null) {
+      const size = util.sizeFromShape(shape);
+      const texSize = customTexShape[0] * customTexShape[1] * 4;
+      util.assert(
+          size <= texSize,
+          () => 'customTexShape is too small. ' +
+              'Row by column by 4 should be equal or larger than the ' +
+              'size of the tensor data.');
+    }
     const shapeAs3D =
         webgl_util.getShapeAs3D(shape) as [number, number, number];
     let program;
