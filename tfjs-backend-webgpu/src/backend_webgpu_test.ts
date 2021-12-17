@@ -17,7 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 
-import {WebGPUBackend} from './backend_webgpu';
+import {WebGPUBackend, WebGPUMemoryInfo} from './backend_webgpu';
 import {describeWebGPU} from './test_util';
 
 describeWebGPU('backend webgpu cpu forwarding turned on', () => {
@@ -41,9 +41,11 @@ describeWebGPU('backend webgpu cpu forwarding turned on', () => {
 
     const startNumBytes = tf.memory().numBytes;
     const startNumTensors = tf.memory().numTensors;
+    const startNumBytesInGPU = (tf.memory() as WebGPUMemoryInfo).numBytesInGPU;
 
     expect(startNumBytes).toEqual(48);
     expect(startNumTensors).toEqual(3);
+    expect(startNumBytesInGPU).toEqual(0);
 
     const f = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const d = tf.matMul(c, f);
@@ -51,9 +53,11 @@ describeWebGPU('backend webgpu cpu forwarding turned on', () => {
     const dData = await d.data();
     const endNumBytes = tf.memory().numBytes;
     const endNumTensors = tf.memory().numTensors;
+    const endNumBytesInGPU = (tf.memory() as WebGPUMemoryInfo).numBytesInGPU;
 
     expect(endNumBytes - startNumBytes).toEqual(48);
     expect(endNumTensors - startNumTensors).toEqual(2);
+    expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(40);
 
     tf.test_util.expectArraysClose(
         dData, new Float32Array([9, 12, 15, 19, 26, 33]));
