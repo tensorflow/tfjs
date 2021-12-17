@@ -742,7 +742,7 @@ describeWithFlags('keeping data on gpu ', WEBGL_ENVS, () => {
     const b = tf.add(a, 0);
 
     expect(() => {
-      b.dataToGPU();
+      b.dataToGPU({customTexShape: [1, 1]});
     }).toThrowError();
   });
 });
