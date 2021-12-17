@@ -679,6 +679,33 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
      });
 });
 
+describeWithFlags('keeping data on gpu ', WEBGL_ENVS, () => {
+  let flag: boolean;
+
+  beforeAll(() => {
+    flag = tf.env().getBool('WEBGL_CPU_FORWARD');
+    tf.env().set('WEBGL_CPU_FORWARD', false);
+  });
+
+  afterAll(() => {
+    tf.env().set('WEBGL_CPU_FORWARD', flag);
+  });
+
+  it('has a valid texture.', () => {
+    const a = tf.tensor([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [1, 3, 4]);
+    console.log('hello world1');
+    const res = a.dataToGPU();
+    console.log(res);
+  });
+
+  it('has a valid texture.', () => {
+    const a = tf.tensor([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [1, 3, 4]);
+    console.log('hello world2');
+    const res = a.dataToGPU({customTexShape: [1, 3]});
+    console.log(res);
+  });
+});
+
 describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
   const customBackendName = 'cache-on-cpu';
 

@@ -390,7 +390,7 @@ export class Tensor<R extends Rank = Rank> {
    *
    * @doc {heading: 'Tensors', subheading: 'Classes'}
    */
-  dataToGPU(options: DataToGPUOptions): GPUResource {
+  dataToGPU(options?: DataToGPUOptions): GPUResource {
     this.throwIfDisposed();
     return trackerFn().readToGPU(this.dataId, options);
   }
