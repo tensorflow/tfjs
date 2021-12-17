@@ -209,7 +209,6 @@ export function uploadDenseMatrixToTexture(
             texelDataType, dataForUpload));
   }
 
-
   webgl_util.callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, null));
 }
 
