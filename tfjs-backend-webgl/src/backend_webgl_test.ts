@@ -708,7 +708,7 @@ describeWithFlags('keeping data on gpu ', WEBGL_ENVS, () => {
   it('uses user defined texShape.', () => {
     const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     const a = tf.tensor(data, [1, 3, 4]);
-    const texShape = [1, 3];
+    const texShape = [1, 3] as [number, number];
     const res = a.dataToGPU({customTexShape: texShape});
     expectArraysEqual(res.texShape, texShape);
 
