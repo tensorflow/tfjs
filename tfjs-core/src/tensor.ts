@@ -493,6 +493,7 @@ export class Tensor<R extends Rank = Rank> {
         Variable<R>;
   }
 }
+
 Object.defineProperty(Tensor, Symbol.hasInstance, {
   value: (instance: Tensor) => {
     // Implementation note: we should use properties of the object that will be
@@ -521,6 +522,7 @@ export interface NumericTensor<R extends Rank = Rank> extends Tensor<R> {
   dtype: NumericDataType;
   dataSync<D extends DataType = NumericDataType>(): DataTypeMap[D];
   data<D extends DataType = NumericDataType>(): Promise<DataTypeMap[D]>;
+  dataToGPU(options?: DataToGPUOptions): GPUResource;
 }
 
 export interface StringTensor<R extends Rank = Rank> extends Tensor<R> {
