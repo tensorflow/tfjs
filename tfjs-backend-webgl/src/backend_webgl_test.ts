@@ -743,6 +743,9 @@ describeWithFlags('keeping data on gpu ', WEBGL_ENVS, () => {
       const fb = gl.createFramebuffer();
       // make this the current frame buffer
       gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+      // make this the current texture
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, res.texture);
       // attach the texture to the framebuffer.
       gl.framebufferTexture2D(
           gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, res.texture, 0);
