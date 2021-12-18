@@ -164,7 +164,6 @@ export type DataToGPUOptions = DataToGPUWebGLOption;
 
 export interface GPUResource {
   dataId: DataId;
-  dtype: DataType;
   texture?: WebGLTexture;
   texShape?: [number, number];
 }
