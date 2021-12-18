@@ -730,9 +730,24 @@ describeWithFlags('keeping data on gpu ', WEBGL_ENVS, () => {
     expectArraysEqual(res.texShape, texShape);
 
     const webGLBackend = tf.backend() as MathBackendWebGL;
-    const buffer = webGLBackend.gpgpu.createBufferFromTexture(
-        res.texture, res.texShape[0], res.texShape[1]);
-    const vals = webGLBackend.gpgpu.downloadFloat32MatrixFromBuffer(buffer, 12);
+    let vals;
+
+    try {
+      // This read buffer method only works in WebGL2.
+      const buffer = webGLBackend.gpgpu.createBufferFromTexture(
+          res.texture, res.texShape[0], res.texShape[1]);
+      vals = webGLBackend.gpgpu.downloadFloat32MatrixFromBuffer(buffer, 12);
+    } catch (e) {
+      // Fallback for WebGL1.
+      const gl = webGLBackend.gpgpu.gl;
+      gl.bindFramebuffer(gl.FRAMEBUFFER, webGLBackend.gpgpu.framebuffer);
+      const packedRGBA =
+          new Float32Array(res.texShape[0] * res.texShape[1] * 4);
+      gl.readPixels(0, 0, 2, 2, gl.RGBA, gl.FLOAT, packedRGBA);
+      vals = packedRGBA.subarray(0, 12);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
     expectArraysEqual(vals, data);
   });
 
