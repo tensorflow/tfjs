@@ -740,11 +740,18 @@ describeWithFlags('keeping data on gpu ', WEBGL_ENVS, () => {
     } catch (e) {
       // Fallback for WebGL1.
       const gl = webGLBackend.gpgpu.gl;
-      gl.bindFramebuffer(gl.FRAMEBUFFER, webGLBackend.gpgpu.framebuffer);
+      const fb = gl.createFramebuffer();
+      // make this the current frame buffer
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+      // attach the texture to the framebuffer.
+      gl.framebufferTexture2D(
+          gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, res.texture, 0);
       const packedRGBA =
           new Float32Array(res.texShape[0] * res.texShape[1] * 4);
+      // read the pixels
       gl.readPixels(0, 0, 2, 2, gl.RGBA, gl.FLOAT, packedRGBA);
       vals = packedRGBA.subarray(0, 12);
+      // Unbind the framebuffer
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
