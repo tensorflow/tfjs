@@ -426,7 +426,6 @@ export class MathBackendWebGL extends KernelBackend {
 
     return {
       dataId: tmpDownloadTarget.dataId,
-      dtype,
       ...this.texData.get(tmpDownloadTarget.dataId).texture
     };
   }
@@ -464,7 +463,7 @@ export class MathBackendWebGL extends KernelBackend {
     }
   }
 
-  public getValuesFromTexture(dataId: DataId): Float32Array {
+  private getValuesFromTexture(dataId: DataId): Float32Array {
     const {shape, dtype, isPacked} = this.texData.get(dataId);
     const size = util.sizeFromShape(shape);
     if (env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
