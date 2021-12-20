@@ -20,7 +20,7 @@ import {env, PixelData, TypedArray, util} from '@tensorflow/tfjs-core';
 import {getWebGLContext, setWebGLContext} from './canvas_util';
 import * as gpgpu_util from './gpgpu_util';
 import * as tex_util from './tex_util';
-import {TextureConfig} from './tex_util';
+import {Texture, TextureConfig} from './tex_util';
 import {WebGL1DisjointQueryTimerExtension, WebGL2DisjointQueryTimerExtension} from './webgl_types';
 import * as webgl_util from './webgl_util';
 
@@ -135,22 +135,20 @@ export class GPGPUContext {
     this.disposed = true;
   }
 
-  public createFloat32MatrixTexture(rows: number, columns: number):
-      WebGLTexture {
+  public createFloat32MatrixTexture(rows: number, columns: number): Texture {
     this.throwIfDisposed();
     return gpgpu_util.createFloat32MatrixTexture(
         this.gl, rows, columns, this.textureConfig);
   }
 
-  public createFloat16MatrixTexture(rows: number, columns: number):
-      WebGLTexture {
+  public createFloat16MatrixTexture(rows: number, columns: number): Texture {
     this.throwIfDisposed();
     return gpgpu_util.createFloat16MatrixTexture(
         this.gl, rows, columns, this.textureConfig);
   }
 
   public createUnsignedBytesMatrixTexture(rows: number, columns: number):
-      WebGLTexture {
+      Texture {
     this.throwIfDisposed();
     return gpgpu_util.createUnsignedBytesMatrixTexture(
         this.gl, rows, columns, this.textureConfig);
@@ -172,14 +170,13 @@ export class GPGPUContext {
   }
 
   public createFloat16PackedMatrixTexture(rows: number, columns: number):
-      WebGLTexture {
+      Texture {
     this.throwIfDisposed();
     return gpgpu_util.createFloat16PackedMatrixTexture(
         this.gl, rows, columns, this.textureConfig);
   }
 
-  public createPackedMatrixTexture(rows: number, columns: number):
-      WebGLTexture {
+  public createPackedMatrixTexture(rows: number, columns: number): Texture {
     this.throwIfDisposed();
     return gpgpu_util.createPackedMatrixTexture(
         this.gl, rows, columns, this.textureConfig);

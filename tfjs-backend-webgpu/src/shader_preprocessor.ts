@@ -71,27 +71,22 @@ export function getWorkGroupSizeString(): string {
 `;
 }
 
-export function getFlatDispatchLayoutMainHeaderString(): string {
+export function getMainHeaderString(): string {
   return `
   ${getWorkGroupSizeString()}
-  fn main([[builtin(local_invocation_id)]] localId : vec3<u32>,
-          [[builtin(global_invocation_id)]] globalId : vec3<u32>,
-          [[builtin(num_workgroups)]] numWorkgroups: vec3<u32>)
-`;
-}
-
-export function getNonFlatDispatchLayoutMainHeaderString(): string {
-  return `
-  ${getWorkGroupSizeString()}
-  fn main([[builtin(local_invocation_id)]] localId : vec3<u32>,
-          [[builtin(global_invocation_id)]] globalId : vec3<u32>)
+  fn main([[builtin(local_invocation_id)]] LocalId : vec3<u32>,
+          [[builtin(global_invocation_id)]] GlobalId : vec3<u32>,
+          [[builtin(num_workgroups)]] NumWorkgroups: vec3<u32>) {
+    localId = LocalId;
+    globalId = GlobalId;
+    numWorkgroups = NumWorkgroups;
 `;
 }
 
 export function getMainHeaderAndGlobalIndexString(): string {
   return `
-    ${getFlatDispatchLayoutMainHeaderString()} {
-      let index = getGlobalIndex(globalId, localId, numWorkgroups);
+    ${getMainHeaderString()}
+      let index = getGlobalIndex();
 `;
 }
 
@@ -106,10 +101,10 @@ export function makeShader(
   if (isFromPixel === true) {
     const getCoords = generateGetCoordsFromFlatIndex(outputData.shape);
     const outputBufferStr = `
-      [[block]] struct Matrix0 {
+      struct Matrix0 {
         numbers: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
       };
-      [[block]] struct Uniform {
+      struct Uniform {
         size            : i32;
         numChannels     : i32;
         outShapeStrides : vec2<i32>;
@@ -130,7 +125,7 @@ export function makeShader(
   }
 
   const prefixSnippets: string[] = [];
-  let uniformDeclaration = '[[block]] struct Uniforms { NAN : f32; ';
+  let uniformDeclaration = 'struct Uniforms { NAN : f32; ';
   program.variableNames.forEach((x, i) => {
     uniformDeclaration += `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${
         getCoordsDataType(inputInfo[i].shape.length)}; `;
@@ -155,7 +150,7 @@ export function makeShader(
   // Output buffer.
   if (program.atomic) {
     prefixSnippets.push(`
-    [[block]] struct Matrix0 {
+    struct Matrix0 {
         numbers: array<atomic<i32>>;
     };
 
@@ -163,7 +158,7 @@ export function makeShader(
   `);
   } else {
     prefixSnippets.push(`
-    [[block]] struct Matrix0 {
+    struct Matrix0 {
         numbers: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
     };
 
@@ -172,7 +167,7 @@ export function makeShader(
   }
   program.variableNames.forEach((x, i) => {
     prefixSnippets.push(`
-    [[block]] struct Matrix${1 + i} {
+    struct Matrix${1 + i} {
       numbers: array<${mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
     };
     [[group(0), binding(${1 + i})]] var<storage, read> ${x} : Matrix${1 + i};
@@ -221,6 +216,10 @@ export function makeShader(
 }
 
 const SHADER_PREFIX = `
+  var<private> localId: vec3<u32>;
+  var<private> globalId: vec3<u32>;
+  var<private> numWorkgroups: vec3<u32>;
+
   fn idiv(a: i32, b: i32, sign: f32) -> i32 {
     var res: i32 = a / b;
     let mod: i32 = a % b;
@@ -243,16 +242,8 @@ const SHADER_PREFIX = `
     return true;
   }
 
-  fn isNanCustomVec4F32(val : vec4<f32>) -> vec4<f32> {
-    var res = vec4<f32> (0.0);
-    for (var i = 0u; i < 4u; i = i + 1u) {
-      if (isNanCustom(val[i])) {
-        res[i] = 1.0;
-      } else {
-        res[i] = 0.0;
-      }
-    }
-    return res;
+  fn isNanCustomVec4(val : vec4<f32>) -> vec4<bool> {
+    return vec4<bool>(isNanCustom(val[0]), isNanCustom(val[1]), isNanCustom(val[2]), isNanCustom(val[3]));
   }
 
   // Checks whether coordinates lie within the bounds of the shape.
@@ -290,7 +281,7 @@ const SAMPLING_SNIPPETS = `
   }
 
   // Only used when the y/z dimension of workgroup size is 1.
-  fn getGlobalIndex(globalId : vec3<u32>, localId : vec3<u32>, numWorkgroups: vec3<u32>) -> i32 {
+  fn getGlobalIndex() -> i32 {
     if (numWorkgroups.y == 1u && numWorkgroups.z == 1u) {
       return i32(globalId.x);
     }
@@ -605,10 +596,8 @@ export function generateGetOutputCoords(
   const outRank = outShape.length;
   if (x.length === outRank) {
     const dtype = getCoordsDataType(outRank);
-    const snippet =
-        `fn getOutputCoordsWithFlatDispatchLayout(globalId : vec3<u32>, localId : vec3<u32>, numWorkgroups: vec3<u32>) -> ${
-            dtype}{
-      let globalIndex = getGlobalIndex(globalId, localId, numWorkgroups);
+    const snippet = `fn getOutputCoords() -> ${dtype}{
+      let globalIndex = getGlobalIndex();
       return getCoordsFromFlatIndex(globalIndex);
     }
     `;
@@ -654,9 +643,7 @@ export function generateGetOutputCoords(
   }
 
   const dtype = getCoordsDataType(rank);
-  let snippet =
-      `fn getOutputCoordsWithNonFlatDispatchLayout(globalId : vec3<u32>) -> ${
-          dtype} {
+  let snippet = `fn getOutputCoords() -> ${dtype} {
     ${gatherDimensionsStr}
   `;
   if (dimensions.length === 0) {

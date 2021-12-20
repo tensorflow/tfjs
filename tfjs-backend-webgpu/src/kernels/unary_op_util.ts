@@ -31,6 +31,7 @@ export enum UnaryOpType {
   PRELU,
   RELU,
   RELU6,
+  LEAKYRELU,
   RSQRT,
   SIN,
   SINH,
@@ -74,13 +75,14 @@ const LOG = `if (a < 0.0) { return 1.0/0.0; }
 const LOGICAL_NOT = `return f32(!(a >= 1.0));`;
 const NEG = `return -a;`;
 const PRELU = `return (a < 0.0) ? b * a : a;`;
+const LEAKYRELU = `if (a < 0.0) { return uniforms.alpha * a; } return a;`;
 const RELU = 'return max(a, 0.0);';
 const RELU6 = 'return clamp(a, 0.0, 6.0);';
 const RELU6_VEC4 =
     'return clamp(a, vec4<f32>(0.0, 0.0, 0.0, 0.0), vec4<f32>(6.0, 6.0, 6.0, 6.0));';
 const RELU_VEC4 = `
   var resFloat = a * vec4<f32>(a >= vec4<f32>(0.0));
-  let isNaN = isNan(a);
+  let isNaN = isNanCustomVec4(a);
 
   if (isNaN.r) {
     resFloat.r = a.r;
@@ -139,6 +141,8 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return NEG;
     case UnaryOpType.PRELU:
       return PRELU;
+    case UnaryOpType.LEAKYRELU:
+      return LEAKYRELU;
     case UnaryOpType.RELU:
       return useVec4 ? RELU_VEC4 : RELU;
     case UnaryOpType.RELU6:
