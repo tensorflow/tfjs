@@ -18,7 +18,7 @@
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import sourcemaps from 'rollup-plugin-sourcemaps';
-import {terser} from 'rollup-plugin-terser';
+import { terser } from 'rollup-plugin-terser';
 import visualizer from 'rollup-plugin-visualizer';
 import * as ts from 'typescript';
 import path from 'path';
@@ -58,8 +58,8 @@ const downlevelToEs5Plugin = {
       importHelpers: true,
       mapRoot: path.dirname(filePath),
     };
-    const {outputText, sourceMapText}
-          = ts.transpileModule(code, {compilerOptions});
+    const { outputText, sourceMapText }
+      = ts.transpileModule(code, { compilerOptions });
     return {
       code: outputText,
       map: JSON.parse(sourceMapText),
@@ -77,8 +77,8 @@ const useEs5 = TEMPLATE_es5 ? [downlevelToEs5Plugin] : [];
 // For more context, see tfjs-backend-wasm/scripts/patch-threaded-simd-module.js
 const useTerser = TEMPLATE_minify ? [
   terser({
-    output: {preamble, comments: false},
-    compress: {typeofs: false},
+    output: { preamble, comments: false },
+    compress: { typeofs: false },
   })
 ] : [];
 
@@ -91,7 +91,7 @@ export default {
   },
   external: TEMPLATE_external,
   plugins: [
-    resolve({browser: true}),
+    resolve({ browser: true }),
     commonjs(),
     sourcemaps(),
     ...useEs5,
@@ -102,4 +102,11 @@ export default {
       template: 'sunburst',
     }),
   ],
+  onwarn: function (warning) {
+    if (warning.code === 'THIS_IS_UNDEFINED') {
+      return;
+    }
+    console.warn(warning.message);
+  }
+
 }
