@@ -27,7 +27,7 @@ export const uniqueConfig: KernelConfig = {
     const backend = args.backend as NodeJSKernelBackend;
     const {axis = 0} = args.attrs as {} as UniqueAttrs;
 
-    const axisTensor = tensor1d([axis], 'int32');
+    const axs = tensor1d([axis], 'int32');
 
     try {
       const opAttrs = [
@@ -35,10 +35,10 @@ export const uniqueConfig: KernelConfig = {
         createTensorsTypeOpAttr('Taxis', 'int32'),
         createTensorsTypeOpAttr('out_idx', 'int32')
       ];
-      return backend.executeMultipleOutputs('UniqueV2', opAttrs, [x, axisTensor], 2);
+      return backend.executeMultipleOutputs('UniqueV2', opAttrs, [x, axs], 2);
     }
     finally {
-      axisTensor.dispose();
+      axs.dispose();
     }
   }
 };
