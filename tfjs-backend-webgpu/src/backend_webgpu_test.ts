@@ -96,7 +96,9 @@ describeWebGPU('backend webgpu', () => {
 
   it('should not leak memory in immediate mode', async () => {
     const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
+    const savedCompileFlag = tf.env().get('WEBGPU_PARALLEL_COMPILATION_PASS');
     tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 1);
+    tf.env().set('WEBGPU_PARALLEL_COMPILATION_PASS', false);
     const a = tf.tensor2d([2, 4, 6, 8], [2, 2]);
     const b = tf.tensor2d([0.5, 0.5, 0.5, 0.5], [2, 2]);
 
@@ -121,11 +123,14 @@ describeWebGPU('backend webgpu', () => {
     tf.test_util.expectArraysClose(
         dData, new Float32Array([9, 12, 15, 19, 26, 33]));
     tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', savedFlag);
+    tf.env().set('WEBGPU_PARALLEL_COMPILATION_PASS', savedCompileFlag);
   });
 
   it('should recycle buffers in immediate mode', () => {
     const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
+    const savedCompileFlag = tf.env().get('WEBGPU_PARALLEL_COMPILATION_PASS');
     tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 1);
+    tf.env().set('WEBGPU_PARALLEL_COMPILATION_PASS', false);
     const backend = tf.backend() as WebGPUBackend;
     const bufferManager = backend.getBufferManager();
     bufferManager.reset();
@@ -162,6 +167,7 @@ describeWebGPU('backend webgpu', () => {
     expect(freeBuffersAfterSecondMatMul - freeBuffersAfterSecondMul).toEqual(0);
     expect(usedBuffersAfterSecondMatMul - usedBuffersAfterSecondMul).toEqual(2);
     tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', savedFlag);
+    tf.env().set('WEBGPU_PARALLEL_COMPILATION_PASS', savedCompileFlag);
   });
 
   it('should not recycle buffers in delayed mode', async () => {
