@@ -417,17 +417,14 @@ export class MathBackendWebGL extends KernelBackend {
     }
 
     // Decode the texture so that it is stored densely (using four channels).
-    const tmpDownloadTarget = this.decode(dataId, options.customTexShape);
+    const tmpTarget = this.decode(dataId, options.customTexShape);
 
     // Make engine track this tensor, so that we can dispose it later.
     engine().makeTensorFromDataId(
-        tmpDownloadTarget.dataId, tmpDownloadTarget.shape,
-        tmpDownloadTarget.dtype);
+        tmpTarget.dataId, tmpTarget.shape, tmpTarget.dtype);
 
-    return {
-      dataId: tmpDownloadTarget.dataId,
-      ...this.texData.get(tmpDownloadTarget.dataId).texture
-    };
+    const tmpData = this.texData.get(tmpTarget.dataId);
+    return {dataId: tmpTarget.dataId, ...tmpData.texture};
   }
 
   bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {
