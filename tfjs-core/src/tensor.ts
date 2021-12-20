@@ -366,9 +366,8 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
-   * Synchronously copy the tensor's data to a new GPU resource. Comparing to
-   * the `dataSync()` and `data()`, this method prevents data from being
-   * downloaded to CPU.
+   * Copy the tensor's data to a new GPU resource. Comparing to the `dataSync()`
+   * and `data()`, this method prevents data from being downloaded to CPU.
    *
    * For WebGL backend, the data will be stored on a densely packed texture.
    * This means that the texture will use the RGBA channels to store value.
