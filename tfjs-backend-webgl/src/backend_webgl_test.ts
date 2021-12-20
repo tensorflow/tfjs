@@ -749,10 +749,8 @@ describeWithFlags('keeping data on gpu ', WEBGL2_ENVS, () => {
   });
 });
 
-// TODO(lina128): Debug issue in CI. Code runs fine in Safari WebGL1 in local.
 describeWithFlags('keeping data on gpu ', WEBGL1_ENVS, () => {
   let flag: boolean;
-  // const gl = (tf.backend() as MathBackendWebGL).gpgpu.gl;
   const webGLBackend = (tf.backend() as MathBackendWebGL);
 
   beforeAll(() => {
@@ -775,78 +773,61 @@ describeWithFlags('keeping data on gpu ', WEBGL1_ENVS, () => {
 
     if (tf.env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
       const tmpData = webGLBackend.texData.get(res.dataId);
-      const vals =
-          webGLBackend.gpgpu
-              .downloadMatrixFromPackedTexture(tmpData.texture.texture, 2, 2)
-              .subarray(0, size);
-      console.log(vals);
+      const vals = webGLBackend.gpgpu
+                       .downloadMatrixFromPackedTexture(
+                           tmpData.texture.texture, ...tmpData.texture.texShape)
+                       .subarray(0, size);
       expectArraysEqual(vals, data);
     }
   });
 
-  // it('uses user defined texShape.', () => {
-  //   const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-  //   const a = tf.tensor(data, [1, 3, 4]);
-  //   const b = tf.add(a, 0);
-  //   const texShape = [1, 3] as [number, number];
-  //   const res = b.dataToGPU({customTexShape: texShape});
-  //   expectArraysEqual(res.texShape, texShape);
+  it('uses user defined texShape.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const a = tf.tensor(data, [1, 3, 4]);
+    const b = tf.add(a, 0);
+    const texShape = [1, 3] as [number, number];
+    const size = 12;
+    const res = b.dataToGPU({customTexShape: texShape});
+    expectArraysEqual(res.texShape, texShape);
 
-  //   const fb = gl.createFramebuffer();
-  //   // make this the current frame buffer
-  //   gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-  //   // make this the current texture
-  //   gl.activeTexture(gl.TEXTURE0);
-  //   gl.bindTexture(gl.TEXTURE_2D, res.texture);
-  //   // attach the texture to the framebuffer.
-  //   gl.framebufferTexture2D(
-  //       gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, res.texture, 0);
-  //   const packedRGBA = new Float32Array(res.texShape[0] * res.texShape[1] *
-  //   4);
-  //   // read the pixels
-  //   gl.readPixels(0, 0, 2, 2, gl.RGBA, gl.FLOAT, packedRGBA);
-  //   const vals = packedRGBA.subarray(0, 12);
-  //   // Unbind the framebuffer
-  //   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  //   expectArraysEqual(vals, data);
-  // });
+    if (tf.env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
+      const tmpData = webGLBackend.texData.get(res.dataId);
+      const vals = webGLBackend.gpgpu
+                       .downloadMatrixFromPackedTexture(
+                           tmpData.texture.texture, ...tmpData.texture.texShape)
+                       .subarray(0, size);
+      expectArraysEqual(vals, data);
+    }
+  });
 
-  // it('has a valid texture for dtype=int32.', () => {
-  //   const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-  //   const texShape = [2, 2];
-  //   const a = tf.tensor(data, [1, 3, 4], 'int32');
-  //   const b = tf.add(a, 0);
-  //   const res = b.dataToGPU();
-  //   expectArraysEqual(res.texShape, texShape);
+  it('has a valid texture for dtype=int32.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const texShape = [2, 2];
+    const size = 12;
+    const a = tf.tensor(data, [1, 3, 4], 'int32');
+    const b = tf.add(a, 0);
+    const res = b.dataToGPU();
+    expectArraysEqual(res.texShape, texShape);
 
-  //   const fb = gl.createFramebuffer();
-  //   // make this the current frame buffer
-  //   gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-  //   // make this the current texture
-  //   gl.activeTexture(gl.TEXTURE0);
-  //   gl.bindTexture(gl.TEXTURE_2D, res.texture);
-  //   // attach the texture to the framebuffer.
-  //   gl.framebufferTexture2D(
-  //       gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, res.texture, 0);
-  //   const packedRGBA = new Float32Array(res.texShape[0] * res.texShape[1] *
-  //   4);
-  //   // read the pixels
-  //   gl.readPixels(0, 0, 2, 2, gl.RGBA, gl.FLOAT, packedRGBA);
-  //   const vals = packedRGBA.subarray(0, 12);
-  //   // Unbind the framebuffer
-  //   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  //   expectArraysEqual(vals, data);
-  // });
+    if (tf.env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
+      const tmpData = webGLBackend.texData.get(res.dataId);
+      const vals = webGLBackend.gpgpu
+                       .downloadMatrixFromPackedTexture(
+                           tmpData.texture.texture, ...tmpData.texture.texShape)
+                       .subarray(0, size);
+      expectArraysEqual(vals, data);
+    }
+  });
 
-  // it('throws error when user defined texShape is too small.', () => {
-  //   const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-  //   const a = tf.tensor(data, [1, 3, 4]);
-  //   const b = tf.add(a, 0);
+  it('throws error when user defined texShape is too small.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const a = tf.tensor(data, [1, 3, 4]);
+    const b = tf.add(a, 0);
 
-  //   expect(() => {
-  //     b.dataToGPU({customTexShape: [1, 1]});
-  //   }).toThrowError();
-  // });
+    expect(() => {
+      b.dataToGPU({customTexShape: [1, 1]});
+    }).toThrowError();
+  });
 });
 
 describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
