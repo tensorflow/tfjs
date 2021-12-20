@@ -166,6 +166,7 @@ import {tanhConfig} from './kernels/Tanh';
 import {tileConfig} from './kernels/Tile';
 import {topKConfig} from './kernels/TopK';
 import {transposeConfig} from './kernels/Transpose';
+import {uniqueConfig} from './kernels/Unique';
 import {unpackConfig} from './kernels/Unpack';
 import {unsortedSegmentSumConfig} from './kernels/UnsortedSegmentSum';
 import {zerosLikeConfig} from './kernels/ZerosLike';
@@ -319,6 +320,7 @@ const kernelConfigs: KernelConfig[] = [
   tileConfig,
   topKConfig,
   transposeConfig,
+  uniqueConfig,
   unpackConfig,
   unsortedSegmentSumConfig,
   zerosLikeConfig
