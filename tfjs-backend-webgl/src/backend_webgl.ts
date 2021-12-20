@@ -803,7 +803,7 @@ export class MathBackendWebGL extends KernelBackend {
       util.assert(
           size <= texSize,
           () => 'customTexShape is too small. ' +
-              'Row by column by 4 should be equal or larger than the ' +
+              'Row * Column * 4 should be equal or larger than the ' +
               'size of the tensor data.');
     }
     const shapeAs3D =
