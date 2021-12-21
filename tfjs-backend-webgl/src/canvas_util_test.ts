@@ -36,6 +36,14 @@ describeWithFlags('canvas_util', BROWSER_ENVS, () => {
     const gl = getWebGLContext(tf.env().getNumber('WEBGL_VERSION'));
     expect(gl.isContextLost()).toBe(false);
   });
+
+  it('Returns a valid user defined canvas.', () => {
+    const customCanvas = new OffscreenCanvas(10, 10);
+    const gl =
+        getWebGLContext(tf.env().getNumber('WEBGL_VERSION'), customCanvas);
+    expect(gl).not.toBeNull();
+    expect(gl.canvas as {} as OffscreenCanvas).toBe(customCanvas);
+  });
 });
 
 describeWithFlags('canvas_util webgl2', {flags: {WEBGL_VERSION: 2}}, () => {
