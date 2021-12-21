@@ -43,10 +43,10 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'addN',
+    startsWith: 'addN ',
   },
   {
-    startsWith: 'argmax',
+    startsWith: 'argmax ',
     excludes: [
       '5D',        // Rank 5 is not yet implemented.
       '6D',        // Rank 5 is not yet implemented.
@@ -54,7 +54,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'argmin',
+    startsWith: 'argmin ',
     excludes: [
       '5D',        // Rank 5 is not yet implemented.
       '6D',        // Rank 5 is not yet implemented.
@@ -62,39 +62,39 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'avgPool',
+    startsWith: 'avgPool ',
     excludes: [
       'gradient',   // Not yet implemented.
       'avgPool3d',  // Not yet implemented.
     ]
   },
   {
-    startsWith: 'batchNorm',
+    startsWith: 'batchNorm ',
   },
   {
-    startsWith: 'batchToSpaceND',
+    startsWith: 'batchToSpaceND ',
     excludes: [
       'tensor3d', 'tensor4d', 'gradient',
       'accepts a tensor-like object',  // tensor6d not yet implemented
     ]
   },
   {
-    startsWith: 'ceil',
+    startsWith: 'ceil ',
     excludes: [
       'gradient',  // Not yet implemented.
     ]
   },
   {
-    startsWith: 'clipByValue',
+    startsWith: 'clipByValue ',
     excludes: [
       'gradient',  // gradient function not found.
     ]
   },
   {
-    startsWith: 'complex64',
+    startsWith: 'complex64 ',
   },
   {
-    startsWith: 'concat',
+    startsWith: 'concat ',
     excludes: [
       'concat a large number of tensors',  // The number of storage buffers
                                            // exceeds the maximum per-stage
@@ -103,51 +103,57 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'conv2d',
+    startsWith: 'conv2d ',
     excludes: [
       'NCHW',      // Not yet implemented.
       'gradient',  // gradient function not found.
     ]
   },
   {
-    startsWith: 'cos',
+    startsWith: 'cos ',
     excludes: [
       'gradient'  // gradient function not found.
     ]
   },
   {
-    startsWith: 'cropAndResize',
+    startsWith: 'cosh ',
   },
   {
-    startsWith: 'depthToSpace',
+    startsWith: 'cropAndResize ',
+  },
+  {
+    startsWith: 'Detects memory leaks in kernels',
+  },
+  {
+    startsWith: 'depthToSpace ',
     excludes: [
       'gradient'  // gradient function not found.
     ]
   },
   {
-    startsWith: 'depthwise',
+    startsWith: 'depthwise ',
     excludes: [
       'gradient',  // depthwiseConv2DDerInput not yet implemented.
     ]
   },
   {
-    startsWith: 'div',
+    startsWith: 'div ',
     excludes: [
       'gradient',  // gradient function not found.
     ]
   },
   {
-    startsWith: 'dot',
+    startsWith: 'dot ',
   },
   {
-    startsWith: 'einsum',
+    startsWith: 'einsum ',
     excludes: [
       '4d tensors',               // rank 5 is not yet supported.
       '4d tensor and 3d tensor',  // rank 5 is not yet supported.
     ]
   },
   {
-    startsWith: 'elu',
+    startsWith: 'elu ',
     excludes: [
       'selu',        // Not yet implemented.
       'derivative',  // gradient function not found.
@@ -164,10 +170,10 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'expandDims',
+    startsWith: 'expandDims ',
   },
   {
-    startsWith: 'expm1',
+    startsWith: 'expm1 ',
     excludes: [
       'gradient',  // gradient function not found.
     ]
@@ -188,16 +194,16 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'floorDiv',
+    startsWith: 'floorDiv ',
   },
   {
-    startsWith: 'fromPixels',
+    startsWith: 'fromPixels ',
   },
   {
-    startsWith: 'fromPixelsAsync',
+    startsWith: 'fromPixelsAsync ',
   },
   {
-    startsWith: 'fused conv2d',
+    startsWith: 'fused conv2d ',
     excludes: [
       'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // conv2dDerInput not yet
                                                    // implemented
@@ -207,14 +213,14 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'fused depthwiseConv2D',
+    startsWith: 'fused depthwiseConv2D ',
     excludes: [
       'gradient',   // gradient function not found.
       'leakyrelu',  // Not yet implemented
     ]
   },
   {
-    startsWith: 'fused matmul',
+    startsWith: 'fused matmul ',
     excludes: [
       'leakyrelu',  // Not yet implemented.
       'gradient',   // Not yet implemented.
@@ -231,16 +237,22 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'gatherND ',
   },
   {
-    startsWith: 'greater',
+    startsWith: 'greater ',
     excludes: [
       'gradient',  // gradient function not found.
     ]
   },
   {
-    startsWith: 'image.transform',
+    startsWith: 'greaterEqual ',
   },
   {
-    startsWith: 'less',
+    startsWith: 'image.transform ',
+  },
+  {
+    startsWith: 'less ',
+  },
+  {
+    startsWith: 'lessEqual ',
   },
   {
     startsWith: 'log ',
@@ -252,14 +264,14 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'logicalAnd ',
   },
   {
-    startsWith: 'logicalNot',
+    startsWith: 'logicalNot ',
     excludes: [
       'Tensor6D',  // Not yet implemented.
       'gradient'   // gradient function not found.
     ]
   },
   {
-    startsWith: 'leakyrelu',
+    startsWith: 'leakyrelu ',
     excludes: [
       'gradients: Tensor2D',  // Not yet implemented.
     ]
@@ -275,6 +287,20 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    startsWith: 'maximum ',
+    excludes: [
+      'gradient',  // gradient function not found.
+    ]
+  },
+  {
+    startsWith: 'maxPool ',
+    excludes: [
+      'maxPoolBackprop',   // Not yet implemented.
+      'maxPool3d',         // Not yet implemented.
+      'maxPoolWithArgmax'  // Not yet implemented.
+    ]
+  },
+  {
     startsWith: 'max ',
     excludes: [
       '6D', 'gradient',
@@ -283,21 +309,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'maxPool',
-    excludes: [
-      'maxPoolBackprop',   // Not yet implemented.
-      'maxPool3d',         // Not yet implemented.
-      'maxPoolWithArgmax'  // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'maximum',
-    excludes: [
-      'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'mean',
+    startsWith: 'mean ',
     excludes: [
       'gradient',
       'meanSquaredError',
@@ -314,13 +326,13 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'minimum',
+    startsWith: 'minimum ',
     excludes: [
       'gradient',  // gradient function not found.
     ]
   },
   {
-    startsWith: 'mirrorPad',
+    startsWith: 'mirrorPad ',
     excludes: [
       'grad',  // Not yet implemented.
     ]
@@ -333,10 +345,10 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'neg',
+    startsWith: 'neg ',
   },
   {
-    startsWith: 'nonMaxSuppression',
+    startsWith: 'nonMaxSuppression ',
     excludes: [
       'NonMaxSuppressionPadded'  // NonMaxSuppressionV4 not yet implemented.
     ]
@@ -345,7 +357,7 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'notEqual ',
   },
   {
-    startsWith: 'onesLike',
+    startsWith: 'onesLike ',
     excludes: [
       '5D',       // rank 5 is not yet supported.
       '6D',       // rank 6 is not yet supported.
@@ -359,7 +371,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'pool',
+    startsWith: 'pool ',
     excludes: [
       'avg x=[',                          // Unsupported 6D shape.
       'max x=[4,3,1] f=[2,2] s=1 d=2',    // Unsupported 6D shape.
@@ -374,10 +386,13 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'prod',
+    startsWith: 'prelu ',
   },
   {
-    startsWith: 'range',
+    startsWith: 'prod ',
+  },
+  {
+    startsWith: 'range ',
     excludes: [
       'bincount',           // Not yet implemented.
       'denseBincount',      // Not yet implemented.
@@ -410,7 +425,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'relu',
+    startsWith: 'relu ',
     excludes: [
       'valueAndGradients',  // gradient function not found.
       '5D',                 // Rank 5 is not yet implemented.
@@ -421,28 +436,34 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'resizeBilinear',
+    startsWith: 'relu6 ',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
+    startsWith: 'resizeBilinear ',
     excludes: [
       'gradient',  // Not yet implemented.
     ]
   },
   {
-    startsWith: 'resizeNearest',
+    startsWith: 'resizeNearestNeighbor ',
     excludes: [
       'gradient'  // gradient function not found.
     ]
   },
   {
-    startsWith: 'rotateWithOffset',
+    startsWith: 'rotateWithOffset ',
   },
   {
-    startsWith: 'rsqrt',
+    startsWith: 'rsqrt ',
     excludes: [
       'gradient'  // gradient function not found.
     ]
   },
   {
-    startsWith: 'scatterND',
+    startsWith: 'scatterND ',
     excludes: [
       'gradient'  // gradient function not found.
     ]
@@ -454,7 +475,13 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'sin',
+    startsWith: 'sin ',
+    excludes: [
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
+    startsWith: 'sinh ',
     excludes: [
       'gradient'  // gradient function not found.
     ]
@@ -470,7 +497,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'softmax',
+    startsWith: 'softmax ',
     excludes: [
       'gradient',
       'MEAN',
@@ -478,7 +505,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'spaceToBatchND',
+    startsWith: 'spaceToBatchND ',
     excludes: [
       'tensor4d',
       'gradient',
@@ -486,7 +513,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'sparseToDense',
+    startsWith: 'sparseToDense ',
     excludes: [
       // TODO: Fix 0-sized buffer binding on WebGPU
       '0-sized',  // Not yet implemented.
@@ -494,19 +521,19 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'split',
+    startsWith: 'split ',
     excludes: [
       'gradient'  // gradient function not found.
     ]
   },
   {
-    startsWith: 'sqrt',
+    startsWith: 'sqrt ',
     excludes: [
       'gradient'  // gradient function not found.
     ]
   },
   {
-    startsWith: 'square',
+    startsWith: 'square ',
     excludes: [
       '5D',          // Rank 5 is not yet implemented.
       '6D',          // Rank 6 is not yet implemented.
@@ -515,7 +542,16 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'stack',
+    startsWith: 'squaredDifference ',
+    excludes: [
+      '5D',          // Rank 5 is not yet implemented.
+      '6D',          // Rank 6 is not yet implemented.
+      'dilation2d',  // 'dilation2d' not yet implemented.
+      'gradient',
+    ]
+  },
+  {
+    startsWith: 'stack ',
     excludes: [
       'grad of unstack axis=0',  // Remove this when grad is fixed in unstack.
       'gradient with clones',    // Remove this when grad is fixed in unstack.
@@ -523,7 +559,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'stridedSlice',
+    startsWith: 'stridedSlice ',
     excludes: [
       'strided slice with several new axes',  // Rank 6 is not yet implemented.
       'strided slice with new axes and',      // Rank 6 is not yet implemented.
@@ -548,13 +584,13 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'tanh',
+    startsWith: 'tanh ',
     excludes: [
       'grad',  // gradient function not found.
     ]
   },
   {
-    startsWith: 'tensor',
+    startsWith: 'tensor ',
     excludes: [
       'grad',        // gradient function not found.
       'bool tensor'  // Expected object not to have properties.
@@ -567,10 +603,10 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'topk',
+    startsWith: 'topk ',
   },
   {
-    startsWith: 'transpose',
+    startsWith: 'transpose ',
     excludes: [
       'oneHot',  // Not yet implemented.
       'fused',   // Not yet implemented.
@@ -580,7 +616,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'unstack',
+    startsWith: 'unstack ',
     excludes: [
       'grad of unstack axis=0',
       'gradient with clones',
@@ -594,11 +630,88 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'zerosLike',
+    startsWith: 'zerosLike ',
     excludes: [
       '5D',       // rank 5 is not yet supported.
       '6D',       // rank 6 is not yet supported.
       'gradient'  // gradient function not found.
+    ]
+  },
+  {
+    include: ' webgpu ',
+    excludes: [
+      'acos ',
+      'acosh ',
+      'all ',
+      'any ',
+      'asin ',
+      'asinh ',
+      'atan2 ',
+      'atanh ',
+      'avgPool3d ',
+      'avgPool3dBackprop ',
+      'bincount ',
+      'broadcastArgs ',
+      'concat3d ',
+      'confusionMatrix ',
+      'conv1d ',
+      'conv2dTranspose ',
+      'conv3d ',
+      'conv3dTranspose ',
+      'cumsum ',
+      'debug ',
+      'decodeWeights ',
+      'denseBincount',
+      'depthwiseConv2d gradients ',
+      'diag ',
+      'dilation2d ',
+      'encodeWeights ',
+      'erf ',
+      'FFT ',
+      'gradients ',
+      'IRFFT ',
+      'isFinite ',
+      'isInf ',
+      'isNaN ',
+      'linspace ',
+      'localResponseNormalization ',
+      'log1p ',
+      'logSigmoid ',
+      'logicalOr ',
+      'logicalXor ',
+      'maxPoolBackprop ',
+      'maxPool3d ',
+      'maxPool3dBackprop ',
+      'maxPoolWithArgmax ',
+      'mod ',
+      'multinomial ',
+      'oneHot ',
+      'poolBackprop ',
+      'reciprocal ',
+      'reverse1d ',
+      'reverse2d ',
+      'reverse3d ',
+      'reverse4d ',
+      'reverse ',
+      'round ',
+      'selu ',
+      'sign ',
+      'stft ',
+      'softplus ',
+      'sigmoidCrossEntropy ',
+      'sparseFillEmptyRows ',
+      'sparseReshape ',
+      'sparseSegmentMean ',
+      'sparseSegmentSum ',
+      'step ',
+      'stringSplit ',
+      'stringToHashBucketFast ',
+      'tan ',
+      'tensor.bytes() ',
+      'threshold ',
+      'unique ',
+      'unsortedSegmentSum ',
+      'valueAndGradients ',
     ]
   },
 ];
