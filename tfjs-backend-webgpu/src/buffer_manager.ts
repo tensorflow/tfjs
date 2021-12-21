@@ -106,20 +106,7 @@ export class BufferManager {
     return this.numFreeBuffers;
   }
 
-  reset() {
-    this.freeBuffers = new Map();
-    this.usedBuffers = new Map();
-    this.numUsedBuffers = 0;
-    this.numFreeBuffers = 0;
-    this.numBytesUsed = 0;
-    this.numBytesAllocated = 0;
-  }
-
   dispose() {
-    if (this.freeBuffers.size === 0 && this.usedBuffers.size === 0) {
-      return;
-    }
-
     this.freeBuffers.forEach((buffers, key) => {
       buffers.forEach(buff => {
         buff.destroy();
