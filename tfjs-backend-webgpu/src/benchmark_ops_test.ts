@@ -19,6 +19,15 @@ import * as tf from '@tensorflow/tfjs-core';
 import {describeWebGPU} from './test_util';
 
 describeWebGPU('Ops benchmarks', () => {
+  let originalTimeout: number;
+  beforeEach(() => {
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 40_000;
+  });
+  afterAll(() => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
+  });
+
   // Performs `trials` trials, of `reps` repetitions each. At the end of each
   // trial, endTrial() is run (and included in the benchmark time). This
   // allows the cost of endTrial() to be amortized across the many iterations.
@@ -205,5 +214,23 @@ describeWebGPU('Ops benchmarks', () => {
     const a = tf.randomNormal<tf.Rank.R1>([500]);
 
     await time(() => tf.stridedSlice(a, [0], [500], [2]), null, true, 10, 10);
+  });
+
+  it('upload large data latency', async () => {
+    const numIterations = 50;
+    const t0 = performance.now();
+    for (let i = 0; i < numIterations; i++) {
+      const rgba = tf.zeros<tf.Rank.R3>(
+          [1024, 1024, 4], 'int32');  // simulate large rgba image
+      const rgb =
+          tf.slice3d(rgba, [0, 0, 0], [-1, -1, 3]);  // strip alpha channel
+      const tensor = tf.expandDims(
+          rgb, 0);  // create standard image tensor [1, height, width, 3]
+      tf.dispose([rgba, rgb, tensor]);  // just dispose everything
+    }
+    const t1 = performance.now();
+    const totalTime = Math.round(t1 - t0);
+    const avgTime = Math.round(totalTime / numIterations);
+    console.log(`Total time: ${totalTime} ms | average time: ${avgTime} ms`);
   });
 });
