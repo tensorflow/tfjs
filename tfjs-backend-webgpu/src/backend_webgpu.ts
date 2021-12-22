@@ -601,10 +601,8 @@ export class WebGPUBackend extends KernelBackend {
                            Array<{type: string; data: number[];}>):
       GPUBindingResource {
     let currentOffset = 0;
-    // 512 is enough for current uniform size.
-    const maxUniformSize = 512;
-    const arrayBuffer = new ArrayBuffer(maxUniformSize);
-    uniformsWithType.forEach((d, i) => {
+    const offsets: number[] = [];
+    uniformsWithType.forEach((d) => {
       if (d.data.length === 0) {
         d.data = [1];
       }
@@ -628,14 +626,20 @@ export class WebGPUBackend extends KernelBackend {
       }
 
       currentOffset = Math.ceil(currentOffset / baseAlignment) * baseAlignment;
-      if (d.type === 'int32') {
-        new Int32Array(arrayBuffer, currentOffset, d.data.length).set(d.data);
-      } else if (d.type === 'uint32') {
-        new Uint32Array(arrayBuffer, currentOffset, d.data.length).set(d.data);
-      } else {
-        new Float32Array(arrayBuffer, currentOffset, d.data.length).set(d.data);
-      }
+      offsets.push(currentOffset);
       currentOffset += d.data.length * 4;
+    });
+
+    const arrayBuffer = new ArrayBuffer(currentOffset);
+    uniformsWithType.forEach((d, i) => {
+      const offset = offsets[i];
+      if (d.type === 'int32') {
+        new Int32Array(arrayBuffer, offset, d.data.length).set(d.data);
+      } else if (d.type === 'uint32') {
+        new Uint32Array(arrayBuffer, offset, d.data.length).set(d.data);
+      } else {
+        new Float32Array(arrayBuffer, offset, d.data.length).set(d.data);
+      }
     });
 
     const uniformBuffer = this.acquireBuffer(
