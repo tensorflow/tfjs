@@ -26,6 +26,15 @@ const arrayProduct = (arr: number[]) => {
   return product;
 };
 
+// Compute the sum of the index member of arr.
+export function sum(arr: [number, number, number][], index = 0): number {
+  let sum = 0;
+  for (let i = 0; i < arr.length; i++) {
+    sum += arr[i][index];
+  }
+  return sum;
+}
+
 export function tilesFitEvenlyIntoShape(
     tileSize: number[], shape: number[]): boolean {
   if (tileSize.length !== shape.length) {
@@ -65,14 +74,16 @@ export function computeDispatch(
     return [dispatchX, dispatchY, dispatchZ];
   }
 
-  util.assert(dispatchX > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
-      layout.y === undefined && layout.z === undefined, () =>
-      'Dispatch size exceeds WebGPU limits in Y or Z dimension.');
+  util.assert(
+      dispatchX > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
+          layout.y === undefined && layout.z === undefined,
+      () => 'Dispatch size exceeds WebGPU limits in Y or Z dimension.');
 
   let dispatchAverage = Math.ceil(Math.sqrt(dispatchX));
   if (dispatchAverage > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
     dispatchAverage = Math.ceil(Math.cbrt(dispatchX));
-    util.assert(dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE,
+    util.assert(
+        dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE,
         () => 'Total dispatch size exceeds WebGPU maximum.');
     return [dispatchAverage, dispatchAverage, dispatchAverage];
   } else {
