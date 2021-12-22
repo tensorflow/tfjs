@@ -26,7 +26,12 @@ export class BufferManager {
 
   constructor(private device: GPUDevice) {}
 
-  acquireBuffer(byteSize: number, usage: GPUBufferUsageFlags) {
+  acquireUploadBuffer(byteSize: number, usage: GPUBufferUsageFlags) {
+    return this.acquireBuffer(byteSize, usage, true);
+  }
+
+  acquireBuffer(
+      byteSize: number, usage: GPUBufferUsageFlags, mappedAtCreation = false) {
     const key = getBufferKey(byteSize, usage);
     if (!this.freeBuffers.has(key)) {
       this.freeBuffers.set(key, []);
@@ -48,7 +53,8 @@ export class BufferManager {
     }
 
     this.numBytesAllocated += byteSize;
-    const newBuffer = this.device.createBuffer({size: byteSize, usage});
+    const newBuffer =
+        this.device.createBuffer({mappedAtCreation, size: byteSize, usage});
     this.usedBuffers.get(key).push(newBuffer);
 
     return newBuffer;
@@ -56,7 +62,7 @@ export class BufferManager {
 
   releaseBuffer(
       buffer: GPUBuffer, byteSize: number, usage: GPUBufferUsageFlags) {
-    if (this.freeBuffers == null) {
+    if (this.freeBuffers.size === 0) {
       return;
     }
 
@@ -80,6 +86,18 @@ export class BufferManager {
     this.numBytesUsed -= byteSize;
   }
 
+  releaseUploadBuffer(
+      buffer: GPUBuffer, byteSize: number, usage: GPUBufferUsageFlags) {
+    buffer.mapAsync(GPUMapMode.WRITE)
+        .then(
+            () => {
+              this.releaseBuffer(buffer, byteSize, usage);
+            },
+            (err) => {
+                // Do nothing;
+            });
+  }
+
   getNumUsedBuffers(): number {
     return this.numUsedBuffers;
   }
@@ -88,20 +106,7 @@ export class BufferManager {
     return this.numFreeBuffers;
   }
 
-  reset() {
-    this.freeBuffers = new Map();
-    this.usedBuffers = new Map();
-    this.numUsedBuffers = 0;
-    this.numFreeBuffers = 0;
-    this.numBytesUsed = 0;
-    this.numBytesAllocated = 0;
-  }
-
   dispose() {
-    if (this.freeBuffers == null && this.usedBuffers == null) {
-      return;
-    }
-
     this.freeBuffers.forEach((buffers, key) => {
       buffers.forEach(buff => {
         buff.destroy();
@@ -114,8 +119,8 @@ export class BufferManager {
       });
     });
 
-    this.freeBuffers = null;
-    this.usedBuffers = null;
+    this.freeBuffers = new Map();
+    this.usedBuffers = new Map();
     this.numUsedBuffers = 0;
     this.numFreeBuffers = 0;
     this.numBytesUsed = 0;

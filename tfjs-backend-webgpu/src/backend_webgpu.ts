@@ -88,6 +88,7 @@ export class WebGPUBackend extends KernelBackend {
 
   private tensorDisposalQueue: DataId[] = [];
   private uniformDisposalQueue: BufferInfo[] = [];
+  private stagingDisposalQueue: BufferInfo[] = [];
 
   private disposed = false;
 
@@ -158,9 +159,13 @@ export class WebGPUBackend extends KernelBackend {
     });
     this.uniformDisposalQueue.forEach(
         d => this.bufferManager.releaseBuffer(d.buffer, d.byteSize, d.usage));
+    this.stagingDisposalQueue.forEach(
+        d => this.bufferManager.releaseUploadBuffer(
+            d.buffer, d.byteSize, d.usage));
 
     this.tensorDisposalQueue = [];
     this.uniformDisposalQueue = [];
+    this.stagingDisposalQueue = [];
   }
 
   /**
@@ -560,10 +565,29 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     info.bufferInfo.buffer = this.acquireBuffer(info.bufferInfo.byteSize);
-
     if (info.values) {
-      this.queue.writeBuffer(
-          info.bufferInfo.buffer, 0, info.values as ArrayBuffer);
+      const stagingBuffer = this.bufferManager.acquireUploadBuffer(
+          info.bufferInfo.byteSize,
+          GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC);
+      const arrayBuffer = stagingBuffer.getMappedRange();
+      if (info.dtype === 'int32' || info.dtype === 'bool') {
+        new Int32Array(arrayBuffer).set(info.values as Int32Array);
+      } else {
+        new Float32Array(arrayBuffer).set(info.values as Float32Array);
+      }
+      stagingBuffer.unmap();
+      this.ensureCommandEncoderReady();
+      this.ensureComputePassEnded();
+      this.currentCommandEncoder.copyBufferToBuffer(
+          stagingBuffer, 0, info.bufferInfo.buffer, 0,
+          info.bufferInfo.byteSize);
+
+      const stagingInfo = {
+        byteSize: info.bufferInfo.byteSize,
+        usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
+        buffer: stagingBuffer
+      };
+      this.stagingDisposalQueue.push(stagingInfo);
       // TODO: WebGPU doesn't support read data synchronously from GPU to CPU.
       // So it will report error when switching backend from WebGPU to others.
       // There are two situations: 1) swithcing the backend after running a
