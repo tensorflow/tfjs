@@ -36,32 +36,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'add ',
-    excludes: [
-      '6D',        // Rank 6 is not yet implemented.
-      'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'addN ',
-  },
-  {
-    startsWith: 'argmax ',
-    excludes: [
-      '5D',        // Rank 5 is not yet implemented.
-      '6D',        // Rank 5 is not yet implemented.
-      'gradient',  // zerosLike not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'argmin ',
-    excludes: [
-      '5D',        // Rank 5 is not yet implemented.
-      '6D',        // Rank 5 is not yet implemented.
-      'gradient',  // zerosLike not yet implemented.
-    ]
-  },
-  {
     startsWith: 'avgPool ',
     excludes: [
       'gradient',   // Not yet implemented.
@@ -69,29 +43,11 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'batchNorm ',
-  },
-  {
     startsWith: 'batchToSpaceND ',
     excludes: [
       'tensor3d', 'tensor4d', 'gradient',
       'accepts a tensor-like object',  // tensor6d not yet implemented
     ]
-  },
-  {
-    startsWith: 'ceil ',
-    excludes: [
-      'gradient',  // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'clipByValue ',
-    excludes: [
-      'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'complex64 ',
   },
   {
     startsWith: 'concat ',
@@ -110,42 +66,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'cos ',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'cosh ',
-  },
-  {
-    startsWith: 'cropAndResize ',
-  },
-  {
-    startsWith: 'Detects memory leaks in kernels',
-  },
-  {
-    startsWith: 'depthToSpace ',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'depthwise ',
-    excludes: [
-      'gradient',  // depthwiseConv2DDerInput not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'div ',
-    excludes: [
-      'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'dot ',
-  },
-  {
     startsWith: 'einsum ',
     excludes: [
       '4d tensors',               // rank 5 is not yet supported.
@@ -161,46 +81,10 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'equal ',
-  },
-  {
     startsWith: 'exp ',
     excludes: [
       'int32',  // precision problem.
     ]
-  },
-  {
-    startsWith: 'expandDims ',
-  },
-  {
-    startsWith: 'expm1 ',
-    excludes: [
-      'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'fill ',
-    excludes: [
-      '5D',  // Rank 5 is not yet supported.
-    ]
-  },
-  {
-    startsWith: 'flipLeftRight',
-  },
-  {
-    startsWith: 'floor ',
-    excludes: [
-      'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'floorDiv ',
-  },
-  {
-    startsWith: 'fromPixels ',
-  },
-  {
-    startsWith: 'fromPixelsAsync ',
   },
   {
     startsWith: 'fused conv2d ',
@@ -234,49 +118,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'gatherND ',
-  },
-  {
-    startsWith: 'greater ',
-    excludes: [
-      'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'greaterEqual ',
-  },
-  {
-    startsWith: 'image.transform ',
-  },
-  {
-    startsWith: 'less ',
-  },
-  {
-    startsWith: 'lessEqual ',
-  },
-  {
-    startsWith: 'log ',
-    excludes: [
-      '6D',  // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'logicalAnd ',
-  },
-  {
-    startsWith: 'logicalNot ',
-    excludes: [
-      'Tensor6D',  // Not yet implemented.
-      'gradient'   // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'leakyrelu ',
-    excludes: [
-      'gradients: Tensor2D',  // Not yet implemented.
-    ]
-  },
-  {
     startsWith: 'matmul',
     excludes: [
       'gradient',                        // Various: sum not yet implemented.
@@ -284,12 +125,6 @@ const TEST_FILTERS: TestFilter[] = [
       'valueAndGradients',               // backend.sum() not yet implemented.
       'upcasts when dtypes dont match',  // GLSL compilation failed
       'broadcast',  // matmul broadcasting not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'maximum ',
-    excludes: [
-      'gradient',  // gradient function not found.
     ]
   },
   {
@@ -316,25 +151,10 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'memory',
-  },
-  {
     startsWith: 'min ',
     excludes: [
       'gradient',
       'stft',  // FFT' not registered.
-    ]
-  },
-  {
-    startsWith: 'minimum ',
-    excludes: [
-      'gradient',  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'mirrorPad ',
-    excludes: [
-      'grad',  // Not yet implemented.
     ]
   },
   {
@@ -345,29 +165,9 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'neg ',
-  },
-  {
     startsWith: 'nonMaxSuppression ',
     excludes: [
       'NonMaxSuppressionPadded'  // NonMaxSuppressionV4 not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'notEqual ',
-  },
-  {
-    startsWith: 'onesLike ',
-    excludes: [
-      '5D',       // rank 5 is not yet supported.
-      '6D',       // rank 6 is not yet supported.
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'pad ',
-    excludes: [
-      'grad'  // gradient function not found.
     ]
   },
   {
@@ -380,48 +180,12 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'pow ',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'prelu ',
-  },
-  {
-    startsWith: 'prod ',
-  },
-  {
     startsWith: 'range ',
     excludes: [
       'bincount',           // Not yet implemented.
       'denseBincount',      // Not yet implemented.
       'oneHot',             // Not yet implemented.
       'sparseSegmentMean',  // 'SparseSegmentMean' not registered.
-    ]
-  },
-  {
-    startsWith: 'Reduction: max',
-    excludes: [
-      '5D',        // Rank 5 is not yet implemented.
-      '6D',        // Rank 5 is not yet implemented.
-      'gradient',  // zerosLike not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'Reduction: min',
-    excludes: [
-      '5D',        // Rank 5 is not yet implemented.
-      '6D',        // Rank 5 is not yet implemented.
-      'gradient',  // zerosLike not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'Reduction: sum',
-    excludes: [
-      '5D',        // Rank 5 is not yet implemented.
-      '6D',        // Rank 5 is not yet implemented.
-      'gradient',  // zerosLike not yet implemented.
     ]
   },
   {
@@ -433,57 +197,6 @@ const TEST_FILTERS: TestFilter[] = [
       'propagates NaNs',    // Arrays differ.
       'derivative',         // gradient function not found.
       'gradient'            // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'relu6 ',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'resizeBilinear ',
-    excludes: [
-      'gradient',  // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'resizeNearestNeighbor ',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'rotateWithOffset ',
-  },
-  {
-    startsWith: 'rsqrt ',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'scatterND ',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'sigmoid ',
-    excludes: [
-      '6D'  // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'sin ',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'sinh ',
-    excludes: [
-      'gradient'  // gradient function not found.
     ]
   },
   {
@@ -521,18 +234,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'split ',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'sqrt ',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
     startsWith: 'square ',
     excludes: [
       '5D',          // Rank 5 is not yet implemented.
@@ -551,42 +252,10 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'stack ',
-    excludes: [
-      'grad of unstack axis=0',  // Remove this when grad is fixed in unstack.
-      'gradient with clones',    // Remove this when grad is fixed in unstack.
-      'grad of unstack axis=1',  // Remove this when grad is fixed in unstack.
-    ]
-  },
-  {
     startsWith: 'stridedSlice ',
     excludes: [
       'strided slice with several new axes',  // Rank 6 is not yet implemented.
       'strided slice with new axes and',      // Rank 6 is not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'stringNGrams ',
-  },
-  {
-    startsWith: 'sub ',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'subtract ',
-  },
-  {
-    startsWith: 'sum ',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'tanh ',
-    excludes: [
-      'grad',  // gradient function not found.
     ]
   },
   {
@@ -595,15 +264,6 @@ const TEST_FILTERS: TestFilter[] = [
       'grad',        // gradient function not found.
       'bool tensor'  // Expected object not to have properties.
     ]
-  },
-  {
-    startsWith: 'tile ',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'topk ',
   },
   {
     startsWith: 'transpose ',
@@ -624,22 +284,10 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'where ',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'zerosLike ',
-    excludes: [
-      '5D',       // rank 5 is not yet supported.
-      '6D',       // rank 6 is not yet supported.
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
     include: ' webgpu ',
     excludes: [
+      '5D',
+      '6D',
       'acos ',
       'acosh ',
       'all ',
@@ -668,7 +316,9 @@ const TEST_FILTERS: TestFilter[] = [
       'encodeWeights ',
       'erf ',
       'FFT ',
+      'gradient ',
       'gradients ',
+      'gradients: ',
       'IRFFT ',
       'isFinite ',
       'isInf ',
