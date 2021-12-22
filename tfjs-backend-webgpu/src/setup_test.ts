@@ -83,7 +83,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'exp ',
     excludes: [
-      'int32',  // precision problem.
+      'int32',  // TODO: fix precision problem.
     ]
   },
   {
@@ -286,12 +286,22 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: ' webgpu ',
     excludes: [
-      '5D',
-      '6D',
+      // TODO: cases need to be fixed
+      'debug off',  // actual[1] = 0, expected[1] = NaN
+      '} bool tensor', // Expected object not to have properties
+
+      // Not implemented general feature list.
+      '5D',  // Not supported yet
+      '6D',  // Not supported yet
+      'gradient ',  // Not supported yet
+      'gradients ',  // Not supported yet
+      'gradients: ',  // Not supported yet
+
+      // Not implemented kernel list.
       'acos ',
       'acosh ',
-      'all ',
-      'any ',
+      'all webgpu ',
+      'any webgpu ',
       'asin ',
       'asinh ',
       'atan2 ',
@@ -301,24 +311,18 @@ const TEST_FILTERS: TestFilter[] = [
       'bincount ',
       'broadcastArgs ',
       'concat3d ',
-      'confusionMatrix ',
-      'conv1d ',
+      'confusionMatrix ',  // oneHot related
       'conv2dTranspose ',
       'conv3d ',
       'conv3dTranspose ',
       'cumsum ',
-      'debug ',
       'decodeWeights ',
-      'denseBincount',
-      'depthwiseConv2d gradients ',
+      'denseBincount ',
       'diag ',
       'dilation2d ',
       'encodeWeights ',
       'erf ',
       'FFT ',
-      'gradient ',
-      'gradients ',
-      'gradients: ',
       'IRFFT ',
       'isFinite ',
       'isInf ',
@@ -329,23 +333,22 @@ const TEST_FILTERS: TestFilter[] = [
       'logSigmoid ',
       'logicalOr ',
       'logicalXor ',
-      'maxPoolBackprop ',
       'maxPool3d ',
-      'maxPool3dBackprop ',
       'maxPoolWithArgmax ',
+      'method otsu',  // threshold and round related
       'mod ',
       'multinomial ',
       'oneHot ',
-      'poolBackprop ',
       'reciprocal ',
       'reverse1d ',
       'reverse2d ',
       'reverse3d ',
       'reverse4d ',
-      'reverse ',
-      'round ',
+      'reverse webgpu',
+      'RFFT ',
+      'round webgpu',
       'selu ',
-      'sign ',
+      'sign webgpu',
       'stft ',
       'softplus ',
       'sigmoidCrossEntropy ',
@@ -353,12 +356,10 @@ const TEST_FILTERS: TestFilter[] = [
       'sparseReshape ',
       'sparseSegmentMean ',
       'sparseSegmentSum ',
-      'step ',
+      'step kernel',
       'stringSplit ',
       'stringToHashBucketFast ',
-      'tan ',
-      'tensor.bytes() ',
-      'threshold ',
+      'tan webgpu',
       'unique ',
       'unsortedSegmentSum ',
       'valueAndGradients ',
