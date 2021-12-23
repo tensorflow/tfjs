@@ -27,7 +27,7 @@ const arrayProduct = (arr: number[]) => {
 };
 
 // Compute the sum of the index member of arr.
-export function sum(arr: [number, number, number][], index = 0): number {
+export function sum(arr: Array<[number, number, number]>, index = 0): number {
   let sum = 0;
   for (let i = 0; i < arr.length; i++) {
     sum += arr[i][index];
