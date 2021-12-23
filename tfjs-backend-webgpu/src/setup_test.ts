@@ -26,20 +26,39 @@ import './backend_webgpu_test_registry';
 import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 const TEST_FILTERS: TestFilter[] = [
+  // skip test cases include 5D, 6D, gradients webgpu
+  {
+    include: '5D',
+    excludes: [
+      'webgpu '
+    ],
+  },
+  {
+    include: '6D',
+    excludes: [
+      'webgpu '
+    ],
+  },
+  {
+    include: 'gradients webgpu',
+    excludes: [
+      'webgpu '
+    ],
+  },
+
+  // skip specific test cases for supported kernels
   {
     startsWith: 'abs ',
     excludes: [
       'complex64',  // Kernel 'ComplexAbs' not registered.
-      '5D',         // Rank 5 is not yet implemented.
-      '6D',         // Rank 5 is not yet implemented.
-      'gradient',   // zerosLike not yet implemented.
+      'gradient',   // Step kernel not yet implemented.
     ]
   },
   {
     startsWith: 'avgPool ',
     excludes: [
       'gradient',   // Not yet implemented.
-      'avgPool3d',  // Not yet implemented.
+      //'avgPool3d',  // Not yet implemented.
     ]
   },
   {
@@ -55,7 +74,6 @@ const TEST_FILTERS: TestFilter[] = [
       'concat a large number of tensors',  // The number of storage buffers
                                            // exceeds the maximum per-stage
                                            // limit.
-      'gradient',                          // split not yet implemented.
     ]
   },
   {
@@ -99,7 +117,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'fused depthwiseConv2D ',
     excludes: [
-      'gradient',   // gradient function not found.
+      'gradient',   // DepthwiseConv2dNativeBackpropInput
       'leakyrelu',  // Not yet implemented
     ]
   },
@@ -120,7 +138,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'matmul',
     excludes: [
-      'gradient',                        // Various: sum not yet implemented.
       'has zero in its shape',           // Test times out.
       'valueAndGradients',               // backend.sum() not yet implemented.
       'upcasts when dtypes dont match',  // GLSL compilation failed
@@ -138,7 +155,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'max ',
     excludes: [
-      '6D', 'gradient',
       'AdamaxOptimizer',    // gradient function not found.
       'sparseSegmentMean',  // 'SparseSegmentMean' not registered.
     ]
@@ -146,14 +162,12 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'mean ',
     excludes: [
-      'gradient',
       'meanSquaredError',
     ]
   },
   {
     startsWith: 'min ',
     excludes: [
-      'gradient',
       'stft',  // FFT' not registered.
     ]
   },
@@ -161,7 +175,6 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'mul ',
     excludes: [
       'broadcast',  // Various: Actual != Expected, compile fails, etc.
-      'gradient',   // gradient function not found.
     ]
   },
   {
@@ -192,8 +205,6 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'relu ',
     excludes: [
       'valueAndGradients',  // gradient function not found.
-      '5D',                 // Rank 5 is not yet implemented.
-      '6D',                 // Rank 5 is not yet implemented.
       'propagates NaNs',    // Arrays differ.
       'derivative',         // gradient function not found.
       'gradient'            // gradient function not found.
@@ -202,9 +213,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'slice ',
     excludes: [
-      '5D',                  // Rank 5 is not yet implemented.
       'slice5d',             // Rank 5 is not yet implemented.
-      '6D',                  // Rank 6 is not yet implemented.
       'slice6d',             // Rank 6 is not yet implemented.
       'strided slice with',  // Rank 6 is not yet implemented.
     ]
@@ -212,7 +221,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'softmax ',
     excludes: [
-      'gradient',
       'MEAN',
       'Weighted - Reduction.SUM_BY_NONZERO_WEIGHTS',
     ]
@@ -221,7 +229,6 @@ const TEST_FILTERS: TestFilter[] = [
     startsWith: 'spaceToBatchND ',
     excludes: [
       'tensor4d',
-      'gradient',
       'accepts a tensor-like object',
     ]
   },
@@ -230,25 +237,18 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       // TODO: Fix 0-sized buffer binding on WebGPU
       '0-sized',  // Not yet implemented.
-      'gradient'  // gradient function not found.
     ]
   },
   {
     startsWith: 'square ',
     excludes: [
-      '5D',          // Rank 5 is not yet implemented.
-      '6D',          // Rank 6 is not yet implemented.
       'dilation2d',  // 'dilation2d' not yet implemented.
-      'gradient',
     ]
   },
   {
     startsWith: 'squaredDifference ',
     excludes: [
-      '5D',          // Rank 5 is not yet implemented.
-      '6D',          // Rank 6 is not yet implemented.
       'dilation2d',  // 'dilation2d' not yet implemented.
-      'gradient',
     ]
   },
   {
@@ -261,7 +261,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'tensor ',
     excludes: [
-      'grad',        // gradient function not found.
       'bool tensor'  // Expected object not to have properties.
     ]
   },
@@ -270,32 +269,16 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'oneHot',  // Not yet implemented.
       'fused',   // Not yet implemented.
-      '5D',      // Rank 5 is not yet implemented.
-      '6D',      // Rank 5 is not yet implemented.
-      'gradient',
     ]
   },
-  {
-    startsWith: 'unstack ',
-    excludes: [
-      'grad of unstack axis=0',
-      'gradient with clones',
-      'grad of unstack axis=1',
-    ]
-  },
+
+  // exclude unsupported kernels and to be fixed cases
   {
     include: ' webgpu ',
     excludes: [
       // TODO: cases need to be fixed
       'debug off',  // actual[1] = 0, expected[1] = NaN
       '} bool tensor', // Expected object not to have properties
-
-      // Not implemented general feature list.
-      '5D',  // Not supported yet
-      '6D',  // Not supported yet
-      'gradient ',  // Not supported yet
-      'gradients ',  // Not supported yet
-      'gradients: ',  // Not supported yet
 
       // Not implemented kernel list.
       'acos ',
@@ -311,8 +294,10 @@ const TEST_FILTERS: TestFilter[] = [
       'bincount ',
       'broadcastArgs ',
       'concat3d ',
-      'confusionMatrix ',  // oneHot related
       'conv2dTranspose ',
+      'conv2DBackpropFilter ',
+      'gradient with clones, input=2x2x1,d2=1,f=1,s=1,d=1,p=same',  // Conv2DBackpropFilter
+      'conv1d gradients',  // Conv2DBackpropFilter
       'conv3d ',
       'conv3dTranspose ',
       'cumsum ',
@@ -334,11 +319,14 @@ const TEST_FILTERS: TestFilter[] = [
       'logicalOr ',
       'logicalXor ',
       'maxPool3d ',
+      'maxPool3dBackprop ',
+      'maxPoolBackprop ',
       'maxPoolWithArgmax ',
-      'method otsu',  // threshold and round related
       'mod ',
       'multinomial ',
       'oneHot ',
+      'confusionMatrix ',  // oneHot
+      'poolBackprop ',
       'reciprocal ',
       'reverse1d ',
       'reverse2d ',
@@ -347,6 +335,7 @@ const TEST_FILTERS: TestFilter[] = [
       'reverse webgpu',
       'RFFT ',
       'round webgpu',
+      'method otsu',  // round
       'selu ',
       'sign webgpu',
       'stft ',
@@ -357,6 +346,7 @@ const TEST_FILTERS: TestFilter[] = [
       'sparseSegmentMean ',
       'sparseSegmentSum ',
       'step kernel',
+      'gradients: relu6',  // Step
       'stringSplit ',
       'stringToHashBucketFast ',
       'tan webgpu',
