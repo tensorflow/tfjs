@@ -56,8 +56,8 @@ export class TransposeProgram implements WebGPUProgram {
         for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
           if(flatIndex < uniforms.size) {
-            let resRC = getCoordsFromFlatIndex(flatIndex);
-            setOutputFlat(flatIndex, A.numbers[getFlatIndex${
+            let resRC = getCoordsFromIndex(flatIndex);
+            setOutputAtIndex(flatIndex, A.numbers[getIndexFromCoords${
         this.outputShape.length}D(
               ${dtype}(${switched}), uniforms.aShape)]);
           }

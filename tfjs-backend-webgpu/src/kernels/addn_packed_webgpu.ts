@@ -45,7 +45,7 @@ export class AddNPackedProgram implements WebGPUProgram {
     // Get target elements from every input tensor.
     this.variableNames.forEach(variable => {
       snippets.push(
-          `let v${variable} = get${variable}AtOutCoordsByCoords(coords);`);
+          `let v${variable} = get${variable}ByOutputCoords(coords);`);
     });
     // Calculate the sum of all elements.
     const operation = this.variableNames
@@ -59,9 +59,9 @@ export class AddNPackedProgram implements WebGPUProgram {
         for (var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
           if (flatIndex < uniforms.size) {
-            let coords = getCoordsFromFlatIndex(flatIndex);
+            let coords = getCoordsFromIndex(flatIndex);
             ${snippets.join('\n        ')}
-            setOutputFlat(flatIndex, ${operation});
+            setOutputAtIndex(flatIndex, ${operation});
           }
         }
       }

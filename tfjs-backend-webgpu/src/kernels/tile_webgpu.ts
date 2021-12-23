@@ -49,8 +49,8 @@ export class TileProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let resRC = getCoordsFromFlatIndex(index);
-          setOutputFlat(index, getA(${sourceCoords}));
+          let resRC = getCoordsFromIndex(index);
+          setOutputAtIndex(index, getA(${sourceCoords}));
         }
       }
     `;

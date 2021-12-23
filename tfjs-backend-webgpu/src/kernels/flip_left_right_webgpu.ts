@@ -41,10 +41,10 @@ export class FlipLeftRightProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let coords = getCoordsFromFlatIndex(index);
+          let coords = getCoordsFromIndex(index);
           let coordX = uniforms.xShape[2] - coords[2] - 1;
           let outputValue = getX(coords[0], coords[1], coordX, coords[3]);
-          setOutputFlat(index, outputValue);
+          setOutputAtIndex(index, outputValue);
         }
       }
     `;

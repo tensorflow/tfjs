@@ -120,7 +120,7 @@ export class ScatterOptimizedProgram implements WebGPUProgram {
             flattenedIndex = flattenedIndex + indexInside * ${strideString};
           }
           let updateValue = ${updatesSnippet};
-          let flatIndex = getOutputFlatIndex(${outCoordsString});
+          let flatIndex = getOutputIndexFromCoords(${outCoordsString});
 
          ${atomicAddSnippet}
         }

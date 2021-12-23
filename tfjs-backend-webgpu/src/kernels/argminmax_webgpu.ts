@@ -93,7 +93,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       // This function outputs the offset to the first value along
       // |axis| and the stride to get the next value of the input along |axis|.
       fn getInputCoordInfo(outputIndex : i32) -> vec2<i32>{
-        let outputCoords = getCoordsFromFlatIndex(outputIndex);
+        let outputCoords = getCoordsFromIndex(outputIndex);
         var i = ${this.outputShape.length - 1};
 
         var stride = 1;
@@ -156,7 +156,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         }
 
         if (localId.x == 0u && outputIndex < uniforms.size) {
-          setOutputFlatI32(outputIndex, xBestIndices[localId.x]);
+          setOutputAtIndexI32(outputIndex, xBestIndices[localId.x]);
         }
       }
     `;

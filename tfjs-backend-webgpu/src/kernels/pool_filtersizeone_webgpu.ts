@@ -46,7 +46,7 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let coords = getCoordsFromFlatIndex(index);
+          let coords = getCoordsFromIndex(index);
           let batch = coords[0];
           let d = coords[3];
 
@@ -55,7 +55,7 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
           let xCCorner = xRCCorner.y;
 
           let value = getX(batch, xRCorner, xCCorner, d);
-          setOutputFlat(index, value);
+          setOutputAtIndex(index, value);
         }
       }
     `;

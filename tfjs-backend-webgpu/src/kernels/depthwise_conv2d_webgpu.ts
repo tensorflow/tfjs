@@ -72,7 +72,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
       if (this.hasPreluActivation) {
         activationSnippet =
             `fn activation(a : f32, outCoord : vec4<i32>) -> f32 {
-          let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
+          let b = getPreluActivationWeightsByOutputCoords(outCoord);
           ${activationOp}
         }`;
       } else {
@@ -87,7 +87,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
     }
 
     const addBiasSnippet = this.addBias ?
-        'dotProd = dotProd + getBiasAtOutCoordsByCoords(coords);' :
+        'dotProd = dotProd + getBiasByOutputCoords(coords);' :
         '';
 
     const userCode = `
@@ -97,7 +97,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
           value : f32) {
         let coord = vec4<i32>(batch, row, col, chan);
         if (coordsInBounds4D(coord, uniforms.outShape)) {
-          setOutput(batch, row, col, chan, value);
+          setOutputAtCoords(batch, row, col, chan, value);
         }
       }
 

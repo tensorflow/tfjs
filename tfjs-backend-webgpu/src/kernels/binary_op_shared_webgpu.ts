@@ -70,10 +70,10 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
         `coords[${this.outputShape.length - 1}]` :
         '0';
     const accessDataSnippet = this.useSharedMemoryWithB ?
-        `let a = getAAtOutCoordsByCoords(coords);
+        `let a = getAByOutputCoords(coords);
          let b = sharedBuf[${sharedIndexSnippet}];` :
         `let a = sharedBuf[${sharedIndexSnippet}];
-         let b = getBAtOutCoordsByCoords(coords);`;
+         let b = getBByOutputCoords(coords);`;
 
     const opStr = getBinaryOpString(this.op, false);
     const userCode = `
@@ -97,10 +97,10 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
           for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
             let flatIndex = index * ${this.workPerThread} + i;
             if(flatIndex < uniforms.size) {
-              let coords = getCoordsFromFlatIndex(flatIndex);
+              let coords = getCoordsFromIndex(flatIndex);
 
               ${accessDataSnippet}
-              setOutputFlat(flatIndex, binaryOperation(a, b));
+              setOutputAtIndex(flatIndex, binaryOperation(a, b));
             }
           }
         }

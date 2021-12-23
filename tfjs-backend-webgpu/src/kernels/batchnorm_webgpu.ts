@@ -63,25 +63,25 @@ export class BatchNormProgram implements WebGPUProgram {
   getUserCode(): string {
     let offsetSnippet = '0.0';
     if (this.offsetShape != null) {
-      offsetSnippet = 'getOffsetAtOutCoordsByGlobalIndex(index)';
+      offsetSnippet = 'getOffsetByOutputIndex(index)';
     }
 
     let scaleSnippet = '1.0';
     if (this.scaleShape != null) {
-      scaleSnippet = 'getScaleAtOutCoordsByGlobalIndex(index)';
+      scaleSnippet = 'getScaleByOutputIndex(index)';
     }
 
     const userCode = `
       ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size)
         {
-          let xValue = getXAtOutCoordsByGlobalIndex(index);
-          let meanValue = getMeanAtOutCoordsByGlobalIndex(index);
-          let varianValue = getVarianceAtOutCoordsByGlobalIndex(index);
+          let xValue = getXByOutputIndex(index);
+          let meanValue = getMeanByOutputIndex(index);
+          let varianValue = getVarianceByOutputIndex(index);
           let offsetValue = ${offsetSnippet};
           let scaleValue = ${scaleSnippet};
           let inv = scaleValue * inverseSqrt(varianValue + f32(uniforms.varianceEpsilon));
-          setOutputFlat(index,dot(vec3<f32>(xValue, -meanValue, offsetValue), vec3<f32>(inv, inv, 1.0)));
+          setOutputAtIndex(index,dot(vec3<f32>(xValue, -meanValue, offsetValue), vec3<f32>(inv, inv, 1.0)));
         }
       }
   `;

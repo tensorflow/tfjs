@@ -50,7 +50,7 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
     return `
     ${getMainHeaderAndGlobalIndexString()} {
       if(index < uniforms.size) {
-        let coords = getCoordsFromFlatIndex(index);
+        let coords = getCoordsFromIndex(index);
         let batch = coords[0];
         let d1 = coords[${channelDim}];
 
@@ -94,7 +94,7 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
             }
           }
         }
-        setOutputFlat(index, dotProd);
+        setOutputAtIndex(index, dotProd);
       }
     }
   `;

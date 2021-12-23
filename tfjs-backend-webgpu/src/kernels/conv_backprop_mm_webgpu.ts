@@ -75,7 +75,7 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
         i32(xR),
         i32(xC),
         col % uniforms.outBackprop[3]);
-    return x.numbers[getFlatIndex4D(coord, uniforms.xShape)];`;
+    return x.numbers[getIndexFromCoords4D(coord, uniforms.xShape)];`;
 
     const sampleA = `if (row < uniforms.dimAOuter && col < uniforms.dimInner) {
       ${readASnippet}
@@ -97,7 +97,7 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
           coordX >= 0 && coordY >= 0) {
         let coord = vec4<i32>(coordX, coordY, col,
             row % uniforms.outBackprop[3]);
-        return W.numbers[getFlatIndex4D(coord, uniforms.wShape)];
+        return W.numbers[getIndexFromCoords4D(coord, uniforms.wShape)];
       }
       return 0.0;
     }
@@ -110,7 +110,7 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
           row / uniforms.outShape[2],
           row % uniforms.outShape[2],
           col);
-      result.numbers[getFlatIndex4D(outCoord, uniforms.outShape)] = value;
+      result.numbers[getIndexFromCoords4D(outCoord, uniforms.outShape)] = value;
     }
 
     ${matMulSource}

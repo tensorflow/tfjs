@@ -59,7 +59,7 @@ export class RotateProgram implements WebGPUProgram {
         ${getMainHeaderAndGlobalIndexString()}
 
           if (index < uniforms.size) {
-            let coords = getCoordsFromFlatIndex(index);
+            let coords = getCoordsFromIndex(index);
             let coordXFloat = (f32(coords[2]) - uniforms.centerX) *
                 uniforms.cosRadians - (f32(coords[1]) - uniforms.centerY) *
                 uniforms.sinRadians;
@@ -73,7 +73,7 @@ export class RotateProgram implements WebGPUProgram {
                 coordY < uniforms.xShape[1]) {
               outputValue = getX(coords[0], coordY, coordX, coords[3]);
             }
-            setOutputFlat(index, outputValue);
+            setOutputAtIndex(index, outputValue);
           }
         }
       `;

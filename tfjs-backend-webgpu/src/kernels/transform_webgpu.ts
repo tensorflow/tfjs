@@ -105,7 +105,7 @@ export class TransformProgram implements WebGPUProgram {
 
           ${getMainHeaderAndGlobalIndexString()}
             if (index < uniforms.size) {
-              let coords = getCoordsFromFlatIndex(index);
+              let coords = getCoordsFromIndex(index);
               var outputValue : f32;
               let batch = coords[0];
               let x = coords[2];
@@ -152,7 +152,7 @@ export class TransformProgram implements WebGPUProgram {
                   (mapY - yFloor) * valueYCeil;
                 }
               }
-              setOutputFlat(index, outputValue);
+              setOutputAtIndex(index, outputValue);
             }
           }
         `;
