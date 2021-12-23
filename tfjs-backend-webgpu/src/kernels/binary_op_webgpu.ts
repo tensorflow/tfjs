@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {backend_util} from '@tensorflow/tfjs-core';
 import {getMainHeaderAndGlobalIndexString} from '../shader_preprocessor';
 import {computeDispatch, flatDispatchLayout} from '../webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
@@ -32,11 +31,11 @@ export class BinaryOpProgram implements WebGPUProgram {
   op: BinaryOpType;
   size = true;
 
-  constructor(op: BinaryOpType, aShape: number[], bShape: number[]) {
+  constructor(op: BinaryOpType, outputShape: number[]) {
     // TODO(jiajia.qin@intel.com): Heuristically select a good work group size.
     const workGroupSizeX = 128;
     this.workGroupSize = [workGroupSizeX, 1, 1];
-    this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
+    this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
 
     this.dispatch = computeDispatch(
