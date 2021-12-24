@@ -191,8 +191,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
           ${activationOp}
         }`;
       } else if (this.hasLeakyreluAlpha) {
-        activationSnippet = `fn activation(a: vec4<f32>) -> vec4<f32> {
-          let b = getLeakyreluAlphaAtOutCoords();
+        activationSnippet = `fn activation(outCoord: vec4<f32>) -> vec4<f32> {
+          let b = getLeakyreluAlphaByOutputCoords(outCoord);
           ${activationOp}
         }`;
         throw new Error('Leakyrelu is not supported.');

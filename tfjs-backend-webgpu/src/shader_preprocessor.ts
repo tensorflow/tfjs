@@ -93,14 +93,37 @@ export function getMainHeaderAndGlobalIndexString(): string {
 export function makeShader(
     inputInfo: InputInfo[], outputData: {dtype: DataType, shape: number[]},
     program: ProgramParams, isFromPixel = false): string {
-  const workGroupSizeSnippet = `
+
+  const prefixSnippets: string[] = [];
+  prefixSnippets.push(`
     let workGroupSizeX = ${program.workGroupSize[0]}u;
     let workGroupSizeY = ${program.workGroupSize[1]}u;
-    let workGroupSizeZ = ${program.workGroupSize[2]}u;`;
+    let workGroupSizeZ = ${program.workGroupSize[2]}u;
+
+    var<private> localId: vec3<u32>;
+    var<private> globalId: vec3<u32>;
+    var<private> numWorkgroups: vec3<u32>;
+
+    // Only used when the y/z dimension of workgroup size is 1.
+    fn getGlobalIndex() -> i32 {
+      if (numWorkgroups.y == 1u && numWorkgroups.z == 1u) {
+        return i32(globalId.x);
+      }
+
+      let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
+          localId.y * workGroupSizeX + localId.x;
+      let workGroupID = (globalId - localId)/vec3<u32>(
+          workGroupSizeX, workGroupSizeY, workGroupSizeZ);
+
+      return i32((workGroupID.z * numWorkgroups.x * numWorkgroups.y +
+        workGroupID.y * numWorkgroups.x + workGroupID.x) *
+        (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
+        localInvocationIndex);
+    }
+  `);
 
   if (isFromPixel === true) {
-    const getCoordsSnippet = getCoordsFromIndex(outputData.shape);
-    const outputBufferStr = `
+    prefixSnippets.push(`
       struct Matrix0 {
         numbers: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
       };
@@ -113,18 +136,15 @@ export function makeShader(
 
       [[group(0), binding(0)]] var<storage, write> result : Matrix0;
       [[group(0), binding(2)]] var<uniform> uniforms: Uniform;
-    `;
+    `);
     return [
-      SHADER_PREFIX,
-      outputBufferStr,
-      workGroupSizeSnippet,
-      SAMPLING_SNIPPETS,
-      getCoordsSnippet,
+      commonSnippet,
+      prefixSnippets.join('\n'),
+      getCoordsFromIndexSnippet(outputData.shape),
       program.getUserCode(),
     ].join('\n');
   }
 
-  const prefixSnippets: string[] = [];
   let uniformDeclaration = 'struct Uniforms { NAN : f32; ';
   program.variableNames.forEach((x, i) => {
     uniformDeclaration += `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${
@@ -181,36 +201,32 @@ export function makeShader(
     `);
   }
 
-  prefixSnippets.push(workGroupSizeSnippet);
-
-  const [getOutputCoordsSnippet, dispatchLayoutRank] =
-      getOutputCoords(outputData.shape, program.dispatchLayout);
-  const getCoordsSnippet = getCoordsFromIndex(outputData.shape);
+  const [coordsSnippet, dispatchLayoutRank] =
+      getOutputCoordsSnippet(outputData.shape, program.dispatchLayout);
 
   const sources = [
-    SHADER_PREFIX,
+    commonSnippet,
     prefixSnippets.join('\n'),
-    SAMPLING_SNIPPETS,
-    getCoordsSnippet,
-    getOutputCoordsSnippet,
-    getOutputIndexFromCoords(outputData.shape.length)
+    getCoordsFromIndexSnippet(outputData.shape),
+    coordsSnippet,
+    getOutputIndexFromCoordsSnippet(outputData.shape.length)
   ];
   if (!program.atomic) {
-    sources.push(getSetOutputSnippet(
+    sources.push(setOutputSnippet(
         outputData.shape, outputData.dtype, program.isVec4));
   }
   if (dispatchLayoutRank === outputData.shape.length) {
-    // Input sampling snippet is only meaningful when the output isn't getting
+    // Input snippet is only meaningful when the output isn't getting
     // implicitly reshaped (like it does in conv2d_matmul).
-    const inputSamplingSnippet =
+    const inputSnippet =
         inputInfo
             .map(
-                x => getInputSamplingSnippet(
+                x => getInputSnippet(
                     x, outputData.shape, program.isVec4,
                     program.dispatchLayout.x.length ===
                         outputData.shape.length))
             .join('\n');
-    sources.push(inputSamplingSnippet);
+    sources.push(inputSnippet);
   }
 
   sources.push(program.getUserCode());
@@ -218,10 +234,31 @@ export function makeShader(
   return source;
 }
 
-const SHADER_PREFIX = `
-  var<private> localId: vec3<u32>;
-  var<private> globalId: vec3<u32>;
-  var<private> numWorkgroups: vec3<u32>;
+const commonSnippet = `
+  // Checks whether coordinates lie within the bounds of the shape.
+  fn coordsInBounds2D(coord : vec2<i32>, shape : vec2<i32>) -> bool {
+    return all(coord >= vec2<i32>(0)) && all(coord < shape);
+  }
+  fn coordsInBounds3D(coord : vec3<i32>, shape : vec3<i32>) -> bool {
+    return all(coord >= vec3<i32>(0)) && all(coord < shape);
+  }
+  fn coordsInBounds4D(coord : vec4<i32>, shape : vec4<i32>) -> bool {
+    return all(coord >= vec4<i32>(0)) && all(coord < shape);
+  }
+
+  fn getIndexFromCoords1D(coord : i32, shape : i32) -> i32 {
+    return coord;
+  }
+  fn getIndexFromCoords2D(coords : vec2<i32>, shape : vec2<i32>) -> i32 {
+    return dot(coords, vec2<i32>(shape.y, 1));
+  }
+  fn getIndexFromCoords3D(coords : vec3<i32>, shape : vec3<i32>) -> i32 {
+    return dot(coords, vec3<i32>(shape.y * shape.z, shape.z, 1));
+  }
+  fn getIndexFromCoords4D(coords : vec4<i32>, shape : vec4<i32>) -> i32 {
+    return dot(coords, vec4<i32>(
+        shape.y * shape.z * shape.w, shape.z * shape.w, shape.w, 1));
+  }
 
   fn idiv(a: i32, b: i32, sign: f32) -> i32 {
     var res: i32 = a / b;
@@ -244,64 +281,12 @@ const SHADER_PREFIX = `
     }
     return true;
   }
-
   fn isNanCustomVec4(val : vec4<f32>) -> vec4<bool> {
     return vec4<bool>(isNanCustom(val[0]), isNanCustom(val[1]), isNanCustom(val[2]), isNanCustom(val[3]));
   }
-
-  // Checks whether coordinates lie within the bounds of the shape.
-  fn coordsInBounds4D(coord : vec4<i32>, shape : vec4<i32>) -> bool {
-    return all(coord >= vec4<i32>(0)) &&
-        all(coord < shape);
-  }
-
-  fn coordsInBounds3D(coord : vec3<i32>, shape : vec3<i32>) -> bool {
-    return all(coord >= vec3<i32>(0)) &&
-        all(coord < shape);
-  }
-
-  fn coordsInBounds2D(coord : vec2<i32>, shape : vec2<i32>) -> bool {
-    return all(coord >= vec2<i32>(0)) &&
-        all(coord < shape);
-  }
-  `;
-const SAMPLING_SNIPPETS = `
-  fn getIndexFromCoords1D(coord : i32, shape : i32) -> i32 {
-    return coord;
-  }
-
-  fn getIndexFromCoords2D(coords : vec2<i32>, shape : vec2<i32>) -> i32 {
-    return dot(coords, vec2<i32>(shape.y, 1));
-  }
-
-  fn getIndexFromCoords3D(coords : vec3<i32>, shape : vec3<i32>) -> i32 {
-    return dot(coords, vec3<i32>(shape.y * shape.z, shape.z, 1));
-  }
-
-  fn getIndexFromCoords4D(coords : vec4<i32>, shape : vec4<i32>) -> i32 {
-    return dot(coords, vec4<i32>(
-        shape.y * shape.z * shape.w, shape.z * shape.w, shape.w, 1));
-  }
-
-  // Only used when the y/z dimension of workgroup size is 1.
-  fn getGlobalIndex() -> i32 {
-    if (numWorkgroups.y == 1u && numWorkgroups.z == 1u) {
-      return i32(globalId.x);
-    }
-
-    let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
-        localId.y * workGroupSizeX + localId.x;
-    let workGroupID = (globalId - localId)/vec3<u32>(
-        workGroupSizeX, workGroupSizeY, workGroupSizeZ);
-
-    return i32((workGroupID.z * numWorkgroups.x * numWorkgroups.y +
-      workGroupID.y * numWorkgroups.x + workGroupID.x) *
-      (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
-      localInvocationIndex);
-  }
 `;
 
-function getOutputIndexFromCoords(outRank: number) {
+function getOutputIndexFromCoordsSnippet(outRank: number) {
   let snippet = '';
   switch (outRank) {
     case 0:
@@ -340,7 +325,8 @@ function getOutputIndexFromCoords(outRank: number) {
   }
   return snippet;
 }
-function getSetOutputSnippet(
+
+function setOutputSnippet(
     outShape: number[], outBufferType: DataType, isVec4: boolean): string {
   const outRank = outShape.length;
   const wgslType = mapToWgslTypes(outBufferType, isVec4);
@@ -394,23 +380,23 @@ function getSetOutputSnippet(
   return snippet;
 }
 
-function getInputSamplingSnippet(
-    inInfo: InputInfo, outShape: number[], isVec4: boolean,
+function getInputSnippet(
+    inputInfo: InputInfo, outShape: number[], isVec4: boolean,
     isFlatDispatchLayout: boolean): string {
-  let res = getInput(inInfo, isVec4);
+  let res = getInputAtCoordsSnippet(inputInfo, isVec4);
 
-  const inShape = inInfo.shape;
+  const inShape = inputInfo.shape;
   if (inShape.length <= outShape.length) {
-    res += getInputByOutput(
-        inInfo, outShape, isVec4, isFlatDispatchLayout);
+    res += getInputByOutputSnippet(
+        inputInfo, outShape, isVec4, isFlatDispatchLayout);
   }
 
   return res;
 }
 
-function getInput(inInfo: InputInfo, isVec4: boolean): string {
-  const texName = inInfo.name;
-  const rank = inInfo.shape.length;
+function getInputAtCoordsSnippet(inputInfo: InputInfo, isVec4: boolean): string {
+  const texName = inputInfo.name;
+  const rank = inputInfo.shape.length;
   const type = getCoordsDataType(rank);
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
   const dims = ['d0', 'd1', 'd2', 'd3'].slice(0, rank);
@@ -458,22 +444,22 @@ function getInput(inInfo: InputInfo, isVec4: boolean): string {
    `;
 }
 
-export function getInputByOutput(
-    inInfo: InputInfo, outShape: number[], isVec4: boolean,
+export function getInputByOutputSnippet(
+    inputInfo: InputInfo, outShape: number[], isVec4: boolean,
     isFlatDispatchLayout: boolean): string {
-  const texName = inInfo.name;
+  const texName = inputInfo.name;
   const texFuncSnippet = texName.charAt(0).toUpperCase() + texName.slice(1);
 
   const funcName = 'get' + texFuncSnippet + 'ByOutput';
 
-  const inRank = inInfo.shape.length;
+  const inRank = inputInfo.shape.length;
   const outRank = outShape.length;
   const type = getCoordsDataType(outRank);
 
   // If the inShape equals the outShape and the dispatch layout is flat, we can
   // directly use |gl_GlobalInvocationID.x| as the index and don't need coords
   // conversion between these two shapes.
-  if (util.arraysEqual(inInfo.shape, outShape) && isFlatDispatchLayout) {
+  if (util.arraysEqual(inputInfo.shape, outShape) && isFlatDispatchLayout) {
     if (isVec4) {
       return `
         fn ${funcName}Index(globalIndex : i32) -> vec4<f32> {
@@ -499,7 +485,7 @@ export function getInputByOutput(
     }
   }
 
-  const broadcastDims = backend_util.getBroadcastDims(inInfo.shape, outShape);
+  const broadcastDims = backend_util.getBroadcastDims(inputInfo.shape, outShape);
   const rankDiff = outRank - inRank;
 
   let coordsSnippet = '';
@@ -541,7 +527,7 @@ export function getInputByOutput(
     if (outRank > 1) {
       const coordsType = getCoordsDataType(inRank);
       const coordsValues =
-          inInfo.shape.map((s, i) => `coords[${i + rankDiff}]`).join(', ');
+          inputInfo.shape.map((s, i) => `coords[${i + rankDiff}]`).join(', ');
       unpackedCoordsSnippet = `${coordsType}(${coordsValues})`;
     } else {
       unpackedCoordsSnippet = 'coords';
@@ -590,7 +576,7 @@ export function getInputByOutput(
  * Generates getOutputCoords() function that computes output coordinates from
  * dispatch geometry to reduce arithmetic.
  */
-export function getOutputCoords(
+export function getOutputCoordsSnippet(
     outShape: number[],
     dispatchLayout: {x: number[], y?: number[], z?: number[]}):
     [string, number] {
@@ -663,7 +649,7 @@ export function getOutputCoords(
  * with each stride and decrements the index until the index equals the final
  * dimension coordinate.
  */
-function getCoordsFromIndex(shape: number[]): string {
+function getCoordsFromIndexSnippet(shape: number[]): string {
   const rank = shape.length;
 
   if (rank <= 1) {
