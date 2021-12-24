@@ -98,7 +98,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
 
   // index is used to avoid repeated definition error.
   getSampleAWithRemainder(index: number): string {
-    return `let flatIndex${index} = getFlatIndex4D(coord, uniforms.xShape);
+    return `let flatIndex${index} = getIndexFromCoords4D(coord, uniforms.xShape);
     let divBy4Remainder${index} = flatIndex${index} % 4;
     let divBy4Index${index} = flatIndex${index} / 4;
     let curData${index} = x.numbers[divBy4Index${index}];
@@ -131,7 +131,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         `// The bounds checking is always needed since we use it to pad zero for
           // the 'same' padding type.
           if (coordsInBounds4D(coord, uniforms.xShape)) {
-            resData = x.numbers[getFlatIndex4D(coord, uniforms.xShape) / 4];
+            resData = x.numbers[getIndexFromCoords4D(coord, uniforms.xShape) / 4];
           } else {
             resData = vec4<f32>(0.0); }` :
         `var temp = vec4<f32>(0.0);
@@ -187,12 +187,12 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
       if (this.hasPreluActivationWeights) {
         activationSnippet =
             `fn activation(a : vec4<f32>, outCoord : vec4<i32>) -> vec4<f32> {
-          let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
+          let b = getPreluActivationWeightsByOutputCoords(outCoord);
           ${activationOp}
         }`;
       } else if (this.hasLeakyreluAlpha) {
-        activationSnippet = `fn activation(a: vec4<f32>) -> vec4<f32> {
-          let b = getLeakyreluAlphaAtOutCoords();
+        activationSnippet = `fn activation(outCoord: vec4<f32>) -> vec4<f32> {
+          let b = getLeakyreluAlphaByOutputCoords(outCoord);
           ${activationOp}
         }`;
         throw new Error('Leakyrelu is not supported.');
@@ -207,7 +207,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     }
 
     const addBiasSnippet = this.addBias ?
-        'value = value + getBiasAtOutCoordsByCoords(outCoord);' :
+        'value = value + getBiasByOutputCoords(outCoord);' :
         '';
 
     const userCode = `
@@ -235,7 +235,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
               col * 4);
             ${addBiasSnippet}
             ${applyActivationSnippet}
-            setOutput(outCoord[0], outCoord[1], outCoord[2], outCoord[3],
+            setOutputAtCoords(outCoord[0], outCoord[1], outCoord[2], outCoord[3],
               value);
           }
         }

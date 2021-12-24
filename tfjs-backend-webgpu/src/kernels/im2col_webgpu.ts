@@ -54,7 +54,7 @@ export class Im2ColProgram implements WebGPUProgram {
       for(var i = 0; i<${this.workPerThread}; i = i + 1) {
         let flatIndex = index * ${this.workPerThread} + i;
 
-        let rc = getCoordsFromFlatIndex(flatIndex);
+        let rc = getCoordsFromIndex(flatIndex);
 
         if(flatIndex < uniforms.size) {
           let blockIndex = rc[0];
@@ -73,7 +73,7 @@ export class Im2ColProgram implements WebGPUProgram {
               value = getA(d0, d1, ch);
             }
           }
-          setOutputFlat(flatIndex, value);
+          setOutputAtIndex(flatIndex, value);
         }
       }
     }

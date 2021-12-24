@@ -72,7 +72,7 @@ export class MirrorPadProgram implements WebGPUProgram {
         if (index < uniforms.size) {
           let start = ${dtype}(${start});
           let end = ${dtype}(${end});
-          var outC = getCoordsFromFlatIndex(index);
+          var outC = getCoordsFromIndex(index);
           for (var i = 0; i < ${rank}; i = i + 1) {
             if (${shaderOutC} < ${shaderStart}) {
               ${shaderOutC} = ${shaderStart} * 2 - ${shaderOutC} - ${
@@ -83,7 +83,7 @@ export class MirrorPadProgram implements WebGPUProgram {
             }
           }
           let coords = outC - start;
-          setOutputFlat(index, getX(${unpackedCoords}));
+          setOutputAtIndex(index, getX(${unpackedCoords}));
         }
       }
     `;

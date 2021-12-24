@@ -180,7 +180,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
       if (this.hasPreluActivationWeights) {
         activationSnippet =
             `fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
-            let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
+            let b = getPreluActivationWeightsByOutputCoords(outCoord);
             ${activationOp}
             }`;
       } else {
@@ -194,7 +194,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
     }
 
     const addBiasSnippet = this.addBias ?
-        'value = value + getBiasAtOutCoordsByCoords(outCoord);' :
+        'value = value + getBiasByOutputCoords(outCoord);' :
         '';
 
     const userCode = `
@@ -217,7 +217,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
           var value = valueIn;
           ${addBiasSnippet}
           ${applyActivationSnippet}
-          setOutput(batch, row, col, value);
+          setOutputAtCoords(batch, row, col, value);
         }
       }
       ${makeMatMulSmallOutputSizeSource(this.workGroupSize)}

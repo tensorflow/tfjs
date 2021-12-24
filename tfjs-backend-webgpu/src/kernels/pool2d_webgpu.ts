@@ -62,7 +62,7 @@ export class Pool2DProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderAndGlobalIndexString()}
       if (index < uniforms.size) {
-        let coords = getCoordsFromFlatIndex(index);
+        let coords = getCoordsFromIndex(index);
           let batch = coords[0];
           let xRCCorner = vec2<i32>(coords.yz) * uniforms.stride - uniforms.pad;
           let xRCorner = xRCCorner.x;
@@ -90,7 +90,7 @@ export class Pool2DProgram implements WebGPUProgram {
             }
           }
 
-          setOutputFlat(index, ${returnValue});
+          setOutputAtIndex(index, ${returnValue});
         }
       }
     `;

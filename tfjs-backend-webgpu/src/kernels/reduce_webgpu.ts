@@ -71,8 +71,8 @@ export class ReduceProgram implements WebGPUProgram {
 
     const outputSnippet = this.reduceType === 'mean' ?
         // tslint:disable-next-line:max-line-length
-        `setOutputFlat(outputIndex, bestValue / f32(uniforms.reduceSize));` :
-        `setOutputFlat(outputIndex, bestValue);`;
+        `setOutputAtIndex(outputIndex, bestValue / f32(uniforms.reduceSize));` :
+        `setOutputAtIndex(outputIndex, bestValue);`;
 
     const sharedMemorySnippet = `
          var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
@@ -85,7 +85,7 @@ export class ReduceProgram implements WebGPUProgram {
 
        ${sharedMemorySnippet}
        fn getOffset(outputIndex : i32) -> i32 {
-         let outputCoords = getCoordsFromFlatIndex(outputIndex);
+         let outputCoords = getCoordsFromIndex(outputIndex);
          let offset = ${
         this.outputShape.length === 1 ?
             'outputCoords' :

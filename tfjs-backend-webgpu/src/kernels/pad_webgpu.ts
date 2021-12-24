@@ -69,13 +69,13 @@ export class PadProgram implements WebGPUProgram {
         if (index < uniforms.size) {
           let start = ${startValue};
           let end = ${endValue};
-          let outC = getCoordsFromFlatIndex(index);
+          let outC = getCoordsFromIndex(index);
 
           if (${leftPadCondition} || ${rightPadCondition}) {
-            setOutputFlat(index, uniforms.constantValue);
+            setOutputAtIndex(index, uniforms.constantValue);
           } else {
             let coords = outC - start;
-            setOutputFlat(index, getX(${unpackedCoords}));
+            setOutputAtIndex(index, getX(${unpackedCoords}));
           }
         }
       }

@@ -117,7 +117,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
     // The bounds checking is always needed since we use it to pad zero for the
     // 'same' padding type.
     if(coordsInBounds4D(coord, uniforms.xShape)) {
-      return x.numbers[getFlatIndex4D(coord, uniforms.xShape)];
+      return x.numbers[getIndexFromCoords4D(coord, uniforms.xShape)];
     }
     return 0.0;`;
 
@@ -143,7 +143,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
       if (this.hasPreluActivationWeights) {
         activationSnippet =
             `fn activation(a: f32, outCoord : vec4<i32>) -> f32 {
-                  let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
+                  let b = getPreluActivationWeightsByOutputCoords(outCoord);
                   ${activationOp}
                 }`;
       } else {
@@ -158,7 +158,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
     }
 
     const addBiasSnippet = this.addBias ?
-        'value = value + getBiasAtOutCoordsByCoords(outCoord);' :
+        'value = value + getBiasByOutputCoords(outCoord);' :
         '';
 
     const userCode = `
@@ -182,7 +182,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
           col);
       ${addBiasSnippet}
       ${applyActivationSnippet}
-      result.numbers[getFlatIndex4D(outCoord, uniforms.outShape)] = value;
+      result.numbers[getIndexFromCoords4D(outCoord, uniforms.outShape)] = value;
     }
     ${matMulSource}
   `;

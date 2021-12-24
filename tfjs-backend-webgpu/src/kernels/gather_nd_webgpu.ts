@@ -50,7 +50,7 @@ export class GatherNDProgram implements WebGPUProgram {
     const userCode = `
         ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let coords = getCoordsFromFlatIndex(index);
+          let coords = getCoordsFromIndex(index);
           var flattenIndex = 0;
           for (var j = 0; j < uniforms.sliceDim; j = j + 1) {
             let indexTemp = i32(round(getIndices(coords[0], j)));
@@ -58,7 +58,7 @@ export class GatherNDProgram implements WebGPUProgram {
             flattenIndex = flattenIndex + indexTemp * strideNum;
           }
 
-          setOutputFlat(index, getA(flattenIndex, coords[1]));
+          setOutputAtIndex(index, getA(flattenIndex, coords[1]));
         }
       }
       `;

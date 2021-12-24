@@ -70,12 +70,12 @@ export class SelectProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let resRC = getCoordsFromFlatIndex(index);
+          let resRC = getCoordsFromIndex(index);
           let cVal = getC(${cCoords});
           if (cVal >= 1.0) {
-            setOutputFlat(index, getA(${abCoords}));
+            setOutputAtIndex(index, getA(${abCoords}));
           } else {
-            setOutputFlat(index, getB(${abCoords}));
+            setOutputAtIndex(index, getB(${abCoords}));
           }
         }
       }

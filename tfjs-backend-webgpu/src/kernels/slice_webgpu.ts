@@ -65,9 +65,9 @@ export class SliceProgram implements WebGPUProgram {
       ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
           var sourceLoc : ${dtype};
-          let coords = getCoordsFromFlatIndex(index);
+          let coords = getCoordsFromIndex(index);
           ${coordSum.join('\n')}
-          setOutputFlat(index, getSource(${sourceCoords}));
+          setOutputAtIndex(index, getSource(${sourceCoords}));
         }
       }
     `;

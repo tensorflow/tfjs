@@ -59,7 +59,7 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let coords = getCoordsFromFlatIndex(index);
+          let coords = getCoordsFromIndex(index);
           let b = coords[0];
           let d = coords[3];
           let rc = coords.yz;
@@ -84,7 +84,7 @@ export class ResizeNearestNeighborProgram implements WebGPUProgram {
             min(inputShapeRC - 1.0, floor(sourceFracIndexRC + uniforms.roundBase)));
           let newValue = getX(b, sourceNearestRC.x, sourceNearestRC.y, d);
 
-          setOutputFlat(index, newValue);
+          setOutputAtIndex(index, newValue);
         }
       }
     `;

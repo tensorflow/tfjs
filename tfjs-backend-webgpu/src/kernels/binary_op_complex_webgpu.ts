@@ -52,11 +52,11 @@ export class BinaryOpComplexProgram implements WebGPUProgram {
 
       ${getMainHeaderAndGlobalIndexString()}
         if(index < uniforms.size) {
-          let areal = getARealAtOutCoordsByGlobalIndex(index);
-          let aimag = getAImagAtOutCoordsByGlobalIndex(index);
-          let breal = getBRealAtOutCoordsByGlobalIndex(index);
-          let bimag = getBImagAtOutCoordsByGlobalIndex(index);
-          setOutputFlat(index, binaryOpComplex(areal, aimag, breal, bimag));
+          let areal = getARealByOutputIndex(index);
+          let aimag = getAImagByOutputIndex(index);
+          let breal = getBRealByOutputIndex(index);
+          let bimag = getBImagByOutputIndex(index);
+          setOutputAtIndex(index, binaryOpComplex(areal, aimag, breal, bimag));
         }
       }
     `;

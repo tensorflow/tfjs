@@ -248,7 +248,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
       if (this.hasPreluActivationWeights) {
         activationSnippet =
             `fn activation(a : vec4<f32>, outCoord : vec3<i32>) -> vec4<f32> {
-                  let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
+                  let b = getPreluActivationWeightsByOutputCoords(outCoord);
                   ${activationOp}
                 }`;
       } else {
@@ -261,7 +261,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
       applyActivationSnippet = 'value = activation(value, outCoord);';
     }
     const addBiasSnippet = this.addBias ?
-        'value = value + getBiasAtOutCoordsByCoords(outCoord);' :
+        'value = value + getBiasByOutputCoords(outCoord);' :
         '';
 
     const userCode = `
@@ -288,7 +288,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
           let outCoord = vec3<i32>(batch, row, col * 4);
           ${addBiasSnippet}
           ${applyActivationSnippet}
-          setOutput(outCoord[0], outCoord[1], outCoord[2], value);
+          setOutputAtCoords(outCoord[0], outCoord[1], outCoord[2], value);
         }
       }
       ${

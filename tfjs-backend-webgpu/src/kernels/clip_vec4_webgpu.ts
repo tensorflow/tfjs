@@ -45,7 +45,7 @@ export class ClipVec4Program implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderAndGlobalIndexString()}
         if(index < uniforms.size) {
-          let value = getAAtOutCoordsByGlobalIndex(index);
+          let value = getAByOutputIndex(index);
           var clampedValue : vec4<f32>;
           for (var i = 0; i < 4; i = i + 1) {
             if (isNanCustom(value[i])) {
@@ -55,7 +55,7 @@ export class ClipVec4Program implements WebGPUProgram {
             }
           }
 
-          setOutputFlat(index, clampedValue);
+          setOutputAtIndex(index, clampedValue);
         }
       }
     `;

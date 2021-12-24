@@ -63,7 +63,7 @@ export class TransposeSharedProgram implements WebGPUProgram {
         x = i32(workgroupId.y) * TILE_DIM + i32(localId.x);
         y = i32(workgroupId.x) * TILE_DIM + i32(localId.y);
         if (x < height && y < width) {
-          setOutputFlat((y * height + x), tile[localId.x]
+          setOutputAtIndex((y * height + x), tile[localId.x]
             [localId.y]);
         }
       }

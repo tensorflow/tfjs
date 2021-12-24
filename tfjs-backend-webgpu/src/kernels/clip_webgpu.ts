@@ -45,12 +45,12 @@ export class ClipProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderAndGlobalIndexString()}
         if(index < uniforms.size) {
-          let value = getAAtOutCoordsByGlobalIndex(index);
+          let value = getAByOutputIndex(index);
           if (isNanCustom(value)) {
-            setOutputFlat(index, value);
+            setOutputAtIndex(index, value);
             return;
           }
-          setOutputFlat(index, clamp(value, uniforms.minVal, uniforms.maxVal));
+          setOutputAtIndex(index, clamp(value, uniforms.minVal, uniforms.maxVal));
         }
       }
     `;

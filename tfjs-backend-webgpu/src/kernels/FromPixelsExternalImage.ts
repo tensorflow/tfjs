@@ -41,7 +41,7 @@ export function fromPixelsExternalImage(args: {
   program.updateOutputShape(outShape);
 
   // Different outShape will affect preprocessor result,
-  // e.g. getCoordsFromFlatIndex. FromPixelsImageExternalImage needs
+  // e.g. getCoordsFromIndex. FromPixelsImageExternalImage needs
   // to recompile the pipeline to get the correct result.
   // FromPixelsExternalImage leverages webgpu backend pipeline
   // cache system to avoid useless recompile.
