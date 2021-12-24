@@ -43,7 +43,7 @@ export class FillProgram implements WebGPUProgram {
     const userCode = `
     ${getMainHeaderAndGlobalIndexString()}
       if (index < uniforms.size) {
-        setOutputFlat(index, uniforms.value);
+        setOutputAtIndex(index, uniforms.value);
       }
     }
   `;

@@ -44,7 +44,7 @@ export class DepthToSpaceProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let coords = getCoordsFromFlatIndex(index);
+          let coords = getCoordsFromIndex(index);
           let b = coords[0];
           let h = ${this.getHeightCoordString()};
           let w = ${this.getWidthCoordString()};
@@ -59,7 +59,7 @@ export class DepthToSpaceProgram implements WebGPUProgram {
           let in_d = d + offset_d;
 
           let rlt = ${this.getInputSamplingString()};
-          setOutputFlat(index, rlt);
+          setOutputAtIndex(index, rlt);
         }
       }`;
     return userCode;

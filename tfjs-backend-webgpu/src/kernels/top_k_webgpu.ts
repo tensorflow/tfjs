@@ -54,7 +54,7 @@ export class SwapProgram implements WebGPUProgram {
     const userCode = `
         ${getMainHeaderAndGlobalIndexString()}
           if (index < uniforms.size) {
-            let outC = getCoordsFromFlatIndex(index);
+            let outC = getCoordsFromIndex(index);
             let batch = outC[0];
             let elemIdx = outC[1];
             // We compare elements pair-wise within a group of size 2 * inc.
@@ -112,9 +112,9 @@ export class SwapProgram implements WebGPUProgram {
               i1 = iTemp;
             }
             if (isFirstInPair) {
-              setOutputFlat(index, f32(i0));
+              setOutputAtIndex(index, f32(i0));
             } else {
-              setOutputFlat(index, f32(i1));
+              setOutputAtIndex(index, f32(i1));
             }
           }
         }
@@ -150,7 +150,7 @@ export class MergeProgram implements WebGPUProgram {
     const userCode = `
         ${getMainHeaderAndGlobalIndexString()}
           if (index < uniforms.size) {
-            let outC = getCoordsFromFlatIndex(index);
+            let outC = getCoordsFromIndex(index);
             let batch = outC[0];
             let elemIdx = outC[1];
             // The output size is half of the previous size.
@@ -200,9 +200,9 @@ export class MergeProgram implements WebGPUProgram {
             }
 
             if (x0 >= x1) {
-              setOutputFlat(index, f32(i0));
+              setOutputAtIndex(index, f32(i0));
             } else {
-              setOutputFlat(index, f32(i1));
+              setOutputAtIndex(index, f32(i1));
             }
           }
         }

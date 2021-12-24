@@ -53,9 +53,9 @@ export class BinaryOpProgram implements WebGPUProgram {
       }
       ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let a = getAAtOutCoordsByGlobalIndex(index);
-          let b = getBAtOutCoordsByGlobalIndex(index);
-          setOutputFlat(index, binaryOperation(a, b));
+          let a = getAByOutputIndex(index);
+          let b = getBByOutputIndex(index);
+          setOutputAtIndex(index, binaryOperation(a, b));
         }
       }
       `;

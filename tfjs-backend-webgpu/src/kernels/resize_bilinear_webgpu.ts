@@ -47,7 +47,7 @@ export class ResizeBilinearProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-        let coords = getCoordsFromFlatIndex(index);
+        let coords = getCoordsFromIndex(index);
           let b = coords[0];
           let d = coords[3];
           let rc = coords.yz;
@@ -84,7 +84,7 @@ export class ResizeBilinearProgram implements WebGPUProgram {
           let bottom = bottomLeft + (bottomRight - bottomLeft) * fracRC.y;
           let newValue = top + (bottom - top) * fracRC.x;
 
-          setOutputFlat(index, newValue);
+          setOutputAtIndex(index, newValue);
         }
       }
     `;

@@ -126,7 +126,7 @@ export class MatMulReduceProgram implements WebGPUProgram {
       if (this.hasPreluActivationWeights) {
         activationSnippet =
             `fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
-               let b = getPreluActivationWeightsAtOutCoordsByCoords(outCoord);
+               let b = getPreluActivationWeightsByOutputCoords(outCoord);
                ${activationOp}
             }`;
       } else {
@@ -141,7 +141,7 @@ export class MatMulReduceProgram implements WebGPUProgram {
     }
 
     const addBiasSnippet = this.addBias ?
-        'value = value + getBiasAtOutCoordsByCoords(outCoord);' :
+        'value = value + getBiasByOutputCoords(outCoord);' :
         '';
 
     const userCode = `
@@ -162,7 +162,7 @@ export class MatMulReduceProgram implements WebGPUProgram {
         let outCoord = vec3<i32>(batch, row, col);
         ${addBiasSnippet}
         ${applyActivationSnippet}
-        setOutput(batch, row, col, value);
+        setOutputAtCoords(batch, row, col, value);
       }
       ${makeMatMulReduceSource()}
     `;

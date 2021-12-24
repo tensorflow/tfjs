@@ -82,7 +82,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
     const userCode = `
       ${getMainHeaderAndGlobalIndexString()}
       if (index < uniforms.size) {
-        let coords = getCoordsFromFlatIndex(index);
+        let coords = getCoordsFromIndex(index);
         let height_ratio = f32(${heightRatio});
         let width_ratio = f32(${widthRatio});
         let b = coords[0];
@@ -103,12 +103,12 @@ export class CropAndResizeProgram implements WebGPUProgram {
         let width_scale = ${widthScale};
         let in_y = ${inY};
         if( in_y < 0.0 || in_y > ${inputHeightFloat} ) {
-          setOutputFlat(index, uniforms.extrapolationValue);
+          setOutputAtIndex(index, uniforms.extrapolationValue);
           return;
         }
         let in_x = ${inX};
         if( in_x < 0.0 || in_x > ${inputWidthFloat} ) {
-          setOutputFlat(index, uniforms.extrapolationValue);
+          setOutputAtIndex(index, uniforms.extrapolationValue);
           return;
         }
         let sourceFracIndexCR = vec2<f32>(in_x,in_y);
@@ -124,14 +124,14 @@ export class CropAndResizeProgram implements WebGPUProgram {
           let top = topLeft + (topRight - topLeft) * fracCR.x;
           let bottom = bottomLeft + (bottomRight - bottomLeft) * fracCR.x;
           let newValue = top + (bottom - top) * fracCR.y;
-          setOutputFlat(index, newValue);
+          setOutputAtIndex(index, newValue);
         } else {
           // Compute the coordinators of nearest neighbor point.
           let sourceNearestCR = vec2<i32>(floor(
             sourceFracIndexCR + vec2<f32>(0.5,0.5)));
           let newValue = getImage(
             bInd, sourceNearestCR.y, sourceNearestCR.x, d);
-          setOutputFlat(index, newValue);
+          setOutputAtIndex(index, newValue);
         }
       }
     }

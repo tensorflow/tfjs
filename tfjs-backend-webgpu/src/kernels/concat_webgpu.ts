@@ -54,19 +54,19 @@ export class ConcatProgram implements WebGPUProgram {
     const snippets: string[] = [];
     if (this.offsetLength > 0) {
       snippets.push(
-          `if (yC < uniforms.offset0){ setOutput(coords.x, coords.y, getT0(yR, yC)); }`);
+          `if (yC < uniforms.offset0){ setOutputAtCoords(coords.x, coords.y, getT0(yR, yC)); }`);
       for (let i = 1; i < this.offsetLength; i++) {
         snippets.push(
             `elseif (yC < uniforms.offset${[i]}){ ` +
-            `setOutput(coords.x, coords.y, getT${i}(yR, yC - uniforms.offset${
+            `setOutputAtCoords(coords.x, coords.y, getT${i}(yR, yC - uniforms.offset${
                 i - 1})); }`);
       }
       const lastIndex = this.offsetLength;
       const lastShiftIndex = this.offsetLength - 1;
-      snippets.push(`else { setOutput(coords.x, coords.y, getT${
+      snippets.push(`else { setOutputAtCoords(coords.x, coords.y, getT${
           lastIndex}(yR, yC - uniforms.offset${lastShiftIndex})); }`);
     } else {
-      snippets.push(`setOutput(coords.x, coords.y, getT0(yR, yC));`);
+      snippets.push(`setOutputAtCoords(coords.x, coords.y, getT0(yR, yC));`);
     }
 
     const userCode = `
@@ -74,7 +74,7 @@ export class ConcatProgram implements WebGPUProgram {
         for(var i = 0; i < ${this.workPerThread}; i = i + 1) {
           let flatIndex = index * ${this.workPerThread} + i;
           if(flatIndex < uniforms.size) {
-            let coords = getCoordsFromFlatIndex(flatIndex);
+            let coords = getCoordsFromIndex(flatIndex);
             let yR = coords.x;
             let yC = coords.y;
 

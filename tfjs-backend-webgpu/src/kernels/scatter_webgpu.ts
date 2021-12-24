@@ -87,7 +87,7 @@ export class ScatterProgram implements WebGPUProgram {
             for (var innerIndex = 0; innerIndex < ${
         this.workPerThread}; innerIndex = innerIndex + 1) {
               let curIndex = globalIndex + innerIndex;
-              let coords = getCoordsFromFlatIndex(curIndex);
+              let coords = getCoordsFromIndex(curIndex);
               if (flattenedIndex == coords[0]) {
                 sum[innerIndex] = sum[innerIndex] + ${this.updatesSnippet};
                 found[innerIndex] = true;
@@ -99,7 +99,7 @@ export class ScatterProgram implements WebGPUProgram {
             let curIndex = globalIndex + innerIndex;
             if (curIndex < uniforms.size)
             {
-              setOutputFlat(curIndex, mix(getDefaultValue(), sum[innerIndex], f32(found[innerIndex])));
+              setOutputAtIndex(curIndex, mix(getDefaultValue(), sum[innerIndex], f32(found[innerIndex])));
             }
           }
         }

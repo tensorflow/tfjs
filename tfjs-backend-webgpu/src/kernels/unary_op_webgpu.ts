@@ -51,8 +51,8 @@ export class UnaryOpProgram implements WebGPUProgram {
       }
       ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
-          let a = getAAtOutCoordsByGlobalIndex(index);
-          setOutputFlat(index, unaryOperation(a));
+          let a = getAByOutputIndex(index);
+          setOutputAtIndex(index, unaryOperation(a));
         }
       }
       `;
