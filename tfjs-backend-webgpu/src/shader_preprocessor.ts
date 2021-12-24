@@ -487,7 +487,7 @@ export function getInputByOutputSnippet(
   }
 
   const broadcastDims =
-    backend_util.getBroadcastDims(inputInfo.shape, outShape);
+      backend_util.getBroadcastDims(inputInfo.shape, outShape);
   const rankDiff = outRank - inRank;
 
   let coordsSnippet = '';
