@@ -394,7 +394,8 @@ function getInputSnippet(
   return res;
 }
 
-function getInputAtCoordsSnippet(inputInfo: InputInfo, isVec4: boolean): string {
+function getInputAtCoordsSnippet(
+    inputInfo: InputInfo, isVec4: boolean): string {
   const texName = inputInfo.name;
   const rank = inputInfo.shape.length;
   const type = getCoordsDataType(rank);
@@ -485,7 +486,8 @@ export function getInputByOutputSnippet(
     }
   }
 
-  const broadcastDims = backend_util.getBroadcastDims(inputInfo.shape, outShape);
+  const broadcastDims =
+    backend_util.getBroadcastDims(inputInfo.shape, outShape);
   const rankDiff = outRank - inRank;
 
   let coordsSnippet = '';
