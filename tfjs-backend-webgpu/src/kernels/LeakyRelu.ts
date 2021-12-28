@@ -18,8 +18,8 @@
 import {KernelConfig, KernelFunc, LeakyRelu,
   LeakyReluInputs, LeakyReluAttrs, TensorInfo} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
-import {UnaryOpType} from './unary_op_util';
-import {UnaryOpProgram} from './unary_op_webgpu';
+import {UnaryOpType} from '../unary_op_util';
+import {UnaryOpProgram} from '../unary_op_webgpu';
 
 export function leakyRelu(args:
   {inputs: LeakyReluInputs, backend: WebGPUBackend, attrs: LeakyReluAttrs}):

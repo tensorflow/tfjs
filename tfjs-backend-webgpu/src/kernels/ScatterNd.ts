@@ -21,7 +21,7 @@ import {WebGPUBackend} from '../backend_webgpu';
 
 import {fill} from './Fill';
 import {reshape} from './Reshape';
-import {ScatterOptimizedProgram} from './scatter_optimized_webgpu';
+import {ScatterOptimizedProgram} from '../scatter_optimized_webgpu';
 
 export function scatterNd(args: {
   inputs: ScatterNdInputs,

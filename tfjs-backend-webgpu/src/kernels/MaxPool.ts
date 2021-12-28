@@ -18,8 +18,8 @@ import {backend_util, KernelConfig, KernelFunc, MaxPool, MaxPoolAttrs, MaxPoolIn
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {identity} from './Identity';
-import {Pool2DProgram} from './pool2d_webgpu';
-import {PoolWithFilterSizeEqualsOneProgram} from './pool_filtersizeone_webgpu';
+import {Pool2DProgram} from '../pool2d_webgpu';
+import {PoolWithFilterSizeEqualsOneProgram} from '../pool_filtersizeone_webgpu';
 
 export function maxPool(
     args: {inputs: MaxPoolInputs, backend: WebGPUBackend, attrs: MaxPoolAttrs}):

@@ -18,7 +18,7 @@
 import {Fill, FillAttrs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {FillProgram} from './fill_webgpu';
+import {FillProgram} from '../fill_webgpu';
 
 export function fill(args: {backend: WebGPUBackend, attrs: FillAttrs}):
     TensorInfo {

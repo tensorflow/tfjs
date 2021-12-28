@@ -18,7 +18,7 @@
 import {ArgMin, ArgMinAttrs, ArgMinInputs, backend_util, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {ArgMinMaxProgram} from './argminmax_webgpu';
+import {ArgMinMaxProgram} from '../argminmax_webgpu';
 import {transpose} from './Transpose';
 
 export function argMin(

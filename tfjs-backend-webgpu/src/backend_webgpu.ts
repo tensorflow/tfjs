@@ -22,7 +22,7 @@ import {backend_util, buffer, DataStorage, DataType, DataValues, engine, env, Ke
 import {BufferManager} from './buffer_manager';
 import {FromPixelsImportProgram} from './kernels/FromPixels_utils/from_pixels_import_webgpu';
 import {FromPixelsProgram} from './kernels/FromPixels_utils/from_pixels_webgpu';
-import * as webgpu_program from './kernels/webgpu_program';
+import * as webgpu_program from './webgpu_program';
 import * as webgpu_util from './webgpu_util';
 import {WebGPULayout} from './webgpu_util';
 
