@@ -20,7 +20,7 @@ import {KernelConfig, KernelFunc, LRN, LRNAttrs, LRNInputs, TensorInfo, TypedArr
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
-export function lRN(
+export function lrn(
     args: {inputs: LRNInputs, backend: MathBackendCPU, attrs: LRNAttrs}):
     TensorInfo {
   const {inputs, backend, attrs} = args;
@@ -59,8 +59,9 @@ export function lRN(
   return backend.makeTensorInfo(x.shape, x.dtype, result);
 }
 
-export const lRNConfig: KernelConfig = {
+// tslint:disable-next-line: variable-name
+export const LRNConfig: KernelConfig = {
   kernelName: LRN,
   backendName: 'cpu',
-  kernelFunc: lRN as {} as KernelFunc
+  kernelFunc: lrn as {} as KernelFunc
 };
