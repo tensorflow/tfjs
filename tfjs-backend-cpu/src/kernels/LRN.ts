@@ -20,7 +20,7 @@ import {KernelConfig, KernelFunc, LRN, LRNAttrs, LRNInputs, TensorInfo, TypedArr
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
 
-export function lrn(
+export function lRN(
     args: {inputs: LRNInputs, backend: MathBackendCPU, attrs: LRNAttrs}):
     TensorInfo {
   const {inputs, backend, attrs} = args;
@@ -63,5 +63,5 @@ export function lrn(
 export const LRNConfig: KernelConfig = {
   kernelName: LRN,
   backendName: 'cpu',
-  kernelFunc: lrn as {} as KernelFunc
+  kernelFunc: lRN as {} as KernelFunc
 };
