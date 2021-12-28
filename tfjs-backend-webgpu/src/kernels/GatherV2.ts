@@ -20,7 +20,7 @@ import {backend_util, buffer, GatherV2, GatherV2Attrs, GatherV2Inputs, KernelCon
 import {WebGPUBackend} from '../backend_webgpu';
 import {gatherV2ImplCPU} from '../kernel_utils/shared';
 
-import {GatherProgram} from './gather_webgpu';
+import {GatherProgram} from '../gather_webgpu';
 import {reshape} from './Reshape';
 
 export function gatherV2(

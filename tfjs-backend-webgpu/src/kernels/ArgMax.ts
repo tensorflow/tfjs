@@ -19,7 +19,7 @@ import {ArgMax, ArgMaxAttrs, ArgMaxInputs, backend_util, KernelConfig, KernelFun
 
 import {WebGPUBackend} from '../backend_webgpu';
 
-import {ArgMinMaxProgram} from './argminmax_webgpu';
+import {ArgMinMaxProgram} from '../argminmax_webgpu';
 import {transpose} from './Transpose';
 
 export function argMax(

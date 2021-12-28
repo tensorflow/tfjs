@@ -20,7 +20,7 @@ import {backend_util, KernelConfig, KernelFunc, SparseToDense, SparseToDenseAttr
 import {WebGPUBackend} from '../backend_webgpu';
 
 import {reshape} from './Reshape';
-import {ScatterProgram} from './scatter_webgpu';
+import {ScatterProgram} from '../scatter_webgpu';
 
 export function sparseToDense(args: {
   inputs: SparseToDenseInputs,

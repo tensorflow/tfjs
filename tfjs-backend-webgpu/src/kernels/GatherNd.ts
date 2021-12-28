@@ -20,7 +20,7 @@ import {backend_util, GatherNd, GatherNdInputs, KernelConfig, KernelFunc, Tensor
 import {WebGPUBackend} from '../backend_webgpu';
 import {gatherNdImplCPU} from '../kernel_utils/shared';
 
-import {GatherNDProgram} from './gather_nd_webgpu';
+import {GatherNDProgram} from '../gather_nd_webgpu';
 import {reshape} from './Reshape';
 
 export function gatherNd(

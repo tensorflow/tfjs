@@ -18,8 +18,8 @@
 import {backend_util, DepthwiseConv2dNative, DepthwiseConv2dNativeAttrs, DepthwiseConv2dNativeInputs, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {DepthwiseConv2D3x3Program} from './depthwise_conv2d_3x3_webgpu';
-import {DepthwiseConv2DProgram} from './depthwise_conv2d_webgpu';
+import {DepthwiseConv2D3x3Program} from '../depthwise_conv2d_3x3_webgpu';
+import {DepthwiseConv2DProgram} from '../depthwise_conv2d_webgpu';
 
 export function depthwiseConv2dNative(args: {
   inputs: DepthwiseConv2dNativeInputs,

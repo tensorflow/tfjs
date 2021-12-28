@@ -18,7 +18,7 @@
 import {KernelConfig, KernelFunc, ResizeBilinear, ResizeBilinearAttrs, ResizeBilinearInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {ResizeBilinearProgram} from './resize_bilinear_webgpu';
+import {ResizeBilinearProgram} from '../resize_bilinear_webgpu';
 
 export function resizeBilinear(args: {
   inputs: ResizeBilinearInputs,

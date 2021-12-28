@@ -17,5 +17,5 @@
 
 import * as webgpu_util from './webgpu_util';
 export {WebGPUBackend} from './backend_webgpu';
-export {WebGPUProgram} from './kernels/webgpu_program';
+export {WebGPUProgram} from './webgpu_program';
 export {webgpu_util};

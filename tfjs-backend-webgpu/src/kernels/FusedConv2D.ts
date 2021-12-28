@@ -20,9 +20,9 @@ import {backend_util, env, FusedConv2D, FusedConv2DAttrs, FusedConv2DInputs, Ker
 import {WebGPUBackend} from '../backend_webgpu';
 
 import {conv2dByMatMul} from './Conv2D_impl';
-import {Conv2DMMVec4Program} from './conv2d_mm_vec4_webgpu';
-import {Conv2DMMProgram} from './conv2d_mm_webgpu';
-import {Conv2DNaiveProgram} from './conv2d_naive_webgpu';
+import {Conv2DMMVec4Program} from '../conv2d_mm_vec4_webgpu';
+import {Conv2DMMProgram} from '../conv2d_mm_webgpu';
+import {Conv2DNaiveProgram} from '../conv2d_naive_webgpu';
 
 export function fusedConv2d(args: {
   inputs: FusedConv2DInputs,

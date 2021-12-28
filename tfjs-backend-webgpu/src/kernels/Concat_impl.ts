@@ -21,7 +21,7 @@ import {WebGPUBackend} from '../backend_webgpu';
 import {concatImplCPU} from '../kernel_utils/shared';
 
 import {complex} from './Complex';
-import {ConcatProgram} from './concat_webgpu';
+import {ConcatProgram} from '../concat_webgpu';
 import {imag} from './Imag';
 import {real} from './Real';
 import {reshape} from './Reshape';
