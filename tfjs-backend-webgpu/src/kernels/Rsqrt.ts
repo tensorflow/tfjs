@@ -18,7 +18,7 @@
 import {KernelConfig, Rsqrt} from '@tensorflow/tfjs-core';
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {rsqrtImplCPU} from '../kernel_utils/shared';
-import {UnaryOpType} from './unary_op_util';
+import {UnaryOpType} from '../unary_op_util';
 
 export const rsqrt =
     unaryKernelFunc({opType: UnaryOpType.RSQRT, cpuKernelImpl: rsqrtImplCPU});

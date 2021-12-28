@@ -20,8 +20,8 @@ import {KernelConfig, KernelFunc, Neg, NegInputs, TensorInfo, TypedArray} from '
 import {WebGPUBackend} from '../backend_webgpu';
 import {negImplCPU} from '../kernel_utils/shared';
 
-import {UnaryOpType} from './unary_op_util';
-import {UnaryOpProgram} from './unary_op_webgpu';
+import {UnaryOpType} from '../unary_op_util';
+import {UnaryOpProgram} from '../unary_op_webgpu';
 
 // This doesn't use unaryKernelFunc because negImplCPU is not of type
 // SimpleUnaryKernelImplCPU.

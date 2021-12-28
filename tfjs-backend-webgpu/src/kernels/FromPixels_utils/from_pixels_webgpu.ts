@@ -19,7 +19,7 @@ import {util} from '@tensorflow/tfjs-core';
 import {getMainHeaderAndGlobalIndexString} from '../../shader_preprocessor';
 
 import {computeDispatch, flatDispatchLayout, WebGPULayout} from '../../webgpu_util';
-import {WebGPUProgram} from '../webgpu_program';
+import {WebGPUProgram} from '../../webgpu_program';
 
 export class FromPixelsProgram implements WebGPUProgram {
   outputShape: number[] = [0];
