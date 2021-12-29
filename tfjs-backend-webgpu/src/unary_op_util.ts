@@ -76,7 +76,7 @@ const LOGICAL_NOT = `return f32(!(a >= 1.0));`;
 const NEG = `return -a;`;
 const PRELU = `return (a < 0.0) ? b * a : a;`;
 const LEAKYRELU = `if (a < 0.0) { return uniforms.alpha * a; } return a;`;
-const RELU = `if(a < 0.0) { return 0.0; } return a;`
+const RELU = `if(a < 0.0) { return 0.0; } return a;`;
 const RELU6 = 'return clamp(a, 0.0, 6.0);';
 const RELU6_VEC4 =
     'return clamp(a, vec4<f32>(0.0, 0.0, 0.0, 0.0), vec4<f32>(6.0, 6.0, 6.0, 6.0));';
