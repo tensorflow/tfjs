@@ -264,11 +264,6 @@ export class WebGPUBackend extends KernelBackend {
     const byteSize =
         util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
 
-    // bool is stored in Uint8Array, converted it to Int32Array.
-    if (dtype === 'bool' && values instanceof Uint8Array) {
-      values = Int32Array.from(values);
-    }
-
     this.tensorMap.set(dataId, {
       dtype,
       values,
@@ -397,10 +392,6 @@ export class WebGPUBackend extends KernelBackend {
     this.maybeReleaseBuffer(dataId);
 
     info.values = data;
-    // converted bool to Uint8Array.
-    if (info.dtype === 'bool') {
-      return Uint8Array.from(data);
-    }
     return info.values;
   }
 
