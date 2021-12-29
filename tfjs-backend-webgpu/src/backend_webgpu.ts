@@ -397,6 +397,10 @@ export class WebGPUBackend extends KernelBackend {
     this.maybeReleaseBuffer(dataId);
 
     info.values = data;
+    // converted bool to Uint8Array.
+    if (info.dtype === 'bool') {
+      return Uint8Array.from(data);
+    }
     return info.values;
   }
 
