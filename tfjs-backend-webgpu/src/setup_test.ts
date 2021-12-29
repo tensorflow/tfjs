@@ -278,7 +278,6 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       // TODO: cases need to be fixed
       'debug off',  // actual[1] = 0, expected[1] = NaN
-      //'} bool tensor', // Expected object not to have properties
 
       // Not implemented kernel list.
       'acos ',
