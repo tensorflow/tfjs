@@ -19,7 +19,7 @@ import {buffer, KernelConfig, KernelFunc, TensorInfo, Tile, TileAttrs, TileInput
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {tileImplCPU} from '../kernel_utils/shared';
-import {TileProgram} from './tile_webgpu';
+import {TileProgram} from '../tile_webgpu';
 
 export function tile(
     params: {inputs: TileInputs, backend: WebGPUBackend, attrs: TileAttrs}):

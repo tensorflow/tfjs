@@ -19,12 +19,12 @@ import {backend_util, broadcast_util, env, TensorInfo, util} from '@tensorflow/t
 
 import {WebGPUBackend} from '../backend_webgpu';
 
-import {MatMulPackedVec4Program} from './matmul_packed_vec4_webgpu';
-import {MatMulPackedProgram} from './matmul_packed_webgpu';
-import {MatMulReduceProgram} from './matmul_reduce';
-import {MatMulSmallOutputSizeProgram} from './matmul_small_output_size_webgpu';
+import {MatMulPackedVec4Program} from '../matmul_packed_vec4_webgpu';
+import {MatMulPackedProgram} from '../matmul_packed_webgpu';
+import {MatMulReduceProgram} from '../matmul_reduce';
+import {MatMulSmallOutputSizeProgram} from '../matmul_small_output_size_webgpu';
 import {reshape} from './Reshape';
-import {WebGPUProgram} from './webgpu_program';
+import {WebGPUProgram} from '../webgpu_program';
 
 type BatchMatMulConfig = {
   a: TensorInfo,

@@ -18,7 +18,7 @@
 import {KernelConfig, KernelFunc, Select, SelectInputs, TensorInfo, upcastType} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {SelectProgram} from './select_webgpu';
+import {SelectProgram} from '../select_webgpu';
 
 export function select(args: {inputs: SelectInputs, backend: WebGPUBackend}):
     TensorInfo {

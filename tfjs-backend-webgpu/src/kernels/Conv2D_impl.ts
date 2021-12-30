@@ -20,8 +20,8 @@ import {backend_util, env, TensorInfo} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
 
 import {batchMatMulImpl} from './BatchMatMul_impl';
-import {Im2ColProgram} from './im2col_webgpu';
-import {MatMulPackedProgram} from './matmul_packed_webgpu';
+import {Im2ColProgram} from '../im2col_webgpu';
+import {MatMulPackedProgram} from '../matmul_packed_webgpu';
 import {reshape} from './Reshape';
 
 type Conv2DConfig = {
