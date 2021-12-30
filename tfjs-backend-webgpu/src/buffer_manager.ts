@@ -87,11 +87,20 @@ export class BufferManager {
   }
 
   releaseUploadBuffer(
-      buffer: GPUBuffer, byteSize: number, usage: GPUBufferUsageFlags) {
+      buffer: GPUBuffer, byteSize: number, usage: GPUBufferUsageFlags,
+      key: string, tracing = false) {
+    if (tracing) {
+      key = 'releaseUploadBufferAsync_' + key + '_' +
+          `${Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)}`;
+      console.time(key);
+    }
     buffer.mapAsync(GPUMapMode.WRITE)
         .then(
             () => {
               this.releaseBuffer(buffer, byteSize, usage);
+              if (tracing) {
+                console.timeEnd(key);
+              }
             },
             (err) => {
                 // Do nothing;

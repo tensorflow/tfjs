@@ -262,6 +262,10 @@ export class MathBackendWebGL extends KernelBackend {
     if (dtype === 'string') {
       return values;
     }
+    const tracingFlag = env().getBool('TRACING');
+    if (tracingFlag) {
+      console.time('readSync');
+    }
     const shouldTimeProgram = this.activeTimers != null;
     let start: number;
     if (shouldTimeProgram) {
@@ -281,6 +285,9 @@ export class MathBackendWebGL extends KernelBackend {
 
     if (shouldTimeProgram) {
       this.downloadWaitMs += util.now() - start;
+    }
+    if (tracingFlag) {
+      console.timeEnd('readSync');
     }
     return this.convertAndCacheOnCPU(dataId, result);
   }
@@ -344,7 +351,10 @@ export class MathBackendWebGL extends KernelBackend {
       // Create a fence and wait for it to resolve.
       await this.gpgpu.createAndWaitForFence();
     }
-
+    const tracingFlag = env().getBool('TRACING');
+    if (tracingFlag) {
+      console.time('read');
+    }
     // Download the values from the GPU.
     let vals: Float32Array;
     if (dtype === 'complex64') {
@@ -383,6 +393,9 @@ export class MathBackendWebGL extends KernelBackend {
         engine().removeDataId(dataId, this);
       }
       this.pendingDeletes--;
+    }
+    if (tracingFlag) {
+      console.timeEnd('read');
     }
     return dTypeVals;
   }
@@ -549,15 +562,16 @@ export class MathBackendWebGL extends KernelBackend {
     };
 
     return (async () => {
-      if (env()
-        .getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') > 0) {
+      if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') >
+          0) {
         const kernelMs = await Promise.all(flattenedActiveTimerQueries);
 
         res['kernelMs'] = util.sum(kernelMs);
         res['getExtraProfileInfo'] = () =>
-          kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
-            .map(d => `${d.name}: ${d.ms}`)
-            .join(', ');
+            kernelMs
+                .map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
+                .map(d => `${d.name}: ${d.ms}`)
+                .join(', ');
       } else {
         res['kernelMs'] = {
           error: 'WebGL query timers are not supported in this environment.'
@@ -869,6 +883,7 @@ export class MathBackendWebGL extends KernelBackend {
       return output;
     }
 
+    const programName = program.constructor.name;
     const dataToDispose: TensorInfo[] = [];
     const inputsData: TensorData[] = inputs.map(input => {
       if (input.dtype === 'complex64') {
@@ -905,7 +920,7 @@ export class MathBackendWebGL extends KernelBackend {
         }
       }
 
-      this.uploadToGPU(input.dataId);
+      this.uploadToGPU(input.dataId, programName);
       if (!!texData.isPacked !== !!program.packedInputs) {
         input = texData.isPacked ? this.unpackTensor(input) :
                                    this.packTensor(input);
@@ -935,7 +950,7 @@ export class MathBackendWebGL extends KernelBackend {
       return {shape: input.shape, texData, isUniform: false};
     });
 
-    this.uploadToGPU(output.dataId);
+    this.uploadToGPU(output.dataId, programName);
     const outputData:
         TensorData = {shape: output.shape, texData: outData, isUniform: false};
     const key = gpgpu_math.makeShaderKey(program, inputsData, outputData);
@@ -957,7 +972,7 @@ export class MathBackendWebGL extends KernelBackend {
     if (shouldTimeProgram) {
       query = this.endTimer(query);
       this.activeTimers.push(
-          {name: program.constructor.name, query: this.getQueryTime(query)});
+          {name: programName, query: this.getQueryTime(query)});
     }
 
     const glFlushThreshold = env().get('WEBGL_FLUSH_THRESHOLD');
@@ -1058,13 +1073,20 @@ export class MathBackendWebGL extends KernelBackend {
     return this.floatPrecision() === 32 ? EPSILON_FLOAT32 : EPSILON_FLOAT16;
   }
 
-  uploadToGPU(dataId: DataId): void {
+  uploadToGPU(dataId: DataId, name = ''): void {
     const texData = this.texData.get(dataId);
     const {shape, dtype, values, texture, usage, isPacked} = texData;
 
     if (texture != null) {
       // Array is already on GPU. No-op.
       return;
+    }
+    const tracingFlag = env().getBool('TRACING');
+    let tracingKey;
+    if (tracingFlag) {
+      tracingKey = 'uploadToGPU_' + name + '_' +
+          `${Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)}`;
+      console.time(tracingKey);
     }
     const shouldTimeProgram = this.activeTimers != null;
     let start: number;
@@ -1146,6 +1168,9 @@ export class MathBackendWebGL extends KernelBackend {
     } else {
       const newTexture = this.acquireTexture(texShape, usage, dtype, isPacked);
       texData.texture = newTexture;
+    }
+    if (tracingFlag) {
+      console.timeEnd(tracingKey);
     }
   }
 

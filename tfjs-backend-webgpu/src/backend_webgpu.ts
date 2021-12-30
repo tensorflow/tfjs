@@ -38,6 +38,13 @@ type BufferInfo = {
   buffer?: GPUBuffer
 };
 
+type StagingBufferInfo = {
+  byteSize: number,
+  usage: GPUBufferUsageFlags,
+  buffer?: GPUBuffer,
+  key?: string
+};
+
 type TensorBufferInfo = {
   values: backend_util.BackendValues,
   dtype: DataType,
@@ -88,7 +95,7 @@ export class WebGPUBackend extends KernelBackend {
 
   private tensorDisposalQueue: DataId[] = [];
   private uniformDisposalQueue: BufferInfo[] = [];
-  private stagingDisposalQueue: BufferInfo[] = [];
+  private stagingDisposalQueue: StagingBufferInfo[] = [];
 
   private disposed = false;
 
@@ -159,9 +166,10 @@ export class WebGPUBackend extends KernelBackend {
     });
     this.uniformDisposalQueue.forEach(
         d => this.bufferManager.releaseBuffer(d.buffer, d.byteSize, d.usage));
+    const tracingFlag = env().getBool('TRACING');
     this.stagingDisposalQueue.forEach(
         d => this.bufferManager.releaseUploadBuffer(
-            d.buffer, d.byteSize, d.usage));
+            d.buffer, d.byteSize, d.usage, d.key, tracingFlag));
 
     this.tensorDisposalQueue = [];
     this.uniformDisposalQueue = [];
@@ -354,6 +362,13 @@ export class WebGPUBackend extends KernelBackend {
       // Data is on the CPU.
       return info.values;
     }
+    const tracingFalg = env().getBool('TRACING');
+    let tracingKey;
+    if (tracingFalg) {
+      tracingKey = 'getBufferData_' +
+          `${Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)}`;
+      console.time(tracingKey);
+    }
     const staging = this.acquireBuffer(
         info.bufferInfo.byteSize,
         GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
@@ -381,7 +396,9 @@ export class WebGPUBackend extends KernelBackend {
           () => `Fail to get context for profiling tool`);
       this.dummyContext.getCurrentTexture();
     }
-
+    if (tracingFalg) {
+      console.timeEnd(tracingKey);
+    }
     return values as backend_util.BackendValues;
   }
 
@@ -551,14 +568,19 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
-  uploadToGPU(dataId: DataId): void {
+  uploadToGPU(dataId: DataId, name = ''): void {
     const info = this.tensorMap.get(dataId);
 
     if (info.bufferInfo.buffer != null) {
       // Already on the GPU.
       return;
     }
-
+    const tracingFlag = env().getBool('TRACING');
+    let tracingKey;
+    if (tracingFlag) {
+      tracingKey = 'uploadToGPU_' + name;
+      console.time(tracingKey);
+    }
     info.bufferInfo.buffer = this.acquireBuffer(info.bufferInfo.byteSize);
     if (info.values) {
       const stagingBuffer = this.bufferManager.acquireUploadBuffer(
@@ -580,15 +602,18 @@ export class WebGPUBackend extends KernelBackend {
       const stagingInfo = {
         byteSize: info.bufferInfo.byteSize,
         usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
-        buffer: stagingBuffer
+        buffer: stagingBuffer,
+        key: name
       };
       this.stagingDisposalQueue.push(stagingInfo);
       // TODO: WebGPU doesn't support read data synchronously from GPU to CPU.
       // So it will report error when switching backend from WebGPU to others.
       // There are two situations: 1) swithcing the backend after running a
-      // model; 2) swithcing the backend within the model. Temporarilly keep the
-      // values on CPU to solve the first issue.
-      // info.values = null;
+      // model; 2) swithcing the backend within the model. Temporarilly keep
+      // the values on CPU to solve the first issue. info.values = null;
+    }
+    if (tracingFlag) {
+      console.timeEnd(tracingKey);
     }
   }
 
@@ -685,6 +710,7 @@ export class WebGPUBackend extends KernelBackend {
       outputDtype: DataType,
       programUniforms?: Array<{type: string; data: number[]}>,
       output?: TensorInfo): TensorInfo {
+    const programName = program.constructor.name;
     if (!output) {
       output = this.makeTensorInfo(program.outputShape, outputDtype);
       if (util.sizeFromShape(output.shape) === 0) {
@@ -695,7 +721,7 @@ export class WebGPUBackend extends KernelBackend {
             util.getTypedArrayFromDType(output.dtype as 'float32', 0);
         return output;
       }
-      this.uploadToGPU(output.dataId);
+      this.uploadToGPU(output.dataId, programName);
     }
 
     // There are five kinds of uniforms: NAN, shapes, shape strides, program
@@ -727,7 +753,7 @@ export class WebGPUBackend extends KernelBackend {
             `dtypes, please separate the program into real and imaginary ` +
             `parts.`);
       }
-      this.uploadToGPU(input.dataId);
+      this.uploadToGPU(input.dataId, programName);
 
       return {
         // Returning dtype from tensorMap because it reflects dtype
