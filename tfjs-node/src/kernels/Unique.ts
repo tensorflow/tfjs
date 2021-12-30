@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2021 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,7 +27,7 @@ export const uniqueConfig: KernelConfig = {
     const backend = args.backend as NodeJSKernelBackend;
     const {axis = 0} = args.attrs as {} as UniqueAttrs;
 
-    const axs = tensor1d([axis], 'int32');
+    const axisTensor = tensor1d([axis], 'int32');
 
     try {
       const opAttrs = [
@@ -35,10 +35,11 @@ export const uniqueConfig: KernelConfig = {
         createTensorsTypeOpAttr('Taxis', 'int32'),
         createTensorsTypeOpAttr('out_idx', 'int32')
       ];
-      return backend.executeMultipleOutputs('UniqueV2', opAttrs, [x, axs], 2);
+      const inputs = [x, axisTensor];
+      return backend.executeMultipleOutputs('UniqueV2', opAttrs, inputs, 2);
     }
     finally {
-      axs.dispose();
+      axisTensor.dispose();
     }
   }
 };
