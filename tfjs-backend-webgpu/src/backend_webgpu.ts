@@ -359,7 +359,9 @@ export class WebGPUBackend extends KernelBackend {
       // Data is on the CPU.
       return info.values;
     }
-    console.time('getBufferData');
+    if (env().getBool('DEBUG_QUERY')) {
+      console.time('getBufferData');
+    }
     const staging = this.acquireBuffer(
         info.bufferInfo.byteSize,
         GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
@@ -387,7 +389,9 @@ export class WebGPUBackend extends KernelBackend {
           () => `Fail to get context for profiling tool`);
       this.dummyContext.getCurrentTexture();
     }
-    console.timeEnd('getBufferData');
+    if (env().getBool('DEBUG_QUERY')) {
+      console.timeEnd('getBufferData');
+    }
     return values as backend_util.BackendValues;
   }
 
@@ -564,7 +568,9 @@ export class WebGPUBackend extends KernelBackend {
       // Already on the GPU.
       return;
     }
-    console.time('uploadToGPU');
+    if (env().getBool('DEBUG_QUERY')) {
+      console.time('uploadToGPU');
+    }
     info.bufferInfo.buffer = this.acquireBuffer(info.bufferInfo.byteSize);
     if (info.values) {
       const stagingBuffer = this.bufferManager.acquireUploadBuffer(
@@ -596,7 +602,9 @@ export class WebGPUBackend extends KernelBackend {
       // values on CPU to solve the first issue.
       // info.values = null;
     }
-    console.timeEnd('uploadToGPU');
+    if (env().getBool('DEBUG_QUERY')) {
+      console.timeEnd('uploadToGPU');
+    }
   }
 
   private makeUniforms(uniformsWithType:

@@ -255,7 +255,9 @@ export class MathBackendWebGL extends KernelBackend {
     if (dtype === 'string') {
       return values;
     }
-    console.time("readSync");
+    if (env().getBool('DEBUG_QUERY')) {
+      console.time('readSync');
+    }
     const shouldTimeProgram = this.activeTimers != null;
     let start: number;
     if (shouldTimeProgram) {
@@ -276,7 +278,9 @@ export class MathBackendWebGL extends KernelBackend {
     if (shouldTimeProgram) {
       this.downloadWaitMs += util.now() - start;
     }
-    console.timeEnd("readSync");
+    if (env().getBool('DEBUG_QUERY')) {
+      console.timeEnd('readSync');
+    }
     return this.convertAndCacheOnCPU(dataId, result);
   }
 
@@ -339,8 +343,9 @@ export class MathBackendWebGL extends KernelBackend {
       // Create a fence and wait for it to resolve.
       await this.gpgpu.createAndWaitForFence();
     }
-
-    console.time("read");
+    if (env().getBool('DEBUG_QUERY')) {
+      console.time('read');
+    }
     // Download the values from the GPU.
     let vals: Float32Array;
     if (dtype === 'complex64') {
@@ -380,7 +385,9 @@ export class MathBackendWebGL extends KernelBackend {
       }
       this.pendingDeletes--;
     }
-    console.timeEnd("read");
+    if (env().getBool('DEBUG_QUERY')) {
+      console.timeEnd('read');
+    }
     return dTypeVals;
   }
 
@@ -995,7 +1002,9 @@ export class MathBackendWebGL extends KernelBackend {
       // Array is already on GPU. No-op.
       return;
     }
-    console.time("uploadToGPU");
+    if (env().getBool('DEBUG_QUERY')) {
+      console.time('uploadToGPU');
+    }
     const shouldTimeProgram = this.activeTimers != null;
     let start: number;
     if (shouldTimeProgram) {
@@ -1077,7 +1086,9 @@ export class MathBackendWebGL extends KernelBackend {
       const newTexture = this.acquireTexture(texShape, usage, dtype, isPacked);
       texData.texture = newTexture;
     }
-    console.timeEnd("uploadToGPU");
+    if (env().getBool('DEBUG_QUERY')) {
+      console.timeEnd('uploadToGPU');
+    }
   }
 
   private convertAndCacheOnCPU(dataId: DataId, float32Values?: Float32Array):

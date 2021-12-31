@@ -35,6 +35,14 @@ ENV.registerFlag('DEBUG', () => false, debugValue => {
   }
 });
 
+/** Whether to enable debug query mode. */
+ENV.registerFlag('DEBUG_QUERY', () => true, debugValue => {
+  if (debugValue) {
+    console.warn(
+        'Debug query is ON. This has small impacts on performance.');
+  }
+});
+
 /** Whether we are in a browser (as versus, say, node.js) environment. */
 ENV.registerFlag('IS_BROWSER', () => device_util.isBrowser());
 
