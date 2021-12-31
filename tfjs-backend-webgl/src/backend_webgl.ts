@@ -321,7 +321,6 @@ export class MathBackendWebGL extends KernelBackend {
       }
     }
 
-    console.time("read");
     let buffer: WebGLBuffer = null;
     let tmpDownloadTarget: TensorInfo;
 
@@ -341,6 +340,7 @@ export class MathBackendWebGL extends KernelBackend {
       await this.gpgpu.createAndWaitForFence();
     }
 
+    console.time("read");
     // Download the values from the GPU.
     let vals: Float32Array;
     if (dtype === 'complex64') {
