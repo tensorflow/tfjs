@@ -18,12 +18,12 @@
 import {backend_util, BinaryInputs, DataType, KernelFunc, TensorInfo, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {BinaryOpComplexProgram} from '../kernels/binary_op_complex_webgpu';
-import {getBinaryProgram} from '../kernels/binary_ops';
+import {BinaryOpComplexProgram} from '../binary_op_complex_webgpu';
+import {getBinaryProgram} from '../binary_ops';
 import {complex} from '../kernels/Complex';
-import {BinaryOpType} from '../kernels/binary_op_util';
-import {UnaryOpType} from '../kernels/unary_op_util';
-import {UnaryOpProgram} from '../kernels/unary_op_webgpu';
+import {BinaryOpType} from '../binary_op_util';
+import {UnaryOpType} from '../unary_op_util';
+import {UnaryOpProgram} from '../unary_op_webgpu';
 
 import {SimpleBinaryKernelImplCPU, SimpleUnaryKernelImplCPU} from './shared';
 

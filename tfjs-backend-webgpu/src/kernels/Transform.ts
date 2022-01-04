@@ -18,7 +18,7 @@
 import {KernelConfig, KernelFunc, TensorInfo, Transform, TransformAttrs, TransformInputs} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {TransformProgram} from './transform_webgpu';
+import {TransformProgram} from '../transform_webgpu';
 
 export function transform(args: {
   inputs: TransformInputs,

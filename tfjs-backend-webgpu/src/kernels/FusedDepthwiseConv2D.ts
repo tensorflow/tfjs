@@ -18,8 +18,8 @@
 import {backend_util, FusedDepthwiseConv2D, FusedDepthwiseConv2DAttrs, FusedDepthwiseConv2DInputs, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {DepthwiseConv2D3x3Program} from './depthwise_conv2d_3x3_webgpu';
-import {DepthwiseConv2DProgram} from './depthwise_conv2d_webgpu';
+import {DepthwiseConv2D3x3Program} from '../depthwise_conv2d_3x3_webgpu';
+import {DepthwiseConv2DProgram} from '../depthwise_conv2d_webgpu';
 
 export function fusedDepthwiseConv2D(args: {
   inputs: FusedDepthwiseConv2DInputs,

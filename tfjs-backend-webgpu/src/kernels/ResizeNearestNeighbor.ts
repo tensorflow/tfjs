@@ -18,7 +18,7 @@
 import {KernelConfig, KernelFunc, ResizeNearestNeighbor, ResizeNearestNeighborAttrs, ResizeNearestNeighborInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {ResizeNearestNeighborProgram} from './resize_nearest_neighbor_webgpu';
+import {ResizeNearestNeighborProgram} from '../resize_nearest_neighbor_webgpu';
 
 export function resizeNearestNeighbor(args: {
   inputs: ResizeNearestNeighborInputs,

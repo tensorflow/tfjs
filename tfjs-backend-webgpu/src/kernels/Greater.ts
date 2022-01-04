@@ -20,7 +20,7 @@ import {Greater, KernelConfig} from '@tensorflow/tfjs-core';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {greaterImplCPU as cpuGreater} from '../kernel_utils/shared';
 
-import {BinaryOpType} from './binary_op_util';
+import {BinaryOpType} from '../binary_op_util';
 
 export const greater = binaryKernelFunc({
   opSnippet: BinaryOpType.GREATER,
