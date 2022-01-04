@@ -19,7 +19,7 @@ import {KernelConfig, Tensor4D} from '@tensorflow/tfjs-core';
 import {FlipLeftRight, FlipLeftRightInputs} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {FlipLeftRightProgram} from './flip_left_right_webgpu';
+import {FlipLeftRightProgram} from '../flip_left_right_webgpu';
 
 export const flipLeftRightConfig: KernelConfig = {
     kernelName: FlipLeftRight,

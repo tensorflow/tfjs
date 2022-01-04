@@ -35,7 +35,7 @@ import {simpleAbsImplCPU} from './kernel_utils/shared';
 import {PackProgram} from './pack_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
 import * as tex_util from './tex_util';
-import {TextureData, TextureUsage} from './tex_util';
+import {Texture, TextureData, TextureUsage} from './tex_util';
 import {TextureManager} from './texture_manager';
 import * as unary_op from './unaryop_gpu';
 import {UnaryOpProgram} from './unaryop_gpu';
@@ -328,7 +328,7 @@ export class MathBackendWebGL extends KernelBackend {
       const tmpData = this.texData.get(tmpDownloadTarget.dataId);
 
       buffer = this.gpgpu.createBufferFromTexture(
-          tmpData.texture, ...tex_util.getDenseTexShape(shape));
+          tmpData.texture.texture, ...tex_util.getDenseTexShape(shape));
     }
 
     this.pendingRead.set(dataId, []);
@@ -419,10 +419,11 @@ export class MathBackendWebGL extends KernelBackend {
     if (env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
       const tmpTarget = this.decode(dataId);
       const tmpData = this.texData.get(tmpTarget.dataId);
-      const vals = this.gpgpu
-                       .downloadMatrixFromPackedTexture(
-                           tmpData.texture, ...tex_util.getDenseTexShape(shape))
-                       .subarray(0, size);
+      const vals =
+          this.gpgpu
+              .downloadMatrixFromPackedTexture(
+                  tmpData.texture.texture, ...tex_util.getDenseTexShape(shape))
+              .subarray(0, size);
 
       this.disposeIntermediateTensorInfo(tmpTarget);
 
@@ -439,11 +440,11 @@ export class MathBackendWebGL extends KernelBackend {
     const output = this.runWebGLProgram(
         program, [{shape: outputShape, dtype, dataId}], 'float32');
     const tmpData = this.texData.get(output.dataId);
-    const vals =
-        this.gpgpu
-            .downloadByteEncodedFloatMatrixFromOutputTexture(
-                tmpData.texture, tmpData.texShape[0], tmpData.texShape[1])
-            .subarray(0, size);
+    const vals = this.gpgpu
+                     .downloadByteEncodedFloatMatrixFromOutputTexture(
+                         tmpData.texture.texture, tmpData.texShape[0],
+                         tmpData.texShape[1])
+                     .subarray(0, size);
     this.disposeIntermediateTensorInfo(output);
 
     return vals;
@@ -618,7 +619,7 @@ export class MathBackendWebGL extends KernelBackend {
 
   getTexture(dataId: DataId): WebGLTexture {
     this.uploadToGPU(dataId);
-    return this.texData.get(dataId).texture;
+    return this.texData.get(dataId).texture.texture;
   }
 
   /**
@@ -1001,6 +1002,8 @@ export class MathBackendWebGL extends KernelBackend {
 
     let texShape = texData.texShape;
     if (texShape == null) {
+      // This texShape may not be the final texture shape. For packed or dense
+      // textures, the texShape will be changed when textures are created.
       texShape = webgl_util.getTextureShapeFromLogicalShape(shape, isPacked);
       texData.texShape = texShape;
     }
@@ -1094,7 +1097,7 @@ export class MathBackendWebGL extends KernelBackend {
 
   private acquireTexture(
       texShape: [number, number], texType: TextureUsage, dtype: DataType,
-      isPacked: boolean): WebGLTexture {
+      isPacked: boolean): Texture {
     this.numBytesInGPU += this.computeBytes(texShape, dtype);
     if (!this.warnedAboutMemory &&
         this.numBytesInGPU > this.numMBBeforeWarning * 1024 * 1024) {

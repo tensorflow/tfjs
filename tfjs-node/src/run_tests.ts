@@ -107,7 +107,8 @@ const IGNORE_LIST: string[] = [
   'conv2dTranspose test-tensorflow {} gradient input=[1,3,3,1] f=[2,2,2,1] s=[1,1] p=explicit',
   'maxPoolWithArgmax',
   'rotate',
-  'unique',
+  // FIXME: unique NaN-handling is inconsistent between TFJS and TFPY
+  'unique test-tensorflow {} 1d tensor with NaN and Infinity',
   // libtensorflow does not yet support tf.matmul with broadcast
   'broadcast with unequal batch dims',
   'broadcast batch shape',

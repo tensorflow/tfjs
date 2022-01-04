@@ -19,7 +19,7 @@ import {KernelConfig, KernelFunc, Slice, slice_util, SliceAttrs, SliceInputs, Te
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {sliceImplCPU} from '../kernel_utils/shared';
-import {SliceProgram} from './slice_webgpu';
+import {SliceProgram} from '../slice_webgpu';
 
 export function slice(
     args: {inputs: SliceInputs, backend: WebGPUBackend, attrs: SliceAttrs}):

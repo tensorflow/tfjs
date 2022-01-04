@@ -26,36 +26,86 @@ import './backend_webgpu_test_registry';
 import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 const TEST_FILTERS: TestFilter[] = [
+  // skip test cases include 5D, 6D, gradients webgpu
   {
-    include: 'less',
+    include: '5D',
+    excludes: [
+      'webgpu '
+    ],
   },
   {
-    include: 'clip',
+    include: '6D',
     excludes: [
+      'webgpu '
+    ],
+  },
+  {
+    include: 'gradients webgpu',
+    excludes: [
+      'webgpu '
+    ],
+  },
+
+  // skip specific test cases for supported kernels
+  {
+    startsWith: 'abs ',
+    excludes: [
+      'complex64',  // Kernel 'ComplexAbs' not registered.
+      'gradient',   // Step kernel not yet implemented.
+    ]
+  },
+  {
+    startsWith: 'avgPool ',
+    excludes: [
+      'gradient',   // Not yet implemented.
+      //'avgPool3d',  // Not yet implemented.
+    ]
+  },
+  {
+    startsWith: 'batchToSpaceND ',
+    excludes: [
+      'tensor3d', 'tensor4d', 'gradient',
+      'accepts a tensor-like object',  // tensor6d not yet implemented
+    ]
+  },
+  {
+    startsWith: 'concat ',
+    excludes: [
+      'concat a large number of tensors',  // The number of storage buffers
+                                           // exceeds the maximum per-stage
+                                           // limit.
+    ]
+  },
+  {
+    startsWith: 'conv2d ',
+    excludes: [
+      'NCHW',      // Not yet implemented.
       'gradient',  // gradient function not found.
     ]
   },
   {
-    include: 'greater',
+    startsWith: 'einsum ',
     excludes: [
-      'gradient',  // gradient function not found.
+      '4d tensors',               // rank 5 is not yet supported.
+      '4d tensor and 3d tensor',  // rank 5 is not yet supported.
     ]
   },
   {
-    include: 'div',
+    startsWith: 'elu ',
     excludes: [
-      'gradient',  // gradient function not found.
+      'selu',        // Not yet implemented.
+      'derivative',  // gradient function not found.
+      'gradient'     // gradient function not found.
     ]
   },
   {
-    include: 'depthwise',
+    startsWith: 'exp ',
     excludes: [
-      'gradient',   // depthwiseConv2DDerInput not yet implemented.
-      'leakyrelu',  // Not yet implemented.
+      'int32',  // TODO: fix precision problem.
     ]
   },
   {
-    include: 'fused conv2d',
+    startsWith: 'fused conv2d ',
     excludes: [
       'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // conv2dDerInput not yet
                                                    // implemented
@@ -65,126 +115,37 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    include: 'fromPixels',
-  },
-  {
-    include: 'fromPixelsAsync',
-  },
-  {
-    include: 'nonMaxSuppression',
+    startsWith: 'fused depthwiseConv2D ',
     excludes: [
-      'NonMaxSuppressionPadded'  // NonMaxSuppressionV4 not yet implemented.
+      'gradient',   // DepthwiseConv2dNativeBackpropInput
+      'leakyrelu',  // Not yet implemented
     ]
   },
   {
-    include: 'argmax',
+    startsWith: 'fused matmul ',
     excludes: [
-      '5D',        // Rank 5 is not yet implemented.
-      '6D',        // Rank 5 is not yet implemented.
-      'gradient',  // zerosLike not yet implemented.
-    ]
-  },
-  {
-    include: 'concat',
-    excludes: [
-      'concat a large number of tensors',  // The number of storage buffers
-                                           // exceeds the maximum per-stage
-                                           // limit.
-      'gradient',                          // split not yet implemented.
-    ]
-  },
-  {
-    include: 'transpose',
-    excludes: [
-      'oneHot',  // Not yet implemented.
-      'fused',   // Not yet implemented.
-      '5D',      // Rank 5 is not yet implemented.
-      '6D',      // Rank 5 is not yet implemented.
-      'gradient',
-    ]
-  },
-  {
-    startsWith: 'relu',
-    excludes: [
-      'valueAndGradients',  // gradient function not found.
-      '5D',                 // Rank 5 is not yet implemented.
-      '6D',                 // Rank 5 is not yet implemented.
-      'propagates NaNs',    // Arrays differ.
-      'derivative',         // gradient function not found.
-      'gradient'            // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'leakyrelu',
-    excludes: [
-      'gradients: Tensor2D', // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'elu',
-    excludes: [
-      'selu',        // Not yet implemented.
-      'derivative',  // gradient function not found.
-      'gradient'     // gradient function not found.
-    ]
-  },
-  {
-    include: 'resizeBilinear',
-    excludes: [
-      'gradient',  // Not yet implemented.
-    ]
-  },
-  {
-    include: 'ceil',
-    excludes: [
-      'gradients: Scalar',
-      'gradient with clones',
-      'gradients: Tensor1D',
-      'gradients: Tensor2D',
-    ]
-  },
-  {
-    include: 'floor ',
-    excludes: [
-      'gradients: Scalar',
-      'gradient with clones',
-      'gradients: Tensor1D',
-      'gradients: Tensor2D',
-    ]
-  },
-  {include: 'floor divide ', excludes: []},
-  {
-    include: 'rsqrt',
-    excludes: [
-      'gradients: Scalar',
-      'gradient with clones',
-      'gradients: Tensor1D',
-      'gradients: Tensor2D',
-    ]
-  },
-  {
-    include: 'expm1',
-    excludes: [
-      'gradients: Scalar',
-      'gradient with clones',
-      'gradients: Tensor1D',
-      'gradients: Tensor2D',
-    ]
-  },
-  {
-    include: 'fused',
-    excludes: [
-      'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // conv2dDerInput not yet
-                                                   // implemented.
-      'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0 with bias',  // conv2dDerInput
-                                                             // not yet
-                                                             // implemented.
       'leakyrelu',  // Not yet implemented.
-      'gradient',  // Kernel 'Step' not registered
+      'gradient',   // Not yet implemented.
     ]
   },
   {
-    include: 'maxPool',
+    startsWith: 'gather ',
+    excludes: [
+      'throws when index is out of bound',
+      'gradient'  // gradient function not found.
+    ]
+  },
+  {
+    startsWith: 'matmul',
+    excludes: [
+      'has zero in its shape',           // Test times out.
+      'valueAndGradients',               // backend.sum() not yet implemented.
+      'upcasts when dtypes dont match',  // GLSL compilation failed
+      'broadcast',  // matmul broadcasting not yet implemented.
+    ]
+  },
+  {
+    startsWith: 'maxPool ',
     excludes: [
       'maxPoolBackprop',   // Not yet implemented.
       'maxPool3d',         // Not yet implemented.
@@ -192,17 +153,38 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    include: 'avgPool',
+    startsWith: 'max ',
     excludes: [
-      'x=[2,2,1] f=[2,2] s=1 p=same',  // Pool3D not yet implemented.
-      'gradient',                      // Not yet implemented.
-      'avgPoolBackprop',               // Not yet implemented.
-      'avgPool3d',                     // Not yet implemented.
-      'avgPoolWithArgmax'              // Not yet implemented.
+      'AdamaxOptimizer',    // gradient function not found.
+      'sparseSegmentMean',  // 'SparseSegmentMean' not registered.
     ]
   },
   {
-    include: 'pool',
+    startsWith: 'mean ',
+    excludes: [
+      'meanSquaredError',
+    ]
+  },
+  {
+    startsWith: 'min ',
+    excludes: [
+      'stft',  // FFT' not registered.
+    ]
+  },
+  {
+    startsWith: 'mul ',
+    excludes: [
+      'broadcast',  // Various: Actual != Expected, compile fails, etc.
+    ]
+  },
+  {
+    startsWith: 'nonMaxSuppression ',
+    excludes: [
+      'NonMaxSuppressionPadded'  // NonMaxSuppressionV4 not yet implemented.
+    ]
+  },
+  {
+    startsWith: 'pool ',
     excludes: [
       'avg x=[',                          // Unsupported 6D shape.
       'max x=[4,3,1] f=[2,2] s=1 d=2',    // Unsupported 6D shape.
@@ -211,273 +193,7 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    include: 'matmul',
-    excludes: [
-      'gradient',                        // Various: sum not yet implemented.
-      'has zero in its shape',           // Test times out.
-      'valueAndGradients',               // backend.sum() not yet implemented.
-      'upcasts when dtypes dont match',  // GLSL compilation failed
-      'broadcast',  // matmul broadcasting not yet implemented.
-      'leakyrelu',  // Not yet implemented.
-    ]
-  },
-  {
-    include: 'dot',
-  },
-  {
-    include: 'expandDims',
-  },
-  {
-    include: 'memory test',
-  },
-  {
-    include: 'add ',
-    excludes: [
-      '6D',        // Rank 6 is not yet implemented.
-      'gradient',  // gradient function not found.
-    ]
-  },
-  {include: 'addN', excludes: []},
-  {startsWith: 'floorDiv ', excludes: []},
-  {
-    startsWith: 'sub ',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {startsWith: 'subtract ', excludes: []},
-  {
-    include: 'square',
-    excludes: [
-      '5D',          // Rank 5 is not yet implemented.
-      '6D',          // Rank 6 is not yet implemented.
-      'dilation2d',  // 'dilation2d' not yet implemented.
-      'gradient',
-    ]
-  },
-  {
-    include: 'slice ',
-    excludes: [
-      '5D',                  // Rank 5 is not yet implemented.
-      'slice5d',             // Rank 5 is not yet implemented.
-      '6D',                  // Rank 6 is not yet implemented.
-      'slice6d',             // Rank 6 is not yet implemented.
-      'strided slice with',  // Rank 6 is not yet implemented.
-    ]
-  },
-  {
-    include: 'stridedSlice',
-    excludes: [
-      'strided slice with several new axes',  // Rank 6 is not yet implemented.
-      'strided slice with new axes and',      // Rank 6 is not yet implemented.
-    ]
-  },
-  {
-    include: 'mul ',
-    excludes: [
-      'broadcast',  // Various: Actual != Expected, compile fails, etc.
-      'gradient',   // gradient function not found.
-    ]
-  },
-  {
-    include: 'conv2d',
-    excludes: [
-      'NCHW',       // Not yet implemented.
-      'gradient',   // gradient function not found.
-      'leakyrelu',  // Not yet implemented.
-    ]
-  },
-  {
-    include: 'mirrorPad',
-    excludes: [
-      'gradient',  // Not yet implemented.
-      'grad',      // Not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'pad ',
-    excludes: [
-      'grad'  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'fill ',
-    excludes: [
-      '5D',  // Rank 5 is not yet supported.
-    ]
-  },
-  {
-    include: 'Reduction: max',
-    excludes: [
-      '5D',        // Rank 5 is not yet implemented.
-      '6D',        // Rank 5 is not yet implemented.
-      'gradient',  // zerosLike not yet implemented.
-    ]
-  },
-  {
-    include: 'Reduction: min',
-    excludes: [
-      '5D',        // Rank 5 is not yet implemented.
-      '6D',        // Rank 5 is not yet implemented.
-      'gradient',  // zerosLike not yet implemented.
-    ]
-  },
-  {
-    include: 'Reduction: sum',
-    excludes: [
-      '5D',        // Rank 5 is not yet implemented.
-      '6D',        // Rank 5 is not yet implemented.
-      'gradient',  // zerosLike not yet implemented.
-    ]
-  },
-  {
-    startsWith: 'abs ',
-    excludes: [
-      'complex64',           // Kernel 'ComplexAbs' not registered.
-      '5D',                  // Rank 5 is not yet implemented.
-      '6D',                  // Rank 5 is not yet implemented.
-      'gradient',            // zerosLike not yet implemented.
-      'absoluteDifference',  // absoluteDifference not yet implemented
-    ]
-  },
-  {
-    include: 'cropAndResize',
-    excludes: [
-      '2x2to3x3-NoCrop',  // The operation failed for an operation-specific
-                          // reason
-      'MultipleBoxes-DifferentBoxes',  // TimeOut
-    ]
-  },
-  {
-    include: 'batchNorm',
-    excludes: [
-      'gradient',
-    ]
-  },
-  {
-    include: 'batchToSpaceND',
-    excludes: [
-      'tensor3d', 'tensor4d', 'gradient',
-      'accepts a tensor-like object',  // tensor6d not yet implemented
-    ]
-  },
-  {
-    include: 'spaceToBatchND',
-    excludes: [
-      'tensor4d',
-      'gradient',
-      'accepts a tensor-like object',
-    ]
-  },
-  {
-    include: 'softmax',
-    excludes: [
-      'gradient',
-      'MEAN',
-      'Weighted - Reduction.SUM_BY_NONZERO_WEIGHTS',
-    ]
-  },
-  {
-    include: 'minimum',
-    excludes: [
-      'gradients: Scalar',
-      'gradient with clones',
-      'gradients: Tensor1D',
-      'gradients: Tensor2D',
-    ]
-  },
-  {
-    include: 'maximum',
-    excludes: [
-      'gradients: Scalar',
-      'gradient with clones',
-      'gradients: Tensor1D',
-      'gradients: Tensor2D',
-    ]
-  },
-  {
-    include: 'stack',
-    excludes: [
-      'grad of unstack axis=0',  // Remove this when grad is fixed in unstack.
-      'gradient with clones',    // Remove this when grad is fixed in unstack.
-      'grad of unstack axis=1',  // Remove this when grad is fixed in unstack.
-    ]
-  },
-  {
-    include: 'unstack',
-    excludes: [
-      'grad of unstack axis=0',
-      'gradient with clones',
-      'grad of unstack axis=1',
-    ]
-  },
-  {
-    include: 'complex64',
-  },
-  {
-    include: 'zerosLike',
-    excludes: [
-      '5D',       // rank 5 is not yet supported.
-      '6D',       // rank 6 is not yet supported.
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    include: 'onesLike',
-    excludes: [
-      '5D',       // rank 5 is not yet supported.
-      '6D',       // rank 6 is not yet supported.
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    include: 'gather',
-    excludes: [
-      'throws when index is out of bound',
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    include: 'max',
-    excludes: [
-      '6D', 'gradient',
-      'AdamaxOptimizer',    // gradient function not found.
-      'sparseSegmentMean',  // 'SparseSegmentMean' not registered.
-    ]
-  },
-  {
-    include: 'mean',
-    excludes: [
-      'gradient',
-      'meanSquaredError',
-    ]
-  },
-  {
-    include: 'min',
-    excludes: [
-      'gradient',
-      'stft',  // FFT' not registered.
-    ]
-  },
-  {
-    include: 'prod',
-  },
-  {
-    include: 'einsum',
-    excludes: [
-      '4d tensors',               // rank 5 is not yet supported.
-      '4d tensor and 3d tensor',  // rank 5 is not yet supported.
-    ]
-  },
-  {
-    include: 'sum',
-    excludes: [
-      'gradient',
-      'cumsum',  // 'Cumsum' not registered.
-    ]
-  },
-  {
-    include: 'range',
+    startsWith: 'range ',
     excludes: [
       'bincount',           // Not yet implemented.
       'denseBincount',      // Not yet implemented.
@@ -486,117 +202,158 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    include: 'resizeNearest',
+    startsWith: 'relu ',
     excludes: [
-      'gradient'  // gradient function not found.
+      'valueAndGradients',  // gradient function not found.
+      'propagates NaNs',    // Arrays differ.
+      'derivative',         // gradient function not found.
+      'gradient'            // gradient function not found.
     ]
   },
   {
-    include: 'split',
+    startsWith: 'slice ',
     excludes: [
-      'gradient'  // gradient function not found.
+      'slice5d',             // Rank 5 is not yet implemented.
+      'slice6d',             // Rank 6 is not yet implemented.
+      'strided slice with',  // Rank 6 is not yet implemented.
     ]
   },
   {
-    include: 'sqrt',
+    startsWith: 'softmax ',
     excludes: [
-      'gradient'  // gradient function not found.
+      'MEAN',
+      'Weighted - Reduction.SUM_BY_NONZERO_WEIGHTS',
     ]
   },
   {
-    include: 'depthToSpace',
+    startsWith: 'spaceToBatchND ',
     excludes: [
-      'gradient'  // gradient function not found.
+      'tensor4d',
+      'accepts a tensor-like object',
     ]
   },
   {
-    include: 'logicalNot',
-    excludes: [
-      'Tensor6D',  // Not yet implemented.
-      'gradient'   // gradient function not found.
-    ]
-  },
-  {
-    include: 'flipLeftRight',
-  },
-  {
-    include: 'rotateWithOffset',
-  },
-  {
-    include: 'topk',
-  },
-  {
-    include: 'sparseToDense',
+    startsWith: 'sparseToDense ',
     excludes: [
       // TODO: Fix 0-sized buffer binding on WebGPU
       '0-sized',  // Not yet implemented.
-      'gradient'  // gradient function not found.
     ]
   },
   {
-    include: 'scatterND',
+    startsWith: 'square ',
     excludes: [
-      'gradient'  // gradient function not found.
+      'dilation2d',  // 'dilation2d' not yet implemented.
     ]
   },
   {
-    startsWith: 'logicalAnd ',
-  },
-  {
-    startsWith: 'stringNGrams ',
-  },
-  {
-    startsWith: 'tile ',
+    startsWith: 'squaredDifference ',
     excludes: [
-      'gradient'  // gradient function not found.
+      'dilation2d',  // 'dilation2d' not yet implemented.
     ]
   },
   {
-    startsWith: 'pow ',
+    startsWith: 'stridedSlice ',
     excludes: [
-      'gradient'  // gradient function not found.
+      'strided slice with several new axes',  // Rank 6 is not yet implemented.
+      'strided slice with new axes and',      // Rank 6 is not yet implemented.
     ]
   },
   {
-    startsWith: 'equal ',
-  },
-  {
-    startsWith: 'notEqual ',
-  },
-  {startsWith: 'gatherND '},
-  {include: 'image.transform'},
-  {
-    startsWith: 'where ',
+    startsWith: 'tensor ',
     excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {startsWith: 'memory'},
-  {
-    startsWith: 'sin',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'cos',
-    excludes: [
-      'gradient'  // gradient function not found.
-    ]
-  },
-  {
-    startsWith: 'tensor',
-    excludes: [
-      'grad',        // gradient function not found.
       'bool tensor'  // Expected object not to have properties.
     ]
   },
   {
-    startsWith: 'tanh',
+    startsWith: 'transpose ',
     excludes: [
-      'grad',  // gradient function not found.
+      'oneHot',  // Not yet implemented.
+      'fused',   // Not yet implemented.
     ]
-  }
+  },
+
+  // exclude unsupported kernels and to be fixed cases
+  {
+    include: ' webgpu ',
+    excludes: [
+      // TODO: cases need to be fixed
+      '} bool tensor', // Expected object not to have properties
+
+      // Not implemented kernel list.
+      'acos ',
+      'acosh ',
+      'all webgpu ',
+      'any webgpu ',
+      'asin ',
+      'asinh ',
+      'atan2 ',
+      'atanh ',
+      'avgPool3d ',
+      'avgPool3dBackprop ',
+      'bincount ',
+      'broadcastArgs ',
+      'concat3d ',
+      'conv2dTranspose ',
+      'conv2DBackpropFilter ',
+      'gradient with clones, input=2x2x1,d2=1,f=1,s=1,d=1,p=same',  // Conv2DBackpropFilter
+      'conv1d gradients',  // Conv2DBackpropFilter
+      'conv3d ',
+      'conv3dTranspose ',
+      'cumsum ',
+      'decodeWeights ',
+      'denseBincount ',
+      'diag ',
+      'dilation2d ',
+      'encodeWeights ',
+      'erf ',
+      'FFT ',
+      'IRFFT ',
+      'isFinite ',
+      'isInf ',
+      'isNaN ',
+      'linspace ',
+      'localResponseNormalization ',
+      'log1p ',
+      'logSigmoid ',
+      'logicalOr ',
+      'logicalXor ',
+      'maxPool3d ',
+      'maxPool3dBackprop ',
+      'maxPoolBackprop ',
+      'maxPoolWithArgmax ',
+      'mod ',
+      'multinomial ',
+      'oneHot ',
+      'confusionMatrix ',  // oneHot
+      'poolBackprop ',
+      'reciprocal ',
+      'reverse1d ',
+      'reverse2d ',
+      'reverse3d ',
+      'reverse4d ',
+      'reverse webgpu',
+      'RFFT ',
+      'round webgpu',
+      'method otsu',  // round
+      'selu ',
+      'sign webgpu',
+      'stft ',
+      'softplus ',
+      'sigmoidCrossEntropy ',
+      'sparseFillEmptyRows ',
+      'sparseReshape ',
+      'sparseSegmentMean ',
+      'sparseSegmentSum ',
+      'step kernel',
+      'gradients: relu6',  // Step
+      'stringSplit ',
+      'stringToHashBucketFast ',
+      'tan webgpu',
+      'unique ',
+      'unsortedSegmentSum ',
+      'valueAndGradients ',
+    ]
+  },
 ];
 
 const customInclude = (testName: string) => {
@@ -604,7 +361,6 @@ const customInclude = (testName: string) => {
   if (testName.startsWith('webgpu')) {
     return true;
   }
-
   return false;
 };
 setupTestFilters(TEST_FILTERS, customInclude);

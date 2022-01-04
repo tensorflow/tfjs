@@ -19,8 +19,8 @@ import {KernelConfig, KernelFunc, Prelu, PreluInputs, TensorInfo} from '@tensorf
 
 import {WebGPUBackend} from '../backend_webgpu';
 
-import {BinaryOpType} from './binary_op_util';
-import {BinaryOpProgram} from './binary_op_webgpu';
+import {BinaryOpType} from '../binary_op_util';
+import {BinaryOpProgram} from '../binary_op_webgpu';
 
 export function prelu(args: {inputs: PreluInputs, backend: WebGPUBackend}):
     TensorInfo {

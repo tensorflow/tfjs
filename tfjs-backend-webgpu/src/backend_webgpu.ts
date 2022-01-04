@@ -22,7 +22,7 @@ import {backend_util, buffer, DataStorage, DataType, DataValues, engine, env, Ke
 import {BufferManager} from './buffer_manager';
 import {FromPixelsImportProgram} from './kernels/FromPixels_utils/from_pixels_import_webgpu';
 import {FromPixelsProgram} from './kernels/FromPixels_utils/from_pixels_webgpu';
-import * as webgpu_program from './kernels/webgpu_program';
+import * as webgpu_program from './webgpu_program';
 import * as webgpu_util from './webgpu_util';
 import {WebGPULayout} from './webgpu_util';
 
@@ -88,6 +88,7 @@ export class WebGPUBackend extends KernelBackend {
 
   private tensorDisposalQueue: DataId[] = [];
   private uniformDisposalQueue: BufferInfo[] = [];
+  private stagingDisposalQueue: BufferInfo[] = [];
 
   private disposed = false;
 
@@ -158,9 +159,13 @@ export class WebGPUBackend extends KernelBackend {
     });
     this.uniformDisposalQueue.forEach(
         d => this.bufferManager.releaseBuffer(d.buffer, d.byteSize, d.usage));
+    this.stagingDisposalQueue.forEach(
+        d => this.bufferManager.releaseUploadBuffer(
+            d.buffer, d.byteSize, d.usage));
 
     this.tensorDisposalQueue = [];
     this.uniformDisposalQueue = [];
+    this.stagingDisposalQueue = [];
   }
 
   /**
@@ -560,10 +565,29 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     info.bufferInfo.buffer = this.acquireBuffer(info.bufferInfo.byteSize);
-
     if (info.values) {
-      this.queue.writeBuffer(
-          info.bufferInfo.buffer, 0, info.values as ArrayBuffer);
+      const stagingBuffer = this.bufferManager.acquireUploadBuffer(
+          info.bufferInfo.byteSize,
+          GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC);
+      const arrayBuffer = stagingBuffer.getMappedRange();
+      if (info.dtype === 'int32' || info.dtype === 'bool') {
+        new Int32Array(arrayBuffer).set(info.values as Int32Array);
+      } else {
+        new Float32Array(arrayBuffer).set(info.values as Float32Array);
+      }
+      stagingBuffer.unmap();
+      this.ensureCommandEncoderReady();
+      this.ensureComputePassEnded();
+      this.currentCommandEncoder.copyBufferToBuffer(
+          stagingBuffer, 0, info.bufferInfo.buffer, 0,
+          info.bufferInfo.byteSize);
+
+      const stagingInfo = {
+        byteSize: info.bufferInfo.byteSize,
+        usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
+        buffer: stagingBuffer
+      };
+      this.stagingDisposalQueue.push(stagingInfo);
       // TODO: WebGPU doesn't support read data synchronously from GPU to CPU.
       // So it will report error when switching backend from WebGPU to others.
       // There are two situations: 1) swithcing the backend after running a
@@ -573,97 +597,56 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
-  private makeUniformsDataView(data: DataView): GPUBindingResource {
-    const dimensionsBuffer = this.acquireBuffer(
-        data.byteLength, GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
-    this.queue.writeBuffer(dimensionsBuffer, 0, data);
-
-    return {offset: 0, size: data.byteLength, buffer: dimensionsBuffer};
-  }
-
-  private arrayToDataView(
-      arrays: Array<{type: string; data: number[]}>, length: number): DataView {
-    const BYTES_PER_ELEMENT = 4;
-    const uniformDataView =
-        new DataView(new ArrayBuffer(length * BYTES_PER_ELEMENT));
-
-    let dataViewIndex = 0;
-    arrays.forEach(array => {
-      const arrayData = array.data;
-
-      if (array.type !== 'int32' && array.type !== 'float32' &&
-          array.type !== 'uint32') {
-        throw new Error(`${array.type} not supported!`);
-      }
-
-      if (array.type === 'int32') {
-        arrayData.forEach(d => {
-          uniformDataView.setInt32(dataViewIndex * BYTES_PER_ELEMENT, d, true);
-          dataViewIndex++;
-        });
-      } else if (array.type === 'uint32') {
-        arrayData.forEach(d => {
-          uniformDataView.setUint32(dataViewIndex * BYTES_PER_ELEMENT, d, true);
-          dataViewIndex++;
-        });
-      } else {
-        arrayData.forEach(d => {
-          uniformDataView.setFloat32(
-              dataViewIndex * BYTES_PER_ELEMENT, d, true);
-          dataViewIndex++;
-        });
-      }
-    });
-
-    return uniformDataView;
-  }
-
-  private computePadding(uniformsWithType:
-                             Array<{type: string; data: number[];}>): DataView {
+  private makeUniforms(uniformsWithType:
+                           Array<{type: string; data: number[];}>):
+      GPUBindingResource {
     let currentOffset = 0;
-    let padding = 0;
-    let dataViewIndex = 0;
-    const dimUniformsData: Array<{type: string; data: number[];}> = [];
-    uniformsWithType.forEach((d, i) => {
+    const offsets: number[] = [];
+    uniformsWithType.forEach((d) => {
       if (d.data.length === 0) {
         d.data = [1];
       }
-      // Complete std140 layout rules are documented here:
-      // tslint:disable-next-line:max-line-length
-      // https://www.khronos.org/registry/OpenGL/specs/gl/glspec45.core.pdf#page=159
+      // https://www.w3.org/TR/WGSL/#alignof
       let baseAlignment: number;
       switch (d.data.length) {
-        case 0:
-          baseAlignment = 1;
-          break;
         case 1:
-          baseAlignment = 1;
+          baseAlignment = 4;
           break;
         case 2:
-          baseAlignment = 2;
+          baseAlignment = 8;
           break;
         case 3:
-          baseAlignment = 4;
+          baseAlignment = 16;
           break;
         case 4:
-          baseAlignment = 4;
+          baseAlignment = 16;
           break;
         default:
           util.assert(false, () => `Unsupported ${d.data.length}D shape`);
       }
 
-      padding = Math.ceil(currentOffset / baseAlignment) * baseAlignment -
-          currentOffset;
-      for (let p = 0; p < padding; ++p) {
-        dimUniformsData.push({type: d.type, data: [0]});
-        dataViewIndex++;
-      }
-      dimUniformsData.push({type: d.type, data: d.data});
-      dataViewIndex = dataViewIndex + d.data.length;
-      currentOffset += d.data.length + padding;
+      currentOffset = Math.ceil(currentOffset / baseAlignment) * baseAlignment;
+      offsets.push(currentOffset);
+      currentOffset += d.data.length * 4;
     });
 
-    return this.arrayToDataView(dimUniformsData, dataViewIndex);
+    const arrayBuffer = new ArrayBuffer(currentOffset);
+    uniformsWithType.forEach((d, i) => {
+      const offset = offsets[i];
+      if (d.type === 'int32') {
+        new Int32Array(arrayBuffer, offset, d.data.length).set(d.data);
+      } else if (d.type === 'uint32') {
+        new Uint32Array(arrayBuffer, offset, d.data.length).set(d.data);
+      } else {
+        new Float32Array(arrayBuffer, offset, d.data.length).set(d.data);
+      }
+    });
+
+    const uniformBuffer = this.acquireBuffer(
+        currentOffset, GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM);
+    this.queue.writeBuffer(uniformBuffer, 0, arrayBuffer, 0, currentOffset);
+
+    return {offset: 0, size: currentOffset, buffer: uniformBuffer};
   }
 
   // This layout is used by all programs except fromPixel.
@@ -740,10 +723,7 @@ export class WebGPUBackend extends KernelBackend {
       uniformsWithType = [...uniformsWithType, ...programUniforms];
     }
 
-    let uniforms: GPUBindingResource = null;
-    const uniformsDataView = this.computePadding(uniformsWithType);
-    const uniformsByteLength = uniformsDataView.byteLength;
-    uniforms = this.makeUniformsDataView(uniformsDataView);
+    const uniforms = this.makeUniforms(uniformsWithType);
 
     const inputsData = inputs.map((input: TensorInfo, i: number) => {
       if (input.dtype === 'complex64') {
@@ -809,15 +789,15 @@ export class WebGPUBackend extends KernelBackend {
       this.commandQueueOwnedIds.add(input.dataId);
     });
     this.commandQueueOwnedIds.add(output.dataId);
-    if (uniforms) {
-      const uniformInfo = {
-        byteSize: uniformsByteLength,
-        usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
-        // tslint:disable-next-line: no-unnecessary-type-assertion
-        buffer: (uniforms as GPUBufferBinding).buffer
-      };
-      this.uniformDisposalQueue.push(uniformInfo);
-    }
+
+    const uniformInfo = {
+      // tslint:disable-next-line: no-unnecessary-type-assertion
+      byteSize: (uniforms as GPUBufferBinding).size,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
+      // tslint:disable-next-line: no-unnecessary-type-assertion
+      buffer: (uniforms as GPUBufferBinding).buffer
+    };
+    this.uniformDisposalQueue.push(uniformInfo);
 
     if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
         number <= this.dispatchNumberInEncoder) {
