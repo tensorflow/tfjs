@@ -46,7 +46,7 @@ const whereImpl = kernel_impls.whereImpl;
 
 export const EPSILON_FLOAT32 = 1e-7;
 export const EPSILON_FLOAT16 = 1e-4;
-
+type QueryResults = number|Array<{name: string; query: number[]}>;
 type KernelInfo = {
   name: string; query: Promise<number>;
 };
@@ -140,6 +140,7 @@ export class MathBackendWebGL extends KernelBackend {
   private gpgpuCreatedLocally: boolean;
   private numMBBeforeWarning: number;
   private warnedAboutMemory = false;
+  private webGLQueries: Array<{name: string, query: WebGLQuery}> = [];
 
   constructor(gpuResource?: GPGPUContext|HTMLCanvasElement|OffscreenCanvas) {
     super();
@@ -603,6 +604,19 @@ export class MathBackendWebGL extends KernelBackend {
     return timerQuery.endMs - timerQuery.startMs;
   }
 
+  async getKernelTimes():
+      Promise<number|Array<{name: string; query: number[]}>> {
+    const queryResults: QueryResults = [];
+    for (let i = 0; i < this.webGLQueries.length; i++) {
+      const kernelTime = await this.getQueryTime(this.webGLQueries[i].query);
+      queryResults[i] = {
+        name: this.webGLQueries[i].name,
+        query: [kernelTime, kernelTime]
+      };
+    }
+    return queryResults;
+  }
+
   private pendingDeletes = 0;
 
   /**
@@ -942,7 +956,8 @@ export class MathBackendWebGL extends KernelBackend {
       return gpgpu_math.compileProgram(
           this.gpgpu, program, inputsData, outputData);
     });
-    const shouldTimeProgram = this.activeTimers != null;
+    const trace = env().getBool('TRACE');
+    const shouldTimeProgram = this.activeTimers != null || trace;
     let query: WebGLQuery|CPUTimerQuery;
     if (shouldTimeProgram) {
       query = this.startTimer();
@@ -956,9 +971,13 @@ export class MathBackendWebGL extends KernelBackend {
     dataToDispose.forEach(info => this.disposeIntermediateTensorInfo(info));
 
     if (shouldTimeProgram) {
+      const name = program.constructor.name;
       query = this.endTimer(query);
-      this.activeTimers.push(
-          {name: program.constructor.name, query: this.getQueryTime(query)});
+      if (trace) {
+        this.webGLQueries.push({name, query});
+      } else {
+        this.activeTimers.push({name, query: this.getQueryTime(query)});
+      }
     }
 
     const glFlushThreshold = env().get('WEBGL_FLUSH_THRESHOLD');

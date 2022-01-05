@@ -73,6 +73,7 @@ export interface WebGPUTimingInfo extends TimingInfo {
 }
 
 type ProgramUniform = Array<{type: string; data: number[]}>;
+type QueryResults = number|Array<{name: string; query: number[]}>;
 
 // Empirically determined constant used to determine size threshold for handing
 // off execution to the CPU.
@@ -107,6 +108,26 @@ const reshapeDispatch =
         return [dispatchAverage, dispatchAverage, 1];
       }
     };
+
+function allTimeFunction(
+    arrayBuf: BigUint64Array, querySetSize: number,
+    kernelNames: string[]): QueryResults {
+  const queryResults: QueryResults = [];
+
+  for (let i = 0; i < querySetSize; i++) {
+    queryResults[i] = {
+      name: kernelNames[i],
+      query: [Number(arrayBuf[2 * i]), Number(arrayBuf[2 * i + 1])]
+    };
+  }
+  return queryResults;
+}
+
+function timeFunction(
+    arrayBuf: BigUint64Array, querySetSize: number, kernelNames: string[]) {
+  const timeElapsedNanos = Number((arrayBuf[1] - arrayBuf[0]));
+  return timeElapsedNanos / 1000000;
+}
 
 export class WebGPUBackend extends KernelBackend {
   device: GPUDevice;
@@ -143,6 +164,12 @@ export class WebGPUBackend extends KernelBackend {
   private querySet: GPUQuerySet;
   private fromPixelTextureLayout: WebGPULayout = null;
   private fromPixelImportTextureLayout: WebGPULayout = null;
+  // 1000 is empirical data.
+  private querySetMaxCount = 1000;
+  private querySetIndex = 0;
+  private kernelNames: string[] = [];
+  private batchSizes: number[] = [];
+  private dispatchNumberInModel = 0;
 
   constructor(device: GPUDevice, supportTimeQuery = false) {
     super();
@@ -163,7 +190,7 @@ export class WebGPUBackend extends KernelBackend {
     if (this.supportTimeQuery) {
       this.querySet = this.device.createQuerySet({
         type: 'timestamp',
-        count: 2,
+        count: this.querySetMaxCount,
       });
     }
 
@@ -345,6 +372,7 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   submitQueue() {
+    console.timeStamp('JSsubmitQueue');
     this.ensureComputePassEnded();
     this.queue.submit([this.currentCommandEncoder.finish()]);
     this.currentCommandEncoder = null;
@@ -382,6 +410,7 @@ export class WebGPUBackend extends KernelBackend {
 
   public async getBufferData(buffer: GPUBuffer, size: number):
       Promise<backend_util.BackendValues> {
+    console.timeStamp('JSgetBufferData');
     const staging = this.acquireBuffer(
         size, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
     this.ensureCommandEncoderReady();
@@ -407,6 +436,7 @@ export class WebGPUBackend extends KernelBackend {
       this.dummyContext.getCurrentTexture();
     }
 
+    console.timeStamp('JSgetBufferDataEnd');
     return values as backend_util.BackendValues;
   }
 
@@ -627,9 +657,9 @@ export class WebGPUBackend extends KernelBackend {
     };
   }
 
-  async getQueryTime(query: GPUQuerySet): Promise<number> {
+  async getQueryTime(start: number): Promise<number> {
     if (this.supportTimeQuery) {
-      return this.getTimeFromQuerySet(query);
+      return this.getTimeFromQuerySet(start) as Promise<number>;
     } else {
       return 0;
     }
@@ -751,20 +781,20 @@ export class WebGPUBackend extends KernelBackend {
     bindGroupLayoutEntries.push({
       binding: 0,
       visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'storage' as const}
+      buffer: {type: 'storage' as const }
     });
     // Input buffer binding layout. Depends on variableNames length.
     for (let i = 0; i < inputEntrySize; i++) {
       bindGroupLayoutEntries.push({
         binding: i + 1,
         visibility: GPUShaderStage.COMPUTE,
-        buffer: {type: 'read-only-storage' as const}
+        buffer: {type: 'read-only-storage' as const }
       });
     }
     bindGroupLayoutEntries.push({
       binding: inputEntrySize + 1,
       visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'uniform' as const}
+      buffer: {type: 'uniform' as const }
     });
     const bindGroupLayout =
         this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
@@ -778,6 +808,14 @@ export class WebGPUBackend extends KernelBackend {
       this.layoutCache[inputEntrySize] = this.createLayout(inputEntrySize);
     }
     return this.layoutCache[inputEntrySize];
+  }
+
+  private checkQuerySetSize() {
+    if (this.querySetIndex > this.querySetMaxCount) {
+      throw Error(
+          `Timestamp index(${this.querySetIndex}) exceeds timestamp count(${
+              this.querySetMaxCount})`);
+    }
   }
 
   public runWebGPUProgram(
@@ -864,38 +902,47 @@ export class WebGPUBackend extends KernelBackend {
 
     this.ensureCommandEncoderReady();
     const pass = this.getComputePass();
-    if (shouldTimeProgram) {
+    const traceFlag = env().getBool('TRACE');
+    const programName = program.constructor.name;
+    if (shouldTimeProgram || traceFlag) {
       if (this.supportTimeQuery) {
+        this.kernelNames[this.querySetIndex / 2] = programName;
         // tslint:disable-next-line:no-any
-        (pass as any).writeTimestamp(this.querySet, 0);
+        (pass as any).writeTimestamp(this.querySet, this.querySetIndex++);
+        this.checkQuerySetSize();
       }
     }
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bg);
     pass.dispatch(
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
-    if (shouldTimeProgram) {
+    if (shouldTimeProgram || traceFlag) {
       if (this.supportTimeQuery) {
         // tslint:disable-next-line:no-any
-        (pass as any).writeTimestamp(this.querySet, 1);
+        (pass as any).writeTimestamp(this.querySet, this.querySetIndex++);
+        this.checkQuerySetSize();
       }
     }
     this.dispatchNumberInEncoder++;
+    this.dispatchNumberInModel++;
 
     inputs.forEach(input => {
       this.commandQueueOwnedIds.add(input.dataId);
     });
     this.commandQueueOwnedIds.add(output.dataId);
 
-    if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
-        number <= this.dispatchNumberInEncoder) {
+    const useBatchSizes = this.batchSizes.length !== 0 &&
+        this.batchSizes.indexOf(this.dispatchNumberInModel) !== -1;
+    if (useBatchSizes ||
+        env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
+            number <= this.dispatchNumberInEncoder) {
       this.submitQueue();
     }
 
     if (shouldTimeProgram) {
       this.activeTimers.push({
-        name: program.constructor.name,
-        query: this.getQueryTime(this.querySet)
+        name: programName,
+        query: this.getQueryTime(this.querySetIndex - 2)
       });
     }
     return output;
@@ -923,7 +970,7 @@ export class WebGPUBackend extends KernelBackend {
     bindGroupLayoutEntries.push({
       binding: 0,
       visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'storage' as const}
+      buffer: {type: 'storage' as const }
     });
     // Input texture binding layout.
     if (useImport) {
@@ -1037,20 +1084,25 @@ export class WebGPUBackend extends KernelBackend {
     this.ensureCommandEncoderReady();
     const pass = this.getComputePass();
     const shouldTimeProgram = this.activeTimers != null;
-    if (shouldTimeProgram) {
+    const traceFlag = env().getBool('TRACE');
+    const programName = program.constructor.name;
+    if (shouldTimeProgram || traceFlag) {
       if (this.supportTimeQuery) {
+        this.kernelNames[this.querySetIndex / 2] = programName;
         // tslint:disable-next-line:no-any
-        (pass as any).writeTimestamp(this.querySet, 0);
+        (pass as any).writeTimestamp(this.querySet, this.querySetIndex++);
+        this.checkQuerySetSize();
       }
     }
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
     pass.dispatch(
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
-    if (shouldTimeProgram) {
+    if (shouldTimeProgram || traceFlag) {
       if (this.supportTimeQuery) {
         // tslint:disable-next-line:no-any
-        (pass as any).writeTimestamp(this.querySet, 1);
+        (pass as any).writeTimestamp(this.querySet, this.querySetIndex++);
+        this.checkQuerySetSize();
       }
     }
     this.commandQueueOwnedIds.add(output.dataId);
@@ -1062,35 +1114,74 @@ export class WebGPUBackend extends KernelBackend {
 
     if (shouldTimeProgram) {
       this.activeTimers.push({
-        name: program.constructor.name,
-        query: this.getQueryTime(this.querySet)
+        name: programName,
+        query: this.getQueryTime(this.querySetIndex - 2)
       });
     }
     return output;
   }
 
-  async getTimeFromQuerySet(querySet: GPUQuerySet) {
+  async getTimeFromQuerySet(start: number) {
+    const timeElapsed =
+        await this.getTimeFromQuerySetCommon(2, start, [], timeFunction);
+    return timeElapsed;
+  }
+
+  async getAllTimeFromQuerySet(): Promise<QueryResults> {
+    if (this.querySetIndex !== 0) {
+      const queryResults = await this.getTimeFromQuerySetCommon(
+          this.querySetIndex, 0, this.kernelNames, allTimeFunction);
+      return queryResults;
+    }
+    return null;
+  }
+
+  setBatchSizes(batchSizes: number[]) {
+    this.batchSizes = batchSizes;
+    this.dispatchNumberInModel = 0;
+  }
+
+  async getKernelTimes():
+      Promise<number|Array<{name: string; query: number[]}>> {
+    const kernelTimes = await this.getAllTimeFromQuerySet();
+    console.timeStamp('JSgetKernelTimesEnd');
+    this.querySetIndex = 0;
+    this.kernelNames = [];
+    return kernelTimes;
+  }
+
+  async getTimeFromQuerySetCommon(
+      querySetIndex: number, start: number, kernelNames: string[],
+      f: (arrayBuf: BigUint64Array, querySetSize: number,
+          kernelNames: string[]) => QueryResults): Promise<QueryResults> {
+    const querySetSize = querySetIndex / 2;
+    // The size of two query items is 16.
+    const querySetBufferSize = querySetSize * 16;
     const queryBuffer = this.acquireBuffer(
-        16, GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);
+        querySetBufferSize,
+        GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);
     const dst = this.acquireBuffer(
-        16, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
+        querySetBufferSize, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
 
     this.ensureCommandEncoderReady();
     this.ensureComputePassEnded();
-    this.currentCommandEncoder.resolveQuerySet(querySet, 0, 2, queryBuffer, 0);
-    this.currentCommandEncoder.copyBufferToBuffer(queryBuffer, 0, dst, 0, 16);
+    this.currentCommandEncoder.resolveQuerySet(
+        this.querySet, start, querySetIndex, queryBuffer, 0);
+
+    this.currentCommandEncoder.copyBufferToBuffer(
+        queryBuffer, 0, dst, 0, querySetBufferSize);
     this.submitQueue();
     await dst.mapAsync(GPUMapMode.READ);
     const arrayBuf = new BigUint64Array(dst.getMappedRange());
-    const timeElapsedNanos = Number((arrayBuf[1] - arrayBuf[0]));
+    const time = f(arrayBuf, querySetIndex / 2, kernelNames);
     dst.unmap();
     this.bufferManager.releaseBuffer(
-        dst, 16, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
+        dst, querySetBufferSize,
+        GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
     this.bufferManager.releaseBuffer(
-        queryBuffer, 16,
+        queryBuffer, querySetBufferSize,
         GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);
-    // Return milliseconds.
-    return timeElapsedNanos / 1000000;
+    return time;
   }
 
   shouldExecuteOnCPU(

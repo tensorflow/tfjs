@@ -35,6 +35,13 @@ ENV.registerFlag('DEBUG', () => false, debugValue => {
   }
 });
 
+/** Whether to enable trace mode. */
+ENV.registerFlag('TRACE', () => false, traceValue => {
+  if (traceValue) {
+    console.warn('Trace is ON. This has impacts on performance.');
+  }
+});
+
 /** Whether we are in a browser (as versus, say, node.js) environment. */
 ENV.registerFlag('IS_BROWSER', () => device_util.isBrowser());
 

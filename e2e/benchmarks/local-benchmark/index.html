@@ -92,6 +92,7 @@ limitations under the License.
     let urlState = null;
     let runTimes = 50;
     let profileTimes = 1;
+    let trace = false;
     let warmupTimes = 1;
     // Default do not run any task.
     let task = '';
@@ -111,6 +112,9 @@ limitations under the License.
       }
       if (params.has('task')) {
         task = params.get('task');
+      }
+      if (params.has('trace')) {
+        trace = params.get('trace') === 'true';
       }
       return params;
     }
@@ -558,7 +562,7 @@ limitations under the License.
         .setAttribute('d', `M${data.map((d, i) => `${i * xIncrement},${chartHeight - ((d - yMin) / (yMax - yMin)) * chartHeight}`).join('L')} `);
     }
 
-    async function measureAveragePredictTime() {
+    async function measureAveragePredictTime(trace) {
       if (state.numRuns == 0) {
         return;
       }
@@ -577,7 +581,7 @@ limitations under the License.
           tf.dispose(input);
         }
       } else {
-        timeInfo = await timeInference(() => predict(model), numRuns);
+        timeInfo = await timeInference(() => predict(model), numRuns, trace);
       }
 
       const forceInferenceTrendYMinToZero = true;
@@ -729,7 +733,7 @@ limitations under the License.
       await showBenchmarkingParameters();
 
       await warmUpAndRecordTime();
-      await measureAveragePredictTime();
+      await measureAveragePredictTime(trace);
       await profileMemoryAndKernelTime();
       urlState = null;
     }

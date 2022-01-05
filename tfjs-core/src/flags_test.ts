@@ -42,6 +42,30 @@ describe('DEBUG', () => {
   });
 });
 
+describe('TRACE', () => {
+  beforeEach(() => {
+    tf.env().reset();
+    spyOn(console, 'warn').and.callFake((msg: string) => {});
+  });
+  afterAll(() => tf.env().reset());
+
+  it('disabled by default', () => {
+    expect(tf.env().getBool('TRACE')).toBe(false);
+  });
+
+  it('warns when enabled', () => {
+    const consoleWarnSpy = console.warn as jasmine.Spy;
+    tf.env().set('TRACE', true);
+    expect(consoleWarnSpy.calls.count()).toBe(1);
+    expect((consoleWarnSpy.calls.first().args[0] as string)
+               .startsWith('Trace is ON. '))
+        .toBe(true);
+
+    expect(tf.env().getBool('TRACE')).toBe(true);
+    expect(consoleWarnSpy.calls.count()).toBe(1);
+  });
+});
+
 // TODO (yassogba) figure out why this spy is not working / fix this test.
 describe('IS_BROWSER', () => {
   let isBrowser: boolean;

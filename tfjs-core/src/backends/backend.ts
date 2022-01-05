@@ -143,6 +143,18 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   epsilon(): number {
     return this.floatPrecision() === 32 ? EPSILON_FLOAT32 : EPSILON_FLOAT16;
   }
+
+  /** Returns the kernel times.  */
+  async getKernelTimes():
+      Promise<number|Array<{name: string; query: number[]}>> {
+    return notYetImplemented('getKernelTimes');
+  }
+
+  /** Sets batch size.  */
+  setBatchSizes(batchSizes: number[]): void {
+    return notYetImplemented('setBatchSizes');
+  }
+
   dispose(): void {
     return notYetImplemented('dispose');
   }
