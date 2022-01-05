@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {engine, test_util, util} from '@tensorflow/tfjs-core';
+import {engine, GPUResource, test_util, util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 const {expectArraysClose, expectArraysEqual} = test_util;
@@ -738,6 +738,45 @@ describeWithFlags('keeping data on gpu ', WEBGL2_ENVS, () => {
     expectArraysEqual(vals, data);
   });
 
+  it('has no memory leak.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const a = tf.tensor(data, [1, 3, 4]);
+    const b = tf.add(a, 0);
+
+    const webGLBackend = tf.backend() as MathBackendWebGL;
+    const startNumBytes = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
+    const startTensor = tf.memory().numTensors;
+    const startDataBuckets = webGLBackend.numDataIds();
+
+    const res = b.dataToGPU();
+    tf.dispose(res as {} as tf.Tensor);
+
+    const endNumBytes = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
+    const endTensor = tf.memory().numTensors;
+    const endDataBuckets = webGLBackend.numDataIds();
+
+    expect(startNumBytes).toEqual(endNumBytes);
+    expect(startTensor).toEqual(endTensor);
+    expect(endDataBuckets).toEqual(startDataBuckets);
+  });
+
+  it('can be used in tidy.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const result = tf.tidy(() => {
+      const a = tf.tensor(data, [1, 3, 4]);
+      const b = tf.add(a, 0);
+      return b.dataToGPU() as {} as tf.Tensor;
+    });
+
+    const res = result as {} as GPUResource;
+
+    const webGLBackend = tf.backend() as MathBackendWebGL;
+    const buffer = webGLBackend.gpgpu.createBufferFromTexture(
+        res.texture, res.texShape[0], res.texShape[1]);
+    const vals = webGLBackend.gpgpu.downloadFloat32MatrixFromBuffer(buffer, 12);
+    expectArraysEqual(vals, data);
+  });
+
   it('throws error when user defined texShape is too small.', () => {
     const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     const a = tf.tensor(data, [1, 3, 4]);
@@ -817,6 +856,28 @@ describeWithFlags('keeping data on gpu ', WEBGL1_ENVS, () => {
                        .subarray(0, size);
       expectArraysEqual(vals, data);
     }
+  });
+
+  it('has no memory leak.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const a = tf.tensor(data, [1, 3, 4]);
+    const b = tf.add(a, 0);
+
+    const webGLBackend = tf.backend() as MathBackendWebGL;
+    const startNumBytes = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
+    const startTensor = tf.memory().numTensors;
+    const startDataBuckets = webGLBackend.numDataIds();
+
+    const res = b.dataToGPU();
+    tf.dispose(res as {} as tf.Tensor);
+
+    const endNumBytes = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
+    const endTensor = tf.memory().numTensors;
+    const endDataBuckets = webGLBackend.numDataIds();
+
+    expect(startNumBytes).toEqual(endNumBytes);
+    expect(startTensor).toEqual(endTensor);
+    expect(endDataBuckets).toEqual(startDataBuckets);
   });
 
   it('throws error when user defined texShape is too small.', () => {
