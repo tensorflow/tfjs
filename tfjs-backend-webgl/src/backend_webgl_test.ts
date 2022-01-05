@@ -777,7 +777,7 @@ describeWithFlags('custom canvas ', WEBGL_ENVS, () => {
     const t = tf.square(2);
     const data = t.dataSync();
 
-    expect(data).toEqual([4]);
+    expectArraysEqual(data, [4]);
 
     tf.removeBackend(customBackendName);
   });
