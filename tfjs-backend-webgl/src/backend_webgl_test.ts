@@ -780,5 +780,5 @@ describeWithFlags('custom canvas ', WEBGL_ENVS, () => {
     expect(data).toEqual([4]);
 
     tf.removeBackend(customBackendName);
-  })
+  });
 });
