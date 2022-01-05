@@ -38,11 +38,13 @@ describeWithFlags('canvas_util', BROWSER_ENVS, () => {
   });
 
   it('Returns a valid user defined canvas.', () => {
-    const customCanvas = new OffscreenCanvas(10, 10);
+    const customCanvas = document.createElement('canvas');
+    customCanvas.width = 10;
+    customCanvas.height = 10;
     const gl =
         getWebGLContext(tf.env().getNumber('WEBGL_VERSION'), customCanvas);
     expect(gl).not.toBeNull();
-    expect(gl.canvas as {} as OffscreenCanvas).toBe(customCanvas);
+    expect(gl.canvas).toBe(customCanvas);
   });
 });
 
