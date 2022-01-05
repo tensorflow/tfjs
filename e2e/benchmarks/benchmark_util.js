@@ -266,6 +266,40 @@ async function timeInference(predict, numRuns = 1) {
   return timeInfo;
 }
 
+async function timeInferenceForTracing(predict, numRuns = 1) {
+  if (typeof predict !== 'function') {
+    throw new Error(
+        'The first parameter should be a function, while ' +
+        `a(n) ${typeof predict} is found.`);
+  }
+
+  const times = [];
+  const kernelTimes = [];
+  for (let i = 0; i < numRuns; i++) {
+    const start = performance.now();
+    const res = await predict();
+    // The prediction can be tf.Tensor|tf.Tensor[]|{[name: string]: tf.Tensor}.
+    const value = await downloadValuesFromTensorContainer(res);
+    const elapsedTime = performance.now() - start;
+    const kernelTime = await tf.backend().getKernelTimes();
+    tf.dispose(res);
+    times.push(elapsedTime);
+    kernelTimes.push(kernelTime);
+  }
+
+  const averageTime = times.reduce((acc, curr) => acc + curr, 0) / times.length;
+  const minTime = Math.min(...times);
+  const maxTime = Math.max(...times);
+  const timeInfo = {
+    times,
+    averageTime,
+    minTime,
+    maxTime
+
+  };
+  return [timeInfo, kernelTimes];
+}
+
 /**
  * Downloads the values from the `tensorContainer` from any `tf.Tensor`s found
  * within the `tensorContainer`. Returns a promise of `TypedArray` or

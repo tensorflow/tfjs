@@ -92,7 +92,9 @@ limitations under the License.
     let urlState = null;
     let runTimes = 50;
     let profileTimes = 1;
+    let tracingRepeat = 10;
     let warmupTimes = 1;
+    let tracing = false;
     // Default do not run any task.
     let task = '';
     function getURLState(url) {
@@ -111,6 +113,12 @@ limitations under the License.
       }
       if (params.has('task')) {
         task = params.get('task');
+      }
+      if (params.has('tracing')) {
+        tracing = params.get('tracing') === 'true';
+      }
+      if (params.has('tracingrepeat')) {
+        tracingRepeat = Number(params.get('tracingrepeat'));
       }
       return params;
     }
@@ -590,6 +598,20 @@ limitations under the License.
       appendRow(timeTable, '', '');
     }
 
+    async function tracingPredictTime(repeat = 10) {
+      await showMsg(`Running tracing`);
+      tf.env().set('TRACING', true);
+      const tracingStart = performance.now();
+      let [timeInfo, kernelTimes] = await timeInferenceForTracing(() => predict(model), repeat);
+      console.log("predictbegin"+JSON.stringify(timeInfo)+ "predictend");
+      for (let item in kernelTimes) {
+        console.log('gpudatabegin' + JSON.stringify(kernelTimes[item]) + 'gpudataend');
+      }
+      appendRow(timeTable, `Tracing average ${repeat}`, printTime(timeInfo.averageTime));
+      tf.env().set('TRACING', false);
+      await showMsg(null);
+    }
+
     async function profileMemoryAndKernelTime() {
       if (state.numProfiles == 0) {
         return;
@@ -730,7 +752,11 @@ limitations under the License.
 
       await warmUpAndRecordTime();
       await measureAveragePredictTime();
-      await profileMemoryAndKernelTime();
+      if (tracing) {
+        await tracingPredictTime(tracingRepeat);
+      } else {
+        await profileMemoryAndKernelTime();
+      }
       urlState = null;
     }
 
