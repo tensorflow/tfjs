@@ -419,8 +419,12 @@ export class MathBackendWebGL extends KernelBackend {
       return gpuResouorce;
     }
 
-    if (values != null && texture == null) {
-      return null;
+    if (texture == null) {
+      if (values != null) {
+        throw new Error('Data is not on GPU but on CPU.');
+      } else {
+        throw new Error('There is no data on GPU or CPU.');
+      }
     }
 
     // Decode the texture so that it is stored densely (using four channels).
