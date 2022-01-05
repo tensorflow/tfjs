@@ -18,8 +18,8 @@
 import {backend_util, Conv2DBackpropInput, Conv2DBackpropInputAttrs, Conv2DBackpropInputInputs, env, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {Conv2DDerInputMMProgram} from './conv_backprop_mm_webgpu';
-import {Conv2DDerInputProgram} from './conv_backprop_webgpu';
+import {Conv2DDerInputMMProgram} from '../conv_backprop_mm_webgpu';
+import {Conv2DDerInputProgram} from '../conv_backprop_webgpu';
 
 export function conv2DBackpropInput(args: {
   inputs: Conv2DBackpropInputInputs,

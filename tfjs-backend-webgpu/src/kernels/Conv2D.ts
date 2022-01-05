@@ -20,9 +20,9 @@ import {backend_util, Conv2D, Conv2DAttrs, Conv2DInputs, env, KernelConfig, Kern
 import {WebGPUBackend} from '../backend_webgpu';
 
 import {conv2dByMatMul, conv2dWithIm2Col} from './Conv2D_impl';
-import {Conv2DMMVec4Program} from './conv2d_mm_vec4_webgpu';
-import {Conv2DMMProgram} from './conv2d_mm_webgpu';
-import {Conv2DNaiveProgram} from './conv2d_naive_webgpu';
+import {Conv2DMMVec4Program} from '../conv2d_mm_vec4_webgpu';
+import {Conv2DMMProgram} from '../conv2d_mm_webgpu';
+import {Conv2DNaiveProgram} from '../conv2d_naive_webgpu';
 
 export function conv2d(
     args: {inputs: Conv2DInputs, attrs: Conv2DAttrs, backend: WebGPUBackend}) {
