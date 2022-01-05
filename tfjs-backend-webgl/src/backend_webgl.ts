@@ -142,27 +142,34 @@ export class MathBackendWebGL extends KernelBackend {
   private numMBBeforeWarning: number;
   private warnedAboutMemory = false;
 
-  constructor(gpgpu?: GPGPUContext) {
+  constructor(gpuResource?: GPGPUContext|HTMLCanvasElement|OffscreenCanvas) {
     super();
     if (!env().getBool('HAS_WEBGL')) {
       throw new Error('WebGL is not supported on this device');
     }
 
-    if (gpgpu == null) {
-      const gl = getWebGLContext(env().getNumber('WEBGL_VERSION'));
-      this.binaryCache = getBinaryCache(env().getNumber('WEBGL_VERSION'));
-      this.gpgpu = new GPGPUContext(gl);
-      this.canvas = gl.canvas;
-      this.gpgpuCreatedLocally = true;
-    } else {
-      this.gpgpu = gpgpu;
+    let newGPGPU;
+    if (gpuResource != null) {
+      if (gpuResource instanceof GPGPUContext) {
+        newGPGPU = gpuResource;
+      } else {
+        const gl =
+            getWebGLContext(env().getNumber('WEBGL_VERSION'), gpuResource);
+        newGPGPU = new GPGPUContext(gl);
+      }
       this.binaryCache = {};
       this.gpgpuCreatedLocally = false;
-      this.canvas = gpgpu.gl.canvas;
+    } else {
+      const gl = getWebGLContext(env().getNumber('WEBGL_VERSION'));
+      newGPGPU = new GPGPUContext(gl);
+      this.binaryCache = getBinaryCache(env().getNumber('WEBGL_VERSION'));
+      this.gpgpuCreatedLocally = true;
     }
+
+    this.gpgpu = newGPGPU;
+    this.canvas = this.gpgpu.gl.canvas;
     this.textureManager = new TextureManager(this.gpgpu);
     this.numMBBeforeWarning = numMBBeforeWarning();
-
     this.texData = new DataStorage(this, engine());
   }
 

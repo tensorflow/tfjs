@@ -750,3 +750,37 @@ describeWithFlags('WebGL backend has sync init', WEBGL_ENVS, () => {
     tf.removeBackend(customWebGLBackendName);
   });
 });
+
+describeWithFlags('custom canvas ', WEBGL_ENVS, () => {
+  const customBackendName = 'custom-webgl';
+  let flag: boolean;
+
+  beforeAll(() => {
+    flag = tf.env().getBool('WEBGL_CPU_FORWARD');
+    const kernelFunc = tf.getKernel('Square', 'webgl').kernelFunc;
+    tf.registerKernel(
+        {kernelName: 'Square', backendName: customBackendName, kernelFunc});
+  });
+
+  afterAll(() => {
+    tf.env().set('WEBGL_CPU_FORWARD', flag);
+    tf.unregisterKernel('Square', customBackendName);
+  });
+
+  it('works.', () => {
+    const customCanvas = document.createElement('canvas');
+    customCanvas.width = 300;
+    customCanvas.height = 200;
+
+    const backend = new MathBackendWebGL(customCanvas);
+    tf.registerBackend(customBackendName, () => backend);
+    tf.setBackend(customBackendName);
+
+    const t = tf.square(2);
+    const data = t.dataSync();
+
+    expectArraysEqual(data, [4]);
+
+    tf.removeBackend(customBackendName);
+  });
+});
