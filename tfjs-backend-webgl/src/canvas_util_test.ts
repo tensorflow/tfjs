@@ -18,7 +18,7 @@ import * as tf from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {BROWSER_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-import {getWebGLContext} from './canvas_util';
+import {clearWebGLContext, getWebGLContext} from './canvas_util';
 
 describeWithFlags('canvas_util', BROWSER_ENVS, () => {
   it('Returns a valid canvas', () => {
@@ -35,6 +35,20 @@ describeWithFlags('canvas_util', BROWSER_ENVS, () => {
   it('Returns a valid gl context', () => {
     const gl = getWebGLContext(tf.env().getNumber('WEBGL_VERSION'));
     expect(gl.isContextLost()).toBe(false);
+  });
+
+  it('Returns a valid user defined canvas.', () => {
+    const webGLVersion = tf.env().getNumber('WEBGL_VERSION');
+    clearWebGLContext(webGLVersion);
+
+    const customCanvas = document.createElement('canvas');
+    customCanvas.width = 10;
+    customCanvas.height = 10;
+
+    const gl = getWebGLContext(webGLVersion, customCanvas);
+
+    expect(gl).not.toBeNull();
+    expect(gl.canvas).toBe(customCanvas);
   });
 });
 
