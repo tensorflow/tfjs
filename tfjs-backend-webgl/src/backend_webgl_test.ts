@@ -757,6 +757,7 @@ describeWithFlags('custom canvas ', WEBGL_ENVS, () => {
 
   beforeAll(() => {
     flag = tf.env().getBool('WEBGL_CPU_FORWARD');
+    tf.env().set('WEBGL_CPU_FORWARD', false);
     const kernelFunc = tf.getKernel('Square', 'webgl').kernelFunc;
     tf.registerKernel(
         {kernelName: 'Square', backendName: customBackendName, kernelFunc});
