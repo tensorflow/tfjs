@@ -20,7 +20,7 @@ import {KernelConfig, Maximum} from '@tensorflow/tfjs-core';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {maximumImplCPU as cpuMaximum} from '../kernel_utils/shared';
 
-import {BinaryOpType} from './binary_op_util';
+import {BinaryOpType} from '../binary_op_util';
 
 export const maximum = binaryKernelFunc({
   opSnippet: BinaryOpType.MAX,

@@ -19,8 +19,8 @@ import {AvgPool, AvgPoolAttrs, AvgPoolInputs, backend_util, KernelConfig, Kernel
 import {WebGPUBackend} from '../backend_webgpu';
 
 import {identity} from './Identity';
-import {Pool2DProgram} from './pool2d_webgpu';
-import {PoolWithFilterSizeEqualsOneProgram} from './pool_filtersizeone_webgpu';
+import {Pool2DProgram} from '../pool2d_webgpu';
+import {PoolWithFilterSizeEqualsOneProgram} from '../pool_filtersizeone_webgpu';
 
 export function avgPool(
     args: {inputs: AvgPoolInputs, backend: WebGPUBackend, attrs: AvgPoolAttrs}):

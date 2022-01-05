@@ -17,8 +17,8 @@
 
 import {TensorInfo} from '@tensorflow/tfjs-core';
 import {WebGPUBackend} from '../backend_webgpu';
-import {UnaryOpProgram} from '../kernels/unary_op_webgpu';
-import {UnaryOpType} from '../kernels/unary_op_util';
+import {UnaryOpProgram} from '../unary_op_webgpu';
+import {UnaryOpType} from '../unary_op_util';
 
 export function int(input: TensorInfo, backend: WebGPUBackend): TensorInfo {
   const program = new UnaryOpProgram(input.shape, UnaryOpType.TO_INT);
