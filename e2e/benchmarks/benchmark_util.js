@@ -234,23 +234,49 @@ async function timeModelInference(model, input, numRuns = 1) {
  * @param predict The predict function to execute and time.
  * @param numRuns The number of rounds for `predict` to execute and time.
  */
-async function timeInference(predict, numRuns = 1) {
+let setBatchSizes = null;
+async function timeInference(predict, numRuns = 1, tracingFlag = false) {
   if (typeof predict !== 'function') {
     throw new Error(
         'The first parameter should be a function, while ' +
         `a(n) ${typeof predict} is found.`);
   }
+  if (setBatchSizes == null) {
+    // setBatchSizes = JSON.parse(await readFileAsync('batchSizes.json'));
+    console.log(JSON.stringify(setBatchSizes));
+  }
+
+  const tracing = tf.getBackend() === 'webgpu' && tracingFlag;
+  if (tracing) {
+    tf.env().set('TRACING', true);
+  }
 
   const times = [];
+  const kernelTimes = [];
   for (let i = 0; i < numRuns; i++) {
     const start = performance.now();
+    // tf.backend().setBatchSizes(
+    //  [15, 30, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90]);
+    // tf.backend().setBatchSizes([1, 5, 20, 35, 50, 65, 80, 95]);
+    if (setBatchSizes != null) tf.backend().setBatchSizes(setBatchSizes);
+    if (tracing) {
+      console.timeStamp('predict');
+      tf.env().set('TRACING', true);
+    }
     const res = await predict();
     // The prediction can be tf.Tensor|tf.Tensor[]|{[name: string]: tf.Tensor}.
     const value = await downloadValuesFromTensorContainer(res);
-    const elapsedTime = performance.now() - start;
 
+    const elapsedTime = performance.now() - start;
+    if (tracing) {
+      const kernelTime = await tf.backend().getKernelTimes();
+      kernelTimes.push(kernelTime);
+    }
     tf.dispose(res);
     times.push(elapsedTime);
+  }
+  if (tracing) {
+    tf.env().set('TRACING', false);
   }
 
   const averageTime = times.reduce((acc, curr) => acc + curr, 0) / times.length;
@@ -263,7 +289,33 @@ async function timeInference(predict, numRuns = 1) {
     maxTime
 
   };
+  console.log('setBatch' + JSON.stringify(timeInfo));
+  if (tracing) {
+    console.log('predictbegin' + JSON.stringify(timeInfo) + 'predictend');
+    for (let item in kernelTimes) {
+      console.log(
+          'gpudatabegin' + JSON.stringify(kernelTimes[item]) + 'gpudataend');
+    }
+  }
   return timeInfo;
+}
+
+async function readFileAsync(url, method = 'GET') {
+  return new Promise(function(resolve, reject) {
+    let xhr = new XMLHttpRequest();
+    xhr.open(method, url);
+    xhr.onload = function() {
+      if (this.status >= 200 && this.status < 300) {
+        resolve(xhr.response);
+      } else {
+        reject({status: this.status, statusText: xhr.statusText});
+      }
+    };
+    xhr.onerror = function() {
+      reject({status: this.status, statusText: xhr.statusText});
+    };
+    xhr.send();
+  });
 }
 
 /**
@@ -419,6 +471,8 @@ async function profileInference(predict, isTflite = false, numProfiles = 1) {
         const res = await predict();
         await downloadValuesFromTensorContainer(res);
         tf.dispose(res);
+        // Add below to clean query Index.
+        if (tf.getBackend() === 'webgpu') await tf.backend().getKernelTimes();
       });
       kernelInfos.push(kernelInfo);
     }
@@ -486,7 +540,8 @@ const TUNABLE_FLAG_VALUE_RANGE_MAP = {
   CHECK_COMPUTATION_FOR_ERRORS: [true, false],
   KEEP_INTERMEDIATE_TENSORS: [true, false],
   WEBGL_USE_SHAPES_UNIFORMS: [true, false],
-  WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE: [1, 5, 10, 15, 20, 25, 30, 35, 40]
+  WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE:
+      [1, 5, 10, 15, 20, 25, 30, 35, 40, 86, 90, 100, 108, 178]
 };
 
 /**
