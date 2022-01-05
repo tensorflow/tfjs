@@ -768,7 +768,9 @@ describeWithFlags('custom canvas ', WEBGL_ENVS, () => {
   });
 
   it('works.', () => {
-    const customCanvas = new OffscreenCanvas(300, 200);
+    const customCanvas = document.createElement('canvas');
+    customCanvas.width = 300;
+    customCanvas.height = 200;
 
     const backend = new MathBackendWebGL(customCanvas);
     tf.registerBackend(customBackendName, () => backend);
