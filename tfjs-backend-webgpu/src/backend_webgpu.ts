@@ -17,7 +17,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, buffer, DataStorage, DataType, DataValues, engine, env, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, DataStorage, DataType, DataValues, engine, env, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {BufferManager} from './buffer_manager';
 import {FromPixelsImportProgram} from './kernels/FromPixels_utils/from_pixels_import_webgpu';
@@ -566,7 +566,7 @@ export class WebGPUBackend extends KernelBackend {
           GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC);
       const arrayBuffer = stagingBuffer.getMappedRange();
       if (info.dtype === 'int32' || info.dtype === 'bool') {
-        new Int32Array(arrayBuffer).set(info.values as Int32Array);
+        new Int32Array(arrayBuffer).set(info.values as TypedArray);
       } else {
         new Float32Array(arrayBuffer).set(info.values as Float32Array);
       }
