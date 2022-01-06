@@ -209,6 +209,7 @@ export function getTextureConfig(
     defaultNumChannels = 1;
     textureTypeHalfFloat = glany.HALF_FLOAT;
     textureTypeFloat = glany.FLOAT;
+    downloadTextureFormat = glany.RGBA8;
   } else {
     internalFormatFloat = gl.RGBA;
     internalFormatHalfFloat = gl.RGBA;
@@ -221,8 +222,8 @@ export function getTextureConfig(
         textureHalfFloatExtension.HALF_FLOAT_OES :
         null;
     textureTypeFloat = gl.FLOAT;
+    downloadTextureFormat = gl.RGBA;
   }
-  downloadTextureFormat = gl.RGBA;
 
   return {
     internalFormatFloat,
