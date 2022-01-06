@@ -512,7 +512,7 @@ export class MathBackendWebGL extends KernelBackend {
     return env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') > 0;
   }
 
-  async time(f: () => void): Promise<WebGLTimingInfo> {
+  time(f: () => void): Promise<WebGLTimingInfo> {
     const oldActiveTimers = this.activeTimers;
     const newActiveTimers: TimerNode[] = [];
 
@@ -548,23 +548,26 @@ export class MathBackendWebGL extends KernelBackend {
       wallMs: null  // will be filled by the engine
     };
 
-    if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') > 0) {
-      const kernelMs = await Promise.all(flattenedActiveTimerQueries);
+    return (async () => {
+      if (env()
+        .getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') > 0) {
+        const kernelMs = await Promise.all(flattenedActiveTimerQueries);
 
-      res['kernelMs'] = util.sum(kernelMs);
-      res['getExtraProfileInfo'] = () =>
+        res['kernelMs'] = util.sum(kernelMs);
+        res['getExtraProfileInfo'] = () =>
           kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
-              .map(d => `${d.name}: ${d.ms}`)
-              .join(', ');
-    } else {
-      res['kernelMs'] = {
-        error: 'WebGL query timers are not supported in this environment.'
-      };
-    }
+            .map(d => `${d.name}: ${d.ms}`)
+            .join(', ');
+      } else {
+        res['kernelMs'] = {
+          error: 'WebGL query timers are not supported in this environment.'
+        };
+      }
 
-    this.uploadWaitMs = 0;
-    this.downloadWaitMs = 0;
-    return res;
+      this.uploadWaitMs = 0;
+      this.downloadWaitMs = 0;
+      return res;
+    })();
   }
   memory(): WebGLMemoryInfo {
     return {

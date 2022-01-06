@@ -872,3 +872,29 @@ describeWithFlags('depthwiseConv2d packed', PACKED_ENVS, () => {
     expect(endNumTensors - startNumTensors).toEqual(1);
   });
 });
+
+describeWithFlags('gather', WEBGL_ENVS, () => {
+  it('fills with zero when index is out of bound', async () => {
+    const t = tf.tensor2d([1, 11, 2, 22], [2, 2]);
+    const tInt = tf.tensor2d([1, 11, 2, 22], [2, 2], 'int32');
+
+    const index = tf.tensor1d([0, 1, 100, -1, 2, -4], 'int32');
+    const res = tf.gather(t, index);
+    const resInt = tf.gather(tInt, index);
+
+    const expected = [1, 11, 2, 22, 0, 0, 0, 0, 0, 0, 0, 0];
+    expectArraysClose(await res.data(), expected);
+    expectArraysClose(await resInt.data(), expected);
+  });
+});
+
+describeWithFlags('gather debug', WEBGL_ENVS, () => {
+  it('throws if index is out of bound if in debug mode', async () => {
+    const t = tf.tensor2d([1, 11, 2, 22], [2, 2]);
+    tf.enableDebugMode();
+    expect(() => tf.gather(t, tf.tensor1d([100], 'int32')))
+        .toThrowError(/GatherV2: the index value 100 is not in \[0, 1\]/);
+    expect(() => tf.gather(t, tf.tensor1d([-1], 'int32')))
+        .toThrowError(/GatherV2: the index value -1 is not in \[0, 1\]/);
+  });
+});
