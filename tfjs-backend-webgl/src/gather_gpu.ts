@@ -18,13 +18,15 @@
 import {GPGPUProgram} from './gpgpu_math';
 import {getCoordsDataType} from './shader_compiler';
 
+export type GatherShape = [number, number, number, number];
+
 export class GatherProgram implements GPGPUProgram {
   variableNames = ['A', 'indices'];
   outputShape: number[];
   userCode: string;
   rank: number;
 
-  constructor(aShape: number[], outputShape: number[]) {
+  constructor(aShape: GatherShape, outputShape: GatherShape) {
     this.outputShape = outputShape;
     this.rank = outputShape.length;
     const dtype = getCoordsDataType(this.rank);
@@ -33,20 +35,22 @@ export class GatherProgram implements GPGPUProgram {
     this.userCode = `
       void main() {
         ${dtype} resRC = getOutputCoords();
-        setOutput(getA(${sourceCoords}));
+        int index = int(getIndices(resRC.x, resRC.z));
+        float inBounds = (index >= 0) && (index < ${aShape[2]}) ? 1.0 : 0.0;
+        setOutput(inBounds * getA(${sourceCoords}));
       }
     `;
   }
 }
 
 // The input and output are always flattened into rank 4 tensors.
-function getSourceCoords(aShape: number[], axis: number): string {
+function getSourceCoords(aShape: GatherShape, axis: number): string {
   const currentCoords = ['resRC.x', 'resRC.y', 'resRC.z', 'resRC.w'];
 
   const sourceCoords = [];
   for (let i = 0; i < aShape.length; i++) {
     if (i === 2) {
-      sourceCoords.push('int(getIndices(resRC.x, resRC.z))');
+      sourceCoords.push('index');
     } else {
       sourceCoords.push(`${currentCoords[i]}`);
     }
