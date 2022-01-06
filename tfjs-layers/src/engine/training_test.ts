@@ -2006,15 +2006,15 @@ describeMathCPUAndWebGL2('LayersModel.fit: No memory leak', () => {
        const validationSplit = 0.4;
        targets = ones([numSamples]);
        model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+       const numTensors0 = memory().numTensors;
        // Use batchSize === numSamples to get exactly one batch.
        await model.fit(
            inputs, targets,
-           {batchSize: numSamples, epochs: 1, validationSplit});
-       const numTensors0 = memory().numTensors;
+           {batchSize: 2, epochs: 10, validationSplit, shuffle: true});
        for (let i = 0; i < 2; ++i) {
          await model.fit(
              inputs, targets,
-             {batchSize: numSamples, epochs: 1, validationSplit});
+             {batchSize: 2, epochs: 10, validationSplit, shuffle: true});
          const numTensorsNow = memory().numTensors;
          if (numTensorsNow > numTensors0) {
            done.fail(
