@@ -377,14 +377,14 @@ export class Tensor<R extends Rank = Rank> {
    *         - customTexShape: Optional. If set, will use the user defined
    *     texture shape to create the texture.
    *
-   * @returns For WebGL backend, a GPUResource contains the new texture and
+   * @returns For WebGL backend, a GPUData contains the new texture and
    *     its information.
    *     {
    *        tensorRef: The tensor that is associated with this texture,
    *        texture: WebGLTexture,
    *        texShape: [number, number] // [height, width]
    *     }
-   *     Remember to dispose the GPUResource after it is used by
+   *     Remember to dispose the GPUData after it is used by
    *     `res.tensorRef.dispose()`.
    *
    * @doc {heading: 'Tensors', subheading: 'Classes'}

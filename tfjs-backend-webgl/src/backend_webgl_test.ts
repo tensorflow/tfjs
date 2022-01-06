@@ -16,9 +16,10 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {engine, GPUResource, test_util, util} from '@tensorflow/tfjs-core';
+import {engine, GPUData, test_util, util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
 const {expectArraysClose, expectArraysEqual} = test_util;
 const {decodeString} = util;
 
@@ -769,7 +770,7 @@ describeWithFlags('keeping data on gpu ', WEBGL2_ENVS, () => {
       return b.dataToGPU() as {} as tf.Tensor;
     });
 
-    const res = result as {} as GPUResource;
+    const res = result as {} as GPUData;
 
     const webGLBackend = tf.backend() as MathBackendWebGL;
     const buffer = webGLBackend.gpgpu.createBufferFromTexture(
