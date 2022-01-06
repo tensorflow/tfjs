@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {env, PixelData, TypedArray} from '@tensorflow/tfjs-core';
+import {PixelData, TypedArray} from '@tensorflow/tfjs-core';
 
 import {getGlslDifferences} from './glsl_version';
 import * as tex_util from './tex_util';
@@ -67,18 +67,13 @@ function createAndConfigureTexture(
       gl, () => gl.texParameteri(tex2d, gl.TEXTURE_MIN_FILTER, gl.NEAREST));
   webgl_util.callAndCheck(
       gl, () => gl.texParameteri(tex2d, gl.TEXTURE_MAG_FILTER, gl.NEAREST));
-  if (env().getNumber('WEBGL_VERSION') === 1) {
-    webgl_util.callAndCheck(
-        gl,
-        () => gl.texImage2D(
-            tex2d, 0, internalFormat, width, height, 0, textureFormat,
-            textureType, null));
-  } else {
-    webgl_util.callAndCheck(
-        gl,
-        () => (gl as WebGL2RenderingContext)
-                  .texStorage2D(tex2d, 1, internalFormat, width, height));
-  }
+
+  webgl_util.callAndCheck(
+      gl,
+      () => gl.texImage2D(
+          tex2d, 0, internalFormat, width, height, 0, textureFormat,
+          textureType, null));
+
   webgl_util.callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, null));
 
   return {texture, texShape: [height, width]};
@@ -195,19 +190,11 @@ export function uploadDenseMatrixToTexture(
   }
 
   dataForUpload.set(data);
-  if (env().getNumber('WEBGL_VERSION') === 2) {
-    webgl_util.callAndCheck(
-        gl,
-        () => gl.texSubImage2D(
-            gl.TEXTURE_2D, 0, 0, 0, width, height, gl.RGBA, texelDataType,
-            dataForUpload));
-  } else {
-    webgl_util.callAndCheck(
-        gl,
-        () => gl.texImage2D(
-            gl.TEXTURE_2D, 0, internalFormat, width, height, 0, gl.RGBA,
-            texelDataType, dataForUpload));
-  }
+  webgl_util.callAndCheck(
+      gl,
+      () => gl.texImage2D(
+          gl.TEXTURE_2D, 0, internalFormat, width, height, 0, gl.RGBA,
+          texelDataType, dataForUpload));
 
   webgl_util.callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, null));
 }
