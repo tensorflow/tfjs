@@ -16,9 +16,10 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {engine, test_util, util} from '@tensorflow/tfjs-core';
+import {engine, GPUData, test_util, util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
 const {expectArraysClose, expectArraysEqual} = test_util;
 const {decodeString} = util;
 
@@ -677,6 +678,250 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
            'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE',
            savedQueryReliableValue);
      });
+});
+
+describeWithFlags('keeping data on gpu ', WEBGL2_ENVS, () => {
+  let flag: boolean;
+
+  beforeAll(() => {
+    flag = tf.env().getBool('WEBGL_CPU_FORWARD');
+    tf.env().set('WEBGL_CPU_FORWARD', false);
+  });
+
+  afterAll(() => {
+    tf.env().set('WEBGL_CPU_FORWARD', flag);
+  });
+
+  it('has a valid texture for dtype=float32.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const texShape = [2, 2];
+    const a = tf.tensor(data, [1, 3, 4]);
+    const b = tf.add(a, 0);
+    const res = b.dataToGPU();
+    expectArraysEqual(res.texShape, texShape);
+
+    const webGLBackend = tf.backend() as MathBackendWebGL;
+    const buffer = webGLBackend.gpgpu.createBufferFromTexture(
+        res.texture, res.texShape[0], res.texShape[1]);
+    const vals = webGLBackend.gpgpu.downloadFloat32MatrixFromBuffer(buffer, 12);
+    expectArraysEqual(vals, data);
+  });
+
+  it('uses user defined texShape.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const a = tf.tensor(data, [1, 3, 4]);
+    const b = tf.add(a, 0);
+    const texShape = [1, 3] as [number, number];
+    const res = b.dataToGPU({customTexShape: texShape});
+    expectArraysEqual(res.texShape, texShape);
+
+    const webGLBackend = tf.backend() as MathBackendWebGL;
+    const buffer = webGLBackend.gpgpu.createBufferFromTexture(
+        res.texture, res.texShape[0], res.texShape[1]);
+    const vals = webGLBackend.gpgpu.downloadFloat32MatrixFromBuffer(buffer, 12);
+    expectArraysEqual(vals, data);
+  });
+
+  it('has a valid texture for dtype=int32.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const texShape = [2, 2];
+    const a = tf.tensor(data, [1, 3, 4], 'int32');
+    const b = tf.add(a, 0);
+    const res = b.dataToGPU();
+    expectArraysEqual(res.texShape, texShape);
+
+    const webGLBackend = tf.backend() as MathBackendWebGL;
+
+    const buffer = webGLBackend.gpgpu.createBufferFromTexture(
+        res.texture, res.texShape[0], res.texShape[1]);
+    const vals = webGLBackend.gpgpu.downloadFloat32MatrixFromBuffer(buffer, 12);
+
+    expectArraysEqual(vals, data);
+  });
+
+  it('has no memory leak.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+    const a = tf.tensor(data, [1, 3, 4]);
+    const b = tf.add(a, 0);
+
+    const webGLBackend = tf.backend() as MathBackendWebGL;
+    const startNumBytes = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
+    const startTensor = tf.memory().numTensors;
+    const startDataBuckets = webGLBackend.numDataIds();
+
+    const res = b.dataToGPU();
+    res.tensorRef.dispose();
+
+    const endNumBytes = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
+    const endTensor = tf.memory().numTensors;
+    const endDataBuckets = webGLBackend.numDataIds();
+
+    expect(endNumBytes).toEqual(startNumBytes);
+    expect(endTensor).toEqual(startTensor);
+    expect(endDataBuckets).toEqual(startDataBuckets);
+  });
+
+  it('can be used in tidy.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+    const webGLBackend = tf.backend() as MathBackendWebGL;
+    const startTensor = tf.memory().numTensors;
+    const startDataBuckets = webGLBackend.numDataIds();
+
+    const result = tf.tidy(() => {
+      const a = tf.tensor(data, [1, 3, 4]);
+      const b = tf.add(a, 0);
+      return b.dataToGPU() as {} as tf.Tensor;
+    });
+
+    const endTensor = tf.memory().numTensors;
+    const endDataBuckets = webGLBackend.numDataIds();
+
+    expect(endTensor).toEqual(startTensor + 1);
+    expect(endDataBuckets).toEqual(startDataBuckets + 1);
+
+    const res = result as {} as GPUData;
+    const buffer = webGLBackend.gpgpu.createBufferFromTexture(
+        res.texture, res.texShape[0], res.texShape[1]);
+    const vals = webGLBackend.gpgpu.downloadFloat32MatrixFromBuffer(buffer, 12);
+    expectArraysEqual(vals, data);
+  });
+
+  it('tidy has no memory leak.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+    const webGLBackend = tf.backend();
+    const startTensor = tf.memory().numTensors;
+    const startDataBuckets = webGLBackend.numDataIds();
+
+    tf.tidy(() => {
+      const a = tf.tensor(data, [1, 3, 4]);
+      const b = tf.add(a, 0);
+      b.dataToGPU();
+      return b;
+    });
+
+    const endTensor = tf.memory().numTensors;
+    const endDataBuckets = webGLBackend.numDataIds();
+
+    expect(endTensor).toEqual(startTensor + 1);
+    expect(endDataBuckets).toEqual(startDataBuckets + 1);
+  });
+
+  it('throws error when user defined texShape is too small.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const a = tf.tensor(data, [1, 3, 4]);
+    const b = tf.add(a, 0);
+
+    expect(() => {
+      b.dataToGPU({customTexShape: [1, 1]});
+    }).toThrowError();
+  });
+});
+
+describeWithFlags('keeping data on gpu ', WEBGL1_ENVS, () => {
+  let flag: boolean;
+  const webGLBackend = (tf.backend() as MathBackendWebGL);
+
+  beforeAll(() => {
+    flag = tf.env().getBool('WEBGL_CPU_FORWARD');
+    tf.env().set('WEBGL_CPU_FORWARD', false);
+  });
+
+  afterAll(() => {
+    tf.env().set('WEBGL_CPU_FORWARD', flag);
+  });
+
+  it('has a valid texture for dtype=float32.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const texShape = [2, 2];
+    const size = 12;
+    const a = tf.tensor(data, [1, 3, 4]);
+    const b = tf.add(a, 0);
+    const res = b.dataToGPU();
+    expectArraysEqual(res.texShape, texShape);
+
+    if (tf.env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
+      const tmpData = webGLBackend.texData.get(res.tensorRef.dataId);
+      const vals = webGLBackend.gpgpu
+                       .downloadMatrixFromPackedTexture(
+                           tmpData.texture.texture, ...tmpData.texture.texShape)
+                       .subarray(0, size);
+      expectArraysEqual(vals, data);
+    }
+  });
+
+  it('uses user defined texShape.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const a = tf.tensor(data, [1, 3, 4]);
+    const b = tf.add(a, 0);
+    const texShape = [1, 3] as [number, number];
+    const size = 12;
+    const res = b.dataToGPU({customTexShape: texShape});
+    expectArraysEqual(res.texShape, texShape);
+
+    if (tf.env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
+      const tmpData = webGLBackend.texData.get(res.tensorRef.dataId);
+      const vals = webGLBackend.gpgpu
+                       .downloadMatrixFromPackedTexture(
+                           tmpData.texture.texture, ...tmpData.texture.texShape)
+                       .subarray(0, size);
+      expectArraysEqual(vals, data);
+    }
+  });
+
+  it('has a valid texture for dtype=int32.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const texShape = [2, 2];
+    const size = 12;
+    const a = tf.tensor(data, [1, 3, 4], 'int32');
+    const b = tf.add(a, 0);
+    const res = b.dataToGPU();
+    expectArraysEqual(res.texShape, texShape);
+
+    if (tf.env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
+      const tmpData = webGLBackend.texData.get(res.tensorRef.dataId);
+      const vals = webGLBackend.gpgpu
+                       .downloadMatrixFromPackedTexture(
+                           tmpData.texture.texture, ...tmpData.texture.texShape)
+                       .subarray(0, size);
+      expectArraysEqual(vals, data);
+    }
+  });
+
+  it('has no memory leak.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+    const a = tf.tensor(data, [1, 3, 4]);
+    const b = tf.add(a, 0);
+
+    const webGLBackend = tf.backend() as MathBackendWebGL;
+    const startNumBytes = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
+    const startTensor = tf.memory().numTensors;
+    const startDataBuckets = webGLBackend.numDataIds();
+
+    const res = b.dataToGPU();
+    res.tensorRef.dispose();
+
+    const endNumBytes = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
+    const endTensor = tf.memory().numTensors;
+    const endDataBuckets = webGLBackend.numDataIds();
+
+    expect(endNumBytes).toEqual(startNumBytes);
+    expect(endTensor).toEqual(startTensor);
+    expect(endDataBuckets).toEqual(startDataBuckets);
+  });
+
+  it('throws error when user defined texShape is too small.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const a = tf.tensor(data, [1, 3, 4]);
+    const b = tf.add(a, 0);
+
+    expect(() => {
+      b.dataToGPU({customTexShape: [1, 1]});
+    }).toThrowError();
+  });
 });
 
 describeWithFlags('caching on cpu', WEBGL_ENVS, () => {
