@@ -36,7 +36,7 @@ export class GatherProgram implements GPGPUProgram {
       void main() {
         ${dtype} resRC = getOutputCoords();
         float index = getIndices(resRC.x, resRC.z);
-        float inBounds = (index >= 0.0) && (index <= float(${aShape[2]})) ? 1.0 : 0.0;
+        float inBounds = (index >= 0.0) && (index <= float(${aShape[2]}) - 1.0) ? 1.0 : 0.0;
         setOutput(inBounds * getA(${sourceCoords}));
       }
     `;
