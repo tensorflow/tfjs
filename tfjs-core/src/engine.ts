@@ -23,7 +23,7 @@ import {getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap, Te
 import * as log from './log';
 import {KernelProfile, Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
-import {DataId, DataToGPUOptions, GPUResource, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
+import {DataId, DataToGPUOptions, GPUData, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
 import {GradSaveFunc, NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
 import {BackendValues, DataType, DataValues} from './types';
@@ -1211,7 +1211,7 @@ export class Engine implements TensorTracker, DataMover {
     return info.backend.read(dataId);
   }
 
-  readToGPU(dataId: DataId, options?: DataToGPUOptions): GPUResource {
+  readToGPU(dataId: DataId, options?: DataToGPUOptions): GPUData {
     // Route the read to the correct backend.
     const info = this.state.tensorInfo.get(dataId);
     return info.backend.readToGPU(dataId, options);

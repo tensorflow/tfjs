@@ -431,11 +431,11 @@ export class MathBackendWebGL extends KernelBackend {
     const tmpTarget = this.decode(dataId, options.customTexShape);
 
     // Make engine track this tensor, so that we can dispose it later.
-    engine().makeTensorFromDataId(
+    const tensorRef = engine().makeTensorFromDataId(
         tmpTarget.dataId, tmpTarget.shape, tmpTarget.dtype);
 
     const tmpData = this.texData.get(tmpTarget.dataId);
-    return {dataId: tmpTarget.dataId, ...tmpData.texture};
+    return {tensorRef, ...tmpData.texture};
   }
 
   bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {

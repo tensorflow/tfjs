@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Backend, DataId, DataToGPUOptions, GPUResource} from '../tensor';
+import {Backend, DataId, DataToGPUOptions, GPUData} from '../tensor';
 import {BackendValues, DataType} from '../types';
 
 export const EPSILON_FLOAT32 = 1e-7;
@@ -115,7 +115,7 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   readSync(dataId: object): BackendValues {
     return notYetImplemented('readSync');
   }
-  readToGPU(dataId: object, options?: DataToGPUOptions): GPUResource {
+  readToGPU(dataId: object, options?: DataToGPUOptions): GPUData {
     return notYetImplemented('readToGPU');
   }
   numDataIds(): number {

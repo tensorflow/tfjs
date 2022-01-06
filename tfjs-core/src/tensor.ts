@@ -162,8 +162,8 @@ export interface DataToGPUWebGLOption {
 
 export type DataToGPUOptions = DataToGPUWebGLOption;
 
-export interface GPUResource {
-  dataId: DataId;
+export interface GPUData {
+  tensorRef: Tensor;
   texture?: WebGLTexture;
   texShape?: [number, number];
 }
@@ -179,7 +179,7 @@ export interface TensorTracker {
   disposeVariable(v: Variable): void;
   read(dataId: DataId): Promise<BackendValues>;
   readSync(dataId: DataId): BackendValues;
-  readToGPU(dataId: DataId, options?: DataToGPUOptions): GPUResource;
+  readToGPU(dataId: DataId, options?: DataToGPUOptions): GPUData;
 }
 
 /**
@@ -380,16 +380,16 @@ export class Tensor<R extends Rank = Rank> {
    * @returns For WebGL backend, a GPUResource contains the new texture and
    *     its information.
    *     {
-   *        dataId: Object,
+   *        tensorRef: The tensor that is associated with this texture,
    *        texture: WebGLTexture,
    *        texShape: [number, number] // [height, width]
    *     }
    *     Remember to dispose the GPUResource after it is used by
-   *     `tf.dispose(GPUResource as {} as Tensor)`.
+   *     `res.tensorRef.dispose()`.
    *
    * @doc {heading: 'Tensors', subheading: 'Classes'}
    */
-  dataToGPU(options?: DataToGPUOptions): GPUResource {
+  dataToGPU(options?: DataToGPUOptions): GPUData {
     this.throwIfDisposed();
     return trackerFn().readToGPU(this.dataId, options);
   }
@@ -521,7 +521,7 @@ export interface NumericTensor<R extends Rank = Rank> extends Tensor<R> {
   dtype: NumericDataType;
   dataSync<D extends DataType = NumericDataType>(): DataTypeMap[D];
   data<D extends DataType = NumericDataType>(): Promise<DataTypeMap[D]>;
-  dataToGPU(options?: DataToGPUOptions): GPUResource;
+  dataToGPU(options?: DataToGPUOptions): GPUData;
 }
 
 export interface StringTensor<R extends Rank = Rank> extends Tensor<R> {
