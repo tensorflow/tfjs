@@ -195,6 +195,8 @@ function numBytesForInternalFormat(
     return 16;
   } else if (internalFormat === glany.RGBA16F) {
     return 8;
+  } else if (internalFormat === glany.RGBA8) {
+    return 4;
   }
   throw new Error(`Unknown internal format ${internalFormat}`);
 }
