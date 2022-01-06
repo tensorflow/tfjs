@@ -1535,6 +1535,8 @@ export class LayersModel extends Container implements tfc.InferenceModel {
       lossValues.push(v[0]);
     }
     tfc.dispose(losses);
+    disposeNewTensors(standardizeOut[0], x);
+    disposeNewTensors(standardizeOut[1], y);
     return singletonOrArray(lossValues);
   }
 
