@@ -35,8 +35,8 @@ export class GatherProgram implements GPGPUProgram {
     this.userCode = `
       void main() {
         ${dtype} resRC = getOutputCoords();
-        float index = getIndices(resRC.x, resRC.z);
-        float inBounds = (index >= 0.0) && (index <= float(${aShape[2]}) - 1.0) ? 1.0 : 0.0;
+        int index = int(getIndices(resRC.x, resRC.z));
+        float inBounds = (index >= 0) && (index < ${aShape[2]}) ? 1.0 : 0.0;
         setOutput(inBounds * getA(${sourceCoords}));
       }
     `;
@@ -50,7 +50,7 @@ function getSourceCoords(aShape: GatherShape, axis: number): string {
   const sourceCoords = [];
   for (let i = 0; i < aShape.length; i++) {
     if (i === 2) {
-      sourceCoords.push('int(index)');
+      sourceCoords.push('index');
     } else {
       sourceCoords.push(`${currentCoords[i]}`);
     }
