@@ -740,14 +740,15 @@ describeWithFlags('keeping data on gpu ', WEBGL2_ENVS, () => {
 
   it('has no memory leak.', () => {
     const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
     const a = tf.tensor(data, [1, 3, 4]);
-    const b = tf.add(a, 0);
 
     const webGLBackend = tf.backend() as MathBackendWebGL;
     const startNumBytes = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
     const startTensor = tf.memory().numTensors;
     const startDataBuckets = webGLBackend.numDataIds();
 
+    const b = tf.add(a, 0);
     const res = b.dataToGPU();
     tf.dispose(res as {} as tf.Tensor);
 
@@ -860,14 +861,15 @@ describeWithFlags('keeping data on gpu ', WEBGL1_ENVS, () => {
 
   it('has no memory leak.', () => {
     const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
     const a = tf.tensor(data, [1, 3, 4]);
-    const b = tf.add(a, 0);
 
     const webGLBackend = tf.backend() as MathBackendWebGL;
     const startNumBytes = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
     const startTensor = tf.memory().numTensors;
     const startDataBuckets = webGLBackend.numDataIds();
 
+    const b = tf.add(a, 0);
     const res = b.dataToGPU();
     tf.dispose(res as {} as tf.Tensor);
 
