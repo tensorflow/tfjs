@@ -799,7 +799,7 @@ describeWithFlags('keeping data on gpu ', WEBGL2_ENVS, () => {
       const a = tf.tensor(data, [1, 3, 4]);
       const b = tf.add(a, 0);
       b.dataToGPU();
-      return b
+      return b;
     });
 
     const endTensor = tf.memory().numTensors;
