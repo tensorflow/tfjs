@@ -812,7 +812,7 @@ describeWithFlags('keeping data on gpu ', WEBGL1_ENVS, () => {
     expectArraysEqual(res.texShape, texShape);
 
     if (tf.env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
-      const tmpData = webGLBackend.texData.get(res.dataId);
+      const tmpData = webGLBackend.texData.get(res.tensorRef.dataId);
       const vals = webGLBackend.gpgpu
                        .downloadMatrixFromPackedTexture(
                            tmpData.texture.texture, ...tmpData.texture.texShape)
@@ -831,7 +831,7 @@ describeWithFlags('keeping data on gpu ', WEBGL1_ENVS, () => {
     expectArraysEqual(res.texShape, texShape);
 
     if (tf.env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
-      const tmpData = webGLBackend.texData.get(res.dataId);
+      const tmpData = webGLBackend.texData.get(res.tensorRef.dataId);
       const vals = webGLBackend.gpgpu
                        .downloadMatrixFromPackedTexture(
                            tmpData.texture.texture, ...tmpData.texture.texShape)
@@ -850,7 +850,7 @@ describeWithFlags('keeping data on gpu ', WEBGL1_ENVS, () => {
     expectArraysEqual(res.texShape, texShape);
 
     if (tf.env().getBool('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
-      const tmpData = webGLBackend.texData.get(res.dataId);
+      const tmpData = webGLBackend.texData.get(res.tensorRef.dataId);
       const vals = webGLBackend.gpgpu
                        .downloadMatrixFromPackedTexture(
                            tmpData.texture.texture, ...tmpData.texture.texShape)
