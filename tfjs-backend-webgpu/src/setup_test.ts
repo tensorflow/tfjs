@@ -276,9 +276,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     include: ' webgpu ',
     excludes: [
-      // TODO: cases need to be fixed
-      '} bool tensor', // Expected object not to have properties
-
       // Not implemented kernel list.
       'acos ',
       'acosh ',
