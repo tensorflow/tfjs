@@ -149,6 +149,15 @@ limitations under the License.
             tunableFlagsControllers['KEEP_INTERMEDIATE_TENSORS'].setValue(false);
           }
         }
+        if (tunableFlagsControllers['CHECK_COMPUTATION_FOR_ERRORS'] != null &&
+            urlState.has('CHECK_COMPUTATION_FOR_ERRORS')) {
+          const value = urlState.get('CHECK_COMPUTATION_FOR_ERRORS');
+          if (value === 'true') {
+            tunableFlagsControllers['CHECK_COMPUTATION_FOR_ERRORS'].setValue(true);
+          } else {
+            tunableFlagsControllers['CHECK_COMPUTATION_FOR_ERRORS'].setValue(false);
+          }
+        }
       }
       // The model parameter will be update automically by onChange.
       if (modelController != null && urlState.has('benchmark'))
