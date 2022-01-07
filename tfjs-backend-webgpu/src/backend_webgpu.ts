@@ -713,6 +713,14 @@ export class WebGPUBackend extends KernelBackend {
     return this.layoutCache[inputEntrySize];
   }
 
+  private checkQuerySetSize() {
+    if (this.querySetIndex > this.querySetMaxCount) {
+      throw Error(
+          `Timestamp index ${this.querySetIndex} exceeds timestamp count ${
+              this.querySetMaxCount}`);
+    }
+  }
+
   public runWebGPUProgram(
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
       outputDtype: DataType,
@@ -803,6 +811,7 @@ export class WebGPUBackend extends KernelBackend {
       if (this.supportTimeQuery) {
         this.kernelNames[this.querySetIndex / 2] = programName;
         pass.writeTimestamp(this.querySet, this.querySetIndex++);
+        this.checkQuerySetSize();
       }
     }
     pass.setPipeline(pipeline);
@@ -812,6 +821,7 @@ export class WebGPUBackend extends KernelBackend {
     if (shouldTimeProgram || debugQueryFlag) {
       if (this.supportTimeQuery) {
         pass.writeTimestamp(this.querySet, this.querySetIndex++);
+        this.checkQuerySetSize();
       }
     }
     this.dispatchNumberInEncoder++;
@@ -877,6 +887,7 @@ export class WebGPUBackend extends KernelBackend {
       if (this.supportTimeQuery) {
         this.kernelNames[this.querySetIndex / 2] = programName;
         passEncoder.writeTimestamp(this.querySet, this.querySetIndex++);
+        this.checkQuerySetSize();
       }
     }
     passEncoder.setPipeline(program.pipeline);
@@ -886,6 +897,7 @@ export class WebGPUBackend extends KernelBackend {
     if (shouldTimeProgram || debugQueryFlag) {
       if (this.supportTimeQuery) {
         passEncoder.writeTimestamp(this.querySet, this.querySetIndex++);
+        this.checkQuerySetSize();
       }
     }
     this.commandQueueOwnedIds.add(outputId);
