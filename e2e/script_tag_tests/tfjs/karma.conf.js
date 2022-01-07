@@ -19,7 +19,8 @@ module.exports = function(config) {
   const args = [];
 
   const tfjsBundle = config.testBundle ? config.testBundle : 'tf.min.js';
-  const tfjsBundlePath = `../../node_modules/@tensorflow/tfjs/dist/${tfjsBundle}`;
+  const tfjsBundlePath =
+      `../../node_modules/@tensorflow/tfjs/dist/${tfjsBundle}`;
 
   const devConfig = {
     frameworks: ['jasmine'],
@@ -33,12 +34,8 @@ module.exports = function(config) {
     reporters: ['progress']
   };
 
-  const browserstackConfig = {
-    ...devConfig,
-    hostname: 'bs-local.com',
-    singleRun: true,
-    port: 9811
-  };
+  const browserstackConfig =
+      {...devConfig, hostname: 'bs-local.com', singleRun: true, port: 9811};
 
   if (config.grep) {
     args.push('--grep', config.grep);
@@ -61,8 +58,8 @@ module.exports = function(config) {
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
-      tunnelIdentifier:
-          `e2e_script_tag_tests_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+      tunnelIdentifier: `e2e_script_tag_tests_${Date.now()}_${
+          Math.floor(Math.random() * 1000)}`
     },
     captureTimeout: 3e5,
     reportSlowerThan: 500,
@@ -109,9 +106,7 @@ module.exports = function(config) {
       win_10_chrome: {
         base: 'BrowserStack',
         browser: 'chrome',
-        // Latest Chrome on Windows has WebGL problems:
-        // https://github.com/tensorflow/tfjs/issues/2272
-        browser_version: '77.0',
+        browser_version: 'latest',
         os: 'Windows',
         os_version: '10'
       }
