@@ -26,6 +26,22 @@ module.exports = function(config) {
   let extraConfig = {};
   if (browser) {
     if (browser !== 'chrome_webgpu') {
+      const username = process.env.BROWSERSTACK_USERNAME;
+      const accessKey = process.env.BROWSERSTACK_KEY;
+      if (!username) {
+        console.error('No browserstack username found. Please set the'
+                      + ' environment variable "BROWSERSTACK_USERNAME" to your'
+                      + ' browserstack username');
+      }
+      if (!accessKey) {
+        console.error('No browserstack access key found. Please set the'
+                      + ' environment variable "BROWSERSTACK_KEY" to your'
+                      + ' browserstack access key');
+      }
+      if (!username || !accessKey) {
+        process.exit(1);
+      }
+
       Object.assign(extraConfig, browserstackConfig);
       extraConfig.browsers = [browser];
       extraConfig.browserStack = {
