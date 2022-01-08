@@ -291,7 +291,7 @@ describeMathCPUAndGPU('sigmoidCrossEntropyWithLogits', () => {
   });
 });
 
-describeMathCPUAndGPU('categoricalCrossentropy', () => {
+describeMathCPUAndWebGL2('categoricalCrossentropy', () => {
   it('2D', () => {
     const yTrue = tensor2d([[1, 0], [0, 1]], [2, 2]);
     const yPred = yTrue;
