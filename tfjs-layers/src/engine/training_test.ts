@@ -443,7 +443,102 @@ describeMathCPUAndGPU('LayersModel.predict', () => {
             /batchSize is required to be a positive integer, but got a/);
   });
 });
+describeMathCPUAndWebGL2('LayersModel.fit long', () => {
+  let originalTimeout: number;
 
+  beforeEach(function() {
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
+  });
+
+  afterEach(function() {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
+  });
+  it('Return sequences; Fit with metric', async () => {
+    // The golden values for history used in the assertion below can be obtained
+    // with the following Python Keras code.
+    // Ran with Python Keras verion 2.1.2 and TensorFlow (CPU) version
+    // 1.7.0-dev20180226.
+    // ```python
+    // import keras
+    // import numpy as np
+    //
+    // sequenceLength = 3
+    // inputSize = 4
+    // dataSize = 16
+    // validationSplit = 0.5
+    // batchSize = 3
+    // outputSize = 2
+    //
+    // model = keras.Sequential()
+    //
+    // model.add(keras.layers.SimpleRNN(
+    //     outputSize,
+    //     kernel_initializer='ones',
+    //     recurrent_initializer='ones',
+    //     use_bias=False,
+    //     return_sequences=True,
+    //     input_shape=[sequenceLength, inputSize]))
+    // model.add(keras.layers.TimeDistributed(
+    //     keras.layers.Dense(
+    //         outputSize,
+    //         kernel_initializer='ones',
+    //         use_bias=False)))
+    //
+    // model.compile(optimizer='sgd',
+    //               loss='categorical_crossentropy',
+    //               metrics=['accuracy'])
+    // history = model.fit(np.ones([dataSize, sequenceLength, inputSize]),
+    //                     np.ones([dataSize, sequenceLength, outputSize]),
+    //                     batch_size=batchSize,
+    //                     epochs=2,
+    //                     validation_split=validationSplit)
+    // print(history.history)
+    // ```
+    const sequenceLength = 3;
+    const inputSize = 4;
+    const dataSize = 16;
+    const validationSplit = 0.5;
+    const batchSize = 3;
+    // So there are 8 examples for train and validation, respectivly. The actual
+    // batches during training and validation will be 3, 3 and 2. This tests the
+    // correct averaging of the loss values happens without broadcasting.
+    const outputSize = 2;
+    const simpleRNN = tfl.layers.simpleRNN({
+      units: outputSize,
+      kernelInitializer: 'ones',
+      recurrentInitializer: 'ones',
+      useBias: false,
+      returnSequences: true,
+    });
+    const timeDistributed = tfl.layers.timeDistributed({
+      layer: tfl.layers.dense(
+          {units: outputSize, kernelInitializer: 'ones', useBias: false})
+    });
+    const input = tfl.layers.input({shape: [sequenceLength, inputSize]});
+    const output =
+        timeDistributed.apply(simpleRNN.apply(input)) as tfl.SymbolicTensor;
+    const model = new tfl.LayersModel({inputs: input, outputs: output});
+    model.compile({
+      optimizer: 'sgd',
+      loss: 'categoricalCrossentropy',
+      metrics: ['accuracy'],
+    });
+    const history = await model.fit(
+        ones([dataSize, sequenceLength, inputSize]),
+        ones([dataSize, sequenceLength, outputSize]), {
+          batchSize,
+          epochs: 1,
+          validationSplit,
+        });
+    expectTensorsClose(
+        history.history['loss'] as number[], [1.3862943649291992]);
+    expectTensorsClose(
+        history.history['val_loss'] as number[], [1.3862943649291992]);
+    expectTensorsClose(history.history['acc'] as number[], [1.0]);
+    expectTensorsClose(history.history['val_acc'] as number[], [1.0]);
+  });
+});
 describeMathCPUAndWebGL2('LayersModel.fit', () => {
   const inputSize = 4;   // Input vector size for model with one input.
   const inputSize1 = 3;  // 1st input vector size for model with two inputs.
@@ -789,92 +884,6 @@ describeMathCPUAndWebGL2('LayersModel.fit', () => {
        expectTensorsClose(
            valLosses as number[], [7.617599964141846, 6.447536945343018]);
      });
-
-  it('Return sequences; Fit with metric', async () => {
-    // The golden values for history used in the assertion below can be obtained
-    // with the following Python Keras code.
-    // Ran with Python Keras verion 2.1.2 and TensorFlow (CPU) version
-    // 1.7.0-dev20180226.
-    // ```python
-    // import keras
-    // import numpy as np
-    //
-    // sequenceLength = 3
-    // inputSize = 4
-    // dataSize = 16
-    // validationSplit = 0.5
-    // batchSize = 3
-    // outputSize = 2
-    //
-    // model = keras.Sequential()
-    //
-    // model.add(keras.layers.SimpleRNN(
-    //     outputSize,
-    //     kernel_initializer='ones',
-    //     recurrent_initializer='ones',
-    //     use_bias=False,
-    //     return_sequences=True,
-    //     input_shape=[sequenceLength, inputSize]))
-    // model.add(keras.layers.TimeDistributed(
-    //     keras.layers.Dense(
-    //         outputSize,
-    //         kernel_initializer='ones',
-    //         use_bias=False)))
-    //
-    // model.compile(optimizer='sgd',
-    //               loss='categorical_crossentropy',
-    //               metrics=['accuracy'])
-    // history = model.fit(np.ones([dataSize, sequenceLength, inputSize]),
-    //                     np.ones([dataSize, sequenceLength, outputSize]),
-    //                     batch_size=batchSize,
-    //                     epochs=2,
-    //                     validation_split=validationSplit)
-    // print(history.history)
-    // ```
-
-    const sequenceLength = 3;
-    const inputSize = 4;
-    const dataSize = 16;
-    const validationSplit = 0.5;
-    const batchSize = 3;
-    // So there are 8 examples for train and validation, respectivly. The actual
-    // batches during training and validation will be 3, 3 and 2. This tests the
-    // correct averaging of the loss values happens without broadcasting.
-    const outputSize = 2;
-    const simpleRNN = tfl.layers.simpleRNN({
-      units: outputSize,
-      kernelInitializer: 'ones',
-      recurrentInitializer: 'ones',
-      useBias: false,
-      returnSequences: true,
-    });
-    const timeDistributed = tfl.layers.timeDistributed({
-      layer: tfl.layers.dense(
-          {units: outputSize, kernelInitializer: 'ones', useBias: false})
-    });
-    const input = tfl.layers.input({shape: [sequenceLength, inputSize]});
-    const output =
-        timeDistributed.apply(simpleRNN.apply(input)) as tfl.SymbolicTensor;
-    const model = new tfl.LayersModel({inputs: input, outputs: output});
-    model.compile({
-      optimizer: 'sgd',
-      loss: 'categoricalCrossentropy',
-      metrics: ['accuracy'],
-    });
-    const history = await model.fit(
-        ones([dataSize, sequenceLength, inputSize]),
-        ones([dataSize, sequenceLength, outputSize]), {
-          batchSize,
-          epochs: 1,
-          validationSplit,
-        });
-    expectTensorsClose(
-        history.history['loss'] as number[], [1.3862943649291992]);
-    expectTensorsClose(
-        history.history['val_loss'] as number[], [1.3862943649291992]);
-    expectTensorsClose(history.history['acc'] as number[], [1.0]);
-    expectTensorsClose(history.history['val_acc'] as number[], [1.0]);
-  });
 
   // TODO(cais): Test metric as a "dict", for models with >1 outputs.
 
