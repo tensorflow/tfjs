@@ -446,12 +446,12 @@ describeMathCPUAndGPU('LayersModel.predict', () => {
 describeMathCPUAndWebGL2('LayersModel.fit long', () => {
   let originalTimeout: number;
 
-  beforeEach(function() {
+  beforeEach(() => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000;
   });
 
-  afterEach(function() {
+  afterEach(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
   });
   it('Return sequences; Fit with metric', async () => {
