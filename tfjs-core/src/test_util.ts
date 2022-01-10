@@ -23,6 +23,25 @@ import {arraysEqual, encodeString, flatten, isString, isTypedArray} from './util
 const TEST_EPSILON_FLOAT32 = 1e-3;
 export const TEST_EPSILON_FLOAT16 = 1e-1;
 
+export function expectArraysOneof(
+    actual: TypedArray|number|RecursiveArray<number>,
+    expectedA: TypedArray|number|RecursiveArray<number>,
+    expectedB: TypedArray|number|RecursiveArray<number>, epsilon?: number) {
+  if (epsilon == null) {
+    epsilon = testEpsilon();
+  }
+  try {
+    expectArraysPredicate(
+        actual, expectedA,
+        (a, b) => areClose(a as number, b as number, epsilon));
+  } catch (e) {
+    expectArraysPredicate(
+        actual, expectedB,
+        (a, b) => areClose(a as number, b as number, epsilon));
+  }
+  return;
+}
+
 export function expectArraysClose(
     actual: TypedArray|number|RecursiveArray<number>,
     expected: TypedArray|number|RecursiveArray<number>, epsilon?: number) {
@@ -154,14 +173,16 @@ export function expectArrayBuffersEqual(
   const actualArray = new Float32Array(actual);
   const expectedArray = new Float32Array(expected);
   if (actualArray.length !== expectedArray.length) {
-    throw new Error('Expected ArrayBuffer to be of length '
-      + `${expectedArray.length}, but it was ${actualArray.length}`);
+    throw new Error(
+        'Expected ArrayBuffer to be of length ' +
+        `${expectedArray.length}, but it was ${actualArray.length}`);
   }
 
   for (let i = 0; i < expectedArray.length; i++) {
     if (actualArray[i] !== expectedArray[i]) {
-      throw new Error(`Expected ArrayBuffer value at ${i} to be `
-        + `${expectedArray[i]} but got ${actualArray[i]} instead`);
+      throw new Error(
+          `Expected ArrayBuffer value at ${i} to be ` +
+          `${expectedArray[i]} but got ${actualArray[i]} instead`);
     }
   }
 }

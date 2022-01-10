@@ -48,8 +48,8 @@ describeWithFlags('forced f16 render', RENDER_FLOAT32_ENVS, () => {
     const a = tf.tensor1d([Math.pow(2, 17)], 'float32');
     const b = tf.relu(a);
     const data = await b.data();
-    if (data && data.length === 1 && data[0] !== NaN) {  // value could be NaN
-      expect(await b.data()).toBeLessThan(Math.pow(2, 17));
+    if (data && data.length === 1 && !isNaN(data[0])) {  // value could be NaN
+      expect(data).toBeLessThan(Math.pow(2, 17));
     }
   });
 
