@@ -16,20 +16,18 @@
  */
 
 import {KernelConfig, KernelFunc, Log} from '@tensorflow/tfjs-core';
-import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+
+import {CHECK_NAN_SNIPPET_UNARY, unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {logImplCPU} from '../kernel_utils/shared';
 
-const LOG = `if (x < 0.0) return NAN;
-  return log(x);`;
+const LOG = CHECK_NAN_SNIPPET_UNARY + `return log(x);`;
 
 const LOG_PACKED = `
   vec4 result = log(x);
-  vec4 isNaN = vec4(lessThan(x, vec4(0.0)));
-  result.r = isNaN.r == 1.0 ? NAN : result.r;
-  result.g = isNaN.g == 1.0 ? NAN : result.g;
-  result.b = isNaN.b == 1.0 ? NAN : result.b;
-  result.a = isNaN.a == 1.0 ? NAN : result.a;
-
+  bvec4 isNaN = isnan(x);
+  if (isNaN.r || isNaN.g || isNaN.b || isNaN.a) {
+    result = vec4(NAN);
+  }
   return result;
 `;
 

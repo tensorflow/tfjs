@@ -17,10 +17,10 @@
 
 import {Exp, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
-import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+import {CHECK_NAN_SNIPPET_UNARY, unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {expImplCPU} from '../kernel_utils/shared';
 
-export const EXP = `return exp(x);`;
+export const EXP = CHECK_NAN_SNIPPET_UNARY + `return exp(x);`;
 export const exp = unaryKernelFunc({
   opSnippet: EXP,
   packedOpSnippet: EXP,
