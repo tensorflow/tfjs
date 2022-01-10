@@ -224,7 +224,6 @@ export function uploadPixelDataToTexture(
           () => gl.texSubImage2D(
               gl.TEXTURE_2D, 0, 0, 0, pixels.width, pixels.height, gl.RGBA,
               gl.UNSIGNED_BYTE, (pixels as PixelData).data));
-      gl.flush();
     } else {
       webgl_util.callAndCheck(
           gl,
@@ -240,7 +239,6 @@ export function uploadPixelDataToTexture(
               gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE,
               (pixels as ImageData | HTMLImageElement | HTMLCanvasElement |
                HTMLVideoElement | ImageBitmap)));
-      gl.flush();
     } else {
       webgl_util.callAndCheck(
           gl,

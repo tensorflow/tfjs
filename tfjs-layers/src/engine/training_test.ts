@@ -1999,6 +1999,33 @@ describeMathCPUAndWebGL2('LayersModel.fit: No memory leak', () => {
        done();
      });
 
+  it('Repeated fit calls of 1d target leads to no memory leak: validationSplit',
+     async done => {
+       createDenseModelAndData();
+
+       const validationSplit = 0.4;
+       targets = ones([numSamples]);
+       model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+       const numTensors0 = memory().numTensors;
+       // Use batchSize === numSamples to get exactly one batch.
+       await model.fit(
+           inputs, targets,
+           {batchSize: 2, epochs: 10, validationSplit, shuffle: true});
+       for (let i = 0; i < 2; ++i) {
+         await model.fit(
+             inputs, targets,
+             {batchSize: 2, epochs: 10, validationSplit, shuffle: true});
+         const numTensorsNow = memory().numTensors;
+         if (numTensorsNow > numTensors0) {
+           done.fail(
+               `Memory leak detected during fit(): Leaked ` +
+               `${numTensorsNow - numTensors0} tensor(s) after the ` +
+               `${i + 1}-th fit() call.`);
+         }
+       }
+       done();
+     });
+
   it('Repeated fit calls leads to no memory leak: validationData',
      async done => {
        createDenseModelAndData();

@@ -36,9 +36,11 @@ export function setWebGLContext(
   contexts[webGLVersion] = gl;
 }
 
-export function getWebGLContext(webGLVersion: number): WebGLRenderingContext {
+export function getWebGLContext(
+    webGLVersion: number,
+    customCanvas?: HTMLCanvasElement|OffscreenCanvas): WebGLRenderingContext {
   if (!(webGLVersion in contexts)) {
-    const newCtx = getWebGLRenderingContext(webGLVersion);
+    const newCtx = getWebGLRenderingContext(webGLVersion, customCanvas);
     if (newCtx !== null) {
       contexts[webGLVersion] = newCtx;
     } else {
@@ -75,11 +77,14 @@ function createCanvas(webGLVersion: number) {
   }
 }
 
-function getWebGLRenderingContext(webGLVersion: number): WebGLRenderingContext {
+function getWebGLRenderingContext(
+    webGLVersion: number,
+    customCanvas?: HTMLCanvasElement|OffscreenCanvas): WebGLRenderingContext {
   if (webGLVersion !== 1 && webGLVersion !== 2) {
     throw new Error('Cannot get WebGL rendering context, WebGL is disabled.');
   }
-  const canvas = createCanvas(webGLVersion);
+  const canvas =
+      customCanvas == null ? createCanvas(webGLVersion) : customCanvas;
 
   canvas.addEventListener('webglcontextlost', (ev: Event) => {
     ev.preventDefault();

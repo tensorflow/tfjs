@@ -31,7 +31,10 @@ export function gatherV2Impl<R extends Rank, D extends DataType>(
     originalLoc[2] = indicesBuf.values[indicesIndex] as number;
 
     const originalIndex = xBuf.locToIndex(originalLoc);
-    outBuf.values[i] = xBuf.values[originalIndex];
+
+    if (0 <= originalIndex && originalIndex < xBuf.values.length) {
+      outBuf.values[i] = xBuf.values[originalIndex];
+    } // Else, index is out of bounds, so leave the default zero val in outBuf.
   }
 
   return outBuf as TensorBuffer<R, D>;
