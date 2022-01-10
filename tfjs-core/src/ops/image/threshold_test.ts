@@ -22,7 +22,7 @@ describeWithFlags('threshold', ALL_ENVS, () => {
   let originalTimeout: number;
   beforeEach(() => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 40000;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 80_000;
   });
   afterAll(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
