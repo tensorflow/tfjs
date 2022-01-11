@@ -2119,8 +2119,8 @@ describeMathCPUAndGPU('Sequential', () => {
     const model = tfl.sequential({layers: [denseLayer1, denseLayer2]});
     model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
     const history = await model.fit(xs, ys, {batchSize, epochs: 2});
-    expect(history.history['loss'][0]).toBeCloseTo(121);
-    expect(history.history['loss'][1]).toBeCloseTo(0.015178224071860313);
+    expectTensorsClose(
+        history.history['loss'] as number[], [121, 0.015178224071860313]);
   });
 
   it('calling fit twice in a row leads to error', async () => {

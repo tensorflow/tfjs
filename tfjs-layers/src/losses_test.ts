@@ -291,7 +291,7 @@ describeMathCPUAndGPU('sigmoidCrossEntropyWithLogits', () => {
   });
 });
 
-describeMathCPUAndGPU('categoricalCrossentropy', () => {
+describeMathCPUAndWebGL2('categoricalCrossentropy', () => {
   it('2D', () => {
     const yTrue = tensor2d([[1, 0], [0, 1]], [2, 2]);
     const yPred = yTrue;
@@ -301,7 +301,7 @@ describeMathCPUAndGPU('categoricalCrossentropy', () => {
   });
 });
 
-describeMathCPUAndGPU('sparseCategoricalCrossentropy', () => {
+describeMathCPUAndWebGL2('sparseCategoricalCrossentropy', () => {
   it('2D', () => {
     const yTrue = tensor1d([0, 1]);
     const yPred = tensor2d([[1, 0], [0, 1]], [2, 2]);
@@ -397,7 +397,7 @@ describe('losses get', () => {
   });
 });
 
-describeMathCPUAndGPU('l2Normalize', () => {
+describeMathCPUAndWebGL2('l2Normalize', () => {
   it('normalizes with no axis defined.', () => {
     const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
     const norm = Math.sqrt(1 * 1 + 2 * 2 + 3 * 3 + 4 * 4);
