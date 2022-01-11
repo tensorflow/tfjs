@@ -48,7 +48,8 @@ module.exports = function(config) {
         username: process.env.BROWSERSTACK_USERNAME,
         accessKey: process.env.BROWSERSTACK_KEY,
         timeout: 900,  // Seconds
-        tunnelIdentifier: `tfjs_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+        tunnelIdentifier:
+            `tfjs_${Date.now()}_${Math.floor(Math.random() * 1000)}`
       };
     } else {
       extraConfig.browsers = [browser];
@@ -104,9 +105,7 @@ module.exports = function(config) {
       win_10_chrome: {
         base: 'BrowserStack',
         browser: 'chrome',
-        // Latest Chrome on Windows has WebGL problems:
-        // https://github.com/tensorflow/tfjs/issues/2272
-        browser_version: '77.0',
+        browser_version: 'latest',
         os: 'Windows',
         os_version: '10'
       },
@@ -116,7 +115,10 @@ module.exports = function(config) {
       },
       chrome_webgpu: {
         base: 'Chrome',
-        flags: ['--enable-unsafe-webgpu', '--disable-dawn-features=disallow_unsafe_apis']
+        flags: [
+          '--enable-unsafe-webgpu',
+          '--disable-dawn-features=disallow_unsafe_apis'
+        ]
       },
       chrome_debugging:
           {base: 'Chrome', flags: ['--remote-debugging-port=9333']}
