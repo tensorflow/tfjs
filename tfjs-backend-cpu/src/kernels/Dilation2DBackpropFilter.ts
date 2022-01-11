@@ -20,7 +20,7 @@ import {KernelConfig} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 
-export const dilation2dBackpropFilterConfig: KernelConfig = {
+export const dilation2DBackpropFilterConfig: KernelConfig = {
   kernelName: Dilation2DBackpropFilter,
   backendName: 'cpu',
   kernelFunc: ({inputs, backend, attrs}) => {

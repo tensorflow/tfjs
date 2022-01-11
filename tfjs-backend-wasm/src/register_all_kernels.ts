@@ -19,7 +19,7 @@
 // the contents of this file and import only the kernels that are needed.
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
-import {fusedMatMulConfig} from './kernels/_FusedMatMul';
+import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {absConfig} from './kernels/Abs';
 import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
@@ -122,6 +122,7 @@ import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  _fusedMatMulConfig,
   absConfig,
   addConfig,
   addNConfig,
@@ -151,7 +152,6 @@ const kernelConfigs: KernelConfig[] = [
   flipLeftRightConfig,
   floorConfig,
   floorDivConfig,
-  fusedMatMulConfig,
   fusedBatchNormConfig,
   fusedConv2DConfig,
   fusedDepthwiseConv2DConfig,
@@ -193,8 +193,8 @@ const kernelConfigs: KernelConfig[] = [
   resizeBilinearConfig,
   reverseConfig,
   rotateWithOffsetConfig,
-  rsqrtConfig,
   roundConfig,
+  rsqrtConfig,
   scatterNdConfig,
   selectConfig,
   sigmoidConfig,
