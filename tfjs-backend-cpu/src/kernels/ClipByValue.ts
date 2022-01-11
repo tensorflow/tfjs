@@ -19,7 +19,7 @@ import {ClipByValue, ClipByValueAttrs, KernelConfig} from '@tensorflow/tfjs-core
 
 import {unaryKernelFunc} from '../utils/unary_utils';
 
-export const clip = unaryKernelFunc(ClipByValue, (xi, attrs) => {
+export const clipByValue = unaryKernelFunc(ClipByValue, (xi, attrs) => {
   const clipAttrs = attrs as {} as ClipByValueAttrs;
   if (xi > clipAttrs.clipValueMax) {
     return clipAttrs.clipValueMax;
@@ -27,8 +27,8 @@ export const clip = unaryKernelFunc(ClipByValue, (xi, attrs) => {
   return xi < clipAttrs.clipValueMin ? clipAttrs.clipValueMin : xi;
 });
 
-export const clipConfig: KernelConfig = {
+export const clipByValueConfig: KernelConfig = {
   kernelName: ClipByValue,
   backendName: 'cpu',
-  kernelFunc: clip,
+  kernelFunc: clipByValue,
 };
