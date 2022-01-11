@@ -23,9 +23,21 @@ import {expImplCPU} from '../kernel_utils/shared';
 export const EXP = CHECK_NAN_SNIPPET_UNARY + `
   return exp(x);
 `;
+
+const EXP_PACKED = `
+  vec4 result = exp(x);
+  bvec4 isNaN = isnan(x);
+  result.r = isNaN.r ? x.r : result.r;
+  result.g = isNaN.g ? x.g : result.g;
+  result.b = isNaN.b ? x.b : result.b;
+  result.a = isNaN.a ? x.a : result.a;
+
+  return result;
+`;
+
 export const exp = unaryKernelFunc({
   opSnippet: EXP,
-  packedOpSnippet: EXP,
+  packedOpSnippet: EXP_PACKED,
   cpuKernelImpl: expImplCPU,
   dtype: 'float32',
 });

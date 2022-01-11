@@ -17,7 +17,7 @@
 
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
-import {expectArraysClose, expectArraysOneof} from '../test_util';
+import {expectArraysClose} from '../test_util';
 
 describeWithFlags('log1p', ALL_ENVS, () => {
   it('log1p', async () => {
@@ -29,8 +29,7 @@ describeWithFlags('log1p', ALL_ENVS, () => {
   it('log1p propagates NaNs', async () => {
     const a = tf.tensor1d([1, NaN]);
     const r = tf.log1p(a);
-    // windows could return 0 for NaN
-    expectArraysOneof(await r.data(), [Math.log1p(1), NaN], [Math.log1p(1), 0]);
+    expectArraysClose(await r.data(), [Math.log1p(1), NaN]);
   });
 
   it('gradients: Scalar', async () => {

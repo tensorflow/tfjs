@@ -20,16 +20,19 @@ import {KernelConfig, KernelFunc, Log} from '@tensorflow/tfjs-core';
 import {CHECK_NAN_SNIPPET_UNARY, unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {logImplCPU} from '../kernel_utils/shared';
 
+// Windows chrome return 0 if the input is negative value. We will specifically
+// return NaN if the input is 0 to solve compatiblity issue.
 const LOG = CHECK_NAN_SNIPPET_UNARY + `
-  return log(x);
+  return x < 0.0 ? 0./0. : log(x);
 `;
 
 const LOG_PACKED = `
   vec4 result = log(x);
   bvec4 isNaN = isnan(x);
-  if (isNaN.r || isNaN.g || isNaN.b || isNaN.a) {
-    result = vec4(NAN);
-  }
+  result.r = isNaN.r ? x.r : (x.r < 0.0 ? 0./0. : result.r);
+  result.g = isNaN.g ? x.g : (x.g < 0.0 ? 0./0. : result.g);
+  result.b = isNaN.b ? x.b : (x.b < 0.0 ? 0./0. : result.b);
+  result.a = isNaN.a ? x.a : (x.a < 0.0 ? 0./0. : result.a);
   return result;
 `;
 

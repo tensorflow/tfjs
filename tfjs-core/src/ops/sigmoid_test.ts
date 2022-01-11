@@ -17,7 +17,7 @@
 
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
-import {expectArraysClose, expectArraysOneof} from '../test_util';
+import {expectArraysClose} from '../test_util';
 
 describeWithFlags('sigmoid', ALL_ENVS, () => {
   it('basic', async () => {
@@ -47,10 +47,7 @@ describeWithFlags('sigmoid', ALL_ENVS, () => {
   it('propagates NaNs', async () => {
     const a = tf.tensor1d([3, NaN]);
     const res = tf.sigmoid(a);
-    // windows could return all 0s
-    expectArraysOneof(
-        await res.data(), [1 / (1 + Math.exp(-3)), NaN],
-        [1 / (1 + Math.exp(-3)), 0]);
+    expectArraysClose(await res.data(), [1 / (1 + Math.exp(-3)), NaN]);
   });
 
   it('gradients: Tensor1D', async () => {
