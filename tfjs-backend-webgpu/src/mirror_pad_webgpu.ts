@@ -16,9 +16,8 @@
  */
 
 import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class MirrorPadProgram implements WebGPUProgram {
   outputShape: number[];
@@ -77,7 +76,7 @@ export class MirrorPadProgram implements WebGPUProgram {
             if (${shaderOutC} < ${shaderStart}) {
               ${shaderOutC} = ${shaderStart} * 2 - ${shaderOutC} - ${
         this.offset};
-            } elseif(${shaderOutC} >= ${shaderEnd}) {
+            } else if(${shaderOutC} >= ${shaderEnd}) {
               ${shaderOutC} = (${shaderEnd} - 1) * 2 - ${shaderOutC} + ${
         this.offset};
             }

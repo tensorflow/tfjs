@@ -16,9 +16,8 @@
  */
 
 import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class TransformProgram implements WebGPUProgram {
   variableNames = ['Image', 'Transforms'];
@@ -58,7 +57,7 @@ export class TransformProgram implements WebGPUProgram {
                     inCoord = -inCoord - 1.0;
                   }
                 }
-              } elseif (inCoord > len - 1.0) {
+              } else if (inCoord > len - 1.0) {
                 if (len <= 1.0) {
                   inCoord = 0.0;
                 } else {
@@ -70,7 +69,7 @@ export class TransformProgram implements WebGPUProgram {
                 }
               }
               return clamp(inCoord, 0.0, len - 1.0);
-            } elseif (uniforms.fillModeId == 3) {
+            } else if (uniforms.fillModeId == 3) {
               if (inCoord < 0.0) {
                 if (len <= 1.0) {
                   inCoord = 0.0;
@@ -78,7 +77,7 @@ export class TransformProgram implements WebGPUProgram {
                   let sz = len - 1.0;
                   inCoord = inCoord + len * (f32(i32(f32(-inCoord / sz))) + 1.0);
                 }
-              } elseif (inCoord > len - 1.0) {
+              } else if (inCoord > len - 1.0) {
                 if (len <= 1.0) {
                   inCoord = 0.0;
                 } else {
@@ -87,7 +86,7 @@ export class TransformProgram implements WebGPUProgram {
                 }
               }
               return clamp(inCoord, 0.0, len - 1.0);
-            } elseif (uniforms.fillModeId == 4) {
+            } else if (uniforms.fillModeId == 4) {
               return clamp(outCoord, 0.0, len - 1.0);
             }
             return outCoord;

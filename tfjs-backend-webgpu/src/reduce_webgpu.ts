@@ -16,10 +16,10 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
+import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ReduceProgram implements WebGPUProgram {
   outputShape: number[];
@@ -58,7 +58,7 @@ export class ReduceProgram implements WebGPUProgram {
       reduceOp = `
          if (isNanCustom(candidate)) {
           bestValue = uniforms.NAN;
-         } elseif (!isNanCustom(bestValue) && candidate ${
+         } else if (!isNanCustom(bestValue) && candidate ${
           this.reduceType === 'min' ? '<' : '>'} bestValue)
            {  bestValue = candidate; }`;
       initValue = 'f32(x.numbers[offset])';
