@@ -20,7 +20,9 @@ import {KernelConfig, KernelFunc, Log} from '@tensorflow/tfjs-core';
 import {CHECK_NAN_SNIPPET_UNARY, unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {logImplCPU} from '../kernel_utils/shared';
 
-const LOG = CHECK_NAN_SNIPPET_UNARY + `return log(x);`;
+const LOG = CHECK_NAN_SNIPPET_UNARY + `
+  return log(x);
+`;
 
 const LOG_PACKED = `
   vec4 result = log(x);
