@@ -103,7 +103,7 @@ function fusedBatchMatMul(args: {
   return out;
 }
 
-export const fusedMatMulConfig: KernelConfig = {
+export const _fusedMatMulConfig: KernelConfig = {
   kernelName: _FusedMatMul,
   backendName: 'wasm',
   setupFunc: setup,
