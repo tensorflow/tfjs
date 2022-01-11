@@ -17,11 +17,10 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {computeDispatch, tilesFitEvenlyIntoShape} from './webgpu_util';
 import {mapActivationToShaderProgram} from './activation_util';
-
 import {makeMatMulPackedVec4Source} from './matmul_packed_vec4_webgpu';
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, tilesFitEvenlyIntoShape} from './webgpu_util';
 
 export class Conv2DMMVec4Program implements WebGPUProgram {
   outputShape: number[];
@@ -98,7 +97,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
 
   // index is used to avoid repeated definition error.
   getSampleAWithRemainder(index: number): string {
-    return `let flatIndex${index} = getIndexFromCoords4D(coord, uniforms.xShape);
+    return `let flatIndex${
+        index} = getIndexFromCoords4D(coord, uniforms.xShape);
     let divBy4Remainder${index} = flatIndex${index} % 4;
     let divBy4Index${index} = flatIndex${index} / 4;
     let curData${index} = x.numbers[divBy4Index${index}];
@@ -111,9 +111,9 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
       let nextData${index} = x.numbers[divBy4Index${index} + 1];
       if (divBy4Remainder${index} == 1) {
         temp = vec4<f32>(curData${index}.yzw, nextData${index}.x);
-      } elseif (divBy4Remainder${index} == 2) {
+      } else if (divBy4Remainder${index} == 2) {
         temp = vec4<f32>(curData${index}.zw, nextData${index}.xy);
-      } elseif (divBy4Remainder${index} == 3) {
+      } else if (divBy4Remainder${index} == 3) {
         temp = vec4<f32>(curData${index}.w, nextData${index}.xyz);
       }
     }
@@ -143,7 +143,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
               ${this.getSampleAWithRemainder(2)}
             if (inChCoord == 0) {
               resData = vec4<f32>(resData.xyz, temp.x);
-            } elseif (inChCoord == 1) {
+            } else if (inChCoord == 1) {
               resData = vec4<f32>(resData.xy, temp.xy);
             } else {
               resData = vec4<f32>(resData.x, temp.xyz);
@@ -206,9 +206,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
       applyActivationSnippet = `value = activation(value, outCoord);`;
     }
 
-    const addBiasSnippet = this.addBias ?
-        'value = value + getBiasByOutputCoords(outCoord);' :
-        '';
+    const addBiasSnippet =
+        this.addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
 
     const userCode = `
         ${activationSnippet}

@@ -18,9 +18,8 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ConcatProgram implements WebGPUProgram {
   outputShape: number[];
@@ -57,9 +56,9 @@ export class ConcatProgram implements WebGPUProgram {
           `if (yC < uniforms.offset0){ setOutputAtCoords(coords.x, coords.y, getT0(yR, yC)); }`);
       for (let i = 1; i < this.offsetLength; i++) {
         snippets.push(
-            `elseif (yC < uniforms.offset${[i]}){ ` +
-            `setOutputAtCoords(coords.x, coords.y, getT${i}(yR, yC - uniforms.offset${
-                i - 1})); }`);
+            `else if (yC < uniforms.offset${[i]}){ ` +
+            `setOutputAtCoords(coords.x, coords.y, getT${
+                i}(yR, yC - uniforms.offset${i - 1})); }`);
       }
       const lastIndex = this.offsetLength;
       const lastShiftIndex = this.offsetLength - 1;
