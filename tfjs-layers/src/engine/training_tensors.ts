@@ -423,6 +423,8 @@ export async function fitTensors(
   model.isTraining = true;
   let inputs: Tensor[];
   let targets: Tensor[];
+  let originalInputs: Tensor[];
+  let originalTargets: Tensor[];
   let inputValX: Tensor|Tensor[];
   let inputValY: Tensor|Tensor[];
   let valX: Tensor|Tensor[];
@@ -481,8 +483,10 @@ export async function fitTensors(
           Math.floor(inputs[0].shape[0] * (1 - args.validationSplit));
       const originalBatchSize = inputs[0].shape[0];
       valX = sliceArrays(inputs, splitAt, originalBatchSize) as Tensor[];
+      originalInputs = inputs;
       inputs = sliceArrays(inputs, 0, splitAt) as Tensor[];
       valY = sliceArrays(targets, splitAt, originalBatchSize) as Tensor[];
+      originalTargets = targets;
       targets = sliceArrays(targets, 0, splitAt) as Tensor[];
       // TODO(cais): Once sampleWeights becomes available, slice it to get
       //   valSampleWeights.
@@ -537,6 +541,8 @@ export async function fitTensors(
     // Memory clean up.
     disposeNewTensors(inputs, x);
     disposeNewTensors(targets, y);
+    disposeNewTensors(originalInputs, x);
+    disposeNewTensors(originalTargets, y);
     disposeNewTensors(valX as Tensor[], inputValX);
     disposeNewTensors(valY as Tensor[], inputValY);
     if (sampleWeights != null) {

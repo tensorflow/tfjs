@@ -156,6 +156,17 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
   }
 }
 
+export interface DataToGPUWebGLOption {
+  customTexShape?: [number, number];
+}
+
+export type DataToGPUOptions = DataToGPUWebGLOption;
+
+export interface GPUData {
+  tensorRef: Tensor;
+  texture?: WebGLTexture;
+  texShape?: [number, number];
+}
 export interface TensorTracker {
   makeTensor(
       values: DataValues, shape: number[], dtype: DataType,
@@ -168,6 +179,7 @@ export interface TensorTracker {
   disposeVariable(v: Variable): void;
   read(dataId: DataId): Promise<BackendValues>;
   readSync(dataId: DataId): BackendValues;
+  readToGPU(dataId: DataId, options?: DataToGPUOptions): GPUData;
 }
 
 /**
@@ -354,6 +366,35 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   /**
+   * Copy the tensor's data to a new GPU resource. Comparing to the `dataSync()`
+   * and `data()`, this method prevents data from being downloaded to CPU.
+   *
+   * For WebGL backend, the data will be stored on a densely packed texture.
+   * This means that the texture will use the RGBA channels to store value.
+   *
+   * @param options:
+   *     For WebGL,
+   *         - customTexShape: Optional. If set, will use the user defined
+   *     texture shape to create the texture.
+   *
+   * @returns For WebGL backend, a GPUData contains the new texture and
+   *     its information.
+   *     {
+   *        tensorRef: The tensor that is associated with this texture,
+   *        texture: WebGLTexture,
+   *        texShape: [number, number] // [height, width]
+   *     }
+   *     Remember to dispose the GPUData after it is used by
+   *     `res.tensorRef.dispose()`.
+   *
+   * @doc {heading: 'Tensors', subheading: 'Classes'}
+   */
+  dataToGPU(options?: DataToGPUOptions): GPUData {
+    this.throwIfDisposed();
+    return trackerFn().readToGPU(this.dataId, options);
+  }
+
+  /**
    * Synchronously downloads the values from the `tf.Tensor`. This blocks the
    * UI thread until the values are ready, which can cause performance issues.
    *
@@ -451,6 +492,7 @@ export class Tensor<R extends Rank = Rank> {
         Variable<R>;
   }
 }
+
 Object.defineProperty(Tensor, Symbol.hasInstance, {
   value: (instance: Tensor) => {
     // Implementation note: we should use properties of the object that will be
@@ -479,6 +521,7 @@ export interface NumericTensor<R extends Rank = Rank> extends Tensor<R> {
   dtype: NumericDataType;
   dataSync<D extends DataType = NumericDataType>(): DataTypeMap[D];
   data<D extends DataType = NumericDataType>(): Promise<DataTypeMap[D]>;
+  dataToGPU(options?: DataToGPUOptions): GPUData;
 }
 
 export interface StringTensor<R extends Rank = Rank> extends Tensor<R> {

@@ -57,6 +57,7 @@ import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
 import {imagConfig} from './kernels/Imag';
+import {leakyReluConfig} from './kernels/LeakyRelu';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
@@ -85,7 +86,6 @@ import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
 import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
-import {leakyReluConfig} from './kernels/LeakyRelu';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
 import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
@@ -142,8 +142,8 @@ const kernelConfigs: KernelConfig[] = [
   einsumConfig,
   eluConfig,
   equalConfig,
-  expandDimsConfig,
   expConfig,
+  expandDimsConfig,
   expm1Config,
   fillConfig,
   flipLeftRightConfig,
@@ -159,6 +159,7 @@ const kernelConfigs: KernelConfig[] = [
   greaterEqualConfig,
   identityConfig,
   imagConfig,
+  leakyReluConfig,
   lessConfig,
   lessEqualConfig,
   logConfig,
@@ -179,15 +180,14 @@ const kernelConfigs: KernelConfig[] = [
   onesLikeConfig,
   packConfig,
   padV2Config,
+  powConfig,
   preluConfig,
   prodConfig,
-  powConfig,
   rangeConfig,
   realConfig,
   realDivConfig,
   reluConfig,
   relu6Config,
-  leakyReluConfig,
   reshapeConfig,
   resizeBilinearConfig,
   resizeNearestNeighborConfig,
@@ -203,8 +203,8 @@ const kernelConfigs: KernelConfig[] = [
   stringNGramsConfig,
   softmaxConfig,
   spaceToBatchNDConfig,
-  splitVConfig,
   sparseToDenseConfig,
+  splitVConfig,
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,

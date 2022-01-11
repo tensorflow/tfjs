@@ -29,12 +29,14 @@ import {parseTestEnvFromKarmaFlags, setTestEnvs, setupTestFilters, TEST_ENVS, Te
 const TEST_FILTERS: TestFilter[] = [];
 const customInclude = (testName: string) => {
   const toExclude =
-      ['isBrowser: false', 'dilation gradient'];
+      ['isBrowser: false', 'dilation gradient',
+       'throws when index is out of bound'];
   for (const subStr of toExclude) {
     if (testName.includes(subStr)) {
       return false;
     }
   }
+  // TODO(msoulanille): Prefer TEST_FILTERS over customInclude.
   return true;
 };
 setupTestFilters(TEST_FILTERS, customInclude);
