@@ -13,6 +13,7 @@
 # limitations under the License.
 # =============================================================================
 
+load("@bazel_skylib//lib:new_sets.bzl", "sets")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
 
@@ -28,15 +29,25 @@ def _make_rollup_config_impl(ctx):
         ctx.attr.stats,
     )
 
+    external = sets.to_list(sets.make(
+        ctx.attr.external + list(ctx.attr.globals.keys()),
+    ))
+
+    # Transpile commonjs 'require' calls to es6 'import' statements if the
+    # output format is not commonjs. Otherwise, leave them as is.
+    transpile_cjs = ctx.attr.format != "cjs"
+
     ctx.actions.expand_template(
         template = ctx.file.template,
         output = ctx.outputs.config_file,
         substitutions = {
             "TEMPLATE_es5": "true" if ctx.attr.es5 else "false",
-            "TEMPLATE_external": str(ctx.attr.external),
+            "TEMPLATE_external": str(external),
             "TEMPLATE_globals": str(ctx.attr.globals),
+            "TEMPLATE_leave_as_require": str(ctx.attr.leave_as_require),
             "TEMPLATE_minify": "true" if ctx.attr.minify else "false",
             "TEMPLATE_stats": stats_file_path,
+            "TEMPLATE_transpile_cjs": "true" if transpile_cjs else "false",
         },
     )
     return [DefaultInfo(files = depset([output_file]))]
@@ -51,13 +62,31 @@ _make_rollup_config = rule(
         ),
         "external": attr.string_list(
             default = [],
-            doc = "A list of module IDs to exclude",
+            doc = """A list of module IDs to exclude.
+
+Keys from 'globals' are automatically added to this attribute, but additional external modules can be specified.
+            """,
             mandatory = False,
+        ),
+        "format": attr.string(
+            mandatory = True,
+            doc = """The bundle format.
+
+ Note that bundle format must also be specified in the 'rollup_bundle' rule. It is used here only to determine whether to include the 'commonjs' plugin.
+            """,
         ),
         "globals": attr.string_dict(
             default = {},
-            doc = "A dict from module IDs to global variables",
+            doc = "A dict from module IDs to global variables" +
+                  " used to resolve external modules",
             mandatory = False,
+        ),
+        "leave_as_require": attr.string_list(
+            default = [],
+            doc = """A list of modules to leave as 'require()' statements.
+
+We use the commonjs rollup plugin to load commonjs modules in rollup. This plugin converts 'require()' calls to 'import' statements, but sometimes, they should be left as 'require()'.
+            """,
         ),
         "minify": attr.bool(
             default = False,
@@ -81,11 +110,13 @@ def tfjs_rollup_bundle(
         name,
         deps,
         entry_point,
+        format,
         minify = False,
         umd_name = None,
         es5 = False,
         external = [],
         globals = {},
+        leave_as_require = [],
         **kwargs):
     config_file = name + "_config"
     _make_rollup_config(
@@ -95,6 +126,8 @@ def tfjs_rollup_bundle(
         minify = minify,
         external = external,
         globals = globals,
+        leave_as_require = leave_as_require,
+        format = format,
     )
 
     rollup_deps = deps + [
@@ -113,6 +146,7 @@ def tfjs_rollup_bundle(
     rollup_bundle(
         name = name,
         args = rollup_args,
+        format = format,
         sourcemap = "true",
         entry_point = entry_point,
         config_file = config_file,
@@ -122,12 +156,13 @@ def tfjs_rollup_bundle(
 
 def tfjs_bundle(
         name,
-        deps,
         entry_point,
         umd_name,
+        deps = [],
         external = [],
         testonly = False,
-        globals = {}):
+        globals = {},
+        leave_as_require = []):
     # A note on minification: While it would be more efficient to create
     # unminified bundles and then run them through terser separately, that
     # would prevent us from creating bundle visualizations for minified bundles
@@ -148,6 +183,7 @@ def tfjs_bundle(
             minify = minify,
             external = external,
             globals = globals,
+            leave_as_require = leave_as_require,
         )
 
         # UMD es5
@@ -162,6 +198,7 @@ def tfjs_bundle(
             es5 = True,
             external = external,
             globals = globals,
+            leave_as_require = leave_as_require,
         )
 
         # FESM ES2017
@@ -176,6 +213,7 @@ def tfjs_bundle(
             minify = minify,
             external = external,
             globals = globals,
+            leave_as_require = leave_as_require,
         )
 
         # cjs es5 node bundle
@@ -189,4 +227,5 @@ def tfjs_bundle(
             es5 = True,
             external = external,
             globals = globals,
+            leave_as_require = leave_as_require,
         )

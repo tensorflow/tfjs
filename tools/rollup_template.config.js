@@ -82,6 +82,12 @@ const useTerser = TEMPLATE_minify ? [
   })
 ] : [];
 
+const useCommonjs = TEMPLATE_transpile_cjs ? [
+  commonjs({
+    ignore: TEMPLATE_leave_as_require,
+  }),
+]: [];
+
 export default {
   output: {
     banner: preamble,
@@ -92,7 +98,7 @@ export default {
   external: TEMPLATE_external,
   plugins: [
     resolve({browser: true}),
-    commonjs(),
+    ...useCommonjs,
     sourcemaps(),
     ...useEs5,
     ...useTerser,
