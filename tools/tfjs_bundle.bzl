@@ -33,10 +33,6 @@ def _make_rollup_config_impl(ctx):
         ctx.attr.external + list(ctx.attr.globals.keys()),
     ))
 
-    # Transpile commonjs 'require' calls to es6 'import' statements if the
-    # output format is not commonjs. Otherwise, leave them as is.
-    transpile_cjs = ctx.attr.format != "cjs"
-
     ctx.actions.expand_template(
         template = ctx.file.template,
         output = ctx.outputs.config_file,
@@ -47,7 +43,6 @@ def _make_rollup_config_impl(ctx):
             "TEMPLATE_leave_as_require": str(ctx.attr.leave_as_require),
             "TEMPLATE_minify": "true" if ctx.attr.minify else "false",
             "TEMPLATE_stats": stats_file_path,
-            "TEMPLATE_transpile_cjs": "true" if transpile_cjs else "false",
         },
     )
     return [DefaultInfo(files = depset([output_file]))]
@@ -67,13 +62,6 @@ _make_rollup_config = rule(
 Keys from 'globals' are automatically added to this attribute, but additional external modules can be specified.
             """,
             mandatory = False,
-        ),
-        "format": attr.string(
-            mandatory = True,
-            doc = """The bundle format.
-
- Note that bundle format must also be specified in the 'rollup_bundle' rule. It is used here only to determine whether to include the 'commonjs' plugin.
-            """,
         ),
         "globals": attr.string_dict(
             default = {},
@@ -127,7 +115,6 @@ def tfjs_rollup_bundle(
         external = external,
         globals = globals,
         leave_as_require = leave_as_require,
-        format = format,
     )
 
     rollup_deps = deps + [
