@@ -92,7 +92,9 @@ export default {
   external: TEMPLATE_external,
   plugins: [
     resolve({browser: true}),
-    commonjs(),
+    commonjs({
+      ignore: TEMPLATE_leave_as_require,
+    }),
     sourcemaps(),
     ...useEs5,
     ...useTerser,

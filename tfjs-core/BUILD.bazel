@@ -32,6 +32,9 @@ tfjs_bundle(
     entry_point = "//tfjs-core/src:index.ts",
     external = [
         "crypto",
+    ],
+    leave_as_require = [
+        "crypto",
         "node-fetch",
         "util",
     ],
