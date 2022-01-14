@@ -38,7 +38,8 @@ import {op} from './operation';
  * tf.oneHot(tf.tensor1d([0, 1], 'int32'), 3).print();
  * ```
  *
- * @param indices `tf.Tensor` of indices with dtype `int32`. Indices must start from 0.
+ * @param indices `tf.Tensor` of indices with dtype `int32`. Indices must 
+ * start from 0.
  * @param depth The depth of the one hot dimension.
  * @param onValue A number used to fill in the output when the index matches
  * the location.
