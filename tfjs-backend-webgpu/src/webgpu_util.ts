@@ -93,14 +93,17 @@ export function computeWorkGroupSizeForConv2d(
   // of hardware threads. But it is always a balance between work group size
   // and shared memory. If one dimension is too small, such as 1, shared memory
   // will won't be fully utilized.
-  if (dim0 <= 4) {
-    return [4, 16, 1];
+  let workGroupSizeX = 16;
+  let workGroupSizeY = 16;
+  const baseAlignment = 2;
+  if (dim0 <= 16) {
+    workGroupSizeX = Math.ceil(dim0 / baseAlignment) * baseAlignment;
   }
-  if (dim1 <= 4) {
-    return [16, 4, 1];
+  if (dim1 <= 16) {
+    workGroupSizeY = Math.ceil(dim1 / baseAlignment) * baseAlignment;
   }
 
-  return [16, 16, 1];
+  return [workGroupSizeX, workGroupSizeY, 1];
 }
 
 export function computeWorkGroupSizeForMatMul(
@@ -118,8 +121,16 @@ export function computeWorkGroupSizeForMatMul(
   } else if (dimBOuter === 1) {
     return [1, 32, 1];
   }
-
-  return [8, 8, 1];
+  var localX = 8;
+  var localY = 8;
+  if (dimBOuter <= 16) {
+    localX = 4;
+  }
+  if (dimInner <= 16 || dimAOuter <= 16)
+  {
+    localY = 4;
+  }
+  return [localX, localY, 1];
 }
 
 export function computeWorkPerThreadForConv2d(
@@ -130,14 +141,16 @@ export function computeWorkPerThreadForConv2d(
   // TODO(jiajia.qin@intel.com): More fine tune based on outputShape.
   // The following conditions correspond to the values set in
   // computeWorkGroupSizeForConv2d.
-  if (dim0 <= 4) {
-    return [1, 2, 1];
+  let workX = 2;
+  let workY = 2;
+  if (dim0 <= 16) {
+    workX = 1;
   }
-  if (dim1 <= 4) {
-    return [2, 1, 1];
+  if (dim1 <= 16) {
+    workY = 1;
   }
 
-  return [2, 2, 1];
+  return [workX, workY, 1];
 }
 
 export function flatDispatchLayout(shape: number[]) {
