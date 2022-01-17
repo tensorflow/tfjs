@@ -165,7 +165,9 @@ function printLayerSummary(
   let inputShape: string;
 
   try {
-    inputShape = (layer.inboundNodes.map(x => JSON.stringify(x.inputShapes))).join(',');
+    inputShape = (layer.inboundNodes.map(
+      x => JSON.stringify(x.inputShapes)
+    )).join(',');
   } catch (err) {
     inputShape = 'multiple';
   }
@@ -179,7 +181,8 @@ function printLayerSummary(
   const name = layer.name;
   const className = layer.getClassName();
   const fields: string[] =
-      [`${name} (${className})`, inputShape, outputShape, layer.countParams().toString()];
+      [`${name} (${className})`, inputShape,
+      outputShape, layer.countParams().toString()];
   printRow(fields, positions, printFn);
 }
 
@@ -194,7 +197,9 @@ function printLayerSummaryWithConnections(
   let inputShape: string;
 
   try {
-    inputShape = (layer.inboundNodes.map(x => JSON.stringify(x.inputShapes))).join(',');
+    inputShape = (layer.inboundNodes.map(
+      x => JSON.stringify(x.inputShapes)
+    )).join(',');
   } catch (err) {
     inputShape = 'multiple';
   }
@@ -223,7 +228,8 @@ function printLayerSummaryWithConnections(
   const className = layer.getClassName();
   const firstConnection = connections.length === 0 ? '' : connections[0];
   const fields: string[] = [
-    `${name} (${className})`, inputShape, outputShape, layer.countParams().toString(),
+    `${name} (${className})`, inputShape,
+    outputShape, layer.countParams().toString(),
     firstConnection
   ];
 

@@ -289,7 +289,7 @@ describeMathCPU('LayersModel.summary', () => {
         tfl.model({inputs: [input1, input2, input3], outputs: output});
 
     const lineLength = 120;
-    const positions: number[] = [0.24, 0.48, 0.70, 0.80, 1]
+    const positions: number[] = [0.24, 0.48, 0.70, 0.80, 1];
     model.summary(lineLength, positions);
     expect(consoleLogHistory).toEqual([
       '________________________________________________________________________________________________________________________',
