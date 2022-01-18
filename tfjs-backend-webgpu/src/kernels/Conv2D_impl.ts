@@ -63,7 +63,8 @@ function conv2dByMatMul({
   let filterReshaped;
 
   if (sameSize) {
-    const sharedDim = convInfo.inHeight * convInfo.inWidth * convInfo.inChannels;
+    const sharedDim =
+        convInfo.inHeight * convInfo.inWidth * convInfo.inChannels;
     xReshaped = reshape({
       inputs: {x},
       backend,
