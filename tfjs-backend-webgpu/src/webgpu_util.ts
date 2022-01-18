@@ -121,8 +121,8 @@ export function computeWorkGroupSizeForMatMul(
   } else if (dimBOuter === 1) {
     return [1, 32, 1];
   }
-  var localX = 8;
-  var localY = 8;
+  let localX = 8;
+  let localY = 8;
   if (dimBOuter <= 16) {
     localX = 4;
   }
