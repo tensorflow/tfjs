@@ -93,17 +93,20 @@ export function computeWorkGroupSizeForConv2d(
   // of hardware threads. But it is always a balance between work group size
   // and shared memory. If one dimension is too small, such as 1, shared memory
   // will won't be fully utilized.
-  let workGroupSizeX = 16;
-  let workGroupSizeY = 16;
-  const baseAlignment = 2;
-  if (dim0 <= 16) {
-    workGroupSizeX = Math.ceil(dim0 / baseAlignment) * baseAlignment;
+  if (dim0 <= 4) {
+    return [4, 16, 1];
+  } else if (dim0 <= 8)
+  {
+    return [8, 16, 1];
   }
-  if (dim1 <= 16) {
-    workGroupSizeY = Math.ceil(dim1 / baseAlignment) * baseAlignment;
+  if (dim1 <= 4) {
+    return [16, 4, 1];
+  } else if (dim0 <= 8)
+  {
+    return [16, 8, 1];
   }
 
-  return [workGroupSizeX, workGroupSizeY, 1];
+  return [16, 16, 1];
 }
 
 export function computeWorkGroupSizeForMatMul(
