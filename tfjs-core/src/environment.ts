@@ -60,7 +60,7 @@ export class Environment {
       if (!(env().getBool('IS_TEST') || env().getBool('PROD'))) {
         console.warn(
             `Platform ${this.platformName} has already been set. ` +
-            `Overwriting the platform with ${platform}.`);
+            `Overwriting the platform with ${platformName}.`);
       }
     }
     this.platformName = platformName;
