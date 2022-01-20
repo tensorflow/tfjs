@@ -250,7 +250,7 @@ export function conv2DImpl({
 
   const useVec4 = (convInfo.inChannels % 4 === 0 ||
       (convInfo.inChannels === 3 && convInfo.padInfo.type === 'VALID')) &&
-      convInfo.outChannels % 4 === 0 && convInfo.outChannels >= 16;
+      convInfo.outChannels % 4 === 0 && convInfo.outChannels >= 32;
 
   const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
   const dimensions = [

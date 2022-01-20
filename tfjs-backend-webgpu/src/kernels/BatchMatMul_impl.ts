@@ -90,7 +90,7 @@ export function batchMatMulImpl({
   const batchDim = Math.max(batchDimA, batchDimB);
 
   const useVec4 = innerShapeA % 4 === 0 && outerShapeB % 4 === 0 &&
-      !transposeA && !transposeB && outerShapeB >= 16;
+      !transposeA && !transposeB && outerShapeB >= 32;
   let program: WebGPUProgram;
   if (outerShapeA * outerShapeB <= 32) {
     program = new MatMulReduceProgram(

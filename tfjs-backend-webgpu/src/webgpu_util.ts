@@ -95,15 +95,9 @@ export function computeWorkGroupSizeForConv2d(
   // will won't be fully utilized.
   if (dim0 <= 4) {
     return [4, 16, 1];
-  } else if (dim0 <= 8)
-  {
-    return [8, 16, 1];
   }
   if (dim1 <= 4) {
     return [16, 4, 1];
-  } else if (dim0 <= 8)
-  {
-    return [16, 8, 1];
   }
 
   return [16, 16, 1];
@@ -124,16 +118,8 @@ export function computeWorkGroupSizeForMatMul(
   } else if (dimBOuter === 1) {
     return [1, 32, 1];
   }
-  let localX = 8;
-  let localY = 8;
-  if (dimBOuter <= 16) {
-    localX = 4;
-  }
-  if (dimInner <= 16 || dimAOuter <= 16)
-  {
-    localY = 4;
-  }
-  return [localX, localY, 1];
+
+  return [8, 8, 1];
 }
 
 export function computeWorkPerThreadForConv2d(
@@ -144,16 +130,14 @@ export function computeWorkPerThreadForConv2d(
   // TODO(jiajia.qin@intel.com): More fine tune based on outputShape.
   // The following conditions correspond to the values set in
   // computeWorkGroupSizeForConv2d.
-  let workX = 2;
-  let workY = 2;
-  if (dim0 <= 16) {
-    workX = 1;
+  if (dim0 <= 4) {
+    return [1, 2, 1];
   }
-  if (dim1 <= 16) {
-    workY = 1;
+  if (dim1 <= 4) {
+    return [2, 1, 1];
   }
 
-  return [workX, workY, 1];
+  return [2, 2, 1];
 }
 
 export function flatDispatchLayout(shape: number[]) {
