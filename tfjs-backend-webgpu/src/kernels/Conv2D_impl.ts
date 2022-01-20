@@ -183,7 +183,7 @@ function conv2dWithIm2Col({
   const matMulProgram = new MatMulPackedProgram(
       a3dShape, [1, numCols, convInfo.outChannels],
       env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, transposeA,
-      transposeB);
+      transposeB, bias, activation, preluActivationWeights);
   const dimAOuter = a3dShape[1];
   const dimInner = a3dShape[2];
   const dimBOuter = convInfo.outChannels;
@@ -191,9 +191,15 @@ function conv2dWithIm2Col({
     {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
     {type: 'int32', data: [dimInner]}
   ];
-
+  const inputs: TensorInfo[] = [im2Col3D, w2Row];
+  if (bias) {
+    inputs.push(bias);
+  }
+  if (preluActivationWeights) {
+    inputs.push(preluActivationWeights);
+  }
   const result: TensorInfo = backend.runWebGPUProgram(
-      matMulProgram, [im2Col3D, w2Row], im2Col3D.dtype, matmulDimensions);
+      matMulProgram, inputs, im2Col3D.dtype, matmulDimensions);
 
   const outShape = isChannelsLast ?
       [1, outHeight, outWidth, convInfo.outChannels] :
