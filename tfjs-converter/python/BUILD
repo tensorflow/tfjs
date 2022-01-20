@@ -99,6 +99,8 @@ py_wheel(
         "protobuf==3.17.3",
         "six>=1.12.0,<2",
         "tensorflow-hub>=0.7.0,<0.10",
+        "regex<2022.1.18",
+        "grpcio==1.39.0",
     ],
     strip_path_prefixes = [
         "tfjs-converter/python",

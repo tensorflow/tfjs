@@ -647,8 +647,31 @@ def _convert_tf_saved_model(output_dir,
   signature = _build_signature_def(
       frozen_graph, inputs, concrete_func.outputs, saved_model_sigature)
 
-  # Check if the TransformGraph is available to be imported, this package is
-  # available in g3 but not in oss version of TensorFlow.
+  define_transform_graph_func()
+
+  version = None
+  try:
+    version = model.tensorflow_version
+  except: # pylint: disable=W0702
+    # keras model does not have tensorflow_version, hard code to the latest
+    # tensorflow version.
+    version = tf.__version__
+
+  optimize_graph(frozen_graph, signature,
+                 output_graph, version,
+                 quantization_dtype_map=quantization_dtype_map,
+                 skip_op_check=skip_op_check,
+                 strip_debug_ops=strip_debug_ops,
+                 weight_shard_size_bytes=weight_shard_size_bytes,
+                 experiments=experiments,
+                 initializer_graph=frozen_initializer_graph,
+                 metadata=metadata)
+
+def define_transform_graph_func():
+  """Check if the TransformGraph is available to be imported, this package is
+  available in g3 but not in oss version of TensorFlow.
+  """
+
   transform_graph_available = True
   try:
     from tensorflow.tools.graph_transforms import TransformGraph # pylint: disable=C0415
@@ -701,27 +724,6 @@ def _convert_tf_saved_model(output_dir,
       with tf.Graph().as_default() as stripped_graph:
         tf.import_graph_def(stripped_graph_def, name='')
         return stripped_graph
-
-    frozen_graph = _strip_unused_nodes(
-        frozen_graph, concrete_func, output_node_names)
-
-  version = None
-  try:
-    version = model.tensorflow_version
-  except: # pylint: disable=W0702
-    # keras model does not have tensorflow_version, hard code to the latest
-    # tensorflow version.
-    version = tf.__version__
-
-  optimize_graph(frozen_graph, signature,
-                 output_graph, version,
-                 quantization_dtype_map=quantization_dtype_map,
-                 skip_op_check=skip_op_check,
-                 strip_debug_ops=strip_debug_ops,
-                 weight_shard_size_bytes=weight_shard_size_bytes,
-                 experiments=experiments,
-                 initializer_graph=frozen_initializer_graph,
-                 metadata=metadata)
 
 def convert_tf_saved_model(saved_model_dir,
                            output_dir, signature_def='serving_default',
