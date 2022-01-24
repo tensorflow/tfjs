@@ -372,26 +372,27 @@ limitations under the License.
     }
 
     async function warmUpAndRecordTime() {
-      if (warmupTimes == 0) {
+      const numWarmups = state.numWarmups;
+      if (numWarmups == 0) {
         await showMsg('Skip warming up');
         appendRow(timeTable, 'backend', state.backend);
         appendRow(timeTable, 'Warmup time', '0 ms');
         return;
       }
-      await showMsg(`Warming up for ${warmupTimes} time(s)`);
+      await showMsg(`Warming up for ${numWarmups} time(s)`);
 
       let timeInfo;
       if (state.benchmark === 'custom') {
         const input = generateInputFromDef(state.inputs, model instanceof tf.GraphModel);
         try {
           timeInfo = isTflite() ?
-              await timeInference(()=>predict(input), warmupTimes) :
-              await timeModelInference(model, input, warmupTimes);
+              await timeInference(()=>predict(input), numWarmups) :
+              await timeModelInference(model, input, numWarmups);
         } finally {
           tf.dispose(input);
         }
       } else {
-        timeInfo = await timeInference(() => predict(model), warmupTimes);
+        timeInfo = await timeInference(() => predict(model), numWarmups);
       }
 
       await showMsg(null);
