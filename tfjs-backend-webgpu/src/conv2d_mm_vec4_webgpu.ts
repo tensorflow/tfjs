@@ -32,6 +32,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
       `filterDims : vec2<i32>; pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>;
       dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
   workGroupSize: [number, number, number] = [8, 8, 1];
+  // The first element in elementsPerThread must be 4.
   elementsPerThread: [number, number, number] = [4, 4, 1];
   isVec4 = true;
   convInfo: backend_util.Conv2DInfo;

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {getMainHeaderString} from './shader_preprocessor';
 import {computeDispatch, tilesFitEvenlyIntoShape} from './webgpu_util';
@@ -25,6 +25,9 @@ import {WebGPUProgram} from './webgpu_program';
 
 export function makeMatMulPackedVec4Source(workPerThread: number[],
     tileAOuter: number, tileBOuter: number, tileInner: number): string {
+  util.assert(
+    tileInner % 4 === 0 && workPerThread[0] === 4,
+      () => 'tileInner must be divisible by 4. And ColPerThread must be 4');
   return `
   var<workgroup> mm_Asub : array<array<vec4<f32>, ${
       tileInner / workPerThread[0]}>, ${tileAOuter}>;
@@ -32,7 +35,7 @@ export function makeMatMulPackedVec4Source(workPerThread: number[],
       tileBOuter / workPerThread[0]}>, ${tileInner}>;
 
   let RowPerThread = ${workPerThread[1]};
-  let ColPerThread = ${workPerThread[0]}; // only support ColPerThread = 4
+  let ColPerThread = ${workPerThread[0]};
   let TileInner = ${tileInner};
 
   ${getMainHeaderString()}
@@ -106,6 +109,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   variableNames = ['A', 'B'];
   uniforms = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
   workGroupSize: [number, number, number] = [8, 8, 1];
+  // The first element in elementsPerThread must be 4.
   elementsPerThread: [number, number, number] = [4, 4, 1];
   isVec4 = true;
   aShape: [number, number, number];
@@ -145,7 +149,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     this.tileAOuter = outputShape[1] === 1 ? 1 :
         this.workGroupSize[1] * this.elementsPerThread[1];
     this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
-    this.tileInner = this.tileBOuter;  // Make sure tileInner is divisible by 4.
+    this.tileInner = this.tileBOuter;
 
     this.aShape = aShape;
     this.addBias = addBias;
