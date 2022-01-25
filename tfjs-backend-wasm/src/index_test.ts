@@ -231,7 +231,7 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
   });
 });
 
-describe('wasm pre.js', () => {
+describeWithFlags('wasm pre.js', BROWSER_ENVS, () => {
   it('works if process variable is undefined', async () => {
     tf.engine().reset();
 
