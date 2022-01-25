@@ -32,8 +32,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
       `filterDims : vec2<i32>; pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>;
       dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
   workGroupSize: [number, number, number] = [8, 8, 1];
-  // The first element in elementsPerThread must be 4.
-  elementsPerThread: [number, number, number] = [4, 4, 1];
+  elementsPerThread: [number, number, number];
   isVec4 = true;
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
@@ -56,8 +55,11 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         convInfo.dataFormat === 'channelsLast',
         () => 'TODO: NCHW is unimplemented');
     this.dispatchLayout = {x: [3], y: [1, 2], z: [0]};
+    // The first element in elementsPerThread must be 4.
     if (this.outputShape[1] === 1) {
       this.elementsPerThread = [4, 1, 1];
+    } else {
+      this.elementsPerThread = [4, 4, 1];
     }
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,

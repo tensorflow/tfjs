@@ -109,8 +109,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   variableNames = ['A', 'B'];
   uniforms = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
   workGroupSize: [number, number, number] = [8, 8, 1];
-  // The first element in elementsPerThread must be 4.
-  elementsPerThread: [number, number, number] = [4, 4, 1];
+  elementsPerThread: [number, number, number];
   isVec4 = true;
   aShape: [number, number, number];
   addBias: boolean;
@@ -129,8 +128,11 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
       preluActivationWeights: TensorInfo = null) {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
+    // The first element in elementsPerThread must be 4.
     if (outputShape[1] === 1) {
       this.elementsPerThread = [4, 1, 1];
+    } else {
+      this.elementsPerThread = [4, 4, 1];
     }
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
