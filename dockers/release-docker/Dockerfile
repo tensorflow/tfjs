@@ -1,5 +1,4 @@
-# Official emsdk docker: https://hub.docker.com/r/emscripten/emsdk
-FROM debian:10-slim
+FROM node:16.13.2-buster-slim
 
 # Install cloud-sdk
 ARG CLOUD_SDK_VERSION=355.0.0
@@ -21,16 +20,12 @@ RUN apt-get update -qqy && apt-get install -qqy \
         git \
         gnupg \
         file \
-        nodejs \
-        yarnpkg \
-        npm \
         wget \
         unzip \
         libssl-dev \
         libffi-dev \
         zlib1g-dev \
         procps && \
-    ln -s /usr/bin/yarnpkg /usr/bin/yarn && \
     ln -s /usr/bin/pip3 /usr/bin/pip && \
     pip3 install -U crcmod && \
     export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
@@ -51,3 +46,5 @@ RUN pip3 install virtualenv
 
 # Install absl
 RUN pip3 install absl-py
+
+ENTRYPOINT /bin/bash
