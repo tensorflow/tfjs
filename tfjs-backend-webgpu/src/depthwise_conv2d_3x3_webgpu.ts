@@ -95,7 +95,7 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
       ${activationSnippet}
 
       ${getWorkGroupSizeString()}
-      fn main([[builtin(global_invocation_id)]] globalId: vec3<u32>) {
+      fn main(@builtin(global_invocation_id) globalId: vec3<u32>) {
         let batch = 0;
         let r = i32(globalId.x);
         let c = i32(globalId.y) * 4;
