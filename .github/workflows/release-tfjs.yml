@@ -1,0 +1,32 @@
+name: Test
+
+jobs:
+  # Check release blocker issues.
+  check_release_blockers:
+    name: Check release blockers
+    needs: checkout_repo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v2
+
+      # TODO: use this: https://github.com/octokit/core.js#readme
+      # API: https://docs.github.com/en/rest/reference/issues#list-repository-issues
+      - name: Query release blockers issues
+        id: query_release_blockers_issues
+        uses: lee-dohm/select-matching-issues@v1
+        with:
+          query: 'label:bug'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check if any release blockers exist
+        id: check_release_blockers_exist
+        run: |
+          echo "file content"
+          cat ${{ steps.query_release_blockers_issues.output.path }}
+          echo "::set-output name=is-empty::$([[-s file ${{ steps.query_release_blockers_issues.outputs.path }}]] && echo 'not-empty' || echo 'empty')\n"
+      - name: Fail the job if any release blockers exist
+        # This is how to use output from prev step and fail the step.
+        if: ${{ steps.check_release_blockers_exist.outputs.is-empty == "not-empty" }}
+        uses: actions/github-script@v5
+        with:
+          script: core.setFailed('Release blockers detected')

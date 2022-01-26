@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@octokit/core": "^3.5.1"
+  },
+  "devDependencies": {
+  },
+  "scripts": {
+  }
+}
