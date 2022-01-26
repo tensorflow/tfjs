@@ -1,4 +1,4 @@
-name: Test
+name: Release tfjs
 
 # Allow manual run.
 on: workflow_dispatch
