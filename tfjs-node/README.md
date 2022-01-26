@@ -21,7 +21,7 @@ For GPU support, tfjs-node-gpu@1.2.4 or later requires the following NVIDIA® so
 | [CUDA® Toolkit](https://developer.nvidia.com/cuda-toolkit-archive)  | 11.2  |
 | [cuDNN SDK](https://developer.nvidia.com/rdp/cudnn-download)  | 8.1.0  |
 
-*Other Linux variants might also work but this project matches [core TensorFlow installation requirements](https://www.tensorflow.org/install/install_linux).*
+*Other Linux variants might also work but this project matches [core TensorFlow installation requirements](https://www.tensorflow.org/install/source).*
 
 #### Installing CPU TensorFlow.js for Node:
 
