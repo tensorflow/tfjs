@@ -31,13 +31,17 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   uniforms =
       `filterDims : vec2<i32>; pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>;
       dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
-  workGroupSize: [number, number, number];
+  workGroupSize: [number, number, number] = [8, 8, 1];
+  elementsPerThread: [number, number, number];
   isVec4 = true;
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
   hasLeakyreluAlpha: boolean;
+  tileAOuter: number;
+  tileBOuter: number;
+  tileInner: number;
   fitA: boolean;
   fitB: boolean;
 
@@ -51,11 +55,15 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         convInfo.dataFormat === 'channelsLast',
         () => 'TODO: NCHW is unimplemented');
     this.dispatchLayout = {x: [3], y: [1, 2], z: [0]};
-    this.workGroupSize = [8, 8, 1];
-    const elementsPerThread: [number, number, number] = [4, 4, 1];
+    // The first element in elementsPerThread must be 4.
+    if (this.outputShape[1] === 1) {
+      this.elementsPerThread = [4, 1, 1];
+    } else {
+      this.elementsPerThread = [4, 4, 1];
+    }
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
-        elementsPerThread);
+        this.elementsPerThread);
     this.convInfo = convInfo;
     this.addBias = addBias;
     this.activation = activation;
@@ -73,18 +81,18 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
       this.variableNames.push('leakyreluAlpha');
     }
 
-    [this.fitA, this.fitB] = this.getShapeFit(elementsPerThread);
-    this.shaderKey =
-        `conv2DMMVec4_${this.activation}_${this.fitA}_${this.fitB}`;
+    this.tileAOuter = this.outputShape[1] === 1 ? 1 :
+        this.workGroupSize[1] * this.elementsPerThread[1];
+    this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
+    this.tileInner = this.tileBOuter;
+    [this.fitA, this.fitB] = this.getShapeFit();
+    this.shaderKey =`conv2DMMVec4_${this.activation}_${this.fitA}_${
+        this.fitB}_${this.elementsPerThread}`;
   }
 
-  getShapeFit(elementsPerThread: [number, number, number]): boolean[] {
-    const tileAOuter = this.workGroupSize[1] * elementsPerThread[1];
-    const tileBOuter = this.workGroupSize[0] * elementsPerThread[0];
-    const tileInner = tileBOuter;
-
-    const tileSizeA = [tileAOuter, tileInner];
-    const tileSizeB = [tileInner, tileBOuter];
+  getShapeFit(): boolean[] {
+    const tileSizeA = [this.tileAOuter, this.tileInner];
+    const tileSizeB = [this.tileInner, this.tileBOuter];
     const dimAOuter = this.outputShape[1] * this.outputShape[2];
     const dimBOuter = this.outputShape[3];
     const dimInner = this.convInfo.filterHeight * this.convInfo.filterWidth *
@@ -121,9 +129,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   }
 
   getUserCode(): string {
-    const elementsPerThread: [number, number, number] = [4, 4, 1];
-    const matMulSource =
-        makeMatMulPackedVec4Source(elementsPerThread, this.workGroupSize);
+    const matMulSource = makeMatMulPackedVec4Source(this.elementsPerThread,
+        this.tileAOuter, this.tileBOuter, this.tileInner);
 
     const remainder = this.convInfo.inChannels % 4;
     // Below code only applys to valid padding type.
