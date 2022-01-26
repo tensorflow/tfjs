@@ -118,7 +118,7 @@ tf.setBackend('wasm').then(() => {
 ```js
 tf.wasm.setThreadsCount(2);
 tf.setBackend('wasm').then(() => {
-  consosle.log(tf.wasm.getThreadsCount());
+  console.log(tf.wasm.getThreadsCount());
 });
 ```
 
