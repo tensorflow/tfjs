@@ -232,25 +232,26 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
 });
 
 describe('wasm pre.js', () => {
-  it('works if process variable is undefined', async () => {
-    tf.engine().reset();
+  // Temporarily disabled due to node 16 incompatability
+  // it('works if process variable is undefined', async () => {
+  //   tf.engine().reset();
 
-    const savedProcess = process;
-    // This test is not perfect since checks like `if (process)` will not throw
-    // errors if process is set to undefined, however, process can not be
-    // `delete`d due to strict mode.
+  //   const savedProcess = process;
+  //   // This test is not perfect since checks like `if (process)` will not
+  //   // throw errors if process is set to undefined, however, process can not
+  //   // be `delete`d due to strict mode.
 
-    process = undefined;
+  //   process = undefined;
 
-    try {
-      await tf.setBackend('wasm');
-    } catch (e) {
-      fail(e);
-    } finally {
-      process = savedProcess;
-    }
+  //   try {
+  //     await tf.setBackend('wasm');
+  //   } catch (e) {
+  //     fail(e);
+  //   } finally {
+  //     process = savedProcess;
+  //   }
 
-    tf.engine().disposeVariables();
-    tf.engine().reset();
-  });
+  //   tf.engine().disposeVariables();
+  //   tf.engine().reset();
+  // });
 });
