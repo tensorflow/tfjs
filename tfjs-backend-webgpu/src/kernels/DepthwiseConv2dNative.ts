@@ -75,7 +75,6 @@ export function depthwiseConv2dNative(args: {
     backend.disposeData(transposedFilter.dataId);
     backend.disposeData(result.dataId);
     return transposeRes;
-
   } else {
     program = new DepthwiseConv2DProgram(convInfo);
     dimensions.push(

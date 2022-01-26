@@ -130,6 +130,10 @@ export class DepthwiseConv2DNCHWProgram implements WebGPUProgram {
 
         // Load one tile of X into local memory.
         mm_Asub[localRow][localCol] = readX(batch, d1, inputRowStart, inputColStart);
+        mm_Asub[localRow][8 + localCol] =
+        readX(batch, d1, inputRowStart, inputColStart + 8);
+        mm_Asub[8 + localRow][localCol] =
+        readX(batch, d1, inputRowStart + 8, inputColStart);
         mm_Asub[8 + localRow][8 + localCol] =
           readX(batch, d1, inputRowStart + 8, inputColStart + 8);
 
@@ -148,7 +152,7 @@ export class DepthwiseConv2DNCHWProgram implements WebGPUProgram {
 
         ${addBiasSnippet}
         ${applyActivationSnippet}
-        writeResult(batch, d2, coords[1], coords[2], dotProd);
+        writeResult(coords[0], coords[1], coords[2], coords[3], dotProd);
       }
     `;
     return userCode;
