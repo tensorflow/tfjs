@@ -1,5 +1,8 @@
 name: Test
 
+# Allow manual run.
+on: workflow_dispatch
+
 jobs:
   # Check release blocker issues.
   check_release_blockers:
