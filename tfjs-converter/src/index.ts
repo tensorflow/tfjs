@@ -15,6 +15,8 @@
  * =============================================================================
  */
 import './flags';
+
+export {IAttrValue, INameAttrList, INodeDef, ITensor, ITensorShape} from './data/compiled_api';
 export {GraphModel, loadGraphModel} from './executor/graph_model';
 export {deregisterOp, registerOp} from './operations/custom_op/register';
 export {GraphNode, OpExecutor} from './operations/types';
