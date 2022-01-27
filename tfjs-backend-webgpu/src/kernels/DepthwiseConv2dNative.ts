@@ -64,15 +64,20 @@ export function depthwiseConv2dNative(args: {
              convInfo.inHeight > 16 && convInfo.inWidth > 16 &&
              convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
              convInfo.dilationWidth === 1 && convInfo.dilationHeight === 1) {
-    const transposedX = transpose({inputs: {x}, backend, attrs: {perm: [0, 3, 1, 2]}});
-    const transposedFilter = transpose({inputs: {x: filter}, backend, attrs: {perm: [3, 2, 0, 1]}});
-    const outputShape = [convInfo.batchSize, convInfo.outChannels, convInfo.outHeight, convInfo.outWidth];
+    const transposedX = transpose(
+        {inputs: {x}, backend, attrs: {perm: [0, 3, 1, 2]}});
+    const transposedFilter = transpose(
+        {inputs: {x: filter}, backend, attrs: {perm: [3, 2, 0, 1]}});
+    const outputShape = [convInfo.batchSize, convInfo.outChannels,
+                         convInfo.outHeight, convInfo.outWidth];
     const programNCHW = new DepthwiseConv2DNCHWSharedProgram(outputShape);
     dimensions.push({type: 'int32', data: [convInfo.filterHeight]},
     {type: 'int32', data: [convInfo.filterWidth]},
     {type: 'int32', data: [convInfo.outChannels / convInfo.inChannels]});
-    const result = backend.runWebGPUProgram(programNCHW, [transposedX, transposedFilter], x.dtype, dimensions);
-    const transposeRes = transpose({inputs: {x: result}, backend, attrs: {perm: [0, 2, 3, 1]}});
+    const result = backend.runWebGPUProgram(
+        programNCHW, [transposedX, transposedFilter], x.dtype, dimensions);
+    const transposeRes = transpose(
+        {inputs: {x: result}, backend, attrs: {perm: [0, 2, 3, 1]}});
     backend.disposeData(transposedX.dataId);
     backend.disposeData(transposedFilter.dataId);
     backend.disposeData(result.dataId);
