@@ -20,7 +20,7 @@ import {backend_util, DepthwiseConv2dNative, DepthwiseConv2dNativeAttrs, Depthwi
 import {WebGPUBackend} from '../backend_webgpu';
 import {DepthwiseConv2D3x3Program} from '../depthwise_conv2d_3x3_webgpu';
 import {DepthwiseConv2DProgram} from '../depthwise_conv2d_webgpu';
-import {DepthwiseConv2DNCHWProgram} from '../depthwise_conv2d_nchw_webgpu';
+import {DepthwiseConv2DNCHWSharedProgram} from '../depthwise_conv2d_nchw_shared_webgpu';
 import {transpose} from './Transpose';
 
 export function depthwiseConv2dNative(args: {
@@ -65,7 +65,7 @@ export function depthwiseConv2dNative(args: {
     const transposedX = transpose({inputs: {x}, backend, attrs: {perm: [0, 3, 1, 2]}});
     const transposedFilter = transpose({inputs: {x: filter}, backend, attrs: {perm: [3, 2, 0, 1]}});
     const outputShape = [convInfo.batchSize, convInfo.outChannels, convInfo.outHeight, convInfo.outWidth];
-    const programNCHW = new DepthwiseConv2DNCHWProgram(outputShape);
+    const programNCHW = new DepthwiseConv2DNCHWSharedProgram(outputShape);
     dimensions.push({type: 'int32', data: [convInfo.filterHeight]},
     {type: 'int32', data: [convInfo.filterWidth]},
     {type: 'int32', data: [convInfo.outChannels / convInfo.inChannels]});
