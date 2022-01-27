@@ -60,7 +60,9 @@ export function depthwiseConv2dNative(args: {
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
       convInfo.filterHeight === 3 && convInfo.inChannels % 4 === 0) {
     program = new DepthwiseConv2D3x3Program(convInfo);
-  } else if (convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
+  } else if (convInfo.filterHeight > 3 && convInfo.filterWidth > 3 &&
+             convInfo.inHeight > 16 && convInfo.inWidth > 16 &&
+             convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
              convInfo.dilationWidth === 1 && convInfo.dilationHeight === 1) {
     const transposedX = transpose({inputs: {x}, backend, attrs: {perm: [0, 3, 1, 2]}});
     const transposedFilter = transpose({inputs: {x: filter}, backend, attrs: {perm: [3, 2, 0, 1]}});
