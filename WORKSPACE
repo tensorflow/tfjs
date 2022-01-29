@@ -42,11 +42,9 @@ http_archive(
 )
 
 # Install rules_nodejs dependencies.
-load("@build_bazel_rules_nodejs//nodejs:repositories.bzl", "rules_nodejs_dependencies")
+load("@build_bazel_rules_nodejs//nodejs:repositories.bzl", "rules_nodejs_dependencies", "yarn_install")
 
 rules_nodejs_dependencies()
-
-load("@build_bazel_rules_nodejs//:index.bzl", "yarn_install")
 
 yarn_install(
     name = "npm",
@@ -56,9 +54,10 @@ yarn_install(
 
 # Use node 16
 load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories")
+
 node_repositories(
-    package_json = ["//:package.json"],
     node_version = "16.13.2",
+    package_json = ["//:package.json"],
 )
 
 # Fetch transitive Bazel dependencies of karma_web_test
