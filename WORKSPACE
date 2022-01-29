@@ -42,9 +42,11 @@ http_archive(
 )
 
 # Install rules_nodejs dependencies.
-load("@build_bazel_rules_nodejs//nodejs:repositories.bzl", "rules_nodejs_dependencies", "yarn_install")
+load("@build_bazel_rules_nodejs//nodejs:repositories.bzl", "rules_nodejs_dependencies")
 
 rules_nodejs_dependencies()
+
+load("@build_bazel_rules_nodejs//:index.bzl", "yarn_install")
 
 yarn_install(
     name = "npm",
