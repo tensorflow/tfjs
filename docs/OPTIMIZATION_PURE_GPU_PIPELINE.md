@@ -49,4 +49,4 @@ data. This is how the texture with tensor shape = [2, 3, 4] looks like:
 So if a tensor's shape is `[1, height, width, 4]` or `[height, width, 4]`, the way we store the data aligns with how image is stored, therefore if the
 downstream processing assumes the texture is an image, it doesn't need to
 do any additional coordination conversion. Each texel is mapped to a [CSS pixel](https://developer.mozilla.org/en-US/docs/Glossary/CSS_pixel) in an image. However, if the tensor has other shapes, downstream
-processing steps may need to reformat the data onto another texture. The `texShape` field has the `[height, width]` information of the texture, which can be used in transformation shader.
+processing steps may need to reformat the data onto another texture. The `texShape` field has the `[height, width]` information of the texture, which can be used for transformation.
