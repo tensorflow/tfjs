@@ -23,7 +23,8 @@ The example below shows how to get the tensor texture by calling
 const data =
       tensor.dataToGPU({customTexShape: [videoHeight, videoWidth]});
 
-// Once we have the texture, we can bind it and pass it to the downstream /// webgl processing steps to use the texture.
+// Once we have the texture, we can bind it and pass it to the downstream
+// webgl processing steps to use the texture.
 gl.bindTexture(gl.TEXTURE_2D, data.texture);
 
 // Some webgl processing steps.
