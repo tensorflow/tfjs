@@ -86,11 +86,12 @@ load("@build_bazel_rules_nodejs//toolchains/esbuild:esbuild_repositories.bzl", "
 esbuild_repositories(npm_repository = "npm")
 
 # Emscripten toolchain
+# TODO(mattsoulanille): Change this to the official emsdk repo once m1 support is merged.
 http_archive(
     name = "emsdk",
-    sha256 = "7a58a9996b113d3e0675df30b5f17e28aa47de2e684a844f05394fe2f6f12e8e",
-    strip_prefix = "emsdk-c1589b55641787d55d53e883852035beea9aec3f/bazel",
-    url = "https://github.com/emscripten-core/emsdk/archive/c1589b55641787d55d53e883852035beea9aec3f.tar.gz",
+    sha256 = "e645e4b3670d8f349355a9615d49147ea902f2b3b30326cb5358ac4e590f47d6",
+    urls = ["https://github.com/mattsoulanille/emsdk/archive/refs/heads/support_m1.zip"],
+    strip_prefix = "emsdk-support_m1/bazel",
 )
 
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
@@ -106,9 +107,9 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 # xnnpack used for fast vectorized wasm operations
 git_repository(
     name = "xnnpack",
-    commit = "3bfbdaf00211b313b143af39279bb6bf1f7effc0",
+    commit = "5e8033a72a8d0f1c2b1f06e29137cc697c6b661d",
     remote = "https://github.com/google/XNNPACK.git",
-    shallow_since = "1617056836 -0700",
+    shallow_since = "1643627844 -0800"
 )
 
 # The libraries below are transitive dependencies of XNNPACK that we need to
