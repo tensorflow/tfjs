@@ -49,3 +49,15 @@ def python_repositories():
                 python_interpreter_target = interpreter,
                 requirements = "@//tfjs-converter/python:requirements.txt",
             )
+
+        # Create an external repo for python deps that relies on the default
+        # python interpreter.
+        pip_install(
+            name = "tensorflowjs_dev_deps",
+            requirements = "@//tfjs-converter/python:requirements-dev.txt",
+        )
+
+        pip_install(
+            name = "tensorflowjs_deps",
+            requirements = "@//tfjs-converter/python:requirements.txt",
+        )
