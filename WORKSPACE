@@ -46,16 +46,13 @@ load("@build_bazel_rules_nodejs//nodejs:repositories.bzl", "rules_nodejs_depende
 
 rules_nodejs_dependencies()
 
-load("@build_bazel_rules_nodejs//:index.bzl", "yarn_install")
+load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "yarn_install")
 
 yarn_install(
     name = "npm",
     package_json = "//:package.json",
     yarn_lock = "//:yarn.lock",
 )
-
-# Use node 16
-load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories")
 
 node_repositories(
     node_version = "16.13.2",
