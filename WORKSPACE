@@ -87,8 +87,8 @@ esbuild_repositories(npm_repository = "npm")
 http_archive(
     name = "emsdk",
     sha256 = "e645e4b3670d8f349355a9615d49147ea902f2b3b30326cb5358ac4e590f47d6",
-    urls = ["https://github.com/mattsoulanille/emsdk/archive/refs/heads/support_m1.zip"],
     strip_prefix = "emsdk-support_m1/bazel",
+    urls = ["https://github.com/mattsoulanille/emsdk/archive/refs/heads/support_m1.zip"],
 )
 
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
@@ -106,7 +106,7 @@ git_repository(
     name = "xnnpack",
     commit = "5e8033a72a8d0f1c2b1f06e29137cc697c6b661d",
     remote = "https://github.com/google/XNNPACK.git",
-    shallow_since = "1643627844 -0800"
+    shallow_since = "1643627844 -0800",
 )
 
 # The libraries below are transitive dependencies of XNNPACK that we need to
