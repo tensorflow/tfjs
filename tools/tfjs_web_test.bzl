@@ -54,6 +54,7 @@ _make_karma_config = rule(
 def tfjs_web_test(name, ci = True, args = [], **kwargs):
     tags = kwargs.pop("tags", [])
     local_browser = kwargs.pop("local_browser", "")
+    headless = kwargs.pop("headless", True)
 
     browsers = kwargs.pop("browsers", [
         "bs_chrome_mac",
@@ -87,7 +88,7 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
         timeout = timeout,
         name = name,
         config_file = config_file,
-        configuration_env_vars = ["DISPLAY"],
+        configuration_env_vars = [] if headless else ["DISPLAY"],
         tags = ["native"] + tags,
         **kwargs
     )
