@@ -39,7 +39,6 @@ describeWithFlags('canvas_util', BROWSER_ENVS, () => {
 
   it('Returns a valid user defined canvas.', () => {
     const webGLVersion = tf.env().getNumber('WEBGL_VERSION');
-    clearWebGLContext(webGLVersion);
 
     const customCanvas = document.createElement('canvas');
     customCanvas.width = 10;
