@@ -39,7 +39,7 @@ export function setWebGLContext(
 export function getWebGLContext(
     webGLVersion: number,
     customCanvas?: HTMLCanvasElement|OffscreenCanvas): WebGLRenderingContext {
-  if (!(webGLVersion in contexts)) {
+  if (!(webGLVersion in contexts) || customCanvas != null) {
     const newCtx = getWebGLRenderingContext(webGLVersion, customCanvas);
     if (newCtx !== null) {
       contexts[webGLVersion] = newCtx;
