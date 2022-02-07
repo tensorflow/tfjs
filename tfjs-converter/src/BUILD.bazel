@@ -41,23 +41,14 @@ ts_library(
     name = "tfjs-converter_src_lib",
     srcs = glob(
         ["**/*.ts"],
-        exclude = TEST_SRCS + ["index.ts"],
+        exclude = TEST_SRCS,
     ) + [":ops_ts_files"],
     module_name = "@tensorflow/tfjs-converter/dist",
     deps = [
-        "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
+        "//tfjs-core/tfjs-core_lib",
         "@npm//@types/seedrandom",
         "@npm//seedrandom",
-    ],
-)
-
-ts_library(
-    name = "tfjs-converter_lib",
-    srcs = ["index.ts"],
-    module_name = "@tensorflow/tfjs-converter",
-    deps = [
-        ":tfjs-converter_src_lib",
     ],
 )
 
@@ -67,11 +58,11 @@ ts_library(
     srcs = glob(TEST_SRCS),
     module_name = "@tensorflow/tfjs-converter/dist",
     deps = [
-        ":tfjs-converter_lib",
         ":tfjs-converter_src_lib",
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
-        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-backend-cpu/tfjs-backend-cpu_lib",
+        "//tfjs-converter/tfjs-converter_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
+        "//tfjs-core/tfjs-core_lib",
         "@npm//@types/jasmine",
         "@npm//ajv",
         "@npm//jasmine",

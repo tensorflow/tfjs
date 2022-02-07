@@ -35,7 +35,6 @@ tfjs_bundle(
     },
     umd_name = "tflite",
     deps = [
-        "//tfjs-tflite/src:tfjs-tflite_lib",
         "//tfjs-tflite/src:tfjs-tflite_src_lib",
         "//tfjs-tflite/src:tflite_web_api_client_js",
         "//tfjs-tflite/wasm:wasm_files",
@@ -46,7 +45,6 @@ tfjs_bundle(
 copy_ts_library_to_dist(
     name = "copy_src_to_dist",
     srcs = [
-        "//tfjs-tflite/src:tfjs-tflite_lib",
         "//tfjs-tflite/src:tfjs-tflite_src_lib",
     ],
     root = "src",

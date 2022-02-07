@@ -35,7 +35,6 @@ tfjs_bundle(
     },
     umd_name = "tf",
     deps = [
-        "//tfjs-backend-webgpu/src:tfjs-backend-webgpu_lib",
         "//tfjs-backend-webgpu/src:tfjs-backend-webgpu_src_lib",
     ],
 )
@@ -43,7 +42,6 @@ tfjs_bundle(
 copy_ts_library_to_dist(
     name = "copy_src_to_dist",
     srcs = [
-        "//tfjs-backend-webgpu/src:tfjs-backend-webgpu_lib",
         "//tfjs-backend-webgpu/src:tfjs-backend-webgpu_src_lib",
     ],
     root = "src",

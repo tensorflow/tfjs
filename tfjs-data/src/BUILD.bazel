@@ -49,30 +49,16 @@ ts_library(
     name = "tfjs-data_src_lib",
     srcs = glob(
         ["**/*.ts"],
-        exclude = TEST_SRCS + ["index.ts"],
+        exclude = TEST_SRCS,
     ),
     module_name = "@tensorflow/tfjs-data/dist",
     deps = [
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
-        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-backend-cpu/tfjs-backend-cpu_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
+        "//tfjs-core/tfjs-core_lib",
         "@npm//@types/seedrandom",
         "@npm//seedrandom",
-    ],
-)
-
-# Compiles the `index.ts` entrypoint of tfjs-data separately from the rest of
-# the sources in order to use the `@tensorflow/tfjs-data` module name instead
-# of `@tensorflow/tfjs-data/dist`,
-ts_library(
-    name = "tfjs-data_lib",
-    srcs = ["index.ts"],
-    module_name = "@tensorflow/tfjs-data",
-    deps = [
-        ":tfjs-data_src_lib",
-        "//tfjs-core/src:tfjs-core_lib",
-        "//tfjs-core/src:tfjs-core_src_lib",
     ],
 )
 
@@ -84,13 +70,13 @@ ts_library(
     srcs = glob(TEST_SRCS) + [":tests"],
     module_name = "@tensorflow/tfjs-data/dist",
     deps = [
-        ":tfjs-data_lib",
         ":tfjs-data_src_lib",
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
-        "//tfjs-backend-webgl/src:tfjs-backend-webgl_lib",
-        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-backend-cpu/tfjs-backend-cpu_lib",
+        "//tfjs-backend-webgl/tfjs-backend-webgl_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
         "//tfjs-core/src:tfjs-core_test_lib",
+        "//tfjs-core/tfjs-core_lib",
+        "//tfjs-data/tfjs-data_lib",
         "@npm//@types/jasmine",
         "@npm//jasmine",
     ],
@@ -113,7 +99,7 @@ esbuild(
     ],
     sources_content = True,
     deps = [
-        ":tfjs-data_lib",
         ":tfjs-data_test_lib",
+        "//tfjs-data/tfjs-data_lib",
     ],
 )

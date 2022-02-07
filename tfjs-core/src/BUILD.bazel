@@ -68,24 +68,12 @@ ts_library(
     name = "tfjs-core_src_lib",
     srcs = glob(
         ["**/*.ts"],
-        exclude = TEST_SRCS + TEST_ENTRYPOINTS + ["index.ts"],
+        exclude = TEST_SRCS + TEST_ENTRYPOINTS,
     ),
     module_name = "@tensorflow/tfjs-core/dist",
     deps = [
         "@npm//@types",
         "@npm//seedrandom",
-    ],
-)
-
-# Compiles the `index.ts` entrypoint of tfjs-core separately from the rest of
-# the sources in order to use the `@tensorflow/tfjs-core` module name instead
-# of `@tensorflow/tfjs-core/dist`,
-ts_library(
-    name = "tfjs-core_lib",
-    srcs = ["index.ts"],
-    module_name = "@tensorflow/tfjs-core",
-    deps = [
-        ":tfjs-core_src_lib",
     ],
 )
 
@@ -102,8 +90,8 @@ ts_library(
     # npm package (for other downstream packages' tests).
     module_name = "@tensorflow/tfjs-core/dist",
     deps = [
-        ":tfjs-core_lib",
         ":tfjs-core_src_lib",
+        "//tfjs-core/tfjs-core_lib",
     ],
 )
 
@@ -115,7 +103,7 @@ ts_library(
     deps = [
         ":tfjs-core_src_lib",
         ":tfjs-core_test_lib",
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-backend-cpu/tfjs-backend-cpu_lib",
     ],
 )
 
@@ -129,7 +117,7 @@ ts_library(
         # so it is not listed here (it is listed in the nodejs_test, instead).
         ":tfjs-core_src_lib",
         ":tfjs-core_test_lib",
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-backend-cpu/tfjs-backend-cpu_lib",
     ],
 )
 
@@ -148,9 +136,9 @@ esbuild(
     sources_content = True,
     deps = [
         ":setup_test_lib",
-        ":tfjs-core_lib",
         ":tfjs-core_test_lib",
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-backend-cpu/tfjs-backend-cpu_lib",
+        "//tfjs-core/tfjs-core_lib",
     ],
 )
 
@@ -161,7 +149,7 @@ ts_library(
     ],
     deps = [
         ":tfjs-core_src_lib",
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-backend-cpu/tfjs-backend-cpu_lib",
     ],
 )
 
@@ -182,9 +170,9 @@ ts_library(
         "worker_test.ts",
     ],
     deps = [
-        ":tfjs-core_lib",
         ":tfjs-core_src_lib",
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-backend-cpu/tfjs-backend-cpu_lib",
+        "//tfjs-core/tfjs-core_lib",
     ],
 )
 
@@ -218,9 +206,9 @@ ts_library(
         "ops/from_pixels_worker_test.ts",
     ],
     deps = [
-        ":tfjs-core_lib",
         ":tfjs-core_src_lib",
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-backend-cpu/tfjs-backend-cpu_lib",
+        "//tfjs-core/tfjs-core_lib",
     ],
 )
 

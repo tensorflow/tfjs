@@ -30,7 +30,7 @@ nodejs_test(
     name = "tfjs-converter_test",
     data = [
         ":package_json",
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-backend-cpu/tfjs-backend-cpu_lib",
         "//tfjs-converter/metadata:kernels_to_ops",
         "//tfjs-converter/src:tfjs-converter_test_lib",
     ],
@@ -47,7 +47,7 @@ nodejs_test(
     data = [
         ":tsconfig.json",
         "//:tsconfig.json",
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-backend-cpu/tfjs-backend-cpu_lib",
         "//tfjs-converter/scripts:test_snippets_lib",
         "//tfjs-converter/src:all_srcs",
     ],
@@ -67,7 +67,6 @@ tfjs_bundle(
     },
     umd_name = "tf",
     deps = [
-        "//tfjs-converter/src:tfjs-converter_lib",
         "//tfjs-converter/src:tfjs-converter_src_lib",
     ],
 )
@@ -75,7 +74,6 @@ tfjs_bundle(
 copy_ts_library_to_dist(
     name = "copy_src_to_dist",
     srcs = [
-        "//tfjs-converter/src:tfjs-converter_lib",
         "//tfjs-converter/src:tfjs-converter_src_lib",
     ],
     root = "src",

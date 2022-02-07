@@ -45,7 +45,6 @@ tfjs_bundle(
     },
     umd_name = "tf",
     deps = [
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
     ],
 )
@@ -53,7 +52,6 @@ tfjs_bundle(
 copy_ts_library_to_dist(
     name = "copy_src_to_dist",
     srcs = [
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
     ],
     root = "src",

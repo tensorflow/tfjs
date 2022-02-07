@@ -35,7 +35,7 @@ nodejs_test(
     data = [
         ":tsconfig.json",
         "//:tsconfig.json",
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
+        "//tfjs-backend-cpu/tfjs-backend-cpu_lib",
         "//tfjs-layers/scripts:test_snippets_lib",
         "//tfjs-layers/src:all_srcs",
     ],
@@ -94,7 +94,6 @@ tfjs_bundle(
     },
     umd_name = "tf",
     deps = [
-        "//tfjs-layers/src:tfjs-layers_lib",
         "//tfjs-layers/src:tfjs-layers_src_lib",
     ],
 )
@@ -102,7 +101,6 @@ tfjs_bundle(
 copy_ts_library_to_dist(
     name = "copy_src_to_dist",
     srcs = [
-        "//tfjs-layers/src:tfjs-layers_lib",
         "//tfjs-layers/src:tfjs-layers_src_lib",
     ],
     root = "src",

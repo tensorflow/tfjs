@@ -43,27 +43,18 @@ ts_library(
     name = "tfjs-backend-webgl_src_lib",
     srcs = glob(
         ["**/*.ts"],
-        exclude = TEST_SRCS + ["index.ts"],
+        exclude = TEST_SRCS,
     ),
     module_name = "@tensorflow/tfjs-backend-webgl/dist",
     deps = [
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
-        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-backend-cpu/tfjs-backend-cpu_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
+        "//tfjs-core/tfjs-core_lib",
         "@npm//@types/offscreencanvas",
         "@npm//@types/seedrandom",
         "@npm//@types/webgl-ext",
         "@npm//@types/webgl2",
-    ],
-)
-
-ts_library(
-    name = "tfjs-backend-webgl_lib",
-    srcs = ["index.ts"],
-    module_name = "@tensorflow/tfjs-backend-webgl",
-    deps = [
-        ":tfjs-backend-webgl_src_lib",
     ],
 )
 
@@ -75,12 +66,12 @@ ts_library(
     srcs = glob(TEST_SRCS) + [":tests"],
     module_name = "@tensorflow/tfjs-backend-webgl/dist",
     deps = [
-        ":tfjs-backend-webgl_lib",
         ":tfjs-backend-webgl_src_lib",
-        "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
-        "//tfjs-core/src:tfjs-core_lib",
+        "//tfjs-backend-cpu/tfjs-backend-cpu_lib",
+        "//tfjs-backend-webgl/tfjs-backend-webgl_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
         "//tfjs-core/src:tfjs-core_test_lib",
+        "//tfjs-core/tfjs-core_lib",
     ],
 )
 
@@ -98,7 +89,7 @@ esbuild(
     ],
     sources_content = True,
     deps = [
-        ":tfjs-backend-webgl_lib",
         ":tfjs-backend-webgl_test_lib",
+        "//tfjs-backend-webgl/tfjs-backend-webgl_lib",
     ],
 )
