@@ -15,7 +15,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tf from '../../src/index';
+import * as tf from '@tensorflow/tfjs-core';
 import '../../src/public/chained_ops/register_all_chained_ops';
 import '../../src/register_all_gradients';
 import '@tensorflow/tfjs-backend-cpu';

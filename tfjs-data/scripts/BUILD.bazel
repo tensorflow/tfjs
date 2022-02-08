@@ -13,7 +13,7 @@ ts_library(
         "//tfjs-core/scripts/test_snippets:test_snippets_util_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
         "//tfjs-core/tfjs-core_lib",
-        "//tfjs-data/src:tfjs-data_src_lib",
+        "//tfjs-data/tfjs-data_lib",
         "//tfjs-layers/tfjs-layers_lib",
     ],
 )

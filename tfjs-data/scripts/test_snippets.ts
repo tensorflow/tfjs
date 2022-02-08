@@ -24,7 +24,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {parseAndEvaluateSnippets} from '@tensorflow/tfjs-core/dist/scripts/test_snippets/util';
 import * as tfl from '@tensorflow/tfjs-layers';
 
-import * as tfd from '../src/index';
+import * as tfd from '@tensorflow/tfjs-data';
 
 const tf = {
   data: {...tfd},

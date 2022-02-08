@@ -15,7 +15,7 @@ ts_library(
         "test_snippets.ts",
     ],
     deps = [
-        "//tfjs-converter/src:tfjs-converter_src_lib",
+        "//tfjs-converter/tfjs-converter_lib",
         "//tfjs-core/scripts/test_snippets:test_snippets_util_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
         "//tfjs-core/tfjs-core_lib",
