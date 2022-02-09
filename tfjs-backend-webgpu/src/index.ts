@@ -24,7 +24,7 @@ import {WebGPUBackend} from './backend_webgpu';
 import * as webgpu from './webgpu';
 import {isWebGPUSupported} from './webgpu_util';
 
-if (device_util.isBrowser() && isWebGPUSupported()) {
+if (isWebGPUSupported()) {
   registerBackend('webgpu', async () => {
     // Remove it once we figure out how to correctly read the tensor data
     // before the tensor is disposed in profiling mode.
