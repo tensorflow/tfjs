@@ -39,7 +39,7 @@ test --action_env=BROWSERSTACK_USERNAME --action_env=BROWSERSTACK_KEY
 
 # Platform specific DISPLAY environment variable for webgl
 test --enable_platform_specific_config
-test:linux --define DISPLAY=$DISPLAY
+test:linux --test_env=DISPLAY
 test:macos --define DISPLAY=true
 test:windows --define DISPLAY=true
 
