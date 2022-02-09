@@ -41,6 +41,31 @@ export function getGlslDifferences(): GLSL {
   let defineSpecialInf: string;
   let defineRound: string;
 
+  // For WebGL1, it has no built in isnan so we need to define one.
+  // For WebGL2, use custom isnan definition to work across differences between
+  // implementations on various platforms. While this should happen in ANGLE
+  // we still see differences between android and windows (on chrome) when
+  // using isnan directly.
+  // NaN defination in IEEE 754-1985 is :
+  //   - sign = either 0 or 1.
+  //   - biased exponent = all 1 bits.
+  //   - fraction = anything except all 0 bits (since all 0 bits represents
+  //   infinity).
+  // https://en.wikipedia.org/wiki/IEEE_754-1985#Representation_of_non-numbers
+  defineSpecialNaN = `
+    bool isnan_custom(float val) {
+      uint floatToUint = floatBitsToUint(val);
+      return (floatToUint & 0x7fffffffu) > 0x7f800000u;
+    }
+
+    bvec4 isnan_custom(vec4 val) {
+      return bvec4(isnan_custom(val.x),
+        isnan_custom(val.y), isnan_custom(val.z), isnan_custom(val.w));
+    }
+
+    #define isnan(value) isnan_custom(value)
+  `;
+
   if (env().getNumber('WEBGL_VERSION') === 2) {
     version = '#version 300 es';
     attribute = 'in';
@@ -50,22 +75,6 @@ export function getGlslDifferences(): GLSL {
     output = 'outputColor';
     defineOutput = 'out vec4 outputColor;';
 
-    // Use custom isnan definition to work across differences between
-    // implementations on various platforms. While this should happen in ANGLE
-    // we still see differences between android and windows (on chrome) when
-    // using isnan directly.
-    defineSpecialNaN = `
-      bool isnan_custom(float val) {
-        return (val > 0.0 || val < 0.0) ? false : val != 0.0;
-      }
-
-      bvec4 isnan_custom(vec4 val) {
-        return bvec4(isnan_custom(val.x),
-          isnan_custom(val.y), isnan_custom(val.z), isnan_custom(val.w));
-      }
-
-      #define isnan(value) isnan_custom(value)
-    `;
     // In webgl 2 we do not need to specify a custom isinf so there is no
     // need for a special INFINITY constant.
     defineSpecialInf = ``;
@@ -87,16 +96,6 @@ export function getGlslDifferences(): GLSL {
     texture2D = 'texture2D';
     output = 'gl_FragColor';
     defineOutput = '';
-    // WebGL1 has no built in isnan so we define one here.
-    defineSpecialNaN = `
-      #define isnan(value) isnan_custom(value)
-      bool isnan_custom(float val) {
-        return (val > 0. || val < 1. || val == 0.) ? false : true;
-      }
-      bvec4 isnan_custom(vec4 val) {
-        return bvec4(isnan(val.x), isnan(val.y), isnan(val.z), isnan(val.w));
-      }
-    `;
     defineSpecialInf = `
       uniform float INFINITY;
 
