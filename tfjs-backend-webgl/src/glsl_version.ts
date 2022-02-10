@@ -50,11 +50,12 @@ export function getGlslDifferences(): GLSL {
     output = 'outputColor';
     defineOutput = 'out vec4 outputColor;';
 
-    // For WebGL2, use custom isnan definition to work across differences between
+    // Use custom isnan definition to work across differences between
     // implementations on various platforms. While this should happen in ANGLE
     // we still see differences between android and windows (on chrome) when
-    // using isnan directly. Since WebGL2 supports uint type and floatBitsToUint
-    // built-in function, we could implment isnan following IEEE 754.
+    // using isnan directly. Since WebGL2 supports uint type and
+    // floatBitsToUinT built-in function, we could implment isnan following
+    // IEEE 754 rules.
     // NaN defination in IEEE 754-1985 is :
     //   - sign = either 0 or 1.
     //   - biased exponent = all 1 bits.
