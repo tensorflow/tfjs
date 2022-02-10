@@ -22,6 +22,7 @@ const browserstackConfig = {
 };
 
 module.exports = function(config) {
+  console.log(`Running with arguments ${TEMPLATE_args.join(' ')}`);
   let browser = 'TEMPLATE_browser';
   let extraConfig = {};
   if (browser) {
