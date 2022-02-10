@@ -168,10 +168,9 @@ export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
 }
 
 export function isWebGPUSupported(): boolean {
-  if (!navigator.gpu) {
-    return false;
-  }
-  return true;
+  return ((typeof window !== 'undefined') ||
+    //@ts-ignore
+    (typeof WorkerGlobalScope !== 'undefined')) && navigator.gpu
 }
 
 export interface WebGPULayout {

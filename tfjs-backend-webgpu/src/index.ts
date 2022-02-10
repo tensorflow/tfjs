@@ -18,7 +18,7 @@
 import './flags_webgpu';
 import './register_all_kernels';
 
-import {device_util, env, registerBackend} from '@tensorflow/tfjs-core';
+import {env, registerBackend} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from './backend_webgpu';
 import * as webgpu from './webgpu';
