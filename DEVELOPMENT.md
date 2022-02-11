@@ -55,10 +55,10 @@ unnecessarily rebuilding dependencies.
 
 Many TensorFlow.js packages use Karma to run tests in a browser. These tests can be configured by command-line options.
 
-To run a subset of tests on a specific browser:
+To run a subset of tests:
 
 ```bash
-$ yarn test --browsers=Chrome --grep='multinomial'
+$ yarn test --//:grep=multinomial
  
 > ...
 > Chrome 62.0.3202 (Mac OS X 10.12.6): Executed 28 of 1891 (skipped 1863) SUCCESS (6.914 secs / 0.634 secs)
