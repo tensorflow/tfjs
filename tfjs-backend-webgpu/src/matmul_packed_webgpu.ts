@@ -17,11 +17,10 @@
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import {getMainHeaderString} from './shader_preprocessor';
-import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from './webgpu_util';
-
 import {mapActivationToShaderProgram} from './activation_util';
+import {getMainHeaderString} from './shader_preprocessor';
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from './webgpu_util';
 
 export function makeMatMulPackedSource(
     workPerThread: number[], workGroupSize: [number, number, number]): string {
@@ -31,12 +30,23 @@ export function makeMatMulPackedSource(
   return `
     var<workgroup> mm_Asub : array<array<f32, ${tileInner}>, ${tileAOuter}>;
     var<workgroup> mm_Bsub : array<array<f32, ${tileBOuter}>, ${tileInner}>;
-    ${getMainHeaderString()}
-      let tileRow = i32(localId.y) * ${workPerThread[1]};
-      let tileCol = i32(localId.x) * ${workPerThread[0]};
+    @stage(compute) @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
+    fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
+            @builtin(global_invocation_id) GlobalId : vec3<u32>,
+            @builtin(num_workgroups) NumWorkgroups: vec3<u32>,
+            @builtin(workgroup_id) workgroupId: vec3<u32>) {
+      localId = LocalId;
+      globalId = GlobalId;
+      numWorkgroups = NumWorkgroups;
+      let localRow = i32(localId.y);
+      let localCol = i32(localId.x);
+      let tileRow = localRow * ${workPerThread[1]};
+      let tileCol = localCol * ${workPerThread[0]};
 
       let globalRow = i32(globalId.y) * ${workPerThread[1]};
       let globalCol = i32(globalId.x) * ${workPerThread[0]};
+      let newGlobalRow = i32(workgroupId.y) * ${tileAOuter};
+      let newGlobalCol = i32(workgroupId.x) * ${tileBOuter};
 
       let numTiles = (uniforms.dimInner - 1) / ${tileInner} + 1;
 
@@ -53,35 +63,26 @@ export function makeMatMulPackedSource(
         }
       }
 
-      let ColPerThreadA = ${tileInner} / ${workGroupSize[0]};
-      let tileColA = i32(localId.x) * ColPerThreadA;
-      let RowPerThreadB = ${tileInner} / ${workGroupSize[1]};
-      let tileRowB = i32(localId.y) * RowPerThreadB;
-
       // Loop over shared dimension.
       for (var t = 0; t < numTiles; t = t + 1) {
         // Load one tile of A into local memory.
-        for (var innerRow = 0; innerRow < ${
-      workPerThread[1]}; innerRow = innerRow + 1) {
-          for (var innerCol = 0; innerCol < ColPerThreadA; innerCol = innerCol + 1) {
-            let inputRow = tileRow + innerRow;
-            let inputCol = tileColA + innerCol;
-
+        for (var inputRow = localRow; inputRow < ${
+      tileAOuter}; inputRow = inputRow + ${workGroupSize[1]}) {
+          for (var inputCol = localCol; inputCol < ${
+      tileInner}; inputCol = inputCol + ${workGroupSize[0]}) {
             mm_Asub[inputRow][inputCol] = mm_readA(
-                globalRow + innerRow,
+                newGlobalRow + inputRow,
                 t * ${tileInner} + inputCol, globalId);
           }
         }
         // Load one tile of B into local memory.
-        for (var innerRow = 0; innerRow < RowPerThreadB; innerRow = innerRow + 1) {
-          for (var innerCol = 0; innerCol < ${
-      workPerThread[0]}; innerCol = innerCol + 1) {
-            let inputRow = tileRowB + innerRow;
-            let inputCol = tileCol + innerCol;
-
+        for (var inputRow = localRow; inputRow < ${
+      tileInner}; inputRow = inputRow + ${workGroupSize[1]}) {
+              for (var inputCol = localCol; inputCol < ${
+      tileBOuter}; inputCol = inputCol + ${workGroupSize[0]}) {
             mm_Bsub[inputRow][inputCol] = mm_readB(
               t * ${tileInner} + inputRow,
-              globalCol + innerCol, globalId);
+              newGlobalCol + inputCol, globalId);
           }
         }
 
@@ -322,9 +323,8 @@ export class MatMulPackedProgram implements WebGPUProgram {
       applyActivationSnippet = 'value = activation(value, outCoord);';
     }
 
-    const addBiasSnippet = this.addBias ?
-        'value = value + getBiasByOutputCoords(outCoord);' :
-        '';
+    const addBiasSnippet =
+        this.addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
 
     const userCode = `
       ${activationSnippet}
