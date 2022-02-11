@@ -83,6 +83,9 @@ def dev_requirement(name):
             selection_values["@//:%s" % platform_name] = \
                 "@tensorflowjs_dev_deps_%s//pypi__%s" % (platform_name, _name)
 
+        selection_values["//conditions:default"] = \
+            "@tensorflowjs_dev_deps//pypi__%s" % _name
+
         native.alias(
             name = alias_name,
             actual = select(selection_values),
