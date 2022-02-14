@@ -98,7 +98,7 @@ export function computeWorkGroupSizeForMatMul(
     return [1, 32, 1];
   }
 
-  return [8, 8, 1];
+  return [16, 16, 1];
 }
 
 export function computeWorkPerThreadForConv2d(
@@ -148,8 +148,9 @@ export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
 
 export function isWebGPUSupported(): boolean {
   return ((typeof window !== 'undefined') ||
-    //@ts-ignore
-    (typeof WorkerGlobalScope !== 'undefined')) && !!navigator.gpu;
+          //@ts-ignore
+          (typeof WorkerGlobalScope !== 'undefined')) &&
+      !!navigator.gpu;
 }
 
 export interface WebGPULayout {
