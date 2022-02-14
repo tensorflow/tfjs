@@ -161,7 +161,9 @@ function generateCloudbuild(packages, print = true) {
   // Make sure all packages are declared in package_dependencies.json.
   const allPackages = new Set(Object.keys(DEPENDENCY_GRAPH));
   for (const packageName of packages) {
-    if (!allPackages.has(packageName)) {
+    if (!allPackages.has(packageName) &&
+        // TODO: remove this check once tfjs-react-native nightly test is fixed.
+        packageName !== 'tfjs-react-native') {
       throw new Error(
           `Package ${packageName} was not declared in ` +
           'package_dependencies.json');
