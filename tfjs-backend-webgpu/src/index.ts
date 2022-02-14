@@ -21,7 +21,6 @@ import './register_all_kernels';
 import {env, registerBackend} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from './backend_webgpu';
-import {requiredLimitsNames, setDeviceLimits} from './device_limits';
 import * as webgpu from './webgpu';
 import {isWebGPUSupported} from './webgpu_util';
 
@@ -41,14 +40,11 @@ if (isWebGPUSupported()) {
     const adapterLimits = adapter.limits;
     const deviceDescriptor: GPUDeviceDescriptor = {};
     const supportTimeQuery = adapter.features.has('timestamp-query');
-    const init: {[key: string]: number} = {};
-    const deviceLimits = Object.keys(Object.getPrototypeOf(adapterLimits))
-                             .reduce((all, name) => {
-                               all[name] =
-                                   adapterLimits[name as requiredLimitsNames];
-                               return all;
-                             }, init);
-    deviceDescriptor.requiredLimits = deviceLimits;
+    deviceDescriptor.requiredLimits = {
+      'maxComputeWorkgroupStorageSize':
+          adapterLimits.maxComputeWorkgroupStorageSize,
+      'maxStorageBufferBindingSize': adapterLimits.maxStorageBufferBindingSize,
+    };
 
     if (supportTimeQuery) {
       deviceDescriptor.requiredFeatures = ['timestamp-query' as const];
@@ -62,7 +58,6 @@ if (isWebGPUSupported()) {
           `it doesn't support synchronously to read data from GPU.`);
     }
     const device: GPUDevice = await adapter.requestDevice(deviceDescriptor);
-    setDeviceLimits(device.limits);
     return new WebGPUBackend(device, supportTimeQuery);
   }, 3 /*priority*/);
 }

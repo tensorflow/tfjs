@@ -15,11 +15,13 @@
  * =============================================================================
  */
 
-export let maxComputeWorkgroupsPerDimension = 256;
+export let maxComputeWorkgroupsPerDimension = 65535;
+export let maxComputeWorkgroupStorageSize = 16352;
+export let maxStorageBufferBindingSize = 134217728;
 
 export function setDeviceLimits(deviceLimits: GPUSupportedLimits) {
   maxComputeWorkgroupsPerDimension =
       deviceLimits.maxComputeWorkgroupsPerDimension;
+  maxComputeWorkgroupStorageSize = deviceLimits.maxComputeWorkgroupStorageSize;
+  maxStorageBufferBindingSize = deviceLimits.maxStorageBufferBindingSize;
 }
-
-export type requiredLimitsNames =|'maxComputeWorkgroupsPerDimension';
