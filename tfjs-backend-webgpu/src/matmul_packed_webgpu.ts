@@ -91,12 +91,12 @@ export function makeMatMulPackedSource(
         // Compute acc values for a single thread.
         for (var k = 0; k < ${tileInner}; k = k + 1) {
           for (var inner = 0; inner < ${workPerThread[0]}; inner = inner + 1) {
-            BCached[inner] = mm_Bsub[k][tileCol + inner];
+            BCached[inner] = mm_Bsub[k][localCol + inner * ${workGroupSize[0]}];
           }
 
           for (var innerRow = 0; innerRow < ${
       workPerThread[1]}; innerRow = innerRow + 1) {
-            ACached = mm_Asub[tileRow + innerRow][k];
+            ACached = mm_Asub[localRow + innerRow * ${workGroupSize[1]}][k];
             for (var innerCol = 0; innerCol < ${
       workPerThread[0]}; innerCol = innerCol + 1) {
               acc[innerRow][innerCol] = acc[innerRow][innerCol] + ACached * BCached[innerCol];
@@ -111,11 +111,12 @@ export function makeMatMulPackedSource(
       workPerThread[1]}; innerRow = innerRow + 1) {
         for (var innerCol = 0; innerCol < ${
       workPerThread[0]}; innerCol = innerCol + 1) {
-
-          if ((globalCol + innerCol) < uniforms.dimBOuter &&
-              (globalRow + innerRow) < uniforms.dimAOuter) {
-            mm_write(globalRow + innerRow,
-                     globalCol + innerCol,
+          let gRow = newGlobalRow + localRow + innerRow * ${workGroupSize[1]};
+          let gCol = newGlobalCol + localCol + innerCol * ${workGroupSize[0]};
+          if (gCol < uniforms.dimBOuter &&
+              gRow < uniforms.dimAOuter) {
+            mm_write(gRow,
+                     gCol,
                      acc[innerRow][innerCol], globalId);
           }
         }
