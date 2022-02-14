@@ -22,7 +22,7 @@
     "@types/shelljs": "^0.8.7",
     "@types/webgl-ext": "0.0.30",
     "@types/webgl2": "0.0.6",
-    "ajv": "~6.3.0",
+    "ajv": "~6.12.3",
     "argparse": "^1.0.10",
     "chalk": "~2.4.2",
     "clang-format": "~1.2.4",
