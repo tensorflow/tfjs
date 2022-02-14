@@ -65,14 +65,16 @@ export function computeDispatch(
     return [dispatchX, dispatchY, dispatchZ];
   }
 
-  util.assert(dispatchX > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
-      layout.y === undefined && layout.z === undefined, () =>
-      'Dispatch size exceeds WebGPU limits in Y or Z dimension.');
+  util.assert(
+      dispatchX > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
+          layout.y === undefined && layout.z === undefined,
+      () => 'Dispatch size exceeds WebGPU limits in Y or Z dimension.');
 
   let dispatchAverage = Math.ceil(Math.sqrt(dispatchX));
   if (dispatchAverage > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
     dispatchAverage = Math.ceil(Math.cbrt(dispatchX));
-    util.assert(dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE,
+    util.assert(
+        dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE,
         () => 'Total dispatch size exceeds WebGPU maximum.');
     return [dispatchAverage, dispatchAverage, dispatchAverage];
   } else {
@@ -119,7 +121,7 @@ export function computeWorkGroupSizeForMatMul(
     return [1, 32, 1];
   }
 
-  return [8, 8, 1];
+  return [16, 16, 1];
 }
 
 export function computeWorkPerThreadForConv2d(

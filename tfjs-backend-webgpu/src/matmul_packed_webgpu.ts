@@ -199,6 +199,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
     const dimInner = transposeA ? aShape[1] : aShape[2];
+    workPerThread = 2;
     this.workGroupSize =
         computeWorkGroupSizeForMatMul(outputShape[1], dimInner, outputShape[2]);
     if (outputShape[1] === 1 || outputShape[2] === 1) {
