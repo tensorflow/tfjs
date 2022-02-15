@@ -85,9 +85,9 @@ esbuild_repositories(npm_repository = "npm")
 # Emscripten toolchain
 http_archive(
     name = "emsdk",
-    sha256 = "f6179133ca2e88f26b2531276f478fd2e25b1f183821f6f4580a3f90b5e8d25c",
-    strip_prefix = "emsdk-main/bazel",
-    urls = ["https://github.com/emscripten-core/emsdk/archive/refs/heads/main.zip"],
+    sha256 = "7dc13d967705582e11ff62ae143425dbc63c38372f1a1b14f0cb681fda413714",
+    strip_prefix = "emsdk-3.1.4/bazel",
+    urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.4.tar.gz"],
 )
 
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
