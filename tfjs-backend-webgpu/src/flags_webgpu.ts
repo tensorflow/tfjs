@@ -31,7 +31,7 @@ ENV.registerFlag('WEBGPU_CPU_FORWARD', () => true);
 /**
  * Thread register block size for matmul kernel.
  */
-ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
+ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 2);
 
 /**
  * Whether to use conv2d_naive which directly implement the conv2d logic rather
