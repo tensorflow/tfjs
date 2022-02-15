@@ -40,11 +40,7 @@ export function makeMatMulPackedSource(
       numWorkgroups = NumWorkgroups;
       let localRow = i32(localId.y);
       let localCol = i32(localId.x);
-      let tileRow = localRow * ${workPerThread[1]};
-      let tileCol = localCol * ${workPerThread[0]};
 
-      let globalRow = i32(globalId.y) * ${workPerThread[1]};
-      let globalCol = i32(globalId.x) * ${workPerThread[0]};
       let newGlobalRow = i32(workgroupId.y) * ${tileAOuter};
       let newGlobalCol = i32(workgroupId.x) * ${tileBOuter};
 
