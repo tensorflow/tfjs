@@ -9,7 +9,7 @@
   "jsdelivr": "dist/tf-backend-webgpu.min.js",
   "miniprogram": "dist/miniprogram",
   "scripts": {
-    "benchmark": "yarn && yarn build-deps && karma start --grep=benchmark --browsers=chrome_webgpu",
+    "benchmark": "yarn test --//:grep=benchmark",
     "build-ci": "yarn build",
     "build": "bazel build :tfjs-backend-webgpu_pkg",
     "bundle": "bazel build :tfjs-backend-webgpu_pkg",
