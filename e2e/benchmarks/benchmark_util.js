@@ -337,10 +337,11 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
  * @param input The input tensor container for model inference.
  * @param isTflite Whether a TFLite model is being profiled or not.
  */
-async function profileModelInference(model, input, isTflite = false) {
+async function profileModelInference(
+    model, input, isTflite = false, numProfiles = 1) {
   const predict = isTflite ? () => tfliteModel.predict(input) :
                              getPredictFnForModel(model, input);
-  return profileInference(predict, isTflite);
+  return profileInference(predict, isTflite, numProfiles);
 }
 
 /**
@@ -373,7 +374,7 @@ async function profileModelInference(model, input, isTflite = false) {
  * @param predict The predict function to execute for profiling memory usage.
  * @param isTflite Whether a TFLite model is being profiled or not.
  */
-async function profileInference(predict, isTflite = false) {
+async function profileInference(predict, isTflite = false, numProfiles = 1) {
   if (typeof predict !== 'function') {
     throw new Error(
         'The first parameter should be a function, while ' +
@@ -381,24 +382,38 @@ async function profileInference(predict, isTflite = false) {
   }
 
   let kernelInfo = {};
+  let kernelInfos = [];
   if (isTflite) {
-    await predict();
-    const profileItems = tfliteModel.getProfilingResults();
-    kernelInfo.kernels = profileItems.map(item => {
-      return {
-        name: item.nodeType,
-        kernelTimeMs: item.nodeExecMs,
-        // TODO: Shapes are not supported yet.
-        inputShapes: [],
-        outputShapes: [],
-      };
-    });
+    for (let i = 0; i < numProfiles; i++) {
+      await predict();
+      const profileItems = tfliteModel.getProfilingResults();
+      kernelInfo.kernels = profileItems.map(item => {
+        return {
+          name: item.nodeType,
+          kernelTimeMs: item.nodeExecMs,
+          // TODO: Shapes are not supported yet.
+          inputShapes: [],
+          outputShapes: [],
+        };
+      });
+      kernelInfos.push(kernelInfo);
+    }
   } else {
-    kernelInfo = await tf.profile(async () => {
-      const res = await predict();
-      await downloadValuesFromTensorContainer(res);
-      tf.dispose(res);
-    });
+    for (let i = 0; i < numProfiles; i++) {
+      kernelInfo = await tf.profile(async () => {
+        const res = await predict();
+        await downloadValuesFromTensorContainer(res);
+        tf.dispose(res);
+      });
+      kernelInfos.push(kernelInfo);
+    }
+  }
+  for (let i = 0; i < kernelInfos[0].kernels.length; i++) {
+    let totalTimeMs = 0;
+    for (let j = 0; j < kernelInfos.length; j++) {
+      totalTimeMs += kernelInfos[j].kernels[i].kernelTimeMs;
+    }
+    kernelInfo.kernels[i].kernelTimeMs = totalTimeMs / kernelInfos.length;
   }
   kernelInfo.kernels =
       kernelInfo.kernels.sort((a, b) => b.kernelTimeMs - a.kernelTimeMs);
