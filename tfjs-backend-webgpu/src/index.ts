@@ -22,7 +22,7 @@ import {env, registerBackend} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from './backend_webgpu';
 import * as webgpu from './webgpu';
-import {isWebGPUSupported} from './webgpu_util';
+import {isWebGPUSupported, requiredLimitsNames} from './webgpu_util';
 
 if (isWebGPUSupported()) {
   registerBackend('webgpu', async () => {
@@ -40,11 +40,14 @@ if (isWebGPUSupported()) {
     const adapterLimits = adapter.limits;
     const deviceDescriptor: GPUDeviceDescriptor = {};
     const supportTimeQuery = adapter.features.has('timestamp-query');
-    deviceDescriptor.requiredLimits = {
-      'maxComputeWorkgroupStorageSize':
-          adapterLimits.maxComputeWorkgroupStorageSize,
-      'maxStorageBufferBindingSize': adapterLimits.maxStorageBufferBindingSize,
-    };
+    const init: {[key: string]: number} = {};
+    const deviceLimits = Object.keys(Object.getPrototypeOf(adapterLimits))
+                             .reduce((all, name) => {
+                               all[name] =
+                                   adapterLimits[name as requiredLimitsNames];
+                               return all;
+                             }, init);
+    deviceDescriptor.requiredLimits = deviceLimits;
 
     if (supportTimeQuery) {
       deviceDescriptor.requiredFeatures = ['timestamp-query' as const];

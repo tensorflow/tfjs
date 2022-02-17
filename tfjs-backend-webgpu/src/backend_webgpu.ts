@@ -20,7 +20,6 @@ import './flags_webgpu';
 import {backend_util, buffer, DataStorage, DataType, DataValues, engine, env, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {BufferManager} from './buffer_manager';
-import {setDeviceLimits} from './device_limits';
 import {FromPixelsImportProgram} from './kernels/FromPixels_utils/from_pixels_import_webgpu';
 import {FromPixelsProgram} from './kernels/FromPixels_utils/from_pixels_webgpu';
 import * as webgpu_program from './webgpu_program';
@@ -117,7 +116,6 @@ export class WebGPUBackend extends KernelBackend {
 
     this.bufferManager = new BufferManager(this.device);
     this.tensorMap = new DataStorage(this, engine());
-    setDeviceLimits(device.limits);
     if (this.supportTimeQuery) {
       this.querySet = this.device.createQuerySet({
         type: 'timestamp',

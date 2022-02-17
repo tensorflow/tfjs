@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
+import {describeWebGPU} from './test_util';
 import {computeDispatch} from './webgpu_util';
 
-describe('webgpu util', () => {
+describeWebGPU('webgpu util', () => {
   it('computeDispatch returns dispatch dimensions based on layout of ' +
          'output dimensions and workGroupSize.',
      () => {
