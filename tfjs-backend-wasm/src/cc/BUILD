@@ -15,7 +15,7 @@ BASE_LINKOPTS = [
     "-s FILESYSTEM=0",
     "-s EXIT_RUNTIME=0",
     "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
-    "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
+    "-s EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
     "-s MODULARIZE=1",
     "-s MALLOC=emmalloc",
     # TODO(mattsoulanille): Mark these files as dependencies so Bazel rebuilds
@@ -61,7 +61,6 @@ cc_binary(
         "-s EXPORT_NAME=WasmBackendModuleThreadedSimd",
         "-s MALLOC=emmalloc",
         "-s USE_PTHREADS=1",
-        "-s PROXY_TO_PTHREAD=1",
         # Pre-create 8 webworkers (threads). The actual number of threads that
         # will be used by XNNPACK for creating the threadpool might be fewer. It
         # is by default set to the number of logical cores which in most cases
@@ -106,7 +105,7 @@ tfjs_cc_library(
     deps = [
         ":check_macros",
         ":util",
-        "@xnnpack//:xnnpack_operators_nhwc_f32",
+        "@xnnpack//:xnnpack_for_tfjs",
     ],
 )
 

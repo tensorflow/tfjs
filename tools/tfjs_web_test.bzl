@@ -15,14 +15,29 @@
 
 load("@npm//@bazel/concatjs:index.bzl", "karma_web_test")
 
+GrepProvider = provider(fields = ["grep"])
+
+def _grep_flag_impl(ctx):
+    return GrepProvider(grep = ctx.build_setting_value)
+
+grep_flag = rule(
+    implementation = _grep_flag_impl,
+    build_setting = config.string(flag = True),
+)
+
 def _make_karma_config_impl(ctx):
+    grep = ctx.attr._grep[GrepProvider].grep
     output_file_path = ctx.label.name + ".js"
     output_file = ctx.actions.declare_file(output_file_path)
+    args = ctx.attr.args
+    if grep:
+        args = args + ["--grep=" + grep]
+
     ctx.actions.expand_template(
         template = ctx.file.template,
         output = ctx.outputs.config_file,
         substitutions = {
-            "TEMPLATE_args": str(ctx.attr.args),
+            "TEMPLATE_args": str(args),
             "TEMPLATE_browser": ctx.attr.browser,
         },
     )
@@ -47,6 +62,7 @@ _make_karma_config = rule(
             allow_single_file = True,
             doc = "The karma config template to expand",
         ),
+        "_grep": attr.label(default = "@//:grep"),
     },
     outputs = {"config_file": "%{name}.js"},
 )
@@ -54,6 +70,7 @@ _make_karma_config = rule(
 def tfjs_web_test(name, ci = True, args = [], **kwargs):
     tags = kwargs.pop("tags", [])
     local_browser = kwargs.pop("local_browser", "")
+    headless = kwargs.pop("headless", True)
 
     browsers = kwargs.pop("browsers", [
         "bs_chrome_mac",
@@ -87,7 +104,7 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
         timeout = timeout,
         name = name,
         config_file = config_file,
-        configuration_env_vars = ["DISPLAY"],
+        configuration_env_vars = [] if headless else ["DISPLAY"],
         tags = ["native"] + tags,
         **kwargs
     )

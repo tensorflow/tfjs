@@ -9,7 +9,7 @@
   "jsdelivr": "dist/tf-backend-webgpu.min.js",
   "miniprogram": "dist/miniprogram",
   "scripts": {
-    "benchmark": "yarn && yarn build-deps && karma start --grep=benchmark --browsers=chrome_webgpu",
+    "benchmark": "yarn test --//:grep=benchmark",
     "build-ci": "yarn build",
     "build": "bazel build :tfjs-backend-webgpu_pkg",
     "bundle": "bazel build :tfjs-backend-webgpu_pkg",
@@ -37,7 +37,7 @@
     "clang-format": "~1.5.0",
     "jasmine": "~3.1.0",
     "jasmine-core": "~3.1.0",
-    "karma": "~6.3.1",
+    "karma": "~6.3.14",
     "karma-browserstack-launcher": "~1.6.0",
     "karma-chrome-launcher": "~2.2.0",
     "karma-commonjs": "^1.0.0",

@@ -67,16 +67,16 @@ export interface InputInfo {
 
 export function getWorkGroupSizeString(): string {
   return `
-  [[stage(compute), workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)]]
+  @stage(compute) @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
 `;
 }
 
 export function getMainHeaderString(): string {
   return `
   ${getWorkGroupSizeString()}
-  fn main([[builtin(local_invocation_id)]] LocalId : vec3<u32>,
-          [[builtin(global_invocation_id)]] GlobalId : vec3<u32>,
-          [[builtin(num_workgroups)]] NumWorkgroups: vec3<u32>) {
+  fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
+          @builtin(global_invocation_id) GlobalId : vec3<u32>,
+          @builtin(num_workgroups) NumWorkgroups: vec3<u32>) {
     localId = LocalId;
     globalId = GlobalId;
     numWorkgroups = NumWorkgroups;
@@ -134,8 +134,8 @@ export function makeShader(
         dispatchSize    : vec3<u32>;
       };
 
-      [[group(0), binding(0)]] var<storage, write> result : Matrix0;
-      [[group(0), binding(2)]] var<uniform> uniforms: Uniform;
+      @group(0) @binding(0) var<storage, write> result : Matrix0;
+      @group(0) @binding(2) var<uniform> uniforms: Uniform;
     `);
     return [
       commonSnippet,
@@ -174,7 +174,7 @@ export function makeShader(
         numbers: array<atomic<i32>>;
     };
 
-    [[group(0), binding(0)]] var<storage, read_write> result : Matrix0;
+    @group(0) @binding(0) var<storage, read_write> result : Matrix0;
   `);
   } else {
     prefixSnippets.push(`
@@ -182,7 +182,7 @@ export function makeShader(
         numbers: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
     };
 
-    [[group(0), binding(0)]] var<storage, write> result : Matrix0;
+    @group(0) @binding(0) var<storage, write> result : Matrix0;
   `);
   }
   program.variableNames.forEach((x, i) => {
@@ -190,14 +190,14 @@ export function makeShader(
     struct Matrix${1 + i} {
       numbers: array<${mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
     };
-    [[group(0), binding(${1 + i})]] var<storage, read> ${x} : Matrix${1 + i};
+    @group(0) @binding(${1 + i}) var<storage, read> ${x} : Matrix${1 + i};
     `);
   });
 
   if (uniformDeclaration !== '') {
     prefixSnippets.push(`
-    [[group(0), binding(${
-        1 + program.variableNames.length})]] var<uniform> uniforms : Uniforms;
+    @group(0) @binding(${
+        1 + program.variableNames.length}) var<uniform> uniforms : Uniforms;
     `);
   }
 
