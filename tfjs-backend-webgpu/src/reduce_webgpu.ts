@@ -56,9 +56,9 @@ export class ReduceProgram implements WebGPUProgram {
     let initValue = '0.0';
     if (this.reduceType === 'min' || this.reduceType === 'max') {
       reduceOp = `
-         if (isNanCustom(candidate)) {
+         if (isnan(candidate)) {
           bestValue = uniforms.NAN;
-         } else if (!isNanCustom(bestValue) && candidate ${
+         } else if (!isnan(bestValue) && candidate ${
           this.reduceType === 'min' ? '<' : '>'} bestValue)
            {  bestValue = candidate; }`;
       initValue = 'f32(x.numbers[offset])';
