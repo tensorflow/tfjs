@@ -186,8 +186,8 @@ export function assertNonNull(a: TensorLike): void {
  *
  * @doc {heading: 'Util', namespace: 'util'}
  */
-export function
-flatten<T extends number|boolean|string|Promise<number>|TypedArray>(
+export function flatten<T extends number|boolean|string|Promise<number>|
+                        Promise<[number, number, number]>|TypedArray>(
     arr: T|RecursiveArray<T>, result: T[] = [], skipTypedArray = false): T[] {
   if (result == null) {
     result = [];
@@ -504,8 +504,8 @@ export function hasEncodingLoss(oldType: DataType, newType: DataType): boolean {
   return true;
 }
 
-export function isTypedArray(a: {}):
-  a is Float32Array|Int32Array|Uint8Array|Uint8ClampedArray {
+export function isTypedArray(a: {}): a is Float32Array|Int32Array|Uint8Array|
+    Uint8ClampedArray {
   return a instanceof Float32Array || a instanceof Int32Array ||
       a instanceof Uint8Array || a instanceof Uint8ClampedArray;
 }
@@ -556,9 +556,9 @@ export function inferDtype(values: TensorLike): DataType {
   }
   if (values instanceof Float32Array) {
     return 'float32';
-  } else if (values instanceof Int32Array
-             || values instanceof Uint8Array
-             || values instanceof Uint8ClampedArray) {
+  } else if (
+      values instanceof Int32Array || values instanceof Uint8Array ||
+      values instanceof Uint8ClampedArray) {
     return 'int32';
   } else if (isNumber(values)) {
     return 'float32';

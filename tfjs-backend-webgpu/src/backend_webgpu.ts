@@ -52,7 +52,7 @@ type TensorBufferInfo = {
 interface DataId {}
 
 export type WebGPUKernelInfo = {
-  name: string; query: Promise<number>;
+  name: string; query: Promise<[number, number, number]>
 };
 
 export type TimerNode = RecursiveArray<WebGPUKernelInfo>|WebGPUKernelInfo;
@@ -496,10 +496,16 @@ export class WebGPUBackend extends KernelBackend {
     };
 
     const kernelMs = await Promise.all(flattenedActiveTimerQueries);
-    res['kernelMs'] = util.sum(kernelMs);
+    res['kernelMs'] = util.sum(kernelMs.map(item => item[0]));
     res['getExtraProfileInfo'] = () =>
-        kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
-            .map(d => `${d.name}: ${d.ms}`)
+        kernelMs
+            .map((d, i) => ({
+                   name: flattenedActiveTimerNames[i],
+                   ms: d[0],
+                   start: d[1],
+                   end: d[2]
+                 }))
+            .map(d => `${d.name}: ${d.ms}: ${d.start}: ${d.end}`)
             .join(', ');
     this.uploadWaitMs = 0;
     this.downloadWaitMs = 0;
@@ -543,11 +549,11 @@ export class WebGPUBackend extends KernelBackend {
     };
   }
 
-  async getQueryTime(query: GPUQuerySet): Promise<number> {
+  async getQueryTime(query: GPUQuerySet): Promise<[number, number, number]> {
     if (this.supportTimeQuery) {
       return this.getTimeFromQuerySet(query);
     } else {
-      return 0;
+      return [0, 0, 0];
     }
   }
 
@@ -859,7 +865,8 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
-  async getTimeFromQuerySet(querySet: GPUQuerySet) {
+  async getTimeFromQuerySet(querySet: GPUQuerySet):
+      Promise<[number, number, number]> {
     const queryBuffer = this.acquireBuffer(
         16, GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);
     const dst = this.acquireBuffer(
@@ -872,7 +879,10 @@ export class WebGPUBackend extends KernelBackend {
     this.submitQueue();
     await dst.mapAsync(GPUMapMode.READ);
     const arrayBuf = new BigUint64Array(dst.getMappedRange());
-    const timeElapsedNanos = Number((arrayBuf[1] - arrayBuf[0]));
+    const NS2MS = 1000000;
+    const start = (Number(arrayBuf[0]) / NS2MS);
+    const end = (Number(arrayBuf[1]) / NS2MS);
+    const timeElapsed = end - start;
     dst.unmap();
     this.bufferManager.releaseBuffer(
         dst, 16, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
@@ -880,7 +890,7 @@ export class WebGPUBackend extends KernelBackend {
         queryBuffer, 16,
         GPUBufferUsage.COPY_SRC | GPUBufferUsage.QUERY_RESOLVE);
     // Return milliseconds.
-    return timeElapsedNanos / 1000000;
+    return [timeElapsed, start, end];
   }
 
   shouldExecuteOnCPU(
