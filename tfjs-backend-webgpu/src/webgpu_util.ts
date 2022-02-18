@@ -14,9 +14,12 @@
  * limitations under the License.
  * =============================================================================
  */
-import {DataType, util} from '@tensorflow/tfjs-core';
+import {DataType, KernelBackend, util} from '@tensorflow/tfjs-core';
 import * as tf from '@tensorflow/tfjs-core';
-import { WebGPUBackend } from './backend_webgpu';
+
+interface WebGPUBackend extends KernelBackend{
+  device: GPUDevice;
+}
 
 const arrayProduct = (arr: number[]) => {
   let product = 1;
