@@ -46,7 +46,7 @@ export class ClipProgram implements WebGPUProgram {
       ${getMainHeaderAndGlobalIndexString()}
         if(index < uniforms.size) {
           let value = getAByOutputIndex(index);
-          if (isNanCustom(value)) {
+          if (isnan(value)) {
             setOutputAtIndex(index, value);
             return;
           }
