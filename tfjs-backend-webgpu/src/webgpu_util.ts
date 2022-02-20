@@ -14,12 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {DataType, KernelBackend, util} from '@tensorflow/tfjs-core';
-import * as tf from '@tensorflow/tfjs-core';
-
-interface WebGPUBackend extends KernelBackend{
-  device: GPUDevice;
-}
+import {DataType} from '@tensorflow/tfjs-core';
 
 const arrayProduct = (arr: number[]) => {
   let product = 1;
@@ -48,9 +43,6 @@ export function computeDispatch(
     workGroupSize: [number, number, number] = [1, 1, 1],
     elementsPerThread: [number, number, number] =
         [1, 1, 1]): [number, number, number] {
-  const backend = tf.backend() as WebGPUBackend;
-  const MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE =
-      backend.device.limits.maxComputeWorkgroupsPerDimension;
   const [dispatchX, dispatchY, dispatchZ] = [
     Math.ceil(
         arrayProduct(layout.x.map(d => outputShape[d])) /
@@ -64,28 +56,7 @@ export function computeDispatch(
                    (workGroupSize[2] * elementsPerThread[2])) :
                1
   ];
-
-  if (dispatchX <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
-      dispatchY <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
-      dispatchZ <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
-    return [dispatchX, dispatchY, dispatchZ];
-  }
-
-  util.assert(
-      dispatchX > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
-          layout.y === undefined && layout.z === undefined,
-      () => 'Dispatch size exceeds WebGPU limits in Y or Z dimension.');
-
-  let dispatchAverage = Math.ceil(Math.sqrt(dispatchX));
-  if (dispatchAverage > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
-    dispatchAverage = Math.ceil(Math.cbrt(dispatchX));
-    util.assert(
-        dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE,
-        () => 'Total dispatch size exceeds WebGPU maximum.');
-    return [dispatchAverage, dispatchAverage, dispatchAverage];
-  } else {
-    return [dispatchAverage, dispatchAverage, 1];
-  }
+  return [dispatchX, dispatchY, dispatchZ];
 }
 
 export function computeWorkGroupSizeForConv2d(
@@ -185,17 +156,3 @@ export interface WebGPULayout {
   bindGroupLayout: GPUBindGroupLayout;
   pipelineLayout: GPUPipelineLayout;
 }
-
-export type requiredLimitsNames =|'maxTextureDimension1D'|
-    'maxTextureDimension2D'|'maxTextureDimension3D'|'maxTextureArrayLayers'|
-    'maxBindGroups'|'maxDynamicUniformBuffersPerPipelineLayout'|
-    'maxDynamicStorageBuffersPerPipelineLayout'|
-    'maxSampledTexturesPerShaderStage'|'maxSamplersPerShaderStage'|
-    'maxStorageBuffersPerShaderStage'|'maxStorageTexturesPerShaderStage'|
-    'maxUniformBuffersPerShaderStage'|'maxUniformBufferBindingSize'|
-    'maxStorageBufferBindingSize'|'minUniformBufferOffsetAlignment'|
-    'minStorageBufferOffsetAlignment'|'maxVertexBuffers'|'maxVertexAttributes'|
-    'maxVertexBufferArrayStride'|'maxInterStageShaderComponents'|
-    'maxComputeWorkgroupStorageSize'|'maxComputeInvocationsPerWorkgroup'|
-    'maxComputeWorkgroupSizeX'|'maxComputeWorkgroupSizeY'|
-    'maxComputeWorkgroupSizeZ'|'maxComputeWorkgroupsPerDimension';
