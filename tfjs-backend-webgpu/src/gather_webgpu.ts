@@ -37,7 +37,7 @@ export class GatherProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.shaderKey = `gather_${aShape}`;
+    this.shaderKey = `gather`;
   }
 
   getUserCode(): string {
@@ -47,7 +47,7 @@ export class GatherProgram implements WebGPUProgram {
         if (index < uniforms.size) {
           let resRC = getCoordsFromIndex(index);
           let indexZ = i32(getIndices(resRC.x, resRC.z));
-          let inBounds = select(0.0, 1.0, indexZ >= 0 && indexZ < ${this.aShape[2]});
+          let inBounds = select(0.0, 1.0, indexZ >= 0 && indexZ < uniforms.aShape[2]);
           setOutputAtIndex(index, inBounds * getA(${sourceCoords}));
         }
       }
