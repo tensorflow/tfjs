@@ -36,7 +36,7 @@ ENV.registerFlag('DEBUG', () => false, debugValue => {
 });
 
 /** Whether to enable tracing mode. */
-ENV.registerFlag('TRACING', () => true, debugValue => {
+ENV.registerFlag('TRACING', () => false, debugValue => {
   if (debugValue) {
     console.warn('Tracing is ON. This has impacts on performance.');
   }

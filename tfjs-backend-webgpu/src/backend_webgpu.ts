@@ -899,6 +899,7 @@ export class WebGPUBackend extends KernelBackend {
     await dst.mapAsync(GPUMapMode.READ);
     const arrayBuf = new BigUint64Array(dst.getMappedRange());
     const timeElapsedNanos = Number((arrayBuf[1] - arrayBuf[0]));
+    console.log(arrayBuf[0] + "," + arrayBuf[1]);
     dst.unmap();
     this.bufferManager.releaseBuffer(
         dst, 16, GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST);
