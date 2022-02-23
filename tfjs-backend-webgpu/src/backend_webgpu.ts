@@ -67,6 +67,34 @@ export interface WebGPUTimingInfo extends TimingInfo {
 const CPU_HANDOFF_SIZE_THRESHOLD =
     env().getNumber('WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD');
 
+// Reshape dispatch, not to exceed device limits.
+const reshapeDispatch = (device: GPUDevice,
+    program: webgpu_program.WebGPUProgram): [number, number, number] => {
+  const MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE =
+      device.limits.maxComputeWorkgroupsPerDimension;
+  const layout = program['dispatchLayout'];
+  const dispatch = program['dispatch'];
+  if (dispatch.every((d) => d <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE)) {
+    return dispatch;
+  }
+
+  util.assert(
+      dispatch[0] > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
+          layout.y === undefined && layout.z === undefined,
+      () => 'Dispatch size exceeds WebGPU limits in Y or Z dimension.');
+
+  let dispatchAverage = Math.ceil(Math.sqrt(dispatch[0]));
+  if (dispatchAverage > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
+    dispatchAverage = Math.ceil(Math.cbrt(dispatch[0]));
+    util.assert(
+        dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE,
+        () => 'Total dispatch size exceeds WebGPU maximum.');
+    return [dispatchAverage, dispatchAverage, dispatchAverage];
+  } else {
+    return [dispatchAverage, dispatchAverage, 1];
+  }
+};
+
 export class WebGPUBackend extends KernelBackend {
   device: GPUDevice;
   queue: GPUQueue;
@@ -697,6 +725,7 @@ export class WebGPUBackend extends KernelBackend {
       }
       this.uploadToGPU(output.dataId);
     }
+    program.dispatch = reshapeDispatch(this.device, program);
 
     // There are five kinds of uniforms: NAN, shapes, shape strides, program
     // size, program defined uniforms.
@@ -811,6 +840,7 @@ export class WebGPUBackend extends KernelBackend {
   runFromPixelsProgram(
       program: FromPixelsProgram, output: GPUBuffer, layout: WebGPULayout,
       externalResource: GPUExternalTexture|GPUTextureView, outputId: DataId) {
+    program.dispatch = reshapeDispatch(this.device, program);
     const bindGroup = this.device.createBindGroup({
       layout: layout.bindGroupLayout,
       entries: [
