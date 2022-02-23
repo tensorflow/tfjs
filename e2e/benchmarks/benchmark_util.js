@@ -336,6 +336,7 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
  *     memory usage in the inference process.
  * @param input The input tensor container for model inference.
  * @param isTflite Whether a TFLite model is being profiled or not.
+ * @param numProfiles The number of rounds for profiling the inference process.
  */
 async function profileModelInference(
     model, input, isTflite = false, numProfiles = 1) {
@@ -373,6 +374,7 @@ async function profileModelInference(
  *
  * @param predict The predict function to execute for profiling memory usage.
  * @param isTflite Whether a TFLite model is being profiled or not.
+ * @param numProfiles The number of rounds for `predict` to execute and profile.
  */
 async function profileInference(predict, isTflite = false, numProfiles = 1) {
   if (typeof predict !== 'function') {
