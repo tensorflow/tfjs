@@ -98,7 +98,7 @@ export function computeWorkGroupSizeForMatMul(
     return [1, 32, 1];
   }
 
-  return [16, 16, 1];
+  return [8, 8, 1];
 }
 
 export function computeWorkPerThreadForConv2d(
