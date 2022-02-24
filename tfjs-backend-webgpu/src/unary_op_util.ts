@@ -82,7 +82,7 @@ const RELU6_VEC4 =
     'return clamp(a, vec4<f32>(0.0, 0.0, 0.0, 0.0), vec4<f32>(6.0, 6.0, 6.0, 6.0));';
 const RELU_VEC4 = `
   var resFloat = a * vec4<f32>(a >= vec4<f32>(0.0));
-  let isNaN = isNanCustomVec4(a);
+  let isNaN = isnanVec4(a);
 
   if (isNaN.r) {
     resFloat.r = a.r;

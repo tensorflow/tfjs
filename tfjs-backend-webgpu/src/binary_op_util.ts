@@ -62,8 +62,8 @@ const LOGICAL_AND = 'return f32(f32(a) >= 1.0 && f32(b) >= 1.0);';
 const LOGICAL_AND_VEC4 = `return (vec4<f32>(a >= vec4<f32>(1.0)) *
   vec4<f32>(b >= vec4<f32>(1.0)));`;
 const CHECK_NAN_SNIPPET = `
-  if (isNanCustom(a)) { return a; }
-  if (isNanCustom(b)) { return b; }
+  if (isnan(a)) { return a; }
+  if (isnan(b)) { return b; }
   `;
 const CHECK_NAN_SNIPPET_VEC4 = `
   if (isNaN.r) {
@@ -158,7 +158,7 @@ function getMinMaxString(op: string, useVec4: boolean) {
   const checkNanSnippet = useVec4 ? CHECK_NAN_SNIPPET_VEC4 : CHECK_NAN_SNIPPET;
   return useVec4 ? `
     var resultTemp = vec4<f32>(${op}(a, b));
-    let isNaN = isNanCustomVec4(a) | isNanCustomVec4(b);
+    let isNaN = isnanVec4(a) | isnanVec4(b);
     ` + checkNanSnippet +
           `
     return resultTemp;
