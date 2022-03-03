@@ -68,32 +68,33 @@ const CPU_HANDOFF_SIZE_THRESHOLD =
     env().getNumber('WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD');
 
 // Reshape dispatch, not to exceed device limits.
-const reshapeDispatch = (device: GPUDevice,
-    program: webgpu_program.WebGPUProgram): [number, number, number] => {
-  const MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE =
-      device.limits.maxComputeWorkgroupsPerDimension;
-  const layout = program['dispatchLayout'];
-  const dispatch = program['dispatch'];
-  if (dispatch.every((d) => d <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE)) {
-    return dispatch;
-  }
+const reshapeDispatch =
+    (device: GPUDevice,
+     program: webgpu_program.WebGPUProgram): [number, number, number] => {
+      const MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE =
+          device.limits.maxComputeWorkgroupsPerDimension;
+      const layout = program['dispatchLayout'];
+      const dispatch = program['dispatch'];
+      if (dispatch.every((d) => d <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE)) {
+        return dispatch;
+      }
 
-  util.assert(
-      dispatch[0] > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
-          layout.y === undefined && layout.z === undefined,
-      () => 'Dispatch size exceeds WebGPU limits in Y or Z dimension.');
+      util.assert(
+          dispatch[0] > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
+              layout.y === undefined && layout.z === undefined,
+          () => 'Dispatch size exceeds WebGPU limits in Y or Z dimension.');
 
-  let dispatchAverage = Math.ceil(Math.sqrt(dispatch[0]));
-  if (dispatchAverage > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
-    dispatchAverage = Math.ceil(Math.cbrt(dispatch[0]));
-    util.assert(
-        dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE,
-        () => 'Total dispatch size exceeds WebGPU maximum.');
-    return [dispatchAverage, dispatchAverage, dispatchAverage];
-  } else {
-    return [dispatchAverage, dispatchAverage, 1];
-  }
-};
+      let dispatchAverage = Math.ceil(Math.sqrt(dispatch[0]));
+      if (dispatchAverage > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
+        dispatchAverage = Math.ceil(Math.cbrt(dispatch[0]));
+        util.assert(
+            dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE,
+            () => 'Total dispatch size exceeds WebGPU maximum.');
+        return [dispatchAverage, dispatchAverage, dispatchAverage];
+      } else {
+        return [dispatchAverage, dispatchAverage, 1];
+      }
+    };
 
 export class WebGPUBackend extends KernelBackend {
   device: GPUDevice;
@@ -579,6 +580,49 @@ export class WebGPUBackend extends KernelBackend {
     }
   }
 
+  uploadToGPURoundUpTo4(tensor: TensorInfo): void {
+    const info = this.tensorMap.get(tensor.dataId);
+
+    if (info.bufferInfo.buffer != null) {
+      // Already on the GPU.
+      return;
+    }
+
+    info.bufferInfo.byteSize = webgpu_util.gpuSizeFromShape(tensor.shape) *
+        webgpu_util.GPUBytesPerElement(tensor.dtype);
+    info.bufferInfo.buffer = this.acquireBuffer(info.bufferInfo.byteSize);
+    if (info.values) {
+      const stagingBuffer = this.bufferManager.acquireUploadBuffer(
+          info.bufferInfo.byteSize,
+          GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC);
+      const arrayBuffer = stagingBuffer.getMappedRange();
+      if (info.dtype === 'int32' || info.dtype === 'bool') {
+        new Int32Array(arrayBuffer).set(info.values as TypedArray);
+      } else {
+        new Float32Array(arrayBuffer).set(info.values as Float32Array);
+      }
+      stagingBuffer.unmap();
+      this.ensureCommandEncoderReady();
+      this.ensureComputePassEnded();
+      this.currentCommandEncoder.copyBufferToBuffer(
+          stagingBuffer, 0, info.bufferInfo.buffer, 0,
+          info.bufferInfo.byteSize);
+
+      const stagingInfo = {
+        byteSize: info.bufferInfo.byteSize,
+        usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
+        buffer: stagingBuffer
+      };
+      this.stagingDisposalQueue.push(stagingInfo);
+      // TODO: WebGPU doesn't support read data synchronously from GPU to CPU.
+      // So it will report error when switching backend from WebGPU to others.
+      // There are two situations: 1) swithcing the backend after running a
+      // model; 2) swithcing the backend within the model. Temporarilly keep the
+      // values on CPU to solve the first issue.
+      // info.values = null;
+    }
+  }
+
   uploadToGPU(dataId: DataId): void {
     const info = this.tensorMap.get(dataId);
 
@@ -712,7 +756,7 @@ export class WebGPUBackend extends KernelBackend {
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
       outputDtype: DataType,
       programUniforms?: Array<{type: string; data: number[]}>,
-      output?: TensorInfo): TensorInfo {
+      output?: TensorInfo, roundUpTo4?: boolean): TensorInfo {
     if (!output) {
       output = this.makeTensorInfo(program.outputShape, outputDtype);
       if (util.sizeFromShape(output.shape) === 0) {
@@ -723,25 +767,30 @@ export class WebGPUBackend extends KernelBackend {
             util.getTypedArrayFromDType(output.dtype as 'float32', 0);
         return output;
       }
-      this.uploadToGPU(output.dataId);
+      if (roundUpTo4) {
+        this.uploadToGPURoundUpTo4(output);
+      } else {
+        this.uploadToGPU(output.dataId);
+      }
     }
     program.dispatch = reshapeDispatch(this.device, program);
-
+    const bufferShapes = inputs.concat(output).map(d => d.shape);
     // There are five kinds of uniforms: NAN, shapes, shape strides, program
     // size, program defined uniforms.
-    let uniformsWithType: Array<{type: string; data: number[];}> =
-        [{type: 'float32', data: [NaN]}];
-    const bufferShapes = inputs.concat(output).map(d => d.shape);
-    const uniformsType = 'int32';
-    bufferShapes.map(d => {
-      uniformsWithType.push({type: uniformsType, data: d});
-    });
-    const strides = util.computeStrides(output.shape);
-    uniformsWithType.push({type: uniformsType, data: strides});
-    if (program.size) {
-      const size = util.sizeFromShape(program.outputShape);
-      uniformsWithType.push(
-          {type: uniformsType, data: [program.isVec4 ? size / 4 : size]});
+    let uniformsWithType: Array<{type: string; data: number[];}> = [];
+    if (!program.fullShader) {
+      uniformsWithType.push({type: 'float32', data: [NaN]});
+      const uniformsType = 'int32';
+      bufferShapes.map(d => {
+        uniformsWithType.push({type: uniformsType, data: d});
+      });
+      const strides = util.computeStrides(output.shape);
+      uniformsWithType.push({type: uniformsType, data: strides});
+      if (program.size) {
+        const size = util.sizeFromShape(program.outputShape);
+        uniformsWithType.push(
+            {type: uniformsType, data: [program.isVec4 ? size / 4 : size]});
+      }
     }
     if (programUniforms) {
       uniformsWithType = [...uniformsWithType, ...programUniforms];
@@ -756,7 +805,11 @@ export class WebGPUBackend extends KernelBackend {
             `dtypes, please separate the program into real and imaginary ` +
             `parts.`);
       }
-      this.uploadToGPU(input.dataId);
+      if (roundUpTo4) {
+        this.uploadToGPURoundUpTo4(input);
+      } else {
+        this.uploadToGPU(input.dataId);
+      }
 
       return {
         // Returning dtype from tensorMap because it reflects dtype
@@ -766,20 +819,23 @@ export class WebGPUBackend extends KernelBackend {
         name: program.variableNames[i]
       };
     });
-    const bufferTypes = inputsData.map(d => d.dtype).concat(output.dtype);
-    const broadcastDims = inputsData.map(
-        d => backend_util.getBroadcastDims(d.shape, output.shape));
-    const inputShapesEqualsOutShape =
-        inputsData.map(d => util.arraysEqual(d.shape, output.shape)).join('_');
-    const broadcastDimsKey = broadcastDims.map(d => d.join('_')).join(';');
-    const key = webgpu_program.makeShaderKey(
-        program, bufferShapes, bufferTypes, broadcastDimsKey,
-        inputShapesEqualsOutShape);
+    if (!program.fullShader) {
+      const bufferTypes = inputsData.map(d => d.dtype).concat(output.dtype);
+      const broadcastDims = inputsData.map(
+          d => backend_util.getBroadcastDims(d.shape, output.shape));
+      const inputShapesEqualsOutShape =
+          inputsData.map(d => util.arraysEqual(d.shape, output.shape))
+              .join('_');
+      const broadcastDimsKey = broadcastDims.map(d => d.join('_')).join(';');
+      program.shaderKey = webgpu_program.makeShaderKey(
+          program, bufferShapes, bufferTypes, broadcastDimsKey,
+          inputShapesEqualsOutShape);
+    }
 
     const {bindGroupLayout, pipelineLayout} =
         this.getCachedOrCreateLayout(program.variableNames.length);
 
-    const pipeline = this.getAndSavePipeline(key, () => {
+    const pipeline = this.getAndSavePipeline(program.shaderKey, () => {
       return webgpu_program.compileProgram(
           this.device, program, pipelineLayout, inputsData, output);
     });

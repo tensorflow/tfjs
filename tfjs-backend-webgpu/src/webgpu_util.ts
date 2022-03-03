@@ -134,6 +134,20 @@ export function GPUBytesPerElement(dtype: DataType): number {
   }
 }
 
+// AlignBy4
+export function gpuSizeFromShape(shape: number[]): number {
+  let size = 4;
+  if (shape.length === 0) {
+    // Scalar.
+    return size;
+  }
+  size = Math.ceil(shape[shape.length - 1] / 4) * 4;
+  for (let i = shape.length - 2; i >= 0; i--) {
+    size *= shape[i];
+  }
+  return size;
+}
+
 export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
   if (dtype === 'float32') {
     return new Float32Array(data);
@@ -148,8 +162,9 @@ export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
 
 export function isWebGPUSupported(): boolean {
   return ((typeof window !== 'undefined') ||
-    //@ts-ignore
-    (typeof WorkerGlobalScope !== 'undefined')) && !!navigator.gpu;
+          //@ts-ignore
+          (typeof WorkerGlobalScope !== 'undefined')) &&
+      !!navigator.gpu;
 }
 
 export interface WebGPULayout {
