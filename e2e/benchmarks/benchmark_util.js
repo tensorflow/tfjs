@@ -37,19 +37,26 @@
  *
  * @param model The model object that is used to generated the input.
  */
-function generateInput(model) {
-  if (model == null) {
+function generateInput(model)
+{
+  if (model == null)
+  {
     throw new Error('The model does not exist.');
-  } else if (model.inputs == null) {
+  } else if (model.inputs == null)
+  {
     throw new Error('The model.inputs cannot be found.');
   }
 
-  const inputDefs = model.inputs.map((inputNode, inputNodeIndex) => {
+  const inputDefs = model.inputs.map((inputNode, inputNodeIndex) =>
+  {
     // Replace -1 or null in input tensor shape.
-    const inputShape = inputNode.shape.map(shapeValue => {
-      if (shapeValue == null || shapeValue < 0) {
+    const inputShape = inputNode.shape.map(shapeValue =>
+    {
+      if (shapeValue == null || shapeValue < 0)
+      {
         return 1;
-      } else {
+      } else
+      {
         return shapeValue;
       }
     });
@@ -77,19 +84,24 @@ function generateInput(model) {
  * @param inputDefs The input definition that is used to generate the input.
  * @param isForGraphModel flag for whether to generate inputs for GraphModel
  */
-function generateInputFromDef(inputDefs, isForGraphModel = false) {
-  if (inputDefs == null) {
+function generateInputFromDef(inputDefs, isForGraphModel = false)
+{
+  if (inputDefs == null)
+  {
     throw new Error('The inputDef cannot be found.');
   }
 
   const tensorArray = [];
-  try {
-    inputDefs.forEach((inputDef, inputDefIndex) => {
+  try
+  {
+    inputDefs.forEach((inputDef, inputDefIndex) =>
+    {
       const inputShape = inputDef.shape;
 
       // Construct the input tensor.
       let inputTensor;
-      if (inputDef.dtype === 'float32' || inputDef.dtype === 'int32') {
+      if (inputDef.dtype === 'float32' || inputDef.dtype === 'int32')
+      {
         // We assume a bell curve normal distribution. In this case,
         // we use below approximation:
         // mean ~= (min + max) / 2
@@ -107,17 +119,20 @@ function generateInputFromDef(inputDefs, isForGraphModel = false) {
         // the data generated maybe outside of [min, max].
         inputTensor = tf.clipByValue(generatedRaw, min, max);
         generatedRaw.dispose();
-      } else {
+      } else
+      {
         throw new Error(
-            `The ${inputDef.dtype} dtype of '${inputDef.name}' input ` +
-            `at model.inputs[${inputDefIndex}] is not supported.`);
+          `The ${inputDef.dtype} dtype of '${inputDef.name}' input ` +
+          `at model.inputs[${inputDefIndex}] is not supported.`);
       }
       tensorArray.push(inputTensor);
     });
 
     // Return tensor map for tf.GraphModel.
-    if (isForGraphModel) {
-      const tensorMap = inputDefs.reduce((map, inputDef, i) => {
+    if (isForGraphModel)
+    {
+      const tensorMap = inputDefs.reduce((map, inputDef, i) =>
+      {
         map[inputDef.name] = tensorArray[i];
         return map;
       }, {});
@@ -125,10 +140,13 @@ function generateInputFromDef(inputDefs, isForGraphModel = false) {
     }
 
     return tensorArray;
-  } catch (e) {
+  } catch (e)
+  {
     // Dispose all input tensors when the input construction is failed.
-    tensorArray.forEach(tensor => {
-      if (tensor instanceof tf.Tensor) {
+    tensorArray.forEach(tensor =>
+    {
+      if (tensor instanceof tf.Tensor)
+      {
         tensor.dispose();
       }
     });
@@ -144,26 +162,33 @@ function generateInputFromDef(inputDefs, isForGraphModel = false) {
  *     wrapping the predict function.
  * @param input The input tensor container for model inference.
  */
-function getPredictFnForModel(model, input) {
+function getPredictFnForModel(model, input)
+{
   let predict;
-  if (model instanceof tf.GraphModel) {
+  if (model instanceof tf.GraphModel)
+  {
     // Because there's no straightforward way to analyze whether a graph has
     // dynamic op, so we try to use `execute` and, if it fails, we will fall
     // back to `executeAsync`.
-    try {
-      tf.tidy(() => {
+    try
+    {
+      tf.tidy(() =>
+      {
         model.execute(input);
       });
       predict = () => model.execute(input);
-    } catch (e) {
+    } catch (e)
+    {
       predict = async () => await model.executeAsync(input);
     }
-  } else if (model instanceof tf.LayersModel) {
+  } else if (model instanceof tf.LayersModel)
+  {
     predict = () => model.predict(input);
-  } else {
+  } else
+  {
     throw new Error(
-        'Predict function was not found. Please provide a tf.GraphModel or ' +
-        'tf.LayersModel');
+      'Predict function was not found. Please provide a tf.GraphModel or ' +
+      'tf.LayersModel');
   }
   return predict;
 }
@@ -200,7 +225,8 @@ function getPredictFnForModel(model, input) {
  * @param input The input tensor container for model inference.
  * @param numRuns The number of rounds for timing the inference process.
  */
-async function timeModelInference(model, input, numRuns = 1) {
+async function timeModelInference(model, input, numRuns = 1)
+{
   const predict = getPredictFnForModel(model, input);
   return timeInference(predict, numRuns);
 }
@@ -234,15 +260,18 @@ async function timeModelInference(model, input, numRuns = 1) {
  * @param predict The predict function to execute and time.
  * @param numRuns The number of rounds for `predict` to execute and time.
  */
-async function timeInference(predict, numRuns = 1) {
-  if (typeof predict !== 'function') {
+async function timeInference(predict, numRuns = 1)
+{
+  if (typeof predict !== 'function')
+  {
     throw new Error(
-        'The first parameter should be a function, while ' +
-        `a(n) ${typeof predict} is found.`);
+      'The first parameter should be a function, while ' +
+      `a(n) ${typeof predict} is found.`);
   }
 
   const times = [];
-  for (let i = 0; i < numRuns; i++) {
+  for (let i = 0; i < numRuns; i++)
+  {
     const start = performance.now();
     const res = await predict();
     // The prediction can be tf.Tensor|tf.Tensor[]|{[name: string]: tf.Tensor}.
@@ -275,27 +304,36 @@ async function timeInference(predict, numRuns = 1) {
  *
  * @param tensorContainer The container of tensors to be downloaded.
  */
-async function downloadValuesFromTensorContainer(tensorContainer) {
+async function downloadValuesFromTensorContainer(tensorContainer)
+{
   let valueContainer;
-  if (tensorContainer instanceof tf.Tensor) {
+  if (tensorContainer instanceof tf.Tensor)
+  {
     valueContainer = await tensorContainer.data();
-  } else if (Array.isArray(tensorContainer)) {
+  } else if (Array.isArray(tensorContainer))
+  {
     // Start value downloads from all tensors.
-    const valuePromiseContainer = tensorContainer.map(async item => {
-      if (item instanceof tf.Tensor) {
+    const valuePromiseContainer = tensorContainer.map(async item =>
+    {
+      if (item instanceof tf.Tensor)
+      {
         return item.data();
       }
       return item;
     });
     // Wait until all values are downloaded.
     valueContainer = await Promise.all(valuePromiseContainer);
-  } else if (tensorContainer != null && typeof tensorContainer === 'object') {
+  } else if (tensorContainer != null && typeof tensorContainer === 'object')
+  {
     const valuePromiseContainer = [];
     // Start value downloads from all tensors.
-    for (const property in tensorContainer) {
-      if (tensorContainer[property] instanceof tf.Tensor) {
+    for (const property in tensorContainer)
+    {
+      if (tensorContainer[property] instanceof tf.Tensor)
+      {
         valuePromiseContainer.push(tensorContainer[property].data());
-      } else {
+      } else
+      {
         valuePromiseContainer.push(tensorContainer[property]);
       }
     }
@@ -336,11 +374,14 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
  *     memory usage in the inference process.
  * @param input The input tensor container for model inference.
  * @param isTflite Whether a TFLite model is being profiled or not.
+ * @param numProfiles The number of rounds for profiling the inference process.
  */
-async function profileModelInference(model, input, isTflite = false) {
+async function profileModelInference(
+  model, input, isTflite = false, numProfiles = 1)
+{
   const predict = isTflite ? () => tfliteModel.predict(input) :
-                             getPredictFnForModel(model, input);
-  return profileInference(predict, isTflite);
+    getPredictFnForModel(model, input);
+  return profileInference(predict, isTflite, numProfiles);
 }
 
 /**
@@ -372,36 +413,61 @@ async function profileModelInference(model, input, isTflite = false) {
  *
  * @param predict The predict function to execute for profiling memory usage.
  * @param isTflite Whether a TFLite model is being profiled or not.
+ * @param numProfiles The number of rounds for `predict` to execute and profile.
  */
-async function profileInference(predict, isTflite = false) {
-  if (typeof predict !== 'function') {
+async function profileInference(predict, isTflite = false, numProfiles = 1)
+{
+  if (typeof predict !== 'function')
+  {
     throw new Error(
-        'The first parameter should be a function, while ' +
-        `a(n) ${typeof predict} is found.`);
+      'The first parameter should be a function, while ' +
+      `a(n) ${typeof predict} is found.`);
   }
 
   let kernelInfo = {};
-  if (isTflite) {
-    await predict();
-    const profileItems = tfliteModel.getProfilingResults();
-    kernelInfo.kernels = profileItems.map(item => {
-      return {
-        name: item.nodeType,
-        kernelTimeMs: item.nodeExecMs,
-        // TODO: Shapes are not supported yet.
-        inputShapes: [],
-        outputShapes: [],
-      };
-    });
-  } else {
-    kernelInfo = await tf.profile(async () => {
-      const res = await predict();
-      await downloadValuesFromTensorContainer(res);
-      tf.dispose(res);
-    });
+  let kernelInfos = [];
+  if (isTflite)
+  {
+    for (let i = 0; i < numProfiles; i++)
+    {
+      await predict();
+      const profileItems = tfliteModel.getProfilingResults();
+      kernelInfo.kernels = profileItems.map(item =>
+      {
+        return {
+          name: item.nodeType,
+          kernelTimeMs: item.nodeExecMs,
+          // TODO: Shapes are not supported yet.
+          inputShapes: [],
+          outputShapes: [],
+        };
+      });
+      kernelInfos.push(kernelInfo);
+    }
+  } else
+  {
+    for (let i = 0; i < numProfiles; i++)
+    {
+      kernelInfo = await tf.profile(async () =>
+      {
+        const res = await predict();
+        await downloadValuesFromTensorContainer(res);
+        tf.dispose(res);
+      });
+      kernelInfos.push(kernelInfo);
+    }
+  }
+  for (let i = 0; i < kernelInfos[0].kernels.length; i++)
+  {
+    let totalTimeMs = 0;
+    for (let j = 0; j < kernelInfos.length; j++)
+    {
+      totalTimeMs += kernelInfos[j].kernels[i].kernelTimeMs;
+    }
+    kernelInfo.kernels[i].kernelTimeMs = totalTimeMs / kernelInfos.length;
   }
   kernelInfo.kernels =
-      kernelInfo.kernels.sort((a, b) => b.kernelTimeMs - a.kernelTimeMs);
+    kernelInfo.kernels.sort((a, b) => b.kernelTimeMs - a.kernelTimeMs);
   kernelInfo.aggregatedKernels = aggregateKernelTime(kernelInfo.kernels);
   return kernelInfo;
 }
@@ -413,21 +479,25 @@ async function profileInference(predict, isTflite = false) {
  * @param {Array<Object>} kernels An array of kernel information objects. Each
  *     object must include `name` (string) and `kernelTimeMs` (number) fields.
  */
-function aggregateKernelTime(kernels) {
+function aggregateKernelTime(kernels)
+{
   const aggregatedKernelTime = {};
-  kernels.forEach(kernel => {
+  kernels.forEach(kernel =>
+  {
     const oldAggregatedKernelTime = aggregatedKernelTime[kernel.name];
-    if (oldAggregatedKernelTime == null) {
+    if (oldAggregatedKernelTime == null)
+    {
       aggregatedKernelTime[kernel.name] = kernel.kernelTimeMs;
-    } else {
+    } else
+    {
       aggregatedKernelTime[kernel.name] =
-          oldAggregatedKernelTime + kernel.kernelTimeMs;
+        oldAggregatedKernelTime + kernel.kernelTimeMs;
     }
   });
 
   return Object.entries(aggregatedKernelTime)
-      .map(([name, timeMs]) => ({name, timeMs}))
-      .sort((a, b) => b.timeMs - a.timeMs);
+    .map(([name, timeMs]) => ({ name, timeMs }))
+    .sort((a, b) => b.timeMs - a.timeMs);
 }
 
 /**
@@ -477,25 +547,30 @@ const TUNABLE_FLAG_VALUE_RANGE_MAP = {
  *
  * @param flagConfig An object to store flag-value pairs.
  */
-async function setEnvFlags(flagConfig) {
-  if (flagConfig == null) {
+async function setEnvFlags(flagConfig)
+{
+  if (flagConfig == null)
+  {
     return;
-  } else if (typeof flagConfig !== 'object') {
+  } else if (typeof flagConfig !== 'object')
+  {
     throw new Error(
-        `An object is expected, while a(n) ${typeof flagConfig} is found.`);
+      `An object is expected, while a(n) ${typeof flagConfig} is found.`);
   }
 
   // Check the validation of flags and values.
-  for (const flag in flagConfig) {
+  for (const flag in flagConfig)
+  {
     // TODO: check whether flag can be set as flagConfig[flag].
-    if (!(flag in TUNABLE_FLAG_VALUE_RANGE_MAP)) {
+    if (!(flag in TUNABLE_FLAG_VALUE_RANGE_MAP))
+    {
       throw new Error(`${flag} is not a tunable or valid environment flag.`);
     }
-    if (TUNABLE_FLAG_VALUE_RANGE_MAP[flag].indexOf(flagConfig[flag]) === -1) {
+    if (TUNABLE_FLAG_VALUE_RANGE_MAP[flag].indexOf(flagConfig[flag]) === -1)
+    {
       throw new Error(
-          `${flag} value is expected to be in the range [${
-              TUNABLE_FLAG_VALUE_RANGE_MAP[flag]}], while ${flagConfig[flag]}` +
-          ' is found.');
+        `${flag} value is expected to be in the range [${TUNABLE_FLAG_VALUE_RANGE_MAP[flag]}], while ${flagConfig[flag]}` +
+        ' is found.');
     }
   }
 
@@ -505,11 +580,13 @@ async function setEnvFlags(flagConfig) {
   // initializing backends, not only inferring.
   // TODO: The following backend rebuild logics can be implemented in `setHook`
   // when registering these flags.
-  if ('WASM_HAS_SIMD_SUPPORT' in flagConfig) {
+  if ('WASM_HAS_SIMD_SUPPORT' in flagConfig)
+  {
     await resetBackend('wasm');
   }
 
-  if ('WEBGL_VERSION' in flagConfig) {
+  if ('WEBGL_VERSION' in flagConfig)
+  {
     await resetBackend('webgl');
   }
 }
@@ -519,21 +596,25 @@ async function setEnvFlags(flagConfig) {
  *
  * @param backendName The name of the backend to be reset.
  */
-async function resetBackend(backendName) {
+async function resetBackend(backendName)
+{
   const ENGINE = tf.engine();
-  if (!(backendName in ENGINE.registryFactory)) {
+  if (!(backendName in ENGINE.registryFactory))
+  {
     throw new Error(`${backendName} backend is not registed.`);
   }
 
   const currentBackend = tf.getBackend();
 
-  if (backendName in ENGINE.registry) {
+  if (backendName in ENGINE.registry)
+  {
     const backendFactory = tf.findBackendFactory(backendName);
     tf.removeBackend(backendName);
     tf.registerBackend(backendName, backendFactory);
   }
 
-  if (currentBackend === backendName) {
+  if (currentBackend === backendName)
+  {
     await tf.setBackend(backendName);
   }
 }
