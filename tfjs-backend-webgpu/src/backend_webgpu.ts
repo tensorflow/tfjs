@@ -24,7 +24,7 @@ import {FromPixelsImportProgram} from './kernels/FromPixels_utils/from_pixels_im
 import {FromPixelsProgram} from './kernels/FromPixels_utils/from_pixels_webgpu';
 import * as webgpu_program from './webgpu_program';
 import * as webgpu_util from './webgpu_util';
-import {WebGPULayout} from './webgpu_util';
+import {DataLayout, DivideRoundUp, RearrangeWeightsToOHWIOGroupO4I4, WebGPULayout} from './webgpu_util';
 
 export interface WebGPUMemoryInfo extends backend_util.MemoryInfo {
   numBytesInGPU: number;
@@ -39,9 +39,11 @@ type BufferInfo = {
 };
 
 type TensorBufferInfo = {
+  shape: number[],
   values: backend_util.BackendValues,
   dtype: DataType,
   bufferInfo: BufferInfo,
+  layout: DataLayout,
   refCount: number,
   // For complex numbers, the real and imaginary parts are stored as their own
   // individual tensors, with a parent joining the two with the
@@ -294,9 +296,11 @@ export class WebGPUBackend extends KernelBackend {
         util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
 
     this.tensorMap.set(dataId, {
+      shape,
       dtype,
       values,
       bufferInfo: {byteSize, usage: this.defaultGpuBufferUsage()},
+      layout: DataLayout.NHWC,
       refCount: 1
     });
     return dataId;
@@ -314,9 +318,11 @@ export class WebGPUBackend extends KernelBackend {
         util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
 
     this.tensorMap.set(dataId, {
+      shape,
       dtype,
       values,
       bufferInfo: {byteSize, usage: this.defaultGpuBufferUsage()},
+      layout: DataLayout.NHWC,
       refCount
     });
   }
@@ -631,6 +637,15 @@ export class WebGPUBackend extends KernelBackend {
       return;
     }
 
+    if (info.layout === DataLayout.O4HWI4) {
+      info.values = RearrangeWeightsToOHWIOGroupO4I4(
+          info.values as Float32Array, info.shape);
+      const oSlices = DivideRoundUp(info.shape[3], 4);
+      const iSlices = DivideRoundUp(info.shape[2], 4);
+      const ogroups = DivideRoundUp(oSlices, 2);
+      info.bufferInfo.byteSize =
+          ogroups * 2 * 4 * info.shape[0] * info.shape[1] * iSlices * 4 * 4;
+    }
     info.bufferInfo.buffer = this.acquireBuffer(info.bufferInfo.byteSize);
     if (info.values) {
       const stagingBuffer = this.bufferManager.acquireUploadBuffer(
@@ -756,7 +771,8 @@ export class WebGPUBackend extends KernelBackend {
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
       outputDtype: DataType,
       programUniforms?: Array<{type: string; data: number[]}>,
-      output?: TensorInfo, roundUpTo4?: boolean): TensorInfo {
+      output?: TensorInfo, oRoundUpTo4?: boolean,
+      iRoundUpTo4?: boolean): TensorInfo {
     if (!output) {
       output = this.makeTensorInfo(program.outputShape, outputDtype);
       if (util.sizeFromShape(output.shape) === 0) {
@@ -767,7 +783,7 @@ export class WebGPUBackend extends KernelBackend {
             util.getTypedArrayFromDType(output.dtype as 'float32', 0);
         return output;
       }
-      if (roundUpTo4) {
+      if (oRoundUpTo4) {
         this.uploadToGPURoundUpTo4(output);
       } else {
         this.uploadToGPU(output.dataId);
@@ -805,7 +821,7 @@ export class WebGPUBackend extends KernelBackend {
             `dtypes, please separate the program into real and imaginary ` +
             `parts.`);
       }
-      if (roundUpTo4) {
+      if (iRoundUpTo4) {
         this.uploadToGPURoundUpTo4(input);
       } else {
         this.uploadToGPU(input.dataId);
