@@ -26,6 +26,7 @@ import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as shell from 'shelljs';
 import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase, getReleaseBranch, checkoutReleaseBranch} from './release-util';
+import * as fs from 'fs';
 
 const TMP_DIR = '/tmp/tfjs-publish';
 const BAZEL_PACKAGES = new Set([
@@ -84,6 +85,17 @@ async function main() {
   for (let i = 0; i < packages.length; i++) {
     const pkg = packages[i];
     shell.cd(pkg);
+
+    // Check the package.json for 'link:' and 'file:' dependencies.
+    const packageJson = JSON.parse(fs.readFileSync('package.json')
+        .toString('utf8')) as {dependencies: Record<string, string>};
+    for (let [dep, depVersion] of Object.entries(packageJson.dependencies)) {
+      const start = depVersion.slice(0,5);
+      if (start === 'link:' || start === 'file:') {
+        throw new Error(`${pkg} has a '${start}' dependency on ${dep}. `
+                       + 'Refusing to publish.');
+      }
+    }
 
     console.log(chalk.magenta.bold(`~~~ Preparing package ${pkg}~~~`));
     console.log(chalk.magenta('~~~ Installing packages ~~~'));
