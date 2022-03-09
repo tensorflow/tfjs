@@ -146,7 +146,7 @@ export const TFJS_RELEASE_UNIT: ReleaseUnit = {
 // The release script will ask for a new version for each phase, and it will
 // replace 'link' dependencies with the new monorepo version.
 export const ALPHA_RELEASE_UNIT: ReleaseUnit = {
-  name: 'alpha monorepo packages',
+  name: 'alpha-monorepo-packages',
   phases: [WEBGPU_PHASE],
 };
 

@@ -25,7 +25,7 @@
 import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as shell from 'shelljs';
-import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase, getReleaseBranch, checkoutReleaseBranch} from './release-util';
+import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT} from './release-util';
 import * as fs from 'fs';
 
 const TMP_DIR = '/tmp/tfjs-publish';
@@ -56,7 +56,8 @@ async function main() {
   console.log(chalk.blue(`Using release unit ${releaseUnitInt}`));
   console.log();
 
-  const {name, phases} = RELEASE_UNITS[releaseUnitInt];
+  const releaseUnit = RELEASE_UNITS[releaseUnitInt];
+  const {name, phases} = releaseUnit;
 
   phases.forEach((_, i) => printPhase(phases, i));
   console.log();
@@ -70,7 +71,13 @@ async function main() {
   console.log(chalk.blue(`Using phase ${phaseInt}`));
   console.log();
 
-  let releaseBranch = await getReleaseBranch(name);
+  let releaseBranch: string;
+  if (releaseUnit === ALPHA_RELEASE_UNIT) {
+    // Alpha release unit is published with the tfjs release unit.
+    releaseBranch = await getReleaseBranch(TFJS_RELEASE_UNIT.name);
+  } else {
+    releaseBranch = await getReleaseBranch(name);
+  }
   console.log();
 
   checkoutReleaseBranch(releaseBranch, args.git_protocol, TMP_DIR);
