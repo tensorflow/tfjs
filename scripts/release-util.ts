@@ -140,7 +140,7 @@ export const TFJS_RELEASE_UNIT: ReleaseUnit = {
 
 // TODO(mattsoulanille): Move WEBGPU_PHASE to TFJS_RELEASE_UNIT when webgpu
 // is out of alpha.
-// Alpha packages that use monorepo dependencies at the latest version but are
+// Alpha packages use monorepo dependencies at the latest version but are
 // not yet released at the same version number as the monorepo packages.
 // Use this for packages that will be a part of the monorepo in the future.
 // The release script will ask for a new version for each phase, and it will
