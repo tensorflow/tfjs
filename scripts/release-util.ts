@@ -95,6 +95,11 @@ export const WASM_PHASE: Phase = {
   deps: ['tfjs-core', 'tfjs-backend-cpu']
 };
 
+export const WEBGPU_PHASE: Phase = {
+  packages: ['tfjs-backend-webgpu'],
+  deps: ['tfjs-core', 'tfjs-backend-cpu'],
+};
+
 export const VIS_PHASE: Phase = {
   packages: ['tfjs-vis']
 };
@@ -133,6 +138,13 @@ export const TFJS_RELEASE_UNIT: ReleaseUnit = {
   ]
 };
 
+// TODO(mattsoulanille): Move WEBGPU_PHASE to TFJS_RELEASE_UNIT when webgpu
+// is out of alpha.
+export const WEBGPU_RELEASE_UNIT: ReleaseUnit = {
+  name: 'tfjs',
+  phases: [WEBGPU_PHASE],
+};
+
 export const VIS_RELEASE_UNIT: ReleaseUnit = {
   name: 'vis',
   phases: [VIS_PHASE]
@@ -160,8 +172,9 @@ export const WEBSITE_RELEASE_UNIT: ReleaseUnit = {
 };
 
 export const RELEASE_UNITS: ReleaseUnit[] = [
-  TFJS_RELEASE_UNIT, VIS_RELEASE_UNIT, REACT_NATIVE_RELEASE_UNIT,
-  TFLITE_RELEASE_UNIT, AUTOML_RELEASE_UNIT, WEBSITE_RELEASE_UNIT
+  TFJS_RELEASE_UNIT, WEBGPU_RELEASE_UNIT, VIS_RELEASE_UNIT,
+  REACT_NATIVE_RELEASE_UNIT, TFLITE_RELEASE_UNIT, AUTOML_RELEASE_UNIT,
+  WEBSITE_RELEASE_UNIT,
 ];
 
 export const TMP_DIR = '/tmp/tfjs-release';
