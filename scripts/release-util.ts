@@ -140,8 +140,13 @@ export const TFJS_RELEASE_UNIT: ReleaseUnit = {
 
 // TODO(mattsoulanille): Move WEBGPU_PHASE to TFJS_RELEASE_UNIT when webgpu
 // is out of alpha.
-export const WEBGPU_RELEASE_UNIT: ReleaseUnit = {
-  name: 'tfjs',
+// Alpha packages that use monorepo dependencies at the latest version but are
+// not yet released at the same version number as the monorepo packages.
+// Use this for packages that will be a part of the monorepo in the future.
+// The release script will ask for a new version for each phase, and it will
+// replace 'link' dependencies with the new monorepo version.
+export const ALPHA_RELEASE_UNIT: ReleaseUnit = {
+  name: 'alpha monorepo packages',
   phases: [WEBGPU_PHASE],
 };
 
@@ -172,7 +177,7 @@ export const WEBSITE_RELEASE_UNIT: ReleaseUnit = {
 };
 
 export const RELEASE_UNITS: ReleaseUnit[] = [
-  TFJS_RELEASE_UNIT, WEBGPU_RELEASE_UNIT, VIS_RELEASE_UNIT,
+  TFJS_RELEASE_UNIT, ALPHA_RELEASE_UNIT, VIS_RELEASE_UNIT,
   REACT_NATIVE_RELEASE_UNIT, TFLITE_RELEASE_UNIT, AUTOML_RELEASE_UNIT,
   WEBSITE_RELEASE_UNIT,
 ];
@@ -288,46 +293,43 @@ export async function updateDependency(
 
 // Update package.json dependencies of tfjs packages. This method is different
 // than `updateDependency`, it does not rely on published versions, instead it
-// assumes all the packages have the same version and use that to update.
+// uses a map from packageName to newVersion to update the versions.
 export function updateTFJSDependencyVersions(
-    deps: string[], pkg: string, parsedPkg: any, tfjsVersion: string): string {
+  pkg: string, versions: Map<string, string>): string {
+
   console.log(chalk.magenta.bold(`~~~ Update dependency versions ~~~`));
 
-  if (deps != null) {
-    for (let j = 0; j < deps.length; j++) {
-      const dep = deps[j];
-
-      // Get the current dependency package version.
-      let version = '';
-      const depNpmName = `@tensorflow/${dep}`;
-      if (parsedPkg['dependencies'] != null &&
-          parsedPkg['dependencies'][depNpmName] != null) {
-        version = parsedPkg['dependencies'][depNpmName];
-      } else if (
-          parsedPkg['peerDependencies'] != null &&
-          parsedPkg['peerDependencies'][depNpmName] != null) {
-        version = parsedPkg['peerDependencies'][depNpmName];
-      } else if (
-          parsedPkg['devDependencies'] != null &&
-          parsedPkg['devDependencies'][depNpmName] != null) {
-        version = parsedPkg['devDependencies'][depNpmName];
-      }
-      if (version == null) {
-        throw new Error(`No dependency found for ${dep}.`);
-      }
-
-      let relaxedVersionPrefix = '';
-      if (version.startsWith('~') || version.startsWith('^')) {
-        relaxedVersionPrefix = version.substr(0, 1);
-      }
-      const versionLatest = relaxedVersionPrefix + tfjsVersion;
-
-      pkg = `${pkg}`.replace(
-          new RegExp(`"${depNpmName}": "${version}"`, 'g'),
-          `"${depNpmName}": "${versionLatest}"`);
+  const parsedPkg = JSON.parse(`${pkg}`);JSON.parse(pkg);
+  for (const [dep, newVersion] of versions) {
+    // Get the current dependency package version.
+    let version = '';
+    const depNpmName = `@tensorflow/${dep}`;
+    if (parsedPkg['dependencies'] != null &&
+      parsedPkg['dependencies'][depNpmName] != null) {
+      version = parsedPkg['dependencies'][depNpmName];
+    } else if (
+      parsedPkg['peerDependencies'] != null &&
+        parsedPkg['peerDependencies'][depNpmName] != null) {
+      version = parsedPkg['peerDependencies'][depNpmName];
+    } else if (
+      parsedPkg['devDependencies'] != null &&
+        parsedPkg['devDependencies'][depNpmName] != null) {
+      version = parsedPkg['devDependencies'][depNpmName];
     }
-  }
+    if (version == null) {
+      throw new Error(`No dependency found for ${dep}.`);
+    }
 
+    let relaxedVersionPrefix = '';
+    if (version.startsWith('~') || version.startsWith('^')) {
+      relaxedVersionPrefix = version.substr(0, 1);
+    }
+    const versionLatest = relaxedVersionPrefix + newVersion;
+
+    pkg = `${pkg}`.replace(
+      new RegExp(`"${depNpmName}": "${version}"`, 'g'),
+      `"${depNpmName}": "${versionLatest}"`);
+  }
   return pkg;
 }
 
@@ -402,4 +404,26 @@ export function createPR(
 
   $(`hub pull-request -b ${releaseBranch} -m "${message}" -l INTERNAL -o`);
   console.log();
+}
+
+// Computes the default updated version (does a patch version update).
+export function getPatchUpdateVersion(version: string): string {
+  const versionSplit = version.split('.');
+
+  // For alpha or beta version string (e.g. "0.0.1-alpha.5"), increase the
+  // number after alpha/beta.
+  if (versionSplit[2].includes('alpha') || versionSplit[2].includes('beta')) {
+    return [
+      versionSplit[0], versionSplit[1], versionSplit[2], +versionSplit[3] + 1
+    ].join('.');
+  }
+
+  return [versionSplit[0], versionSplit[1], +versionSplit[2] + 1].join('.');
+}
+
+// Computes the default updated version (does a minor version update).
+export function getMinorUpdateVersion(version: string): string {
+  const versionSplit = version.split('.');
+
+  return [versionSplit[0], +versionSplit[1] + 1, '0'].join('.');
 }
