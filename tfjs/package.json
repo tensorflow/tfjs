@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs",
-  "version": "0.0.0",
+  "version": "example_release",
   "description": "An open-source machine learning framework.",
   "private": false,
   "main": "dist/tf.node.js",
@@ -77,12 +77,12 @@
     "test-ci": "./scripts/test-ci.sh"
   },
   "dependencies": {
-    "@tensorflow/tfjs-backend-cpu": "link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
-    "@tensorflow/tfjs-backend-webgl": "link:../link-package/node_modules/@tensorflow/tfjs-backend-webgl",
-    "@tensorflow/tfjs-converter": "link:../link-package/node_modules/@tensorflow/tfjs-converter",
-    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
-    "@tensorflow/tfjs-data": "link:../link-package/node_modules/@tensorflow/tfjs-data",
-    "@tensorflow/tfjs-layers": "link:../link-package/node_modules/@tensorflow/tfjs-layers",
+    "@tensorflow/tfjs-backend-cpu": "example_release",
+    "@tensorflow/tfjs-backend-webgl": "example_release",
+    "@tensorflow/tfjs-converter": "example_release",
+    "@tensorflow/tfjs-core": "example_release",
+    "@tensorflow/tfjs-data": "example_release",
+    "@tensorflow/tfjs-layers": "example_release",
     "argparse": "^1.0.10",
     "chalk": "^4.1.0",
     "core-js": "3",
