@@ -37,7 +37,7 @@ import { op } from './operation';
  * x.cumprod().print();
  * ```
  *
- * @param x The input tensor to be compute the cumulative product over.
+ * @param x The input tensor to cumulatively multiply.
  * @param axis The axis along which to multiply. Optional. Defaults to 0.
  * @param exclusive Whether to perform exclusive cumulative product. Optional.
  *     Defaults to false. If set to true then the product of each tensor entry
