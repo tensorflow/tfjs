@@ -107,6 +107,55 @@ describeWithFlags('prod', ALL_ENVS, () => {
     expectArraysClose(await res.data(), [6]);
   });
 
+  it('gradients: prod(tensor with zeros)', async () => {
+    const a = tf.tensor2d([[1, 2, 0], [1, 2, 3]], [3, 2]);
+    const dy = tf.scalar(12);
+
+    const gradients = tf.grad(a => a.prod(1))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(await gradients.array(),
+      [[NaN, NaN, NaN], [12 / (2 * 3), 12 / (1 * 3), 12 / (1 * 2)]]);
+  });
+
+  it('gradients: prod(2d)', async () => {
+    const a = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
+    const dy = tf.scalar(24);
+
+    const gradients = tf.grad(a => a.prod())(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(await gradients.array(),
+      [[24 / (2 * 3 * 4), 24  / (1 * 3 * 4)],
+       [24 / (1 * 2 * 4), 24 / (1 * 2 * 3)]]);
+  });
+
+  it('gradients: prod(2d, axis=0)', async () => {
+    const a = tf.tensor2d([[1, 2], [3, 1], [1, 4]], [3, 2]);
+    const dy = tf.tensor1d([3, 8]);
+    const axis = 0;
+
+    const gradients = tf.grad(a => a.prod(axis))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(await gradients.array(), [[1, 2], [3, 1], [1, 4]]);
+  });
+
+  it('gradients: prod(2d, axis=1)', async () => {
+    const a = tf.tensor2d([[1, 2], [3, 1], [1, 4]], [3, 2]);
+    const dy = tf.tensor1d([4, 3, 4]);
+    const axis = 1;
+
+    const gradients = tf.grad(a => a.prod(axis))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(await gradients.data(), [[2, 4], [3, 1], [1, 4]]);
+  });
+
   it('throws when passed a non-tensor', () => {
     expect(() => tf.prod({} as tf.Tensor))
         .toThrowError(/Argument 'x' passed to 'prod' must be a Tensor/);
