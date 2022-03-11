@@ -38,7 +38,7 @@ describeWithFlags('cumprod', ALL_ENVS, () => {
     const exclusive = true;
     const res = tf.tensor1d([1, 2, 3, 4]).cumprod(0, exclusive);
     expect(res.shape).toEqual([4]);
-    expectArraysClose(await res.data(), [0, 1, 2, 6]);
+    expectArraysClose(await res.data(), [1, 1, 2, 6]);
   });
 
   it('1D exclusive reverse', async () => {
@@ -46,26 +46,27 @@ describeWithFlags('cumprod', ALL_ENVS, () => {
     const exclusive = true;
     const res = tf.tensor1d([1, 2, 3, 4]).cumprod(0, exclusive, reverse);
     expect(res.shape).toEqual([4]);
-    expectArraysClose(await res.data(), [6, 2, 1, 0]);
+    expectArraysClose(await res.data(), [24, 12, 4, 1]);
   });
 
-  it('gradient: 1D', async () => {
-    const a = tf.tensor1d([1, 2, 3]);
-    const dy = tf.tensor1d([4, 5, 6]);
-    const da = tf.grad((x) => tf.cumprod(x))(a, dy);
+  // TODO: once gradients are implemented, create tests something like this.
+  // it('gradient: 1D', async () => {
+  //   const a = tf.tensor1d([1, 2, 3]);
+  //   const dy = tf.tensor1d([4, 5, 6]);
+  //   const da = tf.grad((x) => tf.cumprod(x))(a, dy);
 
-    expect(da.shape).toEqual([3]);
-    expectArraysClose(await da.data(), [15, 11, 6]);
-  });
+  //   expect(da.shape).toEqual([3]);
+  //   expectArraysClose(await da.data(), [15, 11, 6]);
+  // });
 
-  it('gradient with clones', async () => {
-    const a = tf.tensor1d([1, 2, 3]);
-    const dy = tf.tensor1d([4, 5, 6]);
-    const da = tf.grad((x) => tf.cumprod(x.clone()).clone())(a, dy);
+  // it('gradient with clones', async () => {
+  //   const a = tf.tensor1d([1, 2, 3]);
+  //   const dy = tf.tensor1d([4, 5, 6]);
+  //   const da = tf.grad((x) => tf.cumprod(x.clone()).clone())(a, dy);
 
-    expect(da.shape).toEqual([3]);
-    expectArraysClose(await da.data(), [15, 11, 6]);
-  });
+  //   expect(da.shape).toEqual([3]);
+  //   expectArraysClose(await da.data(), [15, 11, 6]);
+  // });
 
   it('2D standard', async () => {
     const res = tf
@@ -75,7 +76,7 @@ describeWithFlags('cumprod', ALL_ENVS, () => {
       ])
       .cumprod(1);
     expect(res.shape).toEqual([2, 2]);
-    expectArraysClose(await res.data(), [1, 3, 3, 7]);
+    expectArraysClose(await res.array(), [[1, 2], [3, 12]]);
   });
 
   it('2D reverse exclusive', async () => {
@@ -88,7 +89,7 @@ describeWithFlags('cumprod', ALL_ENVS, () => {
       ])
       .cumprod(1, exclusive, reverse);
     expect(res.shape).toEqual([2, 2]);
-    expectArraysClose(await res.data(), [2, 0, 4, 0]);
+    expectArraysClose(await res.array(), [[2, 1], [4, 1]]);
   });
 
   it('2D axis=0', async () => {
@@ -99,7 +100,7 @@ describeWithFlags('cumprod', ALL_ENVS, () => {
       ])
       .cumprod();
     expect(res.shape).toEqual([2, 2]);
-    expectArraysClose(await res.data(), [1, 2, 4, 6]);
+    expectArraysClose(await res.array(), [[1, 2], [3, 8]]);
   });
 
   it('3D standard', async () => {
@@ -116,22 +117,27 @@ describeWithFlags('cumprod', ALL_ENVS, () => {
       ])
       .cumprod(2);
     expect(res.shape).toEqual([2, 2, 2]);
-    expectArraysClose(await res.data(), [0, 1, 2, 5, 4, 9, 6, 13]);
+    expectArraysClose(await res.array(), [
+      [
+        [0, 0 * 1],
+        [2, 2 * 3]
+      ],
+      [
+        [4, 4 * 5],
+        [6, 6 * 7]
+      ]
+    ]);
   });
 
   it('4d axis=2', async () => {
-    const input = tf.ones([1, 32, 46, 4]);
+    const input = tf.add(tf.ones([1, 32, 8, 4]), tf.ones([1, 32, 8, 4]));
     const res = tf.cumprod(input, 2, false, false);
 
-    expect(res.shape).toEqual([1, 32, 46, 4]);
+    expect(res.shape).toEqual([1, 32, 8, 4]);
 
-    const earlySlice = tf.slice(res, [0, 0, 0, 0], [1, 1, 46, 1]);
-    const lateSlice = tf.slice(res, [0, 31, 0, 0], [1, 1, 46, 1]);
-    const expectedDataInEachSlice = [
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-      22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
-      40, 41, 42, 43, 44, 45, 46,
-    ];
+    const earlySlice = tf.slice(res, [0, 0, 0, 0], [1, 1, 8, 1]);
+    const lateSlice = tf.slice(res, [0, 31, 0, 0], [1, 1, 8, 1]);
+    const expectedDataInEachSlice = [2, 4, 8, 16, 32, 64, 128, 256];
     expectArraysClose(await earlySlice.data(), expectedDataInEachSlice);
     expectArraysClose(await lateSlice.data(), expectedDataInEachSlice);
   });
@@ -150,7 +156,7 @@ describeWithFlags('cumprod', ALL_ENVS, () => {
   it('accepts a tensor-like object', async () => {
     const res = tf.cumprod([1, 2, 3, 4]);
     expect(res.shape).toEqual([4]);
-    expectArraysClose(await res.data(), [1, 3, 6, 10]);
+    expectArraysClose(await res.data(), [1, 2, 6, 24]);
   });
 
   it('throws error for string tensor', () => {
