@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC. All Rights Reserved.
+ * Copyright 2022 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -47,9 +47,9 @@ export function cumprod(
   }
   const size = permutedX.shape[permutedAxis];
   let result = identity({inputs: {x: permutedX}, backend});
-  // Use cumprod parallel algorithm, ref:
+  // Use cumprod parallel algorithm, inspired by:
   // https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
-  // Note: although the algorithm is called sum, it works for and associtative
+  // Note: although the algorithm is called sum, it works for any associtative
   // operator with an identity.
 
   for (let i = 0; i <= Math.ceil(Math.log2(size)) - 1; i++) {
@@ -60,8 +60,8 @@ export function cumprod(
         backend.runWebGLProgram(program, [result], result.dtype, customValues);
     backend.disposeIntermediateTensorInfo(prevResult);
   }
-  // For exclusive cumsum, shift the end result in the direction of sum
-  // and add 0 to the front index.
+  // For exclusive cumprod, shift the end result in the direction of product
+  // and add 1 to the front index.
   if (exclusive) {
     const program = new CumProdProgram(permutedX.shape, exclusive, reverse);
     const prevResult = result;

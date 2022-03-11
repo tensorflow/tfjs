@@ -46,7 +46,7 @@ TensorInfo {
   const xRank = x.shape.length;
 
   util.assert(x.dtype === 'float32' || x.dtype === 'int32',
-    () => `cumsum does not support ${x.dtype} tensors in the WASM backend`);
+    () => `cumprod does not support ${x.dtype} tensors in the WASM backend`);
   // permute required axis to inner most axis
   const permutation = backend_util.getAxesPermutation([axis], xRank);
   let permutedX = x;
@@ -54,7 +54,7 @@ TensorInfo {
     permutedX = transpose({inputs: {x}, attrs: {perm: permutation}, backend});
   }
   const permutedAxis = backend_util.getInnerMostAxes(1, xRank)[0];
-  backend_util.assertAxesAreInnerMostDims('cumsum', [permutedAxis], xRank);
+  backend_util.assertAxesAreInnerMostDims('cumprod', [permutedAxis], xRank);
 
   const permutedOut = backend.makeOutput(permutedX.shape, permutedX.dtype);
   const finalDim = permutedX.shape[permutedAxis];

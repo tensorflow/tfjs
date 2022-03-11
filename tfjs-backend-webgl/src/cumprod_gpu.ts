@@ -30,7 +30,7 @@ export class CumProdProgram implements GPGPUProgram {
     const length = shape[shape.length - 1];
     let condition = '';
     let idxString = '';
-    // When exclusive is set, the cumsum op becomes roll op that copies the
+    // When exclusive is set, the cumprod op becomes roll op that copies the
     // value from the previous index based on the direction specified by the
     // reverse flag.
     if (exclusive) {
@@ -68,7 +68,7 @@ function getCoords(rank: number, name: string): string {
   } else if (rank === 4) {
     return `${name}.x, ${name}.y, ${name}.z, ${name}.w`;
   } else {
-    throw Error(`Cumulative sum for rank ${rank} is not yet supported`);
+    throw Error(`Cumulative product for rank ${rank} is not yet supported`);
   }
 }
 
@@ -82,6 +82,6 @@ function getFinalCoord(rank: number, name: string): string {
   } else if (rank === 4) {
     return `${name}.w`;
   } else {
-    throw Error(`Cumulative sum for rank ${rank} is not yet supported`);
+    throw Error(`Cumulative product for rank ${rank} is not yet supported`);
   }
 }
