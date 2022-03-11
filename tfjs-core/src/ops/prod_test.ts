@@ -108,15 +108,15 @@ describeWithFlags('prod', ALL_ENVS, () => {
   });
 
   it('gradients: prod(tensor with zeros)', async () => {
-    const a = tf.tensor2d([[1, 2, 0], [1, 2, 3]], [3, 2]);
-    const dy = tf.scalar(12);
+    const a = tf.tensor2d([[1, 2, 0], [1, 2, 3]], [2, 3]);
+    const dy = tf.tensor([12, 12]);
 
     const gradients = tf.grad(a => a.prod(1))(a, dy);
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
     expectArraysClose(await gradients.array(),
-      [[NaN, NaN, NaN], [12 / (2 * 3), 12 / (1 * 3), 12 / (1 * 2)]]);
+      [[Infinity, Infinity, Infinity], [2, 4, 6]]);
   });
 
   it('gradients: prod(2d)', async () => {
@@ -127,9 +127,7 @@ describeWithFlags('prod', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(await gradients.array(),
-      [[24 / (2 * 3 * 4), 24  / (1 * 3 * 4)],
-       [24 / (1 * 2 * 4), 24 / (1 * 2 * 3)]]);
+    expectArraysClose(await gradients.array(), [[1, 2], [3, 4]]);
   });
 
   it('gradients: prod(2d, axis=0)', async () => {
