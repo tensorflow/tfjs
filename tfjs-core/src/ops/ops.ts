@@ -59,6 +59,7 @@ export {conv3d} from './conv3d';
 export {conv3dTranspose} from './conv3d_transpose';
 export {cos} from './cos';
 export {cosh} from './cosh';
+export {cumprod} from './cumprod';
 export {cumsum} from './cumsum';
 export {denseBincount} from './dense_bincount';
 export {depthToSpace} from './depth_to_space';

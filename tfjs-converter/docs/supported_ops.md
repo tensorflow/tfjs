@@ -292,6 +292,7 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|Cumprod|cumprod|
 |Cumsum|cumsum|
 
 ## Operations - Segment
