@@ -277,13 +277,22 @@ async function timeInference(predict, numRuns = 1) {
  */
 async function downloadValuesFromTensorContainer(tensorContainer) {
   let valueContainer;
+  const readSync = tf.getBackend() === 'webgl';
   if (tensorContainer instanceof tf.Tensor) {
-    valueContainer = await tensorContainer.data();
+    if (readSync) {
+      valueContainer = tensorContainer.dataSync();
+    } else {
+      valueContainer = await tensorContainer.data();
+    }
   } else if (Array.isArray(tensorContainer)) {
     // Start value downloads from all tensors.
     const valuePromiseContainer = tensorContainer.map(async item => {
       if (item instanceof tf.Tensor) {
-        return item.data();
+        if (readSync) {
+          return item.dataSync();
+        } else {
+          return item.data();
+        }
       }
       return item;
     });
@@ -294,7 +303,11 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
     // Start value downloads from all tensors.
     for (const property in tensorContainer) {
       if (tensorContainer[property] instanceof tf.Tensor) {
-        valuePromiseContainer.push(tensorContainer[property].data());
+        if (readSync) {
+          valuePromiseContainer.push(tensorContainer[property].dataSync());
+        } else {
+          valuePromiseContainer.push(tensorContainer[property].data());
+        }
       } else {
         valuePromiseContainer.push(tensorContainer[property]);
       }
