@@ -37,6 +37,7 @@ e2e/benchmarks/browserstack-benchmark/benchmark_results.json
 e2e/benchmarks/browserstack-benchmark/benchmark_test_results.json
 tfjs-converter/python/tensorflowjs.egg-info
 tfjs-inference/binaries
+tfjs-data/src/sources/file_data_source_test_data.json
 
 # Ignore the src, binding, scripts of tfjs-node-gpu since it is copied over when
 # building.
