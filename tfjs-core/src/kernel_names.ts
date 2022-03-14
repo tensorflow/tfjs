@@ -238,6 +238,14 @@ export type CosInputs = UnaryInputs;
 export const Cosh = 'Cosh';
 export type CoshInputs = UnaryInputs;
 
+export const Cumprod = 'Cumprod';
+export type CumprodInputs = Pick<NamedTensorInfoMap, 'x'>;
+export interface CumprodAttrs {
+  axis: number;
+  exclusive: boolean;
+  reverse: boolean;
+}
+
 export const Cumsum = 'Cumsum';
 export type CumsumInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface CumsumAttrs {

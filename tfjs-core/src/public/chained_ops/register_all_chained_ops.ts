@@ -48,6 +48,7 @@ import './conv2d_transpose';
 import './conv2d';
 import './cos';
 import './cosh';
+import './cumprod';
 import './cumsum';
 import './depth_to_space';
 import './depthwise_conv2d';

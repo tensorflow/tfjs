@@ -285,6 +285,7 @@ tfjs_cc_library(
         ":Cos",
         ":Cosh",
         ":CropAndResize",
+        ":Cumprod",
         ":Cumsum",
         ":DepthToSpace",
         ":DepthwiseConv2dNative",
@@ -532,6 +533,15 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":interpolate_bilinear_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Cumprod",
+    srcs = ["kernels/Cumprod.cc"],
+    deps = [
+        ":backend",
         ":util",
     ],
 )
