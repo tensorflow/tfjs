@@ -230,6 +230,7 @@
 |ResizeNearestNeighbor|resizeNearestNeighbor|
 |Not mapped|flipLeftRight|
 |Not mapped|rotateWithOffset|
+|ImageProjectiveTransformV3|transform|
 
 ## Operations - Matrices
 
