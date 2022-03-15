@@ -129,7 +129,7 @@ describe('image', () => {
     describe('ImageProjectiveTransformV3', () => {
       it('should return input', () => {
         node.op = 'ImageProjectiveTransformV3';
-        node.inputParams['image'] = createTensorAttr(0);
+        node.inputParams['images'] = createTensorAttr(0);
         node.inputParams['transforms'] = createTensorAttr(1);
         node.inputParams['outputShape'] = createNumericArrayAttrFromIndex(2);
         node.inputParams['fillValue'] = createNumberAttrFromIndex(3);
@@ -150,7 +150,7 @@ describe('image', () => {
 
       it('should match json def', () => {
         node.op = 'ImageProjectiveTransformV3';
-        node.inputParams['image'] = createTensorAttr(0);
+        node.inputParams['images'] = createTensorAttr(0);
         node.inputParams['transforms'] = createTensorAttr(1);
         node.inputParams['outputShape'] = createNumericArrayAttrFromIndex(2);
         node.inputParams['fillValue'] = createNumberAttrFromIndex(3);

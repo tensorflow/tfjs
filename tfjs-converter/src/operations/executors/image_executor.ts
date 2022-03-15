@@ -79,8 +79,8 @@ export const executeOp: InternalOpExecutor =
               extrapolationValue)];
         }
         case 'ImageProjectiveTransformV3': {
-          const image =
-              getParamValue('image', node, tensorMap, context) as Tensor;
+          const images =
+              getParamValue('images', node, tensorMap, context) as Tensor;
           const transforms =
               getParamValue('transforms', node, tensorMap, context) as Tensor;
           const outputShape =
@@ -94,7 +94,7 @@ export const executeOp: InternalOpExecutor =
           const fillMode =
               getParamValue('fillMode', node, tensorMap, context) as string;
           return [tfOps.image.transform(
-              image as Tensor4D,
+              images as Tensor4D,
               transforms as Tensor2D,
               interpolation.toLowerCase() as 'bilinear' | 'nearest',
               fillMode.toLowerCase() as 'constant' | 'reflect' | 'wrap' | 'nearest',

@@ -111,7 +111,7 @@
     "inputs": [
       {
         "start": 0,
-        "name": "image",
+        "name": "images",
         "type": "tensor"
       },
       {
