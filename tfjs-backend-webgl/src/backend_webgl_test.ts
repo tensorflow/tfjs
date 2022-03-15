@@ -1101,3 +1101,69 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, async () => {
     //     tf.env().set('WEBGL_CPU_FORWARD', savedWebGLCPUForward);
     //   });
     // })
+    describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
+      it('does not have memory leak.', () => {
+        const savedWebGLCPUForward = tf.env().get('WEBGL_CPU_FORWARD');
+        tf.env().set('WEBGL_CPU_FORWARD', false);
+
+        const customWebGLBackendName = 'my-webgl';
+        tf.copyRegisteredKernels('webgl', customWebGLBackendName);
+        tf.registerBackend(customWebGLBackendName, () => {
+          return new MathBackendWebGL();
+        });
+        tf.setBackend(customWebGLBackendName);
+
+        const a0 = tf.tensor1d([1, 1, 1]);
+        const b0 = tf.tensor1d([1, 1, 1]);
+        const c0 = tf.add(a0, b0);
+        const numOfBinaryCacheNoParallelCompillation =
+            Object.keys(getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION')))
+                .length;
+        // expectArraysClose(await c0.data(), [2, 2, 2]);
+        tf.dispose([a0, b0, c0]);
+        tf.removeBackend(customWebGLBackendName);
+
+        tf.setBackend('webgl');
+        const webGLBackend = tf.backend() as MathBackendWebGL;
+
+        const startNumBytesAllocated =
+            (tf.memory() as WebGLMemoryInfo).numBytesInGPUAllocated;
+        const startTensor = tf.memory().numTensors;
+        const startDataBuckets = webGLBackend.numDataIds();
+
+        const a1 = tf.tensor1d([1, 1, 1]);
+        const b1 = tf.tensor1d([1, 1, 1]);
+
+        tf.engine().state.compileOnly = true;
+
+        const c1 = tf.add(a1, b1);
+
+        webGLBackend.checkCompileCompletionAsync();
+        webGLBackend.getUniformLocations();
+        tf.engine().state.compileOnly = false;
+        const c2 = tf.add(a1, b1);
+        c2.dataSync();
+        // await c2.data();
+        const c3 = tf.add(a1, b1);
+
+        // expectArraysEqual(await c3.data(), [2, 2, 2]);
+
+        tf.dispose([a1, b1, c1, c2, c3]);
+        const endNumBytesAllocated =
+            (tf.memory() as WebGLMemoryInfo).numBytesInGPUAllocated;
+        const endTensor = tf.memory().numTensors;
+        const endDataBuckets = webGLBackend.numDataIds();
+
+        expect(startNumBytesAllocated).toEqual(endNumBytesAllocated);
+        expect(startTensor).toEqual(endTensor);
+        expect(endDataBuckets).toEqual(startDataBuckets);
+
+        const numOfBinaryCacheWithParallelCompillation =
+            Object.keys(getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION')))
+                .length;
+        expect(numOfBinaryCacheWithParallelCompillation)
+            .toEqual(numOfBinaryCacheNoParallelCompillation);
+
+        tf.env().set('WEBGL_CPU_FORWARD', savedWebGLCPUForward);
+      });
+    });
