@@ -65,10 +65,10 @@
   "dependencies": {
     "@tensorflow/tfjs-backend-cpu": "link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
     "@types/offscreencanvas": "~2019.3.0",
-    "@types/seedrandom": "2.4.27",
+    "@types/seedrandom": "^3.0.2",
     "@types/webgl-ext": "0.0.30",
     "@types/webgl2": "0.0.6",
-    "seedrandom": "2.4.3"
+    "seedrandom": "^3.0.5"
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core"

@@ -63,8 +63,8 @@
     "test-ci": "yarn test"
   },
   "dependencies": {
-    "@types/seedrandom": "2.4.27",
-    "seedrandom": "2.4.3"
+    "@types/seedrandom": "^3.0.2",
+    "seedrandom": "^3.0.5"
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core"
