@@ -104,5 +104,43 @@
         "type": "number"
       }
     ]
+  },
+  {
+    "tfOpName": "ImageProjectiveTransformV3",
+    "category": "image",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "images",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "transforms",
+        "type": "tensor"
+      },
+      {
+        "start": 2,
+        "name": "outputShape",
+        "type": "number[]"
+      },
+      {
+        "start": 3,
+        "name": "fillValue",
+        "type": "number"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "interpolation",
+        "name": "interpolation",
+        "type": "string"
+      },
+      {
+        "tfName": "fill_mode",
+        "name": "fillMode",
+        "type": "string"
+      }
+    ]
   }
 ]
