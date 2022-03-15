@@ -19,8 +19,7 @@
 import './flags_webgl';
 
 import * as tf from '@tensorflow/tfjs-core';
-import {backend_util, BackendValues, buffer, DataId, DataStorage, DataToGPUWebGLOption, DataType, DataValues, engine, env, GPUData, kernel_impls, KernelBackend, MemoryInfo, NumericDataType, Rank, RecursiveArray, scalar, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
-
+import {backend_util, BackendValues, buffer, DataId, DataStorage, DataToGPUWebGLOption, DataType, DataValues, engine, env, GPUData, kernel_impls, KernelBackend, MemoryInfo, nextFrame, NumericDataType, Rank, RecursiveArray, scalar, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, tidy, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 import {getWebGLContext} from './canvas_util';
 import {DecodeMatrixProgram} from './decode_matrix_gpu';
 import {DecodeMatrixPackedProgram} from './decode_matrix_packed_gpu';
@@ -30,7 +29,7 @@ import {EncodeMatrixProgram} from './encode_matrix_gpu';
 import {EncodeMatrixPackedProgram} from './encode_matrix_packed_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
-import {GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
+import {getUniformLocations, GPGPUBinary, GPGPUProgram, TensorData} from './gpgpu_math';
 import {simpleAbsImplCPU} from './kernel_utils/shared';
 import {PackProgram} from './pack_gpu';
 import {ReshapePackedProgram} from './reshape_packed_gpu';
@@ -549,15 +548,16 @@ export class MathBackendWebGL extends KernelBackend {
     };
 
     return (async () => {
-      if (env()
-        .getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') > 0) {
+      if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') >
+          0) {
         const kernelMs = await Promise.all(flattenedActiveTimerQueries);
 
         res['kernelMs'] = util.sum(kernelMs);
         res['getExtraProfileInfo'] = () =>
-          kernelMs.map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
-            .map(d => `${d.name}: ${d.ms}`)
-            .join(', ');
+            kernelMs
+                .map((d, i) => ({name: flattenedActiveTimerNames[i], ms: d}))
+                .map(d => `${d.name}: ${d.ms}`)
+                .join(', ');
       } else {
         res['kernelMs'] = {
           error: 'WebGL query timers are not supported in this environment.'
@@ -949,8 +949,10 @@ export class MathBackendWebGL extends KernelBackend {
       query = this.startTimer();
     }
 
-    gpgpu_math.runProgram(
-        this.gpgpu, binary, inputsData, outputData, customUniformValues);
+    if (!engine().state.compileOnly) {
+      gpgpu_math.runProgram(
+          this.gpgpu, binary, inputsData, outputData, customUniformValues);
+    }
 
     dataToDispose.forEach(info => this.disposeIntermediateTensorInfo(info));
 
@@ -1130,16 +1132,19 @@ export class MathBackendWebGL extends KernelBackend {
 
       // Have the original texture assume the identity of the encoded output.
       const outputTexData = this.texData.get(encodedOutputTarget.dataId);
-      texData.texture = outputTexData.texture;
       texData.texShape = outputTexData.texShape;
       texData.isPacked = outputTexData.isPacked;
       texData.usage = outputTexData.usage;
 
+      if (!engine().state.compileOnly) {
+        texData.texture = outputTexData.texture;
+        // Once uploaded, don't store the values on cpu.
+        texData.values = null;
+      }
+
       this.disposeIntermediateTensorInfo(tempDenseInputHandle);
       this.texData.delete(encodedOutputTarget.dataId);
 
-      // Once uploaded, don't store the values on cpu.
-      texData.values = null;
       if (shouldTimeProgram) {
         this.uploadWaitMs += util.now() - start;
       }
@@ -1179,6 +1184,100 @@ export class MathBackendWebGL extends KernelBackend {
 
   private computeBytes(shape: [number, number], dtype: DataType) {
     return shape[0] * shape[1] * util.bytesPerElement(dtype);
+  }
+
+  checkCompileCompletion() {
+    for (const [, binary] of Object.entries(this.binaryCache)) {
+      if (this.gpgpu.gl.getProgramParameter(
+              binary.webGLProgram, this.gpgpu.gl.LINK_STATUS) === false) {
+        if (this.gpgpu.gl.getShaderParameter(
+                binary.fragmentShader, this.gpgpu.gl.COMPILE_STATUS) ===
+            false) {
+          webgl_util.logShaderSourceAndInfoLog(
+              binary.source,
+              this.gpgpu.gl.getShaderInfoLog(binary.fragmentShader));
+          throw new Error('Failed to compile fragment shader.');
+        }
+        throw new Error('Failed to link vertex and fragment shaders.');
+      }
+    }
+  }
+
+  async checkCompileCompletionAsync(): Promise<boolean[]> {
+    const ps = [];
+    if (this.gpgpu.parallelCompilationExtension) {
+      console.log(Object.keys(this.binaryCache).length);
+      for (const [, binary] of Object.entries(this.binaryCache)) {
+        ps.push(this.checkCompletion(binary, binary.webGLProgram));
+      }
+      return Promise.all(ps);
+    } else {
+      for (const [, binary] of Object.entries(this.binaryCache)) {
+        const p: Promise<boolean> = new Promise((resolve) => {
+          if (this.gpgpu.gl.getProgramParameter(
+                  binary.webGLProgram, this.gpgpu.gl.LINK_STATUS) === false) {
+            console.log(this.gpgpu.gl.getProgramInfoLog(binary.webGLProgram));
+            throw new Error('Failed to link vertex and fragment shaders.');
+          } else {
+            resolve(true);
+          }
+        });
+        ps.push(p);
+      }
+      return Promise.all(ps);
+    }
+  }
+
+  async checkCompletion(binary: GPGPUBinary, program: WebGLProgram):
+      Promise<boolean> {
+    if (this.gpgpu.gl.getProgramParameter(
+            program,
+            this.gpgpu.parallelCompilationExtension.COMPLETION_STATUS_KHR)) {
+      console.log('completed');
+      if (this.gpgpu.gl.getProgramParameter(
+              binary.webGLProgram, this.gpgpu.gl.LINK_STATUS) === false) {
+        console.log(this.gpgpu.gl.getProgramInfoLog(binary.webGLProgram));
+        if (this.gpgpu.gl.getShaderParameter(
+                binary.fragmentShader, this.gpgpu.gl.COMPILE_STATUS) ===
+            false) {
+          webgl_util.logShaderSourceAndInfoLog(
+              binary.source,
+              this.gpgpu.gl.getShaderInfoLog(binary.fragmentShader));
+          throw new Error('Failed to compile fragment shader.');
+        }
+        throw new Error('Failed to link vertex and fragment shaders.');
+      }
+      return true;
+    } else {
+      console.log('not completed');
+      await nextFrame();
+      return this.checkCompletion(binary, program);
+    }
+  }
+
+  getUniformLocations() {
+    for (const [, binary] of Object.entries(this.binaryCache)) {
+      const {
+        uniformLocations,
+        customUniformLocations,
+        infLoc,
+        nanLoc,
+        inShapesLocations,
+        inTexShapesLocations,
+        outShapeLocation,
+        outShapeStridesLocation,
+        outTexShapeLocation
+      } = getUniformLocations(this.gpgpu, binary.program, binary.webGLProgram);
+      binary.uniformLocations = uniformLocations;
+      binary.customUniformLocations = customUniformLocations;
+      binary.infLoc = infLoc;
+      binary.nanLoc = nanLoc;
+      binary.inShapesLocations = inShapesLocations;
+      binary.inTexShapesLocations = inTexShapesLocations;
+      binary.outShapeLocation = outShapeLocation;
+      binary.outShapeStridesLocation = outShapeStridesLocation;
+      binary.outTexShapeLocation = outTexShapeLocation;
+    }
   }
 }
 
