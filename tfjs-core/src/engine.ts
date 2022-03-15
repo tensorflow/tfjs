@@ -156,6 +156,8 @@ class EngineState {
         }
   };
 
+  compileOnly = false;
+
   dispose() {
     for (const variableName in this.registeredVariables) {
       this.registeredVariables[variableName].dispose();
