@@ -999,22 +999,12 @@ describeWithFlags('WebGL backend has sync init', WEBGL_ENVS, () => {
   });
 });
 
-<<<<<<< HEAD
 describeWithFlags('custom canvas ', WEBGL_ENVS, () => {
   const customBackendName = 'custom-webgl';
   let flag: boolean;
 
   beforeAll(() => {
     flag = tf.env().getBool('WEBGL_CPU_FORWARD');
-=======
-describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
-  // TODO(lina128): Change to async test after parallel compilation flag is
-  // implemented in context object. We have to keep it sync for now, because
-  // it's a global flag, the async test will affect other tests.
-  it('does not have memory leak.', () => {
-    console.log('hello world');
-    const savedWebGLCPUForward = tf.env().get('WEBGL_CPU_FORWARD');
->>>>>>> 1dd762b99 (.)
     tf.env().set('WEBGL_CPU_FORWARD', false);
     const kernelFunc = tf.getKernel('Square', 'webgl').kernelFunc;
     tf.registerKernel(
