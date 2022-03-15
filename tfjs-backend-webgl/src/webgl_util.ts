@@ -97,7 +97,7 @@ export function createFragmentShader(
       'Unable to create fragment WebGLShader.');
   callAndCheck(gl, () => gl.shaderSource(fragmentShader, fragmentShaderSource));
   callAndCheck(gl, () => gl.compileShader(fragmentShader));
-  if (engine().state.compileOnly) {
+  if (env().get('ENGINE_COMPILE_ONLY')) {
     return fragmentShader;
   }
   if (gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS) === false) {
@@ -149,7 +149,7 @@ export function createProgram(gl: WebGLRenderingContext): WebGLProgram {
 
 export function linkProgram(gl: WebGLRenderingContext, program: WebGLProgram) {
   callAndCheck(gl, () => gl.linkProgram(program));
-  if (engine().state.compileOnly) {
+  if (env().get('ENGINE_COMPILE_ONLY')) {
     return;
   }
   if (gl.getProgramParameter(program, gl.LINK_STATUS) === false) {

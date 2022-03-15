@@ -949,7 +949,7 @@ export class MathBackendWebGL extends KernelBackend {
       query = this.startTimer();
     }
 
-    if (!engine().state.compileOnly) {
+    if (!env().get('ENGINE_COMPILE_ONLY')) {
       gpgpu_math.runProgram(
           this.gpgpu, binary, inputsData, outputData, customUniformValues);
     }
@@ -1136,7 +1136,7 @@ export class MathBackendWebGL extends KernelBackend {
       texData.isPacked = outputTexData.isPacked;
       texData.usage = outputTexData.usage;
 
-      if (!engine().state.compileOnly) {
+      if (!env().get('ENGINE_COMPILE_ONLY')) {
         texData.texture = outputTexData.texture;
         // Once uploaded, don't store the values on cpu.
         texData.values = null;

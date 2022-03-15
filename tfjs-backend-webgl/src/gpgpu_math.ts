@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, engine, env, Tensor, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, env, Tensor, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {GPGPUContext} from './gpgpu_context';
 import * as shader_compiler from './shader_compiler';
@@ -113,35 +113,17 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
   const fragmentShader = createFragmentShader(gpgpu.gl, source);
   const webGLProgram = gpgpu.createProgram(fragmentShader);
 
-  if (!engine().state.compileOnly) {
-    const {
-      uniformLocations,
-      customUniformLocations,
-      infLoc,
-      nanLoc,
-      inShapesLocations,
-      inTexShapesLocations,
-      outShapeLocation,
-      outShapeStridesLocation,
-      outTexShapeLocation
-    } = getUniformLocations(gpgpu, program, webGLProgram);
-
+  if (!env().get('ENGINE_COMPILE_ONLY')) {
     return {
       program,
       fragmentShader,
       source,
       webGLProgram,
-      uniformLocations,
-      customUniformLocations,
+
+
       inShapeInfos,
       outShapeInfo,
-      infLoc,
-      nanLoc,
-      inShapesLocations,
-      inTexShapesLocations,
-      outShapeLocation,
-      outShapeStridesLocation,
-      outTexShapeLocation
+      ...getUniformLocations(gpgpu, program, webGLProgram)
     };
   } else {
     return {
@@ -149,10 +131,10 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
       fragmentShader,
       source,
       webGLProgram,
-      uniformLocations: null,
-      customUniformLocations: null,
       inShapeInfos,
       outShapeInfo,
+      uniformLocations: null,
+      customUniformLocations: null,
       infLoc: null,
       nanLoc: null,
       inShapesLocations: null,
