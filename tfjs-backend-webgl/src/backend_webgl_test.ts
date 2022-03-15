@@ -999,18 +999,12 @@ describeWithFlags('WebGL backend has sync init', WEBGL_ENVS, () => {
   });
 });
 
-<<<<<<< HEAD
 describeWithFlags('custom canvas ', WEBGL_ENVS, () => {
   const customBackendName = 'custom-webgl';
   let flag: boolean;
 
   beforeAll(() => {
     flag = tf.env().getBool('WEBGL_CPU_FORWARD');
-=======
-describeWithFlags('Parallel compilation', WEBGL_ENVS, async () => {
-  it('does not have memory leak.', async () => {
-    const savedWebGLCPUForward = tf.env().get('WEBGL_CPU_FORWARD');
->>>>>>> 8829f41f9 (Clean up.)
     tf.env().set('WEBGL_CPU_FORWARD', false);
     const kernelFunc = tf.getKernel('Square', 'webgl').kernelFunc;
     tf.registerKernel(
