@@ -119,8 +119,6 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
       fragmentShader,
       source,
       webGLProgram,
-
-
       inShapeInfos,
       outShapeInfo,
       ...getUniformLocations(gpgpu, program, webGLProgram)
