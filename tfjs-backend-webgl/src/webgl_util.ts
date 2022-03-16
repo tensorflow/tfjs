@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {engine, env, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {getWebGLContext} from './canvas_util';
 import {getTextureConfig} from './tex_util';
