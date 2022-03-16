@@ -31,14 +31,7 @@ module.exports = function(env, argv) {
     },
     optimization: {
       minimizer: [
-        new TerserPlugin({
-          cache: true,
-          parallel: true,
-          sourceMap: false,
-          terserOptions: {
-            comments: false,
-          }
-        }),
+        new TerserPlugin({parallel: true, terserOptions: {}}),
       ]
     },
     module: {
