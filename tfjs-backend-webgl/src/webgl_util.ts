@@ -97,6 +97,9 @@ export function createFragmentShader(
       'Unable to create fragment WebGLShader.');
   callAndCheck(gl, () => gl.shaderSource(fragmentShader, fragmentShaderSource));
   callAndCheck(gl, () => gl.compileShader(fragmentShader));
+  if (env().get('ENGINE_COMPILE_ONLY')) {
+    return fragmentShader;
+  }
   if (gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS) === false) {
     logShaderSourceAndInfoLog(
         fragmentShaderSource, gl.getShaderInfoLog(fragmentShader));
@@ -106,7 +109,7 @@ export function createFragmentShader(
 }
 
 const lineNumberRegex = /ERROR: [0-9]+:([0-9]+):/g;
-function logShaderSourceAndInfoLog(
+export function logShaderSourceAndInfoLog(
     shaderSource: string, shaderInfoLog: string) {
   const lineNumberRegexResult = lineNumberRegex.exec(shaderInfoLog);
   if (lineNumberRegexResult == null) {
@@ -146,6 +149,9 @@ export function createProgram(gl: WebGLRenderingContext): WebGLProgram {
 
 export function linkProgram(gl: WebGLRenderingContext, program: WebGLProgram) {
   callAndCheck(gl, () => gl.linkProgram(program));
+  if (env().get('ENGINE_COMPILE_ONLY')) {
+    return;
+  }
   if (gl.getProgramParameter(program, gl.LINK_STATUS) === false) {
     console.log(gl.getProgramInfoLog(program));
     throw new Error('Failed to link vertex and fragment shaders.');
