@@ -43,7 +43,7 @@ export class Conv2DTFLiteProgram implements WebGPUProgram {
     this.outputShape = convInfo.outShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize, [2, 2, 2]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize, [2, 2, 8]);
 
     util.assert(
         convInfo.dataFormat === 'channelsLast',
