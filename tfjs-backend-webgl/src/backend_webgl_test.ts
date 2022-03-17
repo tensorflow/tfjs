@@ -1104,11 +1104,6 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
     expect(startTensor).toEqual(endTensor);
     expect(endDataBuckets).toEqual(startDataBuckets);
 
-    const numOfBinaryCacheWithParallelCompillation =
-        Object.keys(getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'))).length;
-    expect(numOfBinaryCacheWithParallelCompillation)
-        .toEqual(numOfBinaryCacheNoParallelCompillation);
-
     tf.removeBackend(customWebGLBackendName1);
 
     tf.env().set('WEBGL_CPU_FORWARD', savedWebGLCPUForward);
