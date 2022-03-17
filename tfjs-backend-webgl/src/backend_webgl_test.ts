@@ -1052,8 +1052,7 @@ describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
     const b0 = tf.tensor1d([1, 1, 1]);
     const c0 = tf.add(a0, b0);
     const data = c0.dataSync();
-    const numOfBinaryCacheNoParallelCompillation =
-        Object.keys(getBinaryCache(tf.ENV.getNumber('WEBGL_VERSION'))).length;
+
     expectArraysClose(data, [2, 2, 2]);
     tf.dispose([a0, b0, c0]);
     tf.removeBackend(customWebGLBackendName);
