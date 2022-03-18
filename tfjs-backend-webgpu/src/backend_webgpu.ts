@@ -24,7 +24,7 @@ import {FromPixelsImportProgram} from './kernels/FromPixels_utils/from_pixels_im
 import {FromPixelsProgram} from './kernels/FromPixels_utils/from_pixels_webgpu';
 import * as webgpu_program from './webgpu_program';
 import * as webgpu_util from './webgpu_util';
-import {DataLayout, DivideRoundUp, RearrangeWeightsToOHWIOGroupO4I4, WebGPULayout} from './webgpu_util';
+import {DataLayout, DivideRoundUp, RearrangeWeights3x3Data, RearrangeWeightsToOHWIOGroupO4I4, WebGPULayout} from './webgpu_util';
 
 export interface WebGPUMemoryInfo extends backend_util.MemoryInfo {
   numBytesInGPU: number;
@@ -645,6 +645,10 @@ export class WebGPUBackend extends KernelBackend {
       const ogroups = DivideRoundUp(oSlices, 2);
       info.bufferInfo.byteSize =
           ogroups * 2 * 4 * info.shape[0] * info.shape[1] * iSlices * 4 * 4;
+    } else if (info.layout == DataLayout.OHW10) {
+      info.values =
+          RearrangeWeights3x3Data(info.values as Float32Array, info.shape);
+      info.bufferInfo.byteSize = info.values.length * 4;
     }
     info.bufferInfo.buffer = this.acquireBuffer(info.bufferInfo.byteSize);
     if (info.values) {

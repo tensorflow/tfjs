@@ -223,8 +223,39 @@ export function RearrangeWeightsToOHWIOGroupO4I4(
   return dst;
 }
 
+export function RearrangeWeights3x3Data(
+    weightsData: Float32Array, weightsShape: number[]) {
+  const src_depth = DivideRoundUp(weightsShape[2], 4);
+  const length = 9 * src_depth * 4;
+  const dst = new Float32Array(length);
+
+  let counter = 0;
+  for (let s = 0; s < src_depth; ++s) {
+    for (let y = 0; y < 3; ++y) {
+      for (let x = 0; x < 3; ++x) {
+        const filter_val = [];
+        for (let i = 0; i < 4; ++i) {
+          const s_ch = s * 4 + i;
+          if (s_ch < weightsShape[2]) {
+            const f_index = LinearIndex(0, y, x, s_ch, weightsShape);
+            filter_val[i] = weightsData[f_index];
+          } else {
+            filter_val[i] = 0.0;
+          }
+        }
+        dst[counter++] = filter_val[0];
+        dst[counter++] = filter_val[1];
+        dst[counter++] = filter_val[2];
+        dst[counter++] = filter_val[3];
+      }
+    }
+  }
+  return dst;
+}
+
 export enum DataLayout {
   NHWC,
   PHWC4,
-  O4HWI4
+  O4HWI4,
+  OHW10  // for depthwise
 }
