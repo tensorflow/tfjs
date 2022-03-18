@@ -291,6 +291,7 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {startsWith: 'reverse'},
   {startsWith: 'sum '},
+  {startsWith: 'cumprod'},
   {startsWith: 'cumsum'},
   {startsWith: 'logicalAnd '},
   {

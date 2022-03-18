@@ -230,6 +230,7 @@
 |ResizeNearestNeighbor|resizeNearestNeighbor|
 |Not mapped|flipLeftRight|
 |Not mapped|rotateWithOffset|
+|ImageProjectiveTransformV3|transform|
 
 ## Operations - Matrices
 
@@ -291,6 +292,7 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|Cumprod|cumprod|
 |Cumsum|cumsum|
 
 ## Operations - Segment

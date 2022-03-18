@@ -25,7 +25,7 @@
     "detect-browser": "~4.2.0",
     "jasmine": "~3.1.0",
     "jasmine-core": "~3.1.0",
-    "karma": "~6.3.14",
+    "karma": "~6.3.16",
     "karma-browserstack-launcher": "~1.6.0",
     "karma-chrome-launcher": "~2.2.0",
     "karma-jasmine": "~1.1.0",

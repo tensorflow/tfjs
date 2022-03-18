@@ -67,3 +67,4 @@ wasm-dist/
 
 # User-specific .bazelrc
 .bazelrc.user
+**/.parcel-cache
