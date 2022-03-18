@@ -295,12 +295,17 @@ export async function updateDependency(
 // than `updateDependency`, it does not rely on published versions, instead it
 // uses a map from packageName to newVersion to update the versions.
 export function updateTFJSDependencyVersions(
-  pkg: string, versions: Map<string, string>): string {
+  pkg: string, versions: Map<string, string>,
+  depsToReplace = [...versions.keys()]): string {
 
   console.log(chalk.magenta.bold(`~~~ Update dependency versions ~~~`));
 
   const parsedPkg = JSON.parse(`${pkg}`);JSON.parse(pkg);
-  for (const [dep, newVersion] of versions) {
+  for (const dep of depsToReplace) {
+    const newVersion = versions.get(dep);
+    if (!newVersion) {
+      throw new Error(`No new version found for ${dep}`);
+    }
     // Get the current dependency package version.
     let version = '';
     const depNpmName = `@tensorflow/${dep}`;
