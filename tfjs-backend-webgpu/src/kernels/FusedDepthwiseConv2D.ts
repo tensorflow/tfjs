@@ -19,6 +19,7 @@ import {backend_util, FusedDepthwiseConv2D, FusedDepthwiseConv2DAttrs, FusedDept
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {DepthwiseConv2D3x3PHWC4Program} from '../depthwise_conv2d_3x3_phwc4_webgpu';
+import {DepthwiseConv2D3x3Phwc4Stride2Program} from '../depthwise_conv2d_3x3_stride2_phwc4_webgpu';
 import {DepthwiseConv2D3x3Program} from '../depthwise_conv2d_3x3_webgpu';
 import {DepthwiseConv2DProgram} from '../depthwise_conv2d_webgpu';
 import {DataLayout, DivideRoundUp} from '../webgpu_util'
@@ -55,7 +56,7 @@ export function fusedDepthwiseConv2D(args: {
   const hasPreluActivationWeights = preluActivationWeights != null;
 
   let program: DepthwiseConv2DProgram|DepthwiseConv2D3x3Program|
-      DepthwiseConv2D3x3PHWC4Program;
+      DepthwiseConv2D3x3PHWC4Program|DepthwiseConv2D3x3Phwc4Stride2Program;
   // TODO: To see if we need to relax the limitation. Currently, it's only for
   // filter size 3x3.
   if (convInfo.batchSize === 1 && convInfo.inHeight === convInfo.outHeight &&
@@ -82,6 +83,38 @@ export function fusedDepthwiseConv2D(args: {
     const dst_slices = DivideRoundUp(x.shape[3], 4);
     const src_sliceStride = x.shape[1] * x.shape[2];
     const dimensions = [
+      {type: 'int32', data: [src_sliceStride]},
+      {type: 'int32', data: [dst_slices]}
+    ];
+    const res =
+        backend.runWebGPUProgram(program, programInputs, 'float32', dimensions);
+    const result = toHWC(res, backend);
+    backend.disposeData(res.dataId);
+    backend.disposeData(tX.dataId);
+    return result;
+  } else if (
+      convInfo.batchSize === 1 && convInfo.strideHeight === 2 &&
+      convInfo.strideWidth === 2 &&
+      convInfo.filterHeight === convInfo.filterWidth &&
+      convInfo.filterHeight === 3 && convInfo.inChannels % 4 === 0) {
+    const tX = toPHWC4(x, backend);
+    const weightsInfo = backend.tensorMap.get(filter.dataId);
+    weightsInfo.layout = DataLayout.OHW10;
+    programInputs.push(tX);
+    programInputs.push(filter);
+    if (hasBias) {
+      programInputs.push(bias);
+    }
+    if (hasPreluActivationWeights) {
+      programInputs.push(preluActivationWeights);
+    }
+    program = new DepthwiseConv2D3x3Phwc4Stride2Program(
+        convInfo, hasBias, activation, hasPreluActivationWeights);
+    const dst_slices = DivideRoundUp(x.shape[3], 4);
+    const src_sliceStride = x.shape[1] * x.shape[2];
+    const dimensions = [
+      {type: 'int32', data: [convInfo.padInfo.top, convInfo.padInfo.left]},
+      {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
       {type: 'int32', data: [src_sliceStride]},
       {type: 'int32', data: [dst_slices]}
     ];
