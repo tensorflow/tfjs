@@ -103,7 +103,7 @@ async function main() {
       const newVersion = versions.get(packageName);
       pkg = `${pkg}`.replace(
         `"version": "${parsedPkg.version}"`, `"version": "${newVersion}"`);
-      pkg = updateTFJSDependencyVersions(pkg, versions);
+      pkg = updateTFJSDependencyVersions(pkg, versions, phase.deps || []);
 
       fs.writeFileSync(packageJsonPath, pkg);
 
