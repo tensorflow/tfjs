@@ -149,6 +149,11 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
     return notYetImplemented('getKernelTimes');
   }
 
+  setBatchSizes(batchSizes: number[]): void {
+    return notYetImplemented('getKernelTimes');
+  }
+
+
   dispose(): void {
     return notYetImplemented('dispose');
   }

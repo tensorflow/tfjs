@@ -153,6 +153,8 @@ export class WebGPUBackend extends KernelBackend {
   private kernelNames: string[] = [];
   private fromPixelProgram?: FromPixelsProgram;
   private fromPixelImportProgram?: FromPixelsImportProgram;
+  private batchSizes: number[] = [];
+  private dispatchNumberInModel = 0;
 
   constructor(device: GPUDevice, supportTimeQuery = false) {
     super();
@@ -346,6 +348,7 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   submitQueue() {
+    console.timeStamp("JSSubmitQueue");
     this.ensureComputePassEnded();
     this.queue.submit([this.currentCommandEncoder.finish()]);
     this.currentCommandEncoder = null;
@@ -408,6 +411,7 @@ export class WebGPUBackend extends KernelBackend {
       return info.values;
     }
 
+    console.timeStamp("JSGetBufferData");
     const staging = this.acquireBuffer(
         info.bufferInfo.byteSize,
         GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
@@ -436,6 +440,7 @@ export class WebGPUBackend extends KernelBackend {
       this.dummyContext.getCurrentTexture();
     }
 
+    console.timeStamp("JSGetBufferDataEnd");
     return values as backend_util.BackendValues;
   }
 
@@ -847,6 +852,7 @@ export class WebGPUBackend extends KernelBackend {
       }
     }
     this.dispatchNumberInEncoder++;
+    this.dispatchNumberInModel++;
 
     inputs.forEach(input => {
       this.commandQueueOwnedIds.add(input.dataId);
@@ -862,7 +868,9 @@ export class WebGPUBackend extends KernelBackend {
     };
     this.uniformDisposalQueue.push(uniformInfo);
 
-    if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
+    const useBatchSizes = this.batchSizes.length != 0 &&
+    this.batchSizes.indexOf(this.dispatchNumberInModel) != -1;
+    if (useBatchSizes || env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
         number <= this.dispatchNumberInEncoder) {
       this.submitQueue();
     }
@@ -947,11 +955,16 @@ export class WebGPUBackend extends KernelBackend {
     return null;
   }
 
+  setBatchSizes(batchSizes: number[]){
+    this.batchSizes = batchSizes;
+    this.dispatchNumberInModel = 0;
+  }
+
   async getKernelTimes(): Promise < number|{
     name: string;
     query: number[]}[] > {
-    // TODO: clean buffer, query index.
     const kernelTimes = await this.getAllTimeFromQuerySet();
+    console.timeStamp("JSGetKernelTimesEnd");
     this.querySetIndex = 0;
     this.kernelNames = [];
     return kernelTimes;
