@@ -17,10 +17,12 @@
 import {AvgPool, AvgPoolAttrs, AvgPoolInputs, backend_util, KernelConfig, KernelFunc, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-
-import {identity} from './Identity';
 import {Pool2DProgram} from '../pool2d_webgpu';
 import {PoolWithFilterSizeEqualsOneProgram} from '../pool_filtersizeone_webgpu';
+import {DataLayout} from '../webgpu_util';
+
+import {identity} from './Identity';
+import {toHWC} from './ToPHWC4';
 
 export function avgPool(
     args: {inputs: AvgPoolInputs, backend: WebGPUBackend, attrs: AvgPoolAttrs}):
@@ -55,6 +57,13 @@ export function avgPool(
         });
   }
 
+  const xInfo = backend.tensorMap.get(x.dataId);
+  if (xInfo.layout == DataLayout.PHWC4) {
+    const xt = toHWC(x, backend);
+    const res = backend.runWebGPUProgram(program, [xt], x.dtype, dimensions);
+    backend.disposeData(xt.dataId);
+    return res;
+  }
   return backend.runWebGPUProgram(program, [x], x.dtype, dimensions);
 }
 

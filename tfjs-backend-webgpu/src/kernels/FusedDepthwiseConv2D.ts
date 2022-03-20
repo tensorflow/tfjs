@@ -24,7 +24,7 @@ import {DepthwiseConv2D3x3Program} from '../depthwise_conv2d_3x3_webgpu';
 import {DepthwiseConv2DProgram} from '../depthwise_conv2d_webgpu';
 import {DataLayout, DivideRoundUp} from '../webgpu_util'
 
-import {toHWC, toPHWC4} from './ToPHWC4'
+import {toPHWC4} from './ToPHWC4'
 
 export function fusedDepthwiseConv2D(args: {
   inputs: FusedDepthwiseConv2DInputs,
@@ -67,11 +67,19 @@ export function fusedDepthwiseConv2D(args: {
       convInfo.filterHeight === 3 && convInfo.inChannels % 4 === 0) {
     //   program = new DepthwiseConv2D3x3Program(
     //       convInfo, hasBias, activation, hasPreluActivationWeights);
-    const tX = toPHWC4(x, backend);
+    const xInfo = backend.tensorMap.get(x.dataId);
+    const programInputs: TensorInfo[] = [];
+    let tX: TensorInfo;
+    if (xInfo.layout == DataLayout.NHWC) {
+      tX = toPHWC4(x, backend);
+      programInputs.push(tX);
+    } else {
+      programInputs.push(x);
+    }
+    programInputs.push(filter);
+
     const weightsInfo = backend.tensorMap.get(filter.dataId);
     weightsInfo.layout = DataLayout.OHW10;
-    programInputs.push(tX);
-    programInputs.push(filter);
     if (hasBias) {
       programInputs.push(bias);
     }
@@ -88,20 +96,30 @@ export function fusedDepthwiseConv2D(args: {
     ];
     const res =
         backend.runWebGPUProgram(program, programInputs, 'float32', dimensions);
-    const result = toHWC(res, backend);
-    backend.disposeData(res.dataId);
-    backend.disposeData(tX.dataId);
-    return result;
+    const resInfo = backend.tensorMap.get(res.dataId);
+    resInfo.layout = DataLayout.PHWC4;
+    if (tX != null) {
+      backend.disposeData(tX.dataId);
+    }
+    return res;
   } else if (
       convInfo.batchSize === 1 && convInfo.strideHeight === 2 &&
       convInfo.strideWidth === 2 &&
       convInfo.filterHeight === convInfo.filterWidth &&
       convInfo.filterHeight === 3 && convInfo.inChannels % 4 === 0) {
-    const tX = toPHWC4(x, backend);
+    const xInfo = backend.tensorMap.get(x.dataId);
+    const programInputs: TensorInfo[] = [];
+    let tX: TensorInfo;
+    if (xInfo.layout == DataLayout.NHWC) {
+      tX = toPHWC4(x, backend);
+      programInputs.push(tX);
+    } else {
+      programInputs.push(x);
+    }
+    programInputs.push(filter);
+
     const weightsInfo = backend.tensorMap.get(filter.dataId);
     weightsInfo.layout = DataLayout.OHW10;
-    programInputs.push(tX);
-    programInputs.push(filter);
     if (hasBias) {
       programInputs.push(bias);
     }
@@ -120,10 +138,12 @@ export function fusedDepthwiseConv2D(args: {
     ];
     const res =
         backend.runWebGPUProgram(program, programInputs, 'float32', dimensions);
-    const result = toHWC(res, backend);
-    backend.disposeData(res.dataId);
-    backend.disposeData(tX.dataId);
-    return result;
+    const resInfo = backend.tensorMap.get(res.dataId);
+    resInfo.layout = DataLayout.PHWC4;
+    if (tX != null) {
+      backend.disposeData(tX.dataId);
+    }
+    return res;
   } else {
     program = new DepthwiseConv2DProgram(
         convInfo, hasBias, activation, hasPreluActivationWeights);

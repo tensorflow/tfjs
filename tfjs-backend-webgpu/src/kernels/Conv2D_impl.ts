@@ -28,7 +28,7 @@ import {DataLayout, DivideRoundUp} from '../webgpu_util'
 
 import {batchMatMulImpl} from './BatchMatMul_impl';
 import {reshape} from './Reshape';
-import {toHWC, toPHWC4} from './ToPHWC4'
+import {toPHWC4} from './ToPHWC4'
 
 type Conv2DConfig = {
   x: TensorInfo,
@@ -240,7 +240,16 @@ export function conv2DImpl({
 
   if (x.shape[0] === 1 && !hasPreluActivationWeights &&
       (!hasBias || (hasBias && bias.shape[0] % 4 === 0))) {
-    const tX = toPHWC4(x, backend);
+    const xInfo = backend.tensorMap.get(x.dataId);
+    const inputVar: TensorInfo[] = [];
+    let tX: TensorInfo;
+    if (xInfo.layout == DataLayout.NHWC) {
+      tX = toPHWC4(x, backend);
+      inputVar.push(tX);
+    } else {
+      inputVar.push(x);
+    }
+    inputVar.push(filter);
     const dst_slices = DivideRoundUp(filter.shape[3], 4);
     const src_slices = DivideRoundUp(x.shape[3], 4);
     const src_sliceStride = x.shape[1] * x.shape[2];
@@ -253,7 +262,6 @@ export function conv2DImpl({
         {type: 'int32', data: [dst_slices]});
     const program = new Conv2DTFLiteProgram(
         convInfo, hasBias, activation, hasPreluActivationWeights);
-    const inputVar: TensorInfo[] = [tX, filter];
     if (hasBias) {
       inputVar.push(bias);
     }
@@ -261,11 +269,13 @@ export function conv2DImpl({
       inputVar.push(preluActivationWeights);
     }
 
-    const resT = backend.runWebGPUProgram(
+    const res = backend.runWebGPUProgram(
         program, inputVar, x.dtype, dimensions, null, true, false);
-    const res = toHWC(resT, backend);
-    backend.disposeData(resT.dataId);
-    backend.disposeData(tX.dataId);
+    const resInfo = backend.tensorMap.get(res.dataId);
+    resInfo.layout = DataLayout.PHWC4;
+    if (tX != null) {
+      backend.disposeData(tX.dataId);
+    }
     return res;
   }
 
