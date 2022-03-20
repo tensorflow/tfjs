@@ -15,13 +15,15 @@
  * =============================================================================
  */
 
-import {backend_util, BinaryInputs, DataType, KernelFunc, TensorInfo, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
+import {backend_util, BinaryInputs, DataType, KernelFunc, TensorInfo, TypedArray, UnaryInputs, upcastType, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {BinaryOpComplexProgram} from '../binary_op_complex_webgpu';
+import {BinaryOpType} from '../binary_op_util';
+import {BinaryOpVec4Phwc4Program} from '../binary_op_vec4_phwc4_webgpu';
 import {getBinaryProgram} from '../binary_ops';
 import {complex} from '../kernels/Complex';
-import {BinaryOpType} from '../binary_op_util';
+import {toHWC, toPHWC4} from '../kernels/ToPHWC4'
 import {UnaryOpType} from '../unary_op_util';
 import {UnaryOpProgram} from '../unary_op_webgpu';
 
@@ -173,7 +175,20 @@ export function binaryKernelFunc(
 
       return webgpuBackend.makeTensorInfo(outShape, $dtype, outValues);
     }
-    const program = getBinaryProgram(opSnippet, a.shape, b.shape);
-    return webgpuBackend.runWebGPUProgram(program, [a, b], $dtype);
+
+    if (util.arraysEqual(a.shape, b.shape)) {
+      const at = toPHWC4(a, webgpuBackend);
+      const bt = toPHWC4(b, webgpuBackend);
+      const program = new BinaryOpVec4Phwc4Program(opSnippet, a.shape, b.shape);
+      const result = webgpuBackend.runWebGPUProgram(program, [at, bt], $dtype);
+      const res = toHWC(result, webgpuBackend);
+      webgpuBackend.disposeData(result.dataId);
+      webgpuBackend.disposeData(at.dataId);
+      webgpuBackend.disposeData(bt.dataId);
+      return res;
+    } else {
+      const program = getBinaryProgram(opSnippet, a.shape, b.shape);
+      return webgpuBackend.runWebGPUProgram(program, [a, b], $dtype);
+    }
   };
 }
