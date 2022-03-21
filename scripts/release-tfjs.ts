@@ -36,6 +36,11 @@ parser.addArgument('--git-protocol', {
   help: 'Use the git protocol rather than the http protocol when cloning repos.'
 });
 
+parser.addArgument('--local', {
+  action: 'storeTrue',
+  help: 'Only create the release branch locally. Do not push or create a PR.',
+});
+
 async function main() {
   const args = parser.parseArgs();
   const urlBase = args.git_protocol ? 'git@github.com:' : 'https://github.com/';
@@ -86,7 +91,9 @@ async function main() {
   console.log(chalk.magenta.bold(
       `~~~ Creating new release branch ${releaseBranch} ~~~`));
   $(`git checkout -b ${releaseBranch} ${commit}`);
-  $(`git push origin ${releaseBranch}`);
+  if (!args.local) {
+    $(`git push origin ${releaseBranch}`);
+  }
 
   // Update versions in package.json files.
   const phases = [
@@ -111,8 +118,8 @@ async function main() {
 
       shell.cd('..');
 
-      // Make version for all packages other than tfjs-node-gpu.
-      if (packageName !== 'tfjs-node-gpu') {
+      // Make version for all packages other than tfjs-node-gpu and e2e.
+      if (packageName !== 'tfjs-node-gpu' && packageName !== 'e2e') {
         $(`./scripts/make-version.js ${packageName}`);
       }
     }
@@ -122,7 +129,9 @@ async function main() {
   const devBranchName = `dev_${releaseBranch}`;
 
   const message = `Update monorepo to ${newVersion}.`;
-  createPR(devBranchName, releaseBranch, message);
+  if (!args.local) {
+    createPR(devBranchName, releaseBranch, message);
+  }
 
   console.log(
       'Done. FYI, this script does not publish to NPM. ' +
@@ -133,6 +142,9 @@ async function main() {
       'Please remeber to update the website once you have released ' +
       'a new package version.');
 
+  if (args.local) {
+    console.log(`Local output located in ${dir}`)
+  }
   process.exit(0);
 }
 
