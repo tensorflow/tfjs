@@ -130,6 +130,16 @@ export const WEBSITE_PHASE: Phase = {
   title: 'Update website to latest dependencies.'
 };
 
+// Note that e2e is not actually published. As a result, this phase is not
+// included in any release unit, however, it is used for updating dependencies.
+export const E2E_PHASE: Phase = {
+  packages: ['e2e'],
+  deps: [
+    'tfjs', 'tfjs-backend-cpu', 'tfjs-backend-wasm', 'tfjs-backend-webgl',
+    'tfjs-converter', 'tfjs-core', 'tfjs-data', 'tfjs-layers', 'tfjs-node'
+  ],
+}
+
 export const TFJS_RELEASE_UNIT: ReleaseUnit = {
   name: 'tfjs',
   phases: [
