@@ -27,7 +27,7 @@ import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as fs from 'fs';
 import * as shell from 'shelljs';
-import {TMP_DIR, $, question, makeReleaseDir, createPR, TFJS_RELEASE_UNIT, updateTFJSDependencyVersions, ALPHA_RELEASE_UNIT, getMinorUpdateVersion, getPatchUpdateVersion} from './release-util';
+import {TMP_DIR, $, question, makeReleaseDir, createPR, TFJS_RELEASE_UNIT, updateTFJSDependencyVersions, ALPHA_RELEASE_UNIT, getMinorUpdateVersion, getPatchUpdateVersion, E2E_PHASE} from './release-util';
 
 const parser = new argparse.ArgumentParser();
 
@@ -89,7 +89,9 @@ async function main() {
   $(`git push origin ${releaseBranch}`);
 
   // Update versions in package.json files.
-  const phases = [...TFJS_RELEASE_UNIT.phases, ...ALPHA_RELEASE_UNIT.phases];
+  const phases = [
+    ...TFJS_RELEASE_UNIT.phases, ...ALPHA_RELEASE_UNIT.phases, E2E_PHASE
+  ];
   for (const phase of phases) {
     for (const packageName of phase.packages) {
       shell.cd(packageName);
