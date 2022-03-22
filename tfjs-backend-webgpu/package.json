@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-backend-webgpu",
-  "version": "0.0.1-alpha.4",
+  "version": "0.0.1-alpha.9",
   "main": "dist/tf-backend-webgpu.node.js",
   "types": "dist/index.d.ts",
   "jsnext:main": "dist/index.js",
@@ -32,7 +32,7 @@
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
-    "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core",
+    "@tensorflow/tfjs-core": "3.15.0",
     "@types/jasmine": "~3.0.0",
     "clang-format": "~1.5.0",
     "jasmine": "~3.1.0",
@@ -54,10 +54,10 @@
     "yalc": "~1.0.0-pre.50"
   },
   "dependencies": {
-    "@tensorflow/tfjs-backend-cpu": "link:../link-package-core/node_modules/@tensorflow/tfjs-backend-cpu",
+    "@tensorflow/tfjs-backend-cpu": "3.15.0",
     "@webgpu/types": "0.1.6"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core"
+    "@tensorflow/tfjs-core": "3.15.0"
   }
 }
