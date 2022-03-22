@@ -897,20 +897,38 @@
   resolved "https://registry.yarnpkg.com/@socket.io/base64-arraybuffer/-/base64-arraybuffer-1.0.2.tgz#568d9beae00b0d835f4f8c53fd55714986492e61"
   integrity sha512-dOlCBKnDw4iShaIsH/bxujKTM18+2TOAsYz+KSc11Am38H4q5Xw8Bbz97ZYdrVNM+um3p7w86Bvvmcn9q+5+eQ==
 
-"@tensorflow/tfjs-backend-cpu@link:../link-package/node_modules/@tensorflow/link-package/node_modules/@tensorflow/tfjs-backend-cpu":
-  version "0.0.0"
+"@tensorflow/tfjs-backend-cpu@3.15.0":
+  version "3.15.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-cpu/-/tfjs-backend-cpu-3.15.0.tgz#f9aa5309f464c019d36cb42463813455d970f101"
+  integrity sha512-f+GREHSiVkVIpFAwkjB7YWcZefqQvCKQhrNjZzm1WX4VdnWlo0b1lTI+gPIIYNk4LEFMBNJbfqy/N1xNS/SOLQ==
+  dependencies:
+    "@types/seedrandom" "2.4.27"
+    seedrandom "2.4.3"
 
-"@tensorflow/tfjs-backend-cpu@link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-backend-webgl@3.15.0":
+  version "3.15.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-webgl/-/tfjs-backend-webgl-3.15.0.tgz#5a1a302700003955aa3e10aabbdee08c28729cf6"
+  integrity sha512-QOxbTABFbP+m+UmCVB8VQlmZbsXiJOP8QRkRRZHhGWNKjtT3eWi+ROS1tbloS7/Q20SEmNZXCvcsjv0TBgFQPw==
+  dependencies:
+    "@tensorflow/tfjs-backend-cpu" "3.15.0"
+    "@types/offscreencanvas" "~2019.3.0"
+    "@types/seedrandom" "2.4.27"
+    "@types/webgl-ext" "0.0.30"
+    "@types/webgl2" "0.0.6"
+    seedrandom "2.4.3"
 
-"@tensorflow/tfjs-backend-webgl@link:../link-package/node_modules/@tensorflow/tfjs-backend-webgl":
-  version "0.0.0"
-  uid ""
-
-"@tensorflow/tfjs-core@link:../link-package/node_modules/@tensorflow/tfjs-core":
-  version "0.0.0"
-  uid ""
+"@tensorflow/tfjs-core@3.15.0":
+  version "3.15.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-3.15.0.tgz#1fc676be2aa591cd48a2dd8301a41bc1bf0f9b14"
+  integrity sha512-X1XGr8rewm/n0RDMnaLRcRYsTHlQCqQUR5DCtjUf4TuII7kq/pkZ9xCKPPfS1qUd5jLy663h8j5cAyjJNUt/hw==
+  dependencies:
+    "@types/long" "^4.0.1"
+    "@types/offscreencanvas" "~2019.3.0"
+    "@types/seedrandom" "2.4.27"
+    "@types/webgl-ext" "0.0.30"
+    long "4.0.0"
+    node-fetch "~2.6.1"
+    seedrandom "2.4.3"
 
 "@types/component-emitter@^1.2.10":
   version "1.2.10"
