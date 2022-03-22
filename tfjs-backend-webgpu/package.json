@@ -1,6 +1,6 @@
 {
-  "name": "@tensorflow/tfjs-backend-webgpu",
-  "version": "0.0.1-alpha.4",
+  "name": "@nanopore/tfjs-backend-webgpu",
+  "version": "0.0.1-alpha.5",
   "main": "dist/tf-backend-webgpu.node.js",
   "types": "dist/index.d.ts",
   "jsnext:main": "dist/index.js",
@@ -22,7 +22,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tensorflow/tfjs.git",
+    "url": "https://github.com/nanoporetech/tfjs.git",
     "directory": "tfjs-backend-webgpu"
   },
   "devDependencies": {

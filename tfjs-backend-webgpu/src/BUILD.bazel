@@ -45,7 +45,7 @@ ts_library(
         ["**/*.ts"],
         exclude = TEST_SRCS + ["index.ts"],
     ),
-    module_name = "@tensorflow/tfjs-backend-webgpu/dist",
+    module_name = "@nanopore/tfjs-backend-webgpu/dist",
     deps = [
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
@@ -58,7 +58,7 @@ ts_library(
 ts_library(
     name = "tfjs-backend-webgpu_lib",
     srcs = ["index.ts"],
-    module_name = "@tensorflow/tfjs-backend-webgpu",
+    module_name = "@nanopore/tfjs-backend-webgpu",
     deps = [
         ":tfjs-backend-webgpu_src_lib",
         "//tfjs-core/src:tfjs-core_lib",
@@ -70,7 +70,7 @@ ts_library(
     name = "tfjs-backend-webgpu_test_lib",
     # testonly = True,
     srcs = glob(TEST_SRCS) + [":tests"],
-    module_name = "@tensorflow/tfjs-backend-webgpu/dist",
+    module_name = "@nanopore/tfjs-backend-webgpu/dist",
     deps = [
         ":tfjs-backend-webgpu_lib",
         ":tfjs-backend-webgpu_src_lib",

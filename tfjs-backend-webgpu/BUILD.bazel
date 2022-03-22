@@ -76,7 +76,7 @@ copy_file(
 
 pkg_npm(
     name = "tfjs-backend-webgpu_pkg",
-    package_name = "@tensorflow/tfjs-backend-webgpu",
+    package_name = "@nanopore/tfjs-backend-webgpu",
     srcs = [
         "README.md",
         "package.json",
