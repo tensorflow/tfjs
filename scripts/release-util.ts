@@ -279,7 +279,7 @@ export async function updateDependency(
 
       let relaxedVersionPrefix = '';
       if (version.startsWith('~') || version.startsWith('^')) {
-        relaxedVersionPrefix = version.substr(0, 1);
+        relaxedVersionPrefix = version.slice(0, 1);
       }
       const depVersionLatest = relaxedVersionPrefix + depsLatestVersion[j];
 
@@ -337,7 +337,7 @@ export function updateTFJSDependencyVersions(
 
     let relaxedVersionPrefix = '';
     if (version.startsWith('~') || version.startsWith('^')) {
-      relaxedVersionPrefix = version.substr(0, 1);
+      relaxedVersionPrefix = version.slice(0, 1);
     }
     const versionLatest = relaxedVersionPrefix + newVersion;
 
