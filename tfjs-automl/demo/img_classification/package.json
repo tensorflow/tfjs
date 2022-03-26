@@ -24,5 +24,8 @@
     "@tensorflow/tfjs-backend-webgl": "^3.0.0-rc.1",
     "@tensorflow/tfjs-automl": "file:../../dist"
   },
+  "resolutions": {
+    "minimist": "1.2.6"
+  },
   "license": "Apache-2.0"
 }

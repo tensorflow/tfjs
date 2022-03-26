@@ -73,5 +73,8 @@
     "pb2json": "ts-node -s ./tools/pb2json_converter.ts",
     "build-pip-package": "cd python && ./build-pip-package.sh --test /tmp/tfjs-pips",
     "run-python-tests": "bazel test python/..."
+  },
+  "resolutions": {
+    "minimist": "1.2.6"
   }
 }

@@ -80,5 +80,8 @@
     "./src/register_all_kernels.mjs",
     "./src/base.mjs",
     "./src/index.mjs"
-  ]
+  ],
+  "resolutions": {
+    "minimist": "1.2.6"
+  }
 }

@@ -24,5 +24,8 @@
     "parcel-bundler": "^1.12.4",
     "parcel-plugin-static-files-copy": "^2.2.1"
   },
+  "resolutions": {
+    "minimist": "1.2.6"
+  },
   "keywords": []
 }

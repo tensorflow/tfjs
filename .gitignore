@@ -6,6 +6,7 @@
 */run-ci
 **/*.pyc
 **/bundle.js
+**/.parcel-cache
 **/*.js.map
 .DS_Store
 .idea/
