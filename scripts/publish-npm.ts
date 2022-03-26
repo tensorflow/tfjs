@@ -96,11 +96,13 @@ async function main() {
     // Check the package.json for 'link:' and 'file:' dependencies.
     const packageJson = JSON.parse(fs.readFileSync('package.json')
         .toString('utf8')) as {dependencies: Record<string, string>};
-    for (let [dep, depVersion] of Object.entries(packageJson.dependencies)) {
-      const start = depVersion.slice(0,5);
-      if (start === 'link:' || start === 'file:') {
-        throw new Error(`${pkg} has a '${start}' dependency on ${dep}. `
-                       + 'Refusing to publish.');
+    if (packageJson.dependencies) {
+      for (let [dep, depVersion] of Object.entries(packageJson.dependencies)) {
+        const start = depVersion.slice(0,5);
+        if (start === 'link:' || start === 'file:') {
+          throw new Error(`${pkg} has a '${start}' dependency on ${dep}. `
+                          + 'Refusing to publish.');
+        }
       }
     }
 

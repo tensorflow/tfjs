@@ -130,6 +130,16 @@ export const WEBSITE_PHASE: Phase = {
   title: 'Update website to latest dependencies.'
 };
 
+// Note that e2e is not actually published. As a result, this phase is not
+// included in any release unit, however, it is used for updating dependencies.
+export const E2E_PHASE: Phase = {
+  packages: ['e2e'],
+  deps: [
+    'tfjs', 'tfjs-backend-cpu', 'tfjs-backend-wasm', 'tfjs-backend-webgl',
+    'tfjs-converter', 'tfjs-core', 'tfjs-data', 'tfjs-layers', 'tfjs-node'
+  ],
+}
+
 export const TFJS_RELEASE_UNIT: ReleaseUnit = {
   name: 'tfjs',
   phases: [
@@ -269,7 +279,7 @@ export async function updateDependency(
 
       let relaxedVersionPrefix = '';
       if (version.startsWith('~') || version.startsWith('^')) {
-        relaxedVersionPrefix = version.substr(0, 1);
+        relaxedVersionPrefix = version.slice(0, 1);
       }
       const depVersionLatest = relaxedVersionPrefix + depsLatestVersion[j];
 
@@ -295,12 +305,17 @@ export async function updateDependency(
 // than `updateDependency`, it does not rely on published versions, instead it
 // uses a map from packageName to newVersion to update the versions.
 export function updateTFJSDependencyVersions(
-  pkg: string, versions: Map<string, string>): string {
+  pkg: string, versions: Map<string, string>,
+  depsToReplace = [...versions.keys()]): string {
 
   console.log(chalk.magenta.bold(`~~~ Update dependency versions ~~~`));
 
   const parsedPkg = JSON.parse(`${pkg}`);JSON.parse(pkg);
-  for (const [dep, newVersion] of versions) {
+  for (const dep of depsToReplace) {
+    const newVersion = versions.get(dep);
+    if (!newVersion) {
+      throw new Error(`No new version found for ${dep}`);
+    }
     // Get the current dependency package version.
     let version = '';
     const depNpmName = `@tensorflow/${dep}`;
@@ -322,7 +337,7 @@ export function updateTFJSDependencyVersions(
 
     let relaxedVersionPrefix = '';
     if (version.startsWith('~') || version.startsWith('^')) {
-      relaxedVersionPrefix = version.substr(0, 1);
+      relaxedVersionPrefix = version.slice(0, 1);
     }
     const versionLatest = relaxedVersionPrefix + newVersion;
 

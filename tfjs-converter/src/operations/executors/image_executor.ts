@@ -78,6 +78,29 @@ export const executeOp: InternalOpExecutor =
               cropSize as [number, number], method as 'bilinear' | 'nearest',
               extrapolationValue)];
         }
+        case 'ImageProjectiveTransformV3': {
+          const images =
+              getParamValue('images', node, tensorMap, context) as Tensor;
+          const transforms =
+              getParamValue('transforms', node, tensorMap, context) as Tensor;
+          const outputShape =
+              getParamValue('outputShape', node, tensorMap, context) as
+              number[];
+          const fillValue =
+              getParamValue('fillValue', node, tensorMap, context) as number;
+          const interpolation =
+              getParamValue('interpolation', node, tensorMap, context) as
+              string;
+          const fillMode =
+              getParamValue('fillMode', node, tensorMap, context) as string;
+          return [tfOps.image.transform(
+              images as Tensor4D,
+              transforms as Tensor2D,
+              interpolation.toLowerCase() as 'bilinear' | 'nearest',
+              fillMode.toLowerCase() as 'constant' | 'reflect' | 'wrap' | 'nearest',
+              fillValue,
+              outputShape as [number, number])];
+        }
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);
       }
