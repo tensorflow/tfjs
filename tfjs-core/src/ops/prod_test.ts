@@ -16,8 +16,8 @@
  */
 
 import * as tf from '../index';
-import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
-import {expectArraysClose, expectArraysEqual} from '../test_util';
+import { ALL_ENVS, describeWithFlags } from '../jasmine_util';
+import { expectArraysClose, expectArraysEqual } from '../test_util';
 
 describeWithFlags('prod', ALL_ENVS, () => {
   it('basic', async () => {
@@ -107,6 +107,41 @@ describeWithFlags('prod', ALL_ENVS, () => {
     expectArraysClose(await res.data(), [6]);
   });
 
+  // Illustrative example from the C++ implementation for comparison. See:
+  // https://github.com/tensorflow/tensorflow/blob/5dee95f8bafe3f342693d2135da451283b1fbaec/tensorflow/cc/gradients/math_grad.cc
+  it('gradients: prod(multi-dimensional tensor with zeros)', async () => {
+    const a = tf.tensor([
+      [
+        [3.0, 4.0],
+        [5.0, 6.0],
+        [7.0, 8.0]
+      ],
+      [
+        [3.0, 5.0],
+        [0.0, 6.0],
+        [5.0, 6.0]
+      ]
+    ]);
+    const dy = tf.tensor([[10, 10], [10, 10]]);
+
+    const gradients = tf.grad(a => a.prod(1))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(await gradients.array(),
+      [
+        [
+          [5 * 7 * 10, 6 * 8 * 10],
+          [3 * 7 * 10, 4 * 8 * 10],
+          [3 * 5 * 10, 6 * 8 * 10]],
+        [
+          [0 * 5 * 10, 6 * 6 * 10],
+          [3 * 5 * 10, 5 * 6 * 10],
+          [3 * 0 * 10, 5 * 6 * 10]
+        ]
+      ]);
+  });
+
   it('gradients: prod(tensor with zeros)', async () => {
     const a = tf.tensor2d([[1, 2, 0], [1, 2, 3]], [2, 3]);
     const dy = tf.tensor([12, 12]);
@@ -116,10 +151,10 @@ describeWithFlags('prod', ALL_ENVS, () => {
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
     expectArraysClose(await gradients.array(),
-      [[Infinity, Infinity, Infinity], [2, 4, 6]]);
+      [[0, 0, 1 * 2 * 12], [6 * 12, 3 * 12, 2 * 12]]);
   });
 
-  it('gradients: prod(2d)', async () => {
+  it('gradients: prod(2d) with gradient broadcasting', async () => {
     const a = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
     const dy = tf.scalar(24);
 
@@ -127,10 +162,11 @@ describeWithFlags('prod', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(await gradients.array(), [[1, 2], [3, 4]]);
+    expectArraysClose(await gradients.array(),
+      [[2 * 24, 1 * 24], [4 * 24, 3 * 24]]);
   });
 
-  it('gradients: prod(2d, axis=0)', async () => {
+  it('gradients: prod(2d, axis=0) and varied gradient values', async () => {
     const a = tf.tensor2d([[1, 2], [3, 1], [1, 4]], [3, 2]);
     const dy = tf.tensor1d([3, 8]);
     const axis = 0;
@@ -139,7 +175,8 @@ describeWithFlags('prod', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(await gradients.array(), [[1, 2], [3, 1], [1, 4]]);
+    expectArraysClose(await gradients.array(),
+      [[3 * 3, 4 * 8], [1 * 3, 8 * 8], [3 * 3, 12 * 8]]);
   });
 
   it('gradients: prod(2d, axis=1)', async () => {
@@ -151,12 +188,13 @@ describeWithFlags('prod', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(await gradients.data(), [[2, 4], [3, 1], [1, 4]]);
+    expectArraysClose(await gradients.data(),
+      [[2 * 4, 1 * 4], [1 * 3, 3 * 3], [4 * 4, 1 * 4]]);
   });
 
   it('throws when passed a non-tensor', () => {
     expect(() => tf.prod({} as tf.Tensor))
-        .toThrowError(/Argument 'x' passed to 'prod' must be a Tensor/);
+      .toThrowError(/Argument 'x' passed to 'prod' must be a Tensor/);
   });
 
   it('accepts a tensor-like object', async () => {
@@ -166,6 +204,6 @@ describeWithFlags('prod', ALL_ENVS, () => {
 
   it('throws error for string tensor', () => {
     expect(() => tf.prod(['a']))
-        .toThrowError(/Argument 'x' passed to 'prod' must be numeric tensor/);
+      .toThrowError(/Argument 'x' passed to 'prod' must be numeric tensor/);
   });
 });

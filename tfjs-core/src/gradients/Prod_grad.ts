@@ -15,30 +15,83 @@
  * =============================================================================
  */
 
-import {Prod, ProdAttrs} from '../kernel_names';
-import {GradConfig, NamedAttrMap} from '../kernel_registry';
-import {div} from '../ops/div';
-import {mul} from '../ops/mul';
-import {ones} from '../ops/ones';
-import {reshape} from '../ops/reshape';
-import {Tensor} from '../tensor';
-import {parseAxisParam} from '../util';
+import { Prod, ProdAttrs } from '../kernel_names';
+import { GradConfig, NamedAttrMap } from '../kernel_registry';
+import { mul } from '../ops/mul';
+import { cumprod } from '../ops/cumprod';
+import { reshape } from '../ops/reshape';
+import { transpose } from '../ops/transpose';
+import { Tensor } from '../tensor';
+import { backend_util } from '../base';
 
+function prodGradFn_(x: Tensor, dy: Tensor, axis: number): Tensor {
+  // The gradent tensor (dy) has a set of axis removed, so we create re-shaped
+  // versions of size 1 for the removed axis; this supports broadcasting over
+  // those dimensions.
+  const expandedYShape = x.shape.slice();
+  expandedYShape[axis] = 1;
+
+  // The actual gradient computation.
+  const expandedDy = reshape(dy as Tensor, expandedYShape);
+  const xCumProd = cumprod(x, axis, true, false);
+  const xCumRevProd = cumprod(x, axis, true, true);
+  const dx = mul(xCumProd, xCumRevProd);
+  return mul(expandedDy, dx);
+}
+
+// Support gradients when product is done on many axis at once.
+// This done py pushing all the axis on which the product is applied into a single axis.
+function prodsGradFn_(x: Tensor, dy: Tensor, axis: number[]): Tensor {
+  // Move all axis for doing prod over to the end of the tensor.
+  const xRank = x.shape.length;
+  const finalProdAxis = xRank - axis.length;
+  const xPermutation = backend_util.getAxesPermutation(axis, xRank);
+  let permutedX = x;
+  if (xPermutation != null) {
+    permutedX = transpose(x, xPermutation); // [0,2,1] [2,0,1]
+  }
+
+  // Reshape all the prod dimensions into a single one, and do compute prod
+  // gradients on that.
+  const newShape = permutedX.shape.slice();
+  const removedShape = newShape.splice(xRank - axis.length, axis.length);
+  const endPartShape = removedShape.reduce((p, c) => p * c, 1);
+  newShape.push(endPartShape);
+  const reshapedPermutedX = permutedX.reshape(newShape);
+  let prodGrad = prodGradFn_(reshapedPermutedX, dy, finalProdAxis);
+
+  // Undo the re-shaping now we have the dx vector, and permute back to
+  // original axis order.
+  prodGrad = prodGrad.reshape(permutedX.shape);
+  if (xPermutation != null) {
+    const undoPermutation = backend_util.getUndoAxesPermutation(xPermutation);
+    prodGrad = transpose(prodGrad, undoPermutation);
+  }
+  return prodGrad;
+}
+
+// Running example:
+// [
+//   [
+//     [3.0, 4.0],
+//     [5.0, 6.0],
+//     [7.0, 8.0]
+//   ],
+//   [
+//     [3.0, 5.0],
+//     [0.0, 6.0],
+//     [5.0, 6.0]
+//   ]
+// ]
+//
 export const prodGradConfig: GradConfig = {
   kernelName: Prod,
-  inputsToSave: ['x'],
-  outputsToSave: [true],
-  gradFunc: (dy: Tensor, saved: Tensor[], attrs: NamedAttrMap) => {
-    const [x, y] = saved;
-    const expandedYShape = x.shape.slice();
+  inputsToSave: ["x"],
+  gradFunc: (dy: Tensor | Tensor[], saved: Tensor[], attrs: NamedAttrMap) => {
+    const [x] = saved;
     const { axis } = (attrs as {}) as ProdAttrs;
-    const axes = parseAxisParam(axis, x.shape);
-    axes.forEach((axis) => {
-      expandedYShape[axis] = 1;
-    });
-    const expandedY = reshape(y, expandedYShape);
-    const expandedDy = reshape(dy, expandedYShape);
-    const xFrac = mul(expandedDy, div(ones(x.shape, "float32"), expandedY));
-    return { x: () => mul(x, xFrac) };
+    return {
+      x: () => prodsGradFn_(x, dy as Tensor, axis as number[])
+    };
   }
 };
