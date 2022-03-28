@@ -292,7 +292,10 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
      */
     factoryConfig.locateFile = (path, prefix) => {
       if (path.endsWith('.worker.js')) {
-        const response = wasmWorkerContents;
+        // Escape '\n' because Blob will turn it into a newline.
+        // There should be a setting for this, but 'endings: "native"' does
+        // not seem to work.
+        const response = (wasmWorkerContents as string).replace(/\n/g, '\\n');
         const blob = new Blob([response], {type: 'application/javascript'});
         return URL.createObjectURL(blob);
       }

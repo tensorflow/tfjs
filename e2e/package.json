@@ -25,7 +25,7 @@
     "detect-browser": "~4.2.0",
     "jasmine": "~3.1.0",
     "jasmine-core": "~3.1.0",
-    "karma": "~6.3.14",
+    "karma": "~6.3.16",
     "karma-browserstack-launcher": "~1.6.0",
     "karma-chrome-launcher": "~2.2.0",
     "karma-jasmine": "~1.1.0",
@@ -64,7 +64,6 @@
     "test": "./scripts/test.sh",
     "coverage": "KARMA_COVERAGE=1 ./scripts/test.sh",
     "test-ci": "./scripts/test-ci.sh",
-    "update-dependency": "ts-node ./scripts/update-dependency.ts",
     "deploy-benchmarks": "./scripts/deploy-benchmarks.sh",
     "deploy-benchmarks-dev": "./scripts/deploy-benchmarks.sh --dev",
     "deploy-benchmarks-staging": "./scripts/deploy-benchmarks.sh --staging"

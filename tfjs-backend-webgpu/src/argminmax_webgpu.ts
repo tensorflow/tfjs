@@ -130,7 +130,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
             k = k + i32(workGroupSizeX)) {
           let candidate = f32(x.numbers[getInputIndex(coordInfo, k)]);
-          if (!isNanCustom(candidate) && candidate ${this.op} bestValue) {
+          if (!isnan(candidate) && candidate ${this.op} bestValue) {
             bestValue = candidate;
             bestIndex = k;
           }

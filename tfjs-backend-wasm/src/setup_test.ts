@@ -230,8 +230,9 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'clip',
     excludes: [
       'gradient',
-      'propagates NaNs'  // clip delegates to XNNPACK which does not make
+      'propagates NaNs', // clip delegates to XNNPACK which does not make
                          // guarantees about behavior of nans.
+      'basic vec4'       // basic vec4 also includes nans.
     ]
   },
   {include: 'addN'},
@@ -290,6 +291,7 @@ const TEST_FILTERS: TestFilter[] = [
   },
   {startsWith: 'reverse'},
   {startsWith: 'sum '},
+  {startsWith: 'cumprod'},
   {startsWith: 'cumsum'},
   {startsWith: 'logicalAnd '},
   {

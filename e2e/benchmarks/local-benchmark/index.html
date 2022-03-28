@@ -91,6 +91,7 @@ limitations under the License.
 
     let urlState = null;
     let runTimes = 50;
+    let profileTimes = 1;
     let warmupTimes = 1;
     // Default do not run any task.
     let task = '';
@@ -101,6 +102,9 @@ limitations under the License.
         return null;
       if (params.has('run')) {
         runTimes = Number(params.get('run'));
+      }
+      if (params.has('profile')) {
+        profileTimes = Number(params.get('profile'));
       }
       if (params.has('warmup')) {
         warmupTimes = Number(params.get('warmup'));
@@ -114,6 +118,7 @@ limitations under the License.
     let modelController = null;
     let numWarmupsController = null;
     let numRunsController = null;
+    let numProfilesController = null;
     let modelParameterFolder = null;
     let runButton = null;
     let correctnessButton = null;
@@ -154,6 +159,8 @@ limitations under the License.
         numWarmupsController.setValue(urlState.get('warmup'));
       if (numRunsController != null && urlState.has('run'))
         numRunsController.setValue(urlState.get('run'));
+      if (numProfilesController != null && urlState.has('profile'))
+        numProfilesController.setValue(urlState.get('profile'));
       // Only auto run when URI component exists.
       if (correctnessButton != null && task == 'correctness') {
         correctnessButton.domElement.click();
@@ -189,6 +196,7 @@ limitations under the License.
     const state = {
       numWarmups: warmupTimes,
       numRuns: runTimes,
+      numProfiles: profileTimes,
       benchmark: 'mobilenet_v2',
       run: (v) => {
         runBenchmark().catch(e => {
@@ -316,6 +324,7 @@ limitations under the License.
         appendRow(parameterTable, 'modelUrl', state.modelUrl);
       }
       appendRow(parameterTable, 'numRuns', state.numRuns);
+      appendRow(parameterTable, 'numProfiles', state.numProfiles);
       appendRow(parameterTable, 'backend', state.backend);
       appendRow(parameterTable, 'kernelTiming', state.kernelTiming);
       if (isParameterDefined('inputSizes')) {
@@ -352,6 +361,7 @@ limitations under the License.
         appendRow(parameterTable, 'modelUrl', state.modelUrl);
       }
       appendRow(parameterTable, 'numRuns', 1);
+      appendRow(parameterTable, 'numProfiles', 1);
       appendRow(parameterTable, 'backend', state.backend);
 
       await tf.nextFrame();
@@ -468,6 +478,8 @@ limitations under the License.
         return;
       if (urlState.has('run'))
         state.numRuns = Number(urlState.get('run'));
+      if (urlState.has('profile'))
+        state.numProfiles = Number(urlState.get('profile'));
       if (urlState.has('benchmark'))
         state.benchmark = urlState.get('benchmark');
       if (urlState.has('backend'))
@@ -579,6 +591,9 @@ limitations under the License.
     }
 
     async function profileMemoryAndKernelTime() {
+      if (state.numProfiles == 0) {
+        return;
+      }
       await showMsg('Profile memory and kernels');
 
       // Reload tflite model with profiling enabled.
@@ -596,15 +611,16 @@ limitations under the License.
       const start = performance.now();
 
       let profileInfo;
+      const numProfiles = state.numProfiles;
       if (state.benchmark === 'custom') {
         const input = generateInputFromDef(state.inputs, model instanceof tf.GraphModel);
         try {
-          profileInfo = await profileModelInference(model, input, isTflite());
+          profileInfo = await profileModelInference(model, input, isTflite(), numProfiles);
         } finally {
           tf.dispose(input);
         }
       } else {
-        profileInfo = await profileInference(() => predict(model), isTflite());
+        profileInfo = await profileInference(() => predict(model), isTflite(), numProfiles);
       }
 
       const elapsed = performance.now() - start;
@@ -614,7 +630,7 @@ limitations under the License.
         appendRow(timeTable, 'Peak memory', printMemory(profileInfo.peakBytes));
         appendRow(timeTable, 'Leaked tensors', profileInfo.newTensors);
       }
-      appendRow(timeTable, 'Profile time', printTime(elapsed));
+      appendRow(timeTable, 'Profile time', printTime(elapsed / numProfiles));
 
       if (state.backend === 'webgl' && !queryTimerIsEnabled()) {
         await showMsg('Query timer extension is not available. <br/> ' +
@@ -905,6 +921,7 @@ limitations under the License.
       const parameterFolder = gui.addFolder('Parameters');
       numWarmupsController = parameterFolder.add(state, 'numWarmups');
       numRunsController = parameterFolder.add(state, 'numRuns');
+      numProfilesController = parameterFolder.add(state, 'numProfiles');
       parameterFolder.add(state, 'kernelTiming', ['aggregate', 'individual']);
       parameterFolder.open();
 

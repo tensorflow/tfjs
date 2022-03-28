@@ -277,13 +277,22 @@ async function timeInference(predict, numRuns = 1) {
  */
 async function downloadValuesFromTensorContainer(tensorContainer) {
   let valueContainer;
+  const readSync = tf.getBackend() === 'webgl';
   if (tensorContainer instanceof tf.Tensor) {
-    valueContainer = await tensorContainer.data();
+    if (readSync) {
+      valueContainer = tensorContainer.dataSync();
+    } else {
+      valueContainer = await tensorContainer.data();
+    }
   } else if (Array.isArray(tensorContainer)) {
     // Start value downloads from all tensors.
     const valuePromiseContainer = tensorContainer.map(async item => {
       if (item instanceof tf.Tensor) {
-        return item.data();
+        if (readSync) {
+          return item.dataSync();
+        } else {
+          return item.data();
+        }
       }
       return item;
     });
@@ -294,7 +303,11 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
     // Start value downloads from all tensors.
     for (const property in tensorContainer) {
       if (tensorContainer[property] instanceof tf.Tensor) {
-        valuePromiseContainer.push(tensorContainer[property].data());
+        if (readSync) {
+          valuePromiseContainer.push(tensorContainer[property].dataSync());
+        } else {
+          valuePromiseContainer.push(tensorContainer[property].data());
+        }
       } else {
         valuePromiseContainer.push(tensorContainer[property]);
       }
@@ -336,11 +349,13 @@ async function downloadValuesFromTensorContainer(tensorContainer) {
  *     memory usage in the inference process.
  * @param input The input tensor container for model inference.
  * @param isTflite Whether a TFLite model is being profiled or not.
+ * @param numProfiles The number of rounds for profiling the inference process.
  */
-async function profileModelInference(model, input, isTflite = false) {
+async function profileModelInference(
+    model, input, isTflite = false, numProfiles = 1) {
   const predict = isTflite ? () => tfliteModel.predict(input) :
                              getPredictFnForModel(model, input);
-  return profileInference(predict, isTflite);
+  return profileInference(predict, isTflite, numProfiles);
 }
 
 /**
@@ -372,8 +387,9 @@ async function profileModelInference(model, input, isTflite = false) {
  *
  * @param predict The predict function to execute for profiling memory usage.
  * @param isTflite Whether a TFLite model is being profiled or not.
+ * @param numProfiles The number of rounds for `predict` to execute and profile.
  */
-async function profileInference(predict, isTflite = false) {
+async function profileInference(predict, isTflite = false, numProfiles = 1) {
   if (typeof predict !== 'function') {
     throw new Error(
         'The first parameter should be a function, while ' +
@@ -381,24 +397,38 @@ async function profileInference(predict, isTflite = false) {
   }
 
   let kernelInfo = {};
+  let kernelInfos = [];
   if (isTflite) {
-    await predict();
-    const profileItems = tfliteModel.getProfilingResults();
-    kernelInfo.kernels = profileItems.map(item => {
-      return {
-        name: item.nodeType,
-        kernelTimeMs: item.nodeExecMs,
-        // TODO: Shapes are not supported yet.
-        inputShapes: [],
-        outputShapes: [],
-      };
-    });
+    for (let i = 0; i < numProfiles; i++) {
+      await predict();
+      const profileItems = tfliteModel.getProfilingResults();
+      kernelInfo.kernels = profileItems.map(item => {
+        return {
+          name: item.nodeType,
+          kernelTimeMs: item.nodeExecMs,
+          // TODO: Shapes are not supported yet.
+          inputShapes: [],
+          outputShapes: [],
+        };
+      });
+      kernelInfos.push(kernelInfo);
+    }
   } else {
-    kernelInfo = await tf.profile(async () => {
-      const res = await predict();
-      await downloadValuesFromTensorContainer(res);
-      tf.dispose(res);
-    });
+    for (let i = 0; i < numProfiles; i++) {
+      kernelInfo = await tf.profile(async () => {
+        const res = await predict();
+        await downloadValuesFromTensorContainer(res);
+        tf.dispose(res);
+      });
+      kernelInfos.push(kernelInfo);
+    }
+  }
+  for (let i = 0; i < kernelInfos[0].kernels.length; i++) {
+    let totalTimeMs = 0;
+    for (let j = 0; j < kernelInfos.length; j++) {
+      totalTimeMs += kernelInfos[j].kernels[i].kernelTimeMs;
+    }
+    kernelInfo.kernels[i].kernelTimeMs = totalTimeMs / kernelInfos.length;
   }
   kernelInfo.kernels =
       kernelInfo.kernels.sort((a, b) => b.kernelTimeMs - a.kernelTimeMs);

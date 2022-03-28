@@ -25,7 +25,8 @@
 import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as shell from 'shelljs';
-import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase, getReleaseBranch, checkoutReleaseBranch} from './release-util';
+import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT} from './release-util';
+import * as fs from 'fs';
 
 const TMP_DIR = '/tmp/tfjs-publish';
 const BAZEL_PACKAGES = new Set([
@@ -55,7 +56,8 @@ async function main() {
   console.log(chalk.blue(`Using release unit ${releaseUnitInt}`));
   console.log();
 
-  const {name, phases} = RELEASE_UNITS[releaseUnitInt];
+  const releaseUnit = RELEASE_UNITS[releaseUnitInt];
+  const {name, phases} = releaseUnit;
 
   phases.forEach((_, i) => printPhase(phases, i));
   console.log();
@@ -69,7 +71,13 @@ async function main() {
   console.log(chalk.blue(`Using phase ${phaseInt}`));
   console.log();
 
-  let releaseBranch = await getReleaseBranch(name);
+  let releaseBranch: string;
+  if (releaseUnit === ALPHA_RELEASE_UNIT) {
+    // Alpha release unit is published with the tfjs release unit.
+    releaseBranch = await getReleaseBranch(TFJS_RELEASE_UNIT.name);
+  } else {
+    releaseBranch = await getReleaseBranch(name);
+  }
   console.log();
 
   checkoutReleaseBranch(releaseBranch, args.git_protocol, TMP_DIR);
@@ -84,6 +92,19 @@ async function main() {
   for (let i = 0; i < packages.length; i++) {
     const pkg = packages[i];
     shell.cd(pkg);
+
+    // Check the package.json for 'link:' and 'file:' dependencies.
+    const packageJson = JSON.parse(fs.readFileSync('package.json')
+        .toString('utf8')) as {dependencies: Record<string, string>};
+    if (packageJson.dependencies) {
+      for (let [dep, depVersion] of Object.entries(packageJson.dependencies)) {
+        const start = depVersion.slice(0,5);
+        if (start === 'link:' || start === 'file:') {
+          throw new Error(`${pkg} has a '${start}' dependency on ${dep}. `
+                          + 'Refusing to publish.');
+        }
+      }
+    }
 
     console.log(chalk.magenta.bold(`~~~ Preparing package ${pkg}~~~`));
     console.log(chalk.magenta('~~~ Installing packages ~~~'));

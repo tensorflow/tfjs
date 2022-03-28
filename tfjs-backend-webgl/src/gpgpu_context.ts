@@ -21,7 +21,7 @@ import {getWebGLContext, setWebGLContext} from './canvas_util';
 import * as gpgpu_util from './gpgpu_util';
 import * as tex_util from './tex_util';
 import {Texture, TextureConfig} from './tex_util';
-import {WebGL1DisjointQueryTimerExtension, WebGL2DisjointQueryTimerExtension} from './webgl_types';
+import {WebGL1DisjointQueryTimerExtension, WebGL2DisjointQueryTimerExtension, WebGLParallelCompilationExtension} from './webgl_types';
 import * as webgl_util from './webgl_util';
 
 export interface FenceContext {
@@ -37,6 +37,7 @@ export class GPGPUContext {
   colorBufferHalfFloatExtension: {};
   disjointQueryTimerExtension: WebGL2DisjointQueryTimerExtension|
       WebGL1DisjointQueryTimerExtension;
+  parallelCompilationExtension: WebGLParallelCompilationExtension;
   vertexBuffer: WebGLBuffer;
   indexBuffer: WebGLBuffer;
   framebuffer: WebGLFramebuffer;
@@ -58,6 +59,8 @@ export class GPGPUContext {
     // WebGL 2.0 enables texture floats without an extension.
     let COLOR_BUFFER_FLOAT = 'WEBGL_color_buffer_float';
     const COLOR_BUFFER_HALF_FLOAT = 'EXT_color_buffer_half_float';
+    this.parallelCompilationExtension =
+        this.gl.getExtension('KHR_parallel_shader_compile');
     if (env().getNumber('WEBGL_VERSION') === 1) {
       const TEXTURE_FLOAT = 'OES_texture_float';
       const TEXTURE_HALF_FLOAT = 'OES_texture_half_float';
