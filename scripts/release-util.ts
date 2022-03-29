@@ -218,8 +218,7 @@ export function $(cmd: string) {
   return result.stdout.trim();
 }
 
-export function printReleaseUnit(id: number) {
-  const releaseUnit = RELEASE_UNITS[id];
+export function printReleaseUnit(releaseUnit: ReleaseUnit, id: number) {
   console.log(chalk.green(`Release unit ${id}:`));
   console.log(` packages: ${
       chalk.blue(releaseUnit.phases.map(phase => phase.packages.join(', '))

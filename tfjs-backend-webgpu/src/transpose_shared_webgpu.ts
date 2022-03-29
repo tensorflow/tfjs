@@ -16,9 +16,8 @@
  */
 
 import {getWorkGroupSizeString} from './shader_preprocessor';
-import {computeDispatch} from './webgpu_util';
-
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch} from './webgpu_util';
 
 export class TransposeSharedProgram implements WebGPUProgram {
   variableNames = ['A'];
@@ -55,8 +54,7 @@ export class TransposeSharedProgram implements WebGPUProgram {
         let width = uniforms.outShape[0];
         let height = uniforms.outShape[1];
         if (x < width && y < height) {
-          tile[localId.y][localId.x] =
-              A.numbers[y * width + x];
+          tile[localId.y][localId.x] = A[y * width + x];
         }
         workgroupBarrier();
 

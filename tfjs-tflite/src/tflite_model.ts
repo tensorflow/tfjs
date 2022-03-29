@@ -30,16 +30,17 @@ const TFHUB_SEARCH_PARAM = '?lite-format=tflite';
  *
  * ```js
  * // Load the MobilenetV2 tflite model from tfhub.
- * const tfliteModel = tflite.loadTFLiteModel(
+ * const tfliteModel = await tflite.loadTFLiteModel(
  *     'https://tfhub.dev/tensorflow/lite-model/mobilenet_v2_1.0_224/1/metadata/1');
  *
  * const outputTensor = tf.tidy(() => {
  *    // Get pixels data from an image.
- *    const img = tf.browser.fromPixels(document.querySelector('img'));
- *    // Normalize (might also do resize here if necessary).
- *    const input = tf.sub(tf.div(tf.expandDims(img), 127.5), 1);
+ *    let img = tf.browser.fromPixels(document.querySelector('img'));
+ *    // Resize and normalize:
+ *    img = tf.image.resizeBilinear(img, [224, 224]);
+ *    img = tf.sub(tf.div(tf.expandDims(img), 127.5), 1);
  *    // Run the inference.
- *    let outputTensor = tfliteModel.predict(input) as tf.Tensor;
+ *    let outputTensor = tfliteModel.predict(img);
  *    // De-normalize the result.
  *    return tf.mul(tf.add(outputTensor, 1), 127.5)
  *  });

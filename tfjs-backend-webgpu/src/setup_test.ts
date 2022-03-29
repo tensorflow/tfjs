@@ -296,6 +296,7 @@ const TEST_FILTERS: TestFilter[] = [
       'conv1d gradients',  // Conv2DBackpropFilter
       'conv3d ',
       'conv3dTranspose ',
+      'cumprod ',
       'cumsum ',
       'decodeWeights ',
       'denseBincount ',

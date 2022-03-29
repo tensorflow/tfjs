@@ -31,7 +31,8 @@ export function gatherV2(
   const {x, indices} = inputs;
   const {axis, batchDims} = attrs;
 
-  // Throw error when any index is out of bound.
+  // Unlike WebGL, WebGPU won't check if index is out of bound by calling
+  // backend.readSync() function in debug mode.
   const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
 
   const shapeInfo = backend_util.segment_util.collectGatherOpShapeInfo(
