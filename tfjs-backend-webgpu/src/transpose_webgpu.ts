@@ -16,9 +16,8 @@
  */
 
 import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class TransposeProgram implements WebGPUProgram {
   variableNames = ['A'];
@@ -57,7 +56,7 @@ export class TransposeProgram implements WebGPUProgram {
           let flatIndex = index * ${this.workPerThread} + i;
           if(flatIndex < uniforms.size) {
             let resRC = getCoordsFromIndex(flatIndex);
-            setOutputAtIndex(flatIndex, A.numbers[getIndexFromCoords${
+            setOutputAtIndex(flatIndex, A[getIndexFromCoords${
         this.outputShape.length}D(
               ${dtype}(${switched}), uniforms.aShape)]);
           }
