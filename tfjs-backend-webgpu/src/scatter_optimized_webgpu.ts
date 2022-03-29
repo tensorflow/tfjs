@@ -18,9 +18,8 @@
 import {DataType} from '@tensorflow/tfjs-core';
 
 import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ScatterOptimizedProgram implements WebGPUProgram {
   variableNames = ['updates', 'indices'];
@@ -94,14 +93,14 @@ export class ScatterOptimizedProgram implements WebGPUProgram {
     // atomicAdd only supports uint/int type. For float, we use
     // atomicCompareExchangeWeak to simulate.
     const atomicAddSnippet = this.type === 'int32' ?
-        `atomicAdd(&(result.numbers[flatIndex]), i32(updateValue));` :
+        `atomicAdd(&(result[flatIndex]), i32(updateValue));` :
         `
-     var assumed = atomicLoad(&(result.numbers[flatIndex]));
+     var assumed = atomicLoad(&(result[flatIndex]));
      var success = 0;
      for (; success == 0;) {
        let new = bitcast<f32>(assumed) + updateValue;
        let newI32 = bitcast<i32>(new);
-       let resValue = atomicCompareExchangeWeak(&(result.numbers[flatIndex]), assumed, newI32);
+       let resValue = atomicCompareExchangeWeak(&(result[flatIndex]), assumed, newI32);
        assumed = resValue[0];
        success = resValue[1];
      }
