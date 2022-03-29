@@ -134,6 +134,20 @@ export function GPUBytesPerElement(dtype: DataType): number {
   }
 }
 
+// AlignBy4
+export function gpuSizeFromShape(shape: number[]): number {
+  let size = 4;
+  if (shape.length === 0) {
+    // Scalar.
+    return size;
+  }
+  size = Math.ceil(shape[shape.length - 1] / 4) * 4;
+  for (let i = shape.length - 2; i >= 0; i--) {
+    size *= shape[i];
+  }
+  return size;
+}
+
 export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
   if (dtype === 'float32') {
     return new Float32Array(data);
@@ -148,11 +162,100 @@ export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
 
 export function isWebGPUSupported(): boolean {
   return ((typeof window !== 'undefined') ||
-    //@ts-ignore
-    (typeof WorkerGlobalScope !== 'undefined')) && !!navigator.gpu;
+          //@ts-ignore
+          (typeof WorkerGlobalScope !== 'undefined')) &&
+      !!navigator.gpu;
 }
 
 export interface WebGPULayout {
   bindGroupLayout: GPUBindGroupLayout;
   pipelineLayout: GPUPipelineLayout;
+}
+
+function LinearIndex(
+    d_ch: number, y: number, x: number, s_ch: number, shape: number[]) {
+  return y * shape[1] * shape[2] * shape[3] + x * shape[2] * shape[3] +
+      s_ch * shape[3] + d_ch;
+}
+
+export function DivideRoundUp(n: number, divisor: number) {
+  return Math.ceil(n / divisor);
+}
+
+export function RearrangeWeightsToOHWIOGroupO4I4(
+    weightsData: Float32Array, weightsShape: number[]) {
+  const out_group_size = 2;
+  const dst_slices = DivideRoundUp(weightsShape[3], 4);
+  const src_slices = DivideRoundUp(weightsShape[2], 4);
+  const dst_groups = DivideRoundUp(dst_slices, out_group_size);
+  const length = dst_groups * weightsShape[0] * weightsShape[1] * src_slices *
+      out_group_size * 4 * 4;
+  const dst = new Float32Array(length);
+
+  var counter = 0;
+  for (var d = 0; d < dst_groups; ++d) {
+    for (var y = 0; y < weightsShape[0]; ++y) {
+      for (var x = 0; x < weightsShape[1]; ++x) {
+        for (var s = 0; s < src_slices; ++s) {
+          for (var d_group = 0; d_group < out_group_size; ++d_group) {
+            for (var j = 0; j < 4; ++j) {
+              var filter = [];
+              for (var i = 0; i < 4; ++i) {
+                const s_ch = s * 4 + i;
+                const d_ch = (d * out_group_size + d_group) * 4 + j;
+                if (s_ch < weightsShape[2] && d_ch < weightsShape[3]) {
+                  const f_index = LinearIndex(d_ch, y, x, s_ch, weightsShape);
+                  filter[i] = weightsData[f_index];
+                } else {
+                  filter[i] = 0.0;
+                }
+              }
+              dst[counter++] = filter[0];
+              dst[counter++] = filter[1];
+              dst[counter++] = filter[2];
+              dst[counter++] = filter[3];
+            }
+          }
+        }
+      }
+    }
+  }
+  return dst;
+}
+
+export function RearrangeWeights3x3Data(
+    weightsData: Float32Array, weightsShape: number[]) {
+  const src_depth = DivideRoundUp(weightsShape[2], 4);
+  const length = 9 * src_depth * 4;
+  const dst = new Float32Array(length);
+
+  let counter = 0;
+  for (let s = 0; s < src_depth; ++s) {
+    for (let y = 0; y < 3; ++y) {
+      for (let x = 0; x < 3; ++x) {
+        const filter_val = [];
+        for (let i = 0; i < 4; ++i) {
+          const s_ch = s * 4 + i;
+          if (s_ch < weightsShape[2]) {
+            const f_index = LinearIndex(0, y, x, s_ch, weightsShape);
+            filter_val[i] = weightsData[f_index];
+          } else {
+            filter_val[i] = 0.0;
+          }
+        }
+        dst[counter++] = filter_val[0];
+        dst[counter++] = filter_val[1];
+        dst[counter++] = filter_val[2];
+        dst[counter++] = filter_val[3];
+      }
+    }
+  }
+  return dst;
+}
+
+export enum DataLayout {
+  NHWC,
+  PHWC4,
+  O4HWI4,
+  OHW10  // for depthwise
 }

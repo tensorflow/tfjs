@@ -43,6 +43,8 @@ export interface WebGPUProgram {
   size?: boolean;
   // Whether to use atomic built-in functions.
   atomic?: boolean;
+  // Whether the user code is completed.
+  fullShader?: boolean;
   getUserCode: () => string;
 }
 
@@ -70,9 +72,13 @@ export const compileProgram =
      inputsData: shader_preprocessor.InputInfo[], output: TensorInfo,
      isFromPixel = false): GPUComputePipeline => {
       const outputData = {dtype: output.dtype, shape: output.shape};
-
-      const source = shader_preprocessor.makeShader(
-          inputsData, outputData, program, isFromPixel);
+      let source;
+      if (program.fullShader) {
+        source = program.getUserCode();
+      } else {
+        source = shader_preprocessor.makeShader(
+            inputsData, outputData, program, isFromPixel);
+      }
       const module = device.createShaderModule(
           {code: source, label: program.constructor.name});
       const pipeline = device.createComputePipeline({

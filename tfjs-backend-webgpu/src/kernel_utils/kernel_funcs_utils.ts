@@ -15,15 +15,18 @@
  * =============================================================================
  */
 
-import {backend_util, BinaryInputs, DataType, KernelFunc, TensorInfo, TypedArray, UnaryInputs, upcastType} from '@tensorflow/tfjs-core';
+import {backend_util, BinaryInputs, DataType, KernelFunc, TensorInfo, TypedArray, UnaryInputs, upcastType, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {BinaryOpComplexProgram} from '../binary_op_complex_webgpu';
+import {BinaryOpType} from '../binary_op_util';
+import {BinaryOpVec4Phwc4Program} from '../binary_op_vec4_phwc4_webgpu';
 import {getBinaryProgram} from '../binary_ops';
 import {complex} from '../kernels/Complex';
-import {BinaryOpType} from '../binary_op_util';
+import {toPHWC4} from '../kernels/ToPHWC4'
 import {UnaryOpType} from '../unary_op_util';
 import {UnaryOpProgram} from '../unary_op_webgpu';
+import {DataLayout} from '../webgpu_util';
 
 import {SimpleBinaryKernelImplCPU, SimpleUnaryKernelImplCPU} from './shared';
 
@@ -173,7 +176,40 @@ export function binaryKernelFunc(
 
       return webgpuBackend.makeTensorInfo(outShape, $dtype, outValues);
     }
-    const program = getBinaryProgram(opSnippet, a.shape, b.shape);
-    return webgpuBackend.runWebGPUProgram(program, [a, b], $dtype);
+
+    if (util.arraysEqual(a.shape, b.shape)) {
+      const aInfo = webgpuBackend.tensorMap.get(a.dataId);
+      const bInfo = webgpuBackend.tensorMap.get(b.dataId);
+      const programInputs: TensorInfo[] = [];
+      let at, bt: TensorInfo;
+      if (aInfo.layout == DataLayout.NHWC) {
+        at = toPHWC4(a, webgpuBackend);
+        programInputs.push(at);
+      } else {
+        programInputs.push(a);
+      }
+      if (bInfo.layout == DataLayout.NHWC) {
+        bt = toPHWC4(b, webgpuBackend);
+        programInputs.push(bt);
+      } else {
+        programInputs.push(b);
+      }
+
+      const program = new BinaryOpVec4Phwc4Program(opSnippet, a.shape, b.shape);
+      const res =
+          webgpuBackend.runWebGPUProgram(program, programInputs, $dtype);
+      const resInfo = webgpuBackend.tensorMap.get(res.dataId);
+      resInfo.layout = DataLayout.PHWC4;
+      if (at != null) {
+        webgpuBackend.disposeData(at.dataId);
+      }
+      if (bt != null) {
+        webgpuBackend.disposeData(bt.dataId);
+      }
+      return res;
+    } else {
+      const program = getBinaryProgram(opSnippet, a.shape, b.shape);
+      return webgpuBackend.runWebGPUProgram(program, [a, b], $dtype);
+    }
   };
 }
