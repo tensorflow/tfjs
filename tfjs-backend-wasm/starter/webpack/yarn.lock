@@ -31,14 +31,14 @@
 "@tensorflow/tfjs-backend-wasm@2.6.0":
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-backend-wasm/-/tfjs-backend-wasm-2.6.0.tgz#e6d43d09a52aa92050f29f779e1ae4f4afe03991"
-  integrity sha512-yrhKcZQ3xjStXKTCvg6aQzgmE77vFrIoGW3kuhJrrVJfbihnrekuysPEXtl1UnYOlgGTCM/JrSC0P0sNK9Rq6A==
+  integrity "sha1-5tQ9CaUqqSBQ8p93nhrk9K/gOZE= sha512-yrhKcZQ3xjStXKTCvg6aQzgmE77vFrIoGW3kuhJrrVJfbihnrekuysPEXtl1UnYOlgGTCM/JrSC0P0sNK9Rq6A=="
   dependencies:
     "@types/emscripten" "~0.0.34"
 
 "@tensorflow/tfjs-core@2.6.0":
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-2.6.0.tgz#ab2f2c9e8f46990643076d7d5bdb912885282bd2"
-  integrity sha512-akUB1iz663UCUdOfEUu91XeHzGpdYtdtMPxjsGEdF0CwENzSAcvHzQrEVoPBRD+RKpxrVXvQBoOd7GYBxMIIKQ==
+  integrity "sha1-qy8sno9GmQZDB219W9uRKIUoK9I= sha512-akUB1iz663UCUdOfEUu91XeHzGpdYtdtMPxjsGEdF0CwENzSAcvHzQrEVoPBRD+RKpxrVXvQBoOd7GYBxMIIKQ=="
   dependencies:
     "@types/offscreencanvas" "~2019.3.0"
     "@types/seedrandom" "2.4.27"
@@ -845,7 +845,7 @@ dns-txt@^2.0.2:
 dom-converter@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/dom-converter/-/dom-converter-0.2.0.tgz#6721a9daee2e293682955b6afe416771627bb768"
-  integrity sha512-gd3ypIPfOMr9h5jIKq8E3sHOTCjeirnl0WK5ZdS1AW0Odt0b1PaWaHdJ4Qk4klv+YB9aJBS7mESXjFoDQPu6DA==
+  integrity "sha1-ZyGp2u4uKTaClVtq/kFncWJ7t2g= sha512-gd3ypIPfOMr9h5jIKq8E3sHOTCjeirnl0WK5ZdS1AW0Odt0b1PaWaHdJ4Qk4klv+YB9aJBS7mESXjFoDQPu6DA=="
   dependencies:
     utila "~0.4"
 
@@ -1650,10 +1650,10 @@ minimatch@^3.0.4:
   dependencies:
     brace-expansion "^1.1.7"
 
-minimist@^1.2.0, minimist@^1.2.5:
-  version "1.2.5"
-  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.5.tgz#67d66014b66a6a8aaa0c083c5fd58df4e4e97602"
-  integrity sha512-FM9nNUYrRBAELZQT3xeZQ7fmMOBg6nWNmJKTcgsJeaLstP/UODVpGsr5OhXhhXg6f+qtJ8uiZ+PUxkDWcgIXLw==
+minimist@1.2.6, minimist@^1.2.0, minimist@^1.2.5:
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.6.tgz#8637a5b759ea0d6e98702cfb3a9283323c93af44"
+  integrity sha512-Jsjnk4bw3YJqYzbdyBiNsPWHPfO++UGG749Cxs6peCu5Xg4nrena6OVxOYxrQTqww0Jmwt+Ref8rggumkTLz9Q==
 
 mkdirp@^0.5.5:
   version "0.5.5"
@@ -2410,7 +2410,7 @@ util-deprecate@^1.0.1, util-deprecate@~1.0.1:
 utila@~0.4:
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/utila/-/utila-0.4.0.tgz#8a16a05d445657a3aea5eecc5b12a4fa5379772c"
-  integrity sha1-ihagXURWV6Oupe7MWxKk+lN5dyw=
+  integrity "sha1-ihagXURWV6Oupe7MWxKk+lN5dyw= sha512-Z0DbgELS9/L/75wZbro8xAnT50pBVFQZ+hUEueGDU5FN51YSCYM+jdxsfCiHjwNP/4LCDD0i/graKpeBnOXKRA=="
 
 utils-merge@1.0.1:
   version "1.0.1"

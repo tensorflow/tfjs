@@ -73,5 +73,9 @@
   "alias": {
     "react": "preact",
     "react-dom": "preact"
+  },
+  "resolutions": {
+    "node-fetch": "2.6.7",
+    "minimist": "1.2.6"
   }
 }

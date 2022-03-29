@@ -78,5 +78,8 @@
     "react": "^16.12.0",
     "react-native": ">= 0.58.0",
     "react-native-fs": "^2.14.1"
+  },
+  "resolutions": {
+    "minimist": "1.2.6"
   }
 }

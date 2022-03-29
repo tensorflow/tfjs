@@ -22,5 +22,9 @@
   "dependencies": {
     "@tensorflow/tfjs": "3.5.0",
     "@tensorflow/tfjs-vis": "link:../../../tfjs-vis"
+  },
+  "resolutions": {
+    "node-fetch": "2.6.7",
+    "minimist": "1.2.6"
   }
 }
