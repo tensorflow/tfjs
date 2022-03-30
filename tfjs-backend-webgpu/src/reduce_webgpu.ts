@@ -28,7 +28,7 @@ export class ReduceProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
   variableNames = ['x'];
-  uniforms = 'reduceSize : i32;';
+  uniforms = 'reduceSize : i32,';
   reduceType: 'max'|'mean'|'min'|'prod'|'sum';
   inputShape: number[];
   size = true;

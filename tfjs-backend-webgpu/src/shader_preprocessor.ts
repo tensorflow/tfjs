@@ -124,10 +124,10 @@ export function makeShader(
   if (isFromPixel === true) {
     prefixSnippets.push(`
       struct Uniform {
-        size            : i32;
-        numChannels     : i32;
-        outShapeStrides : vec2<i32>;
-        dispatchSize    : vec3<u32>;
+        size            : i32,
+        numChannels     : i32,
+        outShapeStrides : vec2<i32>,
+        dispatchSize    : vec3<u32>,
       };
 
       @group(0) @binding(0) var<storage, write> result: array<${
@@ -142,19 +142,19 @@ export function makeShader(
     ].join('\n');
   }
 
-  let uniformDeclaration = 'struct Uniforms { NAN : f32; ';
+  let uniformDeclaration = 'struct Uniforms { NAN : f32, ';
   program.variableNames.forEach((x, i) => {
     uniformDeclaration += `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${
-        getCoordsDataType(inputInfo[i].shape.length)}; `;
+        getCoordsDataType(inputInfo[i].shape.length)}, `;
   });
   uniformDeclaration +=
-      `outShape : ${getCoordsDataType(outputData.shape.length)} ; `;
+      `outShape : ${getCoordsDataType(outputData.shape.length)}, `;
   const stridesLength = outputData.shape.length - 1;
   uniformDeclaration += `
-       outShapeStrides: ${getCoordsDataType(stridesLength)}; `;
+       outShapeStrides: ${getCoordsDataType(stridesLength)}, `;
 
   if (program.size) {
-    uniformDeclaration += 'size : i32; ';
+    uniformDeclaration += 'size : i32, ';
   }
 
   if (program.uniforms) {
