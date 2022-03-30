@@ -16,9 +16,8 @@
  */
 
 import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class PadProgram implements WebGPUProgram {
   outputShape: number[];
@@ -26,7 +25,7 @@ export class PadProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  uniforms = 'constantValue : f32;';
+  uniforms = 'constantValue : f32,';
   workGroupSize: [number, number, number] = [64, 1, 1];
   xShape: number[];
   size = true;
@@ -38,7 +37,7 @@ export class PadProgram implements WebGPUProgram {
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     paddings.map((_, i) => {
-      this.uniforms += ` pad${i} : vec2<i32>;`;
+      this.uniforms += ` pad${i} : vec2<i32>,`;
     });
     this.xShape = xShape;
     this.shaderKey = 'pad';

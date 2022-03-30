@@ -17,11 +17,10 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getMainHeaderString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {mapActivationToShaderProgram} from './activation_util';
+import {getMainHeaderString} from './shader_preprocessor';
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class DepthwiseConv2DProgram implements WebGPUProgram {
   outputShape: number[];
@@ -29,9 +28,9 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = `pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>;
-      inDims : vec2<i32>; filterHeight : i32; filterWidth : i32;
-      channelMul : i32;`;
+  uniforms = `pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>,
+      inDims : vec2<i32>, filterHeight : i32, filterWidth : i32,
+      channelMul : i32,`;
   // This is an experimental value.
   workGroupSize: [number, number, number] = [256, 1, 1];
   convInfo: backend_util.Conv2DInfo;

@@ -44,7 +44,7 @@ export class ConcatProgram implements WebGPUProgram {
 
     this.offsetLength = shapes.length - 1;
     for (let i = 0; i < this.offsetLength; i++) {
-      this.uniforms += `offset${i} : i32;`;
+      this.uniforms += `offset${i} : i32,`;
     }
     this.shaderKey = 'concat';
   }

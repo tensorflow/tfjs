@@ -16,9 +16,8 @@
  */
 
 import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 // Based on Algorithm 2 of Bitonic Top K, ref:
 // https://anilshanbhag.in/static/papers/gputopk_sigmod18.pdf
@@ -45,8 +44,8 @@ export class SwapProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.uniforms = `inputSize : i32; firstPass : i32; negativeInf : f32;
-        dir : i32; inc : i32;`;
+    this.uniforms = `inputSize : i32, firstPass : i32, negativeInf : f32,
+        dir : i32, inc : i32,`;
     this.shaderKey = 'swap';
   }
 

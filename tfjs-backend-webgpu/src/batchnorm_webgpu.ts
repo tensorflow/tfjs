@@ -18,9 +18,8 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class BatchNormProgram implements WebGPUProgram {
   outputShape: number[];
@@ -28,7 +27,7 @@ export class BatchNormProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   dispatch: [number, number, number];
   variableNames: string[];
-  uniforms = 'varianceEpsilon : f32;';
+  uniforms = 'varianceEpsilon : f32,';
   // This is an experimental value.
   workGroupSize: [number, number, number] = [128, 1, 1];
   offsetShape: number[]|null;

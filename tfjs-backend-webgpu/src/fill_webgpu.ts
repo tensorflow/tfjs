@@ -16,9 +16,8 @@
  */
 
 import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class FillProgram implements WebGPUProgram {
   variableNames: string[] = [];
@@ -26,7 +25,7 @@ export class FillProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  uniforms = 'value : f32;';
+  uniforms = 'value : f32,';
   workGroupSize: [number, number, number] = [64, 1, 1];
   size = true;
 

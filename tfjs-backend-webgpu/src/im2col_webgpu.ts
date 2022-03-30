@@ -16,15 +16,14 @@
  */
 
 import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class Im2ColProgram implements WebGPUProgram {
   variableNames = ['A'];
   uniforms =
-      `pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>; outWidth : i32; itemsPerBlockRow : i32;
-      inChannels : i32;`;
+      `pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>, outWidth : i32, itemsPerBlockRow : i32,
+      inChannels : i32,`;
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[]};

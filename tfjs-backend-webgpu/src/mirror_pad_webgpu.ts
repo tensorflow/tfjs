@@ -42,7 +42,7 @@ export class MirrorPadProgram implements WebGPUProgram {
 
     this.xShape = xShape;
     paddings.map((_, i) => {
-      this.uniforms += ` pad${i} : vec2<i32>;`;
+      this.uniforms += ` pad${i} : vec2<i32>,`;
     });
     this.offset = mode === 'reflect' ? 0 : 1;
     this.shaderKey = `mirrorPad_${mode}`;
