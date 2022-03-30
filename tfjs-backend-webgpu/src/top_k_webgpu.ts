@@ -141,7 +141,7 @@ export class MergeProgram implements WebGPUProgram {
     // |firstPass| indicates if this is the first time swap is being used which
     // means no indices input containing the top K is present yet.
     // |k| Top k elements desired
-    this.uniforms = `inputSize : i32; firstPass : i32; k : i32;`;
+    this.uniforms = `inputSize : i32, firstPass : i32, k : i32,`;
     this.shaderKey = 'merge';
   }
 
