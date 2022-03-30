@@ -15,15 +15,16 @@
  * =============================================================================
  */
 
-import { Prod, ProdAttrs } from '../kernel_names';
-import { GradConfig, NamedAttrMap } from '../kernel_registry';
-import { mul } from '../ops/mul';
-import { cumprod } from '../ops/cumprod';
-import { reshape } from '../ops/reshape';
-import { transpose } from '../ops/transpose';
-import { Tensor } from '../tensor';
-import { backend_util } from '../base';
+import {backend_util} from '../base';
+import {Prod, ProdAttrs} from '../kernel_names';
+import {GradConfig, NamedAttrMap} from '../kernel_registry';
+import {cumprod} from '../ops/cumprod';
+import {mul} from '../ops/mul';
+import {reshape} from '../ops/reshape';
+import {transpose} from '../ops/transpose';
+import {Tensor} from '../tensor';
 
+// Works on a single axis.
 function prodGradFn_(x: Tensor, dy: Tensor, axis: number): Tensor {
   // The gradent tensor (dy) has a set of axis removed, so we create re-shaped
   // versions of size 1 for the removed axis; this supports broadcasting over
@@ -40,7 +41,8 @@ function prodGradFn_(x: Tensor, dy: Tensor, axis: number): Tensor {
 }
 
 // Support gradients when product is done on many axis at once.
-// This done py pushing all the axis on which the product is applied into a single axis.
+// This done py pushing all the axis on which the product is applied into a
+// single axis.
 function prodsGradFn_(x: Tensor, dy: Tensor, axis: number[]): Tensor {
   // Move all axis for doing prod over to the end of the tensor.
   const xRank = x.shape.length;
@@ -48,7 +50,7 @@ function prodsGradFn_(x: Tensor, dy: Tensor, axis: number[]): Tensor {
   const xPermutation = backend_util.getAxesPermutation(axis, xRank);
   let permutedX = x;
   if (xPermutation != null) {
-    permutedX = transpose(x, xPermutation); // [0,2,1] [2,0,1]
+    permutedX = transpose(x, xPermutation);  // [0,2,1] [2,0,1]
   }
 
   // Reshape all the prod dimensions into a single one, and do compute prod
@@ -86,20 +88,18 @@ function prodsGradFn_(x: Tensor, dy: Tensor, axis: number[]): Tensor {
 //
 export const prodGradConfig: GradConfig = {
   kernelName: Prod,
-  inputsToSave: ["x"],
-  gradFunc: (dy: Tensor | Tensor[], saved: Tensor[], attrs: NamedAttrMap) => {
+  inputsToSave: ['x'],
+  gradFunc: (dy: Tensor|Tensor[], saved: Tensor[], attrs: NamedAttrMap) => {
     const [x] = saved;
-    const { axis } = (attrs as {}) as ProdAttrs;
+    const {axis} = (attrs as {}) as ProdAttrs;
     let axisArr = [] as number[];
     if (axis === undefined || axis === null) {
       axisArr = x.shape.map((_, i) => i);
-    } else if (typeof axis === "number") {
+    } else if (typeof axis === 'number') {
       axisArr = [axis];
     } else {
       axisArr = axis;
     }
-    return {
-      x: () => prodsGradFn_(x, dy as Tensor, axisArr)
-    };
+    return {x: () => prodsGradFn_(x, dy as Tensor, axisArr)};
   }
 };
