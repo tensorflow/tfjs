@@ -23,19 +23,6 @@ import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
 export function makeMatMulSplitKSource(): string {
-  // atomicAdd only supports uint/int type. For float, we use
-  // atomicCompareExchangeWeak to simulate.
-  /*
-  const atomicAddSnippet = `
-     var assumed = atomicLoad(&(result.numbers[flatIndex]));
-     var success = 0;
-     for (; success == 0;) {
-       let new = bitcast<f32>(assumed) + acc;
-       let newI32 = bitcast<i32>(new);
-       let resValue = atomicCompareExchangeWeak(&(result.numbers[flatIndex]),
-  assumed, newI32); assumed = resValue[0]; success = resValue[1];
-     }
-     `;*/
   return `
     var<workgroup> mm_Asub : array<array<f32, 32>, 32>;
     var<workgroup> mm_Bsub : array<array<f32, 32>, 32>;
@@ -91,13 +78,11 @@ export function makeMatMulSplitKSource(): string {
           }
         }
 
-        if (globalId.z == 0u) {
           for (var innerRow = 0; innerRow < 4; innerRow = innerRow + 1) {
             for (var innerCol = 0; innerCol < 4; innerCol = innerCol + 1) {
               mm_write(batch, globalRow + innerRow, globalCol + innerCol, acc[innerRow][innerCol]);
             }
           }
-        }
     }
   `;
 }
@@ -108,14 +93,14 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
-  uniforms = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
+  uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
   workGroupSize: [number, number, number] = [8, 8, 1];
   transposeA: boolean;
   transposeB: boolean;
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
-  // atomic = true;
+  atomic = true;
 
   constructor(
       outputShape: [number, number, number], dimInner: number,
@@ -156,13 +141,13 @@ export class MatMulSplitKProgram implements WebGPUProgram {
     if (this.transposeA === false) {
       sampleA =
           `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-            return A.numbers[batch * batchASize + row * uniforms.dimInner + col];
+            return A[batch * batchASize + row * uniforms.dimInner + col];
           }
           return 0.0;`;
     } else {
       sampleA =
           `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-            return A.numbers[batch* batchASize + col * uniforms.dimAOuter + row];
+            return A[batch* batchASize + col * uniforms.dimAOuter + row];
           }
           return 0.0;`;
     }
@@ -171,17 +156,29 @@ export class MatMulSplitKProgram implements WebGPUProgram {
     if (this.transposeB === false) {
       sampleB =
           `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-            return B.numbers[batch * batchBSize + row * uniforms.dimBOuter + col];
+            return B[batch * batchBSize + row * uniforms.dimBOuter + col];
           }
           return 0.0;`;
     } else {
       sampleB =
           `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-            return B.numbers[batch * batchBSize + col * uniforms.dimInner + row];
+            return B[batch * batchBSize + col * uniforms.dimInner + row];
           }
           return 0.0;`;
     }
 
+    // atomicAdd only supports uint/int type. For float, we use
+    // atomicCompareExchangeWeak to simulate.
+    const atomicAddSnippet = `
+     var assumed = atomicLoad(&(result[flatIndex]));
+     var success = 0;
+     for (; success == 0;) {
+       let new = bitcast<f32>(assumed) + value;
+       let newI32 = bitcast<i32>(new);
+       let resValue = atomicCompareExchangeWeak(&(result[flatIndex]),
+  assumed, newI32); assumed = resValue[0]; success = resValue[1];
+     }
+     `;
     const userCode = `
       fn mm_readA(batch: i32, row : i32, col : i32) -> f32 {
         let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
@@ -198,7 +195,8 @@ export class MatMulSplitKProgram implements WebGPUProgram {
           let coords = vec3<i32>(batch, row, col);
           let flatIndex = getOutputIndexFromCoords(coords);
           var value = valueIn;
-          setOutputAtIndex(flatIndex, value);
+         // setOutputAtIndex(flatIndex, value);
+         ${atomicAddSnippet}
         }
       }
 
