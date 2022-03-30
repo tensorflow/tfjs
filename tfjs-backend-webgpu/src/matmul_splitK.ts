@@ -25,54 +25,79 @@ import {computeDispatch} from './webgpu_util';
 export function makeMatMulSplitKSource(): string {
   // atomicAdd only supports uint/int type. For float, we use
   // atomicCompareExchangeWeak to simulate.
+  /*
   const atomicAddSnippet = `
      var assumed = atomicLoad(&(result.numbers[flatIndex]));
      var success = 0;
      for (; success == 0;) {
        let new = bitcast<f32>(assumed) + acc;
        let newI32 = bitcast<i32>(new);
-       let resValue = atomicCompareExchangeWeak(&(result.numbers[flatIndex]), assumed, newI32);
-       assumed = resValue[0];
-       success = resValue[1];
+       let resValue = atomicCompareExchangeWeak(&(result.numbers[flatIndex]),
+  assumed, newI32); assumed = resValue[0]; success = resValue[1];
      }
-     `;
+     `;*/
   return `
-    var<workgroup> mm_Asub : array<array<f32, 16>, 16>;
-    var<workgroup> mm_Bsub : array<array<f32, 16>, 16>;
+    var<workgroup> mm_Asub : array<array<f32, 32>, 32>;
+    var<workgroup> mm_Bsub : array<array<f32, 32>, 32>;
     ${getMainHeaderString()}
       let batch = 0;
-      let globalRow = i32(globalId.y);
-      let globalCol = i32(globalId.x);
-      let localRow = i32(localId.y);
-      let localCol = i32(localId.x);
-      let kStart = i32(globalId.z) * 64;
-      var acc = 0.0;
+      let tileRow = i32(localId.y) * 4;
+      let tileCol = i32(localId.x) * 4;
 
-      let numTiles = 4; // 64 / 16
+      let globalRow = i32(globalId.y) * 4;
+      let globalCol = i32(globalId.x) * 4;
+      let kStart = i32(globalId.z) * 32;
+
+      var acc : array<array<f32, 4>, 4>;
+      var ACached : f32;
+      var BCached : array<f32, 4>;
+
+      // Without this initialization strange values show up in acc.
+      for (var innerRow = 0; innerRow < 4; innerRow = innerRow + 1) {
+        for (var innerCol = 0; innerCol < 4; innerCol = innerCol + 1) {
+          acc[innerRow][innerCol] = 0.0;
+        }
+      }
+
       // Loop over shared dimension.
-      for (var t = 0; t < numTiles; t = t + 1) {
-        // Load one tile of A into local memory.
-        mm_Asub[localRow][localCol] = mm_readA(batch, globalRow,
-            kStart + t * 16 + localCol);
+        // Load one tile of A and B into local memory.
+        for (var innerRow = 0; innerRow < 4; innerRow = innerRow + 1) {
+          for (var innerCol = 0; innerCol < 4; innerCol = innerCol + 1) {
+            let inputRow = tileRow + innerRow;
+            let inputCol = tileCol + innerCol;
 
-        // Load one tile of B into local memory.
-        mm_Bsub[localRow][localCol] = mm_readB(batch,
-            kStart + t * 16 + localRow,
-            globalCol);
+            mm_Asub[inputRow][inputCol] = mm_readA(batch,
+                globalRow + innerRow,
+                kStart + inputCol);
+            mm_Bsub[inputRow][inputCol] = mm_readB(batch,
+                kStart + inputRow,
+                globalCol + innerCol);
+          }
+        }
 
         workgroupBarrier();
 
         // Compute acc values for a single thread.
-        for (var k = 0; k < 16; k = k + 1) {
-          acc = acc + mm_Asub[localRow][k] * mm_Bsub[k][localCol];
+        for (var k = 0; k < 32; k = k + 1) {
+          for (var inner = 0; inner < 4; inner = inner + 1) {
+            BCached[inner] = mm_Bsub[k][tileCol + inner];
+          }
+
+          for (var innerRow = 0; innerRow < 4; innerRow = innerRow + 1) {
+            ACached = mm_Asub[tileRow + innerRow][k];
+            for (var innerCol = 0; innerCol < 4; innerCol = innerCol + 1) {
+              acc[innerRow][innerCol] = acc[innerRow][innerCol] + ACached * BCached[innerCol];
+            }
+          }
         }
 
-        workgroupBarrier();
-      }
-
-      let coords = vec3<i32>(batch, globalRow, globalCol);
-      let flatIndex = getOutputIndexFromCoords(coords);
-      ${atomicAddSnippet}
+        if (globalId.z == 0u) {
+          for (var innerRow = 0; innerRow < 4; innerRow = innerRow + 1) {
+            for (var innerCol = 0; innerCol < 4; innerCol = innerCol + 1) {
+              mm_write(batch, globalRow + innerRow, globalCol + innerCol, acc[innerRow][innerCol]);
+            }
+          }
+        }
     }
   `;
 }
@@ -84,13 +109,13 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   uniforms = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
-  workGroupSize: [number, number, number] = [16, 16, 1];
+  workGroupSize: [number, number, number] = [8, 8, 1];
   transposeA: boolean;
   transposeB: boolean;
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
-  atomic = true;
+  // atomic = true;
 
   constructor(
       outputShape: [number, number, number], dimInner: number,
@@ -105,7 +130,7 @@ export class MatMulSplitKProgram implements WebGPUProgram {
           this.outputShape[0], this.outputShape[1], this.outputShape[2],
           dimInner
         ],
-        [1, 1, 64]);
+        [4, 4, 32]);
 
     const addBias = bias != null;
     const hasPreluActivationWeights = preluActivationWeights != null;
@@ -166,6 +191,15 @@ export class MatMulSplitKProgram implements WebGPUProgram {
       fn mm_readB(batch: i32, row : i32, col : i32) -> f32 {
         let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
         ${sampleB}
+      }
+
+      fn mm_write(batch: i32, row : i32, col : i32, valueIn : f32) {
+        if (row < uniforms.dimAOuter && col < uniforms.dimBOuter) {
+          let coords = vec3<i32>(batch, row, col);
+          let flatIndex = getOutputIndexFromCoords(coords);
+          var value = valueIn;
+          setOutputAtIndex(flatIndex, value);
+        }
       }
 
       ${makeMatMulSplitKSource()}
