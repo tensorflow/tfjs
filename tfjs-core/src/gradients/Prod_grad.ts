@@ -90,8 +90,16 @@ export const prodGradConfig: GradConfig = {
   gradFunc: (dy: Tensor | Tensor[], saved: Tensor[], attrs: NamedAttrMap) => {
     const [x] = saved;
     const { axis } = (attrs as {}) as ProdAttrs;
+    let axisArr = [] as number[];
+    if (axis === undefined || axis === null) {
+      axisArr = x.shape.map((_, i) => i);
+    } else if (typeof axis === "number") {
+      axisArr = [axis];
+    } else {
+      axisArr = axis;
+    }
     return {
-      x: () => prodsGradFn_(x, dy as Tensor, axis as number[])
+      x: () => prodsGradFn_(x, dy as Tensor, axisArr)
     };
   }
 };

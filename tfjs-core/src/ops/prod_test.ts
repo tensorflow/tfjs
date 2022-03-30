@@ -133,7 +133,7 @@ describeWithFlags('prod', ALL_ENVS, () => {
         [
           [5 * 7 * 10, 6 * 8 * 10],
           [3 * 7 * 10, 4 * 8 * 10],
-          [3 * 5 * 10, 6 * 8 * 10]],
+          [3 * 5 * 10, 4 * 6 * 10]],
         [
           [0 * 5 * 10, 6 * 6 * 10],
           [3 * 5 * 10, 5 * 6 * 10],
@@ -163,7 +163,8 @@ describeWithFlags('prod', ALL_ENVS, () => {
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
     expectArraysClose(await gradients.array(),
-      [[2 * 24, 1 * 24], [4 * 24, 3 * 24]]);
+      [[2 * 3 * 4 * 24, 3 * 4 * 24], [4 * 2 * 24, 3 * 2 * 24]]
+    );
   });
 
   it('gradients: prod(2d, axis=0) and varied gradient values', async () => {
@@ -176,7 +177,7 @@ describeWithFlags('prod', ALL_ENVS, () => {
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
     expectArraysClose(await gradients.array(),
-      [[3 * 3, 4 * 8], [1 * 3, 8 * 8], [3 * 3, 12 * 8]]);
+      [[3 * 3, 4 * 8], [1 * 3, 8 * 8], [3 * 3, 2 * 8]]);
   });
 
   it('gradients: prod(2d, axis=1)', async () => {
@@ -188,7 +189,7 @@ describeWithFlags('prod', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(await gradients.data(),
+    expectArraysClose(await gradients.array(),
       [[2 * 4, 1 * 4], [1 * 3, 3 * 3], [4 * 4, 1 * 4]]);
   });
 
