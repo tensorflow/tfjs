@@ -21,5 +21,8 @@
     "@tensorflow/tfjs-backend-webgl": "^3.0.0-rc.1",
     "@tensorflow/tfjs-converter": "^3.0.0-rc.1",
     "@tensorflow/tfjs-core": "^3.0.0-rc.1"
+  },
+  "resolutions": {
+    "minimist": "1.2.6"
   }
 }

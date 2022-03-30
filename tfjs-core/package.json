@@ -105,5 +105,8 @@
     "./src/register_all_gradients.mjs",
     "./src/public/chained_ops/*.mjs",
     "./src/io/*.mjs"
-  ]
+  ],
+  "resolutions": {
+    "minimist": "1.2.6"
+  }
 }

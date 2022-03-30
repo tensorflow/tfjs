@@ -25,5 +25,8 @@
     "@tensorflow/tfjs-converter": "^3.0.0-rc.1",
     "@tensorflow/tfjs-core": "^3.0.0-rc.1"
   },
+  "resolutions": {
+    "minimist": "1.2.6"
+  },
   "license": "Apache-2.0"
 }

@@ -16,10 +16,10 @@
  */
 
 import {util} from '@tensorflow/tfjs-core';
-import {getMainHeaderAndGlobalIndexString} from '../../shader_preprocessor';
 
-import {computeDispatch, flatDispatchLayout, WebGPULayout} from '../../webgpu_util';
+import {getMainHeaderAndGlobalIndexString} from '../../shader_preprocessor';
 import {WebGPUProgram} from '../../webgpu_program';
+import {computeDispatch, flatDispatchLayout, WebGPULayout} from '../../webgpu_util';
 
 export class FromPixelsProgram implements WebGPUProgram {
   outputShape: number[] = [0];
@@ -75,7 +75,7 @@ export class FromPixelsProgram implements WebGPUProgram {
           if (flatIndex < uniforms.size) {
             let coords = getCoordsFromIndex(flatIndexBase);
             let values = ${textureLoad};
-            result.numbers[flatIndex] = i32(floor(255.0 * values[i]));
+            result[flatIndex] = i32(floor(255.0 * values[i]));
           }
         }
       }
