@@ -1007,7 +1007,7 @@ describe('control', () => {
         const size = await executeOp(node, {input2}, context);
         expect(size.length).toEqual(1);
         expect(size[0].shape).toEqual([]);
-        test_util.expectArraysClose(size[0].dataSync(), new Int32Array([2]));
+        test_util.expectArraysClose(size[0].dataSync(), [2]);
       });
 
       it('should match json def', () => {
