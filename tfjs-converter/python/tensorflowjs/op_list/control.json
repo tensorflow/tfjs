@@ -810,5 +810,16 @@
         "type": "dtype"
       }
     ]
+  },
+  {
+    "tfOpName": "TensorListLength",
+    "category": "control",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "tensorListId",
+        "type": "tensor"
+      }
+    ]
   }
 ]

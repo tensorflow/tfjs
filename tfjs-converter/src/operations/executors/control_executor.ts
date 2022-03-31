@@ -366,6 +366,12 @@ export const executeOp: InternalOpAsyncExecutor = async(
       context.addTensorList(tensorList);
       return [tensorList.idTensor];
     }
+    case 'TensorListLength': {
+      const idTensor =
+          getParamValue('tensorListId', node, tensorMap, context) as Tensor;
+      const tensorList = context.getTensorList(idTensor.id);
+      return [scalar(tensorList.size(), 'int32')];
+    }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }

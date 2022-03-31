@@ -993,5 +993,29 @@ describe('control', () => {
         expect(validateParam(node, control.json)).toBeTruthy();
       });
     });
+
+    describe('TensorListLength', () => {
+      it('should get the size of tensorList', async () => {
+        const input4 = tensor1d([0, 0, 0], 'int32');
+        const input5 = tensor1d([1, 1, 1], 'int32');
+        const tensorList = new TensorList([input4, input5], [3], 'int32', 5);
+        context.addTensorList(tensorList);
+        node.op = 'TensorListLength';
+        node.inputParams['tensorListId'] = createTensorAttr(0);
+        node.inputNames = ['input2'];
+        const input2 = [tensorList.idTensor];
+        const size = await executeOp(node, {input2}, context);
+        expect(size.length).toEqual(1);
+        expect(size[0].shape).toEqual([]);
+        test_util.expectArraysClose(size[0].dataSync(), [2]);
+      });
+
+      it('should match json def', () => {
+        node.op = 'TensorListLength';
+        node.inputParams['tensorListId'] = createTensorAttr(0);
+
+        expect(validateParam(node, control.json)).toBeTruthy();
+      });
+    });
   });
 });
