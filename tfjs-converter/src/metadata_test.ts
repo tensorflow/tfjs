@@ -64,6 +64,7 @@ describe('kernel2op metadata file', () => {
       'TensorListPopBack',
       'TensorListPushBack',
       'TensorListReserve',
+      'TensorListResize',
       'TensorListScatter',
       'TensorListScatterV2',
       'TensorListSetItem',

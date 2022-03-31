@@ -1017,5 +1017,45 @@ describe('control', () => {
         expect(validateParam(node, control.json)).toBeTruthy();
       });
     });
+
+    describe('TensorListResize', () => {
+      it('should match the size when reducing the size', async () => {
+        const input4 = tensor1d([0, 0, 0], 'int32');
+        const input5 = tensor1d([1, 1, 1], 'int32');
+        const tensorList = new TensorList([input4, input5], [3], 'int32', 5);
+        context.addTensorList(tensorList);
+        node.op = 'TensorListResize';
+        node.inputParams['tensorListId'] = createTensorAttr(0);
+        node.inputParams['size'] = createNumberAttrFromIndex(1);
+        node.inputNames = ['input2', 'input3'];
+        const input2 = [tensorList.idTensor];
+        const input3 = [scalar(1)];
+        await executeOp(node, {input2, input3}, context);
+        expect(tensorList.size()).toEqual(1);
+      });
+
+      it('should match the size when increasing the size', async () => {
+        const input4 = tensor1d([0, 0, 0], 'int32');
+        const input5 = tensor1d([1, 1, 1], 'int32');
+        const tensorList = new TensorList([input4, input5], [3], 'int32', 5);
+        context.addTensorList(tensorList);
+        node.op = 'TensorListResize';
+        node.inputParams['tensorListId'] = createTensorAttr(0);
+        node.inputParams['size'] = createNumberAttrFromIndex(1);
+        node.inputNames = ['input2', 'input3'];
+        const input2 = [tensorList.idTensor];
+        const input3 = [scalar(3)];
+        await executeOp(node, {input2, input3}, context);
+        expect(tensorList.size()).toEqual(3);
+      });
+
+      it('should match json def', () => {
+        node.op = 'TensorListResize';
+        node.inputParams['tensorListId'] = createTensorAttr(0);
+        node.inputParams['size'] = createNumberAttrFromIndex(1);
+
+        expect(validateParam(node, control.json)).toBeTruthy();
+      });
+    });
   });
 });

@@ -821,5 +821,21 @@
         "type": "tensor"
       }
     ]
+  },
+  {
+    "tfOpName": "TensorListResize",
+    "category": "control",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "tensorListId",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "size",
+        "type": "number"
+      }
+    ]
   }
 ]
