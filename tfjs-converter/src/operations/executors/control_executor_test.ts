@@ -1030,23 +1030,27 @@ describe('control', () => {
         node.inputNames = ['input2', 'input3'];
         const input2 = [tensorList.idTensor];
         const input3 = [scalar(1)];
-        await executeOp(node, {input2, input3}, context);
-        expect(tensorList.size()).toEqual(1);
+        const tensorListId =
+            (await executeOp(node, {input2, input3}, context))[0];
+        const destTensorList = context.getTensorList(tensorListId.id);
+        expect(destTensorList.size()).toEqual(1);
       });
 
       it('should match the size when increasing the size', async () => {
         const input4 = tensor1d([0, 0, 0], 'int32');
         const input5 = tensor1d([1, 1, 1], 'int32');
-        const tensorList = new TensorList([input4, input5], [3], 'int32', 5);
-        context.addTensorList(tensorList);
+        const srcTensorList = new TensorList([input4, input5], [3], 'int32', 5);
+        context.addTensorList(srcTensorList);
         node.op = 'TensorListResize';
         node.inputParams['tensorListId'] = createTensorAttr(0);
         node.inputParams['size'] = createNumberAttrFromIndex(1);
         node.inputNames = ['input2', 'input3'];
-        const input2 = [tensorList.idTensor];
+        const input2 = [srcTensorList.idTensor];
         const input3 = [scalar(3)];
-        await executeOp(node, {input2, input3}, context);
-        expect(tensorList.size()).toEqual(3);
+        const destTensorListId =
+            (await executeOp(node, {input2, input3}, context))[0];
+        const destTensorList = context.getTensorList(destTensorListId.id);
+        expect(destTensorList.size()).toEqual(3);
       });
 
       it('should match json def', () => {

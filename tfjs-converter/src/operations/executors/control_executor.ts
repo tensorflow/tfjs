@@ -377,9 +377,10 @@ export const executeOp: InternalOpAsyncExecutor = async(
           getParamValue('tensorListId', node, tensorMap, context) as Tensor;
       const size = getParamValue('size', node, tensorMap, context) as number;
 
-      const tensorList = context.getTensorList(idTensor.id);
-      tensorList.resize(size);
-      return [tensorList.idTensor];
+      const srcTensorList = context.getTensorList(idTensor.id);
+      const destTensorList = srcTensorList.resize(size);
+      context.addTensorList(destTensorList);
+      return [destTensorList.idTensor];
     }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
