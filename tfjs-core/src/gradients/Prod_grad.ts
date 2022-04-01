@@ -33,7 +33,7 @@ function prodGradFn_(x: Tensor, dy: Tensor, axis: number): Tensor {
   expandedYShape[axis] = 1;
 
   // The actual gradient computation.
-  const expandedDy = reshape(dy as Tensor, expandedYShape);
+  const expandedDy = reshape(dy, expandedYShape);
   const xCumProd = cumprod(x, axis, true, false);
   const xCumRevProd = cumprod(x, axis, true, true);
   const dx = mul(xCumProd, xCumRevProd);
