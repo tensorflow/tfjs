@@ -28,7 +28,8 @@ export function fusedDepthwiseConv2D(args: {
 }) {
   const {inputs, backend, attrs} = args;
   const {x, filter, bias, preluActivationWeights} = inputs;
-  const {strides, pad, dilations, dimRoundingMode, activation} = attrs;
+  const {strides, pad, dilations, dimRoundingMode, activation, leakyreluAlpha} =
+      attrs;
 
   let $dilations = dilations;
   if ($dilations == null) {
@@ -84,7 +85,10 @@ export function fusedDepthwiseConv2D(args: {
         {type: 'int32', data: [convInfo.filterWidth]},
         {type: 'int32', data: [convInfo.outChannels / convInfo.inChannels]});
   }
-
+  if (activation === 'leakyrelu') {
+    dimensions.push({type: 'float32', data: [leakyreluAlpha]});
+    program.uniforms += ' alpha : f32,';
+  }
   const result =
       backend.runWebGPUProgram(program, programInputs, 'float32', dimensions);
 
