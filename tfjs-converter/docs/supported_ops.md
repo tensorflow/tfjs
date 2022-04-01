@@ -104,6 +104,7 @@
 |TensorListPopBack|TensorListPopBack|
 |TensorListPushBack|TensorListPushBack|
 |TensorListReserve|TensorListReserve|
+|TensorListResize|TensorListResize|
 |TensorListScatter|TensorListScatter|
 |TensorListScatterV2|TensorListScatterV2|
 |TensorListSetItem|TensorListSetItem|
