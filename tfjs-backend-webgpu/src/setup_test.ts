@@ -73,7 +73,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'conv2d ',
     excludes: [
-      'NCHW',      // Not yet implemented.
       'gradient',  // gradient function not found.
     ]
   },

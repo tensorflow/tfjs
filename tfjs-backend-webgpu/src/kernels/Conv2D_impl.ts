@@ -266,11 +266,11 @@ export function conv2DImpl({
     });
   }
   const useNaive = env().getBool('WEBGPU_USE_NAIVE_CONV2D');
-
+  const isChannelsLast = convInfo.dataFormat === 'channelsLast';
   const useVec4 =
       (convInfo.inChannels % 4 === 0 ||
        (convInfo.inChannels === 3 && convInfo.padInfo.type === 'VALID')) &&
-      convInfo.outChannels % 4 === 0;
+      convInfo.outChannels % 4 === 0 && isChannelsLast;
 
   const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
   const dimensions = [
@@ -291,10 +291,11 @@ export function conv2DImpl({
       program = new Conv2DMMProgram(
           convInfo, hasBias, activation, hasPreluActivationWeights);
     }
-    const dimAOuter = convInfo.outShape[1] * convInfo.outShape[2];
-    const dimBOuter = convInfo.outShape[3];
+
+    const dimAOuter = convInfo.outHeight * convInfo.outWidth;
+    const dimBOuter = convInfo.outChannels;
     const dimInner =
-        convInfo.filterHeight * convInfo.filterWidth * convInfo.inShape[3];
+        convInfo.filterHeight * convInfo.filterWidth * convInfo.inChannels;
     dimensions.push(
         {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
         {type: 'int32', data: [dimInner]});
