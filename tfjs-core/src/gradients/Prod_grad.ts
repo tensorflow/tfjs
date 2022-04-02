@@ -24,10 +24,10 @@ import {reshape} from '../ops/reshape';
 import {transpose} from '../ops/transpose';
 import {Tensor} from '../tensor';
 
-// Works on a single axis.
+// Gradient for product operation on a single axis.
 function prodGradFn_(x: Tensor, dy: Tensor, axis: number): Tensor {
-  // The gradent tensor (dy) has a set of axis removed, so we create re-shaped
-  // versions of size 1 for the removed axis; this supports broadcasting over
+  // The gradient tensor (dy) has a set of axes removed, so we create re-shaped
+  // versions (of size 1) for the removed axis; this supports broadcasting over
   // those dimensions.
   const expandedYShape = x.shape.slice();
   expandedYShape[axis] = 1;
@@ -40,17 +40,17 @@ function prodGradFn_(x: Tensor, dy: Tensor, axis: number): Tensor {
   return mul(expandedDy, dx);
 }
 
-// Support gradients when product is done on many axis at once.
-// This done py pushing all the axis on which the product is applied into a
+// Support gradients when the product is done on many axes at once.
+// This done py pushing all the axes on which the product is applied into a
 // single axis.
 function prodsGradFn_(x: Tensor, dy: Tensor, axis: number[]): Tensor {
-  // Move all axis for doing prod over to the end of the tensor.
+  // Move all axes for doing prod over to the end of the tensor.
   const xRank = x.shape.length;
   const finalProdAxis = xRank - axis.length;
   const xPermutation = backend_util.getAxesPermutation(axis, xRank);
   let permutedX = x;
   if (xPermutation != null) {
-    permutedX = transpose(x, xPermutation);  // [0,2,1] [2,0,1]
+    permutedX = transpose(x, xPermutation);
   }
 
   // Reshape all the prod dimensions into a single one, and do compute prod
@@ -63,7 +63,7 @@ function prodsGradFn_(x: Tensor, dy: Tensor, axis: number[]): Tensor {
   let prodGrad = prodGradFn_(reshapedPermutedX, dy, finalProdAxis);
 
   // Undo the re-shaping now we have the dx vector, and permute back to
-  // original axis order.
+  // original axes order.
   prodGrad = prodGrad.reshape(permutedX.shape);
   if (xPermutation != null) {
     const undoPermutation = backend_util.getUndoAxesPermutation(xPermutation);

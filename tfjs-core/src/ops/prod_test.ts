@@ -120,13 +120,40 @@ describeWithFlags('prod', ALL_ENVS, () => {
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
     expectArraysClose(await gradients.array(), [
-      [
+      [ // (axis 1 values) * (dy)
         [5 * 7 * 10, 6 * 8 * 10], [3 * 7 * 10, 4 * 8 * 10],
         [3 * 5 * 10, 4 * 6 * 10]
       ],
       [
         [0 * 5 * 10, 6 * 6 * 10], [3 * 5 * 10, 5 * 6 * 10],
         [3 * 0 * 10, 5 * 6 * 10]
+      ]
+    ]);
+  });
+
+  it('gradients: prod(reduce on 2 axes)', async () => {
+    const a = tf.tensor([
+      [[3.0, 4.0], [5.0, 6.0], [7.0, 8.0]],
+      [[3.0, 5.0], [0.0, 6.0], [5.0, 6.0]]
+    ]);
+    const dy = tf.tensor([10, 10]);
+
+    const gradients = tf.grad(a => a.prod([0, 1]))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+
+    expectArraysClose(await gradients.array(), [
+      [
+        // (axis 0 values) * (axis 1 values) * (dy)
+        [3 * 0 * 5 * (5 * 7) * 10, 5 * 6 * 6 * (6 * 8) * 10],
+        [3 * 0 * 5 * (3 * 7) * 10, 5 * 6 * 6 * (4 * 8) * 10],
+        [3 * 0 * 5 * (3 * 5) * 10, 5 * 6 * 6 * (4 * 6) * 10]
+      ],
+      [
+        [3 * 5 * 7 * (0 * 5) * 10, 4 * 6 * 8 * (6 * 6) * 10],
+        [3 * 5 * 7 * (3 * 5) * 10, 4 * 6 * 8 * (5 * 6) * 10],
+        [3 * 5 * 7 * (3 * 0) * 10, 4 * 6 * 8 * (5 * 6) * 10]
       ]
     ]);
   });
