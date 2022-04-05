@@ -29,21 +29,15 @@ const TEST_FILTERS: TestFilter[] = [
   // skip test cases include 5D, 6D, gradients webgpu
   {
     include: '5D',
-    excludes: [
-      'webgpu '
-    ],
+    excludes: ['webgpu '],
   },
   {
     include: '6D',
-    excludes: [
-      'webgpu '
-    ],
+    excludes: ['webgpu '],
   },
   {
     include: 'gradients webgpu',
-    excludes: [
-      'webgpu '
-    ],
+    excludes: ['webgpu '],
   },
 
   // skip specific test cases for supported kernels
@@ -57,7 +51,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'avgPool ',
     excludes: [
-      'gradient',   // Not yet implemented.
+      'gradient',  // Not yet implemented.
       //'avgPool3d',  // Not yet implemented.
     ]
   },
@@ -109,23 +103,20 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // conv2dDerInput not yet
                                                    // implemented
-      'backProp',   // Conv2DBackpropFilter not yet
-                    // implemented
-      'leakyrelu',  // Not yet implemented
+      'backProp',  // Conv2DBackpropFilter not yet
+                   // implemented
     ]
   },
   {
     startsWith: 'fused depthwiseConv2D ',
     excludes: [
-      'gradient',   // DepthwiseConv2dNativeBackpropInput
-      'leakyrelu',  // Not yet implemented
+      'gradient',  // DepthwiseConv2dNativeBackpropInput
     ]
   },
   {
     startsWith: 'fused matmul ',
     excludes: [
-      'leakyrelu',  // Not yet implemented.
-      'gradient',   // Not yet implemented.
+      'gradient',  // Not yet implemented.
     ]
   },
   {
@@ -296,6 +287,7 @@ const TEST_FILTERS: TestFilter[] = [
       'conv1d gradients',  // Conv2DBackpropFilter
       'conv3d ',
       'conv3dTranspose ',
+      'cumprod ',
       'cumsum ',
       'decodeWeights ',
       'denseBincount ',

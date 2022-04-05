@@ -104,6 +104,17 @@ export const executeOp: InternalOpExecutor =
               getParamValue('x', node, tensorMap, context) as Tensor, axis,
               keepDims)];
         }
+        case 'Cumprod': {
+          const axis =
+              getParamValue('axis', node, tensorMap, context) as number;
+          const exclusive =
+              getParamValue('exclusive', node, tensorMap, context) as boolean;
+          const reverse =
+              getParamValue('reverse', node, tensorMap, context) as boolean;
+          return [tfOps.cumprod(
+              getParamValue('x', node, tensorMap, context) as Tensor, axis,
+              exclusive, reverse)];
+        }
         case 'Cumsum': {
           const axis =
               getParamValue('axis', node, tensorMap, context) as number;

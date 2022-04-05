@@ -28,7 +28,8 @@ export function fusedDepthwiseConv2D(args: {
 }) {
   const {inputs, backend, attrs} = args;
   const {x, filter, bias, preluActivationWeights} = inputs;
-  const {strides, pad, dilations, dimRoundingMode, activation} = attrs;
+  const {strides, pad, dilations, dimRoundingMode, activation, leakyreluAlpha} =
+      attrs;
 
   let $dilations = dilations;
   if ($dilations == null) {
@@ -72,17 +73,22 @@ export function fusedDepthwiseConv2D(args: {
       convInfo.strideWidth === 1 &&
       convInfo.filterHeight === convInfo.filterWidth &&
       convInfo.inChannels === convInfo.outChannels &&
+      convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
       convInfo.filterHeight === 3 && convInfo.inChannels % 4 === 0) {
     program = new DepthwiseConv2D3x3Program(
         convInfo, hasBias, activation, hasPreluActivationWeights);
   } else {
     program = new DepthwiseConv2DProgram(
         convInfo, hasBias, activation, hasPreluActivationWeights);
-    dimensions.push({type: 'int32', data: [convInfo.filterHeight]},
+    dimensions.push(
+        {type: 'int32', data: [convInfo.filterHeight]},
         {type: 'int32', data: [convInfo.filterWidth]},
         {type: 'int32', data: [convInfo.outChannels / convInfo.inChannels]});
   }
-
+  if (activation === 'leakyrelu') {
+    dimensions.push({type: 'float32', data: [leakyreluAlpha]});
+    program.uniforms += ' alpha : f32,';
+  }
   const result =
       backend.runWebGPUProgram(program, programInputs, 'float32', dimensions);
 

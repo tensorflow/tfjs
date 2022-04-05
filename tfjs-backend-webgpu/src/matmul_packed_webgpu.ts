@@ -17,11 +17,10 @@
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import {getMainHeaderString} from './shader_preprocessor';
-import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from './webgpu_util';
-
 import {mapActivationToShaderProgram} from './activation_util';
+import {getMainHeaderString} from './shader_preprocessor';
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, computeWorkGroupSizeForMatMul, tilesFitEvenlyIntoShape} from './webgpu_util';
 
 export function makeMatMulPackedSource(
     workPerThread: number[], workGroupSize: [number, number, number]): string {
@@ -178,7 +177,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workPerThread: number;
   variableNames = ['A', 'B'];
-  uniforms = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
+  uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
   workGroupSize: [number, number, number] = [16, 16, 1];
   aShape: [number, number, number];
   transposeA: boolean;
@@ -271,16 +270,16 @@ export class MatMulPackedProgram implements WebGPUProgram {
 
     if (this.transposeA === false) {
       sampleA = this.fitA ?
-          `return A.numbers[batch * batchASize + row * uniforms.dimInner + col];` :
+          `return A[batch * batchASize + row * uniforms.dimInner + col];` :
           `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-             return A.numbers[batch * batchASize + row * uniforms.dimInner + col];
+             return A[batch * batchASize + row * uniforms.dimInner + col];
            }
            return 0.0;`;
     } else {
       sampleA = this.fitA ?
-          `return A.numbers[batch * batchASize + col * uniforms.dimAOuter + row];` :
+          `return A[batch * batchASize + col * uniforms.dimAOuter + row];` :
           `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-             return A.numbers[batch* batchASize + col * uniforms.dimAOuter + row];
+             return A[batch* batchASize + col * uniforms.dimAOuter + row];
            }
            return 0.0;`;
     }
@@ -288,16 +287,16 @@ export class MatMulPackedProgram implements WebGPUProgram {
     let sampleB;
     if (this.transposeB === false) {
       sampleB = this.fitB ?
-          `return B.numbers[batch * batchBSize + row * uniforms.dimBOuter + col];` :
+          `return B[batch * batchBSize + row * uniforms.dimBOuter + col];` :
           `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-             return B.numbers[batch * batchBSize + row * uniforms.dimBOuter + col];
+             return B[batch * batchBSize + row * uniforms.dimBOuter + col];
            }
            return 0.0;`;
     } else {
       sampleB = this.fitB ?
-          `return B.numbers[batch * batchBSize + col * uniforms.dimInner + row];` :
+          `return B[batch * batchBSize + col * uniforms.dimInner + row];` :
           `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-             return B.numbers[batch * batchBSize + col * uniforms.dimInner + row];
+             return B[batch * batchBSize + col * uniforms.dimInner + row];
            }
            return 0.0;`;
     }
@@ -322,9 +321,8 @@ export class MatMulPackedProgram implements WebGPUProgram {
       applyActivationSnippet = 'value = activation(value, outCoord);';
     }
 
-    const addBiasSnippet = this.addBias ?
-        'value = value + getBiasByOutputCoords(outCoord);' :
-        '';
+    const addBiasSnippet =
+        this.addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
 
     const userCode = `
       ${activationSnippet}

@@ -28,7 +28,6 @@ export enum UnaryOpType {
   LOG,
   LOGICAL_NOT,
   NEG,
-  PRELU,
   RELU,
   RELU6,
   LEAKYRELU,
@@ -74,8 +73,11 @@ const LOG = `if (a < 0.0) { return 1.0/0.0; }
   return log(a);`;
 const LOGICAL_NOT = `return f32(!(a >= 1.0));`;
 const NEG = `return -a;`;
-const PRELU = `return (a < 0.0) ? b * a : a;`;
 const LEAKYRELU = `if (a < 0.0) { return uniforms.alpha * a; } return a;`;
+const LEAKYRELU_VEC4 = `
+  let aLessThanZero = vec4<f32>(a < vec4<f32>(0.0));
+  return (aLessThanZero * (uniforms.alpha * a)) + ((vec4<f32>(1.0) - aLessThanZero) * a);
+`;
 const RELU = `if(a < 0.0) { return 0.0; } return a;`;
 const RELU6 = 'return clamp(a, 0.0, 6.0);';
 const RELU6_VEC4 =
@@ -139,10 +141,8 @@ export function getUnaryOpString(type: UnaryOpType, useVec4?: boolean): string {
       return LOGICAL_NOT;
     case UnaryOpType.NEG:
       return NEG;
-    case UnaryOpType.PRELU:
-      return PRELU;
     case UnaryOpType.LEAKYRELU:
-      return LEAKYRELU;
+      return useVec4 ? LEAKYRELU_VEC4 : LEAKYRELU;
     case UnaryOpType.RELU:
       return useVec4 ? RELU_VEC4 : RELU;
     case UnaryOpType.RELU6:

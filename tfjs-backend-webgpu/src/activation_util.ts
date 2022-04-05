@@ -35,7 +35,9 @@ export function mapActivationToShaderProgram(
   } else if (activation === 'prelu') {
     return getBinaryOpString(BinaryOpType.PRELU, packed);
   } else if (activation === 'sigmoid') {
-    return getUnaryOpString(UnaryOpType.SIGMOID);
+    return getUnaryOpString(UnaryOpType.SIGMOID, packed);
+  } else if (activation === 'leakyrelu') {
+    return getUnaryOpString(UnaryOpType.LEAKYRELU, packed);
   }
   throw new Error(`Activation ${
       activation} has not been implemented for the WebGPU backend.`);

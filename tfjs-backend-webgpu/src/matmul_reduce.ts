@@ -17,11 +17,10 @@
 
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
-import {getMainHeaderString} from './shader_preprocessor';
-import {computeDispatch} from './webgpu_util';
-
 import {mapActivationToShaderProgram} from './activation_util';
+import {getMainHeaderString} from './shader_preprocessor';
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch} from './webgpu_util';
 
 export function makeMatMulReduceSource(): string {
   return `
@@ -64,7 +63,7 @@ export class MatMulReduceProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
-  uniforms = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
+  uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
   workGroupSize: [number, number, number] = [256, 1, 1];
   transposeA: boolean;
   transposeB: boolean;
@@ -104,20 +103,18 @@ export class MatMulReduceProgram implements WebGPUProgram {
   getUserCode(): string {
     let sampleA;
     if (this.transposeA === false) {
-      sampleA =
-          `return A.numbers[batch * batchASize + row * uniforms.dimInner + col];`;
+      sampleA = `return A[batch * batchASize + row * uniforms.dimInner + col];`;
     } else {
       sampleA =
-          `return A.numbers[batch * batchASize + col * uniforms.dimAOuter + row];`;
+          `return A[batch * batchASize + col * uniforms.dimAOuter + row];`;
     }
 
     let sampleB;
     if (this.transposeB === false) {
       sampleB =
-          `return B.numbers[batch * batchBSize + row * uniforms.dimBOuter + col];`;
+          `return B[batch * batchBSize + row * uniforms.dimBOuter + col];`;
     } else {
-      sampleB =
-          `return B.numbers[batch * batchBSize + col * uniforms.dimInner + row];`;
+      sampleB = `return B[batch * batchBSize + col * uniforms.dimInner + row];`;
     }
 
     let activationSnippet = '', applyActivationSnippet = '';
@@ -140,9 +137,8 @@ export class MatMulReduceProgram implements WebGPUProgram {
       applyActivationSnippet = 'value = activation(value, outCoord);';
     }
 
-    const addBiasSnippet = this.addBias ?
-        'value = value + getBiasByOutputCoords(outCoord);' :
-        '';
+    const addBiasSnippet =
+        this.addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
 
     const userCode = `
       ${activationSnippet}

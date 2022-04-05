@@ -16,9 +16,8 @@
  */
 
 import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class RotateProgram implements WebGPUProgram {
   outputShape: number[] = [];
@@ -38,17 +37,17 @@ export class RotateProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.uniforms = `centerX : f32; centerY : f32; sinRadians : f32;
-          cosRadians : f32;`;
+    this.uniforms = `centerX : f32, centerY : f32, sinRadians : f32,
+          cosRadians : f32,`;
     this.shaderKey = 'rotate';
     this.outputShape = imageShape;
 
     if (typeof fillValue === 'number') {
-      this.uniforms += ` fillValue : f32;`;
+      this.uniforms += ` fillValue : f32,`;
       this.fillSnippet = `var outputValue = uniforms.fillValue;`;
       this.shaderKey += '_float';
     } else {
-      this.uniforms += ` fillValue : vec3<f32>;`;
+      this.uniforms += ` fillValue : vec3<f32>,`;
       this.fillSnippet = `var outputValue = uniforms.fillValue[coords[3]];`;
       this.shaderKey += '_vec3';
     }

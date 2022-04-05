@@ -18,9 +18,8 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ArgMinMaxProgram implements WebGPUProgram {
   outputShape: number[];
@@ -29,7 +28,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
   variableNames = ['x'];
-  uniforms = 'axis : i32; infinityValue : f32;';
+  uniforms = 'axis : i32, infinityValue : f32,';
   inputShape: number[];
   reductionFactor: number;
   op: string;
@@ -129,7 +128,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
         for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
             k = k + i32(workGroupSizeX)) {
-          let candidate = f32(x.numbers[getInputIndex(coordInfo, k)]);
+          let candidate = f32(x[getInputIndex(coordInfo, k)]);
           if (!isnan(candidate) && candidate ${this.op} bestValue) {
             bestValue = candidate;
             bestIndex = k;

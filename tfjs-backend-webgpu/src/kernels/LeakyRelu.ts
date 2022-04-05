@@ -15,21 +15,23 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, LeakyRelu,
-  LeakyReluInputs, LeakyReluAttrs, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, LeakyRelu, LeakyReluAttrs, LeakyReluInputs, TensorInfo} from '@tensorflow/tfjs-core';
+
 import {WebGPUBackend} from '../backend_webgpu';
 import {UnaryOpType} from '../unary_op_util';
 import {UnaryOpProgram} from '../unary_op_webgpu';
 
-export function leakyRelu(args:
-  {inputs: LeakyReluInputs, backend: WebGPUBackend, attrs: LeakyReluAttrs}):
- TensorInfo {
+export function leakyRelu(args: {
+  inputs: LeakyReluInputs,
+  backend: WebGPUBackend,
+  attrs: LeakyReluAttrs
+}): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
   const {alpha} = attrs;
   const uniformData = [{type: 'float32', data: [alpha]}];
   const program = new UnaryOpProgram(x.shape, UnaryOpType.LEAKYRELU);
-  program.uniforms = 'alpha : f32;';
+  program.uniforms = 'alpha : f32,';
   return backend.runWebGPUProgram(program, [x], 'float32', uniformData);
 }
 

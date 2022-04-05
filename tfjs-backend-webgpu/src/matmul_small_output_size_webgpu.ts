@@ -16,8 +16,9 @@
  */
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
-import {getMainHeaderString} from './shader_preprocessor';
+
 import {mapActivationToShaderProgram} from './activation_util';
+import {getMainHeaderString} from './shader_preprocessor';
 import {WebGPUProgram} from './webgpu_program';
 
 export function makeMatMulSmallOutputSizeSource(
@@ -121,7 +122,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
-  uniforms = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
+  uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
   workGroupSize: [number, number, number] = [8, 16, 1];
   addBias: boolean;
   activation: backend_util.Activation;
@@ -164,13 +165,13 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
   getUserCode(): string {
     const sampleA =
         `if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-          return A.numbers[batch * batchASize + row * uniforms.dimInner + col];
+          return A[batch * batchASize + row * uniforms.dimInner + col];
         }
         return 0.0;`;
 
     const sampleB =
         `if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-           return B.numbers[batch * batchBSize + row * uniforms.dimBOuter + col];
+           return B[batch * batchBSize + row * uniforms.dimBOuter + col];
          }
          return 0.0;`;
 
@@ -193,9 +194,8 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
       applyActivationSnippet = 'value = activation(value, outCoord);';
     }
 
-    const addBiasSnippet = this.addBias ?
-        'value = value + getBiasByOutputCoords(outCoord);' :
-        '';
+    const addBiasSnippet =
+        this.addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
 
     const userCode = `
       ${activationSnippet}

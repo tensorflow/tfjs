@@ -29,5 +29,9 @@
     "terser-webpack-plugin": "^4.2.1",
     "webpack": "^5.5.1",
     "webpack-cli": "^4.2.0"
+  },
+  "resolutions": {
+    "node-fetch": "2.6.7",
+    "minimist": "1.2.6"
   }
 }

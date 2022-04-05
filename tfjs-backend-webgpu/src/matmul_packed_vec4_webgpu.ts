@@ -17,16 +17,16 @@
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
+import {mapActivationToShaderProgram} from './activation_util';
 import {getMainHeaderString} from './shader_preprocessor';
+import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, tilesFitEvenlyIntoShape} from './webgpu_util';
 
-import {mapActivationToShaderProgram} from './activation_util';
-import {WebGPUProgram} from './webgpu_program';
-
-export function makeMatMulPackedVec4Source(workPerThread: number[],
-    tileAOuter: number, tileBOuter: number, tileInner: number): string {
+export function makeMatMulPackedVec4Source(
+    workPerThread: number[], tileAOuter: number, tileBOuter: number,
+    tileInner: number): string {
   util.assert(
-    tileInner % 4 === 0 && workPerThread[0] === 4,
+      tileInner % 4 === 0 && workPerThread[0] === 4,
       () => 'tileInner must be divisible by 4. And ColPerThread must be 4');
   return `
   var<workgroup> mm_Asub : array<array<vec4<f32>, ${
@@ -44,7 +44,7 @@ export function makeMatMulPackedVec4Source(workPerThread: number[],
     let tileCol = i32(localId.x);
 
     let globalRow = ${
-        tileAOuter === 1 ? '0' : 'i32(globalId.y) * RowPerThread'};
+      tileAOuter === 1 ? '0' : 'i32(globalId.y) * RowPerThread'};
     let globalCol = i32(globalId.x);
     let numTiles = (uniforms.dimInner - 1) / TileInner + 1;
 
@@ -107,7 +107,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
-  uniforms = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
+  uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
   workGroupSize: [number, number, number] = [8, 8, 1];
   elementsPerThread: [number, number, number];
   isVec4 = true;
@@ -115,9 +115,9 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
-  tileAOuter:number;
-  tileBOuter:number;
-  tileInner:number;
+  tileAOuter: number;
+  tileBOuter: number;
+  tileInner: number;
   fitA: boolean;
   fitB: boolean;
 
@@ -148,7 +148,8 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
       this.variableNames.push('preluActivationWeights');
     }
 
-    this.tileAOuter = outputShape[1] === 1 ? 1 :
+    this.tileAOuter = outputShape[1] === 1 ?
+        1 :
         this.workGroupSize[1] * this.elementsPerThread[1];
     this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
     this.tileInner = this.tileBOuter;
@@ -160,8 +161,8 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
 
     [this.fitA, this.fitB] = this.getShapeFit();
 
-    this.shaderKey = `matMulPackedVec4_${this.activation}_${
-        this.fitA}_${this.fitB}_${this.elementsPerThread}`;
+    this.shaderKey = `matMulPackedVec4_${this.activation}_${this.fitA}_${
+        this.fitB}_${this.elementsPerThread}`;
   }
 
   getShapeFit(): boolean[] {
@@ -179,16 +180,16 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
 
   getUserCode(): string {
     const sampleA = this.fitA ?
-        `return A.numbers[batch * batchASize + row * uniforms.dimInner / 4 + col]` :
+        `return A[batch * batchASize + row * uniforms.dimInner / 4 + col]` :
         `if (coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-            return A.numbers[batch * batchASize + row * uniforms.dimInner / 4 + col];
+            return A[batch * batchASize + row * uniforms.dimInner / 4 + col];
         }
         return vec4<f32>(0.0)`;
 
     const sampleB = this.fitB ?
-        `return B.numbers[batch * batchBSize + row * uniforms.dimBOuter / 4 + col]` :
+        `return B[batch * batchBSize + row * uniforms.dimBOuter / 4 + col]` :
         `if(coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-             return B.numbers[batch * batchBSize + row * uniforms.dimBOuter / 4 + col];
+             return B[batch * batchBSize + row * uniforms.dimBOuter / 4 + col];
         }
         return vec4<f32>(0.0)`;
 
@@ -211,9 +212,8 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
 
       applyActivationSnippet = 'value = activation(value, outCoord);';
     }
-    const addBiasSnippet = this.addBias ?
-        'value = value + getBiasByOutputCoords(outCoord);' :
-        '';
+    const addBiasSnippet =
+        this.addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
 
     const userCode = `
       ${activationSnippet}
@@ -240,8 +240,10 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
           setOutputAtCoords(outCoord[0], outCoord[1], outCoord[2], value);
         }
       }
-      ${makeMatMulPackedVec4Source(this.elementsPerThread,
-          this.tileAOuter, this.tileBOuter, this.tileInner)}
+      ${
+        makeMatMulPackedVec4Source(
+            this.elementsPerThread, this.tileAOuter, this.tileBOuter,
+            this.tileInner)}
     `;
 
     return userCode;

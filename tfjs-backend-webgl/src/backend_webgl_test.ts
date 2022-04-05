@@ -1033,3 +1033,78 @@ describeWithFlags('custom canvas ', WEBGL_ENVS, () => {
     tf.removeBackend(customBackendName);
   });
 });
+describeWithFlags('Parallel compilation', WEBGL_ENVS, () => {
+  // TODO(lina128): Also test async after parallel compilation flag is
+  // implemented in context object. We have to keep the test sync for now,
+  // because it's a global flag, the async test will affect other tests.
+  it('does not have memory leak.', () => {
+    const savedWebGLCPUForward = tf.env().get('WEBGL_CPU_FORWARD');
+    tf.env().set('WEBGL_CPU_FORWARD', false);
+
+    const customWebGLBackendName = 'my-webgl';
+    tf.copyRegisteredKernels('webgl', customWebGLBackendName);
+    tf.registerBackend(customWebGLBackendName, () => {
+      return new MathBackendWebGL();
+    });
+    tf.setBackend(customWebGLBackendName);
+
+    const a0 = tf.tensor1d([1, 1, 1]);
+    const b0 = tf.tensor1d([1, 1, 1]);
+    const c0 = tf.add(a0, b0);
+    const data = c0.dataSync();
+
+    expectArraysClose(data, [2, 2, 2]);
+    tf.dispose([a0, b0, c0]);
+    tf.removeBackend(customWebGLBackendName);
+
+    // TODO(lina128): Also test use an existing backend after parallel
+    // compilation flag is implemented in context object. The current approach
+    // assumes there's no binary cache, and it doesn't check existing cache.
+    const customWebGLBackendName1 = 'my-webgl1';
+    tf.copyRegisteredKernels('webgl', customWebGLBackendName1);
+    tf.registerBackend(customWebGLBackendName1, () => {
+      return new MathBackendWebGL();
+    });
+    tf.setBackend(customWebGLBackendName1);
+    const webGLBackend = tf.backend() as MathBackendWebGL;
+
+    const startNumBytes = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
+    const startTensor = tf.memory().numTensors;
+    const startDataBuckets = webGLBackend.numDataIds();
+
+    const a1 = tf.tensor1d([1, 1, 1]);
+    const b1 = tf.tensor1d([1, 1, 1]);
+
+    // Pre-compile round.
+    tf.env().set('ENGINE_COMPILE_ONLY', true);
+    const c1 = tf.add(a1, b1);
+    webGLBackend.checkCompileCompletion();
+    webGLBackend.getUniformLocations();
+
+    // Warm-up upload and download round.
+    tf.env().set('ENGINE_COMPILE_ONLY', false);
+    const c2 = tf.add(a1, b1);
+    c2.dataSync();
+
+    // Actual inference.
+    const c3 = tf.add(a1, b1);
+    expectArraysEqual(c3.dataSync(), [2, 2, 2]);
+
+    tf.dispose([a1, b1, c1, c2, c3]);
+    const endNumBytes = (tf.memory() as WebGLMemoryInfo).numBytesInGPU;
+    const endTensor = tf.memory().numTensors;
+    const endDataBuckets = webGLBackend.numDataIds();
+
+    // We only check numBytesInGPU. For parallel compilation,
+    // numBytesInGPUAllocated will be more because of the two pass uploadToGPU,
+    // but they will all be freed, resulting in endNumbytes equal to
+    // startNumBytes.
+    expect(startNumBytes).toEqual(endNumBytes);
+    expect(startTensor).toEqual(endTensor);
+    expect(endDataBuckets).toEqual(startDataBuckets);
+
+    tf.removeBackend(customWebGLBackendName1);
+
+    tf.env().set('WEBGL_CPU_FORWARD', savedWebGLCPUForward);
+  });
+});

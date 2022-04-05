@@ -17,11 +17,10 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d, tilesFitEvenlyIntoShape} from './webgpu_util';
 import {mapActivationToShaderProgram} from './activation_util';
-
 import {makeMatMulPackedSource} from './matmul_packed_webgpu';
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d, tilesFitEvenlyIntoShape} from './webgpu_util';
 
 export class Conv2DMMProgram implements WebGPUProgram {
   outputShape: number[];
@@ -30,7 +29,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
   uniforms =
-      `filterDims : vec2<i32>; pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>; dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
+      `filterDims : vec2<i32>, pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
   workGroupSize: [number, number, number];
   elementsPerThread: [number, number, number];
   convInfo: backend_util.Conv2DInfo;
@@ -117,7 +116,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
     // The bounds checking is always needed since we use it to pad zero for the
     // 'same' padding type.
     if(coordsInBounds4D(coord, uniforms.xShape)) {
-      return x.numbers[getIndexFromCoords4D(coord, uniforms.xShape)];
+      return x[getIndexFromCoords4D(coord, uniforms.xShape)];
     }
     return 0.0;`;
 
@@ -130,9 +129,9 @@ export class Conv2DMMProgram implements WebGPUProgram {
     `;
 
     const sampleB = this.fitB ?
-        `return W.numbers[row * uniforms.dimBOuter + col];` :
+        `return W[row * uniforms.dimBOuter + col];` :
         `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-           return W.numbers[row * uniforms.dimBOuter + col];
+           return W[row * uniforms.dimBOuter + col];
 	 }
 	 return 0.0;
 	 `;
@@ -157,9 +156,8 @@ export class Conv2DMMProgram implements WebGPUProgram {
       applyActivationSnippet = `value = activation(value, outCoord);`;
     }
 
-    const addBiasSnippet = this.addBias ?
-        'value = value + getBiasByOutputCoords(outCoord);' :
-        '';
+    const addBiasSnippet =
+        this.addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
 
     const userCode = `
     ${activationSnippet}
@@ -182,7 +180,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
           col);
       ${addBiasSnippet}
       ${applyActivationSnippet}
-      result.numbers[getIndexFromCoords4D(outCoord, uniforms.outShape)] = value;
+      result[getIndexFromCoords4D(outCoord, uniforms.outShape)] = value;
     }
     ${matMulSource}
   `;

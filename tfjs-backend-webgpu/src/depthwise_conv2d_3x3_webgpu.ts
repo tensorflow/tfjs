@@ -17,11 +17,10 @@
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
-import {getWorkGroupSizeString} from './shader_preprocessor';
-import {computeDispatch} from './webgpu_util';
-
 import {mapActivationToShaderProgram} from './activation_util';
+import {getWorkGroupSizeString} from './shader_preprocessor';
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch} from './webgpu_util';
 
 export class DepthwiseConv2D3x3Program implements WebGPUProgram {
   outputShape: number[];
@@ -30,7 +29,7 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
   uniforms =
-      'pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>; inDims : vec2<i32>;';
+      'pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>, inDims : vec2<i32>,';
   workGroupSize: [number, number, number] = [4, 4, 4];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;

@@ -191,7 +191,7 @@ export class OperationMapper {
       category: mapper.category,
       inputNames:
           (node.input ||
-           []).map(input => input.startsWith('^') ? input.substr(1) : input),
+           []).map(input => input.startsWith('^') ? input.slice(1) : input),
       inputs: [],
       children: [],
       inputParams: {},
