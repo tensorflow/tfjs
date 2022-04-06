@@ -12,7 +12,7 @@
  * Executor: Evaluates SymbolicTensor based on feeds.
  */
 
-import {cast, dispose, memory, Tensor, util} from '@tensorflow/tfjs-core';
+import {cast, dispose, env, memory, Tensor, util} from '@tensorflow/tfjs-core';
 
 import {ValueError} from '../errors';
 import {Kwargs} from '../types';
@@ -182,13 +182,42 @@ export class FeedDict {
   }
 }
 
+export class LruCache<T> {
+  private cache: Map<string, T>;
+  private maxEntries: number;
+
+  constructor(maxEntries?: number) {
+      this.maxEntries = maxEntries || env().getNumber('LRU_CACHE_MAX_ENTRIES');
+      this.cache = new Map<string, T>();
+  }
+
+  public get(key: string): T {
+    let entry: T;
+    if (this.cache.has(key)) {
+      entry = this.cache.get(key);
+      this.cache.delete(key);
+      this.cache.set(key, entry);
+    }
+    return entry;
+  }
+
+  public put(key: string, value: T) {
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    }else if (this.cache.size >= this.maxEntries) {
+      const keyToDelete = this.cache.keys().next().value;
+      this.cache.delete(keyToDelete);
+    }
+    this.cache.set(key, value);
+  }
+}
+
 // Cache for topologically sorted SymbolicTensors for given execution
 // targets (i.e., fetches).
-const cachedSorted: {[concatFetchNames: string]: SymbolicTensor[]} = {};
+const cachedSorted: LruCache<SymbolicTensor[]> = new LruCache<SymbolicTensor[]>();
 
 // Cache for recipient count maps for given execution targets (i.e., fetches).
-const cachedRecipientCounts:
-    {[concatFetchNames: string]: {[fetchName: string]: number}} = {};
+const cachedRecipientCounts: LruCache<RecipientCounts> = new LruCache<RecipientCounts>();
 
 /**
  * Interface for the optional object used for probing the memory
@@ -261,9 +290,9 @@ export function execute(
   // Check cache.
   const fetchAndFeedKey =
       outputNames.join(',') + '|' + feedDict.names().join(',');
-  let sorted: SymbolicTensor[];
+  let sorted: SymbolicTensor[] = cachedSorted.get(fetchAndFeedKey);
   let recipientCounts: {[fetchName: string]: number};
-  if (cachedSorted[fetchAndFeedKey] == null) {
+  if (sorted == null) {
     // Cache doesn't contain the desired combination of fetches. Compute
     // topological sort for the combination for the first time.
     const out = getTopologicalSortAndRecipientCounts(fetchArray, feedDict);
@@ -271,13 +300,12 @@ export function execute(
     recipientCounts = out.recipientCounts;
 
     // Store results in cache for future use.
-    cachedSorted[fetchAndFeedKey] = sorted;
-    cachedRecipientCounts[fetchAndFeedKey] = recipientCounts;
+    cachedSorted.put(fetchAndFeedKey, sorted);
+    cachedRecipientCounts.put(fetchAndFeedKey, recipientCounts);
   }
-  sorted = cachedSorted[fetchAndFeedKey];
   recipientCounts = {};
   if (!training) {
-    Object.assign(recipientCounts, cachedRecipientCounts[fetchAndFeedKey]);
+    Object.assign(recipientCounts, cachedRecipientCounts.get(fetchAndFeedKey));
   }
 
   const internalFeedDict = new FeedDict(feedDict);
