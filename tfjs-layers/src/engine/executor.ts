@@ -182,6 +182,11 @@ export class FeedDict {
   }
 }
 
+/**
+ * LruCache: A mapping from the String to T. If the number of the entries is
+ * exceeding the `maxEntries`, the LruCache will delete the least recently
+ * used entry.
+ */
 export class LruCache<T> {
   private cache: Map<string, T>;
   private maxEntries: number;
@@ -191,6 +196,9 @@ export class LruCache<T> {
       this.cache = new Map<string, T>();
   }
 
+  /**
+   * Get the entry for the key and mark it as used recently.
+   */
   public get(key: string): T {
     let entry: T;
     if (this.cache.has(key)) {
@@ -201,6 +209,10 @@ export class LruCache<T> {
     return entry;
   }
 
+  /**
+   * Put the entry into the cache. If the key already existed, mark the key as
+   * used recently.
+   */
   public put(key: string, value: T) {
     if (this.cache.has(key)) {
       this.cache.delete(key);
