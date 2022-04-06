@@ -8,8 +8,8 @@
   ],
   "compilerOptions": {
     "typeRoots": [
-      "./node_modules/@types",
-      "./node_modules/@webgpu"
+      "../node_modules/@types",
+      "../node_modules/@webgpu"
     ],
     "outDir": "./dist",
     "target": "es2017"
