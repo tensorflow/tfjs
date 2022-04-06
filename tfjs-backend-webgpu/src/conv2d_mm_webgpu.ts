@@ -20,7 +20,7 @@ import {backend_util, util} from '@tensorflow/tfjs-core';
 import {mapActivationToShaderProgram} from './activation_util';
 import {makeMatMulPackedSource} from './matmul_packed_webgpu';
 import {WebGPUProgram} from './webgpu_program';
-import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d, tilesFitEvenlyIntoShape} from './webgpu_util';
+import {computeDispatch, tilesFitEvenlyIntoShape} from './webgpu_util';
 
 export class Conv2DMMProgram implements WebGPUProgram {
   outputShape: number[];
@@ -48,10 +48,8 @@ export class Conv2DMMProgram implements WebGPUProgram {
     this.isChannelsLast = convInfo.dataFormat === 'channelsLast';
     this.dispatchLayout = this.isChannelsLast ? {x: [3], y: [1, 2], z: [0]} :
                                                 {x: [1], y: [2, 3], z: [0]};
-    this.workGroupSize =
-        computeWorkGroupSizeForConv2d(this.dispatchLayout, this.outputShape);
-    this.elementsPerThread =
-        computeWorkPerThreadForConv2d(this.dispatchLayout, this.outputShape);
+    this.workGroupSize = [16, 16, 1];
+    this.elementsPerThread = [2, 2, 1];
 
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
