@@ -113,19 +113,12 @@ export class Conv2DMMProgram implements WebGPUProgram {
       outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1]);
     `;
 
-    const coordResSnippet = this.isChannelsLast ? `
+    const coordResSnippet = `
     let outCoord = vec4<i32>(
       batch,
       row / outWidth,
       row % outWidth,
       col);
-    ` :
-                                                  `
-    let outCoord = vec4<i32>(
-      batch,
-      col,
-      row / outWidth,
-      row % outWidth);
     `;
 
     const matMulSource =
@@ -206,7 +199,10 @@ export class Conv2DMMProgram implements WebGPUProgram {
       ${coordResSnippet}
       ${addBiasSnippet}
       ${applyActivationSnippet}
-      result[getIndexFromCoords4D(outCoord, uniforms.outShape)] = value;
+      result[getIndexFromCoords4D(outCoord, ${
+        this.isChannelsLast ?
+            'uniforms.outShape' :
+            'vec4<i32>(uniforms.outShape[0], uniforms.outShape[2], uniforms.outShape[3], uniforms.outShape[1])'})] = value;
     }
     ${matMulSource}
   `;
