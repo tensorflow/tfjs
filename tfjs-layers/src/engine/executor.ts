@@ -192,8 +192,8 @@ export class LruCache<T> {
   private maxEntries: number;
 
   constructor(maxEntries?: number) {
-      this.maxEntries = maxEntries || env().getNumber('LRU_CACHE_MAX_ENTRIES');
-      this.cache = new Map<string, T>();
+    this.maxEntries = maxEntries || env().getNumber('LRU_CACHE_MAX_ENTRIES');
+    this.cache = new Map<string, T>();
   }
 
   /**
@@ -216,7 +216,7 @@ export class LruCache<T> {
   public put(key: string, value: T) {
     if (this.cache.has(key)) {
       this.cache.delete(key);
-    }else if (this.cache.size >= this.maxEntries) {
+    } else if (this.cache.size >= this.maxEntries) {
       const keyToDelete = this.cache.keys().next().value;
       this.cache.delete(keyToDelete);
     }
@@ -226,10 +226,12 @@ export class LruCache<T> {
 
 // Cache for topologically sorted SymbolicTensors for given execution
 // targets (i.e., fetches).
-const cachedSorted: LruCache<SymbolicTensor[]> = new LruCache<SymbolicTensor[]>();
+const cachedSorted: LruCache<SymbolicTensor[]> =
+    new LruCache<SymbolicTensor[]>();
 
 // Cache for recipient count maps for given execution targets (i.e., fetches).
-const cachedRecipientCounts: LruCache<RecipientCounts> = new LruCache<RecipientCounts>();
+const cachedRecipientCounts: LruCache<RecipientCounts> =
+    new LruCache<RecipientCounts>();
 
 /**
  * Interface for the optional object used for probing the memory
