@@ -254,7 +254,7 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     expect(result.shape).toEqual([4, 2, 2]);
     expectArraysClose(
         resultData,
-        [90, 54, 63, 36, 90, 54, 63, 36, 90, 54, 63, 36, 90, 54, 63, 36]);
+        [90, 90, 90, 90, 54, 54, 54, 54, 63, 63, 63, 63, 36, 36, 36, 36]);
   });
 
   it('x=[1,2,2] f=[2,2,1,1] s=1 d=1 p=explicit NCHW', async () => {
