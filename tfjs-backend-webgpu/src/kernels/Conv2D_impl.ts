@@ -230,17 +230,18 @@ export function conv2DImpl({
 }: Conv2DConfig) {
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
-
+  const isChannelsLast = convInfo.dataFormat === 'channelsLast';
   let program: Conv2DMMProgram|Conv2DNaiveProgram|Conv2DMMVec4Program;
   const sameSize = convInfo.filterHeight === convInfo.inHeight &&
       convInfo.filterWidth === convInfo.inWidth &&
       convInfo.padInfo.type === 'VALID';
-  if (sameSize ||
-      (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
-       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
-       convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
-       (convInfo.padInfo.type === 'SAME' ||
-        convInfo.padInfo.type === 'VALID'))) {
+  if (isChannelsLast &&
+      (sameSize ||
+       (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
+        convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
+        convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
+        (convInfo.padInfo.type === 'SAME' ||
+         convInfo.padInfo.type === 'VALID')))) {
     return conv2dByMatMul({
       x,
       filter,
@@ -253,7 +254,8 @@ export function conv2DImpl({
     });
   }
 
-  if (env().getBool('WEBGPU_CONV_SEPARATE_IM2COL_SHADER') && x.shape[0] === 1) {
+  if (isChannelsLast && env().getBool('WEBGPU_CONV_SEPARATE_IM2COL_SHADER') &&
+      x.shape[0] === 1) {
     return conv2dWithIm2Col({
       x,
       filter,
@@ -265,8 +267,7 @@ export function conv2DImpl({
       activation
     });
   }
-  const useNaive = env().getBool('WEBGPU_USE_NAIVE_CONV2D');
-  const isChannelsLast = convInfo.dataFormat === 'channelsLast';
+  const useNaive = isChannelsLast && env().getBool('WEBGPU_USE_NAIVE_CONV2D');
   const useVec4 =
       (convInfo.inChannels % 4 === 0 ||
        (convInfo.inChannels === 3 && convInfo.padInfo.type === 'VALID')) &&
