@@ -70,6 +70,11 @@ py_library(
 )
 
 py_library(
+    name = "expect_packaging_installed",
+    deps = [requirement("packaging")],
+)
+
+py_library(
     name = "quantization",
     srcs = ["quantization.py"],
     srcs_version = "PY2AND3",
