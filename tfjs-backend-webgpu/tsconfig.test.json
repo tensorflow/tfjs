@@ -1,5 +1,5 @@
 {
-  "extends": "../tsconfig.test",
+  "extends": "../tsconfig_ts_library",
   "include": [
     "src/"
   ],
@@ -7,7 +7,9 @@
     "node_modules/"
   ],
   "compilerOptions": {
-    "typeRoots": [ "./node_modules/@webgpu", "./node_modules/@types"],
+    "module": "commonjs",
+    "baseUrl": ".",
+    "paths": {},
     "outDir": "./dist"
   }
 }
