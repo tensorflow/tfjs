@@ -17,7 +17,6 @@
 
 import React from 'react';
 import { ActivityIndicator, StyleSheet, View, Image, Text, TouchableHighlight } from 'react-native';
-import * as Permissions from 'expo-permissions';
 import { Camera } from 'expo-camera';
 import {StyleTranfer} from './style_transfer';
 import {base64ImageToTensor, tensorToImageUrl, resizeImage, toDataUri} from './image_utils';
@@ -54,7 +53,7 @@ export class WebcamDemo extends React.Component<ScreenProps,ScreenState> {
 
   async componentDidMount() {
     await this.styler.init();
-    const { status } = await Permissions.askAsync(Permissions.CAMERA);
+    const { status } = await Camera.requestCameraPermissionsAsync();
     this.setState({
       hasCameraPermission: status === 'granted',
       isLoading: false
