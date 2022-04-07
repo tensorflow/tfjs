@@ -68,32 +68,33 @@ const CPU_HANDOFF_SIZE_THRESHOLD =
     env().getNumber('WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD');
 
 // Reshape dispatch, not to exceed device limits.
-const reshapeDispatch = (device: GPUDevice,
-    program: webgpu_program.WebGPUProgram): [number, number, number] => {
-  const MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE =
-      device.limits.maxComputeWorkgroupsPerDimension;
-  const layout = program['dispatchLayout'];
-  const dispatch = program['dispatch'];
-  if (dispatch.every((d) => d <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE)) {
-    return dispatch;
-  }
+const reshapeDispatch =
+    (device: GPUDevice,
+     program: webgpu_program.WebGPUProgram): [number, number, number] => {
+      const MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE =
+          device.limits.maxComputeWorkgroupsPerDimension;
+      const layout = program['dispatchLayout'];
+      const dispatch = program['dispatch'];
+      if (dispatch.every((d) => d <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE)) {
+        return dispatch;
+      }
 
-  util.assert(
-      dispatch[0] > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
-          layout.y === undefined && layout.z === undefined,
-      () => 'Dispatch size exceeds WebGPU limits in Y or Z dimension.');
+      util.assert(
+          dispatch[0] > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
+              layout.y === undefined && layout.z === undefined,
+          () => 'Dispatch size exceeds WebGPU limits in Y or Z dimension.');
 
-  let dispatchAverage = Math.ceil(Math.sqrt(dispatch[0]));
-  if (dispatchAverage > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
-    dispatchAverage = Math.ceil(Math.cbrt(dispatch[0]));
-    util.assert(
-        dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE,
-        () => 'Total dispatch size exceeds WebGPU maximum.');
-    return [dispatchAverage, dispatchAverage, dispatchAverage];
-  } else {
-    return [dispatchAverage, dispatchAverage, 1];
-  }
-};
+      let dispatchAverage = Math.ceil(Math.sqrt(dispatch[0]));
+      if (dispatchAverage > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
+        dispatchAverage = Math.ceil(Math.cbrt(dispatch[0]));
+        util.assert(
+            dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE,
+            () => 'Total dispatch size exceeds WebGPU maximum.');
+        return [dispatchAverage, dispatchAverage, dispatchAverage];
+      } else {
+        return [dispatchAverage, dispatchAverage, 1];
+      }
+    };
 
 export class WebGPUBackend extends KernelBackend {
   device: GPUDevice;
@@ -128,6 +129,8 @@ export class WebGPUBackend extends KernelBackend {
   private querySet: GPUQuerySet;
   private fromPixelProgram?: FromPixelsProgram;
   private fromPixelImportProgram?: FromPixelsImportProgram;
+  private deferredSubmitBatchSize =
+      env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
 
   constructor(device: GPUDevice, supportTimeQuery = false) {
     super();
@@ -823,8 +826,7 @@ export class WebGPUBackend extends KernelBackend {
     };
     this.uniformDisposalQueue.push(uniformInfo);
 
-    if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
-        number <= this.dispatchNumberInEncoder) {
+    if (this.deferredSubmitBatchSize <= this.dispatchNumberInEncoder) {
       this.submitQueue();
     }
 
@@ -879,8 +881,11 @@ export class WebGPUBackend extends KernelBackend {
         passEncoder.writeTimestamp(this.querySet, 1);
       }
     }
+    this.dispatchNumberInEncoder++;
     this.commandQueueOwnedIds.add(outputId);
-    this.submitQueue();
+    if (this.deferredSubmitBatchSize <= this.dispatchNumberInEncoder) {
+      this.submitQueue();
+    }
     if (shouldTimeProgram) {
       this.activeTimers.push({
         name: program.constructor.name,
