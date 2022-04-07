@@ -248,13 +248,13 @@ describeMathCPU('LruCache', () => {
   const cache = new LruCache<number>(maxEntries);
 
   it('Delete the leaset recent used entry when exceeding the size', () => {
-    cache.put('1', 1); // Caching [1]
-    cache.put('2', 2); // Caching [1, 2]
-    cache.put('3', 3); // Caching [1, 2, 3]
-    cache.get('1');    // Caching [2, 3, 1]
-    cache.put('4', 4); // Caching [3, 1, 4]
+    cache.put('1', 1);  // Caching [1]
+    cache.put('2', 2);  // Caching [1, 2]
+    cache.put('3', 3);  // Caching [1, 2, 3]
+    cache.get('1');     // Caching [2, 3, 1]
+    cache.put('4', 4);  // Caching [3, 1, 4]
 
-    expect(cache.get('2')).toBeNull();
+    expect(cache.get('2')).toBeUndefined();
     expect(cache.get('1')).toBe(1);
     expect(cache.get('3')).toBe(3);
     expect(cache.get('4')).toBe(4);
