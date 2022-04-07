@@ -51,6 +51,7 @@ py_wheel(
         "tensorflow>=2.1.0,<3",
         "six>=1.12.0,<2",
         "tensorflow-hub>=0.7.0,<0.13",
+        "packaging~=20.9",
     ],
     strip_path_prefixes = [
         "tfjs-converter/python",
@@ -101,6 +102,7 @@ py_wheel(
         "tensorflow-hub>=0.7.0,<0.10",
         "regex<2022.1.18",
         "grpcio==1.39.0",
+        "packaging~=20.9",
     ],
     strip_path_prefixes = [
         "tfjs-converter/python",

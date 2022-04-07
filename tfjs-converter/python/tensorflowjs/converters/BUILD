@@ -186,6 +186,7 @@ py_library(
         ":fuse_prelu",
         ":graph_rewrite_util",
         "//tfjs-converter/python/tensorflowjs:expect_numpy_installed",
+        "//tfjs-converter/python/tensorflowjs:expect_packaging_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_hub_installed",
         "//tfjs-converter/python/tensorflowjs:expect_tensorflow_installed",
         "//tfjs-converter/python/tensorflowjs:resource_loader",
