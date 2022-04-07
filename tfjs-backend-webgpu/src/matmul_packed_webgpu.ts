@@ -177,7 +177,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workPerThread: number;
   variableNames = ['A', 'B'];
-  uniforms = `dimAOuter : i32; dimBOuter : i32; dimInner : i32;`;
+  uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
   workGroupSize: [number, number, number] = [16, 16, 1];
   aShape: [number, number, number];
   transposeA: boolean;

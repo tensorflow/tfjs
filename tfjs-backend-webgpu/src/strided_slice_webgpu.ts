@@ -16,9 +16,8 @@
  */
 
 import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class StridedSliceProgram implements WebGPUProgram {
   variableNames = ['x'];
@@ -40,7 +39,7 @@ export class StridedSliceProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
 
     const dtype = getCoordsDataType(this.outputShape.length);
-    this.uniforms = `begin : ${dtype};  strides : ${dtype}; `;
+    this.uniforms = `begin : ${dtype},  strides : ${dtype}, `;
     this.shaderKey = 'stridedSlice';
   }
 

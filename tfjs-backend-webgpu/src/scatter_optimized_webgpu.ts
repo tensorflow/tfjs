@@ -49,7 +49,7 @@ export class ScatterOptimizedProgram implements WebGPUProgram {
     this.shaderKey = `scatter_${indicesRank}_${updatesRank}_${
         this.sliceDimGreaterThanOne}_${outputDtype}`;
     const stridesType = getCoordsDataType(strides.length);
-    this.uniforms = `sliceDim : i32; strides: ${stridesType}; size: i32;`;
+    this.uniforms = `sliceDim : i32, strides: ${stridesType}, size: i32,`;
     this.updatesRank = updatesRank;
     this.indicesRank = indicesRank;
   }

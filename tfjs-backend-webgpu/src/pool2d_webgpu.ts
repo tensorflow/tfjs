@@ -18,9 +18,8 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class Pool2DProgram implements WebGPUProgram {
   outputShape: number[];
@@ -29,7 +28,7 @@ export class Pool2DProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   uniforms =
-      `stride : vec2<i32>; pad : vec2<i32>; dilation : vec2<i32>; convDims : vec2<i32>; filterDims : vec2<i32>;`;
+      `stride : vec2<i32>, pad : vec2<i32>, dilation : vec2<i32>, convDims : vec2<i32>, filterDims : vec2<i32>,`;
   // TODO(jiajia.qin@intel.com): Dynamically choose different workGroupSize for
   // different output shapes.
   workGroupSize: [number, number, number] = [128, 1, 1];

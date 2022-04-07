@@ -18,13 +18,13 @@
 import {backend_util, broadcast_util, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-
 import {MatMulPackedVec4Program} from '../matmul_packed_vec4_webgpu';
 import {MatMulPackedProgram} from '../matmul_packed_webgpu';
 import {MatMulReduceProgram} from '../matmul_reduce';
 import {MatMulSmallOutputSizeProgram} from '../matmul_small_output_size_webgpu';
-import {reshape} from './Reshape';
 import {WebGPUProgram} from '../webgpu_program';
+
+import {reshape} from './Reshape';
 
 type BatchMatMulConfig = {
   a: TensorInfo,
@@ -139,6 +139,10 @@ export function batchMatMulImpl({
     {type: 'int32', data: [outerShapeA]}, {type: 'int32', data: [outerShapeB]},
     {type: 'int32', data: [innerShapeA]}
   ];
+  if (activation === 'leakyrelu') {
+    dimensions.push({type: 'float32', data: [leakyreluAlpha]});
+    program.uniforms += ' alpha : f32,';
+  }
   const out = backend.runWebGPUProgram(program, inputs, a.dtype, dimensions);
   const outReshaped =
       reshape({inputs: {x: out}, backend, attrs: {shape: outShape}});

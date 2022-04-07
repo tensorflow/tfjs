@@ -16,9 +16,8 @@
  */
 
 import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class SliceProgram implements WebGPUProgram {
   variableNames = ['source'];
@@ -42,7 +41,7 @@ export class SliceProgram implements WebGPUProgram {
         [this.workPerThread, 1, 1]);
 
     this.start = start;
-    this.uniforms = `start : ${getCoordsDataType(start.length)}; `;
+    this.uniforms = `start : ${getCoordsDataType(start.length)}, `;
     this.shaderKey = 'slice';
   }
 

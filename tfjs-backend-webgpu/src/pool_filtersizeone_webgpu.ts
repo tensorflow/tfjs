@@ -18,9 +18,8 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   outputShape: number[];
@@ -28,7 +27,7 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['x'];
-  uniforms = `stride : vec2<i32>;`;
+  uniforms = `stride : vec2<i32>,`;
   workGroupSize: [number, number, number] = [256, 1, 1];
   size = true;
 

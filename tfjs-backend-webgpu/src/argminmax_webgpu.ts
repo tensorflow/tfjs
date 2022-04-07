@@ -28,7 +28,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
   variableNames = ['x'];
-  uniforms = 'axis : i32; infinityValue : f32;';
+  uniforms = 'axis : i32, infinityValue : f32,';
   inputShape: number[];
   reductionFactor: number;
   op: string;

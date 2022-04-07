@@ -184,7 +184,14 @@ export class TensorList {
       throw new Error(`TensorListResize input size ${
           size} is greater maxNumElement ${this.maxNumElements}.`);
     }
-    this.tensors.length = size;
+
+    const destTensorList: TensorList = new TensorList(
+        [], this.elementShape, this.elementDtype, this.maxNumElements);
+    destTensorList.tensors.length = size;
+    for (let i = 0; i < Math.min(this.tensors.length, size); ++i) {
+      destTensorList.tensors[i] = this.tensors[i];
+    }
+    return destTensorList;
   }
 
   /**
