@@ -81,7 +81,7 @@
     "buildifier-ci": "./scripts/buildifier-ci.sh"
   },
   "dependencies": {
-    "@webgpu/types": "0.1.6",
+    "@webgpu/types": "0.1.13",
     "node-fetch": "^2.6.7"
   },
   "resolutions": {
