@@ -229,6 +229,11 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
   });
 
   it('x=[4,2,2] f=[2,2,4,4] s=1 d=1 p=same NCHW', async () => {
+    // Skip webgl backend due to bug
+    // https://github.com/tensorflow/tfjs/issues/6308.
+    if (tf.getBackend() === 'webgl') {
+      return;
+    }
     const inputDepth = 4;
     const inputShape: [number, number, number] = [inputDepth, 2, 2];
     const outputDepth = 4;
