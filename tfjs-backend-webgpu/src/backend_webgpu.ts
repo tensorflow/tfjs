@@ -158,10 +158,7 @@ export class WebGPUBackend extends KernelBackend {
       this.dummyCanvas.width = 1;
       this.dummyCanvas.height = 1;
 
-      // TODO: @webgpu/types 0.1.6 version has a bug to support both old
-      // rendring context type and webgpu context type. Use any to bypass this.
-      // tslint:disable-next-line:no-any
-      this.dummyContext = this.dummyCanvas.getContext('webgpu') as any;
+      this.dummyContext = this.dummyCanvas.getContext('webgpu');
       this.dummyContext.configure({
         device,
         format: 'bgra8unorm',
@@ -364,7 +361,7 @@ export class WebGPUBackend extends KernelBackend {
 
   ensureComputePassEnded() {
     if (this.currentComputePass) {
-      this.currentComputePass.endPass();
+      this.currentComputePass.end();
       this.currentComputePass = null;
     }
   }
@@ -795,7 +792,7 @@ export class WebGPUBackend extends KernelBackend {
     const pass = this.getComputePass();
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
-        pass.writeTimestamp(this.querySet, 0);
+        (pass as any).writeTimestamp(this.querySet, 0);
       }
     }
     pass.setPipeline(pipeline);
@@ -804,7 +801,7 @@ export class WebGPUBackend extends KernelBackend {
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
-        pass.writeTimestamp(this.querySet, 1);
+        (pass as any).writeTimestamp(this.querySet, 1);
       }
     }
     this.dispatchNumberInEncoder++;
@@ -863,20 +860,20 @@ export class WebGPUBackend extends KernelBackend {
       ],
     });
     this.ensureCommandEncoderReady();
-    const passEncoder = this.getComputePass();
+    const pass = this.getComputePass();
     const shouldTimeProgram = this.activeTimers != null;
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
-        passEncoder.writeTimestamp(this.querySet, 0);
+        (pass as any).writeTimestamp(this.querySet, 0);
       }
     }
-    passEncoder.setPipeline(program.pipeline);
-    passEncoder.setBindGroup(0, bindGroup);
-    passEncoder.dispatch(
+    pass.setPipeline(program.pipeline);
+    pass.setBindGroup(0, bindGroup);
+    pass.dispatch(
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
-        passEncoder.writeTimestamp(this.querySet, 1);
+        (pass as any).writeTimestamp(this.querySet, 1);
       }
     }
     this.commandQueueOwnedIds.add(outputId);
