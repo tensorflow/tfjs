@@ -499,11 +499,6 @@ export class GraphExecutor implements FunctionExecutor {
           outputNodeNames, intermediateTensorConsumerCount, usedNodes);
       await Promise.all(promises);
     }
-    if (dynamicNode == null && !isFunctionExecution) {
-      console.warn(
-          `This model execution did not contain any nodes with control flow ` +
-          `or dynamic output shapes. You can use model.execute() instead.`);
-    }
     const missingOutputs =
         outputNodes
             .filter(
