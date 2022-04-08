@@ -792,6 +792,7 @@ export class WebGPUBackend extends KernelBackend {
     const pass = this.getComputePass();
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
+        // tslint:disable-next-line:no-any
         (pass as any).writeTimestamp(this.querySet, 0);
       }
     }
@@ -801,6 +802,7 @@ export class WebGPUBackend extends KernelBackend {
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
+        // tslint:disable-next-line:no-any
         (pass as any).writeTimestamp(this.querySet, 1);
       }
     }
@@ -864,6 +866,7 @@ export class WebGPUBackend extends KernelBackend {
     const shouldTimeProgram = this.activeTimers != null;
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
+        // tslint:disable-next-line:no-any
         (pass as any).writeTimestamp(this.querySet, 0);
       }
     }
@@ -873,6 +876,7 @@ export class WebGPUBackend extends KernelBackend {
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
+        // tslint:disable-next-line:no-any
         (pass as any).writeTimestamp(this.querySet, 1);
       }
     }
