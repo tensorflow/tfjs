@@ -184,6 +184,12 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    startsWith: 'prod ',
+    excludes: [
+      'gradients',   // Not yet implemented
+    ]
+  },
+  {
     startsWith: 'range ',
     excludes: [
       'bincount',           // Not yet implemented.
