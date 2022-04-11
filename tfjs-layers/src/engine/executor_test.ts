@@ -248,7 +248,7 @@ describeMathCPUAndGPU('Executor', () => {
          const ENV = env();
          expect(cachedRecipientCounts.getMaxEntries()).toBe(100);
          ENV.set('TOPOLOGICAL_SORT_CACHE_MAX_ENTRIES', 50);
-         expect(cachedRecipientCounts.getMaxEntries()).toBe(51);
+         expect(cachedRecipientCounts.getMaxEntries()).toBe(50);
          ENV.set('TOPOLOGICAL_SORT_CACHE_MAX_ENTRIES', 100);
        });
   });
