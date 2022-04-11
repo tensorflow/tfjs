@@ -8,8 +8,6 @@
  * =============================================================================
  */
 
-import {env} from '@tensorflow/tfjs-core';
-
 import {LruCache} from '../utils/executor_utils';
 import {describeMathCPU} from '../utils/test_utils';
 
@@ -31,16 +29,17 @@ describeMathCPU('LruCache', () => {
     expect(cache.get('4')).toBe(4);
   });
 
-  it('Takes TOPOLOGICAL_SORT_CACHE_MAX_ENTRIES as the default value for maxEntries',
-     () => {
-       const cache = new LruCache<number>();
-       for (let i = 0;
-            i <= env().getNumber('TOPOLOGICAL_SORT_CACHE_MAX_ENTRIES'); i++) {
-         cache.put(i.toString(), i);
-       }
+  it('Reduce cache entries while decreasing maxEntries', () => {
+    const cache = new LruCache<number>(100);
+    for (let i = 0; i < 100; i++) {
+      cache.put(i.toString(), i);
+    }
+    cache.setMaxEntries(99);
 
-       // The first entry should be deleted, when the number of entries exceeded
-       // the maxEntries.
-       expect(cache.get('0')).toBeUndefined();
-     });
+    // The first entry should be deleted, because the number of entries exceeded
+    // the maxEntries.
+    expect(cache.get('0')).toBeUndefined();
+    expect(cache.get('1')).toBe(1);
+    expect(cache.get('99')).toBe(99);
+  });
 });
