@@ -13,15 +13,12 @@
  * used entry.
  */
 
-import {env} from '@tensorflow/tfjs-core';
-
 export class LruCache<T> {
   private cache: Map<string, T>;
   private maxEntries: number;
 
   constructor(maxEntries?: number) {
-    this.maxEntries =
-        maxEntries || env().getNumber('TOPOLOGICAL_SORT_CACHE_MAX_ENTRIES');
+    this.maxEntries = maxEntries || 100;
     this.cache = new Map<string, T>();
   }
 
@@ -50,5 +47,33 @@ export class LruCache<T> {
       this.cache.delete(keyToDelete);
     }
     this.cache.set(key, value);
+  }
+
+  /**
+   * Get the MaxEntries of the cache.
+   */
+  public getMaxEntries(): number {
+    return this.maxEntries;
+  }
+
+  /**
+   * Set the MaxEntries of the cache. If the maxEntries is decreased, reduce
+   * entries in the cache.
+   */
+  public setMaxEntries(maxEntries: number): void {
+    if (maxEntries < 0) {
+      throw new Error(
+          `The maxEntries of LRU caches must be at least 0, but got ${
+              maxEntries}.`);
+    }
+
+    if (this.maxEntries > maxEntries) {
+      for (let i = 0; i < this.maxEntries - maxEntries; i++) {
+        const keyToDelete = this.cache.keys().next().value;
+        this.cache.delete(keyToDelete);
+      }
+    }
+
+    this.maxEntries = maxEntries;
   }
 }

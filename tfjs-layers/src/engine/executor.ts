@@ -185,11 +185,11 @@ export class FeedDict {
 
 // Cache for topologically sorted SymbolicTensors for given execution
 // targets (i.e., fetches).
-const cachedSorted: LruCache<SymbolicTensor[]> =
+export const cachedSorted: LruCache<SymbolicTensor[]> =
     new LruCache<SymbolicTensor[]>();
 
 // Cache for recipient count maps for given execution targets (i.e., fetches).
-const cachedRecipientCounts: LruCache<RecipientCounts> =
+export const cachedRecipientCounts: LruCache<RecipientCounts> =
     new LruCache<RecipientCounts>();
 
 /**

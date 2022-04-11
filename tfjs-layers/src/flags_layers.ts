@@ -17,7 +17,17 @@
 
 import {env} from '@tensorflow/tfjs-core';
 
+import {cachedRecipientCounts, cachedSorted} from './engine/executor';
+
 export const ENV = env();
 
 /** The max number of entries for the caches of layers' topological sort. */
-ENV.registerFlag('TOPOLOGICAL_SORT_CACHE_MAX_ENTRIES', () => 100);
+ENV.registerFlag(
+    'TOPOLOGICAL_SORT_CACHE_MAX_ENTRIES', () => 100, (maxEntries: number) => {
+      if (cachedSorted != null) {
+        cachedSorted.setMaxEntries(maxEntries);
+      }
+      if (cachedRecipientCounts != null) {
+        cachedRecipientCounts.setMaxEntries(maxEntries);
+      }
+    });
