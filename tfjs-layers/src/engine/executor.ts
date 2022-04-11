@@ -192,6 +192,15 @@ export const cachedSorted: LruCache<SymbolicTensor[]> =
 export const cachedRecipientCounts: LruCache<RecipientCounts> =
     new LruCache<RecipientCounts>();
 
+export function updateCacheMaxEntries(maxEntries: number) {
+  if (cachedSorted != null) {
+    cachedSorted.setMaxEntries(maxEntries);
+  }
+  if (cachedRecipientCounts != null) {
+    cachedRecipientCounts.setMaxEntries(maxEntries);
+  }
+}
+
 /**
  * Interface for the optional object used for probing the memory
  * usage and other statistics during execution.
