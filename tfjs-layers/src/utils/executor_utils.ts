@@ -39,7 +39,7 @@ export class LruCache<T> {
    * Put the entry into the cache. If the key already existed, mark the key as
    * used recently.
    */
-  public put(key: string, value: T) {
+  public put(key: string, value: T): void {
     if (this.cache.has(key)) {
       this.cache.delete(key);
     } else if (this.cache.size >= this.maxEntries) {
