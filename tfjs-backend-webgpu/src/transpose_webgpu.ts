@@ -69,7 +69,7 @@ export class TransposeProgram implements WebGPUProgram {
 
 function getSwitchedCoords(newDim: number[]): string {
   const rank = newDim.length;
-  if (rank > 4) {
+  if (rank > 6) {
     throw Error(`Transpose for rank ${rank} is not yet supported`);
   }
   const switchedCoords = new Array(rank);
@@ -77,5 +77,11 @@ function getSwitchedCoords(newDim: number[]): string {
     switchedCoords[newDim[i]] = `resRC[${i}]`;
   }
 
-  return switchedCoords.join();
+  return switchedCoords.join()
+      .replace(/\[0\]/g, '.x')
+      .replace(/\[1\]/g, '.y')
+      .replace(/\[2\]/g, '.z')
+      .replace(/\[3\]/g, '.w')
+      .replace(/\[4\]/g, '.u')
+      .replace(/\[5\]/g, '.v');
 }
