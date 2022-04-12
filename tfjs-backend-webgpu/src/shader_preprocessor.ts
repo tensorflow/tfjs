@@ -27,6 +27,10 @@ export function getCoordsDataType(rank: number): string {
     return `vec3<i32>`;
   } else if (rank === 4) {
     return `vec4<i32>`;
+  } else if (rank === 5) {
+    return `vec5`;
+  } else if (rank === 6) {
+    return `vec6`;
   } else {
     throw Error(`GPU for rank ${rank} is not yet supported`);
   }
@@ -144,16 +148,20 @@ export function makeShader(
 
   let uniformDeclaration = 'struct Uniforms { NAN : f32, ';
   program.variableNames.forEach((x, i) => {
-    uniformDeclaration += `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${
-        getCoordsDataType(inputInfo[i].shape.length)}, `;
+    uniformDeclaration +=
+        `@align(16) ${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${
+            //`${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${
+            getCoordsDataType(inputInfo[i].shape.length)}, `;
   });
   uniformDeclaration +=
-      `outShape : ${getCoordsDataType(outputData.shape.length)}, `;
+      `@align(16) outShape : ${getCoordsDataType(outputData.shape.length)}, `;
+  //`outShape : ${getCoordsDataType(outputData.shape.length)}, `;
   const stridesLength = outputData.shape.length - 1;
   uniformDeclaration += `
-       outShapeStrides: ${getCoordsDataType(stridesLength)}, `;
+       @align(16) outShapeStrides: ${getCoordsDataType(stridesLength)}, `;
 
   if (program.size) {
+    // uniformDeclaration += '@align(16) size : i32, ';
     uniformDeclaration += 'size : i32, ';
   }
 
@@ -220,6 +228,8 @@ export function makeShader(
 }
 
 const commonSnippet = `
+  struct vec5 {x: i32, y: i32, z: i32, w: i32, u: i32};
+  struct vec6 {x: i32, y: i32, z: i32, w: i32, u: i32, v: i32};
   // Checks whether coordinates lie within the bounds of the shape.
   fn coordsInBounds2D(coord : vec2<i32>, shape : vec2<i32>) -> bool {
     return all(coord >= vec2<i32>(0)) && all(coord < shape);
@@ -243,6 +253,14 @@ const commonSnippet = `
   fn getIndexFromCoords4D(coords : vec4<i32>, shape : vec4<i32>) -> i32 {
     return dot(coords, vec4<i32>(
         shape.y * shape.z * shape.w, shape.z * shape.w, shape.w, 1));
+  }
+  fn getIndexFromCoords5D(coords : vec5, shape : vec5) -> i32 {
+    let currentShape: vec5 = vec5(shape.y * shape.z * shape.w * shape.u, shape.z * shape.w * shape.u, shape.w * shape.u, shape.u, 1);
+    return coords.x*currentShape.x + coords.y*currentShape.y + coords.z*currentShape.z + coords.w*currentShape.w + coords.u*currentShape.u;
+  }
+  fn getIndexFromCoords6D(coords : vec6, shape : vec6) -> i32 {
+    let currentShape: vec6 = vec6(shape.y * shape.z * shape.w * shape.u * shape.v, shape.z * shape.w * shape.u * shape.v, shape.w * shape.u * shape.v, shape.u * shape.v, shape.v, 1);
+    return coords.x*currentShape.x + coords.y*currentShape.y + coords.z*currentShape.z + coords.w*currentShape.w + coords.u*currentShape.u + coords.v*currentShape.v;
   }
 
   fn idiv(a: i32, b: i32, sign: f32) -> i32 {
@@ -298,6 +316,29 @@ function getOutputIndexFromCoordsSnippet(outRank: number) {
         fn getOutputIndexFromCoords(coords : vec4<i32>) -> i32 {
           return dot(coords, vec4<i32>(
             uniforms.outShapeStrides.x, uniforms.outShapeStrides.y, uniforms.outShapeStrides.z, 1));
+        }
+        `;
+      break;
+    case 5:
+      snippet += `
+        fn getOutputIndexFromCoords(coords : vec5) -> i32 {
+          return coords.x * uniforms.outShapeStrides.x +
+              coords.y * uniforms.outShapeStrides.y +
+              coords.z * uniforms.outShapeStrides.z +
+              coords.w * uniforms.outShapeStrides.w +
+              coords.u;
+        }
+        `;
+      break;
+    case 6:
+      snippet += `
+        fn getOutputIndexFromCoords(coords : vec6) -> i32 {
+          return coords.x * uniforms.outShapeStrides.x +
+              coords.y * uniforms.outShapeStrides.y +
+              coords.z * uniforms.outShapeStrides.z +
+              coords.w * uniforms.outShapeStrides.w +
+              coords.u * uniforms.outShapeStrides.u +
+              coords.v;
         }
         `;
       break;
@@ -656,7 +697,8 @@ function getCoordsFromIndexSnippet(shape: number[]): string {
       return vec2<i32>(d0, d1);
     }`;
   }
-  const snippet = 'var index2 = index;' +
+  let snippet;
+  snippet = 'var index2 = index;' +
       strides
           .map((_, i) => {
             const line1 =
@@ -669,6 +711,15 @@ function getCoordsFromIndexSnippet(shape: number[]): string {
             return `${line1}; ${line2};`;
           })
           .join('');
+  if (rank === 5 || rank === 6) {
+    snippet = snippet.replace(/\[0\]/g, '.x')
+                  .replace(/\[1\]/g, '.y')
+                  .replace(/\[2\]/g, '.z')
+                  .replace(/\[3\]/g, '.w')
+                  .replace(/\[4\]/g, '.u')
+                  .replace(/\[5\]/g, '.v');
+  }
+
 
   return `
     fn getCoordsFromIndex(index : i32) -> ${dtype} {

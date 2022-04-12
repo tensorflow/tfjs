@@ -31,10 +31,10 @@ const TEST_FILTERS: TestFilter[] = [
     include: '5D',
     excludes: ['webgpu '],
   },
-  {
-    include: '6D',
-    excludes: ['webgpu '],
-  },
+  //{
+  //  include: '6D',
+  //  excludes: ['webgpu '],
+  //},
   {
     include: 'gradients webgpu',
     excludes: ['webgpu '],
