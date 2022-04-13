@@ -79,6 +79,3 @@ ENV.registerFlag('WRAP_TO_IMAGEBITMAP', () => false);
 
 /** Experimental flag, whether enter compile only phase. */
 ENV.registerFlag('ENGINE_COMPILE_ONLY', () => false);
-
-/** The max number of entries for the LRU cache. */
-ENV.registerFlag('LRU_CACHE_MAX_ENTRIES', () => 100);
