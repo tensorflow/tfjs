@@ -51,6 +51,32 @@ def _py3_patch_cmds(configure):
     ]
 
 PYTHON_PACKAGES = dict({
+    "darwin_amd64": struct(
+        python2 = struct(
+            sha256 = "da3080e3b488f648a3d7a4560ddee895284c3380b11d6de75edb986526b9a814",
+            urls = [
+                "https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz",
+            ],
+            build_file_content = _py2_from_source_build_file_content,
+            patch_cmds = _py2_patch_cmds(_py2_configure_darwin),
+            strip_prefix = "Python-2.7.18",
+            python_interpreter = "python_bin",
+        ),
+        python3 = struct(
+            sha256 = "fb1a1114ebfe9e97199603c6083e20b236a0e007a2c51f29283ffb50c1420fb2",
+            urls = [
+                "https://www.python.org/ftp/python/3.8.11/Python-3.8.11.tar.xz",
+            ],
+            build_file_content = _py3_from_source_build_file_content,
+            patch_cmds = _py3_patch_cmds(_py3_configure_darwin),
+            strip_prefix = "Python-3.8.11",
+            python_interpreter = "python3_bin",
+        ),
+        exec_compatible_with = [
+            "@platforms//os:macos",
+            "@platforms//cpu:x86_64",
+        ],
+    ),
     "linux_amd64": struct(
         python2 = struct(
             sha256 = "da3080e3b488f648a3d7a4560ddee895284c3380b11d6de75edb986526b9a814",
