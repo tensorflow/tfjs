@@ -23,7 +23,7 @@ import {CumOpType, CumProgram} from '../cum_webgpu';
 import {identity} from './Identity';
 import {transpose} from './Transpose';
 
-export function cumpImpl(
+export function cumImpl(
     op: CumOpType, x: TensorInfo, backend: WebGPUBackend, axis: number,
     exclusive: boolean, reverse: boolean): TensorInfo {
   const xRank = x.shape.length;

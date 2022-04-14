@@ -19,7 +19,7 @@ import {Cumprod, CumprodAttrs, CumprodInputs, KernelConfig, KernelFunc, TensorIn
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {CumOpType} from '../cum_webgpu';
-import {cumpImpl} from './Cum_impl';
+import {cumImpl} from './Cum_impl';
 
 export function cumprod(
     args: {inputs: CumprodInputs, backend: WebGPUBackend, attrs: CumprodAttrs}):
@@ -27,7 +27,7 @@ export function cumprod(
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
   const {axis, exclusive, reverse} = attrs;
-  return cumpImpl(CumOpType.Prod, x, backend, axis, exclusive, reverse);
+  return cumImpl(CumOpType.Prod, x, backend, axis, exclusive, reverse);
 }
 
 export const cumprodConfig: KernelConfig = {

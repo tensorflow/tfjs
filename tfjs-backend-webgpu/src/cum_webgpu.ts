@@ -31,7 +31,7 @@ export class CumProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   workGroupSize: [number, number, number];
-  // pow(f32, i32) is not supported, use pow(f32, f32) instead.
+  // pow(i32, i32) is not supported, use pow(f32, f32) instead.
   uniforms = 'index : f32,';
   size = true;
   exclusive: boolean;

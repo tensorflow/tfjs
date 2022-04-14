@@ -19,7 +19,7 @@ import {Cumsum, CumsumAttrs, CumsumInputs, KernelConfig, KernelFunc, TensorInfo}
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {CumOpType} from '../cum_webgpu';
-import {cumpImpl} from './Cum_impl';
+import {cumImpl} from './Cum_impl';
 
 export function cumsum(
     args: {inputs: CumsumInputs, backend: WebGPUBackend, attrs: CumsumAttrs}):
@@ -27,7 +27,7 @@ export function cumsum(
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
   const {axis, exclusive, reverse} = attrs;
-  return cumpImpl(CumOpType.Sum, x, backend, axis, exclusive, reverse);
+  return cumImpl(CumOpType.Sum, x, backend, axis, exclusive, reverse);
 }
 
 export const cumsumConfig: KernelConfig = {
