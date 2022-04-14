@@ -99,18 +99,10 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const coordASnippet = this.isChannelsLast ? `
-    let coord = vec4<i32>(
-      batch,
-      outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0],
-      outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1],
-      col % inChannels);
+    let coord = vec4<i32>(batch, xRow, xCol, col % inChannels);
     ` :
                                                 `
-    let coord = vec4<i32>(
-      batch,
-      col % inChannels,
-      outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0],
-      outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1]);
+    let coord = vec4<i32>(batch, col % inChannels, xRow, xCol);
     `;
 
     const coordResSnippet = this.isChannelsLast ? `
@@ -140,6 +132,8 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
     let WRow = col / (uniforms.filterDims[1] * inChannels);
     let WCol = col / inChannels % uniforms.filterDims[1];
+    let xRow = outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0];
+    let xCol = outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1];
     ${coordASnippet}
     // The bounds checking is always needed since we use it to pad zero for the
     // 'same' padding type.
