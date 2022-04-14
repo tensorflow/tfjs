@@ -78,6 +78,24 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    startsWith: 'cumprod ',
+    excludes: [
+      'gradient',  // gradient function not found.
+    ]
+  },
+  {
+    startsWith: 'prod ',
+    excludes: [
+      'gradient',  // gradient function not found.
+    ]
+  },
+  {
+    startsWith: 'cumsum ',
+    excludes: [
+      'gradient',  // gradient function not found.
+    ]
+  },
+  {
     startsWith: 'einsum ',
     excludes: [
       '4d tensors',               // rank 5 is not yet supported.
@@ -293,8 +311,6 @@ const TEST_FILTERS: TestFilter[] = [
       'conv1d gradients',  // Conv2DBackpropFilter
       'conv3d ',
       'conv3dTranspose ',
-      'cumprod ',
-      'cumsum ',
       'decodeWeights ',
       'denseBincount ',
       'diag ',
