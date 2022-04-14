@@ -15,13 +15,11 @@
  * =============================================================================
  */
 
-import {backend_util, Cumprod, CumprodAttrs, CumprodInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
+import {Cumprod, CumprodAttrs, CumprodInputs, KernelConfig, KernelFunc, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {CumOpType, CumProgram} from '../cum_webgpu';
-
-import {identity} from './Identity';
-import {transpose} from './Transpose';
+import {CumOpType} from '../cum_webgpu';
+import {cumpImpl} from './Cum_impl';
 
 export function cumprod(
     args: {inputs: CumprodInputs, backend: WebGPUBackend, attrs: CumprodAttrs}):
@@ -29,61 +27,7 @@ export function cumprod(
   const {inputs, backend, attrs} = args;
   const {x} = inputs;
   const {axis, exclusive, reverse} = attrs;
-
-  const xRank = x.shape.length;
-  const permutation = backend_util.getAxesPermutation([axis], xRank);
-  let permutedX = x;
-  if (permutation != null) {
-    permutedX = transpose({inputs: {x}, backend, attrs: {perm: permutation}});
-  }
-  const permutedAxis = backend_util.getInnerMostAxes(1, xRank)[0];
-
-  if (permutedAxis !== xRank - 1) {
-    throw new Error(
-        `WebGPU cumprod shader expects an inner-most axis=${
-            x.shape.length - 1} ` +
-        `but got axis=${axis}`);
-  }
-  const size = permutedX.shape[permutedAxis];
-  let result = identity({inputs: {x: permutedX}, backend});
-  // Use cumprod parallel algorithm, inspired by:
-  // https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
-  // Note: although the algorithm is called sum, it works for any associtative
-  // operator with an identity.
-
-  for (let i = 0; i <= Math.ceil(Math.log2(size)) - 1; i++) {
-    const program =
-        new CumProgram(CumOpType.Prod, permutedX.shape, false, reverse);
-    const prevResult = result;
-    const uniformData = [{type: 'float32', data: [i]}];
-    result =
-        backend.runWebGPUProgram(program, [result], result.dtype, uniformData);
-    backend.disposeData(prevResult.dataId);
-  }
-  // For exclusive cum, shift the end result in the direction of product
-  // and add 1 to the front index.
-  if (exclusive) {
-    const program =
-        new CumProgram(CumOpType.Prod, permutedX.shape, exclusive, reverse);
-    const prevResult = result;
-    const uniformData = [{type: 'float32', data: [0]}];
-    result =
-        backend.runWebGPUProgram(program, [result], result.dtype, uniformData);
-    backend.disposeData(prevResult.dataId);
-  }
-
-  if (permutation != null) {
-    const reversePermutation = backend_util.getUndoAxesPermutation(permutation);
-    const reverseTransposedResult = transpose(
-        {inputs: {x: result}, backend, attrs: {perm: reversePermutation}});
-
-    backend.disposeData(result.dataId);
-    backend.disposeData(permutedX.dataId);
-
-    return reverseTransposedResult;
-  }
-
-  return result;
+  return cumpImpl(CumOpType.Prod, x, backend, axis, exclusive, reverse);
 }
 
 export const cumprodConfig: KernelConfig = {

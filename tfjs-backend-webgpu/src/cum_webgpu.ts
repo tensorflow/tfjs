@@ -31,6 +31,7 @@ export class CumProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['x'];
   workGroupSize: [number, number, number];
+  // pow(f32, i32) is not supported, use pow(f32, f32) instead.
   uniforms = 'index : f32,';
   size = true;
   exclusive: boolean;
@@ -70,26 +71,26 @@ export class CumProgram implements WebGPUProgram {
       idxString = (this.reverse ? 'end + pow2' : 'end - pow2');
     }
     return `
-     ${getMainHeaderAndGlobalIndexString()}
-       var coords = getCoordsFromIndex(index);
-
-       let end = ${getFinalCoord(rank, 'coords', this.op)};
-       var val = ${val};
-       let pow2 = i32(pow(2.0, uniforms.index));
+      ${getMainHeaderAndGlobalIndexString()}
        if (index < uniforms.size) {
-       if (${condition}) {
-         let idx = ${idxString};
-         ${getFinalCoord(rank, 'coords', this.op)} = idx;
-         val ${this.op}= getX(${getCoords(rank, 'coords', this.op)});
+         var coords = getCoordsFromIndex(index);
+
+         let end = ${getFinalCoord(rank, 'coords', this.op)};
+         var val = ${val};
+         let pow2 = i32(pow(2.0, uniforms.index));
+         if (${condition}) {
+           let idx = ${idxString};
+           ${getFinalCoord(rank, 'coords', this.op)} = idx;
+           val ${this.op}= getX(${getCoords(rank, 'coords', this.op)});
+         }
+         setOutputAtIndex(index, val);
        }
-       setOutputAtIndex(index, val);
-     }
-     }
-   `;
+      }
+    `;
   }
 }
 
-function getCoords(rank: number, name: string, op: string): string {
+function getCoords(rank: number, name: string, op: CumOpType): string {
   if (rank === 1) {
     return `${name}`;
   } else if (rank === 2) {
@@ -103,7 +104,7 @@ function getCoords(rank: number, name: string, op: string): string {
   }
 }
 
-function getFinalCoord(rank: number, name: string, op: string): string {
+function getFinalCoord(rank: number, name: string, op: CumOpType): string {
   if (rank === 1) {
     return `${name}`;
   } else if (rank === 2) {
