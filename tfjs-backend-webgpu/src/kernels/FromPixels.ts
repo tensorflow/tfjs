@@ -20,7 +20,7 @@ import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '@tensorflow/tfjs-co
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {fromPixelsExternalImage} from '../FromPixelsExternalImage';
+import {fromPixelsExternalImage} from './FromPixelsExternalImage';
 
 export const fromPixelsConfig: KernelConfig = {
   kernelName: FromPixels,
