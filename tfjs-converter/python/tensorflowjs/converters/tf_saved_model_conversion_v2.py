@@ -49,6 +49,8 @@ from tensorflowjs.converters import fuse_depthwise_conv2d
 from tensorflowjs.converters import graph_rewrite_util
 from tensorflowjs import resource_loader
 
+from packaging import version
+
 CLEARED_TENSOR_FIELDS = (
     'tensor_content', 'half_val', 'float_val', 'double_val', 'int_val',
     'string_val', 'scomplex_val', 'int64_val', 'bool_val',
@@ -425,7 +427,7 @@ def _freeze_saved_model_v1(saved_model_dir, saved_model_tags,
       return frozen_graph, frozen_initializer_graph
 
 def _freeze_saved_model_v2(concrete_func, control_flow_v2=False):
-  if tf.__version__ < '2.2.0':
+  if version.parse(tf.__version__) < version.parse('2.2.0'):
     return convert_to_constants.convert_variables_to_constants_v2(
         concrete_func, lower_control_flow=not control_flow_v2).graph
 

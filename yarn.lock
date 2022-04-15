@@ -367,10 +367,10 @@
   resolved "https://registry.yarnpkg.com/@types/webgl2/-/webgl2-0.0.6.tgz#1ea2db791362bd8521548d664dbd3c5311cdf4b6"
   integrity sha512-50GQhDVTq/herLMiqSQkdtRu+d5q/cWHn4VvKJtrj4DJAjo1MNkWYa2MA41BaBO1q1HgsUjuQvEOk0QHvlnAaQ==
 
-"@webgpu/types@0.1.6":
-  version "0.1.6"
-  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.1.6.tgz#91c89d950449fa0d2c7802de3a6b3c3a9054f392"
-  integrity sha512-5c3ZxNmGwVhTo8nW0b0iEaSVLTx89D056c7JzbzC2f9J+qebRM+U9rH52q9Z/HwZbZQTUAYX5UGp0c4BNv61Ew==
+"@webgpu/types@0.1.13":
+  version "0.1.13"
+  resolved "https://registry.npmmirror.com/@webgpu/types/-/types-0.1.13.tgz#afb6ac170884b29bc8f05e68fac74835b92acb9f"
+  integrity sha512-SAq8FRONvMANQi/eXw5ArKfSvih6am/EC+5y7+du2xf1VyprtKn4ylUPKGW4T6ZkDogtH3xZgGE+J/cx601L5w==
 
 "@xmldom/xmldom@^0.7.3":
   version "0.7.5"
