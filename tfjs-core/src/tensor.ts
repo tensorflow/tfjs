@@ -158,6 +158,7 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
 
 export interface DataToGPUWebGLOption {
   customTexShape?: [number, number];
+  customBufSize?: number;
 }
 
 export type DataToGPUOptions = DataToGPUWebGLOption;
@@ -165,7 +166,9 @@ export type DataToGPUOptions = DataToGPUWebGLOption;
 export interface GPUData {
   tensorRef: Tensor;
   texture?: WebGLTexture;
+  buffer?: GPUBuffer;
   texShape?: [number, number];
+  bufSize?: number;
 }
 export interface TensorTracker {
   makeTensor(

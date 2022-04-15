@@ -17,7 +17,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, buffer, DataStorage, DataType, DataValues, engine, env, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, DataStorage, DataToGPUWebGLOption, DataType, DataValues, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {BufferManager} from './buffer_manager';
 import {FromPixelsImportProgram} from './kernels/FromPixels_utils/from_pixels_import_webgpu';
@@ -68,32 +68,33 @@ const CPU_HANDOFF_SIZE_THRESHOLD =
     env().getNumber('WEBGPU_CPU_HANDOFF_SIZE_THRESHOLD');
 
 // Reshape dispatch, not to exceed device limits.
-const reshapeDispatch = (device: GPUDevice,
-    program: webgpu_program.WebGPUProgram): [number, number, number] => {
-  const MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE =
-      device.limits.maxComputeWorkgroupsPerDimension;
-  const layout = program['dispatchLayout'];
-  const dispatch = program['dispatch'];
-  if (dispatch.every((d) => d <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE)) {
-    return dispatch;
-  }
+const reshapeDispatch =
+    (device: GPUDevice,
+     program: webgpu_program.WebGPUProgram): [number, number, number] => {
+      const MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE =
+          device.limits.maxComputeWorkgroupsPerDimension;
+      const layout = program['dispatchLayout'];
+      const dispatch = program['dispatch'];
+      if (dispatch.every((d) => d <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE)) {
+        return dispatch;
+      }
 
-  util.assert(
-      dispatch[0] > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
-          layout.y === undefined && layout.z === undefined,
-      () => 'Dispatch size exceeds WebGPU limits in Y or Z dimension.');
+      util.assert(
+          dispatch[0] > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
+              layout.y === undefined && layout.z === undefined,
+          () => 'Dispatch size exceeds WebGPU limits in Y or Z dimension.');
 
-  let dispatchAverage = Math.ceil(Math.sqrt(dispatch[0]));
-  if (dispatchAverage > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
-    dispatchAverage = Math.ceil(Math.cbrt(dispatch[0]));
-    util.assert(
-        dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE,
-        () => 'Total dispatch size exceeds WebGPU maximum.');
-    return [dispatchAverage, dispatchAverage, dispatchAverage];
-  } else {
-    return [dispatchAverage, dispatchAverage, 1];
-  }
-};
+      let dispatchAverage = Math.ceil(Math.sqrt(dispatch[0]));
+      if (dispatchAverage > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
+        dispatchAverage = Math.ceil(Math.cbrt(dispatch[0]));
+        util.assert(
+            dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE,
+            () => 'Total dispatch size exceeds WebGPU maximum.');
+        return [dispatchAverage, dispatchAverage, dispatchAverage];
+      } else {
+        return [dispatchAverage, dispatchAverage, 1];
+      }
+    };
 
 export class WebGPUBackend extends KernelBackend {
   device: GPUDevice;
@@ -469,6 +470,83 @@ export class WebGPUBackend extends KernelBackend {
     }
     this.convertAndCacheOnCPU(dataId, vals);
     return vals;
+  }
+
+  async downloadGPUBufferData(gpuData: GPUData):
+      Promise<backend_util.BackendValues> {
+    const staging = this.acquireBuffer(
+        gpuData.bufSize, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
+    this.ensureCommandEncoderReady();
+    this.ensureComputePassEnded();
+    this.currentCommandEncoder.copyBufferToBuffer(
+        gpuData.buffer, 0, staging, 0, gpuData.bufSize);
+    this.submitQueue();
+
+    await staging.mapAsync(GPUMapMode.READ);
+    const values = staging.getMappedRange().slice(0);
+
+    staging.unmap();
+    if (staging != null) {
+      this.bufferManager.releaseBuffer(
+          staging, gpuData.bufSize,
+          GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
+    }
+
+    const data = values as backend_util.BackendValues;
+    const vals = webgpu_util.ArrayBufferToTypedArray(
+        data as ArrayBuffer, gpuData.tensorRef.dtype);
+    return vals;
+  }
+
+  /**
+   * Read tensor to a new GPUBuffer.
+   * @param dataId The source tensor.
+   * @param options
+   *     customBufShape: Optional. If set, will use the user defined buffer
+   *     size to create the buffer.
+   */
+  readToGPU(dataId: DataId, options: DataToGPUWebGLOption = {}): GPUData {
+    const srcData = this.tensorMap.get(dataId);
+    const {values, dtype, bufferInfo} = srcData;
+
+    if (dtype === 'complex64') {
+      throw new Error('Does not support reading buffer for complex64 dtype.');
+    }
+
+    if (bufferInfo.buffer == null) {
+      if (values != null) {
+        throw new Error('Data is not on GPU but on CPU.');
+      } else {
+        throw new Error('There is no data on GPU or CPU.');
+      }
+    }
+
+    if (options.customBufSize != null) {
+      util.assert(
+          options.customBufSize % 4 === 0,
+          () => 'customBufSize should be a multiple of 4.');
+    }
+
+    const copySize = options.customBufSize != null ?
+        Math.min(bufferInfo.byteSize, options.customBufSize) :
+        bufferInfo.byteSize;
+    const resBuffer = this.acquireBuffer(copySize);
+    this.ensureCommandEncoderReady();
+    this.ensureComputePassEnded();
+    this.currentCommandEncoder.copyBufferToBuffer(
+        bufferInfo.buffer, 0, resBuffer, 0, copySize);
+    this.submitQueue();
+
+    const tensorInfo = this.makeTensorInfo(
+        [copySize / webgpu_util.GPUBytesPerElement(dtype)], dtype);
+    // Make engine track this tensor, so that we can dispose it later.
+    const tensorRef = engine().makeTensorFromDataId(
+        tensorInfo.dataId, tensorInfo.shape, tensorInfo.dtype);
+
+    const info = this.tensorMap.get(tensorInfo.dataId);
+    info.bufferInfo.buffer = resBuffer;
+
+    return {tensorRef: tensorRef, buffer: resBuffer, bufSize: copySize};
   }
 
   bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {
