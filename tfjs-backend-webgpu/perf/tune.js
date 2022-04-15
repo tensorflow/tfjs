@@ -206,8 +206,8 @@ async function timeMatmul(rowNum) {
   result.webgpu = `${parseFloat(kernel_webgpu.kernelTimeMs).toFixed(2)}`; // WebGPU
   result.webgl = `${parseFloat(kernel_webgl.kernelTimeMs).toFixed(2)}`; // WebGL
   result.webglComp = `${parseFloat((result.webgl / result.webgpu) * 100).toFixed(0)}`; // WebGLComp
-  result.scale = `${dimAOuter * dimInner * dimBOuter}`;  // scale
-  result.program = `${kernel_webgpu.extraInfo.split(':')[0]}`;  // scale
+  result.scale = `${dimAOuter * dimInner * dimBOuter}`;  // Scale
+  result.program = `${kernel_webgpu.extraInfo.split(':')[0]}`;  // Program
 
   if (rowNum !== undefined) {
     updateRow(result, rowNum);
