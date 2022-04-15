@@ -625,6 +625,7 @@ export class WebGPUBackend extends KernelBackend {
                            Array<{type: string; data: number[];}>):
       GPUBindingResource {
     let currentOffset = 0;
+    let preLength = 0;
     const offsets: number[] = [];
     uniformsWithType.forEach((d) => {
       if (d.data.length === 0) {
@@ -646,16 +647,22 @@ export class WebGPUBackend extends KernelBackend {
           baseAlignment = 16;
           break;
         case 5:
-          baseAlignment = 4;
+          baseAlignment = 16;
           break;
         case 6:
-          baseAlignment = 4;
+          baseAlignment = 16;
           break;
         default:
           util.assert(false, () => `Unsupported ${d.data.length}D shape`);
       }
 
-      currentOffset = Math.ceil(currentOffset / baseAlignment) * baseAlignment;
+      if (preLength === 5 || preLength === 6) {
+        currentOffset = Math.ceil(currentOffset / 16) * 16;
+      } else {
+        currentOffset =
+            Math.ceil(currentOffset / baseAlignment) * baseAlignment;
+      }
+      preLength = d.data.length;
       offsets.push(currentOffset);
       currentOffset += d.data.length * 4;
     });
