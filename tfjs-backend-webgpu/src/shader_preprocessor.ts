@@ -146,21 +146,47 @@ export function makeShader(
     ].join('\n');
   }
 
+  let preMemberIsStruct = false;
+  let currentMemberIsStruct = false;
   let uniformDeclaration = 'struct Uniforms { NAN : f32, ';
   program.variableNames.forEach((x, i) => {
+    const perDataType = getCoordsDataType(inputInfo[i].shape.length);
+    if (perDataType === 'vec5' || perDataType === 'vec6') {
+      currentMemberIsStruct = true;
+    }
+    if (preMemberIsStruct || currentMemberIsStruct) {
+      uniformDeclaration += `@align(16) `;
+    }
+    preMemberIsStruct = currentMemberIsStruct;
     uniformDeclaration +=
-        `@align(16) ${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${
-            //`${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${
-            getCoordsDataType(inputInfo[i].shape.length)}, `;
+        //`@align(16) ${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${
+        `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${perDataType}, `;
   });
+  const outputDataType = getCoordsDataType(outputData.shape.length);
+  currentMemberIsStruct =
+      outputDataType === 'vec5' || outputDataType === 'vec6';
+  if (preMemberIsStruct || currentMemberIsStruct) {
+    uniformDeclaration += `@align(16) `;
+  }
+  preMemberIsStruct = currentMemberIsStruct;
   uniformDeclaration +=
-      `@align(16) outShape : ${getCoordsDataType(outputData.shape.length)}, `;
-  //`outShape : ${getCoordsDataType(outputData.shape.length)}, `;
+      //`@align(16) outShape : ${getCoordsDataType(outputData.shape.length)}, `;
+      `outShape : ${outputDataType}, `;
   const stridesLength = outputData.shape.length - 1;
+  const stridesDataType = getCoordsDataType(stridesLength);
+  currentMemberIsStruct =
+      stridesDataType === 'vec5' || stridesDataType === 'vec6';
+  if (preMemberIsStruct || currentMemberIsStruct) {
+    uniformDeclaration += `@align(16) `;
+  }
+  preMemberIsStruct = currentMemberIsStruct;
   uniformDeclaration += `
-       @align(16) outShapeStrides: ${getCoordsDataType(stridesLength)}, `;
+       outShapeStrides: ${stridesDataType}, `;
 
   if (program.size) {
+    if (preMemberIsStruct) {
+      uniformDeclaration += `@align(16) `;
+    }
     // uniformDeclaration += '@align(16) size : i32, ';
     uniformDeclaration += 'size : i32, ';
   }
@@ -370,7 +396,7 @@ function setOutputSnippet(
     }`;
   }
   if (outRank >= 2) {
-    const dims = ['d0', 'd1', 'd2', 'd3'].slice(0, outRank);
+    const dims = ['d0', 'd1', 'd2', 'd3', 'd4', 'd5'].slice(0, outRank);
     const type = getCoordsDataType(outRank);
 
     if (isVec4) {
@@ -425,7 +451,7 @@ function getInputAtCoordsSnippet(
   const rank = inputInfo.shape.length;
   const type = getCoordsDataType(rank);
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
-  const dims = ['d0', 'd1', 'd2', 'd3'].slice(0, rank);
+  const dims = ['d0', 'd1', 'd2', 'd3', 'd4', 'd5'].slice(0, rank);
   const inputs = dims.map(d => `${d} : i32`).join(', ');
 
   if (rank < 1) {
@@ -719,7 +745,6 @@ function getCoordsFromIndexSnippet(shape: number[]): string {
                   .replace(/\[4\]/g, '.u')
                   .replace(/\[5\]/g, '.v');
   }
-
 
   return `
     fn getCoordsFromIndex(index : i32) -> ${dtype} {
