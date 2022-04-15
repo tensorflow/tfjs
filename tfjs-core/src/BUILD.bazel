@@ -74,6 +74,7 @@ ts_library(
     deps = [
         "@npm//@types",
         "@npm//seedrandom",
+        "@npm//@webgpu/types",
     ],
 )
 
