@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
+import {getCoordsDataType, getCoordsXYZ, getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
 import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
@@ -74,14 +74,8 @@ function getSwitchedCoords(newDim: number[]): string {
   }
   const switchedCoords = new Array(rank);
   for (let i = 0; i < newDim.length; i++) {
-    switchedCoords[newDim[i]] = `resRC[${i}]`;
+    switchedCoords[newDim[i]] = `resRC.${getCoordsXYZ(i)}`;
   }
 
-  return switchedCoords.join()
-      .replace(/\[0\]/g, '.x')
-      .replace(/\[1\]/g, '.y')
-      .replace(/\[2\]/g, '.z')
-      .replace(/\[3\]/g, '.w')
-      .replace(/\[4\]/g, '.u')
-      .replace(/\[5\]/g, '.v');
+  return switchedCoords.join();
 }
