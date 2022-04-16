@@ -12,6 +12,7 @@
     "@rollup/plugin-commonjs": "^18.0.0",
     "@rollup/plugin-node-resolve": "^11.2.1",
     "@types/argparse": "^1.0.38",
+    "@types/emscripten": "~0.0.34",
     "@types/jasmine": "~3.0.0",
     "@types/js-yaml": "^4.0.5",
     "@types/long": "4.0.1",
