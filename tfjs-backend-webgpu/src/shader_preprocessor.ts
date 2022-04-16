@@ -36,6 +36,24 @@ export function getCoordsDataType(rank: number): string {
   }
 }
 
+export function getCoordsXYZ(index: number): string {
+  if (index === 0) {
+    return 'x';
+  } else if (index === 1) {
+    return 'y';
+  } else if (index === 2) {
+    return 'z';
+  } else if (index === 3) {
+    return 'w';
+  } else if (index === 4) {
+    return 'u';
+  } else if (index === 5) {
+    return 'v';
+  } else {
+    throw Error(`Index ${index} is not yet supported`);
+  }
+}
+
 type WGSLDataType = 'f32'|'i32'|'vec4<f32>'|'vec4<i32>'|'vec4<bool>';
 function mapToWgslTypes(type: DataType, isVec4: boolean): WGSLDataType|
     DataType {
@@ -159,7 +177,6 @@ export function makeShader(
     }
     preMemberIsStruct = currentMemberIsStruct;
     uniformDeclaration +=
-        //`@align(16) ${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${
         `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${perDataType}, `;
   });
   const outputDataType = getCoordsDataType(outputData.shape.length);
@@ -169,9 +186,7 @@ export function makeShader(
     uniformDeclaration += `@align(16) `;
   }
   preMemberIsStruct = currentMemberIsStruct;
-  uniformDeclaration +=
-      //`@align(16) outShape : ${getCoordsDataType(outputData.shape.length)}, `;
-      `outShape : ${outputDataType}, `;
+  uniformDeclaration += `outShape : ${outputDataType}, `;
   const stridesLength = outputData.shape.length - 1;
   const stridesDataType = getCoordsDataType(stridesLength);
   currentMemberIsStruct =
@@ -187,7 +202,6 @@ export function makeShader(
     if (preMemberIsStruct) {
       uniformDeclaration += `@align(16) `;
     }
-    // uniformDeclaration += '@align(16) size : i32, ';
     uniformDeclaration += 'size : i32, ';
   }
 
@@ -569,7 +583,8 @@ export function getInputByOutputSnippet(
       coordsSnippet = 'coords = 0;';
     } else {
       coordsSnippet =
-          broadcastDims.map(d => `coords[${d + rankDiff}] = 0;`).join('\n');
+          broadcastDims.map(d => `coords.${getCoordsXYZ(d + rankDiff)} = 0;`)
+              .join('\n');
     }
   }
 
@@ -580,7 +595,8 @@ export function getInputByOutputSnippet(
     if (outRank > 1) {
       const coordsType = getCoordsDataType(inRank);
       const coordsValues =
-          inputInfo.shape.map((s, i) => `coords[${i + rankDiff}]`).join(', ');
+          inputInfo.shape.map((s, i) => `coords.${getCoordsXYZ(i + rankDiff)}`)
+              .join(', ');
       unpackedCoordsSnippet = `${coordsType}(${coordsValues})`;
     } else {
       unpackedCoordsSnippet = 'coords';
@@ -728,23 +744,16 @@ function getCoordsFromIndexSnippet(shape: number[]): string {
       strides
           .map((_, i) => {
             const line1 =
-                `let ${coords[i]} = index2 / uniforms.outShapeStrides[${i}]`;
+                `let ${coords[i]} = index2 / uniforms.outShapeStrides.${
+                    getCoordsXYZ(i)}`;
             const line2 = i === strides.length - 1 ?
                 `let ${coords[i + 1]} = index2 - ${
-                    coords[i]} * uniforms.outShapeStrides[${i}]` :
-                `index2 = index2 - ${coords[i]} * uniforms.outShapeStrides[${
-                    i}]`;
+                    coords[i]} * uniforms.outShapeStrides.${getCoordsXYZ(i)}` :
+                `index2 = index2 - ${coords[i]} * uniforms.outShapeStrides.${
+                    getCoordsXYZ(i)}`;
             return `${line1}; ${line2};`;
           })
           .join('');
-  if (rank === 5 || rank === 6) {
-    snippet = snippet.replace(/\[0\]/g, '.x')
-                  .replace(/\[1\]/g, '.y')
-                  .replace(/\[2\]/g, '.z')
-                  .replace(/\[3\]/g, '.w')
-                  .replace(/\[4\]/g, '.u')
-                  .replace(/\[5\]/g, '.v');
-  }
 
   return `
     fn getCoordsFromIndex(index : i32) -> ${dtype} {
