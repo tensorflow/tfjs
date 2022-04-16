@@ -654,11 +654,9 @@ export class WebGPUBackend extends KernelBackend {
       }
 
       if (preLength === 5 || preLength === 6) {
-        currentOffset = Math.ceil(currentOffset / 16) * 16;
-      } else {
-        currentOffset =
-            Math.ceil(currentOffset / baseAlignment) * baseAlignment;
+        baseAlignment = 16;
       }
+      currentOffset = Math.ceil(currentOffset / baseAlignment) * baseAlignment;
       preLength = d.data.length;
       offsets.push(currentOffset);
       currentOffset += d.data.length * 4;
