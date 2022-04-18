@@ -169,9 +169,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'pool ',
     excludes: [
-      //'avg x=[',                          // Unsupported 6D shape.
-      //'max x=[4,3,1] f=[2,2] s=1 d=2',    // Unsupported 6D shape.
-      //'max x=[2,4,4,1] f=[2,2] s=1 d=2',  // Unsupported 6D shape.
       'poolBackprop',  // maxPoolBackprop not yet implemented.
     ]
   },
