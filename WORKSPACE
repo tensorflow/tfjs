@@ -41,22 +41,23 @@ http_archive(
     urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/4.6.1/rules_nodejs-4.6.1.tar.gz"],
 )
 
+# Set up node version to use. Must come before rules_nodejs_dependencies()
+load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "yarn_install")
+
+node_repositories(
+    node_version = "16.13.2",
+    package_json = ["//:package.json"],
+)
+
 # Install rules_nodejs dependencies.
 load("@build_bazel_rules_nodejs//nodejs:repositories.bzl", "rules_nodejs_dependencies")
 
 rules_nodejs_dependencies()
 
-load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "yarn_install")
-
 yarn_install(
     name = "npm",
     package_json = "//:package.json",
     yarn_lock = "//:yarn.lock",
-)
-
-node_repositories(
-    node_version = "16.13.2",
-    package_json = ["//:package.json"],
 )
 
 # Fetch transitive Bazel dependencies of karma_web_test
