@@ -952,6 +952,7 @@ export class WebGPUBackend extends KernelBackend {
         {
           binding: 0,
           resource: {
+            // tslint:disable-next-line: no-unnecessary-type-assertion
             buffer: (binding as GPUBufferBinding).buffer,
           }
         },
