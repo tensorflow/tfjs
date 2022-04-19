@@ -202,10 +202,14 @@ export function makeShader(
     if (preMemberIsStruct) {
       uniformDeclaration += `@align(16) `;
     }
+    preMemberIsStruct = false;
     uniformDeclaration += 'size : i32, ';
   }
 
   if (program.uniforms) {
+    if (preMemberIsStruct) {
+      uniformDeclaration += `@align(16) `;
+    }
     uniformDeclaration += program.uniforms;
   }
   uniformDeclaration += '};';
@@ -295,12 +299,12 @@ const commonSnippet = `
         shape.y * shape.z * shape.w, shape.z * shape.w, shape.w, 1));
   }
   fn getIndexFromCoords5D(coords : vec5, shape : vec5) -> i32 {
-    let currentShape: vec5 = vec5(shape.y * shape.z * shape.w * shape.u, shape.z * shape.w * shape.u, shape.w * shape.u, shape.u, 1);
-    return coords.x*currentShape.x + coords.y*currentShape.y + coords.z*currentShape.z + coords.w*currentShape.w + coords.u*currentShape.u;
+    let shapeStrides: vec5 = vec5(shape.y * shape.z * shape.w * shape.u, shape.z * shape.w * shape.u, shape.w * shape.u, shape.u, 1);
+    return coords.x*shapeStrides.x + coords.y*shapeStrides.y + coords.z*shapeStrides.z + coords.w*shapeStrides.w + coords.u*shapeStrides.u;
   }
   fn getIndexFromCoords6D(coords : vec6, shape : vec6) -> i32 {
-    let currentShape: vec6 = vec6(shape.y * shape.z * shape.w * shape.u * shape.v, shape.z * shape.w * shape.u * shape.v, shape.w * shape.u * shape.v, shape.u * shape.v, shape.v, 1);
-    return coords.x*currentShape.x + coords.y*currentShape.y + coords.z*currentShape.z + coords.w*currentShape.w + coords.u*currentShape.u + coords.v*currentShape.v;
+    let shapeStrides: vec6 = vec6(shape.y * shape.z * shape.w * shape.u * shape.v, shape.z * shape.w * shape.u * shape.v, shape.w * shape.u * shape.v, shape.u * shape.v, shape.v, 1);
+    return coords.x*shapeStrides.x + coords.y*shapeStrides.y + coords.z*shapeStrides.z + coords.w*shapeStrides.w + coords.u*shapeStrides.u + coords.v*shapeStrides.v;
   }
 
   fn idiv(a: i32, b: i32, sign: f32) -> i32 {
