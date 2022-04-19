@@ -908,14 +908,22 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   runFromPixelsProgram(
-      program: webgpu_program.WebGPUProgram, output: TensorInfo,
+      program: webgpu_program.WebGPUProgram, outShape: number[],
       programUniforms: ProgramUniform, useImport: boolean,
       externalImage: ExternalImage|HTMLVideoElement) {
     program.dispatch = reshapeDispatch(this.device, program);
 
-    const outputTypes = [output.dtype, useImport ? 'import' : 'copyExternal'];
-    const key =
-        webgpu_program.makeShaderKey(program, [output.shape], outputTypes);
+    const output = this.makeTensorInfo(outShape, 'int32');
+    if (util.sizeFromShape(output.shape) === 0) {
+      // Short-circuit the computation since the result is empty (has 0 in its
+      // shape).
+      const outData = this.tensorMap.get(output.dataId);
+      outData.values =
+          util.getTypedArrayFromDType(output.dtype as 'float32', 0);
+      return output;
+    }
+    this.uploadToGPU(output.dataId);
+    const key = webgpu_program.makeShaderKey(program, [output.shape]);
 
     const layout = this.getFromPixelTextureLayout(useImport);
 
@@ -936,10 +944,7 @@ export class WebGPUBackend extends KernelBackend {
           this.copyExternalImageToTexture(externalImage, output.shape);
     }
 
-    const info = this.tensorMap.get(output.dataId);
-
-    info.bufferInfo.buffer = this.acquireBuffer(info.bufferInfo.byteSize);
-
+    const binding = this.tensorToBinding(output);
     const uniforms = this.makeUniforms(programUniforms);
     const bindGroup = this.device.createBindGroup({
       layout: layout.bindGroupLayout,
@@ -947,7 +952,7 @@ export class WebGPUBackend extends KernelBackend {
         {
           binding: 0,
           resource: {
-            buffer: info.bufferInfo.buffer,
+            buffer: (binding as GPUBufferBinding).buffer,
           }
         },
         {
@@ -995,6 +1000,7 @@ export class WebGPUBackend extends KernelBackend {
         query: this.getQueryTime(this.querySet)
       });
     }
+    return output;
   }
 
   async getTimeFromQuerySet(querySet: GPUQuerySet) {

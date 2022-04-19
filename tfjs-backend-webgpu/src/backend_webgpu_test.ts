@@ -216,6 +216,8 @@ describeWebGPU('backend webgpu', () => {
   });
 
   it('should reuse textures when fromPixels have same input size', async () => {
+    const useImport = tf.env().getBool('WEBGPU_USE_IMPORT');
+    tf.env().set('WEBGPU_USE_IMPORT', false);
     const backend = tf.backend() as WebGPUBackend;
     const textureManager = backend.getTextureManager();
     textureManager.dispose();
@@ -287,6 +289,8 @@ describeWebGPU('backend webgpu', () => {
       expect(freeTexturesAfterFromPixel).toEqual(2);
       expect(usedTexturesAfterFromPixel).toEqual(0);
     }
+
+    tf.env().set('WEBGPU_USE_IMPORT', useImport);
   });
 });
 
