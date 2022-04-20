@@ -67,6 +67,10 @@ export class ArgMinMaxProgram implements WebGPUProgram {
     const indexOutputCoords = (outputCoords: string, index: string) => {
       if (this.outputShape.length === 1) {
         return outputCoords;
+      } else if (this.outputShape.length === 5) {
+        return `getCoordFrom5DIndex(${outputCoords}, ${index})`;
+      } else if (this.outputShape.length === 6) {
+        return `getCoordFrom6DIndex(${outputCoords}, ${index})`;
       } else {
         return `${outputCoords}[${index}]`;
       }
@@ -75,6 +79,10 @@ export class ArgMinMaxProgram implements WebGPUProgram {
     const indexInputShape = (index: string) => {
       if (this.inputShape.length === 1) {
         return 'uniforms.xShape';
+      } else if (this.inputShape.length === 5) {
+        return `getCoordFrom5DIndex(uniforms.xShape, ${index})`;
+      } else if (this.inputShape.length === 6) {
+        return `getCoordFrom6DIndex(uniforms.xShape, ${index})`;
       } else {
         return `uniforms.xShape[${index}]`;
       }
