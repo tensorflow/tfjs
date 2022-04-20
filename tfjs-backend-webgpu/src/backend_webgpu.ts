@@ -839,13 +839,14 @@ export class WebGPUBackend extends KernelBackend {
     if (useImport) {
       if (this.fromPixelImportTextureLayout === null) {
         this.fromPixelImportTextureLayout =
-            this.createFromPixelTextureLayout(true);
+            this.createFromPixelTextureLayout(true /* useImport */);
       }
       return this.fromPixelImportTextureLayout;
     }
 
     if (this.fromPixelTextureLayout === null) {
-      this.fromPixelTextureLayout = this.createFromPixelTextureLayout(false);
+      this.fromPixelTextureLayout =
+          this.createFromPixelTextureLayout(false /* useImport */);
     }
     return this.fromPixelTextureLayout;
   }
@@ -893,8 +894,8 @@ export class WebGPUBackend extends KernelBackend {
     const externalResource = texture.createView();
 
     this.queue.copyExternalImageToTexture(
-        {source: externalImage as ExternalImage, origin: {x: 0, y: 0}},
-        {texture}, [outShape[1], outShape[0]]);
+        {source: externalImage as ExternalImage}, {texture},
+        [outShape[1], outShape[0]]);
 
     const textureInfo = {
       width: outShape[1],
