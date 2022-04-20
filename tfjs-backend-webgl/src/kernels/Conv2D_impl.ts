@@ -26,6 +26,7 @@ import * as webgl_util from '../webgl_util';
 import {batchMatMulImpl, MATMUL_SHARED_DIM_THRESHOLD} from './BatchMatMul_impl';
 import {identity} from './Identity';
 import {reshape} from './Reshape';
+import {transposeImpl} from './Transpose_impl';
 
 type Conv2DConfig = {
   x: TensorInfo,
@@ -271,11 +272,17 @@ export function conv2dWithIm2Row({
   }
   const product = backend.runWebGLProgram(matmulProgram, inputs, 'float32');
 
-  const outShape = isChannelsLast ?
-      [1, outHeight, outWidth, convInfo.outChannels] :
-      [1, convInfo.outChannels, outHeight, outWidth];
-  const out =
-      reshape({inputs: {x: product}, backend, attrs: {shape: outShape}});
+  const outInNHWCFormatShape = [1, outHeight, outWidth, convInfo.outChannels];
+  const outInNHWCFormat = reshape(
+      {inputs: {x: product}, backend, attrs: {shape: outInNHWCFormatShape}});
+
+  // If the data format is NCHW, then convert the output to be NCHW format.
+  const out = isChannelsLast ?
+      outInNHWCFormat :
+      transposeImpl(outInNHWCFormat, [0, 3, 1, 2], backend);
+  if (!isChannelsLast) {
+    intermediates.push(outInNHWCFormat);
+  }
 
   intermediates.push(product);
   for (const i of intermediates) {
