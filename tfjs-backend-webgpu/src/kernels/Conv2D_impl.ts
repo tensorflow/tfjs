@@ -51,12 +51,12 @@ function conv2dByMatMul({
   leakyreluAlpha = 0,
   activation = null
 }: Conv2DConfig) {
-  const xShape = x.shape;
   const isChannelsLast = convInfo.dataFormat === 'channelsLast';
-  const transposeA = false;
+  const transposeA = isChannelsLast ? false : true;
   const transposeB = false;
 
-  const sameSize = convInfo.filterHeight === convInfo.inHeight &&
+  const sameSize = isChannelsLast &&
+      convInfo.filterHeight === convInfo.inHeight &&
       convInfo.filterWidth === convInfo.inWidth &&
       convInfo.padInfo.type === 'VALID';
   let xReshaped;
@@ -76,12 +76,20 @@ function conv2dByMatMul({
       attrs: {shape: [1, sharedDim, convInfo.outChannels]}
     });
   } else {
-    const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] :
-                                         xShape[0] * xShape[2] * xShape[3];
     xReshaped = reshape({
       inputs: {x},
       backend,
-      attrs: {shape: [1, targetShape, convInfo.inChannels]}
+      attrs: {
+        shape: isChannelsLast ?
+            [
+              convInfo.batchSize, convInfo.inHeight * convInfo.inWidth,
+              convInfo.inChannels
+            ] :
+            [
+              convInfo.batchSize, convInfo.inChannels,
+              convInfo.inHeight * convInfo.inWidth
+            ]
+      }
     });
     filterReshaped = reshape({
       inputs: {x: filter},
@@ -91,8 +99,8 @@ function conv2dByMatMul({
   }
 
   const result = batchMatMulImpl({
-    a: xReshaped,
-    b: filterReshaped,
+    a: isChannelsLast ? xReshaped : filterReshaped,
+    b: isChannelsLast ? filterReshaped : xReshaped,
     transposeA,
     transposeB,
     backend,
@@ -183,7 +191,7 @@ function conv2dWithIm2Col({
   const matMulProgram = new MatMulPackedProgram(
       a3dShape, [1, numCols, convInfo.outChannels],
       env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, transposeA,
-      transposeB, bias, activation, preluActivationWeights);
+      transposeB, true, true, bias, activation, preluActivationWeights);
   const dimAOuter = a3dShape[1];
   const dimInner = a3dShape[2];
   const dimBOuter = convInfo.outChannels;
@@ -232,11 +240,11 @@ export function conv2DImpl({
   const hasPreluActivationWeights = preluActivationWeights != null;
   const isChannelsLast = convInfo.dataFormat === 'channelsLast';
   let program: Conv2DMMProgram|Conv2DNaiveProgram|Conv2DMMVec4Program;
-  const sameSize = convInfo.filterHeight === convInfo.inHeight &&
+  const sameSize = isChannelsLast &&
+      convInfo.filterHeight === convInfo.inHeight &&
       convInfo.filterWidth === convInfo.inWidth &&
       convInfo.padInfo.type === 'VALID';
-  if (isChannelsLast &&
-      (sameSize ||
+  if ((sameSize ||
        (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
         convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
         convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
