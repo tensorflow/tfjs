@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, env, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {Conv2DMMVec4Program} from '../conv2d_mm_vec4_webgpu';
@@ -190,8 +190,8 @@ function conv2dWithIm2Col({
   const a3dShape: [number, number, number] = [1, x2ColShape[0], x2ColShape[1]];
   const matMulProgram = new MatMulPackedProgram(
       a3dShape, [1, numCols, convInfo.outChannels],
-      env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, transposeA,
-      transposeB, true, true, bias, activation, preluActivationWeights);
+      env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, true, true,
+      transposeA, transposeB, bias, activation, preluActivationWeights);
   const dimAOuter = a3dShape[1];
   const dimInner = a3dShape[2];
   const dimBOuter = convInfo.outChannels;
@@ -244,12 +244,12 @@ export function conv2DImpl({
       convInfo.filterHeight === convInfo.inHeight &&
       convInfo.filterWidth === convInfo.inWidth &&
       convInfo.padInfo.type === 'VALID';
-  if ((sameSize ||
-       (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
-        convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
-        convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
-        (convInfo.padInfo.type === 'SAME' ||
-         convInfo.padInfo.type === 'VALID')))) {
+  if (sameSize ||
+      (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
+       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
+       convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
+       (convInfo.padInfo.type === 'SAME' ||
+        convInfo.padInfo.type === 'VALID'))) {
     return conv2dByMatMul({
       x,
       filter,
@@ -262,8 +262,8 @@ export function conv2DImpl({
     });
   }
 
-  if (isChannelsLast && env().getBool('WEBGPU_CONV_SEPARATE_IM2COL_SHADER') &&
-      x.shape[0] === 1) {
+  if (env().getBool('WEBGPU_CONV_SEPARATE_IM2COL_SHADER') && x.shape[0] === 1) {
+    util.assert(isChannelsLast, () => 'TODO: NCHW is unimplemented');
     return conv2dWithIm2Col({
       x,
       filter,
@@ -275,7 +275,7 @@ export function conv2DImpl({
       activation
     });
   }
-  const useNaive = isChannelsLast && env().getBool('WEBGPU_USE_NAIVE_CONV2D');
+  const useNaive = env().getBool('WEBGPU_USE_NAIVE_CONV2D');
   const useVec4 =
       (convInfo.inChannels % 4 === 0 ||
        (convInfo.inChannels === 3 && convInfo.padInfo.type === 'VALID')) &&
@@ -289,6 +289,7 @@ export function conv2DImpl({
     {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]}
   ];
   if (useNaive) {
+    util.assert(isChannelsLast, () => 'TODO: NCHW is unimplemented');
     // TODO(kainino0x): This may be obsolete, but is kept for reference.
     program = new Conv2DNaiveProgram(
         convInfo, hasBias, activation, hasPreluActivationWeights);
