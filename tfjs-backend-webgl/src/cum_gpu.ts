@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
+ * Copyright 2022 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,20 +17,30 @@
 import {GPGPUProgram} from './gpgpu_math';
 import {getCoordsDataType, UniformType} from './shader_compiler';
 
-export class CumSumProgram implements GPGPUProgram {
+export enum CumOpType {
+  Prod = '*',
+  Sum = '+',
+}
+
+export class CumProgram implements GPGPUProgram {
   variableNames = ['x'];
   outputShape: number[];
   userCode: string;
   customUniforms = [{name: 'index', type: 'float' as UniformType}];
+  op: CumOpType;
 
-  constructor(shape: number[], exclusive: boolean, reverse: boolean) {
+  constructor(
+      op: CumOpType, shape: number[], exclusive: boolean, reverse: boolean) {
+    this.op = op;
     this.outputShape = shape;
     const rank = shape.length;
-    const val = exclusive ? '0.0' : `getX(${getCoords(rank, 'coords')})`;
+    const initVal = this.op === CumOpType.Prod ? '1.0' : '0.0';
+    const val =
+        exclusive ? initVal : `getX(${getCoords(rank, 'coords', this.op)})`;
     const length = shape[shape.length - 1];
     let condition = '';
     let idxString = '';
-    // When exclusive is set, the cumsum op becomes roll op that copies the
+    // When exclusive is set, the cum op becomes roll op that copies the
     // value from the previous index based on the direction specified by the
     // reverse flag.
     if (exclusive) {
@@ -44,13 +54,13 @@ export class CumSumProgram implements GPGPUProgram {
     this.userCode = `
       void main() {
         ${getCoordsDataType(rank)} coords = getOutputCoords();
-        int end = ${getFinalCoord(rank, 'coords')};
+        int end = ${getFinalCoord(rank, 'coords', this.op)};
         float val = ${val};
         int pow2 = int(pow(2.0, index));
         if (${condition}) {
           int idx = ${idxString};
-          ${getFinalCoord(rank, 'coords')} = idx;
-          val += getX(${getCoords(rank, 'coords')});
+          ${getFinalCoord(rank, 'coords', this.op)} = idx;
+          val ${this.op}= getX(${getCoords(rank, 'coords', this.op)});
         }
         setOutput(val);
       }
@@ -58,7 +68,7 @@ export class CumSumProgram implements GPGPUProgram {
   }
 }
 
-function getCoords(rank: number, name: string): string {
+function getCoords(rank: number, name: string, op: CumOpType): string {
   if (rank === 1) {
     return `${name}`;
   } else if (rank === 2) {
@@ -68,11 +78,11 @@ function getCoords(rank: number, name: string): string {
   } else if (rank === 4) {
     return `${name}.x, ${name}.y, ${name}.z, ${name}.w`;
   } else {
-    throw Error(`Cumulative sum for rank ${rank} is not yet supported`);
+    throw Error(`Cumulative ${op} for rank ${rank} is not yet supported`);
   }
 }
 
-function getFinalCoord(rank: number, name: string): string {
+function getFinalCoord(rank: number, name: string, op: CumOpType): string {
   if (rank === 1) {
     return `${name}`;
   } else if (rank === 2) {
@@ -82,6 +92,6 @@ function getFinalCoord(rank: number, name: string): string {
   } else if (rank === 4) {
     return `${name}.w`;
   } else {
-    throw Error(`Cumulative sum for rank ${rank} is not yet supported`);
+    throw Error(`Cumulative ${op} for rank ${rank} is not yet supported`);
   }
 }
