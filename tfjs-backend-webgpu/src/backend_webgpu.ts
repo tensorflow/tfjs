@@ -884,8 +884,7 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   private copyExternalImageToTexture(
-      externalImage: ExternalImage|HTMLVideoElement,
-      outShape: number[]): GPUTextureView {
+      externalImage: ExternalImage, outShape: number[]): GPUTextureView {
     const textureUsage = GPUTextureUsage.COPY_DST |
         GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING;
     const textureFormat = 'rgba8unorm' as GPUTextureFormat;
@@ -894,8 +893,7 @@ export class WebGPUBackend extends KernelBackend {
     const externalResource = texture.createView();
 
     this.queue.copyExternalImageToTexture(
-        {source: externalImage as ExternalImage}, {texture},
-        [outShape[1], outShape[0]]);
+        {source: externalImage}, {texture}, [outShape[1], outShape[0]]);
 
     const textureInfo = {
       width: outShape[1],
@@ -941,8 +939,8 @@ export class WebGPUBackend extends KernelBackend {
       externalResource =
           this.device.importExternalTexture(externalTextureDescriptor);
     } else {
-      externalResource =
-          this.copyExternalImageToTexture(externalImage, output.shape);
+      externalResource = this.copyExternalImageToTexture(
+          externalImage as ExternalImage, output.shape);
     }
 
     const binding = this.tensorToBinding(output);
