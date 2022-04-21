@@ -128,6 +128,10 @@ export class WebGPUBackend extends KernelBackend {
   private querySet: GPUQuerySet;
   private fromPixelProgram?: FromPixelsProgram;
   private fromPixelImportProgram?: FromPixelsImportProgram;
+  // For the first execution, we should submit GPU command asap. This can save
+  // warmup time. For the subsequent execution, the batched GPU command is
+  // faster.
+  private warmupDone = false;
 
   constructor(device: GPUDevice, supportTimeQuery = false) {
     super();
@@ -379,6 +383,7 @@ export class WebGPUBackend extends KernelBackend {
       // Data is on the CPU.
       return info.values;
     }
+    this.warmupDone = true;
     const staging = this.acquireBuffer(
         info.bufferInfo.byteSize,
         GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
@@ -822,8 +827,9 @@ export class WebGPUBackend extends KernelBackend {
     };
     this.uniformDisposalQueue.push(uniformInfo);
 
-    if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
-        number <= this.dispatchNumberInEncoder) {
+    if (!this.warmupDone ||
+        env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
+            number <= this.dispatchNumberInEncoder) {
       this.submitQueue();
     }
 
