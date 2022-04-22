@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
+import {getCoordsXYZ, getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
 import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
@@ -28,13 +28,15 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
   variableNames = ['x'];
-  uniforms = 'axis : i32, infinityValue : f32,';
+  uniforms = 'infinityValue : f32,';
   inputShape: number[];
   reductionFactor: number;
   op: string;
   size = true;
+  axis: number;
 
   constructor(inputShape: number[], axis: number, reduceType: 'min'|'max') {
+    this.axis = axis;
     const axes = [axis];
     backend_util.assertAxesAreInnerMostDims(
         'arg' + reduceType.charAt(0).toUpperCase() + reduceType.slice(1), axes,
@@ -55,7 +57,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         computeDispatch(this.dispatchLayout, this.outputShape, [1, 1, 1]);
 
     this.inputShape = inputShape;
-    this.shaderKey = `argMinMax${this.op}`;
+    this.shaderKey = `argMinMax${this.op}_${this.axis}_${inputShape}`;
   }
 
   getUserCode(): string {
@@ -64,28 +66,36 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
     `;
 
-    const indexOutputCoords = (outputCoords: string, index: string) => {
-      if (this.outputShape.length === 1) {
-        return outputCoords;
-      } else if (this.outputShape.length === 5) {
-        return `getCoordFrom5DIndex(${outputCoords}, ${index})`;
-      } else if (this.outputShape.length === 6) {
-        return `getCoordFrom6DIndex(${outputCoords}, ${index})`;
-      } else {
-        return `${outputCoords}[${index}]`;
-      }
-    };
+    const getCoordFromIndex =
+        (coords: string, index: number, length: number) => {
+          if (length === 1) {
+            return coords;
+          } else {
+            return `${coords}.${getCoordsXYZ(index)}`;
+          }
+        };
 
-    const indexInputShape = (index: string) => {
-      if (this.inputShape.length === 1) {
-        return 'uniforms.xShape';
-      } else if (this.inputShape.length === 5) {
-        return `getCoordFrom5DIndex(uniforms.xShape, ${index})`;
-      } else if (this.inputShape.length === 6) {
-        return `getCoordFrom6DIndex(uniforms.xShape, ${index})`;
-      } else {
-        return `uniforms.xShape[${index}]`;
+    const getInputCoordInfoSnippet = () => {
+      const inputSize = this.inputShape.length;
+      let i = this.outputShape.length - 1;
+      let stride = 1;
+      let offset = '0';
+      let snippet = '';
+      for (let r = 1; r <= inputSize; r = r + 1) {
+        const length = this.inputShape[inputSize - r];
+        if (inputSize - r === this.axis) {
+          snippet += `
+          inputStride = ${stride};`;
+        } else {
+          offset += ` + ${
+              getCoordFromIndex(
+                  'outputCoords', i, this.outputShape.length)} * ${stride}`;
+          i = i - 1;
+        }
+        stride = stride * length;
       }
+      snippet += `offset = ${offset};`;
+      return snippet;
     };
 
     const userCode = `
@@ -101,23 +111,11 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       // |axis| and the stride to get the next value of the input along |axis|.
       fn getInputCoordInfo(outputIndex : i32) -> vec2<i32>{
         let outputCoords = getCoordsFromIndex(outputIndex);
-        var i = ${this.outputShape.length - 1};
 
         var stride = 1;
         var inputStride = 1;
         var offset = 0;
-
-        for (var r = 1; r <= ${this.inputShape.length}; r = r + 1) {
-          let length = ${indexInputShape(`${this.inputShape.length} - r`)};
-          if (${this.inputShape.length} - r == uniforms.axis) {
-            inputStride = stride;
-          } else {
-            offset = offset + ${
-        indexOutputCoords('outputCoords', 'i')} * stride;
-            i = i - 1;
-          }
-          stride = stride * length;
-        }
+      ${getInputCoordInfoSnippet()}
 
         return vec2<i32>(offset, inputStride);
       }
@@ -129,7 +127,9 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       ${getMainHeaderAndGlobalIndexString()}
         let outputIndex = index / i32(workGroupSizeX);
         let coordInfo = getInputCoordInfo(outputIndex);
-        let Length = ${indexInputShape('uniforms.axis')};
+        let Length = ${
+        getCoordFromIndex(
+            'uniforms.xShape', this.axis, this.inputShape.length)};
 
         var bestIndex = i32(localId.x);
         var bestValue = uniforms.infinityValue;

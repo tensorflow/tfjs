@@ -274,26 +274,7 @@ export function makeShader(
 const commonSnippet = `
   struct vec5 {x: i32, y: i32, z: i32, w: i32, u: i32};
   struct vec6 {x: i32, y: i32, z: i32, w: i32, u: i32, v: i32};
-  fn getCoordFrom5DIndex(coords : vec5, idx : i32) -> i32{
-    var result = 0;
-    if (idx == 0) { result = coords.x; }
-    if (idx == 1) { result = coords.y; }
-    if (idx == 2) { result = coords.z; }
-    if (idx == 3) { result = coords.w; }
-    if (idx == 4) { result = coords.u; }
-    return result;
-  }
 
-  fn getCoordFrom6DIndex(coords : vec6, idx : i32) -> i32{
-    var result = 0;
-    if (idx == 0) { result = coords.x; }
-    if (idx == 1) { result = coords.y; }
-    if (idx == 2) { result = coords.z; }
-    if (idx == 3) { result = coords.w; }
-    if (idx == 4) { result = coords.u; }
-    if (idx == 5) { result = coords.v; }
-    return result;
-  }
   // Checks whether coordinates lie within the bounds of the shape.
   fn coordsInBounds2D(coord : vec2<i32>, shape : vec2<i32>) -> bool {
     return all(coord >= vec2<i32>(0)) && all(coord < shape);
