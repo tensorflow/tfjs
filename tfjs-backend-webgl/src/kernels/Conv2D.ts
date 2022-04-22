@@ -39,7 +39,8 @@ export function conv2d(
   if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
       convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
-      (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID')) {
+      (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID') &&
+      $dataFormat === 'channelsLast') {
     out = conv2dByMatMul({x, filter, convInfo, backend});
   } else if (env().getBool('WEBGL_CONV_IM2COL') && x.shape[0] === 1) {
     out = conv2dWithIm2Row({x, filter, convInfo, backend});

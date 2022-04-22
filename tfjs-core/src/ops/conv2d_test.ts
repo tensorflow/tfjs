@@ -229,10 +229,8 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
   });
 
   it('x=[4,2,2] f=[1,1,4,4] s=1 d=1 p=same NCHW', async () => {
-    // Skip webgl backend due to bug
-    // https://github.com/tensorflow/tfjs/issues/6308.
     // Skip tensorflow backend due to NCHW not supported.
-    if (tf.getBackend() === 'webgl' || tf.getBackend() === 'tensorflow') {
+    if (tf.getBackend() === 'tensorflow') {
       return;
     }
     const inputDepth = 4;
@@ -260,10 +258,8 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
   });
 
   it('x=[4,2,2] f=[2,2,4,4] s=1 d=1 p=same NCHW', async () => {
-    // Skip webgl backend due to bug
-    // https://github.com/tensorflow/tfjs/issues/6308.
     // Skip tensorflow backend due to NCHW not supported.
-    if (tf.getBackend() === 'webgl' || tf.getBackend() === 'tensorflow') {
+    if (tf.getBackend() === 'tensorflow') {
       return;
     }
     const inputDepth = 4;
