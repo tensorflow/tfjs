@@ -161,8 +161,8 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.batchAEqualOne = aShape[0] === 0;
-    this.batchBEqualOne = bShape[0] === 0;
+    this.batchAEqualOne = aShape[0] === 1;
+    this.batchBEqualOne = bShape[0] === 1;
     this.shaderKey = `matMulSmallOutputSize_${this.activation}_${
         this.batchAEqualOne}_${this.batchBEqualOne}`;
   }
