@@ -17,6 +17,9 @@
  */
 
 import chalk from 'chalk';
+import * as fs from 'fs';
+import * as inquirer from 'inquirer';
+import { Separator } from 'inquirer';
 import mkdirp from 'mkdirp';
 import * as readline from 'readline';
 import * as shell from 'shelljs';
@@ -216,6 +219,19 @@ export function $(cmd: string) {
     process.exit(1);
   }
   return result.stdout.trim();
+}
+
+export function $async(cmd: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    shell.exec(cmd, {silent: true}, (code, stdout, stderr) => {
+      if (code > 0) {
+        console.log('$', cmd);
+        console.log(stderr);
+        reject(stderr);
+      }
+      resolve(stdout.trim());
+    })
+  });
 }
 
 export function printReleaseUnit(releaseUnit: ReleaseUnit, id: number) {
@@ -420,6 +436,15 @@ export function createPR(
   console.log();
 }
 
+/**
+ * Get all GitHub issues tagged as release blockers.
+ *
+ * @return A string of all the issues. Empty if there are none.
+ */
+export function getReleaseBlockers() {
+  return $('hub issue -l "RELEASE BLOCKER"');
+}
+
 // Computes the default updated version (does a patch version update).
 export function getPatchUpdateVersion(version: string): string {
   const versionSplit = version.split('.');
@@ -440,4 +465,109 @@ export function getMinorUpdateVersion(version: string): string {
   const versionSplit = version.split('.');
 
   return [versionSplit[0], +versionSplit[1] + 1, '0'].join('.');
+}
+
+// Computes the next nightly version.
+export function getNightlyVersion(version: string): string {
+  // Format date to YYYYMMDD.
+  const date = new Date().toISOString().split('T')[0]
+    .replace(new RegExp('-', 'g'), '');
+  return `${version}-dev.${date}`;
+}
+
+export async function selectPackages({
+  message = "Select packages",
+  selected = async (_pkg: string) => false,
+  modifyName = async (name: string) => name,
+  releaseUnits = RELEASE_UNITS}) {
+
+  type SeparatorInstance = InstanceType<typeof Separator>;
+  type Choice = {name: string, checked: boolean};
+
+  // Using Array.map instead of for loops for better performance from
+  // Promise.all. Otherwise, it can take ~10 seconds to show the packages
+  // if modifyName or selected take a long time.
+  const choices = await Promise.all<SeparatorInstance | Promise<Choice>>(
+    releaseUnits
+      .map(releaseUnit => [
+        new inquirer.Separator(
+          chalk.underline(releaseUnit.name)),
+        ...releaseUnit.phases
+          .map(phase => phase.packages
+               .map(async pkg => {
+                 const [name, checked] = await Promise.all([
+                   modifyName(pkg), selected(pkg)]);
+                 return {name, value: pkg, checked};
+               }) // Promise<Choice>[] from one phase's packages
+              ).flat() // Promise<Choice>[] from one release unit
+      ]).flat() // (Separator | Promise<Choice>)[] for all release units
+  );
+
+  const choice = await inquirer.prompt({
+    name: 'packages',
+    type: 'checkbox',
+    message,
+    pageSize: 30,
+    choices,
+    loop: false,
+  });
+
+  return choice['packages'] as string[];
+}
+
+export function getLocalVersion(pkg: string) {
+  return JSON.parse(fs.readFileSync(`${pkg}/package.json`)
+                    .toString('utf8')).version as string;
+}
+
+export async function getNpmVersion(pkg: string) {
+  // TODO: This might be slow without async promise.all
+  return $async(`npm view @tensorflow/${pkg} dist-tags.latest`); 
+}
+
+export function memoize<I, O>(f: (arg: I) => Promise<O>): (arg: I) => Promise<O> {
+  const map = new Map<I, O>();
+  return async (i:I) => {
+    if (!map.has(i)) {
+      map.set(i, await f(i));
+    }
+    return map.get(i)!;
+  }
+}
+
+export function runVerdaccio() {
+  const serverProcess = shell.exec(
+    'verdaccio --config=e2e/scripts/verdaccio.yaml', {async: true}
+  );
+  return serverProcess;
+}
+
+export function publishable(packageJsonPath: string): true | Error {
+  // Check the package.json for 'link:' and 'file:' dependencies.
+  const packageJson = JSON.parse(
+    fs.readFileSync(packageJsonPath)
+      .toString('utf8')) as {
+        name?: string,
+        private?: boolean,
+        dependencies?: Record<string, string>,
+      };
+
+  if (!packageJson.name) {
+    return new Error(`${packageJsonPath} has no name.`);
+  }
+  const pkg = packageJson.name;
+  if (packageJson.private) {
+    return new Error(`${pkg} is private.`);
+  }
+
+  if (packageJson.dependencies) {
+    for (let [dep, depVersion] of Object.entries(packageJson.dependencies)) {
+      const start = depVersion.slice(0,5);
+      if (start === 'link:' || start === 'file:') {
+        return new Error(`${pkg} has a '${start}' dependency on ${dep}. `
+                        + 'Refusing to publish.');
+      }
+    }
+  }
+  return true;
 }

@@ -25,8 +25,9 @@
 import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as shell from 'shelljs';
-import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT} from './release-util';
+import { RELEASE_UNITS, question, $, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT, selectPackages, getLocalVersion, getNpmVersion, memoize, printReleaseUnit, publishable, runVerdaccio, ReleaseUnit} from './release-util';
 import * as fs from 'fs';
+import semverCompare from 'semver/functions/compare';
 
 import {BAZEL_PACKAGES} from './bazel_packages';
 
@@ -38,72 +39,33 @@ parser.addArgument('--git-protocol', {
   help: 'Use the git protocal rather than the http protocol when cloning repos.'
 });
 
-async function main() {
-  const args = parser.parseArgs();
+parser.addArgument('--registry', {
+  type: 'string',
+  defaultValue: 'https://registry.npmjs.org/',
+  help: 'Which registry to install packages from and publish to.',
+});
 
-  RELEASE_UNITS.forEach(printReleaseUnit);
-  console.log();
+parser.addArgument('--no-otp', {
+  action: 'storeTrue',
+  help: 'Do not use an OTP when publishing to the registry.',
+});
 
-  const releaseUnitStr =
-      await question('Which release unit (leave empty for 0): ');
-  const releaseUnitInt = +releaseUnitStr;
-  if (releaseUnitInt < 0 || releaseUnitInt >= RELEASE_UNITS.length) {
-    console.log(chalk.red(`Invalid release unit: ${releaseUnitStr}`));
-    process.exit(1);
+parser.addArgument(['--release-this-branch', '--release-current-branch'], {
+  action: 'storeTrue',
+  help: 'Release the current branch instead of checking out a new one.',
+});
+
+async function publish(pkg: string, registry: string, otp?: string,
+                       build = true) {
+  const startDir = process.cwd();
+  shell.cd(pkg);
+
+  const res = publishable('./package.json');
+  if (res instanceof Error) {
+    throw res;
   }
-  console.log(chalk.blue(`Using release unit ${releaseUnitInt}`));
-  console.log();
 
-  const releaseUnit = RELEASE_UNITS[releaseUnitInt];
-  const {name, phases} = releaseUnit;
-
-  phases.forEach((_, i) => printPhase(phases, i));
-  console.log();
-
-  const phaseStr = await question('Which phase (leave empty for 0): ');
-  const phaseInt = +phaseStr;
-  if (phaseInt < 0 || phaseInt >= phases.length) {
-    console.log(chalk.red(`Invalid phase: ${phaseStr}`));
-    process.exit(1);
-  }
-  console.log(chalk.blue(`Using phase ${phaseInt}`));
-  console.log();
-
-  let releaseBranch: string;
-  if (releaseUnit === ALPHA_RELEASE_UNIT) {
-    // Alpha release unit is published with the tfjs release unit.
-    releaseBranch = await getReleaseBranch(TFJS_RELEASE_UNIT.name);
-  } else {
-    releaseBranch = await getReleaseBranch(name);
-  }
-  console.log();
-
-  checkoutReleaseBranch(releaseBranch, args.git_protocol, TMP_DIR);
-  shell.cd(TMP_DIR);
-
-  // Yarn in the top-level and in the directory.
-  $('yarn');
-  console.log();
-
-  const packages = phases[phaseInt].packages;
-
-  for (let i = 0; i < packages.length; i++) {
-    const pkg = packages[i];
-    shell.cd(pkg);
-
-    // Check the package.json for 'link:' and 'file:' dependencies.
-    const packageJson = JSON.parse(fs.readFileSync('package.json')
-        .toString('utf8')) as {dependencies: Record<string, string>};
-    if (packageJson.dependencies) {
-      for (let [dep, depVersion] of Object.entries(packageJson.dependencies)) {
-        const start = depVersion.slice(0,5);
-        if (start === 'link:' || start === 'file:') {
-          throw new Error(`${pkg} has a '${start}' dependency on ${dep}. `
-                          + 'Refusing to publish.');
-        }
-      }
-    }
-
+  if (build) {
     console.log(chalk.magenta.bold(`~~~ Preparing package ${pkg}~~~`));
     console.log(chalk.magenta('~~~ Installing packages ~~~'));
     // tfjs-node-gpu needs to get some files from tfjs-node.
@@ -122,23 +84,129 @@ async function main() {
     } else {
       $('yarn build-npm for-publish');
     }
-
-    console.log(chalk.magenta.bold(`~~~ Publishing ${pkg} to npm ~~~`));
-
-    const otp =
-        await question(`Enter one-time password from your authenticator: `);
-
-    if (BAZEL_PACKAGES.has(pkg)) {
-      $(`YARN_REGISTRY="https://registry.npmjs.org/" yarn publish-npm -- -- --otp=${
-          otp}`);
-    } else {
-      $(`YARN_REGISTRY="https://registry.npmjs.org/" npm publish --otp=${otp}`);
-    }
-    console.log(`Yay! Published ${pkg} to npm.`);
-
-    shell.cd('..');
-    console.log();
   }
+
+  // Used for nightly dev releases.
+  const version = JSON.parse(fs.readFileSync('package.json')
+                             .toString('utf8')).version as string;
+  const nightly = version.includes('dev');
+
+  const tag = nightly ? 'nightly' : 'latest';
+
+  let otpFlag = '';
+  if (otp) {
+    otpFlag = `--otp=${otp} `;
+  }
+
+  console.log(
+    chalk.magenta.bold(`~~~ Publishing ${pkg} to ${registry} with tag `
+                       + `${tag} ~~~`));
+
+  if (BAZEL_PACKAGES.has(pkg)) {
+    $(`YARN_REGISTRY="${registry}" yarn publish-npm -- -- ${otpFlag}`
+      + `--tag=${tag} --force`);
+  } else {
+    $(`YARN_REGISTRY="${registry}" npm publish ${otpFlag}`
+      + ` --tag=${tag} --force`);
+  }
+  console.log(`Yay! Published ${pkg} to ${registry}.`);
+
+  shell.cd(startDir);
+}
+
+async function main() {
+  const args = parser.parseArgs();
+
+  let releaseUnits: ReleaseUnit[];
+  if (args.release_this_branch) {
+    console.log('Releasing current branch');
+    releaseUnits = RELEASE_UNITS;
+  } else {
+    RELEASE_UNITS.forEach(printReleaseUnit);
+    console.log();
+
+    const releaseUnitStr =
+      await question('Which release unit (leave empty for 0): ');
+    const releaseUnitInt = +releaseUnitStr;
+    if (releaseUnitInt < 0 || releaseUnitInt >= RELEASE_UNITS.length) {
+      console.log(chalk.red(`Invalid release unit: ${releaseUnitStr}`));
+      process.exit(1);
+    }
+    console.log(chalk.blue(`Using release unit ${releaseUnitInt}`));
+    console.log();
+
+    const releaseUnit = RELEASE_UNITS[releaseUnitInt];
+    const {name, } = releaseUnit;
+
+    let releaseBranch: string;
+    if (releaseUnit === ALPHA_RELEASE_UNIT) {
+      // Alpha release unit is published with the tfjs release unit.
+      releaseBranch = await getReleaseBranch(TFJS_RELEASE_UNIT.name);
+    } else {
+      releaseBranch = await getReleaseBranch(name);
+    }
+    console.log();
+
+    releaseUnits = [releaseUnit];
+    checkoutReleaseBranch(releaseBranch, args.git_protocol, TMP_DIR);
+    shell.cd(TMP_DIR);
+  }
+
+  const getNpmVersionMemoized = memoize(getNpmVersion);
+  const packages = await selectPackages({
+    message: 'Select packages to publish',
+    releaseUnits,
+    async selected(pkg) {
+      // Automatically select local packages with version numbers greater than
+      // npm.
+      try {
+        const localVersion = getLocalVersion(pkg);
+        const npmVersion = await getNpmVersionMemoized(pkg);
+        const localIsNewer = semverCompare(localVersion, npmVersion) > 0;
+        return localVersion !== '0.0.0' && localIsNewer;
+      } catch (e) {
+        return false;
+      }
+    },
+    async modifyName(pkg) {
+      // Add the local and remote versions to the printed name.
+      try {
+        const localVersion = getLocalVersion(pkg);
+        const npmVersion = await getNpmVersionMemoized(pkg);
+        const localIsNewer = semverCompare(localVersion, npmVersion) > 0;
+        const pkgWithVersion =
+          `${pkg.padEnd(20)} (${npmVersion} → ${localVersion})`;
+        if (localIsNewer) {
+          return chalk.bold(pkgWithVersion);
+        } else {
+          return pkgWithVersion;
+        }
+      } catch (e) {
+        return pkg;
+      }
+    }
+  });
+
+  // Yarn in the top-level and in the directory.
+  $('yarn');
+  console.log();
+
+  // Build and publish all packages to Verdaccio
+//  const verdaccio = runVerdaccio();
+  runVerdaccio;
+  for (const pkg of packages) {
+    await publish(pkg, 'http://localhost:4873/');
+  }
+//  verdaccio.kill();
+
+  // Publish all built packages to the selected registry
+  let otp = '';
+  if (!args.no_otp) {
+    otp = await question(`Enter one-time password from your authenticator: `);
+  }
+
+  const promises = packages.map(pkg => publish(pkg, args.registry, otp, false));
+  await Promise.all(promises);
 
   process.exit(0);
 }
