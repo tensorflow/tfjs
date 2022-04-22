@@ -27,18 +27,35 @@ import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as fs from 'fs';
 import * as shell from 'shelljs';
-import {TMP_DIR, $, question, makeReleaseDir, createPR, TFJS_RELEASE_UNIT, updateTFJSDependencyVersions, ALPHA_RELEASE_UNIT, getMinorUpdateVersion, getPatchUpdateVersion, E2E_PHASE} from './release-util';
+import { TMP_DIR, $, question, makeReleaseDir, createPR, TFJS_RELEASE_UNIT, updateTFJSDependencyVersions, ALPHA_RELEASE_UNIT, getMinorUpdateVersion, getPatchUpdateVersion, E2E_PHASE, getReleaseBlockers, getNightlyVersion} from './release-util';
 
-const parser = new argparse.ArgumentParser();
+const parser = new argparse.ArgumentParser({
+  description: 'Create a release PR for the tfjs monorepo.',
+});
 
 parser.addArgument('--git-protocol', {
   action: 'storeTrue',
   help: 'Use the git protocol rather than the http protocol when cloning repos.'
 });
 
-parser.addArgument('--local', {
+parser.addArgument(['--local', '--dry'], {
   action: 'storeTrue',
   help: 'Only create the release branch locally. Do not push or create a PR.',
+});
+
+parser.addArgument('--guess-version', {
+  type: 'string',
+  help: 'Use the guessed version without asking for confirmation.',
+});
+
+parser.addArgument(['--commit-hash', '--hash'], {
+  type: 'string',
+  help: 'Commit hash to publish. Usually the latest successful nightly run.',
+});
+
+parser.addArgument('--force', {
+  action: 'storeTrue',
+  help: 'Force a release even if there are release blockers.',
 });
 
 async function main() {
@@ -47,11 +64,26 @@ async function main() {
   const dir = `${TMP_DIR}/tfjs`;
   makeReleaseDir(dir);
 
+  const blockers = getReleaseBlockers();
+  if (blockers) {
+    if (args.force) {
+      console.warn('Release blockers found, but releasing anyway due to '
+                   + `--force:\n ${blockers}`);
+    } else {
+      throw new Error(`Can not release due to release blockers:\n ${blockers}`);
+    }
+  }
+
   // Guess release version from tfjs-core's latest version, with a minor update.
   const latestVersion = $(`npm view @tensorflow/tfjs-core dist-tags.latest`);
-  const minorUpdateVersion = getMinorUpdateVersion(latestVersion);
-  const newVersion = await question('New version for monorepo (leave empty for '
-    + `${minorUpdateVersion}): `) || minorUpdateVersion;
+  let newVersion = getMinorUpdateVersion(latestVersion);
+  if (!args.guess_version) {
+    newVersion = await question('New version for monorepo (leave empty for '
+                                + `${newVersion}): `) || newVersion;
+  }
+  if (args.guess_version === 'nightly') {
+    newVersion = getNightlyVersion(newVersion);
+  }
 
   // Populate the versions map with new versions for monorepo packages.
   const versions = new Map<string /* package name */, string /* version */>();
@@ -67,18 +99,27 @@ async function main() {
     for (const packageName of phase.packages) {
       const latestVersion =
         $(`npm view @tensorflow/${packageName} dist-tags.latest`);
-      const minorUpdateVersion = getPatchUpdateVersion(latestVersion);
-      const newVersion =
-        await question(`New version for alpha package ${packageName}`
-          + ` (leave empty for ${minorUpdateVersion}): `) || minorUpdateVersion;
+      let newVersion = getPatchUpdateVersion(latestVersion);
+      if(!args.guess_version) {
+        newVersion =
+          await question(`New version for alpha package ${packageName}`
+                         + ` (leave empty for ${newVersion}): `)
+          || newVersion;
+      }
+      if (args.guess_version === 'nightly') {
+        newVersion = getNightlyVersion(newVersion);
+      }
       versions.set(packageName, newVersion);
     }
   }
 
   // Get release candidate commit.
-  const commit = await question(
+  let commit = args.commit_hash;
+  if (!commit) {
+    commit = await question(
       'Commit of release candidate (the last ' +
       'successful nightly build): ');
+  }
   if (commit === '') {
     console.log(chalk.red('Commit cannot be empty.'));
     process.exit(1);
@@ -143,7 +184,7 @@ async function main() {
       'a new package version.');
 
   if (args.local) {
-    console.log(`Local output located in ${dir}`)
+    console.log(`No PR was created. Local output is located in ${dir}.`);
   }
   process.exit(0);
 }
