@@ -85,16 +85,15 @@ describe('reduction', () => {
     });
     describe('Cumprod', () => {
       it('should call tfOps.cumprod', () => {
-        spyOn(tfOps, 'cumprod');
         node.op = 'Cumprod';
         node.attrParams.exclusive = createBoolAttr(true);
         node.attrParams.reverse = createBoolAttr(false);
         node.inputNames = ['input1', 'input2'];
         node.inputParams.axis = createNumberAttrFromIndex(1);
         const input2 = [tfOps.scalar(2)];
-        executeOp(node, {input1, input2}, context);
+        executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
 
-        expect(tfOps.cumprod).toHaveBeenCalledWith(input1[0], 2, true, false);
+        expect(spyOps.cumprod).toHaveBeenCalledWith(input1[0], 2, true, false);
       });
     });
     describe('Cumsum', () => {

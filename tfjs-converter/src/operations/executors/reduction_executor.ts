@@ -111,7 +111,7 @@ export const executeOp: InternalOpExecutor =
               getParamValue('exclusive', node, tensorMap, context) as boolean;
           const reverse =
               getParamValue('reverse', node, tensorMap, context) as boolean;
-          return [tfOps.cumprod(
+          return [ops.cumprod(
               getParamValue('x', node, tensorMap, context) as Tensor, axis,
               exclusive, reverse)];
         }

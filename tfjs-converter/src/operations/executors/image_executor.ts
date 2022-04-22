@@ -93,7 +93,7 @@ export const executeOp: InternalOpExecutor =
               string;
           const fillMode =
               getParamValue('fillMode', node, tensorMap, context) as string;
-          return [tfOps.image.transform(
+          return [ops.image.transform(
               images as Tensor4D,
               transforms as Tensor2D,
               interpolation.toLowerCase() as 'bilinear' | 'nearest',

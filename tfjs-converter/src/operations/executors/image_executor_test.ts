@@ -145,7 +145,8 @@ describe('image', () => {
         node.attrParams['fillMode'] = createStrAttr('constant');
         node.inputNames = ['input1', 'input2', 'input3', 'input4'];
 
-        const input2 = [tfOps.tensor1d([2])];
+        const input1 = [tfOps.tensor4d([1], [1, 1, 1, 1])];
+        const input2 = [tfOps.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [1, 8])];
         const input3 = [tfOps.tensor1d([4, 5])];
         const input4 = [tfOps.scalar(3)];
 
