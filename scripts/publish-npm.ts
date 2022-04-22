@@ -70,19 +70,19 @@ async function publish(pkg: string, registry: string, otp?: string,
     console.log(chalk.magenta('~~~ Installing packages ~~~'));
     // tfjs-node-gpu needs to get some files from tfjs-node.
     if (pkg === 'tfjs-node-gpu') {
-      $('yarn prep-gpu');
+      $(`YARN_REGISTRY="${registry}" yarn prep-gpu`);
     }
 
     // Yarn above the other checks to make sure yarn doesn't change the lock
     // file.
-    $('yarn');
+    $(`YARN_REGISTRY="${registry}" yarn`);
 
     console.log(chalk.magenta('~~~ Build npm ~~~'));
 
     if (pkg === 'tfjs-react-native' || BAZEL_PACKAGES.has(pkg)) {
-      $('yarn build-npm');
+      $(`YARN_REGISTRY="${registry}" yarn build-npm`);
     } else {
-      $('yarn build-npm for-publish');
+      $(`YARN_REGISTRY="${registry}" yarn build-npm for-publish`);
     }
   }
 
