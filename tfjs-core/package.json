@@ -78,8 +78,7 @@
     "@types/webgl-ext": "0.0.30",
     "long": "4.0.0",
     "node-fetch": "~2.6.1",
-    "seedrandom": "2.4.3",
-    "@webgpu/types": "0.1.6"
+    "seedrandom": "2.4.3"
   },
   "browser": {
     "node-fetch": false,
