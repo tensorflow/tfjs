@@ -22,6 +22,7 @@ const {expectArraysEqual, expectArraysClose} = test_util;
 
 import {WebGPUBackend, WebGPUMemoryInfo} from './backend_webgpu';
 import {describeWebGPU} from './test_util';
+import * as webgpu_util from './webgpu_util';
 
 describeWebGPU('backend webgpu cpu forwarding turned on', () => {
   let cpuForwardFlagSaved: boolean;
@@ -345,8 +346,10 @@ describeWebGPU('keeping data on gpu ', () => {
     const b = tf.add(a, 0);
     const res = b.dataToGPU();
     expectArraysEqual(res.bufSize, size);
-    const resData = await webGPUBackend.downloadGPUBufferData(res);
-    expectArraysClose(resData, new Float32Array(data));
+    const resData = await webGPUBackend.getBufferData(res.buffer, res.bufSize);
+    const values = webgpu_util.ArrayBufferToTypedArray(
+        resData as ArrayBuffer, res.tensorRef.dtype);
+    expectArraysEqual(values, data);
   });
 
   it('uses user defined bufSize.', async () => {
@@ -354,11 +357,13 @@ describeWebGPU('keeping data on gpu ', () => {
     const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     const a = tf.tensor(data, [1, 3, 4]);
     const b = tf.add(a, 0);
-    const bufSize = 12;
+    const bufSize = 96;
     const res = b.dataToGPU({customBufSize: bufSize});
     expectArraysEqual(res.bufSize, bufSize);
-    const resData = await webGPUBackend.downloadGPUBufferData(res);
-    expectArraysClose(resData, new Float32Array([1, 2, 3]));
+    const resData = await webGPUBackend.getBufferData(res.buffer, 48);
+    const values = webgpu_util.ArrayBufferToTypedArray(
+        resData as ArrayBuffer, res.tensorRef.dtype);
+    expectArraysEqual(values, data);
   });
 
   it('has a valid buffer for dtype=int32.', async () => {
@@ -370,8 +375,10 @@ describeWebGPU('keeping data on gpu ', () => {
     const c = tf.add(a, b);
     const res = c.dataToGPU();
     expectArraysEqual(res.bufSize, size);
-    const resData = await webGPUBackend.downloadGPUBufferData(res);
-    expectArraysEqual(resData, new Int32Array(data));
+    const resData = await webGPUBackend.getBufferData(res.buffer, res.bufSize);
+    const values = webgpu_util.ArrayBufferToTypedArray(
+        resData as ArrayBuffer, res.tensorRef.dtype);
+    expectArraysEqual(values, data);
   });
 
   it('has no memory leak.', () => {
@@ -414,8 +421,10 @@ describeWebGPU('keeping data on gpu ', () => {
     expect(endDataBuckets).toEqual(startDataBuckets + 1);
 
     const res = result as {} as GPUData;
-    const resData = await webGPUBackend.downloadGPUBufferData(res);
-    expectArraysClose(resData, new Float32Array(data));
+    const resData = await webGPUBackend.getBufferData(res.buffer, res.bufSize);
+    const values = webgpu_util.ArrayBufferToTypedArray(
+        resData as ArrayBuffer, res.tensorRef.dtype);
+    expectArraysEqual(values, data);
   });
 
   it('tidy has no memory leak.', () => {
@@ -439,13 +448,13 @@ describeWebGPU('keeping data on gpu ', () => {
     expect(endDataBuckets).toEqual(startDataBuckets + 1);
   });
 
-  it('throws error when user defined bufSize is not a multiple of 4.', () => {
+  it('throws error when user defined bufSize is too small.', () => {
     const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
     const a = tf.tensor(data, [1, 3, 4]);
     const b = tf.add(a, 0);
 
     expect(() => {
-      b.dataToGPU({customBufSize: 11});
+      b.dataToGPU({customBufSize: 32});
     }).toThrowError();
   });
 });
