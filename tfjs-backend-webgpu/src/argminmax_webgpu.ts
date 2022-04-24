@@ -57,7 +57,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         computeDispatch(this.dispatchLayout, this.outputShape, [1, 1, 1]);
 
     this.inputShape = inputShape;
-    this.shaderKey = `argMinMax${this.op}_${this.axis}_${inputShape}`;
+    this.shaderKey = `argMinMax${this.op}_${this.axis}`;
   }
 
   getUserCode(): string {
@@ -78,11 +78,11 @@ export class ArgMinMaxProgram implements WebGPUProgram {
     const getInputCoordInfoSnippet = () => {
       const inputSize = this.inputShape.length;
       let i = this.outputShape.length - 1;
-      let stride = 1;
-      let offset = '0';
+      let stride = 'stride';
+      let offset = 'offset';
       let snippet = '';
       for (let r = 1; r <= inputSize; r = r + 1) {
-        const length = this.inputShape[inputSize - r];
+        const length = `uniforms.xShape.${getCoordsXYZ(inputSize - r)}`;
         if (inputSize - r === this.axis) {
           snippet += `
           inputStride = ${stride};`;
@@ -92,7 +92,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
                   'outputCoords', i, this.outputShape.length)} * ${stride}`;
           i = i - 1;
         }
-        stride = stride * length;
+        stride = `${stride} * ${length}`;
       }
       snippet += `offset = ${offset};`;
       return snippet;
