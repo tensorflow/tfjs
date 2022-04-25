@@ -206,6 +206,7 @@ export * from './transpose';
 export * from './norm';
 export * from './moving_average';
 export * from './scatter_nd';
+export * from './search_sorted';
 export * from './sparse_to_dense';
 export * from './gather_nd';
 export * from './dropout';
