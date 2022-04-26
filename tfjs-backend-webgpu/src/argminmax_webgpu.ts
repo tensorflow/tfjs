@@ -95,15 +95,14 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
       ${getMainHeaderAndGlobalIndexString()}
         let outputIndex = index / i32(workGroupSizeX);
-        let Length = ${getInputShapeLastDim()};
+        let reduceLength = ${getInputShapeLastDim()};
 
         var bestIndex = i32(localId.x);
         var bestValue = uniforms.infinityValue;
-
-        for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
+        let outputCoords = getCoordsFromIndex(outputIndex);
+        for (var k = i32(localId.x); k < reduceLength && outputIndex < uniforms.size;
             k = k + i32(workGroupSizeX)) {
-          let outputCoords = getCoordsFromIndex(outputIndex);
-          let candidate = f32(getX(${splitOutputCoords()} k));
+          let candidate = getX(${splitOutputCoords()} k);
           if (!isnan(candidate) && candidate ${this.op} bestValue) {
             bestValue = candidate;
             bestIndex = k;
@@ -113,7 +112,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         xBestIndices[localId.x] = bestIndex;
         workgroupBarrier();
 
-        var reduceSize = min(u32(Length), workGroupSizeX);
+        var reduceSize = min(u32(reduceLength), workGroupSizeX);
         for (var currentSize = reduceSize / 2u; reduceSize > 1u;
             currentSize = reduceSize / 2u) {
           let interval = DIV_CEIL(reduceSize, 2u);
