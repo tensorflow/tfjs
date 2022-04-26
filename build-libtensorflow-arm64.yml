@@ -1,0 +1,61 @@
+steps:
+# Clone tensorflow
+# TODO(mattsoulanille): Specify branch with variable.
+- name: 'tensorflow/build:2.10-python3.10'
+  entrypoint: 'git'
+  id: 'clone'
+  args: ['clone', '--branch', 'r2.8', '--single-branch', '--depth', '1', 'https://github.com/tensorflow/tensorflow.git']
+
+# # Check out branch
+# - name: 'tensorflow/build:2.10-python3.10'
+#   entrypoint: 'git'
+#   id: 'checkout'
+#   dir: 'tensorflow'
+#   args: ['checkout', 'r2.7']
+#   env: ['TF_BRANCH=$_TF_BRANCH']
+
+# Configure tensorflow
+- name: 'tensorflow/build:2.10-python3.10'
+  entrypoint: 'bash'
+  id: 'configure'
+  dir: 'tensorflow'
+  args: ['./configure']
+  env:
+    - 'PYTHON_BIN_PATH=/usr/bin/python3'
+    - 'PYTHON_LIB_PATH=/usr/lib/python3/dist-packages'
+    - 'TF_NEED_ROCM=false'
+    - 'TF_NEED_CUDA=false'
+    - 'TF_DOWNLOAD_CLANG=false'
+    - 'CC_OPT_FLAGS=-Wno-sign-compare'
+    - 'TF_SET_ANDROID_WORKSPACE=false'
+
+# Hide system openssl.
+# https://github.com/tensorflow/tensorflow/issues/48401#issuecomment-818377995
+- name: 'tensorflow/build:2.10-python3.10'
+  entrypoint: 'mv'
+  id: 'hide-openssl'
+  dir: 'tensorflow'
+  args: ['/usr/include/openssl', '/usr/include/openssl.original']
+
+# Build tensorflow
+- name: 'tensorflow/build:2.10-python3.10'
+  entrypoint: 'bazel'
+  id: 'build'
+  dir: 'tensorflow'
+  args: ['build', '-c', 'opt', '//tensorflow:libtensorflow.so', '//tensorflow:libtensorflow_framework.so']
+
+# Push results to bucket
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'gsutil'
+  id: 'push'
+  dir: 'tensorflow'
+  args: ['cp', ]
+
+timeout: 7200s
+substitutions:
+  _TF_BRANCH: 'r2.7'
+options:
+  logStreamingOption: 'STREAM_ON'
+  machineType: 'N1_HIGHCPU_32'
+  substitution_option: 'ALLOW_LOOSE'
+
