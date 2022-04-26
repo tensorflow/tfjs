@@ -27,8 +27,30 @@ export function getCoordsDataType(rank: number): string {
     return `vec3<i32>`;
   } else if (rank === 4) {
     return `vec4<i32>`;
+  } else if (rank === 5) {
+    return `vec5`;
+  } else if (rank === 6) {
+    return `vec6`;
   } else {
     throw Error(`GPU for rank ${rank} is not yet supported`);
+  }
+}
+
+export function getCoordsXYZ(index: number): string {
+  if (index === 0) {
+    return 'x';
+  } else if (index === 1) {
+    return 'y';
+  } else if (index === 2) {
+    return 'z';
+  } else if (index === 3) {
+    return 'w';
+  } else if (index === 4) {
+    return 'u';
+  } else if (index === 5) {
+    return 'v';
+  } else {
+    throw Error(`Index ${index} is not yet supported`);
   }
 }
 
@@ -142,22 +164,52 @@ export function makeShader(
     ].join('\n');
   }
 
+  let preMemberIsStruct = false;
+  let currentMemberIsStruct = false;
   let uniformDeclaration = 'struct Uniforms { NAN : f32, ';
   program.variableNames.forEach((x, i) => {
-    uniformDeclaration += `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${
-        getCoordsDataType(inputInfo[i].shape.length)}, `;
+    const perDataType = getCoordsDataType(inputInfo[i].shape.length);
+    if (perDataType === 'vec5' || perDataType === 'vec6') {
+      currentMemberIsStruct = true;
+    }
+    if (preMemberIsStruct || currentMemberIsStruct) {
+      uniformDeclaration += `@align(16) `;
+    }
+    preMemberIsStruct = currentMemberIsStruct;
+    uniformDeclaration +=
+        `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${perDataType}, `;
   });
-  uniformDeclaration +=
-      `outShape : ${getCoordsDataType(outputData.shape.length)}, `;
+  const outputDataType = getCoordsDataType(outputData.shape.length);
+  currentMemberIsStruct =
+      outputDataType === 'vec5' || outputDataType === 'vec6';
+  if (preMemberIsStruct || currentMemberIsStruct) {
+    uniformDeclaration += `@align(16) `;
+  }
+  preMemberIsStruct = currentMemberIsStruct;
+  uniformDeclaration += `outShape : ${outputDataType}, `;
   const stridesLength = outputData.shape.length - 1;
+  const stridesDataType = getCoordsDataType(stridesLength);
+  currentMemberIsStruct =
+      stridesDataType === 'vec5' || stridesDataType === 'vec6';
+  if (preMemberIsStruct || currentMemberIsStruct) {
+    uniformDeclaration += `@align(16) `;
+  }
+  preMemberIsStruct = currentMemberIsStruct;
   uniformDeclaration += `
-       outShapeStrides: ${getCoordsDataType(stridesLength)}, `;
+       outShapeStrides: ${stridesDataType}, `;
 
   if (program.size) {
+    if (preMemberIsStruct) {
+      uniformDeclaration += `@align(16) `;
+    }
+    preMemberIsStruct = false;
     uniformDeclaration += 'size : i32, ';
   }
 
   if (program.uniforms) {
+    if (preMemberIsStruct) {
+      uniformDeclaration += `@align(16) `;
+    }
     uniformDeclaration += program.uniforms;
   }
   uniformDeclaration += '};';
@@ -220,6 +272,9 @@ export function makeShader(
 }
 
 const commonSnippet = `
+  struct vec5 {x: i32, y: i32, z: i32, w: i32, u: i32};
+  struct vec6 {x: i32, y: i32, z: i32, w: i32, u: i32, v: i32};
+
   // Checks whether coordinates lie within the bounds of the shape.
   fn coordsInBounds2D(coord : vec2<i32>, shape : vec2<i32>) -> bool {
     return all(coord >= vec2<i32>(0)) && all(coord < shape);
@@ -243,6 +298,14 @@ const commonSnippet = `
   fn getIndexFromCoords4D(coords : vec4<i32>, shape : vec4<i32>) -> i32 {
     return dot(coords, vec4<i32>(
         shape.y * shape.z * shape.w, shape.z * shape.w, shape.w, 1));
+  }
+  fn getIndexFromCoords5D(coords : vec5, shape : vec5) -> i32 {
+    let shapeStrides: vec5 = vec5(shape.y * shape.z * shape.w * shape.u, shape.z * shape.w * shape.u, shape.w * shape.u, shape.u, 1);
+    return coords.x*shapeStrides.x + coords.y*shapeStrides.y + coords.z*shapeStrides.z + coords.w*shapeStrides.w + coords.u*shapeStrides.u;
+  }
+  fn getIndexFromCoords6D(coords : vec6, shape : vec6) -> i32 {
+    let shapeStrides: vec6 = vec6(shape.y * shape.z * shape.w * shape.u * shape.v, shape.z * shape.w * shape.u * shape.v, shape.w * shape.u * shape.v, shape.u * shape.v, shape.v, 1);
+    return coords.x*shapeStrides.x + coords.y*shapeStrides.y + coords.z*shapeStrides.z + coords.w*shapeStrides.w + coords.u*shapeStrides.u + coords.v*shapeStrides.v;
   }
 
   fn idiv(a: i32, b: i32, sign: f32) -> i32 {
@@ -301,6 +364,29 @@ function getOutputIndexFromCoordsSnippet(outRank: number) {
         }
         `;
       break;
+    case 5:
+      snippet += `
+        fn getOutputIndexFromCoords(coords : vec5) -> i32 {
+          return coords.x * uniforms.outShapeStrides.x +
+              coords.y * uniforms.outShapeStrides.y +
+              coords.z * uniforms.outShapeStrides.z +
+              coords.w * uniforms.outShapeStrides.w +
+              coords.u;
+        }
+        `;
+      break;
+    case 6:
+      snippet += `
+        fn getOutputIndexFromCoords(coords : vec6) -> i32 {
+          return coords.x * uniforms.outShapeStrides.x +
+              coords.y * uniforms.outShapeStrides.y +
+              coords.z * uniforms.outShapeStrides.z +
+              coords.w * uniforms.outShapeStrides.w +
+              coords.u * uniforms.outShapeStrides.u +
+              coords.v;
+        }
+        `;
+      break;
     default:
       util.assert(false, () => `Unsupported ${outRank}D shape`);
       break;
@@ -329,7 +415,7 @@ function setOutputSnippet(
     }`;
   }
   if (outRank >= 2) {
-    const dims = ['d0', 'd1', 'd2', 'd3'].slice(0, outRank);
+    const dims = ['d0', 'd1', 'd2', 'd3', 'd4', 'd5'].slice(0, outRank);
     const type = getCoordsDataType(outRank);
 
     if (isVec4) {
@@ -384,7 +470,7 @@ function getInputAtCoordsSnippet(
   const rank = inputInfo.shape.length;
   const type = getCoordsDataType(rank);
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
-  const dims = ['d0', 'd1', 'd2', 'd3'].slice(0, rank);
+  const dims = ['d0', 'd1', 'd2', 'd3', 'd4', 'd5'].slice(0, rank);
   const inputs = dims.map(d => `${d} : i32`).join(', ');
 
   if (rank < 1) {
@@ -502,7 +588,8 @@ export function getInputByOutputSnippet(
       coordsSnippet = 'coords = 0;';
     } else {
       coordsSnippet =
-          broadcastDims.map(d => `coords[${d + rankDiff}] = 0;`).join('\n');
+          broadcastDims.map(d => `coords.${getCoordsXYZ(d + rankDiff)} = 0;`)
+              .join('\n');
     }
   }
 
@@ -513,7 +600,8 @@ export function getInputByOutputSnippet(
     if (outRank > 1) {
       const coordsType = getCoordsDataType(inRank);
       const coordsValues =
-          inputInfo.shape.map((s, i) => `coords[${i + rankDiff}]`).join(', ');
+          inputInfo.shape.map((s, i) => `coords.${getCoordsXYZ(i + rankDiff)}`)
+              .join(', ');
       unpackedCoordsSnippet = `${coordsType}(${coordsValues})`;
     } else {
       unpackedCoordsSnippet = 'coords';
@@ -656,16 +744,18 @@ function getCoordsFromIndexSnippet(shape: number[]): string {
       return vec2<i32>(d0, d1);
     }`;
   }
-  const snippet = 'var index2 = index;' +
+  let snippet;
+  snippet = 'var index2 = index;' +
       strides
           .map((_, i) => {
             const line1 =
-                `let ${coords[i]} = index2 / uniforms.outShapeStrides[${i}]`;
+                `let ${coords[i]} = index2 / uniforms.outShapeStrides.${
+                    getCoordsXYZ(i)}`;
             const line2 = i === strides.length - 1 ?
                 `let ${coords[i + 1]} = index2 - ${
-                    coords[i]} * uniforms.outShapeStrides[${i}]` :
-                `index2 = index2 - ${coords[i]} * uniforms.outShapeStrides[${
-                    i}]`;
+                    coords[i]} * uniforms.outShapeStrides.${getCoordsXYZ(i)}` :
+                `index2 = index2 - ${coords[i]} * uniforms.outShapeStrides.${
+                    getCoordsXYZ(i)}`;
             return `${line1}; ${line2};`;
           })
           .join('');

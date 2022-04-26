@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
+import {getCoordsXYZ, getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
 import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
@@ -28,7 +28,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
   variableNames = ['x'];
-  uniforms = 'axis : i32, infinityValue : f32,';
+  uniforms = 'infinityValue : f32,';
   inputShape: number[];
   reductionFactor: number;
   op: string;
@@ -64,20 +64,26 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
     `;
 
-    const indexOutputCoords = (outputCoords: string, index: string) => {
-      if (this.outputShape.length === 1) {
-        return outputCoords;
-      } else {
-        return `${outputCoords}[${index}]`;
-      }
-    };
-
-    const indexInputShape = (index: string) => {
+    const getInputShapeLastDim = () => {
       if (this.inputShape.length === 1) {
         return 'uniforms.xShape';
       } else {
-        return `uniforms.xShape[${index}]`;
+        return `uniforms.xShape.${getCoordsXYZ(this.inputShape.length - 1)}`;
       }
+    };
+
+    const splitOutputCoords = () => {
+      let snippet = '';
+      if (this.outputShape.length === 1) {
+        if (this.inputShape.length !== 1) {
+          snippet += 'outputCoords,';
+        }
+      } else {
+        for (let i = 0; i < this.outputShape.length; i++) {
+          snippet += `outputCoords.${getCoordsXYZ(i)},`;
+        }
+      }
+      return snippet;
     };
 
     const userCode = `
@@ -87,48 +93,16 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
       ${sharedMemorySnippet}
 
-      // In order to get a flattened index into the input tensor, we need to
-      // add back the index along the reduced dimension to |outputCoords|.
-      // This function outputs the offset to the first value along
-      // |axis| and the stride to get the next value of the input along |axis|.
-      fn getInputCoordInfo(outputIndex : i32) -> vec2<i32>{
-        let outputCoords = getCoordsFromIndex(outputIndex);
-        var i = ${this.outputShape.length - 1};
-
-        var stride = 1;
-        var inputStride = 1;
-        var offset = 0;
-
-        for (var r = 1; r <= ${this.inputShape.length}; r = r + 1) {
-          let length = ${indexInputShape(`${this.inputShape.length} - r`)};
-          if (${this.inputShape.length} - r == uniforms.axis) {
-            inputStride = stride;
-          } else {
-            offset = offset + ${
-        indexOutputCoords('outputCoords', 'i')} * stride;
-            i = i - 1;
-          }
-          stride = stride * length;
-        }
-
-        return vec2<i32>(offset, inputStride);
-      }
-
-      fn getInputIndex(coordInfo : vec2<i32>, index : i32) -> i32{
-        return coordInfo[0] + coordInfo[1] * index;
-      }
-
       ${getMainHeaderAndGlobalIndexString()}
         let outputIndex = index / i32(workGroupSizeX);
-        let coordInfo = getInputCoordInfo(outputIndex);
-        let Length = ${indexInputShape('uniforms.axis')};
+        let reduceLength = ${getInputShapeLastDim()};
 
         var bestIndex = i32(localId.x);
         var bestValue = uniforms.infinityValue;
-
-        for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
+        let outputCoords = getCoordsFromIndex(outputIndex);
+        for (var k = i32(localId.x); k < reduceLength && outputIndex < uniforms.size;
             k = k + i32(workGroupSizeX)) {
-          let candidate = f32(x[getInputIndex(coordInfo, k)]);
+          let candidate = getX(${splitOutputCoords()} k);
           if (!isnan(candidate) && candidate ${this.op} bestValue) {
             bestValue = candidate;
             bestIndex = k;
@@ -138,7 +112,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         xBestIndices[localId.x] = bestIndex;
         workgroupBarrier();
 
-        var reduceSize = min(u32(Length), workGroupSizeX);
+        var reduceSize = min(u32(reduceLength), workGroupSizeX);
         for (var currentSize = reduceSize / 2u; reduceSize > 1u;
             currentSize = reduceSize / 2u) {
           let interval = DIV_CEIL(reduceSize, 2u);
