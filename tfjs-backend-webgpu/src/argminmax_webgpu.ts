@@ -64,7 +64,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
     `;
 
-    const getInputLastDim = () => {
+    const getInputShapeLastDim = () => {
       if (this.inputShape.length === 1) {
         return 'uniforms.xShape';
       } else {
@@ -95,7 +95,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
       ${getMainHeaderAndGlobalIndexString()}
         let outputIndex = index / i32(workGroupSizeX);
-        let Length = ${getInputLastDim()};
+        let Length = ${getInputShapeLastDim()};
 
         var bestIndex = i32(localId.x);
         var bestValue = uniforms.infinityValue;
