@@ -57,6 +57,7 @@ describe('kernel2op metadata file', () => {
       'TensorArrayV3',
       'TensorArrayWriteV3',
       'TensorListConcat',
+      'TensorListConcatV2',
       'TensorListFromTensor',
       'TensorListGather',
       'TensorListGetItem',

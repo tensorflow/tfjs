@@ -325,7 +325,8 @@ export const executeOp: InternalOpAsyncExecutor = async(
       context.addTensorList(tensorList);
       return [tensorList.idTensor];
     }
-    case 'TensorListConcat': {
+    case 'TensorListConcat':
+    case 'TensorListConcatV2': {
       const concatId =
           getParamValue('tensorListId', node, tensorMap, context) as Tensor;
       const tensorList = context.getTensorList(concatId.id);
