@@ -16,11 +16,13 @@
  */
 
 import {env, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
-import {FromPixels, FromPixelsAttrs, FromPixelsInputs} from '@tensorflow/tfjs-core';
+import {FromPixels, FromPixelsAttrs, FromPixelsInputs, util} from '@tensorflow/tfjs-core';
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {fromPixelsExternalImage} from '../FromPixelsExternalImage';
+import {FromPixelsProgram} from '../from_pixels_webgpu';
+
+type ExternalImage = HTMLCanvasElement|ImageBitmap|OffscreenCanvas;
 
 export const fromPixelsConfig: KernelConfig = {
   kernelName: FromPixels,
@@ -48,9 +50,9 @@ export function fromPixels(args: {
   const isImage = typeof (HTMLImageElement) !== 'undefined' &&
       pixels instanceof HTMLImageElement;
   const isCanvas = (typeof (HTMLCanvasElement) !== 'undefined' &&
-      pixels instanceof HTMLCanvasElement) ||
+                    pixels instanceof HTMLCanvasElement) ||
       (typeof (OffscreenCanvas) !== 'undefined' &&
-      pixels instanceof OffscreenCanvas);
+       pixels instanceof OffscreenCanvas);
   const isImageBitmap =
       typeof (ImageBitmap) !== 'undefined' && pixels instanceof ImageBitmap;
 
@@ -118,5 +120,30 @@ export function fromPixels(args: {
   backend.maybeReleaseBuffer(output.dataId);
 
   backend.uploadToGPU(output.dataId);
+  return output;
+}
+
+function fromPixelsExternalImage(args: {
+  externalImage: ExternalImage|HTMLVideoElement,
+  backend: WebGPUBackend,
+  attrs: FromPixelsAttrs,
+  outShape: number[],
+  useImport: boolean
+}): TensorInfo {
+  const {externalImage, backend, attrs, outShape, useImport} = args;
+  const {numChannels} = attrs;
+
+  const size = util.sizeFromShape(outShape);
+  const strides = util.computeStrides(outShape);
+  const program = new FromPixelsProgram(outShape, useImport);
+
+  const uniformData = [
+    {type: 'uint32', data: [size]}, {type: 'uint32', data: [numChannels]},
+    {type: 'uint32', data: [...strides]},
+    {type: 'uint32', data: [...program.dispatch]}
+  ];
+
+  const output = backend.runFromPixelsProgram(
+      program, outShape, uniformData, useImport, externalImage);
   return output;
 }

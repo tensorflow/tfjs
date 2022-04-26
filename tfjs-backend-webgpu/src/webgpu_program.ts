@@ -85,7 +85,7 @@ export const compileProgram =
     };
 
 export function makeShaderKey<R extends Rank>(
-    program: WebGPUProgram, shapes: Array<ShapeMap[R]>, types: string[],
+    program: WebGPUProgram, shapes: Array<ShapeMap[R]>, types: string[] = [],
     broadcastDimsKey = '', inputShapesEqualsOutShape = ''): string {
   const key = program.shaderKey + '_' +
       (program.workGroupSize ? program.workGroupSize.join(',') : '') +

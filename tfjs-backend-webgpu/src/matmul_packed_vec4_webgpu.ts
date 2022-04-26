@@ -120,11 +120,13 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   tileInner: number;
   fitA: boolean;
   fitB: boolean;
+  batchAEqualOne: boolean;
+  batchBEqualOne: boolean;
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
-      rowPerThread: number, bias: TensorInfo = null,
-      activation: backend_util.Activation = null,
+      rowPerThread: number, batchAEqualOne: boolean, batchBEqualOne: boolean,
+      bias: TensorInfo = null, activation: backend_util.Activation = null,
       preluActivationWeights: TensorInfo = null) {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
@@ -158,11 +160,14 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
+    this.batchAEqualOne = batchAEqualOne;
+    this.batchBEqualOne = batchBEqualOne;
 
     [this.fitA, this.fitB] = this.getShapeFit();
 
     this.shaderKey = `matMulPackedVec4_${this.activation}_${this.fitA}_${
-        this.fitB}_${this.elementsPerThread}`;
+        this.fitB}_${this.elementsPerThread}_${this.batchAEqualOne}_${
+        this.batchBEqualOne}`;
   }
 
   getShapeFit(): boolean[] {
@@ -218,14 +223,29 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     const userCode = `
       ${activationSnippet}
       fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> vec4<f32> {
-        let batchASize = uniforms.aShape[1] * uniforms.aShape[2] / 4;
-        let batch = i32(globalId.z);
+        ${
+        this.batchAEqualOne ? `
+          let batchASize = 0;
+          let batch = 0;
+        ` :
+                              `
+          let batchASize = uniforms.aShape[1] * uniforms.aShape[2] / 4;
+          let batch = i32(globalId.z);
+        `}
+
         ${sampleA};
       }
 
       fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> vec4<f32> {
-        let batchBSize = uniforms.bShape[1] * uniforms.bShape[2] / 4;
-        let batch = i32(globalId.z);
+        ${
+        this.batchBEqualOne ? `
+          let batchBSize = 0;
+          let batch = 0;
+          ` :
+                              `
+          let batchBSize = uniforms.bShape[1] * uniforms.bShape[2] / 4;
+          let batch = i32(globalId.z);
+       `}
         ${sampleB};
       }
 
