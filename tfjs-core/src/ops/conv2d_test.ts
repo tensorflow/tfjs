@@ -228,6 +228,72 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     expectArraysClose(resultData, [20, 26, 13, 12]);
   });
 
+  it('x=[4,2,2] f=[1,1,4,4] s=1 d=1 p=same NCHW', async () => {
+    // Skip webgl backend due to bug
+    // https://github.com/tensorflow/tfjs/issues/6308.
+    // Skip tensorflow backend due to NCHW not supported.
+    if (tf.getBackend() === 'webgl' || tf.getBackend() === 'tensorflow') {
+      return;
+    }
+    const inputDepth = 4;
+    const inputShape: [number, number, number] = [inputDepth, 2, 2];
+    const outputDepth = 4;
+    const fSize = 1;
+    const pad = 'same';
+    const stride = 1;
+    const dataFormat = 'NCHW';
+    const dilation = 1;
+
+    const x = tf.tensor3d(
+        [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4], inputShape);
+    const w = tf.tensor4d(
+        [3, 3, 3, 3, 1, 1, 1, 1, 5, 5, 5, 5, 0, 0, 0, 0],
+        [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad, dataFormat, dilation);
+
+    const resultData = await result.data();
+    expect(result.shape).toEqual([4, 2, 2]);
+    expectArraysClose(
+        resultData,
+        [9, 18, 27, 36, 9, 18, 27, 36, 9, 18, 27, 36, 9, 18, 27, 36]);
+  });
+
+  it('x=[4,2,2] f=[2,2,4,4] s=1 d=1 p=same NCHW', async () => {
+    // Skip webgl backend due to bug
+    // https://github.com/tensorflow/tfjs/issues/6308.
+    // Skip tensorflow backend due to NCHW not supported.
+    if (tf.getBackend() === 'webgl' || tf.getBackend() === 'tensorflow') {
+      return;
+    }
+    const inputDepth = 4;
+    const inputShape: [number, number, number] = [inputDepth, 2, 2];
+    const outputDepth = 4;
+    const fSize = 2;
+    const pad = 'same';
+    const stride = 1;
+    const dataFormat = 'NCHW';
+    const dilation = 1;
+
+    const x = tf.tensor3d(
+        [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4], inputShape);
+    const w = tf.tensor4d(
+        [
+          3, 3, 3, 3, 1, 1, 1, 1, 5, 5, 5, 5, 0, 0, 0, 0, 3, 3, 3, 3, 1, 1,
+          1, 1, 5, 5, 5, 5, 0, 0, 0, 0, 3, 3, 3, 3, 1, 1, 1, 1, 5, 5, 5, 5,
+          0, 0, 0, 0, 3, 3, 3, 3, 1, 1, 1, 1, 5, 5, 5, 5, 0, 0, 0, 0,
+        ],
+        [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad, dataFormat, dilation);
+
+    const resultData = await result.data();
+    expect(result.shape).toEqual([4, 2, 2]);
+    expectArraysClose(
+        resultData,
+        [90, 54, 63, 36, 90, 54, 63, 36, 90, 54, 63, 36, 90, 54, 63, 36]);
+  });
+
   it('x=[1,2,2] f=[2,2,1,1] s=1 d=1 p=explicit NCHW', async () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [inputDepth, 2, 2];
@@ -558,8 +624,8 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     const w = tf.randomNormal<Rank.R4>([fSize, fSize, inputDepth, outputDepth]);
 
     expect(
-        () => tf.conv2d(
-            x, w, stride, pad, dataFormat, dilation, dimRoundingMode))
+        () =>
+            tf.conv2d(x, w, stride, pad, dataFormat, dilation, dimRoundingMode))
         .toThrowError();
   });
 
@@ -578,31 +644,32 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     const w = tf.randomNormal<Rank.R4>([fSize, fSize, inputDepth, outputDepth]);
 
     expect(
-        () => tf.conv2d(
-            x, w, stride, pad, dataFormat, dilation, dimRoundingMode))
+        () =>
+            tf.conv2d(x, w, stride, pad, dataFormat, dilation, dimRoundingMode))
         .toThrowError();
   });
 
   it('throws when dimRoundingMode is set and pad is a non-integer number',
      () => {
-    const inputDepth = 1;
-    const inputShape: [number, number, number] = [2, 2, inputDepth];
-    const outputDepth = 1;
-    const fSize = 2;
-    const pad = 1.2;
-    const stride = 1;
-    const dataFormat = 'NHWC';
-    const dilation = 1;
-    const dimRoundingMode = 'round';
+       const inputDepth = 1;
+       const inputShape: [number, number, number] = [2, 2, inputDepth];
+       const outputDepth = 1;
+       const fSize = 2;
+       const pad = 1.2;
+       const stride = 1;
+       const dataFormat = 'NHWC';
+       const dilation = 1;
+       const dimRoundingMode = 'round';
 
-    const x = tf.tensor3d([1, 2, 3, 4], inputShape);
-    const w = tf.randomNormal<Rank.R4>([fSize, fSize, inputDepth, outputDepth]);
+       const x = tf.tensor3d([1, 2, 3, 4], inputShape);
+       const w =
+           tf.randomNormal<Rank.R4>([fSize, fSize, inputDepth, outputDepth]);
 
-    expect(
-        () => tf.conv2d(
-            x, w, stride, pad, dataFormat, dilation, dimRoundingMode))
-        .toThrowError();
-  });
+       expect(
+           () => tf.conv2d(
+               x, w, stride, pad, dataFormat, dilation, dimRoundingMode))
+           .toThrowError();
+     });
 
   it('throws when dimRoundingMode is set and pad is explicit by non-integer ' +
          'number',

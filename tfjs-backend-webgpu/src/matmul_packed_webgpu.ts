@@ -187,11 +187,14 @@ export class MatMulPackedProgram implements WebGPUProgram {
   hasPreluActivationWeights: boolean;
   fitA: boolean;
   fitB: boolean;
+  batchAEqualOne: boolean;
+  batchBEqualOne: boolean;
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
-      workPerThread: number, transposeA = false, transposeB = false,
-      bias: TensorInfo = null, activation: backend_util.Activation = null,
+      workPerThread: number, batchAEqualOne: boolean, batchBEqualOne: boolean,
+      transposeA = false, transposeB = false, bias: TensorInfo = null,
+      activation: backend_util.Activation = null,
       preluActivationWeights: TensorInfo = null) {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
@@ -232,6 +235,8 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
+    this.batchAEqualOne = batchAEqualOne;
+    this.batchBEqualOne = batchBEqualOne;
 
     const dimBOuter = this.outputShape[2];
     const bShape = this.transposeB ?
@@ -241,7 +246,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
     [this.fitA, this.fitB] = this.getShapeFit(bShape);
     this.shaderKey = `matMulPacked_${this.workPerThread}_${transposeA}_${
         transposeB}_${this.activation}_${this.fitA}_${this.fitB}_${
-        this.outputShape[1] > 1}`;
+        this.outputShape[1] > 1}_${this.batchAEqualOne}_${this.batchBEqualOne}`;
   }
 
   getShapeFit(bShape: number[]): boolean[] {
@@ -328,14 +333,28 @@ export class MatMulPackedProgram implements WebGPUProgram {
       ${activationSnippet}
 
       fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
-        let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
+        ${
+        this.batchAEqualOne ? `
+        let batch = 0;
+        let batchASize = 0;
+        ` :
+                              `
         let batch = i32(globalId.z);
+        let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
+        `}
         ${sampleA}
       }
 
       fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
+        ${
+        this.batchBEqualOne ? `
+        let batch = 0;
+        let batchBSize = 0;
+        ` :
+                              `
         let batch = i32(globalId.z);
         let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
+        `}
         ${sampleB}
       }
 

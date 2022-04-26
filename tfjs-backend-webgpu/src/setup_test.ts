@@ -65,7 +65,6 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'conv2d ',
     excludes: [
-      'NCHW',      // Not yet implemented.
       'gradient',  // gradient function not found.
     ]
   },
@@ -142,7 +141,6 @@ const TEST_FILTERS: TestFilter[] = [
       'has zero in its shape',           // Test times out.
       'valueAndGradients',               // backend.sum() not yet implemented.
       'upcasts when dtypes dont match',  // GLSL compilation failed
-      'broadcast',  // matmul broadcasting not yet implemented.
     ]
   },
   {
@@ -193,7 +191,7 @@ const TEST_FILTERS: TestFilter[] = [
   {
     startsWith: 'prod ',
     excludes: [
-      'gradients',   // Not yet implemented
+      'gradients',  // Not yet implemented
     ]
   },
   {
