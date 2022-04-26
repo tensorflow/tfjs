@@ -29,8 +29,8 @@ export function searchSorted(args: {
   const {sortedSequence, values} = inputs;
   const {side} = attrs;
 
-  const program =
-      new SearchSortedProgram(sortedSequence.shape[0], values.shape[1], side);
+  const program = new SearchSortedProgram(
+      sortedSequence.shape[0], sortedSequence.shape[1], values.shape[1], side);
   const customValues = [[sortedSequence.shape[1]]];
   return backend.runWebGLProgram(
       program, [sortedSequence, values], 'int32', customValues);

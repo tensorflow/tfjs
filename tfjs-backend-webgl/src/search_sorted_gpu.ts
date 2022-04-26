@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {env} from '@tensorflow/tfjs-core';
 import {GPGPUProgram} from './gpgpu_math';
 import {UniformType} from './shader_compiler';
 
@@ -24,16 +25,26 @@ export class SearchSortedProgram implements GPGPUProgram {
   userCode: string;
   customUniforms = [{name: 'numInputs', type: 'int' as UniformType}];
 
-  constructor(batchSize: number, numValues: number, side: 'left'|'right') {
+  constructor(
+      batchSize: number, numInputs: number, numValues: number,
+      side: 'left'|'right') {
     this.outputShape = [batchSize, numValues];
 
     const searchFunction = side === 'left' ? 'lowerBound' : 'upperBound';
+
+    const webGL2LoopHead = 'while (left < right) {';
+    // WebGL1 doesn't accept non constant loop conditions, so upper bound loop
+    // iterations.
+    const webGL1LoopHead = `for (int i = 0; i < ${
+        Math.ceil(Math.log2(numInputs + 1))}; ++i) { if (left >= right) break;`;
+    const loopHead = env().getNumber('WEBGL_VERSION') === 2 ? webGL2LoopHead :
+                                                              webGL1LoopHead;
     this.userCode = `
        int lowerBound(int batch, float value) {
          int left = 0;
          int right = numInputs;
          int mid;
-         while (left < right) {
+         ${loopHead}
            mid = (left + right) / 2;
            if (getSortedSequence(batch, mid) < value) {
              left = mid + 1;
@@ -48,7 +59,7 @@ export class SearchSortedProgram implements GPGPUProgram {
         int left = 0;
         int right = numInputs;
         int mid;
-        while (left < right) {
+        ${loopHead}
            mid = (left + right) / 2;
            if (getSortedSequence(batch, mid) <= value) {
              left = mid + 1;
