@@ -33,10 +33,8 @@ export class ArgMinMaxProgram implements WebGPUProgram {
   reductionFactor: number;
   op: string;
   size = true;
-  axis: number;
 
   constructor(inputShape: number[], axis: number, reduceType: 'min'|'max') {
-    this.axis = axis;
     const axes = [axis];
     backend_util.assertAxesAreInnerMostDims(
         'arg' + reduceType.charAt(0).toUpperCase() + reduceType.slice(1), axes,
@@ -57,7 +55,7 @@ export class ArgMinMaxProgram implements WebGPUProgram {
         computeDispatch(this.dispatchLayout, this.outputShape, [1, 1, 1]);
 
     this.inputShape = inputShape;
-    this.shaderKey = `argMinMax${this.op}_${this.axis}`;
+    this.shaderKey = `argMinMax${this.op}`;
   }
 
   getUserCode(): string {
@@ -66,35 +64,25 @@ export class ArgMinMaxProgram implements WebGPUProgram {
       var<workgroup> xBestValues : array<f32, ${this.workGroupSize[0]}>;
     `;
 
-    const getCoordFromIndex =
-        (coords: string, index: number, length: number) => {
-          if (length === 1) {
-            return coords;
-          } else {
-            return `${coords}.${getCoordsXYZ(index)}`;
-          }
-        };
-
-    const getInputCoordInfoSnippet = () => {
-      const inputSize = this.inputShape.length;
-      let i = this.outputShape.length - 1;
-      let stride = 'stride';
-      let offset = 'offset';
-      let snippet = '';
-      for (let r = 1; r <= inputSize; r = r + 1) {
-        const length = `uniforms.xShape.${getCoordsXYZ(inputSize - r)}`;
-        if (inputSize - r === this.axis) {
-          snippet += `
-          inputStride = ${stride};`;
-        } else {
-          offset += ` + ${
-              getCoordFromIndex(
-                  'outputCoords', i, this.outputShape.length)} * ${stride}`;
-          i = i - 1;
-        }
-        stride = `${stride} * ${length}`;
+    const getInputLastDim = () => {
+      if (this.inputShape.length === 1) {
+        return 'uniforms.xShape';
+      } else {
+        return `uniforms.xShape.${getCoordsXYZ(this.inputShape.length - 1)}`;
       }
-      snippet += `offset = ${offset};`;
+    };
+
+    const splitOutputCoords = () => {
+      let snippet = '';
+      if (this.outputShape.length === 1) {
+        if (this.inputShape.length !== 1) {
+          snippet += 'outputCoords,';
+        }
+      } else {
+        for (let i = 0; i < this.outputShape.length; i++) {
+          snippet += `outputCoords.${getCoordsXYZ(i)},`;
+        }
+      }
       return snippet;
     };
 
@@ -105,38 +93,17 @@ export class ArgMinMaxProgram implements WebGPUProgram {
 
       ${sharedMemorySnippet}
 
-      // In order to get a flattened index into the input tensor, we need to
-      // add back the index along the reduced dimension to |outputCoords|.
-      // This function outputs the offset to the first value along
-      // |axis| and the stride to get the next value of the input along |axis|.
-      fn getInputCoordInfo(outputIndex : i32) -> vec2<i32>{
-        let outputCoords = getCoordsFromIndex(outputIndex);
-
-        var stride = 1;
-        var inputStride = 1;
-        var offset = 0;
-      ${getInputCoordInfoSnippet()}
-
-        return vec2<i32>(offset, inputStride);
-      }
-
-      fn getInputIndex(coordInfo : vec2<i32>, index : i32) -> i32{
-        return coordInfo[0] + coordInfo[1] * index;
-      }
-
       ${getMainHeaderAndGlobalIndexString()}
         let outputIndex = index / i32(workGroupSizeX);
-        let coordInfo = getInputCoordInfo(outputIndex);
-        let Length = ${
-        getCoordFromIndex(
-            'uniforms.xShape', this.axis, this.inputShape.length)};
+        let Length = ${getInputLastDim()};
 
         var bestIndex = i32(localId.x);
         var bestValue = uniforms.infinityValue;
 
         for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
             k = k + i32(workGroupSizeX)) {
-          let candidate = f32(x[getInputIndex(coordInfo, k)]);
+          let outputCoords = getCoordsFromIndex(outputIndex);
+          let candidate = f32(getX(${splitOutputCoords()} k));
           if (!isnan(candidate) && candidate ${this.op} bestValue) {
             bestValue = candidate;
             bestIndex = k;
