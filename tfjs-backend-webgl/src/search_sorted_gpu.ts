@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google LLC. All Rights Reserved.
+ * Copyright 2022 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,8 +30,6 @@ export class SearchSortedProgram implements GPGPUProgram {
       side: 'left'|'right') {
     this.outputShape = [batchSize, numValues];
 
-    const searchFunction = side === 'left' ? 'lowerBound' : 'upperBound';
-
     const webGL2LoopHead = 'while (left < right) {';
     // WebGL1 doesn't accept non constant loop conditions, so upper bound loop
     // iterations.
@@ -39,29 +37,17 @@ export class SearchSortedProgram implements GPGPUProgram {
         Math.ceil(Math.log2(numInputs + 1))}; ++i) { if (left >= right) break;`;
     const loopHead = env().getNumber('WEBGL_VERSION') === 2 ? webGL2LoopHead :
                                                               webGL1LoopHead;
+
+    // left corresponds to lower bound and right to upper bound.
+    const boundComparator = side === 'left' ? '<' : '<=';
     this.userCode = `
-       int lowerBound(int batch, float value) {
+       int findBound(int batch, float value) {
          int left = 0;
          int right = numInputs;
          int mid;
          ${loopHead}
            mid = (left + right) / 2;
-           if (getSortedSequence(batch, mid) < value) {
-             left = mid + 1;
-           } else {
-             right = mid;
-           }
-         }
-         return right;
-       }
-
-       int upperBound(int batch, float value) {
-        int left = 0;
-        int right = numInputs;
-        int mid;
-        ${loopHead}
-           mid = (left + right) / 2;
-           if (getSortedSequence(batch, mid) <= value) {
+           if (getSortedSequence(batch, mid) ${boundComparator} value) {
              left = mid + 1;
            } else {
              right = mid;
@@ -77,7 +63,7 @@ export class SearchSortedProgram implements GPGPUProgram {
 
          float value = getValues(batch, valueIndex);
 
-         setOutput(float(${searchFunction}(batch, value)));
+         setOutput(float(findBound(batch, value)));
        }
      `;
   }
