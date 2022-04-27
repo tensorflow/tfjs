@@ -50,19 +50,19 @@ const INT32_MAX = 2147483648;
  * ```js
  * const edges = tf.tensor1d([-1, 3.3, 9.1, 10.0]);
  * let values = tf.tensor1d([0.0, 4.1, 12.0]);
- * const result1 = tf.searchsorted(edges, values);
+ * const result1 = tf.searchSorted(edges, values);
  * result1.print(); // [1,2,4]
  *
  * const seq = tf.tensor1d([0, 3, 9, 10, 10]);
  * values = tf.tensor1d([0, 4, 10]);
- * const result2 = tf.searchsorted(seq, values);
+ * const result2 = tf.searchSorted(seq, values);
  * result2.print(); // [1,2,4]
  *
  * const sortedSequence = tf.tensor2d([[0., 3., 8., 9., 10.],
  *                                     [1., 2., 3., 4., 5.]]);
  * values = tf.tensor2d([[9.8, 2.1, 4.3],
  *                       [0.1, 6.6, 4.5, ]]);
- * const result23 = tf.searchsorted(sortedSequence, values);
+ * const result23 = tf.searchSorted(sortedSequence, values);
  * result2.print(); // [[4, 1, 2], [0, 5, 4]]
  * ```
  * @param sortedSequence: N-D. Sorted sequence.
