@@ -720,6 +720,13 @@ export interface ScatterNdAttrs {
   shape: number[];
 }
 
+export const SearchSorted = 'SearchSorted';
+export type SearchSortedInputs =
+    Pick<NamedTensorInfoMap, 'sortedSequence'|'values'>;
+export interface SearchSortedAttrs {
+  side: 'left'|'right';
+}
+
 export const Select = 'Select';
 export type SelectInputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
 
