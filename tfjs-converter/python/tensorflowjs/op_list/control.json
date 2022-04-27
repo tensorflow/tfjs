@@ -766,6 +766,29 @@
     ]
   },
   {
+    "tfOpName": "TensorListConcatV2",
+    "category": "control",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "tensorListId",
+        "type": "tensor"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "element_shape",
+        "name": "elementShape",
+        "type": "shape"
+      },
+      {
+        "tfName": "element_dtype",
+        "name": "elementDType",
+        "type": "dtype"
+      }
+    ]
+  },
+  {
     "tfOpName": "TensorListPopBack",
     "category": "control",
     "inputs": [

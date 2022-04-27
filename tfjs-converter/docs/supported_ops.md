@@ -97,6 +97,7 @@
 |TensorArrayV3|TensorArrayV3|
 |TensorArrayWriteV3|TensorArrayWriteV3|
 |TensorListConcat|TensorListConcat|
+|TensorListConcatV2|TensorListConcatV2|
 |TensorListFromTensor|TensorListFromTensor|
 |TensorListGather|TensorListGather|
 |TensorListGetItem|TensorListGetItem|
