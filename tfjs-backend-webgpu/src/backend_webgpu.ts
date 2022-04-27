@@ -500,17 +500,13 @@ export class WebGPUBackend extends KernelBackend {
           () => 'customBufSize should be equal or larger than the buffer size');
     }
 
-    const bufferSize = options.customBufSize != null ?
-        Math.max(bufferInfo.byteSize, options.customBufSize) :
-        bufferInfo.byteSize;
-    const copySize = options.customBufSize != null ?
-        Math.min(bufferInfo.byteSize, options.customBufSize) :
-        bufferInfo.byteSize;
+    const bufferSize = options.customBufSize != null ? options.customBufSize :
+                                                       bufferInfo.byteSize;
     const resBuffer = this.acquireBuffer(bufferSize);
     this.ensureCommandEncoderReady();
     this.ensureComputePassEnded();
     this.currentCommandEncoder.copyBufferToBuffer(
-        bufferInfo.buffer, 0, resBuffer, 0, copySize);
+        bufferInfo.buffer, 0, resBuffer, 0, bufferInfo.byteSize);
     this.submitQueue();
 
     const tensorInfo = this.makeTensorInfo(
@@ -918,7 +914,7 @@ export class WebGPUBackend extends KernelBackend {
     bindGroupLayoutEntries.push({
       binding: 0,
       visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'storage' as const}
+      buffer: {type: 'storage' as const }
     });
     // Input texture binding layout.
     if (useImport) {
