@@ -27,7 +27,6 @@ import {batchMatMulImpl, MATMUL_SHARED_DIM_THRESHOLD} from './BatchMatMul_impl';
 import {identity} from './Identity';
 import {reshape} from './Reshape';
 import {transpose} from './Transpose';
-// import {transposeImpl} from './Transpose_impl';
 
 type Conv2DConfig = {
   x: TensorInfo,
@@ -147,7 +146,10 @@ export function conv2dByMatMul({
     const xReshaped = reshape({
       inputs: {x},
       backend,
-      attrs: {shape: [1, targetShape, convInfo.inChannels]}
+      attrs: {
+        shape: isChannelsLast ? [1, targetShape, convInfo.inChannels] :
+                                [1, convInfo.inChannels, targetShape]
+      }
     });
     const filterReshaped = reshape({
       inputs: {x: filter},
