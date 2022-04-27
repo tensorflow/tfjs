@@ -23,7 +23,7 @@ import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import {MathBackendWebGL} from '../backend_webgl';
 import {WEBGL_ENVS} from '../backend_webgl_test_registry';
 
-import {conv2dByMatMul, conv2dWithIm2Row} from './Conv2D_impl'
+import {conv2dByMatMul, conv2dWithIm2Row} from './Conv2D_impl';
 
 const {expectArraysClose} = test_util;
 

@@ -68,11 +68,11 @@ export function conv2dByMatMul({
 
   if (bias != null) {
     util.assert(
-        bias.shape.length === 1,
-        () => `WebGL conv2dByMatMul only supports rank-1 bias but got ` +
-            `rank-${bias.shape.length}.`);
+        bias.shape.length <= 1,
+        () => `WebGL conv2dByMatMul only supports 1-D Tensor bias but got ` +
+            `the bias of rank-${bias.shape.length}.`);
     util.assert(
-        bias.shape[0] === convInfo.outChannels,
+        bias.shape.length === 0 || bias.shape[0] === convInfo.outChannels,
         () => `WebGL conv2dByMatMul bias shape (${bias.shape}) does not ` +
             `match the number of output channels (${convInfo.outChannels})`);
   }
@@ -247,12 +247,12 @@ export function conv2dWithIm2Row({
 
   if (bias != null) {
     util.assert(
-        bias.shape.length === 1,
-        () => `WebGL conv2dByMatMul only supports rank-1 bias but got ` +
-            `rank-${bias.shape.length}.`);
+        bias.shape.length <= 1,
+        () => `WebGL conv2dWithIm2Row only supports 1-D Tensor bias but got ` +
+            `the bias of rank-${bias.shape.length}.`);
     util.assert(
-        bias.shape[0] === convInfo.outChannels,
-        () => `WebGL conv2dByMatMul bias shape (${bias.shape}) does not ` +
+        bias.shape.length === 0 || bias.shape[0] === convInfo.outChannels,
+        () => `WebGL conv2dWithIm2Row bias shape (${bias.shape}) does not ` +
             `match the number of output channels (${convInfo.outChannels})`);
   }
 
