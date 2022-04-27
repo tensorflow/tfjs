@@ -168,8 +168,10 @@ export function conv2dByMatMul({
       leakyreluAlpha
     });
 
-    const outInNHWCFormatShape =
-        [1, convInfo.outHeight, convInfo.outWidth, convInfo.outChannels];
+    const outInNHWCFormatShape = [
+      convInfo.batchSize, convInfo.outHeight, convInfo.outWidth,
+      convInfo.outChannels
+    ];
     const outInNHWCFormat = reshape(
         {inputs: {x: result}, backend, attrs: {shape: outInNHWCFormatShape}});
 

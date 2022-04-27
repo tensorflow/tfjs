@@ -257,6 +257,34 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
         [9, 18, 27, 36, 9, 18, 27, 36, 9, 18, 27, 36, 9, 18, 27, 36]);
   });
 
+  it('x=[3,2,2] f=[1,1,3,4] s=1 d=1 p=same NCHW', async () => {
+    // Skip tensorflow backend due to NCHW not supported.
+    if (tf.getBackend() === 'tensorflow') {
+      return;
+    }
+    const inputDepth = 3;
+    const inputShape: [number, number, number] = [inputDepth, 2, 2];
+    const outputDepth = 4;
+    const fSize = 1;
+    const pad = 'same';
+    const stride = 1;
+    const dataFormat = 'NCHW';
+    const dilation = 1;
+
+    const x = tf.tensor3d([1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4], inputShape);
+    const w = tf.tensor4d(
+        [3, 3, 3, 3, 1, 1, 1, 1, 5, 5, 5, 5],
+        [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad, dataFormat, dilation);
+
+    const resultData = await result.data();
+    expect(result.shape).toEqual([4, 2, 2]);
+    expectArraysClose(
+        resultData,
+        [9, 18, 27, 36, 9, 18, 27, 36, 9, 18, 27, 36, 9, 18, 27, 36]);
+  });
+
   it('x=[4,2,2] f=[2,2,4,4] s=1 d=1 p=same NCHW', async () => {
     // Skip tensorflow backend due to NCHW not supported.
     if (tf.getBackend() === 'tensorflow') {
