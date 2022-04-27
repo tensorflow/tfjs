@@ -17,7 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 
-import {GPUData, test_util} from '@tensorflow/tfjs-core';
+import {GPUData, test_util, util} from '@tensorflow/tfjs-core';
 const {expectArraysEqual, expectArraysClose} = test_util;
 
 import {WebGPUBackend, WebGPUMemoryInfo} from './backend_webgpu';
@@ -346,6 +346,11 @@ describeWebGPU('keeping data on gpu ', () => {
     const b = tf.add(a, 0);
     const res = b.dataToGPU();
     expectArraysEqual(res.bufSize, size);
+    if (res.tensorRef.dtype != 'float32') {
+      throw new Error(
+          `Unexpected type. Actual: ${res.tensorRef.dtype}. ` +
+          `Expected: float32`);
+    }
     const resData = await webGPUBackend.getBufferData(res.buffer, res.bufSize);
     const values = webgpu_util.ArrayBufferToTypedArray(
         resData as ArrayBuffer, res.tensorRef.dtype);
@@ -360,7 +365,15 @@ describeWebGPU('keeping data on gpu ', () => {
     const bufSize = 96;
     const res = b.dataToGPU({customBufSize: bufSize});
     expectArraysEqual(res.bufSize, bufSize);
-    const resData = await webGPUBackend.getBufferData(res.buffer, 48);
+    if (res.tensorRef.dtype != 'float32') {
+      throw new Error(
+          `Unexpected type. Actual: ${res.tensorRef.dtype}. ` +
+          `Expected: float32`);
+    }
+    const resData = await webGPUBackend.getBufferData(
+        res.buffer,
+        util.sizeFromShape(res.tensorRef.shape) *
+            webgpu_util.GPUBytesPerElement(res.tensorRef.dtype));
     const values = webgpu_util.ArrayBufferToTypedArray(
         resData as ArrayBuffer, res.tensorRef.dtype);
     expectArraysEqual(values, data);
@@ -375,6 +388,11 @@ describeWebGPU('keeping data on gpu ', () => {
     const c = tf.add(a, b);
     const res = c.dataToGPU();
     expectArraysEqual(res.bufSize, size);
+    if (res.tensorRef.dtype != 'int32') {
+      throw new Error(
+          `Unexpected type. Actual: ${res.tensorRef.dtype}. ` +
+          `Expected: float32`);
+    }
     const resData = await webGPUBackend.getBufferData(res.buffer, res.bufSize);
     const values = webgpu_util.ArrayBufferToTypedArray(
         resData as ArrayBuffer, res.tensorRef.dtype);
