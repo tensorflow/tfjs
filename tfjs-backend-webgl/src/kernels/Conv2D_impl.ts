@@ -26,7 +26,8 @@ import * as webgl_util from '../webgl_util';
 import {batchMatMulImpl, MATMUL_SHARED_DIM_THRESHOLD} from './BatchMatMul_impl';
 import {identity} from './Identity';
 import {reshape} from './Reshape';
-import {transposeImpl} from './Transpose_impl';
+import {transpose} from './Transpose';
+// import {transposeImpl} from './Transpose_impl';
 
 type Conv2DConfig = {
   x: TensorInfo,
@@ -60,7 +61,7 @@ export function conv2dByMatMul({
   const outerShapeX = xShape[0] * xShape[1] * xShape[2];
   const outerShapeFilter = convInfo.outChannels;
   const isChannelsLast = convInfo.dataFormat === 'channelsLast';
-  const transposeA = false;
+  const transposeA = !isChannelsLast;
   const transposeB = false;
 
   let out: TensorInfo;
@@ -165,8 +166,20 @@ export function conv2dByMatMul({
       leakyreluAlpha
     });
 
-    out = reshape(
-        {inputs: {x: result}, backend, attrs: {shape: convInfo.outShape}});
+    const outInNHWCFormatShape =
+        [1, convInfo.outHeight, convInfo.outWidth, convInfo.outChannels];
+    const outInNHWCFormat = reshape(
+        {inputs: {x: result}, backend, attrs: {shape: outInNHWCFormatShape}});
+
+    // If the data format is NCHW, then convert the output to be NCHW format.
+    out = isChannelsLast ? outInNHWCFormat : transpose({
+      inputs: {x: outInNHWCFormat},
+      backend,
+      attrs: {perm: [0, 3, 1, 2]}
+    });
+    if (!isChannelsLast) {
+      intermediates.push(outInNHWCFormat);
+    }
 
     intermediates.push(xReshaped);
     intermediates.push(filterReshaped);
@@ -279,7 +292,8 @@ export function conv2dWithIm2Row({
   // If the data format is NCHW, then convert the output to be NCHW format.
   const out = isChannelsLast ?
       outInNHWCFormat :
-      transposeImpl(outInNHWCFormat, [0, 3, 1, 2], backend);
+      transpose(
+          {inputs: {x: outInNHWCFormat}, backend, attrs: {perm: [0, 3, 1, 2]}});
   if (!isChannelsLast) {
     intermediates.push(outInNHWCFormat);
   }
