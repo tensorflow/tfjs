@@ -66,6 +66,17 @@ export function conv2dByMatMul({
   let out: TensorInfo;
   const intermediates: TensorInfo[] = [];
 
+  if (bias != null) {
+    util.assert(
+        bias.shape.length === 1,
+        () => `WebGL conv2dByMatMul only supports rank-1 bias but got ` +
+            `rank-${bias.shape.length}.`);
+    util.assert(
+        bias.shape[0] === convInfo.outChannels,
+        () => `WebGL conv2dByMatMul bias shape (${bias.shape}) does not ` +
+            `match the number of output channels (${convInfo.outChannels})`);
+  }
+
   // TODO: Once reduction ops are packed, batchMatMul will always be packed
   // and we can remove this condition.
   const batchMatMulWillBeUnpacked =
@@ -233,6 +244,17 @@ export function conv2dWithIm2Row({
   const transposeB = false;
 
   const intermediates: TensorInfo[] = [];
+
+  if (bias != null) {
+    util.assert(
+        bias.shape.length === 1,
+        () => `WebGL conv2dByMatMul only supports rank-1 bias but got ` +
+            `rank-${bias.shape.length}.`);
+    util.assert(
+        bias.shape[0] === convInfo.outChannels,
+        () => `WebGL conv2dByMatMul bias shape (${bias.shape}) does not ` +
+            `match the number of output channels (${convInfo.outChannels})`);
+  }
 
   const xSqueezed =
       reshape({inputs: {x}, backend, attrs: {shape: x.shape.slice(1)}});
