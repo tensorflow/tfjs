@@ -17,7 +17,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, buffer, DataStorage, DataToGPUWebGLOption, DataType, DataValues, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, DataStorage, DataToGPUWebGPUOption, DataType, DataValues, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {BufferManager} from './buffer_manager';
 import {TextureManager} from './texture_manager';
@@ -478,7 +478,7 @@ export class WebGPUBackend extends KernelBackend {
    *     customBufShape: Optional. If set, will use the user defined buffer
    *     size to create the buffer.
    */
-  readToGPU(dataId: DataId, options: DataToGPUWebGLOption = {}): GPUData {
+  readToGPU(dataId: DataId, options: DataToGPUWebGPUOption = {}): GPUData {
     const srcData = this.tensorMap.get(dataId);
     const {values, dtype, bufferInfo} = srcData;
 
@@ -513,7 +513,9 @@ export class WebGPUBackend extends KernelBackend {
         [bufferSize / webgpu_util.GPUBytesPerElement(dtype)], dtype);
     // Make engine track this tensor, so that we can dispose it later.
     const tensorRef = engine().makeTensorFromDataId(
-        tensorInfo.dataId, tensorInfo.shape, tensorInfo.dtype);
+        tensorInfo.dataId,
+        [bufferInfo.byteSize / webgpu_util.GPUBytesPerElement(dtype)],
+        tensorInfo.dtype);
 
     const info = this.tensorMap.get(tensorInfo.dataId);
     info.bufferInfo.buffer = resBuffer;

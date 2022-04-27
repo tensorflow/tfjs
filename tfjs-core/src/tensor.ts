@@ -158,10 +158,13 @@ export class TensorBuffer<R extends Rank, D extends DataType = 'float32'> {
 
 export interface DataToGPUWebGLOption {
   customTexShape?: [number, number];
+}
+
+export interface DataToGPUWebGPUOption {
   customBufSize?: number;
 }
 
-export type DataToGPUOptions = DataToGPUWebGLOption;
+export type DataToGPUOptions = DataToGPUWebGLOption|DataToGPUWebGPUOption;
 
 export interface GPUData {
   tensorRef: Tensor;
