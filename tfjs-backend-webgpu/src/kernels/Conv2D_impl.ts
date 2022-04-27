@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, env, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {Conv2DMMVec4Program} from '../conv2d_mm_vec4_webgpu';
@@ -51,12 +51,12 @@ function conv2dByMatMul({
   leakyreluAlpha = 0,
   activation = null
 }: Conv2DConfig) {
-  const xShape = x.shape;
   const isChannelsLast = convInfo.dataFormat === 'channelsLast';
-  const transposeA = false;
+  const transposeA = isChannelsLast ? false : true;
   const transposeB = false;
 
-  const sameSize = convInfo.filterHeight === convInfo.inHeight &&
+  const sameSize = isChannelsLast &&
+      convInfo.filterHeight === convInfo.inHeight &&
       convInfo.filterWidth === convInfo.inWidth &&
       convInfo.padInfo.type === 'VALID';
   let xReshaped;
@@ -76,12 +76,20 @@ function conv2dByMatMul({
       attrs: {shape: [1, sharedDim, convInfo.outChannels]}
     });
   } else {
-    const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] :
-                                         xShape[0] * xShape[2] * xShape[3];
     xReshaped = reshape({
       inputs: {x},
       backend,
-      attrs: {shape: [1, targetShape, convInfo.inChannels]}
+      attrs: {
+        shape: isChannelsLast ?
+            [
+              convInfo.batchSize, convInfo.inHeight * convInfo.inWidth,
+              convInfo.inChannels
+            ] :
+            [
+              convInfo.batchSize, convInfo.inChannels,
+              convInfo.inHeight * convInfo.inWidth
+            ]
+      }
     });
     filterReshaped = reshape({
       inputs: {x: filter},
@@ -91,8 +99,8 @@ function conv2dByMatMul({
   }
 
   const result = batchMatMulImpl({
-    a: xReshaped,
-    b: filterReshaped,
+    a: isChannelsLast ? xReshaped : filterReshaped,
+    b: isChannelsLast ? filterReshaped : xReshaped,
     transposeA,
     transposeB,
     backend,
@@ -182,8 +190,8 @@ function conv2dWithIm2Col({
   const a3dShape: [number, number, number] = [1, x2ColShape[0], x2ColShape[1]];
   const matMulProgram = new MatMulPackedProgram(
       a3dShape, [1, numCols, convInfo.outChannels],
-      env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, transposeA,
-      transposeB, bias, activation, preluActivationWeights);
+      env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, true, true,
+      transposeA, transposeB, bias, activation, preluActivationWeights);
   const dimAOuter = a3dShape[1];
   const dimInner = a3dShape[2];
   const dimBOuter = convInfo.outChannels;
@@ -230,9 +238,10 @@ export function conv2DImpl({
 }: Conv2DConfig) {
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
-
+  const isChannelsLast = convInfo.dataFormat === 'channelsLast';
   let program: Conv2DMMProgram|Conv2DNaiveProgram|Conv2DMMVec4Program;
-  const sameSize = convInfo.filterHeight === convInfo.inHeight &&
+  const sameSize = isChannelsLast &&
+      convInfo.filterHeight === convInfo.inHeight &&
       convInfo.filterWidth === convInfo.inWidth &&
       convInfo.padInfo.type === 'VALID';
   if (sameSize ||
@@ -254,6 +263,7 @@ export function conv2DImpl({
   }
 
   if (env().getBool('WEBGPU_CONV_SEPARATE_IM2COL_SHADER') && x.shape[0] === 1) {
+    util.assert(isChannelsLast, () => 'TODO: NCHW is unimplemented');
     return conv2dWithIm2Col({
       x,
       filter,
@@ -266,11 +276,10 @@ export function conv2DImpl({
     });
   }
   const useNaive = env().getBool('WEBGPU_USE_NAIVE_CONV2D');
-
   const useVec4 =
       (convInfo.inChannels % 4 === 0 ||
        (convInfo.inChannels === 3 && convInfo.padInfo.type === 'VALID')) &&
-      convInfo.outChannels % 4 === 0;
+      convInfo.outChannels % 4 === 0 && isChannelsLast;
 
   const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
   const dimensions = [
@@ -280,6 +289,7 @@ export function conv2DImpl({
     {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]}
   ];
   if (useNaive) {
+    util.assert(isChannelsLast, () => 'TODO: NCHW is unimplemented');
     // TODO(kainino0x): This may be obsolete, but is kept for reference.
     program = new Conv2DNaiveProgram(
         convInfo, hasBias, activation, hasPreluActivationWeights);
@@ -291,10 +301,11 @@ export function conv2DImpl({
       program = new Conv2DMMProgram(
           convInfo, hasBias, activation, hasPreluActivationWeights);
     }
-    const dimAOuter = convInfo.outShape[1] * convInfo.outShape[2];
-    const dimBOuter = convInfo.outShape[3];
+
+    const dimAOuter = convInfo.outHeight * convInfo.outWidth;
+    const dimBOuter = convInfo.outChannels;
     const dimInner =
-        convInfo.filterHeight * convInfo.filterWidth * convInfo.inShape[3];
+        convInfo.filterHeight * convInfo.filterWidth * convInfo.inChannels;
     dimensions.push(
         {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
         {type: 'int32', data: [dimInner]});

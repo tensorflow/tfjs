@@ -88,14 +88,15 @@ export function batchMatMulImpl({
   const intermediates: TensorInfo[] = [a3d, b3d];
 
   const batchDim = Math.max(batchDimA, batchDimB);
-
+  const batchAEqualOne = batchDimA === 1;
+  const batchBEqualOne = batchDimB === 1;
   const useVec4 = innerShapeA % 4 === 0 && outerShapeB % 4 === 0 &&
-      !transposeA && !transposeB && outerShapeB >= 32;
+      !transposeA && !transposeB;
   let program: WebGPUProgram;
   if (outerShapeA * outerShapeB <= 32) {
     program = new MatMulReduceProgram(
-        [batchDim, outerShapeA, outerShapeB], transposeA, transposeB, bias,
-        activation, preluActivationWeights);
+        [batchDim, outerShapeA, outerShapeB], batchAEqualOne, batchBEqualOne,
+        transposeA, transposeB, bias, activation, preluActivationWeights);
 
   } else
       // When the output size is absolutely small or relatively small, we may
@@ -120,13 +121,14 @@ export function batchMatMulImpl({
     // remove this limitation by insert 0 to pack data.
     program = new MatMulPackedVec4Program(
         a3dShape, [batchDim, outerShapeA, outerShapeB],
-        env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, bias, activation,
-        preluActivationWeights);
+        env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, batchAEqualOne,
+        batchBEqualOne, bias, activation, preluActivationWeights);
   } else {
     program = new MatMulPackedProgram(
         a3dShape, [batchDim, outerShapeA, outerShapeB],
-        env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, transposeA,
-        transposeB, bias, activation, preluActivationWeights);
+        env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, batchAEqualOne,
+        batchBEqualOne, transposeA, transposeB, bias, activation,
+        preluActivationWeights);
   }
   const inputs: TensorInfo[] = [a3d, b3d];
   if (bias) {
