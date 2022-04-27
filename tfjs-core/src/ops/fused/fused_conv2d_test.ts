@@ -629,21 +629,18 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     const bias = tf.tensor1d([1, 4, 2, 3, 9, 6, 5, 8]);
     const leakyreluAlpha = 0.3;
 
-    expect(
-        () => tf.fused.conv2d(
-            {
-              x,
-              filter: w,
-              strides: stride,
-              pad,
-              dataFormat: 'NHWC',
-              dilations: [1, 1],
-              activation: 'leakyrelu',
-              leakyreluAlpha,
-              bias,
-              dimRoundingMode: 'round'
-            }))
-        .toThrowError();
+    expect(() => tf.fused.conv2d({
+      x,
+      filter: w,
+      strides: stride,
+      pad,
+      dataFormat: 'NHWC',
+      dilations: [1, 1],
+      activation: 'leakyrelu',
+      leakyreluAlpha,
+      bias,
+      dimRoundingMode: 'round'
+    })).toThrowError();
   });
 
   it('throws when dimRoundingMode is set and pad is valid', () => {
@@ -665,21 +662,18 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     const bias = tf.tensor1d([1, 4, 2, 3, 9, 6, 5, 8]);
     const leakyreluAlpha = 0.3;
 
-    expect(
-        () => tf.fused.conv2d(
-            {
-              x,
-              filter: w,
-              strides: stride,
-              pad,
-              dataFormat: 'NHWC',
-              dilations: [1, 1],
-              activation: 'leakyrelu',
-              leakyreluAlpha,
-              bias,
-              dimRoundingMode: 'round'
-            }))
-        .toThrowError();
+    expect(() => tf.fused.conv2d({
+      x,
+      filter: w,
+      strides: stride,
+      pad,
+      dataFormat: 'NHWC',
+      dilations: [1, 1],
+      activation: 'leakyrelu',
+      leakyreluAlpha,
+      bias,
+      dimRoundingMode: 'round'
+    })).toThrowError();
   });
 
   it('throws when dimRoundingMode is set and pad is a non-integer number',
@@ -702,21 +696,18 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
        const bias = tf.tensor1d([1, 4, 2, 3, 9, 6, 5, 8]);
        const leakyreluAlpha = 0.3;
 
-       expect(
-           () => tf.fused.conv2d(
-               {
-                 x,
-                 filter: w,
-                 strides: stride,
-                 pad,
-                 dataFormat: 'NHWC',
-                 dilations: [1, 1],
-                 activation: 'leakyrelu',
-                 leakyreluAlpha,
-                 bias,
-                 dimRoundingMode: 'round'
-               }))
-           .toThrowError();
+       expect(() => tf.fused.conv2d({
+         x,
+         filter: w,
+         strides: stride,
+         pad,
+         dataFormat: 'NHWC',
+         dilations: [1, 1],
+         activation: 'leakyrelu',
+         leakyreluAlpha,
+         bias,
+         dimRoundingMode: 'round'
+       })).toThrowError();
      });
 
   it('throws when dimRoundingMode is set and pad is explicit by non-integer ' +
@@ -741,21 +732,18 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
        const bias = tf.tensor1d([1, 4, 2, 3, 9, 6, 5, 8]);
        const leakyreluAlpha = 0.3;
 
-       expect(
-           () => tf.fused.conv2d(
-               {
-                 x,
-                 filter: w,
-                 strides: stride,
-                 pad,
-                 dataFormat: 'NHWC',
-                 dilations: [1, 1],
-                 activation: 'leakyrelu',
-                 leakyreluAlpha,
-                 bias,
-                 dimRoundingMode: 'round'
-               }))
-           .toThrowError();
+       expect(() => tf.fused.conv2d({
+         x,
+         filter: w,
+         strides: stride,
+         pad,
+         dataFormat: 'NHWC',
+         dilations: [1, 1],
+         activation: 'leakyrelu',
+         leakyreluAlpha,
+         bias,
+         dimRoundingMode: 'round'
+       })).toThrowError();
      });
 
   it('basic with bias', async () => {
