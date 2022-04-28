@@ -346,7 +346,7 @@ describeWebGPU('keeping data on gpu ', () => {
     const b = tf.add(a, 0);
     const res = b.dataToGPU();
     expectArraysEqual(res.bufSize, size);
-    if (res.tensorRef.dtype != 'float32') {
+    if (res.tensorRef.dtype !== 'float32') {
       throw new Error(
           `Unexpected type. Actual: ${res.tensorRef.dtype}. ` +
           `Expected: float32`);
@@ -365,7 +365,7 @@ describeWebGPU('keeping data on gpu ', () => {
     const bufSize = 96;
     const res = b.dataToGPU({customBufSize: bufSize});
     expectArraysEqual(res.bufSize, bufSize);
-    if (res.tensorRef.dtype != 'float32') {
+    if (res.tensorRef.dtype !== 'float32') {
       throw new Error(
           `Unexpected type. Actual: ${res.tensorRef.dtype}. ` +
           `Expected: float32`);
@@ -388,7 +388,7 @@ describeWebGPU('keeping data on gpu ', () => {
     const c = tf.add(a, b);
     const res = c.dataToGPU();
     expectArraysEqual(res.bufSize, size);
-    if (res.tensorRef.dtype != 'int32') {
+    if (res.tensorRef.dtype !== 'int32') {
       throw new Error(
           `Unexpected type. Actual: ${res.tensorRef.dtype}. ` +
           `Expected: float32`);
