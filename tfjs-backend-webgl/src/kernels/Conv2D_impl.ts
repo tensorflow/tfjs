@@ -67,6 +67,7 @@ export function conv2dByMatMul({
   const intermediates: TensorInfo[] = [];
 
   if (bias != null) {
+    // Bias could be a 1-D tensor or a scalar.
     util.assert(
         bias.shape.length <= 1,
         () => `WebGL conv2dByMatMul only supports 1-D Tensor bias but got ` +
@@ -246,6 +247,7 @@ export function conv2dWithIm2Row({
   const intermediates: TensorInfo[] = [];
 
   if (bias != null) {
+    // Bias could be a 1-D tensor or a scalar.
     util.assert(
         bias.shape.length <= 1,
         () => `WebGL conv2dWithIm2Row only supports 1-D Tensor bias but got ` +
