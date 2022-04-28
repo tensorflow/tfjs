@@ -49,10 +49,6 @@ tf.setBackend('webgpu').then(() => main());
 # FAQ
 
 ### When should I use the WebGPU backend?
-WebGPU as the successor of WebGL will provide a hardware accelerated solution.
-Theoretically, webgpu is recommended to be used in any scenario used by WebGL
-and provide comparable or better performance.
-
 The mission of WebGPU backend is to achieve the best performance among all
 approaches. However, this target can not be met overnight, but we are committed
 to supporting it with rapid and continuous performance improvement. Many
@@ -85,7 +81,7 @@ yarn build
 ```
 
 ## Testing
-The `$CHROME_BIN` environment variable must be set to the location of the Chrome
+The `CHROME_BIN` environment variable must be set to the location of the Chrome
 Canary application.
 
 ### Windows
