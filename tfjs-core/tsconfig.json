@@ -8,7 +8,7 @@
   ],
   "compilerOptions": {
     "typeRoots": [
-      "./node_modules/@webgpu"
+      "../node_modules/@webgpu"
     ],
     "outDir": "./dist"
   }
