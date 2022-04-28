@@ -520,7 +520,7 @@ export class WebGPUBackend extends KernelBackend {
     const info = this.tensorMap.get(tensorInfo.dataId);
     info.bufferInfo.buffer = resBuffer;
 
-    return {tensorRef: tensorRef, buffer: resBuffer, bufSize: bufferSize};
+    return {tensorRef, buffer: resBuffer, bufSize: bufferSize};
   }
 
   bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {
