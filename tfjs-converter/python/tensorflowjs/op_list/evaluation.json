@@ -1,5 +1,26 @@
 [
   {
+    "tfOpName": "SearchSorted",
+    "category": "evaluation",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "sortedSequence",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "values",
+        "type": "tensor"
+      },
+      {
+        "start": 2,
+        "name": "side",
+        "type": "string"
+      }
+    ]
+  },
+  {
     "tfOpName": "TopKV2",
     "category": "evaluation",
     "inputs": [

@@ -21,7 +21,7 @@ import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
 
 import {executeOp} from './evaluation_executor';
-import {createBoolAttr, createNumberAttrFromIndex, createTensorAttr} from './test_helper';
+import {createBoolAttr, createNumberAttrFromIndex, createStrAttr, createTensorAttr} from './test_helper';
 
 describe('evaluation', () => {
   let node: Node;
@@ -43,6 +43,33 @@ describe('evaluation', () => {
   });
 
   describe('executeOp', () => {
+    describe('SearchSorted', () => {
+      it('should return input', () => {
+        node.op = 'SearchSorted';
+        node.inputParams['sortedSequence'] = createTensorAttr(0);
+        node.inputParams['values'] = createTensorAttr(1);
+        node.attrParams['side'] = createStrAttr('left');
+        node.inputNames = ['sortedSequence', 'values'];
+
+        spyOn(tfOps, 'searchSorted').and.callThrough();
+        const sortedSequence = [tfOps.tensor2d(
+            [0., 3., 8., 9., 10., 1., 2., 3., 4., 5.], [2, 5], 'int32')];
+        const values = [tfOps.tensor2d(
+            [
+              9.8,
+              2.1,
+              4.3,
+              0.1,
+              6.6,
+              4.5,
+            ],
+            [2, 3], 'float32')];
+        executeOp(node, {sortedSequence, values}, context);
+        expect(tfOps.searchSorted)
+            .toHaveBeenCalledWith(sortedSequence[0], values[0], 'left');
+      });
+    });
+
     describe('TopKV2', () => {
       it('should return input', () => {
         node.op = 'TopKV2';

@@ -29,6 +29,17 @@ export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext):
         Tensor[] => {
           switch (node.op) {
+            case 'SearchSorted': {
+              const sortedSequence =
+                  getParamValue('sortedSequence', node, tensorMap, context) as
+                  Tensor;
+              const values =
+                  getParamValue('values', node, tensorMap, context) as Tensor;
+              const side =
+                  getParamValue('side', node, tensorMap, context) as 'left' |
+                  'right';
+              return [tfOps.searchSorted(sortedSequence, values, side)];
+            }
             case 'TopKV2': {
               const x = getParamValue('x', node, tensorMap, context) as Tensor;
               const k = getParamValue('k', node, tensorMap, context) as number;
