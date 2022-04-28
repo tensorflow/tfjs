@@ -73,8 +73,8 @@ ts_library(
     module_name = "@tensorflow/tfjs-core/dist",
     deps = [
         "@npm//@types",
-        "@npm//seedrandom",
         "@npm//@webgpu/types",
+        "@npm//seedrandom",
     ],
 )
 
