@@ -1,6 +1,7 @@
 # Usage
 
-This package adds a GPU accelerated [WebGPU](https://www.w3.org/TR/webgpu/) backend to TensorFlow.js. It currently supports
+This package adds a GPU accelerated [WebGPU](https://www.w3.org/TR/webgpu/)
+backend to TensorFlow.js. It currently supports
 the following models:
 - BlazeFace
 - BodyPix
@@ -13,7 +14,9 @@ the following models:
 - AutoML Object detection
 - Speech commands
 
-Note that WebGPU 1.0 hasn't been officially released by W3C group. Currently WebGPU in chrome is in Origin Trial. To try webgpu features, you need to launch chrome canary browser with flag --enable-unsafe-webgpu.
+Note that WebGPU hasn't been officially supported by browsers. Only Google
+Chrome is well tested, and its Canary Channel is highly recommended for your
+trial. Specify option "--enable-unsafe-webgpu" before you start the Chrome.
 
 
 ## Importing the backend
@@ -23,7 +26,7 @@ Note that WebGPU 1.0 hasn't been officially released by W3C group. Currently Web
 ```js
 // Import @tensorflow/tfjs or @tensorflow/tfjs-core
 import * as tf from '@tensorflow/tfjs';
-// Adds the WebGPU backend to the global backend registry.
+// Add the WebGPU backend to the global backend registry.
 import '@tensorflow/tfjs-backend-webgpu';
 // Set the backend to WebGPU and wait for the module to be ready.
 tf.setBackend('webgpu').then(() => main());
@@ -35,9 +38,10 @@ tf.setBackend('webgpu').then(() => main());
 <!-- Import @tensorflow/tfjs or @tensorflow/tfjs-core -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"> </script>
 
-<!-- Adds the WebGPU backend to the global backend registry -->
+<!-- Add the WebGPU backend to the global backend registry -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgpu/dist/tf-backend-webgpu.js"></script>
 <script>
+// Set the backend to WebGPU and wait for the module to be ready
 tf.setBackend('webgpu').then(() => main());
 </script>
 ```
@@ -49,9 +53,10 @@ WebGPU as the successor of WebGL will provide a hardware accelerated solution.
 Theoretically, webgpu is recommended to be used in any scenario used by WebGL
 and provide comparable or better performance.
 
-We are committed to supporting the WebGPU backend and will continue to improve
-performance. We plan to follow the WebGPU standard closely and benefit from
-its upcoming features such as fp16, int8.
+The mission of WebGPU backend is to achieve the best performance among all
+approaches. However, this target can not be met overnight, but we are committed
+to supporting it with rapid and continuous performance improvement. Many
+exciting features, like FP16, DP4A, will be brought in soon.
 
 ### How many ops have you implemented?
 See [`register_all_kernels.ts`](https://github.com/tensorflow/tfjs/blob/master/tfjs-backend-webgpu/src/register_all_kernels.ts)
@@ -80,9 +85,13 @@ yarn build
 ```
 
 ## Testing
-The `$CHROME_BIN` environment variable must be set to the location of the Chrome Canary application.
+The `$CHROME_BIN` environment variable must be set to the location of the Chrome
+Canary application.
 
-e.g.
+### Windows
+`set CHROME_BIN=%LOCALAPPDATA%\Google\Chrome SxS\Application\chrome.exe`
+
+### macOS
 `export CHROME_BIN="/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary"`
 
 ```sh
