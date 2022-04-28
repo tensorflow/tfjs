@@ -74,8 +74,9 @@ export function conv2dByMatMul({
             `the bias of rank-${bias.shape.length}.`);
     util.assert(
         bias.shape.length === 0 || bias.shape[0] === convInfo.outChannels,
-        () => `WebGL conv2dByMatMul bias shape (${bias.shape}) does not ` +
-            `match the number of output channels (${convInfo.outChannels})`);
+        () => `WebGL conv2dByMatMul bias shape (${bias.shape}) is not ` +
+            `compatible with the number of output channels ` +
+            `(${convInfo.outChannels})`);
   }
 
   // TODO: Once reduction ops are packed, batchMatMul will always be packed
@@ -254,8 +255,9 @@ export function conv2dWithIm2Row({
             `the bias of rank-${bias.shape.length}.`);
     util.assert(
         bias.shape.length === 0 || bias.shape[0] === convInfo.outChannels,
-        () => `WebGL conv2dWithIm2Row bias shape (${bias.shape}) does not ` +
-            `match the number of output channels (${convInfo.outChannels})`);
+        () => `WebGL conv2dWithIm2Row bias shape (${bias.shape}) is not ` +
+            `compatible with the number of output channels ` +
+            `(${convInfo.outChannels})`);
   }
 
   const xSqueezed =
