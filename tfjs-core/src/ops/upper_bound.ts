@@ -17,8 +17,7 @@
 
 import {Tensor} from '../tensor';
 import {TensorLike} from '../types';
-import {op} from './operation';
-import {searchSorted_} from './search_sorted';
+import {searchSorted} from './search_sorted';
 
 /**
  * Searches for where a value would go in a sorted sequence.
@@ -43,7 +42,7 @@ import {searchSorted_} from './search_sorted';
  *
  * ```js
  * const seq = tf.tensor1d([0, 3, 9, 10, 10]);
- * values = tf.tensor1d([0, 4, 10]);
+ * const values = tf.tensor1d([0, 4, 10]);
  * const result = tf.upperBound(seq, values);
  * result.print(); // [1, 2, 5]
  * ```
@@ -54,9 +53,7 @@ import {searchSorted_} from './search_sorted';
  *     the entire Tensor, but the index in the last dimension.
  * @doc {heading: 'Operations', subheading: 'Evaluation'}
  */
-function upperBound_(
+export function upperBound(
     sortedSequence: Tensor|TensorLike, values: Tensor|TensorLike): Tensor {
-  return searchSorted_(sortedSequence, values, 'right');
+  return searchSorted(sortedSequence, values, 'right');
 }
-
-export const upperBound = op({upperBound_});

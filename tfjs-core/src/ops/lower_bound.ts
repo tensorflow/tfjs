@@ -17,8 +17,7 @@
 
 import {Tensor} from '../tensor';
 import {TensorLike} from '../types';
-import {op} from './operation';
-import {searchSorted_} from './search_sorted';
+import {searchSorted} from './search_sorted';
 
 /**
  * Searches for where a value would go in a sorted sequence.
@@ -67,9 +66,7 @@ import {searchSorted_} from './search_sorted';
  *     the entire Tensor, but the index in the last dimension.
  * @doc {heading: 'Operations', subheading: 'Evaluation'}
  */
-function lowerBound_(
+export function lowerBound(
     sortedSequence: Tensor|TensorLike, values: Tensor|TensorLike): Tensor {
-  return searchSorted_(sortedSequence, values, 'left');
+  return searchSorted(sortedSequence, values, 'left');
 }
-
-export const lowerBound = op({lowerBound_});

@@ -77,7 +77,7 @@ const INT32_MAX = 2147483648;
  *     index in the last dimension.
  * @doc {heading: 'Operations', subheading: 'Evaluation'}
  */
-export function searchSorted_(
+function searchSorted_(
     sortedSequence: Tensor|TensorLike, values: Tensor|TensorLike,
     side: 'left'|'right' = 'left'): Tensor {
   const $sortedSequence =
