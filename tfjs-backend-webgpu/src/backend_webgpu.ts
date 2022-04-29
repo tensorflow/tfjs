@@ -40,6 +40,7 @@ type BufferInfo = {
 type TensorBufferInfo = {
   values: backend_util.BackendValues,
   dtype: DataType,
+  shape: number[],
   bufferInfo: BufferInfo,
   refCount: number,
   // For complex numbers, the real and imaginary parts are stored as their own
@@ -315,6 +316,7 @@ export class WebGPUBackend extends KernelBackend {
 
     this.tensorMap.set(dataId, {
       dtype,
+      shape,
       values,
       bufferInfo: {byteSize, usage: this.defaultGpuBufferUsage()},
       refCount: 1
@@ -335,6 +337,7 @@ export class WebGPUBackend extends KernelBackend {
 
     this.tensorMap.set(dataId, {
       dtype,
+      shape,
       values,
       bufferInfo: {byteSize, usage: this.defaultGpuBufferUsage()},
       refCount
@@ -480,7 +483,7 @@ export class WebGPUBackend extends KernelBackend {
    */
   readToGPU(dataId: DataId, options: DataToGPUWebGPUOption = {}): GPUData {
     const srcData = this.tensorMap.get(dataId);
-    const {values, dtype, bufferInfo} = srcData;
+    const {values, dtype, shape, bufferInfo} = srcData;
 
     if (dtype === 'complex64') {
       throw new Error('Does not support reading buffer for complex64 dtype.');
@@ -509,16 +512,16 @@ export class WebGPUBackend extends KernelBackend {
         bufferInfo.buffer, 0, resBuffer, 0, bufferInfo.byteSize);
     this.submitQueue();
 
-    const tensorInfo = this.makeTensorInfo(
-        [bufferSize / webgpu_util.GPUBytesPerElement(dtype)], dtype);
+    const tensorInfo = this.makeTensorInfo(shape, dtype);
     // Make engine track this tensor, so that we can dispose it later.
     const tensorRef = engine().makeTensorFromDataId(
-        tensorInfo.dataId,
-        [bufferInfo.byteSize / webgpu_util.GPUBytesPerElement(dtype)],
-        tensorInfo.dtype);
+        tensorInfo.dataId, tensorInfo.shape, tensorInfo.dtype);
 
     const info = this.tensorMap.get(tensorInfo.dataId);
     info.bufferInfo.buffer = resBuffer;
+    // Explicitly change the buffer size that could release the buffer
+    // successfully in future.
+    info.bufferInfo.byteSize = bufferSize;
 
     return {tensorRef, buffer: resBuffer, bufSize: bufferSize};
   }
