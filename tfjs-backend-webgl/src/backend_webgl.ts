@@ -430,8 +430,7 @@ export class MathBackendWebGL extends KernelBackend {
     const tmpTarget = this.decode(dataId, options.customTexShape);
 
     // Make engine track this tensor, so that we can dispose it later.
-    const tensorRef = engine().makeTensorFromDataId(
-        tmpTarget.dataId, tmpTarget.shape, tmpTarget.dtype);
+    const tensorRef = engine().makeTensorFromTensorInfo(tmpTarget);
 
     const tmpData = this.texData.get(tmpTarget.dataId);
     return {tensorRef, ...tmpData.texture};
@@ -722,8 +721,7 @@ export class MathBackendWebGL extends KernelBackend {
   private packedUnaryOp(x: TensorInfo, op: string, dtype: DataType) {
     const program = new UnaryOpPackedProgram(x.shape, op);
     const outInfo = this.compileAndRun(program, [x], dtype);
-    return engine().makeTensorFromDataId(
-        outInfo.dataId, outInfo.shape, outInfo.dtype);
+    return engine().makeTensorFromTensorInfo(outInfo);
   }
 
   // TODO(msoulanille) remove this once the backend has been modularized
@@ -743,8 +741,7 @@ export class MathBackendWebGL extends KernelBackend {
 
     const program = new UnaryOpProgram(x.shape, unary_op.ABS);
     const outInfo = this.compileAndRun(program, [x]);
-    return engine().makeTensorFromDataId(
-               outInfo.dataId, outInfo.shape, outInfo.dtype) as T;
+    return engine().makeTensorFromTensorInfo(outInfo) as T;
   }
 
   makeTensorInfo(
@@ -767,8 +764,8 @@ export class MathBackendWebGL extends KernelBackend {
 
   private makeOutput<T extends Tensor>(
       shape: number[], dtype: DataType, values?: BackendValues): T {
-    const {dataId} = this.makeTensorInfo(shape, dtype, values);
-    return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
+    return engine().makeTensorFromTensorInfo(
+               this.makeTensorInfo(shape, dtype, values), this) as T;
   }
 
   unpackTensor(input: TensorInfo): TensorInfo {

@@ -654,8 +654,7 @@ export class Engine implements TensorTracker, DataMover {
           if ((outInfo as Tensor).rank != null) {
             return outInfo as Tensor;
           }
-          const {dataId, shape, dtype} = outInfo as TensorInfo;
-          return this.makeTensorFromDataId(dataId, shape, dtype);
+          return this.makeTensorFromTensorInfo(outInfo);
         });
 
         // Save any required inputs and outputs.
@@ -825,14 +824,13 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   /**
-   * Internal method used by backends. Makes a new tensor
-   * that is a wrapper around an existing data id. It doesn't create
-   * a new data id, only increments the ref count used in memory tracking.
+   * Internal method used by backends. Makes a new tensor that is a wrapper
+   * around an existing data id in TensorInfo. It doesn't create a new data id,
+   * only increments the ref count used in memory tracking.
    */
-  makeTensorFromDataId(
-      dataId: DataId, shape: number[], dtype: DataType,
-      backend?: KernelBackend): Tensor {
-    dtype = dtype || 'float32';
+  makeTensorFromTensorInfo(tensorInfo: TensorInfo, backend?: KernelBackend):
+      Tensor {
+    const {dataId, shape, dtype} = tensorInfo;
     const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
     this.trackTensor(t, backend);
     return t;
