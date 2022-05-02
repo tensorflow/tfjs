@@ -1437,7 +1437,7 @@ export class UpSampling2D extends Layer {
   }
 
   getConfig(): serialization.ConfigDict {
-    const config = {size: this.size, dataFormat: this.dataFormat};
+    const config = {size: this.size, dataFormat: this.dataFormat, interpolation: this.interpolation};
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
     return config;
