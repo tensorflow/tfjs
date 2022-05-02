@@ -463,6 +463,10 @@ export interface LogSoftmaxAttrs {
   axis: number;
 }
 
+export const LowerBound = 'LowerBound';
+export type LowerBoundInputs =
+    Pick<NamedTensorInfoMap, 'sortedSequence'|'values'>;
+
 export const LRN = 'LRN';
 export type LRNInputs = Pick<NamedTensorInfoMap, 'x'>;
 export interface LRNAttrs {
@@ -906,6 +910,10 @@ export type UnsortedSegmentSumInputs =
 export interface UnsortedSegmentSumAttrs {
   numSegments: number;
 }
+
+export const UpperBound = 'UpperBound';
+export type UpperBoundInputs =
+    Pick<NamedTensorInfoMap, 'sortedSequence'|'values'>;
 
 export const ZerosLike = 'ZerosLike';
 export type ZerosLikeInputs = UnaryInputs;
