@@ -530,17 +530,18 @@ export class WebGPUBackend extends KernelBackend {
 
   bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {
     const data = this.readSync(t.dataId);
-    let decodedData = data as DataValues;
     if (t.dtype === 'string') {
       try {
         // Decode the bytes into string.
-        decodedData = (data as Uint8Array[]).map(d => util.decodeString(d));
+        const strings = (data as Uint8Array[]).map(d => util.decodeString(d));
+        return buffer(t.shape as ShapeMap[R], t.dtype, strings) as
+            TensorBuffer<R, D>;
       } catch {
         throw new Error('Failed to decode encoded string bytes into utf-8');
       }
     }
-    return buffer(t.shape as ShapeMap[R], t.dtype, decodedData) as
-        TensorBuffer<R>;
+    return buffer(t.shape as ShapeMap[R], t.dtype, data as TypedArray) as
+        TensorBuffer<R, D>;
   }
 
   async time(f: () => void): Promise<WebGPUTimingInfo> {
