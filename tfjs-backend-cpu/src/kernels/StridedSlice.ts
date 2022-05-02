@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, slice_util, StridedSlice, StridedSliceAttrs, StridedSliceInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Rank, slice_util, StridedSlice, StridedSliceAttrs, StridedSliceInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
@@ -77,7 +77,7 @@ export function stridedSlice(args: {
         reshape({inputs: {x: sliced}, backend, attrs: {shape: finalShape}});
     backend.disposeIntermediateTensorInfo(sliced);
   } else {
-    const xBuf = backend.bufferSync(x);
+    const xBuf = backend.bufferSync<Rank, 'float32'>(x);
     const outBuf = stridedSliceImpl(finalShapeSparse, xBuf, $strides, $begin);
 
     result = backend.makeTensorInfo(finalShape, outBuf.dtype, outBuf.values);

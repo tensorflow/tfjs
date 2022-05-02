@@ -17,7 +17,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, buffer, DataStorage, DataType, DataValues, engine, env, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, DataStorage, DataType, engine, env, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {BufferManager} from './buffer_manager';
 import {TextureManager} from './texture_manager';
@@ -475,19 +475,21 @@ export class WebGPUBackend extends KernelBackend {
     return vals;
   }
 
-  bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {
+  bufferSync<R extends Rank, D extends DataType>(t: TensorInfo):
+      TensorBuffer<R, D> {
     const data = this.readSync(t.dataId);
-    let decodedData = data as DataValues;
     if (t.dtype === 'string') {
       try {
         // Decode the bytes into string.
-        decodedData = (data as Uint8Array[]).map(d => util.decodeString(d));
+        const strings = (data as Uint8Array[]).map(d => util.decodeString(d));
+        return buffer(t.shape as ShapeMap[R], t.dtype, strings) as
+            TensorBuffer<R, D>;
       } catch {
         throw new Error('Failed to decode encoded string bytes into utf-8');
       }
     }
-    return buffer(t.shape as ShapeMap[R], t.dtype, decodedData) as
-        TensorBuffer<R>;
+    return buffer(t.shape as ShapeMap[R], t.dtype, data as TypedArray) as
+        TensorBuffer<R, D>;
   }
 
   async time(f: () => void): Promise<WebGPUTimingInfo> {

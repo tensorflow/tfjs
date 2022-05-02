@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, KernelConfig, KernelFunc, SparseToDense, SparseToDenseAttrs, SparseToDenseInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, Rank, SparseToDense, SparseToDenseAttrs, SparseToDenseInputs, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {scatterImpl} from './Scatter_impl';
@@ -33,8 +33,8 @@ export function sparseToDense(args: {
       backend_util.calculateShapes(sparseValues, sparseIndices, outputShape);
   const sumDupeIndices = false;
 
-  const indicesBuf = backend.bufferSync(sparseIndices);
-  const updatesBuf = backend.bufferSync(sparseValues);
+  const indicesBuf = backend.bufferSync<Rank, 'float32'>(sparseIndices);
+  const updatesBuf = backend.bufferSync<Rank, 'float32'>(sparseValues);
   const $defaultValue =
       backend.data.get(defaultValue.dataId).values[0] as number;
 
