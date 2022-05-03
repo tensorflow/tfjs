@@ -120,7 +120,9 @@ export class NodeJSKernelBackend extends KernelBackend {
     // We can then change the return type from Tensor to TensorInfo.
     // return {dataId: newId, shape: metadata.shape, dtype};
 
-    return tf.engine().makeTensorFromDataId(newId, metadata.shape, dtype);
+    const tensorInfo: TensorInfo = {
+      dataId: newId, shape: metadata.shape, dtype};
+    return tf.engine().makeTensorFromTensorInfo(tensorInfo);
   }
 
   // Prepares Tensor instances for Op execution.
