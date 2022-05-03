@@ -124,7 +124,6 @@ describeWithFlags('conv2dByMatMul', WEBGL_ENVS, () => {
        const w = tf.tensor4d(
            [-1, 1, -2, 0.5], [fSize, fSize, inputDepth, outputDepth]);
        const alpha = tf.scalar(10);
-       //  const alpha = tf.tensor3d([10, 10], [2, 1, 1]);
 
        const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
        const convInfo = backend_util.computeConv2DInfo(
@@ -303,4 +302,157 @@ describeWithFlags('conv2dWithIm2Row', WEBGL_ENVS, () => {
         tf.backend().readSync(result.dataId),
         [91, 55, 64, 37, 92, 56, 65, 38, 91, 55, 64, 37, 92, 56, 65, 38]);
   });
+
+  it('Should work for NCHW format when having a scalar PReLU actiavation weight',
+     async () => {
+       const inputDepth = 2;
+       const inShape: [number, number, number, number] = [1, inputDepth, 2, 2];
+       const outputDepth = 2;
+       const fSize = 2;
+       const dataFormat = 'NCHW';
+       const dilation = 1;
+       const pad = 'same';
+       const stride = 1;
+
+       const x = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8], inShape);
+       const w = tf.tensor4d(
+           [-1, -1, -1, -1, 1, 1, 1, 1, -2, -2, -2, -2, 0.5, 0.5, 0.5, 0.5],
+           [fSize, fSize, inputDepth, outputDepth]);
+       const alpha = tf.scalar(10);
+
+       const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
+       const convInfo = backend_util.computeConv2DInfo(
+           x.shape as [number, number, number, number],
+           w.shape as [number, number, number, number], stride, dilation, pad,
+           undefined /* roundingMode */, false /* depthwise */, $dataFormat);
+
+       const result = conv2dWithIm2Row({
+         x,
+         filter: w,
+         convInfo,
+         backend: tf.backend() as MathBackendWebGL,
+         activation: 'prelu',
+         preluActivationWeights: alpha
+       });
+
+       expect(result.shape).toEqual([1, 2, 2, 2]);
+       expectArraysClose(
+           tf.backend().readSync(result.dataId),
+           [-120, -320, 2, -120, -120, -320, 2, -120]);
+     });
+
+  it('Should work for NCHW format when having a 1-D PReLU actiavation weight',
+     async () => {
+       const inputDepth = 2;
+       const inShape: [number, number, number, number] = [1, inputDepth, 2, 2];
+       const outputDepth = 2;
+       const fSize = 2;
+       const dataFormat = 'NCHW';
+       const dilation = 1;
+       const pad = 'same';
+       const stride = 1;
+
+       const x = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8], inShape);
+       const w = tf.tensor4d(
+           [-1, -1, -1, -1, 1, 1, 1, 1, -2, -2, -2, -2, 0.5, 0.5, 0.5, 0.5],
+           [fSize, fSize, inputDepth, outputDepth]);
+       const alpha = tf.tensor1d([1, 10]);
+
+       const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
+       const convInfo = backend_util.computeConv2DInfo(
+           x.shape as [number, number, number, number],
+           w.shape as [number, number, number, number], stride, dilation, pad,
+           undefined /* roundingMode */, false /* depthwise */, $dataFormat);
+
+       const result = conv2dWithIm2Row({
+         x,
+         filter: w,
+         convInfo,
+         backend: tf.backend() as MathBackendWebGL,
+         activation: 'prelu',
+         preluActivationWeights: alpha
+       });
+
+       expect(result.shape).toEqual([1, 2, 2, 2]);
+       expectArraysClose(
+           tf.backend().readSync(result.dataId),
+           [-12, -32, 2, -12, -120, -320, 2, -120]);
+     });
+
+  it('Should work for NCHW format when having a 3-D PReLU actiavation weight',
+     async () => {
+       const inputDepth = 2;
+       const inShape: [number, number, number, number] = [1, inputDepth, 2, 2];
+       const outputDepth = 2;
+       const fSize = 2;
+       const dataFormat = 'NCHW';
+       const dilation = 1;
+       const pad = 'same';
+       const stride = 1;
+
+       const x = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8], inShape);
+       const w = tf.tensor4d(
+           [-1, -1, -1, -1, 1, 1, 1, 1, -2, -2, -2, -2, 0.5, 0.5, 0.5, 0.5],
+           [fSize, fSize, inputDepth, outputDepth]);
+       const alpha = tf.tensor3d([1, 10], [2, 1, 1]);
+
+       const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
+       const convInfo = backend_util.computeConv2DInfo(
+           x.shape as [number, number, number, number],
+           w.shape as [number, number, number, number], stride, dilation, pad,
+           undefined /* roundingMode */, false /* depthwise */, $dataFormat);
+
+       const result = conv2dWithIm2Row({
+         x,
+         filter: w,
+         convInfo,
+         backend: tf.backend() as MathBackendWebGL,
+         activation: 'prelu',
+         preluActivationWeights: alpha
+       });
+
+       expect(result.shape).toEqual([1, 2, 2, 2]);
+       expectArraysClose(
+           tf.backend().readSync(result.dataId),
+           [-12, -32, 2, -12, -120, -320, 2, -120]);
+     });
+
+  it('Should work for NCHW format when having a full 3-D PReLU actiavation weight',
+     async () => {
+       const inputDepth = 2;
+       const inShape: [number, number, number, number] = [1, inputDepth, 2, 2];
+       const outputDepth = 2;
+       const fSize = 2;
+       const dataFormat = 'NCHW';
+       const dilation = 1;
+       const pad = 'same';
+       const stride = 1;
+
+       const x = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8], inShape);
+       const w = tf.tensor4d(
+           [-1, -1, -1, -1, 1, 1, 1, 1, -2, -2, -2, -2, 0.5, 0.5, 0.5, 0.5],
+           [fSize, fSize, inputDepth, outputDepth]);
+       const alpha =
+           tf.tensor3d([0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000], [2, 2, 2]);
+
+       const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
+       const convInfo = backend_util.computeConv2DInfo(
+           x.shape as [number, number, number, number],
+           w.shape as [number, number, number, number], stride, dilation, pad,
+           undefined /* roundingMode */, false /* depthwise */, $dataFormat);
+
+       const result = conv2dWithIm2Row({
+         x,
+         filter: w,
+         convInfo,
+         backend: tf.backend() as MathBackendWebGL,
+         activation: 'prelu',
+         preluActivationWeights: alpha
+       });
+
+       expect(result.shape).toEqual([1, 2, 2, 2]);
+       expectArraysClose(
+           tf.backend().readSync(result.dataId),
+           [-0.012, -0.32, 2, -12, -120, -3200, 2, -120000]);
+     });
 });
