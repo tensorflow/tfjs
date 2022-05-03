@@ -43,6 +43,32 @@ describe('evaluation', () => {
   });
 
   describe('executeOp', () => {
+    describe('LowerBound', () => {
+      it('should return input', () => {
+        node.op = 'LowerBound';
+        node.inputParams['sortedSequence'] = createTensorAttr(0);
+        node.inputParams['values'] = createTensorAttr(1);
+        node.inputNames = ['sortedSequence', 'values'];
+
+        spyOn(tfOps, 'lowerBound').and.callThrough();
+        const sortedSequence = [tfOps.tensor2d(
+            [0., 3., 8., 9., 10., 1., 2., 3., 4., 5.], [2, 5], 'int32')];
+        const values = [tfOps.tensor2d(
+            [
+              9.8,
+              2.1,
+              4.3,
+              0.1,
+              6.6,
+              4.5,
+            ],
+            [2, 3], 'float32')];
+        executeOp(node, {sortedSequence, values}, context);
+        expect(tfOps.lowerBound)
+            .toHaveBeenCalledWith(sortedSequence[0], values[0]);
+      });
+    });
+
     describe('TopKV2', () => {
       it('should return input', () => {
         node.op = 'TopKV2';
@@ -52,6 +78,32 @@ describe('evaluation', () => {
         spyOn(tfOps, 'topk').and.callThrough();
         executeOp(node, {input1, input2}, context);
         expect(tfOps.topk).toHaveBeenCalledWith(input1[0], 1, true);
+      });
+    });
+
+    describe('UpperBound', () => {
+      it('should return input', () => {
+        node.op = 'UpperBound';
+        node.inputParams['sortedSequence'] = createTensorAttr(0);
+        node.inputParams['values'] = createTensorAttr(1);
+        node.inputNames = ['sortedSequence', 'values'];
+
+        spyOn(tfOps, 'upperBound').and.callThrough();
+        const sortedSequence = [tfOps.tensor2d(
+            [0., 3., 8., 9., 10., 1., 2., 3., 4., 5.], [2, 5], 'int32')];
+        const values = [tfOps.tensor2d(
+            [
+              9.8,
+              2.1,
+              4.3,
+              0.1,
+              6.6,
+              4.5,
+            ],
+            [2, 3], 'float32')];
+        executeOp(node, {sortedSequence, values}, context);
+        expect(tfOps.upperBound)
+            .toHaveBeenCalledWith(sortedSequence[0], values[0]);
       });
     });
 

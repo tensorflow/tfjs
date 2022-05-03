@@ -29,6 +29,14 @@ export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext):
         Tensor[] => {
           switch (node.op) {
+            case 'LowerBound': {
+              const sortedSequence =
+                  getParamValue('sortedSequence', node, tensorMap, context) as
+                  Tensor;
+              const values =
+                  getParamValue('values', node, tensorMap, context) as Tensor;
+              return [tfOps.lowerBound(sortedSequence, values)];
+            }
             case 'TopKV2': {
               const x = getParamValue('x', node, tensorMap, context) as Tensor;
               const k = getParamValue('k', node, tensorMap, context) as number;
@@ -36,6 +44,14 @@ export const executeOp: InternalOpExecutor =
                   getParamValue('sorted', node, tensorMap, context) as boolean;
               const result = tfOps.topk(x, k, sorted);
               return [result.values, result.indices];
+            }
+            case 'UpperBound': {
+              const sortedSequence =
+                  getParamValue('sortedSequence', node, tensorMap, context) as
+                  Tensor;
+              const values =
+                  getParamValue('values', node, tensorMap, context) as Tensor;
+              return [tfOps.upperBound(sortedSequence, values)];
             }
             case 'Unique': {
               const x = getParamValue('x', node, tensorMap, context) as Tensor;
