@@ -105,20 +105,32 @@ export function conv2dByMatMul({
         preluActivationWeights = transpose({
           inputs: {x: preluActivationWeightsInNchwFormat},
           backend,
-          attrs: {perm: [0, 3, 1, 2]}
+          attrs: {perm: [1, 2, 0]}
         });
-        intermediates.push(preluActivationWeightsInNchwFormat);
+        intermediates.push(preluActivationWeights);
+
+        util.assert(
+            (preluActivationWeightsShape[0] === 1 ||
+             preluActivationWeightsShape[0] === convInfo.outChannels) &&
+                (preluActivationWeightsShape[1] === 1 ||
+                 preluActivationWeightsShape[1] === convInfo.outHeight) &&
+                (preluActivationWeightsShape[2] === 1 ||
+                 preluActivationWeightsShape[2] === convInfo.outWidth),
+            () => `WebGL conv2dByMatMul PReLU activation weights ` +
+                `(${preluActivationWeightsShape}) is not compatible with ` +
+                `the output shape of the conv2d (${convInfo.outShape})`);
+      } else {
+        util.assert(
+            (preluActivationWeightsShape[0] === 1 ||
+             preluActivationWeightsShape[0] === convInfo.outHeight) &&
+                (preluActivationWeightsShape[1] === 1 ||
+                 preluActivationWeightsShape[1] === convInfo.outWidth) &&
+                (preluActivationWeightsShape[2] === 1 ||
+                 preluActivationWeightsShape[2] === convInfo.outChannels),
+            () => `WebGL conv2dByMatMul PReLU activation weights ` +
+                `(${preluActivationWeightsShape}) is not compatible with ` +
+                `the output shape of the conv2d (${convInfo.outShape})`);
       }
-      util.assert(
-          (preluActivationWeightsShape[0] === 1 ||
-           preluActivationWeightsShape[0] === convInfo.outHeight) &&
-              (preluActivationWeightsShape[1] === 1 ||
-               preluActivationWeightsShape[1] === convInfo.outWidth) &&
-              (preluActivationWeightsShape[2] === 1 ||
-               preluActivationWeightsShape[2] === convInfo.outChannels),
-          () => `WebGL conv2dByMatMul PReLU activation weights ` +
-              `(${preluActivationWeightsShape}) is not compatible with ` +
-              `the output shape of the conv2d (${convInfo.outShape})`);
     }
   }
 
@@ -330,20 +342,32 @@ export function conv2dWithIm2Row({
         preluActivationWeights = transpose({
           inputs: {x: preluActivationWeightsInNchwFormat},
           backend,
-          attrs: {perm: [0, 3, 1, 2]}
+          attrs: {perm: [1, 2, 0]}
         });
-        intermediates.push(preluActivationWeightsInNchwFormat);
+        intermediates.push(preluActivationWeights);
+
+        util.assert(
+            (preluActivationWeightsShape[0] === 1 ||
+             preluActivationWeightsShape[0] === convInfo.outChannels) &&
+                (preluActivationWeightsShape[1] === 1 ||
+                 preluActivationWeightsShape[1] === convInfo.outHeight) &&
+                (preluActivationWeightsShape[2] === 1 ||
+                 preluActivationWeightsShape[2] === convInfo.outWidth),
+            () => `WebGL conv2dWithIm2Row PReLU activation weights ` +
+                `(${preluActivationWeightsShape}) is not compatible with ` +
+                `the output shape of the conv2d (${convInfo.outShape})`);
+      } else {
+        util.assert(
+            (preluActivationWeightsShape[0] === 1 ||
+             preluActivationWeightsShape[0] === convInfo.outHeight) &&
+                (preluActivationWeightsShape[1] === 1 ||
+                 preluActivationWeightsShape[1] === convInfo.outWidth) &&
+                (preluActivationWeightsShape[2] === 1 ||
+                 preluActivationWeightsShape[2] === convInfo.outChannels),
+            () => `WebGL conv2dWithIm2Row PReLU activation weights ` +
+                `(${preluActivationWeightsShape}) is not compatible with ` +
+                `the output shape of the conv2d (${convInfo.outShape})`);
       }
-      util.assert(
-          (preluActivationWeightsShape[0] === 1 ||
-           preluActivationWeightsShape[0] === convInfo.outHeight) &&
-              (preluActivationWeightsShape[1] === 1 ||
-               preluActivationWeightsShape[1] === convInfo.outWidth) &&
-              (preluActivationWeightsShape[2] === 1 ||
-               preluActivationWeightsShape[2] === convInfo.outChannels),
-          () => `WebGL conv2dWithIm2Row PReLU activation weights ` +
-              `(${preluActivationWeightsShape}) is not compatible with ` +
-              `the output shape of the conv2d (${convInfo.outShape})`);
     }
   }
 
