@@ -109,7 +109,7 @@ describeWithFlags('conv2dByMatMul', WEBGL_ENVS, () => {
        ]);
      });
 
-  it('Should work for NCHW format when having a scalar PReLU actiavation weight',
+  it('Should work for NCHW format when PReLU actiavation weights is a scalar ',
      async () => {
        const inputDepth = 2;
        const inShape: [number, number, number, number] = [1, inputDepth, 2, 2];
@@ -146,7 +146,7 @@ describeWithFlags('conv2dByMatMul', WEBGL_ENVS, () => {
            [-110, -140, -170, -200, 3.5, 5, 6.5, 8]);
      });
 
-  it('Should work for NCHW format when having a 1-D PReLU actiavation weight',
+  it('Should work for NCHW format when having a 1-D PReLU actiavation weights',
      async () => {
        const inputDepth = 2;
        const inShape: [number, number, number, number] = [1, inputDepth, 2, 2];
@@ -183,7 +183,7 @@ describeWithFlags('conv2dByMatMul', WEBGL_ENVS, () => {
            [-110, -140, -170, -200, 3.5, 5, 6.5, 8]);
      });
 
-  it('Should work for NCHW format when having a 3-D PReLU actiavation weight',
+  it('Should work for NCHW format when having a 3-D PReLU actiavation weights',
      async () => {
        const inputDepth = 2;
        const inShape: [number, number, number, number] = [1, inputDepth, 2, 2];
@@ -221,7 +221,7 @@ describeWithFlags('conv2dByMatMul', WEBGL_ENVS, () => {
            [-11, -14, -17, -20, -110, -140, -170, -200]);
      });
 
-  it('Should work for NCHW format when having a full 3-D PReLU actiavation weight',
+  it('Should work for NCHW format when having a full 3-D PReLU actiavation weights',
      async () => {
        const inputDepth = 2;
        const inShape: [number, number, number, number] = [1, inputDepth, 2, 2];
@@ -303,7 +303,7 @@ describeWithFlags('conv2dWithIm2Row', WEBGL_ENVS, () => {
         [91, 55, 64, 37, 92, 56, 65, 38, 91, 55, 64, 37, 92, 56, 65, 38]);
   });
 
-  it('Should work for NCHW format when having a scalar PReLU actiavation weight',
+  it('Should work for NCHW format when PReLU actiavation weights is a scalar',
      async () => {
        const inputDepth = 2;
        const inShape: [number, number, number, number] = [1, inputDepth, 2, 2];
@@ -341,7 +341,7 @@ describeWithFlags('conv2dWithIm2Row', WEBGL_ENVS, () => {
            [-120, -320, 2, -120, -120, -320, 2, -120]);
      });
 
-  it('Should work for NCHW format when having a 1-D PReLU actiavation weight',
+  it('Should work for NCHW format when having a 1-D PReLU actiavation weights',
      async () => {
        const inputDepth = 2;
        const inShape: [number, number, number, number] = [1, inputDepth, 2, 2];
@@ -379,7 +379,7 @@ describeWithFlags('conv2dWithIm2Row', WEBGL_ENVS, () => {
            [-12, -32, 2, -12, -120, -320, 2, -120]);
      });
 
-  it('Should work for NCHW format when having a 3-D PReLU actiavation weight',
+  it('Should work for NCHW format when having a 3-D PReLU actiavation weights',
      async () => {
        const inputDepth = 2;
        const inShape: [number, number, number, number] = [1, inputDepth, 2, 2];
@@ -417,7 +417,7 @@ describeWithFlags('conv2dWithIm2Row', WEBGL_ENVS, () => {
            [-12, -32, 2, -12, -120, -320, 2, -120]);
      });
 
-  it('Should work for NCHW format when having a full 3-D PReLU actiavation weight',
+  it('Should work for NCHW format when having a full 3-D PReLU actiavation weights',
      async () => {
        const inputDepth = 2;
        const inShape: [number, number, number, number] = [1, inputDepth, 2, 2];
