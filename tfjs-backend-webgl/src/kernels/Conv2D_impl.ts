@@ -79,6 +79,49 @@ export function conv2dByMatMul({
             `(${convInfo.outChannels})`);
   }
 
+  if (preluActivationWeights != null) {
+    // PReLU's activation weights could be a scalar, a 1-D tensor or a 3-D
+    // tensor.
+    const preluActivationWeightsShape = preluActivationWeights.shape;
+    util.assert(
+        preluActivationWeightsShape.length <= 1 ||
+            preluActivationWeightsShape.length === 3,
+        () => `WebGL conv2dByMatMul only supports scalar, 1-D Tensor or 3-D ` +
+            `Tensor PReLU activation weights but got the bias of ` +
+            `rank-${preluActivationWeightsShape.length}.`);
+
+    if (preluActivationWeightsShape.length === 1) {
+      util.assert(
+          preluActivationWeightsShape[0] === 1 ||
+              preluActivationWeightsShape[0] === convInfo.outChannels,
+          () => `WebGL conv2dByMatMul PReLU activation weights ` +
+              `(${preluActivationWeightsShape}) is not compatible with ` +
+              `the number of output channels (${convInfo.outChannels})`);
+    } else if (preluActivationWeightsShape.length === 3) {
+      // If PReLU's activation weights is NCHW format, then convert it to NHWC
+      // format to be compatible with the following matmul computation.
+      if (!isChannelsLast) {
+        const preluActivationWeightsInNchwFormat = preluActivationWeights;
+        preluActivationWeights = transpose({
+          inputs: {x: preluActivationWeightsInNchwFormat},
+          backend,
+          attrs: {perm: [0, 3, 1, 2]}
+        });
+        intermediates.push(preluActivationWeightsInNchwFormat);
+      }
+      util.assert(
+          (preluActivationWeightsShape[0] === 1 ||
+           preluActivationWeightsShape[0] === convInfo.outHeight) &&
+              (preluActivationWeightsShape[1] === 1 ||
+               preluActivationWeightsShape[1] === convInfo.outWidth) &&
+              (preluActivationWeightsShape[2] === 1 ||
+               preluActivationWeightsShape[2] === convInfo.outChannels),
+          () => `WebGL conv2dByMatMul PReLU activation weights ` +
+              `(${preluActivationWeightsShape}) is not compatible with ` +
+              `the output shape of the conv2d (${convInfo.outShape})`);
+    }
+  }
+
   // TODO: Once reduction ops are packed, batchMatMul will always be packed
   // and we can remove this condition.
   const batchMatMulWillBeUnpacked =
@@ -258,6 +301,50 @@ export function conv2dWithIm2Row({
         () => `WebGL conv2dWithIm2Row bias shape (${bias.shape}) is not ` +
             `compatible with the number of output channels ` +
             `(${convInfo.outChannels})`);
+  }
+
+  if (preluActivationWeights != null) {
+    // PReLU's activation weights could be a scalar, a 1-D tensor or a 3-D
+    // tensor.
+    const preluActivationWeightsShape = preluActivationWeights.shape;
+    util.assert(
+        preluActivationWeightsShape.length <= 1 ||
+            preluActivationWeightsShape.length === 3,
+        () =>
+            `WebGL conv2dWithIm2Row only supports scalar, 1-D Tensor or 3-D ` +
+            `Tensor PReLU activation weights but got the bias of ` +
+            `rank-${preluActivationWeightsShape.length}.`);
+
+    if (preluActivationWeightsShape.length === 1) {
+      util.assert(
+          preluActivationWeightsShape[0] === 1 ||
+              preluActivationWeightsShape[0] === convInfo.outChannels,
+          () => `WebGL conv2dWithIm2Row PReLU activation weights ` +
+              `(${preluActivationWeightsShape}) is not compatible with ` +
+              `the number of output channels (${convInfo.outChannels})`);
+    } else if (preluActivationWeightsShape.length === 3) {
+      // If PReLU's activation weights is NCHW format, then convert it to NHWC
+      // format to be compatible with the following matmul computation.
+      if (!isChannelsLast) {
+        const preluActivationWeightsInNchwFormat = preluActivationWeights;
+        preluActivationWeights = transpose({
+          inputs: {x: preluActivationWeightsInNchwFormat},
+          backend,
+          attrs: {perm: [0, 3, 1, 2]}
+        });
+        intermediates.push(preluActivationWeightsInNchwFormat);
+      }
+      util.assert(
+          (preluActivationWeightsShape[0] === 1 ||
+           preluActivationWeightsShape[0] === convInfo.outHeight) &&
+              (preluActivationWeightsShape[1] === 1 ||
+               preluActivationWeightsShape[1] === convInfo.outWidth) &&
+              (preluActivationWeightsShape[2] === 1 ||
+               preluActivationWeightsShape[2] === convInfo.outChannels),
+          () => `WebGL conv2dWithIm2Row PReLU activation weights ` +
+              `(${preluActivationWeightsShape}) is not compatible with ` +
+              `the output shape of the conv2d (${convInfo.outShape})`);
+    }
   }
 
   const xSqueezed =
