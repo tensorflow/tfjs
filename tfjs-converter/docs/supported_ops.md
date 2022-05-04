@@ -168,9 +168,11 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|LowerBound|LowerBound|
 |TopKV2|TopKV2|
 |Unique|Unique|
 |UniqueV2|UniqueV2|
+|UpperBound|UpperBound|
 |Not mapped|confusionMatrix|
 |Not mapped|inTopKAsync|
 |Not mapped|topk|
