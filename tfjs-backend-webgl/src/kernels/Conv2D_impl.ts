@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
-import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, broadcast_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import {assertAndGetBroadcastShape} from '../../../tfjs-core/src/ops/broadcast_util';
+// import {assertAndGetBroadcastShape} from
+// '../../../tfjs-core/src/ops/broadcast_util';
 import {MathBackendWebGL} from '../backend_webgl';
 import {Im2ColPackedProgram} from '../im2col_packed_gpu';
 import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
@@ -60,7 +61,7 @@ function fitPreluActivationWeightsIntoNhwcFormat(
             `(${outputChannels}).`);
   } else if (alphaShape.length === 3) {
     try {
-      assertAndGetBroadcastShape(alphaShape, outputShape);
+      broadcast_util.assertAndGetBroadcastShape(alphaShape, outputShape);
     } catch (e) {
       const errMsg = `WebGL conv2d PReLU activation weights (${alphaShape}) ` +
           `is not compatible with the output shape of the conv2d ` +
