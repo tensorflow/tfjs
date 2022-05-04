@@ -15,8 +15,10 @@
  * =============================================================================
  */
 
-import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, broadcast_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
+// import {assertAndGetBroadcastShape} from
+// '../../../tfjs-core/src/ops/broadcast_util';
 import {MathBackendWebGL} from '../backend_webgl';
 import {Im2ColPackedProgram} from '../im2col_packed_gpu';
 import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
@@ -38,6 +40,41 @@ type Conv2DConfig = {
   leakyreluAlpha?: number,
   activation?: backend_util.Activation
 };
+
+function fitPreluActivationWeightsIntoNhwcFormat(
+    alpha: TensorInfo, outputShape: [number, number, number, number],
+    isChannelsLast: boolean, backend: MathBackendWebGL) {
+  // PReLU's activation weights could be a scalar, a 1-D tensor or a 3-D
+  // tensor.
+  const alphaShape = alpha.shape;
+  util.assert(
+      alphaShape.length <= 1 || alphaShape.length === 3,
+      () => `WebGL conv2d only supports scalar, 1-D Tensor or 3-D ` +
+          `Tensor PReLU activation weights but got a tensor of ` +
+          `rank-${alphaShape.length}.`);
+  if (alphaShape.length === 1) {
+    const outputChannels = isChannelsLast ? outputShape[3] : outputShape[1];
+    util.assert(
+        alphaShape[0] === 1 || alphaShape[0] === outputChannels,
+        () => `WebGL conv2d PReLU activation weights (${alphaShape}) is ` +
+            `not compatible with the number of output channels ` +
+            `(${outputChannels}).`);
+  } else if (alphaShape.length === 3) {
+    try {
+      broadcast_util.assertAndGetBroadcastShape(alphaShape, outputShape);
+    } catch (e) {
+      const errMsg = `WebGL conv2d PReLU activation weights (${alphaShape}) ` +
+          `is not compatible with the output shape of the conv2d ` +
+          `(${outputShape}).`;
+      throw Error(errMsg);
+    }
+    if (!isChannelsLast) {
+      // If PReLU's activation weights is NCHW format, then convert it to NHWC.
+      return transpose({inputs: {x: alpha}, backend, attrs: {perm: [1, 2, 0]}});
+    }
+  }
+  return alpha;
+}
 
 // For 1x1 kernels that iterate through every point in the input, convolution
 // can be expressed as matrix multiplication (without need for memory
@@ -77,6 +114,20 @@ export function conv2dByMatMul({
         () => `WebGL conv2dByMatMul bias shape (${bias.shape}) is not ` +
             `compatible with the number of output channels ` +
             `(${convInfo.outChannels})`);
+  }
+
+  if (preluActivationWeights != null) {
+    const preluActivationWeightsInNhwcFormat =
+        fitPreluActivationWeightsIntoNhwcFormat(
+            preluActivationWeights, convInfo.outShape, isChannelsLast, backend);
+
+    if (preluActivationWeightsInNhwcFormat.dataId !==
+        preluActivationWeights.dataId) {
+      // preluActivationWeightsInNhwcFormat is a new tensor, temporarily
+      // generated to be compatible with the following matmul computation.
+      intermediates.push(preluActivationWeightsInNhwcFormat);
+      preluActivationWeights = preluActivationWeightsInNhwcFormat;
+    }
   }
 
   // TODO: Once reduction ops are packed, batchMatMul will always be packed
@@ -258,6 +309,20 @@ export function conv2dWithIm2Row({
         () => `WebGL conv2dWithIm2Row bias shape (${bias.shape}) is not ` +
             `compatible with the number of output channels ` +
             `(${convInfo.outChannels})`);
+  }
+
+  if (preluActivationWeights != null) {
+    const preluActivationWeightsInNhwcFormat =
+        fitPreluActivationWeightsIntoNhwcFormat(
+            preluActivationWeights, convInfo.outShape, isChannelsLast, backend);
+
+    if (preluActivationWeightsInNhwcFormat.dataId !==
+        preluActivationWeights.dataId) {
+      // preluActivationWeightsInNhwcFormat is a new tensor, temporarily
+      // generated to be compatible with the following matmul computation.
+      intermediates.push(preluActivationWeightsInNhwcFormat);
+      preluActivationWeights = preluActivationWeightsInNhwcFormat;
+    }
   }
 
   const xSqueezed =
