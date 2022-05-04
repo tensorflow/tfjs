@@ -119,12 +119,12 @@ export function conv2dByMatMul({
         fitPreluActivationWeightsIntoNhwcFormat(
             preluActivationWeights, convInfo.outShape, isChannelsLast, backend);
 
-    if (preluActivationWeightsInNhwcFormat.dataId !=
+    if (preluActivationWeightsInNhwcFormat.dataId !==
         preluActivationWeights.dataId) {
       // preluActivationWeightsInNhwcFormat is a new tensor, temporarily
       // generated to be compatible with the following matmul computation.
       intermediates.push(preluActivationWeightsInNhwcFormat);
-      preluActivationWeights = preluActivationWeightsInNhwcFormat
+      preluActivationWeights = preluActivationWeightsInNhwcFormat;
     }
   }
 
@@ -314,12 +314,12 @@ export function conv2dWithIm2Row({
         fitPreluActivationWeightsIntoNhwcFormat(
             preluActivationWeights, convInfo.outShape, isChannelsLast, backend);
 
-    if (preluActivationWeightsInNhwcFormat.dataId !=
+    if (preluActivationWeightsInNhwcFormat.dataId !==
         preluActivationWeights.dataId) {
       // preluActivationWeightsInNhwcFormat is a new tensor, temporarily
       // generated to be compatible with the following matmul computation.
       intermediates.push(preluActivationWeightsInNhwcFormat);
-      preluActivationWeights = preluActivationWeightsInNhwcFormat
+      preluActivationWeights = preluActivationWeightsInNhwcFormat;
     }
   }
 
