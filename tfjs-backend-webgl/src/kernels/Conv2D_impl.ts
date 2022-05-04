@@ -17,6 +17,7 @@
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
+import {assertAndGetBroadcastShape} from '../../../tfjs-core/src/ops/broadcast_util';
 import {MathBackendWebGL} from '../backend_webgl';
 import {Im2ColPackedProgram} from '../im2col_packed_gpu';
 import {mapActivationToShaderProgram} from '../kernel_utils/kernel_funcs_utils';
@@ -50,22 +51,22 @@ function fitPreluActivationWeightsIntoNhwcFormat(
       () => `WebGL conv2d only supports scalar, 1-D Tensor or 3-D ` +
           `Tensor PReLU activation weights but got a tensor of ` +
           `rank-${alphaShape.length}.`);
-
   if (alphaShape.length === 1) {
     const outputChannels = isChannelsLast ? outputShape[3] : outputShape[1];
     util.assert(
         alphaShape[0] === 1 || alphaShape[0] === outputChannels,
         () => `WebGL conv2d PReLU activation weights (${alphaShape}) is ` +
             `not compatible with the number of output channels ` +
-            `(${outputChannels})`);
+            `(${outputChannels}).`);
   } else if (alphaShape.length === 3) {
-    util.assert(
-        (alphaShape[0] === 1 || alphaShape[0] === outputShape[1]) &&
-            (alphaShape[1] === 1 || alphaShape[1] === outputShape[2]) &&
-            (alphaShape[2] === 1 || alphaShape[2] === outputShape[3]),
-        () => `WebGL conv2d PReLU activation weights (${alphaShape}) is ` +
-            `not compatible with the output shape of the conv2d ` +
-            `(${outputShape})`);
+    try {
+      assertAndGetBroadcastShape(alphaShape, outputShape);
+    } catch (e) {
+      const errMsg = `WebGL conv2d PReLU activation weights (${alphaShape}) ` +
+          `is not compatible with the output shape of the conv2d ` +
+          `(${outputShape}).`;
+      throw Error(errMsg);
+    }
     if (!isChannelsLast) {
       // If PReLU's activation weights is NCHW format, then convert it to NHWC.
       return transpose({inputs: {x: alpha}, backend, attrs: {perm: [1, 2, 0]}});
