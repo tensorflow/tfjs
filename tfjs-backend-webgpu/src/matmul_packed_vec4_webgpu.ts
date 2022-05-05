@@ -26,16 +26,18 @@ export function makeMatMulPackedVec4Source(
     workPerThread: number[], tileAOuter: number, tileBOuter: number,
     tileInner: number): string {
   util.assert(
-      tileInner % 4 === 0 && workPerThread[0] === 4,
-      () => 'tileInner must be divisible by 4. And ColPerThread must be 4');
+      (tileInner % 4 === 0 || tileInner % 3 === 0) && workPerThread[0] === 4,
+      () => 'tileInner must be divisible by 4|3. And ColPerThread must be 4');
+  const innerElementSize = workPerThread[2] === 3 ? 3 : 4;
   return `
-  var<workgroup> mm_Asub : array<array<vec4<f32>, ${
-      tileInner / workPerThread[0]}>, ${tileAOuter}>;
+  var<workgroup> mm_Asub : array<array<vec${innerElementSize}<f32>, ${
+      tileInner / innerElementSize}>, ${tileAOuter}>;
   var<workgroup> mm_Bsub : array<array<vec4<f32>, ${
       tileBOuter / workPerThread[0]}>, ${tileInner}>;
 
   let RowPerThread = ${workPerThread[1]};
   let ColPerThread = ${workPerThread[0]};
+  let InnerElementSize = ${innerElementSize};
   let TileInner = ${tileInner};
 
   ${getMainHeaderString()}
@@ -49,7 +51,6 @@ export function makeMatMulPackedVec4Source(
     let numTiles = (uniforms.dimInner - 1) / TileInner + 1;
 
     var acc: array<vec4<f32>, RowPerThread>;
-    var ACached : vec4<f32>;
     var BCached : array<vec4<f32>, 4>;
 
     // Loop over shared dimension.
@@ -63,7 +64,7 @@ export function makeMatMulPackedVec4Source(
             let inputCol = tileCol;
             mm_Asub[inputRow][inputCol] = mm_readA(globalRow + innerRow, globalColA, globalId);
         }
-        globalColA = globalColA + TileInner / ColPerThread;
+        globalColA = globalColA + TileInner / InnerElementSize;
 
         // Load one tile of B into local memory.
         for (var innerRow = 0; innerRow < RowPerThreadB; innerRow = innerRow + 1) {
@@ -75,18 +76,22 @@ export function makeMatMulPackedVec4Source(
         workgroupBarrier();
 
         // Compute acc values for a single thread.
-        for (var k = 0; k < TileInner / ColPerThread; k = k + 1) {
-            BCached[0] = mm_Bsub[k * ColPerThread][tileCol];
-            BCached[1] = mm_Bsub[k * ColPerThread + 1][tileCol];
-            BCached[2] = mm_Bsub[k * ColPerThread + 2][tileCol];
-            BCached[3] = mm_Bsub[k * ColPerThread + 3][tileCol];
+        for (var k = 0; k < TileInner / InnerElementSize; k = k + 1) {
+            BCached[0] = mm_Bsub[k * InnerElementSize][tileCol];
+            BCached[1] = mm_Bsub[k * InnerElementSize + 1][tileCol];
+            BCached[2] = mm_Bsub[k * InnerElementSize + 2][tileCol];
+            ${
+      innerElementSize === 3 ?
+          '' :
+          'BCached[3] = mm_Bsub[k * InnerElementSize + 3][tileCol];'}
 
             for (var i = 0; i < RowPerThread; i = i + 1) {
-                ACached = mm_Asub[tileRow + i][k];
+                let ACached = mm_Asub[tileRow + i][k];
                 acc[i] = BCached[0] * ACached.x + acc[i];
                 acc[i] = BCached[1] * ACached.y + acc[i];
                 acc[i] = BCached[2] * ACached.z + acc[i];
-                acc[i] = BCached[3] * ACached.w + acc[i];
+                ${
+      innerElementSize === 3 ? '' : 'acc[i] = BCached[3] * ACached.w + acc[i];'}
             }
         }
 

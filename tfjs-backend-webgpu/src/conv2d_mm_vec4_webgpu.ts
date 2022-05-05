@@ -34,6 +34,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   workGroupSize: [number, number, number] = [8, 8, 1];
   elementsPerThread: [number, number, number];
   isVec4 = true;
+  isConv2dVec4 = true;
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
   activation: backend_util.Activation;
@@ -43,7 +44,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   tileInner: number;
   fitA: boolean;
   fitB: boolean;
-  remainder: boolean;
+  innerElementSize: number;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
@@ -76,15 +77,15 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
       this.variableNames.push('preluActivationWeights');
     }
 
+    this.innerElementSize = this.convInfo.inChannels % 4 === 0 ? 4 : 3;
     this.tileAOuter = this.outputShape[1] === 1 ?
         1 :
         this.workGroupSize[1] * this.elementsPerThread[1];
     this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
-    this.tileInner = this.tileBOuter;
+    this.tileInner = this.workGroupSize[0] * this.innerElementSize;
     [this.fitA, this.fitB] = this.getShapeFit();
-    this.remainder = this.convInfo.inChannels % 4 === 0;
     this.shaderKey = `conv2DMMVec4_${this.activation}_${this.fitA}_${
-        this.fitB}_${this.elementsPerThread}_${this.remainder}`;
+        this.fitB}_${this.elementsPerThread}_${this.innerElementSize}`;
   }
 
   getShapeFit(): boolean[] {
@@ -100,73 +101,37 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     ];
   }
 
-  // index is used to avoid repeated definition error.
-  getSampleAWithRemainder(index: number): string {
-    return `let flatIndex${
-        index} = getIndexFromCoords4D(coord, uniforms.xShape);
-    let divBy4Remainder${index} = flatIndex${index} % 4;
-    let divBy4Index${index} = flatIndex${index} / 4;
-    let curData${index} = x[divBy4Index${index}];
-    if (divBy4Remainder${index} == 0) {
-      temp = curData${index};
-    } else {
-      // TODO: This could end up being a redundant load with another one in
-      // the same shader invocation. Perhaps there's an opportunity for
-      // optimization
-      let nextData${index} = x[divBy4Index${index} + 1];
-      if (divBy4Remainder${index} == 1) {
-        temp = vec4<f32>(curData${index}.yzw, nextData${index}.x);
-      } else if (divBy4Remainder${index} == 2) {
-        temp = vec4<f32>(curData${index}.zw, nextData${index}.xy);
-      } else if (divBy4Remainder${index} == 3) {
-        temp = vec4<f32>(curData${index}.w, nextData${index}.xyz);
-      }
-    }
-    `;
-  }
-
   getUserCode(): string {
     const matMulSource = makeMatMulPackedVec4Source(
-        this.elementsPerThread, this.tileAOuter, this.tileBOuter,
-        this.tileInner);
-
-    // Below code only applys to valid padding type.
-    const remainderSnippet = this.remainder ?
-        `// The bounds checking is always needed since we use it to pad zero for
-          // the 'same' padding type.
-          if (coordsInBounds4D(coord, uniforms.xShape)) {
-            resData = x[getIndexFromCoords4D(coord, uniforms.xShape) / 4];
-          } else {
-            resData = vec4<f32>(0.0); }` :
-        `var temp = vec4<f32>(0.0);
-          ${this.getSampleAWithRemainder(1)}
-          resData = temp;
-          if (WCol == (uniforms.filterDims[1] - 1)) {
-            coord = vec4<i32>(
-              coord.x, coord.y + 1, coord.z + 1 - uniforms.filterDims[1], 0);
-              ${this.getSampleAWithRemainder(2)}
-            if (inChCoord == 0) {
-              resData = vec4<f32>(resData.xyz, temp.x);
-            } else if (inChCoord == 1) {
-              resData = vec4<f32>(resData.xy, temp.xy);
-            } else {
-              resData = vec4<f32>(resData.x, temp.xyz);
-            }
-          }
-          `;
+        [
+          this.elementsPerThread[0], this.elementsPerThread[1],
+          this.innerElementSize
+        ],
+        this.tileAOuter, this.tileBOuter, this.tileInner);
 
     const readASnippet = `let outRow = r / uniforms.outShape[2];
         let outCol = r % uniforms.outShape[2];
         let WRow = c / (uniforms.filterDims[1] * uniforms.xShape[3]);
         let WCol = c / uniforms.xShape[3] % uniforms.filterDims[1];
         let inChCoord = c % uniforms.xShape[3];
-        var coord = vec4<i32>(
+        let xRow = outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0];
+        let xCol = outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1];
+
+        var resData = vec${this.innerElementSize}<f32>(0.0);
+        // The bounds checking is always needed since we use it to pad zero for
+        // the 'same' padding type.
+        if (xRow >= 0 && xRow < uniforms.xShape[1] && xCol >= 0 && xCol < uniforms.xShape[2]) {
+          var coord = vec4<i32>(
             batch,
-            outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0],
-            outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1],
+            xRow,
+            xCol,
             inChCoord);
-        var resData = vec4<f32>(0.0);
-        ${remainderSnippet}
+          let xIndex = getIndexFromCoords4D(coord, uniforms.xShape);
+          ${
+        this.innerElementSize === 3 ?
+            'resData = vec3<f32>(x[xIndex], x[xIndex + 1], x[xIndex + 2]);' :
+            'resData = x[xIndex / 4];'}
+        }
         return resData;`;
 
     const sampleA = this.fitA ?
@@ -174,7 +139,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         `if (r < uniforms.dimAOuter && c < uniforms.dimInner) {
           ${readASnippet}
          }
-         return vec4<f32>(0.0);
+         return vec${this.innerElementSize}<f32>(0.0);
         `;
 
     const sampleB = this.fitB ?
@@ -209,9 +174,10 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
 
     const userCode = `
         ${activationSnippet}
-        fn mm_readA(row : i32, col : i32, globalId : vec3<u32>) -> vec4<f32> {
+        fn mm_readA(row : i32, col : i32, globalId : vec3<u32>) -> vec${
+        this.innerElementSize}<f32> {
           let r = row;
-          let c = col * 4;
+          let c = col * ${this.innerElementSize};
           var batch = i32(globalId.z);
           ${sampleA}
         }

@@ -78,6 +78,7 @@ interface ProgramParams {
   isVec4?: boolean;
   size?: boolean;
   atomic?: boolean;
+  isConv2dVec4?: boolean;
   getUserCode: () => string;
 }
 
@@ -228,10 +229,16 @@ export function makeShader(
   `);
   }
   program.variableNames.forEach((x, i) => {
-    prefixSnippets.push(`
-    @group(0) @binding(${1 + i}) var<storage, read> ${x}: array<${
-        mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
-    `);
+    if (program.isConv2dVec4 && x === 'x' && inputInfo[i].shape[3] % 3 === 0) {
+      prefixSnippets.push(`
+      @group(0) @binding(${1 + i}) var<storage, read> ${x}: array<f32>;
+      `);
+    } else {
+      prefixSnippets.push(`
+      @group(0) @binding(${1 + i}) var<storage, read> ${x}: array<${
+          mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
+      `);
+    }
   });
 
   if (uniformDeclaration !== '') {
@@ -259,7 +266,11 @@ export function makeShader(
     const inputSnippet = inputInfo
                              .map(
                                  x => getInputSnippet(
-                                     x, outputData.shape, program.isVec4,
+                                     x, outputData.shape,
+                                     program.isConv2dVec4 && x.name === 'x' &&
+                                             x.shape[3] % 3 === 0 ?
+                                         false :
+                                         program.isVec4,
                                      program.dispatchLayout.x.length ===
                                          outputData.shape.length))
                              .join('\n');

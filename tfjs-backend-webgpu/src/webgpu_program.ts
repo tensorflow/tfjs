@@ -43,6 +43,7 @@ export interface WebGPUProgram {
   size?: boolean;
   // Whether to use atomic built-in functions.
   atomic?: boolean;
+  isConv2dVec4?: boolean;
   getUserCode: () => string;
 }
 
@@ -70,7 +71,6 @@ export const compileProgram =
      inputsData: shader_preprocessor.InputInfo[], output: TensorInfo,
      isFromPixel = false): GPUComputePipeline => {
       const outputData = {dtype: output.dtype, shape: output.shape};
-
       const source = shader_preprocessor.makeShader(
           inputsData, outputData, program, isFromPixel);
       const module = device.createShaderModule(
