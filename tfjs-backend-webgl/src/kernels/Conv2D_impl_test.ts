@@ -234,8 +234,7 @@ describeWithFlags('conv2dByMatMul', WEBGL_ENVS, () => {
        const x = tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8], inShape);
        const w = tf.tensor4d(
            [-1, -1, -2, -2], [fSize, fSize, inputDepth, outputDepth]);
-       const alpha =
-           tf.tensor3d([0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000], [2, 2, 2]);
+       const alpha = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
 
        const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
        const convInfo = backend_util.computeConv2DInfo(
@@ -255,7 +254,7 @@ describeWithFlags('conv2dByMatMul', WEBGL_ENVS, () => {
        expect(result.shape).toEqual([1, 2, 2, 2]);
        expectArraysClose(
            tf.backend().readSync(result.dataId),
-           [-0.0011, -0.014, -0.17, -2, -11, -140, -1700, -20000]);
+           [-11, -28, -51, -80, -55, -84, -119, -160]);
      });
 });
 
@@ -430,8 +429,7 @@ describeWithFlags('conv2dWithIm2Row', WEBGL_ENVS, () => {
        const w = tf.tensor4d(
            [-1, -1, -1, -1, 1, 1, 1, 1, -2, -2, -2, -2, 0.5, 0.5, 0.5, 0.5],
            [fSize, fSize, inputDepth, outputDepth]);
-       const alpha =
-           tf.tensor3d([0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000], [2, 2, 2]);
+       const alpha = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
 
        const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
        const convInfo = backend_util.computeConv2DInfo(
@@ -451,6 +449,6 @@ describeWithFlags('conv2dWithIm2Row', WEBGL_ENVS, () => {
        expect(result.shape).toEqual([1, 2, 2, 2]);
        expectArraysClose(
            tf.backend().readSync(result.dataId),
-           [-0.0012, -0.032, 2, -1.2, -12, -320, 2, -12000]);
+           [-12, -64, 2, -48, -60, -192, 2, -96]);
      });
 });
