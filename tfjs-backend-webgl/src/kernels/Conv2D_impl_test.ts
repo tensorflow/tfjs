@@ -215,7 +215,6 @@ describeWithFlags('conv2dByMatMul', WEBGL_ENVS, () => {
        });
 
        expect(result.shape).toEqual([1, 2, 2, 2]);
-       console.log(tf.backend().readSync(result.dataId));
        expectArraysClose(
            tf.backend().readSync(result.dataId),
            [-11, -14, -17, -20, -110, -140, -170, -200]);
@@ -236,7 +235,7 @@ describeWithFlags('conv2dByMatMul', WEBGL_ENVS, () => {
        const w = tf.tensor4d(
            [-1, -1, -2, -2], [fSize, fSize, inputDepth, outputDepth]);
        const alpha =
-           tf.tensor3d([0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000], [2, 2, 2]);
+           tf.tensor3d([0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000], [2, 2, 2]);
 
        const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
        const convInfo = backend_util.computeConv2DInfo(
@@ -254,10 +253,9 @@ describeWithFlags('conv2dByMatMul', WEBGL_ENVS, () => {
        });
 
        expect(result.shape).toEqual([1, 2, 2, 2]);
-       console.log(tf.backend().readSync(result.dataId));
        expectArraysClose(
            tf.backend().readSync(result.dataId),
-           [-0.011, -0.14, -1.7, -20, -110, -1400, -17000, -200000]);
+           [-0.0011, -0.014, -0.17, -2, -11, -140, -1700, -20000]);
      });
 });
 
@@ -433,7 +431,7 @@ describeWithFlags('conv2dWithIm2Row', WEBGL_ENVS, () => {
            [-1, -1, -1, -1, 1, 1, 1, 1, -2, -2, -2, -2, 0.5, 0.5, 0.5, 0.5],
            [fSize, fSize, inputDepth, outputDepth]);
        const alpha =
-           tf.tensor3d([0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000], [2, 2, 2]);
+           tf.tensor3d([0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000], [2, 2, 2]);
 
        const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
        const convInfo = backend_util.computeConv2DInfo(
@@ -453,6 +451,6 @@ describeWithFlags('conv2dWithIm2Row', WEBGL_ENVS, () => {
        expect(result.shape).toEqual([1, 2, 2, 2]);
        expectArraysClose(
            tf.backend().readSync(result.dataId),
-           [-0.012, -0.32, 2, -12, -120, -3200, 2, -120000]);
+           [-0.0012, -0.032, 2, -1.2, -12, -320, 2, -12000]);
      });
 });
