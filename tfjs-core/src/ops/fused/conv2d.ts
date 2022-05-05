@@ -121,6 +121,13 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   activation = activation || 'linear';
 
   if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
+    // TODO: Transpose bias and preluActivationWeights properly for NCHW
+    // format before computation.
+    util.assert(
+        dataFormat === 'NHWC',
+        () => `Error in conv2d: got dataFormat of ${
+            dataFormat} but only NHWC is currently supported.`);
+
     let result = unfusedConv2d(
         x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
     if (bias != null) {
@@ -150,18 +157,15 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
       () => `Error in fused conv2d: filter must be rank 4, but got rank ` +
           `${$filter.rank}.`);
   conv_util.checkPadOnDimRoundingMode('fused conv2d', pad, dimRoundingMode);
+  const inputChannels = dataFormat === 'NHWC' ? x4D.shape[3] : x4D.shape[1];
   util.assert(
-      x4D.shape[3] === $filter.shape[2],
-      () => `Error in conv2d: depth of input (${x4D.shape[3]}) must match ` +
+      $filter.shape[2] === inputChannels,
+      () => `Error in conv2d: depth of input (${inputChannels}) must match ` +
           `input depth for filter ${$filter.shape[2]}.`);
   util.assert(
       conv_util.eitherStridesOrDilationsAreOne(strides, dilations),
       () => 'Error in conv2D: Either strides or dilations must be 1. ' +
           `Got strides ${strides} and dilations '${dilations}'`);
-  util.assert(
-      dataFormat === 'NHWC',
-      () => `Error in conv2d: got dataFormat of ${
-          dataFormat} but only NHWC is currently supported.`);
 
   const convInfo = conv_util.computeConv2DInfo(
       x4D.shape, $filter.shape, strides, dilations, pad, dimRoundingMode);
@@ -181,6 +185,11 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
   }
 
   const grad = (dy: Tensor4D, saved: Tensor[]) => {
+    util.assert(
+        dataFormat === 'NHWC',
+        () => `Error in gradient of fused conv2D: got dataFormat of ${
+            dataFormat} but only NHWC is currently supported.`);
+
     const [$filter, x4D, y, $bias] =
         saved as [Tensor4D, Tensor4D, Tensor4D, Tensor];
 

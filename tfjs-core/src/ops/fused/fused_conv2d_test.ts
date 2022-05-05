@@ -629,21 +629,18 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     const bias = tf.tensor1d([1, 4, 2, 3, 9, 6, 5, 8]);
     const leakyreluAlpha = 0.3;
 
-    expect(
-        () => tf.fused.conv2d(
-            {
-              x,
-              filter: w,
-              strides: stride,
-              pad,
-              dataFormat: 'NHWC',
-              dilations: [1, 1],
-              activation: 'leakyrelu',
-              leakyreluAlpha,
-              bias,
-              dimRoundingMode: 'round'
-            }))
-        .toThrowError();
+    expect(() => tf.fused.conv2d({
+      x,
+      filter: w,
+      strides: stride,
+      pad,
+      dataFormat: 'NHWC',
+      dilations: [1, 1],
+      activation: 'leakyrelu',
+      leakyreluAlpha,
+      bias,
+      dimRoundingMode: 'round'
+    })).toThrowError();
   });
 
   it('throws when dimRoundingMode is set and pad is valid', () => {
@@ -665,21 +662,18 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     const bias = tf.tensor1d([1, 4, 2, 3, 9, 6, 5, 8]);
     const leakyreluAlpha = 0.3;
 
-    expect(
-        () => tf.fused.conv2d(
-            {
-              x,
-              filter: w,
-              strides: stride,
-              pad,
-              dataFormat: 'NHWC',
-              dilations: [1, 1],
-              activation: 'leakyrelu',
-              leakyreluAlpha,
-              bias,
-              dimRoundingMode: 'round'
-            }))
-        .toThrowError();
+    expect(() => tf.fused.conv2d({
+      x,
+      filter: w,
+      strides: stride,
+      pad,
+      dataFormat: 'NHWC',
+      dilations: [1, 1],
+      activation: 'leakyrelu',
+      leakyreluAlpha,
+      bias,
+      dimRoundingMode: 'round'
+    })).toThrowError();
   });
 
   it('throws when dimRoundingMode is set and pad is a non-integer number',
@@ -702,21 +696,18 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
        const bias = tf.tensor1d([1, 4, 2, 3, 9, 6, 5, 8]);
        const leakyreluAlpha = 0.3;
 
-       expect(
-           () => tf.fused.conv2d(
-               {
-                 x,
-                 filter: w,
-                 strides: stride,
-                 pad,
-                 dataFormat: 'NHWC',
-                 dilations: [1, 1],
-                 activation: 'leakyrelu',
-                 leakyreluAlpha,
-                 bias,
-                 dimRoundingMode: 'round'
-               }))
-           .toThrowError();
+       expect(() => tf.fused.conv2d({
+         x,
+         filter: w,
+         strides: stride,
+         pad,
+         dataFormat: 'NHWC',
+         dilations: [1, 1],
+         activation: 'leakyrelu',
+         leakyreluAlpha,
+         bias,
+         dimRoundingMode: 'round'
+       })).toThrowError();
      });
 
   it('throws when dimRoundingMode is set and pad is explicit by non-integer ' +
@@ -741,21 +732,18 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
        const bias = tf.tensor1d([1, 4, 2, 3, 9, 6, 5, 8]);
        const leakyreluAlpha = 0.3;
 
-       expect(
-           () => tf.fused.conv2d(
-               {
-                 x,
-                 filter: w,
-                 strides: stride,
-                 pad,
-                 dataFormat: 'NHWC',
-                 dilations: [1, 1],
-                 activation: 'leakyrelu',
-                 leakyreluAlpha,
-                 bias,
-                 dimRoundingMode: 'round'
-               }))
-           .toThrowError();
+       expect(() => tf.fused.conv2d({
+         x,
+         filter: w,
+         strides: stride,
+         pad,
+         dataFormat: 'NHWC',
+         dilations: [1, 1],
+         activation: 'leakyrelu',
+         leakyreluAlpha,
+         bias,
+         dimRoundingMode: 'round'
+       })).toThrowError();
      });
 
   it('basic with bias', async () => {
@@ -964,6 +952,25 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     expect(result.shape).toEqual([2, 2, 2, 2]);
     const expected = [0, 7, 0, 10, 0, 13, 0, 16, 0, 19, 0, 22, 0, 25, 0, 28];
 
+    expectArraysClose(await result.data(), expected);
+  });
+
+  it('basic in NCHW', async () => {
+    const inputDepth = 2;
+    const inShape: [number, number, number, number] = [1, inputDepth, 2, 2];
+    const outputDepth = 2;
+    const fSize = 1;
+    const pad = 0;
+    const stride = 1;
+
+    const x = tf.tensor4d([1, 3, 5, 7, 2, 4, 6, 8], inShape);
+    const w =
+        tf.tensor4d([-1, 1, -2, 0.5], [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.fused.conv2d(
+        {x, filter: w, strides: stride, pad, dataFormat: 'NCHW'});
+    expect(result.shape).toEqual([1, 2, 2, 2]);
+    const expected = [-5, -11, -17, -23, 2, 5, 8, 11];
     expectArraysClose(await result.data(), expected);
   });
 
@@ -1225,6 +1232,26 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
 
     expectArraysClose(
         await result.data(), [15, 10, 15, 55, 30, 55, 0, 0, 0, 0, 0, 0]);
+  });
+
+  it('im2row in NCHW', async () => {
+    const inputDepth = 2;
+    const inputShape: [number, number, number] = [inputDepth, 2, 2];
+    const outputDepth = 2;
+    const fSize = 2;
+    const pad = 'same';
+    const strides: [number, number] = [1, 1];
+
+    const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], inputShape);
+    const w = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, -1, -2, -3, -4, -5, -6, -7, -8],
+        [fSize, fSize, inputDepth, outputDepth]);
+
+    const result =
+        tf.fused.conv2d({x, filter: w, strides, pad, dataFormat: 'NCHW'});
+
+    expectArraysClose(
+        await result.data(), [-32, -8, 100, 28, -40, -12, 122, 40]);
   });
 
   it('backProp input x=[2,3,3,1] f=[2,2,1,1] s=1 p=0', async () => {
