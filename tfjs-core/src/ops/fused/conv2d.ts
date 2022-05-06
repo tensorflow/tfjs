@@ -125,8 +125,9 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
     // format before computation.
     util.assert(
         dataFormat === 'NHWC',
-        () => `Error in conv2d: got dataFormat of ${
-            dataFormat} but only NHWC is currently supported.`);
+        () => `Error in fused conv2d: got dataFormat of ${dataFormat} but ` +
+            `only NHWC is currently supported for the case of gradient depth ` +
+            `is 0 and the activation is not linear.`);
 
     let result = unfusedConv2d(
         x, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
