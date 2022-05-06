@@ -59,7 +59,7 @@ steps:
   entrypoint: 'yarn'
   id: 'yarn-link-package'
   args: ['install']
-  waitFor: ['bazel-tests', 'yarn-link-package-core']
+  waitFor: ['bazel-tests']
 
 - name: 'gcr.io/learnjs-174218/release'
   dir: 'link-package'
