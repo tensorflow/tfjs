@@ -974,7 +974,40 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
-  it('basic in NCHW with bias', async () => {
+  it('basic in NCHW with scalar bias', async () => {
+    const inputDepth = 4;
+    const inputShape: [number, number, number, number] = [1, inputDepth, 2, 2];
+    const outputDepth = 4;
+    const fSize = 1;
+    const pad = 'same';
+    const stride = 1;
+    const dataFormat = 'NCHW';
+    const dilation = 1;
+
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4], inputShape);
+    const w = tf.tensor4d(
+        [3, 3, 3, 3, 1, 1, 1, 1, 5, 5, 5, 5, 0, 0, 0, 0],
+        [fSize, fSize, inputDepth, outputDepth]);
+    const bias = tf.scalar(1);
+
+    const result = tf.fused.conv2d({
+      x,
+      filter: w,
+      strides: stride,
+      pad,
+      dataFormat,
+      dilations: dilation,
+      bias
+    });
+
+    expect(result.shape).toEqual([1, 4, 2, 2]);
+    expectArraysClose(
+        tf.backend().readSync(result.dataId),
+        [10, 19, 28, 37, 10, 19, 28, 37, 10, 19, 28, 37, 10, 19, 28, 37]);
+  });
+
+  it('basic in NCHW with 1-D bias', async () => {
     const inputDepth = 4;
     const inputShape: [number, number, number, number] = [1, inputDepth, 2, 2];
     const outputDepth = 4;

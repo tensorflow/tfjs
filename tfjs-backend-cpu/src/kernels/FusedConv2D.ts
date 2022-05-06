@@ -46,12 +46,24 @@ export function fusedConv2D(args: {
   });
 
   if (bias) {
+    // TODO: Transpose 1-D bias properly for NCHW format.
+    if (dataFormat !== 'NHWC') {
+      throw new Error(
+          `CPU backend FusedConv2D does not support 1-D bias for dataFormat:'` +
+          `${dataFormat}'. Please use 'NHWC' format or use a scalar bias.`);
+    }
     const resultOld = result;
     result = add({inputs: {a: result, b: bias}, backend}) as TensorInfo;
     backend.disposeIntermediateTensorInfo(resultOld);
   }
 
   if (activation) {
+    // TODO: Transpose PReLU activation weights properly for NCHW format.
+    if (activation === 'prelu' && dataFormat !== 'NHWC') {
+      throw new Error(
+          `CPU backend FusedConv2D does not support PReLU activation for ` +
+          `dataFormat:'${dataFormat}'. Please use 'NHWC' format.`);
+    }
     const resultOld = result;
     result = applyActivation(
         backend, result, activation, preluActivationWeights, leakyreluAlpha);
