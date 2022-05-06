@@ -44,6 +44,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   tileInner: number;
   fitA: boolean;
   fitB: boolean;
+  remainder: boolean;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
@@ -87,8 +88,9 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
     this.tileInner = this.tileBOuter;
     [this.fitA, this.fitB] = this.getShapeFit();
+    this.remainder = this.convInfo.inChannels % 4 === 0;
     this.shaderKey = `conv2DMMVec4_${this.activation}_${this.fitA}_${
-        this.fitB}_${this.elementsPerThread}`;
+        this.fitB}_${this.elementsPerThread}_${this.remainder}`;
   }
 
   getShapeFit(): boolean[] {
@@ -134,9 +136,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         this.elementsPerThread, this.tileAOuter, this.tileBOuter,
         this.tileInner);
 
-    const remainder = this.convInfo.inChannels % 4;
     // Below code only applys to valid padding type.
-    const remainderSnippet = remainder === 0 ?
+    const remainderSnippet = this.remainder ?
         `// The bounds checking is always needed since we use it to pad zero for
           // the 'same' padding type.
           if (coordsInBounds4D(coord, uniforms.xShape)) {
