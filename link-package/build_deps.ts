@@ -31,6 +31,12 @@ const parser = new argparse.ArgumentParser();
 parser.add_argument('tfjs_package', {
   type: String,
   help: 'tfjs package to build dependencies for',
+  nargs: '*',
+});
+
+parser.add_argument('--all', {
+  action: 'store_true',
+  help: 'Build all packages',
 });
 
 /**
@@ -38,17 +44,27 @@ parser.add_argument('tfjs_package', {
  *
  * @example 'yarn build-deps-for tfjs-react-native' builds all bazel
  * dependencies for @tensorflow/tfjs-react-native.
+ *
+ * @example 'yarn build-deps-for --all' builds all bazel packages.
  */
 function main() {
   const args = parser.parse_args();
-  const packageName: string = args.tfjs_package;
-  const allDeps = getDeps(packageName);
-  const targets = [...allDeps].map(getDepTarget).filter(v => v);
+  let packageNames: string[] = args.tfjs_package;
 
-  console.log(`bazel build ${targets.join(' ')}`);
-  // Use spawnSync intead of exec to preserve colors.
-  spawnSync('yarn', ['bazel', 'build', ...targets], {stdio:'inherit'});
+  let targets: string[];
+  if (args.all) {
+    targets = [...PACKAGES].map(dirToTarget);
+  } else {
+    const allDeps = packageNames
+      .map((name): Iterable<string> => getDeps(name))
+      .reduce((a, b) => [...a, ...b], []);
+    targets = [...allDeps].map(getDepTarget).filter(v => v);
+  }
 
+  if (targets.length > 0) {
+    // Use spawnSync intead of exec to preserve colors.
+    spawnSync('yarn', ['bazel', 'build', ...targets], {stdio:'inherit'});
+  }
   const tfjsDir = `${__dirname}/node_modules/@tensorflow`;
   rimraf.sync(tfjsDir);
   fs.mkdirSync(tfjsDir, {recursive: true});
@@ -73,7 +89,7 @@ function main() {
  *
  * @param packageName The package name (without @tensorflow/).
  */
-function getDeps(packageName: string) {
+function getDeps(packageName: string): Set<string> {
   const packageJsonPath = path.normalize(
     `${__dirname}/../${packageName}/package.json`);
 
@@ -108,10 +124,20 @@ function getDepTarget(dep: string): string | undefined {
   if (found) {
     const name = found[1];
     if (PACKAGES.has(name)) {
-      return `//${name}:${name}_pkg`;
+      return dirToTarget(name);
     }
   }
   return undefined;
+}
+
+/**
+ * Get the bazel target from a tfjs package's directory.
+ *
+ * @param dir The tfjs package's directory.
+ * @returns The bazel target to build the tfjs package.
+ */
+function dirToTarget(dir: string) {
+  return `//${dir}:${dir}_pkg`;
 }
 
 /**

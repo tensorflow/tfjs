@@ -5,17 +5,8 @@
   "license": "Apache 2.0",
   "private": true,
   "scripts": {
-    "build-deps-for": "ts-node build_deps.ts",
-    "build": "yarn build-link-package-core && yarn build-backend-webgl && yarn build-backend-webgpu && yarn build-converter && yarn build-tflite && yarn build-layers && yarn build-data && yarn reinstall",
-    "build-link-package-core": "cd ../link-package-core && yarn build",
-    "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build",
-    "build-backend-webgpu": "cd ../tfjs-backend-webgpu && yarn && yarn build",
-    "build-converter": "cd ../tfjs-converter && yarn && yarn build",
-    "build-data": "cd ../tfjs-data && yarn && yarn build",
-    "build-layers": "cd ../tfjs-layers && yarn && yarn build",
-    "build-tflite": "cd ../tfjs-tflite && yarn && yarn build",
-    "reinstall-link-package-core": "cd ../link-package-core && yarn reinstall",
-    "reinstall": "yarn && yarn reinstall-link-package-core && yarn cache clean @tensorflow/tfjs-backend-webgl && yarn cache clean @tensorflow/tfjs-backend-webgpu && yarn cache clean @tensorflow/tfjs-converter && yarn cache clean @tensorflow/tfjs-tflite && yarn cache clean @tensorflow/tfjs-layers && yarn cache clean @tensorflow/tfjs-data && rimraf node_modules && yarn"
+    "build": "yarn build-deps-for --all",
+    "build-deps-for": "ts-node build_deps.ts"
   },
   "devDependencies": {
     "@types/rimraf": "^3.0.2",
