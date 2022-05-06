@@ -47,7 +47,7 @@ export function fusedConv2D(args: {
 
   if (bias) {
     // TODO: Transpose 1-D bias properly for NCHW format.
-    if (dataFormat !== 'NHWC') {
+    if (dataFormat !== 'NHWC' && bias.shape.length === 1) {
       throw new Error(
           `CPU backend FusedConv2D does not support 1-D bias for dataFormat:'` +
           `${dataFormat}'. Please use 'NHWC' format or use a scalar bias.`);
