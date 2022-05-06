@@ -25,7 +25,7 @@
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
-    "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core",
+    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
     "@types/jasmine": "~3.0.0",
     "clang-format": "~1.2.4",
     "jasmine": "~3.1.0",
@@ -50,8 +50,6 @@
     "build": "bazel build :tfjs-backend-cpu_pkg",
     "bundle": "bazel build :tfjs-backend-cpu_pkg",
     "bundle-ci": "yarn bundle",
-    "build-link-package-core": "cd ../link-package-core && yarn build",
-    "build-deps": "yarn build-link-package-core",
     "build-npm": "bazel build :tfjs-backend-cpu_pkg",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
@@ -67,7 +65,7 @@
     "seedrandom": "2.4.3"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core"
+    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core"
   },
   "browser": {
     "util": false,
