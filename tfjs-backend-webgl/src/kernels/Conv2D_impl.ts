@@ -97,7 +97,7 @@ export function conv2dByMatMul({
   const outerShapeX = xShape[0] * xShape[1] * xShape[2];
   const outerShapeFilter = convInfo.outChannels;
   const isChannelsLast = convInfo.dataFormat === 'channelsLast';
-  const transposeA = !isChannelsLast;
+  const transposeA = false;
   const transposeB = false;
 
   let out: TensorInfo;
@@ -205,15 +205,16 @@ export function conv2dByMatMul({
 
     intermediates.push(pointwiseConv);
   } else {
-    const targetShape = isChannelsLast ? xShape[0] * xShape[1] * xShape[2] :
-                                         xShape[0] * xShape[2] * xShape[3];
+    const xInNhwcFormat = isChannelsLast ?
+        x :
+        transpose({inputs: {x}, backend, attrs: {perm: [0, 2, 3, 1]}});
+    const xInNhwcFormatShape = xInNhwcFormat.shape;
+    const targetShape =
+        xInNhwcFormatShape[0] * xInNhwcFormatShape[1] * xInNhwcFormatShape[2];
     const xReshaped = reshape({
-      inputs: {x},
+      inputs: {x: xInNhwcFormat},
       backend,
-      attrs: {
-        shape: isChannelsLast ? [1, targetShape, convInfo.inChannels] :
-                                [1, convInfo.inChannels, targetShape]
-      }
+      attrs: {shape: [1, targetShape, convInfo.inChannels]}
     });
     const filterReshaped = reshape({
       inputs: {x: filter},
@@ -246,6 +247,7 @@ export function conv2dByMatMul({
       attrs: {perm: [0, 3, 1, 2]}
     });
     if (!isChannelsLast) {
+      intermediates.push(xInNhwcFormat);
       intermediates.push(outInNHWCFormat);
     }
 

@@ -116,6 +116,30 @@ describe('decode images', () => {
     expect(memory().numTensors).toBe(beforeNumTensors + 1);
   });
 
+  it('decode jpeg node bindings do not leak', async () => {
+    const uint8array = await getUint8ArrayFromImage(
+        'test_objects/images/image_jpeg_test.jpeg');
+
+    // Warm up the node bindings
+    for (let i = 0; i < 10_000; i++) {
+      const imageTensor = tf.node.decodeJpeg(uint8array);
+      imageTensor.dispose();
+    }
+
+    // Check if decodeJpeg leaks memory by running it many times.
+    const beforeMem = process.memoryUsage().rss;
+    for (let i = 0; i < 100_000; i++) {
+      const imageTensor = tf.node.decodeJpeg(uint8array);
+      imageTensor.dispose();
+    }
+    const afterMem = process.memoryUsage().rss;
+
+    // Due to GC fluctuations, There has to be a large 1Mb margain for this
+    // test, but if decodeJpeg leaks more than 10 bytes per run, it will be
+    // detected.
+    expect(afterMem).toBeLessThan(beforeMem + 1e6 /* 1Mb */);
+  });
+
   it('decode jpg 1 channel', async () => {
     const beforeNumTensors = memory().numTensors;
     const uint8array = await getUint8ArrayFromImage(
