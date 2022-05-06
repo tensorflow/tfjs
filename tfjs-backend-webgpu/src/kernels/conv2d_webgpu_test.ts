@@ -195,6 +195,46 @@ describeWebGPU('im2col as separate shader', () => {
 });
 
 describeWebGPU('conv2d vec4', () => {
+  it('conv2d vec4 follows a conv2d vec4 with inChannels=3', async () => {
+    const pad = 'valid';
+    const stride = 1;
+
+    const inputData = [];
+    for (let i = 0; i < 4 * 4 * 3; i++) {
+      inputData.push(i % 5);
+    }
+    const wData1 = [];
+    for (let i = 0; i < 2 * 2 * 3 * 4; i++) {
+      wData1.push(i % 5);
+    }
+    const wData2 = [];
+    for (let i = 0; i < 2 * 2 * 4 * 4; i++) {
+      wData2.push(i % 5);
+    }
+
+    const x = tf.tensor3d(inputData, [4, 4, 3]);
+    const w = tf.tensor4d(wData1, [2, 2, 3, 4]);
+    const result = tf.conv2d(x, w, stride, pad);
+    const resultData = await result.data();
+    expect(result.shape).toEqual([3, 3, 4]);
+    test_util.expectArraysClose(
+        resultData, new Float32Array([
+          53, 50, 47, 34, 30, 33, 51, 59, 62, 46, 35, 39,
+          61, 32, 38, 59, 53, 50, 47, 34, 30, 33, 51, 59,
+          34, 49, 59, 59, 61, 32, 38, 59, 53, 50, 47, 34
+        ]));
+
+    const w2 = tf.tensor4d(wData2, [2, 2, 4, 4]);
+    const result2 = tf.conv2d(result, w2, stride, pad);
+    expect(result2.shape).toEqual([2, 2, 4]);
+    const result2Data = await result2.data();
+    test_util.expectArraysClose(
+        result2Data, new Float32Array([
+          1516, 1447, 1383, 1389, 1221, 1423, 1535, 1522, 1341, 1416, 1516,
+          1656, 1516, 1447, 1383, 1389
+        ]));
+  });
+
   it('conv2d x=[1,8,8,3] f=[3,3,3,64] s=[2,2] d=1 p=valid Conv2DMMVec4Program remainder != 0',
      async () => {
        const inputDepth = 3;
