@@ -52,8 +52,9 @@ const customInclude = (testName: string) => {
   //  NCHW format with bias or prelu activation is not supported yet.
   if (testName.startsWith('fused conv2d')) {
     if (testName.includes('basic in NCHW with') ||
-        testName.includes('im2row in NCHW with'))
+        testName.includes('im2row in NCHW with')) {
       return false;
+    }
   }
 
   // Include all other tests.
