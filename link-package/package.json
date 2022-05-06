@@ -18,10 +18,12 @@
     "reinstall": "yarn && yarn reinstall-link-package-core && yarn cache clean @tensorflow/tfjs-backend-webgl && yarn cache clean @tensorflow/tfjs-backend-webgpu && yarn cache clean @tensorflow/tfjs-converter && yarn cache clean @tensorflow/tfjs-tflite && yarn cache clean @tensorflow/tfjs-layers && yarn cache clean @tensorflow/tfjs-data && rimraf node_modules && yarn"
   },
   "devDependencies": {
+    "@types/rimraf": "^3.0.2",
     "rimraf": "^3.0.2",
     "ts-node": "^10.7.0"
   },
   "dependencies": {
+    "@bazel/bazelisk": "^1.11.0",
     "@types/argparse": "^2.0.10",
     "argparse": "^2.0.1"
   }
