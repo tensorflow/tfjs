@@ -16,7 +16,7 @@
  */
 
 import * as argparse from 'argparse';
-import {spawnSync} from 'child_process';
+import {spawnSync, exec} from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
@@ -47,7 +47,7 @@ parser.add_argument('--all', {
  *
  * @example 'yarn build-deps-for --all' builds all bazel packages.
  */
-function main() {
+async function main() {
   const args = parser.parse_args();
   let packageNames: string[] = args.tfjs_package;
 
@@ -62,8 +62,23 @@ function main() {
   }
 
   if (targets.length > 0) {
-    // Use spawnSync intead of exec to preserve colors.
-    spawnSync('yarn', ['bazel', 'build', ...targets], {stdio:'inherit'});
+    if (process.platform === 'win32') {
+      const child = exec(`yarn bazel build --color=yes ${targets.join(' ')}`);
+      await new Promise((resolve, reject) => {
+        child.stdout.pipe(process.stdout);
+        child.stderr.pipe(process.stderr);
+        child.on('exit', code => {
+          if (code !== 0) {
+            reject(code);
+          }
+          resolve(code);
+        });
+      });
+    } else {
+      // Use spawnSync intead of exec for prettier printing.
+      spawnSync('yarn', ['bazel', 'build', ...targets], {stdio:'inherit'});
+    }
+
   }
   const tfjsDir = `${__dirname}/node_modules/@tensorflow`;
   rimraf.sync(tfjsDir);
