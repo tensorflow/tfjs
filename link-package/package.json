@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "build": "yarn build-deps-for --all",
-    "build-deps-for": "ts-node build_deps.ts"
+    "build-deps-for": "yarn && ts-node build_deps.ts"
   },
   "devDependencies": {
     "@types/rimraf": "^3.0.2",
