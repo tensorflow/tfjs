@@ -19,6 +19,7 @@ import * as argparse from 'argparse';
 import {spawnSync} from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as rimraf from 'rimraf';
 
 const PACKAGES: ReadonlySet<string> = new Set([
   'tfjs-core', 'tfjs-backend-cpu', 'tfjs-backend-webgl', 'tfjs-backend-webgpu',
@@ -32,6 +33,76 @@ parser.add_argument('tfjs_package', {
   help: 'tfjs package to build dependencies for',
 });
 
+/**
+ * Build bazel dependencies for the package specified by tfjs_package.
+ *
+ * @example 'yarn build-deps-for tfjs-react-native' builds all bazel
+ * dependencies for @tensorflow/tfjs-react-native.
+ */
+function main() {
+  const args = parser.parse_args();
+  const packageName: string = args.tfjs_package;
+  const allDeps = getDeps(packageName);
+  const targets = [...allDeps].map(getDepTarget).filter(v => v);
+
+  console.log(`bazel build ${targets.join(' ')}`);
+  // Use spawnSync intead of exec to preserve colors.
+  spawnSync('yarn', ['bazel', 'build', ...targets], {stdio:'inherit'});
+
+  const tfjsDir = `${__dirname}/node_modules/@tensorflow`;
+  rimraf.sync(tfjsDir);
+  fs.mkdirSync(tfjsDir, {recursive: true});
+
+  // Copy all built packages to node_modules. Note that this does not install
+  // their dependencies, but that's okay since the node resolution algorithm
+  // will find dependencies in the root node_modules folder of the repository.
+  for (const pkg of PACKAGES) {
+    const pkgPath = path.normalize(
+      `${__dirname}/../dist/bin/${pkg}/${pkg}_pkg`);
+
+    if (fs.existsSync(pkgPath)) {
+      const newPath = path.join(tfjsDir, pkg);
+      copyRecursive(pkgPath, newPath);
+    }
+  }
+  chmodRecursive(tfjsDir);
+}
+
+/**
+ * Get all dependencies and devDependencies of a tfjs package.
+ *
+ * @param packageName The package name (without @tensorflow/).
+ */
+function getDeps(packageName: string) {
+  const packageJsonPath = path.normalize(
+    `${__dirname}/../${packageName}/package.json`);
+
+  const pkg = fs.readFileSync(packageJsonPath).toString('utf8');
+  const parsedPkg = JSON.parse(pkg) as {
+    dependencies?: Record<string, string>,
+    devDependencies?: Record<string, string>,
+  };
+
+  const allDeps = new Set<string>();
+  function addDepsFrom(record?: Record<string, string>) {
+    if (record) {
+      for (const key of Object.keys(record)) {
+        allDeps.add(key);
+      }
+    }
+  }
+  addDepsFrom(parsedPkg.dependencies);
+  addDepsFrom(parsedPkg.devDependencies);
+  return allDeps;
+}
+
+/**
+ * Get the bazel target corresponding to a package.json dependency.
+ *
+ * @param dep The package.json dependency.
+ * @returns The bazel target corresponding to the dependency or undefined if no
+ * such dependency exists.
+ */
 function getDepTarget(dep: string): string | undefined {
   const found = dep.match(/@tensorflow\/(.*)/);
   if (found) {
@@ -43,51 +114,51 @@ function getDepTarget(dep: string): string | undefined {
   return undefined;
 }
 
-async function main() {
-  const args = parser.parse_args();
-  const packageName: string = args.tfjs_package;
-
-  const packageJsonPath = path.normalize(
-    `${__dirname}/../${packageName}/package.json`);
-
-  const pkg = fs.readFileSync(packageJsonPath).toString('utf8');
-  const parsedPkg = JSON.parse(pkg) as {
-    dependencies?: Record<string, string>,
-    devDependencies?: Record<string, string>,
-  };
-
-  let allDeps = new Set<string>();
-  function addDepsFrom(record?: Record<string, string>) {
-    if (record) {
-      for (const key of Object.keys(record)) {
-        allDeps.add(key);
-      }
+/**
+ * Recursively copy a file or directory.
+ *
+ * @param src The source directory.
+ * @param dest The destination to copy src to.
+ */
+function copyRecursive(src: string, dest: string) {
+  // Avoid 'cp -r', which Windows does not suppport
+  const stat = fs.lstatSync(src);
+  if (stat.isFile()) {
+    fs.copyFileSync(src, dest);
+  } else if (stat.isDirectory()) {
+    const contents = fs.readdirSync(src);
+    fs.mkdirSync(dest);
+    for (let name of contents) {
+      copyRecursive(path.join(src, name),
+                    path.join(dest, name));
     }
   }
-  addDepsFrom(parsedPkg.dependencies);
-  addDepsFrom(parsedPkg.devDependencies);
-
-  const targets = [...allDeps].map(getDepTarget).filter(v => v);
-
-  console.log(`bazel build ${targets.join(' ')}`);
-  // Use this intead of exec to preserve colors.
-  spawnSync('bazel', ['build', ...targets], {stdio:'inherit'});
-
-  const tfjsDir = `${__dirname}/node_modules/@tensorflow`;
-  spawnSync('rm', ['-rf', tfjsDir], {stdio: 'inherit'});
-  spawnSync('mkdir', ['-p', tfjsDir], {stdio: 'inherit'});
-
-  for (const pkg of PACKAGES) {
-    const pkgPath = path.normalize(
-      `${__dirname}/../dist/bin/${pkg}/${pkg}_pkg`);
-
-    if (fs.existsSync(pkgPath)) {
-      const newPath = path.join(tfjsDir, pkg);
-      spawnSync('cp', ['-r', pkgPath, newPath], {stdio: 'inherit'});
-    }
-  }
-  spawnSync('chmod', ['-R', '+w', tfjsDir], {stdio: 'inherit'});
 }
 
+/**
+ * Map a function on all files and directories under a path.
+ *
+ * @param rootPath The path where the function will be mapped.
+ * @param mapFn The function to map on all subpaths of the rootPath.
+ */
+function mapFiles(rootPath: string, mapFn: (path: string) => void) {
+  mapFn(rootPath);
+  const stat = fs.lstatSync(rootPath);
+  if (stat.isDirectory()) {
+    const contents = fs.readdirSync(rootPath);
+    for (let subPath of contents) {
+      mapFiles(path.join(rootPath, subPath), mapFn);
+    }
+  }
+}
+
+/**
+ * Recursively change permissions of files to 775.
+ *
+ * @param rootPath The path where permissions are changed.
+ */
+function chmodRecursive(rootPath: string) {
+  mapFiles(rootPath, path => fs.chmodSync(path, 0o775));
+}
 
 main();
