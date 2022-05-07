@@ -1002,9 +1002,9 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     });
 
     expect(result.shape).toEqual([1, 4, 2, 2]);
-    expectArraysClose(
-        tf.backend().readSync(result.dataId),
-        [10, 19, 28, 37, 10, 19, 28, 37, 10, 19, 28, 37, 10, 19, 28, 37]);
+    const expected =
+        [10, 19, 28, 37, 10, 19, 28, 37, 10, 19, 28, 37, 10, 19, 28, 37];
+    expectArraysClose(await result.data(), expected);
   });
 
   it('basic in NCHW with 1-D bias', async () => {
@@ -1035,9 +1035,9 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     });
 
     expect(result.shape).toEqual([1, 4, 2, 2]);
-    expectArraysClose(
-        tf.backend().readSync(result.dataId),
-        [10, 19, 28, 37, 11, 20, 29, 38, 10, 19, 28, 37, 11, 20, 29, 38]);
+    const expected =
+        [10, 19, 28, 37, 11, 20, 29, 38, 10, 19, 28, 37, 11, 20, 29, 38];
+    expectArraysClose(await result.data(), expected);
   });
 
   it('basic in NCHW with bias and multiple batches', async () => {
@@ -1072,10 +1072,11 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     });
 
     expect(result.shape).toEqual([2, 4, 2, 2]);
-    expectArraysClose(tf.backend().readSync(result.dataId), [
+    const expected = [
       10, 19, 28, 37, 11, 20, 29, 38, 10, 19, 28, 37, 11, 20, 29, 38,
       10, 19, 28, 37, 11, 20, 29, 38, 10, 19, 28, 37, 11, 20, 29, 38
-    ]);
+    ];
+    expectArraysClose(await result.data(), expected);
   });
 
   it('basic in NCHW with scalar PReLU actiavation', async () => {
@@ -1105,9 +1106,8 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     });
 
     expect(result.shape).toEqual([1, 2, 2, 2]);
-    expectArraysClose(
-        tf.backend().readSync(result.dataId),
-        [-110, -140, -170, -200, 3.5, 5, 6.5, 8]);
+    const expected = [-110, -140, -170, -200, 3.5, 5, 6.5, 8];
+    expectArraysClose(await result.data(), expected);
   });
 
   it('basic in NCHW with 1-D PReLU actiavation', async () => {
@@ -1137,9 +1137,8 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     });
 
     expect(result.shape).toEqual([1, 2, 2, 2]);
-    expectArraysClose(
-        tf.backend().readSync(result.dataId),
-        [-110, -140, -170, -200, 3.5, 5, 6.5, 8]);
+    const expected = [-110, -140, -170, -200, 3.5, 5, 6.5, 8];
+    expectArraysClose(await result.data(), expected);
   });
 
   it('basic in NCHW with 3-D PReLU actiavation', async () => {
@@ -1169,9 +1168,8 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     });
 
     expect(result.shape).toEqual([1, 2, 2, 2]);
-    expectArraysClose(
-        tf.backend().readSync(result.dataId),
-        [-11, -14, -17, -20, -110, -140, -170, -200]);
+    const expected = [-11, -14, -17, -20, -110, -140, -170, -200];
+    expectArraysClose(await result.data(), expected);
   });
 
   it('basic in NCHW with full 3-D PReLU actiavation', async () => {
@@ -1201,9 +1199,8 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     });
 
     expect(result.shape).toEqual([1, 2, 2, 2]);
-    expectArraysClose(
-        tf.backend().readSync(result.dataId),
-        [-11, -28, -51, -80, -55, -84, -119, -160]);
+    const expected = [-11, -28, -51, -80, -55, -84, -119, -160];
+    expectArraysClose(await result.data(), expected);
   });
 
   it('im2row', async () => {
@@ -1518,9 +1515,9 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     });
 
     expect(result.shape).toEqual([1, 4, 2, 2]);
-    expectArraysClose(
-        tf.backend().readSync(result.dataId),
-        [91, 55, 64, 37, 92, 56, 65, 38, 91, 55, 64, 37, 92, 56, 65, 38]);
+    const expected =
+        [91, 55, 64, 37, 92, 56, 65, 38, 91, 55, 64, 37, 92, 56, 65, 38];
+    expectArraysClose(await result.data(), expected);
   });
 
   it('im2row in NCHW with scalar PReLU actiavation weights', async () => {
@@ -1551,9 +1548,8 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     });
 
     expect(result.shape).toEqual([1, 2, 2, 2]);
-    expectArraysClose(
-        tf.backend().readSync(result.dataId),
-        [-120, -320, 2, -120, -120, -320, 2, -120]);
+    const expected = [-120, -320, 2, -120, -120, -320, 2, -120];
+    expectArraysClose(await result.data(), expected);
   });
 
   it('im2row in NCHW with 1-D PReLU actiavation weights', async () => {
@@ -1584,9 +1580,8 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     });
 
     expect(result.shape).toEqual([1, 2, 2, 2]);
-    expectArraysClose(
-        tf.backend().readSync(result.dataId),
-        [-12, -32, 2, -12, -120, -320, 2, -120]);
+    const expected = [-12, -32, 2, -12, -120, -320, 2, -120];
+    expectArraysClose(await result.data(), expected);
   });
 
   it('im2row in NCHW with 3-D PReLU actiavation weights', async () => {
@@ -1617,9 +1612,8 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     });
 
     expect(result.shape).toEqual([1, 2, 2, 2]);
-    expectArraysClose(
-        tf.backend().readSync(result.dataId),
-        [-12, -32, 2, -12, -120, -320, 2, -120]);
+    const expected = [-12, -32, 2, -12, -120, -320, 2, -120];
+    expectArraysClose(await result.data(), expected);
   });
 
   it('im2row in NCHW with full 3-D PReLU actiavation weights', async () => {
@@ -1650,9 +1644,8 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     });
 
     expect(result.shape).toEqual([1, 2, 2, 2]);
-    expectArraysClose(
-        tf.backend().readSync(result.dataId),
-        [-12, -64, 2, -48, -60, -192, 2, -96]);
+    const expected = [-12, -64, 2, -48, -60, -192, 2, -96];
+    expectArraysClose(await result.data(), expected);
   });
 
   it('backProp input x=[2,3,3,1] f=[2,2,1,1] s=1 p=0', async () => {
