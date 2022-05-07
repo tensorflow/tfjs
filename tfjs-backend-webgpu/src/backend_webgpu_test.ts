@@ -17,8 +17,12 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 
+import {GPUData, test_util, util} from '@tensorflow/tfjs-core';
+const {expectArraysEqual, expectArraysClose} = test_util;
+
 import {WebGPUBackend, WebGPUMemoryInfo} from './backend_webgpu';
 import {describeWebGPU} from './test_util';
+import * as webgpu_util from './webgpu_util';
 
 describeWebGPU('backend webgpu cpu forwarding turned on', () => {
   let cpuForwardFlagSaved: boolean;
@@ -59,8 +63,7 @@ describeWebGPU('backend webgpu cpu forwarding turned on', () => {
     expect(endNumTensors - startNumTensors).toEqual(2);
     expect(endNumBytesInGPU - startNumBytesInGPU).toEqual(40);
 
-    tf.test_util.expectArraysClose(
-        dData, new Float32Array([9, 12, 15, 19, 26, 33]));
+    expectArraysClose(dData, new Float32Array([9, 12, 15, 19, 26, 33]));
   });
 });
 
@@ -86,8 +89,7 @@ describeWebGPU('backend webgpu', () => {
     expect(endNumBytes - startNumBytes).toEqual(48);
     expect(endNumTensors - startNumTensors).toEqual(2);
 
-    tf.test_util.expectArraysClose(
-        dData, new Float32Array([9, 12, 15, 19, 26, 33]));
+    expectArraysClose(dData, new Float32Array([9, 12, 15, 19, 26, 33]));
     tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', savedFlag);
   });
 
@@ -112,8 +114,7 @@ describeWebGPU('backend webgpu', () => {
     expect(endNumBytes - startNumBytes).toEqual(48);
     expect(endNumTensors - startNumTensors).toEqual(2);
 
-    tf.test_util.expectArraysClose(
-        dData, new Float32Array([9, 12, 15, 19, 26, 33]));
+    expectArraysClose(dData, new Float32Array([9, 12, 15, 19, 26, 33]));
     tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', savedFlag);
   });
 
@@ -322,5 +323,156 @@ describeWebGPU('backendWebGPU', () => {
     expect(bufferManager.getNumUsedBuffers())
         .toBe(
             2);  // One is the storage buffer, the other is the staging buffer.
+  });
+});
+
+describeWebGPU('keeping data on gpu ', () => {
+  let flag: boolean;
+
+  beforeAll(() => {
+    flag = tf.env().getBool('WEBGPU_CPU_FORWARD');
+    tf.env().set('WEBGPU_CPU_FORWARD', false);
+  });
+
+  afterAll(() => {
+    tf.env().set('WEBGPU_CPU_FORWARD', flag);
+  });
+
+  it('has a valid buffer for dtype=float32.', async () => {
+    const webGPUBackend = (tf.backend() as WebGPUBackend);
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const size = 48;
+    const a = tf.tensor(data, [1, 3, 4]);
+    const b = tf.add(a, 0);
+    const res = b.dataToGPU();
+    expectArraysEqual(res.bufSize, size);
+    if (res.tensorRef.dtype !== 'float32') {
+      throw new Error(
+          `Unexpected type. Actual: ${res.tensorRef.dtype}. ` +
+          `Expected: float32`);
+    }
+    const resData = await webGPUBackend.getBufferData(res.buffer, res.bufSize);
+    const values = webgpu_util.ArrayBufferToTypedArray(
+        resData as ArrayBuffer, res.tensorRef.dtype);
+    expectArraysEqual(values, data);
+  });
+
+  it('uses user defined bufSize.', async () => {
+    const webGPUBackend = (tf.backend() as WebGPUBackend);
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const a = tf.tensor(data, [1, 3, 4]);
+    const b = tf.add(a, 0);
+    const bufSize = 96;
+    const res = b.dataToGPU({customBufSize: bufSize});
+    expectArraysEqual(res.bufSize, bufSize);
+    if (res.tensorRef.dtype !== 'float32') {
+      throw new Error(
+          `Unexpected type. Actual: ${res.tensorRef.dtype}. ` +
+          `Expected: float32`);
+    }
+    const resData = await webGPUBackend.getBufferData(
+        res.buffer,
+        util.sizeFromShape(res.tensorRef.shape) *
+            webgpu_util.GPUBytesPerElement(res.tensorRef.dtype));
+    const values = webgpu_util.ArrayBufferToTypedArray(
+        resData as ArrayBuffer, res.tensorRef.dtype);
+    expectArraysEqual(values, data);
+  });
+
+  it('has a valid buffer for dtype=int32.', async () => {
+    const webGPUBackend = (tf.backend() as WebGPUBackend);
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const size = 48;
+    const a = tf.tensor(data, [1, 3, 4], 'int32');
+    const b = tf.tensor([0], [1], 'int32');
+    const c = tf.add(a, b);
+    const res = c.dataToGPU();
+    expectArraysEqual(res.bufSize, size);
+    if (res.tensorRef.dtype !== 'int32') {
+      throw new Error(
+          `Unexpected type. Actual: ${res.tensorRef.dtype}. ` +
+          `Expected: float32`);
+    }
+    const resData = await webGPUBackend.getBufferData(res.buffer, res.bufSize);
+    const values = webgpu_util.ArrayBufferToTypedArray(
+        resData as ArrayBuffer, res.tensorRef.dtype);
+    expectArraysEqual(values, data);
+  });
+
+  it('has no memory leak.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+    const a = tf.tensor(data, [1, 3, 4]);
+    const b = tf.add(a, 0);
+
+    const webGPUBackend = tf.backend() as WebGPUBackend;
+    const startTensor = tf.memory().numTensors;
+    const startDataBuckets = webGPUBackend.numDataIds();
+
+    const res = b.dataToGPU();
+    res.tensorRef.dispose();
+
+    const endTensor = tf.memory().numTensors;
+    const endDataBuckets = webGPUBackend.numDataIds();
+
+    expect(endTensor).toEqual(startTensor);
+    expect(endDataBuckets).toEqual(startDataBuckets);
+  });
+
+  it('can be used in tidy.', async () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+    const webGPUBackend = tf.backend() as WebGPUBackend;
+    const startTensor = tf.memory().numTensors;
+    const startDataBuckets = webGPUBackend.numDataIds();
+
+    const result = tf.tidy(() => {
+      const a = tf.tensor(data, [1, 3, 4]);
+      const b = tf.add(a, 0);
+      return b.dataToGPU() as {} as tf.Tensor;
+    });
+
+    const endTensor = tf.memory().numTensors;
+    const endDataBuckets = webGPUBackend.numDataIds();
+
+    expect(endTensor).toEqual(startTensor + 1);
+    expect(endDataBuckets).toEqual(startDataBuckets + 1);
+
+    const res = result as {} as GPUData;
+    const resData = await webGPUBackend.getBufferData(res.buffer, res.bufSize);
+    const values = webgpu_util.ArrayBufferToTypedArray(
+        resData as ArrayBuffer, res.tensorRef.dtype);
+    expectArraysEqual(values, data);
+  });
+
+  it('tidy has no memory leak.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+    const webGPUBackend = tf.backend() as WebGPUBackend;
+    const startTensor = tf.memory().numTensors;
+    const startDataBuckets = webGPUBackend.numDataIds();
+
+    tf.tidy(() => {
+      const a = tf.tensor(data, [1, 3, 4]);
+      const b = tf.add(a, 0);
+      b.dataToGPU();
+      return b;
+    });
+
+    const endTensor = tf.memory().numTensors;
+    const endDataBuckets = webGPUBackend.numDataIds();
+
+    expect(endTensor).toEqual(startTensor + 1);
+    expect(endDataBuckets).toEqual(startDataBuckets + 1);
+  });
+
+  it('throws error when user defined bufSize is too small.', () => {
+    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const a = tf.tensor(data, [1, 3, 4]);
+    const b = tf.add(a, 0);
+
+    expect(() => {
+      b.dataToGPU({customBufSize: 32});
+    }).toThrowError();
   });
 });

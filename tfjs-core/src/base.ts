@@ -53,7 +53,7 @@ export {Optimizer} from './optimizers/optimizer';
 export {OptimizerConstructors} from './optimizers/optimizer_constructors';
 export {RMSPropOptimizer} from './optimizers/rmsprop_optimizer';
 export {SGDOptimizer} from './optimizers/sgd_optimizer';
-export {DataToGPUOptions, DataToGPUWebGLOption, GPUData, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, Variable} from './tensor';
+export {DataToGPUOptions, DataToGPUWebGLOption, DataToGPUWebGPUOption, GPUData, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer, Variable} from './tensor';
 export {GradSaveFunc, NamedTensorMap, TensorContainer, TensorContainerArray, TensorContainerObject} from './tensor_types';
 export {BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, PixelData, Rank, RecursiveArray, ScalarLike, ShapeMap, sumOutType, TensorLike, TypedArray, upcastType} from './types';
 
