@@ -17,6 +17,11 @@
 
 // Register the CPU backend as a default backend for tests.
 import '@tensorflow/tfjs-backend-cpu';
+// Register all chained ops for tests.
+import './public/chained_ops/register_all_chained_ops';
+// Register all gradients for tests
+import './register_all_gradients';
+
 /**
  * This file is necessary so we register all test environments before we start
  * executing tests.
