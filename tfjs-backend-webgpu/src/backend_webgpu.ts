@@ -870,7 +870,7 @@ export class WebGPUBackend extends KernelBackend {
     }
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bg);
-    pass.dispatch(
+    pass.dispatchWorkgroups(
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
@@ -1043,7 +1043,7 @@ export class WebGPUBackend extends KernelBackend {
     }
     pass.setPipeline(pipeline);
     pass.setBindGroup(0, bindGroup);
-    pass.dispatch(
+    pass.dispatchWorkgroups(
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
