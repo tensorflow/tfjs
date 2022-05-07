@@ -4,6 +4,7 @@
     "../../tools/"
   ],
   "compilerOptions": {
+    "typeRoots": ["../../../node_modules/@webgpu", "../../../node_modules/@types"],
     "module": "commonjs",
     "outDir": "../../dist/tools/custom_module"
   }

@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "typeRoots": ["../node_modules/@webgpu", "./node_modules/@types"],
     "module": "commonjs",
     "noImplicitAny": true,
     "sourceMap": true,
