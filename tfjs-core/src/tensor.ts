@@ -160,12 +160,18 @@ export interface DataToGPUWebGLOption {
   customTexShape?: [number, number];
 }
 
-export type DataToGPUOptions = DataToGPUWebGLOption;
+export interface DataToGPUWebGPUOption {
+  customBufSize?: number;
+}
+
+export type DataToGPUOptions = DataToGPUWebGLOption|DataToGPUWebGPUOption;
 
 export interface GPUData {
   tensorRef: Tensor;
   texture?: WebGLTexture;
+  buffer?: GPUBuffer;
   texShape?: [number, number];
+  bufSize?: number;
 }
 export interface TensorTracker {
   makeTensor(
