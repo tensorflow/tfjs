@@ -22,16 +22,30 @@ import '@tensorflow/tfjs-backend-cpu';
  * executing tests.
  */
 import {setTestEnvs, setupTestFilters, TestFilter} from './jasmine_util';
-// Register all chained ops for tests.
-import './public/chained_ops/register_all_chained_ops';
-// Register all gradients for tests
-import './register_all_gradients';
 
 // Set up a CPU test env as the default test env
 setTestEnvs([{name: 'cpu', backendName: 'cpu', isDataSync: true}]);
 
-const TEST_FILTERS: TestFilter[] = [];
-const customInclude = () => true;
+const TEST_FILTERS: TestFilter[] = [
+  {
+    startsWith: 'fused conv2d ',
+    excludes: [
+      'basic in NCHW with',  // NCHW format with bias or prelu activation is not
+                             // supported yet
+      'im2row in NCHW with',
+    ]
+  },
+];
+const customInclude = (testName: string) => {
+  //  NCHW format with bias or prelu activation is not supported yet.
+  if (testName.startsWith('fused conv2d')) {
+    if (testName.includes('basic in NCHW with') ||
+        testName.includes('im2row in NCHW with')) {
+      return false;
+    }
+  }
+  return true;
+};
 setupTestFilters(TEST_FILTERS, customInclude);
 
 // Import and run all the tests.
