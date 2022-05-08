@@ -50,11 +50,8 @@ export function fusedConv2D(args: {
     const resultOld = result;
     if (dataFormat === 'NCHW' && bias.shape.length === 1 &&
         bias.shape[0] !== 1) {
-      const reshapedBias = reshape({
-                             inputs: {x: bias},
-                             backend,
-                             attrs: {shape: [bias.shape[0], 1, 1]}
-                           }) as TensorInfo;
+      const reshapedBias = reshape(
+          {inputs: {x: bias}, backend, attrs: {shape: [bias.shape[0], 1, 1]}});
       result =
           add({inputs: {a: result, b: reshapedBias}, backend}) as TensorInfo;
       backend.disposeIntermediateTensorInfo(reshapedBias);
