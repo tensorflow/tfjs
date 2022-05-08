@@ -285,14 +285,14 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
         [9, 18, 27, 36, 9, 18, 27, 36, 9, 18, 27, 36, 9, 18, 27, 36]);
   });
 
-  it('x=[2,4,2,2] f=[1,1,4,4] s=1 d=1 p=same NCHW', async () => {
+  it('x=[2,2,2,2] f=[1,1,4,4] s=1 d=1 p=same NCHW', async () => {
     // Skip tensorflow backend due to NCHW not supported.
     if (tf.getBackend() === 'tensorflow') {
       return;
     }
-    const inputDepth = 4;
+    const inputDepth = 2;
     const inputShape: [number, number, number, number] = [2, inputDepth, 2, 2];
-    const outputDepth = 4;
+    const outputDepth = 2;
     const fSize = 1;
     const pad = 'same';
     const stride = 1;
@@ -300,23 +300,17 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     const dilation = 1;
 
     const x = tf.tensor4d(
-        [
-          1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4,
-          1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4
-        ],
-        inputShape);
-    const w = tf.tensor4d(
-        [3, 3, 3, 3, 1, 1, 1, 1, 5, 5, 5, 5, 0, 0, 0, 0],
-        [fSize, fSize, inputDepth, outputDepth]);
+        [1, 3, 5, 7, 2, 4, 6, 8, 9, 11, 13, 15, 10, 12, 14, 16], inputShape);
+    const w =
+        tf.tensor4d([-1, 1, -2, 0.5], [fSize, fSize, inputDepth, outputDepth]);
 
     const result = tf.conv2d(x, w, stride, pad, dataFormat, dilation);
 
     const resultData = await result.data();
-    expect(result.shape).toEqual([2, 4, 2, 2]);
-    expectArraysClose(resultData, [
-      9, 18, 27, 36, 9, 18, 27, 36, 9, 18, 27, 36, 9, 18, 27, 36,
-      9, 18, 27, 36, 9, 18, 27, 36, 9, 18, 27, 36, 9, 18, 27, 36
-    ]);
+    expect(result.shape).toEqual([2, 2, 2, 2]);
+    expectArraysClose(
+        resultData,
+        [-5, -11, -17, -23, 2, 5, 8, 11, -29, -35, -41, -47, 14, 17, 20, 23]);
   });
 
   it('x=[4,2,2] f=[2,2,4,4] s=1 d=1 p=same NCHW', async () => {

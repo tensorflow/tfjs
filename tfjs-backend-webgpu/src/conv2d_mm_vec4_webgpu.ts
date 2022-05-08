@@ -38,17 +38,17 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
-  hasLeakyreluAlpha: boolean;
   tileAOuter: number;
   tileBOuter: number;
   tileInner: number;
   fitA: boolean;
   fitB: boolean;
+  remainder: boolean;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
       activation: backend_util.Activation = null,
-      hasPreluActivationWeights = false, hasLeakyreluAlpha = false) {
+      hasPreluActivationWeights = false) {
     this.outputShape = convInfo.outShape;
 
     util.assert(
@@ -68,7 +68,6 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.hasLeakyreluAlpha = hasLeakyreluAlpha;
     if (this.addBias) {
       this.variableNames.push('bias');
     }
@@ -77,18 +76,15 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
       this.variableNames.push('preluActivationWeights');
     }
 
-    if (this.hasLeakyreluAlpha) {
-      this.variableNames.push('leakyreluAlpha');
-    }
-
     this.tileAOuter = this.outputShape[1] === 1 ?
         1 :
         this.workGroupSize[1] * this.elementsPerThread[1];
     this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
     this.tileInner = this.tileBOuter;
     [this.fitA, this.fitB] = this.getShapeFit();
+    this.remainder = this.convInfo.inChannels % 4 === 0;
     this.shaderKey = `conv2DMMVec4_${this.activation}_${this.fitA}_${
-        this.fitB}_${this.elementsPerThread}`;
+        this.fitB}_${this.elementsPerThread}_${this.remainder}`;
   }
 
   getShapeFit(): boolean[] {
@@ -134,9 +130,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         this.elementsPerThread, this.tileAOuter, this.tileBOuter,
         this.tileInner);
 
-    const remainder = this.convInfo.inChannels % 4;
     // Below code only applys to valid padding type.
-    const remainderSnippet = remainder === 0 ?
+    const remainderSnippet = this.remainder ?
         `// The bounds checking is always needed since we use it to pad zero for
           // the 'same' padding type.
           if (coordsInBounds4D(coord, uniforms.xShape)) {
@@ -199,12 +194,6 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
           let b = getPreluActivationWeightsByOutputCoords(outCoord);
           ${activationOp}
         }`;
-      } else if (this.hasLeakyreluAlpha) {
-        activationSnippet = `fn activation(outCoord: vec4<f32>) -> vec4<f32> {
-          let b = getLeakyreluAlphaByOutputCoords(outCoord);
-          ${activationOp}
-        }`;
-        throw new Error('Leakyrelu is not supported.');
       } else {
         activationSnippet = `
         fn activation(a : vec4<f32>, outCoord : vec4<i32>) -> vec4<f32> {

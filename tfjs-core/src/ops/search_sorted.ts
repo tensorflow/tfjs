@@ -50,25 +50,27 @@ const INT32_MAX = 2147483648;
  * ```js
  * const edges = tf.tensor1d([-1, 3.3, 9.1, 10.0]);
  * let values = tf.tensor1d([0.0, 4.1, 12.0]);
- * const result1 = tf.searchSorted(edges, values);
- * result1.print(); // [1,2,4]
+ * const result1 = tf.searchSorted(edges, values, 'left');
+ * result1.print(); // [1, 2, 4]
  *
  * const seq = tf.tensor1d([0, 3, 9, 10, 10]);
  * values = tf.tensor1d([0, 4, 10]);
- * const result2 = tf.searchSorted(seq, values);
- * result2.print(); // [1,2,4]
+ * const result2 = tf.searchSorted(seq, values, 'left');
+ * result2.print(); // [0, 2, 3]
+ * const result3 = tf.searchSorted(seq, values, 'right');
+ * result3.print(); // [1, 2, 5]
  *
  * const sortedSequence = tf.tensor2d([[0., 3., 8., 9., 10.],
  *                                     [1., 2., 3., 4., 5.]]);
  * values = tf.tensor2d([[9.8, 2.1, 4.3],
  *                       [0.1, 6.6, 4.5, ]]);
- * const result23 = tf.searchSorted(sortedSequence, values);
- * result2.print(); // [[4, 1, 2], [0, 5, 4]]
+ * const result4 = tf.searchSorted(sortedSequence, values, 'left');
+ * result4.print(); // [[4, 1, 2], [0, 5, 4]]
  * ```
  * @param sortedSequence: N-D. Sorted sequence.
  * @param values: N-D. Search values.
- * @param side: 'left'|'right'. 'left' corresponds to lower bound and 'right' to
- *     upper bound.
+ * @param side: 'left'|'right'. Defaults to 'left'. 'left' corresponds to lower
+ *     bound and 'right' to upper bound.
  * @return An N-D int32 tensor the size of values containing the result of
  *     applying either lower bound or upper bound (depending on side) to each
  *     value. The result is not a global index to the entire Tensor, but the
@@ -77,7 +79,7 @@ const INT32_MAX = 2147483648;
  */
 function searchSorted_(
     sortedSequence: Tensor|TensorLike, values: Tensor|TensorLike,
-    side: 'left'|'right'): Tensor {
+    side: 'left'|'right' = 'left'): Tensor {
   const $sortedSequence =
       convertToTensor(sortedSequence, 'sortedSequence', 'searchSorted');
   const $values = convertToTensor(values, 'values', 'searchSorted');

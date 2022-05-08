@@ -17,7 +17,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, buffer, DataStorage, DataType, DataValues, engine, env, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, DataStorage, DataToGPUWebGPUOption, DataType, DataValues, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {BufferManager} from './buffer_manager';
 import {TextureManager} from './texture_manager';
@@ -40,6 +40,7 @@ type BufferInfo = {
 type TensorBufferInfo = {
   values: backend_util.BackendValues,
   dtype: DataType,
+  shape: number[],
   bufferInfo: BufferInfo,
   refCount: number,
   // For complex numbers, the real and imaginary parts are stored as their own
@@ -315,6 +316,7 @@ export class WebGPUBackend extends KernelBackend {
 
     this.tensorMap.set(dataId, {
       dtype,
+      shape,
       values,
       bufferInfo: {byteSize, usage: this.defaultGpuBufferUsage()},
       refCount: 1
@@ -335,6 +337,7 @@ export class WebGPUBackend extends KernelBackend {
 
     this.tensorMap.set(dataId, {
       dtype,
+      shape,
       values,
       bufferInfo: {byteSize, usage: this.defaultGpuBufferUsage()},
       refCount
@@ -377,19 +380,13 @@ export class WebGPUBackend extends KernelBackend {
     return this.currentComputePass;
   }
 
-  private async getBufferData(info: TensorBufferInfo):
+  public async getBufferData(buffer: GPUBuffer, size: number):
       Promise<backend_util.BackendValues> {
-    if (info.values != null) {
-      // Data is on the CPU.
-      return info.values;
-    }
     const staging = this.acquireBuffer(
-        info.bufferInfo.byteSize,
-        GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
+        size, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
     this.ensureCommandEncoderReady();
     this.ensureComputePassEnded();
-    this.currentCommandEncoder.copyBufferToBuffer(
-        info.bufferInfo.buffer, 0, staging, 0, info.bufferInfo.byteSize);
+    this.currentCommandEncoder.copyBufferToBuffer(buffer, 0, staging, 0, size);
     this.submitQueue();
 
     await staging.mapAsync(GPUMapMode.READ);
@@ -398,8 +395,7 @@ export class WebGPUBackend extends KernelBackend {
     staging.unmap();
     if (staging != null) {
       this.bufferManager.releaseBuffer(
-          staging, info.bufferInfo.byteSize,
-          GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
+          staging, size, GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ);
     }
 
     // Need to get texture from swapChain to enable profiling tool
@@ -467,12 +463,69 @@ export class WebGPUBackend extends KernelBackend {
       vals = backend_util.mergeRealAndImagArrays(
           realValues as Float32Array, imagValues as Float32Array);
     } else {
-      const data = await this.getBufferData(info);
+      const data = info.values != null ?
+          info.values :
+          await this.getBufferData(
+              info.bufferInfo.buffer, info.bufferInfo.byteSize);
       vals =
           webgpu_util.ArrayBufferToTypedArray(data as ArrayBuffer, info.dtype);
     }
     this.convertAndCacheOnCPU(dataId, vals);
     return vals;
+  }
+
+  /**
+   * Read tensor to a new GPUBuffer.
+   * @param dataId The source tensor.
+   * @param options
+   *     customBufShape: Optional. If set, will use the user defined buffer
+   *     size to create the buffer.
+   */
+  readToGPU(dataId: DataId, options: DataToGPUWebGPUOption = {}): GPUData {
+    const srcData = this.tensorMap.get(dataId);
+    const {values, dtype, shape, bufferInfo} = srcData;
+
+    if (dtype === 'complex64') {
+      throw new Error('Does not support reading buffer for complex64 dtype.');
+    }
+
+    if (bufferInfo.buffer == null) {
+      if (values != null) {
+        throw new Error('Data is not on GPU but on CPU.');
+      } else {
+        throw new Error('There is no data on GPU or CPU.');
+      }
+    }
+
+    const size =
+        util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
+    if (options.customBufSize != null) {
+      util.assert(
+          options.customBufSize >= size,
+          () => `customBufSize should be equal or larger than ` +
+              `the source tensor size ${size} bytes.`);
+    }
+
+    const bufferSize =
+        options.customBufSize != null ? options.customBufSize : size;
+    const resBuffer = this.acquireBuffer(bufferSize);
+    this.ensureCommandEncoderReady();
+    this.ensureComputePassEnded();
+    this.currentCommandEncoder.copyBufferToBuffer(
+        bufferInfo.buffer, 0, resBuffer, 0, size);
+    this.submitQueue();
+
+    const tensorInfo = this.makeTensorInfo(shape, dtype);
+    // Make engine track this tensor, so that we can dispose it later.
+    const tensorRef = engine().makeTensorFromTensorInfo(tensorInfo);
+
+    const info = this.tensorMap.get(tensorInfo.dataId);
+    info.bufferInfo.buffer = resBuffer;
+    // Explicitly change the buffer size that could release the buffer
+    // successfully in future.
+    info.bufferInfo.byteSize = bufferSize;
+
+    return {tensorRef, buffer: resBuffer, bufSize: bufferSize};
   }
 
   bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {
@@ -696,20 +749,20 @@ export class WebGPUBackend extends KernelBackend {
     bindGroupLayoutEntries.push({
       binding: 0,
       visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'storage' as const}
+      buffer: {type: 'storage' as const }
     });
     // Input buffer binding layout. Depends on variableNames length.
     for (let i = 0; i < inputEntrySize; i++) {
       bindGroupLayoutEntries.push({
         binding: i + 1,
         visibility: GPUShaderStage.COMPUTE,
-        buffer: {type: 'read-only-storage' as const}
+        buffer: {type: 'read-only-storage' as const }
       });
     }
     bindGroupLayoutEntries.push({
       binding: inputEntrySize + 1,
       visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'uniform' as const}
+      buffer: {type: 'uniform' as const }
     });
     const bindGroupLayout =
         this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
@@ -868,7 +921,7 @@ export class WebGPUBackend extends KernelBackend {
     bindGroupLayoutEntries.push({
       binding: 0,
       visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'storage' as const}
+      buffer: {type: 'storage' as const }
     });
     // Input texture binding layout.
     if (useImport) {
