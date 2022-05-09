@@ -15,6 +15,9 @@
  * =============================================================================
  */
 
+// Workaround for: https://github.com/bazelbuild/rules_nodejs/issues/1265
+/// <reference types="@webgpu/types/dist" />
+
 import {getGlobal} from './global_util';
 import {tensorToString} from './tensor_format';
 import {ArrayMap, BackendValues, DataType, DataTypeMap, DataValues, NumericDataType, Rank, ShapeMap, SingleValueMap, TypedArray} from './types';
