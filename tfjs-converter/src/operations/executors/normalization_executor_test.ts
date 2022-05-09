@@ -49,7 +49,7 @@ describe('normalization', () => {
         node.op = 'EuclideanNorm';
         node.inputParams['axis'] = createNumericArrayAttrFromIndex(1);
         node.attrParams.keepDims = createBoolAttr(false);
-        node.inputNames = ['input1', 'input2', 'input3'];
+        node.inputNames = ['input1', 'input2'];
         const input2 = [tfOps.tensor1d([2])];
         executeOp(node, {input1, input2}, context);
 
