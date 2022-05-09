@@ -171,7 +171,24 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
     $bias = convertToTensor(bias, 'bias', 'fused conv2d');
     [$bias] = makeTypesMatch($bias, $x);
 
-    broadcast_util.assertAndGetBroadcastShape(convInfo.outShape, $bias.shape);
+    // According to TensorFlow, the bias is supposed be a 1-D tensor or a
+    // scalar.
+    if (dataFormat === 'NHWC') {
+      broadcast_util.assertAndGetBroadcastShape(convInfo.outShape, $bias.shape);
+    } else {
+      util.assert(
+          $bias.shape.length <= 1,
+          () => `Error in fused conv2d: only supports scalar or 1-D Tensor ` +
+              `bias for NCHW format but got the bias of ` +
+              `rank-${$bias.shape.length}.`);
+
+      util.assert(
+          $bias.shape.length === 0 || $bias.shape[0] === convInfo.outChannels ||
+              $bias.shape[0] === 1,
+          () => `Error in fused conv2d: bias shape (${$bias.shape}) is not ` +
+              `compatible with the number of output channels ` +
+              `(${convInfo.outChannels})`);
+    }
   }
 
   let $preluActivationWeights: Tensor;
