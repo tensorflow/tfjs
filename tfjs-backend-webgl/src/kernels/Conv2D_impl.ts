@@ -103,19 +103,6 @@ export function conv2dByMatMul({
   let out: TensorInfo;
   const intermediates: TensorInfo[] = [];
 
-  if (bias != null) {
-    // Bias could be a 1-D tensor or a scalar.
-    util.assert(
-        bias.shape.length <= 1,
-        () => `WebGL conv2dByMatMul only supports 1-D Tensor bias but got ` +
-            `the bias of rank-${bias.shape.length}.`);
-    util.assert(
-        bias.shape.length === 0 || bias.shape[0] === convInfo.outChannels,
-        () => `WebGL conv2dByMatMul bias shape (${bias.shape}) is not ` +
-            `compatible with the number of output channels ` +
-            `(${convInfo.outChannels})`);
-  }
-
   if (preluActivationWeights != null) {
     const preluActivationWeightsInNhwcFormat =
         fitPreluActivationWeightsIntoNhwcFormat(
@@ -299,19 +286,6 @@ export function conv2dWithIm2Row({
   const transposeB = false;
 
   const intermediates: TensorInfo[] = [];
-
-  if (bias != null) {
-    // Bias could be a 1-D tensor or a scalar.
-    util.assert(
-        bias.shape.length <= 1,
-        () => `WebGL conv2dWithIm2Row only supports 1-D Tensor bias but got ` +
-            `the bias of rank-${bias.shape.length}.`);
-    util.assert(
-        bias.shape.length === 0 || bias.shape[0] === convInfo.outChannels,
-        () => `WebGL conv2dWithIm2Row bias shape (${bias.shape}) is not ` +
-            `compatible with the number of output channels ` +
-            `(${convInfo.outChannels})`);
-  }
 
   if (preluActivationWeights != null) {
     const preluActivationWeightsInNhwcFormat =
