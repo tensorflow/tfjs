@@ -50,12 +50,14 @@ export function fusedConv2D(args: {
     const resultOld = result;
     if (dataFormat === 'NCHW' && bias.shape.length === 1 &&
         bias.shape[0] !== 1) {
+      // For NCHW format, if bias is a 1-D tensor, it is supposed to be aligned
+      // to the channel of the conv2d's result; if bias is a scalar, the
+      // bias_add is computed as if the bias was broadcasted.
       const reshapedBias = reshape(
           {inputs: {x: bias}, backend, attrs: {shape: [bias.shape[0], 1, 1]}});
       result =
           add({inputs: {a: result, b: reshapedBias}, backend}) as TensorInfo;
       backend.disposeIntermediateTensorInfo(reshapedBias);
-      console.log('tested');
     } else {
       result = add({inputs: {a: result, b: bias}, backend}) as TensorInfo;
     }
