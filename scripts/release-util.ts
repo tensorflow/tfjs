@@ -17,7 +17,7 @@
  */
 
 import chalk from 'chalk';
-import * as mkdirp from 'mkdirp';
+import mkdirp from 'mkdirp';
 import * as readline from 'readline';
 import * as shell from 'shelljs';
 
