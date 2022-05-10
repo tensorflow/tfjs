@@ -56,14 +56,9 @@ export class MathBackendCPU extends KernelBackend {
       if (env().get('IS_NODE')) {
         backend_util.warn(
             '\n============================\n' +
-            'Hi there 👋. Looks like you are running TensorFlow.js in ' +
+            'Hi, looks like you are running TensorFlow.js in ' +
             'Node.js. To speed things up dramatically, install our node ' +
-            'backend, which binds to TensorFlow C++, by running ' +
-            'npm i @tensorflow/tfjs-node, ' +
-            'or npm i @tensorflow/tfjs-node-gpu if you have CUDA. ' +
-            'Then call require(\'@tensorflow/tfjs-node\'); (-gpu ' +
-            'suffix for CUDA) at the start of your program. ' +
-            'Visit https://github.com/tensorflow/tfjs-node for more details.' +
+            'backend, visit https://github.com/tensorflow/tfjs-node for more details. ' +
             '\n============================');
       }
     }
