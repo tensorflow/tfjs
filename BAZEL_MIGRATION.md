@@ -364,7 +364,7 @@ As a core featue of its design, Bazel places outputs in a different directory th
 Instead, we maintain a `link-package` pseudopackage where we copy the Bazel outputs. This package allows for correct Node module resolution between Bazel outputs because it has its own `node_modules` folder. This package will never be published and will be removed once the migration is complete.
 
 #### Add the Package to `link-package`
-Add your package to the the `PACKAGES` list in the `build_deps.ts` script in `link-package`. For a package with npm name `@tensorflow/tfjs-foo`, the package's directory in the monorepo and the value to add to `PACKAGES` should both be `tfjs-foo`. The name of the package's `pkg_npm` target should be `tfjs-foo_pkg`.
+Add your package to the `PACKAGES` list in the `build_deps.ts` script in `link-package`. For a package with npm name `@tensorflow/tfjs-foo`, the package's directory in the monorepo and the value to add to `PACKAGES` should both be `tfjs-foo`. The name of the package's `pkg_npm` target should be `tfjs-foo_pkg`.
 
 ```typescript
 const PACKAGES: ReadonlySet<string> = new Set([
