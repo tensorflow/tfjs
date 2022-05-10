@@ -29,6 +29,11 @@ export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
      context: ExecutionContext): Tensor[] => {
       switch (node.op) {
+        case 'EuclideanNorm':
+          return [tfOps.euclideanNorm(
+              getParamValue('x', node, tensorMap, context) as Tensor,
+              getParamValue('axis', node, tensorMap, context) as number[],
+              getParamValue('keepDims', node, tensorMap, context) as boolean)];
         case 'FusedBatchNorm':
         case 'FusedBatchNormV2': {
           return [tfOps.batchNorm(
