@@ -13,10 +13,11 @@
 // limitations under the License.
 // =============================================================================
 
-const generateCloudbuild = require('./generate_cloudbuild').generateCloudbuild;
-const yaml = require('js-yaml');
-const fs = require('fs');
-const path = require('path');
+import { generateCloudbuild, CloudbuildYaml} from './generate_cloudbuild';
+//const generateCloudbuild = require('./generate_cloudbuild').generateCloudbuild;
+import * as yaml from 'js-yaml';
+import * as fs from 'fs';
+import * as path from 'path';
 
 // These tests only detect changes in the generated file, and may need to be
 // updated if the project structure changes. To update them, run
@@ -25,16 +26,16 @@ const path = require('path');
 // jasmine.withContext to show the above message if the tests fail.
 describe('generateCloudbuild', () => {
   it('generates the correct cloudbuild file for e2e', () => {
-    const expectedCloudbuild = yaml.safeLoad(fs.readFileSync(
-        path.join('scripts/cloudbuild_e2e_expected.yml')));
+    const expectedCloudbuild = yaml.load(fs.readFileSync(
+      path.join(__dirname, 'cloudbuild_e2e_expected.yml'), 'utf8'));
     const cloudbuild = generateCloudbuild(['e2e'], /* print */ false);
-    expect(cloudbuild).toEqual(expectedCloudbuild);
+    expect(cloudbuild).toEqual(expectedCloudbuild as CloudbuildYaml);
   });
 
   it('generates the correct cloudbuild file for tfjs-node', () => {
-    const expectedCloudbuild = yaml.safeLoad(fs.readFileSync(
-        path.join('scripts/cloudbuild_tfjs_node_expected.yml')));
+    const expectedCloudbuild = yaml.load(fs.readFileSync(
+      path.join(__dirname, 'cloudbuild_tfjs_node_expected.yml'), 'utf8'));
     const cloudbuild = generateCloudbuild(['tfjs-node'], /* print */ false);
-    expect(cloudbuild).toEqual(expectedCloudbuild);
+    expect(cloudbuild).toEqual(expectedCloudbuild as CloudbuildYaml);
   });
 });
