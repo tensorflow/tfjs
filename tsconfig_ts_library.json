@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "typeRoots": [ "./node_modules/@webgpu", "./node_modules/@types"],
     "module": "ES2015",
     "moduleResolution": "node",
     "noImplicitAny": true,
