@@ -261,6 +261,7 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|EuclideanNorm|EuclideanNorm|
 |FusedBatchNorm|FusedBatchNorm|
 |FusedBatchNormV2|FusedBatchNormV2|
 |FusedBatchNormV3|FusedBatchNormV3|

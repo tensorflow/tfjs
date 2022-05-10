@@ -22,7 +22,7 @@ import * as normalization from '../op_list/normalization';
 import {Node} from '../types';
 
 import {executeOp} from './normalization_executor';
-import {createNumberAttr, createNumericArrayAttrFromIndex, createTensorAttr, validateParam} from './test_helper';
+import {createBoolAttr, createNumberAttr, createNumericArrayAttrFromIndex, createTensorAttr, validateParam} from './test_helper';
 
 describe('normalization', () => {
   let node: Node;
@@ -43,6 +43,27 @@ describe('normalization', () => {
   });
 
   describe('executeOp', () => {
+    describe('EuclideanNorm', () => {
+      it('should call tfOps.euclideanNorm', () => {
+        spyOn(tfOps, 'euclideanNorm');
+        node.op = 'EuclideanNorm';
+        node.inputParams['axis'] = createNumericArrayAttrFromIndex(1);
+        node.attrParams.keepDims = createBoolAttr(false);
+        node.inputNames = ['input1', 'input2'];
+        const input2 = [tfOps.tensor1d([2])];
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfOps.euclideanNorm).toHaveBeenCalledWith(input1[0], [2], false);
+      });
+      it('should match json def', () => {
+        node.op = 'EuclideanNorm';
+        delete node.inputParams.x;
+        node.inputParams.axis = createNumericArrayAttrFromIndex(1);
+        node.attrParams.keepDims = createBoolAttr(false);
+
+        expect(validateParam(node, normalization.json)).toBeTruthy();
+      });
+    });
     describe('FusedBatchNorm', () => {
       it('should call tfOps.batchNorm', () => {
         spyOn(tfOps, 'batchNorm');
