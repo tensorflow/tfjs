@@ -40,7 +40,8 @@ parser.add_argument('--all', {
 });
 
 /**
- * Build bazel dependencies for the package specified by tfjs_package.
+ * Build bazel dependencies for the packages specified by the repeated argument
+ * tfjs_package.
  *
  * @example 'yarn build-deps-for tfjs-react-native' builds all bazel
  * dependencies for @tensorflow/tfjs-react-native.
