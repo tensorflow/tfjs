@@ -13,7 +13,6 @@
   "tfjs-layers": ["tfjs-core", "tfjs-backend-cpu", "tfjs-backend-webgl"],
   "tfjs-node": ["tfjs-core", "tfjs"],
   "tfjs-node-gpu": ["tfjs-core", "tfjs"],
-  "tfjs-react-native": [],
   "tfjs-tflite": ["tfjs-core", "tfjs-backend-cpu"],
   "tfjs-vis": []
 }
