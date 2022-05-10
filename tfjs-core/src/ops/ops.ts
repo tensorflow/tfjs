@@ -73,6 +73,7 @@ export {einsum} from './einsum';
 export {elu} from './elu';
 export {equal} from './equal';
 export {erf} from './erf';
+export {euclideanNorm} from './euclidean_norm';
 export {exp} from './exp';
 export {expandDims} from './expand_dims';
 export {expm1} from './expm1';

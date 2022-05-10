@@ -13,6 +13,7 @@
     "@rollup/plugin-node-resolve": "^11.2.1",
     "@types/argparse": "^1.0.38",
     "@types/jasmine": "~3.0.0",
+    "@types/js-yaml": "^4.0.5",
     "@types/long": "4.0.1",
     "@types/mkdirp": "^0.5.2",
     "@types/node": "^12.7.5",
@@ -63,8 +64,8 @@
   "scripts": {
     "lint": "tslint -p tsconfig_tslint.json",
     "test-packages-ci": "yarn generate-cloudbuild-for-packages && ./scripts/run-build.sh",
-    "generate-cloudbuild-for-packages": "./scripts/generate_cloudbuild_for_packages.js",
-    "test-generate-cloudbuild": "jasmine run scripts/generate_cloudbuild_test.js",
+    "generate-cloudbuild-for-packages": "ts-node -s ./scripts/generate_cloudbuild_for_packages.ts",
+    "test-generate-cloudbuild": "cd scripts && node --require ts-node/register ../node_modules/jasmine/bin/jasmine.js run generate_cloudbuild_test.ts",
     "test-run-flaky": "jasmine run scripts/run_flaky_test.js",
     "release": "ts-node -s ./scripts/release.ts",
     "release-tfjs": "ts-node -s ./scripts/release-tfjs.ts",
