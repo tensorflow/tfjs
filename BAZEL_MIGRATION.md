@@ -378,18 +378,18 @@ Update all downstream dependencies that depend on the package to point to its lo
 ```json
 "devDependencies": {
   "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
-  "@tensorflow/your-package": "link:../link-package/node_modules/@tensorflow/your-package",
+  "@tensorflow/tfjs-foo": "link:../link-package/node_modules/@tensorflow/tfjs-foo",
 },
 ```
 
-To find downstream packages, run `grep -r --exclude=yarn.lock --exclude-dir=node_modules "link:.*your-package-name" .` in the root of the repository.
+To find downstream packages, run `grep -r --exclude=yarn.lock --exclude-dir=node_modules "link:.*tfjs-foo" .` in the root of the repository.
 
 #### Update Downstream Packages' build-link-package Scripts
 Make sure to list the new package in the call to `yarn build-deps-for ...` script for downstream packages. This includes packages that have `tfjs-foo` as a transitive dependency.
 ```json
 "scripts": {
-  "build-link-package": "cd ../link-package && yarn build-deps-for tfjs-backend-cpu tfjs-foo",
-  "build-tfjs-foo": "......", // <-- Don't forget to remove the earlier build script from downstream packages.
+  "build-link-package": "cd ../link-package && yarn build-deps-for tfjs-foo tfjs-some-other-dependency",
+  "build-tfjs-foo": "remove this script", // <-- Don't forget to remove this earlier build script from downstream packages.
 }
 ```
 ### Move linting to the repo-wide lint script
