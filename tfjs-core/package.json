@@ -55,7 +55,6 @@
     "bundle": "bazel build :tfjs-core_pkg",
     "bundle-ci": "yarn bundle",
     "build-npm": "bazel build :tfjs-core_pkg",
-    "build-deps": "yarn build",
     "format-all": "clang-format -i -style=Google --glob=src/**/*.ts",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
