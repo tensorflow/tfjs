@@ -16,7 +16,7 @@
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core"
+    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core"
   },
   "devDependencies": {
     "@bazel/bazelisk": "^1.10.1",
@@ -25,8 +25,8 @@
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-replace": "^2.3.3",
     "@rollup/plugin-typescript": "^3.0.0",
-    "@tensorflow/tfjs-backend-cpu": "link:../link-package-core/node_modules/@tensorflow/tfjs-backend-cpu",
-    "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core",
+    "@tensorflow/tfjs-backend-cpu": "link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
+    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
     "@types/argparse": "^1.0.38",
     "@types/deep-equal": "^1.0.1",
     "@types/jasmine": "~2.8.6",
@@ -58,8 +58,6 @@
     "build-ci": "yarn build",
     "bundle": "yarn build",
     "bundle-ci": "yarn build",
-    "build-link-package": "cd ../link-package && yarn build",
-    "build-deps": "yarn build-link-package",
     "build-npm": "bazel build :tfjs-converter_pkg.pack",
     "publish-npm": "bazel run :tfjs-converter_pkg.publish",
     "test": "bazel test :tfjs-converter_test :test_snippets_test",

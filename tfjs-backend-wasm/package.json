@@ -14,8 +14,8 @@
   "jsdelivr": "dist/tf-backend-wasm.min.js",
   "miniprogram": "dist/miniprogram",
   "scripts": {
-    "build-deps": "yarn build-link-package-core",
-    "build-link-package-core": "cd ../link-package-core && yarn build",
+    "build-deps": "yarn build-link-package",
+    "build-link-package": "cd ../link-package && yarn build-deps-for tfjs-backend-wasm",
     "build": "rimraf dist/ && tsc && ./scripts/build-wasm.sh",
     "build-dev": "rimraf dist/ && tsc && ./scripts/build-wasm.sh --dev",
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
@@ -44,10 +44,10 @@
     "perf_hooks": false
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core"
+    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core"
   },
   "dependencies": {
-    "@tensorflow/tfjs-backend-cpu": "link:../link-package-core/node_modules/@tensorflow/tfjs-backend-cpu",
+    "@tensorflow/tfjs-backend-cpu": "link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
     "@types/emscripten": "~0.0.34"
   },
   "devDependencies": {
@@ -57,7 +57,7 @@
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-node-resolve": "^7.1.1",
     "@rollup/plugin-typescript": "^3.0.0",
-    "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core",
+    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
     "@types/jasmine": "~2.8.6",
     "clang-format": "~1.2.4",
     "jasmine": "~3.1.0",
