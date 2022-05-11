@@ -46,9 +46,6 @@ export function sparseToDense(args: {
           numUpdates, sliceRank, strides, $defaultValue, sumDupeIndices);
       break;
     }
-    case 'complex64': {
-      throw new Error('Complex is not supported by sparseToDense.');
-    }
     case 'float32': {
       const updatesBuf = backend.bufferSync<Rank, 'float32'>(sparseValues);
       const $defaultValue =
@@ -76,6 +73,8 @@ export function sparseToDense(args: {
           numUpdates, sliceRank, strides, $defaultValue, sumDupeIndices);
       break;
     }
+    default:
+      throw new Error(`Unsupported type ${sparseValues.dtype}`);
   }
   return backend.makeTensorInfo(outputShape, outBuf.dtype, outBuf.values);
 }
