@@ -17,7 +17,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, buffer, DataStorage, DataToGPUWebGPUOption, DataType, DataValues, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, DataStorage, DataToGPUWebGPUOption, DataType, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {BufferManager} from './buffer_manager';
 import {TextureManager} from './texture_manager';
@@ -528,7 +528,8 @@ export class WebGPUBackend extends KernelBackend {
     return {tensorRef, buffer: resBuffer, bufSize: bufferSize};
   }
 
-  bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {
+  bufferSync<R extends Rank, D extends DataType>(t: TensorInfo):
+      TensorBuffer<R, D> {
     const data = this.readSync(t.dataId);
     if (t.dtype === 'string') {
       try {
@@ -750,20 +751,20 @@ export class WebGPUBackend extends KernelBackend {
     bindGroupLayoutEntries.push({
       binding: 0,
       visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'storage' as const }
+      buffer: {type: 'storage' as const}
     });
     // Input buffer binding layout. Depends on variableNames length.
     for (let i = 0; i < inputEntrySize; i++) {
       bindGroupLayoutEntries.push({
         binding: i + 1,
         visibility: GPUShaderStage.COMPUTE,
-        buffer: {type: 'read-only-storage' as const }
+        buffer: {type: 'read-only-storage' as const}
       });
     }
     bindGroupLayoutEntries.push({
       binding: inputEntrySize + 1,
       visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'uniform' as const }
+      buffer: {type: 'uniform' as const}
     });
     const bindGroupLayout =
         this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
@@ -922,7 +923,7 @@ export class WebGPUBackend extends KernelBackend {
     bindGroupLayoutEntries.push({
       binding: 0,
       visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'storage' as const }
+      buffer: {type: 'storage' as const}
     });
     // Input texture binding layout.
     if (useImport) {
