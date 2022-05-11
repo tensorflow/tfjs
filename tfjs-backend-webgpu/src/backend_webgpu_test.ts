@@ -17,7 +17,7 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 
-import {GPUData, test_util, util} from '@tensorflow/tfjs-core';
+import {GPUData, test_util} from '@tensorflow/tfjs-core';
 const {expectArraysEqual, expectArraysClose} = test_util;
 
 import {WebGPUBackend, WebGPUMemoryInfo} from './backend_webgpu';
@@ -357,28 +357,6 @@ describeWebGPU('keeping data on gpu ', () => {
     expectArraysEqual(values, data);
   });
 
-  it('uses user defined bufSize.', async () => {
-    const webGPUBackend = (tf.backend() as WebGPUBackend);
-    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-    const a = tf.tensor(data, [1, 3, 4]);
-    const b = tf.add(a, 0);
-    const bufSize = 96;
-    const res = b.dataToGPU({customBufSize: bufSize});
-    expectArraysEqual(res.bufSize, bufSize);
-    if (res.tensorRef.dtype !== 'float32') {
-      throw new Error(
-          `Unexpected type. Actual: ${res.tensorRef.dtype}. ` +
-          `Expected: float32`);
-    }
-    const resData = await webGPUBackend.getBufferData(
-        res.buffer,
-        util.sizeFromShape(res.tensorRef.shape) *
-            webgpu_util.GPUBytesPerElement(res.tensorRef.dtype));
-    const values = webgpu_util.ArrayBufferToTypedArray(
-        resData as ArrayBuffer, res.tensorRef.dtype);
-    expectArraysEqual(values, data);
-  });
-
   it('has a valid buffer for dtype=int32.', async () => {
     const webGPUBackend = (tf.backend() as WebGPUBackend);
     const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -464,15 +442,5 @@ describeWebGPU('keeping data on gpu ', () => {
 
     expect(endTensor).toEqual(startTensor + 1);
     expect(endDataBuckets).toEqual(startDataBuckets + 1);
-  });
-
-  it('throws error when user defined bufSize is too small.', () => {
-    const data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-    const a = tf.tensor(data, [1, 3, 4]);
-    const b = tf.add(a, 0);
-
-    expect(() => {
-      b.dataToGPU({customBufSize: 32});
-    }).toThrowError();
   });
 });

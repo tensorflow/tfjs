@@ -163,11 +163,7 @@ export interface DataToGPUWebGLOption {
   customTexShape?: [number, number];
 }
 
-export interface DataToGPUWebGPUOption {
-  customBufSize?: number;
-}
-
-export type DataToGPUOptions = DataToGPUWebGLOption|DataToGPUWebGPUOption;
+export type DataToGPUOptions = DataToGPUWebGLOption;
 
 export interface GPUData {
   tensorRef: Tensor;
@@ -176,6 +172,7 @@ export interface GPUData {
   texShape?: [number, number];
   bufSize?: number;
 }
+
 export interface TensorTracker {
   makeTensor(
       values: DataValues, shape: number[], dtype: DataType,
