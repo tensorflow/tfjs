@@ -42,6 +42,7 @@ export {notEqualImpl} from './kernels/NotEqual';
 export {prodImpl} from './kernels/Prod';
 export {rangeImpl} from './kernels/Range_impl';
 export {rsqrtImpl} from './kernels/Rsqrt';
+export {scatterImpl} from './kernels/Scatter_impl';
 export {sigmoidImpl} from './kernels/Sigmoid';
 export {sliceImpl} from './kernels/Slice';
 export {sparseFillEmptyRowsImpl} from './kernels/SparseFillEmptyRows_impl';
