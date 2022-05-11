@@ -99,7 +99,6 @@ describeWebGPU('conv2d vec4', () => {
         ]));
   });
 
-
   it('conv2d x=[1,8,8,3] f=[3,3,3,64] s=[2,2] d=1 p=valid Conv2DMMVec4Program remainder != 0',
      async () => {
        const inputDepth = 3;
