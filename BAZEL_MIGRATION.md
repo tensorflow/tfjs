@@ -364,31 +364,12 @@ As a core featue of its design, Bazel places outputs in a different directory th
 Instead, we maintain a `link-package` pseudopackage where we copy the Bazel outputs. This package allows for correct Node module resolution between Bazel outputs because it has its own `node_modules` folder. This package will never be published and will be removed once the migration is complete.
 
 #### Add the Package to `link-package`
-Add your package to the `devDependencies` of the `link-package`'s `package.json`. The package path should be similar to the one below and is based off of the `pkg_npm` rule's name.
+Add your package to the `PACKAGES` list in the `build_deps.ts` script in `link-package`. For a package with npm name `@tensorflow/tfjs-foo`, the package's directory in the monorepo and the value to add to `PACKAGES` should both be `tfjs-foo`. The name of the package's `pkg_npm` target should be `tfjs-foo_pkg`.
 
-```json
-"devDependencies": {
-  "@tensorflow/tfjs-core": "file:../dist/bin/tfjs-core/tfjs-core_pkg",
-  "@tensorflow/your-package": "file:../dist/bin/...",
-}
-```
-
-#### Add a build script to the `link-package`
-Add a script to build your package to the link-package's `package.json`. Be sure to add it to the `build` script as well.
-
-```json
-"scripts": {
-  "build": "yarn build-backend-cpu && yarn build-core && yarn reinstall",
-  "build-core": "cd ../tfjs-core && yarn && yarn build",
-  "build-your-package": "...",
-},
-```
-
-#### Add your package to the `reinstall` script
-This ensures that when the link package is rebuilt, it uses the most up-to-date version of your package.
-
-```json
-    "reinstall": "yarn && yarn reinstall-link-package-core && yarn cache clean @tensorflow/your-package && ... && rimraf node_modules && yarn"
+```typescript
+const PACKAGES: ReadonlySet<string> = new Set([
+  ..., 'tfjs-foo',
+]);  
 ```
 
 #### Change Downstream Dependency `package.json` Paths
@@ -397,12 +378,20 @@ Update all downstream dependencies that depend on the package to point to its lo
 ```json
 "devDependencies": {
   "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
-  "@tensorflow/your-package": "link:../link-package/node_modules/@tensorflow/your-package",
+  "@tensorflow/tfjs-foo": "link:../link-package/node_modules/@tensorflow/tfjs-foo",
 },
 ```
 
-To find downstream packages, run `grep -r --exclude=yarn.lock --exclude-dir=node_modules "link:.*your-package-name" .` in the root of the repository.
+To find downstream packages, run `grep -r --exclude=yarn.lock --exclude-dir=node_modules "link:.*tfjs-foo" .` in the root of the repository.
 
+#### Update Downstream Packages' build-link-package Scripts
+Make sure to list the new package in the call to `yarn build-deps-for ...` script for downstream packages. This includes packages that have `tfjs-foo` as a transitive dependency.
+```json
+"scripts": {
+  "build-link-package": "cd ../link-package && yarn build-deps-for tfjs-foo tfjs-some-other-dependency",
+  "build-tfjs-foo": "remove this script", // <-- Don't forget to remove this earlier build script from downstream packages.
+}
+```
 ### Move linting to the repo-wide lint script
 #### Add the new Bazel package to the [repo-wide tslint tsconfig](tsconfig_tslint.json):
 

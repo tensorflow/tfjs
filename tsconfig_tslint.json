@@ -34,7 +34,6 @@
     "bazel-out",
     "dist",
     "link-package",
-    "link-package-core",
     "node_modules",
     "tfjs-backend-nodegl",
     "tfjs-backend-wasm",
