@@ -378,6 +378,9 @@ export class Tensor<R extends Rank = Rank> {
    * For WebGL backend, the data will be stored on a densely packed texture.
    * This means that the texture will use the RGBA channels to store value.
    *
+   * For WebGPU backend, the data will be stored on a buffer. There is no
+   * parameter, so can not use an user defined size to create the buffer.
+   *
    * @param options:
    *     For WebGL,
    *         - customTexShape: Optional. If set, will use the user defined
@@ -390,6 +393,15 @@ export class Tensor<R extends Rank = Rank> {
    *        texture: WebGLTexture,
    *        texShape: [number, number] // [height, width]
    *     }
+   *
+   *     For WebGPU backend, a GPUData contains the new buffer and
+   *     its information.
+   *     {
+   *        tensorRef: The tensor that is associated with this buffer,
+   *        buffer: GPUBuffer,
+   *        bufSize: number
+   *     }
+   *
    *     Remember to dispose the GPUData after it is used by
    *     `res.tensorRef.dispose()`.
    *
