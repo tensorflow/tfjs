@@ -47,12 +47,6 @@ export function fusedConv2D(args: {
   });
 
   if (bias) {
-    // TODO: Transpose 1-D bias properly for NCHW format.
-    if (dataFormat !== 'NHWC' && bias.shape.length === 1) {
-      throw new Error(
-          `CPU backend FusedConv2D does not support 1-D bias for dataFormat:'` +
-          `${dataFormat}'. Please use 'NHWC' format or use a scalar bias.`);
-    }
     const resultOld = result;
     // For NCHW format, if bias is a 1-D tensor, it is supposed to be aligned
     // to the channel of the conv2d's result; if the bias is a scalar, the
@@ -74,12 +68,6 @@ export function fusedConv2D(args: {
   }
 
   if (activation) {
-    // TODO: Transpose PReLU activation weights properly for NCHW format.
-    if (activation === 'prelu' && dataFormat !== 'NHWC') {
-      throw new Error(
-          `CPU backend FusedConv2D does not support PReLU activation for ` +
-          `dataFormat:'${dataFormat}'. Please use 'NHWC' format.`);
-    }
     const resultOld = result;
     // For NCHW format, if PReLu activation weights is a 1-D tensor, it is
     // supposed to be aligned with the channel of the conv2d's result. For other

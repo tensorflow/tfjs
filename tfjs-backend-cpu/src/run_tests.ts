@@ -42,28 +42,11 @@ const cpuTests = 'tfjs-backend-cpu/src/**/*_test.js';
 const runner = new jasmineCtor();
 runner.loadConfig({spec_files: [cpuTests, coreTests], random: false});
 
-const TEST_FILTERS: TestFilter[] = [
-  {
-    startsWith: 'fused conv2d ',
-    excludes: [
-      'basic in NCHW with',  // NCHW format with bias or prelu activation is not
-                             // supported yet
-      'im2row in NCHW with',
-    ]
-  },
-];
+const TEST_FILTERS: TestFilter[] = [];
 const customInclude = (testName: string) => {
   // Exclude webworker test
   if (testName.includes('computation in worker')) {
     return false;
-  }
-
-  //  NCHW format with bias or prelu activation is not supported yet.
-  if (testName.startsWith('fused conv2d')) {
-    if (testName.includes('basic in NCHW with') ||
-        testName.includes('im2row in NCHW with')) {
-      return false;
-    }
   }
 
   // Include all other tests.
