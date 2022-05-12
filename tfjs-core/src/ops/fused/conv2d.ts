@@ -176,11 +176,61 @@ function fusedConv2d_<T extends Tensor3D|Tensor4D>({
     $bias = convertToTensor(bias, 'bias', 'fused conv2d');
     [$bias] = makeTypesMatch($bias, $x);
 
-    broadcast_util.assertAndGetBroadcastShape(convInfo.outShape, $bias.shape);
+    // According to TensorFlow, the bias is supposed be a 1-D tensor or a
+    // scalar.
+    if (dataFormat === 'NHWC') {
+      broadcast_util.assertAndGetBroadcastShape(convInfo.outShape, $bias.shape);
+    } else {
+      util.assert(
+          $bias.shape.length <= 1,
+          () => `Error in fused conv2d: only supports scalar or 1-D Tensor ` +
+              `bias for NCHW format but got the bias of ` +
+              `rank-${$bias.shape.length}.`);
+
+      util.assert(
+          $bias.shape.length === 0 || $bias.shape[0] === convInfo.outChannels ||
+              $bias.shape[0] === 1,
+          () => `Error in fused conv2d: bias shape (${$bias.shape}) is not ` +
+              `compatible with the number of output channels ` +
+              `(${convInfo.outChannels})`);
+    }
   }
 
   let $preluActivationWeights: Tensor;
   if (preluActivationWeights != null) {
+    // PReLU's activation weights could be a scalar, a 1-D tensor or a 3-D
+    // tensor.
+    const alphaShape = preluActivationWeights.shape;
+    util.assert(
+        alphaShape.length <= 1 || alphaShape.length === 3,
+        () => `Error in fused conv2d: only supports scalar, 1-D Tensor or ` +
+            `3-D Tensor PReLU activation weights but got a tensor of ` +
+            `rank-${alphaShape.length}.`);
+
+    if (alphaShape.length === 1) {
+      // Whether the data format is NCHW or NHWC, the 1-D PReLU activation
+      // weights tensor should be aligned with the output channels of conv2d
+      // result.
+      util.assert(
+          alphaShape[0] === 1 || alphaShape[0] === convInfo.outChannels,
+          () => `Error in fused conv2d: PReLU activation weights ` +
+              `(${alphaShape}) is not compatible with the number of output ` +
+              `channels (${convInfo.outChannels}).`);
+    } else if (alphaShape.length === 3) {
+      // Whether the data format is NCHW or NHWC, the PReLU activation weights
+      // tensor should has the compatible shape with the result of conv2d.
+      try {
+        broadcast_util.assertAndGetBroadcastShape(
+            alphaShape, convInfo.outShape);
+      } catch (e) {
+        const errMsg =
+            `Error in fused conv2d: PReLU activation weights (${alphaShape}) ` +
+            `is not compatible with the output shape of the conv2d ` +
+            `(${convInfo.outShape}).`;
+        throw Error(errMsg);
+      }
+    }
+
     $preluActivationWeights = convertToTensor(
         preluActivationWeights, 'prelu weights', 'fused conv2d');
   }

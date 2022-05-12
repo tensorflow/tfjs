@@ -55,7 +55,6 @@
     "bundle": "bazel build :tfjs-core_pkg",
     "bundle-ci": "yarn bundle",
     "build-npm": "bazel build :tfjs-core_pkg",
-    "build-deps": "yarn build",
     "format-all": "clang-format -i -style=Google --glob=src/**/*.ts",
     "link-local": "yalc link",
     "publish-local": "rimraf dist/ && yarn build && rollup -c && yalc push",
@@ -76,6 +75,7 @@
     "@types/offscreencanvas": "~2019.3.0",
     "@types/seedrandom": "2.4.27",
     "@types/webgl-ext": "0.0.30",
+    "@webgpu/types": "^0.1.16",
     "long": "4.0.0",
     "node-fetch": "~2.6.1",
     "seedrandom": "2.4.3"

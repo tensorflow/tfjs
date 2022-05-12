@@ -28,11 +28,9 @@ import * as shell from 'shelljs';
 import {RELEASE_UNITS, question, $, printReleaseUnit, printPhase, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT} from './release-util';
 import * as fs from 'fs';
 
+import {BAZEL_PACKAGES} from './bazel_packages';
+
 const TMP_DIR = '/tmp/tfjs-publish';
-const BAZEL_PACKAGES = new Set([
-  'tfjs-core', 'tfjs-backend-cpu', 'tfjs-tflite', 'tfjs-converter',
-  'tfjs-backend-webgl', 'tfjs-backend-webgpu', 'tfjs-layers', 'tfjs-data'
-]);
 
 const parser = new argparse.ArgumentParser();
 parser.addArgument('--git-protocol', {
@@ -43,7 +41,7 @@ parser.addArgument('--git-protocol', {
 async function main() {
   const args = parser.parseArgs();
 
-  RELEASE_UNITS.forEach((_, i) => printReleaseUnit(i));
+  RELEASE_UNITS.forEach(printReleaseUnit);
   console.log();
 
   const releaseUnitStr =

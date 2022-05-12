@@ -69,8 +69,8 @@ function sparseToDense_<R extends Rank>(
     outputShape: ShapeMap[R], defaultValue: Scalar|ScalarLike = 0): Tensor<R> {
   const $sparseIndices =
       convertToTensor(sparseIndices, 'sparseIndices', 'sparseToDense', 'int32');
-  const $sparseValues =
-      convertToTensor(sparseValues, 'sparseValues', 'sparseToDense');
+  const $sparseValues = convertToTensor(
+      sparseValues, 'sparseValues', 'sparseToDense', 'string_or_numeric');
   const $defaultValue = convertToTensor(
       defaultValue, 'defaultValue', 'sparseToDense', $sparseValues.dtype);
 

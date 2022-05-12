@@ -59,6 +59,7 @@ import './dot';
 import './elu';
 import './equal';
 import './erf';
+import './euclidean_norm';
 import './exp';
 import './expand_dims';
 import './expm1';

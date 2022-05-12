@@ -46,14 +46,6 @@ steps:
     secretEnv:
       - BROWSERSTACK_KEY
   - name: gcr.io/learnjs-174218/release
-    dir: link-package-core
-    entrypoint: yarn
-    id: yarn-link-package-core
-    args:
-      - install
-    waitFor:
-      - bazel-tests
-  - name: gcr.io/learnjs-174218/release
     dir: link-package
     entrypoint: yarn
     id: yarn-link-package
@@ -61,23 +53,13 @@ steps:
       - install
     waitFor:
       - bazel-tests
-      - yarn-link-package-core
   - name: gcr.io/learnjs-174218/release
-    dir: tfjs-converter
+    dir: link-package
     entrypoint: yarn
-    id: yarn-tfjs-converter
+    id: yarn-link-package-build
     args:
-      - install
+      - build
     waitFor:
-      - yarn-common
-      - yarn-link-package
-  - name: gcr.io/learnjs-174218/release
-    id: create-pips-tfjs-converter
-    entrypoint: bash
-    args:
-      - ./tfjs-converter/scripts/create_python_pips.sh
-    waitFor:
-      - yarn-common
       - yarn-link-package
   - name: gcr.io/learnjs-174218/release
     dir: tfjs-backend-wasm
@@ -87,7 +69,7 @@ steps:
       - install
     waitFor:
       - yarn-common
-      - yarn-link-package
+      - yarn-link-package-build
   - name: gcr.io/learnjs-174218/release
     dir: tfjs-backend-wasm
     entrypoint: bash
@@ -97,7 +79,7 @@ steps:
     waitFor:
       - yarn-tfjs-backend-wasm
       - yarn-common
-      - yarn-link-package
+      - yarn-link-package-build
   - name: gcr.io/learnjs-174218/release
     dir: tfjs-backend-wasm
     entrypoint: yarn
@@ -107,7 +89,7 @@ steps:
     waitFor:
       - yarn-tfjs-backend-wasm
       - yarn-common
-      - yarn-link-package
+      - yarn-link-package-build
   - name: gcr.io/learnjs-174218/release
     dir: tfjs
     entrypoint: yarn
@@ -116,9 +98,7 @@ steps:
       - install
     waitFor:
       - yarn-common
-      - yarn-link-package
-      - yarn-tfjs-converter
-      - create-pips-tfjs-converter
+      - yarn-link-package-build
   - name: gcr.io/learnjs-174218/release
     dir: tfjs
     entrypoint: yarn
@@ -128,9 +108,7 @@ steps:
     waitFor:
       - yarn-tfjs
       - yarn-common
-      - yarn-link-package
-      - yarn-tfjs-converter
-      - create-pips-tfjs-converter
+      - yarn-link-package-build
   - name: gcr.io/learnjs-174218/release
     dir: tfjs
     entrypoint: yarn
@@ -140,9 +118,7 @@ steps:
     waitFor:
       - yarn-tfjs
       - yarn-common
-      - yarn-link-package
-      - yarn-tfjs-converter
-      - create-pips-tfjs-converter
+      - yarn-link-package-build
   - name: gcr.io/learnjs-174218/release
     dir: tfjs-node
     entrypoint: yarn
@@ -151,7 +127,7 @@ steps:
       - install
     waitFor:
       - yarn-common
-      - yarn-link-package
+      - yarn-link-package-build
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
@@ -164,7 +140,7 @@ steps:
     waitFor:
       - yarn-tfjs-node
       - yarn-common
-      - yarn-link-package
+      - yarn-link-package-build
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
@@ -177,7 +153,7 @@ steps:
     waitFor:
       - yarn-tfjs-node
       - yarn-common
-      - yarn-link-package
+      - yarn-link-package-build
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
@@ -190,7 +166,7 @@ steps:
     waitFor:
       - yarn-tfjs-node
       - yarn-common
-      - yarn-link-package
+      - yarn-link-package-build
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
@@ -204,7 +180,7 @@ steps:
       - yarn-tfjs-node
       - lint-tfjs-node
       - yarn-common
-      - yarn-link-package
+      - yarn-link-package-build
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
@@ -216,7 +192,7 @@ steps:
       - ensure-cpu-gpu-packages-align
     waitFor:
       - yarn-common
-      - yarn-link-package
+      - yarn-link-package-build
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
@@ -228,12 +204,10 @@ steps:
       - install
     waitFor:
       - yarn-common
-      - yarn-link-package
+      - yarn-link-package-build
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-converter
-      - create-pips-tfjs-converter
       - yarn-tfjs-node
       - build-addon-tfjs-node
       - build-tfjs-node
@@ -256,12 +230,10 @@ steps:
     waitFor:
       - yarn-e2e
       - yarn-common
-      - yarn-link-package
+      - yarn-link-package-build
       - yarn-tfjs
       - build-tfjs
       - lint-tfjs
-      - yarn-tfjs-converter
-      - create-pips-tfjs-converter
       - yarn-tfjs-node
       - build-addon-tfjs-node
       - build-tfjs-node

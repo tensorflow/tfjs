@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, buffer, KernelConfig, KernelFunc, MaxPool3DGrad, MaxPool3DGradAttrs, MaxPool3DGradInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, KernelConfig, KernelFunc, MaxPool3DGrad, MaxPool3DGradAttrs, MaxPool3DGradInputs, Rank, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
@@ -52,7 +52,7 @@ export function maxPool3DGrad(args: {
   const padTop = effectiveFilterHeight - 1 - convInfo.padInfo.top;
   const dx = buffer(input.shape, 'float32');
 
-  const dyBuf = backend.bufferSync(dy);
+  const dyBuf = backend.bufferSync<Rank, 'float32'>(dy);
 
   for (let batch = 0; batch < convInfo.batchSize; ++batch) {
     for (let channel = 0; channel < convInfo.inChannels; ++channel) {

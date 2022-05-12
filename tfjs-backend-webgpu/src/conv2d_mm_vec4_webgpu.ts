@@ -38,7 +38,6 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
-  hasLeakyreluAlpha: boolean;
   tileAOuter: number;
   tileBOuter: number;
   tileInner: number;
@@ -49,7 +48,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
       activation: backend_util.Activation = null,
-      hasPreluActivationWeights = false, hasLeakyreluAlpha = false) {
+      hasPreluActivationWeights = false) {
     this.outputShape = convInfo.outShape;
 
     util.assert(
@@ -69,17 +68,12 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.hasLeakyreluAlpha = hasLeakyreluAlpha;
     if (this.addBias) {
       this.variableNames.push('bias');
     }
 
     if (this.hasPreluActivationWeights) {
       this.variableNames.push('preluActivationWeights');
-    }
-
-    if (this.hasLeakyreluAlpha) {
-      this.variableNames.push('leakyreluAlpha');
     }
 
     this.tileAOuter = this.outputShape[1] === 1 ?
@@ -200,12 +194,6 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
           let b = getPreluActivationWeightsByOutputCoords(outCoord);
           ${activationOp}
         }`;
-      } else if (this.hasLeakyreluAlpha) {
-        activationSnippet = `fn activation(outCoord: vec4<f32>) -> vec4<f32> {
-          let b = getLeakyreluAlphaByOutputCoords(outCoord);
-          ${activationOp}
-        }`;
-        throw new Error('Leakyrelu is not supported.');
       } else {
         activationSnippet = `
         fn activation(a : vec4<f32>, outCoord : vec4<i32>) -> vec4<f32> {
