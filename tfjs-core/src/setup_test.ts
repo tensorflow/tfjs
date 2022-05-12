@@ -17,7 +17,6 @@
 
 // Register the CPU backend as a default backend for tests.
 import '@tensorflow/tfjs-backend-cpu';
-
 /**
  * This file is necessary so we register all test environments before we start
  * executing tests.
