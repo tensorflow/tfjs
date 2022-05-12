@@ -29,6 +29,10 @@ export interface WebGPUProgram {
   // dispatch specifies geometry of thread groups - derived from dispatchLayout.
   dispatch: [number, number, number];
   variableNames: string[];
+  // Describe each variable's type and must have one-one mapping with
+  // variableNames. If not set, all variables type will be either f32 or
+  // vec4<f32> based on isVec4 member.
+  variableTypes?: string[];
   uniforms?: string;
   // Size of register cache in one dimension (assumes square cache).
   // Each thread writes to workPerThread * workPerThread locations in the output
@@ -43,7 +47,6 @@ export interface WebGPUProgram {
   size?: boolean;
   // Whether to use atomic built-in functions.
   atomic?: boolean;
-  isConv2dVec4?: boolean;
   getUserCode: () => string;
 }
 

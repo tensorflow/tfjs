@@ -74,11 +74,11 @@ interface ProgramParams {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   workGroupSize: [number, number, number];
   variableNames: string[];
+  variableTypes?: string[];
   uniforms?: string;
   isVec4?: boolean;
   size?: boolean;
   atomic?: boolean;
-  isConv2dVec4?: boolean;
   getUserCode: () => string;
 }
 
@@ -229,16 +229,12 @@ export function makeShader(
   `);
   }
   program.variableNames.forEach((x, i) => {
-    if (program.isConv2dVec4 && x === 'x' && inputInfo[i].shape[3] % 3 === 0) {
-      prefixSnippets.push(`
-      @group(0) @binding(${1 + i}) var<storage, read> ${x}: array<f32>;
+    prefixSnippets.push(`
+    @group(0) @binding(${1 + i}) var<storage, read> ${x}: array<${
+        program.variableTypes ?
+            program.variableTypes[i] :
+            mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
       `);
-    } else {
-      prefixSnippets.push(`
-      @group(0) @binding(${1 + i}) var<storage, read> ${x}: array<${
-          mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
-      `);
-    }
   });
 
   if (uniformDeclaration !== '') {
@@ -263,17 +259,17 @@ export function makeShader(
   if (dispatchLayoutRank === outputData.shape.length) {
     // Input snippet is only meaningful when the output isn't getting
     // implicitly reshaped (like it does in conv2d_matmul).
-    const inputSnippet = inputInfo
-                             .map(
-                                 x => getInputSnippet(
-                                     x, outputData.shape,
-                                     program.isConv2dVec4 && x.name === 'x' &&
-                                             x.shape[3] % 3 === 0 ?
-                                         false :
-                                         program.isVec4,
-                                     program.dispatchLayout.x.length ===
-                                         outputData.shape.length))
-                             .join('\n');
+    const inputSnippet =
+        inputInfo
+            .map(
+                (x, i) => getInputSnippet(
+                    x, outputData.shape,
+                    program.variableTypes ?
+                        (program.variableTypes[i] === 'vec4<f32>') :
+                        program.isVec4,
+                    program.dispatchLayout.x.length ===
+                        outputData.shape.length))
+            .join('\n');
     sources.push(inputSnippet);
   }
 

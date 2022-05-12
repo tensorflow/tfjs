@@ -28,13 +28,13 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
+  variableTypes: string[];
   uniforms =
       `filterDims : vec2<i32>, pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>,
       dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
   workGroupSize: [number, number, number] = [8, 8, 1];
   elementsPerThread: [number, number, number];
   isVec4 = true;
-  isConv2dVec4 = true;
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
   activation: backend_util.Activation;
@@ -69,15 +69,22 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
+    this.innerElementSize = this.convInfo.inChannels % 4 === 0 ? 4 : 3;
+    if (this.innerElementSize === 3) {
+      this.variableTypes = ['f32', 'vec4<f32>'];
+    } else {
+      this.variableTypes = ['vec4<f32>', 'vec4<f32>'];
+    }
+
     if (this.addBias) {
       this.variableNames.push('bias');
+      this.variableTypes.push('vec4<f32>');
     }
 
     if (this.hasPreluActivationWeights) {
       this.variableNames.push('preluActivationWeights');
+      this.variableTypes.push('vec4<f32>');
     }
-
-    this.innerElementSize = this.convInfo.inChannels % 4 === 0 ? 4 : 3;
     this.tileAOuter = this.outputShape[1] === 1 ?
         1 :
         this.workGroupSize[1] * this.elementsPerThread[1];
