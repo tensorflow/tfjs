@@ -37,27 +37,41 @@ bazel_skylib_workspace()
 
 http_archive(
     name = "build_bazel_rules_nodejs",
-    sha256 = "d63ecec7192394f5cc4ad95a115f8a6c9de55c60d56c1f08da79c306355e4654",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/4.6.1/rules_nodejs-4.6.1.tar.gz"],
-)
-
-# Set up node version to use. Must come before rules_nodejs_dependencies()
-load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "yarn_install")
-
-node_repositories(
-    node_version = "16.13.2",
-    package_json = ["//:package.json"],
+    sha256 = "e328cb2c9401be495fa7d79c306f5ee3040e8a03b2ebb79b022e15ca03770096",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.4.2/rules_nodejs-5.4.2.tar.gz"],
 )
 
 # Install rules_nodejs dependencies.
-load("@build_bazel_rules_nodejs//nodejs:repositories.bzl", "rules_nodejs_dependencies")
+load("@build_bazel_rules_nodejs//:repositories.bzl", "build_bazel_rules_nodejs_dependencies")
 
-rules_nodejs_dependencies()
+build_bazel_rules_nodejs_dependencies()
+
+load("@rules_nodejs//nodejs:repositories.bzl", "nodejs_register_toolchains")
+
+nodejs_register_toolchains(
+    name = "nodejs",
+    node_version = "16.13.2",
+)
+
+# Install the yarn tool
+load("@rules_nodejs//nodejs:yarn_repositories.bzl", "yarn_repositories")
+
+yarn_repositories(
+    name = "yarn",
+    node_repository = "nodejs",
+)
+
+# Install yarn packages
+load("@build_bazel_rules_nodejs//:index.bzl", "yarn_install")
 
 yarn_install(
     name = "npm",
+    yarn = "@yarn//:bin/yarn",
     package_json = "//:package.json",
     yarn_lock = "//:yarn.lock",
+    exports_directories_only = False, # Required for ts_library
+    symlink_node_modules = True,
+    package_path = "/",
 )
 
 # Fetch transitive Bazel dependencies of karma_web_test
@@ -89,6 +103,8 @@ http_archive(
     sha256 = "7dc13d967705582e11ff62ae143425dbc63c38372f1a1b14f0cb681fda413714",
     strip_prefix = "emsdk-3.1.4/bazel",
     urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.4.tar.gz"],
+    # TODO: Remove repo_mapping when emsdk updates to rules_nodejs 5
+    repo_mapping = {"@nodejs": "@nodejs_host"},
 )
 
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
