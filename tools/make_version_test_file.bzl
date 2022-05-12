@@ -21,7 +21,7 @@ make_version_test_file = rule(
     attrs = {
         "make_version_test_file_bin": attr.label(
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             default = Label("@//tools:make_version_test_file_bin"),
             doc = "The script that generates the version test",
         ),

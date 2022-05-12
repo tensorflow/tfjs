@@ -66,12 +66,12 @@ load("@build_bazel_rules_nodejs//:index.bzl", "yarn_install")
 
 yarn_install(
     name = "npm",
-    yarn = "@yarn//:bin/yarn",
+    exports_directories_only = False,  # Required for ts_library
     package_json = "//:package.json",
-    yarn_lock = "//:yarn.lock",
-    exports_directories_only = False, # Required for ts_library
-    symlink_node_modules = True,
     package_path = "/",
+    symlink_node_modules = True,
+    yarn = "@yarn//:bin/yarn",
+    yarn_lock = "//:yarn.lock",
 )
 
 # Fetch transitive Bazel dependencies of karma_web_test
@@ -100,11 +100,11 @@ esbuild_repositories(npm_repository = "npm")
 # Emscripten toolchain
 http_archive(
     name = "emsdk",
+    # TODO: Remove repo_mapping when emsdk updates to rules_nodejs 5
+    repo_mapping = {"@nodejs": "@nodejs_host"},
     sha256 = "7dc13d967705582e11ff62ae143425dbc63c38372f1a1b14f0cb681fda413714",
     strip_prefix = "emsdk-3.1.4/bazel",
     urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.4.tar.gz"],
-    # TODO: Remove repo_mapping when emsdk updates to rules_nodejs 5
-    repo_mapping = {"@nodejs": "@nodejs_host"},
 )
 
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
