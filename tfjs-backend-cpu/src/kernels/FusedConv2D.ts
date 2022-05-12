@@ -84,7 +84,6 @@ export function fusedConv2D(args: {
       result = applyActivation(
           backend, result, activation, reshapedAlpha, leakyreluAlpha);
       backend.disposeIntermediateTensorInfo(reshapedAlpha);
-      console.log('Tested');
     } else {
       result = applyActivation(
           backend, result, activation, preluActivationWeights, leakyreluAlpha);
