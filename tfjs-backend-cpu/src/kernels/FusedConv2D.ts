@@ -49,7 +49,7 @@ export function fusedConv2D(args: {
   if (bias) {
     const resultOld = result;
     // For NCHW format, if bias is a 1-D tensor, it is supposed to be aligned
-    // to the channel of the conv2d's result; if bias is a scalar, the
+    // to the channel of the conv2d's result; if the bias is a scalar, the
     // bias_add is computed as if the bias was broadcasted to the shape of the
     // conv2d's result.
     if (dataFormat === 'NCHW' && bias.shape.length === 1 &&
@@ -69,8 +69,24 @@ export function fusedConv2D(args: {
 
   if (activation) {
     const resultOld = result;
-    result = applyActivation(
-        backend, result, activation, preluActivationWeights, leakyreluAlpha);
+    // For NCHW format, if PReLu activation weights is a 1-D tensor, it is
+    // supposed to be aligned to the channel of the conv2d's result.
+    if (dataFormat === 'NCHW' && activation === 'prelu' &&
+        preluActivationWeights.shape.length === 1 &&
+        preluActivationWeights.shape[0] !== 1) {
+      const reshapedAlpha = reshape({
+        inputs: {x: preluActivationWeights},
+        backend,
+        attrs: {shape: [preluActivationWeights.shape[0], 1, 1]}
+      });
+      result = applyActivation(
+          backend, result, activation, reshapedAlpha, leakyreluAlpha);
+      backend.disposeIntermediateTensorInfo(reshapedAlpha);
+      console.log('Tested');
+    } else {
+      result = applyActivation(
+          backend, result, activation, preluActivationWeights, leakyreluAlpha);
+    }
     backend.disposeIntermediateTensorInfo(resultOld);
   }
 
