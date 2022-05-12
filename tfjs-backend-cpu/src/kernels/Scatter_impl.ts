@@ -16,7 +16,7 @@
  */
 import {buffer, Rank, ShapeMap, TensorBuffer, TypedArray} from '@tensorflow/tfjs-core';
 
-interface DefaultValueMap {
+interface DefaultValueTypeMap {
   bool: boolean;
   int32: number;
   float32: number;
@@ -27,7 +27,7 @@ export function
 scatterImpl<R extends Rank, D extends 'float32'|'int32'|'bool'|'string'>(
     indices: TensorBuffer<R, 'int32'>, updates: TensorBuffer<R, D>,
     shape: number[], outputSize: number, sliceSize: number, numUpdates: number,
-    sliceRank: number, strides: number[], defaultValue: DefaultValueMap[D],
+    sliceRank: number, strides: number[], defaultValue: DefaultValueTypeMap[D],
     sumDupeIndices: boolean): TensorBuffer<R, D> {
   const flattenShape = [outputSize / sliceSize, sliceSize];
 
