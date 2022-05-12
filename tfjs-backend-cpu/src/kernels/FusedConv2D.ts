@@ -70,7 +70,9 @@ export function fusedConv2D(args: {
   if (activation) {
     const resultOld = result;
     // For NCHW format, if PReLu activation weights is a 1-D tensor, it is
-    // supposed to be aligned to the channel of the conv2d's result.
+    // supposed to be aligned with the channel of the conv2d's result. For other
+    // cases, whether NCHW or NHWC data format, the conv2d result is
+    // already aligned with the activation weights.
     if (dataFormat === 'NCHW' && activation === 'prelu' &&
         preluActivationWeights.shape.length === 1 &&
         preluActivationWeights.shape[0] !== 1) {
