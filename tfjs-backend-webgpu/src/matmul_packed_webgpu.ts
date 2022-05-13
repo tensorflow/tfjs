@@ -96,11 +96,8 @@ makeMatMulPackedSource(
       // Loop over shared dimension.
       for (var t = 0; t < numTiles; t = t + 1) {
         // Load one tile of A into local memory.
-        for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
-          for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
-            let inputRow = tileRow + innerRow;
-            let inputCol = tileCol + innerCol;
-
+        for (var inputRow = i32(localId.y); inputRow < TileInner; inputRow = inputRow + i32(workGroupSizeY)) {
+         for (var inputCol = i32(localId.x); inputCol < TileInner; inputCol = inputCol + i32(workGroupSizeX)) {
             ${storeDataToSubASnippet(transposeA)}
             mm_Bsub[inputRow][inputCol] = mm_readB(
               t * TileInner + inputRow,
