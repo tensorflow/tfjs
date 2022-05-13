@@ -20,7 +20,7 @@ import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 import {mapActivationToShaderProgram} from './activation_util';
 import {getMainHeaderString} from './shader_preprocessor';
 import {WebGPUProgram} from './webgpu_program';
-import {computeDispatch} from './webgpu_util';
+import {computeDispatch, computeWorkGroupSizeForMatMul} from './webgpu_util';
 
 const storeDataToSubASnippet =
     (transpose: boolean) => {
@@ -52,14 +52,15 @@ makeMatMulPackedSource(
     workPerThread: number[], workGroupSize: [number, number, number],
     transposeA = false):
     string {
-      util.assert(
-          workGroupSize[0] === workGroupSize[1] &&
-              workPerThread[0] === workPerThread[1],
-          () => 'The workGroupSize and workPerThread must be square.');
-      const tileInner = workGroupSize[0] * workPerThread[0];
+      const tileAOuter = workPerThread[1] * workGroupSize[1];
+      const tileBOuter = workPerThread[0] * workGroupSize[0];
+      const tileInner = tileBOuter;
+      const tileAWidth = transposeA ? tileAOuter : tileInner;
+      const tileAHight = transposeA ? tileInner : tileAOuter;
+
       return `
-    var<workgroup> mm_Asub : array<array<f32, ${tileInner}>, ${tileInner}>;
-    var<workgroup> mm_Bsub : array<array<f32, ${tileInner}>, ${tileInner}>;
+    var<workgroup> mm_Asub : array<array<f32, ${tileAWidth}>, ${tileAHight}>;
+    var<workgroup> mm_Bsub : array<array<f32, ${tileBOuter}>, ${tileInner}>;
     let RowPerThread = ${workPerThread[1]};
     let ColPerThread = ${workPerThread[0]};
     let TileInner = ${tileInner};
@@ -79,8 +80,8 @@ makeMatMulPackedSource(
       let globalRow = i32(globalId.y) * RowPerThread;
       let globalCol = i32(globalId.x) * ColPerThread;
 
-      let globalRowStart = i32(workgroupId.y) * TileInner;
-      let globalColStart = i32(workgroupId.x) * TileInner;
+      let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
+      let globalColStart = i32(workgroupId.x) * ${tileBOuter};
 
       let numTiles = (uniforms.dimInner - 1) / TileInner + 1;
 
@@ -96,9 +97,19 @@ makeMatMulPackedSource(
       // Loop over shared dimension.
       for (var t = 0; t < numTiles; t = t + 1) {
         // Load one tile of A into local memory.
-        for (var inputRow = i32(localId.y); inputRow < TileInner; inputRow = inputRow + i32(workGroupSizeY)) {
-         for (var inputCol = i32(localId.x); inputCol < TileInner; inputCol = inputCol + i32(workGroupSizeX)) {
+        for (var inputRow = i32(localId.y); inputRow < ${
+          tileAHight}; inputRow = inputRow + i32(workGroupSizeY)) {
+         for (var inputCol = i32(localId.x); inputCol < ${
+          tileAWidth}; inputCol = inputCol + i32(workGroupSizeX)) {
             ${storeDataToSubASnippet(transposeA)}
+          }
+        }
+
+        // Load one tile of B into local memory.
+        for (var inputRow = i32(localId.y); inputRow < ${
+          tileInner}; inputRow = inputRow + i32(workGroupSizeY)) {
+         for (var inputCol = i32(localId.x); inputCol < ${
+          tileBOuter}; inputCol = inputCol + i32(workGroupSizeX)) {
             mm_Bsub[inputRow][inputCol] = mm_readB(
               t * TileInner + inputRow,
               globalColStart + inputCol, globalId);
@@ -140,9 +151,30 @@ makeMatMulPackedSource(
   `;
     }
 
+const readVectorASnippet =
+    (transpose: boolean) => {
+      return transpose ? `
+      mm_readA(colA, globalRow, globalId),
+      mm_readA(colA + 1, globalRow, globalId),
+      mm_readA(colA + 2, globalRow, globalId),
+      mm_readA(colA + 3, globalRow, globalId)
+  ` :
+                         `
+      mm_readA(globalRow, colA, globalId),
+      mm_readA(globalRow, colA + 1, globalId),
+      mm_readA(globalRow, colA + 2, globalId),
+      mm_readA(globalRow, colA + 3, globalId)
+  `;
+    }
+
 export function
-makeMatMulVectorSource(workGroupSize: [number, number, number]):
+makeMatMulVectorSource(
+    workGroupSize: [number, number, number], transposeA = false):
     string {
+      util.assert(
+          workGroupSize[1] === 1 && workGroupSize[2] === 1,
+          () => `A linear work group size is required. But got ${
+              workGroupSize}.`);
       return `
     let TileSize = ${workGroupSize[0] * 4};
     var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
@@ -161,10 +193,7 @@ makeMatMulVectorSource(workGroupSize: [number, number, number]):
       for (var t = 0; t < numTiles; t = t + 1) {
         // Load one tile of A into local memory.
         let colA = t * TileSize + tileCol * 4;
-        mm_Asub[tileCol] = vec4<f32>(mm_readA(globalRow, colA, globalId),
-                                mm_readA(globalRow, colA + 1, globalId),
-                                mm_readA(globalRow, colA + 2, globalId),
-                                mm_readA(globalRow, colA + 3, globalId));
+        mm_Asub[tileCol] = vec4<f32>(${readVectorASnippet(transposeA)});
         workgroupBarrier();
 
         // Compute acc values for a single thread.
@@ -197,7 +226,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
   workPerThread: number;
   variableNames = ['A', 'B'];
   uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-  workGroupSize: [number, number, number] = [8, 8, 1];
+  workGroupSize: [number, number, number] = [16, 16, 1];
   transposeA: boolean;
   transposeB: boolean;
   addBias: boolean;
@@ -214,6 +243,9 @@ export class MatMulPackedProgram implements WebGPUProgram {
       preluActivationWeights: TensorInfo = null) {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
+    const dimInner = transposeA ? aShape[1] : aShape[2];
+    this.workGroupSize =
+        computeWorkGroupSizeForMatMul(outputShape[1], dimInner, outputShape[2]);
     if (outputShape[1] === 1 || outputShape[2] === 1) {
       workPerThread = 1;
     }
@@ -332,9 +364,11 @@ export class MatMulPackedProgram implements WebGPUProgram {
         setOutputAtCoords(batch, row, col, value);
       }
       ${
-        makeMatMulPackedSource(
-            [this.workPerThread, this.workPerThread, 1], this.workGroupSize,
-            this.transposeA)}
+        this.outputShape[1] > 1 ?
+            makeMatMulPackedSource(
+                [this.workPerThread, this.workPerThread, 1], this.workGroupSize,
+                this.transposeA) :
+            makeMatMulVectorSource(this.workGroupSize, this.transposeA)}
     `;
     return userCode;
   }
