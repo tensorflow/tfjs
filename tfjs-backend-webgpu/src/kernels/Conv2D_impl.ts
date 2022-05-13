@@ -172,8 +172,10 @@ export function conv2DImpl({
         convInfo, hasBias, activation, hasPreluActivationWeights);
   }
 
-  const dimAOuter = convInfo.outHeight * convInfo.outWidth;
-  const dimBOuter = convInfo.outChannels;
+  const dimAOuter = isChannelsLast ? convInfo.outHeight * convInfo.outWidth :
+                                     convInfo.outChannels;
+  const dimBOuter = isChannelsLast ? convInfo.outChannels :
+                                     convInfo.outHeight * convInfo.outWidth;
   const dimInner =
       convInfo.filterHeight * convInfo.filterWidth * convInfo.inChannels;
   dimensions.push(
