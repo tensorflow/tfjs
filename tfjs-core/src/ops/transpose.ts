@@ -46,6 +46,7 @@ import {real} from './real';
  *
  * @param x The tensor to transpose.
  * @param perm The permutation of the dimensions of a.
+ * @param conjugate Will conjugate complex input if true.
  *
  * @doc {heading: 'Operations', subheading: 'Matrices'}
  */
