@@ -50,7 +50,8 @@ import {real} from './real';
  *
  * @doc {heading: 'Operations', subheading: 'Matrices'}
  */
-function transpose_<T extends Tensor>(x: T|TensorLike, perm?: number[], conjugate?: boolean): T {
+function transpose_<T extends Tensor>(
+    x: T|TensorLike, perm?: number[], conjugate?: boolean): T {
   const $x = convertToTensor(x, 'x', 'transpose');
 
   if (perm == null) {
