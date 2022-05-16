@@ -93,7 +93,7 @@ export function batchMatMulImpl({
   const useVec4 = innerShapeA % 4 === 0 && outerShapeB % 4 === 0 &&
       !transposeA && !transposeB;
   let program: WebGPUProgram;
-  if (outerShapeA * outerShapeB <= 1) {
+  if (outerShapeA * outerShapeB <= 32) {
     program = new MatMulReduceProgram(
         [batchDim, outerShapeA, outerShapeB], batchAEqualOne, batchBEqualOne,
         transposeA, transposeB, bias, activation, preluActivationWeights);
