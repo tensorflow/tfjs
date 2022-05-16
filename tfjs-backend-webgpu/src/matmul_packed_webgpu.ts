@@ -292,15 +292,15 @@ export class MatMulPackedProgram implements WebGPUProgram {
     if (this.transposeB === false) {
       sampleB =
           `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-                 return B[batch * batchBSize + row * uniforms.dimBOuter + col];
-               }
-               return 0.0;`;
+             return B[batch * batchBSize + row * uniforms.dimBOuter + col];
+           }
+           return 0.0;`;
     } else {
       sampleB =
           `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-                 return B[batch * batchBSize + col * uniforms.dimInner + row];
-               }
-               return 0.0;`;
+             return B[batch * batchBSize + col * uniforms.dimInner + row];
+           }
+           return 0.0;`;
     }
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
