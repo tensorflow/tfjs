@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-import {backend_util, util} from '@tensorflow/tfjs-core';
+import {backend_util} from '@tensorflow/tfjs-core';
 
 import {mapActivationToShaderProgram} from './activation_util';
 import {makeMatMulPackedSource} from './matmul_packed_webgpu';
 import {WebGPUProgram} from './webgpu_program';
-import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d, tilesFitEvenlyIntoShape} from './webgpu_util';
+import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d} from './webgpu_util';
 
 export class Conv2DMMProgram implements WebGPUProgram {
   outputShape: number[];
@@ -36,8 +36,6 @@ export class Conv2DMMProgram implements WebGPUProgram {
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
-  fitA: boolean;
-  fitB: boolean;
   isChannelsLast: boolean;
 
   constructor(
@@ -69,32 +67,8 @@ export class Conv2DMMProgram implements WebGPUProgram {
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
 
-    [this.fitA, this.fitB] = this.getShapeFit();
-    this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}_${
-        this.fitA}_${this.fitB}_${this.isChannelsLast}`;
-  }
-
-  getShapeFit(): boolean[] {
-    const tileAOuter = this.workGroupSize[1] * this.elementsPerThread[1];
-    const tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
-    const tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
-    util.assert(
-        tileInner % this.workGroupSize[0] === 0 &&
-            tileInner % this.workGroupSize[1] === 0,
-        () =>
-            // tslint:disable-next-line: max-line-length
-        'tileInner must be multiple of workgroupsize.x and workgroupsize.y');
-    const tileSizeA = [tileAOuter, tileInner];
-    const tileSizeB = [tileInner, tileBOuter];
-    const dimAOuter = this.convInfo.outHeight * this.convInfo.outWidth;
-    const dimBOuter = this.convInfo.outChannels;
-    const dimInner = this.convInfo.filterHeight * this.convInfo.filterWidth *
-        this.convInfo.inChannels;
-
-    return [
-      tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]),
-      tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter])
-    ];
+    this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}}_${
+        this.isChannelsLast}`;
   }
 
   getUserCode(): string {
