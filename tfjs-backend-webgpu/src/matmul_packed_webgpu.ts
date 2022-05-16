@@ -54,10 +54,23 @@ makeMatMulPackedSource(
     string {
       const tileAOuter = workPerThread[1] * workGroupSize[1];
       const tileBOuter = workPerThread[0] * workGroupSize[0];
-      const tileInner = tileBOuter;
+      const tileInner = 32;
       const tileAWidth = transposeA ? tileAOuter : tileInner;
       const tileAHight = transposeA ? tileInner : tileAOuter;
-
+      util.assert(
+          tileAHight % workGroupSize[1] === 0 &&
+              tileAWidth % workGroupSize[0] === 0 &&
+              tileInner % workGroupSize[1] === 0,
+          () =>
+              `tileAHight ${tileAHight} must be divisible by workGroupSize[1]${
+                  workGroupSize[1]}, tileAWidth ${
+                  tileAWidth} must be divisible by workGroupSize[0]${
+                  workGroupSize[0]}, tileInner ${
+                  tileInner} must be divisible by workGroupSize[1]${
+                  workGroupSize[1]}`);
+      const rowPerThreadA = tileAHight / workGroupSize[1];
+      const colPerThreadA = tileAWidth / workGroupSize[0];
+      const rowPerThreadB = tileInner / workGroupSize[1];
       return `
     var<workgroup> mm_Asub : array<array<f32, ${tileAWidth}>, ${tileAHight}>;
     var<workgroup> mm_Bsub : array<array<f32, ${tileBOuter}>, ${tileInner}>;
@@ -81,7 +94,6 @@ makeMatMulPackedSource(
       let globalCol = i32(globalId.x) * ColPerThread;
 
       let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
-      let globalColStart = i32(workgroupId.x) * ${tileBOuter};
 
       let numTiles = (uniforms.dimInner - 1) / TileInner + 1;
 
@@ -94,25 +106,31 @@ makeMatMulPackedSource(
         }
       }
 
+      let tileRowA = i32(localId.y) * ${rowPerThreadA};
+      let tileColA = i32(localId.x) * ${colPerThreadA};
+      let tileRowB = i32(localId.y) * ${rowPerThreadB};
       // Loop over shared dimension.
       for (var t = 0; t < numTiles; t = t + 1) {
         // Load one tile of A into local memory.
-        for (var inputRow = i32(localId.y); inputRow < ${
-          tileAHight}; inputRow = inputRow + i32(workGroupSizeY)) {
-         for (var inputCol = i32(localId.x); inputCol < ${
-          tileAWidth}; inputCol = inputCol + i32(workGroupSizeX)) {
+        for (var innerRow = 0; innerRow < ${
+          rowPerThreadA}; innerRow = innerRow + 1) {
+          for (var innerCol = 0; innerCol < ${
+          colPerThreadA}; innerCol = innerCol + 1) {
+            let inputRow = tileRowA + innerRow;
+            let inputCol = tileColA + innerCol;
             ${storeDataToSubASnippet(transposeA)}
           }
         }
 
         // Load one tile of B into local memory.
-        for (var inputRow = i32(localId.y); inputRow < ${
-          tileInner}; inputRow = inputRow + i32(workGroupSizeY)) {
-         for (var inputCol = i32(localId.x); inputCol < ${
-          tileBOuter}; inputCol = inputCol + i32(workGroupSizeX)) {
+        for (var innerRow = 0; innerRow < ${
+          rowPerThreadB}; innerRow = innerRow + 1) {
+          for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
+            let inputRow = tileRowB + innerRow;
+            let inputCol = tileCol + innerCol;
             mm_Bsub[inputRow][inputCol] = mm_readB(
-              t * TileInner + inputRow,
-              globalColStart + inputCol, globalId);
+              t * ${tileInner} + inputRow,
+              globalCol + innerCol, globalId);
           }
         }
 
