@@ -42,7 +42,7 @@ steps:
   entrypoint: 'bazel'
   id: 'build'
   dir: 'tensorflow'
-  args: ['build', '-c', 'opt', '//tensorflow:libtensorflow.so', '//tensorflow:libtensorflow_framework.so']
+  args: ['build', '--jobs=16', '-c', 'opt', '//tensorflow:libtensorflow.so', '//tensorflow:libtensorflow_framework.so']
 
 # Push results to bucket
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -56,6 +56,6 @@ substitutions:
   _TF_BRANCH: 'r2.7'
 options:
   logStreamingOption: 'STREAM_ON'
-  machineType: 'N1_HIGHCPU_32'
+  machineType: 'E2_HIGHCPU_32'
   substitution_option: 'ALLOW_LOOSE'
 
