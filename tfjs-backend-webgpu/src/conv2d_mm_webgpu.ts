@@ -32,14 +32,18 @@ export class Conv2DMMProgram implements WebGPUProgram {
       `filterDims : vec2<i32>, pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
   workGroupSize: [number, number, number];
   elementsPerThread: [number, number, number];
-  convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
   isChannelsLast: boolean;
+  fitAOuter: boolean;
+  fitBOuter: boolean;
+  fitInner: boolean;
+  tileInner: number;
 
   constructor(
-      convInfo: backend_util.Conv2DInfo, addBias = false,
+      convInfo: backend_util.Conv2DInfo, dimAOuter: number, dimBOuter: number,
+      dimInner: number, addBias = false,
       activation: backend_util.Activation = null,
       hasPreluActivationWeights = false) {
     this.outputShape = convInfo.outShape;
@@ -62,12 +66,20 @@ export class Conv2DMMProgram implements WebGPUProgram {
     if (hasPreluActivationWeights) {
       this.variableNames.push('preluActivationWeights');
     }
-    this.convInfo = convInfo;
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
 
+    const tileAOuter = this.workGroupSize[1] * this.elementsPerThread[1];
+    const tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
+    this.tileInner = 32;
+
+    this.fitAOuter = dimAOuter % tileAOuter === 0;
+    this.fitBOuter = dimBOuter % tileBOuter === 0;
+    this.fitInner = dimInner % this.tileInner === 0;
+
     this.shaderKey = `conv2DMM_${this.elementsPerThread}_${this.activation}}_${
+        this.fitAOuter}_${this.fitBOuter}_${this.fitInner}_${
         this.isChannelsLast}`;
   }
 
@@ -95,7 +107,8 @@ export class Conv2DMMProgram implements WebGPUProgram {
     `;
 
     const matMulSource = makeMatMulPackedSource(
-        this.elementsPerThread, this.workGroupSize, !this.isChannelsLast);
+        this.elementsPerThread, this.workGroupSize, !this.isChannelsLast,
+        this.tileInner);
 
     const row = this.isChannelsLast ? 'row' : 'col';
     const col = this.isChannelsLast ? 'col' : 'row';
@@ -119,23 +132,21 @@ export class Conv2DMMProgram implements WebGPUProgram {
     }
     return 0.0;`;
 
-    const sampleX = this.isChannelsLast ? `
-      if (row < uniforms.dimAOuter && col < uniforms.dimInner) {
-        ${readXSnippet}
-      }
-      return 0.0;` :
-                                          `
-      if (row < uniforms.dimInner && col < uniforms.dimBOuter) {
-        ${readXSnippet}
-      }
-      return 0.0;`;
+    const sampleX = this.isChannelsLast ?
+        (this.fitAOuter && this.fitInner ?
+             `${readXSnippet}` :
+             `if (row < uniforms.dimAOuter && col < uniforms.dimInner) {
+      ${readXSnippet}
+    }
+    return 0.0;`) :
+        (this.fitInner && this.fitBOuter ?
+             `${readXSnippet}` :
+             `if (row < uniforms.dimInner && col < uniforms.dimBOuter) {
+          ${readXSnippet}
+        }
+        return 0.0;`);
 
-    const sampleW =
-        `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.wShape[3]))) {
-           return W[row * uniforms.wShape[3] + col];
-	       }
-	       return 0.0;
-	 `;
+    const sampleW = `return W[row * uniforms.wShape[3] + col];`;
 
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
