@@ -387,6 +387,13 @@ export interface IOHandler {
   load?: LoadHandler;
 }
 
+export type Syncify<T> = T extends (...args: infer Args) => Promise<infer R>
+  ? (...args: Args) => R : never;
+
+export type IOHandlerSync = {
+  [K in keyof IOHandler]: Syncify<IOHandler[K]>
+};
+
 /**
  * An interface for the manager of a model store.
  *
