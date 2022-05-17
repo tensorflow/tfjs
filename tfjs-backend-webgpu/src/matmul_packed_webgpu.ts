@@ -50,11 +50,10 @@ const loadDataFromSubASnippet =
 export function
 makeMatMulPackedSource(
     workPerThread: number[], workGroupSize: [number, number, number],
-    transposeA = false):
+    transposeA = false, tileInner = 32):
     string {
       const tileAOuter = workPerThread[1] * workGroupSize[1];
       const tileBOuter = workPerThread[0] * workGroupSize[0];
-      const tileInner = 32;
       const tileAWidth = transposeA ? tileAOuter : tileInner;
       const tileAHight = transposeA ? tileInner : tileAOuter;
       util.assert(
@@ -252,6 +251,10 @@ export class MatMulPackedProgram implements WebGPUProgram {
   hasPreluActivationWeights: boolean;
   batchAEqualOne: boolean;
   batchBEqualOne: boolean;
+  fitAOuter: boolean;
+  fitBOuter: boolean;
+  fitInner: boolean;
+  tileInner: number;
 
   constructor(
       aShape: [number, number, number], outputShape: [number, number, number],
@@ -299,26 +302,45 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.hasPreluActivationWeights = hasPreluActivationWeights;
     this.batchAEqualOne = batchAEqualOne;
     this.batchBEqualOne = batchBEqualOne;
-
+    [this.fitAOuter, this.fitBOuter, this.fitInner] =
+        this.getShapeFit(outputShape[1], outputShape[2], dimInner);
     this.shaderKey = `matMulPacked_${this.workPerThread}_${transposeA}_${
-        transposeB}_${this.activation}_${this.outputShape[1] > 1}_${
-        this.batchAEqualOne}_${this.batchBEqualOne}`;
+        transposeB}_${this.activation}_${this.fitAOuter}_${this.fitBOuter}_${
+        this.fitInner}_${this.outputShape[1] > 1}_${this.batchAEqualOne}_${
+        this.batchBEqualOne}`;
+  }
+
+  getShapeFit(dimAOuter: number, dimBOuter: number, dimInner: number):
+      boolean[] {
+    const tileAOuter = this.workGroupSize[1] * this.workPerThread;
+    const tileBOuter = this.workGroupSize[0] * this.workPerThread;
+    this.tileInner = 32;
+
+    if (this.outputShape[1] === 1) {
+      this.tileInner = this.workGroupSize[0] * 4;
+    }
+
+    const fitAOuter = dimAOuter % tileAOuter === 0;
+    const fitBOuter = dimBOuter % tileBOuter === 0;
+    const fitInner = dimInner % this.tileInner === 0;
+    return [fitAOuter, fitBOuter, fitInner];
   }
 
   getUserCode(): string {
+    let sampleA = this.fitAOuter && this.fitInner ?
+        `return A[batch * batchASize + row * uniforms.aShape[2] + col];` :
+        `
+        if(row < uniforms.aShape[1] && col < uniforms.aShape[2]) {
+          return A[batch * batchASize + row * uniforms.aShape[2] + col];
+        }
+        return 0.0;
+         `;
     let sampleB;
     if (this.transposeB === false) {
       sampleB =
-          `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-             return B[batch * batchBSize + row * uniforms.dimBOuter + col];
-           }
-           return 0.0;`;
+          `return B[batch * batchBSize + row * uniforms.dimBOuter + col];`;
     } else {
-      sampleB =
-          `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-             return B[batch * batchBSize + col * uniforms.dimInner + row];
-           }
-           return 0.0;`;
+      sampleB = `return B[batch * batchBSize + col * uniforms.dimInner + row];`;
     }
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
@@ -350,14 +372,13 @@ export class MatMulPackedProgram implements WebGPUProgram {
         ${
         this.batchAEqualOne ? `
         let batch = 0;
+        let batchASize = 0;
         ` :
                               `
         let batch = i32(globalId.z);
+        let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
         `}
-        if(coordsInBounds3D(vec3<i32>(batch, row, col), uniforms.aShape)) {
-          return getA(batch, row, col);
-        }
-        return 0.0;
+        ${sampleA}
       }
 
       fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
@@ -385,7 +406,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
         this.outputShape[1] > 1 ?
             makeMatMulPackedSource(
                 [this.workPerThread, this.workPerThread, 1], this.workGroupSize,
-                this.transposeA) :
+                this.transposeA, this.tileInner) :
             makeMatMulVectorSource(this.workGroupSize, this.transposeA)}
     `;
     return userCode;
