@@ -38,6 +38,12 @@ export const fusedConv2DConfig: KernelConfig = {
       leakyreluAlpha
     } = args.attrs as {} as FusedConv2DAttrs;
 
+    if (dataFormat !== 'NHWC') {
+      throw new Error(
+          `Node backend FusedConv2D does not support dataFormat:'` +
+          `${dataFormat}'. Please use 'NHWC'.`);
+    }
+
     const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
     const convInfo = backend_util.computeConv2DInfo(
         x.shape as [number, number, number, number],

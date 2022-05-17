@@ -105,6 +105,8 @@ const IGNORE_LIST: string[] = [
   'conv2dTranspose test-tensorflow {} input=3x3x1,d2=1,f=2,s=2,p=explicit',
   // tslint:disable-next-line:max-line-length
   'conv2dTranspose test-tensorflow {} gradient input=[1,3,3,1] f=[2,2,2,1] s=[1,1] p=explicit',
+  'fused conv2d test-tensorflow {} basic in NCHW',
+  'fused conv2d test-tensorflow {} im2row in NCHW',
   'maxPoolWithArgmax',
   'rotate',
   // FIXME: unique NaN-handling is inconsistent between TFJS and TFPY

@@ -17,7 +17,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, buffer, DataStorage, DataToGPUWebGPUOption, DataType, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, DataStorage, DataType, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {BufferManager} from './buffer_manager';
 import {TextureManager} from './texture_manager';
@@ -477,11 +477,8 @@ export class WebGPUBackend extends KernelBackend {
   /**
    * Read tensor to a new GPUBuffer.
    * @param dataId The source tensor.
-   * @param options
-   *     customBufShape: Optional. If set, will use the user defined buffer
-   *     size to create the buffer.
    */
-  readToGPU(dataId: DataId, options: DataToGPUWebGPUOption = {}): GPUData {
+  readToGPU(dataId: DataId): GPUData {
     const srcData = this.tensorMap.get(dataId);
     const {values, dtype, shape, bufferInfo} = srcData;
 
@@ -499,16 +496,7 @@ export class WebGPUBackend extends KernelBackend {
 
     const size =
         util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
-    if (options.customBufSize != null) {
-      util.assert(
-          options.customBufSize >= size,
-          () => `customBufSize should be equal or larger than ` +
-              `the source tensor size ${size} bytes.`);
-    }
-
-    const bufferSize =
-        options.customBufSize != null ? options.customBufSize : size;
-    const resBuffer = this.acquireBuffer(bufferSize);
+    const resBuffer = this.acquireBuffer(size);
     this.ensureCommandEncoderReady();
     this.ensureComputePassEnded();
     this.currentCommandEncoder.copyBufferToBuffer(
@@ -521,11 +509,8 @@ export class WebGPUBackend extends KernelBackend {
 
     const info = this.tensorMap.get(tensorInfo.dataId);
     info.bufferInfo.buffer = resBuffer;
-    // Explicitly change the buffer size that could release the buffer
-    // successfully in future.
-    info.bufferInfo.byteSize = bufferSize;
 
-    return {tensorRef, buffer: resBuffer, bufSize: bufferSize};
+    return {tensorRef, buffer: resBuffer, bufSize: size};
   }
 
   bufferSync<R extends Rank, D extends DataType>(t: TensorInfo):
@@ -751,20 +736,20 @@ export class WebGPUBackend extends KernelBackend {
     bindGroupLayoutEntries.push({
       binding: 0,
       visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'storage' as const}
+      buffer: {type: 'storage' as const }
     });
     // Input buffer binding layout. Depends on variableNames length.
     for (let i = 0; i < inputEntrySize; i++) {
       bindGroupLayoutEntries.push({
         binding: i + 1,
         visibility: GPUShaderStage.COMPUTE,
-        buffer: {type: 'read-only-storage' as const}
+        buffer: {type: 'read-only-storage' as const }
       });
     }
     bindGroupLayoutEntries.push({
       binding: inputEntrySize + 1,
       visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'uniform' as const}
+      buffer: {type: 'uniform' as const }
     });
     const bindGroupLayout =
         this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
@@ -923,7 +908,7 @@ export class WebGPUBackend extends KernelBackend {
     bindGroupLayoutEntries.push({
       binding: 0,
       visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'storage' as const}
+      buffer: {type: 'storage' as const }
     });
     // Input texture binding layout.
     if (useImport) {
