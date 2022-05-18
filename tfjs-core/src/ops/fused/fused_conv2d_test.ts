@@ -1648,6 +1648,223 @@ describeWithFlags('fused conv2d', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
+  it('batch in NCHW', async () => {
+    const inputDepth = 2;
+    const inputShape: [number, number, number, number] = [2, inputDepth, 2, 2];
+    const outputDepth = 2;
+    const fSize = 2;
+    const pad = 'same';
+    const strides: [number, number] = [1, 1];
+    const dataFormat = 'NCHW';
+    const dilation = 1;
+
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], inputShape);
+    const w = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, -1, -2, -3, -4, -5, -6, -7, -8],
+        [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.fused.conv2d(
+        {x, filter: w, strides, pad, dataFormat, dilations: dilation});
+
+    expect(result.shape).toEqual([2, 2, 2, 2]);
+    expectArraysClose(await result.data(), [
+      -32, -8, 100, 28, -40, -12, 122, 40, -32, -8, 228, 60, -40, -12, 282, 88
+    ]);
+  });
+
+  it('batch in NCHW with scalar bias', async () => {
+    const inputDepth = 2;
+    const inputShape: [number, number, number, number] = [2, inputDepth, 2, 2];
+    const outputDepth = 2;
+    const fSize = 2;
+    const pad = 'same';
+    const strides: [number, number] = [1, 1];
+    const dataFormat = 'NCHW';
+    const dilation = 1;
+
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], inputShape);
+    const w = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, -1, -2, -3, -4, -5, -6, -7, -8],
+        [fSize, fSize, inputDepth, outputDepth]);
+    const bias = tf.scalar(1);
+
+    const result = tf.fused.conv2d(
+        {x, filter: w, strides, pad, dataFormat, dilations: dilation, bias});
+
+    expect(result.shape).toEqual([2, 2, 2, 2]);
+    expectArraysClose(await result.data(), [
+      -31, -7, 101, 29, -39, -11, 123, 41, -31, -7, 229, 61, -39, -11, 283, 89
+    ]);
+  });
+
+  it('batch in NCHW with 1-D bias', async () => {
+    const inputDepth = 2;
+    const inputShape: [number, number, number, number] = [2, inputDepth, 2, 2];
+    const outputDepth = 2;
+    const fSize = 2;
+    const pad = 'same';
+    const strides: [number, number] = [1, 1];
+    const dataFormat = 'NCHW';
+    const dilation = 1;
+
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], inputShape);
+    const w = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, -1, -2, -3, -4, -5, -6, -7, -8],
+        [fSize, fSize, inputDepth, outputDepth]);
+    const bias = tf.tensor1d([1, 2]);
+
+    const result = tf.fused.conv2d(
+        {x, filter: w, strides, pad, dataFormat, dilations: dilation, bias});
+
+    expect(result.shape).toEqual([2, 2, 2, 2]);
+    expectArraysClose(await result.data(), [
+      -31, -7, 101, 29, -38, -10, 124, 42, -31, -7, 229, 61, -38, -10, 284, 90
+    ]);
+  });
+
+  it('batch in NCHW with scalar PReLU actiavation weights', async () => {
+    const inputDepth = 2;
+    const inputShape: [number, number, number, number] = [2, inputDepth, 2, 2];
+    const outputDepth = 2;
+    const fSize = 2;
+    const pad = 'same';
+    const strides: [number, number] = [1, 1];
+    const dataFormat = 'NCHW';
+    const dilation = 1;
+
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], inputShape);
+    const w = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, -1, -2, -3, -4, -5, -6, -7, -8],
+        [fSize, fSize, inputDepth, outputDepth]);
+    const alpha = tf.scalar(10);
+
+    const result = tf.fused.conv2d({
+      x,
+      filter: w,
+      strides,
+      pad,
+      dataFormat,
+      dilations: dilation,
+      activation: 'prelu',
+      preluActivationWeights: alpha
+    });
+
+    expect(result.shape).toEqual([2, 2, 2, 2]);
+    expectArraysClose(await result.data(), [
+      -320, -80, 100, 28, -400, -120, 122, 40, -320, -80, 228, 60, -400, -120,
+      282, 88
+    ]);
+  });
+
+  it('batch in NCHW with 1-D PReLU actiavation weights', async () => {
+    const inputDepth = 2;
+    const inputShape: [number, number, number, number] = [2, inputDepth, 2, 2];
+    const outputDepth = 2;
+    const fSize = 2;
+    const pad = 'same';
+    const strides: [number, number] = [1, 1];
+    const dataFormat = 'NCHW';
+    const dilation = 1;
+
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], inputShape);
+    const w = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, -1, -2, -3, -4, -5, -6, -7, -8],
+        [fSize, fSize, inputDepth, outputDepth]);
+    const alpha = tf.tensor1d([1, 10]);
+
+    const result = tf.fused.conv2d({
+      x,
+      filter: w,
+      strides,
+      pad,
+      dataFormat,
+      dilations: dilation,
+      activation: 'prelu',
+      preluActivationWeights: alpha
+    });
+
+    expect(result.shape).toEqual([2, 2, 2, 2]);
+    expectArraysClose(await result.data(), [
+      -32, -8, 100, 28, -400, -120, 122, 40, -32, -8, 228, 60, -400, -120, 282,
+      88
+    ]);
+  });
+
+  it('batch in NCHW with 3-D PReLU actiavation weights', async () => {
+    const inputDepth = 2;
+    const inputShape: [number, number, number, number] = [2, inputDepth, 2, 2];
+    const outputDepth = 2;
+    const fSize = 2;
+    const pad = 'same';
+    const strides: [number, number] = [1, 1];
+    const dataFormat = 'NCHW';
+    const dilation = 1;
+
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], inputShape);
+    const w = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, -1, -2, -3, -4, -5, -6, -7, -8],
+        [fSize, fSize, inputDepth, outputDepth]);
+    const alpha = tf.tensor3d([1, 10], [2, 1, 1]);
+
+    const result = tf.fused.conv2d({
+      x,
+      filter: w,
+      strides,
+      pad,
+      dataFormat,
+      dilations: dilation,
+      activation: 'prelu',
+      preluActivationWeights: alpha
+    });
+
+    expect(result.shape).toEqual([2, 2, 2, 2]);
+    expectArraysClose(await result.data(), [
+      -32, -8, 100, 28, -400, -120, 122, 40, -32, -8, 228, 60, -400, -120, 282,
+      88
+    ]);
+  });
+
+  it('batch in NCHW with full 3-D PReLU actiavation weights', async () => {
+    const inputDepth = 2;
+    const inputShape: [number, number, number, number] = [2, inputDepth, 2, 2];
+    const outputDepth = 2;
+    const fSize = 2;
+    const pad = 'same';
+    const strides: [number, number] = [1, 1];
+    const dataFormat = 'NCHW';
+    const dilation = 1;
+
+    const x = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], inputShape);
+    const w = tf.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, -1, -2, -3, -4, -5, -6, -7, -8],
+        [fSize, fSize, inputDepth, outputDepth]);
+    const alpha = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
+
+    const result = tf.fused.conv2d({
+      x,
+      filter: w,
+      strides,
+      pad,
+      dataFormat,
+      dilations: dilation,
+      activation: 'prelu',
+      preluActivationWeights: alpha
+    });
+
+    expect(result.shape).toEqual([2, 2, 2, 2]);
+    expectArraysClose(await result.data(), [
+      -32, -16, 100, 28, -200, -72, 122, 40, -32, -16, 228, 60, -200, -72, 282,
+      88
+    ]);
+  });
+
   it('backProp input x=[2,3,3,1] f=[2,2,1,1] s=1 p=0', async () => {
     const inputDepth = 1;
     const outputDepth = 1;
