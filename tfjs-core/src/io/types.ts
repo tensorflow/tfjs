@@ -387,7 +387,7 @@ export interface IOHandler {
   load?: LoadHandler;
 }
 
-export type Syncify<T> = T extends (...args: infer Args) => Promise<infer R>
+type Syncify<T> = T extends (...args: infer Args) => Promise<infer R>
   ? (...args: Args) => R : never;
 
 export type IOHandlerSync = {
