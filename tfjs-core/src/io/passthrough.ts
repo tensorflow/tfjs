@@ -67,9 +67,9 @@ class PassthroughAsync implements IOHandler {
  * @param modelArtifacts a object containing model topology (i.e., parsed from
  *   the JSON format).
  * @param weightSpecs An array of `WeightsManifestEntry` objects describing the
- *   names, shapes, types, and quantization of the weight data.
+ *   names, shapes, types, and quantization of the weight data. Optional.
  * @param weightData A single `ArrayBuffer` containing the weight data,
- *   concatenated in the order described by the weightSpecs.
+ *   concatenated in the order described by the weightSpecs. Optional.
  * @param trainingConfig Model training configuration. Optional.
  *
  * @returns A passthrough `IOHandler` that simply loads the provided data.
@@ -96,9 +96,9 @@ export function fromMemory(
  * @param modelArtifacts a object containing model topology (i.e., parsed from
  *   the JSON format).
  * @param weightSpecs An array of `WeightsManifestEntry` objects describing the
- *   names, shapes, types, and quantization of the weight data.
+ *   names, shapes, types, and quantization of the weight data. Optional.
  * @param weightData A single `ArrayBuffer` containing the weight data,
- *   concatenated in the order described by the weightSpecs.
+ *   concatenated in the order described by the weightSpecs. Optional.
  * @param trainingConfig Model training configuration. Optional.
  *
  * @returns A passthrough `IOHandlerSync` that simply loads the provided data.
