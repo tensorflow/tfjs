@@ -22,7 +22,7 @@ import {getMainHeaderString} from './shader_preprocessor';
 import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkGroupSizeForMatMul} from './webgpu_util';
 
-const storeDataToSubASnippet = (transpose: boolean) => {
+const writeDataToSubASnippet = (transpose: boolean) => {
   if (transpose) {
     return `
         mm_Asub[inputRow][inputCol] = mm_readA(
@@ -39,7 +39,7 @@ const storeDataToSubASnippet = (transpose: boolean) => {
   }
 };
 
-const loadDataFromSubASnippet = (transposeA: boolean) => {
+const readDataFromSubASnippet = (transposeA: boolean) => {
   return transposeA ? 'let ACached = mm_Asub[k][tileRow + innerRow];' :
 
                       'let ACached = mm_Asub[tileRow + innerRow][k];';
@@ -111,7 +111,7 @@ export function makeMatMulPackedSource(
       colPerThreadA}; innerCol = innerCol + 1) {
             let inputRow = tileRowA + innerRow;
             let inputCol = tileColA + innerCol;
-            ${storeDataToSubASnippet(transposeA)}
+            ${writeDataToSubASnippet(transposeA)}
           }
         }
 
@@ -137,7 +137,7 @@ export function makeMatMulPackedSource(
           }
 
           for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
-            ${loadDataFromSubASnippet(transposeA)}
+            ${readDataFromSubASnippet(transposeA)}
             for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
               acc[innerRow][innerCol] = acc[innerRow][innerCol] + ACached * BCached[innerCol];
             }
