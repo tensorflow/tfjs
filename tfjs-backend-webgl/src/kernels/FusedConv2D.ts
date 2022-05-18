@@ -85,7 +85,7 @@ export function fusedConv2d(args: {
         hasLeakyreluAlpha);
     const inputs: TensorInfo[] = [x, filter];
 
-    if (bias) {
+    if (hasBias) {
       // For NCHW format, if bias is a 1-D tensor, it is supposed to be
       // aligned with the channel of the conv2d's result; if the bias is a
       // scalar, the bias_add is computed as if the bias was broadcasted to the
@@ -104,7 +104,7 @@ export function fusedConv2d(args: {
       }
     }
 
-    if (preluActivationWeights) {
+    if (hasPreluActivationWeights) {
       // For NCHW format, if PReLu activation weights is a 1-D tensor, it is
       // supposed to be aligned with the channel of the conv2d's result. For
       // other cases, whether NCHW or NHWC data format, the conv2d result is
