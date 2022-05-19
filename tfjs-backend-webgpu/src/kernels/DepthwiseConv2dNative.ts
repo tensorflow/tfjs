@@ -19,8 +19,9 @@ import {backend_util, DepthwiseConv2dNative, DepthwiseConv2dNativeAttrs, Depthwi
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {DepthwiseConv2D3x3Program} from '../depthwise_conv2d_3x3_webgpu';
-import {DepthwiseConv2DProgram} from '../depthwise_conv2d_webgpu';
 import {DepthwiseConv2DNCHWSharedProgram} from '../depthwise_conv2d_nchw_shared_webgpu';
+import {DepthwiseConv2DProgram} from '../depthwise_conv2d_webgpu';
+
 import {transpose} from './Transpose';
 
 export function depthwiseConv2dNative(args: {
@@ -50,6 +51,7 @@ export function depthwiseConv2dNative(args: {
   ];
 
   let program: DepthwiseConv2DProgram|DepthwiseConv2D3x3Program;
+  /*
   // TODO: To see if we need to relax the limitation. Currently, it's only for
   // filter size 3x3.
   if (convInfo.batchSize === 1 && convInfo.inHeight === convInfo.outHeight &&
@@ -60,26 +62,27 @@ export function depthwiseConv2dNative(args: {
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
       convInfo.filterHeight === 3 && convInfo.inChannels % 4 === 0) {
     program = new DepthwiseConv2D3x3Program(convInfo);
-  } else if (convInfo.filterHeight > 3 && convInfo.filterWidth > 3 &&
-             convInfo.inHeight > 16 && convInfo.inWidth > 16 &&
-             convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
-             convInfo.dilationWidth === 1 && convInfo.dilationHeight === 1) {
-    const transposedX = transpose(
-        {inputs: {x}, backend, attrs: {perm: [0, 3, 1, 2]}});
-    const transposedFilter = transpose(
-        {inputs: {x: filter}, backend, attrs: {perm: [3, 2, 0, 1]}});
-    const outputShape = [convInfo.batchSize, convInfo.outChannels,
-                         convInfo.outHeight, convInfo.outWidth];
-    const programNCHW = new DepthwiseConv2DNCHWSharedProgram(outputShape);
-    dimensions.push({type: 'int32', data: [convInfo.filterHeight]},
-    {type: 'int32', data: [convInfo.filterWidth]},
-    {type: 'int32', data: [convInfo.outChannels / convInfo.inChannels]});
+  } else*/
+  if (convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
+      convInfo.dilationWidth === 1 && convInfo.dilationHeight === 1 &&
+      convInfo.inChannels === convInfo.outChannels) {
+    const transposedX =
+        transpose({inputs: {x}, backend, attrs: {perm: [0, 3, 1, 2]}});
+    const outputShape = [
+      convInfo.batchSize, convInfo.outChannels, convInfo.outHeight,
+      convInfo.outWidth
+    ];
+    const programNCHW = new DepthwiseConv2DNCHWSharedProgram(
+        outputShape, convInfo.filterHeight, convInfo.filterWidth);
+    dimensions.push(
+        {type: 'int32', data: [convInfo.filterHeight]},
+        {type: 'int32', data: [convInfo.filterWidth]},
+        {type: 'int32', data: [convInfo.outChannels / convInfo.inChannels]});
     const result = backend.runWebGPUProgram(
-        programNCHW, [transposedX, transposedFilter], x.dtype, dimensions);
-    const transposeRes = transpose(
-        {inputs: {x: result}, backend, attrs: {perm: [0, 2, 3, 1]}});
+        programNCHW, [transposedX, filter], x.dtype, dimensions);
+    const transposeRes =
+        transpose({inputs: {x: result}, backend, attrs: {perm: [0, 2, 3, 1]}});
     backend.disposeData(transposedX.dataId);
-    backend.disposeData(transposedFilter.dataId);
     backend.disposeData(result.dataId);
     return transposeRes;
   } else {

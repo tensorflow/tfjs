@@ -15,13 +15,12 @@
  * =============================================================================
  */
 
+import {util} from '@tensorflow/tfjs-core';
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {getMainHeaderString} from './shader_preprocessor';
-import {computeDispatch} from './webgpu_util';
-
 import {mapActivationToShaderProgram} from './activation_util';
-import {WebGPUProgram} from './webgpu_program';
+import {getWorkGroupSizeString, WebGPUProgram} from './webgpu_program';
+import {computeDispatch} from './webgpu_util';
 
 export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
   outputShape: number[];
@@ -29,19 +28,22 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = `pad : vec2<i32>; stride : vec2<i32>; dilation : vec2<i32>;
-      inDims : vec2<i32>; filterHeight : i32; filterWidth : i32;
-      channelMul : i32;`;
+  uniforms = `pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>,
+      inDims : vec2<i32>, filterHeight : i32, filterWidth : i32,
+      channelMul : i32,`;
   workGroupSize: [number, number, number] = [8, 8, 1];
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivation: boolean;
+  filterHeight: number;
+  filterWidth: number;
 
   constructor(
-    outputShape: number[], addBias = false,
-      activation: backend_util.Activation = null, hasPreluActivation = false) {
+      outputShape: number[], filterHeight: number, filterWidth: number,
+      addBias = false, activation: backend_util.Activation = null,
+      hasPreluActivation = false) {
     this.outputShape = outputShape;
-    this.dispatchLayout = {x: [3], y: [2], z: [0,1]};
+    this.dispatchLayout = {x: [3], y: [2], z: [0, 1]};
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
 
@@ -55,7 +57,10 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivation = hasPreluActivation;
-    this.shaderKey = `depthwiseNCHW_${this.activation}`;
+    this.filterHeight = filterHeight;
+    this.filterWidth = filterWidth;
+    this.shaderKey = `depthwiseNCHW_${this.activation}_${this.filterHeight}_${
+        this.filterWidth}`;
   }
 
   getUserCode(): string {
@@ -83,38 +88,47 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
         'dotProd = dotProd + getBiasByOutputCoords(coords);' :
         '';
 
+    const filterSize = this.filterWidth * this.filterHeight;
+    const workGroupSize =
+        this.workGroupSize[0] * this.workGroupSize[1] * this.workGroupSize[2];
+    util.assert(
+        filterSize <= workGroupSize,
+        () => `The filterSize ${
+            filterSize} must be less that or equal to workgroup size ${
+            workGroupSize}`);
     const userCode = `
       ${activationSnippet}
 
       var<workgroup> mm_Asub : array<array<f32, 16>, 16>;
-      var<workgroup> mm_Bsub : array<array<f32, 8>, 8>;
-      fn readX(batch : i32, chan : i32, row : i32, col : i32) -> f32 {
+      var<workgroup> mm_Bsub : array<array<f32, ${this.filterWidth}>, ${
+        this.filterHeight}>;
+      fn readX(batch : i32, channel : i32, row : i32, col : i32) -> f32 {
         if (row < 0 || row >= uniforms.inDims[0]) {
           return 0.0;
         }
         if (col < 0 || col >= uniforms.inDims[1]) {
           return 0.0;
         }
-        return getX(batch, chan, row, col);
+        return getX(batch, channel, row, col);
       }
 
-      fn readW(chanMultiplier : i32, chan : i32, row : i32, col : i32) -> f32 {
-        if (row < uniforms.filterHeight && col < uniforms.filterWidth) {
-          return getW(chanMultiplier, chan, row, col);
-        } else {
-          return 0.0;
-        }
-      }
-
-      fn writeResult(batch : i32, chan : i32, row : i32, col : i32,
+      fn writeResult(batch : i32, channel : i32, row : i32, col : i32,
           value : f32) {
-        let coord = vec4<i32>(batch, chan, row, col);
+        let coord = vec4<i32>(batch, channel, row, col);
         if (coordsInBounds4D(coord, uniforms.outShape)) {
-          setOutputAtCoords(batch, chan, row, col, value);
+          setOutputAtCoords(batch, channel, row, col, value);
         }
       }
 
-      ${getMainHeaderString()}
+      ${getWorkGroupSizeString()}
+      fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
+              @builtin(global_invocation_id) GlobalId : vec3<u32>,
+              @builtin(local_invocation_index) LocalIndex: u32,
+              @builtin(num_workgroups) NumWorkgroups: vec3<u32>) {
+        localId = LocalId;
+        globalId = GlobalId;
+        let localIndex = i32(LocalIndex);
+        numWorkgroups = NumWorkgroups;
         let coords = getOutputCoords();
         let batch = coords[0];
         let xRCCorner = vec2<i32>(coords.zw) * uniforms.stride - uniforms.pad;
@@ -138,7 +152,13 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
           readX(batch, d1, inputRowStart + 8, inputColStart + 8);
 
         // Load one tile of W into local memory.
-        mm_Bsub[localRow][localCol] = readW(q, d1, localRow, localCol);
+        if (localIndex < ${filterSize})
+        {
+          let wRow = localIndex / ${this.filterWidth};
+          let wCol = localIndex % ${this.filterWidth};
+          mm_Bsub[wRow][wCol] = getW(wRow, wCol, d1, q);
+        }
+
         workgroupBarrier();
 
         var dotProd = 0.0;
@@ -146,7 +166,7 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
           for (var wC = 0; wC < uniforms.filterWidth; wC = wC + 1) {
             let xVal = mm_Asub[localRow + wR][localCol + wC];
             let wVal = mm_Bsub[wR][wC];
-            dotProd = dotProd + xVal * wVal;
+            dotProd = fma(xVal, wVal, dotProd);
           }
         }
 
