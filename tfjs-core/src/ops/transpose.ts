@@ -30,7 +30,6 @@ import {neg} from './neg';
 import {op} from './operation';
 import {real} from './real';
 
-
 /**
  * Transposes the `tf.Tensor`. Permutes the dimensions according to `perm`.
  *
