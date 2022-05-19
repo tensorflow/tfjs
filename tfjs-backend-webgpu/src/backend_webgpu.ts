@@ -17,7 +17,7 @@
 
 import './flags_webgpu';
 
-import {backend_util, buffer, DataStorage, DataToGPUWebGPUOption, DataType, DataValues, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, buffer, DataStorage, DataType, engine, env, GPUData, KernelBackend, Rank, RecursiveArray, ShapeMap, TensorBuffer, TensorInfo, TimingInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {BufferManager} from './buffer_manager';
 import {TextureManager} from './texture_manager';
@@ -477,11 +477,8 @@ export class WebGPUBackend extends KernelBackend {
   /**
    * Read tensor to a new GPUBuffer.
    * @param dataId The source tensor.
-   * @param options
-   *     customBufShape: Optional. If set, will use the user defined buffer
-   *     size to create the buffer.
    */
-  readToGPU(dataId: DataId, options: DataToGPUWebGPUOption = {}): GPUData {
+  readToGPU(dataId: DataId): GPUData {
     const srcData = this.tensorMap.get(dataId);
     const {values, dtype, shape, bufferInfo} = srcData;
 
@@ -499,16 +496,7 @@ export class WebGPUBackend extends KernelBackend {
 
     const size =
         util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
-    if (options.customBufSize != null) {
-      util.assert(
-          options.customBufSize >= size,
-          () => `customBufSize should be equal or larger than ` +
-              `the source tensor size ${size} bytes.`);
-    }
-
-    const bufferSize =
-        options.customBufSize != null ? options.customBufSize : size;
-    const resBuffer = this.acquireBuffer(bufferSize);
+    const resBuffer = this.acquireBuffer(size);
     this.ensureCommandEncoderReady();
     this.ensureComputePassEnded();
     this.currentCommandEncoder.copyBufferToBuffer(
@@ -521,26 +509,25 @@ export class WebGPUBackend extends KernelBackend {
 
     const info = this.tensorMap.get(tensorInfo.dataId);
     info.bufferInfo.buffer = resBuffer;
-    // Explicitly change the buffer size that could release the buffer
-    // successfully in future.
-    info.bufferInfo.byteSize = bufferSize;
 
-    return {tensorRef, buffer: resBuffer, bufSize: bufferSize};
+    return {tensorRef, buffer: resBuffer, bufSize: size};
   }
 
-  bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {
+  bufferSync<R extends Rank, D extends DataType>(t: TensorInfo):
+      TensorBuffer<R, D> {
     const data = this.readSync(t.dataId);
-    let decodedData = data as DataValues;
     if (t.dtype === 'string') {
       try {
         // Decode the bytes into string.
-        decodedData = (data as Uint8Array[]).map(d => util.decodeString(d));
+        const strings = (data as Uint8Array[]).map(d => util.decodeString(d));
+        return buffer(t.shape as ShapeMap[R], t.dtype, strings) as
+            TensorBuffer<R, D>;
       } catch {
         throw new Error('Failed to decode encoded string bytes into utf-8');
       }
     }
-    return buffer(t.shape as ShapeMap[R], t.dtype, decodedData) as
-        TensorBuffer<R>;
+    return buffer(t.shape as ShapeMap[R], t.dtype, data as TypedArray) as
+        TensorBuffer<R, D>;
   }
 
   async time(f: () => void): Promise<WebGPUTimingInfo> {

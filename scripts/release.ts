@@ -47,7 +47,7 @@ async function main() {
   // released by this script. Packages in the alpha release unit need their
   // package.json dependencies rewritten.
   const releaseUnits = RELEASE_UNITS.filter(r => r !== ALPHA_RELEASE_UNIT);
-  releaseUnits.forEach((unit, index) => printReleaseUnit(unit, index));
+  releaseUnits.forEach(printReleaseUnit);
   console.log();
 
   const releaseUnitStr =

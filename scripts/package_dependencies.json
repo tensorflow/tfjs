@@ -1,11 +1,18 @@
 {
+  "e2e": ["tfjs", "tfjs-converter", "tfjs-node", "tfjs-backend-wasm"],
+  "tfjs": ["tfjs-backend-cpu", "tfjs-backend-webgl", "tfjs-converter", "tfjs-core", "tfjs-data", "tfjs-layers"],
   "tfjs-automl": [],
-  "tfjs-converter": [],
-  "tfjs": ["tfjs-converter"],
-  "tfjs-node": ["tfjs"],
-  "tfjs-node-gpu": ["tfjs"],
-  "tfjs-backend-wasm": [],
+  "tfjs-backend-cpu": ["tfjs-core"],
+  "tfjs-backend-wasm": ["tfjs-core", "tfjs-backend-cpu"],
+  "tfjs-backend-webgl": ["tfjs-core", "tfjs-backend-cpu"],
+  "tfjs-backend-webgpu": ["tfjs-core", "tfjs-backend-cpu"],
+  "tfjs-converter": ["tfjs-core", "tfjs-backend-cpu"],
+  "tfjs-core": [],
+  "tfjs-data": ["tfjs-core", "tfjs-backend-cpu", "tfjs-layers"],
   "tfjs-inference": [],
-  "tfjs-vis": [],
-  "e2e": ["tfjs", "tfjs-converter", "tfjs-node", "tfjs-backend-wasm"]
+  "tfjs-layers": ["tfjs-core", "tfjs-backend-cpu", "tfjs-backend-webgl"],
+  "tfjs-node": ["tfjs-core", "tfjs"],
+  "tfjs-node-gpu": ["tfjs-core", "tfjs"],
+  "tfjs-tflite": ["tfjs-core", "tfjs-backend-cpu"],
+  "tfjs-vis": []
 }
