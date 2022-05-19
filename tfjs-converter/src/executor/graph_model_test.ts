@@ -430,7 +430,8 @@ describe('loadGraphModelSync', () => {
     } catch (err) {
       errorMsg = err.message;
     }
-    expect(errorMsg).toMatch(/modelUrl in loadGraphModelSync\(\) cannot be null/);
+    expect(errorMsg)
+      .toMatch(/modelUrl in loadGraphModelSync\(\) cannot be null/);
   });
 });
 

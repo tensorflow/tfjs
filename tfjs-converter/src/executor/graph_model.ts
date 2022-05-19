@@ -471,7 +471,6 @@ export async function loadGraphModel(
   return model;
 }
 
-
 /**
  * Load a graph model given a synchronous IO handler with a 'load' method.
  *
@@ -484,8 +483,8 @@ export function loadGraphModelSync(
   modelSource: io.IOHandlerSync): GraphModel<io.IOHandlerSync> {
   if (modelSource == null) {
     throw new Error(
-        'modelUrl in loadGraphModelSync() cannot be null. Please provide a url ' +
-        'or an IOHandler that loads the model');
+        'modelUrl in loadGraphModelSync() cannot be null. Please provide a ' +
+        'url or an IOHandler that loads the model');
   }
   if (!modelSource.load) {
     throw new Error(`modelUrl IO Handler ${modelSource} has no load function`);
@@ -498,7 +497,7 @@ export function loadGraphModelSync(
 
 function getTFHubUrl(modelUrl: string): string {
   if (!modelUrl.endsWith('/')) {
-    modelUrl = (modelUrl as string) + '/';
+    modelUrl = (modelUrl) + '/';
   }
   return `${modelUrl}${DEFAULT_MODEL_NAME}${TFHUB_SEARCH_PARAM}`;
 }
