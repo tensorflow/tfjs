@@ -471,18 +471,26 @@ export async function loadGraphModel(
   return model;
 }
 
+
+/**
+ * Load a graph model given a synchronous IO handler with a 'load' method.
+ *
+ * @param modelSource The `io.IOHandlerSync` that loads the model.
+ *
+ * @doc {heading: 'Models', subheading: 'Loading'}
+ */
+
 export function loadGraphModelSync(
-  modelUrl: io.IOHandlerSync,
-  options: io.LoadOptions = {}): GraphModel<io.IOHandlerSync> {
-  if (modelUrl == null) {
+  modelSource: io.IOHandlerSync): GraphModel<io.IOHandlerSync> {
+  if (modelSource == null) {
     throw new Error(
         'modelUrl in loadGraphModelSync() cannot be null. Please provide a url ' +
         'or an IOHandler that loads the model');
   }
-  if (!modelUrl.load) {
-    throw new Error(`modelUrl IO Handler ${modelUrl} has no load function`);
+  if (!modelSource.load) {
+    throw new Error(`modelUrl IO Handler ${modelSource} has no load function`);
   }
-  const model = new GraphModel(modelUrl, options);
+  const model = new GraphModel(modelSource);
 
   model.load();
   return model;
