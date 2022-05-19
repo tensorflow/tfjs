@@ -56,6 +56,7 @@ function findPackagesWithDiff() {
 
   console.log();  // Break up the console for readability.
 
+  const originalPath = process.cwd();
   shell.cd(CLONE_PATH);
 
   // If we cannot check out the commit then this PR is coming from a fork.
@@ -75,7 +76,7 @@ function findPackagesWithDiff() {
   } else {
     console.log(`PR is going to diff against branch ${baseBranch}.`);
   }
-  shell.cd('..');
+  shell.cd(originalPath);
   console.log();  // Break up the console for readability.
 
   let triggerAllBuilds = false;
