@@ -40,7 +40,8 @@ type BatchMatMulConfig = {
   bias?: TensorInfo,
   preluActivationWeights?: TensorInfo,
   leakyreluAlpha?: number,
-  activation?: backend_util.Activation
+  activation?: backend_util.Activation,
+  transposeProduct?: boolean
 };
 
 export function batchMatMulImpl({
@@ -52,7 +53,8 @@ export function batchMatMulImpl({
   bias = null,
   preluActivationWeights = null,
   leakyreluAlpha = 0,
-  activation = null
+  activation = null,
+  transposeProduct = false
 }: BatchMatMulConfig): TensorInfo {
   const aRank = a.shape.length;
   const bRank = b.shape.length;
@@ -71,7 +73,9 @@ export function batchMatMulImpl({
 
   const outShapeOuterDims = broadcast_util.assertAndGetBroadcastShape(
       a.shape.slice(0, -2), b.shape.slice(0, -2));
-  const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
+  const outShape = outShapeOuterDims.concat(
+      transposeProduct ? [outerShapeB, outerShapeA] :
+                         [outerShapeA, outerShapeB]);
 
   util.assert(
       innerShapeA === innerShapeB,
@@ -150,14 +154,22 @@ export function batchMatMulImpl({
 
     const product = multiply({inputs: {a: aVec3d, b: bVec3d}, backend});
     out = sum({inputs: {x: product}, backend, attrs: {axis, keepDims: true}});
+
+    if (transposeProduct) {
+      intermediates.push(out);
+      out = transpose({inputs: {x: out}, backend, attrs: {perm: [0, 2, 1]}});
+    }
+
     intermediates.push(product);
   } else {
     const dtype = upcastType(a.dtype, b.dtype);
 
     const program = new MatMulPackedProgram(
-        a3dShape, b3dShape, [batchDim, outerShapeA, outerShapeB], transposeA,
-        transposeB, hasBias, fusedActivation, hasPreluActivationWeights,
-        hasLeakyreluAlpha);
+        a3dShape, b3dShape,
+        transposeProduct ? [batchDim, outerShapeB, outerShapeA] :
+                           [batchDim, outerShapeA, outerShapeB],
+        transposeA, transposeB, hasBias, fusedActivation,
+        hasPreluActivationWeights, hasLeakyreluAlpha, transposeProduct);
 
     const inputs: TensorInfo[] = [a3d, b3d];
     if (bias != null) {

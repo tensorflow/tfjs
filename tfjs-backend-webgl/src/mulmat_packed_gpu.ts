@@ -29,17 +29,26 @@ export class MatMulPackedProgram implements GPGPUProgram {
       aShape: [number, number, number], bShape: [number, number, number],
       outputShape: [number, number, number], transposeA = false,
       transposeB = false, addBias = false, activation: string = null,
-      hasPreluActivation = false, hasLeakyreluActivation = false) {
+      hasPreluActivation = false, hasLeakyreluActivation = false,
+      transposeProduct = false) {
     this.outputShape = outputShape;
     this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
 
     const sharedDim = transposeA ? aShape[1] : aShape[2];
     const sharedDimensionPacked = Math.ceil(sharedDim / 2);
 
-    const aSample = transposeA ? 'i * 2, rc.y' : 'rc.y, i * 2';
-    const bSample = transposeB ? 'rc.z, i * 2' : 'i * 2, rc.z';
-    const aSwizzle = transposeA ? ['a.xxyy', 'a.zzww'] : ['a.xxzz', 'a.yyww'];
-    const bSwizzle = transposeB ? ['b.xzxz', 'b.ywyw'] : ['b.xyxy', 'b.zwzw'];
+    let aSample, bSample, aSwizzle, bSwizzle;
+    if (transposeProduct) {
+      aSample = transposeA ? 'i * 2, rc.z' : 'rc.z, i * 2';
+      bSample = transposeB ? 'rc.y, i * 2' : 'i * 2, rc.y';
+      aSwizzle = transposeA ? ['a.xyxy', 'a.zwzw'] : ['a.xzxz', 'a.ywyw'];
+      bSwizzle = transposeB ? ['b.xxzz', 'b.yyww'] : ['b.xxyy', 'b.zzww'];
+    } else {
+      aSample = transposeA ? 'i * 2, rc.y' : 'rc.y, i * 2';
+      bSample = transposeB ? 'rc.z, i * 2' : 'i * 2, rc.z';
+      aSwizzle = transposeA ? ['a.xxyy', 'a.zzww'] : ['a.xxzz', 'a.yyww'];
+      bSwizzle = transposeB ? ['b.xzxz', 'b.ywyw'] : ['b.xyxy', 'b.zwzw'];
+    }
 
     let activationSnippet = '', applyActivationSnippet = '';
     if (activation) {
