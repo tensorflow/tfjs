@@ -93,20 +93,19 @@ export function fusedConv2d(args: {
     // supposed to be aligned with the channels (only bias and PReLU activation
     // weights could be a 1-D tensor).
     const alignInputWithDataFormat =
-        (input: TensorInfo, dataFormat: 'NHWC'|'NCHW'):
-            TensorInfo => {
-              if (dataFormat === 'NCHW' && input.shape.length === 1 &&
-                  input.shape[0] !== 1) {
-                const alignedInput = reshape({
-                  inputs: {x: input},
-                  backend,
-                  attrs: {shape: [input.shape[0], 1, 1]}
-                });
-                intermediates.push(alignedInput);
-                return alignedInput;
-              }
-              return input;
-            }
+        (input: TensorInfo, dataFormat: 'NHWC'|'NCHW'): TensorInfo => {
+          if (dataFormat === 'NCHW' && input.shape.length === 1 &&
+              input.shape[0] !== 1) {
+            const alignedInput = reshape({
+              inputs: {x: input},
+              backend,
+              attrs: {shape: [input.shape[0], 1, 1]}
+            });
+            intermediates.push(alignedInput);
+            return alignedInput;
+          }
+          return input;
+        };
 
     if (hasBias) {
       inputs.push(alignInputWithDataFormat(bias, dataFormat));
