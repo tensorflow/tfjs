@@ -32,14 +32,9 @@ let branchName = process.env['BRANCH_NAME'];
 let baseBranch = process.env['BASE_BRANCH'];
 
 
-const allPackages = readdirSync('.').filter(f => {
-  if (f === 'node_modules' || f === '.git' || f === 'clone' ||
-      !statSync(f).isDirectory()) {
-    return false;
-  }
-  const directoryContents = readdirSync(join('.', f));
-  return directoryContents.includes('cloudbuild.yml');
-});
+const packageDependencies = JSON.parse(readFileSync(
+    join(__dirname, 'package_dependencies.json'), 'utf8'));
+const allPackages = Object.keys(packageDependencies);
 
 
 function findPackagesWithDiff() {
