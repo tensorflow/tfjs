@@ -16,7 +16,7 @@
 
 const {exec} = require('./test-util');
 const shell = require('shelljs');
-const {readdirSync, statSync} = require('fs');
+const {readdirSync, statSync, readFileSync} = require('fs');
 const {join} = require('path');
 
 
@@ -26,7 +26,7 @@ const filesAllowlistToTriggerBuild = [
   'scripts/generate_cloudbuild.js'
 ];
 
-const CLONE_PATH = 'clone';
+const CLONE_PATH = '/tmp/tfjs-diff-clone';
 let commitSha = process.env['COMMIT_SHA'];
 let branchName = process.env['BRANCH_NAME'];
 let baseBranch = process.env['BASE_BRANCH'];
@@ -115,7 +115,7 @@ function findPackagesWithDiff() {
 function diff(fileOrDirName) {
   const diffCmd = `diff -rq --exclude='settings.json' ` +
       `${CLONE_PATH}/${fileOrDirName} ` +
-      `${fileOrDirName}`;
+      `${join(__dirname, '../', fileOrDirName)}`;
   return exec(diffCmd, {silent: true}, true).stdout.trim();
 }
 
