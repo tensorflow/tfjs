@@ -112,10 +112,11 @@ const TEST_FILTERS: TestFilter[] = [
     excludes: [
       'gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0',  // conv2dDerInput not yet
                                                    // implemented
-      'backProp',  // Conv2DBackpropFilter not yet
-                   // implemented
+      'backProp',       // Conv2DBackpropFilter not yet
+                        // implemented
       'basic in NCHW',  // NCHW format is not yet supported
       'im2row in NCHW',
+      'batch in NCHW',
     ]
   },
   {
