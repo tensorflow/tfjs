@@ -85,43 +85,32 @@ export function fusedConv2d(args: {
         hasLeakyreluAlpha);
     const inputs: TensorInfo[] = [x, filter];
 
-    if (hasBias) {
-      // For NCHW format, if bias is a 1-D tensor, it is supposed to be
-      // aligned with the channel of the conv2d's result; if the bias is a
-      // scalar, the bias_add is computed as if the bias was broadcasted to the
-      // shape of the conv2d's result.
-      if ($dataFormat === 'channelsFirst' && bias.shape.length === 1 &&
-          bias.shape[0] !== 1) {
-        const alignedBias = reshape({
-          inputs: {x: bias},
+    // For fusedConv2d, the inputs (x, W, bias, preluActivationWeights) are
+    // supposed to be aligned with the dataFormat. The 4-D tensor inputs or
+    // scalar inputs are originally aligned, but the 1-D tensor inputs are
+    // supposed to be aligned with the channels (only bias and PReLU activation
+    // weights could be a 1-D tensor).
+    function alignInputWithDataFormat(
+        input: TensorInfo, dataFormat: 'NHWC'|'NCHW') {
+      if (dataFormat === 'NCHW' && input.shape.length === 1 &&
+          input.shape[0] !== 1) {
+        const alignedInput = reshape({
+          inputs: {x: input},
           backend,
-          attrs: {shape: [bias.shape[0], 1, 1]}
+          attrs: {shape: [input.shape[0], 1, 1]}
         });
-        inputs.push(alignedBias);
-        intermediates.push(alignedBias);
-      } else {
-        inputs.push(bias);
+        intermediates.push(alignedInput);
+        return alignedInput;
       }
+      return input;
+    }
+
+    if (hasBias) {
+      inputs.push(alignInputWithDataFormat(bias, dataFormat));
     }
 
     if (hasPreluActivationWeights) {
-      // For NCHW format, if PReLu activation weights is a 1-D tensor, it is
-      // supposed to be aligned with the channel of the conv2d's result. For
-      // other cases, whether NCHW or NHWC data format, the conv2d result is
-      // already aligned with the activation weights.
-      if ($dataFormat === 'channelsFirst' &&
-          preluActivationWeights.shape.length === 1 &&
-          preluActivationWeights.shape[0] !== 1) {
-        const alignedPreluActivationWeights = reshape({
-          inputs: {x: preluActivationWeights},
-          backend,
-          attrs: {shape: [preluActivationWeights.shape[0], 1, 1]}
-        });
-        inputs.push(alignedPreluActivationWeights);
-        intermediates.push(alignedPreluActivationWeights);
-      } else {
-        inputs.push(preluActivationWeights);
-      }
+      inputs.push(alignInputWithDataFormat(preluActivationWeights, dataFormat));
     }
 
     if (hasLeakyreluAlpha) {
