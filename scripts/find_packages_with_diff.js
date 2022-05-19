@@ -16,7 +16,7 @@
 
 const {exec} = require('./test-util');
 const shell = require('shelljs');
-const {readdirSync, statSync, readFileSync} = require('fs');
+const {readFileSync} = require('fs');
 const {join} = require('path');
 
 
