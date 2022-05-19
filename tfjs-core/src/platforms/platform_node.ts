@@ -15,6 +15,7 @@
  * =============================================================================
  */
 import {env} from '../environment';
+import {RequestDetails} from '../io/types';
 import {Platform} from './platform';
 
 // We are wrapping this within an object so it can be stubbed by Jasmine.
@@ -59,6 +60,11 @@ export class PlatformNode implements Platform {
       systemFetch = getNodeFetch.importFetch();
     }
     return systemFetch(path, requestInits);
+  }
+
+  fetchSync(path: string, requestInits?: RequestInit, options?: RequestDetails):
+  ReturnType<Platform['fetchSync']> {
+    throw new Error('fetchSync is not implemented for node.');
   }
 
   now(): number {

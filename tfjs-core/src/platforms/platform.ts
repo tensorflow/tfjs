@@ -33,6 +33,20 @@ export interface Platform {
       Promise<Response>;
 
   /**
+   * Makes a synchronous HTTP request.
+   * @param path The URL path to make a request to
+   * @param init The request init. See init here:
+   *     https://developer.mozilla.org/en-US/docs/Web/API/Request/Request
+   */
+  fetchSync(path: string, requestInits?: RequestInit,
+            options?: RequestDetails): {
+    ok: boolean,
+    arrayBuffer: () => ArrayBuffer,
+    // tslint:disable-next-line:no-any
+    json: () => any,
+  };
+
+  /**
    * Returns the current high-resolution time in milliseconds relative to an
    * arbitrary time in the past. It works across different platforms (node.js,
    * browsers).

@@ -22,6 +22,7 @@ import './local_storage';
 
 import {browserFiles} from './browser_files';
 import {browserHTTPRequest, http, isHTTPScheme} from './http';
+import {httpSync} from './http_sync';
 import {concatenateArrayBuffers, decodeWeights, encodeWeights, getModelArtifactsForJSON, getModelArtifactsInfoForJSON} from './io_utils';
 import {fromMemory, fromMemorySync, withSaveHandler, withSaveHandlerSync} from './passthrough';
 import {getLoadHandlers, getSaveHandlers, registerLoadRouter, registerSaveRouter} from './router_registry';
@@ -42,6 +43,7 @@ export {
   getModelArtifactsInfoForJSON,
   getSaveHandlers,
   http,
+  httpSync,
   IOHandler,
   IOHandlerSync,
   isHTTPScheme,

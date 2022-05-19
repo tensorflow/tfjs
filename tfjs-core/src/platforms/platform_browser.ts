@@ -23,6 +23,7 @@ import {BrowserLocalStorage, BrowserLocalStorageManager} from '../io/local_stora
 import {ModelStoreManagerRegistry} from '../io/model_management';
 
 import {Platform} from './platform';
+import {RequestDetails} from '../io/types';
 
 export class PlatformBrowser implements Platform {
   // According to the spec, the built-in encoder can do only UTF-8 encoding.
@@ -31,6 +32,21 @@ export class PlatformBrowser implements Platform {
 
   fetch(path: string, init?: RequestInit): Promise<Response> {
     return fetch(path, init);
+  }
+
+  fetchSync(path: string, requestInit?: RequestInit, options?: RequestDetails) {
+    const request = new XMLHttpRequest();
+    request.open(requestInit && requestInit.method || 'GET', path, false);
+    request.overrideMimeType('text/plain; charset=x-user-defined');
+    request.send(null);
+    return {
+      ok: request.status === 200,
+      arrayBuffer: () => {
+        return Uint8Array.from(request.response as string,
+                               c => c.charCodeAt(0)).buffer;
+      },
+      json: () => JSON.parse(request.responseText),
+    };
   }
 
   now(): number {

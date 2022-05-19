@@ -472,24 +472,58 @@ export async function loadGraphModel(
 }
 
 /**
- * Load a graph model given a synchronous IO handler with a 'load' method.
+ * Synchronously load a graph model given a synchronous IO handler or a URL to
+ * the model definition.
  *
- * @param modelSource The `io.IOHandlerSync` that loads the model.
+ * This function should only be used from a webworker because it blocks the JS
+ * event loop while it loads the files.
  *
- * @doc {heading: 'Models', subheading: 'Loading'}
+ * Example of loading MobileNetV2 from a URL and making a prediction with a
+ * zeros input:
+ *
+ * ```js
+ * const modelUrl =
+ *    'https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json';
+ * const model = tf.loadGraphModelSync(modelUrl);
+ * const zeros = tf.zeros([1, 224, 224, 3]);
+ * model.predict(zeros).print();
+ * ```
+ *
+ * Example of loading MobileNetV2 from a TF Hub URL and making a prediction with
+ * a zeros input:
+ *
+ * ```js
+ * const modelUrl =
+ *    'https://tfhub.dev/google/imagenet/mobilenet_v2_140_224/classification/2';
+ * const model = tf.loadGraphModelSync(modelUrl, {fromTFHub: true});
+ * const zeros = tf.zeros([1, 224, 224, 3]);
+ * model.predict(zeros).print();
+ * ```
+ * @param modelUrl The url or an `io.IOHandler` that loads the model.
+ * @param options Options for the HTTP request, which allows to send credentials
+ *    and custom headers.
+ *
+ * @doc {heading: 'Models', subheading: 'Loading', ignoreCI: true}
  */
-
 export function loadGraphModelSync(
-  modelSource: io.IOHandlerSync): GraphModel<io.IOHandlerSync> {
-  if (modelSource == null) {
+  modelUrl: string|io.IOHandlerSync,
+  options: io.LoadOptions = {}): GraphModel<io.IOHandlerSync> {
+  if (modelUrl == null) {
     throw new Error(
         'modelUrl in loadGraphModelSync() cannot be null. Please provide a ' +
         'url or an IOHandler that loads the model');
   }
-  if (!modelSource.load) {
-    throw new Error(`modelUrl IO Handler ${modelSource} has no load function`);
+  if (typeof modelUrl === 'string') {
+    if (options.fromTFHub) {
+      modelUrl = getTFHubUrl(modelUrl);
+    }
+    modelUrl = io.httpSync(modelUrl);
   }
-  const model = new GraphModel(modelSource);
+
+  if (!modelUrl.load) {
+    throw new Error(`modelUrl IO Handler ${modelUrl} has no load function`);
+  }
+  const model = new GraphModel(modelUrl, options);
 
   model.load();
   return model;
@@ -497,7 +531,7 @@ export function loadGraphModelSync(
 
 function getTFHubUrl(modelUrl: string): string {
   if (!modelUrl.endsWith('/')) {
-    modelUrl = (modelUrl) + '/';
+    modelUrl = modelUrl + '/';
   }
   return `${modelUrl}${DEFAULT_MODEL_NAME}${TFHUB_SEARCH_PARAM}`;
 }

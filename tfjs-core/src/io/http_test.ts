@@ -20,7 +20,7 @@ import {BROWSER_ENVS, CHROME_ENVS, describeWithFlags, NODE_ENVS} from '../jasmin
 import {HTTPRequest, httpRouter, parseUrl} from './http';
 
 // Test data.
-const modelTopology1: {} = {
+export const modelTopology1: {} = {
   'class_name': 'Sequential',
   'keras_version': '2.1.4',
   'config': [{
@@ -52,7 +52,7 @@ const modelTopology1: {} = {
   }],
   'backend': 'tensorflow'
 };
-const trainingConfig1: tf.io.TrainingConfig = {
+export const trainingConfig1: tf.io.TrainingConfig = {
   loss: 'categorical_crossentropy',
   metrics: ['accuracy'],
   optimizer_config: {class_name: 'SGD', config: {learningRate: 0.1}}
@@ -60,7 +60,7 @@ const trainingConfig1: tf.io.TrainingConfig = {
 
 let fetchSpy: jasmine.Spy;
 
-type TypedArrays = Float32Array|Int32Array|Uint8Array|Uint16Array;
+export type TypedArrays = Float32Array|Int32Array|Uint8Array|Uint16Array;
 const fakeResponse =
     (body: string|TypedArrays|ArrayBuffer, contentType: string, path: string) =>
         ({

@@ -416,6 +416,25 @@ export async function getModelArtifactsForJSON(
     loadWeights: (weightsManifest: WeightsManifestConfig) => Promise<[
       /* weightSpecs */ WeightsManifestEntry[], /* weightData */ ArrayBuffer
     ]>): Promise<ModelArtifacts> {
+  const modelArtifacts = parseModelJson(modelJSON);
+
+  if (modelJSON.weightsManifest != null) {
+    const [weightSpecs, weightData] =
+        await loadWeights(modelJSON.weightsManifest);
+    modelArtifacts.weightSpecs = weightSpecs;
+    modelArtifacts.weightData = weightData;
+  }
+
+  return modelArtifacts;
+}
+
+/**
+ * Parse a JSON model file into `ModelArtifacts` without loading weights.
+ *
+ * @param modelJSON Object containing the parsed JSON of `model.json`
+ * @returns The `ModelArtifacts` without weights, as described by the JSON file.
+ */
+export function parseModelJson(modelJSON: ModelJSON): ModelArtifacts {
   const modelArtifacts: ModelArtifacts = {
     modelTopology: modelJSON.modelTopology,
     format: modelJSON.format,
@@ -425,12 +444,6 @@ export async function getModelArtifactsForJSON(
 
   if (modelJSON.trainingConfig != null) {
     modelArtifacts.trainingConfig = modelJSON.trainingConfig;
-  }
-  if (modelJSON.weightsManifest != null) {
-    const [weightSpecs, weightData] =
-        await loadWeights(modelJSON.weightsManifest);
-    modelArtifacts.weightSpecs = weightSpecs;
-    modelArtifacts.weightData = weightData;
   }
   if (modelJSON.signature != null) {
     modelArtifacts.signature = modelJSON.signature;
