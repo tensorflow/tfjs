@@ -368,6 +368,12 @@ describeWithFlags('memory', ALL_ENVS, () => {
         '(2 bytes per character)';
     expect(mem.reasons.indexOf(expectedReason) >= 0).toBe(true);
   });
+
+  it('makeTensorFromDataId creates a tensor', () => {
+    const tensor = ENGINE.makeTensorFromDataId({}, [3], 'float32');
+    expect(tensor).toBeDefined();
+    expect(tensor.shape).toEqual([3]);
+  });
 });
 
 describeWithFlags('profile', ALL_ENVS, () => {
