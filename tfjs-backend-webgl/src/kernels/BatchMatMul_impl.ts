@@ -157,7 +157,13 @@ export function batchMatMulImpl({
 
     if (transposeProduct) {
       intermediates.push(out);
-      out = transpose({inputs: {x: out}, backend, attrs: {perm: [0, 2, 1]}});
+      // Since, for each bacth, the product is a vector, transposing it has the
+      // same effect as reshaping it.
+      out = reshape({
+        inputs: {x: out},
+        backend,
+        attrs: {shape: [out.shape[0], out.shape[2], out.shape[1]]}
+      });
     }
 
     intermediates.push(product);
