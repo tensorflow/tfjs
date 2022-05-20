@@ -824,6 +824,20 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   /**
+   * Internal method used by backends. Makes a new tensor
+   * that is a wrapper around an existing data id. It doesn't create
+   * a new data id, only increments the ref count used in memory tracking.
+   * @deprecated
+   */
+  makeTensorFromDataId(
+    dataId: DataId, shape: number[], dtype: DataType,
+    backend?: KernelBackend): Tensor {
+    dtype = dtype || 'float32';
+    const tensorInfo: TensorInfo = {dataId, shape, dtype};
+    return this.makeTensorFromTensorInfo(tensorInfo, backend);
+  }
+
+  /**
    * Internal method used by backends. Makes a new tensor that is a wrapper
    * around an existing data id in TensorInfo. It doesn't create a new data id,
    * only increments the ref count used in memory tracking.
