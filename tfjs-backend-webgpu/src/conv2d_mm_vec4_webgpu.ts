@@ -110,11 +110,8 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
 
   getUserCode(): string {
     const matMulSource = makeMatMulPackedVec4Source(
-        [
-          this.elementsPerThread[0], this.elementsPerThread[1],
-          this.innerElementSize
-        ],
-        this.tileAOuter, this.tileBOuter, this.tileInner);
+        this.elementsPerThread, this.tileAOuter, this.tileBOuter,
+        this.tileInner, this.innerElementSize);
 
     const readASnippet = `let outRow = r / uniforms.outShape[2];
         let outCol = r % uniforms.outShape[2];

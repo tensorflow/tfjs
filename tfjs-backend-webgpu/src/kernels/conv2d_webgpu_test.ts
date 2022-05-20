@@ -99,6 +99,40 @@ describeWebGPU('conv2d vec4', () => {
         ]));
   });
 
+  it('x=[1,5,5,6] f=[3,3,6,4] s=[2,2] d=1 p=same', async () => {
+    const inputDepth = 6;
+    const xSize = 5;
+    const inputShape: [number, number, number, number] =
+        [1, xSize, xSize, inputDepth];
+    const outputDepth = 4;
+    const fSize = 3;
+    const pad = 'same';
+    const stride: [number, number] = [2, 2];
+
+    const inputData = [];
+    for (let i = 0; i < xSize * xSize * inputDepth; i++) {
+      inputData.push(i % 5);
+    }
+
+    const wData = [];
+    for (let i = 0; i < fSize * fSize * inputDepth * outputDepth; i++) {
+      wData.push(i % 5);
+    }
+
+    const x = tf.tensor4d(inputData, inputShape);
+    const w = tf.tensor4d(wData, [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad);
+    expect(result.shape).toEqual([1, 3, 3, 4]);
+    const resData = await result.data();
+    test_util.expectArraysClose(
+        resData, new Float32Array([
+          92,  74,  86,  73,  140, 132, 164, 156, 124, 123, 97,  106,
+          115, 118, 136, 124, 232, 220, 228, 196, 180, 146, 147, 173,
+          73,  95,  92,  74,  156, 128, 140, 132, 106, 90,  124, 123
+        ]));
+  });
+
   it('conv2d x=[1,8,8,3] f=[3,3,3,64] s=[2,2] d=1 p=valid Conv2DMMVec4Program remainder != 0',
      async () => {
        const inputDepth = 3;

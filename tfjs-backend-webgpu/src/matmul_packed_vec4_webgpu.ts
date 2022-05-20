@@ -24,11 +24,12 @@ import {computeDispatch, tilesFitEvenlyIntoShape} from './webgpu_util';
 
 export function makeMatMulPackedVec4Source(
     workPerThread: number[], tileAOuter: number, tileBOuter: number,
-    tileInner: number): string {
+    tileInner: number, innerElementSize = 4): string {
   util.assert(
-      (tileInner % 4 === 0 || tileInner % 3 === 0) && workPerThread[0] === 4,
-      () => 'tileInner must be divisible by 4|3. And ColPerThread must be 4');
-  const innerElementSize = workPerThread[2] === 3 ? 3 : 4;
+      (tileInner % 4 === 0 || tileInner % 3 === 0) && workPerThread[0] === 4 &&
+          (innerElementSize === 3 || innerElementSize === 4),
+      () => `tileInner must be divisible by 4|3. ColPerThread must be 4.
+           innerElementSize must be 3|4.`);
   return `
   var<workgroup> mm_Asub : array<array<vec${innerElementSize}<f32>, ${
       tileInner / innerElementSize}>, ${tileAOuter}>;
