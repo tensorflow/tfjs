@@ -74,6 +74,7 @@ interface ProgramParams {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   workGroupSize: [number, number, number];
   variableNames: string[];
+  variableTypes?: string[];
   uniforms?: string;
   isVec4?: boolean;
   size?: boolean;
@@ -230,8 +231,10 @@ export function makeShader(
   program.variableNames.forEach((x, i) => {
     prefixSnippets.push(`
     @group(0) @binding(${1 + i}) var<storage, read> ${x}: array<${
-        mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
-    `);
+        program.variableTypes ?
+            program.variableTypes[i] :
+            mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
+      `);
   });
 
   if (uniformDeclaration !== '') {
@@ -256,13 +259,17 @@ export function makeShader(
   if (dispatchLayoutRank === outputData.shape.length) {
     // Input snippet is only meaningful when the output isn't getting
     // implicitly reshaped (like it does in conv2d_matmul).
-    const inputSnippet = inputInfo
-                             .map(
-                                 x => getInputSnippet(
-                                     x, outputData.shape, program.isVec4,
-                                     program.dispatchLayout.x.length ===
-                                         outputData.shape.length))
-                             .join('\n');
+    const inputSnippet =
+        inputInfo
+            .map(
+                (x, i) => getInputSnippet(
+                    x, outputData.shape,
+                    program.variableTypes ?
+                        (program.variableTypes[i] === 'vec4<f32>') :
+                        program.isVec4,
+                    program.dispatchLayout.x.length ===
+                        outputData.shape.length))
+            .join('\n');
     sources.push(inputSnippet);
   }
 
