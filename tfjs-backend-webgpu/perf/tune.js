@@ -3,19 +3,17 @@ window.addEventListener("DOMContentLoaded", initPage);
 function appendRow(result) {
   let tbl = document.getElementById('my-table'), // table reference
     rowNum = tbl.rows.length - 1,
-    row = tbl.insertRow(tbl.rows.length),      // append table row
-    i;
+    row = tbl.insertRow(tbl.rows.length);      // append table row
   // insert table cells to the new row
-  // 'Kernel name', 'Backend', 'Input', 'Iterations', 'WebGPU', 'WebGL', 'WebGLComp', 'Program', 'Scale',
+  // 'Kernel name', 'Input', 'WebGPU', 'WebGL', 'WebGLComp', 'Program', 'Scale',
   createCell(row.insertCell(0), result.name, result.name, `${result.name}-${rowNum}`);
   createCell(row.insertCell(1), result.input, result.input, `input-${rowNum}`);
-  createCell(row.insertCell(2), result.iteration, `iteration-${result.iteration}`, `iteration-${rowNum}`);
-  createCell(row.insertCell(3), result.webgpu, 'webgpu', `webgpu-${rowNum}`);
-  createCell(row.insertCell(4), result.webgl, 'webgl', `webgl-${rowNum}`);
-  createCell(row.insertCell(5), result.webglComp, 'webglComp', `webglComp-${rowNum}`);
-  createCell(row.insertCell(6), result.program, 'program', `program-${rowNum}`);
-  createCell(row.insertCell(7), result.scale, `scale-${result.scale}`, `scale-${rowNum}`);
-  createCell(row.insertCell(8), 'Rerun', 'rerun', `rerun-${rowNum}`, rerun);
+  createCell(row.insertCell(2), result.webgpu, 'webgpu', `webgpu-${rowNum}`);
+  createCell(row.insertCell(3), result.webgl, 'webgl', `webgl-${rowNum}`);
+  createCell(row.insertCell(4), result.webglComp, 'webglComp', `webglComp-${rowNum}`);
+  createCell(row.insertCell(5), result.program, 'program', `program-${rowNum}`);
+  createCell(row.insertCell(6), result.scale, `scale-${result.scale}`, `scale-${rowNum}`);
+  createCell(row.insertCell(7), 'Rerun', 'rerun', `rerun-${rowNum}`, rerun);
 }
 
 // Update result table by rerun
@@ -50,10 +48,10 @@ function initPage() {
   mybody.appendChild(myMessage);
 
   // creates INFO labels
-  for (let inputs of INFO) {
+  for (let info of INFO) {
     let labelDiv = document.createElement('div');
     let label = document.createElement('label');
-    label.innerHTML = `${inputs}`;
+    label.innerHTML = `${info}`;
     labelDiv.appendChild(label);
     mybody.appendChild(labelDiv);
   }
@@ -82,30 +80,6 @@ function initPage() {
     mybody.appendChild(backendDiv);
   }
 
-  // creates Iterations labels and checkbox
-  for (let item of [ITERATIONS]) {
-    let backendDiv = document.createElement('div');
-    let labelClass = document.createElement("label");
-    labelClass.innerHTML = 'Iterations';
-    backendDiv.appendChild(labelClass);
-    for (let i of item) {
-      let checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      if (currentIterations.includes(i)) {
-        checkbox.checked = true;
-      }
-      checkbox.name = `iteration-${i}`;
-      checkbox.value = i;
-      checkbox.className = `iterationCheckBox`;
-      checkbox.addEventListener('change', (event) => hideOrPresent(event));
-      let label = document.createElement("label");
-      label.innerHTML = i;
-      backendDiv.appendChild(checkbox);
-      backendDiv.appendChild(label);
-    }
-    mybody.appendChild(backendDiv);
-  }
-
   // creates run button
   let btn = document.createElement("button");
   btn.innerHTML = "Run";
@@ -124,7 +98,7 @@ function initPage() {
   mycurrent_row = document.createElement("tr");
   mycurrent_row.style = 'background-color:#BDB76B;color:#ffffff;';
   // creating all cells
-  ['Kernel name', 'Input', 'Iterations', 'WebGPU', 'WebGL', 'WebGLComp %', 'Program', 'Scale(m*k*n)'].forEach((i) => {
+  ['Kernel name', 'Input', 'WebGPU', 'WebGL', 'WebGLComp %', 'Program', 'Scale(m*k*n)'].forEach((i) => {
     // creates a <td> element
     mycurrent_cell = document.createElement("th");
     // creates a Text Node
@@ -157,68 +131,120 @@ function initPage() {
 
 async function timeMatmul(rowNum) {
   await tf.setBackend('webgpu');
-  const dimAOuter = parseInt(STATE.input.split(',')[0]);
-  const dimInner = parseInt(STATE.input.split(',')[1]);
-  const dimBOuter = parseInt(STATE.input.split(',')[2]);
-  const numIterations = STATE.iteration;
-  const tensorA = tf.tensor2d(
-    Array.from({ length: dimAOuter * dimInner }, () => Math.floor(Math.random())),
-    [dimAOuter, dimInner]
+  let tensors = [];
+  let tensorsWarmUp = [];
+  let tensorsToDispose = [];
+  let inputs = [];
+
+  // Prepare data
+  const warmA = tf.tensor2d(
+    Array.from({ length: 12544 * 16 }, () => Math.floor(Math.random())),
+    [12544, 16]
   );
-  const tensorB = tf.tensor2d(
-    Array.from({ length: dimInner * dimBOuter }, () => Math.floor(Math.random())),
-    [dimInner, dimBOuter]
+  const warmB = tf.tensor2d(
+    Array.from({ length: 16 * 96 }, () => Math.floor(Math.random())),
+    [16, 96]
   );
-  document.getElementById('message').innerHTML =
-    `Testing on webgpu, ${STATE.name}, ${STATE.input} ...`;
-
-  // skip the first time
-  await tf.matMul(tensorA, tensorB).data();
-
-  let profile_webgpu, profile_webgl;
-
-  for (let i = 0; i < numIterations; i++) {
-    profile_webgpu = await tf.profile(async () => {
-      await tf.matMul(tensorA, tensorB).data();
-    });
+  tensorsWarmUp = { tensorA: warmA, tensorB: warmB };
+  tensorsToDispose.push(warmA);
+  tensorsToDispose.push(warmB);
+  if (rowNum !== undefined) {
+    let input = document.getElementById(`input-${rowNum}`).getAttribute('value');
+    let m = input.split('[')[1].split(',')[0];
+    let k = input.split('[')[2].split(']')[0].split(',')[0];
+    let n = input.split('[')[2].split(']')[0].split(',')[1];
+    inputs = [`${m},${k},${n}`];
   }
-  const kernel_webgpu = profile_webgpu.kernels[0];
+  else {
+    inputs = INPUTS;
+  }
+  for (let i = 0; i < inputs.length; i++) {
+    let dimAOuter = parseInt(inputs[i].split(',')[0]);
+    let dimInner = parseInt(inputs[i].split(',')[1]);
+    let dimBOuter = parseInt(inputs[i].split(',')[2]);
+    const tensorA = tf.tensor2d(
+      Array.from({ length: dimAOuter * dimInner }, () => Math.floor(Math.random())),
+      [dimAOuter, dimInner]
+    );
+    const tensorB = tf.tensor2d(
+      Array.from({ length: dimInner * dimBOuter }, () => Math.floor(Math.random())),
+      [dimInner, dimBOuter]
+    );
+    tensors.push({ tensorA, tensorB });
+    tensorsToDispose.push(tensorA);
+    tensorsToDispose.push(tensorB);
+  }
+
+  const profile_webgpu = await tf.profile(() => {
+    // Warmup, keep gpu frequency at a high level
+    document.getElementById('message').innerHTML =
+      `Warming up testing on webgpu ...`;
+    for (let i = 0; i < 500; i++) {
+      tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
+    }
+    for (let i = 0; i < inputs.length; i++) {
+      document.getElementById('message').innerHTML =
+        `Testing on webgpu ...`;
+      tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
+    }
+  });
+  const webgpu_kernels = profile_webgpu.kernels;
 
   await tf.setBackend('webgl');
-  document.getElementById('message').innerHTML =
-    `Testing on webgl, ${STATE.name}, ${STATE.input} ...`;
-  for (let i = 0; i < numIterations; i++) {
-    profile_webgl = await tf.profile(async () => {
-      await tf.matMul(tensorA, tensorB).data();
+  const profile_webgl = await tf.profile(() => {
+    // Warmup, keep gpu frequency at a high level
+    document.getElementById('message').innerHTML =
+      `Warming up testing on webgl ...`;
+    for (let i = 0; i < 500; i++) {
+      tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
+    }
+    for (let i = 0; i < inputs.length; i++) {
+      document.getElementById('message').innerHTML =
+        `Testing on webgl ...`;
+      tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
+    }
+  });
+  const webgl_kernels = profile_webgl.kernels;
+
+  for (let tensor of tensorsToDispose) {
+    tensor.dispose();
+  }
+
+  for (let i = 500; i < profile_webgpu.kernels.length; i++) {
+    let inputInfo;
+    webgpu_kernels[i].inputShapes.forEach((inputShape, index) => {
+      if (inputInfo == null) {
+        inputInfo = '';
+      } else {
+        inputInfo += '\n';
+      }
+      if (inputShape == null) {
+        inputInfo += `input${index}: null`;
+      } else {
+        inputInfo += `input${index}: ${inputShape.length}D[${inputShape}]`;
+      }
     });
+    let mkn = webgpu_kernels[i].inputShapes[0][0] * webgpu_kernels[i].inputShapes[0][1] * webgpu_kernels[i].inputShapes[1][1];
+
+    const result = {};
+    result.name = webgpu_kernels[i].name;
+    result.input = `${inputInfo}`;
+    result.webgpu = `${parseFloat(webgpu_kernels[i].kernelTimeMs).toFixed(2)}`; // WebGPU
+    result.webgl = `${parseFloat(webgl_kernels[i].kernelTimeMs).toFixed(2)}`; // WebGL
+    result.webglComp = `${parseFloat((result.webgl / result.webgpu) * 100).toFixed(0)}`; // WebGLComp
+    result.scale = `${parseInt(mkn)}`;  // Scale
+    result.program = `${webgpu_kernels[i].extraInfo.split(':')[0]}`;  // Program
+
+    if (rowNum !== undefined) {
+      updateRow(result, rowNum);
+      // update gpu result
+      webglCompResults[rowNum] = result.webglComp;
+    } else {
+      appendRow(result);
+      // store gpu result
+      webglCompResults.push(result.webglComp);
+    }
   }
-  const kernel_webgl = profile_webgl.kernels[0];
-
-  tensorA.dispose();
-  tensorB.dispose();
-
-  const result = {};
-  result.uid = `${STATE.name}_${STATE.input}_${STATE.iteration}`
-  result.name = STATE.name;
-  result.backend = STATE.backend;
-  result.input = STATE.input;
-  result.iteration = STATE.iteration;
-  result.webgpu = `${parseFloat(kernel_webgpu.kernelTimeMs).toFixed(2)}`; // WebGPU
-  result.webgl = `${parseFloat(kernel_webgl.kernelTimeMs).toFixed(2)}`; // WebGL
-  result.webglComp = `${parseFloat((result.webgl / result.webgpu) * 100).toFixed(0)}`; // WebGLComp
-  result.scale = `${dimAOuter * dimInner * dimBOuter}`;  // Scale
-  result.program = `${kernel_webgpu.extraInfo.split(':')[0]}`;  // Program
-
-  if (rowNum !== undefined) {
-    updateRow(result, rowNum);
-    // update gpu result
-    webglCompResults[rowNum] = result.webglComp;
-  } else {
-    appendRow(result);
-    // store gpu result
-    webglCompResults.push(result.webglComp);
-  }
-  resultMap.set(result.uid, result);
 }
 
 function updateColor() {
@@ -270,33 +296,17 @@ async function run() {
     scaleSelected.push(s.value);
   }
 
-  // define iteration suite
-  let iterations = document.querySelectorAll('.iterationCheckBox:checked');
-  for (let i of iterations) {
-    iterationSelected.push(i.value);
-  }
-
-  INPUTS = customInputs;
+  INPUTS = defaultInputs;
   for (let scale of scaleSelected) {
     let mySet = getTestSet(scale);
     INPUTS = INPUTS.concat([...mySet]);
-    for (let input of INPUTS) {
-      for (let iteration of iterationSelected) {
-        STATE.input = input;
-        STATE.iteration = iteration;
-        await timeMatmul();
-      }
-    }
   }
+  await timeMatmul();
   document.getElementById('message').innerHTML = 'Done!';
   updateColor();
 }
 
 async function rerun(rowNum) {
-  let iteration = document.getElementById(`iteration-${rowNum}`).getAttribute('value');
-  let input = document.getElementById(`input-${rowNum}`).getAttribute('value');
-  STATE.input = input;
-  STATE.iteration = iteration;
   await timeMatmul(rowNum);
   document.getElementById('message').innerHTML = 'Done!';
   updateColor();
@@ -355,22 +365,19 @@ function getPrimeFactor(num) {
   return prime_factor;
 }
 
-const STATE = {
-  name: 'matMul',
-  backend: 'webgpu',
-  input: '144,256,256',
-  iteration: 500,
-};
-
-const resultMap = new Map();
 let webglCompResults = [];
 
 let SCALES = [1016064, 5013504, 10838016, 33554432];
-let currentScale = [1016064];
-let customInputs = ['720, 512, 1536', '1, 704, 2000', '1, 128, 1404', '1, 1280, 1001'];
-
-let ITERATIONS = [1, 10, 50, 100, 200, 500];
-let currentIterations = [10]
+let currentScale = [];
+let defaultInputs = [
+  '12544, 16, 96',
+  '49, 320, 1280',
+  '49, 960, 320',
+  '3136, 24, 144',
+  '12544, 32, 16',
+  '3136, 144, 24',
+  '49, 960, 160',
+];
 
 let INPUTS = [];
 const INFO = [
