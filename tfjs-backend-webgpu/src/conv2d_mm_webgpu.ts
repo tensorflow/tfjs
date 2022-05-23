@@ -72,6 +72,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
     const tileAOuter = this.workGroupSize[1] * this.elementsPerThread[1];
     const tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
+    // TODO: Config this value based on dimInner/dimBOuter.
     this.tileInner = 32;
 
     this.fitAOuter = dimAOuter % tileAOuter === 0;
