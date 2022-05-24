@@ -307,7 +307,7 @@ export function conv2dWithIm2Row({
   const fuseHeightAndWidthDimensions = (input: TensorInfo): TensorInfo => {
     const shape = input.shape;
     if (shape.length >= 3) {
-      bias = reshape({
+      input = reshape({
         inputs: {x: input},
         backend,
         attrs: {
@@ -319,7 +319,7 @@ export function conv2dWithIm2Row({
           ]
         }
       });
-      intermediates.push(bias);
+      intermediates.push(input);
     }
     return input;
   };
