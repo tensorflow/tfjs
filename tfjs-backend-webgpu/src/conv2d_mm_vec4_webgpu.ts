@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-import {backend_util, util} from '@tensorflow/tfjs-core';
+import {backend_util} from '@tensorflow/tfjs-core';
 
 import {mapActivationToShaderProgram} from './activation_util';
 import {makeMatMulPackedVec4Source} from './matmul_packed_vec4_webgpu';
 import {WebGPUProgram} from './webgpu_program';
-import {computeDispatch, tilesFitEvenlyIntoShape} from './webgpu_util';
+import {computeDispatch} from './webgpu_util';
 
 export class Conv2DMMVec4Program implements WebGPUProgram {
   outputShape: number[];
@@ -39,29 +39,26 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
+  isChannelsLast: boolean;
   tileAOuter: number;
   tileBOuter: number;
   tileInner: number;
-  fitA: boolean;
-  fitB: boolean;
+  fitAOuter: boolean;
+  fitBOuter: boolean;
+  fitInner: boolean;
   innerElementSize: number;
 
   constructor(
-      convInfo: backend_util.Conv2DInfo, addBias = false,
+      convInfo: backend_util.Conv2DInfo, dimAOuter: number, dimBOuter: number,
+      dimInner: number, addBias = false,
       activation: backend_util.Activation = null,
       hasPreluActivationWeights = false) {
     this.outputShape = convInfo.outShape;
-
-    util.assert(
-        convInfo.dataFormat === 'channelsLast',
-        () => 'TODO: NCHW is unimplemented');
-    this.dispatchLayout = {x: [3], y: [1, 2], z: [0]};
+    this.isChannelsLast = convInfo.dataFormat === 'channelsLast';
+    this.dispatchLayout = this.isChannelsLast ? {x: [3], y: [1, 2], z: [0]} :
+                                                {x: [2, 3], y: [1], z: [0]};
     // The first element in elementsPerThread must be 4.
-    if (this.outputShape[1] === 1) {
-      this.elementsPerThread = [4, 1, 1];
-    } else {
-      this.elementsPerThread = [4, 4, 1];
-    }
+    this.elementsPerThread = [4, 4, 1];
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         this.elementsPerThread);
@@ -85,51 +82,65 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
       this.variableNames.push('preluActivationWeights');
       this.variableTypes.push('vec4<f32>');
     }
-    this.tileAOuter = this.outputShape[1] === 1 ?
-        1 :
-        this.workGroupSize[1] * this.elementsPerThread[1];
+    this.tileAOuter = this.workGroupSize[1] * this.elementsPerThread[1];
     this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
     this.tileInner = this.workGroupSize[0] * this.innerElementSize;
-    [this.fitA, this.fitB] = this.getShapeFit();
-    this.shaderKey = `conv2DMMVec4_${this.activation}_${this.fitA}_${
-        this.fitB}_${this.elementsPerThread}_${this.innerElementSize}`;
-  }
+    this.fitAOuter = dimAOuter % this.tileAOuter === 0;
+    this.fitBOuter = dimBOuter % this.tileBOuter === 0;
+    this.fitInner = dimInner % this.tileInner === 0;
 
-  getShapeFit(): boolean[] {
-    const tileSizeA = [this.tileAOuter, this.tileInner];
-    const tileSizeB = [this.tileInner, this.tileBOuter];
-    const dimAOuter = this.outputShape[1] * this.outputShape[2];
-    const dimBOuter = this.outputShape[3];
-    const dimInner = this.convInfo.filterHeight * this.convInfo.filterWidth *
-        this.convInfo.inChannels;
-    return [
-      tilesFitEvenlyIntoShape(tileSizeA, [dimAOuter, dimInner]),
-      tilesFitEvenlyIntoShape(tileSizeB, [dimInner, dimBOuter])
-    ];
+    this.shaderKey =
+        `conv2DMMVec4_${this.activation}_${this.fitAOuter}_${this.fitBOuter}_${
+            this.fitInner}_${this.elementsPerThread}_${this.innerElementSize}`;
   }
 
   getUserCode(): string {
     const matMulSource = makeMatMulPackedVec4Source(
         this.elementsPerThread, this.tileAOuter, this.tileBOuter,
-        this.tileInner, this.innerElementSize);
-
-    const readASnippet = `let outRow = r / uniforms.outShape[2];
-        let outCol = r % uniforms.outShape[2];
-        let WRow = c / (uniforms.filterDims[1] * uniforms.xShape[3]);
-        let WCol = c / uniforms.xShape[3] % uniforms.filterDims[1];
-        let inChCoord = c % uniforms.xShape[3];
+        this.tileInner, this.innerElementSize, !this.isChannelsLast);
+    const coordASnippet = this.isChannelsLast ? `
+        let coord = vec4<i32>(batch, xRow, xCol, xCh);
+        ` :
+                                                `
+        let coord = vec4<i32>(batch, xCh, xRow, xCol);
+        `;
+    const coordResSnippet = this.isChannelsLast ? `
+        let outCoord = vec4<i32>(
+          batch,
+          row / outWidth,
+          row % outWidth,
+          c);
+        ` :
+                                                  `
+        let outCoord = vec4<i32>(
+          batch,
+          row,
+          c / outWidth,
+          c % outWidth);
+        `;
+    const row = this.isChannelsLast ? 'r' : 'c';
+    const col = this.isChannelsLast ? 'c' : 'r';
+    const xHight =
+        this.isChannelsLast ? 'uniforms.xShape[1]' : 'uniforms.xShape[2]';
+    const xWidth =
+        this.isChannelsLast ? 'uniforms.xShape[2]' : 'uniforms.xShape[3]';
+    const readXSnippet = `
+        let inChannels = uniforms.wShape[2];
+        let outWidth = ${
+        this.isChannelsLast ? 'uniforms.outShape[2]' : 'uniforms.outShape[3]'};
+        let outRow = ${row} / outWidth;
+        let outCol = ${row} % outWidth;
+        let WRow = ${col} / (uniforms.filterDims[1] * inChannels);
+        let WCol = ${col} / inChannels % uniforms.filterDims[1];
+        let xCh = ${col} % inChannels;
         let xRow = outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0];
         let xCol = outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1];
 
         var resData = vec${this.innerElementSize}<f32>(0.0);
         // The bounds checking is always needed since we use it to pad zero for
         // the 'same' padding type.
-        if (xRow >= 0 && xRow < uniforms.xShape[1] && xCol >= 0 && xCol < uniforms.xShape[2]) {
-          var coord = vec4<i32>(
-            batch,
-            xRow,
-            xCol,
-            inChCoord);
+        if (xRow >= 0 && xRow < ${xHight} && xCol >= 0 && xCol < ${xWidth}) {
+          ${coordASnippet}
           let xIndex = getIndexFromCoords4D(coord, uniforms.xShape);
           ${
         this.innerElementSize === 3 ?
@@ -138,21 +149,21 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
         }
         return resData;`;
 
-    const sampleA = this.fitA ?
-        `${readASnippet}` :
-        `if (r < uniforms.dimAOuter && c < uniforms.dimInner) {
-          ${readASnippet}
-         }
-         return vec${this.innerElementSize}<f32>(0.0);
-        `;
+    const sampleX = this.isChannelsLast ?
+        (this.fitAOuter && this.fitInner ?
+             `${readXSnippet}` :
+             `if (row < uniforms.dimAOuter && c < uniforms.dimInner) {
+      ${readXSnippet}
+    }
+    return vec${this.innerElementSize}<f32>(0.0);`) :
+        (this.fitInner && this.fitBOuter ?
+             `${readXSnippet}` :
+             `if (row < uniforms.dimInner && c < uniforms.dimBOuter) {
+          ${readXSnippet}
+        }
+        return vec${this.innerElementSize}<f32>(0.0);`);
 
-    const sampleB = this.fitB ?
-        `return W[row * uniforms.dimBOuter / 4 + col];` :
-        `if(coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-           return W[row * uniforms.dimBOuter / 4 + col];
-         }
-         return vec4<f32>(0.0);
-        `;
+    const sampleW = `return W[row * uniforms.wShape[3] / 4 + col];`;
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {
       const activationOp =
@@ -183,23 +194,25 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
           let r = row;
           let c = col * ${this.innerElementSize};
           var batch = i32(globalId.z);
-          ${sampleA}
+          ${this.isChannelsLast ? sampleX : sampleW}
         }
 
         fn mm_readB(row : i32, col : i32, globalId : vec3<u32>) -> vec4<f32> {
-          ${sampleB}
+          let r = row;
+          let c = col * ${this.innerElementSize};
+          var batch = i32(globalId.z);
+          ${this.isChannelsLast ? sampleW : sampleX}
         }
 
         fn mm_write(row : i32, col : i32, valueInput : vec4<f32>, globalId : vec3<u32>) {
           var batch = i32(globalId.z);
           var value = valueInput;
-          if (row < uniforms.dimAOuter && col * 4 < uniforms.dimBOuter)
+          var c = col * 4;
+          if (row < uniforms.dimAOuter && c < uniforms.dimBOuter)
           {
-            let outCoord = vec4<i32>(
-              batch,
-              row / uniforms.outShape[2],
-              row % uniforms.outShape[2],
-              col * 4);
+            let outWidth = ${
+        this.isChannelsLast ? 'uniforms.outShape[2]' : 'uniforms.outShape[3]'};
+            ${coordResSnippet}
             ${addBiasSnippet}
             ${applyActivationSnippet}
             setOutputAtCoords(outCoord[0], outCoord[1], outCoord[2], outCoord[3],

@@ -205,9 +205,10 @@ export function conv2DImpl({
   }
 
   const useVec4 =
-      (convInfo.inChannels % 4 === 0 || convInfo.inChannels % 3 === 0) &&
-      convInfo.outChannels % 4 === 0 && isChannelsLast;
-
+      (((convInfo.inChannels % 4 === 0 || convInfo.inChannels % 3 === 0) &&
+        isChannelsLast) ||
+       (convInfo.outWidth % 4 === 0 && !isChannelsLast)) &&
+      convInfo.outChannels % 4 === 0;
   const dimAOuter = isChannelsLast ? convInfo.outHeight * convInfo.outWidth :
                                      convInfo.outChannels;
   const dimBOuter = isChannelsLast ? convInfo.outChannels :
@@ -226,7 +227,8 @@ export function conv2DImpl({
 
   if (useVec4) {
     program = new Conv2DMMVec4Program(
-        convInfo, hasBias, activation, hasPreluActivationWeights);
+        convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation,
+        hasPreluActivationWeights);
   } else {
     program = new Conv2DMMProgram(
         convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation,
