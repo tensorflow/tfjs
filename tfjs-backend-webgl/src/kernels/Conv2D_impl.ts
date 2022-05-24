@@ -301,7 +301,9 @@ export function conv2dWithIm2Row({
 
   // The Conv2d computation here fuses height and width into one diemension,
   // so the bias and the PReLU activiation weights are supposed to fuse height
-  // and width dimensions before applying to the product.
+  // and width dimensions before applying to the product. Then the product,
+  // bias, PReLU activetion weights are compatible with the shape [batch, height
+  // * width, channels].
   const fuseHeightAndWidthDimensions = (input: TensorInfo): TensorInfo => {
     const shape = input.shape;
     if (shape.length >= 3) {
