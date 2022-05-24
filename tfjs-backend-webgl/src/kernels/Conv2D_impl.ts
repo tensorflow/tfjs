@@ -251,17 +251,14 @@ export function conv2dWithIm2Row({
 
   const intermediates: TensorInfo[] = [];
 
-  // If PReLU's activation weights is NCHW format, then convert it to NHWC for
-  // the following computation.
   if (preluActivationWeights != null && !isChannelsLast &&
-      preluActivationWeights.shape.length >= 3) {
+      preluActivationWeights.shape.length === 3) {
+    // If PReLU's activation weights is NCHW format, then convert it to NHWC for
+    // the following computation.
     const preluActivationWeightsInNhwcFormat = transpose({
       inputs: {x: preluActivationWeights},
       backend,
-      attrs: {
-        perm: preluActivationWeights.shape.length === 3 ? [1, 2, 0] :
-                                                          [0, 2, 3, 1]
-      }
+      attrs: {perm: [1, 2, 0]}
     });
     intermediates.push(preluActivationWeightsInNhwcFormat);
     preluActivationWeights = preluActivationWeightsInNhwcFormat;
@@ -325,9 +322,10 @@ export function conv2dWithIm2Row({
     return input;
   };
 
-  // Even though the bias is supposed to be a scalar or a 1-D tensor, we still
-  // need to support 3-D or 4-D (includes batch) bias because we haven't
-  // disabled them for NHWC format.
+  // Even though the bias is not supposed to be 3-D or 4-D (including batch)
+  // tensor and PReLU activiation weights is not supposed to be 4-D tensor, we
+  // still need to support them, because we haven't disabled them for NHWC
+  // format.
   // https://github.com/tensorflow/tfjs/blob/b53bd47e880367ae57493f0ea628abaf08db2d5d/tfjs-core/src/ops/fused/conv2d.ts#L181-L196
   if (bias) {
     inputs.push(fuseHeightAndWidthDimensions(bias));
