@@ -27,7 +27,7 @@
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
     "@tensorflow/tfjs-layers": "link:../link-package/node_modules/@tensorflow/tfjs-layers",
     "@types/jasmine": "~2.5.53",
-    "@types/seedrandom": "^2.4.27",
+    "@types/seedrandom": "^2.4.28",
     "@types/utf8": "~2.1.6",
     "clang-format": "~1.2.2",
     "http-server": "~0.12.3",
@@ -66,7 +66,7 @@
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
-    "seedrandom": "~2.4.3"
+    "seedrandom": "^3.0.5"
   },
   "dependencies": {
     "@types/node-fetch": "^2.1.2",
