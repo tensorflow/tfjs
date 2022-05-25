@@ -153,19 +153,11 @@ export function batchMatMulImpl({
     }
 
     const product = multiply({inputs: {a: aVec3d, b: bVec3d}, backend});
+    // If dataformat is NCHW, the out is supposed to be transposed from NHWC to
+    // NCHW, but, since, for each batch, the product is a vector, transposing it
+    // has the same effect as reshaping it. After this branch, the output will
+    // be reshaped again, the reshaping could be skipped here.
     out = sum({inputs: {x: product}, backend, attrs: {axis, keepDims: true}});
-
-    if (transposeProduct) {
-      intermediates.push(out);
-      // Since, for each bacth, the product is a vector, transposing it has the
-      // same effect as reshaping it.
-      out = reshape({
-        inputs: {x: out},
-        backend,
-        attrs: {shape: [out.shape[0], out.shape[2], out.shape[1]]}
-      });
-    }
-
     intermediates.push(product);
   } else {
     const dtype = upcastType(a.dtype, b.dtype);
