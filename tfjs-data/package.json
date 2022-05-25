@@ -17,19 +17,8 @@
   "miniprogram": "dist/miniprogram",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@babel/polyfill": "^7.8.7",
     "@bazel/bazelisk": "^1.10.1",
-    "@bazel/ibazel": "^0.15.10",
-    "@tensorflow/tfjs-backend-cpu": "link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
-    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
-    "@tensorflow/tfjs-layers": "link:../link-package/node_modules/@tensorflow/tfjs-layers",
-    "@types/seedrandom": "^2.4.27",
-    "@types/utf8": "~2.1.6",
-    "clang-format": "~1.8.0",
-    "nyc": "^15.1.0",
-    "rimraf": "~2.6.2",
-    "ts-node": "~7.0.0",
-    "typescript": "3.5.3"
+    "@bazel/ibazel": "^0.15.10"
   },
   "scripts": {
     "build": "bazel build :tfjs-data_pkg",
@@ -40,12 +29,10 @@
     "build-deps": "yarn build-link-package",
     "build-deps-ci": "yarn build-deps",
     "build-npm": "bazel build :tfjs-data_pkg",
-    "link-local": "yalc link",
-    "publish-local": "rimraf dist/ && yarn build-npm && yalc push",
     "publish-npm": "bazel run :tfjs-data_pkg.publish",
     "test-browser": "ibazel run :tfjs-data_browser_test --test-output=streamed",
-    "test-dev": "bazel test tfjs-data_test",
-    "coverage": "yarn nyc yarn ts-node --transpile-only -P tsconfig.test.json src/test_node.ts"
+    "test-dev": "bazel test :tfjs-data_test",
+    "test": "bazel test :tfjs-data_test :tfjs-data_browser_test"
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
