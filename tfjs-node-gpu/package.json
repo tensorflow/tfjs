@@ -50,10 +50,9 @@
     "@types/progress": "^2.0.1",
     "@types/rimraf": "~2.0.2",
     "@types/yargs": "^13.0.3",
-    "clang-format": "~1.2.2",
+    "clang-format": "~1.8.0",
     "jasmine": "~3.1.0",
     "node-fetch": "~2.6.1",
-    "node-gyp": "~5.0.3",
     "nyc": "^15.1.0",
     "tmp": "^0.0.33",
     "ts-node": "^5.0.1",
@@ -64,7 +63,7 @@
     "yargs": "^16.2.0"
   },
   "dependencies": {
-    "@mapbox/node-pre-gyp": "1.0.4",
+    "@mapbox/node-pre-gyp": "1.0.9",
     "@tensorflow/tfjs": "link:../tfjs",
     "adm-zip": "^0.5.2",
     "google-protobuf": "^3.9.2",

@@ -377,10 +377,10 @@ astral-regex@^2.0.0:
   resolved "https://registry.yarnpkg.com/astral-regex/-/astral-regex-2.0.0.tgz#483143c567aeed4785759c0865786dc77d7d2e31"
   integrity "sha1-SDFDxWeu7UeFdZwIZXhtx319LjE= sha512-Z7tMw1ytTXt5jqMcOP+OQteU1VuNK9Y02uuJtKQ1Sv69jXQKKg5cibLwGJow8yzZP+eAc18EmLGPal0bp36rvQ=="
 
-async@^1.5.2:
-  version "1.5.2"
-  resolved "https://registry.yarnpkg.com/async/-/async-1.5.2.tgz#ec6a61ae56480c0c3cb241c95618e20892f9672a"
-  integrity sha1-7GphrlZIDAw8skHJVhjiCJL5Zyo=
+async@^3.2.3:
+  version "3.2.3"
+  resolved "https://registry.yarnpkg.com/async/-/async-3.2.3.tgz#ac53dafd3f4720ee9e8a160628f18ea91df196c9"
+  integrity sha512-spZRyzKL5l5BZQrr/6m/SqFdBN0q3OCI0f9rjfBzCMBIP4p75P620rR3gTmaksNOhmzgdxcaxdNfMy6anrbM0g==
 
 balanced-match@^1.0.0:
   version "1.0.0"
@@ -513,12 +513,12 @@ ci-info@^2.0.0:
   resolved "https://registry.yarnpkg.com/ci-info/-/ci-info-2.0.0.tgz#67a9e964be31a51e15e5010d58e6f12834002f46"
   integrity "sha1-Z6npZL4xpR4V5QENWObxKDQAL0Y= sha512-5tK7EtrZ0N+OLFMthtqOj4fI2Jeb88C4CAZPu25LDVUgXJ0A3Js4PMGqrn0JU1W0Mh1/Z8wZzYPxqUrXeBboCQ=="
 
-clang-format@~1.2.2:
-  version "1.2.4"
-  resolved "https://registry.yarnpkg.com/clang-format/-/clang-format-1.2.4.tgz#4bb4b0a98180428deb093cf20982e9fc1af20b6c"
-  integrity sha512-sw+nrGUp3hvmANd1qF8vZPuezSYQAiXgGBiEtkXTtJnnu6b00fCqkkDIsnRKrNgg4nv6NYZE92ejvOMIXZoejw==
+clang-format@~1.8.0:
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/clang-format/-/clang-format-1.8.0.tgz#7779df1c5ce1bc8aac1b0b02b4e479191ef21d46"
+  integrity sha512-pK8gzfu55/lHzIpQ1givIbWfn3eXnU7SfxqIwVgnn5jEM6j4ZJYjpFqFs4iSBPNedzRMmfjYjuQhu657WAXHXw==
   dependencies:
-    async "^1.5.2"
+    async "^3.2.3"
     glob "^7.0.0"
     resolve "^1.1.6"
 
