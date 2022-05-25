@@ -213,6 +213,9 @@ pkg_npm(
     ],
 )
 
+# TODO(mattsoulanille): This test uses the default chrome flags and tests
+# the simd implementation. We should also test the non-simd implementation and
+# the threaded implementation.
 tfjs_web_test(
     name = "tfjs-backend-wasm_test",
     srcs = [
@@ -221,6 +224,9 @@ tfjs_web_test(
     static_files = [
         "//tfjs-backend-wasm/src:tfjs-backend-wasm_test_bundle",
         ":wasm_lib",
-        #"package.json",
+    ],
+    browsers = [
+        "chrome_no_simd",
+        "chrome_webgpu",
     ],
 )
