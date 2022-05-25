@@ -40,6 +40,25 @@ type Conv2DConfig = {
   activation?: backend_util.Activation
 };
 
+const getShapeForBatchMatMul = (shape: number[], isChannelsLast: boolean) => {
+  const length = shape.length;
+  if (length >= 3) {
+    return isChannelsLast ?
+        [
+          ...shape.slice(0, -3), shape[length - 3] * shape[length - 2],
+          shape[length - 1]
+        ] :
+        [
+          ...shape.slice(0, -3), shape[length - 3],
+          shape[length - 2] * shape[length - 1]
+        ]
+  } else if (!isChannelsLast && length === 1 && shape[0] > 1) {
+    return [shape[0], 1];
+  } else {
+    return null;
+  }
+};
+
 // For 1x1 kernels that iterate through every point in the input, convolution
 // can be expressed as matrix multiplication (without need for memory
 // remapping).
@@ -67,42 +86,25 @@ export function conv2dByMatMul({
   let out: TensorInfo;
   const intermediates: TensorInfo[] = [];
 
-  if (preluActivationWeights != null && !isChannelsLast &&
-      preluActivationWeights.shape.length === 1) {
-    // If PReLU's activation weights is NCHW format, then convert it to NHWC for
-    // the following computation.
-    const preluActivationWeightsInNhwcFormat = reshape({
-      inputs: {x: preluActivationWeights},
-      backend,
-      attrs: {shape: [preluActivationWeights.shape[0], 1]}
-    });
-    intermediates.push(preluActivationWeightsInNhwcFormat);
-    preluActivationWeights = preluActivationWeightsInNhwcFormat;
-  }
-  if (bias != null && !isChannelsLast && bias.shape.length === 1) {
-    // If PReLU's activation weights is NCHW format, then convert it to NHWC for
-    // the following computation.
-    bias = reshape(
-        {inputs: {x: bias}, backend, attrs: {shape: [bias.shape[0], 1]}});
-    intermediates.push(bias);
+  if (preluActivationWeights != null) {
+    const targetShape =
+        getShapeForBatchMatMul(preluActivationWeights.shape, isChannelsLast);
+    if (targetShape != null) {
+      preluActivationWeights = reshape({
+        inputs: {x: preluActivationWeights},
+        backend,
+        attrs: {shape: targetShape}
+      });
+      intermediates.push(preluActivationWeights);
+    }
   }
 
-  if (preluActivationWeights != null && !isChannelsLast &&
-      preluActivationWeights.shape.length === 3) {
-    // If PReLU's activation weights is NCHW format, then convert it to NHWC for
-    // the following computation.
-    const preluActivationWeightsInNhwcFormat = reshape({
-      inputs: {x: preluActivationWeights},
-      backend,
-      attrs: {
-        shape: [
-          preluActivationWeights.shape[0],
-          preluActivationWeights.shape[1] * preluActivationWeights.shape[2]
-        ]
-      }
-    });
-    intermediates.push(preluActivationWeightsInNhwcFormat);
-    preluActivationWeights = preluActivationWeightsInNhwcFormat;
+  if (bias != null) {
+    const targetShape = getShapeForBatchMatMul(bias.shape, isChannelsLast);
+    if (targetShape != null) {
+      bias = reshape({inputs: {x: bias}, backend, attrs: {shape: targetShape}});
+      intermediates.push(bias);
+    }
   }
 
   // TODO: Once reduction ops are packed, batchMatMul will always be packed
@@ -259,42 +261,25 @@ export function conv2dWithIm2Row({
 
   const intermediates: TensorInfo[] = [];
 
-  if (preluActivationWeights != null && !isChannelsLast &&
-      preluActivationWeights.shape.length === 1) {
-    // If PReLU's activation weights is NCHW format, then convert it to NHWC for
-    // the following computation.
-    const preluActivationWeightsInNhwcFormat = reshape({
-      inputs: {x: preluActivationWeights},
-      backend,
-      attrs: {shape: [preluActivationWeights.shape[0], 1]}
-    });
-    intermediates.push(preluActivationWeightsInNhwcFormat);
-    preluActivationWeights = preluActivationWeightsInNhwcFormat;
-  }
-  if (bias != null && !isChannelsLast && bias.shape.length === 1) {
-    // If PReLU's activation weights is NCHW format, then convert it to NHWC for
-    // the following computation.
-    bias = reshape(
-        {inputs: {x: bias}, backend, attrs: {shape: [bias.shape[0], 1]}});
-    intermediates.push(bias);
+  if (preluActivationWeights != null) {
+    const targetShape =
+        getShapeForBatchMatMul(preluActivationWeights.shape, isChannelsLast);
+    if (targetShape != null) {
+      preluActivationWeights = reshape({
+        inputs: {x: preluActivationWeights},
+        backend,
+        attrs: {shape: targetShape}
+      });
+      intermediates.push(preluActivationWeights);
+    }
   }
 
-  if (preluActivationWeights != null && !isChannelsLast &&
-      preluActivationWeights.shape.length === 3) {
-    // If PReLU's activation weights is NCHW format, then convert it to NHWC for
-    // the following computation.
-    const preluActivationWeightsInNhwcFormat = reshape({
-      inputs: {x: preluActivationWeights},
-      backend,
-      attrs: {
-        shape: [
-          preluActivationWeights.shape[0],
-          preluActivationWeights.shape[1] * preluActivationWeights.shape[2]
-        ]
-      }
-    });
-    intermediates.push(preluActivationWeightsInNhwcFormat);
-    preluActivationWeights = preluActivationWeightsInNhwcFormat;
+  if (bias != null) {
+    const targetShape = getShapeForBatchMatMul(bias.shape, isChannelsLast);
+    if (targetShape != null) {
+      bias = reshape({inputs: {x: bias}, backend, attrs: {shape: targetShape}});
+      intermediates.push(bias);
+    }
   }
 
   const xSqueezed =
@@ -331,17 +316,15 @@ export function conv2dWithIm2Row({
   const hasLeakyreluAlpha = activation === 'leakyrelu';
   const fusedActivation =
       activation ? mapActivationToShaderProgram(activation, true) : null;
-  const matmulProgram = isChannelsLast ?
-      new MatMulPackedProgram(
-          im2ColReshaped.shape as [number, number, number],
-          w2Row.shape as [number, number, number],
-          [1, numCols, convInfo.outChannels], transposeA, transposeB, hasBias,
-          fusedActivation, hasPreluActivationWeights, hasLeakyreluAlpha) :
-      new MatMulPackedProgram(
-          w2Row.shape as [number, number, number],
-          im2ColReshaped.shape as [number, number, number],
-          [1, convInfo.outChannels, numCols], transposeA, transposeB, hasBias,
-          fusedActivation, hasPreluActivationWeights, hasLeakyreluAlpha);
+  const matmulProgram = new MatMulPackedProgram(
+      isChannelsLast ? im2ColReshaped.shape as [number, number, number] :
+                       w2Row.shape as [number, number, number],
+      isChannelsLast ? w2Row.shape as [number, number, number] :
+                       im2ColReshaped.shape as [number, number, number],
+      isChannelsLast ? [1, numCols, convInfo.outChannels] :
+                       [1, convInfo.outChannels, numCols],
+      transposeA, transposeB, hasBias, fusedActivation,
+      hasPreluActivationWeights, hasLeakyreluAlpha);
   const inputs: TensorInfo[] =
       isChannelsLast ? [im2ColReshaped, w2Row] : [w2Row, im2ColReshaped];
   if (bias) {
@@ -359,14 +342,8 @@ export function conv2dWithIm2Row({
   }
   const product = backend.runWebGLProgram(matmulProgram, inputs, 'float32');
 
-  const out = reshape({
-    inputs: {x: product},
-    backend,
-    attrs: {
-      shape: isChannelsLast ? [1, outHeight, outWidth, convInfo.outChannels] :
-                              [1, convInfo.outChannels, outHeight, outWidth]
-    }
-  });
+  const out = reshape(
+      {inputs: {x: product}, backend, attrs: {shape: convInfo.outShape}});
 
   intermediates.push(product);
   for (const i of intermediates) {
