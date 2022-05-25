@@ -32,7 +32,7 @@ ts_library(
     deps = [
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_lib",
         "//tfjs-backend-cpu/src:tfjs-backend-cpu_src_lib",
-        "//tfjs-backend-wasm:wasm_lib",
+        "//tfjs-backend-wasm/wasm-out",
         "//tfjs-core/src:tfjs-core_lib",
         "@npm//@types/seedrandom",
         "@npm//seedrandom",
@@ -59,6 +59,7 @@ ts_library(
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
         "//tfjs-core/src:tfjs-core_test_lib",
+        "//tfjs-backend-wasm/wasm-out",
         "@npm//@types/jasmine",
         "@npm//jasmine",
     ],
