@@ -25,118 +25,6 @@ load("//tfjs-backend-wasm/scripts:patch_threaded_simd_module.bzl", "patch_thread
 
 package(default_visibility = ["//visibility:public"])
 
-WASM_OUT = "wasm-out"
-
-copy_to_dist(
-    name = "copy_wasm",
-    srcs = [
-        "//tfjs-backend-wasm/src/cc:tfjs-backend-wasm",
-    ],
-    dest_dir = WASM_OUT,
-    root = "src/cc/tfjs-backend-wasm",
-)
-
-copy_to_dist(
-    name = "copy_wasm_simd",
-    srcs = [
-        "//tfjs-backend-wasm/src/cc:tfjs-backend-wasm-simd",
-    ],
-    dest_dir = WASM_OUT,
-    root = "src/cc/tfjs-backend-wasm-simd",
-)
-
-get_extension(
-    name = "wasm_threaded_js",
-    srcs = ["//tfjs-backend-wasm/src/cc:tfjs-backend-wasm-threaded-simd"],
-    include = [
-        ".js",
-    ],
-    exclude = [
-        ".worker.js",
-        ".fetch.js",
-    ],
-)
-
-patch_threaded_simd_module(
-    name = "patch_threaded_simd_module",
-    out_file = WASM_OUT + "/tfjs-backend-wasm-threaded-simd.js",
-    threaded_simd_file = ":wasm_threaded_js",
-)
-
-get_extension(
-    name = "wasm_threaded_worker",
-    srcs = ["//tfjs-backend-wasm/src/cc:tfjs-backend-wasm-threaded-simd"],
-    include = [
-        ".worker.js",
-    ],
-)
-
-create_worker_module(
-    name = "create_worker_module",
-    out_file = WASM_OUT + "/tfjs-backend-wasm-threaded-simd.worker.js",
-    worker_file = ":wasm_threaded_worker",
-)
-
-get_extension(
-    name = "wasm_threaded_unpatched",
-    srcs = ["//tfjs-backend-wasm/src/cc:tfjs-backend-wasm-threaded-simd"],
-    # Exclude all the files that were patched.
-    exclude = [
-        "tfjs-backend-wasm-threaded-simd.js",
-        "tfjs-backend-wasm-threaded-simd.worker.js",
-    ],
-)
-
-copy_to_dist(
-    name = "copy_wasm_threaded",
-    srcs = [
-        ":wasm_threaded_unpatched",
-    ],
-    dest_dir = WASM_OUT,
-    root = "src/cc/tfjs-backend-wasm-threaded-simd",
-)
-
-copy_to_dist(
-    name = "copy_wasm_types",
-    srcs = [
-        "//tfjs-backend-wasm/wasm_types",
-    ],
-    dest_dir = WASM_OUT,
-    root = "wasm_types",
-)
-
-# This target includes all the wasm files that end up in wasm-out
-get_extension(
-    name = "wasm_for_dist",
-    srcs = [
-        ":copy_wasm",
-        ":copy_wasm_simd",
-        ":copy_wasm_threaded",
-        ":create_worker_module",
-        ":patch_threaded_simd_module",
-    ],
-    include = [
-        ".js",
-        ".wasm",
-    ],
-    exclude = [
-        ".fetch.js",
-        ".debug.wasm",
-    ],
-)
-
-js_library(
-    name = "wasm_lib",
-    package_name = "@tensorflow/tfjs-backend-wasm/wasm-out",
-    srcs = [
-        ":copy_wasm_types",
-        ":wasm_for_dist",
-    ],
-    deps = [
-        "@npm//@types/emscripten",
-    ],
-)
-
 tfjs_bundle(
     name = "tf-backend-wasm",
     entry_point = "//tfjs-backend-wasm/src:index.ts",
@@ -210,12 +98,14 @@ pkg_npm(
         ":copy_miniprogram",
         ":copy_miniprogram_map",
         ":copy_src_to_dist",
+        "//tfjs-backend-wasm/wasm-out",
     ],
 )
 
 # TODO(mattsoulanille): This test uses the default chrome flags and tests
 # the simd implementation. We should also test the non-simd implementation and
-# the threaded implementation.
+# the threaded implementation. When writing those tests, also try to depend on
+# only the required wasm outputs, since it takes a long time to compile them.
 tfjs_web_test(
     name = "tfjs-backend-wasm_test",
     srcs = [
@@ -223,10 +113,19 @@ tfjs_web_test(
     ],
     static_files = [
         "//tfjs-backend-wasm/src:tfjs-backend-wasm_test_bundle",
-        ":wasm_lib",
+        "//tfjs-backend-wasm/wasm-out",
     ],
-    browsers = [
-        "chrome_no_simd",
-        "chrome_webgpu",
+    tags = ["ci"],
+)
+
+nodejs_test(
+    name = "tfjs-backend-wasm_node_test",
+    data = [
+        "//tfjs-backend-wasm/src:tfjs-backend-wasm_src_lib",
+        "//tfjs-backend-wasm/src:tfjs-backend-wasm_test_lib",
+        "//tfjs-backend-wasm/wasm-out",
     ],
+    entry_point = "//tfjs-backend-wasm/src:test_node.ts",
+    #link_workspace_root = True,
+    tags = ["ci"],
 )
