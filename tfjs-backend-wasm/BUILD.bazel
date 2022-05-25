@@ -20,15 +20,19 @@ load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 load("//tools:get_extension.bzl", "get_extension")
+load("//tfjs-backend-wasm/scripts:create_worker_module.bzl", "create_worker_module")
+load("//tfjs-backend-wasm/scripts:patch_threaded_simd_module.bzl", "patch_threaded_simd_module")
 
 package(default_visibility = ["//visibility:public"])
+
+WASM_OUT = "wasm-out"
 
 copy_to_dist(
     name = "copy_wasm",
     srcs = [
         "//tfjs-backend-wasm/src/cc:tfjs-backend-wasm",
     ],
-    dest_dir = "wasm-out",
+    dest_dir = WASM_OUT,
     root = "src/cc/tfjs-backend-wasm",
 )
 
@@ -37,16 +41,58 @@ copy_to_dist(
     srcs = [
         "//tfjs-backend-wasm/src/cc:tfjs-backend-wasm-simd",
     ],
-    dest_dir = "wasm-out",
+    dest_dir = WASM_OUT,
     root = "src/cc/tfjs-backend-wasm-simd",
+)
+
+get_extension(
+    name = "wasm_threaded_js",
+    srcs = ["//tfjs-backend-wasm/src/cc:tfjs-backend-wasm-threaded-simd"],
+    include = [
+        ".js",
+    ],
+    exclude = [
+        ".worker.js",
+        ".fetch.js",
+    ],
+)
+
+patch_threaded_simd_module(
+    name = "patch_threaded_simd_module",
+    out_file = WASM_OUT + "/tfjs-backend-wasm-threaded-simd.js",
+    threaded_simd_file = ":wasm_threaded_js",
+)
+
+get_extension(
+    name = "wasm_threaded_worker",
+    srcs = ["//tfjs-backend-wasm/src/cc:tfjs-backend-wasm-threaded-simd"],
+    include = [
+        ".worker.js",
+    ],
+)
+
+create_worker_module(
+    name = "create_worker_module",
+    out_file = WASM_OUT + "/tfjs-backend-wasm-threaded-simd.worker.js",
+    worker_file = ":wasm_threaded_worker",
+)
+
+get_extension(
+    name = "wasm_threaded_unpatched",
+    srcs = ["//tfjs-backend-wasm/src/cc:tfjs-backend-wasm-threaded-simd"],
+    # Exclude all the files that were patched.
+    exclude = [
+        "tfjs-backend-wasm-threaded-simd.js",
+        "tfjs-backend-wasm-threaded-simd.worker.js",
+    ],
 )
 
 copy_to_dist(
     name = "copy_wasm_threaded",
     srcs = [
-        "//tfjs-backend-wasm/src/cc:tfjs-backend-wasm-threaded-simd",
+        ":wasm_threaded_unpatched",
     ],
-    dest_dir = "wasm-out",
+    dest_dir = WASM_OUT,
     root = "src/cc/tfjs-backend-wasm-threaded-simd",
 )
 
@@ -55,16 +101,19 @@ copy_to_dist(
     srcs = [
         "//tfjs-backend-wasm/wasm_types",
     ],
-    dest_dir = "wasm-out",
+    dest_dir = WASM_OUT,
     root = "wasm_types",
 )
 
+# This target includes all the wasm files that end up in wasm-out
 get_extension(
     name = "wasm_for_dist",
     srcs = [
         ":copy_wasm",
         ":copy_wasm_simd",
         ":copy_wasm_threaded",
+        ":create_worker_module",
+        ":patch_threaded_simd_module",
     ],
     include = [
         ".js",
