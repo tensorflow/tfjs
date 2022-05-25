@@ -81,15 +81,9 @@ yarn build
 ```
 
 ## Testing
-The `CHROME_BIN` environment variable must be set to the location of the Chrome
-Canary application.
-
-### Windows
-`set CHROME_BIN=%LOCALAPPDATA%\Google\Chrome SxS\Application\chrome.exe`
-
-### macOS
-`export CHROME_BIN="/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary"`
+Currently the Canary channel of Chrome is used for testing of the WebGPU
+backend:
 
 ```sh
-yarn test
+yarn test  # --test_env=CHROME_CANARY_BIN=/path/to/chrome
 ```
