@@ -68,7 +68,7 @@ module.exports = function(config) {
     singleRun: true,
     customLaunchers: {
       chrome_webgpu: {
-        base: 'Chrome',
+        base: 'ChromeCanary',
         flags: [
           '--enable-unsafe-webgpu',
           '--disable-dawn-features=disallow_unsafe_apis'

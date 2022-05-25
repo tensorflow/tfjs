@@ -115,7 +115,7 @@ module.exports = function(config) {
         flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
       },
       chrome_webgpu: {
-        base: 'Chrome',
+        base: 'ChromeCanary',
         flags: [
           '--enable-unsafe-webgpu',
           '--disable-dawn-features=disallow_unsafe_apis'
