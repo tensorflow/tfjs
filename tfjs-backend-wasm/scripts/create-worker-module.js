@@ -21,11 +21,25 @@
  */
 
 const fs = require('fs');
+const {ArgumentParser} = require('argparse');
 
-const BASE_PATH = '../wasm-out/';
-const WORKER_PATH = `${BASE_PATH}tfjs-backend-wasm-threaded-simd.worker.js`;
+const parser = new ArgumentParser();
 
-const workerContents = fs.readFileSync(WORKER_PATH, "utf8");
-fs.chmodSync(WORKER_PATH, 0o644);
-fs.writeFileSync(`${WORKER_PATH}`,
+parser.addArgument('workerFile', {
+  type: String,
+  help: 'The input worker file to transform.',
+});
+
+parser.addArgument('outFile', {
+  type: String,
+  help: 'The output file path.',
+});
+
+const args = parser.parseArgs();
+
+// TODO(mattsoulanille): Without `-c opt`, this is incorrect because emscripten
+// includes single quotes in its unminified output. This blocks us from
+// publishing debug versions of the wasm files.
+const workerContents = fs.readFileSync(args.workerFile, "utf8");
+fs.writeFileSync(`${args.outFile}`,
   `export const wasmWorkerContents = '${workerContents.trim()}';`);
