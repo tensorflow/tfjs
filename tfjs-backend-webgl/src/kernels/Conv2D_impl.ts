@@ -311,6 +311,8 @@ export function conv2dWithIm2Row({
         inputs: {x: input},
         backend,
         attrs: {
+          // If dataFormat is NCHW, bias and PReLU activation weights haven been
+          // transposed to NHWC dataFormat before applying to the product.
           shape: [
             ...shape.slice(0, -3) /* batch */,
             shape[shape.length - 3] *
