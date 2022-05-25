@@ -30,7 +30,8 @@ export function gatherV2(args: {
 }): TensorInfo {
   const {inputs, backend, attrs} = args;
   const {x, indices} = inputs;
-  const {axis, batchDims} = attrs;
+  let {axis, batchDims} = attrs;
+  axis = 0;
 
   const parsedAxis = util.parseAxisParam(axis, x.shape)[0];
   if (env().get('DEBUG')) {
