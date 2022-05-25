@@ -36,10 +36,8 @@ parser.addArgument('outFile', {
 });
 
 const args = parser.parseArgs();
-
-// TODO(mattsoulanille): Without `-c opt`, this is incorrect because emscripten
-// includes single quotes in its unminified output. This blocks us from
-// publishing debug versions of the wasm files.
 const workerContents = fs.readFileSync(args.workerFile, "utf8");
+const escaped = workerContents.replace(/`/g, '\\`');
+
 fs.writeFileSync(`${args.outFile}`,
-  `export const wasmWorkerContents = '${workerContents.trim()}';`);
+  `export const wasmWorkerContents = \`${escaped.trim()}\`;`);
