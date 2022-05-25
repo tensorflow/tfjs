@@ -20,7 +20,7 @@ import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class DepthToSpaceProgram implements WebGPUProgram {
-  variableNames = ['x'];
+  variables = [{name: 'x'}];
   outputShape: number[];
   dataFormat: string;
   shaderKey: string;

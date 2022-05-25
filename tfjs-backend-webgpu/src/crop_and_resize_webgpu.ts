@@ -24,7 +24,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames = ['Image', 'Boxes', 'BoxInd'];
+  variables = [{name: 'Image'}, {name: 'Boxes'}, {name: 'BoxInd'}];
   uniforms = 'extrapolationValue : f32,';
   workGroupSize: [number, number, number] = [64, 1, 1];
   methodId: number;

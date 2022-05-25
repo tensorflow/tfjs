@@ -16,23 +16,24 @@
  */
 
 import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
+import {VariableData, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
-import {WebGPUProgram} from './webgpu_program';
 
 export class AddNPackedProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames: string[];
+  variables: VariableData[];
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
   size = true;
 
   constructor(shapes: number[][]) {
     this.outputShape = shapes[0];
-    this.variableNames = shapes.map((_, i) => `T${i}`);
+    this.variables = shapes.map((_, i) => {
+      return {name: `T${i}`};
+    });
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
@@ -43,14 +44,14 @@ export class AddNPackedProgram implements WebGPUProgram {
   getUserCode(): string {
     const snippets: string[] = [];
     // Get target elements from every input tensor.
-    this.variableNames.forEach(variable => {
+    this.variables.forEach(variable => {
       snippets.push(
-          `let v${variable} = get${variable}ByOutputCoords(coords);`);
+          `let v${variable.name} = get${variable.name}ByOutputCoords(coords);`);
     });
     // Calculate the sum of all elements.
-    const operation = this.variableNames
+    const operation = this.variables
                           .map(variable => {
-                            return `v${variable}`;
+                            return `v${variable.name}`;
                           })
                           .join(' + ');
 

@@ -20,7 +20,7 @@ import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class SliceProgram implements WebGPUProgram {
-  variableNames = ['source'];
+  variables = [{name: 'source'}];
   uniforms: string;
   outputShape: number[];
   shaderKey: string;

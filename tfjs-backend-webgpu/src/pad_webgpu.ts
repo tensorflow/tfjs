@@ -24,7 +24,7 @@ export class PadProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames = ['x'];
+  variables = [{name: 'x'}];
   uniforms = 'constantValue : f32,';
   workGroupSize: [number, number, number] = [64, 1, 1];
   xShape: number[];

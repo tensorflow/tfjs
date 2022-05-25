@@ -26,7 +26,7 @@ export class Pool2DProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames = ['x'];
+  variables = [{name: 'x'}];
   uniforms =
       `stride : vec2<i32>, pad : vec2<i32>, dilation : vec2<i32>, convDims : vec2<i32>, filterDims : vec2<i32>,`;
   // TODO(jiajia.qin@intel.com): Dynamically choose different workGroupSize for

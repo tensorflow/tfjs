@@ -16,11 +16,11 @@
  */
 
 import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {VariableData, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class FillProgram implements WebGPUProgram {
-  variableNames: string[] = [];
+  variables: VariableData[] = [];
   outputShape: number[] = [];
   shaderKey: string;
   dispatchLayout: {x: number[]};

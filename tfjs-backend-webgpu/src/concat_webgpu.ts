@@ -18,7 +18,7 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {VariableData, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ConcatProgram implements WebGPUProgram {
@@ -26,7 +26,7 @@ export class ConcatProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames: string[];
+  variables: VariableData[];
   uniforms = '';
   workPerThread = 4;
   workGroupSize: [number, number, number] = [64, 1, 1];
@@ -36,7 +36,9 @@ export class ConcatProgram implements WebGPUProgram {
   constructor(shapes: Array<[number, number]>) {
     this.outputShape =
         backend_util.computeOutShape(shapes, 1 /* axis */) as [number, number];
-    this.variableNames = shapes.map((_, i) => `T${i}`);
+    this.variables = shapes.map((_, i) => {
+      return {name: `T${i}`};
+    });
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,

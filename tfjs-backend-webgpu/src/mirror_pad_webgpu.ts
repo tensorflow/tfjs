@@ -25,7 +25,7 @@ export class MirrorPadProgram implements WebGPUProgram {
   uniforms = '';
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames = ['x'];
+  variables = [{name: 'x'}];
   workGroupSize: [number, number, number] = [64, 1, 1];
   xShape: number[];
   offset: number;

@@ -34,7 +34,7 @@ export class SwapProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames = ['x', 'indices'];
+  variables = [{name: 'x'}, {name: 'indices'}];
   uniforms: string;
   workGroupSize: [number, number, number] = [256, 1, 1];
   size = true;
@@ -127,7 +127,7 @@ export class MergeProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames = ['x', 'indices'];
+  variables = [{name: 'x'}, {name: 'indices'}];
   uniforms: string;
   workGroupSize: [number, number, number] = [256, 1, 1];
   size = true;

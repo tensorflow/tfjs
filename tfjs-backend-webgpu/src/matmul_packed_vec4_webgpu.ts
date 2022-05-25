@@ -92,7 +92,8 @@ export function makeMatMulPackedVec4Source(
                 acc[i] = BCached[1] * ACached.y + acc[i];
                 acc[i] = BCached[2] * ACached.z + acc[i];
                 ${
-      innerElementSize === 3 ? '' : 'acc[i] = BCached[3] * ACached.w + acc[i];'}
+      innerElementSize === 3 ? '' :
+                               'acc[i] = BCached[3] * ACached.w + acc[i];'}
             }
         }
 
@@ -112,7 +113,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
-  variableNames = ['A', 'B'];
+  variables = [{name: 'A'}, {name: 'B'}];
   uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
   workGroupSize: [number, number, number] = [8, 8, 1];
   elementsPerThread: [number, number, number];
@@ -149,11 +150,11 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
     const addBias = bias != null;
     const hasPreluActivationWeights = preluActivationWeights != null;
     if (addBias) {
-      this.variableNames.push('bias');
+      this.variables.push({name: 'bias'});
     }
 
     if (hasPreluActivationWeights) {
-      this.variableNames.push('preluActivationWeights');
+      this.variables.push({name: 'preluActivationWeights'});
     }
 
     this.tileAOuter = outputShape[1] === 1 ?

@@ -73,8 +73,7 @@ function mapToWgslTypes(type: DataType, isVec4: boolean): WGSLDataType|
 interface ProgramParams {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   workGroupSize: [number, number, number];
-  variableNames: string[];
-  variableTypes?: string[];
+  variables: Array<{name: string, type?: string}>;
   uniforms?: string;
   isVec4?: boolean;
   size?: boolean;
@@ -168,7 +167,7 @@ export function makeShader(
   let preMemberIsStruct = false;
   let currentMemberIsStruct = false;
   let uniformDeclaration = 'struct Uniforms { NAN : f32, ';
-  program.variableNames.forEach((x, i) => {
+  program.variables.forEach((x, i) => {
     const perDataType = getCoordsDataType(inputInfo[i].shape.length);
     if (perDataType === 'vec5' || perDataType === 'vec6') {
       currentMemberIsStruct = true;
@@ -178,7 +177,8 @@ export function makeShader(
     }
     preMemberIsStruct = currentMemberIsStruct;
     uniformDeclaration +=
-        `${x.charAt(0).toLowerCase() + x.slice(1)}Shape : ${perDataType}, `;
+        `${x.name.charAt(0).toLowerCase() + x.name.slice(1)}Shape : ${
+            perDataType}, `;
   });
   const outputDataType = getCoordsDataType(outputData.shape.length);
   currentMemberIsStruct =
@@ -228,19 +228,17 @@ export function makeShader(
         mapToWgslTypes(outputData.dtype, program.isVec4)}>;
   `);
   }
-  program.variableNames.forEach((x, i) => {
+  program.variables.forEach((x, i) => {
     prefixSnippets.push(`
-    @group(0) @binding(${1 + i}) var<storage, read> ${x}: array<${
-        program.variableTypes ?
-            program.variableTypes[i] :
-            mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
+    @group(0) @binding(${1 + i}) var<storage, read> ${x.name}: array<${
+        x.type ? x.type : mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
       `);
   });
 
   if (uniformDeclaration !== '') {
     prefixSnippets.push(`
     @group(0) @binding(${
-        1 + program.variableNames.length}) var<uniform> uniforms: Uniforms;
+        1 + program.variables.length}) var<uniform> uniforms: Uniforms;
     `);
   }
 
@@ -264,8 +262,8 @@ export function makeShader(
             .map(
                 (x, i) => getInputSnippet(
                     x, outputData.shape,
-                    program.variableTypes ?
-                        (program.variableTypes[i] === 'vec4<f32>') :
+                    program.variables[i].type ?
+                        (program.variables[i].type === 'vec4<f32>') :
                         program.isVec4,
                     program.dispatchLayout.x.length ===
                         outputData.shape.length))

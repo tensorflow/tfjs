@@ -24,7 +24,7 @@ export class RotateProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames = ['x'];
+  variables = [{name: 'x'}];
   uniforms: string;
   workGroupSize: [number, number, number] = [64, 1, 1];
   fillSnippet: string;

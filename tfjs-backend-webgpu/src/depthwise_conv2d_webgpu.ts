@@ -27,7 +27,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   dispatch: [number, number, number];
-  variableNames = ['x', 'W'];
+  variables = [{name: 'x'}, {name: 'W'}];
   uniforms = `pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>,
       inDims : vec2<i32>, filterHeight : i32, filterWidth : i32,
       channelMul : i32,`;
@@ -51,10 +51,10 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
         () => 'TODO: NCHW is unimplemented');
 
     if (addBias) {
-      this.variableNames.push('bias');
+      this.variables.push({name: 'bias'});
     }
     if (hasPreluActivation) {
-      this.variableNames.push('preluActivationWeights');
+      this.variables.push({name: 'preluActivationWeights'});
     }
 
     this.convInfo = convInfo;

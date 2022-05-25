@@ -18,7 +18,7 @@
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {VariableData, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class BatchNormProgram implements WebGPUProgram {
@@ -26,7 +26,7 @@ export class BatchNormProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   dispatch: [number, number, number];
-  variableNames: string[];
+  variables: VariableData[];
   uniforms = 'varianceEpsilon : f32,';
   // This is an experimental value.
   workGroupSize: [number, number, number] = [128, 1, 1];
@@ -38,7 +38,7 @@ export class BatchNormProgram implements WebGPUProgram {
   constructor(
       xShape: number[], meanShape: number[], varianceShape: number[],
       offsetShape: number[]|null, scaleShape: number[]|null) {
-    this.variableNames = ['x', 'mean', 'variance'];
+    this.variables = [{name: 'x'}, {name: 'mean'}, {name: 'variance'}];
     backend_util.assertAndGetBroadcastShape(xShape, meanShape);
     backend_util.assertAndGetBroadcastShape(xShape, varianceShape);
     this.outputShape = xShape;
@@ -48,11 +48,11 @@ export class BatchNormProgram implements WebGPUProgram {
 
     if (offsetShape != null) {
       backend_util.assertAndGetBroadcastShape(xShape, offsetShape);
-      this.variableNames.push('offset');
+      this.variables.push({name: 'offset'});
     }
     if (scaleShape != null) {
       backend_util.assertAndGetBroadcastShape(xShape, scaleShape);
-      this.variableNames.push('scale');
+      this.variables.push({name: 'scale'});
     }
     this.offsetShape = offsetShape;
     this.scaleShape = scaleShape;

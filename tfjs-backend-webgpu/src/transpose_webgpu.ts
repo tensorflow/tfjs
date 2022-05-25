@@ -20,7 +20,7 @@ import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class TransposeProgram implements WebGPUProgram {
-  variableNames = ['A'];
+  variables = [{name: 'A'}];
   shaderKey: string;
   outputShape: number[];
   dispatchLayout: {x: number[]};

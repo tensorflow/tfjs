@@ -738,7 +738,7 @@ export class WebGPUBackend extends KernelBackend {
       visibility: GPUShaderStage.COMPUTE,
       buffer: {type: 'storage' as const }
     });
-    // Input buffer binding layout. Depends on variableNames length.
+    // Input buffer binding layout. Depends on variables length.
     for (let i = 0; i < inputEntrySize; i++) {
       bindGroupLayoutEntries.push({
         binding: i + 1,
@@ -819,7 +819,7 @@ export class WebGPUBackend extends KernelBackend {
         // of underlying buffer, rather than abstract dtype.
         dtype: this.tensorMap.get(input.dataId).dtype,
         shape: input.shape,
-        name: program.variableNames[i]
+        name: program.variables[i].name
       };
     });
     const bufferTypes = inputsData.map(d => d.dtype).concat(output.dtype);
@@ -833,7 +833,7 @@ export class WebGPUBackend extends KernelBackend {
         inputShapesEqualsOutShape);
 
     const {bindGroupLayout, pipelineLayout} =
-        this.getCachedOrCreateLayout(program.variableNames.length);
+        this.getCachedOrCreateLayout(program.variables.length);
 
     const pipeline = this.getAndSavePipeline(key, () => {
       return webgpu_program.compileProgram(

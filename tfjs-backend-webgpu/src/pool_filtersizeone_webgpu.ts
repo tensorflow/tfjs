@@ -26,7 +26,7 @@ export class PoolWithFilterSizeEqualsOneProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames = ['x'];
+  variables = [{name: 'x'}];
   uniforms = `stride : vec2<i32>,`;
   workGroupSize: [number, number, number] = [256, 1, 1];
   size = true;

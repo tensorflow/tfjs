@@ -16,12 +16,11 @@
  */
 
 import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
+import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
-import {WebGPUProgram} from './webgpu_program';
-
 export class TileProgram implements WebGPUProgram {
-  variableNames = ['A'];
+  variables = [{name: 'A'}];
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[]};

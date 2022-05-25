@@ -22,7 +22,7 @@ import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ScatterOptimizedProgram implements WebGPUProgram {
-  variableNames = ['updates', 'indices'];
+  variables = [{name: 'updates'}, {name: 'indices'}];
   uniforms: string;
   outputShape: number[];
   shaderKey: string;

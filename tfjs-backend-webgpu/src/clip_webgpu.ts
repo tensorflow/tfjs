@@ -22,7 +22,7 @@ import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 export class ClipProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
-  variableNames = ['A'];
+  variables = [{name: 'A'}];
   uniforms = 'minVal : f32, maxVal : f32,';
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];

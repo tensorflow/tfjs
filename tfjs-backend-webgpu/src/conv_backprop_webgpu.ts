@@ -22,7 +22,7 @@ import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class Conv2DDerInputProgram implements WebGPUProgram {
-  variableNames = ['dy', 'W'];
+  variables = [{name: 'dy'}, {name: 'W'}];
   uniforms =
       'filterDims : vec2<i32>, pads : vec2<i32>, stride : vec2<i32>, outBackprop : vec4<i32>,';
   outputShape: number[];

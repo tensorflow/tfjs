@@ -27,7 +27,7 @@ export class BinaryOpSharedProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames = ['A', 'B'];
+  variables = [{name: 'A'}, {name: 'B'}];
   workPerThread: number;
   workGroupSize: [number, number, number];
   useSharedMemoryWithB: boolean;

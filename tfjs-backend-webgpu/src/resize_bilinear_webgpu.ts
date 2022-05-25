@@ -24,7 +24,7 @@ export class ResizeBilinearProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames = ['x'];
+  variables = [{name: 'x'}];
   uniforms = 'adjustHeightWidth : vec2<f32>, halfPixelCenters : f32,';
   workGroupSize: [number, number, number] = [64, 1, 1];
   size = true;

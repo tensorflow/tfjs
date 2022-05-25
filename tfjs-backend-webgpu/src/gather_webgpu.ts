@@ -16,16 +16,15 @@
  */
 
 import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class GatherProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames: string[] = ['A', 'indices'];
+  variables = [{name: 'A'}, {name: 'indices'}];
   workGroupSize: [number, number, number] = [64, 1, 1];
   aShape: number[];
   size = true;

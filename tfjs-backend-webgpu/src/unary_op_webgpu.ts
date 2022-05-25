@@ -16,17 +16,16 @@
  */
 
 import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
 import {getUnaryOpString, UnaryOpType} from './unary_op_util';
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class UnaryOpProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames = ['A'];
+  variables = [{name: 'A'}];
   workGroupSize: [number, number, number];
   op: UnaryOpType;
   uniforms?: string;

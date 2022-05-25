@@ -29,7 +29,7 @@ export class CumProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames = ['x'];
+  variables = [{name: 'x'}];
   workGroupSize: [number, number, number];
   // pow(i32, i32) is not supported, use pow(f32, f32) instead.
   uniforms = 'index : f32,';

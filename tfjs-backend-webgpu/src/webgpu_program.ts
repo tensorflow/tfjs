@@ -28,11 +28,7 @@ export interface WebGPUProgram {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   // dispatch specifies geometry of thread groups - derived from dispatchLayout.
   dispatch: [number, number, number];
-  variableNames: string[];
-  // Describe each variable's type and must have one-one mapping with
-  // variableNames. If not set, all variables type will be either f32 or
-  // vec4<f32> based on isVec4 member.
-  variableTypes?: string[];
+  variables: VariableData[];
   uniforms?: string;
   // Size of register cache in one dimension (assumes square cache).
   // Each thread writes to workPerThread * workPerThread locations in the output
@@ -48,6 +44,14 @@ export interface WebGPUProgram {
   // Whether to use atomic built-in functions.
   atomic?: boolean;
   getUserCode: () => string;
+}
+
+// Describe each variable's name and type, type must have one-one mapping with
+// names. If not set, all variables type will be either f32 or
+// vec4<f32> based on isVec4 member.
+export interface VariableData {
+  name: string;
+  type?: string;
 }
 
 export interface TensorData {
@@ -93,7 +97,7 @@ export function makeShaderKey<R extends Rank>(
   const key = program.shaderKey + '_' +
       (program.workGroupSize ? program.workGroupSize.join(',') : '') +
       shapes.map(shape => shape.length).join(',') + types.join(',') +
-      program.variableNames.join(',') + broadcastDimsKey +
-      inputShapesEqualsOutShape;
+      program.variables.map((variable) => variable.name).join(',') +
+      broadcastDimsKey + inputShapesEqualsOutShape;
   return key;
 }

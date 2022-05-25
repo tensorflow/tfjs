@@ -20,7 +20,7 @@ import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class StridedSliceProgram implements WebGPUProgram {
-  variableNames = ['x'];
+  variables = [{name: 'x'}];
   uniforms: string;
   outputShape: number[];
   shaderKey: string;

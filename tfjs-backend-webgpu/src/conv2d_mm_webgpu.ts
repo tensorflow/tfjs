@@ -27,7 +27,7 @@ export class Conv2DMMProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
-  variableNames = ['x', 'W'];
+  variables = [{name: 'x'}, {name: 'W'}];
   uniforms =
       `filterDims : vec2<i32>, pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
   workGroupSize: [number, number, number];
@@ -60,11 +60,11 @@ export class Conv2DMMProgram implements WebGPUProgram {
         this.elementsPerThread);
 
     if (addBias) {
-      this.variableNames.push('bias');
+      this.variables.push({name: 'bias'});
     }
 
     if (hasPreluActivationWeights) {
-      this.variableNames.push('preluActivationWeights');
+      this.variables.push({name: 'preluActivationWeights'});
     }
     this.addBias = addBias;
     this.activation = activation;

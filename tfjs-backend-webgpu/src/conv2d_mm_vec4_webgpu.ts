@@ -19,7 +19,7 @@ import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {mapActivationToShaderProgram} from './activation_util';
 import {makeMatMulPackedVec4Source} from './matmul_packed_vec4_webgpu';
-import {WebGPUProgram} from './webgpu_program';
+import {VariableData, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, tilesFitEvenlyIntoShape} from './webgpu_util';
 
 export class Conv2DMMVec4Program implements WebGPUProgram {
@@ -27,8 +27,7 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
-  variableNames = ['x', 'W'];
-  variableTypes: string[];
+  variables: VariableData[] = [];
   uniforms =
       `filterDims : vec2<i32>, pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>,
       dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
@@ -71,19 +70,19 @@ export class Conv2DMMVec4Program implements WebGPUProgram {
     this.hasPreluActivationWeights = hasPreluActivationWeights;
     this.innerElementSize = this.convInfo.inChannels % 4 === 0 ? 4 : 3;
     if (this.innerElementSize === 3) {
-      this.variableTypes = ['f32', 'vec4<f32>'];
+      this.variables =
+          [{name: 'x', type: 'f32'}, {name: 'W', type: 'vec4<f32>'}];
     } else {
-      this.variableTypes = ['vec4<f32>', 'vec4<f32>'];
+      this.variables =
+          [{name: 'x', type: 'vec4<f32>'}, {name: 'W', type: 'vec4<f32>'}];
     }
 
     if (this.addBias) {
-      this.variableNames.push('bias');
-      this.variableTypes.push('vec4<f32>');
+      this.variables.push({name: 'bias', type: 'vec4<f32>'});
     }
 
     if (this.hasPreluActivationWeights) {
-      this.variableNames.push('preluActivationWeights');
-      this.variableTypes.push('vec4<f32>');
+      this.variables.push({name: 'preluActivationWeights', type: 'vec4<f32>'});
     }
     this.tileAOuter = this.outputShape[1] === 1 ?
         1 :

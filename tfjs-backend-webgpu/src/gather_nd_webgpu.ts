@@ -24,7 +24,7 @@ export class GatherNDProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames: string[] = ['A', 'indices'];
+  variables = [{name: 'A'}, {name: 'indices'}];
   uniforms: string;
   workGroupSize: [number, number, number] = [64, 1, 1];
   size = true;

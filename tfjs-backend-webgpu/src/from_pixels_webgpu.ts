@@ -16,7 +16,7 @@
  */
 
 import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {VariableData, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class FromPixelsProgram implements WebGPUProgram {
@@ -24,7 +24,7 @@ export class FromPixelsProgram implements WebGPUProgram {
   shaderKey: string;
   workPerThread: number;
   dispatchLayout: {x: number[]};
-  variableNames: string[] = [];
+  variables: VariableData[] = [];
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] =
       [256, 1, 1];  // The empirical value.

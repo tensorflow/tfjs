@@ -20,7 +20,7 @@ import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class TransformProgram implements WebGPUProgram {
-  variableNames = ['Image', 'Transforms'];
+  variables = [{name: 'Image'}, {name: 'Transforms'}];
   outputShape: number[];
   uniforms = 'interpolationModeId : i32, fillModeId : i32, fillValue : f32,';
   shaderKey: string;

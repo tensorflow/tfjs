@@ -16,18 +16,18 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 
+import {BinaryOpType, getBinaryOpString} from './binary_op_util';
+import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
 import {WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class BinaryOpVec4Program implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
-  variableNames = ['A', 'B'];
+  variables = [{name: 'A'}, {name: 'B'}];
   workPerThread = 4;
   workGroupSize: [number, number, number];
   isVec4 = true;

@@ -121,7 +121,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
   shaderKey: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
-  variableNames = ['A', 'B'];
+  variables = [{name: 'A'}, {name: 'B'}];
   uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
   workGroupSize: [number, number, number] = [8, 16, 1];
   addBias: boolean;
@@ -150,12 +150,12 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
 
     const addBias = bias != null;
     if (addBias) {
-      this.variableNames.push('bias');
+      this.variables.push({name: 'bias'});
     }
 
     const hasPreluActivationWeights = preluActivationWeights != null;
     if (hasPreluActivationWeights) {
-      this.variableNames.push('preluActivationWeights');
+      this.variables.push({name: 'preluActivationWeights'});
     }
 
     this.addBias = addBias;
