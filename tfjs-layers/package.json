@@ -17,18 +17,8 @@
   "unpkg": "dist/tf-layers.min.js",
   "miniprogram": "dist/miniprogram",
   "devDependencies": {
-    "@babel/polyfill": "^7.8.7",
     "@bazel/bazelisk": "^1.10.1",
-    "@rollup/plugin-commonjs": "^11.0.2",
-    "@rollup/plugin-node-resolve": "^7.1.1",
-    "@rollup/plugin-typescript": "^3.0.0",
-    "@tensorflow/tfjs-backend-cpu": "link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
-    "@tensorflow/tfjs-backend-webgl": "link:../link-package/node_modules/@tensorflow/tfjs-backend-webgl",
-    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
-    "clang-format": "~1.8.0",
-    "rimraf": "~2.6.2",
-    "ts-node": "~8.8.2",
-    "typescript": "3.5.3"
+    "clang-format": "~1.8.0"
   },
   "scripts": {
     "prep": "yarn install && yarn build-ci",
@@ -38,8 +28,6 @@
     "bundle-ci": "yarn bundle",
     "build-npm": "bazel build :tfjs-layers_pkg",
     "format": "./tools/clang_format_ts.sh",
-    "link-local": "yalc link",
-    "publish-local": "yarn build-npm && yalc push",
     "publish-npm": "bazel run :tfjs-layers_pkg.publish",
     "test-dev": "bazel test :tfjs-layers_webgl2_test --test_output=streamed",
     "test": "yarn test-dev",
