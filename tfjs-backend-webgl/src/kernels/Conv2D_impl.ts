@@ -297,7 +297,6 @@ export function conv2dWithIm2Row({
     preluActivationWeights = preluActivationWeightsInNhwcFormat;
   }
 
-
   const xSqueezed =
       reshape({inputs: {x}, backend, attrs: {shape: x.shape.slice(1)}});
   const w2Row = reshape({
