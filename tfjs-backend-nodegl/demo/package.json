@@ -7,13 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@tensorflow-models/mobilenet": "^1.0.1",
-    "@tensorflow/tfjs": "^1.2.2",
+    "@tensorflow-models/mobilenet": "^2.1.0",
+    "@tensorflow/tfjs": "^3.18.0",
     "jpeg-js": "^0.4.0"
   },
   "author": "",
-  "license": "ISC",
-  "resolutions": {
-    "minimist": "0.2.1"
-  }
+  "license": "ISC"
 }
