@@ -156,12 +156,20 @@ export function conv2DImpl({
       (convInfo.inChannels % 4 === 0 || convInfo.inChannels % 3 === 0) &&
       convInfo.outChannels % 4 === 0 && isChannelsLast;
 
+  const dimAOuter = isChannelsLast ? convInfo.outHeight * convInfo.outWidth :
+                                     convInfo.outChannels;
+  const dimBOuter = isChannelsLast ? convInfo.outChannels :
+                                     convInfo.outHeight * convInfo.outWidth;
+  const dimInner =
+      convInfo.filterHeight * convInfo.filterWidth * convInfo.inChannels;
   const padInfo = [convInfo.padInfo.top, convInfo.padInfo.left];
   const dimensions = [
     {type: 'int32', data: [convInfo.filterHeight, convInfo.filterWidth]},
     {type: 'int32', data: [...padInfo]},
     {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
-    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]}
+    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]},
+    {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
+    {type: 'int32', data: [dimInner]}
   ];
 
   if (useVec4) {
@@ -169,16 +177,9 @@ export function conv2DImpl({
         convInfo, hasBias, activation, hasPreluActivationWeights);
   } else {
     program = new Conv2DMMProgram(
-        convInfo, hasBias, activation, hasPreluActivationWeights);
+        convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation,
+        hasPreluActivationWeights);
   }
-
-  const dimAOuter = convInfo.outHeight * convInfo.outWidth;
-  const dimBOuter = convInfo.outChannels;
-  const dimInner =
-      convInfo.filterHeight * convInfo.filterWidth * convInfo.inChannels;
-  dimensions.push(
-      {type: 'int32', data: [dimAOuter]}, {type: 'int32', data: [dimBOuter]},
-      {type: 'int32', data: [dimInner]});
 
   const inputVar: TensorInfo[] = [x, filter];
   if (hasBias) {
