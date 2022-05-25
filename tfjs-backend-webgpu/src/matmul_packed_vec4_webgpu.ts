@@ -309,7 +309,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
       }
 
       fn mm_write(row : i32, col : i32, valueIn : vec4<f32>, globalId : vec3<u32>) {
-        if (row < uniforms.aShape[1] && col * 4 < uniforms.bShape[2])
+        if (row < uniforms.dimAOuter && col * 4 < uniforms.dimBOuter)
         {
           var value = valueIn;
           let batch = i32(globalId.z);
