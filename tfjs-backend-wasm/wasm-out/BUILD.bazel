@@ -1,8 +1,8 @@
 load("@build_bazel_rules_nodejs//:index.bzl", "js_library")
-load("//tools:copy_to_dist.bzl", "copy_to_dist", "copy_ts_library_to_dist")
-load("//tools:get_extension.bzl", "get_extension")
 load("//tfjs-backend-wasm/scripts:create_worker_module.bzl", "create_worker_module")
 load("//tfjs-backend-wasm/scripts:patch_threaded_simd_module.bzl", "patch_threaded_simd_module")
+load("//tools:copy_to_dist.bzl", "copy_to_dist")
+load("//tools:get_extension.bzl", "get_extension")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -54,9 +54,9 @@ get_extension(
 
 create_worker_module(
     name = "create_worker_module",
+    cjs = True,
     out_file = "tfjs-backend-wasm-threaded-simd.worker.js",
     worker_file = ":wasm_threaded_worker",
-    cjs = True,
 )
 
 # create_worker_module(
@@ -117,8 +117,8 @@ js_library(
     name = "wasm-out",
     package_name = "@tensorflow/tfjs-backend-wasm/wasm-out",
     srcs = [
-        ":wasm_types",
         ":wasm_for_dist",
+        ":wasm_types",
     ],
     deps = [
         "@npm//@types/emscripten",

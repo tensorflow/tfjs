@@ -21,19 +21,19 @@ def _patch_threaded_simd_module_impl(ctx):
 patch_threaded_simd_module = rule(
     implementation = _patch_threaded_simd_module_impl,
     attrs = {
+        "out_file": attr.string(
+            mandatory = True,
+            doc = "The name for the output file",
+        ),
         "patch_threaded_simd_module_bin": attr.label(
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             default = Label("@//tfjs-backend-wasm/scripts:patch_threaded_simd_module_bin"),
             doc = "The script that creates the worker module",
         ),
         "threaded_simd_file": attr.label(
             doc = "The threaded simd file to transform",
             allow_files = [".js"],
-        ),
-        "out_file": attr.string(
-            mandatory = True,
-            doc = "The name for the output file",
         ),
     },
     doc = """Fix the check for _scriptDir. See patch-threaded-simd-module.js

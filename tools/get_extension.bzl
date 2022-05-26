@@ -35,13 +35,13 @@ def _get_extension_impl(ctx):
 get_extension = rule(
     implementation = _get_extension_impl,
     attrs = {
-        "include": attr.string_list(
-            mandatory = False,
-            doc = "File extensions to include. If empty, includes all files.",
-        ),
         "exclude": attr.string_list(
             mandatory = False,
             doc = "File extensions to exclude.",
+        ),
+        "include": attr.string_list(
+            mandatory = False,
+            doc = "File extensions to include. If empty, includes all files.",
         ),
         "srcs": attr.label_list(
             allow_files = True,
