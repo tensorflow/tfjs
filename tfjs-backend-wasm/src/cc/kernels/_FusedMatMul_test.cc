@@ -20,7 +20,7 @@
 #include "tfjs-backend-wasm/src/cc/backend.h"
 #include "tfjs-backend-wasm/src/cc/kernels/_FusedMatMul.h"
 
-TEST(_FUSED_MATMUL, xnn_operator_lfietime) {
+TEST(_FUSED_MATMUL, xnn_operator_lifetime) {
   tfjs::wasm::init();
 
   ASSERT_EQ(0, tfjs::backend::num_tensors());
