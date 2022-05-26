@@ -54,7 +54,7 @@ export function gatherNd(
     return backend.makeTensorInfo(resultShape, params.dtype, outValue.values);
   }
   const program =
-      new GatherNDProgram(sliceRank, strides, [numSlices, sliceSize]);
+      new GatherNDProgram(sliceRank, strides, [numSlices, sliceSize], params.shape);
   const res = backend.runWebGLProgram(
       program, [flattenX, flattenIndices], flattenX.dtype);
 
