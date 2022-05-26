@@ -22,23 +22,23 @@ def _create_worker_module_impl(ctx):
 create_worker_module = rule(
     implementation = _create_worker_module_impl,
     attrs = {
+        "cjs": attr.bool(
+            default = False,
+            doc = "Whether to output commonjs",
+        ),
         "create_worker_module_bin": attr.label(
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             default = Label("@//tfjs-backend-wasm/scripts:create_worker_module_bin"),
             doc = "The script that creates the worker module",
-        ),
-        "worker_file": attr.label(
-            doc = "The worker file to transform",
-            allow_files = [".js"],
         ),
         "out_file": attr.string(
             mandatory = True,
             doc = "The name for the output file",
         ),
-        "cjs": attr.bool(
-            default = False,
-            doc = "Whether to output commonjs",
+        "worker_file": attr.label(
+            doc = "The worker file to transform",
+            allow_files = [".js"],
         ),
     },
     doc = """Modify the Emscripten WASM worker script so it can be inlined
