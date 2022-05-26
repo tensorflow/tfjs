@@ -409,3 +409,6 @@ setupTestFilters(TEST_FILTERS, customInclude);
 // tslint:disable-next-line:no-imports-from-dist
 // tslint:disable-next-line:no-require-imports
 require('@tensorflow/tfjs-core/dist/tests');
+// Import and run wasm tests
+// tslint:disable-next-line:no-require-imports
+require('./tests');
