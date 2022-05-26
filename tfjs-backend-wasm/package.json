@@ -18,6 +18,7 @@
     "build-dev": "bazel build -c dbg :tfjs-backend-wasm_pkg",
     "build-ci": "yarn build-dev",
     "build-npm": "yarn build",
+    "publish-npm": "bazel run -c opt :tfjs-backend-wasm_pkg.publish",
     "clean": "bazel clean --expunge",
     "cpplint": "./scripts/cpplint.js",
     "test": "bazel test -c dbg :tfjs-backend-wasm_test :tfjs-backend-wasm_node_test //tfjs-backend-wasm/src/cc:cc_tests",
