@@ -40,6 +40,7 @@ from tensorflow.python.training.saver import export_meta_graph
 from tensorflow.python.tools.saved_model_cli import get_signature_def_map
 from google.protobuf.json_format import MessageToDict
 import tensorflow_hub as hub
+from packaging import version
 
 from tensorflowjs import write_weights
 from tensorflowjs.converters import common
@@ -48,8 +49,6 @@ from tensorflowjs.converters import fuse_prelu
 from tensorflowjs.converters import fuse_depthwise_conv2d
 from tensorflowjs.converters import graph_rewrite_util
 from tensorflowjs import resource_loader
-
-from packaging import version
 
 CLEARED_TENSOR_FIELDS = (
     'tensor_content', 'half_val', 'float_val', 'double_val', 'int_val',
