@@ -35,7 +35,10 @@ process.on('unhandledRejection', e => {
 setTestEnvs([{name: 'wasm-node', backendName: 'wasm', isDataSync: true}]);
 
 const runner = new jasmine({});
-runner.loadConfig({spec_files: ['tfjs-backend-wasm/src/**/*_test.js'], random: false});
+runner.loadConfig({
+  spec_files: ['tfjs-backend-wasm/src/**/*_test.js'],
+  random: false,
+});
 
 if (process.env.JASMINE_SEED) {
   runner.seed(process.env.JASMINE_SEED);
