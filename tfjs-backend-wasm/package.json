@@ -20,13 +20,11 @@
     "build-npm": "yarn build",
     "clean": "bazel clean --expunge",
     "cpplint": "./scripts/cpplint.js",
-    "lint": "tslint -p . -t verbose && yarn cpplint",
+    "lint": "yarn cpplint && cd ../ && yarn lint",
     "test": "bazel test -c dbg :tfjs-backend-wasm_test",
-    "test-simd": "yarn karma start --browsers=chrome_simd",
-    "test-threaded-simd": "yarn karma start --browsers=chrome_threaded_simd",
-    "test-node": "bazel test :tfjs-backend-wasm_node_test",
+    "test-node": "bazel test -c dbg :tfjs-backend-wasm_node_test",
     "test-bundle-size": "./scripts/test-bundle-size.js",
-    "test-cc": "bazel test //tfjs-backend-wasm/src/cc:cc_tests --test_output=all"
+    "test-cc": "bazel test -c dbg //tfjs-backend-wasm/src/cc:cc_tests --test_output=all"
   },
   "browser": {
     "fs": false,
