@@ -13,7 +13,7 @@
 # limitations under the License.
 # =============================================================================
 
-load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "nodejs_test", "pkg_npm")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "nodejs_test", "pkg_npm", "copy_to_bin")
 load("//tools:copy_to_dist.bzl", "copy_to_dist", "copy_ts_library_to_dist")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
@@ -143,16 +143,7 @@ nodejs_test(
         "//tfjs-backend-wasm/src:tfjs-backend-wasm_src_lib",
         "//tfjs-backend-wasm/src:tfjs-backend-wasm_test_lib",
         "//tfjs-backend-wasm/wasm-out",
-        ":package_json",
     ],
     entry_point = "//tfjs-backend-wasm/src:test_node.ts",
     tags = ["ci"],
-)
-
-js_library(
-    name = "package_json",
-    package_name = "tfjs-backend-wasm",
-    srcs = [
-        ":package.json",
-    ],
 )
