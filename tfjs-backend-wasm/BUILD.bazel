@@ -13,15 +13,12 @@
 # limitations under the License.
 # =============================================================================
 
-load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "nodejs_test", "pkg_npm", "copy_to_bin")
-load("//tools:copy_to_dist.bzl", "copy_to_dist", "copy_ts_library_to_dist")
-load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
-load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
-load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
+load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_test", "pkg_npm")
+load("//tools:copy_to_dist.bzl", "copy_to_dist", "copy_ts_library_to_dist")
 load("//tools:get_extension.bzl", "get_extension")
-load("//tfjs-backend-wasm/scripts:create_worker_module.bzl", "create_worker_module")
-load("//tfjs-backend-wasm/scripts:patch_threaded_simd_module.bzl", "patch_threaded_simd_module")
+load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
+load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -41,8 +38,8 @@ tfjs_bundle(
         "@tensorflow/tfjs-core": "tf",
         "fs": "fs",
         "path": "path",
-        "worker_threads": "worker_threads",
         "perf_hooks": "perf_hooks",
+        "worker_threads": "worker_threads",
     },
     umd_name = "tf.wasm",
     deps = [
@@ -113,10 +110,10 @@ pkg_npm(
     tags = ["ci"],
     deps = [
         ":copy_bundles",
-        ":copy_wasm_files",
         ":copy_miniprogram",
         ":copy_miniprogram_map",
         ":copy_src_to_dist",
+        ":copy_wasm_files",
         "//tfjs-backend-wasm/wasm-out",
     ],
 )
