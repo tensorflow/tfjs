@@ -35,9 +35,21 @@ parser.addArgument('outFile', {
   help: 'The output file path.',
 });
 
+parser.addArgument('--cjs', {
+  action: 'storeTrue',
+  default: false,
+  optional: true,
+  help: 'Whether to output commonjs instead of esm.',
+});
+
 const args = parser.parseArgs();
 const workerContents = fs.readFileSync(args.workerFile, "utf8");
 const escaped = workerContents.replace(/`/g, '\\`');
 
-fs.writeFileSync(`${args.outFile}`,
-  `export const wasmWorkerContents = \`${escaped.trim()}\`;`);
+if (args.cjs) {
+  fs.writeFileSync(`${args.outFile}`,
+    `module.exports.wasmWorkerContents = \`${escaped.trim()}\`;`);
+} else {
+  fs.writeFileSync(`${args.outFile}`,
+    `export const wasmWorkerContents = \`${escaped.trim()}\`;`);
+}
