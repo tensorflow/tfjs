@@ -40,24 +40,32 @@ type Conv2DConfig = {
   activation?: backend_util.Activation
 };
 
-const getShapeForBatchMatMul = (shape: number[], isChannelsLast: boolean) => {
+// Both conv2dByMatMul and conv2dWithIm2Row fuse height and width into one
+// dimension to compute batchMatMul, so bias and activation weights are also
+// supposed to fuse the two dimensions into one.
+//
+// This function computes the target shape for fusing height and width
+// dimensions. Returning null means the shape is already compatible.
+function getShapeForBatchMatMul(
+    shape: number[], isChannelsLast: boolean): number[] {
   const length = shape.length;
   if (length >= 3) {
     return isChannelsLast ?
         [
-          ...shape.slice(0, -3), shape[length - 3] * shape[length - 2],
-          shape[length - 1]
+          ...shape.slice(0, -3) /* batch */,
+          shape[length - 3] * shape[length - 2] /* height * width */,
+          shape[length - 1] /* channel */
         ] :
         [
-          ...shape.slice(0, -3), shape[length - 3],
-          shape[length - 2] * shape[length - 1]
-        ]
+          ...shape.slice(0, -3) /* batch */, shape[length - 3] /* channel */,
+          shape[length - 2] * shape[length - 1] /* height * width */
+        ];
   } else if (!isChannelsLast && length === 1 && shape[0] > 1) {
     return [shape[0], 1];
   } else {
     return null;
   }
-};
+}
 
 // For 1x1 kernels that iterate through every point in the input, convolution
 // can be expressed as matrix multiplication (without need for memory
