@@ -124,8 +124,16 @@ nodejs_test(
         "//tfjs-backend-wasm/src:tfjs-backend-wasm_src_lib",
         "//tfjs-backend-wasm/src:tfjs-backend-wasm_test_lib",
         "//tfjs-backend-wasm/wasm-out",
+        ":package_json",
     ],
     entry_point = "//tfjs-backend-wasm/src:test_node.ts",
-    #link_workspace_root = True,
     tags = ["ci"],
+)
+
+js_library(
+    name = "package_json",
+    package_name = "tfjs-backend-wasm",
+    srcs = [
+        ":package.json",
+    ],
 )

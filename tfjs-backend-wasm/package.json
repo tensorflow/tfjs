@@ -70,11 +70,5 @@
     "tslint-no-circular-imports": "~0.7.0",
     "typescript": "3.5.3"
   },
-  "license": "Apache-2.0",
-  "sideEffects": [
-    "./dist/register_all_kernels.js",
-    "./dist/flags_wasm.js",
-    "./dist/base.js",
-    "./dist/index.js"
-  ]
+  "license": "Apache-2.0"
 }
