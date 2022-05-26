@@ -2,6 +2,7 @@
   "compilerOptions": {
     "module": "ES2015",
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "noImplicitAny": true,
     "sourceMap": true,
     "inlineSources": true,
