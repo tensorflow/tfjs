@@ -16,12 +16,10 @@
 const {exec} = require('./test-util');
 
 function getFileSizeBytes(filename) {
-  const gzipFilename = `${filename}.gzip`;
-  exec(`gzip -c ${filename} > ${gzipFilename}`, {silent: true});
   const fileSizeBytes =
-      +(exec(`ls -l ${filename} | awk '{print $5}'`, {silent: true}));
+      +(exec(`cat ${filename} | wc -c`, {silent: true}));
   const gzipFileSizeBytes =
-      +(exec(`ls -l ${gzipFilename} | awk '{print $5}'`, {silent: true}));
+      +(exec(`gzip -c ${filename} | wc -c`, {silent: true}));
   return {fileSizeBytes, gzipFileSizeBytes};
 }
 
