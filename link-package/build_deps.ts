@@ -20,11 +20,7 @@ import {spawnSync, exec} from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as rimraf from 'rimraf';
-
-const PACKAGES: ReadonlySet<string> = new Set([
-  'tfjs-core', 'tfjs-backend-cpu', 'tfjs-backend-webgl', 'tfjs-backend-webgpu',
-  'tfjs-converter', 'tfjs-tflite', 'tfjs-layers', 'tfjs-data',
-]);
+import {BAZEL_PACKAGES} from '../scripts/bazel_packages';
 
 const parser = new argparse.ArgumentParser();
 
@@ -54,7 +50,7 @@ async function main() {
 
   let targets: string[];
   if (args.all) {
-    targets = [...PACKAGES].map(dirToTarget);
+    targets = [...BAZEL_PACKAGES].map(dirToTarget);
   } else {
     const allDeps = packageNames
       .map((name): Iterable<string> => getDeps(name))
@@ -88,7 +84,7 @@ async function main() {
   // Copy all built packages to node_modules. Note that this does not install
   // their dependencies, but that's okay since the node resolution algorithm
   // will find dependencies in the root node_modules folder of the repository.
-  for (const pkg of PACKAGES) {
+  for (const pkg of BAZEL_PACKAGES) {
     const pkgPath = path.normalize(
       `${__dirname}/../dist/bin/${pkg}/${pkg}_pkg`);
 
@@ -139,7 +135,7 @@ function getDepTarget(dep: string): string | undefined {
   const found = dep.match(/@tensorflow\/(.*)/);
   if (found) {
     const name = found[1];
-    if (PACKAGES.has(name)) {
+    if (BAZEL_PACKAGES.has(name)) {
       return dirToTarget(name);
     }
   }
