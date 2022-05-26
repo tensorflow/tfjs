@@ -20,7 +20,7 @@
     "build-npm": "yarn build",
     "clean": "bazel clean --expunge",
     "cpplint": "./scripts/cpplint.js",
-    "test": "bazel test -c dbg :tfjs-backend-wasm_test :tfjs-backend-wasm_node_test",
+    "test": "bazel test -c dbg :tfjs-backend-wasm_test :tfjs-backend-wasm_node_test //tfjs-backend-wasm/src/cc:cc_tests",
     "test-browser": "bazel test -c dbg :tfjs-backend-wasm_test",
     "test-node": "bazel test -c dbg :tfjs-backend-wasm_node_test",
     "debug-browser": "bazel run -c dbg :tfjs-backend-wasm_test",
