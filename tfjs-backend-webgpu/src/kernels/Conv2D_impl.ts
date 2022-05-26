@@ -18,7 +18,6 @@
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {Conv2DMMVec4Program} from '../conv2d_mm_vec4_webgpu';
 import {Conv2DMMProgram} from '../conv2d_mm_webgpu';
 
 import {batchMatMulImpl} from './BatchMatMul_impl';
@@ -181,7 +180,6 @@ export function conv2DImpl({
   const hasBias = bias != null;
   const hasPreluActivationWeights = preluActivationWeights != null;
   const isChannelsLast = convInfo.dataFormat === 'channelsLast';
-  let program: Conv2DMMProgram|Conv2DMMVec4Program;
   const sameSize = isChannelsLast &&
       convInfo.filterHeight === convInfo.inHeight &&
       convInfo.filterWidth === convInfo.inWidth &&
@@ -225,15 +223,9 @@ export function conv2DImpl({
     {type: 'int32', data: [dimInner]}
   ];
 
-  if (useVec4) {
-    program = new Conv2DMMVec4Program(
-        convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation,
-        hasPreluActivationWeights);
-  } else {
-    program = new Conv2DMMProgram(
-        convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation,
-        hasPreluActivationWeights);
-  }
+  const program = new Conv2DMMProgram(
+      convInfo, dimAOuter, dimBOuter, dimInner, hasBias, activation,
+      hasPreluActivationWeights, useVec4);
 
   const intermediates: TensorInfo[] = [];
   const inputVar: TensorInfo[] = [x, filter];
