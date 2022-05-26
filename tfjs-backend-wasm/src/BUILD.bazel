@@ -31,8 +31,8 @@ TEST_ENTRYPOINTS = [
 
 make_version_test_file(
     name = "version_test",
-    version_name = "version_wasm",
     package_json = "//tfjs-core:package.json",
+    version_name = "version_wasm",
 )
 
 filegroup(
@@ -91,10 +91,10 @@ ts_library(
     deps = [
         ":tfjs-backend-wasm_lib",
         ":tfjs-backend-wasm_src_lib",
+        "//tfjs-backend-wasm/wasm-out",
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
         "//tfjs-core/src:tfjs-core_test_lib",
-        "//tfjs-backend-wasm/wasm-out",
         "@npm//@types/jasmine",
         "@npm//jasmine",
     ],
