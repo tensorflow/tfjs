@@ -5,12 +5,13 @@ def _create_worker_module_impl(ctx):
     if (len(ctx.files.worker_file) != 1):
         fail("Expected a single file but got " + str(ctx.files.worker_file))
 
+    cjs = ["--cjs"] if ctx.attr.cjs else []
     run_node(
         ctx,
         executable = "create_worker_module_bin",
         inputs = ctx.files.worker_file,
         outputs = [output_file],
-        arguments = [
+        arguments = cjs + [
             ctx.files.worker_file[0].path,
             output_file.path,
         ],
@@ -34,6 +35,10 @@ create_worker_module = rule(
         "out_file": attr.string(
             mandatory = True,
             doc = "The name for the output file",
+        ),
+        "cjs": attr.bool(
+            default = False,
+            doc = "Whether to output commonjs",
         ),
     },
     doc = """Modify the Emscripten WASM worker script so it can be inlined
