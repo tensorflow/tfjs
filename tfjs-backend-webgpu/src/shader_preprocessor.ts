@@ -72,6 +72,7 @@ function mapToWgslTypes(type: DataType, isVec4: boolean): WGSLDataType|
 
 interface ProgramParams {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
+  dispatch: [number, number, number];
   workGroupSize: [number, number, number];
   variableNames: string[];
   variableTypes?: string[];
@@ -128,19 +129,19 @@ export function makeShader(
 
     // Only used when the y/z dimension of workgroup size is 1.
     fn getGlobalIndex() -> i32 {
-      if (numWorkgroups.y == 1u && numWorkgroups.z == 1u) {
-        return i32(globalId.x);
-      }
+      ${
+      program.dispatch[1] === 1 && program.dispatch[2] === 1 ?
+          `  return i32(globalId.x);` :
+          `  let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
+                 localId.y * workGroupSizeX + localId.x;
+             let workGroupID = (globalId - localId)/vec3<u32>(
+                 workGroupSizeX, workGroupSizeY, workGroupSizeZ);
 
-      let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
-          localId.y * workGroupSizeX + localId.x;
-      let workGroupID = (globalId - localId)/vec3<u32>(
-          workGroupSizeX, workGroupSizeY, workGroupSizeZ);
-
-      return i32((workGroupID.z * numWorkgroups.x * numWorkgroups.y +
-        workGroupID.y * numWorkgroups.x + workGroupID.x) *
-        (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
-        localInvocationIndex);
+             return i32((workGroupID.z * numWorkgroups.x * numWorkgroups.y +
+                 workGroupID.y * numWorkgroups.x + workGroupID.x) *
+                 (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
+                 localInvocationIndex);
+      `}
     }
   `);
 
