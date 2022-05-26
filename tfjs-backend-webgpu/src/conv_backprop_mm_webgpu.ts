@@ -102,6 +102,8 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
     }
 
     fn mm_write(row : i32, col : i32, valueInput : f32, globalId : vec3<u32>) {
+      if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)
+      {
       var batch = i32(globalId.z);
       var value = valueInput;
       let outCoord = vec4<i32>(
@@ -110,6 +112,7 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
           row % uniforms.outShape[2],
           col);
       result[getIndexFromCoords4D(outCoord, uniforms.outShape)] = value;
+      }
     }
 
     ${matMulSource}

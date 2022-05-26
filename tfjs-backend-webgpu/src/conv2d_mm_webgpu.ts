@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {mapActivationToShaderProgram} from './activation_util';
+import {conv2dCommonSnippet} from './conv2d_common';
 import {makeMatMulPackedSource} from './matmul_packed_webgpu';
 import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d} from './webgpu_util';
@@ -85,115 +85,15 @@ export class Conv2DMMProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
-    const coordASnippet = this.isChannelsLast ? `
-    let coord = vec4<i32>(batch, xRow, xCol, xCh);
-    ` :
-                                                `
-    let coord = vec4<i32>(batch, xCh, xRow, xCol);
-    `;
-
-    const coordResSnippet = this.isChannelsLast ? `
-    let outCoord = vec4<i32>(
-      batch,
-      row / outWidth,
-      row % outWidth,
-      col);
-    ` :
-                                                  `
-    let outCoord = vec4<i32>(
-      batch,
-      row,
-      col / outWidth,
-      col % outWidth);
-    `;
-
     const matMulSource = makeMatMulPackedSource(
         this.elementsPerThread, this.workGroupSize, !this.isChannelsLast,
         this.tileInner);
-
-    const row = this.isChannelsLast ? 'row' : 'col';
-    const col = this.isChannelsLast ? 'col' : 'row';
-    const readXSnippet = `
-    let inChannels = uniforms.wShape[2];
-    let outWidth = ${
-        this.isChannelsLast ? 'uniforms.outShape[2]' : 'uniforms.outShape[3]'};
-    let outRow = ${row} / outWidth;
-    let outCol = ${row} % outWidth;
-
-    let WRow = ${col} / (uniforms.filterDims[1] * inChannels);
-    let WCol = ${col} / inChannels % uniforms.filterDims[1];
-    let xRow = outRow * uniforms.stride[0] + uniforms.dilation[0] * WRow - uniforms.pad[0];
-    let xCol = outCol * uniforms.stride[1] + uniforms.dilation[1] * WCol - uniforms.pad[1];
-    let xCh = ${col} % inChannels;
-    ${coordASnippet}
-    // The bounds checking is always needed since we use it to pad zero for the
-    // 'same' padding type.
-    if(coordsInBounds4D(coord, uniforms.xShape)) {
-      return x[getIndexFromCoords4D(coord, uniforms.xShape)];
-    }
-    return 0.0;`;
-
-    const sampleX = this.isChannelsLast ?
-        (this.fitAOuter && this.fitInner ?
-             `${readXSnippet}` :
-             `if (row < uniforms.dimAOuter && col < uniforms.dimInner) {
-      ${readXSnippet}
-    }
-    return 0.0;`) :
-        (this.fitInner && this.fitBOuter ?
-             `${readXSnippet}` :
-             `if (row < uniforms.dimInner && col < uniforms.dimBOuter) {
-          ${readXSnippet}
-        }
-        return 0.0;`);
-
-    const sampleW = `return W[row * uniforms.wShape[3] + col];`;
-
-    let activationSnippet = '', applyActivationSnippet = '';
-    if (this.activation) {
-      const activationOp = mapActivationToShaderProgram(this.activation, false);
-      if (this.hasPreluActivationWeights) {
-        activationSnippet =
-            `fn activation(a: f32, outCoord : vec4<i32>) -> f32 {
-                  let b = getPreluActivationWeightsByOutputCoords(outCoord);
-                  ${activationOp}
-                }`;
-      } else {
-        activationSnippet = `
-                  fn activation(a : f32, outCoord : vec4<i32>) -> f32 {
-                    ${activationOp}
-                  }
-                `;
-      }
-
-      applyActivationSnippet = `value = activation(value, outCoord);`;
-    }
-
-    const addBiasSnippet =
-        this.addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
-
     const userCode = `
-    ${activationSnippet}
-    fn mm_readA(row : i32, col : i32, globalId : vec3<u32>) -> f32 {
-      var batch = i32(globalId.z);
-      ${this.isChannelsLast ? sampleX : sampleW}
-    }
-
-    fn mm_readB(row : i32, col : i32, globalId : vec3<u32>) -> f32 {
-      var batch = i32(globalId.z);
-      ${this.isChannelsLast ? sampleW : sampleX}
-    }
-
-    fn mm_write(row : i32, col : i32, valueInput : f32, globalId : vec3<u32>) {
-      var batch = i32(globalId.z);
-      var value = valueInput;
-      let outWidth = ${
-        this.isChannelsLast ? 'uniforms.outShape[2]' : 'uniforms.outShape[3]'};
-      ${coordResSnippet}
-      ${addBiasSnippet}
-      ${applyActivationSnippet}
-      result[getIndexFromCoords4D(outCoord, uniforms.outShape)] = value;
-    }
+    ${
+        conv2dCommonSnippet(
+            this.isChannelsLast, this.fitAOuter, this.fitBOuter, this.fitInner,
+            this.addBias, this.activation, this.hasPreluActivationWeights, 1, 1,
+            1)}
     ${matMulSource}
   `;
     return userCode;
