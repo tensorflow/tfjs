@@ -73,6 +73,24 @@ copy_to_dist(
     ],
 )
 
+get_extension(
+    name = "wasm_files",
+    srcs = [
+        "//tfjs-backend-wasm/wasm-out",
+    ],
+    include = [
+        ".wasm",
+    ],
+)
+
+copy_to_dist(
+    name = "copy_wasm_files",
+    srcs = [
+        ":wasm_files",
+    ],
+    root = "wasm-out",
+)
+
 copy_file(
     name = "copy_miniprogram",
     src = ":tf-backend-wasm.min.js",
@@ -95,6 +113,7 @@ pkg_npm(
     tags = ["ci"],
     deps = [
         ":copy_bundles",
+        ":copy_wasm_files",
         ":copy_miniprogram",
         ":copy_miniprogram_map",
         ":copy_src_to_dist",
