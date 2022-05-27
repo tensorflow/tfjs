@@ -140,6 +140,7 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
      });
 
   // TODO(mattsoulanille): Re-enable this test before merging wasm PR.
+  // tslint:disable-next-line: ban
   xit('backend init works when the path is valid and use platform fetch',
      async () => {
        const usePlatformFetch = true;
@@ -160,6 +161,7 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
      });
 
   // TODO(mattsoulanille): Re-enable this test before merging wasm PR.
+  // tslint:disable-next-line: ban
   xit('backend init works when the wasm paths overrides map is valid and ' +
          'using platform fetch',
      async () => {
@@ -187,6 +189,7 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
      });
 
   // TODO(mattsoulanille): Re-enable this test before merging wasm PR.
+  // tslint:disable-next-line: ban
   xit('backend init works when the path is valid and use platform fetch',
      async () => {
        const usePlatformFetch = true;
