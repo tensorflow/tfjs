@@ -131,7 +131,6 @@ tfjs_web_test(
         "//tfjs-backend-wasm/src:tfjs-backend-wasm_test_bundle",
         "//tfjs-backend-wasm/wasm-out",
     ],
-    tags = ["ci"],
 )
 
 nodejs_test(
