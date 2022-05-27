@@ -46,6 +46,12 @@ type Conv2DConfig = {
 //
 // This function computes the target shape for fusing height and width
 // dimensions. Returning null means the shape is already compatible.
+//
+// Even though the bias is not supposed to be a 3-D or a 4-D (including
+// batch) tensor and PReLU activiation weights is not supposed to be a 4-D
+// tensor, we still need to support them, because we haven't disabled
+// them for NHWC format.
+// https://github.com/tensorflow/tfjs/blob/b53bd47e880367ae57493f0ea628abaf08db2d5d/tfjs-core/src/ops/fused/conv2d.ts#L181-L196
 function getShapeForBatchMatMul(
     shape: number[], isChannelsLast: boolean): number[] {
   const length = shape.length;
@@ -263,7 +269,7 @@ export function conv2dWithIm2Row({
 
   const sharedDim = filterWidth * filterHeight * inChannels;
   const numCols = outHeight * outWidth;
-  const x2ColShape = [sharedDim, numCols];
+  const x2ColShape = [convInfo.batchSize, sharedDim, numCols];
   const transposeA = true;
   const transposeB = false;
 
@@ -290,31 +296,24 @@ export function conv2dWithIm2Row({
     }
   }
 
-  const xSqueezed =
-      reshape({inputs: {x}, backend, attrs: {shape: x.shape.slice(1)}});
   const w2Row = reshape({
     inputs: {x: filter},
     backend,
     attrs: {shape: [1, sharedDim, util.sizeFromShape(filter.shape) / sharedDim]}
   });
-
-  intermediates.push(xSqueezed);
   intermediates.push(w2Row);
 
   const im2ColProgram = new Im2ColPackedProgram(x2ColShape, convInfo);
   const customValues = [
-    xSqueezed.shape, [convInfo.padInfo.top, convInfo.padInfo.left],
+    x.shape, [convInfo.padInfo.top, convInfo.padInfo.left],
     [convInfo.strideHeight, convInfo.strideWidth],
     [convInfo.dilationHeight, convInfo.dilationWidth], [convInfo.inChannels],
     [convInfo.filterWidth * convInfo.inChannels], [convInfo.outWidth]
   ];
-  const im2Col = backend.runWebGLProgram(
-      im2ColProgram, [xSqueezed], 'float32', customValues);
-  const im2ColReshaped = reshape({
-    inputs: {x: im2Col},
-    backend,
-    attrs: {shape: [1, x2ColShape[0], x2ColShape[1]]}
-  });
+  const im2Col =
+      backend.runWebGLProgram(im2ColProgram, [x], 'float32', customValues);
+  const im2ColReshaped =
+      reshape({inputs: {x: im2Col}, backend, attrs: {shape: x2ColShape}});
 
   intermediates.push(im2Col);
   intermediates.push(im2ColReshaped);
@@ -329,8 +328,8 @@ export function conv2dWithIm2Row({
                        w2Row.shape as [number, number, number],
       isChannelsLast ? w2Row.shape as [number, number, number] :
                        im2ColReshaped.shape as [number, number, number],
-      isChannelsLast ? [1, numCols, convInfo.outChannels] :
-                       [1, convInfo.outChannels, numCols],
+      isChannelsLast ? [convInfo.batchSize, numCols, convInfo.outChannels] :
+                       [convInfo.batchSize, convInfo.outChannels, numCols],
       transposeA, transposeB, hasBias, fusedActivation,
       hasPreluActivationWeights, hasLeakyreluAlpha);
   const inputs: TensorInfo[] =
@@ -349,7 +348,6 @@ export function conv2dWithIm2Row({
     intermediates.push($leakyreluAlpha);
   }
   const product = backend.runWebGLProgram(matmulProgram, inputs, 'float32');
-
   const out = reshape(
       {inputs: {x: product}, backend, attrs: {shape: convInfo.outShape}});
 

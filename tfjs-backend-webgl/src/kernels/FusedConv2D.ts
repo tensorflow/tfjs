@@ -63,7 +63,7 @@ export function fusedConv2d(args: {
       preluActivationWeights,
       leakyreluAlpha
     });
-  } else if (env().getBool('WEBGL_CONV_IM2COL') && x.shape[0] === 1) {
+  } else if (env().getBool('WEBGL_CONV_IM2COL')) {
     out = conv2dWithIm2Row({
       x,
       filter,
