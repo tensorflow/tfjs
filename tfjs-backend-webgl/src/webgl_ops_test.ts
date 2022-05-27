@@ -887,31 +887,30 @@ describeWithFlags('gather debug', WEBGL_ENVS, () => {
 
 describeWithFlags('gatherNd', WEBGL_ENVS, () => {
   it('works for out of bounds indices', async () => {
-    const x = tf.tensor1d([1, 2, 3, 4], 'int32');
-    const ind = tf.tensor2d([-2, -1, 0, 1, 2, 3, 4, 5], [8, 1], 'int32');
+    const x = tf.tensor1d([1, 2], 'int32');
+    const ind = tf.tensor2d([-1, 0, 1, 2], [4, 1], 'int32');
     const g = tf.gatherND(x, ind);
-    expectArraysEqual(await g.data(), [0, 0, 1, 2, 3, 4, 0, 0]);
+    expectArraysEqual(await g.data(), [0, 1, 2, 0]);
   });
 
   it('works for out of bounds indices 2d', async () => {
-    const x = tf.tensor2d([...Array(9).keys()].map(e => e + 1), [3, 3], 'int32');
+    const x = tf.tensor2d([...Array(4).keys()].map(e => e + 1), [2, 2], 'int32');
     let indices = [];
-    for (let y = -1; y != 4; y+=1) {
-      for (let x = -1; x != 4; x+=1) {
+    for (let y = -1; y != 3; y+=1) {
+      for (let x = -1; x != 3; x+=1) {
         indices.push(y);
         indices.push(x);
       }
     }
-    const ind = tf.tensor2d(indices, [25, 2], 'int32');
+    const ind = tf.tensor2d(indices, [16, 2], 'int32');
     const g = tf.gatherND(x, ind);
     let g_expected = [
-      0, 0, 0, 0, 0,
-      0, 1, 2, 3, 0,
-      0, 4, 5, 6, 0,
-      0, 7, 8, 9, 0,
-      0, 0, 0, 0, 0
+      0, 0, 0, 0,
+      0, 1, 2, 0,
+      0, 3, 4, 0,
+      0, 0, 0, 0
     ];
-    expect(g.shape).toEqual([25]);
+    expect(g.shape).toEqual([16]);
     expectArraysEqual(await g.data(), g_expected);
   });
 
