@@ -38,20 +38,22 @@ export function fusedConv2d(args: {
     leakyreluAlpha
   } = attrs;
 
-  if (dataFormat !== 'NHWC') {
-    throw new Error(
-        `WebGPU backend FusedConv2D does not support dataFormat:'` +
-        `${dataFormat}'. Please use 'NHWC'.`);
-  }
-
   const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
   const convInfo = backend_util.computeConv2DInfo(
       x.shape as [number, number, number, number],
       filter.shape as [number, number, number, number], strides, dilations, pad,
       dimRoundingMode, false /* depthwise */, $dataFormat);
 
-  return conv2DImpl({x, filter, convInfo, backend, bias, preluActivationWeights,
-      leakyreluAlpha, activation});
+  return conv2DImpl({
+    x,
+    filter,
+    convInfo,
+    backend,
+    bias,
+    preluActivationWeights,
+    leakyreluAlpha,
+    activation
+  });
 }
 
 export const fusedConv2DConfig: KernelConfig = {
