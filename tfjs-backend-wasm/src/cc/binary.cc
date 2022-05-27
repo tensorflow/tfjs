@@ -79,6 +79,40 @@ void binary_impl(const I* a_buf, const size_t a_size, const I* b_buf,
   }
 }
 
+template <class I, class O>
+void binary_not(const I *a_buf, const size_t a_size, O *out_buf,
+                O operation(I), const size_t *a_shape_ptr,
+                const size_t a_rank) {
+  std::vector<size_t> a_shape(a_shape_ptr, a_shape_ptr + a_rank);
+  const std::vector<size_t> result_strides =
+      tfjs::util::compute_strides(a_shape);
+  const size_t result_size = tfjs::util::size_from_shape(a_shape);
+  const std::vector<size_t> a_strides = tfjs::util::compute_strides(a_shape);
+  const std::vector<size_t> a_broadcast_dims =
+      tfjs::util::get_broadcast_dims(a_shape, a_shape);
+
+  if (a_broadcast_dims.size() == 0) {
+    for (size_t i = 0; i < result_size; ++i) {
+      out_buf[i] = operation(a_buf[i % a_size]);
+    }
+  } else {
+    for (size_t i = 0; i < result_size; ++i) {
+      const std::vector<size_t> loc =
+          tfjs::util::offset_to_loc(i, result_strides);
+
+      std::vector<size_t> a_loc =
+          std::vector<size_t>(loc.end() - a_rank, loc.end());
+      for (size_t j = 0; j < a_broadcast_dims.size(); ++j) {
+        const size_t d = a_broadcast_dims[j];
+        a_loc[d] = 0;
+      }
+      const size_t a_idx = tfjs::util::loc_to_offset(a_loc, a_strides);
+
+      out_buf[i] = operation(a_buf[a_idx]);
+    }
+  }
+}
+
 void binary_f32(const int a_id, const size_t* a_shape_ptr,
                 const size_t a_shape_len, const int b_id,
                 const size_t* b_shape_ptr, const size_t b_shape_len,
@@ -150,6 +184,15 @@ void compare_bool(const int a_id, const size_t* a_shape_ptr,
   binary_impl<bool, bool>(a_info.b(), a_info.size, b_info.b(), b_info.size,
                           out_info.b_write(), operation, a_shape_ptr,
                           a_shape_len, b_shape_ptr, b_shape_len);
+}
+
+void compare_not(const int a_id, const size_t *a_shape_ptr,
+                 const size_t a_shape_len, const int out_id,
+                 bool operation(bool)) {
+  auto &a_info = backend::get_tensor_info(a_id);
+  auto &out_info = backend::get_tensor_info_out(out_id);
+  binary_not<bool, bool>(a_info.b(), a_info.size, out_info.b_write(), operation,
+                         a_shape_ptr, a_shape_len);
 }
 
 void logical(const int a_id, const size_t* a_shape_ptr,

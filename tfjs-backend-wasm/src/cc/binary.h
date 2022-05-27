@@ -30,6 +30,10 @@ void binary_impl(const I* a_buf, const size_t a_size, const I* b_buf,
                  const size_t* a_shape_ptr, const size_t a_rank,
                  const size_t* b_shape_ptr, const size_t b_rank);
 
+template <class I, class O>
+void binary_not(const I *a_buf, const size_t a_size, O *out_buf, O operation(I),
+                const size_t *a_shape_ptr, const size_t a_rank);
+
 void binary_f32(const int a_id, const size_t* a_shape_ptr,
                 const size_t a_shape_len, const int b_id,
                 const size_t* b_shape_ptr, const size_t b_shape_len,
@@ -59,6 +63,10 @@ void compare_bool(const int a_id, const size_t* a_shape_ptr,
                   const size_t a_shape_len, const int b_id,
                   const size_t* b_shape_ptr, const size_t b_shape_len,
                   const int out_id, bool operation(bool, bool));
+
+void compare_not(const int a_id, const size_t *a_shape_ptr,
+                 const size_t a_shape_len, const int out_id,
+                 bool operation(bool));
 
 void logical(const int a_id, const size_t* a_shape_ptr,
              const size_t a_shape_len, const int b_id,
