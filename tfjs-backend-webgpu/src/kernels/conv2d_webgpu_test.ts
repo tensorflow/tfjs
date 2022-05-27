@@ -99,6 +99,42 @@ describeWebGPU('conv2d vec4', () => {
         ]));
   });
 
+  it('x=[1,9,9,3] f=[3,3,3,4] s=[2,2] d=1 p=valid NCHW', async () => {
+    const inputDepth = 3;
+    const xSize = 9;
+    const inputShape: [number, number, number, number] =
+        [1, xSize, xSize, inputDepth];
+    const outputDepth = 4;
+    const fSize = 3;
+    const pad = 'valid';
+    const stride: [number, number] = [2, 2];
+
+    const inputData = [];
+    for (let i = 0; i < xSize * xSize * inputDepth; i++) {
+      inputData.push(i % 5);
+    }
+
+    const wData = [];
+    for (let i = 0; i < fSize * fSize * inputDepth * outputDepth; i++) {
+      wData.push(i % 5);
+    }
+
+    const x = tf.tensor4d(inputData, inputShape);
+    const w = tf.tensor4d(wData, [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad);
+    expect(result.shape).toEqual([1, 4, 4, 4]);
+    const resData = await result.data();
+    test_util.expectArraysClose(
+        resData, new Float32Array([
+          115, 97,  114, 91,  104, 108, 102, 106, 123, 99,  95,  126, 97,
+          90,  108, 111, 101, 116, 111, 116, 115, 97,  114, 91,  104, 108,
+          102, 106, 123, 99,  95,  126, 97,  90,  108, 111, 101, 116, 111,
+          116, 115, 97,  114, 91,  104, 108, 102, 106, 123, 99,  95,  126,
+          97,  90,  108, 111, 101, 116, 111, 116, 115, 97,  114, 91
+        ]));
+  });
+
   it('x=[1,5,5,6] f=[3,3,6,4] s=[2,2] d=1 p=same', async () => {
     const inputDepth = 6;
     const xSize = 5;
