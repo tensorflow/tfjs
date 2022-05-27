@@ -40,7 +40,7 @@ export class GatherNDProgram implements GPGPUProgram {
           for (int j = 0; j < ${this.sliceDim}; j++) {
             int index = round(getIndices(coords[0], j));
             out_of_bounds = out_of_bounds || index < 0;
-            out_of_bounds = out_of_bounds || index > ${paramsShapeString};
+            out_of_bounds = out_of_bounds || index >= ${paramsShapeString};
             flattenIndex += index * ${strideString};
           }
           setOutput(out_of_bounds ? 0.0 : getX(flattenIndex, coords[1]));
