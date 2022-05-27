@@ -16,7 +16,7 @@
 
 const {exec} = require('./test-util');
 const shell = require('shelljs');
-const {readdirSync, statSync} = require('fs');
+const {readFileSync} = require('fs');
 const {join} = require('path');
 
 
@@ -26,20 +26,15 @@ const filesAllowlistToTriggerBuild = [
   'scripts/generate_cloudbuild.js'
 ];
 
-const CLONE_PATH = 'clone';
+const CLONE_PATH = '/tmp/tfjs-diff-clone';
 let commitSha = process.env['COMMIT_SHA'];
 let branchName = process.env['BRANCH_NAME'];
 let baseBranch = process.env['BASE_BRANCH'];
 
 
-const allPackages = readdirSync('.').filter(f => {
-  if (f === 'node_modules' || f === '.git' || f === 'clone' ||
-      !statSync(f).isDirectory()) {
-    return false;
-  }
-  const directoryContents = readdirSync(join('.', f));
-  return directoryContents.includes('cloudbuild.yml');
-});
+const packageDependencies = JSON.parse(readFileSync(
+    join(__dirname, 'package_dependencies.json'), 'utf8'));
+const allPackages = Object.keys(packageDependencies);
 
 
 function findPackagesWithDiff() {
@@ -61,6 +56,7 @@ function findPackagesWithDiff() {
 
   console.log();  // Break up the console for readability.
 
+  const originalPath = process.cwd();
   shell.cd(CLONE_PATH);
 
   // If we cannot check out the commit then this PR is coming from a fork.
@@ -80,7 +76,7 @@ function findPackagesWithDiff() {
   } else {
     console.log(`PR is going to diff against branch ${baseBranch}.`);
   }
-  shell.cd('..');
+  shell.cd(originalPath);
   console.log();  // Break up the console for readability.
 
   let triggerAllBuilds = false;
@@ -120,7 +116,7 @@ function findPackagesWithDiff() {
 function diff(fileOrDirName) {
   const diffCmd = `diff -rq --exclude='settings.json' ` +
       `${CLONE_PATH}/${fileOrDirName} ` +
-      `${fileOrDirName}`;
+      `${join(__dirname, '../', fileOrDirName)}`;
   return exec(diffCmd, {silent: true}, true).stdout.trim();
 }
 

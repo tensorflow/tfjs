@@ -72,8 +72,10 @@ function mapToWgslTypes(type: DataType, isVec4: boolean): WGSLDataType|
 
 interface ProgramParams {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
+  dispatch: [number, number, number];
   workGroupSize: [number, number, number];
   variableNames: string[];
+  variableTypes?: string[];
   uniforms?: string;
   isVec4?: boolean;
   size?: boolean;
@@ -127,19 +129,19 @@ export function makeShader(
 
     // Only used when the y/z dimension of workgroup size is 1.
     fn getGlobalIndex() -> i32 {
-      if (numWorkgroups.y == 1u && numWorkgroups.z == 1u) {
-        return i32(globalId.x);
-      }
+      ${
+      program.dispatch[1] === 1 && program.dispatch[2] === 1 ?
+          `  return i32(globalId.x);` :
+          `  let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
+                 localId.y * workGroupSizeX + localId.x;
+             let workGroupID = (globalId - localId)/vec3<u32>(
+                 workGroupSizeX, workGroupSizeY, workGroupSizeZ);
 
-      let localInvocationIndex = localId.z * workGroupSizeX * workGroupSizeY +
-          localId.y * workGroupSizeX + localId.x;
-      let workGroupID = (globalId - localId)/vec3<u32>(
-          workGroupSizeX, workGroupSizeY, workGroupSizeZ);
-
-      return i32((workGroupID.z * numWorkgroups.x * numWorkgroups.y +
-        workGroupID.y * numWorkgroups.x + workGroupID.x) *
-        (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
-        localInvocationIndex);
+             return i32((workGroupID.z * numWorkgroups.x * numWorkgroups.y +
+                 workGroupID.y * numWorkgroups.x + workGroupID.x) *
+                 (workGroupSizeX * workGroupSizeY * workGroupSizeZ) +
+                 localInvocationIndex);
+      `}
     }
   `);
 
@@ -230,8 +232,10 @@ export function makeShader(
   program.variableNames.forEach((x, i) => {
     prefixSnippets.push(`
     @group(0) @binding(${1 + i}) var<storage, read> ${x}: array<${
-        mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
-    `);
+        program.variableTypes ?
+            program.variableTypes[i] :
+            mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
+      `);
   });
 
   if (uniformDeclaration !== '') {
@@ -256,13 +260,17 @@ export function makeShader(
   if (dispatchLayoutRank === outputData.shape.length) {
     // Input snippet is only meaningful when the output isn't getting
     // implicitly reshaped (like it does in conv2d_matmul).
-    const inputSnippet = inputInfo
-                             .map(
-                                 x => getInputSnippet(
-                                     x, outputData.shape, program.isVec4,
-                                     program.dispatchLayout.x.length ===
-                                         outputData.shape.length))
-                             .join('\n');
+    const inputSnippet =
+        inputInfo
+            .map(
+                (x, i) => getInputSnippet(
+                    x, outputData.shape,
+                    program.variableTypes ?
+                        (program.variableTypes[i] === 'vec4<f32>') :
+                        program.isVec4,
+                    program.dispatchLayout.x.length ===
+                        outputData.shape.length))
+            .join('\n');
     sources.push(inputSnippet);
   }
 

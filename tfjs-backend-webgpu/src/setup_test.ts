@@ -114,8 +114,6 @@ const TEST_FILTERS: TestFilter[] = [
                                                    // implemented
       'backProp',  // Conv2DBackpropFilter not yet
                    // implemented
-      'basic in NCHW',  // NCHW format is not yet supported
-      'im2row in NCHW',
     ]
   },
   {
