@@ -16,10 +16,8 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
-import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class BinaryOpSharedProgram implements WebGPUProgram {
