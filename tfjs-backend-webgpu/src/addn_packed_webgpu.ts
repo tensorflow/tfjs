@@ -15,10 +15,8 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
-import {WebGPUProgram} from './webgpu_program';
 
 export class AddNPackedProgram implements WebGPUProgram {
   outputShape: number[];
@@ -44,8 +42,7 @@ export class AddNPackedProgram implements WebGPUProgram {
     const snippets: string[] = [];
     // Get target elements from every input tensor.
     this.variableNames.forEach(variable => {
-      snippets.push(
-          `let v${variable} = get${variable}ByOutputCoords(coords);`);
+      snippets.push(`let v${variable} = get${variable}ByOutputCoords(coords);`);
     });
     // Calculate the sum of all elements.
     const operation = this.variableNames

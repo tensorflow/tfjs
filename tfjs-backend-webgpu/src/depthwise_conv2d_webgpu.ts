@@ -18,8 +18,7 @@
 import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {mapActivationToShaderProgram} from './activation_util';
-import {getMainHeaderString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class DepthwiseConv2DProgram implements WebGPUProgram {
