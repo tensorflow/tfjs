@@ -32,7 +32,7 @@ const writeDataToSubASnippet =
       } else {
         return `
         mm_Asub[inputRow][inputCol] = mm_readA(
-          globalRowStart + inputRow,
+          globalRow + innerRow,
           t * TileInner / ${innerAElementSize} + inputCol, globalId);
         `;
       }

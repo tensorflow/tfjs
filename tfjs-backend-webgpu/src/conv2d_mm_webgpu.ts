@@ -180,10 +180,7 @@ function conv2dCommonSnippet(
       fn mm_write(row : i32, colIn : i32, valueIn : ${
       resType}, globalId : vec3<u32>) {
         var col = colIn * ${innerElementSize};
-        ${
-      fitAOuter && fitBOuter ?
-          '' :
-          'if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)'}
+        if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)
         {
         var batch = i32(globalId.z);
         var value = valueIn;
@@ -241,8 +238,9 @@ export class Conv2DMMProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         this.elementsPerThread);
 
-    this.innerElementSize =
-        this.isVec4 && convInfo.inChannels % 3 === 0 ? 3 : 4;
+    this.innerElementSize = this.isVec4 ?
+        (convInfo.inChannels % 4 === 0 ? 4 : 3) :
+        this.elementsPerThread[0];
     if (this.isVec4) {
       this.variableTypes = this.innerElementSize === 3 ?
           ['f32', 'vec4<f32>'] :
@@ -268,7 +266,8 @@ export class Conv2DMMProgram implements WebGPUProgram {
 
     this.tileAOuter = this.workGroupSize[1] * this.elementsPerThread[1];
     this.tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
-    this.tileInner = this.workGroupSize[0] * this.innerElementSize;
+    this.tileInner = Math.max(
+        this.workGroupSize[0] * this.innerElementSize, this.workGroupSize[1]);
 
     this.fitAOuter = dimAOuter % this.tileAOuter === 0;
     this.fitBOuter = dimBOuter % this.tileBOuter === 0;
