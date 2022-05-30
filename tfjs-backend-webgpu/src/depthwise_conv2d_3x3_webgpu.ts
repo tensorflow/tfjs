@@ -16,10 +16,8 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-
 import {mapActivationToShaderProgram} from './activation_util';
-import {getWorkGroupSizeString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getWorkGroupSizeString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
 export class DepthwiseConv2D3x3Program implements WebGPUProgram {

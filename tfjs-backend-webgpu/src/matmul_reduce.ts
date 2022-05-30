@@ -16,10 +16,8 @@
  */
 
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
-
 import {mapActivationToShaderProgram} from './activation_util';
-import {getMainHeaderString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
 export function makeMatMulReduceSource(): string {

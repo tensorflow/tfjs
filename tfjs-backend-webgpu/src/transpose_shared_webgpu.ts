@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {getWorkGroupSizeString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getWorkGroupSizeString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
 export class TransposeSharedProgram implements WebGPUProgram {
