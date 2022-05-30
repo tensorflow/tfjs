@@ -765,6 +765,20 @@ export class WebGPUBackend extends KernelBackend {
     return this.layoutCache[inputEntrySize];
   }
 
+  private makeBindGroup(
+      device: GPUDevice, bindGroupLayout: GPUBindGroupLayout,
+      inputs: GPUBindingResource[], output: GPUBindingResource,
+      uniforms?: GPUBindingResource): GPUBindGroup {
+    const bindings = [output, ...inputs];
+    if (uniforms) {
+      bindings.push(uniforms);
+    }
+    return device.createBindGroup({
+      layout: bindGroupLayout,
+      entries: bindings.map((b, i) => ({binding: i, resource: b})),
+    });
+  }
+
   public runWebGPUProgram(
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
       outputDtype: DataType, programUniforms?: ProgramUniform,
@@ -843,7 +857,7 @@ export class WebGPUBackend extends KernelBackend {
     const shouldTimeProgram = this.activeTimers != null;
 
     // Creating bind groups on the fly should never be a bottleneck.
-    const bg = webgpu_program.makeBindGroup(
+    const bg = this.makeBindGroup(
         this.device, bindGroupLayout, inputs.map(t => this.tensorToBinding(t)),
         this.tensorToBinding(output), uniforms);
 
