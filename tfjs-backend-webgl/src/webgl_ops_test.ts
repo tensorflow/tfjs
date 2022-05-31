@@ -885,6 +885,13 @@ describeWithFlags('gather debug', WEBGL_ENVS, () => {
 });
 
 describeWithFlags('gatherNd', WEBGL_ENVS, () => {
+  it('throws for zero-rank input', async () => {
+    const x = tf.scalar(5, 'int32');
+    const ind = tf.tensor1d([5,2,1], 'int32');
+    expect(() => tf.gatherND(x, ind))
+        .toThrowError(/expects the input to be rank 1 or higher, but the rank was 0/);
+  });
+
   it('works for out of bounds indices', async () => {
     const x = tf.tensor1d([1, 2], 'int32');
     const ind = tf.tensor2d([-1, 0, 1, 2], [4, 1], 'int32');
