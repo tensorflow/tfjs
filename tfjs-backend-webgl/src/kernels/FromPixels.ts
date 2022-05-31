@@ -57,14 +57,16 @@ function fromPixels(args: {
 
   if (isImage || isVideo) {
     if (fromPixels2DContext == null) {
-      fromPixels2DContext = document.createElement('canvas').getContext('2d');
+      const willReadFrequently = env().getBool('CANVAS2D_WILL_READ_FREQUENTLY');
+      fromPixels2DContext = document.createElement('canvas').getContext(
+          '2d', {willReadFrequently});
     }
 
     fromPixels2DContext.canvas.width = width;
     fromPixels2DContext.canvas.height = height;
     fromPixels2DContext.drawImage(
-        pixels as HTMLVideoElement | HTMLImageElement | ImageBitmap,
-        0, 0, width, height);
+        pixels as HTMLVideoElement | HTMLImageElement | ImageBitmap, 0, 0,
+        width, height);
     pixels = fromPixels2DContext.canvas;
   }
 
