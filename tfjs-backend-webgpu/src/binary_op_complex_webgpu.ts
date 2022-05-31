@@ -16,11 +16,9 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
-
-import {WebGPUProgram} from './webgpu_program';
+import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class BinaryOpComplexProgram implements WebGPUProgram {
   variableNames = ['AReal', 'AImag', 'BReal', 'BImag'];
