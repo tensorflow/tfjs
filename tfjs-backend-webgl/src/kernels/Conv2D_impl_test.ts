@@ -25,7 +25,6 @@ import {WEBGL_ENVS} from '../backend_webgl_test_registry';
 
 import {conv2dWithIm2Row, TimeObj} from './Conv2D_impl';
 
-
 describeWithFlags('conv2dByMatMul', WEBGL_ENVS, () => {
   it('Benchmark x=[1,548, 548, 4] f=[9, 9, 4, 3]', async () => {
     const inputDepth = 4;
@@ -37,10 +36,9 @@ describeWithFlags('conv2dByMatMul', WEBGL_ENVS, () => {
     const dilation = 1;
     const pad = 'valid';
 
-    const x = tf.randomUniform(inShape, -100, 100) as tf.Tensor4D;
+    const x = tf.randomUniform(inShape, -100, 100);
     const w =
-        tf.randomUniform([fSize, fSize, inputDepth, outputDepth], -100, 100) as
-        tf.Tensor4D;
+        tf.randomUniform([fSize, fSize, inputDepth, outputDepth], -100, 100);
 
     const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
     const convInfo = backend_util.computeConv2DInfo(
@@ -59,10 +57,9 @@ describeWithFlags('conv2dByMatMul', WEBGL_ENVS, () => {
     let averagePercentOfMatMul = 0;
     const numRounds = 100;
     for (let round = 0; round < numRounds; round++) {
-      const x = tf.randomUniform(inShape, -100, 100) as tf.Tensor4D;
-      const w = tf.randomUniform(
-                    [fSize, fSize, inputDepth, outputDepth], -100, 100) as
-          tf.Tensor4D;
+      const x = tf.randomUniform(inShape, -100, 100);
+      const w =
+          tf.randomUniform([fSize, fSize, inputDepth, outputDepth], -100, 100);
       const time = {} as TimeObj;
       conv2dWithIm2Row({
         x,

@@ -33,7 +33,7 @@ export type TimeObj = {
   totalTime: number,
   img2colTime: number,
   matmulTime: number
-}
+};
 
 type Conv2DConfig = {
   x: TensorInfo,
@@ -272,7 +272,7 @@ export function conv2dWithIm2Row({
     outHeight,
     dataFormat
   } = convInfo;
-  let start = performance.now();
+  const start = performance.now();
 
   const isChannelsLast = dataFormat === 'channelsLast';
 
