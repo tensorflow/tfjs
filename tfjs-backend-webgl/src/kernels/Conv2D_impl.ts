@@ -29,6 +29,12 @@ import {batchMatMulImpl, MATMUL_SHARED_DIM_THRESHOLD} from './BatchMatMul_impl';
 import {identity} from './Identity';
 import {reshape} from './Reshape';
 
+export type TimeObj = {
+  totalTime: number,
+  img2colTime: number,
+  matmulTime: number
+}
+
 type Conv2DConfig = {
   x: TensorInfo,
   filter: TensorInfo,
@@ -37,7 +43,8 @@ type Conv2DConfig = {
   bias?: TensorInfo,
   preluActivationWeights?: TensorInfo,
   leakyreluAlpha?: number,
-  activation?: backend_util.Activation
+  activation?: backend_util.Activation,
+  time?: TimeObj
 };
 
 // Both conv2dByMatMul and conv2dWithIm2Row fuse height and width into one
@@ -248,7 +255,8 @@ export function conv2dWithIm2Row({
   bias = null,
   preluActivationWeights = null,
   leakyreluAlpha = 0,
-  activation = null
+  activation = null,
+  time = {} as TimeObj
 }: Conv2DConfig) {
   // Rearranges conv2d input so each block to be convolved over forms the
   // column of a new matrix with shape [filterWidth * filterHeight *
@@ -264,6 +272,7 @@ export function conv2dWithIm2Row({
     outHeight,
     dataFormat
   } = convInfo;
+  let start = performance.now();
 
   const isChannelsLast = dataFormat === 'channelsLast';
 
@@ -310,8 +319,11 @@ export function conv2dWithIm2Row({
     [convInfo.dilationHeight, convInfo.dilationWidth], [convInfo.inChannels],
     [convInfo.filterWidth * convInfo.inChannels], [convInfo.outWidth]
   ];
+
+  const img2colStart = performance.now();
   const im2Col =
       backend.runWebGLProgram(im2ColProgram, [x], 'float32', customValues);
+  const img2colEnd = performance.now();
   const im2ColReshaped =
       reshape({inputs: {x: im2Col}, backend, attrs: {shape: x2ColShape}});
 
@@ -347,7 +359,10 @@ export function conv2dWithIm2Row({
     inputs.push($leakyreluAlpha);
     intermediates.push($leakyreluAlpha);
   }
+  const matMulStart = performance.now();
   const product = backend.runWebGLProgram(matmulProgram, inputs, 'float32');
+  const matMulEnd = performance.now();
+
   const out = reshape(
       {inputs: {x: product}, backend, attrs: {shape: convInfo.outShape}});
 
@@ -356,5 +371,8 @@ export function conv2dWithIm2Row({
     backend.disposeIntermediateTensorInfo(i);
   }
 
+  time.totalTime = performance.now() - start;
+  time.img2colTime = img2colEnd - img2colStart;
+  time.matmulTime = matMulEnd - matMulStart;
   return out;
 }
