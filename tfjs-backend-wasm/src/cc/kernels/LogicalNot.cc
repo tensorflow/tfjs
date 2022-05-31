@@ -12,6 +12,7 @@
  * limitations under the License.
  * ===========================================================================*/
 
+#include "tfjs-backend-wasm/src/cc/unary.h"
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
@@ -21,7 +22,7 @@
 
 namespace {
 inline bool logical_not(bool a) { return !a; }
-} // namespace
+}  // namespace
 
 namespace tfjs {
 namespace wasm {
@@ -31,20 +32,19 @@ extern "C" {
 #ifdef __EMSCRIPTEN__
 EMSCRIPTEN_KEEPALIVE
 #endif
-void LogicalNot(const int a_id, const size_t *a_shape_ptr,
-                const int a_shape_len, const DType input_type,
-                const int out_id) {
+void LogicalNot(const size_t x_id, const DType input_type,
+                const size_t out_id) {
   switch (input_type) {
-  case DType::boolean:
-    compare_not(a_id, a_shape_ptr, a_shape_len, out_id, logical_not);
-    break;
-  default:
-    util::warn("LogicalNot for tensor ids %d failed. Unsupported input_type "
-               "%d",
-               a_id, input_type);
+    case DType::boolean:
+      unary_bool(x_id, out_id, logical_not);
+      break;
+    default:
+      util::warn("LogicalNot for tensor ids %d failed. Unsupported input_type "
+                 "%d",
+                 x_id, input_type);
   }
 }
 
-} // extern "C"
-} // namespace wasm
-} // namespace tfjs
+}  // extern "C"
+}  // namespace wasm
+}  // namespace tfjs

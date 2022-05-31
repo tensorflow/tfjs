@@ -14,9 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
+
 import {KernelConfig, LogicalNot} from '@tensorflow/tfjs-core';
 
-import {createBinaryNotConfig} from './binary_kernel';
-const supportsFullBroadcast = false;
+import {createUnaryKernelConfig} from './unary_kernel';
+
 export const logicalNotConfig: KernelConfig =
-    createBinaryNotConfig(LogicalNot, supportsFullBroadcast, 'bool');
+  createUnaryKernelConfig(LogicalNot);

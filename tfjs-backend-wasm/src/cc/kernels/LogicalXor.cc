@@ -21,7 +21,7 @@
 
 namespace {
 inline bool logical_xor(bool a, bool b) { return a != b; }
-} // namespace
+}  // namespace
 
 namespace tfjs {
 namespace wasm {
@@ -36,18 +36,18 @@ void LogicalXor(const int a_id, const size_t *a_shape_ptr,
                 const size_t *b_shape_ptr, const int b_shape_len,
                 const DType input_type, const int out_id) {
   switch (input_type) {
-  case DType::boolean:
-    compare_bool(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr, b_shape_len,
-                 out_id, logical_xor);
-    break;
-  default:
-    util::warn(
-        "LogicalXor for tensor ids %d and %d failed. Unsupported input_type "
-        "%d",
-        a_id, b_id, input_type);
+    case DType::boolean:
+      compare_bool(a_id, a_shape_ptr, a_shape_len, b_id, b_shape_ptr,
+                   b_shape_len, out_id, logical_xor);
+      break;
+    default:
+      util::warn(
+          "LogicalXor for tensor ids %d and %d failed. Unsupported input_type "
+          "%d",
+          a_id, b_id, input_type);
   }
 }
 
-} // extern "C"
-} // namespace wasm
-} // namespace tfjs
+}  // extern "C"
+}  // namespace wasm
+}  // namespace tfjs

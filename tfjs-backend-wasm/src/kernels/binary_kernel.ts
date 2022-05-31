@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, BinaryInputs, NamedTensorMap, DataType, KernelConfig, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, BinaryInputs, DataType, KernelConfig, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {BackendWasm} from '../backend_wasm';
 
@@ -70,48 +70,4 @@ export function createBinaryKernelConfig(
   }
 
   return {kernelName, backendName: 'wasm', setupFunc, kernelFunc};
-}
-
-export function createBinaryNotConfig(
-  kernelName: string, supportsFullBroadcast: boolean,
-  dtype?: DataType): KernelConfig {
-let wasmFunc:
-    (aId: number, aShape: Uint8Array, aShapeLen: number, dtype: number, outId: number) =>
-        void;
-
-function setupFunc(backend: BackendWasm): void {
-  wasmFunc = backend.wasm.cwrap(kernelName, null /* void */, [
-    'number',  // a_id,
-    'array',   // a_shape
-    'number',  // a_shape.length
-    'number',  // dtype
-    'number'   // out_id
-  ]);
-}
-
-function kernelFunc(args: {backend: BackendWasm, inputs: NamedTensorMap}):
-    TensorInfo {
-  const {backend, inputs} = args;
-  const {x: a} = inputs;
-  const aId = backend.dataIdMap.get(a.dataId).id;
-
-  const outputType = dtype != null ? dtype : a.dtype;
-  const newShape = backend_util.assertAndGetBroadcastShape(a.shape, a.shape);
-  const out = backend.makeOutput(newShape, outputType);
-
-  // Short-circuit zero-sized tensors.
-  if (util.sizeFromShape(newShape) === 0) {
-    return out;
-  }
-
-  const aShapeBytes = new Uint8Array(new Int32Array(a.shape).buffer);
-  const outId = backend.dataIdMap.get(out.dataId).id;
-  const kernelFunc = () => wasmFunc(
-      aId, aShapeBytes, a.shape.length, CppDType[a.dtype], outId);
-
-  kernelFunc();
-  return out;
-}
-
-return {kernelName, backendName: 'wasm', setupFunc, kernelFunc};
 }
