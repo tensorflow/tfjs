@@ -277,7 +277,7 @@ tfjs_cc_library(
         ":Any",
         ":ArgMax",
         ":AvgPool",
-        ":BatchMatMul",
+        ":BatchMatMulV2",
         ":Ceil",
         ":ClipByValue",
         ":Conv2D",
