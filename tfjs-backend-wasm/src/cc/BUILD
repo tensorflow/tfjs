@@ -448,7 +448,7 @@ tfjs_unit_test(
     srcs = ["kernels/BatchMatMul_test.cc"],
     tags = ["ci"],
     deps = [
-        ":BatchMatMul",
+        ":BatchMatMulV2",
     ],
 )
 
