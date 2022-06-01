@@ -423,7 +423,7 @@ tfjs_unit_test(
 )
 
 tfjs_cc_library(
-    name = "BatchMatMul",
+    name = "BatchMatMulV2",
     srcs = ["kernels/BatchMatMul.cc"],
     hdrs = ["kernels/BatchMatMul.h"],
     deps = [
