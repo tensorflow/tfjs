@@ -115,7 +115,7 @@ export interface AvgPool3DGradAttrs {
   dimRoundingMode?: 'floor'|'round'|'ceil';
 }
 
-export const BatchMatMul = 'BatchMatMulV2';
+export const BatchMatMul = 'BatchMatMul';
 export type BatchMatMulInputs = Pick<NamedTensorInfoMap, 'a'|'b'>;
 export interface BatchMatMulAttrs {
   transposeA: boolean;

@@ -277,7 +277,7 @@ tfjs_cc_library(
         ":Any",
         ":ArgMax",
         ":AvgPool",
-        ":BatchMatMulV2",
+        ":BatchMatMul",
         ":Ceil",
         ":ClipByValue",
         ":Conv2D",
@@ -423,7 +423,7 @@ tfjs_unit_test(
 )
 
 tfjs_cc_library(
-    name = "BatchMatMulV2",
+    name = "BatchMatMul",
     srcs = ["kernels/BatchMatMul.cc"],
     hdrs = ["kernels/BatchMatMul.h"],
     deps = [
@@ -448,7 +448,7 @@ tfjs_unit_test(
     srcs = ["kernels/BatchMatMul_test.cc"],
     tags = ["ci"],
     deps = [
-        ":BatchMatMulV2",
+        ":BatchMatMul",
     ],
 )
 

@@ -32,6 +32,6 @@ export const batchMatMulConfig: KernelConfig = {
       {name: 'adj_x', type: backend.binding.TF_ATTR_BOOL, value: transposeA},
       {name: 'adj_y', type: backend.binding.TF_ATTR_BOOL, value: transposeB}
     ];
-    return backend.executeSingleOutput(BatchMatMul, opAttrs, [a, b]);
+    return backend.executeSingleOutput('BatchMatMulV2', opAttrs, [a, b]);
   }
 };
