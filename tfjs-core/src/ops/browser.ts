@@ -157,9 +157,9 @@ function fromPixels_(
       } else {
         const willReadFrequently =
             env().getBool('CANVAS2D_WILL_READ_FREQUENTLY');
-        const options = willReadFrequently ? {willReadFrequently} : {};
-        fromPixels2DContext = document.createElement('canvas').getContext(
-                                  '2d', options) as CanvasRenderingContext2D;
+        fromPixels2DContext =
+            document.createElement('canvas').getContext(
+                '2d', {willReadFrequently}) as CanvasRenderingContext2D;
       }
     }
     fromPixels2DContext.canvas.width = width;
