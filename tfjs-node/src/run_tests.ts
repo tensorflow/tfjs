@@ -112,10 +112,6 @@ const IGNORE_LIST: string[] = [
   'rotate',
   // FIXME: unique NaN-handling is inconsistent between TFJS and TFPY
   'unique test-tensorflow {} 1d tensor with NaN and Infinity',
-  // libtensorflow does not yet support tf.matmul with broadcast
-  'broadcast with unequal batch dims',
-  'broadcast batch shape',
-  'broadcast with unequal ranks',
   // Node backend which uses TF 2.4.0 doesn't support explicit padding
   'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=1 d=1 p=explicit',
   // tslint:disable-next-line:max-line-length
