@@ -294,6 +294,9 @@ const TEST_FILTERS: TestFilter[] = [
   {startsWith: 'cumprod'},
   {startsWith: 'cumsum'},
   {startsWith: 'logicalAnd '},
+  {startsWith: 'logicalNot '},
+  {startsWith: 'logicalOr '},
+  {startsWith: 'logicalXor '},
   {
     startsWith: 'tile ',
     excludes: [
