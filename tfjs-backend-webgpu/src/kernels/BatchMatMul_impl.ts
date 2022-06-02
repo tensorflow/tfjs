@@ -90,8 +90,9 @@ export function batchMatMulImpl({
   const batchDim = Math.max(batchDimA, batchDimB);
   const batchAEqualOne = batchDimA === 1;
   const batchBEqualOne = batchDimB === 1;
-  const useVec4 = innerShapeA % 4 === 0 && outerShapeB % 4 === 0 &&
-      !transposeA && !transposeB;
+  const useVec4 = ((innerShapeA % 4 === 0 && !transposeA) ||
+                   (outerShapeA % 4 === 0 && transposeA)) &&
+      outerShapeB % 4 === 0 && !transposeB;
   let program: WebGPUProgram;
   if (outerShapeA * outerShapeB <= 32) {
     program = new MatMulReduceProgram(
@@ -120,9 +121,8 @@ export function batchMatMulImpl({
     // are divisible by 4 since we use vec4 to get data. In future, we can
     // remove this limitation by insert 0 to pack data.
     program = new MatMulPackedVec4Program(
-        a3dShape, [batchDim, outerShapeA, outerShapeB],
-        env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, batchAEqualOne,
-        batchBEqualOne, bias, activation, preluActivationWeights);
+        a3dShape, [batchDim, outerShapeA, outerShapeB], batchAEqualOne,
+        batchBEqualOne, transposeA, bias, activation, preluActivationWeights);
   } else {
     program = new MatMulPackedProgram(
         a3dShape, [batchDim, outerShapeA, outerShapeB],
