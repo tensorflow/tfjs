@@ -457,6 +457,9 @@ export type LogicalNotInputs = Pick<NamedTensorInfoMap, 'x'>;
 export const LogicalOr = 'LogicalOr';
 export type LogicalOrInputs = BinaryInputs;
 
+export const LogicalXor = 'LogicalXor';
+export type LogicalXorInputs = BinaryInputs;
+
 export const LogSoftmax = 'LogSoftmax';
 export type LogSoftmaxInputs = Pick<NamedTensorInfoMap, 'logits'>;
 export interface LogSoftmaxAttrs {
