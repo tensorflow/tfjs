@@ -94,13 +94,13 @@ export class ScatterOptimizedProgram implements WebGPUProgram {
         `atomicAdd(&(result[flatIndex]), i32(updateValue));` :
         `
      var oldValue = atomicLoad(&(result[flatIndex]));
-     var success = false;
-     for (; success == false;) {
-       let new = bitcast<f32>(oldValue) + updateValue;
-       let newI32 = bitcast<i32>(new);
-       let resValue = atomicCompareExchangeWeak(&(result[flatIndex]), oldValue, newI32);
-       oldValue = resValue.old_value;
-       success = resValue.exchanged;
+     var exchanged = false;
+     for (; !exchanged;) {
+       let newValueF32 = bitcast<f32>(oldValue) + updateValue;
+       let newValue = bitcast<i32>(newValueF32);
+       let res = atomicCompareExchangeWeak(&(result[flatIndex]), oldValue, newValue);
+       oldValue = res.old_value;
+       exchanged = res.exchanged;
      }
      `;
 
