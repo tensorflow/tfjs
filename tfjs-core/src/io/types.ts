@@ -387,12 +387,26 @@ export interface IOHandler {
   load?: LoadHandler;
 }
 
-type PromiseFunction = (...args: unknown[]) => Promise<unknown>;
-type Syncify<T extends PromiseFunction> = T extends (...args: infer Args)
-  => Promise<infer R> ? (...args: Args) => R : never;
+/**
+ * Type definition for handlers of synchronous loading operations.
+ */
+export type LoadHandlerSync = () => ModelArtifacts;
 
+/**
+ * Type definition for handlers of synchronous saving operations.
+ */
+export type SaveHandlerSync = (modelArtifact: ModelArtifacts) => SaveResult;
+
+/**
+ * Interface for a synchronous model import/export handler.
+ *
+ * The `save` and `load` handlers are both optional, in order to allow handlers
+ * that support only saving or loading.
+ */
+// tslint:disable-next-line:interface-name
 export type IOHandlerSync = {
-  [K in keyof IOHandler]: Syncify<IOHandler[K]>
+  save?: SaveHandlerSync;
+  load?: LoadHandlerSync;
 };
 
 /**
