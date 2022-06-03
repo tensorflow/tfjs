@@ -15,11 +15,11 @@
 
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_test", "pkg_npm")
+load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
 load("//tools:copy_to_dist.bzl", "copy_to_dist", "copy_ts_library_to_dist")
 load("//tools:get_extension.bzl", "get_extension")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
-load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
 
 package(default_visibility = ["//visibility:public"])
 

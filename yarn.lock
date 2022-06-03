@@ -359,6 +359,14 @@
   dependencies:
     "@types/node" "*"
 
+"@types/rollup-plugin-visualizer@^4.2.1":
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/@types/rollup-plugin-visualizer/-/rollup-plugin-visualizer-4.2.1.tgz#84b317bcb218b4e35dd9f529f2e379e373935a27"
+  integrity sha512-Fk4y0EgmsSbvbayYhtSI9+cGvgw1rcQ9RlbExkQt4ivXRdiEwFKuRpxNuJCr0JktXIvOPUuPR7GSmtyZu0dujQ==
+  dependencies:
+    "@types/node" "*"
+    rollup "^2.42.3"
+
 "@types/seedrandom@^2.4.28":
   version "2.4.30"
   resolved "https://registry.yarnpkg.com/@types/seedrandom/-/seedrandom-2.4.30.tgz#d2efe425869b84163c2d56e779dddadb9372cbfa"
@@ -2153,6 +2161,13 @@ rollup-plugin-visualizer@~3.3.2:
     pupa "^2.0.0"
     source-map "^0.7.3"
     yargs "^15.0.0"
+
+rollup@^2.42.3:
+  version "2.75.5"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.75.5.tgz#7985c1962483235dd07966f09fdad5c5f89f16d0"
+  integrity sha512-JzNlJZDison3o2mOxVmb44Oz7t74EfSd1SQrplQk0wSaXV7uLQXtVdHbxlcT3w+8tZ1TL4r/eLfc7nAbz38BBA==
+  optionalDependencies:
+    fsevents "~2.3.2"
 
 rollup@^2.46.0:
   version "2.56.2"
