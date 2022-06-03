@@ -19,6 +19,7 @@ load("//tools:copy_to_dist.bzl", "copy_to_dist", "copy_ts_library_to_dist")
 load("//tools:get_extension.bzl", "get_extension")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
+load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -46,6 +47,11 @@ tfjs_bundle(
         "//tfjs-backend-wasm/src:tfjs-backend-wasm_lib",
         "//tfjs-backend-wasm/src:tfjs-backend-wasm_src_lib",
     ],
+)
+
+rollup_bundle(
+    name = "tf-backend-wasm-miniprogram",
+    entry_point = "//tfjs-backend-wasm/src:index.ts",
 )
 
 copy_ts_library_to_dist(
