@@ -124,6 +124,7 @@ def tfjs_rollup_bundle(
         "@npm//rollup-plugin-terser",
         "@npm//rollup-plugin-visualizer",
         "@npm//typescript",
+        "@//tools:downlevel_to_es5_plugin",
     ]
 
     rollup_args = []

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
+load("@build_bazel_rules_nodejs//:index.bzl", "js_library", "nodejs_binary")
 load("//tools:defaults.bzl", "ts_library")
 
 package(default_visibility = ["//visibility:public"])
@@ -63,4 +63,16 @@ nodejs_binary(
         ":make_version_test_file_lib",
     ],
     entry_point = "make_version_test_file.ts",
+)
+
+ts_library(
+    name = "downlevel_to_es5_plugin",
+    package_name = "downlevel_to_es5_plugin",
+    srcs = [
+        "downlevel_to_es5_plugin.ts",
+    ],
+    deps = [
+        "@npm//@types/node",
+        "@npm//typescript",
+    ],
 )

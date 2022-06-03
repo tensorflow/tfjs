@@ -22,7 +22,7 @@ import {terser} from 'rollup-plugin-terser';
 import visualizer from 'rollup-plugin-visualizer';
 import * as ts from 'typescript';
 import path from 'path';
-
+import {downlevelToEs5Plugin} from 'downlevel_to_es5_plugin/downlevel_to_es5_plugin';
 
 const preamble = `/**
  * @license
@@ -40,32 +40,6 @@ const preamble = `/**
  * limitations under the License.
  * =============================================================================
  */`;
-
-
-// Transform that is enabled for es5 bundling. It transforms existing ES2015
-// prodmode output to ESM5 so that the resulting bundles are using ES5 format.
-// Inspired by Angular's ng_package ES5 transform:
-// https://github.com/angular/angular/blob/a92a89b0eb127a59d7e071502b5850e57618ec2d/packages/bazel/src/ng_package/rollup.config.js#L150-L170
-const downlevelToEs5Plugin = {
-  name: 'downlevel-to-es5',
-  transform: (code, filePath) => {
-    const compilerOptions = {
-      target: ts.ScriptTarget.ES5,
-      module: ts.ModuleKind.ES2015,
-      allowJs: true,
-      sourceMap: true,
-      downlevelIteration: true,
-      importHelpers: true,
-      mapRoot: path.dirname(filePath),
-    };
-    const {outputText, sourceMapText}
-          = ts.transpileModule(code, {compilerOptions});
-    return {
-      code: outputText,
-      map: JSON.parse(sourceMapText),
-    };
-  },
-};
 
 const useEs5 = TEMPLATE_es5 ? [downlevelToEs5Plugin] : [];
 
