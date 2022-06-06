@@ -13,6 +13,7 @@
 # limitations under the License.
 # =============================================================================
 load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
+load("@//tools:defaults.bzl", "ts_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -32,4 +33,17 @@ nodejs_binary(
         "@npm//argparse",
     ],
     entry_point = "patch-threaded-simd-module.js",
+)
+
+ts_library(
+    name = "patch_wechat_webassembly",
+    module_name = "patch_wechat_webassembly",
+    srcs = [
+        "patch_wechat_webassembly.ts",
+    ],
+    deps = [
+        "@npm//estree-walker",
+        "@npm//@types/estree",
+        "@npm//rollup",
+    ],
 )
