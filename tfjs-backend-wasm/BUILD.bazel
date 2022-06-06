@@ -20,7 +20,6 @@ load("//tools:copy_to_dist.bzl", "copy_to_dist", "copy_ts_library_to_dist")
 load("//tools:get_extension.bzl", "get_extension")
 load("//tools:tfjs_bundle.bzl", "tfjs_bundle")
 load("//tools:tfjs_web_test.bzl", "tfjs_web_test")
-load("//tools:defaults.bzl", "ts_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -59,15 +58,15 @@ tfjs_bundle(
 rollup_bundle(
     name = "tf-backend-wasm-miniprogram.min",
     args = ["--output.name=tf"],
+    config_file = "rollup_wechat.config.js",
+    entry_point = "//tfjs-backend-wasm/src:index.ts",
     format = "umd",
     sourcemap = "true",
-    entry_point = "//tfjs-backend-wasm/src:index.ts",
-    config_file = "rollup_wechat.config.js",
     deps = [
         "//tfjs-backend-wasm/scripts:patch_wechat_webassembly",
         "//tfjs-backend-wasm/src:tfjs-backend-wasm_lib",
         "//tools:make_rollup_config",
-    ]
+    ],
 )
 
 copy_ts_library_to_dist(
