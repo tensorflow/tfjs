@@ -67,7 +67,7 @@ nodejs_binary(
 
 ts_library(
     name = "downlevel_to_es5_plugin",
-    package_name = "downlevel_to_es5_plugin",
+    module_name = "downlevel_to_es5_plugin",
     srcs = [
         "downlevel_to_es5_plugin.ts",
     ],
@@ -79,7 +79,7 @@ ts_library(
 
 ts_library(
     name = "make_rollup_config",
-    package_name = "make_rollup_config",
+    module_name = "make_rollup_config",
     srcs = [
         "make_rollup_config.ts",
     ],
@@ -90,6 +90,8 @@ ts_library(
         "@npm//@types/rollup-plugin-visualizer",
         "@npm//rollup-plugin-sourcemaps",
         "@npm//rollup-plugin-visualizer",
+        "@npm//rollup-plugin-terser",
+        ":downlevel_to_es5_plugin",
         "@npm//typescript",
     ],
 )

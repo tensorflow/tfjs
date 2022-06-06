@@ -19,6 +19,9 @@ import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import sourcemaps from 'rollup-plugin-sourcemaps';
 import visualizer from 'rollup-plugin-visualizer';
+import {terser as terserPlugin} from 'rollup-plugin-terser';
+import {downlevelToEs5Plugin} from 'downlevel_to_es5_plugin/downlevel_to_es5_plugin';
+
 
 const preamble = `/**
  * @license
@@ -37,19 +40,45 @@ const preamble = `/**
  * =============================================================================
  */`;
 
+// Without `compress: {typeofs: false}`, the terser plugin will turn
+// `typeof _scriptDir == "undefined"` into `_scriptDir === void 0` in minified
+// JS file which will cause "_scriptDir is undefined" error in web worker's
+// inline script.
+//
+// For more context, see tfjs-backend-wasm/scripts/patch-threaded-simd-module.js
+
 export function makeRollupConfig({
-  globals = [],
+  globals = {},
   external = [],
   leave_as_require = [],
   plugins = [],
+  terser = false,
+  es5 = false,
   vis_filename,
 }: {
-  globals?: string[],
+  globals?: {[name: string]: string},
   external?: string[],
   leave_as_require?: string[],
   plugins?: unknown[],
-  vis_filename: string,
+  terser?: boolean,
+  es5?: boolean,
+  vis_filename?: string,
 }) {
+  const vis = vis_filename ? [visualizer({
+    sourcemap: true,
+    filename: vis_filename,
+    template: 'sunburst',
+  })] : [];
+
+  const useTerser = terser ? [
+    terserPlugin({
+      output: {preamble, comments: false},
+      compress: {typeofs: false},
+    })
+  ] : [];
+
+  const useEs5 = es5 ? [downlevelToEs5Plugin] : [];
+
   return {
     output: {
       banner: preamble,
@@ -65,11 +94,9 @@ export function makeRollupConfig({
       }),
       sourcemaps(),
       ...plugins,
-      visualizer({
-        sourcemap: true,
-        filename: vis_filename,
-        template: 'sunburst',
-      }),
+      ...useEs5,
+      ...useTerser,
+      ...vis,
     ],
     onwarn: function (warning: {code: string, message: string}) {
       if (warning.code === 'THIS_IS_UNDEFINED') {
