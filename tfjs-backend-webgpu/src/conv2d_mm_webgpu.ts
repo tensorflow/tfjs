@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util} from '@tensorflow/tfjs-core';
+import {backend_util, util} from '@tensorflow/tfjs-core';
 
 import {mapActivationToShaderProgram} from './activation_util';
 import {makeMatMulPackedVec4Source} from './matmul_packed_vec4_webgpu';
@@ -168,21 +168,21 @@ function conv2dCommonSnippet(
   const userCode = `
       ${activationSnippet}
       fn mm_readA(row : i32, colIn : i32, globalId : vec3<u32>) -> ${aType} {
-        var batch = i32(globalId.z);
+        let batch = i32(globalId.z);
         ${isChannelsLast ? sampleX : sampleW}
       }
 
       fn mm_readB(row : i32, colIn : i32, globalId : vec3<u32>) -> ${bType} {
-        var batch = i32(globalId.z);
+        let batch = i32(globalId.z);
         ${isChannelsLast ? sampleW : sampleX}
       }
 
       fn mm_write(row : i32, colIn : i32, valueIn : ${
       resType}, globalId : vec3<u32>) {
-        var col = colIn * ${innerElementSize};
+        let col = colIn * ${innerElementSize};
         if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)
         {
-        var batch = i32(globalId.z);
+        let batch = i32(globalId.z);
         var value = valueIn;
         let outWidth = ${
       isChannelsLast ? 'uniforms.outShape[2]' : 'uniforms.outShape[3]'};
@@ -223,10 +223,15 @@ export class Conv2DMMProgram implements WebGPUProgram {
       convInfo: backend_util.Conv2DInfo, dimAOuter: number, dimBOuter: number,
       dimInner: number, addBias = false,
       activation: backend_util.Activation = null,
-      hasPreluActivationWeights = false, isVec4 = false) {
+      hasPreluActivationWeights = false) {
     this.outputShape = convInfo.outShape;
     this.isChannelsLast = convInfo.dataFormat === 'channelsLast';
-    this.isVec4 = isVec4;
+    const {newShape} = util.squeezeShape(convInfo.inShape);
+    const lastDim = newShape[newShape.length - 1];
+    this.isVec4 =
+        (((lastDim % 4 === 0 || lastDim % 3 === 0) && this.isChannelsLast) ||
+         (convInfo.outWidth % 4 === 0 && !this.isChannelsLast)) &&
+        convInfo.outChannels % 4 === 0;
     this.dispatchLayout = this.isChannelsLast ? {x: [3], y: [1, 2], z: [0]} :
                                                 {x: [2, 3], y: [1], z: [0]};
     this.workGroupSize = computeWorkGroupSizeForConv2d(
@@ -238,9 +243,8 @@ export class Conv2DMMProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         this.elementsPerThread);
 
-    this.innerElementSize = this.isVec4 ?
-        (convInfo.inChannels % 4 === 0 ? 4 : 3) :
-        this.elementsPerThread[0];
+    this.innerElementSize =
+        this.isVec4 ? (lastDim % 4 === 0 ? 4 : 3) : this.elementsPerThread[0];
     if (this.isVec4) {
       this.variableTypes = this.innerElementSize === 3 ?
           ['f32', 'vec4<f32>'] :
