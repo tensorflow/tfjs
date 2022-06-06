@@ -114,7 +114,7 @@ module.exports = function(config) {
       win_10_chrome: {
         base: 'BrowserStack',
         browser: 'chrome',
-        browser_version: 'latest',
+        browser_version: '101.0',
         os: 'Windows',
         os_version: '10'
       }
