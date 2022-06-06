@@ -35,7 +35,6 @@ tfjs_bundle(
         "path",
         "worker_threads",
         "perf_hooks",
-        "os",
     ],
     # When updating globals, also update rollup_wechat.config.ts
     globals = {
@@ -45,6 +44,11 @@ tfjs_bundle(
         "perf_hooks": "perf_hooks",
         "worker_threads": "worker_threads",
     },
+    leave_as_require = [
+        "crypto",
+        "node-fetch",
+        "util",
+    ],
     umd_name = "tf.wasm",
     deps = [
         "//tfjs-backend-wasm/src:tfjs-backend-wasm_lib",
@@ -53,7 +57,10 @@ tfjs_bundle(
 )
 
 rollup_bundle(
-    name = "tf-backend-wasm-miniprogram",
+    name = "tf-backend-wasm-miniprogram.min",
+    args = ["--output.name=tf"],
+    format = "umd",
+    sourcemap = "true",
     entry_point = "//tfjs-backend-wasm/src:index.ts",
     config_file = "rollup_wechat.config.js",
     deps = [
@@ -105,13 +112,13 @@ copy_to_dist(
 
 copy_file(
     name = "copy_miniprogram",
-    src = ":tf-backend-wasm.min.js",
+    src = ":tf-backend-wasm-miniprogram.min.js",
     out = "dist/miniprogram/index.js",
 )
 
 copy_file(
     name = "copy_miniprogram_map",
-    src = ":tf-backend-wasm.min.js.map",
+    src = ":tf-backend-wasm-miniprogram.min.js.map",
     out = "dist/miniprogram/index.js.map",
 )
 
