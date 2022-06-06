@@ -92,8 +92,6 @@ ts_library(
         "@npm//rollup-plugin-sourcemaps",
         "@npm//rollup-plugin-terser",
         "@npm//rollup-plugin-visualizer",
-        "@npm//rollup-plugin-terser",
-        ":downlevel_to_es5_plugin",
         "@npm//typescript",
     ],
 )
