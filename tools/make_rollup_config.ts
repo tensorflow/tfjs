@@ -45,13 +45,6 @@ const preamble = `/**
  * =============================================================================
  */`;
 
-// Without `compress: {typeofs: false}`, the terser plugin will turn
-// `typeof _scriptDir == "undefined"` into `_scriptDir === void 0` in minified
-// JS file which will cause "_scriptDir is undefined" error in web worker's
-// inline script.
-//
-// For more context, see tfjs-backend-wasm/scripts/patch-threaded-simd-module.js
-
 export function makeRollupConfig({
   globals = {},
   external = [],
@@ -75,6 +68,12 @@ export function makeRollupConfig({
     template: 'sunburst',
   })] : [];
 
+  // Without `compress: {typeofs: false}`, the terser plugin will turn
+  // `typeof _scriptDir == "undefined"` into `_scriptDir === void 0` in minified
+  // JS file which will cause "_scriptDir is undefined" error in web worker's
+  // inline script.
+  //
+  // For more context, see tfjs-backend-wasm/scripts/patch-threaded-simd-module.js
   const useTerser = terser ? [
     terserPlugin({
       output: {preamble, comments: false},
