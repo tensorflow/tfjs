@@ -243,10 +243,14 @@ export class Conv2DMMProgram implements WebGPUProgram {
         this.elementsPerThread);
 
     if (this.isVec4) {
-      this.innerElementSize = convInfo.inChannels % 4 === 0 ? 4 : 3;
-      this.variableTypes = this.innerElementSize === 3 ?
-          ['f32', 'vec4<f32>'] :
-          ['vec4<f32>', 'vec4<f32>'];
+      if (this.isChannelsLast && convInfo.inChannels % 4 !== 0) {
+        this.innerElementSize = 3;
+        this.variableTypes = ['f32', 'vec4<f32>'];
+      } else {
+        this.innerElementSize = 4;
+        this.variableTypes = ['vec4<f32>', 'vec4<f32>'];
+      }
+
       if (addBias) {
         this.variableNames.push('bias');
         this.variableTypes.push('vec4<f32>');
