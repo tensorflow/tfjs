@@ -59,13 +59,6 @@ create_worker_module(
     worker_file = ":wasm_threaded_worker",
 )
 
-# create_worker_module(
-#     name = "create_worker_module_cjs",
-#     out_file = "tfjs-backend-wasm-threaded-simd.worker.cjs",
-#     worker_file = ":wasm_threaded_worker",
-#     cjs = True,
-# )
-
 get_extension(
     name = "wasm_threaded_unpatched",
     srcs = ["//tfjs-backend-wasm/src/cc:tfjs-backend-wasm-threaded-simd"],
@@ -99,7 +92,6 @@ get_extension(
         ":copy_wasm_simd",
         ":copy_wasm_threaded",
         ":create_worker_module",
-        #":create_worker_module_cjs",
         ":patch_threaded_simd_module",
     ],
     include = [

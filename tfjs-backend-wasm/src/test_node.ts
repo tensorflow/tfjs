@@ -37,7 +37,6 @@ setTestEnvs([{name: 'wasm-node', backendName: 'wasm', isDataSync: true}]);
 
 const runner = new jasmine({});
 runner.loadConfig({
-  //spec_files: ['tfjs-backend-wasm/src/**/*_test.js'],
   spec_files: ['tfjs-backend-wasm/src/setup_test.js'],
   random: false,
 });

@@ -24,7 +24,6 @@ const path = require('path');
 // Get the bundle sizes from this change.
 exec(`yarn build-npm`, {silent: false});
 
-//const bundleFilename = 'dist/tf-backend-wasm.min.js';
 const basePath = '../dist/bin/tfjs-backend-wasm/tfjs-backend-wasm_pkg/dist/';
 const bundleFilename = path.join(basePath, 'tf-backend-wasm.min.js');
 const minBundleSize = getFileSizeBytes(bundleFilename);
