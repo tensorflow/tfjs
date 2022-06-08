@@ -22,7 +22,7 @@ import * as tf from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-// tslint:disable-next-line: no-imports-from-dist
+// tslint:disable-next-line: no-require-imports
 const jasmine = require('jasmine');
 
 tf.setBackend('wasm');
