@@ -152,6 +152,15 @@ tfjs_web_test(
         "//tfjs-backend-wasm/src:tfjs-backend-wasm_test_bundle",
         "//tfjs-backend-wasm/wasm-out",
     ],
+    browsers = [
+        "bs_chrome_mac",
+        "bs_firefox_mac",
+        "bs_safari_mac",
+        "bs_ios_11",
+        # TODO(mattsoulanille): Fix clipByValue on Android.
+        # "bs_android_9",
+        "win_10_chrome",
+    ],
 )
 
 nodejs_test(
