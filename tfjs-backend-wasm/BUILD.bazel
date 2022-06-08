@@ -148,10 +148,6 @@ tfjs_web_test(
     srcs = [
         "//tfjs-backend-wasm/src:tfjs-backend-wasm_test_bundle",
     ],
-    static_files = [
-        "//tfjs-backend-wasm/src:tfjs-backend-wasm_test_bundle",
-        "//tfjs-backend-wasm/wasm-out",
-    ],
     browsers = [
         "bs_chrome_mac",
         "bs_firefox_mac",
@@ -160,6 +156,10 @@ tfjs_web_test(
         # TODO(mattsoulanille): Fix clipByValue on Android.
         # "bs_android_9",
         "win_10_chrome",
+    ],
+    static_files = [
+        "//tfjs-backend-wasm/src:tfjs-backend-wasm_test_bundle",
+        "//tfjs-backend-wasm/wasm-out",
     ],
 )
 
