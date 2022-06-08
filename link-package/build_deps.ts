@@ -91,8 +91,8 @@ async function main() {
       bazelArgs.push(...targets);
       spawnSync('yarn', bazelArgs, {stdio:'inherit'});
     }
-
   }
+
   const tfjsDir = `${__dirname}/node_modules/@tensorflow`;
   rimraf.sync(tfjsDir);
   fs.mkdirSync(tfjsDir, {recursive: true});
