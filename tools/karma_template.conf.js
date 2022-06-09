@@ -120,6 +120,12 @@ module.exports = function(config) {
   }
 
   config.set({
+    reporters: ['kjhtml'],
+    frameworks: ['jasmine'],
+    plugins: [
+      require('karma-jasmine'),
+      require('karma-jasmine-html-reporter'),
+    ],
     captureTimeout: 3e5,
     reportSlowerThan: 500,
     browserNoActivityTimeout: 3e5,
