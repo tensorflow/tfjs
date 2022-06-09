@@ -31,16 +31,14 @@ import {SMOKE} from './constants';
  *  Tests that tf.grad works for layers models.
  *  Regression test for https://github.com/tensorflow/tfjs/issues/4130
  */
-describe(`${SMOKE} tf.grad for layers models`, () => {
+fdescribe(`${SMOKE} tf.grad for layers models`, () => {
   describeWithFlags(`layers_model`, ALL_ENVS, () => {
     let model: tfl.Sequential;
 
-    beforeAll(async () => {
+    it(`can compute grad of prediction`, async () => {
       model = tfl.sequential();
       model.add(tfl.layers.dense({inputShape: [1], units: 1}));
-    });
 
-    it(`can compute grad of prediction`, async () => {
       const forward = (x: tfc.Tensor) => model.predict(x) as tfc.Tensor;
       const grad = tfc.grad(forward);
 
