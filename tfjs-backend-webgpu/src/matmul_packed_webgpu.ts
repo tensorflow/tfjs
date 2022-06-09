@@ -16,10 +16,8 @@
  */
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
-
 import {mapActivationToShaderProgram} from './activation_util';
-import {getMainHeaderString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkGroupSizeForMatMul} from './webgpu_util';
 
 const writeDataToSubASnippet = (transpose: boolean) => {
@@ -149,13 +147,9 @@ export function makeMatMulPackedSource(
 
       for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
         for (var innerCol = 0; innerCol < ColPerThread; innerCol = innerCol + 1) {
-
-          if ((globalCol + innerCol) < uniforms.dimBOuter &&
-              (globalRow + innerRow) < uniforms.dimAOuter) {
-            mm_write(globalRow + innerRow,
-                     globalCol + innerCol,
-                     acc[innerRow][innerCol], globalId);
-          }
+          mm_write(globalRow + innerRow,
+                   globalCol + innerCol,
+                   acc[innerRow][innerCol], globalId);
         }
       }
     }
@@ -218,9 +212,7 @@ export function makeMatMulVectorSource(
         workgroupBarrier();
       }
 
-      if (globalRow < uniforms.dimAOuter && globalCol < uniforms.dimBOuter) {
-        mm_write(globalRow, globalCol, acc, globalId);
-      }
+      mm_write(globalRow, globalCol, acc, globalId);
     }
   `;
 }
@@ -385,12 +377,18 @@ export class MatMulPackedProgram implements WebGPUProgram {
       }
 
       fn mm_write(row : i32, col : i32, valueIn : f32, globalId : vec3<u32>) {
+        ${
+        this.fitAOuter && this.fitBOuter ?
+            '' :
+            'if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)'}
+        {
         var value = valueIn;
         let batch = i32(globalId.z);
         let outCoord = vec3<i32>(batch, row, col);
         ${addBiasSnippet}
         ${applyActivationSnippet}
         setOutputAtCoords(batch, row, col, value);
+        }
       }
       ${
         this.outputShape[1] > 1 ?

@@ -394,7 +394,8 @@
       {
         "tfName": "leakyrelu_alpha",
         "name": "leakyreluAlpha",
-        "type": "number"
+        "type": "number",
+        "defaultValue": 0.2
       }
     ]
   },

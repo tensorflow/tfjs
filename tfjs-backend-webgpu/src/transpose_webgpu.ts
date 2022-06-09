@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getCoordsXYZ, getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getCoordsXYZ, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class TransposeProgram implements WebGPUProgram {

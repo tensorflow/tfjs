@@ -23,7 +23,7 @@ def ts_library(**kwargs):
     # have "incremental = true" because ts_library does not support incremental
     # builds at the level of the typescript compiler (it supports incrementally
     # rebuilding at the level of Bazel build targets).
-    tsconfig = kwargs.pop("tsconfig", "@//:tsconfig_ts_library.json")
+    tsconfig = kwargs.pop("tsconfig", "@//:tsconfig_ts_library")
 
     # Use es2017 for esModule (prodmode) outputs by default. This is transpiled
     # down to es5 in tfjs_bundle.bzl. Use es5 for commonjs (devmode) outputs by

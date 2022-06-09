@@ -59,6 +59,7 @@ steps:
     id: yarn-link-package-build
     args:
       - build
+      - '--bazel_options=--config=ci'
     waitFor:
       - yarn-link-package
   - name: gcr.io/learnjs-174218/release

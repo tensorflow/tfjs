@@ -777,6 +777,36 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "LogicalNot",
+    srcs = ["kernels/LogicalNot.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LogicalOr",
+    srcs = ["kernels/LogicalOr.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LogicalXor",
+    srcs = ["kernels/LogicalXor.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "Log",
     srcs = ["kernels/Log.cc"],
     deps = [
