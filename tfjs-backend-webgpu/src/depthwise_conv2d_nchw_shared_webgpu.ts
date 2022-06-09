@@ -103,13 +103,12 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
       var<workgroup> mm_Bsub : array<array<f32, ${this.filterWidth}>, ${
         this.filterHeight}>;
       fn readX(batch : i32, channel : i32, row : i32, col : i32) -> f32 {
-        if (row < 0 || row >= uniforms.inDims[0]) {
-          return 0.0;
+        var value = 0.0;
+        if (row >=0 && row < uniforms.inDims[0] && col >=0 && col < uniforms.inDims[1])
+        {
+          value = getX(batch, channel, row, col);
         }
-        if (col < 0 || col >= uniforms.inDims[1]) {
-          return 0.0;
-        }
-        return getX(batch, channel, row, col);
+        return value;
       }
 
       fn writeResult(batch : i32, channel : i32, row : i32, col : i32,
