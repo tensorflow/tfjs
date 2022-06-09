@@ -131,6 +131,7 @@ import {padV2Config} from './kernels/PadV2';
 import {powConfig} from './kernels/Pow';
 import {preluConfig} from './kernels/Prelu';
 import {prodConfig} from './kernels/Prod';
+import {raggedTensorToTensorConfig} from './kernels/RaggedTensorToTensor';
 import {rangeConfig} from './kernels/Range';
 import {realConfig} from './kernels/Real';
 import {realDivConfig} from './kernels/RealDiv';
@@ -299,6 +300,7 @@ const kernelConfigs: KernelConfig[] = [
   powConfig,
   preluConfig,
   prodConfig,
+  raggedTensorToTensorConfig,
   rangeConfig,
   realConfig,
   realDivConfig,

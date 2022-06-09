@@ -24,6 +24,7 @@ export * from '../ops/concat_util';
 export * from '../ops/conv_util';
 export * from '../ops/fused_util';
 export * from '../ops/fused_types';
+export * from '../ops/ragged_to_dense_util';
 export * from '../ops/reduce_util';
 
 import * as slice_util from '../ops/slice_util';

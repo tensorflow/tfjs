@@ -658,6 +658,14 @@ export interface ProdAttrs {
   keepDims: boolean;
 }
 
+export const RaggedTensorToTensor = 'RaggedTensorToTensor';
+export type RaggedTensorToTensorInputs =
+    Pick<NamedTensorInfoMap, 'shape'|'values'|'defaultValue'>&
+    {rowPartitionTensors: TensorInfo[]};
+export interface RaggedTensorToTensorAttrs {
+  rowPartitionTypes: string[];
+}
+
 export const Range = 'Range';
 export interface RangeAttrs {
   start: number;
