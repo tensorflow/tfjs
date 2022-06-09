@@ -86,8 +86,11 @@ module.exports = function(config) {
   let browser = 'TEMPLATE_browser';
   let extraConfig = {};
   const browserLauncher = CUSTOM_LAUNCHERS[browser];
-  if (browser && !browserLauncher) {
-    throw new Error(`Missing launcher for ${browser}`);
+  if (browser) {
+    if (!browserLauncher) {
+      throw new Error(`Missing launcher for ${browser}`);
+    }
+    extraConfig.browsers = [browser];
   }
   if (browserLauncher?.base === 'BrowserStack') {
     const username = process.env.BROWSERSTACK_USERNAME;
@@ -114,7 +117,6 @@ module.exports = function(config) {
       tunnelIdentifier:
       `tfjs_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     };
-    extraConfig.browsers = [browser];
   }
 
   config.set({

@@ -35,6 +35,12 @@ parser.add_argument('--all', {
   help: 'Build all packages',
 });
 
+parser.add_argument('--bazel_options', {
+  type: String,
+  default: '',
+  help: 'Options to pass to Bazel',
+});
+
 /**
  * Build bazel dependencies for the packages specified by the repeated argument
  * tfjs_package.
@@ -60,7 +66,8 @@ async function main() {
 
   if (targets.length > 0) {
     if (process.platform === 'win32') {
-      const child = exec(`yarn bazel build --color=yes ${targets.join(' ')}`);
+      const child = exec('yarn bazel build --color=yes '
+        + `${args.bazel_options} ${targets.join(' ')}`);
       await new Promise((resolve, reject) => {
         child.stdout.pipe(process.stdout);
         child.stderr.pipe(process.stderr);
@@ -73,10 +80,15 @@ async function main() {
       });
     } else {
       // Use spawnSync intead of exec for prettier printing.
-      spawnSync('yarn', ['bazel', 'build', ...targets], {stdio:'inherit'});
+      const bazelArgs = ['bazel', 'build'];
+      if (args.bazel_options) {
+        bazelArgs.push(args.bazel_options);
+      }
+      bazelArgs.push(...targets);
+      spawnSync('yarn', bazelArgs, {stdio:'inherit'});
     }
-
   }
+
   const tfjsDir = `${__dirname}/node_modules/@tensorflow`;
   rimraf.sync(tfjsDir);
   fs.mkdirSync(tfjsDir, {recursive: true});
