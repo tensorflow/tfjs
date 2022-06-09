@@ -65,7 +65,7 @@ steps:
   dir: 'link-package'
   entrypoint: 'yarn'
   id: 'yarn-link-package-build'
-  args: ['build']
+  args: ['build', '--bazel_options=--config=ci']
   waitFor: ['yarn-link-package']
 
 # General configuration
