@@ -104,17 +104,6 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
         let xRCorner = xRCCorner.x;
         let xCCorner = xRCCorner.y;
 
-        var wVals : array<vec4<f32>, 9>;
-        wVals[0] = getW(0, 0, d1, q);
-        wVals[1] = getW(0, 1, d1, q);
-        wVals[2] = getW(0, 2, d1, q);
-        wVals[3] = getW(1, 0, d1, q);
-        wVals[4] = getW(1, 1, d1, q);
-        wVals[5] = getW(1, 2, d1, q);
-        wVals[6] = getW(2, 0, d1, q);
-        wVals[7] = getW(2, 1, d1, q);
-        wVals[8] = getW(2, 2, d1, q);
-
         var xVals : array<array<vec4<f32>, 6>, 3>;
         for (var wR = 0; wR < 3; wR = wR + 1) {
           let xR = xRCorner + wR * uniforms.dilation[0];
@@ -137,10 +126,11 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
         for (var wR = 0; wR < 3; wR = wR + 1) {
           for (var wC = 0; wC < 3; wC = wC + 1) {
             let indexW = wR * 3 + wC;
-            dotProd[0] = dotProd[0] + xVals[wR][0 + wC] * wVals[indexW];
-            dotProd[1] = dotProd[1] + xVals[wR][1 + wC] * wVals[indexW];
-            dotProd[2] = dotProd[2] + xVals[wR][2 + wC] * wVals[indexW];
-            dotProd[3] = dotProd[3] + xVals[wR][3 + wC] * wVals[indexW];
+            let wValue = getW(wR, wC, d1, q);
+            dotProd[0] = dotProd[0] + xVals[wR][0 + wC] * wValue;
+            dotProd[1] = dotProd[1] + xVals[wR][1 + wC] * wValue;
+            dotProd[2] = dotProd[2] + xVals[wR][2 + wC] * wValue;
+            dotProd[3] = dotProd[3] + xVals[wR][3 + wC] * wValue;
           }
         }
 
