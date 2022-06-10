@@ -90,7 +90,14 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
 
     const userCode = `
       ${activationSnippet}
-
+      fn readX(batch : i32, row : i32, col : i32, channel : i32) -> vec4<f32> {
+        var value = vec4<f32>(0.0);
+        if (row >=0 && row < uniforms.inDims[0] && col >=0 && col < uniforms.inDims[1])
+        {
+          value = getX(batch, row, col, channel);
+        }
+        return value;
+      }
       ${getWorkGroupSizeString()}
       fn main(@builtin(global_invocation_id) globalId: vec3<u32>) {
         let batch = 0;
@@ -103,20 +110,7 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
 
         let xRCorner = xRCCorner.x;
         let xCCorner = xRCCorner.y;
-
-        var xVals : array<array<vec4<f32>, 6>, 3>;
-        for (var wR = 0; wR < 3; wR = wR + 1) {
-          let xR = xRCorner + wR * uniforms.dilation[0];
-          for (var wC = 0; wC < 6; wC = wC + 1) {
-            let xC = xCCorner + wC * uniforms.dilation[1];
-            if (xR < 0 || xR >= uniforms.inDims[0] || xC < 0 || xC >= uniforms.inDims[1]) {
-              xVals[wR][wC] = vec4<f32>(0.0);
-            } else {
-              xVals[wR][wC] = getX(batch, xR, xC, d1);
-            }
-          }
-        }
-
+        var xVals : array<vec4<f32>, 6>;
         var dotProd : array<vec4<f32>, 4>;
         dotProd[0] = vec4<f32>(0.0);
         dotProd[1] = vec4<f32>(0.0);
@@ -124,13 +118,19 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
         dotProd[3] = vec4<f32>(0.0);
 
         for (var wR = 0; wR < 3; wR = wR + 1) {
+          let xR = xRCorner + wR;
+          xVals[0] = readX(batch, xR, xCCorner, d1);
+          xVals[1] = readX(batch, xR, xCCorner + 1, d1);
+          xVals[2] = readX(batch, xR, xCCorner + 2, d1);
+          xVals[3] = readX(batch, xR, xCCorner + 3, d1);
+          xVals[4] = readX(batch, xR, xCCorner + 4, d1);
+          xVals[5] = readX(batch, xR, xCCorner + 5, d1);
           for (var wC = 0; wC < 3; wC = wC + 1) {
-            let indexW = wR * 3 + wC;
             let wValue = getW(wR, wC, d1, q);
-            dotProd[0] = dotProd[0] + xVals[wR][0 + wC] * wValue;
-            dotProd[1] = dotProd[1] + xVals[wR][1 + wC] * wValue;
-            dotProd[2] = dotProd[2] + xVals[wR][2 + wC] * wValue;
-            dotProd[3] = dotProd[3] + xVals[wR][3 + wC] * wValue;
+            dotProd[0] = dotProd[0] + xVals[0 + wC] * wValue;
+            dotProd[1] = dotProd[1] + xVals[1 + wC] * wValue;
+            dotProd[2] = dotProd[2] + xVals[2 + wC] * wValue;
+            dotProd[3] = dotProd[3] + xVals[3 + wC] * wValue;
           }
         }
 
