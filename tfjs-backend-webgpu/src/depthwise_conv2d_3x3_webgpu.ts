@@ -39,9 +39,9 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
       convInfo: backend_util.Conv2DInfo, addBias = false,
       activation: backend_util.Activation = null, hasPreluActivation = false) {
     this.outputShape = convInfo.outShape;
-    this.dispatchLayout = {x: [0, 1], y: [2], z: [3]};
+    this.dispatchLayout = {x: [3], y: [2], z: [0, 1]};
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize, [1, 4, 4]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize, [4, 4, 1]);
 
     util.assert(
         convInfo.dataFormat === 'channelsLast',
@@ -101,13 +101,11 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
       }
       ${getWorkGroupSizeString()}
       fn main(@builtin(global_invocation_id) globalId: vec3<u32>) {
-        let batch = 0;
-        let r = i32(globalId.x);
+        let batch = i32(globalId.z) / uniforms.outShape[1];
+        let r = i32(globalId.z) % uniforms.outShape[1];
         let c = i32(globalId.y) * 4;
-        let d2 = i32(globalId.z) * 4;
+        let d1 = i32(globalId.x) * 4;
         let xRCCorner = vec2<i32>(r, c) * uniforms.stride - uniforms.pad;
-        let d1 = d2;
-        let q = 0;
 
         let xRCorner = xRCCorner.x;
         let xCCorner = xRCCorner.y;
@@ -125,7 +123,7 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
             xVals[i] = readX(batch, xR, xCCorner + i, d1);
           }
           for (var wC = 0; wC < ${this.convInfo.filterWidth}; wC = wC + 1) {
-            let wValue = getW(wR, wC, d1, q);
+            let wValue = getW(wR, wC, d1, 0);
             dotProd[0] = dotProd[0] + xVals[0 + wC] * wValue;
             dotProd[1] = dotProd[1] + xVals[1 + wC] * wValue;
             dotProd[2] = dotProd[2] + xVals[2 + wC] * wValue;
@@ -134,7 +132,7 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
         }
 
         for (var i = 0; i < 4; i = i + 1) {
-          let coords = vec4<i32>(batch, r, c + i, d2);
+          let coords = vec4<i32>(batch, r, c + i, d1);
           if (coordsInBounds4D(coords, uniforms.outShape)) {
             ${addBiasSnippet}
             ${applyActivationSnippet}
