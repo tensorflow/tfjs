@@ -60,18 +60,12 @@ export function depthwiseConv2dNative(args: {
         {type: 'int32', data: [convInfo.outChannels / convInfo.inChannels]});
     program = new DepthwiseConv2DNCHWSharedProgram(
         convInfo.outShape, convInfo.filterHeight, convInfo.filterWidth);
-  }
-  // TODO: To see if we need to relax the limitation. Currently, it's only
-  // for filter size 3x3.
-  else if (
+  } else if (
       isChannelsLast && convInfo.batchSize === 1 &&
-      convInfo.inHeight === convInfo.outHeight &&
-      convInfo.inWidth === convInfo.outWidth && convInfo.strideHeight === 1 &&
-      convInfo.strideWidth === 1 &&
-      convInfo.filterHeight === convInfo.filterWidth &&
+      convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
       convInfo.inChannels === convInfo.outChannels &&
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
-      convInfo.filterHeight === 3 && convInfo.inChannels % 4 === 0) {
+      convInfo.inChannels % 4 === 0) {
     program = new DepthwiseConv2D3x3Program(convInfo);
   } else {
     program = new DepthwiseConv2DProgram(convInfo);

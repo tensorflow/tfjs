@@ -59,7 +59,8 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
     this.activation = activation;
     this.hasPreluActivation = hasPreluActivation;
 
-    this.shaderKey = `depthwise3x3_${activation}`;
+    this.shaderKey = `depthwise_${activation}_${this.convInfo.filterHeight}_${
+        this.convInfo.filterWidth}`;
   }
 
   getUserCode(): string {
@@ -87,7 +88,7 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
     const addBiasSnippet = this.addBias ?
         'dotProd[i] = dotProd[i] + getBiasByOutputCoords(coords);' :
         '';
-
+    const xNumber = 4 + this.convInfo.filterWidth - 1;
     const userCode = `
       ${activationSnippet}
       fn readX(batch : i32, row : i32, col : i32, channel : i32) -> vec4<f32> {
@@ -110,22 +111,20 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
 
         let xRCorner = xRCCorner.x;
         let xCCorner = xRCCorner.y;
-        var xVals : array<vec4<f32>, 6>;
+        var xVals : array<vec4<f32>, ${xNumber}>;
         var dotProd : array<vec4<f32>, 4>;
         dotProd[0] = vec4<f32>(0.0);
         dotProd[1] = vec4<f32>(0.0);
         dotProd[2] = vec4<f32>(0.0);
         dotProd[3] = vec4<f32>(0.0);
 
-        for (var wR = 0; wR < 3; wR = wR + 1) {
+        for (var wR = 0; wR < ${this.convInfo.filterHeight}; wR = wR + 1) {
           let xR = xRCorner + wR;
-          xVals[0] = readX(batch, xR, xCCorner, d1);
-          xVals[1] = readX(batch, xR, xCCorner + 1, d1);
-          xVals[2] = readX(batch, xR, xCCorner + 2, d1);
-          xVals[3] = readX(batch, xR, xCCorner + 3, d1);
-          xVals[4] = readX(batch, xR, xCCorner + 4, d1);
-          xVals[5] = readX(batch, xR, xCCorner + 5, d1);
-          for (var wC = 0; wC < 3; wC = wC + 1) {
+          for (var i = 0; i < ${xNumber}; i++)
+          {
+            xVals[i] = readX(batch, xR, xCCorner + i, d1);
+          }
+          for (var wC = 0; wC < ${this.convInfo.filterWidth}; wC = wC + 1) {
             let wValue = getW(wR, wC, d1, q);
             dotProd[0] = dotProd[0] + xVals[0 + wC] * wValue;
             dotProd[1] = dotProd[1] + xVals[1 + wC] * wValue;
