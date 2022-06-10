@@ -108,8 +108,10 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
         let inputColEnd = inputColStart + uniforms.filterWidth *
             uniforms.dilation[1];
 
-        // Convolve x(?, ?, d1) with w(:, :, d1, q) to get y(yR, yC, d2).
-        // ? = to be determined. : = across all values in that axis.
+        // Convolve x(?, ?, d1)|x(d1, ?, ?) with w(:, :, d1, q) to get
+        // y(yR, yC, d2)|y(d2, yR, yC). ? = to be determined. : = across all
+        // values in that axis. x(?, ?, d1) and y(yR, yC, d2) is for NHWC.
+        // x(d1, ?, ?) and y(d2, yR, yC) is for NCHW.
         var dotProd = 0.0;
 
         // Extract if checking out of for loop for performance.

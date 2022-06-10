@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {util} from '@tensorflow/tfjs-core';
 import {backend_util} from '@tensorflow/tfjs-core';
 
 import {mapActivationToShaderProgram} from './activation_util';
@@ -31,7 +30,7 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
   uniforms = `pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>,
       inDims : vec2<i32>, filterHeight : i32, filterWidth : i32,
       channelMul : i32,`;
-  workGroupSize: [number, number, number] = [8, 8, 1];
+  workGroupSize: [number, number, number] = [16, 16, 1];
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivation: boolean;
@@ -91,15 +90,13 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
     const filterSize = this.filterWidth * this.filterHeight;
     const workGroupSize =
         this.workGroupSize[0] * this.workGroupSize[1] * this.workGroupSize[2];
-    util.assert(
-        filterSize <= workGroupSize,
-        () => `The filterSize ${
-            filterSize} must be less that or equal to workgroup size ${
-            workGroupSize}`);
+    const tileAHeight = this.workGroupSize[1] + this.filterHeight - 1;
+    const tileAWidth = this.workGroupSize[0] + this.filterWidth - 1;
+
     const userCode = `
       ${activationSnippet}
 
-      var<workgroup> mm_Asub : array<array<f32, 16>, 16>;
+      var<workgroup> mm_Asub : array<array<f32, ${tileAWidth}>, ${tileAHeight}>;
       var<workgroup> mm_Bsub : array<array<f32, ${this.filterWidth}>, ${
         this.filterHeight}>;
       fn readX(batch : i32, channel : i32, row : i32, col : i32) -> f32 {
@@ -142,19 +139,26 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
         let localCol = i32(localId.x);
 
         // Load one tile of X into local memory.
-        mm_Asub[localRow][localCol] = readX(batch, d1, inputRowStart, inputColStart);
-        mm_Asub[localRow][8 + localCol] =
-        readX(batch, d1, inputRowStart, inputColStart + 8);
-        mm_Asub[8 + localRow][localCol] =
-        readX(batch, d1, inputRowStart + 8, inputColStart);
-        mm_Asub[8 + localRow][8 + localCol] =
-          readX(batch, d1, inputRowStart + 8, inputColStart + 8);
+        for (var inputRow = localRow; inputRow < ${
+        tileAHeight}; inputRow = inputRow + ${this.workGroupSize[1]}) {
+          for (var inputCol = localCol; inputCol < ${
+        tileAWidth}; inputCol = inputCol + ${this.workGroupSize[0]}) {
+            let rowOffset = inputRow - localRow;
+            let colOffset = inputCol - localCol;
+            mm_Asub[inputRow][inputCol] = readX(batch, d1, inputRowStart + rowOffset, inputColStart + colOffset);
+          }
+        }
 
         // Load one tile of W into local memory.
-        if (localIndex < ${filterSize})
+        var wIndex = localIndex;
+        ${
+        filterSize < workGroupSize ?
+            `if (wIndex < ${filterSize})` :
+            `for(; wIndex < ${filterSize}; wIndex = wIndex + ${workGroupSize})`}
+
         {
-          let wRow = localIndex / ${this.filterWidth};
-          let wCol = localIndex % ${this.filterWidth};
+          let wRow = wIndex / ${this.filterWidth};
+          let wCol = wIndex % ${this.filterWidth};
           mm_Bsub[wRow][wCol] = getW(wRow, wCol, d1, q);
         }
 
