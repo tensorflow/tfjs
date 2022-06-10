@@ -155,11 +155,9 @@ function fromPixels_(
               'Reason: OffscreenCanvas Context2D rendering is not supported.');
         }
       } else {
-        const willReadFrequently =
-            env().getBool('CANVAS2D_WILL_READ_FREQUENTLY');
         fromPixels2DContext =
             document.createElement('canvas').getContext(
-                '2d', {willReadFrequently}) as CanvasRenderingContext2D;
+                '2d', {willReadFrequently: true}) as CanvasRenderingContext2D;
       }
     }
     fromPixels2DContext.canvas.width = width;
