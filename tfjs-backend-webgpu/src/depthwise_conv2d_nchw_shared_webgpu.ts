@@ -108,14 +108,6 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
         return value;
       }
 
-      fn writeResult(batch : i32, channel : i32, row : i32, col : i32,
-          value : f32) {
-        let coord = vec4<i32>(batch, channel, row, col);
-        if (coordsInBounds4D(coord, uniforms.outShape)) {
-          setOutputAtCoords(batch, channel, row, col, value);
-        }
-      }
-
       ${getWorkGroupSizeString()}
       fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
               @builtin(global_invocation_id) GlobalId : vec3<u32>,
@@ -175,7 +167,9 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
 
         ${addBiasSnippet}
         ${applyActivationSnippet}
-        writeResult(coords[0], coords[1], coords[2], coords[3], dotProd);
+        if (coordsInBounds4D(coords, uniforms.outShape)) {
+          setOutputAtCoords(coords[0], coords[1], coords[2], coords[3], dotProd);
+        }
       }
     `;
     return userCode;
