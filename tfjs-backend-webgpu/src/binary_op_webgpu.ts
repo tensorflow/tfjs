@@ -26,27 +26,34 @@ export class BinaryOpProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
+  workPerThread: number;
   workGroupSize: [number, number, number];
+  isVec4: boolean;
   op: BinaryOpType;
   size = true;
 
-  constructor(op: BinaryOpType, aShape: number[], bShape: number[]) {
+  constructor(
+      op: BinaryOpType, aShape: number[], bShape: number[], isVec4 = false) {
     // TODO(jiajia.qin@intel.com): Heuristically select a good work group size.
     const workGroupSizeX = 128;
     this.workGroupSize = [workGroupSizeX, 1, 1];
     this.outputShape = backend_util.assertAndGetBroadcastShape(aShape, bShape);
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.isVec4 = isVec4;
+    this.workPerThread = isVec4 ? 4 : 1;
 
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
-    this.shaderKey = `binary_${op}`;
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [this.workPerThread, 1, 1]);
     this.op = op;
+    this.shaderKey = `binary_${op}_${this.isVec4}`;
   }
 
   getUserCode(): string {
-    const opStr = getBinaryOpString(this.op, false);
+    const opStr = getBinaryOpString(this.op, this.isVec4);
+    const inputType = this.isVec4 ? 'vec4<f32>' : 'f32';
     const userCode = `
-      fn binaryOperation(a : f32, b : f32) -> f32 {
+      fn binaryOperation(a : ${inputType}, b : ${inputType}) -> ${inputType} {
         ${opStr}
       }
       ${getMainHeaderAndGlobalIndexString()}
