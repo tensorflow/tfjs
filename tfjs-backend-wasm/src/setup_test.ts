@@ -230,9 +230,9 @@ const TEST_FILTERS: TestFilter[] = [
     include: 'clip',
     excludes: [
       'gradient',
-      'propagates NaNs', // clip delegates to XNNPACK which does not make
-                         // guarantees about behavior of nans.
-      'basic vec4'       // basic vec4 also includes nans.
+      'propagates NaNs',  // clip delegates to XNNPACK which does not make
+                          // guarantees about behavior of nans.
+      'basic vec4'        // basic vec4 also includes nans.
     ]
   },
   {include: 'addN'},
@@ -384,6 +384,7 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'sparseReshape'},
   {include: 'sparseSegmentMean'},
   {include: 'sparseSegmentSum'},
+  {startsWith: 'sparseToDense', excludes: ['string']},
 ];
 
 const customInclude = (testName: string) => {

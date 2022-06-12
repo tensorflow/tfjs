@@ -234,6 +234,12 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "scatter_impl",
+    srcs = ["scatter_impl.cc"],
+    hdrs = ["scatter_impl.h"],
+)
+
+tfjs_cc_library(
     name = "sigmoid_impl",
     srcs = ["sigmoid_impl.cc"],
     hdrs = ["sigmoid_impl.h"],
@@ -335,6 +341,7 @@ tfjs_cc_library(
         ":SparseFillEmptyRows",
         ":SparseReshape",
         ":SparseSegmentReduction",
+        ":SparseToDense",
         ":Square",
         ":SquaredDifference",
         ":StridedSlice",
@@ -1062,6 +1069,7 @@ tfjs_cc_library(
     srcs = ["kernels/ScatterNd.cc"],
     deps = [
         ":backend",
+        ":scatter_impl",
         ":util",
     ],
 )
@@ -1147,6 +1155,16 @@ tfjs_cc_library(
     srcs = ["kernels/SparseSegmentReduction.cc"],
     deps = [
         ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SparseToDense",
+    srcs = ["kernels/SparseToDense.cc"],
+    deps = [
+        ":backend",
+        ":scatter_impl",
         ":util",
     ],
 )

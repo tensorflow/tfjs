@@ -107,6 +107,7 @@ import {sparseFillEmptyRowsConfig} from './kernels/SparseFillEmptyRows';
 import {sparseReshapeConfig} from './kernels/SparseReshape';
 import {sparseSegmentMeanConfig} from './kernels/SparseSegmentMean';
 import {sparseSegmentSumConfig} from './kernels/SparseSegmentSum';
+import {sparseToDenseConfig} from './kernels/SparseToDense'
 import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
@@ -214,6 +215,7 @@ const kernelConfigs: KernelConfig[] = [
   sparseReshapeConfig,
   sparseSegmentMeanConfig,
   sparseSegmentSumConfig,
+  sparseToDenseConfig,
   splitVConfig,
   sqrtConfig,
   squareConfig,
