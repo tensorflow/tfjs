@@ -19,9 +19,12 @@ import {backend_util, KernelConfig, KernelFunc, Rank, SparseToDense, SparseToDen
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {scatterImplCPU} from '../kernel_utils/shared';
-import {ScatterProgram} from '../scatter_webgpu';
+import {ScatterOptimizedProgram} from '../scatter_optimized_webgpu';
 
+import {identity} from './Identity';
 import {reshape} from './Reshape';
+import {tile} from './Tile';
+import {zerosLike} from './ZerosLike';
 
 export function sparseToDense(args: {
   inputs: SparseToDenseInputs,
@@ -46,24 +49,91 @@ export function sparseToDense(args: {
         sliceRank, strides, $defaultValue, sumDupeIndices);
     return backend.makeTensorInfo(outputShape, outBuf.dtype, outBuf.values);
   }
+
+  // If |sparseValues| is a scalar tensor, broadcast to the appropriate shape.
+  const inferredSparseValuesShape = sparseIndices.shape.length > 1 ?
+      sparseIndices.shape.slice(0, -1).concat(outputShape.slice(sliceRank)) :
+      sparseIndices.shape.slice();
+  const dimensionalSparseValues =
+      sparseValues.shape.length === inferredSparseValuesShape.length ?
+      identity({inputs: {x: sparseValues}, backend}) :
+      reshape({
+        inputs: {x: sparseValues},
+        backend,
+        attrs: {shape: new Array(inferredSparseValuesShape.length).fill(1)}
+      });
+  const $sparseValues =
+      util.arraysEqual(
+          inferredSparseValuesShape, dimensionalSparseValues.shape) ?
+      identity({inputs: {x: dimensionalSparseValues}, backend}) :
+      tile({
+        inputs: {x: dimensionalSparseValues},
+        backend,
+        attrs: {reps: inferredSparseValuesShape}
+      });
+  backend.disposeData(dimensionalSparseValues.dataId);
+
+  const flattenShape = [outputSize / sliceSize, sliceSize];
+
+  const flattenIndices = reshape({
+    inputs: {x: sparseIndices},
+    backend,
+    attrs: {shape: [numUpdates, sliceRank]}
+  });
+  const flattenValues = reshape({
+    inputs: {x: $sparseValues},
+    backend,
+    attrs: {shape: [numUpdates, sliceSize]}
+  });
+
+  const type = flattenValues.dtype;
+
+  // Fill output tensor with the default value.
+  const dimensionalDefaultValue = reshape({
+    inputs: {x: defaultValue},
+    backend,
+    attrs: {shape: new Array(flattenShape.length).fill(1)}
+  });
+  const flattenOutput = tile({
+    inputs: {x: dimensionalDefaultValue},
+    backend,
+    attrs: {reps: flattenShape}
+  });
+  backend.disposeData(dimensionalDefaultValue.dataId);
+
+  const size = util.sizeFromShape(flattenValues.shape);
   const uniformData = [
-    {type: 'int32', data: [numUpdates]},
     {type: 'int32', data: [sliceRank]},
     {type: 'int32', data: strides},
+    {type: 'int32', data: [size]},
   ];
-  const program = new ScatterProgram(
-      numUpdates, sliceRank, sparseIndices.shape.length,
-      sparseValues.shape.length, strides, [outputSize, 1], sumDupeIndices);
+  const program = new ScatterOptimizedProgram(
+      flattenValues.shape, sliceRank, flattenIndices.shape.length,
+      flattenValues.shape.length, strides, flattenShape, type);
 
-  const res = backend.runWebGPUProgram(
-      program, [sparseValues, sparseIndices, defaultValue], sparseValues.dtype,
-      uniformData);
+  // First replace the default value with 0 at indices.
+  const zeros = zerosLike({inputs: {x: flattenValues}, backend});
+  backend.runWebGPUProgram(
+      program, [zeros, flattenIndices, defaultValue], type, uniformData,
+      flattenOutput);
+  backend.disposeData(zeros.dataId);
 
-  const reshaped =
-      reshape({inputs: {x: res}, backend, attrs: {shape: outputShape}});
+  // Then replace 0 with the (sum of) sparse value(s) at indices.
+  const zero =
+      backend.makeTensorInfo([], type, util.makeZerosTypedArray(1, type));
+  backend.runWebGPUProgram(
+      program, [flattenValues, flattenIndices, zero], type, uniformData,
+      flattenOutput);
+  backend.disposeData(zero.dataId);
 
-  backend.disposeData(res.dataId);
-  return reshaped;
+  const output = reshape(
+      {inputs: {x: flattenOutput}, backend, attrs: {shape: outputShape}});
+
+  backend.disposeData($sparseValues.dataId);
+  backend.disposeData(flattenIndices.dataId);
+  backend.disposeData(flattenValues.dataId);
+  backend.disposeData(flattenOutput.dataId);
+  return output;
 }
 
 export const sparseToDenseConfig: KernelConfig = {

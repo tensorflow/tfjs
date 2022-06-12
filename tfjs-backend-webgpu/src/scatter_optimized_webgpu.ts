@@ -16,11 +16,12 @@
  */
 
 import {DataType} from '@tensorflow/tfjs-core';
-import {getCoordsDataType, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
+
+import {getCoordsDataType, getMainHeaderAndGlobalIndexString, mapToWgslTypes, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ScatterOptimizedProgram implements WebGPUProgram {
-  variableNames = ['updates', 'indices'];
+  variableNames = ['updates', 'indices', 'originalSparseValue'];
   uniforms: string;
   outputShape: number[];
   shaderKey: string;
@@ -88,22 +89,6 @@ export class ScatterOptimizedProgram implements WebGPUProgram {
     }
     const updatesSnippet = `getUpdates(${updatesString})`;
 
-    // atomicAdd only supports uint/int type. For float, we use
-    // atomicCompareExchangeWeak to simulate.
-    const atomicAddSnippet = this.type === 'int32' ?
-        `atomicAdd(&(result[flatIndex]), i32(updateValue));` :
-        `
-     var oldValue = atomicLoad(&(result[flatIndex]));
-     var exchanged = false;
-     for (; !exchanged;) {
-       let newValueF32 = bitcast<f32>(oldValue) + updateValue;
-       let newValue = bitcast<i32>(newValueF32);
-       let res = atomicCompareExchangeWeak(&(result[flatIndex]), oldValue, newValue);
-       oldValue = res.old_value;
-       exchanged = res.exchanged;
-     }
-     `;
-
     const userCode = `
     ${getUpdatesCoordsFromFlatIndex}
 
@@ -116,10 +101,23 @@ export class ScatterOptimizedProgram implements WebGPUProgram {
             let indexInside = i32(round(${indicesSnippet}));
             flattenedIndex = flattenedIndex + indexInside * ${strideString};
           }
-          let updateValue = ${updatesSnippet};
+          let updateValue =
+              ${mapToWgslTypes(this.type, false)}(${updatesSnippet});
           let flatIndex = getOutputIndexFromCoords(${outCoordsString});
 
-         ${atomicAddSnippet}
+          loop {
+            let oldBits = atomicLoad(&result[flatIndex]);
+            let oldValue =
+                bitcast<${mapToWgslTypes(this.type, false)}>(oldBits);
+            let newValue = select(updateValue + oldValue,
+                                  updateValue,
+                                  f32(oldValue) == getOriginalSparseValue());
+            let newBits = bitcast<i32>(newValue);
+            if (atomicCompareExchangeWeak(
+                    &result[flatIndex], oldBits, newBits).exchanged) {
+              break;
+            }
+          }
         }
       }`;
     return userCode;
