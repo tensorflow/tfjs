@@ -285,8 +285,9 @@ export const executeOp: InternalOpAsyncExecutor = async(
 
       const numElements =
           getParamValue(numElementsParam, node, tensorMap, context) as number;
-
-      const tensorList = reserve(elementShape, elementDtype, numElements);
+      const maxNumElements = node.op === 'TensorListReserve' ? -1 : numElements;
+      const tensorList =
+          reserve(elementShape, elementDtype, numElements, maxNumElements);
       context.addTensorList(tensorList);
       return [tensorList.idTensor];
     }
