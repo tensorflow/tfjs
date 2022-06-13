@@ -19,9 +19,9 @@ import {backend_util, BinaryInputs, DataType, KernelFunc, TensorInfo, TypedArray
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {BinaryOpComplexProgram} from '../binary_op_complex_webgpu';
-import {getBinaryProgram} from '../binary_ops';
-import {complex} from '../kernels/Complex';
 import {BinaryOpType} from '../binary_op_util';
+import {BinaryOpProgram} from '../binary_op_webgpu';
+import {complex} from '../kernels/Complex';
 import {UnaryOpType} from '../unary_op_util';
 import {UnaryOpProgram} from '../unary_op_webgpu';
 
@@ -35,7 +35,7 @@ type UnaryKernelFuncConfig = {
 
 /**
  * Template that creates a `KernelFunc` for unary ops.
- * @param opSnippet Op snippet to create `UnaryOpProgram`.
+ * @param opType Op type to create `UnaryOpProgram`.
  * @param cpuKernelImpl Optional. Shared functionality from tfjs-backend-cpu, it
  *     will be involved when necessary.
  * @param dtype Optional. If set, the result has this dtype. Otherwise, the
@@ -61,7 +61,7 @@ export function unaryKernelFunc(
 }
 
 type BinaryKernelFuncConfig = {
-  opSnippet: number,
+  opType: BinaryOpType,
   cpuKernelImpl?: SimpleBinaryKernelImplCPU,
   supportsComplex?: boolean,
   dtype?: DataType
@@ -69,7 +69,7 @@ type BinaryKernelFuncConfig = {
 
 /**
  * Template that creates a `KernelFunc` for binary ops.
- * @param opSnippet Op snippet to create `BinaryOpProgram`.
+ * @param opType Op type to create `BinaryOpProgram`.
  * @param cpuKernelImpl Optional. Shared functionality from tfjs-backend-cpu, it
  *     will be involved when necessary.
  * @param dtype Optional. If set, the result has this dtype. Otherwise, the
@@ -77,7 +77,7 @@ type BinaryKernelFuncConfig = {
  *     comparison kernels, such as Equal, Less, Greater, etc.
  */
 export function binaryKernelFunc(
-    {opSnippet, cpuKernelImpl, supportsComplex = false, dtype}:
+    {opType, cpuKernelImpl, supportsComplex = false, dtype}:
         BinaryKernelFuncConfig): KernelFunc {
   return ({inputs, backend}) => {
     const {a, b} = inputs as BinaryInputs;
@@ -87,7 +87,7 @@ export function binaryKernelFunc(
       const aData = webgpuBackend.tensorMap.get(a.dataId);
       const bData = webgpuBackend.tensorMap.get(b.dataId);
       let real: TensorInfo, imag: TensorInfo;
-      if (opSnippet !== BinaryOpType.MUL) {
+      if (opType !== BinaryOpType.MUL) {
         [real, imag] = [
           [aData.complexTensorInfos.real, bData.complexTensorInfos.real],
           [aData.complexTensorInfos.imag, bData.complexTensorInfos.imag]
@@ -105,7 +105,7 @@ export function binaryKernelFunc(
             shape: b.shape
           };
 
-          const program = getBinaryProgram(opSnippet, a.shape, b.shape);
+          const program = new BinaryOpProgram(opType, a.shape, b.shape);
           return webgpuBackend.runWebGPUProgram(
               program, [aHandle, bHandle],
               upcastType(aPart.dtype, bPart.dtype));
@@ -173,7 +173,7 @@ export function binaryKernelFunc(
 
       return webgpuBackend.makeTensorInfo(outShape, $dtype, outValues);
     }
-    const program = getBinaryProgram(opSnippet, a.shape, b.shape);
+    const program = new BinaryOpProgram(opType, a.shape, b.shape);
     return webgpuBackend.runWebGPUProgram(program, [a, b], $dtype);
   };
 }
