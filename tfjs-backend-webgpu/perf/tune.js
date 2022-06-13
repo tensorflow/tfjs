@@ -135,6 +135,7 @@ async function timeMatmul(rowNum) {
   let tensorsWarmUp = [];
   let tensorsToDispose = [];
   let inputs = [];
+  const numWarmUp = 500;
 
   // Prepare data
   const warmA = tf.tensor2d(
@@ -176,41 +177,72 @@ async function timeMatmul(rowNum) {
   }
 
   const profile_webgpu = await tf.profile(() => {
-    // Warmup, keep gpu frequency at a high level
-    document.getElementById('message').innerHTML =
-      `Warming up testing on webgpu ...`;
-    for (let i = 0; i < 500; i++) {
-      tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
-    }
+    // Warmup model
     for (let i = 0; i < inputs.length; i++) {
       document.getElementById('message').innerHTML =
         `Testing on webgpu ...`;
-      tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
+      let result = tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
+      //tensorsToDispose.push(result);
+      //tf.dispose(result);
+      result.dispose();
+    }
+    // Warmup gpu, keep gpu frequency at a high level
+    document.getElementById('message').innerHTML =
+      `Warming up testing on webgpu ...`;
+    for (let i = 0; i < numWarmUp; i++) {
+      let m = tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
+      //tensorsToDispose.push(m);
+      //tf.dispose(m);
+      m.dispose();
+    }
+    // Collect result from here
+    for (let i = 0; i < inputs.length; i++) {
+      document.getElementById('message').innerHTML =
+        `Testing on webgpu ...`;
+      let result = tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
+      //tensorsToDispose.push(result);
+      //tf.dispose(result);
+      result.dispose();
     }
   });
   const webgpu_kernels = profile_webgpu.kernels;
 
   await tf.setBackend('webgl');
   const profile_webgl = await tf.profile(() => {
-    // Warmup, keep gpu frequency at a high level
+    // Warmup model
+    for (let i = 0; i < inputs.length; i++) {
+      document.getElementById('message').innerHTML =
+        `Testing on webgpu ...`;
+      let result = tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
+      //tensorsToDispose.push(result);
+      //tf.dispose(result);
+      result.dispose();
+    }
+    // Warmup gpu, keep gpu frequency at a high level
     document.getElementById('message').innerHTML =
       `Warming up testing on webgl ...`;
-    for (let i = 0; i < 500; i++) {
-      tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
+    for (let i = 0; i < numWarmUp; i++) {
+      let m = tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
+      //tf.dispose(m);
+      m.dispose();
+      //tensorsToDispose.push(m);
+      //let w = i % inputs.length;
+      //let m = tf.matMul(tensors[w].tensorA, tensors[w].tensorB);
+      //tensorsToDispose.push(m);
     }
+    // Collect result from here
     for (let i = 0; i < inputs.length; i++) {
       document.getElementById('message').innerHTML =
         `Testing on webgl ...`;
-      tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
+      let result = tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
+      //tensorsToDispose.push(result);
+      //tf.dispose(result);
+      result.dispose();
     }
   });
   const webgl_kernels = profile_webgl.kernels;
 
-  for (let tensor of tensorsToDispose) {
-    tensor.dispose();
-  }
-
-  for (let i = 500; i < profile_webgpu.kernels.length; i++) {
+  for (let i = numWarmUp + inputs.length; i < profile_webgpu.kernels.length; i++) {
     let inputInfo;
     webgpu_kernels[i].inputShapes.forEach((inputShape, index) => {
       if (inputInfo == null) {
@@ -244,6 +276,10 @@ async function timeMatmul(rowNum) {
       // store gpu result
       webglCompResults.push(result.webglComp);
     }
+  }
+
+  for (let tensor of tensorsToDispose) {
+    tensor.dispose();
   }
 }
 
