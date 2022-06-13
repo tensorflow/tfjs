@@ -18,8 +18,8 @@
 import {backend_util, DepthwiseConv2dNative, DepthwiseConv2dNativeAttrs, DepthwiseConv2dNativeInputs, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {DepthwiseConv2D3x3Program} from '../depthwise_conv2d_3x3_webgpu';
 import {DepthwiseConv2DNCHWSharedProgram} from '../depthwise_conv2d_nchw_shared_webgpu';
+import {DepthwiseConv2DVec4Program} from '../depthwise_conv2d_vec4_webgpu';
 import {DepthwiseConv2DProgram} from '../depthwise_conv2d_webgpu';
 
 export function depthwiseConv2dNative(args: {
@@ -48,7 +48,7 @@ export function depthwiseConv2dNative(args: {
   ];
 
   const isChannelsLast = convInfo.dataFormat === 'channelsLast';
-  let program: DepthwiseConv2DProgram|DepthwiseConv2D3x3Program|
+  let program: DepthwiseConv2DProgram|DepthwiseConv2DVec4Program|
       DepthwiseConv2DNCHWSharedProgram;
   if (!isChannelsLast && convInfo.inHeight > 16 && convInfo.inWidth > 16 &&
       convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
@@ -61,12 +61,12 @@ export function depthwiseConv2dNative(args: {
     program = new DepthwiseConv2DNCHWSharedProgram(
         convInfo.outShape, convInfo.filterHeight, convInfo.filterWidth);
   } else if (
-      isChannelsLast && convInfo.strideHeight === 1 &&
-      convInfo.strideWidth === 1 &&
+      isChannelsLast && convInfo.inHeight > 4 && convInfo.inWidth > 4 &&
+      convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
       convInfo.inChannels === convInfo.outChannels &&
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
       convInfo.inChannels % 4 === 0) {
-    program = new DepthwiseConv2D3x3Program(convInfo);
+    program = new DepthwiseConv2DVec4Program(convInfo);
   } else {
     program = new DepthwiseConv2DProgram(convInfo);
     dimensions.push(

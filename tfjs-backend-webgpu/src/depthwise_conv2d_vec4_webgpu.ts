@@ -20,7 +20,7 @@ import {mapActivationToShaderProgram} from './activation_util';
 import {getWorkGroupSizeString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
-export class DepthwiseConv2D3x3Program implements WebGPUProgram {
+export class DepthwiseConv2DVec4Program implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
