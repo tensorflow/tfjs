@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
-import {backend_util, ConcatInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, ConcatInputs, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {ConcatProgram} from '../concat_webgpu';
 import {concatImplCPU} from '../kernel_utils/shared';
 
 import {complex} from './Complex';
-import {ConcatProgram} from '../concat_webgpu';
 import {imag} from './Imag';
 import {real} from './Real';
 import {reshape} from './Reshape';
@@ -92,6 +92,20 @@ export function concatImpl(
     tensors2D.forEach(t => backend.disposeData(t.dataId));
 
     return outInfo;
+  }
+
+  if (inputs.length >
+      env().getNumber('WEBGPU_MAX_STORAGE_BUFFER_IN_SHADER') - 1) {
+    const midIndex = Math.floor(inputs.length / 2);
+    const leftSide = concatImpl(inputs.slice(0, midIndex), axis, backend);
+    const rightSide = concatImpl(inputs.slice(midIndex), axis, backend);
+
+    const result = concatImpl([leftSide, rightSide], axis, backend);
+
+    backend.disposeData(leftSide.dataId);
+    backend.disposeData(rightSide.dataId);
+
+    return result;
   }
 
   const {tensors2D, outShape} = computeTensors2D(inputs, axis, backend);
