@@ -45,6 +45,7 @@ if (isWebGPUSupported()) {
           adapterLimits.maxComputeWorkgroupStorageSize,
       'maxComputeWorkgroupsPerDimension':
           adapterLimits.maxComputeWorkgroupsPerDimension,
+      'maxStorageBufferBindingSize': adapterLimits.maxStorageBufferBindingSize,
     };
 
     if (supportTimeQuery) {
