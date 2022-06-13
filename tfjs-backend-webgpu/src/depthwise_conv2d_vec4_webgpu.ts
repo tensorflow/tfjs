@@ -26,8 +26,7 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms =
-      'pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>, inDims : vec2<i32>,';
+  uniforms = 'pad : vec2<i32>, inDims : vec2<i32>,';
   workGroupSize: [number, number, number] = [4, 4, 4];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
@@ -59,8 +58,8 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
     this.activation = activation;
     this.hasPreluActivation = hasPreluActivation;
 
-    this.shaderKey = `depthwise_${activation}_${this.convInfo.filterHeight}_${
-        this.convInfo.filterWidth}`;
+    this.shaderKey = `depthwiseVec4_${activation}_${
+        this.convInfo.filterHeight}_${this.convInfo.filterWidth}`;
   }
 
   getUserCode(): string {
@@ -105,7 +104,7 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
         let r = i32(globalId.z) % uniforms.outShape[1];
         let c = i32(globalId.y) * 4;
         let d1 = i32(globalId.x) * 4;
-        let xRCCorner = vec2<i32>(r, c) * uniforms.stride - uniforms.pad;
+        let xRCCorner = vec2<i32>(r, c) - uniforms.pad;
 
         let xRCorner = xRCCorner.x;
         let xCCorner = xRCCorner.y;
@@ -116,6 +115,7 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
         dotProd[2] = vec4<f32>(0.0);
         dotProd[3] = vec4<f32>(0.0);
 
+        // Use constant instead of uniform can give better performance.
         for (var wR = 0; wR < ${this.convInfo.filterHeight}; wR = wR + 1) {
           let xR = xRCorner + wR;
           for (var i = 0; i < ${xNumber}; i++)

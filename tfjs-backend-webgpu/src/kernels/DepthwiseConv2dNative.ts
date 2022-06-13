@@ -42,9 +42,7 @@ export function depthwiseConv2dNative(args: {
       pad, dimRoundingMode, true /* depthwise */, $dataFormat);
   const dimensions = [
     {type: 'int32', data: [convInfo.padInfo.top, convInfo.padInfo.left]},
-    {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
-    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]},
-    {type: 'int32', data: [convInfo.inHeight, convInfo.inWidth]}
+    {type: 'int32', data: [convInfo.inHeight, convInfo.inWidth]},
   ];
 
   const isChannelsLast = convInfo.dataFormat === 'channelsLast';
@@ -54,10 +52,6 @@ export function depthwiseConv2dNative(args: {
       convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
       convInfo.dilationWidth === 1 && convInfo.dilationHeight === 1 &&
       convInfo.inChannels === convInfo.outChannels) {
-    dimensions.push(
-        {type: 'int32', data: [convInfo.filterHeight]},
-        {type: 'int32', data: [convInfo.filterWidth]},
-        {type: 'int32', data: [convInfo.outChannels / convInfo.inChannels]});
     program = new DepthwiseConv2DNCHWSharedProgram(
         convInfo.outShape, convInfo.filterHeight, convInfo.filterWidth);
   } else if (
@@ -72,7 +66,10 @@ export function depthwiseConv2dNative(args: {
     dimensions.push(
         {type: 'int32', data: [convInfo.filterHeight]},
         {type: 'int32', data: [convInfo.filterWidth]},
-        {type: 'int32', data: [convInfo.outChannels / convInfo.inChannels]});
+        {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]}, {
+          type: 'int32',
+          data: [convInfo.dilationHeight, convInfo.dilationWidth]
+        });
   }
 
   return backend.runWebGPUProgram(program, [x, filter], x.dtype, dimensions);

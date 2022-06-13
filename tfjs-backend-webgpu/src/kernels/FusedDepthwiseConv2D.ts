@@ -60,9 +60,7 @@ export function fusedDepthwiseConv2D(args: {
 
   const dimensions = [
     {type: 'int32', data: [convInfo.padInfo.top, convInfo.padInfo.left]},
-    {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
-    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]},
-    {type: 'int32', data: [convInfo.inHeight, convInfo.inWidth]}
+    {type: 'int32', data: [convInfo.inHeight, convInfo.inWidth]},
   ];
 
   let program: DepthwiseConv2DProgram|DepthwiseConv2DVec4Program;
@@ -79,7 +77,10 @@ export function fusedDepthwiseConv2D(args: {
     dimensions.push(
         {type: 'int32', data: [convInfo.filterHeight]},
         {type: 'int32', data: [convInfo.filterWidth]},
-        {type: 'int32', data: [convInfo.outChannels / convInfo.inChannels]});
+        {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]}, {
+          type: 'int32',
+          data: [convInfo.dilationHeight, convInfo.dilationWidth]
+        });
   }
   if (activation === 'leakyrelu') {
     dimensions.push({type: 'float32', data: [leakyreluAlpha]});
