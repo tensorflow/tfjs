@@ -26,8 +26,7 @@ import * as control from '../op_list/control';
 import {Graph, Node} from '../types';
 
 import {executeOp} from './control_executor';
-import {createBoolAttr, createDtypeAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createStrAttr, createTensorAttr, createTensorsAttr, createTensorShapeAttr, validateParam} from './test_helper';
-import {createShapeAttrFromIndex} from './test_helper';
+import {createBoolAttr, createDtypeAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createShapeAttrFromIndex, createStrAttr, createTensorAttr, createTensorsAttr, createTensorShapeAttr, validateParam} from './test_helper';
 
 describe('control', () => {
   let node: Node;
@@ -678,7 +677,7 @@ describe('control', () => {
       const tensorList = context.getTensorList(tensorListId.id);
       expect(tensorList.elementDtype).toEqual('int32');
       expect(tensorList.elementShape).toEqual([10, 10]);
-      expect(tensorList.maxNumElements).toEqual(1);
+      expect(tensorList.maxNumElements).toEqual(-1);
     });
     it('should match json def', () => {
       node.op = 'TensorListReserve';
