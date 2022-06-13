@@ -97,6 +97,7 @@
 |TensorArrayV3|TensorArrayV3|
 |TensorArrayWriteV3|TensorArrayWriteV3|
 |TensorListConcat|TensorListConcat|
+|TensorListConcatV2|TensorListConcatV2|
 |TensorListFromTensor|TensorListFromTensor|
 |TensorListGather|TensorListGather|
 |TensorListGetItem|TensorListGetItem|
@@ -167,9 +168,11 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|LowerBound|LowerBound|
 |TopKV2|TopKV2|
 |Unique|Unique|
 |UniqueV2|UniqueV2|
+|UpperBound|UpperBound|
 |Not mapped|confusionMatrix|
 |Not mapped|inTopKAsync|
 |Not mapped|topk|
@@ -258,6 +261,7 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|EuclideanNorm|EuclideanNorm|
 |FusedBatchNorm|FusedBatchNorm|
 |FusedBatchNormV2|FusedBatchNormV2|
 |FusedBatchNormV3|FusedBatchNormV3|

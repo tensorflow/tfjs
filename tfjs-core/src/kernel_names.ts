@@ -457,11 +457,18 @@ export type LogicalNotInputs = Pick<NamedTensorInfoMap, 'x'>;
 export const LogicalOr = 'LogicalOr';
 export type LogicalOrInputs = BinaryInputs;
 
+export const LogicalXor = 'LogicalXor';
+export type LogicalXorInputs = BinaryInputs;
+
 export const LogSoftmax = 'LogSoftmax';
 export type LogSoftmaxInputs = Pick<NamedTensorInfoMap, 'logits'>;
 export interface LogSoftmaxAttrs {
   axis: number;
 }
+
+export const LowerBound = 'LowerBound';
+export type LowerBoundInputs =
+    Pick<NamedTensorInfoMap, 'sortedSequence'|'values'>;
 
 export const LRN = 'LRN';
 export type LRNInputs = Pick<NamedTensorInfoMap, 'x'>;
@@ -720,6 +727,13 @@ export interface ScatterNdAttrs {
   shape: number[];
 }
 
+export const SearchSorted = 'SearchSorted';
+export type SearchSortedInputs =
+    Pick<NamedTensorInfoMap, 'sortedSequence'|'values'>;
+export interface SearchSortedAttrs {
+  side: 'left'|'right';
+}
+
 export const Select = 'Select';
 export type SelectInputs = Pick<NamedTensorInfoMap, 'condition'|'t'|'e'>;
 
@@ -899,6 +913,10 @@ export type UnsortedSegmentSumInputs =
 export interface UnsortedSegmentSumAttrs {
   numSegments: number;
 }
+
+export const UpperBound = 'UpperBound';
+export type UpperBoundInputs =
+    Pick<NamedTensorInfoMap, 'sortedSequence'|'values'>;
 
 export const ZerosLike = 'ZerosLike';
 export type ZerosLikeInputs = UnaryInputs;

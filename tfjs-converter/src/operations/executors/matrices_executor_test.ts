@@ -18,12 +18,13 @@
 import {Tensor} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
+import * as matrices from '../op_list/matrices';
 
 import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
 
 import {executeOp} from './matrices_executor';
-import {createBoolAttr, createNumberAttr, createNumericArrayAttr, createStrArrayAttr, createStrAttr, createTensorAttr, createTensorsAttr} from './test_helper';
+import {createBoolAttr, createNumberAttr, createNumericArrayAttr, createStrArrayAttr, createStrAttr, createTensorAttr, createTensorsAttr, validateParam} from './test_helper';
 
 describe('matrices', () => {
   let node: Node;
@@ -129,6 +130,18 @@ describe('matrices', () => {
           preluActivationWeights: undefined,
           leakyreluAlpha: 0.3
         });
+      });
+      it('should match json def.', () => {
+        node.op = '_FusedMatMul';
+
+        node.attrParams['fusedOps'] =
+          createStrArrayAttr(['biasadd', 'leakyrelu']);
+        node.attrParams['numArgs'] = createNumberAttr(1);
+        node.attrParams.transposeA = createBoolAttr(true);
+        node.attrParams.transposeB = createBoolAttr(false);
+        node.attrParams.leakyreluAlpha = createNumberAttr(0.3);
+
+        expect(validateParam(node, matrices.json)).toBeTruthy();
       });
     });
     describe('BatchMatMul', () => {

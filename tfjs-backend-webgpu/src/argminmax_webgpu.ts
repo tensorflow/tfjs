@@ -16,9 +16,7 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-
-import {getCoordsXYZ, getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getCoordsXYZ, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ArgMinMaxProgram implements WebGPUProgram {

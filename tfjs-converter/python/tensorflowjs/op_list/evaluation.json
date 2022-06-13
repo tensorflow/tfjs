@@ -1,5 +1,21 @@
 [
   {
+    "tfOpName": "LowerBound",
+    "category": "evaluation",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "sortedSequence",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "values",
+        "type": "tensor"
+      }
+    ]
+  },
+  {
     "tfOpName": "TopKV2",
     "category": "evaluation",
     "inputs": [
@@ -19,6 +35,22 @@
         "tfName": "sorted",
         "name": "sorted",
         "type": "bool"
+      }
+    ]
+  },
+  {
+    "tfOpName": "UpperBound",
+    "category": "evaluation",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "sortedSequence",
+        "type": "tensor"
+      },
+      {
+        "start": 1,
+        "name": "values",
+        "type": "tensor"
       }
     ]
   },

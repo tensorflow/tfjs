@@ -18,7 +18,7 @@
 
 const {findPackagesWithDiff, allPackages} =
     require('./find_packages_with_diff.js');
-const {generateCloudbuild} = require('./generate_cloudbuild.js');
+const {generateCloudbuild} = require('./generate_cloudbuild');
 const {ArgumentParser} = require('argparse');
 const yaml = require('js-yaml');
 const fs = require('fs');

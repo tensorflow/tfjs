@@ -22,7 +22,7 @@ import * as tensorflow from '../data/compiled_api';
 import {deregisterOp, registerOp} from '../operations/custom_op/register';
 import {GraphNode} from '../operations/types';
 
-import {GraphModel, loadGraphModel} from './graph_model';
+import {GraphModel, loadGraphModel, loadGraphModelSync} from './graph_model';
 
 const HOST = 'http://example.org';
 const MODEL_URL = `${HOST}/model.json`;
@@ -402,6 +402,36 @@ describe('loadGraphModel', () => {
     ]);
     await loadGraphModel(MODEL_URL, {fetchFunc});
     expect(tfc.io.getLoadHandlers).toHaveBeenCalledWith(MODEL_URL, {fetchFunc});
+  });
+});
+
+describe('loadGraphModelSync', () => {
+  it('Pass a custom io handler', () => {
+    const customLoader: tfc.io.IOHandlerSync = {
+      load: () => {
+        return {
+          modelTopology: SIMPLE_MODEL,
+          weightSpecs: weightsManifest,
+          weightData: new Int32Array([5]).buffer,
+        };
+      }
+    };
+    const model = loadGraphModelSync(customLoader);
+    expect(model).toBeDefined();
+    const bias = model.weights['Const'][0];
+    expect(bias.dtype).toBe('int32');
+    expect(bias.dataSync()).toEqual(new Int32Array([5]));
+  });
+
+  it('Expect an error when moderUrl is null', () => {
+    let errorMsg = 'no error';
+    try {
+      loadGraphModelSync(null);
+    } catch (err) {
+      errorMsg = err.message;
+    }
+    expect(errorMsg)
+      .toMatch(/modelUrl in loadGraphModelSync\(\) cannot be null/);
   });
 });
 

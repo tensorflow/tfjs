@@ -222,7 +222,7 @@ const TEST_FILTERS: TestFilter[] = [
       'gradient'  // Split is not yet implemented
     ]
   },
-  {include: 'transpose'},
+  {include: 'transpose', excludes: ['accepts complex64 input']},
   {include: 'oneHot'},
   {include: 'split'},
   {include: 'pad ', excludes: ['complex', 'zerosLike']},
@@ -294,6 +294,9 @@ const TEST_FILTERS: TestFilter[] = [
   {startsWith: 'cumprod'},
   {startsWith: 'cumsum'},
   {startsWith: 'logicalAnd '},
+  {startsWith: 'logicalNot '},
+  {startsWith: 'logicalOr '},
+  {startsWith: 'logicalXor '},
   {
     startsWith: 'tile ',
     excludes: [
