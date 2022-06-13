@@ -18,6 +18,8 @@
 #include <cstddef>
 #include <vector>
 
+#include "tfjs-backend-wasm/src/cc/scatter_impl.h"
+
 namespace tfjs {
 namespace wasm {
 
