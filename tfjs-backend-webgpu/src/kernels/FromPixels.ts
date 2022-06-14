@@ -83,15 +83,14 @@ export function fromPixels(args: {
     externalImage = pixels as HTMLCanvasElement | ImageBitmap;
   }
 
-  if (useImport || useKernel) {
+  if (useKernel) {
     const size = util.sizeFromShape(outShape);
     const strides = util.computeStrides(outShape);
     const program = new FromPixelsProgram(outShape, numChannels, useImport);
 
     const uniformData = [
       {type: 'uint32', data: [size]}, {type: 'uint32', data: [numChannels]},
-      {type: 'uint32', data: [...strides]},
-      {type: 'uint32', data: [...program.dispatch]}
+      {type: 'uint32', data: [...strides]}
     ];
 
     return backend.runFromPixelsProgram(
