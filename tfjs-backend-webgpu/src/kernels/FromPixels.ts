@@ -64,26 +64,25 @@ export function fromPixels(args: {
 
   const useImport = env().getBool('WEBGPU_USE_IMPORT') && isVideo;
   const isVideoOrImage = isVideo || isImage;
-  const useKernel = isImageBitmap || isCanvas || isVideoOrImage;
-
-  let externalImage;
-  if (useImport) {
-    externalImage = pixels as HTMLVideoElement;
-  } else if (useKernel) {
-    if (isVideoOrImage) {
-      if (fromPixels2DContext == null) {
-        fromPixels2DContext = document.createElement('canvas').getContext('2d');
+  if (isImageBitmap || isCanvas || isVideoOrImage) {
+    let externalImage;
+    if (useImport) {
+      externalImage = pixels as HTMLVideoElement;
+    } else {
+      if (isVideoOrImage) {
+        if (fromPixels2DContext == null) {
+          fromPixels2DContext =
+              document.createElement('canvas').getContext('2d');
+        }
+        fromPixels2DContext.canvas.width = width;
+        fromPixels2DContext.canvas.height = height;
+        fromPixels2DContext.drawImage(
+            pixels as HTMLVideoElement | HTMLImageElement, 0, 0, width, height);
+        pixels = fromPixels2DContext.canvas;
       }
-      fromPixels2DContext.canvas.width = width;
-      fromPixels2DContext.canvas.height = height;
-      fromPixels2DContext.drawImage(
-          pixels as HTMLVideoElement | HTMLImageElement, 0, 0, width, height);
-      pixels = fromPixels2DContext.canvas;
+      externalImage = pixels as HTMLCanvasElement | ImageBitmap;
     }
-    externalImage = pixels as HTMLCanvasElement | ImageBitmap;
-  }
 
-  if (useKernel) {
     const size = util.sizeFromShape(outShape);
     const strides = util.computeStrides(outShape);
     const program = new FromPixelsProgram(outShape, numChannels, useImport);
