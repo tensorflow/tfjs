@@ -55,10 +55,6 @@ cc_binary(
         "pre.js",
         "post.js",
     ],
-    additional_linker_inputs = [
-        "pre.js",
-        "post.js",
-    ],
     copts = [
         "-msimd128",
     ],
@@ -72,10 +68,6 @@ cc_binary(
 cc_binary(
     name = "tfjs-backend-wasm-threaded-simd.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
-    additional_linker_inputs = [
-        "pre.js",
-        "post.js",
-    ],
     additional_linker_inputs = [
         "pre.js",
         "post.js",
