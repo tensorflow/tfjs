@@ -53,12 +53,12 @@ cc_binary(
 cc_binary(
     name = "tfjs-backend-wasm-simd.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
-    copts = [
-        "-msimd128",
-    ],
     additional_linker_inputs = [
         "pre.js",
         "post.js",
+    ],
+    copts = [
+        "-msimd128",
     ],
     linkopts = BASE_LINKOPTS,
     deps = [
@@ -70,13 +70,13 @@ cc_binary(
 cc_binary(
     name = "tfjs-backend-wasm-threaded-simd.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
-    copts = [
-        "-msimd128",
-        "-pthread",
-    ],
     additional_linker_inputs = [
         "pre.js",
         "post.js",
+    ],
+    copts = [
+        "-msimd128",
+        "-pthread",
     ],
     linkopts = BASE_LINKOPTS + [
         "-s EXPORT_NAME=WasmBackendModuleThreadedSimd",
