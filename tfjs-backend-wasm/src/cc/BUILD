@@ -22,8 +22,8 @@ BASE_LINKOPTS = [
     "-s MALLOC=emmalloc",
     # TODO(mattsoulanille): Mark these files as dependencies so Bazel rebuilds
     # when they change. github.com/emscripten-core/emsdk/issues/933
-    "--pre-js ./tfjs-backend-wasm/src/cc/pre.js",
-    "--post-js ./tfjs-backend-wasm/src/cc/post.js",
+    "--pre-js $(location :pre.js)",
+    "--post-js $(location :post.js)",
 ]
 
 # This build rule generates tfjs-backend-wasm.{js,wasm}.
@@ -37,6 +37,10 @@ BASE_LINKOPTS = [
 cc_binary(
     name = "tfjs-backend-wasm.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    additional_linker_inputs = [
+        "pre.js",
+        "post.js",
+    ],
     linkopts = BASE_LINKOPTS + [
         "-s EXPORT_NAME=WasmBackendModule",
     ],
@@ -52,6 +56,10 @@ cc_binary(
     copts = [
         "-msimd128",
     ],
+    additional_linker_inputs = [
+        "pre.js",
+        "post.js",
+    ],
     linkopts = BASE_LINKOPTS,
     deps = [
         ":all_kernels",
@@ -65,6 +73,10 @@ cc_binary(
     copts = [
         "-msimd128",
         "-pthread",
+    ],
+    additional_linker_inputs = [
+        "pre.js",
+        "post.js",
     ],
     linkopts = BASE_LINKOPTS + [
         "-s EXPORT_NAME=WasmBackendModuleThreadedSimd",
