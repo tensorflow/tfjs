@@ -20,8 +20,6 @@ BASE_LINKOPTS = [
     "-s EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
     "-s MODULARIZE=1",
     "-s MALLOC=emmalloc",
-    # TODO(mattsoulanille): Mark these files as dependencies so Bazel rebuilds
-    # when they change. github.com/emscripten-core/emsdk/issues/933
     "--pre-js $(location :pre.js)",
     "--post-js $(location :post.js)",
 ]
