@@ -16,14 +16,21 @@
  */
 
 // Import core for side effects (e.g. flag registration)
-import '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs-core';
 // tslint:disable-next-line:no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/public/chained_ops/register_all_chained_ops';
 // tslint:disable-next-line: no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/register_all_gradients';
-
+// Register the wasm backend.
+import * as wasmBackend from './index';
 // tslint:disable-next-line: no-imports-from-dist
 import {setTestEnvs, setupTestFilters, TestFilter} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
+// Bazel's karma_web_test does not support setting proxies for loaded files,
+// so set the wasm path to where it serves them.
+if (tf.device_util.isBrowser()) {
+  wasmBackend.setWasmPaths('/base/tfjs/tfjs-backend-wasm/wasm-out/');
+}
 
 setTestEnvs([{name: 'test-wasm', backendName: 'wasm', isDataSync: true}]);
 
@@ -405,3 +412,6 @@ setupTestFilters(TEST_FILTERS, customInclude);
 // tslint:disable-next-line:no-imports-from-dist
 // tslint:disable-next-line:no-require-imports
 require('@tensorflow/tfjs-core/dist/tests');
+// Import and run wasm tests
+// tslint:disable-next-line:no-require-imports
+require('./tests');

@@ -415,7 +415,7 @@ Update the `cloudbuild.yml` to remove any steps that are now built with Bazel. T
 
 Note that the output paths of Bazel-created outputs will be different, so any remaining steps that now rely on Bazel outputs may need to be updated. Bazel outputs are located in `tfjs/dist/bin/...`.
 
-If all steps of the `cloudbuild.yml` file are handled by Bazel, it can be deleted. Make sure to also remove references to the package from `tfjs/scripts/package_dependencies.json`. This includes references to it from other steps in the dependency tree.
+If all steps of the `cloudbuild.yml` file are handled by Bazel, it can be deleted. Do not remove the package from `tfjs/scripts/package_dependencies.json`.
 
 Rebuild the cloudbuild golden files by running `yarn update-cloudbuild-tests` in the root of the repository.
 
@@ -433,8 +433,7 @@ Before pushing to Git, run the Bazel linter by running `yarn bazel:format` and `
 * For browser tests, it may be worth checking that all desired browser configurations will run in nightly CI.
 * Make sure browser tests include all required tests. The `enumerate_tests` rule is usually necessary to make the browser actually run tests.
 * Make sure as many cloudbuild steps as possible are converted to Bazel, and that those steps are removed from the cloudbuild file.
-  * TODO: Repo-wide linting so the lint steps can be removed from `cloudbuild.yml`.
-* If the build and tests are fully handled by Bazel and don't need any other cloudbuild steps, make sure the package's `cloudbuild.yml` file is removed and the package is removed from [scripts/package_dependencies.json](https://github.com/tensorflow/tfjs/blob/master/scripts/package_dependencies.json).
+* If the build and tests are fully handled by Bazel and don't need any other cloudbuild steps, make sure the package's `cloudbuild.yml` file is removed. Do not remove the package from [scripts/package_dependencies.json](https://github.com/tensorflow/tfjs/blob/master/scripts/package_dependencies.json).
 * Make sure tests are tagged with `nightly` or `ci` (`tfjs_web_test` automatically tags tests with `nightly` and `ci`).
 * Make sure the main `pkg_npm` rule is tagged with `ci` or `nightly` so all parts of the build are tested.
 * Make sure the `package.json` scripts are updated and that the package.json includes `@bazel/bazelisk` as a dev dependency.

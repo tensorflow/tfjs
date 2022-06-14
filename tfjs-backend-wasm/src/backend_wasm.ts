@@ -20,10 +20,20 @@ import {backend_util, BackendTimingInfo, DataStorage, DataType, deprecationWarn,
 
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
 import {BackendWasmThreadedSimdModule} from '../wasm-out/tfjs-backend-wasm-threaded-simd';
-import wasmFactoryThreadedSimd from '../wasm-out/tfjs-backend-wasm-threaded-simd.js';
+import  * as wasmFactoryThreadedSimd_import from '../wasm-out/tfjs-backend-wasm-threaded-simd.js';
 // @ts-ignore
 import {wasmWorkerContents} from '../wasm-out/tfjs-backend-wasm-threaded-simd.worker.js';
-import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
+import * as wasmFactory_import from '../wasm-out/tfjs-backend-wasm.js';
+
+// This workaround is required for importing in Node.js without using
+// the node bundle (for testing). This would not be necessary if we
+// flipped esModuleInterop to true, but we likely can't do that since
+// google3 does not use it.
+const wasmFactoryThreadedSimd = (wasmFactoryThreadedSimd_import.default
+  || wasmFactoryThreadedSimd_import) as
+typeof wasmFactoryThreadedSimd_import.default;
+const wasmFactory = (wasmFactory_import.default
+  || wasmFactory_import) as typeof wasmFactory_import.default;
 
 interface TensorData {
   id: number;

@@ -1,6 +1,8 @@
 load("@emsdk//emscripten_toolchain:wasm_rules.bzl", "wasm_cc_binary")
 load(":build_defs.bzl", "tfjs_cc_library", "tfjs_unit_test")
 
+package(default_visibility = ["//visibility:public"])
+
 # Emcripten produces a much larger wasm bundle unless the cc_binary has srcs
 # explicitly pointing to files with exported methods (EMSCRIPTEN_KEEPALIVE).
 KERNELS_WITH_KEEPALIVE = glob(
@@ -47,6 +49,9 @@ cc_binary(
 cc_binary(
     name = "tfjs-backend-wasm-simd.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    copts = [
+        "-msimd128",
+    ],
     linkopts = BASE_LINKOPTS,
     deps = [
         ":all_kernels",
@@ -57,6 +62,10 @@ cc_binary(
 cc_binary(
     name = "tfjs-backend-wasm-threaded-simd.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    copts = [
+        "-msimd128",
+        "-pthread",
+    ],
     linkopts = BASE_LINKOPTS + [
         "-s EXPORT_NAME=WasmBackendModuleThreadedSimd",
         "-s MALLOC=emmalloc",
