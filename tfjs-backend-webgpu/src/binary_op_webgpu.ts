@@ -72,15 +72,16 @@ export class BinaryOpProgram implements WebGPUProgram {
           util.sizeFromShape(aShape) % 4 === 0) {
         this.isVec4 = true;
         this.type = 'vec4';
+        this.workPerThread = 4;
       } else {
         this.isVec4 = false;
         this.type = 'plain';
+        this.workPerThread = 1;
       }
       this.shaderKey = `binary_${this.type}_${op}`;
       // TODO(jiajia.qin@intel.com): Heuristically select a good work group
       // size.
       this.workGroupSize = [128, 1, 1];
-      this.workPerThread = 4;
     }
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,

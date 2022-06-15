@@ -165,7 +165,6 @@ export function makeShader(
           size            : i32,
           numChannels     : i32,
           outShapeStrides : vec2<i32>,
-          dispatchSize    : vec3<u32>,
         };
 
         @group(0) @binding(0) var<storage, write> result: array<${
