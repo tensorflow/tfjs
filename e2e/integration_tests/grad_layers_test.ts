@@ -30,7 +30,7 @@ import {SMOKE} from './constants';
 // TODO(#6518): Test against wasm as well.
 const NOT_WASM: Constraints = {
   predicate: testEnv => testEnv.backendName !== 'wasm',
-}
+};
 
 /**
  *  Tests that tf.grad works for layers models.
