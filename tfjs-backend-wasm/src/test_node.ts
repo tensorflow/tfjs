@@ -16,11 +16,16 @@
  */
 
 // Register the wasm backend.
-import './index';
+import '@tensorflow/tfjs-backend-wasm';
+import * as tf from '@tensorflow/tfjs-core';
 
 // tslint:disable-next-line: no-imports-from-dist
 import {setTestEnvs} from '@tensorflow/tfjs-core/dist/jasmine_util';
-import jasmine from 'jasmine';
+
+// tslint:disable-next-line: no-require-imports
+const jasmine = require('jasmine');
+
+tf.setBackend('wasm');
 
 Error.stackTraceLimit = Infinity;
 
@@ -31,7 +36,10 @@ process.on('unhandledRejection', e => {
 setTestEnvs([{name: 'wasm-node', backendName: 'wasm', isDataSync: true}]);
 
 const runner = new jasmine({});
-runner.loadConfig({spec_files: ['src/**/*_test.ts'], random: false});
+runner.loadConfig({
+  spec_files: ['tfjs-backend-wasm/src/setup_test.js'],
+  random: false,
+});
 
 if (process.env.JASMINE_SEED) {
   runner.seed(process.env.JASMINE_SEED);
