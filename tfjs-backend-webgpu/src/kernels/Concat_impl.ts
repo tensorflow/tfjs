@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, ConcatInputs, env, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, ConcatInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {ConcatProgram} from '../concat_webgpu';
@@ -95,15 +95,29 @@ export function concatImpl(
   }
 
   if (inputs.length >
-      env().getNumber('WEBGPU_MAX_STORAGE_BUFFER_IN_SHADER') - 1) {
-    const midIndex = Math.floor(inputs.length / 2);
-    const leftSide = concatImpl(inputs.slice(0, midIndex), axis, backend);
-    const rightSide = concatImpl(inputs.slice(midIndex), axis, backend);
+      backend.device.limits.maxStorageBuffersPerShaderStage - 1) {
+    const subArray = [];
+    // There is a storage buffer limitation in compute stage, one for output so
+    // the maximum for input is limits.maxStorageBuffersPerShaderStage -1
+    const maxInputNum =
+        backend.device.limits.maxStorageBuffersPerShaderStage - 1;
+    for (let i = 0; i < maxInputNum; i++) {
+      if (inputs.slice(i * maxInputNum, (i + 1) * maxInputNum).length !== 0) {
+        subArray.push(concatImpl(
+            inputs.slice(i * maxInputNum, (i + 1) * maxInputNum), axis,
+            backend));
+      }
+    }
+    if (inputs.slice(maxInputNum * maxInputNum).length !== 0) {
+      subArray.push(
+          concatImpl(inputs.slice(maxInputNum * maxInputNum), axis, backend));
+    }
 
-    const result = concatImpl([leftSide, rightSide], axis, backend);
+    const result = concatImpl(subArray, axis, backend);
 
-    backend.disposeData(leftSide.dataId);
-    backend.disposeData(rightSide.dataId);
+    for (const i of subArray) {
+      backend.disposeData(i.dataId);
+    }
 
     return result;
   }

@@ -63,8 +63,3 @@ ENV.registerFlag('WEBGPU_USE_PROFILE_TOOL', () => false);
  * Whether to use import API.
  */
 ENV.registerFlag('WEBGPU_USE_IMPORT', () => false);
-
-/**
- * Maximum per-stage limit in the compute stage.
- */
-ENV.registerFlag('WEBGPU_MAX_STORAGE_BUFFER_IN_SHADER', () => 8);
