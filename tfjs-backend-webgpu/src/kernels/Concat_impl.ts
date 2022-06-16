@@ -94,26 +94,20 @@ export function concatImpl(
     return outInfo;
   }
 
-  if (inputs.length >
-      backend.device.limits.maxStorageBuffersPerShaderStage - 1) {
-    const subArray = [];
-    // There is a storage buffer limitation in compute stage, one for output so
-    // the maximum for input is limits.maxStorageBuffersPerShaderStage -1
-    const maxInputNum =
-        backend.device.limits.maxStorageBuffersPerShaderStage - 1;
-    for (let i = 0; i < maxInputNum; i++) {
-      if (inputs.slice(i * maxInputNum, (i + 1) * maxInputNum).length !== 0) {
-        subArray.push(concatImpl(
-            inputs.slice(i * maxInputNum, (i + 1) * maxInputNum), axis,
-            backend));
+  // There is a storage buffer limitation in compute stage, one for output so
+  // the maximum for input is limits.maxStorageBuffersPerShaderStage - 1
+  const maxInputNum = backend.device.limits.maxStorageBuffersPerShaderStage - 1;
+  if (inputs.length > maxInputNum) {
+    let subArray = [];
+    for (let i = 0; i < maxInputNum - 1; i++) {
+      let fitMaxArray = inputs.slice(i * maxInputNum, (i + 1) * maxInputNum);
+      if (fitMaxArray.length !== 0) {
+        subArray.push(concatImpl(fitMaxArray, axis, backend));
       }
     }
-    if (inputs.slice(maxInputNum * maxInputNum).length !== 0) {
-      subArray.push(
-          concatImpl(inputs.slice(maxInputNum * maxInputNum), axis, backend));
-    }
-
-    const result = concatImpl(subArray, axis, backend);
+    const restArray = inputs.slice((maxInputNum - 1) * maxInputNum);
+    const newArray = subArray.concat(restArray);
+    const result = concatImpl(newArray, axis, backend);
 
     for (const i of subArray) {
       backend.disposeData(i.dataId);
