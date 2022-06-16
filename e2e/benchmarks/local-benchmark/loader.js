@@ -16,7 +16,7 @@
  */
 
 // Promise is used to guarantee scripts are loaded in order.
-async function loadScript(url) {
+function loadScript(url) {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.onload = resolve;
