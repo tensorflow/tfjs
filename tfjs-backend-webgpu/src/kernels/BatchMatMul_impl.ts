@@ -22,7 +22,7 @@ import {MatMulPackedVec4Program} from '../matmul_packed_vec4_webgpu';
 import {MatMulPackedProgram} from '../matmul_packed_webgpu';
 import {MatMulReduceProgram} from '../matmul_reduce_webgpu';
 import {MatMulSmallOutputSizeProgram} from '../matmul_small_output_size_webgpu';
-import {MatMulSplitKProgram} from '../matmul_splitK';
+import {MatMulSplitKProgram} from '../matmul_splitK_webgpu';
 import {WebGPUProgram} from '../webgpu_program';
 
 import {reshape} from './Reshape';
