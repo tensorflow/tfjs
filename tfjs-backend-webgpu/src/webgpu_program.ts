@@ -20,33 +20,33 @@ import {backend_util, DataType, Rank, ShapeMap, TensorInfo, util} from '@tensorf
 import {symbolicallyComputeStrides} from './shader_util';
 
 export interface WebGPUProgram {
-  // The unique key to distinguish different shader source code.
-  shaderKey: string;
-  outputShape: number[];
+  // Whether to use atomic built-in functions.
+  atomic?: boolean;
+  // dispatch specifies geometry of thread groups - derived from dispatchLayout.
+  dispatch: [number, number, number];
   // dispatchLayout enumerates how tensor dimensions are distributed among
   // dispatch x,y,z dimensions.
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
-  // dispatch specifies geometry of thread groups - derived from dispatchLayout.
-  dispatch: [number, number, number];
+  isVec4?: boolean;
+  outputShape: number[];
+  // The unique key to distinguish different shader source code.
+  shaderKey: string;
+  // Whether to use output size for bounds checking.
+  size?: boolean;
+  uniforms?: string;
   variableNames: string[];
   // Describe each variable's type and must have one-one mapping with
   // variableNames. If not set, all variables type will be either f32 or
   // vec4<f32> based on isVec4 member.
   variableTypes?: string[];
-  uniforms?: string;
-  // Size of register cache in one dimension (assumes square cache).
-  // Each thread writes to workPerThread * workPerThread locations in the output
-  // buffer.
-  workPerThread?: number;
   // workGroupSize.x * workGroupSize.y * workGroupSize.z = the number of threads
   // in a thread group. Individual dimensions determines thread layout within
   // the group.
   workGroupSize: [number, number, number];
-  isVec4?: boolean;
-  // Whether to use output size for bounds checking.
-  size?: boolean;
-  // Whether to use atomic built-in functions.
-  atomic?: boolean;
+  // Size of register cache in one dimension (assumes square cache).
+  // Each thread writes to workPerThread * workPerThread locations in the output
+  // buffer.
+  workPerThread?: number;
   getUserCode: () => string;
 }
 
@@ -165,7 +165,6 @@ export function makeShader(
           size            : i32,
           numChannels     : i32,
           outShapeStrides : vec2<i32>,
-          dispatchSize    : vec3<u32>,
         };
 
         @group(0) @binding(0) var<storage, write> result: array<${
