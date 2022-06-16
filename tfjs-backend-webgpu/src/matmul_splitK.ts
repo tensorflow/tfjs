@@ -18,8 +18,7 @@
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 
 // import {mapActivationToShaderProgram} from './activation_util';
-import {getMainHeaderString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
 export function makeMatMulSplitKSource(): string {
@@ -115,7 +114,7 @@ export class MatMulSplitKProgram implements WebGPUProgram {
           this.outputShape[0], this.outputShape[1], this.outputShape[2],
           dimInner
         ],
-        [4, 4, 32]);
+        this.workGroupSize, [4, 4, 32]);
 
     const addBias = bias != null;
     const hasPreluActivationWeights = preluActivationWeights != null;
@@ -170,13 +169,14 @@ export class MatMulSplitKProgram implements WebGPUProgram {
     // atomicAdd only supports uint/int type. For float, we use
     // atomicCompareExchangeWeak to simulate.
     const atomicAddSnippet = `
-     var assumed = atomicLoad(&(result[flatIndex]));
-     var success = 0;
-     for (; success == 0;) {
-       let new = bitcast<f32>(assumed) + value;
-       let newI32 = bitcast<i32>(new);
-       let resValue = atomicCompareExchangeWeak(&(result[flatIndex]),
-  assumed, newI32); assumed = resValue[0]; success = resValue[1];
+     var oldValue = atomicLoad(&(result[flatIndex]));
+     var exchanged = false;
+     for (; !exchanged;) {
+       let newValueF32 = bitcast<f32>(oldValue) + value;
+       let newValue = bitcast<i32>(newValueF32);
+       let res = atomicCompareExchangeWeak(&(result[flatIndex]), oldValue, newValue);
+       oldValue = res.old_value;
+       exchanged = res.exchanged;
      }
      `;
     const userCode = `
