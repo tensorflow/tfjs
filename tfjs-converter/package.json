@@ -40,7 +40,7 @@
     "bundle-ci": "yarn build",
     "build-npm": "bazel build :tfjs-converter_pkg.pack",
     "publish-npm": "bazel run :tfjs-converter_pkg.publish",
-    "test": "bazel test :tfjs-converter_test :test_snippets_test",
+    "test": "bazel test :tests",
     "test-ci": "yarn test",
     "test-converter": "bazel test :tfjs-converter_test",
     "test-dev": "ibazel run :tfjs-converter_test",
