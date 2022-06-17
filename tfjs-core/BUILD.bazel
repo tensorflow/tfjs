@@ -167,7 +167,7 @@ nodejs_test(
 )
 
 test_suite(
-    name = "tfjs-core_tests",
+    name = "tests",
     tests = [
         ":test_snippets_test",
         ":tfjs-core_async_backends_test",
