@@ -32,7 +32,7 @@
     "link-local": "yalc link",
     "publish-npm": "bazel run :tfjs-backend-cpu_pkg.publish",
     "coverage": "bazel coverage :tfjs-backend-cpu_test",
-    "test": "bazel test :tfjs-backend-cpu_test --test_output=streamed",
+    "test": "bazel test :tests --test_output=streamed",
     "test-debug": "bazel run :tfjs-backend-cpu_test --config=debug",
     "test-dev": "ibazel run :tfjs-backend-cpu_test --test-output=streamed",
     "test-ci": "yarn test"
