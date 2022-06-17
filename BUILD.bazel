@@ -43,3 +43,17 @@ grep_flag(
     build_setting_default = "",
     visibility = ["//visibility:public"],
 )
+
+test_suite(
+    name = "tests",
+    tests = [
+        "//tfjs-backend-cpu:tests",
+        "//tfjs-backend-wasm:tests",
+        "//tfjs-backend-webgl:tests",
+        "//tfjs-converter:tests",
+        "//tfjs-core:tests",
+        "//tfjs-data:tests",
+        "//tfjs-layers:tests",
+        "//tfjs-tflite:tests",
+    ],
+)
