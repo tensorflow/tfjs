@@ -87,6 +87,7 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
     const addBiasSnippet = this.addBias ?
         'dotProd[i] = dotProd[i] + getBiasByOutputCoords(coords);' :
         '';
+    // Here 4 is the work per thread in X dimension.
     const xNumber = 4 + this.convInfo.filterWidth - 1;
     const userCode = `
       ${activationSnippet}
