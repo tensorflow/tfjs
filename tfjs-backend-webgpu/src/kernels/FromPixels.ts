@@ -60,14 +60,16 @@ export function fromPixels(args: {
         (pixels as HTMLVideoElement).videoHeight
       ] :
       [pixels.width, pixels.height];
-  const outShape = [height, width, numChannels];
+  const outputShape = [height, width, numChannels];
 
   const useImport = env().getBool('WEBGPU_USE_IMPORT') && isVideo;
   const isVideoOrImage = isVideo || isImage;
   if (isImageBitmap || isCanvas || isVideoOrImage) {
-    let externalImage;
+    let externalResource: GPUExternalTexture|GPUTextureView;
     if (useImport) {
-      externalImage = pixels as HTMLVideoElement;
+      const externalTextureDescriptor = {source: pixels as HTMLVideoElement};
+      externalResource =
+          backend.device.importExternalTexture(externalTextureDescriptor);
     } else {
       if (isVideoOrImage) {
         if (fromPixels2DContext == null) {
@@ -80,20 +82,25 @@ export function fromPixels(args: {
             pixels as HTMLVideoElement | HTMLImageElement, 0, 0, width, height);
         pixels = fromPixels2DContext.canvas;
       }
-      externalImage = pixels as HTMLCanvasElement | ImageBitmap;
+      externalResource = backend.copyExternalImageToTexture(
+          pixels as HTMLCanvasElement | ImageBitmap, outputShape);
     }
 
-    const size = util.sizeFromShape(outShape);
-    const strides = util.computeStrides(outShape);
-    const program = new FromPixelsProgram(outShape, numChannels, useImport);
+    const size = util.sizeFromShape(outputShape);
+    const strides = util.computeStrides(outputShape);
+    const program = new FromPixelsProgram(outputShape, numChannels, useImport);
 
     const uniformData = [
       {type: 'uint32', data: [size]}, {type: 'uint32', data: [numChannels]},
       {type: 'uint32', data: [...strides]}
     ];
-
-    return backend.runFromPixelsProgram(
-        program, outShape, uniformData, useImport, externalImage);
+    const input = backend.makeTensorInfo([height, width], 'int32');
+    const info = backend.tensorMap.get(input.dataId);
+    info.texture = externalResource;
+    const result =
+        backend.runWebGPUProgram(program, [input], 'int32', uniformData);
+    backend.disposeData(input.dataId);
+    return result;
   }
 
   // TODO: Encoding should happen on GPU once we no longer have to download
@@ -112,7 +119,7 @@ export function fromPixels(args: {
     }
   }
 
-  const output = backend.makeTensorInfo(outShape, 'int32');
+  const output = backend.makeTensorInfo(outputShape, 'int32');
 
   const info = backend.tensorMap.get(output.dataId);
   info.values = new Int32Array(pixelArray);

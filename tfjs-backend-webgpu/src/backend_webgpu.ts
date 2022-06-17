@@ -23,7 +23,6 @@ import {BufferManager} from './buffer_manager';
 import {TextureManager} from './texture_manager';
 import * as webgpu_program from './webgpu_program';
 import * as webgpu_util from './webgpu_util';
-import {WebGPULayout} from './webgpu_util';
 
 export interface WebGPUMemoryInfo extends backend_util.MemoryInfo {
   numBytesInGPU: number;
@@ -37,12 +36,13 @@ type BufferInfo = {
   buffer?: GPUBuffer
 };
 
-type TensorBufferInfo = {
+type ResourceTensorInfo = {
   values: backend_util.BackendValues,
   dtype: DataType,
   shape: number[],
-  bufferInfo: BufferInfo,
   refCount: number,
+  bufferInfo?: BufferInfo,
+  texture?: GPUExternalTexture|GPUTextureView,
   // For complex numbers, the real and imaginary parts are stored as their own
   // individual tensors, with a parent joining the two with the
   // complexTensorInfos field.
@@ -113,7 +113,7 @@ export class WebGPUBackend extends KernelBackend {
   queue: GPUQueue;
   currentCommandEncoder: GPUCommandEncoder;
   currentComputePass: GPUComputePassEncoder;
-  tensorMap: DataStorage<TensorBufferInfo>;
+  tensorMap: DataStorage<ResourceTensorInfo>;
   supportTimeQuery: boolean;
   dummyCanvas: HTMLCanvasElement;
   dummyContext: GPUCanvasContext;
@@ -123,7 +123,6 @@ export class WebGPUBackend extends KernelBackend {
     return WebGPUBackend.nextDataId++;
   }
   private commandQueueOwnedIds = new WeakSet<DataId>();
-  private layoutCache: {[key: number]: WebGPULayout};
   private pipelineCache: {[key: string]: GPUComputePipeline};
   private bufferManager: BufferManager;
   private textureManager: TextureManager;
@@ -141,15 +140,12 @@ export class WebGPUBackend extends KernelBackend {
   private downloadWaitMs = 0;
   private dispatchNumberInEncoder = 0;
   private querySet: GPUQuerySet;
-  private fromPixelTextureLayout: WebGPULayout = null;
-  private fromPixelImportTextureLayout: WebGPULayout = null;
 
   constructor(device: GPUDevice, supportTimeQuery = false) {
     super();
     if (!webgpu_util.isWebGPUSupported()) {
       throw new Error('WebGPU is not supported on this device');
     }
-    this.layoutCache = {};
     this.pipelineCache = {};
     this.device = device;
     this.queue = device.queue;
@@ -575,13 +571,6 @@ export class WebGPUBackend extends KernelBackend {
     return res;
   }
 
-  getAndSavePipeline(key: string, getPipeline: () => GPUComputePipeline) {
-    if (!(key in this.pipelineCache)) {
-      this.pipelineCache[key] = getPipeline();
-    }
-    return this.pipelineCache[key];
-  }
-
   makeTensorInfo(
       shape: number[], dtype: DataType,
       values?: backend_util.BackendValues|string[]): TensorInfo {
@@ -604,7 +593,9 @@ export class WebGPUBackend extends KernelBackend {
     }
 
     const tensorData = this.tensorMap.get(tensor.dataId);
-
+    if (tensorData.texture) {
+      return tensorData.texture;
+    }
     return {
       offset: 0,
       size: tensorData.bufferInfo.byteSize,
@@ -623,7 +614,7 @@ export class WebGPUBackend extends KernelBackend {
   uploadToGPU(dataId: DataId): void {
     const info = this.tensorMap.get(dataId);
 
-    if (info.bufferInfo.buffer != null) {
+    if (info.bufferInfo.buffer != null || info.texture) {
       // Already on the GPU.
       return;
     }
@@ -729,94 +720,47 @@ export class WebGPUBackend extends KernelBackend {
     return {offset: 0, size: currentOffset, buffer: uniformBuffer};
   }
 
-  // This layout is used by all programs except fromPixel.
-  private createLayout(inputEntrySize: number): WebGPULayout {
-    const bindGroupLayoutEntries: GPUBindGroupLayoutEntry[] = [];
-    // Output buffer binding layout.
-    bindGroupLayoutEntries.push({
-      binding: 0,
-      visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'storage' as const }
-    });
-    // Input buffer binding layout. Depends on variableNames length.
-    for (let i = 0; i < inputEntrySize; i++) {
-      bindGroupLayoutEntries.push({
-        binding: i + 1,
-        visibility: GPUShaderStage.COMPUTE,
-        buffer: {type: 'read-only-storage' as const }
-      });
-    }
-    bindGroupLayoutEntries.push({
-      binding: inputEntrySize + 1,
-      visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'uniform' as const }
-    });
-    const bindGroupLayout =
-        this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
-    const pipelineLayout =
-        this.device.createPipelineLayout({bindGroupLayouts: [bindGroupLayout]});
-    return {bindGroupLayout, pipelineLayout};
-  }
-
-  private getCachedOrCreateLayout(inputEntrySize: number): WebGPULayout {
-    if (!(inputEntrySize in this.layoutCache)) {
-      this.layoutCache[inputEntrySize] = this.createLayout(inputEntrySize);
-    }
-    return this.layoutCache[inputEntrySize];
-  }
-
-  private makeBindGroup(
-      device: GPUDevice, bindGroupLayout: GPUBindGroupLayout,
-      inputs: GPUBindingResource[], output: GPUBindingResource,
-      uniforms?: GPUBindingResource): GPUBindGroup {
-    const bindings = [output, ...inputs];
-    if (uniforms) {
-      bindings.push(uniforms);
-    }
-    return device.createBindGroup({
-      layout: bindGroupLayout,
-      entries: bindings.map((b, i) => ({binding: i, resource: b})),
-    });
-  }
-
   public runWebGPUProgram(
       program: webgpu_program.WebGPUProgram, inputs: TensorInfo[],
       outputDtype: DataType, programUniforms?: ProgramUniform,
       output?: TensorInfo): TensorInfo {
     if (!output) {
       output = this.makeTensorInfo(program.outputShape, outputDtype);
-      if (util.sizeFromShape(output.shape) === 0) {
-        // Short-circuit the computation since the result is empty (has 0 in its
-        // shape).
-        const outData = this.tensorMap.get(output.dataId);
-        outData.values =
-            util.getTypedArrayFromDType(output.dtype as 'float32', 0);
-        return output;
-      }
-      this.uploadToGPU(output.dataId);
     }
+    if (util.sizeFromShape(output.shape) === 0) {
+      // Short-circuit the computation since the result is empty (has 0 in its
+      // shape).
+      const outData = this.tensorMap.get(output.dataId);
+      outData.values =
+          util.getTypedArrayFromDType(output.dtype as 'float32', 0);
+      return output;
+    }
+    this.uploadToGPU(output.dataId);
     program.dispatch = reshapeDispatch(this.device, program);
 
     // There are five kinds of uniforms: NAN, shapes, shape strides, program
     // size, program defined uniforms.
-    let uniformsWithType: Array<{type: string; data: number[];}> =
-        [{type: 'float32', data: [NaN]}];
-    const bufferShapes = inputs.concat(output).map(d => d.shape);
-    const uniformsType = 'int32';
-    bufferShapes.map(d => {
-      uniformsWithType.push({type: uniformsType, data: d});
-    });
-    const strides = util.computeStrides(output.shape);
-    uniformsWithType.push({type: uniformsType, data: strides});
-    if (program.size) {
-      const size = util.sizeFromShape(program.outputShape);
-      uniformsWithType.push(
-          {type: uniformsType, data: [program.isVec4 ? size / 4 : size]});
+    let uniformsWithType: ProgramUniform = [];
+    let bufferShapes: number[][] = [];
+    if (!program.isFromPixels) {
+      uniformsWithType.push({type: 'float32', data: [NaN]});
+      bufferShapes = inputs.concat(output).map(d => d.shape);
+      const uniformsType = 'int32';
+      bufferShapes.map(d => {
+        uniformsWithType.push({type: uniformsType, data: d});
+      });
+      const strides = util.computeStrides(output.shape);
+      uniformsWithType.push({type: uniformsType, data: strides});
+      if (program.size) {
+        const size = util.sizeFromShape(program.outputShape);
+        uniformsWithType.push(
+            {type: uniformsType, data: [program.isVec4 ? size / 4 : size]});
+      }
     }
+
     if (programUniforms) {
       uniformsWithType = [...uniformsWithType, ...programUniforms];
     }
-
     const uniforms = this.makeUniforms(uniformsWithType);
 
     const inputsData = inputs.map((input: TensorInfo, i: number) => {
@@ -842,27 +786,28 @@ export class WebGPUBackend extends KernelBackend {
     const inputShapesEqualsOutShape =
         inputsData.map(d => util.arraysEqual(d.shape, output.shape)).join('_');
     const broadcastDimsKey = broadcastDims.map(d => d.join('_')).join(';');
+
     const key = webgpu_program.makeShaderKey(
         program, bufferShapes, bufferTypes, broadcastDimsKey,
         inputShapesEqualsOutShape);
 
-    const {bindGroupLayout, pipelineLayout} =
-        this.getCachedOrCreateLayout(program.variableNames.length);
+    const pipeline = key in this.pipelineCache ?
+        this.pipelineCache[key] :
+        webgpu_program.compileProgram(this.device, program, inputsData, output);
 
-    const pipeline = this.getAndSavePipeline(key, () => {
-      return webgpu_program.compileProgram(
-          this.device, program, pipelineLayout, inputsData, output);
+    const bindings = [
+      this.tensorToBinding(output), ...inputs.map(t => this.tensorToBinding(t)),
+      uniforms
+    ];
+
+    const bindGroup = this.device.createBindGroup({
+      layout: pipeline.getBindGroupLayout(0),
+      entries: bindings.map((b, i) => ({binding: i, resource: b})),
     });
-
-    const shouldTimeProgram = this.activeTimers != null;
-
-    // Creating bind groups on the fly should never be a bottleneck.
-    const bg = this.makeBindGroup(
-        this.device, bindGroupLayout, inputs.map(t => this.tensorToBinding(t)),
-        this.tensorToBinding(output), uniforms);
 
     this.ensureCommandEncoderReady();
     const pass = this.getComputePass();
+    const shouldTimeProgram = this.activeTimers != null;
     if (shouldTimeProgram) {
       if (this.supportTimeQuery) {
         // tslint:disable-next-line:no-any
@@ -870,7 +815,7 @@ export class WebGPUBackend extends KernelBackend {
       }
     }
     pass.setPipeline(pipeline);
-    pass.setBindGroup(0, bg);
+    pass.setBindGroup(0, bindGroup);
     pass.dispatchWorkgroups(
         program.dispatch[0], program.dispatch[1], program.dispatch[2]);
     if (shouldTimeProgram) {
@@ -900,56 +845,8 @@ export class WebGPUBackend extends KernelBackend {
     return output;
   }
 
-  private getFromPixelTextureLayout(useImport: boolean): WebGPULayout {
-    if (useImport) {
-      if (this.fromPixelImportTextureLayout === null) {
-        this.fromPixelImportTextureLayout =
-            this.createFromPixelTextureLayout(true /* useImport */);
-      }
-      return this.fromPixelImportTextureLayout;
-    }
-
-    if (this.fromPixelTextureLayout === null) {
-      this.fromPixelTextureLayout =
-          this.createFromPixelTextureLayout(false /* useImport */);
-    }
-    return this.fromPixelTextureLayout;
-  }
-
-  private createFromPixelTextureLayout(useImport: boolean): WebGPULayout {
-    const bindGroupLayoutEntries: GPUBindGroupLayoutEntry[] = [];
-    // Output buffer binding layout.
-    bindGroupLayoutEntries.push({
-      binding: 0,
-      visibility: GPUShaderStage.COMPUTE,
-      buffer: {type: 'storage' as const }
-    });
-    // Input texture binding layout.
-    if (useImport) {
-      bindGroupLayoutEntries.push({
-        binding: 1,
-        visibility: GPUShaderStage.COMPUTE,
-        externalTexture: {},
-      });
-    } else {
-      bindGroupLayoutEntries.push(
-          {binding: 1, visibility: GPUShaderStage.COMPUTE, texture: {}});
-    }
-    // Uniform buffer binding layout.
-    bindGroupLayoutEntries.push(
-        {binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: {}});
-    const fromPixelBindGroupLayout =
-        this.device.createBindGroupLayout({entries: bindGroupLayoutEntries});
-    const fromPixelPipelineLayout = this.device.createPipelineLayout(
-        {bindGroupLayouts: [fromPixelBindGroupLayout]});
-    return {
-      bindGroupLayout: fromPixelBindGroupLayout,
-      pipelineLayout: fromPixelPipelineLayout
-    };
-  }
-
-  private copyExternalImageToTexture(
-      externalImage: ExternalImage, outShape: number[]): GPUTextureView {
+  copyExternalImageToTexture(externalImage: ExternalImage, outShape: number[]):
+      GPUTextureView {
     const textureUsage = GPUTextureUsage.COPY_DST |
         GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING;
     const textureFormat = 'rgba8unorm' as GPUTextureFormat;
@@ -969,103 +866,6 @@ export class WebGPUBackend extends KernelBackend {
     };
     this.textureDisposalQueue.push(textureInfo);
     return externalResource;
-  }
-
-  runFromPixelsProgram(
-      program: webgpu_program.WebGPUProgram, outShape: number[],
-      programUniforms: ProgramUniform, useImport: boolean,
-      externalImage: ExternalImage|HTMLVideoElement) {
-    program.dispatch = reshapeDispatch(this.device, program);
-
-    const output = this.makeTensorInfo(outShape, 'int32');
-    if (util.sizeFromShape(output.shape) === 0) {
-      // Short-circuit the computation since the result is empty (has 0 in its
-      // shape).
-      const outData = this.tensorMap.get(output.dataId);
-      outData.values =
-          util.getTypedArrayFromDType(output.dtype as 'float32', 0);
-      return output;
-    }
-    this.uploadToGPU(output.dataId);
-    const key = webgpu_program.makeShaderKey(program, [output.shape]);
-
-    const layout = this.getFromPixelTextureLayout(useImport);
-
-    const pipeline = this.getAndSavePipeline(key, () => {
-      return webgpu_program.compileProgram(
-          this.device, program, layout.pipelineLayout, [], output, true);
-    });
-
-    let externalResource: GPUExternalTexture|GPUTextureView;
-    if (useImport) {
-      const externalTextureDescriptor = {
-        source: externalImage as HTMLVideoElement
-      };
-      externalResource =
-          this.device.importExternalTexture(externalTextureDescriptor);
-    } else {
-      externalResource = this.copyExternalImageToTexture(
-          externalImage as ExternalImage, output.shape);
-    }
-
-    const binding = this.tensorToBinding(output);
-    const uniforms = this.makeUniforms(programUniforms);
-    const bindGroup = this.device.createBindGroup({
-      layout: layout.bindGroupLayout,
-      entries: [
-        {
-          binding: 0,
-          resource: {
-            // tslint:disable-next-line: no-unnecessary-type-assertion
-            buffer: (binding as GPUBufferBinding).buffer,
-          }
-        },
-        {
-          binding: 1,
-          resource: externalResource,
-        },
-        {
-          binding: 2,
-          resource: {
-            // tslint:disable-next-line: no-unnecessary-type-assertion
-            buffer: (uniforms as GPUBufferBinding).buffer,
-          }
-        }
-      ],
-    });
-    this.ensureCommandEncoderReady();
-    const pass = this.getComputePass();
-    const shouldTimeProgram = this.activeTimers != null;
-    if (shouldTimeProgram) {
-      if (this.supportTimeQuery) {
-        // tslint:disable-next-line:no-any
-        (pass as any).writeTimestamp(this.querySet, 0);
-      }
-    }
-    pass.setPipeline(pipeline);
-    pass.setBindGroup(0, bindGroup);
-    pass.dispatchWorkgroups(
-        program.dispatch[0], program.dispatch[1], program.dispatch[2]);
-    if (shouldTimeProgram) {
-      if (this.supportTimeQuery) {
-        // tslint:disable-next-line:no-any
-        (pass as any).writeTimestamp(this.querySet, 1);
-      }
-    }
-    this.commandQueueOwnedIds.add(output.dataId);
-    this.dispatchNumberInEncoder++;
-    if (env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE') as
-        number <= this.dispatchNumberInEncoder) {
-      this.submitQueue();
-    }
-
-    if (shouldTimeProgram) {
-      this.activeTimers.push({
-        name: program.constructor.name,
-        query: this.getQueryTime(this.querySet)
-      });
-    }
-    return output;
   }
 
   async getTimeFromQuerySet(querySet: GPUQuerySet) {

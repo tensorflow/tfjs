@@ -27,6 +27,7 @@ export interface WebGPUProgram {
   // dispatchLayout enumerates how tensor dimensions are distributed among
   // dispatch x,y,z dimensions.
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
+  isFromPixels?: boolean;
   isVec4?: boolean;
   outputShape: number[];
   // The unique key to distinguish different shader source code.
@@ -51,15 +52,13 @@ export interface WebGPUProgram {
 }
 
 export const compileProgram =
-    (device: GPUDevice, program: WebGPUProgram,
-     pipelineLayout: GPUPipelineLayout, inputsData: InputInfo[],
-     output: TensorInfo, isFromPixel = false): GPUComputePipeline => {
+    (device: GPUDevice, program: WebGPUProgram, inputsData: InputInfo[],
+     output: TensorInfo): GPUComputePipeline => {
       const outputData = {dtype: output.dtype, shape: output.shape};
-      const source = makeShader(inputsData, outputData, program, isFromPixel);
+      const source = makeShader(inputsData, outputData, program);
       const module = device.createShaderModule(
           {code: source, label: program.constructor.name});
       const pipeline = device.createComputePipeline({
-        layout: pipelineLayout,
         compute: {module, entryPoint: 'main'},
         label: program.constructor.name
       });
@@ -128,9 +127,9 @@ export function getWorkGroupSizeString(): string {
 `;
 }
 
-export function makeShader(
+function makeShader(
     inputInfo: InputInfo[], outputData: {dtype: DataType, shape: number[]},
-    program: WebGPUProgram, isFromPixel = false): string {
+    program: WebGPUProgram): string {
   const prefixSnippets: string[] = [];
   prefixSnippets.push(`
       let workGroupSizeX = ${program.workGroupSize[0]}u;
@@ -159,7 +158,7 @@ export function makeShader(
       }
     `);
 
-  if (isFromPixel === true) {
+  if (program.isFromPixels) {
     prefixSnippets.push(`
         struct Uniform {
           size            : i32,
