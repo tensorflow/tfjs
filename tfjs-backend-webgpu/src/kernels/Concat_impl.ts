@@ -98,9 +98,9 @@ export function concatImpl(
   // the maximum for input is limits.maxStorageBuffersPerShaderStage - 1
   const maxInputNum = backend.device.limits.maxStorageBuffersPerShaderStage - 1;
   if (inputs.length > maxInputNum) {
-    let reducedInputs = [];
+    const reducedInputs = [];
     for (let i = 0; i < inputs.length / maxInputNum; i++) {
-      let subArray = inputs.slice(i * maxInputNum, (i + 1) * maxInputNum);
+      const subArray = inputs.slice(i * maxInputNum, (i + 1) * maxInputNum);
       reducedInputs.push(concatImpl(subArray, axis, backend));
     }
     const result = concatImpl(reducedInputs, axis, backend);
