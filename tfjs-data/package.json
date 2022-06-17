@@ -32,7 +32,7 @@
     "publish-npm": "bazel run :tfjs-data_pkg.publish",
     "test-browser": "ibazel run :tfjs-data_browser_test --test-output=streamed",
     "test-dev": "bazel test :tfjs-data_test",
-    "test": "bazel test :tfjs-data_test :tfjs-data_browser_test"
+    "test": "bazel test :tests"
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
