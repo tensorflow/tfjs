@@ -124,7 +124,7 @@ export function getMainHeaderString(): string {
 
 export function getWorkGroupSizeString(): string {
   return `
-  @stage(compute) @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
+  @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
 `;
 }
 
