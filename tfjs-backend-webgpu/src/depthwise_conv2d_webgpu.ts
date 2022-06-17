@@ -27,9 +27,8 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = `pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>,
-      inDims : vec2<i32>, filterHeight : i32, filterWidth : i32,
-      channelMul : i32,`;
+  uniforms = `pad : vec2<i32>, inDims : vec2<i32>, filterHeight : i32,
+      filterWidth : i32, stride : vec2<i32>, dilation : vec2<i32>,`;
   // This is an experimental value.
   workGroupSize: [number, number, number] = [256, 1, 1];
   convInfo: backend_util.Conv2DInfo;
@@ -98,8 +97,9 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
         let xRCCorner = vec2<i32>(coords.${
         this.isChannelsLast ? 'yz' : 'zw'}) * uniforms.stride - uniforms.pad;
         let d2 = coords[${this.isChannelsLast ? 3 : 1}];
-        let d1 = d2 / uniforms.channelMul;
-        let q = d2 - d1 * uniforms.channelMul;
+        let channelMul = uniforms.wShape[3];
+        let d1 = d2 / channelMul;
+        let q = d2 % channelMul;
 
         let inputRowStart = xRCCorner.x;
         let inputColStart = xRCCorner.y;
