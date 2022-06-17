@@ -33,7 +33,7 @@
     "link-local": "yalc link",
     "publish-npm": "bazel run :tfjs-core_pkg.publish",
     "coverage": "bazel coverage :tfjs-core_node_test",
-    "test": "bazel test :tfjs-core_test :test_snippets_test :tfjs-core_node_test :tfjs-core_async_backends_test src:worker_node_test src:worker_test --test_output=all",
+    "test": "bazel test :tfjs-core_tests --test_output=all",
     "test-dev": "ibazel test :tfjs-core_test :test_snippets_test :tfjs-core_node_test tfjs-core_async_backends_test --test_output=all",
     "test-browser": "bazel test :tfjs-core_test --test_output=all",
     "test-browser-debug": "bazel run :tfjs-core_test",
