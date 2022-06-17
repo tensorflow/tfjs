@@ -101,9 +101,7 @@ export function concatImpl(
     let reducedInputs = [];
     for (let i = 0; i < inputs.length / maxInputNum; i++) {
       let subArray = inputs.slice(i * maxInputNum, (i + 1) * maxInputNum);
-      if (subArray.length !== 0) {
-        reducedInputs.push(concatImpl(subArray, axis, backend));
-      }
+      reducedInputs.push(concatImpl(subArray, axis, backend));
     }
     const result = concatImpl(reducedInputs, axis, backend);
 
