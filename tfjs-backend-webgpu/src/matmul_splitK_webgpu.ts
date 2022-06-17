@@ -21,71 +21,6 @@ import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
-export function makeMatMulSplitKSource(): string {
-  return `
-    var<workgroup> mm_Asub : array<array<f32, 32>, 32>;
-    var<workgroup> mm_Bsub : array<array<f32, 32>, 32>;
-    ${getMainHeaderString()}
-      let batch = 0;
-      let tileRow = i32(localId.y) * 4;
-      let tileCol = i32(localId.x) * 4;
-
-      let globalRow = i32(globalId.y) * 4;
-      let globalCol = i32(globalId.x) * 4;
-      let kStart = i32(globalId.z) * 32;
-
-      var acc : array<array<f32, 4>, 4>;
-      var ACached : f32;
-      var BCached : array<f32, 4>;
-
-      // Without this initialization strange values show up in acc.
-      for (var innerRow = 0; innerRow < 4; innerRow = innerRow + 1) {
-        for (var innerCol = 0; innerCol < 4; innerCol = innerCol + 1) {
-          acc[innerRow][innerCol] = 0.0;
-        }
-      }
-
-      // Loop over shared dimension.
-        // Load one tile of A and B into local memory.
-        for (var innerRow = 0; innerRow < 4; innerRow = innerRow + 1) {
-          for (var innerCol = 0; innerCol < 4; innerCol = innerCol + 1) {
-            let inputRow = tileRow + innerRow;
-            let inputCol = tileCol + innerCol;
-
-            mm_Asub[inputRow][inputCol] = mm_readA(batch,
-                globalRow + innerRow,
-                kStart + inputCol);
-            mm_Bsub[inputRow][inputCol] = mm_readB(batch,
-                kStart + inputRow,
-                globalCol + innerCol);
-          }
-        }
-
-        workgroupBarrier();
-
-        // Compute acc values for a single thread.
-        for (var k = 0; k < 32; k = k + 1) {
-          for (var inner = 0; inner < 4; inner = inner + 1) {
-            BCached[inner] = mm_Bsub[k][tileCol + inner];
-          }
-
-          for (var innerRow = 0; innerRow < 4; innerRow = innerRow + 1) {
-            ACached = mm_Asub[tileRow + innerRow][k];
-            for (var innerCol = 0; innerCol < 4; innerCol = innerCol + 1) {
-              acc[innerRow][innerCol] = acc[innerRow][innerCol] + ACached * BCached[innerCol];
-            }
-          }
-        }
-
-          for (var innerRow = 0; innerRow < 4; innerRow = innerRow + 1) {
-            for (var innerCol = 0; innerCol < 4; innerCol = innerCol + 1) {
-              mm_write(batch, globalRow + innerRow, globalCol + innerCol, acc[innerRow][innerCol]);
-            }
-          }
-    }
-  `;
-}
-
 export class MatMulSplitKProgram implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
@@ -100,10 +35,13 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
   atomic = true;
+  batchAEqualOne: boolean;
+  batchBEqualOne: boolean;
 
   constructor(
       outputShape: [number, number, number], dimInner: number,
-      transposeA = false, transposeB = false, bias: TensorInfo = null,
+      batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA = false,
+      transposeB = false, bias: TensorInfo = null,
       activation: backend_util.Activation = null,
       preluActivationWeights: TensorInfo = null) {
     this.outputShape = outputShape;
@@ -131,8 +69,10 @@ export class MatMulSplitKProgram implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivationWeights = hasPreluActivationWeights;
-    this.shaderKey =
-        `matMulSplitK_${this.activation}_${transposeA}_${transposeB}`;
+    this.batchAEqualOne = batchAEqualOne;
+    this.batchBEqualOne = batchBEqualOne;
+    this.shaderKey = `matMulSplitK_${this.activation}_${transposeA}_${
+        transposeB}_${batchAEqualOne}_${batchBEqualOne}`;
   }
 
   getUserCode(): string {
@@ -195,13 +135,81 @@ export class MatMulSplitKProgram implements WebGPUProgram {
           let coords = vec3<i32>(batch, row, col);
           let flatIndex = getOutputIndexFromCoords(coords);
           var value = valueIn;
-         // setOutputAtIndex(flatIndex, value);
+         // The problem is that we should initialize output to zero before using.
+         // Otherwise, the original value will be added to the result.
          ${atomicAddSnippet}
         }
       }
 
-      ${makeMatMulSplitKSource()}
+      ${this.makeMatMulSplitKSource()}
     `;
     return userCode;
+  }
+
+  makeMatMulSplitKSource(): string {
+    return `
+      var<workgroup> mm_Asub : array<array<f32, 32>, 32>;
+      var<workgroup> mm_Bsub : array<array<f32, 32>, 32>;
+      ${getMainHeaderString()}
+        let batch = 0;
+        let tileRow = i32(localId.y) * 4;
+        let tileCol = i32(localId.x) * 4;
+
+        let globalRow = i32(globalId.y) * 4;
+        let globalCol = i32(globalId.x) * 4;
+        let kStart = i32(globalId.z) * 32;
+
+        var acc : array<array<f32, 4>, 4>;
+        var ACached : f32;
+        var BCached : array<f32, 4>;
+
+        // Without this initialization strange values show up in acc.
+        for (var innerRow = 0; innerRow < 4; innerRow = innerRow + 1) {
+          for (var innerCol = 0; innerCol < 4; innerCol = innerCol + 1) {
+            acc[innerRow][innerCol] = 0.0;
+          }
+        }
+
+        // Loop over shared dimension.
+          // Load one tile of A and B into local memory.
+          for (var innerRow = 0; innerRow < 4; innerRow = innerRow + 1) {
+            for (var innerCol = 0; innerCol < 4; innerCol = innerCol + 1) {
+              let inputRow = tileRow + innerRow;
+              let inputCol = tileCol + innerCol;
+
+              mm_Asub[inputRow][inputCol] = mm_readA(${
+        this.batchAEqualOne ? 0 : 'batch'},
+                  globalRow + innerRow,
+                  kStart + inputCol);
+              mm_Bsub[inputRow][inputCol] = mm_readB(${
+        this.batchBEqualOne ? 0 : 'batch'},
+                  kStart + inputRow,
+                  globalCol + innerCol);
+            }
+          }
+
+          workgroupBarrier();
+
+          // Compute acc values for a single thread.
+          for (var k = 0; k < 32; k = k + 1) {
+            for (var inner = 0; inner < 4; inner = inner + 1) {
+              BCached[inner] = mm_Bsub[k][tileCol + inner];
+            }
+
+            for (var innerRow = 0; innerRow < 4; innerRow = innerRow + 1) {
+              ACached = mm_Asub[tileRow + innerRow][k];
+              for (var innerCol = 0; innerCol < 4; innerCol = innerCol + 1) {
+                acc[innerRow][innerCol] = acc[innerRow][innerCol] + ACached * BCached[innerCol];
+              }
+            }
+          }
+
+            for (var innerRow = 0; innerRow < 4; innerRow = innerRow + 1) {
+              for (var innerCol = 0; innerCol < 4; innerCol = innerCol + 1) {
+                mm_write(batch, globalRow + innerRow, globalCol + innerCol, acc[innerRow][innerCol]);
+              }
+            }
+      }
+    `;
   }
 }

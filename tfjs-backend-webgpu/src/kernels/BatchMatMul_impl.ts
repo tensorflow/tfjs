@@ -24,7 +24,7 @@ import {MatMulReduceProgram} from '../matmul_reduce_webgpu';
 import {MatMulSmallOutputSizeProgram} from '../matmul_small_output_size_webgpu';
 import {MatMulSplitKProgram} from '../matmul_splitK_webgpu';
 import {WebGPUProgram} from '../webgpu_program';
-
+import {fill} from './Fill';
 import {reshape} from './Reshape';
 
 type BatchMatMulConfig = {
@@ -94,15 +94,23 @@ export function batchMatMulImpl({
   const useVec4 = ((innerShapeA % 4 === 0 && !transposeA) ||
                    (outerShapeA % 4 === 0 && transposeA)) &&
       outerShapeB % 4 === 0 && !transposeB;
+
   let program: WebGPUProgram;
+  let out: TensorInfo;
+  const outputShape: [number, number, number] =
+      [batchDim, outerShapeA, outerShapeB];
   if (outerShapeA * outerShapeB <= 128) {
     program = new MatMulReduceProgram(
-        [batchDim, outerShapeA, outerShapeB], batchAEqualOne, batchBEqualOne,
-        transposeA, transposeB, bias, activation, preluActivationWeights);
+        outputShape, batchAEqualOne, batchBEqualOne, transposeA, transposeB,
+        bias, activation, preluActivationWeights);
 
   } else if (outerShapeA <= 128 && outerShapeB <= 128 && innerShapeB >= 1000) {
+    // The output buffer must be initailzed to zero before using since we use
+    // atomicAdd in MatMulSplitKProgram.
+    out =
+        fill({backend, attrs: {shape: outputShape, value: 0, dtype: a.dtype}});
     program = new MatMulSplitKProgram(
-        [batchDim, outerShapeA, outerShapeB], innerShapeB, transposeA,
+        outputShape, innerShapeB, batchAEqualOne, batchBEqualOne, transposeA,
         transposeB, bias, activation, preluActivationWeights);
   } else
       // When the output size is absolutely small or relatively small, we may
@@ -119,18 +127,18 @@ export function batchMatMulImpl({
            (outerShapeB <= 16 &&
             (outerShapeA <= 512 || innerShapeA >= 2 * outerShapeA)))) {
     program = new MatMulSmallOutputSizeProgram(
-        a3dShape, b3dShape, [batchDim, outerShapeA, outerShapeB], bias,
-        activation, preluActivationWeights);
+        a3dShape, b3dShape, outputShape, bias, activation,
+        preluActivationWeights);
   } else if (useVec4) {
     // TODO: Currently we need to make sure that innerShapeA and outerShapeB
     // are divisible by 4 since we use vec4 to get data. In future, we can
     // remove this limitation by insert 0 to pack data.
     program = new MatMulPackedVec4Program(
-        a3dShape, [batchDim, outerShapeA, outerShapeB], batchAEqualOne,
-        batchBEqualOne, transposeA, bias, activation, preluActivationWeights);
+        a3dShape, outputShape, batchAEqualOne, batchBEqualOne, transposeA, bias,
+        activation, preluActivationWeights);
   } else {
     program = new MatMulPackedProgram(
-        a3dShape, [batchDim, outerShapeA, outerShapeB],
+        a3dShape, outputShape,
         env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, batchAEqualOne,
         batchBEqualOne, transposeA, transposeB, bias, activation,
         preluActivationWeights);
@@ -150,7 +158,7 @@ export function batchMatMulImpl({
     dimensions.push({type: 'float32', data: [leakyreluAlpha]});
     program.uniforms += ' alpha : f32,';
   }
-  const out = backend.runWebGPUProgram(program, inputs, a.dtype, dimensions);
+  out = backend.runWebGPUProgram(program, inputs, a.dtype, dimensions, out);
   const outReshaped =
       reshape({inputs: {x: out}, backend, attrs: {shape: outShape}});
   intermediates.push(out);
