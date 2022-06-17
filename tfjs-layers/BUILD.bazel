@@ -156,3 +156,10 @@ js_library(
         ":package.json",
     ],
 )
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":tfjs-layers_webgl2_test",
+    ],
+)
