@@ -14,7 +14,6 @@
  * limitations under the License.
  * =============================================================================
  */
-
 import * as tfc from '@tensorflow/tfjs-core';
 import {io, scalar} from '@tensorflow/tfjs-core';
 
@@ -23,6 +22,7 @@ import {deregisterOp, registerOp} from '../operations/custom_op/register';
 import {GraphNode} from '../operations/types';
 
 import {GraphModel, loadGraphModel, loadGraphModelSync} from './graph_model';
+import {STRUCTURED_OUTPUTS_MODEL} from './test_data/structured_outputs_model_loader';
 
 const HOST = 'http://example.org';
 const MODEL_URL = `${HOST}/model.json`;
@@ -187,6 +187,12 @@ const CONTROL_FLOW_HTTP_MODEL_LOADER = {
   }
 };
 
+const STRUCTURED_OUTPUTS_MODEL_LOADER = {
+  load: async () => {
+    return STRUCTURED_OUTPUTS_MODEL;
+  }
+};
+
 const INITIALIZER_GRAPHDEF: tensorflow.IGraphDef = {
   node: [
     {
@@ -289,8 +295,7 @@ const HASH_TABLE_SIGNATURE: tensorflow.ISignatureDef = {
     defaultValues: {name: 'Input_1:0', dtype: tensorflow.DataType.DT_FLOAT}
   },
   outputs: {
-    values:
-        {name: 'LookupTableFindV2:0', dtype: tensorflow.DataType.DT_FLOAT}
+    values: {name: 'LookupTableFindV2:0', dtype: tensorflow.DataType.DT_FLOAT}
   }
 };
 const HASHTABLE_HTTP_MODEL_LOADER = {
@@ -355,6 +360,15 @@ describe('loadSync', () => {
 
     expect(loaded).toBe(true);
     expect(model.modelSignature).toBeUndefined();
+  });
+
+  it('Can load model with structured_outputs.', () => {
+    artifacts.convertedBy = 'TensorFlow.js Converter v3.19.0';
+    artifacts.userDefinedMetadata = {structuredOutputKeys: ['a', 'b', 'c']};
+    const loaded = model.loadSync(artifacts);
+
+    expect(loaded).toBe(true);
+    expect(model.structuredOutputKeys).toEqual(['a', 'b', 'c']);
   });
 
   it('Can load model with different convertedBy language.', () => {
@@ -430,8 +444,8 @@ describe('loadGraphModelSync', () => {
     } catch (err) {
       errorMsg = err.message;
     }
-    expect(errorMsg)
-      .toMatch(/modelUrl in loadGraphModelSync\(\) cannot be null/);
+    expect(errorMsg).toMatch(
+        /modelUrl in loadGraphModelSync\(\) cannot be null/);
   });
 });
 
@@ -680,6 +694,73 @@ describe('Model', () => {
         expect(model.outputs).toEqual([
           {name: 'Add', shape: undefined, dtype: undefined}
         ]);
+      });
+    });
+  });
+
+  describe('structured outputs model', () => {
+    beforeEach(() => {
+      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+        STRUCTURED_OUTPUTS_MODEL_LOADER
+      ]);
+      spyOn(tfc.io, 'browserHTTPRequest')
+          .and.returnValue(STRUCTURED_OUTPUTS_MODEL_LOADER);
+    });
+    it('load', async () => {
+      const loaded = await model.load();
+      expect(loaded).toBe(true);
+    });
+
+    describe('save', () => {
+      it('should call the save io handler', async () => {
+        await model.load();
+        const handler = new IOHandlerForTest();
+
+        await model.save(handler);
+        expect(handler.savedArtifacts.format)
+            .toEqual(STRUCTURED_OUTPUTS_MODEL.format);
+        expect(handler.savedArtifacts.generatedBy)
+            .toEqual(STRUCTURED_OUTPUTS_MODEL.generatedBy);
+        expect(handler.savedArtifacts.convertedBy)
+            .toEqual(STRUCTURED_OUTPUTS_MODEL.convertedBy);
+        expect(handler.savedArtifacts.modelTopology)
+            .toEqual(STRUCTURED_OUTPUTS_MODEL.modelTopology);
+        expect(handler.savedArtifacts.userDefinedMetadata)
+            .toEqual(STRUCTURED_OUTPUTS_MODEL.userDefinedMetadata);
+      });
+    });
+
+    describe('predict', () => {
+      it('should support structured outputs', async () => {
+        await model.load();
+
+        const input = tfc.tensor2d([[1]]);
+        const output =
+            model.predict({input1: input, input2: input, input3: input}) as
+            tfc.NamedTensorMap;
+        expect(Object.keys(output)).toEqual(['a', 'b', 'c']);
+      });
+    });
+
+    describe('execute', () => {
+      it('should generate the list output', async () => {
+        await model.load();
+        const input = tfc.tensor2d([[1]]);
+        const output =
+            model.execute({input1: input, input2: input, input3: input});
+        expect(Array.isArray(output)).toBeTruthy();
+      });
+    });
+
+    describe('dispose', () => {
+      it('should dispose the weights', async () => {
+        const numOfTensors = tfc.memory().numTensors;
+        model = new GraphModel(MODEL_URL);
+
+        await model.load();
+        model.dispose();
+
+        expect(tfc.memory().numTensors).toEqual(numOfTensors);
       });
     });
   });

@@ -32,6 +32,7 @@ CONVERTED_BY_KEY = 'convertedBy'
 
 SIGNATURE_KEY = 'signature'
 USER_DEFINED_METADATA_KEY = 'userDefinedMetadata'
+STRUCTURED_OUTPUTS_KEYS_KEY = 'structuredOutputKeys'
 
 # Model formats.
 KERAS_SAVED_MODEL = 'keras_saved_model'
@@ -58,6 +59,7 @@ SPLIT_WEIGHTS_BY_LAYER = 'split_weights_by_layer'
 VERSION = 'version'
 SKIP_OP_CHECK = 'skip_op_check'
 STRIP_DEBUG_OPS = 'strip_debug_ops'
+USE_STRUCTURED_OUTPUTS_NAMES = 'use_structured_outputs_names'
 WEIGHT_SHARD_SIZE_BYTES = 'weight_shard_size_bytes'
 CONTROL_FLOW_V2 = 'control_flow_v2'
 EXPERIMENTS = 'experiments'
