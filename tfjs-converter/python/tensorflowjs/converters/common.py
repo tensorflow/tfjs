@@ -32,6 +32,7 @@ CONVERTED_BY_KEY = 'convertedBy'
 
 SIGNATURE_KEY = 'signature'
 USER_DEFINED_METADATA_KEY = 'userDefinedMetadata'
+STRUCTURED_OUTPUTS_KEYS_KEY = 'structuredOutputKeys'
 
 # Model formats.
 KERAS_SAVED_MODEL = 'keras_saved_model'

@@ -631,6 +631,30 @@ def _convert_tf_saved_model(output_dir,
   for output_tensor in concrete_func.outputs:
     output_node_names.append(output_tensor.name.split(':')[0])
 
+  num_outputs = len(output_node_names)
+  structured_outputs = concrete_func.structured_outputs
+  if structured_outputs is not None:
+    if type(structured_outputs) is not dict:
+      raise Exception('Converter only supports dict structured_outputs.')
+
+    # As per tensorflow/python/util/nest.py: "If `structure` is or contains a
+    # dict instance, the keys will be sorted to pack the flat sequence
+    # in deterministic order."
+    sorted_keys = sorted(structured_outputs.keys())
+
+    # Check if structure is a simple dictionary.
+    # We don't support anything more complex due to the GraphModel.predict
+    # function return type in typescript.
+    test_sequence = list(range(num_outputs))
+    actual_structure = tf.nest.pack_sequence_as(structured_outputs, test_sequence, True)
+    expected_structure = dict(zip(sorted_keys, test_sequence))
+    if actual_structure != expected_structure:
+      raise Exception('Converter only supports structured_outputs of form '
+                      '{"key1": value1, "key2":value2 ... })')
+
+    metadata = metadata or {}
+    metadata[common.STRUCTURED_OUTPUTS_KEYS_KEY] = sorted_keys
+
   # TensorFlow doesn't encode the saved model version in the graph in a
   # reliable way. Try to freeze the graph using V2 utils. If that fails, freeze
   # the graph using V1 utils.
