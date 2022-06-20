@@ -124,6 +124,7 @@ def tfjs_rollup_bundle(
         "@npm//rollup-plugin-terser",
         "@npm//rollup-plugin-visualizer",
         "@npm//typescript",
+        "@npm//tslib",  # downlevel_to_es5_plugin uses importHelpers.
         "@//tools:downlevel_to_es5_plugin",
         "@//tools:make_rollup_config",
     ]
