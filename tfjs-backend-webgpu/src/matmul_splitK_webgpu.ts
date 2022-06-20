@@ -37,6 +37,7 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   atomic = true;
   batchAEqualOne: boolean;
   batchBEqualOne: boolean;
+  tileInner: number;
 
   constructor(
       outputShape: [number, number, number], dimInner: number,
@@ -46,13 +47,14 @@ export class MatMulSplitKProgram implements WebGPUProgram {
       preluActivationWeights: TensorInfo = null) {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
+    this.tileInner = 32;
     this.dispatch = computeDispatch(
         this.dispatchLayout,
         [
           this.outputShape[0], this.outputShape[1], this.outputShape[2],
           dimInner
         ],
-        this.workGroupSize, [4, 4, 32]);
+        this.workGroupSize, [4, 4, this.tileInner]);
 
     const addBias = bias != null;
     const hasPreluActivationWeights = preluActivationWeights != null;
@@ -148,8 +150,8 @@ export class MatMulSplitKProgram implements WebGPUProgram {
 
   makeMatMulSplitKSource(): string {
     return `
-      var<workgroup> mm_Asub : array<array<f32, 32>, 32>;
-      var<workgroup> mm_Bsub : array<array<f32, 32>, 32>;
+      var<workgroup> mm_Asub : array<array<f32, ${this.tileInner}>, 32>;
+      var<workgroup> mm_Bsub : array<array<f32, 32>, ${this.tileInner}>;
       ${getMainHeaderString()}
         let batch = 0;
         let tileRow = i32(localId.y) * 4;
@@ -157,7 +159,7 @@ export class MatMulSplitKProgram implements WebGPUProgram {
 
         let globalRow = i32(globalId.y) * 4;
         let globalCol = i32(globalId.x) * 4;
-        let kStart = i32(globalId.z) * 32;
+        let kStart = i32(globalId.z) * ${this.tileInner};
 
         var acc : array<array<f32, 4>, 4>;
         var ACached : f32;
@@ -191,7 +193,7 @@ export class MatMulSplitKProgram implements WebGPUProgram {
           workgroupBarrier();
 
           // Compute acc values for a single thread.
-          for (var k = 0; k < 32; k = k + 1) {
+          for (var k = 0; k < ${this.tileInner}; k = k + 1) {
             for (var inner = 0; inner < 4; inner = inner + 1) {
               BCached[inner] = mm_Bsub[k][tileCol + inner];
             }
