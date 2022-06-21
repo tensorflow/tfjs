@@ -22,21 +22,28 @@ export class GatherNDProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
   constructor(
-      private sliceDim: number, private strides: number[], shape: number[]) {
+      private sliceDim: number, private strides: number[], shape: number[],
+      private paramsShape: number[]) {
     this.outputShape = shape;
     const stridesType = getCoordsDataType(strides.length);
     const dtype = getCoordsDataType(shape.length);
     const strideString = this.sliceDim > 1 ? 'strides[j]' : 'strides';
+    const paramsShapeType = getCoordsDataType(paramsShape.length);
+    const paramsShapeString = paramsShape.length > 1 ? 'paramsShape[j]' : 'paramsShape';
     this.userCode = `
         ${stridesType} strides = ${stridesType}(${this.strides});
+        ${paramsShapeType} paramsShape = ${paramsShapeType}(${this.paramsShape});
          void main() {
           ${dtype} coords = getOutputCoords();
           int flattenIndex = 0;
+          bool out_of_bounds = false;
           for (int j = 0; j < ${this.sliceDim}; j++) {
             int index = round(getIndices(coords[0], j));
+            out_of_bounds = out_of_bounds || index < 0;
+            out_of_bounds = out_of_bounds || index >= ${paramsShapeString};
             flattenIndex += index * ${strideString};
           }
-          setOutput(getX(flattenIndex, coords[1]));
+          setOutput(out_of_bounds ? 0.0 : getX(flattenIndex, coords[1]));
         }
       `;
   }

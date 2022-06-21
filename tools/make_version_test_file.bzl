@@ -10,6 +10,7 @@ def _make_version_test_file_impl(ctx):
         outputs = [output_file],
         arguments = [
             ctx.files.package_json[0].path,
+            ctx.attr.version_name,
             output_file.path,
         ],
     )
@@ -21,7 +22,7 @@ make_version_test_file = rule(
     attrs = {
         "make_version_test_file_bin": attr.label(
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             default = Label("@//tools:make_version_test_file_bin"),
             doc = "The script that generates the version test",
         ),
@@ -29,6 +30,10 @@ make_version_test_file = rule(
             mandatory = True,
             allow_single_file = [".json"],
             doc = "The package.json containing the version to use for the test",
+        ),
+        "version_name": attr.string(
+            mandatory = True,
+            doc = "The name of the imported version variable to check",
         ),
     },
     doc = """Generate the version test file for tfjs-core""",

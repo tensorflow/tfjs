@@ -16,20 +16,17 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-
 import {mapActivationToShaderProgram} from './activation_util';
-import {getWorkGroupSizeString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getWorkGroupSizeString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
-export class DepthwiseConv2D3x3Program implements WebGPUProgram {
+export class DepthwiseConv2DVec4Program implements WebGPUProgram {
   outputShape: number[];
   shaderKey: string;
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms =
-      'pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>, inDims : vec2<i32>,';
+  uniforms = 'pad : vec2<i32>, inDims : vec2<i32>,';
   workGroupSize: [number, number, number] = [4, 4, 4];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
@@ -41,9 +38,9 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
       convInfo: backend_util.Conv2DInfo, addBias = false,
       activation: backend_util.Activation = null, hasPreluActivation = false) {
     this.outputShape = convInfo.outShape;
-    this.dispatchLayout = {x: [0, 1], y: [2], z: [3]};
+    this.dispatchLayout = {x: [3], y: [2], z: [0, 1]};
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize, [1, 4, 4]);
+        this.dispatchLayout, this.outputShape, this.workGroupSize, [4, 4, 1]);
 
     util.assert(
         convInfo.dataFormat === 'channelsLast',
@@ -61,7 +58,8 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
     this.activation = activation;
     this.hasPreluActivation = hasPreluActivation;
 
-    this.shaderKey = `depthwise3x3_${activation}`;
+    this.shaderKey = `depthwiseVec4_${activation}_${
+        this.convInfo.filterHeight}_${this.convInfo.filterWidth}`;
   }
 
   getUserCode(): string {
@@ -89,65 +87,53 @@ export class DepthwiseConv2D3x3Program implements WebGPUProgram {
     const addBiasSnippet = this.addBias ?
         'dotProd[i] = dotProd[i] + getBiasByOutputCoords(coords);' :
         '';
-
+    // Here 4 is the work per thread in X dimension.
+    const xNumber = 4 + this.convInfo.filterWidth - 1;
     const userCode = `
       ${activationSnippet}
-
+      fn readX(batch : i32, row : i32, col : i32, channel : i32) -> vec4<f32> {
+        var value = vec4<f32>(0.0);
+        if (row >=0 && row < uniforms.inDims[0] && col >=0 && col < uniforms.inDims[1])
+        {
+          value = getX(batch, row, col, channel);
+        }
+        return value;
+      }
       ${getWorkGroupSizeString()}
       fn main(@builtin(global_invocation_id) globalId: vec3<u32>) {
-        let batch = 0;
-        let r = i32(globalId.x);
+        let batch = i32(globalId.z) / uniforms.outShape[1];
+        let r = i32(globalId.z) % uniforms.outShape[1];
         let c = i32(globalId.y) * 4;
-        let d2 = i32(globalId.z) * 4;
-        let xRCCorner = vec2<i32>(r, c) * uniforms.stride - uniforms.pad;
-        let d1 = d2;
-        let q = 0;
+        let d1 = i32(globalId.x) * 4;
+        let xRCCorner = vec2<i32>(r, c) - uniforms.pad;
 
         let xRCorner = xRCCorner.x;
         let xCCorner = xRCCorner.y;
-
-        var wVals : array<vec4<f32>, 9>;
-        wVals[0] = getW(0, 0, d1, q);
-        wVals[1] = getW(0, 1, d1, q);
-        wVals[2] = getW(0, 2, d1, q);
-        wVals[3] = getW(1, 0, d1, q);
-        wVals[4] = getW(1, 1, d1, q);
-        wVals[5] = getW(1, 2, d1, q);
-        wVals[6] = getW(2, 0, d1, q);
-        wVals[7] = getW(2, 1, d1, q);
-        wVals[8] = getW(2, 2, d1, q);
-
-        var xVals : array<array<vec4<f32>, 6>, 3>;
-        for (var wR = 0; wR < 3; wR = wR + 1) {
-          let xR = xRCorner + wR * uniforms.dilation[0];
-          for (var wC = 0; wC < 6; wC = wC + 1) {
-            let xC = xCCorner + wC * uniforms.dilation[1];
-            if (xR < 0 || xR >= uniforms.inDims[0] || xC < 0 || xC >= uniforms.inDims[1]) {
-              xVals[wR][wC] = vec4<f32>(0.0);
-            } else {
-              xVals[wR][wC] = getX(batch, xR, xC, d1);
-            }
-          }
-        }
-
+        var xVals : array<vec4<f32>, ${xNumber}>;
         var dotProd : array<vec4<f32>, 4>;
         dotProd[0] = vec4<f32>(0.0);
         dotProd[1] = vec4<f32>(0.0);
         dotProd[2] = vec4<f32>(0.0);
         dotProd[3] = vec4<f32>(0.0);
 
-        for (var wR = 0; wR < 3; wR = wR + 1) {
-          for (var wC = 0; wC < 3; wC = wC + 1) {
-            let indexW = wR * 3 + wC;
-            dotProd[0] = dotProd[0] + xVals[wR][0 + wC] * wVals[indexW];
-            dotProd[1] = dotProd[1] + xVals[wR][1 + wC] * wVals[indexW];
-            dotProd[2] = dotProd[2] + xVals[wR][2 + wC] * wVals[indexW];
-            dotProd[3] = dotProd[3] + xVals[wR][3 + wC] * wVals[indexW];
+        // Use constant instead of uniform can give better performance.
+        for (var wR = 0; wR < ${this.convInfo.filterHeight}; wR = wR + 1) {
+          let xR = xRCorner + wR;
+          for (var i = 0; i < ${xNumber}; i++)
+          {
+            xVals[i] = readX(batch, xR, xCCorner + i, d1);
+          }
+          for (var wC = 0; wC < ${this.convInfo.filterWidth}; wC = wC + 1) {
+            let wValue = getW(wR, wC, d1, 0);
+            dotProd[0] = dotProd[0] + xVals[0 + wC] * wValue;
+            dotProd[1] = dotProd[1] + xVals[1 + wC] * wValue;
+            dotProd[2] = dotProd[2] + xVals[2 + wC] * wValue;
+            dotProd[3] = dotProd[3] + xVals[3 + wC] * wValue;
           }
         }
 
         for (var i = 0; i < 4; i = i + 1) {
-          let coords = vec4<i32>(batch, r, c + i, d2);
+          let coords = vec4<i32>(batch, r, c + i, d1);
           if (coordsInBounds4D(coords, uniforms.outShape)) {
             ${addBiasSnippet}
             ${applyActivationSnippet}

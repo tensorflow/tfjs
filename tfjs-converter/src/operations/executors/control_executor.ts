@@ -285,8 +285,9 @@ export const executeOp: InternalOpAsyncExecutor = async(
 
       const numElements =
           getParamValue(numElementsParam, node, tensorMap, context) as number;
-
-      const tensorList = reserve(elementShape, elementDtype, numElements);
+      const maxNumElements = node.op === 'TensorListReserve' ? -1 : numElements;
+      const tensorList =
+          reserve(elementShape, elementDtype, numElements, maxNumElements);
       context.addTensorList(tensorList);
       return [tensorList.idTensor];
     }
@@ -325,7 +326,8 @@ export const executeOp: InternalOpAsyncExecutor = async(
       context.addTensorList(tensorList);
       return [tensorList.idTensor];
     }
-    case 'TensorListConcat': {
+    case 'TensorListConcat':
+    case 'TensorListConcatV2': {
       const concatId =
           getParamValue('tensorListId', node, tensorMap, context) as Tensor;
       const tensorList = context.getTensorList(concatId.id);

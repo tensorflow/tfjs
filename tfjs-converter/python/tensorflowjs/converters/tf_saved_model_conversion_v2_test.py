@@ -438,6 +438,21 @@ class ConvertTest(tf.test.TestCase):
                           ['group1-shard1of1.bin'])
     self.assertIn('weights', weights_manifest[0])
 
+  def test_convert_saved_model_with_frozen_file(self):
+    self._create_saved_model()
+
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        frozen_graph_dir=os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    )
+
+    frozen_file_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
+                                    'model.json.frozen')
+    # Check model.json.frozen exist.
+    self.assertTrue(
+        glob.glob(frozen_file_path))
+
   def test_convert_saved_model_with_metadata(self):
     self._create_saved_model()
 

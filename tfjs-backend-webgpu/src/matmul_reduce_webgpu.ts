@@ -16,10 +16,8 @@
  */
 
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
-
 import {mapActivationToShaderProgram} from './activation_util';
-import {getMainHeaderString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
 export function makeMatMulReduceSource(): string {
@@ -107,18 +105,20 @@ export class MatMulReduceProgram implements WebGPUProgram {
   getUserCode(): string {
     let sampleA;
     if (this.transposeA === false) {
-      sampleA = `return A[batch * batchASize + row * uniforms.dimInner + col];`;
+      sampleA =
+          `return f32(A[batch * batchASize + row * uniforms.dimInner + col]);`;
     } else {
       sampleA =
-          `return A[batch * batchASize + col * uniforms.dimAOuter + row];`;
+          `return f32(A[batch * batchASize + col * uniforms.dimAOuter + row]);`;
     }
 
     let sampleB;
     if (this.transposeB === false) {
       sampleB =
-          `return B[batch * batchBSize + row * uniforms.dimBOuter + col];`;
+          `return f32(B[batch * batchBSize + row * uniforms.dimBOuter + col]);`;
     } else {
-      sampleB = `return B[batch * batchBSize + col * uniforms.dimInner + row];`;
+      sampleB =
+          `return f32(B[batch * batchBSize + col * uniforms.dimInner + row]);`;
     }
 
     let activationSnippet = '', applyActivationSnippet = '';

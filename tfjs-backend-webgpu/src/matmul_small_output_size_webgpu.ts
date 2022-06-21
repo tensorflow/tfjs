@@ -16,28 +16,24 @@
  */
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
-
 import {mapActivationToShaderProgram} from './activation_util';
-import {getMainHeaderString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
 
 export function makeMatMulSmallOutputSizeSource(
     workGroupSize: [number, number, number]): string {
-  const tileAOuter = workGroupSize[1] / 2;
+  const tileAOuter = workGroupSize[1];
   const tileBOuter = workGroupSize[0];
   const tileInner = tileAOuter > tileBOuter ? tileAOuter : tileBOuter;
   return `
-  var<workgroup> mm_Asub1 : array<array<f32, ${tileInner}>, ${tileAOuter}>;
-  var<workgroup> mm_Bsub1 : array<array<f32, ${tileBOuter}>, ${tileInner}>;
-  var<workgroup> mm_Asub2 : array<array<f32, ${tileInner}>, ${tileAOuter}>;
-  var<workgroup> mm_Bsub2 : array<array<f32, ${tileBOuter}>, ${tileInner}>;
+  var<workgroup> mm_Asub : array<array<f32, ${tileInner}>, ${tileAOuter}>;
+  var<workgroup> mm_Bsub : array<array<f32, ${tileBOuter}>, ${tileInner}>;
 
   // If the output size is small for matrix multiplication, avoid to use vec4
   // and handle some elements per thread to optimally utilize the ALU.
-  // Introduces two shared memory buffers, some logical threads could handle
-  // arithmetic operations and others handle IO operations between barrier api,
-  // makes ALUs and load/store units work simultaneously, could improves
-  // the performance.
+  // Read data from global memory to registers firstly, then store them into
+  // shared memory, so it is instruction-Level parallelism for arithmetic
+  // operations and others handle IO operations between barrier api, makes ALU
+  // and load/store units work simultaneously, could improves the performance.
   ${getMainHeaderString()}
     let tileRow = i32(localId.y);
     let tileCol = i32(localId.x);
@@ -49,69 +45,33 @@ export function makeMatMulSmallOutputSizeSource(
     var acc = 0.0;
 
     var globalColA = tileCol;
-    var globalRowB = tileRow;
-    for (var t = 0; t < numTiles; t = t + 1) {
-      if (t == 0) {
-        if (tileRow < ${tileAOuter}) {
-          // Load one tile of A and B into local memory.
-          // globalRow is always greater than or equal tileRow.
-          mm_Asub1[tileRow][tileCol] =
-              mm_readA((globalRow - tileRow) / 2 + tileRow, globalColA, globalId);
-          globalColA = globalColA + ${tileInner};
-          mm_Bsub1[tileRow][tileCol] = mm_readB(globalRowB, globalCol, globalId);
-          globalRowB = globalRowB + ${tileInner};
-        }
-      } else {
-        if (tileRow < ${tileAOuter}) {
-          // Load one tile of A and B into local memory.
-          // globalRow is always greater than or equal tileRow.
-          mm_Asub1[tileRow][tileCol] =
-              mm_readA((globalRow - tileRow) / 2 + tileRow, globalColA, globalId);
-          globalColA = globalColA + ${tileInner};
-          mm_Bsub1[tileRow][tileCol] = mm_readB(globalRowB, globalCol, globalId);
-          globalRowB = globalRowB + ${tileInner};
-        } else {
-          // Compute acc values for a single thread.
-          for (var k = 0; k < ${tileInner}; k = k + 1) {
-            let subRow = tileRow - ${tileAOuter};
-            if (subRow < 0) {
-              continue;
-            }
-            acc = acc + mm_Asub2[subRow][k] * mm_Bsub2[k][tileCol];
-          }
-        }
-      }
-      workgroupBarrier();
-      if (t != 0) {
-        t = t + 1;
-      }
+    var globalRowB = 0;
+    var regA = mm_readA(globalRow, globalColA, globalId);
+    var regB0 = mm_readB(globalRowB + 2 * tileRow, globalCol, globalId);
+    var regB1 = mm_readB(globalRowB + 2 * tileRow + 1, globalCol, globalId);
+    globalColA = globalColA + ${tileInner};
+    globalRowB = globalRowB + ${tileInner};
 
-      if (t < numTiles) {
-        if (tileRow < ${tileAOuter}) {
-          // Load one tile of A and B into local memory.
-          // globalRow is always greater than or equal tileRow.
-          mm_Asub2[tileRow][tileCol] =
-              mm_readA((globalRow - tileRow) / 2 + tileRow, globalColA, globalId);
-          globalColA = globalColA + ${tileInner};
-          mm_Bsub2[tileRow][tileCol] = mm_readB(globalRowB, globalCol, globalId);
-          globalRowB = globalRowB + ${tileInner};
-        } else {
-          // Compute acc values for a single thread.
-          for (var k = 0; k < ${tileInner}; k = k + 1) {
-            let subRow = tileRow - ${tileAOuter};
-            if (subRow < 0) {
-              continue;
-            }
-            acc = acc + mm_Asub1[subRow][k] * mm_Bsub1[k][tileCol];
-          }
-        }
+    for (var t = 0; t < numTiles; t = t + 1) {
+      mm_Asub[tileRow][tileCol] = regA;
+      mm_Bsub[2 * tileRow][tileCol] = regB0;
+      mm_Bsub[2 * tileRow + 1][tileCol] = regB1;
+
+      workgroupBarrier();
+
+      regA = mm_readA(globalRow, globalColA, globalId);
+      regB0 = mm_readB(globalRowB + 2 * tileRow, globalCol, globalId);
+      regB1 = mm_readB(globalRowB + 2 * tileRow + 1, globalCol, globalId);
+      globalColA = globalColA + ${tileInner};
+      globalRowB = globalRowB + ${tileInner};
+
+      for (var k = 0; k < ${tileInner}; k = k + 1) {
+        acc = acc + mm_Asub[tileRow][k] * mm_Bsub[k][tileCol];
       }
       workgroupBarrier();
     }
-    let writeCol = (globalRow - tileRow) / 2 + tileRow - ${tileAOuter};
-    if (tileRow >= ${tileAOuter} && writeCol >= 0) {
-      mm_write(writeCol, globalCol, acc, globalId);
-    }
+
+    mm_write(globalRow, globalCol, acc, globalId);
   }
   `;
 }
@@ -123,7 +83,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   variableNames = ['A', 'B'];
   uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
-  workGroupSize: [number, number, number] = [8, 16, 1];
+  workGroupSize: [number, number, number] = [16, 8, 1];
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivationWeights: boolean;
@@ -145,7 +105,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
     this.dispatch = [
       Math.ceil(outputShape[2] / this.workGroupSize[0]),
-      Math.ceil(outputShape[1] * 2 / this.workGroupSize[1]), outputShape[0]
+      Math.ceil(outputShape[1] / this.workGroupSize[1]), outputShape[0]
     ];
 
     const addBias = bias != null;
@@ -168,17 +128,21 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
-    const sampleA =
-        `if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-          return A[batch * batchASize + row * uniforms.dimInner + col];
+    const sampleA = `var result: f32;
+        if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
+          result =  A[batch * batchASize + row * uniforms.dimInner + col];
+        } else {
+          result = 0.0;
         }
-        return 0.0;`;
+        return result;`;
 
-    const sampleB =
-        `if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-           return B[batch * batchBSize + row * uniforms.dimBOuter + col];
+    const sampleB = `var result: f32;
+        if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
+           result = B[batch * batchBSize + row * uniforms.dimBOuter + col];
+         } else {
+           result = 0.0;
          }
-         return 0.0;`;
+         return result;`;
 
     let activationSnippet = '', applyActivationSnippet = '';
     if (this.activation) {

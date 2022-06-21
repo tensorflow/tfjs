@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, DataValues, engine, env, kernel_impls, KernelBackend, Rank, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, BackendTimingInfo, buffer, DataStorage, DataType, engine, env, kernel_impls, KernelBackend, Rank, ShapeMap, Tensor, Tensor2D, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 const whereImpl = kernel_impls.whereImpl;
 import {assertNotComplex} from './cpu_util';
@@ -56,14 +56,9 @@ export class MathBackendCPU extends KernelBackend {
       if (env().get('IS_NODE')) {
         backend_util.warn(
             '\n============================\n' +
-            'Hi there 👋. Looks like you are running TensorFlow.js in ' +
+            'Hi, looks like you are running TensorFlow.js in ' +
             'Node.js. To speed things up dramatically, install our node ' +
-            'backend, which binds to TensorFlow C++, by running ' +
-            'npm i @tensorflow/tfjs-node, ' +
-            'or npm i @tensorflow/tfjs-node-gpu if you have CUDA. ' +
-            'Then call require(\'@tensorflow/tfjs-node\'); (-gpu ' +
-            'suffix for CUDA) at the start of your program. ' +
-            'Visit https://github.com/tensorflow/tfjs-node for more details.' +
+            'backend, visit https://github.com/tensorflow/tfjs-node for more details. ' +
             '\n============================');
       }
     }
@@ -147,25 +142,27 @@ export class MathBackendCPU extends KernelBackend {
     return this.data.get(dataId).values;
   }
 
-  bufferSync<R extends Rank>(t: TensorInfo): TensorBuffer<R> {
+  bufferSync<R extends Rank, D extends DataType>(t: TensorInfo):
+      TensorBuffer<R, D> {
     const data = this.readSync(t.dataId);
-    let decodedData = data as DataValues;
     if (t.dtype === 'string') {
       try {
         // Decode the bytes into string.
-        decodedData = (data as Uint8Array[]).map(d => util.decodeString(d));
+        const strings = (data as Uint8Array[]).map(d => util.decodeString(d));
+        return buffer(t.shape as ShapeMap[R], t.dtype, strings) as
+            TensorBuffer<R, D>;
       } catch {
         throw new Error('Failed to decode encoded string bytes into utf-8');
       }
     }
-    return buffer(t.shape as ShapeMap[R], t.dtype, decodedData) as
-        TensorBuffer<R>;
+    return buffer(t.shape as ShapeMap[R], t.dtype, data as TypedArray) as
+        TensorBuffer<R, D>;
   }
 
   makeOutput<T extends Tensor>(
       values: backend_util.BackendValues, shape: number[], dtype: DataType): T {
-    const dataId = this.write(values, shape, dtype);
-    return engine().makeTensorFromDataId(dataId, shape, dtype, this) as T;
+    return engine().makeTensorFromTensorInfo(
+               this.makeTensorInfo(shape, dtype, values), this) as T;
   }
 
   /**

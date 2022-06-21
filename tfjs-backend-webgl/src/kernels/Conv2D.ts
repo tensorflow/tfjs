@@ -41,7 +41,7 @@ export function conv2d(
       convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
       (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID')) {
     out = conv2dByMatMul({x, filter, convInfo, backend});
-  } else if (env().getBool('WEBGL_CONV_IM2COL') && x.shape[0] === 1) {
+  } else if (env().getBool('WEBGL_CONV_IM2COL')) {
     out = conv2dWithIm2Row({x, filter, convInfo, backend});
   } else {
     const program = new Conv2DProgram(convInfo);

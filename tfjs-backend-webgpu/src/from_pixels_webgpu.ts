@@ -15,14 +15,12 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class FromPixelsProgram implements WebGPUProgram {
   outputShape: number[] = [0];
   shaderKey: string;
-  workPerThread: number;
   dispatchLayout: {x: number[]};
   variableNames: string[] = [];
   dispatch: [number, number, number];
@@ -31,11 +29,12 @@ export class FromPixelsProgram implements WebGPUProgram {
 
   useImport: boolean;
 
-  constructor(outputShape: number[], useImport = false) {
+  constructor(outputShape: number[], numChannels: number, useImport = false) {
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
-        this.dispatchLayout, this.outputShape, this.workGroupSize);
+        this.dispatchLayout, this.outputShape, this.workGroupSize,
+        [numChannels, 1, 1]);
 
     this.useImport = useImport;
     this.shaderKey = `fromPixels_${this.useImport}`;

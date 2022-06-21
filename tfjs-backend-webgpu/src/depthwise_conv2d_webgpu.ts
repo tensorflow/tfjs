@@ -15,11 +15,10 @@
  * =============================================================================
  */
 
-import {backend_util, util} from '@tensorflow/tfjs-core';
+import {backend_util} from '@tensorflow/tfjs-core';
 
 import {mapActivationToShaderProgram} from './activation_util';
-import {getMainHeaderString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class DepthwiseConv2DProgram implements WebGPUProgram {
@@ -28,15 +27,15 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y?: number[], z?: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = `pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>,
-      inDims : vec2<i32>, filterHeight : i32, filterWidth : i32,
-      channelMul : i32,`;
+  uniforms = `pad : vec2<i32>, inDims : vec2<i32>, filterHeight : i32,
+      filterWidth : i32, stride : vec2<i32>, dilation : vec2<i32>,`;
   // This is an experimental value.
   workGroupSize: [number, number, number] = [256, 1, 1];
   convInfo: backend_util.Conv2DInfo;
   addBias: boolean;
   activation: backend_util.Activation;
   hasPreluActivation: boolean;
+  isChannelsLast: boolean;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
@@ -45,10 +44,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize);
-
-    util.assert(
-        convInfo.dataFormat === 'channelsLast',
-        () => 'TODO: NCHW is unimplemented');
+    this.isChannelsLast = convInfo.dataFormat === 'channelsLast';
 
     if (addBias) {
       this.variableNames.push('bias');
@@ -61,7 +57,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivation = hasPreluActivation;
-    this.shaderKey = `depthwise_${this.activation}`;
+    this.shaderKey = `depthwise_${this.activation}_${this.isChannelsLast}`;
   }
 
   getUserCode(): string {
@@ -89,24 +85,21 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
         'dotProd = dotProd + getBiasByOutputCoords(coords);' :
         '';
 
+    const getXSnippet = this.isChannelsLast ? 'getX(batch, xR, xC, d1);' :
+                                              'getX(batch, d1, xR, xC);';
+
     const userCode = `
       ${activationSnippet}
-
-      fn writeResult(batch : i32, row : i32, col : i32, chan : i32,
-          value : f32) {
-        let coord = vec4<i32>(batch, row, col, chan);
-        if (coordsInBounds4D(coord, uniforms.outShape)) {
-          setOutputAtCoords(batch, row, col, chan, value);
-        }
-      }
 
       ${getMainHeaderString()}
         let coords = getOutputCoords();
         let batch = coords[0];
-        let xRCCorner = vec2<i32>(coords.yz) * uniforms.stride - uniforms.pad;
-        let d2 = coords[3];
-        let d1 = d2 / uniforms.channelMul;
-        let q = d2 - d1 * uniforms.channelMul;
+        let xRCCorner = vec2<i32>(coords.${
+        this.isChannelsLast ? 'yz' : 'zw'}) * uniforms.stride - uniforms.pad;
+        let d2 = coords[${this.isChannelsLast ? 3 : 1}];
+        let channelMul = uniforms.wShape[3];
+        let d1 = d2 / channelMul;
+        let q = d2 % channelMul;
 
         let inputRowStart = xRCCorner.x;
         let inputColStart = xRCCorner.y;
@@ -115,23 +108,23 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
         let inputColEnd = inputColStart + uniforms.filterWidth *
             uniforms.dilation[1];
 
-        // Convolve x(?, ?, d1) with w(:, :, d1, q) to get y(yR, yC, d2).
-        // ? = to be determined. : = across all values in that axis.
+        // Convolve x(?, ?, d1)|x(d1, ?, ?) with w(:, :, d1, q) to get
+        // y(yR, yC, d2)|y(d2, yR, yC). ? = to be determined. : = across all
+        // values in that axis. x(?, ?, d1) and y(yR, yC, d2) is for NHWC.
+        // x(d1, ?, ?) and y(d2, yR, yC) is for NCHW.
         var dotProd = 0.0;
 
         // Extract if checking out of for loop for performance.
         if (inputRowStart >= 0 && inputColStart >= 0 &&
           inputRowEnd < uniforms.inDims[0] &&
               inputColEnd < uniforms.inDims[1]) {
-            // Here using a constant value |this.convInfo.filterHeight| instead
-            // of uniform value is in order to loop unrolling.
             for (var wR = 0; wR < uniforms.filterHeight; wR = wR + 1) {
               let xR = inputRowStart + wR * uniforms.dilation[0];
 
               for (var wC = 0; wC < uniforms.filterWidth; wC = wC + 1) {
                 let xC = inputColStart + wC * uniforms.dilation[1];
 
-                let xVal = getX(batch, xR, xC, d1);
+                let xVal = ${getXSnippet};
                 let wVal = getW(wR, wC, d1, q);
                 dotProd = dotProd + xVal * wVal;
               }
@@ -151,7 +144,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
                   continue;
                 }
 
-                let xVal = getX(batch, xR, xC, d1);
+                let xVal = ${getXSnippet};
                 let wVal = getW(wR, wC, d1, q);
                 dotProd = dotProd + xVal * wVal;
               }
@@ -160,7 +153,9 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
 
         ${addBiasSnippet}
         ${applyActivationSnippet}
-        writeResult(batch, coords[1], coords[2], d2, dotProd);
+        if (coordsInBounds4D(coords, uniforms.outShape)) {
+          setOutputAtCoords(coords[0], coords[1], coords[2], coords[3], dotProd);
+        }
       }
     `;
     return userCode;
