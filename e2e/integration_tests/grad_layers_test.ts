@@ -22,25 +22,28 @@ import * as tfc from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/register_all_gradients';
 // tslint:disable-next-line: no-imports-from-dist
-import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {describeWithFlags, Constraints} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import * as tfl from '@tensorflow/tfjs-layers';
 
 import {SMOKE} from './constants';
+
+// TODO(#6518): Test against wasm as well.
+const NOT_WASM: Constraints = {
+  predicate: testEnv => testEnv.backendName !== 'wasm',
+};
 
 /**
  *  Tests that tf.grad works for layers models.
  *  Regression test for https://github.com/tensorflow/tfjs/issues/4130
  */
 describe(`${SMOKE} tf.grad for layers models`, () => {
-  describeWithFlags(`layers_model`, ALL_ENVS, () => {
+  describeWithFlags(`layers_model`, NOT_WASM, () => {
     let model: tfl.Sequential;
 
-    beforeAll(async () => {
+    it(`can compute grad of prediction`, async () => {
       model = tfl.sequential();
       model.add(tfl.layers.dense({inputShape: [1], units: 1}));
-    });
 
-    it(`can compute grad of prediction`, async () => {
       const forward = (x: tfc.Tensor) => model.predict(x) as tfc.Tensor;
       const grad = tfc.grad(forward);
 

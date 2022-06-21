@@ -17,13 +17,12 @@
 
 import {Equal, KernelConfig} from '@tensorflow/tfjs-core';
 
+import {BinaryOpType} from '../binary_op_util';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {equalImplCPU as cpuEqual} from '../kernel_utils/shared';
 
-import {BinaryOpType} from '../binary_op_util';
-
 export const equal = binaryKernelFunc(
-    {opSnippet: BinaryOpType.EQUAL, dtype: 'bool', cpuKernelImpl: cpuEqual});
+    {opType: BinaryOpType.EQUAL, dtype: 'bool', cpuKernelImpl: cpuEqual});
 
 export const equalConfig: KernelConfig = {
   kernelName: Equal,
