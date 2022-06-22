@@ -75,6 +75,13 @@ export const executeOp: InternalOpExecutor =
           return [tfOps.onesLike(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         }
+        case 'RandomStandardNormal': {
+          return [tfOps.randomStandardNormal(
+              getParamValue('shape', node, tensorMap, context) as number[],
+              getParamValue('dtype', node, tensorMap, context) as 'float32' |
+                  'int32',
+              getParamValue('seed', node, tensorMap, context) as number)];
+        }
         case 'RandomUniform': {
           return [tfOps.randomUniform(
               // tslint:disable-next-line:no-any
