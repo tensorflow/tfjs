@@ -44,12 +44,18 @@ steps:
   dir: 'tensorflow'
   args: ['build', '--jobs=16', '-c', 'opt', '//tensorflow:libtensorflow.so', '//tensorflow:libtensorflow_framework.so']
 
+# Copy results to a staging directory and tar them
+- name: 'tensorflow/build:2.10-python3.10'
+  entrypoint: 'bash'
+  id: 'copy-results'
+  dir: 'scripts'
+  args: ['pack_tf_package.sh']
+
 # Push results to bucket
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: 'gsutil'
   id: 'push'
-  dir: 'tensorflow'
-  args: ['cp', ]
+  args: ['cp', 'scripts/tf_build/libtensorflow_r2_8_linux_arm64.tar.gz', 'gs://tf-builds']
 
 timeout: 7200s
 substitutions:
