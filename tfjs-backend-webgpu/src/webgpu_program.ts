@@ -292,14 +292,27 @@ function makeShader(
 }
 
 export function makeShaderKey<R extends Rank>(
-    program: WebGPUProgram, shapes: Array<ShapeMap[R]>, types: string[] = [],
-    broadcastDimsKey = '', inputShapesEqualsOutShape = ''): string {
+    program: WebGPUProgram, shapes: Array<ShapeMap[R]>, inputsData: InputInfo[],
+    output: TensorInfo): string {
+  let key = program.shaderKey;
+  if (program.isFromPixels) {
+    return key;
+  }
+
+  const types = inputsData.map(d => d.dtype).concat(output.dtype);
+  const broadcastDims =
+      inputsData.map(d => backend_util.getBroadcastDims(d.shape, output.shape));
+  const inputShapesEqualsOutShape =
+      inputsData.map(d => util.arraysEqual(d.shape, output.shape)).join('_');
+  const broadcastDimsKey = broadcastDims.map(d => d.join('_')).join(';');
+
   const flatDispatchString = isFlatDispatch(program) ? 'flatDispatch' : '';
-  const key = program.shaderKey + '_' +
-      (program.workGroupSize ? program.workGroupSize.join(',') : '') +
+
+  key += '_' + (program.workGroupSize ? program.workGroupSize.join(',') : '') +
       shapes.map(shape => shape.length).join(',') + types.join(',') +
       program.variableNames.join(',') + broadcastDimsKey +
       inputShapesEqualsOutShape + flatDispatchString;
+
   return key;
 }
 
