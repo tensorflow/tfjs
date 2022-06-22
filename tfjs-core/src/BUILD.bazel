@@ -43,6 +43,7 @@ filegroup(
 make_version_test_file(
     name = "version_test",
     package_json = "//tfjs-core:package.json",
+    version_name = "version_core",
 )
 
 filegroup(

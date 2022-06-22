@@ -130,6 +130,43 @@
     ]
   },
   {
+    "tfOpName": "RandomStandardNormal",
+    "category": "creation",
+    "inputs": [
+      {
+        "start": 0,
+        "name": "shape",
+        "type": "number[]"
+      }
+    ],
+    "attrs": [
+      {
+        "tfName": "seed",
+        "name": "seed",
+        "type": "number",
+        "defaultValue": 0
+      },
+      {
+        "tfName": "seed2",
+        "name": "seed2",
+        "type": "number",
+        "defaultValue": 0,
+        "notSupported": true
+      },
+      {
+        "tfName": "dtype",
+        "name": "dtype",
+        "type": "dtype"
+      },
+      {
+        "tfName": "T",
+        "name": "T",
+        "type": "number",
+        "notSupported": true
+      }
+    ]
+  },
+  {
     "tfOpName": "RandomUniform",
     "category": "creation",
     "inputs": [

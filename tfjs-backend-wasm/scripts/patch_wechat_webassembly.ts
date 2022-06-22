@@ -1,5 +1,8 @@
-import { walk } from 'estree-walker';
+import {walk} from 'estree-walker';
+import {FunctionDeclaration, BaseNode} from 'estree';
+import {Plugin} from 'rollup';
 
+const createInstantiateWasmFuncString = `
 function createInstantiateWasmFunc(path) {
   return function (imports, callback) {
     WebAssembly.instantiate(path, imports).then(function (output) {
@@ -8,7 +11,9 @@ function createInstantiateWasmFunc(path) {
     return {};
   };
 }
+`;
 
+type NodeType = BaseNode | FunctionDeclaration & {start: number, end: number};
 /**
  * WebAssembly has changed to WXWebAssembly after WeChat 8.0
  * 0. not simd or thread support.
@@ -16,8 +21,9 @@ function createInstantiateWasmFunc(path) {
  * 2. WebAssembly.validate not working so env registerFlag doesn't work
  * @see https://developers.weixin.qq.com/community/develop/doc/000e2c019f8a003d5dfbb54c251c00?jumpto=comment&commentid=000eac66934960576d0cb1a7256c
  */
-export function patchWechatWebAssembly() {
+export function patchWechatWebAssembly(): Plugin {
   return {
+    name: 'patchWechatWebAssembly',
     transform(code, file) {
       // remove node imports
       if (
@@ -32,17 +38,17 @@ export function patchWechatWebAssembly() {
       // tf.env().set('WASM_HAS_SIMD_SUPPORT', false) will be done in tfjs-wechat or application code
       // so does the WASM_HAS_MULTITHREAD_SUPPORT
       if (file.endsWith('backend_wasm.ts')) {
-        const ast = this.parse(code);
+        const ast = (this as {parse: (code: string) => BaseNode}).parse(code);
         walk(ast, {
-          enter(node) {
+          enter(node: NodeType) {
             if (
               node.type === 'FunctionDeclaration' &&
-              node.id &&
+              'id' in node &&
               node.id.name === 'createInstantiateWasmFunc'
             ) {
               code = code.replace(
                 code.slice(node.start, node.end),
-                createInstantiateWasmFunc.toString(),
+                createInstantiateWasmFuncString,
               );
             }
           },

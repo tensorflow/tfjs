@@ -229,13 +229,10 @@
 
 "@tensorflow/tfjs-backend-cpu@link:../link-package/node_modules/@tensorflow/link-package/node_modules/@tensorflow/tfjs-backend-cpu":
   version "0.0.0"
-  uid ""
 
 "@tensorflow/tfjs-backend-cpu@link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu":
   version "0.0.0"
-  dependencies:
-    "@types/seedrandom" "2.4.27"
-    seedrandom "2.4.3"
+  uid ""
 
 "@tensorflow/tfjs-backend-webgl@link:../link-package/node_modules/@tensorflow/tfjs-backend-webgl":
   version "0.0.0"
@@ -348,6 +345,11 @@
   integrity sha512-NRqD6T4gktUrDi1o1wLH3EKC1o2caCr7/wR87ODcbVITQF106OM3sFN92ysZ++wqelOd1CTzatnOBRDYYG6wGQ==
   dependencies:
     "@types/yargs-parser" "*"
+
+"@webgpu/types@^0.1.16":
+  version "0.1.19"
+  resolved "https://registry.yarnpkg.com/@webgpu/types/-/types-0.1.19.tgz#2bfb721ef4586c8c3edaeb8e6ad4fb7a2a8d5f20"
+  integrity sha512-FTmG9ZyxXabWqqhMmbyckego9t49EtbSnIjzlnJIJlHx+phCwmtVyVfjjODVce2WYvOmwyWLvZblVQpFxPVjeQ==
 
 abbrev@1:
   version "1.1.1"
