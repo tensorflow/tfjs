@@ -42,7 +42,7 @@ steps:
   entrypoint: 'bazel'
   id: 'build'
   dir: 'tensorflow'
-  args: ['build', '--jobs=16', '-c', 'opt', '//tensorflow:libtensorflow.so', '//tensorflow:libtensorflow_framework.so']
+  args: ['build', '--jobs=16', '-c', 'opt', '--config=elinux_aarch64', '//tensorflow:libtensorflow.so', '//tensorflow:libtensorflow_framework.so']
 
 # Copy results to a staging directory and tar them
 - name: 'tensorflow/build:2.10-python3.10'
