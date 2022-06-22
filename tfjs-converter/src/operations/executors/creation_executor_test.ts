@@ -173,6 +173,30 @@ describe('creation', () => {
         expect(validateParam(node, creation.json)).toBeTruthy();
       });
     });
+    describe('RandomStandardNormal', () => {
+      it('should call tfOps.randomStandardNormal', () => {
+        spyOn(tfOps, 'randomStandardNormal');
+        node.op = 'RandomStandardNormal';
+        node.inputParams['shape'] = createNumericArrayAttrFromIndex(0);
+        node.inputNames = ['input1'];
+        node.attrParams['dtype'] = createDtypeAttr('float32');
+        node.attrParams['seed'] = createNumberAttr(0);
+
+        executeOp(node, {input1}, context);
+
+        expect(tfOps.randomStandardNormal)
+            .toHaveBeenCalledWith([1, 2, 3], 'float32', 0);
+      });
+      it('should match json def', () => {
+        node.op = 'RandomStandardNormal';
+        node.inputParams['shape'] = createNumericArrayAttrFromIndex(0);
+        node.inputNames = ['input1'];
+        node.attrParams['dtype'] = createDtypeAttr('float32');
+        node.attrParams['seed'] = createNumberAttr(0);
+
+        expect(validateParam(node, creation.json)).toBeTruthy();
+      });
+    });
     describe('RandomUniform', () => {
       it('should call tfOps.randomUniform', () => {
         spyOn(tfOps, 'randomUniform');
