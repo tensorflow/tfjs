@@ -67,16 +67,11 @@ export function fromPixels(args: {
   if (isImageBitmap || isCanvas || isVideoOrImage) {
     let texture: GPUTexture|GPUExternalTexture;
     let textureInfo: TextureInfo;
+
     if (useImport) {
       const externalTextureDescriptor = {source: pixels as HTMLVideoElement};
       texture = backend.device.importExternalTexture(externalTextureDescriptor);
-      textureInfo = {
-        width: pixels.width,
-        height: pixels.height,
-        format: null,
-        usage: null,
-        texture
-      };
+      textureInfo = {width, height, format: null, usage: null, texture};
     } else {
       if (isVideoOrImage) {
         if (fromPixels2DContext == null) {
@@ -89,8 +84,16 @@ export function fromPixels(args: {
             pixels as HTMLVideoElement | HTMLImageElement, 0, 0, width, height);
         pixels = fromPixels2DContext.canvas;
       }
-      textureInfo = backend.copyExternalImageToTexture(
-          pixels as HTMLCanvasElement | ImageBitmap, outputShape);
+
+      const usage = GPUTextureUsage.COPY_DST |
+          GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING;
+      const format = 'rgba8unorm' as GPUTextureFormat;
+      const texture = backend.textureManager.acquireTexture(
+          outputShape[1], outputShape[0], format, usage);
+      backend.queue.copyExternalImageToTexture(
+          {source: pixels as HTMLCanvasElement | ImageBitmap}, {texture},
+          [outputShape[1], outputShape[0]]);
+      textureInfo = {width, height, format, usage, texture};
     }
 
     const size = util.sizeFromShape(outputShape);

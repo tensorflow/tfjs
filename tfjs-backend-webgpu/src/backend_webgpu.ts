@@ -57,8 +57,6 @@ type ResourceTensorInfo = {
   complexTensorInfos?: {real: TensorInfo, imag: TensorInfo}
 };
 
-type ExternalImage = HTMLCanvasElement|ImageBitmap|OffscreenCanvas;
-
 interface DataId {}
 
 export type WebGPUKernelInfo = {
@@ -109,36 +107,34 @@ const reshapeDispatch =
     };
 
 export class WebGPUBackend extends KernelBackend {
+  bufferManager: BufferManager;
   device: GPUDevice;
   queue: GPUQueue;
-  currentCommandEncoder: GPUCommandEncoder;
-  currentComputePass: GPUComputePassEncoder;
+  textureManager: TextureManager;
   tensorMap: DataStorage<ResourceTensorInfo>;
-  supportTimeQuery: boolean;
-  dummyCanvas: HTMLCanvasElement;
-  dummyContext: GPUCanvasContext;
 
+  private activeTimers: TimerNode[];
+  private currentCommandEncoder: GPUCommandEncoder;
+  private currentComputePass: GPUComputePassEncoder;
+  private commandQueueOwnedIds = new WeakSet<DataId>();
+  private dispatchNumberInEncoder = 0;
+  private disposed = false;
+  private downloadWaitMs = 0;
+  private dummyCanvas: HTMLCanvasElement;
+  private dummyContext: GPUCanvasContext;
   private static nextDataId = 0;
+  private pipelineCache: {[key: string]: GPUComputePipeline};
+  private programTimersStack: TimerNode[];
+  private querySet: GPUQuerySet;
+  private stagingDisposalQueue: BufferInfo[] = [];
+  private supportTimeQuery: boolean;
+  private tensorDisposalQueue: DataId[] = [];
+  private uniformDisposalQueue: BufferInfo[] = [];
+  private uploadWaitMs = 0;
+
   private nextDataId(): number {
     return WebGPUBackend.nextDataId++;
   }
-  private commandQueueOwnedIds = new WeakSet<DataId>();
-  private pipelineCache: {[key: string]: GPUComputePipeline};
-  private bufferManager: BufferManager;
-  private textureManager: TextureManager;
-
-  private tensorDisposalQueue: DataId[] = [];
-  private uniformDisposalQueue: BufferInfo[] = [];
-  private stagingDisposalQueue: BufferInfo[] = [];
-
-  private disposed = false;
-
-  private programTimersStack: TimerNode[];
-  private activeTimers: TimerNode[];
-  private uploadWaitMs = 0;
-  private downloadWaitMs = 0;
-  private dispatchNumberInEncoder = 0;
-  private querySet: GPUQuerySet;
 
   constructor(device: GPUDevice, supportTimeQuery = false) {
     super();
@@ -587,7 +583,12 @@ export class WebGPUBackend extends KernelBackend {
 
     const tensorData = this.tensorMap.get(tensor.dataId);
     if (tensorData.textureInfo) {
-      return (tensorData.textureInfo.texture as GPUTexture).createView();
+      const info = tensorData.textureInfo;
+      if (info.texture instanceof GPUExternalTexture) {
+        return info.texture;
+      } else {
+        return (info.texture as GPUTexture).createView();
+      }
     }
     return {
       offset: 0,
@@ -831,26 +832,6 @@ export class WebGPUBackend extends KernelBackend {
       });
     }
     return output;
-  }
-
-  copyExternalImageToTexture(externalImage: ExternalImage, outShape: number[]):
-      TextureInfo {
-    const usage = GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT |
-        GPUTextureUsage.TEXTURE_BINDING;
-    const format = 'rgba8unorm' as GPUTextureFormat;
-    const texture = this.textureManager.acquireTexture(
-        outShape[1], outShape[0], format, usage);
-
-    this.queue.copyExternalImageToTexture(
-        {source: externalImage}, {texture}, [outShape[1], outShape[0]]);
-
-    return {
-      width: externalImage.width,
-      height: externalImage.height,
-      format,
-      usage,
-      texture
-    };
   }
 
   async getTimeFromQuerySet(querySet: GPUQuerySet) {
