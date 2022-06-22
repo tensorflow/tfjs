@@ -47,14 +47,18 @@ void ResizeNearestNeighbor(size_t x_id, size_t batch, size_t old_height,
   const auto image_strides = util::compute_strides(x_shape);
 
   const float effective_input_height =
-      (align_corners > 0 && new_height > 1) ? old_height - 1 : old_height;
+      (align_corners && new_height > 1) ? old_height - 1 : old_height;
+
   const float effective_input_width =
-      (align_corners > 0 && new_width > 1) ? old_width - 1 : old_width;
+      (align_corners && new_width > 1) ? old_width - 1 : old_width;
+
 
   const float effective_output_height =
-      (align_corners > 0 && new_height > 1) ? new_height - 1 : new_height;
+      (align_corners && new_height > 1) ? new_height - 1 : new_height;
+
   const float effective_output_width =
-      (align_corners > 0 && new_width > 1) ? new_width - 1 : new_width;
+      (align_corners && new_width > 1) ? new_width - 1 : new_width;
+
 
   const float height_scale = effective_input_height / effective_output_height;
   const float width_scale = effective_input_width / effective_output_width;
@@ -69,13 +73,15 @@ void ResizeNearestNeighbor(size_t x_id, size_t batch, size_t old_height,
         b * (new_height * new_width * num_channels) +
         r * (new_width * num_channels);
 
-      const float y_ind = half_pixel_centers > 0 ?
+      const float y_ind = half_pixel_centers ?
+
         height_scale * (r + 0.5) :
         height_scale * r;
 
       int top_ind = std::min(
         old_height_m1,
-        align_corners > 0 ? std::roundf(y_ind) : std::floor(y_ind));
+        align_corners ? std::roundf(y_ind) : std::floor(y_ind));
+
       if (half_pixel_centers) {
         top_ind = std::max(0, top_ind);
       }
@@ -87,14 +93,17 @@ void ResizeNearestNeighbor(size_t x_id, size_t batch, size_t old_height,
                sizeof(float) * new_width * num_channels);
       } else {
         for (size_t x = 0; x < new_width; ++x) {
-          const float x_ind = half_pixel_centers > 0 ?
+          const float x_ind = half_pixel_centers ?
+
                             width_scale * (x + 0.5) :
                             width_scale * x;
 
-          int closest_x = std::min(old_width_m1, align_corners > 0 ?
+          int closest_x = std::min(old_width_m1, align_corners ?
+
                                   std::round(x_ind) :
                                   std::floor(x_ind));
-          if (half_pixel_centers > 0) {
+          if (half_pixel_centers) {
+
             closest_x = std::max(0, closest_x);
           }
 
