@@ -64,6 +64,7 @@ describe('basic math', () => {
           it('should call tfOps.' + op, () => {
             node.op = op;
             // TODO(mattsoulanille): Remove type assertion after TS4
+            // tslint:disable-next-line no-any
             (spyOps[uncapitalize(op) as keyof typeof spyOps] as any)
               .and.returnValue({});
             executeOp(node, {input1}, context, spyOpsAsTfOps);
