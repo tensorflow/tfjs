@@ -78,6 +78,7 @@ describeWithFlags('searchSorted', ALL_ENVS, () => {
     };
     for (const side of ['left', 'right'] as const ) {
       for (const dtype of ['float32', 'int32'] as const ) {
+        // tslint:disable-next-line:no-unnecessary-type-assertion
         const key = `${side}-${dtype}` as keyof typeof NUMPY_DATA;
         const [sortedSequence, values, npAns] = NUMPY_DATA[key];
 

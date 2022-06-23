@@ -157,7 +157,7 @@ function fromPixels_(
       } else {
         fromPixels2DContext =
             document.createElement('canvas').getContext(
-                '2d', {willReadFrequently: true}) as CanvasRenderingContext2D;
+                '2d', {willReadFrequently: true});
       }
     }
     fromPixels2DContext.canvas.width = width;

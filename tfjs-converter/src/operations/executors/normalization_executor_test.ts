@@ -57,7 +57,8 @@ describe('normalization', () => {
         const input2 = [tfOps.tensor1d([2])];
         executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
 
-        expect(spyOps.euclideanNorm).toHaveBeenCalledWith(input1[0], [2], false);
+        expect(spyOps.euclideanNorm).toHaveBeenCalledWith(input1[0], [2],
+            false);
       });
       it('should match json def', () => {
         node.op = 'EuclideanNorm';

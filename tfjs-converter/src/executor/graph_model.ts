@@ -109,8 +109,8 @@ export class GraphModel<ModelURL extends Url = string|io.IOHandler>
       // Path is an IO Handler.
       this.handler = path as IOHandler;
     } else if (this.loadOptions.requestInit != null) {
-      this.handler = this.io.browserHTTPRequest(path as string, this.loadOptions) as
-      IOHandler;
+      this.handler = this.io
+        .browserHTTPRequest(path as string, this.loadOptions) as IOHandler;
     } else {
       const handlers =
           this.io.getLoadHandlers(path as string, this.loadOptions);
