@@ -40,6 +40,7 @@ from tensorflow.python.training.saver import export_meta_graph
 from tensorflow.python.tools.saved_model_cli import get_signature_def_map
 from google.protobuf.json_format import MessageToDict
 import tensorflow_hub as hub
+from packaging import version
 
 from tensorflowjs import write_weights
 from tensorflowjs.converters import common
@@ -48,8 +49,6 @@ from tensorflowjs.converters import fuse_prelu
 from tensorflowjs.converters import fuse_depthwise_conv2d
 from tensorflowjs.converters import graph_rewrite_util
 from tensorflowjs import resource_loader
-
-from packaging import version
 
 CLEARED_TENSOR_FIELDS = (
     'tensor_content', 'half_val', 'float_val', 'double_val', 'int_val',
@@ -562,7 +561,8 @@ def _convert_tf_saved_model(output_dir,
                             weight_shard_size_bytes=1024 * 1024 * 4,
                             control_flow_v2=False,
                             experiments=False,
-                            metadata=None):
+                            metadata=None,
+                            frozen_graph_dir=None):
   """Take a SavedModel or KerasModel and convert to Tensorflow.js graph model.
 
   Args:
@@ -586,6 +586,8 @@ def _convert_tf_saved_model(output_dir,
     control_flow_v2: Bool whether to enable control flow v2 ops.
     experiments: Bool enable experimental features.
     metadata: User defined metadata map.
+    frozen_graph_dir: The directory to keep the intermediate frozen graph of
+      model.
   """
   if signature_def is None:
     signature_def = 'serving_default'
@@ -645,22 +647,29 @@ def _convert_tf_saved_model(output_dir,
       print('Can not freeze saved model v1.')
       return
 
+  if frozen_graph_dir:
+    output_graph = os.path.join(frozen_graph_dir,
+                                common.ARTIFACT_MODEL_JSON_FILE_NAME)
+    frozen_file = output_graph + '.frozen'
+    with tf.compat.v1.gfile.GFile(frozen_file, 'wb') as f:
+      f.write(frozen_graph.as_graph_def().SerializeToString())
+
   inputs = [x for x in concrete_func.inputs if not x.dtype == 'resource']
   signature = _build_signature_def(
       frozen_graph, inputs, concrete_func.outputs, saved_model_sigature)
 
   define_transform_graph_func()
 
-  version = None
+  tf_version = None
   try:
-    version = model.tensorflow_version
+    tf_version = model.tensorflow_version
   except: # pylint: disable=W0702
     # keras model does not have tensorflow_version, hard code to the latest
     # tensorflow version.
-    version = tf.__version__
+    tf_version = tf.__version__
 
   optimize_graph(frozen_graph, signature,
-                 output_graph, version,
+                 output_graph, tf_version,
                  quantization_dtype_map=quantization_dtype_map,
                  skip_op_check=skip_op_check,
                  strip_debug_ops=strip_debug_ops,
@@ -736,7 +745,8 @@ def convert_tf_saved_model(saved_model_dir,
                            weight_shard_size_bytes=1024 * 1024 * 4,
                            control_flow_v2=False,
                            experiments=False,
-                           metadata=None):
+                           metadata=None,
+                           frozen_graph_dir=None):
   """Freeze the SavedModel and check the model compatibility with Tensorflow.js.
 
   Optimize and convert the model to Tensorflow.js format, when the model passes
@@ -762,6 +772,8 @@ def convert_tf_saved_model(saved_model_dir,
     control_flow_v2: Bool whether to enable control flow v2 ops.
     experiments: Bool enable experimental features.
     metadata: User defined metadata map.
+    frozen_graph_dir: The directory to keep the intermediate frozen graph of
+      model.
   """
   _convert_tf_saved_model(output_dir, saved_model_dir=saved_model_dir,
                           signature_def=signature_def,
@@ -772,7 +784,8 @@ def convert_tf_saved_model(saved_model_dir,
                           weight_shard_size_bytes=weight_shard_size_bytes,
                           control_flow_v2=control_flow_v2,
                           experiments=experiments,
-                          metadata=metadata)
+                          metadata=metadata,
+                          frozen_graph_dir=frozen_graph_dir)
 
 def load_and_initialize_hub_module(module_path, signature='default'):
   """Loads graph of a TF-Hub module and initializes it into a session.

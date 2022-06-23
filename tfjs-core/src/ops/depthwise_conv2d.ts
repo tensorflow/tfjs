@@ -97,10 +97,11 @@ function depthwiseConv2d_<T extends Tensor3D|Tensor4D>(
       $filter.rank === 4,
       () => `Error in depthwiseConv2d: filter must be rank 4, but got rank ` +
           `${$filter.rank}.`);
+  const inChannels = dataFormat === 'NHWC' ? x4D.shape[3] : x4D.shape[1];
   util.assert(
-      x4D.shape[3] === $filter.shape[2],
+      inChannels === $filter.shape[2],
       () => `Error in depthwiseConv2d: number of input channels ` +
-          `(${x4D.shape[3]}) must match the inChannels dimension in ` +
+          `(${inChannels}) must match the inChannels dimension in ` +
           `filter ${$filter.shape[2]}.`);
   conv_util.checkPadOnDimRoundingMode('depthwiseConv2d', pad, dimRoundingMode);
   const inputs: DepthwiseConv2dNativeInputs = {x: x4D, filter: $filter};

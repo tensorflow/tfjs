@@ -44,8 +44,16 @@ export function fusedConv2d(args: {
       filter.shape as [number, number, number, number], strides, dilations, pad,
       dimRoundingMode, false /* depthwise */, $dataFormat);
 
-  return conv2DImpl({x, filter, convInfo, backend, bias, preluActivationWeights,
-      leakyreluAlpha, activation});
+  return conv2DImpl({
+    x,
+    filter,
+    convInfo,
+    backend,
+    bias,
+    preluActivationWeights,
+    leakyreluAlpha,
+    activation
+  });
 }
 
 export const fusedConv2DConfig: KernelConfig = {

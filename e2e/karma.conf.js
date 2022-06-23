@@ -76,7 +76,23 @@ const devConfig = {
       served: true,
       nocache: true
     },
+    // Serve wasm files
+    {
+      pattern: 'node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/*.wasm',
+      watched: true,
+      included: false,
+      served: true,
+    },
   ],
+  basePath: '',
+  proxies: {
+    '/base/node_modules/karma-typescript/dist/client/tfjs-backend-wasm.wasm':
+        '/base/node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm.wasm',
+    '/base/node_modules/karma-typescript/dist/client/tfjs-backend-wasm-simd.wasm':
+        '/base/node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-simd.wasm',
+    '/base/node_modules/karma-typescript/dist/client/tfjs-backend-wasm-threaded-simd.wasm':
+        '/base/node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-threaded-simd.wasm',
+  },
   exclude: ['integration_tests/custom_bundle_test.ts'],
   include: ['integration_tests/**/*.ts'],
   preprocessors: {
@@ -171,7 +187,7 @@ module.exports = function(config) {
       win_10_chrome: {
         base: 'BrowserStack',
         browser: 'chrome',
-        browser_version: 'latest',
+        browser_version: '101.0',
         os: 'Windows',
         os_version: '10'
       }

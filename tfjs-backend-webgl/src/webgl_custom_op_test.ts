@@ -66,15 +66,12 @@ describeWithFlags('custom-op webgl', WEBGL_ENVS, () => {
       const backpropProgram = new SquareAndAddBackpropKernel(x.shape);
 
       const outInfo: TensorInfo = webglBackend.compileAndRun(program, [x]);
-      const value = engine().makeTensorFromDataId(
-                        outInfo.dataId, outInfo.shape, outInfo.dtype) as T;
+      const value = engine().makeTensorFromTensorInfo(outInfo) as T;
 
       const gradFunc = (dy: T, saved: Tensor[]) => {
         const [x] = saved;
         const backInfo = webglBackend.compileAndRun(backpropProgram, [x]);
-        const back: T =
-            engine().makeTensorFromDataId(
-                backInfo.dataId, backInfo.shape, backInfo.dtype) as T;
+        const back: T = engine().makeTensorFromTensorInfo(backInfo) as T;
         return back.mul(dy);
       };
       return {value, gradFunc};

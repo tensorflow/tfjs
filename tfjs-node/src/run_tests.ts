@@ -105,14 +105,13 @@ const IGNORE_LIST: string[] = [
   'conv2dTranspose test-tensorflow {} input=3x3x1,d2=1,f=2,s=2,p=explicit',
   // tslint:disable-next-line:max-line-length
   'conv2dTranspose test-tensorflow {} gradient input=[1,3,3,1] f=[2,2,2,1] s=[1,1] p=explicit',
+  'fused conv2d test-tensorflow {} basic in NCHW',
+  'fused conv2d test-tensorflow {} im2row in NCHW',
+  'fused conv2d test-tensorflow {} batch in NCHW',
   'maxPoolWithArgmax',
   'rotate',
   // FIXME: unique NaN-handling is inconsistent between TFJS and TFPY
   'unique test-tensorflow {} 1d tensor with NaN and Infinity',
-  // libtensorflow does not yet support tf.matmul with broadcast
-  'broadcast with unequal batch dims',
-  'broadcast batch shape',
-  'broadcast with unequal ranks',
   // Node backend which uses TF 2.4.0 doesn't support explicit padding
   'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=1 d=1 p=explicit',
   // tslint:disable-next-line:max-line-length
@@ -147,6 +146,7 @@ const IGNORE_LIST: string[] = [
   // Node kernel for einsum is yet to be implemented.
   // See: ttps://github.com/tensorflow/tfjs/issues/2349
   'einsum',
+  'searchSorted',
   'sparseFillEmptyRows',
   'sparseReshape',
   'sparseSegmentMean',
@@ -161,6 +161,9 @@ const IGNORE_LIST: string[] = [
   // int32 input for the following ops not supported by TF 2.4.0.
   'leakyrelu test-tensorflow {} int32',
   'step kernel test-tensorflow {} with int32 tensor',
+  // upperBound and lowerBound use SearchSorted, which is unsupported
+  'upperBound',
+  'lowerBound',
 ];
 
 if (process.platform === 'win32') {

@@ -16,9 +16,7 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-
-import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ConcatProgram implements WebGPUProgram {

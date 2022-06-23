@@ -20,7 +20,7 @@ import {backend_util, broadcast_util, env, TensorInfo, util} from '@tensorflow/t
 import {WebGPUBackend} from '../backend_webgpu';
 import {MatMulPackedVec4Program} from '../matmul_packed_vec4_webgpu';
 import {MatMulPackedProgram} from '../matmul_packed_webgpu';
-import {MatMulReduceProgram} from '../matmul_reduce';
+import {MatMulReduceProgram} from '../matmul_reduce_webgpu';
 import {MatMulSmallOutputSizeProgram} from '../matmul_small_output_size_webgpu';
 import {WebGPUProgram} from '../webgpu_program';
 
@@ -90,10 +90,11 @@ export function batchMatMulImpl({
   const batchDim = Math.max(batchDimA, batchDimB);
   const batchAEqualOne = batchDimA === 1;
   const batchBEqualOne = batchDimB === 1;
-  const useVec4 = innerShapeA % 4 === 0 && outerShapeB % 4 === 0 &&
-      !transposeA && !transposeB;
+  const useVec4 = ((innerShapeA % 4 === 0 && !transposeA) ||
+                   (outerShapeA % 4 === 0 && transposeA)) &&
+      outerShapeB % 4 === 0 && !transposeB;
   let program: WebGPUProgram;
-  if (outerShapeA * outerShapeB <= 32) {
+  if (outerShapeA * outerShapeB <= 128) {
     program = new MatMulReduceProgram(
         [batchDim, outerShapeA, outerShapeB], batchAEqualOne, batchBEqualOne,
         transposeA, transposeB, bias, activation, preluActivationWeights);
@@ -120,9 +121,8 @@ export function batchMatMulImpl({
     // are divisible by 4 since we use vec4 to get data. In future, we can
     // remove this limitation by insert 0 to pack data.
     program = new MatMulPackedVec4Program(
-        a3dShape, [batchDim, outerShapeA, outerShapeB],
-        env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, batchAEqualOne,
-        batchBEqualOne, bias, activation, preluActivationWeights);
+        a3dShape, [batchDim, outerShapeA, outerShapeB], batchAEqualOne,
+        batchBEqualOne, transposeA, bias, activation, preluActivationWeights);
   } else {
     program = new MatMulPackedProgram(
         a3dShape, [batchDim, outerShapeA, outerShapeB],

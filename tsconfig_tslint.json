@@ -19,7 +19,9 @@
       "@tensorflow/tfjs-data": ["tfjs-data/src/index.ts"],
       "@tensorflow/tfjs-data/dist/*": ["tfjs-data/src/*"],
       "@tensorflow/tfjs-tflite": ["tfjs-tflite/src/index.ts"],
-      "@tensorflow/tfjs-tflite/dist/*": ["tfjs-tflite/src/*"]
+      "@tensorflow/tfjs-tflite/dist/*": ["tfjs-tflite/src/*"],
+      "@tensorflow/tfjs-backend-wasm": ["tfjs-backend-wasm/src/index.ts"],
+      "@tensorflow/tfjs-backend-wasm/dist/*": ["tfjs-backend-wasm/src/*"]
     },
     "rootDirs": [
       ".",
@@ -34,10 +36,8 @@
     "bazel-out",
     "dist",
     "link-package",
-    "link-package-core",
     "node_modules",
     "tfjs-backend-nodegl",
-    "tfjs-backend-wasm",
     "tfjs-inference",
     "tfjs-node",
     "tfjs-node-gpu",

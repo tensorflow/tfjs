@@ -19,23 +19,37 @@
  * IOHandlers that pass through the in-memory ModelArtifacts format.
  */
 
-import {IOHandler, ModelArtifacts, SaveResult, TrainingConfig, WeightsManifestEntry} from './types';
+import {IOHandler, IOHandlerSync, LoadHandler, ModelArtifacts, SaveHandler, SaveResult, TrainingConfig, WeightsManifestEntry} from './types';
 
-class PassthroughLoader implements IOHandler {
+class PassthroughLoader implements IOHandlerSync {
   constructor(private readonly modelArtifacts?: ModelArtifacts) {}
 
-  async load(): Promise<ModelArtifacts> {
+  load(): ModelArtifacts {
     return this.modelArtifacts;
   }
 }
 
-class PassthroughSaver implements IOHandler {
+class PassthroughSaver<R extends SaveResult | Promise<SaveResult>> {
   constructor(
-      private readonly saveHandler:
-          (artifacts: ModelArtifacts) => Promise<SaveResult>) {}
+    private readonly saveHandler: (artifacts: ModelArtifacts) => R) {}
 
-  async save(modelArtifacts: ModelArtifacts) {
+  save(modelArtifacts: ModelArtifacts): R {
     return this.saveHandler(modelArtifacts);
+  }
+}
+
+class PassthroughAsync implements IOHandler {
+  load?: LoadHandler;
+  save?: SaveHandler;
+
+  constructor(handler: IOHandlerSync) {
+    if (handler.load) {
+      this.load = () => Promise.resolve(handler.load());
+    }
+    if (handler.save) {
+      this.save = (modelArtifacts: ModelArtifacts) =>
+        Promise.resolve(handler.save(modelArtifacts));
+    }
   }
 }
 
@@ -53,9 +67,9 @@ class PassthroughSaver implements IOHandler {
  * @param modelArtifacts a object containing model topology (i.e., parsed from
  *   the JSON format).
  * @param weightSpecs An array of `WeightsManifestEntry` objects describing the
- *   names, shapes, types, and quantization of the weight data.
+ *   names, shapes, types, and quantization of the weight data. Optional.
  * @param weightData A single `ArrayBuffer` containing the weight data,
- *   concatenated in the order described by the weightSpecs.
+ *   concatenated in the order described by the weightSpecs. Optional.
  * @param trainingConfig Model training configuration. Optional.
  *
  * @returns A passthrough `IOHandler` that simply loads the provided data.
@@ -63,6 +77,35 @@ class PassthroughSaver implements IOHandler {
 export function fromMemory(
     modelArtifacts: {}|ModelArtifacts, weightSpecs?: WeightsManifestEntry[],
     weightData?: ArrayBuffer, trainingConfig?: TrainingConfig): IOHandler {
+
+  const args = arguments as unknown as Parameters<typeof fromMemory>;
+  return new PassthroughAsync(fromMemorySync(...args));
+}
+
+/**
+ * Creates an IOHandler that loads model artifacts from memory.
+ *
+ * When used in conjunction with `tf.loadLayersModel`, an instance of
+ * `tf.LayersModel` (Keras-style) can be constructed from the loaded artifacts.
+ *
+ * ```js
+ * const model = await tf.loadLayersModel(tf.io.fromMemory(
+ *     modelTopology, weightSpecs, weightData));
+ * ```
+ *
+ * @param modelArtifacts a object containing model topology (i.e., parsed from
+ *   the JSON format).
+ * @param weightSpecs An array of `WeightsManifestEntry` objects describing the
+ *   names, shapes, types, and quantization of the weight data. Optional.
+ * @param weightData A single `ArrayBuffer` containing the weight data,
+ *   concatenated in the order described by the weightSpecs. Optional.
+ * @param trainingConfig Model training configuration. Optional.
+ *
+ * @returns A passthrough `IOHandlerSync` that simply loads the provided data.
+ */
+export function fromMemorySync(
+    modelArtifacts: {}|ModelArtifacts, weightSpecs?: WeightsManifestEntry[],
+    weightData?: ArrayBuffer, trainingConfig?: TrainingConfig): IOHandlerSync {
   if (arguments.length === 1) {
     const isModelArtifacts =
         (modelArtifacts as ModelArtifacts).modelTopology != null ||
@@ -109,10 +152,30 @@ export function fromMemory(
  * ```
  *
  * @param saveHandler A function that accepts a `ModelArtifacts` and returns a
- *     `SaveResult`.
+ *     promise that resolves to a `SaveResult`.
  */
 export function withSaveHandler(
     saveHandler: (artifacts: ModelArtifacts) =>
         Promise<SaveResult>): IOHandler {
   return new PassthroughSaver(saveHandler);
+}
+
+/**
+ * Creates an IOHandlerSync that passes saved model artifacts to a callback.
+ *
+ * ```js
+ * function handleSave(artifacts) {
+ *   // ... do something with the artifacts ...
+ *   return {modelArtifactsInfo: {...}, ...};
+ * }
+ *
+ * const saveResult = model.save(tf.io.withSaveHandler(handleSave));
+ * ```
+ *
+ * @param saveHandler A function that accepts a `ModelArtifacts` and returns a
+ *     `SaveResult`.
+ */
+export function withSaveHandlerSync(
+    saveHandler: (artifacts: ModelArtifacts) => SaveResult): IOHandlerSync {
+  return new PassthroughSaver<SaveResult>(saveHandler);
 }

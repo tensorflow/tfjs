@@ -23,17 +23,7 @@
     "pretty": true,
     "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "@bazel/tsetse",
-        "disabledRules": [
-          "must-use-promises",
-          "must-type-assert-json-parse",
-          "ban-promise-as-condition"
-        ]
-      }
-    ]
+    "incremental": true
   },
   "include": [
     "**/src/"

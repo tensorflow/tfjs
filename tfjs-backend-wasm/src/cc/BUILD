@@ -1,6 +1,8 @@
 load("@emsdk//emscripten_toolchain:wasm_rules.bzl", "wasm_cc_binary")
 load(":build_defs.bzl", "tfjs_cc_library", "tfjs_unit_test")
 
+package(default_visibility = ["//visibility:public"])
+
 # Emcripten produces a much larger wasm bundle unless the cc_binary has srcs
 # explicitly pointing to files with exported methods (EMSCRIPTEN_KEEPALIVE).
 KERNELS_WITH_KEEPALIVE = glob(
@@ -18,10 +20,8 @@ BASE_LINKOPTS = [
     "-s EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
     "-s MODULARIZE=1",
     "-s MALLOC=emmalloc",
-    # TODO(mattsoulanille): Mark these files as dependencies so Bazel rebuilds
-    # when they change. github.com/emscripten-core/emsdk/issues/933
-    "--pre-js ./tfjs-backend-wasm/src/cc/pre.js",
-    "--post-js ./tfjs-backend-wasm/src/cc/post.js",
+    "--pre-js $(location :pre.js)",
+    "--post-js $(location :post.js)",
 ]
 
 # This build rule generates tfjs-backend-wasm.{js,wasm}.
@@ -35,6 +35,10 @@ BASE_LINKOPTS = [
 cc_binary(
     name = "tfjs-backend-wasm.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    additional_linker_inputs = [
+        "pre.js",
+        "post.js",
+    ],
     linkopts = BASE_LINKOPTS + [
         "-s EXPORT_NAME=WasmBackendModule",
     ],
@@ -47,6 +51,13 @@ cc_binary(
 cc_binary(
     name = "tfjs-backend-wasm-simd.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    additional_linker_inputs = [
+        "pre.js",
+        "post.js",
+    ],
+    copts = [
+        "-msimd128",
+    ],
     linkopts = BASE_LINKOPTS,
     deps = [
         ":all_kernels",
@@ -57,6 +68,14 @@ cc_binary(
 cc_binary(
     name = "tfjs-backend-wasm-threaded-simd.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    additional_linker_inputs = [
+        "pre.js",
+        "post.js",
+    ],
+    copts = [
+        "-msimd128",
+        "-pthread",
+    ],
     linkopts = BASE_LINKOPTS + [
         "-s EXPORT_NAME=WasmBackendModuleThreadedSimd",
         "-s MALLOC=emmalloc",
@@ -769,6 +788,36 @@ tfjs_cc_library(
 tfjs_cc_library(
     name = "LogicalAnd",
     srcs = ["kernels/LogicalAnd.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LogicalNot",
+    srcs = ["kernels/LogicalNot.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LogicalOr",
+    srcs = ["kernels/LogicalOr.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LogicalXor",
+    srcs = ["kernels/LogicalXor.cc"],
     deps = [
         ":backend",
         ":binary",

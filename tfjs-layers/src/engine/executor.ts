@@ -271,7 +271,7 @@ export function execute(
 
   // Check cache.
   const fetchAndFeedKey =
-      outputNames.join(',') + '|' + feedDict.names().join(',');
+      outputNames.join(',') + '|' + feedDict.names().sort().join(',');
   let sorted: SymbolicTensor[] = cachedSorted.get(fetchAndFeedKey);
   let recipientCounts: {[fetchName: string]: number};
   if (sorted == null) {

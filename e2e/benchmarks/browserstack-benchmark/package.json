@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "@tensorflow/tfjs": "link:../../../tfjs",
-    "@tensorflow/tfjs-backend-wasm": "link:../../../tfjs-backend-wasm",
+    "@tensorflow/tfjs-backend-wasm": "link:../../../link_package/node_modules/@tensorflow/tfjs-backend-wasm",
     "@tensorflow/tfjs-vis": "link:../../../tfjs-vis",
     "argparse": "^2.0.1",
     "firebase": "^8.7.1",

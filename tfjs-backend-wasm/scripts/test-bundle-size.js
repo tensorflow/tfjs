@@ -14,16 +14,20 @@
 // limitations under the License.
 // =============================================================================
 
+// This script has not been bazelized yet because it uses several imports from
+// the root `scripts/` directory.
 const shell = require('shelljs');
 const {exec} = require('../../scripts/test-util');
 const {showDiff, getFileSizeBytes} = require('../../scripts/bundle-size-util');
+const path = require('path');
 
 // Get the bundle sizes from this change.
-exec(`yarn rollup -c`, {silent: false});
+exec(`yarn build-npm`, {silent: false});
 
-const bundleFilename = 'dist/tf-backend-wasm.min.js';
+const basePath = '../dist/bin/tfjs-backend-wasm/tfjs-backend-wasm_pkg/dist/';
+const bundleFilename = path.join(basePath, 'tf-backend-wasm.min.js');
 const minBundleSize = getFileSizeBytes(bundleFilename);
-const wasmFileName = 'dist/tfjs-backend-wasm.wasm';
+const wasmFileName = path.join(basePath, 'tfjs-backend-wasm.wasm');
 const wasmSize = getFileSizeBytes(wasmFileName);
 
 console.log(`~~~~ WASM file ~~~~`);

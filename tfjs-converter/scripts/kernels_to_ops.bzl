@@ -37,7 +37,7 @@ kernels_to_ops = rule(
     attrs = {
         "kernels_to_ops_bin": attr.label(
             executable = True,
-            cfg = "host",
+            cfg = "exec",
             default = Label("@//tfjs-converter/scripts:kernels_to_ops_bin"),
             doc = "The script that generates the kernel2op.json metadata file",
         ),

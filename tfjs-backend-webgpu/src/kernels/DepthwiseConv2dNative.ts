@@ -18,7 +18,8 @@
 import {backend_util, DepthwiseConv2dNative, DepthwiseConv2dNativeAttrs, DepthwiseConv2dNativeInputs, KernelConfig, KernelFunc} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {DepthwiseConv2D3x3Program} from '../depthwise_conv2d_3x3_webgpu';
+import {DepthwiseConv2DNCHWSharedProgram} from '../depthwise_conv2d_nchw_shared_webgpu';
+import {DepthwiseConv2DVec4Program} from '../depthwise_conv2d_vec4_webgpu';
 import {DepthwiseConv2DProgram} from '../depthwise_conv2d_webgpu';
 
 export function depthwiseConv2dNative(args: {
@@ -28,8 +29,8 @@ export function depthwiseConv2dNative(args: {
 }) {
   const {inputs, backend, attrs} = args;
   const {x, filter} = inputs;
-  const {strides, pad, dilations, dimRoundingMode} = attrs;
-
+  const {strides, pad, dataFormat, dilations, dimRoundingMode} = attrs;
+  const $dataFormat = backend_util.convertConv2DDataFormat(dataFormat);
   let $dilations = dilations;
   if ($dilations == null) {
     $dilations = [1, 1];
@@ -38,32 +39,37 @@ export function depthwiseConv2dNative(args: {
   const convInfo = backend_util.computeConv2DInfo(
       x.shape as [number, number, number, number],
       filter.shape as [number, number, number, number], strides, $dilations,
-      pad, dimRoundingMode, true /* depthwise */);
-
+      pad, dimRoundingMode, true /* depthwise */, $dataFormat);
   const dimensions = [
     {type: 'int32', data: [convInfo.padInfo.top, convInfo.padInfo.left]},
-    {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]},
-    {type: 'int32', data: [convInfo.dilationHeight, convInfo.dilationWidth]},
-    {type: 'int32', data: [convInfo.inHeight, convInfo.inWidth]}
+    {type: 'int32', data: [convInfo.inHeight, convInfo.inWidth]},
   ];
 
-  let program: DepthwiseConv2DProgram|DepthwiseConv2D3x3Program;
-  // TODO: To see if we need to relax the limitation. Currently, it's only for
-  // filter size 3x3.
-  if (convInfo.batchSize === 1 && convInfo.inHeight === convInfo.outHeight &&
-      convInfo.inWidth === convInfo.outWidth && convInfo.strideHeight === 1 &&
-      convInfo.strideWidth === 1 &&
-      convInfo.filterHeight === convInfo.filterWidth &&
+  const isChannelsLast = convInfo.dataFormat === 'channelsLast';
+  let program: DepthwiseConv2DProgram|DepthwiseConv2DVec4Program|
+      DepthwiseConv2DNCHWSharedProgram;
+  if (!isChannelsLast && convInfo.inHeight > 16 && convInfo.inWidth > 16 &&
+      convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
+      convInfo.dilationWidth === 1 && convInfo.dilationHeight === 1 &&
+      convInfo.inChannels === convInfo.outChannels) {
+    program = new DepthwiseConv2DNCHWSharedProgram(
+        convInfo.outShape, convInfo.filterHeight, convInfo.filterWidth);
+  } else if (
+      isChannelsLast && convInfo.inHeight > 4 && convInfo.inWidth > 4 &&
+      convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
       convInfo.inChannels === convInfo.outChannels &&
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
-      convInfo.filterHeight === 3 && convInfo.inChannels % 4 === 0) {
-    program = new DepthwiseConv2D3x3Program(convInfo);
+      convInfo.inChannels % 4 === 0) {
+    program = new DepthwiseConv2DVec4Program(convInfo);
   } else {
     program = new DepthwiseConv2DProgram(convInfo);
     dimensions.push(
         {type: 'int32', data: [convInfo.filterHeight]},
         {type: 'int32', data: [convInfo.filterWidth]},
-        {type: 'int32', data: [convInfo.outChannels / convInfo.inChannels]});
+        {type: 'int32', data: [convInfo.strideHeight, convInfo.strideWidth]}, {
+          type: 'int32',
+          data: [convInfo.dilationHeight, convInfo.dilationWidth]
+        });
   }
 
   return backend.runWebGPUProgram(program, [x, filter], x.dtype, dimensions);
