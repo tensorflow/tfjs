@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 // import {mapActivationToShaderProgram} from './activation_util';
 import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
@@ -29,6 +29,7 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   variableNames = ['A', 'B'];
   uniforms = `dimAOuter : i32, dimBOuter : i32, dimInner : i32,`;
   workGroupSize: [number, number, number] = [8, 8, 1];
+  elementsPerThread: [number, number, number];
   transposeA: boolean;
   transposeB: boolean;
   addBias: boolean;
@@ -48,13 +49,20 @@ export class MatMulSplitKProgram implements WebGPUProgram {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
     this.tileInner = 32;
+    this.elementsPerThread = [4, 4, this.tileInner];
+    if (this.outputShape[1] < 16) {
+      this.elementsPerThread[1] = 1;
+    }
+    if (this.outputShape[2] < 16) {
+      this.elementsPerThread[0] = 1;
+    }
     this.dispatch = computeDispatch(
         this.dispatchLayout,
         [
           this.outputShape[0], this.outputShape[1], this.outputShape[2],
           dimInner
         ],
-        this.workGroupSize, [4, 4, this.tileInner]);
+        this.workGroupSize, this.elementsPerThread);
 
     const addBias = bias != null;
     const hasPreluActivationWeights = preluActivationWeights != null;
@@ -73,8 +81,9 @@ export class MatMulSplitKProgram implements WebGPUProgram {
     this.hasPreluActivationWeights = hasPreluActivationWeights;
     this.batchAEqualOne = batchAEqualOne;
     this.batchBEqualOne = batchBEqualOne;
-    this.shaderKey = `matMulSplitK_${this.activation}_${transposeA}_${
-        transposeB}_${batchAEqualOne}_${batchBEqualOne}`;
+    this.shaderKey =
+        `matMulSplitK_${this.activation}_${transposeA}_${transposeB}_${
+            batchAEqualOne}_${batchBEqualOne}_${this.elementsPerThread}`;
   }
 
   getUserCode(): string {
@@ -82,30 +91,30 @@ export class MatMulSplitKProgram implements WebGPUProgram {
     if (this.transposeA === false) {
       sampleA =
           `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-            return A[batch * batchASize + row * uniforms.dimInner + col];
+            value = A[batch * batchASize + row * uniforms.dimInner + col];
           }
-          return 0.0;`;
+          return value;`;
     } else {
       sampleA =
           `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-            return A[batch* batchASize + col * uniforms.dimAOuter + row];
+            value = A[batch* batchASize + col * uniforms.dimAOuter + row];
           }
-          return 0.0;`;
+          return value;`;
     }
 
     let sampleB;
     if (this.transposeB === false) {
       sampleB =
           `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-            return B[batch * batchBSize + row * uniforms.dimBOuter + col];
+            value = B[batch * batchBSize + row * uniforms.dimBOuter + col];
           }
-          return 0.0;`;
+          return value;`;
     } else {
       sampleB =
           `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-            return B[batch * batchBSize + col * uniforms.dimInner + row];
+            value = B[batch * batchBSize + col * uniforms.dimInner + row];
           }
-          return 0.0;`;
+          return value;`;
     }
 
     // atomicAdd only supports uint/int type. For float, we use
@@ -124,11 +133,13 @@ export class MatMulSplitKProgram implements WebGPUProgram {
     const userCode = `
       fn mm_readA(batch: i32, row : i32, col : i32) -> f32 {
         let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
+        var value = 0.0;
         ${sampleA}
       }
 
       fn mm_readB(batch: i32, row : i32, col : i32) -> f32 {
         let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
+        var value = 0.0;
         ${sampleB}
       }
 
@@ -149,65 +160,98 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   }
 
   makeMatMulSplitKSource(): string {
+    const tileAOuter = this.workGroupSize[1] * this.elementsPerThread[1];
+    const tileBOuter = this.workGroupSize[0] * this.elementsPerThread[0];
+    const rowPerThread = this.elementsPerThread[1];
+    const colPerThread = this.elementsPerThread[0];
+    const colPerThreadA = this.tileInner / this.workGroupSize[0];
+    const rowPerThreadB = this.tileInner / this.workGroupSize[1];
+    const dimInnerStr =
+        this.transposeA ? 'uniforms.aShape[1]' : 'uniforms.aShape[2]';
+    util.assert(
+        this.tileInner % this.workGroupSize[0] === 0 &&
+            this.tileInner % this.workGroupSize[1] === 0,
+        () =>
+            `tileInner ${this.tileInner} must be divisible by workGroupSize[0]${
+                this.workGroupSize[0]} and workGroupSize[1]${
+                this.workGroupSize[1]}`);
     return `
-      var<workgroup> mm_Asub : array<array<f32, ${this.tileInner}>, 32>;
-      var<workgroup> mm_Bsub : array<array<f32, 32>, ${this.tileInner}>;
+      var<workgroup> mm_Asub : array<array<f32, ${this.tileInner}>, ${
+        tileAOuter}>;
+      var<workgroup> mm_Bsub : array<array<f32, ${tileBOuter}>, ${
+        this.tileInner}>;
       ${getMainHeaderString()}
-        let batch = 0;
-        let tileRow = i32(localId.y) * 4;
-        let tileCol = i32(localId.x) * 4;
+        let tileRow = i32(localId.y) * ${rowPerThread};
+        let tileCol = i32(localId.x) * ${colPerThread};
 
-        let globalRow = i32(globalId.y) * 4;
-        let globalCol = i32(globalId.x) * 4;
-        let kStart = i32(globalId.z) * ${this.tileInner};
+        let globalRow = i32(globalId.y) * ${rowPerThread};
+        let globalCol = i32(globalId.x) * ${colPerThread};
+        let zIndex = i32(globalId.z) * ${this.tileInner};
+        let batch = zIndex / ${dimInnerStr};
+        let kStart = zIndex % ${dimInnerStr};
 
-        var acc : array<array<f32, 4>, 4>;
+        var acc : array<array<f32, ${colPerThread}>, ${rowPerThread}>;
         var ACached : f32;
-        var BCached : array<f32, 4>;
+        var BCached : array<f32, ${colPerThread}>;
 
         // Without this initialization strange values show up in acc.
-        for (var innerRow = 0; innerRow < 4; innerRow = innerRow + 1) {
-          for (var innerCol = 0; innerCol < 4; innerCol = innerCol + 1) {
+        for (var innerRow = 0; innerRow < ${
+        rowPerThread}; innerRow = innerRow + 1) {
+          for (var innerCol = 0; innerCol < ${
+        colPerThread}; innerCol = innerCol + 1) {
             acc[innerRow][innerCol] = 0.0;
           }
         }
 
         // Loop over shared dimension.
           // Load one tile of A and B into local memory.
-          for (var innerRow = 0; innerRow < 4; innerRow = innerRow + 1) {
-            for (var innerCol = 0; innerCol < 4; innerCol = innerCol + 1) {
+          for (var innerRow = 0; innerRow < ${
+        rowPerThread}; innerRow = innerRow + 1) {
+            for (var innerCol = 0; innerCol < ${
+        colPerThreadA}; innerCol = innerCol + 1) {
               let inputRow = tileRow + innerRow;
               let inputCol = tileCol + innerCol;
-
               mm_Asub[inputRow][inputCol] = mm_readA(${
         this.batchAEqualOne ? 0 : 'batch'},
-                  globalRow + innerRow,
-                  kStart + inputCol);
-              mm_Bsub[inputRow][inputCol] = mm_readB(${
-        this.batchBEqualOne ? 0 : 'batch'},
-                  kStart + inputRow,
-                  globalCol + innerCol);
+                globalRow + innerRow,
+                kStart + inputCol);
             }
           }
+          for (var innerRow = 0; innerRow < ${
+        rowPerThreadB}; innerRow = innerRow + 1) {
+                for (var innerCol = 0; innerCol < ${
+        colPerThread}; innerCol = innerCol + 1) {
+                  let inputRow = tileRow + innerRow;
+                  let inputCol = tileCol + innerCol;
+                  mm_Bsub[inputRow][inputCol] = mm_readB(${
+        this.batchBEqualOne ? 0 : 'batch'},
+                      kStart + inputRow,
+                      globalCol + innerCol);
+                }
+              }
 
           workgroupBarrier();
 
           // Compute acc values for a single thread.
           for (var k = 0; k < ${this.tileInner}; k = k + 1) {
-            for (var inner = 0; inner < 4; inner = inner + 1) {
+            for (var inner = 0; inner < ${colPerThread}; inner = inner + 1) {
               BCached[inner] = mm_Bsub[k][tileCol + inner];
             }
 
-            for (var innerRow = 0; innerRow < 4; innerRow = innerRow + 1) {
+            for (var innerRow = 0; innerRow < ${
+        rowPerThread}; innerRow = innerRow + 1) {
               ACached = mm_Asub[tileRow + innerRow][k];
-              for (var innerCol = 0; innerCol < 4; innerCol = innerCol + 1) {
+              for (var innerCol = 0; innerCol < ${
+        colPerThread}; innerCol = innerCol + 1) {
                 acc[innerRow][innerCol] = acc[innerRow][innerCol] + ACached * BCached[innerCol];
               }
             }
           }
 
-            for (var innerRow = 0; innerRow < 4; innerRow = innerRow + 1) {
-              for (var innerCol = 0; innerCol < 4; innerCol = innerCol + 1) {
+            for (var innerRow = 0; innerRow < ${
+        rowPerThread}; innerRow = innerRow + 1) {
+              for (var innerCol = 0; innerCol < ${
+        colPerThread}; innerCol = innerCol + 1) {
                 mm_write(batch, globalRow + innerRow, globalCol + innerCol, acc[innerRow][innerCol]);
               }
             }
