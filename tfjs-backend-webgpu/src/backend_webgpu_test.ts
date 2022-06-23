@@ -220,7 +220,6 @@ describeWebGPU('backend webgpu', () => {
     const useImport = tf.env().getBool('WEBGPU_USE_IMPORT');
     const backend = tf.backend() as WebGPUBackend;
     const textureManager = backend.getTextureManager();
-    textureManager.dispose();
 
     {
       const video = document.createElement('video');
@@ -244,16 +243,30 @@ describeWebGPU('backend webgpu', () => {
         await new Promise(go => (video as any).requestVideoFrameCallback(go));
       }
 
-      for (const tmpUseImport of [false, true]) {
-        tf.env().set('WEBGPU_USE_IMPORT', tmpUseImport);
+      {
+        textureManager.dispose();
+        tf.env().set('WEBGPU_USE_IMPORT', true);
         const res = await tf.browser.fromPixelsAsync(video);
         expect(res.shape).toEqual([90, 160, 3]);
         const data = await res.data();
         expect(data.length).toEqual(90 * 160 * 3);
-        const freeTexturesAfterFromPixel = textureManager.getNumFreeTextures();
-        const usedTexturesAfterFromPixel = textureManager.getNumUsedTextures();
-        expect(freeTexturesAfterFromPixel).toEqual(1);
-        expect(usedTexturesAfterFromPixel).toEqual(0);
+        const freeTexturesAfterFromPixels = textureManager.getNumFreeTextures();
+        expect(freeTexturesAfterFromPixels).toEqual(0);
+        const usedTexturesAfterFromPixels = textureManager.getNumUsedTextures();
+        expect(usedTexturesAfterFromPixels).toEqual(0);
+      }
+
+      {
+        textureManager.dispose();
+        tf.env().set('WEBGPU_USE_IMPORT', false);
+        const res = await tf.browser.fromPixelsAsync(video);
+        expect(res.shape).toEqual([90, 160, 3]);
+        const data = await res.data();
+        expect(data.length).toEqual(90 * 160 * 3);
+        const freeTexturesAfterFromPixels = textureManager.getNumFreeTextures();
+        expect(freeTexturesAfterFromPixels).toEqual(1);
+        const usedTexturesAfterFromPixels = textureManager.getNumUsedTextures();
+        expect(usedTexturesAfterFromPixels).toEqual(0);
       }
 
       document.body.removeChild(video);
@@ -261,6 +274,7 @@ describeWebGPU('backend webgpu', () => {
     }
 
     {
+      textureManager.dispose();
       const img = new Image(10, 10);
       img.src = 'data:image/gif;base64' +
           ',R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
@@ -275,13 +289,14 @@ describeWebGPU('backend webgpu', () => {
       const dataImage = await resImage.data();
       expect(dataImage[0]).toEqual(0);
       expect(dataImage.length).toEqual(10 * 10 * 3);
-      const freeTexturesAfterFromPixel = textureManager.getNumFreeTextures();
-      const usedTexturesAfterFromPixel = textureManager.getNumUsedTextures();
-      expect(freeTexturesAfterFromPixel).toEqual(2);
-      expect(usedTexturesAfterFromPixel).toEqual(0);
+      const freeTexturesAfterFromPixels = textureManager.getNumFreeTextures();
+      expect(freeTexturesAfterFromPixels).toEqual(1);
+      const usedTexturesAfterFromPixels = textureManager.getNumUsedTextures();
+      expect(usedTexturesAfterFromPixels).toEqual(0);
     }
 
     {
+      textureManager.dispose();
       const img = new Image(10, 10);
       img.src =
           'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAABfSURBVChTY/gPBu8NLd/KqLxT1oZw4QAqDZSDoPeWDj9WrYUIAgG6NBAhm4FFGoIgxuCUBiKgMfikv1bW4pQGav334wdUGshBk/6SVQAUh0p/mzIDTQ6oFSGNHfz/DwAwi8mNzTi6rwAAAABJRU5ErkJggg==';
@@ -294,10 +309,10 @@ describeWebGPU('backend webgpu', () => {
       const dataImage = await resImage.data();
       expect(dataImage[0]).toEqual(255);
       expect(dataImage.length).toEqual(10 * 10 * 3);
-      const freeTexturesAfterFromPixel = textureManager.getNumFreeTextures();
-      const usedTexturesAfterFromPixel = textureManager.getNumUsedTextures();
-      expect(freeTexturesAfterFromPixel).toEqual(2);
-      expect(usedTexturesAfterFromPixel).toEqual(0);
+      const freeTexturesAfterFromPixels = textureManager.getNumFreeTextures();
+      expect(freeTexturesAfterFromPixels).toEqual(1);
+      const usedTexturesAfterFromPixels = textureManager.getNumUsedTextures();
+      expect(usedTexturesAfterFromPixels).toEqual(0);
     }
   });
 });
