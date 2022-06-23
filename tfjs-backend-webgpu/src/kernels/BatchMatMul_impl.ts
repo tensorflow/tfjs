@@ -17,6 +17,7 @@
 
 import {backend_util, broadcast_util, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
+import {executeActivation} from '../activation_util';
 import {WebGPUBackend} from '../backend_webgpu';
 import {MatMulPackedVec4Program} from '../matmul_packed_vec4_webgpu';
 import {MatMulPackedProgram} from '../matmul_packed_webgpu';
@@ -24,6 +25,7 @@ import {MatMulReduceProgram} from '../matmul_reduce_webgpu';
 import {MatMulSmallOutputSizeProgram} from '../matmul_small_output_size_webgpu';
 import {MatMulSplitKProgram} from '../matmul_splitK_webgpu';
 import {WebGPUProgram} from '../webgpu_program';
+
 import {fill} from './Fill';
 import {reshape} from './Reshape';
 
@@ -95,19 +97,25 @@ export function batchMatMulImpl({
                    (outerShapeA % 4 === 0 && transposeA)) &&
       outerShapeB % 4 === 0 && !transposeB;
 
+  const inputs: TensorInfo[] = [a3d, b3d];
+  if (bias) {
+    inputs.push(bias);
+  }
+  const dimensions = [
+    {type: 'int32', data: [outerShapeA]}, {type: 'int32', data: [outerShapeB]},
+    {type: 'int32', data: [innerShapeA]}
+  ];
+
   let program: WebGPUProgram;
   let out: TensorInfo;
   const outputShape: [number, number, number] =
       [batchDim, outerShapeA, outerShapeB];
-  if (outerShapeA * outerShapeB <= 128) {
+  if (outerShapeA * outerShapeB <= 1) {
     program = new MatMulReduceProgram(
         outputShape, batchAEqualOne, batchBEqualOne, transposeA, transposeB,
         bias, activation, preluActivationWeights);
 
-  } else if (
-      // TODO: Support activation
-      batchDim === 1 && outerShapeA <= 128 && outerShapeB <= 128 &&
-      innerShapeB >= 1000 && !activation) {
+  } else if (batchDim === 1) {
     // The output buffer must be initailzed to zero before using since we
     // use atomicAdd in MatMulSplitKProgram.
     out =
@@ -115,6 +123,19 @@ export function batchMatMulImpl({
     program = new MatMulSplitKProgram(
         outputShape, innerShapeB, batchAEqualOne, batchBEqualOne, transposeA,
         transposeB, bias);
+    if (activation) {
+      out = backend.runWebGPUProgram(program, inputs, a.dtype, dimensions, out);
+      const outActivated = executeActivation(
+          activation, out, backend, leakyreluAlpha, preluActivationWeights);
+      intermediates.push(out);
+      const outReshaped = reshape(
+          {inputs: {x: outActivated}, backend, attrs: {shape: outShape}});
+      intermediates.push(outActivated);
+      for (const i of intermediates) {
+        backend.disposeData(i.dataId);
+      }
+      return outReshaped;
+    }
   } else
       // When the output size is absolutely small or relatively small, we may
       // use MatMulSmallOutputSizeProgram to get better performance. Absolutely
@@ -146,17 +167,9 @@ export function batchMatMulImpl({
         batchBEqualOne, transposeA, transposeB, bias, activation,
         preluActivationWeights);
   }
-  const inputs: TensorInfo[] = [a3d, b3d];
-  if (bias) {
-    inputs.push(bias);
-  }
   if (preluActivationWeights) {
     inputs.push(preluActivationWeights);
   }
-  const dimensions = [
-    {type: 'int32', data: [outerShapeA]}, {type: 'int32', data: [outerShapeB]},
-    {type: 'int32', data: [innerShapeA]}
-  ];
   if (activation === 'leakyrelu') {
     dimensions.push({type: 'float32', data: [leakyreluAlpha]});
     program.uniforms += ' alpha : f32,';
