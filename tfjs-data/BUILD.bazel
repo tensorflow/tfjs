@@ -58,6 +58,7 @@ tfjs_web_test(
     srcs = [
         "//tfjs-data/src:tfjs-data_test_bundle",
     ],
+    local_browser = "chrome_autoplay",
     browsers = [
         "bs_chrome_mac",
         "win_10_chrome",
