@@ -587,7 +587,7 @@ export class WebGPUBackend extends KernelBackend {
       if (info.texture instanceof GPUExternalTexture) {
         return info.texture;
       } else {
-        return (info.texture as GPUTexture).createView();
+        return info.texture.createView();
       }
     }
     return {
