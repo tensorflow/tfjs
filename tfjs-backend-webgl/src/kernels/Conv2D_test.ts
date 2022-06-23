@@ -161,7 +161,7 @@ describeWithFlags('Dense Conv2D WebGL Implementation', ALL_ENVS, () => {
     }
 
     const cpuResultSum = 4463875743285248;
-    expectNumbersClose(sum, cpuResultSum);
+    expectNumbersClose(sum, cpuResultSum, cpuResultSum * 0.000001);
   });
 
   it('benchmark dense', async () => {
