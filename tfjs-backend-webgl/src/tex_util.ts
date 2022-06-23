@@ -152,9 +152,7 @@ export function decodeMatrixFromUnpackedColorRGBAArray(
 
 export function getPackedMatrixTextureShapeWidthHeight(
     rows: number, columns: number): [number, number] {
-  return [
-    Math.max(1, Math.ceil(columns / 2)), Math.max(1, Math.ceil(rows / 2))
-  ];
+  return [Math.max(1, Math.ceil(columns / 4)), rows];
 }
 
 export function getPackedRGBAArraySizeFromMatrixShape(
