@@ -15,9 +15,8 @@
  * =============================================================================
  */
 
-import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {TensorInfo, util} from '@tensorflow/tfjs-core';
 
-// import {mapActivationToShaderProgram} from './activation_util';
 import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
@@ -33,8 +32,6 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   transposeA: boolean;
   transposeB: boolean;
   addBias: boolean;
-  activation: backend_util.Activation;
-  hasPreluActivationWeights: boolean;
   atomic = true;
   batchAEqualOne: boolean;
   batchBEqualOne: boolean;
@@ -43,9 +40,7 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   constructor(
       outputShape: [number, number, number], dimInner: number,
       batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA = false,
-      transposeB = false, bias: TensorInfo = null,
-      activation: backend_util.Activation = null,
-      preluActivationWeights: TensorInfo = null) {
+      transposeB = false, bias: TensorInfo = null) {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
     this.tileInner = 32;
@@ -65,25 +60,17 @@ export class MatMulSplitKProgram implements WebGPUProgram {
         this.workGroupSize, this.elementsPerThread);
 
     const addBias = bias != null;
-    const hasPreluActivationWeights = preluActivationWeights != null;
     if (addBias) {
       this.variableNames.push('bias');
-    }
-
-    if (hasPreluActivationWeights) {
-      this.variableNames.push('preluActivationWeights');
     }
 
     this.transposeA = transposeA;
     this.transposeB = transposeB;
     this.addBias = addBias;
-    this.activation = activation;
-    this.hasPreluActivationWeights = hasPreluActivationWeights;
     this.batchAEqualOne = batchAEqualOne;
     this.batchBEqualOne = batchBEqualOne;
-    this.shaderKey =
-        `matMulSplitK_${this.activation}_${transposeA}_${transposeB}_${
-            batchAEqualOne}_${batchBEqualOne}_${this.elementsPerThread}`;
+    this.shaderKey = `matMulSplitK_${transposeA}_${transposeB}_${
+        batchAEqualOne}_${batchBEqualOne}_${this.elementsPerThread}`;
   }
 
   getUserCode(): string {
@@ -130,6 +117,13 @@ export class MatMulSplitKProgram implements WebGPUProgram {
        exchanged = res.exchanged;
      }
      `;
+
+    const addBiasSnippet = this.addBias ? `
+        if (kStart == 0)
+        {
+          value = value + getBiasByOutputCoords(outCoord);
+        }` :
+                                          '';
     const userCode = `
       fn mm_readA(batch: i32, row : i32, col : i32) -> f32 {
         let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
@@ -143,14 +137,15 @@ export class MatMulSplitKProgram implements WebGPUProgram {
         ${sampleB}
       }
 
-      fn mm_write(batch: i32, row : i32, col : i32, valueIn : f32) {
+      fn mm_write(batch: i32, row : i32, col : i32, valueIn : f32, kStart: i32) {
         if (row < uniforms.dimAOuter && col < uniforms.dimBOuter) {
-          let coords = vec3<i32>(batch, row, col);
-          let flatIndex = getOutputIndexFromCoords(coords);
+          let outCoord = vec3<i32>(batch, row, col);
+          let flatIndex = getOutputIndexFromCoords(outCoord);
           var value = valueIn;
-         // The problem is that we should initialize output to zero before using.
-         // Otherwise, the original value will be added to the result.
-         ${atomicAddSnippet}
+          ${addBiasSnippet}
+          // The problem is that we should initialize output to zero before using.
+          // Otherwise, the original value will be added to the result.
+          ${atomicAddSnippet}
         }
       }
 
@@ -252,7 +247,7 @@ export class MatMulSplitKProgram implements WebGPUProgram {
         rowPerThread}; innerRow = innerRow + 1) {
               for (var innerCol = 0; innerCol < ${
         colPerThread}; innerCol = innerCol + 1) {
-                mm_write(batch, globalRow + innerRow, globalCol + innerCol, acc[innerRow][innerCol]);
+                mm_write(batch, globalRow + innerRow, globalCol + innerCol, acc[innerRow][innerCol], kStart);
               }
             }
       }

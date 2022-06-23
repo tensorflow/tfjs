@@ -104,14 +104,17 @@ export function batchMatMulImpl({
         outputShape, batchAEqualOne, batchBEqualOne, transposeA, transposeB,
         bias, activation, preluActivationWeights);
 
-  } else if (outerShapeA <= 128 && outerShapeB <= 128 && innerShapeB >= 1000) {
-    // The output buffer must be initailzed to zero before using since we use
-    // atomicAdd in MatMulSplitKProgram.
+  } else if (
+      // TODO: Support activation
+      batchDim === 1 && outerShapeA <= 128 && outerShapeB <= 128 &&
+      innerShapeB >= 1000 && !activation) {
+    // The output buffer must be initailzed to zero before using since we
+    // use atomicAdd in MatMulSplitKProgram.
     out =
         fill({backend, attrs: {shape: outputShape, value: 0, dtype: a.dtype}});
     program = new MatMulSplitKProgram(
         outputShape, innerShapeB, batchAEqualOne, batchBEqualOne, transposeA,
-        transposeB, bias, activation, preluActivationWeights);
+        transposeB, bias);
   } else
       // When the output size is absolutely small or relatively small, we may
       // use MatMulSmallOutputSizeProgram to get better performance. Absolutely
