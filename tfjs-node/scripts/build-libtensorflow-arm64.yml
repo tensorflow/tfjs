@@ -8,14 +8,16 @@ steps:
 
 # Configure tensorflow
 - name: 'tensorflow/build@sha256:47f8603647612f797f9ad9279c55620dc4ceb9980a5f9fe6ae35882b96ec0ac0'
-  entrypoint: 'bash'
-  id: 'configure'
-  dir: 'tensorflow'
-  args:
-    - '-eEu'
-    - '-c'
-    - |-
-      yes "" | ./configure
+  args: ['./configure']
+  env:
+    - 'PYTHON_BIN_PATH=/usr/bin/python3'
+    - 'PYTHON_LIB_PATH=/usr/lib/python3/dist-packages'
+    - 'TF_NEED_ROCM=false'
+    - 'TF_NEED_CUDA=false'
+    - 'TF_DOWNLOAD_CLANG=false'
+    - 'CC_OPT_FLAGS=-Wno-sign-compare'
+    - 'TF_SET_ANDROID_WORKSPACE=false'
+
 
 # Build tensorflow
 # First, hide system openssl.
