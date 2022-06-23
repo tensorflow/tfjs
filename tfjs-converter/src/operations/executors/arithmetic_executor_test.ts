@@ -23,7 +23,8 @@ import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
 
 import {executeOp} from './arithmetic_executor';
-import {createTensorAttr, createTensorsAttr} from './test_helper';
+import {createTensorAttr, createTensorsAttr, uncapitalize} from './test_helper';
+import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
 
 describe('arithmetic', () => {
   let node: Node;
@@ -46,37 +47,47 @@ describe('arithmetic', () => {
   });
 
   describe('executeOp', () => {
-    ['Add', 'Mul', 'Div', 'Sub', 'Maximum', 'Minimum', 'Pow',
-     'SquaredDifference', 'Mod', 'FloorDiv', 'DivNoNan']
-        .forEach((op => {
-          it('should call tfOps.' + op, () => {
-            const spy =
-                spyOn(tfOps, op.charAt(0).toLowerCase() + op.slice(1) as 'add');
-            node.op = op;
-            executeOp(node, {input1, input2}, context);
+    let spyOps: RecursiveSpy<typeof tfOps>;
+    let spyOpsAsTfOps: typeof tfOps;
 
-            expect(spy).toHaveBeenCalledWith(input1[0], input2[0]);
-          });
-        }));
+    beforeEach(() => {
+      spyOps = spyOnAllFunctions(tfOps);
+      spyOpsAsTfOps = spyOps as unknown as typeof tfOps;
+    });
+
+    (['Add', 'Mul', 'Div', 'Sub', 'Maximum', 'Minimum', 'Pow',
+      'SquaredDifference', 'Mod', 'FloorDiv', 'DivNoNan'] as const)
+         .forEach((op => {
+           it('should call tfOps.' + op, () => {
+             node.op = op;
+             executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
+
+             // TODO(mattsoulanille): Remove type assertion after TS4
+             expect(spyOps[uncapitalize(op) as keyof typeof spyOps])
+               .toHaveBeenCalledWith(input1[0], input2[0]);
+           });
+         }));
 
     it('AddV2', async () => {
-      const spy = spyOn(tfOps, 'add').and.callThrough();
+
       node.op = 'AddV2';
-      const res = executeOp(node, {input1, input2}, context) as Tensor[];
-      expect(spy).toHaveBeenCalledWith(input1[0], input2[0]);
+      const res = executeOp(node, {input1, input2}, context,
+                            spyOpsAsTfOps) as Tensor[];
+      expect(spyOps.add).toHaveBeenCalledWith(input1[0], input2[0]);
       expect(res[0].dtype).toBe('float32');
       expect(res[0].shape).toEqual([]);
       test_util.expectArraysClose(await res[0].data(), 2);
     });
 
     it('AddN', async () => {
-      const spy = spyOn(tfOps, 'addN').and.callThrough();
       node.op = 'AddN';
       node.inputParams = {tensors: createTensorsAttr(0, 0)};
       node.inputNames = ['input1', 'input2', 'input3'];
       const res =
-          executeOp(node, {input1, input2, input3}, context) as Tensor[];
-      expect(spy).toHaveBeenCalledWith([input1[0], input2[0], input3[0]]);
+        executeOp(node, {input1, input2, input3}, context,
+                  spyOpsAsTfOps) as Tensor[];
+      expect(spyOps.addN)
+        .toHaveBeenCalledWith([input1[0], input2[0], input3[0]]);
       expect(res[0].dtype).toBe('float32');
       expect(res[0].shape).toEqual([]);
       test_util.expectArraysClose(await res[0].data(), [6]);
