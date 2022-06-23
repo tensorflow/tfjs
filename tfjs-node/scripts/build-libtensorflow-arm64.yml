@@ -6,15 +6,6 @@ steps:
   id: 'clone'
   args: ['clone', '--branch', 'r2.7', '--single-branch', '--depth', '1', 'https://github.com/tensorflow/tensorflow.git']
 
-# # Check out branch
-# - name: 'tensorflow/build:2.10-python3.10'
-# - name: 'tensorflow/build@sha256:47f8603647612f797f9ad9279c55620dc4ceb9980a5f9fe6ae35882b96ec0ac0'
-#   entrypoint: 'git'
-#   id: 'checkout'
-#   dir: 'tensorflow'
-#   args: ['checkout', 'r2.7']
-#   env: ['TF_BRANCH=$_TF_BRANCH']
-
 # Configure tensorflow
 - name: 'tensorflow/build@sha256:47f8603647612f797f9ad9279c55620dc4ceb9980a5f9fe6ae35882b96ec0ac0'
   entrypoint: 'bash'
@@ -40,13 +31,6 @@ steps:
     - |-
       mv /usr/include/openssl /usr/include/openssl.original
       bazel build --jobs=16 -c opt --config=elinux_aarch64 //tensorflow:libtensorflow.so //tensorflow:libtensorflow_framework.so
-
-# # Copy results to a staging directory and tar them
-# - name: 'tensorflow/build@sha256:47f8603647612f797f9ad9279c55620dc4ceb9980a5f9fe6ae35882b96ec0ac0'
-#   entrypoint: 'bash'
-#   id: 'copy-results'
-#   dir: 'scripts'
-#   args: ['pack_tf_package.sh']
 
 # Copy results to a staging directory and tar them
 - name: 'tensorflow/build@sha256:47f8603647612f797f9ad9279c55620dc4ceb9980a5f9fe6ae35882b96ec0ac0'
