@@ -102,7 +102,7 @@ function getPlatformLibtensorflowUri() {
     if (os.arch() === 'arm') {
       return `${BASE_HOST}tf-builds/libtensorflow_r2_5_linux_arm7l.tar.gz`;
     } else if (os.arch() === 'arm64') {
-      return `${BASE_HOST}tf-builds/libtensorflow_r2_8_linux_arm64.tar.gz`;
+      return `${BASE_HOST}tf-builds/libtensorflow_r2_7_linux_arm64.tar.gz`;
     }
   }
 
