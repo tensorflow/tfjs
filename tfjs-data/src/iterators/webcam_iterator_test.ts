@@ -68,15 +68,14 @@ describeBrowserEnvs('WebcamIterator', () => {
       expect(result.shape).toEqual([150, 300, 3]);
     });
 
-    it('create webcamIterator with no html element and no size', async done => {
+    it('create webcamIterator with no html element and no size', async () => {
       try {
         await WebcamIterator.create();
-        done.fail();
+        fail();
       } catch (e) {
         expect(e.message).toEqual(
             'Please provide webcam video element, or resizeWidth and ' +
             'resizeHeight to create a hidden video element.');
-        done();
       }
     });
 

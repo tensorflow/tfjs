@@ -175,25 +175,23 @@ describeBrowserEnvs('readers in browser', () => {
 });
 
 describeNodeEnvs('readers in node', () => {
-  it('webcam only available in browser env', async done => {
+  it('webcam only available in browser env', async () => {
     try {
       await tfd.webcam();
-      done.fail();
+      fail();
     } catch (e) {
       expect(e.message).toEqual(
           'tf.data.webcam is only supported in browser environment.');
-      done();
     }
   });
 
-  it('microphone only available in browser env', async done => {
+  it('microphone only available in browser env', async () => {
     try {
       await tfd.microphone();
-      done.fail();
+      fail();
     } catch (e) {
       expect(e.message).toEqual(
           'microphone API is only supported in browser environment.');
-      done();
     }
   });
 });

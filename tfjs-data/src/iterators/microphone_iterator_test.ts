@@ -35,14 +35,13 @@ describeBrowserEnvs('MicrophoneIterator', () => {
       expect((result.value as any).spectrogram.shape).toEqual([43, 1024, 1]);
     });
 
-    it('throws error when sample rate is not available', async done => {
+    it('throws error when sample rate is not available', async () => {
       try {
         await tfd.microphone({sampleRateHz: 48000});
-        done.fail();
+        fail();
       } catch (e) {
         expect(e.message).toEqual(
             'Mismatch in sampling rate: Expected: 48000; Actual: 44100');
-        done();
       }
     });
 
@@ -65,15 +64,14 @@ describeBrowserEnvs('MicrophoneIterator', () => {
       expect((result.value as any).spectrogram.shape).toEqual([43, 16, 1]);
     });
 
-    it('throws error with invalid fftSize', async done => {
+    it('throws error with invalid fftSize', async () => {
       try {
         await tfd.microphone({fftSize: 1000});
-        done.fail();
+        fail();
       } catch (e) {
         expect(e.message).toEqual(
             'Invalid fftSize: it must be a power of 2 between 2 to 4 and ' +
             '2 to 14, but got 1000');
-        done();
       }
     });
 
