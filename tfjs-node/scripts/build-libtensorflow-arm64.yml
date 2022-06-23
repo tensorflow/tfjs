@@ -8,6 +8,9 @@ steps:
 
 # Configure tensorflow
 - name: 'tensorflow/build@sha256:47f8603647612f797f9ad9279c55620dc4ceb9980a5f9fe6ae35882b96ec0ac0'
+  entrypoint: 'bash'
+  id: 'configure'
+  dir: 'tensorflow'
   args: ['./configure']
   env:
     - 'PYTHON_BIN_PATH=/usr/bin/python3'
