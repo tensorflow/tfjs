@@ -21,7 +21,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@bazel/bazelisk": "^1.9.0",
-    "@bazel/ibazel": "^0.15.10"
+    "@bazel/ibazel": "^0.16.2"
   },
   "scripts": {
     "build-ci": "yarn build",
@@ -34,7 +34,7 @@
     "coverage": "bazel coverage :tfjs-backend-cpu_test",
     "test": "bazel test :tests --test_output=streamed",
     "test-debug": "bazel run :tfjs-backend-cpu_test --config=debug",
-    "test-dev": "ibazel run :tfjs-backend-cpu_test --test-output=streamed",
+    "test-dev": "ibazel run :tests --test-output=streamed",
     "test-ci": "yarn test"
   },
   "dependencies": {

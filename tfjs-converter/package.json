@@ -43,7 +43,7 @@
     "test": "bazel test :tests",
     "test-ci": "yarn test",
     "test-converter": "bazel test :tfjs-converter_test",
-    "test-dev": "ibazel run :tfjs-converter_test",
+    "test-dev": "ibazel test :tests",
     "test-snippets": "bazel test :test_snippets_test --test_output=all",
     "test-snippets-ci": "yarn test-snippets",
     "gen-doc": "ts-node -s ./scripts/gen_doc.ts",

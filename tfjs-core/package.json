@@ -21,7 +21,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@bazel/bazelisk": "^1.9.0",
-    "@bazel/ibazel": "^0.15.10"
+    "@bazel/ibazel": "^0.16.2"
   },
   "scripts": {
     "build-ci": "yarn build",
@@ -34,7 +34,7 @@
     "publish-npm": "bazel run :tfjs-core_pkg.publish",
     "coverage": "bazel coverage :tfjs-core_node_test",
     "test": "bazel test :tests --test_output=all",
-    "test-dev": "ibazel test :tfjs-core_test :test_snippets_test :tfjs-core_node_test tfjs-core_async_backends_test --test_output=all",
+    "test-dev": "ibazel test :tests --test_output=all",
     "test-browser": "bazel test :tfjs-core_test --test_output=all",
     "test-browser-debug": "bazel run :tfjs-core_test",
     "test-node": "bazel test :tfjs-core_node_test --test_output=all",

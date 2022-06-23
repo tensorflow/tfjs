@@ -31,7 +31,7 @@
     "build-npm": "bazel build :tfjs-data_pkg",
     "publish-npm": "bazel run :tfjs-data_pkg.publish",
     "test-browser": "ibazel run :tfjs-data_browser_test --test-output=streamed",
-    "test-dev": "bazel test :tfjs-data_test",
+    "test-dev": "ibazel test :tests",
     "test": "bazel test :tests"
   },
   "peerDependencies": {
