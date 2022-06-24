@@ -98,8 +98,12 @@ function getPlatformLibtensorflowUri() {
     return customTFLibUri;
   }
 
-  if (platform === 'linux' && os.arch() === 'arm') {
-    return `${BASE_HOST}tf-builds/libtensorflow_r2_5_linux_arm7l.tar.gz`;
+  if (platform === 'linux') {
+    if (os.arch() === 'arm') {
+      return `${BASE_HOST}tf-builds/libtensorflow_r2_5_linux_arm7l.tar.gz`;
+    } else if (os.arch() === 'arm64') {
+      return `${BASE_HOST}tf-builds/libtensorflow_r2_7_linux_arm64.tar.gz`;
+    }
   }
 
   if (ALL_SUPPORTED_COMBINATION.indexOf(system) === -1) {
