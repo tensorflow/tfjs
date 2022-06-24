@@ -160,8 +160,3 @@ export function isWebGPUSupported(): boolean {
           (typeof WorkerGlobalScope !== 'undefined')) &&
       !!navigator.gpu;
 }
-
-export interface WebGPULayout {
-  bindGroupLayout: GPUBindGroupLayout;
-  pipelineLayout: GPUPipelineLayout;
-}

@@ -108,14 +108,14 @@ export class BufferManager {
 
   dispose() {
     this.freeBuffers.forEach((buffers, key) => {
-      buffers.forEach(buff => {
-        buff.destroy();
+      buffers.forEach(buffer => {
+        buffer.destroy();
       });
     });
 
     this.usedBuffers.forEach((buffers, key) => {
-      buffers.forEach(buff => {
-        buff.destroy();
+      buffers.forEach(buffer => {
+        buffer.destroy();
       });
     });
 
