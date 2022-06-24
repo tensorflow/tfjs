@@ -108,6 +108,70 @@
      expectArraysClose(resultData, expected);
    });
 
+   it('x=[1,8,8,4] f=[3,3,4,4] s=[2,2] d=1 p=same', async () => {
+    const inputDepth = 4;
+    const xSize = 8;
+    const inputShape: [number, number, number, number] =
+        [1, xSize, xSize, inputDepth];
+    const outputDepth = 4;
+    const fSize = 3;
+    const pad = 'same';
+    const stride: [number, number] = [2, 2];
+
+    const inputData = [];
+    for (let i = 0; i < xSize * xSize * inputDepth; i++) {
+      inputData.push(i % 5);
+    }
+
+    const wData = [];
+    for (let i = 0; i < fSize * fSize * inputDepth * outputDepth; i++) {
+      wData.push(i % 5);
+    }
+
+    const x = tf.tensor4d(inputData, inputShape);
+    const w = tf.tensor4d(wData, [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad);
+    expect(result.shape).toEqual([1, 4, 4, 4]);
+    expectArraysClose(
+        result.dataSync(), new Float32Array([
+          140, 175, 175, 140, 140, 73, 146, 184, 175, 176, 142, 73, 46, 94, 117, 125, 70, 144, 183, 187, 175, 142, 74, 146, 140, 175, 175, 140, 98, 47, 96, 125, 140, 73, 146, 184, 175, 176, 142, 73, 70, 144, 183, 187, 125, 100, 50, 100, 124, 98, 47, 96, 96, 117, 113, 84, 98, 46, 94, 117, 84, 87, 60, 33
+        ]));
+  });
+
+  it('x=[1,4,4,4] f=[3,3,4,4] s=[1, 1] d=2 p=same', async () => {
+    const inputDepth = 4;
+    const xSize = 4;
+    const inputShape: [number, number, number, number] =
+        [1, xSize, xSize, inputDepth];
+    const outputDepth = 4;
+    const fSize = 3;
+    const pad = 'same';
+    const stride: [number, number] = [1, 1];
+    const dataFormat = 'NHWC';
+    const dilation = 2;
+
+    const inputData = [];
+    for (let i = 0; i < xSize * xSize * inputDepth; i++) {
+      inputData.push(i % 5);
+    }
+
+    const wData = [];
+    for (let i = 0; i < fSize * fSize * inputDepth * outputDepth; i++) {
+      wData.push(i % 5);
+    }
+
+    const x = tf.tensor4d(inputData, inputShape);
+    const w = tf.tensor4d(wData, [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad, dataFormat, dilation);
+    expect(result.shape).toEqual([1, 4, 4, 4]);
+    expectArraysClose(
+        result.dataSync(), new Float32Array([
+          39, 48, 72, 71, 77, 55, 48, 71, 60, 39, 48, 72, 79, 77, 55, 48, 51, 76, 91, 76, 39, 48, 72, 71, 56, 51, 76, 91, 60, 39, 48, 72, 72, 71, 60, 39, 48, 71, 79, 77, 48, 72, 71, 60, 55, 48, 71, 79, 91, 76, 56, 51, 72, 71, 60, 39, 76, 91, 76, 56, 48, 72, 71, 60
+        ]));
+  });
+
    it('image is packed and isChannelLast.', async () => {
      const filter = tf.tensor4d([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 4, 4]);
      const image = tf.tensor3d([11, 12, 13, 21, 22, 23, 31, 32, 33, 11, 12, 13, 21, 22, 23, 31, 32, 33, 11, 12, 13, 21, 22, 23, 31, 32, 33, 11, 12, 13, 21, 22, 23, 31, 32, 33], [3, 3, 4]);
