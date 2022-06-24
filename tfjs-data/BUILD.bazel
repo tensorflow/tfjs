@@ -58,11 +58,11 @@ tfjs_web_test(
     srcs = [
         "//tfjs-data/src:tfjs-data_test_bundle",
     ],
-    local_browser = "chrome_autoplay",
     browsers = [
         "bs_chrome_mac",
         "win_10_chrome",
     ],
+    local_browser = "chrome_autoplay",
     static_files = [
         # Listed here so sourcemaps are served
         "//tfjs-data/src:tfjs-data_test_bundle",
