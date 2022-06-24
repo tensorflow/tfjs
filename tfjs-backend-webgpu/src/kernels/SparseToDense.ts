@@ -19,9 +19,12 @@ import {backend_util, KernelConfig, KernelFunc, Rank, SparseToDense, SparseToDen
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {scatterImplCPU} from '../kernel_utils/shared';
-import {ScatterProgram} from '../scatter_webgpu';
+import {ScatterOptimizedProgram} from '../scatter_optimized_webgpu';
 
+import {identity} from './Identity';
 import {reshape} from './Reshape';
+import {tile} from './Tile';
+import {zerosLike} from './ZerosLike';
 
 export function sparseToDense(args: {
   inputs: SparseToDenseInputs,
@@ -46,24 +49,76 @@ export function sparseToDense(args: {
         sliceRank, strides, $defaultValue, sumDupeIndices);
     return backend.makeTensorInfo(outputShape, outBuf.dtype, outBuf.values);
   }
+
+  const flattenShape = [outputSize / sliceSize, sliceSize];
+
+  const $sparseIndices = reshape({
+    inputs: {x: sparseIndices},
+    backend,
+    attrs: {shape: [numUpdates, sliceRank]}
+  });
+  const $sparseValues = sparseValues.shape.length ?
+      reshape({
+        inputs: {x: sparseValues},
+        backend,
+        attrs: {shape: [numUpdates, sliceSize]}
+      }) :
+      identity({inputs: {x: sparseValues}, backend});
+
+  const type = $sparseValues.dtype;
+
+  // Fill output tensor with the default value.
+  const $defaultValue = reshape({
+    inputs: {x: defaultValue},
+    backend,
+    attrs: {shape: Array(flattenShape.length).fill(1)}
+  });
+  const $denseValues =
+      tile({inputs: {x: $defaultValue}, backend, attrs: {reps: flattenShape}});
+
+  const size = util.sizeFromShape([numUpdates, sliceSize]);
   const uniformData = [
-    {type: 'int32', data: [numUpdates]},
     {type: 'int32', data: [sliceRank]},
     {type: 'int32', data: strides},
+    {type: 'int32', data: [size]},
   ];
-  const program = new ScatterProgram(
-      numUpdates, sliceRank, sparseIndices.shape.length,
-      sparseValues.shape.length, strides, [outputSize, 1], sumDupeIndices);
+  const program = new ScatterOptimizedProgram(
+      [numUpdates, sliceSize], sliceRank, $sparseIndices.shape.length,
+      $sparseValues.shape.length, strides, flattenShape, type);
 
-  const res = backend.runWebGPUProgram(
-      program, [sparseValues, sparseIndices, defaultValue], sparseValues.dtype,
-      uniformData);
+  switch (numUpdates) {
+    case 0:
+      break;
+    case 1:
+      backend.runWebGPUProgram(
+          program, [$sparseValues, $sparseIndices, defaultValue], type,
+          uniformData, $denseValues);
+      break;
+    default:
+      // First replace the default value with 0 at indices.
+      const zeros = zerosLike({inputs: {x: $sparseValues}, backend});
+      backend.runWebGPUProgram(
+          program, [zeros, $sparseIndices, defaultValue], type, uniformData,
+          $denseValues);
+      backend.disposeData(zeros.dataId);
 
-  const reshaped =
-      reshape({inputs: {x: res}, backend, attrs: {shape: outputShape}});
+      // Then replace 0 with the (sum of) sparse value(s) at indices.
+      const zero =
+          backend.makeTensorInfo([], type, util.makeZerosTypedArray(1, type));
+      backend.runWebGPUProgram(
+          program, [$sparseValues, $sparseIndices, zero], type, uniformData,
+          $denseValues);
+      backend.disposeData(zero.dataId);
+  }
 
-  backend.disposeData(res.dataId);
-  return reshaped;
+  const denseValues = reshape(
+      {inputs: {x: $denseValues}, backend, attrs: {shape: outputShape}});
+
+  backend.disposeData($sparseIndices.dataId);
+  backend.disposeData($sparseValues.dataId);
+  backend.disposeData($defaultValue.dataId);
+  backend.disposeData($denseValues.dataId);
+  return denseValues;
 }
 
 export const sparseToDenseConfig: KernelConfig = {

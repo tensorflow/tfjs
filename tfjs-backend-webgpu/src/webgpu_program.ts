@@ -367,7 +367,7 @@ const commonSnippet = `
 type InputInfo = {
   dtype: DataType; shape: number[]; name: string;
 };
-type WGSLDataType = 'f32'|'i32'|'vec4<f32>'|'vec4<i32>'|'vec4<bool>';
+export type WGSLDataType = 'f32'|'i32'|'vec4<f32>'|'vec4<i32>'|'vec4<bool>';
 
 /**
  * Derives logical coordinates from a flat index. Performs integer division
@@ -754,7 +754,7 @@ function isFlatDispatch(program: WebGPUProgram): boolean {
   return program.dispatch[1] === 1 && program.dispatch[2] === 1;
 }
 
-function mapToWgslTypes(type: DataType, isVec4: boolean): WGSLDataType|
+export function mapToWgslTypes(type: DataType, isVec4: boolean): WGSLDataType|
     DataType {
   if (type === 'float32') {
     return isVec4 ? 'vec4<f32>' : 'f32';

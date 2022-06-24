@@ -47,6 +47,8 @@ export function scatterNd(args: {
       {inputs: {x: updates}, backend, attrs: {shape: [numUpdates, sliceSize]}});
 
   const type = flattenX.dtype;
+  const zero =
+      backend.makeTensorInfo([], type, util.makeZerosTypedArray(1, type));
   const output =
       fill({backend, attrs: {shape: flattenShape, value: 0, dtype: type}});
   const size = util.sizeFromShape(flattenX.shape);
@@ -58,12 +60,13 @@ export function scatterNd(args: {
       flattenX.shape, sliceRank, flattenIndices.shape.length,
       flattenX.shape.length, strides, flattenShape, type);
   const res = backend.runWebGPUProgram(
-      program, [flattenX, flattenIndices], type, uniformData, output);
+      program, [flattenX, flattenIndices, zero], type, uniformData, output);
 
   const reshaped = reshape({inputs: {x: res}, backend, attrs: {shape}});
 
   backend.disposeData(flattenIndices.dataId);
   backend.disposeData(flattenX.dataId);
+  backend.disposeData(zero.dataId);
   backend.disposeData(res.dataId);
 
   return reshaped;
