@@ -15,13 +15,10 @@
  * =============================================================================
  */
 
-import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
-import {WebGPUBackend} from './backend_webgpu';
+import {backend_util} from '@tensorflow/tfjs-core';
 
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
-import {BinaryOpProgram} from './binary_op_webgpu';
 import {getUnaryOpString, UnaryOpType} from './unary_op_util';
-import {UnaryOpProgram} from './unary_op_webgpu';
 
 export function mapActivationToShaderProgram(
     activation: backend_util.Activation, packed = false): string {
@@ -44,40 +41,4 @@ export function mapActivationToShaderProgram(
   }
   throw new Error(`Activation ${
       activation} has not been implemented for the WebGPU backend.`);
-}
-
-export function executeActivation(
-    activation: backend_util.Activation, x: TensorInfo, backend: WebGPUBackend,
-    leakyreluAlpha = 0, preluActivationWeights: TensorInfo = null): TensorInfo {
-  let opType: UnaryOpType|BinaryOpType = UnaryOpType.RELU;
-  if (activation === 'leakyrelu') {
-    opType = UnaryOpType.LEAKYRELU;
-    const program = new UnaryOpProgram(x.shape, opType as UnaryOpType);
-    program.uniforms = 'alpha : f32,';
-    const uniformData = [{type: 'float32', data: [leakyreluAlpha]}];
-    return backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
-  }
-
-  if (activation === 'prelu') {
-    opType = BinaryOpType.PRELU;
-    const program = new BinaryOpProgram(
-        opType as BinaryOpType, x.shape, preluActivationWeights.shape);
-    return backend.runWebGPUProgram(
-        program, [x, preluActivationWeights], x.dtype);
-  }
-
-  if (activation === 'linear') {
-    opType = UnaryOpType.LINEAR;
-  } else if (activation === 'relu') {
-    opType = UnaryOpType.RELU;
-  } else if (activation === 'elu') {
-    opType = UnaryOpType.ELU;
-  } else if (activation === 'relu6') {
-    opType = UnaryOpType.RELU6;
-  } else if (activation === 'sigmoid') {
-    opType = UnaryOpType.SIGMOID;
-  }
-
-  const program = new UnaryOpProgram(x.shape, opType as UnaryOpType);
-  return backend.runWebGPUProgram(program, [x], x.dtype);
 }

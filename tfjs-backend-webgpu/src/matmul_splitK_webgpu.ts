@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
-import {TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
-import {computeDispatch} from './webgpu_util';
+import {mapActivationToShaderProgram} from './activation_util';
+import {getMainHeaderAndGlobalIndexString, getMainHeaderString, WebGPUProgram} from './webgpu_program';
+import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class MatMulSplitKProgram implements WebGPUProgram {
   outputShape: number[];
@@ -31,7 +32,6 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   elementsPerThread: [number, number, number];
   transposeA: boolean;
   transposeB: boolean;
-  addBias: boolean;
   atomic = true;
   batchAEqualOne: boolean;
   batchBEqualOne: boolean;
@@ -40,7 +40,7 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   constructor(
       outputShape: [number, number, number], dimInner: number,
       batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA = false,
-      transposeB = false, bias: TensorInfo = null) {
+      transposeB = false) {
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
     this.tileInner = 32;
@@ -59,14 +59,8 @@ export class MatMulSplitKProgram implements WebGPUProgram {
         ],
         this.workGroupSize, this.elementsPerThread);
 
-    const addBias = bias != null;
-    if (addBias) {
-      this.variableNames.push('bias');
-    }
-
     this.transposeA = transposeA;
     this.transposeB = transposeB;
-    this.addBias = addBias;
     this.batchAEqualOne = batchAEqualOne;
     this.batchBEqualOne = batchBEqualOne;
     this.shaderKey = `matMulSplitK_${transposeA}_${transposeB}_${
@@ -118,12 +112,6 @@ export class MatMulSplitKProgram implements WebGPUProgram {
      }
      `;
 
-    const addBiasSnippet = this.addBias ? `
-        if (kStart == 0)
-        {
-          value = value + getBiasByOutputCoords(outCoord);
-        }` :
-                                          '';
     const userCode = `
       fn mm_readA(batch: i32, row : i32, col : i32) -> f32 {
         let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
@@ -137,12 +125,11 @@ export class MatMulSplitKProgram implements WebGPUProgram {
         ${sampleB}
       }
 
-      fn mm_write(batch: i32, row : i32, col : i32, valueIn : f32, kStart: i32) {
+      fn mm_write(batch: i32, row : i32, col : i32, valueIn : f32) {
         if (row < uniforms.dimAOuter && col < uniforms.dimBOuter) {
           let outCoord = vec3<i32>(batch, row, col);
           let flatIndex = getOutputIndexFromCoords(outCoord);
           var value = valueIn;
-          ${addBiasSnippet}
           // The problem is that we should initialize output to zero before using.
           // Otherwise, the original value will be added to the result.
           ${atomicAddSnippet}
@@ -247,10 +234,83 @@ export class MatMulSplitKProgram implements WebGPUProgram {
         rowPerThread}; innerRow = innerRow + 1) {
               for (var innerCol = 0; innerCol < ${
         colPerThread}; innerCol = innerCol + 1) {
-                mm_write(batch, globalRow + innerRow, globalCol + innerCol, acc[innerRow][innerCol], kStart);
+                mm_write(batch, globalRow + innerRow, globalCol + innerCol, acc[innerRow][innerCol]);
               }
             }
       }
+    `;
+  }
+}
+
+export class BiasActivationProgram implements WebGPUProgram {
+  outputShape: number[];
+  shaderKey: string;
+  uniforms = '';
+  dispatchLayout: {x: number[]};
+  dispatch: [number, number, number];
+  variableNames = ['x'];
+  workGroupSize: [number, number, number] = [64, 1, 1];
+  size = true;
+  private addBias: boolean;
+  private activation: backend_util.Activation;
+  private hasPreluActivationWeights: boolean;
+
+  constructor(
+      outputShape: number[], bias: TensorInfo = null,
+      activation: backend_util.Activation = null,
+      preluActivationWeights: TensorInfo = null) {
+    this.outputShape = outputShape;
+    this.dispatchLayout = flatDispatchLayout(this.outputShape);
+    this.dispatch = computeDispatch(
+        this.dispatchLayout, this.outputShape, this.workGroupSize);
+    this.addBias = bias != null;
+    this.hasPreluActivationWeights = preluActivationWeights != null;
+    this.activation = activation;
+    if (this.addBias) {
+      this.variableNames.push('bias');
+    }
+
+    if (this.hasPreluActivationWeights) {
+      this.variableNames.push('preluActivationWeights');
+    }
+
+    this.shaderKey = `biasActivation_${activation}`;
+  }
+
+  getUserCode(): string {
+    let activationSnippet = '', applyActivationSnippet = '';
+    if (this.activation) {
+      const activationOp = mapActivationToShaderProgram(this.activation, false);
+      if (this.hasPreluActivationWeights) {
+        activationSnippet =
+            `fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
+               let b = getPreluActivationWeightsByOutputCoords(outCoord);
+               ${activationOp}
+            }`;
+      } else {
+        activationSnippet = `
+              fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
+                ${activationOp}
+              }
+            `;
+      }
+
+      applyActivationSnippet = 'value = activation(value, outCoord);';
+    }
+
+    const addBiasSnippet =
+        this.addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
+    return `
+    ${activationSnippet}
+    ${getMainHeaderAndGlobalIndexString()}
+      if (index < uniforms.size) {
+        let outCoord = getCoordsFromIndex(index);
+        var value = getXByOutputIndex(index);
+        ${addBiasSnippet}
+        ${applyActivationSnippet}
+        setOutputAtIndex(index, value);
+      }
+    }
     `;
   }
 }

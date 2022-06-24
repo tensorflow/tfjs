@@ -17,13 +17,12 @@
 
 import {backend_util, broadcast_util, env, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import {executeActivation} from '../activation_util';
 import {WebGPUBackend} from '../backend_webgpu';
 import {MatMulPackedVec4Program} from '../matmul_packed_vec4_webgpu';
 import {MatMulPackedProgram} from '../matmul_packed_webgpu';
 import {MatMulReduceProgram} from '../matmul_reduce_webgpu';
 import {MatMulSmallOutputSizeProgram} from '../matmul_small_output_size_webgpu';
-import {MatMulSplitKProgram} from '../matmul_splitK_webgpu';
+import {BiasActivationProgram, MatMulSplitKProgram} from '../matmul_splitK_webgpu';
 import {WebGPUProgram} from '../webgpu_program';
 
 import {fill} from './Fill';
@@ -98,9 +97,6 @@ export function batchMatMulImpl({
       outerShapeB % 4 === 0 && !transposeB;
 
   const inputs: TensorInfo[] = [a3d, b3d];
-  if (bias) {
-    inputs.push(bias);
-  }
   const dimensions = [
     {type: 'int32', data: [outerShapeA]}, {type: 'int32', data: [outerShapeB]},
     {type: 'int32', data: [innerShapeA]}
@@ -122,11 +118,25 @@ export function batchMatMulImpl({
         fill({backend, attrs: {shape: outputShape, value: 0, dtype: a.dtype}});
     program = new MatMulSplitKProgram(
         outputShape, innerShapeB, batchAEqualOne, batchBEqualOne, transposeA,
-        transposeB, bias);
-    if (activation) {
+        transposeB);
+    if (bias || activation) {
       out = backend.runWebGPUProgram(program, inputs, a.dtype, dimensions, out);
-      const outActivated = executeActivation(
-          activation, out, backend, leakyreluAlpha, preluActivationWeights);
+      const biasActivationProgram = new BiasActivationProgram(
+          out.shape, bias, activation, preluActivationWeights);
+      let uniformData = null;
+      const activationInputs: TensorInfo[] = [out];
+      if (bias) {
+        activationInputs.push(bias);
+      }
+      if (preluActivationWeights) {
+        activationInputs.push(preluActivationWeights);
+      }
+      if (activation === 'leakyrelu') {
+        uniformData = [{type: 'float32', data: [leakyreluAlpha]}];
+        biasActivationProgram.uniforms += ' alpha : f32,';
+      }
+      const outActivated = backend.runWebGPUProgram(
+          biasActivationProgram, activationInputs, out.dtype, uniformData);
       intermediates.push(out);
       const outReshaped = reshape(
           {inputs: {x: outActivated}, backend, attrs: {shape: outShape}});
@@ -166,6 +176,9 @@ export function batchMatMulImpl({
         env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, batchAEqualOne,
         batchBEqualOne, transposeA, transposeB, bias, activation,
         preluActivationWeights);
+  }
+  if (bias) {
+    inputs.push(bias);
   }
   if (preluActivationWeights) {
     inputs.push(preluActivationWeights);
