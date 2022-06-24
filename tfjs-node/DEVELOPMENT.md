@@ -115,3 +115,10 @@ $ yarn upload-windows-addon
 ```
 
 Most times the NPM package is published on Linux machine, and only the Linux node addon is compiled and uploaded to GCP bucket. To build and upload the native node addon for Windows, developers should run the above commands on Windows machine. Please read [build-and-upload-windows-addon.bat](./scripts/build-and-upload-windows-addon.bat) for details.
+
+#### Build and upload libtensorflow for custom platforms
+Some platforms need a custom version of libtensorflow built for them because tensorflow does not host binaries for them. Right now, the only automated platform is linux-arm64, which can be built with the following command:
+
+```sh
+gcloud builds submit . --config=scripts/build-libtensorflow-arm64.yml
+```
