@@ -69,7 +69,7 @@ export function makeMatMulPackedSource(
     let ColPerThread = ${workPerThread[0]};
     let TileInner = ${tileInner};
 
-    @stage(compute) @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
+    @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
     fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
             @builtin(global_invocation_id) GlobalId : vec3<u32>,
             @builtin(num_workgroups) NumWorkgroups: vec3<u32>,

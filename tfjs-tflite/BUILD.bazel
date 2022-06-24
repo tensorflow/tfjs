@@ -98,3 +98,10 @@ tfjs_web_test(
         "//tfjs-tflite/src:tfjs-tflite_test_bundle",
     ],
 )
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":tfjs-tflite_test",
+    ],
+)
