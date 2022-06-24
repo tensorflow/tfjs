@@ -75,6 +75,11 @@ function resizeNearestNeighbor(args: {
   const [batch, oldHeight, oldWidth, numChannels] = images.shape;
   const outShape = [batch, newHeight, newWidth, numChannels];
 
+  const out = backend.makeOutput(outShape, 'float32');
+  if (util.sizeFromShape(images.shape) === 0) {
+    return out;
+  }
+
   let xData = backend.dataIdMap.get(images.dataId);
   let castedData;
   if (xData.dtype !== 'float32') {
@@ -85,12 +90,8 @@ function resizeNearestNeighbor(args: {
     });
     xData = backend.dataIdMap.get(castedData.dataId);
   }
-  const xId = xData.id;
 
-  const out = backend.makeOutput(outShape, 'float32');
-  if (util.sizeFromShape(images.shape) === 0) {
-    return out;
-  }
+  const xId = xData.id;
   const outId = backend.dataIdMap.get(out.dataId).id;
 
   wasmResizeNearestNeighbor(
