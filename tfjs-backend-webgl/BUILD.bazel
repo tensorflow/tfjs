@@ -195,3 +195,10 @@ js_library(
         ":package.json",
     ],
 )
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":tfjs-backend-webgl2_test",
+    ],
+)
