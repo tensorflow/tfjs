@@ -369,15 +369,12 @@ describeWithFlags(
     });
 
 
-describeWithFlags('Dense Conv2D WebGL Implementation', ALL_ENVS, () => {
-  it('benchmark dense depthwise', async () => {
+describeWithFlags('Benchmark dense depthwise', ALL_ENVS, () => {
+  async function benchmarkDepthwise(
+      type: string, heightOrWidth: number, filterSize: number,
+      inputChannel: number, outputChannel: number, strides = 1, dilation = 1) {
     let sum = 0;
     const round = 100;
-    const heightOrWidth = 196;
-    const filterSize = 3;
-    const inputChannel = 32;
-    const outputChannel = 32;
-    const strides = 1;
 
     // Ramp up.
     let x = tf.randomUniform(
@@ -386,21 +383,65 @@ describeWithFlags('Dense Conv2D WebGL Implementation', ALL_ENVS, () => {
     let w = tf.randomUniform(
                 [filterSize, filterSize, inputChannel, outputChannel], 0,
                 100) as Tensor4D;
-    tf.depthwiseConv2d(x, w, strides, 'same');
+    let res = tf.depthwiseConv2d(x, w, strides, 'same');
+    tf.dispose(x);
+    tf.dispose(w);
+    tf.dispose(res);
 
     for (let i = 0; i < round; i++) {
+      const x = tf.randomUniform(
+                    [1, heightOrWidth, heightOrWidth, inputChannel], 0, 100) as
+          Tensor4D;
+      const w = tf.randomUniform(
+                    [filterSize, filterSize, inputChannel, outputChannel], 0,
+                    100) as Tensor4D;
+      let res;
       const profile = await tf.profile(() => {
-        const x = tf.randomUniform(
-                      [1, heightOrWidth, heightOrWidth, inputChannel], 0,
-                      100) as Tensor4D;
-        const w = tf.randomUniform(
-                      [filterSize, filterSize, inputChannel, outputChannel], 0,
-                      100) as Tensor4D;
-        return tf.depthwiseConv2d(x, w, strides, 'same');
+        res = tf.depthwiseConv2d(x, w, strides, 'same');
       });
       sum += profile.kernels[0].kernelTimeMs as number;
+      tf.dispose(x);
+      tf.dispose(w);
+      tf.dispose(res);
     }
-    console.log(`Benchmark result for ${heightOrWidth}-${filterSize}-${
+    console.log(`Benchmark ${type} result for ${heightOrWidth}-${filterSize}-${
         inputChannel}-${outputChannel}: ${sum / round}ms`);
+  }
+
+  const defaultHeightOrWidth = 196;
+  const defaultFilterSize = 3;
+  const defaultInputChannel = 32;
+  const defaultOutputChannel = 32;
+
+  it('benchmark input channel', async () => {
+    for (let inputChannel = 4; inputChannel <= 256; inputChannel *= 2) {
+      await benchmarkDepthwise(
+          'inputChannel', defaultHeightOrWidth, defaultFilterSize, inputChannel,
+          defaultOutputChannel);
+    }
+  }, 100000000);
+
+  it('benchmark output channel', async () => {
+    for (let outputChannel = 256; outputChannel <= 256; outputChannel *= 2) {
+      await benchmarkDepthwise(
+          'outputChannel', defaultHeightOrWidth, defaultFilterSize,
+          defaultInputChannel, outputChannel);
+    }
+  }, 100000000);
+
+  it('benchmark image size', async () => {
+    for (let imageSize = 16; imageSize <= 1024; imageSize *= 4) {
+      await benchmarkDepthwise(
+          'imageSize', imageSize, defaultFilterSize, defaultInputChannel,
+          defaultOutputChannel);
+    }
+  }, 100000000);
+
+  it('benchmark filter size', async () => {
+    for (let filterSize = 1; filterSize <= 9; filterSize += 1) {
+      await benchmarkDepthwise(
+          'filterSize', defaultHeightOrWidth, filterSize, defaultInputChannel,
+          defaultOutputChannel);
+    }
   }, 100000000);
 });
