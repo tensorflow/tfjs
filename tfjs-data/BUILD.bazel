@@ -133,3 +133,11 @@ pkg_npm(
         ":copy_src_to_dist",
     ],
 )
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":tfjs-data_browser_test",
+        ":tfjs-data_test",
+    ],
+)
