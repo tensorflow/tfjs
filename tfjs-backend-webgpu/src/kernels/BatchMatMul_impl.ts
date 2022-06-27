@@ -106,12 +106,14 @@ export function batchMatMulImpl({
   let out: TensorInfo;
   const outputShape: [number, number, number] =
       [batchDim, outerShapeA, outerShapeB];
-  if (outerShapeA * outerShapeB <= 1) {
+  if (outerShapeA * outerShapeB <= 128) {
     program = new MatMulReduceProgram(
         outputShape, batchAEqualOne, batchBEqualOne, transposeA, transposeB,
         bias, activation, preluActivationWeights);
 
-  } else if (batchDim === 1) {
+  } else if (
+      batchDim === 1 && outerShapeA <= 128 && outerShapeB <= 128 &&
+      innerShapeB >= 1000) {
     // The output buffer must be initailzed to zero before using since we
     // use atomicAdd in MatMulSplitKProgram.
     out =

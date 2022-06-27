@@ -148,8 +148,6 @@ export class MatMulSplitKProgram implements WebGPUProgram {
     const colPerThread = this.elementsPerThread[0];
     const colPerThreadA = this.tileInner / this.workGroupSize[0];
     const rowPerThreadB = this.tileInner / this.workGroupSize[1];
-    const dimInnerStr =
-        this.transposeA ? 'uniforms.aShape[1]' : 'uniforms.aShape[2]';
     util.assert(
         this.tileInner % this.workGroupSize[0] === 0 &&
             this.tileInner % this.workGroupSize[1] === 0,
@@ -168,75 +166,65 @@ export class MatMulSplitKProgram implements WebGPUProgram {
 
         let globalRow = i32(globalId.y) * ${rowPerThread};
         let globalCol = i32(globalId.x) * ${colPerThread};
-        let zIndex = i32(globalId.z) * ${this.tileInner};
-        let batch = zIndex / ${dimInnerStr};
-        let kStart = zIndex % ${dimInnerStr};
+        let batch = 0;
+        let kStart = i32(globalId.z) * ${this.tileInner};
+
+        // Load one tile of A into local memory.
+        let tileColA = i32(localId.x) * ${colPerThreadA};
+        for (var innerRow = 0; innerRow < ${
+        rowPerThread}; innerRow = innerRow + 1) {
+          for (var innerCol = 0; innerCol < ${
+        colPerThreadA}; innerCol = innerCol + 1) {
+            let inputRow = tileRow + innerRow;
+            let inputCol = tileColA + innerCol;
+            mm_Asub[inputRow][inputCol] = mm_readA(${
+        this.batchAEqualOne ? 0 : 'batch'},
+                globalRow + innerRow,
+                kStart + inputCol);
+          }
+        }
+        // Load one tile of B into local memory.
+        let tileRowB = i32(localId.y) * ${rowPerThreadB};
+        for (var innerRow = 0; innerRow < ${
+        rowPerThreadB}; innerRow = innerRow + 1) {
+          for (var innerCol = 0; innerCol < ${
+        colPerThread}; innerCol = innerCol + 1) {
+            let inputRow = tileRowB + innerRow;
+            let inputCol = tileCol + innerCol;
+            mm_Bsub[inputRow][inputCol] = mm_readB(${
+        this.batchBEqualOne ? 0 : 'batch'},
+                kStart + inputRow,
+                globalCol + innerCol);
+          }
+        }
+
+        workgroupBarrier();
 
         var acc : array<array<f32, ${colPerThread}>, ${rowPerThread}>;
-        var ACached : f32;
-        var BCached : array<f32, ${colPerThread}>;
+        // Loop over shared dimension. Compute acc values for a single thread.
+        for (var k = 0; k < ${this.tileInner}; k = k + 1) {
+          var BCached : array<f32, ${colPerThread}>;
+          for (var inner = 0; inner < ${colPerThread}; inner = inner + 1) {
+            BCached[inner] = mm_Bsub[k][tileCol + inner];
+          }
 
-        // Without this initialization strange values show up in acc.
+          for (var innerRow = 0; innerRow < ${
+        rowPerThread}; innerRow = innerRow + 1) {
+            let ACached = mm_Asub[tileRow + innerRow][k];
+            for (var innerCol = 0; innerCol < ${
+        colPerThread}; innerCol = innerCol + 1) {
+              acc[innerRow][innerCol] = acc[innerRow][innerCol] + ACached * BCached[innerCol];
+            }
+          }
+        }
+
         for (var innerRow = 0; innerRow < ${
         rowPerThread}; innerRow = innerRow + 1) {
           for (var innerCol = 0; innerCol < ${
         colPerThread}; innerCol = innerCol + 1) {
-            acc[innerRow][innerCol] = 0.0;
+            mm_write(batch, globalRow + innerRow, globalCol + innerCol, acc[innerRow][innerCol]);
           }
         }
-
-        // Loop over shared dimension.
-          // Load one tile of A and B into local memory.
-          for (var innerRow = 0; innerRow < ${
-        rowPerThread}; innerRow = innerRow + 1) {
-            for (var innerCol = 0; innerCol < ${
-        colPerThreadA}; innerCol = innerCol + 1) {
-              let inputRow = tileRow + innerRow;
-              let inputCol = tileCol + innerCol;
-              mm_Asub[inputRow][inputCol] = mm_readA(${
-        this.batchAEqualOne ? 0 : 'batch'},
-                globalRow + innerRow,
-                kStart + inputCol);
-            }
-          }
-          for (var innerRow = 0; innerRow < ${
-        rowPerThreadB}; innerRow = innerRow + 1) {
-                for (var innerCol = 0; innerCol < ${
-        colPerThread}; innerCol = innerCol + 1) {
-                  let inputRow = tileRow + innerRow;
-                  let inputCol = tileCol + innerCol;
-                  mm_Bsub[inputRow][inputCol] = mm_readB(${
-        this.batchBEqualOne ? 0 : 'batch'},
-                      kStart + inputRow,
-                      globalCol + innerCol);
-                }
-              }
-
-          workgroupBarrier();
-
-          // Compute acc values for a single thread.
-          for (var k = 0; k < ${this.tileInner}; k = k + 1) {
-            for (var inner = 0; inner < ${colPerThread}; inner = inner + 1) {
-              BCached[inner] = mm_Bsub[k][tileCol + inner];
-            }
-
-            for (var innerRow = 0; innerRow < ${
-        rowPerThread}; innerRow = innerRow + 1) {
-              ACached = mm_Asub[tileRow + innerRow][k];
-              for (var innerCol = 0; innerCol < ${
-        colPerThread}; innerCol = innerCol + 1) {
-                acc[innerRow][innerCol] = acc[innerRow][innerCol] + ACached * BCached[innerCol];
-              }
-            }
-          }
-
-            for (var innerRow = 0; innerRow < ${
-        rowPerThread}; innerRow = innerRow + 1) {
-              for (var innerCol = 0; innerCol < ${
-        colPerThread}; innerCol = innerCol + 1) {
-                mm_write(batch, globalRow + innerRow, globalCol + innerCol, acc[innerRow][innerCol]);
-              }
-            }
       }
     `;
   }
