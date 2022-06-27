@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@babel/polyfill": "^7.8.7",
-    "@bazel/bazelisk": "^1.11.0",
+    "@bazel/bazelisk": "^1.12.0",
     "clang-format": "~1.2.4"
   },
   "license": "Apache-2.0"
