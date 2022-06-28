@@ -96,18 +96,21 @@ cc_binary(
 wasm_cc_binary(
     name = "tfjs-backend-wasm",
     cc_target = ":tfjs-backend-wasm.js",
+    tags = ["local"],
 )
 
 wasm_cc_binary(
     name = "tfjs-backend-wasm-simd",
     cc_target = ":tfjs-backend-wasm-simd.js",
     simd = True,
+    tags = ["local"],
 )
 
 wasm_cc_binary(
     name = "tfjs-backend-wasm-threaded-simd",
     cc_target = ":tfjs-backend-wasm-threaded-simd.js",
     simd = True,
+    tags = ["local"],
     threads = "emscripten",
 )
 
@@ -802,6 +805,7 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":binary",
+        ":unary",
         ":util",
     ],
 )
