@@ -343,6 +343,7 @@ tfjs_cc_library(
         ":Relu",
         ":Relu6",
         ":ResizeBilinear",
+        ":ResizeNearestNeighbor",
         ":Reverse",
         ":RotateWithOffset",
         ":Round",
@@ -1033,6 +1034,16 @@ tfjs_cc_library(
     name = "ResizeBilinear",
     srcs = ["kernels/ResizeBilinear.cc"],
     hdrs = ["kernels/ResizeBilinear.h"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "ResizeNearestNeighbor",
+    srcs = ["kernels/ResizeNearestNeighbor.cc"],
+    hdrs = ["kernels/ResizeNearestNeighbor.h"],
     deps = [
         ":backend",
         ":util",
