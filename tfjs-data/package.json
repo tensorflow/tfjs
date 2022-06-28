@@ -36,7 +36,7 @@
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
-    "seedrandom": "~2.4.3"
+    "seedrandom": "^3.0.5"
   },
   "dependencies": {
     "@types/node-fetch": "^2.1.2",
