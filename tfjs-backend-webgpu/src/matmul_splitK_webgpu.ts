@@ -35,15 +35,17 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   atomic = true;
   batchAEqualOne: boolean;
   batchBEqualOne: boolean;
-  tileInner: number;
+  tileInner = 32;
 
   constructor(
       outputShape: [number, number, number], dimInner: number,
       batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA = false,
       transposeB = false) {
+    util.assert(
+        outputShape[0] === 1,
+        () => 'MatMulSplitKProgram only supports batch = 1.');
     this.outputShape = outputShape;
     this.dispatchLayout = {x: [2], y: [1], z: [0, 3]};
-    this.tileInner = 32;
     this.elementsPerThread = [4, 4, this.tileInner];
     if (this.outputShape[1] < 16) {
       this.elementsPerThread[1] = 1;
