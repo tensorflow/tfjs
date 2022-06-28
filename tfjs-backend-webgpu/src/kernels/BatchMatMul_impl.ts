@@ -112,8 +112,11 @@ export function batchMatMulImpl({
         bias, activation, preluActivationWeights);
 
   } else if (
-      batchDim === 1 && outerShapeA <= 128 && outerShapeB <= 128 &&
-      innerShapeB >= 1000) {
+      // These boundaries are based on bodypix-ResNet50-image-0.5.
+      // TODO: Relax or tight these boundaries when we have a complete matmul
+      // test coverage.
+      batchDim === 1 && outerShapeA <= 128 && outerShapeB <= 48 &&
+      innerShapeB >= 2000) {
     // The output buffer must be initailzed to zero before using since we
     // use atomicAdd in MatMulSplitKProgram.
     out =
