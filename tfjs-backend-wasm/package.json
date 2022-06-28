@@ -21,7 +21,7 @@
     "publish-npm": "bazel run -c opt :tfjs-backend-wasm_pkg.publish",
     "clean": "bazel clean --expunge",
     "cpplint": "./scripts/cpplint.js",
-    "test": "bazel test -c dbg :tfjs-backend-wasm_test :tfjs-backend-wasm_node_test //tfjs-backend-wasm/src/cc:cc_tests",
+    "test": "bazel test -c dbg :tests",
     "test-browser": "bazel test -c dbg :tfjs-backend-wasm_test",
     "test-node": "bazel test -c dbg :tfjs-backend-wasm_node_test",
     "debug-browser": "bazel run -c dbg :tfjs-backend-wasm_test",
@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@babel/polyfill": "^7.8.7",
-    "@bazel/bazelisk": "^1.11.0",
+    "@bazel/bazelisk": "^1.12.0",
     "clang-format": "~1.2.4"
   },
   "license": "Apache-2.0"

@@ -66,6 +66,7 @@ rollup_bundle(
         "//tfjs-backend-wasm/scripts:patch_wechat_webassembly",
         "//tfjs-backend-wasm/src:tfjs-backend-wasm_lib",
         "//tools:make_rollup_config",
+        "@npm//tslib",
     ],
 )
 
@@ -172,4 +173,13 @@ nodejs_test(
     ],
     entry_point = "//tfjs-backend-wasm/src:test_node.ts",
     tags = ["ci"],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":tfjs-backend-wasm_node_test",
+        ":tfjs-backend-wasm_test",
+        "//tfjs-backend-wasm/src/cc:cc_tests",
+    ],
 )

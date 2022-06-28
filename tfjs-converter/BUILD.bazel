@@ -130,3 +130,11 @@ js_library(
         ":package.json",
     ],
 )
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":test_snippets_test",
+        ":tfjs-converter_test",
+    ],
+)

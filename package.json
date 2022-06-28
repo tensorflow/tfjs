@@ -1,9 +1,10 @@
 {
   "devDependencies": {
-    "@bazel/bazelisk": "^1.11.0",
+    "@bazel/bazelisk": "^1.12.0",
     "@bazel/buildifier": "5.1.0",
     "@bazel/concatjs": "5.5.0",
     "@bazel/esbuild": "5.5.0",
+    "@bazel/ibazel": "^0.16.2",
     "@bazel/jasmine": "5.5.0",
     "@bazel/rollup": "5.5.0",
     "@bazel/terser": "5.5.0",
@@ -69,6 +70,7 @@
   },
   "scripts": {
     "lint": "tslint -p tsconfig_tslint.json",
+    "test": "bazel test //:tests",
     "test-packages-ci": "yarn generate-cloudbuild-for-packages && ./scripts/run-build.sh",
     "generate-cloudbuild-for-packages": "ts-node -s ./scripts/generate_cloudbuild_for_packages.ts",
     "test-generate-cloudbuild": "cd scripts && node --require ts-node/register ../node_modules/jasmine/bin/jasmine.js run generate_cloudbuild_test.ts",
