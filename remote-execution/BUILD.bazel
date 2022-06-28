@@ -1,0 +1,41 @@
+package(default_visibility = ["//visibility:public"])
+
+platform(
+    name = "platform",
+    constraint_values = [
+        "@bazel_tools//platforms:linux",
+        "@bazel_tools//platforms:x86_64",
+        "@bazel_tools//tools/cpp:clang",
+    ],
+    exec_properties = {
+        # We use the same docker image for remote builds as we use for CI testing.
+        "container-image": "docker://gcr.io/learnjs-174218/release@sha256:d85abab6146eaf1e01312bdb9e353a5efa0508b913dccf30fc5e505d009026ff",
+        # By default in Google Cloud Remote build execution, network access is disabled. We explicitly set the
+        # property in the platform again in case the default ever changes. Network access is not desirable in
+        # Bazel builds as it is potential source of flaky tests and therefore also breaks hermeticity.
+        "dockerNetwork": "off",
+    },
+)
+
+platform(
+    name = "platform_with_network",
+    exec_properties = {
+        # By default we have network access disabled with the `:platform` target. This is an
+        # additional platform that extends from the default one but enables network access.
+        # Network is generally not recommended, but for some exceptions, like integration tests
+        # running a Yarn install, network access is reasonable. In such special cases, Bazel can
+        # be invoked to run with this platform. It is recommended that exec platforms with network
+        # access are used in combination with `--sandbox_default_allow_network=false` as this allows
+        # specific targets to be granted network access, while others will not have access.
+        "dockerNetwork": "standard",
+    },
+    parents = [":platform"],
+)
+
+filegroup(
+    name = "files",
+    srcs = [
+        "BUILD.bazel",
+        "@npm//@angular/dev-infra-private/bazel/remote-execution/cpp:files",
+    ],
+)
