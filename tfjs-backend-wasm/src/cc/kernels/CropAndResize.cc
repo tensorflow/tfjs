@@ -18,6 +18,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <cstring>
 #include <vector>
 
 #include "tfjs-backend-wasm/src/cc/backend.h"
