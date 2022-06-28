@@ -105,7 +105,7 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
         name = name,
         config_file = config_file,
         configuration_env_vars = [] if headless else ["DISPLAY"],
-        tags = ["native"] + tags,
+        tags = ["native", "no-remote-exec"] + tags,
         **kwargs
     )
 
@@ -118,7 +118,7 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
             args = args,
         )
 
-        additional_tags = []
+        additional_tags = ["no-remote-exec"]
         if ci:
             # Tag to be run in nightly.
             additional_tags.append("nightly")
