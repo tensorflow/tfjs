@@ -17,6 +17,7 @@
 #endif
 
 #include <cmath>
+#include <algorithm>
 #include <vector>
 #include <cstddef>
 
@@ -43,7 +44,9 @@ void ResizeNearestNeighbor(size_t x_id, size_t batch, size_t old_height,
   const float* x_buf = x_info.f32();
   float* out_buf = out_info.f32_write();
 
-  const std::vector<size_t> x_shape = {batch, old_height, old_width, num_channels};
+  const std::vector<size_t> x_shape = {
+    batch, old_height, old_width, num_channels
+  };
   const auto image_strides = util::compute_strides(x_shape);
 
   const float effective_input_height =
@@ -94,16 +97,14 @@ void ResizeNearestNeighbor(size_t x_id, size_t batch, size_t old_height,
       } else {
         for (size_t x = 0; x < new_width; ++x) {
           const float x_ind = half_pixel_centers ?
-
                             width_scale * (x + 0.5) :
                             width_scale * x;
 
           int closest_x = std::min(old_width_m1, align_corners ?
-
                                   std::round(x_ind) :
                                   std::floor(x_ind));
-          if (half_pixel_centers) {
 
+          if (half_pixel_centers) {
             closest_x = std::max(0, closest_x);
           }
 
