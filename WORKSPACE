@@ -224,9 +224,8 @@ python_register_toolchains(
     python_version = "3.8",
 )
 
-load("@rules_python//python:pip.bzl", "pip_install")
-
 load("@python3_8//:defs.bzl", "interpreter")
+load("@rules_python//python:pip.bzl", "pip_install")
 
 pip_install(
     name = "tensorflowjs_dev_deps",
