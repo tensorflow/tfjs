@@ -66,6 +66,7 @@ rollup_bundle(
         "//tfjs-backend-wasm/scripts:patch_wechat_webassembly",
         "//tfjs-backend-wasm/src:tfjs-backend-wasm_lib",
         "//tools:make_rollup_config",
+        "@npm//tslib",
     ],
 )
 
