@@ -27,9 +27,7 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  uniforms = `pad : vec2<i32>, stride : vec2<i32>, dilation : vec2<i32>,
-      inDims : vec2<i32>, filterHeight : i32, filterWidth : i32,
-      channelMul : i32,`;
+  uniforms = `pad : vec2<i32>, inDims : vec2<i32>,`;
   workGroupSize: [number, number, number] = [16, 16, 1];
   addBias: boolean;
   activation: backend_util.Activation;
@@ -119,10 +117,10 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
         numWorkgroups = NumWorkgroups;
         let coords = getOutputCoords();
         let batch = coords[0];
-        let xRCCorner = vec2<i32>(coords.zw) * uniforms.stride - uniforms.pad;
-        let d2 = coords[1];
-        let d1 = d2 / uniforms.channelMul;
-        let q = d2 - d1 * uniforms.channelMul;
+        let xRCCorner = vec2<i32>(coords.zw) - uniforms.pad;
+        let channelMul = uniforms.wShape[3];
+        let d1 = coords[1] / channelMul;
+        let q = coords[1] % channelMul;
 
         let inputRowStart = xRCCorner.x;
         let inputColStart = xRCCorner.y;
@@ -157,8 +155,8 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
         workgroupBarrier();
 
         var dotProd = 0.0;
-        for (var wR = 0; wR < uniforms.filterHeight; wR = wR + 1) {
-          for (var wC = 0; wC < uniforms.filterWidth; wC = wC + 1) {
+        for (var wR = 0; wR < ${this.filterHeight}; wR = wR + 1) {
+          for (var wC = 0; wC < ${this.filterWidth}; wC = wC + 1) {
             let xVal = mm_Asub[localRow + wR][localCol + wC];
             let wVal = mm_Bsub[wR][wC];
             dotProd = fma(xVal, wVal, dotProd);
