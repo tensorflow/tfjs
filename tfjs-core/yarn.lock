@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@bazel/bazelisk@^1.9.0":
-  version "1.11.0"
-  resolved "https://registry.yarnpkg.com/@bazel/bazelisk/-/bazelisk-1.11.0.tgz#f98d8438b4c14e3328126618b96775d271caa5f8"
-  integrity sha512-lxiQzVqSGDG0PIDQGJdVDjp7T+50p5NnM4EnRJa76mkZp6u5ul19GJNKhPKi81TZQALZEZDxAgxVqQKkWTUOxA==
+"@bazel/bazelisk@^1.12.0":
+  version "1.12.0"
+  resolved "https://registry.yarnpkg.com/@bazel/bazelisk/-/bazelisk-1.12.0.tgz#f08aebbf4afcb12684422450b0845dd6ef5cfe50"
+  integrity sha512-7oQusq1e4AIyFgotxVV7Pc40Et0QyvoVjujL+7/qV5Vrbfh0Nj3CfqSgl63weEyI4r0+K6RlGVsjfRuBi05p5w==
 
 "@bazel/ibazel@^0.16.2":
   version "0.16.2"
@@ -22,10 +22,10 @@
   resolved "https://registry.yarnpkg.com/@types/offscreencanvas/-/offscreencanvas-2019.3.0.tgz#3336428ec7e9180cf4566dfea5da04eb586a6553"
   integrity sha512-esIJx9bQg+QYF0ra8GnvfianIY8qWB0GBx54PK5Eps6m+xTj86KLavHv6qDhzKcu5UUOgNfJ2pWaIIV7TRUd9Q==
 
-"@types/seedrandom@2.4.27":
-  version "2.4.27"
-  resolved "https://registry.yarnpkg.com/@types/seedrandom/-/seedrandom-2.4.27.tgz#9db563937dd86915f69092bc43259d2f48578e41"
-  integrity sha1-nbVjk33YaRX2kJK8QyWdL0hXjkE=
+"@types/seedrandom@^2.4.28":
+  version "2.4.30"
+  resolved "https://registry.yarnpkg.com/@types/seedrandom/-/seedrandom-2.4.30.tgz#d2efe425869b84163c2d56e779dddadb9372cbfa"
+  integrity sha512-AnxLHewubLVzoF/A4qdxBGHCKifw8cY32iro3DQX9TPcetE95zBeVt3jnsvtvAUf1vwzMfwzp4t/L2yqPlnjkQ==
 
 "@types/webgl-ext@0.0.30":
   version "0.0.30"
@@ -54,10 +54,10 @@ node-fetch@~2.6.1:
   dependencies:
     whatwg-url "^5.0.0"
 
-seedrandom@2.4.3:
-  version "2.4.3"
-  resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-2.4.3.tgz#2438504dad33917314bff18ac4d794f16d6aaecc"
-  integrity sha1-JDhQTa0zkXMUv/GKxNeU8W1qrsw=
+seedrandom@^3.0.5:
+  version "3.0.5"
+  resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-3.0.5.tgz#54edc85c95222525b0c7a6f6b3543d8e0b3aa0a7"
+  integrity sha512-8OwmbklUNzwezjGInmZ+2clQmExQPvomqjL7LFqOYqtmuxRgQYqOD3mHaU+MvZn5FLUeVxVfQjwLZW/n/JFuqg==
 
 tr46@~0.0.3:
   version "0.0.3"

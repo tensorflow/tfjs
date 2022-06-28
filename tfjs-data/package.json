@@ -17,8 +17,8 @@
   "miniprogram": "dist/miniprogram",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@bazel/bazelisk": "^1.10.1",
-    "@bazel/ibazel": "^0.15.10"
+    "@bazel/bazelisk": "^1.12.0",
+    "@bazel/ibazel": "^0.16.2"
   },
   "scripts": {
     "build": "bazel build :tfjs-data_pkg",
@@ -36,7 +36,7 @@
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
-    "seedrandom": "~2.4.3"
+    "seedrandom": "^3.0.5"
   },
   "dependencies": {
     "@types/node-fetch": "^2.1.2",
