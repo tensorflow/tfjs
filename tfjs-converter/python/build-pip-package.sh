@@ -16,8 +16,8 @@
 
 # Build pip package for keras_model_converter.
 #
-# Run this script outside a virtualenv, as this script will activate virtualenvs
-# for python2 and python3 to generate the wheel files.
+# Run this script outside a virtualenv, as this script will activate a
+# virtualenv for python3 to generate the wheel files.
 #
 # Usage:
 #   build-pip-package.sh \
@@ -133,9 +133,8 @@ if [[ -z "$(which virtualenv)" ]]; then
   exit 1
 fi
 
-# Create virtualenvs for python2 and python3; build (and test) the wheels inside
-# them.
-VENV_PYTHON_BINS="python2 python3"
+# Create virtualenv for python3; build (and test) the wheel inside it.
+VENV_PYTHON_BINS="python3"
 for VENV_PYTHON_BIN in ${VENV_PYTHON_BINS}; do
   if [[ -z "$(which "${VENV_PYTHON_BIN}")" ]]; then
     echo "ERROR: Unable to find ${VENV_PYTHON_BIN} on path."
@@ -148,7 +147,7 @@ for VENV_PYTHON_BIN in ${VENV_PYTHON_BINS}; do
 
   echo
   echo "Looking for wheel for ${VENV_PYTHON_BIN}: $(python --version 2>&1) ..."
-  echo "The wheel should be build with 'bazel build python2_wheel python3_wheel' command"
+  echo "The wheel should be build with 'bazel build python3_wheel' command"
   echo
 
   pushd "${TMP_DIR}" > /dev/null
