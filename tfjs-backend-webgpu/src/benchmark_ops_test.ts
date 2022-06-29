@@ -20,9 +20,9 @@ import {describeWebGPU} from './test_util';
 
 describeWebGPU('Ops benchmarks', () => {
   let originalTimeout: number;
-  beforeEach(() => {
+  beforeAll(() => {
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 40_000;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 40000;
   });
   afterAll(() => {
     jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;

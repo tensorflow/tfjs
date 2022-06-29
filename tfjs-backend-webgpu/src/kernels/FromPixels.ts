@@ -29,7 +29,7 @@ export const fromPixelsConfig: KernelConfig = {
 };
 
 let fromPixels2DContext: CanvasRenderingContext2D;
-let texture: GPUTexture|GPUExternalTexture;
+let videoToTextureMap = new Map<object, object>();
 
 export function fromPixels(args: {
   inputs: FromPixelsInputs,
@@ -68,14 +68,25 @@ export function fromPixels(args: {
   const isVideoOrImage = isVideo || isImage;
   if (isImageBitmap || isCanvas || isVideoOrImage) {
     let textureInfo: TextureInfo;
-
     if (importVideo) {
-      if (!texture || (texture as GPUExternalTexture).expired) {
-        const externalTextureDescriptor = {source: pixels as HTMLVideoElement};
-        texture =
-            backend.device.importExternalTexture(externalTextureDescriptor);
+      let videoElement = pixels as HTMLVideoElement;
+      if (!(videoToTextureMap.has(videoElement)) ||
+          (videoToTextureMap.get(videoElement) as GPUExternalTexture).expired) {
+        const externalTextureDescriptor = {
+          source: videoElement as HTMLVideoElement
+        };
+        videoToTextureMap.set(
+            videoElement,
+            backend.device.importExternalTexture(externalTextureDescriptor));
       }
-      textureInfo = {width, height, format: null, usage: null, texture};
+
+      textureInfo = {
+        width,
+        height,
+        format: null,
+        usage: null,
+        texture: videoToTextureMap.get(videoElement) as GPUExternalTexture
+      };
     } else {
       if (isVideoOrImage) {
         if (fromPixels2DContext == null) {
@@ -92,7 +103,7 @@ export function fromPixels(args: {
       const usage = GPUTextureUsage.COPY_DST |
           GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING;
       const format = 'rgba8unorm' as GPUTextureFormat;
-      texture = backend.textureManager.acquireTexture(
+      const texture = backend.textureManager.acquireTexture(
           outputShape[1], outputShape[0], format, usage);
       backend.queue.copyExternalImageToTexture(
           {source: pixels as HTMLCanvasElement | ImageBitmap}, {texture},
