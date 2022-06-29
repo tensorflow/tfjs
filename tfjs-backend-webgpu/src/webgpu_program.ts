@@ -60,7 +60,8 @@ export const compileProgram =
           {code: source, label: program.constructor.name});
       const pipeline = device.createComputePipeline({
         compute: {module, entryPoint: 'main'},
-        label: program.constructor.name
+        label: program.constructor.name,
+        layout: 'auto'
       });
 
       return pipeline;
@@ -257,7 +258,7 @@ function makeShader(
       `);
   }
 
-  const [coordsSnippet, dispatchLayoutRank] =
+  const coordsSnippet =
       getOutputCoordsSnippet(outputData.shape, program.dispatchLayout);
 
   const sources = [
@@ -269,22 +270,18 @@ function makeShader(
     sources.push(
         setOutputSnippet(outputData.shape, outputData.dtype, program.isVec4));
   }
-  if (dispatchLayoutRank === outputData.shape.length) {
-    // Input snippet is only meaningful when the output isn't getting
-    // implicitly reshaped (like it does in conv2d_matmul).
-    const inputSnippet =
-        inputInfo
-            .map(
-                (x, i) => getInputSnippet(
-                    x, outputData.shape,
-                    program.variableTypes ?
-                        (program.variableTypes[i] === 'vec4<f32>') :
-                        program.isVec4,
-                    program.dispatchLayout.x.length ===
-                        outputData.shape.length))
-            .join('\n');
-    sources.push(inputSnippet);
-  }
+
+  const inputSnippet =
+      inputInfo
+          .map(
+              (x, i) => getInputSnippet(
+                  x, outputData.shape,
+                  program.variableTypes ?
+                      (program.variableTypes[i] === 'vec4<f32>') :
+                      program.isVec4,
+                  program.dispatchLayout.x.length === outputData.shape.length))
+          .join('\n');
+  sources.push(inputSnippet);
 
   sources.push(program.getUserCode());
   const source = sources.join('\n');
@@ -633,8 +630,7 @@ function getInputSnippet(
  */
 function getOutputCoordsSnippet(
     outShape: number[],
-    dispatchLayout: {x: number[], y?: number[], z?: number[]}):
-    [string, number] {
+    dispatchLayout: {x: number[], y?: number[], z?: number[]}): string {
   const {x, y = [], z = []} = dispatchLayout;
 
   const outRank = outShape.length;
@@ -645,7 +641,7 @@ function getOutputCoordsSnippet(
     return getCoordsFromIndex(globalIndex);
   }
   `;
-    return [snippet, outRank];
+    return snippet;
   }
 
   let gatherDimensionsStr = '';
@@ -696,7 +692,7 @@ function getOutputCoordsSnippet(
     snippet += `return ${dtype}(${dimensions.join(',')}); }`;
   }
 
-  return [snippet, rank];
+  return snippet;
 }
 
 function getOutputIndexFromCoordsSnippet(outRank: number) {

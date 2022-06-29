@@ -24,27 +24,28 @@ export class FromPixelsProgram implements WebGPUProgram {
   isFromPixels = true;
   outputShape: number[] = [0];
   shaderKey: string;
-  useImport: boolean;
+  importVideo: boolean;
   variableNames: string[] = [];
   workGroupSize: [number, number, number] =
       [256, 1, 1];  // The empirical value.
 
-  constructor(outputShape: number[], numChannels: number, useImport = false) {
+  constructor(outputShape: number[], numChannels: number, importVideo = false) {
     this.outputShape = outputShape;
     this.dispatchLayout = flatDispatchLayout(this.outputShape);
     this.dispatch = computeDispatch(
         this.dispatchLayout, this.outputShape, this.workGroupSize,
         [numChannels, 1, 1]);
 
-    this.useImport = useImport;
-    this.shaderKey = `fromPixels_${this.useImport}`;
+    this.importVideo = importVideo;
+    this.shaderKey = `fromPixels_${this.importVideo}`;
   }
 
   getUserCode(): string {
-    const textureLoad = this.useImport ?
+    const textureLoad = this.importVideo ?
         'textureLoad(src, vec2<i32>(coords.yx));' :
         'textureLoad(src, vec2<i32>(coords.yx), 0)';
-    const textureType = this.useImport ? 'texture_external' : 'texture_2d<f32>';
+    const textureType =
+        this.importVideo ? 'texture_external' : 'texture_2d<f32>';
     return `
       @binding(1) @group(0) var src: ${textureType};
 
