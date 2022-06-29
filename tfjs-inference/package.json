@@ -40,9 +40,9 @@
     "test-python-ci": "./scripts/run_python.sh"
   },
   "dependencies": {
-    "@types/seedrandom": "2.4.27",
+    "@types/seedrandom": "^2.4.28",
     "@types/yargs": "~15.0.5",
-    "seedrandom": "2.4.3",
+    "seedrandom": "^3.0.5",
     "yargs": "~15.3.1",
     "pkg": "~4.5.1"
   },

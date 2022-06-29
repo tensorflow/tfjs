@@ -14,6 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+
 import {InputParamValue, OpMapper, ParamValue} from '../types';
 import {Node} from '../types';
 
@@ -93,4 +94,9 @@ export function validateParam(
     console.log('opMapper = ', opMapper);
   }
   return matched;
+}
+
+// TODO(mattsoulanille): Change the return type to Uncapitalize<Name> in TS4.
+export function uncapitalize<Name extends string>(name: Name): string {
+  return name.charAt(0).toLowerCase() + name.slice(1);
 }
