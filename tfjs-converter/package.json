@@ -19,8 +19,8 @@
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core"
   },
   "devDependencies": {
-    "@bazel/bazelisk": "^1.10.1",
-    "@bazel/ibazel": "^0.15.10",
+    "@bazel/bazelisk": "^1.12.0",
+    "@bazel/ibazel": "^0.16.2",
     "@tensorflow/tfjs-backend-cpu": "link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
     "@types/argparse": "^1.0.38",
@@ -31,7 +31,8 @@
     "opn": "~5.1.0",
     "protobufjs": "~6.11.3",
     "ts-node": "~8.8.2",
-    "typescript": "3.5.3"
+    "typescript": "3.5.3",
+    "yalc": "~1.0.0-pre.50"
   },
   "scripts": {
     "build": "bazel build :tfjs-converter_pkg",

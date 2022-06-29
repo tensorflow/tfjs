@@ -27,55 +27,55 @@ import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext): Tensor[] => {
+     context: ExecutionContext, ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'Equal': {
-          return [tfOps.equal(
+          return [ops.equal(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         }
         case 'NotEqual': {
-          return [tfOps.notEqual(
+          return [ops.notEqual(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         }
         case 'Greater': {
-          return [tfOps.greater(
+          return [ops.greater(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         }
         case 'GreaterEqual': {
-          return [tfOps.greaterEqual(
+          return [ops.greaterEqual(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         }
         case 'Less': {
-          return [tfOps.less(
+          return [ops.less(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         }
         case 'LessEqual': {
-          return [tfOps.lessEqual(
+          return [ops.lessEqual(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         }
         case 'LogicalAnd': {
-          return [tfOps.logicalAnd(
+          return [ops.logicalAnd(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         }
         case 'LogicalNot': {
-          return [tfOps.logicalNot(
+          return [ops.logicalNot(
               getParamValue('a', node, tensorMap, context) as Tensor)];
         }
         case 'LogicalOr': {
-          return [tfOps.logicalOr(
+          return [ops.logicalOr(
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];
         }
         case 'Select':
         case 'SelectV2': {
-          return [tfOps.where(
+          return [ops.where(
               getParamValue('condition', node, tensorMap, context) as Tensor,
               getParamValue('a', node, tensorMap, context) as Tensor,
               getParamValue('b', node, tensorMap, context) as Tensor)];

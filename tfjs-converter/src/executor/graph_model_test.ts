@@ -23,6 +23,7 @@ import {deregisterOp, registerOp} from '../operations/custom_op/register';
 import {GraphNode} from '../operations/types';
 
 import {GraphModel, loadGraphModel, loadGraphModelSync} from './graph_model';
+import {RecursiveSpy, spyOnAllFunctions} from '../operations/executors/spy_ops';
 
 const HOST = 'http://example.org';
 const MODEL_URL = `${HOST}/model.json`;
@@ -368,6 +369,12 @@ describe('loadSync', () => {
 });
 
 describe('loadGraphModel', () => {
+  let spyIo: RecursiveSpy<typeof io>;
+
+  beforeEach(() => {
+    spyIo = spyOnAllFunctions(io);
+  });
+
   it('Pass a custom io handler', async () => {
     const customLoader: tfc.io.IOHandler = {
       load: async () => {
@@ -397,11 +404,11 @@ describe('loadGraphModel', () => {
 
   it('Pass a fetchFunc', async () => {
     const fetchFunc = () => {};
-    spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+    spyIo.getLoadHandlers.and.returnValue([
       CUSTOM_HTTP_MODEL_LOADER
     ]);
-    await loadGraphModel(MODEL_URL, {fetchFunc});
-    expect(tfc.io.getLoadHandlers).toHaveBeenCalledWith(MODEL_URL, {fetchFunc});
+    await loadGraphModel(MODEL_URL, {fetchFunc}, spyIo);
+    expect(spyIo.getLoadHandlers).toHaveBeenCalledWith(MODEL_URL, {fetchFunc});
   });
 });
 
@@ -436,13 +443,16 @@ describe('loadGraphModelSync', () => {
 });
 
 describe('Model', () => {
+  let spyIo: RecursiveSpy<typeof io>;
+
   beforeEach(() => {
-    model = new GraphModel(MODEL_URL);
+    spyIo = spyOnAllFunctions(io);
+    model = new GraphModel(MODEL_URL, undefined, spyIo);
   });
 
   describe('custom model', () => {
     beforeEach(() => {
-      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+      spyIo.getLoadHandlers.and.returnValue([
         CUSTOM_HTTP_MODEL_LOADER
       ]);
       registerOp('CustomOp', (nodeValue: GraphNode) => {
@@ -484,11 +494,10 @@ describe('Model', () => {
 
   describe('simple model', () => {
     beforeEach(() => {
-      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+      spyIo.getLoadHandlers.and.returnValue([
         SIMPLE_HTTP_MODEL_LOADER
       ]);
-      spyOn(tfc.io, 'browserHTTPRequest')
-          .and.returnValue(SIMPLE_HTTP_MODEL_LOADER);
+      spyIo.browserHTTPRequest.and.returnValue(SIMPLE_HTTP_MODEL_LOADER);
     });
     it('load', async () => {
       const loaded = await model.load();
@@ -621,7 +630,7 @@ describe('Model', () => {
     describe('dispose', () => {
       it('should dispose the weights', async () => {
         const numOfTensors = tfc.memory().numTensors;
-        model = new GraphModel(MODEL_URL);
+        model = new GraphModel(MODEL_URL, undefined, spyIo);
 
         await model.load();
         model.dispose();
@@ -639,7 +648,7 @@ describe('Model', () => {
 
     describe('relative path', () => {
       beforeEach(() => {
-        model = new GraphModel(RELATIVE_MODEL_URL);
+        model = new GraphModel(RELATIVE_MODEL_URL, undefined, spyIo);
       });
 
       it('load', async () => {
@@ -649,14 +658,14 @@ describe('Model', () => {
     });
 
     it('should loadGraphModel', async () => {
-      const model = await loadGraphModel(MODEL_URL);
+      const model = await loadGraphModel(MODEL_URL, undefined, spyIo);
       expect(model).not.toBeUndefined();
     });
 
     it('should loadGraphModel with request options', async () => {
       const model = await loadGraphModel(
-          MODEL_URL, {requestInit: {credentials: 'include'}});
-      expect(tfc.io.browserHTTPRequest).toHaveBeenCalledWith(MODEL_URL, {
+          MODEL_URL, {requestInit: {credentials: 'include'}}, spyIo);
+      expect(spyIo.browserHTTPRequest).toHaveBeenCalledWith(MODEL_URL, {
         requestInit: {credentials: 'include'}
       });
       expect(model).not.toBeUndefined();
@@ -664,7 +673,7 @@ describe('Model', () => {
 
     it('should call loadGraphModel for TfHub Module', async () => {
       const url = `${HOST}/model/1`;
-      const model = await loadGraphModel(url, {fromTFHub: true});
+      const model = await loadGraphModel(url, {fromTFHub: true}, spyIo);
       expect(model).toBeDefined();
     });
 
@@ -686,11 +695,10 @@ describe('Model', () => {
 
   describe('control flow model', () => {
     beforeEach(() => {
-      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+      spyIo.getLoadHandlers.and.returnValue([
         CONTROL_FLOW_HTTP_MODEL_LOADER
       ]);
-      spyOn(tfc.io, 'browserHTTPRequest')
-          .and.returnValue(CONTROL_FLOW_HTTP_MODEL_LOADER);
+      spyIo.browserHTTPRequest.and.returnValue(CONTROL_FLOW_HTTP_MODEL_LOADER);
     });
 
     describe('save', () => {
@@ -777,11 +785,10 @@ describe('Model', () => {
   };
   describe('dynamic shape model', () => {
     beforeEach(() => {
-      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+      spyIo.getLoadHandlers.and.returnValue([
         DYNAMIC_HTTP_MODEL_LOADER
       ]);
-      spyOn(tfc.io, 'browserHTTPRequest')
-          .and.returnValue(DYNAMIC_HTTP_MODEL_LOADER);
+      spyIo.browserHTTPRequest.and.returnValue(DYNAMIC_HTTP_MODEL_LOADER);
     });
 
     it('should throw error if call predict directly', async () => {
@@ -822,11 +829,10 @@ describe('Model', () => {
   });
   describe('dynamic shape model with metadata', () => {
     beforeEach(() => {
-      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+      spyIo.getLoadHandlers.and.returnValue([
         DYNAMIC_HTTP_MODEL_NEW_LOADER
       ]);
-      spyOn(tfc.io, 'browserHTTPRequest')
-          .and.returnValue(DYNAMIC_HTTP_MODEL_NEW_LOADER);
+      spyIo.browserHTTPRequest.and.returnValue(DYNAMIC_HTTP_MODEL_NEW_LOADER);
     });
 
     it('should be success if call executeAsync with signature key',
@@ -848,11 +854,10 @@ describe('Model', () => {
 
   describe('Hashtable model', () => {
     beforeEach(() => {
-      spyOn(tfc.io, 'getLoadHandlers').and.returnValue([
+      spyIo.getLoadHandlers.and.returnValue([
         HASHTABLE_HTTP_MODEL_LOADER
       ]);
-      spyOn(tfc.io, 'browserHTTPRequest')
-          .and.returnValue(HASHTABLE_HTTP_MODEL_LOADER);
+      spyIo.browserHTTPRequest.and.returnValue(HASHTABLE_HTTP_MODEL_LOADER);
     });
     it('should be successful if call executeAsync', async () => {
       await model.load();
