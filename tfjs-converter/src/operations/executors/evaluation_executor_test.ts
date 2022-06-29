@@ -21,6 +21,7 @@ import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
 
 import {executeOp} from './evaluation_executor';
+import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
 import {createBoolAttr, createNumberAttrFromIndex, createTensorAttr} from './test_helper';
 
 describe('evaluation', () => {
@@ -43,6 +44,14 @@ describe('evaluation', () => {
   });
 
   describe('executeOp', () => {
+    let spyOps: RecursiveSpy<typeof tfOps>;
+    let spyOpsAsTfOps: typeof tfOps;
+
+    beforeEach(() => {
+      spyOps = spyOnAllFunctions(tfOps);
+      spyOpsAsTfOps = spyOps as unknown as typeof tfOps;
+    });
+
     describe('LowerBound', () => {
       it('should return input', () => {
         node.op = 'LowerBound';
@@ -50,7 +59,6 @@ describe('evaluation', () => {
         node.inputParams['values'] = createTensorAttr(1);
         node.inputNames = ['sortedSequence', 'values'];
 
-        spyOn(tfOps, 'lowerBound').and.callThrough();
         const sortedSequence = [tfOps.tensor2d(
             [0., 3., 8., 9., 10., 1., 2., 3., 4., 5.], [2, 5], 'int32')];
         const values = [tfOps.tensor2d(
@@ -63,8 +71,8 @@ describe('evaluation', () => {
               4.5,
             ],
             [2, 3], 'float32')];
-        executeOp(node, {sortedSequence, values}, context);
-        expect(tfOps.lowerBound)
+        executeOp(node, {sortedSequence, values}, context, spyOpsAsTfOps);
+        expect(spyOps.lowerBound)
             .toHaveBeenCalledWith(sortedSequence[0], values[0]);
       });
     });
@@ -75,9 +83,8 @@ describe('evaluation', () => {
         node.inputParams['x'] = createTensorAttr(0);
         node.inputParams['k'] = createNumberAttrFromIndex(1);
         node.attrParams['sorted'] = createBoolAttr(true);
-        spyOn(tfOps, 'topk').and.callThrough();
-        executeOp(node, {input1, input2}, context);
-        expect(tfOps.topk).toHaveBeenCalledWith(input1[0], 1, true);
+        executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
+        expect(spyOps.topk).toHaveBeenCalledWith(input1[0], 1, true);
       });
     });
 
@@ -88,7 +95,6 @@ describe('evaluation', () => {
         node.inputParams['values'] = createTensorAttr(1);
         node.inputNames = ['sortedSequence', 'values'];
 
-        spyOn(tfOps, 'upperBound').and.callThrough();
         const sortedSequence = [tfOps.tensor2d(
             [0., 3., 8., 9., 10., 1., 2., 3., 4., 5.], [2, 5], 'int32')];
         const values = [tfOps.tensor2d(
@@ -101,8 +107,8 @@ describe('evaluation', () => {
               4.5,
             ],
             [2, 3], 'float32')];
-        executeOp(node, {sortedSequence, values}, context);
-        expect(tfOps.upperBound)
+        executeOp(node, {sortedSequence, values}, context, spyOpsAsTfOps);
+        expect(spyOps.upperBound)
             .toHaveBeenCalledWith(sortedSequence[0], values[0]);
       });
     });
@@ -111,9 +117,8 @@ describe('evaluation', () => {
       it('should get called correctly', () => {
         node.op = 'Unique';
         node.inputParams['x'] = createTensorAttr(0);
-        spyOn(tfOps, 'unique').and.callThrough();
-        executeOp(node, {input1}, context);
-        expect(tfOps.unique).toHaveBeenCalledWith(input1[0]);
+        executeOp(node, {input1}, context, spyOpsAsTfOps);
+        expect(spyOps.unique).toHaveBeenCalledWith(input1[0]);
       });
     });
 
@@ -122,11 +127,12 @@ describe('evaluation', () => {
         node.op = 'UniqueV2';
         node.inputParams['x'] = createTensorAttr(0);
         node.inputParams['axis'] = createNumberAttrFromIndex(1);
-        spyOn(tfOps, 'unique').and.callThrough();
         const xInput = [tfOps.tensor2d([[1], [2]])];
         const axisInput = [tfOps.scalar(1)];
-        executeOp(node, {'input1': xInput, 'input2': axisInput}, context);
-        expect(tfOps.unique).toHaveBeenCalledWith(xInput[0], 1);
+        executeOp(
+            node, {'input1': xInput, 'input2': axisInput}, context,
+            spyOpsAsTfOps);
+        expect(spyOps.unique).toHaveBeenCalledWith(xInput[0], 1);
       });
     });
   });

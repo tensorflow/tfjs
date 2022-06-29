@@ -23,13 +23,18 @@ import {Node} from '../types';
 
 import {executeOp} from './image_executor';
 import {createBoolAttr, createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createStrAttr, createTensorAttr, validateParam} from './test_helper';
+import {spyOnAllFunctions, RecursiveSpy} from './spy_ops';
 
 describe('image', () => {
   let node: Node;
   const input1 = [tfOps.tensor1d([1])];
   const context = new ExecutionContext({}, {}, {});
+  let spyOps: RecursiveSpy<typeof tfOps>;
+  let spyOpsAsTfOps: typeof tfOps;
 
   beforeEach(() => {
+    spyOps = spyOnAllFunctions(tfOps);
+    spyOpsAsTfOps = spyOps as unknown as typeof tfOps;
     node = {
       name: 'input1',
       op: '',
@@ -52,9 +57,10 @@ describe('image', () => {
         node.attrParams['halfPixelCenters'] = createBoolAttr(true);
         node.inputNames = ['input1', 'input2'];
         const input2 = [tfOps.tensor1d([1, 2])];
-        spyOn(tfOps.image, 'resizeBilinear');
-        executeOp(node, {input1, input2}, context);
-        expect(tfOps.image.resizeBilinear)
+        spyOps.image.resizeBilinear.and.returnValue({});
+
+        executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
+        expect(spyOps.image.resizeBilinear)
             .toHaveBeenCalledWith(input1[0], [1, 2], true, true);
       });
       it('should match json def', () => {
@@ -76,9 +82,10 @@ describe('image', () => {
         node.attrParams['halfPixelCenters'] = createBoolAttr(true);
         node.inputNames = ['input1', 'input2'];
         const input2 = [tfOps.tensor1d([1, 2])];
-        spyOn(tfOps.image, 'resizeNearestNeighbor');
-        executeOp(node, {input1, input2}, context);
-        expect(tfOps.image.resizeNearestNeighbor)
+        spyOps.image.resizeNearestNeighbor.and.returnValue({});
+
+        executeOp(node, {input1, input2}, context, spyOpsAsTfOps);
+        expect(spyOps.image.resizeNearestNeighbor)
             .toHaveBeenCalledWith(input1[0], [1, 2], true, true);
       });
       it('should match json def', () => {
@@ -102,13 +109,14 @@ describe('image', () => {
         node.attrParams['extrapolationValue'] = createNumberAttr(0.5);
         node.inputNames = ['input1', 'input2', 'input3', 'input4'];
 
-        spyOn(tfOps.image, 'cropAndResize');
+        spyOps.image.cropAndResize.and.returnValue({});
         const input2 = [tfOps.tensor1d([2])];
         const input3 = [tfOps.tensor1d([3])];
         const input4 = [tfOps.tensor1d([4, 5])];
 
-        executeOp(node, {input1, input2, input3, input4}, context);
-        expect(tfOps.image.cropAndResize)
+        executeOp(node, {input1, input2, input3, input4}, context,
+                  spyOpsAsTfOps);
+        expect(spyOps.image.cropAndResize)
             .toHaveBeenCalledWith(
                 input1[0], input2[0], input3[0], [4, 5], 'bilinear', 0.5);
       });
@@ -137,13 +145,14 @@ describe('image', () => {
         node.attrParams['fillMode'] = createStrAttr('constant');
         node.inputNames = ['input1', 'input2', 'input3', 'input4'];
 
-        spyOn(tfOps.image, 'transform');
-        const input2 = [tfOps.tensor1d([2])];
+        const input1 = [tfOps.tensor4d([1], [1, 1, 1, 1])];
+        const input2 = [tfOps.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [1, 8])];
         const input3 = [tfOps.tensor1d([4, 5])];
         const input4 = [tfOps.scalar(3)];
 
-        executeOp(node, {input1, input2, input3, input4}, context);
-        expect(tfOps.image.transform)
+        executeOp(node, {input1, input2, input3, input4}, context,
+                  spyOpsAsTfOps);
+        expect(spyOps.image.transform)
             .toHaveBeenCalledWith(
                 input1[0], input2[0], 'bilinear', 'constant', 3, [4, 5]);
       });
