@@ -29,6 +29,7 @@ export const fromPixelsConfig: KernelConfig = {
 };
 
 let fromPixels2DContext: CanvasRenderingContext2D;
+const videoToTextureMap = new Map<object, object>();
 
 export function fromPixels(args: {
   inputs: FromPixelsInputs,
@@ -62,16 +63,28 @@ export function fromPixels(args: {
       [pixels.width, pixels.height];
   const outputShape = [height, width, numChannels];
 
-  const useImport = env().getBool('WEBGPU_USE_IMPORT') && isVideo;
+  const importVideo =
+      env().getBool('WEBGPU_IMPORT_EXTERNAL_TEXTURE') && isVideo;
   const isVideoOrImage = isVideo || isImage;
   if (isImageBitmap || isCanvas || isVideoOrImage) {
-    let texture: GPUTexture|GPUExternalTexture;
     let textureInfo: TextureInfo;
+    if (importVideo) {
+      const videoElement = pixels as HTMLVideoElement;
+      if (!(videoToTextureMap.has(videoElement)) ||
+          (videoToTextureMap.get(videoElement) as GPUExternalTexture).expired) {
+        const externalTextureDescriptor = {source: videoElement};
+        videoToTextureMap.set(
+            videoElement,
+            backend.device.importExternalTexture(externalTextureDescriptor));
+      }
 
-    if (useImport) {
-      const externalTextureDescriptor = {source: pixels as HTMLVideoElement};
-      texture = backend.device.importExternalTexture(externalTextureDescriptor);
-      textureInfo = {width, height, format: null, usage: null, texture};
+      textureInfo = {
+        width,
+        height,
+        format: null,
+        usage: null,
+        texture: videoToTextureMap.get(videoElement) as GPUExternalTexture
+      };
     } else {
       if (isVideoOrImage) {
         if (fromPixels2DContext == null) {
@@ -98,7 +111,8 @@ export function fromPixels(args: {
 
     const size = util.sizeFromShape(outputShape);
     const strides = util.computeStrides(outputShape);
-    const program = new FromPixelsProgram(outputShape, numChannels, useImport);
+    const program =
+        new FromPixelsProgram(outputShape, numChannels, importVideo);
 
     const uniformData = [
       {type: 'uint32', data: [size]}, {type: 'uint32', data: [numChannels]},
