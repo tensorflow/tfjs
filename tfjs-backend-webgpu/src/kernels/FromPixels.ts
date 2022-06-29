@@ -29,7 +29,7 @@ export const fromPixelsConfig: KernelConfig = {
 };
 
 let fromPixels2DContext: CanvasRenderingContext2D;
-let videoToTextureMap = new Map<object, object>();
+const videoToTextureMap = new Map<object, object>();
 
 export function fromPixels(args: {
   inputs: FromPixelsInputs,
@@ -69,12 +69,10 @@ export function fromPixels(args: {
   if (isImageBitmap || isCanvas || isVideoOrImage) {
     let textureInfo: TextureInfo;
     if (importVideo) {
-      let videoElement = pixels as HTMLVideoElement;
+      const videoElement = pixels as HTMLVideoElement;
       if (!(videoToTextureMap.has(videoElement)) ||
           (videoToTextureMap.get(videoElement) as GPUExternalTexture).expired) {
-        const externalTextureDescriptor = {
-          source: videoElement as HTMLVideoElement
-        };
+        const externalTextureDescriptor = {source: videoElement};
         videoToTextureMap.set(
             videoElement,
             backend.device.importExternalTexture(externalTextureDescriptor));

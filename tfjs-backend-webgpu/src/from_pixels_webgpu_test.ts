@@ -60,7 +60,7 @@ describeWebGPU('fromPixels', () => {
 
        {
          tf.env().set('WEBGPU_IMPORT_EXTERNAL_TEXTURE', true);
-         const res = await tf.browser.fromPixelsAsync(video);
+         const res = tf.browser.fromPixels(video);
          expect(res.shape).toEqual([90, 160, 3]);
          const data = await res.data();
          expect(data.length).toEqual(90 * 160 * 3);
@@ -74,7 +74,7 @@ describeWebGPU('fromPixels', () => {
 
        {
          tf.env().set('WEBGPU_IMPORT_EXTERNAL_TEXTURE', false);
-         const res = await tf.browser.fromPixelsAsync(video);
+         const res = tf.browser.fromPixels(video);
          expect(res.shape).toEqual([90, 160, 3]);
          const data = await res.data();
          expect(data.length).toEqual(90 * 160 * 3);
@@ -104,7 +104,7 @@ describeWebGPU('fromPixels', () => {
         img.onload = () => resolve(img);
       });
 
-      const resImage = await tf.browser.fromPixelsAsync(img);
+      const resImage = tf.browser.fromPixels(img);
       expect(resImage.shape).toEqual([10, 10, 3]);
 
       const dataImage = await resImage.data();
@@ -123,7 +123,7 @@ describeWebGPU('fromPixels', () => {
       await new Promise(resolve => {
         img.onload = () => resolve(img);
       });
-      const resImage = await tf.browser.fromPixelsAsync(img);
+      const resImage = tf.browser.fromPixels(img);
       expect(resImage.shape).toEqual([10, 10, 3]);
 
       const dataImage = await resImage.data();
