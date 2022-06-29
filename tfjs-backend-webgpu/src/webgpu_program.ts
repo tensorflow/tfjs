@@ -60,7 +60,8 @@ export const compileProgram =
           {code: source, label: program.constructor.name});
       const pipeline = device.createComputePipeline({
         compute: {module, entryPoint: 'main'},
-        label: program.constructor.name
+        label: program.constructor.name,
+        layout: 'auto'
       });
 
       return pipeline;
