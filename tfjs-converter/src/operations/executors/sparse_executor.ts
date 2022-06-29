@@ -27,7 +27,7 @@ import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext): Tensor[] => {
+     context: ExecutionContext, ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'SparseFillEmptyRows': {
           const {
@@ -36,7 +36,7 @@ export const executeOp: InternalOpExecutor =
             emptyRowIndicator,
             reverseIndexMap
           } =
-              tfOps.sparse.sparseFillEmptyRows(
+              ops.sparse.sparseFillEmptyRows(
                   getParamValue('indices', node, tensorMap, context) as
                       Tensor2D,
                   getParamValue('values', node, tensorMap, context) as Tensor1D,
@@ -49,7 +49,7 @@ export const executeOp: InternalOpExecutor =
           ];
         }
         case 'SparseReshape': {
-          const {outputIndices, outputShape} = tfOps.sparse.sparseReshape(
+          const {outputIndices, outputShape} = ops.sparse.sparseReshape(
               getParamValue('inputIndices', node, tensorMap, context) as
                   Tensor2D,
               getParamValue('inputShape', node, tensorMap, context) as Tensor1D,
@@ -57,7 +57,7 @@ export const executeOp: InternalOpExecutor =
           return [outputIndices, outputShape];
         }
         case 'SparseSegmentMean': {
-          const outputData = tfOps.sparse.sparseSegmentMean(
+          const outputData = ops.sparse.sparseSegmentMean(
               getParamValue('data', node, tensorMap, context) as Tensor,
               getParamValue('indices', node, tensorMap, context) as Tensor1D,
               getParamValue('segmentIds', node, tensorMap, context) as
@@ -65,7 +65,7 @@ export const executeOp: InternalOpExecutor =
           return [outputData];
         }
         case 'SparseSegmentSum': {
-          const outputData = tfOps.sparse.sparseSegmentSum(
+          const outputData = ops.sparse.sparseSegmentSum(
               getParamValue('data', node, tensorMap, context) as Tensor,
               getParamValue('indices', node, tensorMap, context) as Tensor1D,
               getParamValue('segmentIds', node, tensorMap, context) as

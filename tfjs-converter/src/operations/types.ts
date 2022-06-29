@@ -15,6 +15,8 @@
  * =============================================================================
  */
 import {Tensor} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line:no-imports-from-dist
+import * as tfOps from '@tensorflow/tfjs-core/dist/ops/ops_for_converter';
 
 import * as tensorflow from '../data/compiled_api';
 import {NamedTensorsMap} from '../data/types';
@@ -75,13 +77,13 @@ export declare interface AttrParamMapper extends ParamMapper {
 }
 
 export interface InternalOpExecutor {
-  (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext): Tensor
-      |Tensor[];
+  (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
+   ops?: typeof tfOps): Tensor | Tensor[];
 }
 
 export interface InternalOpAsyncExecutor {
   (node: Node, tensorMap: NamedTensorsMap, context: ExecutionContext,
-   resourceManager?: ResourceManager): Promise<Tensor[]>;
+   resourceManager?: ResourceManager, ops?: typeof tfOps): Promise<Tensor[]>;
 }
 
 export declare interface OpMapper {
