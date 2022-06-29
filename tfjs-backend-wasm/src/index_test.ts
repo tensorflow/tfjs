@@ -236,7 +236,7 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
   });
 });
 
-describe('wasm pre.js', () => {
+// describe('wasm pre.js', () => {
   // Temporarily disabled due to node 16 incompatability
   // it('works if process variable is undefined', async () => {
   //   tf.engine().reset();
@@ -259,4 +259,4 @@ describe('wasm pre.js', () => {
   //   tf.engine().disposeVariables();
   //   tf.engine().reset();
   // });
-});
+// });

@@ -584,7 +584,8 @@ describeWithFlags('util.toNestedArray for a complex tensor', ALL_ENVS, () => {
 
 describe('util.fetch', () => {
   it('should call the platform fetch', () => {
-    spyOn(tf.env().platform, 'fetch').and.callFake(() => {});
+    spyOn(tf.env().platform, 'fetch').and
+      .callFake(async () => ({} as unknown as Response));
 
     util.fetch('test/path', {method: 'GET'});
 
