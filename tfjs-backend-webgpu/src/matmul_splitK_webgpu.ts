@@ -18,6 +18,7 @@
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {activationFnSnippet, biasActivationSnippet} from './activation_util';
+import {matMulReadFnSource} from './matmul_packed_webgpu';
 import {getMainHeaderAndGlobalIndexString, getMainHeaderString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
@@ -70,36 +71,6 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
-    let sampleA;
-    if (this.transposeA === false) {
-      sampleA =
-          `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-            value = A[batch * batchASize + row * uniforms.dimInner + col];
-          }
-          return value;`;
-    } else {
-      sampleA =
-          `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimInner))) {
-            value = A[batch* batchASize + col * uniforms.dimAOuter + row];
-          }
-          return value;`;
-    }
-
-    let sampleB;
-    if (this.transposeB === false) {
-      sampleB =
-          `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-            value = B[batch * batchBSize + row * uniforms.dimBOuter + col];
-          }
-          return value;`;
-    } else {
-      sampleB =
-          `if(coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-            value = B[batch * batchBSize + col * uniforms.dimInner + row];
-          }
-          return value;`;
-    }
-
     // atomicAdd only supports uint/int type. For float, we use
     // atomicCompareExchangeWeak to simulate.
     const atomicAddSnippet = `
@@ -115,18 +86,10 @@ export class MatMulSplitKProgram implements WebGPUProgram {
      `;
 
     const userCode = `
-      fn mm_readA(batch: i32, row : i32, col : i32) -> f32 {
-        let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
-        var value = 0.0;
-        ${sampleA}
-      }
-
-      fn mm_readB(batch: i32, row : i32, col : i32) -> f32 {
-        let batchBSize = uniforms.bShape[1] * uniforms.bShape[2];
-        var value = 0.0;
-        ${sampleB}
-      }
-
+      ${
+        matMulReadFnSource(
+            this.batchAEqualOne, this.batchBEqualOne, this.transposeA,
+            this.transposeB)}
       fn mm_write(batch: i32, row : i32, col : i32, valueIn : f32) {
         if (row < uniforms.dimAOuter && col < uniforms.dimBOuter) {
           let coords = vec3<i32>(batch, row, col);

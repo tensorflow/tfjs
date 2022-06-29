@@ -160,14 +160,13 @@ export function batchMatMulImpl({
       // times smaller than each of the two input sizes. For example, if input
       // sizes are [12, 2048] and [2048, 1024], the output size is [12, 1024],
       // which is relatively small compared to input sizes.
-      if (!transposeA && !transposeB &&
-          ((outerShapeA <= 16 &&
+      if (((outerShapeA <= 16 &&
             (outerShapeB <= 512 || innerShapeB >= 2 * outerShapeB)) ||
            (outerShapeB <= 16 &&
             (outerShapeA <= 512 || innerShapeA >= 2 * outerShapeA)))) {
     program = new MatMulSmallOutputSizeProgram(
-        a3dShape, b3dShape, outputShape, bias, activation,
-        preluActivationWeights);
+        a3dShape, b3dShape, outputShape, transposeA, transposeB, bias,
+        activation, preluActivationWeights);
   } else if (useVec4) {
     // TODO: Currently we need to make sure that innerShapeA and outerShapeB
     // are divisible by 4 since we use vec4 to get data. In future, we can

@@ -131,22 +131,18 @@ function conv2dCommonSnippet(
       ${
       activationFnSnippet(
           activation, hasPreluActivationWeights, innerElementSize === 4, 4)}
-      fn mm_readA(row : i32, colIn : i32, globalId : vec3<u32>) -> ${aType} {
-        let batch = i32(globalId.z);
+      fn mm_readA(batch: i32, row : i32, colIn : i32) -> ${aType} {
         ${isChannelsLast ? sampleX : sampleW}
       }
 
-      fn mm_readB(row : i32, colIn : i32, globalId : vec3<u32>) -> ${bType} {
-        let batch = i32(globalId.z);
+      fn mm_readB(batch: i32, row : i32, colIn : i32) -> ${bType} {
         ${isChannelsLast ? sampleW : sampleX}
       }
 
-      fn mm_write(row : i32, colIn : i32, valueIn : ${
-      resType}, globalId : vec3<u32>) {
+      fn mm_write(batch: i32, row : i32, colIn : i32, valueIn : ${resType}) {
         let col = colIn * ${innerElementSize};
         if (row < uniforms.dimAOuter && col < uniforms.dimBOuter)
         {
-        let batch = i32(globalId.z);
         var value = valueIn;
         let outWidth = ${
       isChannelsLast ? 'uniforms.outShape[2]' : 'uniforms.outShape[3]'};
