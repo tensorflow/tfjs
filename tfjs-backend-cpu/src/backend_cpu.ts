@@ -59,7 +59,7 @@ export class MathBackendCPU extends KernelBackend {
             'Hi, looks like you are running TensorFlow.js in ' +
             'Node.js. To speed things up dramatically, install our node ' +
             'backend, "@tensorflow/tfjs-node".\n' +
-            'Visit https://github.com/tensorflow/tfjs/tree/master/tfjs-node for more details.'
+            'Visit https://github.com/tensorflow/tfjs/tree/master/tfjs-node for more details.' +
             '\n============================');
       }
     }
