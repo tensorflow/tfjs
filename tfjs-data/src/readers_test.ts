@@ -17,6 +17,7 @@
 
 import * as tfd from './readers';
 import {describeAllEnvs, describeNodeEnvs, replaceHTMLVideoElementSource, setupFakeVideoStream, MEDIA_ENVS} from './util/test_utils';
+// tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 describeAllEnvs('readers', () => {

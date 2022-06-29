@@ -17,6 +17,7 @@
  */
 
 import {memory, tensor3d, test_util} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import {MEDIA_ENVS, replaceHTMLVideoElementSource, setupFakeVideoStream} from '../util/test_utils';
 import {WebcamIterator} from './webcam_iterator';

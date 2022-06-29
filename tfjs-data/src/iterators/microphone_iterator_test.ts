@@ -19,6 +19,7 @@
 import {tensor2d, tensor3d, test_util} from '@tensorflow/tfjs-core';
 // TODO(kangyizhang): import from index once microphone is exported.
 import * as tfd from '../readers';
+// tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import {MEDIA_ENVS, setupFakeAudioStream} from '../util/test_utils';
 
