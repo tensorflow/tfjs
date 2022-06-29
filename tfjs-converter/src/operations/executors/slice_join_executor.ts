@@ -27,7 +27,7 @@ import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext): Tensor[] => {
+     context: ExecutionContext, ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'ConcatV2':
         case 'Concat': {
@@ -37,13 +37,13 @@ export const executeOp: InternalOpExecutor =
           let inputs =
               getParamValue('tensors', node, tensorMap, context) as Tensor[];
           inputs = inputs.slice(0, n);
-          return [tfOps.concat(inputs, axis)];
+          return [ops.concat(inputs, axis)];
         }
         case 'Gather': {
           const input = getParamValue('x', node, tensorMap, context) as Tensor;
           const indices =
               getParamValue('indices', node, tensorMap, context) as Tensor1D;
-          return [tfOps.gather(input, tfOps.cast(indices, 'int32'), 0)];
+          return [ops.gather(input, ops.cast(indices, 'int32'), 0)];
         }
         case 'GatherV2': {
           const axis =
@@ -53,8 +53,8 @@ export const executeOp: InternalOpExecutor =
           const input = getParamValue('x', node, tensorMap, context) as Tensor;
           const indices =
               getParamValue('indices', node, tensorMap, context) as Tensor1D;
-          return [tfOps.gather(
-              input, tfOps.cast(indices, 'int32'), axis, batchDims)];
+          return [ops.gather(
+              input, ops.cast(indices, 'int32'), axis, batchDims)];
         }
         case 'Reverse': {
           const dims =
@@ -66,20 +66,20 @@ export const executeOp: InternalOpExecutor =
             }
           }
           const input = getParamValue('x', node, tensorMap, context) as Tensor;
-          return [tfOps.reverse(input, axis)];
+          return [ops.reverse(input, axis)];
         }
         case 'ReverseV2': {
           const axis =
               getParamValue('axis', node, tensorMap, context) as number[];
           const input = getParamValue('x', node, tensorMap, context) as Tensor;
-          return [tfOps.reverse(input, axis)];
+          return [ops.reverse(input, axis)];
         }
         case 'Slice': {
           // tslint:disable-next-line:no-any
           const begin = getParamValue('begin', node, tensorMap, context) as any;
           // tslint:disable-next-line:no-any
           const size = getParamValue('size', node, tensorMap, context) as any;
-          return [tfOps.slice(
+          return [ops.slice(
               getParamValue('x', node, tensorMap, context) as Tensor, begin,
               size)];
         }
@@ -103,7 +103,7 @@ export const executeOp: InternalOpExecutor =
               number;
           const tensor = getParamValue('x', node, tensorMap, context) as Tensor;
 
-          return [tfOps.stridedSlice(
+          return [ops.stridedSlice(
               tensor, begin, end, strides, beginMask, endMask, ellipsisMask,
               newAxisMask, shrinkAxisMask)];
         }
@@ -116,17 +116,17 @@ export const executeOp: InternalOpExecutor =
             // Reshape the tensors to the first tensor's shape if they don't
             // match.
             const shape = tensors[0].shape;
-            const squeezedShape = tfOps.squeeze(tensors[0]).shape;
+            const squeezedShape = ops.squeeze(tensors[0]).shape;
             const mapped = tensors.map(tensor => {
               const sameShape = util.arraysEqual(tensor.shape, shape);
               if (!sameShape &&
                   !util.arraysEqual(
-                      tfOps.squeeze(tensor).shape, squeezedShape)) {
+                      ops.squeeze(tensor).shape, squeezedShape)) {
                 throw new Error('the input tensors shape does not match');
               }
-              return sameShape ? tensor : tfOps.reshape(tensor, shape);
+              return sameShape ? tensor : ops.reshape(tensor, shape);
             });
-            return [tfOps.stack(mapped, axis)];
+            return [ops.stack(mapped, axis)];
           });
         }
         case 'Unpack': {
@@ -134,12 +134,12 @@ export const executeOp: InternalOpExecutor =
               getParamValue('axis', node, tensorMap, context) as number;
           const tensor =
               getParamValue('tensor', node, tensorMap, context) as Tensor;
-          return tfOps.unstack(tensor, axis);
+          return ops.unstack(tensor, axis);
         }
         case 'Tile': {
           const reps =
               getParamValue('reps', node, tensorMap, context) as number[];
-          return [tfOps.tile(
+          return [ops.tile(
               getParamValue('x', node, tensorMap, context) as Tensor, reps)];
         }
         case 'Split':
@@ -152,7 +152,7 @@ export const executeOp: InternalOpExecutor =
               number[];
           const tensor = getParamValue('x', node, tensorMap, context) as Tensor;
 
-          return tfOps.split(tensor, numOrSizeSplits, axis);
+          return ops.split(tensor, numOrSizeSplits, axis);
         }
         case 'ScatterNd': {
           const indices =
@@ -161,13 +161,13 @@ export const executeOp: InternalOpExecutor =
               getParamValue('values', node, tensorMap, context) as Tensor;
           const shape =
               getParamValue('shape', node, tensorMap, context) as number[];
-          return [tfOps.scatterND(indices, values, shape)];
+          return [ops.scatterND(indices, values, shape)];
         }
         case 'GatherNd': {
           const x = getParamValue('x', node, tensorMap, context) as Tensor;
           const indices =
               getParamValue('indices', node, tensorMap, context) as Tensor;
-          return [tfOps.gatherND(x, indices)];
+          return [ops.gatherND(x, indices)];
         }
         case 'SparseToDense': {
           const indices =
@@ -180,11 +180,11 @@ export const executeOp: InternalOpExecutor =
               getParamValue('sparseValues', node, tensorMap, context) as Tensor;
           const defaultValue =
               getParamValue('defaultValue', node, tensorMap, context) as Scalar;
-          return [tfOps.sparseToDense(
+          return [ops.sparseToDense(
               indices, sparseValues, shape,
               sparseValues.dtype === defaultValue.dtype ?
                   defaultValue :
-                  tfOps.cast(defaultValue, sparseValues.dtype))];
+                  ops.cast(defaultValue, sparseValues.dtype))];
         }
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);

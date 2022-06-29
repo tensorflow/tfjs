@@ -21,6 +21,7 @@ package(default_visibility = ["//visibility:public"])
 TEST_SRCS = [
     "**/*_test.ts",
     "run_tests.ts",
+    "operations/executors/spy_ops.ts",
 ]
 
 # Used for test-snippets
