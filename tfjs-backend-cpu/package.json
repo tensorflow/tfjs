@@ -38,8 +38,8 @@
     "test-ci": "yarn test"
   },
   "dependencies": {
-    "@types/seedrandom": "2.4.27",
-    "seedrandom": "2.4.3"
+    "@types/seedrandom": "^2.4.28",
+    "seedrandom": "^3.0.5"
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core"

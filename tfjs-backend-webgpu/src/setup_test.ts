@@ -55,14 +55,6 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
-    startsWith: 'concat ',
-    excludes: [
-      'concat a large number of tensors',  // The number of storage buffers
-                                           // exceeds the maximum per-stage
-                                           // limit.
-    ]
-  },
-  {
     startsWith: 'conv2d ',
     excludes: [
       'gradient',  // gradient function not found.
@@ -291,7 +283,6 @@ const TEST_FILTERS: TestFilter[] = [
       'avgPool3dBackprop ',
       'bincount ',
       'broadcastArgs ',
-      'concat3d ',
       'conv2dTranspose ',
       'conv2DBackpropFilter ',
       'gradient with clones, input=2x2x1,d2=1,f=1,s=1,d=1,p=same',  // Conv2DBackpropFilter
