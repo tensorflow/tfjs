@@ -16,7 +16,7 @@
  */
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
-import {mapActivationToShaderProgram} from './activation_util';
+import {activationFnSnippet, applyBiasActivationSnippet} from './activation_util';
 import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkGroupSizeForMatMul} from './webgpu_util';
 
@@ -324,31 +324,8 @@ export class MatMulPackedProgram implements WebGPUProgram {
     } else {
       sampleB = `return B[batch * batchBSize + col * uniforms.dimInner + row];`;
     }
-    let activationSnippet = '', applyActivationSnippet = '';
-    if (this.activation) {
-      const activationOp = mapActivationToShaderProgram(this.activation, false);
-      if (this.hasPreluActivationWeights) {
-        activationSnippet =
-            `fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
-               let b = getPreluActivationWeightsByOutputCoords(outCoord);
-               ${activationOp}
-            }`;
-      } else {
-        activationSnippet = `
-              fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
-                ${activationOp}
-              }
-            `;
-      }
-
-      applyActivationSnippet = 'value = activation(value, outCoord);';
-    }
-
-    const addBiasSnippet =
-        this.addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
-
     const userCode = `
-      ${activationSnippet}
+      ${activationFnSnippet(this.activation, this.hasPreluActivationWeights)}
 
       fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
         ${
@@ -384,9 +361,8 @@ export class MatMulPackedProgram implements WebGPUProgram {
         {
         var value = valueIn;
         let batch = i32(globalId.z);
-        let outCoord = vec3<i32>(batch, row, col);
-        ${addBiasSnippet}
-        ${applyActivationSnippet}
+        let coords = vec3<i32>(batch, row, col);
+        ${applyBiasActivationSnippet(this.addBias, this.activation)}
         setOutputAtCoords(batch, row, col, value);
         }
       }
