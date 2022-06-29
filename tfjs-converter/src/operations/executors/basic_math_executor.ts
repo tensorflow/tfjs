@@ -27,153 +27,153 @@ import {getParamValue, getTensor} from './utils';
 
 export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext): Tensor[] => {
+     context: ExecutionContext, ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'Abs':
         case 'ComplexAbs':
-          return [tfOps.abs(
+          return [ops.abs(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Acos':
-          return [tfOps.acos(
+          return [ops.acos(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Acosh':
-          return [tfOps.acosh(
+          return [ops.acosh(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Asin':
-          return [tfOps.asin(
+          return [ops.asin(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Asinh':
-          return [tfOps.asinh(
+          return [ops.asinh(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Atan':
-          return [tfOps.atan(
+          return [ops.atan(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Atan2':
-          return [tfOps.atan2(
+          return [ops.atan2(
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('y', node, tensorMap, context) as Tensor)];
         case 'Atanh':
-          return [tfOps.atanh(
+          return [ops.atanh(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Ceil':
-          return [tfOps.ceil(
+          return [ops.ceil(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Complex':
-          return [tfOps.complex(
+          return [ops.complex(
               getParamValue('real', node, tensorMap, context) as Tensor,
               getParamValue('imag', node, tensorMap, context) as Tensor)];
         case 'Cos':
-          return [tfOps.cos(
+          return [ops.cos(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Cosh':
-          return [tfOps.cosh(
+          return [ops.cosh(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Elu':
-          return [tfOps.elu(
+          return [ops.elu(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Erf':
-          return [tfOps.erf(
+          return [ops.erf(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Exp':
-          return [tfOps.exp(
+          return [ops.exp(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Expm1': {
-          return [tfOps.expm1(
+          return [ops.expm1(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         }
         case 'Floor':
-          return [tfOps.floor(
+          return [ops.floor(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Log':
-          return [tfOps.log(
+          return [ops.log(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Log1p': {
-          return [tfOps.log1p(
+          return [ops.log1p(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         }
         case 'Imag':
-          return [tfOps.imag(
+          return [ops.imag(
               getParamValue('x', node, tensorMap, context) as Tensor)];
 
         case 'Neg':
-          return [tfOps.neg(
+          return [ops.neg(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Reciprocal': {
-          return [tfOps.reciprocal(
+          return [ops.reciprocal(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         }
         case 'Real':
-          return [tfOps.real(
+          return [ops.real(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Relu':
-          return [tfOps.relu(
+          return [ops.relu(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Round': {
-          return [tfOps.round(
+          return [ops.round(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         }
         case 'Selu':
-          return [tfOps.selu(
+          return [ops.selu(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Sigmoid':
-          return [tfOps.sigmoid(
+          return [ops.sigmoid(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Sin':
-          return [tfOps.sin(
+          return [ops.sin(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Sign': {
-          return [tfOps.sign(
+          return [ops.sign(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         }
         case 'Sinh': {
-          return [tfOps.sinh(
+          return [ops.sinh(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         }
         case 'Softplus': {
-          return [tfOps.softplus(
+          return [ops.softplus(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         }
         case 'Sqrt': {
-          return [tfOps.sqrt(
+          return [ops.sqrt(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         }
         case 'Square': {
-          return [tfOps.square(
+          return [ops.square(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         }
         case 'Tanh': {
-          return [tfOps.tanh(
+          return [ops.tanh(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         }
         case 'Tan':
-          return [tfOps.tan(
+          return [ops.tan(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'ClipByValue':
-          return [tfOps.clipByValue(
+          return [ops.clipByValue(
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('clipValueMin', node, tensorMap, context) as number,
               getParamValue('clipValueMax', node, tensorMap, context) as
                   number)];
         case 'Relu6':
-          return [tfOps.relu6(
+          return [ops.relu6(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         case 'Rsqrt':
-          return [tfOps.rsqrt(
+          return [ops.rsqrt(
               getTensor(node.inputNames[0], tensorMap, context))];
         case 'Prod':
-          return [tfOps.prod(
+          return [ops.prod(
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('axes', node, tensorMap, context) as number[])];
         case 'LeakyRelu':
-          return [tfOps.leakyRelu(
+          return [ops.leakyRelu(
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('alpha', node, tensorMap, context) as number)];
         case 'Prelu':
-          return [tfOps.prelu(
+          return [ops.prelu(
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('alpha', node, tensorMap, context) as Tensor)];
         case 'IsNan':
-          return [tfOps.isNaN(
+          return [ops.isNaN(
               getTensor(node.inputNames[0], tensorMap, context))];
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);

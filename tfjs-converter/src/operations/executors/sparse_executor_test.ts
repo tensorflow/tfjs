@@ -24,12 +24,17 @@ import {Node} from '../types';
 
 import {executeOp} from './sparse_executor';
 import {createTensorAttr, validateParam} from './test_helper';
+import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
 
 describe('sparse', () => {
   let node: Node;
   const context = new ExecutionContext({}, {}, {});
+  let spyOps: RecursiveSpy<typeof tfOps>;
+  let spyOpsAsTfOps: typeof tfOps;
 
   beforeEach(() => {
+    spyOps = spyOnAllFunctions(tfOps);
+    spyOpsAsTfOps = spyOps as unknown as typeof tfOps;
     node = {
       name: 'test',
       op: '',
@@ -45,7 +50,6 @@ describe('sparse', () => {
   describe('executeOp', () => {
     describe('SparseFillEmptyRows', () => {
       it('should call tfOps.sparse.sparseFillEmptyRows', async () => {
-        spyOn(tfOps.sparse, 'sparseFillEmptyRows').and.callThrough();
         node.op = 'SparseFillEmptyRows';
         node.inputParams = {
           indices: createTensorAttr(0),
@@ -62,9 +66,9 @@ describe('sparse', () => {
         const defaultValue = [tfOps.scalar(-1, 'int32')];
         const result = executeOp(
                            node, {indices, values, denseShape, defaultValue},
-                           context) as Tensor[];
+                           context, spyOpsAsTfOps) as Tensor[];
 
-        expect(tfOps.sparse.sparseFillEmptyRows)
+        expect(spyOps.sparse.sparseFillEmptyRows)
             .toHaveBeenCalledWith(
                 indices[0], values[0], denseShape[0], defaultValue[0]);
         test_util.expectArraysClose(
@@ -89,7 +93,6 @@ describe('sparse', () => {
     });
     describe('SparseReshape', () => {
       it('should call tfOps.sparse.sparseReshape', async () => {
-        spyOn(tfOps.sparse, 'sparseReshape').and.callThrough();
         node.op = 'SparseReshape';
         node.inputParams = {
           inputIndices: createTensorAttr(0),
@@ -103,10 +106,10 @@ describe('sparse', () => {
         const inputShape = [tfOps.tensor1d([2, 3, 6], 'int32')];
         const newShape = [tfOps.tensor1d([9, -1], 'int32')];
         const result =
-            executeOp(node, {inputIndices, inputShape, newShape}, context) as
-            Tensor[];
+            executeOp(node, {inputIndices, inputShape, newShape}, context,
+                      spyOpsAsTfOps) as Tensor[];
 
-        expect(tfOps.sparse.sparseReshape)
+        expect(spyOps.sparse.sparseReshape)
             .toHaveBeenCalledWith(inputIndices[0], inputShape[0], newShape[0]);
         test_util.expectArraysClose(
             await result[0].data(), [0, 0, 0, 1, 1, 2, 4, 2, 8, 1]);
@@ -126,7 +129,6 @@ describe('sparse', () => {
     });
     describe('SparseSegmentMean', () => {
       it('should call tfOps.sparse.sparseSegmentMean', async () => {
-        spyOn(tfOps.sparse, 'sparseSegmentMean').and.callThrough();
         node.op = 'SparseSegmentMean';
         node.inputParams = {
           data: createTensorAttr(0),
@@ -140,9 +142,10 @@ describe('sparse', () => {
         const indices = [tfOps.tensor1d([0, 1, 2], 'int32')];
         const segmentIds = [tfOps.tensor1d([0, 1, 1], 'int32')];
         const result =
-            executeOp(node, {data, indices, segmentIds}, context) as Tensor[];
+            executeOp(node, {data, indices, segmentIds}, context,
+                      spyOpsAsTfOps) as Tensor[];
 
-        expect(tfOps.sparse.sparseSegmentMean)
+        expect(spyOps.sparse.sparseSegmentMean)
             .toHaveBeenCalledWith(data[0], indices[0], segmentIds[0]);
         test_util.expectArraysClose(
             await result[0].data(), [1.0, 2.0, 3.0, 4.0, 2.5, 2.5, 2.5, 2.5]);
@@ -160,7 +163,6 @@ describe('sparse', () => {
     });
     describe('SparseSegmentSum', () => {
       it('should call tfOps.sparse.sparseSegmentSum', async () => {
-        spyOn(tfOps.sparse, 'sparseSegmentSum').and.callThrough();
         node.op = 'SparseSegmentSum';
         node.inputParams = {
           data: createTensorAttr(0),
@@ -174,9 +176,10 @@ describe('sparse', () => {
         const indices = [tfOps.tensor1d([0, 1], 'int32')];
         const segmentIds = [tfOps.tensor1d([0, 0], 'int32')];
         const result =
-            executeOp(node, {data, indices, segmentIds}, context) as Tensor[];
+            executeOp(node, {data, indices, segmentIds}, context,
+                      spyOpsAsTfOps) as Tensor[];
 
-        expect(tfOps.sparse.sparseSegmentSum)
+        expect(spyOps.sparse.sparseSegmentSum)
             .toHaveBeenCalledWith(data[0], indices[0], segmentIds[0]);
         test_util.expectArraysClose(await result[0].data(), [0, 0, 0, 0]);
       });
