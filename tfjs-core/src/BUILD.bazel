@@ -73,8 +73,14 @@ ts_library(
     ),
     module_name = "@tensorflow/tfjs-core/dist",
     deps = [
-        "@npm//@types",
+        "@npm//@types/jasmine",
+        "@npm//@types/long",
+        "@npm//@types/node",
+        "@npm//@types/seedrandom",
         "@npm//@webgpu/types",
+        "@npm//jasmine",
+        "@npm//long",
+        "@npm//node-fetch",
         "@npm//seedrandom",
     ],
 )
