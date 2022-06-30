@@ -755,8 +755,6 @@ describe('Model', () => {
     describe('dispose', () => {
       it('should dispose the weights', async () => {
         const numOfTensors = tfc.memory().numTensors;
-        model = new GraphModel(MODEL_URL);
-
         await model.load();
         model.dispose();
 
