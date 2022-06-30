@@ -20,6 +20,7 @@ import {Tensor4D, test_util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import {expectNumbersClose} from '@tensorflow/tfjs-core/dist/test_util';
+// import assert from 'assert';
 
 const {expectArraysClose} = test_util;
 
@@ -190,7 +191,7 @@ describeWithFlags('Dense Conv2D WebGL Implementation', ALL_ENVS, () => {
         ]));
   });
 
-  it('x=[1,4,4,4] f=[3,3,4,4] s=[1, 1] d=2 p=same', async () => {
+  it('x=[1,4,4,4] f=[3,3,4,4] s=[1, 1] d=1 p=same', async () => {
     const inputDepth = 4;
     const xSize = 4;
     const inputShape: [number, number, number, number] =
@@ -277,38 +278,182 @@ describeWithFlags('Dense Conv2D WebGL Implementation', ALL_ENVS, () => {
   });
 });
 
+async function benchmarkConv2d(
+    type: string, heightOrWidth: number, filterSize: number,
+    inputChannel: number, outputChannel: number, dilation = 1, strides = 1) {
+  let sum = 0;
+  const round = 100;
 
-describeWithFlags('Dense Conv2D WebGL Implementation', ALL_ENVS, () => {
-  it('benchmark dense', async () => {
-    let sum = 0;
-    const round = 100;
-    const heightOrWidth = 196;
-    const filterSize = 3;
-    const inputChannel = 256;
-    const outputChannel = 32;
+  // Ramp up.
+  let x =
+      tf.randomUniform(
+          [1, heightOrWidth, heightOrWidth, inputChannel], 0, 100) as Tensor4D;
+  let w = tf.randomUniform(
+              [filterSize, filterSize, inputChannel, outputChannel], 0, 100) as
+      Tensor4D;
+  let res = tf.conv2d(x, w, strides, 'same', 'NHWC', dilation);
+  tf.dispose(x);
+  tf.dispose(w);
+  tf.dispose(res);
 
-    // Ramp up.
-    let x = tf.randomUniform(
-                [1, heightOrWidth, heightOrWidth, inputChannel], 0, 100) as
+  for (let i = 0; i < round; i++) {
+    const x = tf.randomUniform(
+                  [1, heightOrWidth, heightOrWidth, inputChannel], 0, 100) as
         Tensor4D;
-    let w = tf.randomUniform(
-                [filterSize, filterSize, inputChannel, outputChannel], 0,
-                100) as Tensor4D;
-    tf.conv2d(x, w, 1, 'same');
+    const w = tf.randomUniform(
+                  [filterSize, filterSize, inputChannel, outputChannel], 0,
+                  100) as Tensor4D;
 
-    for (let i = 0; i < round; i++) {
-      const profile = await tf.profile(() => {
-        const x = tf.randomUniform(
-                      [1, heightOrWidth, heightOrWidth, inputChannel], 0,
-                      100) as Tensor4D;
-        const w = tf.randomUniform(
-                      [filterSize, filterSize, inputChannel, outputChannel], 0,
-                      100) as Tensor4D;
-        return tf.conv2d(x, w, 1, 'same');
-      });
-      sum += profile.kernels[0].kernelTimeMs as number;
+    // Upload and pack the inputs.
+    let res = tf.conv2d(x, w, strides, 'same', 'NHWC', dilation);
+    tf.dispose(res);
+
+    const profile = await tf.profile(() => {
+      res = tf.conv2d(x, w, strides, 'same', 'NHWC', dilation);
+    });
+
+    expect(profile.kernels[0].name).toBe('Conv2D');
+    sum += profile.kernels[0].kernelTimeMs as number;
+
+    tf.dispose(x);
+    tf.dispose(w);
+    tf.dispose(res);
+  }
+  console.log(`Benchmark ${type} result for ${heightOrWidth}-${filterSize}-${
+      inputChannel}-${outputChannel}: ${sum / round}ms`);
+}
+
+describeWithFlags('Benchmark general conv2d with dense', ALL_ENVS, () => {
+  const defaultHeightOrWidth = 196;
+  const defaultFilterSize = 3;
+  const defaultInputChannel = 32;
+  const defaultOutputChannel = 32;
+
+  it('benchmark input channel', async () => {
+    for (let inputChannel = 4; inputChannel <= 256; inputChannel *= 2) {
+      await benchmarkConv2d(
+          'inputChannel', defaultHeightOrWidth, defaultFilterSize, inputChannel,
+          defaultOutputChannel);
     }
-    console.log(`Benchmark result for ${heightOrWidth}-${filterSize}-${
-        inputChannel}-${outputChannel}: ${sum / round}ms`);
+  }, 100000000);
+
+  it('benchmark output channel', async () => {
+    for (let outputChannel = 4; outputChannel <= 256; outputChannel *= 2) {
+      await benchmarkConv2d(
+          'outputChannel', defaultHeightOrWidth, defaultFilterSize,
+          defaultInputChannel, outputChannel);
+    }
+  }, 100000000);
+
+  it('benchmark image size', async () => {
+    for (let imageSize = 16; imageSize <= 1024; imageSize *= 4) {
+      await benchmarkConv2d(
+          'imageSize', imageSize, defaultFilterSize, defaultInputChannel,
+          defaultOutputChannel);
+    }
+  }, 100000000);
+
+  it('benchmark filter size', async () => {
+    for (let filterSize = 1; filterSize <= 9; filterSize += 1) {
+      await benchmarkConv2d(
+          'filterSize', defaultHeightOrWidth, filterSize, defaultInputChannel,
+          defaultOutputChannel);
+    }
   }, 100000000);
 });
+
+describeWithFlags('Benchmark pointwise conv2d with dense', ALL_ENVS, () => {
+  const defaultHeightOrWidth = 196;
+  const defaultFilterSize = 1;
+  const defaultInputChannel = 32;
+  const defaultOutputChannel = 32;
+
+  it('benchmark input channel', async () => {
+    for (let inputChannel = 4; inputChannel <= 256; inputChannel *= 2) {
+      await benchmarkConv2d(
+          'inputChannel', defaultHeightOrWidth, defaultFilterSize, inputChannel,
+          defaultOutputChannel);
+    }
+  }, 100000000);
+
+  it('benchmark output channel', async () => {
+    for (let outputChannel = 4; outputChannel <= 256; outputChannel *= 2) {
+      await benchmarkConv2d(
+          'outputChannel', defaultHeightOrWidth, defaultFilterSize,
+          defaultInputChannel, outputChannel);
+    }
+  }, 100000000);
+
+  it('benchmark image size', async () => {
+    for (let imageSize = 16; imageSize <= 1024; imageSize *= 4) {
+      await benchmarkConv2d(
+          'imageSize', imageSize, defaultFilterSize, defaultInputChannel,
+          defaultOutputChannel);
+    }
+  }, 100000000);
+});
+
+
+describeWithFlags(
+    'Benchmark pointwise conv2d with dense and dilations', ALL_ENVS, () => {
+      const defaultHeightOrWidth = 196;
+      const defaultFilterSize = 1;
+      const defaultInputChannel = 32;
+      const defaultOutputChannel = 32;
+
+      it('benchmark input channel', async () => {
+        for (let inputChannel = 4; inputChannel <= 256; inputChannel *= 2) {
+          await benchmarkConv2d(
+              'inputChannel', defaultHeightOrWidth, defaultFilterSize,
+              inputChannel, defaultOutputChannel, 2);
+        }
+      }, 100000000);
+
+      it('benchmark output channel', async () => {
+        for (let outputChannel = 4; outputChannel <= 256; outputChannel *= 2) {
+          await benchmarkConv2d(
+              'outputChannel', defaultHeightOrWidth, defaultFilterSize,
+              defaultInputChannel, outputChannel, 2);
+        }
+      }, 100000000);
+
+      it('benchmark image size', async () => {
+        for (let imageSize = 16; imageSize <= 1024; imageSize *= 4) {
+          await benchmarkConv2d(
+              'imageSize', imageSize, defaultFilterSize, defaultInputChannel,
+              defaultOutputChannel, 2);
+        }
+      }, 100000000);
+    });
+
+describeWithFlags(
+    'Benchmark pointwise conv2d with dense and strides', ALL_ENVS, () => {
+      const defaultHeightOrWidth = 196;
+      const defaultFilterSize = 1;
+      const defaultInputChannel = 32;
+      const defaultOutputChannel = 32;
+
+      it('benchmark input channel', async () => {
+        for (let inputChannel = 4; inputChannel <= 256; inputChannel *= 2) {
+          await benchmarkConv2d(
+              'inputChannel', defaultHeightOrWidth, defaultFilterSize,
+              inputChannel, defaultOutputChannel, 1, 2);
+        }
+      }, 100000000);
+
+      it('benchmark output channel', async () => {
+        for (let outputChannel = 4; outputChannel <= 256; outputChannel *= 2) {
+          await benchmarkConv2d(
+              'outputChannel', defaultHeightOrWidth, defaultFilterSize,
+              defaultInputChannel, outputChannel, 1, 2);
+        }
+      }, 100000000);
+
+      it('benchmark image size', async () => {
+        for (let imageSize = 16; imageSize <= 1024; imageSize *= 4) {
+          await benchmarkConv2d(
+              'imageSize', imageSize, defaultFilterSize, defaultInputChannel,
+              defaultOutputChannel, 1, 2);
+        }
+      }, 100000000);
+    });

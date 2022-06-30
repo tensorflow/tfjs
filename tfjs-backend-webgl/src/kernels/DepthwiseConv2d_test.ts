@@ -19,6 +19,7 @@ import * as tf from '@tensorflow/tfjs-core';
 import {Tensor4D, test_util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+// import assert from 'assert';
 
 const {expectArraysClose, expectNumbersClose} = test_util;
 
@@ -395,11 +396,18 @@ describeWithFlags('Benchmark dense depthwise', ALL_ENVS, () => {
       const w = tf.randomUniform(
                     [filterSize, filterSize, inputChannel, outputChannel], 0,
                     100) as Tensor4D;
-      let res;
+
+      // Upload and pack the inputs.
+      let res = tf.depthwiseConv2d(x, w, strides, 'same', 'NHWC', dilation);
+      tf.dispose(res);
+
       const profile = await tf.profile(() => {
-        res = tf.depthwiseConv2d(x, w, strides, 'same');
+        res = tf.depthwiseConv2d(x, w, strides, 'same', 'NHWC', dilation);
       });
+
+      expect(profile.kernels[0].name).toBe('DepthwiseConv2dNative');
       sum += profile.kernels[0].kernelTimeMs as number;
+
       tf.dispose(x);
       tf.dispose(w);
       tf.dispose(res);
@@ -422,7 +430,7 @@ describeWithFlags('Benchmark dense depthwise', ALL_ENVS, () => {
   }, 100000000);
 
   it('benchmark output channel', async () => {
-    for (let outputChannel = 256; outputChannel <= 256; outputChannel *= 2) {
+    for (let outputChannel = 4; outputChannel <= 256; outputChannel *= 2) {
       await benchmarkDepthwise(
           'outputChannel', defaultHeightOrWidth, defaultFilterSize,
           defaultInputChannel, outputChannel);
