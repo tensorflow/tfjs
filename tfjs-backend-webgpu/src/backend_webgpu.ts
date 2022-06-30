@@ -237,8 +237,8 @@ export class WebGPUBackend extends KernelBackend {
             textureInfo.format, textureInfo.usage);
       }
       textureInfo.texture = null;
-    } else if ('buffer' in tensorData.resourceInfo) {
-      const bufferInfo = tensorData.resourceInfo;
+    } else {
+      const bufferInfo = tensorData.resourceInfo as BufferInfo;
       this.bufferManager.releaseBuffer(
           bufferInfo.buffer, bufferInfo.size, bufferInfo.usage);
       bufferInfo.buffer = null;
@@ -289,16 +289,7 @@ export class WebGPUBackend extends KernelBackend {
           `Cannot write to a complex64 dtype. ` +
           `Please use tf.complex(real, imag).`);
     }
-    const size =
-        util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
-
-    this.tensorMap.set(dataId, {
-      dtype,
-      shape,
-      values,
-      resourceInfo: {size, usage: this.defaultGpuBufferUsage()},
-      refCount
-    });
+    this.tensorMap.set(dataId, {dtype, shape, values, refCount});
   }
 
   submitQueue() {
