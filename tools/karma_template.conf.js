@@ -77,8 +77,11 @@ const CUSTOM_LAUNCHERS = {
   chrome_webgpu: {
     base: 'ChromeCanary',
     flags: [
+      '--flag-switches-begin',
       '--enable-unsafe-webgpu',
-      '--disable-dawn-features=disallow_unsafe_apis'
+      '--enable-features=Vulkan',
+      '--disable-dawn-features=disallow_unsafe_apis',
+      '--flag-switches-end',
     ]
   },
   chrome_debugging:
