@@ -74,8 +74,5 @@ ENV.registerFlag('IS_TEST', () => false);
 /** Whether to check computation result for errors. */
 ENV.registerFlag('CHECK_COMPUTATION_FOR_ERRORS', () => true);
 
-/** Whether the backend needs to wrap input to imageBitmap. */
-ENV.registerFlag('WRAP_TO_IMAGEBITMAP', () => false);
-
 /** Experimental flag, whether enter compile only phase. */
 ENV.registerFlag('ENGINE_COMPILE_ONLY', () => false);
