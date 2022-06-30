@@ -20,7 +20,6 @@ import {Tensor4D, test_util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 import {expectNumbersClose} from '@tensorflow/tfjs-core/dist/test_util';
-// import assert from 'assert';
 
 const {expectArraysClose} = test_util;
 
@@ -322,77 +321,6 @@ async function benchmarkConv2d(
   console.log(`Benchmark ${type} result for ${heightOrWidth}-${filterSize}-${
       inputChannel}-${outputChannel}: ${sum / round}ms`);
 }
-
-describeWithFlags('Benchmark general conv2d with dense', ALL_ENVS, () => {
-  const defaultHeightOrWidth = 196;
-  const defaultFilterSize = 3;
-  const defaultInputChannel = 32;
-  const defaultOutputChannel = 32;
-
-  it('benchmark input channel', async () => {
-    for (let inputChannel = 4; inputChannel <= 256; inputChannel *= 2) {
-      await benchmarkConv2d(
-          'inputChannel', defaultHeightOrWidth, defaultFilterSize, inputChannel,
-          defaultOutputChannel);
-    }
-  }, 100000000);
-
-  it('benchmark output channel', async () => {
-    for (let outputChannel = 4; outputChannel <= 256; outputChannel *= 2) {
-      await benchmarkConv2d(
-          'outputChannel', defaultHeightOrWidth, defaultFilterSize,
-          defaultInputChannel, outputChannel);
-    }
-  }, 100000000);
-
-  it('benchmark image size', async () => {
-    for (let imageSize = 16; imageSize <= 1024; imageSize *= 4) {
-      await benchmarkConv2d(
-          'imageSize', imageSize, defaultFilterSize, defaultInputChannel,
-          defaultOutputChannel);
-    }
-  }, 100000000);
-
-  it('benchmark filter size', async () => {
-    for (let filterSize = 1; filterSize <= 9; filterSize += 1) {
-      await benchmarkConv2d(
-          'filterSize', defaultHeightOrWidth, filterSize, defaultInputChannel,
-          defaultOutputChannel);
-    }
-  }, 100000000);
-});
-
-describeWithFlags('Benchmark pointwise conv2d with dense', ALL_ENVS, () => {
-  const defaultHeightOrWidth = 196;
-  const defaultFilterSize = 1;
-  const defaultInputChannel = 32;
-  const defaultOutputChannel = 32;
-
-  it('benchmark input channel', async () => {
-    for (let inputChannel = 4; inputChannel <= 256; inputChannel *= 2) {
-      await benchmarkConv2d(
-          'inputChannel', defaultHeightOrWidth, defaultFilterSize, inputChannel,
-          defaultOutputChannel);
-    }
-  }, 100000000);
-
-  it('benchmark output channel', async () => {
-    for (let outputChannel = 4; outputChannel <= 256; outputChannel *= 2) {
-      await benchmarkConv2d(
-          'outputChannel', defaultHeightOrWidth, defaultFilterSize,
-          defaultInputChannel, outputChannel);
-    }
-  }, 100000000);
-
-  it('benchmark image size', async () => {
-    for (let imageSize = 16; imageSize <= 1024; imageSize *= 4) {
-      await benchmarkConv2d(
-          'imageSize', imageSize, defaultFilterSize, defaultInputChannel,
-          defaultOutputChannel);
-    }
-  }, 100000000);
-});
-
 
 describeWithFlags(
     'Benchmark pointwise conv2d with dense and dilations', ALL_ENVS, () => {

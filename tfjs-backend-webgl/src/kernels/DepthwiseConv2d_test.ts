@@ -16,10 +16,9 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {Tensor4D, test_util} from '@tensorflow/tfjs-core';
+import {test_util} from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
-// import assert from 'assert';
 
 const {expectArraysClose, expectNumbersClose} = test_util;
 
@@ -368,88 +367,3 @@ describeWithFlags(
         expectNumbersClose(sum, cpuResultSum, cpuResultSum * 0.0000001);
       });
     });
-
-
-describeWithFlags('Benchmark dense depthwise', ALL_ENVS, () => {
-  async function benchmarkDepthwise(
-      type: string, heightOrWidth: number, filterSize: number,
-      inputChannel: number, outputChannel: number, strides = 1, dilation = 1) {
-    let sum = 0;
-    const round = 100;
-
-    // Ramp up.
-    let x = tf.randomUniform(
-                [1, heightOrWidth, heightOrWidth, inputChannel], 0, 100) as
-        Tensor4D;
-    let w = tf.randomUniform(
-                [filterSize, filterSize, inputChannel, outputChannel], 0,
-                100) as Tensor4D;
-    let res = tf.depthwiseConv2d(x, w, strides, 'same');
-    tf.dispose(x);
-    tf.dispose(w);
-    tf.dispose(res);
-
-    for (let i = 0; i < round; i++) {
-      const x = tf.randomUniform(
-                    [1, heightOrWidth, heightOrWidth, inputChannel], 0, 100) as
-          Tensor4D;
-      const w = tf.randomUniform(
-                    [filterSize, filterSize, inputChannel, outputChannel], 0,
-                    100) as Tensor4D;
-
-      // Upload and pack the inputs.
-      let res = tf.depthwiseConv2d(x, w, strides, 'same', 'NHWC', dilation);
-      tf.dispose(res);
-
-      const profile = await tf.profile(() => {
-        res = tf.depthwiseConv2d(x, w, strides, 'same', 'NHWC', dilation);
-      });
-
-      expect(profile.kernels[0].name).toBe('DepthwiseConv2dNative');
-      sum += profile.kernels[0].kernelTimeMs as number;
-
-      tf.dispose(x);
-      tf.dispose(w);
-      tf.dispose(res);
-    }
-    console.log(`Benchmark ${type} result for ${heightOrWidth}-${filterSize}-${
-        inputChannel}-${outputChannel}: ${sum / round}ms`);
-  }
-
-  const defaultHeightOrWidth = 196;
-  const defaultFilterSize = 3;
-  const defaultInputChannel = 32;
-  const defaultOutputChannel = 32;
-
-  it('benchmark input channel', async () => {
-    for (let inputChannel = 4; inputChannel <= 256; inputChannel *= 2) {
-      await benchmarkDepthwise(
-          'inputChannel', defaultHeightOrWidth, defaultFilterSize, inputChannel,
-          defaultOutputChannel);
-    }
-  }, 100000000);
-
-  it('benchmark output channel', async () => {
-    for (let outputChannel = 4; outputChannel <= 256; outputChannel *= 2) {
-      await benchmarkDepthwise(
-          'outputChannel', defaultHeightOrWidth, defaultFilterSize,
-          defaultInputChannel, outputChannel);
-    }
-  }, 100000000);
-
-  it('benchmark image size', async () => {
-    for (let imageSize = 16; imageSize <= 1024; imageSize *= 4) {
-      await benchmarkDepthwise(
-          'imageSize', imageSize, defaultFilterSize, defaultInputChannel,
-          defaultOutputChannel);
-    }
-  }, 100000000);
-
-  it('benchmark filter size', async () => {
-    for (let filterSize = 1; filterSize <= 9; filterSize += 1) {
-      await benchmarkDepthwise(
-          'filterSize', defaultHeightOrWidth, filterSize, defaultInputChannel,
-          defaultOutputChannel);
-    }
-  }, 100000000);
-});
