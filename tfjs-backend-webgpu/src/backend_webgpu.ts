@@ -33,7 +33,7 @@ export interface WebGPUMemoryInfo extends backend_util.MemoryInfo {
 export type BufferInfo = {
   size: number,
   usage: GPUBufferUsageFlags,
-  buffer?: GPUBuffer
+  buffer: GPUBuffer
 };
 
 export type TextureInfo = {
@@ -41,7 +41,7 @@ export type TextureInfo = {
   height: number,
   format: GPUTextureFormat,
   usage: GPUTextureUsageFlags,
-  texture?: GPUTexture|GPUExternalTexture
+  texture: GPUTexture|GPUExternalTexture
 };
 
 type TensorData = {
@@ -244,7 +244,7 @@ export class WebGPUBackend extends KernelBackend {
       }
       textureInfo.texture = null;
     } else {
-      const bufferInfo = tensorData.resourceInfo as BufferInfo;
+      const bufferInfo = tensorData.resourceInfo;
       this.bufferManager.releaseBuffer(
           bufferInfo.buffer, bufferInfo.size, bufferInfo.usage);
       bufferInfo.buffer = null;
@@ -422,9 +422,7 @@ export class WebGPUBackend extends KernelBackend {
           realValues as Float32Array, imagValues as Float32Array);
     } else {
       const bufferInfo = tensorData.resourceInfo as BufferInfo;
-      const data = tensorData.values != null ?
-          tensorData.values :
-          await this.getBufferData(bufferInfo.buffer, bufferInfo.size);
+      const data = await this.getBufferData(bufferInfo.buffer, bufferInfo.size);
       vals = webgpu_util.ArrayBufferToTypedArray(
           data as ArrayBuffer, tensorData.dtype);
     }
@@ -452,10 +450,8 @@ export class WebGPUBackend extends KernelBackend {
       }
     }
 
-    const size =
-        util.sizeFromShape(shape) * webgpu_util.GPUBytesPerElement(dtype);
-    const buffer =
-        this.bufferManager.acquireBuffer(size, this.defaultGpuBufferUsage());
+    const size = (resourceInfo as BufferInfo).size;
+    const buffer = this.bufferManager.acquireBuffer(size, resourceInfo.usage);
     this.ensureCommandEncoderReady();
     this.ensureComputePassEnded();
     this.currentCommandEncoder.copyBufferToBuffer(
@@ -561,7 +557,7 @@ export class WebGPUBackend extends KernelBackend {
         return info.texture.createView();
       }
     }
-    const bufferInfo = tensorData.resourceInfo as BufferInfo;
+    const bufferInfo = tensorData.resourceInfo;
     return {offset: 0, size: bufferInfo.size, buffer: bufferInfo.buffer};
   }
 
