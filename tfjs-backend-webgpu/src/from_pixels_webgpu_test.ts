@@ -34,7 +34,7 @@ describeWebGPU('fromPixels', () => {
        const oldImportExternalTexture =
            tf.env().getBool('WEBGPU_IMPORT_EXTERNAL_TEXTURE');
        const backend = tf.backend() as WebGPUBackend;
-       const textureManager = backend.getTextureManager();
+       const textureManager = backend.textureManager;
        textureManager.dispose();
 
        const video = document.createElement('video');
@@ -92,7 +92,7 @@ describeWebGPU('fromPixels', () => {
 
   it('should reuse textures when fromPixels have same input size', async () => {
     const backend = tf.backend() as WebGPUBackend;
-    const textureManager = backend.getTextureManager();
+    const textureManager = backend.textureManager;
     textureManager.dispose();
 
     {

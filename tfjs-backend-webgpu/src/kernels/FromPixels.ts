@@ -120,8 +120,7 @@ export function fromPixels(args: {
     ];
     const input = backend.makeTensorInfo([height, width], 'int32');
     const info = backend.tensorMap.get(input.dataId);
-    info.textureInfo = textureInfo;
-    info.bufferInfo = null;
+    info.resourceInfo = textureInfo;
 
     const result =
         backend.runWebGPUProgram(program, [input], 'int32', uniformData);
