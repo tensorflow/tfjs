@@ -23,7 +23,7 @@ import {ALL_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_ut
 async function benchmarkConv2d(
     opName: string, parameter: string, heightOrWidth: number,
     filterSize: number, inputChannel: number, outputChannel: number,
-    dilations = 1, strides = 1) {
+    strides = 1, dilations = 1) {
   let sum = 0;
   const round = 100;
   const opFunc = opName === 'depthwiseConv2d' ? tf.depthwiseConv2d : tf.conv2d;
@@ -69,7 +69,7 @@ async function benchmarkConv2d(
   // Log the benchmark result.
   console.log(
       `Time (ms) for ${opName}-${parameter} with ${heightOrWidth}-${
-          filterSize}-${inputChannel}-${outputChannel}, ${dilations}-${
+          filterSize}-${inputChannel}-${outputChannel}, Di${dilations}-St${
           strides}: `
           .padEnd(70) +
       `${sum / round}`);
@@ -177,7 +177,7 @@ describeWithFlags('Benchmark dense', ALL_ENVS, () => {
     it('benchmark dilations', async () => {
       for (let dilations = 1; dilations <= 4; dilations += 1) {
         await benchmarkConv2d(
-            'pointwiseConv2d', 'strides', defaultHeightOrWidth,
+            'pointwiseConv2d', 'dilations', defaultHeightOrWidth,
             defaultFilterSize, defaultInputChannel, defaultOutputChannel,
             defaultStrides, dilations);
       }
