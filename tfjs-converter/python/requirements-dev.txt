@@ -1,4 +1,3 @@
 -r requirements.txt
 PyInquirer==1.0.3
-pylint==1.9.4; python_version < '3.0'
 pylint==2.5.0; python_version > '3.0'

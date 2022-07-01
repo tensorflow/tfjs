@@ -231,7 +231,7 @@ describe('LazyIterator', () => {
     expect(result).toEqual([1, 3, 5, 7, 9]);
   });
 
-  it('can selectively propagate upstream errors', async done => {
+  it('can selectively propagate upstream errors', async () => {
     const readIterator = new TestIntegerIterator().map(x => {
       if (x % 2 === 0) {
         throw new Error(`Oh no, an even number: ${x}`);
@@ -250,10 +250,9 @@ describe('LazyIterator', () => {
       // unrelated tests to fail (See
       // https://github.com/tensorflow/tfjs/issues/1330.
       await errorHandlingIterator.toArray();
-      done.fail();
+      fail();
     } catch (e) {
       expect(e.message).toEqual('Oh no, an even number: 2');
-      done();
     }
   });
 
@@ -420,7 +419,7 @@ describe('LazyIterator', () => {
     }
   });
 
-  it('zip requires streams of the same length by default', async done => {
+  it('zip requires streams of the same length by default', async () => {
     try {
       const a = new TestIntegerIterator(10);
       const b = new TestIntegerIterator(3);
@@ -431,13 +430,12 @@ describe('LazyIterator', () => {
       // unrelated tests to fail (See
       // https://github.com/tensorflow/tfjs/issues/1330.
       await readStream.toArray();
-      done.fail();
+      fail();
     } catch (error) {
       expect(error.message)
           .toBe(
               'Zipped streams should have the same length. ' +
               'Mismatched at element 2.');
-      done();
     }
   });
 
