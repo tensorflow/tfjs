@@ -121,14 +121,14 @@ export class WebGPUBackend extends KernelBackend {
   private downloadWaitMs = 0;
   private dummyCanvas: HTMLCanvasElement;
   private dummyContext: GPUCanvasContext;
-  private tensorDataDisposalQueue: DataId[] = [];
+  private tensorDataPendingDisposal: DataId[] = [];
   private static nextDataId = 0;
   private pipelineCache: {[key: string]: GPUComputePipeline};
   private programTimersStack: TimerNode[];
   private querySet: GPUQuerySet;
-  private stagingDisposalQueue: BufferInfo[] = [];
+  private stagingPendingDisposal: BufferInfo[] = [];
   private supportTimeQuery: boolean;
-  private uniformDisposalQueue: BufferInfo[] = [];
+  private uniformPendingDisposal: BufferInfo[] = [];
   private uploadWaitMs = 0;
 
   private nextDataId(): number {
@@ -191,28 +191,34 @@ export class WebGPUBackend extends KernelBackend {
    * @oaram force Optional, remove the data regardless of refCount
    */
   disposeData(dataId: DataId, force = false): boolean {
-    if (this.tensorMap.has(dataId)) {
-      const tensorData = this.tensorMap.get(dataId);
-      this.decRef(dataId);
-      if (!force && tensorData.refCount > 0) {
-        return false;
-      }
-
-      // complex is never in commandQueueOwnedIds
-      if (this.commandQueueOwnedIds.has(dataId)) {
-        this.tensorDataDisposalQueue.push(dataId);
-        return false;
-      }
-
-      const {complexTensorInfos} = this.tensorMap.get(dataId);
-      if (complexTensorInfos != null) {
-        this.disposeData(complexTensorInfos.real.dataId, true);
-        this.disposeData(complexTensorInfos.imag.dataId, true);
-      }
-
-      this.releaseResource(dataId);
-      this.tensorMap.delete(dataId);
+    if (this.tensorDataPendingDisposal.indexOf(dataId) >= 0) {
+      return false;
     }
+    if (!this.tensorMap.has(dataId)) {
+      return true;
+    }
+
+    const tensorData = this.tensorMap.get(dataId);
+    this.decRef(dataId);
+    if (!force && tensorData.refCount > 0) {
+      return false;
+    }
+
+    // complex is never in commandQueueOwnedIds
+    if (this.commandQueueOwnedIds.has(dataId)) {
+      this.tensorDataPendingDisposal.push(dataId);
+      return false;
+    }
+
+    const {complexTensorInfos} = this.tensorMap.get(dataId);
+    if (complexTensorInfos != null) {
+      this.disposeData(complexTensorInfos.real.dataId, force);
+      this.disposeData(complexTensorInfos.imag.dataId, force);
+    }
+
+    this.releaseResource(dataId);
+    this.tensorMap.delete(dataId);
+
     return true;
   }
 
@@ -300,18 +306,18 @@ export class WebGPUBackend extends KernelBackend {
 
     this.commandQueueOwnedIds = new WeakSet<DataId>();
 
-    this.tensorDataDisposalQueue.forEach(d => {
+    this.tensorDataPendingDisposal.forEach(d => {
       this.releaseResource(d);
       this.tensorMap.delete(d);
     });
-    this.uniformDisposalQueue.forEach(
+    this.uniformPendingDisposal.forEach(
         d => this.bufferManager.releaseBuffer(d.buffer, d.size, d.usage));
-    this.stagingDisposalQueue.forEach(
+    this.stagingPendingDisposal.forEach(
         d => this.bufferManager.releaseUploadBuffer(d.buffer, d.size, d.usage));
 
-    this.tensorDataDisposalQueue = [];
-    this.uniformDisposalQueue = [];
-    this.stagingDisposalQueue = [];
+    this.tensorDataPendingDisposal = [];
+    this.uniformPendingDisposal = [];
+    this.stagingPendingDisposal = [];
   }
 
   ensureCommandEncoderReady() {
@@ -601,7 +607,7 @@ export class WebGPUBackend extends KernelBackend {
         usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
         buffer: stagingBuffer
       };
-      this.stagingDisposalQueue.push(stagingInfo);
+      this.stagingPendingDisposal.push(stagingInfo);
       // TODO: WebGPU doesn't support read data synchronously from GPU to CPU.
       // So it will report error when switching backend from WebGPU to others.
       // There are two situations: 1) swithcing the backend after running a
@@ -674,7 +680,7 @@ export class WebGPUBackend extends KernelBackend {
       usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.UNIFORM,
       buffer: uniformBuffer
     };
-    this.uniformDisposalQueue.push(uniformInfo);
+    this.uniformPendingDisposal.push(uniformInfo);
 
     return {offset: 0, size: currentOffset, buffer: uniformBuffer};
   }
@@ -833,7 +839,7 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   numDataIds() {
-    return this.tensorMap.numDataIds() - this.tensorDataDisposalQueue.length;
+    return this.tensorMap.numDataIds() - this.tensorDataPendingDisposal.length;
   }
 
   dispose() {
