@@ -17,7 +17,7 @@
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import {activationFnSnippet, applyBiasActivationSnippet} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet} from './activation_util';
 import {getMainHeaderAndGlobalIndexString, getMainHeaderString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
@@ -274,7 +274,7 @@ export class BiasActivationProgram implements WebGPUProgram {
       if (index < uniforms.size) {
         let outCoord = getCoordsFromIndex(index);
         var value = getXByOutputIndex(index);
-        ${applyBiasActivationSnippet(this.addBias, this.activation)}
+        ${biasActivationSnippet(this.addBias, this.activation)}
         setOutputAtIndex(index, value);
       }
     }

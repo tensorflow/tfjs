@@ -20,8 +20,8 @@ import {backend_util} from '@tensorflow/tfjs-core';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 import {getUnaryOpString, UnaryOpType} from './unary_op_util';
 
-export const typeSnippet = (innerElementSize: number) => {
-  switch (innerElementSize) {
+export const typeSnippet = (component: number) => {
+  switch (component) {
     case 1:
       return 'f32';
     case 2:
@@ -31,7 +31,7 @@ export const typeSnippet = (innerElementSize: number) => {
     case 4:
       return 'vec4<f32>';
     default:
-      throw new Error(`innerElementSize ${innerElementSize} is not supported.`);
+      throw new Error(`${component}-component is not supported.`);
   }
 };
 
@@ -81,7 +81,7 @@ export function activationFnSnippet(
   return activationFnSnippet;
 }
 
-export function applyBiasActivationSnippet(
+export function biasActivationSnippet(
     hasBias: boolean, activation: backend_util.Activation): string {
   return `
       ${hasBias ? 'value = value + getBiasByOutputCoords(coords);' : ''}

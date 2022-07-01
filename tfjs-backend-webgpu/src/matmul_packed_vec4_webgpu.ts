@@ -16,7 +16,7 @@
  */
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
-import {activationFnSnippet, applyBiasActivationSnippet} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet} from './activation_util';
 import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
@@ -294,7 +294,7 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
           var value = valueIn;
           let batch = i32(globalId.z);
           let coords = vec3<i32>(batch, row, col * 4);
-          ${applyBiasActivationSnippet(this.addBias, this.activation)}
+          ${biasActivationSnippet(this.addBias, this.activation)}
           setOutputAtCoords(coords[0], coords[1], coords[2], value);
         }
       }

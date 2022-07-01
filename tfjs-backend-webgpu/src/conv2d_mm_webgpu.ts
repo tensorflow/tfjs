@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {activationFnSnippet, applyBiasActivationSnippet, typeSnippet} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
 import {makeMatMulPackedVec4Source} from './matmul_packed_vec4_webgpu';
 import {makeMatMulPackedSource} from './matmul_packed_webgpu';
 import {WebGPUProgram} from './webgpu_program';
@@ -151,7 +151,7 @@ function conv2dCommonSnippet(
         let outWidth = ${
       isChannelsLast ? 'uniforms.outShape[2]' : 'uniforms.outShape[3]'};
         ${coordResSnippet}
-        ${applyBiasActivationSnippet(addBias, activation)}
+        ${biasActivationSnippet(addBias, activation)}
         setOutputAtCoords(coords[0], coords[1], coords[2], coords[3], value);
         }
       }`;

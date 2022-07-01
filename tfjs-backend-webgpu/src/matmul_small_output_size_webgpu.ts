@@ -16,7 +16,7 @@
  */
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
-import {activationFnSnippet, applyBiasActivationSnippet} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet} from './activation_util';
 import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
 
 export function makeMatMulSmallOutputSizeSource(
@@ -176,7 +176,7 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
           let batch = i32(globalId.z);
           let coords = vec3<i32>(batch, row, col);
           var value = valueIn;
-          ${applyBiasActivationSnippet(this.addBias, this.activation)}
+          ${biasActivationSnippet(this.addBias, this.activation)}
           setOutputAtCoords(batch, row, col, value);
         }
       }

@@ -16,7 +16,7 @@
  */
 
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
-import {activationFnSnippet, applyBiasActivationSnippet} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet} from './activation_util';
 import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
@@ -153,7 +153,7 @@ export class MatMulReduceProgram implements WebGPUProgram {
       fn mm_write(batch: i32, row : i32, col : i32, valueIn : f32) {
         var value = valueIn;
         let coords = vec3<i32>(batch, row, col);
-        ${applyBiasActivationSnippet(this.addBias, this.activation)}
+        ${biasActivationSnippet(this.addBias, this.activation)}
         setOutputAtCoords(batch, row, col, value);
       }
       ${makeMatMulReduceSource()}

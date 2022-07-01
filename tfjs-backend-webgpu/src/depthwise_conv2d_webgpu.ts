@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {activationFnSnippet, applyBiasActivationSnippet} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet} from './activation_util';
 import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
@@ -126,7 +126,7 @@ export class DepthwiseConv2DProgram implements WebGPUProgram {
               }
             }
           }
-          ${applyBiasActivationSnippet(this.addBias, this.activation)}
+          ${biasActivationSnippet(this.addBias, this.activation)}
         if (coordsInBounds4D(coords, uniforms.outShape)) {
           setOutputAtCoords(coords[0], coords[1], coords[2], coords[3], value);
         }

@@ -17,7 +17,7 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {activationFnSnippet, applyBiasActivationSnippet} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet} from './activation_util';
 import {getWorkGroupSizeString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
@@ -138,7 +138,7 @@ export class DepthwiseConv2DNCHWSharedProgram implements WebGPUProgram {
             value = fma(xVal, wVal, value);
           }
         }
-        ${applyBiasActivationSnippet(this.addBias, this.activation)}
+        ${biasActivationSnippet(this.addBias, this.activation)}
         if (coordsInBounds4D(coords, uniforms.outShape)) {
           setOutputAtCoords(coords[0], coords[1], coords[2], coords[3], value);
         }
