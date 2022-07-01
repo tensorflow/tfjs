@@ -16,7 +16,9 @@
  */
 
 import * as tfd from './readers';
-import {describeAllEnvs, describeBrowserEnvs, describeNodeEnvs, replaceHTMLVideoElementSource, setupFakeVideoStream} from './util/test_utils';
+import {describeAllEnvs, describeNodeEnvs, replaceHTMLVideoElementSource, setupFakeVideoStream, MEDIA_ENVS} from './util/test_utils';
+// tslint:disable-next-line: no-imports-from-dist
+import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 describeAllEnvs('readers', () => {
   it('generate dataset from function', async () => {
@@ -134,66 +136,62 @@ describeAllEnvs('readers', () => {
   });
 });
 
-describeBrowserEnvs('readers in browser', () => {
-  if (navigator.mediaDevices != null) {
-    it('generate data from webcam with HTML element', async () => {
-      setupFakeVideoStream();
-      const videoElement = document.createElement('video');
-      videoElement.width = 160;
-      videoElement.height = 90;
+describeWithFlags('readers in browser', MEDIA_ENVS, () => {
+  it('generate data from webcam with HTML element', async () => {
+    setupFakeVideoStream();
+    const videoElement = document.createElement('video');
+    videoElement.width = 160;
+    videoElement.height = 90;
 
-      const webcamIterator = await tfd.webcam(videoElement);
-      await replaceHTMLVideoElementSource(videoElement);
-      const result = await webcamIterator.next();
-      expect(result.done).toBeFalsy();
-      expect(result.value.shape).toEqual([90, 160, 3]);
-    });
+    const webcamIterator = await tfd.webcam(videoElement);
+    await replaceHTMLVideoElementSource(videoElement);
+    const result = await webcamIterator.next();
+    expect(result.done).toBeFalsy();
+    expect(result.value.shape).toEqual([90, 160, 3]);
+  });
 
-    it('generate data from webcam with no HTML element', async () => {
-      setupFakeVideoStream();
-      const webcamIterator =
-          await tfd.webcam(null, {resizeWidth: 300, resizeHeight: 150});
-      const result = await webcamIterator.next();
-      expect(result.done).toBeFalsy();
-      expect(result.value.shape).toEqual([150, 300, 3]);
-    });
+  it('generate data from webcam with no HTML element', async () => {
+    setupFakeVideoStream();
+    const webcamIterator =
+        await tfd.webcam(null, {resizeWidth: 300, resizeHeight: 150});
+    const result = await webcamIterator.next();
+    expect(result.done).toBeFalsy();
+    expect(result.value.shape).toEqual([150, 300, 3]);
+  });
 
-    it('generate data from webcam with HTML element and resize', async () => {
-      setupFakeVideoStream();
-      const videoElement = document.createElement('video');
-      videoElement.width = 300;
-      videoElement.height = 500;
+  it('generate data from webcam with HTML element and resize', async () => {
+    setupFakeVideoStream();
+    const videoElement = document.createElement('video');
+    videoElement.width = 300;
+    videoElement.height = 500;
 
-      const webcamIterator = await tfd.webcam(
-          videoElement,
-          {resizeWidth: 100, resizeHeight: 200, centerCrop: true});
-      const result = await webcamIterator.next();
-      expect(result.done).toBeFalsy();
-      expect(result.value.shape).toEqual([200, 100, 3]);
-    });
-  }
+    const webcamIterator = await tfd.webcam(
+        videoElement,
+        {resizeWidth: 100, resizeHeight: 200, centerCrop: true});
+    const result = await webcamIterator.next();
+    expect(result.done).toBeFalsy();
+    expect(result.value.shape).toEqual([200, 100, 3]);
+  });
 });
 
 describeNodeEnvs('readers in node', () => {
-  it('webcam only available in browser env', async done => {
+  it('webcam only available in browser env', async () => {
     try {
       await tfd.webcam();
-      done.fail();
+      fail();
     } catch (e) {
       expect(e.message).toEqual(
           'tf.data.webcam is only supported in browser environment.');
-      done();
     }
   });
 
-  it('microphone only available in browser env', async done => {
+  it('microphone only available in browser env', async () => {
     try {
       await tfd.microphone();
-      done.fail();
+      fail();
     } catch (e) {
       expect(e.message).toEqual(
           'microphone API is only supported in browser environment.');
-      done();
     }
   });
 });

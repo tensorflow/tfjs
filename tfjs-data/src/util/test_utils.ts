@@ -17,7 +17,7 @@
  */
 
 // tslint:disable-next-line: no-imports-from-dist
-import {ALL_ENVS, BROWSER_ENVS, describeWithFlags, NODE_ENVS, registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {ALL_ENVS, BROWSER_ENVS, Constraints, describeWithFlags, NODE_ENVS, registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 // Provide fake video stream
 export function setupFakeVideoStream() {
@@ -63,6 +63,11 @@ registerTestEnv({
     'WEBGL_SIZE_UPLOAD_UNIFORM': 0
   }
 });
+
+export const MEDIA_ENVS: Constraints = {
+  predicate: (env) => BROWSER_ENVS.predicate(env)
+    && navigator.mediaDevices != null
+};
 
 export function describeAllEnvs(testName: string, tests: () => void) {
   describeWithFlags(testName, ALL_ENVS, () => {
