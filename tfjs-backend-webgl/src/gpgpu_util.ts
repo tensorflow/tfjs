@@ -137,6 +137,26 @@ export function getInternalFormatForPackedMatrixTexture(
   return textureConfig.internalFormatPackedFloat;
 }
 
+export function createColPackedMatrixTexture(
+    gl: WebGLRenderingContext, debug: boolean, rows: number, columns: number,
+    textureConfig: TextureConfig): Texture {
+  const [width, height] =
+      tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
+  return createAndConfigureTexture(
+      gl, width, height, textureConfig.internalFormatPackedFloat, gl.RGBA,
+      gl.FLOAT);
+}
+
+export function createFloat16ColPackedMatrixTexture(
+    gl: WebGLRenderingContext, debug: boolean, rows: number, columns: number,
+    textureConfig: TextureConfig): Texture {
+  const [width, height] =
+      tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
+  return createAndConfigureTexture(
+      gl, width, height, textureConfig.internalFormatPackedHalfFloat, gl.RGBA,
+      textureConfig.textureTypeHalfFloat);
+}
+
 export function createPackedMatrixTexture(
     gl: WebGLRenderingContext, rows: number, columns: number,
     textureConfig: TextureConfig): Texture {

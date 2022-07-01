@@ -62,10 +62,11 @@ export class TextureManager {
 
     let newTexture: Texture;
     if (physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT32) {
-      newTexture = this.gpgpu.createPackedMatrixTexture(shapeRC[0], shapeRC[1]);
-    } else if (physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT16) {
       newTexture =
-          this.gpgpu.createFloat16PackedMatrixTexture(shapeRC[0], shapeRC[1]);
+          this.gpgpu.createColPackedMatrixTexture(shapeRC[0], shapeRC[1]);
+    } else if (physicalTexType === PhysicalTextureType.PACKED_2X2_FLOAT16) {
+      newTexture = this.gpgpu.createFloat16ColPackedMatrixTexture(
+          shapeRC[0], shapeRC[1]);
     } else if (physicalTexType === PhysicalTextureType.UNPACKED_FLOAT32) {
       newTexture =
           this.gpgpu.createFloat32MatrixTexture(shapeRC[0], shapeRC[1]);

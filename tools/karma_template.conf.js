@@ -70,15 +70,17 @@ const CUSTOM_LAUNCHERS = {
     base: 'Chrome',
     flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
   },
+  chrome_autoplay: {
+    base: 'Chrome',
+    flags: ['--autoplay-policy=no-user-gesture-required'],
+  },
   chrome_webgpu: {
     base: 'ChromeCanary',
     flags: [
-      '--enable-unsafe-webgpu',
-      '--disable-dawn-features=disallow_unsafe_apis'
+      '--enable-unsafe-webgpu', '--disable-dawn-features=disallow_unsafe_apis'
     ]
   },
-  chrome_debugging:
-      {base: 'Chrome', flags: ['--remote-debugging-port=9333']}
+  chrome_debugging: {base: 'Chrome', flags: ['--remote-debugging-port=9333']}
 };
 
 module.exports = function(config) {
@@ -96,14 +98,16 @@ module.exports = function(config) {
     const username = process.env.BROWSERSTACK_USERNAME;
     const accessKey = process.env.BROWSERSTACK_KEY;
     if (!username) {
-      console.error('No browserstack username found. Please set the'
-                    + ' environment variable "BROWSERSTACK_USERNAME" to your'
-                    + ' browserstack username');
+      console.error(
+          'No browserstack username found. Please set the' +
+          ' environment variable "BROWSERSTACK_USERNAME" to your' +
+          ' browserstack username');
     }
     if (!accessKey) {
-      console.error('No browserstack access key found. Please set the'
-                    + ' environment variable "BROWSERSTACK_KEY" to your'
-                    + ' browserstack access key');
+      console.error(
+          'No browserstack access key found. Please set the' +
+          ' environment variable "BROWSERSTACK_KEY" to your' +
+          ' browserstack access key');
     }
     if (!username || !accessKey) {
       process.exit(1);
@@ -114,18 +118,23 @@ module.exports = function(config) {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
       timeout: 900,  // Seconds
-      tunnelIdentifier:
-      `tfjs_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+      tunnelIdentifier: `tfjs_${Date.now()}_${Math.floor(Math.random() * 1000)}`
     };
   }
 
   config.set({
-    captureTimeout: 3e5,
+    reporters: ['kjhtml'],
+    frameworks: ['jasmine'],
+    plugins: [
+      require('karma-jasmine'),
+      require('karma-jasmine-html-reporter'),
+    ],
+    captureTimeout: 100000000,
     reportSlowerThan: 500,
-    browserNoActivityTimeout: 3e5,
-    browserDisconnectTimeout: 3e5,
+    browserNoActivityTimeout: 100000000,
+    browserDisconnectTimeout: 100000000,
     browserDisconnectTolerance: 0,
-    browserSocketTimeout: 1.2e5,
+    browserSocketTimeout: 100000000,
     ...extraConfig,
     customLaunchers: CUSTOM_LAUNCHERS,
     client: {args: TEMPLATE_args},

@@ -172,6 +172,19 @@ export class GPGPUContext {
         this.gl, texture, width, height, data, this.textureConfig);
   }
 
+  public createFloat16ColPackedMatrixTexture(rows: number, columns: number):
+      Texture {
+    this.throwIfDisposed();
+    return gpgpu_util.createFloat16ColPackedMatrixTexture(
+        this.gl, this.debug, rows, columns, this.textureConfig);
+  }
+
+  public createColPackedMatrixTexture(rows: number, columns: number): Texture {
+    this.throwIfDisposed();
+    return gpgpu_util.createColPackedMatrixTexture(
+        this.gl, this.debug, rows, columns, this.textureConfig);
+  }
+
   public createFloat16PackedMatrixTexture(rows: number, columns: number):
       Texture {
     this.throwIfDisposed();

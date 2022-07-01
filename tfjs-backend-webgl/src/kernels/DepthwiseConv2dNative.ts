@@ -15,11 +15,10 @@
  * =============================================================================
  */
 
-import {backend_util, DepthwiseConv2dNative, DepthwiseConv2dNativeAttrs, DepthwiseConv2dNativeInputs, env, KernelConfig, KernelFunc, util} from '@tensorflow/tfjs-core';
+import {backend_util, DepthwiseConv2dNative, DepthwiseConv2dNativeAttrs, DepthwiseConv2dNativeInputs, KernelConfig, KernelFunc, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendWebGL} from '../backend_webgl';
-import {DepthwiseConv2DProgram} from '../conv_gpu_depthwise';
-import {DepthwiseConvPacked2DProgram} from '../conv_packed_gpu_depthwise';
+import {DepthwiseDenseConv2DProgram} from '../conv_dense_gpu_depthwise';
 
 export function depthwiseConv2dNative(args: {
   inputs: DepthwiseConv2dNativeInputs,
@@ -45,13 +44,7 @@ export function depthwiseConv2dNative(args: {
       filter.shape as [number, number, number, number], strides, $dilations,
       pad, dimRoundingMode, true /* depthwise */);
 
-  let program: DepthwiseConv2DProgram|DepthwiseConvPacked2DProgram;
-  if (env().getBool('WEBGL_PACK_DEPTHWISECONV') && convInfo.strideWidth <= 2 &&
-      convInfo.outChannels / convInfo.inChannels === 1) {
-    program = new DepthwiseConvPacked2DProgram(convInfo);
-  } else {
-    program = new DepthwiseConv2DProgram(convInfo);
-  }
+  let program = new DepthwiseDenseConv2DProgram(convInfo);
   const customValues = [
     [convInfo.padInfo.top, convInfo.padInfo.left],
     [convInfo.strideHeight, convInfo.strideWidth],
