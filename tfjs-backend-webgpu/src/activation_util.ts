@@ -20,25 +20,71 @@ import {backend_util} from '@tensorflow/tfjs-core';
 import {BinaryOpType, getBinaryOpString} from './binary_op_util';
 import {getUnaryOpString, UnaryOpType} from './unary_op_util';
 
-export function mapActivationToShaderProgram(
-    activation: backend_util.Activation, packed = false): string {
-  if (activation === null) {
-    return null;
-  } else if (activation === 'linear') {
-    return getUnaryOpString(UnaryOpType.LINEAR);
-  } else if (activation === 'relu') {
-    return getUnaryOpString(UnaryOpType.RELU, packed);
-  } else if (activation === 'elu') {
-    return getUnaryOpString(UnaryOpType.ELU, packed);
-  } else if (activation === 'relu6') {
-    return getUnaryOpString(UnaryOpType.RELU6, packed);
-  } else if (activation === 'prelu') {
-    return getBinaryOpString(BinaryOpType.PRELU, packed);
-  } else if (activation === 'sigmoid') {
-    return getUnaryOpString(UnaryOpType.SIGMOID, packed);
-  } else if (activation === 'leakyrelu') {
-    return getUnaryOpString(UnaryOpType.LEAKYRELU, packed);
+export const typeSnippet = (component: number) => {
+  switch (component) {
+    case 1:
+      return 'f32';
+    case 2:
+      return 'vec2<f32>';
+    case 3:
+      return 'vec3<f32>';
+    case 4:
+      return 'vec4<f32>';
+    default:
+      throw new Error(`${component}-component is not supported.`);
   }
-  throw new Error(`Activation ${
-      activation} has not been implemented for the WebGPU backend.`);
+};
+
+export function activationFnSnippet(
+    activation: backend_util.Activation, hasPreluActivationWeights = false,
+    packed = false, coordsLength = 3): string {
+  if (activation === null) {
+    return '';
+  }
+
+  let activationOpSnippet = '';
+  if (activation === 'linear') {
+    activationOpSnippet = getUnaryOpString(UnaryOpType.LINEAR);
+  } else if (activation === 'relu') {
+    activationOpSnippet = getUnaryOpString(UnaryOpType.RELU, packed);
+  } else if (activation === 'elu') {
+    activationOpSnippet = getUnaryOpString(UnaryOpType.ELU, packed);
+  } else if (activation === 'relu6') {
+    activationOpSnippet = getUnaryOpString(UnaryOpType.RELU6, packed);
+  } else if (activation === 'prelu') {
+    activationOpSnippet = getBinaryOpString(BinaryOpType.PRELU, packed);
+  } else if (activation === 'sigmoid') {
+    activationOpSnippet = getUnaryOpString(UnaryOpType.SIGMOID, packed);
+  } else if (activation === 'leakyrelu') {
+    activationOpSnippet = getUnaryOpString(UnaryOpType.LEAKYRELU, packed);
+  } else {
+    throw new Error(`Activation ${
+        activation} has not been implemented for the WebGPU backend.`);
+  }
+  const elementSize = packed ? 4 : 1;
+  const dataType = typeSnippet(elementSize);
+  let activationFnSnippet = '';
+  if (hasPreluActivationWeights) {
+    activationFnSnippet = `
+      fn activation(a : ${dataType}, coords : vec${coordsLength}<i32>) -> ${
+        dataType} {
+        let b = getPreluActivationWeightsByOutputCoords(coords);
+        ${activationOpSnippet}
+      }`;
+  } else {
+    activationFnSnippet = `
+      fn activation(a : ${dataType}, coords : vec${coordsLength}<i32>) -> ${
+        dataType} {
+        ${activationOpSnippet}
+      }`;
+  }
+  return activationFnSnippet;
+}
+
+export function biasActivationSnippet(
+    hasBias: boolean, activation: backend_util.Activation): string {
+  return `
+      ${hasBias ? 'value = value + getBiasByOutputCoords(coords);' : ''}
+      ${activation ? 'value = activation(value, coords);' : ''}
+      `;
 }

@@ -16,7 +16,7 @@
  */
 
 import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
-import {mapActivationToShaderProgram} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet} from './activation_util';
 import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
@@ -121,31 +121,8 @@ export class MatMulReduceProgram implements WebGPUProgram {
           `return f32(B[batch * batchBSize + col * uniforms.dimInner + row]);`;
     }
 
-    let activationSnippet = '', applyActivationSnippet = '';
-    if (this.activation) {
-      const activationOp = mapActivationToShaderProgram(this.activation, false);
-      if (this.hasPreluActivationWeights) {
-        activationSnippet =
-            `fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
-               let b = getPreluActivationWeightsByOutputCoords(outCoord);
-               ${activationOp}
-            }`;
-      } else {
-        activationSnippet = `
-              fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
-                ${activationOp}
-              }
-            `;
-      }
-
-      applyActivationSnippet = 'value = activation(value, outCoord);';
-    }
-
-    const addBiasSnippet =
-        this.addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
-
     const userCode = `
-      ${activationSnippet}
+      ${activationFnSnippet(this.activation, this.hasPreluActivationWeights)}
 
       fn mm_readA(batchIn: i32, row : i32, col : i32) -> f32 {
         ${
@@ -175,9 +152,8 @@ export class MatMulReduceProgram implements WebGPUProgram {
 
       fn mm_write(batch: i32, row : i32, col : i32, valueIn : f32) {
         var value = valueIn;
-        let outCoord = vec3<i32>(batch, row, col);
-        ${addBiasSnippet}
-        ${applyActivationSnippet}
+        let coords = vec3<i32>(batch, row, col);
+        ${biasActivationSnippet(this.addBias, this.activation)}
         setOutputAtCoords(batch, row, col, value);
       }
       ${makeMatMulReduceSource()}
