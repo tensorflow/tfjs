@@ -95,10 +95,10 @@ export function makeMatMulPackedVec4Source(
   var<workgroup> mm_Bsub : array<array<vec4<f32>, ${
       tileBOuter / workPerThread[0]}>, ${tileInner}>;
 
-  let RowPerThread = ${workPerThread[1]};
-  let ColPerThread = ${workPerThread[0]};
-  let InnerElementSize = ${innerElementSize};
-  let TileInner = ${tileInner};
+  const RowPerThread = ${workPerThread[1]};
+  const ColPerThread = ${workPerThread[0]};
+  const InnerElementSize = ${innerElementSize};
+  const TileInner = ${tileInner};
 
   @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
   fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,

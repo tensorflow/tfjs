@@ -133,9 +133,9 @@ function makeShader(
     program: WebGPUProgram): string {
   const prefixSnippets: string[] = [];
   prefixSnippets.push(`
-      let workGroupSizeX = ${program.workGroupSize[0]}u;
-      let workGroupSizeY = ${program.workGroupSize[1]}u;
-      let workGroupSizeZ = ${program.workGroupSize[2]}u;
+      const workGroupSizeX = ${program.workGroupSize[0]}u;
+      const workGroupSizeY = ${program.workGroupSize[1]}u;
+      const workGroupSizeZ = ${program.workGroupSize[2]}u;
 
       var<private> localId: vec3<u32>;
       var<private> globalId: vec3<u32>;

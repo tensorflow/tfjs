@@ -65,9 +65,9 @@ export function makeMatMulPackedSource(
   return `
     var<workgroup> mm_Asub : array<array<f32, ${tileAWidth}>, ${tileAHight}>;
     var<workgroup> mm_Bsub : array<array<f32, ${tileBOuter}>, ${tileInner}>;
-    let RowPerThread = ${workPerThread[1]};
-    let ColPerThread = ${workPerThread[0]};
-    let TileInner = ${tileInner};
+    const RowPerThread = ${workPerThread[1]};
+    const ColPerThread = ${workPerThread[0]};
+    const TileInner = ${tileInner};
 
     @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
     fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
