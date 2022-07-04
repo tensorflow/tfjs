@@ -56,7 +56,7 @@ export function depthwiseConv2dNative(args: {
         convInfo.outShape, convInfo.filterHeight, convInfo.filterWidth);
   } else if (
       isChannelsLast && convInfo.inHeight > 4 && convInfo.inWidth > 4 &&
-      convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
+      (convInfo.strideWidth === 1 || (convInfo.filterWidth > 3)) &&
       convInfo.inChannels === convInfo.outChannels &&
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
       convInfo.inChannels % 4 === 0) {

@@ -33,6 +33,7 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
   activation: backend_util.Activation;
   hasPreluActivation: boolean;
   isVec4 = true;
+  private xNumber: number;
 
   constructor(
       convInfo: backend_util.Conv2DInfo, addBias = false,
@@ -57,14 +58,16 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
     this.addBias = addBias;
     this.activation = activation;
     this.hasPreluActivation = hasPreluActivation;
+    // Here 4 is the work per thread in X dimension.
+    this.xNumber =
+        (4 - 1) * this.convInfo.strideWidth + this.convInfo.filterWidth;
 
-    this.shaderKey = `depthwiseVec4_${activation}_${
-        this.convInfo.filterHeight}_${this.convInfo.filterWidth}`;
+    this.shaderKey =
+        `depthwiseVec4_${activation}_${this.convInfo.filterHeight}_${
+            this.convInfo.filterWidth}_${this.xNumber}`;
   }
 
   getUserCode(): string {
-    // Here 4 is the work per thread in X dimension.
-    const xNumber = 4 + this.convInfo.filterWidth - 1;
     const userCode = `
       ${activationFnSnippet(this.activation, this.hasPreluActivation, true, 4)}
       fn readX(batch : i32, row : i32, col : i32, channel : i32) -> vec4<f32> {
@@ -75,17 +78,20 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
         }
         return value;
       }
+
+      const strideHeight = ${this.convInfo.strideHeight};
+      const strideWidth = ${this.convInfo.strideWidth};
       ${getWorkGroupSizeString()}
       fn _start(@builtin(global_invocation_id) globalId: vec3<u32>) {
         let batch = i32(globalId.z) / uniforms.outShape[1];
         let r = i32(globalId.z) % uniforms.outShape[1];
         let c = i32(globalId.y) * 4;
         let d1 = i32(globalId.x) * 4;
-        let xRCCorner = vec2<i32>(r, c) - uniforms.pad;
+        let xRCCorner = vec2<i32>(r, c) * vec2<i32>(strideHeight, strideWidth) - uniforms.pad;
 
         let xRCorner = xRCCorner.x;
         let xCCorner = xRCCorner.y;
-        var xVals : array<vec4<f32>, ${xNumber}>;
+        var xVals : array<vec4<f32>, ${this.xNumber}>;
         var dotProd : array<vec4<f32>, 4>;
         dotProd[0] = vec4<f32>(0.0);
         dotProd[1] = vec4<f32>(0.0);
@@ -95,16 +101,16 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
         // Use constant instead of uniform can give better performance.
         for (var wR = 0; wR < ${this.convInfo.filterHeight}; wR = wR + 1) {
           let xR = xRCorner + wR;
-          for (var i = 0; i < ${xNumber}; i++)
+          for (var i = 0; i < ${this.xNumber}; i++)
           {
             xVals[i] = readX(batch, xR, xCCorner + i, d1);
           }
           for (var wC = 0; wC < ${this.convInfo.filterWidth}; wC = wC + 1) {
             let wValue = getW(wR, wC, d1, 0);
-            dotProd[0] = dotProd[0] + xVals[0 + wC] * wValue;
-            dotProd[1] = dotProd[1] + xVals[1 + wC] * wValue;
-            dotProd[2] = dotProd[2] + xVals[2 + wC] * wValue;
-            dotProd[3] = dotProd[3] + xVals[3 + wC] * wValue;
+            dotProd[0] = dotProd[0] + xVals[0 * strideWidth + wC] * wValue;
+            dotProd[1] = dotProd[1] + xVals[1 * strideWidth + wC] * wValue;
+            dotProd[2] = dotProd[2] + xVals[2 * strideWidth + wC] * wValue;
+            dotProd[3] = dotProd[3] + xVals[3 * strideWidth + wC] * wValue;
           }
         }
 
