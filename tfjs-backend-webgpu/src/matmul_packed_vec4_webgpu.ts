@@ -16,7 +16,7 @@
  */
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
-import {mapActivationToShaderProgram} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet} from './activation_util';
 import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
@@ -95,10 +95,10 @@ export function makeMatMulPackedVec4Source(
   var<workgroup> mm_Bsub : array<array<vec4<f32>, ${
       tileBOuter / workPerThread[0]}>, ${tileInner}>;
 
-  let RowPerThread = ${workPerThread[1]};
-  let ColPerThread = ${workPerThread[0]};
-  let InnerElementSize = ${innerElementSize};
-  let TileInner = ${tileInner};
+  const RowPerThread = ${workPerThread[1]};
+  const ColPerThread = ${workPerThread[0]};
+  const InnerElementSize = ${innerElementSize};
+  const TileInner = ${tileInner};
 
   @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
   fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
@@ -257,30 +257,10 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
         }
         return vec4<f32>(0.0)`;
 
-    let activationSnippet = '', applyActivationSnippet = '';
-    if (this.activation) {
-      const activationOp =
-          mapActivationToShaderProgram(this.activation, this.isVec4);
-      if (this.hasPreluActivationWeights) {
-        activationSnippet =
-            `fn activation(a : vec4<f32>, outCoord : vec3<i32>) -> vec4<f32> {
-                  let b = getPreluActivationWeightsByOutputCoords(outCoord);
-                  ${activationOp}
-                }`;
-      } else {
-        activationSnippet = `
-            fn activation(a : vec4<f32>, outCoord : vec3<i32>) -> vec4<f32> {
-              ${activationOp}
-            }`;
-      }
-
-      applyActivationSnippet = 'value = activation(value, outCoord);';
-    }
-    const addBiasSnippet =
-        this.addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
-
     const userCode = `
-      ${activationSnippet}
+      ${
+        activationFnSnippet(
+            this.activation, this.hasPreluActivationWeights, true)}
       fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> vec4<f32> {
         ${
         this.batchAEqualOne ? `
@@ -313,10 +293,9 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
         {
           var value = valueIn;
           let batch = i32(globalId.z);
-          let outCoord = vec3<i32>(batch, row, col * 4);
-          ${addBiasSnippet}
-          ${applyActivationSnippet}
-          setOutputAtCoords(outCoord[0], outCoord[1], outCoord[2], value);
+          let coords = vec3<i32>(batch, row, col * 4);
+          ${biasActivationSnippet(this.addBias, this.activation)}
+          setOutputAtCoords(coords[0], coords[1], coords[2], value);
         }
       }
       ${

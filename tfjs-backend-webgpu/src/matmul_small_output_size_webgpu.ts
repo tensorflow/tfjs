@@ -16,7 +16,7 @@
  */
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
-import {mapActivationToShaderProgram} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet} from './activation_util';
 import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
 
 export function makeMatMulSmallOutputSizeSource(
@@ -144,30 +144,8 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
          }
          return result;`;
 
-    let activationSnippet = '', applyActivationSnippet = '';
-    if (this.activation) {
-      const activationOp = mapActivationToShaderProgram(this.activation, false);
-      if (this.hasPreluActivationWeights) {
-        activationSnippet =
-            `fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
-            let b = getPreluActivationWeightsByOutputCoords(outCoord);
-            ${activationOp}
-            }`;
-      } else {
-        activationSnippet =
-            `fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
-            ${activationOp}
-        }`;
-      }
-
-      applyActivationSnippet = 'value = activation(value, outCoord);';
-    }
-
-    const addBiasSnippet =
-        this.addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
-
     const userCode = `
-      ${activationSnippet}
+      ${activationFnSnippet(this.activation, this.hasPreluActivationWeights)}
 
       fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
         ${
@@ -196,10 +174,9 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
       fn mm_write(row : i32, col : i32, valueIn : f32, globalId : vec3<u32>) {
         if (coordsInBounds2D(vec2<i32>(row, col), vec2<i32>(uniforms.dimAOuter, uniforms.dimBOuter))) {
           let batch = i32(globalId.z);
-          let outCoord = vec3<i32>(batch, row, col);
+          let coords = vec3<i32>(batch, row, col);
           var value = valueIn;
-          ${addBiasSnippet}
-          ${applyActivationSnippet}
+          ${biasActivationSnippet(this.addBias, this.activation)}
           setOutputAtCoords(batch, row, col, value);
         }
       }
