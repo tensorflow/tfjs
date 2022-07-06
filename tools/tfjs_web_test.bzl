@@ -26,6 +26,7 @@ PEER_DEPS = [
     # specified. They are manually spefied here so we can append
     # extra dependencies.
     "@npm//karma-jasmine-html-reporter",
+    "@npm//karma-jasmine-order-reporter",
 ]
 
 GrepProvider = provider(fields = ["grep"])
