@@ -242,7 +242,7 @@ describeWithFlags(
         const data = await res.data();
         expect(data.length).toEqual(90 * 160 * 3);
         document.body.removeChild(video);
-      });
+      }, 30_000 /* 30 seconds */);
 
       it('canvas and image match', async () => {
         const img = new Image();
