@@ -76,7 +76,7 @@ const fakeResponse =
           },
           headers: {get: (key: string) => contentType},
           url: path
-        });
+        }) as unknown as Response;
 
 const setupFakeWeightFiles =
     (fileBufferMap: {

@@ -235,28 +235,3 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
         .toThrowError(/The WASM backend was already initialized. Make sure/);
   });
 });
-
-describe('wasm pre.js', () => {
-  // Temporarily disabled due to node 16 incompatability
-  // it('works if process variable is undefined', async () => {
-  //   tf.engine().reset();
-
-  //   const savedProcess = process;
-  //   // This test is not perfect since checks like `if (process)` will not
-  //   // throw errors if process is set to undefined, however, process can not
-  //   // be `delete`d due to strict mode.
-
-  //   process = undefined;
-
-  //   try {
-  //     await tf.setBackend('wasm');
-  //   } catch (e) {
-  //     fail(e);
-  //   } finally {
-  //     process = savedProcess;
-  //   }
-
-  //   tf.engine().disposeVariables();
-  //   tf.engine().reset();
-  // });
-});

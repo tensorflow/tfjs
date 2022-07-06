@@ -1919,7 +1919,7 @@ describeMathCPUAndWebGL2('LayersModel.fit: No memory leak', () => {
   }
 
   it('Repeated fit calls leads to no memory leak: no validation or metrics',
-     async (done) => {
+     async () => {
        createDenseModelAndData();
 
        model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
@@ -1930,18 +1930,17 @@ describeMathCPUAndWebGL2('LayersModel.fit: No memory leak', () => {
          await model.fit(inputs, targets, {batchSize: numSamples, epochs: 1});
          const numTensorsNow = memory().numTensors;
          if (numTensorsNow > numTensors0) {
-           done.fail(
+           fail(
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
          }
        }
-       done();
      });
 
   it('Repeated fit calls leads to no memory leak: batchSize=1, ' +
          'no validation or metrics',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
@@ -1952,16 +1951,15 @@ describeMathCPUAndWebGL2('LayersModel.fit: No memory leak', () => {
          await model.fit(inputs, targets, {batchSize, epochs: 1});
          const numTensorsNow = memory().numTensors;
          if (numTensorsNow > numTensors0) {
-           done.fail(
+           fail(
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
          }
        }
-       done();
      });
 
-  it('Repeated fit calls leads to no memory leak: with metrics', async done => {
+  it('Repeated fit calls leads to no memory leak: with metrics', async () => {
     createDenseModelAndData();
 
     model.compile(
@@ -1973,17 +1971,16 @@ describeMathCPUAndWebGL2('LayersModel.fit: No memory leak', () => {
       await model.fit(inputs, targets, {batchSize: numSamples, epochs: 1});
       const numTensorsNow = memory().numTensors;
       if (numTensorsNow > numTensors0) {
-        done.fail(
+        fail(
             `Memory leak detected during fit(): Leaked ` +
             `${numTensorsNow - numTensors0} tensor(s) after the ` +
             `${i + 1}-th fit() call.`);
       }
     }
-    done();
   });
 
   it('Repeated fit calls leads to no memory leak: validationSplit',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        const validationSplit = 0.4;
@@ -1999,17 +1996,16 @@ describeMathCPUAndWebGL2('LayersModel.fit: No memory leak', () => {
              {batchSize: numSamples, epochs: 1, validationSplit});
          const numTensorsNow = memory().numTensors;
          if (numTensorsNow > numTensors0) {
-           done.fail(
+           fail(
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
          }
        }
-       done();
      });
 
   it('Repeated fit calls of 1d target leads to no memory leak: validationSplit',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        const validationSplit = 0.4;
@@ -2026,17 +2022,16 @@ describeMathCPUAndWebGL2('LayersModel.fit: No memory leak', () => {
              {batchSize: 2, epochs: 10, validationSplit, shuffle: true});
          const numTensorsNow = memory().numTensors;
          if (numTensorsNow > numTensors0) {
-           done.fail(
+           fail(
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
          }
        }
-       done();
      });
 
   it('Repeated fit calls leads to no memory leak: validationData',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        const validationData: [Tensor, Tensor] = [valInputs, valTargets];
@@ -2051,17 +2046,16 @@ describeMathCPUAndWebGL2('LayersModel.fit: No memory leak', () => {
              {batchSize: numSamples, epochs: 1, validationData});
          const numTensorsNow = memory().numTensors;
          if (numTensorsNow > numTensors0) {
-           done.fail(
+           fail(
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
          }
        }
-       done();
      });
 
   it('Repeated fit calls leads to no memory leak: metrics & validationSplit',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        const validationSplit = 0.4;
@@ -2078,18 +2072,17 @@ describeMathCPUAndWebGL2('LayersModel.fit: No memory leak', () => {
              {batchSize: numSamples, epochs: 1, validationSplit});
          const numTensorsNow = memory().numTensors;
          if (numTensorsNow > numTensors0) {
-           done.fail(
+           fail(
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
          }
        }
-       done();
      });
 
   it('Repeated fit calls leads to no memory leak: batchSize=2, ' +
          'metrics & validationSplit',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        const validationSplit = 0.4;
@@ -2110,17 +2103,16 @@ describeMathCPUAndWebGL2('LayersModel.fit: No memory leak', () => {
          expect(history.history['val_mse'].length).toEqual(epochsPerIter);
          const numTensorsNow = memory().numTensors;
          if (numTensorsNow > numTensors0) {
-           done.fail(
+           fail(
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
          }
        }
-       done();
      });
 
   it('Fit with onEpochEnd callback: no memory leak: validation & metrics',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        model.compile(
@@ -2149,23 +2141,22 @@ describeMathCPUAndWebGL2('LayersModel.fit: No memory leak', () => {
          });
          expect(tensorCounts.length).toEqual(4);
          if (unique(tensorCounts).length !== 1) {
-           done.fail(
+           fail(
                `Detected WebGL memory leak during fit() call with ` +
                `onEpochEnd callback: tensor counts: ${tensorCounts}.`);
          }
          const numTensors1 = memory().numTensors;
          if (numTensors1 > numTensors0) {
-           done.fail(
+           fail(
                `Detected memory leak of ${numTensors1 - numTensors0} ` +
                `tensor(s) after fit() call ${n + 1} of ${numFitCalls} ` +
                `with onEpochEnd callback.`);
          }
        }
-       done();
      });
 
   it('Fit with onBatchEnd callback: no memory leak: validation & metrics',
-     async done => {
+     async () => {
        createDenseModelAndData();
 
        model.compile(
@@ -2209,7 +2200,7 @@ describeMathCPUAndWebGL2('LayersModel.fit: No memory leak', () => {
            const inEpochTensorCounts =
                tensorCounts.slice(beginBatch, endBatch - 1);
            if (unique(inEpochTensorCounts).length !== 1) {
-             done.fail(
+             fail(
                  `Detected WebGL memory leak within epoch ${epochIndex + 1} ` +
                  `of ${epochs} of the fit() call with ` +
                  `onBatchEnd callback: tensor counts: ${inEpochTensorCounts}.`);
@@ -2218,12 +2209,11 @@ describeMathCPUAndWebGL2('LayersModel.fit: No memory leak', () => {
          expect(tensorCounts.length).toEqual(batchesPerEpoch * epochs);
          const numTensors1 = memory().numTensors;
          if (numTensors1 > numTensors0) {
-           done.fail(
+           fail(
                `Detected memory leak of ${numTensors1 - numTensors0} ` +
                `tensor(s) after fit() call with callback.`);
          }
        }
-       done();
      });
 });
 
@@ -2390,7 +2380,7 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
     expect(onYieldBatchesIds).toEqual([0, 0, 0]);
   });
 
-  it('fails when onYield is provided, but yieldEvery is never', async done => {
+  it('fails when onYield is provided, but yieldEvery is never', async () => {
     const inputSize = 2;
     const numExamples = 10;
     const epochs = 5;
@@ -2404,9 +2394,9 @@ describeMathGPU('LayersModel.fit: yieldEvery', () => {
         yieldEvery: 'never',
         callbacks: {onYield: async (_epoch, _batch, _logs) => {}}
       });
-      done.fail('Model.fit should fail');
+      fail('Model.fit should fail');
     } catch {
-      done();
+
     }
   });
 
