@@ -45,11 +45,11 @@ const CUSTOM_LAUNCHERS = {
     os: 'OS X',
     os_version: 'High Sierra'
   },
-  bs_ios_11: {
+  bs_ios_12: {
     base: 'BrowserStack',
-    device: 'iPhone X',
+    device: 'iPhone XS',
     os: 'ios',
-    os_version: '11.0',
+    os_version: '12.3',
     real_mobile: true
   },
   bs_android_9: {

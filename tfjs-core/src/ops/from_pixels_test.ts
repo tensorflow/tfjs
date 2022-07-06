@@ -231,7 +231,7 @@ describeWithFlags('fromPixels', BROWSER_ENVS, () => {
     const data = await res.data();
     expect(data.length).toEqual(90 * 160 * 3);
     document.body.removeChild(video);
-  });
+  }, 30_000 /* 30 seconds */);
 
   it('fromPixels for HTMLVideoElement throws without loadeddata', async () => {
     const video = document.createElement('video');
