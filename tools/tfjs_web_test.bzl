@@ -89,7 +89,7 @@ def tfjs_web_test(name, ci = True, args = [], **kwargs):
         "bs_chrome_mac",
         "bs_firefox_mac",
         "bs_safari_mac",
-        "bs_ios_11",
+        "bs_ios_12",
         "bs_android_9",
         "win_10_chrome",
     ])
