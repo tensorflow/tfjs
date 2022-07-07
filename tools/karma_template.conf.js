@@ -84,7 +84,7 @@ const CUSTOM_LAUNCHERS = {
       '--flag-switches-end',
     ]
   },
-  chrome_webgpu_windows: {
+  chrome_webgpu: {
     base: 'ChromeCanary',
     flags: [
       '--disable-dawn-features=disallow_unsafe_apis',
