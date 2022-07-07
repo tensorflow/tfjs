@@ -100,7 +100,7 @@ module.exports = function(config) {
         os: 'OS X',
         os_version: 'High Sierra'
       },
-      bs_ios_11: {
+      bs_ios_12: {
         base: 'BrowserStack',
         device: 'iPhone X',
         os: 'iOS',
