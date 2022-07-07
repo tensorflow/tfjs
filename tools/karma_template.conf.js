@@ -17,7 +17,6 @@
 
 const browserstackConfig = {
   hostname: 'bs-local.com',
-  reporters: ['dots'],
   port: 9876,
 };
 
@@ -124,11 +123,15 @@ module.exports = function(config) {
   }
 
   config.set({
-    reporters: ['kjhtml'],
+    reporters: [
+      'kjhtml',
+      'jasmine-order',
+    ],
     frameworks: ['jasmine'],
     plugins: [
       require('karma-jasmine'),
       require('karma-jasmine-html-reporter'),
+      require('karma-jasmine-order-reporter'),
     ],
     captureTimeout: 3e5,
     reportSlowerThan: 500,

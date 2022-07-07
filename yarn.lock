@@ -1543,6 +1543,11 @@ karma-jasmine-html-reporter@^2.0.0:
   resolved "https://registry.yarnpkg.com/karma-jasmine-html-reporter/-/karma-jasmine-html-reporter-2.0.0.tgz#76c26ce40e217dc36a630fbcd7b31c3462948bf2"
   integrity sha512-SB8HNNiazAHXM1vGEzf8/tSyEhkfxuDdhYdPBX2Mwgzt0OuF2gicApQ+uvXLID/gXyJQgvrM9+1/2SxZFUUDIA==
 
+karma-jasmine-order-reporter@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/karma-jasmine-order-reporter/-/karma-jasmine-order-reporter-1.1.0.tgz#3bd4cfd9e5ae53cc0d972905b811a479c127d0a8"
+  integrity sha512-mzC6WfOg7y5kCf7K4W+nB5NHea1ogcDjRpepFLLRjbi4lx08wQG+6EY2zd+mC2ANIvb6+ux2d9mFVtZ3MIwTYg==
+
 karma-jasmine@~5.1.0:
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/karma-jasmine/-/karma-jasmine-5.1.0.tgz#3af4558a6502fa16856a0f346ec2193d4b884b2f"
