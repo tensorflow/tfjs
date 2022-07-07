@@ -22,8 +22,7 @@ import {ALL_ENVS, BROWSER_ENVS, describeWithFlags} from '@tensorflow/tfjs-core/d
 
 import {init, resetWasmPath} from './backend_wasm';
 import {BackendWasm, setWasmPath, setWasmPaths} from './index';
-
-const VALID_PREFIX = '/base/tfjs/tfjs-backend-wasm/wasm-out/';
+import {VALID_PREFIX, setupCachedWasmPaths} from './test_util';
 
 /**
  * Tests specific to the wasm backend. The name of these tests must start with
@@ -79,9 +78,8 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
     spyOn(console, 'log');
   });
 
-  afterEach(() => {
-    resetWasmPath();
-    setWasmPaths(VALID_PREFIX);
+  afterEach(async () => {
+    await setupCachedWasmPaths();
     removeBackend('wasm-test');
   });
 
@@ -100,6 +98,7 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
   it('backend init fails when setWasmPaths is called with ' +
          'an invalid prefix',
      async () => {
+       resetWasmPath();
        setWasmPaths('invalid/prefix/');
        let wasmPath: string;
        const realFetch = fetch;
@@ -114,6 +113,7 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
   it('backend init fails when setWasmPaths is called with ' +
          'an invalid fileMap',
      async () => {
+       resetWasmPath();
        setWasmPaths({
          'tfjs-backend-wasm.wasm': 'invalid/path',
          'tfjs-backend-wasm-simd.wasm': 'invalid/path',
@@ -154,6 +154,7 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
 
     it('backend init works when the path is valid', async () => {
       const usePlatformFetch = true;
+      resetWasmPath();
       setWasmPaths(VALID_PREFIX, usePlatformFetch);
       let wasmPath: string;
       fetchSpy.and.callFake((path: string) => {
