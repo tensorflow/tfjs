@@ -98,7 +98,8 @@ function conv2dTransposeCommonSnippet(innerElementSize = 4) {
   fn mm_write(row : i32, colIn : i32, valueInput : ${
       typeSnippet(innerElementSize)}, globalId : vec3<u32>) {
     let col = colIn * ${innerElementSize};
-    if (row < uniforms.dimAOuter && col < uniforms.dimBOuter) {
+    if (row < uniforms.dimAOuter && (col + ${
+      innerElementSize - 1}) < uniforms.dimBOuter) {
       var batch = i32(globalId.z);
       var value = valueInput;
       let outCoord = vec4<i32>(
@@ -124,7 +125,6 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
       'filterDims : vec2<i32>, pads : vec2<i32>, stride : vec2<i32>, outBackprop : vec4<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,';
   workGroupSize: [number, number, number];
   elementsPerThread: [number, number, number];
-  isChannelsLast: boolean;
   tileAOuter: number;
   tileBOuter: number;
   tileInner: number;
@@ -137,10 +137,8 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
     util.assert(
         convInfo.dataFormat === 'channelsLast',
         () => 'TODO: NCHW is unimplemented');
-    this.isChannelsLast = convInfo.dataFormat === 'channelsLast';
-    this.isVec4 = (((convInfo.inChannels % 4 === 0) && this.isChannelsLast) ||
-                   (convInfo.outWidth % 4 === 0 && !this.isChannelsLast)) &&
-        convInfo.outChannels % 4 === 0;
+    this.isVec4 =
+        convInfo.inChannels % 4 === 0 && convInfo.outChannels % 4 === 0;
     this.dispatchLayout = {x: [3], y: [1, 2], z: [0]};
     this.workGroupSize = computeWorkGroupSizeForConv2d(
         this.dispatchLayout, this.outputShape, this.isVec4);
@@ -169,13 +167,10 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
     const matMulSource = this.isVec4 ?
         makeMatMulPackedVec4Source(
             this.elementsPerThread, this.tileAOuter, this.tileBOuter,
-            this.tileInner, this.innerElementSize, !this.isChannelsLast) :
+            this.tileInner, this.innerElementSize) :
         makeMatMulPackedSource(this.elementsPerThread, this.workGroupSize);
-    const elementsSize = this.isVec4 ?
-        [this.isChannelsLast ? this.innerElementSize : 4, 4, 4] :
-        [1, 1, 1];
     const userCode = `
-    ${conv2dTransposeCommonSnippet(elementsSize[2])}
+    ${conv2dTransposeCommonSnippet(this.isVec4 ? 4 : 1)}
     ${matMulSource}
     `;
     return userCode;
