@@ -48,7 +48,7 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
   private initializer: GraphExecutor;
   private resourceManager: ResourceManager;
   private signature: tensorflow.ISignatureDef;
-  private structuredOutputKeys_: string[];
+  private structuredOutputKeys: string[];
   private readonly io: typeof io;
 
   // Returns the version information for the tensorflow model GraphDef.
@@ -82,10 +82,6 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
 
   get modelSignature(): {} {
     return this.signature;
-  }
-
-  get structuredOutputKeys(): {} {
-    return this.structuredOutputKeys_;
   }
 
   /**
@@ -176,7 +172,7 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
       }
 
       if (metadata.structuredOutputKeys != null) {
-        this.structuredOutputKeys_ = metadata.structuredOutputKeys as string[];
+        this.structuredOutputKeys = metadata.structuredOutputKeys as string[];
       }
     }
     this.signature = signature;
@@ -316,13 +312,13 @@ export class GraphModel<ModelURL extends Url = string | io.IOHandler> implements
   predict(inputs: Tensor|Tensor[]|NamedTensorMap, config?: ModelPredictConfig):
       Tensor|Tensor[]|NamedTensorMap {
     const outputTensors = this.execute(inputs, this.outputNodes);
-    if (this.structuredOutputKeys_) {
+    if (this.structuredOutputKeys) {
       const outputTensorsArray =
           outputTensors instanceof Tensor ? [outputTensors] : outputTensors;
       const outputTensorMap: NamedTensorMap = {};
 
       outputTensorsArray.forEach(
-          (outputTensor, i) => outputTensorMap[this.structuredOutputKeys_[i]] =
+          (outputTensor, i) => outputTensorMap[this.structuredOutputKeys[i]] =
               outputTensor);
 
       return outputTensorMap;
