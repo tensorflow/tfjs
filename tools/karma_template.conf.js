@@ -17,7 +17,6 @@
 
 const browserstackConfig = {
   hostname: 'bs-local.com',
-  reporters: ['dots'],
   port: 9876,
 };
 
@@ -45,11 +44,11 @@ const CUSTOM_LAUNCHERS = {
     os: 'OS X',
     os_version: 'High Sierra'
   },
-  bs_ios_11: {
+  bs_ios_12: {
     base: 'BrowserStack',
-    device: 'iPhone X',
+    device: 'iPhone XS',
     os: 'ios',
-    os_version: '11.0',
+    os_version: '12.3',
     real_mobile: true
   },
   bs_android_9: {
@@ -136,11 +135,15 @@ module.exports = function(config) {
   }
 
   config.set({
-    reporters: ['kjhtml'],
+    reporters: [
+      'kjhtml',
+      'jasmine-order',
+    ],
     frameworks: ['jasmine'],
     plugins: [
       require('karma-jasmine'),
       require('karma-jasmine-html-reporter'),
+      require('karma-jasmine-order-reporter'),
     ],
     captureTimeout: 3e5,
     reportSlowerThan: 500,
