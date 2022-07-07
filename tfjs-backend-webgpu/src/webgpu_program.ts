@@ -167,7 +167,7 @@ function makeShader(
           outShapeStrides : vec2<i32>,
         };
 
-        @group(0) @binding(0) var<storage, write> result: array<${
+        @group(0) @binding(0) var<storage, read_write> result: array<${
         mapToWgslTypes(outputData.dtype, program.isVec4)}>;
         @group(0) @binding(2) var<uniform> uniforms: Uniform;
       `);
@@ -238,7 +238,7 @@ function makeShader(
     `);
   } else {
     prefixSnippets.push(`
-      @group(0) @binding(0) var<storage, write> result: array<${
+      @group(0) @binding(0) var<storage, read_write> result: array<${
         mapToWgslTypes(outputData.dtype, program.isVec4)}>;
     `);
   }
