@@ -16,7 +16,7 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-import {mapActivationToShaderProgram} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet} from './activation_util';
 import {getWorkGroupSizeString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
@@ -63,34 +63,10 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
   }
 
   getUserCode(): string {
-    let activationSnippet = '', applyActivationSnippet = '';
-    if (this.activation) {
-      const activationOp =
-          mapActivationToShaderProgram(this.activation, this.isVec4);
-      if (this.hasPreluActivation) {
-        activationSnippet =
-            `fn activation(a : vec4<f32>, outCoord : vec4<i32>) -> vec4<f32> {
-          let b = getPreluActivationWeightsByOutputCoords(outCoord);
-          ${activationOp}
-        }`;
-      } else {
-        activationSnippet = `
-        fn activation(a : vec4<f32>, outCoord : vec4<i32>) -> vec4<f32> {
-            ${activationOp}
-          }
-        `;
-      }
-
-      applyActivationSnippet = `dotProd[i] = activation(dotProd[i], coords);`;
-    }
-
-    const addBiasSnippet = this.addBias ?
-        'dotProd[i] = dotProd[i] + getBiasByOutputCoords(coords);' :
-        '';
     // Here 4 is the work per thread in X dimension.
     const xNumber = 4 + this.convInfo.filterWidth - 1;
     const userCode = `
-      ${activationSnippet}
+      ${activationFnSnippet(this.activation, this.hasPreluActivation, true, 4)}
       fn readX(batch : i32, row : i32, col : i32, channel : i32) -> vec4<f32> {
         var value = vec4<f32>(0.0);
         if (row >=0 && row < uniforms.inDims[0] && col >=0 && col < uniforms.inDims[1])
@@ -135,9 +111,9 @@ export class DepthwiseConv2DVec4Program implements WebGPUProgram {
         for (var i = 0; i < 4; i = i + 1) {
           let coords = vec4<i32>(batch, r, c + i, d1);
           if (coordsInBounds4D(coords, uniforms.outShape)) {
-            ${addBiasSnippet}
-            ${applyActivationSnippet}
-            setOutputAtCoords(coords[0], coords[1], coords[2], coords[3], dotProd[i]);
+            var value = dotProd[i];
+            ${biasActivationSnippet(this.addBias, this.activation)}
+            setOutputAtCoords(coords[0], coords[1], coords[2], coords[3], value);
           }
         }
       }

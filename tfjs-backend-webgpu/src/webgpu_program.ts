@@ -133,9 +133,9 @@ function makeShader(
     program: WebGPUProgram): string {
   const prefixSnippets: string[] = [];
   prefixSnippets.push(`
-      let workGroupSizeX = ${program.workGroupSize[0]}u;
-      let workGroupSizeY = ${program.workGroupSize[1]}u;
-      let workGroupSizeZ = ${program.workGroupSize[2]}u;
+      const workGroupSizeX = ${program.workGroupSize[0]}u;
+      const workGroupSizeY = ${program.workGroupSize[1]}u;
+      const workGroupSizeZ = ${program.workGroupSize[2]}u;
 
       var<private> localId: vec3<u32>;
       var<private> globalId: vec3<u32>;
@@ -167,7 +167,7 @@ function makeShader(
           outShapeStrides : vec2<i32>,
         };
 
-        @group(0) @binding(0) var<storage, write> result: array<${
+        @group(0) @binding(0) var<storage, read_write> result: array<${
         mapToWgslTypes(outputData.dtype, program.isVec4)}>;
         @group(0) @binding(2) var<uniform> uniforms: Uniform;
       `);
@@ -238,7 +238,7 @@ function makeShader(
     `);
   } else {
     prefixSnippets.push(`
-      @group(0) @binding(0) var<storage, write> result: array<${
+      @group(0) @binding(0) var<storage, read_write> result: array<${
         mapToWgslTypes(outputData.dtype, program.isVec4)}>;
     `);
   }

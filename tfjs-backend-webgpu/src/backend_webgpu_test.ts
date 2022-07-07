@@ -122,7 +122,7 @@ describeWebGPU('backend webgpu', () => {
     const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
     tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 1);
     const backend = tf.backend() as WebGPUBackend;
-    const bufferManager = backend.getBufferManager();
+    const bufferManager = backend.bufferManager;
     bufferManager.dispose();
 
     const a = tf.tensor2d([2, 4, 6, 8], [2, 2]);
@@ -163,7 +163,7 @@ describeWebGPU('backend webgpu', () => {
     const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
     tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 15);
     const backend = tf.backend() as WebGPUBackend;
-    const bufferManager = backend.getBufferManager();
+    const bufferManager = backend.bufferManager;
     bufferManager.dispose();
 
     const a = tf.tensor2d([2, 4, 6, 8], [2, 2]);
@@ -236,12 +236,12 @@ describeWebGPU('backendWebGPU', () => {
     tf.registerBackend('test-storage', () => backend);
     tf.setBackend('test-storage');
 
-    const bufferManager = backend.getBufferManager();
+    const bufferManager = backend.bufferManager;
     const t = tf.tensor1d([1, 2, 3], 'float32');
 
     expect(bufferManager.getNumUsedBuffers()).toBe(0);
 
-    backend.getBuffer(t.dataId);
+    backend.uploadToGPU(t.dataId);
     expect(bufferManager.getNumUsedBuffers())
         .toBe(
             2);  // One is the storage buffer, the other is the staging buffer.

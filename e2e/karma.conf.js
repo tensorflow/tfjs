@@ -20,7 +20,6 @@ const karmaTypescriptConfig = {
   coverageOptions: {instrumentation: false},
   bundlerOptions: {
     sourceMap: true,
-    acornOptions: {ecmaVersion: 8},
     transforms: [
       require('karma-typescript-es6-transform')({
         presets: [
@@ -170,7 +169,7 @@ module.exports = function(config) {
         os: 'OS X',
         os_version: 'High Sierra'
       },
-      bs_ios_11: {
+      bs_ios_12: {
         base: 'BrowserStack',
         device: 'iPhone X',
         os: 'iOS',

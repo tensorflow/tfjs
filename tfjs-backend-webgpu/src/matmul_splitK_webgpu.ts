@@ -17,7 +17,7 @@
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import {mapActivationToShaderProgram} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet} from './activation_util';
 import {getMainHeaderAndGlobalIndexString, getMainHeaderString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
@@ -129,8 +129,8 @@ export class MatMulSplitKProgram implements WebGPUProgram {
 
       fn mm_write(batch: i32, row : i32, col : i32, valueIn : f32) {
         if (row < uniforms.dimAOuter && col < uniforms.dimBOuter) {
-          let outCoord = vec3<i32>(batch, row, col);
-          let flatIndex = getOutputIndexFromCoords(outCoord);
+          let coords = vec3<i32>(batch, row, col);
+          let flatIndex = getOutputIndexFromCoords(coords);
           var value = valueIn;
           // The problem is that we should initialize output to zero before using.
           // Otherwise, the original value will be added to the result.
@@ -268,36 +268,13 @@ export class BiasActivationProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
-    let activationSnippet = '', applyActivationSnippet = '';
-    if (this.activation) {
-      const activationOp = mapActivationToShaderProgram(this.activation, false);
-      if (this.hasPreluActivationWeights) {
-        activationSnippet =
-            `fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
-               let b = getPreluActivationWeightsByOutputCoords(outCoord);
-               ${activationOp}
-            }`;
-      } else {
-        activationSnippet = `
-              fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
-                ${activationOp}
-              }
-            `;
-      }
-
-      applyActivationSnippet = 'value = activation(value, outCoord);';
-    }
-
-    const addBiasSnippet =
-        this.addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
     return `
-    ${activationSnippet}
+    ${activationFnSnippet(this.activation, this.hasPreluActivationWeights)}
     ${getMainHeaderAndGlobalIndexString()}
       if (index < uniforms.size) {
         let outCoord = getCoordsFromIndex(index);
         var value = getXByOutputIndex(index);
-        ${addBiasSnippet}
-        ${applyActivationSnippet}
+        ${biasActivationSnippet(this.addBias, this.activation)}
         setOutputAtIndex(index, value);
       }
     }
