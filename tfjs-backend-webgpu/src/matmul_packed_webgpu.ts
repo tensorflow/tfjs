@@ -177,7 +177,7 @@ export function makeMatMulVectorSource(
       workGroupSize[1] === 1 && workGroupSize[2] === 1,
       () => `A linear work group size is required. But got ${workGroupSize}.`);
   return `
-    let TileSize = ${workGroupSize[0] * 4};
+    const TileSize = ${workGroupSize[0] * 4};
     var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
 
     ${getMainHeaderString()}
