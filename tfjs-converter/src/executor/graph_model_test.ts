@@ -14,16 +14,16 @@
  * limitations under the License.
  * =============================================================================
  */
-
 import * as tfc from '@tensorflow/tfjs-core';
 import {io, scalar} from '@tensorflow/tfjs-core';
 
 import * as tensorflow from '../data/compiled_api';
 import {deregisterOp, registerOp} from '../operations/custom_op/register';
+import {RecursiveSpy, spyOnAllFunctions} from '../operations/executors/spy_ops';
 import {GraphNode} from '../operations/types';
 
 import {GraphModel, loadGraphModel, loadGraphModelSync} from './graph_model';
-import {RecursiveSpy, spyOnAllFunctions} from '../operations/executors/spy_ops';
+import {STRUCTURED_OUTPUTS_MODEL} from './test_data/structured_outputs_model_loader';
 
 const HOST = 'http://example.org';
 const MODEL_URL = `${HOST}/model.json`;
@@ -188,6 +188,12 @@ const CONTROL_FLOW_HTTP_MODEL_LOADER = {
   }
 };
 
+const STRUCTURED_OUTPUTS_MODEL_LOADER = {
+  load: async () => {
+    return STRUCTURED_OUTPUTS_MODEL;
+  }
+};
+
 const INITIALIZER_GRAPHDEF: tensorflow.IGraphDef = {
   node: [
     {
@@ -290,8 +296,7 @@ const HASH_TABLE_SIGNATURE: tensorflow.ISignatureDef = {
     defaultValues: {name: 'Input_1:0', dtype: tensorflow.DataType.DT_FLOAT}
   },
   outputs: {
-    values:
-        {name: 'LookupTableFindV2:0', dtype: tensorflow.DataType.DT_FLOAT}
+    values: {name: 'LookupTableFindV2:0', dtype: tensorflow.DataType.DT_FLOAT}
   }
 };
 const HASHTABLE_HTTP_MODEL_LOADER = {
@@ -358,6 +363,15 @@ describe('loadSync', () => {
     expect(model.modelSignature).toBeUndefined();
   });
 
+  it('Can load model with structured_outputs.', () => {
+    artifacts.convertedBy = 'TensorFlow.js Converter v3.19.0';
+    artifacts.userDefinedMetadata = {structuredOutputKeys: ['a', 'b', 'c']};
+    const loaded = model.loadSync(artifacts);
+
+    expect(loaded).toBe(true);
+    expect(model.modelStructuredOutputKeys).toEqual(['a', 'b', 'c']);
+  });
+
   it('Can load model with different convertedBy language.', () => {
     artifacts.convertedBy = '1.3.2';
     artifacts.userDefinedMetadata = {signature: SIGNATURE};
@@ -404,9 +418,7 @@ describe('loadGraphModel', () => {
 
   it('Pass a fetchFunc', async () => {
     const fetchFunc = () => {};
-    spyIo.getLoadHandlers.and.returnValue([
-      CUSTOM_HTTP_MODEL_LOADER
-    ]);
+    spyIo.getLoadHandlers.and.returnValue([CUSTOM_HTTP_MODEL_LOADER]);
     await loadGraphModel(MODEL_URL, {fetchFunc}, spyIo);
     expect(spyIo.getLoadHandlers).toHaveBeenCalledWith(MODEL_URL, {fetchFunc});
   });
@@ -437,8 +449,8 @@ describe('loadGraphModelSync', () => {
     } catch (err) {
       errorMsg = err.message;
     }
-    expect(errorMsg)
-      .toMatch(/modelUrl in loadGraphModelSync\(\) cannot be null/);
+    expect(errorMsg).toMatch(
+        /modelUrl in loadGraphModelSync\(\) cannot be null/);
   });
 });
 
@@ -452,9 +464,7 @@ describe('Model', () => {
 
   describe('custom model', () => {
     beforeEach(() => {
-      spyIo.getLoadHandlers.and.returnValue([
-        CUSTOM_HTTP_MODEL_LOADER
-      ]);
+      spyIo.getLoadHandlers.and.returnValue([CUSTOM_HTTP_MODEL_LOADER]);
       registerOp('CustomOp', (nodeValue: GraphNode) => {
         const x = nodeValue.inputs[0];
         return [tfc.add(x, scalar(1, 'int32'))];
@@ -494,9 +504,7 @@ describe('Model', () => {
 
   describe('simple model', () => {
     beforeEach(() => {
-      spyIo.getLoadHandlers.and.returnValue([
-        SIMPLE_HTTP_MODEL_LOADER
-      ]);
+      spyIo.getLoadHandlers.and.returnValue([SIMPLE_HTTP_MODEL_LOADER]);
       spyIo.browserHTTPRequest.and.returnValue(SIMPLE_HTTP_MODEL_LOADER);
     });
     it('load', async () => {
@@ -693,11 +701,71 @@ describe('Model', () => {
     });
   });
 
+  describe('structured outputs model', () => {
+    beforeEach(() => {
+      spyIo.getLoadHandlers.and.returnValue([STRUCTURED_OUTPUTS_MODEL_LOADER]);
+      spyIo.browserHTTPRequest.and.returnValue(STRUCTURED_OUTPUTS_MODEL_LOADER);
+    });
+    it('load', async () => {
+      const loaded = await model.load();
+      expect(loaded).toBe(true);
+    });
+
+    describe('save', () => {
+      it('should call the save io handler', async () => {
+        await model.load();
+        const handler = new IOHandlerForTest();
+
+        await model.save(handler);
+        expect(handler.savedArtifacts.format)
+            .toEqual(STRUCTURED_OUTPUTS_MODEL.format);
+        expect(handler.savedArtifacts.generatedBy)
+            .toEqual(STRUCTURED_OUTPUTS_MODEL.generatedBy);
+        expect(handler.savedArtifacts.convertedBy)
+            .toEqual(STRUCTURED_OUTPUTS_MODEL.convertedBy);
+        expect(handler.savedArtifacts.modelTopology)
+            .toEqual(STRUCTURED_OUTPUTS_MODEL.modelTopology);
+        expect(handler.savedArtifacts.userDefinedMetadata)
+            .toEqual(STRUCTURED_OUTPUTS_MODEL.userDefinedMetadata);
+      });
+    });
+
+    describe('predict', () => {
+      it('should support structured outputs', async () => {
+        await model.load();
+
+        const input = tfc.tensor2d([[1]]);
+        const output =
+            model.predict({input1: input, input2: input, input3: input}) as
+            tfc.NamedTensorMap;
+        expect(Object.keys(output)).toEqual(['a', 'b', 'c']);
+      });
+    });
+
+    describe('execute', () => {
+      it('should generate the list output', async () => {
+        await model.load();
+        const input = tfc.tensor2d([[1]]);
+        const output =
+            model.execute({input1: input, input2: input, input3: input});
+        expect(Array.isArray(output)).toBeTruthy();
+      });
+    });
+
+    describe('dispose', () => {
+      it('should dispose the weights', async () => {
+        const numOfTensors = tfc.memory().numTensors;
+        await model.load();
+        model.dispose();
+
+        expect(tfc.memory().numTensors).toEqual(numOfTensors);
+      });
+    });
+  });
+
   describe('control flow model', () => {
     beforeEach(() => {
-      spyIo.getLoadHandlers.and.returnValue([
-        CONTROL_FLOW_HTTP_MODEL_LOADER
-      ]);
+      spyIo.getLoadHandlers.and.returnValue([CONTROL_FLOW_HTTP_MODEL_LOADER]);
       spyIo.browserHTTPRequest.and.returnValue(CONTROL_FLOW_HTTP_MODEL_LOADER);
     });
 
@@ -785,9 +853,7 @@ describe('Model', () => {
   };
   describe('dynamic shape model', () => {
     beforeEach(() => {
-      spyIo.getLoadHandlers.and.returnValue([
-        DYNAMIC_HTTP_MODEL_LOADER
-      ]);
+      spyIo.getLoadHandlers.and.returnValue([DYNAMIC_HTTP_MODEL_LOADER]);
       spyIo.browserHTTPRequest.and.returnValue(DYNAMIC_HTTP_MODEL_LOADER);
     });
 
@@ -829,9 +895,7 @@ describe('Model', () => {
   });
   describe('dynamic shape model with metadata', () => {
     beforeEach(() => {
-      spyIo.getLoadHandlers.and.returnValue([
-        DYNAMIC_HTTP_MODEL_NEW_LOADER
-      ]);
+      spyIo.getLoadHandlers.and.returnValue([DYNAMIC_HTTP_MODEL_NEW_LOADER]);
       spyIo.browserHTTPRequest.and.returnValue(DYNAMIC_HTTP_MODEL_NEW_LOADER);
     });
 
@@ -854,9 +918,7 @@ describe('Model', () => {
 
   describe('Hashtable model', () => {
     beforeEach(() => {
-      spyIo.getLoadHandlers.and.returnValue([
-        HASHTABLE_HTTP_MODEL_LOADER
-      ]);
+      spyIo.getLoadHandlers.and.returnValue([HASHTABLE_HTTP_MODEL_LOADER]);
       spyIo.browserHTTPRequest.and.returnValue(HASHTABLE_HTTP_MODEL_LOADER);
     });
     it('should be successful if call executeAsync', async () => {
