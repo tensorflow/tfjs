@@ -16,7 +16,7 @@
  */
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
-import {mapActivationToShaderProgram} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet} from './activation_util';
 import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkGroupSizeForMatMul} from './webgpu_util';
 
@@ -65,9 +65,9 @@ export function makeMatMulPackedSource(
   return `
     var<workgroup> mm_Asub : array<array<f32, ${tileAWidth}>, ${tileAHight}>;
     var<workgroup> mm_Bsub : array<array<f32, ${tileBOuter}>, ${tileInner}>;
-    let RowPerThread = ${workPerThread[1]};
-    let ColPerThread = ${workPerThread[0]};
-    let TileInner = ${tileInner};
+    const RowPerThread = ${workPerThread[1]};
+    const ColPerThread = ${workPerThread[0]};
+    const TileInner = ${tileInner};
 
     @compute @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
     fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
@@ -177,7 +177,7 @@ export function makeMatMulVectorSource(
       workGroupSize[1] === 1 && workGroupSize[2] === 1,
       () => `A linear work group size is required. But got ${workGroupSize}.`);
   return `
-    let TileSize = ${workGroupSize[0] * 4};
+    const TileSize = ${workGroupSize[0] * 4};
     var<workgroup> mm_Asub : array<vec4<f32>, ${workGroupSize[0]}>;
 
     ${getMainHeaderString()}
@@ -324,31 +324,8 @@ export class MatMulPackedProgram implements WebGPUProgram {
     } else {
       sampleB = `return B[batch * batchBSize + col * uniforms.dimInner + row];`;
     }
-    let activationSnippet = '', applyActivationSnippet = '';
-    if (this.activation) {
-      const activationOp = mapActivationToShaderProgram(this.activation, false);
-      if (this.hasPreluActivationWeights) {
-        activationSnippet =
-            `fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
-               let b = getPreluActivationWeightsByOutputCoords(outCoord);
-               ${activationOp}
-            }`;
-      } else {
-        activationSnippet = `
-              fn activation(a : f32, outCoord : vec3<i32>) -> f32 {
-                ${activationOp}
-              }
-            `;
-      }
-
-      applyActivationSnippet = 'value = activation(value, outCoord);';
-    }
-
-    const addBiasSnippet =
-        this.addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
-
     const userCode = `
-      ${activationSnippet}
+      ${activationFnSnippet(this.activation, this.hasPreluActivationWeights)}
 
       fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> f32 {
         ${
@@ -384,9 +361,8 @@ export class MatMulPackedProgram implements WebGPUProgram {
         {
         var value = valueIn;
         let batch = i32(globalId.z);
-        let outCoord = vec3<i32>(batch, row, col);
-        ${addBiasSnippet}
-        ${applyActivationSnippet}
+        let coords = vec3<i32>(batch, row, col);
+        ${biasActivationSnippet(this.addBias, this.activation)}
         setOutputAtCoords(batch, row, col, value);
         }
       }

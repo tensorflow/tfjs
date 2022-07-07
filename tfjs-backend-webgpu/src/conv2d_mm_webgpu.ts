@@ -17,26 +17,11 @@
 
 import {backend_util} from '@tensorflow/tfjs-core';
 
-import {mapActivationToShaderProgram} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
 import {makeMatMulPackedVec4Source} from './matmul_packed_vec4_webgpu';
 import {makeMatMulPackedSource} from './matmul_packed_webgpu';
 import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkGroupSizeForConv2d, computeWorkPerThreadForConv2d} from './webgpu_util';
-
-const typeSnippet = (innerElementSize: number) => {
-  switch (innerElementSize) {
-    case 1:
-      return 'f32';
-    case 2:
-      return 'vec2<f32>';
-    case 3:
-      return 'vec3<f32>';
-    case 4:
-      return 'vec4<f32>';
-    default:
-      throw new Error(`innerElementSize ${innerElementSize} is not supported.`);
-  }
-};
 
 function conv2dCommonSnippet(
     isChannelsLast: boolean, fitAOuter: boolean, fitBOuter: boolean,
@@ -76,14 +61,14 @@ function conv2dCommonSnippet(
       `;
 
   const coordResSnippet = isChannelsLast ? `
-      let outCoord = vec4<i32>(
+      let coords = vec4<i32>(
         batch,
         row / outWidth,
         row % outWidth,
         col);
       ` :
                                            `
-      let outCoord = vec4<i32>(
+      let coords = vec4<i32>(
         batch,
         row,
         col / outWidth,
@@ -142,31 +127,10 @@ function conv2dCommonSnippet(
                                  typeSnippet(innerElementSizeW);
   const bType = isChannelsLast ? typeSnippet(innerElementSizeW) :
                                  typeSnippet(innerElementSizeX);
-  let activationSnippet = '', applyActivationSnippet = '';
-  if (activation) {
-    const activationOp =
-        mapActivationToShaderProgram(activation, innerElementSize === 4);
-    if (hasPreluActivationWeights) {
-      activationSnippet =
-          `fn activation(a: ${resType}, outCoord : vec4<i32>) -> ${resType} {
-              let b = getPreluActivationWeightsByOutputCoords(outCoord);
-              ${activationOp}
-           }`;
-    } else {
-      activationSnippet = `
-           fn activation(a : ${resType}, outCoord : vec4<i32>) -> ${resType} {
-             ${activationOp}
-           }`;
-    }
-
-    applyActivationSnippet = `value = activation(value, outCoord);`;
-  }
-
-  const addBiasSnippet =
-      addBias ? 'value = value + getBiasByOutputCoords(outCoord);' : '';
-
   const userCode = `
-      ${activationSnippet}
+      ${
+      activationFnSnippet(
+          activation, hasPreluActivationWeights, innerElementSize === 4, 4)}
       fn mm_readA(row : i32, colIn : i32, globalId : vec3<u32>) -> ${aType} {
         let batch = i32(globalId.z);
         ${isChannelsLast ? sampleX : sampleW}
@@ -187,9 +151,8 @@ function conv2dCommonSnippet(
         let outWidth = ${
       isChannelsLast ? 'uniforms.outShape[2]' : 'uniforms.outShape[3]'};
         ${coordResSnippet}
-        ${addBiasSnippet}
-        ${applyActivationSnippet}
-        setOutputAtCoords(outCoord[0], outCoord[1], outCoord[2], outCoord[3], value);
+        ${biasActivationSnippet(addBias, activation)}
+        setOutputAtCoords(coords[0], coords[1], coords[2], coords[3], value);
         }
       }`;
   return userCode;

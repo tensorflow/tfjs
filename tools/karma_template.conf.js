@@ -45,11 +45,11 @@ const CUSTOM_LAUNCHERS = {
     os: 'OS X',
     os_version: 'High Sierra'
   },
-  bs_ios_11: {
+  bs_ios_12: {
     base: 'BrowserStack',
-    device: 'iPhone X',
+    device: 'iPhone XS',
     os: 'ios',
-    os_version: '11.0',
+    os_version: '12.3',
     real_mobile: true
   },
   bs_android_9: {
@@ -69,6 +69,10 @@ const CUSTOM_LAUNCHERS = {
   chrome_with_swift_shader: {
     base: 'Chrome',
     flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
+  },
+  chrome_autoplay: {
+    base: 'Chrome',
+    flags: ['--autoplay-policy=no-user-gesture-required'],
   },
   chrome_webgpu: {
     base: 'ChromeCanary',
@@ -120,6 +124,12 @@ module.exports = function(config) {
   }
 
   config.set({
+    reporters: ['kjhtml'],
+    frameworks: ['jasmine'],
+    plugins: [
+      require('karma-jasmine'),
+      require('karma-jasmine-html-reporter'),
+    ],
     captureTimeout: 3e5,
     reportSlowerThan: 500,
     browserNoActivityTimeout: 3e5,

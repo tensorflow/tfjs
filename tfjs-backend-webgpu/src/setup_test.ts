@@ -61,6 +61,12 @@ const TEST_FILTERS: TestFilter[] = [
     ]
   },
   {
+    startsWith: 'conv2dTranspose ',
+    excludes: [
+      'gradient',  // gradient function not found.
+    ]
+  },
+  {
     startsWith: 'cumprod ',
     excludes: [
       'gradient',  // gradient function not found.
@@ -283,7 +289,6 @@ const TEST_FILTERS: TestFilter[] = [
       'avgPool3dBackprop ',
       'bincount ',
       'broadcastArgs ',
-      'conv2dTranspose ',
       'conv2DBackpropFilter ',
       'gradient with clones, input=2x2x1,d2=1,f=1,s=1,d=1,p=same',  // Conv2DBackpropFilter
       'conv1d gradients',  // Conv2DBackpropFilter
