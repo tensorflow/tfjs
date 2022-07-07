@@ -558,6 +558,7 @@ def _convert_tf_saved_model(output_dir,
                             quantization_dtype_map=None,
                             skip_op_check=False,
                             strip_debug_ops=False,
+                            use_structured_outputs_names=False,
                             weight_shard_size_bytes=1024 * 1024 * 4,
                             control_flow_v2=False,
                             experiments=False,
@@ -581,6 +582,8 @@ def _convert_tf_saved_model(output_dir,
       supports wildcard substitution.
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to strip debug ops.
+    use_structured_outputs_names: Bool whether output of graph model will follow
+      the structured_outputs format.
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
     control_flow_v2: Bool whether to enable control flow v2 ops.
@@ -630,6 +633,30 @@ def _convert_tf_saved_model(output_dir,
   output_node_names = []
   for output_tensor in concrete_func.outputs:
     output_node_names.append(output_tensor.name.split(':')[0])
+
+  num_outputs = len(output_node_names)
+  structured_outputs = concrete_func.structured_outputs
+  if use_structured_outputs_names and structured_outputs is not None:
+    if type(structured_outputs) is not dict:
+      raise Exception('Converter only supports dict structured_outputs.')
+
+    # As per tensorflow/python/util/nest.py: "If `structure` is or contains a
+    # dict instance, the keys will be sorted to pack the flat sequence
+    # in deterministic order."
+    sorted_keys = sorted(structured_outputs.keys())
+
+    # Check if structure is a simple dictionary.
+    # We don't support anything more complex due to the GraphModel.predict
+    # function return type in typescript.
+    test_sequence = list(range(num_outputs))
+    actual_structure = tf.nest.pack_sequence_as(structured_outputs, test_sequence, True)
+    expected_structure = dict(zip(sorted_keys, test_sequence))
+    if actual_structure != expected_structure:
+      raise Exception('Converter only supports structured_outputs of form '
+                      '{"key1": value1, "key2":value2 ... })')
+
+    metadata = metadata or {}
+    metadata[common.STRUCTURED_OUTPUTS_KEYS_KEY] = sorted_keys
 
   # TensorFlow doesn't encode the saved model version in the graph in a
   # reliable way. Try to freeze the graph using V2 utils. If that fails, freeze
@@ -742,6 +769,7 @@ def convert_tf_saved_model(saved_model_dir,
                            quantization_dtype_map=None,
                            skip_op_check=False,
                            strip_debug_ops=False,
+                           use_structured_outputs_names=False,
                            weight_shard_size_bytes=1024 * 1024 * 4,
                            control_flow_v2=False,
                            experiments=False,
@@ -767,6 +795,8 @@ def convert_tf_saved_model(saved_model_dir,
       supports wildcard substitution.
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to strip debug ops.
+    use_structured_outputs_names: Bool whether output of graph model will follow
+      the structured_outputs format.
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
     control_flow_v2: Bool whether to enable control flow v2 ops.
@@ -781,6 +811,8 @@ def convert_tf_saved_model(saved_model_dir,
                           quantization_dtype_map=quantization_dtype_map,
                           skip_op_check=skip_op_check,
                           strip_debug_ops=strip_debug_ops,
+                          use_structured_outputs_names=
+                                             use_structured_outputs_names,
                           weight_shard_size_bytes=weight_shard_size_bytes,
                           control_flow_v2=control_flow_v2,
                           experiments=experiments,
@@ -913,6 +945,7 @@ def convert_tf_hub_module(module_handle, output_dir,
                           signature='default', saved_model_tags='serve',
                           quantization_dtype_map=None,
                           skip_op_check=False, strip_debug_ops=False,
+                          use_structured_outputs_names=False,
                           weight_shard_size_bytes=1024 * 1024 * 4,
                           control_flow_v2=False,
                           experiments=False,
@@ -934,6 +967,8 @@ def convert_tf_hub_module(module_handle, output_dir,
       supports wildcard substitution.
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to strip debug ops.
+    use_structured_outputs_names: Bool whether output of graph model will follow
+      the structured_outputs format.
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
     control_flow_v2: Bool whether to enable control flow v2 ops.
@@ -963,6 +998,8 @@ def convert_tf_hub_module(module_handle, output_dir,
                            quantization_dtype_map=quantization_dtype_map,
                            skip_op_check=skip_op_check,
                            strip_debug_ops=strip_debug_ops,
+                           use_structured_outputs_names=
+                                              use_structured_outputs_names,
                            weight_shard_size_bytes=weight_shard_size_bytes,
                            control_flow_v2=control_flow_v2,
                            experiments=experiments,
@@ -974,6 +1011,7 @@ def convert_keras_model_to_graph_model(keras_model,
                                        quantization_dtype_map=None,
                                        skip_op_check=False,
                                        strip_debug_ops=False,
+                                       use_structured_outputs_names=False,
                                        weight_shard_size_bytes=1024 * 1024 * 4,
                                        control_flow_v2=False,
                                        experiments=False,
@@ -992,6 +1030,8 @@ def convert_keras_model_to_graph_model(keras_model,
       supports wildcard substitution.
     skip_op_check: Bool whether to skip the op check.
     strip_debug_ops: Bool whether to strip debug ops.
+    use_structured_outputs_names: Bool whether output of graph model will follow
+      the structured_outputs format.
     weight_shard_size_bytes: Shard size (in bytes) of the weight files.
       The size of each weight file will be <= this value.
     control_flow_v2: Bool whether to enable control flow v2 ops.
@@ -1003,6 +1043,8 @@ def convert_keras_model_to_graph_model(keras_model,
                           quantization_dtype_map=quantization_dtype_map,
                           skip_op_check=skip_op_check,
                           strip_debug_ops=strip_debug_ops,
+                          use_structured_outputs_names=
+                                             use_structured_outputs_names,
                           weight_shard_size_bytes=weight_shard_size_bytes,
                           control_flow_v2=control_flow_v2,
                           experiments=experiments,
