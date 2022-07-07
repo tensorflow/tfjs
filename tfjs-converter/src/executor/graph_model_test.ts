@@ -369,7 +369,7 @@ describe('loadSync', () => {
     const loaded = model.loadSync(artifacts);
 
     expect(loaded).toBe(true);
-    expect(model.structuredOutputKeys).toEqual(['a', 'b', 'c']);
+    expect(model.modelStructuredOutputKeys).toEqual(['a', 'b', 'c']);
   });
 
   it('Can load model with different convertedBy language.', () => {
