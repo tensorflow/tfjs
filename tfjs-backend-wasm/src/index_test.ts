@@ -67,7 +67,8 @@ describeWithFlags('wasm read/write', ALL_ENVS, () => {
 });
 
 describeWithFlags('wasm init', BROWSER_ENVS, () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await setupCachedWasmPaths();
     registerBackend('wasm-test', async () => {
       const {wasm} = await init();
       return new BackendWasm(wasm);
@@ -79,17 +80,19 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
   });
 
   afterEach(async () => {
-    await setupCachedWasmPaths();
     removeBackend('wasm-test');
   });
 
+  afterAll(setupCachedWasmPaths);
+
   it('backend init fails when the path is invalid', async () => {
+    resetWasmPath();
     setWasmPath('invalid/path');
     let wasmPath: string;
-    const realFetch = fetch;
     spyOn(self, 'fetch').and.callFake((path: string) => {
       wasmPath = path;
-      return realFetch(path);
+      return Promise.reject(
+        new TypeError('Failed to fetch because invalid path'));
     });
     expect(await tf.setBackend('wasm-test')).toBe(false);
     expect(wasmPath).toBe('invalid/path');
@@ -101,10 +104,10 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
        resetWasmPath();
        setWasmPaths('invalid/prefix/');
        let wasmPath: string;
-       const realFetch = fetch;
        spyOn(self, 'fetch').and.callFake((path: string) => {
          wasmPath = path;
-         return realFetch(path);
+         return Promise.reject(
+           new TypeError('Failed to fetch because invalid prefix'));
        });
        expect(await tf.setBackend('wasm-test')).toBe(false);
        expect(wasmPath).toContain('invalid/prefix');
@@ -120,10 +123,10 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
          'tfjs-backend-wasm-threaded-simd.wasm': 'invalid/path'
        });
        let wasmPathPrefix: string;
-       const realFetch = fetch;
        spyOn(self, 'fetch').and.callFake((path: string) => {
          wasmPathPrefix = path;
-         return realFetch(path);
+         return Promise.reject(
+           new TypeError('Failed to fetch because invalid paths'));
        });
        expect(await tf.setBackend('wasm-test')).toBe(false);
        expect(wasmPathPrefix).toBe('invalid/path');
@@ -215,7 +218,8 @@ describeWithFlags('wasm init', BROWSER_ENVS, () => {
       let wasmPath: string;
       fetchSpy.and.callFake((path: string) => {
         wasmPath = path;
-        return realFetch(path);
+        return Promise.reject(
+          new TypeError('Failed to fetch because invalid path'));
       });
       expect(await tf.setBackend('wasm-test')).toBe(false);
       expect(wasmPath).toBe('invalid/path');
