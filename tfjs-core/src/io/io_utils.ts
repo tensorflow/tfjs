@@ -396,6 +396,9 @@ export function getModelJSONForModelArtifacts(
   if (artifacts.modelInitializer != null) {
     result.modelInitializer = artifacts.modelInitializer;
   }
+  if (artifacts.initializerSignature != null) {
+    result.initializerSignature = artifacts.initializerSignature;
+  }
   if (artifacts.trainingConfig != null) {
     result.trainingConfig = artifacts.trainingConfig;
   }
@@ -445,6 +448,9 @@ export function getModelArtifactsForJSONSync(
   }
   if (modelJSON.modelInitializer != null) {
     modelArtifacts.modelInitializer = modelJSON.modelInitializer;
+  }
+  if (modelJSON.initializerSignature != null) {
+    modelArtifacts.initializerSignature = modelJSON.initializerSignature;
   }
 
   return modelArtifacts;

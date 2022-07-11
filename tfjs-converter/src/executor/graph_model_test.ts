@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import * as tfc from '@tensorflow/tfjs-core';
-import {io, scalar} from '@tensorflow/tfjs-core';
+import {io, scalar, Tensor} from '@tensorflow/tfjs-core';
 
 import * as tensorflow from '../data/compiled_api';
 import {deregisterOp, registerOp} from '../operations/custom_op/register';
@@ -23,6 +23,7 @@ import {RecursiveSpy, spyOnAllFunctions} from '../operations/executors/spy_ops';
 import {GraphNode} from '../operations/types';
 
 import {GraphModel, loadGraphModel, loadGraphModelSync} from './graph_model';
+import {HASH_TABLE_MODEL_V2} from './test_data/hash_table_v2_model_loader';
 import {STRUCTURED_OUTPUTS_MODEL} from './test_data/structured_outputs_model_loader';
 
 const HOST = 'http://example.org';
@@ -299,7 +300,7 @@ const HASH_TABLE_SIGNATURE: tensorflow.ISignatureDef = {
     values: {name: 'LookupTableFindV2:0', dtype: tensorflow.DataType.DT_FLOAT}
   }
 };
-const HASHTABLE_HTTP_MODEL_LOADER = {
+const HASHTABLE_V1_HTTP_MODEL_LOADER = {
   load: async () => {
     return {
       modelTopology: HASH_TABLE_MODEL,
@@ -311,6 +312,12 @@ const HASHTABLE_HTTP_MODEL_LOADER = {
       userDefinedMetadata: {signature: HASH_TABLE_SIGNATURE},
       modelInitializer: INITIALIZER_GRAPHDEF
     };
+  }
+};
+
+const HASHTABLE_V2_MODEL_LOADER = {
+  load: async () => {
+    return HASH_TABLE_MODEL_V2;
   }
 };
 
@@ -761,7 +768,7 @@ describe('Model', () => {
       it('should expose outputs', async () => {
         await model.load();
         expect(model.outputs).toEqual([
-          {name: 'Add', shape: undefined, dtype: undefined}
+          {name: 'Add', signatureKey: 'y', shape: undefined, dtype: undefined}
         ]);
       });
     });
@@ -982,10 +989,10 @@ describe('Model', () => {
     });
   });
 
-  describe('Hashtable model', () => {
+  describe('Hashtable V1 model', () => {
     beforeEach(() => {
-      spyIo.getLoadHandlers.and.returnValue([HASHTABLE_HTTP_MODEL_LOADER]);
-      spyIo.browserHTTPRequest.and.returnValue(HASHTABLE_HTTP_MODEL_LOADER);
+      spyIo.getLoadHandlers.and.returnValue([HASHTABLE_V1_HTTP_MODEL_LOADER]);
+      spyIo.browserHTTPRequest.and.returnValue(HASHTABLE_V1_HTTP_MODEL_LOADER);
     });
     it('should be successful if call executeAsync', async () => {
       await model.load();
@@ -993,6 +1000,43 @@ describe('Model', () => {
       const defaultValues = tfc.tensor1d([0]);
       const res = await model.executeAsync({keys, defaultValues});
       expect(res).not.toBeNull();
+    });
+  });
+
+  describe('Hashtable V2 model', () => {
+    beforeEach(() => {
+      spyIo.getLoadHandlers.and.returnValue([HASHTABLE_V2_MODEL_LOADER]);
+      spyIo.browserHTTPRequest.and.returnValue(HASHTABLE_V2_MODEL_LOADER);
+    });
+    it('load', async () => {
+      const loaded = await model.load();
+      expect(loaded).toBe(true);
+    });
+
+    describe('execute', () => {
+      it('should be successful if call executeAsync', async () => {
+        await model.load();
+        const res = await model.executeAsync(
+                        {'input': tfc.tensor1d(['a', 'b', 'c'])}) as Tensor;
+        expect(Array.from(res.dataSync())).toEqual([0, 1, -1]);
+      });
+    });
+
+    describe('dispose', () => {
+      it('should dispose the weights', async () => {
+        const startTensors = tfc.memory().numTensors;
+
+        await model.load();
+
+        const input = tfc.tensor1d(['a', 'b', 'c']);
+        const output = await model.executeAsync({input}) as Tensor;
+        input.dispose();
+        output.dispose();
+
+        model.dispose();
+
+        expect(tfc.memory().numTensors).toEqual(startTensors);
+      });
     });
   });
 });
