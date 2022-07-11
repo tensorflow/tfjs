@@ -22,6 +22,7 @@ package(default_visibility = ["//visibility:public"])
 TEST_SRCS = [
     "**/*_test.ts",
     "test_node.ts",
+    "test_util.ts",
 ]
 
 TEST_ENTRYPOINTS = [

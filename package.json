@@ -46,6 +46,7 @@
     "karma-firefox-launcher": "^2.1.2",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "^2.0.0",
+    "karma-jasmine-order-reporter": "^1.1.0",
     "karma-requirejs": "^1.1.0",
     "karma-sourcemap-loader": "^0.3.8",
     "long": "4.0.0",
