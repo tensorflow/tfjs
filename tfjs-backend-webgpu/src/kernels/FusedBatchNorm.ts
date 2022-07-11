@@ -19,7 +19,7 @@ import {FusedBatchNorm, FusedBatchNormAttrs, FusedBatchNormInputs, KernelConfig,
 
 import {WebGPUBackend} from '../backend_webgpu';
 
-import {BatchNormProgram} from './batchnorm_webgpu';
+import {BatchNormProgram} from '../batchnorm_webgpu';
 
 export const fusedBatchNormConfig: KernelConfig = {
   kernelName: FusedBatchNorm,

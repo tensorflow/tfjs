@@ -22,16 +22,20 @@ const BACKEND_FLAGS_MAP = {
     'WASM_HAS_SIMD_SUPPORT',
     'WASM_HAS_MULTITHREAD_SUPPORT',
     'CHECK_COMPUTATION_FOR_ERRORS',
+    'KEEP_INTERMEDIATE_TENSORS',
   ],
   webgl: [
     'WEBGL_VERSION', 'WEBGL_CPU_FORWARD', 'WEBGL_PACK',
     'WEBGL_FORCE_F16_TEXTURES', 'WEBGL_RENDER_FLOAT32_CAPABLE',
     'WEBGL_FLUSH_THRESHOLD', 'WEBGL_PACK_DEPTHWISECONV',
-    'CHECK_COMPUTATION_FOR_ERRORS', 'WEBGL_USE_SHAPES_UNIFORMS'
+    'CHECK_COMPUTATION_FOR_ERRORS', 'WEBGL_USE_SHAPES_UNIFORMS',
+    'KEEP_INTERMEDIATE_TENSORS'
   ],
+  tflite: [],
 };
 if (tf.engine().backendNames().includes('webgpu')) {
-  BACKEND_FLAGS_MAP['webgpu'] = ['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'];
+  BACKEND_FLAGS_MAP['webgpu'] =
+      ['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 'KEEP_INTERMEDIATE_TENSORS'];
 }
 
 const TUNABLE_FLAG_NAME_MAP = {
@@ -47,6 +51,7 @@ const TUNABLE_FLAG_NAME_MAP = {
   WEBGL_PACK_DEPTHWISECONV: 'Packed depthwise Conv2d',
   WEBGL_USE_SHAPES_UNIFORMS: 'Use shapes uniforms',
   CHECK_COMPUTATION_FOR_ERRORS: 'Check each op result',
+  KEEP_INTERMEDIATE_TENSORS: 'Print intermediate tensors',
 };
 if (tf.engine().backendNames().includes('webgpu')) {
   TUNABLE_FLAG_NAME_MAP['WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE'] =
@@ -129,7 +134,6 @@ function showBackendFlagSettingsAndReturnTunableFlagControllers(
           `because its value range is [${flagValueRange}].`);
       continue;
     }
-
     let flagController;
     if (typeof flagValueRange[0] === 'boolean') {
       // Show checkbox for boolean flags.
@@ -209,7 +213,7 @@ async function initDefaultValueMap() {
 function getTunableRange(flag) {
   const defaultValue = TUNABLE_FLAG_DEFAULT_VALUE_MAP[flag];
   if (flag === 'WEBGL_FORCE_F16_TEXTURES' ||
-      flag === 'WEBGL_PACK_DEPTHWISECONV') {
+      flag === 'WEBGL_PACK_DEPTHWISECONV' || 'KEEP_INTERMEDIATE_TENSORS') {
     return [false, true];
   } else if (flag === 'WEBGL_VERSION') {
     const tunableRange = [];

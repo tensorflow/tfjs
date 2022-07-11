@@ -18,13 +18,13 @@
 import './flags_webgpu';
 import './register_all_kernels';
 
-import {device_util, env, registerBackend} from '@tensorflow/tfjs-core';
+import {env, registerBackend} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from './backend_webgpu';
 import * as webgpu from './webgpu';
 import {isWebGPUSupported} from './webgpu_util';
 
-if (device_util.isBrowser() && isWebGPUSupported()) {
+if (isWebGPUSupported()) {
   registerBackend('webgpu', async () => {
     // Remove it once we figure out how to correctly read the tensor data
     // before the tensor is disposed in profiling mode.
@@ -37,11 +37,19 @@ if (device_util.isBrowser() && isWebGPUSupported()) {
     };
 
     const adapter = await navigator.gpu.requestAdapter(gpuDescriptor);
-    let deviceDescriptor: GPUDeviceDescriptor = {};
+    const adapterLimits = adapter.limits;
+    const deviceDescriptor: GPUDeviceDescriptor = {};
     const supportTimeQuery = adapter.features.has('timestamp-query');
+    deviceDescriptor.requiredLimits = {
+      'maxComputeWorkgroupStorageSize':
+          adapterLimits.maxComputeWorkgroupStorageSize,
+      'maxComputeWorkgroupsPerDimension':
+          adapterLimits.maxComputeWorkgroupsPerDimension,
+      'maxStorageBufferBindingSize': adapterLimits.maxStorageBufferBindingSize,
+    };
 
     if (supportTimeQuery) {
-      deviceDescriptor = {requiredFeatures: ['timestamp-query' as const]};
+      deviceDescriptor.requiredFeatures = ['timestamp-query' as const];
     } else {
       console.warn(
           `This device doesn't support timestamp-query extension. ` +

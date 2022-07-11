@@ -992,4 +992,17 @@ describeWebGPU('matmul', () => {
       64, 62, 31, 9,  19, 15, 8, 36, 47, 41, 23, 12, 15, 12, 8, 32
     ]);
   });
+
+  it('A^t x B', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+    const b = tf.tensor2d([1, 0, 2, 4, 3, 0, 5, 6], [2, 4]);
+
+    const transposeA = true;
+    const transposeB = false;
+    const c = tf.matMul(a, b, transposeA, transposeB);
+    const result = await c.data();
+    const expected =
+        [16, 0, 27, 34, 20, 0, 34, 44, 24, 0, 41, 54, 28, 0, 48, 64];
+    test_util.expectArraysClose(result, expected);
+  });
 });

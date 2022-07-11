@@ -27,7 +27,7 @@ import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext): Tensor[] => {
+     context: ExecutionContext, ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'ResizeBilinear': {
           const images =
@@ -40,7 +40,7 @@ export const executeOp: InternalOpExecutor =
           const halfPixelCenters =
               getParamValue('halfPixelCenters', node, tensorMap, context) as
               boolean;
-          return [tfOps.image.resizeBilinear(
+          return [ops.image.resizeBilinear(
               images as Tensor3D | Tensor4D, [size[0], size[1]], alignCorners,
               halfPixelCenters)];
         }
@@ -55,7 +55,7 @@ export const executeOp: InternalOpExecutor =
           const halfPixelCenters =
               getParamValue('halfPixelCenters', node, tensorMap, context) as
               boolean;
-          return [tfOps.image.resizeNearestNeighbor(
+          return [ops.image.resizeNearestNeighbor(
               images as Tensor3D | Tensor4D, [size[0], size[1]], alignCorners,
               halfPixelCenters)];
         }
@@ -73,10 +73,33 @@ export const executeOp: InternalOpExecutor =
           const extrapolationValue =
               getParamValue('extrapolationValue', node, tensorMap, context) as
               number;
-          return [tfOps.image.cropAndResize(
+          return [ops.image.cropAndResize(
               image as Tensor4D, boxes as Tensor2D, boxInd as Tensor1D,
               cropSize as [number, number], method as 'bilinear' | 'nearest',
               extrapolationValue)];
+        }
+        case 'ImageProjectiveTransformV3': {
+          const images =
+              getParamValue('images', node, tensorMap, context) as Tensor;
+          const transforms =
+              getParamValue('transforms', node, tensorMap, context) as Tensor;
+          const outputShape =
+              getParamValue('outputShape', node, tensorMap, context) as
+              number[];
+          const fillValue =
+              getParamValue('fillValue', node, tensorMap, context) as number;
+          const interpolation =
+              getParamValue('interpolation', node, tensorMap, context) as
+              string;
+          const fillMode =
+              getParamValue('fillMode', node, tensorMap, context) as string;
+          return [ops.image.transform(
+              images as Tensor4D,
+              transforms as Tensor2D,
+              interpolation.toLowerCase() as 'bilinear' | 'nearest',
+              fillMode.toLowerCase() as 'constant' | 'reflect' | 'wrap' | 'nearest',
+              fillValue,
+              outputShape as [number, number])];
         }
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);

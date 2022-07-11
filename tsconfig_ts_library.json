@@ -1,27 +1,7 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "ES2015",
-    "moduleResolution": "node",
-    "noImplicitAny": true,
-    "sourceMap": true,
-    "inlineSources": true,
-    "removeComments": false,
-    "preserveConstEnums": true,
-    "allowSyntheticDefaultImports": true,
-    "declaration": true,
-    "target": "es2017",
-    "lib": [
-      "es2017",
-      "dom"
-    ],
-    "noUnusedLocals": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "noUnusedParameters": false,
-    "pretty": true,
-    "noFallthroughCasesInSwitch": true,
-    "allowUnreachableCode": false,
+    "incremental": false,
     "baseUrl": ".",
     "paths": {
       "@tensorflow/*": [
@@ -32,6 +12,7 @@
       {
         "name": "@bazel/tsetse",
         "disabledRules": [
+          "check-return-value",
           "must-use-promises",
           "must-type-assert-json-parse",
           "ban-promise-as-condition"

@@ -52,9 +52,11 @@ tfjs_web_test(
     browsers = [
         "bs_chrome_mac",
         "bs_firefox_mac",
-        "bs_android_9",
+        # disabled android 9 test due to training flakiness
+        # "bs_android_9",
         "win_10_chrome",
     ],
+    headless = False,
     static_files = [
         # Listed here so sourcemaps are served
         "//tfjs-layers/src:tfjs-layers_test_bundle",
@@ -72,8 +74,9 @@ tfjs_web_test(
     ],
     browsers = [
         "bs_safari_mac",
-        "bs_ios_11",
+        "bs_ios_12",
     ],
+    headless = False,
     static_files = [
         # Listed here so sourcemaps are served
         "//tfjs-layers/src:tfjs-layers_test_bundle",
@@ -151,5 +154,12 @@ js_library(
     package_name = "tfjs-layers",
     srcs = [
         ":package.json",
+    ],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":tfjs-layers_webgl2_test",
     ],
 )

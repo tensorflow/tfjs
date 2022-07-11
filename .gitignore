@@ -6,6 +6,7 @@
 */run-ci
 **/*.pyc
 **/bundle.js
+**/.parcel-cache
 **/*.js.map
 .DS_Store
 .idea/
@@ -67,3 +68,4 @@ wasm-dist/
 
 # User-specific .bazelrc
 .bazelrc.user
+**/.parcel-cache

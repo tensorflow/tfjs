@@ -83,10 +83,11 @@ function sparseFillEmptyRows_(
     indices: Tensor2D|TensorLike, values: Tensor1D|TensorLike,
     denseShape: Tensor1D|TensorLike,
     defaultValue: Scalar|ScalarLike): NamedTensorMap {
-  const $indices = convertToTensor(indices, 'indices', 'sparseFillEmptyRows');
+  const $indices =
+      convertToTensor(indices, 'indices', 'sparseFillEmptyRows', 'int32');
   const $values = convertToTensor(values, 'values', 'sparseFillEmptyRows');
   const $denseShape =
-      convertToTensor(denseShape, 'denseShape', 'sparseFillEmptyRows');
+      convertToTensor(denseShape, 'denseShape', 'sparseFillEmptyRows', 'int32');
   const $defaultValue = convertToTensor(
       defaultValue, 'defaultValue', 'sparseFillEmptyRows', $values.dtype);
 

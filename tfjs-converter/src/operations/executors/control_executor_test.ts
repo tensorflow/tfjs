@@ -26,8 +26,7 @@ import * as control from '../op_list/control';
 import {Graph, Node} from '../types';
 
 import {executeOp} from './control_executor';
-import {createBoolAttr, createDtypeAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createStrAttr, createTensorAttr, createTensorsAttr, createTensorShapeAttr, validateParam} from './test_helper';
-import {createShapeAttrFromIndex} from './test_helper';
+import {createBoolAttr, createDtypeAttr, createNumberAttrFromIndex, createNumericArrayAttrFromIndex, createShapeAttrFromIndex, createStrAttr, createTensorAttr, createTensorsAttr, createTensorShapeAttr, validateParam} from './test_helper';
 
 describe('control', () => {
   let node: Node;
@@ -439,7 +438,7 @@ describe('control', () => {
       };
       const condExecutor = new GraphExecutor(graph);
       let firstTime = true;
-      spyOn(condExecutor, 'executeFunctionAsync').and.callFake(() => {
+      spyOn(condExecutor, 'executeFunctionAsync').and.callFake(async () => {
         if (firstTime) {
           firstTime = false;
           return input1;
@@ -448,7 +447,8 @@ describe('control', () => {
       });
       const bodyExecutor = new GraphExecutor(graph);
       const input3 = [tfOps.scalar(3, 'int32')];
-      spyOn(bodyExecutor, 'executeFunctionAsync').and.returnValue(input3);
+      spyOn(bodyExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input3));
       context.functionMap['bodyFunc'] = bodyExecutor;
       context.functionMap['condFunc'] = condExecutor;
       const result = await executeOp(node, {cond, input1, input2}, context);
@@ -489,7 +489,7 @@ describe('control', () => {
       };
       const condExecutor = new GraphExecutor(graph);
       let firstTime = true;
-      spyOn(condExecutor, 'executeFunctionAsync').and.callFake(() => {
+      spyOn(condExecutor, 'executeFunctionAsync').and.callFake(async () => {
         if (firstTime) {
           firstTime = false;
           return input1;
@@ -498,7 +498,8 @@ describe('control', () => {
       });
       const bodyExecutor = new GraphExecutor(graph);
       const input3 = [tfOps.scalar(3, 'int32')];
-      spyOn(bodyExecutor, 'executeFunctionAsync').and.returnValue(input3);
+      spyOn(bodyExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input3));
       context.functionMap['bodyFunc'] = bodyExecutor;
       context.functionMap['condFunc'] = condExecutor;
       const result = await executeOp(node, {cond, input1, input2}, context);
@@ -539,9 +540,11 @@ describe('control', () => {
         signature: {}
       };
       const thenExecutor = new GraphExecutor(graph);
-      spyOn(thenExecutor, 'executeFunctionAsync').and.returnValue(input1);
+      spyOn(thenExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input1));
       const elseExecutor = new GraphExecutor(graph);
-      spyOn(elseExecutor, 'executeFunctionAsync').and.returnValue(input2);
+      spyOn(elseExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input2));
       context.functionMap['thenFunc'] = thenExecutor;
       context.functionMap['elseFunc'] = elseExecutor;
       const result = await executeOp(node, {cond, input1, input2}, context);
@@ -570,9 +573,11 @@ describe('control', () => {
         signature: {}
       };
       const thenExecutor = new GraphExecutor(graph);
-      spyOn(thenExecutor, 'executeFunctionAsync').and.returnValue(input1);
+      spyOn(thenExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input1));
       const elseExecutor = new GraphExecutor(graph);
-      spyOn(elseExecutor, 'executeFunctionAsync').and.returnValue(input2);
+      spyOn(elseExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input2));
       context.functionMap['thenFunc'] = thenExecutor;
       context.functionMap['elseFunc'] = elseExecutor;
       const result = await executeOp(node, {cond, input1, input2}, context);
@@ -613,9 +618,11 @@ describe('control', () => {
         signature: {}
       };
       const thenExecutor = new GraphExecutor(graph);
-      spyOn(thenExecutor, 'executeFunctionAsync').and.returnValue(input1);
+      spyOn(thenExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input1));
       const elseExecutor = new GraphExecutor(graph);
-      spyOn(elseExecutor, 'executeFunctionAsync').and.returnValue(input2);
+      spyOn(elseExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input2));
       context.functionMap['thenFunc'] = thenExecutor;
       context.functionMap['elseFunc'] = elseExecutor;
       const result = await executeOp(node, {cond, input1, input2}, context);
@@ -644,9 +651,11 @@ describe('control', () => {
         signature: {}
       };
       const thenExecutor = new GraphExecutor(graph);
-      spyOn(thenExecutor, 'executeFunctionAsync').and.returnValue(input1);
+      spyOn(thenExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input1));
       const elseExecutor = new GraphExecutor(graph);
-      spyOn(elseExecutor, 'executeFunctionAsync').and.returnValue(input2);
+      spyOn(elseExecutor, 'executeFunctionAsync').and
+        .returnValue(Promise.resolve(input2));
       context.functionMap['thenFunc'] = thenExecutor;
       context.functionMap['elseFunc'] = elseExecutor;
       const result = await executeOp(node, {cond, input1, input2}, context);
@@ -678,7 +687,7 @@ describe('control', () => {
       const tensorList = context.getTensorList(tensorListId.id);
       expect(tensorList.elementDtype).toEqual('int32');
       expect(tensorList.elementShape).toEqual([10, 10]);
-      expect(tensorList.maxNumElements).toEqual(1);
+      expect(tensorList.maxNumElements).toEqual(-1);
     });
     it('should match json def', () => {
       node.op = 'TensorListReserve';
@@ -741,257 +750,356 @@ describe('control', () => {
 
       expect(validateParam(node, control.json)).toBeTruthy();
     });
+  });
 
-    describe('TensorListScatter', () => {
-      it('should scatter the tensor to tensorList', async () => {
-        const input4 = [tensor2d([0, 0, 0, 1, 1, 1], [2, 3], 'int32')];
-        node.op = 'TensorListScatter';
-        node.inputParams['tensor'] = createTensorAttr(0);
-        node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
-        node.inputParams['elementShape'] = createShapeAttrFromIndex(2);
-        node.inputNames = ['input4', 'input2', 'input3'];
-        const input2 = [tensor1d([0, 1], 'int32')];
-        const input3 = [tensor1d([3], 'int32')];
-        const tensorListId =
-            (await executeOp(node, {input2, input3, input4}, context))[0];
-        const tensorList = context.getTensorList(tensorListId.id);
-        expect(tensorList.size()).toEqual(2);
-      });
+  describe('TensorListConcatV2', () => {
+    it('should concat the tensors from tensorList', async () => {
+      const input4 = tensor1d([0, 0, 0], 'int32');
+      const input5 = tensor1d([1, 1, 1], 'int32');
+      const tensorList = new TensorList([input4, input5], [3], 'int32', 5);
+      context.addTensorList(tensorList);
+      node.op = 'TensorListConcatV2';
+      node.inputParams['tensorListId'] = createTensorAttr(0);
+      node.attrParams['elementDType'] = createDtypeAttr('int32');
+      node.attrParams['elementShape'] = createTensorShapeAttr([3]);
+      node.inputNames = ['input2'];
+      const input2 = [tensorList.idTensor];
+      const concat = await executeOp(node, {input2}, context);
+      expect(concat.length).toEqual(1);
+      expect(concat[0].shape).toEqual([6]);
+      test_util.expectArraysClose(
+          concat[0].dataSync(), new Int32Array([0, 0, 0, 1, 1, 1]));
+    });
+    it('should match json def', () => {
+      node.op = 'TensorListConcatV2';
+      node.inputParams['tensorListId'] = createTensorAttr(0);
+      node.attrParams['elementDType'] = createDtypeAttr('int32');
+      node.attrParams['elementShape'] = createTensorShapeAttr([3]);
 
-      it('should match json def', () => {
-        node.op = 'TensorListScatter';
-        node.inputParams['tensor'] = createTensorAttr(0);
-        node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
-        node.inputParams['elementShape'] = createShapeAttrFromIndex(2);
+      expect(validateParam(node, control.json)).toBeTruthy();
+    });
+  });
 
-        expect(validateParam(node, control.json)).toBeTruthy();
-      });
+  describe('TensorListScatter', () => {
+    it('should scatter the tensor to tensorList', async () => {
+      const input4 = [tensor2d([0, 0, 0, 1, 1, 1], [2, 3], 'int32')];
+      node.op = 'TensorListScatter';
+      node.inputParams['tensor'] = createTensorAttr(0);
+      node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
+      node.inputParams['elementShape'] = createShapeAttrFromIndex(2);
+      node.inputNames = ['input4', 'input2', 'input3'];
+      const input2 = [tensor1d([0, 1], 'int32')];
+      const input3 = [tensor1d([3], 'int32')];
+      const tensorListId =
+          (await executeOp(node, {input2, input3, input4}, context))[0];
+      const tensorList = context.getTensorList(tensorListId.id);
+      expect(tensorList.size()).toEqual(2);
     });
 
-    describe('TensorListScatterV2', () => {
-      it('should scatter the tensor to tensorList', async () => {
-        const input4 = [tensor2d([0, 0, 0, 1, 1, 1], [2, 3], 'int32')];
-        node.op = 'TensorListScatterV2';
-        node.inputParams['tensor'] = createTensorAttr(0);
-        node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
-        node.inputParams['elementShape'] = createShapeAttrFromIndex(2);
-        node.inputParams['numElements'] = createNumberAttrFromIndex(3);
-        node.inputNames = ['input4', 'input2', 'input3', 'input5'];
-        const input2 = [tensor1d([0, 1], 'int32')];
-        const input3 = [tensor1d([3], 'int32')];
-        const input5 = [tensor1d([2], 'int32')];
-        const tensorListId = (await executeOp(
-            node, {input2, input3, input4, input5}, context))[0];
-        const tensorList = context.getTensorList(tensorListId.id);
-        expect(tensorList.size()).toEqual(2);
-      });
+    it('should match json def', () => {
+      node.op = 'TensorListScatter';
+      node.inputParams['tensor'] = createTensorAttr(0);
+      node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
+      node.inputParams['elementShape'] = createShapeAttrFromIndex(2);
 
-      it('should match json def', () => {
-        node.op = 'TensorListScatterV2';
-        node.inputParams['tensor'] = createTensorAttr(0);
-        node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
-        node.inputParams['elementShape'] = createShapeAttrFromIndex(2);
-        node.inputParams['numElements'] = createNumberAttrFromIndex(3);
-
-        expect(validateParam(node, control.json)).toBeTruthy();
-      });
+      expect(validateParam(node, control.json)).toBeTruthy();
     });
-    describe('TensorListSetItem', () => {
-      it('should write the tensor to tensorArray', async () => {
-        const tensorList = new TensorList([], [], 'int32', 5);
-        context.addTensorList(tensorList);
-        node.op = 'TensorListSetItem';
-        node.inputParams['tensorListId'] = createTensorAttr(0);
-        node.inputParams['index'] = createNumberAttrFromIndex(1);
-        node.inputParams['tensor'] = createTensorAttr(2);
-        node.attrParams['elementDType'] = createDtypeAttr('int32');
-        node.inputNames = ['input2', 'input3', 'input1'];
-        const input2 = [tensorList.idTensor];
-        const input3 = [scalar(0)];
-        await executeOp(node, {input1, input2, input3}, context);
+  });
 
-        expect(tensorList.size()).toEqual(1);
-      });
-      it('should match json def', () => {
-        node.op = 'TensorListSetItem';
-        node.inputParams['tensorListId'] = createTensorAttr(0);
-        node.inputParams['index'] = createNumberAttrFromIndex(1);
-        node.inputParams['tensor'] = createTensorAttr(2);
-        node.attrParams['elementDType'] = createDtypeAttr('int32');
-
-        expect(validateParam(node, control.json)).toBeTruthy();
-      });
+  describe('TensorListScatterV2', () => {
+    it('should scatter the tensor to tensorList', async () => {
+      const input4 = [tensor2d([0, 0, 0, 1, 1, 1], [2, 3], 'int32')];
+      node.op = 'TensorListScatterV2';
+      node.inputParams['tensor'] = createTensorAttr(0);
+      node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
+      node.inputParams['elementShape'] = createShapeAttrFromIndex(2);
+      node.inputParams['numElements'] = createNumberAttrFromIndex(3);
+      node.inputNames = ['input4', 'input2', 'input3', 'input5'];
+      const input2 = [tensor1d([0, 1], 'int32')];
+      const input3 = [tensor1d([3], 'int32')];
+      const input5 = [tensor1d([2], 'int32')];
+      const tensorListId =
+          (await executeOp(node, {input2, input3, input4, input5}, context))[0];
+      const tensorList = context.getTensorList(tensorListId.id);
+      expect(tensorList.size()).toEqual(2);
     });
 
-    describe('TensorListGetItem', () => {
+    it('should match json def', () => {
+      node.op = 'TensorListScatterV2';
+      node.inputParams['tensor'] = createTensorAttr(0);
+      node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
+      node.inputParams['elementShape'] = createShapeAttrFromIndex(2);
+      node.inputParams['numElements'] = createNumberAttrFromIndex(3);
+
+      expect(validateParam(node, control.json)).toBeTruthy();
+    });
+  });
+
+  describe('TensorListSetItem', () => {
+    it('should write the tensor to tensorArray', async () => {
+      const tensorList = new TensorList([], [], 'int32', 5);
+      context.addTensorList(tensorList);
+      node.op = 'TensorListSetItem';
+      node.inputParams['tensorListId'] = createTensorAttr(0);
+      node.inputParams['index'] = createNumberAttrFromIndex(1);
+      node.inputParams['tensor'] = createTensorAttr(2);
+      node.attrParams['elementDType'] = createDtypeAttr('int32');
+      node.inputNames = ['input2', 'input3', 'input1'];
+      const input2 = [tensorList.idTensor];
+      const input3 = [scalar(0)];
+      await executeOp(node, {input1, input2, input3}, context);
+
+      expect(tensorList.size()).toEqual(1);
+    });
+    it('should match json def', () => {
+      node.op = 'TensorListSetItem';
+      node.inputParams['tensorListId'] = createTensorAttr(0);
+      node.inputParams['index'] = createNumberAttrFromIndex(1);
+      node.inputParams['tensor'] = createTensorAttr(2);
+      node.attrParams['elementDType'] = createDtypeAttr('int32');
+
+      expect(validateParam(node, control.json)).toBeTruthy();
+    });
+  });
+
+  describe('TensorListGetItem', () => {
+    it('should read the tensor from tensorList', async () => {
+      const tensorList = new TensorList([], [3], 'int32', 5);
+      const input4 = tensor1d([0, 0, 0], 'int32');
+      tensorList.setItem(0, input4);
+      context.addTensorList(tensorList);
+      node.op = 'TensorListGetItem';
+      node.inputParams['tensorListId'] = createTensorAttr(0);
+      node.inputParams['index'] = createNumberAttrFromIndex(1);
+      node.inputParams['elementShape'] = createShapeAttrFromIndex(2);
+      node.inputNames = ['input2', 'input3', 'input5'];
+      node.attrParams['elementDType'] = createDtypeAttr('int32');
+      const input2 = [tensorList.idTensor];
+      const input3 = [scalar(0)];
+      const input5 = [tensor1d([3], 'int32')];
+      const read = await executeOp(node, {input5, input2, input3}, context);
+
+      test_util.expectArraysClose(await read[0].array(), await input4.array());
+    });
+    it('should match json def', () => {
+      node.op = 'TensorListGetItem';
+      node.inputParams['tensorListId'] = createTensorAttr(0);
+      node.inputParams['index'] = createNumberAttrFromIndex(1);
+      node.inputParams['elementShape'] = createShapeAttrFromIndex(2);
+      node.attrParams['elementDType'] = createDtypeAttr('int32');
+
+      expect(validateParam(node, control.json)).toBeTruthy();
+    });
+  });
+
+  describe('TensorListPushBack', () => {
+    it('should write the tensor to tensorArray', async () => {
+      const tensorList = new TensorList([], [], 'int32', 5);
+      context.addTensorList(tensorList);
+      node.op = 'TensorListPushBack';
+      node.inputParams['tensorListId'] = createTensorAttr(0);
+      node.inputParams['tensor'] = createTensorAttr(1);
+      node.attrParams['elementDType'] = createDtypeAttr('int32');
+      node.inputNames = ['input2', 'input1'];
+      const input2 = [tensorList.idTensor];
+      await executeOp(node, {input1, input2}, context);
+
+      expect(tensorList.size()).toEqual(1);
+    });
+    it('should match json def', () => {
+      node.op = 'TensorListPushBack';
+      node.inputParams['tensorListId'] = createTensorAttr(0);
+      node.inputParams['tensor'] = createTensorAttr(1);
+      node.attrParams['elementDType'] = createDtypeAttr('int32');
+
+      expect(validateParam(node, control.json)).toBeTruthy();
+    });
+  });
+
+  describe('TensorListPopBack', () => {
+    it('should read the tensor from tensorList', async () => {
+      const tensorList = new TensorList([], [3], 'int32', 5);
+      const input4 = tensor1d([0, 0, 0], 'int32');
+      tensorList.setItem(0, input4);
+      context.addTensorList(tensorList);
+      node.op = 'TensorListPopBack';
+      node.inputParams['tensorListId'] = createTensorAttr(0);
+      node.inputParams['elementShape'] = createShapeAttrFromIndex(1);
+      node.inputNames = ['input2', 'input5'];
+      node.attrParams['elementDType'] = createDtypeAttr('int32');
+      const input2 = [tensorList.idTensor];
+      const input5 = [tensor1d([3], 'int32')];
+      const read = await executeOp(node, {input5, input2}, context);
+
+      test_util.expectArraysClose(await read[0].array(), await input4.array());
+    });
+    it('should match json def', () => {
+      node.op = 'TensorListPopBack';
+      node.inputParams['tensorListId'] = createTensorAttr(0);
+      node.inputParams['elementShape'] = createShapeAttrFromIndex(1);
+      node.attrParams['elementDType'] = createDtypeAttr('int32');
+
+      expect(validateParam(node, control.json)).toBeTruthy();
+    });
+  });
+
+  describe('TensorListStack', () => {
+    it('should read the tensor from tensorList', async () => {
+      const tensorList = new TensorList([], [3], 'int32', 5);
+      const input4 = tensor1d([0, 0, 0], 'int32');
+      tensorList.setItem(0, input4);
+      context.addTensorList(tensorList);
+      node.op = 'TensorListStack';
+      node.inputParams['tensorListId'] = createTensorAttr(0);
+      node.inputParams['elementShape'] = createShapeAttrFromIndex(1);
+      node.inputNames = ['input2', 'input5'];
+      node.attrParams['elementDType'] = createDtypeAttr('int32');
+      const input2 = [tensorList.idTensor];
+      const input5 = [tensor1d([3], 'int32')];
+      const read = await executeOp(node, {input5, input2}, context);
+
+      test_util.expectArraysClose(
+          await read[0].array(), [await input4.array()]);
+    });
+    it('should match json def', () => {
+      node.op = 'TensorListStack';
+      node.inputParams['tensorListId'] = createTensorAttr(0);
+      node.inputParams['elementShape'] = createShapeAttrFromIndex(1);
+      node.attrParams['elementDType'] = createDtypeAttr('int32');
+
+      expect(validateParam(node, control.json)).toBeTruthy();
+    });
+
+    describe('TensorListGather', () => {
       it('should read the tensor from tensorList', async () => {
         const tensorList = new TensorList([], [3], 'int32', 5);
         const input4 = tensor1d([0, 0, 0], 'int32');
         tensorList.setItem(0, input4);
+        const input6 = tensor1d([1, 1, 1], 'int32');
+        tensorList.setItem(1, input6);
         context.addTensorList(tensorList);
-        node.op = 'TensorListGetItem';
+        node.op = 'TensorListGather';
         node.inputParams['tensorListId'] = createTensorAttr(0);
-        node.inputParams['index'] = createNumberAttrFromIndex(1);
+        node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
         node.inputParams['elementShape'] = createShapeAttrFromIndex(2);
         node.inputNames = ['input2', 'input3', 'input5'];
         node.attrParams['elementDType'] = createDtypeAttr('int32');
         const input2 = [tensorList.idTensor];
-        const input3 = [scalar(0)];
+        const input3 = [tensor1d([0, 1], 'int32')];
+
         const input5 = [tensor1d([3], 'int32')];
         const read = await executeOp(node, {input5, input2, input3}, context);
 
         test_util.expectArraysClose(
-            await read[0].array(), await input4.array());
+            await read[0].array(),
+            [await input4.array(), await input6.array()]);
       });
       it('should match json def', () => {
-        node.op = 'TensorListGetItem';
+        node.op = 'TensorListGather';
         node.inputParams['tensorListId'] = createTensorAttr(0);
-        node.inputParams['index'] = createNumberAttrFromIndex(1);
+        node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
         node.inputParams['elementShape'] = createShapeAttrFromIndex(2);
         node.attrParams['elementDType'] = createDtypeAttr('int32');
 
         expect(validateParam(node, control.json)).toBeTruthy();
       });
     });
-    describe('TensorListPushBack', () => {
-      it('should write the tensor to tensorArray', async () => {
-        const tensorList = new TensorList([], [], 'int32', 5);
-        context.addTensorList(tensorList);
-        node.op = 'TensorListPushBack';
-        node.inputParams['tensorListId'] = createTensorAttr(0);
-        node.inputParams['tensor'] = createTensorAttr(1);
-        node.attrParams['elementDType'] = createDtypeAttr('int32');
-        node.inputNames = ['input2', 'input1'];
-        const input2 = [tensorList.idTensor];
-        await executeOp(node, {input1, input2}, context);
+  });
 
-        expect(tensorList.size()).toEqual(1);
-      });
-      it('should match json def', () => {
-        node.op = 'TensorListPushBack';
-        node.inputParams['tensorListId'] = createTensorAttr(0);
-        node.inputParams['tensor'] = createTensorAttr(1);
-        node.attrParams['elementDType'] = createDtypeAttr('int32');
+  describe('TensorListSplit', () => {
+    it('should scatter the tensor to tensorList', async () => {
+      const input4 = [tensor2d([0, 0, 0, 1, 1, 1], [2, 3], 'int32')];
+      node.op = 'TensorListSplit';
+      node.inputParams['tensor'] = createTensorAttr(0);
+      node.inputParams['elementShape'] = createShapeAttrFromIndex(1);
+      node.inputParams['lengths'] = createNumericArrayAttrFromIndex(2);
+      node.attrParams['elementDType'] = createDtypeAttr('int32');
 
-        expect(validateParam(node, control.json)).toBeTruthy();
-      });
+      node.inputNames = ['input4', 'input2', 'input3'];
+      const input2 = [tensor1d([3], 'int32')];
+      const input3 = [tensor1d([1, 1], 'int32')];
+      const idTensor =
+          (await executeOp(node, {input2, input3, input4}, context))[0];
+      const tensorList = context.getTensorList(idTensor.id);
+      expect(tensorList.size()).toEqual(2);
     });
 
-    describe('TensorListPopBack', () => {
-      it('should read the tensor from tensorList', async () => {
-        const tensorList = new TensorList([], [3], 'int32', 5);
-        const input4 = tensor1d([0, 0, 0], 'int32');
-        tensorList.setItem(0, input4);
-        context.addTensorList(tensorList);
-        node.op = 'TensorListPopBack';
-        node.inputParams['tensorListId'] = createTensorAttr(0);
-        node.inputParams['elementShape'] = createShapeAttrFromIndex(1);
-        node.inputNames = ['input2', 'input5'];
-        node.attrParams['elementDType'] = createDtypeAttr('int32');
-        const input2 = [tensorList.idTensor];
-        const input5 = [tensor1d([3], 'int32')];
-        const read = await executeOp(node, {input5, input2}, context);
+    it('should match json def', () => {
+      node.op = 'TensorListSplit';
+      node.inputParams['tensor'] = createTensorAttr(0);
+      node.inputParams['elementShape'] = createShapeAttrFromIndex(1);
+      node.inputParams['lengths'] = createNumericArrayAttrFromIndex(2);
+      node.attrParams['elementDType'] = createDtypeAttr('int32');
 
-        test_util.expectArraysClose(
-            await read[0].array(), await input4.array());
-      });
-      it('should match json def', () => {
-        node.op = 'TensorListPopBack';
-        node.inputParams['tensorListId'] = createTensorAttr(0);
-        node.inputParams['elementShape'] = createShapeAttrFromIndex(1);
-        node.attrParams['elementDType'] = createDtypeAttr('int32');
-
-        expect(validateParam(node, control.json)).toBeTruthy();
-      });
+      expect(validateParam(node, control.json)).toBeTruthy();
     });
-    describe('TensorListStack', () => {
-      it('should read the tensor from tensorList', async () => {
-        const tensorList = new TensorList([], [3], 'int32', 5);
-        const input4 = tensor1d([0, 0, 0], 'int32');
-        tensorList.setItem(0, input4);
-        context.addTensorList(tensorList);
-        node.op = 'TensorListStack';
-        node.inputParams['tensorListId'] = createTensorAttr(0);
-        node.inputParams['elementShape'] = createShapeAttrFromIndex(1);
-        node.inputNames = ['input2', 'input5'];
-        node.attrParams['elementDType'] = createDtypeAttr('int32');
-        const input2 = [tensorList.idTensor];
-        const input5 = [tensor1d([3], 'int32')];
-        const read = await executeOp(node, {input5, input2}, context);
+  });
 
-        test_util.expectArraysClose(
-            await read[0].array(), [await input4.array()]);
-      });
-      it('should match json def', () => {
-        node.op = 'TensorListStack';
-        node.inputParams['tensorListId'] = createTensorAttr(0);
-        node.inputParams['elementShape'] = createShapeAttrFromIndex(1);
-        node.attrParams['elementDType'] = createDtypeAttr('int32');
-
-        expect(validateParam(node, control.json)).toBeTruthy();
-      });
-      describe('TensorListGather', () => {
-        it('should read the tensor from tensorList', async () => {
-          const tensorList = new TensorList([], [3], 'int32', 5);
-          const input4 = tensor1d([0, 0, 0], 'int32');
-          tensorList.setItem(0, input4);
-          const input6 = tensor1d([1, 1, 1], 'int32');
-          tensorList.setItem(1, input6);
-          context.addTensorList(tensorList);
-          node.op = 'TensorListGather';
-          node.inputParams['tensorListId'] = createTensorAttr(0);
-          node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
-          node.inputParams['elementShape'] = createShapeAttrFromIndex(2);
-          node.inputNames = ['input2', 'input3', 'input5'];
-          node.attrParams['elementDType'] = createDtypeAttr('int32');
-          const input2 = [tensorList.idTensor];
-          const input3 = [tensor1d([0, 1], 'int32')];
-
-          const input5 = [tensor1d([3], 'int32')];
-          const read = await executeOp(node, {input5, input2, input3}, context);
-
-          test_util.expectArraysClose(
-              await read[0].array(),
-              [await input4.array(), await input6.array()]);
-        });
-        it('should match json def', () => {
-          node.op = 'TensorListGather';
-          node.inputParams['tensorListId'] = createTensorAttr(0);
-          node.inputParams['indices'] = createNumericArrayAttrFromIndex(1);
-          node.inputParams['elementShape'] = createShapeAttrFromIndex(2);
-          node.attrParams['elementDType'] = createDtypeAttr('int32');
-
-          expect(validateParam(node, control.json)).toBeTruthy();
-        });
-      });
+  describe('TensorListLength', () => {
+    it('should get the size of tensorList', async () => {
+      const input4 = tensor1d([0, 0, 0], 'int32');
+      const input5 = tensor1d([1, 1, 1], 'int32');
+      const tensorList = new TensorList([input4, input5], [3], 'int32', 5);
+      context.addTensorList(tensorList);
+      node.op = 'TensorListLength';
+      node.inputParams['tensorListId'] = createTensorAttr(0);
+      node.inputNames = ['input2'];
+      const input2 = [tensorList.idTensor];
+      const size = await executeOp(node, {input2}, context);
+      expect(size.length).toEqual(1);
+      expect(size[0].shape).toEqual([]);
+      test_util.expectArraysClose(size[0].dataSync(), [2]);
     });
-    describe('TensorListSplit', () => {
-      it('should scatter the tensor to tensorList', async () => {
-        const input4 = [tensor2d([0, 0, 0, 1, 1, 1], [2, 3], 'int32')];
-        node.op = 'TensorListSplit';
-        node.inputParams['tensor'] = createTensorAttr(0);
-        node.inputParams['elementShape'] = createShapeAttrFromIndex(1);
-        node.inputParams['lengths'] = createNumericArrayAttrFromIndex(2);
-        node.attrParams['elementDType'] = createDtypeAttr('int32');
 
-        node.inputNames = ['input4', 'input2', 'input3'];
-        const input2 = [tensor1d([3], 'int32')];
-        const input3 = [tensor1d([1, 1], 'int32')];
-        const idTensor =
-            (await executeOp(node, {input2, input3, input4}, context))[0];
-        const tensorList = context.getTensorList(idTensor.id);
-        expect(tensorList.size()).toEqual(2);
-      });
+    it('should match json def', () => {
+      node.op = 'TensorListLength';
+      node.inputParams['tensorListId'] = createTensorAttr(0);
 
-      it('should match json def', () => {
-        node.op = 'TensorListSplit';
-        node.inputParams['tensor'] = createTensorAttr(0);
-        node.inputParams['elementShape'] = createShapeAttrFromIndex(1);
-        node.inputParams['lengths'] = createNumericArrayAttrFromIndex(2);
-        node.attrParams['elementDType'] = createDtypeAttr('int32');
+      expect(validateParam(node, control.json)).toBeTruthy();
+    });
+  });
 
-        expect(validateParam(node, control.json)).toBeTruthy();
-      });
+  describe('TensorListResize', () => {
+    it('should match the size when reducing the size', async () => {
+      const input4 = tensor1d([0, 0, 0], 'int32');
+      const input5 = tensor1d([1, 1, 1], 'int32');
+      const tensorList = new TensorList([input4, input5], [3], 'int32', 5);
+      context.addTensorList(tensorList);
+      node.op = 'TensorListResize';
+      node.inputParams['tensorListId'] = createTensorAttr(0);
+      node.inputParams['size'] = createNumberAttrFromIndex(1);
+      node.inputNames = ['input2', 'input3'];
+      const input2 = [tensorList.idTensor];
+      const input3 = [scalar(1)];
+      const tensorListId =
+          (await executeOp(node, {input2, input3}, context))[0];
+      const destTensorList = context.getTensorList(tensorListId.id);
+      expect(destTensorList.size()).toEqual(1);
+    });
+
+    it('should match the size when increasing the size', async () => {
+      const input4 = tensor1d([0, 0, 0], 'int32');
+      const input5 = tensor1d([1, 1, 1], 'int32');
+      const srcTensorList = new TensorList([input4, input5], [3], 'int32', 5);
+      context.addTensorList(srcTensorList);
+      node.op = 'TensorListResize';
+      node.inputParams['tensorListId'] = createTensorAttr(0);
+      node.inputParams['size'] = createNumberAttrFromIndex(1);
+      node.inputNames = ['input2', 'input3'];
+      const input2 = [srcTensorList.idTensor];
+      const input3 = [scalar(3)];
+      const destTensorListId =
+          (await executeOp(node, {input2, input3}, context))[0];
+      const destTensorList = context.getTensorList(destTensorListId.id);
+      expect(destTensorList.size()).toEqual(3);
+    });
+
+    it('should match json def', () => {
+      node.op = 'TensorListResize';
+      node.inputParams['tensorListId'] = createTensorAttr(0);
+      node.inputParams['size'] = createNumberAttrFromIndex(1);
+
+      expect(validateParam(node, control.json)).toBeTruthy();
     });
   });
 });

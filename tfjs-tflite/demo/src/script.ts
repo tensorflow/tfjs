@@ -24,6 +24,9 @@ import * as tflite from '@tensorflow/tfjs-tflite';
 const CARTOONIZER_LINK =
     'https://github.com/margaretmz/Cartoonizer-with-TFLite';
 
+tflite.setWasmPath(
+    'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.8/dist/');
+
 async function start() {
   // Load model runner with the cartoonizer tflite model.
   const start = Date.now();
@@ -95,7 +98,7 @@ function handleClickTrigger(
   }
 
   // Run inference and draw the result on the corresponding canvas.
-  const canvas = imageContainer.querySelector('canvas')! as HTMLCanvasElement;
+  const canvas = imageContainer.querySelector('canvas')!;
   const ctx = canvas.getContext('2d')!;
   const inferenceStart = Date.now();
   const imageData = cartoonize(tfliteModel, srcMedia);
@@ -122,9 +125,9 @@ function cartoonize(
     // we don't resize them here.
     const input = tf.sub(tf.div(tf.expandDims(img), 127.5), 1);
     // Run the inference.
-    let outputTensor = tfliteModel.predict(input) as tf.Tensor;
+    const outputTensor = tfliteModel.predict(input) as tf.Tensor;
     // De-normalize the result.
-    return tf.mul(tf.add(outputTensor, 1), 127.5)
+    return tf.mul(tf.add(outputTensor, 1), 127.5);
   });
 
   // Convert from RGB to RGBA, and create and return ImageData.

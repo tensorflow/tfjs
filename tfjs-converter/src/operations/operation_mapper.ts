@@ -191,7 +191,7 @@ export class OperationMapper {
       category: mapper.category,
       inputNames:
           (node.input ||
-           []).map(input => input.startsWith('^') ? input.substr(1) : input),
+           []).map(input => input.startsWith('^') ? input.slice(1) : input),
       inputs: [],
       children: [],
       inputParams: {},
@@ -486,6 +486,7 @@ export function parseDtypeParam(value: string|tensorflow.DataType): DataType {
   }
   switch (value) {
     case tensorflow.DataType.DT_FLOAT:
+    case tensorflow.DataType.DT_HALF:
       return 'float32';
     case tensorflow.DataType.DT_INT32:
     case tensorflow.DataType.DT_INT64:

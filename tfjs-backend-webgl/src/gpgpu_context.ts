@@ -20,8 +20,8 @@ import {env, PixelData, TypedArray, util} from '@tensorflow/tfjs-core';
 import {getWebGLContext, setWebGLContext} from './canvas_util';
 import * as gpgpu_util from './gpgpu_util';
 import * as tex_util from './tex_util';
-import {TextureConfig} from './tex_util';
-import {WebGL1DisjointQueryTimerExtension, WebGL2DisjointQueryTimerExtension} from './webgl_types';
+import {Texture, TextureConfig} from './tex_util';
+import {WebGL1DisjointQueryTimerExtension, WebGL2DisjointQueryTimerExtension, WebGLParallelCompilationExtension} from './webgl_types';
 import * as webgl_util from './webgl_util';
 
 export interface FenceContext {
@@ -37,6 +37,7 @@ export class GPGPUContext {
   colorBufferHalfFloatExtension: {};
   disjointQueryTimerExtension: WebGL2DisjointQueryTimerExtension|
       WebGL1DisjointQueryTimerExtension;
+  parallelCompilationExtension: WebGLParallelCompilationExtension;
   vertexBuffer: WebGLBuffer;
   indexBuffer: WebGLBuffer;
   framebuffer: WebGLFramebuffer;
@@ -58,6 +59,8 @@ export class GPGPUContext {
     // WebGL 2.0 enables texture floats without an extension.
     let COLOR_BUFFER_FLOAT = 'WEBGL_color_buffer_float';
     const COLOR_BUFFER_HALF_FLOAT = 'EXT_color_buffer_half_float';
+    this.parallelCompilationExtension =
+        this.gl.getExtension('KHR_parallel_shader_compile');
     if (env().getNumber('WEBGL_VERSION') === 1) {
       const TEXTURE_FLOAT = 'OES_texture_float';
       const TEXTURE_HALF_FLOAT = 'OES_texture_half_float';
@@ -135,22 +138,20 @@ export class GPGPUContext {
     this.disposed = true;
   }
 
-  public createFloat32MatrixTexture(rows: number, columns: number):
-      WebGLTexture {
+  public createFloat32MatrixTexture(rows: number, columns: number): Texture {
     this.throwIfDisposed();
     return gpgpu_util.createFloat32MatrixTexture(
         this.gl, rows, columns, this.textureConfig);
   }
 
-  public createFloat16MatrixTexture(rows: number, columns: number):
-      WebGLTexture {
+  public createFloat16MatrixTexture(rows: number, columns: number): Texture {
     this.throwIfDisposed();
     return gpgpu_util.createFloat16MatrixTexture(
         this.gl, rows, columns, this.textureConfig);
   }
 
   public createUnsignedBytesMatrixTexture(rows: number, columns: number):
-      WebGLTexture {
+      Texture {
     this.throwIfDisposed();
     return gpgpu_util.createUnsignedBytesMatrixTexture(
         this.gl, rows, columns, this.textureConfig);
@@ -172,14 +173,13 @@ export class GPGPUContext {
   }
 
   public createFloat16PackedMatrixTexture(rows: number, columns: number):
-      WebGLTexture {
+      Texture {
     this.throwIfDisposed();
     return gpgpu_util.createFloat16PackedMatrixTexture(
         this.gl, rows, columns, this.textureConfig);
   }
 
-  public createPackedMatrixTexture(rows: number, columns: number):
-      WebGLTexture {
+  public createPackedMatrixTexture(rows: number, columns: number): Texture {
     this.throwIfDisposed();
     return gpgpu_util.createPackedMatrixTexture(
         this.gl, rows, columns, this.textureConfig);
@@ -275,11 +275,9 @@ export class GPGPUContext {
 
   private vertexAttrsAreBound = false;
 
-  public createProgram(fragmentShaderSource: string): WebGLProgram {
+  public createProgram(fragmentShader: WebGLShader): WebGLProgram {
     this.throwIfDisposed();
     const gl = this.gl;
-    const fragmentShader: WebGLShader =
-        webgl_util.createFragmentShader(gl, fragmentShaderSource);
     if (this.vertexShader == null) {
       this.vertexShader = gpgpu_util.createVertexShader(gl);
     }

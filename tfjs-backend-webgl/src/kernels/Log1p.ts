@@ -16,9 +16,12 @@
  */
 
 import {KernelConfig, Log1p} from '@tensorflow/tfjs-core';
-import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-const LOG1P = `return log(1.0 + x);`;
+import {CHECK_NAN_SNIPPET_UNARY, unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
+
+const LOG1P = CHECK_NAN_SNIPPET_UNARY + `
+  return log(1.0 + x);
+`;
 
 export const log1p = unaryKernelFunc({opSnippet: LOG1P});
 

@@ -17,9 +17,8 @@
 
 import {DataType, InferenceModel, ModelPredictConfig, ModelTensorInfo, NamedTensorMap, tensor, Tensor} from '@tensorflow/tfjs-core';
 
-import {getDefaultNumThreads} from './tflite_task_library_client/common';
 import * as tfliteWebAPIClient from './tflite_web_api_client';
-import {TFLiteDataType, TFLiteWebModelRunner, TFLiteWebModelRunnerOptions, TFLiteWebModelRunnerTensorInfo} from './types/tflite_web_model_runner';
+import {ProfileItem, TFLiteDataType, TFLiteWebModelRunner, TFLiteWebModelRunnerOptions, TFLiteWebModelRunnerTensorInfo} from './types/tflite_web_model_runner';
 
 const TFHUB_SEARCH_PARAM = '?lite-format=tflite';
 
@@ -31,16 +30,17 @@ const TFHUB_SEARCH_PARAM = '?lite-format=tflite';
  *
  * ```js
  * // Load the MobilenetV2 tflite model from tfhub.
- * const tfliteModel = tflite.loadTFLiteModel(
+ * const tfliteModel = await tflite.loadTFLiteModel(
  *     'https://tfhub.dev/tensorflow/lite-model/mobilenet_v2_1.0_224/1/metadata/1');
  *
  * const outputTensor = tf.tidy(() => {
  *    // Get pixels data from an image.
- *    const img = tf.browser.fromPixels(document.querySelector('img'));
- *    // Normalize (might also do resize here if necessary).
- *    const input = tf.sub(tf.div(tf.expandDims(img), 127.5), 1);
+ *    let img = tf.browser.fromPixels(document.querySelector('img'));
+ *    // Resize and normalize:
+ *    img = tf.image.resizeBilinear(img, [224, 224]);
+ *    img = tf.sub(tf.div(tf.expandDims(img), 127.5), 1);
  *    // Run the inference.
- *    let outputTensor = tfliteModel.predict(input) as tf.Tensor;
+ *    let outputTensor = tfliteModel.predict(img);
  *    // De-normalize the result.
  *    return tf.mul(tf.add(outputTensor, 1), 127.5)
  *  });
@@ -176,6 +176,14 @@ export class TFLiteModel implements InferenceModel {
   execute(inputs: Tensor|Tensor[]|NamedTensorMap, outputs: string|string[]):
       Tensor|Tensor[] {
     throw new Error('execute() of TFLiteModel is not supported yet.');
+  }
+
+  getProfilingResults(): ProfileItem[] {
+    return this.modelRunner.getProfilingResults();
+  }
+
+  getProfilingSummary(): string {
+    return this.modelRunner.getProfilingSummary();
   }
 
   private setModelInputFromTensor(
@@ -317,17 +325,9 @@ export async function loadTFLiteModel(
     model = `${model}${TFHUB_SEARCH_PARAM}`;
   }
 
-  // Process options.
-  const curOptions: TFLiteWebModelRunnerOptions = {};
-  if (options && options.numThreads !== undefined) {
-    curOptions.numThreads = options.numThreads;
-  } else {
-    curOptions.numThreads = await getDefaultNumThreads();
-  }
-
   const tfliteModelRunner =
       await tfliteWebAPIClient.tfweb.TFLiteWebModelRunner.create(
-          model, curOptions);
+          model, options);
   return new TFLiteModel(tfliteModelRunner);
 }
 

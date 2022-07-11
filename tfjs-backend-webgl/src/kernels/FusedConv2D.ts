@@ -63,7 +63,7 @@ export function fusedConv2d(args: {
       preluActivationWeights,
       leakyreluAlpha
     });
-  } else if (env().getBool('WEBGL_CONV_IM2COL') && x.shape[0] === 1) {
+  } else if (env().getBool('WEBGL_CONV_IM2COL')) {
     out = conv2dWithIm2Row({
       x,
       filter,
@@ -84,12 +84,37 @@ export function fusedConv2d(args: {
         convInfo, hasBias, fusedActivation, hasPreluActivationWeights,
         hasLeakyreluAlpha);
     const inputs: TensorInfo[] = [x, filter];
-    if (bias) {
-      inputs.push(bias);
+
+    // If the input is a 1-D tensor, align it with the channels.
+    //
+    // For fusedConv2d, the inputs (x, W, bias, preluActivationWeights) are
+    // supposed to be aligned with the dataFormat. The 4-D tensor inputs or
+    // scalar inputs are originally aligned, but the 1-D tensor inputs are
+    // supposed to be aligned with the channels (only bias and PReLU activation
+    // weights could be a 1-D tensor).
+    const alignInputWithDataFormat =
+        (input: TensorInfo, dataFormat: 'NHWC'|'NCHW'): TensorInfo => {
+          if (dataFormat === 'NCHW' && input.shape.length === 1 &&
+              input.shape[0] !== 1) {
+            const alignedInput = reshape({
+              inputs: {x: input},
+              backend,
+              attrs: {shape: [input.shape[0], 1, 1]}
+            });
+            intermediates.push(alignedInput);
+            return alignedInput;
+          }
+          return input;
+        };
+
+    if (hasBias) {
+      inputs.push(alignInputWithDataFormat(bias, dataFormat));
     }
-    if (preluActivationWeights) {
-      inputs.push(preluActivationWeights);
+
+    if (hasPreluActivationWeights) {
+      inputs.push(alignInputWithDataFormat(preluActivationWeights, dataFormat));
     }
+
     if (hasLeakyreluAlpha) {
       const $leakyreluAlpha = backend.makeTensorInfo(
           [], 'float32',

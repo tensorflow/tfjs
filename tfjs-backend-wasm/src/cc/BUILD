@@ -1,6 +1,8 @@
 load("@emsdk//emscripten_toolchain:wasm_rules.bzl", "wasm_cc_binary")
 load(":build_defs.bzl", "tfjs_cc_library", "tfjs_unit_test")
 
+package(default_visibility = ["//visibility:public"])
+
 # Emcripten produces a much larger wasm bundle unless the cc_binary has srcs
 # explicitly pointing to files with exported methods (EMSCRIPTEN_KEEPALIVE).
 KERNELS_WITH_KEEPALIVE = glob(
@@ -15,9 +17,11 @@ BASE_LINKOPTS = [
     "-s FILESYSTEM=0",
     "-s EXIT_RUNTIME=0",
     "-s EXPORTED_FUNCTIONS='[\"_malloc\", \"_free\"]'",
-    "-s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
+    "-s EXPORTED_RUNTIME_METHODS='[\"cwrap\"]'",
     "-s MODULARIZE=1",
     "-s MALLOC=emmalloc",
+    "--pre-js $(location :pre.js)",
+    "--post-js $(location :post.js)",
 ]
 
 # This build rule generates tfjs-backend-wasm.{js,wasm}.
@@ -31,6 +35,10 @@ BASE_LINKOPTS = [
 cc_binary(
     name = "tfjs-backend-wasm.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    additional_linker_inputs = [
+        "pre.js",
+        "post.js",
+    ],
     linkopts = BASE_LINKOPTS + [
         "-s EXPORT_NAME=WasmBackendModule",
     ],
@@ -43,6 +51,13 @@ cc_binary(
 cc_binary(
     name = "tfjs-backend-wasm-simd.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    additional_linker_inputs = [
+        "pre.js",
+        "post.js",
+    ],
+    copts = [
+        "-msimd128",
+    ],
     linkopts = BASE_LINKOPTS,
     deps = [
         ":all_kernels",
@@ -53,11 +68,18 @@ cc_binary(
 cc_binary(
     name = "tfjs-backend-wasm-threaded-simd.js",
     srcs = ["backend.cc"] + KERNELS_WITH_KEEPALIVE,
+    additional_linker_inputs = [
+        "pre.js",
+        "post.js",
+    ],
+    copts = [
+        "-msimd128",
+        "-pthread",
+    ],
     linkopts = BASE_LINKOPTS + [
         "-s EXPORT_NAME=WasmBackendModuleThreadedSimd",
         "-s MALLOC=emmalloc",
         "-s USE_PTHREADS=1",
-        "-s PROXY_TO_PTHREAD=1",
         # Pre-create 8 webworkers (threads). The actual number of threads that
         # will be used by XNNPACK for creating the threadpool might be fewer. It
         # is by default set to the number of logical cores which in most cases
@@ -74,18 +96,21 @@ cc_binary(
 wasm_cc_binary(
     name = "tfjs-backend-wasm",
     cc_target = ":tfjs-backend-wasm.js",
+    tags = ["local"],
 )
 
 wasm_cc_binary(
     name = "tfjs-backend-wasm-simd",
     cc_target = ":tfjs-backend-wasm-simd.js",
     simd = True,
+    tags = ["local"],
 )
 
 wasm_cc_binary(
     name = "tfjs-backend-wasm-threaded-simd",
     cc_target = ":tfjs-backend-wasm-threaded-simd.js",
     simd = True,
+    tags = ["local"],
     threads = "emscripten",
 )
 
@@ -102,7 +127,7 @@ tfjs_cc_library(
     deps = [
         ":check_macros",
         ":util",
-        "@xnnpack//:xnnpack_operators_nhwc_f32",
+        "@xnnpack//:xnnpack_for_tfjs",
     ],
 )
 
@@ -123,6 +148,7 @@ tfjs_cc_library(
     hdrs = ["binary.h"],
     deps = [
         ":backend",
+        ":util",
     ],
 )
 
@@ -281,6 +307,7 @@ tfjs_cc_library(
         ":Cos",
         ":Cosh",
         ":CropAndResize",
+        ":Cumprod",
         ":Cumsum",
         ":DepthToSpace",
         ":DepthwiseConv2dNative",
@@ -319,6 +346,7 @@ tfjs_cc_library(
         ":Relu",
         ":Relu6",
         ":ResizeBilinear",
+        ":ResizeNearestNeighbor",
         ":Reverse",
         ":RotateWithOffset",
         ":Round",
@@ -327,6 +355,9 @@ tfjs_cc_library(
         ":Sigmoid",
         ":Sin",
         ":Softmax",
+        ":SparseFillEmptyRows",
+        ":SparseReshape",
+        ":SparseSegmentReduction",
         ":Square",
         ":SquaredDifference",
         ":StridedSlice",
@@ -525,6 +556,15 @@ tfjs_cc_library(
     deps = [
         ":backend",
         ":interpolate_bilinear_impl",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "Cumprod",
+    srcs = ["kernels/Cumprod.cc"],
+    deps = [
+        ":backend",
         ":util",
     ],
 )
@@ -760,6 +800,37 @@ tfjs_cc_library(
 )
 
 tfjs_cc_library(
+    name = "LogicalNot",
+    srcs = ["kernels/LogicalNot.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":unary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LogicalOr",
+    srcs = ["kernels/LogicalOr.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "LogicalXor",
+    srcs = ["kernels/LogicalXor.cc"],
+    deps = [
+        ":backend",
+        ":binary",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
     name = "Log",
     srcs = ["kernels/Log.cc"],
     deps = [
@@ -973,6 +1044,16 @@ tfjs_cc_library(
     ],
 )
 
+tfjs_cc_library(
+    name = "ResizeNearestNeighbor",
+    srcs = ["kernels/ResizeNearestNeighbor.cc"],
+    hdrs = ["kernels/ResizeNearestNeighbor.h"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
 tfjs_unit_test(
     name = "ResizeBilinear_test",
     srcs = ["kernels/ResizeBilinear_test.cc"],
@@ -1074,6 +1155,33 @@ tfjs_unit_test(
     tags = ["ci"],
     deps = [
         ":Softmax",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SparseFillEmptyRows",
+    srcs = ["kernels/SparseFillEmptyRows.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SparseReshape",
+    srcs = ["kernels/SparseReshape.cc"],
+    deps = [
+        ":backend",
+        ":util",
+    ],
+)
+
+tfjs_cc_library(
+    name = "SparseSegmentReduction",
+    srcs = ["kernels/SparseSegmentReduction.cc"],
+    deps = [
+        ":backend",
+        ":util",
     ],
 )
 

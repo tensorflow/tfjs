@@ -8,6 +8,7 @@
  * =============================================================================
  */
 
+import './flags_layers';
 import '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import '@tensorflow/tfjs-core/dist/register_all_gradients';

@@ -19,7 +19,7 @@ import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
 
-describeWithFlags('gather', ALL_ENVS, () => {
+describeWithFlags('gather', ALL_ENVS, (env) => {
   it('1D (gather), scalar indices', async () => {
     const t = tf.tensor1d([1, 2, 3]);
 
@@ -578,5 +578,20 @@ describeWithFlags('gather', ALL_ENVS, () => {
     const numDataIdAfter = tf.engine().backend.numDataIds();
     expect(numTensorsAfter).toBe(numTensorsBefore);
     expect(numDataIdAfter).toBe(numDataIdBefore);
+  });
+
+  it('fills with zero when index is out of bound', async () => {
+    if (env.backendName === 'webgl' || env.backendName === 'webgpu') {
+      const t = tf.tensor2d([1, 11, 2, 22], [2, 2]);
+      const tInt = tf.tensor2d([1, 11, 2, 22], [2, 2], 'int32');
+
+      const index = tf.tensor1d([0, 1, 100, -1, 2, -4], 'int32');
+      const res = tf.gather(t, index);
+      const resInt = tf.gather(tInt, index);
+
+      const expected = [1, 11, 2, 22, 0, 0, 0, 0, 0, 0, 0, 0];
+      expectArraysClose(await res.data(), expected);
+      expectArraysClose(await resInt.data(), expected);
+    }
   });
 });

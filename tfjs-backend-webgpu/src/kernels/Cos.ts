@@ -19,7 +19,7 @@ import {Cos, KernelConfig} from '@tensorflow/tfjs-core';
 
 import {unaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 
-import {UnaryOpType} from './unary_op_util';
+import {UnaryOpType} from '../unary_op_util';
 
 export const cos = unaryKernelFunc({opType: UnaryOpType.COS});
 

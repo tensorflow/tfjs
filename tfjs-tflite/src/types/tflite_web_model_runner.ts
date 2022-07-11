@@ -50,6 +50,31 @@ export declare interface TFLiteWebModelRunner extends BaseTaskLibrary {
    * @return Whether the inference is successful or not.
    */
   infer(): boolean;
+
+  /**
+   * Gets per-node profiling results.
+   *
+   * This is only useful when TFLiteWebModelRunnerOptions.enableProfiling is
+   * set to true.
+   */
+  getProfilingResults(): ProfileItem[];
+
+  /**
+   * Gets the profiling summary.
+   *
+   * This is only useful when TFLiteWebModelRunnerOptions.enableProfiling is
+   * set to true.
+   */
+  getProfilingSummary(): string;
+}
+
+export declare interface ProfileItem {
+  /** The type of the node, e.g. "CONV_2D". */
+  nodeType: string;
+  /** The name of the node, e.g. "MobilenetV1/MobilenetV1/Conv2d_0/Relu6". */
+  nodeName: string;
+  /** The execution time (in ms) of the node. */
+  nodeExecMs: number;
 }
 
 /** Options for TFLiteWebModelRunner. */
@@ -61,6 +86,21 @@ export declare interface TFLiteWebModelRunnerOptions {
    * not supported by user's browser.
    */
   numThreads?: number;
+  /**
+   * Whether to enable profiling.
+   *
+   * Default to false. After it is enabled, the profiling results can be
+   * retrieved by calling TFLiteWebModelRunner.getProfilingResults or
+   * TFLiteWebModelRunner.getProfilingSummary. See their comments for more
+   * details.
+   */
+  enableProfiling?: boolean;
+  /**
+   * Maximum nmber of entries that the profiler can keep.
+   *
+   * Default to 1024.
+   */
+  maxProfilingBufferEntries?: number;
 }
 
 /** Types of TFLite tensor data. */

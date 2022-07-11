@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
-import {backend_util, KernelConfig, KernelFunc, ScatterNd, ScatterNdAttrs, ScatterNdInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, ScatterNd, ScatterNdAttrs, ScatterNdInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 
 import {fill} from './Fill';
 import {reshape} from './Reshape';
-import {ScatterOptimizedProgram} from './scatter_optimized_webgpu';
+import {ScatterOptimizedProgram} from '../scatter_optimized_webgpu';
 
 export function scatterNd(args: {
   inputs: ScatterNdInputs,
@@ -49,8 +49,11 @@ export function scatterNd(args: {
   const type = flattenX.dtype;
   const output =
       fill({backend, attrs: {shape: flattenShape, value: 0, dtype: type}});
-  const uniformData =
-      [{type: 'int32', data: [sliceRank]}, {type: 'int32', data: strides}];
+  const size = util.sizeFromShape(flattenX.shape);
+  const uniformData = [
+    {type: 'int32', data: [sliceRank]}, {type: 'int32', data: strides},
+    {type: 'int32', data: [size]}
+  ];
   const program = new ScatterOptimizedProgram(
       flattenX.shape, sliceRank, flattenIndices.shape.length,
       flattenX.shape.length, strides, flattenShape, type);

@@ -46,7 +46,7 @@ export class FileDataSource extends DataSource {
     if (isLocalPath(this.input) && env().get('IS_NODE')) {
       // tslint:disable-next-line:no-require-imports
       const fs = require('fs');
-      this.input = fs.readFileSync((this.input as string).substr(7));
+      this.input = fs.readFileSync((this.input as string).slice(7));
     }
     // TODO(kangyizhang): Add LocalFileChunkIterator to split local streaming
     // with file in browser.

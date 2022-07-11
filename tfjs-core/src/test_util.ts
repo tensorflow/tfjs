@@ -149,9 +149,23 @@ export function expectValuesInRange(
 
 export function expectArrayBuffersEqual(
     actual: ArrayBuffer, expected: ArrayBuffer) {
-  // Safari & Jasmine don't like comparing ArrayBuffers directly. Wrapping in
+  // Safari does not like comparing ArrayBuffers directly. Wrapping in
   // a Float32Array solves this issue.
-  expect(new Float32Array(actual)).toEqual(new Float32Array(expected));
+  const actualArray = new Float32Array(actual);
+  const expectedArray = new Float32Array(expected);
+  if (actualArray.length !== expectedArray.length) {
+    throw new Error(
+        'Expected ArrayBuffer to be of length ' +
+        `${expectedArray.length}, but it was ${actualArray.length}`);
+  }
+
+  for (let i = 0; i < expectedArray.length; i++) {
+    if (actualArray[i] !== expectedArray[i]) {
+      throw new Error(
+          `Expected ArrayBuffer value at ${i} to be ` +
+          `${expectedArray[i]} but got ${actualArray[i]} instead`);
+    }
+  }
 }
 
 /** Encodes strings into utf-8 bytes. */

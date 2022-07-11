@@ -1,5 +1,5 @@
 {
-  "extends": "../tsconfig.test",
+  "extends": "../tsconfig_ts_library",
   "include": [
     "src/"
   ],
@@ -7,6 +7,9 @@
     "node_modules/"
   ],
   "compilerOptions": {
+    "module": "commonjs",
+    "baseUrl": ".",
+    "paths": {},
     "outDir": "./dist"
   }
 }

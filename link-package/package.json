@@ -5,24 +5,17 @@
   "license": "Apache 2.0",
   "private": true,
   "scripts": {
-    "build": "yarn build-link-package-core && yarn build-backend-webgl && yarn build-converter && yarn build-tflite && yarn build-layers && yarn build-data && yarn reinstall",
-    "build-link-package-core": "cd ../link-package-core && yarn build",
-    "build-backend-webgl": "cd ../tfjs-backend-webgl && yarn && yarn build",
-    "build-converter": "cd ../tfjs-converter && yarn && yarn build",
-    "build-data": "cd ../tfjs-data && yarn && yarn build",
-    "build-layers": "cd ../tfjs-layers && yarn && yarn build",
-    "build-tflite": "cd ../tfjs-tflite && yarn && yarn build",
-    "reinstall-link-package-core": "cd ../link-package-core && yarn reinstall",
-    "reinstall": "yarn && yarn reinstall-link-package-core && yarn cache clean @tensorflow/tfjs-backend-webgl && yarn cache clean @tensorflow/tfjs-converter && yarn cache clean @tensorflow/tfjs-tflite && yarn cache clean @tensorflow/tfjs-layers && yarn cache clean @tensorflow/tfjs-data && rimraf node_modules && yarn"
+    "build": "yarn build-deps-for --all",
+    "build-deps-for": "yarn && ts-node build_deps.ts"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-backend-cpu": "link:../link-package-core/node_modules/@tensorflow/tfjs-backend-cpu",
-    "@tensorflow/tfjs-core": "link:../link-package-core/node_modules/@tensorflow/tfjs-core",
-    "@tensorflow/tfjs-tflite": "link:../dist/bin/tfjs-tflite/tfjs-tflite_pkg",
-    "@tensorflow/tfjs-converter": "file:../dist/bin/tfjs-converter/tfjs-converter_pkg",
-    "@tensorflow/tfjs-backend-webgl": "file:../dist/bin/tfjs-backend-webgl/tfjs-backend-webgl_pkg",
-    "@tensorflow/tfjs-layers": "file:../dist/bin/tfjs-layers/tfjs-layers_pkg",
-    "@tensorflow/tfjs-data": "file:../dist/bin/tfjs-data/tfjs-data_pkg",
-    "rimraf": "^3.0.2"
+    "@types/rimraf": "^3.0.2",
+    "rimraf": "^3.0.2",
+    "ts-node": "^10.7.0"
+  },
+  "dependencies": {
+    "@bazel/bazelisk": "^1.12.0",
+    "@types/argparse": "^2.0.10",
+    "argparse": "^2.0.1"
   }
 }
