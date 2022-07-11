@@ -110,6 +110,27 @@ const benchmarks = {
       }
     },
   },
+  'mobilenet_v2': {
+    type: 'GraphModel',
+    load: async () => {
+      const url =
+          'https://storage.googleapis.com/learnjs-data/mobilenet_v2_100_fused/model.json';
+      return tf.loadGraphModel(url);
+    },
+    loadTflite: async (enableProfiling = false) => {
+      const url =
+          'https://tfhub.dev/tensorflow/lite-model/mobilenet_v2_1.0_224/1/metadata/1';
+      return tflite.loadTFLiteModel(url, {enableProfiling});
+    },
+    predictFunc: () => {
+      const input = tf.randomNormal([1, 224, 224, 3]);
+      if (isTflite()) {
+        return () => tfliteModel.predict(input);
+      } else {
+        return predictFunction(model, input);
+      }
+    },
+  },
   'mesh_128': {
     type: 'GraphModel',
     load: async () => {
