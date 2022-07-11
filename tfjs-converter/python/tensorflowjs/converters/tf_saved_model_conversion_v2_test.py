@@ -121,6 +121,31 @@ class ConvertTest(tf.test.TestCase):
 
       builder.save()
 
+  def _create_saved_model_v2_with_hashtable(self):
+    """Create a TensorFlow SavedModel V2 with hash table for testing."""
+
+    class Table(tf.Module):
+        def __init__(self, **kwargs):
+            super(Table, self).__init__()
+            keys = tf.constant(['a', 'b'])
+            vals= tf.constant([0, 1])
+            init = tf.lookup.KeyValueTensorInitializer(keys, vals)
+            self.table = tf.lookup.StaticHashTable(init, -1)
+
+        def initializeTable(self):
+            @tf.function
+            def lookup(input):
+                return self.table.lookup(input)
+
+            return lookup
+
+    model = Table()
+    concrete_fn = model.initializeTable().get_concrete_function(
+      input=tf.TensorSpec([None], tf.string))
+
+    save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tf.saved_model.save(model, save_dir, signatures={"serving_default": concrete_fn})
+
   def _create_saved_model_with_fusable_conv2d(self, use_bias):
     """Test a basic model with fusable conv2d."""
     layers = [
@@ -413,6 +438,97 @@ class ConvertTest(tf.test.TestCase):
         self.assertEqual(node['attr']['shape'],
                          {'shape': {'dim': [
                              {'size': '-1'}, {'size': '2'}, {'size': '2'}]}})
+
+    weights_manifest = model_json['weightsManifest']
+    self.assertEqual(weights_manifest, expected_weights_manifest)
+    # Check meta-data in the artifact JSON.
+    self.assertEqual(model_json['format'], 'graph-model')
+    self.assertEqual(
+        model_json['convertedBy'],
+        'TensorFlow.js Converter v%s' % version.version)
+    self.assertEqual(model_json['generatedBy'],
+                     tf.__version__)
+    self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
+
+  def test_convert_saved_model_v2_with_hashtable(self):
+    self._create_saved_model_v2_with_hashtable()
+
+    input_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    output_dir = os.path.join(input_dir, 'js')
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        input_dir,
+        output_dir
+    )
+
+    expected_signature = {
+      'inputs': {
+        'input': {
+          'name': 'input:0',
+          'dtype': 'DT_STRING',
+          'tensorShape': {'dim': [{'size': '-1'}]}
+        },
+        'unknown:0': {
+          'name': 'unknown:0',
+          'dtype': 'DT_RESOURCE',
+          'tensorShape': {},
+          'resourceId': None
+        }
+    },
+      'outputs': {
+        'output_0': {
+          'name': 'Identity:0',
+          'dtype': 'DT_INT32',
+          'tensorShape': {'dim': [{'size': '-1'}]}
+        }
+      }
+    }
+
+    expected_initializer_signature = {
+      'outputs': {
+        'Identity:0': {
+          'name': 'Identity:0',
+          'dtype': 'DT_RESOURCE',
+          'tensorShape': {},
+          'resourceId': None
+        }
+      }
+    }
+
+    expected_weights_manifest = [{
+        'paths': ['group1-shard1of1.bin'],
+        'weights': [
+            {'name': 'unknown_0', 'shape': [], 'dtype': 'int32'},
+            {'name': '4589', 'shape': [2], 'dtype': 'string'},
+            {'name': '4591', 'shape': [2], 'dtype': 'int32'}
+        ]}]
+
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'js')
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+
+    # Check resource ids match which indicates the initializer output is mapped
+    # to the inference input.
+    signature_resource_id = model_json['signature']['inputs']['unknown:0']['resourceId']
+    initializer_resource_id = model_json['initializerSignature']['outputs']['Identity:0']['resourceId']
+    self.assertTrue(signature_resource_id)
+    self.assertEqual(signature_resource_id, initializer_resource_id)
+
+    # Update expected signatures with resourceId since it is a runtime value.
+    expected_signature['inputs']['unknown:0']['resourceId'] = signature_resource_id
+    expected_initializer_signature['outputs']['Identity:0']['resourceId'] = signature_resource_id
+    self.assertEqual(model_json['signature'], expected_signature)
+    self.assertEqual(model_json['initializerSignature'], expected_initializer_signature)
+
+    self.assertTrue(model_json['modelTopology'])
+    self.assertIsNot(model_json['modelTopology']['versions'], None)
+    model_ops = [node['op'] for node in model_json['modelTopology']['node']]
+    self.assertTrue('LookupTableFindV2' in model_ops)
+
+    self.assertTrue(model_json['modelInitializer'])
+    initializer_ops = [node['op'] for node in model_json['modelInitializer']['node']]
+    self.assertTrue('HashTableV2' in initializer_ops)
+    self.assertTrue('LookupTableImportV2' in initializer_ops)
 
     weights_manifest = model_json['weightsManifest']
     self.assertEqual(weights_manifest, expected_weights_manifest)

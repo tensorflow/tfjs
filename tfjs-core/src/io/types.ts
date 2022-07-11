@@ -292,6 +292,11 @@ export declare interface ModelArtifacts {
    * Initializer for the model.
    */
   modelInitializer?: {};
+
+  /**
+   * Inputs and outputs signature for model initializer.
+   */
+  initializerSignature?: {};
 }
 
 /**
@@ -362,6 +367,11 @@ export declare interface ModelJSON {
    * Initializer for the model.
    */
   modelInitializer?: {};
+
+  /**
+   * Inputs and outputs signature for model initializer.
+   */
+  initializerSignature?: {};
 }
 
 /**
