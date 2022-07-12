@@ -392,6 +392,9 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'sparseReshape'},
   {include: 'sparseSegmentMean'},
   {include: 'sparseSegmentSum'},
+  {include: 'stringNGrams'},
+  {include: 'stringSplit'},
+  {include: 'stringToHashBucketFast'},
 ];
 
 const customInclude = (testName: string) => {
