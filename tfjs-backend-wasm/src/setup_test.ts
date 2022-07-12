@@ -392,6 +392,9 @@ const TEST_FILTERS: TestFilter[] = [
   {include: 'sparseReshape'},
   {include: 'sparseSegmentMean'},
   {include: 'sparseSegmentSum'},
+  {include: 'stringNGrams'},
+  {include: 'stringSplit'},
+  {include: 'stringToHashBucketFast'},
 ];
 
 const customInclude = (testName: string) => {
@@ -409,7 +412,7 @@ const customInclude = (testName: string) => {
 };
 setupTestFilters(TEST_FILTERS, customInclude);
 
-beforeAll(setupCachedWasmPaths);
+beforeAll(setupCachedWasmPaths, 30_000);
 
 // Import and run all the tests from core.
 // tslint:disable-next-line:no-imports-from-dist
