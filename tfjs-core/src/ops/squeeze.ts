@@ -39,7 +39,7 @@ import {reshape} from './reshape';
  * @doc {heading: 'Tensors', subheading: 'Transformations'}
  */
 function squeeze_<T extends Tensor>(x: Tensor|TensorLike, axis?: number[]): T {
-  const $x = convertToTensor(x, 'x', 'squeeze');
+  const $x = convertToTensor(x, 'x', 'squeeze', 'string_or_numeric');
   return reshape($x, squeezeShape($x.shape, axis).newShape) as T;
 }
 
