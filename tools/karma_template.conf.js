@@ -15,6 +15,11 @@
  * =============================================================================
  */
 
+const browserstackConfig = {
+  hostname: 'bs-local.com',
+  port: 9876,
+};
+
 const CUSTOM_LAUNCHERS = {
   // For browserstack configs see:
   // https://www.browserstack.com/automate/node
@@ -119,6 +124,7 @@ module.exports = function(config) {
       process.exit(1);
     }
 
+    Object.assign(extraConfig, browserstackConfig);
     extraConfig.browserStack = {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
