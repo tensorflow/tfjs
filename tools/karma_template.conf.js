@@ -73,11 +73,23 @@ const CUSTOM_LAUNCHERS = {
     base: 'Chrome',
     flags: ['--autoplay-policy=no-user-gesture-required'],
   },
+  chrome_webgpu_linux: {
+    base: 'ChromeCanary',
+    flags: [
+      '--disable-dawn-features=disallow_unsafe_apis',
+      '--flag-switches-begin',
+      '--enable-unsafe-webgpu',
+      '--enable-features=Vulkan,UseSkiaRenderer',
+      '--flag-switches-end',
+    ]
+  },
   chrome_webgpu: {
     base: 'ChromeCanary',
     flags: [
+      '--disable-dawn-features=disallow_unsafe_apis',
+      '--flag-switches-begin',
       '--enable-unsafe-webgpu',
-      '--disable-dawn-features=disallow_unsafe_apis'
+      '--flag-switches-end',
     ]
   },
   chrome_debugging:
