@@ -96,6 +96,7 @@ ts_library(
         "//tfjs-core/src:tfjs-core_lib",
         "//tfjs-core/src:tfjs-core_src_lib",
         "//tfjs-core/src:tfjs-core_test_lib",
+        "@npm//core-js",
         "@npm//@types/jasmine",
         "@npm//jasmine",
     ],
@@ -105,6 +106,7 @@ esbuild(
     name = "tfjs-backend-wasm_test_bundle",
     testonly = True,
     entry_point = "setup_test.ts",
+    target = "es6",
     external = [
         "@tensorflow/tfjs",
         "worker_threads",

@@ -15,6 +15,9 @@
  * =============================================================================
  */
 
+// Import Object.fromEntries polyfill for Safari 11
+import 'core-js/es/object/from-entries';
+
 // Import core for side effects (e.g. flag registration)
 import '@tensorflow/tfjs-core';
 // tslint:disable-next-line:no-imports-from-dist
