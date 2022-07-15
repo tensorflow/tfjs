@@ -56,6 +56,11 @@ describeWebGPU('fromPixels', () => {
        if ('requestVideoFrameCallback' in video) {
          // tslint:disable-next-line:no-any
          await new Promise(go => (video as any).requestVideoFrameCallback(go));
+       } else {
+         // On mobile safari the ready state is ready immediately.
+         if (video.readyState < HTMLVideoElement.prototype.HAVE_CURRENT_DATA) {
+           await new Promise(go => video.addEventListener('loadeddata', go));
+         }
        }
 
        {
