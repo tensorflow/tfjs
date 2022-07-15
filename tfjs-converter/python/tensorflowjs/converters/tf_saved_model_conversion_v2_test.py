@@ -260,6 +260,35 @@ class ConvertTest(tf.test.TestCase):
     save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
     save(root, save_dir, to_save)
 
+  def _create_saved_model_with_structured_outputs(self):
+    def create_input(name):
+      return tf.keras.layers.Input(name=name, shape=(1,), dtype=tf.float32)
+
+    input1 = create_input("input1")
+    input3 = create_input("input3")
+    input2 = create_input("input2")
+
+    output1 = tf.keras.layers.Dense(1, name='a')
+    output1 = output1(tf.keras.layers.concatenate([input1, input3], axis=1))
+    output2 = tf.keras.layers.Dense(1, name='b')(input2)
+    output3 = tf.keras.layers.Multiply(name='c')([output1, output2])
+
+    inputs = {
+      "input1": input1,
+      "input3": input3,
+      "input2": input2
+    }
+
+    outputs = {
+      "a": output1,
+      "c": output3,
+      "b": output2
+    }
+
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    save_dir = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    tf.saved_model.save(model, save_dir)
+
   def _create_hub_module(self):
     # Module function that doubles its input.
     def double_module_fn():
@@ -437,6 +466,21 @@ class ConvertTest(tf.test.TestCase):
     self.assertCountEqual(weights_manifest[0]['paths'],
                           ['group1-shard1of1.bin'])
     self.assertIn('weights', weights_manifest[0])
+
+  def test_convert_saved_model_with_frozen_file(self):
+    self._create_saved_model()
+
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        frozen_graph_dir=os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    )
+
+    frozen_file_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
+                                    'model.json.frozen')
+    # Check model.json.frozen exist.
+    self.assertTrue(
+        glob.glob(frozen_file_path))
 
   def test_convert_saved_model_with_metadata(self):
     self._create_saved_model()
@@ -869,6 +913,40 @@ class ConvertTest(tf.test.TestCase):
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
+  def test_convert_saved_model_structured_outputs_true(self):
+    self._create_saved_model_with_structured_outputs()
+
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        use_structured_outputs_names=True)
+
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertTrue(model_json['modelTopology'])
+    self.assertIsNot(model_json['modelTopology']['versions'], None)
+    signature = model_json['signature']
+    self.assertIsNot(signature, None)
+    self.assertIsNot(signature['inputs'], None)
+    self.assertIsNot(signature['outputs'], None)
+
+    self.assertEqual(["a", "b", "c"], model_json['userDefinedMetadata']['structuredOutputKeys'])
+
+  def test_convert_saved_model_structured_outputs_false(self):
+    self._create_saved_model_with_structured_outputs()
+
+    tf_saved_model_conversion_v2.convert_tf_saved_model(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR))
+
+    tfjs_path = os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertIs(model_json.get('userDefinedMetadata'), None)
 
   def test_convert_hub_module_v1(self):
     self._create_hub_module()

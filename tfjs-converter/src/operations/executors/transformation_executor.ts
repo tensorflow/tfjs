@@ -27,10 +27,10 @@ import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext): Tensor[] => {
+     context: ExecutionContext, ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'Cast': {
-          return [tfOps.cast(
+          return [ops.cast(
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('dtype', node, tensorMap, context) as 'int32' |
                   'float32' | 'bool')];
@@ -38,23 +38,23 @@ export const executeOp: InternalOpExecutor =
         case 'ExpandDims': {
           const axis =
               getParamValue('axis', node, tensorMap, context) as number;
-          return [tfOps.expandDims(
+          return [ops.expandDims(
               getParamValue('x', node, tensorMap, context) as Tensor, axis)];
         }
         case 'Squeeze': {
           const axis =
               getParamValue('axis', node, tensorMap, context) as number[];
-          return [tfOps.squeeze(
+          return [ops.squeeze(
               getParamValue('x', node, tensorMap, context) as Tensor, axis)];
         }
 
         case 'Reshape': {
-          return [tfOps.reshape(
+          return [ops.reshape(
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('shape', node, tensorMap, context) as number[])];
         }
         case 'MirrorPad': {
-          return [tfOps.mirrorPad(
+          return [ops.mirrorPad(
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('padding', node, tensorMap, context) as
                   Array<[number, number]>,
@@ -63,7 +63,7 @@ export const executeOp: InternalOpExecutor =
         }
         case 'PadV2':
         case 'Pad': {
-          return [tfOps.pad(
+          return [ops.pad(
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('padding', node, tensorMap, context) as
                   Array<[number, number]>,
@@ -75,7 +75,7 @@ export const executeOp: InternalOpExecutor =
               getParamValue('blockShape', node, tensorMap, context) as number[];
           const paddings =
               getParamValue('paddings', node, tensorMap, context) as number[][];
-          return [tfOps.spaceToBatchND(
+          return [ops.spaceToBatchND(
               getParamValue('x', node, tensorMap, context) as Tensor,
               blockShape, paddings)];
         }
@@ -84,7 +84,7 @@ export const executeOp: InternalOpExecutor =
               getParamValue('blockShape', node, tensorMap, context) as number[];
           const crops =
               getParamValue('crops', node, tensorMap, context) as number[][];
-          return [tfOps.batchToSpaceND(
+          return [ops.batchToSpaceND(
               getParamValue('x', node, tensorMap, context) as Tensor,
               blockShape, crops)];
         }
@@ -95,17 +95,17 @@ export const executeOp: InternalOpExecutor =
               (getParamValue('dataFormat', node, tensorMap, context) as
                string).toUpperCase() as 'NHWC' |
               'NCHW';
-          return [tfOps.depthToSpace(
+          return [ops.depthToSpace(
               getParamValue('x', node, tensorMap, context) as Tensor4D,
               blockSize, dataFormat)];
         }
         case 'BroadcastTo': {
-          return [tfOps.broadcastTo(
+          return [ops.broadcastTo(
               getParamValue('x', node, tensorMap, context) as Tensor,
               getParamValue('shape', node, tensorMap, context) as number[])];
         }
         case 'BroadcastArgs': {
-          return [tfOps.broadcastArgs(
+          return [ops.broadcastArgs(
               getParamValue('s0', node, tensorMap, context) as Tensor,
               getParamValue('s1', node, tensorMap, context) as Tensor)];
         }

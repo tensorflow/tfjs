@@ -1,0 +1,84 @@
+steps:
+# Clone tensorflow
+# TODO(mattsoulanille): Specify branch with variable.
+- name: 'tensorflow/build@sha256:47f8603647612f797f9ad9279c55620dc4ceb9980a5f9fe6ae35882b96ec0ac0'
+  entrypoint: 'git'
+  id: 'clone'
+  args: ['clone', '--branch', 'r2.7', '--single-branch', '--depth', '1', 'https://github.com/tensorflow/tensorflow.git']
+
+# Configure tensorflow
+- name: 'tensorflow/build@sha256:47f8603647612f797f9ad9279c55620dc4ceb9980a5f9fe6ae35882b96ec0ac0'
+  entrypoint: 'bash'
+  id: 'configure'
+  dir: 'tensorflow'
+  args: ['./configure']
+  env:
+    - 'PYTHON_BIN_PATH=/usr/bin/python3'
+    - 'PYTHON_LIB_PATH=/usr/lib/python3/dist-packages'
+    - 'TF_NEED_ROCM=false'
+    - 'TF_NEED_CUDA=false'
+    - 'TF_DOWNLOAD_CLANG=false'
+    - 'CC_OPT_FLAGS=-Wno-sign-compare'
+    - 'TF_SET_ANDROID_WORKSPACE=false'
+
+
+# Build tensorflow
+# First, hide system openssl.
+# https://github.com/tensorflow/tensorflow/issues/48401#issuecomment-818377995
+- name: 'tensorflow/build@sha256:47f8603647612f797f9ad9279c55620dc4ceb9980a5f9fe6ae35882b96ec0ac0'
+  entrypoint: 'bash'
+  id: 'build'
+  dir: 'tensorflow'
+  args:
+    - '-eEuo'
+    - 'pipefail'
+    - '-c'
+    - |-
+      mv /usr/include/openssl /usr/include/openssl.original
+      bazel build --jobs=16 -c opt --config=elinux_aarch64 //tensorflow:libtensorflow.so //tensorflow:libtensorflow_framework.so
+
+# Copy results to a staging directory and tar them
+- name: 'tensorflow/build@sha256:47f8603647612f797f9ad9279c55620dc4ceb9980a5f9fe6ae35882b96ec0ac0'
+  entrypoint: 'bash'
+  id: 'copy-results'
+  args:
+    - '-eEuo'
+    - 'pipefail'
+    - '-c'
+    - |-
+      mkdir tf_build
+      mkdir tf_build/lib
+      cp -P tensorflow/bazel-bin/tensorflow/libtensorflow*.so* tf_build/lib
+      mkdir -p tf_build/include/tensorflow/core/platform
+      mkdir -p tf_build/include/tensorflow/c/eager
+      cp tensorflow/tensorflow/core/platform/ctstring.h tf_build/include/tensorflow/core/platform/
+      cp tensorflow/tensorflow/core/platform/ctstring_internal.h tf_build/include/tensorflow/core/platform/
+      cp tensorflow/tensorflow/c/c_api.h tf_build/include/tensorflow/c/
+      cp tensorflow/tensorflow/c/c_api_experimental.h tf_build/include/tensorflow/c/
+      cp tensorflow/tensorflow/c/c_api_macros.h tf_build/include/tensorflow/c/
+      cp tensorflow/tensorflow/c/tensor_interface.h tf_build/include/tensorflow/c/
+      cp tensorflow/tensorflow/c/tf_attrtype.h tf_build/include/tensorflow/c/
+      cp tensorflow/tensorflow/c/tf_datatype.h tf_build/include/tensorflow/c/
+      cp tensorflow/tensorflow/c/tf_file_statistics.h tf_build/include/tensorflow/c/
+      cp tensorflow/tensorflow/c/tf_status.h tf_build/include/tensorflow/c/
+      cp tensorflow/tensorflow/c/tf_tensor.h tf_build/include/tensorflow/c/
+      cp tensorflow/tensorflow/c/tf_tstring.h tf_build/include/tensorflow/c/
+      cp tensorflow/tensorflow/c/eager/c_api.h tf_build/include/tensorflow/c/eager/
+      cp tensorflow/tensorflow/c/eager/c_api_experimental.h tf_build/include/tensorflow/c/eager/
+      cp tensorflow/tensorflow/c/eager/c_api_unified_experimental.h tf_build/include/tensorflow/c/eager/
+      cp tensorflow/tensorflow/c/eager/dlpack.h tf_build/include/tensorflow/c/eager/
+      cd tf_build
+      tar czf libtensorflow_r2_7_linux_arm64.tar.gz ./lib ./include
+
+# Push results to bucket
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'gsutil'
+  id: 'push'
+  args: ['cp', 'tf_build/libtensorflow_r2_7_linux_arm64.tar.gz', 'gs://tf-builds']
+
+timeout: 7200s
+options:
+  logStreamingOption: 'STREAM_ON'
+  machineType: 'E2_HIGHCPU_32'
+  substitution_option: 'ALLOW_LOOSE'
+

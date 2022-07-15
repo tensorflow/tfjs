@@ -113,7 +113,7 @@ tfjs_web_test(
         "bs_chrome_mac",
         "bs_firefox_mac",
         "bs_safari_mac",
-        "bs_ios_11",
+        "bs_ios_12",
         "bs_android_9",
         "win_10_chrome",
     ],
@@ -137,7 +137,12 @@ nodejs_test(
     ],
     entry_point = "//tfjs-core/scripts/test_snippets:test_snippets.ts",
     link_workspace_root = True,
-    tags = ["ci"],
+    tags = [
+        "ci",
+        # Run the test locally since it makes http requests.
+        "no-remote-exec",
+        "requires-network",
+    ],
 )
 
 nodejs_test(
@@ -164,4 +169,16 @@ nodejs_test(
     entry_point = "//tfjs-core/src:test_async_backends.ts",
     link_workspace_root = True,
     tags = ["ci"],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":test_snippets_test",
+        ":tfjs-core_async_backends_test",
+        ":tfjs-core_node_test",
+        ":tfjs-core_test",
+        "//tfjs-core/src:worker_node_test",
+        "//tfjs-core/src:worker_test",
+    ],
 )

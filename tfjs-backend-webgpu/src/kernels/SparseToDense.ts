@@ -15,12 +15,15 @@
  * =============================================================================
  */
 
-import {backend_util, KernelConfig, KernelFunc, SparseToDense, SparseToDenseAttrs, SparseToDenseInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, Rank, SparseToDense, SparseToDenseAttrs, SparseToDenseInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
+import {scatterImplCPU} from '../kernel_utils/shared';
+import {ScatterOptimizedProgram} from '../scatter_optimized_webgpu';
 
+import {identity} from './Identity';
 import {reshape} from './Reshape';
-import {ScatterProgram} from '../scatter_webgpu';
+import {tile} from './Tile';
 
 export function sparseToDense(args: {
   inputs: SparseToDenseInputs,
@@ -31,28 +34,99 @@ export function sparseToDense(args: {
   const {sparseIndices, sparseValues, defaultValue} = inputs;
   const {outputShape} = attrs;
 
-  const {sliceRank, numUpdates, strides, outputSize} =
+  const {sliceRank, numUpdates, sliceSize, strides, outputSize} =
       backend_util.calculateShapes(sparseValues, sparseIndices, outputShape);
 
   const sumDupeIndices = false;
+  if (sparseValues.dtype === 'string') {
+    const indicesBuf = backend.bufferSync<Rank, 'int32'>(sparseIndices);
+    const updatesBuf = backend.bufferSync<Rank, 'string'>(sparseValues);
+    const $defaultValue = util.decodeString(
+        backend.readSync(defaultValue.dataId)[0] as Uint8Array);
+    const outBuf = scatterImplCPU(
+        indicesBuf, updatesBuf, outputShape, outputSize, sliceSize, numUpdates,
+        sliceRank, strides, $defaultValue, sumDupeIndices);
+    return backend.makeTensorInfo(outputShape, outBuf.dtype, outBuf.values);
+  }
+
+  const flattenShape = [outputSize / sliceSize, sliceSize];
+
+  const $sparseIndices = reshape({
+    inputs: {x: sparseIndices},
+    backend,
+    attrs: {shape: [numUpdates, sliceRank]}
+  });
+  const $sparseValues = sparseValues.shape.length ?
+      reshape({
+        inputs: {x: sparseValues},
+        backend,
+        attrs: {shape: [numUpdates, sliceSize]}
+      }) :
+      identity({inputs: {x: sparseValues}, backend});
+
+  const type = $sparseValues.dtype;
+  const zero =
+      backend.makeTensorInfo([], type, util.makeZerosTypedArray(1, type));
+
+  // Fill output tensor with the default value.
+  const $defaultValue = reshape({
+    inputs: {x: defaultValue},
+    backend,
+    attrs: {shape: Array(flattenShape.length).fill(1)}
+  });
+  const $denseValues =
+      tile({inputs: {x: $defaultValue}, backend, attrs: {reps: flattenShape}});
+
+  const size = util.sizeFromShape([numUpdates, sliceSize]);
   const uniformData = [
-    {type: 'int32', data: [numUpdates]},
     {type: 'int32', data: [sliceRank]},
     {type: 'int32', data: strides},
+    {type: 'int32', data: [size]},
   ];
-  const program = new ScatterProgram(
-      numUpdates, sliceRank, sparseIndices.shape.length,
-      sparseValues.shape.length, strides, [outputSize, 1], sumDupeIndices);
 
-  const res = backend.runWebGPUProgram(
-      program, [sparseValues, sparseIndices, defaultValue], sparseValues.dtype,
-      uniformData);
+  switch (numUpdates) {
+    case 0:
+      break;
+    case 1:
+      if (true) {
+        const program = new ScatterOptimizedProgram(
+            [numUpdates, sliceSize], sliceRank, $sparseIndices.shape.length,
+            $sparseValues.shape.length, strides, flattenShape, type,
+            sumDupeIndices);
+        backend.runWebGPUProgram(
+            program, [$sparseValues, $sparseIndices], type, uniformData,
+            $denseValues);
+      }
+      break;
+    default:
+      if (true) {
+        // First replace the default value with 0 at indices.
+        const program = new ScatterOptimizedProgram(
+            [numUpdates, sliceSize], sliceRank, $sparseIndices.shape.length,
+            zero.shape.length, strides, flattenShape, type, sumDupeIndices);
+        backend.runWebGPUProgram(
+            program, [zero, $sparseIndices], type, uniformData, $denseValues);
+      }
+      {
+        // Then replace 0 with the (sum of) sparse value(s) at indices.
+        const program = new ScatterOptimizedProgram(
+            [numUpdates, sliceSize], sliceRank, $sparseIndices.shape.length,
+            $sparseValues.shape.length, strides, flattenShape, type);
+        backend.runWebGPUProgram(
+            program, [$sparseValues, $sparseIndices], type, uniformData,
+            $denseValues);
+      }
+  }
 
-  const reshaped =
-      reshape({inputs: {x: res}, backend, attrs: {shape: outputShape}});
+  const denseValues = reshape(
+      {inputs: {x: $denseValues}, backend, attrs: {shape: outputShape}});
 
-  backend.disposeData(res.dataId);
-  return reshaped;
+  backend.disposeData($sparseIndices.dataId);
+  backend.disposeData($sparseValues.dataId);
+  backend.disposeData($defaultValue.dataId);
+  backend.disposeData(zero.dataId);
+  backend.disposeData($denseValues.dataId);
+  return denseValues;
 }
 
 export const sparseToDenseConfig: KernelConfig = {

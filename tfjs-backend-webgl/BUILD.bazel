@@ -126,7 +126,7 @@ tfjs_web_test(
     ],
     browsers = [
         "bs_safari_mac",
-        "bs_ios_11",
+        "bs_ios_12",
     ],
     headless = False,
     static_files = STATIC_FILES,
@@ -193,5 +193,12 @@ js_library(
     name = "package_json",
     srcs = [
         ":package.json",
+    ],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":tfjs-backend-webgl2_test",
     ],
 )

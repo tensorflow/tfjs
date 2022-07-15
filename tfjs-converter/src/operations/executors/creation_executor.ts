@@ -27,7 +27,7 @@ import {getParamValue} from './utils';
 
 export const executeOp: InternalOpExecutor =
     (node: Node, tensorMap: NamedTensorsMap,
-     context: ExecutionContext): Tensor[] => {
+     context: ExecutionContext, ops = tfOps): Tensor[] => {
       switch (node.op) {
         case 'Fill': {
           const shape =
@@ -36,7 +36,7 @@ export const executeOp: InternalOpExecutor =
               getParamValue('dtype', node, tensorMap, context) as DataType;
           const value =
               getParamValue('value', node, tensorMap, context) as number;
-          return [tfOps.fill(shape, value, dtype)];
+          return [ops.fill(shape, value, dtype)];
         }
         case 'LinSpace': {
           const start =
@@ -44,7 +44,7 @@ export const executeOp: InternalOpExecutor =
           const stop =
               getParamValue('stop', node, tensorMap, context) as number;
           const num = getParamValue('num', node, tensorMap, context) as number;
-          return [tfOps.linspace(start, stop, num)];
+          return [ops.linspace(start, stop, num)];
         }
         case 'Multinomial': {
           const logits =
@@ -53,7 +53,7 @@ export const executeOp: InternalOpExecutor =
               getParamValue('numSamples', node, tensorMap, context) as number;
           const seed =
               getParamValue('seed', node, tensorMap, context) as number;
-          return [tfOps.multinomial(logits, numSamples, seed)];
+          return [ops.multinomial(logits, numSamples, seed)];
         }
         case 'OneHot': {
           const indices =
@@ -64,19 +64,26 @@ export const executeOp: InternalOpExecutor =
               getParamValue('onValue', node, tensorMap, context) as number;
           const offValue =
               getParamValue('offValue', node, tensorMap, context) as number;
-          return [tfOps.oneHot(indices, depth, onValue, offValue)];
+          return [ops.oneHot(indices, depth, onValue, offValue)];
         }
         case 'Ones': {
-          return [tfOps.ones(
+          return [ops.ones(
               getParamValue('shape', node, tensorMap, context) as number[],
               getParamValue('dtype', node, tensorMap, context) as DataType)];
         }
         case 'OnesLike': {
-          return [tfOps.onesLike(
+          return [ops.onesLike(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         }
+        case 'RandomStandardNormal': {
+          return [ops.randomStandardNormal(
+              getParamValue('shape', node, tensorMap, context) as number[],
+              getParamValue('dtype', node, tensorMap, context) as 'float32' |
+                  'int32',
+              getParamValue('seed', node, tensorMap, context) as number)];
+        }
         case 'RandomUniform': {
-          return [tfOps.randomUniform(
+          return [ops.randomUniform(
               // tslint:disable-next-line:no-any
               getParamValue('shape', node, tensorMap, context) as any,
               getParamValue('minval', node, tensorMap, context) as number,
@@ -90,7 +97,7 @@ export const executeOp: InternalOpExecutor =
               getParamValue('stop', node, tensorMap, context) as number;
           const step =
               getParamValue('step', node, tensorMap, context) as number;
-          return [tfOps.range(
+          return [ops.range(
               start, stop, step,
               getParamValue('dtype', node, tensorMap, context) as 'float32' |
                   'int32')];
@@ -104,19 +111,19 @@ export const executeOp: InternalOpExecutor =
               getParamValue('stdDev', node, tensorMap, context) as number;
           const seed =
               getParamValue('seed', node, tensorMap, context) as number;
-          return [tfOps.truncatedNormal(
+          return [ops.truncatedNormal(
               shape, mean, stdDev,
               getParamValue('dtype', node, tensorMap, context) as 'float32' |
                   'int32',
               seed)];
         }
         case 'Zeros': {
-          return [tfOps.zeros(
+          return [ops.zeros(
               getParamValue('shape', node, tensorMap, context) as number[],
               getParamValue('dtype', node, tensorMap, context) as DataType)];
         }
         case 'ZerosLike': {
-          return [tfOps.zerosLike(
+          return [ops.zerosLike(
               getParamValue('x', node, tensorMap, context) as Tensor)];
         }
         default:

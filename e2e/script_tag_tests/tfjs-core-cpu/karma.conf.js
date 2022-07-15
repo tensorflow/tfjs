@@ -97,7 +97,7 @@ module.exports = function(config) {
         os: 'OS X',
         os_version: 'High Sierra'
       },
-      bs_ios_11: {
+      bs_ios_12: {
         base: 'BrowserStack',
         device: 'iPhone X',
         os: 'iOS',
@@ -114,7 +114,7 @@ module.exports = function(config) {
       win_10_chrome: {
         base: 'BrowserStack',
         browser: 'chrome',
-        browser_version: 'latest',
+        browser_version: '101.0',
         os: 'Windows',
         os_version: '10'
       }

@@ -17,13 +17,12 @@
 
 import {KernelConfig, Minimum} from '@tensorflow/tfjs-core';
 
+import {BinaryOpType} from '../binary_op_util';
 import {binaryKernelFunc} from '../kernel_utils/kernel_funcs_utils';
 import {minimumImplCPU as cpuMinimum} from '../kernel_utils/shared';
 
-import {BinaryOpType} from '../binary_op_util';
-
 export const minimum = binaryKernelFunc({
-  opSnippet: BinaryOpType.MIN,
+  opType: BinaryOpType.MIN,
   cpuKernelImpl: cpuMinimum,
 });
 

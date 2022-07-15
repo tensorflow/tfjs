@@ -24,20 +24,17 @@ export enum CumOpType {
 
 export class CumProgram implements GPGPUProgram {
   variableNames = ['x'];
-  outputShape: number[];
   userCode: string;
   customUniforms = [{name: 'index', type: 'float' as UniformType}];
-  op: CumOpType;
 
   constructor(
-      op: CumOpType, shape: number[], exclusive: boolean, reverse: boolean) {
-    this.op = op;
-    this.outputShape = shape;
-    const rank = shape.length;
+      public op: CumOpType, public outputShape: number[], exclusive: boolean,
+      reverse: boolean) {
+    const rank = this.outputShape.length;
     const initVal = this.op === CumOpType.Prod ? '1.0' : '0.0';
     const val =
         exclusive ? initVal : `getX(${getCoords(rank, 'coords', this.op)})`;
-    const length = shape[shape.length - 1];
+    const length = this.outputShape[this.outputShape.length - 1];
     let condition = '';
     let idxString = '';
     // When exclusive is set, the cum op becomes roll op that copies the
@@ -78,7 +75,7 @@ function getCoords(rank: number, name: string, op: CumOpType): string {
   } else if (rank === 4) {
     return `${name}.x, ${name}.y, ${name}.z, ${name}.w`;
   } else {
-    throw Error(`Cumulative ${op} for rank ${rank} is not yet supported`);
+    throw new Error(`Cumulative ${op} for rank ${rank} is not yet supported`);
   }
 }
 
@@ -92,6 +89,6 @@ function getFinalCoord(rank: number, name: string, op: CumOpType): string {
   } else if (rank === 4) {
     return `${name}.w`;
   } else {
-    throw Error(`Cumulative ${op} for rank ${rank} is not yet supported`);
+    throw new Error(`Cumulative ${op} for rank ${rank} is not yet supported`);
   }
 }

@@ -104,15 +104,16 @@ const IGNORE_LIST: string[] = [
   // Node backend which uses TF 2.4.0 doesn't support explicit padding
   'conv2dTranspose test-tensorflow {} input=3x3x1,d2=1,f=2,s=2,p=explicit',
   // tslint:disable-next-line:max-line-length
+  'conv2dTranspose test-tensorflow {} input=8x8x8,output=4x4x8,f=8,s=1,inDepth=8,p=same vec4',
+  // tslint:disable-next-line:max-line-length
   'conv2dTranspose test-tensorflow {} gradient input=[1,3,3,1] f=[2,2,2,1] s=[1,1] p=explicit',
+  'fused conv2d test-tensorflow {} basic in NCHW',
+  'fused conv2d test-tensorflow {} im2row in NCHW',
+  'fused conv2d test-tensorflow {} batch in NCHW',
   'maxPoolWithArgmax',
   'rotate',
   // FIXME: unique NaN-handling is inconsistent between TFJS and TFPY
   'unique test-tensorflow {} 1d tensor with NaN and Infinity',
-  // libtensorflow does not yet support tf.matmul with broadcast
-  'broadcast with unequal batch dims',
-  'broadcast batch shape',
-  'broadcast with unequal ranks',
   // Node backend which uses TF 2.4.0 doesn't support explicit padding
   'pool test-tensorflow {} max x=[3,3,1] f=[3,3] s=1 d=1 p=explicit',
   // tslint:disable-next-line:max-line-length

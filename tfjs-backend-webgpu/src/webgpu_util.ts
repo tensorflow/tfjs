@@ -60,8 +60,12 @@ export function computeDispatch(
 }
 
 export function computeWorkGroupSizeForConv2d(
-    layout: {x: number[], y?: number[], z?: number[]},
-    outputShape: number[]): [number, number, number] {
+    layout: {x: number[], y?: number[], z?: number[]}, outputShape: number[],
+    isVec4 = false): [number, number, number] {
+  if (isVec4) {
+    return [8, 8, 1];
+  }
+
   const dim0 = arrayProduct(layout.x.map(d => outputShape[d]));
   const dim1 = arrayProduct(layout.y.map(d => outputShape[d]));
   // TODO(jiajia.qin@intel.com): More fine tune based on outputShape.
@@ -102,8 +106,12 @@ export function computeWorkGroupSizeForMatMul(
 }
 
 export function computeWorkPerThreadForConv2d(
-    layout: {x: number[], y?: number[], z?: number[]},
-    outputShape: number[]): [number, number, number] {
+    layout: {x: number[], y?: number[], z?: number[]}, outputShape: number[],
+    isVec4 = false): [number, number, number] {
+  if (isVec4) {
+    return [4, 4, 1];
+  }
+
   const dim0 = arrayProduct(layout.x.map(d => outputShape[d]));
   const dim1 = arrayProduct(layout.y.map(d => outputShape[d]));
   // TODO(jiajia.qin@intel.com): More fine tune based on outputShape.
@@ -148,11 +156,7 @@ export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
 
 export function isWebGPUSupported(): boolean {
   return ((typeof window !== 'undefined') ||
-    //@ts-ignore
-    (typeof WorkerGlobalScope !== 'undefined')) && !!navigator.gpu;
-}
-
-export interface WebGPULayout {
-  bindGroupLayout: GPUBindGroupLayout;
-  pipelineLayout: GPUPipelineLayout;
+          //@ts-ignore
+          (typeof WorkerGlobalScope !== 'undefined')) &&
+      !!navigator.gpu;
 }

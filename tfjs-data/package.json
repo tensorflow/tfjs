@@ -17,36 +17,8 @@
   "miniprogram": "dist/miniprogram",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@babel/polyfill": "^7.8.7",
-    "@bazel/bazelisk": "^1.10.1",
-    "@bazel/ibazel": "^0.15.10",
-    "@rollup/plugin-commonjs": "^11.0.2",
-    "@rollup/plugin-node-resolve": "^7.1.1",
-    "@rollup/plugin-typescript": "^3.0.0",
-    "@tensorflow/tfjs-backend-cpu": "link:../link-package/node_modules/@tensorflow/tfjs-backend-cpu",
-    "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
-    "@tensorflow/tfjs-layers": "link:../link-package/node_modules/@tensorflow/tfjs-layers",
-    "@types/jasmine": "~2.5.53",
-    "@types/seedrandom": "^2.4.27",
-    "@types/utf8": "~2.1.6",
-    "clang-format": "~1.2.2",
-    "http-server": "~0.12.3",
-    "jasmine": "3.1.0",
-    "jasmine-core": "~3.1.0",
-    "karma": "~6.3.1",
-    "karma-chrome-launcher": "~2.2.0",
-    "karma-firefox-launcher": "~1.1.0",
-    "karma-jasmine": "~1.1.1",
-    "karma-typescript": "~5.5.1",
-    "karma-typescript-es6-transform": "^5.0.2",
-    "nyc": "^15.1.0",
-    "rimraf": "~2.6.2",
-    "rollup": "~2.3.2",
-    "rollup-plugin-terser": "~7.0.2",
-    "rollup-plugin-visualizer": "~3.3.2",
-    "ts-node": "~7.0.0",
-    "typescript": "3.5.3",
-    "yalc": "^1.0.0-pre.50"
+    "@bazel/bazelisk": "^1.12.0",
+    "@bazel/ibazel": "^0.16.2"
   },
   "scripts": {
     "build": "bazel build :tfjs-data_pkg",
@@ -57,20 +29,19 @@
     "build-deps": "yarn build-link-package",
     "build-deps-ci": "yarn build-deps",
     "build-npm": "bazel build :tfjs-data_pkg",
-    "link-local": "yalc link",
-    "publish-local": "rimraf dist/ && yarn build-npm && yalc push",
     "publish-npm": "bazel run :tfjs-data_pkg.publish",
     "test-browser": "ibazel run :tfjs-data_browser_test --test-output=streamed",
-    "test-dev": "bazel test tfjs-data_test",
-    "coverage": "yarn nyc yarn ts-node --transpile-only -P tsconfig.test.json src/test_node.ts"
+    "test-dev": "ibazel test :tests",
+    "test": "bazel test :tests"
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "link:../link-package/node_modules/@tensorflow/tfjs-core",
-    "seedrandom": "~2.4.3"
+    "seedrandom": "^3.0.5"
   },
   "dependencies": {
     "@types/node-fetch": "^2.1.2",
-    "node-fetch": "~2.6.1"
+    "node-fetch": "~2.6.1",
+    "string_decoder": "^1.3.0"
   },
   "browser": {
     "fs": false,

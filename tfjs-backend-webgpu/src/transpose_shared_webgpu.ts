@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {getWorkGroupSizeString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getWorkGroupSizeString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
 export class TransposeSharedProgram implements WebGPUProgram {
@@ -43,7 +42,7 @@ export class TransposeSharedProgram implements WebGPUProgram {
 
   getUserCode(): string {
     const userCode = `
-      let TILE_DIM = ${this.workGroupSize[0]};
+      const TILE_DIM = ${this.workGroupSize[0]};
       var<workgroup> tile : array<array<f32, ${this.workGroupSize[0] + 1}>, ${
         this.workGroupSize[0]}>;
       ${getWorkGroupSizeString()}

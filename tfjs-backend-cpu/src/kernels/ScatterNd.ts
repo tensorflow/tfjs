@@ -33,8 +33,8 @@ export function scatterNd(args: {
       backend_util.calculateShapes(updates, indices, shape);
   const sumDupeIndices = true;
 
-  const indicesBuf = backend.bufferSync<Rank, 'float32'>(indices);
-  const updatesBuf = backend.bufferSync<Rank, 'float32'>(updates);
+  const indicesBuf = backend.bufferSync<Rank, 'int32'>(indices);
+  const updatesBuf = backend.bufferSync<Rank, 'int32'|'float32'>(updates);
 
   const outBuf = scatterImpl(
       indicesBuf, updatesBuf, shape, outputSize, sliceSize, numUpdates,

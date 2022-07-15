@@ -15,10 +15,8 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
-import {WebGPUProgram} from './webgpu_program';
 
 export class SelectProgram implements WebGPUProgram {
   variableNames = ['c', 'a', 'b'];

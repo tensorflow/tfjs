@@ -16,13 +16,13 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@tensorflow/tfjs-core": "2.8.3",
-    "@tensorflow/tfjs-converter": "2.8.3",
-    "@tensorflow/tfjs-backend-cpu": "2.8.3",
-    "@tensorflow/tfjs-backend-wasm": "2.8.3",
+    "@tensorflow/tfjs-core": "3.18.0",
+    "@tensorflow/tfjs-converter": "3.18.0",
+    "@tensorflow/tfjs-backend-cpu": "3.18.0",
+    "@tensorflow/tfjs-backend-wasm": "3.18.0",
     "@types/jasmine": "~3.0.0",
     "@types/rimraf":  "~3.0.0",
-    "clang-format": "~1.2.4",
+    "clang-format": "~1.8.0",
     "jasmine": "~3.1.0",
     "jasmine-core": "~3.1.0",
     "rimraf": "~3.0.2",
@@ -40,9 +40,9 @@
     "test-python-ci": "./scripts/run_python.sh"
   },
   "dependencies": {
-    "@types/seedrandom": "2.4.27",
+    "@types/seedrandom": "^2.4.28",
     "@types/yargs": "~15.0.5",
-    "seedrandom": "2.4.3",
+    "seedrandom": "^3.0.5",
     "yargs": "~15.3.1",
     "pkg": "~4.5.1"
   },

@@ -46,7 +46,7 @@
     "babel-core": "~6.26.3",
     "babel-plugin-external-helpers": "~6.22.0",
     "babel-preset-env": "~1.7.0",
-    "clang-format": "~1.2.2",
+    "clang-format": "~1.8.0",
     "jasmine": "~3.2.0",
     "jasmine-core": "~3.2.0",
     "karma": "^6.3.1",

@@ -60,6 +60,115 @@ describeWebGPU('conv2d vec4', () => {
         ]));
   });
 
+  it('x=[1,9,9,3] f=[3,3,3,4] s=[2,2] d=1 p=same', async () => {
+    const inputDepth = 3;
+    const xSize = 9;
+    const inputShape: [number, number, number, number] =
+        [1, xSize, xSize, inputDepth];
+    const outputDepth = 4;
+    const fSize = 3;
+    const pad = 'same';
+    const stride: [number, number] = [2, 2];
+
+    const inputData = [];
+    for (let i = 0; i < xSize * xSize * inputDepth; i++) {
+      inputData.push(i % 5);
+    }
+
+    const wData = [];
+    for (let i = 0; i < fSize * fSize * inputDepth * outputDepth; i++) {
+      wData.push(i % 5);
+    }
+
+    const x = tf.tensor4d(inputData, inputShape);
+    const w = tf.tensor4d(wData, [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad);
+    expect(result.shape).toEqual([1, 5, 5, 4]);
+    const resData = await result.data();
+    test_util.expectArraysClose(
+        resData, new Float32Array([
+          53,  35,  42,  39,  54,  58,  62,  86,  74,  61,  78, 90,  59,
+          74,  74,  69,  52,  56,  50,  44,  75,  87,  69,  71, 115, 97,
+          114, 91,  104, 108, 102, 106, 123, 99,  95,  126, 59, 64,  79,
+          69,  66,  70,  69,  63,  101, 116, 111, 116, 115, 97, 114, 91,
+          104, 108, 102, 106, 71,  68,  75,  87,  87,  63,  59, 75,  97,
+          90,  108, 111, 101, 116, 111, 116, 115, 97,  114, 91, 63,  72,
+          66,  70,  46,  61,  61,  36,  83,  79,  55,  76,  80, 54,  58,
+          62,  67,  74,  61,  78,  42,  39,  51,  53
+        ]));
+  });
+
+  it('x=[1,9,9,3] f=[3,3,3,4] s=[2,2] d=1 p=valid NCHW', async () => {
+    const inputDepth = 3;
+    const xSize = 9;
+    const inputShape: [number, number, number, number] =
+        [1, xSize, xSize, inputDepth];
+    const outputDepth = 4;
+    const fSize = 3;
+    const pad = 'valid';
+    const stride: [number, number] = [2, 2];
+
+    const inputData = [];
+    for (let i = 0; i < xSize * xSize * inputDepth; i++) {
+      inputData.push(i % 5);
+    }
+
+    const wData = [];
+    for (let i = 0; i < fSize * fSize * inputDepth * outputDepth; i++) {
+      wData.push(i % 5);
+    }
+
+    const x = tf.tensor4d(inputData, inputShape);
+    const w = tf.tensor4d(wData, [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad);
+    expect(result.shape).toEqual([1, 4, 4, 4]);
+    const resData = await result.data();
+    test_util.expectArraysClose(
+        resData, new Float32Array([
+          115, 97,  114, 91,  104, 108, 102, 106, 123, 99,  95,  126, 97,
+          90,  108, 111, 101, 116, 111, 116, 115, 97,  114, 91,  104, 108,
+          102, 106, 123, 99,  95,  126, 97,  90,  108, 111, 101, 116, 111,
+          116, 115, 97,  114, 91,  104, 108, 102, 106, 123, 99,  95,  126,
+          97,  90,  108, 111, 101, 116, 111, 116, 115, 97,  114, 91
+        ]));
+  });
+
+  it('x=[1,5,5,6] f=[3,3,6,4] s=[2,2] d=1 p=same', async () => {
+    const inputDepth = 6;
+    const xSize = 5;
+    const inputShape: [number, number, number, number] =
+        [1, xSize, xSize, inputDepth];
+    const outputDepth = 4;
+    const fSize = 3;
+    const pad = 'same';
+    const stride: [number, number] = [2, 2];
+
+    const inputData = [];
+    for (let i = 0; i < xSize * xSize * inputDepth; i++) {
+      inputData.push(i % 5);
+    }
+
+    const wData = [];
+    for (let i = 0; i < fSize * fSize * inputDepth * outputDepth; i++) {
+      wData.push(i % 5);
+    }
+
+    const x = tf.tensor4d(inputData, inputShape);
+    const w = tf.tensor4d(wData, [fSize, fSize, inputDepth, outputDepth]);
+
+    const result = tf.conv2d(x, w, stride, pad);
+    expect(result.shape).toEqual([1, 3, 3, 4]);
+    const resData = await result.data();
+    test_util.expectArraysClose(
+        resData, new Float32Array([
+          92,  74,  86,  73,  140, 132, 164, 156, 124, 123, 97,  106,
+          115, 118, 136, 124, 232, 220, 228, 196, 180, 146, 147, 173,
+          73,  95,  92,  74,  156, 128, 140, 132, 106, 90,  124, 123
+        ]));
+  });
+
   it('conv2d x=[1,8,8,3] f=[3,3,3,64] s=[2,2] d=1 p=valid Conv2DMMVec4Program remainder != 0',
      async () => {
        const inputDepth = 3;

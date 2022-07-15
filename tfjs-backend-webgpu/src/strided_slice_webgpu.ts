@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class StridedSliceProgram implements WebGPUProgram {
