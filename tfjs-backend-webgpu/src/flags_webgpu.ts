@@ -34,6 +34,11 @@ ENV.registerFlag('WEBGPU_CPU_FORWARD', () => true);
 ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
 
 /**
+ * This flag is used to test different version of matmul programs.
+ */
+ENV.registerFlag('WEBGPU_TESTED_MATMUL', () => -1);
+
+/**
  * Whether to use conv2dTranspose_naive which directly implement the
  * conv2dTranspose logic rather than using a matmul to simulate.
  */

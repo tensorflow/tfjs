@@ -16,7 +16,11 @@
  */
 
 // tslint:disable-next-line: no-imports-from-dist
-import {registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {Constraints, registerTestEnv} from '@tensorflow/tfjs-core/dist/jasmine_util';
+
+export const MATMUL_ENVS: Constraints = {
+  flags: {'WEBGPU_TESTED_MATMUL': -1}
+};
 
 registerTestEnv({
   name: 'webgpu',

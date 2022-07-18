@@ -17,9 +17,27 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 import {test_util} from '@tensorflow/tfjs-core';
-import {describeWebGPU} from './test_util';
+// tslint:disable-next-line: no-imports-from-dist
+import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
-describeWebGPU('matmul', () => {
+import {MATMUL_ENVS} from './backend_webgpu_test_registry';
+import {MatMulProgramType} from './webgpu_util';
+
+const {expectArraysClose} = test_util;
+const MATMUL_SHARED_DIM_THRESHOLD = 1000;
+let type0 = MatMulProgramType.MatMulReduceProgram;
+let type1 = MatMulProgramType.MatMulReduceProgram;
+const matmulTest = () => {
+  let savedMatmulFlag = -1;
+  beforeAll(() => {
+    savedMatmulFlag = tf.env().get('WEBGPU_TESTED_MATMUL') as number;
+    tf.env().set('WEBGPU_TESTED_MATMUL', type0);
+    type0++;
+  });
+  afterAll(() => {
+    tf.env().set('WEBGPU_TESTED_MATMUL', savedMatmulFlag);
+  });
+
   it('it works in delayed mode.', async () => {
     const savedFlag = tf.env().get('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE');
     tf.env().set('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', 15);
@@ -1005,4 +1023,773 @@ describeWebGPU('matmul', () => {
         [16, 0, 27, 34, 20, 0, 34, 44, 24, 0, 41, 54, 28, 0, 48, 64];
     test_util.expectArraysClose(result, expected);
   });
-});
+
+  it('A x B', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+
+    const c = tf.matMul(a, b);
+
+    expect(c.shape).toEqual([2, 2]);
+    expectArraysClose(await c.data(), [0, 8, -3, 20]);
+  });
+
+  it('[8,4]x[4,8]', async () => {
+    const a = tf.tensor2d(
+        [
+          1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16,
+          17, 18, 19, 20, 21, 22, 23, 24, 1, 2,  3,  4,  5,  6,  7,  8
+        ],
+        [8, 4]);
+    const b = tf.tensor2d(
+        [
+          0,  1,  -3, 2, 1,  -1, 0, 5,  6, 7, 8, 0, -2, -2, 1, 9,
+          11, 10, 0,  1, -3, 2,  1, -1, 1, 2, 3, 4, 5,  6,  7, 8
+        ],
+        [4, 8]);
+
+    const c = tf.matMul(a, b);
+    const cData = await c.data();
+
+    expect(c.shape).toEqual([8, 8]);
+    expectArraysClose(cData, [
+      49,  53,  25,  21,  8,   25,  33,  52,  121, 133, 57,  49,  12,
+      45,  69,  136, 193, 213, 89,  77,  16,  65,  105, 220, 265, 293,
+      121, 105, 20,  85,  141, 304, 337, 373, 153, 133, 24,  105, 177,
+      388, 409, 453, 185, 161, 28,  125, 213, 472, 49,  53,  25,  21,
+      8,   25,  33,  52,  121, 133, 57,  49,  12,  45,  69,  136
+    ]);
+  });
+
+  it('matmul followed by mul', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+    const b = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+
+    const c = tf.matMul(a, b);
+
+    const f = tf.tensor2d([0, 1, 0.5, 0, 0.25, 2], [2, 3]);
+    const d = tf.mul(c, f);
+
+    const dData = await d.data();
+
+    expect(d.shape).toEqual([2, 3]);
+    expectArraysClose(dData, [0, 12, 7.5, 0, 6.5, 66]);
+  });
+
+  it('A x B^t', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([1, 0, 2, 4, 3, 0], [2, 3]);
+
+    const transposeA = false;
+    const transposeB = true;
+    const c = tf.matMul(a, b, transposeA, transposeB);
+
+    const expected = [7, 10, 16, 31];
+    expectArraysClose(await c.data(), expected);
+  });
+
+  it('A^t x B', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([1, 0, 2, 4, 3, 0], [2, 3]);
+
+    const transposeA = true;
+    const transposeB = false;
+    const c = tf.matMul(a, b, transposeA, transposeB);
+
+    const expected = [17, 12, 2, 22, 15, 4, 27, 18, 6];
+    expectArraysClose(await c.data(), expected);
+  });
+
+  it('A^t x B^t', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
+    const b = tf.tensor2d([1, 0, 2, 4, 3, 0], [2, 3]);
+
+    const transposeA = true;
+    const transposeB = true;
+    const c = tf.matMul(a, b, transposeA, transposeB);
+
+    const expected = [11, 13, 14, 20];
+    expectArraysClose(await c.data(), expected);
+  });
+
+  it('Vector times matrix', async () => {
+    const v = tf.tensor1d([2, 3]);
+    const matrix = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+    const result = tf.dot(v, matrix);
+
+    const expected = [11, 16];
+    expectArraysClose(await result.data(), expected);
+  });
+
+  it('Vector times matrix with implicit reshape', async () => {
+    const v = tf.tensor1d([2, 3]);
+
+    const matrix = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+    const result = tf.dot(v, matrix);
+
+    const expected = [11, 16];
+    expectArraysClose(await result.data(), expected);
+  });
+
+  it('Matrix times vector', async () => {
+    const matrix = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+    const v = tf.tensor1d([2, 3]);
+    const result = tf.dot(matrix, v);
+
+    const expected = [8, 18];
+    expectArraysClose(await result.data(), expected);
+  });
+
+  it('accepts a tensor-like object', async () => {
+    const a = [[1, 2, 3], [4, 5, 6]];     // 2x3
+    const b = [[0, 1], [-3, 2], [2, 1]];  // 3x2
+    const c = tf.matMul(a, b);
+
+    expect(c.shape).toEqual([2, 2]);
+    expectArraysClose(await c.data(), [0, 8, -3, 20]);
+  });
+
+  it('accepts a tensor-like object chained', async () => {
+    const a = tf.tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);  // 2x3
+    const b = [[0, 1], [-3, 2], [2, 1]];                    // 3x2
+    const c = a.matMul(b);
+
+    expect(c.shape).toEqual([2, 2]);
+    expectArraysClose(await c.data(), [0, 8, -3, 20]);
+  });
+
+  it('a * b where a has zero in its shape', async () => {
+    const a = tf.tensor2d([], [0, 3]);
+    const b = tf.tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
+    const c = tf.matMul(a, b);
+    expect(c.shape).toEqual([0, 2]);
+    expect(c.rank).toBe(2);
+    expect(c.size).toBe(0);
+    expectArraysClose(await c.data(), []);
+  });
+
+  it('(a * b) * c where a has zero in its shape, so a*b does also',
+     async () => {
+       const a = tf.tensor2d([], [0, 3]);
+       const b = tf.tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
+       const ab = tf.matMul(a, b);
+       expect(ab.shape).toEqual([0, 2]);
+       expectArraysClose(await ab.data(), []);
+       const c = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+       const res = tf.matMul(ab, c);
+       expect(res.shape).toEqual([0, 3]);
+       expectArraysClose(await res.data(), []);
+     });
+
+  it('fused A x B', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+
+    const c = tf.fused.matMul({a, b});
+
+    expect(c.shape).toEqual([2, 2]);
+    expectArraysClose(await c.data(), [0, 8, -3, 20]);
+  });
+
+  it('fused A x B with relu', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+    const transposeA = false;
+    const transposeB = false;
+
+    const c = tf.fused.matMul(
+        {a, b, transposeA, transposeB, bias: null, activation: 'relu'});
+
+    expect(c.shape).toEqual([2, 2]);
+    expectArraysClose(await c.data(), [0, 8, 0, 20]);
+  });
+
+  it('fused A x B with elu', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+    const transposeA = false;
+    const transposeB = false;
+
+    const c = tf.fused.matMul(
+        {a, b, transposeA, transposeB, bias: null, activation: 'elu'});
+
+    expect(c.shape).toEqual([2, 2]);
+    expectArraysClose(await c.data(), [0, 8, -0.9502, 20]);
+  });
+
+  it('fused A x B with relu6', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+    const transposeA = false;
+    const transposeB = false;
+
+    const c = tf.fused.matMul(
+        {a, b, transposeA, transposeB, bias: null, activation: 'relu6'});
+
+    expect(c.shape).toEqual([2, 2]);
+    expectArraysClose(await c.data(), [0, 6, 0, 6]);
+  });
+
+  it('fused A x B with prelu', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+    const alpha = tf.tensor2d([0.5, 0.5], [1, 2]);
+    const transposeA = false;
+    const transposeB = false;
+
+    const c = tf.fused.matMul({
+      a,
+      b,
+      transposeA,
+      transposeB,
+      bias: null,
+      activation: 'prelu',
+      preluActivationWeights: alpha
+    });
+
+    expect(c.shape).toEqual([2, 2]);
+    expectArraysClose(await c.data(), [0, 8, -1.5, 20]);
+  });
+
+  it('fused A x B with leakyrelu', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+    const alpha = 0.3;
+    const transposeA = false;
+    const transposeB = false;
+
+    const c = tf.fused.matMul({
+      a,
+      b,
+      transposeA,
+      transposeB,
+      bias: null,
+      activation: 'leakyrelu',
+      leakyreluAlpha: alpha
+    });
+
+    expect(c.shape).toEqual([2, 2]);
+    expectArraysClose(await c.data(), [0, 8, -0.9000000357627869, 20]);
+  });
+
+  it('fused A x B with leakyrelu not provided.', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+    const transposeA = false;
+    const transposeB = false;
+
+    const c = tf.fused.matMul(
+        {a, b, transposeA, transposeB, bias: null, activation: 'leakyrelu'});
+
+    expect(c.shape).toEqual([2, 2]);
+    // leakyRelu should use default alpha=0.2.
+    expectArraysClose(await c.data(), [0, 8, -0.6000000238418579, 20]);
+  });
+
+  it('fused A x B with sigmoid', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+    const transposeA = false;
+    const transposeB = false;
+
+    const c = tf.fused.matMul(
+        {a, b, transposeA, transposeB, bias: null, activation: 'sigmoid'});
+
+    expect(c.shape).toEqual([2, 2]);
+    expectArraysClose(await c.data(), [0.5, 0.99966455, 0.04742587, 1]);
+  });
+
+  it('fused A x B with relu transpose', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [2, 3]);
+    const transposeA = false;
+    const transposeB = true;
+
+    const c = tf.fused.matMul(
+        {a, b, transposeA, transposeB, bias: null, activation: 'relu'});
+
+    expect(c.shape).toEqual([2, 2]);
+    expectArraysClose(await c.data(), [0, 9, 0, 24]);
+  });
+
+  it('fused A x B with 2d bias and relu', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+    const c = tf.tensor2d([1, 1, 1, 1], [2, 2]);
+    const transposeA = false;
+    const transposeB = false;
+
+    const d = tf.fused.matMul(
+        {a, b, transposeA, transposeB, bias: c, activation: 'relu'});
+
+    expect(d.shape).toEqual([2, 2]);
+    expectArraysClose(await d.data(), [1, 9, 0, 21]);
+  });
+
+  it('fused A x B with relu and broadcasted bias', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+    const c = tf.tensor1d([1, 1]);
+    const act: tf.fused.Activation = 'relu';
+    const transposeA = false;
+    const transposeB = false;
+
+    const d = tf.fused.matMul(
+        {a, b, transposeA, transposeB, bias: c, activation: act});
+
+    expect(d.shape).toEqual([2, 2]);
+    expectArraysClose(await d.data(), [1, 9, 0, 21]);
+  });
+
+  it('fused A x B with elu and broadcasted bias', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+    const c = tf.tensor1d([1, 1]);
+    const act: tf.fused.Activation = 'elu';
+    const transposeA = false;
+    const transposeB = false;
+
+    const d = tf.fused.matMul(
+        {a, b, transposeA, transposeB, bias: c, activation: act});
+
+    expect(d.shape).toEqual([2, 2]);
+    expectArraysClose(await d.data(), [1, 9, -0.8647, 21]);
+  });
+
+  it('fused A x B with elu and broadcasted shape', async () => {
+    const a = tf.tensor3d([1, 2, 3, 4, 5, 6], [1, 2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+    const c = tf.tensor1d([1, 1]);
+    const act: tf.fused.Activation = 'elu';
+    const transposeA = false;
+    const transposeB = false;
+
+    const d = tf.fused.matMul(
+        {a, b, transposeA, transposeB, bias: c, activation: act});
+
+    expect(d.shape).toEqual([1, 2, 2]);
+    expectArraysClose(await d.data(), [1, 9, -0.8647, 21]);
+  });
+
+  it('fused A x B with 2d bias only', async () => {
+    const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+    const c = tf.tensor2d([1, 1, 1, 1], [2, 2]);
+    const transposeA = false;
+    const transposeB = false;
+
+    const d = tf.fused.matMul(
+        {a, b, transposeA, transposeB, bias: c, activation: 'linear'});
+
+    expect(d.shape).toEqual([2, 2]);
+    expectArraysClose(await d.data(), [1, 9, -2, 21]);
+  });
+};
+
+const matmulBatchTest = () => {
+  let savedMatmulFlag = -1;
+  beforeAll(() => {
+    savedMatmulFlag = tf.env().get('WEBGPU_TESTED_MATMUL') as number;
+    if (type1 === MatMulProgramType.MatMulSplitKProgram) {
+      // Skip MatMulSplitKProgram since it doesn't support batch > 1;
+      type1++;
+    }
+    tf.env().set('WEBGPU_TESTED_MATMUL', type1);
+    type1++;
+  });
+  afterAll(() => {
+    tf.env().set('WEBGPU_TESTED_MATMUL', savedMatmulFlag);
+  });
+
+  it('fused A x B with relu and broadcasted bias different rank', async () => {
+    const a = tf.tensor3d([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], [2, 2, 3]);
+    const b = tf.tensor3d([0, 1, -3, 2, 2, 1, 0, 1, -3, 2, 2, 1], [2, 3, 2]);
+    const c = tf.tensor2d([1, 2], [1, 2]);
+    const act: tf.fused.Activation = 'relu';
+    const transposeA = false;
+    const transposeB = false;
+
+    const d = tf.fused.matMul(
+        {a, b, transposeA, transposeB, bias: c, activation: act});
+
+    expect(d.shape).toEqual([2, 2, 2]);
+    expectArraysClose(await d.data(), [2, 6, 0, 18, 0, 30, 0, 42]);
+  });
+
+  it('broadcast with unequal batch dims', async () => {
+    const a = tf.tensor3d(
+        [
+          2, 1, 3, 2, 1,  1,  1, 5, 6, 7, 8, 1,
+          2, 2, 1, 9, 11, 10, 1, 1, 3, 2, 1, 1
+        ],
+        [4, 3, 2]);
+    const b = tf.tensor3d([1, 0.5], [1, 2, 1]);
+    const c = tf.matMul(a, b);
+    expect(c.shape).toEqual([4, 3, 1]);
+    expectArraysClose(
+        await c.data(), [2.5, 4, 1.5, 3.5, 9.5, 8.5, 3, 5.5, 16, 1.5, 4, 1.5]);
+  });
+
+  it('broadcast with unequal ranks', async () => {
+    const a = tf.tensor5d(
+        [
+          2, 1, 3, 2, 1,  1,  1, 5, 6, 7, 8, 1,
+          2, 2, 1, 9, 11, 10, 1, 1, 3, 2, 1, 1
+        ],
+        [1, 2, 2, 3, 2]);
+    const b = tf.tensor2d([1, 0.5], [2, 1]);
+    const c = tf.matMul(a, b);
+    expect(c.shape).toEqual([1, 2, 2, 3, 1]);
+    expectArraysClose(
+        await c.data(), [2.5, 4, 1.5, 3.5, 9.5, 8.5, 3, 5.5, 16, 1.5, 4, 1.5]);
+  });
+
+  it('batched matmul with the matrices being vectors', async () => {
+    const batch = 3;
+    const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;
+    const values = new Float32Array(batch * sharedDim);
+    values[10] = 2;
+
+    const a = tf.tensor(values, [batch, 1, sharedDim]);
+    const b = tf.tensor(values, [batch, sharedDim, 1]);
+    const result = tf.matMul(a, b);
+    expect(result.shape).toEqual([batch, 1, 1]);
+    expectArraysClose(await result.data(), [4, 0, 0]);
+  });
+
+  it('batched matmul called twice so memory of output is reused', async () => {
+    const batch = 3;
+    const n = 2;
+    const vals = new Float32Array(batch * n * n);
+    vals[0] = 2;
+    vals[4] = 3;
+    vals[8] = 4;
+
+    const a = tf.tensor(vals, [batch, n, n]);
+    const b = tf.tensor(vals, [batch, n, n]);
+    const result = tf.matMul(a, b);
+    expect(result.shape).toEqual([batch, n, n]);
+    expectArraysClose(
+        await result.data(), [4, 0, 0, 0, 9, 0, 0, 0, 16, 0, 0, 0]);
+    // Dispose the first output, so memory of the second output (which has
+    // the same shape), could be reused.
+    result.dispose();
+
+    const vals2 = new Float32Array(batch * n * n);
+    vals2[3] = 2;
+    vals2[7] = 3;
+    vals2[11] = 4;
+    const a2 = tf.tensor(vals2, [batch, n, n]);
+    const b2 = tf.tensor(vals2, [batch, n, n]);
+    const result2 = tf.matMul(a2, b2);
+    expect(result2.shape).toEqual([batch, n, n]);
+    expectArraysClose(
+        await result2.data(), [0, 0, 0, 4, 0, 0, 0, 9, 0, 0, 0, 16]);
+  });
+
+  it('batched matmul with the matrices being vectors transposedA', async () => {
+    const batch = 3;
+    const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;
+    const values = new Float32Array(batch * sharedDim);
+    values[10] = 2;
+
+    const a = tf.tensor(values, [batch, sharedDim, 1]);
+    const b = tf.tensor(values, [batch, sharedDim, 1]);
+    const transposeA = true;
+    const transposeB = false;
+    const result = tf.matMul(a, b, transposeA, transposeB);
+    expect(result.shape).toEqual([batch, 1, 1]);
+    expectArraysClose(await result.data(), [4, 0, 0]);
+  });
+
+  it('batched matmul with the matrices being vectors transposedB', async () => {
+    const batch = 3;
+    const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;
+    const values = new Float32Array(batch * sharedDim);
+    values[10] = 2;
+
+    const a = tf.tensor(values, [batch, 1, sharedDim]);
+    const b = tf.tensor(values, [batch, 1, sharedDim]);
+    const transposeA = false;
+    const transposeB = true;
+    const result = tf.matMul(a, b, transposeA, transposeB);
+    expect(result.shape).toEqual([batch, 1, 1]);
+    expectArraysClose(await result.data(), [4, 0, 0]);
+  });
+
+  it('batched matmul with matrix x vector', async () => {
+    const batch = 3;
+    const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;
+    const values = new Float32Array(batch * sharedDim);
+    values[10] = 2;
+
+    const a = tf.ones([batch, 2, sharedDim]);
+    const b = tf.tensor(values, [batch, sharedDim, 1]);
+    const result = tf.matMul(a, b);
+    expect(result.shape).toEqual([batch, 2, 1]);
+    expectArraysClose(await result.data(), [2, 2, 0, 0, 0, 0]);
+  });
+
+  it('batched matmul with matrix x vector transposedA', async () => {
+    const batch = 3;
+    const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;
+    const values = new Float32Array(batch * sharedDim);
+    values[10] = 2;
+
+    const a = tf.ones([batch, sharedDim, 2]);
+    const b = tf.tensor(values, [batch, sharedDim, 1]);
+    const transposeA = true;
+    const transposeB = false;
+    const result = tf.matMul(a, b, transposeA, transposeB);
+    expect(result.shape).toEqual([batch, 2, 1]);
+    expectArraysClose(await result.data(), [2, 2, 0, 0, 0, 0]);
+  });
+
+  it('batched matmul with matrix x vector transposedB', async () => {
+    const batch = 3;
+    const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;
+    const values = new Float32Array(batch * sharedDim);
+    values[10] = 2;
+
+    const a = tf.ones([batch, 2, sharedDim]);
+    const b = tf.tensor(values, [batch, 1, sharedDim]);
+    const transposeA = false;
+    const transposeB = true;
+    const result = tf.matMul(a, b, transposeA, transposeB);
+    expect(result.shape).toEqual([batch, 2, 1]);
+    expectArraysClose(await result.data(), [2, 2, 0, 0, 0, 0]);
+  });
+
+  it('batched matmul with vector x matrix', async () => {
+    const batch = 3;
+    const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;
+    const values = new Float32Array(batch * sharedDim);
+    values[10] = 2;
+
+    const a = tf.tensor(values, [batch, 1, sharedDim]);
+    const b = tf.ones([batch, sharedDim, 2]);
+    const result = tf.matMul(a, b);
+    expect(result.shape).toEqual([batch, 1, 2]);
+    expectArraysClose(await result.data(), [2, 2, 0, 0, 0, 0]);
+  });
+
+  it('batched matmul with vector x matrix transposedA', async () => {
+    const batch = 3;
+    const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;
+    const values = new Float32Array(batch * sharedDim);
+    values[10] = 2;
+
+    const a = tf.tensor(values, [batch, sharedDim, 1]);
+    const b = tf.ones([batch, sharedDim, 2]);
+    const transposeA = true;
+    const transposeB = false;
+    const result = tf.matMul(a, b, transposeA, transposeB);
+    expect(result.shape).toEqual([batch, 1, 2]);
+    expectArraysClose(await result.data(), [2, 2, 0, 0, 0, 0]);
+  });
+
+  it('batched matmul with vector x matrix transposedB', async () => {
+    const batch = 3;
+    const sharedDim = MATMUL_SHARED_DIM_THRESHOLD + 1;
+    const values = new Float32Array(batch * sharedDim);
+    values[10] = 2;
+
+    const a = tf.tensor(values, [batch, 1, sharedDim]);
+    const b = tf.ones([batch, 2, sharedDim]);
+    const transposeA = false;
+    const transposeB = true;
+    const result = tf.matMul(a, b, transposeA, transposeB);
+    expect(result.shape).toEqual([batch, 1, 2]);
+    expectArraysClose(await result.data(), [2, 2, 0, 0, 0, 0]);
+  });
+
+  it('A x B', async () => {
+    const a = tf.tensor3d(
+        [
+          -5, -5, -6, 8, -2, -8, 4, -7, -6, -9, -1, 3,  7,  -2, 5,
+          -6, 3,  8,  7, -8, 1,  4, -4, 6,  4,  -4, -9, -5, 2,  -2
+        ],
+        [5, 2, 3]);
+    const b = tf.tensor3d(
+        [
+          -8, -4, -1, 0,  -7, 0, 3,  3,  6,   2,  -1, 8, -4, 9, -6,
+          5,  8,  9,  -9, 7,  0, -1, -1, -10, -7, 3,  4, 6,  3, -4
+        ],
+        [5, 3, 2]);
+
+    const c = tf.matMul(a, b);
+    expect(c.shape).toEqual([5, 2, 2]);
+    expectArraysClose(await c.data(), [
+      87, 20, -6,  -32, -24, -50, -36, -5, 24, 98,
+      70, 33, -64, 47,  -42, -28, -71, 24, 37, 5
+    ]);
+  });
+
+  it('A x B in 4D', async () => {
+    const a = tf.tensor4d(
+        [
+          -2, 3,  5,  -5, 3,  9,  -3, -5, 1,   1,  -9, 9,   -6, 6,  -8,
+          -7, -1, 3,  9,  -7, -7, 2,  10, -6,  -8, -6, 9,   -6, 4,  -1,
+          9,  -6, 10, 8,  -9, 5,  -8, -7, 0,   2,  -5, -1,  -9, -4, 3,
+          -2, 6,  -4, 7,  1,  -5, -4, 9,  -8,  -6, -8, 4,   -1, 4,  3,
+          -7, 8,  -7, 5,  -3, -2, -4, 9,  2,   -1, 1,  -10, -3, 5,  -4,
+          6,  -8, -8, 9,  -3, -5, 10, 3,  -3,  -3, 9,  3,   -3, 2,  -8,
+          10, 1,  9,  -2, -2, -3, -4, 6,  -10, -1, 8,  -8,  7,  3,  -2,
+          3,  6,  -2, -2, -4, 1,  -5, -4, 0,   5,  1,  9,   -8, -2, -1
+        ],
+        [4, 5, 2, 3]);
+    const b = tf.tensor4d(
+        [
+          -4, -3, -2, -6, 6,  -1, -4, -1, 7,  -4, 8,  -9,  -9, 0,   -1,
+          -4, -6, -7, -3, -4, -7, 6,  -8, 1,  -2, 1,  -1,  -3, 8,   -5,
+          9,  -2, 5,  9,  -2, 2,  -5, -5, -8, -1, -2, -3,  -2, -10, 6,
+          -3, 0,  1,  6,  7,  1,  2,  -4, -5, 2,  -5, -7,  9,  3,   -6,
+          6,  4,  -4, 6,  10, -3, -2, 8,  10, -8, 10, -1,  -9, -7,  -8,
+          -3, 1,  1,  -2, -9, -7, -6, -1, 0,  7,  -9, -7,  -5, 0,   -4,
+          -4, -7, 2,  4,  6,  6,  -4, -6, -8, 3,  -8, -9,  6,  9,   -4,
+          1,  -1, 0,  8,  9,  0,  -5, 3,  -1, 5,  0,  -10, 7,  -2,  6
+        ],
+        [4, 5, 3, 2]);
+
+    const transposeA = false;
+    const transposeB = false;
+    const c = tf.matMul(a, b, transposeA, transposeB);
+
+    expectArraysClose(await c.data(), [
+      32,  -17, 68,  -12,  -15, 14,  5,   -46, 96,  32,  46,  -17, 78,   -85,
+      -28, 46,  94,  -35,  0,   -13, 31,  -52, 17,  -87, 96,  47,  32,   -2,
+      -6,  105, 40,  -2,   63,  76,  17,  30,  56,  -66, -21, 23,  -144, 41,
+      22,  8,   118, -106, -88, -6,  -17, 2,   2,   -26, 8,   -63, -38,  -108,
+      -84, -30, -35, 49,   16,  -12, -14, -12, 48,  132, 4,   102, 32,   66,
+      -4,  33,  -13, 1,    -40, -25, -3,  61,  -18, -20
+    ]);
+  });
+
+  it('A x B^t', async () => {
+    const a = tf.tensor3d(
+        [
+          -5, -5, -6, 8, -2, -8, 4, -7, -6, -9, -1, 3,  7,  -2, 5,
+          -6, 3,  8,  7, -8, 1,  4, -4, 6,  4,  -4, -9, -5, 2,  -2
+        ],
+        [5, 2, 3]);
+    const b = tf.tensor3d(
+        [
+          -8, -4, -1, 0,  -7, 0, 3,  3,  6,   2,  -1, 8, -4, 9, -6,
+          5,  8,  9,  -9, 7,  0, -1, -1, -10, -7, 3,  4, 6,  3, -4
+        ],
+        [5, 2, 3]);
+
+    const transposeA = false;
+    const transposeB = true;
+    const c = tf.matMul(a, b, transposeA, transposeB);
+    expect(c.shape).toEqual([5, 2, 2]);
+    expectArraysClose(await c.data(), [
+      66, 35, -48,  14, -45, -33, -12, 7,  -76, 64,
+      3,  66, -119, -9, -64, -60, -76, 48, 33,  -16
+    ]);
+  });
+
+  it('A^t x B', async () => {
+    const a = tf.tensor3d(
+        [
+          -5, -5, -6, 8, -2, -8, 4, -7, -6, -9, -1, 3,  7,  -2, 5,
+          -6, 3,  8,  7, -8, 1,  4, -4, 6,  4,  -4, -9, -5, 2,  -2
+        ],
+        [5, 2, 3]);
+    const b = tf.tensor3d(
+        [
+          -8, -4, -1, 0,  -7, 0, 3,  3,  6,   2,  -1, 8, -4, 9, -6,
+          5,  8,  9,  -9, 7,  0, -1, -1, -10, -7, 3,  4, 6,  3, -4
+        ],
+        [5, 2, 3]);
+
+    const transposeA = true;
+    const transposeB = false;
+    const c = tf.matMul(a, b, transposeA, transposeB);
+
+    expectArraysClose(await c.data(), [
+      40,  -36, 5,   40,  34, 5,   48,  80, 6,  -6, 21,  -48, -23, -20, -50,
+      -12, -21, -12, -58, 15, -96, 23,  6,  39, 20, 109, 42,  -67, 45,  -40,
+      76,  -52, 40,  -15, 1,  -60, -58, -3, 36, 40, -6,  -24, 51,  -33, -28
+    ]);
+  });
+
+  it('A^t x B in 4D', async () => {
+    const a = tf.tensor4d(
+        [
+          -2, 3,  5,  -5, 3,  9,  -3, -5, 1,   1,  -9, 9,   -6, 6,  -8,
+          -7, -1, 3,  9,  -7, -7, 2,  10, -6,  -8, -6, 9,   -6, 4,  -1,
+          9,  -6, 10, 8,  -9, 5,  -8, -7, 0,   2,  -5, -1,  -9, -4, 3,
+          -2, 6,  -4, 7,  1,  -5, -4, 9,  -8,  -6, -8, 4,   -1, 4,  3,
+          -7, 8,  -7, 5,  -3, -2, -4, 9,  2,   -1, 1,  -10, -3, 5,  -4,
+          6,  -8, -8, 9,  -3, -5, 10, 3,  -3,  -3, 9,  3,   -3, 2,  -8,
+          10, 1,  9,  -2, -2, -3, -4, 6,  -10, -1, 8,  -8,  7,  3,  -2,
+          3,  6,  -2, -2, -4, 1,  -5, -4, 0,   5,  1,  9,   -8, -2, -1
+        ],
+        [4, 5, 2, 3]);
+    const b = tf.tensor4d(
+        [
+          -4, -3, -2, -6, 6,  -1, -4, -1, 7,  -4, 8,  -9,  -9, 0,   -1,
+          -4, -6, -7, -3, -4, -7, 6,  -8, 1,  -2, 1,  -1,  -3, 8,   -5,
+          9,  -2, 5,  9,  -2, 2,  -5, -5, -8, -1, -2, -3,  -2, -10, 6,
+          -3, 0,  1,  6,  7,  1,  2,  -4, -5, 2,  -5, -7,  9,  3,   -6,
+          6,  4,  -4, 6,  10, -3, -2, 8,  10, -8, 10, -1,  -9, -7,  -8,
+          -3, 1,  1,  -2, -9, -7, -6, -1, 0,  7,  -9, -7,  -5, 0,   -4,
+          -4, -7, 2,  4,  6,  6,  -4, -6, -8, 3,  -8, -9,  6,  9,   -4,
+          1,  -1, 0,  8,  9,  0,  -5, 3,  -1, 5,  0,  -10, 7,  -2,  6
+        ],
+        [4, 5, 2, 3]);
+
+    const transposeA = true;
+    const transposeB = false;
+    const c = tf.matMul(a, b, transposeA, transposeB);
+
+    expectArraysClose(await c.data(), [
+      38,  -24, 9,   -30, 9,   -9,  -74,  39,  -19,  8,    11,  -30, 56,  -67,
+      46,  -40, 71,  -74, 82,  42,  55,   -50, 6,    1,    60,  -18, -13, -15,
+      -52, -61, 81,  -52, 59,  -15, 76,   43,  34,   -56,  38,  0,   26,  -14,
+      -15, 1,   -4,  153, -34, 61,  -135, 30,  -48,  135,  -30, 60,  38,  36,
+      58,  40,  45,  71,  1,   2,   3,    24,  90,   -56,  -10, 40,  -18, 6,
+      -30, 14,  34,  65,  27,  24,  -29,  -44, -46,  -3,   35,  -21, 27,  48,
+      20,  52,  32,  35,  -11, -46, -12,  22,  13,   30,   2,   -23, -54, -48,
+      34,  16,  -42, -39, -26, 82,  89,   76,  -84,  30,   9,   27,  30,  -21,
+      -43, -48, 60,  20,  24,  -78, -91,  -63, -12,  24,   21,  28,  48,  35,
+      -6,  27,  33,  53,  -81, -71, 61,   -27, 11,   -48,  -82, 8,   -12, -19,
+      -10, -48, -81, 0,   13,  32,  41,   0,   -100, -120, 16,  124, 152, 45,
+      60,  -28, 24,  21,  -12, -14, -16,  8,   9,    -33,  5,   -12, -48, 4,
+      8,   9,   0,   -31, 16,  -98, -9,   4,   -22,  38,   2,   -96
+    ]);
+  });
+
+  it('A^t x B^t', async () => {
+    const a = tf.tensor3d(
+        [
+          -5, -5, -6, 8, -2, -8, 4, -7, -6, -9, -1, 3,  7,  -2, 5,
+          -6, 3,  8,  7, -8, 1,  4, -4, 6,  4,  -4, -9, -5, 2,  -2
+        ],
+        [5, 3, 2]);
+    const b = tf.tensor3d(
+        [
+          -8, -4, -1, 0,  -7, 0, 3,  3,  6,   2,  -1, 8, -4, 9, -6,
+          5,  8,  9,  -9, 7,  0, -1, -1, -10, -7, 3,  4, 6,  3, -4
+        ],
+        [5, 2, 3]);
+
+    const transposeA = true;
+    const transposeB = true;
+    const c = tf.matMul(a, b, transposeA, transposeB);
+    expectArraysClose(await c.data(), [
+      66,  42, 16,  -56, -12, 6,   -30, 19,  -1, 102,
+      -94, 14, -56, 32,  100, -56, -47, -11, 5,  -31
+    ]);
+  });
+};
+
+for (let i = 0; i < MatMulProgramType.MatMULMax; i++) {
+  describeWithFlags(`matmul with program type ${i}`, MATMUL_ENVS, matmulTest);
+  // Skip MatMulSplitKProgram since it doesn't support batch > 1;
+  if (i !== MatMulProgramType.MatMulSplitKProgram) {
+    describeWithFlags(
+        `matmulBatch with program type ${i}`, MATMUL_ENVS, matmulBatchTest);
+  }
+}

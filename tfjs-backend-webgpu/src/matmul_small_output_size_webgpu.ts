@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
+import {backend_util, TensorInfo} from '@tensorflow/tfjs-core';
 import {activationFnSnippet} from './activation_util';
 import {matMulReadWriteFnSource} from './matmul_packed_webgpu';
 import {getMainHeaderString, WebGPUProgram} from './webgpu_program';
@@ -100,11 +100,6 @@ export class MatMulSmallOutputSizeProgram implements WebGPUProgram {
       transposeB = false, bias: TensorInfo = null,
       activation: backend_util.Activation = null,
       preluActivationWeights: TensorInfo = null) {
-    util.assert(
-        aShape[1] <= 16 || bShape[2] <= 16,
-        () =>
-            'This program can be only used when A width or B Height are small');
-
     this.outputShape = outputShape;
 
     this.dispatchLayout = {x: [2], y: [1], z: [0]};
