@@ -25,7 +25,7 @@ import numpy as np
 from tensorflowjs import quantization
 
 _INPUT_DTYPES = [np.float16, np.float32, np.int32, np.complex64,
-                 uint8, uint16, object, bool]
+                 np.uint8, np.uint16, object, bool]
 
 # Number of bytes used to encode the length of a string in a string tensor.
 STRING_LENGTH_NUM_BYTES = 4
