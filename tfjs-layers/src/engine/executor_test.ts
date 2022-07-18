@@ -12,12 +12,12 @@
  * Unit tests for executor_test.ts.
  */
 
-import {dispose, memory, ones, Tensor, tensor1d, tensor2d, tensor3d, zeros} from '@tensorflow/tfjs-core';
+import {dispose, env, memory, ones, Tensor, tensor1d, tensor2d, tensor3d, zeros} from '@tensorflow/tfjs-core';
 
 import * as tfl from '../index';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
-import {execute, ExecutionProbe, FeedDict, getTopologicalSortAndRecipientCountsForOneFetch} from './executor';
+import {cachedRecipientCounts, execute, ExecutionProbe, FeedDict, getTopologicalSortAndRecipientCountsForOneFetch} from './executor';
 
 // tslint:enable
 
@@ -240,5 +240,16 @@ describeMathCPUAndGPU('Executor', () => {
           outputs[1], tensor2d([10, 10, 10, 10, 10, 10], [2, 3]));
       expect(callCounter).toEqual(1);
     });
+  });
+
+  describe('Caches', () => {
+    it('changes the maxEntries of caches while updating the TOPOLOGICAL_SORT_CACHE_MAX_ENTRIES flag',
+       () => {
+         const ENV = env();
+         expect(cachedRecipientCounts.getMaxEntries()).toBe(100);
+         ENV.set('TOPOLOGICAL_SORT_CACHE_MAX_ENTRIES', 50);
+         expect(cachedRecipientCounts.getMaxEntries()).toBe(50);
+         ENV.set('TOPOLOGICAL_SORT_CACHE_MAX_ENTRIES', 100);
+       });
   });
 });

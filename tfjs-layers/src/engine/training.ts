@@ -168,10 +168,13 @@ export function standardizeInputData(
         if (refDim != null && refDim >= 0 && dim !== refDim) {
           throw new ValueError(
               `${exceptionPrefix} expected a batch of elements where each ` +
-              `example has shape [${shapes[i].slice(1,shapes[i].length)}] ` +
-              `(i.e.,tensor shape [*,${shapes[i].slice(1,shapes[i].length)}])` +
-              ` but the ${exceptionPrefix} received an input with ${array.shape[0]}` +
-              ` examples, each with shape [${array.shape.slice(1,array.shape.length)}]` +
+              `example has shape [${shapes[i].slice(1, shapes[i].length)}] ` +
+              `(i.e.,tensor shape [*,${
+                  shapes[i].slice(1, shapes[i].length)}])` +
+              ` but the ${exceptionPrefix} received an input with ${
+                  array.shape[0]}` +
+              ` examples, each with shape [${
+                  array.shape.slice(1, array.shape.length)}]` +
               ` (tensor shape [${array.shape}])`);
         }
       }
@@ -1532,6 +1535,8 @@ export class LayersModel extends Container implements tfc.InferenceModel {
       lossValues.push(v[0]);
     }
     tfc.dispose(losses);
+    disposeNewTensors(standardizeOut[0], x);
+    disposeNewTensors(standardizeOut[1], y);
     return singletonOrArray(lossValues);
   }
 

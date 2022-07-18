@@ -53,6 +53,13 @@ let fromPixels2DContext: CanvasRenderingContext2D;
  *
  * @returns A Tensor3D with the shape `[height, width, numChannels]`.
  *
+ * Note: fromPixels can be lossy in some cases, same image may result in
+ * slightly different tensor values, if rendered by different rendering
+ * engines. This means that results from different browsers, or even same
+ * browser with CPU and GPU rendering engines can be different. See discussion
+ * in details:
+ * https://github.com/tensorflow/tfjs/issues/5482
+ *
  * @doc {heading: 'Browser', namespace: 'browser', ignoreCI: true}
  */
 function fromPixels_(
@@ -137,7 +144,21 @@ function fromPixels_(
     vals = (pixels as PixelData | ImageData).data;
   } else if (isImage || isVideo || isImageBitmap) {
     if (fromPixels2DContext == null) {
-      fromPixels2DContext = document.createElement('canvas').getContext('2d');
+      if (typeof document === 'undefined') {
+        if (typeof OffscreenCanvas !== 'undefined' &&
+            typeof OffscreenCanvasRenderingContext2D !== 'undefined') {
+          // @ts-ignore
+          fromPixels2DContext = new OffscreenCanvas(1, 1).getContext('2d');
+        } else {
+          throw new Error(
+              'Cannot parse input in current context. ' +
+              'Reason: OffscreenCanvas Context2D rendering is not supported.');
+        }
+      } else {
+        fromPixels2DContext =
+            document.createElement('canvas').getContext(
+                '2d', {willReadFrequently: true}) as CanvasRenderingContext2D;
+      }
     }
     fromPixels2DContext.canvas.width = width;
     fromPixels2DContext.canvas.height = height;

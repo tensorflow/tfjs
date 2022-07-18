@@ -93,16 +93,34 @@ if SIMD is not enabled). Without multi-threading support, certain models might
 not achieve the best performance. See [here][cross origin setup steps] for the
 high-level steps to set up the cross-origin isolation.
 
-Setting the number of threads when calling `loadTFLiteModel` can also help with
-the performance. In most cases, the threads count should be the same as the
-number of physical cores, which is half of `navigator.hardwareConcurrency` on
-many x86-64 processors.
+By default, the runtime uses the number of physical cores as the thread count.
+You can tune this number by setting the `numThreads` option when loading the
+TFLite model:
 
 ```js
 const tfliteModel = await tflite.loadTFLiteModel(
     'path/to/your/my_model.tflite',
     {numThreads: navigator.hardwareConcurrency / 2});
 ```
+
+# Profiling
+
+Profiling can be enabled by setting the `enableProfiling` option to true when
+loading the TFLite model:
+
+```js
+const tfliteModel = await tflite.loadTFLiteModel(
+    'path/to/your/my_model.tflite',
+    {enableProfiling: true});
+```
+
+Once it is enabled, the runtime will record per-op latency data when the
+`predict` method is called. The profiling results can be retrieved in two ways:
+
+- `tfliteModel.getProfilingResults()`: this method will return an array of
+  `{nodeType, nodeName, execTimeInMs}`.
+- `tfliteModel.getProfilingSummary()`: this method will return a human-readable
+  profiling result summary that looks like [this][profiling summary].
 
 # Development
 
@@ -130,3 +148,4 @@ $ yarn build-npm
 [xnnpack]: https://github.com/google/XNNPACK
 [xnnpack doc]: https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/delegates/xnnpack/README.md#limitations-and-supported-operators
 [cross origin setup steps]: https://github.com/tensorflow/tfjs/tree/master/tfjs-backend-wasm#setting-up-cross-origin-isolation
+[profiling summary]: https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/tools/benchmark/README.md#profiling-model-operators

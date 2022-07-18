@@ -59,7 +59,8 @@ PACKAGES=("tfjs-core" "tfjs-backend-cpu" "tfjs-backend-webgl" \
 
 # Packages that build with Bazel
 BAZEL_PACKAGES=("tfjs-core" "tfjs-backend-cpu" "tfjs-tflite" "tfjs-converter"
-"tfjs-backend-webgl")
+"tfjs-backend-webgl" "tfjs-backend-webgpu" "tfjs-layers" "tfjs-data"
+"tfjs-backend-wasm")
 
 for package in "${PACKAGES[@]}"
 do
@@ -75,10 +76,11 @@ do
 
   if [[ " ${BAZEL_PACKAGES[@]} " =~ " ${package} " ]]; then
     # Build and publish to local npm.
+    echo "Publishing $package using Bazel"
     yarn publish-npm
   else
+    echo "Publishing $package using npm"
     # Build npm.
-    echo $package
     yarn build-npm for-publish
 
     # Publish to local npm.
@@ -88,8 +90,3 @@ do
 
   cd ..
 done
-
-# Update e2e's package.json's all tfjs related packages to locally published
-# version.
-cd e2e
-npx ts-node ./scripts/update-dependency.ts --version=$RELEASE_VERSION

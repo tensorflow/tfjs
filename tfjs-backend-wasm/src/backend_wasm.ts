@@ -20,10 +20,20 @@ import {backend_util, BackendTimingInfo, DataStorage, DataType, deprecationWarn,
 
 import {BackendWasmModule, WasmFactoryConfig} from '../wasm-out/tfjs-backend-wasm';
 import {BackendWasmThreadedSimdModule} from '../wasm-out/tfjs-backend-wasm-threaded-simd';
-import wasmFactoryThreadedSimd from '../wasm-out/tfjs-backend-wasm-threaded-simd.js';
+import  * as wasmFactoryThreadedSimd_import from '../wasm-out/tfjs-backend-wasm-threaded-simd.js';
 // @ts-ignore
 import {wasmWorkerContents} from '../wasm-out/tfjs-backend-wasm-threaded-simd.worker.js';
-import wasmFactory from '../wasm-out/tfjs-backend-wasm.js';
+import * as wasmFactory_import from '../wasm-out/tfjs-backend-wasm.js';
+
+// This workaround is required for importing in Node.js without using
+// the node bundle (for testing). This would not be necessary if we
+// flipped esModuleInterop to true, but we likely can't do that since
+// google3 does not use it.
+const wasmFactoryThreadedSimd = (wasmFactoryThreadedSimd_import.default
+  || wasmFactoryThreadedSimd_import) as
+typeof wasmFactoryThreadedSimd_import.default;
+const wasmFactory = (wasmFactory_import.default
+  || wasmFactory_import) as typeof wasmFactory_import.default;
 
 interface TensorData {
   id: number;
@@ -42,9 +52,10 @@ export class BackendWasm extends KernelBackend {
   private dataIdNextNumber = 1;
   dataIdMap: DataStorage<TensorData>;
 
-  constructor(public wasm: BackendWasmModule | BackendWasmThreadedSimdModule) {
+  constructor(public wasm: BackendWasmModule|BackendWasmThreadedSimdModule) {
     super();
-    this.wasm.tfjs.init();
+    this.wasm.tfjs.initWithThreadsCount(threadsCount);
+    actualThreadsCount = this.wasm.tfjs.getThreadsCount();
     this.dataIdMap = new DataStorage(this, engine());
   }
 
@@ -99,15 +110,24 @@ export class BackendWasm extends KernelBackend {
     return this.readSync(dataId);
   }
 
-  readSync(dataId: DataId): backend_util.BackendValues {
+  readSync(dataId: DataId, start?: number, end?: number):
+      backend_util.BackendValues {
     const {memoryOffset, dtype, shape, stringBytes} =
         this.dataIdMap.get(dataId);
     if (dtype === 'string') {
-      return stringBytes;
+      // Slice all elements.
+      if ((start == null || start === 0) &&
+          (end == null || end >= stringBytes.length)) {
+        return stringBytes;
+      }
+      return stringBytes.slice(start, end);
     }
+    start = start || 0;
+    end = end || util.sizeFromShape(shape);
+    const bytesPerElement = util.bytesPerElement(dtype);
     const bytes = this.wasm.HEAPU8.slice(
-        memoryOffset,
-        memoryOffset + util.sizeFromShape(shape) * util.bytesPerElement(dtype));
+        memoryOffset + start * bytesPerElement,
+        memoryOffset + end * bytesPerElement);
     return typedArrayFromBuffer(bytes.buffer, dtype);
   }
 
@@ -210,7 +230,7 @@ export class BackendWasm extends KernelBackend {
 }
 
 function createInstantiateWasmFunc(path: string) {
-  // this will be replace by rollup plugin patchWechatWebAssembly in 
+  // this will be replace by rollup plugin patchWechatWebAssembly in
   // minprogram's output.
   // tslint:disable-next-line:no-any
   return (imports: any, callback: any) => {
@@ -282,7 +302,10 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
      */
     factoryConfig.locateFile = (path, prefix) => {
       if (path.endsWith('.worker.js')) {
-        const response = wasmWorkerContents;
+        // Escape '\n' because Blob will turn it into a newline.
+        // There should be a setting for this, but 'endings: "native"' does
+        // not seem to work.
+        const response = (wasmWorkerContents as string).replace(/\n/g, '\\n');
         const blob = new Blob([response], {type: 'application/javascript'});
         return URL.createObjectURL(blob);
       }
@@ -336,8 +359,12 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       wasm = wasmFactory(factoryConfig);
     }
 
-    // The WASM module has been successfully created by the factory.
-    // Any error will be caught by the onAbort callback defined above.
+    // The `wasm` promise will resolve to the WASM module created by
+    // the factory, but it might have had errors during creation. Most
+    // errors are caught by the onAbort callback defined above.
+    // However, some errors, such as those occurring from a
+    // failed fetch, result in this promise being rejected. These are
+    // caught and re-rejected below.
     wasm.then((module) => {
       initialized = true;
       initAborted = false;
@@ -346,6 +373,9 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       // Using the tfjs namespace to avoid conflict with emscripten's API.
       module.tfjs = {
         init: module.cwrap('init', null, []),
+        initWithThreadsCount:
+            module.cwrap('init_with_threads_count', null, ['number']),
+        getThreadsCount: module.cwrap('get_threads_count', 'number', []),
         registerTensor: module.cwrap(
             'register_tensor', null,
             [
@@ -358,7 +388,7 @@ export async function init(): Promise<{wasm: BackendWasmModule}> {
       };
 
       resolve({wasm: module});
-    });
+    }).catch(reject);
   });
 }
 
@@ -473,4 +503,29 @@ export function resetWasmPath(): void {
   wasmFileMap = {};
   customFetch = false;
   initAborted = false;
+}
+
+let threadsCount = -1;
+let actualThreadsCount = -1;
+
+/**
+ * Sets the number of threads that will be used by XNNPACK to create
+ * threadpool (default to the number of logical CPU cores).
+ *
+ * This must be called before calling `tf.setBackend('wasm')`.
+ */
+export function setThreadsCount(numThreads: number) {
+  threadsCount = numThreads;
+}
+
+/**
+ * Gets the actual threads count that is used by XNNPACK.
+ *
+ * It is set after the backend is intialized.
+ */
+export function getThreadsCount(): number {
+  if (actualThreadsCount === -1) {
+    throw new Error(`WASM backend not initialized.`);
+  }
+  return actualThreadsCount;
 }

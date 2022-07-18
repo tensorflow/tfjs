@@ -17,7 +17,7 @@ import {dispose, div, memory, onesLike, scalar, sub, Tensor, tensor1d, tensor2d,
 import {SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from '../utils/test_utils';
 
 import {batchNormalization, normalizeBatchInTraining} from './normalization';
 
@@ -320,7 +320,7 @@ describeMathCPU('BatchNormalization Layers: Symbolic', () => {
   });
 });
 
-describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
+describeMathCPUAndWebGL2('BatchNormalization Layers: Tensor', () => {
   const dimensions = [2, 3, 4];
   const axisValues = [0, -1];
 
@@ -734,6 +734,15 @@ describeMathCPUAndGPU('LayerNormalization Layer: Tensor', () => {
     dispose(layer.apply(xs) as Tensor);  // Warm up.
     const numTensors0 = memory().numTensors;
     dispose(layer.apply(xs) as Tensor);
+    expect(memory().numTensors).toEqual(numTensors0);
+  });
+
+  it('Forward: configuration change', () => {
+    const layer = tfl.layers.layerNormalization({scale: false, center: false});
+    const xs = tensor2d([[1, 2, 3], [3, 6, 24]]);
+    dispose(layer.apply(xs) as Tensor);  // Warm up.
+    const numTensors0 = memory().numTensors;
+    dispose(layer.apply(xs, {scale: true, center: true}) as Tensor);
     expect(memory().numTensors).toEqual(numTensors0);
   });
 

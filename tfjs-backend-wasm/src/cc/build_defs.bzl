@@ -8,6 +8,9 @@ def tfjs_unit_test(name, srcs, deps = [], **kwargs):
             need to be explicitly specified.
     """
 
+    linkopts = kwargs.pop("linkopts", [])
+    linkopts += ["-lm"]  # Link math.h.
+
     native.cc_test(
         name = name,
         srcs = srcs,
@@ -15,22 +18,18 @@ def tfjs_unit_test(name, srcs, deps = [], **kwargs):
         deps = [
             "@com_google_googletest//:gtest_main",
         ] + deps,
+        linkopts = linkopts,
         **kwargs
     )
 
-def tfjs_cc_library(name, srcs = [], hdrs = [], deps = []):
+def tfjs_cc_library(name, **kwargs):
     """CC library for TensorFlow.js
     Args:
       name: The name of the TensorFlow.js cc library to define.
-      srcs: The list of source files.
-      hdrs: The list of header files.
-      deps: The list of additional libraries to be linked.
     """
 
     native.cc_library(
         name = name,
         linkstatic = True,
-        srcs = srcs,
-        hdrs = hdrs,
-        deps = deps,
+        **kwargs
     )

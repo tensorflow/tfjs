@@ -15,12 +15,13 @@
  * =============================================================================
  */
 
-import {backend_util, KernelConfig, KernelFunc, ScatterNd, ScatterNdAttrs, ScatterNdInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {backend_util, KernelConfig, KernelFunc, ScatterNd, ScatterNdAttrs, ScatterNdInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 
+import {fill} from './Fill';
 import {reshape} from './Reshape';
-import {ScatterProgram} from './scatter_webgpu';
+import {ScatterOptimizedProgram} from '../scatter_optimized_webgpu';
 
 export function scatterNd(args: {
   inputs: ScatterNdInputs,
@@ -45,26 +46,25 @@ export function scatterNd(args: {
   const flattenX = reshape(
       {inputs: {x: updates}, backend, attrs: {shape: [numUpdates, sliceSize]}});
 
-  const defaultValue = backend.makeTensorInfo(
-      [], 'float32', new Float32Array([0]));  // scalar(0)
+  const type = flattenX.dtype;
+  const output =
+      fill({backend, attrs: {shape: flattenShape, value: 0, dtype: type}});
+  const size = util.sizeFromShape(flattenX.shape);
   const uniformData = [
-    {type: 'int32', data: [numUpdates]},
-    {type: 'int32', data: [sliceRank]},
-    {type: 'int32', data: strides},
+    {type: 'int32', data: [sliceRank]}, {type: 'int32', data: strides},
+    {type: 'int32', data: [size]}
   ];
-  const program = new ScatterProgram(
-      numUpdates, sliceRank, flattenIndices.shape.length, flattenX.shape.length,
-      strides, flattenShape);
+  const program = new ScatterOptimizedProgram(
+      flattenX.shape, sliceRank, flattenIndices.shape.length,
+      flattenX.shape.length, strides, flattenShape, type);
   const res = backend.runWebGPUProgram(
-      program, [flattenX, flattenIndices, defaultValue], flattenX.dtype,
-      uniformData);
+      program, [flattenX, flattenIndices], type, uniformData, output);
 
   const reshaped = reshape({inputs: {x: res}, backend, attrs: {shape}});
 
   backend.disposeData(flattenIndices.dataId);
   backend.disposeData(flattenX.dataId);
   backend.disposeData(res.dataId);
-  backend.disposeData(defaultValue.dataId);
 
   return reshaped;
 }

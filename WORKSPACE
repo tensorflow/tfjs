@@ -23,16 +23,54 @@ workspace(
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
-    name = "build_bazel_rules_nodejs",
-    sha256 = "4e1a5633267a0ca1d550cced2919dd4148575c0bafd47608b88aea79c41b5ca3",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/4.2.0/rules_nodejs-4.2.0.tar.gz"],
+    name = "bazel_skylib",
+    sha256 = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c",
+    urls = [
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
+    ],
 )
 
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
+http_archive(
+    name = "build_bazel_rules_nodejs",
+    sha256 = "0fad45a9bda7dc1990c47b002fd64f55041ea751fafc00cd34efb96107675778",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.5.0/rules_nodejs-5.5.0.tar.gz"],
+)
+
+# Install rules_nodejs dependencies.
+load("@build_bazel_rules_nodejs//:repositories.bzl", "build_bazel_rules_nodejs_dependencies")
+
+build_bazel_rules_nodejs_dependencies()
+
+load("@rules_nodejs//nodejs:repositories.bzl", "nodejs_register_toolchains")
+
+nodejs_register_toolchains(
+    name = "nodejs",
+    node_version = "16.13.2",
+)
+
+# Install the yarn tool
+load("@rules_nodejs//nodejs:yarn_repositories.bzl", "yarn_repositories")
+
+yarn_repositories(
+    name = "yarn",
+    node_repository = "nodejs",
+)
+
+# Install yarn packages
 load("@build_bazel_rules_nodejs//:index.bzl", "yarn_install")
 
 yarn_install(
     name = "npm",
+    exports_directories_only = False,  # Required for ts_library
     package_json = "//:package.json",
+    package_path = "/",
+    symlink_node_modules = True,
+    yarn = "@yarn//:bin/yarn",
     yarn_lock = "//:yarn.lock",
 )
 
@@ -62,9 +100,11 @@ esbuild_repositories(npm_repository = "npm")
 # Emscripten toolchain
 http_archive(
     name = "emsdk",
-    sha256 = "7a58a9996b113d3e0675df30b5f17e28aa47de2e684a844f05394fe2f6f12e8e",
-    strip_prefix = "emsdk-c1589b55641787d55d53e883852035beea9aec3f/bazel",
-    url = "https://github.com/emscripten-core/emsdk/archive/c1589b55641787d55d53e883852035beea9aec3f.tar.gz",
+    # TODO: Remove repo_mapping when emsdk updates to rules_nodejs 5
+    repo_mapping = {"@nodejs": "@nodejs_host"},
+    sha256 = "7dc13d967705582e11ff62ae143425dbc63c38372f1a1b14f0cb681fda413714",
+    strip_prefix = "emsdk-3.1.4/bazel",
+    urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/3.1.4.tar.gz"],
 )
 
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
@@ -80,9 +120,9 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 # xnnpack used for fast vectorized wasm operations
 git_repository(
     name = "xnnpack",
-    commit = "3bfbdaf00211b313b143af39279bb6bf1f7effc0",
+    commit = "5e8033a72a8d0f1c2b1f06e29137cc697c6b661d",
     remote = "https://github.com/google/XNNPACK.git",
-    shallow_since = "1617056836 -0700",
+    shallow_since = "1643627844 -0800",
 )
 
 # The libraries below are transitive dependencies of XNNPACK that we need to
@@ -170,100 +210,31 @@ http_archive(
 )
 
 http_archive(
-    name = "bazel_skylib",
-    sha256 = "1c531376ac7e5a180e0237938a2536de0c54d93f5c278634818e0efc952dd56c",
-    urls = [
-        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
-        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.0.3/bazel-skylib-1.0.3.tar.gz",
-    ],
-)
-
-load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
-
-bazel_skylib_workspace()
-
-# Special logic for building python interpreter with OpenSSL from homebrew.
-# See https://devguide.python.org/setup/#macos-and-os-x
-_py3_configure = """
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    ./configure --prefix=$(pwd)/bazel_install_py3 --with-openssl=$(brew --prefix openssl)
-else
-    ./configure --prefix=$(pwd)/bazel_install_py3
-fi
-"""
-
-_py2_configure = """
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    ./configure --prefix=$(pwd)/bazel_install_py2 --with-openssl=$(brew --prefix openssl)
-else
-    ./configure --prefix=$(pwd)/bazel_install_py2
-fi
-"""
-
-http_archive(
-    name = "python3_interpreter",
-    build_file_content = """
-exports_files(["python3_bin"])
-filegroup(
-    name = "files",
-    srcs = glob(["bazel_install_py3/**"], exclude = ["**/* *"]),
-    visibility = ["//visibility:public"],
-)
-""",
-    patch_cmds = [
-        "mkdir $(pwd)/bazel_install_py3",
-        _py3_configure,
-        "make",
-        "make install",
-        "ln -s bazel_install_py3/bin/python3 python3_bin",
-    ],
-    sha256 = "fb1a1114ebfe9e97199603c6083e20b236a0e007a2c51f29283ffb50c1420fb2",
-    strip_prefix = "Python-3.8.11",
-    urls = ["https://www.python.org/ftp/python/3.8.11/Python-3.8.11.tar.xz"],
-)
-
-http_archive(
-    name = "python2_interpreter",
-    build_file_content = """
-exports_files(["python_bin"])
-filegroup(
-    name = "files",
-    srcs = glob(["bazel_install_py2/**"], exclude = ["**/* *"]),
-    visibility = ["//visibility:public"],
-)
-""",
-    patch_cmds = [
-        "mkdir $(pwd)/bazel_install_py2",
-        _py2_configure,
-        "make",
-        "make install",
-        "ln -s bazel_install_py2/bin/python python_bin",
-    ],
-    sha256 = "da3080e3b488f648a3d7a4560ddee895284c3380b11d6de75edb986526b9a814",
-    strip_prefix = "Python-2.7.18",
-    urls = ["https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz"],
-)
-
-register_toolchains("//tfjs-converter/python:tfjs_py_toolchain")
-
-http_archive(
     name = "rules_python",
-    sha256 = "934c9ceb552e84577b0faf1e5a2f0450314985b4d8712b2b70717dc679fdc01b",
-    url = "https://github.com/bazelbuild/rules_python/releases/download/0.3.0/rules_python-0.3.0.tar.gz",
+    sha256 = "5fa3c738d33acca3b97622a13a741129f67ef43f5fdfcec63b29374cc0574c29",
+    strip_prefix = "rules_python-0.9.0",
+    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.9.0.tar.gz",
 )
 
+load("@rules_python//python:repositories.bzl", "python_register_toolchains")
+
+python_register_toolchains(
+    name = "python3_8",
+    # Available versions are listed in @rules_python//python:versions.bzl.
+    python_version = "3.8",
+)
+
+load("@python3_8//:defs.bzl", "interpreter")
 load("@rules_python//python:pip.bzl", "pip_install")
 
-# Create a central external repo, @tensorflowjs_dev_deps, that contains Bazel targets for all the
-# third-party packages specified in the requirements.txt file.
 pip_install(
     name = "tensorflowjs_dev_deps",
-    python_interpreter_target = "@python3_interpreter//:python3_bin",
-    requirements = "//tfjs-converter/python:requirements-dev.txt",
+    python_interpreter_target = interpreter,
+    requirements = "@//tfjs-converter/python:requirements-dev.txt",
 )
 
 pip_install(
     name = "tensorflowjs_deps",
-    python_interpreter_target = "@python3_interpreter//:python3_bin",
-    requirements = "//tfjs-converter/python:requirements.txt",
+    python_interpreter_target = interpreter,
+    requirements = "@//tfjs-converter/python:requirements.txt",
 )

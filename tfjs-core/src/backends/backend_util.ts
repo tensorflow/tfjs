@@ -42,6 +42,9 @@ export * from '../log';
 export * from '../backends/complex_util';
 export * from '../backends/einsum_util';
 export * from '../ops/split_util';
+export * from '../ops/sparse/sparse_fill_empty_rows_util';
+export * from '../ops/sparse/sparse_reshape_util';
+export * from '../ops/sparse/sparse_segment_reduction_util';
 
 import * as segment_util from '../ops/segment_util';
 export {segment_util};

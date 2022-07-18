@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {KernelConfig, KernelFunc, slice_util, StridedSlice, StridedSliceAttrs, StridedSliceInputs, TensorInfo} from '@tensorflow/tfjs-core';
+import {KernelConfig, KernelFunc, Rank, slice_util, StridedSlice, StridedSliceAttrs, StridedSliceInputs, TensorInfo, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 import {assertNotComplex} from '../cpu_util';
@@ -43,36 +43,47 @@ export function stridedSlice(args: {
 
   assertNotComplex(x, 'stridedSlice');
 
-  const {nonStrided, $begin, $strides, size, newShape, outShape} =
+  const {
+    finalShapeSparse,
+    finalShape,
+    isIdentity,
+    sliceDim0,
+    isSimpleSlice,
+    begin: $begin,
+    end: $end,
+    strides: $strides
+  } =
       slice_util.sliceInfo(
           x.shape, begin, end, strides, beginMask, endMask, ellipsisMask,
           newAxisMask, shrinkAxisMask);
 
-  const $x = reshape({inputs: {x}, backend, attrs: {shape: newShape}});
-
   let result;
-  if (nonStrided) {
-    const sliced =
-        slice({inputs: {x: $x}, backend, attrs: {begin: $begin, size}});
-    result = reshape({inputs: {x: sliced}, backend, attrs: {shape: outShape}});
 
+  // ref:
+  // https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/kernels/strided_slice_op.cc
+  if (isIdentity) {
+    // Optimization #1, slice is a no-op plus reshape
+    result = reshape({inputs: {x}, backend, attrs: {shape: finalShape}});
+  } else if (sliceDim0 || isSimpleSlice) {
+    // Optimization #2, slice is memory contiguous (only occurs in dim 0)
+    util.assert(
+        x.shape.length >= 1,
+        () => `Input must have rank at least 1, got: ${x.shape.length}`);
+
+    const size = slice_util.computeOutShape($begin, $end, $strides);
+    // To tolerate begin[0] > end[0] (a 0-output slice), we min(begin, end).
+    const sliced = slice({inputs: {x}, backend, attrs: {begin: $begin, size}});
+    result =
+        reshape({inputs: {x: sliced}, backend, attrs: {shape: finalShape}});
     backend.disposeIntermediateTensorInfo(sliced);
-  } else if (outShape.some(axis => axis === 0)) {
-    result = backend.makeTensorInfo(outShape, x.dtype, []);
   } else {
-    const xBuf = backend.bufferSync($x);
-    const outBuf = stridedSliceImpl(outShape, xBuf, $strides, $begin);
+    const xBuf = backend.bufferSync<Rank, 'float32'>(x);
+    const outBuf = stridedSliceImpl(finalShapeSparse, xBuf, $strides, $begin);
 
-    result = backend.makeTensorInfo(outBuf.shape, outBuf.dtype, outBuf.values);
+    result = backend.makeTensorInfo(finalShape, outBuf.dtype, outBuf.values);
   }
 
-  const resultReshaped =
-      reshape({inputs: {x: result}, backend, attrs: {shape: outShape}});
-
-  backend.disposeIntermediateTensorInfo($x);
-  backend.disposeIntermediateTensorInfo(result);
-
-  return resultReshaped;
+  return result;
 }
 
 export const stridedSliceConfig: KernelConfig = {

@@ -27,7 +27,7 @@ process.on('unhandledRejection', e => {
 });
 
 setTestEnvs([{name: 'node', backendName: 'cpu'}]);
-
+const unitTests = 'tfjs-data/src/**/*_test.js';
 const runner = new jasmine();
-runner.loadConfig({spec_files: ['src/**/*_test.ts'], random: false});
+runner.loadConfig({spec_files: [unitTests], random: false});
 runner.execute();

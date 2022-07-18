@@ -19,9 +19,12 @@ module.exports = function(config) {
   const args = [];
 
   const coreBundle = config.coreBundle ? config.coreBundle : 'tf-core.min.js';
-  const coreBundlePath = `../../node_modules/@tensorflow/tfjs-core/dist/${coreBundle}`;
-  const cpuBundle = config.cpuBundle ? config.cpuBundle : 'tf-backend-cpu.min.js';
-  const cpuBundlePath = `../../node_modules/@tensorflow/tfjs-backend-cpu/dist/${cpuBundle}`;
+  const coreBundlePath =
+      `../../node_modules/@tensorflow/tfjs-core/dist/${coreBundle}`;
+  const cpuBundle =
+      config.cpuBundle ? config.cpuBundle : 'tf-backend-cpu.min.js';
+  const cpuBundlePath =
+      `../../node_modules/@tensorflow/tfjs-backend-cpu/dist/${cpuBundle}`;
 
   const devConfig = {
     frameworks: ['jasmine'],
@@ -39,12 +42,8 @@ module.exports = function(config) {
     reporters: ['progress']
   };
 
-  const browserstackConfig = {
-    ...devConfig,
-    hostname: 'bs-local.com',
-    singleRun: true,
-    port: 9811
-  };
+  const browserstackConfig =
+      {...devConfig, hostname: 'bs-local.com', singleRun: true, port: 9811};
 
   if (config.grep) {
     args.push('--grep', config.grep);
@@ -67,8 +66,8 @@ module.exports = function(config) {
     browserStack: {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY,
-      tunnelIdentifier:
-          `e2e_script_tag_tests_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+      tunnelIdentifier: `e2e_script_tag_tests_${Date.now()}_${
+          Math.floor(Math.random() * 1000)}`
     },
     captureTimeout: 3e5,
     reportSlowerThan: 500,
@@ -98,7 +97,7 @@ module.exports = function(config) {
         os: 'OS X',
         os_version: 'High Sierra'
       },
-      bs_ios_11: {
+      bs_ios_12: {
         base: 'BrowserStack',
         device: 'iPhone X',
         os: 'iOS',
@@ -115,9 +114,7 @@ module.exports = function(config) {
       win_10_chrome: {
         base: 'BrowserStack',
         browser: 'chrome',
-        // Latest Chrome on Windows has WebGL problems:
-        // https://github.com/tensorflow/tfjs/issues/2272
-        browser_version: '77.0',
+        browser_version: '101.0',
         os: 'Windows',
         os_version: '10'
       }

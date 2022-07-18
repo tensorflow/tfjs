@@ -97,12 +97,15 @@
 |TensorArrayV3|TensorArrayV3|
 |TensorArrayWriteV3|TensorArrayWriteV3|
 |TensorListConcat|TensorListConcat|
+|TensorListConcatV2|TensorListConcatV2|
 |TensorListFromTensor|TensorListFromTensor|
 |TensorListGather|TensorListGather|
 |TensorListGetItem|TensorListGetItem|
+|TensorListLength|TensorListLength|
 |TensorListPopBack|TensorListPopBack|
 |TensorListPushBack|TensorListPushBack|
 |TensorListReserve|TensorListReserve|
+|TensorListResize|TensorListResize|
 |TensorListScatter|TensorListScatter|
 |TensorListScatterV2|TensorListScatterV2|
 |TensorListSetItem|TensorListSetItem|
@@ -143,6 +146,7 @@
 |OneHot|oneHot|
 |Ones|ones|
 |OnesLike|onesLike|
+|RandomStandardNormal|RandomStandardNormal|
 |RandomUniform|RandomUniform|
 |Range|range|
 |TruncatedNormal|truncatedNormal|
@@ -165,9 +169,11 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|LowerBound|LowerBound|
 |TopKV2|TopKV2|
 |Unique|Unique|
 |UniqueV2|UniqueV2|
+|UpperBound|UpperBound|
 |Not mapped|confusionMatrix|
 |Not mapped|inTopKAsync|
 |Not mapped|topk|
@@ -230,6 +236,7 @@
 |ResizeNearestNeighbor|resizeNearestNeighbor|
 |Not mapped|flipLeftRight|
 |Not mapped|rotateWithOffset|
+|ImageProjectiveTransformV3|transform|
 
 ## Operations - Matrices
 
@@ -255,6 +262,7 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|EuclideanNorm|EuclideanNorm|
 |FusedBatchNorm|FusedBatchNorm|
 |FusedBatchNormV2|FusedBatchNormV2|
 |FusedBatchNormV3|FusedBatchNormV3|
@@ -291,6 +299,7 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|Cumprod|cumprod|
 |Cumsum|cumsum|
 
 ## Operations - Segment

@@ -37,6 +37,10 @@ nodejs_test(
     entry_point = "//tfjs-converter/src:run_tests.ts",
     link_workspace_root = True,
     tags = ["ci"],
+    # This fixes a race condition between this test and test_snippets_test where
+    # the wrong runfiles will be linked to node_modules/@tensorflow/tfjs-converter/dist.
+    # TODO(mattSoulanille): Assess whether we should apply this to all nodejs_test targets.
+    templated_args = ["--bazel_patch_module_resolver"],
 )
 
 # Defined here because chdir must be a subdirectory of the directory the rule is
@@ -53,7 +57,12 @@ nodejs_test(
     ],
     entry_point = "//tfjs-converter/scripts:test_snippets.ts",
     link_workspace_root = True,
-    tags = ["ci"],
+    tags = [
+        "ci",
+        # Run the test locally since it makes http requests.
+        "no-remote-exec",
+        "requires-network",
+    ],
 )
 
 tfjs_bundle(
@@ -128,5 +137,13 @@ js_library(
     package_name = "tfjs-converter",
     srcs = [
         ":package.json",
+    ],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":test_snippets_test",
+        ":tfjs-converter_test",
     ],
 )

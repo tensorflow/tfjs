@@ -36,6 +36,19 @@ describeWithFlags('canvas_util', BROWSER_ENVS, () => {
     const gl = getWebGLContext(tf.env().getNumber('WEBGL_VERSION'));
     expect(gl.isContextLost()).toBe(false);
   });
+
+  it('Returns a valid user defined canvas.', () => {
+    const webGLVersion = tf.env().getNumber('WEBGL_VERSION');
+
+    const customCanvas = document.createElement('canvas');
+    customCanvas.width = 10;
+    customCanvas.height = 10;
+
+    const gl = getWebGLContext(webGLVersion, customCanvas);
+
+    expect(gl).not.toBeNull();
+    expect(gl.canvas).toBe(customCanvas);
+  });
 });
 
 describeWithFlags('canvas_util webgl2', {flags: {WEBGL_VERSION: 2}}, () => {

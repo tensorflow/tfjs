@@ -16,6 +16,7 @@ import {cast, dispose, memory, Tensor, util} from '@tensorflow/tfjs-core';
 
 import {ValueError} from '../errors';
 import {Kwargs} from '../types';
+import {LruCache} from '../utils/executor_utils';
 import {toList} from '../utils/generic_utils';
 
 import {InputLayer} from './input_layer';
@@ -184,11 +185,21 @@ export class FeedDict {
 
 // Cache for topologically sorted SymbolicTensors for given execution
 // targets (i.e., fetches).
-const cachedSorted: {[concatFetchNames: string]: SymbolicTensor[]} = {};
+export const cachedSorted: LruCache<SymbolicTensor[]> =
+    new LruCache<SymbolicTensor[]>();
 
 // Cache for recipient count maps for given execution targets (i.e., fetches).
-const cachedRecipientCounts:
-    {[concatFetchNames: string]: {[fetchName: string]: number}} = {};
+export const cachedRecipientCounts: LruCache<RecipientCounts> =
+    new LruCache<RecipientCounts>();
+
+export function updateCacheMaxEntries(maxEntries: number) {
+  if (cachedSorted != null) {
+    cachedSorted.setMaxEntries(maxEntries);
+  }
+  if (cachedRecipientCounts != null) {
+    cachedRecipientCounts.setMaxEntries(maxEntries);
+  }
+}
 
 /**
  * Interface for the optional object used for probing the memory
@@ -260,10 +271,10 @@ export function execute(
 
   // Check cache.
   const fetchAndFeedKey =
-      outputNames.join(',') + '|' + feedDict.names().join(',');
-  let sorted: SymbolicTensor[];
+      outputNames.join(',') + '|' + feedDict.names().sort().join(',');
+  let sorted: SymbolicTensor[] = cachedSorted.get(fetchAndFeedKey);
   let recipientCounts: {[fetchName: string]: number};
-  if (cachedSorted[fetchAndFeedKey] == null) {
+  if (sorted == null) {
     // Cache doesn't contain the desired combination of fetches. Compute
     // topological sort for the combination for the first time.
     const out = getTopologicalSortAndRecipientCounts(fetchArray, feedDict);
@@ -271,13 +282,12 @@ export function execute(
     recipientCounts = out.recipientCounts;
 
     // Store results in cache for future use.
-    cachedSorted[fetchAndFeedKey] = sorted;
-    cachedRecipientCounts[fetchAndFeedKey] = recipientCounts;
+    cachedSorted.put(fetchAndFeedKey, sorted);
+    cachedRecipientCounts.put(fetchAndFeedKey, recipientCounts);
   }
-  sorted = cachedSorted[fetchAndFeedKey];
   recipientCounts = {};
   if (!training) {
-    Object.assign(recipientCounts, cachedRecipientCounts[fetchAndFeedKey]);
+    Object.assign(recipientCounts, cachedRecipientCounts.get(fetchAndFeedKey));
   }
 
   const internalFeedDict = new FeedDict(feedDict);

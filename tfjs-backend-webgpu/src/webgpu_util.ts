@@ -14,9 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {DataType, util} from '@tensorflow/tfjs-core';
-
-import {MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE} from './constants';
+import {DataType} from '@tensorflow/tfjs-core';
 
 const arrayProduct = (arr: number[]) => {
   let product = 1;
@@ -58,31 +56,16 @@ export function computeDispatch(
                    (workGroupSize[2] * elementsPerThread[2])) :
                1
   ];
-
-  if (dispatchX <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
-      dispatchY <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
-      dispatchZ <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
-    return [dispatchX, dispatchY, dispatchZ];
-  }
-
-  util.assert(dispatchX > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE &&
-      layout.y === undefined && layout.z === undefined, () =>
-      'Dispatch size exceeds WebGPU limits in Y or Z dimension.');
-
-  let dispatchAverage = Math.ceil(Math.sqrt(dispatchX));
-  if (dispatchAverage > MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE) {
-    dispatchAverage = Math.ceil(Math.cbrt(dispatchX));
-    util.assert(dispatchAverage <= MAX_COMPUTE_PER_DIMENSION_DISPATCH_SIZE,
-        () => 'Total dispatch size exceeds WebGPU maximum.');
-    return [dispatchAverage, dispatchAverage, dispatchAverage];
-  } else {
-    return [dispatchAverage, dispatchAverage, 1];
-  }
+  return [dispatchX, dispatchY, dispatchZ];
 }
 
 export function computeWorkGroupSizeForConv2d(
-    layout: {x: number[], y?: number[], z?: number[]},
-    outputShape: number[]): [number, number, number] {
+    layout: {x: number[], y?: number[], z?: number[]}, outputShape: number[],
+    isVec4 = false): [number, number, number] {
+  if (isVec4) {
+    return [8, 8, 1];
+  }
+
   const dim0 = arrayProduct(layout.x.map(d => outputShape[d]));
   const dim1 = arrayProduct(layout.y.map(d => outputShape[d]));
   // TODO(jiajia.qin@intel.com): More fine tune based on outputShape.
@@ -123,8 +106,12 @@ export function computeWorkGroupSizeForMatMul(
 }
 
 export function computeWorkPerThreadForConv2d(
-    layout: {x: number[], y?: number[], z?: number[]},
-    outputShape: number[]): [number, number, number] {
+    layout: {x: number[], y?: number[], z?: number[]}, outputShape: number[],
+    isVec4 = false): [number, number, number] {
+  if (isVec4) {
+    return [4, 4, 1];
+  }
+
   const dim0 = arrayProduct(layout.x.map(d => outputShape[d]));
   const dim1 = arrayProduct(layout.y.map(d => outputShape[d]));
   // TODO(jiajia.qin@intel.com): More fine tune based on outputShape.
@@ -161,26 +148,15 @@ export function ArrayBufferToTypedArray(data: ArrayBuffer, dtype: DataType) {
   } else if (dtype === 'int32') {
     return new Int32Array(data);
   } else if (dtype === 'bool' || dtype === 'string') {
-    const dataAsInt32Array = new Int32Array(data);
-    const boolData = new ArrayBuffer(dataAsInt32Array.length);
-    const dataAsTypedArray = new Uint8Array(boolData);
-    for (let i = 0; i < dataAsInt32Array.length; i++) {
-      dataAsTypedArray[i] = dataAsInt32Array[i];
-    }
-    return dataAsTypedArray;
+    return Uint8Array.from(new Int32Array(data));
   } else {
     throw new Error(`Unknown dtype ${dtype}`);
   }
 }
 
 export function isWebGPUSupported(): boolean {
-  if (!navigator.gpu) {
-    return false;
-  }
-  return true;
-}
-
-export interface WebGPULayout {
-  bindGroupLayout: GPUBindGroupLayout;
-  pipelineLayout: GPUPipelineLayout;
+  return ((typeof window !== 'undefined') ||
+          //@ts-ignore
+          (typeof WorkerGlobalScope !== 'undefined')) &&
+      !!navigator.gpu;
 }

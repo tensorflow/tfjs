@@ -17,10 +17,12 @@
  */
 
 import {memory, tensor3d, test_util} from '@tensorflow/tfjs-core';
-import {describeBrowserEnvs, replaceHTMLVideoElementSource, setupFakeVideoStream} from '../util/test_utils';
+// tslint:disable-next-line: no-imports-from-dist
+import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+import {MEDIA_ENVS, replaceHTMLVideoElementSource, setupFakeVideoStream} from '../util/test_utils';
 import {WebcamIterator} from './webcam_iterator';
 
-describeBrowserEnvs('WebcamIterator', () => {
+describeWithFlags('WebcamIterator', MEDIA_ENVS, () => {
   beforeEach(() => {
     setupFakeVideoStream();
   });
@@ -67,60 +69,62 @@ describeBrowserEnvs('WebcamIterator', () => {
     expect(result.shape).toEqual([150, 300, 3]);
   });
 
-  it('create webcamIterator with no html element and no size', async done => {
+  it('create webcamIterator with no html element and no size', async () => {
     try {
       await WebcamIterator.create();
-      done.fail();
+      fail();
     } catch (e) {
       expect(e.message).toEqual(
           'Please provide webcam video element, or resizeWidth and ' +
           'resizeHeight to create a hidden video element.');
-      done();
     }
   });
 
-  it('resize and center crop has correct shape with html element', async () => {
-    const videoElement = document.createElement('video');
-    videoElement.width = 100;
-    videoElement.height = 200;
-    const webcamIterator = await WebcamIterator.create(
-        videoElement, {resizeWidth: 30, resizeHeight: 40, centerCrop: true});
-    const result = await webcamIterator.next();
-    expect(result.done).toBeFalsy();
-    expect(result.value.shape).toEqual([40, 30, 3]);
-  });
+  it('resize and center crop has correct shape with html element',
+     async () => {
+       const videoElement = document.createElement('video');
+       videoElement.width = 100;
+       videoElement.height = 200;
+       const webcamIterator = await WebcamIterator.create(
+           videoElement,
+           {resizeWidth: 30, resizeHeight: 40, centerCrop: true});
+       const result = await webcamIterator.next();
+       expect(result.done).toBeFalsy();
+       expect(result.value.shape).toEqual([40, 30, 3]);
+     });
 
-  it('resize and center crop has correct pixel with html element', async () => {
-    const videoElement = document.createElement('video');
-    videoElement.width = 4;
-    videoElement.height = 4;
-    const webcamIterator = await WebcamIterator.create(
-        videoElement, {resizeWidth: 2, resizeHeight: 2, centerCrop: true});
-    const originalImg = tensor3d([
-      [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]],
-      [
-        [1, 1, 1],
-        [11, 12, 13],
-        [14, 15, 16],
-        [1, 1, 1],
-      ],
-      [
-        [1, 1, 1],
-        [1, 2, 3],
-        [4, 5, 6],
-        [1, 1, 1],
-      ],
-      [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]]
-    ]);
-    const croppedImg = webcamIterator.cropAndResizeFrame(originalImg);
-    test_util.expectArraysClose(
-        await croppedImg.array(),
-        await tensor3d([
-          [[6.625, 7.1875, 7.75], [8.3125, 8.875, 9.4375]],
+  it('resize and center crop has correct pixel with html element',
+     async () => {
+       const videoElement = document.createElement('video');
+       videoElement.width = 4;
+       videoElement.height = 4;
+       const webcamIterator = await WebcamIterator.create(
+           videoElement, {resizeWidth: 2, resizeHeight: 2, centerCrop: true});
+       const originalImg = tensor3d([
+         [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]],
+         [
+           [1, 1, 1],
+           [11, 12, 13],
+           [14, 15, 16],
+           [1, 1, 1],
+         ],
+         [
+           [1, 1, 1],
+           [1, 2, 3],
+           [4, 5, 6],
+           [1, 1, 1],
+         ],
+         [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]]
+       ]);
+       const croppedImg = webcamIterator.cropAndResizeFrame(originalImg);
+       test_util.expectArraysClose(
+           await croppedImg.array(),
+           await tensor3d([
+             [[6.625, 7.1875, 7.75], [8.3125, 8.875, 9.4375]],
 
-          [[1, 1.5625, 2.125], [2.6875, 3.25, 3.8125]]
-        ]).array());
-  });
+             [[1, 1.5625, 2.125], [2.6875, 3.25, 3.8125]]
+           ]).array());
+     });
 
   it('resize in bilinear method has correct shape with html element',
      async () => {
@@ -142,7 +146,8 @@ describeBrowserEnvs('WebcamIterator', () => {
        videoElement.width = 4;
        videoElement.height = 4;
        const webcamIterator = await WebcamIterator.create(
-           videoElement, {resizeWidth: 2, resizeHeight: 2, centerCrop: false});
+           videoElement,
+           {resizeWidth: 2, resizeHeight: 2, centerCrop: false});
        const originalImg = tensor3d([
          [[1, 1, 1], [1, 1, 1], [1, 1, 1], [1, 1, 1]],
          [
@@ -201,11 +206,11 @@ describeBrowserEnvs('WebcamIterator', () => {
     expect(result2.done).toBeTruthy();
     expect(result2.value).toBeNull();
 
-    // Skip validation when it's in Firefox and Mac OS, because BrowserStack for
-    // Firefox does not trigger the readyState event when restarting.
+    // Skip validation when it's in Firefox and Mac OS, because BrowserStack
+    // for Firefox does not trigger the readyState event when restarting.
     if (navigator.userAgent.search('Firefox') < 0 &&
         navigator.userAgent.search('OS X') < 0) {
-          await webcamIterator.start();
+      await webcamIterator.start();
       await replaceHTMLVideoElementSource(videoElement);
       const result3 = await webcamIterator.next();
       expect(result3.done).toBeFalsy();
@@ -218,7 +223,7 @@ describeBrowserEnvs('WebcamIterator', () => {
     videoElement.width = 100;
     videoElement.height = 200;
     const webcamIterator = await WebcamIterator.create(
-        videoElement, { resizeWidth: 30, resizeHeight: 40, centerCrop: true });
+        videoElement, {resizeWidth: 30, resizeHeight: 40, centerCrop: true});
 
     const before = memory();
 

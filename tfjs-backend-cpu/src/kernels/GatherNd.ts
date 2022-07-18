@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {backend_util, GatherNd, GatherNdInputs, KernelConfig, KernelFunc, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
+import {backend_util, GatherNd, GatherNdInputs, KernelConfig, KernelFunc, Rank, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {MathBackendCPU} from '../backend_cpu';
 
@@ -38,7 +38,7 @@ export function gatherNd(
   }
 
   const indicesData = backend.data.get(indices.dataId).values as TypedArray;
-  const paramsBuf = backend.bufferSync(params);
+  const paramsBuf = backend.bufferSync<Rank, 'float32'>(params);
   const outBuf = gatherNdImpl(
       indicesData, paramsBuf, params.dtype, numSlices, sliceRank, sliceSize,
       strides, params.shape, paramsSize);

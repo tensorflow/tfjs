@@ -17,7 +17,7 @@ import {Reshape} from './layers/core';
 import {deserialize} from './layers/serialization';
 import {loadLayersModelInternal, ModelAndWeightsConfig, modelFromJSON} from './models';
 import {convertPythonicToTs, convertTsToPythonic} from './utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathCPUAndWebGL2, expectTensorsClose} from './utils/test_utils';
 import {version as layersVersion} from './version';
 
 const OCTET_STREAM_TYPE = 'application/octet-stream';
@@ -1259,7 +1259,7 @@ describeMathCPU('loadLayersModel from URL', () => {
   });
 });
 
-describeMathCPUAndGPU('Saving+loading model with optimizer', () => {
+describeMathCPUAndWebGL2('Saving+loading model with optimizer', () => {
   it('SGD', async () => {
     const model1 = tfl.sequential();
     model1.add(tfl.layers.dense(
@@ -1901,16 +1901,15 @@ describeMathCPU('loadLayersModel from IOHandler', () => {
     expect(model.outputs[0].shape).toEqual([null, 1]);
   });
 
-  it('IOHandler without load method causes error', async done => {
+  it('IOHandler without load method causes error', async () => {
     loadLayersModelInternal(new IOHandlerWithoutLoad())
         .then(model => {
-          done.fail(
+          fail(
               'Loading with an IOHandler without load method succeeded ' +
               'unexpectedly.');
         })
         .catch(err => {
           expect(err.message).toMatch(/does not have .*load.* method/);
-          done();
         });
   });
 });
@@ -2119,8 +2118,8 @@ describeMathCPUAndGPU('Sequential', () => {
     const model = tfl.sequential({layers: [denseLayer1, denseLayer2]});
     model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
     const history = await model.fit(xs, ys, {batchSize, epochs: 2});
-    expect(history.history['loss'][0]).toBeCloseTo(121);
-    expect(history.history['loss'][1]).toBeCloseTo(0.015178224071860313);
+    expectTensorsClose(
+        history.history['loss'] as number[], [121, 0.015178224071860313]);
   });
 
   it('calling fit twice in a row leads to error', async () => {

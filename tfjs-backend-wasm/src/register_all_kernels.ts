@@ -19,7 +19,7 @@
 // the contents of this file and import only the kernels that are needed.
 import {KernelConfig, registerKernel} from '@tensorflow/tfjs-core';
 
-import {fusedMatMulConfig} from './kernels/_FusedMatMul';
+import {_fusedMatMulConfig} from './kernels/_FusedMatMul';
 import {absConfig} from './kernels/Abs';
 import {addConfig} from './kernels/Add';
 import {addNConfig} from './kernels/AddN';
@@ -38,6 +38,7 @@ import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
+import {cumprodConfig} from './kernels/Cumprod';
 import {cumsumConfig} from './kernels/Cumsum';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
@@ -62,6 +63,9 @@ import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
 import {logicalAndConfig} from './kernels/LogicalAnd';
+import {logicalNotConfig} from './kernels/LogicalNot';
+import {logicalOrConfig} from './kernels/LogicalOr';
+import {logicalXorConfig} from './kernels/LogicalXor';
 import {maxConfig} from './kernels/Max';
 import {maximumConfig} from './kernels/Maximum';
 import {maxPoolConfig} from './kernels/MaxPool';
@@ -88,6 +92,7 @@ import {reluConfig} from './kernels/Relu';
 import {relu6Config} from './kernels/Relu6';
 import {reshapeConfig} from './kernels/Reshape';
 import {resizeBilinearConfig} from './kernels/ResizeBilinear';
+import {resizeNearestNeighborConfig} from './kernels/ResizeNearestNeighbor';
 import {reverseConfig} from './kernels/Reverse';
 import {rotateWithOffsetConfig} from './kernels/RotateWithOffset';
 import {roundConfig} from './kernels/Round';
@@ -99,12 +104,19 @@ import {sinConfig} from './kernels/Sin';
 import {sliceConfig} from './kernels/Slice';
 import {softmaxConfig} from './kernels/Softmax';
 import {spaceToBatchNDConfig} from './kernels/SpaceToBatchND';
+import {sparseFillEmptyRowsConfig} from './kernels/SparseFillEmptyRows';
+import {sparseReshapeConfig} from './kernels/SparseReshape';
+import {sparseSegmentMeanConfig} from './kernels/SparseSegmentMean';
+import {sparseSegmentSumConfig} from './kernels/SparseSegmentSum';
 import {splitVConfig} from './kernels/SplitV';
 import {sqrtConfig} from './kernels/Sqrt';
 import {squareConfig} from './kernels/Square';
 import {squaredDifferenceConfig} from './kernels/SquaredDifference';
 import {stepConfig} from './kernels/Step';
 import {stridedSliceConfig} from './kernels/StridedSlice';
+import {stringNGramsConfig} from './kernels/StringNGrams';
+import {stringSplitConfig} from './kernels/StringSplit';
+import {stringToHashBucketFastConfig} from './kernels/StringToHashBucketFast';
 import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanConfig} from './kernels/Tan';
@@ -118,6 +130,7 @@ import {zerosLikeConfig} from './kernels/ZerosLike';
 
 // List all kernel configs here
 const kernelConfigs: KernelConfig[] = [
+  _fusedMatMulConfig,
   absConfig,
   addConfig,
   addNConfig,
@@ -136,6 +149,7 @@ const kernelConfigs: KernelConfig[] = [
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
+  cumprodConfig,
   cumsumConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
@@ -147,7 +161,6 @@ const kernelConfigs: KernelConfig[] = [
   flipLeftRightConfig,
   floorConfig,
   floorDivConfig,
-  fusedMatMulConfig,
   fusedBatchNormConfig,
   fusedConv2DConfig,
   fusedDepthwiseConv2DConfig,
@@ -161,6 +174,9 @@ const kernelConfigs: KernelConfig[] = [
   lessEqualConfig,
   logConfig,
   logicalAndConfig,
+  logicalNotConfig,
+  logicalOrConfig,
+  logicalXorConfig,
   maxConfig,
   maximumConfig,
   maxPoolConfig,
@@ -187,10 +203,11 @@ const kernelConfigs: KernelConfig[] = [
   relu6Config,
   reshapeConfig,
   resizeBilinearConfig,
+  resizeNearestNeighborConfig,
   reverseConfig,
   rotateWithOffsetConfig,
-  rsqrtConfig,
   roundConfig,
+  rsqrtConfig,
   scatterNdConfig,
   selectConfig,
   sigmoidConfig,
@@ -198,12 +215,19 @@ const kernelConfigs: KernelConfig[] = [
   sliceConfig,
   softmaxConfig,
   spaceToBatchNDConfig,
+  sparseFillEmptyRowsConfig,
+  sparseReshapeConfig,
+  sparseSegmentMeanConfig,
+  sparseSegmentSumConfig,
   splitVConfig,
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
   stepConfig,
   stridedSliceConfig,
+  stringNGramsConfig,
+  stringSplitConfig,
+  stringToHashBucketFastConfig,
   subConfig,
   sumConfig,
   tanConfig,

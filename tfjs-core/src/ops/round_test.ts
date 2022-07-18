@@ -18,6 +18,7 @@
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags} from '../jasmine_util';
 import {expectArraysClose} from '../test_util';
+import {backend} from '../index';
 
 describeWithFlags('round', ALL_ENVS, () => {
   it('basic', async () => {
@@ -28,11 +29,14 @@ describeWithFlags('round', ALL_ENVS, () => {
   });
 
   it('int32', async () => {
-    const a = tf.tensor1d([-12345678, 10, 12345678], 'int32');
-    const r = a.round();
+    if (backend() && backend().floatPrecision() === 32) {
+      // TODO: Use skip() instead when it is implemented
+      const a = tf.tensor1d([-12345678, 10, 12345678], 'int32');
+      const r = a.round();
 
-    expect(r.dtype).toEqual('int32');
-    expectArraysClose(await r.data(), [-12345678, 10, 12345678]);
+      expect(r.dtype).toEqual('int32');
+      expectArraysClose(await r.data(), [-12345678, 10, 12345678]);
+    }
   });
 
   it('propagates NaNs', async () => {

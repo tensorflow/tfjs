@@ -18,9 +18,9 @@
 import {backend_util, sumOutType, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
-import {maxImplCPU} from '../kernel_utils/shared';
-import {prodImplCPU} from '../kernel_utils/shared';
-import {ReduceProgram} from '../kernels/reduce_webgpu';
+import {maxImplCPU} from './shared';
+import {prodImplCPU} from './shared';
+import {ReduceProgram} from '../reduce_webgpu';
 import {reshape} from '../kernels/Reshape';
 import {transpose} from '../kernels/Transpose';
 
@@ -82,7 +82,7 @@ export function reduce(
     const uniformData = [
       {type: 'int32', data: [inSize]},
     ];
-    const program = new ReduceProgram(reduceInfo, reduceType, dtype);
+    const program = new ReduceProgram(reduceInfo, reduceType);
     const reduced =
         backend.runWebGPUProgram(program, [input], dtype, uniformData);
     toDispose.push(reduced);

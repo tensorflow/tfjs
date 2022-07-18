@@ -403,6 +403,55 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     expectArraysClose(await result.data(), expected);
   });
 
+  it('input=1x3x3x4,f=3,s=1,d=2,p=same,chMul=1', async () => {
+    const fSize = 3;
+    const pad = 'same';
+    const stride = 1;
+    const chMul = 1;
+    const inDepth = 4;
+    const dilation = 2;
+
+    const x = tf.tensor4d(
+        [
+          0.5227615, 0.3477598, 0.5227615, 0.3477598, 0.4690094, 0.408161,
+          0.4690094, 0.408161,  0.3239015, 0.2372907, 0.3239015, 0.2372907,
+          0.6136674, 0.7918105, 0.6136674, 0.7918105, 0.9145211, 0.218611,
+          0.9145211, 0.218611,  0.3778793, 0.2392365, 0.3778793, 0.2392365,
+          0.2340134, 0.1251984, 0.2340134, 0.1251984, 0.6222534, 0.1327361,
+          0.6222534, 0.1327361, 0.7697753, 0.1216059, 0.7697753, 0.1216059
+        ],
+        [1, 3, 3, inDepth]);
+    const w = tf.tensor4d(
+        [
+          0.6511372, 0.8699447, 0.6511372, 0.8699447, 0.267792,  0.9981787,
+          0.267792,  0.9981787, 0.4913572, 0.3321196, 0.4913572, 0.3321196,
+          0.5286497, 0.4241803, 0.5286497, 0.4241803, 0.0175446, 0.8365464,
+          0.0175446, 0.8365464, 0.1768399, 0.2874831, 0.1768399, 0.2874831,
+          0.0933998, 0.5764548, 0.0933998, 0.5764548, 0.0661623, 0.8850273,
+          0.0661623, 0.8850273, 0.8700929, 0.205422,  0.8700929, 0.205422
+        ],
+        [fSize, fSize, inDepth, chMul],
+    );
+
+    const result = tf.depthwiseConv2d(x, w, stride, pad, 'NHWC', dilation);
+    expect(result.shape).toEqual([1, 3, 3, 4]);
+    const expected = [
+      0.7517092227935791,  0.4949187934398651,  0.7517092227935791,
+      0.4949187934398651,  0.04939830303192139, 0.4589206874370575,
+      0.04939830303192139, 0.4589206874370575,  0.3548273742198944,
+      0.5258132815361023,  0.3548273742198944,  0.5258132815361023,
+      0.0775906890630722,  0.7311626672744751,  0.0775906890630722,
+      0.7311626672744751,  0.01604490540921688, 0.1828782558441162,
+      0.01604490540921688, 0.1828782558441162,  0.3310448229312897,
+      0.5360028743743896,  0.3310448229312897,  0.5360028743743896,
+      0.4393753409385681,  0.565629243850708,   0.4393753409385681,
+      0.565629243850708,   0.13651414215564728, 0.5184575319290161,
+      0.13651414215564728, 0.5184575319290161,  0.5643441677093506,
+      0.6942259669303894,  0.5643441677093506,  0.6942259669303894
+    ];
+    expectArraysClose(await result.data(), expected);
+  });
+
   it('input=1x3x3x2,f=2,s=1,p=same,chMul=2', async () => {
     const fSize = 2;
     const pad = 'same';
@@ -802,6 +851,104 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
         /Argument 'filter' passed to 'depthwiseConv2d' must be float32/;
     expect(() => tf.depthwiseConv2d(x, w, stride, pad)).toThrowError(errRegex);
   });
+
+  it('throws when dimRoundingMode is set and pad is same', () => {
+    const fSize = 2;
+    const pad = 'same';
+    const stride = 1;
+    const chMul = 1;
+    const inDepth = 1;
+    const dimRoundingMode = 'round';
+
+    const x = tf.tensor4d(
+        [
+          0.230664, 0.987388, 0.0685208, 0.419224, 0.887861, 0.731641,
+          0.0741907, 0.409265, 0.351377
+        ],
+        [1, 3, 3, inDepth]);
+    const w = tf.tensor4d(
+        [0.303873, 0.229223, 0.144333, 0.803373],
+        [fSize, fSize, inDepth, chMul],
+    );
+    expect(
+        () => tf.depthwiseConv2d(x, w, stride, pad, 'NHWC', 1, dimRoundingMode))
+        .toThrowError();
+  });
+
+  it('throws when dimRoundingMode is set and pad is valid', () => {
+    const fSize = 2;
+    const pad = 'valid';
+    const stride = 1;
+    const chMul = 1;
+    const inDepth = 1;
+    const dimRoundingMode = 'round';
+
+    const x = tf.tensor4d(
+        [
+          0.230664, 0.987388, 0.0685208, 0.419224, 0.887861, 0.731641,
+          0.0741907, 0.409265, 0.351377
+        ],
+        [1, 3, 3, inDepth]);
+    const w = tf.tensor4d(
+        [0.303873, 0.229223, 0.144333, 0.803373],
+        [fSize, fSize, inDepth, chMul],
+    );
+    expect(
+        () => tf.depthwiseConv2d(x, w, stride, pad, 'NHWC', 1, dimRoundingMode))
+        .toThrowError();
+  });
+
+  it('throws when dimRoundingMode is set and pad is a non-integer number',
+     () => {
+       const fSize = 2;
+       const pad = 1.2;
+       const stride = 1;
+       const chMul = 1;
+       const inDepth = 1;
+       const dimRoundingMode = 'round';
+
+       const x = tf.tensor4d(
+           [
+             0.230664, 0.987388, 0.0685208, 0.419224, 0.887861, 0.731641,
+             0.0741907, 0.409265, 0.351377
+           ],
+           [1, 3, 3, inDepth]);
+       const w = tf.tensor4d(
+           [0.303873, 0.229223, 0.144333, 0.803373],
+           [fSize, fSize, inDepth, chMul],
+       );
+       expect(
+           () => tf.depthwiseConv2d(
+               x, w, stride, pad, 'NHWC', 1, dimRoundingMode))
+           .toThrowError();
+     });
+
+  it('throws when dimRoundingMode is set and pad is explicit by non-integer ' +
+         'number',
+     () => {
+       const fSize = 2;
+       const pad = [[0, 0], [0, 2.1], [1, 1], [0, 0]] as
+           tf.backend_util.ExplicitPadding;
+       const stride = 1;
+       const chMul = 1;
+       const inDepth = 1;
+       const dimRoundingMode = 'round';
+
+       const x = tf.tensor4d(
+           [
+             0.230664, 0.987388, 0.0685208, 0.419224, 0.887861, 0.731641,
+             0.0741907, 0.409265, 0.351377
+           ],
+           [1, 3, 3, inDepth]);
+       const w = tf.tensor4d(
+           [0.303873, 0.229223, 0.144333, 0.803373],
+           [fSize, fSize, inDepth, chMul],
+       );
+       expect(
+           () => tf.depthwiseConv2d(
+               x, w, stride, pad, 'NHWC', 1, dimRoundingMode))
+           .toThrowError();
+     });
 
   it('accepts a tensor-like object', async () => {
     const pad = 'valid';

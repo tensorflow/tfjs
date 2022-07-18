@@ -39,4 +39,5 @@ genrule(
     exec_tools = [
         "//tfjs-tflite/scripts:download_tflite_web_api",
     ],
+    tags = ["no-remote-exec"],
 )

@@ -35,6 +35,8 @@ import {conv2DBackpropInputConfig} from './kernels/Conv2DBackpropInput';
 import {cosConfig} from './kernels/Cos';
 import {coshConfig} from './kernels/Cosh';
 import {cropAndResizeConfig} from './kernels/CropAndResize';
+import {cumprodConfig} from './kernels/Cumprod';
+import {cumsumConfig} from './kernels/Cumsum';
 import {depthToSpaceConfig} from './kernels/DepthToSpace';
 import {depthwiseConv2dNativeConfig} from './kernels/DepthwiseConv2dNative';
 import {einsumConfig} from './kernels/Einsum';
@@ -57,6 +59,7 @@ import {greaterConfig} from './kernels/Greater';
 import {greaterEqualConfig} from './kernels/GreaterEqual';
 import {identityConfig} from './kernels/Identity';
 import {imagConfig} from './kernels/Imag';
+import {leakyReluConfig} from './kernels/LeakyRelu';
 import {lessConfig} from './kernels/Less';
 import {lessEqualConfig} from './kernels/LessEqual';
 import {logConfig} from './kernels/Log';
@@ -109,6 +112,7 @@ import {subConfig} from './kernels/Sub';
 import {sumConfig} from './kernels/Sum';
 import {tanhConfig} from './kernels/Tanh';
 import {tileConfig} from './kernels/Tile';
+import {topKConfig} from './kernels/TopK';
 import {transformConfig} from './kernels/Transform';
 import {transposeConfig} from './kernels/Transpose';
 import {unpackConfig} from './kernels/Unpack';
@@ -135,13 +139,15 @@ const kernelConfigs: KernelConfig[] = [
   cosConfig,
   coshConfig,
   cropAndResizeConfig,
+  cumprodConfig,
+  cumsumConfig,
   depthToSpaceConfig,
   depthwiseConv2dNativeConfig,
   einsumConfig,
   eluConfig,
   equalConfig,
-  expandDimsConfig,
   expConfig,
+  expandDimsConfig,
   expm1Config,
   fillConfig,
   flipLeftRightConfig,
@@ -157,6 +163,7 @@ const kernelConfigs: KernelConfig[] = [
   greaterEqualConfig,
   identityConfig,
   imagConfig,
+  leakyReluConfig,
   lessConfig,
   lessEqualConfig,
   logConfig,
@@ -177,9 +184,9 @@ const kernelConfigs: KernelConfig[] = [
   onesLikeConfig,
   packConfig,
   padV2Config,
+  powConfig,
   preluConfig,
   prodConfig,
-  powConfig,
   rangeConfig,
   realConfig,
   realDivConfig,
@@ -200,8 +207,8 @@ const kernelConfigs: KernelConfig[] = [
   stringNGramsConfig,
   softmaxConfig,
   spaceToBatchNDConfig,
-  splitVConfig,
   sparseToDenseConfig,
+  splitVConfig,
   sqrtConfig,
   squareConfig,
   squaredDifferenceConfig,
@@ -209,6 +216,7 @@ const kernelConfigs: KernelConfig[] = [
   sumConfig,
   tanhConfig,
   tileConfig,
+  topKConfig,
   transformConfig,
   transposeConfig,
   unpackConfig,

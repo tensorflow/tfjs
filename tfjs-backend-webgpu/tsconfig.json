@@ -1,5 +1,5 @@
 {
-  "extends": "../tsconfig",
+  "extends": "../tsconfig_ts_library",
   "include": [
     "src/"
   ],
@@ -7,6 +7,8 @@
     "node_modules/"
   ],
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {},
     "outDir": "./dist",
     "target": "es2017"
   }

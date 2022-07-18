@@ -18,12 +18,16 @@
 import * as tf from '@tensorflow/tfjs-core';
 // tslint:disable-next-line: no-imports-from-dist
 import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
+// tslint:disable-next-line: no-imports-from-dist
+import {expectArraysEqual} from '@tensorflow/tfjs-core/dist/test_util';
 
 import {WEBGL_ENVS} from './backend_webgl_test_registry';
 import * as canvas_util from './canvas_util';
 import {getGlslDifferences} from './glsl_version';
 import {GPGPUContext, linearSearchLastTrue} from './gpgpu_context';
 import * as tex_util from './tex_util';
+import {Texture} from './tex_util';
+import {createFragmentShader} from './webgl_util';
 
 const DOWNLOAD_FLOAT_ENVS = {
   flags: {'WEBGL_DOWNLOAD_FLOAT_ENABLED': true},
@@ -53,7 +57,7 @@ describeWithFlags(
       });
 
       it('sets the output texture property to the output texture', () => {
-        texture = gpgpu.createFloat32MatrixTexture(1, 1);
+        texture = gpgpu.createFloat32MatrixTexture(1, 1).texture;
         gpgpu.setOutputMatrixTexture(texture, 1, 1);
         expect(gpgpu.outputTexture).toBe(texture);
       });
@@ -61,7 +65,7 @@ describeWithFlags(
       it('sets the gl viewport to the output texture dimensions', () => {
         const columns = 456;
         const rows = 123;
-        texture = gpgpu.createFloat32MatrixTexture(rows, columns);
+        texture = gpgpu.createFloat32MatrixTexture(rows, columns).texture;
         gpgpu.setOutputMatrixTexture(texture, rows, columns);
         const expected = new Int32Array([0, 0, columns, rows]);
         expect(gpgpu.gl.getParameter(gpgpu.gl.VIEWPORT)).toEqual(expected);
@@ -71,7 +75,7 @@ describeWithFlags(
 describeWithFlags(
     'GPGPUContext setOutputPackedMatrixTexture', DOWNLOAD_FLOAT_ENVS, () => {
       let gpgpu: GPGPUContext;
-      let texture: WebGLTexture;
+      let texture: Texture;
       let gl: WebGLRenderingContext;
 
       beforeEach(() => {
@@ -85,26 +89,28 @@ describeWithFlags(
 
       afterEach(() => {
         if (texture != null) {
-          gpgpu.deleteMatrixTexture(texture);
+          gpgpu.deleteMatrixTexture(texture.texture);
         }
         gpgpu.dispose();
       });
 
       it('sets the output texture property to the output texture', () => {
         texture = gpgpu.createPackedMatrixTexture(1, 1);
-        gpgpu.setOutputPackedMatrixTexture(texture, 1, 1);
-        expect(gpgpu.outputTexture).toBe(texture);
+        expectArraysEqual(texture.texShape, [1, 1]);
+        gpgpu.setOutputPackedMatrixTexture(texture.texture, 1, 1);
+        expect(gpgpu.outputTexture).toBe(texture.texture);
       });
 
       it('sets the gl viewport to the output packed texture dimensions', () => {
         const columns = 456;
         const rows = 123;
         texture = gpgpu.createPackedMatrixTexture(rows, columns);
-        gpgpu.setOutputPackedMatrixTexture(texture, rows, columns);
+        gpgpu.setOutputPackedMatrixTexture(texture.texture, rows, columns);
         const [width, height] =
             tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
         const expected = new Int32Array([0, 0, width, height]);
         expect(gpgpu.gl.getParameter(gpgpu.gl.VIEWPORT)).toEqual(expected);
+        expectArraysEqual(texture.texShape, [height, width]);
       });
     });
 
@@ -127,9 +133,11 @@ describeWithFlags(
             ${glsl.output} = vec4(2,0,0,0);
           }
         `;
-        program = gpgpu.createProgram(src);
-        output = gpgpu.createFloat32MatrixTexture(4, 4);
-        gpgpu.uploadDenseMatrixToTexture(output, 4, 4, new Float32Array(16));
+        // tslint:disable-next-line: max-line-length
+        const fragmentShader = createFragmentShader(gpgpu.gl, src);
+        program = gpgpu.createProgram(fragmentShader);
+        output = gpgpu.createPackedMatrixTexture(4, 4).texture;
+        gpgpu.uploadDenseMatrixToTexture(output, 2, 2, new Float32Array(16));
         gpgpu.setOutputMatrixTexture(output, 4, 4);
         gpgpu.setProgram(program);
       });
@@ -176,8 +184,9 @@ describeWithFlags('GPGPUContext', DOWNLOAD_FLOAT_ENVS, () => {
       precision highp float;
       void main() {}
     `;
-    const program = gpgpu.createProgram(src);
-    const result = gpgpu.createFloat32MatrixTexture(1, 1);
+    const fragmentShader = createFragmentShader(gpgpu.gl, src);
+    const program = gpgpu.createProgram(fragmentShader);
+    const result = gpgpu.createFloat32MatrixTexture(1, 1).texture;
     gpgpu.setOutputMatrixTexture(result, 1, 1);
     gpgpu.setProgram(program);
     gpgpu.deleteMatrixTexture(result);

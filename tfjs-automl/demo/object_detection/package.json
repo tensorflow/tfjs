@@ -4,25 +4,25 @@
   "private": true,
   "description": "Object detection demo using the AutoML NPM library",
   "main": "index.js",
+  "browserslist": "> 0.25%, not dead",
   "scripts": {
     "watch": "cross-env NODE_ENV=development parcel index.html --no-hmr --open ",
     "build": "cross-env NODE_ENV=production parcel build index.html --public-url ./"
   },
   "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-plugin-transform-runtime": "~6.23.0",
-    "babel-polyfill": "~6.26.0",
-    "babel-preset-env": "~1.6.1",
     "clang-format": "~1.2.2",
     "cross-env": "^5.2.0",
-    "parcel-bundler": "~1.10.3",
-    "yalc": "~1.0.0-pre.27"
+    "parcel": "~2.3.2",
+    "yalc": "~1.0.0-pre.53"
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@tensorflow/tfjs-converter": "^3.0.0-rc.1",
-    "@tensorflow/tfjs-core": "^3.0.0-rc.1",
+    "@tensorflow/tfjs-automl": "file:../../dist",
     "@tensorflow/tfjs-backend-webgl": "^3.0.0-rc.1",
-    "@tensorflow/tfjs-automl": "file:../../dist"
+    "@tensorflow/tfjs-converter": "^3.0.0-rc.1",
+    "@tensorflow/tfjs-core": "^3.0.0-rc.1"
+  },
+  "resolutions": {
+    "minimist": "1.2.6"
   }
 }

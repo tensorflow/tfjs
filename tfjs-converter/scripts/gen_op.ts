@@ -14,7 +14,7 @@ const {json, out} = parser.parseArgs() as {
   out: string,
 };
 
-const jsonContents = fs.readFileSync(json, 'utf8');
+const jsonContents = fs.readFileSync(json, 'utf8').replace(/"/g, '\'');
 const tsContents = `
 /**
  * @license

@@ -582,16 +582,15 @@ export class LayerNormalization extends Layer {
       }
 
       const broadcast = (v: Tensor) => {
-        if (v != null && v.shape.length !== nDims &&
-            this.axis !== [nDims - 1]) {
+        if (v != null && v.shape.length !== nDims) {
           return tfc.reshape(v, broadcastShape);
         } else {
           return v;
         }
       };
 
-      let scale = broadcast(this.gamma.read());
-      let offset = broadcast(this.beta.read());
+      let scale = this.scale ? broadcast(this.gamma.read()) : null;
+      let offset = this.center ? broadcast(this.beta.read()) : null;
 
       // TODO(https://github.com/tensorflow/tfjs/issues/2120): The tiling below
       // is a workaround for the limitation of core's batchNormalization?d don't
@@ -612,8 +611,12 @@ export class LayerNormalization extends Layer {
       }
       mean = tfc.tile(mean, momentsTiling);
       variance = tfc.tile(variance, momentsTiling);
-      scale = tfc.tile(scale, scaleOffsetTiling);
-      offset = tfc.tile(offset, scaleOffsetTiling);
+      if (scale != null) {
+        scale = tfc.tile(scale, scaleOffsetTiling);
+      }
+      if (offset != null) {
+        offset = tfc.tile(offset, scaleOffsetTiling);
+      }
 
       return batchNormalization(
           input, mean, variance, offset, scale, this.epsilon);

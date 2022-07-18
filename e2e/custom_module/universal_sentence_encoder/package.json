@@ -25,8 +25,11 @@
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-terser": "^6.1.0",
     "rollup-plugin-visualizer": "^4.0.4",
-    "terser-webpack-plugin": "^4.2.1",
-    "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "terser-webpack-plugin": "^5.3.1",
+    "webpack": "^5.70.0",
+    "webpack-cli": "^4.9.2"
+  },
+  "resolutions": {
+    "minimist": "1.2.6"
   }
 }

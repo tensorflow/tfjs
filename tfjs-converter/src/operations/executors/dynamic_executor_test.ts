@@ -23,14 +23,19 @@ import * as dynamic from '../op_list/dynamic';
 import {Node} from '../types';
 
 import {executeOp} from './dynamic_executor';
+import {RecursiveSpy, spyOnAllFunctions} from './spy_ops';
 import {createBoolAttr, createNumberAttrFromIndex, createTensorAttr, validateParam} from './test_helper';
 
 describe('dynamic', () => {
   let node: Node;
   const input1 = [tfOps.tensor1d([1])];
   const context = new ExecutionContext({}, {}, {});
+  let spyOps: RecursiveSpy<typeof tfOps>;
+  let spyOpsAsTfOps: typeof tfOps;
 
   beforeEach(() => {
+    spyOps = spyOnAllFunctions(tfOps);
+    spyOpsAsTfOps = spyOps as unknown as typeof tfOps;
     node = {
       name: 'input1',
       op: '',
@@ -57,10 +62,12 @@ describe('dynamic', () => {
         const input3 = [tfOps.tensor1d([1])];
         const input4 = [tfOps.tensor1d([1])];
         const input5 = [tfOps.tensor1d([1])];
-        spyOn(tfOps.image, 'nonMaxSuppressionAsync');
-        const result =
-            executeOp(node, {input1, input2, input3, input4, input5}, context);
-        expect(tfOps.image.nonMaxSuppressionAsync)
+        spyOps.image.nonMaxSuppressionAsync.and.returnValue({});
+
+        const result = executeOp(
+            node, {input1, input2, input3, input4, input5}, context, undefined,
+            spyOpsAsTfOps);
+        expect(spyOps.image.nonMaxSuppressionAsync)
             .toHaveBeenCalledWith(input1[0], input2[0], 1, 1, 1);
         expect(result instanceof Promise).toBeTruthy();
       });
@@ -90,10 +97,12 @@ describe('dynamic', () => {
         const input3 = [tfOps.tensor1d([1])];
         const input4 = [tfOps.tensor1d([1])];
         const input5 = [tfOps.tensor1d([1])];
-        spyOn(tfOps.image, 'nonMaxSuppressionAsync');
-        const result =
-            executeOp(node, {input1, input2, input3, input4, input5}, context);
-        expect(tfOps.image.nonMaxSuppressionAsync)
+        spyOps.image.nonMaxSuppressionAsync.and.returnValue({});
+
+        const result = executeOp(
+            node, {input1, input2, input3, input4, input5}, context, undefined,
+            spyOpsAsTfOps);
+        expect(spyOps.image.nonMaxSuppressionAsync)
             .toHaveBeenCalledWith(input1[0], input2[0], 1, 1, 1);
         expect(result instanceof Promise).toBeTruthy();
       });
@@ -125,10 +134,13 @@ describe('dynamic', () => {
         const input3 = [tfOps.tensor1d([1])];
         const input4 = [tfOps.tensor1d([1])];
         const input5 = [tfOps.tensor1d([1])];
-        spyOn(tfOps.image, 'nonMaxSuppressionPaddedAsync').and.returnValue({});
-        const result =
-            executeOp(node, {input1, input2, input3, input4, input5}, context);
-        expect(tfOps.image.nonMaxSuppressionPaddedAsync)
+
+        spyOps.image.nonMaxSuppressionPaddedAsync.and.returnValue({});
+
+        const result = executeOp(
+            node, {input1, input2, input3, input4, input5}, context, undefined,
+            spyOpsAsTfOps);
+        expect(spyOps.image.nonMaxSuppressionPaddedAsync)
             .toHaveBeenCalledWith(input1[0], input2[0], 1, 1, 1, true);
         expect(result instanceof Promise).toBeTruthy();
       });
@@ -163,11 +175,11 @@ describe('dynamic', () => {
         const input4 = [tfOps.tensor1d([1])];
         const input5 = [tfOps.tensor1d([1])];
         const input6 = [tfOps.tensor1d([1])];
-        spyOn(tfOps.image, 'nonMaxSuppressionWithScoreAsync')
-            .and.returnValue({});
+        spyOps.image.nonMaxSuppressionWithScoreAsync.and.returnValue({});
         const result = executeOp(
-            node, {input1, input2, input3, input4, input5, input6}, context);
-        expect(tfOps.image.nonMaxSuppressionWithScoreAsync)
+            node, {input1, input2, input3, input4, input5, input6}, context,
+            undefined, spyOpsAsTfOps);
+        expect(spyOps.image.nonMaxSuppressionWithScoreAsync)
             .toHaveBeenCalledWith(input1[0], input2[0], 1, 1, 1, 1);
         expect(result instanceof Promise).toBeTruthy();
       });
@@ -192,16 +204,13 @@ describe('dynamic', () => {
         node.op = 'Where';
         node.inputParams = {'condition': createTensorAttr(0)};
         const input1 = [tfOps.scalar(1)];
-        spyOn(tfOps, 'whereAsync');
+        // spyOn(tfOps, 'whereAsync');
 
-        const result = executeOp(node, {input1}, context);
-        expect(
-            (tfOps.whereAsync as jasmine.Spy).calls.mostRecent().args[0].dtype)
+        const result =
+            executeOp(node, {input1}, context, undefined, spyOpsAsTfOps);
+        expect(spyOps.whereAsync.calls.mostRecent().args[0].dtype)
             .toEqual('bool');
-        expect((tfOps.whereAsync as jasmine.Spy)
-                   .calls.mostRecent()
-                   .args[0]
-                   .arraySync())
+        expect(spyOps.whereAsync.calls.mostRecent().args[0].arraySync())
             .toEqual(1);
         expect(result instanceof Promise).toBeTruthy();
       });
@@ -215,7 +224,6 @@ describe('dynamic', () => {
         node.op = 'Where';
         node.inputParams = {'condition': createTensorAttr(0)};
         const input1 = [tfOps.scalar(1)];
-        spyOn(tfOps, 'whereAsync').and.callThrough();
 
         const prevCount = memory().numTensors;
         await executeOp(node, {input1}, context);
@@ -231,10 +239,12 @@ describe('dynamic', () => {
         node.inputParams = {'x': createTensorAttr(0), 'y': createTensorAttr(1)};
         const input1 = [tfOps.scalar(1)];
         const input2 = [tfOps.scalar(1)];
-        spyOn(tfOps, 'setdiff1dAsync');
+        spyOps.setdiff1dAsync.and.returnValue({});
 
-        const result = executeOp(node, {input1, input2}, context);
-        expect(tfOps.setdiff1dAsync).toHaveBeenCalledWith(input1[0], input2[0]);
+        const result = executeOp(
+            node, {input1, input2}, context, undefined, spyOpsAsTfOps);
+        expect(spyOps.setdiff1dAsync)
+            .toHaveBeenCalledWith(input1[0], input2[0]);
         expect(result instanceof Promise).toBeTruthy();
       });
       it('should match json def', () => {

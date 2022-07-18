@@ -1232,7 +1232,7 @@ export abstract class Layer extends serialization.Serializable {
         // TODO(cais): Restore the following and use `providedWeights`, instead
         // of `weights` in the error message, once the deeplearn.js bug is
         // fixed: https://github.com/PAIR-code/deeplearnjs/issues/498 const
-        // providedWeights = JSON.stringify(weights).substr(0, 50);
+        // providedWeights = JSON.stringify(weights).slice(0, 50);
         throw new ValueError(
             `You called setWeights(weights) on layer "${this.name}" ` +
             `with a weight list of length ${weights.length}, ` +
@@ -1276,8 +1276,8 @@ export abstract class Layer extends serialization.Serializable {
    */
   protected addWeight(
       name: string, shape: Shape, dtype?: DataType, initializer?: Initializer,
-      regularizer?: Regularizer, trainable?: boolean,
-      constraint?: Constraint): LayerVariable {
+      regularizer?: Regularizer, trainable?: boolean, constraint?: Constraint,
+      getInitializerFunc?: Function): LayerVariable {
     // Reject duplicate weight names.
     if (this._addedWeightNames.indexOf(name) !== -1) {
       throw new ValueError(
@@ -1290,7 +1290,8 @@ export abstract class Layer extends serialization.Serializable {
     }
 
     if (this.fastWeightInitDuringBuild) {
-      initializer = getInitializer('zeros');
+      initializer = getInitializerFunc != null ? getInitializerFunc() :
+                                                 getInitializer('zeros');
     }
     const initValue = initializer.apply(shape, dtype);
     const weight =

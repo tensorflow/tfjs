@@ -15,7 +15,6 @@
  * =============================================================================
  */
 import {env} from '../environment';
-
 import {Platform} from './platform';
 
 // We are wrapping this within an object so it can be stubbed by Jasmine.
@@ -82,6 +81,6 @@ export class PlatformNode implements Platform {
   }
 }
 
-if (env().get('IS_NODE')) {
+if (env().get('IS_NODE') && !env().get('IS_BROWSER')) {
   env().setPlatform('node', new PlatformNode());
 }

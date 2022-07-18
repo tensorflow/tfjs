@@ -14,7 +14,6 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {util} from '@tensorflow/tfjs-core';
 
 import {CustomCallback, DEFAULT_YIELD_EVERY_MS} from '../base_callbacks';
 import * as tfl from '../index';
@@ -2889,14 +2888,15 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
     ];
     let counter = 0;
     let prevTime = 0;
-    spyOn(util, 'now').and.callFake(() => {
+    const nowFunc = jasmine.createSpy('now').and.callFake(() => {
       prevTime += timeBetweenCalls[counter++];
       return prevTime;
     });
     let nextFrameCallCount = 0;
-    spyOn(tfc, 'nextFrame').and.callFake(async () => {
-      nextFrameCallCount++;
-    });
+    const nextFrameFunc =
+        jasmine.createSpy('nextFrame').and.callFake(async () => {
+          nextFrameCallCount++;
+        });
 
     const model = createDenseModel();
     model.compile(
@@ -2928,6 +2928,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
     const history = await model.fitDataset(dataset, {
       epochs,
       callbacks: {
+        nowFunc,
+        nextFrameFunc,
         onYield: async (epoch, batch, _logs) => {
           onYieldBatchesIds.push(batch);
           onYieldEpochIds.push(epoch);
@@ -2942,7 +2944,7 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
     expect(onYieldBatchesIds).toEqual([2, 0]);
   });
 
-  it('fails when onYield is provided, but yieldEvery is never', async done => {
+  it('fails when onYield is provided, but yieldEvery is never', async () => {
     const model = createDenseModel();
     model.compile(
         {loss: 'meanSquaredError', optimizer: 'sgd', metrics: ['accuracy']});
@@ -2973,10 +2975,8 @@ describeMathCPUAndGPU('LayersModel.fitDataset', () => {
         yieldEvery: 'never',
         callbacks: {onYield: async (_epoch, _batch, _logs) => {}},
       });
-      done.fail('Model.fit should fail');
-    } catch {
-      done();
-    }
+      fail('Model.fit should fail');
+    } catch {}
   });
 });
 

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+      th {
+          cursor:pointer
+      }
+      tr:hover td {
+          background:#c2c2c5;
+          color:#151fb1;
+          border-top: 1px solid #22262e;
+      }
+      div.rerun {
+          display:inline-block;
+          color:#444;
+          border:1px solid #CCC;
+          background:#DDD;
+          box-shadow: 0 0 5px -1px rgba(0,0,0,0.2);
+          cursor:pointer;
+          vertical-align:middle;
+          max-width: 100px;
+          padding: 5px;
+          text-align: center;
+      }
+      div.rerun:active {
+          color:red;
+          box-shadow: 0 0 5px -1px rgba(0,0,0,0.6);
+      }
+    </style>
+</head>
+<body>
+    <script src="../../dist/bin/tfjs-core/tf-core.js"></script>
+    <script src="../../dist/bin/tfjs-backend-webgl/tf-backend-webgl.js"></script>
+    <script src="../../dist/bin/tfjs-backend-webgpu/tf-backend-webgpu.js"></script>
+    <script src="./tune.js"></script>
+    </script>
+</body>
+</html>

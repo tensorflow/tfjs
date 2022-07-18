@@ -15,14 +15,14 @@
  * =============================================================================
  */
 
-import {buffer, KernelConfig, KernelFunc, Rank, slice_util, StridedSlice, StridedSliceAttrs, StridedSliceInputs, TensorBuffer, TensorInfo, TypedArray} from '@tensorflow/tfjs-core';
+import {buffer, KernelConfig, KernelFunc, Rank, slice_util, StridedSlice, StridedSliceAttrs, StridedSliceInputs, TensorBuffer, TensorInfo, TypedArray, util} from '@tensorflow/tfjs-core';
 
 import {WebGPUBackend} from '../backend_webgpu';
 import {stridedSliceImplCPU} from '../kernel_utils/shared';
 
 import {reshape} from './Reshape';
 import {slice} from './Slice';
-import {StridedSliceProgram} from './strided_slice_webgpu';
+import {StridedSliceProgram} from '../strided_slice_webgpu';
 
 export function stridedSlice(args: {
   inputs: StridedSliceInputs,
@@ -42,46 +42,58 @@ export function stridedSlice(args: {
     shrinkAxisMask
   } = attrs;
 
-  const {nonStrided, $begin, $strides, size, newShape, outShape} =
+  const {
+    finalShapeSparse,
+    finalShape,
+    isIdentity,
+    sliceDim0,
+    isSimpleSlice,
+    begin: $begin,
+    end: $end,
+    strides: $strides
+  } =
       slice_util.sliceInfo(
           x.shape, begin, end, strides, beginMask, endMask, ellipsisMask,
           newAxisMask, shrinkAxisMask);
 
-  const $x = reshape({inputs: {x}, backend, attrs: {shape: newShape}});
-
   let result;
-  if (nonStrided) {
-    const sliced =
-        slice({inputs: {x: $x}, backend, attrs: {begin: $begin, size}});
-    result = reshape({inputs: {x: sliced}, backend, attrs: {shape: outShape}});
-    backend.disposeData(sliced.dataId);
 
-  } else if (outShape.some(axis => axis === 0)) {
-    result = backend.makeTensorInfo(outShape, x.dtype, []);
+  if (isIdentity) {
+    // Optimization #1, slice is a no-op plus reshape
+    result = reshape({inputs: {x}, backend, attrs: {shape: finalShape}});
+  } else if (sliceDim0 || isSimpleSlice) {
+    // Optimization #2, slice is memory contiguous (only occurs in dim 0)
+    util.assert(
+        x.shape.length >= 1,
+        () => `Input must have rank at least 1, got: ${x.shape.length}`);
+
+    const size = slice_util.computeOutShape($begin, $end, $strides);
+    // To tolerate begin[0] > end[0] (a 0-output slice), we min(begin, end).
+    const sliced = slice({inputs: {x}, backend, attrs: {begin: $begin, size}});
+    result =
+        reshape({inputs: {x: sliced}, backend, attrs: {shape: finalShape}});
+    backend.disposeData(sliced.dataId);
   } else {
-    const shouldExecuteOnCPU = backend.shouldExecuteOnCPU([$x]);
+    const shouldExecuteOnCPU = backend.shouldExecuteOnCPU([x]);
     if (shouldExecuteOnCPU) {
-      const xBufferInfo = backend.tensorMap.get($x.dataId);
-      const values = xBufferInfo.values as TypedArray;
-      const xBuf = buffer($x.shape, $x.dtype, values) as TensorBuffer<Rank>;
+      const values = backend.readSync(x.dataId) as TypedArray;
+      const xBuf = buffer(x.shape, x.dtype, values) as TensorBuffer<Rank>;
       const resultValues =
-          stridedSliceImplCPU(outShape, xBuf, $strides, $begin);
-      result = backend.makeTensorInfo(outShape, $x.dtype, resultValues.values);
+          stridedSliceImplCPU(finalShapeSparse, xBuf, $strides, $begin);
+      result = backend.makeTensorInfo(finalShape, x.dtype, resultValues.values);
     } else {
-      const program = new StridedSliceProgram(outShape);
+      const program = new StridedSliceProgram(finalShapeSparse);
       const uniformData =
           [{type: 'int32', data: $begin}, {type: 'int32', data: $strides}];
-      result = backend.runWebGPUProgram(program, [$x], $x.dtype, uniformData);
+      const resultValues =
+          backend.runWebGPUProgram(program, [x], x.dtype, uniformData);
+      result = reshape(
+          {inputs: {x: resultValues}, backend, attrs: {shape: finalShape}});
+      backend.disposeData(resultValues.dataId);
     }
   }
 
-  const resultReshaped =
-      reshape({inputs: {x: result}, backend, attrs: {shape: outShape}});
-
-  backend.disposeData($x.dataId);
-  backend.disposeData(result.dataId);
-
-  return resultReshaped;
+  return result;
 }
 
 export const stridedSliceConfig: KernelConfig = {

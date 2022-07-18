@@ -91,25 +91,9 @@ pkg_npm(
     ],
 )
 
-BROWSERS = [
-    "bs_chrome_mac",
-    "bs_firefox_mac",
-    "bs_safari_mac",
-    "bs_ios_11",
-    "bs_android_9",
-    "win_10_chrome",
-]
-
 STATIC_FILES = [
     # Listed here so sourcemaps are served
     "//tfjs-backend-webgl/src:tfjs-backend-webgl_test_bundle",
-    # For the webworker
-    ":tf-backend-webgl.min.js",
-    ":tf-backend-webgl.min.js.map",
-    "//tfjs-backend-cpu:tf-backend-cpu.min.js",
-    "//tfjs-backend-cpu:tf-backend-cpu.min.js.map",
-    "//tfjs-core:tf-core.min.js",
-    "//tfjs-core:tf-core.min.js.map",
 ]
 
 tfjs_web_test(
@@ -121,7 +105,13 @@ tfjs_web_test(
         "--testEnv",
         "webgl2",
     ],
-    browsers = BROWSERS,
+    browsers = [
+        "bs_chrome_mac",
+        "bs_firefox_mac",
+        "bs_android_9",
+        "win_10_chrome",
+    ],
+    headless = False,
     static_files = STATIC_FILES,
 )
 
@@ -134,7 +124,68 @@ tfjs_web_test(
         "--testEnv",
         "webgl1",
     ],
-    browsers = BROWSERS,
+    browsers = [
+        "bs_safari_mac",
+        "bs_ios_12",
+    ],
+    headless = False,
+    static_files = STATIC_FILES,
+)
+
+tfjs_web_test(
+    name = "tfjs-backend-webgl_unpacked_test",
+    srcs = [
+        "//tfjs-backend-webgl/src:tfjs-backend-webgl_test_bundle",
+    ],
+    args = [
+        "--testEnv",
+        "webgl2",
+        "--flags",
+        '{"WEBGL_PACK": false}',
+    ],
+    browsers = [
+        "bs_chrome_mac",
+    ],
+    headless = False,
+    presubmit_browsers = [],  # Only run in nightly
+    static_files = STATIC_FILES,
+)
+
+tfjs_web_test(
+    name = "tfjs-backend-webgl_forward_test",
+    srcs = [
+        "//tfjs-backend-webgl/src:tfjs-backend-webgl_test_bundle",
+    ],
+    args = [
+        "--testEnv",
+        "webgl2",
+        "--flags",
+        '{"WEBGL_CPU_FORWARD": true}',
+    ],
+    browsers = [
+        "bs_chrome_mac",
+    ],
+    headless = False,
+    presubmit_browsers = [],  # Only run in nightly
+    static_files = STATIC_FILES,
+)
+
+tfjs_web_test(
+    name = "tfjs-backend-webgl_uniforms_test",
+    srcs = [
+        "//tfjs-backend-webgl/src:tfjs-backend-webgl_test_bundle",
+    ],
+    args = [
+        "--testEnv",
+        "webgl2",
+        "--flags",
+        '{"WEBGL_USE_SHAPES_UNIFORMS": true}',
+    ],
+    browsers = [
+        "bs_chrome_mac",
+    ],
+    headless = False,
+    presubmit_browsers = [],  # Only run in nightly
     static_files = STATIC_FILES,
 )
 
@@ -142,5 +193,12 @@ js_library(
     name = "package_json",
     srcs = [
         ":package.json",
+    ],
+)
+
+test_suite(
+    name = "tests",
+    tests = [
+        ":tfjs-backend-webgl2_test",
     ],
 )

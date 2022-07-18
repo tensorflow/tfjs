@@ -21,7 +21,7 @@ import {registerBackend} from '@tensorflow/tfjs-core';
 
 import {BackendWasm, init} from './backend_wasm';
 
-export {BackendWasm, setWasmPath, setWasmPaths} from './backend_wasm';
+export {BackendWasm, getThreadsCount, setThreadsCount, setWasmPath, setWasmPaths} from './backend_wasm';
 export {version as version_wasm} from './version';
 
 const WASM_PRIORITY = 2;
