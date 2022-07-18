@@ -58,6 +58,19 @@ After that operation completes, re-run `yarn add` or `npm install` for the `@ten
 
 You only need to include `@tensorflow/tfjs-node` or `@tensorflow/tfjs-node-gpu` in the package.json file, since those packages ship with `@tensorflow/tfjs` already.
 
+#### Mac OS X with M1 chip
+For Mac with M1 chip, tfjs-node only support arm64 build.
+To install tfjs-node, you need to ensure rosetta has been turned off on your terminal app.
+Start your terminal and verify following command shows `arm64` as response:
+```
+uname -m
+```
+Install your node version with arm64 binary. You can verify that with following command also shows `arm64`:
+```
+node -e 'console.log(os.arch())'
+```
+Now you can install tfjs-node as described before.
+
 #### Rebuild the package on Raspberry Pi
 
 To use this package on Raspberry Pi, you need to rebuild the node native addon with the following command after you installed the package:
