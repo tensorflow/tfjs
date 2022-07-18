@@ -171,7 +171,7 @@ class TestQuantizationUtil(unittest.TestCase):
   def testInvalidQuantizationTypes(self):
     # Invalid quantization type
     with self.assertRaises(ValueError):
-      quantization.quantize_weights(np.array([]), np.bool)
+      quantization.quantize_weights(np.array([]), bool)
 
     # Invalid data dtype for float16 quantization
     with self.assertRaises(ValueError):
@@ -191,7 +191,7 @@ class TestQuantizationUtil(unittest.TestCase):
 
     # Invalid dequantization type
     with self.assertRaises(ValueError):
-      d = np.ones(1, dtype=np.bool)
+      d = np.ones(1, dtype=bool)
       quantization.dequantize_weights(d, {})
 
   def testMapLayerFallthrough(self):
