@@ -24,6 +24,10 @@ export function matMulReadFnSource(
     batchAEqualOne: boolean, batchBEqualOne: boolean, transposeA: boolean,
     transposeB: boolean, fitAOuter = false, fitBOuter = false, fitInner = false,
     component = 1) {
+  util.assert(
+      transposeA && component === 1 || !transposeA,
+      () => `transposeA ${transposeA} is not compatible with component size ${
+          component}`);
   const sampleA = `
       let batch = ${batchAEqualOne ? '0' : 'batchIn'};
       let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
@@ -253,7 +257,7 @@ const readVectorASnippet = (transpose: boolean) => {
   `;
 };
 
-export function makeMatMulVectorSource(
+export function makeVectorMatrixProductSource(
     workGroupSize: [number, number, number], transposeA = false): string {
   util.assert(
       workGroupSize[1] === 1 && workGroupSize[2] === 1,
@@ -404,7 +408,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
             makeMatMulPackedSource(
                 [this.workPerThread, this.workPerThread, 1], this.workGroupSize,
                 this.transposeA, this.tileInner) :
-            makeMatMulVectorSource(this.workGroupSize, this.transposeA)}
+            makeVectorMatrixProductSource(this.workGroupSize, this.transposeA)}
     `;
     return userCode;
   }
