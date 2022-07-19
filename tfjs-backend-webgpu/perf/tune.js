@@ -82,6 +82,7 @@ function initPage() {
 
   // creates run button
   let btn = document.createElement("button");
+  btn.id = 'run';
   btn.innerHTML = "Run";
   btn.style.background = 'orange';
   btn.onclick = function () {
@@ -189,14 +190,18 @@ async function timeMatmul(rowNum) {
     // Warmup gpu, keep gpu frequency at a high level
     document.getElementById('message').innerHTML =
       `Warming up testing on webgpu ...`;
-    for (let i = 0; i < numWarmUp; i++) {
-      let m = tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
-      m.dispose();
-    }
+    //for (let i = 0; i < numWarmUp; i++) {
+    //  let m = tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
+    //  m.dispose();
+    //}
     // Collect result from here
     for (let i = 0; i < inputs.length; i++) {
       document.getElementById('message').innerHTML =
         `Testing on webgpu ...`;
+      for (let i = 0; i < numWarmUp; i++) {
+        let m = tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
+        m.dispose();
+      }
       let result = tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
       result.dispose();
     }
@@ -217,21 +222,26 @@ async function timeMatmul(rowNum) {
     // Warmup gpu, keep gpu frequency at a high level
     document.getElementById('message').innerHTML =
       `Warming up testing on webgl ...`;
-    for (let i = 0; i < numWarmUp; i++) {
-      let m = tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
-      m.dispose();
-    }
+    //for (let i = 0; i < numWarmUp; i++) {
+    //  let m = tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
+    //  m.dispose();
+    //}
     // Collect result from here
     for (let i = 0; i < inputs.length; i++) {
       document.getElementById('message').innerHTML =
         `Testing on webgl ...`;
+      for (let i = 0; i < numWarmUp; i++) {
+        let m = tf.matMul(tensorsWarmUp.tensorA, tensorsWarmUp.tensorB);
+        m.dispose();
+      }
       let result = tf.matMul(tensors[i].tensorA, tensors[i].tensorB);
       result.dispose();
     }
   });
   const webgl_kernels = profile_webgl.kernels;
 
-  for (let i = numWarmUp + inputs.length * 50; i < profile_webgpu.kernels.length; i++) {
+  //for (let i = numWarmUp + inputs.length * 50; i < profile_webgpu.kernels.length; i++) {
+  for (let i = numWarmUp + inputs.length * 50; i < profile_webgpu.kernels.length; i = i + 1 + numWarmUp) {
     let inputInfo;
     webgpu_kernels[i].inputShapes.forEach((inputShape, index) => {
       if (inputInfo == null) {
@@ -302,6 +312,7 @@ function hideOrPresent(event) {
 }
 
 async function run() {
+  document.getElementById('run').disabled = true;
   // remove results
   let tableHeaderRowCount = 1;
   let table = document.getElementById('my-table');
@@ -329,6 +340,7 @@ async function run() {
   await timeMatmul();
   document.getElementById('message').innerHTML = 'Done!';
   updateColor();
+  document.getElementById('run').disabled = false;
 }
 
 async function rerun(rowNum) {
