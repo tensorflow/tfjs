@@ -522,7 +522,7 @@ export function getLocalVersion(pkg: string) {
 
 export async function getNpmVersion(pkg: string) {
   // TODO: This might be slow without async promise.all
-  return $async(`npm view @tensorflow/${pkg} dist-tags.latest`); 
+  return $async(`npm view @tensorflow/${pkg} dist-tags.latest`);
 }
 
 export function memoize<I, O>(f: (arg: I) => Promise<O>): (arg: I) => Promise<O> {
@@ -537,7 +537,7 @@ export function memoize<I, O>(f: (arg: I) => Promise<O>): (arg: I) => Promise<O>
 
 export function runVerdaccio() {
   const serverProcess = shell.exec(
-    'verdaccio --config=e2e/scripts/verdaccio.yaml', {async: true}
+    'yarn verdaccio --config=e2e/scripts/verdaccio.yaml', {async: true}
   );
   return serverProcess;
 }

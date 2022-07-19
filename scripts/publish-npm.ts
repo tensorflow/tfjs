@@ -55,6 +55,12 @@ parser.addArgument(['--release-this-branch', '--release-current-branch'], {
   help: 'Release the current branch instead of checking out a new one.',
 });
 
+parser.addArgument(['--dry'], {
+  action: 'storeTrue',
+  help: 'Dry run. Stage all packages in verdaccio but do not publish them to '
+      + 'the registry.',
+});
+
 async function publish(pkg: string, registry: string, otp?: string,
                        build = true) {
   const startDir = process.cwd();
@@ -192,22 +198,26 @@ async function main() {
   console.log();
 
   // Build and publish all packages to Verdaccio
-//  const verdaccio = runVerdaccio();
-  runVerdaccio;
+  const verdaccio = runVerdaccio();
+  debugger;
   for (const pkg of packages) {
     await publish(pkg, 'http://localhost:4873/');
   }
-//  verdaccio.kill();
+  verdaccio.kill();
 
-  // Publish all built packages to the selected registry
-  let otp = '';
-  if (!args.no_otp) {
-    otp = await question(`Enter one-time password from your authenticator: `);
+  if (args.dry) {
+    console.log('Not publishing packages due to \'--dry\'');
+  } else {
+    // Publish all built packages to the selected registry
+    let otp = '';
+    if (!args.no_otp) {
+      otp = await question(`Enter one-time password from your authenticator: `);
+    }
+
+    const promises = packages.map(pkg => publish(pkg, args.registry, otp, false));
+    await Promise.all(promises);
+    console.log(`Published packages to ${args.registry}`);
   }
-
-  const promises = packages.map(pkg => publish(pkg, args.registry, otp, false));
-  await Promise.all(promises);
-
   process.exit(0);
 }
 

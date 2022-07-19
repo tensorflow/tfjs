@@ -27,7 +27,8 @@ import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as fs from 'fs';
 import * as shell from 'shelljs';
-import { TMP_DIR, $, question, makeReleaseDir, createPR, TFJS_RELEASE_UNIT, updateTFJSDependencyVersions, ALPHA_RELEASE_UNIT, getMinorUpdateVersion, getPatchUpdateVersion, E2E_PHASE, getReleaseBlockers, getNightlyVersion} from './release-util';
+import {TMP_DIR, $, question, makeReleaseDir, createPR, TFJS_RELEASE_UNIT, updateTFJSDependencyVersions, ALPHA_RELEASE_UNIT, getMinorUpdateVersion, getPatchUpdateVersion, E2E_PHASE, getReleaseBlockers, getNightlyVersion} from './release-util';
+import * as path from 'path';
 
 const parser = new argparse.ArgumentParser({
   description: 'Create a release PR for the tfjs monorepo.',
@@ -38,19 +39,26 @@ parser.addArgument('--git-protocol', {
   help: 'Use the git protocol rather than the http protocol when cloning repos.'
 });
 
-parser.addArgument(['--local', '--dry'], {
+parser.addArgument(['--dry'], {
   action: 'storeTrue',
   help: 'Only create the release branch locally. Do not push or create a PR.',
 });
 
 parser.addArgument('--guess-version', {
   type: 'string',
+  choices: ['release', 'nightly'],
   help: 'Use the guessed version without asking for confirmation.',
 });
 
 parser.addArgument(['--commit-hash', '--hash'], {
   type: 'string',
   help: 'Commit hash to publish. Usually the latest successful nightly run.',
+});
+
+parser.addArgument(['--use-local-changes'], {
+  action: 'storeTrue',
+  help: 'Use local changes to the repo instead of a remote branch. Only for'
+      + ' testing and debugging.',
 });
 
 parser.addArgument('--force', {
@@ -60,6 +68,11 @@ parser.addArgument('--force', {
 
 async function main() {
   const args = parser.parseArgs();
+  if (args.use_local_changes) {
+    // Force dry run when using local files instead of a release branch.
+    // This is for debugging.
+    args.dry = true;
+  }
   const urlBase = args.git_protocol ? 'git@github.com:' : 'https://github.com/';
   const dir = `${TMP_DIR}/tfjs`;
   makeReleaseDir(dir);
@@ -115,24 +128,37 @@ async function main() {
 
   // Get release candidate commit.
   let commit = args.commit_hash;
-  if (!commit) {
-    commit = await question(
-      'Commit of release candidate (the last ' +
-      'successful nightly build): ');
-  }
-  if (commit === '') {
-    console.log(chalk.red('Commit cannot be empty.'));
-    process.exit(1);
+  if (!args.use_local_changes) {
+    if (!commit) {
+      commit = await question(
+          'Commit of release candidate (the last ' +
+            'successful nightly build): ');
+    }
+    if (commit === '') {
+      console.log(chalk.red('Commit cannot be empty.'));
+      process.exit(1);
+    }
   }
 
   // Create a release branch in remote.
   $(`git clone ${urlBase}tensorflow/tfjs ${dir}`);
-  shell.cd(dir);
+
   const releaseBranch = `tfjs_${newVersion}`;
-  console.log(chalk.magenta.bold(
-      `~~~ Creating new release branch ${releaseBranch} ~~~`));
-  $(`git checkout -b ${releaseBranch} ${commit}`);
-  if (!args.local) {
+
+  if (args.use_local_changes) {
+    shell.cd(path.join(__dirname, '../'));
+    console.log(chalk.magenta.bold(
+        '~~~ Copying current changes to a new release branch'
+         + ` ${releaseBranch} ~~~`));
+    $(`cp -r ./* ${dir}`);
+    shell.cd(dir);
+  } else {
+    shell.cd(dir);
+    console.log(chalk.magenta.bold(
+        `~~~ Creating new release branch ${releaseBranch} ~~~`));
+    $(`git checkout -b ${releaseBranch} ${commit}`);
+  }
+  if (!args.dry) {
     $(`git push origin ${releaseBranch}`);
   }
 
@@ -170,7 +196,7 @@ async function main() {
   const devBranchName = `dev_${releaseBranch}`;
 
   const message = `Update monorepo to ${newVersion}.`;
-  if (!args.local) {
+  if (!args.dry) {
     createPR(devBranchName, releaseBranch, message);
   }
 
@@ -183,7 +209,7 @@ async function main() {
       'Please remeber to update the website once you have released ' +
       'a new package version.');
 
-  if (args.local) {
+  if (args.dry) {
     console.log(`No PR was created. Local output is located in ${dir}.`);
   }
   process.exit(0);
