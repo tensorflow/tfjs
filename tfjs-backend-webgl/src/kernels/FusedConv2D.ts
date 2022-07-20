@@ -116,7 +116,7 @@ export function fusedConv2d(args: {
     && env().getBool('WEBGL_PACK')
     ) {
       const fusedActivation =
-          activation ? mapActivationToShaderProgram(activation, false) : null;
+          activation ? mapActivationToShaderProgram(activation, true) : null;
     const program = new Conv2DPackedProgram(
       convInfo, hasBias, fusedActivation, hasPreluActivationWeights,
       hasLeakyreluAlpha);
