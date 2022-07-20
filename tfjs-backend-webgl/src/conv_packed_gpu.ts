@@ -19,7 +19,7 @@
 
  import {GPGPUProgram, useShapeUniforms} from './gpgpu_math';
 
- export class DepthwiseConvPacked2DProgram implements GPGPUProgram {
+ export class Conv2DPackedProgram implements GPGPUProgram {
    variableNames = ['x', 'W'];
    packedInputs = true;
    packedOutput = true;
@@ -39,7 +39,6 @@
        hasLeakyReluAlpha = false) {
      this.outputShape = convInfo.outShape;
      this.enableShapeUniforms = useShapeUniforms(this.outputShape.length);
-     const channelMul = convInfo.outChannels / convInfo.inChannels;
      const padLeft = convInfo.padInfo.left;
      const strideWidth = convInfo.strideWidth;
      const dilationWidth = convInfo.dilationWidth;
@@ -69,7 +68,8 @@
       * values from a texture2D call at once.
       */
      mainLoop += `
-     for (int r = 0; r < ${filterHeight}; r++) {
+     for (int d1 = 0; d1 < ${convInfo.inChannels}; d1 += 2) {
+       for (int r = 0; r < ${filterHeight}; r++) {
        `;
      for (let c = 0; c < filterWidth; c++) {
        mainLoop += `
@@ -320,14 +320,20 @@
        // 50 variables)
        if (colIndex < filterWidth) {
          mainLoop += `
-             wTexel = getW(r, ${colIndex}, d1, q);
-             dotProd += xC${colIndex} * vec4(wTexel.xz, wTexel.xz);
+             wTexel = getW(r, ${colIndex}, d1, d2);
+             dotProd += vec4(xC${colIndex}.x, xC${colIndex}.x, xC${colIndex}.z, xC${colIndex}.z) * vec4(wTexel.xy, wTexel.xy);
+             if(d1 + 1 < ${convInfo.inChannels}) {
+               dotProd += vec4(xC${colIndex}.y, xC${colIndex}.y, xC${colIndex}.w, xC${colIndex}.w) * vec4(wTexel.zw, wTexel.zw);
+             }
            `;
 
          if (colIndex + 1 < filterWidth) {
            mainLoop += `
-               wTexel = getW(r, ${colIndex + 1}, d1, q);
-               dotProd += xC${colIndex + 1} * vec4(wTexel.xz, wTexel.xz);
+               wTexel = getW(r, ${colIndex + 1}, d1, d2);
+               dotProd += vec4(xC${colIndex + 1}.x, xC${colIndex + 1}.x, xC${colIndex + 1}.z, xC${colIndex + 1}.z) * vec4(wTexel.xy, wTexel.xy);
+               if(d1 + 1 < ${convInfo.inChannels}) {
+                 dotProd += vec4(xC${colIndex + 1}.y, xC${colIndex + 1}.y, xC${colIndex + 1}.w, xC${colIndex + 1}.w) * vec4(wTexel.zw, wTexel.zw);
+               }
              `;
          }
        }
@@ -335,9 +341,12 @@
      mainLoop += `
      }
    `;
-     mainLoop += `
-       }
-     `;
+   mainLoop += `
+     }
+   `;
+   mainLoop += `
+     }
+   `;
 
      let activationSnippet = '', applyActivationSnippet = '';
      if (activation) {
@@ -380,8 +389,6 @@
          int batch = coords.x;
          ivec2 xRCCorner = coords.yz * strides - pads;
          int d2 = coords.w;
-         int d1 = d2 / ${channelMul};
-         int q = d2 - d1 * ${channelMul};
          int xRCorner = xRCCorner.x;
          int xCCorner = xRCCorner.y;
 
