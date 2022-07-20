@@ -166,5 +166,6 @@ export enum MatMulProgramType {
   MatMulSplitKProgram,
   MatMulSmallOutputSizeProgram,
   MatMulPackedProgram,
-  MatMULMax
+  MatMulPackedVec4Program,
+  MatMulMax
 }
