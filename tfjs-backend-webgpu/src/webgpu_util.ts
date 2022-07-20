@@ -162,10 +162,10 @@ export function isWebGPUSupported(): boolean {
 }
 
 export enum MatMulProgramType {
+  MatMulPackedVec4Program,
   MatMulReduceProgram,
   MatMulSplitKProgram,
   MatMulSmallOutputSizeProgram,
   MatMulPackedProgram,
-  MatMulPackedVec4Program,
   MatMulMax
 }

@@ -34,7 +34,7 @@ ENV.registerFlag('WEBGPU_CPU_FORWARD', () => true);
 ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
 
 /**
- * This flag is used to test different version of matmul programs.
+ * This flag is used to test different types of matmul programs.
  *
  * See MatMulProgramType in webgpu_util.ts for a list of available values.
  */

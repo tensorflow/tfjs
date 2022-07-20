@@ -144,6 +144,11 @@ export function batchMatMulImpl({
   }
 
   switch (matmulProgramType) {
+    case MatMulProgramType.MatMulPackedVec4Program:
+      program = new MatMulPackedVec4Program(
+          a3dShape, outputShape, batchAEqualOne, batchBEqualOne, transposeA,
+          bias, activation, preluActivationWeights);
+      break;
     case MatMulProgramType.MatMulReduceProgram:
       program = new MatMulReduceProgram(
           outputShape, batchAEqualOne, batchBEqualOne, transposeA, transposeB,
@@ -192,18 +197,15 @@ export function batchMatMulImpl({
           a3dShape, b3dShape, outputShape, transposeA, transposeB, bias,
           activation, preluActivationWeights);
       break;
-    case MatMulProgramType.MatMulPackedVec4Program:
-      program = new MatMulPackedVec4Program(
-          a3dShape, outputShape, batchAEqualOne, batchBEqualOne, transposeA,
-          bias, activation, preluActivationWeights);
-      break;
-    default:
+    case MatMulProgramType.MatMulPackedProgram:
       program = new MatMulPackedProgram(
           a3dShape, outputShape,
           env().get('WEBGPU_MATMUL_WORK_PER_THREAD') as number, batchAEqualOne,
           batchBEqualOne, transposeA, transposeB, bias, activation,
           preluActivationWeights);
       break;
+    default:
+      throw new Error(`Unsupported MatMulProgramType ${matmulProgramType}.`);
   }
 
   if (bias) {
