@@ -52,7 +52,8 @@ export function conv2d(
       [convInfo.dilationHeight, convInfo.dilationWidth],
       [convInfo.inHeight, convInfo.inWidth]
     ];
-    out = backend.runWebGLProgram(program, [x, filter], 'float32', customValues);
+    out =
+        backend.runWebGLProgram(program, [x, filter], 'float32', customValues);
   } else if (env().getBool('WEBGL_CONV_IM2COL')) {
     out = conv2dWithIm2Row({x, filter, convInfo, backend});
   } else {

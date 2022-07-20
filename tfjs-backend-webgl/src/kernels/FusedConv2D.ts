@@ -95,7 +95,7 @@ export function fusedConv2d(args: {
       intermediates.push($leakyreluAlpha);
     }
     return inputs;
-  }
+  };
 
   if (convInfo.filterHeight === 1 && convInfo.filterWidth === 1 &&
       convInfo.dilationHeight === 1 && convInfo.dilationWidth === 1 &&
@@ -125,7 +125,8 @@ export function fusedConv2d(args: {
       [convInfo.dilationHeight, convInfo.dilationWidth],
       [convInfo.inHeight, convInfo.inWidth]
     ];
-    out = backend.runWebGLProgram(program, prepareInputs(), 'float32', customValues);
+    const inputs = prepareInputs();
+    out = backend.runWebGLProgram(program, inputs, 'float32', customValues);
   } else if (env().getBool('WEBGL_CONV_IM2COL')) {
     out = conv2dWithIm2Row({
       x,
@@ -144,7 +145,8 @@ export function fusedConv2d(args: {
         convInfo, hasBias, fusedActivation, hasPreluActivationWeights,
         hasLeakyreluAlpha);
 
-    out = backend.runWebGLProgram(program, prepareInputs(), 'float32');
+    const inputs = prepareInputs();
+    out = backend.runWebGLProgram(program, inputs, 'float32');
   }
 
   const outReshaped =
