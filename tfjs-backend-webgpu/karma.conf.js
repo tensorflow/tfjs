@@ -18,13 +18,17 @@
 const karmaTypescriptConfig = {
   tsconfig: 'tsconfig.test.json',
   // Disable coverage reports and instrumentation by default for tests
-  coverageOptions: {instrumentation: false},
+  coverageOptions: {
+    instrumentation: false
+  },
   reports: {},
   bundlerOptions: {
     transforms: [require('karma-typescript-es6-transform')({
       presets: [
         // ensure we get es5 by adding IE 11 as a target
-        ['@babel/env', {'targets': {'ie': '11'}, 'loose': true}]
+        ['@babel/env', {
+          'targets': { 'ie': '11' }, 'loose': true
+        }]
       ]
     })],
     // worker_node_test in tfjs-core contains a conditional require statement
@@ -36,22 +40,31 @@ const karmaTypescriptConfig = {
 const devConfig = {
   frameworks: ['jasmine', 'karma-typescript'],
   files: [
-    {pattern: './node_modules/@babel/polyfill/dist/polyfill.js'},
+    {
+      pattern: './node_modules/@babel/polyfill/dist/polyfill.js'
+    },
     'src/setup_test.ts',
-    {pattern: 'src/**/*.ts'},
+    {
+      pattern: 'src/**/*.ts'
+    },
   ],
-  preprocessors: {'src/**/*.ts': ['karma-typescript']},
+  preprocessors: {
+    'src/**/*.ts': ['karma-typescript']
+  },
   karmaTypescriptConfig,
-  reporters: ['dots', 'karma-typescript']
 };
 
-module.exports = function(config) {
+module.exports = function (config) {
   const args = [];
+  let browserCLog = 'debug';
   if (config.grep) {
     args.push('--grep', config.grep);
   }
   if (config.flags) {
     args.push('--flags', config.flags);
+  }
+  if (config.log) {
+    browserCLog = config.log;
   }
   let exclude = [];
   if (config.excludeTest != null) {
@@ -60,6 +73,16 @@ module.exports = function(config) {
 
   config.set({
     ...devConfig,
+    reporters: ['kjhtml'],
+    plugins: [
+      require('karma-chrome-launcher'),
+      require('karma-typescript'),
+      require('karma-jasmine'),
+      require('karma-jasmine-html-reporter'),
+    ],
+    browserConsoleLogOptions: {
+      level: browserCLog
+    },
     exclude,
     port: 9876,
     colors: true,
@@ -75,6 +98,6 @@ module.exports = function(config) {
         ],
       }
     },
-    client: {jasmine: {random: false}, args: args}
+    client: { jasmine: { random: false }, args: args }
   })
 }
