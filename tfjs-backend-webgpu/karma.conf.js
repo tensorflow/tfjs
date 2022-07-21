@@ -56,15 +56,11 @@ const devConfig = {
 
 module.exports = function (config) {
   const args = [];
-  let browserCLog = 'debug';
   if (config.grep) {
     args.push('--grep', config.grep);
   }
   if (config.flags) {
     args.push('--flags', config.flags);
-  }
-  if (config.log) {
-    browserCLog = config.log;
   }
   let exclude = [];
   if (config.excludeTest != null) {
@@ -80,9 +76,6 @@ module.exports = function (config) {
       require('karma-jasmine'),
       require('karma-jasmine-html-reporter'),
     ],
-    browserConsoleLogOptions: {
-      level: browserCLog
-    },
     exclude,
     port: 9876,
     colors: true,
