@@ -25,7 +25,7 @@
 import * as argparse from 'argparse';
 import chalk from 'chalk';
 import * as shell from 'shelljs';
-import { RELEASE_UNITS, question, $, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT, selectPackages, getLocalVersion, getNpmVersion, memoize, printReleaseUnit, publishable, runVerdaccio, ReleaseUnit} from './release-util';
+import {RELEASE_UNITS, question, $, getReleaseBranch, checkoutReleaseBranch, ALPHA_RELEASE_UNIT, TFJS_RELEASE_UNIT, selectPackages, getLocalVersion, getNpmVersion, memoize, printReleaseUnit, publishable, runVerdaccio, ReleaseUnit} from './release-util';
 import * as fs from 'fs';
 import semverCompare from 'semver/functions/compare';
 
@@ -60,9 +60,34 @@ parser.addArgument(['--dry'], {
   help: 'Dry run. Stage all packages in verdaccio but do not publish them to '
       + 'the registry.',
 });
+/*
+async function sleep(ms: number) {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
+}
 
+
+async function flaky<T>(f: () => Promise<T>, tries = 3, delay = 1000) {
+  let err: Error | undefined;
+  for (let i = 0; i < tries; i++) {
+    try {
+      return await f();
+    } catch (e) {
+      err = e;
+      console.warn(err);
+      await sleep(delay);
+    }
+  }
+  throw err;
+}
+*/
 async function publish(pkg: string, registry: string, otp?: string,
                        build = true) {
+  const registryEnv = {
+    YARN_REGISTRY: registry,
+    NPM_CONFIG_REGISTRY: registry,
+  };
   const startDir = process.cwd();
   shell.cd(pkg);
 
@@ -76,19 +101,20 @@ async function publish(pkg: string, registry: string, otp?: string,
     console.log(chalk.magenta('~~~ Installing packages ~~~'));
     // tfjs-node-gpu needs to get some files from tfjs-node.
     if (pkg === 'tfjs-node-gpu') {
-      $(`YARN_REGISTRY="${registry}" yarn prep-gpu`);
+      $('yarn prep-gpu', registryEnv);
     }
 
     // Yarn above the other checks to make sure yarn doesn't change the lock
     // file.
-    $(`YARN_REGISTRY="${registry}" yarn`);
+    console.log($('yarn', registryEnv));
+    //console.log(await flaky(() => $async('yarn')));
 
     console.log(chalk.magenta('~~~ Build npm ~~~'));
 
     if (pkg === 'tfjs-react-native' || BAZEL_PACKAGES.has(pkg)) {
-      $(`YARN_REGISTRY="${registry}" yarn build-npm`);
+      $('yarn build-npm', registryEnv);
     } else {
-      $(`YARN_REGISTRY="${registry}" yarn build-npm for-publish`);
+      $('yarn build-npm for-publish', registryEnv);
     }
   }
 
@@ -109,11 +135,13 @@ async function publish(pkg: string, registry: string, otp?: string,
                        + `${tag} ~~~`));
 
   if (BAZEL_PACKAGES.has(pkg)) {
-    $(`YARN_REGISTRY="${registry}" yarn publish-npm -- -- ${otpFlag}`
-      + `--tag=${tag} --force`);
+    $(`yarn publish-npm -- -- ${otpFlag} --tag=${tag}`, registryEnv);
   } else {
-    $(`YARN_REGISTRY="${registry}" npm publish ${otpFlag}`
-      + ` --tag=${tag} --force`);
+
+    //$(`npm publish ${otpFlag} --tag=${tag}`, registryEnv);
+
+    $('npx npm-cli-login -u user -p password -e user@example.com'
+      + ` -r ${registry} && npm publish ${otpFlag} --tag=${tag}`, registryEnv);
   }
   console.log(`Yay! Published ${pkg} to ${registry}.`);
 
@@ -199,9 +227,13 @@ async function main() {
 
   // Build and publish all packages to Verdaccio
   const verdaccio = runVerdaccio();
-  debugger;
+  //runVerdaccio;
+  //const verdaccioRegistry = 'http://[::1]:4873/';
+  const verdaccioRegistry = 'http://localhost:4873/';
+  $('npx npm-cli-login -u user -p password -e user@example.com'
+    + ` -r ${verdaccioRegistry}`);
   for (const pkg of packages) {
-    await publish(pkg, 'http://localhost:4873/');
+    await publish(pkg, verdaccioRegistry);
   }
   verdaccio.kill();
 

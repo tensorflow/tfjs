@@ -208,24 +208,29 @@ export async function question(questionStr: string): Promise<string> {
 
 /**
  * A wrapper around shell.exec for readability.
- * @param cmd The bash command to execute.
+ * @param cmd The bash commaond to execute.
  * @returns stdout returned by the executed bash script.
  */
-export function $(cmd: string) {
-  const result = shell.exec(cmd, {silent: true});
+export function $(cmd: string, env: Record<string, string> = {}) {
+  env = {...shell.env, ...env};
+  const result = shell.exec(cmd, {silent: true, env});
   if (result.code > 0) {
     console.log('$', cmd);
+    console.log(result.stdout);
     console.log(result.stderr);
     process.exit(1);
   }
   return result.stdout.trim();
 }
 
-export function $async(cmd: string): Promise<string> {
+export function $async(cmd: string,
+		       env: Record<string, string> = {}): Promise<string> {
+  env = {...shell.env, ...env};
   return new Promise((resolve, reject) => {
-    shell.exec(cmd, {silent: true}, (code, stdout, stderr) => {
+    shell.exec(cmd, {silent: true, env}, (code, stdout, stderr) => {
       if (code > 0) {
         console.log('$', cmd);
+        console.log(stdout);
         console.log(stderr);
         reject(stderr);
       }
@@ -503,6 +508,8 @@ export async function selectPackages({
       ]).flat() // (Separator | Promise<Choice>)[] for all release units
   );
 
+  // TODO(mattsoulanille): Upgrade @types/inquirer and remove this cast
+  // after the TS4 upgrade.
   const choice = await inquirer.prompt({
     name: 'packages',
     type: 'checkbox',
@@ -510,7 +517,7 @@ export async function selectPackages({
     pageSize: 30,
     choices,
     loop: false,
-  });
+  } as {name: 'packages'});
 
   return choice['packages'] as string[];
 }
@@ -520,9 +527,13 @@ export function getLocalVersion(pkg: string) {
                     .toString('utf8')).version as string;
 }
 
-export async function getNpmVersion(pkg: string) {
+export async function getNpmVersion(pkg: string, registry?: string) {
   // TODO: This might be slow without async promise.all
-  return $async(`npm view @tensorflow/${pkg} dist-tags.latest`);
+  const env: Record<string, string> = {};
+  if (registry) {
+    env['NPM_CONFIG_REGISTRY'] = registry;
+  }
+  return $async(`npm view @tensorflow/${pkg} dist-tags.latest`, env);
 }
 
 export function memoize<I, O>(f: (arg: I) => Promise<O>): (arg: I) => Promise<O> {
@@ -539,6 +550,10 @@ export function runVerdaccio() {
   const serverProcess = shell.exec(
     'yarn verdaccio --config=e2e/scripts/verdaccio.yaml', {async: true}
   );
+  serverProcess.stdout.on('data', console.log);
+  serverProcess.stderr.on('data', console.error);
+  process.on('exit', () => {serverProcess.kill();});
+
   return serverProcess;
 }
 
