@@ -24,6 +24,7 @@ import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 export class BinaryOpProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   dispatchLayout: {x: number[]};
+  outputComponent = 1;
   isVec4: boolean;
   op: BinaryOpType;
   outputShape: number[];
@@ -65,6 +66,7 @@ export class BinaryOpProgram implements WebGPUProgram {
       if (util.arraysEqual(aShape, bShape) &&
           util.sizeFromShape(aShape) % 4 === 0) {
         this.isVec4 = true;
+        this.outputComponent = 4;
         this.type = 'vec4';
         this.workPerThread = 4;
       } else {

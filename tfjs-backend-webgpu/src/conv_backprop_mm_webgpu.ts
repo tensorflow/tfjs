@@ -16,9 +16,9 @@
  */
 
 import {backend_util, util} from '@tensorflow/tfjs-core';
-import {typeSnippet} from './activation_util';
+
 import {makeMatMulPackedSource, makeMatMulPackedVec4Source} from './matmul_packed_webgpu';
-import {WebGPUProgram} from './webgpu_program';
+import {typeSnippet, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkgroupSizeForConv2d, computeWorkPerThreadForConv2d} from './webgpu_util';
 
 function conv2dTransposeCommonSnippet(innerElementSize = 4) {
@@ -117,12 +117,13 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
   dispatchLayout: {x: number[], y: number[], z: number[]};
   dispatch: [number, number, number];
   variableNames = ['x', 'W'];
-  variableTypes: string[];
+  variableComponents: number[];
   uniforms =
       'filterDims : vec2<i32>, pads : vec2<i32>, strides : vec2<i32>, outBackprop : vec4<i32>, dimAOuter : i32, dimBOuter : i32, dimInner : i32,';
   workgroupSize: [number, number, number];
   elementsPerThread: [number, number, number];
   isVec4?: boolean;
+  outputComponent = 1;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.inShape;
@@ -143,7 +144,8 @@ export class Conv2DDerInputMMProgram implements WebGPUProgram {
         this.elementsPerThread);
 
     if (this.isVec4) {
-      this.variableTypes = ['vec4<f32>', 'f32'];
+      this.outputComponent = 4;
+      this.variableComponents = [4, 1];
     }
 
     this.shaderKey =

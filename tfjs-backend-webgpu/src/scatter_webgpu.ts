@@ -107,7 +107,7 @@ export class ScatterProgram implements WebGPUProgram {
             flattenedIndex = flattenedIndex + indexInside * ${strideString};
           }
           let updateValue =
-              ${mapToWgslTypes(this.type, false)}(${updatesSnippet});
+              ${mapToWgslTypes(this.type)}(${updatesSnippet});
           let flatIndex = getOutputIndexFromCoords(${outCoordsString});
 
           ${

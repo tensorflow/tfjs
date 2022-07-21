@@ -17,10 +17,10 @@
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
 
-import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
+import {activationFnSnippet, biasActivationSnippet} from './activation_util';
 import {makeMatMulPackedSource, makeMatMulPackedVec4Source, matMulReadFnSource} from './matmul_packed_webgpu';
 import {atomicAddSnippet} from './shader_util';
-import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+import {getMainHeaderString as main, typeSnippet, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class MatMulSplitKProgram implements WebGPUProgram {
@@ -36,6 +36,7 @@ export class MatMulSplitKProgram implements WebGPUProgram {
   transposeB: boolean;
   atomic = true;
   isVec4 = false;
+  outputComponent = 1;
   splitedDimInner = 128;
 
   constructor(
@@ -50,7 +51,7 @@ export class MatMulSplitKProgram implements WebGPUProgram {
                    !transposeA && dimInner % 4 === 0) &&
         this.outputShape[2] % 4 === 0;
     this.elementsPerThread = [4, 4, this.splitedDimInner];
-
+    this.outputComponent = this.isVec4 ? 4 : 1;
     if (!this.isVec4) {
       if (this.outputShape[1] < 16) {
         this.elementsPerThread[1] = 1;

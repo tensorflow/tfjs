@@ -32,6 +32,7 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
   size = false;
   isVec4 = false;
   workPerThread = 1;
+  outputComponent = 1;
 
   constructor(convInfo: backend_util.Conv2DInfo) {
     this.outputShape = convInfo.inShape;
@@ -41,6 +42,7 @@ export class Conv2DDerInputProgram implements WebGPUProgram {
     if (this.isVec4) {
       // TODO: Expand to any value.
       this.workPerThread = 2;
+      this.outputComponent = 4;
       this.workgroupSize = [4, 4, 4];
       this.dispatchLayout = {x: [3], y: [2], z: [0, 1]};
       this.dispatch = computeDispatch(

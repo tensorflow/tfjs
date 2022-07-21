@@ -16,8 +16,9 @@
  */
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
-import {activationFnSnippet, biasActivationSnippet, typeSnippet} from './activation_util';
-import {getMainHeaderString as main, WebGPUProgram} from './webgpu_program';
+
+import {activationFnSnippet, biasActivationSnippet} from './activation_util';
+import {getMainHeaderString as main, typeSnippet, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, computeWorkgroupInfoForMatMul} from './webgpu_util';
 
 export function matMulReadFnSource(
@@ -509,6 +510,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
   tileInner: number;
   isVectorA: boolean;
   isVec4: boolean;
+  outputComponent: number;
   private sequentialAccessByThreads: boolean;
 
   constructor(
@@ -523,6 +525,7 @@ export class MatMulPackedProgram implements WebGPUProgram {
     this.isVec4 = ((dimInner % 4 === 0 && !transposeA) ||
                    (outputShape[1] % 4 === 0 && transposeA)) &&
         outputShape[2] % 4 === 0 && !transposeB;
+    this.outputComponent = this.isVec4 ? 4 : 1;
     this.isVectorA = outputShape[1] === 1 && !transposeA;
 
     if (!this.isVec4 && this.isVectorA) {
