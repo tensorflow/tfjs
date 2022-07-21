@@ -68,8 +68,8 @@
       * values from a texture2D call at once.
       */
      mainLoop += `
-     for (int d1 = 0; d1 < ${convInfo.inChannels}; d1 += 2) {
-       for (int r = 0; r < ${filterHeight}; r++) {
+     for (int r = 0; r < ${filterHeight}; r++) {
+      for (int d1 = 0; d1 < ${convInfo.inChannels}; d1 += 2) {
        `;
      for (let c = 0; c < filterWidth; c++) {
        mainLoop += `
