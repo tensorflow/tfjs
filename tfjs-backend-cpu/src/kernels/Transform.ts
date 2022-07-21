@@ -33,10 +33,15 @@ export function transform(args: {
       outputShape != null ? outputShape : [imageHeight, imageWidth];
   const outShape = [batch, outHeight, outWidth, numChannels];
 
-  const strides = util.computeStrides(image.shape);
-  const batchStride = strides[0];
-  const rowStride = strides[1];
-  const colStride = strides[2];
+  const inStrides = util.computeStrides(image.shape);
+  const batchInStride = inStrides[0];
+  const rowInStride = inStrides[1];
+  const colInStride = inStrides[2];
+
+  const outStrides = util.computeStrides(outShape);
+  const batchOutStride = outStrides[0];
+  const rowOutStride = outStrides[1];
+  const colOutStride = outStrides[2];
 
   const outVals = util.getTypedArrayFromDType(
       image.dtype as NumericDataType, util.sizeFromShape(outShape));
@@ -80,13 +85,13 @@ export function transform(args: {
           switch (interpolation) {
             case 'nearest':
               val = nearestInterpolation(
-                  imageVals, imageHeight, imageWidth, batchStride, rowStride,
-                  colStride, b, y, x, channel, fillValue);
+                  imageVals, imageHeight, imageWidth, batchInStride,
+                  rowInStride, colInStride, b, y, x, channel, fillValue);
               break;
             case 'bilinear':
               val = bilinearInterpolation(
-                  imageVals, imageHeight, imageWidth, batchStride, rowStride,
-                  colStride, b, y, x, channel, fillValue);
+                  imageVals, imageHeight, imageWidth, batchInStride,
+                  rowInStride, colInStride, b, y, x, channel, fillValue);
               break;
             default:
               throw new Error(
@@ -95,7 +100,8 @@ export function transform(args: {
           }
 
           const ind =
-              b * batchStride + outY * rowStride + outX * colStride + channel;
+              b * batchOutStride + outY * rowOutStride +
+              outX * colOutStride + channel;
 
           outVals[ind] = val;
         }
