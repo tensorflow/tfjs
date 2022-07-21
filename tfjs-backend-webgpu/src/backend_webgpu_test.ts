@@ -310,13 +310,17 @@ describeWebGPU('keeping data on gpu ', () => {
     const startDataBuckets = webGPUBackend.numDataIds();
 
     const res = b.dataToGPU();
+    // The `b` and `res` tensors share the same underlying buffer, so no
+    // data ids are added here.
+    const endDataBuckets1 = webGPUBackend.numDataIds();
     res.tensorRef.dispose();
 
     const endTensor = tf.memory().numTensors;
-    const endDataBuckets = webGPUBackend.numDataIds();
+    const endDataBuckets2 = webGPUBackend.numDataIds();
 
     expect(endTensor).toEqual(startTensor);
-    expect(endDataBuckets).toEqual(startDataBuckets);
+    expect(endDataBuckets1).toEqual(startDataBuckets);
+    expect(endDataBuckets2).toEqual(startDataBuckets);
   });
 
   it('can be used in tidy.', async () => {

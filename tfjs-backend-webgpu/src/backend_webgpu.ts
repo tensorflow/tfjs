@@ -431,7 +431,8 @@ export class WebGPUBackend extends KernelBackend {
   }
 
   /**
-   * Read tensor to a new GPUBuffer.
+   * Return the GPUBuffer, which is shared by the source tensor and the
+   * new created tensor.
    * @param dataId The source tensor.
    */
   readToGPU(dataId: DataId): GPUData {
@@ -450,21 +451,11 @@ export class WebGPUBackend extends KernelBackend {
       }
     }
 
-    const size = (resourceInfo as BufferInfo).size;
-    const buffer = this.bufferManager.acquireBuffer(size, resourceInfo.usage);
-    this.ensureCommandEncoderReady();
-    this.ensureComputePassEnded();
-    this.currentCommandEncoder.copyBufferToBuffer(
-        (resourceInfo as BufferInfo).buffer, 0, buffer, 0, size);
-    this.submitQueue();
-
-    const tensorInfo = this.makeTensorInfo(shape, dtype);
-    // Make engine track this tensor, so that we can dispose it later.
-    const tensorRef = engine().makeTensorFromTensorInfo(tensorInfo);
-
-    const tensorData = this.tensorMap.get(tensorInfo.dataId);
-    tensorData
-        .resourceInfo = {size, usage: this.defaultGpuBufferUsage(), buffer};
+    this.incRef(dataId);
+    const bufferInfo = resourceInfo as BufferInfo;
+    const size = bufferInfo.size;
+    const buffer = bufferInfo.buffer;
+    const tensorRef = engine().makeTensorFromTensorInfo({dataId, shape, dtype});
 
     return {tensorRef, buffer, bufSize: size};
   }
