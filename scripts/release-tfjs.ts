@@ -77,12 +77,11 @@ async function main() {
   const dir = `${TMP_DIR}/tfjs`;
   makeReleaseDir(dir);
 
-  const blockers = getReleaseBlockers();
-  if (blockers) {
-    if (args.force) {
-      console.warn('Release blockers found, but releasing anyway due to '
-                   + `--force:\n ${blockers}`);
-    } else {
+  if (args.force) {
+    console.warn('Ignoring any potential release blockerse due to \'--force\'');
+  } else {
+    const blockers = getReleaseBlockers();
+    if (blockers) {
       throw new Error(`Can not release due to release blockers:\n ${blockers}`);
     }
   }
