@@ -325,18 +325,18 @@
        if (colIndex < filterWidth) {
          mainLoop += `
              wTexel = getW(r, ${colIndex}, d1, d2);
-             dotProd += vec4(xC${colIndex}.x, xC${colIndex}.x, xC${colIndex}.z, xC${colIndex}.z) * vec4(wTexel.xy, wTexel.xy);
+             dotProd += xC${colIndex}.xxzz * vec4(wTexel.xy, wTexel.xy);
              if(d1 + 1 < ${convInfo.inChannels}) {
-               dotProd += vec4(xC${colIndex}.y, xC${colIndex}.y, xC${colIndex}.w, xC${colIndex}.w) * vec4(wTexel.zw, wTexel.zw);
+               dotProd += xC${colIndex}.yyww * vec4(wTexel.zw, wTexel.zw);
              }
            `;
 
          if (colIndex + 1 < filterWidth) {
            mainLoop += `
                wTexel = getW(r, ${colIndex + 1}, d1, d2);
-               dotProd += vec4(xC${colIndex + 1}.x, xC${colIndex + 1}.x, xC${colIndex + 1}.z, xC${colIndex + 1}.z) * vec4(wTexel.xy, wTexel.xy);
+               dotProd += xC${colIndex + 1}.xxzz * vec4(wTexel.xy, wTexel.xy);
                if(d1 + 1 < ${convInfo.inChannels}) {
-                 dotProd += vec4(xC${colIndex + 1}.y, xC${colIndex + 1}.y, xC${colIndex + 1}.w, xC${colIndex + 1}.w) * vec4(wTexel.zw, wTexel.zw);
+                 dotProd += xC${colIndex + 1}.yyww * vec4(wTexel.zw, wTexel.zw);
                }
              `;
          }
