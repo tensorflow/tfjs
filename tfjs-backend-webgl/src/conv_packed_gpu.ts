@@ -193,8 +193,7 @@
                if (dilationWidth > 1) {
                  mainLoop += `
                      xCOffset -= 2;
-                     if (xCOffset >= 0 && xCOffset < inDims[1] && xTexelC${
-                     colIndex}Ready == 0) {
+                     if (xCOffset >= 0 && xCOffset < inDims[1]) {
                        xTexelC${colIndex} = getX(batch, xR, xCOffset, d1);
                        xTexelC${colIndex}Ready = 1;
                      }
