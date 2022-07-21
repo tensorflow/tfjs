@@ -160,3 +160,12 @@ export function isWebGPUSupported(): boolean {
           (typeof WorkerGlobalScope !== 'undefined')) &&
       !!navigator.gpu;
 }
+
+export enum MatMulProgramType {
+  MatMulPackedVec4Program,
+  MatMulReduceProgram,
+  MatMulSplitKProgram,
+  MatMulSmallOutputSizeProgram,
+  MatMulPackedProgram,
+  MatMulMax
+}
