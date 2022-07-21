@@ -16,7 +16,9 @@
  */
 
 import {backend_util, TensorInfo, util} from '@tensorflow/tfjs-core';
-import {activationFnSnippet, biasActivationSnippet} from './activation_util';
+
+import {activationFnSnippet} from './activation_util';
+import {matMulReadWriteFnSource} from './matmul_packed_webgpu';
 import {WebGPUProgram} from './webgpu_program';
 import {computeDispatch} from './webgpu_util';
 
@@ -24,16 +26,16 @@ const writeDataToSubASnippet =
     (transpose: boolean, innerAElementSize: number) => {
       if (transpose) {
         return `
-        mm_Asub[inputRow][inputCol] = mm_readA(
+        mm_Asub[inputRow][inputCol] = mm_readA(batch,
           t * TileInner + inputRow,
-          globalRowStart / ${innerAElementSize} + inputCol, globalId);
+          globalRowStart / ${innerAElementSize} + inputCol);
         `;
 
       } else {
         return `
-        mm_Asub[inputRow][inputCol] = mm_readA(
+        mm_Asub[inputRow][inputCol] = mm_readA(batch,
           globalRow + innerRow,
-          t * TileInner / ${innerAElementSize} + inputCol, globalId);
+          t * TileInner / ${innerAElementSize} + inputCol);
         `;
       }
     };
@@ -116,6 +118,7 @@ export function makeMatMulPackedVec4Source(
     let globalRow = ${
       tileAOuter === 1 ? '0' : 'i32(globalId.y) * RowPerThread'};
     let globalCol = i32(globalId.x);
+    let batch = i32(globalId.z);
     let globalRowStart = i32(workgroupId.y) * ${tileAOuter};
 
     let numTiles = (uniforms.dimInner - 1) / TileInner + 1;
@@ -138,7 +141,7 @@ export function makeMatMulPackedVec4Source(
         for (var innerRow = 0; innerRow < RowPerThreadB; innerRow = innerRow + 1) {
             let inputRow = tileRowB + innerRow;
             let inputCol = tileCol;
-            mm_Bsub[inputRow][inputCol] = mm_readB(t * TileInner + inputRow, globalCol, globalId);
+            mm_Bsub[inputRow][inputCol] = mm_readB(batch, t * TileInner + inputRow, globalCol);
         }
 
         workgroupBarrier();
@@ -160,9 +163,7 @@ export function makeMatMulPackedVec4Source(
     }
 
     for (var innerRow = 0; innerRow < RowPerThread; innerRow = innerRow + 1) {
-        mm_write(globalRow + innerRow,
-                 globalCol,
-                 acc[innerRow], globalId);
+        mm_write(batch, globalRow + innerRow, globalCol, acc[innerRow]);
     }
   }`;
 }
@@ -243,67 +244,20 @@ export class MatMulPackedVec4Program implements WebGPUProgram {
   }
 
   getUserCode(): string {
-    const sampleA = this.fitAOuter && this.fitInner ?
-        `return A[batch * batchASize + row * uniforms.aShape[2] / 4 + col]` :
-        `if (coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.aShape[1], uniforms.aShape[2]))) {
-            return A[batch * batchASize + row * uniforms.aShape[2] / 4 + col];
-        }
-        return vec4<f32>(0.0)`;
-
-    const sampleB = this.fitInner && this.fitBOuter ?
-        `return B[batch * batchBSize + row * uniforms.dimBOuter / 4 + col]` :
-        `if(coordsInBounds2D(vec2<i32>(row, col * 4), vec2<i32>(uniforms.dimInner, uniforms.dimBOuter))) {
-             return B[batch * batchBSize + row * uniforms.dimBOuter / 4 + col];
-        }
-        return vec4<f32>(0.0)`;
-
     const userCode = `
       ${
         activationFnSnippet(
             this.activation, this.hasPreluActivationWeights, true)}
-      fn mm_readA(row : i32, col : i32,  globalId : vec3<u32>) -> vec4<f32> {
-        ${
-        this.batchAEqualOne ? `
-          let batchASize = 0;
-          let batch = 0;
-        ` :
-                              `
-          let batchASize = uniforms.aShape[1] * uniforms.aShape[2] / 4;
-          let batch = i32(globalId.z);
-        `}
-
-        ${sampleA};
-      }
-
-      fn mm_readB(row : i32, col : i32,  globalId : vec3<u32>) -> vec4<f32> {
-        ${
-        this.batchBEqualOne ? `
-          let batchBSize = 0;
-          let batch = 0;
-          ` :
-                              `
-          let batchBSize = uniforms.bShape[1] * uniforms.bShape[2] / 4;
-          let batch = i32(globalId.z);
-       `}
-        ${sampleB};
-      }
-
-      fn mm_write(row : i32, col : i32, valueIn : vec4<f32>, globalId : vec3<u32>) {
-        if (row < uniforms.dimAOuter && col * 4 < uniforms.dimBOuter)
-        {
-          var value = valueIn;
-          let batch = i32(globalId.z);
-          let coords = vec3<i32>(batch, row, col * 4);
-          ${biasActivationSnippet(this.addBias, this.activation)}
-          setOutputAtCoords(coords[0], coords[1], coords[2], value);
-        }
-      }
+      ${
+        matMulReadWriteFnSource(
+            this.addBias, this.activation, this.batchAEqualOne,
+            this.batchBEqualOne, false, false, this.fitAOuter, this.fitBOuter,
+            this.fitInner, 4)}
       ${
         makeMatMulPackedVec4Source(
             this.elementsPerThread, this.tileAOuter, this.tileBOuter,
             this.tileInner, 4, this.transposeA)}
     `;
-
     return userCode;
   }
 }
