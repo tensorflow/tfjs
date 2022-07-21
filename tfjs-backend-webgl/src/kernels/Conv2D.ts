@@ -43,8 +43,7 @@ export function conv2d(
       (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID')) {
     out = conv2dByMatMul({x, filter, convInfo, backend});
   } else if (convInfo.strideWidth <= 2 && $dataFormat === 'channelsLast'
-    // && env().getBool('WEBGL_EXP_CONV')
-    && env().getBool('WEBGL_PACK')
+    && env().getBool('WEBGL_EXP_CONV')
     ) {
     const program = new Conv2DPackedProgram(convInfo);
     const customValues = [

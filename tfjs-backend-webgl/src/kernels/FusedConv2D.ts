@@ -112,8 +112,7 @@ export function fusedConv2d(args: {
       leakyreluAlpha
     });
   } else if (convInfo.strideWidth <= 2 && $dataFormat === 'channelsLast'
-    // && env().getBool('WEBGL_EXP_CONV')
-    && env().getBool('WEBGL_PACK')
+    && env().getBool('WEBGL_EXP_CONV')
     ) {
       const fusedActivation =
           activation ? mapActivationToShaderProgram(activation, true) : null;
