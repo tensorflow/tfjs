@@ -247,7 +247,20 @@ limitations under the License.
 
           await tf.setBackend(state.backend);
           await showMsg(`Runing on ${state.backend}`);
+
+          // willReadFrequently is set to true for CPU backend. So to compare
+          // the result, we also set it to true for GPU backends.
+          let savedWillReadFrequently;
+          if (state.backend === 'webgl' || state.backend === 'webgpu') {
+            savedWillReadFrequently = tf.env().getBool('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU');
+            tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', true);
+          }
+
           predictionData = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
+
+          if (state.backend === 'webgl' || state.backend === 'webgpu') {
+            tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', savedWillReadFrequently);
+          }
         } catch (e) {
           showMsg('Error: ' + e.message);
           throw e;
