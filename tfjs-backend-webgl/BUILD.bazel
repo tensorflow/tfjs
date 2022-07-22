@@ -189,6 +189,25 @@ tfjs_web_test(
     static_files = STATIC_FILES,
 )
 
+tfjs_web_test(
+    name = "tfjs-backend-webgl_exp_conv_test",
+    srcs = [
+        "//tfjs-backend-webgl/src:tfjs-backend-webgl_test_bundle",
+    ],
+    args = [
+        "--testEnv",
+        "webgl2",
+        "--flags",
+        '{"WEBGL_EXP_CONV": true}',
+    ],
+    browsers = [
+        "bs_chrome_mac",
+    ],
+    headless = False,
+    presubmit_browsers = [],  # Only run in nightly
+    static_files = STATIC_FILES,
+)
+
 js_library(
     name = "package_json",
     srcs = [
