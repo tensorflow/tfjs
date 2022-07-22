@@ -31,6 +31,7 @@ export const fromPixelsConfig: KernelConfig = {
 };
 
 let fromPixels2DContext: CanvasRenderingContext2D;
+let willReadFrequently = env().getBool('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU');
 
 function fromPixels(args: {
   inputs: FromPixelsInputs,
@@ -56,15 +57,21 @@ function fromPixels(args: {
   const outShape = [height, width, numChannels];
 
   if (isImage || isVideo) {
-    if (fromPixels2DContext == null) {
-      fromPixels2DContext = document.createElement('canvas').getContext('2d');
+    const newWillReadFrequently =
+        env().getBool('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU');
+    if (fromPixels2DContext == null ||
+        newWillReadFrequently !== willReadFrequently) {
+      willReadFrequently = newWillReadFrequently;
+      fromPixels2DContext =
+          document.createElement('canvas').getContext(
+              '2d', {willReadFrequently}) as CanvasRenderingContext2D;
     }
 
     fromPixels2DContext.canvas.width = width;
     fromPixels2DContext.canvas.height = height;
     fromPixels2DContext.drawImage(
-        pixels as HTMLVideoElement | HTMLImageElement | ImageBitmap,
-        0, 0, width, height);
+        pixels as HTMLVideoElement | HTMLImageElement | ImageBitmap, 0, 0,
+        width, height);
     pixels = fromPixels2DContext.canvas;
   }
 
