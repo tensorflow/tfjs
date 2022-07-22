@@ -93,6 +93,7 @@ function expectArraysPredicate(
           `Expected: ${expectedFlat}.`);
     }
   }
+  expect().nothing();
 }
 
 export interface DoneFn {
@@ -102,6 +103,7 @@ export interface DoneFn {
 
 export function expectPromiseToFail(fn: () => Promise<{}>, done: DoneFn): void {
   fn().then(() => done.fail(), () => done());
+  expect().nothing();
 }
 
 export function expectArraysEqual(actual: TensorLike, expected: TensorLike) {
@@ -125,6 +127,7 @@ export function expectNumbersClose(a: number, e: number, epsilon?: number) {
   if (!areClose(a, e, epsilon)) {
     throw new Error(`Numbers differ: actual === ${a}, expected === ${e}`);
   }
+  expect().nothing();
 }
 
 function areClose(a: number, e: number, epsilon: number): boolean {

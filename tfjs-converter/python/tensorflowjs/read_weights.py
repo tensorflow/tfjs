@@ -25,7 +25,7 @@ import numpy as np
 from tensorflowjs import quantization
 
 _INPUT_DTYPES = [np.float16, np.float32, np.int32, np.complex64,
-                 np.uint8, np.uint16, np.object, np.bool]
+                 np.uint8, np.uint16, object, bool]
 
 # Number of bytes used to encode the length of a string in a string tensor.
 STRING_LENGTH_NUM_BYTES = 4
@@ -174,7 +174,7 @@ def decode_weights(weights_manifest, data_buffers, flatten=False):
       name = weight['name']
       if weight['dtype'] == 'string':
         # String array.
-        dtype = np.object
+        dtype = object
       elif quant_info:
         # Quantized array.
         dtype = np.dtype(quant_info['dtype'])
