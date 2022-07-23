@@ -217,19 +217,18 @@ limitations under the License.
           await showEnvironment();
         }
 
-        let match, predictionData, referenceData;
+        let match;
+        let predictionData = [];
         await cleanUpTable();
 
         // load model and run inference
         try {
-          tf.setBackend('cpu');
-          await loadModelAndRecordTime();
           await showMsg('Testing correctness');
+          await loadModelAndRecordTime();
           await showInputs();
           await showCorrectnessTestParameters();
 
           let inferenceInput;
-          await showMsg('Runing on cpu');
           if (state.benchmark === 'custom') {
             inferenceInput = generateInputFromDef(
               state.inputs, model instanceof tf.GraphModel);
@@ -241,25 +240,33 @@ limitations under the License.
           } catch (e) {
             console.warn(e.message);
           }
-
           const debug = keepIntermediateTensors & (benchmarks[state.benchmark].supportDebug !== false);
-          referenceData = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
 
-          await tf.setBackend(state.backend);
-          await showMsg(`Runing on ${state.backend}`);
-
-          // willReadFrequently is set to true for CPU backend. So to compare
-          // the result, we also set it to true for GPU backends.
-          let savedWillReadFrequently;
-          if (state.backend === 'webgl' || state.backend === 'webgpu') {
-            savedWillReadFrequently = tf.env().getBool('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU');
-            tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', true);
+          let backends = ['cpu', state.backend];
+          if (state.benchmark === "pose-detection" && state.backend === 'webgl') {
+            backends[0] = 'webgpu';
+          } else if (state.benchmark === "pose-detection" && state.backend === 'webgpu') {
+            backends[0] = 'webgl';
           }
 
-          predictionData = await predictAndGetPredictionData(predict, model, inferenceInput, debug);
+          for (let i = 0; i < backends.length; i++) {
+            const backend = backends[i];
 
-          if (state.backend === 'webgl' || state.backend === 'webgpu') {
-            tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', savedWillReadFrequently);
+            // willReadFrequently is set to true for CPU backend. So to compare
+            // the result, we also set it to true for GPU backends.
+            let savedWillReadFrequently;
+            if (backend === 'webgl' || backend === 'webgpu') {
+              savedWillReadFrequently = tf.env().getBool('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU');
+              tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', true);
+            }
+
+            await showMsg(`Runing on ${backend}`);
+            await tf.setBackend(backend);
+            predictionData.push(await predictAndGetPredictionData(predict, model, inferenceInput, debug));
+
+            if (backend === 'webgl' || backend === 'webgpu') {
+              tf.env().set('CANVAS2D_WILL_READ_FREQUENTLY_FOR_GPU', savedWillReadFrequently);
+            }
           }
         } catch (e) {
           showMsg('Error: ' + e.message);
@@ -269,7 +276,7 @@ limitations under the License.
         // compare results
         try {
           await showMsg(null);
-          expectObjectsClose(predictionData, referenceData);
+          expectObjectsClose(predictionData[1], predictionData[0]);
           match = true;
         } catch (e) {
           match = false;
