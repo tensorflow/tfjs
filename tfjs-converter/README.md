@@ -454,7 +454,7 @@ Then, we clone the project and install dependencies with:
 
 ```bash
 git clone https://github.com/tensorflow/tfjs.git
-cd tfjs/tfjs-converter
+cd tfjs
 yarn # Installs dependencies.
 ```
 
@@ -470,6 +470,7 @@ Before submitting a pull request, make sure the code passes all the tests and is
 clean of lint errors:
 
 ```bash
+cd tfjs-converter
 yarn test
 yarn lint
 ```
@@ -486,4 +487,10 @@ To run the tests once and exit the karma process (helpful on Windows):
 
 ```bash
 yarn test --single-run
+```
+
+To run all the python tests
+
+```bash
+yarn run-python-tests
 ```
