@@ -352,8 +352,8 @@ const commonSnippet = `
 
   fn idiv(a: i32, b: i32, sign: f32) -> i32 {
     var res: i32 = a / b;
-    let mod: i32 = a % b;
-    if (sign < 0. && mod != 0) {
+    let modulo: i32 = a % b;
+    if (sign < 0. && modulo != 0) {
       res = res - 1;
     }
     return res;
