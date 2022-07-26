@@ -448,14 +448,14 @@ limitations under the License.
               if (urlState != null && urlState.has(shapeName)) {
                 shapeInput.setAttribute('value', urlState.get(shapeName));
                 state.inputs[inputIndex].shape =
-                  shapeInput.value.split(',').map(x => +x);
+                  shapeInput.value.split(',').map(Number);
               } else {
                 shapeInput.setAttribute('value', shape);
                 needInputShape = true;
               }
               shapeInput.addEventListener('focusout', () => {
                 state.inputs[inputIndex].shape =
-                  shapeInput.value.split(',').map(x => +x);
+                  shapeInput.value.split(',').map(Number);
               });
               shape = shapeInput;
             }
