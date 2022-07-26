@@ -429,7 +429,7 @@ limitations under the License.
         // the input table for the model have been constructed
         return;
       }
-      let variableShape = false;
+      let needInputShape = false;
       const modelInputsElement = document.getElementById('modelInputs');
       const inputs = isTflite() ? tfliteModel.inputs : model.inputs;
       if (inputs == null) {
@@ -440,11 +440,19 @@ limitations under the License.
         state.inputs.forEach((modelInput, inputIndex) => {
           if (modelInput.shape != null) {
             let shape = modelInput.shape;
-            variableShape = modelInput.shape.some(e => e == -1);
+            let shapeName = modelInput.name.concat('Shape');
+            let variableShape = modelInput.shape.some(e => e == -1);
             if (variableShape && state.benchmark === 'custom') {
               const shapeInput = document.createElement("INPUT");
               shapeInput.setAttribute('type', 'text');
-              shapeInput.setAttribute('value', shape);
+              if (urlState != null && urlState.has(shapeName)) {
+                shapeInput.setAttribute('value', urlState.get(shapeName));
+                state.inputs[inputIndex].shape =
+                  shapeInput.value.split(',').map(x => +x);
+              } else {
+                shapeInput.setAttribute('value', shape);
+                needInputShape = true;
+              }
               shapeInput.addEventListener('focusout', () => {
                 state.inputs[inputIndex].shape =
                   shapeInput.value.split(',').map(x => +x);
@@ -474,7 +482,7 @@ limitations under the License.
       }
 
       await tf.nextFrame();
-      return state.benchmark === 'custom' && variableShape;
+      return needInputShape;
     }
 
     function createRangeInput(range, index) {
