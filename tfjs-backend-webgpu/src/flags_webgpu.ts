@@ -29,11 +29,6 @@ ENV.registerFlag('WEBGPU_DEFERRED_SUBMIT_BATCH_SIZE', () => 15);
 ENV.registerFlag('WEBGPU_CPU_FORWARD', () => true);
 
 /**
- * Thread register block size for matmul kernel.
- */
-ENV.registerFlag('WEBGPU_MATMUL_WORK_PER_THREAD', () => 4);
-
-/**
  * This flag is used to test different types of matmul programs.
  *
  * See MatMulProgramType in webgpu_util.ts for a list of available values.
