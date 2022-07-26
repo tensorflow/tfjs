@@ -496,6 +496,8 @@ limitations under the License.
         state.numProfiles = Number(urlState.get('profile'));
       if (urlState.has('benchmark'))
         state.benchmark = urlState.get('benchmark');
+      if (urlState.has('modelUrl'))
+        state.modelUrl = urlState.get('modelUrl');
       if (urlState.has('backend'))
         state.backend = urlState.get('backend');
       if (urlState.has('inputSize'))
@@ -871,6 +873,9 @@ limitations under the License.
             });
             modelUrlController.domElement.querySelector('input').placeholder =
               'https://your-domain.com/model-path/model.json';
+            if (modelUrlController != null && urlState.has('modelUrl')) {
+              modelUrlController.setValue(urlState.get('modelUrl'));
+            }
           }
         } else if (modelUrlController != null) {
           modelFolder.remove(modelUrlController);
