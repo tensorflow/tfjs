@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {Tensor5D} from '../tensor';
+import {ENGINE} from '../engine';
+import {GPUReadData, Tensor5D} from '../tensor';
 import {inferShape} from '../tensor_util_env';
 import {TensorLike5D} from '../types';
 import {DataType} from '../types';
@@ -38,7 +39,7 @@ import {makeTensor} from './tensor_ops_util';
  * ```
  *
  * @param values The values of the tensor. Can be nested array of numbers,
- *     or a flat array, or a `TypedArray`.
+ *     or a flat array, or a `TypedArray`, or a `GPUReadData`.
  * @param shape The shape of the tensor. Optional. If not provided,
  *   it is inferred from `values`.
  * @param dtype The data type.
@@ -46,22 +47,27 @@ import {makeTensor} from './tensor_ops_util';
  * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
 export function tensor5d(
-    values: TensorLike5D, shape?: [number, number, number, number, number],
+    values: TensorLike5D|GPUReadData,
+    shape?: [number, number, number, number, number],
     dtype?: DataType): Tensor5D {
-  assertNonNull(values);
-  if (shape != null && shape.length !== 5) {
-    throw new Error('tensor5d() requires shape to have five numbers');
+  if (values instanceof GPUReadData) {
+    return ENGINE.makeTensorFromGPUBuffer(values) as Tensor5D;
+  } else {
+    assertNonNull(values);
+    if (shape != null && shape.length !== 5) {
+      throw new Error('tensor5d() requires shape to have five numbers');
+    }
+    const inferredShape = inferShape(values, dtype);
+    if (inferredShape.length !== 5 && inferredShape.length !== 1) {
+      throw new Error(
+          'tensor5d() requires values to be ' +
+          'number[][][][][] or flat/TypedArray');
+    }
+    if (inferredShape.length === 1 && shape == null) {
+      throw new Error(
+          'tensor5d() requires shape to be provided when `values` ' +
+          'are a flat array');
+    }
+    return makeTensor(values, shape, inferredShape, dtype) as Tensor5D;
   }
-  const inferredShape = inferShape(values, dtype);
-  if (inferredShape.length !== 5 && inferredShape.length !== 1) {
-    throw new Error(
-        'tensor5d() requires values to be ' +
-        'number[][][][][] or flat/TypedArray');
-  }
-  if (inferredShape.length === 1 && shape == null) {
-    throw new Error(
-        'tensor5d() requires shape to be provided when `values` ' +
-        'are a flat array');
-  }
-  return makeTensor(values, shape, inferredShape, dtype) as Tensor5D;
 }

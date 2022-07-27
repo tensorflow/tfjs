@@ -15,11 +15,13 @@
  * =============================================================================
  */
 
-import {Tensor1D} from '../tensor';
+import {ENGINE} from '../engine';
+import {GPUReadData, Tensor1D} from '../tensor';
 import {inferShape} from '../tensor_util_env';
 import {TensorLike1D} from '../types';
 import {DataType} from '../types';
 import {assertNonNull} from '../util';
+
 import {makeTensor} from './tensor_ops_util';
 
 /**
@@ -33,17 +35,23 @@ import {makeTensor} from './tensor_ops_util';
  * ```
  *
  * @param values The values of the tensor. Can be array of numbers,
- *     or a `TypedArray`.
+ *     or a `TypedArray`, or a `GPUReadData`.
  * @param dtype The data type.
  *
  * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
-export function tensor1d(values: TensorLike1D, dtype?: DataType): Tensor1D {
-  assertNonNull(values);
-  const inferredShape = inferShape(values, dtype);
-  if (inferredShape.length !== 1) {
-    throw new Error('tensor1d() requires values to be a flat/TypedArray');
+export function tensor1d(
+    values: TensorLike1D|GPUReadData, dtype?: DataType,
+    shape?: number[]): Tensor1D {
+  if (values instanceof GPUReadData) {
+    return ENGINE.makeTensorFromGPUBuffer(values) as Tensor1D;
+  } else {
+    assertNonNull(values);
+    const inferredShape = inferShape(values, dtype);
+    if (inferredShape.length !== 1) {
+      throw new Error('tensor1d() requires values to be a flat/TypedArray');
+    }
+    const shape: number[] = null;
+    return makeTensor(values, shape, inferredShape, dtype) as Tensor1D;
   }
-  const shape: number[] = null;
-  return makeTensor(values, shape, inferredShape, dtype) as Tensor1D;
 }

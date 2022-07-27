@@ -23,7 +23,7 @@ import {getGradient, getKernel, getKernelsForBackend, GradFunc, NamedAttrMap, Te
 import * as log from './log';
 import {KernelProfile, Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY, TapeNode} from './tape';
-import {DataId, DataToGPUOptions, GPUData, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
+import {DataId, DataToGPUOptions, GPUData, GPUReadData, setTensorTracker, Tensor, TensorTracker, Variable} from './tensor';
 import {GradSaveFunc, NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
 import {BackendValues, DataType, DataValues} from './types';
@@ -824,14 +824,33 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   /**
+   * Internal method used by public APIs for tensor creation. Makes a new
+   * tensor with the provided shape, dtype and values. It always creates a new
+   * data id and uses the data from the buffer.
+   */
+  makeTensorFromGPUBuffer(values: GPUReadData, backend?: KernelBackend):
+      Tensor {
+    if (values.buffer == null) {
+      throw new Error('Values passed to engine.makeTensor() are null');
+    }
+    backend = backend || this.backend;
+
+    const dataId = backend.writeFromGPUBuffer(values);
+    const t =
+        new Tensor(values.shape, values.dtype, dataId, this.nextTensorId());
+    this.trackTensor(t, backend);
+    return t;
+  }
+
+  /**
    * Internal method used by backends. Makes a new tensor
    * that is a wrapper around an existing data id. It doesn't create
    * a new data id, only increments the ref count used in memory tracking.
    * @deprecated
    */
   makeTensorFromDataId(
-    dataId: DataId, shape: number[], dtype: DataType,
-    backend?: KernelBackend): Tensor {
+      dataId: DataId, shape: number[], dtype: DataType,
+      backend?: KernelBackend): Tensor {
     dtype = dtype || 'float32';
     const tensorInfo: TensorInfo = {dataId, shape, dtype};
     return this.makeTensorFromTensorInfo(tensorInfo, backend);

@@ -173,6 +173,19 @@ export interface GPUData {
   bufSize?: number;
 }
 
+// TODO: merge this with GPUData and add WebGL support.
+export class GPUReadData {
+  readonly buffer: GPUBuffer;
+  readonly shape: number[];
+  readonly dtype: DataType;
+
+  constructor(buffer: GPUBuffer, shape: number[], dtype?: DataType) {
+    this.buffer = buffer;
+    this.shape = shape;
+    this.dtype = dtype || 'float32';
+  }
+}
+
 export interface TensorTracker {
   makeTensor(
       values: DataValues, shape: number[], dtype: DataType,
