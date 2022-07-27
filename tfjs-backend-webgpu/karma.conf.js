@@ -91,6 +91,11 @@ module.exports = function (config) {
         ],
       }
     },
-    client: { jasmine: { random: false }, args: args }
+    client: {
+      jasmine: {
+        random: false
+      },
+      args: args
+    }
   })
 }
