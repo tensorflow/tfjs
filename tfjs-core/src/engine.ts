@@ -824,14 +824,34 @@ export class Engine implements TensorTracker, DataMover {
   }
 
   /**
+   * Internal method used by public APIs for tensor creation. Makes a new
+   * tensor with the provided shape, dtype and buffer. It always creates a new
+   * data id and uses the data from the buffer.
+   */
+  makeTensorFromGPUBuffer(
+      buffer: GPUBuffer, shape: number[], dtype: DataType,
+      backend?: KernelBackend): Tensor {
+    if (buffer == null) {
+      throw new Error('Values passed to engine.makeTensor() are null');
+    }
+    dtype = dtype || 'float32';
+    backend = backend || this.backend;
+
+    const dataId = backend.writeFromGPUBuffer(buffer, shape, dtype);
+    const t = new Tensor(shape, dtype, dataId, this.nextTensorId());
+    this.trackTensor(t, backend);
+    return t;
+  }
+
+  /**
    * Internal method used by backends. Makes a new tensor
    * that is a wrapper around an existing data id. It doesn't create
    * a new data id, only increments the ref count used in memory tracking.
    * @deprecated
    */
   makeTensorFromDataId(
-    dataId: DataId, shape: number[], dtype: DataType,
-    backend?: KernelBackend): Tensor {
+      dataId: DataId, shape: number[], dtype: DataType,
+      backend?: KernelBackend): Tensor {
     dtype = dtype || 'float32';
     const tensorInfo: TensorInfo = {dataId, shape, dtype};
     return this.makeTensorFromTensorInfo(tensorInfo, backend);

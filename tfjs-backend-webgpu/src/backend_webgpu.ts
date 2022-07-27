@@ -50,6 +50,7 @@ type TensorData = {
   shape: number[],
   refCount: number,
   resourceInfo?: BufferInfo|TextureInfo,
+  external?: boolean,
   // For complex numbers, the real and imaginary parts are stored as their own
   // individual tensors, with a parent joining the two with the
   // complexTensorInfos field.
@@ -232,7 +233,7 @@ export class WebGPUBackend extends KernelBackend {
 
   releaseResource(dataId: DataId) {
     const tensorData = this.tensorMap.get(dataId);
-    if (!tensorData || !tensorData.resourceInfo) {
+    if (!tensorData || !tensorData.resourceInfo || tensorData.external) {
       return;
     }
     if ('texture' in tensorData.resourceInfo) {
@@ -284,6 +285,23 @@ export class WebGPUBackend extends KernelBackend {
     }
     const dataId = {id: this.nextDataId()};
     this.tensorMap.set(dataId, {dtype, shape, values, refCount: 1});
+    return dataId;
+  }
+
+  writeFromGPUBuffer(buffer: GPUBuffer, shape: number[], dtype: DataType):
+      DataId {
+    if (dtype === 'complex64') {
+      throw new Error(`Cannot write to a complex64 dtype. `);
+    }
+    const dataId = {id: this.nextDataId()};
+    this.tensorMap.set(
+        dataId, {dtype, shape, values: null, refCount: 1, external: true});
+    const tensorData = this.tensorMap.get(dataId);
+    const size = webgpu_util.GPUBytesPerElement(tensorData.dtype) *
+        util.sizeFromShape(tensorData.shape);
+
+    tensorData
+        .resourceInfo = {size, usage: this.defaultGpuBufferUsage(), buffer};
     return dataId;
   }
 
@@ -836,6 +854,10 @@ export class WebGPUBackend extends KernelBackend {
 
   numDataIds() {
     return this.tensorMap.numDataIds() - this.tensorDataPendingDisposal.length;
+  }
+
+  getGPUDevice(): GPUDevice {
+    return this.device;
   }
 
   dispose() {

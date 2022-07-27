@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {ENGINE} from '../engine';
 import {Tensor3D} from '../tensor';
 import {inferShape} from '../tensor_util_env';
 import {TensorLike3D} from '../types';
@@ -38,7 +39,7 @@ import {makeTensor} from './tensor_ops_util';
  * ```
  *
  * @param values The values of the tensor. Can be nested array of numbers,
- *     or a flat array, or a `TypedArray`.
+ *     or a flat array, or a `TypedArray`, or a GPUBuffer.
  * @param shape The shape of the tensor. If not provided,  it is inferred from
  *     `values`.
  * @param dtype The data type.
@@ -46,21 +47,25 @@ import {makeTensor} from './tensor_ops_util';
  * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
 export function tensor3d(
-    values: TensorLike3D, shape?: [number, number, number],
+    values: TensorLike3D|GPUBuffer, shape?: [number, number, number],
     dtype?: DataType): Tensor3D {
-  assertNonNull(values);
-  if (shape != null && shape.length !== 3) {
-    throw new Error('tensor3d() requires shape to have three numbers');
+  if (values instanceof GPUBuffer) {
+    return ENGINE.makeTensorFromGPUBuffer(values, shape, dtype) as Tensor3D;
+  } else {
+    assertNonNull(values);
+    if (shape != null && shape.length !== 3) {
+      throw new Error('tensor3d() requires shape to have three numbers');
+    }
+    const inferredShape = inferShape(values, dtype);
+    if (inferredShape.length !== 3 && inferredShape.length !== 1) {
+      throw new Error(
+          'tensor3d() requires values to be number[][][] or flat/TypedArray');
+    }
+    if (inferredShape.length === 1 && shape == null) {
+      throw new Error(
+          'tensor3d() requires shape to be provided when `values` ' +
+          'are a flat array');
+    }
+    return makeTensor(values, shape, inferredShape, dtype) as Tensor3D;
   }
-  const inferredShape = inferShape(values, dtype);
-  if (inferredShape.length !== 3 && inferredShape.length !== 1) {
-    throw new Error(
-        'tensor3d() requires values to be number[][][] or flat/TypedArray');
-  }
-  if (inferredShape.length === 1 && shape == null) {
-    throw new Error(
-        'tensor3d() requires shape to be provided when `values` ' +
-        'are a flat array');
-  }
-  return makeTensor(values, shape, inferredShape, dtype) as Tensor3D;
 }

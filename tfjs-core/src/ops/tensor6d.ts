@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {ENGINE} from '../engine';
 import {Tensor6D} from '../tensor';
 import {inferShape} from '../tensor_util_env';
 import {TensorLike6D} from '../types';
@@ -38,7 +39,7 @@ import {makeTensor} from './tensor_ops_util';
  * ```
  *
  * @param values The values of the tensor. Can be nested array of numbers,
- *     or a flat array, or a `TypedArray`.
+ *     or a flat array, or a `TypedArray`, or a GPUBuffer.
  * @param shape The shape of the tensor. Optional. If not provided,
  *   it is inferred from `values`.
  * @param dtype The data type.
@@ -46,25 +47,29 @@ import {makeTensor} from './tensor_ops_util';
  * @doc {heading: 'Tensors', subheading: 'Creation'}
  */
 export function tensor6d(
-    values: TensorLike6D,
+    values: TensorLike6D|GPUBuffer,
     shape?: [number, number, number, number, number, number],
     dtype?: DataType): Tensor6D {
-  assertNonNull(values);
-  if (shape != null && shape.length !== 6) {
-    throw new Error('tensor6d() requires shape to have six numbers');
+  if (values instanceof GPUBuffer) {
+    return ENGINE.makeTensorFromGPUBuffer(values, shape, dtype) as Tensor6D;
+  } else {
+    assertNonNull(values);
+    if (shape != null && shape.length !== 6) {
+      throw new Error('tensor6d() requires shape to have six numbers');
+    }
+    const inferredShape = inferShape(values, dtype);
+    if (inferredShape.length !== 6 && inferredShape.length !== 1) {
+      throw new Error(
+          'tensor6d() requires values to be number[][][][][][] or ' +
+          'flat/TypedArray');
+    }
+    if (inferredShape.length === 1 && shape == null) {
+      throw new Error(
+          'tensor6d() requires shape to be provided when `values` ' +
+          'are a flat array');
+    }
+    shape = shape ||
+        inferredShape as [number, number, number, number, number, number];
+    return makeTensor(values, shape, inferredShape, dtype) as Tensor6D;
   }
-  const inferredShape = inferShape(values, dtype);
-  if (inferredShape.length !== 6 && inferredShape.length !== 1) {
-    throw new Error(
-        'tensor6d() requires values to be number[][][][][][] or ' +
-        'flat/TypedArray');
-  }
-  if (inferredShape.length === 1 && shape == null) {
-    throw new Error(
-        'tensor6d() requires shape to be provided when `values` ' +
-        'are a flat array');
-  }
-  shape = shape ||
-      inferredShape as [number, number, number, number, number, number];
-  return makeTensor(values, shape, inferredShape, dtype) as Tensor6D;
 }

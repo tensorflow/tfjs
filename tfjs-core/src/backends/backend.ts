@@ -127,6 +127,10 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   write(values: BackendValues, shape: number[], dtype: DataType): DataId {
     return notYetImplemented('write');
   }
+  writeFromGPUBuffer(buffer: GPUBuffer, shape: number[], dtype: DataType):
+      DataId {
+    return notYetImplemented('writeFromGPUBuffer');
+  }
   move(
       dataId: DataId, values: BackendValues, shape: number[], dtype: DataType,
       refCount: number): void {
@@ -138,6 +142,10 @@ export class KernelBackend implements TensorStorage, Backend, BackendTimer {
   /** Returns the highest precision for floats in bits (e.g. 16 or 32) */
   floatPrecision(): 16|32 {
     return notYetImplemented('floatPrecision');
+  }
+  /** Return the GPUDevice (WebGPU backend only) */
+  getGPUDevice(): GPUDevice {
+    return notYetImplemented('getDevice');
   }
   /** Returns the smallest representable number.  */
   epsilon(): number {
