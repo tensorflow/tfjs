@@ -19,6 +19,7 @@ import {backend_util, Conv2D, Conv2DAttrs, Conv2DInputs, env, KernelConfig, Kern
 
 import {MathBackendWebGL} from '../backend_webgl';
 import {Conv2DProgram} from '../conv_gpu';
+import {Conv2DPackedProgram} from '../conv_packed_gpu';
 import {conv2dByMatMul, conv2dWithIm2Row} from './Conv2D_impl';
 import {reshape} from './Reshape';
 
@@ -41,6 +42,18 @@ export function conv2d(
       convInfo.strideHeight === 1 && convInfo.strideWidth === 1 &&
       (convInfo.padInfo.type === 'SAME' || convInfo.padInfo.type === 'VALID')) {
     out = conv2dByMatMul({x, filter, convInfo, backend});
+  } else if (convInfo.strideWidth <= 2 && $dataFormat === 'channelsLast'
+    && env().getBool('WEBGL_EXP_CONV')
+    ) {
+    const program = new Conv2DPackedProgram(convInfo);
+    const customValues = [
+      [convInfo.padInfo.top, convInfo.padInfo.left],
+      [convInfo.strideHeight, convInfo.strideWidth],
+      [convInfo.dilationHeight, convInfo.dilationWidth],
+      [convInfo.inHeight, convInfo.inWidth]
+    ];
+    out =
+        backend.runWebGLProgram(program, [x, filter], 'float32', customValues);
   } else if (env().getBool('WEBGL_CONV_IM2COL')) {
     out = conv2dWithIm2Row({x, filter, convInfo, backend});
   } else {
