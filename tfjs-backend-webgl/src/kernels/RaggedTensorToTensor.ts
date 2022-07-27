@@ -34,9 +34,12 @@ export function raggedTensorToTensor(args: {
   const $defaultValue = backend.readSync(defaultValue.dataId) as TypedArray;
   const $rowPartitionValues =
       rowPartitionTensors.map(t => backend.readSync(t.dataId) as TypedArray);
+  const rowPartitionValuesShapes = rowPartitionTensors.map(t => t.shape);
 
   const [outputShape, output] = raggedTensorToTensorImplCPU(
-      $shape, $values, $defaultValue, $rowPartitionValues, rowPartitionTypes);
+      $shape, shape.shape, $values, values.shape, values.dtype, $defaultValue,
+      defaultValue.shape, $rowPartitionValues, rowPartitionValuesShapes,
+      rowPartitionTypes);
   return backend.makeTensorInfo(outputShape, values.dtype, output);
 }
 
