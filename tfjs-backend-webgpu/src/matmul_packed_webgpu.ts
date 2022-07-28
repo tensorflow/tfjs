@@ -33,21 +33,27 @@ export function matMulReadFnSource(
       let batchASize = uniforms.aShape[1] * uniforms.aShape[2];
       ${
       transposeA ?
-          `value = A[(batch * batchASize + col * uniforms.aShape[2] + row) / ${
-              component}];` :
-          `value = A[(batch * batchASize + row * uniforms.aShape[2] + col) / ${
-              component}];`}
+          `value = ${
+              typeSnippet(
+                  component)}(A[(batch * batchASize + col * uniforms.aShape[2] + row) / ${
+              component}]);` :
+          `value = ${
+              typeSnippet(
+                  component)}(A[(batch * batchASize + row * uniforms.aShape[2] + col) / ${
+              component}]);`}
 
     `;
   let sampleB;
   if (transposeB === false) {
-    sampleB =
-        `value = B[(batch * batchBSize + row * uniforms.bShape[2] + col) / ${
-            component}];`;
+    sampleB = `value = ${
+        typeSnippet(
+            component)}(B[(batch * batchBSize + row * uniforms.bShape[2] + col) / ${
+        component}]);`;
   } else {
-    sampleB =
-        `value = B[(batch * batchBSize + col * uniforms.bShape[2] + row) / ${
-            component}];`;
+    sampleB = `value = ${
+        typeSnippet(
+            component)}(B[(batch * batchBSize + col * uniforms.bShape[2] + row) / ${
+        component}]);`;
   }
 
   return `
