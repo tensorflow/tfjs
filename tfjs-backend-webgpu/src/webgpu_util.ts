@@ -74,8 +74,8 @@ export function computeWorkGroupInfoForMatMul(
   // size to [8, 8, 1] and the work per thread size is [4, 4, 1]. But we should
   // revisit it and find the balance between work group size and work per thread
   // size.
-  let workGroupSize: [number, number, number] = [8, 8, 1];
-  let elementsPerThread: [number, number, number] = [4, 4, 1];
+  const workGroupSize: [number, number, number] = [8, 8, 1];
+  const elementsPerThread: [number, number, number] = [4, 4, 1];
 
   if (!transposeA) {
     if (dimAOuter <= 8) {
