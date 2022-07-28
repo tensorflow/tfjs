@@ -109,8 +109,31 @@ const INT_DIV_VEC4 = `
   return vec4<f32>(resultTemp);
   `;
 
-const NOT_EQUAL = 'return f32(a != b);';
-const NOT_EQUAL_VEC4 = 'return vec4<f32>(a != b);';
+const NOT_EQUAL = `
+  if (isnan(a) || isnan(b)) {
+    return 1.0;
+  }
+  return f32(a != b);
+`;
+const NOT_EQUAL_VEC4 = `
+  var result = vec4<f32>(a != b);
+  var isANaN = isnanVec4(a);
+  var isBNaN = isnanVec4(b);
+  if (isANaN.r || isBNaN.r) {
+    result.r = 1.0;
+  }
+  if (isANaN.g || isBNaN.g) {
+    result.g = 1.0;
+  }
+  if (isANaN.b || isBNaN.b) {
+    result.b = 1.0;
+  }
+  if (isANaN.a || isBNaN.a) {
+    result.a = 1.0;
+  }
+
+  return result;
+`;
 const POW = `
   if(a < 0.0 && floor(b) < b) {
     return uniforms.NAN;
